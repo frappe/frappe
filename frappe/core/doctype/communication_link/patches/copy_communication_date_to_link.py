@@ -16,18 +16,18 @@ def execute():
 					and c.communication_date is not null
 					limit %s
 				""",
-				"postgres": """
-					UPDATE "tabCommunication Link"
+				"*": """
+					UPDATE `tabCommunication Link`
 					SET communication_date = sub.communication_date
 					FROM (
 						SELECT cl.name, c.communication_date
-						FROM "tabCommunication Link" cl
-						JOIN "tabCommunication" c ON cl.parent = c.name
+						FROM `tabCommunication Link` cl
+						JOIN `tabCommunication` c ON cl.parent = c.name
 						WHERE cl.communication_date IS NULL
 						AND c.communication_date IS NOT NULL
 						LIMIT %s
 					) AS sub
-					WHERE "tabCommunication Link".name = sub.name
+					WHERE `tabCommunication Link`.name = sub.name
 				""",
 			},
 			(batch_size,),

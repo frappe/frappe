@@ -79,10 +79,11 @@
    "type": "Link"
   }
  ],
- "modified": "2025-11-25 10:46:09.687081",
+ "modified": "2026-01-08 14:16:38.914482",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email",
  "owner": "Administrator",
+ "standard": 1,
  "title": "Email"
 }

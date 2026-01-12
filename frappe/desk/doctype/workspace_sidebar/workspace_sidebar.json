@@ -8,10 +8,13 @@
  "field_order": [
   "title",
   "header_icon",
-  "app",
   "for_user",
-  "items",
-  "module"
+  "module",
+  "column_break_pukb",
+  "standard",
+  "app",
+  "section_break_vdyo",
+  "items"
  ],
  "fields": [
   {
@@ -33,6 +36,7 @@
    "label": "Header Icon"
   },
   {
+   "depends_on": "eval: doc.standard == 1",
    "fieldname": "app",
    "fieldtype": "Autocomplete",
    "label": "App",
@@ -49,12 +53,26 @@
    "fieldtype": "Text",
    "hidden": 1,
    "label": "Module"
+  },
+  {
+   "default": "0",
+   "fieldname": "standard",
+   "fieldtype": "Check",
+   "label": "Standard"
+  },
+  {
+   "fieldname": "column_break_pukb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_vdyo",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-10 20:20:26.518699",
+ "modified": "2026-01-10 22:12:40.504715",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Sidebar",

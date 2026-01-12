@@ -206,7 +206,6 @@ class DesktopPage {
 				col: 3,
 			},
 		});
-		this.setup_editing_mode();
 		if (this.edit_mode) {
 			this.start_editing_layout();
 		}
@@ -214,15 +213,15 @@ class DesktopPage {
 
 	setup() {
 		this.setup_avatar();
+		this.setup_notifications();
 		this.setup_navbar();
 		this.setup_awesomebar();
-		this.setup_editing_mode();
 		this.handle_route_change();
 		this.setup_events();
-		this.setup_edit_button();
 	}
 	setup_edit_button() {
 		const me = this;
+		$(".desktop-edit").remove();
 		this.$desktop_edit_button = $(
 			"<button class='btn btn-reset desktop-edit'></button>"
 		).appendTo(document.body);
@@ -232,7 +231,6 @@ class DesktopPage {
 		this.$desktop_edit_button.on("click", () => {
 			frappe.new_desktop_icons = JSON.parse(JSON.stringify(frappe.desktop_icons));
 			me.start_editing_layout();
-			me.$desktop_edit_button.hide();
 		});
 	}
 	setup_editing_mode() {
@@ -302,6 +300,12 @@ class DesktopPage {
 			me.stop_editing_layout("submit");
 		});
 	}
+	setup_notifications() {
+		this.notifications = new frappe.ui.Notifications({
+			wrapper: $(".desktop-notifications"),
+			full_height: false,
+		});
+	}
 	setup_avatar() {
 		$(".desktop-avatar").html(frappe.avatar(frappe.session.user, "avatar-medium"));
 		let is_dark = document.documentElement.getAttribute("data-theme") === "dark";
@@ -309,7 +313,7 @@ class DesktopPage {
 			{
 				icon: "edit",
 				label: "Edit Profile",
-				url: `/update-profile/${frappe.session.user}`,
+				url: `/desk/user/${frappe.session.user}`,
 			},
 			{
 				icon: is_dark ? "sun" : "moon",
@@ -319,9 +323,18 @@ class DesktopPage {
 				},
 			},
 			{
-				icon: "lock",
-				label: "Reset Password",
-				url: "/update-password",
+				icon: "info",
+				label: "About",
+				onClick: function () {
+					return frappe.ui.toolbar.show_about();
+				},
+			},
+			{
+				icon: "support",
+				label: "Frappe Support",
+				onClick: function () {
+					window.open("https://support.frappe.io/help", "_blank");
+				},
 			},
 			{
 				icon: "rotate-ccw",
@@ -384,9 +397,12 @@ class DesktopPage {
 			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "")
 				me.setup_navbar();
 			else {
-				me.$desktop_edit_button.remove();
 				$(".navbar").show();
 				frappe.desktop_utils.close_desktop_modal();
+				// stop edit mode if route changes and cleanup
+				me.edit_mode = false;
+				$(".desktop-icon").removeClass("edit-mode");
+				$(".desktop-wrapper").removeAttr("data-mode");
 			}
 		});
 	}
@@ -764,10 +780,7 @@ class DesktopIcon {
 	}
 
 	render_folder_thumbnail() {
-		let condition =
-			frappe.boot.show_app_icons_as_folder &&
-			this.icon_type == "App" &&
-			this.child_icons.length > 0;
+		let condition = this.icon_type == "App" && this.child_icons.length > 0;
 		if (this.icon_type == "Folder" || condition) {
 			if (!this.folder_wrapper) this.folder_wrapper = this.icon.find(".icon-container");
 			this.folder_wrapper.html("");

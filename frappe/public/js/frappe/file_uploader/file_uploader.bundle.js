@@ -30,7 +30,14 @@ class FileUploader {
 	} = {}) {
 		frm && frm.attachments.max_reached(true);
 
-		this.can_toggle_private = frappe.utils.can_upload_public_files();
+		if (allow_toggle_private === undefined) {
+			allow_toggle_private = true;
+		}
+
+		allow_toggle_private = Boolean(
+			allow_toggle_private && frappe.utils.can_upload_public_files()
+		);
+		this.can_toggle_private = allow_toggle_private;
 
 		if (!wrapper) {
 			this.make_dialog(dialog_title);

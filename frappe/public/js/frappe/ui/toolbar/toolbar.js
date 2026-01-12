@@ -33,7 +33,6 @@ frappe.ui.toolbar.Toolbar = class {
 		this.bind_events();
 		$(document).trigger("toolbar_setup");
 		this.navbar = $(".navbar-brand");
-		this.app_logo = this.navbar.find(".app-logo");
 		this.bind_click();
 	}
 	change_toolbar() {
@@ -54,6 +53,7 @@ frappe.ui.toolbar.Toolbar = class {
 			frappe.app.sidebar.prevent_scroll();
 		});
 	}
+
 	bind_events() {
 		// clear all custom menus on page change
 		$(document).on("page-change", function () {

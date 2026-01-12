@@ -635,6 +635,7 @@ frappe.ui.form.Form = class FrappeForm {
 				() => this.run_after_load_hook(),
 				() => this.dashboard.after_refresh(),
 				() => (this.cscript.is_onload = false),
+				() => this.configure_breadcrumb_width(),
 			]);
 		} else {
 			this.refresh_header(switched);
@@ -651,6 +652,32 @@ frappe.ui.form.Form = class FrappeForm {
 
 	onload_post_render() {
 		this.setup_image_autocompletions_in_markdown();
+	}
+
+	configure_breadcrumb_width() {
+		let el = this.page.page_actions[0];
+		const rect = el.getBoundingClientRect();
+		let is_outside = rect.right > document.documentElement.clientWidth;
+		if (is_outside) {
+			// check if the default actions are outside of the screen
+			const overflow = Math.max(0, rect.right - document.documentElement.clientWidth);
+			this.page.$title_area
+				.parent()
+				.css("max-width", overflow ? `calc(50% - ${overflow}px)` : "50%");
+			console.log(this.page.$title_area.find("ul li.ellipsis")[0].clientWidth);
+			let breadcrumb = this.page.$title_area.find("ul li.ellipsis");
+			if (!breadcrumb[0]?.clientWidth) {
+				// if workspce sodebar is not visible
+				$(breadcrumb[0]).hide();
+				if (!breadcrumb[1]?.clientWidth) {
+					// if doctype sodebar is not visible
+					$(breadcrumb[1]).hide();
+
+					// add elipsis to the name/title breadcrumb
+					this.page.$title_area.find(".title-text-form").parent().addClass("ellipsis");
+				}
+			}
+		}
 	}
 
 	focus_on_first_input() {

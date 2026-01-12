@@ -138,13 +138,6 @@ let allow_toggle_optimize = computed(() => {
 	);
 });
 
-let allow_toggle_private = computed(() => {
-	if (!frappe.utils.can_upload_public_files()) {
-		return false;
-	}
-	return props.allow_toggle_private;
-});
-
 let show_private_checkbox = computed(() => {
 	return !uploaded.value && !props.file.failed;
 });

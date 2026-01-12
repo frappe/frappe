@@ -1,6 +1,6 @@
 <div class="sidebar-section user-actions hidden"></div>
 <div class="flex justify-between sidebar-image-section sidebar-section hide">
-	<div class="sidebar-image-wrapper m-auto">
+	<div class="sidebar-image-wrapper">
 		<img class="sidebar-image">
 		<div class="sidebar-standard-image">
 			<div class="standard-image"></div>
@@ -27,18 +27,11 @@
 	</div>
 </div>
 <div class="sidebar-section sidebar-meta-details border-bottom">
-	<div class="form-details flex {{image_field ? "justify-center" : "justify-between"}}">
-		<span class="ellipsis mr-3 bold form-title-text text-medium" title="{{__("Click to edit")}}">{%= frappe.utils.html2text(frm.get_title()) %}</span>
-		<span class="form-name-copy" data-copy="{{
-			frappe.utils.is_html(frm.get_title())
-			? frappe.utils.html2text(frm.get_title())
-			: frm.get_title()}}"
-		>
-			{%= frappe.utils.icon("copy")%}
-		</span>
+	<div class="form-details flex justify-between">
+		<span class="bold ellipsis form-title-text mr-3 pointer text-medium" title="{{__("Click to edit")}}">{%= frappe.utils.html2text(frm.get_title()) %}</span>
 	</div>
 	{% if frm.doc.name != frm.get_title() %}
-	<div class="form-name-container mt-2 flex {{image_field ? "justify-center" : "justify-between"}}">
+	<div class="form-name-container mt-2 flex justify-between form-name-copy" data-copy="{{frm.doc.name}}" >
 		<span class="ellipsis mr-3">{%= frm.doc.name %}</span>
 	</div>
 	{% endif %}

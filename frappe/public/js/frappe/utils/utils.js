@@ -979,25 +979,54 @@ Object.assign(frappe.utils, {
 		const $search_input = $wrapper.find('[data-element="search"]').show();
 		$search_input.focus().val("");
 		const $elements = $wrapper.find(el_class).show();
+		const $multichecks = $wrapper.find('[data-fieldtype="MultiCheck"]');
+
+		let $no_results = $wrapper.find(".no-results-message");
+		if (!$no_results.length) {
+			$no_results = $(`
+				<div class="no-results-message text-muted text-center" style="padding: 5px; display: none;">
+					${__("No values to show")}
+				</div>
+			`).appendTo($wrapper);
+		}
+
+		$no_results.hide();
+
+		const matches_filter = ($el, filter) => {
+			const $text_el = $el.find(text_class);
+			const text = $text_el.text().toLowerCase();
+
+			let name = "";
+			if (data_attr && $text_el.attr(data_attr)) {
+				name = $text_el.attr(data_attr).toLowerCase();
+			}
+
+			return text.includes(filter) || name.includes(filter);
+		};
 
 		$search_input.off("keyup").on("keyup", () => {
-			let text_filter = $search_input.val().toLowerCase();
-			// Replace trailing and leading spaces
-			text_filter = text_filter.replace(/^\s+|\s+$/g, "");
-			for (let i = 0; i < $elements.length; i++) {
-				const text_element = $elements.eq(i).find(text_class);
-				const text = text_element.text().toLowerCase();
+			const text_filter = $search_input.val().toLowerCase().trim();
+			let any_visible = false;
 
-				let name = "";
-				if (data_attr && text_element.attr(data_attr)) {
-					name = text_element.attr(data_attr).toLowerCase();
-				}
+			$elements.each(function () {
+				const match = matches_filter($(this), text_filter);
+				$(this).toggle(match);
+				if (match) any_visible = true;
+			});
 
-				if (text.includes(text_filter) || name.includes(text_filter)) {
-					$elements.eq(i).css("display", "");
-				} else {
-					$elements.eq(i).css("display", "none");
-				}
+			if ($multichecks.length) {
+				$multichecks.show();
+
+				$multichecks.each(function () {
+					const has_visible = $(this).find(el_class + ":visible").length;
+					$(this).toggle(!!has_visible);
+				});
+			}
+
+			if (text_filter) {
+				$no_results.toggle(!any_visible);
+			} else {
+				$no_results.hide();
 			}
 		});
 	},
@@ -1472,7 +1501,7 @@ Object.assign(frappe.utils, {
 				let doctype_slug = frappe.router.slug(item.doctype);
 
 				if (frappe.model.is_single(item.doctype)) {
-					route = doctype_slug;
+					route = `${doctype_slug}/${item.doctype}`;
 				} else {
 					switch (item.doc_view) {
 						case "List":
@@ -1839,9 +1868,17 @@ Object.assign(frappe.utils, {
 	},
 
 	process_filter_expression(filter) {
-		return new Function(`return ${filter}`)();
+		let filters = [];
+		filters = filter ? new Function(`return ${filter}`)() : [];
+		return this.cleanup_filters(filters);
 	},
-
+	cleanup_filters(filters) {
+		if (filters.length && filters[0].length == 5) {
+			filters.pop();
+			return filters;
+		}
+		return filters;
+	},
 	get_filter_from_json(filter_json, doctype) {
 		// convert json to filter array
 		if (filter_json) {
@@ -2078,5 +2115,48 @@ Object.assign(frappe.utils, {
 			return true;
 		}
 		return frappe.user.has_role(["System Manager", "Administrator"]);
+	},
+
+	get_help_siblings() {
+		const navbar_settings = frappe.boot.navbar_settings;
+		let help_dropdown_items = [];
+
+		let custom_help_links = this.get_custom_help_links();
+
+		help_dropdown_items = custom_help_links.concat(help_dropdown_items);
+
+		navbar_settings.help_dropdown.forEach((element) => {
+			let dropdown_children = {
+				name: element.name,
+				label: element.item_label,
+			};
+			if (element.item_type === "Route") {
+				dropdown_children.url = element.route;
+			}
+			if (element.item_type === "Action") {
+				dropdown_children.onClick = function () {
+					frappe.utils.eval(element.action);
+				};
+			}
+			help_dropdown_items.push(dropdown_children);
+		});
+
+		return help_dropdown_items;
+	},
+	get_custom_help_links() {
+		let route = frappe.get_route_str();
+		let breadcrumbs = route.split("/");
+
+		let links = [];
+		for (let i = 0; i < breadcrumbs.length; i++) {
+			let r = route.split("/", i + 1);
+			let key = r.join("/");
+			let help_links = frappe.help.help_links[key] || [];
+			links = $.merge(links, help_links);
+		}
+		if (links.length) {
+			links.push({ is_divider: true });
+		}
+		return links;
 	},
 });

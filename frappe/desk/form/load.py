@@ -334,8 +334,7 @@ def get_communication_data(
 	return frappe.db.multisql(
 		{
 			"sqlite": sqlite_query,
-			"postgres": query,
-			"mariadb": query,
+			"*": query,
 		},
 		dict(
 			doctype=doctype,

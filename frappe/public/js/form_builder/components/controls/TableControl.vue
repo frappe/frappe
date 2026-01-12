@@ -47,7 +47,7 @@ function open_new_child_doctype_dialog() {
 				</div>
 			</div>
 		</div>
-		<div class="grid-empty text-center">
+		<div class="grid-empty text-center" style="height: unset">
 			<img
 				src="/assets/frappe/images/ui-states/grid-empty-state.svg"
 				:alt="__('Grid Empty State')"

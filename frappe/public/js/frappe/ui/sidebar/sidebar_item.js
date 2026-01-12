@@ -19,12 +19,15 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 					type: this.item.link_type,
 					name: this.item.link_to,
 				};
-
-				if (this.item.report || !frappe.app.sidebar.editor.edit_mode) {
-					args.is_query_report =
-						this.item.report.report_type === "Query Report" ||
-						this.item.report.report_type == "Script Report";
-					args.report_ref_doctype = this.item.report.ref_doctype;
+				if (!frappe.app.sidebar.editor.edit_mode) {
+					if (this.item.report) {
+						args.is_query_report =
+							this.item.report.report_type === "Query Report" ||
+							this.item.report.report_type == "Script Report";
+						args.report_ref_doctype = this.item.report.ref_doctype;
+					} else {
+						return;
+					}
 				}
 
 				path = frappe.utils.generate_route(args);
@@ -54,10 +57,13 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 					tab: this.item.tab,
 				};
 				if (this.item.filters) {
-					let filters_json = frappe.utils.get_filter_as_json(
-						JSON.parse(this.item.filters)
+					let filters_json = JSON.parse(
+						frappe.utils.get_filter_as_json(JSON.parse(this.item.filters))
 					);
-					args.filters = filters_json;
+					if (this.item.link_type == "DocType") {
+						args.doc_view = "List";
+						args.route_options = filters_json;
+					}
 				}
 				path = frappe.utils.generate_route(args);
 			}
@@ -69,6 +75,9 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 	prepare() {}
 	make() {
 		this.path = this.get_path();
+		if (!this.path && !this.item.standard && this.item.type != "Section Break") {
+			return;
+		}
 		this.set_suffix();
 		if (!this.item.icon && !(this.item.child && this.item.parent.indent)) {
 			this.item.icon = "list";

@@ -352,6 +352,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		// Print
 		this.add_discard();
 		this.add_print();
+		this.add_open_sidebar();
 		this.add_email();
 		this.add_rename();
 		this.add_reload();
@@ -482,6 +483,19 @@ frappe.ui.form.Toolbar = class Toolbar {
 				true
 			);
 		}
+	}
+
+	add_open_sidebar() {
+		if (this.page.hide_sidebar) {
+			return;
+		}
+		this.page.add_menu_item(
+			__("Open Sidebar"),
+			() => {
+				this.setup_sidebar_toggle(this.frm.sidebar.sidebar.parent());
+			},
+			true
+		);
 	}
 
 	add_reload() {
@@ -892,6 +906,36 @@ frappe.ui.form.Toolbar = class Toolbar {
 		});
 
 		dialog.show();
+	}
+
+	setup_sidebar_toggle(sidebar_wrapper) {
+		console.log(sidebar_wrapper);
+		if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
+			this.setup_overlay_sidebar(sidebar_wrapper);
+		} else {
+			sidebar_wrapper.toggle();
+		}
+		$(document.body).trigger("toggleSidebar");
+	}
+
+	setup_overlay_sidebar(sidebar_wrapper) {
+		sidebar_wrapper.find(".close-sidebar").remove();
+		let overlay_sidebar = sidebar_wrapper.find(".overlay-sidebar").addClass("opened");
+		$('<div class="close-sidebar">').hide().appendTo(sidebar_wrapper).fadeIn();
+		let scroll_container = $("html").css("overflow-y", "hidden");
+
+		sidebar_wrapper.find(".close-sidebar").on("click", (e) => this.close_sidebar(e));
+		sidebar_wrapper.on("click", "button:not(.dropdown-toggle)", (e) => this.close_sidebar(e));
+
+		this.close_sidebar = () => {
+			scroll_container.css("overflow-y", "");
+			sidebar_wrapper.find("div.close-sidebar").fadeOut(() => {
+				overlay_sidebar
+					.removeClass("opened")
+					.find(".dropdown-toggle")
+					.removeClass("text-muted");
+			});
+		};
 	}
 
 	follow() {

@@ -7,6 +7,7 @@ export default class ListFilter {
 		Object.assign(this, arguments[0]);
 		this.can_add_global = frappe.user.has_role(["System Manager", "Administrator"]);
 		this.filters = [];
+		this.active_filter = null;
 		this.refresh_list_filter();
 	}
 
@@ -19,6 +20,13 @@ export default class ListFilter {
 			[],
 			__("Saved Filters")
 		);
+
+		// Clear active filter on clicking 'x' button
+		const filter_x_btn = $(".filter-x-button");
+		filter_x_btn.on("click", () => {
+			this.active_filter = null;
+			this.update_active_filter_label("Saved Filters");
+		});
 	}
 
 	render_saved_filters() {
@@ -30,7 +38,7 @@ export default class ListFilter {
 
 			// Apply filter
 			$item.find(".filter-label").on("click", () => {
-				this.apply_saved_filter(filter.name);
+				this.apply_saved_filter(filter.name, filter.filter_name);
 			});
 
 			// Remove filter
@@ -46,10 +54,18 @@ export default class ListFilter {
 		this.append_create_new_item($menu);
 	}
 
-	apply_saved_filter(filter_name) {
+	apply_saved_filter(filter_name, filter_label) {
 		this.list_view.filter_area.clear().then(() => {
 			this.list_view.filter_area.add(this.get_filters_values(filter_name));
+			this.active_filter = filter_label;
+			this.update_active_filter_label(this.active_filter);
 		});
+	}
+
+	update_active_filter_label(label) {
+		$(`.inner-group-button[data-label="${encodeURIComponent("Saved Filters")}"] button`)
+			.contents()
+			.first()[0].textContent = label;
 	}
 
 	bind_remove_filter(filter) {
@@ -59,6 +75,7 @@ export default class ListFilter {
 				const name = filter.name;
 				const applied_filters = this.get_filters_values(name);
 				this.remove_filter(name).then(() => this.refresh_list_filter());
+				this.update_active_filter_label("Saved Filters");
 				this.list_view.filter_area.remove_filters(applied_filters);
 			}
 		);

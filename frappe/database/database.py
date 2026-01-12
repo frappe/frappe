@@ -1413,8 +1413,11 @@ class Database:
 		return self.is_missing_column(e) or self.is_table_missing(e)
 
 	def multisql(self, sql_dict, values=(), **kwargs):
+		"""
+		Chooses which query to execute based on the current database type, falling back to a wildcard query.
+		"""
 		current_dialect = self.db_type or "mariadb"
-		query = sql_dict.get(current_dialect)
+		query = sql_dict.get(current_dialect) or sql_dict.get("*")
 		return self.sql(query, values, **kwargs)
 
 	def delete(self, doctype: str, filters: dict | list | None = None, debug=False, **kwargs):

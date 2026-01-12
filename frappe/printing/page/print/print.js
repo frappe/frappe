@@ -710,8 +710,14 @@ frappe.ui.form.PrintView = class {
 			);
 		}
 	}
-
-	render_page(method, printit = false, pdf_generator = "wkhtmltopdf") {
+	get_pdf_generator(pdf_generator) {
+		if (!pdf_generator) {
+			pdf_generator = this.print_settings.pdf_generator || "wkhtmltopdf";
+		}
+		return pdf_generator;
+	}
+	render_page(method, printit = false, pdf_generator) {
+		pdf_generator = this.get_pdf_generator(pdf_generator);
 		let w = window.open(
 			frappe.urllib.get_full_url(
 				method +

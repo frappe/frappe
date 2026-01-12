@@ -28,6 +28,9 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				name: "edit-sidebar",
 				label: __("Edit Sidebar"),
 				icon: "edit",
+				condition: function () {
+					return frappe.boot.developer_mode;
+				},
 				onClick: function () {
 					me.sidebar.editor.toggle();
 				},
@@ -84,6 +87,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 
 	fetch_related_icons() {
 		let sibling_workspaces = [];
+		let workspaces_not_to_show = ["My Workspaces"];
 		if (frappe.current_app) {
 			let desktop_icons = [...frappe.boot.desktop_icons];
 			desktop_icons.splice(
@@ -93,27 +97,31 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			let { folder_map, sibling_icons } = this.build_folder_map(desktop_icons);
 			sibling_icons.forEach((icon) => {
 				if (folder_map[icon.parent_icon]) return;
-				let item = {
-					name: icon.label.toLowerCase(),
-					label: icon.label,
-					url: frappe.utils.get_route_for_icon(icon),
-				};
-				if (icon.icon_type == "Folder") {
-					let nested_items = folder_map[item.label];
-					nested_items.forEach((item) => {
-						this.get_icon_for_menu_item(item, item);
-					});
-					item.items = nested_items;
+				if (!workspaces_not_to_show.includes(icon.label)) {
+					let item = {
+						name: icon.label.toLowerCase(),
+						label: icon.label,
+						url: frappe.utils.get_route_for_icon(icon),
+					};
+					if (icon.icon_type == "Folder") {
+						let nested_items = folder_map[item.label];
+						nested_items.forEach((item) => {
+							this.get_icon_for_menu_item(item, item);
+						});
+						item.items = nested_items;
+					}
+					if (
+						frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style)
+					) {
+						item.icon_url = frappe.utils.get_desktop_icon(
+							icon.label,
+							frappe.boot.desktop_icon_style
+						);
+					} else {
+						item.icon_html = frappe.utils.desktop_icon(icon.label, "gray", "sm");
+					}
+					sibling_workspaces.push(item);
 				}
-				if (frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style)) {
-					item.icon_url = frappe.utils.get_desktop_icon(
-						icon.label,
-						frappe.boot.desktop_icon_style
-					);
-				} else {
-					item.icon_html = frappe.utils.desktop_icon(icon.label, "gray", "sm");
-				}
-				sibling_workspaces.push(item);
 			});
 			return sibling_workspaces;
 		}

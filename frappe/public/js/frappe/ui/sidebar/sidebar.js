@@ -41,7 +41,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	build_sidebar_module_map() {
 		for (const [key, value] of Object.entries(frappe.boot.workspace_sidebar_item)) {
-			if (value.module) {
+			if (value.module && !value.label.includes("My Workspaces")) {
 				if (!this.sidebar_module_map[value.module]) {
 					this.sidebar_module_map[value.module] = [];
 				}
@@ -162,11 +162,16 @@ frappe.ui.Sidebar = class Sidebar {
 		let match = false;
 		const that = this;
 		$(".item-anchor").each(function () {
-			let href = decodeURIComponent($(this).attr("href")?.split("?")[0]);
+			let href = decodeURIComponent($(this).attr("href")?.split("?")[0].split("#")[0]);
+
 			const path = decodeURIComponent(window.location.pathname);
 
-			// Match only if path equals href or starts with it followed by "/" or end of string
-			const isActive = href === path;
+			// ensure no trailing slash mismatch
+			const clean_href = href.replace(/\/$/, "");
+			const clean_path = path.replace(/\/$/, "");
+
+			const isActive = clean_path === clean_href || clean_path.startsWith(clean_href + "/");
+
 			if (href && isActive) {
 				match = true;
 				if (that.active_item) that.active_item.removeClass("active-sidebar");
@@ -272,6 +277,14 @@ frappe.ui.Sidebar = class Sidebar {
 		this.setup_awesomebar();
 		this.setup_notifications();
 		this.standard_items_setup = true;
+	}
+	get_workspace_for_module(module) {
+		for (let i = 0; i < frappe.boot.workspaces.pages.length; i++) {
+			const workspace = frappe.boot.workspaces.pages[i];
+			if (workspace.module == module && !workspace.parent_page) {
+				return workspace.name;
+			}
+		}
 	}
 	setup_awesomebar() {
 		if (frappe.boot.desk_settings.search_bar) {
@@ -415,22 +428,25 @@ frappe.ui.Sidebar = class Sidebar {
 				default:
 					entity_name = route[1];
 			}
-
-			let sidebars = this.get_correct_workspace_sidebars(entity_name);
+			let sidebars = this.get_workspace_sidebars(entity_name);
 			this.preffered_sidebars = sidebars;
 			let module = router?.meta?.module;
 			if (this.sidebar_title && sidebars.includes(this.sidebar_title)) {
 				this.set_active_workspace_item();
 				return;
 			}
-
+			if (module) {
+				sidebars = this.filter_sidebars_from_app(
+					sidebars,
+					frappe.boot.module_app[module.toLowerCase()]
+				);
+			}
 			if (sidebars.length == 1) {
 				frappe.app.sidebar.setup(sidebars[0]);
 			} else if (sidebars.length > 1) {
-				if (sidebars.includes(this.sidebar_module_map[module])) {
-					frappe.app.sidebar.setup(this.sidebar_module_map[module]);
-				} else {
-					frappe.app.sidebar.setup(sidebars[0]);
+				let sidebar = this.get_workspace_for_module(module);
+				if (sidebars.includes(this.get_workspace_for_module(module))) {
+					frappe.app.sidebar.setup(sidebar);
 				}
 			} else if (module) {
 				this.show_sidebar_for_module(module);
@@ -441,15 +457,42 @@ frappe.ui.Sidebar = class Sidebar {
 
 		this.set_active_workspace_item();
 	}
+	filter_sidebars_from_app(sidebars, app) {
+		let filter_sidebars = [];
+		sidebars.forEach((sidebar) => {
+			if (
+				!filter_sidebars.includes(sidebar) &&
+				frappe.boot.workspace_sidebar_item[sidebar.toLowerCase()].app === app
+			) {
+				filter_sidebars.push(sidebar);
+			}
+		});
+		return filter_sidebars;
+	}
 	show_sidebar_for_module(module) {
+		if (this.sidebar_title && this.preffered_sidebars.includes(this.sidebar_title)) {
+			this.set_active_workspace_item();
+			return;
+		}
 		if (this.sidebar_fixes && this.sidebar_title != module) return;
-		let sidebars =
-			this.sidebar_module_map[module] &&
-			this.sidebar_module_map[module].sort((a, b) => {
-				return a.localeCompare(b);
-			});
-		if (sidebars && sidebars.length) {
-			frappe.app.sidebar.setup(sidebars[0]);
+		let workspace_name = this.get_workspace_for_module(module);
+		if (frappe.boot.workspace_sidebar_item[module.toLowerCase()]) {
+			frappe.app.sidebar.setup(module);
+		} else if (
+			workspace_name &&
+			frappe.boot.workspace_sidebar_item[workspace_name.toLowerCase()]
+		) {
+			frappe.app.sidebar.setup(workspace_name);
+		} else {
+			let sidebars =
+				this.sidebar_module_map[module] &&
+				this.sidebar_module_map[module].sort((a, b) => {
+					return a.localeCompare(b);
+				});
+			if (frappe.get_route())
+				if (sidebars && sidebars.length) {
+					frappe.app.sidebar.setup(sidebars[0]);
+				}
 		}
 	}
 	set_sidebar_for_page() {
@@ -459,9 +502,9 @@ frappe.ui.Sidebar = class Sidebar {
 		if (matches) return;
 		let workspace_title;
 		if (route.length == 2) {
-			workspace_title = this.get_correct_workspace_sidebars(route[1]);
+			workspace_title = this.get_workspace_sidebars(route[1]);
 		} else {
-			workspace_title = this.get_correct_workspace_sidebars(route[0]);
+			workspace_title = this.get_workspace_sidebars(route[0]);
 		}
 		let module_name = workspace_title[0];
 		if (module_name) {
@@ -469,10 +512,11 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
-	get_correct_workspace_sidebars(link_to) {
+	get_workspace_sidebars(link_to) {
 		let sidebars = [];
 		Object.entries(this.all_sidebar_items).forEach(([name, sidebar]) => {
 			const { items, label } = sidebar;
+			if (label.includes("My Workspaces")) return;
 			items.forEach((item) => {
 				if (item.link_to === link_to) {
 					sidebars.push(label || name);
