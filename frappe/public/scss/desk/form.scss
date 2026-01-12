@@ -172,6 +172,8 @@
 
 		.comment-title {
 			@extend .head-title;
+			font-size: 16px;
+			font-weight: 500;
 		}
 		.comment-count {
 			margin-left: 5px;
