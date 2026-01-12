@@ -396,7 +396,6 @@ def _export_query(form_params, csv_params, populate_response=True):
 		include_indentation,
 		include_filters=include_filters,
 		include_hidden_columns=include_hidden_columns,
-		file_format=file_format_type,
 		build_styles=file_format_type == "Excel",
 	)
 
@@ -457,7 +456,6 @@ def build_xlsx_data(
 	include_filters: bool = False,
 	ignore_visible_idx: bool = False,
 	include_hidden_columns: bool = False,
-	file_format: Literal["CSV", "Excel"] = "Excel",
 	build_styles: bool = False,
 ) -> tuple[list[list[Any]], list[int], dict | None]:
 	"""
@@ -470,7 +468,6 @@ def build_xlsx_data(
 		include_filters: Whether to include filter rows at the top of the Excel sheet
 		ignore_visible_idx: Whether to ignore the visible_idx parameter
 		include_hidden_columns: Whether to include columns marked as hidden
-		file_type: Type of file to be generated ("CSV" or "Excel")
 		build_styles: Whether to build style metadata for Excel formatting
 
 	Returns:
@@ -481,8 +478,6 @@ def build_xlsx_data(
 	"""
 	metadata = None
 	styles = None
-	for_excel = file_format == "Excel"
-	build_styles = build_styles and for_excel
 
 	if build_styles:
 		metadata = XLSXMetadata()
@@ -581,7 +576,7 @@ def build_xlsx_data(
 				cell_value = cstr(cell_value)
 
 			# handle indentation for CSV
-			if not for_excel and include_indentation and col_idx == 0 and indent:
+			if not build_styles and include_indentation and col_idx == 0 and indent:
 				cell_value = ("    " * indent) + cstr(cell_value)
 
 			row_data.append(cell_value)

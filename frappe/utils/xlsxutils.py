@@ -33,18 +33,18 @@ ILLEGAL_CHARACTERS_RE = re.compile(
 class XLSXMetadata:
 	report_name: str = ""
 
+	filters: dict = dataclass_field(default_factory=dict)
 	columns: list[dict] = dataclass_field(default_factory=list)
 	rows_map: dict[int, dict | list] = dataclass_field(default_factory=dict)
-	filters: dict = dataclass_field(default_factory=dict)
 
 	header_index: int = 0
 	last_row_index: int = 0
 	max_indent_level: int = 0
 
-	ignore_visible_idx: bool = True
-	include_filters: bool = False
-	include_indentation: bool = False
 	add_total_row: bool = False
+	include_filters: bool = False
+	ignore_visible_idx: bool = True
+	include_indentation: bool = False
 	include_hidden_columns: bool = False
 
 
