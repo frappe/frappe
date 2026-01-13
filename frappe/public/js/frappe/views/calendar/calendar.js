@@ -188,10 +188,10 @@ frappe.views.Calendar = class Calendar {
 		const me = this;
 		let btn_group = me.$wrapper.find(".fc-button-group");
 		btn_group.on("click", ".btn", function () {
-			let value = $(this).hasClass("fc-dayGridWeek-button")
-				? "dayGridWeek"
-				: $(this).hasClass("fc-dayGridDay-button")
-				? "dayGridDay"
+			let value = $(this).hasClass("fc-timeGridWeek-button")
+				? "timeGridWeek"
+				: $(this).hasClass("fc-timeGridDay-button")
+				? "timeGridDay"
 				: "dayGridMonth";
 			me.set_localStorage_option("cal_initialView", value);
 		});
