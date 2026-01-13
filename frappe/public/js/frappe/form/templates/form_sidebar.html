@@ -27,24 +27,50 @@
 	</div>
 </div>
 <div class="sidebar-section sidebar-meta-details border-bottom">
+<<<<<<< HEAD
 	<div class="form-details flex justify-between">
 		<span class="bold ellipsis form-title-text mr-3 pointer text-medium" title="{{__("Click to edit")}}">{%= frappe.utils.html2text(frm.get_title()) %}</span>
 	</div>
 	{% if frm.doc.name != frm.get_title() %}
 	<div class="form-name-container mt-2 flex justify-between form-name-copy" data-copy="{{frm.doc.name}}" >
 		<span class="ellipsis mr-3">{%= frm.doc.name %}</span>
+=======
+	<div class="flex justify-between">
+		<div>
+			{% if frm.doc.name != frm.get_title() %}
+			<div class="form-details flex justify-between">
+				<span class="bold ellipsis form-title-text mr-3 pointer text-medium" title="{{__("Click to edit")}}">{%= frappe.utils.html2text(frm.get_title()) %}</span>
+			</div>
+			{% endif %}
+			<div class="form-name-container mt-2 flex justify-between form-name-copy" data-copy="{{frm.doc.name}}" >
+				<span class="ellipsis mr-3">{%= frm.doc.name %}</span>
+			</div>
+		</div>
+		{% if not image_field %}
+		<div class="align-items-baseline flex form-stats-likes">
+			<div class="form-title-text"></div>
+			<div class="form-print"></div>
+			<span class="liked-by like-action d-flex align-items-center">
+				<svg class="icon icon-sm like-icon pointer">
+					<use href="#icon-heart"></use>
+				</svg>
+				<span class="like-count ml-2"></span>
+			</span>
+		</div>
+		{% endif %}
+	</div>
+	{% if frm.meta.beta %}
+	<div class="flex pt-2 justify-between">
+		<div>
+			<a class="small text-muted" href="https://github.com/frappe/{{ frappe.boot.module_app[frappe.scrub(frm.meta.module)] }}/issues/new"
+				target="_blank">
+			{{ __("Report bug") }}</a>
+		</div>
+		<label class="indicator-pill yellow mb-0" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental") }}</label>
+>>>>>>> 22729bffc4 (fix(form): redesign beta section of sidbar)
 	</div>
 	{% endif %}
 </div>
-{% if frm.meta.beta %}
-<div class="sidebar-section border-bottom">
-	<p><label class="indicator-pill yellow" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental") }}</label></p>
-	<div><a class="small text-muted" href="https://github.com/frappe/{{ frappe.boot.module_app[frappe.scrub(frm.meta.module)] }}/issues/new"
-			target="_blank">
-		{{ __("Report bug") }}</a></div>
-
-</div>
-{% endif %}
 <div class="sidebar-section sidebar-rating hide border-bottom">
 	<div style="position: relative;">
 		<a class="strong badge-hover">
