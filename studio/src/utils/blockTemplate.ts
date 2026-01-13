@@ -37,7 +37,6 @@ function getBlockTemplate(
 					display: "flex",
 					flexDirection: "column",
 					flexShrink: 0,
-					overflow: "hidden",
 				} as BlockStyleMap,
 			};
 
