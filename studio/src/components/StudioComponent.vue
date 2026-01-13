@@ -11,81 +11,87 @@
 		:breakpoint="breakpoint"
 	/>
 
-	<component
-		v-else-if="block.canHaveChildren()"
-		v-show="showComponent"
-		:is="componentName"
-		v-bind="componentProps"
-		v-on="vModelListeners"
-		:data-component-id="block.componentId"
-		:data-breakpoint="breakpoint"
-		:style="styles"
-		:class="classes"
-		@mouseover="handleMouseOver"
-		@mouseleave="handleMouseLeave"
-		@click="handleClick"
-		ref="componentRef"
-	>
-		<!-- Dynamically render named slots -->
-		<template v-for="(slot, slotName) in block?.componentSlots" :key="slotName" v-slot:[slotName]="slotProps">
-			<template v-if="Array.isArray(slot.slotContent)">
-				<StudioComponent
-					v-for="slotBlock in slot?.slotContent"
-					:key="slotBlock.componentId"
-					:block="slotBlock"
-					:class="slotClasses"
-					:data-slot-id="slot.slotId"
-					:data-slot-name="slotName"
-					:data-component-id="block.componentId"
-					v-bind="slotProps"
-				/>
+	<template v-else-if="block.canHaveChildren()">
+		<component
+			v-if="showComponent"
+			:is="componentName"
+			v-bind="componentProps"
+			v-on="vModelListeners"
+			:data-component-id="block.componentId"
+			:data-breakpoint="breakpoint"
+			:style="styles"
+			:class="classes"
+			@mouseover="handleMouseOver"
+			@mouseleave="handleMouseLeave"
+			@click="handleClick"
+			ref="componentRef"
+		>
+			<!-- Dynamically render named slots -->
+			<template
+				v-for="(slot, slotName) in block?.componentSlots"
+				:key="slotName"
+				v-slot:[slotName]="slotProps"
+			>
+				<template v-if="Array.isArray(slot.slotContent)">
+					<StudioComponent
+						v-for="slotBlock in slot?.slotContent"
+						:key="slotBlock.componentId"
+						:block="slotBlock"
+						:class="slotClasses"
+						:data-slot-id="slot.slotId"
+						:data-slot-name="slotName"
+						:data-component-id="block.componentId"
+						v-bind="slotProps"
+					/>
+				</template>
+				<template v-else-if="isHTML(slot.slotContent)">
+					<component
+						v-memo="[slot.slotContent]"
+						:is="{ template: slot.slotContent }"
+						:class="slotClasses"
+						:data-slot-id="slot.slotId"
+						:data-slot-name="slotName"
+						:data-component-id="block.componentId"
+					/>
+				</template>
+				<template v-else>
+					<div
+						:class="[slotClasses, !slot.slotContent ? 'min-h-5 w-full' : '']"
+						:data-slot-id="slot.slotId"
+						:data-slot-name="slotName"
+						:data-component-id="block.componentId"
+					>
+						{{ slot.slotContent }}
+					</div>
+				</template>
 			</template>
-			<template v-else-if="isHTML(slot.slotContent)">
-				<component
-					v-memo="[slot.slotContent]"
-					:is="{ template: slot.slotContent }"
-					:class="slotClasses"
-					:data-slot-id="slot.slotId"
-					:data-slot-name="slotName"
-					:data-component-id="block.componentId"
-				/>
-			</template>
-			<template v-else>
-				<div
-					:class="[slotClasses, !slot.slotContent ? 'min-h-5 w-full' : '']"
-					:data-slot-id="slot.slotId"
-					:data-slot-name="slotName"
-					:data-component-id="block.componentId"
-				>
-					{{ slot.slotContent }}
-				</div>
-			</template>
-		</template>
 
-		<StudioComponent
-			v-for="child in block?.children"
-			:key="child.componentId"
-			:block="child"
-			:breakpoint="breakpoint"
-		/>
-	</component>
+			<StudioComponent
+				v-for="child in block?.children"
+				:key="child.componentId"
+				:block="child"
+				:breakpoint="breakpoint"
+			/>
+		</component>
+	</template>
 
 	<!-- Rendering separately to avoid empty slots being passed as default slots to components like Dropdown -->
-	<component
-		v-else
-		:is="block.componentName"
-		v-show="showComponent"
-		v-bind="componentProps"
-		v-on="vModelListeners"
-		:data-component-id="block.componentId"
-		:data-breakpoint="breakpoint"
-		:style="styles"
-		:class="classes"
-		@mouseover="handleMouseOver"
-		@mouseleave="handleMouseLeave"
-		@click="handleClick"
-		ref="componentRef"
-	/>
+	<template v-else>
+		<component
+			v-if="showComponent"
+			:is="block.componentName"
+			v-bind="componentProps"
+			v-on="vModelListeners"
+			:data-component-id="block.componentId"
+			:data-breakpoint="breakpoint"
+			:style="styles"
+			:class="classes"
+			@mouseover="handleMouseOver"
+			@mouseleave="handleMouseLeave"
+			@click="handleClick"
+			ref="componentRef"
+		/>
+	</template>
 
 	<teleport to="#overlay" v-if="canvasProps?.overlayElement">
 		<!-- prettier-ignore -->

@@ -4,32 +4,37 @@
 		:studioComponent="block"
 		:evaluationContext="evaluationContext"
 	/>
-	<component
-		v-else
-		ref="componentRef"
-		v-show="showComponent"
-		:is="componentName"
-		v-bind="componentProps"
-		v-on="{ ...vModelListeners, ...componentEvents }"
-		:data-component-id="block.componentId"
-		:style="styles"
-		:class="classes"
-	>
-		<!-- Dynamically render named slots -->
-		<template v-for="(slot, slotName) in block.componentSlots" :key="slotName" v-slot:[slotName]>
-			<template v-if="Array.isArray(slot.slotContent)">
-				<AppComponent v-for="slotBlock in slot.slotContent" :block="slotBlock" :key="slotBlock.componentId" />
+	<template v-else>
+		<component
+			ref="componentRef"
+			v-if="showComponent"
+			:is="componentName"
+			v-bind="componentProps"
+			v-on="{ ...vModelListeners, ...componentEvents }"
+			:data-component-id="block.componentId"
+			:style="styles"
+			:class="classes"
+		>
+			<!-- Dynamically render named slots -->
+			<template v-for="(slot, slotName) in block.componentSlots" :key="slotName" v-slot:[slotName]>
+				<template v-if="Array.isArray(slot.slotContent)">
+					<AppComponent
+						v-for="slotBlock in slot.slotContent"
+						:block="slotBlock"
+						:key="slotBlock.componentId"
+					/>
+				</template>
+				<template v-else-if="isHTML(slot.slotContent)">
+					<component :is="{ template: slot.slotContent }" />
+				</template>
+				<template v-else>
+					{{ slot.slotContent }}
+				</template>
 			</template>
-			<template v-else-if="isHTML(slot.slotContent)">
-				<component :is="{ template: slot.slotContent }" />
-			</template>
-			<template v-else>
-				{{ slot.slotContent }}
-			</template>
-		</template>
 
-		<AppComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
-	</component>
+			<AppComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
+		</component>
+	</template>
 </template>
 
 <script setup lang="ts">
