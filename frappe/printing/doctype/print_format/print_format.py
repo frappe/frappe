@@ -150,6 +150,9 @@ class PrintFormat(Document):
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
 
+	def get_code_fields(self):
+		return {"html": "html", "css": "css", "raw_commands": "txt"}
+
 
 @frappe.whitelist()
 def make_default(name: str):
