@@ -617,6 +617,19 @@ def make_xlsx(
 	Returns:
 		BytesIO: object containing the Excel file data
 	"""
+
+	def _apply_style(target, style: dict) -> None:
+		if font := style.get("font"):
+			target.font = font
+		if fill := style.get("fill"):
+			target.fill = fill
+		if alignment := style.get("alignment"):
+			target.alignment = alignment
+		if border := style.get("border"):
+			target.border = border
+		if number_format := style.get("number_format"):
+			target.number_format = number_format
+
 	column_widths = column_widths or []
 	styles = styles or {}
 
@@ -626,197 +639,47 @@ def make_xlsx(
 
 	ws = wb.create_sheet(INVALID_TITLE_REGEX.sub(" ", sheet_name), 0)
 
-	# Set column widths
-	_set_column_widths(ws, column_widths)
+	# Apply styles
+	if column_styles := styles.get("column_styles"):
+		for col_idx, style in column_styles.items():
+			_apply_style(ws.column_dimensions[get_column_letter(col_idx + 1)], style)
 
-	# Write data rows
-	_write_data_rows(ws=ws, data=data, sheet_name=sheet_name, styles=styles)
-
-	# Save and return
-	xlsx_file = BytesIO()
-	wb.save(xlsx_file)
-	return xlsx_file
-
-
-def _set_column_widths(ws, column_widths: list[int] | None = None) -> None:
-	"""
-	Set column widths on the worksheet.
-	"""
-	if not column_widths:
-		return
-
+	# TODO: Can be in XLSXStyleBuilder?
 	for idx, width in enumerate(column_widths, start=1):
 		if width:
 			ws.column_dimensions[get_column_letter(idx)].width = width
 
-
-def _apply_dimension_styles(
-	ws,
-	column_styles: dict,
-	row_styles: dict,
-	cell_styles: dict,
-) -> bool:
-	"""
-	Apply styles to row/column dimensions when possible.
-
-	Returns:
-		bool: True if cell-level styling is still needed, False if dimension styling was used.
-	"""
-	has_styles = bool(column_styles or row_styles or cell_styles)
-
-	if not has_styles or cell_styles:
-		return True
-
-	# Only row styles - apply to row dimensions
-	if row_styles and not column_styles:
+	if row_styles := styles.get("row_styles"):
 		for row_idx, style in row_styles.items():
 			_apply_style(ws.row_dimensions[row_idx + 1], style)
-		return False
 
-	# Only column styles - apply to column dimensions
-	if column_styles and not row_styles:
-		for col_idx, style in column_styles.items():
-			_apply_style(ws.column_dimensions[get_column_letter(col_idx + 1)], style)
-		return False
-
-	return True
-
-
-def _apply_style(target, style: dict) -> None:
-	"""
-	Apply style properties to a cell or dimension object.
-	"""
-	if font := style.get("font"):
-		target.font = font
-	if fill := style.get("fill"):
-		target.fill = fill
-	if alignment := style.get("alignment"):
-		target.alignment = alignment
-	if border := style.get("border"):
-		target.border = border
-	if number_format := style.get("number_format"):
-		target.number_format = number_format
-
-
-def _write_data_rows(
-	ws,
-	data: list[list[Any]],
-	sheet_name: str,
-	styles: dict | None = None,
-) -> None:
-	"""
-	Write all data rows to the worksheet with appropriate styling.
-	"""
-	# Extract style configurations
-	column_styles = styles.get("column_styles") or {}
-	row_styles = styles.get("row_styles") or {}
-	cell_styles = styles.get("cell_styles") or {}
-
-	# Determine styling mode
-	has_styles = bool(column_styles or row_styles or cell_styles)
-	use_cell_styling = _apply_dimension_styles(ws, column_styles, row_styles, cell_styles)
+	cell_styles = styles.get("cell_styles")
 
 	# Determine if HTML handling is needed
 	handle_html_content = sheet_name not in {"Data Import Template", "Data Export"}
 
 	for row_idx, row in enumerate(data):
-		row_style = row_styles.get(row_idx) or {} if has_styles else {}
+		excel_row = []
 
-		excel_row = _build_excel_row(
-			ws=ws,
-			row=row,
-			row_idx=row_idx,
-			row_style=row_style,
-			handle_html_content=handle_html_content,
-			has_styles=has_styles,
-			use_cell_styling=use_cell_styling,
-			column_styles=column_styles,
-			cell_styles=cell_styles,
-		)
+		for col_idx, value in enumerate(row):
+			if isinstance(value, str):
+				if handle_html_content:
+					value = handle_html(value)
+
+				value = ILLEGAL_CHARACTERS_RE.sub("", value)
+
+			cell = WriteOnlyCell(ws, value=value)
+
+			if cell_styles and (style := cell_styles.get((row_idx, col_idx))):
+				_apply_style(cell, style)
+
+			excel_row.append(cell)
 
 		ws.append(excel_row)
 
-
-def _build_excel_row(
-	ws,
-	row: list,
-	row_idx: int,
-	row_style: dict,
-	handle_html_content: bool,
-	has_styles: bool,
-	use_cell_styling: bool,
-	column_styles: dict,
-	cell_styles: dict,
-) -> list:
-	"""
-	Build a single Excel row with styled cells.
-	"""
-	excel_row = []
-
-	for col_idx, value in enumerate(row):
-		# Process cell value
-		value = _process_cell_value(value, handle_html_content)
-
-		# Create cell
-		cell = WriteOnlyCell(ws, value=value)
-
-		# Apply styling if needed
-		if has_styles and use_cell_styling:
-			_apply_cell_style(
-				cell=cell,
-				row_idx=row_idx,
-				col_idx=col_idx,
-				row_style=row_style,
-				column_styles=column_styles,
-				cell_styles=cell_styles,
-			)
-
-		excel_row.append(cell)
-
-	return excel_row
-
-
-def _process_cell_value(value: Any, handle_html_content: bool) -> Any:
-	"""
-	Process and sanitize cell value.
-	"""
-	if isinstance(value, str):
-		if handle_html_content:
-			value = handle_html(value)
-		value = ILLEGAL_CHARACTERS_RE.sub("", value)
-
-	return value
-
-
-def _apply_cell_style(
-	cell,
-	row_idx: int,
-	col_idx: int,
-	row_style: dict,
-	column_styles: dict,
-	cell_styles: dict,
-) -> None:
-	"""
-	Apply merged styles to a cell (column < row < cell priority).
-	"""
-	cell_style = cell_styles.get((row_idx, col_idx)) or {}
-	col_style = column_styles.get(col_idx) or {}
-
-	# Skip if no styles to apply
-	if not (cell_style or col_style or row_style):
-		return
-
-	# Merge styles with priority: column < row < cell
-	merged_style = {}
-
-	if col_style:
-		merged_style.update(col_style)
-	if row_style:
-		merged_style.update(row_style)
-	if cell_style:
-		merged_style.update(cell_style)
-
-	_apply_style(cell, merged_style)
+	xlsx_file = BytesIO()
+	wb.save(xlsx_file)
+	return xlsx_file
 
 
 ### Utils ###
