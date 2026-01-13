@@ -78,7 +78,11 @@ def write_code_files(folder, fname, doc, doc_export):
 		for key, extn in doc.get_code_fields().items():
 			if doc.get(key):
 				path = os.path.join(folder, fname + "." + extn)
-				if not Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
+				if (
+					not Path(path)
+					.resolve()
+					.is_relative_to(Path(frappe.get_module_path(doc.module)).resolve())
+				):
 					frappe.throw("Invalid export path: " + Path(path).as_posix())
 				with open(path, "w+") as txtfile:
 					txtfile.write(doc.get(key))
