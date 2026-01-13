@@ -1274,7 +1274,12 @@ export default class GridRow {
 
 				var move_up_down = function (base) {
 					if (ignore_fieldtypes.includes(fieldtype) && !e.altKey) {
-						return false;
+						// Allow tab navigation if field is empty
+						if (e.which === TAB && $(this).val().trim() === "") {
+							// Continue with navigation
+						} else {
+							return false;
+						}
 					}
 					if (field.autocomplete_open) {
 						return false;
