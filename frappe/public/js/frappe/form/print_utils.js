@@ -88,7 +88,7 @@ frappe.ui.get_print_settings = function (
 	return frappe.prompt(
 		columns,
 		function (settings) {
-			settings = $.extend(print_settings, settings);
+			settings = $.extend({}, print_settings, settings);
 
 			if (!settings.with_letter_head) {
 				settings.letter_head = null;
