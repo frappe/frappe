@@ -253,7 +253,7 @@ frappe.views.Calendar = class Calendar {
 		defaults.meridiem = "false";
 		this.cal_options = {
 			plugins: frappe.FullCalendar.Plugins,
-			initialView: defaults.initialView || "timeGridWeek",
+			initialView: defaults.initialView || "dayGridMonth",
 			locale: frappe.boot.lang,
 			firstDay: 1,
 			headerToolbar: {
