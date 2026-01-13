@@ -90,9 +90,10 @@ const useCodeStore = defineStore("codeStore", () => {
 	}
 
 	function setupWatcher(watcher: StudioPageWatcher) {
-		const isDeep = typeof variables.value[watcher.source] === "object"
+		const currentValue = getValueFromVariable(watcher.source)
+		const isDeep = typeof currentValue === "object"
 		const watcherFn = watch(
-			() => variables.value[watcher.source],
+			() => getValueFromVariable(watcher.source),
 			() => executeUserScript(watcher.script),
 			{ deep: isDeep, immediate: watcher.immediate }
 		)
