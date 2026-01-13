@@ -206,7 +206,7 @@ frappe.views.Calendar = class Calendar {
 	}
 	set_css() {
 		const viewButtons =
-			".fc-dayGridMonth-button, .fc-dayGridWeek-button, .fc-dayGridDay-button, .fc-today-button";
+			".fc-dayGridMonth-button, .fc-timeGridWeek-button, .fc-timeGridDay-button, .fc-today-button";
 		const fcViewButtonClasses = "fc-button fc-button-primary fc-button-active";
 
 		// remove fc-button styles
@@ -253,13 +253,13 @@ frappe.views.Calendar = class Calendar {
 		defaults.meridiem = "false";
 		this.cal_options = {
 			plugins: frappe.FullCalendar.Plugins,
-			initialView: defaults.initialView || "dayGridMonth",
+			initialView: defaults.initialView || "timeGridWeek",
 			locale: frappe.boot.lang,
 			firstDay: 1,
 			headerToolbar: {
 				left: "prev,title,next",
 				center: "",
-				right: "today,dayGridMonth,dayGridWeek,dayGridDay",
+				right: "today,dayGridMonth,timeGridWeek,timeGridDay",
 			},
 			editable: true,
 			droppable: true,
