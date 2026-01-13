@@ -297,6 +297,51 @@ class XLSXStyleBuilder:
 		return self.style_cell_range(row_idx, row_idx, start_col, end_col, style_name)
 
 	def build(self) -> frappe._dict:
+		cell_styles = self.config["cell_styles"]
+		row_styles = self.config["row_styles"]
+		col_styles = self.config["column_styles"]
+
+		if not (cell_styles or row_styles or col_styles):
+			return self.config
+
+		if not cell_styles and (bool(row_styles) ^ bool(col_styles)):
+			return self.config
+
+		if row_styles and col_styles:
+			resolved = {}
+
+			for row_idx, row_style in row_styles.items():
+				for col_idx, col_style in col_styles.items():
+					resolved[(row_idx, col_idx)] = {
+						**col_style,
+						**row_style,  # row overrides col
+					}
+
+			for pos, merged_style in resolved.items():
+				if pos in cell_styles:
+					cell_styles[pos] = {
+						**merged_style,
+						**cell_styles[pos],  # cell overrides col + row
+					}
+				else:
+					cell_styles[pos] = merged_style
+
+		elif row_styles:
+			for (row_idx, col_idx), cell_style in cell_styles.items():
+				if row_style := row_styles.get(row_idx):
+					cell_styles[(row_idx, col_idx)] = {
+						**row_style,
+						**cell_style,
+					}
+
+		elif col_styles:
+			for (row_idx, col_idx), cell_style in cell_styles.items():
+				if col_style := col_styles.get(col_idx):
+					cell_styles[(row_idx, col_idx)] = {
+						**col_style,
+						**cell_style,
+					}
+
 		return self.config
 
 	### Utility Methods ###
@@ -562,15 +607,15 @@ def make_xlsx(
 	Create an Excel file with the given data and formatting options.
 
 	Args:
-	    data: List of rows, where each row is a list of cell values
-	    sheet_name: Name of the Excel sheet
-	    wb: Existing workbook to add sheet to. If None, creates new workbook
-	    column_widths: List of column widths in Excel units. If None, auto-sized
-	    styles: Configuration for cell/row/column styles
-	        - Should contain: column_styles, row_styles, cell_styles
+		data: List of rows, where each row is a list of cell values
+		sheet_name: Name of the Excel sheet
+		wb: Existing workbook to add sheet to. If None, creates new workbook
+		column_widths: List of column widths in Excel units. If None, auto-sized
+		styles: Configuration for cell/row/column styles
+			- Should contain: column_styles, row_styles, cell_styles
 
 	Returns:
-	    BytesIO: object containing the Excel file data
+		BytesIO: object containing the Excel file data
 	"""
 	column_widths = column_widths or []
 	styles = styles or {}
@@ -615,7 +660,7 @@ def _apply_dimension_styles(
 	Apply styles to row/column dimensions when possible.
 
 	Returns:
-	    bool: True if cell-level styling is still needed, False if dimension styling was used.
+		bool: True if cell-level styling is still needed, False if dimension styling was used.
 	"""
 	has_styles = bool(column_styles or row_styles or cell_styles)
 
