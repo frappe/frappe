@@ -75,7 +75,11 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 	prepare() {}
 	make() {
 		this.path = this.get_path();
-		if (!this.path && !this.item.standard && this.item.type != "Section Break") {
+		if (
+			!this.path &&
+			!this.item.standard &&
+			this.item.type in ("Section Break", "Sidebar Item Group") === false
+		) {
 			return;
 		}
 		this.set_suffix();
@@ -177,8 +181,8 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		this.full_template = $(this.wrapper);
 	}
 	make() {
-		if (this.item.nested_items.length == 0) return;
 		super.make();
+		if (!this.item.nested_items || this.item.nested_items.length == 0) return;
 		this.add_items();
 		this.toggle_on_collapse();
 		this.enable_collapsible(this.item, this.full_template);

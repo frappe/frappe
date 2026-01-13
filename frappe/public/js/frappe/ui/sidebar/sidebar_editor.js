@@ -84,11 +84,13 @@ export class SidebarEditor {
 	}
 	prepare_data() {
 		this.new_sidebar_items.forEach((item) => {
-			item.nested_items.forEach((nested_item) => {
-				if (nested_item.parent) {
-					delete nested_item.parent;
-				}
-			});
+			if (item.nested_items) {
+				item.nested_items.forEach((nested_item) => {
+					if (nested_item.parent) {
+						delete nested_item.parent;
+					}
+				});
+			}
 		});
 	}
 	setup_sorting() {
