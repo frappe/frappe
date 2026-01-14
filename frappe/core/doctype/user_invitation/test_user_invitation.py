@@ -55,15 +55,18 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 
 	@classmethod
 	def delete_all_user_roles(cls):
-		frappe.db.sql("DELETE FROM `tabUser Role`")
+		query = "DELETE FROM `tabUser Role`"
+		frappe.db.sql(cls.normalize_sql(query))
 
 	@classmethod
 	def delete_all_invitations(cls):
-		frappe.db.sql("DELETE FROM `tabUser Invitation`")
+		query = "DELETE FROM `tabUser Invitation`"
+		frappe.db.sql(cls.normalize_sql(query))
 
 	@classmethod
 	def delete_invitation(cls, name: str):
-		frappe.db.sql(f'DELETE FROM `tabUser Invitation` WHERE name = "{name}"')
+		query = "DELETE FROM `tabUser Invitation` WHERE name = %s"
+		frappe.db.sql(cls.normalize_sql(query), name)
 
 	def setUp(self):
 		super().setUp()
@@ -75,6 +78,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		invitation = self.get_dummy_invitation()
 		self.assertEqual(len(self.get_email_names()), 0)
 		invitation.insert()
+		frappe.db.commit()
 		self.assertEqual(invitation.invited_by, frappe.session.user)
 		self.assertEqual(invitation.status, "Pending")
 		self.assertIsInstance(invitation.email_sent_at, str)
@@ -87,8 +91,10 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 	def test_update_invitation_status_to_expired(self):
 		invitation = self.get_dummy_invitation()
 		invitation.insert()
+		frappe.db.commit()
 		self.assertEqual(len(self.get_email_names()), 1)
 		invitation.expire()
+		frappe.db.commit()
 		emails = self.get_email_messages(False)
 		self.assertEqual(len(emails), 2)
 		self.assertIn("expired", emails[0].message.lower())
@@ -249,15 +255,21 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 	def test_cancel_invitation_api(self):
 		invitation = self.get_dummy_invitation()
 		invitation.insert()
+		frappe.db.commit()
+
 		invitation.reload()
 		self.assertEqual(invitation.status, "Pending")
 		self.assertEqual(len(self.get_email_names()), 1)
 		res = cancel_invitation(invitation.name, "frappe")
+		frappe.db.commit()
+
 		self.assertTrue(res["cancelled_now"])
 		invitation.reload()
 		self.assertEqual(invitation.status, "Cancelled")
 		self.assertEqual(len(self.get_email_names()), 2)
 		res = cancel_invitation(invitation.name, "frappe")
+		frappe.db.commit()
+
 		self.assertFalse(res["cancelled_now"])
 		self.assertEqual(len(self.get_email_names()), 2)
 

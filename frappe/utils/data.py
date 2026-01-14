@@ -116,7 +116,7 @@ def is_invalid_date_string(date_string: str) -> bool:
 
 
 def getdate(
-	string_date: Optional["DateTimeLikeObject"] = None, parse_day_first: bool = False
+	string_date: DateTimeLikeObject | None = None, parse_day_first: bool = False
 ) -> datetime.date | None:
 	"""
 	Convert string date (yyyy-mm-dd) to datetime.date object.
@@ -148,7 +148,7 @@ def getdate(
 
 
 def get_datetime(
-	datetime_str: Optional["DateTimeLikeObject"] | tuple | list = None,
+	datetime_str: DateTimeLikeObject | None | tuple | list = None,
 ) -> datetime.datetime | None:
 	"""Return the below mentioned values based on the given `datetime_str`:
 
@@ -373,7 +373,7 @@ def now_datetime() -> datetime.datetime:
 	return datetime.datetime.now(ZoneInfo(get_system_timezone())).replace(tzinfo=None)
 
 
-def get_timestamp(date: Optional["DateTimeLikeObject"] = None) -> float:
+def get_timestamp(date: DateTimeLikeObject | None = None) -> float:
 	"""Return the Unix timestamp (seconds since Epoch) for the given `date`.
 	If `date` is None, the current timestamp is returned.
 	"""
@@ -402,7 +402,7 @@ def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) ->
 
 def get_datetime_in_timezone(time_zone: str) -> datetime.datetime:
 	"""Return the current datetime in the given timezone (e.g. 'Asia/Kolkata')."""
-	utc_timestamp = datetime.datetime.now(datetime.timezone.utc)
+	utc_timestamp = datetime.datetime.now(datetime.UTC)
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
@@ -797,38 +797,37 @@ def format_datetime(datetime_string: DateTimeLikeObject, format_string: str | No
 	return formatted_datetime
 
 
-def format_duration(seconds, hide_days=False):
-	"""Convert the given duration value in float(seconds) to duration format.
+def format_duration(seconds: float | int, hide_days: bool = False) -> str:
+	"""Convert the given duration value in seconds to duration format.
 
-	example: convert 12885 to '3h 34m 45s' where 12885 = seconds in float
+	example:
+	convert 12885 to '3h 34m 45s' where 12885 = seconds in float
+	        -12885 to '-3h 34m 45s'
 	"""
-
 	seconds = cint(seconds)
+	negative = seconds < 0
+	seconds = abs(seconds)
 
-	total_duration = {
-		"days": math.floor(seconds / (3600 * 24)),
-		"hours": math.floor(seconds % (3600 * 24) / 3600),
-		"minutes": math.floor(seconds % 3600 / 60),
-		"seconds": math.floor(seconds % 60),
-	}
+	days = (seconds // (3600 * 24)) if not hide_days else 0
+	hours = ((seconds % (3600 * 24)) // 3600) if not hide_days else (seconds // 3600)
+	minutes = (seconds % 3600) // 60
+	seconds = seconds % 60
 
-	if hide_days:
-		total_duration["hours"] = math.floor(seconds / 3600)
-		total_duration["days"] = 0
+	total_duration = []
 
-	duration = ""
-	if total_duration:
-		if total_duration.get("days"):
-			duration += str(total_duration.get("days")) + "d"
-		if total_duration.get("hours"):
-			duration += " " if len(duration) else ""
-			duration += str(total_duration.get("hours")) + "h"
-		if total_duration.get("minutes"):
-			duration += " " if len(duration) else ""
-			duration += str(total_duration.get("minutes")) + "m"
-		if total_duration.get("seconds"):
-			duration += " " if len(duration) else ""
-			duration += str(total_duration.get("seconds")) + "s"
+	if days:
+		total_duration.append(f"{days}d")
+	if hours:
+		total_duration.append(f"{hours}h")
+	if minutes:
+		total_duration.append(f"{minutes}m")
+	if seconds:
+		total_duration.append(f"{seconds}s")
+
+	duration = " ".join(total_duration)
+
+	if negative and duration:
+		duration = "-" + duration
 
 	return duration
 
@@ -1633,7 +1632,7 @@ def get_thumbnail_base64_for_image(src: str) -> dict[str, str] | None:
 			return
 
 		try:
-			image, unused_filename, extn = get_local_image(src)
+			image, _unused_filename, extn = get_local_image(src)
 		except OSError:
 			return
 
@@ -1905,7 +1904,7 @@ def get_link_to_form(doctype: str, name: str | None = None, label: str | None = 
 	"""Return the HTML link to the given document's form view.
 
 	e.g. get_link_to_form("Sales Invoice", "INV-0001", "Link Label") returns:
-	    '<a href="https://frappe.io/app/sales-invoice/INV-0001">Link Label</a>'.
+	    '<a href="https://frappe.io/desk/sales-invoice/INV-0001">Link Label</a>'.
 	"""
 	from frappe import _
 
@@ -1925,7 +1924,7 @@ def get_link_to_report(
 	"""Return the HTML link to the given report.
 
 	e.g. get_link_to_report("Revenue Report", "Link Label") returns:
-	        '<a href="https://frappe.io/app/query-report/Revenue%20Report">Link Label</a>'.
+	        '<a href="https://frappe.io/desk/query-report/Revenue%20Report">Link Label</a>'.
 	"""
 	from frappe import _
 
@@ -1936,10 +1935,23 @@ def get_link_to_report(
 		conditions = []
 		for k, v in filters.items():
 			if isinstance(v, list):
-				conditions.extend(
-					str(k) + "=" + '["' + str(value[0] + '"' + "," + '"' + str(value[1]) + '"]')
-					for value in v
-				)
+				for value in v:
+					if value[0] == "between":
+						conditions.append(
+							str(k)
+							+ "="
+							+ '["'
+							+ str(value[0])
+							+ '",["'
+							+ str(value[1][0])
+							+ '","'
+							+ str(value[1][1])
+							+ '"]]'
+						)
+					else:
+						conditions.append(
+							str(k) + "=" + '["' + str(value[0] + '"' + "," + '"' + str(value[1]) + '"]')
+						)
 			else:
 				conditions.append(str(k) + "=" + quote(str(v)))
 
@@ -1955,21 +1967,21 @@ def get_link_to_report(
 def get_absolute_url(doctype: str, name: str) -> str:
 	"""Return the absolute route for the form view of the given document in the desk.
 
-	e.g. when doctype="Sales Invoice" and name="INV-00001", returns '/app/sales-invoice/INV-00001'
+	e.g. when doctype="Sales Invoice" and name="INV-00001", returns '/desk/sales-invoice/INV-00001'
 	"""
-	return f"/app/{quoted(slug(doctype))}/{quoted(name)}"
+	return f"/desk/{quoted(slug(doctype))}/{quoted(name)}"
 
 
 def get_url_to_form(doctype: str, name: str | None = None) -> str:
 	"""Return the absolute URL for the form view of the given document in the desk.
 
 	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
-	         returns 'https://frappe.io/app/sales-invoice/INV-00001'
+	         returns 'https://frappe.io/desk/sales-invoice/INV-00001'
 	"""
 	if not name:
-		uri = f"/app/{quoted(slug(doctype))}"
+		uri = f"/desk/{quoted(slug(doctype))}"
 	else:
-		uri = f"/app/{quoted(slug(doctype))}/{quoted(name)}"
+		uri = f"/desk/{quoted(slug(doctype))}/{quoted(name)}"
 
 	return get_url(uri=uri)
 
@@ -1978,37 +1990,72 @@ def get_url_to_list(doctype: str) -> str:
 	"""Return the absolute URL for the list view of the given document in the desk.
 
 	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
-	         returns 'https://frappe.io/app/sales-invoice'
+	         returns 'https://frappe.io/desk/sales-invoice'
 	"""
-	return get_url(uri=f"/app/{quoted(slug(doctype))}")
+	return get_url(uri=f"/desk/{quoted(slug(doctype))}")
 
 
 def get_url_to_report(name, report_type: str | None = None, doctype: str | None = None) -> str:
 	"""Return the absolute URL for the report in the desk.
 
 	e.g. when name="Sales Register" and your site URL is "https://frappe.io",
-	         returns 'https://frappe.io/app/query-report/Sales%20Register'
+	         returns 'https://frappe.io/desk/query-report/Sales%20Register'
 
 	You can optionally pass `report_type` and `doctype` to get the URL for a Report Builder report.
 
-	get_url_to_report("Revenue", "Report Builder", "Sales Invoice") -> 'https://frappe.io/app/sales-invoice/view/report/Revenue'
+	get_url_to_report("Revenue", "Report Builder", "Sales Invoice") -> 'https://frappe.io/desk/sales-invoice/view/report/Revenue'
 	"""
 	if report_type == "Report Builder":
-		return get_url(uri=f"/app/{quoted(slug(doctype))}/view/report/{quoted(name)}")
+		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report/{quoted(name)}")
 	else:
-		return get_url(uri=f"/app/query-report/{quoted(name)}")
+		return get_url(uri=f"/desk/query-report/{quoted(name)}")
 
 
 def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None):
 	"""Return the absolute URL for the report in the desk with filters."""
 	if report_type == "Report Builder":
-		return get_url(uri=f"/app/{quoted(slug(doctype))}/view/report?{filters}")
+		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report?{filters}")
 
-	return get_url(uri=f"/app/query-report/{quoted(name)}?{filters}")
+	return get_url(uri=f"/desk/query-report/{quoted(name)}?{filters}")
+
+
+def get_filtered_list_url(doctype: str, docnames: list[str] | None = None) -> str:
+	"""
+	Get a filtered list view URL for a doctype with specific document names.
+
+	:param doctype: The doctype name
+	:param docnames: List of document names to filter
+
+	:return: URL to the filtered list view
+	"""
+	list_url = get_url_to_list(doctype)
+
+	if not docnames:
+		return list_url
+
+	return "".join((list_url, "?", urlencode({"name": json.dumps(["in", docnames])})))
+
+
+def get_filtered_list_link(doctype: str, docnames: list[str] | None = None, label: str | None = None) -> str:
+	"""
+	Get an HTML link to a filtered list view for a doctype with specific document names.
+
+	:param doctype: The doctype name
+	:param docnames: List of document names to filter
+	:param label: Optional label for the link. If not provided, uses doctype
+
+	:return: HTML link to the filtered list view
+	"""
+	from frappe import _
+
+	url = get_filtered_list_url(doctype, docnames)
+	label = label or _(doctype)
+
+	return f"""<a href="{url}">{label}</a>"""
 
 
 def sql_like(value: str, pattern: str) -> bool:
-	if not isinstance(pattern, str) and isinstance(value, str):
+	if not (isinstance(pattern, str) and isinstance(value, str)):
 		return False
 	if pattern.startswith("%") and pattern.endswith("%"):
 		return pattern.strip("%") in value
@@ -2021,7 +2068,7 @@ def sql_like(value: str, pattern: str) -> bool:
 		return pattern in value
 
 
-def filter_operator_is(value: str, pattern: str) -> bool:
+def filter_operator_is(value: str | None, pattern: str) -> bool:
 	"""Operator `is` can have two values: 'set' or 'not set'."""
 	pattern = pattern.lower()
 
@@ -2082,11 +2129,37 @@ def evaluate_filters(doc: "Mapping", filters: FilterSignature):
 	return True
 
 
-def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
+def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None) -> bool:
+	"""Compare two values using the specified operator with optional fieldtype casting.
+
+	Args:
+		val1: The left operand value to compare
+		condition: The comparison operator (e.g., "=", ">", "is", "in", "like")
+		val2: The right operand value to compare against
+		fieldtype: Optional fieldtype for casting val1 (and val2 for most operators)
+
+	Returns:
+		bool: True if the comparison evaluates to True, False otherwise
+
+	Note:
+	- For "is" operator: No casting is performed to preserve None values
+	- For "in"/"not in" operators: Only val1 is cast (if not None), val2 remains unchanged
+	- For "Timespan" operator: No casting is performed
+	- For other operators: Both val1 and val2 are cast to the specified fieldtype
+	"""
 	if fieldtype:
-		val1 = cast(fieldtype, val1)
-		if condition != "Timespan":
+		if condition in {"is", "Timespan"}:
+			# No casting to preserve original values
+			pass
+		elif condition in {"in", "not in"}:
+			# Cast only val1 (if not None), preserve val2 container
+			if val1 is not None:
+				val1 = cast(fieldtype, val1)
+		else:
+			# Cast both values for comparison operators (=, !=, >, <, >=, <=, like, etc.)
+			val1 = cast(fieldtype, val1)
 			val2 = cast(fieldtype, val2)
+
 	if condition in operator_map:
 		return operator_map[condition](val1, val2)
 
@@ -2150,7 +2223,7 @@ def get_filter(doctype: str, filters: FilterSignature, filters_config=None) -> "
 		meta = frappe.get_meta(f.doctype)
 		if not meta.has_field(f.fieldname):
 			# try and match the doctype name from child tables
-			for df in meta.get_table_fields():
+			for df in meta.get_table_fields(include_computed=True):
 				if frappe.get_meta(df.options).has_field(f.fieldname):
 					f.doctype = df.options
 					break
@@ -2331,7 +2404,7 @@ def to_markdown(html: str) -> str:
 		pass
 
 
-def md_to_html(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
+def md_to_html(markdown_text: str) -> "UnicodeWithAttrs" | None:
 	"""Convert the given markdown text to HTML and returns it."""
 	from markdown2 import MarkdownError
 	from markdown2 import markdown as _markdown
@@ -2351,7 +2424,7 @@ def md_to_html(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
 		pass
 
 
-def markdown(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
+def markdown(markdown_text: str) -> "UnicodeWithAttrs" | None:
 	"""Convert the given markdown text to HTML and returns it."""
 	return md_to_html(markdown_text)
 
@@ -2776,3 +2849,78 @@ def map_trackers(url_trackers: dict, create: bool = False):
 		frappe_trackers["utm_content"] = url_content
 
 	return frappe_trackers
+
+
+def attach_expanded_links(doctype: str, docs: list, fields_to_expand: list):
+	"""
+	Expands specified link or dynamic link fields in a list of documents by replacing
+	their linked values (names) with full document records.
+
+	This function takes a list of documents and a list of link fieldnames that should be
+	expanded. For each specified field, it retrieves all referenced linked records from
+	the corresponding doctypes and replaces the link value in each document with the
+	full linked record (as a dict).
+
+	Args:
+		doctype (str): The parent doctype of the provided documents.
+		docs (list[dict]): A list of document dictionaries whose link fields are to be expanded.
+		fields_to_expand (list[str]): A list of fieldnames corresponding to link or dynamic
+			link fields that should be expanded.
+
+	Returns:
+		None: The function modifies the `docs` list in place.
+
+	Example:
+		>>> docs = [{"customer": "CUST-001"}, {"customer": "CUST-002"}]
+		>>> attach_expanded_links("Sales Invoice", docs, ["customer"])
+		>>> docs[0]["customer"]
+		{
+			"name": "CUST-001",
+			"customer_name": "John Doe",
+			"customer_group": "Retail",
+			...
+		}
+
+	"""
+
+	if not fields_to_expand:
+		return
+
+	meta = frappe.get_meta(doctype)
+
+	link_fields = {f.fieldname: f for f in meta.get_link_fields() + meta.get_dynamic_link_fields()}
+
+	doctype_values = defaultdict(set)
+	field_to_doctype = {}
+
+	for fieldname in fields_to_expand:
+		if fieldname not in link_fields:
+			continue
+		e = link_fields[fieldname]
+		link_doctype = e.options
+		field_to_doctype[fieldname] = link_doctype
+
+		for li in docs:
+			val = li.get(fieldname)
+			if val:
+				doctype_values[link_doctype].add(val)
+
+	doctype_title_maps = {}
+
+	for link_doctype, values in doctype_values.items():
+		records = frappe.get_list(
+			link_doctype,
+			filters={"name": ["in", list(values)]},
+			fields=["*"],
+		)
+		doctype_title_maps[link_doctype] = {r["name"]: r for r in records}
+
+	for li in docs:
+		for fieldname in fields_to_expand:
+			if fieldname not in field_to_doctype:
+				continue
+			link_doctype = field_to_doctype[fieldname]
+			val = li.get(fieldname)
+			val_title = doctype_title_maps.get(link_doctype, {}).get(val)
+			if val and val_title:
+				li[fieldname] = val_title

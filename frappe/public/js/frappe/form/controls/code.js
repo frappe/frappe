@@ -82,6 +82,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 		}
 
 		this.editor.setTheme("ace/theme/tomorrow");
+		this.editor.setOption("placeholder", this.df.placeholder);
 		this.editor.setOption("showPrintMargin", false);
 		this.editor.setOption("wrap", this.df.wrap);
 		this.set_language();
@@ -112,15 +113,21 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 				if (!this._autocompletions) {
 					this._autocompletions = [];
 				}
-				this._autocompletions.push(getter);
-				this.setup_autocompletion();
+
+				if (value.length > 0) {
+					this._autocompletions.push(getter);
+					this.setup_autocompletion();
+				} else {
+					this.editor.setOptions({
+						enableBasicAutocompletion: false,
+						enableLiveAutocompletion: false,
+					});
+				}
 			},
 		});
 	}
 
 	setup_autocompletion(customGetCompletions) {
-		if (this._autocompletion_setup) return;
-
 		const ace = window.ace;
 
 		let getCompletions = (editor, session, pos, prefix, callback) => {
@@ -167,7 +174,6 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 				getCompletions: customGetCompletions || getCompletions,
 			});
 		});
-		this._autocompletion_setup = true;
 	}
 
 	refresh_height() {

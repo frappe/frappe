@@ -228,6 +228,7 @@ def bundle(
 	files=None,
 	save_metafiles=False,
 	using_cached=False,
+	esbuild_target=None,
 ):
 	"""concat / minify js files"""
 	setup()
@@ -238,6 +239,9 @@ def bundle(
 
 	if apps:
 		command += f" --apps {apps}"
+
+	if esbuild_target:
+		command += f" --esbuild-target {esbuild_target}"
 
 	if skip_frappe:
 		command += " --skip_frappe"
@@ -258,7 +262,7 @@ def bundle(
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
 
 	with suppress(Exception):
-		frappe.cache.flushall()
+		frappe.cache.flushdb()
 
 
 def watch(apps=None):

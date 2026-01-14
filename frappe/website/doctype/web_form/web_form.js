@@ -118,6 +118,9 @@ frappe.ui.form.on("Web Form", {
 							read_only: df.read_only,
 							precision: df.precision,
 							depends_on: df.depends_on,
+							placeholder: df.placeholder,
+							max_length: df.length,
+							description: df.description,
 							mandatory_depends_on: df.mandatory_depends_on,
 							read_only_depends_on: df.read_only_depends_on,
 						});
@@ -132,11 +135,26 @@ frappe.ui.form.on("Web Form", {
 	set_fields(frm) {
 		let doc = frm.doc;
 
-		let update_options = (options) => {
-			[frm.fields_dict.web_form_fields.grid, frm.fields_dict.list_columns.grid].forEach(
-				(obj) => {
-					obj.update_docfield_property("fieldname", "options", options);
-				}
+		let as_select_option = (df) => ({
+			label: df.label,
+			value: df.fieldname,
+		});
+		let update_options = (fields) => {
+			frm.fields_dict.web_form_fields.grid.update_docfield_property(
+				"fieldname",
+				"options",
+				fields.map(as_select_option)
+			);
+			frm.fields_dict.list_columns.grid.update_docfield_property(
+				"fieldname",
+				"options",
+				fields
+					.filter(
+						(df) =>
+							!frappe.model.no_value_type.includes(df.fieldtype) &&
+							df.is_virtual !== 1
+					)
+					.map(as_select_option)
 			);
 		};
 
@@ -146,14 +164,12 @@ frappe.ui.form.on("Web Form", {
 			return;
 		}
 
-		update_options([`Fetching fields from ${doc.doc_type}...`]);
+		update_options([
+			{ label: __("Fetching fields from {0}...", [doc.doc_type]), fieldname: "" },
+		]);
 
 		get_fields_for_doctype(doc.doc_type).then((fields) => {
-			let as_select_option = (df) => ({
-				label: df.label,
-				value: df.fieldname,
-			});
-			update_options(fields.map(as_select_option));
+			update_options(fields);
 
 			let currency_fields = fields
 				.filter((df) => ["Currency", "Float"].includes(df.fieldtype))
@@ -161,7 +177,7 @@ frappe.ui.form.on("Web Form", {
 			if (!currency_fields.length) {
 				currency_fields = [
 					{
-						label: `No currency fields in ${doc.doc_type}`,
+						label: __("No currency fields in {0}", [doc.doc_type]),
 						value: "",
 						disabled: true,
 					},
@@ -301,6 +317,7 @@ frappe.ui.form.on("Web Form List Column", {
 		if (!df) return;
 		doc.fieldtype = df.fieldtype;
 		doc.label = df.label;
+		doc.options = df.options;
 		frm.refresh_field("list_columns");
 	},
 });
@@ -336,7 +353,10 @@ frappe.ui.form.on("Web Form Field", {
 		doc.default = df.default;
 		doc.read_only = df.read_only;
 		doc.depends_on = df.depends_on;
+		doc.placeholder = df.placeholder;
+		doc.description = df.description;
 		doc.mandatory_depends_on = df.mandatory_depends_on;
+		doc.max_length = df.length;
 		doc.read_only_depends_on = df.read_only_depends_on;
 
 		frm.refresh_field("web_form_fields");

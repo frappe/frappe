@@ -208,7 +208,7 @@ frappe.dashboard_utils = {
 			: null;
 
 		if (!dynamic_filters || !Object.keys(dynamic_filters).length) {
-			return filters;
+			return this.cleanup_filters(filters);
 		}
 
 		if (Array.isArray(dynamic_filters)) {
@@ -232,9 +232,15 @@ frappe.dashboard_utils = {
 			Object.assign(filters, dynamic_filters);
 		}
 
+		return this.cleanup_filters(filters);
+	},
+	cleanup_filters(filters) {
+		if (filters.length && filters[0].length == 5) {
+			filters.pop();
+			return filters;
+		}
 		return filters;
 	},
-
 	get_dashboard_link_field() {
 		let field = {
 			label: __("Select Dashboard"),
@@ -266,7 +272,7 @@ frappe.dashboard_utils = {
 				values.name = docname;
 				values.set_standard = frappe.boot.developer_mode;
 				frappe.xcall(method, { args: values }).then(() => {
-					let dashboard_route_html = `<a href = "/app/dashboard/${values.dashboard}">${values.dashboard}</a>`;
+					let dashboard_route_html = `<a href = "/desk/dashboard/${values.dashboard}">${values.dashboard}</a>`;
 					let message = __("{0} {1} added to Dashboard {2}", [
 						doctype,
 						values.name,

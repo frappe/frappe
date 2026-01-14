@@ -55,7 +55,7 @@ class TestCustomizeForm(IntegrationTestCase):
 
 		d = self.get_customize_form("Event")
 		self.assertEqual(d.doc_type, "Event")
-		self.assertEqual(len(d.get("fields")), 44)
+		self.assertEqual(len(d.get("fields")), 49)
 
 		d = self.get_customize_form("Event")
 		self.assertEqual(d.doc_type, "Event")
@@ -335,7 +335,7 @@ class TestCustomizeForm(IntegrationTestCase):
 		self.assertFalse([d.name for d in (user_group.links or []) if d.link_doctype == "User Group Member"])
 
 	def test_custom_action(self):
-		test_route = "/app/List/DocType"
+		test_route = "/desk/List/DocType"
 
 		# create a dummy action (route)
 		d = self.get_customize_form("Event")

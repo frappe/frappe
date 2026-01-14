@@ -41,6 +41,7 @@ class PropertySetter(Document):
 
 		if self.is_new():
 			delete_property_setter(self.doc_type, self.property, self.field_name, self.row_name)
+
 		frappe.clear_cache(doctype=self.doc_type)
 
 	def on_trash(self):

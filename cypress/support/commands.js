@@ -125,7 +125,7 @@ Cypress.Commands.add("get_doc", (doctype, name) => {
 		});
 });
 
-Cypress.Commands.add("remove_doc", (doctype, name) => {
+Cypress.Commands.add("remove_doc", (doctype, name, ignore_missing) => {
 	return cy
 		.window()
 		.its("frappe.csrf_token")
@@ -138,9 +138,9 @@ Cypress.Commands.add("remove_doc", (doctype, name) => {
 						Accept: "application/json",
 						"X-Frappe-CSRF-Token": csrf_token,
 					},
+					failOnStatusCode: !ignore_missing,
 				})
 				.then((res) => {
-					expect(res.status).eq(202);
 					return res.body;
 				});
 		});
@@ -171,7 +171,23 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 		cy.get("@input").clear().wait(200);
 	}
 
-	if (fieldtype === "Select") {
+	if (["Link", "Dynamic Link"].includes(fieldtype)) {
+		cy.get("@input").clear().focus();
+		// Wait for dropdown to appear (request might be cached, so don't wait for network)
+		cy.get("@input").parent().findByRole("listbox").as("dropdown");
+		cy.get("@dropdown").should("be.visible");
+		cy.get("@input").type(value, { delay: 100 });
+		// Wait for dropdown to update with search results
+		cy.get("@dropdown")
+			.should("be.visible")
+			.find("div[role='option']")
+			.first()
+			.should("include.text", value);
+		cy.get("@input").type("{enter}");
+		cy.get("@input").blur();
+		cy.get("@dropdown").should("not.exist");
+		cy.get("@input").should("have.value", value);
+	} else if (fieldtype === "Select") {
 		cy.get("@input").select(value);
 	} else {
 		cy.get("@input").type(value, {
@@ -247,7 +263,7 @@ Cypress.Commands.add("awesomebar", (text) => {
 
 Cypress.Commands.add("new_form", (doctype) => {
 	let dt_in_route = doctype.toLowerCase().replace(/ /g, "-");
-	cy.visit(`/app/${dt_in_route}/new`);
+	cy.visit(`/desk/${dt_in_route}/new`);
 	cy.get("body").should(($body) => {
 		const dataRoute = $body.attr("data-route");
 		expect(dataRoute).to.match(new RegExp(`^Form/${doctype}/new-${dt_in_route}-`));
@@ -261,7 +277,7 @@ Cypress.Commands.add("select_form_tab", (label) => {
 
 Cypress.Commands.add("go_to_list", (doctype) => {
 	let dt_in_route = doctype.toLowerCase().replace(/ /g, "-");
-	cy.visit(`/app/${dt_in_route}`);
+	cy.visit(`/desk/${dt_in_route}`);
 });
 
 Cypress.Commands.add("clear_cache", () => {

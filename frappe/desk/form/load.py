@@ -10,6 +10,7 @@ import frappe.defaults
 import frappe.desk.form.meta
 import frappe.utils
 from frappe import _, _dict
+from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import check_doctype_permission, get_doc_permissions, has_permission
@@ -23,7 +24,7 @@ if typing.TYPE_CHECKING:
 def getdoc(doctype, name):
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
-	Requries "doctype", "name" as form variables.
+	Requires "doctype", "name" as form variables.
 	Will also call the "onload" method on the document.
 	"""
 
@@ -93,8 +94,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 	from frappe.share import _get_users as get_docshares
 
 	if not doc:
-		doc = frappe.get_lazy_doc(doctype, name)
-		doc.check_permission("read")
+		doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
 
 	all_communications = _get_communications(doc.doctype, doc.name, limit=21)
 	automated_messages = [
@@ -125,10 +125,11 @@ def get_docinfo(doc=None, doctype=None, name=None):
 			"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 			"tags": get_tags(doc.doctype, doc.name),
 			"document_email": get_document_email(doc.doctype, doc.name),
+			"custom_perm_types": get_doctype_ptype_map().get(doc.doctype, []),
 		}
 	)
 
-	update_user_info(docinfo)
+	update_user_info(docinfo, doc)
 
 	frappe.response["docinfo"] = docinfo
 
@@ -202,8 +203,7 @@ def get_versions(doc: "Document") -> list[dict]:
 def get_communications(doctype, name, start=0, limit=20):
 	from frappe.utils import cint
 
-	doc = frappe.get_lazy_doc(doctype, name)
-	doc.check_permission("read")
+	frappe.get_lazy_doc(doctype, name).check_permission()
 
 	return _get_communications(doctype, name, cint(start), cint(limit))
 
@@ -290,6 +290,8 @@ def get_communication_data(
 		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
 		{conditions}
+		ORDER BY C.communication_date DESC
+		LIMIT %(cte_limit)s
 	"""
 
 	# communications linked in Timeline Links
@@ -300,6 +302,8 @@ def get_communication_data(
 		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
+		ORDER BY `tabCommunication Link`.communication_date DESC
+		LIMIT %(cte_limit)s
 	"""
 
 	sqlite_query = f"""
@@ -314,8 +318,13 @@ def get_communication_data(
 		OFFSET %(start)s"""
 
 	query = f"""
+		WITH part1 AS ({part1}), part2 AS ({part2})
 		SELECT *
-		FROM (({part1}) UNION ({part2})) AS combined
+		FROM (
+			SELECT * FROM part1
+			UNION
+			SELECT * FROM part2
+		) AS combined
 		{group_by or ""}
 		ORDER BY communication_date DESC
 		LIMIT %(limit)s
@@ -325,14 +334,14 @@ def get_communication_data(
 	return frappe.db.multisql(
 		{
 			"sqlite": sqlite_query,
-			"postgres": query,
-			"mariadb": query,
+			"*": query,
 		},
 		dict(
 			doctype=doctype,
 			name=str(name),
 			start=frappe.utils.cint(start),
 			limit=limit,
+			cte_limit=limit + start,
 		),
 		as_dict=as_dict,
 	)
@@ -447,7 +456,7 @@ def get_title_values_for_table_and_multiselect_fields(doc, table_fields=None):
 
 	if not table_fields:
 		meta = frappe.get_meta(doc.doctype)
-		table_fields = meta.get_table_fields()
+		table_fields = meta.get_table_fields(include_computed=True)
 
 	for field in table_fields:
 		if not doc.get(field.fieldname):
@@ -467,8 +476,13 @@ def send_link_titles(link_titles):
 	frappe.local.response["_link_titles"].update(link_titles)
 
 
-def update_user_info(docinfo):
+def update_user_info(docinfo, doc=None):
 	users = set()
+
+	if doc:
+		for field in ("owner", "modified_by"):
+			if user := doc.get(field):
+				users.add(user)
 
 	users.update(d.sender for d in docinfo.communications)
 	users.update(d.user for d in docinfo.shared)
@@ -480,6 +494,7 @@ def update_user_info(docinfo):
 	users.update(d.owner for d in docinfo.attachment_logs)
 	users.update(d.owner for d in docinfo.assignment_logs)
 	users.update(d.owner for d in docinfo.comments)
+	users.update(d.owner for d in docinfo.versions)
 
 	frappe.utils.add_user_info(users, docinfo.user_info)
 

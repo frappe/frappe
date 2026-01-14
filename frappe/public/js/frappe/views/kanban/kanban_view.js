@@ -31,7 +31,17 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			if (!kanbans.length) {
 				return frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
 			} else if (kanbans.length && frappe.get_route().length !== 4) {
-				return frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
+				// Try to use the last board the user used, else default to the first available board
+				const last_board = frappe.get_user_settings(this.doctype)["Kanban"]
+					?.last_kanban_board;
+				if (last_board && kanbans.includes(last_board)) {
+					frappe.set_route("List", this.doctype, "Kanban", last_board);
+					return;
+				} else {
+					const first_board = kanbans[0];
+					frappe.set_route("List", this.doctype, "Kanban", first_board.name);
+					return;
+				}
 			} else {
 				this.kanbans = kanbans;
 
@@ -117,6 +127,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	setup_paging_area() {
+		// pass
+	}
+
+	set_result_height() {
 		// pass
 	}
 
@@ -290,7 +304,7 @@ frappe.views.KanbanView.get_kanbans = function (doctype) {
 	return get_kanban_boards().then((kanban_boards) => {
 		if (kanban_boards) {
 			kanban_boards.forEach((board) => {
-				let route = `/app/${frappe.router.slug(board.reference_doctype)}/view/kanban/${
+				let route = `/desk/${frappe.router.slug(board.reference_doctype)}/view/kanban/${
 					board.name
 				}`;
 				kanbans.push({ name: board.name, route: route });

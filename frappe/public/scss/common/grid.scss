@@ -1,13 +1,18 @@
+@mixin grid-focus() {
+	outline: none;
+	border: 1px solid var(--gray-400) !important;
+}
 .form-grid {
 	border: 1px solid var(--table-border-color);
 	border-radius: var(--border-radius-md);
 	color: var(--text-color);
-	min-height: 150px;
+	min-height: 75px;
 	background-color: var(--subtle-accent);
 }
 
 .form-grid.error {
 	border-color: var(--error-border);
+	overflow: hidden;
 }
 
 .grid-heading-row {
@@ -153,15 +158,17 @@
 }
 
 .grid-empty {
-	height: 110px;
+	height: 43px;
 	background-color: var(--subtle-accent);
 	display: flex;
 	vertical-align: middle;
 }
-
+.grid-static-col:focus-visible {
+	@include grid-focus();
+}
 .grid-static-col,
 .row-index {
-	// height: 38px;
+	height: 43px;
 	max-height: 200px;
 
 	&.search {
@@ -236,6 +243,7 @@
 		min-width: 0;
 		display: flex;
 		justify-content: center;
+		align-items: center;
 	}
 
 	.col {
@@ -298,7 +306,7 @@
 			border: 0px;
 			padding-top: 10px;
 			padding-bottom: 10px;
-			height: 38px;
+			height: auto;
 		}
 
 		.link-btn {
@@ -308,7 +316,6 @@
 
 		.form-control:focus {
 			border-color: $text-muted;
-			z-index: 2;
 		}
 
 		.has-error .form-control {
@@ -376,14 +383,6 @@
 		div[data-fieldname="options"],
 		div[data-fieldtype="Text Editor"] {
 			height: 40px;
-		}
-	}
-	.grid-row:not(.grid-row-open) {
-		.awesomplete > ul {
-			position: fixed !important;
-			left: auto !important;
-			top: auto;
-			width: 250px !important;
 		}
 	}
 	.grid-static-col {
@@ -512,15 +511,76 @@
 	overflow: auto;
 	margin: auto;
 	padding: var(--padding-sm) var(--padding-md);
-	max-width: 865px;
 	position: fixed;
 	top: 5%;
 	left: 50%;
 	transform: translate(-50%, 0%);
-	width: 100%;
+	width: 80%;
+
+	body:not(.full-width) & {
+		max-width: var(--page-max-width);
+	}
+
 	.grid-form-body {
 		max-height: 80vh;
-		overflow: scroll;
+		overflow: auto;
+	}
+
+	// Tabs styling for child table grid row forms
+	.form-tabs-list {
+		position: relative;
+		margin-bottom: var(--margin-sm);
+		background-color: var(--card-bg);
+		border-bottom: 1px solid var(--border-color);
+
+		.form-tabs {
+			display: flex;
+			flex-wrap: nowrap;
+			overflow-x: auto;
+			padding: 0 var(--padding-sm);
+			margin: 0;
+			list-style: none;
+
+			.nav-item {
+				flex-shrink: 0;
+
+				&.hide {
+					display: none !important;
+				}
+
+				.nav-link {
+					padding: var(--padding-sm) var(--padding-md);
+					color: var(--text-muted);
+					border: none;
+					background: none;
+					white-space: nowrap;
+					cursor: pointer;
+					border-bottom: 2px solid transparent;
+
+					&:hover {
+						color: var(--text-color);
+					}
+
+					&.active {
+						color: var(--primary);
+						font-weight: 600;
+						border-bottom-color: var(--primary);
+					}
+				}
+			}
+		}
+	}
+
+	.form-tab-content {
+		margin-top: 0;
+
+		> .tab-pane {
+			display: none;
+
+			&.show.active {
+				display: block;
+			}
+		}
 	}
 }
 
@@ -679,14 +739,19 @@
 }
 .column-limit-reached {
 	background-color: var(--subtle-accent);
-	border-top-left-radius: var(--border-radius-md);
-	border-top-right-radius: var(--border-radius-md);
+	border-radius: var(--border-radius-md);
 	border: 1px solid var(--table-border-color);
 	overflow-y: hidden;
 	.form-grid {
 		display: grid;
 		grid-auto-rows: min-content;
 		border: unset;
+		&:focus-visible {
+			@include grid-focus();
+		}
+		.grid-static-col .grid-body {
+			height: 40px;
+		}
 		.grid-static-col.col-xs-1 {
 			flex: 1 0 60px;
 			width: 60px;
@@ -743,6 +808,7 @@
 			position: sticky;
 			right: 0;
 			z-index: 1;
+			line-height: 1;
 		}
 		.grid-row > .row .col:nth-child(2),
 		.grid-row > .dialog-assignment-row .col:nth-child(2) {

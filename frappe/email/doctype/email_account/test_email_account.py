@@ -183,8 +183,9 @@ class TestEmailAccount(IntegrationTestCase):
 			recipients="test_recipient@example.com",
 			content="test mail 001",
 			subject="test-mail-001",
-			delayed=False,
+			now=True,
 		)
+		frappe.db.commit()  # now=True requires commit
 
 		sent_mail = email.message_from_string(frappe.safe_decode(frappe.flags.sent_mail))
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))
@@ -523,7 +524,7 @@ class TestInboundMail(IntegrationTestCase):
 		mail_content = self.get_test_mail(fname="incoming-1.raw")
 		message_id = Email(mail_content).message_id
 		# Create new communication record in DB
-		communication = self.new_communication(message_id=message_id)
+		communication = self.new_communication(message_id=message_id, sent_or_received="Received")
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)

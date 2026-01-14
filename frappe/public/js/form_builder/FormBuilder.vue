@@ -144,7 +144,7 @@ onMounted(() => store.fetch());
 			}
 
 			.editable {
-				input,
+				input:not([type="checkbox"]),
 				textarea,
 				select,
 				.ace_editor,
@@ -258,7 +258,7 @@ onMounted(() => store.fetch());
 			border-color: transparent;
 		}
 
-		input,
+		input:not([type="checkbox"]),
 		textarea,
 		select,
 		.ace_editor,
@@ -268,10 +268,6 @@ onMounted(() => store.fetch());
 		.missing-image,
 		.ql-editor {
 			background-color: var(--control-bg) !important;
-		}
-
-		input[type="checkbox"] {
-			background-color: var(--fg-bg) !important;
 		}
 	}
 

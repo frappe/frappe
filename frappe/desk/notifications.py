@@ -65,7 +65,7 @@ def get_notifications_for_doctypes(config, notification_count):
 				try:
 					if isinstance(condition, dict):
 						result = frappe.get_list(
-							d, fields=["count(*) as count"], filters=condition, ignore_ifnull=True
+							d, fields=[{"COUNT": "*", "as": "count"}], filters=condition, ignore_ifnull=True
 						)[0].count
 					else:
 						result = frappe.get_attr(condition)()
@@ -264,8 +264,7 @@ def get_open_count(doctype: str, name: str, items=None):
 
 
 def _get_linked_document_counts(doctype: str, name: str, items=None):
-	doc = frappe.get_lazy_doc(doctype, name)
-	doc.check_permission()
+	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
 	meta = doc.meta
 	links = meta.get_dashboard_data()
 

@@ -223,6 +223,13 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 					"Select",
 					"Duration",
 					"Time",
+					"Percent",
+					"Phone",
+					"Barcode",
+					"Autocomplete",
+					"Icon",
+					"Color",
+					"Rating",
 				].includes(df.fieldtype) ||
 				df.read_only == 1 ||
 				df.is_virtual == 1;

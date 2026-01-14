@@ -179,7 +179,7 @@ def get_website_settings(context=None):
 			"footer_items": modify_header_footer_items(settings.footer_items),
 			"post_login": [
 				{"label": _("My Account"), "url": "/me"},
-				{"label": _("Log out"), "url": "/?cmd=web_logout"},
+				{"label": _("Log out"), "url": "/logout"},
 			],
 		}
 	)

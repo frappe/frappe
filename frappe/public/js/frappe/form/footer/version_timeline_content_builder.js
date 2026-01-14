@@ -160,7 +160,12 @@ function get_version_timeline_content(version_doc, frm) {
 					) {
 						parts.push(
 							__("{0} from {1} to {2} in row #{3}", [
-								frappe.meta.get_label(frm.fields_dict[row[0]].grid.doctype, p[0]),
+								__(
+									frappe.meta.get_label(
+										frm.fields_dict[row[0]].grid.doctype,
+										p[0]
+									)
+								),
 								format_content_for_timeline(p[1]),
 								format_content_for_timeline(p[2]),
 								row[1] + 1,
@@ -416,7 +421,12 @@ function format_content_for_timeline(content) {
 
 function get_user_link(user) {
 	const user_display_text = frappe.user_info(user).fullname || "";
-	return frappe.utils.get_form_link("User", user, true, user_display_text);
+	return frappe.utils.get_form_link(
+		"User",
+		user,
+		true,
+		frappe.utils.xss_sanitise(user_display_text)
+	);
 }
 
 function get_user_message(user, message_self, message_other) {

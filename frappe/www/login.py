@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import frappe
 import frappe.utils
@@ -34,7 +34,7 @@ def get_context(context):
 			if frappe.session.data.user_type == "Website User":
 				redirect_to = get_default_path() or get_home_page()
 			else:
-				redirect_to = get_default_path() or "/app"
+				redirect_to = get_default_path() or "/desk"
 
 		if redirect_to != "login":
 			frappe.local.flags.redirect_location = redirect_to
@@ -140,7 +140,7 @@ def get_login_with_email_link_ratelimit() -> int:
 	return frappe.get_system_settings("rate_limit_email_link_login") or 5
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
 def send_login_link(email: str):
 	if not frappe.get_system_settings("login_with_email_link"):
@@ -202,17 +202,21 @@ def sanitize_redirect(redirect: str | None) -> str | None:
 
 	Allowed redirects:
 	- Same host e.g. https://frappe.localhost/path
-	- Just path e.g. /app
+	- Just path e.g. /app gets converted to https://frappe.localhost/app
 	"""
 	if not redirect:
 		return redirect
 
 	parsed_redirect = urlparse(redirect)
-	if not parsed_redirect.netloc:
-		return redirect
 
 	parsed_request_host = urlparse(frappe.local.request.url)
-	if parsed_request_host.netloc == parsed_redirect.netloc:
-		return redirect
+	output_parsed_url = parsed_redirect._replace(
+		netloc=parsed_request_host.netloc, scheme=parsed_request_host.scheme
+	)
+	if parsed_redirect.netloc:
+		if parsed_request_host.netloc != parsed_redirect.netloc:
+			output_parsed_url = output_parsed_url._replace(path="/desk")
+		else:
+			output_parsed_url = output_parsed_url._replace(path=parsed_redirect.path)
 
-	return None
+	return output_parsed_url.geturl()

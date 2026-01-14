@@ -230,7 +230,7 @@ class Communication(Document, CommunicationEmailMixin):
 		html_signature = soup.find("div", {"class": "ql-editor read-mode"})
 		_signature = None
 		if html_signature:
-			_signature = html_signature.renderContents()
+			_signature = html_signature.encode_contents()
 
 		if (cstr(_signature) or signature) not in self.content:
 			self.content = f'{self.content}</p><br><p class="signature">{signature}'
@@ -416,6 +416,13 @@ class Communication(Document, CommunicationEmailMixin):
 
 	# Timeline Links
 	def set_timeline_links(self):
+		# Skip timeline links if a "Sent" communication already exists
+		# else will create duplicate timeline entries
+		if self.sent_or_received == "Received" and self.find_one_by_filters(
+			message_id=self.message_id, sent_or_received="Sent"
+		):
+			return
+
 		contacts = []
 		create_contact_enabled = self.email_account and frappe.db.get_value(
 			"Email Account", self.email_account, "create_contact"
@@ -440,7 +447,14 @@ class Communication(Document, CommunicationEmailMixin):
 			self.add_link(doctype, name)
 
 	def add_link(self, link_doctype, link_name, autosave=False):
-		self.append("timeline_links", {"link_doctype": link_doctype, "link_name": link_name})
+		self.append(
+			"timeline_links",
+			{
+				"link_doctype": link_doctype,
+				"link_name": link_name,
+				"communication_date": self.communication_date,
+			},
+		)
 
 		if autosave:
 			self.save(ignore_permissions=True)
@@ -459,9 +473,13 @@ class Communication(Document, CommunicationEmailMixin):
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""
-	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
 	frappe.db.add_index("Communication", ["status", "communication_type"])
 	frappe.db.add_index("Communication", ["message_id(140)"])
+	frappe.db.add_index(
+		"Communication",
+		["reference_doctype", "reference_name", "communication_date", "communication_type"],
+		index_name="comm_ref_type_date_idx",
+	)
 
 
 def has_permission(doc, ptype, user=None, debug=False):
@@ -487,7 +505,10 @@ def get_permission_query_conditions_for_communication(user):
 		return None
 	else:
 		accounts = frappe.get_all(
-			"User Email", filters={"parent": user}, fields=["email_account"], distinct=True, order_by="idx"
+			"User Email",
+			filters={"parent": user},
+			fields=["email_account"],
+			distinct=True,
 		)
 
 		if not accounts:
@@ -565,11 +586,11 @@ def parse_email(email_strings):
 
 		for email in email_string.split(","):
 			local_part = email.split("@", 1)[0].strip('"')
-			user, detail = None, None
+			_user, detail = None, None
 			if "+" in local_part:
-				user, detail = local_part.split("+", 1)
+				_user, detail = local_part.split("+", 1)
 			elif "--" in local_part:
-				detail, user = local_part.rsplit("--", 1)
+				detail, _user = local_part.rsplit("--", 1)
 
 			if not detail:
 				continue

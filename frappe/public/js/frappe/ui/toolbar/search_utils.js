@@ -78,24 +78,26 @@ frappe.search.utils = {
 			) {
 				const view_type = route[0];
 				const view_name = route[1];
+
+				let labelSuffix;
+
 				switch (view_type) {
 					case "List":
-						out.label = __("{0} List", [__(view_name).bold()]);
-						out.value = __("{0} List", [__(view_name)]);
+						labelSuffix = __("List");
 						break;
 					case "Tree":
-						out.label = __("{0} Tree", [__(view_name).bold()]);
-						out.value = __("{0} Tree", [__(view_name)]);
+						labelSuffix = __("Tree");
 						break;
 					case "Workspaces":
-						out.label = __("{0} Workspace", [__(view_name).bold()]);
-						out.value = __("{0} Workspace", [__(view_name)]);
+						labelSuffix = __("Workspace");
 						break;
 					case "query-report":
-						out.label = __("{0} Report", [__(view_name).bold()]);
-						out.value = __("{0} Report", [__(view_name)]);
+						labelSuffix = __("Report");
 						break;
 				}
+
+				out.label = __(view_name.bold()) + " " + labelSuffix;
+				out.value = __(view_name) + " " + labelSuffix;
 			} else if (match[0]) {
 				out.label = frappe.utils.escape_html(match[0]).bold();
 				out.value = match[0];
@@ -295,6 +297,7 @@ frappe.search.utils = {
 		if (__("calendar").indexOf(keywords.toLowerCase()) === 0) {
 			out.push({
 				type: "Calendar",
+				label: __("Open {0}", [__(target)]),
 				value: __("Open {0}", [__(target)]),
 				index: me.fuzzy_search(keywords, "Calendar"),
 				match: target,
@@ -305,6 +308,7 @@ frappe.search.utils = {
 		if (__("hub").indexOf(keywords.toLowerCase()) === 0) {
 			out.push({
 				type: "Hub",
+				label: __("Open {0}", [__(target)]),
 				value: __("Open {0}", [__(target)]),
 				index: me.fuzzy_search(keywords, "Hub"),
 				match: target,
@@ -314,6 +318,7 @@ frappe.search.utils = {
 		if (__("email inbox").indexOf(keywords.toLowerCase()) === 0) {
 			out.push({
 				type: "Inbox",
+				label: __("Open {0}", [__("Email Inbox")]),
 				value: __("Open {0}", [__("Email Inbox")]),
 				index: me.fuzzy_search(keywords, "email inbox"),
 				match: target,
@@ -323,19 +328,19 @@ frappe.search.utils = {
 		return out;
 	},
 
-	get_workspaces: function (keywords) {
+	get_desktop_icons: function (keywords) {
 		var me = this;
 		var out = [];
-		frappe.boot.allowed_workspaces.forEach(function (item) {
-			const search_result = me.fuzzy_search(keywords, item.name, true);
+		frappe.boot.desktop_icons.forEach(function (item) {
+			const search_result = me.fuzzy_search(keywords, item.label, true);
 			var level = search_result.score;
 			if (level > 0) {
 				var ret = {
-					type: "Workspace",
-					label: __("Open {0}", [search_result.marked_string || __(item.name)]),
-					value: __("Open {0}", [__(item.name)]),
+					type: "Desktop Icon",
+					label: __("Open {0}", [search_result.marked_string || __(item.label)]),
+					value: __("Open {0}", [__(item.label)]),
 					index: level,
-					route: [frappe.router.slug(item.name)],
+					icon_data: item,
 				};
 
 				out.push(ret);
@@ -563,7 +568,7 @@ frappe.search.utils = {
 				results: sort_uniques(this.get_pages(keywords)),
 			},
 			{
-				title: __("Workspace"),
+				title: __("Desktop Icon"),
 				fetch_type: "Nav",
 				results: sort_uniques(this.get_workspaces(keywords)),
 			},

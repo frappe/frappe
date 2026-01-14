@@ -19,9 +19,11 @@ $(document).ready(function () {
 				isFCUser = response.is_fc_user;
 
 				if (response.trial_end_date && trial_end_date > new Date()) {
-					$(".layout-main-section").before(
-						generateTrialSubscriptionBanner(response.trial_end_date)
-					);
+					if ($(".layout-main-section").closest("#page-desktop").length === 0) {
+						$(".layout-main-section").before(
+							generateTrialSubscriptionBanner(response.trial_end_date)
+						);
+					}
 				}
 				addManageBillingDropdown();
 

@@ -124,7 +124,9 @@ class AutoEmailReport(Document):
 		filters = frappe.parse_json(self.filters) if self.filters else {}
 		filter_meta = frappe.parse_json(self.filter_meta) if self.filter_meta else {}
 		throw_list = [
-			meta["label"] for meta in filter_meta if meta.get("reqd") and not filters.get(meta["fieldname"])
+			meta["label"]
+			for meta in filter_meta
+			if (meta.get("reqd") and (not meta.get("hidden"))) and not filters.get(meta["fieldname"])
 		]
 		if throw_list:
 			frappe.throw(
@@ -169,22 +171,28 @@ class AutoEmailReport(Document):
 			columns = update_field_types(columns)
 			return self.get_html_table(columns, data)
 
-		elif self.format == "XLSX":
+		elif self.format in ("XLSX", "CSV"):
 			report_data = frappe._dict()
 			report_data["columns"] = columns
 			report_data["result"] = data
 
-			xlsx_data, column_widths = build_xlsx_data(report_data, [], 1, ignore_visible_idx=True)
-			xlsx_file = make_xlsx(xlsx_data, "Auto Email Report", column_widths=column_widths)
-			return xlsx_file.getvalue()
+			xlsx_data, column_widths, header_index = build_xlsx_data(
+				report_data, [], 1, ignore_visible_idx=True
+			)
 
-		elif self.format == "CSV":
-			report_data = frappe._dict()
-			report_data["columns"] = columns
-			report_data["result"] = data
+			if self.format == "XLSX":
+				xlsx_file = make_xlsx(
+					xlsx_data,
+					"Auto Email Report",
+					column_widths=column_widths,
+					header_index=header_index,
+					has_filters=bool(self.filters),
+				)
 
-			xlsx_data, column_widths = build_xlsx_data(report_data, [], 1, ignore_visible_idx=True)
-			return to_csv(xlsx_data)
+				return xlsx_file.getvalue()
+
+			else:
+				return to_csv(xlsx_data)
 
 		elif self.format == "PDF":
 			columns, data = make_links(columns, data)

@@ -87,7 +87,7 @@ frappe.ui.setup_like_popover = ($parent, selector) => {
 				let liked_by_list = $(`<ul class="list-unstyled"></ul>`);
 
 				// to show social profile of the user
-				let link_base = "/app/user-profile/";
+				let link_base = "/desk/user/";
 
 				liked_by.forEach((user) => {
 					// append user list item

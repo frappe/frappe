@@ -216,6 +216,7 @@ class DocType(Document):
 		self.validate_website()
 		self.validate_virtual_doctype_methods()
 		self.ensure_minimum_max_attachment_limit()
+		self.patch_old_naming_expressions()
 		validate_links_table_fieldnames(self)
 
 		if not self.is_new():
@@ -361,19 +362,7 @@ class DocType(Document):
 						continue  # Invalid expression
 					link_df = new_meta.get_field(link_fieldname)
 
-					if frappe.db.db_type == "postgres":
-						update_query = """
-							UPDATE `tab{doctype}`
-							SET `{fieldname}` = source.`{source_fieldname}`
-							FROM `tab{link_doctype}` as source
-							WHERE `{link_fieldname}` = source.name
-						"""
-						if df.not_nullable:
-							update_query += "AND `{fieldname}`=''"
-						else:
-							update_query += "AND ifnull(`{fieldname}`, '')=''"
-
-					else:
+					if frappe.db.db_type == "mariadb":
 						update_query = """
 							UPDATE `tab{doctype}` as target
 							INNER JOIN `tab{link_doctype}` as source
@@ -384,6 +373,18 @@ class DocType(Document):
 							update_query += "WHERE `target`.`{fieldname}`=''"
 						else:
 							update_query += "WHERE ifnull(`target`.`{fieldname}`, '')=''"
+
+					else:
+						update_query = """
+							UPDATE `tab{doctype}`
+							SET `{fieldname}` = source.`{source_fieldname}`
+							FROM `tab{link_doctype}` as source
+							WHERE `{link_fieldname}` = source.name
+						"""
+						if df.not_nullable:
+							update_query += "AND `{fieldname}`=''"
+						else:
+							update_query += "AND ifnull(`{fieldname}`, '')=''"
 
 					self.flags.update_fields_to_fetch_queries.append(
 						update_query.format(
@@ -446,6 +447,18 @@ class DocType(Document):
 				title=_("Insufficient attachment limit"),
 				alert=True,
 			)
+
+	def patch_old_naming_expressions(self):
+		if not self.autoname:
+			return
+
+		# We swapped naming_rule field old/new to discourage use of "format:"
+		if self.autoname and self.autoname.startswith("format:"):
+			self.naming_rule = "Expression (old style)"
+			frappe.toast(_("Warning: Usage of 'format:' is discouraged."), indicator="yellow")
+
+		if self.naming_rule == "Expression (old style)" and not self.autoname.startswith("format:"):
+			self.naming_rule = "Expression"
 
 	def change_modified_of_parent(self):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
@@ -871,6 +884,7 @@ class DocType(Document):
 			if not os.path.exists(templates_path):
 				os.makedirs(templates_path)
 			make_boilerplate("templates/controller.html", self.as_dict())
+			make_boilerplate("templates/controller_list.html", self.as_dict())
 			make_boilerplate("templates/controller_row.html", self.as_dict())
 
 	def export_types_to_controller(self):
@@ -1126,10 +1140,10 @@ def validate_empty_name(dt, autoname):
 			frappe.toast(_("Warning: Naming is not set"), indicator="yellow")
 
 
-def validate_autoincrement_autoname(dt: Union[DocType, "CustomizeForm"]) -> bool:
+def validate_autoincrement_autoname(dt: DocType | "CustomizeForm") -> bool:
 	"""Checks if can doctype can change to/from autoincrement autoname"""
 
-	def get_autoname_before_save(dt: Union[DocType, "CustomizeForm"]) -> str:
+	def get_autoname_before_save(dt: DocType | "CustomizeForm") -> str:
 		if dt.doctype == "Customize Form":
 			property_value = frappe.db.get_value(
 				"Property Setter", {"doc_type": dt.doc_type, "property": "autoname"}, "value"
@@ -1264,9 +1278,20 @@ def validate_fields(meta: Meta):
 		validate_column_name(fieldname)
 
 	def check_invalid_fieldnames(docname, fieldname):
+		RESERVED_DOCFIELD_NAMES = frozenset(("autoname",))
+
 		if fieldname in RESERVED_KEYWORDS:
 			frappe.throw(
 				_("{0}: fieldname cannot be set to reserved keyword {1}").format(
+					frappe.bold(docname),
+					frappe.bold(fieldname),
+				),
+				title=_("Invalid Fieldname"),
+			)
+
+		if fieldname in RESERVED_DOCFIELD_NAMES and docname != "DocType":
+			frappe.throw(
+				_("{0}: fieldname cannot be set to reserved field {1} in DocType").format(
 					frappe.bold(docname),
 					frappe.bold(fieldname),
 				),
@@ -1642,13 +1667,20 @@ def validate_fields(meta: Meta):
 				title=_("Invalid Option"),
 			)
 
-		if meta.is_virtual != child_doctype_meta.is_virtual:
-			error_msg = " should be virtual." if meta.is_virtual else " cannot be virtual."
+		if meta.is_virtual and not child_doctype_meta.is_virtual:
 			frappe.throw(
-				_("Child Table {0} for field {1}" + error_msg).format(
+				_("Child Table {0} for field {1} must be virtual").format(
 					frappe.bold(doctype), frappe.bold(docfield.fieldname)
 				),
 				title=_("Invalid Option"),
+			)
+
+		if not meta.is_virtual and child_doctype_meta.is_virtual and not docfield.is_virtual:
+			frappe.throw(
+				_("Field {0} must be a virtual field to support virtual doctype.").format(
+					frappe.bold(docfield.fieldname)
+				),
+				title=_("Virtual tables must be virtual fields"),
 			)
 
 	def check_max_height(docfield):
@@ -1659,6 +1691,18 @@ def validate_fields(meta: Meta):
 		if docfield.fieldtype == "Rating":
 			if docfield.options and (int(docfield.options) > 10 or int(docfield.options) < 3):
 				frappe.throw(_("Options for Rating field can range from 3 to 10"))
+
+	def check_decimal_config(docfield):
+		if docfield.fieldtype not in ("Currency", "Float", "Percent"):
+			return
+
+		if docfield.length and docfield.precision:
+			if cint(docfield.precision) > cint(docfield.length):
+				frappe.throw(
+					_("Precision ({0}) for {1} cannot be greater than its length ({2}).").format(
+						docfield.precision, frappe.bold(docfield.label), docfield.length
+					)
+				)
 
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
@@ -1682,6 +1726,7 @@ def validate_fields(meta: Meta):
 		scrub_options_in_select(d)
 		validate_fetch_from(d)
 		validate_data_field_type(d)
+		check_decimal_config(d)
 
 		if not frappe.flags.in_migrate or in_ci:
 			check_unique_fieldname(meta.get("name"), d.fieldname)

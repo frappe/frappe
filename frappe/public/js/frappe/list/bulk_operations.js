@@ -341,8 +341,22 @@ export default class BulkOperations {
 				},
 			],
 			primary_action: ({ value }) => {
-				const fieldname = field_mappings[dialog.get_value("field")].fieldname;
+				const selected_field = field_mappings[dialog.get_value("field")];
+				const { fieldname, is_child_field, child_doctype } = selected_field;
 				dialog.disable_primary_action();
+				let update_data = {};
+				if (is_child_field) {
+					// For child table fields, we need to update all rows in the child table
+					update_data = {
+						child_table_updates: {
+							[child_doctype]: {
+								[fieldname]: value || null,
+							},
+						},
+					};
+				} else {
+					update_data[fieldname] = value || null;
+				}
 				frappe
 					.call({
 						method: "frappe.desk.doctype.bulk_update.bulk_update.submit_cancel_or_update_docs",
@@ -351,9 +365,7 @@ export default class BulkOperations {
 							freeze: true,
 							docnames: docnames,
 							action: "update",
-							data: {
-								[fieldname]: value || null,
-							},
+							data: update_data,
 						},
 					})
 					.then((r) => {
@@ -399,6 +411,8 @@ export default class BulkOperations {
 			new_df.onchange = show_help_text;
 
 			delete new_df.depends_on;
+			delete new_df.is_child_field;
+			delete new_df.child_doctype;
 			dialogObj.replace_field("value", new_df);
 			show_help_text();
 		}

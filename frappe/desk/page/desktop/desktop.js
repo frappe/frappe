@@ -1,0 +1,936 @@
+frappe.desktop_utils = {};
+frappe.desktop_grids = [];
+frappe.desktop_icons_objects = [];
+$.extend(frappe.desktop_utils, {
+	modal: null,
+	modal_stack: [],
+	create_desktop_modal: function (icon, icon_title, icons_data, grid) {
+		if (!this.modal) {
+			this.modal = new DesktopModal(icon);
+		}
+		this.modal_stack.push(icon);
+		return this.modal;
+	},
+	close_desktop_modal: function () {
+		if (this.modal) {
+			this.modal.hide();
+		}
+	},
+});
+frappe.pages["desktop"].on_page_load = function (wrapper) {
+	var page = frappe.ui.make_app_page({
+		parent: wrapper,
+		title: "Desktop",
+		single_column: true,
+		hide_sidebar: true,
+	});
+	let desktop_page = new DesktopPage(page);
+	frappe.pages["desktop"].desktop_page = desktop_page;
+	// setup();
+};
+
+function get_workspaces_from_app_name(app_name) {
+	const app = frappe.boot.app_data.filter((a) => {
+		return a.app_title === app_name;
+	});
+	if (app.length > 0) return app[0].workspaces;
+}
+
+function get_route(desktop_icon) {
+	let route;
+	if (!desktop_icon) return;
+	let item = {};
+	if (desktop_icon.link_type == "External" && desktop_icon.link) {
+		route = window.location.origin + desktop_icon.link;
+	} else {
+		let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
+		if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
+			let first_link = sidebar.items.find((i) => i.type == "Link");
+			if (first_link) {
+				if (first_link.link_type === "Report") {
+					let args = {
+						type: first_link.link_type,
+						name: first_link.link_to,
+					};
+
+					if (first_link.report || !frappe.app.sidebar.editor.edit_mode) {
+						args.is_query_report =
+							first_link.report.report_type === "Query Report" ||
+							first_link.report.report_type == "Script Report";
+						args.report_ref_doctype = first_link.report.ref_doctype;
+					}
+
+					route = frappe.utils.generate_route(args);
+				} else if (first_link.link_type == "Workspace") {
+					let workspaces = frappe.workspaces[frappe.router.slug(first_link.link_to)];
+					if (workspaces) {
+						if (workspaces.public) {
+							route = "/desk/" + frappe.router.slug(first_link.link_to);
+						} else {
+							route = "/desk/private/" + frappe.router.slug(workspaces.title);
+						}
+					}
+
+					if (first_link.route) {
+						route = first_link.route;
+					}
+				} else if (first_link.link_type === "URL") {
+					route = first_link.url;
+				} else if (first_link.link_type == "Page" && first_link.route_options) {
+					route = frappe.utils.generate_route({
+						type: first_link.link_type,
+						name: first_link.link_to,
+						route_options: JSON.parse(first_link.route_options),
+					});
+				} else {
+					route = frappe.utils.generate_route({
+						type: first_link.link_type,
+						name: first_link.link_to,
+						tab: first_link.tab,
+					});
+				}
+			}
+		}
+	}
+	return route;
+}
+
+function get_desktop_icon_by_label(title, filters) {
+	let icons = frappe.desktop_icons;
+	if (frappe.pages["desktop"].desktop_page.edit_mode) {
+		icons = frappe.new_desktop_icons;
+	}
+	if (!filters) {
+		return icons.find((f) => f.label === title && f.hidden != 1);
+	} else {
+		return icons.find((f) => {
+			return (
+				f.label === title &&
+				Object.keys(filters).every((key) => f[key] === filters[key]) &&
+				f.hidden != 1
+			);
+		});
+	}
+}
+
+function get_desktop_icon_by_idx(idx, parent_icon) {
+	return frappe.boot.desktop_icons.find((f) => f.idx == idx && f.parent_icon == parent_icon);
+}
+
+function save_desktop(icons) {
+	// saving in localStorage;
+	localStorage.setItem(`${frappe.session.user}:desktop`, JSON.stringify(icons));
+	frappe.toast("Desktop Saved");
+	frappe.pages["desktop"].desktop_page.update();
+}
+
+function reset_to_default() {
+	localStorage.setItem(`${frappe.session.user}:desktop`, null);
+}
+
+frappe.pages["desktop"].on_page_show = function () {
+	frappe.pages["desktop"].desktop_page.setup();
+};
+
+function toggle_icons(icons) {
+	icons.forEach((i) => {
+		$(i).parent().parent().show();
+	});
+}
+
+class DesktopPage {
+	constructor(page) {
+		this.page = page;
+		this.edit_mode = false;
+		this.prepare();
+		this.make(page);
+		this.setup_events();
+	}
+	update() {
+		this.prepare();
+		this.make();
+		this.setup();
+	}
+
+	prepare() {
+		this.apps_icons = [];
+
+		const icon_map = {};
+		frappe.desktop_icons = this.get_saved_layout() || frappe.boot.desktop_icons;
+		let icons = this.edit_mode ? frappe.new_desktop_icons : frappe.desktop_icons;
+		const all_icons = icons.filter((icon) => {
+			if (icon.hidden != 1) {
+				icon.child_icons = [];
+				icon_map[icon.label] = icon;
+				return true;
+			}
+			return false;
+		});
+		all_icons.forEach((icon) => {
+			if (icon.parent_icon && icon_map[icon.parent_icon]) {
+				icon_map[icon.parent_icon].child_icons.push(icon);
+			}
+
+			if (!icon.parent_icon || !icon_map[icon.parent_icon]) {
+				this.apps_icons.push(icon);
+			}
+		});
+	}
+	get_saved_layout() {
+		let keywords = ["null", "undefined"];
+		if (keywords.includes(localStorage.getItem(`${frappe.session.user}:desktop`))) {
+			return null;
+		}
+		return JSON.parse(localStorage.getItem(`${frappe.session.user}:desktop`));
+	}
+	setup_events() {
+		this.wrapper.find(".hide-button").on("click", function (event) {
+			event.preventDefault();
+			event.stopImmediatePropagation();
+			let desktop_label = event.currentTarget.parentElement.dataset.id;
+			let desktop_icon = get_desktop_icon_by_label(desktop_label);
+			desktop_icon.hidden = 1;
+			frappe.pages["desktop"].desktop_page.update();
+		});
+	}
+	make() {
+		this.page.page_head.hide();
+		$(this.page.body).empty();
+		$(frappe.render_template("desktop")).appendTo(this.page.body);
+		this.wrapper = this.page.body.find(".desktop-container");
+		this.icon_grid = new DesktopIconGrid({
+			wrapper: this.wrapper,
+			icons_data: this.apps_icons,
+			page_size: {
+				row: 6,
+				col: 3,
+			},
+		});
+		if (this.edit_mode) {
+			this.start_editing_layout();
+		}
+	}
+
+	setup() {
+		this.setup_avatar();
+		this.setup_notifications();
+		this.setup_navbar();
+		this.setup_awesomebar();
+		this.handle_route_change();
+		this.setup_events();
+	}
+	setup_edit_button() {
+		const me = this;
+		$(".desktop-edit").remove();
+		this.$desktop_edit_button = $(
+			"<button class='btn btn-reset desktop-edit'></button>"
+		).appendTo(document.body);
+		this.$desktop_edit_button.html(
+			frappe.utils.icon("square-pen", "md", "", "", "", "", "white")
+		);
+		this.$desktop_edit_button.on("click", () => {
+			frappe.new_desktop_icons = JSON.parse(JSON.stringify(frappe.desktop_icons));
+			me.start_editing_layout();
+		});
+	}
+	setup_editing_mode() {
+		const me = this;
+		let menu_items = [
+			{
+				label: "Edit Layout",
+				icon: "edit",
+				onClick: function () {
+					frappe.new_desktop_icons = JSON.parse(JSON.stringify(frappe.desktop_icons));
+					me.start_editing_layout();
+				},
+			},
+			{
+				label: "Reset Layout",
+				icon: "rotate-ccw",
+				onClick: function () {
+					reset_to_default();
+					me.update();
+				},
+			},
+		];
+		frappe.ui.create_menu({
+			parent: this.wrapper,
+			menu_items: menu_items,
+			right_click: true,
+		});
+	}
+	stop_editing_layout(action) {
+		this.edit_mode = false;
+
+		$(".desktop-icon").removeClass("edit-mode");
+		$(".desktop-wrapper").removeAttr("data-mode");
+		if (action === "cancel") {
+			frappe.new_desktop_icons = null;
+			this.update();
+			return;
+		}
+
+		// submit
+		save_desktop(frappe.new_desktop_icons);
+	}
+
+	start_editing_layout() {
+		this.edit_mode = true;
+		$(".desktop-icon").addClass("edit-mode");
+		$(".desktop-wrapper").attr("data-mode", "Edit");
+		frappe.desktop_grids.forEach((desktop_grid) => {
+			if (!desktop_grid.no_dragging) {
+				desktop_grid.grids.forEach((grid) => {
+					desktop_grid.setup_reordering(grid);
+				});
+			}
+		});
+		frappe.desktop_icons_objects.forEach((icon_object) => {
+			icon_object.setup_dragging();
+		});
+		if (this.edit_mode) this.setup_edit_buttons();
+	}
+	setup_edit_buttons() {
+		const me = this;
+		this.$edit_button = $(".edit-mode-buttons");
+		this.$edit_button.find(".discard").on("click", function () {
+			me.stop_editing_layout("cancel");
+		});
+		this.$edit_button.find(".save").on("click", function () {
+			me.stop_editing_layout("submit");
+		});
+	}
+	setup_notifications() {
+		this.notifications = new frappe.ui.Notifications({
+			wrapper: $(".desktop-notifications"),
+			full_height: false,
+		});
+	}
+	setup_avatar() {
+		$(".desktop-avatar").html(frappe.avatar(frappe.session.user, "avatar-medium"));
+		let is_dark = document.documentElement.getAttribute("data-theme") === "dark";
+		let menu_items = [
+			{
+				icon: "edit",
+				label: "Edit Profile",
+				url: `/desk/user/${frappe.session.user}`,
+			},
+			{
+				icon: is_dark ? "sun" : "moon",
+				label: "Toggle Theme",
+				onClick: function () {
+					new frappe.ui.ThemeSwitcher().show();
+				},
+			},
+			{
+				icon: "info",
+				label: "About",
+				onClick: function () {
+					return frappe.ui.toolbar.show_about();
+				},
+			},
+			{
+				icon: "support",
+				label: "Frappe Support",
+				onClick: function () {
+					window.open("https://support.frappe.io/help", "_blank");
+				},
+			},
+			{
+				icon: "rotate-ccw",
+				label: "Reset to Default",
+				onClick: function () {
+					reset_to_default();
+					window.location.reload();
+				},
+			},
+			{
+				icon: "log-out",
+				label: "Logout",
+				onClick: function () {
+					frappe.app.logout();
+				},
+			},
+		];
+		frappe.ui.create_menu({
+			parent: $(".desktop-avatar"),
+			menu_items: menu_items,
+			// If it's RTL, we want it to open on the right (false);
+			// if it's LTR, we want it to open on the left (true).
+			open_on_left: !frappe.utils.is_rtl(),
+		});
+	}
+	setup_navbar() {
+		$(".sticky-top > .navbar").hide();
+	}
+
+	setup_awesomebar() {
+		if (this.awesomebar_setup) return;
+		this.awesomebar_setup = true;
+
+		if (frappe.boot.desk_settings.search_bar) {
+			let awesome_bar = new frappe.search.AwesomeBar();
+			awesome_bar.setup(".desktop-search-wrapper #desktop-navbar-modal-search");
+		}
+		frappe.ui.keys.add_shortcut({
+			shortcut: "ctrl+g",
+			action: function (e) {
+				$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
+				e.preventDefault();
+				return false;
+			},
+			description: __("Open Awesomebar"),
+		});
+		frappe.ui.keys.add_shortcut({
+			shortcut: "ctrl+k",
+			action: function (e) {
+				$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
+				e.preventDefault();
+				return false;
+			},
+			description: __("Open Awesomebar"),
+		});
+	}
+	handle_route_change() {
+		const me = this;
+		frappe.router.on("change", function () {
+			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "")
+				me.setup_navbar();
+			else {
+				$(".navbar").show();
+				frappe.desktop_utils.close_desktop_modal();
+				// stop edit mode if route changes and cleanup
+				me.edit_mode = false;
+				$(".desktop-icon").removeClass("edit-mode");
+				$(".desktop-wrapper").removeAttr("data-mode");
+			}
+		});
+	}
+
+	// setup_icon_search() {
+	// 	let all_icons = $(".icon-title");
+	// 	let icons_to_show = [];
+	// 	$(".desktop-container .icons").append(
+	// 		"<div class='no-apps-message hidden'> No apps found </div>"
+	// 	);
+	// 	$(".desktop-search-wrapper > #navbar-search").on("input", function (e) {
+	// 		let search_query = $(e.target).val().toLowerCase();
+	// 		console.log(search_query);
+	// 		icons_to_show = [];
+	// 		all_icons.each(function (index, element) {
+	// 			$(element).parent().parent().hide();
+	// 			let label = $(element).text().toLowerCase();
+	// 			if (label.includes(search_query)) {
+	// 				icons_to_show.push(element);
+	// 			}
+	// 		});
+
+	// 		if (icons_to_show.length == 0) {
+	// 			$(".desktop-container .icons").find(".no-apps-message").removeClass("hidden");
+	// 		} else {
+	// 			$(".desktop-container .icons").find(".no-apps-message").addClass("hidden");
+	// 		}
+	// 		toggle_icons(icons_to_show);
+	// 	});
+	// }
+}
+
+class DesktopIconGrid {
+	constructor(opts) {
+		$.extend(this, opts);
+		this.icons = [];
+		this.icons_html = [];
+		// this.page_size = {
+		// 	col: opts.page_size?.col || 4,
+		// 	row: opts.page_size?.row || 3,
+		// 	total: function () {
+		// 		return this.col * this.row;
+		// 	},
+		// };
+		this.grids = [];
+		this.prepare();
+		this.make();
+		frappe.desktop_grids.push(this);
+	}
+
+	prepare() {
+		this.total_pages = 1;
+		this.icons_data = this.icons_data.sort((a, b) => {
+			if (a.idx === b.idx) {
+				return a.label.localeCompare(b.label); // sort by label if idx is the same
+			}
+			return a.idx - b.idx; // sort by idx
+		});
+		this.icons_data_by_page =
+			this.icons_data || this.split_data(this.icons_data, this.page_size.total());
+	}
+	make() {
+		const me = this;
+		this.icons_container = $(`<div class="icons-container"></div>`).appendTo(this.wrapper);
+		for (let i = 0; i < this.total_pages; i++) {
+			let template = `<div class="icons"></div>`;
+
+			if (this.row_size) {
+				template = `<div class="icons" style="display: none; grid-template-columns: repeat(${this.row_size}, 1fr)"></div>`;
+			}
+			if (frappe.is_mobile()) {
+				template = `<div class="icons" style="display: none; grid-template-columns: repeat(3, 1fr)"></div>`;
+			}
+			this.grids.push($(template).appendTo(this.icons_container));
+			this.make_icons(this.icons_data_by_page, this.grids[i]);
+			// if (!this.no_dragging) {
+			// 	this.setup_reordering(this.grids[i]);
+			// }
+		}
+		if (!this.in_folder && this.total_pages > 1) {
+			this.add_page_indicators();
+			this.setup_arrows();
+			this.setup_pagination();
+			this.setup_swipe_gesture();
+		} else {
+			this.grids[0] && this.grids[0].css("display", "grid");
+		}
+	}
+	setup_arrows() {
+		if (this.in_modal) {
+			const me = this;
+			this.wrapper
+				.parent()
+				.parent()
+				.parent()
+				.on("shown.bs.modal", function () {
+					me.add_arrows();
+				});
+		} else {
+			this.add_arrows(this.wrapper.find(".icons"));
+		}
+	}
+	setup_swipe_gesture() {
+		const me = this;
+		this.grids.forEach((grid) => {
+			$(grid).on("wheel", function (event) {
+				if (event.originalEvent) {
+					event = event.originalEvent; // for jQuery or wrapped events
+				}
+
+				if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+					event.preventDefault();
+					if (event.deltaX > 0) {
+						if (me.current_page != me.total_pages - 1) me.current_page++;
+						me.change_to_page(me.current_page);
+					} else {
+						if (me.current_page != 0) me.current_page--;
+						me.change_to_page(me.current_page);
+					}
+				}
+			});
+		});
+	}
+	add_arrows(element) {
+		if (!element) element = this.wrapper;
+		const me = this;
+		let stroke_color = "black";
+		let horizontal_movement = 0;
+		if (this.in_modal) {
+			stroke_color = "white";
+			horizontal_movement = "-40px";
+		}
+		this.left_arrow = $(
+			frappe.utils.icon("chevron-left", "lg", "", "", "left-page-arrow", "", stroke_color)
+		);
+		this.right_arrow = $(
+			frappe.utils.icon("chevron-right", "lg", "", "", "right-page-arrow", "", stroke_color)
+		);
+
+		this.icons_container.before(this.left_arrow);
+		this.icons_container.after(this.right_arrow);
+
+		let wrapper_style = getComputedStyle(element.get(0));
+		let total_height = parseInt(wrapper_style.height) - 2 * parseInt(wrapper_style.paddingTop);
+
+		this.left_arrow.css("top", `${total_height / 2}px`);
+		this.right_arrow.css("top", `${total_height / 2}px`);
+		if (horizontal_movement) {
+			this.left_arrow.css("left", horizontal_movement);
+			this.right_arrow.css("right", horizontal_movement);
+			this.left_arrow.css("position", "absolute");
+			this.right_arrow.css("position", "absolute");
+		}
+		this.left_arrow.on("click", function () {
+			if (me.current_page != 0) me.current_page--;
+			me.change_to_page(me.current_page);
+		});
+		this.right_arrow.on("click", function () {
+			if (me.current_page != me.total_pages - 1) me.current_page++;
+			me.change_to_page(me.current_page);
+		});
+	}
+	add_page_indicators(tempplate) {
+		this.page_indicators = [];
+		if (this.total_pages > 1) {
+			this.pagination_indicator = $(`<div class='page-indicator-container'></div>`).appendTo(
+				this.icons_container
+			);
+			for (let i = 0; i < this.total_pages; i++) {
+				this.page_indicators.push(
+					$("<div class='page-indicator'></div>").appendTo(this.pagination_indicator)
+				);
+			}
+		}
+	}
+	setup_pagination() {
+		this.current_page = this.old_index = 0;
+		this.change_to_page(this.current_page);
+	}
+	change_to_page(index) {
+		this.grids.forEach((g) => $(g).css("display", "none"));
+		this.grids[index].css("display", "grid");
+
+		if (this.page_indicators.length) {
+			this.page_indicators[this.old_index].removeClass("active-page");
+			this.page_indicators[this.current_page].addClass("active-page");
+		}
+		this.current_page = index;
+		this.old_index = index;
+	}
+
+	split_data(icons, size) {
+		const result = [];
+
+		for (let i = 0; i < icons.length; i += size) {
+			result.push(icons.slice(i, i + size));
+		}
+
+		return result;
+	}
+	make_icons(icons_data, grid) {
+		icons_data.forEach((icon) => {
+			let icon_obj = new DesktopIcon(icon, this.in_folder);
+			let icon_html = icon_obj.get_desktop_icon_html();
+			this.icons.push(icon_obj);
+			this.icons_html.push(icon_html);
+			grid.append(icon_html);
+		});
+		this.setup_tooltip();
+	}
+	setup_tooltip() {
+		$('[data-toggle="tooltip"]').tooltip({
+			placement: "bottom",
+		});
+	}
+	setup_reordering(grid) {
+		const me = this;
+		this.hoverTarget = null;
+		this.hoverTimer = null;
+		if (!frappe.is_mobile()) {
+			this.sortable = new Sortable($(grid).get(0), {
+				swapThreshold: 0.09,
+				desktop: true,
+				animation: 150,
+				sort: true, // keep sorting normally
+				dragoverBubble: true,
+				group: {
+					name: "desktop",
+					put: true,
+					pull: true,
+				},
+				onStart(evt) {
+					frappe.desktop_utils.dragged_item = evt.item;
+				},
+				setData: function (/** DataTransfer */ dataTransfer, /** HTMLElement*/ dragEl) {
+					let title = $(dragEl).find(".icon-title").text();
+					let icon = me.icons.find((d) => {
+						return d.icon_title === title;
+					});
+					dataTransfer.setData("text/plain", JSON.stringify(icon.icon_data)); // `dataTransfer` object of HTML5 DragEvent
+				},
+				onMove() {
+					return frappe.desktop_utils.allow_move || false;
+				},
+				onEnd: function (evt) {
+					if (frappe.desktop_utils.in_folder_creation) return;
+					if (evt.oldIndex !== evt.newIndex) {
+						if (evt.to.parentElement == evt.from.parentElement) {
+							let reordered_icons = me.sortable.toArray();
+							let filters = {
+								parent_icon: me.parent_icon?.icon_data.label || "" || null,
+							};
+							me.reorder_icons(reordered_icons, filters);
+							me.parent_icon?.render_folder_thumbnail();
+						} else {
+							let from = $(evt.from.parentElement);
+							let to = $(evt.to.parentElement);
+							let title = $(evt.item).find(".icon-title").text();
+							let selected_icon = get_desktop_icon_by_label(title);
+							if ($(to.get(0).parentElement)) {
+								me.reorder_icons(me.sortable.toArray());
+								me.reorder_icons(
+									frappe.pages[
+										"desktop"
+									].desktop_page.icon_grid.sortable.toArray()
+								);
+								selected_icon.idx = evt.newIndex;
+								selected_icon.parent_icon = null;
+							}
+						}
+					}
+					// save_desktop();
+				},
+			});
+		}
+	}
+	reorder_icons(reordered_icons, filters) {
+		reordered_icons.forEach((d, idx) => {
+			let icon = get_desktop_icon_by_label(d);
+			if (icon) {
+				icon.idx = idx;
+			}
+		});
+		frappe.desktop_icons.sort((a, b) => a.idx - b.idx);
+	}
+	add_to_main_screen(title) {
+		let icon = get_desktop_icon_by_label(title);
+		icon.parent_icon = null;
+	}
+}
+class DesktopIcon {
+	constructor(icon, in_folder) {
+		this.icon_data = icon;
+		this.icon_title = this.icon_data.label;
+		this.icon_subtitle = "";
+		this.icon_type = this.icon_data.icon_type;
+		this.in_folder = in_folder;
+		this.icon_data.in_folder = in_folder;
+		this.link_type = this.icon_data.link_type;
+		if (this.icon_type != "Folder" && !this.icon_data.sidebar) {
+			this.icon_route = get_route(this.icon_data);
+		}
+		if (this.icon_data.child_icons) {
+			this.child_icons = this.get_child_icons_data();
+		}
+		let render = this.validate_icon();
+		if (render) {
+			this.icon = $(
+				frappe.render_template("desktop_icon", {
+					icon: this.icon_data,
+					in_folder: in_folder,
+				})
+			);
+			this.icon_caption_area = $(this.icon.get(0).children[1]);
+			this.parent_icon = this.icon_data.icon;
+			this.setup_click();
+			this.render_folder_thumbnail();
+			frappe.desktop_icons_objects.push(this);
+		}
+
+		// this.child_icons = this.get_desktop_icon(this.icon_title).child_icons;
+		// this.child_icons_data = this.get_child_icons_data();
+	}
+	validate_icon() {
+		// validate if my workspaces are empty
+		if (this.icon_data.label == "My Workspaces") {
+			if (frappe.boot.workspace_sidebar_item["my workspaces"].items.length == 0)
+				return false;
+		}
+		if (this.icon_type == "Folder") {
+			if (this.icon_data.child_icons.length == 0) return false;
+		}
+		if (this.icon_type == "Link" && !this.icon_route) {
+			return false;
+		}
+		return true;
+	}
+	get_child_icons_data() {
+		return this.icon_data.child_icons.sort((a, b) => a.idx - b.idx);
+	}
+	get_desktop_icon_html() {
+		return this.icon;
+	}
+	setup_click() {
+		const me = this;
+		if (this.child_icons?.length && (this.icon_type == "App" || this.icon_type == "Folder")) {
+			$(this.icon).on("click", () => {
+				let modal = frappe.desktop_utils.create_desktop_modal(me);
+				modal.setup(me.icon_title, me.child_icons, 4);
+				modal.show();
+			});
+			if (this.icon_type == "App") {
+				$($(this.icon_caption_area).children()[1]).html(
+					`${this.child_icons.length} Workspaces`
+				);
+			}
+		} else {
+			this.icon.attr("href", this.icon_route);
+		}
+		if (this.icon_data.sidebar) {
+			const me = this;
+			this.icon.on("click", function () {
+				if (me.icon_data.sidebar == "My Workspaces") {
+					let sidebar_name = me.icon_data.sidebar.toLowerCase();
+					if (frappe.boot.workspace_sidebar_item[sidebar_name].items.length == 0) {
+						frappe.toast("No Private Workspaces for user");
+					} else {
+						let workspace_name =
+							frappe.boot.workspace_sidebar_item[sidebar_name].items[0]["link_to"];
+						frappe.set_route("Workspaces", "private", workspace_name);
+					}
+				}
+			});
+		}
+	}
+
+	render_folder_thumbnail() {
+		if (this.icon_type == "Folder") {
+			if (!this.folder_wrapper) this.folder_wrapper = this.icon.find(".icon-container");
+			this.folder_wrapper.html("");
+			this.folder_grid = new DesktopIconGrid({
+				wrapper: this.folder_wrapper,
+				icons_data: this.child_icons,
+				row_size: 3,
+				page_size: {
+					row: 3,
+					col: 3,
+				},
+				in_folder: true,
+				in_modal: false,
+				no_dragging: true,
+			});
+			if (this.icon_type == "App") {
+				this.folder_wrapper.addClass("folder-icon");
+			}
+		}
+	}
+
+	setup_dragging() {
+		if (!frappe.pages["desktop"].desktop_page.edit_mode) return;
+		this.icon.on("drag", (event) => {
+			const mouse_x = event.clientX;
+			const mouse_y = event.clientY;
+			if (frappe.desktop_utils.modal) {
+				let modal = frappe.desktop_utils.modal.modal
+					.find(".modal-content")
+					.get(0)
+					.getBoundingClientRect();
+				if (
+					mouse_x > modal.right ||
+					mouse_x < modal.left ||
+					mouse_y > modal.bottom ||
+					mouse_y < modal.top
+				) {
+					frappe.desktop_utils.close_desktop_modal();
+				}
+			}
+		});
+		this.icon.on("dragstart", function (event) {
+			frappe.desktop_utils.dragged_item = event.target;
+		});
+		this.icon.on("dragover", function (event) {
+			console.log(event.target);
+			if (frappe.desktop_utils.dragged_item == event.target.parentElement) return;
+			if (
+				event.target == frappe.desktop_utils.dragged_item ||
+				frappe.desktop_utils.dragged_item.contains(event.target)
+			) {
+				return;
+			}
+			if (event.target.parentElement.classList.contains("icon-container")) {
+				frappe.desktop_utils.allow_move = false;
+				frappe.desktop_utils.in_folder_creation = true;
+
+				let icon_list = [];
+				icon_list.push(
+					get_desktop_icon_by_label(event.target.parentElement.parentElement.dataset.id)
+				);
+				icon_list.push(
+					get_desktop_icon_by_label(frappe.desktop_utils.dragged_item.dataset.id)
+				);
+
+				let icon = {
+					label: "Untitled Folder",
+					icon_type: "Folder",
+					child_icons: icon_list,
+				};
+				let modal = frappe.desktop_utils.create_desktop_modal(icon);
+				modal.setup(icon.label, icon_list, 4);
+				$(event.target.parentElement).addClass("folder-icon");
+				$(event.target.parentElement).empty();
+				modal.show();
+				frappe.boot.desktop_icons.push(icon);
+				icon_list.forEach((icon) => {
+					let desktop_icon = frappe.utils.get_desktop_icon_by_label(icon.label);
+					desktop_icon.parent_icon = "Untitled Folder";
+					frappe.new_desktop_icons.splice(frappe.boot.desktop_icons.indexOf(icon), 1);
+					frappe.new_desktop_icons.push(desktop_icon);
+				});
+			} else {
+				frappe.desktop_utils.allow_move = true;
+			}
+		});
+	}
+}
+
+class DesktopModal {
+	constructor(icon) {
+		this.parent_icon_obj = icon;
+	}
+	setup(icon_title, child_icons_data, grid_row_size) {
+		const me = this;
+		this.make_modal(icon_title);
+		this.child_icon_grid = new DesktopIconGrid({
+			wrapper: this.$child_icons_wrapper,
+			icons_data: child_icons_data,
+			row_size: grid_row_size,
+			in_folder: false,
+			in_modal: true,
+			parent_icon: this.parent_icon_obj,
+		});
+
+		this.modal.on("hidden.bs.modal", function () {
+			me.modal.remove();
+			frappe.desktop_utils.modal = null;
+			frappe.desktop_utils.modal_stack = [];
+		});
+	}
+	make_modal(icon_title) {
+		if ($(".desktop-modal").length == 0) {
+			this.modal = new frappe.get_modal(__(icon_title), "");
+			this.modal.find(".modal-header").addClass("desktop-modal-heading");
+			this.modal.addClass("desktop-modal");
+			this.modal.find(".modal-dialog").attr("id", "desktop-modal");
+			this.modal.find(".modal-body").addClass("desktop-modal-body");
+			this.$child_icons_wrapper = this.modal.find(".desktop-modal-body");
+		} else {
+			this.modal.find(".modal-title").text(icon_title);
+			$(this.modal.find(".modal-body")).empty();
+			if (frappe.desktop_utils.modal_stack.length == 1) {
+				this.title_section.find(".icon").remove();
+			} else {
+				this.add_back_button();
+			}
+		}
+	}
+	add_back_button() {
+		const me = this;
+		this.title_section = this.modal.find(".title-section").find(".modal-title");
+		$(this.title_section).prepend(
+			frappe.utils.icon("chevron-left", "md", "", "", "", "", "white")
+		);
+		$(this.title_section)
+			.find(".icon")
+			.on("click", function () {
+				const [prev] = frappe.desktop_utils.modal_stack.splice(-1, 1);
+				let icon =
+					frappe.desktop_utils.modal_stack[frappe.desktop_utils.modal_stack.length - 1];
+				if (icon) {
+					me.setup(icon.icon_title, icon.child_icons, 4);
+					me.show();
+				}
+			});
+	}
+	show() {
+		this.modal.modal("show");
+	}
+	hide() {
+		this.modal.modal("hide");
+	}
+}

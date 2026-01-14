@@ -305,7 +305,12 @@ def get_references_across_doctypes_by_dynamic_link_field(
 	for doctype, fieldname, doctype_fieldname in links:
 		try:
 			filters = [[doctype_fieldname, "in", to_doctypes]] if to_doctypes else []
-			for linked_to in frappe.get_all(doctype, pluck=doctype_fieldname, filters=filters, distinct=1):
+			for linked_to in frappe.get_all(
+				doctype,
+				pluck=doctype_fieldname,
+				filters=filters,
+				distinct=1,
+			):
 				if linked_to:
 					links_by_doctype[linked_to].append(
 						{"doctype": doctype, "fieldname": fieldname, "doctype_fieldname": doctype_fieldname}
@@ -457,7 +462,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 		if add_fields := link_context.get("add_fields"):
 			fields += add_fields
 
-		fields = [f"`tab{linked_doctype}`.`{sf.strip()}`" for sf in fields if sf and "`tab" not in sf]
+		fields = [sf.strip() for sf in fields if sf]
 
 		if filters_ctx := link_context.get("filters"):
 			ret = frappe.get_list(doctype=linked_doctype, fields=fields, filters=filters_ctx, order_by=None)
@@ -622,8 +627,7 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 		"DocField", fields=["parent", "options"], filters=child_filters, as_list=1
 	):
 		ret[parent] = {"child_doctype": options, "fieldname": links_dict[options]}
-		if options in ret:
-			del ret[options]
+		ret.pop(options, None)
 
 	virtual_doctypes = frappe.get_all("DocType", {"is_virtual": 1}, pluck="name")
 	for dt in virtual_doctypes:

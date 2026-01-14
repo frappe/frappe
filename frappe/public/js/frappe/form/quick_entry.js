@@ -34,6 +34,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 		this.doc = doc;
 		this.force = force ? force : false;
 		this.dialog = this; // for backward compatibility
+		this.layout = this;
 	}
 
 	setup() {
@@ -324,6 +325,51 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 	render_edit_in_full_page_link() {
 		if (this.force || this.hide_full_form_button) return;
 		this.add_custom_action(__("Edit Full Form"), () => this.open_doc(true));
+	}
+
+	set_intro(txt, color) {
+		if (txt) {
+			this.set_alert(txt, color || "info");
+		} else {
+			this.clear_alert();
+		}
+	}
+
+	set_df_property(fieldname, prop, value) {
+		const field = this.fields_dict?.[fieldname];
+		if (!field) return;
+		field.df[prop] = value;
+		field.refresh?.();
+	}
+
+	toggle_display(fnames, show) {
+		this._apply_on_fields(fnames, (field) => {
+			field.df.hidden = show ? 0 : 1;
+			field.refresh?.();
+		});
+	}
+
+	toggle_enable(fnames, enable) {
+		this._apply_on_fields(fnames, (field) => {
+			field.df.read_only = enable ? 0 : 1;
+			field.refresh?.();
+		});
+	}
+
+	toggle_reqd(fnames, mandatory) {
+		this._apply_on_fields(fnames, (field) => {
+			field.df.reqd = mandatory ? 1 : 0;
+			field.refresh?.();
+		});
+	}
+
+	_apply_on_fields(fnames, fn) {
+		if (!fnames) return;
+		const names = Array.isArray(fnames) ? fnames : [fnames];
+		names.forEach((fname) => {
+			const field = this.fields_dict?.[fname];
+			if (field) fn(field);
+		});
 	}
 
 	set_defaults() {

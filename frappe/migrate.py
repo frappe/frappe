@@ -7,7 +7,10 @@ import json
 import os
 import threading
 import time
+from collections import defaultdict
 from textwrap import dedent
+
+import click
 
 import frappe
 import frappe.model.sync
@@ -24,7 +27,7 @@ from frappe.modules.utils import sync_customizations
 from frappe.search.website_search import build_index_for_all_routes
 from frappe.utils.connections import check_connection
 from frappe.utils.dashboard import sync_dashboards
-from frappe.utils.data import cint
+from frappe.utils.data import cint, comma_and
 from frappe.utils.fixtures import sync_fixtures
 from frappe.website.utils import clear_website_cache
 
@@ -115,9 +118,20 @@ class SiteMigration:
 	@atomic
 	def pre_schema_updates(self):
 		"""Executes `before_migrate` hooks"""
+		overrides = defaultdict(list)
 		for app in frappe.get_installed_apps():
 			for fn in frappe.get_hooks("before_migrate", app_name=app):
 				frappe.get_attr(fn)()
+
+			for doctype in frappe.get_hooks("override_doctype_class", {}, app_name=app).keys():
+				overrides[doctype].append(app)
+
+		for doctype, app_names in overrides.items():
+			if len(app_names) > 1:
+				click.secho(
+					f"The controller for {doctype} is overridden by multiple apps: {comma_and(app_names, add_quotes=False)}.",
+					fg="yellow",
+				)
 
 	@atomic
 	def run_schema_updates(self):
@@ -167,6 +181,9 @@ class SiteMigration:
 
 		print("Removing orphan doctypes...")
 		frappe.model.sync.remove_orphan_doctypes()
+
+		frappe.model.sync.remove_orphan_entities()
+		frappe.model.sync.delete_duplicate_icons()
 
 		print("Syncing portal menu...")
 		frappe.get_single("Portal Settings").sync_menu()

@@ -381,7 +381,6 @@ class TestNaming(IntegrationTestCase):
 		name = parse_naming_series(series, doc=webhook)
 		self.assertTrue(name.startswith("KOOH---"), f"incorrect name generated {name}")
 
-	@run_only_if(db_type_is.MARIADB)
 	def test_hash_collision(self):
 		doctype = new_doctype(autoname="hash").insert().name
 		name = frappe.generate_hash()

@@ -106,9 +106,9 @@ def send_report_email(
 		message=frappe._(
 			"The report you requested has been generated.<br><br>"
 			"Click here to download:<br>"
-			f"<a href='{file_url}'>{file_url}</a><br><br>"
-			f"This link will expire in {file_retention_hours} hours."
-		),
+			"<a href='{0}'>{0}</a><br><br>"
+			"This link will expire in {1} hours."
+		).format(file_url, file_retention_hours),
 		now=True,
 	)
 

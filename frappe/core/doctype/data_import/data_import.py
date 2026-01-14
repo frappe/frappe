@@ -3,6 +3,8 @@
 
 import os
 
+from rq.command import send_stop_job_command
+from rq.exceptions import InvalidJobOperation
 from rq.timeouts import JobTimeoutException
 
 import frappe
@@ -12,7 +14,8 @@ from frappe.core.doctype.data_import.importer import Importer
 from frappe.model import CORE_DOCTYPES
 from frappe.model.document import Document
 from frappe.modules.import_file import import_file_by_path
-from frappe.utils.background_jobs import enqueue, is_job_enqueued
+from frappe.utils import cint
+from frappe.utils.background_jobs import enqueue, get_redis_conn, is_job_enqueued
 from frappe.utils.csvutils import validate_google_sheets_url
 
 BLOCKED_DOCTYPES = CORE_DOCTYPES - {"User", "Role", "Print Format"}
@@ -66,6 +69,20 @@ class DataImport(Document):
 	def validate_doctype(self):
 		if self.reference_doctype in BLOCKED_DOCTYPES:
 			frappe.throw(_("Importing {0} is not allowed.").format(self.reference_doctype))
+
+		meta = frappe.get_meta(self.reference_doctype)
+		if not cint(meta.allow_import):
+			frappe.throw(
+				_("Data Import is not allowed for {0}. Enable 'Allow Import' in DocType settings.").format(
+					self.reference_doctype
+				)
+			)
+
+		if not frappe.has_permission(self.reference_doctype, "import"):
+			frappe.throw(
+				_("You do not have import permission for {0}").format(self.reference_doctype),
+				frappe.PermissionError,
+			)
 
 	def validate_import_file(self):
 		if self.import_file:
@@ -151,6 +168,21 @@ def form_start_import(data_import: str):
 	return di.start_import()
 
 
+@frappe.whitelist()
+def stop_data_import(doc_name: str):
+	"""Stop a running Data Import job."""
+	data_import = frappe.get_doc("Data Import", doc_name)
+	data_import.check_permission("write")
+
+	rq_job_id = f"{frappe.local.site}||data_import||{doc_name}"
+	job_id = rq_job_id.replace(":", "|")  # patching the change in job id format (for timestamp part)
+	try:
+		send_stop_job_command(connection=get_redis_conn(), job_id=job_id)
+	except InvalidJobOperation:
+		frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
+	return {"status": "success", "message": "Job stopped successfully"}
+
+
 def start_import(data_import):
 	"""This method runs in background job"""
 	data_import = frappe.get_doc("Data Import", data_import)
@@ -219,7 +251,7 @@ def get_import_status(data_import_name: str):
 	import_status = {"status": data_import.status}
 	logs = frappe.get_all(
 		"Data Import Log",
-		fields=["count(*) as count", "success"],
+		fields=[{"COUNT": "*", "as": "count"}, "success"],
 		filters={"data_import": data_import_name},
 		group_by="success",
 	)

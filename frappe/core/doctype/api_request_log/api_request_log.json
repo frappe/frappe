@@ -34,9 +34,10 @@
   }
  ],
  "grid_page_length": 50,
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-21 17:09:55.054044",
+ "modified": "2025-10-29 11:26:28.177653",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "API Request Log",

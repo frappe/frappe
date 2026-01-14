@@ -9,11 +9,11 @@ on:
       python-version:
         required: false
         type: string
-        default: '3.13'
+        default: '3.14'
       node-version:
         required: false
         type: number
-        default: 22
+        default: 24
       parallel-runs:
         required: false
         type: number
@@ -62,7 +62,7 @@ jobs:
         env:
           MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup
         name: Environment Setup
         with:
@@ -103,6 +103,7 @@ jobs:
           echo "BROWSER_PATH=$(which chrome)" >> $GITHUB_ENV
 
       - name: Run Tests
+        id: ui-tests
         run: |
           source ${GITHUB_WORKSPACE}/env/bin/activate
           bench --site test_site \
@@ -123,19 +124,33 @@ jobs:
           ( tail -f ${GITHUB_WORKSPACE}/sites/*-coverage*.xml & ) | grep -q "\/coverage"
 
       - name: Upload JS coverage data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: inputs.enable-coverage
         with:
           name: coverage-js-${{ matrix.index }}
           path: ./apps/${{ github.event.repository.name }}/.cypress-coverage/clover.xml
+      - name: Compress Cypress Videos
+        if: always() && steps.ui-tests.outcome == 'failure'
+        run: | 
+            if find ./cypressVideos -mindepth 1 | read; then
+              zip -r cypress_recordings.zip ./cypressVideos
+            fi
+      - name: Upload Cypress Videos
+        if: always() && steps.ui-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v6
+        with:
+          name: Cypress CI Video Recordings
+          path: ./cypress_recordings.zip
+
+        
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: inputs.enable-coverage
         with:
           name: coverage-py-${{ matrix.index }}
           path: ./sites/*-coverage*.xml
-
+    
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}

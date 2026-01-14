@@ -113,11 +113,14 @@ class Page(Document):
 		frappe.db.after_commit(self.delete_folder_with_contents)
 
 	def delete_folder_with_contents(self):
-		module_path = get_module_path(self.module)
-		dir_path = os.path.join(module_path, "page", frappe.scrub(self.name))
+		try:
+			module_path = get_module_path(self.module)
+			dir_path = os.path.join(module_path, "page", frappe.scrub(self.name))
 
-		if os.path.exists(dir_path):
-			shutil.rmtree(dir_path, ignore_errors=True)
+			if os.path.exists(dir_path):
+				shutil.rmtree(dir_path, ignore_errors=True)
+		except frappe.DoesNotExistError as e:
+			frappe.log(e)
 
 	def is_permitted(self):
 		"""Return True if `Has Role` is not set or the user is allowed."""

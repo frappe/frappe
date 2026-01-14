@@ -13,13 +13,14 @@
   "event_category",
   "event_type",
   "color",
-  "send_reminder",
   "repeat_this_event",
+  "location",
   "column_break_4",
   "starts_on",
   "ends_on",
   "status",
   "sender",
+  "attending",
   "all_day",
   "sync_with_google_calendar",
   "add_video_conferencing",
@@ -43,14 +44,18 @@
   "sunday",
   "section_break_8",
   "description",
-  "participants",
+  "participants_tab",
   "event_participants",
+  "links_tab",
   "section_break_jlqd",
   "reference_doctype",
   "column_break_pjkw",
   "reference_docname",
   "section_break_qemp",
-  "links"
+  "links",
+  "notifications_tab",
+  "send_reminder",
+  "notifications"
  ],
  "fields": [
   {
@@ -211,12 +216,6 @@
    "width": "300px"
   },
   {
-   "fieldname": "participants",
-   "fieldtype": "Section Break",
-   "label": "Participants",
-   "oldfieldtype": "Section Break"
-  },
-  {
    "fieldname": "event_participants",
    "fieldtype": "Table",
    "label": "Event Participants",
@@ -327,14 +326,46 @@
   {
    "fieldname": "section_break_qemp",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "notifications_tab",
+   "fieldtype": "Tab Break",
+   "label": "Notifications"
+  },
+  {
+   "fieldname": "notifications",
+   "fieldtype": "Table",
+   "label": "Notifications",
+   "options": "Event Notifications"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location"
+  },
+  {
+   "fieldname": "participants_tab",
+   "fieldtype": "Tab Break",
+   "label": "Participants"
+  },
+  {
+   "fieldname": "links_tab",
+   "fieldtype": "Tab Break",
+   "label": "Links"
+  },
+  {
+   "fieldname": "attending",
+   "fieldtype": "Select",
+   "label": "Attending",
+   "options": "\nYes\nNo\nMaybe"
   }
  ],
  "grid_page_length": 50,
  "icon": "fa fa-calendar",
  "idx": 1,
  "links": [],
- "modified": "2025-08-12 13:37:36.319985",
- "modified_by": "Administrator",
+ "modified": "2025-10-07 08:53:24.732646",
+ "modified_by": "shariq@frappe.io",
  "module": "Desk",
  "name": "Event",
  "naming_rule": "Expression (old style)",

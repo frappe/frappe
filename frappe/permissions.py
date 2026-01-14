@@ -6,10 +6,11 @@ import functools
 import frappe
 import frappe.share
 from frappe import _, msgprint
+from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.query_builder import DocType
 from frappe.utils import cint, cstr
 
-rights = (
+std_rights = (
 	"select",
 	"read",
 	"write",
@@ -25,6 +26,8 @@ rights = (
 	"export",
 	"share",
 )
+
+rights = std_rights
 
 
 GUEST_ROLE = "Guest"
@@ -127,6 +130,10 @@ def has_permission(
 
 	meta = frappe.get_meta(doctype)
 
+	# docname == doctype for single doctypes
+	if not doc and meta.issingle:
+		doc = meta.name
+
 	if doc:
 		if isinstance(doc, str | int):
 			# perf: Avoid loading child tables for perm checks
@@ -137,7 +144,9 @@ def has_permission(
 				"Permission check failed from role permission system. Check if user's role grant them permission to the document."
 			)
 			msg = _("User {0} does not have access to this document").format(frappe.bold(user))
-			if frappe.has_permission(doc.doctype):
+			if meta.issingle:
+				msg += f": {_(doc.doctype)}"
+			elif has_permission(doc.doctype):
 				msg += f": {_(doc.doctype)} - {doc.name}"
 			push_perm_check_log(msg, debug=debug)
 	else:
@@ -166,7 +175,10 @@ def has_permission(
 			)
 
 	def false_if_not_shared():
-		if ptype not in ("read", "write", "share", "submit", "email", "print"):
+		share_rights = ["read", "write", "share", "submit", "email", "print"]
+		custom_rights = get_doctype_ptype_map().get(doctype, [])
+
+		if ptype not in share_rights + custom_rights:
 			debug and _debug_log(f"Permission type {ptype} can not be shared")
 			return False
 
@@ -278,7 +290,7 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None, debug=False):
 
 	if user == "Administrator":
 		debug and _debug_log("all permissions granted because user is Administrator")
-		return allow_everything()
+		return allow_everything(doctype_meta.name)
 
 	if not frappe.local.role_permissions.get(cache_key) or debug:
 		perms = frappe._dict(if_owner={})
@@ -296,7 +308,7 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None, debug=False):
 		has_if_owner_enabled = any(p.get("if_owner", 0) for p in applicable_permissions)
 		perms["has_if_owner_enabled"] = has_if_owner_enabled
 
-		for ptype in rights:
+		for ptype in get_rights(doctype_meta.name):
 			pvalue = any(p.get(ptype, 0) for p in applicable_permissions)
 			# check if any perm object allows perm type
 			perms[ptype] = cint(pvalue)
@@ -446,7 +458,7 @@ def has_user_permission(doc, user=None, debug=False, *, ptype=None):
 	if not check_user_permission_on_link_fields(doc):
 		return False
 
-	for d in doc.get_all_children():
+	for d in doc.get_all_children(include_computed=True):
 		if not check_user_permission_on_link_fields(d):
 			return False
 
@@ -737,9 +749,16 @@ def get_doc_name(doc):
 	return doc if isinstance(doc, str) else str(doc.name)
 
 
-def allow_everything():
+def get_rights(doctype=None):
+	if not doctype:
+		return std_rights
+	custom_rights = get_doctype_ptype_map().get(doctype, [])
+	return list(std_rights) + custom_rights
+
+
+def allow_everything(doctype=None):
 	"""Return a dict with access to everything, eg. {"read": 1, "write": 1, ...}."""
-	return {ptype: 1 for ptype in rights}
+	return {ptype: 1 for ptype in get_rights(doctype)}
 
 
 def get_allowed_docs_for_doctype(user_permissions, doctype):
@@ -802,7 +821,9 @@ def has_child_permission(
 
 	if parent_meta.istable or not (
 		valid_parentfields := [
-			df.fieldname for df in parent_meta.get_table_fields() if df.options == child_doctype
+			df.fieldname
+			for df in parent_meta.get_table_fields(include_computed=True)
+			if df.options == child_doctype
 		]
 	):
 		push_perm_check_log(

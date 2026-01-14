@@ -377,6 +377,7 @@ function on_file_input(e) {
 }
 function remove_file(file) {
 	files.value = files.value.filter((f) => f !== file);
+	if (file_input.value) file_input.value.value = "";
 }
 function toggle_image_cropper(index) {
 	crop_image_with_index.value = show_image_cropper.value ? -1 : index;
@@ -440,7 +441,7 @@ function add_files(file_array) {
 				request_succeeded: false,
 				error_message: null,
 				uploading: false,
-				private: !props.make_attachments_public,
+				private: !props.make_attachments_public || !frappe.utils.can_upload_public_files(),
 			};
 		});
 
@@ -619,26 +620,25 @@ function upload_file(file, i) {
 				} else if (xhr.status === 403) {
 					file.failed = true;
 					let response = parse_error_response(xhr.responseText);
-					file.error_message = `Not permitted. ${response.error_message || ""}.`;
+					file.error_message = __("Not permitted. {0}.", [response.error_message || ""]);
 					if (response.server_messages.length) {
 						file.error_message += `\n${response.server_messages.join("\n")}`;
 					}
 				} else if (xhr.status === 413) {
 					file.failed = true;
-					file.error_message = "Size exceeds the maximum allowed file size.";
+					file.error_message = __("Size exceeds the maximum allowed file size.");
 				} else if (xhr.status === 417) {
 					// regular frappe.throw() in backend
 					file.failed = true;
-					file.error_message = null;
 					let response = parse_error_response(xhr.responseText);
-					if (response.server_messages.length) {
-						file.error_message = response.server_messages.join("\n");
-					}
+					file.error_message = response.server_messages.length
+						? response.server_messages.join("\n")
+						: __("File upload failed.");
 				} else {
 					file.failed = true;
 					file.error_message =
 						xhr.status === 0
-							? "XMLHttpRequest Error"
+							? __("XMLHttpRequest Error")
 							: `${xhr.status} : ${xhr.statusText}`;
 
 					let error = null;
@@ -704,20 +704,27 @@ function upload_file(file, i) {
 	});
 }
 function parse_error_response(response_text) {
-	let response = JSON.parse(response_text);
-	let error_message = response._error_message;
+	let error_message = "";
 	let server_messages = [];
 
 	try {
-		server_messages.push(
-			...JSON.parse(response._server_messages).map((m) => {
-				let parsed = JSON.parse(m);
-				return parsed.message;
-			})
-		);
+		let response = JSON.parse(response_text);
+		error_message = response._error_message || "";
+
+		try {
+			server_messages.push(
+				...JSON.parse(response._server_messages).map((m) => {
+					let parsed = JSON.parse(m);
+					return parsed.message;
+				})
+			);
+		} catch (e) {
+			console.warning("Failed to parse server message", e);
+		}
 	} catch (e) {
-		console.warning("Failed to parse server message", e);
+		console.warning("Failed to parse error response", e);
 	}
+
 	return {
 		error_message,
 		server_messages,

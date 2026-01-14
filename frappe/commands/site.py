@@ -217,8 +217,28 @@ def _restore(
 	with_public_files=None,
 	with_private_files=None,
 ):
+	from pathlib import Path
+
 	from frappe.installer import extract_files
 	from frappe.utils.backups import decrypt_backup, get_or_generate_backup_encryption_key
+
+	# Check for the backup file in the backup directory, as well as the main bench directory
+	dirs = (f"{site}/private/backups", "..")
+
+	# Try to resolve path to the file if we can't find it directly
+	if not Path(sql_file_path).exists():
+		click.secho(
+			f"File {sql_file_path} not found. Trying to check in alternative directories.", fg="yellow"
+		)
+		for dir in dirs:
+			potential_path = Path(dir) / Path(sql_file_path)
+			if potential_path.exists():
+				sql_file_path = str(potential_path.resolve())
+				click.secho(f"File {sql_file_path} found.", fg="green")
+				break
+		else:
+			click.secho(f"File {sql_file_path} not found.", fg="red")
+			sys.exit(1)
 
 	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
 	if err:
@@ -304,24 +324,6 @@ def restore_backup(
 
 	from frappe.installer import _new_site, is_downgrade, is_partial, validate_database_sql
 
-	# Check for the backup file in the backup directory, as well as the main bench directory
-	dirs = (f"{site}/private/backups", "..")
-
-	# Try to resolve path to the file if we can't find it directly
-	if not Path(sql_file_path).exists():
-		click.secho(
-			f"File {sql_file_path} not found. Trying to check in alternative directories.", fg="yellow"
-		)
-		for dir in dirs:
-			potential_path = Path(dir) / Path(sql_file_path)
-			if potential_path.exists():
-				sql_file_path = str(potential_path.resolve())
-				click.secho(f"File {sql_file_path} found.", fg="green")
-				break
-		else:
-			click.secho(f"File {sql_file_path} not found.", fg="red")
-			sys.exit(1)
-
 	if is_partial(sql_file_path):
 		click.secho(
 			"Partial Backup file detected. You cannot use a partial file to restore a Frappe site.",
@@ -336,7 +338,7 @@ def restore_backup(
 	# Check if the backup is of an older version of frappe and the user hasn't specified force
 	if is_downgrade(sql_file_path, verbose=True) and not force:
 		warn_message = (
-			"This is not recommended and may lead to unexpected behaviour. " "Do you want to continue anyway?"
+			"This is not recommended and may lead to unexpected behaviour. Do you want to continue anyway?"
 		)
 		click.confirm(warn_message, abort=True)
 
@@ -1326,19 +1328,18 @@ def clear_log_table(context: CliCtxObj, doctype, days, no_backup):
 
 	ref: https://mariadb.com/kb/en/big-deletes/#deleting-more-than-half-a-table
 	"""
-	from frappe.core.doctype.log_settings.log_settings import LOG_DOCTYPES
 	from frappe.core.doctype.log_settings.log_settings import clear_log_table as clear_logs
 	from frappe.utils.backups import scheduled_backup
 
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
-	if doctype not in LOG_DOCTYPES:
-		raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
-
 	for site in context.sites:
 		frappe.init(site)
 		frappe.connect()
+
+		if doctype not in frappe.get_hooks("default_log_clearing_doctypes", {}):
+			raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
 
 		if not no_backup:
 			scheduled_backup(
@@ -1582,6 +1583,33 @@ def bypass_patch(context: CliCtxObj, patch_name: str, yes: bool):
 			frappe.destroy()
 
 
+@click.command("create-desktop-icons-and-sidebar")
+@pass_context
+def create_icons_and_sidebar(context: CliCtxObj):
+	"""Create desktop icons and workspace sidebars."""
+	from frappe.desk.doctype.desktop_icon.desktop_icon import create_desktop_icons
+	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import (
+		create_workspace_sidebar_for_workspaces,
+	)
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+	for site in context.sites:
+		frappe.init(site)
+		frappe.connect()
+		try:
+			print("Creating Desktop Icons")
+			create_desktop_icons()
+			print("Creating Workspace Sidebars")
+			create_workspace_sidebar_for_workspaces()
+			# Saving it in a command need it
+			frappe.db.commit()  # nosemgrep
+		except Exception as e:
+			print(f"Error creating icons {site}: {e}")
+		finally:
+			frappe.destroy()
+
+
 commands = [
 	add_system_manager,
 	add_user_for_sites,
@@ -1618,4 +1646,5 @@ commands = [
 	trim_database,
 	clear_log_table,
 	bypass_patch,
+	create_icons_and_sidebar,
 ]

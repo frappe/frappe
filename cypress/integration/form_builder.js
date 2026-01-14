@@ -3,24 +3,24 @@ const doctype_name = form_builder_doctype.name;
 context("Form Builder", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app");
+		cy.visit("/desk");
 		return cy.insert_doc("DocType", form_builder_doctype, true);
 	});
 
 	it("Open Form Builder for Web Form Doctype/Customize Form", () => {
 		// doctype
-		cy.visit("/app/doctype/Web Form");
+		cy.visit("/desk/doctype/Web Form");
 		cy.findByRole("tab", { name: "Form" }).click();
 		cy.get(".form-builder-container").should("exist");
 
 		// customize form
-		cy.visit("/app/customize-form?doc_type=Web%20Form");
+		cy.visit("/desk/customize-form?doc_type=Web%20Form");
 		cy.findByRole("tab", { name: "Form" }).click();
 		cy.get(".form-builder-container").should("exist");
 	});
 
 	it("Save without change, check form dirty", () => {
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		// Save without change
@@ -37,7 +37,7 @@ context("Form Builder", () => {
 
 	it("Check if Filters are applied to the link field", () => {
 		// Visit the Form Builder
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		cy.get("[data-fieldname='gender']").click();
@@ -49,28 +49,39 @@ context("Form Builder", () => {
 		cy.get(".modal-body .clear-filters").click();
 		cy.get(".modal-body .filter-action-buttons .add-filter").click();
 		cy.wait(100);
-		cy.get(".modal-body .filter-box .list_filter .filter-field .link-field input").type(
-			"Male"
-		);
+
+		cy.get(".modal-body .filter-box .list_filter .filter-field .link-field input")
+			.focus()
+			.as("input");
+		// Wait for dropdown to appear (request might be cached)
+		cy.get("@input").parent().findByRole("listbox").should("be.visible");
+		cy.wait(200);
+		cy.get("@input").type("Male", { delay: 100 });
+		// Wait for dropdown to update with search results
+		cy.wait(500);
+		cy.get("@input").type("{enter}", { delay: 100 });
+		cy.get("@input").blur();
+
 		cy.get(".btn-modal-primary").click();
+		cy.wait(500);
 
 		// Save the document
 		cy.click_doc_primary_button("Save");
+		cy.wait(1000);
 
-		// Open a new Form
-		cy.new_form(doctype_name);
-		// Click on the "salutation" field
-		cy.get_field("gender").clear().click();
-
-		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
-		cy.wait("@search_link").then((data) => {
-			expect(data.response.body.message.length).to.eq(1);
-			expect(data.response.body.message[0].value).to.eq("Male");
+		cy.compare_document({
+			fields: [
+				{},
+				{
+					fieldname: "gender",
+					link_filters: '[["Gender","name","=","Male"]]',
+				},
+			],
 		});
 	});
 
 	it("Add empty section and save", () => {
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		let first_section = ".tab-content.active .form-section-container:first";
@@ -88,7 +99,7 @@ context("Form Builder", () => {
 	it("Add Table field and check if columns are rendered", () => {
 		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		let first_column = ".tab-content.active .section-columns-container:first .column:first";
@@ -116,7 +127,8 @@ context("Form Builder", () => {
 			.click()
 			.as("input");
 		cy.get("@input").clear({ force: true }).type("Web Form Field", { delay: 200 });
-		cy.wait("@search_link");
+		// Wait for dropdown to appear and selection to complete
+		cy.wait(500);
 
 		cy.get(last_field).click({ force: true });
 
@@ -147,7 +159,7 @@ context("Form Builder", () => {
 	});
 	// not important and was flaky on CI
 	it.skip("Drag Field/Column/Section & Tab", () => {
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		let first_column = ".tab-content.active .section-columns-container:first .column:first";
@@ -208,7 +220,7 @@ context("Form Builder", () => {
 	});
 
 	it("Add New Tab/Section/Column to Form", () => {
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		let first_section = ".tab-content.active .form-section-container:first";
@@ -251,7 +263,7 @@ context("Form Builder", () => {
 	});
 
 	it("Update Title field Label to New Title through Customize Form", () => {
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		let first_field =
@@ -264,12 +276,12 @@ context("Form Builder", () => {
 
 		cy.findByRole("button", { name: "Save" }).click({ force: true });
 
-		cy.visit("/app/form-builder-doctype/new");
+		cy.visit("/desk/form-builder-doctype/new");
 		cy.get("[data-fieldname='data3'] .clearfix label").should("have.text", "New Title");
 	});
 
 	it("Validate Duplicate Name & reqd + hidden without default logic", () => {
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		let first_column = ".tab-content.active .section-columns-container:first .column:first";
@@ -315,7 +327,7 @@ context("Form Builder", () => {
 	});
 
 	it.skip("Undo/Redo", () => {
-		cy.visit(`/app/doctype/${doctype_name}`);
+		cy.visit(`/desk/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
 		// click on second tab

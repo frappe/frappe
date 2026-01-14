@@ -105,11 +105,12 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	def get_connection(self, read_only: bool = False):
 		conn = self.create_connection(read_only)
-		conn.isolation_level = None
 		conn.create_function("regexp", 2, regexp)
+		conn.create_function("regexp_replace", 3, regexp_replace)
 		pragmas = {
 			"journal_mode": "WAL",
 			"synchronous": "NORMAL",
+			"busy_timeout": 5000,  # in milliseconds
 		}
 		cursor = conn.cursor()
 		for pragma, value in pragmas.items():
@@ -583,3 +584,10 @@ def regexp(expr: str, item: str) -> bool:
 	Although it works in the CLI - doesn't work through python
 	"""
 	return re.search(expr, item) is not None
+
+
+def regexp_replace(item: str, pattern: str, repl: str) -> str:
+	"""
+	Define regexp_replace implementation for SQLite
+	"""
+	return re.sub(pattern, repl, item)

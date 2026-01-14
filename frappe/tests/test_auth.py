@@ -176,8 +176,10 @@ class TestAllowedReferrer(UnitTestCase):
 			env = builder.get_environ()
 			return Request(env)
 
-		# Test with valid referrer
+		# Set a single allowed referrer
 		frappe.cache.set_value("allowed_referrers", ["https://example.com"])
+
+		# Test with valid referrer
 		frappe.local.request = create_request({"Referer": "https://example.com/some/path"})
 		http_request = frappe.auth.HTTPRequest()
 		self.assertTrue(http_request.is_allowed_referrer())
@@ -196,6 +198,16 @@ class TestAllowedReferrer(UnitTestCase):
 		frappe.local.request = create_request({"Origin": "https://malicious.com"})
 		http_request = frappe.auth.HTTPRequest()
 		self.assertFalse(http_request.is_allowed_referrer())
+
+		# Test subdomain bypass prevention
+		frappe.local.request = create_request({"Referer": "https://example.com.evil.com"})
+		http_request = frappe.auth.HTTPRequest()
+		self.assertFalse(http_request.is_allowed_referrer())
+
+		# Test exact domain match for referrer
+		frappe.local.request = create_request({"Referer": "https://example.com"})
+		http_request = frappe.auth.HTTPRequest()
+		self.assertTrue(http_request.is_allowed_referrer())
 
 		# Clean up
 		frappe.cache.delete_value("allowed_referrers")

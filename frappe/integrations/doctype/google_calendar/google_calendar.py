@@ -802,7 +802,7 @@ def get_attendees(doc):
 
 	for participant in doc.event_participants:
 		p_email = participant.get("email")
-		if participant and p_email != owner:
+		if p_email and p_email != owner:
 			attendees.append({"email": p_email})
 		else:
 			email_not_found.append({"dt": participant.reference_doctype, "dn": participant.reference_docname})

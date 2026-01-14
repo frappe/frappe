@@ -105,6 +105,16 @@ frappe.notification = {
 				"options",
 				[""].concat(["owner"]).concat(receiver_fields)
 			);
+
+			// set options for "From Attach Field"
+			let attach_fields = fields.filter((d) =>
+				["Attach", "Attach Image"].includes(d.fieldtype)
+			);
+			let attach_options = $.map(attach_fields, function (d) {
+				return get_select_options(d);
+			});
+
+			frm.set_df_property("from_attach_field", "options", [""].concat(attach_options));
 		});
 	},
 	setup_example_message: function (frm) {
@@ -247,7 +257,7 @@ frappe.ui.form.on("Notification", {
 			frm.set_df_property(
 				"channel",
 				"description",
-				`To use SMS Channel, initialize <a href="/app/sms-settings">SMS Settings</a>.`
+				`To use SMS Channel, initialize <a href="/desk/sms-settings">SMS Settings</a>.`
 			);
 		} else {
 			frm.set_df_property("channel", "description", ` `);

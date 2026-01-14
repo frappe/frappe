@@ -77,12 +77,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		super.setup_page();
 	}
 
-	toggle_side_bar() {
-		super.toggle_side_bar();
-		// refresh datatable when sidebar is toggled to accomodate extra space
-		this.render(true);
-	}
-
 	setup_result_area() {
 		super.setup_result_area();
 		this.setup_charts_area();
@@ -1027,7 +1021,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			columns: 2,
 			options: columns[this.doctype]
 				.filter((df) => {
-					return !df.hidden && df.fieldname !== "name";
+					return !df.hidden && df.fieldname !== "name" && !df.is_virtual;
 				})
 				.map((df) => ({
 					label: __(df.label, null, df.parent),
@@ -1573,11 +1567,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				action: () => this.toggle_charts(),
 			},
 			{
-				label: __("Toggle Sidebar"),
-				action: () => this.toggle_side_bar(),
-				shortcut: "Ctrl+K",
-			},
-			{
 				label: __("Pick Columns"),
 				action: () => {
 					const d = new frappe.ui.Dialog({
@@ -1585,7 +1574,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						fields: this.get_dialog_fields(),
 						primary_action: (values) => {
 							// doctype fields
-							let fields = values[this.doctype].map((f) => [f, this.doctype]);
+							let fields = (values[this.doctype] || []).map((f) => [
+								f,
+								this.doctype,
+							]);
 							delete values[this.doctype];
 
 							// child table fields
@@ -1609,6 +1601,18 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							d.hide();
 						},
 					});
+
+					const $bulk = $(`
+						<div class="mb-3">
+							<button class="btn btn-default btn-xs" data-action="select_all">${__("Select All")}</button>
+							<button class="btn btn-default btn-xs" data-action="unselect_all">${__("Unselect All")}</button>
+						</div>
+					`);
+					const toggleAll = (checked) =>
+						d.$wrapper.find(":checkbox").prop("checked", checked).trigger("change");
+					$bulk.on("click", "[data-action=select_all]", () => toggleAll(true));
+					$bulk.on("click", "[data-action=unselect_all]", () => toggleAll(false));
+					d.$body.prepend($bulk);
 
 					d.$body.prepend(`
 						<div class="columns-search">

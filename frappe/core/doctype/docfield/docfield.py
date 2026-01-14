@@ -18,6 +18,7 @@ class DocField(Document):
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
 		bold: DF.Check
+		button_color: DF.Literal["", "Default", "Primary", "Info", "Success", "Warning", "Danger"]
 		collapsible: DF.Check
 		collapsible_depends_on: DF.Code | None
 		columns: DF.Int
@@ -90,6 +91,7 @@ class DocField(Document):
 		link_filters: DF.JSON | None
 		make_attachment_public: DF.Check
 		mandatory_depends_on: DF.Code | None
+		mask: DF.Check
 		max_height: DF.Data | None
 		no_copy: DF.Check
 		non_negative: DF.Check

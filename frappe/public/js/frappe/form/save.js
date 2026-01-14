@@ -17,7 +17,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 
 	var save = function () {
 		$(frm.wrapper).addClass("validated-form");
-		if ((action !== "Save" || frm.is_dirty()) && check_mandatory()) {
+		if ((action !== "Save" || frm.is_dirty()) && frappe.ui.form.check_mandatory(frm)) {
 			_call({
 				method: "frappe.desk.form.save.savedocs",
 				args: { doc: frm.doc, action: action },
@@ -63,116 +63,6 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			btn: btn,
 			freeze_message: freeze_message,
 		});
-	};
-
-	var check_mandatory = function () {
-		var has_errors = false;
-		frm.scroll_set = false;
-
-		if (frm.doc.docstatus == 2) return true; // don't check for cancel
-
-		$.each(frappe.model.get_all_docs(frm.doc), function (i, doc) {
-			var error_fields = [];
-			var folded = false;
-
-			$.each(frappe.meta.docfield_list[doc.doctype] || [], function (i, docfield) {
-				if (docfield.fieldname) {
-					const df = frappe.meta.get_docfield(doc.doctype, docfield.fieldname, doc.name);
-
-					if (df.fieldtype === "Fold") {
-						folded = frm.layout.folded;
-					}
-
-					if (
-						is_docfield_mandatory(doc, df) &&
-						!frappe.model.has_value(doc.doctype, doc.name, df.fieldname)
-					) {
-						has_errors = true;
-						error_fields[error_fields.length] = __(df.label, null, df.parent);
-						// scroll to field
-						if (!frm.scroll_set) {
-							scroll_to(doc.parentfield || df.fieldname);
-						}
-
-						if (folded) {
-							frm.layout.unfold();
-							folded = false;
-						}
-					}
-				}
-			});
-
-			if (frm.is_new() && frm.meta.autoname === "Prompt" && !frm.doc.__newname) {
-				has_errors = true;
-				error_fields = [__("Name"), ...error_fields];
-			}
-
-			if (error_fields.length) {
-				let meta = frappe.get_meta(doc.doctype);
-				let message;
-				if (meta.istable) {
-					const table_field = frappe.meta.docfield_map[doc.parenttype][doc.parentfield];
-
-					const table_label = __(
-						table_field.label || frappe.unscrub(table_field.fieldname)
-					).bold();
-
-					message = __("Mandatory fields required in table {0}, Row {1}", [
-						table_label,
-						doc.idx,
-					]);
-				} else {
-					message = __("Mandatory fields required in {0}", [__(doc.doctype)]);
-				}
-				message = message + "<br><br><ul><li>" + error_fields.join("</li><li>") + "</ul>";
-				frappe.msgprint({
-					message: message,
-					indicator: "red",
-					title: __("Missing Fields"),
-				});
-				frm.refresh();
-			}
-		});
-
-		return !has_errors;
-	};
-
-	let is_docfield_mandatory = function (doc, df) {
-		if (df.reqd) return true;
-		if (!df.mandatory_depends_on || !doc) return;
-
-		let out = null;
-		let expression = df.mandatory_depends_on;
-		let parent = frappe.get_meta(df.parent);
-
-		if (typeof expression === "boolean") {
-			out = expression;
-		} else if (typeof expression === "function") {
-			out = expression(doc);
-		} else if (expression.substr(0, 5) == "eval:") {
-			try {
-				out = frappe.utils.eval(expression.substr(5), { doc, parent });
-				if (parent && parent.istable && expression.includes("is_submittable")) {
-					out = true;
-				}
-			} catch (e) {
-				frappe.throw(__('Invalid "mandatory_depends_on" expression'));
-			}
-		} else {
-			var value = doc[expression];
-			if ($.isArray(value)) {
-				out = !!value.length;
-			} else {
-				out = !!value;
-			}
-		}
-
-		return out;
-	};
-
-	const scroll_to = (fieldname) => {
-		frm.scroll_to_field(fieldname);
-		frm.scroll_set = true;
 	};
 
 	var _call = function (opts) {
@@ -227,6 +117,126 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 	}
 };
 
+frappe.ui.form.check_mandatory = function (frm) {
+	var has_errors = false;
+	frm.scroll_set = false;
+
+	if (frm.doc.docstatus == 2) return true; // don't check for cancel
+
+	$.each(frappe.model.get_all_docs(frm.doc), function (i, doc) {
+		var error_fields = [];
+		var folded = false;
+
+		$.each(frappe.meta.docfield_list[doc.doctype] || [], function (i, docfield) {
+			if (docfield.fieldname) {
+				const df = frappe.meta.get_docfield(doc.doctype, docfield.fieldname, doc.name);
+
+				// skip fields that don't hold data
+				if (
+					["Section Break", "Column Break", "Tab Break", "HTML", "Heading"].includes(
+						df.fieldtype
+					)
+				) {
+					return;
+				}
+
+				if (df.fieldtype === "Fold") {
+					folded = frm.layout.folded;
+				}
+
+				if (
+					is_docfield_mandatory(doc, df) &&
+					!frappe.model.has_value(doc.doctype, doc.name, df.fieldname)
+				) {
+					has_errors = true;
+					error_fields[error_fields.length] = __(df.label, null, df.parent);
+					// scroll to field
+					if (!frm.scroll_set) {
+						scroll_to(doc.parentfield || df.fieldname);
+					}
+
+					if (folded) {
+						frm.layout.unfold();
+						folded = false;
+					}
+				}
+			}
+		});
+
+		if (frm.is_new() && frm.meta.autoname === "Prompt" && !frm.doc.__newname) {
+			has_errors = true;
+			error_fields = [__("Name"), ...error_fields];
+		}
+
+		if (error_fields.length) {
+			let meta = frappe.get_meta(doc.doctype);
+			let message;
+			if (meta.istable) {
+				const table_field = frappe.meta.docfield_map[doc.parenttype][doc.parentfield];
+
+				const table_label = __(
+					table_field.label || frappe.unscrub(table_field.fieldname)
+				).bold();
+
+				message = __("Mandatory fields required in table {0}, Row {1}", [
+					table_label,
+					doc.idx,
+				]);
+			} else {
+				message = __("Mandatory fields required in {0}", [__(doc.doctype)]);
+			}
+			message = message + "<br><br><ul><li>" + error_fields.join("</li><li>") + "</ul>";
+			frappe.msgprint({
+				message: message,
+				indicator: "red",
+				title: __("Missing Fields"),
+			});
+			frm.refresh();
+		}
+	});
+
+	return !has_errors;
+
+	function is_docfield_mandatory(doc, df) {
+		if (df.reqd) return true;
+		if (!df.mandatory_depends_on || !doc) return;
+
+		let out = null;
+		let expression = df.mandatory_depends_on;
+		let parent = frappe.get_meta(df.parent);
+
+		if (typeof expression === "boolean") {
+			out = expression;
+		} else if (typeof expression === "function") {
+			out = expression(doc);
+		} else if (expression.substr(0, 5) == "eval:") {
+			try {
+				out = frappe.utils.eval(expression.substr(5), { doc, parent });
+				if (parent && parent.istable && expression.includes("is_submittable")) {
+					out = true;
+				}
+			} catch (e) {
+				frappe.throw(__('Invalid "mandatory_depends_on" expression'));
+			}
+		} else {
+			var value = doc[expression];
+			if ($.isArray(value)) {
+				out = !!value.length;
+			} else {
+				out = !!value;
+			}
+		}
+
+		return out;
+	}
+
+	function scroll_to(fieldname) {
+		if (frm.scroll_to_field(fieldname)) {
+			frm.scroll_set = true;
+		}
+	}
+};
+
 frappe.ui.form.remove_old_form_route = () => {
 	let current_route = frappe.get_route().join("/");
 	frappe.route_history = frappe.route_history.filter(
@@ -234,68 +244,55 @@ frappe.ui.form.remove_old_form_route = () => {
 	);
 };
 
-frappe.ui.form.update_calling_link = (newdoc) => {
+frappe.ui.form.update_calling_link = async (newdoc) => {
 	if (!frappe._from_link) return;
-	var doc = frappe.get_doc(frappe._from_link.doctype, frappe._from_link.docname);
 
-	let is_valid_doctype = () => {
-		if (frappe._from_link.df.fieldtype === "Link") {
-			return newdoc.doctype === frappe._from_link.df.options;
-		} else {
-			// dynamic link, type is dynamic
-			return newdoc.doctype === doc[frappe._from_link.df.options];
+	const { field_obj, doc, set_route_args, scrollY } = frappe._from_link;
+	const df = field_obj.df;
+
+	if (!["Link", "Dynamic Link", "Table MultiSelect"].includes(df.fieldtype)) return;
+
+	const is_valid_doctype = () => {
+		switch (df.fieldtype) {
+			case "Link":
+				return newdoc.doctype === df.options;
+			case "Dynamic Link":
+				return newdoc.doctype === doc[df.options];
+			case "Table MultiSelect":
+				return newdoc.doctype === field_obj.get_options();
 		}
 	};
 
-	if (is_valid_doctype()) {
-		frappe.model.with_doctype(newdoc.doctype, () => {
-			let meta = frappe.get_meta(newdoc.doctype);
-			// set value
-			if (doc && doc.parentfield) {
-				//update values for child table
-				$.each(
-					frappe._from_link.frm.fields_dict[doc.parentfield].grid.grid_rows,
-					function (index, field) {
-						if (field.doc && field.doc.name === frappe._from_link.docname) {
-							if (meta.title_field && meta.show_title_field_in_link) {
-								frappe.utils.add_link_title(
-									newdoc.doctype,
-									newdoc.name,
-									newdoc[meta.title_field]
-								);
-							}
-							frappe._from_link.set_value(newdoc.name);
-						}
-					}
-				);
-			} else {
-				if (meta.title_field && meta.show_title_field_in_link) {
-					frappe.utils.add_link_title(
-						newdoc.doctype,
-						newdoc.name,
-						newdoc[meta.title_field]
-					);
-				}
-				frappe._from_link.set_value(newdoc.name);
-			}
+	if (!is_valid_doctype()) return;
 
-			// refresh field
-			frappe._from_link.refresh();
-
-			// if from form, switch
-			if (frappe._from_link.frm) {
-				frappe
-					.set_route(
-						"Form",
-						frappe._from_link.frm.doctype,
-						frappe._from_link.frm.docname
-					)
-					.then(() => {
-						frappe.utils.scroll_to(frappe._from_link_scrollY);
-					});
-			}
-
-			frappe._from_link = null;
-		});
+	// switch back to the original doc first,
+	// this is necessary in case from_link.doctype === newdoc.doctype
+	if (field_obj.frm) {
+		await frappe.set_route(...set_route_args);
+		frappe.utils.scroll_to(scrollY);
 	}
+
+	delete frappe._from_link;
+
+	await frappe.model.with_doctype(newdoc.doctype);
+	const meta = frappe.get_meta(newdoc.doctype);
+
+	// update link title cache
+	if (meta.title_field && meta.show_title_field_in_link) {
+		frappe.utils.add_link_title(newdoc.doctype, newdoc.name, newdoc[meta.title_field]);
+	}
+
+	// set value
+	if (doc && doc.parentfield) {
+		const row_exists = field_obj.frm.fields_dict[doc.parentfield].grid.grid_rows.find(
+			(row) => row.doc.name === doc.name
+		);
+		if (row_exists) field_obj.set_value(newdoc.name);
+	} else {
+		// parsing is needed for table multiselect to convert string to array
+		field_obj.parse_validate_and_set_in_model(newdoc.name);
+	}
+
+	// refresh field
+	field_obj.refresh();
 };

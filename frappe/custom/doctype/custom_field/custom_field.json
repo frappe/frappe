@@ -19,6 +19,7 @@
   "link_filters",
   "column_break_6",
   "fieldtype",
+  "button_color",
   "precision",
   "hide_seconds",
   "hide_days",
@@ -85,6 +86,7 @@
    "fieldtype": "Data",
    "in_filter": 1,
    "label": "Label",
+   "length": 255,
    "no_copy": 1,
    "oldfieldname": "label",
    "oldfieldtype": "Data"
@@ -253,6 +255,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.fieldtype !== 'Link'",
    "fieldname": "is_virtual",
    "fieldtype": "Check",
    "label": "Is Virtual"
@@ -466,13 +469,21 @@
    "fieldname": "placeholder",
    "fieldtype": "Data",
    "label": "Placeholder"
+  },
+  {
+   "depends_on": "eval:doc.fieldtype===\"Button\"",
+   "fieldname": "button_color",
+   "fieldtype": "Select",
+   "label": "Button Color",
+   "options": "\nDefault\nPrimary\nInfo\nSuccess\nWarning\nDanger"
   }
  ],
+ "grid_page_length": 50,
  "icon": "fa fa-glass",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-28 20:19:35.935720",
+ "modified": "2025-11-12 01:14:24.753774",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
@@ -501,6 +512,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "dt,label,fieldtype,options",
  "sort_field": "creation",
  "sort_order": "DESC",

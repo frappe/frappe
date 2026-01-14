@@ -2,9 +2,8 @@ import contextlib
 import importlib.metadata
 import json
 import re
+import tomllib
 from pathlib import Path
-
-import tomli
 
 import frappe
 from frappe import _
@@ -134,7 +133,7 @@ def get_pyproject_info(app: str) -> dict:
 		return {}
 
 	with open(pyproject_toml, "rb") as f:
-		pyproject = tomli.load(f)
+		pyproject = tomllib.load(f)
 
 	return pyproject.get("project", {})
 
