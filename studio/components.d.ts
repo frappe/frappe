@@ -48,6 +48,7 @@ declare module 'vue' {
     Filters: typeof import('./src/components/Filters.vue')['default']
     FitContainer: typeof import('./src/components/AppLayout/FitContainer.vue')['default']
     FitScreenIcon: typeof import('./src/components/Icons/FitScreenIcon.vue')['default']
+    FormDescription: typeof import('./src/components/FormDescription.vue')['default']
     FormDialog: typeof import('./src/components/FormDialog.vue')['default']
     Grid: typeof import('./src/components/Grid.vue')['default']
     Header: typeof import('./src/components/AppLayout/Header.vue')['default']

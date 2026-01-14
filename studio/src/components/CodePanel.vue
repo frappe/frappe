@@ -57,18 +57,18 @@
 							:completions="getCompletions"
 							@save="editPageWatcher(pageWatcher)"
 						/>
-						<FormControl
-							type="checkbox"
-							label="Run Immediately?"
-							description="By default, this script won't run unless the source value changes. Enable this to run the script immediately."
-							v-model="pageWatcher.immediate"
-						/>
-						<FormControl
-							type="checkbox"
-							label="Deep"
-							description="Trigger the script when any nested property inside the source changes, not just the source."
-							v-model="pageWatcher.deep"
-						/>
+						<div class="flex flex-col space-y-1">
+							<FormControl type="checkbox" label="Run Immediately?" v-model="pageWatcher.immediate" />
+							<FormDescription
+								description="By default, this script won't run unless the source value changes. Enable this to run the script immediately"
+							/>
+						</div>
+						<div class="flex flex-col space-y-1">
+							<FormControl type="checkbox" label="Deep" v-model="pageWatcher.deep" />
+							<FormDescription
+								description="Trigger the script when any nested property inside the source changes, not just the source"
+							/>
+						</div>
 					</div>
 				</template>
 				<template #actions>
@@ -97,6 +97,7 @@ import { toast } from "vue-sonner"
 import { confirm } from "@/utils/helpers"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import ItemActions from "@/components/ItemActions.vue"
+import FormDescription from "@/components/FormDescription.vue"
 
 const props = defineProps<{
 	page: StudioPage
