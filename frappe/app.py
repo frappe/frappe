@@ -346,7 +346,8 @@ def handle_exception(e):
 	http_status_code = getattr(e, "http_status_code", 500)
 	accept_header = frappe.get_request_header("Accept") or ""
 	respond_as_json = (
-		frappe.get_request_header("Accept") and (frappe.local.is_ajax or "application/json" in accept_header)
+		frappe.get_request_header("Accept")
+		and (frappe.local.is_ajax or "application/json" in accept_header)
 	) or (frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text"))
 
 	if not frappe.session.user:
@@ -359,6 +360,16 @@ def handle_exception(e):
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
 		response = frappe.utils.response.report_error(http_status_code)
+
+		# Extra context for local debugging
+		if frappe.conf.get("developer_mode"):
+			req = getattr(frappe.local, "request", None)
+			if req and isinstance(response, dict):
+				response["debug"] = {
+					"route": req.path,
+					"method": req.method,
+				}
+
 
 	elif isinstance(e, frappe.SessionStopped):
 		response = frappe.utils.response.handle_session_stopped()
@@ -396,7 +407,9 @@ def handle_exception(e):
 
 	else:
 		response = ErrorPage(
-			http_status_code=http_status_code, title=_("Server Error"), message=_("Uncaught Exception")
+			http_status_code=http_status_code,
+			title=_("Server Error"),
+			message=_("Uncaught Exception"),
 		).render()
 
 	if e.__class__ == frappe.AuthenticationError:
@@ -411,7 +424,6 @@ def handle_exception(e):
 		print(frappe.get_traceback())
 
 	return response
-
 
 def sync_database():
 	db = getattr(frappe.local, "db", None)
