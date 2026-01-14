@@ -110,7 +110,7 @@ const studioPageWatchers = createListResource({
 	filters: {
 		parent: props.page.name,
 	},
-	fields: ["name", "source", "script", "immediate", "parent"],
+	fields: ["name", "source", "script", "immediate", "deep", "parent"],
 	orderBy: "modified desc",
 	pageLength: 50,
 	auto: true,
