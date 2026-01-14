@@ -165,7 +165,18 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		let doc = this.doc || (this.frm && this.frm.doc);
 		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
 		// This is used to display formatted output AND showing values in read only fields
-		this.disp_area && $(this.disp_area).html(display_value);
+		if (this.disp_area) {
+			$(this.disp_area).html(display_value);
+			// Apply text case transformation for read-only display
+			if (this.df.text_case && this.df.fieldtype === "Data") {
+				const caseMap = {
+					'UpperCase': 'uppercase',
+					'TitleCase': 'capitalize',
+					'LowerCase': 'lowercase'
+				};
+				$(this.disp_area).css("text-transform", caseMap[this.df.text_case] || 'none');
+			}
+		}
 	}
 	set_label(label) {
 		if (label) this.df.label = label;
@@ -175,7 +186,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		var icon = "";
 		this.label_span.innerHTML =
 			(icon ? '<i class="' + icon + '"></i> ' : "") +
-				__(this.df.label, null, this.df.parent) || "&nbsp;";
+			__(this.df.label, null, this.df.parent) || "&nbsp;";
 		this._label = this.df.label;
 	}
 

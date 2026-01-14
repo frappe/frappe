@@ -251,6 +251,15 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		if (this.df.input_class) {
 			this.$input.addClass(this.df.input_class);
 		}
+		// Apply text case transformation if specified
+		if (this.df.text_case) {
+			const caseMap = {
+				'UpperCase': 'uppercase',
+				'TitleCase': 'capitalize',
+				'LowerCase': 'lowercase'
+			};
+			this.$input.css("text-transform", caseMap[this.df.text_case] || 'none');
+		}
 	}
 	set_input(value) {
 		this.last_value = this.value;
@@ -274,6 +283,19 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 	parse(value) {
 		if (this.df.options == "IBAN" && value) {
 			return value.replaceAll(" ", "");
+		}
+		// Transform value based on text_case setting
+		if (value && this.df.text_case) {
+			switch (this.df.text_case) {
+				case 'UpperCase':
+					return value.toUpperCase();
+				case 'LowerCase':
+					return value.toLowerCase();
+				case 'TitleCase':
+					return value.replace(/\w\S*/g, (txt) =>
+						txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+					);
+			}
 		}
 		return value;
 	}
