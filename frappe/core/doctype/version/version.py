@@ -13,14 +13,15 @@ FIELDTYPES_TO_IGNORE = frozenset(fieldtype for fieldtype in no_value_fields if f
 
 
 def _generate_html_diff(old_value: str, new_value: str) -> str | None:
-	"""Generate HTML diff for multiline text values.
+	"""Generate HTML diff for multiline or long text values.
 
-	Returns HTML diff table if either value contains multiple lines, None otherwise.
+	Returns HTML diff table if either value contains multiple lines or exceeds 80 characters,
+	None otherwise.
 	"""
 	old_str = cstr(old_value) if old_value else ""
 	new_str = cstr(new_value) if new_value else ""
 
-	# Only generate diff if either value is multiline
+	# Only generate diff if either value is multiline or exceeds 80 characters
 	if "\n" not in old_str and "\n" not in new_str and len(old_str) < 80 and len(new_str) < 80:
 		return None
 
