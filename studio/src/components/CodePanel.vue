@@ -29,6 +29,7 @@
 							source: '',
 							script: '',
 							immediate: false,
+							deep: false,
 							parent: '',
 							name: '',
 						}
@@ -39,16 +40,12 @@
 				<template #body-content>
 					<div class="flex flex-col space-y-4">
 						<FormControl
-							type="autocomplete"
+							type="combobox"
 							:options="store.variableOptions"
 							label="Source"
 							placeholder="Select variable"
-							:modelValue="pageWatcher.source"
-							@update:modelValue="
-								(selectedOption: SelectOption) => {
-									pageWatcher.source = selectedOption.value
-								}
-							"
+							:openOnFocus="true"
+							v-model="pageWatcher.source"
 						/>
 						<Code
 							label="Script"
@@ -65,6 +62,12 @@
 							label="Run Immediately?"
 							description="By default, this script won't run unless the source value changes. Enable this to run the script immediately."
 							v-model="pageWatcher.immediate"
+						/>
+						<FormControl
+							type="checkbox"
+							label="Deep"
+							description="Trigger the script when any nested property inside the source changes, not just the source."
+							v-model="pageWatcher.deep"
 						/>
 					</div>
 				</template>
@@ -88,7 +91,6 @@ import EmptyState from "@/components/EmptyState.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import Code from "@/components/Code.vue"
 import type { StudioPage } from "@/types/Studio/StudioPage"
-import type { SelectOption } from "@/types"
 import type { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
 import useStudioStore from "@/stores/studioStore"
 import { toast } from "vue-sonner"
@@ -119,6 +121,7 @@ const pageWatcher = ref<StudioPageWatcher>({
 	source: "",
 	script: "",
 	immediate: false,
+	deep: false,
 	parent: "",
 	name: "",
 })
@@ -146,6 +149,7 @@ const addPageWatcher = (watcher: StudioPageWatcher) => {
 			source: watcher.source,
 			script: watcher.script,
 			immediate: watcher.immediate,
+			deep: watcher.deep,
 			parent: props.page.name,
 			parenttype: "Studio Page",
 			parentfield: "watchers",
@@ -170,6 +174,7 @@ const editPageWatcher = (watcher: StudioPageWatcher) => {
 			source: watcher.source,
 			script: watcher.script,
 			immediate: watcher.immediate,
+			deep: watcher.deep,
 		})
 		.then(async () => {
 			// setValue didn't update the list, so reloading explicitly

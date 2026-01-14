@@ -14,6 +14,8 @@ class StudioPageWatcher(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		debounce_ms: DF.Int
+		deep: DF.Check
 		immediate: DF.Check
 		parent: DF.Data
 		parentfield: DF.Data

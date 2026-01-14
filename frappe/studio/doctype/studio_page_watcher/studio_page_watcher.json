@@ -7,7 +7,9 @@
  "field_order": [
   "source",
   "script",
-  "immediate"
+  "debounce_ms",
+  "immediate",
+  "deep"
  ],
  "fields": [
   {
@@ -27,18 +29,30 @@
   },
   {
    "default": "0",
-   "description": "By default, this script won't run unless the Source value changes. Enable this to run the script immediately.",
+   "description": "By default, this script won't run unless the source value changes. Enable this to run the script immediately.",
    "fieldname": "immediate",
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Run Immediately?"
+  },
+  {
+   "default": "0",
+   "description": "Trigger the script when any nested property inside the source changes, not just the source.\n<br>\nEg: watching user object will fire the script if user.name changes.",
+   "fieldname": "deep",
+   "fieldtype": "Check",
+   "label": "Deep"
+  },
+  {
+   "fieldname": "debounce_ms",
+   "fieldtype": "Int",
+   "label": "Debounce (ms)"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-01 13:57:15.006423",
+ "modified": "2026-01-14 11:21:01.144556",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page Watcher",
