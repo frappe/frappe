@@ -358,7 +358,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideAppWindowMac,
 		initialState: {
 			modelValue: false,
-			disableOutsideClickToClose: true,
 			options: {
 				title: "Confirm",
 				message: "Are you sure you want to confirm this action?",
