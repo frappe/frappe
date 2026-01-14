@@ -245,10 +245,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					// because it will not visible otherwise
 					(me.is_title_link() || d.value !== d.description)
 				) {
-					html +=
-						'<br><span class="small">' +
-						__(frappe.utils.escape_html(d.description)) +
-						"</span>";
+					// Sanitize description to allow HTML rendering while removing dangerous tags
+					// This fixes issue #35953 where HTML descriptions show as raw code after v16 upgrade
+					let sanitized_description = frappe.dom.remove_script_and_style(d.description);
+					html += '<br><span class="small">' + __(sanitized_description) + "</span>";
 				}
 				return $(`<div role="option">`)
 					.on("click", (event) => {
