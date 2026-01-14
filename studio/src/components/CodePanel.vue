@@ -57,6 +57,13 @@
 							:completions="getCompletions"
 							@save="editPageWatcher(pageWatcher)"
 						/>
+						<FormControl
+							type="number"
+							label="Debounce (ms)"
+							placeholder="300"
+							v-model="pageWatcher.debounce"
+							description="Delay the execution until the set time has passed since the last change"
+						/>
 						<div class="flex flex-col space-y-1">
 							<FormControl type="checkbox" label="Run Immediately?" v-model="pageWatcher.immediate" />
 							<FormDescription
@@ -111,7 +118,7 @@ const studioPageWatchers = createListResource({
 	filters: {
 		parent: props.page.name,
 	},
-	fields: ["name", "source", "script", "immediate", "deep", "parent"],
+	fields: ["name", "source", "script", "immediate", "deep", "debounce", "parent"],
 	orderBy: "modified desc",
 	pageLength: 50,
 	auto: true,
@@ -123,6 +130,7 @@ const pageWatcher = ref<StudioPageWatcher>({
 	script: "",
 	immediate: false,
 	deep: false,
+	debounce: 0,
 	parent: "",
 	name: "",
 })
@@ -151,6 +159,7 @@ const addPageWatcher = (watcher: StudioPageWatcher) => {
 			script: watcher.script,
 			immediate: watcher.immediate,
 			deep: watcher.deep,
+			debounce: watcher.debounce,
 			parent: props.page.name,
 			parenttype: "Studio Page",
 			parentfield: "watchers",
@@ -176,6 +185,7 @@ const editPageWatcher = (watcher: StudioPageWatcher) => {
 			script: watcher.script,
 			immediate: watcher.immediate,
 			deep: watcher.deep,
+			debounce: watcher.debounce,
 		})
 		.then(async () => {
 			// setValue didn't update the list, so reloading explicitly

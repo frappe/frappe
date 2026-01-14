@@ -3,6 +3,7 @@ export type StudioPageWatcher = {
 	script: string,
 	immediate: boolean,
 	deep: boolean,
+	debounce?: number,
 	parent?: string,
 	name?: string,
 }
