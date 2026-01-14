@@ -247,13 +247,14 @@ def reset_perms(context: CliCtxObj):
 		raise SiteNotSpecifiedError
 
 
-@click.command("execute")
+@click.command("execute", context_settings=EXTRA_ARGS_CTX)
 @click.argument("method")
 @click.option("--args")
 @click.option("--kwargs")
 @click.option("--profile", is_flag=True, default=False)
+@click.argument("extra_args", nargs=-1)
 @pass_context
-def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False):
+def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False, extra_args=None):
 	"Execute a function"
 	for site in context.sites:
 		ret = ""
@@ -274,6 +275,39 @@ def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False):
 			else:
 				fn_kwargs = {}
 
+			if extra_args:
+				# parse extra_args
+				# if it starts with --, it is a kwarg
+				# otherwise it is an arg
+				# if it is a kwarg, the next argument is the value
+				# if the next argument starts with --, the value is True
+				# if there is no next argument, the value is True
+
+				# examples:
+				# bench execute method arg1 arg2 -> args=[arg1, arg2]
+				# bench execute method --a 1 --b 2 -> kwargs={a: 1, b: 2}
+				# bench execute method arg1 --a 1 -> args=[arg1], kwargs={a: 1}
+
+				# we need to convert values to python objects if possible
+				def parse_value(value):
+					try:
+						return json.loads(value)
+					except Exception:
+						return value
+
+				extra_args = list(extra_args)
+				while extra_args:
+					arg = extra_args.pop(0)
+					if arg.startswith("--"):
+						key = arg[2:]
+						if extra_args and not extra_args[0].startswith("--"):
+							value = parse_value(extra_args.pop(0))
+						else:
+							value = True
+						fn_kwargs[key] = value
+					else:
+						fn_args += (parse_value(arg),)
+
 			if profile:
 				import cProfile
 
@@ -281,8 +315,13 @@ def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False):
 				pr.enable()
 
 			try:
-				ret = frappe.get_attr(method)(*fn_args, **fn_kwargs)
+				fn = frappe.get_attr(method)
 			except Exception:
+				fn = None
+
+			if fn:
+				ret = fn(*fn_args, **fn_kwargs)
+			else:
 				# eval is safe here because input is from console
 				code = compile(method, "<bench execute>", "eval")
 				ret = eval(code, globals(), locals())  # nosemgrep
