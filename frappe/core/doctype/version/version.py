@@ -248,7 +248,9 @@ def _generate_html_diff(old_str: str, new_str: str) -> str | None:
 
 def _should_generate_html_diff(old_str: str, new_str: str) -> bool:
 	"""Determine if HTML diff should be generated for the given values."""
-	return "\n" in old_str or "\n" in new_str or len(old_str) > 80 or len(new_str) > 80
+	return (
+		old_str and new_str and ("\n" in old_str or "\n" in new_str or len(old_str) > 80 or len(new_str) > 80)
+	)
 
 
 def _as_string(value: str | None) -> str:

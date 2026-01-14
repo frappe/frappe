@@ -53,7 +53,15 @@ class TestHTMLDiff(UnitTestCase):
 		"""Test should_generate_html_diff returns False for short single-line text."""
 		self.assertFalse(_should_generate_html_diff("short", "text"))
 		self.assertFalse(_should_generate_html_diff("a" * 80, "b" * 80))  # Exactly 80 chars
+
+	def test_should_generate_html_diff_empty_values(self):
+		"""Test should_generate_html_diff returns False when either value is empty."""
 		self.assertFalse(_should_generate_html_diff("", "short"))
+		self.assertFalse(_should_generate_html_diff("short", ""))
+		self.assertFalse(_should_generate_html_diff("", ""))
+		# Even long/multiline text returns False if the other value is empty
+		self.assertFalse(_should_generate_html_diff("", "a" * 81))
+		self.assertFalse(_should_generate_html_diff("multi\nline", ""))
 
 	def test_as_string_converts_values(self):
 		"""Test _as_string converts values to strings correctly."""
