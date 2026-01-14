@@ -270,8 +270,6 @@
 	.standard-sidebar-item:hover {
 		& .sidebar-item-edit-controls {
 			visibility: visible;
-			display: flex;
-			gap: 6px;
 		}
 	}
 	.collapse-sidebar-link {
@@ -283,6 +281,8 @@
 }
 .sidebar-item-edit-controls {
 	visibility: hidden;
+	display: flex;
+	gap: 6px;
 }
 .standard-sidebar-item[data-name="add-sidebar-item"] {
 	margin-top: 5px;
