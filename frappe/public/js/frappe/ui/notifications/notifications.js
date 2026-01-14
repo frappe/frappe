@@ -1,15 +1,17 @@
 frappe.provide("frappe.search");
 
 frappe.ui.Notifications = class Notifications {
-	constructor() {
+	constructor(opts) {
 		this.tabs = {};
 		this.notification_settings = frappe.boot.notification_settings;
+		this.full_height = opts?.full_height || true;
+		this.wrapper = opts?.wrapper || $(".standard-items-sections");
 		this.make();
 	}
 
 	make() {
-		$(".standard-items-sections").find(".sidebar-notification").removeClass("hidden");
-		this.dropdown = $(".standard-items-sections").find(".dropdown-notifications");
+		this.wrapper.find(".sidebar-notification").removeClass("hidden");
+		this.dropdown = this.wrapper.find(".dropdown-notifications");
 		this.dropdown_list = this.dropdown.find(".notifications-list");
 		this.header_items = this.dropdown_list.find(".header-items");
 		this.header_actions = this.dropdown_list.find(".header-actions");
@@ -50,7 +52,9 @@ frappe.ui.Notifications = class Notifications {
 			${frappe.utils.icon("x")}
 		</span>`)
 			.on("click", (e) => {
-				this.dropdown.addClass("hidden");
+				if (!this.full_height) {
+					this.dropdown.addClass("hidden");
+				}
 			})
 			.appendTo(this.header_actions)
 			.attr("title", __("Close"))
@@ -130,6 +134,7 @@ frappe.ui.Notifications = class Notifications {
 
 	setup_dropdown_events() {
 		const dropdown = this.dropdown;
+		const full_height = this.full_height;
 		this.dropdown.on("hide.bs.dropdown", (e) => {
 			let hide = $(e.currentTarget).data("closable");
 			$(e.currentTarget).data("closable", true);
@@ -146,7 +151,9 @@ frappe.ui.Notifications = class Notifications {
 			const isInsideDropdown = $(e.target).closest(".notifications-list").length > 0;
 
 			if (!isInsideNotificationBtn && !isInsideDropdown) {
-				dropdown.addClass("hidden");
+				if (!full_height) {
+					dropdown.addClass("hidden");
+				}
 			}
 		});
 

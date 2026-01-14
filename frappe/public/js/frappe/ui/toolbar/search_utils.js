@@ -328,19 +328,19 @@ frappe.search.utils = {
 		return out;
 	},
 
-	get_workspaces: function (keywords) {
+	get_desktop_icons: function (keywords) {
 		var me = this;
 		var out = [];
-		frappe.boot.allowed_workspaces.forEach(function (item) {
-			const search_result = me.fuzzy_search(keywords, item.name, true);
+		frappe.boot.desktop_icons.forEach(function (item) {
+			const search_result = me.fuzzy_search(keywords, item.label, true);
 			var level = search_result.score;
 			if (level > 0) {
 				var ret = {
-					type: "Workspace",
-					label: __("Open {0}", [search_result.marked_string || __(item.name)]),
-					value: __("Open {0}", [__(item.name)]),
+					type: "Desktop Icon",
+					label: __("Open {0}", [search_result.marked_string || __(item.label)]),
+					value: __("Open {0}", [__(item.label)]),
 					index: level,
-					route: [frappe.router.slug(item.name)],
+					icon_data: item,
 				};
 
 				out.push(ret);
@@ -568,7 +568,7 @@ frappe.search.utils = {
 				results: sort_uniques(this.get_pages(keywords)),
 			},
 			{
-				title: __("Workspace"),
+				title: __("Desktop Icon"),
 				fetch_type: "Nav",
 				results: sort_uniques(this.get_workspaces(keywords)),
 			},

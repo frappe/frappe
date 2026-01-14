@@ -11,6 +11,7 @@ from frappe.utils.frappecloud import on_frappecloud
 from .utils import anonymize_user, ensure_http, parse_interval, utc_iso
 
 
+@frappe.whitelist()
 @site_cache(ttl=60 * 60)
 def is_enabled() -> bool:
 	return bool(

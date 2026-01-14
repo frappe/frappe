@@ -161,9 +161,6 @@ def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_workspace_sidebar_items
 
 	bootinfo.workspaces = get_workspace_sidebar_items()
-	bootinfo.show_app_icons_as_folder = frappe.db.get_single_value(
-		"Desktop Settings", "show_app_icons_as_folder"
-	)
 	bootinfo.workspace_sidebar_item = get_sidebar_items()
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()

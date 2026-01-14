@@ -155,30 +155,43 @@ class TestClient(IntegrationTestCase):
 		self.assertEqual(get("ToDo", filters={}), get("ToDo", filters="{}"))
 		todo.delete()
 
-	def test_client_validatate_link(self):
-		from frappe.client import validate_link
+	def test_client_validate_link_and_fetch(self):
+		from frappe.client import validate_link_and_fetch
 
+		# Use Role doctype (no custom query like User has)
 		# Basic test
-		self.assertTrue(validate_link("User", "Guest"))
+		self.assertTrue(validate_link_and_fetch("Role", "System Manager"))
 
 		# fixes capitalization
 		if frappe.db.db_type == "mariadb":
-			self.assertEqual(validate_link("User", "GueSt"), {"name": "Guest"})
+			self.assertEqual(validate_link_and_fetch("Role", "system manager"), {"name": "System Manager"})
 
 		# Fetch
-		self.assertEqual(validate_link("User", "Guest", fields=["enabled"]), {"name": "Guest", "enabled": 1})
+		result = validate_link_and_fetch("Role", "System Manager", fields_to_fetch=["desk_access"])
+		self.assertEqual(result.get("name"), "System Manager")
+		self.assertIn("desk_access", result)
+
+		# Non-existent document returns empty
+		result = validate_link_and_fetch("Role", "Non Existent Role")
+		self.assertEqual(result, {})
+
+		# Filters - Role exists but filter excludes it
+		result = validate_link_and_fetch("Role", "System Manager", filters={"desk_access": 0})
+		self.assertEqual(result, {})
+
+		# Filters - Role exists and filter matches
+		result = validate_link_and_fetch("Role", "System Manager", filters={"desk_access": 1})
+		self.assertEqual(result.get("name"), "System Manager")
 
 		# Permissions
 		with self.set_user("Guest"), self.assertRaises(frappe.PermissionError):
-			self.assertEqual(
-				validate_link("User", "Guest", fields=["enabled"]), {"name": "Guest", "enabled": 1}
-			)
+			validate_link_and_fetch("Role", "System Manager")
 
-	def test_validate_link_child_table(self):
+	def test_validate_link_and_fetch_for_child_table(self):
 		"""
-		Test validate_link works for child table doctypes with field fetch.
+		Test validate_link_and_fetch works for child table doctypes with field fetch.
 		"""
-		from frappe.client import validate_link
+		from frappe.client import validate_link_and_fetch
 
 		self.addCleanup(frappe.db.rollback)
 
@@ -188,7 +201,7 @@ class TestClient(IntegrationTestCase):
 
 		child_row = user.block_modules[-1]
 
-		result = validate_link("Block Module", child_row.name, fields=["module"])
+		result = validate_link_and_fetch("Block Module", child_row.name, fields_to_fetch=["module"])
 		self.assertEqual(result.get("name"), child_row.name)
 		self.assertEqual(result.get("module"), "Setup")
 

@@ -107,6 +107,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 						)
 					);
 				}
+				if (d.type == "Desktop Icon") {
+					target = frappe.utils.get_route_for_icon(d.icon_data);
+					d.route = target;
+				}
 				let html = `<span>${__(d.label || d.value)}</span>`;
 
 				if (d.description && d.value !== d.description) {
@@ -189,7 +193,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				if (event.ctrlKey || event.metaKey) {
 					frappe.open_in_new_tab = true;
 				}
-				if (item.route[0].startsWith("https://")) {
+				if (item.route && item.route[0].startsWith("https://")) {
 					window.open(item.route[0], "_blank");
 					return;
 				}
@@ -278,7 +282,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				frappe.search.utils.get_doctypes(txt),
 				frappe.search.utils.get_reports(txt),
 				frappe.search.utils.get_pages(txt),
-				frappe.search.utils.get_workspaces(txt),
+				frappe.search.utils.get_desktop_icons(txt),
 				frappe.search.utils.get_dashboards(txt),
 				frappe.search.utils.get_recent_pages(txt || ""),
 				frappe.search.utils.get_executables(txt),

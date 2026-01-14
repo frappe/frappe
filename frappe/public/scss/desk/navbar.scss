@@ -50,7 +50,7 @@
 .search-bar {
 	max-width: 300px;
 	svg {
-		stroke: var(--text-light);
+		stroke: var(--icon-stroke);
 		margin-bottom: 2px;
 	}
 	.awesomplete {
@@ -80,7 +80,7 @@
 	}
 	.search-icon {
 		background-color: var(--control-bg);
-		border-radius: 16px;
+		border-radius: 8px;
 		padding: 6px;
 	}
 }

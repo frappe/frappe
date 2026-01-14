@@ -260,7 +260,7 @@ def create_desktop_icons_from_workspace():
 
 	for w in workspaces:
 		icon = frappe.new_doc("Desktop Icon")
-		icon.link_type = "Workspace"
+		icon.link_type = "Workspace Sidebar"
 		icon.label = w.name
 		icon.icon_type = "Link"
 		icon.standard = 1

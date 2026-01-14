@@ -37,7 +37,7 @@ from frappe.installer import add_to_installed_apps, remove_app
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.test_query_builder import run_only_if
-from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, now
+from frappe.utils import add_to_date, execute_in_shell, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import BackupGenerator, fetch_latest_backups
 from frappe.utils.jinja_globals import bundled_asset
 from frappe.utils.scheduler import enable_scheduler, is_scheduler_inactive
@@ -1086,12 +1086,15 @@ class TestGunicornWorker(IntegrationTestCase):
 		self.addCleanup(self.kill_gunicorn)
 
 	def kill_gunicorn(self):
-		time.sleep(1)
+		time.sleep(2)
 		self.handle.send_signal(signal.SIGTERM)
 		try:
-			self.handle.communicate(timeout=1)
+			self.handle.communicate(timeout=2)
 		except subprocess.TimeoutExpired:
-			self.handle.kill()
+			pass
+
+		time.sleep(2)
+		execute_in_shell("pgrep gunicorn | xargs -L1 kill -9")
 
 	def test_gunicorn_ping_sync(self):
 		self.spawn_gunicorn()

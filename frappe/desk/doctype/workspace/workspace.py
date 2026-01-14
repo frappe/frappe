@@ -127,8 +127,6 @@ class Workspace(Document):
 	def on_trash(self):
 		if self.public and not is_workspace_manager():
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
-		self.delete_desktop_icon()
-		self.delete_workspace_sidebar()
 		self.delete_from_my_workspaces()
 
 	def delete_from_my_workspaces(self):
@@ -144,25 +142,6 @@ class Workspace(Document):
 
 		if self.module and frappe.conf.developer_mode:
 			delete_folder(self.module, "Workspace", self.title)
-
-	def delete_desktop_icon(self):
-		if self.public:
-			desktop_icon = frappe.get_all(
-				"Desktop Icon",
-				filters=[{"link_type": "Workspace"}, {"link_to": self.name}],
-				limit=1,
-				pluck="name",
-			)
-			if desktop_icon:
-				frappe.delete_doc("Desktop Icon", desktop_icon[0])
-
-	def delete_workspace_sidebar(self):
-		if self.public:
-			workspace_sidebar = frappe.get_all(
-				"Workspace Sidebar", filters=[{"name": self.name}], limit=1, pluck="name"
-			)
-			if workspace_sidebar:
-				frappe.delete_doc("Workspace Sidebar", workspace_sidebar[0])
 
 	@staticmethod
 	def get_module_wise_workspaces():

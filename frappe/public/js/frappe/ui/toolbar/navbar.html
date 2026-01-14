@@ -1,10 +1,7 @@
 <div class="sticky-top">
-	{% if (frappe.boot.read_only || frappe.boot.user.impersonated_by || frappe.is_mobile()) { %}
+	{% if (frappe.boot.read_only || frappe.boot.user.impersonated_by) { %}
 	<header class="navbar navbar-expand" role="navigation">
 		<div class="container">
-			<a class="navbar-brand navbar-home">
-				<img class="app-logo" src="{{ frappe.boot.app_data[0].app_logo_url }}" alt="{{ __(" App Logo") }}">
-			</a>
 			<div class="collapse navbar-collapse justify-content-end">
 				{% if (frappe.boot.read_only) { %}
 					<span class="indicator-pill yellow no-indicator-dot read-only-banner" title="{%= __("Your site is undergoing maintenance or being updated.") %}">
@@ -16,19 +13,6 @@
 						{%= __("Impersonating {0}", [frappe.boot.user.name]) %}
 					</span>
 				{% } %}
-				{% if frappe.is_mobile() %}
-					<div class="search-bar text-muted hidden">
-						<div
-							id="navbar-modal-search"
-							class="navbar-modal-search-mobile"
-							placeholder="Search for type a command"
-						>
-							<span class="search-icon">
-								<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
-							</span>
-						</div>
-					</div>
-				{% endif %}
 			</div>
 		</div>
 	</header>

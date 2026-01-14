@@ -387,7 +387,7 @@ export default class GridRow {
 		if (this.configure_columns && this.frm) {
 			this.configure_columns_button = $(`
 				<div class="col grid-static-col pointer">
-					<a>${frappe.utils.icon("setting-gear", "sm", "", "filter: opacity(0.5)")}</a>
+					<a>${frappe.utils.icon("settings", "sm", "", "filter: opacity(0.5)")}</a>
 				</div>
 			`)
 				.appendTo(this.row)

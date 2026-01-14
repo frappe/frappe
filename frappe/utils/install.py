@@ -186,10 +186,10 @@ def auto_generate_icons_and_sidebar(app_name=None):
 	)
 
 	try:
-		print("Creating Desktop Icons")
-		create_desktop_icons()
 		print("Creating Workspace Sidebars")
 		create_workspace_sidebar_for_workspaces()
+		print("Creating Desktop Icons")
+		create_desktop_icons()
 		# Save the generated icons
 		frappe.db.commit()  # nosemgrep
 		# Save the genreated sidebar links

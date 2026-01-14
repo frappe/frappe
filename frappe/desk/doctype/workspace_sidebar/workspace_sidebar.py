@@ -29,6 +29,7 @@ class WorkspaceSidebar(Document):
 		for_user: DF.Link | None
 		items: DF.Table[WorkspaceSidebarItem]
 		module: DF.Text | None
+		standard: DF.Check
 		title: DF.Data | None
 	# end: auto-generated types
 
@@ -37,6 +38,7 @@ class WorkspaceSidebar(Document):
 		if not frappe.flags.in_migrate:
 			self.user = frappe.get_user()
 			self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
+			self.allowed_modules = self.get_cached("user_allowed_modules", self.get_allowed_modules)
 
 		self.allowed_pages = get_allowed_pages(cache=True)
 		self.allowed_reports = get_allowed_reports(cache=True)
@@ -71,6 +73,7 @@ class WorkspaceSidebar(Document):
 		if is_workspace_manager():
 			if frappe.conf.developer_mode and self.app:
 				self.delete_file()
+			self.delete_desktop_icon()
 		else:
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
 
@@ -96,6 +99,13 @@ class WorkspaceSidebar(Document):
 			return True
 		if item_type == "url":
 			return True
+		if item_type == "workspace":
+			try:
+				workspace = frappe.get_cached_doc("Workspace", name)
+				if workspace.module in self.allowed_modules:
+					return True
+			except frappe.DoesNotExistError:
+				return False
 
 	def get_cached(self, cache_key, fallback_fn):
 		value = frappe.cache.get_value(cache_key, user=frappe.session.user)
@@ -126,6 +136,22 @@ class WorkspaceSidebar(Document):
 		counts = Counter(all_modules_in_sidebars)
 		if counts and counts.most_common(1)[0]:
 			return counts.most_common(1)[0][0]
+
+	def delete_desktop_icon(self):
+		desktop_icon = frappe.get_all(
+			"Desktop Icon",
+			filters=[{"link_type": "Workspace Sidebar"}, {"link_to": self.name}],
+			limit=1,
+			pluck="name",
+		)
+		if desktop_icon:
+			frappe.delete_doc("Desktop Icon", desktop_icon[0])
+
+	def get_allowed_modules(self):
+		if not self.user.allow_modules:
+			self.user.build_permissions()
+
+		return self.user.allow_modules
 
 
 def is_workspace_manager():

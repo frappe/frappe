@@ -446,7 +446,8 @@
     bottom: 4%;
     right: 4%;
     z-index: 100;
-    opacity: 0.5;
+    opacity: 6%;
+    border-radius: 10px;
 }
 
 .desktop-edit:hover{
