@@ -20,7 +20,11 @@ $threshold: 34;
 
 .new-timeline {
 	position: relative;
+	padding: var(--padding-lg);
 	padding-top: var(--padding-lg);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
+	background-color: var(--card-bg);
 
 	@include media-breakpoint-down(xs) {
 		padding-left: calc(var(--padding-sm) + var(--timeline-item-icon-size) / 2);
@@ -31,7 +35,7 @@ $threshold: 34;
 	&:before {
 		content: " ";
 		top: 90px; // TODO: get top and bottom programmatically
-		left: calc(var(--timeline-item-icon-size) / 2);
+		left: calc(var(--timeline-item-icon-size) / 2 + var(--padding-lg));
 		position: absolute;
 		border-left: 1px solid var(--dark-border-color);
 		bottom: calc(-1 * var(--timeline-item-bottom-margin) + 25px);

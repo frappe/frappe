@@ -165,7 +165,12 @@
 
 .comment-box {
 	margin-top: var(--margin-lg);
-	padding: 0;
+	padding: var(--padding-lg);
+	padding-bottom: var(--padding-xl);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
+	background-color: var(--card-bg);
+	margin-bottom: var(--margin-lg);
 	.comment-input-header {
 		display: flex;
 		justify-content: space-between;
