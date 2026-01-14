@@ -5,7 +5,7 @@ import datetime
 import json
 import os
 from datetime import timedelta
-from typing import Any, Literal
+from typing import Any
 
 import frappe
 import frappe.desk.reportview
