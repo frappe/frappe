@@ -75,11 +75,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 	prepare() {}
 	make() {
 		this.path = this.get_path();
-		if (
-			!this.path &&
-			!this.item.standard &&
-			this.item.type in ("Section Break", "Sidebar Item Group") === false
-		) {
+		if (!this.path && !this.item.standard && this.item.type != "Section Break") {
 			return;
 		}
 		this.set_suffix();
