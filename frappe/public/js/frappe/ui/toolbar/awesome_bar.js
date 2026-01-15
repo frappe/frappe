@@ -21,6 +21,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 		let search_modal = new frappe.get_modal("Search", "");
 
+		this.search = new frappe.search.SearchDialog();
+		frappe.provide("frappe.searchdialog");
+		frappe.searchdialog.search = this.search;
+		
 		search_modal.removeClass("fade");
 		search_modal.on("shown.bs.modal", () => {
 			const input = search_modal.find("#navbar-search").get(0);
@@ -282,7 +286,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				frappe.search.utils.get_doctypes(txt),
 				frappe.search.utils.get_reports(txt),
 				frappe.search.utils.get_pages(txt),
-				frappe.search.utils.get_desktop_icons(txt),
+				frappe.search.utils.get_doctypes_for_global_search(txt),
 				frappe.search.utils.get_dashboards(txt),
 				frappe.search.utils.get_recent_pages(txt || ""),
 				frappe.search.utils.get_executables(txt),

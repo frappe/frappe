@@ -570,7 +570,7 @@ frappe.search.utils = {
 			{
 				title: __("Desktop Icon"),
 				fetch_type: "Nav",
-				results: sort_uniques(this.get_workspaces(keywords)),
+				results: sort_uniques(this.get_doctypes_for_global_search(keywords)),
 			},
 			{
 				title: __("Dashboard"),
