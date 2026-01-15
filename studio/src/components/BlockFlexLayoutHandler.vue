@@ -45,6 +45,16 @@
 		@update:modelValue="(val: string | number) => blockController.setStyle('flexWrap', val)"
 	></OptionToggle>
 	<div class="flex flex-col gap-3" v-if="blockController.getParentBlock()?.isFlex()">
+		<InlineInput
+			label="Order"
+			type="number"
+			:enableSlider="true"
+			:min="-99"
+			:max="99"
+			:step="1"
+			:modelValue="blockController.getStyle('order') || 0"
+			@update:modelValue="(val: string | number) => blockController.setStyle('order', val)"
+		/>
 		<OptionToggle
 			label="Grow"
 			:options="[
@@ -60,7 +70,7 @@
 				{ label: 'Yes', value: 1 },
 				{ label: 'No', value: 0 },
 			]"
-			:modelValue="blockController.getStyle('flexShrink') ?? 0"
+			:modelValue="blockController.getStyle('flexShrink') ?? 1"
 			@update:modelValue="(val: string | number) => blockController.setStyle('flexShrink', val)"
 		></OptionToggle>
 	</div>
