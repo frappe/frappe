@@ -1,0 +1,103 @@
+name: Infinity Sync (Universal Patterns)
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch: # Avvio manuale
+  schedule:
+    - cron: '0 * * * *' # Ogni ora
+
+jobs:
+  infinity-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'Infinity Bot'
+          git config --global user.email 'bot@noreply.github.com'
+
+      - name: Autopilot Sync
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🕵️ Avvio procedura Infinity Sync..."
+
+          # --- 1. BACKUP SCRIPT ---
+          mkdir -p /tmp/my_workflows
+          cp .github/workflows/"Infinity Sync (Universal Patterns).yml" /tmp/my_workflows/ || cp .github/workflows/*.yml /tmp/my_workflows/
+
+          # --- 2. RILEVAMENTO GENITORE ---
+          UPSTREAM_URL=$(gh api "repos/${{ github.repository }}" --jq '.parent.clone_url' || true)
+          
+          if [ -z "$UPSTREAM_URL" ] || [ "$UPSTREAM_URL" == "null" ]; then
+             REPO_NAME=$(echo "${{ github.repository }}" | awk -F '/' '{print $2}')
+             UPSTREAM_URL="https://github.com/frappe/${REPO_NAME}.git"
+          fi
+          
+          echo "✅ Upstream: $UPSTREAM_URL"
+          git remote remove upstream 2>/dev/null || true
+          git remote add upstream "$UPSTREAM_URL"
+          
+          # Scarichiamo tutto
+          echo "📥 Scarico dati da upstream..."
+          git fetch upstream --tags --force
+
+          # --- 3. SYNC DEI TAG (MODALITÀ SICURA) ---
+          echo "🏷️ Sincronizzazione Tags..."
+          # Qui sta il trucco: "|| true" impedisce allo script di morire se i tag vecchi falliscono
+          git push -f origin --tags || echo "⚠️ Alcuni tag storici sono stati bloccati da GitHub. È NORMALE. Procedo con le Branch."
+
+          # --- 4. AUTO-DISCOVERY BRANCH ---
+          RAW_BRANCHES=$(git ls-remote --heads upstream | awk -F 'refs/heads/' '{print $2}')
+          
+          TARGET_BRANCHES=()
+          for branch in $RAW_BRANCHES; do
+              if [[ "$branch" == "develop" ]] || \
+                 [[ "$branch" == "main" ]] || \
+                 [[ "$branch" == "master" ]] || \
+                 [[ "$branch" == "stable" ]] || \
+                 [[ "$branch" == version-* ]] || \
+                 [[ "$branch" == release* ]] || \
+                 [[ "$branch" == v[0-9]* ]]; then
+                  TARGET_BRANCHES+=("$branch")
+              fi
+          done
+          
+          echo "🎯 Branch identificati: ${TARGET_BRANCHES[*]}"
+
+          # --- 5. LOOP DI SINCRONIZZAZIONE BRANCH ---
+          for BRANCH in "${TARGET_BRANCHES[@]}"; do
+             echo "🔄 Elaborazione Branch: $BRANCH"
+             
+             git checkout -B "$BRANCH" "upstream/$BRANCH"
+             
+             # --- PULIZIA TOTALE (Tabula Rasa) ---
+             rm -rf .github/workflows/*.yml
+             
+             # --- RIPRISTINO SCRIPT ---
+             mkdir -p .github/workflows
+             cp /tmp/my_workflows/* .github/workflows/
+             
+             # Fix Dipendenze
+             if [ -f "pyproject.toml" ]; then
+                if grep -q "frappe/" "pyproject.toml" || true; then
+                   sed -i 's|"frappe/\([^"]*\)"|"\1"|g' pyproject.toml
+                fi
+             fi
+             
+             if grep -r "frappe/" . --include="hooks.py" > /dev/null 2>&1 || true; then
+                find . -name "hooks.py" -exec sed -i "s|'frappe/\([^']*\)'|'\1'|g" {} +
+                find . -name "hooks.py" -exec sed -i 's|"frappe/\([^"]*\)"|"\1"|g' {} +
+             fi
+
+             # Commit e Push
+             git add .
+             git commit -m "Auto-fix: Sync $BRANCH & Clean" || echo "⚠️ $BRANCH già pulito."
+             git push -f origin "$BRANCH"
+          done
