@@ -112,6 +112,12 @@ body {
 				}
 			}
 
+			.password-field {
+				input[dir="rtl"] {
+					padding-right: 35px;
+				}
+			}
+
 			.btn-login-option {
 				@include get_textstyle("base", "medium");
 				color: var(--text-gray-700);
