@@ -2,10 +2,10 @@
 # For license information, please see license.txt
 
 import json
-from dataclasses import fields
 from typing import TYPE_CHECKING, cast
 
 import frappe
+from frappe.email.doctype.email_template.email_template import get_email_template
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.data import add_to_date, compare, validate_json_string
@@ -122,21 +122,23 @@ class AutomationRule(Document):
 
 	def send_email(self, doc, action: "EmailAction") -> None:
 		recipient = action.get("to")
-		message = self.parse_message(action.get("message", ""), doc)
+		subject, message = self.get_message_and_subject(action, doc)
 		add_reference = action.get("create_communication", False)
+
 		frappe.sendmail(
 			recipients=[doc.get(recipient)] if recipient else [],
-			subject="Automated Email",
+			subject=subject,
 			message=message,
 			reference_doctype=doc.doctype if add_reference else None,
 			reference_name=doc.name if add_reference else None,
 		)
+
 		if add_reference:
 			communication = frappe.get_doc(
 				{
 					"doctype": "Communication",
 					"communication_type": "Automated Message",
-					"subject": "Automated Email",
+					"subject": subject,
 					"content": message,
 					"reference_doctype": doc.doctype,
 					"reference_name": doc.name,
@@ -145,9 +147,20 @@ class AutomationRule(Document):
 			)
 			communication.insert(ignore_permissions=True)
 
-	def parse_message(self, message: str, doc) -> str:
-		rendered = frappe.render_template(message, context={**doc.as_dict()})
-		return rendered
+	def get_message_and_subject(self, action: "EmailAction", doc):
+		source = action.get("via")
+		if source == "template":
+			template_name = action.get("template")
+			# TODO: change it when we give HD Saved Reply (custom) template support
+			template = get_email_template(template_name, doc.as_dict())
+			subject = template.get("subject", "Automated Email")
+			message = template.get("message", "")
+
+		else:
+			subject = action.get("subject", "Automated Email")
+			message = frappe.render_template(action.get("message", ""), context={**doc.as_dict()})
+
+		return subject, message
 
 
 operatorMap = {
@@ -259,6 +272,7 @@ def apply_automations(doc, method=None) -> None:
 			reference_name=doc.name,
 			automation_rule=automation.name,
 			execute_at=execute_at,
+			fieldname=automation.get("time_field"),
 		).insert(ignore_permissions=True)
 
 

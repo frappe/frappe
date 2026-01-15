@@ -11,10 +11,11 @@ class SetAction(TypedDict):
 class EmailAction(TypedDict, total=False):
 	type: Literal["email"]
 	to: str
-	via: str
+	via: Literal["rich_text", "template"]
 	template: str
-	message: str
 	doctype: str
+	subject: str
+	message: str
 	create_communication: bool
 
 

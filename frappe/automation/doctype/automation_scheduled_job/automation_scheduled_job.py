@@ -16,6 +16,7 @@ class AutomationScheduledJob(Document):
 
 		automation_rule: DF.Link | None
 		execute_at: DF.Datetime | None
+		fieldname: DF.Data | None
 		reference_doctype: DF.Link | None
 		reference_name: DF.DynamicLink | None
 		status: DF.Literal["Scheduled", "Executed", "Cancelled", "Failed"]

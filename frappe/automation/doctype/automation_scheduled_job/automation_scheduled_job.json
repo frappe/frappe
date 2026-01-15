@@ -9,7 +9,8 @@
   "reference_name",
   "automation_rule",
   "status",
-  "execute_at"
+  "execute_at",
+  "fieldname"
  ],
  "fields": [
   {
@@ -45,13 +46,19 @@
    "label": "Automation Rule",
    "options": "Automation Rule",
    "read_only": 1
+  },
+  {
+   "fieldname": "fieldname",
+   "fieldtype": "Data",
+   "label": "Fieldname",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-09 14:52:00.156629",
+ "modified": "2026-01-15 13:51:46.991826",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation Scheduled Job",
