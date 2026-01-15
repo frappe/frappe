@@ -1,5 +1,6 @@
 import { defineStore } from "pinia"
 import { ref, computed, watch, type WatchStopHandle, ComputedRef, toRefs, unref } from "vue"
+import { watchDebounced } from "@vueuse/core"
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
@@ -90,13 +91,20 @@ const useCodeStore = defineStore("codeStore", () => {
 	}
 
 	function setupWatcher(watcher: StudioPageWatcher) {
-		const currentValue = getValueFromVariable(watcher.source)
-		const isDeep = typeof currentValue === "object"
-		const watcherFn = watch(
-			() => getValueFromVariable(watcher.source),
-			() => executeUserScript(watcher.script),
-			{ deep: isDeep, immediate: watcher.immediate }
-		)
+		const sourceValue = computed(() => getValueFromVariable(watcher.source))
+		let watcherFn
+
+		if (watcher.debounce && watcher.debounce > 0) {
+			watcherFn = watchDebounced(sourceValue,
+				() => executeUserScript(watcher.script),
+				{ debounce: watcher.debounce, deep: watcher.deep, immediate: watcher.immediate }
+			)
+		} else {
+			watcherFn = watch(sourceValue,
+				() => executeUserScript(watcher.script),
+				{ deep: watcher.deep, immediate: watcher.immediate }
+			)
+		}
 		activeWatchers.value[watcher.name || watcher.source] = watcherFn
 	}
 

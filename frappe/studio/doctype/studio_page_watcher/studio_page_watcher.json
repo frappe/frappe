@@ -3,11 +3,16 @@
  "allow_rename": 1,
  "creation": "2025-04-01 09:31:00.594704",
  "doctype": "DocType",
+ "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "source",
   "script",
-  "immediate"
+  "section_break_ktei",
+  "immediate",
+  "deep",
+  "column_break_uxbo",
+  "debounce"
  ],
  "fields": [
   {
@@ -27,18 +32,41 @@
   },
   {
    "default": "0",
-   "description": "By default, this script won't run unless the Source value changes. Enable this to run the script immediately.",
+   "description": "Trigger when the page loads, not just when the source changes",
    "fieldname": "immediate",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Run Immediately?"
+   "label": "Immediate: Run on page load"
+  },
+  {
+   "default": "0",
+   "description": "Trigger when nested properties within the source change, in addition to the source itself\n<br>\nEg: watching user object will fire the script if user.name changes",
+   "fieldname": "deep",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Deep: Watch nested properties"
+  },
+  {
+   "description": "Delay the execution until the set time has passed since the last change",
+   "fieldname": "debounce",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Debounce (ms)"
+  },
+  {
+   "fieldname": "section_break_ktei",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_uxbo",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-01 13:57:15.006423",
+ "modified": "2026-01-15 10:47:33.087699",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page Watcher",

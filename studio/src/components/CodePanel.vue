@@ -29,6 +29,7 @@
 							source: '',
 							script: '',
 							immediate: false,
+							deep: false,
 							parent: '',
 							name: '',
 						}
@@ -39,16 +40,12 @@
 				<template #body-content>
 					<div class="flex flex-col space-y-4">
 						<FormControl
-							type="autocomplete"
+							type="combobox"
 							:options="store.variableOptions"
 							label="Source"
 							placeholder="Select variable"
-							:modelValue="pageWatcher.source"
-							@update:modelValue="
-								(selectedOption: SelectOption) => {
-									pageWatcher.source = selectedOption.value
-								}
-							"
+							:openOnFocus="true"
+							v-model="pageWatcher.source"
 						/>
 						<Code
 							label="Script"
@@ -61,11 +58,26 @@
 							@save="editPageWatcher(pageWatcher)"
 						/>
 						<FormControl
-							type="checkbox"
-							label="Run Immediately?"
-							description="By default, this script won't run unless the source value changes. Enable this to run the script immediately."
-							v-model="pageWatcher.immediate"
+							type="number"
+							label="Debounce (ms)"
+							placeholder="300"
+							v-model="pageWatcher.debounce"
+							description="Delay the execution until the set time has passed since the last change"
 						/>
+						<div class="flex flex-col space-y-1">
+							<FormControl
+								type="checkbox"
+								label="Immediate: Run on page load"
+								v-model="pageWatcher.immediate"
+							/>
+							<FormDescription description="Trigger when the page loads, not just when the source changes" />
+						</div>
+						<div class="flex flex-col space-y-1">
+							<FormControl type="checkbox" label="Deep: Watch nested properties" v-model="pageWatcher.deep" />
+							<FormDescription
+								description="Trigger when nested properties within the source change, in addition to the source itself"
+							/>
+						</div>
 					</div>
 				</template>
 				<template #actions>
@@ -88,13 +100,13 @@ import EmptyState from "@/components/EmptyState.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import Code from "@/components/Code.vue"
 import type { StudioPage } from "@/types/Studio/StudioPage"
-import type { SelectOption } from "@/types"
 import type { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
 import useStudioStore from "@/stores/studioStore"
 import { toast } from "vue-sonner"
 import { confirm } from "@/utils/helpers"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import ItemActions from "@/components/ItemActions.vue"
+import FormDescription from "@/components/FormDescription.vue"
 
 const props = defineProps<{
 	page: StudioPage
@@ -108,7 +120,7 @@ const studioPageWatchers = createListResource({
 	filters: {
 		parent: props.page.name,
 	},
-	fields: ["name", "source", "script", "immediate", "parent"],
+	fields: ["name", "source", "script", "immediate", "deep", "debounce", "parent"],
 	orderBy: "modified desc",
 	pageLength: 50,
 	auto: true,
@@ -119,6 +131,8 @@ const pageWatcher = ref<StudioPageWatcher>({
 	source: "",
 	script: "",
 	immediate: false,
+	deep: false,
+	debounce: 0,
 	parent: "",
 	name: "",
 })
@@ -146,6 +160,8 @@ const addPageWatcher = (watcher: StudioPageWatcher) => {
 			source: watcher.source,
 			script: watcher.script,
 			immediate: watcher.immediate,
+			deep: watcher.deep,
+			debounce: watcher.debounce,
 			parent: props.page.name,
 			parenttype: "Studio Page",
 			parentfield: "watchers",
@@ -170,6 +186,8 @@ const editPageWatcher = (watcher: StudioPageWatcher) => {
 			source: watcher.source,
 			script: watcher.script,
 			immediate: watcher.immediate,
+			deep: watcher.deep,
+			debounce: watcher.debounce,
 		})
 		.then(async () => {
 			// setValue didn't update the list, so reloading explicitly
