@@ -24,7 +24,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.search = new frappe.search.SearchDialog();
 		frappe.provide("frappe.searchdialog");
 		frappe.searchdialog.search = this.search;
-		
+
 		search_modal.removeClass("fade");
 		search_modal.on("shown.bs.modal", () => {
 			const input = search_modal.find("#navbar-search").get(0);
