@@ -1,3 +1,52 @@
+<style>
+.version-diff-container {
+	margin-bottom: 1rem;
+}
+.version-diff-container h5 {
+	margin-bottom: 0.5rem;
+}
+.version-html-diff table.diff {
+	width: 100%;
+	border-collapse: collapse;
+	font-family: monospace;
+	font-size: 12px;
+}
+.version-html-diff table.diff td {
+	padding: 2px 6px;
+	border: 1px solid var(--border-color);
+	vertical-align: top;
+}
+.version-html-diff table.diff .diff_header {
+	background-color: var(--subtle-fg);
+	text-align: right;
+	padding: 2px 6px;
+	color: var(--text-muted);
+	font-weight: normal;
+	width: 40px;
+}
+.version-html-diff table.diff .diff_next {
+	background-color: var(--subtle-fg);
+	width: 10px;
+}
+.version-html-diff table.diff .diff_add {
+	background-color: var(--diff-added);
+}
+.version-html-diff table.diff .diff_chg {
+	background-color: var(--diff-changed);
+}
+.version-html-diff table.diff .diff_sub {
+	background-color: var(--diff-removed);
+}
+.version-html-diff table.diff th {
+	background-color: var(--subtle-fg);
+	padding: 6px;
+	border: 1px solid var(--border-color);
+	font-weight: 500;
+}
+.version-html-diff table.diff colgroup {
+	display: none;
+}
+</style>
 <div class="version-info">
 {% if data.comment %}
 <h4>{{ __("Comment") + " (" + data.comment_type }})</h4>
@@ -5,8 +54,19 @@
 {% endif %}
 
 {% const getEscapedValue = (v) => v === null ? "null" : frappe.utils.escape_html(v) %}
+{% const htmlDiffs = (doc.__onload && doc.__onload.html_diffs) || {} %}
 {% if data.changed && data.changed.length %}
 <h4>{{ __("Values Changed") }}</h4>
+{% for item in data.changed %}
+	{% if htmlDiffs[item[0]] %}
+	<div class="version-diff-container">
+		<h5>{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</h5>
+		<div class="version-html-diff">{{ htmlDiffs[item[0]] }}</div>
+	</div>
+	{% endif %}
+{% endfor %}
+{% var hasSimpleChanges = data.changed.some(item => !htmlDiffs[item[0]]) %}
+{% if hasSimpleChanges %}
 <table class="table table-bordered">
 	<thead>
 		<tr>
@@ -17,14 +77,17 @@
 	</thead>
 	<tbody>
 		{% for item in data.changed %}
+		{% if !htmlDiffs[item[0]] %}
 		<tr>
 			<td>{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</td>
 			<td class="diff-remove">{{ getEscapedValue(item[1]) }}</td>
 			<td class="diff-add">{{ getEscapedValue(item[2]) }}</td>
 		</tr>
+		{% endif %}
 		{% endfor %}
 	</tbody>
 </table>
+{% endif %}
 {% endif %}
 
 {% var _keys = ["added", "removed"]; %}
