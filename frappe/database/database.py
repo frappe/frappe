@@ -1657,6 +1657,7 @@ def insert_explicit_commit_record():
 		"education",
 		"erpnext-shipping",
 		"webshop",
+		"india_compliance",
 	]
 	if app_name not in ignore_apps:
 		insert_record(app_name, function_path, frame.f_code.co_name, frame.f_lineno)
