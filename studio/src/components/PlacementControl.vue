@@ -1,98 +1,101 @@
 <!-- Extracted from Builder -->
 <template>
-	<div class="items-top relative flex justify-center">
-		<div class="relative h-fit w-fit">
-			<div class="group grid grid-cols-3 rounded-sm bg-surface-gray-2 p-1.5">
-				<div
-					v-for="option in placementOptions"
-					:key="option"
-					class="group/option flex h-5 w-5 cursor-pointer items-center justify-center opacity-50"
-					:class="{
-						'!justify-start': option.includes('left'),
-						'!justify-end': option.includes('right'),
-						'!items-start': option.includes('top'),
-						'!items-end': option.includes('bottom'),
-					}"
-				>
+	<div class="flex w-full items-center justify-between">
+		<InputLabel v-if="label">{{ label }}</InputLabel>
+		<div class="items-top relative flex w-full justify-center">
+			<div class="relative h-fit w-fit">
+				<div class="group grid grid-cols-3 rounded-sm bg-surface-gray-2 p-1.5">
 					<div
-						@click="setAlignment(option)"
-						@dblclick="setAlignment(option, true)"
-						class="flex size-1 items-center justify-center rounded-full bg-surface-gray-5 opacity-50 group-hover/option:hidden"
-					></div>
-					<div
-						@click="setAlignment(option)"
-						@dblclick="setAlignment(option, true)"
-						class="hidden gap-[2px] hover:opacity-100 group-hover/option:flex"
+						v-for="option in placementOptions"
+						:key="option"
+						class="group/option flex h-5 w-5 cursor-pointer items-center justify-center opacity-50"
 						:class="{
-							'flex-row': direction === 'row',
-							'flex-col': direction === 'column',
-							'items-center':
-								(direction === 'column' &&
-									(option === 'top-middle' || option === 'middle-middle' || option === 'bottom-middle')) ||
-								(direction === 'row' &&
-									(option === 'middle-left' || option === 'middle-middle' || option === 'middle-right')),
-							'items-end':
-								(direction === 'column' &&
-									(option === 'top-right' || option === 'middle-right' || option === 'bottom-right')) ||
-								(direction === 'row' &&
-									(option === 'bottom-left' || option === 'bottom-middle' || option === 'bottom-right')),
+							'!justify-start': option.includes('left'),
+							'!justify-end': option.includes('right'),
+							'!items-start': option.includes('top'),
+							'!items-end': option.includes('bottom'),
 						}"
 					>
 						<div
-							class="rounded-sm bg-surface-gray-5"
-							:class="{
-								'h-2 w-1': direction === 'row',
-								'h-1 w-2': direction === 'column',
-							}"
+							@click="setAlignment(option)"
+							@dblclick="setAlignment(option, true)"
+							class="flex size-1 items-center justify-center rounded-full bg-surface-gray-5 opacity-50 group-hover/option:hidden"
 						></div>
 						<div
-							class="rounded-sm bg-surface-gray-5"
+							@click="setAlignment(option)"
+							@dblclick="setAlignment(option, true)"
+							class="hidden gap-[2px] hover:opacity-100 group-hover/option:flex"
 							:class="{
-								'h-3 w-1': direction === 'row',
-								'h-1 w-3': direction === 'column',
+								'flex-row': direction === 'row',
+								'flex-col': direction === 'column',
+								'items-center':
+									(direction === 'column' &&
+										(option === 'top-middle' || option === 'middle-middle' || option === 'bottom-middle')) ||
+									(direction === 'row' &&
+										(option === 'middle-left' || option === 'middle-middle' || option === 'middle-right')),
+								'items-end':
+									(direction === 'column' &&
+										(option === 'top-right' || option === 'middle-right' || option === 'bottom-right')) ||
+									(direction === 'row' &&
+										(option === 'bottom-left' || option === 'bottom-middle' || option === 'bottom-right')),
 							}"
-						></div>
-						<div
-							class="rounded-sm bg-surface-gray-5"
-							:class="{
-								'h-2 w-1': direction === 'row',
-								'h-1 w-2': direction === 'column',
-							}"
-						></div>
+						>
+							<div
+								class="rounded-sm bg-surface-gray-5"
+								:class="{
+									'h-2 w-1': direction === 'row',
+									'h-1 w-2': direction === 'column',
+								}"
+							></div>
+							<div
+								class="rounded-sm bg-surface-gray-5"
+								:class="{
+									'h-3 w-1': direction === 'row',
+									'h-1 w-3': direction === 'column',
+								}"
+							></div>
+							<div
+								class="rounded-sm bg-surface-gray-5"
+								:class="{
+									'h-2 w-1': direction === 'row',
+									'h-1 w-2': direction === 'column',
+								}"
+							></div>
+						</div>
 					</div>
 				</div>
-			</div>
-			<div
-				class="pointer-events-none absolute top-0 flex h-full w-full cursor-pointer gap-[2px] rounded-sm p-1.5"
-				:style="
-					{
-						'flex-direction': direction,
-						'justify-content': justifyContent,
-						'align-items': alignItems,
-					} as StyleValue
-				"
-			>
 				<div
-					class="rounded-sm bg-surface-gray-6"
-					:class="{
-						'h-1 w-2': direction === 'column',
-						'h-2 w-1': direction === 'row',
-					}"
-				></div>
-				<div
-					class="rounded-sm bg-surface-gray-6"
-					:class="{
-						'h-1 w-3': direction === 'column',
-						'h-3 w-1': direction === 'row',
-					}"
-				></div>
-				<div
-					class="rounded-sm bg-surface-gray-6"
-					:class="{
-						'h-1 w-2': direction === 'column',
-						'h-2 w-1': direction === 'row',
-					}"
-				></div>
+					class="pointer-events-none absolute top-0 flex h-full w-full cursor-pointer gap-[2px] rounded-sm p-1.5"
+					:style="
+						{
+							'flex-direction': direction,
+							'justify-content': justifyContent,
+							'align-items': alignItems,
+						} as StyleValue
+					"
+				>
+					<div
+						class="rounded-sm bg-surface-gray-6"
+						:class="{
+							'h-1 w-2': direction === 'column',
+							'h-2 w-1': direction === 'row',
+						}"
+					></div>
+					<div
+						class="rounded-sm bg-surface-gray-6"
+						:class="{
+							'h-1 w-3': direction === 'column',
+							'h-3 w-1': direction === 'row',
+						}"
+					></div>
+					<div
+						class="rounded-sm bg-surface-gray-6"
+						:class="{
+							'h-1 w-2': direction === 'column',
+							'h-2 w-1': direction === 'row',
+						}"
+					></div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -100,6 +103,8 @@
 <script setup lang="ts">
 import blockController from "@/utils/blockController"
 import { computed, StyleValue } from "vue"
+
+defineProps<{ label?: string }>()
 
 const placementOptions = [
 	"top-left",

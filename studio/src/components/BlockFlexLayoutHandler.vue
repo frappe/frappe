@@ -10,7 +10,7 @@
 		:modelValue="blockController.getStyle('flexDirection')"
 		@update:modelValue="(val: string | number) => blockController.setStyle('flexDirection', val)"
 	></OptionToggle>
-	<PlacementControl v-if="blockController.isFlex()"></PlacementControl>
+	<PlacementControl v-if="blockController.isFlex()" label="Placement"></PlacementControl>
 	<InlineInput
 		v-if="blockController.isFlex()"
 		:modelValue="blockController.getStyle('justifyContent') ?? ''"
