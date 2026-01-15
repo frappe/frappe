@@ -65,15 +65,17 @@
 							description="Delay the execution until the set time has passed since the last change"
 						/>
 						<div class="flex flex-col space-y-1">
-							<FormControl type="checkbox" label="Run Immediately?" v-model="pageWatcher.immediate" />
-							<FormDescription
-								description="By default, this script won't run unless the source value changes. Enable this to run the script immediately"
+							<FormControl
+								type="checkbox"
+								label="Immediate: Run on page load"
+								v-model="pageWatcher.immediate"
 							/>
+							<FormDescription description="Trigger when the page loads, not just when the source changes" />
 						</div>
 						<div class="flex flex-col space-y-1">
-							<FormControl type="checkbox" label="Deep" v-model="pageWatcher.deep" />
+							<FormControl type="checkbox" label="Deep: Watch nested properties" v-model="pageWatcher.deep" />
 							<FormDescription
-								description="Trigger the script when any nested property inside the source changes, not just the source"
+								description="Trigger when nested properties within the source change, in addition to the source itself"
 							/>
 						</div>
 					</div>
