@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import inspect
 import itertools
 import json
 import random
@@ -1192,6 +1193,7 @@ class Database:
 		if chain:
 			self.sql("commit and chain")
 		else:
+			insert_explicit_commit_record()
 			self.sql("commit")
 			self.begin()
 
@@ -1621,3 +1623,40 @@ def get_print_sql_flag() -> bool:
 		frappe.client_cache.set_value("flag_print_sql", flag_value)
 
 	return flag_value
+
+
+def insert_explicit_commit_record():
+	from frappe.telemetry.doctype.explicit_commit.explicit_commit import insert_record
+
+	def get_app_name(path):
+		_, sep, rest = path.partition("apps/")
+		return rest.partition("/")[0], sep + rest
+
+	frame = inspect.currentframe().f_back.f_back
+
+	app_name, function_path = get_app_name(frame.f_code.co_filename)
+	ignore_apps = [
+		"frappe",
+		"erpnext",
+		"studio",
+		"helpdesk",
+		"lms",
+		"insights",
+		"slides",
+		"gameplan",
+		"hrms",
+		"crm",
+		"mail",
+		"wiki",
+		"builder",
+		"lending",
+		"drive",
+		"writer",
+		"payments",
+		"print_designer",
+		"education",
+		"erpnext-shipping",
+		"webshop",
+	]
+	if app_name not in ignore_apps:
+		insert_record(app_name, function_path, frame.f_code.co_name, frame.f_lineno)
