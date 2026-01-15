@@ -54,10 +54,7 @@ def sync_user_settings():
 				"mariadb": """INSERT INTO `__UserSettings`(`user`, `doctype`, `data`)
 				VALUES (%s, %s, %s)
 				ON DUPLICATE key UPDATE `data`=%s""",
-				"postgres": """INSERT INTO `__UserSettings` (`user`, `doctype`, `data`)
-				VALUES (%s, %s, %s)
-				ON CONFLICT ("user", "doctype") DO UPDATE SET `data`=%s""",
-				"sqlite": """INSERT INTO `__UserSettings` (`user`, `doctype`, `data`)
+				"*": """INSERT INTO `__UserSettings` (`user`, `doctype`, `data`)
 				VALUES (%s, %s, %s)
 				ON CONFLICT (`user`, `doctype`) DO UPDATE SET `data`=%s""",
 			},

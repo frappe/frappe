@@ -433,7 +433,9 @@ frappe.format = function (value, df, options, doc) {
 		df._options = doc ? doc[df.options] : null;
 	}
 
-	var formatter = df.formatter || frappe.form.get_formatter(fieldtype);
+	var formatter =
+		frappe.meta.get_docfield(doc?.doctype, df.fieldname)?.formatter ||
+		frappe.form.get_formatter(fieldtype);
 
 	var formatted = formatter(value, df, options, doc);
 

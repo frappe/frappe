@@ -3,6 +3,10 @@
 
 frappe.ui.form.on("Workspace Sidebar", {
 	refresh(frm) {
+		if (frm.doc.standard && !frappe.boot.developer_mode) {
+			frm.set_intro("This is a standard sidebar and cannot be edited");
+			frm.set_read_only();
+		}
 		if (!frm.is_new()) {
 			frm.add_custom_button(__(`View Sidebar`), () => {
 				if (frm.doc.items[0].link_type === "DocType") {
@@ -28,7 +32,7 @@ frappe.ui.form.on("Workspace Sidebar Item", {
 		let grid = frm.fields_dict.items.grid;
 		let link_to = row.link_to;
 		let row_obj = grid.get_grid_row(cdn);
-		if (link_to) {
+		if (link_to && row.link_type === "DocType" && row_obj) {
 			frappe.model.with_doctype(link_to, function () {
 				let meta = frappe.get_meta(link_to);
 				let field_obj = row_obj.get_field("navigate_to_tab");

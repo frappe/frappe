@@ -99,6 +99,11 @@ frappe.views.Page = class Page {
 		}
 
 		this.trigger_page_event("on_page_load");
+		frappe.breadcrumbs.add({
+			type: "Custom",
+			label: this.pagedoc.title,
+			route: frappe.get_route_str(),
+		});
 
 		// set events
 		$(this.wrapper).on("show", function () {

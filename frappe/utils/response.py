@@ -298,9 +298,15 @@ def download_private_file(path: str) -> Response:
 	return send_private_file(path.split("/private", 1)[1])
 
 
+FORCE_DOWNLOAD_EXTENSIONS = (".svg", ".html", ".htm", ".xml")
+
+
 def send_private_file(path: str) -> Response:
 	path = os.path.join(frappe.local.conf.get("private_path", "private"), path.strip("/"))
 	filename = os.path.basename(path)
+
+	extension = os.path.splitext(path)[1]
+	as_attachment = extension.lower() in FORCE_DOWNLOAD_EXTENSIONS
 
 	if frappe.local.request.headers.get("X-Use-X-Accel-Redirect"):
 		path = "/protected/" + path
@@ -310,14 +316,13 @@ def send_private_file(path: str) -> Response:
 		response.headers["Accept-Ranges"] = "bytes"
 		response.headers["Content-Type"] = mimetypes.guess_type(filename)[0] or "application/octet-stream"
 
+		if as_attachment:
+			response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{quote(filename)}"
+
 	else:
 		filepath = frappe.utils.get_site_path(path)
 		if not os.path.exists(filepath):
 			raise NotFound
-
-		extension = os.path.splitext(path)[1]
-		blacklist = [".svg", ".html", ".htm", ".xml"]
-		as_attachment = extension.lower() in blacklist
 
 		response = werkzeug.utils.send_file(
 			filepath,

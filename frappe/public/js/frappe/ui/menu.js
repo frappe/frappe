@@ -21,7 +21,7 @@ frappe.ui.menu = class ContextMenu {
 				event.stopPropagation();
 				if (me.visible) {
 					me.hide();
-					me.opts.onHide && me.opts.onHide(me);
+					me.opts.onHide && me.opts.onHide(me.parent);
 				} else {
 					me.show(event);
 					me.opts.onShow && me.opts.onShow(me.parent);
@@ -34,7 +34,7 @@ frappe.ui.menu = class ContextMenu {
 				if (!me.parent_menu) {
 					if (me.visible) {
 						me.hide();
-						me.opts.onHide && me.opts.onHide(me);
+						me.opts.onHide && me.opts.onHide(me.parent);
 					} else {
 						me.show(event);
 						me.opts.onShow && me.opts.onShow(me.parent);
@@ -155,7 +155,13 @@ frappe.ui.menu = class ContextMenu {
 					});
 					me.hide();
 					me.opts.onHide && me.opts.onHide(me);
-					frappe.set_route(item.url);
+					if (item.url.startsWith("/desk")) {
+						frappe.set_route(item.url);
+					} else if (item.url.startsWith("/")) {
+						window.location.href = window.location.origin + item.url;
+					} else {
+						window.open(item.url, "_blank").focus();
+					}
 				});
 			}
 		}

@@ -9,6 +9,7 @@ import frappe.model
 import frappe.utils
 from frappe import _
 from frappe.desk.reportview import validate_args
+from frappe.desk.search import PAGE_LENGTH_FOR_LINK_VALIDATION, search_widget
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import attach_expanded_links, get_safe_filters
 from frappe.utils.caching import http_cache
@@ -406,52 +407,84 @@ def is_document_amended(doctype: str, docname: str):
 	return False
 
 
-@frappe.whitelist()
-def validate_link(doctype: str, docname: str, fields=None):
-	if not isinstance(doctype, str):
-		frappe.throw(_("DocType must be a string"))
+@frappe.whitelist(methods=["GET", "POST"])
+def validate_link_and_fetch(
+	doctype: str,
+	docname: str,
+	fields_to_fetch: list[str] | str | None = None,
+	# search_widget parameters
+	query: str | None = None,
+	filters: dict | list | str | None = None,
+	**search_args,
+):
+	if not docname:
+		frappe.throw(_("Document Name must not be empty"))
 
-	if not isinstance(docname, str):
-		frappe.throw(_("Document Name must be a string"))
+	fields_to_fetch = frappe.parse_json(fields_to_fetch)
 
-	parent_doctype = None
-	if doctype != "DocType":
-		if frappe.get_meta(doctype).istable:  # needed for links to child rows
-			parent_doctype = frappe.db.get_value(doctype, docname, "parenttype")
-		if not (
-			frappe.has_permission(doctype, "select", parent_doctype=parent_doctype)
-			or frappe.has_permission(doctype, "read", parent_doctype=parent_doctype)
-		):
-			frappe.throw(
-				_("You do not have Read or Select Permissions for {}").format(frappe.bold(doctype)),
-				frappe.PermissionError,
-			)
+	# only cache is no fields to fetch and request is GET
+	can_cache = not fields_to_fetch and frappe.request.method == "GET"
 
-	values = frappe._dict()
+	# Use search_widget to validate - ensures filters/custom queries are respected
+	# in addition to standard permission checks
+	search_args["txt"] = docname
+	search_result = frappe.call(
+		search_widget,
+		doctype=doctype,
+		query=query,
+		filters=filters,
+		**search_args,
+		for_link_validation=True,
+	)
 
-	if is_virtual_doctype(doctype):
+	if not search_result:
+		return {}  # does not exist or filtered out
+
+	values = None
+	is_virtual_dt = is_virtual_doctype(doctype)
+	if is_virtual_dt:
 		try:
-			frappe.get_doc(doctype, docname)
-			values.name = docname
+			doc = frappe.get_doc(doctype, docname)
+			doc.check_permission("select" if frappe.only_has_select_perm(doctype) else "read")
+			values = {"name": doc.name}
+
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
-			frappe.msgprint(
-				_("Document {0} {1} does not exist").format(frappe.bold(doctype), frappe.bold(docname)),
+	else:
+		# get value in the right case and type (str | int)
+		# for matching with search result
+		columns_to_fetch = ["name"]
+		if frappe.is_table(doctype):
+			columns_to_fetch.append("parenttype")  # for child table permission check
+		values = frappe.db.get_value(doctype, docname, columns_to_fetch, as_dict=True)
+
+	if not values:
+		return {}  # does not exist
+
+	name_to_compare = values["name"]
+	# this will be used to fetch fields later
+	parent_doctype = values.pop("parenttype", None)
+
+	# try to match name in search result
+	# if search_result is large, assume valid link (result may not appear in some custom queries)
+	if len(search_result) < PAGE_LENGTH_FOR_LINK_VALIDATION and not any(
+		item[0] == name_to_compare for item in search_result
+	):
+		return {}  # no permission or filtered out
+
+	# don't cache or fetch for virtual doctypes
+	if is_virtual_dt:
+		return values
+
+	if not fields_to_fetch:
+		if can_cache:
+			frappe.local.response_headers.set(
+				"Cache-Control", "private,max-age=1800,stale-while-revalidate=7200"
 			)
-		return values
-
-	values.name = frappe.db.get_value(doctype, docname, cache=True)
-
-	fields = frappe.parse_json(fields)
-	if not values.name:
-		return values
-
-	if not fields:
-		frappe.local.response_headers.set("Cache-Control", "private,max-age=1800,stale-while-revalidate=7200")
 		return values
 
 	try:
-		values.update(get_value(doctype, fields, docname, parent=parent_doctype))
+		values.update(get_value(doctype, fields_to_fetch, docname, parent=parent_doctype))
 	except frappe.PermissionError:
 		frappe.clear_last_message()
 		frappe.msgprint(

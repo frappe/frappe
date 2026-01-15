@@ -16,6 +16,8 @@ from frappe.utils import cint, cstr, escape_html, unique
 from frappe.utils.caching import http_cache
 from frappe.utils.data import make_filter_tuple
 
+PAGE_LENGTH_FOR_LINK_VALIDATION = 25_000
+
 
 def sanitize_searchfield(searchfield: str):
 	if not searchfield:
@@ -76,6 +78,7 @@ def search_widget(
 	ignore_user_permissions: bool = False,
 	*,
 	link_fieldname: str | None = None,
+	for_link_validation: bool = False,
 ):
 	if ignore_user_permissions:
 		if reference_doctype and link_fieldname:
@@ -102,6 +105,34 @@ def search_widget(
 
 	if not query and doctype in standard_queries:
 		query = standard_queries[doctype][-1]
+
+	if filters is None:
+		filters = {}
+
+	are_filters_dict = isinstance(filters, dict)
+	include_disabled = False
+	if not query and are_filters_dict:
+		if "include_disabled" in filters:
+			if filters["include_disabled"] == 1:
+				include_disabled = True
+			filters.pop("include_disabled")
+
+		filters = [make_filter_tuple(doctype, key, value) for key, value in filters.items()]
+		are_filters_dict = False
+
+	if for_link_validation:
+		if are_filters_dict:
+			# we add filter if possible, otherwise rely on txt
+			if "name" not in filters:
+				filters["name"] = txt
+		else:
+			filters.append([doctype, "name", "=", txt])
+
+		as_dict = False
+		# for custom queries that don't respect filters but respect limit (rare)
+		# or for when we have to rely on txt
+		# we want to match "A" with "A" only and not "A1", "BA" etc.
+		page_length = PAGE_LENGTH_FOR_LINK_VALIDATION
 
 	if query:  # Query = custom search query i.e. python function
 		try:
@@ -132,17 +163,6 @@ def search_widget(
 				return []
 
 	meta = frappe.get_meta(doctype)
-
-	include_disabled = False
-	if filters and "include_disabled" in filters:
-		if filters["include_disabled"] == 1:
-			include_disabled = True
-		filters.pop("include_disabled")
-
-	if isinstance(filters, dict):
-		filters = [make_filter_tuple(doctype, key, value) for key, value in filters.items()]
-	elif filters is None:
-		filters = []
 	or_filters = []
 
 	# build from doctype
@@ -189,7 +209,7 @@ def search_widget(
 	# `idx` is number of times a document is referred, check link_count.py
 	order_by = f"idx desc, {order_by_based_on_meta}"
 
-	if not meta.translated_doctype:
+	if not for_link_validation and not meta.translated_doctype:
 		_txt = frappe.db.escape((txt or "").replace("%", "").replace("@", ""))
 		# locate returns 0 if string is not found, convert 0 to null and then sort null to end in order by
 		_relevance_expr = {"DIV": [1, {"NULLIF": [{"LOCATE": [_txt, "name"]}, 0]}]}
@@ -214,29 +234,30 @@ def search_widget(
 		strict=False,
 	)
 
-	if meta.translated_doctype:
-		# Filtering the values array so that query is included in very element
-		values = (
-			result
-			for result in values
-			if any(
-				re.search(f"{re.escape(txt)}.*", _(cstr(value)) or "", re.IGNORECASE)
-				for value in (result.values() if as_dict else result)
+	if not for_link_validation:
+		if meta.translated_doctype:
+			# Filtering the values array so that query is included in very element
+			values = (
+				result
+				for result in values
+				if any(
+					re.search(f"{re.escape(txt)}.*", _(cstr(value)) or "", re.IGNORECASE)
+					for value in (result.values() if as_dict else result)
+				)
 			)
-		)
 
-	# Sorting the values array so that relevant results always come first
-	# This will first bring elements on top in which query is a prefix of element
-	# Then it will bring the rest of the elements and sort them in lexicographical order
-	values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+		# Sorting the values array so that relevant results always come first
+		# This will first bring elements on top in which query is a prefix of element
+		# Then it will bring the rest of the elements and sort them in lexicographical order
+		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 
-	# remove _relevance from results
-	if not meta.translated_doctype:
-		if as_dict:
-			for r in values:
-				r.pop("_relevance", None)
-		else:
-			values = [r[:-1] for r in values]
+		# remove _relevance from results
+		if not meta.translated_doctype:
+			if as_dict:
+				for r in values:
+					r.pop("_relevance", None)
+			else:
+				values = [r[:-1] for r in values]
 
 	return values
 
@@ -329,8 +350,8 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 			item = list(item)
 			if len(item) == 1:
 				item = [item[0], item[0]]
-			label = item[1]  # use title as label
-			item[1] = item[0]  # show name in description instead of title
+			label = _(item[1]) if meta.translated_doctype else item[1]
+			item[1] = item[0]
 
 			if len(item) >= 3 and item[2] == label:
 				# remove redundant title ("label") value
@@ -342,7 +363,9 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 
 			results.append(autosuggest_row)
 	else:
-		results.extend({"value": item[0], "description": to_string(item[1:])} for item in res)
+		for item in res:
+			value = _(item[0]) if meta.translated_doctype else item[0]
+			results.append({"value": item[0], "description": to_string(item[1:]), "label": value})
 
 	return results
 

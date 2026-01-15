@@ -133,12 +133,13 @@ frappe.breadcrumbs = {
 		) {
 			return;
 		}
-
-		this.append_breadcrumb_element(
-			`/desk/${frappe.router.slug(breadcrumbs.workspace)}`,
-			__(breadcrumbs.workspace),
-			"worksapce-breadcrumb"
-		);
+		if (frappe.app.sidebar.sidebar_title) {
+			let icon = frappe.utils.get_desktop_icon_by_label(frappe.app.sidebar.sidebar_title);
+			let url = frappe.utils.get_route_for_icon(icon);
+			if (url) {
+				this.append_breadcrumb_element(url, __(icon.label), "worksapce-breadcrumb");
+			}
+		}
 
 		let worksapce_crumb = this.$breadcrumbs.find("li a.worksapce-breadcrumb");
 
@@ -245,19 +246,6 @@ frappe.breadcrumbs = {
 			if (frappe.is_mobile()) {
 				last_crumb.addClass("ellipsis");
 				last_crumb.find("a").addClass("ellipsis");
-			}
-
-			if (!is_new_doc) {
-				last_crumb.css("cursor", "copy");
-				last_crumb.click((event) => {
-					event.stopImmediatePropagation();
-					frappe.utils.copy_to_clipboard(doc.name);
-				});
-				last_crumb.attr("title", __("Click to copy name"));
-				last_crumb.tooltip({
-					delay: { show: 100, hide: 100 },
-					trigger: "hover",
-				});
 			}
 		}
 	},
