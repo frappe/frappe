@@ -371,6 +371,7 @@ def handle_exception(e):
 				}
 
 
+
 	elif isinstance(e, frappe.SessionStopped):
 		response = frappe.utils.response.handle_session_stopped()
 
