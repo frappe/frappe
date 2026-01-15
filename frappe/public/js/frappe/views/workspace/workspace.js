@@ -276,7 +276,7 @@ frappe.views.Workspace = class Workspace {
 				if (!app && this._page.module) {
 					app = frappe.boot.module_app[frappe.router.slug(this._page.module)];
 				}
-				this._page.module && this.sidebar.show_sidebar_for_module(this._page.module);
+				// this._page.module && this.sidebar.show_sidebar_for_module(this._page.module);
 				if (!app) app = "frappe";
 			}
 
@@ -778,7 +778,11 @@ frappe.views.Workspace = class Workspace {
 								message: __("Saved"),
 								indicator: "green",
 							});
-							frappe.set_route("desk", "private", page.title);
+							if (page.public) {
+								frappe.set_route("desk", page.title.toLowerCase());
+							} else {
+								frappe.set_route("desk", "private", page.title.toLowerCase());
+							}
 						}
 					},
 				});

@@ -45,7 +45,8 @@
   {
    "child": 0,
    "collapsible": 1,
-   "indent": 0,
+   "icon": "lock-keyhole",
+   "indent": 1,
    "keep_closed": 0,
    "label": "Permissions",
    "link_type": "DocType",
@@ -55,7 +56,7 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "shield",
+   "icon": "",
    "indent": 0,
    "keep_closed": 0,
    "label": "User Permission",
@@ -67,7 +68,7 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "key-square",
+   "icon": "",
    "indent": 0,
    "keep_closed": 0,
    "label": "Permission Manager",
@@ -79,7 +80,7 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "user-round-search",
+   "icon": "",
    "indent": 0,
    "keep_closed": 0,
    "label": "Permission Inspector",
@@ -91,7 +92,8 @@
   {
    "child": 0,
    "collapsible": 1,
-   "indent": 0,
+   "icon": "file-lock",
+   "indent": 1,
    "keep_closed": 0,
    "label": "Audits",
    "link_type": "DocType",
@@ -101,7 +103,7 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "file-lock",
+   "icon": "",
    "indent": 0,
    "keep_closed": 0,
    "label": "Activity Log",
@@ -113,7 +115,7 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "file-lock",
+   "icon": "",
    "indent": 0,
    "keep_closed": 0,
    "label": "Permission Log",
@@ -125,7 +127,7 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "file-lock",
+   "icon": "",
    "indent": 0,
    "keep_closed": 0,
    "label": "Access Log",
@@ -135,7 +137,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-08 14:16:38.644051",
+ "modified": "2026-01-12 15:38:11.455368",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Users",

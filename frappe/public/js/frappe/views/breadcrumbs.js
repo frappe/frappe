@@ -247,19 +247,6 @@ frappe.breadcrumbs = {
 				last_crumb.addClass("ellipsis");
 				last_crumb.find("a").addClass("ellipsis");
 			}
-
-			if (!is_new_doc) {
-				last_crumb.css("cursor", "copy");
-				last_crumb.click((event) => {
-					event.stopImmediatePropagation();
-					frappe.utils.copy_to_clipboard(doc.name);
-				});
-				last_crumb.attr("title", __("Click to copy name"));
-				last_crumb.tooltip({
-					delay: { show: 100, hide: 100 },
-					trigger: "hover",
-				});
-			}
 		}
 	},
 

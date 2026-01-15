@@ -19,6 +19,8 @@ frappe.ui.Slide = class Slide {
 	make() {
 		if (this.before_load) this.before_load(this);
 
+		this.attach_toggle_theme_btn();
+
 		this.$body = $(`<div class="slide-body">
 			<div class="content text-center">
 				<h1 class="title slide-title">${__(this.title)}</h1>
@@ -46,6 +48,18 @@ frappe.ui.Slide = class Slide {
 
 		this.refresh();
 		this.made = true;
+	}
+
+	attach_toggle_theme_btn() {
+		const toggle_icon = frappe.ui.get_current_theme() == "dark" ? "sun" : "moon";
+		this.$toggle_theme_btn =
+			$(`<button class="toggle-theme-btn btn btn-default btn-secondary btn-sm" data-label="Toggle Theme">
+				${frappe.utils.icon(toggle_icon, "sm")}
+			</button>`).appendTo(this.$wrapper);
+
+		this.$toggle_theme_btn.on("click", () => {
+			new frappe.ui.ThemeSwitcher().show();
+		});
 	}
 
 	refresh() {

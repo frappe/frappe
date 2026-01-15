@@ -265,6 +265,286 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		self.assertEqual(response["data"]["content"], comment_txt)
 
 
+class TestBulkOperationsV2(FrappeAPITestCase):
+	"""Test bulk delete and bulk update endpoints"""
+
+	version = "v2"
+	DOCTYPE = "ToDo"
+
+	def setUp(self) -> None:
+		self.post(self.method("login"), {"sid": self.sid})
+		return super().setUp()
+
+	def test_bulk_delete_docs_single_doctype(self):
+		# Create docs to delete
+		doc1 = frappe.get_doc({"doctype": self.DOCTYPE, "description": "To delete 1"}).insert()
+		doc2 = frappe.get_doc({"doctype": self.DOCTYPE, "description": "To delete 2"}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		# Bulk delete
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_delete"),
+			{"names": [doc1.name, doc2.name], "sid": self.sid},
+		)
+
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["total"], 2)
+		self.assertEqual(data["success_count"], 2)
+		self.assertEqual(data["failure_count"], 0)
+		self.assertIn(doc1.name, data["deleted"])
+		self.assertIn(doc2.name, data["deleted"])
+
+		# Verify deletion
+		self.assertFalse(frappe.db.exists(self.DOCTYPE, doc1.name))
+		self.assertFalse(frappe.db.exists(self.DOCTYPE, doc2.name))
+
+	def test_bulk_delete_docs_partial_failure(self):
+		# Create one valid doc
+		doc = frappe.get_doc({"doctype": self.DOCTYPE, "description": "To delete"}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		# Try to delete valid and non-existent doc
+		non_existent = "non-existent-todo"
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_delete"),
+			{"names": [doc.name, non_existent], "sid": self.sid},
+		)
+
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["total"], 2)
+		self.assertEqual(data["success_count"], 1)
+		self.assertEqual(data["failure_count"], 1)
+		self.assertIn(doc.name, data["deleted"])
+		self.assertEqual(len(data["failed"]), 1)
+		self.assertEqual(data["failed"][0]["name"], non_existent)
+
+	def test_bulk_delete_cross_doctype(self):
+		# Create docs of different types
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Test"}).insert()
+		note = frappe.get_doc({"doctype": "Note", "title": "Test Note", "content": "Test"}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		# Bulk delete across doctypes
+		response = self.post(
+			self.method("bulk_delete"),
+			{
+				"docs": [
+					{"doctype": "ToDo", "name": todo.name},
+					{"doctype": "Note", "name": note.name},
+				],
+				"sid": self.sid,
+			},
+		)
+
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["total"], 2)
+		self.assertEqual(data["success_count"], 2)
+		self.assertEqual(data["failure_count"], 0)
+
+		# Verify deletion
+		self.assertFalse(frappe.db.exists("ToDo", todo.name))
+		self.assertFalse(frappe.db.exists("Note", note.name))
+
+	def test_bulk_delete_invalid_format(self):
+		# Test with invalid format (not a list)
+		response = self.post(
+			self.method("bulk_delete"),
+			{"docs": {"doctype": "ToDo", "name": "test"}, "sid": self.sid},
+		)
+		self.assertEqual(response.status_code, 417)
+		self.assertIn("'docs' must be a list", response.json["errors"][0]["exception"])
+
+		# Test with invalid document format (not dict)
+		response = self.post(
+			self.method("bulk_delete"),
+			{"docs": ["invalid-item"], "sid": self.sid},
+		)
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["failure_count"], 1)
+		self.assertIn("must be a dictionary", data["failed"][0]["error"])
+
+	def test_bulk_update_docs_single_doctype(self):
+		# Create fresh docs for this test
+		doc1 = frappe.get_doc({"doctype": self.DOCTYPE, "description": "Original 1"}).insert()
+		doc2 = frappe.get_doc({"doctype": self.DOCTYPE, "description": "Original 2"}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		try:
+			# Bulk update
+			response = self.post(
+				self.resource(self.DOCTYPE, "bulk_update"),
+				{
+					"docs": [
+						{"name": doc1.name, "description": "Updated description 1", "priority": "High"},
+						{"name": doc2.name, "description": "Updated description 2", "priority": "Low"},
+					],
+					"sid": self.sid,
+				},
+			)
+
+			self.assertEqual(response.status_code, 200)
+			data = response.json["data"]
+			self.assertEqual(data["total"], 2)
+			self.assertEqual(data["success_count"], 2)
+			self.assertEqual(data["failure_count"], 0)
+			self.assertIn(doc1.name, data["updated"])
+			self.assertIn(doc2.name, data["updated"])
+
+			# Verify updates
+			updated_doc1 = frappe.get_doc(self.DOCTYPE, doc1.name)
+			updated_doc2 = frappe.get_doc(self.DOCTYPE, doc2.name)
+			self.assertEqual(updated_doc1.description, "Updated description 1")
+			self.assertEqual(updated_doc1.priority, "High")
+			self.assertEqual(updated_doc2.description, "Updated description 2")
+			self.assertEqual(updated_doc2.priority, "Low")
+		finally:
+			frappe.delete_doc_if_exists(self.DOCTYPE, doc1.name)
+			frappe.delete_doc_if_exists(self.DOCTYPE, doc2.name)
+			frappe.db.commit()  # nosemgrep
+
+	def test_bulk_update_cross_doctype(self):
+		# Create test documents
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Test"}).insert()
+		note = frappe.get_doc({"doctype": "Note", "title": "Test", "content": "Test"}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		try:
+			# Bulk update across doctypes
+			response = self.post(
+				self.method("bulk_update"),
+				{
+					"docs": [
+						{"doctype": "ToDo", "name": todo.name, "description": "Updated ToDo"},
+						{"doctype": "Note", "name": note.name, "title": "Updated Note"},
+					],
+					"sid": self.sid,
+				},
+			)
+
+			self.assertEqual(response.status_code, 200)
+			data = response.json["data"]
+			self.assertEqual(data["total"], 2)
+			self.assertEqual(data["success_count"], 2)
+			self.assertEqual(data["failure_count"], 0)
+
+			# Verify updates
+			updated_todo = frappe.get_doc("ToDo", todo.name)
+			updated_note = frappe.get_doc("Note", note.name)
+			self.assertEqual(updated_todo.description, "Updated ToDo")
+			self.assertEqual(updated_note.title, "Updated Note")
+		finally:
+			frappe.delete_doc_if_exists("ToDo", todo.name)
+			frappe.delete_doc_if_exists("Note", note.name)
+			frappe.db.commit()  # nosemgrep
+
+	def test_bulk_update_partial_failure(self):
+		# Create a fresh doc for this test
+		doc = frappe.get_doc({"doctype": self.DOCTYPE, "description": "Original"}).insert()
+		frappe.db.commit()  # nosemgrep
+		valid_doc = doc.name
+		non_existent = "non-existent-todo"
+
+		try:
+			# Try to update valid and non-existent doc
+			response = self.post(
+				self.resource(self.DOCTYPE, "bulk_update"),
+				{
+					"docs": [
+						{"name": valid_doc, "description": "Updated"},
+						{"name": non_existent, "description": "Should fail"},
+					],
+					"sid": self.sid,
+				},
+			)
+
+			self.assertEqual(response.status_code, 200)
+			data = response.json["data"]
+			self.assertEqual(data["total"], 2)
+			self.assertEqual(data["success_count"], 1)
+			self.assertEqual(data["failure_count"], 1)
+			self.assertIn(valid_doc, data["updated"])
+			self.assertEqual(len(data["failed"]), 1)
+			self.assertEqual(data["failed"][0]["name"], non_existent)
+
+			# Verify successful update
+			updated_doc = frappe.get_doc(self.DOCTYPE, valid_doc)
+			self.assertEqual(updated_doc.description, "Updated")
+		finally:
+			frappe.delete_doc_if_exists(self.DOCTYPE, valid_doc)
+			frappe.db.commit()  # nosemgrep
+
+	def test_bulk_update_invalid_format(self):
+		# Test with invalid format (not a list)
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_update"),
+			{"docs": {"name": "test", "description": "test"}, "sid": self.sid},
+		)
+		self.assertEqual(response.status_code, 417)
+		self.assertIn("'docs' must be a list", response.json["errors"][0]["exception"])
+
+		# Test with missing name field
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_update"),
+			{"docs": [{"description": "test"}], "sid": self.sid},
+		)
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["failure_count"], 1)
+		self.assertIn("'name' must be a string or integer", data["failed"][0]["error"])
+
+	def test_bulk_enqueue(self):
+		# Create 25 docs
+		docs = [
+			frappe.get_doc({"doctype": self.DOCTYPE, "description": f"To delete {i}"}).insert()
+			for i in range(25)
+		]
+		frappe.db.commit()  # nosemgrep
+
+		try:
+			# Bulk delete > 20 docs
+			names = [doc.name for doc in docs]
+			response = self.post(
+				self.resource(self.DOCTYPE, "bulk_delete"),
+				{"names": names, "sid": self.sid},
+			)
+
+			self.assertEqual(response.status_code, 202)
+			self.assertIn("job_id", response.json["data"])
+		finally:
+			# Clean up
+			for doc in docs:
+				frappe.delete_doc_if_exists(self.DOCTYPE, doc.name)
+			frappe.db.commit()  # nosemgrep
+
+	def test_bulk_update_enqueue(self):
+		# Create 25 docs
+		docs = [
+			frappe.get_doc({"doctype": self.DOCTYPE, "description": f"To update {i}"}).insert()
+			for i in range(25)
+		]
+		frappe.db.commit()  # nosemgrep
+
+		try:
+			# Bulk update > 20 docs
+			updates = [{"name": doc.name, "description": "Updated"} for doc in docs]
+			response = self.post(
+				self.resource(self.DOCTYPE, "bulk_update"),
+				{"docs": updates, "sid": self.sid},
+			)
+
+			self.assertEqual(response.status_code, 202)
+			self.assertIn("job_id", response.json["data"])
+		finally:
+			# Clean up
+			for doc in docs:
+				frappe.delete_doc_if_exists(self.DOCTYPE, doc.name)
+			frappe.db.commit()  # nosemgrep
+
+
 class TestDocTypeAPIV2(FrappeAPITestCase):
 	version = "v2"
 
@@ -314,7 +594,7 @@ def generate_admin_keys():
 	from frappe.core.doctype.user.user import generate_keys
 
 	generate_keys("Administrator")
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 
 
 @whitelist_for_tests()

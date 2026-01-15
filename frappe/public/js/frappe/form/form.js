@@ -168,6 +168,7 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.ui.keys.add_shortcut({
 			shortcut: "ctrl+p",
 			action: () => this.print_doc(),
+			page: this.page,
 			description: __("Print document"),
 			condition: () => frappe.model.can_print(this.doctype, this) && !this.meta.issingle,
 		});
@@ -664,12 +665,12 @@ frappe.ui.form.Form = class FrappeForm {
 			this.page.$title_area
 				.parent()
 				.css("max-width", overflow ? `calc(50% - ${overflow}px)` : "50%");
-			console.log(this.page.$title_area.find("ul li.ellipsis")[0].clientWidth);
 			let breadcrumb = this.page.$title_area.find("ul li.ellipsis");
-			if (!breadcrumb[0]?.clientWidth) {
+
+			if (cint(breadcrumb[0]?.clientWidth) <= 30) {
 				// if workspce sodebar is not visible
 				$(breadcrumb[0]).hide();
-				if (!breadcrumb[1]?.clientWidth) {
+				if (cint(breadcrumb[1]?.clientWidth) <= 30) {
 					// if doctype sodebar is not visible
 					$(breadcrumb[1]).hide();
 
@@ -1399,7 +1400,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	email_doc(message) {
-		new frappe.views.CommunicationComposer({
+		return new frappe.views.CommunicationComposer({
 			doc: this.doc,
 			frm: this,
 			subject: __(this.meta.name) + ": " + this.docname,

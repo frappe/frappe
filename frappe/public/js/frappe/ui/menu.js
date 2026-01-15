@@ -21,7 +21,7 @@ frappe.ui.menu = class ContextMenu {
 				event.stopPropagation();
 				if (me.visible) {
 					me.hide();
-					me.opts.onHide && me.opts.onHide(me);
+					me.opts.onHide && me.opts.onHide(me.parent);
 				} else {
 					me.show(event);
 					me.opts.onShow && me.opts.onShow(me.parent);

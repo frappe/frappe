@@ -161,11 +161,8 @@ def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_workspace_sidebar_items
 
 	bootinfo.workspaces = get_workspace_sidebar_items()
-	bootinfo.show_app_icons_as_folder = frappe.db.get_single_value(
-		"Desktop Settings", "show_app_icons_as_folder"
-	)
-	bootinfo.workspace_sidebar_item = get_sidebar_items()
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
+	bootinfo.workspace_sidebar_item = get_sidebar_items(allowed_pages)
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
 	bootinfo.app_data = []
@@ -536,7 +533,7 @@ def get_sentry_dsn():
 	return os.getenv("FRAPPE_SENTRY_DSN")
 
 
-def get_sidebar_items():
+def get_sidebar_items(allowed_workspaces):
 	from frappe import _
 	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import auto_generate_sidebar_from_module
 
@@ -588,7 +585,7 @@ def get_sidebar_items():
 			if (
 				"My Workspaces" in sidebar_title
 				or si.type == "Section Break"
-				or w.is_item_allowed(si.link_to, si.link_type)
+				or w.is_item_allowed(si.link_to, si.link_type, allowed_workspaces)
 			):
 				sidebar_items[sidebar_title.lower()]["items"].append(workspace_sidebar)
 	add_user_specific_sidebar(sidebar_items)

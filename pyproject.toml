@@ -98,7 +98,7 @@ Repository = "https://github.com/frappe/frappe.git"
 
 [project.optional-dependencies]
 dev = [
-    "pyngrok~=6.0.0",
+    "pyngrok~=7.5.0",
     "watchdog~=6.0.0",
     "responses==0.23.1",
     # typechecking
@@ -148,7 +148,7 @@ skip_namespaces = [
 [tool.bench.dev-dependencies]
 coverage = "~=7.10.0"
 Faker = "~=18.10.1"
-pyngrok = "~=6.0.0"
+pyngrok = "~=7.5.0"
 unittest-xml-reporting = "~=3.2.0"
 watchdog = "~=6.0.0"
 hypothesis = "~=6.77.0"

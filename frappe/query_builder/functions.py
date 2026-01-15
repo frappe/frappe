@@ -25,8 +25,21 @@ class Concat_ws(Function):
 
 
 class Locate(Function):
-	def __init__(self, *terms, **kwargs):
-		super().__init__("LOCATE", *terms, **kwargs)
+	def __init__(self, needle, haystack, **kwargs):
+		super().__init__("LOCATE", needle, haystack, **kwargs)
+
+
+class Strpos(Function):
+	def __init__(self, needle, haystack, **kwargs):
+		super().__init__("STRPOS", haystack, needle, **kwargs)
+
+
+class Instr(Function):
+	def __init__(self, needle, haystack, **kwargs):
+		super().__init__("INSTR", haystack, needle, **kwargs)
+
+
+Locate = ImportMapper({db_type_is.MARIADB: Locate, db_type_is.POSTGRES: Strpos, db_type_is.SQLITE: Instr})
 
 
 # for backward compatibility

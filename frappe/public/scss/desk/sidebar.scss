@@ -252,7 +252,6 @@
 	display: none;
 }
 .section-break {
-	flex: 0 0 auto !important;
 	color: var(--ink-gray-5) !important;
 	margin-left: 7px;
 	gap: 0px !important;
@@ -270,8 +269,7 @@
 	.standard-sidebar-item:hover {
 		& .sidebar-item-edit-controls {
 			visibility: visible;
-			display: flex;
-			gap: 6px;
+			width: auto;
 		}
 	}
 	.collapse-sidebar-link {
@@ -283,6 +281,9 @@
 }
 .sidebar-item-edit-controls {
 	visibility: hidden;
+	display: flex;
+	gap: 6px;
+	width: 0;
 }
 .standard-sidebar-item[data-name="add-sidebar-item"] {
 	margin-top: 5px;

@@ -19,12 +19,15 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 					type: this.item.link_type,
 					name: this.item.link_to,
 				};
-
-				if (this.item.report || !frappe.app.sidebar.editor.edit_mode) {
-					args.is_query_report =
-						this.item.report.report_type === "Query Report" ||
-						this.item.report.report_type == "Script Report";
-					args.report_ref_doctype = this.item.report.ref_doctype;
+				if (!frappe.app.sidebar.editor.edit_mode) {
+					if (this.item.report) {
+						args.is_query_report =
+							this.item.report.report_type === "Query Report" ||
+							this.item.report.report_type == "Script Report";
+						args.report_ref_doctype = this.item.report.ref_doctype;
+					} else {
+						return;
+					}
 				}
 
 				path = frappe.utils.generate_route(args);
@@ -72,6 +75,9 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 	prepare() {}
 	make() {
 		this.path = this.get_path();
+		if (!this.path && !this.item.standard && this.item.type != "Section Break") {
+			return;
+		}
 		this.set_suffix();
 		if (!this.item.icon && !(this.item.child && this.item.parent.indent)) {
 			this.item.icon = "list";
@@ -171,8 +177,8 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		this.full_template = $(this.wrapper);
 	}
 	make() {
-		if (this.item.nested_items.length == 0) return;
 		super.make();
+		if (!this.item.nested_items || this.item.nested_items.length == 0) return;
 		this.add_items();
 		this.toggle_on_collapse();
 		this.enable_collapsible(this.item, this.full_template);
