@@ -135,7 +135,7 @@ def attach_print(
 	frappe.local.flags.ignore_print_permissions = True
 
 	is_weasyprint_print_format = False
-	if print_format:
+	if print_format and print_format != "Standard":
 		print_format_doc = frappe.get_cached_doc("Print Format", print_format)
 		is_weasyprint_print_format = not (
 			print_format_doc.custom_format or print_format_doc.get("print_designer_print_format")
