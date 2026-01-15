@@ -58,6 +58,7 @@
 import { isNumber } from "@tiptap/vue-3"
 import { Popover } from "frappe-ui"
 import { PropType, computed } from "vue"
+import { extractNumberAndUnit } from "@/utils/helpers"
 import Input from "@/components/Input.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
 import ColorInput from "@/components/ColorInput.vue"
@@ -144,7 +145,7 @@ const handleChange = (value: string | number | null | { label: string; value: st
 		value = value.value
 	}
 	if (value && typeof value === "string") {
-		let [_, number, unit] = value.match(/([0-9]+)([a-z%]*)/) || ["", "", ""]
+		const { number, unit } = extractNumberAndUnit(value)
 		if (!unit && props.unitOptions.length && number) {
 			value = number + props.unitOptions[0]
 		}
@@ -157,7 +158,7 @@ const handleMouseDown = (e: MouseEvent) => {
 	if (!props.enableSlider) {
 		return
 	}
-	const number = ((props.modelValue + "" || "") as string).match(/([0-9]+)/)?.[0] || "0"
+	const { number } = extractNumberAndUnit(String(props.modelValue || ""))
 	const startY = e.clientY
 	const startValue = Number(number)
 	const handleMouseMove = (e: MouseEvent) => {
@@ -181,11 +182,10 @@ const handleKeyDown = (e: KeyboardEvent) => {
 }
 
 const incrementOrDecrement = (step: number, initialValue: null | number = null) => {
-	const value = props.modelValue + "" || ""
-	let [_, number, unit] = value.match(/([0-9]+)([a-z%]*)/) || ["", "", ""]
-	if (!unit && props.unitOptions.length && !isNaN(Number(number))) {
-		unit = props.unitOptions[0]
-	}
+	const value = String(props.modelValue || "")
+	const { number, unit: existingUnit } = extractNumberAndUnit(value)
+	const unit =
+		existingUnit || (props.unitOptions.length && !isNaN(Number(number)) ? props.unitOptions[0] : "")
 	let newValue = (initialValue != null ? Number(initialValue) : Number(number)) + step
 	if (isNumber(props.minValue) && newValue <= props.minValue) {
 		newValue = props.minValue

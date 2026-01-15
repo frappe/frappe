@@ -66,6 +66,7 @@ function getComponentRoot(componentRef: Ref) {
 	}
 }
 
+// css
 function numberToPx(number: StyleValue, round: boolean = true): string {
 	/* appends "px" to number with optional rounding */
 	if (number === null || number === undefined) return ""
@@ -83,6 +84,16 @@ function pxToNumber(px: string | number | null | undefined): number {
 	const number = Number(px.replace("px", ""))
 	if (isNaN(number)) return 0
 	return number
+}
+
+/**
+ * Extracts the numeric value and unit from a CSS value string
+ * @param value - CSS value string (e.g., "10px", "1.5em", "20")
+ * @returns Object containing the number and unit parts
+ */
+function extractNumberAndUnit(value: string): { number: string; unit: string } {
+	const match = value.match(/([0-9.]+)([a-z%]*)/) || ["", "0", ""];
+	return { number: match[1], unit: match[2] };
 }
 
 function kebabToCamelCase(str: string) {
@@ -447,8 +458,10 @@ export {
 	deepCloneObject,
 	getBlockInfo,
 	getComponentRoot,
+	// css
 	numberToPx,
 	pxToNumber,
+	extractNumberAndUnit,
 	kebabToCamelCase,
 	areObjectsEqual,
 	isObjectEmpty,
