@@ -1,4 +1,10 @@
 <style>
+.version-diff-container {
+	margin-bottom: 1rem;
+}
+.version-diff-container h5 {
+	margin-bottom: 0.5rem;
+}
 .version-html-diff table.diff {
 	width: 100%;
 	border-collapse: collapse;
@@ -53,8 +59,8 @@
 <h4>{{ __("Values Changed") }}</h4>
 {% for item in data.changed %}
 	{% if htmlDiffs[item[0]] %}
-	<div class="version-diff-container" style="margin-bottom: 1rem;">
-		<h5 style="margin-bottom: 0.5rem;">{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</h5>
+	<div class="version-diff-container">
+		<h5>{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</h5>
 		<div class="version-html-diff">{{ htmlDiffs[item[0]] }}</div>
 	</div>
 	{% endif %}
