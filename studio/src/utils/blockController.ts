@@ -60,6 +60,9 @@ const blockController = {
 		return styleValue;
 	},
 	setStyle: (style: styleProperty, value: StyleValue) => {
+		if (value === "unset") {
+			value = null
+		}
 		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
 			block.setStyle(style, value);
 		});
