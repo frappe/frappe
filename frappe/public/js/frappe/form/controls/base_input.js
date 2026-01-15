@@ -146,8 +146,13 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		} else {
 			value = this.value || value;
 		}
-		if (this.df.fieldtype === "Data") {
-			value = frappe.utils.escape_html(value);
+		if (
+			value &&
+			["Data", "Text", "Small Text", "Long Text", "Password", "MultiSelect", "MultiSelectPills"].includes(
+				this.df.fieldtype
+			)
+		) {
+			value = frappe.utils.xss_sanitise(value);
 		}
 		let doc = this.doc || (this.frm && this.frm.doc);
 		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
