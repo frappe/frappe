@@ -254,11 +254,11 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		// Apply text case transformation if specified
 		if (this.df.text_case) {
 			const caseMap = {
-				'UpperCase': 'uppercase',
-				'TitleCase': 'capitalize',
-				'LowerCase': 'lowercase'
+				UpperCase: "uppercase",
+				TitleCase: "capitalize",
+				LowerCase: "lowercase",
 			};
-			this.$input.css("text-transform", caseMap[this.df.text_case] || 'none');
+			this.$input.css("text-transform", caseMap[this.df.text_case] || "none");
 		}
 	}
 	set_input(value) {
@@ -287,13 +287,15 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		// Transform value based on text_case setting
 		if (value && this.df.text_case) {
 			switch (this.df.text_case) {
-				case 'UpperCase':
+				case "UpperCase":
 					return value.toLocaleUpperCase();
-				case 'LowerCase':
+				case "LowerCase":
 					return value.toLocaleLowerCase();
-				case 'TitleCase':
-					return value.replace(/[^\s]+/g, (txt) =>
-						txt.charAt(0).toLocaleUpperCase() + txt.substr(1).toLocaleLowerCase()
+				case "TitleCase":
+					return value.replace(
+						/[^\s]+/g,
+						(txt) =>
+							txt.charAt(0).toLocaleUpperCase() + txt.substr(1).toLocaleLowerCase()
 					);
 			}
 		}

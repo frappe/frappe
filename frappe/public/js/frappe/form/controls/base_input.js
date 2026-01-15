@@ -170,11 +170,11 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			// Apply text case transformation for read-only display
 			if (this.df.text_case && this.df.fieldtype === "Data") {
 				const caseMap = {
-					'UpperCase': 'uppercase',
-					'TitleCase': 'capitalize',
-					'LowerCase': 'lowercase'
+					UpperCase: "uppercase",
+					TitleCase: "capitalize",
+					LowerCase: "lowercase",
 				};
-				$(this.disp_area).css("text-transform", caseMap[this.df.text_case] || 'none');
+				$(this.disp_area).css("text-transform", caseMap[this.df.text_case] || "none");
 			}
 		}
 	}
@@ -186,7 +186,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		var icon = "";
 		this.label_span.innerHTML =
 			(icon ? '<i class="' + icon + '"></i> ' : "") +
-			__(this.df.label, null, this.df.parent) || "&nbsp;";
+				__(this.df.label, null, this.df.parent) || "&nbsp;";
 		this._label = this.df.label;
 	}
 
