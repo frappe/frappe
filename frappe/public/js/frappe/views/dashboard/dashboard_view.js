@@ -124,7 +124,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				? JSON.parse(settings.chart_config)
 				: {};
 			this.charts.map((chart) => {
-				chart.label = chart.chart_name;
+				chart.label = __(chart.chart_name);
 				chart.chart_settings = this.dashboard_chart_settings[chart.chart_name] || {};
 			});
 			this.render_dashboard_charts();
@@ -464,7 +464,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				} else {
 					this.chart_group.new_widget.on_create({
 						chart_name: chart.chart,
-						label: chart.chart,
+						label: __(chart.chart),
 						name: chart.chart,
 					});
 				}

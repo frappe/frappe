@@ -147,7 +147,7 @@ class ChartDialog extends WidgetDialog {
 	}
 
 	process_data(data) {
-		data.label = data.label ? data.label : data.chart_name;
+		data.label = data.label ? data.label : __(data.chart_name);
 		return data;
 	}
 }
