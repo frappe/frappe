@@ -1,8 +1,8 @@
 <!-- Extracted from Builder -->
 <template>
-	<teleport to="body">
+	<teleport to="#popovers">
 		<div class="relative" ref="popover">
-			<div class="fixed z-50" @mousedown.stop>
+			<div class="fixed" @mousedown.stop>
 				<div
 					ref="popoverContent"
 					class="fixed flex flex-col gap-1 overflow-hidden rounded-lg border border-outline-gray-2 bg-surface-white shadow-2xl"
