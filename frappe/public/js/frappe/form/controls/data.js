@@ -288,12 +288,12 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		if (value && this.df.text_case) {
 			switch (this.df.text_case) {
 				case 'UpperCase':
-					return value.toUpperCase();
+					return value.toLocaleUpperCase();
 				case 'LowerCase':
-					return value.toLowerCase();
+					return value.toLocaleLowerCase();
 				case 'TitleCase':
-					return value.replace(/\w\S*/g, (txt) =>
-						txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+					return value.replace(/[^\s]+/g, (txt) =>
+						txt.charAt(0).toLocaleUpperCase() + txt.substr(1).toLocaleLowerCase()
 					);
 			}
 		}
