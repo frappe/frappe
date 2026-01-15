@@ -15,23 +15,31 @@ class ExplicitCommit(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		commit_datetime: DF.Datetime
+		count: DF.Int
 		function_name: DF.Data
 		function_path: DF.Data
-		line_number: DF.Int
 		source_app: DF.Data
 	# end: auto-generated types
 
 	pass
 
 
-def insert_record(source_app, function_path, function_name, line_number):
-	explicit_commit = frappe.new_doc(
+def insert_record(source_app, function_path, function_name):
+	if doc_name := frappe.get_all(
 		"Explicit Commit",
-		commit_datetime=now_datetime(),
-		source_app=source_app,
-		function_path=function_path,
-		function_name=function_name,
-		line_number=line_number,
-	)
-	frappe.enqueue(explicit_commit.insert, enqueue_after_commit=True)
+		{
+			"source_app": source_app,
+			"function_path": function_path,
+			"function_name": function_name,
+		},
+		["name", "count"],
+		limit=1,
+	):
+		frappe.set_value("Explicit Commit", doc_name[0].name, "count", doc_name[0].count + 1)
+	else:
+		frappe.new_doc(
+			"Explicit Commit",
+			source_app=source_app,
+			function_path=function_path,
+			function_name=function_name,
+		).insert(ignore_permissions=True)

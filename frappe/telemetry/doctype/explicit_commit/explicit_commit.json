@@ -6,26 +6,16 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "commit_datetime",
   "source_app",
   "function_path",
   "function_name",
-  "line_number"
+  "count"
  ],
  "fields": [
   {
-   "fieldname": "commit_datetime",
-   "fieldtype": "Datetime",
-   "in_list_view": 1,
-   "label": "Commit Datetime",
-   "no_copy": 1,
-   "read_only": 1,
-   "reqd": 1,
-   "set_only_once": 1
-  },
-  {
    "fieldname": "source_app",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Source App",
    "no_copy": 1,
    "read_only": 1,
@@ -33,18 +23,9 @@
    "set_only_once": 1
   },
   {
-   "fieldname": "line_number",
-   "fieldtype": "Int",
-   "label": "Line Number",
-   "no_copy": 1,
-   "non_negative": 1,
-   "read_only": 1,
-   "reqd": 1,
-   "set_only_once": 1
-  },
-  {
    "fieldname": "function_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Function Name",
    "no_copy": 1,
    "read_only": 1,
@@ -54,11 +35,23 @@
   {
    "fieldname": "function_path",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Function Path",
    "no_copy": 1,
    "read_only": 1,
    "reqd": 1,
    "set_only_once": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Count",
+   "no_copy": 1,
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
@@ -66,7 +59,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-15 12:23:57.119262",
+ "modified": "2026-01-15 13:57:42.062141",
  "modified_by": "Administrator",
  "module": "Telemetry",
  "name": "Explicit Commit",
