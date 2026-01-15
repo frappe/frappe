@@ -247,13 +247,13 @@ def new_po(locale, target_app: str | None = None):
 		)
 
 
-def compile_translations(target_app: str | None = None, locale: str | None = None, force=False):
+def compile_translations(target_app: str | None = None, locale: str | None = None, force=False, verbose=True):
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 	tasks = []
 	for app in apps:
 		locales = [locale] if locale else get_locales(app)
 		for current_locale in locales:
-			tasks.append((app, current_locale, force))
+			tasks.append((app, current_locale, force, verbose))
 
 	# Execute all tasks, doing this sequentially is quite slow hence use processpool of 4
 	# processes.
@@ -264,21 +264,23 @@ def compile_translations(target_app: str | None = None, locale: str | None = Non
 	executer.join()
 
 
-def _compile_translation(app, locale, force=False):
+def _compile_translation(app, locale, force=False, verbose=True):
 	po_path = get_po_path(app, locale)
 	mo_path = get_mo_path(app, locale)
 	if not po_path.exists():
 		return
 
 	if mo_path.exists() and po_path.stat().st_mtime < mo_path.stat().st_mtime and not force:
-		print(f"MO file already up to date at {mo_path}")
+		if verbose:
+			print(f"MO file already up to date at {mo_path}")
 		return
 
 	with open(po_path, "rb") as f:
 		catalog = read_po(f)
 
 	mo_path = write_binary(app, catalog, locale)
-	print(f"MO file created at {mo_path}")
+	if verbose:
+		print(f"MO file created at {mo_path}")
 
 
 def update_po(target_app: str | None = None, locale: str | None = None):

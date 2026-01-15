@@ -1,5 +1,7 @@
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
+const { spawn } = require("child_process");
 const glob = require("fast-glob");
 const esbuild = require("esbuild");
 const vue = require("esbuild-plugin-vue3");
@@ -72,6 +74,10 @@ const argv = yargs
 		type: "string",
 		description: "Specifies the target of the build output.",
 	})
+	.option("verbose", {
+		type: "boolean",
+		description: "Print detailed build output",
+	})
 	.example("node esbuild --apps frappe,erpnext", "Run build only for frappe and erpnext")
 	.example(
 		"node esbuild --files frappe/website.bundle.js,frappe/desk.bundle.js",
@@ -87,6 +93,7 @@ const WATCH_MODE = Boolean(argv.watch);
 const PRODUCTION = Boolean(argv.production);
 const RUN_BUILD_COMMAND = !WATCH_MODE && Boolean(argv["run-build-command"]);
 const ESBUILD_TARGET = argv["esbuild-target"] || "es2017";
+const VERBOSE = Boolean(argv.verbose);
 
 const TOTAL_BUILD_TIME = `${chalk.black.bgGreen(" DONE ")} Total Build Time`;
 const NODE_PATHS = [].concat(
@@ -96,6 +103,13 @@ const NODE_PATHS = [].concat(
 	app_list.map((app) => path.resolve(apps_path, app)).filter(fs.existsSync)
 );
 const USING_CACHED = Boolean(argv["using-cached"]);
+const MAX_OUTPUT_BUFFER = 20000;
+
+function log_verbose(...args) {
+	if (VERBOSE) {
+		log(...args);
+	}
+}
 
 execute().catch((e) => {
 	console.error(e);
@@ -130,16 +144,22 @@ async function execute() {
 	}
 
 	if (!WATCH_MODE) {
-		log_built_assets(results);
-		console.timeEnd(TOTAL_BUILD_TIME);
-		log();
+		if (VERBOSE) {
+			log_built_assets(results);
+			console.timeEnd(TOTAL_BUILD_TIME);
+			log();
+		} else {
+			console.timeEnd(TOTAL_BUILD_TIME);
+		}
 	} else {
 		log("Watching for changes...");
 	}
 	for (const result of results) {
 		await write_assets_json(result.metafile);
 	}
-	RUN_BUILD_COMMAND && run_build_command_for_apps(APPS);
+	if (RUN_BUILD_COMMAND) {
+		await run_build_command_for_apps(APPS);
+	}
 	if (!WATCH_MODE) {
 		process.exit(0);
 	}
@@ -508,16 +528,24 @@ async function get_assets_json_path_and_obj(is_rtl) {
 	return { obj: assets_json, path: assets_json_path };
 }
 
-function run_build_command_for_apps(apps) {
-	let cwd = process.cwd();
-	let { execSync } = require("child_process");
+function get_build_concurrency(app_count) {
+	const env_limit = Number(process.env.FRAPPE_BUILD_CONCURRENCY);
+	if (Number.isFinite(env_limit) && env_limit > 0) {
+		return Math.min(env_limit, app_count);
+	}
+	const cpu_limit = Math.max(1, Math.floor(os.cpus().length / 2));
+	return Math.min(cpu_limit, app_count);
+}
 
+const BUILD_CHILDREN = new Set();
+
+async function run_build_command_for_apps(apps) {
+	const build_apps = [];
 	for (let app of apps) {
 		if (app === "frappe") continue;
 
 		let root_app_path = path.resolve(apps_path, app);
 		let package_json = path.resolve(root_app_path, "package.json");
-		let node_modules = path.resolve(root_app_path, "node_modules");
 
 		if (!fs.existsSync(package_json)) {
 			continue;
@@ -528,19 +556,168 @@ function run_build_command_for_apps(apps) {
 			continue;
 		}
 
-		process.chdir(root_app_path);
-		if (!fs.existsSync(node_modules)) {
-			log(
-				`\nInstalling dependencies for ${chalk.bold(app)} (because node_modules not found)`
-			);
-			execSync("yarn install --frozen-lockfile", { encoding: "utf8", stdio: "inherit" });
-		}
-
-		log("\nRunning build command for", chalk.bold(app));
-		execSync("yarn build", { encoding: "utf8", stdio: "inherit" });
+		build_apps.push({ app, root_app_path });
 	}
 
-	process.chdir(cwd);
+	if (!build_apps.length) {
+		return;
+	}
+
+	const concurrency = get_build_concurrency(build_apps.length);
+	if (!VERBOSE) {
+		log(
+			`Running build commands for ${build_apps.length} app(s) in parallel (${concurrency} workers)...`
+		);
+	}
+
+	const tasks = build_apps.map(
+		({ app, root_app_path }) =>
+			() =>
+				run_app_build(app, root_app_path)
+	);
+
+	try {
+		await run_with_concurrency(tasks, concurrency);
+	} catch (error) {
+		terminate_build_children();
+		if (!VERBOSE) {
+			log_error(`Build command failed for ${error.app || "an app"}`);
+			if (error.output) {
+				log(error.output.trim());
+			} else {
+				log_warn("Run again with --verbose for more details.");
+			}
+		}
+		throw error;
+	}
+
+	if (!VERBOSE) {
+		log("Build commands finished.");
+	}
+}
+
+async function run_app_build(app, root_app_path) {
+	let node_modules = path.resolve(root_app_path, "node_modules");
+	if (!fs.existsSync(node_modules)) {
+		log_verbose(
+			`\nInstalling dependencies for ${chalk.bold(app)} (because node_modules not found)`
+		);
+		await run_command("yarn install --frozen-lockfile", {
+			cwd: root_app_path,
+			app,
+			step: "install",
+		});
+	}
+
+	log_verbose("\nRunning build command for", chalk.bold(app));
+	await run_command("yarn build", { cwd: root_app_path, app, step: "build" });
+}
+
+function run_command(command, { cwd, app, step }) {
+	return new Promise((resolve, reject) => {
+		const child = spawn(command, {
+			cwd,
+			shell: true,
+			stdio: VERBOSE ? "inherit" : ["ignore", "pipe", "pipe"],
+		});
+
+		BUILD_CHILDREN.add(child);
+
+		let output = "";
+		if (!VERBOSE) {
+			if (child.stdout) {
+				child.stdout.on("data", (chunk) => {
+					output = append_output(output, chunk);
+				});
+			}
+			if (child.stderr) {
+				child.stderr.on("data", (chunk) => {
+					output = append_output(output, chunk);
+				});
+			}
+		}
+
+		child.on("error", (error) => {
+			BUILD_CHILDREN.delete(child);
+			error.app = app;
+			error.step = step;
+			error.output = output;
+			reject(error);
+		});
+
+		child.on("close", (code) => {
+			BUILD_CHILDREN.delete(child);
+			if (code === 0) {
+				resolve();
+				return;
+			}
+
+			const error = new Error(`${step} command failed for ${app} (exit code ${code})`);
+			error.app = app;
+			error.step = step;
+			error.output = output;
+			reject(error);
+		});
+	});
+}
+
+function append_output(buffer, chunk) {
+	const text = chunk.toString();
+	const next = buffer + text;
+	if (next.length <= MAX_OUTPUT_BUFFER) {
+		return next;
+	}
+	return next.slice(next.length - MAX_OUTPUT_BUFFER);
+}
+
+function run_with_concurrency(tasks, concurrency) {
+	let index = 0;
+	let running = 0;
+	let rejected = false;
+
+	return new Promise((resolve, reject) => {
+		const schedule = () => {
+			if (rejected) {
+				return;
+			}
+			while (running < concurrency && index < tasks.length) {
+				const task = tasks[index++];
+				running += 1;
+				Promise.resolve()
+					.then(task)
+					.then(() => {
+						running -= 1;
+						if (index === tasks.length && running === 0) {
+							resolve();
+						} else {
+							schedule();
+						}
+					})
+					.catch((error) => {
+						rejected = true;
+						reject(error);
+					});
+			}
+		};
+
+		if (!tasks.length) {
+			resolve();
+			return;
+		}
+
+		schedule();
+	});
+}
+
+function terminate_build_children() {
+	for (const child of BUILD_CHILDREN) {
+		try {
+			child.kill();
+		} catch (error) {
+			// no-op
+		}
+	}
+	BUILD_CHILDREN.clear();
 }
 
 async function notify_redis({ error, success, changed_files }) {
