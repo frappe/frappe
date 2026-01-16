@@ -1,4 +1,5 @@
 import os
+import shutil
 
 import frappe
 from frappe.core.doctype.data_import.data_import import export_json, import_doc
@@ -80,3 +81,37 @@ class TestFixtureImport(IntegrationTestCase):
 		os.remove(path_to_exported_fixtures)
 
 		frappe.db.commit()
+
+	def test_export_code_files_fixtures_import(self):
+		pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": "_Test Fixture Print Format",
+				"doc_type": "ToDo",
+				"print_format_type": "Jinja",
+				"print_format_for": "DocType",
+				"custom_format": 1,
+				"standard": "No",
+				"html": "<div class=\"a\">Hello</div>",
+				"css": ".a {\n\tcolor: red;\n}\n",
+			}
+		).insert()
+
+		path_to_exported_fixtures = os.path.join(os.getcwd(), "print_format_fixture.json")
+		export_json("Print Format", path_to_exported_fixtures, name=pf.name, export_code_files=True)
+
+		delete_doc("Print Format", pf.name, delete_permanently=True)
+		frappe.db.commit()
+
+		import_doc(path_to_exported_fixtures)
+		imported_pf = frappe.get_doc("Print Format", pf.name)
+		self.assertEqual(imported_pf.html, "<div class=\"a\">Hello</div>")
+		self.assertEqual(imported_pf.css, ".a {\n\tcolor: red;\n}\n")
+
+		delete_doc("Print Format", pf.name, delete_permanently=True)
+		frappe.db.commit()
+
+		sidecar_dir = os.path.join(os.path.dirname(path_to_exported_fixtures), "print_format_fixture_files")
+		if os.path.exists(sidecar_dir):
+			shutil.rmtree(sidecar_dir)
+		os.remove(path_to_exported_fixtures)

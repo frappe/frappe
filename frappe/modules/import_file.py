@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import hashlib
 import os
+from pathlib import Path
 
 import orjson
 
@@ -208,8 +209,29 @@ def import_doc(
 	reset_permissions=False,
 	path=None,
 ):
+	def resolve_file_references(value, base_dir: str):
+		if isinstance(value, dict):
+			file_ref = value.get("__file__")
+			if file_ref and isinstance(file_ref, str) and len(value) == 1:
+				abs_path = Path(base_dir, file_ref).resolve()
+				base_path = Path(base_dir).resolve()
+				if not abs_path.is_relative_to(base_path):
+					frappe.throw("Invalid file reference path: " + abs_path.as_posix())
+				with open(abs_path) as f:
+					return f.read()
+
+			return {k: resolve_file_references(v, base_dir) for k, v in value.items()}
+
+		if isinstance(value, list):
+			return [resolve_file_references(v, base_dir) for v in value]
+
+		return value
+
 	frappe.flags.in_import = True
 	docdict["__islocal"] = 1
+
+	if path:
+		docdict = resolve_file_references(docdict, os.path.dirname(path) or os.getcwd())
 
 	controller = get_controller(docdict["doctype"])
 	if controller and hasattr(controller, "prepare_for_import") and callable(controller.prepare_for_import):

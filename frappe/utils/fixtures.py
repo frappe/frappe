@@ -97,4 +97,5 @@ def export_fixtures(app=None):
 				filters=filters,
 				or_filters=or_filters,
 				order_by="idx asc, creation asc",
+				export_code_files=True,
 			)

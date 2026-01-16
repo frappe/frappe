@@ -60,6 +60,9 @@ class PrintFormat(Document):
 		)
 		self.set_onload("print_templates", templates)
 
+	def get_code_fields(self):
+		return {"html": "html", "css": "css"}
+
 	def before_save(self):
 		if self.print_format_for == "Report":
 			self.custom_format = 1

@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 
 import os
+import shutil
+from pathlib import Path
 
 from rq.command import send_stop_job_command
 from rq.exceptions import InvalidJobOperation
@@ -327,7 +329,15 @@ def import_doc(path, pre_process=None, sort=False):
 			raise NotImplementedError("Only .json files can be imported")
 
 
-def export_json(doctype, path, filters=None, or_filters=None, name=None, order_by="creation asc"):
+def export_json(
+	doctype,
+	path,
+	filters=None,
+	or_filters=None,
+	name=None,
+	order_by="creation asc",
+	export_code_files: bool = False,
+):
 	def post_process(out):
 		# Note on Tree DocTypes:
 		# The tree structure is maintained in the database via the fields "lft"
@@ -355,11 +365,11 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None, order_b
 							if key in child:
 								del child[key]
 
-	out = []
+	docs = []
 	if name:
-		out.append(frappe.get_doc(doctype, name).as_dict())
+		docs.append(frappe.get_doc(doctype, name))
 	elif frappe.db.get_value("DocType", doctype, "issingle"):
-		out.append(frappe.get_doc(doctype).as_dict())
+		docs.append(frappe.get_doc(doctype))
 	else:
 		for doc in frappe.get_all(
 			doctype,
@@ -369,12 +379,53 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None, order_b
 			limit_page_length=0,
 			order_by=order_by,
 		):
-			out.append(frappe.get_doc(doctype, doc.name).as_dict())
+			docs.append(frappe.get_doc(doctype, doc.name))
+
+	out = [doc.as_dict() for doc in docs]
 	post_process(out)
 
 	dirname = os.path.dirname(path)
-	if not os.path.exists(dirname):
+	if dirname and not os.path.exists(dirname):
 		path = os.path.join("..", path)
+
+	if export_code_files:
+		export_dir = os.path.dirname(path) or os.getcwd()
+		json_stem = Path(path).stem
+		sidecar_dirname = f"{json_stem}_files"
+		sidecar_dir = os.path.join(export_dir, sidecar_dirname)
+
+		if os.path.exists(sidecar_dir):
+			shutil.rmtree(sidecar_dir)
+
+		sidecar_dir_created = False
+
+		for doc, doc_export in zip(docs, out):
+			if not hasattr(doc, "get_code_fields"):
+				continue
+
+			code_fields = doc.get_code_fields()
+			if not isinstance(code_fields, dict):
+				continue
+
+			for key, extn in code_fields.items():
+				content = doc.get(key)
+				if not content:
+					continue
+
+				if not sidecar_dir_created:
+					os.makedirs(sidecar_dir, exist_ok=True)
+					sidecar_dir_created = True
+
+				fname = frappe.scrub(doc.name)
+				if key != extn:
+					fname = f"{fname}__{key}"
+				fname = f"{fname}.{extn}"
+				abs_code_path = os.path.join(sidecar_dir, fname)
+				with open(abs_code_path, "w") as codefile:
+					codefile.write(content)
+
+				rel_code_path = (Path(sidecar_dirname) / fname).as_posix()
+				doc_export[key] = {"__file__": rel_code_path}
 
 	with open(path, "w") as outfile:
 		outfile.write(frappe.as_json(out, ensure_ascii=False))
