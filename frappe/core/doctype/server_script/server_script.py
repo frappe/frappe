@@ -238,7 +238,7 @@ def setup_scheduler_events(script_name: str, frequency: str, cron_format: str | 
 				"frequency": frequency,
 				"server_script": script_name,
 				"cron_format": cron_format,
-				"create_log": should_create_log
+				"create_log": should_create_log,
 			}
 		).insert()
 
