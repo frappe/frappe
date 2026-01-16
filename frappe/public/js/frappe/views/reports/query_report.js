@@ -538,6 +538,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		let filter_area = this.page.page_form;
 		this.filters = [];
+		this.check_filter_area = filter_area;
 		if (this.report_settings.seperate_check_filters) this.setup_check_filter_area();
 		this.filters = filters
 			.map((df, index) => {
