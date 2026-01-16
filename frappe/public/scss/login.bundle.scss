@@ -76,6 +76,7 @@ body {
 			}
 
 			.forgot-password-message {
+				/* rtl:ignore */
 				text-align: right;
 				line-height: 1;
 
@@ -86,6 +87,7 @@ body {
 			}
 
 			.field-icon {
+				/* rtl:ignore */
 				left: 9px;
 				top: 50%;
 				transform: translateY(-50%);
@@ -99,10 +101,12 @@ body {
 				position: relative;
 
 				input {
+					/* rtl:ignore */
 					padding-left: 35px;
 				}
 
 				.toggle-password {
+					/* rtl:ignore */
 					right: 9px;
 					top: 5px;
 					position: absolute;
@@ -114,7 +118,8 @@ body {
 
 			.password-field {
 				input[dir="rtl"] {
-					padding-right: 35px;
+					/* rtl:ignore */
+					padding-right: 3.5rem;
 				}
 			}
 
