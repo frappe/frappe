@@ -65,7 +65,10 @@ frappe.ui.form.Control = class BaseControl {
 				if (explain) console.log("By Hidden Dependency: None");
 				return "None";
 			} else if (
-				cint(this.df.read_only || this.df.is_virtual || this.df.fieldtype === "Read Only")
+				cint(this.df.read_only) ||
+				this.df.read_only_due_to_dependency ||
+				this.df.is_virtual ||
+				this.df.fieldtype === "Read Only"
 			) {
 				if (explain) console.log("By Read Only: Read");
 				status = "Read";

@@ -8,10 +8,6 @@ export default class GridRow {
 		this.set_docfields();
 		this.columns = {};
 		this.columns_list = [];
-		this.dependent_fields = {
-			mandatory: [],
-			read_only: [],
-		};
 		this.row_check_html = '<input type="checkbox" class="grid-row-check" tabIndex="-1">';
 		this.default_rows_threshold_for_grid_search = 20;
 		this.make();
@@ -761,12 +757,13 @@ export default class GridRow {
 
 			// background color for cell
 			if (this.doc) {
-				if (df.reqd && !txt) {
+				const is_reqd = this.is_field_reqd(df);
+				if (is_reqd && !txt) {
 					column.addClass("error");
 				}
 				if (column.is_invalid) {
 					column.addClass("invalid");
-				} else if (df.reqd || df.bold) {
+				} else if (is_reqd || df.bold) {
 					column.addClass("bold");
 				}
 			}
@@ -796,33 +793,40 @@ export default class GridRow {
 	}
 
 	set_dependant_property(df) {
-		if (
-			!df.reqd &&
-			df.mandatory_depends_on &&
-			this.evaluate_depends_on_value(df.mandatory_depends_on)
-		) {
-			df.reqd = 1;
-			this.dependent_fields["mandatory"].push(df);
+		// Set *_due_to_dependency properties - keeps base df.reqd/df.read_only unchanged
+		// This is consistent with how hidden_due_to_dependency works
+		if (df.depends_on) {
+			df.hidden_due_to_dependency = !this.evaluate_depends_on_value(df.depends_on) ? 1 : 0;
 		}
 
-		if (
-			!df.read_only &&
-			df.read_only_depends_on &&
-			this.evaluate_depends_on_value(df.read_only_depends_on)
-		) {
-			df.read_only = 1;
-			this.dependent_fields["read_only"].push(df);
+		if (df.mandatory_depends_on) {
+			df.reqd_due_to_dependency = this.evaluate_depends_on_value(df.mandatory_depends_on)
+				? 1
+				: 0;
+		}
+
+		if (df.read_only_depends_on) {
+			df.read_only_due_to_dependency = this.evaluate_depends_on_value(
+				df.read_only_depends_on
+			)
+				? 1
+				: 0;
 		}
 	}
 
+	/**
+	 * Check if a field is required (base reqd OR reqd_due_to_dependency).
+	 */
+	is_field_reqd(df) {
+		return df && (df.reqd || df.reqd_due_to_dependency);
+	}
+
 	refresh_dependency() {
-		this.dependent_fields["read_only"].forEach((df) => {
-			df.read_only = 0;
-			this.set_dependant_property(df);
-		});
-		this.dependent_fields["mandatory"].forEach((df) => {
-			df.reqd = 0;
-			this.set_dependant_property(df);
+		// re-evaluate all fields that have dependency expressions
+		this.docfields.forEach((df) => {
+			if (df.depends_on || df.mandatory_depends_on || df.read_only_depends_on) {
+				this.set_dependant_property(df);
+			}
 		});
 		this.refresh();
 	}
@@ -1113,7 +1117,7 @@ export default class GridRow {
 		if (!this.doc) {
 			$col.attr("title", txt);
 		}
-		df.fieldname && $col.static_area.toggleClass("reqd", Boolean(df.reqd));
+		df.fieldname && $col.static_area.toggleClass("reqd", Boolean(this.is_field_reqd(df)));
 
 		$col.df = df;
 		$col.column_index = ci;
@@ -1554,7 +1558,7 @@ export default class GridRow {
 		let column = this.columns[fieldname];
 		if (column) {
 			column.static_area.html(txt || "");
-			if (df && df.reqd) {
+			if (this.is_field_reqd(df)) {
 				column.toggleClass("error", !!(txt === null || txt === ""));
 			}
 		}

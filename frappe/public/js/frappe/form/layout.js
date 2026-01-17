@@ -741,24 +741,9 @@ frappe.ui.form.Layout = class Layout {
 		// show / hide based on values
 		for (let i = fields.length - 1; i >= 0; i--) {
 			let f = fields[i];
-			f.guardian_has_value = true;
+
 			if (f.df.depends_on) {
-				// evaluate guardian
-
-				f.guardian_has_value = this.evaluate_depends_on_value(f.df.depends_on);
-
-				// show / hide
-				if (f.guardian_has_value) {
-					if (f.df.hidden_due_to_dependency) {
-						f.df.hidden_due_to_dependency = false;
-						f.refresh();
-					}
-				} else {
-					if (!f.df.hidden_due_to_dependency) {
-						f.df.hidden_due_to_dependency = true;
-						f.refresh();
-					}
-				}
+				this.set_dependant_property(f.df.depends_on, f.df.fieldname, "hidden", true);
 			}
 
 			if (f.df.mandatory_depends_on) {
@@ -777,22 +762,27 @@ frappe.ui.form.Layout = class Layout {
 		this.refresh_section_count();
 	}
 
-	set_dependant_property(condition, fieldname, property) {
-		let set_property = this.evaluate_depends_on_value(condition);
-		let value = set_property ? 1 : 0;
-		let form_obj;
+	set_dependant_property(condition, fieldname, property, invert = false) {
+		// Set *_due_to_dependency property via set_df_property to maintain API compatibility
+		// This keeps df.reqd/df.read_only available for system/script use
+		// invert=true for depends_on (hidden when condition is false)
+		let condition_result = this.evaluate_depends_on_value(condition);
+		let value = cint(invert ? !condition_result : condition_result);
+		let dependency_property = property + "_due_to_dependency";
 
+		let form_obj;
 		if (this.frm) {
 			form_obj = this.frm;
 		} else if (this.is_dialog || this.doctype === "Web Form") {
 			form_obj = this;
 		}
+
 		if (form_obj) {
 			if (this.doc && this.doc.parent && this.doc.parentfield) {
 				form_obj.setting_dependency = true;
 				form_obj.set_df_property(
 					this.doc.parentfield,
-					property,
+					dependency_property,
 					value,
 					this.doc.parent,
 					fieldname,
@@ -802,7 +792,7 @@ frappe.ui.form.Layout = class Layout {
 				// refresh child fields
 				this.fields_dict[fieldname] && this.fields_dict[fieldname].refresh();
 			} else {
-				form_obj.set_df_property(fieldname, property, value);
+				form_obj.set_df_property(fieldname, dependency_property, value);
 			}
 		}
 	}

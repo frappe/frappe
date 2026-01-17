@@ -258,6 +258,12 @@ $.extend(frappe.perm, {
 		}
 		if (explain) console.log("By Read Only:" + status);
 
+		// read only due to dependency
+		if (status === "Write" && cint(df.read_only_due_to_dependency)) {
+			status = "Read";
+		}
+		if (explain) console.log("By Read Only Due To Dependency:" + status);
+
 		if (status === "Write" && df.set_only_once && !doc.__islocal) {
 			status = "Read";
 		}

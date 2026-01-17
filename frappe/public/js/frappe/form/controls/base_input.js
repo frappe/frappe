@@ -247,6 +247,12 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		this.$wrapper.find(".help-box").html("");
 		this.toggle_description(false);
 	}
+	/**
+	 * Check if field is required (base reqd OR reqd_due_to_dependency).
+	 */
+	is_reqd() {
+		return this.df.reqd || this.df.reqd_due_to_dependency;
+	}
 	set_mandatory(value) {
 		// do not set has-error class on form load
 		if (this.frm && this.frm.cscript && this.frm.cscript.is_onload) return;
@@ -255,7 +261,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		// set has-error if dialog primary button is clicked
 		if (this.layout && this.layout.is_dialog && !this.layout.primary_action_fulfilled) return;
 
-		this.$wrapper.toggleClass("has-error", Boolean(this.df.reqd && is_null(value)));
+		this.$wrapper.toggleClass("has-error", Boolean(this.is_reqd() && is_null(value)));
 	}
 	set_invalid() {
 		let invalid = !!this.df.invalid;
@@ -268,14 +274,15 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		}
 	}
 	set_required() {
-		this.label_area && $(this.label_area).toggleClass("reqd", Boolean(this.df.reqd));
+		this.label_area && $(this.label_area).toggleClass("reqd", Boolean(this.is_reqd()));
 	}
 	set_bold() {
+		const is_reqd = this.is_reqd();
 		if (this.$input) {
-			this.$input.toggleClass("bold", !!(this.df.bold || this.df.reqd));
+			this.$input.toggleClass("bold", !!(this.df.bold || is_reqd));
 		}
 		if (this.disp_area) {
-			$(this.disp_area).toggleClass("bold", !!(this.df.bold || this.df.reqd));
+			$(this.disp_area).toggleClass("bold", !!(this.df.bold || is_reqd));
 		}
 	}
 };
