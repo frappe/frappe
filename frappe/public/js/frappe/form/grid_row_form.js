@@ -128,7 +128,12 @@ export default class GridRowForm {
 
 		field.docname = this.row.doc.name;
 		field.refresh();
-		this.layout && this.layout.refresh_dependency();
+		// Don't call refresh_dependency if we're already inside it (prevents recursion)
+		if (this.layout && !this._refreshing_dependency) {
+			this._refreshing_dependency = true;
+			this.layout.refresh_dependency();
+			this._refreshing_dependency = false;
+		}
 	}
 	set_active_tab(tab) {
 		// Store the active tab for this grid row form
