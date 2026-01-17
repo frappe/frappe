@@ -750,6 +750,7 @@ export default class GridRow {
 	}
 
 	set_dependant_property(df) {
+<<<<<<< HEAD
 		let changed = false;
 
 		for (const { expr, prop, negate } of DEPENDENCY_PROPERTIES) {
@@ -776,6 +777,29 @@ export default class GridRow {
 		if (changed) {
 			this.refresh();
 		}
+=======
+		if (df.depends_on) {
+			df.hidden_due_to_dependency = !this.evaluate_depends_on_value(df.depends_on) ? 1 : 0;
+		}
+
+		if (df.mandatory_depends_on) {
+			df.reqd = this.evaluate_depends_on_value(df.mandatory_depends_on) ? 1 : 0;
+		}
+
+		if (df.read_only_depends_on) {
+			df.read_only = this.evaluate_depends_on_value(df.read_only_depends_on) ? 1 : 0;
+		}
+	}
+
+	refresh_dependency() {
+		// re-evaluate all fields that have dependency expressions
+		this.docfields.forEach((df) => {
+			if (df.depends_on || df.mandatory_depends_on || df.read_only_depends_on) {
+				this.set_dependant_property(df);
+			}
+		});
+		this.refresh();
+>>>>>>> 8f1ef2dd72 (fix: child table dependency evaluation for depends_on, mandatory_depends_on, read_only_depends_on)
 	}
 
 	evaluate_depends_on_value(expression) {
