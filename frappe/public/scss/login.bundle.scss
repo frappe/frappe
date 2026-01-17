@@ -87,7 +87,6 @@ body {
 			}
 
 			.field-icon {
-				/* rtl:ignore */
 				left: 9px;
 				top: 50%;
 				transform: translateY(-50%);
@@ -101,12 +100,10 @@ body {
 				position: relative;
 
 				input {
-					/* rtl:ignore */
 					padding-left: 35px;
 				}
 
 				.toggle-password {
-					/* rtl:ignore */
 					right: 9px;
 					top: 5px;
 					position: absolute;
@@ -119,7 +116,7 @@ body {
 			.password-field {
 				input[dir="rtl"] {
 					/* rtl:ignore */
-					padding-right: 3.5rem;
+					padding-left: 3.5rem;
 				}
 			}
 
