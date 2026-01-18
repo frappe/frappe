@@ -189,3 +189,9 @@ table td div {
 .print-format-preview [data-fieldtype="Table"] {
 	overflow: auto;
 }
+
+.barcode-wrapper svg,
+svg[data-barcode-value] {
+	height: auto;
+	display: block;
+}

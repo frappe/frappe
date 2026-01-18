@@ -48,6 +48,13 @@ frappe.ui.form.ControlBarcode = class ControlBarcode extends frappe.ui.form.Cont
 			try {
 				JsBarcode(svg, value, this.get_options(value));
 				$(svg).attr("data-barcode-value", value);
+				// Add viewBox for proper scaling in print formats
+				const width = svg.getAttribute("width");
+				const height = svg.getAttribute("height");
+				if (width && height) {
+					svg.setAttribute("viewBox", `0 0 ${parseFloat(width)} ${parseFloat(height)}`);
+					svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+				}
 				$(svg).attr("width", "100%");
 				return this.barcode_area.html();
 			} catch (e) {
