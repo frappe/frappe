@@ -1559,9 +1559,15 @@ def money_in_words(
 		out = f"{fraction_in_words()} {fraction_currency}"
 	else:
 		out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
+		if main_currency == "DZD": 
+			# Use Dinars insteed of DZD in algerian money at the end of 
+			out = in_words(main, in_million).title() + " " + _("Dinars", context="Currency")
 		if cint(fraction):
-			out = out + " " + _("and") + " " + fraction_in_words() + " " + fraction_currency
-
+			out = out + " " + _("and") + " " + fraction_in_words() + " " + fraction_currency 
+	
+	if main_currency == "DZD":
+		# no "only" word in algerian money
+		return _("{0}.", context="Money in words").format(out)
 	return _("{0} only.", context="Money in words").format(out)
 
 
