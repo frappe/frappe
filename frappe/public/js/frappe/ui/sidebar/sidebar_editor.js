@@ -199,7 +199,7 @@ export class SidebarEditor {
 					let old_index = event.oldIndex;
 					let item_label = $(event.item).data("id");
 					me.new_sidebar_items.forEach((item) => {
-						if (item.nested_items.length) {
+						if (item.nested_items && item.nested_items.length) {
 							let child = item.nested_items.find(
 								(child) => child.label === item_label
 							);
