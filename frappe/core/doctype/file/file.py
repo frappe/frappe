@@ -677,7 +677,12 @@ class File(Document):
 			and self.content_type == "image/jpeg"
 			and frappe.get_system_settings("strip_exif_metadata_from_uploaded_images")
 		):
-			self._content = strip_exif_data(self._content, self.content_type)
+			try:
+				self._content = strip_exif_data(self._content, self.content_type)
+			except Exception:
+				frappe.throw(_("The file you uploaded is broken or not a valid image."))
+
+		
 
 		self.file_size = self.check_max_file_size()
 		self.content_hash = get_content_hash(self._content)
