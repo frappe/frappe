@@ -709,6 +709,12 @@ frappe.ui.form.Layout = class Layout {
 					"read_only"
 				);
 			}
+
+			if (f.df.fieldtype === "Table") {
+				for (const row of f.grid?.grid_rows || []) {
+					row.refresh_dependency();
+				}
+			}
 		}
 	}
 
