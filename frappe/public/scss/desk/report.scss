@@ -302,4 +302,7 @@
 .check-filter-area {
 	display: flex;
 	flex-wrap: wrap;
+	// Find a better fix
+	text-wrap: nowrap;
+	gap: 85px;
 }

@@ -538,13 +538,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		let filter_area = this.page.page_form;
 		this.filters = [];
-		if (this.report_settings.seperate_check_filters) this.setup_check_filter_area();
+		if (this.report_settings.separate_check_filters) this.setup_check_filter_area();
 		this.filters = filters
 			.map((df, index) => {
 				if (df.fieldtype === "Break") return;
 				let f;
 				if (df.fieldtype === "Check" && this.check_filter_area) {
 					f = this.page.add_field(df, this.check_filter_area);
+					// $(f.wrapper).removeClass("col-md-2");
 				} else {
 					f = this.page.add_field(df, filter_area);
 				}
@@ -582,7 +583,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				return f;
 			})
 			.filter(Boolean);
-		if (this.report_settings.seperate_check_filters) this.move_check_filter_area();
+		if (this.report_settings.separate_check_filters) this.move_check_filter_area();
 		if (this.report_settings.collapsible_filters) {
 			this.filters_hidden = true;
 			this.filter_row_length = this.get_filter_row_length();
