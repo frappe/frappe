@@ -527,12 +527,12 @@ def build_xlsx_data(
 	header_index = len(result)
 
 	column_data = []
-	for column in data.columns:
+	for idx, column in enumerate(data.columns):
 		if column.get("hidden") and not include_hidden_columns:
 			continue
 
 		if build_styles:
-			metadata.columns.append(column)
+			metadata.column_map[idx] = column
 
 		column_data.append(_(column.get("label")))
 		column_width = cint(column.get("width", 0))
@@ -561,7 +561,7 @@ def build_xlsx_data(
 				max_indent_level = indent
 
 		if build_styles:
-			metadata.rows_map[excel_row_idx] = row
+			metadata.row_map[excel_row_idx] = row
 			excel_row_idx += 1
 
 		for col_idx, column in enumerate(data.columns):
