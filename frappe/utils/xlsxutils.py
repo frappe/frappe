@@ -304,27 +304,31 @@ class XLSXStyleBuilder:
 		if not (cell_styles or row_styles or col_styles):
 			return self.config
 
+		# If only row OR only col exists and no cell_styles, nothing to resolve
 		if not cell_styles and (bool(row_styles) ^ bool(col_styles)):
 			return self.config
 
 		if row_styles and col_styles:
-			resolved = {}
+			cols = set(col_styles.keys()) | {c for _, c in cell_styles.keys()}
+			rows = set(row_styles.keys()) | {r for r, _ in cell_styles.keys()}
 
-			for row_idx, row_style in row_styles.items():
-				for col_idx, col_style in col_styles.items():
-					resolved[(row_idx, col_idx)] = {
-						**col_style,
-						**row_style,  # row overrides col
-					}
+			for r in rows:
+				for c in cols:
+					pos = (r, c)
+					merged = None
 
-			for pos, merged_style in resolved.items():
-				if pos in cell_styles:
-					cell_styles[pos] = {
-						**merged_style,
-						**cell_styles[pos],  # cell overrides col + row
-					}
-				else:
-					cell_styles[pos] = merged_style
+					if col_style := col_styles.get(c):
+						merged = {**col_style}
+					if row_style := row_styles.get(r):
+						merged = {**merged, **row_style} if merged else {**row_style}
+
+					if not merged:
+						continue
+
+					if pos in cell_styles:
+						cell_styles[pos] = {**merged, **cell_styles[pos]}
+					else:
+						cell_styles[pos] = merged
 
 		elif row_styles:
 			for (row_idx, col_idx), cell_style in cell_styles.items():
