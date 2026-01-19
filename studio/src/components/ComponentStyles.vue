@@ -387,6 +387,7 @@ const styleSectionProperties = [
 			return {
 				label: "BG Color",
 				value: blockController.getStyle("background"),
+				property: "backgroundColor",
 			}
 		},
 		searchKeyWords: "Background, BackgroundColor, Background Color, BG, BGColor, BG Color",
@@ -404,6 +405,7 @@ const styleSectionProperties = [
 			return {
 				label: "Border Color",
 				value: blockController.getStyle("borderColor"),
+				property: "borderColor",
 			}
 		},
 		searchKeyWords: "Border, Color, BorderColor, Border Color",
@@ -432,6 +434,7 @@ const styleSectionProperties = [
 			return {
 				label: "Text Color",
 				value: blockController.getStyle("color"),
+				property: "color",
 			}
 		},
 		events: {

@@ -1,6 +1,6 @@
 <!-- Extracted from Builder -->
 <template>
-	<ColorPicker :modelValue="value" @update:modelValue="(color) => emit('change', color)">
+	<ColorPicker :modelValue="value" @update:modelValue="(color) => emit('change', color)" :property="property">
 		<template #target="{ togglePopover, isOpen }">
 			<div class="flex items-center justify-between">
 				<InputLabel v-if="label">{{ label }}</InputLabel>
@@ -44,6 +44,10 @@ defineProps({
 		default: null,
 	},
 	label: {
+		type: String,
+		default: "",
+	},
+	property: {
 		type: String,
 		default: "",
 	},

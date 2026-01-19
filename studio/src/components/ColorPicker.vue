@@ -14,94 +14,112 @@
 			></slot>
 		</template>
 		<template #body="{ close }">
-			<div ref="colorPicker" class="rounded-lg bg-surface-white p-3 shadow-lg">
-				<div
-					ref="colorMap"
-					:style="{
-						background: `
-							linear-gradient(0deg, black, transparent),
-							linear-gradient(90deg, white, transparent),
-							hsl(${hue}, 100%, 50%)
-						`,
-					}"
-					@mousedown.prevent="handleSelectorMove"
-					class="relative m-auto h-24 w-44 rounded-md"
-					@click.prevent="setColor"
-				>
-					<div
-						ref="colorSelector"
-						@mousedown.stop.prevent="handleSelectorMove"
-						class="absolute rounded-full border border-black border-opacity-20 before:absolute before:h-full before:w-full before:rounded-full before:border-2 before:border-white before:!bg-[currentColor] after:absolute after:left-[2px] after:top-[2px] after:h-[calc(100%-4px)] after:w-[calc(100%-4px)] after:rounded-full after:border after:border-black after:border-opacity-20 after:bg-transparent"
-						:style="
-							{
-								height: '12px',
-								width: '12px',
-								left: `calc(${colorSelectorPosition.x}px - 6px)`,
-								top: `calc(${colorSelectorPosition.y}px - 6px)`,
-								color: modelColor || '#FFF',
-								background: 'transparent',
-							} as StyleValue
-						"
-					></div>
-				</div>
-				<div
-					ref="hueMap"
-					class="relative m-auto mt-2 h-3 w-44 rounded-md"
-					@click="setHue"
-					@mousedown.prevent="handleHueSelectorMove"
-					:style="{
-						background: `
-							linear-gradient(90deg, hsl(0, 100%, 50%),
-							hsl(60, 100%, 50%), hsl(120, 100%, 50%),
-							hsl(180, 100%, 50%), hsl(240, 100%, 50%),
-							hsl(300, 100%, 50%), hsl(360, 100%, 50%))
-						`,
-					}"
-				>
-					<div
-						ref="hueSelector"
-						@mousedown="handleHueSelectorMove"
-						class="absolute rounded-full border border-[rgba(0,0,0,.2)] before:absolute before:h-full before:w-full before:rounded-full before:border-2 before:border-white before:bg-[currentColor] after:absolute after:left-[2px] after:top-[2px] after:h-[calc(100%-4px)] after:w-[calc(100%-4px)] after:rounded-full after:border after:border-[rgba(0,0,0,.2)] after:bg-transparent"
-						:style="{
-							height: '12px',
-							width: '12px',
-							left: `calc(${hueSelectorPosition.x}px - 6px)`,
-							color: `hsl(${hue}, 100%, 50%)`,
-							background: 'transparent',
-						}"
-					></div>
-				</div>
-				<div ref="colorPalette" class="max-w-[11rem]">
-					<div class="mt-3 flex flex-wrap gap-1.5">
-						<div
-							v-for="color in colors"
-							:key="color"
-							class="h-3.5 w-3.5 cursor-pointer rounded-full shadow-sm"
-							@click="
-								() => {
-									setSelectorPosition(color)
-									updateColor()
-								}
-							"
-							:style="{
-								background: color,
-							}"
-						></div>
-						<EyeDropperIcon v-if="isSupported" class="text-ink-gray-7" @click="() => open()" />
-					</div>
-				</div>
+			<div class="flex w-52 rounded bg-surface-white shadow-lg">
+				<Tabs :tabs="[{ label: 'Picker' }, { label: 'Tokens' }]" :modelValue="1">
+					<template #tab-panel="{ tab }">
+						<div v-show="tab.label === 'Picker'" ref="colorPicker" class="rounded-b-lg bg-surface-white p-3">
+							<div
+								ref="colorMap"
+								:style="{
+									background: `
+										linear-gradient(0deg, black, transparent),
+										linear-gradient(90deg, white, transparent),
+										hsl(${hue}, 100%, 50%)
+									`,
+								}"
+								@mousedown.prevent="handleSelectorMove"
+								class="relative m-auto h-24 w-44 rounded-md"
+								@click.prevent="setColor"
+							>
+								<div
+									ref="colorSelector"
+									@mousedown.stop.prevent="handleSelectorMove"
+									class="absolute rounded-full border border-black border-opacity-20 before:absolute before:h-full before:w-full before:rounded-full before:border-2 before:border-white before:!bg-[currentColor] after:absolute after:left-[2px] after:top-[2px] after:h-[calc(100%-4px)] after:w-[calc(100%-4px)] after:rounded-full after:border after:border-black after:border-opacity-20 after:bg-transparent"
+									:style="
+										{
+											height: '12px',
+											width: '12px',
+											left: `calc(${colorSelectorPosition.x}px - 6px)`,
+											top: `calc(${colorSelectorPosition.y}px - 6px)`,
+											color: modelColor || '#FFF',
+											background: 'transparent',
+										} as StyleValue
+									"
+								></div>
+							</div>
+							<div
+								ref="hueMap"
+								class="relative m-auto mt-2 h-3 w-44 rounded-md"
+								@click="setHue"
+								@mousedown.prevent="handleHueSelectorMove"
+								:style="{
+									background: `
+										linear-gradient(90deg, hsl(0, 100%, 50%),
+										hsl(60, 100%, 50%), hsl(120, 100%, 50%),
+										hsl(180, 100%, 50%), hsl(240, 100%, 50%),
+										hsl(300, 100%, 50%), hsl(360, 100%, 50%))
+									`,
+								}"
+							>
+								<div
+									ref="hueSelector"
+									@mousedown="handleHueSelectorMove"
+									class="absolute rounded-full border border-[rgba(0,0,0,.2)] before:absolute before:h-full before:w-full before:rounded-full before:border-2 before:border-white before:bg-[currentColor] after:absolute after:left-[2px] after:top-[2px] after:h-[calc(100%-4px)] after:w-[calc(100%-4px)] after:rounded-full after:border after:border-[rgba(0,0,0,.2)] after:bg-transparent"
+									:style="{
+										height: '12px',
+										width: '12px',
+										left: `calc(${hueSelectorPosition.x}px - 6px)`,
+										color: `hsl(${hue}, 100%, 50%)`,
+										background: 'transparent',
+									}"
+								></div>
+							</div>
+							<div ref="colorPalette" class="max-w-[11rem]">
+								<div class="mt-3 flex flex-wrap gap-1.5">
+									<div
+										v-for="color in colors"
+										:key="color"
+										class="h-3.5 w-3.5 cursor-pointer rounded-full shadow-sm"
+										@click="
+											() => {
+												setSelectorPosition(color)
+												updateColor()
+											}
+										"
+										:style="{
+											background: color,
+										}"
+									></div>
+									<EyeDropperIcon v-if="isSupported" class="text-ink-gray-7" @click="() => open()" />
+								</div>
+							</div>
+						</div>
+						<div v-show="tab.label === 'Tokens'" class="p-1">
+							<ListBox
+								:borderLess="true"
+								:options="tokens"
+								@update:modelValue="emit('update:modelValue', $event)"
+							>
+								<template #option-prefix="{ option }">
+									<div class="mr-2 size-4 rounded border" :style="{ background: option.value }"></div>
+								</template>
+							</ListBox>
+						</div>
+					</template>
+				</Tabs>
 			</div>
 		</template>
 	</Popover>
 </template>
 <script setup lang="ts">
 import { PropType, Ref, StyleValue, computed, nextTick, ref, watch } from "vue"
+import { Popover, Tabs } from "frappe-ui"
 import EyeDropperIcon from "@/components/Icons/EyeDropper.vue"
 import useCanvasStore from "@/stores/canvasStore"
 import { HSVToHex, HexToHSV, getRGB } from "@/utils/helpers"
 import { clamp, useEyeDropper } from "@vueuse/core"
-import { Popover } from "frappe-ui"
 import type { HashString, RGBString } from "@/types"
+import { useColors } from "@/utils/useColors"
 
 const canvasStore = useCanvasStore()
 
@@ -116,12 +134,15 @@ let currentColor = "#FFF" as HashString
 
 const { isSupported, sRGBHex, open } = useEyeDropper()
 
-const props = defineProps({
-	modelValue: {
-		type: String as PropType<HashString | RGBString | null>,
-		default: null,
+const props = withDefaults(
+	defineProps<{
+		modelValue: HashString | RGBString | null
+		property?: "backgroundColor" | "borderColor" | "color"
+	}>(),
+	{
+		modelValue: null,
 	},
-})
+)
 
 const modelColor = computed(() => {
 	return getRGB(props.modelValue)
@@ -267,4 +288,16 @@ watch(
 	},
 	{ immediate: true },
 )
+
+// Tokens
+const tokens = computed(() => {
+	if (!props.property) return []
+	const _colors = useColors(props.property)
+	return Object.keys(_colors).map((key) => {
+		return {
+			label: key,
+			value: _colors[key],
+		}
+	})
+})
 </script>

@@ -30,6 +30,7 @@
 		"json5": "^2.2.3",
 		"marked": "^15.0.6",
 		"pinia": "^2.2.1",
+		"reka-ui": "^2.7.0",
 		"thememirror": "^2.0.1",
 		"typescript": "^5.8.3",
 		"vite": "^5.4.11",
