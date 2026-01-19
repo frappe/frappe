@@ -814,6 +814,162 @@ def serve(
 		)
 
 
+@click.command("stop")
+@click.option("--signal", default="SIGTERM", help="Signal to send to processes (SIGTERM, SIGKILL)")
+def stop(signal="SIGTERM"):
+	"Stop Frappe development processes started with 'bench start'"
+	import signal as sig
+	from datetime import datetime
+
+	import psutil
+
+	def log_message(proc_name, message, color="white"):
+		"""Print formatted log message with timestamp"""
+		timestamp = datetime.now().strftime("%H:%M:%S")
+		proc_label = f"{proc_name:<15}"
+		click.secho(f"{timestamp} ", fg="cyan", nl=False)
+		click.secho(f"{proc_label}", fg="yellow", nl=False)
+		click.secho(f"| {message}", fg=color)
+
+	# Get the bench root directory (parent of sites directory)
+	bench_path = os.getcwd()
+
+	# If we're in the sites directory, go up one level
+	if os.path.basename(bench_path) == "sites" or os.path.exists(
+		os.path.join(bench_path, "site_config.json")
+	):
+		bench_path = os.path.dirname(bench_path)
+
+	# If current directory is a site directory, go up to sites, then to bench root
+	if os.path.exists(os.path.join(bench_path, "site_config.json")):
+		bench_path = os.path.dirname(os.path.dirname(bench_path))
+
+	procfile_path = os.path.join(bench_path, "Procfile")
+
+	if not os.path.exists(procfile_path):
+		click.secho(f"Procfile not found at {procfile_path}. Are you in a bench directory?", fg="red")
+		return
+
+	# Parse Procfile to get process commands
+	processes_to_stop = []
+	with open(procfile_path) as f:
+		for line in f:
+			line = line.strip()
+			if line and not line.startswith("#") and ":" in line:
+				name, cmd = line.split(":", 1)
+				processes_to_stop.append((name.strip(), cmd.strip()))
+
+	if not processes_to_stop:
+		log_message("system", "No processes found in Procfile", "yellow")
+		return
+
+	log_message("system", "Stopping Frappe development processes...", "cyan")
+
+	# Map signal name to signal number
+	signal_map = {
+		"SIGTERM": sig.SIGTERM,
+		"SIGKILL": sig.SIGKILL,
+		"SIGINT": sig.SIGINT,
+	}
+
+	sig_num = signal_map.get(signal.upper(), sig.SIGTERM)
+
+	# Find and kill processes (including their children)
+	stopped_count = 0
+	stopped_pids = set()
+
+	def kill_process_tree(proc, sig_num):
+		"""Kill a process and all its children"""
+		try:
+			# Get all children before killing parent
+			children = proc.children(recursive=True)
+
+			# Kill children first
+			for child in children:
+				try:
+					if child.pid not in stopped_pids:
+						child.send_signal(sig_num)
+						stopped_pids.add(child.pid)
+				except (psutil.NoSuchProcess, psutil.AccessDenied):
+					pass
+
+			# Kill parent
+			if proc.pid not in stopped_pids:
+				proc.send_signal(sig_num)
+				stopped_pids.add(proc.pid)
+				return True
+		except (psutil.NoSuchProcess, psutil.AccessDenied):
+			pass
+		return False
+
+	for proc_name, proc_cmd in processes_to_stop:
+		# Extract the main command from the process
+		cmd_parts = proc_cmd.split()
+		if not cmd_parts:
+			continue
+
+		# Get the base command (e.g., 'bench', 'redis-server', 'node')
+		base_cmd = os.path.basename(cmd_parts[0])
+
+		# Find matching processes
+		for proc in psutil.process_iter(["pid", "name", "cmdline", "cwd"]):
+			try:
+				# Check if process is running in this bench directory
+				proc_cwd = proc.info.get("cwd")
+				if proc_cwd and not proc_cwd.startswith(bench_path):
+					continue
+
+				cmdline = proc.info.get("cmdline", [])
+				if not cmdline:
+					continue
+
+				# Check if this process matches what's in Procfile
+				cmdline_str = " ".join(cmdline)
+
+				# Match based on key parts of the command
+				if base_cmd in cmdline_str or proc_name in cmdline_str:
+					# Additional checks to ensure we match the right process
+					if "redis-server" in base_cmd and proc_name in ["redis_cache", "redis_queue"]:
+						# For redis, check config file path
+						if proc_name == "redis_cache" and "redis_cache.conf" in cmdline_str:
+							log_message(
+								f"{proc_name}.1",
+								f"Sending SIGTERM to process (PID: {proc.info['pid']})",
+								"white",
+							)
+							if kill_process_tree(proc, sig_num):
+								stopped_count += 1
+						elif proc_name == "redis_queue" and "redis_queue.conf" in cmdline_str:
+							log_message(
+								f"{proc_name}.1",
+								f"Sending SIGTERM to process (PID: {proc.info['pid']})",
+								"white",
+							)
+							if kill_process_tree(proc, sig_num):
+								stopped_count += 1
+					elif "bench" in base_cmd and any(arg in cmdline for arg in cmd_parts[1:]):
+						# For bench commands, match the subcommand
+						log_message(
+							f"{proc_name}.1", f"Sending SIGTERM to process (PID: {proc.info['pid']})", "white"
+						)
+						if kill_process_tree(proc, sig_num):
+							stopped_count += 1
+					elif "node" in base_cmd and "socketio.js" in cmdline_str and proc_name == "socketio":
+						log_message(
+							f"{proc_name}.1", f"Sending SIGTERM to process (PID: {proc.info['pid']})", "white"
+						)
+						if kill_process_tree(proc, sig_num):
+							stopped_count += 1
+
+			except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+				continue
+
+	if stopped_count > 0:
+		log_message("system", f"Successfully stopped {stopped_count} process(es)", "green")
+	else:
+		log_message("system", "No running bench processes found", "yellow")
+
+
 @click.command("request")
 @click.option("--args", help="arguments like `?cmd=test&key=value` or `/api/request/method?..`")
 @click.option("--path", help="path to request JSON")
@@ -1062,6 +1218,7 @@ commands = [
 	request,
 	reset_perms,
 	serve,
+	stop,
 	set_config,
 	show_config,
 	watch,
