@@ -447,7 +447,10 @@ class BaseDocument:
 		if __dict.get("docstatus") is None:
 			__dict["docstatus"] = DocStatus.DRAFT
 
-		if not __dict.get("name"):
+		if __dict.get("__islocal"):
+			__dict["name"] = None
+			__dict["__temporary_name"] = frappe.generate_hash(length=10)
+		elif not __dict.get("name"):
 			__dict["__islocal"] = 1
 			__dict["__temporary_name"] = frappe.generate_hash(length=10)
 
