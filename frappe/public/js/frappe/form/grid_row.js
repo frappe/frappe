@@ -816,7 +816,7 @@ export default class GridRow {
 	}
 
 	refresh_dependency() {
-		// re-evaluate dependency expressions of all columns
+		// re-evaluate dependency expressions of visible columns
 		// refresh if some property changed
 		let changed = false;
 		for (const { df } of this.columns_list) {
