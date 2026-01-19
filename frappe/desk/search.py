@@ -109,28 +109,10 @@ def search_widget(
 	if filters is None:
 		filters = {}
 
-	are_filters_dict = isinstance(filters, dict)
-	include_disabled = False
-	if not query and are_filters_dict:
-		if "include_disabled" in filters:
-			if filters["include_disabled"] == 1:
-				include_disabled = True
-			filters.pop("include_disabled")
-
-		filters = [make_filter_tuple(doctype, key, value) for key, value in filters.items()]
-		are_filters_dict = False
-
 	if for_link_validation:
-		if are_filters_dict:
-			# we add filter if possible, otherwise rely on txt
-			if "name" not in filters:
-				filters["name"] = txt
-		else:
-			filters.append([doctype, "name", "=", txt])
-
 		as_dict = False
-		# for custom queries that don't respect filters but respect limit (rare)
-		# or for when we have to rely on txt
+		# for custom queries, we don't mutate filters
+		# we have to rely on txt
 		# we want to match "A" with "A" only and not "A1", "BA" etc.
 		page_length = PAGE_LENGTH_FOR_LINK_VALIDATION
 
@@ -163,6 +145,19 @@ def search_widget(
 				return []
 
 	meta = frappe.get_meta(doctype)
+
+	include_disabled = False
+	if isinstance(filters, dict):
+		if "include_disabled" in filters:
+			if filters["include_disabled"] == 1:
+				include_disabled = True
+			filters.pop("include_disabled")
+
+		filters = [make_filter_tuple(doctype, key, value) for key, value in filters.items()]
+
+	if for_link_validation:
+		filters.append([doctype, "name", "=", txt])
+
 	or_filters = []
 
 	# build from doctype

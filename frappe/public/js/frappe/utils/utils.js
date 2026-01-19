@@ -6,6 +6,8 @@ import number_systems from "./number_systems";
 
 frappe.provide("frappe.utils");
 
+const eval_function_cache = new Map();
+
 // Array de duplicate
 if (!Array.prototype.uniqBy) {
 	Object.defineProperty(Array.prototype, "uniqBy", {
@@ -1116,14 +1118,35 @@ Object.assign(frappe.utils, {
 		if (code.substr(0, 5) == "eval:") {
 			code = code.substr(5);
 		}
+
 		let variable_names = Object.keys(context);
 		let variables = Object.values(context);
-		code = `let out = ${code}; return out`;
+
+		// only cache expressions under 500 chars
+		const should_cache = code.length < 500;
+		const cache_key = should_cache ? code + "|" + variable_names.join(",") : null;
+
+		let expression_function = cache_key && eval_function_cache.get(cache_key);
+
+		if (!expression_function) {
+			const function_code = `let out = ${code}; return out`;
+			try {
+				expression_function = new Function(...variable_names, function_code);
+			} catch (error) {
+				console.log("Error evaluating the following expression:");
+				console.error(function_code);
+				throw error;
+			}
+
+			if (cache_key) {
+				eval_function_cache.set(cache_key, expression_function);
+			}
+		}
+
 		try {
-			let expression_function = new Function(...variable_names, code);
 			return expression_function(...variables);
 		} catch (error) {
-			console.log("Error evaluating the following expression:");
+			console.log("Error executing the following expression:");
 			console.error(code);
 			throw error;
 		}

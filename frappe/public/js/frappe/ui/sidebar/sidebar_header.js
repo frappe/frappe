@@ -17,14 +17,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				items: this.sibling_workspaces,
 			},
 			{
-				name: "desktop",
-				label: __("Desktop"),
-				icon: "layout-grid",
-				onClick: function (el) {
-					frappe.set_route("/desk");
-				},
-			},
-			{
 				name: "edit-sidebar",
 				label: __("Edit Sidebar"),
 				icon: "edit",

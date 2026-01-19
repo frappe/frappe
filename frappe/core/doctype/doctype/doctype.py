@@ -877,6 +877,9 @@ class DocType(Document):
 			make_boilerplate("controller.js", self.as_dict())
 			# make_boilerplate("controller_list.js", self.as_dict())
 
+		if self.is_tree:
+			make_boilerplate("controller_tree.js", self.as_dict())
+
 		if self.has_web_view:
 			templates_path = frappe.get_module_path(
 				frappe.scrub(self.module), "doctype", frappe.scrub(self.name), "templates"

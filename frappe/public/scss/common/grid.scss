@@ -8,6 +8,7 @@
 	color: var(--text-color);
 	min-height: 75px;
 	background-color: var(--subtle-accent);
+	overflow-y: hidden;
 }
 
 .form-grid.error {

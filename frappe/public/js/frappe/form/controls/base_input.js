@@ -55,6 +55,18 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			// like links, currencies, HTMLs etc.
 			this.disp_area = this.$wrapper.find(".control-value").get(0);
 		}
+		this.setup_shortcut();
+	}
+	setup_shortcut() {
+		$(this.input_area).on("keydown", function (event) {
+			if (event.originalEvent.ctrlKey || event.originalEvent.metaKey) {
+				if (event.originalEvent.key === "k" || event.originalEvent.key === "K") {
+					$("#navbar-modal-search").click();
+					event.preventDefault();
+					return false;
+				}
+			}
+		});
 	}
 	set_max_width() {
 		if (this.constructor.horizontal) {

@@ -859,7 +859,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 	validate_link_and_fetch(value) {
 		const args = this.get_search_args(value);
-		if (!args.doctype) return;
+		if (!args) return;
 
 		const columns_to_fetch = Object.values(this.fetch_map);
 

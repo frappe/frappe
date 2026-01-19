@@ -191,7 +191,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	get_child_datatable_columns() {
 		const parent = this.doctype;
 		return [parent, ...this.child_columns].map((d) => ({
-			name: frappe.unscrub(d),
+			name: __(frappe.unscrub(d)),
 			editable: false,
 		}));
 	}

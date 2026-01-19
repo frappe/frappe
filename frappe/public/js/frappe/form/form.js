@@ -1400,7 +1400,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	email_doc(message) {
-		new frappe.views.CommunicationComposer({
+		return new frappe.views.CommunicationComposer({
 			doc: this.doc,
 			frm: this,
 			subject: __(this.meta.name) + ": " + this.docname,

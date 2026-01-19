@@ -332,7 +332,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	setup_notifications() {
 		if (frappe.boot.desk_settings.notifications && frappe.session.user !== "Guest") {
-			this.notifications = new frappe.ui.Notifications();
+			this.notifications = new frappe.ui.Notifications({ full_height: true });
 		}
 	}
 	add_item(container, item) {
@@ -475,6 +475,8 @@ frappe.ui.Sidebar = class Sidebar {
 				let sidebar = this.get_workspace_for_module(module);
 				if (sidebars.includes(this.get_workspace_for_module(module))) {
 					frappe.app.sidebar.setup(sidebar);
+				} else {
+					frappe.app.sidebar.setup(module);
 				}
 			} else if (module) {
 				this.show_sidebar_for_module(module);
