@@ -302,11 +302,15 @@ class DesktopPage {
 				},
 			},
 		];
-		frappe.ui.create_menu({
-			parent: this.wrapper,
-			menu_items: menu_items,
-			right_click: true,
-		});
+
+		if (this.wrapper && this.wrapper.length > 0 && !this.context_menu_created) {
+			frappe.ui.create_menu({
+				parent: this.wrapper,
+				menu_items: menu_items,
+				right_click: true,
+			});
+			this.context_menu_created = true;
+		}
 	}
 	stop_editing_layout(action) {
 		this.edit_mode = false;
@@ -1166,7 +1170,7 @@ class IconsPane {
 }
 
 class InlineEditor {
-	constructor(container, initialValue = "", onRename = () => {}) {
+	constructor(container, initialValue = "", onRename = () => { }) {
 		this.container = container;
 		this.initialValue = initialValue;
 		this.onRename = onRename;
