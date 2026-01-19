@@ -884,7 +884,7 @@ def stop(signal="SIGTERM"):
 		redis_cache_port = int(redis_cache.split(":")[-1])
 		processes_to_stop["redis_cache"] = {
 			"port": redis_cache_port,
-			"name_hints": ["redis-server", "redis_cache.conf"],
+			"name_hints": ["redis-server"],
 		}
 
 	# Redis queue
@@ -893,13 +893,13 @@ def stop(signal="SIGTERM"):
 		redis_queue_port = int(redis_queue.split(":")[-1])
 		processes_to_stop["redis_queue"] = {
 			"port": redis_queue_port,
-			"name_hints": ["redis-server", "redis_queue.conf"],
+			"name_hints": ["redis-server"],
 		}
 
 	# Worker, scheduler, watch processes (no ports, match by command)
-	processes_to_stop["worker"] = {"port": None, "name_hints": ["bench worker"]}
-	processes_to_stop["schedule"] = {"port": None, "name_hints": ["bench schedule"]}
-	processes_to_stop["watch"] = {"port": None, "name_hints": ["bench watch"]}
+	processes_to_stop["worker"] = {"port": None, "name_hints": ["frappe worker", "bench worker"]}
+	processes_to_stop["schedule"] = {"port": None, "name_hints": ["frappe schedule", "bench schedule"]}
+	processes_to_stop["watch"] = {"port": None, "name_hints": ["frappe watch", "bench watch"]}
 
 	if not processes_to_stop:
 		log_message("system", "No processes configured to stop", "yellow")
@@ -962,15 +962,19 @@ def stop(signal="SIGTERM"):
 			try:
 				# Check if process is running in this bench directory (or a subdirectory)
 				proc_cwd = proc.info.get("cwd")
-				if proc_cwd:
-					# Normalize paths for comparison
-					try:
-						proc_cwd_real = os.path.realpath(proc_cwd)
-						bench_path_real = os.path.realpath(bench_path)
-						if not proc_cwd_real.startswith(bench_path_real):
-							continue
-					except (OSError, ValueError):
+				if not proc_cwd:
+					# Skip processes without accessible working directory
+					continue
+
+				# Normalize paths for comparison
+				try:
+					proc_cwd_real = os.path.realpath(proc_cwd)
+					bench_path_real = os.path.realpath(bench_path)
+					if not proc_cwd_real.startswith(bench_path_real):
 						continue
+				except (OSError, ValueError):
+					# Skip if we can't verify the path
+					continue
 
 				cmdline = proc.info.get("cmdline", [])
 				if not cmdline:
@@ -1003,6 +1007,8 @@ def stop(signal="SIGTERM"):
 					)
 					if kill_process_tree(proc, sig_num):
 						stopped_count += 1
+					# Break after finding the first match for this process type
+					break
 
 			except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
 				continue
