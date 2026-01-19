@@ -819,7 +819,7 @@ export default class GridRow {
 		// re-evaluate dependency expressions and refresh only if something changed
 		let changed = false;
 		for (const df of this.docfields) {
-			if (df.depends_on || df.mandatory_depends_on || df.read_only_depends_on) {
+			if (DEPENDENCY_PROPERTIES.some((d) => df[d.expr])) {
 				changed ||= this.set_dependant_property(df);
 			}
 		}
