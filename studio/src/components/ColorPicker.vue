@@ -1,6 +1,6 @@
 <!-- Extracted from Builder -->
 <template>
-	<Popover transition="default" placement="left" class="!block w-full" popoverClass="!w-fit">
+	<Popover transition="default" placement="bottom-start" class="!block w-full" popoverClass="!min-w-fit">
 		<template #target="{ togglePopover, isOpen }">
 			<slot
 				name="target"
@@ -99,6 +99,7 @@
 								:borderLess="true"
 								:options="tokens"
 								@update:modelValue="emit('update:modelValue', $event)"
+								class="h-[184px]"
 							>
 								<template #option-prefix="{ option }">
 									<div class="mr-2 size-4 rounded border" :style="{ background: option.value }"></div>
