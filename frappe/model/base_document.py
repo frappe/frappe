@@ -328,11 +328,20 @@ class BaseDocument:
 		if value.__dict__.get("docstatus") is None:
 			value.__dict__["docstatus"] = DocStatus.DRAFT
 
+<<<<<<< HEAD
 		if not getattr(value, "idx", None):
 			if table := getattr(self, key, None):
 				value.idx = len(table) + 1
 			else:
 				value.idx = 1
+=======
+		if __dict.get("__islocal"):
+			__dict["name"] = None
+			__dict["__temporary_name"] = frappe.generate_hash(length=10)
+		elif not __dict.get("name"):
+			__dict["__islocal"] = 1
+			__dict["__temporary_name"] = frappe.generate_hash(length=10)
+>>>>>>> 0080ee6aae (fix(BaseDocument): reset name when __islocal is set (#36080))
 
 		if not getattr(value, "name", None):
 			value.__dict__["__islocal"] = 1
