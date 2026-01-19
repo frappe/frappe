@@ -818,6 +818,7 @@ def serve(
 @click.option("--signal", default="SIGTERM", help="Signal to send to processes (SIGTERM, SIGKILL)")
 def stop(signal="SIGTERM"):
 	"Stop Frappe development processes started with 'bench start'"
+	import json
 	import signal as sig
 	from datetime import datetime
 
@@ -844,23 +845,64 @@ def stop(signal="SIGTERM"):
 	if os.path.exists(os.path.join(bench_path, "site_config.json")):
 		bench_path = os.path.dirname(os.path.dirname(bench_path))
 
-	procfile_path = os.path.join(bench_path, "Procfile")
+	# Load port configuration from common_site_config.json
+	common_site_config_path = os.path.join(bench_path, "sites", "common_site_config.json")
 
-	if not os.path.exists(procfile_path):
-		click.secho(f"Procfile not found at {procfile_path}. Are you in a bench directory?", fg="red")
+	if not os.path.exists(common_site_config_path):
+		click.secho(
+			f"Config file not found at {common_site_config_path}. Are you in a bench directory?", fg="red"
+		)
 		return
 
-	# Parse Procfile to get process commands
-	processes_to_stop = []
-	with open(procfile_path) as f:
-		for line in f:
-			line = line.strip()
-			if line and not line.startswith("#") and ":" in line:
-				name, cmd = line.split(":", 1)
-				processes_to_stop.append((name.strip(), cmd.strip()))
+	try:
+		with open(common_site_config_path) as f:
+			config = json.load(f)
+	except Exception as e:
+		click.secho(f"Error reading config: {e}", fg="red")
+		return
+
+	# Define processes to stop based on common_site_config.json
+	processes_to_stop = {}
+
+	# Web server
+	if "webserver_port" in config:
+		processes_to_stop["web"] = {
+			"port": config["webserver_port"],
+			"name_hints": ["frappe serve", "bench serve"],
+		}
+
+	# SocketIO server
+	if "socketio_port" in config:
+		processes_to_stop["socketio"] = {
+			"port": config["socketio_port"],
+			"name_hints": ["socketio.js", "node"],
+		}
+
+	# Redis cache
+	redis_cache = config.get("redis_cache", "")
+	if ":" in redis_cache:
+		redis_cache_port = int(redis_cache.split(":")[-1])
+		processes_to_stop["redis_cache"] = {
+			"port": redis_cache_port,
+			"name_hints": ["redis-server", "redis_cache.conf"],
+		}
+
+	# Redis queue
+	redis_queue = config.get("redis_queue", "")
+	if ":" in redis_queue:
+		redis_queue_port = int(redis_queue.split(":")[-1])
+		processes_to_stop["redis_queue"] = {
+			"port": redis_queue_port,
+			"name_hints": ["redis-server", "redis_queue.conf"],
+		}
+
+	# Worker, scheduler, watch processes (no ports, match by command)
+	processes_to_stop["worker"] = {"port": None, "name_hints": ["bench worker"]}
+	processes_to_stop["schedule"] = {"port": None, "name_hints": ["bench schedule"]}
+	processes_to_stop["watch"] = {"port": None, "name_hints": ["bench watch"]}
 
 	if not processes_to_stop:
-		log_message("system", "No processes found in Procfile", "yellow")
+		log_message("system", "No processes configured to stop", "yellow")
 		return
 
 	log_message("system", "Stopping Frappe development processes...", "cyan")
@@ -902,64 +944,65 @@ def stop(signal="SIGTERM"):
 			pass
 		return False
 
-	for proc_name, proc_cmd in processes_to_stop:
-		# Extract the main command from the process
-		cmd_parts = proc_cmd.split()
-		if not cmd_parts:
-			continue
+	def get_listening_ports(proc):
+		"""Get all ports a process is listening on"""
+		try:
+			connections = proc.connections(kind="inet")
+			return {conn.laddr.port for conn in connections if conn.status == "LISTEN"}
+		except (psutil.NoSuchProcess, psutil.AccessDenied):
+			return set()
 
-		# Get the base command (e.g., 'bench', 'redis-server', 'node')
-		base_cmd = os.path.basename(cmd_parts[0])
+	# Iterate through each process type we want to stop
+	for proc_name, proc_info in processes_to_stop.items():
+		expected_port = proc_info["port"]
+		name_hints = proc_info["name_hints"]
 
 		# Find matching processes
 		for proc in psutil.process_iter(["pid", "name", "cmdline", "cwd"]):
 			try:
-				# Check if process is running in this bench directory
+				# Check if process is running in this bench directory (or a subdirectory)
 				proc_cwd = proc.info.get("cwd")
-				if proc_cwd and not proc_cwd.startswith(bench_path):
-					continue
+				if proc_cwd:
+					# Normalize paths for comparison
+					try:
+						proc_cwd_real = os.path.realpath(proc_cwd)
+						bench_path_real = os.path.realpath(bench_path)
+						if not proc_cwd_real.startswith(bench_path_real):
+							continue
+					except (OSError, ValueError):
+						continue
 
 				cmdline = proc.info.get("cmdline", [])
 				if not cmdline:
 					continue
 
-				# Check if this process matches what's in Procfile
 				cmdline_str = " ".join(cmdline)
 
-				# Match based on key parts of the command
-				if base_cmd in cmdline_str or proc_name in cmdline_str:
-					# Additional checks to ensure we match the right process
-					if "redis-server" in base_cmd and proc_name in ["redis_cache", "redis_queue"]:
-						# For redis, check config file path
-						if proc_name == "redis_cache" and "redis_cache.conf" in cmdline_str:
-							log_message(
-								f"{proc_name}.1",
-								f"Sending SIGTERM to process (PID: {proc.info['pid']})",
-								"white",
-							)
-							if kill_process_tree(proc, sig_num):
-								stopped_count += 1
-						elif proc_name == "redis_queue" and "redis_queue.conf" in cmdline_str:
-							log_message(
-								f"{proc_name}.1",
-								f"Sending SIGTERM to process (PID: {proc.info['pid']})",
-								"white",
-							)
-							if kill_process_tree(proc, sig_num):
-								stopped_count += 1
-					elif "bench" in base_cmd and any(arg in cmdline for arg in cmd_parts[1:]):
-						# For bench commands, match the subcommand
-						log_message(
-							f"{proc_name}.1", f"Sending SIGTERM to process (PID: {proc.info['pid']})", "white"
-						)
-						if kill_process_tree(proc, sig_num):
-							stopped_count += 1
-					elif "node" in base_cmd and "socketio.js" in cmdline_str and proc_name == "socketio":
-						log_message(
-							f"{proc_name}.1", f"Sending SIGTERM to process (PID: {proc.info['pid']})", "white"
-						)
-						if kill_process_tree(proc, sig_num):
-							stopped_count += 1
+				# Get ports this process is listening on
+				listening_ports = get_listening_ports(proc)
+
+				# Check if this process matches
+				matched = False
+
+				# If we have an expected port, check if process is listening on it
+				if expected_port and expected_port in listening_ports:
+					# Verify it's the right type of process by checking name hints
+					if any(hint in cmdline_str for hint in name_hints):
+						matched = True
+				# If no port (worker, schedule, watch), match by command hints
+				elif expected_port is None:
+					if any(hint in cmdline_str for hint in name_hints):
+						matched = True
+
+				if matched:
+					port_info = f", port {expected_port}" if expected_port else ""
+					log_message(
+						f"{proc_name}.1",
+						f"Sending {signal.upper()} to process (PID: {proc.info['pid']}{port_info})",
+						"white",
+					)
+					if kill_process_tree(proc, sig_num):
+						stopped_count += 1
 
 			except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
 				continue
