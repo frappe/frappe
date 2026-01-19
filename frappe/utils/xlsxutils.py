@@ -25,12 +25,13 @@ ILLEGAL_CHARACTERS_RE = re.compile(
 )
 
 
-# TODO: add docs and examples for XLSXStyleBuilder
-
-
 ### XLSX Formatter ###
 @dataclass
 class XLSXMetadata:
+	"""
+	Metadata for XLSX reports for exports.
+	"""
+
 	report_name: str = ""
 
 	filters: dict = dataclass_field(default_factory=dict)
@@ -491,8 +492,7 @@ class XLSXStyleBuilder:
 	@staticmethod
 	@lru_cache(maxsize=1)
 	def get_date_format() -> str:
-		date_format = frappe.get_system_settings("date_format")
-		return date_format.replace("mm", "MM")
+		return frappe.get_system_settings("date_format")
 
 	@staticmethod
 	@lru_cache(maxsize=1)

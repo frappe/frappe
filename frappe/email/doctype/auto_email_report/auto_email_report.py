@@ -172,8 +172,6 @@ class AutoEmailReport(Document):
 			return self.get_html_table(columns, data)
 
 		elif self.format in ("XLSX", "CSV"):
-			is_excel = self.format == "XLSX"
-
 			report_data = frappe._dict(
 				{
 					"report_name": self.report,
@@ -182,21 +180,15 @@ class AutoEmailReport(Document):
 					"result": data,
 				}
 			)
+			is_excel = self.format == "XLSX"
 
 			xlsx_data, column_widths, styles = build_xlsx_data(
-				report_data,
-				[],
-				1,
-				ignore_visible_idx=True,
-				build_styles=is_excel,
+				report_data, [], 1, ignore_visible_idx=True, build_styles=is_excel
 			)
 
 			if is_excel:
 				xlsx_file = make_xlsx(
-					xlsx_data,
-					"Auto Email Report",
-					column_widths=column_widths,
-					styles=styles,
+					xlsx_data, "Auto Email Report", column_widths=column_widths, styles=styles
 				)
 
 				return xlsx_file.getvalue()

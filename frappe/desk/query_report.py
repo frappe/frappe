@@ -377,7 +377,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 	data = frappe._dict(data)
 	data.filters = form_params.applied_filters
 
-	# for excel metadata
+	# for excel metadata, require for styling
 	data.report_name = report_name
 	data._filters = form_params.filters
 
@@ -575,7 +575,7 @@ def build_xlsx_data(
 			if not isinstance(cell_value, EXCEL_TYPES):
 				cell_value = cstr(cell_value)
 
-			# handle indentation for CSV
+			# Indentation by adding spaces before string value if styles are not being built (for CSV)
 			if not build_styles and include_indentation and col_idx == 0 and indent:
 				cell_value = ("    " * indent) + cstr(cell_value)
 
@@ -591,11 +591,11 @@ def build_xlsx_data(
 		metadata.last_row_index = len(result) - 1
 		metadata.max_indent_level = max_indent_level
 
-		metadata.ignore_visible_idx = ignore_visible_idx
-		metadata.include_hidden_columns = include_hidden_columns
-		metadata.include_indentation = include_indentation
 		metadata.include_filters = include_filters
 		metadata.add_total_row = data.add_total_row
+		metadata.ignore_visible_idx = ignore_visible_idx
+		metadata.include_indentation = include_indentation
+		metadata.include_hidden_columns = include_hidden_columns
 
 		if data.report_name:
 			report = frappe.get_doc("Report", data.report_name)
