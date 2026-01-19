@@ -120,7 +120,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import { HSVToHex, HexToHSV, getRGB } from "@/utils/helpers"
 import { clamp, useEyeDropper } from "@vueuse/core"
 import type { HashString, RGBString } from "@/types"
-import { useColors } from "@/utils/useColors"
+import { useEspressoTokens } from "@/utils/useEspressoTokens"
 
 const canvasStore = useCanvasStore()
 
@@ -293,11 +293,11 @@ watch(
 // Tokens
 const tokens = computed(() => {
 	if (!props.property) return []
-	const _colors = useColors(props.property)
-	return Object.keys(_colors).map((key) => {
+	const _tokens = useEspressoTokens(props.property)
+	return Object.keys(_tokens).map((key) => {
 		return {
 			label: key,
-			value: _colors[key],
+			value: _tokens[key],
 		}
 	})
 })

@@ -4,7 +4,7 @@ import { computed } from "vue"
 
 const designTokens = resolveConfig(tailwindConfig).theme
 
-export const useColors = (property: "backgroundColor" | "borderColor" | "color") => {
+export const useEspressoTokens = (property: "backgroundColor" | "borderColor" | "color") => {
 	const colors = computed(() => {
 		return {
 			backgroundColor: designTokens?.backgroundColor?.surface,

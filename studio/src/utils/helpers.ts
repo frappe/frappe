@@ -96,6 +96,46 @@ function extractNumberAndUnit(value: string): { number: string; unit: string } {
 	return { number: match[1], unit: match[2] };
 }
 
+
+/**
+ * Adds a unit to a number if it doesn't already have one
+ * @param numberStr - String containing a number with or without a unit
+ * @param unit - Default unit to add if none exists
+ * @returns String with unit attached
+ */
+function addUnitToNumber(numberStr: string, unit: string): string {
+	const match = numberStr.match(/^([0-9.]+)([a-z%]*)$/);
+	if (match) {
+		const [, number, existingUnit] = match;
+		return existingUnit ? numberStr : number + unit;
+	}
+	return numberStr;
+}
+
+/**
+ * Normalizes CSS values by adding default units where missing
+ * Handles both single values and spacing properties with multiple values
+ * @param value - CSS value string
+ * @param unitOptions - Array of possible units, first is used as default
+ * @param styleProperty - CSS property name (used to detect spacing properties)
+ * @returns Normalized value string with units added
+ */
+function normalizeValueWithUnits(value: string, unitOptions: string[], styleProperty: string): string {
+	if (!unitOptions.length) return value;
+
+	const defaultUnit = unitOptions[0];
+	const isSpacingProperty = styleProperty === "margin" || styleProperty === "padding";
+
+	if (isSpacingProperty) {
+		const parts = value.trim().split(/\s+/);
+		if (parts.length > 1) {
+			return parts.map((part) => addUnitToNumber(part, defaultUnit)).join(" ");
+		}
+	}
+
+	return addUnitToNumber(value, defaultUnit);
+}
+
 function kebabToCamelCase(str: string) {
 	// convert border-color to borderColor
 	return str.replace(/-([a-z])/g, function (g) {
@@ -374,6 +414,20 @@ function getRGB(color: HashString | RGBString | string | null): HashString | nul
 	return color as HashString;
 }
 
+function isColorToken(tokenString?: string) {
+	return tokenString?.startsWith("var(--")
+}
+
+function getColorFromToken(tokenString: string) {
+	if (!tokenString) return tokenString
+	if (!isColorToken(tokenString)) return tokenString
+	return tokenString
+		.replace("var(--", "")
+		.replace(")", "")
+		.split(",")[0]
+		.trim()
+}
+
 // general utils
 function isCtrlOrCmd(e: KeyboardEvent | MouseEvent) {
 	return e.ctrlKey || e.metaKey;
@@ -462,6 +516,7 @@ export {
 	numberToPx,
 	pxToNumber,
 	extractNumberAndUnit,
+	normalizeValueWithUnits,
 	kebabToCamelCase,
 	areObjectsEqual,
 	isObjectEmpty,
@@ -494,6 +549,8 @@ export {
 	HSVToHex,
 	RGBToHex,
 	getRGB,
+	isColorToken,
+	getColorFromToken,
 	// general utils
 	isCtrlOrCmd,
 	copyToClipboard,

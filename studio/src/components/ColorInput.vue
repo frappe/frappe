@@ -16,8 +16,8 @@
 						type="text"
 						class="[&>div>input]:pl-8"
 						placeholder="Set Color"
-						@focus="togglePopover"
-						:modelValue="value"
+						:modelValue="displayValue"
+						:disabled="disabled"
 						@update:modelValue="
 							(value: string | null) => {
 								value = getRGB(value)
@@ -31,14 +31,14 @@
 	</ColorPicker>
 </template>
 <script setup lang="ts">
-import { PropType } from "vue"
+import { PropType, computed } from "vue"
 import ColorPicker from "@/components/ColorPicker.vue"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
-import { getRGB } from "@/utils/helpers"
+import { getColorFromToken, getRGB, isColorToken } from "@/utils/helpers"
 import type { HashString } from "@/types"
 
-defineProps({
+const props = defineProps({
 	value: {
 		type: String as PropType<HashString | null>,
 		default: null,
@@ -52,6 +52,12 @@ defineProps({
 		default: "",
 	},
 })
-
 const emit = defineEmits(["change"])
+
+const displayValue = computed(() => {
+	if (!props.value) return ""
+	return getColorFromToken(props.value)
+})
+
+const disabled = computed(() => isColorToken(props.value))
 </script>
