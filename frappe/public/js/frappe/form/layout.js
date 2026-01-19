@@ -498,12 +498,6 @@ frappe.ui.form.Layout = class Layout {
 		}
 	}
 
-	refresh_section_count() {
-		this.wrapper.find(".section-count-label:visible").each(function (i) {
-			$(this).html(i + 1);
-		});
-	}
-
 	setup_events() {
 		let last_scroll = 0;
 		let tabs_list = $(".form-tabs-list");
@@ -691,40 +685,16 @@ frappe.ui.form.Layout = class Layout {
 			build dependants' dictionary
 		*/
 
-		let has_dep = false;
-
 		const fields = this.fields_list.concat(this.tabs);
 
-		for (let fkey in fields) {
-			let f = fields[fkey];
-			if (f.df.depends_on || f.df.mandatory_depends_on || f.df.read_only_depends_on) {
-				has_dep = true;
-				break;
-			}
-		}
-
-		if (!has_dep) return;
-
 		// show / hide based on values
-		for (let i = fields.length - 1; i >= 0; i--) {
-			let f = fields[i];
-			f.guardian_has_value = true;
+		for (const f of fields) {
 			if (f.df.depends_on) {
-				// evaluate guardian
+				const should_hide = !this.evaluate_depends_on_value(f.df.depends_on);
 
-				f.guardian_has_value = this.evaluate_depends_on_value(f.df.depends_on);
-
-				// show / hide
-				if (f.guardian_has_value) {
-					if (f.df.hidden_due_to_dependency) {
-						f.df.hidden_due_to_dependency = false;
-						f.refresh();
-					}
-				} else {
-					if (!f.df.hidden_due_to_dependency) {
-						f.df.hidden_due_to_dependency = true;
-						f.refresh();
-					}
+				if (f.df.hidden_due_to_dependency !== should_hide) {
+					f.df.hidden_due_to_dependency = should_hide;
+					f.refresh();
 				}
 			}
 
@@ -740,8 +710,6 @@ frappe.ui.form.Layout = class Layout {
 				);
 			}
 		}
-
-		this.refresh_section_count();
 	}
 
 	set_dependant_property(condition, fieldname, property) {
