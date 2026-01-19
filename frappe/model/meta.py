@@ -173,6 +173,7 @@ class Meta(Document):
 			return
 
 		self.add_custom_fields()
+		self.add_document_attachment_fields()
 		self.apply_property_setters()
 		self.init_field_caches()
 		self.sort_fields()
@@ -418,6 +419,58 @@ class Meta(Document):
 			return
 
 		self.extend("fields", custom_fields)
+
+	def add_document_attachment_fields(self):
+		"""Add Document Attachment tab and table if Document Attachment Rules exist for this doctype."""
+		if not frappe.db.table_exists("Document Attachment Rules"):
+			return
+
+		# Skip for child tables and special doctypes
+		if self.istable or self.name in (
+			"Document Attachment Rules",
+			"Document Attachment Template",
+			"Document Attachment",
+		):
+			return
+
+		# Check if rules exist for this doctype using raw SQL to avoid recursion
+		rules = frappe.db.sql(
+			"""SELECT name FROM `tabDocument Attachment Rules`
+			WHERE document_type = %s AND disabled = 0 LIMIT 1""",
+			self.name,
+		)
+
+		if not rules:
+			return
+
+		# Add Attachments tab at the end
+		tab_field = frappe._dict(
+			{
+				"fieldname": "document_attachments_tab",
+				"fieldtype": "Tab Break",
+				"label": "Attachments",
+				"doctype": "DocField",
+				"is_custom_field": 0,
+				"is_document_attachment_field": 1,
+				"permlevel": 0,
+			}
+		)
+
+		# Add Document Attachment table
+		table_field = frappe._dict(
+			{
+				"fieldname": "document_attachments",
+				"fieldtype": "Table",
+				"label": "Document Attachments",
+				"options": "Document Attachment",
+				"doctype": "DocField",
+				"is_custom_field": 0,
+				"is_document_attachment_field": 1,
+				"permlevel": 0,
+			}
+		)
+
+		self.extend("fields", [tab_field, table_field])
 
 	def apply_property_setters(self):
 		if not frappe.db.table_exists("Property Setter"):

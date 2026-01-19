@@ -113,6 +113,10 @@ $.extend(frappe.model, {
 				doc[f.fieldname] = f.options.split("\n")[0];
 			}
 		});
+
+		// Populate document attachments from rules
+		frappe.model.populate_document_attachments(doc, doctype);
+
 		return updated;
 	},
 
@@ -354,6 +358,57 @@ $.extend(frappe.model, {
 						).__run_link_triggers = true;
 					}
 					frappe.set_route("Form", r.message.doctype, r.message.name);
+				}
+			},
+		});
+	},
+
+	populate_document_attachments: function (doc, doctype) {
+		// Log for debugging
+		console.log("Populating attachments for", doctype);
+
+		// Fetch templates from server synchronously
+		frappe.call({
+			method: "frappe.client.get_list",
+			args: {
+				doctype: "Document Attachment Rules",
+				filters: { document_type: doctype, disabled: 0 },
+				fields: ["name"],
+				limit_page_length: 1,
+			},
+			async: false,
+			callback: function (r) {
+				if (r.message && r.message.length > 0) {
+					console.log("Found rules", r.message[0].name);
+					let rules_name = r.message[0].name;
+					frappe.call({
+						method: "frappe.client.get",
+						args: {
+							doctype: "Document Attachment Rules",
+							name: rules_name,
+						},
+						async: false,
+						callback: function (r2) {
+							if (r2.message && r2.message.attachments) {
+								console.log("Found templates", r2.message.attachments);
+								// Initialize array if not present, but don't clear if already has items (unlikely for new doc)
+								if (!doc.document_attachments) doc.document_attachments = [];
+								
+								r2.message.attachments.forEach((template) => {
+									let child = frappe.model.get_new_doc(
+										"Document Attachment",
+										doc,
+										"document_attachments"
+									);
+									child.attachment_name = template.attachment_name;
+									child.reqd = template.reqd;
+									console.log("Created child", child);
+								});
+							}
+						},
+					});
+				} else {
+					console.log("No rules found for", doctype);
 				}
 			},
 		});

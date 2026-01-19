@@ -414,8 +414,76 @@ def relink_mismatched_files(doc: "Document") -> None:
 	for df in attach_fields:
 		if doc.get(df.fieldname):
 			relink_files(doc, df.fieldname, doc.__temporary_name)
+	
+	# Process child tables for attachment fields
+	# First, get table fields from meta
+	processed_tables = set()
+	for table_field in doc.meta.get_table_fields():
+		processed_tables.add(table_field.fieldname)
+		_relink_child_table_files(doc, table_field.fieldname, table_field.options, doc.__temporary_name)
+	
+	# Also check for dynamically added table fields (like document_attachments)
+	# by looking for list attributes that contain child docs
+	for key, value in doc.__dict__.items():
+		if key in processed_tables or key.startswith("_"):
+			continue
+		if isinstance(value, list) and len(value) > 0:
+			first_item = value[0]
+			if hasattr(first_item, 'doctype') and hasattr(first_item, 'parentfield'):
+				child_doctype = getattr(first_item, 'doctype', None)
+				if child_doctype:
+					_relink_child_table_files(doc, key, child_doctype, doc.__temporary_name)
+	
 	# delete temporary name after relinking is done
 	doc.delete_key("__temporary_name")
+
+
+def _relink_child_table_files(parent_doc, fieldname, child_doctype, temp_doc_name):
+	"""Helper to relink files in a child table"""
+	try:
+		child_meta = frappe.get_meta(child_doctype)
+	except Exception:
+		return
+	
+	child_attach_fields = child_meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
+	if not child_attach_fields:
+		return
+	
+	for child_doc in parent_doc.get(fieldname) or []:
+		for df in child_attach_fields:
+			if child_doc.get(df.fieldname):
+				relink_child_files(parent_doc, child_doc, df.fieldname, temp_doc_name)
+
+
+def relink_child_files(parent_doc, child_doc, fieldname, temp_doc_name):
+	"""
+	Relink files attached to child table rows from temp parent name to actual parent name
+	"""
+	if not temp_doc_name:
+		return
+	from frappe.utils.data import add_to_date, now_datetime
+
+	mislinked_file = frappe.db.get_value(
+		"File",
+		{
+			"file_url": child_doc.get(fieldname),
+			"attached_to_name": temp_doc_name,
+			"attached_to_doctype": parent_doc.doctype,
+			"creation": (
+				"between",
+				[add_to_date(date=now_datetime(), minutes=-60), now_datetime()],
+			),
+		},
+	)
+	# If file exists, attach it to the new docname
+	if mislinked_file:
+		frappe.db.set_value(
+			"File",
+			mislinked_file,
+			field={
+				"attached_to_name": parent_doc.name,
+			},
+		)
 
 
 def decode_file_content(content: bytes) -> bytes:
