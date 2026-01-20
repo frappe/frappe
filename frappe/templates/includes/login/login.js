@@ -303,6 +303,17 @@ frappe.ready(function () {
 	}
 
 	$(".form-signup, .form-forgot, .form-login-with-email-link").removeClass("hide");
+
+        if ($(".for-login").length && !$(".forgot-password-link").length) {
+  $(".for-login").append(`
+    <div class="text-center mt-3 forgot-password-link">
+      <a href="#forgot" class="text-muted">
+        ${__("Forgot Password?")}
+      </a>
+    </div>
+  `);
+}
+
 	$(document).trigger('login_rendered');
 });
 
