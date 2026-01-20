@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import { isNumber } from "@tiptap/vue-3"
 import { Popover } from "frappe-ui"
-import { PropType, computed } from "vue"
+import { computed } from "vue"
 import { extractNumberAndUnit } from "@/utils/helpers"
 import Input from "@/components/Input.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
