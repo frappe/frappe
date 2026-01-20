@@ -875,6 +875,54 @@ frappe.views.CommunicationComposer = class {
 			callback(r) {
 				if (!r.exc) {
 					frappe.utils.play_sound("email");
+					
+					// Store communication name for undo functionality
+					const communication_name = r.message["name"];
+					
+					// Show undo alert with action button
+					const alert_message = __("Email sent");
+					frappe.show_alert(
+						{
+							message: `${alert_message} <a href="#" data-action="undo" style="text-decoration: underline; margin-left: 10px;">${__("Undo")}</a>`,
+							indicator: "green",
+						},
+						7,
+						{
+							undo: function () {
+								// Call backend to undo send
+								frappe.call({
+									method: "frappe.core.doctype.communication.email.undo_send_email",
+									args: { communication_name: communication_name },
+									callback: function (undo_response) {
+										if (!undo_response.exc && undo_response.message) {
+											// Reopen the composer with the original data
+											const comm_data = undo_response.message;
+											new frappe.views.CommunicationComposer({
+												doc: me.doc,
+												frm: me.frm,
+												subject: comm_data.subject,
+												recipients: comm_data.recipients,
+												cc: comm_data.cc,
+												bcc: comm_data.bcc,
+												content: comm_data.content,
+												real_name: comm_data.sender_full_name,
+												sender: comm_data.sender,
+											});
+											frappe.show_alert({
+												message: __("Email sending undone"),
+												indicator: "blue",
+											});
+											
+											// Reload the form if it exists
+											if (me.frm) {
+												me.frm.reload_doc();
+											}
+										}
+									},
+								});
+							},
+						}
+					);
 
 					if (r.message["emails_not_sent_to"]) {
 						frappe.msgprint(

@@ -324,3 +324,82 @@ def update_communication_as_read(name):
 		name,
 		{"read_by_recipient": 1, "delivery_status": "Read", "read_by_recipient_on": get_datetime()},
 	)
+
+
+@frappe.whitelist()
+def undo_send_email(communication_name: str) -> dict:
+	"""Undo sending of an email by deleting the communication and related email queue.
+	Returns the communication data so it can be reopened in the composer.
+	
+	:param communication_name: Name of the Communication document to undo
+	:return: Dictionary with communication data for reopening in composer
+	"""
+	from frappe.utils import now_datetime, time_diff_in_seconds
+	
+	# Get the communication document
+	comm = frappe.get_doc("Communication", communication_name)
+	
+	# Check permissions
+	if comm.reference_doctype and comm.reference_name:
+		frappe.has_permission(comm.reference_doctype, doc=comm.reference_name, ptype="email", throw=True)
+	
+	# Check if the communication is recent enough to undo (within 7 seconds)
+	time_since_creation = time_diff_in_seconds(now_datetime(), comm.creation)
+	if time_since_creation > 7:
+		frappe.throw(_("This email was sent more than 7 seconds ago and cannot be undone"))
+	
+	# Save communication data to return for reopening
+	comm_data = {
+		"subject": comm.subject,
+		"content": comm.content,
+		"recipients": comm.recipients,
+		"cc": comm.cc,
+		"bcc": comm.bcc,
+		"sender": comm.sender,
+		"sender_full_name": comm.sender_full_name,
+		"reference_doctype": comm.reference_doctype,
+		"reference_name": comm.reference_name,
+		"email_template": comm.email_template,
+		"communication_type": comm.communication_type,
+	}
+	
+	# Get attachments
+	attachments = frappe.get_all(
+		"File",
+		filters={
+			"attached_to_doctype": "Communication",
+			"attached_to_name": communication_name,
+		},
+		fields=["name", "file_name", "file_url", "is_private"],
+	)
+	comm_data["attachments"] = [{"name": a.name, "file_url": a.file_url} for a in attachments]
+	
+	# Delete related email queue entries (mark as cancelled to prevent sending)
+	email_queue_entries = frappe.get_all(
+		"Email Queue",
+		filters={"communication": communication_name},
+		pluck="name",
+	)
+	
+	for eq_name in email_queue_entries:
+		try:
+			# Try to delete if Administrator, otherwise mark as Error to prevent sending
+			eq = frappe.get_doc("Email Queue", eq_name)
+			if frappe.session.user == "Administrator":
+				eq.delete(ignore_permissions=True)
+			else:
+				eq.db_set("status", "Error")
+				eq.db_set("error", "Email sending was undone by user")
+		except Exception:
+			# If deletion fails, at least mark as error to prevent sending
+			frappe.db.set_value("Email Queue", eq_name, {
+				"status": "Error",
+				"error": "Email sending was undone by user"
+			})
+	
+	# Delete the communication document
+	comm.delete(ignore_permissions=True)
+	
+	frappe.db.commit()
+	
+	return comm_data
