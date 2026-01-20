@@ -390,8 +390,12 @@ def undo_send_email(communication_name: str) -> dict:
 			else:
 				eq.db_set("status", "Error")
 				eq.db_set("error", "Email sending was undone by user")
-		except Exception:
-			# If deletion fails, at least mark as error to prevent sending
+		except frappe.exceptions.DoesNotExistError:
+			# Email queue entry may have already been deleted/processed
+			frappe.log_error(f"Email Queue {eq_name} not found during undo", "Undo Email Send")
+		except frappe.exceptions.ValidationError as e:
+			# Validation error during deletion, mark as error instead
+			frappe.log_error(f"Failed to delete Email Queue {eq_name}: {str(e)}", "Undo Email Send")
 			frappe.db.set_value("Email Queue", eq_name, {
 				"status": "Error",
 				"error": "Email sending was undone by user"
