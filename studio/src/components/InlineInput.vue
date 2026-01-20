@@ -64,61 +64,37 @@ import Autocomplete from "@/components/Autocomplete.vue"
 import ColorInput from "@/components/ColorInput.vue"
 import InputLabel from "@/components/InputLabel.vue"
 
-const props = defineProps({
-	modelValue: {
-		type: [String, Number, Boolean, Object, Array],
-		default: null,
+const props = withDefaults(
+	defineProps<{
+		modelValue: string | number | boolean | object | null
+		label?: string
+		description?: string
+		type?: string
+		unitOptions?: string[]
+		options?: Array<string | number | { label: string; value: string }>
+		enableSlider?: boolean
+		changeFactor?: number
+		minValue?: number
+		maxValue?: number | null
+		showInputAsOption?: boolean
+		height?: string
+		required?: boolean
+		disabled?: boolean
+	}>(),
+	{
+		modelValue: null,
+		label: "",
+		description: "",
+		type: "text",
+		unitOptions: () => [],
+		options: () => [],
+		enableSlider: false,
+		changeFactor: 1,
+		minValue: 0,
+		maxValue: null,
+		showInputAsOption: false,
 	},
-	label: {
-		type: String,
-		default: "",
-	},
-	description: {
-		type: String,
-		default: "",
-	},
-	type: {
-		type: String,
-		default: "text",
-	},
-	unitOptions: {
-		type: Array as PropType<string[]>,
-		default: () => [],
-	},
-	options: {
-		type: Array,
-		default: () => [],
-	},
-	enableSlider: {
-		type: Boolean,
-		default: false,
-	},
-	changeFactor: {
-		type: Number,
-		default: 1,
-	},
-	minValue: {
-		type: Number,
-		default: 0,
-	},
-	maxValue: {
-		type: Number,
-		default: null,
-	},
-	showInputAsOption: {
-		type: Boolean,
-		default: false,
-	},
-	height: {
-		type: String,
-	},
-	required: {
-		type: Boolean,
-	},
-	disabled: {
-		type: Boolean,
-	},
-})
+)
 
 const emit = defineEmits(["update:modelValue"])
 
@@ -155,9 +131,7 @@ const handleChange = (value: string | number | null | { label: string; value: st
 }
 
 const handleMouseDown = (e: MouseEvent) => {
-	if (!props.enableSlider) {
-		return
-	}
+	if (!props.enableSlider) return
 	const { number } = extractNumberAndUnit(String(props.modelValue || ""))
 	const startY = e.clientY
 	const startValue = Number(number)
@@ -174,6 +148,7 @@ const handleMouseDown = (e: MouseEvent) => {
 }
 
 const handleKeyDown = (e: KeyboardEvent) => {
+	if (!props.enableSlider) return
 	if (e.key === "ArrowUp" || e.key === "ArrowDown") {
 		const step = e.key === "ArrowUp" ? 1 : -1
 		incrementOrDecrement(step)
