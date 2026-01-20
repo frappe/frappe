@@ -521,7 +521,7 @@ class QueueBuilder:
 		email_headers=None,
 		raw_html=False,
 		add_css=True,
-		ignore_unsubscribed=False
+		ignore_unsubscribed=False,
 	):
 		"""Add email to sending queue (Email Queue)
 

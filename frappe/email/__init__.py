@@ -152,7 +152,7 @@ def sendmail(
 	email_headers=None,
 	raw_html=False,
 	add_css=True,
-	ignore_unsubscribed=False
+	ignore_unsubscribed=False,
 ) -> EmailQueue | None:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -246,7 +246,7 @@ def sendmail(
 		email_headers=email_headers,
 		raw_html=raw_html,
 		add_css=add_css,
-		ignore_unsubscribed=ignore_unsubscribed
+		ignore_unsubscribed=ignore_unsubscribed,
 	)
 
 	# build email queue and send the email if send_now is True.
