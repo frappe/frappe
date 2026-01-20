@@ -675,7 +675,7 @@ class QueueBuilder:
 	def get_unsubscribed_user_emails(self, email_ids):
 		if self._unsubscribed_user_emails is not None:
 			return self._unsubscribed_user_emails
-		if self.ignore_unsubscribed == True:
+		if self.ignore_unsubscribed:
 			return []
 		all_ids = list(set(email_ids))
 
