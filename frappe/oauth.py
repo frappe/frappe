@@ -253,7 +253,9 @@ class OAuthWebRequestValidator(RequestValidator):
 		# return its scopes, these will be passed on to the refreshed
 		# access token if the client did not specify a scope during the
 		# request.
-		obearer_token = frappe.get_doc("OAuth Bearer Token", {"refresh_token": refresh_token})
+		obearer_token = frappe.get_doc(
+			"OAuth Bearer Token", {"refresh_token": refresh_token}, ignore_permissions=True
+		)
 		return obearer_token.scopes
 
 	def revoke_token(self, token, token_type_hint, request, *args, **kwargs):
@@ -291,11 +293,17 @@ class OAuthWebRequestValidator(RequestValidator):
 		- Refresh Token Grant
 		"""
 
-		otoken = frappe.get_doc("OAuth Bearer Token", {"refresh_token": refresh_token, "status": "Active"})
+		otoken = frappe.get_doc(
+			"OAuth Bearer Token",
+			{"refresh_token": refresh_token, "status": "Active"},
+			ignore_permissions=True,
+		)
 
 		if not otoken:
 			return False
 		else:
+			# Set request.user to the user associated with the refresh token
+			request.user = otoken.user
 			return True
 
 	# OpenID Connect
