@@ -5,7 +5,6 @@ import re
 from http import cookies
 from urllib.parse import unquote, urljoin, urlparse
 
-import jwt
 from oauthlib.openid import RequestValidator
 
 import frappe
@@ -302,6 +301,8 @@ class OAuthWebRequestValidator(RequestValidator):
 	# OpenID Connect
 
 	def finalize_id_token(self, id_token, token, token_handler, request):
+		import jwt
+
 		# Check whether frappe server URL is set
 		id_token_header = {"typ": "jwt", "alg": "HS256"}
 
@@ -437,6 +438,8 @@ class OAuthWebRequestValidator(RequestValidator):
 		- OpenIDConnectImplicit
 		- OpenIDConnectHybrid
 		"""
+		import jwt
+
 		if id_token_hint:
 			try:
 				user = None
