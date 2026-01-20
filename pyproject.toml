@@ -27,8 +27,11 @@ dependencies = [
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.1",
     "WeasyPrint==68.0",
+<<<<<<< HEAD
     # we don't use tinycss2 directly, but pinned to ensure compatibility with WeasyPrint and bleach
     "tinycss2~=1.5.1,<1.6",
+=======
+>>>>>>> b5f07c8d9e (chore(deps): bump weasyprint from 66.0 to 68.0)
     "pydyf==0.12.1",
     "Werkzeug==3.1.5",
     "Whoosh~=2.7.4",
