@@ -16,6 +16,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Attachment Name",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -23,7 +24,8 @@
    "fieldname": "reqd",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Mandatory"
+   "label": "Mandatory",
+   "read_only": 1
   },
   {
    "fieldname": "attachment",
@@ -37,7 +39,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-01-20 01:54:05.305664",
+ "modified": "2026-01-20 10:34:43.826909",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Attachment",

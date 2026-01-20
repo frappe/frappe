@@ -830,7 +830,11 @@ frappe.ui.form.Form = class FrappeForm {
 				if (me.comment_box) {
 					me.comment_box.submit();
 				}
-				me.refresh();
+				
+				// Upload pending attachments after first save
+				me.upload_pending_attachments().then(() => {
+					me.refresh();
+				});
 			} else {
 				if (on_error) {
 					on_error();
@@ -1483,6 +1487,84 @@ frappe.ui.form.Form = class FrappeForm {
 
 	is_new() {
 		return this.doc.__islocal;
+	}
+
+	async upload_pending_attachments() {
+		// Upload files that were selected while document was new
+		if (!this._pending_attachments || this._pending_attachments.length === 0) {
+			return;
+		}
+
+		console.log("Uploading pending attachments...", this._pending_attachments.length);
+		const pending = this._pending_attachments;
+		this._pending_attachments = [];
+		let has_uploads = false;
+
+		for (const item of pending) {
+			try {
+				const result = await item.control.upload_pending_file();
+				if (result && result.file_url) {
+					has_uploads = true;
+					console.log("Uploaded file:", result.file_url);
+
+					// Update the model with the actual file URL
+					// We search for the pending value because docnames might have changed after save
+					const pending_val = `pending:${item.file.name}`;
+					let updated = false;
+
+					// Check main doc fields
+					if (this.doc[item.fieldname] === pending_val) {
+						frappe.model.set_value(this.doctype, this.docname, item.fieldname, result.file_url);
+						updated = true;
+					}
+
+					// Check child tables if not found in main doc
+					if (!updated) {
+						for (const key in this.doc) {
+							if (Array.isArray(this.doc[key])) {
+								for (const row of this.doc[key]) {
+									if (row[item.fieldname] === pending_val) {
+										frappe.model.set_value(row.doctype, row.name, item.fieldname, result.file_url);
+										updated = true;
+									}
+								}
+							}
+						}
+					}
+					
+					if (!updated) {
+						console.warn("Could not find pending value in doc to update:", pending_val);
+					}
+				}
+			} catch (e) {
+				console.error("Error uploading pending attachment:", e);
+				frappe.msgprint({
+					title: __("Upload Error"),
+					message: __("Failed to upload file: {0}", [item.file.name]),
+					indicator: "red"
+				});
+			}
+		}
+
+		// Save the document to persist the updated field values
+		if (has_uploads) {
+			try {
+				console.log("Saving document after uploads...", this.doc.document_attachments);
+				// The field values are already updated in the model via parse_validate_and_set_in_model
+				// Just save the doc to persist
+				await frappe.call({
+					method: "frappe.desk.form.save.savedocs",
+					args: {
+						doc: this.doc,
+						action: "Save",
+					},
+					async: true,
+				});
+				console.log("Document saved after uploads");
+			} catch (e) {
+				console.error("Error saving after attachment upload:", e);
+			}
+		}
 	}
 
 	is_form_builder() {

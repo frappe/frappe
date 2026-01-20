@@ -443,6 +443,13 @@ class Meta(Document):
 		if not rules:
 			return
 
+		# Check if any mandatory attachments exist
+		has_mandatory = frappe.db.sql(
+			"""SELECT name FROM `tabDocument Attachment Template`
+			WHERE parent = %s AND reqd = 1 LIMIT 1""",
+			rules[0][0],
+		)
+
 		# Add Attachments tab at the end
 		tab_field = frappe._dict(
 			{
@@ -465,8 +472,12 @@ class Meta(Document):
 				"options": "Document Attachment",
 				"doctype": "DocField",
 				"is_custom_field": 0,
+				"is_virtual": 0,
 				"is_document_attachment_field": 1,
 				"permlevel": 0,
+				"cannot_add_rows": 1,
+				"cannot_delete_rows": 1,
+				"reqd": 1 if has_mandatory else 0,
 			}
 		)
 

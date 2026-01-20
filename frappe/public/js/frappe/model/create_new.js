@@ -127,7 +127,9 @@ $.extend(frappe.model, {
 		// create empty rows for mandatory table fields
 		frappe.meta.get_docfields(doc.doctype).forEach(function (df) {
 			if (df.fieldtype === "Table" && df.reqd) {
-				frappe.model.add_child(doc, df.fieldname);
+				if (!doc[df.fieldname] || doc[df.fieldname].length === 0) {
+					frappe.model.add_child(doc, df.fieldname);
+				}
 			}
 		});
 	},
