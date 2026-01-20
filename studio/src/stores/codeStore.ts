@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, computed, watch, type WatchStopHandle, ComputedRef, toRefs, unref } from "vue"
+import { ref, computed, watch, type WatchStopHandle, ComputedRef, toRefs, unref, h } from "vue"
 import { watchDebounced } from "@vueuse/core"
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
 import { studioPageResources } from "@/data/studioResources"
@@ -7,6 +7,7 @@ import { studioVariables } from "@/data/studioVariables"
 import { studioWatchers } from "@/data/studioWatchers"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
+import { FUNCTION_STRING_REGEX } from "@/utils/constants"
 import type { Filters, Resource, DocumentResource, DataResult } from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
@@ -180,6 +181,12 @@ const useCodeStore = defineStore("codeStore", () => {
 		if (typeof value === "string") {
 			if (isDynamicValue(value)) {
 				return getDynamicValue(value, localContext)
+			}
+			if (FUNCTION_STRING_REGEX.test(value)) {
+				const func = stringToFunction(value)
+				if (typeof func === "function") {
+					return func
+				}
 			}
 			return value
 		}
@@ -441,6 +448,26 @@ const useCodeStore = defineStore("codeStore", () => {
 		return {}
 	}
 
+	function stringToFunction(value: string): Function | string {
+		/**
+		 * Convert a function string to an actual function
+		 * Used for component props that have function values
+		 */
+		const registeredComponents = window.__APP_COMPONENTS__ || {}
+
+		try {
+			const fn = new Function(
+				"h",
+				...Object.keys(registeredComponents),
+				...Object.keys(globalExecutionContext.value),
+				`return (${value})`
+			)
+			return fn(h, ...Object.values(registeredComponents), ...Object.values(globalExecutionContext.value))
+		} catch (e) {
+			return value
+		}
+	}
+
 	return {
 		setRouteObject,
 		routeObject,
@@ -464,6 +491,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		handleSuccess,
 		handleError,
 		getAPIParams,
+		stringToFunction,
 	}
 })
 

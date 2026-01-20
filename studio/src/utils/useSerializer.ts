@@ -2,7 +2,6 @@ import { reactive, toRaw, h } from "vue"
 import Block from "./block"
 import getBlockTemplate from "@/utils/blockTemplate"
 import { deepCloneObject } from "@/utils/helpers"
-import { FUNCTION_STRING_REGEX } from "@/utils/constants"
 
 import type { ObjectLiteral, BlockOptions } from "@/types"
 import useCodeStore from "@/stores/codeStore"
@@ -41,33 +40,8 @@ export const useSerializer = () => {
 		return JSON.stringify(obj, jsonReplacer, 2)
 	}
 
-	const jsonReviver = (_key: string, value: any) => {
-		const codeStore = useCodeStore()
-		const registeredComponents = window.__APP_COMPONENTS__ || {}
-		if (typeof value === "string") {
-			const trimmed = value.trim()
-			const isFunctionString = FUNCTION_STRING_REGEX.test(trimmed)
-
-			if (isFunctionString) {
-				try {
-					// provide access to render function & frappeUI lib for editing props
-					const fn = new Function(
-						"h",
-						...Object.keys(registeredComponents),
-						...Object.keys(codeStore.globalExecutionContext),
-						`return (${value})`
-					)
-					return fn(h, ...Object.values(registeredComponents), ...Object.values(codeStore.globalExecutionContext))
-				} catch (e) {
-					return value
-				}
-			}
-		}
-		return value
-	}
-
 	function jsonToJs(json: string): any {
-		return JSON.parse(json, jsonReviver)
+		return JSON.parse(json)
 	}
 
 	function copyObject<T>(obj: T) {
@@ -178,7 +152,6 @@ export const useSerializer = () => {
 		jsToJson,
 		jsonReplacer,
 		jsonToJs,
-		jsonReviver,
 		copyObject,
 		parseObjectString,
 		quoteDynamicValues,
