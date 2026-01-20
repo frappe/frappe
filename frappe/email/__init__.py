@@ -152,6 +152,7 @@ def sendmail(
 	email_headers=None,
 	raw_html=False,
 	add_css=True,
+	ignore_unsubscribed=False
 ) -> EmailQueue | None:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -183,6 +184,7 @@ def sendmail(
 	:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
 	:param raw_html: Whether to treat email template as a complete HTML file
 	:param add_css: Whether to add CSS from hooks/email_css to the email template
+	:param ignore_unsubscribed: Whether to sent email for all the users if they unsubscribed to the event
 	"""
 
 	from frappe.utils.jinja import get_email_from_template
@@ -244,6 +246,7 @@ def sendmail(
 		email_headers=email_headers,
 		raw_html=raw_html,
 		add_css=add_css,
+		ignore_unsubscribed=ignore_unsubscribed
 	)
 
 	# build email queue and send the email if send_now is True.

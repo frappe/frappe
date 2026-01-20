@@ -571,6 +571,7 @@ class User(Document):
 			header=[subject, "green"],
 			delayed=(not now) if now is not None else self.flags.delay_emails,
 			retry=3,
+			ignore_unsubscribed=True
 		)
 
 	def on_trash(self):
