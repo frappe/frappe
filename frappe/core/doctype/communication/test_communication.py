@@ -471,3 +471,85 @@ def create_email_account() -> "EmailAccount":
 			"enable_automatic_linking": 1,
 		}
 	).insert(ignore_permissions=True)
+
+
+	def test_undo_send_email(self):
+		"""Test that email sending can be undone within 7 seconds"""
+		# Create a test communication with email
+		result = make(
+			recipients="test@example.com",
+			subject="Test Undo Email",
+			content="This email should be undoable",
+			send_email=True,
+			doctype="ToDo",
+			name="_Test ToDo",
+		)
+		
+		comm_name = result["name"]
+		
+		# Verify communication was created
+		self.assertTrue(frappe.db.exists("Communication", comm_name))
+		
+		# Verify email queue was created
+		email_queue = frappe.get_all(
+			"Email Queue",
+			filters={"communication": comm_name},
+			fields=["name", "status"],
+		)
+		self.assertEqual(len(email_queue), 1)
+		
+		# Import undo function
+		from frappe.core.doctype.communication.email import undo_send_email
+		
+		# Undo the send
+		comm_data = undo_send_email(comm_name)
+		
+		# Verify communication was deleted
+		self.assertFalse(frappe.db.exists("Communication", comm_name))
+		
+		# Verify email queue was marked as error or deleted
+		email_queue_after = frappe.get_all(
+			"Email Queue",
+			filters={"communication": comm_name},
+		)
+		# Should either be deleted or marked as error
+		if email_queue_after:
+			eq = frappe.get_doc("Email Queue", email_queue_after[0].name)
+			self.assertEqual(eq.status, "Error")
+		
+		# Verify returned data contains original email content
+		self.assertEqual(comm_data["subject"], "Test Undo Email")
+		self.assertEqual(comm_data["content"], "This email should be undoable")
+		self.assertEqual(comm_data["recipients"], "test@example.com")
+	
+	def test_undo_send_email_after_7_seconds(self):
+		"""Test that email cannot be undone after 7 seconds"""
+		# Create a test communication
+		result = make(
+			recipients="test@example.com",
+			subject="Test Old Email",
+			content="This email is old",
+			send_email=True,
+			doctype="ToDo",
+			name="_Test ToDo",
+		)
+		
+		comm_name = result["name"]
+		
+		# Manually set creation time to be older than 7 seconds
+		from frappe.utils import add_to_date, now_datetime
+		old_time = add_to_date(now_datetime(), seconds=-10)
+		frappe.db.set_value("Communication", comm_name, "creation", old_time)
+		
+		# Import undo function
+		from frappe.core.doctype.communication.email import undo_send_email
+		
+		# Try to undo (should raise error)
+		with self.assertRaises(frappe.exceptions.ValidationError):
+			undo_send_email(comm_name)
+		
+		# Verify communication still exists
+		self.assertTrue(frappe.db.exists("Communication", comm_name))
+		
+		# Cleanup
+		frappe.delete_doc("Communication", comm_name, ignore_permissions=True)
