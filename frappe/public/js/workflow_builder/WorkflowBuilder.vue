@@ -6,6 +6,7 @@ import StateNode from "./components/StateNode.vue";
 import ActionNode from "./components/ActionNode.vue";
 import ConnectionLine from "./components/ConnectionLine.vue";
 import Sidebar from "./components/Sidebar.vue";
+import StateSelector from "./components/StateSelector.vue";
 import { useStore } from "./store";
 import { validate_transitions } from "./utils";
 import { ref, computed, nextTick, onMounted, watch } from "vue";
@@ -218,40 +219,93 @@ function onDrop(event) {
 		y: event.clientY - top,
 	});
 
-	let state_ids = nodes.value.filter((node) => node.type == "state").map((node) => node.id);
-	let state_id = state_ids.length ? (Math.max(...state_ids) + 1).toString() : "1";
-	const new_state = {
-		id: state_id,
-		type: "state",
-		position,
-		selected: true,
-		data: {
-			state: "",
-			doc_status: "Draft",
-			allow_edit: "All",
-		},
-	};
+    // Check if dropping from sidebar
+    let item_name = "";
+    let item_type = "";
+    
+    if (event.dataTransfer) {
+        item_name = event.dataTransfer.getData("item_name") || "";
+        item_type = event.dataTransfer.getData("item_type") || "state"; // Default back to state if older drag logic
+        // If coming from old drag logic (StateSelector v1), it might set 'state' only
+        if (!item_name && event.dataTransfer.getData("state")) {
+             item_name = event.dataTransfer.getData("state");
+             item_type = "state";
+        }
+    }
 
-	addNodes([new_state]);
+    if (item_type === "state") {
+        let state_ids = nodes.value.filter((node) => node.type == "state").map((node) => node.id);
+        let state_id = state_ids.length ? (Math.max(...state_ids) + 1).toString() : "1";
+        
+        const new_state = {
+            id: state_id,
+            type: "state",
+            position,
+            selected: true,
+            data: {
+                state: item_name,
+                doc_status: "Draft",
+                allow_edit: "All",
+            },
+        };
+        addNodes([new_state]);
+        
+        // Watch logic for state (same as before)
+        nextTick(() => {
+            const node = findNode(new_state.id);
+            const stop = watch(
+                () => node.dimensions,
+                (dimensions) => {
+                    if (dimensions.width > 0 && dimensions.height > 0) {
+                        node.position = {
+                            x: node.position.x - node.dimensions.width / 2,
+                            y: node.position.y - node.dimensions.height / 2,
+                        };
+                        stop();
+                        store.workflow.selected = node;
+                        store.ref_history.commit();
+                    }
+                },
+                { deep: true, flush: "post" }
+            );
+        });
 
-	nextTick(() => {
-		const node = findNode(new_state.id);
-		const stop = watch(
-			() => node.dimensions,
-			(dimensions) => {
-				if (dimensions.width > 0 && dimensions.height > 0) {
-					node.position = {
-						x: node.position.x - node.dimensions.width / 2,
-						y: node.position.y - node.dimensions.height / 2,
-					};
-					stop();
-					store.workflow.selected = node;
-					store.ref_history.commit();
-				}
-			},
-			{ deep: true, flush: "post" }
-		);
-	});
+    } else if (item_type === "action") {
+        // Handling creation of action/transition node logic if needed
+        // Typically actions are transitions BETWEEN states.
+        // Workflow Builder currently creates actions via connections.
+
+        // Based on current builder logic, Action Nodes are just type: 'action'.
+        let action_ids = nodes.value
+            .filter((node) => node.type == "action")
+            .map((node) => parseInt(node.id.replace("action-", "")));
+	    let action_id = action_ids.length ? (Math.max(...action_ids) + 1).toString() : "1";
+
+        const new_action = {
+            id: "action-" + action_id,
+            type: "action",
+            position,
+            selected: true,
+            data: {
+                action: item_name, // The task name becomes the action name?
+                allowed: "All",
+                allow_self_approval: 1,
+                from: "",
+                to: "",
+                from_id: null,
+                to_id: null,
+            },
+        };
+        addNodes([new_action]);
+        
+        nextTick(() => {
+            const node = findNode(new_action.id);
+            if(node) {
+                 store.workflow.selected = node;
+                 store.ref_history.commit();
+            }
+        });
+    }
 }
 
 function onDragStart(event) {
@@ -286,17 +340,6 @@ onMounted(() => store.fetch());
 				:delete-key-code="null"
 			>
 				<Background pattern-color="#aaa" gap="10" />
-				<Panel :position="PanelPosition.TopRight">
-					<div class="empty-state">
-						<div
-							class="btn btn-md drag-handle"
-							:draggable="true"
-							@dragstart="onDragStart"
-						>
-							{{ __("Drag to add state") }}
-						</div>
-					</div>
-				</Panel>
 				<Panel :position="PanelPosition.BottomLeft">
 					<button class="btn btn-sm btn-default mr-2" @click="zoomIn">+</button>
 					<button class="btn btn-sm btn-default mr-2" @click="zoomOut">-</button>
@@ -318,6 +361,8 @@ onMounted(() => store.fetch());
 				</template>
 			</VueFlow>
 		</div>
+		<!-- Right Sidebar for State Selection -->
+		<StateSelector />
 	</div>
 </template>
 
@@ -345,7 +390,8 @@ onMounted(() => store.fetch());
 	}
 }
 .workflow-container {
-	width: 100%;
+	flex: 1;
+	min-width: 0;
 	height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 65px);
 	border-radius: var(--border-radius-lg);
 	border: 1px solid var(--border-color);

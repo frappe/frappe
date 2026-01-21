@@ -37,20 +37,169 @@ watch(
 );
 
 let label = computed(() => findNode(props.node.id)?.data?.action);
-
 watch(
 	() => props.node.data,
 	() => {
-		store.ref_history.commit();
+		if (store.ref_history) {
+			store.ref_history.commit();
+		}
 	},
 	{ deep: true }
 );
+
+function onDragOver(event) {
+	event.preventDefault();
+	event.stopPropagation(); // Stop bubbling
+	event.dataTransfer.dropEffect = "move";
+}
+
+async function onDrop(event) {
+	event.stopPropagation(); // Stop bubbling to canvas
+	const item_type = event.dataTransfer.getData("item_type");
+	const item_name = event.dataTransfer.getData("item_name");
+
+	if (item_type === "transition_task" && item_name) {
+		// "transition_task" refers to the dropped Task name
+		// We need to link this task to the current Transition (Action Node)
+		try {
+			await store.add_task_to_transition(props.node, item_name);
+			frappe.show_alert({
+				message: __("Task '{0}' added to transition", [item_name]),
+				indicator: "green"
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	}
+}
+
+function onTaskDragStart(event, index) {
+	console.log("Drag Start", index);
+	event.dataTransfer.effectAllowed = "move";
+	event.dataTransfer.dropEffect = "move";
+	event.dataTransfer.setData("type", "sort_task");
+	event.dataTransfer.setData("from_index", index);
+}
+
+function onTaskDragOver(event) {
+	if (event.dataTransfer.types.includes("type") || true) { // simplified check
+		event.preventDefault(); // allow drop
+		event.dataTransfer.dropEffect = "move"; 
+	}
+}
+
+async function onTaskDrop(event, to_index) {
+	const type = event.dataTransfer.getData("type");
+	if (type === "sort_task") {
+		const from_index = parseInt(event.dataTransfer.getData("from_index"));
+		if (from_index !== to_index) {
+			await store.move_task(props.node, from_index, to_index);
+		}
+	}
+}
+
+async function removeTask(task) {
+	console.log("Removing task:", task.task);
+	try {
+		await store.remove_task_from_transition(props.node, task);
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+function openTaskConfig(task, index) {
+	// Only open config for Email Notification tasks for now
+	if (!task.task.toLowerCase().includes('email') && !task.task.toLowerCase().includes('notification')) {
+		return;
+	}
+
+	// Get fields from the store (already fetched for the main document)
+	// Filter for fields that are of type 'Email' using the metadata.
+	console.log(store.workflow_doc_fields);
+	const receiver_options = store.workflow_doc_fields
+		.filter(f => f.options == 'Email')
+		.map(f => ({
+			label: f.label,
+			value: f.value
+		}));
+
+	console.log(receiver_options);
+
+	const d = new frappe.ui.Dialog({
+		title: __('Configure {0}', [task.task]),
+		fields: [
+			{
+				label: 'Email Template',
+				fieldname: 'email_template',
+				fieldtype: 'Link',
+				options: 'Email Template',
+				default: task.email_template,
+				reqd: 1
+			},
+			{
+				label: 'Receiver By Document Field',
+				fieldname: 'receiver_by_document_field',
+				fieldtype: 'Select',
+				options: receiver_options,
+				default: task.receiver_by_document_field,
+				reqd: 1
+			}
+		],
+		primary_action_label: __('Update'),
+		primary_action(values) {
+			store.update_task_config(props.node, index, {
+				email_template: values.email_template,
+				receiver_by_document_field: values.receiver_by_document_field
+			});
+			d.hide();
+			frappe.show_alert({ message: __('Task updated'), indicator: 'green' });
+		}
+	});
+
+	d.show();
+}
+
 </script>
 
 <template>
-	<div class="node" tabindex="0" @click.stop="store.workflow.selected = node">
+	<div 
+		class="node" 
+		tabindex="0" 
+		@click.stop="store.workflow.selected = node"
+		@drop.stop="onDrop"
+		@dragover.stop="onDragOver"
+	>
 		<div v-if="label" class="node-label">{{ __(label) }}</div>
 		<div v-else class="node-placeholder text-muted">{{ __("No Label") }}</div>
+		
+		<!-- Display added tasks -->
+		<div v-if="node.data && node.data.tasks && node.data.tasks.length" class="tasks-container">
+			<div 
+				v-for="(task, index) in node.data.tasks" 
+				:key="task.task" 
+				class="task-badge"
+				draggable="true"
+				@dragstart.stop="(e) => onTaskDragStart(e, index)"
+				@drop.stop="(e) => onTaskDrop(e, index)"
+				@dragover.stop="(e) => onTaskDragOver(e)"
+				@click.stop="openTaskConfig(task, index)"
+			>
+				<div class="flex items-center justify-between">
+					<span>{{ task.task }}</span>
+					<div 
+						class="remove-icon" 
+						@click.stop="removeTask(task)"
+						title="Remove Task"
+					>
+						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<line x1="18" y1="6" x2="6" y2="18"></line>
+							<line x1="6" y1="6" x2="18" y2="18"></line>
+						</svg>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<Handle
 			v-for="handle in ['top', 'right', 'bottom', 'left']"
 			class="handle"
@@ -74,10 +223,76 @@ watch(
 	color: var(--fg-color);
 	border: 1px solid var(--fg-color);
 	box-shadow: var(--shadow-base);
+	pointer-events: all !important;
+	z-index: 10;
 }
 
 .vue-flow__node.selected .node {
 	outline: 1.5px solid var(--primary);
 	outline-offset: 2px;
 }
+
+.tasks-container {
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid rgba(0,0,0,0.1);
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.task-badge {
+	background: #ffffff !important;
+	color: #1f272e !important;
+	font-size: 11px;
+	padding: 4px 8px;
+	border-radius: 4px;
+	border: 1px solid #d1d8dd;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+	font-weight: 500;
+	margin-bottom: 2px;
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	text-align: left;
+	cursor: pointer; /* Changed from grab to pointer for clickable effect */
+	
+	&:hover {
+		border-color: var(--primary);
+	}
+
+	&:active {
+		cursor: grabbing;
+	}
+}
+
+.flex {
+	display: flex;
+}
+
+.items-center {
+	align-items: center;
+}
+
+.justify-between {
+	justify-content: space-between;
+}
+
+.remove-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	cursor: pointer;
+	color: #8d99a6;
+	margin-left: 4px;
+	
+	&:hover {
+		background-color: #f0f4f8;
+		color: #000000;
+	}
+}
 </style>
+```
