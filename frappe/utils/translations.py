@@ -3,7 +3,7 @@ from string.templatelib import Interpolation, Template
 import frappe
 
 
-def _(msg, lang: str | None = None, context: str | None = None) -> str:
+def _(msg: str | Template, lang: str | None = None, context: str | None = None) -> str:
 	"""Return translated string in current lang, if exists.
 	Usage:
 	        _('Change')
@@ -68,29 +68,29 @@ def set_user_lang(user: str, user_language: str | None = None) -> None:
 
 
 def _translate_template(tpl: Template, lang: str | None = None, context: str | None = None) -> str:
-	source_string, rendered_values = _template_to_positional(tpl)
-	translated = _(source_string, lang=lang, context=context)
-	return translated.format(*rendered_values)
+	positional_string, dynamic_values = _convert_template_to_positional_string(tpl)
+	translated = _(positional_string, lang=lang, context=context)
+	return translated.format(*dynamic_values)
 
 
-def _template_to_positional(tpl: Template) -> tuple[str, tuple[str, ...]]:
-	parts = []
-	rendered_values = []
+def _convert_template_to_positional_string(tpl: Template) -> tuple[str, tuple[str, ...]]:
+	string_parts = []
+	dynamic_values = []
 
 	static_parts = tpl.strings
 	interpolations = tpl.interpolations
 
 	for i, static_part in enumerate(static_parts):
-		parts.append(static_part)
+		string_parts.append(static_part)
 
 		if i < len(interpolations):
-			parts.append(f"{{{len(rendered_values)}}}")
-			rendered_values.append(_render_interpolation(interpolations[i]))
+			string_parts.append(f"{{{len(dynamic_values)}}}")
+			dynamic_values.append(_get_interpolation(interpolations[i]))
 
-	return "".join(parts), tuple(rendered_values)
+	return "".join(string_parts), tuple(dynamic_values)
 
 
-def _render_interpolation(interp: Interpolation) -> str:
+def _get_interpolation(interp: Interpolation) -> str:
 	value = interp.value
 
 	if interp.conversion == "r":
