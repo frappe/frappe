@@ -17,7 +17,10 @@
 		</div>
 		{% endif %}
 	</div>
-	<div class="form-stats-likes">
+	{% if image_field %}
+	<div class="align-items-baseline flex form-stats-likes">
+		<div class="form-title-text"></div>
+		<div class="form-print"></div>
 		<span class="liked-by like-action d-flex align-items-center">
 			<svg class="icon icon-sm like-icon pointer">
 				<use href="#icon-heart"></use>
@@ -25,26 +28,44 @@
 			<span class="like-count ml-2"></span>
 		</span>
 	</div>
+	{% endif %}
 </div>
 <div class="sidebar-section sidebar-meta-details border-bottom">
-	<div class="form-details flex justify-between">
-		<span class="bold ellipsis form-title-text mr-3 pointer text-medium" title="{{__("Click to edit")}}">{%= frappe.utils.html2text(frm.get_title()) %}</span>
+	<div class="flex justify-between overflow-hidden">
+		<div class="ellipsis">
+			{% if frm.doc.name != frm.get_title() %}
+			<div class="form-details flex justify-between">
+				<span class="bold ellipsis form-title-text mr-3 text-medium">{%= frappe.utils.html2text(frm.get_title()) %}</span>
+			</div>
+			{% endif %}
+			<div class="form-name-container mt-2 flex justify-between form-name-copy" data-copy="{{frm.doc.name}}" >
+				<span class="ellipsis mr-3">{%= frm.doc.name %}</span>
+			</div>
+		</div>
+		{% if not image_field %}
+		<div class="align-items-baseline flex form-stats-likes">
+			<div class="form-title-text"></div>
+			<div class="form-print"></div>
+			<span class="liked-by like-action d-flex align-items-center">
+				<svg class="icon icon-sm like-icon pointer">
+					<use href="#icon-heart"></use>
+				</svg>
+				<span class="like-count ml-2"></span>
+			</span>
+		</div>
+		{% endif %}
 	</div>
-	{% if frm.doc.name != frm.get_title() %}
-	<div class="form-name-container mt-2 flex justify-between form-name-copy" data-copy="{{frm.doc.name}}" >
-		<span class="ellipsis mr-3">{%= frm.doc.name %}</span>
+	{% if frm.meta.beta %}
+	<div class="flex pt-2 justify-between">
+		<div>
+			<a class="small text-muted" href="https://github.com/frappe/{{ frappe.boot.module_app[frappe.scrub(frm.meta.module)] }}/issues/new"
+				target="_blank">
+			{{ __("Report bug") }}</a>
+		</div>
+		<label class="indicator-pill yellow mb-0" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental") }}</label>
 	</div>
 	{% endif %}
 </div>
-{% if frm.meta.beta %}
-<div class="sidebar-section border-bottom">
-	<p><label class="indicator-pill yellow" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental") }}</label></p>
-	<div><a class="small text-muted" href="https://github.com/frappe/{{ frappe.boot.module_app[frappe.scrub(frm.meta.module)] }}/issues/new"
-			target="_blank">
-		{{ __("Report bug") }}</a></div>
-
-</div>
-{% endif %}
 <div class="sidebar-section sidebar-rating hide border-bottom">
 	<div style="position: relative;">
 		<a class="strong badge-hover">
@@ -60,7 +81,7 @@
 	</div>
 	{% } %}
 </div>
-<div class="sidebar-section form-assignments border-bottom">
+<div class="sidebar-section form-assignments">
 	<div>
 		<span class="form-sidebar-items">
 			<span class="add-assignment-label form-sidebar-label">
@@ -74,7 +95,7 @@
 		<div class="assignments"></div>
 	</div>
 </div>
-<div class="sidebar-section form-attachments border-bottom">
+<div class="sidebar-section form-attachments">
 	<div class="attachments-actions">
 		<span class="form-sidebar-items">
 			<span>
@@ -94,7 +115,7 @@
 		</span>
 	</a>
 </div>
-<div class="sidebar-section form-tags border-bottom">
+<div class="sidebar-section form-tags">
 	<div>
 		<span class="form-sidebar-items">
 			<div class="form-sidebar-label">
@@ -104,7 +125,7 @@
 		</span>
 	</div>
 </div>
-<div class="sidebar-section form-shared">
+<div class="sidebar-section form-shared border-bottom">
 	<div>
 		<span class="form-sidebar-items">
 			<span class="share-label form-sidebar-label">
@@ -137,9 +158,9 @@
 </div>
 <div class="sidebar-section text-muted border-top pt-3">
 	<ul class="list-unstyled sidebar-menu text-muted">
-		<li class="pageview-count"></li>
 		<li class="modified-by"></li>
 		<li class="created-by"></li>
+		<li class="pageview-count"></li>
 	</ul>
 </div>
 

@@ -223,7 +223,14 @@ export default class Grid {
 			const num_selected_rows = this.get_selected_children().length;
 
 			// toggle "Add row" button
-			this.wrapper.find(".grid-add-row").toggleClass("hidden", num_selected_rows > 0);
+			this.wrapper
+				.find(".grid-add-row")
+				.toggleClass(
+					"hidden",
+					num_selected_rows > 0 ||
+						this.cannot_add_rows ||
+						(this.df && this.df.cannot_add_rows)
+				);
 
 			// update "Delete" and "Duplicate" button labels
 			if (num_selected_rows == 1) {
@@ -552,7 +559,7 @@ export default class Grid {
 				grid_row = new GridRow({
 					parent: $rows,
 					parent_df: this.df,
-					docfields: JSON.parse(JSON.stringify(this.docfields)),
+					docfields: this.docfields,
 					doc: d,
 					frm: this.frm,
 					grid: this,

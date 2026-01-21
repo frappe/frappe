@@ -200,17 +200,27 @@ frappe.ui.form.Toolbar = class Toolbar {
 			}
 		});
 	}
+
 	setup_editable_title(element) {
 		let me = this;
 
 		if (me.is_title_editable()) {
-			$(element).tooltip({
-				delay: { show: 100, hide: 100 },
-				trigger: "hover",
-			});
-			$(element).addClass("pointer");
+			let edit_icon = this.page.add_action_icon(
+				"square-pen",
+				() => {
+					me.setup_editable_title_click_event(element);
+				},
+				"",
+				__("Edit")
+			);
+			edit_icon.css("background-color", "transparent");
+			edit_icon.addClass("p-0");
+			element.append(edit_icon);
 		}
+	}
 
+	setup_editable_title_click_event(element) {
+		let me = this;
 		element.on("click", () => {
 			let fields = [];
 			let docname = me.frm.doc.name;
@@ -292,6 +302,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			}
 		});
 	}
+
 	get_dropdown_menu(label) {
 		return this.page.add_dropdown(label);
 	}
@@ -351,7 +362,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 	make_menu_items() {
 		// Print
 		this.add_discard();
-		this.add_print();
 		this.add_open_sidebar();
 		this.add_email();
 		this.add_rename();
@@ -385,37 +395,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 				},
 				true
 			);
-		}
-	}
-
-	add_print() {
-		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
-		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
-		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
-
-		if (
-			!frappe.model.is_submittable(this.frm.doc.doctype) ||
-			this.frm.doc.docstatus == 1 ||
-			(allow_print_for_cancelled && this.frm.doc.docstatus == 2) ||
-			(allow_print_for_draft && this.frm.doc.docstatus == 0)
-		) {
-			if (frappe.model.can_print(null, this.frm) && !this.frm.meta.issingle) {
-				this.page.add_menu_item(
-					__("Print"),
-					() => {
-						this.frm.print_doc();
-					},
-					true
-				);
-				this.print_icon = this.page.add_action_icon(
-					"printer",
-					() => {
-						this.frm.print_doc();
-					},
-					"",
-					__("Print")
-				);
-			}
 		}
 	}
 

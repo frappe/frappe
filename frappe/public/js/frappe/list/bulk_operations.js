@@ -485,3 +485,5 @@ export default class BulkOperations {
 		});
 	}
 }
+
+frappe.ui.BulkOperations = BulkOperations;

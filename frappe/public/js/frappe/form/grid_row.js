@@ -1,5 +1,11 @@
 import GridRowForm from "./grid_row_form";
 
+const DEPENDENCY_PROPERTIES = [
+	{ expr: "depends_on", prop: "hidden_due_to_dependency", negate: true },
+	{ expr: "mandatory_depends_on", prop: "reqd", negate: false },
+	{ expr: "read_only_depends_on", prop: "read_only", negate: false },
+];
+
 export default class GridRow {
 	constructor(opts) {
 		this.on_grid_fields_dict = {};
@@ -8,10 +14,6 @@ export default class GridRow {
 		this.set_docfields();
 		this.columns = {};
 		this.columns_list = [];
-		this.dependent_fields = {
-			mandatory: [],
-			read_only: [],
-		};
 		this.row_check_html = '<input type="checkbox" class="grid-row-check" tabIndex="-1">';
 		this.default_rows_threshold_for_grid_search = 20;
 		this.make();
@@ -796,35 +798,32 @@ export default class GridRow {
 	}
 
 	set_dependant_property(df) {
-		if (
-			!df.reqd &&
-			df.mandatory_depends_on &&
-			this.evaluate_depends_on_value(df.mandatory_depends_on)
-		) {
-			df.reqd = 1;
-			this.dependent_fields["mandatory"].push(df);
+		let changed = false;
+
+		for (const { expr, prop, negate } of DEPENDENCY_PROPERTIES) {
+			if (df[expr]) {
+				const result = this.evaluate_depends_on_value(df[expr]);
+				const new_value = (negate ? !result : result) ? 1 : 0;
+				changed ||= df[prop] !== new_value;
+				df[prop] = new_value;
+			}
 		}
 
-		if (
-			!df.read_only &&
-			df.read_only_depends_on &&
-			this.evaluate_depends_on_value(df.read_only_depends_on)
-		) {
-			df.read_only = 1;
-			this.dependent_fields["read_only"].push(df);
-		}
+		return changed;
 	}
 
 	refresh_dependency() {
-		this.dependent_fields["read_only"].forEach((df) => {
-			df.read_only = 0;
-			this.set_dependant_property(df);
-		});
-		this.dependent_fields["mandatory"].forEach((df) => {
-			df.reqd = 0;
-			this.set_dependant_property(df);
-		});
-		this.refresh();
+		// re-evaluate dependency expressions of visible columns
+		// refresh if some property changed
+		let changed = false;
+		for (const { df } of this.columns_list) {
+			if (DEPENDENCY_PROPERTIES.some((d) => df[d.expr])) {
+				changed ||= this.set_dependant_property(df);
+			}
+		}
+		if (changed) {
+			this.refresh();
+		}
 	}
 
 	evaluate_depends_on_value(expression) {

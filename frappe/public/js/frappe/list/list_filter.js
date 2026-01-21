@@ -37,7 +37,7 @@ export default class ListFilter {
 			const $item = this.filter_template(filter);
 
 			// Apply filter
-			$item.find(".filter-label").on("click", () => {
+			$item.find(".dropdown-item").on("click", () => {
 				this.apply_saved_filter(filter.name, filter.filter_name);
 			});
 

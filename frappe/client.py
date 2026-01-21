@@ -10,7 +10,6 @@ import frappe.utils
 from frappe import _
 from frappe.desk.reportview import validate_args
 from frappe.desk.search import PAGE_LENGTH_FOR_LINK_VALIDATION, search_widget
-from frappe.model.utils import is_virtual_doctype
 from frappe.utils import attach_expanded_links, get_safe_filters
 from frappe.utils.caching import http_cache
 
@@ -420,6 +419,7 @@ def validate_link_and_fetch(
 	if not docname:
 		frappe.throw(_("Document Name must not be empty"))
 
+	meta = frappe.get_meta(doctype)
 	fields_to_fetch = frappe.parse_json(fields_to_fetch)
 
 	# only cache is no fields to fetch and request is GET
@@ -427,21 +427,31 @@ def validate_link_and_fetch(
 
 	# Use search_widget to validate - ensures filters/custom queries are respected
 	# in addition to standard permission checks
-	search_args["txt"] = docname
+	# we match the exact docname for non-custom queries and rely on txt for custom queries
+	search_args.update(
+		as_dict=False,
+		# when relying on txt (custom queries), we want to match "A" with "A" only and not "A1", "BA" etc.
+		# so we set page_length to a conservative value within which exact match is expected to appear
+		page_length=PAGE_LENGTH_FOR_LINK_VALIDATION,
+		# translated doctypes are expected to be searchable with translated values, even for custom queries
+		# for non-custom queries, docname is always matched exactly so we don't translate it
+		txt=_(docname) if (query and meta.translated_doctype) else docname,
+		for_link_validation=True,
+	)
+
 	search_result = frappe.call(
 		search_widget,
 		doctype=doctype,
 		query=query,
 		filters=filters,
 		**search_args,
-		for_link_validation=True,
 	)
 
 	if not search_result:
 		return {}  # does not exist or filtered out
 
 	values = None
-	is_virtual_dt = is_virtual_doctype(doctype)
+	is_virtual_dt = bool(meta.get("is_virtual"))
 	if is_virtual_dt:
 		try:
 			doc = frappe.get_doc(doctype, docname)

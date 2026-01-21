@@ -8,7 +8,6 @@ body:not([data-route^="Form"]) {
 	display: flex;
 	align-items: center;
 	padding: 0 15px;
-	max-width: 50%;
 	.sidebar-toggle-btn {
 		display: flex;
 		margin-right: var(--margin-sm);

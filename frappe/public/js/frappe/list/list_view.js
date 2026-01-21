@@ -796,13 +796,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_left_html(doc) {
 		let left_html = "";
+		const mobile_field_columns = this.columns.filter(
+			(col) => col.type === "Field" && col.df?.fieldname
+		);
 		let has_value_in_second_column = true;
-		for (let i = 0; i < this.columns.length; i++) {
-			let col = this.columns[i];
-
-			if (i == 4 && !doc[col.df.fieldname] && doc[col.df.fieldname] != 0) {
+		if (mobile_field_columns.length > 1) {
+			const fieldname = mobile_field_columns[1].df.fieldname;
+			if (!doc[fieldname] && doc[fieldname] != 0) {
 				has_value_in_second_column = false;
 			}
+		}
+		for (let i = 0; i < this.columns.length; i++) {
+			let col = this.columns[i];
 
 			if (frappe.is_mobile() && col.type == "Field" && [3, 4].includes(i)) {
 				left_html += `<div class="mobile-layout ${

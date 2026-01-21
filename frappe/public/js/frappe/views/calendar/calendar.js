@@ -188,10 +188,10 @@ frappe.views.Calendar = class Calendar {
 		const me = this;
 		let btn_group = me.$wrapper.find(".fc-button-group");
 		btn_group.on("click", ".btn", function () {
-			let value = $(this).hasClass("fc-dayGridWeek-button")
-				? "dayGridWeek"
-				: $(this).hasClass("fc-dayGridDay-button")
-				? "dayGridDay"
+			let value = $(this).hasClass("fc-timeGridWeek-button")
+				? "timeGridWeek"
+				: $(this).hasClass("fc-timeGridDay-button")
+				? "timeGridDay"
 				: "dayGridMonth";
 			me.set_localStorage_option("cal_initialView", value);
 		});
@@ -206,7 +206,7 @@ frappe.views.Calendar = class Calendar {
 	}
 	set_css() {
 		const viewButtons =
-			".fc-dayGridMonth-button, .fc-dayGridWeek-button, .fc-dayGridDay-button, .fc-today-button";
+			".fc-dayGridMonth-button, .fc-timeGridWeek-button, .fc-timeGridDay-button, .fc-today-button";
 		const fcViewButtonClasses = "fc-button fc-button-primary fc-button-active";
 
 		// remove fc-button styles
@@ -259,7 +259,7 @@ frappe.views.Calendar = class Calendar {
 			headerToolbar: {
 				left: "prev,title,next",
 				center: "",
-				right: "today,dayGridMonth,dayGridWeek,dayGridDay",
+				right: "today,dayGridMonth,timeGridWeek,timeGridDay",
 			},
 			editable: true,
 			droppable: true,

@@ -77,7 +77,7 @@ class WorkspaceSidebar(Document):
 		else:
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
 
-	def is_item_allowed(self, name, item_type):
+	def is_item_allowed(self, name, item_type, allowed_workspaces):
 		if frappe.session.user == "Administrator":
 			return True
 
@@ -100,12 +100,7 @@ class WorkspaceSidebar(Document):
 		if item_type == "url":
 			return True
 		if item_type == "workspace":
-			try:
-				workspace = frappe.get_cached_doc("Workspace", name)
-				if workspace.module in self.allowed_modules:
-					return True
-			except frappe.DoesNotExistError:
-				return False
+			return name in allowed_workspaces
 
 	def get_cached(self, cache_key, fallback_fn):
 		value = frappe.cache.get_value(cache_key, user=frappe.session.user)
@@ -339,7 +334,7 @@ def choose_top_doctypes(doctype_names):
 		try:
 			doctype_count_map = {}
 			for doctype in doctype_names:
-				if not is_single_doctype(doctype):
+				if not is_single_doctype(doctype) and not frappe.get_meta(doctype).is_virtual:
 					doctype_count_map[doctype] = frappe.db.count(doctype)
 			top_doctypes = [
 				name

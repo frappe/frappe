@@ -36,6 +36,10 @@ frappe.ui.form.PrintView = class {
 		this.wrapper = $(wrapper);
 		this.page = wrapper.page;
 		this.make();
+
+		this.wrapper.on("show", () => {
+			this.page.sidebar.show();
+		});
 	}
 
 	make() {

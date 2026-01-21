@@ -55,6 +55,18 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			// like links, currencies, HTMLs etc.
 			this.disp_area = this.$wrapper.find(".control-value").get(0);
 		}
+		this.setup_shortcut();
+	}
+	setup_shortcut() {
+		$(this.input_area).on("keydown", function (event) {
+			if (event.originalEvent.ctrlKey || event.originalEvent.metaKey) {
+				if (event.originalEvent.key === "k" || event.originalEvent.key === "K") {
+					$("#navbar-modal-search").click();
+					event.preventDefault();
+					return false;
+				}
+			}
+		});
 	}
 	set_max_width() {
 		if (this.constructor.horizontal) {
@@ -165,7 +177,16 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		let doc = this.doc || (this.frm && this.frm.doc);
 		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
 		// This is used to display formatted output AND showing values in read only fields
-		this.disp_area && $(this.disp_area).html(display_value);
+		if (this.disp_area) {
+			$(this.disp_area).html(display_value);
+			// Apply alignment only for supported fields
+			if (
+				this.df.alignment &&
+				["Data", "Int", "Float", "Currency", "Percent"].includes(this.df.fieldtype)
+			) {
+				$(this.disp_area).css("text-align", this.df.alignment.toLowerCase());
+			}
+		}
 	}
 	set_label(label) {
 		if (label) this.df.label = label;

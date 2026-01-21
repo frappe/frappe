@@ -600,7 +600,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			}
 
 			// Numbers, dates, etc. - not translated, not quoted
-			return frappe.format(val, docfield || {});
+			return frappe.format(val, docfield || {}, { inline: true });
 		}
 
 		async function describe_filter(filter) {
@@ -859,7 +859,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 	validate_link_and_fetch(value) {
 		const args = this.get_search_args(value);
-		if (!args.doctype) return;
+		if (!args) return;
 
 		const columns_to_fetch = Object.values(this.fetch_map);
 
