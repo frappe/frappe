@@ -1,13 +1,15 @@
 {% extends "templates/web.html" %}
 {% block navbar %}{% endblock %}
 
+{% set input_dir = "rtl" if is_rtl() else "ltr" %}
+
 {% macro email_login_body() -%}
 {% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
 <div class="page-card-body">
 	<div class="form-group">
 		<label class="form-label sr-only" for="login_email">{{ login_label or _("Email")}}</label>
 		<div class="email-field">
-			<input type="text" id="login_email" class="form-control"
+			<input type="text" id="login_email" class="form-control" dir="{{ input_dir }}"
 				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('jane@example.com') }}{% endif %}"
 				required autofocus autocomplete="username">
 
@@ -21,7 +23,7 @@
 	<div class="form-group">
 		<label class="form-label sr-only" for="login_password">{{ _("Password") }}</label>
 		<div class="password-field">
-			<input type="password" id="login_password" class="form-control" placeholder="•••••"
+			<input type="password" id="login_password" class="form-control" dir="{{ input_dir }}" placeholder="•••••"
 				autocomplete="current-password" required>
 
 			<svg class="field-icon password-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
@@ -34,7 +36,7 @@
 
 	{% if not disable_user_pass_login %}
 	<p class="forgot-password-message">
-		<a href="#forgot">{{ _("Forgot Password?") }}</a>
+		<a href="#forgot" dir="auto">{{ _("Forgot Password?") }}</a>
 	</p>
 	{% endif %}
 </div>
@@ -180,7 +182,7 @@
 			<form class="form-signin form-forgot hide" role="form">
 				<div class="page-card-body">
 					<div class="email-field">
-						<input type="email" id="forgot_email" class="form-control"
+						<input type="email" id="forgot_email" class="form-control" dir="{{ input_dir }}"
 							placeholder="{{ _('Email Address') }}" required autofocus autocomplete="username">
 						<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
 							xmlns="http://www.w3.org/2000/svg">
@@ -207,7 +209,7 @@
 			<form class="form-signin form-login-with-email-link hide" role="form">
 				<div class="page-card-body">
 					<div class="email-field">
-						<input type="email" id="login_with_email_link_email" class="form-control"
+						<input type="email" id="login_with_email_link_email" class="form-control" dir="{{ input_dir }}"
 							placeholder="{{ _('Email Address') }}" required autofocus autocomplete="username">
 						<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
 							xmlns="http://www.w3.org/2000/svg">

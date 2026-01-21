@@ -76,6 +76,7 @@ body {
 			}
 
 			.forgot-password-message {
+				/* rtl:ignore */
 				text-align: right;
 				line-height: 1;
 
@@ -109,6 +110,13 @@ body {
 					z-index: 2;
 					cursor: pointer;
 					font-size: 12px;
+				}
+			}
+
+			.password-field {
+				input[dir="rtl"] {
+					/* rtl:ignore */
+					padding-left: 3.5rem;
 				}
 			}
 
