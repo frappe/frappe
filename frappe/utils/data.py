@@ -1236,7 +1236,7 @@ def sbool(x: str | Any) -> bool | str | Any:
 		return x
 
 
-def rounded(num, precision=0, rounding_method=None):
+def rounded(num: NumericType, precision: int = 0, rounding_method: str | None = None) -> float:
 	"""Round according to method set in system setting, defaults to banker's rounding"""
 	precision = cint(precision)
 
@@ -1257,7 +1257,7 @@ def rounded(num, precision=0, rounding_method=None):
 		)
 
 
-def _bankers_rounding_legacy(num, precision):
+def _bankers_rounding_legacy(num: NumericType, precision: int) -> float:
 	# avoid rounding errors
 	multiplier = 10**precision
 	num = round(num * multiplier if precision else num, 8)
@@ -1276,7 +1276,7 @@ def _bankers_rounding_legacy(num, precision):
 	return (num / multiplier) if precision else num
 
 
-def _round_away_from_zero(num, precision):
+def _round_away_from_zero(num: NumericType, precision: int) -> float:
 	if num == 0:
 		return 0.0
 
@@ -1302,7 +1302,7 @@ def _round_away_from_zero(num, precision):
 	return round(num + math.copysign(epsilon, num), precision)
 
 
-def _bankers_rounding(num, precision):
+def _bankers_rounding(num: NumericType, precision: int) -> float:
 	multiplier = 10**precision
 	num = round(num * multiplier, 12)
 
