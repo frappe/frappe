@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2026-01-07 23:51\n"
+"PO-Revision-Date: 2026-01-21 06:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -14,8 +14,8 @@ msgstr ""
 "X-Crowdin-Project: frappe\n"
 "X-Crowdin-Project-ID: 639578\n"
 "X-Crowdin-Language: fa\n"
-"X-Crowdin-File: /[frappe.frappe] develop/frappe/locale/main.pot\n"
-"X-Crowdin-File-ID: 52\n"
+"X-Crowdin-File: /[frappe.frappe] version-16-hotfix/frappe/locale/main.pot\n"
+"X-Crowdin-File-ID: 138\n"
 "Language: fa_IR\n"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
@@ -1131,7 +1131,7 @@ msgstr "افزودن شماره"
 #. Label of the add_container (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Container"
-msgstr "افزودن کانتینر"
+msgstr ""
 
 #. Label of the set_meta_tags (Button) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -1229,7 +1229,7 @@ msgstr "افزودن داده‌های ترجمه"
 #. Label of the add_unsubscribe_link (Check) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Add Unsubscribe Link"
-msgstr "افزودن پیوند لغو اشتراک"
+msgstr ""
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:6
 msgid "Add User Permissions"
@@ -5432,7 +5432,7 @@ msgstr "گزینه‌های تماس، مانند «پرسمان فروش، در
 #. Label of the contacts (Small Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Contacts"
-msgstr "مخاطبین"
+msgstr "مخاطب"
 
 #: frappe/utils/change_log.py:362
 msgid "Contains {0} security fix"
@@ -5626,7 +5626,7 @@ msgstr ""
 #. Label of the counter (Int) field in DocType 'Document Naming Rule'
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
 msgid "Counter"
-msgstr "شمارنده"
+msgstr ""
 
 #. Label of the country (Link) field in DocType 'Address'
 #. Label of the country (Link) field in DocType 'Address Template'
@@ -7243,7 +7243,7 @@ msgstr "غیرفعال کردن فیلترهای اخیر خودکار"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Change Log Notification"
-msgstr "غیرفعال کردن اعلان لاگ تغییر"
+msgstr ""
 
 #. Label of the disable_comment_count (Check) field in DocType 'List View
 #. Settings'
@@ -7296,13 +7296,13 @@ msgstr "ثبت نام برای سایت خود را غیرفعال کنید"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Standard Email Footer"
-msgstr "غیرفعال کردن پاورقی استاندارد ایمیل"
+msgstr ""
 
 #. Label of the disable_system_update_notification (Check) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable System Update Notification"
-msgstr "غیرفعال کردن اعلان به‌روزرسانی سیستم"
+msgstr ""
 
 #. Label of the disable_user_pass_login (Check) field in DocType 'System
 #. Settings'
@@ -13760,7 +13760,7 @@ msgstr "آدرس اصلی است"
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:49
 msgid "Is Primary Contact"
-msgstr "مخاطب اصلی است"
+msgstr ""
 
 #. Label of the is_primary_mobile_no (Check) field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
@@ -16377,7 +16377,7 @@ msgstr "موزیلا از :has() پشتیبانی نمی‌کند، بنابرا
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:43
 msgid "Mr"
-msgstr "آقا"
+msgstr ""
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:47
 msgid "Mrs"
@@ -16869,7 +16869,7 @@ msgstr "بعد"
 #: frappe/public/js/frappe/ui/slides.js:359
 msgctxt "Go to next slide"
 msgid "Next"
-msgstr "بعدی"
+msgstr "بعد"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:683
 msgid "Next 14 Days"
@@ -21087,7 +21087,7 @@ msgstr ""
 #. Label of the reference_docname (Dynamic Link) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Reference Doc"
-msgstr "سند مرجع"
+msgstr ""
 
 #. Label of the reference_name (Data) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
@@ -22314,7 +22314,7 @@ msgstr "نقش‌ها و مجوزها"
 #: frappe/core/doctype/role_profile/role_profile.json
 #: frappe/core/doctype/user/user.json
 msgid "Roles Assigned"
-msgstr "نقش‌های واگذار شده"
+msgstr ""
 
 #. Label of the roles_html (HTML) field in DocType 'Role Profile'
 #. Label of the roles_html (HTML) field in DocType 'User'
@@ -27960,7 +27960,7 @@ msgstr "امکان نوشتن فرمت فایل برای {0} وجود ندارد
 #. Label of the unassign_condition (Code) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Unassign Condition"
-msgstr "شرط لغو تخصیص"
+msgstr ""
 
 #: frappe/app.py:399
 msgid "Uncaught Exception"
