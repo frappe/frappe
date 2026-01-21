@@ -9,7 +9,7 @@ import LucideAppWindow from "~icons/lucide/app-window"
 import LucideBox from "~icons/lucide/box"
 
 import { generateId, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
-import { useSerializer } from "@/utils/useSerializer"
+import { copyObject, getBlockCopy, getComponentBlock } from "@/utils/serializer"
 
 import type { StyleValue, FrappeUIComponents } from "@/types"
 import type { ComponentEvent } from "@/types/ComponentEvent"
@@ -71,7 +71,6 @@ class Block implements BlockOptions {
 
 		// get component props
 		if (!options.componentProps) {
-			const { copyObject } = useSerializer()
 			this.componentProps = copyObject(Block.components?.[options.componentName]?.initialState)
 		} else {
 			this.componentProps = options.componentProps
@@ -556,7 +555,6 @@ class Block implements BlockOptions {
 		if (this.isRoot()) return
 
 		const canvasStore = useCanvasStore()
-		const { getBlockCopy } = useSerializer()
 		const blockCopy = getBlockCopy(this)
 		const parentBlock = this.getParentBlock()
 
@@ -772,7 +770,6 @@ class Block implements BlockOptions {
 
 	// studio components
 	extendFromComponent(componentName: string) {
-		const { getComponentBlock } = useSerializer()
 		let parentBlock = this.getParentBlock()
 		const newBlock = getComponentBlock(componentName, true)
 

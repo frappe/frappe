@@ -1,7 +1,7 @@
 import { ref, Ref } from "vue";
 import Block from "@/utils/block";
 import { generateId } from "@/utils/helpers";
-import { useSerializer } from "@/utils/useSerializer"
+import { getBlockString, getBlockInstance } from "@/utils/serializer"
 import { debounceFilter, pausableFilter, watchIgnorable } from "@vueuse/core";
 
 type CanvasState = {
@@ -66,7 +66,6 @@ export function useCanvasHistory(source: Ref<Block>, selectedBlockIds: Ref<Set<s
 	}
 
 	function createHistoryRecord() {
-		const { getBlockString } = useSerializer();
 		return {
 			block: getBlockString(source.value),
 			selectedBlockIds: selectedBlockIds.value,
@@ -74,7 +73,6 @@ export function useCanvasHistory(source: Ref<Block>, selectedBlockIds: Ref<Set<s
 	}
 
 	function setSource(value: CanvasState) {
-		const { getBlockInstance } = useSerializer();
 		ignorePrevAsyncBlockUpdates();
 		ignoreBlockUpdates(() => {
 			source.value = getBlockInstance(value.block);

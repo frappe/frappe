@@ -3,7 +3,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import { useEventListener } from "@vueuse/core"
 import blockController from "@/utils/blockController"
 import { isCtrlOrCmd, isTargetEditable, setClipboardData, numberToPx, isHTML } from "@/utils/helpers"
-import { useSerializer } from "@/utils/useSerializer"
+import { getBlockCopy, getBlockCopyWithoutParent, getComponentBlock, isJSONString } from "@/utils/serializer"
 import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
 import { toast } from "vue-sonner"
@@ -33,8 +33,6 @@ export function useStudioEvents() {
 
 		const data = e.clipboardData?.getData("studio-copied-blocks") as string
 		// paste blocks directly
-		const { isJSONString, getBlockCopy } = useSerializer()
-
 		if (data && isJSONString(data)) {
 			const dataObj = JSON.parse(data) as { blocks: Block[] }
 
@@ -164,7 +162,6 @@ const copySelectedBlocksToClipboard = (e: ClipboardEvent) => {
 	if (canvasStore.activeCanvas?.selectedBlocks.length) {
 		e.preventDefault()
 
-		const { getBlockCopyWithoutParent } = useSerializer()
 		const blocksToCopy = canvasStore.activeCanvas?.selectedBlocks.map((block) => {
 			return getBlockCopyWithoutParent(block)
 		})
@@ -180,7 +177,6 @@ const pasteHTML = (text: string) => {
 		selectedBlocks[0].setProp("html", text)
 	} else {
 		let block = null as unknown as Block | BlockOptions
-		const { getComponentBlock } = useSerializer()
 		block = getComponentBlock("HTML")
 
 		if (text.startsWith("<svg")) {

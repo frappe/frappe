@@ -99,7 +99,7 @@ const getComponentProps = () => {
 	Object.entries(propValues).forEach(([propName, propValue]) => {
 		if (propValue?.$type === "variable") {
 			propValues[propName] = codeStore.getValueFromVariable(propValue.name, evaluationContext.value)
-		} else if (isDynamicValue(propValue)) {
+		} else {
 			propValues[propName] = codeStore.evaluateDynamicValues(propValue, evaluationContext.value)
 		}
 	})

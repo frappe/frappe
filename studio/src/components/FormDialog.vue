@@ -74,7 +74,7 @@
 import { computed, ref, watch } from "vue"
 import { createResource, Dialog } from "frappe-ui"
 import Block from "@/utils/block"
-import { useSerializer } from "@/utils/useSerializer"
+import { getComponentBlock } from "@/utils/serializer"
 import type { DocTypeField } from "@/types"
 import components from "@/data/components"
 import { Link } from "frappe-ui/frappe"
@@ -191,7 +191,6 @@ const getComponentForField = (arg?: DocTypeField | string) => {
 
 const addFields = () => {
 	if (!props.block) return
-	const { getComponentBlock } = useSerializer()
 
 	formMeta.value.fields.forEach((field: FormField) => {
 		const newBlock = getComponentBlock(field.componentName)
