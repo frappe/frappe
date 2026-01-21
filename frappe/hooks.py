@@ -179,6 +179,7 @@ doc_events = {
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.search.sqlite_search.delete_doc_index",
+			"frappe.automation.doctype.automation_rule.automation_rule.clear_scheduled_jobs_reference",
 		],
 		"on_update_after_submit": [
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",

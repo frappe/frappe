@@ -66,7 +66,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-21 12:04:58.126701",
+ "modified": "2026-01-21 18:48:24.041618",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation Scheduled Job",
@@ -89,5 +89,22 @@
  "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Green",
+   "title": "Completed"
+  },
+  {
+   "color": "Gray",
+   "title": "Scheduled"
+  },
+  {
+   "color": "Orange",
+   "title": "Cancelled"
+  },
+  {
+   "color": "Red",
+   "title": "Failed"
+  }
+ ]
 }

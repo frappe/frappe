@@ -135,6 +135,7 @@ log_types = (
 	"DocShare",
 	"Document Follow",
 	"Console Log",
+	"Automation Scheduled Job",
 )
 
 std_fields = [

@@ -260,6 +260,25 @@ class AutomationRule(Document):
 					update_modified=False,
 				)
 
+	def on_trash(self):
+		Automation_Scheduled_Job = frappe.qb.DocType("Automation Scheduled Job")
+		base_filters = Automation_Scheduled_Job.automation_rule == self.name
+
+		(
+			frappe.qb.update(Automation_Scheduled_Job)
+			.set(Automation_Scheduled_Job.automation_rule, None)
+			.where(base_filters & Automation_Scheduled_Job.status.isin(["Completed", "Failed", "Cancelled"]))
+			.run()
+		)
+
+		(
+			frappe.qb.update(Automation_Scheduled_Job)
+			.set(Automation_Scheduled_Job.automation_rule, None)
+			.set(Automation_Scheduled_Job.status, "Cancelled")
+			.where(base_filters & (Automation_Scheduled_Job.status == "Scheduled"))
+			.run()
+		)
+
 
 operatorMap = {
 	"is": "is",
@@ -315,9 +334,8 @@ def eval_conditions(conditions: list[list[str] | str], context: dict) -> bool:
 		return all(results)
 
 
-def apply_automations(doc, method=None) -> None:
+def apply_automations(doc, hook=None) -> None:
 	# Frappe doc_events call handlers as (doc, method)
-	hook = method or ""
 	doctype: str = doc.doctype
 	if doctype == "Automation Rule":
 		return
@@ -342,9 +360,18 @@ def apply_automations(doc, method=None) -> None:
 		automation_doc = frappe.get_doc("Automation Rule", a)
 		automation_doc.apply(doc, hook)
 
-	if method != "after_insert":
-		return
+	handle_time_based_automations(doc, hook)
 
+
+def handle_time_based_automations(doc, hook):
+	if hook == "after_insert":
+		create_automation_jobs(doc)
+	if hook == "on_update":
+		update_automation_jobs(doc)
+
+
+def create_automation_jobs(doc):
+	doctype = doc.doctype
 	time_based_automations = frappe.get_list(
 		"Automation Rule",
 		filters={"enabled": 1, "doctype_event": ["not in", ["On Creation", "On Update"]], "dt": doctype},
@@ -373,6 +400,86 @@ def apply_automations(doc, method=None) -> None:
 		).insert(ignore_permissions=True)
 
 
+def update_automation_jobs(doc):
+	doctype = doc.doctype
+	jobs = frappe.get_all(
+		"Automation Scheduled Job",
+		filters={
+			"reference_doctype": doctype,
+			"reference_name": doc.name,
+			"status": "Scheduled",
+		},
+		fields=["name", "automation_rule", "fieldname"],
+	)
+
+	if not jobs:
+		return
+
+	for job in jobs:
+		fieldname = job.fieldname
+		if not fieldname:
+			continue
+
+		if not doc.has_value_changed(fieldname):
+			continue
+
+		field_value = doc.get(fieldname)
+		if not field_value:
+			continue
+
+		doctype_event, time_offset = frappe.db.get_value(
+			"Automation Rule",
+			job.automation_rule,
+			["doctype_event", "time_offset"],
+		)
+		if not doctype_event or time_offset is None:
+			continue
+
+		execute_at = calculate_execute_at(
+			doctype_event,
+			field_value,
+			time_offset,
+		)
+
+		frappe.db.set_value(
+			"Automation Scheduled Job",
+			job.name,
+			{"execute_at": execute_at},
+			update_modified=False,
+		)
+
+
+# called from hooks.py
+def clear_scheduled_jobs_reference(doc, hook=None):
+	doctype = doc.doctype
+
+	if doctype == "Automation Rule":
+		return
+	allowed_doctypes = frappe.get_hooks("automation_rule_config").get("allowed_doctypes", [])
+	if doctype not in allowed_doctypes:
+		return
+
+	Automation_Scheduled_Job = frappe.qb.DocType("Automation Scheduled Job")
+	base_filters = (Automation_Scheduled_Job.reference_doctype == doctype) & (
+		Automation_Scheduled_Job.reference_name == doc.name
+	)
+
+	(
+		frappe.qb.update(Automation_Scheduled_Job)
+		.set(Automation_Scheduled_Job.reference_name, None)
+		.where(base_filters & Automation_Scheduled_Job.status.isin(["Completed", "Failed", "Cancelled"]))
+		.run()
+	)
+
+	(
+		frappe.qb.update(Automation_Scheduled_Job)
+		.set(Automation_Scheduled_Job.reference_name, None)
+		.set(Automation_Scheduled_Job.status, "Cancelled")
+		.where(base_filters & (Automation_Scheduled_Job.status == "Scheduled"))
+		.run()
+	)
+
+
 def calculate_execute_at(doctype_event, field_value, offset):
 	event_map = {
 		"Minutes Before": add_to_date(field_value, minutes=-offset),
@@ -388,10 +495,16 @@ def execute_automation_logs():
 	print("Executing scheduled automation jobs...")
 	jobs_to_run = frappe.get_list(
 		"Automation Scheduled Job",
-		filters={"status": ["in", ["Scheduled", "Failed"]], "execute_at": ["<=", frappe.utils.now()]},
+		filters={
+			"status": ["in", ["Scheduled", "Failed"]],
+			"execute_at": ["<=", frappe.utils.now()],
+			"reference_doctype": ["is", "set"],
+			"reference_name": ["is", "set"],
+			"automation_rule": ["is", "set"],
+		},
 		fields=["name", "reference_doctype", "reference_name", "automation_rule"],
 	)
-	print(jobs_to_run)
+
 	for job in jobs_to_run:
 		automation_rule = frappe.get_doc("Automation Rule", job.automation_rule)
 		if not automation_rule.enabled:
@@ -417,7 +530,7 @@ def mark_automation_job_completed(job, connection, result):
 	frappe.connect()
 	try:
 		frappe.db.set_value("Automation Scheduled Job", job_id, "status", "Completed")
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 	finally:
 		frappe.destroy()
 
@@ -428,7 +541,7 @@ def mark_automation_job_failed(job, connection, type, value, traceback):
 	frappe.connect()
 	try:
 		frappe.db.set_value("Automation Scheduled Job", job_id, "status", "Failed")
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 	finally:
 		frappe.log_error(f"Automation Log Failed {job_id} \n {traceback}")
 		frappe.destroy()
