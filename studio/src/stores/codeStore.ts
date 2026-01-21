@@ -183,7 +183,7 @@ const useCodeStore = defineStore("codeStore", () => {
 				return getDynamicValue(value, localContext)
 			}
 			if (FUNCTION_STRING_REGEX.test(value)) {
-				const func = stringToFunction(value)
+				const func = stringToFunction(value, localContext)
 				if (typeof func === "function") {
 					return func
 				}
@@ -448,7 +448,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		return {}
 	}
 
-	function stringToFunction(value: string): Function | string {
+	function stringToFunction(value: string, localContext: Record<string, any>): Function | string {
 		/**
 		 * Convert a function string to an actual function
 		 * Used for component props that have function values
@@ -460,9 +460,10 @@ const useCodeStore = defineStore("codeStore", () => {
 				"h",
 				...Object.keys(registeredComponents),
 				...Object.keys(globalExecutionContext.value),
+				...Object.keys(localContext),
 				`return (${value})`
 			)
-			return fn(h, ...Object.values(registeredComponents), ...Object.values(globalExecutionContext.value))
+			return fn(h, ...Object.values(registeredComponents), ...Object.values(globalExecutionContext.value), ...Object.values(localContext))
 		} catch (e) {
 			return value
 		}
