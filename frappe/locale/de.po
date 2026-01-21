@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-04-29 19:40\n"
+"PO-Revision-Date: 2026-01-21 08:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -5684,7 +5684,7 @@ msgstr "Die Spalte {0} konnte dem Feld {1} nicht zugeordnet werden."
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:222
 msgid "Could not start up: "
-msgstr "Konnte nicht gestartet werden: "
+msgstr ""
 
 #: frappe/public/js/frappe/web_form/web_form.js:359
 msgid "Couldn't save, please check the data you have entered"
@@ -6011,7 +6011,7 @@ msgstr "Währungsgenauigkeit"
 #. Description of a DocType
 #: frappe/geo/doctype/currency/currency.json
 msgid "Currency list stores the currency value, its symbol and fraction unit"
-msgstr "Die Liste der Währungen enthält deren Bezeichnung, Symbol und Untereinheit"
+msgstr "Die Liste der Währungen enthält deren Wert, Symbol und Untereinheit"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -8142,7 +8142,7 @@ msgstr "vCards herunterladen"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:47
 msgid "Dr"
-msgstr "S"
+msgstr "Dr."
 
 #: frappe/public/js/frappe/model/indicator.js:73
 #: frappe/public/js/frappe/ui/filters/filter.js:535
@@ -8659,7 +8659,7 @@ msgstr "E-Mail-IDs"
 #. Label of a Data field in DocType 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Email Id"
-msgstr "E-Mail-ID"
+msgstr "E-Mail-Adresse"
 
 #. Label of a Section Break field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -9525,7 +9525,7 @@ msgstr "Ablaufen Mitteilung On"
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Expired"
-msgstr "Verfallen"
+msgstr "Abgelaufen"
 
 #. Label of a Int field in DocType 'OAuth Bearer Token'
 #. Label of a Int field in DocType 'Token Cache'
@@ -11092,7 +11092,7 @@ msgstr "Erhalten Sie eine Vorschau der generierten Namen eines Nummernkreises."
 
 #: frappe/public/js/frappe/list/list_sidebar.js:282
 msgid "Get more insights with"
-msgstr "Erhalten Sie mehr Einblicke mit"
+msgstr ""
 
 #. Description of the 'Email Threads on Assigned Document' (Check) field in
 #. DocType 'Notification Settings'
@@ -12148,7 +12148,7 @@ msgstr "Wenn diese Option aktiviert ist, kann sich der Benutzer mit der Zwei-Fak
 #. Description of the 'Anonymous responses' (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "If enabled, all responses on the web form will be submitted anonymously"
-msgstr ""
+msgstr "Falls aktiviert, werden alle Antworten auf das Web-Formular anonym gesendet"
 
 #. Description of the 'Bypass restricted IP Address check If Two Factor Auth
 #. Enabled' (Check) field in DocType 'System Settings'
@@ -13285,7 +13285,7 @@ msgstr "Ist"
 #. Label of a Check field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Is Active"
-msgstr "Ist aktiv(iert)"
+msgstr "Ist aktiv"
 
 #. Label of a Check field in DocType 'File'
 #: frappe/core/doctype/file/file.json
@@ -13470,7 +13470,7 @@ msgstr "Ist Standard"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/doctype/doctype_list.js:25
 msgid "Is Submittable"
-msgstr "Ist übertragbar"
+msgstr "Kann gebucht werden"
 
 #. Label of a Check field in DocType 'Custom Field'
 #. Label of a Check field in DocType 'Customize Form Field'
@@ -13679,7 +13679,7 @@ msgstr "Kanban-Ansicht"
 #. Description of a DocType
 #: frappe/core/doctype/activity_log/activity_log.json
 msgid "Keep track of all update feeds"
-msgstr "Behalten Sie den Überblick über alle Update-Feeds"
+msgstr "Bewahrt den Überblick über alle Aktualisierungsfeeds"
 
 #. Description of a DocType
 #: frappe/core/doctype/communication/communication.json
@@ -14603,7 +14603,7 @@ msgstr "Listeneinstellungen"
 
 #: frappe/public/js/frappe/list/base_list.js:201
 msgid "List View"
-msgstr "Listen-Ansicht"
+msgstr "Listenansicht"
 
 #. Name of a DocType
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
@@ -15036,7 +15036,7 @@ msgstr "Verwalten Sie Ihre Apps"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Mandatory"
-msgstr "Zwingend notwendig"
+msgstr "Pflichtfeld"
 
 #. Label of a Code field in DocType 'Custom Field'
 #. Label of a Code field in DocType 'Customize Form Field'
@@ -15186,7 +15186,7 @@ msgstr "Marketing-Kampagne"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:51
 msgid "Master"
-msgstr "Vorlage"
+msgstr "Meister"
 
 #. Description of the 'Limit' (Int) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
@@ -15292,7 +15292,7 @@ msgstr "Mittel"
 #: frappe/core/doctype/communication/communication.json
 #: frappe/desk/doctype/event/event.json
 msgid "Meeting"
-msgstr "Treffen"
+msgstr "Besprechung"
 
 #. Label of a Data field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -15307,11 +15307,11 @@ msgstr "Mitglieder"
 #. Label of a Data field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Memory Usage"
-msgstr "Arbeitsspeicherauslastung"
+msgstr "Speicherauslastung"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:63
 msgid "Memory Usage in MB"
-msgstr "Speichernutzung in MB"
+msgstr "Arbeitsspeicherauslastung in MB"
 
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
@@ -15469,17 +15469,17 @@ msgstr "Meta-Titel"
 #. Label of a Small Text field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Meta description"
-msgstr ""
+msgstr "Meta-Beschreibung"
 
 #. Label of a Attach Image field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Meta image"
-msgstr ""
+msgstr "Meta-Bild"
 
 #. Label of a Data field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Meta title"
-msgstr ""
+msgstr "Meta-Titel"
 
 #: frappe/website/doctype/web_page/web_page.js:110
 msgid "Meta title for SEO"
@@ -15561,7 +15561,7 @@ msgstr "Falsch konfiguriert"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:50
 msgid "Miss"
-msgstr ""
+msgstr "Fräulein"
 
 #: frappe/desk/form/meta.py:213
 msgid "Missing DocType"
@@ -15905,15 +15905,15 @@ msgstr "Mozilla unterstützt :has() nicht, daher können Sie hier den übergeord
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:44
 msgid "Mr"
-msgstr ""
+msgstr "Herr"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:48
 msgid "Mrs"
-msgstr ""
+msgstr "Frau"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:45
 msgid "Ms"
-msgstr ""
+msgstr "Frau"
 
 #: frappe/utils/nestedset.py:335
 msgid "Multiple root nodes not allowed."
@@ -15958,7 +15958,7 @@ msgstr "Tonausgabe still schalten"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:46
 msgid "Mx"
-msgstr ""
+msgstr "Divers"
 
 #: frappe/templates/includes/web_sidebar.html:41
 #: frappe/website/doctype/web_form/web_form.py:466
@@ -17450,7 +17450,7 @@ msgstr "Ältere Backups werden automatisch gelöscht"
 #. Label of a Link field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Oldest Unscheduled Job"
-msgstr "Ältester ungeplanter Auftrag"
+msgstr "Ältester ungeplanter Job"
 
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Request'
@@ -19248,7 +19248,7 @@ msgstr "Vorbereiteter Bericht"
 #. Name of a report
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.json
 msgid "Prepared Report Analytics"
-msgstr ""
+msgstr "Vorbereitete Berichtsanalytik"
 
 #. Name of a role
 #: frappe/core/doctype/prepared_report/prepared_report.json
@@ -19659,7 +19659,7 @@ msgstr "Wird bearbeitet..."
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:52
 msgid "Prof"
-msgstr ""
+msgstr "Prof."
 
 #. Group in User's connections
 #: frappe/core/doctype/user/user.json
@@ -20391,7 +20391,7 @@ msgstr "Letzte Aktion wiederholen"
 #. Label of a Link field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Ref DocType"
-msgstr "Ref-DocType"
+msgstr "Referenz-DocType"
 
 #: frappe/desk/doctype/form_tour/form_tour.js:38
 msgid "Referance Doctype and Dashboard Name both can't be used at the same time."
@@ -22679,7 +22679,7 @@ msgstr "Bild auswählen"
 
 #: frappe/www/apps.html:10
 msgid "Select an app to continue"
-msgstr "Wählen Sie eine App aus, um fortzufahren"
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_start.html:2
 msgid "Select an existing format to edit or start a new format."
@@ -23391,7 +23391,7 @@ msgstr "Einstellungen für die „Über uns“-Seite"
 #. Description of a DocType
 #: frappe/website/doctype/blog_settings/blog_settings.json
 msgid "Settings to control blog categories and interactions like comments and likes"
-msgstr "Einstellungen zur Steuerung von Blog-Kategorien und Interaktionen wie Kommentare und Likes"
+msgstr ""
 
 #. Option for the 'Show in Module Section' (Select) field in DocType 'DocType'
 #. Label of a Card Break in the Website Workspace
@@ -29060,7 +29060,7 @@ msgstr "Arbeitsbereiche"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:35
 msgid "Wrapping up"
-msgstr "Aufwickeln"
+msgstr "Abschließende Schritte"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
@@ -29307,7 +29307,7 @@ msgstr "Sie können nach Erkundung dieser Seite mit dem Onboarding fortfahren"
 
 #: frappe/model/delete_doc.py:136
 msgid "You can disable this {0} instead of deleting it."
-msgstr "Du kannst diese(n) {0} deaktivieren, anstatt es zu löschen."
+msgstr "Sie können diese(n) {0} deaktivieren, anstatt es zu löschen."
 
 #: frappe/core/doctype/file/file.py:696
 msgid "You can increase the limit from System Settings."
@@ -29331,7 +29331,7 @@ msgstr "Sie können nur die 3 benutzerdefinierten DocTypes in der Tabelle Docume
 
 #: frappe/handler.py:228
 msgid "You can only upload JPG, PNG, PDF, TXT, CSV or Microsoft documents."
-msgstr "Sie können nur JPG, PNG, PDF, TXT, CSV oder Microsoft-Dokumente hochladen."
+msgstr ""
 
 #: frappe/core/doctype/data_export/exporter.py:199
 msgid "You can only upload upto 5000 records in one go. (may be less in some cases)"
@@ -31781,7 +31781,7 @@ msgstr "{0} Die Rolle hat keine Berechtigung für einen Doctype"
 
 #: frappe/model/document.py:1629
 msgid "{0} row #{1}: "
-msgstr "{0} Zeile #{1}: "
+msgstr ""
 
 #: frappe/desk/query_report.py:605
 msgid "{0} saved successfully"
@@ -32060,7 +32060,7 @@ msgstr "{} Possibly invalid python code. <br>{}"
 #. Count format of shortcut in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "{} Published"
-msgstr "{} Veröffentlicht"
+msgstr ""
 
 #: frappe/core/doctype/log_settings/log_settings.py:55
 msgid "{} does not support automated log clearing."
