@@ -873,11 +873,30 @@ def make_app(destination, app_name, no_git=False):
 
 @click.command("init-frappe-ui")
 def init_frappe_ui():
-	click.secho("Please fill the details", fg="green")
 	from frappe.utils.boilerplate import _get_app_info
 
 	info = _get_app_info()
-	create_frappe_ui_template(info)
+	if validate_if_app_is_installed(info.app_name):
+		create_frappe_ui_template(info)
+
+
+def validate_if_app_is_installed(app_name):
+	from frappe.utils import get_bench_path
+
+	app_not_installed = False
+	out = subprocess.check_output(
+		["bench", "--site", "all", "list-apps", "--format", "json"],
+		stderr=open(os.devnull, "wb"),
+		cwd=get_bench_path(),
+	).decode("utf-8")
+	apps_sites_dict = json.loads(out)
+	for apps in apps_sites_dict.values():
+		if app_name in apps:
+			app_not_installed = True
+	if not app_not_installed:
+		click.secho(f"Cannot setup frappe-ui. Install the app {app_name} on a site", fg="red")
+		return False
+	return app_not_installed
 
 
 def create_frappe_ui_template(info):
