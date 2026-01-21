@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2025-12-24 20:24\n"
+"PO-Revision-Date: 2026-01-21 06:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Thai\n"
 "MIME-Version: 1.0\n"
@@ -14,8 +14,8 @@ msgstr ""
 "X-Crowdin-Project: frappe\n"
 "X-Crowdin-Project-ID: 639578\n"
 "X-Crowdin-Language: th\n"
-"X-Crowdin-File: /[frappe.frappe] develop/frappe/locale/main.pot\n"
-"X-Crowdin-File-ID: 52\n"
+"X-Crowdin-File: /[frappe.frappe] version-16-hotfix/frappe/locale/main.pot\n"
+"X-Crowdin-File-ID: 138\n"
 "Language: th_TH\n"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
@@ -28,7 +28,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Company History\""
-msgstr ""
+msgstr "“ประวัติบริษัท”"
 
 #: frappe/core/doctype/data_export/exporter.py:202
 msgid "\"Parent\" signifies the parent table in which this row must be added"
@@ -51,7 +51,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/toolbar/tag_utils.js:21
 #: frappe/public/js/frappe/ui/toolbar/tag_utils.js:22
 msgid "#{0}"
-msgstr ""
+msgstr "#{0}"
 
 #: frappe/core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.js:36
 msgid "${values.doctype_name} has been added to queue for optimization"
@@ -733,7 +733,7 @@ msgstr ""
 #: frappe/integrations/doctype/google_settings/google_settings.json
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "API Key"
-msgstr ""
+msgstr "คีย์ API"
 
 #. Description of the 'Authentication' (Section Break) field in DocType 'Push
 #. Notification Settings'
@@ -774,7 +774,7 @@ msgstr ""
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "API Secret"
-msgstr ""
+msgstr "API Secret"
 
 #. Option for the 'Default Sort Order' (Select) field in DocType 'DocType'
 #. Option for the 'Sort Order' (Select) field in DocType 'Customize Form'
@@ -787,7 +787,7 @@ msgstr ""
 #. Type: Action
 #: frappe/hooks.py
 msgid "About"
-msgstr ""
+msgstr "เกี่ยวกับ"
 
 #: frappe/www/about.html:11 frappe/www/about.html:18
 msgid "About Us"
@@ -977,7 +977,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/reports/query_report.js:214
 #: frappe/public/js/frappe/views/reports/query_report.js:853
 msgid "Actions"
-msgstr ""
+msgstr "การดำเนินการ"
 
 #. Label of the activate (Check) field in DocType 'Package Import'
 #: frappe/core/doctype/package_import/package_import.json
@@ -1096,7 +1096,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/reports/report_view.js:379
 #: frappe/public/js/print_format_builder/Field.vue:112
 msgid "Add Column"
-msgstr ""
+msgstr "เพิ่มคอลัมน์"
 
 #: frappe/core/doctype/communication/communication.js:127
 msgid "Add Contact"
@@ -1158,7 +1158,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:66
 msgid "Add Row"
-msgstr ""
+msgstr "เพิ่มแถว"
 
 #. Label of the add_signature (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -1263,7 +1263,7 @@ msgstr ""
 #: frappe/public/js/form_builder/components/Section.vue:271
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:115
 msgid "Add column"
-msgstr ""
+msgstr "เพิ่มคอลัมน์"
 
 #: frappe/public/js/form_builder/components/AddFieldButton.vue:9
 #: frappe/public/js/form_builder/components/AddFieldButton.vue:48
@@ -1368,7 +1368,7 @@ msgstr ""
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Address"
-msgstr ""
+msgstr "ที่อยู่"
 
 #. Label of the address_line1 (Data) field in DocType 'Address'
 #. Label of the address_line1 (Data) field in DocType 'Contact Us Settings'
@@ -1376,7 +1376,7 @@ msgstr ""
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:37
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Line 1"
-msgstr ""
+msgstr "ที่อยู่บรรทัดที่ 1"
 
 #. Label of the address_line2 (Data) field in DocType 'Address'
 #. Label of the address_line2 (Data) field in DocType 'Contact Us Settings'
@@ -1384,7 +1384,7 @@ msgstr ""
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:38
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Line 2"
-msgstr ""
+msgstr "ที่อยู่บรรทัดที่ 2"
 
 #. Name of a DocType
 #: frappe/contacts/doctype/address_template/address_template.json
@@ -1636,7 +1636,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/form.js:2240
 msgid "All Submissions"
-msgstr ""
+msgstr "การส่งทั้งหมด"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:452
 msgid "All customizations will be removed. Please confirm."
@@ -1666,7 +1666,7 @@ msgstr ""
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 #: frappe/templates/includes/oauth_confirmation.html:16
 msgid "Allow"
-msgstr ""
+msgstr "อนุญาต"
 
 #: frappe/website/doctype/website_settings/website_settings.py:160
 msgid "Allow API Indexing Access"
@@ -3175,7 +3175,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/communication.js:81
 msgctxt "Email Recipients"
 msgid "BCC"
-msgstr "BCC"
+msgstr ""
 
 #: frappe/public/js/frappe/file_uploader/ImageCropper.vue:31
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:181
@@ -5405,7 +5405,7 @@ msgstr ""
 #. Label of the contacts (Small Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Contacts"
-msgstr "ผู้ติดต่อ"
+msgstr ""
 
 #: frappe/utils/change_log.py:362
 msgid "Contains {0} security fix"
@@ -7340,7 +7340,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/communication.js:30
 msgctxt "Discard Email"
 msgid "Discard"
-msgstr "ยกเลิก"
+msgstr ""
 
 #: frappe/public/js/frappe/form/form.js:851
 msgid "Discard {0}"
@@ -16921,11 +16921,11 @@ msgstr "โทเค็นการซิงค์ถัดไป"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:691
 msgid "Next Week"
-msgstr "สัปดาห์ถัดไป"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:707
 msgid "Next Year"
-msgstr "ปีถัดไป"
+msgstr ""
 
 #: frappe/public/js/frappe/form/workflow.js:45
 msgid "Next actions"
@@ -27151,7 +27151,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/communication.js:53
 msgctxt "Email Recipients"
 msgid "To"
-msgstr "ถึง"
+msgstr ""
 
 #. Label of the to_date (Date) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
