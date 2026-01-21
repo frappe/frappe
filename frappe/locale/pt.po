@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2026-01-21 08:29\n"
+"PO-Revision-Date: 2026-01-21 08:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese\n"
 "MIME-Version: 1.0\n"
@@ -26,13 +26,13 @@ msgstr ""
 #. Condition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "!="
-msgstr ""
+msgstr "!="
 
 #. Description of the 'Org History Heading' (Data) field in DocType 'About Us
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Company History\""
-msgstr ""
+msgstr "\"História da Empresa\""
 
 #: frappe/core/doctype/data_export/exporter.py:202
 msgid "\"Parent\" signifies the parent table in which this row must be added"
@@ -42,7 +42,7 @@ msgstr "\"Principal\" diz respeito à tabela principal na qual deve ser acrescen
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Team Members\" or \"Management\""
-msgstr ""
+msgstr "\"Membros da Equipa\" ou \"Administração\""
 
 #: frappe/public/js/frappe/form/form.js:1013
 msgid "\"amended_from\" field must be present to do an amendment."
@@ -237,13 +237,13 @@ msgstr "; não é permitido na condição"
 #. Condition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "<"
-msgstr ""
+msgstr "<"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "<="
-msgstr ""
+msgstr "<="
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:569
 msgid "<b>{0}</b> is not a valid URL"
@@ -686,14 +686,14 @@ msgstr ""
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "API"
-msgstr ""
+msgstr "API"
 
 #. Label of a Section Break field in DocType 'User'
 #. Label of a Section Break field in DocType 'S3 Backup Settings'
 #: frappe/core/doctype/user/user.json
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "API Access"
-msgstr ""
+msgstr "Acesso à API"
 
 #. Label of a Data field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
