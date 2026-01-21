@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2026-01-21 08:29\n"
+"PO-Revision-Date: 2026-01-21 08:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -500,7 +500,18 @@ msgid "<pre>*  *  *  *  *\n"
 "* - Any value\n"
 "/ - Step values\n"
 "</pre>\n"
-msgstr ""
+msgstr "<pre>* * * * *\n"
+"┬ ┬ ┬ ┬ ┬\n"
+"│ │ │ │ │\n"
+"│ │ │ │ └ روز هفته (0 - 6) (0 یکشنبه است)\n"
+"│ │ │ └───── ماه (1 - 12)\n"
+"│ │ └─────── روز ماه (1 - 31)\n"
+"│ └───────────────── ساعت (0 - 23)\n"
+"└───────────────────── دقیقه (0 - 59)\n\n"
+"---\n\n"
+"* - هر مقداری\n"
+"/ - مقادیر گام\n"
+"</pre>\n"
 
 #. Content of the 'Example' (HTML) field in DocType 'Workflow Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -1069,7 +1080,7 @@ msgstr "افزودن شماره"
 #. Label of a Check field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Container"
-msgstr ""
+msgstr "افزودن کانتینر"
 
 #. Label of a Button field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -1171,7 +1182,7 @@ msgstr "افزودن داده‌های ترجمه"
 #. Label of a Check field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Add Unsubscribe Link"
-msgstr ""
+msgstr "افزودن پیوند لغو اشتراک"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:6
 msgid "Add User Permissions"
@@ -5534,7 +5545,7 @@ msgstr "فیلتر شمارش"
 #. Label of a Int field in DocType 'Document Naming Rule'
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
 msgid "Counter"
-msgstr ""
+msgstr "شمارنده"
 
 #. Label of a Link field in DocType 'Address'
 #. Label of a Link field in DocType 'Address Template'
@@ -7109,7 +7120,7 @@ msgstr "غیرفعال کردن فیلترهای اخیر خودکار"
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Change Log Notification"
-msgstr ""
+msgstr "غیرفعال کردن اعلان لاگ تغییر"
 
 #. Label of a Check field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
@@ -7157,12 +7168,12 @@ msgstr "ثبت نام برای سایت خود را غیرفعال کنید"
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Standard Email Footer"
-msgstr ""
+msgstr "غیرفعال کردن پاورقی استاندارد ایمیل"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable System Update Notification"
-msgstr ""
+msgstr "غیرفعال کردن اعلان به‌روزرسانی سیستم"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -13194,7 +13205,7 @@ msgstr "اصلی است"
 #. Label of a Check field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Is Primary Contact"
-msgstr ""
+msgstr "مخاطب اصلی است"
 
 #. Label of a Check field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
@@ -21403,7 +21414,7 @@ msgstr "نقش‌ها و مجوزها"
 #: frappe/core/doctype/role_profile/role_profile.json
 #: frappe/core/doctype/user/user.json
 msgid "Roles Assigned"
-msgstr ""
+msgstr "نقش‌های واگذار شده"
 
 #. Label of a HTML field in DocType 'Role Profile'
 #. Label of a HTML field in DocType 'User'
@@ -26906,7 +26917,7 @@ msgstr "امکان نوشتن فرمت فایل برای {0} وجود ندارد
 #. Label of a Code field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Unassign Condition"
-msgstr ""
+msgstr "شرط لغو تخصیص"
 
 #: frappe/www/error.py:14
 msgid "Uncaught Server Exception"
