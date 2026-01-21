@@ -12,7 +12,6 @@ context("Customize Form", () => {
 			"Set by user": "prompt",
 			"By fieldname": "field:",
 			Expression: "",
-			"Expression (old style)": "format:",
 			Random: "hash",
 			"By script": "",
 		};
