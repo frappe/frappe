@@ -91,6 +91,9 @@ class AutomationRule(Document):
 		if is_automation_triggered:
 			self.db_set("last_triggered_at", frappe.utils.now())
 
+		if hook == "time_based":
+			doc.save(ignore_permissions=True)
+
 	def run_actions(self, doc, actions: list["AutomationAction"], hook: str) -> None:
 		for a in actions:
 			action_type = a.get("type", "")
@@ -226,7 +229,6 @@ def apply_automations(doc, method=None) -> None:
 	allowed_doctypes = frappe.get_hooks("automation_rule_config").get("allowed_doctypes", [])
 	if doctype not in allowed_doctypes:
 		return
-
 	event: str | None = HOOK_MAP.get(hook, None)
 	if not event:
 		return
@@ -292,4 +294,50 @@ def execute_automation_logs():
 	# enqueue the automations found in find_jobs_to_run
 	# onSuccess change the status of the log to "Completed"
 	# onError change the status of the log to "Failed"
-	pass
+	print("Executing scheduled automation jobs...")
+	jobs_to_run = frappe.get_list(
+		"Automation Scheduled Job",
+		filters={"status": ["in", ["Scheduled", "Failed"]], "execute_at": ["<=", frappe.utils.now()]},
+		fields=["name", "reference_doctype", "reference_name", "automation_rule"],
+	)
+	print(jobs_to_run)
+	for job in jobs_to_run:
+		automation_rule = frappe.get_doc("Automation Rule", job.automation_rule)
+		if not automation_rule.enabled:
+			continue
+		reference_doc = frappe.get_doc(job.reference_doctype, job.reference_name)
+		enqueue(
+			automation_rule.apply,
+			doc=reference_doc,
+			hook="time_based",
+			queue="long",
+			deduplicate=True,
+			job_name=f"Automation Rule: {automation_rule.name} for {reference_doc.doctype} {reference_doc.name}",
+			on_success="frappe.automation.doctype.automation_rule.automation_rule.mark_automation_job_completed",
+			on_failure="frappe.automation.doctype.automation_rule.automation_rule.mark_automation_job_failed",
+			job_id=job.name,
+		)
+
+
+def mark_automation_job_completed(job, connection, result):
+	site, job_id = job.id.split("||", 1)
+
+	frappe.init(site=site)
+	frappe.connect()
+	try:
+		frappe.db.set_value("Automation Scheduled Job", job_id, "status", "Completed")
+		frappe.db.commit()
+	finally:
+		frappe.destroy()
+
+
+def mark_automation_job_failed(job, connection, type, value, traceback):
+	site, job_id = job.id.split("||", 1)
+	frappe.init(site=site)
+	frappe.connect()
+	try:
+		frappe.db.set_value("Automation Scheduled Job", job_id, "status", "Failed")
+		frappe.db.commit()
+	finally:
+		frappe.log_error(f"Automation Log Failed {job_id} \n {traceback}")
+		frappe.destroy()

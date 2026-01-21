@@ -15,11 +15,12 @@ class AutomationScheduledJob(Document):
 		from frappe.types import DF
 
 		automation_rule: DF.Link | None
+		completed_at: DF.Datetime | None
 		execute_at: DF.Datetime | None
 		fieldname: DF.Data | None
 		reference_doctype: DF.Link | None
 		reference_name: DF.DynamicLink | None
-		status: DF.Literal["Scheduled", "Executed", "Cancelled", "Failed"]
+		status: DF.Literal["Scheduled", "Completed", "Cancelled", "Failed"]
 	# end: auto-generated types
 
 	pass

@@ -50,7 +50,7 @@ BASE_EMAIL_AUTOMATION_RULE = {
 	],
 }
 
-DAYS_OFFSET_AUTOMATION_RULE = {
+TIMED_AUTOMATION_RULE_EMAIL_TEMPLATE = {
 	"presets": [],
 	"rule": [
 		{
@@ -61,6 +61,22 @@ DAYS_OFFSET_AUTOMATION_RULE = {
 			"message": "",
 			"doctype": "Email Template",
 			"create_communication": True,
+		}
+	],
+}
+
+TIMED_AUTOMATION_RULE_RICH_TEXT = {
+	"presets": [],
+	"rule": [
+		{
+			"type": "email",
+			"to": "allocated_to",
+			"via": "rich_text",
+			"template": "",
+			"message": "<p>Test Message {{ status }}.</p>",
+			"doctype": "Email Template",
+			"create_communication": True,
+			"subject": "Test Subject",
 		}
 	],
 }

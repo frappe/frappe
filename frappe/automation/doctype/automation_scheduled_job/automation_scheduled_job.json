@@ -10,14 +10,16 @@
   "automation_rule",
   "status",
   "execute_at",
-  "fieldname"
+  "fieldname",
+  "completed_at"
  ],
  "fields": [
   {
    "fieldname": "status",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Status",
-   "options": "Scheduled\nExecuted\nCancelled\nFailed",
+   "options": "Scheduled\nCompleted\nCancelled\nFailed",
    "read_only": 1
   },
   {
@@ -52,13 +54,19 @@
    "fieldtype": "Data",
    "label": "Fieldname",
    "read_only": 1
+  },
+  {
+   "fieldname": "completed_at",
+   "fieldtype": "Datetime",
+   "label": "Completed At",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-15 13:51:46.991826",
+ "modified": "2026-01-21 12:04:58.126701",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation Scheduled Job",
