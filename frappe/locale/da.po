@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2025-12-24 20:23\n"
+"PO-Revision-Date: 2026-01-21 06:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Danish\n"
 "MIME-Version: 1.0\n"
@@ -14,15 +14,15 @@ msgstr ""
 "X-Crowdin-Project: frappe\n"
 "X-Crowdin-Project-ID: 639578\n"
 "X-Crowdin-Language: da\n"
-"X-Crowdin-File: /[frappe.frappe] develop/frappe/locale/main.pot\n"
-"X-Crowdin-File-ID: 52\n"
+"X-Crowdin-File: /[frappe.frappe] version-16-hotfix/frappe/locale/main.pot\n"
+"X-Crowdin-File-ID: 138\n"
 "Language: da_DK\n"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "!="
-msgstr "!="
+msgstr ""
 
 #. Description of the 'Org History Heading' (Data) field in DocType 'About Us
 #. Settings'
@@ -619,7 +619,7 @@ msgstr ""
 
 #: frappe/templates/emails/new_user.html:5
 msgid "A new account has been created for you at {0}"
-msgstr ""
+msgstr "En ny konto er blevet oprettet til dig på {0}"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:431
 msgid "A recurring {0} {1} has been created for you via Auto Repeat {2}."
@@ -1774,7 +1774,7 @@ msgstr ""
 #. Label of the allow_rename (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Allow Rename"
-msgstr "Tillad Omdøb"
+msgstr ""
 
 #. Label of the roles_permission (Section Break) field in DocType 'Role
 #. Permission for Page and Report'
@@ -1783,13 +1783,13 @@ msgstr "Tillad Omdøb"
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 msgid "Allow Roles"
-msgstr "Tillad Roller"
+msgstr ""
 
 #. Label of the allow_self_approval (Check) field in DocType 'Workflow
 #. Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Allow Self Approval"
-msgstr "Tillad Selv Godkendelse"
+msgstr ""
 
 #. Label of the enable_telemetry (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -1844,7 +1844,7 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Allow in Quick Entry"
-msgstr "Tillad i Hurtig Indgang"
+msgstr ""
 
 #. Label of the allow_incomplete (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -1915,7 +1915,7 @@ msgstr ""
 #. Label of the allowed (Link) field in DocType 'Workflow Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Allowed"
-msgstr "Tilladt"
+msgstr ""
 
 #. Label of the allowed_file_extensions (Small Text) field in DocType 'System
 #. Settings'
@@ -2048,7 +2048,7 @@ msgstr ""
 #: frappe/core/doctype/docperm/docperm.json
 #: frappe/core/doctype/user_document_type/user_document_type.json
 msgid "Amend"
-msgstr "Ændre"
+msgstr ""
 
 #. Option for the 'Action' (Select) field in DocType 'Amended Document Naming
 #. Settings'
@@ -2117,7 +2117,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Analytics"
-msgstr "Analyse"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:35
 msgid "Ancestors Of"
@@ -2184,12 +2184,12 @@ msgstr ""
 #: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.json
 #: frappe/website/doctype/website_theme_ignore_app/website_theme_ignore_app.json
 msgid "App"
-msgstr "App"
+msgstr ""
 
 #. Label of the app_id (Data) field in DocType 'Google Settings'
 #: frappe/integrations/doctype/google_settings/google_settings.json
 msgid "App ID"
-msgstr "App ID"
+msgstr ""
 
 #. Label of the app_logo (Attach Image) field in DocType 'Website Settings'
 #: frappe/desk/page/desktop/desktop.html:8
@@ -2305,23 +2305,23 @@ msgstr "Anvend Filtre"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Apply Strict User Permissions"
-msgstr "Anvend Streng Brugertilladelser"
+msgstr ""
 
 #. Label of the view (Select) field in DocType 'Client Script'
 #: frappe/custom/doctype/client_script/client_script.json
 msgid "Apply To"
-msgstr "Anvend Til"
+msgstr ""
 
 #. Label of the apply_to_all_doctypes (Check) field in DocType 'User
 #. Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 msgid "Apply To All Document Types"
-msgstr "Anvend Til Alle Dokumenttyper"
+msgstr ""
 
 #. Label of the apply_user_permission_on (Link) field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
 msgid "Apply User Permission On"
-msgstr "Anvend Brugertilladelse Til"
+msgstr ""
 
 #. Label of the apply_document_permissions (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -2471,7 +2471,7 @@ msgstr ""
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Arial"
-msgstr "Arial"
+msgstr ""
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:11
 msgid "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
@@ -2542,7 +2542,7 @@ msgstr ""
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
 msgid "Assigned"
-msgstr "Tildelt"
+msgstr ""
 
 #. Label of the assigned_by (Link) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json frappe/desk/report/todo/todo.py:41
@@ -2904,7 +2904,7 @@ msgstr ""
 #. Provider Settings'
 #: frappe/integrations/doctype/oauth_provider_settings/oauth_provider_settings.json
 msgid "Auto"
-msgstr "Automatisk"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
@@ -2916,7 +2916,7 @@ msgstr "Automatisk E-Mail Rapport"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Auto Name"
-msgstr "Automatisk Navn"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -3116,7 +3116,7 @@ msgstr "B"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "B0"
-msgstr "B0Name"
+msgstr ""
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -6827,7 +6827,7 @@ msgstr ""
 #: frappe/website/doctype/web_form/templates/web_form.html:52
 msgctxt "Button in web form"
 msgid "Delete"
-msgstr "Slet"
+msgstr ""
 
 #: frappe/www/me.html:65
 msgid "Delete Account"
@@ -13700,7 +13700,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/treeview.js:418
 msgid "Is Group"
-msgstr "Er Gruppe"
+msgstr ""
 
 #. Label of the is_hidden (Check) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
