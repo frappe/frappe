@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2025-12-24 20:23\n"
+"PO-Revision-Date: 2026-01-21 06:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Czech\n"
 "MIME-Version: 1.0\n"
@@ -14,8 +14,8 @@ msgstr ""
 "X-Crowdin-Project: frappe\n"
 "X-Crowdin-Project-ID: 639578\n"
 "X-Crowdin-Language: cs\n"
-"X-Crowdin-File: /[frappe.frappe] develop/frappe/locale/main.pot\n"
-"X-Crowdin-File-ID: 52\n"
+"X-Crowdin-File: /[frappe.frappe] version-16-hotfix/frappe/locale/main.pot\n"
+"X-Crowdin-File-ID: 138\n"
 "Language: cs_CZ\n"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
@@ -51,7 +51,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/toolbar/tag_utils.js:21
 #: frappe/public/js/frappe/ui/toolbar/tag_utils.js:22
 msgid "#{0}"
-msgstr ""
+msgstr "#{0}"
 
 #: frappe/core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.js:36
 msgid "${values.doctype_name} has been added to queue for optimization"
@@ -665,7 +665,7 @@ msgstr ""
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "A4"
-msgstr ""
+msgstr "A4"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -700,7 +700,7 @@ msgstr ""
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "API"
-msgstr ""
+msgstr "API"
 
 #. Label of the api_access (Section Break) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -710,7 +710,7 @@ msgstr ""
 #. Label of the api_endpoint (Data) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "API Endpoint"
-msgstr ""
+msgstr "Koncový bod API"
 
 #. Label of the api_endpoint_args (Code) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -733,7 +733,7 @@ msgstr ""
 #: frappe/integrations/doctype/google_settings/google_settings.json
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "API Key"
-msgstr ""
+msgstr "Klíč API"
 
 #. Description of the 'Authentication' (Section Break) field in DocType 'Push
 #. Notification Settings'
@@ -774,7 +774,7 @@ msgstr ""
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "API Secret"
-msgstr ""
+msgstr "API heslo"
 
 #. Option for the 'Default Sort Order' (Select) field in DocType 'DocType'
 #. Option for the 'Sort Order' (Select) field in DocType 'Customize Form'
@@ -787,7 +787,7 @@ msgstr ""
 #. Type: Action
 #: frappe/hooks.py
 msgid "About"
-msgstr ""
+msgstr "O mně"
 
 #: frappe/www/about.html:11 frappe/www/about.html:18
 msgid "About Us"
@@ -824,7 +824,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted"
-msgstr "Přijato"
+msgstr ""
 
 #. Label of the accepted_at (Datetime) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
@@ -977,7 +977,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/reports/query_report.js:214
 #: frappe/public/js/frappe/views/reports/query_report.js:853
 msgid "Actions"
-msgstr ""
+msgstr "Akce"
 
 #. Label of the activate (Check) field in DocType 'Package Import'
 #: frappe/core/doctype/package_import/package_import.json
@@ -994,7 +994,7 @@ msgstr ""
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 #: frappe/workflow/doctype/workflow/workflow_list.js:5
 msgid "Active"
-msgstr ""
+msgstr "Aktivní"
 
 #. Option for the 'Directory Server' (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -1021,7 +1021,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/dashboard.js:22
 #: frappe/public/js/frappe/form/footer/form_timeline.js:60
 msgid "Activity"
-msgstr ""
+msgstr "Aktivita"
 
 #. Name of a DocType
 #. Label of a Link in the Build Workspace
@@ -1043,7 +1043,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/reports/query_report.js:294
 #: frappe/public/js/frappe/widgets/widget_dialog.js:30
 msgid "Add"
-msgstr ""
+msgstr "Přidat"
 
 #: frappe/public/js/frappe/form/grid_row.js:454
 msgid "Add / Remove Columns"
@@ -1096,7 +1096,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/reports/report_view.js:379
 #: frappe/public/js/print_format_builder/Field.vue:112
 msgid "Add Column"
-msgstr ""
+msgstr "Přidat sloupec"
 
 #: frappe/core/doctype/communication/communication.js:127
 msgid "Add Contact"
@@ -1158,7 +1158,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:66
 msgid "Add Row"
-msgstr ""
+msgstr "Přidat řádek"
 
 #. Label of the add_signature (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -1263,7 +1263,7 @@ msgstr ""
 #: frappe/public/js/form_builder/components/Section.vue:271
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:115
 msgid "Add column"
-msgstr ""
+msgstr "Přidat sloupec"
 
 #: frappe/public/js/form_builder/components/AddFieldButton.vue:9
 #: frappe/public/js/form_builder/components/AddFieldButton.vue:48
@@ -1368,7 +1368,7 @@ msgstr ""
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Address"
-msgstr ""
+msgstr "Adresa"
 
 #. Label of the address_line1 (Data) field in DocType 'Address'
 #. Label of the address_line1 (Data) field in DocType 'Contact Us Settings'
@@ -1376,7 +1376,7 @@ msgstr ""
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:37
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Line 1"
-msgstr ""
+msgstr "Řádek adresy 1"
 
 #. Label of the address_line2 (Data) field in DocType 'Address'
 #. Label of the address_line2 (Data) field in DocType 'Contact Us Settings'
@@ -1384,7 +1384,7 @@ msgstr ""
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:38
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Line 2"
-msgstr ""
+msgstr "Řádek adresy 2"
 
 #. Name of a DocType
 #: frappe/contacts/doctype/address_template/address_template.json
@@ -1616,7 +1616,7 @@ msgstr ""
 #: frappe/website/doctype/personal_data_download_request/personal_data_download_request.json
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "All"
-msgstr ""
+msgstr "Vše"
 
 #. Label of the all_day (Check) field in DocType 'Calendar View'
 #. Label of the all_day (Check) field in DocType 'Event'
@@ -1636,7 +1636,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/form.js:2240
 msgid "All Submissions"
-msgstr ""
+msgstr "Všechny odevzdané práce"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:452
 msgid "All customizations will be removed. Please confirm."
@@ -5405,7 +5405,7 @@ msgstr ""
 #. Label of the contacts (Small Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Contacts"
-msgstr "Kontakty"
+msgstr ""
 
 #: frappe/utils/change_log.py:362
 msgid "Contains {0} security fix"
@@ -6824,7 +6824,7 @@ msgstr ""
 #: frappe/website/doctype/web_form/templates/web_form.html:52
 msgctxt "Button in web form"
 msgid "Delete"
-msgstr "Smazat"
+msgstr ""
 
 #: frappe/www/me.html:65
 msgid "Delete Account"
@@ -8701,7 +8701,7 @@ msgstr ""
 #. Label of the email_sent_at (Datetime) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Email Sent At"
-msgstr "E-mail odeslán dne"
+msgstr ""
 
 #. Label of the email_settings_sb (Section Break) field in DocType 'DocType'
 #. Label of the email_settings_section (Section Break) field in DocType
@@ -13697,7 +13697,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/treeview.js:418
 msgid "Is Group"
-msgstr "Je skupina"
+msgstr ""
 
 #. Label of the is_hidden (Check) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -16059,7 +16059,7 @@ msgstr ""
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Mobile Number"
-msgstr "Mobilní číslo"
+msgstr ""
 
 #. Label of the modal_trigger (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -26090,7 +26090,7 @@ msgstr ""
 #. Label of the tasks (Table) field in DocType 'Workflow Transition Tasks'
 #: frappe/workflow/doctype/workflow_transition_tasks/workflow_transition_tasks.json
 msgid "Tasks"
-msgstr "Úkoly"
+msgstr ""
 
 #. Label of the sb1 (Section Break) field in DocType 'About Us Settings'
 #. Label of the team_members (Table) field in DocType 'About Us Settings'
