@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-06-02 05:13\n"
+"PO-Revision-Date: 2026-01-21 08:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -5747,7 +5747,7 @@ msgstr "Kommun"
 #: frappe/public/js/frappe/utils/number_systems.js:45
 msgctxt "Number system"
 msgid "Cr"
-msgstr "Cr"
+msgstr "Kredit"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
@@ -8139,7 +8139,7 @@ msgstr "Ladda ner vCard"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:47
 msgid "Dr"
-msgstr "Dr"
+msgstr "Debet"
 
 #: frappe/public/js/frappe/model/indicator.js:73
 #: frappe/public/js/frappe/ui/filters/filter.js:535
@@ -15112,7 +15112,7 @@ msgstr "Marginal Nederst"
 #. Label of a Float field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Margin Left"
-msgstr "Marginal Vänster"
+msgstr "Vänster Marginal"
 
 #. Label of a Float field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
