@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2025-12-24 20:24\n"
+"PO-Revision-Date: 2026-01-21 06:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Burmese\n"
 "MIME-Version: 1.0\n"
@@ -14,15 +14,15 @@ msgstr ""
 "X-Crowdin-Project: frappe\n"
 "X-Crowdin-Project-ID: 639578\n"
 "X-Crowdin-Language: my\n"
-"X-Crowdin-File: /[frappe.frappe] develop/frappe/locale/main.pot\n"
-"X-Crowdin-File-ID: 52\n"
+"X-Crowdin-File: /[frappe.frappe] version-16-hotfix/frappe/locale/main.pot\n"
+"X-Crowdin-File-ID: 138\n"
 "Language: my_MM\n"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "!="
-msgstr "!="
+msgstr ""
 
 #. Description of the 'Org History Heading' (Data) field in DocType 'About Us
 #. Settings'
@@ -38,7 +38,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Team Members\" or \"Management\""
-msgstr ""
+msgstr "&quot;ရေးအဖွဲ့အဖွဲ့ဝင်များ&quot; သို့မဟုတ် &quot;စီမံခန့်ခွဲမှု&quot;"
 
 #: frappe/public/js/frappe/form/form.js:1093
 msgid "\"amended_from\" field must be present to do an amendment."
@@ -64,7 +64,7 @@ msgstr ""
 #. Label of the head_html (Code) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "&lt;head&gt; HTML"
-msgstr ""
+msgstr "&lt;head&gt; HTML ကို"
 
 #: frappe/database/query.py:2100
 msgid "'*' is only allowed in {0} SQL function(s)"
@@ -119,7 +119,7 @@ msgstr ""
 #. State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "0 - Draft; 1 - Submitted; 2 - Cancelled"
-msgstr ""
+msgstr "0 င် - မူကြမ်း; 1 - Submitted; 2 - ဖျက်သိမ်း"
 
 #. Description of the 'Minimum Password Score' (Select) field in DocType
 #. 'System Settings'
@@ -138,7 +138,7 @@ msgstr ""
 #. Description of the 'Priority' (Int) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "0 is highest"
-msgstr ""
+msgstr "0 င်အမြင့်မားဆုံးဖြစ်ပါတယ်"
 
 #: frappe/public/js/frappe/form/grid_row.js:892
 msgid "1 = True & 0 = False"
@@ -612,7 +612,7 @@ msgstr ""
 #. Description of the 'Scopes' (Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "A list of resources which the Client App will have access to after the user allows it.<br> e.g. project"
-msgstr ""
+msgstr "အသုံးပြုသူကခွင့်ပြုပြီးနောက်လိုင်း App ကိုမှဝင်ရောက်ခွင့်ရှိလိမ့်မည်သည့်အရင်းအမြစ်များကိုစာရင်းတစ်ခု။ <br> ဥပမာစီမံကိန်းအတွက်"
 
 #: frappe/templates/emails/new_user.html:5
 msgid "A new account has been created for you at {0}"
@@ -625,7 +625,7 @@ msgstr ""
 #. Description of the 'Symbol' (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "A symbol for this currency. For e.g. $"
-msgstr ""
+msgstr "ဒီငွေကြေးများအတွက်သင်္ကေတ။ ဥပမာ $ for"
 
 #: frappe/printing/doctype/print_format_field_template/print_format_field_template.py:49
 msgid "A template already exists for field {0} of {1}"
@@ -695,12 +695,12 @@ msgstr ""
 #. Option for the 'Email Sync Option' (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "ALL"
-msgstr ""
+msgstr "အားလုံး"
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "API"
-msgstr ""
+msgstr "API ကို"
 
 #. Label of the api_access (Section Break) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -710,12 +710,12 @@ msgstr ""
 #. Label of the api_endpoint (Data) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "API Endpoint"
-msgstr ""
+msgstr "API ကိုဆုံးမှတ်"
 
 #. Label of the api_endpoint_args (Code) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "API Endpoint Args"
-msgstr ""
+msgstr "API ကိုဆုံးမှတ် Args"
 
 #: frappe/integrations/doctype/social_login_key/social_login_key.py:102
 msgid "API Endpoint Args should be valid JSON"
@@ -733,7 +733,7 @@ msgstr ""
 #: frappe/integrations/doctype/google_settings/google_settings.json
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "API Key"
-msgstr ""
+msgstr "API ကို Key ကို"
 
 #. Description of the 'Authentication' (Section Break) field in DocType 'Push
 #. Notification Settings'
@@ -759,7 +759,7 @@ msgstr ""
 #. Label of the api_method (Data) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "API Method"
-msgstr ""
+msgstr "API နည်းလမ်း"
 
 #. Name of a DocType
 #: frappe/core/doctype/api_request_log/api_request_log.json
@@ -774,7 +774,7 @@ msgstr ""
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "API Secret"
-msgstr ""
+msgstr "API ကိုလြှို့ဝှကျ"
 
 #. Option for the 'Default Sort Order' (Select) field in DocType 'DocType'
 #. Option for the 'Sort Order' (Select) field in DocType 'Customize Form'
@@ -854,7 +854,7 @@ msgstr ""
 #. Label of the access_token_url (Data) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Access Token URL"
-msgstr ""
+msgstr "Access ကိုတိုကင် URL ကို"
 
 #: frappe/auth.py:497
 msgid "Access not allowed from this IP Address"
@@ -913,7 +913,7 @@ msgstr ""
 #. Label of the action (Small Text) field in DocType 'DocType Action'
 #: frappe/core/doctype/doctype_action/doctype_action.json
 msgid "Action / Route"
-msgstr ""
+msgstr "လှုပ်ရှားမှု / လမ်းကြောင်း"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:305
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:376
@@ -932,12 +932,12 @@ msgstr ""
 #. Label of the action_timeout (Int) field in DocType 'Success Action'
 #: frappe/core/doctype/success_action/success_action.json
 msgid "Action Timeout (Seconds)"
-msgstr ""
+msgstr "လှုပ်ရှားမှုရပ်သွားသည် (စက္ကန့်)"
 
 #. Label of the action_type (Select) field in DocType 'DocType Action'
 #: frappe/core/doctype/doctype_action/doctype_action.json
 msgid "Action Type"
-msgstr ""
+msgstr "လှုပ်ရှားမှုအမျိုးအစား"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:120
 msgid "Action {0} completed successfully on {1} {2}. View it {3}"
@@ -1006,7 +1006,7 @@ msgstr ""
 #. Label of the active_domains (Table) field in DocType 'Domain Settings'
 #: frappe/core/doctype/domain_settings/domain_settings.json
 msgid "Active Domains"
-msgstr ""
+msgstr "active ကိုဒိုမိန်း"
 
 #. Label of the active_sessions (Table) field in DocType 'User'
 #. Label of the active_sessions (Int) field in DocType 'System Health Report'
@@ -1109,12 +1109,12 @@ msgstr ""
 #. Label of the add_container (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Container"
-msgstr ""
+msgstr "ကွန်တိန်နာထည့်ပါ"
 
 #. Label of the set_meta_tags (Button) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Add Custom Tags"
-msgstr ""
+msgstr "စိတ်ကြိုက် Tags ထည့်ပါ"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:188
 #: frappe/public/js/frappe/widgets/widget_dialog.js:716
@@ -1124,7 +1124,7 @@ msgstr ""
 #. Label of the add_shade (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Gray Background"
-msgstr ""
+msgstr "မီးခိုးရောင်နောက်ခံထည့်ပါ"
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:230
 #: frappe/public/js/frappe/ui/group_by/group_by.js:430
@@ -1197,7 +1197,7 @@ msgstr ""
 #. Label of the add_total_row (Check) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Add Total Row"
-msgstr ""
+msgstr "စုစုပေါင်း Row Add"
 
 #. Label of the add_translate_data (Check) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
@@ -1207,7 +1207,7 @@ msgstr ""
 #. Label of the add_unsubscribe_link (Check) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Add Unsubscribe Link"
-msgstr ""
+msgstr "စာရင်းဖျက်ရန် Link ကို Add"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:6
 msgid "Add User Permissions"
@@ -1335,7 +1335,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO"
-msgstr ""
+msgstr "အဓိကအားဖြင့် Website ကိုစိစစ်အတည်ပြုခြင်းနှင့် SEO ဆိုသည်မှာများအတွက်အသုံးပြုတဲ့ဝဘ်စာမျက်နှာ၏ &lt;head&gt; အပိုင်းအတွက် HTML ကို Added"
 
 #: frappe/core/doctype/log_settings/log_settings.py:81
 msgid "Added default log doctypes: {}"
@@ -1356,7 +1356,7 @@ msgstr ""
 #: frappe/core/doctype/docperm/docperm.json
 #: frappe/core/doctype/user_document_type/user_document_type.json
 msgid "Additional Permissions"
-msgstr ""
+msgstr "နောက်ထပ်ခွင့်ပြုချက်"
 
 #. Name of a DocType
 #. Label of the address (Link) field in DocType 'Contact'
@@ -1396,7 +1396,7 @@ msgstr ""
 #: frappe/contacts/doctype/address/address.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Address Title"
-msgstr ""
+msgstr "လိပ်စာခေါင်းစဉ်"
 
 #: frappe/contacts/doctype/address/address.py:71
 msgid "Address Title is mandatory."
@@ -1405,13 +1405,13 @@ msgstr ""
 #. Label of the address_type (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Address Type"
-msgstr ""
+msgstr "လိပ်စာရိုက်ထည့်ပါ"
 
 #. Description of the 'Address' (Small Text) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Address and other legal information you may want to put in the footer."
-msgstr ""
+msgstr "လိပ်စာနှင့်သင် footer အတွက်ထားရန်လိုပေမည်အခြားဥပဒေရေးရာသတင်းအချက်အလက်များကို။"
 
 #: frappe/contacts/doctype/address/address.py:205
 msgid "Addresses"
@@ -1476,13 +1476,13 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Advanced"
-msgstr ""
+msgstr "advanced"
 
 #. Label of the advanced_control_section (Section Break) field in DocType 'User
 #. Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 msgid "Advanced Control"
-msgstr ""
+msgstr "အဆင့်မြင့်ထိန်းချုပ်ရေး"
 
 #: frappe/public/js/frappe/form/controls/link.js:485
 #: frappe/public/js/frappe/form/controls/link.js:487
@@ -1492,7 +1492,7 @@ msgstr ""
 #. Label of the sb_advanced (Section Break) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Advanced Settings"
-msgstr ""
+msgstr "အဆင့်မြင့်ချိန်ညှိမှုများ"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:64
 #: frappe/public/js/frappe/ui/filters/filter.js:70
@@ -1502,12 +1502,12 @@ msgstr ""
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Cancel"
-msgstr ""
+msgstr "Cancel ပြီးနောက်"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Delete"
-msgstr ""
+msgstr "ပယ်ဖျက်ပြီးနောက်"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -1527,12 +1527,12 @@ msgstr ""
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Save"
-msgstr ""
+msgstr "သိမ်းဆည်းပြီးနောက်"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Save (Submitted Document)"
-msgstr ""
+msgstr "သိမ်းဆည်းပြီးနောက် (တင်ပြစာရွက်စာတမ်း)"
 
 #. Label of the section_break_5 (Section Break) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -1542,7 +1542,7 @@ msgstr ""
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Submit"
-msgstr ""
+msgstr "တင်သွင်းပြီးနောက်"
 
 #: frappe/desk/doctype/number_card/number_card.py:63
 msgid "Aggregate Field is required to create a number card"
@@ -1555,7 +1555,7 @@ msgstr ""
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Aggregate Function Based On"
-msgstr ""
+msgstr "အပေါ်အခြေခံပြီးစုစုပေါင်း function ကို"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:410
 msgid "Aggregate Function field is required to create a dashboard chart"
@@ -1564,7 +1564,7 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Alert"
-msgstr ""
+msgstr "သတိပေး"
 
 #: frappe/database/query.py:2147
 msgid "Alias must be a string"
@@ -1579,12 +1579,12 @@ msgstr ""
 #. Label of the align_labels_right (Check) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Align Labels to the Right"
-msgstr ""
+msgstr "မှန်ကန်စွာရွေးချယ်ရန် Labels: align"
 
 #. Label of the right (Check) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "Align Right"
-msgstr ""
+msgstr "ညာဘက် align"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:479
 msgid "Align Value"
@@ -1658,7 +1658,7 @@ msgstr ""
 #. Label of the allocated_to (Link) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
 msgid "Allocated To"
-msgstr ""
+msgstr "ရန်လျာထား"
 
 #. Label of the allow (Link) field in DocType 'User Permission'
 #. Option for the 'Sign ups' (Select) field in DocType 'Social Login Key'
@@ -1677,14 +1677,14 @@ msgstr ""
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Allow Auto Repeat"
-msgstr ""
+msgstr "အော်တိုထပ် Allow"
 
 #. Label of the allow_bulk_edit (Check) field in DocType 'DocField'
 #. Label of the allow_bulk_edit (Check) field in DocType 'Customize Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Allow Bulk Edit"
-msgstr ""
+msgstr "အစုလိုက် Edit ကို Allow"
 
 #. Label of the allow_edit (Check) field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
@@ -1708,30 +1708,30 @@ msgstr ""
 #. Label of the allow_guest (Check) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Allow Guest"
-msgstr ""
+msgstr "Guest ည့်သည်ခွင့်ပြုသည်"
 
 #. Label of the allow_guest_to_view (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Allow Guest to View"
-msgstr ""
+msgstr "ဧည့်သည် View မှ Allow"
 
 #. Label of the allow_guests_to_upload_files (Check) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Guests to Upload Files"
-msgstr ""
+msgstr "ဧည့်သည်ဖိုင်များအင်တာနက်ပေါ်တင်ခြင်းမှ Allow"
 
 #. Label of the allow_import (Check) field in DocType 'DocType'
 #. Label of the allow_import (Check) field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Allow Import (via Data Import Tool)"
-msgstr ""
+msgstr "(ဒေတာများကိုတင်သွင်း Tool ကိုမှတဆင့်) ကိုတင်သွင်းခွင့်ပြုပါ"
 
 #. Label of the allow_login_after_fail (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Login After Fail"
-msgstr ""
+msgstr "ဝင်မည်ကျရှုံးခြင်းပြီးနောက် Allow"
 
 #. Label of the allow_login_using_mobile_number (Check) field in DocType
 #. 'System Settings'
