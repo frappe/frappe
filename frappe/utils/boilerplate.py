@@ -79,6 +79,36 @@ def _get_user_inputs(app_name):
 	return hooks
 
 
+def _get_app_info():
+	hooks = frappe._dict()
+	new_app_config = {
+		"app_name": {
+			"prompt": "App Name",
+			"validator": is_valid_title,
+		},
+		"route": {"prompt": "Frontend to be hosted at", "get_default": "app_name"},
+	}
+
+	for property, config in new_app_config.items():
+		value = None
+		input_type = config.get("type", str)
+
+		while value is None:
+			default_value = config.get("default")
+			if config.get("get_default"):
+				default_value = f"/{hooks[config.get('get_default')]}"
+			if input_type is bool:
+				value = click.confirm(config["prompt"], default=default_value)
+			else:
+				value = click.prompt(config["prompt"], default=default_value, type=input_type)
+
+			if validator_function := config.get("validator"):
+				if not validator_function(value):
+					value = None
+		hooks[property] = value
+	return hooks
+
+
 def is_valid_email(email) -> bool:
 	from email.headerregistry import Address
 

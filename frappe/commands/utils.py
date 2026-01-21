@@ -871,6 +871,39 @@ def make_app(destination, app_name, no_git=False):
 	make_boilerplate(destination, app_name, no_git=no_git)
 
 
+@click.command("init-frappe-ui")
+def init_frappe_ui():
+	click.secho("Please fill the details", fg="green")
+	from frappe.utils.boilerplate import _get_app_info
+
+	info = _get_app_info()
+	create_frappe_ui_template(info)
+
+
+def create_frappe_ui_template(info):
+	template_url = "sokumon/frappe-ui-starter"
+	import os
+
+	try:
+		app_path = os.path.dirname(frappe.get_app_path(info.app_name))
+		os.chdir(app_path)
+		command = f"npx degit {template_url} frontend"
+		result = subprocess.run(
+			command,
+			shell=True,
+			stdout=subprocess.PIPE,
+			stderr=subprocess.DEVNULL,
+			text=True,
+		)
+		if result.returncode == 0:
+			click.secho(f"Frappe UI is setup for the app {info.app_name} ", fg="green")
+		else:
+			click.secho("Something went wrong while fetching the template", fg="red")
+			print(result.stderr)
+	except ModuleNotFoundError:
+		click.secho(f"App {info.app_name} does not exist", fg="red")
+
+
 @click.command("create-patch")
 def create_patch():
 	"Creates a new patch interactively"
@@ -1070,4 +1103,5 @@ commands = [
 	rebuild_global_search,
 	list_sites,
 	setup_chrome,
+	init_frappe_ui,
 ]
