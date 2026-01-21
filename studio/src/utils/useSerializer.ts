@@ -1,10 +1,9 @@
-import { reactive, toRaw, h } from "vue"
+import { reactive, toRaw } from "vue"
 import Block from "./block"
 import getBlockTemplate from "@/utils/blockTemplate"
 import { deepCloneObject } from "@/utils/helpers"
 
 import type { ObjectLiteral, BlockOptions } from "@/types"
-import useCodeStore from "@/stores/codeStore"
 
 /**
  * Serialization and Deserialization utilities for Blocks and Objects
