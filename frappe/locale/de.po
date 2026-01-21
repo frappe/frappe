@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2026-01-02 22:29\n"
+"PO-Revision-Date: 2026-01-21 06:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -14,8 +14,8 @@ msgstr ""
 "X-Crowdin-Project: frappe\n"
 "X-Crowdin-Project-ID: 639578\n"
 "X-Crowdin-Language: de\n"
-"X-Crowdin-File: /[frappe.frappe] develop/frappe/locale/main.pot\n"
-"X-Crowdin-File-ID: 52\n"
+"X-Crowdin-File: /[frappe.frappe] version-16-hotfix/frappe/locale/main.pot\n"
+"X-Crowdin-File-ID: 138\n"
 "Language: de_DE\n"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
@@ -28,7 +28,7 @@ msgstr "!="
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Company History\""
-msgstr "\"Unternehmensgeschichte\""
+msgstr "„Unternehmensgeschichte“"
 
 #: frappe/core/doctype/data_export/exporter.py:202
 msgid "\"Parent\" signifies the parent table in which this row must be added"
@@ -38,7 +38,7 @@ msgstr "\"Übergeordnet\" bezeichnet die übergeordnete Tabelle, in der diese Ze
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Team Members\" or \"Management\""
-msgstr "\"Teammitglieder\" oder \"Management\""
+msgstr "„Teammitglieder“ oder „Management“"
 
 #: frappe/public/js/frappe/form/form.js:1093
 msgid "\"amended_from\" field must be present to do an amendment."
@@ -568,7 +568,7 @@ msgstr "<h4>Standardvorlage</h4>\n"
 "{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}\n"
 "{{ city }}&lt;br&gt;\n"
 "{% if state %}{{ state }}&lt;br&gt;{% endif -%}\n"
-"{% if pincode %} PLZ:  {{ pincode }}&lt;br&gt;{% endif -%}\n"
+"{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}\n"
 "{{ country }}&lt;br&gt;\n"
 "{% if phone %}Telefon: {{ phone }}&lt;br&gt;{% endif -%}\n"
 "{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}\n"
@@ -589,16 +589,16 @@ msgid "<h4>Email Reply Example</h4>\n\n"
 "<h4>Templating</h4>\n\n"
 "<p>Templates are compiled using the Jinja Templating Language. To learn more about Jinja, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">read this documentation.</a></p>\n"
 msgstr "<h4>Beispiel für eine E-Mail-Antwort</h4>\n\n"
-"<pre>Bestellung überfällig\n\n"
-"Transaktion {{ name }} hat Fälligkeitsdatum überschritten. Bitte ergreifen Sie die erforderlichen Maßnahmen.\n\n"
+"<pre>Überfällige Bestellung\n\n"
+"Die Transaktion {{ name }} hat das Fälligkeitsdatum überschritten. Bitte ergreifen Sie die notwendigen Maßnahmen.\n\n"
 "Details\n\n"
 "- Kunde: {{ customer }}\n"
 "- Betrag: {{ grand_total }}\n"
 "</pre>\n\n"
 "<h4>So erhalten Sie Feldnamen</h4>\n\n"
-"<p>Die Feldnamen, die Sie in Ihrer E-Mail-Vorlage verwenden können, sind die Felder in dem Dokument, aus dem Sie die E-Mail senden. Die Felder aller Dokumente finden Sie unter „Setup“ &gt; „Formular anpassen“ und wählen Sie den Dokumenttyp (z. B. Ausgangsrechnung) aus.</p>\n\n"
+"<p>Die Feldnamen, die Sie in Ihrer E-Mail-Vorlage verwenden können, sind die Felder des Dokuments, aus dem Sie die E-Mail versenden. Sie können die Felder aller Dokumente über Setup &gt; Formularansicht anpassen und den Dokumententyp auswählen (z.B. Verkaufsrechnung)</p>\n\n"
 "<h4>Vorlagenerstellung</h4>\n\n"
-"<p>Vorlagen werden mit der Jinja-Vorlagensprache erstellt. Weitere Informationen zu Jinja finden Sie in dieser Dokumentation. <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\"></a></p>\n"
+"<p>Vorlagen werden mit der Jinja-Vorlagensprache erstellt. Wenn Sie mehr über Jinja erfahren möchten, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">lesen Sie diese Dokumentation.</a></p>\n"
 
 #. Content of the 'html_5' (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
@@ -650,7 +650,7 @@ msgid "<p><strong>Condition Examples:</strong></p>\n"
 "<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</pre>"
 msgstr "<p><strong>Bedingungsbeispiele:</strong></p>\n"
-"<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n\n"
+"<pre>doc.status==\"Öffnen\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n\n"
 "</pre>"
 
 #. Content of the 'Condition description' (HTML) field in DocType 'Web Form'
@@ -658,8 +658,9 @@ msgstr "<p><strong>Bedingungsbeispiele:</strong></p>\n"
 msgid "<p>Multiple webforms can be created for a single doctype. Add filters specific to this webform to display correct record after submission.</p><p>For Example:</p>\n"
 "<p>If you create a separate webform every year to capture feedback from employees add a \n"
 " field named year in doctype and add a filter <b>year = 2023</b></p>\n"
-msgstr "<p>Mehrere Webformulare können für einen einzelnen Doctype erstellt werden. Fügen Sie Filter speziell für dieses Webformular hinzu, um den korrekten Datensatz nach der Buchung anzuzeigen.</p><p>Zum Beispiel:</p>\n"
-"<p>Wenn Sie jedes Jahr ein separates Webformular erstellen, um Feedback von Mitarbeitern zu erfassen, fügen Sie ein Feld mit dem Namen Jahr im Doctype hinzu und fügen Sie einen Filter <b>jahr = 2023</b> hinzu.</p>\n"
+msgstr "<p>Mehrere Webformulare können für ein einzelnes Doctyle erstellt werden. Fügen Sie Filter für dieses Webformular hinzu, um den korrekten Datensatz nach dem Einreichen anzuzeigen.</p><p>Zum Beispiel:</p>\n"
+"<p>Wenn Sie jedes Jahr ein separates Webformular erstellen, um Feedback von Mitarbeitern zu erfassen, fügen Sie ein \n"
+" Feld mit dem Namen Jahr in Doctype hinzu und fügen Sie einen Filter <b>Jahr = 2023</b></p>\n"
 
 #. Description of the 'Context Script' (Code) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -1302,7 +1303,7 @@ msgstr "Container hinzufügen"
 #. Label of the set_meta_tags (Button) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Add Custom Tags"
-msgstr "Benutzerdefinierte Schlagworte hinzufügen"
+msgstr "Benutzerdefinierte Tags hinzufügen"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:188
 #: frappe/public/js/frappe/widgets/widget_dialog.js:716
@@ -1312,7 +1313,7 @@ msgstr "Filter hinzufügen"
 #. Label of the add_shade (Check) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
 msgid "Add Gray Background"
-msgstr "Grauen Hintergrund hinzufügen"
+msgstr "Fügen Sie grauen Hintergrund hinzu"
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:230
 #: frappe/public/js/frappe/ui/group_by/group_by.js:430
@@ -1523,7 +1524,7 @@ msgstr "Hinzugefügt"
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO"
-msgstr "HTML im Bereich &lt;head&gt; der Webseite, hauptsächlich zur Überprüfung der Website und für SEO verwendet"
+msgstr "HTML im \"head\"-Abschnitt der Web-Seite hinzugefügt. Wird vor allem für Webseiten-Verifikation und SEO verwendet"
 
 #: frappe/core/doctype/log_settings/log_settings.py:81
 msgid "Added default log doctypes: {}"
@@ -1599,7 +1600,7 @@ msgstr "Adresstyp"
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Address and other legal information you may want to put in the footer."
-msgstr "Adresse und andere rechtliche Informationen, die Sie in der Fußzeile angeben möchten."
+msgstr "Adresse und andere rechtliche Informationen, die Sie in die Fußzeile setzen können."
 
 #: frappe/contacts/doctype/address/address.py:205
 msgid "Addresses"
@@ -1720,7 +1721,7 @@ msgstr "Nach Speichern"
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Save (Submitted Document)"
-msgstr "Nach dem Speichern (gebuchtes Dokument)"
+msgstr "Nach Speichern (gebuchtes Dokument)"
 
 #. Label of the section_break_5 (Section Break) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -1872,7 +1873,7 @@ msgstr "Automatische Wiederholung zulassen"
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Allow Bulk Edit"
-msgstr "Stapelbearbeitung zulassen"
+msgstr "Stapelberarbeitung zulassen"
 
 #. Label of the allow_edit (Check) field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
@@ -1896,12 +1897,12 @@ msgstr "Zugriff auf Google-Kontakte zulassen"
 #. Label of the allow_guest (Check) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Allow Guest"
-msgstr "Gastzugriff zulassen"
+msgstr "Ist öffentlich"
 
 #. Label of the allow_guest_to_view (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Allow Guest to View"
-msgstr "Ansicht für Gäste zulassen"
+msgstr "Anzeige für Gast erlauben"
 
 #. Label of the allow_guests_to_upload_files (Check) field in DocType 'System
 #. Settings'
@@ -1942,7 +1943,7 @@ msgstr "Module zulassen"
 #. Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Allow Print for Cancelled"
-msgstr "Drucken von stornierten Dokumenten zulassen"
+msgstr "Drucken im Zustand Abgebrochen erlauben"
 
 #. Label of the allow_print_for_draft (Check) field in DocType 'Print Settings'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:438
@@ -1954,7 +1955,7 @@ msgstr "Drucken von Entwürfen erlauben"
 #. Form Field'
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Allow Read On All Link Options"
-msgstr "Lesen aller Verknüpfungsoptionen zulassen"
+msgstr "Lesen alle Verknüpfungsoptionen zulassen"
 
 #. Label of the allow_rename (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -1974,7 +1975,7 @@ msgstr "Rollen erlauben"
 #. Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Allow Self Approval"
-msgstr "Selbstgenehmigung zulassen"
+msgstr "Erlaube Selbstgenehmigung"
 
 #. Label of the enable_telemetry (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -2213,7 +2214,7 @@ msgstr "Ständige BCC-Adresse"
 #. Label of the add_draft_heading (Check) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Always add \"Draft\" Heading for printing draft documents"
-msgstr "Beim Drucken von Entwürfen immer die Überschrift „Entwurf“ hinzufügen"
+msgstr "Entwürfe beim Drucken in der Kopfzeile kennzeichnen"
 
 #. Label of the always_use_account_email_id_as_sender (Check) field in DocType
 #. 'Email Account'
@@ -2234,7 +2235,7 @@ msgstr "Diesen Namen immer als Absender verwenden"
 #: frappe/core/doctype/docperm/docperm.json
 #: frappe/core/doctype/user_document_type/user_document_type.json
 msgid "Amend"
-msgstr "Berichtigen"
+msgstr "Abändern"
 
 #. Option for the 'Action' (Select) field in DocType 'Amended Document Naming
 #. Settings'
@@ -2243,7 +2244,7 @@ msgstr "Berichtigen"
 #: frappe/core/doctype/amended_document_naming_settings/amended_document_naming_settings.json
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Amend Counter"
-msgstr "Berichtigungszähler"
+msgstr "Änderungszähler"
 
 #. Name of a DocType
 #: frappe/core/doctype/amended_document_naming_settings/amended_document_naming_settings.json
@@ -2293,7 +2294,7 @@ msgstr "Beim Festlegen der Sitzungsstandards ist ein Fehler aufgetreten"
 #. Description of the 'FavIcon' (Attach) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [favicon-generator.org]"
-msgstr "Eine Icon-Datei mit der Erweiterung .ico. Sollte 16 x 16 px groß sein. Erzeugt mit einem Favicon-Generator. [favicon-generator.org]"
+msgstr "Eine Icon-Datei mit ICO-Erweiterung. Sie sollte 16 x 16 pixel groß sein. Wurde unter Verwendung eines Favicon-Generators erstellt. [favicon-generator.org]"
 
 #: frappe/templates/includes/oauth_confirmation.html:38
 msgid "An unexpected error occurred while authorizing {}."
@@ -2348,7 +2349,7 @@ msgstr "Ein weiterer {0} mit dem Namen {1} existiert. Bitte einen anderen Namen 
 #. Description of the 'Raw Commands' (Code) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Any string-based printer languages can be used. Writing raw commands requires knowledge of the printer's native language provided by the printer manufacturer. Please refer to the developer manual provided by the printer manufacturer on how to write their native commands. These commands are rendered on the server side using the Jinja Templating Language."
-msgstr "Es können alle stringbasierten Druckersprachen verwendet werden. Das Schreiben von Rohbefehlen erfordert Kenntnisse der vom Druckerhersteller bereitgestellten Druckersprache. Informationen zum Schreiben der nativen Befehle finden Sie im Entwicklerhandbuch des Druckerherstellers. Diese Befehle werden serverseitig mit der Jinja-Templating-Sprache gerendert."
+msgstr "Beliebige stringbasierte Druckersprachen können verwendet werden. Für das Schreiben von Raw-Befehlen sind Kenntnisse der Muttersprache des Druckers erforderlich, die vom Druckerhersteller bereitgestellt werden. Informationen zum Schreiben der nativen Befehle finden Sie im Entwicklerhandbuch des Druckerherstellers. Diese Befehle werden serverseitig mit der Jinja Templating Language gerendert."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:36
 msgid "Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type."
@@ -2375,7 +2376,7 @@ msgstr "Anwendung"
 #. Label of the app_id (Data) field in DocType 'Google Settings'
 #: frappe/integrations/doctype/google_settings/google_settings.json
 msgid "App ID"
-msgstr "App-ID"
+msgstr "Anwendungs-ID"
 
 #. Label of the app_logo (Attach Image) field in DocType 'Website Settings'
 #: frappe/desk/page/desktop/desktop.html:8
@@ -2467,7 +2468,7 @@ msgstr "Anwendung ist nicht installiert"
 #. Label of the doctype_or_field (Select) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "Applied On"
-msgstr "Angewandt auf"
+msgstr "Aufgetragen auf"
 
 #. Label of the doc_type (Link) field in DocType 'Permission Type'
 #: frappe/core/doctype/permission_type/permission_type.json
@@ -2520,7 +2521,7 @@ msgstr "Dokumentberechtigungen anwenden"
 #: frappe/core/doctype/custom_docperm/custom_docperm.json
 #: frappe/core/doctype/docperm/docperm.json
 msgid "Apply this rule if the User is the Owner"
-msgstr "Diese Regel anwenden, wenn der Benutzer gleich dem Besitzer ist"
+msgstr "Diese Regel anwenden, wenn der Nutzer gleich dem Besitzer ist"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:75
 msgid "Apply to all Documents Types"
@@ -2684,7 +2685,7 @@ msgstr "Zuweisen"
 #. Label of the assign_condition (Code) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Assign Condition"
-msgstr "Zuweisungsbedingung"
+msgstr "Bedingung zuweisen"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:186
 msgid "Assign To"
@@ -2693,7 +2694,7 @@ msgstr "Zuweisen zu"
 #: frappe/public/js/frappe/list/list_view.js:2174
 msgctxt "Button in list view actions menu"
 msgid "Assign To"
-msgstr "Zuweisen"
+msgstr "Zuweisen zu"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:196
 msgid "Assign To User Group"
@@ -2738,7 +2739,7 @@ msgstr "Zugewiesen von"
 #. Label of the assigned_by_full_name (Read Only) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
 msgid "Assigned By Full Name"
-msgstr "Zugewiesen von (Vollständiger Name)"
+msgstr "Zugewiesen von Vollständiger Name"
 
 #: frappe/model/meta.py:62 frappe/public/js/frappe/list/base_list.js:809
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:37
@@ -2769,13 +2770,13 @@ msgstr "Zuweisung"
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
 msgid "Assignment Completed"
-msgstr "Zuweisung abgeschlossen"
+msgstr "Auftrag abgeschlossen"
 
 #. Label of the sb (Section Break) field in DocType 'Assignment Rule'
 #. Label of the assignment_days (Table) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Assignment Days"
-msgstr "Zuweisungstage"
+msgstr "Zuordnungstage"
 
 #. Name of a DocType
 #. Label of the assignment_rule (Link) field in DocType 'ToDo'
@@ -2907,12 +2908,12 @@ msgstr "Angehängt an DocType"
 #. Label of the attached_to_field (Data) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Attached To Field"
-msgstr "Angehängt an Feld"
+msgstr "An das Feld angehängt"
 
 #. Label of the attached_to_name (Data) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Attached To Name"
-msgstr "Angehängt an Name"
+msgstr "Angehängt an Namen"
 
 #: frappe/core/doctype/file/file.py:153
 msgid "Attached To Name must be a string or an integer"
@@ -2928,7 +2929,7 @@ msgstr "Anhang"
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/email_domain/email_domain.json
 msgid "Attachment Limit (MB)"
-msgstr "Anhangslimit (MB)"
+msgstr "Beschränkung der Größe des Anhangs (MB)"
 
 #: frappe/core/doctype/file/file.py:348
 #: frappe/public/js/frappe/form/sidebar/attachments.js:36
@@ -2938,12 +2939,12 @@ msgstr "Anhangslimit erreicht"
 #. Label of the attachment_link (HTML) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Attachment Link"
-msgstr "Anhangslink"
+msgstr "Anhang Link"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
 msgid "Attachment Removed"
-msgstr "Anhang entfernt"
+msgstr "Anlage entfernt"
 
 #. Label of the column_break_25 (Section Break) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -3060,18 +3061,18 @@ msgstr "API-Indizierungszugriff autorisieren"
 #. 'Google Calendar'
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
 msgid "Authorize Google Calendar Access"
-msgstr "Zugriff auf Google Kalender autorisieren"
+msgstr "Autorisieren Sie den Zugriff auf Google Kalender"
 
 #. Label of the authorize_google_contacts_access (Button) field in DocType
 #. 'Google Contacts'
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 msgid "Authorize Google Contacts Access"
-msgstr "Zugriff auf Google Kontakte autorisieren"
+msgstr "Autorisieren Sie den Zugriff auf Google Kontakte"
 
 #. Label of the authorize_url (Data) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Authorize URL"
-msgstr "Autorisierungs-URL"
+msgstr "URL autorisieren"
 
 #. Option for the 'Status' (Select) field in DocType 'Integration Request'
 #: frappe/integrations/doctype/integration_request/integration_request.json
@@ -3090,7 +3091,7 @@ msgstr "Autoren / Betreuer"
 #. Provider Settings'
 #: frappe/integrations/doctype/oauth_provider_settings/oauth_provider_settings.json
 msgid "Auto"
-msgstr "Automatisch"
+msgstr "Auto"
 
 #. Name of a DocType
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
@@ -3149,7 +3150,7 @@ msgstr "Automatische Antwort"
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Auto Reply Message"
-msgstr "Automatische Antwortnachricht"
+msgstr "Automatische Rückantwort"
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:177
 msgid "Auto assignment failed: {0}"
@@ -3158,27 +3159,27 @@ msgstr "Automatische Zuweisung fehlgeschlagen: {0}"
 #. Label of the follow_assigned_documents (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Auto follow documents that are assigned to you"
-msgstr "Dokumenten, die Ihnen zugewiesen sind, automatisch folgen"
+msgstr "Dokumenten automatisch folgen, die Ihnen zugewiesen sind"
 
 #. Label of the follow_shared_documents (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Auto follow documents that are shared with you"
-msgstr "Dokumenten, die mit Ihnen geteilt werden, automatisch folgen"
+msgstr "Dokumenten automatisch folgen, die mit Ihnen geteilt werden"
 
 #. Label of the follow_liked_documents (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Auto follow documents that you Like"
-msgstr "Dokumenten, die Ihnen gefallen, automatisch folgen"
+msgstr "Dokumenten automatisch folgen, die Ihnen gefallen"
 
 #. Label of the follow_commented_documents (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Auto follow documents that you comment on"
-msgstr "Dokumenten, die Sie kommentiert haben, automatisch folgen"
+msgstr "Dokumenten automatisch folgen, die Sie kommentieren"
 
 #. Label of the follow_created_documents (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Auto follow documents that you create"
-msgstr "Dokumenten, die Sie erstellen, automatisch folgen"
+msgstr "Dokumenten automatisch folgen, die Sie erstellen"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:242
 msgid "Auto repeat failed. Please enable auto repeat after fixing the issues."
@@ -3279,7 +3280,7 @@ msgstr "Warten auf Passwort"
 #. Label of the awaiting_password (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Awaiting password"
-msgstr "Warten auf Passwort"
+msgstr "Warte auf Passwort"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:195
 msgid "Awesome Work"
@@ -3435,7 +3436,7 @@ msgstr "Im Hintergrund drucken (erforderlich für >25 Dokumente)"
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Background Workers"
-msgstr "Hintergrundprozesse"
+msgstr "Hintergrundaktivitäten"
 
 #: frappe/desk/page/backups/backups.js:28
 msgid "Backup Encryption Key"
@@ -3511,7 +3512,7 @@ msgstr "Barcode"
 #. Label of the base_dn (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Base Distinguished Name (DN)"
-msgstr "Base Distinguished Name (DN)"
+msgstr "kennzeichnender Name (DN)"
 
 #. Label of the base_url (Data) field in DocType 'Geolocation Settings'
 #. Label of the base_url (Data) field in DocType 'Social Login Key'
@@ -3555,7 +3556,7 @@ msgstr "Vor"
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Before Cancel"
-msgstr "Vor dem Stornieren"
+msgstr "Vor dem Abbrechen"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -3570,7 +3571,7 @@ msgstr "Vor Verwerfen"
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Before Insert"
-msgstr "Vor dem Erstellen"
+msgstr "Vor dem Einfügen"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -3643,7 +3644,7 @@ msgstr "Binäre Protokollierung"
 #: frappe/core/doctype/user/user.json
 #: frappe/website/doctype/about_us_team_member/about_us_team_member.json
 msgid "Bio"
-msgstr "Biografie"
+msgstr "Lebenslauf"
 
 #. Label of the birth_date (Date) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -3664,7 +3665,7 @@ msgstr "Block-Modul"
 #: frappe/core/doctype/module_profile/module_profile.json
 #: frappe/core/doctype/user/user.json
 msgid "Block Modules"
-msgstr "Module sperren"
+msgstr "Block-Module"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -3680,7 +3681,7 @@ msgstr "Blau"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Bold"
-msgstr "Fett"
+msgstr "Fett gedruckt"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
@@ -3700,7 +3701,7 @@ msgstr "Sowohl Login als auch Passwort sind erforderlich"
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:154
 msgid "Bottom"
-msgstr "Unten"
+msgstr "Unterseite"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
@@ -3727,7 +3728,7 @@ msgstr "Unten rechts"
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Bounced"
-msgstr "Unzustellbar"
+msgstr "Gesprungen"
 
 #. Label of the brand (Section Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -3742,7 +3743,7 @@ msgstr "Marke HTML"
 #. Label of the banner_image (Attach Image) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Brand Image"
-msgstr "Markenbild"
+msgstr "Markenzeichen"
 
 #. Option for the 'Navbar Style' (Select) field in DocType 'Desktop Settings'
 #. Label of the brand_logo (Attach Image) field in DocType 'Email Account'
@@ -3760,8 +3761,8 @@ msgstr ""
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Brand is what appears on the top-left of the toolbar. If it is an image, make sure it\n"
 "has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px"
-msgstr "Die Marke ist das, was oben links in der Symbolleiste erscheint. Wenn es sich um ein Bild handelt, stellen Sie sicher, dass es\n"
-"einen transparenten Hintergrund hat und verwenden Sie das &lt;img /&gt;-Tag. Halten Sie die Größe bei 200px x 30px"
+msgstr "Marke ist das, was oben links in der Navigationsleiste erscheint. Wenn es sich um ein Bild handelt, stellen Sie sicher, dass es\n"
+"einen transparenten Hintergrund hat und verwenden Sie das &lt;img /&gt; Tag. Die Größe sollte 200px x 30px sein."
 
 #. Label of the breadcrumbs (Code) field in DocType 'Web Form'
 #. Label of the breadcrumbs (Code) field in DocType 'Web Page'
@@ -3871,7 +3872,7 @@ msgstr "Stapel-{0} ist im Hintergrund eingereiht."
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Button"
-msgstr "Button"
+msgstr "Schaltfläche"
 
 #. Label of the button_color (Select) field in DocType 'DocField'
 #. Label of the button_color (Select) field in DocType 'Custom Field'
@@ -3885,17 +3886,17 @@ msgstr ""
 #. Label of the button_gradients (Check) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Button Gradients"
-msgstr "Buttons mit Verläufen"
+msgstr "Schaltflächenverläufe"
 
 #. Label of the button_rounded_corners (Check) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Button Rounded Corners"
-msgstr "Buttons mit abgerundeten Ecken"
+msgstr "Button Abgerundete Ecken"
 
 #. Label of the button_shadows (Check) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Button Shadows"
-msgstr "Buttons mit Schatten"
+msgstr "Knopf Schatten"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -3933,7 +3934,7 @@ msgstr "Überprüfung der eingeschränkten IP-Adresse umgehen, wenn Zwei-Faktor-
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Bypass Two Factor Auth for users who login from restricted IP Address"
-msgstr "Zwei-Faktor-Authentifizierung für Benutzer, die sich von einer eingeschränkten IP-Adresse anmelden, umgehen"
+msgstr "Zwei Faktor Autorisierung für Benutzer aus eingeschränktem IP-Adressraum übergehen."
 
 #. Label of the bypass_restrict_ip_check_if_2fa_enabled (Check) field in
 #. DocType 'System Settings'
@@ -4045,7 +4046,7 @@ msgstr "Aufruf zum Handeln"
 #. Label of the call_to_action_url (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Call To Action URL"
-msgstr "Aufruf zum Handeln: URL"
+msgstr "Call-to-Action-URL"
 
 #. Label of the callback_message (Small Text) field in DocType 'Onboarding
 #. Step'
@@ -4115,7 +4116,7 @@ msgstr "Abbrechen"
 #: frappe/public/js/frappe/list/list_view.js:2283
 msgctxt "Button in list view actions menu"
 msgid "Cancel"
-msgstr "Stornieren"
+msgstr "Abbrechen"
 
 #: frappe/public/js/frappe/ui/messages.js:68
 msgctxt "Secondary button in warning dialog"
@@ -4400,7 +4401,7 @@ msgstr "Karte"
 #. Option for the 'Type' (Select) field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 msgid "Card Break"
-msgstr "Neue Karte"
+msgstr "Kartenumbruch"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:262
 msgid "Card Label"
@@ -4436,7 +4437,7 @@ msgstr "Kategoriename"
 #: frappe/printing/doctype/letter_head/letter_head.json
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Center"
-msgstr "Mittig"
+msgstr "Zentrieren"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:16
 msgid "Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit."
@@ -4450,7 +4451,7 @@ msgstr "Ändern"
 #: frappe/tests/test_translate.py:112
 msgctxt "Coins"
 msgid "Change"
-msgstr "Wechselgeld"
+msgstr "Ändern"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:38
 msgid "Change Image"
@@ -4459,7 +4460,7 @@ msgstr "Bild ändern"
 #. Label of the label (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Change Label (via Custom Translation)"
-msgstr "Bezeichnung ändern (über benutzerdefinierte Übersetzung)"
+msgstr "Bezeichnung ändern (über Benutzerdefinierte Übersetzung)"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:45
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:141
@@ -4581,7 +4582,7 @@ msgstr "Unterhaltung"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Check"
-msgstr "Kontrollkästchen"
+msgstr "Prüfen"
 
 #: frappe/integrations/doctype/webhook/webhook.py:99
 msgid "Check Request URL"
@@ -4603,7 +4604,7 @@ msgstr "Aktivieren Sie diese Option, wenn Benutzer sich nicht für ein Konto auf
 #. 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Check this if you want to force the user to select a series before saving. There will be no default if you check this."
-msgstr "Aktivieren, falls der Benutzer gezwungen sein soll, vor dem Speichern einen Nummernkreis auszuwählen. Bei Aktivierung gibt es keine Voreinstellung."
+msgstr "Hier aktivieren, wenn der Benutzer gezwungen sein soll, vor dem Speichern eine Serie auszuwählen. Bei Aktivierung gibt es keine Standardvorgabe."
 
 #. Description of the 'Show Full Number' (Check) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -4622,7 +4623,7 @@ msgstr "Wenn Sie dies aktivieren, können Sie Seitenaufrufe für Blogs, Webseite
 #. DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Checking this will hide custom doctypes and reports cards in Links section"
-msgstr "Wenn Sie diese Option aktivieren, werden benutzerdefinierte Dokumenttypen und Berichtskarten im Abschnitt „Verknüpfungen“ ausgeblendet"
+msgstr "Wenn Sie dies aktivieren, werden benutzerdefinierte Doctypes und Berichtskarten im Abschnitt &quot;Links&quot; ausgeblendet"
 
 #: frappe/website/doctype/web_page/web_page.js:78
 msgid "Checking this will publish the page on your website and it'll be visible to everyone."
@@ -4697,7 +4698,7 @@ msgstr "Stadt"
 #. Label of the city (Data) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "City/Town"
-msgstr "Ort/Stadt"
+msgstr "Ort/ Wohnort"
 
 #: frappe/core/doctype/recorder/recorder_list.js:12
 #: frappe/public/js/frappe/form/controls/attach.js:16
@@ -4736,7 +4737,7 @@ msgstr "Filter entfernen"
 #. Label of the days (Int) field in DocType 'Logs To Clear'
 #: frappe/core/doctype/logs_to_clear/logs_to_clear.json
 msgid "Clear Logs After (days)"
-msgstr "Protokolle löschen nach (in Tagen)"
+msgstr "Lösche Logs nach (in Tagen)"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:144
 msgid "Clear User Permissions"
@@ -4817,19 +4818,19 @@ msgstr "Klicken, um nach {0} zu sortieren"
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Clicked"
-msgstr "Geklickt"
+msgstr "Angeklickt"
 
 #. Label of the client (Link) field in DocType 'OAuth Authorization Code'
 #. Label of the client (Link) field in DocType 'OAuth Bearer Token'
 #: frappe/integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 msgid "Client"
-msgstr "OAuth-Client"
+msgstr "Kunde"
 
 #. Label of the client_code_section (Section Break) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Client Code"
-msgstr "Client-Code"
+msgstr "Kundencode"
 
 #. Label of the sb_client_credentials_section (Section Break) field in DocType
 #. 'Connected App'
@@ -4838,7 +4839,7 @@ msgstr "Client-Code"
 #: frappe/integrations/doctype/connected_app/connected_app.json
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Client Credentials"
-msgstr "Client-Zugangsdaten"
+msgstr "Kunden-Zugangsdaten"
 
 #. Label of the client_id (Data) field in DocType 'Google Settings'
 #. Label of the client_id (Data) field in DocType 'OAuth Client'
@@ -4858,7 +4859,7 @@ msgstr "Client-ID"
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Client Information"
-msgstr "Client-Informationen"
+msgstr "Kundeninformation"
 
 #. Label of the client_metadata_section (Section Break) field in DocType 'OAuth
 #. Client'
@@ -4907,7 +4908,7 @@ msgstr "Client-URI"
 #. Label of the client_urls (Section Break) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Client URLs"
-msgstr "Mandanten-URLs"
+msgstr "Kunden-URLs"
 
 #. Label of the client_script (Code) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -4926,7 +4927,7 @@ msgstr "Schließen"
 #. Label of the close_condition (Code) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Close Condition"
-msgstr "Schließ-Bedingung"
+msgstr "Zustand schließen"
 
 #: frappe/public/js/form_builder/components/FieldProperties.vue:79
 msgid "Close properties"
@@ -4976,7 +4977,7 @@ msgstr "Code-Editor-Typ"
 #. Authorization Code'
 #: frappe/integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 msgid "Code challenge method"
-msgstr "Code-Challenge-Methode"
+msgstr "Code Challenge-Methode"
 
 #: frappe/public/js/frappe/form/form_tour.js:276
 #: frappe/public/js/frappe/ui/sidebar/sidebar.html:44
@@ -5005,7 +5006,7 @@ msgstr "Alle zuklappen"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Collapsible"
-msgstr "Zusammenklappbar"
+msgstr "Faltbar"
 
 #. Label of the collapsible_depends_on (Code) field in DocType 'Custom Field'
 #. Label of the collapsible_depends_on (Code) field in DocType 'Customize Form
@@ -5013,12 +5014,12 @@ msgstr "Zusammenklappbar"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Collapsible Depends On"
-msgstr "Zusammenklappbar hängt ab von"
+msgstr "\"Faltbar\" hängt ab von"
 
 #. Label of the collapsible_depends_on (Code) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "Collapsible Depends On (JS)"
-msgstr "Zusammenklappbar hängt ab von (JS)"
+msgstr "\"Faltbar\" hängt ab von (JS)"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the color (Data) field in DocType 'DocType'
@@ -5189,7 +5190,7 @@ msgstr "Kommentare"
 #. Description of the 'Timeline Field' (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Comments and Communications will be associated with this linked document"
-msgstr "Kommentare und Kommunikation werden diesem verknüpften Dokument zugeordnet."
+msgstr "Kommentare und Kommunikation werden diesem verknüpfte Dokument zugeordnet."
 
 #: frappe/templates/includes/comments/comments.py:52
 msgid "Comments cannot have links or email addresses"
@@ -5203,7 +5204,7 @@ msgstr "Kaufmännisches Runden"
 #. Label of the commit (Check) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
 msgid "Commit"
-msgstr "Änderungen speichern"
+msgstr "Verpflichten"
 
 #. Label of the committed (Check) field in DocType 'Console Log'
 #: frappe/desk/doctype/console_log/console_log.json
@@ -5265,7 +5266,7 @@ msgstr "Unternehmensgeschichte"
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Company Introduction"
-msgstr "Unternehmensvorstellung"
+msgstr "Vorstellung des Unternehmens"
 
 #. Label of the company_name (Data) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
@@ -5593,7 +5594,7 @@ msgstr "Kontakt-Einstellungen"
 #. Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Contact options, like \"Sales Query, Support Query\" etc each on a new line or separated by commas."
-msgstr "Kontaktoptionen wie „Vertriebsanfrage“, „Support-Anfrage“ usw., jede in einer neuen Zeile oder durch Kommas getrennt."
+msgstr "Kontaktalternativen wie „Vertriebsanfrage\", \"Support-Anfrage“ usw., jede in einer neuen Zeile oder durch Kommas getrennt."
 
 #. Label of the contacts (Small Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -5709,7 +5710,7 @@ msgstr "Fehler in die Zwischenablage kopieren"
 #: frappe/public/js/frappe/form/toolbar.js:540
 #: frappe/public/js/frappe/list/list_view.js:2371
 msgid "Copy to Clipboard"
-msgstr "In die Zwischenablage kopieren"
+msgstr "In die Zwischenablage"
 
 #: frappe/core/doctype/user/user.js:494
 msgid "Copy token to clipboard"
@@ -5873,7 +5874,7 @@ msgstr "Untergeordneten DocType erstellen"
 #. Label of the create_contact (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Create Contacts from Incoming Emails"
-msgstr "Kontakte aus eingehenden E-Mails erstellen"
+msgstr "Erstellen Sie Kontakte aus eingehenden E-Mails"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -6062,7 +6063,7 @@ msgstr "Währung"
 #. Label of the currency_name (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
 msgid "Currency Name"
-msgstr "Währungsname"
+msgstr "Währungsbezeichnung"
 
 #. Label of the currency_precision (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -6166,7 +6167,7 @@ msgstr "Benutzerdefinierte DocPerm"
 #. Label of the custom_select_doctypes (Table) field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
 msgid "Custom Document Types (Select Permission)"
-msgstr "Benutzerdefinierte DocTypes (nur \"Auswahl\"-Berechtigung)"
+msgstr "Benutzerdefinierte DocTypes (Berechtigung \"auswählen\")"
 
 #: frappe/core/doctype/user_type/user_type.py:105
 msgid "Custom Document Types Limit Exceeded"
@@ -6246,7 +6247,7 @@ msgstr "Benutzerdefinierte Bezeichnung"
 #. Label of the custom_menu (Table) field in DocType 'Portal Settings'
 #: frappe/website/doctype/portal_settings/portal_settings.json
 msgid "Custom Menu Items"
-msgstr "Benutzerdefinierte Menüelemente"
+msgstr "Artikel Benutzermenü"
 
 #. Label of the custom_options (Code) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -6281,7 +6282,7 @@ msgstr "Benutzerdefiniertes SCSS"
 #. Settings'
 #: frappe/website/doctype/portal_settings/portal_settings.json
 msgid "Custom Sidebar Menu"
-msgstr "Benutzerdefiniertes Seitenleistenmenü"
+msgstr "Benutzerdefinierte Sidebar Menu"
 
 #. Label of a Link in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -6457,7 +6458,7 @@ msgstr "Tägliche Wartung"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Danger"
-msgstr "Gefahr"
+msgstr "Achtung"
 
 #. Option for the 'Desk Theme' (Select) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -6610,7 +6611,7 @@ msgstr "Datenbank"
 #. Label of the engine (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Database Engine"
-msgstr "Datenbank Engine"
+msgstr "Datenbank-Engine"
 
 #. Label of the database_processes_section (Section Break) field in DocType
 #. 'System Console'
@@ -6717,7 +6718,7 @@ msgstr "Tag"
 #. Label of the day_of_week (Select) field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Day of Week"
-msgstr "Wochentag"
+msgstr "Tag der Woche"
 
 #: frappe/public/js/frappe/form/controls/duration.js:27
 msgctxt "Duration"
@@ -6737,7 +6738,7 @@ msgstr "Tage vor"
 #. Label of the days_in_advance (Int) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Days Before or After"
-msgstr "Tage davor oder danach"
+msgstr "Tage vorher oder nachher"
 
 #: frappe/public/js/frappe/request.js:252
 msgid "Deadlock Occurred"
@@ -6802,7 +6803,7 @@ msgstr "Standard-Adressvorlage kann nicht gelöscht werden"
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Default Amendment Naming"
-msgstr "Standardmäßige Benennung von Berichtigungen"
+msgstr "Standardmäßige Benennung von Änderungen"
 
 #. Label of the default_app (Select) field in DocType 'System Settings'
 #. Label of the default_app (Select) field in DocType 'User'
@@ -6851,7 +6852,7 @@ msgstr "Standard-Ausgang"
 #. Label of the default_portal_home (Data) field in DocType 'Portal Settings'
 #: frappe/website/doctype/portal_settings/portal_settings.json
 msgid "Default Portal Home"
-msgstr "Standard-Portal Startseite"
+msgstr "Standardportal-Startseite"
 
 #. Label of the default_print_format (Data) field in DocType 'DocType'
 #. Label of the default_print_format (Link) field in DocType 'Customize Form'
@@ -6868,7 +6869,7 @@ msgstr "Standarddrucksprache"
 #. Label of the default_redirect_uri (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Default Redirect URI"
-msgstr "Standard-Umleitungs-URI"
+msgstr "Standard Weiterleitungs URI"
 
 #. Label of the default_role (Link) field in DocType 'Portal Settings'
 #: frappe/website/doctype/portal_settings/portal_settings.json
@@ -6934,7 +6935,7 @@ msgstr "Standardarbeitsbereich"
 #. Description of the 'Currency' (Link) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Default display currency"
-msgstr "Standard-Anzeigewährung"
+msgstr "Standard-Display-Währung"
 
 #: frappe/core/doctype/doctype/doctype.py:1391
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
@@ -7122,7 +7123,7 @@ msgstr "Gelöscht"
 #. Label of the deleted_doctype (Data) field in DocType 'Deleted Document'
 #: frappe/core/doctype/deleted_document/deleted_document.json
 msgid "Deleted DocType"
-msgstr "Gelöschter DocType"
+msgstr "Gelöschtes DocType"
 
 #. Name of a DocType
 #: frappe/core/doctype/deleted_document/deleted_document.json
@@ -7132,7 +7133,7 @@ msgstr "Gelöschtes Dokument"
 #. Label of the deleted_name (Data) field in DocType 'Deleted Document'
 #: frappe/core/doctype/deleted_document/deleted_document.json
 msgid "Deleted Name"
-msgstr "Gelöschter Name"
+msgstr "Gelöschte Namen"
 
 #: frappe/desk/reportview.py:644
 msgid "Deleted all documents successfully"
@@ -7397,7 +7398,7 @@ msgstr "Verzeichnisserver"
 #. Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Auto Refresh"
-msgstr "Automatische Aktualisierung deaktivieren"
+msgstr "Deaktivieren Sie die automatische Aktualisierung"
 
 #. Label of the disable_automatic_recency_filters (Check) field in DocType
 #. 'List View Settings'
@@ -7441,7 +7442,7 @@ msgstr "Bericht deaktivieren"
 #. Label of the no_smtp_authentication (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Disable SMTP server authentication"
-msgstr "SMTP-Server-Authentifizierung deaktivieren"
+msgstr "Deaktivieren Sie die SMTP-Serverauthentifizierung"
 
 #. Label of the disable_scrolling (Check) field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
@@ -7452,7 +7453,7 @@ msgstr "Bildlauf deaktivieren"
 #. Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Sidebar Stats"
-msgstr "Seitenleistenstatistiken deaktivieren"
+msgstr "Deaktivieren Sie Sidebar Stats"
 
 #: frappe/website/doctype/website_settings/website_settings.js:146
 msgid "Disable Signup for your site"
@@ -7583,12 +7584,12 @@ msgstr "Verwerfen"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Display"
-msgstr "Anzeige"
+msgstr "anzeigen"
 
 #. Label of the depends_on (Code) field in DocType 'Web Form Field'
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Display Depends On"
-msgstr "Anzeige hängt ab von"
+msgstr "Anzeige ist abhängig von"
 
 #. Label of the depends_on (Code) field in DocType 'DocField'
 #. Label of the display_depends_on (Code) field in DocType 'Workspace Sidebar
@@ -7596,7 +7597,7 @@ msgstr "Anzeige hängt ab von"
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Display Depends On (JS)"
-msgstr "Anzeige hängt ab von (JS)"
+msgstr "Anzeige ist abhängig von (JS)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:180
 msgid "Divider"
@@ -7611,7 +7612,7 @@ msgstr "Keinen neuen Benutzer anlegen"
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Do not create new user if user with email does not exist in the system"
-msgstr "Keinen neuen Benutzer anlegen, wenn der Benutzer mit E-Mail nicht im System vorhanden ist"
+msgstr "Keinen neuen Benutzer anlegen, wenn ein Benutzer mit dieser E-Mail-Adresse nicht bereits im System vorhanden ist"
 
 #: frappe/public/js/frappe/form/grid.js:1216
 msgid "Do not edit headers which are preset in the template"
@@ -7637,7 +7638,7 @@ msgstr "Dokumentenereignis"
 #. Label of the sb_doc_events (Section Break) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "Doc Events"
-msgstr "Dokumentenereignisse"
+msgstr "Dokumentenereignise"
 
 #. Label of the doc_status (Select) field in DocType 'Workflow Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
@@ -8076,7 +8077,7 @@ msgstr "Der Dokumenttyp kann nicht gebucht werden"
 #. Label of the document_type (Link) field in DocType 'Milestone Tracker'
 #: frappe/automation/doctype/milestone_tracker/milestone_tracker.json
 msgid "Document Type to Track"
-msgstr "Zu verfolgender Dokumenttyp"
+msgstr "Dokumenttyp zu verfolgen"
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.py:40
 msgid "Document Type {0} has been repeated."
@@ -8085,12 +8086,12 @@ msgstr "Dokumenttyp {0} wurde wiederholt."
 #. Label of the user_doctypes (Table) field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
 msgid "Document Types"
-msgstr "Dokumenttypen"
+msgstr "Dokumententypen"
 
 #. Label of the select_doctypes (Table) field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
 msgid "Document Types (Select Permissions Only)"
-msgstr "Dokumenttypen (nur „Auswahl“-Berechtigungen)"
+msgstr "Dokumententypen (nur „Auswahl“-Berechtigungen)"
 
 #. Label of the section_break_2 (Section Break) field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
@@ -8205,13 +8206,13 @@ msgstr "Domain-Einstellungen"
 #. Label of the domains_html (HTML) field in DocType 'Domain Settings'
 #: frappe/core/doctype/domain_settings/domain_settings.json
 msgid "Domains HTML"
-msgstr "Domains HTML"
+msgstr "Domänen HTML"
 
 #. Description of the 'Ignore XSS Filter' (Check) field in DocType 'Custom
 #. Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
 msgid "Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field"
-msgstr "HTML-Tags wie &lt;script&gt; oder Zeichen wie &lt; oder &gt; nicht kodieren, da diese in diesem Feld absichtlich verwendet werden könnten."
+msgstr "Nicht HTML Encode HTML-Tags wie &lt;script&gt; oder einfach nur Zeichen wie &lt;oder&gt;, da sie absichtlich auf diesem Gebiet verwendet werden könnten,"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:272
 msgid "Don't Import"
@@ -8228,7 +8229,7 @@ msgstr "Status nicht überschreiben"
 #. Label of the mute_emails (Check) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Don't Send Emails"
-msgstr "Keine E-Mails senden"
+msgstr "Senden Sie keine E-Mails"
 
 #. Description of the 'Ignore XSS Filter' (Check) field in DocType 'DocField'
 #. Description of the 'Ignore XSS Filter' (Check) field in DocType 'Customize
@@ -8320,7 +8321,7 @@ msgstr "vCards herunterladen"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:46
 msgid "Dr"
-msgstr "S"
+msgstr "Dr."
 
 #: frappe/public/js/frappe/model/indicator.js:73
 #: frappe/public/js/frappe/ui/filters/filter.js:537
@@ -8698,7 +8699,7 @@ msgstr "Entweder der key (Schlüssel) oder das IP-Flag ist erforderlich."
 #. Label of the element_selector (Data) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Element Selector"
-msgstr "Element Selektor"
+msgstr "Elementauswahl"
 
 #. Option for the 'Type' (Select) field in DocType 'Communication'
 #. Label of the email (Check) field in DocType 'Custom DocPerm'
@@ -8846,7 +8847,7 @@ msgstr "E-Mail-Adresse"
 #. Label of the email_ids (Table) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Email IDs"
-msgstr "E-Mail-Adressen"
+msgstr "E-Mail-IDs"
 
 #. Label of the email_id (Data) field in DocType 'Contact Us Settings'
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:48
@@ -8925,7 +8926,7 @@ msgstr "E-Mail-Status"
 #. Label of the email_sync_option (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Email Sync Option"
-msgstr "E-Mail-Synchronisierungsoption"
+msgstr "E-Mail-Sync Option"
 
 #. Label of the email_template (Link) field in DocType 'Communication'
 #. Name of a DocType
@@ -9021,7 +9022,7 @@ msgstr "Leere String-Argumente sind nicht zulässig"
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 #: frappe/integrations/doctype/google_settings/google_settings.json
 msgid "Enable"
-msgstr "Aktivieren"
+msgstr "ermöglichen"
 
 #. Label of the enable_action_confirmation (Check) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -9041,13 +9042,13 @@ msgstr "Aktivieren Sie „Automatische Wiederholung zulassen“ für den Doctype
 #. Label of the enable_auto_reply (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Enable Auto Reply"
-msgstr "Automatische Antwort aktivieren"
+msgstr "Automatische Rückantwort aktivieren"
 
 #. Label of the enable_automatic_linking (Check) field in DocType 'Email
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Enable Automatic Linking in Documents"
-msgstr "Automatisches Verknüpfen in Dokumenten aktivieren"
+msgstr "Aktivieren Sie die automatische Verknüpfung in Dokumenten"
 
 #. Label of the enable_comments (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -9107,12 +9108,12 @@ msgstr "Kennwortrichtlinie aktivieren"
 #. Permission for Page and Report'
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 msgid "Enable Prepared Report"
-msgstr "Vorbereiteten Bericht aktivieren"
+msgstr "Vorbereitten Bericht aktivieren"
 
 #. Label of the enable_print_server (Check) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Enable Print Server"
-msgstr "Druckserver aktivieren"
+msgstr "Aktivieren Sie den Druckserver"
 
 #. Label of the enable_push_notification_relay (Check) field in DocType 'Push
 #. Notification Settings'
@@ -9128,7 +9129,7 @@ msgstr "Anzahl der Anfragen pro Zeit beschränken"
 #. Label of the enable_raw_printing (Check) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Enable Raw Printing"
-msgstr "Rohdruck aktivieren"
+msgstr "Aktivieren Sie den RAW-Druck"
 
 #: frappe/core/doctype/report/report.js:39
 msgid "Enable Report"
@@ -9137,7 +9138,7 @@ msgstr "Bericht aktivieren"
 #. Label of the enable_scheduler (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Enable Scheduled Jobs"
-msgstr "Geplante Prozesse aktivieren"
+msgstr "Geplante Arbeiten aktivieren"
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:32
 msgid "Enable Scheduler"
@@ -9151,7 +9152,7 @@ msgstr "Sicherheit aktivieren"
 #. Label of the enable_social_login (Check) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Enable Social Login"
-msgstr "Social Logins aktivieren"
+msgstr "Aktivieren Sie Social Logins"
 
 #: frappe/website/doctype/website_settings/website_settings.js:139
 msgid "Enable Tracking Page Views"
@@ -9541,7 +9542,7 @@ msgstr "Ereigniskategorie"
 #. Label of the event_frequency (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Event Frequency"
-msgstr "Ereignishäufigkeit"
+msgstr "Ereignis-Häufigkeit"
 
 #. Label of the event_participants (Table) field in DocType 'Event'
 #. Name of a DocType
@@ -9554,7 +9555,7 @@ msgstr "Ereignisteilnehmer"
 #. 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Event Reminders"
-msgstr "Ereigniserinnerungen"
+msgstr "Ereignis Erinnerungen"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:493
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:577
@@ -9586,7 +9587,7 @@ msgstr "Jeder"
 #. Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"]"
-msgstr "Beispiel: \"Farben\": [\"#d1d8dd\", \"#ff5858\"]"
+msgstr "Beispiel: &quot;Farben&quot;: [&quot;# d1d8dd&quot;, &quot;# ff5858&quot;]"
 
 #. Label of the exact_copies (Int) field in DocType 'Recorder Query'
 #: frappe/core/doctype/recorder_query/recorder_query.json
@@ -9602,12 +9603,12 @@ msgstr "Beispiel"
 #. Settings'
 #: frappe/website/doctype/portal_settings/portal_settings.json
 msgid "Example: \"/desk\""
-msgstr "Beispiel: \"/desk\""
+msgstr "Beispiel: &quot;/ desktop&quot;"
 
 #. Description of the 'Path' (Data) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Example: #Tree/Account"
-msgstr "Beispiel: #Tree/Account"
+msgstr "Beispiel: # Baum / Konto"
 
 #. Description of the 'Digits' (Int) field in DocType 'Document Naming Rule'
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
@@ -9624,7 +9625,7 @@ msgstr "Beispiel: Wenn Sie diesen Wert auf 24:00 setzen, wird ein Benutzer abgem
 #. Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Example: {{ subject }}"
-msgstr "Beispiel: {{ subject }}"
+msgstr "Beispiel: {{subject}}"
 
 #. Option for the 'File Type' (Select) field in DocType 'Data Export'
 #: frappe/core/doctype/data_export/data_export.json
@@ -9671,7 +9672,7 @@ msgstr "Ausführungszeit: {0} Sek"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Executive"
-msgstr "Executive"
+msgstr "Exekutive"
 
 #. Label of the existing_role (Link) field in DocType 'Role Replication'
 #: frappe/core/doctype/role_replication/role_replication.json
@@ -9720,7 +9721,7 @@ msgstr "Ablaufzeit"
 #. Label of the expire_notification_on (Datetime) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "Expire Notification On"
-msgstr "Benachrichtigung läuft ab am"
+msgstr "Ablaufen Mitteilung On"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
@@ -9744,7 +9745,7 @@ msgstr "Verfällt am"
 #. Label of the lifespan_qrcode_image (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Expiry time of QR Code Image Page"
-msgstr "Ablaufzeit der QR-Code-Bildseite"
+msgstr "Verfallzeit der QR Code Bildseite"
 
 #. Label of the export (Check) field in DocType 'Custom DocPerm'
 #. Label of the export (Check) field in DocType 'DocPerm'
@@ -9788,7 +9789,7 @@ msgstr "Fehlerhafte Zeilen exportieren"
 #. Label of the export_from (Data) field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
 msgid "Export From"
-msgstr "Export von"
+msgstr "Exportieren von"
 
 #: frappe/core/doctype/data_import/data_import.js:544
 msgid "Export Import Log"
@@ -9827,7 +9828,7 @@ msgstr "Export nicht erlaubt. Sie benötigen die Rolle {0} zum Exportieren."
 #. 'Data Export'
 #: frappe/core/doctype/data_export/data_export.json
 msgid "Export the data without any header notes and column descriptions"
-msgstr "Die Daten ohne Kopfnoten und Spaltenbeschreibungen exportieren"
+msgstr "Daten ohne Kopfzeilenbeschreibungen und Spaltenbeschreibungen exportieren"
 
 #. Label of the export_without_main_header (Check) field in DocType 'Data
 #. Export'
@@ -9846,7 +9847,7 @@ msgstr "Exportierte Berechtigungen werden bei jeder Migration zwangsweise synchr
 #. Label of the expose_recipients (Data) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Expose Recipients"
-msgstr "Empfänger offenlegen"
+msgstr "Expose Empfänger"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -10060,7 +10061,7 @@ msgstr "FavIcon"
 #. Label of the fax (Data) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Fax"
-msgstr "Fax"
+msgstr "Telefax"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:51
 msgid "Feedback"
@@ -10079,7 +10080,7 @@ msgstr "Weiblich"
 #: frappe/public/js/form_builder/components/controls/FetchFromControl.vue:29
 #: frappe/public/js/form_builder/components/controls/FetchFromControl.vue:34
 msgid "Fetch From"
-msgstr "Abrufen von"
+msgstr "Abholen von"
 
 #: frappe/website/doctype/website_slideshow/website_slideshow.js:15
 msgid "Fetch Images"
@@ -10187,7 +10188,7 @@ msgstr "Feld in der Abfrage nicht erlaubt"
 #. Description of the 'Workflow State Field' (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)"
-msgstr "Feld, das den Workflow-Status der Transaktion darstellt (wenn das Feld nicht vorhanden ist, wird ein neues ausgeblendetes benutzerdefiniertes Feld erstellt)"
+msgstr "Feldc für den Workflow-Status der einzelnen Transaktionen (wenn das Feld nicht vorhanden ist, wird ein neues verstecktes, benutzerdefiniertes Feld erstellt)"
 
 #. Label of the track_field (Select) field in DocType 'Milestone Tracker'
 #: frappe/automation/doctype/milestone_tracker/milestone_tracker.json
@@ -10552,7 +10553,7 @@ msgstr "Filter-Editor"
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Filters JSON"
-msgstr "Filter JSON"
+msgstr "Filtert JSON"
 
 #. Label of the filters_section (Section Break) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -10570,7 +10571,7 @@ msgstr "Filter gespeichert"
 #. Description of the 'Script' (Code) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Filters will be accessible via <code>filters</code>. <br><br>Send output as <code>result = [result]</code>, or for old style <code>data = [columns], [result]</code>"
-msgstr "Filter sind über <code>filters</code> zugänglich. <br><br>Ausgabe als <code>result = [result]</code> senden oder für alten Stil <code>data = [columns], [result]</code>"
+msgstr "Filter sind über <code>filters</code> zugänglich.<br><br> Ausgabe als <code>result = [result]</code> oder für <code>data = [columns], [result]</code> alten Stil <code>data = [columns], [result]</code> senden"
 
 #: frappe/public/js/frappe/ui/filters/filter_list.js:133
 msgid "Filters {0}"
@@ -10660,7 +10661,7 @@ msgstr "Gleitkommazahl"
 #. Label of the float_precision (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Float Precision"
-msgstr "Gleitkommapräzision"
+msgstr "Gleitkommazahl-Genauigkeit"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -10841,7 +10842,7 @@ msgstr "Fußzeilenvorlage"
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer Template Values"
-msgstr "Werte der Fußzeilenvorlage"
+msgstr "Werte für Fußzeilenvorlagen"
 
 #: frappe/printing/page/print/print.js:130
 msgid "Footer might not be visible as {0} option is disabled</div>"
@@ -10883,8 +10884,8 @@ msgstr "Zum Beispiel: {} Öffnen"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "For Links, enter the DocType as range.\n"
 "For Select, enter list of Options, each on a new line."
-msgstr "Für ein Verknüpfungsfeld, geben Sie hier den jeweiligen DocType an.\n"
-"Für Auswahlfeld geben Sie eine Liste von Optionen ein, jede in einer neuen Zeile."
+msgstr "Für Links geben Sie den DocType als Bereich ein.\n"
+"Für Auswahl geben Sie eine Liste von Optionen ein, jede in einer neuen Zeile."
 
 #. Label of the for_user (Link) field in DocType 'List Filter'
 #. Label of the for_user (Link) field in DocType 'Notification Log'
@@ -10929,7 +10930,7 @@ msgstr "Beispiel: Wenn Sie die Dokumenten-ID mit einschliessen möchten, verwend
 #. Description of the 'Format' (Data) field in DocType 'Workspace Shortcut'
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgid "For example: {} Open"
-msgstr "Zum Beispiel: {} Offen"
+msgstr "Zum Beispiel: {} Öffnen"
 
 #. Description of the 'Client script' (Code) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -11198,7 +11199,7 @@ msgstr "Von-Datum"
 #. Label of the from_date_field (Select) field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "From Date Field"
-msgstr "Von-Datum-Feld"
+msgstr "Vom Datumsfeld"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1870
 msgid "From Document Type"
@@ -11212,7 +11213,7 @@ msgstr "Aus Feld"
 #. Label of the sender_full_name (Data) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "From Full Name"
-msgstr "Vollständiger Name des Absenders"
+msgstr "Von Vor- und Nachname"
 
 #. Label of the from_user (Link) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
@@ -11249,7 +11250,7 @@ msgstr "Ganze Seite"
 #. Label of the full_width (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Full Width"
-msgstr "Volle Breite"
+msgstr "Gesamtbreite"
 
 #. Label of the function (Select) field in DocType 'Number Card'
 #. Label of the report_function (Select) field in DocType 'Number Card'
@@ -11381,7 +11382,7 @@ msgstr "Backup-Verschlüsselungsschlüssel abrufen"
 #. Label of the get_contacts (Button) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Get Contacts"
-msgstr "Kontakte abrufen"
+msgstr "Kontakte erhalten"
 
 #: frappe/website/doctype/web_form/web_form.js:93
 msgid "Get Fields"
@@ -11413,12 +11414,12 @@ msgstr "Erhalten Sie eine Vorschau der generierten Namen eines Nummernkreises."
 #. DocType 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Get notified when an email is received on any of the documents assigned to you."
-msgstr "Lassen Sie sich benachrichtigen, wenn eine E-Mail zu einem der Ihnen zugewiesenen Dokumente eingeht."
+msgstr "Benachrichtigen, wenn eine E-Mail auf einem der Ihnen zugewiesenen Dokumente empfangen wird."
 
 #. Description of the 'User Image' (Attach Image) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Get your globally recognized avatar from Gravatar.com"
-msgstr "Holen Sie sich Ihren weltweit anerkannten Avatar von Gravatar.com"
+msgstr "Allgemein wiedererkennbaren Avatar von Gravatar.com abrufen"
 
 #. Label of the git_branch (Data) field in DocType 'Installed Application'
 #: frappe/core/doctype/installed_application/installed_application.json
@@ -11456,7 +11457,7 @@ msgstr "Globale Verknüpfungen"
 #. Label of the global_unsubscribe (Check) field in DocType 'Email Unsubscribe'
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.json
 msgid "Global Unsubscribe"
-msgstr "Global abbestellen"
+msgstr "Global austragen"
 
 #: frappe/public/js/frappe/form/toolbar.js:876
 msgid "Go"
@@ -11537,7 +11538,7 @@ msgstr "Google Analytics-ID"
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Google Analytics anonymise IP"
-msgstr "Anonymisiere IP-Adressen für Google Analytics"
+msgstr "Anonymisiere IP für Google Analytics"
 
 #. Label of the sb_00 (Section Break) field in DocType 'Event'
 #. Label of the google_calendar (Link) field in DocType 'Event'
@@ -11777,14 +11778,14 @@ msgstr "HERE"
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "HH:mm"
-msgstr "HH:mm"
+msgstr "HH: mm"
 
 #. Option for the 'Time Format' (Select) field in DocType 'Language'
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "HH:mm:ss"
-msgstr "HH:mm:ss"
+msgstr "HH: mm: ss"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -11929,7 +11930,7 @@ msgstr "Kopfzeilen-Skript"
 #. Label of the sb2 (Section Break) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Header and Breadcrumbs"
-msgstr "Kopfzeile und Brotkrümel"
+msgstr "Header und Breadcrumbs"
 
 #. Label of the section_break_38 (Tab Break) field in DocType 'Website
 #. Settings'
@@ -12102,12 +12103,12 @@ msgstr "Block ausblenden"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Hide Border"
-msgstr "Rahmen ausblenden"
+msgstr "Rand ausblenden"
 
 #. Label of the hide_buttons (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Hide Buttons"
-msgstr "Schaltflächen ausblenden"
+msgstr "Buttons ausblenden"
 
 #. Label of the allow_copy (Check) field in DocType 'DocType'
 #. Label of the allow_copy (Check) field in DocType 'Customize Form'
@@ -12119,7 +12120,7 @@ msgstr "Kopie ausblenden"
 #. Label of the hide_custom (Check) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Hide Custom DocTypes and Reports"
-msgstr "Benutzerdefinierte DocTypes und Berichte ausblenden"
+msgstr "Benutzerdefinierte Dokumenttypen und Berichte ausblenden"
 
 #. Label of the hide_days (Check) field in DocType 'DocField'
 #. Label of the hide_days (Check) field in DocType 'Custom Field'
@@ -12128,7 +12129,7 @@ msgstr "Benutzerdefinierte DocTypes und Berichte ausblenden"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Hide Days"
-msgstr "Tage ausblenden"
+msgstr "Tage verstecken"
 
 #. Label of the hide_descendants (Check) field in DocType 'User Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
@@ -12212,7 +12213,7 @@ msgstr "Fußzeile in automatischen E-Mail-Berichten ausblenden"
 #. Label of the hide_footer_signup (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Hide footer signup"
-msgstr "Anmeldung in der Fußzeile ausblenden"
+msgstr "Registrierung in der Fußzeile ausblenden"
 
 #. Label of the hide_navbar (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -12303,7 +12304,7 @@ msgstr "Stündliche Wartung"
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Hourly rate limit for generating password reset links"
-msgstr "Stündliches Limit zum Generieren von Links zum Zurücksetzen von Passwörtern"
+msgstr "Stundensatzlimit zum Generieren von Links zum Zurücksetzen von Passwörtern"
 
 #: frappe/public/js/frappe/form/controls/duration.js:29
 msgctxt "Duration"
@@ -12356,7 +12357,7 @@ msgstr "ID (Name)"
 #. Description of the 'Field Name' (Data) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "ID (name) of the entity whose property is to be set"
-msgstr "ID (Name) der Entität, deren Eigenschaft festgelegt werden muss"
+msgstr "ID (Name) der Einheit, deren Eigenschaft festgelegt werden muss"
 
 #. Description of the 'Section ID' (Data) field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
@@ -12385,7 +12386,7 @@ msgstr "IMAP-Ordner"
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/user_session_display/user_session_display.json
 msgid "IP Address"
-msgstr "IP-Adresse"
+msgstr "IP Adresse"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the icon (Icon) field in DocType 'DocField'
@@ -12547,13 +12548,13 @@ msgstr "Falls aktiviert, wird die Passwortstärke basierend auf dem Wert der Min
 #. restricted IP Address' (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "If enabled, users who login from Restricted IP Address, won't be prompted for Two Factor Auth"
-msgstr "Falls aktiviert, werden Benutzer, die sich von einer eingeschränkten IP-Adresse aus anmelden, nicht zur Zwei-Faktor-Authentifizierung aufgefordert"
+msgstr "Wenn diese Option aktiviert ist, werden Benutzer, die sich von der eingeschränkten IP-Adresse aus anmelden, nicht zur Zwei-Faktor-Authentifizierung aufgefordert"
 
 #. Description of the 'Notify Users On Every Login' (Check) field in DocType
 #. 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "If enabled, users will be notified every time they login. If not enabled, users will only be notified once."
-msgstr "Falls aktiviert, werden die Benutzer bei jeder Anmeldung benachrichtigt. Falls nicht aktiviert, werden die Benutzer nur einmal benachrichtigt."
+msgstr "Wenn aktiviert, werden die Benutzer jedes Mal benachrichtigt, wenn sie sich anmelden. Wenn nicht aktiviert, werden die Benutzer nur einmal benachrichtigt."
 
 #. Description of the 'Default Workspace' (Link) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -12575,13 +12576,13 @@ msgstr "Wenn nicht Standard-Port (zB 587). Versuchen Sie in Google Cloud den Por
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/email_domain/email_domain.json
 msgid "If non-standard port (e.g. POP3: 995/110, IMAP: 993/143)"
-msgstr "Wenn es sich um einen Nicht-Standard-Port handelt (z. B. POP3: 995/110, IMAP: 993/143)"
+msgstr "Wenn nicht standardmäßiger Port (z. B. POP3: 995/110, IMAP: 993/143)"
 
 #. Description of the 'Currency Precision' (Select) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "If not set, the currency precision will depend on number format"
-msgstr "Wenn nicht festgelegt, hängt die Genauigkeit der Währung vom Zahlenformat ab"
+msgstr "Wenn nicht gesetzt, hängt die Währungspräzision vom Zahlenformat ab"
 
 #. Description of the 'Roles' (Table) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -12591,7 +12592,7 @@ msgstr "Wenn diese Option gesetzt ist, können nur Benutzer mit diesen Rollen au
 #. Description of the 'User Type' (Link) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "If the user has any role checked, then the user becomes a \"System User\". \"System User\" has access to the desktop"
-msgstr "Wenn der Benutzer eine Rolle aktiviert hat, wird er zum „Systembenutzer“. Der „Systembenutzer“ hat Zugriff auf den Desktop"
+msgstr "Wenn der Benutzer eine Rolle geprüft hat, wird er ein \"System User\". \"System User\" haben Zugriff auf den Desktop."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:38
 msgid "If these instructions where not helpful, please add in your suggestions on GitHub Issues."
@@ -12611,14 +12612,14 @@ msgstr "Falls dies ein Fehler war oder Sie erneut Zugriff benötigen, wenden Sie
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "If unchecked, the value will always be re-fetched on save."
-msgstr "Wenn diese Option nicht aktiviert ist, wird der Wert beim Speichern immer erneut abgerufen."
+msgstr "Wenn diese Option deaktiviert ist, wird der Wert beim Speichern immer erneut abgerufen."
 
 #. Label of the if_owner (Check) field in DocType 'Custom DocPerm'
 #. Label of the if_owner (Check) field in DocType 'DocPerm'
 #: frappe/core/doctype/custom_docperm/custom_docperm.json
 #: frappe/core/doctype/docperm/docperm.json
 msgid "If user is the owner"
-msgstr "Wenn der Benutzer der Eigentümer ist"
+msgstr "Wenn der Benutzer der Inhaber ist"
 
 #: frappe/core/doctype/data_export/exporter.py:204
 msgid "If you are updating, please select \"Overwrite\" else existing rows will not be deleted."
@@ -12657,7 +12658,7 @@ msgstr "Wenn Ihre CSV-Datei ein anderes Trennzeichen verwendet, fügen Sie diese
 #. Description of the 'Source Text' (Code) field in DocType 'Translation'
 #: frappe/core/doctype/translation/translation.json
 msgid "If your data is in HTML, please copy paste the exact HTML code with the tags."
-msgstr "Wenn Ihre Daten in HTML vorliegen, fügen Sie bitte den genauen HTML-Code mit den Tags ein."
+msgstr "Wenn Ihre Daten in HTML sind, fügen Sie bitte den genauen HTML-Code mit den Tags ein."
 
 #. Label of the ignore_user_permissions (Check) field in DocType 'DocField'
 #. Label of the ignore_user_permissions (Check) field in DocType 'Custom Field'
@@ -12667,7 +12668,7 @@ msgstr "Wenn Ihre Daten in HTML vorliegen, fügen Sie bitte den genauen HTML-Cod
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Ignore User Permissions"
-msgstr "Benutzerberechtigungen ignorieren"
+msgstr "Ignorieren von Benutzerberechtigungen"
 
 #. Label of the ignore_xss_filter (Check) field in DocType 'DocField'
 #. Label of the ignore_xss_filter (Check) field in DocType 'Custom Field'
@@ -12837,7 +12838,7 @@ msgstr "Datei importieren"
 #. Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import File Errors and Warnings"
-msgstr "Fehler und Warnungen beim Import"
+msgstr "Importieren Sie Dateifehler und Warnungen"
 
 #. Label of the import_log_section (Section Break) field in DocType 'Data
 #. Import'
@@ -12848,12 +12849,12 @@ msgstr "Importprotokoll"
 #. Label of the import_log_preview (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import Log Preview"
-msgstr "Importprotokoll-Vorschau"
+msgstr "Protokollvorschau importieren"
 
 #. Label of the import_preview (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import Preview"
-msgstr "Importvorschau"
+msgstr "Vorschau importieren"
 
 #: frappe/core/doctype/data_import/data_import.js:41
 msgid "Import Progress"
@@ -12872,7 +12873,7 @@ msgstr "Importtyp"
 #. Label of the import_warnings (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import Warnings"
-msgstr "Importwarnungen"
+msgstr "Warnungen importieren"
 
 #: frappe/public/js/frappe/views/file/file_view.js:117
 msgid "Import Zip"
@@ -12964,7 +12965,7 @@ msgstr "In Minuten"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "In Preview"
-msgstr "In Vorschau"
+msgstr "In der Vorschau"
 
 #: frappe/core/doctype/data_import/data_import.js:42
 msgid "In Progress"
@@ -13030,7 +13031,7 @@ msgstr "Feld „Name“ einbeziehen"
 #. Label of the navbar_search (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Include Search in Top Bar"
-msgstr "Suche in die obere Leiste einbinden"
+msgstr "Suchen In Top Bar"
 
 #: frappe/website/doctype/website_theme/website_theme.js:61
 msgid "Include Theme from Apps"
@@ -13039,7 +13040,7 @@ msgstr "Thema aus Apps einschließen"
 #. Label of the attach_view_link (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Include Web View Link in Email"
-msgstr "Web-View-Link in E-Mail einbeziehen"
+msgstr "Dokument Web View Link per E-Mail senden"
 
 #: frappe/public/js/frappe/form/print_utils.js:59
 #: frappe/public/js/frappe/views/reports/query_report.js:1650
@@ -13145,7 +13146,7 @@ msgstr "Index"
 #. Label of the index_web_pages_for_search (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Index Web Pages for Search"
-msgstr "Webseiten für die Suche indizieren"
+msgstr "Index Webseiten für die Suche"
 
 #: frappe/core/doctype/recorder/recorder.py:132
 msgid "Index created successfully on column {0} of doctype {1}"
@@ -13155,13 +13156,13 @@ msgstr "Index erfolgreich für Spalte {0} von DocType {1} erstellt"
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Indexing authorization code"
-msgstr "Indizierungsberechtigungscode"
+msgstr "Indiziere Autorisierungscode"
 
 #. Label of the indexing_refresh_token (Data) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Indexing refresh token"
-msgstr "Indexierungsaktualisierungstoken"
+msgstr "Indiziere Aktualisierungstoken"
 
 #. Label of the indicator (Select) field in DocType 'Kanban Board Column'
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
@@ -13247,7 +13248,7 @@ msgstr "Bild in Markdown einfügen"
 #. Option for the 'Import Type' (Select) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Insert New Records"
-msgstr "Neue Datensätze einfügen"
+msgstr "Fügen Sie neue Datensätze ein"
 
 #. Label of the insert_style (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -13344,7 +13345,7 @@ msgstr "Einbindungen"
 #. 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Integrations can use this field to set email delivery status"
-msgstr "Integrationen können dieses Feld verwenden, um den Status der E-Mail-Zustellung festzulegen"
+msgstr "Eingendene Anwendungen können dieses Feld verwenden, um den Versandstatus von E-Mails anzugeben"
 
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -13373,7 +13374,7 @@ msgstr "Interne Aufzeichnung von Dokumentfreigaben"
 #. Label of the intro_video_url (Data) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Intro Video URL"
-msgstr "Einführungsvideo-URL"
+msgstr "Intro Video-URL"
 
 #. Description of the 'Company Introduction' (Text Editor) field in DocType
 #. 'About Us Settings'
@@ -13767,7 +13768,7 @@ msgstr ""
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Inverse"
-msgstr "Umgekehrt"
+msgstr "Invertieren"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:95
 msgid "Invitation already accepted"
@@ -13844,7 +13845,7 @@ msgstr "Ist Untertabelle"
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Is Complete"
-msgstr "Ist abgeschlossen"
+msgstr "Ist komplett"
 
 #. Label of the is_completed (Check) field in DocType 'Email Flag Queue'
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json
@@ -13894,7 +13895,7 @@ msgstr "Ist global"
 
 #: frappe/public/js/frappe/views/treeview.js:418
 msgid "Is Group"
-msgstr "Ist Gruppe"
+msgstr ""
 
 #. Label of the is_hidden (Check) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -13904,7 +13905,7 @@ msgstr "Ist versteckt"
 #. Label of the is_home_folder (Check) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Is Home Folder"
-msgstr "Ist Ordner für die Startseite"
+msgstr "Ist Ordner für Startseite"
 
 #. Label of the reqd (Check) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
@@ -13935,17 +13936,17 @@ msgstr "Ist Hauptkontakt"
 #. Label of the is_primary_mobile_no (Check) field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
 msgid "Is Primary Mobile"
-msgstr "Ist primäre Handynummer"
+msgstr "Ist primär mobil"
 
 #. Label of the is_primary_phone (Check) field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
 msgid "Is Primary Phone"
-msgstr "Ist Haupttelefon"
+msgstr "Ist das Haupttelefon"
 
 #. Label of the is_private (Check) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Is Private"
-msgstr "Ist privat"
+msgstr "Ist Privat"
 
 #. Label of the is_public (Check) field in DocType 'Dashboard Chart'
 #. Label of the is_public (Check) field in DocType 'Number Card'
@@ -13957,7 +13958,7 @@ msgstr "Ist öffentlich"
 #. Label of the is_published_field (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Is Published Field"
-msgstr "Veröffentlichungsfeld"
+msgstr "Ist Veröffentlicht Feld"
 
 #: frappe/core/doctype/doctype/doctype.py:1530
 msgid "Is Published Field must be a valid fieldname"
@@ -13973,7 +13974,7 @@ msgstr "Ist Abfragebericht"
 #. Request'
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Is Remote Request?"
-msgstr "Ist Remote-Anfrage?"
+msgstr "Ist dies eine Remote-Anfrage?"
 
 #. Label of the is_setup_complete (Check) field in DocType 'Installed
 #. Application'
@@ -13992,12 +13993,12 @@ msgstr "Ist einzeln"
 #. Label of the is_skipped (Check) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Is Skipped"
-msgstr "Ist übersprungen"
+msgstr "Wird übersprungen"
 
 #. Label of the is_spam (Check) field in DocType 'Email Rule'
 #: frappe/email/doctype/email_rule/email_rule.json
 msgid "Is Spam"
-msgstr "Ist Spam"
+msgstr "ist Spam"
 
 #. Label of the is_standard (Check) field in DocType 'Navbar Item'
 #. Label of the is_standard (Select) field in DocType 'Report'
@@ -14032,12 +14033,12 @@ msgstr "Kann gebucht werden"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "Is System Generated"
-msgstr "Ist Systemgeneriert"
+msgstr "Wurde vom System generiert"
 
 #. Label of the istable (Check) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Is Table"
-msgstr "Ist Tabelle"
+msgstr "ist eine Tabelle"
 
 #. Label of the is_table_field (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -14075,12 +14076,12 @@ msgstr "Es ist riskant, diese Datei zu löschen: {0}. Bitte kontaktieren Sie Ihr
 #. Label of the item_label (Data) field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
 msgid "Item Label"
-msgstr "Elementbeschriftung"
+msgstr "Artikeletikett"
 
 #. Label of the item_type (Select) field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
 msgid "Item Type"
-msgstr "Elementtyp"
+msgstr "Gegenstandsart"
 
 #: frappe/utils/nestedset.py:229
 msgid "Item cannot be added to its own descendants"
@@ -14117,7 +14118,7 @@ msgstr "JSON"
 #. Label of the webhook_json (Code) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "JSON Request Body"
-msgstr "JSON-Anfragekörper"
+msgstr "JSON-Anforderungshauptteil"
 
 #: frappe/templates/signup.html:5
 msgid "Jane Doe"
@@ -14131,7 +14132,7 @@ msgstr "JavaScript"
 #. Description of the 'Javascript' (Code) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "JavaScript Format: frappe.query_reports['REPORTNAME'] = {}"
-msgstr "JavaScript Format: frappe.query_reports['REPORTNAME'] = {}"
+msgstr "JavaScript- Format: frappe.query_reports [' REPORT '] = {}"
 
 #. Label of the javascript (Code) field in DocType 'Report'
 #. Label of the javascript_section (Section Break) field in DocType 'Custom
@@ -14164,7 +14165,7 @@ msgstr "Job-ID"
 #. Label of the job_id (Link) field in DocType 'Submission Queue'
 #: frappe/core/doctype/submission_queue/submission_queue.json
 msgid "Job Id"
-msgstr "Job-ID"
+msgstr "Job Id"
 
 #. Label of the job_info_section (Section Break) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -14332,17 +14333,17 @@ msgstr "LDAP-Authentifizierung"
 #. 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Custom Settings"
-msgstr "Benutzerdefinierte LDAP-Einstellungen"
+msgstr "LDAP-Benutzereinstellungen"
 
 #. Label of the ldap_email_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Email Field"
-msgstr "LDAP-E-Mail-Feld"
+msgstr "LDAP-Feld E-Mail"
 
 #. Label of the ldap_first_name_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP First Name Field"
-msgstr "LDAP-Vorname-Feld"
+msgstr "LDAP-Feld Vorname"
 
 #. Label of the ldap_group (Data) field in DocType 'LDAP Group Mapping'
 #: frappe/integrations/doctype/ldap_group_mapping/ldap_group_mapping.json
@@ -14380,12 +14381,12 @@ msgstr "LDAP-Nachname-Feld"
 #. Label of the ldap_middle_name_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Middle Name Field"
-msgstr "LDAP-Feld für zweiten Vornamen"
+msgstr "LDAP Middle Name-Feld"
 
 #. Label of the ldap_mobile_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Mobile Field"
-msgstr "LDAP-Handynummer-Feld"
+msgstr "LDAP-Mobilfunkfeld"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:163
 msgid "LDAP Not Installed"
@@ -14399,7 +14400,7 @@ msgstr "LDAP-Telefonfeld"
 #. Label of the ldap_search_string (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Search String"
-msgstr "LDAP-Suchstring"
+msgstr "LDAP Suchstring"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:130
 msgid "LDAP Search String must be enclosed in '()' and needs to contian the user placeholder {0}, eg sAMAccountName={0}"
@@ -14425,7 +14426,7 @@ msgstr "LDAP-Servereinstellungen"
 #. Label of the ldap_server_url (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Server Url"
-msgstr "LDAP-Server-URL"
+msgstr "LDAP-Server URL"
 
 #. Name of a DocType
 #. Label of a Link in the Integrations Workspace
@@ -14438,12 +14439,12 @@ msgstr "LDAP-Einstellungen"
 #. DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP User Creation and Mapping"
-msgstr "LDAP-Benutzererstellung und -zuordnung"
+msgstr "Erstellung und Zuordnung von LDAP-Benutzern"
 
 #. Label of the ldap_username_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Username Field"
-msgstr "LDAP-Benutzernamenfeld"
+msgstr "LDAP-Feld Benutzername"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:310
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:429
@@ -14520,7 +14521,7 @@ msgstr "Bezeichnung"
 #. Label of the label_help (HTML) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
 msgid "Label Help"
-msgstr "Hilfe zu Bezeichnung"
+msgstr "Bezeichnungshilfe"
 
 #. Label of the label_and_type (Section Break) field in DocType 'Customize Form
 #. Field'
@@ -14564,7 +14565,7 @@ msgstr "Sprachcode"
 #. Label of the language_name (Data) field in DocType 'Language'
 #: frappe/core/doctype/language/language.json
 msgid "Language Name"
-msgstr "Sprachname"
+msgstr "Sprache Name"
 
 #. Label of the last_10_active_users (Code) field in DocType 'System Health
 #. Report'
@@ -14595,7 +14596,7 @@ msgstr "Letzte 90 Tage"
 #. Label of the last_active (Datetime) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Active"
-msgstr "Letzte Aktivität"
+msgstr "Zuletzt aktiv"
 
 #. Label of the last_execution (Datetime) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -14610,7 +14611,7 @@ msgstr "Letzter Herzschlag"
 #. Label of the last_ip (Read Only) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last IP"
-msgstr "Letzte IP-Adresse"
+msgstr "Letzte IP"
 
 #. Label of the last_known_versions (Text) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -14635,7 +14636,7 @@ msgstr "Zuletzt geändert am"
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/public/js/frappe/ui/filters/filter.js:643
 msgid "Last Month"
-msgstr "Letzter Monat"
+msgstr "Vergangener Monat"
 
 #. Label of the last_name (Data) field in DocType 'Contact'
 #. Label of the last_name (Data) field in DocType 'User'
@@ -14657,7 +14658,7 @@ msgstr "Datum der letzten Kennwortrücksetzung"
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/public/js/frappe/ui/filters/filter.js:647
 msgid "Last Quarter"
-msgstr "Letztes Quartal"
+msgstr "Vergangenes Quartal"
 
 #. Label of the last_received_at (Datetime) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -14668,7 +14669,7 @@ msgstr "Zuletzt empfangen am"
 #. DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Reset Password Key Generated On"
-msgstr "Zeitpunkt der letzten Schlüsselerzeugung zum Zurücksetzen des Passworts"
+msgstr "Letzter Schlüssel zum Zurücksetzen des Passworts Erzeugt am"
 
 #. Label of the datetime_last_run (Datetime) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -14678,7 +14679,7 @@ msgstr "Letzter Lauf"
 #. Label of the last_sync_on (Datetime) field in DocType 'Google Contacts'
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 msgid "Last Sync On"
-msgstr "Zuletzt synchronisiert am"
+msgstr "Letzte Synchronisierung an"
 
 #. Label of the last_synced_on (Datetime) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -14709,13 +14710,13 @@ msgstr "Letzter Benutzer"
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/public/js/frappe/ui/filters/filter.js:639
 msgid "Last Week"
-msgstr "Letzte Woche"
+msgstr "Vergangene Woche"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/public/js/frappe/ui/filters/filter.js:655
 msgid "Last Year"
-msgstr "Letztes Jahr"
+msgstr "Vergangenes Jahr"
 
 #: frappe/public/js/frappe/widgets/chart_widget.js:753
 msgid "Last synced {0}"
@@ -14736,7 +14737,7 @@ msgstr "Mehr erfahren"
 #. Description of the 'Repeat Till' (Date) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Leave blank to repeat always"
-msgstr "Leer lassen, um immer zu wiederholen"
+msgstr "Freilassen, um immer zu wiederholen"
 
 #: frappe/core/doctype/communication/mixins.py:207
 #: frappe/email/doctype/email_account/email_account.py:720
@@ -14838,7 +14839,7 @@ msgstr "Wir bringen Sie zurück zum Onboarding"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Letter"
-msgstr "Letter"
+msgstr "Brief"
 
 #. Label of the letter_head (Link) field in DocType 'Report'
 #. Name of a DocType
@@ -14861,7 +14862,7 @@ msgstr "Briefkopf basierend auf"
 #. 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Letter Head Image"
-msgstr "Briefkopf-Bild"
+msgstr "Briefkopf Bild"
 
 #. Label of the letter_head_name (Data) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -14958,7 +14959,7 @@ msgstr "Likes"
 #. Label of the limit (Int) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "Limit"
-msgstr "Limit"
+msgstr "Grenze"
 
 #: frappe/database/query.py:299
 msgid "Limit must be a non-negative integer"
@@ -15125,7 +15126,7 @@ msgstr "Pfad, der als Startseite verwendet werden soll. Standardpfade: home, log
 #. Description of the 'URL' (Data) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "Link to the page you want to open. Leave blank if you want to make it a group parent."
-msgstr "Link zur Seite, die Sie öffnen möchten. Lassen Sie das Feld leer, wenn Sie die Seite als übergeordnete Gruppe festlegen möchten."
+msgstr "Mit der Seite, die geöffnet werden soll, verknüpfen. Leer lassen, wenn eine übergeordnete Gruppe daraus gemacht werden soll."
 
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Communication'
@@ -15315,7 +15316,7 @@ msgstr "API-Anfragen protokollieren"
 #. Label of the log_data_section (Section Break) field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
 msgid "Log Data"
-msgstr "Protokolldaten"
+msgstr "Logdaten"
 
 #. Label of the ref_doctype (Link) field in DocType 'Logs To Clear'
 #: frappe/core/doctype/logs_to_clear/logs_to_clear.json
@@ -15505,12 +15506,12 @@ msgstr "Alle Sitzungen abmelden"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Logout All Sessions on Password Reset"
-msgstr "Bei Kennwortzurücksetzung alle Sitzungen abmelden"
+msgstr "Melden Sie sich beim Zurücksetzen des Kennworts von allen Sitzungen ab"
 
 #. Label of the logout_all_sessions (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Logout From All Devices After Changing Password"
-msgstr "Nach der Kennwortänderung von allen Geräten abmelden"
+msgstr "Melden Sie sich nach dem Ändern des Kennworts von allen Geräten ab"
 
 #. Group in User's connections
 #. Label of a Card Break in the Users Workspace
@@ -15572,12 +15573,12 @@ msgstr "Frau"
 #. Label of the main_section (Text Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Main Section"
-msgstr "Hauptabschnitt"
+msgstr "Hauptbereich"
 
 #. Label of the main_section_html (HTML Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Main Section (HTML)"
-msgstr "Hauptabschnitt (HTML)"
+msgstr "Hauptteil (HTML)"
 
 #. Label of the main_section_md (Markdown Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -15606,7 +15607,7 @@ msgstr "Major"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Make \"name\" searchable in Global Search"
-msgstr "Name in der globalen Suche durchsuchbar machen"
+msgstr "Machen Sie &quot;name&quot; durchsuchbar in Global Search"
 
 #. Label of the make_attachment_public (Check) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -15619,13 +15620,13 @@ msgstr "Anhang öffentlich machen (standardmäßig)"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Make Attachments Public by Default"
-msgstr "Anhänge standardmäßig öffentlich machen"
+msgstr " Anhänge im Standard als öffentlich markieren"
 
 #. Description of the 'Disable Username/Password Login' (Check) field in
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Make sure to configure a Social Login Key before disabling to prevent lockout"
-msgstr "Stellen Sie sicher, dass Sie vor der Deaktivierung einen Social Login Key konfigurieren, um sich nicht auszusperren"
+msgstr "Stellen Sie sicher, dass Sie vor der Deaktivierung einen Social Login Key konfigurieren, um eine Sperre zu verhindern"
 
 #: frappe/utils/password_strength.py:92
 msgid "Make use of longer keyboard patterns"
@@ -15725,7 +15726,7 @@ msgstr "Zuordnen von Spalten aus {0} zu Feldern in {1}"
 #. Description of the 'Dynamic Route' (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Map route parameters into form variables. Example <code>/project/&lt;name&gt;</code>"
-msgstr "Route-Parameter in Formularvariablen abbilden. Beispiel <code>/project/&lt;name&gt;</code>"
+msgstr "Ordnen Sie Routenparameter Formularvariablen zu. Beispiel <code>/project/&lt;name&gt;</code>"
 
 #: frappe/core/doctype/data_import/importer.py:923
 msgid "Mapping column {0} to field {1}"
@@ -15817,7 +15818,7 @@ msgstr "Maske"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:50
 msgid "Master"
-msgstr "Stammdaten"
+msgstr "Meister"
 
 #. Description of the 'Limit' (Int) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
@@ -15923,7 +15924,7 @@ msgstr "Treffen"
 #: frappe/email/doctype/notification/notification.js:210
 #: frappe/integrations/doctype/webhook/webhook.js:96
 msgid "Meets Condition?"
-msgstr "Bedingung erfüllt?"
+msgstr "Bedingungen erfüllen?"
 
 #. Group in Email Group's connections
 #: frappe/email/doctype/email_group/email_group.json
@@ -15943,7 +15944,7 @@ msgstr "Speichernutzung in MB"
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Mention"
-msgstr "Erwähnung"
+msgstr "Erwähnen"
 
 #. Label of the enable_email_mention (Check) field in DocType 'Notification
 #. Settings'
@@ -16004,7 +16005,7 @@ msgstr "Nachricht"
 #. Label of the message_examples (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Message Examples"
-msgstr "Nachrichtenbeispiele"
+msgstr "Mitteilungsbeispiele"
 
 #. Label of the message_id (Small Text) field in DocType 'Communication'
 #. Label of the message_id (Small Text) field in DocType 'Email Queue'
@@ -16016,7 +16017,7 @@ msgstr "Nachrichten-ID"
 #. Label of the message_parameter (Data) field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Message Parameter"
-msgstr "Nachrichtenparameter"
+msgstr "Mitteilungsparameter"
 
 #: frappe/templates/includes/contact.js:36
 msgid "Message Sent"
@@ -16042,7 +16043,7 @@ msgstr "Nachricht nicht eingerichtet"
 #. Description of the 'Success message' (Text) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Message to be displayed on successful completion"
-msgstr "Nachricht, die nach erfolgreicher Fertigstellung angezeigt werden soll"
+msgstr "Nachricht, die nach erfolgreichem Abschluss angezeigt werden soll"
 
 #. Label of the message_id (Code) field in DocType 'Unhandled Email'
 #: frappe/email/doctype/unhandled_email/unhandled_email.json
@@ -16207,7 +16208,7 @@ msgstr "Falsch konfiguriert"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:49
 msgid "Miss"
-msgstr "Frau"
+msgstr "Fräulein"
 
 #: frappe/desk/form/meta.py:197
 msgid "Missing DocType"
@@ -16329,7 +16330,7 @@ msgstr "Moduldefinition"
 #. Label of the module_html (HTML) field in DocType 'Module Profile'
 #: frappe/core/doctype/module_profile/module_profile.json
 msgid "Module HTML"
-msgstr "Modul-HTML"
+msgstr "Modul HTML"
 
 #. Label of the module_name (Data) field in DocType 'Module Def'
 #: frappe/core/doctype/module_def/module_def.json
@@ -16354,7 +16355,7 @@ msgstr "Modulprofil"
 #. Label of the module_profile_name (Data) field in DocType 'Module Profile'
 #: frappe/core/doctype/module_profile/module_profile.json
 msgid "Module Profile Name"
-msgstr "Modulprofilname"
+msgstr "Modulprofil Name"
 
 #: frappe/desk/doctype/module_onboarding/module_onboarding.py:73
 msgid "Module onboarding progress reset"
@@ -16435,7 +16436,7 @@ msgstr "Monatlich"
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Monthly Long"
-msgstr "Monatlich Lang"
+msgstr "Monatlich lang"
 
 #: frappe/public/js/frappe/form/link_selector.js:39
 #: frappe/public/js/frappe/form/multi_select_dialog.js:45
@@ -16537,13 +16538,13 @@ msgstr "Zeile verschieben nach"
 #. Description of the 'Next on Click' (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Move to next step when clicked inside highlighted area."
-msgstr "Zum nächsten Schritt gehen, wenn innerhalb des markierten Bereichs geklickt wird."
+msgstr "Zum nächsten Schritt bewegen, wenn innerhalb des markierten Bereichs geklickt wird."
 
 #. Description of the 'Parent Element Selector' (Data) field in DocType 'Form
 #. Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Mozilla doesn't support :has() so you can pass parent selector here as workaround"
-msgstr "Mozilla unterstützt :has() nicht, daher können Sie hier den übergeordneten Selektor als Notlösung übergeben"
+msgstr "Mozilla unterstützt :has() nicht, daher können Sie hier den übergeordneten Selektor als Workaround übergeben"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:43
 msgid "Mr"
@@ -16578,7 +16579,7 @@ msgstr "Muss in '()' eingeschlossen sein und '{0}' enthalten, was ein Platzhalte
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Must be of type \"Attach Image\""
-msgstr "Muss vom Typ „Bild anhängen“ sein"
+msgstr "Muss vom Typ sein &quot;Bild anhängen&quot;"
 
 #: frappe/desk/query_report.py:211
 msgid "Must have report permission to access this report."
@@ -16591,7 +16592,7 @@ msgstr "Muss eine Abfrage angeben, die ausgeführt werden soll"
 #. Label of the mute_sounds (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Mute Sounds"
-msgstr "Töne stummschalten"
+msgstr "Tonausgabe still schalten"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:45
 msgid "Mx"
@@ -16677,7 +16678,7 @@ msgstr "Namen und Nachnamen allein sind leicht zu erraten."
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Naming"
-msgstr "Benennung"
+msgstr "Bezeichnung"
 
 #. Description of the 'Auto Name' (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -16686,7 +16687,7 @@ msgid "Naming Options:\n"
 "<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>"
 msgstr "Benennungsoptionen:\n"
 "<ol><li><b>field:[fieldname]</b> - Nach Feld</li><li><b>naming_series:</b> - Nach Nummernkreis (ein Feld namens naming_series muss vorhanden sein)</li><li><b>Prompt</b> - Aufforderung zur Eingabe eines Namens</li><li><b>[series]</b> - Zähler nach Präfix (durch einen Punkt getrennt); zum Beispiel PRE.#####</li>\n"
-"<li><b>format:EXAMPLE-{MM}mehrworte{fieldname1}-{fieldname2}-{#####}</b> - Ersetzt alle Wörter in geschweiften Klammern (Feldnamen, Datumskürzel (DD, MM, YY), Zähler) durch ihren Wert. Außerhalb der geschweiften Klammern können beliebige Zeichen verwendet werden.</li></ol>"
+"<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Ersetzt alle Wörter in geschweiften Klammern (Feldnamen, Datumskürzel (DD, MM, YY), Zähler) durch ihren Wert. Außerhalb der geschweiften Klammern können beliebige Zeichen verwendet werden.</li></ol>"
 
 #. Label of the naming_rule (Select) field in DocType 'DocType'
 #. Label of the naming_rule (Select) field in DocType 'Customize Form'
@@ -16735,13 +16736,13 @@ msgstr ""
 #. 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Navbar Template"
-msgstr "Vorlage für Navigationsleiste"
+msgstr "Navbar-Vorlage"
 
 #. Label of the navbar_template_values (Code) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Navbar Template Values"
-msgstr "Navigationsleiste-Vorlagenwerte"
+msgstr "Navbar-Vorlagenwerte"
 
 #: frappe/public/js/frappe/list/list_view.js:1388
 msgctxt "Description of a list view shortcut"
@@ -17097,7 +17098,7 @@ msgstr "Nächstes Quartal"
 #. Label of the next_schedule_date (Date) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Next Schedule Date"
-msgstr "Nächster Termin"
+msgstr "Nächste Termine Datum"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat_schedule.html:6
 msgid "Next Scheduled Date"
@@ -17118,7 +17119,7 @@ msgstr "Bedingung für den nächsten Schritt"
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 msgid "Next Sync Token"
-msgstr "Nächstes Synchronisierungstoken"
+msgstr "Nächstes Sync-Token"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:691
 msgid "Next Week"
@@ -17178,7 +17179,7 @@ msgstr "Keine aktiven Sessions"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "No Copy"
-msgstr "Nicht kopieren"
+msgstr "Keine Kopie"
 
 #: frappe/core/doctype/data_export/exporter.py:162
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:309
@@ -17438,7 +17439,7 @@ msgstr "Anzahl der angeforderten SMS"
 #. Label of the no_of_rows (Int) field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "No of Rows (Max 500)"
-msgstr "Anzahl der Zeilen (Max 500)"
+msgstr "Keine der Zeilen (Max 500)"
 
 #. Label of the no_of_sent_sms (Int) field in DocType 'SMS Log'
 #: frappe/core/doctype/sms_log/sms_log.json
@@ -17540,7 +17541,7 @@ msgstr "Nicht negativ"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:33
 msgid "Non-Conforming"
-msgstr "Nicht konform"
+msgstr ""
 
 #. Option for the 'Token Endpoint Auth Method' (Select) field in DocType 'OAuth
 #. Client'
@@ -17765,7 +17766,7 @@ msgstr "Hinweis: Um optimale Ergebnisse zu erzielen, müssen die Bilder dieselbe
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Note: Multiple sessions will be allowed in case of mobile device"
-msgstr "Hinweis: Mehrere Sitzungen werden im Fall mobiler Geräte erlaubt."
+msgstr "Hinweis: Mehrere Sitzungen wird im Falle einer mobilen Gerät erlaubt sein"
 
 #: frappe/core/doctype/user/user.js:394
 msgid "Note: This will be shared with user."
@@ -17898,7 +17899,7 @@ msgstr "Benachrichtigen, wenn unbeantwortet für (in Minuten)"
 #. Label of the notify_on_login (Check) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "Notify users with a popup when they log in"
-msgstr "Benutzer mit einem Popup benachrichtigen, wenn sie sich anmelden"
+msgstr "Benachrichtigen Sie die Benutzer mit einem Pop-up, wenn sie sich in"
 
 #: frappe/public/js/frappe/form/controls/datetime.js:28
 #: frappe/public/js/frappe/form/controls/time.js:37
@@ -17970,14 +17971,14 @@ msgstr "Anzahl der Backups muss größer als Null sein."
 #. Description of the 'Columns' (Int) field in DocType 'Customize Form Field'
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Number of columns for a field in a Grid (Total Columns in a grid should be less than 11)"
-msgstr "Anzahl der Spalten für ein Feld in einem Raster (die Gesamtzahl der Spalten in einem Raster sollte weniger als 11 betragen)"
+msgstr "Anzahl der Spalten für ein Feld in einem Raster (Total Spalten in einem Raster sollte weniger als 11)"
 
 #. Description of the 'Columns' (Int) field in DocType 'DocField'
 #. Description of the 'Columns' (Int) field in DocType 'Custom Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 msgid "Number of columns for a field in a List View or a Grid (Total Columns should be less than 11)"
-msgstr "Anzahl der Spalten für ein Feld in einer Listenansicht oder einem Raster (die Gesamtzahl der Spalten sollte weniger als 11 betragen)"
+msgstr "Anzahl der Spalten für ein Feld in einer Listenansicht oder einem Gitter (Total Spalten sollte weniger als 11)"
 
 #. Description of the 'Document Share Key Expiry (in Days)' (Int) field in
 #. DocType 'System Settings'
@@ -18070,7 +18071,7 @@ msgstr "OTP-App"
 #. Label of the otp_issuer_name (Data) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP Issuer Name"
-msgstr "Name des OTP-Ausstellers"
+msgstr "Name des OTP-Emittenten"
 
 #. Label of the otp_sms_template (Small Text) field in DocType 'System
 #. Settings'
@@ -18219,7 +18220,7 @@ msgstr "Am {0}, schrieb {1}:"
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 #: frappe/public/js/frappe/widgets/widget_dialog.js:335
 msgid "Onboard"
-msgstr "Im Onboarding"
+msgstr "Für Onboarding hervorheben"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:232
 msgid "Onboarding Name"
@@ -18303,7 +18304,7 @@ msgstr "Für das Datenfeld sind nur folgende Optionen zulässig:"
 #. Label of the data_modified_till (Int) field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Only Send Records Updated in Last X Hours"
-msgstr "Nur Datensätze senden, die in den letzten X Stunden aktualisiert wurden"
+msgstr "Nur Send Records aktualisiert in den letzten X Stunden"
 
 #: frappe/core/doctype/file/file.py:167
 msgid "Only System Managers can make this file public."
@@ -18387,7 +18388,7 @@ msgstr "Offen"
 #: frappe/desk/doctype/todo/todo_list.js:14
 msgctxt "Access"
 msgid "Open"
-msgstr "Öffnen"
+msgstr "Offen"
 
 #: frappe/desk/page/desktop/desktop.js:217
 #: frappe/desk/page/desktop/desktop.js:226
@@ -18433,7 +18434,7 @@ msgstr "Open-Source-Anwendungen für das Web"
 #. Label of the open_in_new_tab (Check) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "Open URL in a New Tab"
-msgstr "URL in einem neuen Tab öffnen"
+msgstr "Öffnen Sie die URL in einem neuen Tab"
 
 #. Description of the 'Quick Entry' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -18545,7 +18546,7 @@ msgstr "Option {0} für Feld {1} ist keine untergeordnete Tabelle"
 #. Description of the 'CC' (Code) field in DocType 'Notification Recipient'
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
 msgid "Optional: Always send to these ids. Each Email Address on a new row"
-msgstr "Optional: Immer diese Adressen senden. Jede E-Mail-Adresse in einer neuen Zeile"
+msgstr "Optional: Immer diese IDs senden. Jede E-Mail-Adresse in einer neuen Zeile"
 
 #. Description of the 'Condition' (Code) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -18846,7 +18847,7 @@ msgstr "Seite"
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:63
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Page Break"
-msgstr "Neue Seite"
+msgstr "Seitenumbruch"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.js:92
@@ -18862,7 +18863,7 @@ msgstr "Seitenbausteine"
 #. Label of the page_html (Section Break) field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
 msgid "Page HTML"
-msgstr "HTML-Bereich"
+msgstr "HTML-Seite"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:73
 msgid "Page Height (in mm)"
@@ -19185,7 +19186,7 @@ msgstr "Pfad"
 #. Label of the local_ca_certs_file (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Path to CA Certs File"
-msgstr "Pfad zur CA-Zertifikatsdatei"
+msgstr "Pfad zur CA Certs-Datei"
 
 #. Label of the local_server_certificate_file (Data) field in DocType 'LDAP
 #. Settings'
@@ -19249,7 +19250,7 @@ msgstr "Ausstehende Aufträge"
 #. Request'
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "Pending Verification"
-msgstr "Ausstehende Überprüfung"
+msgstr "Ausstehende Bestätigung"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -19410,7 +19411,7 @@ msgstr "Zulässige Dokumente für Benutzer"
 #. Action'
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 msgid "Permitted Roles"
-msgstr "Zulässige Rollen"
+msgstr "Erlaubte Rollen"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -19474,7 +19475,7 @@ msgstr "Spalten auswählen"
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Pie"
-msgstr "Kreisdiagramm"
+msgstr "Kuchen"
 
 #. Label of the pincode (Data) field in DocType 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
@@ -19947,7 +19948,7 @@ msgstr "Popover- oder Modal-Beschreibung"
 #: frappe/email/doctype/email_domain/email_domain.json
 #: frappe/printing/doctype/network_printer_settings/network_printer_settings.json
 msgid "Port"
-msgstr "Port"
+msgstr "Anschluss"
 
 #: frappe/www/me.html:81
 msgid "Portal"
@@ -20030,7 +20031,7 @@ msgstr "Vorhersehbare Substitutionen wie '@' anstelle von 'a' helfen nicht sehr 
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:34
 msgid "Prefer not to say"
-msgstr "Möchte ich nicht angeben"
+msgstr ""
 
 #. Label of the is_primary_address (Check) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -20149,7 +20150,7 @@ msgstr "Zurück"
 #: frappe/public/js/frappe/ui/slides.js:351
 msgctxt "Go to previous slide"
 msgid "Previous"
-msgstr "Vorhergehende"
+msgstr "Zurück"
 
 #: frappe/public/js/frappe/form/toolbar.js:328
 msgid "Previous Document"
@@ -20257,7 +20258,7 @@ msgstr "Druckformat-Generator"
 #. Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Print Format Builder Beta"
-msgstr "Druckformat-Generator Beta"
+msgstr "Format-Builder Beta drucken"
 
 #: frappe/utils/pdf.py:64
 msgid "Print Format Error"
@@ -20304,7 +20305,7 @@ msgstr "Druck-Kopfzeile"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Print Hide"
-msgstr "Drucken ausblenden"
+msgstr "Beim Drucken verbergen"
 
 #. Label of the print_hide_if_no_value (Check) field in DocType 'DocField'
 #. Label of the print_hide_if_no_value (Check) field in DocType 'Custom Field'
@@ -20314,7 +20315,7 @@ msgstr "Drucken ausblenden"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Print Hide If No Value"
-msgstr "Drucken ausblenden wenn kein Wert"
+msgstr "Druck verbergen wenn ohne Wert"
 
 #: frappe/public/js/frappe/views/communication.js:159
 msgid "Print Language"
@@ -20447,7 +20448,7 @@ msgstr "Backup der privaten Dateien:"
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference"
-msgstr "Tipp: Fügen Sie <code>Referenz: {{ reference_doctype }} {{ reference_name }}</code> hinzu, um ein Dokument zu referenzieren"
+msgstr "Protip: In <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> senden Dokumentverweis"
 
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.js:22
 msgid "Proceed"
@@ -20507,7 +20508,7 @@ msgstr "Eigenschaft"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Property Depends On"
-msgstr "Eigenschaft hängt ab von"
+msgstr "Eigentum hängt von ab"
 
 #. Name of a DocType
 #: frappe/custom/doctype/property_setter/property_setter.json
@@ -20626,23 +20627,23 @@ msgstr "E-Mails abrufen"
 #. Calendar'
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
 msgid "Pull from Google Calendar"
-msgstr "Aus Google Kalender abrufen"
+msgstr "Aus Google Kalender ziehen"
 
 #. Label of the pull_from_google_contacts (Check) field in DocType 'Google
 #. Contacts'
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 msgid "Pull from Google Contacts"
-msgstr "Aus Google-Kontakten abrufen"
+msgstr "Aus Google-Kontakten ziehen"
 
 #. Label of the pulled_from_google_calendar (Check) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Pulled from Google Calendar"
-msgstr "Aus Google Kalender abgerufen"
+msgstr "Aus Google Kalender gezogen"
 
 #. Label of the pulled_from_google_contacts (Check) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Pulled from Google Contacts"
-msgstr "Aus Google-Kontakten abgerufen"
+msgstr "Aus Google-Kontakten gezogen"
 
 #: frappe/email/doctype/email_account/email_account.js:209
 msgid "Pulling emails..."
@@ -20688,13 +20689,13 @@ msgstr "Push-Benachrichtigungen"
 #. Calendar'
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
 msgid "Push to Google Calendar"
-msgstr "An Google Kalender senden"
+msgstr "Push to Google Kalender"
 
 #. Label of the push_to_google_contacts (Check) field in DocType 'Google
 #. Contacts'
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 msgid "Push to Google Contacts"
-msgstr "An Google-Kontakte senden"
+msgstr "Zu Google-Kontakten verschieben"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.js:23
 msgid "Put on Hold"
@@ -20907,7 +20908,7 @@ msgstr "Anfragen begrenzen"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Rate limit for email link login"
-msgstr "Begrenzung für die Häufigkeit der Anmeldung per E-Mail-Link"
+msgstr "Ratenbegrenzung für die Anmeldung per E-Mail-Link"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -20929,7 +20930,7 @@ msgstr "Raw-Befehle"
 #. Label of the raw (Code) field in DocType 'Unhandled Email'
 #: frappe/email/doctype/unhandled_email/unhandled_email.json
 msgid "Raw Email"
-msgstr "Rohe E-Mail"
+msgstr "Raw E-Mail"
 
 #. Label of the raw_printing (Check) field in DocType 'Print Format'
 #. Label of the raw_printing_section (Section Break) field in DocType 'Print
@@ -21017,13 +21018,13 @@ msgstr "Nur Lese-Modus"
 #. Label of the read_by_recipient (Check) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Read by Recipient"
-msgstr "Vom Empfänger gelesen"
+msgstr "Nach Empfänger lesen"
 
 #. Label of the read_by_recipient_on (Datetime) field in DocType
 #. 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Read by Recipient On"
-msgstr "Vom Empfänger gelesen am"
+msgstr "Gelesen von Empfänger On"
 
 #: frappe/desk/doctype/note/note.js:10
 msgid "Read mode"
@@ -21173,19 +21174,19 @@ msgstr "Umleitungs-URI"
 #. DocType 'OAuth Authorization Code'
 #: frappe/integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 msgid "Redirect URI Bound To Auth Code"
-msgstr "An Authentifizierungscode gebundene Umleitungs-URI"
+msgstr "Redirect URI Bound To Auth-Code"
 
 #. Label of the redirect_uris (Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Redirect URIs"
-msgstr "Umleitungs-URIs"
+msgstr "Weiterleitungs-URIs"
 
 #. Label of the redirect_url (Small Text) field in DocType 'User'
 #. Label of the redirect_url (Data) field in DocType 'Social Login Key'
 #: frappe/core/doctype/user/user.json
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Redirect URL"
-msgstr "Umleitungs-URL"
+msgstr "Redirect-URL"
 
 #. Description of the 'Default App' (Select) field in DocType 'System Settings'
 #. Description of the 'Default App' (Select) field in DocType 'User'
@@ -21396,7 +21397,7 @@ msgstr "Referenzname"
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/communication/communication.json
 msgid "Reference Owner"
-msgstr "Referenzeigentümer"
+msgstr "Referenz Besitzer"
 
 #. Label of the reference_report (Data) field in DocType 'Report'
 #. Label of the reference_report (Link) field in DocType 'Onboarding Step'
@@ -21464,7 +21465,7 @@ msgstr "Druckvorschau aktualisieren"
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 #: frappe/integrations/doctype/token_cache/token_cache.json
 msgid "Refresh Token"
-msgstr "Aktualisierungstoken"
+msgstr "Aktualisieren Token"
 
 #: frappe/public/js/frappe/list/list_view.js:537
 msgctxt "Document count in list view"
@@ -21699,7 +21700,7 @@ msgstr "An Tagen wiederholen"
 #. Label of the repeat_on_last_day (Check) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Repeat on Last Day of the Month"
-msgstr "Am letzten Tag des Monats wiederholen"
+msgstr "Wiederholen Sie dies am letzten Tag des Monats"
 
 #. Label of the repeat_this_event (Check) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
@@ -21882,7 +21883,7 @@ msgstr "Berichts-Referenz-DocType"
 #. Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Report Reference Doctype"
-msgstr "Berichts-Referenz-DocType"
+msgstr "Berichtsreferenz Doctype"
 
 #. Label of the report_type (Select) field in DocType 'Report'
 #. Label of the report_type (Data) field in DocType 'Onboarding Step'
@@ -21987,7 +21988,7 @@ msgstr "Stellt die Zustände dar, die in einem Dokument erlaubt sind und die Rol
 
 #: frappe/integrations/doctype/webhook/webhook.js:101
 msgid "Request Body"
-msgstr "Anfragekörper"
+msgstr "Body anfordern"
 
 #. Label of the data (Code) field in DocType 'Integration Request'
 #. Title of the request-data Web Form
@@ -21995,7 +21996,7 @@ msgstr "Anfragekörper"
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/website/web_form/request_data/request_data.json
 msgid "Request Data"
-msgstr "Anfragedaten"
+msgstr "Daten anfordern"
 
 #. Label of the request_description (Data) field in DocType 'Integration
 #. Request'
@@ -22028,7 +22029,7 @@ msgstr "Anfragemethode"
 #. Label of the request_structure (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "Request Structure"
-msgstr "Anfragestruktur"
+msgstr "Struktur anfordern"
 
 #: frappe/public/js/frappe/request.js:231
 msgid "Request Timed Out"
@@ -22043,7 +22044,7 @@ msgstr "Zeitüberschreitung der Anfrage"
 #. Label of the request_url (Small Text) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "Request URL"
-msgstr "Anfrage-URL"
+msgstr "URL anfordern"
 
 #. Title of the request-to-delete-data Web Form
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
@@ -22059,13 +22060,13 @@ msgstr "Angeforderte Nummern"
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Require Trusted Certificate"
-msgstr "Vertrauenswürdiges Zertifikat erforderlich"
+msgstr "Vertrauenswürdiges Zertifikat anfordern"
 
 #. Description of the 'LDAP search path for Groups' (Data) field in DocType
 #. 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Requires any valid fdn path. i.e. ou=groups,dc=example,dc=com"
-msgstr "Erfordert jeden gültigen fdn-Pfad. z.B. ou=groups,dc=example,dc=com"
+msgstr "Benötigt einen gültigen fdn-Pfad. z.B. ou=groups,dc=example,dc=com"
 
 #. Description of the 'LDAP search path for Users' (Data) field in DocType
 #. 'LDAP Settings'
@@ -22230,7 +22231,7 @@ msgstr "Wiederherstellen der Standardeinstellungen?"
 #. Label of the restored (Check) field in DocType 'Deleted Document'
 #: frappe/core/doctype/deleted_document/deleted_document.json
 msgid "Restored"
-msgstr "Wiederhergestellt"
+msgstr "Restauriert"
 
 #: frappe/core/doctype/deleted_document/deleted_document.py:74
 msgid "Restoring Deleted Document"
@@ -22239,7 +22240,7 @@ msgstr "Gelöschtes Dokument wiederherstellen"
 #. Label of the restrict_ip (Small Text) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Restrict IP"
-msgstr "IP-Adressen einschränken"
+msgstr "IP beschränken"
 
 #. Label of the restrict_to_domain (Link) field in DocType 'DocType'
 #. Label of the restrict_to_domain (Link) field in DocType 'Module Def'
@@ -22256,12 +22257,12 @@ msgstr "Auf Domain beschränken"
 #: frappe/desk/doctype/workspace/workspace.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgid "Restrict to Domain"
-msgstr "Auf Domain beschränken"
+msgstr "Auf Domäne beschränken"
 
 #. Description of the 'Restrict IP' (Small Text) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)"
-msgstr "Beschränkt den Benutzerzugriff ausschließlich auf diese IP-Adresse. Mehrere IP-Adressen können durch Kommas getrennt hinzugefügt werden. Auch Teiladressen wie (111.111.111) sind zulässig"
+msgstr "Nur Benutzer, die von dieser IP-Adresse aus zugreifen, beschränken. Mehrere IP-Adressen können durch Trennung mit Komma hinzugefügt werden. Übernimmt auch Teil-IP-Adressen wie (111.111.111)"
 
 #: frappe/public/js/frappe/list/list_view.js:199
 msgctxt "Title of message showing restrictions in list view"
@@ -22299,7 +22300,7 @@ msgstr "Zurücksetzen der Länge auf {0} für '{1}' in '{2}'. Wenn Sie die Läng
 #. Label of the revocation_uri (Data) field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
 msgid "Revocation URI"
-msgstr "Widerruf-URI"
+msgstr "Widerrufs-URI"
 
 #: frappe/www/third_party_apps.html:47
 msgid "Revoke"
@@ -22308,7 +22309,7 @@ msgstr "Widerrufen"
 #. Option for the 'Status' (Select) field in DocType 'OAuth Bearer Token'
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 msgid "Revoked"
-msgstr "Widerrufen"
+msgstr "Gesperrte"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.js:92
@@ -23217,7 +23218,7 @@ msgstr "Sekunden"
 #: frappe/public/js/form_builder/components/Section.vue:263
 #: frappe/website/doctype/web_template/web_template.json
 msgid "Section"
-msgstr "Abschnitt"
+msgstr "Sektion"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -23232,7 +23233,7 @@ msgstr "Abschnitt"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Section Break"
-msgstr "Neuer Abschnitt"
+msgstr "Abschnittswechsel"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:421
 msgid "Section Heading"
@@ -23295,12 +23296,12 @@ msgstr "gelesen"
 #. Label of the seen_by_section (Section Break) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "Seen By"
-msgstr "Gesehen von"
+msgstr "gelesen von"
 
 #. Label of the seen_by (Table) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "Seen By Table"
-msgstr "Gesehen von Tabelle"
+msgstr "Gesehen durch Tabelle"
 
 #. Label of the select (Check) field in DocType 'Custom DocPerm'
 #. Option for the 'Type' (Select) field in DocType 'DocField'
@@ -23370,7 +23371,7 @@ msgstr "Dashboard auswählen"
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Select Date Range"
-msgstr "Datumsbereich auswählen"
+msgstr "Wählen Sie Datumsbereich"
 
 #. Label of the doc_type (Link) field in DocType 'Web Form'
 #: frappe/public/js/form_builder/components/controls/FetchFromControl.vue:28
@@ -23382,7 +23383,7 @@ msgstr "DocType auswählen"
 #. Label of the reference_doctype (Link) field in DocType 'Data Export'
 #: frappe/core/doctype/data_export/data_export.json
 msgid "Select Doctype"
-msgstr "Doctype auswählen"
+msgstr "Wählen Sie Doctype"
 
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:50
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:50
@@ -23498,7 +23499,7 @@ msgstr "Zeitzone auswählen"
 #. Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Select Transaction"
-msgstr "Transaktion auswählen"
+msgstr "Bitte Transaktionen auswählen"
 
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:68
 msgid "Select Workflow"
@@ -23629,7 +23630,7 @@ msgstr "Versenden nach"
 #. Label of the event (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Send Alert On"
-msgstr "Benachrichtigung senden bei"
+msgstr "Alarm senden bei"
 
 #. Label of the send_email_alert (Check) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -23656,7 +23657,7 @@ msgstr "E-Mail an den Ersteller senden"
 #. Label of the send_me_a_copy (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Send Me A Copy of Outgoing Emails"
-msgstr "Mir eine Kopie der ausgehenden E-Mails senden"
+msgstr "Schick mir eine Kopie der ausgehenden E-Mails"
 
 #. Label of the send_notification_to (Small Text) field in DocType 'Email
 #. Account'
@@ -23667,7 +23668,7 @@ msgstr "Benachrichtigung senden an"
 #. Label of the document_follow_notify (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Send Notifications For Documents Followed By Me"
-msgstr "Benachrichtigungen für von mir verfolgte Dokumente senden"
+msgstr "Senden Sie Benachrichtigungen für von mir verfolgte Dokumente"
 
 #. Label of the thread_notify (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -23717,7 +23718,7 @@ msgstr "Benachrichtigung senden, wenn Datum und Uhrzeit mit dem Wert des Feldes 
 #. Description of the 'Value Changed' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Send alert if this field's value changes"
-msgstr "Benachrichtigung senden, wenn sich der Wert dieses Feldes ändert"
+msgstr "Alarm senden, wenn sich der Wert dieses Feldes ändert"
 
 #. Label of the send_reminder (Check) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
@@ -23759,7 +23760,7 @@ msgstr "Nur dann senden, wenn Daten vorhanden sind"
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Send unsubscribe message in email"
-msgstr "Abmelde-Link in E-Mails hinzufügen"
+msgstr "Abmelde-Link in E-Mail-Nachrichten senden"
 
 #. Label of the sender (Data) field in DocType 'Event'
 #. Label of the sender (Data) field in DocType 'ToDo'
@@ -23838,7 +23839,7 @@ msgstr "Gesendet am"
 #. Label of the read_receipt (Check) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Sent Read Receipt"
-msgstr "Lesebestätigung gesendet"
+msgstr "Sent Lesebestätigung"
 
 #. Label of the sent_to (Code) field in DocType 'SMS Log'
 #: frappe/core/doctype/sms_log/sms_log.json
@@ -23897,7 +23898,7 @@ msgstr "Serverfehler"
 #. Label of the server_ip (Data) field in DocType 'Network Printer Settings'
 #: frappe/printing/doctype/network_printer_settings/network_printer_settings.json
 msgid "Server IP"
-msgstr "Server-IP-Adresse"
+msgstr "Server-IP"
 
 #. Label of the server_script (Link) field in DocType 'Scheduled Job Type'
 #. Name of a DocType
@@ -24076,7 +24077,7 @@ msgstr "Anzahl festlegen"
 #. Page and Report'
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 msgid "Set Role For"
-msgstr "Rolle festlegen für"
+msgstr "Rolle anwenden auf"
 
 #: frappe/core/doctype/user/user.js:129
 #: frappe/core/page/permission_manager/permission_manager.js:72
@@ -24124,7 +24125,7 @@ msgstr "Hier können Sie dynamische Filterwerte in JavaScript für die erforderl
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Set non-standard precision for a Float or Currency field"
-msgstr "Legen Sie eine nicht standardmäßige Präzision für ein Gleitkomma- oder Währungsfeld fest"
+msgstr "Keine Standard-Genauigkeit für ein Float- oder Währungsfeld einstellen"
 
 #. Description of the 'Precision' (Select) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -24231,7 +24232,7 @@ msgstr "Einstellungen"
 #. Label of the settings_dropdown (Table) field in DocType 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Settings Dropdown"
-msgstr "Einstellungen-Dropdown"
+msgstr "Dropdown-Liste Einstellungen"
 
 #. Description of a DocType
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
@@ -24312,7 +24313,7 @@ msgstr "{0} teilen mit"
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
 msgid "Shared"
-msgstr "Geteilt"
+msgstr "gemeinsam genutzt"
 
 #: frappe/desk/form/assign_to.py:132
 msgid "Shared with the following Users with Read access:{0}"
@@ -24470,7 +24471,7 @@ msgstr "Sprachauswahl anzeigen"
 #. Label of the line_breaks (Check) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Show Line Breaks after Sections"
-msgstr "Zeilenumbrüche nach Abschnitten anzeigen"
+msgstr "Zeige Zeilenumbrüche nach den Abschnitten"
 
 #: frappe/public/js/frappe/form/toolbar.js:443
 msgid "Show Links"
@@ -24484,7 +24485,7 @@ msgstr "Nur fehlgeschlagene Protokolle anzeigen"
 #. Label of the show_percentage_stats (Check) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Show Percentage Stats"
-msgstr "Prozentuale Statistiken anzeigen"
+msgstr "Prozentwerte anzeigen"
 
 #: frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.js:30
 msgid "Show Permissions"
@@ -24534,7 +24535,7 @@ msgstr "Zeige Abschnittsüberschriften"
 #. Label of the show_sidebar (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Show Sidebar"
-msgstr "Seitenleiste anzeigen"
+msgstr "Sidebar anzeigen"
 
 #. Label of the show_social_login_key_as_authorization_server (Check) field in
 #. DocType 'OAuth Settings'
@@ -24550,7 +24551,7 @@ msgstr "Schlagworte anzeigen"
 #. Label of the show_title (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Show Title"
-msgstr "Titel anzeigen"
+msgstr "Bezeichnung anzeigen"
 
 #. Label of the show_title_field_in_link (Check) field in DocType 'DocType'
 #. Label of the show_title_field_in_link (Check) field in DocType 'Customize
@@ -24558,7 +24559,7 @@ msgstr "Titel anzeigen"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Show Title in Link Fields"
-msgstr "Titel in Verknüpfungsfeld anzeigen"
+msgstr "Bezeichnung in Verknüpfungsfeld anzeigen"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1523
 msgid "Show Totals"
@@ -24590,7 +24591,7 @@ msgstr "Wochenenden anzeigen"
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Show account deletion link in My Account page"
-msgstr "Link zum Löschen des Kontos auf der Seite „Mein Konto“ anzeigen"
+msgstr "Link zum Löschen des Kontos auf der Seite Mein Konto anzeigen"
 
 #: frappe/core/doctype/version/version.js:6
 msgid "Show all Versions"
@@ -24603,7 +24604,7 @@ msgstr "Alle Aktivitäten anzeigen"
 #. Label of the show_as_cc (Small Text) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Show as cc"
-msgstr "Als CC anzeigen"
+msgstr "Stellen Sie als cc"
 
 #. Label of the show_attachments (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -24614,18 +24615,18 @@ msgstr "Anhänge anzeigen"
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Show footer on login"
-msgstr "Fußzeile bei der Anmeldung anzeigen"
+msgstr "Fußzeile beim Login anzeigen"
 
 #. Description of the 'Show Full Form?' (Check) field in DocType 'Onboarding
 #. Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Show full form instead of a quick entry modal"
-msgstr "Vollständiges Formular anstelle eines Schnelleingabe-Modals anzeigen"
+msgstr "Vollständige Form anstelle eines Modals für die schnelle Eingabe anzeigen"
 
 #. Label of the document_type (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Show in Module Section"
-msgstr "Im Modulbereich anzeigen"
+msgstr "Show in Modul Abschnitt"
 
 #. Label of the show_in_resource_metadata (Check) field in DocType 'Social
 #. Login Key'
@@ -24716,7 +24717,7 @@ msgstr "Elemente der Seitenleiste"
 #. Label of the section_break_4 (Section Break) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Sidebar Settings"
-msgstr "Einstellungen der Seitenleiste"
+msgstr "Sidebar-Einstellungen"
 
 #. Label of the section_break_17 (Section Break) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -24732,7 +24733,7 @@ msgstr "Abmelden"
 #. DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Sign Up and Confirmation"
-msgstr "Registrierung und Bestätigung"
+msgstr "Anmeldung und Bestätigung"
 
 #: frappe/core/doctype/user/user.py:1076
 msgid "Sign Up is disabled"
@@ -24761,7 +24762,7 @@ msgstr "Registrierungen"
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Signature"
-msgstr "Unterschrift"
+msgstr "Signatur"
 
 #: frappe/www/login.html:168
 msgid "Signup Disabled"
@@ -24792,7 +24793,7 @@ msgstr "Einfacher Python-Ausdruck, Beispiel: <code class=\"language-python\">sta
 #. Label of the simultaneous_sessions (Int) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Simultaneous Sessions"
-msgstr "Gleichzeitige Sitzungen"
+msgstr "Gleichzeitige Sessions"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:128
 msgid "Single DocTypes cannot be customized."
@@ -24873,7 +24874,7 @@ msgstr "Skype"
 #. Option for the 'Channel' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Slack"
-msgstr "Slack"
+msgstr "Locker"
 
 #. Label of the slack_webhook_url (Link) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -25258,7 +25259,7 @@ msgstr "Startdatum"
 #. Label of the start_date_field (Select) field in DocType 'Calendar View'
 #: frappe/desk/doctype/calendar_view/calendar_view.json
 msgid "Start Date Field"
-msgstr "Startdatumsfeld"
+msgstr "Startdatum Feld"
 
 #: frappe/core/doctype/data_import/data_import.js:111
 msgid "Start Import"
@@ -25293,7 +25294,7 @@ msgstr "StartTLS"
 #. Option for the 'Status' (Select) field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
 msgid "Started"
-msgstr "Gestartet"
+msgstr "Hat angefangen"
 
 #. Label of the started_at (Datetime) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -25331,7 +25332,7 @@ msgstr "Statuseigenschaften"
 #: frappe/contacts/doctype/address/address.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "State/Province"
-msgstr "Bundesland/Kanton"
+msgstr "Staat / Provinz"
 
 #. Label of the document_states_section (Tab Break) field in DocType 'DocType'
 #. Label of the states (Table) field in DocType 'Customize Form'
@@ -25629,7 +25630,7 @@ msgstr "Buchen"
 #: frappe/public/js/frappe/desk.js:227
 msgctxt "Submit password for Email Account"
 msgid "Submit"
-msgstr "Absenden"
+msgstr "Buchen"
 
 #. Label of the submit_after_import (Check) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
@@ -26167,7 +26168,7 @@ msgstr "Systembenachrichtigung"
 #. Label of the system_page (Check) field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
 msgid "System Page"
-msgstr "Systemseite"
+msgstr "System Seite"
 
 #. Name of a DocType
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -26178,7 +26179,7 @@ msgstr "Systemeinstellungen"
 #. 'Module Onboarding'
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 msgid "System managers are allowed by default"
-msgstr "Systemmanager sind standardmäßig erlaubt"
+msgstr "Systemmanager sind standardmäßig zulässig"
 
 #: frappe/public/js/frappe/utils/number_systems.js:5
 msgctxt "Number system"
@@ -26197,7 +26198,7 @@ msgstr "Nutzungsbedingungen-URI"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Tab Break"
-msgstr "Neue Registerkarte"
+msgstr "Tab-Umbruch"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:135
 msgid "Tab Label"
@@ -26223,7 +26224,7 @@ msgstr "Tabelle"
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Table Break"
-msgstr "Tabellenumbruch"
+msgstr "Tischpause"
 
 #: frappe/core/doctype/version/version_view.html:73
 msgid "Table Field"
@@ -26328,7 +26329,7 @@ msgstr "Teammitglieder"
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Team Members Heading"
-msgstr " Teammitglieder Überschrift"
+msgstr "Überschrift zu den Teammitgliedern"
 
 #. Label of the team_members_subtitle (Small Text) field in DocType 'About Us
 #. Settings'
@@ -26438,7 +26439,7 @@ msgstr "Text Inhalt"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Text Editor"
-msgstr "Text-Editor"
+msgstr "Text Bearbeiter"
 
 #: frappe/templates/emails/password_reset.html:5
 msgid "Thank you"
@@ -26486,8 +26487,8 @@ msgid "The Client ID obtained from the Google Cloud Console under <a href=\"http
 "\"APIs &amp; Services\" &gt; \"Credentials\"\n"
 "</a>"
 msgstr "Die Client-ID, die Sie in der Google Cloud Console unter <a href=\"https://console.cloud.google.com/apis/credentials\">\n"
-"\"APIs &amp; Services\" &gt; \"Credentials\"\n"
-"</a> erhalten"
+"\"APIs & Services\" > \"Credentials\"\n"
+"</a>erhalten"
 
 #: frappe/email/doctype/notification/notification.py:224
 msgid "The Condition '{0}' is invalid"
@@ -26517,7 +26518,7 @@ msgstr "Die Anwendung wurde auf eine neue Version aktualisiert, bitte aktualisie
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "The application name will be used in the Login page."
-msgstr "Der Anwendungsname wird auf der Anmeldeseite verwendet."
+msgstr "Der Name der Anwendung wird in der Anmeldeseite verwendet."
 
 #: frappe/public/js/frappe/views/interaction.js:323
 msgid "The attachments could not be correctly linked to the new document"
@@ -26851,7 +26852,7 @@ msgstr "Dieser Kanbantafel wird privat"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:665
 msgid "This Month"
-msgstr "Dieser Monat"
+msgstr ""
 
 #: frappe/core/doctype/file/file.py:406
 msgid "This PDF cannot be uploaded as it contains unsafe content."
@@ -26859,15 +26860,15 @@ msgstr "Dieses PDF kann nicht hochgeladen werden, da es unsichere Inhalte enthä
 
 #: frappe/public/js/frappe/ui/filters/filter.js:669
 msgid "This Quarter"
-msgstr "Dieses Quartal"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:661
 msgid "This Week"
-msgstr "Dieser Woche"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:673
 msgid "This Year"
-msgstr "Dieses Jahr"
+msgstr ""
 
 #: frappe/custom/doctype/customize_form/customize_form.js:220
 msgid "This action is irreversible. Do you wish to continue?"
@@ -26890,12 +26891,12 @@ msgstr "Diese Karte ist standardmäßig nur für Administratoren und Systemmanag
 #. Description of the 'Is Public' (Check) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "This card will be available to all Users if this is set"
-msgstr "Diese Karte steht allen Benutzern zur Verfügung, wenn diese Option aktiviert ist."
+msgstr "Diese Karte steht allen Benutzern zur Verfügung, wenn dies festgelegt ist"
 
 #. Description of the 'Is Public' (Check) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "This chart will be available to all Users if this is set"
-msgstr "Dieses Diagramm steht allen Benutzern zur Verfügung, wenn diese Option aktiviert ist."
+msgstr "Dieses Diagramm steht allen Benutzern zur Verfügung, wenn dies festgelegt ist"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:212
 msgid "This doctype has no orphan fields to trim"
@@ -26950,7 +26951,7 @@ msgid "This field will appear only if the fieldname defined here has value OR th
 "myfield\n"
 "eval:doc.myfield=='My Value'\n"
 "eval:doc.age&gt;18"
-msgstr "Dieses Feld wird nur angezeigt, wenn der hier definierte Feldname einen Wert hat ODER die Regeln wahr sind (Beispiele):\n"
+msgstr "Dieses Feld wird nur angezeigt, wenn der hier definierte Feldname Wert hat oder die Regeln wahr sind (Beispiele):\n"
 "myfield\n"
 "eval:doc.myfield=='Mein Wert'\n"
 "eval:doc.age&gt;18"
@@ -27090,7 +27091,7 @@ msgstr "Dies wird automatisch generiert, wenn Sie die Seite veröffentlichen. We
 #. 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "This will be shown in a modal after routing"
-msgstr "Dies wird nach dem Routing in einem Modal angezeigt"
+msgstr "Dies wird nach dem Routing modal angezeigt"
 
 #. Description of the 'Report Description' (Data) field in DocType 'Onboarding
 #. Step'
@@ -27123,7 +27124,7 @@ msgstr "Begrenzt"
 #. Label of the thumbnail_url (Small Text) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Thumbnail URL"
-msgstr "Vorschaubild-URL"
+msgstr "Thumbnail-URL"
 
 #. Option for the 'Day' (Select) field in DocType 'Assignment Rule Day'
 #. Option for the 'Day' (Select) field in DocType 'Auto Repeat Day'
@@ -27173,7 +27174,7 @@ msgstr "Zeitintervall"
 #. Label of the timeseries (Check) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Time Series"
-msgstr "Zeitreihen"
+msgstr "Zeitfolgen"
 
 #. Label of the based_on (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -27183,7 +27184,7 @@ msgstr "Zeitreihen basierend auf"
 #. Label of the time_taken (Duration) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
 msgid "Time Taken"
-msgstr "Benötigte Zeit"
+msgstr "Dauer"
 
 #. Label of the rate_limit_seconds (Int) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -27253,24 +27254,24 @@ msgstr "Zeitleiste"
 #. Label of the timeline_doctype (Link) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
 msgid "Timeline DocType"
-msgstr "Zeitleiste DocType"
+msgstr "Timeline-DocType"
 
 #. Label of the timeline_field (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Timeline Field"
-msgstr "Zeitleiste Feld"
+msgstr "Timeline-Feld"
 
 #. Label of the timeline_links_sections (Section Break) field in DocType
 #. 'Communication'
 #. Label of the timeline_links (Table) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Timeline Links"
-msgstr "Zeitleiste Verknüpfungen"
+msgstr "Timeline-Links"
 
 #. Label of the timeline_name (Dynamic Link) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
 msgid "Timeline Name"
-msgstr "Zeitleiste Name"
+msgstr "Timeline-Name"
 
 #: frappe/core/doctype/doctype/doctype.py:1553
 msgid "Timeline field must be a Link or Dynamic Link"
@@ -27293,7 +27294,7 @@ msgstr "Zeitüberschreitung (in Sekunden)"
 #. Label of the timeseries (Check) field in DocType 'Dashboard Chart Source'
 #: frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.json
 msgid "Timeseries"
-msgstr "Zeitreihen"
+msgstr "Zeitfolgen"
 
 #. Label of the timespan (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -27363,7 +27364,7 @@ msgstr "Titel"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Title Field"
-msgstr "Titelfeld"
+msgstr "Bezeichnungs-Feld"
 
 #. Label of the title_prefix (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -27542,7 +27543,7 @@ msgstr "Theme wechseln"
 #. Option for the 'Response Type' (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Token"
-msgstr "Token"
+msgstr "Zeichen"
 
 #. Name of a DocType
 #: frappe/integrations/doctype/token_cache/token_cache.json
@@ -27571,7 +27572,7 @@ msgstr "Token fehlt"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:738
 msgid "Tomorrow"
-msgstr "Morgen"
+msgstr ""
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:68
 #: frappe/model/workflow.py:310
@@ -27598,7 +27599,7 @@ msgstr "Zu viele Benutzer haben sich kürzlich registriert. Die Registrierung is
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:153
 msgid "Top"
-msgstr "Oben"
+msgstr "oben"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.js:13
 msgid "Top 10"
@@ -27612,7 +27613,7 @@ msgstr "Kopfleistensymbol"
 #. Label of the top_bar_items (Table) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Top Bar Items"
-msgstr "Kopfleistenelemente"
+msgstr "Kopfleistensymbole"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
@@ -27677,7 +27678,7 @@ msgstr "Anzahl ausgehender E-Mails"
 #. Label of the total_subscribers (Int) field in DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Total Subscribers"
-msgstr "Abonnenten insgesamt"
+msgstr "Gesamtanzahl der Abonnenten"
 
 #. Label of the total_users (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -27710,12 +27711,12 @@ msgstr "Summenzeile"
 #. Label of the trace_id (Data) field in DocType 'Error Log'
 #: frappe/core/doctype/error_log/error_log.json
 msgid "Trace ID"
-msgstr "Trace-ID"
+msgstr "Trace ID"
 
 #. Label of the traceback (Code) field in DocType 'Patch Log'
 #: frappe/core/doctype/patch_log/patch_log.json
 msgid "Traceback"
-msgstr "Rückverfolgung"
+msgstr "Zurück verfolgen"
 
 #. Label of the track_changes (Check) field in DocType 'DocType'
 #. Label of the track_changes (Check) field in DocType 'Customize Form'
@@ -27732,17 +27733,17 @@ msgstr "E-Mail-Status verfolgen"
 #. Label of the track_field (Data) field in DocType 'Milestone'
 #: frappe/automation/doctype/milestone/milestone.json
 msgid "Track Field"
-msgstr "Feld verfolgen"
+msgstr "Verfolge Feld"
 
 #. Label of the track_seen (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Track Seen"
-msgstr "Ansichten protokollieren"
+msgstr "Track gesehen"
 
 #. Label of the track_steps (Check) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "Track Steps"
-msgstr "Schritte protokollieren"
+msgstr "Schritte verfolgen"
 
 #. Label of the track_views (Check) field in DocType 'DocType'
 #. Label of the track_views (Check) field in DocType 'Customize Form'
@@ -27772,7 +27773,7 @@ msgstr "Tracking URL generiert und in die Zwischenablage kopiert"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:31
 msgid "Transgender"
-msgstr "Transgender"
+msgstr ""
 
 #: frappe/public/js/workflow_builder/components/Properties.vue:19
 msgid "Transition Properties"
@@ -27781,7 +27782,7 @@ msgstr "Übergangseigenschaften"
 #. Label of the transition_rules (Section Break) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Transition Rules"
-msgstr "Übergangsregeln"
+msgstr "Übergangsbestimmungen"
 
 #. Label of the transition_tasks (Link) field in DocType 'Workflow Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -27811,7 +27812,7 @@ msgstr "Daten übersetzen"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Translate Link Fields"
-msgstr "Verknüpfungsfelder übersetzen"
+msgstr "Verknünpfungsfelder übersetzen"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1662
 msgid "Translate values"
@@ -27843,7 +27844,7 @@ msgstr "Übersetzer"
 #. Option for the 'Email Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Trash"
-msgstr "Papierkorb"
+msgstr "Müll"
 
 #. Option for the 'View' (Select) field in DocType 'Form Tour'
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
@@ -27869,7 +27870,7 @@ msgstr "Die Baumansicht ist für {0} nicht verfügbar"
 #. Label of the method (Data) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Trigger Method"
-msgstr "Auslöser-Methode"
+msgstr "Trigger-Methode"
 
 #: frappe/public/js/frappe/ui/keyboard.js:196
 msgid "Trigger Primary Action"
@@ -27882,7 +27883,7 @@ msgstr "Caching auslösen"
 #. Description of the 'Trigger Method' (Data) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Trigger on valid methods like \"before_insert\", \"after_update\", etc (will depend on the DocType selected)"
-msgstr "Auslöser für gültige Methoden wie \"before_insert\", \"after_update\", usw. (hängt vom ausgewählten DocType ab)"
+msgstr "Trigger auf gültige Methoden wie &quot;before_insert&quot;, &quot;after_update&quot; usw. (hängt von der DocType ausgewählt)"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:144
 msgid "Trim Table"
@@ -27938,7 +27939,7 @@ msgstr "Zwei-Faktor-Authentifizierung"
 #. Label of the two_factor_method (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Two Factor Authentication method"
-msgstr "Zwei-Faktor-Authentifizierungsmethode"
+msgstr "Zwei Faktor-Authentifizierungsmethode"
 
 #. Label of the communication_medium (Select) field in DocType 'Communication'
 #. Label of the fieldtype (Select) field in DocType 'DocField'
@@ -28000,7 +28001,7 @@ msgstr "Typ:"
 #: frappe/desk/doctype/form_tour/form_tour.json
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "UI Tour"
-msgstr "Benutzeroberflächen-Tour"
+msgstr "UI-Tour"
 
 #. Label of the uid (Int) field in DocType 'Communication'
 #. Label of the uid (Data) field in DocType 'Email Flag Queue'
@@ -28009,21 +28010,21 @@ msgstr "Benutzeroberflächen-Tour"
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json
 #: frappe/email/doctype/unhandled_email/unhandled_email.json
 msgid "UID"
-msgstr "UID"
+msgstr "Eindeutige Kennung"
 
 #. Label of the uidnext (Int) field in DocType 'Email Account'
 #. Label of the uidnext (Data) field in DocType 'IMAP Folder'
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/imap_folder/imap_folder.json
 msgid "UIDNEXT"
-msgstr "UIDNEXT"
+msgstr "Nächste eindeutige Kennung"
 
 #. Label of the uidvalidity (Data) field in DocType 'Email Account'
 #. Label of the uidvalidity (Data) field in DocType 'IMAP Folder'
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/email/doctype/imap_folder/imap_folder.json
 msgid "UIDVALIDITY"
-msgstr "UIDVALIDITY"
+msgstr "Gültigkeit der eindeutigen Kennung"
 
 #. Option for the 'Email Sync Option' (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -28112,7 +28113,7 @@ msgstr "URL, die auf ein Logo für den Client verweist."
 #. Description of the 'URL' (Data) field in DocType 'Website Slideshow Item'
 #: frappe/website/doctype/website_slideshow_item/website_slideshow_item.json
 msgid "URL to go to on clicking the slideshow image"
-msgstr "URL, die beim Anklicken des Diashow-Bildes aufgerufen wird"
+msgstr "URL zum Aufrufen des Diashow-Bildes"
 
 #. Name of a DocType
 #: frappe/website/doctype/utm_campaign/utm_campaign.json
@@ -28173,7 +28174,7 @@ msgstr "Das Dateiformat für {0} kann nicht geschrieben werden."
 #. Label of the unassign_condition (Code) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Unassign Condition"
-msgstr "Bedingung für das Aufheben der Zuweisung"
+msgstr "Zuweisung der Bedingung aufheben"
 
 #: frappe/app.py:399
 msgid "Uncaught Exception"
@@ -28395,7 +28396,7 @@ msgstr "Nummernkreis-Wert aktualisieren"
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Update Settings"
-msgstr "Einstellungen aktualisieren"
+msgstr "Update Einstellungen"
 
 #: frappe/public/js/frappe/views/translation_manager.js:13
 msgid "Update Translations"
@@ -28541,7 +28542,7 @@ msgstr "IMAP verwenden"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Use Number Format from Currency"
-msgstr "Zahlenformat der jeweiligen Währung verwenden"
+msgstr ""
 
 #. Label of the use_post (Check) field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
@@ -28616,7 +28617,7 @@ msgstr "Nutzen Sie dies beispielsweise, wenn alle versendeten E-Mails auch an ei
 #. Label of the used_oauth (Check) field in DocType 'User Email'
 #: frappe/core/doctype/user_email/user_email.json
 msgid "Used OAuth"
-msgstr "OAuth verwendet"
+msgstr "OAuh verwendet"
 
 #. Label of the user (Link) field in DocType 'Assignment Rule User'
 #. Label of the user (Link) field in DocType 'Auto Repeat User'
@@ -28706,12 +28707,12 @@ msgstr "User-Agent"
 #. Label of the in_create (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "User Cannot Create"
-msgstr "Benutzer kann nicht erstellen"
+msgstr "Kann nicht von einem Benutzer erstellt werden"
 
 #. Label of the read_only (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "User Cannot Search"
-msgstr "Benutzer kann nicht durchsuchen"
+msgstr "Benutzer kann nicht suchen"
 
 #: frappe/public/js/frappe/desk.js:550
 msgid "User Changed"
@@ -28780,12 +28781,12 @@ msgstr "Benutzer-ID-Eigenschaft"
 #. Label of the user (Link) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "User Id"
-msgstr "Benutzer-ID"
+msgstr "Benutzeridentifikation"
 
 #. Label of the user_id_field (Select) field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
 msgid "User Id Field"
-msgstr "Benutzer-ID-Feld"
+msgstr "Benutzer-Id-Feld"
 
 #: frappe/core/doctype/user_type/user_type.py:283
 msgid "User Id Field is mandatory in the user type {0}"
@@ -28794,7 +28795,7 @@ msgstr "Benutzer-Id Feld ist obligatorisch in der Benutzerart {0}"
 #. Label of the user_image (Attach Image) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "User Image"
-msgstr "Benutzerbild"
+msgstr "Bild des Benutzers"
 
 #. Name of a DocType
 #: frappe/core/doctype/user_invitation/user_invitation.json
@@ -28894,13 +28895,13 @@ msgstr "Benutzertyp-Modul"
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "User can login using Email id or Mobile number"
-msgstr "Benutzer können sich mit ihrer E-Mail-Adresse oder Handynummer anmelden"
+msgstr "Benutzer können sich entweder mit Email-Adresse oder Handynummer anmelden"
 
 #. Description of the 'Allow Login using User Name' (Check) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "User can login using Email id or User Name"
-msgstr "Benutzer können sich entweder mit ihrer E-Mail-Adresse oder Benutzername anmelden"
+msgstr "Benutzer können sich entweder mit E-Mail-Adresse oder Benutzername anmelden"
 
 #: frappe/templates/includes/login/login.js:292
 msgid "User does not exist."
@@ -29160,7 +29161,7 @@ msgstr "Wert für {0} kann keine Liste sein"
 #. Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Value from this field will be set as the due date in the ToDo"
-msgstr "Der Wert aus diesem Feld wird als Fälligkeitsdatum im ToDo festgelegt"
+msgstr "Der Wert aus diesem Feld wird im Fälligkeitsdatum als Fälligkeitsdatum festgelegt"
 
 #: frappe/core/doctype/data_import/importer.py:713
 msgid "Value must be one of {0}"
@@ -29299,12 +29300,12 @@ msgstr "Anzeigen von zulässigen Dokumenten"
 #. Label of the view_properties (Button) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "View Properties (via Customize Form)"
-msgstr "Eigenschaften anzeigen (über „Formular anpassen“)"
+msgstr "Eigenschaften anzeigen (über benutzerdefiniertes Formular)"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "View Report"
-msgstr "Bericht anzeigen"
+msgstr "Zeige Bericht"
 
 #. Label of the view_settings (Section Break) field in DocType 'DocType'
 #. Label of the view_settings_section (Section Break) field in DocType
@@ -29321,7 +29322,7 @@ msgstr ""
 #. Label of the view_switcher (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "View Switcher"
-msgstr "Ansichtsumschalter"
+msgstr "Ansicht wechseln"
 
 #. Label of a standard navbar item
 #. Type: Action
@@ -29506,7 +29507,7 @@ msgstr "Web-Formularfeld"
 #. Label of the web_form_fields (Table) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Web Form Fields"
-msgstr "Webformular-Felder"
+msgstr "Web-Formularfelder"
 
 #. Name of a DocType
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json
@@ -29583,12 +29584,12 @@ msgstr "Webhook-Kopfzeile"
 #. Label of the sb_webhook_headers (Section Break) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "Webhook Headers"
-msgstr "Webhook-Header"
+msgstr "Webhook Header"
 
 #. Label of the sb_webhook (Section Break) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "Webhook Request"
-msgstr "Webhook-Anfrage"
+msgstr "Webhook Anfrage"
 
 #. Label of a Link in the Build Workspace
 #. Name of a DocType
@@ -29673,7 +29674,7 @@ msgstr "Webseiten-Skript"
 #. Label of the website_search_field (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Website Search Field"
-msgstr "Webseiten-Suchfeld"
+msgstr "Website-Suchfeld"
 
 #: frappe/core/doctype/doctype/doctype.py:1537
 msgid "Website Search Field must be a valid fieldname"
@@ -29815,7 +29816,7 @@ msgstr "Willkommen"
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Welcome Email Template"
-msgstr "Willkommens-E-Mail-Vorlage"
+msgstr "Willkommen E-Mail-Vorlage"
 
 #. Label of the welcome_url (Data) field in DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
@@ -30297,7 +30298,7 @@ msgstr "Ja"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:726
 msgid "Yesterday"
-msgstr "Gestern"
+msgstr ""
 
 #: frappe/public/js/frappe/utils/user.js:33
 msgctxt "Name of the current user. For example: You edited this 5 hours ago."
@@ -31014,28 +31015,28 @@ msgstr "Dashboard"
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "dd-mm-yyyy"
-msgstr "tt-mm-jjjj"
+msgstr "TT-MM-JJJJ"
 
 #. Option for the 'Date Format' (Select) field in DocType 'Language'
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "dd.mm.yyyy"
-msgstr "tt.mm.jjjj"
+msgstr "TT.MM.JJJJ"
 
 #. Option for the 'Date Format' (Select) field in DocType 'Language'
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "dd/mm/yyyy"
-msgstr "tt/mm/jjjj"
+msgstr "TT/MM/JJJJ"
 
 #. Option for the 'Queue' (Select) field in DocType 'RQ Job'
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_job/rq_job.json
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "default"
-msgstr "Standard"
+msgstr "standard"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -31078,7 +31079,7 @@ msgstr "z.B. pop.gmail.com / imap.gmail.com"
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "e.g. replies@yourcomany.com. All replies will come to this inbox."
-msgstr "z. B. antworten@ihrefirma.de. Alle Antworten werden in dieses Postfach gesendet."
+msgstr "z. B. replies@yourcomany.com. Alle Antworten werden in dieses Postfach gelegt."
 
 #. Description of the 'Outgoing Server' (Data) field in DocType 'Email Account'
 #. Description of the 'Outgoing Server' (Data) field in DocType 'Email Domain'
@@ -31154,7 +31155,7 @@ msgstr "grau"
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "green"
-msgstr "grün"
+msgstr "Grün"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -31207,7 +31208,7 @@ msgstr "hellblau"
 #. Settings'
 #: frappe/website/doctype/social_link_settings/social_link_settings.json
 msgid "linkedin"
-msgstr "LinkedIn"
+msgstr "Linkedin"
 
 #: frappe/www/third_party_apps.html:43
 msgid "logged in"
@@ -31244,14 +31245,14 @@ msgstr "fusionierte {0} in {1}"
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "mm-dd-yyyy"
-msgstr "mm-tt-jjjj"
+msgstr "MM-TT-JJJJ"
 
 #. Option for the 'Date Format' (Select) field in DocType 'Language'
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "mm/dd/yyyy"
-msgstr "mm/tt/jjjj"
+msgstr "MM/TT/JJJJ"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:240
 msgid "module name..."
@@ -31268,7 +31269,7 @@ msgstr "neuer Dokumententyp"
 #. Label of the no_failed (Int) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "no failed attempts"
-msgstr "keine Fehlversuche"
+msgstr "Keine Fehlversuche"
 
 #. Label of the nonce (Data) field in DocType 'OAuth Authorization Code'
 #: frappe/integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
@@ -31331,7 +31332,7 @@ msgstr "oder"
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "orange"
-msgstr "orange"
+msgstr "Orange"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -31363,7 +31364,7 @@ msgstr "lila"
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
 msgid "queued"
-msgstr "in der Warteschlange"
+msgstr "warteschlange"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -31384,7 +31385,7 @@ msgstr "umbenannt von {0} {1}"
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "report"
-msgstr "Bericht"
+msgstr "bericht"
 
 #. Label of the response (HTML) field in DocType 'Custom Role'
 #: frappe/core/doctype/custom_role/custom_role.json
@@ -31422,7 +31423,7 @@ msgstr "auswählen"
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "share"
-msgstr "teilen"
+msgstr "Aktie"
 
 #. Option for the 'Queue' (Select) field in DocType 'RQ Job'
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
@@ -32094,15 +32095,15 @@ msgstr "{0} muss nach {1} liegen"
 
 #: frappe/model/document.py:1613
 msgid "{0} must be beginning with '{1}'"
-msgstr "{0} muss mit '{1}' beginnen"
+msgstr ""
 
 #: frappe/model/document.py:1615
 msgid "{0} must be equal to '{1}'"
-msgstr "{0} muss gleich '{1}' sein"
+msgstr ""
 
 #: frappe/model/document.py:1611
 msgid "{0} must be none of {1}"
-msgstr "{0} darf nichts von {1} sein"
+msgstr ""
 
 #: frappe/model/document.py:1609 frappe/utils/csvutils.py:161
 msgid "{0} must be one of {1}"
@@ -32118,7 +32119,7 @@ msgstr "{0} muss einmalig sein"
 
 #: frappe/model/document.py:1617
 msgid "{0} must be {1} {2}"
-msgstr "{0} muss {1} {2} sein"
+msgstr ""
 
 #: frappe/core/doctype/language/language.py:79
 msgid "{0} must begin and end with a letter and can only contain letters, hyphen or underscore."
