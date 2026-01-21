@@ -4,7 +4,7 @@
 		:studioComponent="block"
 		:evaluationContext="evaluationContext"
 	/>
-	<template v-else>
+	<template v-else-if="block.canHaveChildren()">
 		<component
 			ref="componentRef"
 			v-if="showComponent"
@@ -34,6 +34,20 @@
 
 			<AppComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
 		</component>
+	</template>
+
+	<!-- Rendering separately to avoid empty slots being passed as default slots to components like Dropdown -->
+	<template v-else>
+		<component
+			ref="componentRef"
+			v-if="showComponent"
+			:is="componentName"
+			v-bind="componentProps"
+			v-on="{ ...vModelListeners, ...componentEvents }"
+			:data-component-id="block.componentId"
+			:style="styles"
+			:class="classes"
+		/>
 	</template>
 </template>
 
