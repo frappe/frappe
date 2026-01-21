@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2025-03-31 17:43\n"
+"PO-Revision-Date: 2026-01-21 08:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -1165,7 +1165,7 @@ msgstr "Adicionar Linha de Total"
 #. Label of a Check field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Add Translate Data"
-msgstr ""
+msgstr "Adicionar Dados Traduzidos"
 
 #. Label of a Check field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
@@ -3429,7 +3429,7 @@ msgstr ""
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Blue"
-msgstr "Azul"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Custom Field'
@@ -3843,7 +3843,7 @@ msgstr ""
 #: frappe/website/doctype/web_page_view/web_page_view.json
 #: frappe/website/report/website_analytics/website_analytics.js:39
 msgid "Campaign"
-msgstr "Campanha"
+msgstr ""
 
 #. Label of a Small Text field in DocType 'Marketing Campaign'
 #: frappe/website/doctype/marketing_campaign/marketing_campaign.json
@@ -7881,7 +7881,7 @@ msgstr ""
 #: frappe/public/js/print_format_builder/HTMLEditor.vue:5
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:52
 msgid "Done"
-msgstr "Feito"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -8877,7 +8877,7 @@ msgstr ""
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:51
 msgid "End"
-msgstr ""
+msgstr "Fim"
 
 #. Label of a Date field in DocType 'Auto Repeat'
 #. Label of a Datetime field in DocType 'Web Page'
@@ -9343,7 +9343,7 @@ msgstr "Expira em"
 #. Label of a Date field in DocType 'Document Share Key'
 #: frappe/core/doctype/document_share_key/document_share_key.json
 msgid "Expires On"
-msgstr "Expira Em"
+msgstr ""
 
 #. Label of a Int field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -11063,7 +11063,7 @@ msgstr ""
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:252
 msgid "Google Calendar - Could not find Calendar for {0}, error code {1}."
-msgstr ""
+msgstr "Google Agenda - Não foi possível encontrar o Agenda para {0}, código de erro {1}."
 
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:234
 msgid "Google Calendar - Could not insert contact in Google Contacts {0}, error code {1}."
@@ -11220,7 +11220,7 @@ msgstr ""
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Green"
-msgstr "Verde"
+msgstr ""
 
 #: frappe/public/js/form_builder/components/controls/TableControl.vue:46
 msgid "Grid Empty State"
@@ -12401,7 +12401,7 @@ msgstr "Mostrar na Visualização da Lista"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.js:19
 msgid "In Minutes"
-msgstr ""
+msgstr "Em minutos"
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Custom Field'
@@ -13953,7 +13953,7 @@ msgstr "Deixar essa conversa"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Ledger"
-msgstr "Livro Razão"
+msgstr ""
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #. Option for the 'Align' (Select) field in DocType 'Letter Head'
@@ -14991,7 +14991,7 @@ msgstr ""
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:51
 msgid "Master"
-msgstr "Cadastro"
+msgstr ""
 
 #. Description of the 'Limit' (Int) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
@@ -15204,7 +15204,7 @@ msgstr "Parâmetro da mensagem"
 
 #: frappe/templates/includes/contact.js:36
 msgid "Message Sent"
-msgstr "Mensagem Enviada"
+msgstr ""
 
 #. Label of a Select field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -15400,7 +15400,7 @@ msgstr "Faltando valores obrigatórios"
 
 #: frappe/www/login.py:105
 msgid "Mobile"
-msgstr "Móvel"
+msgstr ""
 
 #. Label of a Data field in DocType 'Contact'
 #. Label of a Data field in DocType 'User'
@@ -17256,7 +17256,7 @@ msgstr ""
 #. Request'
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "On Hold"
-msgstr "Em Espera"
+msgstr ""
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -19287,7 +19287,7 @@ msgstr ""
 #: frappe/automation/workspace/tools/tools.json
 #: frappe/printing/doctype/print_heading/print_heading.json
 msgid "Print Heading"
-msgstr "Cabeçalho de Impressão"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Custom Field'
@@ -20129,7 +20129,7 @@ msgstr ""
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Red"
-msgstr "Vermelho"
+msgstr ""
 
 #. Label of a Select field in DocType 'Website Route Redirect'
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json
@@ -20340,7 +20340,7 @@ msgstr ""
 #: frappe/social/doctype/energy_point_log/energy_point_log.json
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 msgid "Reference Name"
-msgstr "Nome de Referência"
+msgstr ""
 
 #. Label of a Read Only field in DocType 'Activity Log'
 #. Label of a Data field in DocType 'Comment'
@@ -23268,7 +23268,7 @@ msgstr "Expedição"
 
 #: frappe/public/js/frappe/form/templates/address_list.html:25
 msgid "Shipping Address"
-msgstr "Endereço Para Entrega"
+msgstr ""
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -24273,7 +24273,7 @@ msgstr ""
 
 #: frappe/core/doctype/recorder/recorder_list.js:87
 msgid "Stop"
-msgstr "Parar"
+msgstr ""
 
 #. Label of a Check field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -24696,7 +24696,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_sidebar.js:296
 msgid "Switch to Frappe CRM for smarter sales"
-msgstr ""
+msgstr "Mude para o Frappe CRM para vendas mais inteligentes"
 
 #: frappe/public/js/frappe/ui/capture.js:273
 msgid "Switching Camera"
@@ -26360,7 +26360,7 @@ msgstr ""
 #. Label of a Card Break in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "Tools"
-msgstr "Ferramentas"
+msgstr ""
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -26942,7 +26942,7 @@ msgstr "Único"
 
 #: frappe/website/report/website_analytics/website_analytics.js:59
 msgid "Unknown"
-msgstr "Desconhecido"
+msgstr ""
 
 #: frappe/public/js/frappe/model/model.js:209
 msgid "Unknown Column: {0}"
@@ -27189,7 +27189,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_sidebar.js:308
 msgid "Upgrade your support experience with Frappe Helpdesk"
-msgstr ""
+msgstr "Atualize sua experiência de suporte com o Frappe Helpdesk"
 
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:121
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:122
@@ -27947,7 +27947,7 @@ msgstr "URL do vídeo"
 #. Label of a Select field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "View"
-msgstr "Visão"
+msgstr ""
 
 #: frappe/core/doctype/success_action/success_action.js:60
 #: frappe/public/js/frappe/form/success_action.js:89
@@ -28051,7 +28051,7 @@ msgstr "Visto por"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/workspace/build/build.json
 msgid "Views"
-msgstr "Visualizações"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -28815,7 +28815,7 @@ msgstr ""
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:35
 msgid "Wrapping up"
-msgstr "Empacotando"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
