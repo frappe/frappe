@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2025-12-24 20:23\n"
+"PO-Revision-Date: 2026-01-21 06:47\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -14,8 +14,8 @@ msgstr ""
 "X-Crowdin-Project: frappe\n"
 "X-Crowdin-Project-ID: 639578\n"
 "X-Crowdin-Language: fr\n"
-"X-Crowdin-File: /[frappe.frappe] develop/frappe/locale/main.pot\n"
-"X-Crowdin-File-ID: 52\n"
+"X-Crowdin-File: /[frappe.frappe] version-16-hotfix/frappe/locale/main.pot\n"
+"X-Crowdin-File-ID: 138\n"
 "Language: fr_FR\n"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
@@ -1625,7 +1625,7 @@ msgstr "Après l'insertion"
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Rename"
-msgstr ""
+msgstr "Après le renommage"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -1752,7 +1752,7 @@ msgstr "Tous les champs sont nécessaires pour soumettre le commentaire."
 #. Description of the 'Document States' (Table) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "All possible Workflow States and roles of the workflow. Docstatus Options: 0 is \"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\""
-msgstr "Tous les états de workflow et les rôles possibles du workflow. Les options d'état de Doc: 0 sont \"Enregistrés\", 1 est \"Envoyé\" et 2 est \"Annulé\""
+msgstr "Tous les états de flux de travail et les rôles possibles du flux de travail. Les options d'état de Doc: 0 sont \"Enregistrés\", 1 est \"Envoyé\" et 2 est \"Annulé\""
 
 #: frappe/utils/password_strength.py:183
 msgid "All-uppercase is almost as easy to guess as all-lowercase."
@@ -2033,7 +2033,7 @@ msgstr "Autorisé dans les mentions"
 #. Type'
 #: frappe/core/doctype/user_type/user_type.json
 msgid "Allowed Modules"
-msgstr "Modules autorisés"
+msgstr ""
 
 #. Label of the allowed_public_client_origins (Small Text) field in DocType
 #. 'OAuth Settings'
@@ -2228,7 +2228,7 @@ msgstr "Ancêtres de"
 #. Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Announcement Widget"
-msgstr "Widget d'annonce"
+msgstr ""
 
 #. Label of the announcements_section (Section Break) field in DocType 'Navbar
 #. Settings'
@@ -3073,12 +3073,12 @@ msgstr "L&#39;affectation automatique a échoué: {0}"
 #. Label of the follow_assigned_documents (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Auto follow documents that are assigned to you"
-msgstr "Suivez automatiquement les documents qui vous sont affectés"
+msgstr ""
 
 #. Label of the follow_shared_documents (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Auto follow documents that are shared with you"
-msgstr "Suivez automatiquement les documents partagés avec vous"
+msgstr ""
 
 #. Label of the follow_liked_documents (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -3111,7 +3111,7 @@ msgstr "Auto-complétion"
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Autoincrement"
-msgstr "Auto-incrémentation"
+msgstr ""
 
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -3279,7 +3279,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/communication.js:81
 msgctxt "Email Recipients"
 msgid "BCC"
-msgstr "Cci"
+msgstr ""
 
 #: frappe/public/js/frappe/file_uploader/ImageCropper.vue:31
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:181
@@ -3337,7 +3337,7 @@ msgstr "Vérification des Travaux en Arrière-plan"
 #. Label of the background_jobs_queue (Autocomplete) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "Background Jobs Queue"
-msgstr "Fille d'attente des Travaux en Arrière-plan"
+msgstr ""
 
 #: frappe/public/js/frappe/list/bulk_operations.js:87
 msgid "Background Print (required for >25 documents)"
@@ -3874,7 +3874,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/communication.js:74
 msgctxt "Email Recipients"
 msgid "CC"
-msgstr "CC"
+msgstr ""
 
 #. Label of the cmd (Data) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -4364,7 +4364,7 @@ msgstr ""
 #: frappe/tests/test_translate.py:112
 msgctxt "Coins"
 msgid "Change"
-msgstr "la monnaie"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:38
 msgid "Change Image"
@@ -4873,7 +4873,7 @@ msgstr ""
 #: frappe/geo/doctype/country/country.json
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Code"
-msgstr "Code"
+msgstr ""
 
 #. Label of the code_challenge (Data) field in DocType 'OAuth Authorization
 #. Code'
@@ -5920,7 +5920,7 @@ msgstr ""
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Cron"
-msgstr "Cron"
+msgstr ""
 
 #. Label of the cron_format (Data) field in DocType 'Scheduled Job Type'
 #. Label of the cron_format (Data) field in DocType 'Server Script'
@@ -7329,7 +7329,7 @@ msgstr ""
 #. Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Comment Count"
-msgstr "Désactiver le comptage des commentaires"
+msgstr ""
 
 #. Label of the disable_count (Check) field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
@@ -7713,7 +7713,7 @@ msgstr ""
 #. Description of the 'Document Type' (Link) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "DocType on which this Workflow is applicable."
-msgstr "DocType pour lequel ce Workflow est applicable."
+msgstr "DocType pour lequel ce Flux de Travail est applicable."
 
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:4
 msgid "DocType required"
@@ -8808,7 +8808,7 @@ msgstr "Règle Email"
 #. Label of the email_sent_at (Datetime) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Email Sent At"
-msgstr "Email Envoyé à"
+msgstr ""
 
 #. Label of the email_settings_sb (Section Break) field in DocType 'DocType'
 #. Label of the email_settings_section (Section Break) field in DocType
@@ -12363,7 +12363,7 @@ msgstr "Si \"Appliquer des autorisations d'utilisateur strictes\" est coché et 
 #: frappe/workflow/doctype/workflow/workflow.json
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "If Checked workflow status will not override status in list view"
-msgstr "Si coché, le statut du workflow ne remplacera pas le statut de la vue en liste"
+msgstr "Si Cochée le statut du flux de travail ne remplacera pas le statut de la vue en liste"
 
 #: frappe/core/doctype/doctype/doctype.py:1798
 #: frappe/core/report/user_doctype_permissions/user_doctype_permissions.py:45
@@ -22574,7 +22574,7 @@ msgstr ""
 #. Description of the 'Transitions' (Table) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Rules defining transition of state in the workflow."
-msgstr "Règles définissant la transition d'état dans le Workflow."
+msgstr "Règles définissant la transition d'état dans le flux de travail"
 
 #. Description of the 'Transition Rules' (Section Break) field in DocType
 #. 'Workflow'
@@ -25536,7 +25536,7 @@ msgstr ""
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:132
 msgid "Submit on Creation"
-msgstr "Valider à la création"
+msgstr ""
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:395
 msgid "Submit this document to complete this step."
@@ -26197,7 +26197,7 @@ msgstr ""
 #. Label of the tasks (Table) field in DocType 'Workflow Transition Tasks'
 #: frappe/workflow/doctype/workflow_transition_tasks/workflow_transition_tasks.json
 msgid "Tasks"
-msgstr "Tâches"
+msgstr ""
 
 #. Label of the sb1 (Section Break) field in DocType 'About Us Settings'
 #. Label of the team_members (Table) field in DocType 'About Us Settings'
@@ -27080,7 +27080,7 @@ msgstr "Fuseaux Horaires"
 #. Label of the time_format (Data) field in DocType 'Country'
 #: frappe/geo/doctype/country/country.json
 msgid "Time format"
-msgstr "Format de l’heure"
+msgstr "Format de l&#39;heure"
 
 #. Label of the time_in_queries (Float) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -29814,7 +29814,7 @@ msgstr "Actions de Base du Workflow"
 #. Master'
 #: frappe/workflow/doctype/workflow_action_master/workflow_action_master.json
 msgid "Workflow Action Name"
-msgstr "Nom de l'Action du Workflow"
+msgstr "Nom de l'Action du Flux de Travail"
 
 #. Name of a DocType
 #: frappe/workflow/doctype/workflow_action_permitted_role/workflow_action_permitted_role.json
@@ -29825,7 +29825,7 @@ msgstr ""
 #. Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Workflow Action is not created for optional states"
-msgstr "L’action du workflow n’est pas créée pour les états facultatifs"
+msgstr "L&#39;action de flux de travail n&#39;est pas créée pour les états facultatifs"
 
 #: frappe/public/js/workflow_builder/store.js:129
 #: frappe/workflow/doctype/workflow/workflow.js:25
@@ -29863,7 +29863,7 @@ msgstr "État du Document du Workflow"
 #. Label of the workflow_name (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Workflow Name"
-msgstr "Nom du Workflow"
+msgstr "Nom du Flux de Travail"
 
 #. Label of the workflow_state (Data) field in DocType 'Workflow Action'
 #. Name of a DocType
@@ -29875,7 +29875,7 @@ msgstr "État du Workflow"
 #. Label of the workflow_state_field (Data) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Workflow State Field"
-msgstr "Champ de l'État du Workflow"
+msgstr "Champ de l'État du Flux de Travail"
 
 #: frappe/model/workflow.py:64
 msgid "Workflow State not set"
