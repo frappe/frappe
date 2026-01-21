@@ -8,7 +8,7 @@ import {
 	confirm,
 	getInitialVariableValue,
 } from "@/utils/helpers"
-import { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson, jsonToJs } from "@/utils/serializer"
+import { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson } from "@/utils/serializer"
 import { studioPages } from "@/data/studioPages"
 import { studioApps } from "@/data/studioApps"
 import { studioVariables } from "@/data/studioVariables"
@@ -155,7 +155,7 @@ const useStudioStore = defineStore("store", () => {
 		await setPageData(page)
 		await codeStore.setPageWatchers(page)
 
-		const blocks = jsonToJs(page.draft_blocks || page.blocks || "[]")
+		const blocks = JSON.parse(page.draft_blocks || page.blocks || "[]")
 		if (blocks.length === 0) {
 			pageBlocks.value = [getRootBlock()]
 		} else {

@@ -50,7 +50,7 @@ import { tomorrow } from "thememirror"
 import JSON5 from "json5"
 import { isPrivateKey } from "@/utils/helpers"
 import { normalizeCode } from "@/utils/code"
-import { jsonReplacer, jsonToJs, parseObjectString } from "@/utils/serializer"
+import { jsonReplacer, parseObjectString } from "@/utils/serializer"
 
 import InputLabel from "@/components/InputLabel.vue"
 
@@ -113,7 +113,7 @@ const syncToParent = () => {
 		let value = code.value || ""
 		if (value && !value.startsWith("{{")) {
 			if (props.language === "json") {
-				value = jsonToJs(value)
+				value = JSON.parse(value)
 			} else if (props.language === "javascript" && isValidObjectString(value)) {
 				value = parseObjectString(value)
 			}

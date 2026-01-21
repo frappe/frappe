@@ -10,7 +10,7 @@ import type { ObjectLiteral, BlockOptions } from "@/types"
  */
 function isJSONString(str: string) {
 	try {
-		jsonToJs(str)
+		JSON.parse(str)
 	} catch (e) {
 		return false
 	}
@@ -38,13 +38,9 @@ function jsToJson(obj: ObjectLiteral): string {
 	return JSON.stringify(obj, jsonReplacer, 2)
 }
 
-function jsonToJs(json: string): any {
-	return JSON.parse(json)
-}
-
 function copyObject<T>(obj: T) {
 	if (!obj) return {}
-	return jsonToJs(jsToJson(obj))
+	return JSON.parse(jsToJson(obj))
 }
 
 function parseObjectString(jsString: string) {
@@ -92,12 +88,12 @@ function getBlockString(block: BlockOptions | Block): string {
 }
 
 function getBlockObjectCopy(block: BlockOptions | Block): BlockOptions {
-	return jsonToJs(getBlockString(block))
+	return JSON.parse(getBlockString(block))
 }
 
 function getBlockInstance(options: BlockOptions | string, retainId = true): Block {
 	if (typeof options === "string") {
-		options = jsonToJs(options) as BlockOptions
+		options = JSON.parse(options) as BlockOptions
 	}
 	if (!retainId) {
 		const deleteComponentId = (block: BlockOptions) => {
@@ -169,7 +165,6 @@ export {
 	isJSONString,
 	jsToJson,
 	jsonReplacer,
-	jsonToJs,
 	copyObject,
 	parseObjectString,
 	quoteDynamicValues,
