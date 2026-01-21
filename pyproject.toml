@@ -23,11 +23,19 @@ dependencies = [
     "pypdf==6.6.2",
     "PyPika==0.48.9",
     "PyQRCode~=1.2.1",
+<<<<<<< HEAD
     "PyYAML~=6.0.2",
     "RestrictedPython~=8.0",
     "WeasyPrint==68.0",
     "pydyf==0.11.0",
     "Werkzeug~=3.1.5",
+=======
+    "PyYAML~=6.0.3",
+    "RestrictedPython~=8.1",
+    "WeasyPrint>=68.0",
+    "pydyf==0.12.1",
+    "Werkzeug==3.1.5",
+>>>>>>> deb4ae4e65 (fix(security): require WeasyPrint >= 68.0 to address CVE-2025-68616)
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.12.2",
     "bleach-allowlist~=1.0.3",
