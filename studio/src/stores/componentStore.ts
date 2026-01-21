@@ -4,14 +4,13 @@ import { createDocumentResource } from "frappe-ui"
 import Block from "@/utils/block"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import { isObjectEmpty } from "@/utils/helpers"
-import { useSerializer } from "@/utils/useSerializer"
+import { getBlockInstance, getBlockObjectCopy } from "@/utils/serializer"
 import getBlockTemplate from "@/utils/blockTemplate"
 
 const useComponentStore = defineStore("componentStore", () => {
 	const componentMap = reactive<Map<string, Block>>(new Map())
 	const componentDocMap = reactive<Map<string, StudioComponent>>(new Map())
 	const fetchingComponent = reactive<Set<string>>(new Set())
-	const { getBlockInstance, getBlockObjectCopy } = useSerializer()
 
 	async function fetchComponent(componentName: string) {
 		const componentDoc = await createDocumentResource({

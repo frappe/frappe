@@ -8,7 +8,7 @@ import {
 	confirm,
 	getInitialVariableValue,
 } from "@/utils/helpers"
-import { useSerializer } from "@/utils/useSerializer"
+import { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson, jsonToJs } from "@/utils/serializer"
 import { studioPages } from "@/data/studioPages"
 import { studioApps } from "@/data/studioApps"
 import { studioVariables } from "@/data/studioVariables"
@@ -147,8 +147,6 @@ const useStudioStore = defineStore("store", () => {
 	const selectedPage = ref<string | null>(null)
 	const savingPage = ref(false)
 	const settingPage = ref(false)
-
-	const { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson, jsonToJs } = useSerializer()
 
 	async function setPage(pageName: string) {
 		settingPage.value = true

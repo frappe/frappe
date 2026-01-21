@@ -32,7 +32,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { ContextMenuOption } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
-import { useSerializer } from "@/utils/useSerializer"
+import { getBlockCopy, getComponentBlock } from "@/utils/serializer"
 import getBlockTemplate from "@/utils/blockTemplate"
 import FormDialog from "@/components/FormDialog.vue"
 import NewComponentDialog from "@/components/NewComponentDialog.vue"
@@ -64,7 +64,6 @@ const handleContextMenuSelect = (action: CallableFunction) => {
 	contextMenuVisible.value = false
 }
 
-const { getBlockCopy, getComponentBlock } = useSerializer()
 const contextMenuOptions: ContextMenuOption[] = [
 	{
 		label: "Wrap In Container",

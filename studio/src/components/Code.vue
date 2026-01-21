@@ -50,7 +50,7 @@ import { tomorrow } from "thememirror"
 import JSON5 from "json5"
 import { isPrivateKey } from "@/utils/helpers"
 import { normalizeCode } from "@/utils/code"
-import { useSerializer } from "@/utils/useSerializer"
+import { jsonReplacer, jsonToJs, parseObjectString } from "@/utils/serializer"
 
 import InputLabel from "@/components/InputLabel.vue"
 
@@ -87,7 +87,6 @@ const props = withDefaults(
 	},
 )
 const emit = defineEmits(["update:modelValue", "save"])
-const { jsonReplacer, jsonToJs, parseObjectString } = useSerializer()
 
 const code = ref<string>("")
 const editorView = ref<EditorView | null>(null)
