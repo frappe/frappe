@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-12-21 09:35+0000\n"
-"PO-Revision-Date: 2026-01-05 23:50\n"
+"PO-Revision-Date: 2026-01-21 06:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -14,8 +14,8 @@ msgstr ""
 "X-Crowdin-Project: frappe\n"
 "X-Crowdin-Project-ID: 639578\n"
 "X-Crowdin-Language: hu\n"
-"X-Crowdin-File: /[frappe.frappe] develop/frappe/locale/main.pot\n"
-"X-Crowdin-File-ID: 52\n"
+"X-Crowdin-File: /[frappe.frappe] version-16-hotfix/frappe/locale/main.pot\n"
+"X-Crowdin-File-ID: 138\n"
 "Language: hu_HU\n"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
@@ -32,7 +32,7 @@ msgstr "\"Cégtörténet\""
 
 #: frappe/core/doctype/data_export/exporter.py:202
 msgid "\"Parent\" signifies the parent table in which this row must be added"
-msgstr "\"Szülő\" jelenti azt a szülő táblát, amelyhez ezt a sort hozzá kell adni"
+msgstr "\"Szülő\" jelenti azt a fő táblát, amelyhez ezt a sort hozzá kell adni"
 
 #. Description of the 'Team Members Heading' (Data) field in DocType 'About Us
 #. Settings'
@@ -1618,7 +1618,7 @@ msgstr "Címek és Kapcsolatok"
 #. Description of a DocType
 #: frappe/custom/doctype/client_script/client_script.json
 msgid "Adds a custom client script to a DocType"
-msgstr "Egyéni ügyfélszkript hozzáadása egy DocType-hoz"
+msgstr "Egyéni kliens szkript hozzáadása egy DocType-hoz"
 
 #. Description of a DocType
 #: frappe/custom/doctype/custom_field/custom_field.json
@@ -2684,7 +2684,7 @@ msgstr "Kérdez"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:68
 msgid "Assign"
-msgstr "Hozzárendel"
+msgstr ""
 
 #. Label of the assign_condition (Code) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -4878,7 +4878,7 @@ msgstr "Ügyfél Metaadatok"
 #: frappe/custom/doctype/doctype_layout/doctype_layout.json
 #: frappe/website/doctype/web_page/web_page.js:103
 msgid "Client Script"
-msgstr "Ügyfél Szkript"
+msgstr "Kliens Szkript"
 
 #. Label of the client_secret (Password) field in DocType 'Connected App'
 #. Label of the client_secret (Password) field in DocType 'Google Settings'
@@ -5830,7 +5830,7 @@ msgstr "Megye"
 #: frappe/public/js/frappe/utils/number_systems.js:45
 msgctxt "Number system"
 msgid "Cr"
-msgstr "Cr"
+msgstr ""
 
 #. Label of the create (Check) field in DocType 'Custom DocPerm'
 #. Label of the create (Check) field in DocType 'DocPerm'
@@ -5969,7 +5969,7 @@ msgstr "Hozzon létre munkafolyamatot vizuálisan a Munkafolyamat Készítő seg
 #: frappe/core/doctype/comment/comment.json
 #: frappe/public/js/frappe/views/file/file_view.js:371
 msgid "Created"
-msgstr "Létrehozva"
+msgstr "Létrehozva ekkor"
 
 #. Label of the created_at (Datetime) field in DocType 'Submission Queue'
 #: frappe/core/doctype/submission_queue/submission_queue.json
@@ -9160,7 +9160,7 @@ msgstr "Közösségi Bejelentkezés Engedélyezése"
 
 #: frappe/website/doctype/website_settings/website_settings.js:139
 msgid "Enable Tracking Page Views"
-msgstr "Oldalmegtekintések Követésének Engedélyezése"
+msgstr "Oldalmegtekintés Számának Követése"
 
 #. Label of the enable_two_factor_auth (Check) field in DocType 'System
 #. Settings'
@@ -9351,7 +9351,7 @@ msgstr "Űrlaptípus Megadása"
 #: frappe/public/js/frappe/ui/messages.js:94
 msgctxt "Title of prompt dialog"
 msgid "Enter Value"
-msgstr "Érték Megadása"
+msgstr ""
 
 #: frappe/public/js/frappe/form/form_tour.js:60
 msgid "Enter a name for this {0}"
@@ -11117,7 +11117,7 @@ msgstr "Frappe Framework"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:59
 msgid "Frappe Light"
-msgstr "Frappe Light"
+msgstr "Frappe Világos"
 
 #. Option for the 'Service' (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -14703,7 +14703,7 @@ msgstr "Utoljára Módosította"
 #: frappe/model/meta.py:56 frappe/public/js/frappe/model/meta.js:212
 #: frappe/public/js/frappe/model/model.js:126
 msgid "Last Updated On"
-msgstr "Utoljára Módosítva ekkor"
+msgstr "Frissítve ekkor"
 
 #. Label of the last_user (Link) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -15145,7 +15145,7 @@ msgstr "Kapcsolódó"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "LinkedIn"
-msgstr "LinkedIn"
+msgstr ""
 
 #. Label of the links (Table) field in DocType 'Address'
 #. Label of the links (Table) field in DocType 'Contact'
@@ -15202,12 +15202,12 @@ msgstr "Listaszűrő"
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/website/doctype/web_form/web_form.json
 msgid "List Settings"
-msgstr "Lista Beállításai"
+msgstr "Lista Beállítások"
 
 #: frappe/public/js/frappe/list/list_view.js:2067
 msgctxt "Button in list view menu"
 msgid "List Settings"
-msgstr "Lista Beállításai"
+msgstr "Lista Beállítások"
 
 #: frappe/public/js/frappe/list/base_list.js:203
 msgid "List View"
@@ -15216,7 +15216,7 @@ msgstr "Lista Nézet"
 #. Name of a DocType
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "List View Settings"
-msgstr "Lista Nézet Beállításai"
+msgstr "Listanézet Beállítások"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:223
 msgid "List a document type"
@@ -16004,7 +16004,7 @@ msgstr "Üzenet"
 #: frappe/public/js/frappe/ui/messages.js:274 frappe/utils/messages.py:78
 msgctxt "Default title of the message dialog"
 msgid "Message"
-msgstr "Üzen"
+msgstr "Üzenet"
 
 #. Label of the message_examples (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -16486,7 +16486,7 @@ msgstr "További tartalom az oldal aljára."
 
 #: frappe/public/js/frappe/ui/sort_selector.js:193
 msgid "Most Used"
-msgstr "Legtöbbet használt"
+msgstr "Leggyakrabban használt"
 
 #: frappe/utils/password.py:75
 msgid "Most probably your password is too long."
@@ -17165,7 +17165,7 @@ msgstr "Nem"
 #: frappe/public/js/frappe/ui/filters/filter.js:545
 msgctxt "Checkbox is not checked"
 msgid "No"
-msgstr "Nincs"
+msgstr "Nem"
 
 #: frappe/public/js/frappe/ui/messages.js:37
 msgctxt "Dismiss confirmation dialog"
@@ -17527,7 +17527,7 @@ msgstr "Nincs {0} levél"
 #: frappe/public/js/frappe/form/grid_row.js:257
 msgctxt "Title of the 'row number' column"
 msgid "No."
-msgstr "Sorsz."
+msgstr ""
 
 #. Option for the 'Provider' (Select) field in DocType 'Geolocation Settings'
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.json
@@ -18392,7 +18392,7 @@ msgstr "Nyitott"
 #: frappe/desk/doctype/todo/todo_list.js:14
 msgctxt "Access"
 msgid "Open"
-msgstr "Megnyit"
+msgstr "Nyitott"
 
 #: frappe/desk/page/desktop/desktop.js:217
 #: frappe/desk/page/desktop/desktop.js:226
@@ -19326,7 +19326,7 @@ msgstr "Jogosultsági Szintek"
 #. Name of a DocType
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "Permission Log"
-msgstr "Engedélynapló"
+msgstr "Jogosultság Napló"
 
 #. Label of a shortcut in the Users Workspace
 #: frappe/core/workspace/users/users.json
@@ -21047,7 +21047,7 @@ msgstr "Olvass El"
 #. 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Realtime (SocketIO)"
-msgstr "Valós Idejű (SocketIO)"
+msgstr "Valós idejű kommunikáció (SocketIO)"
 
 #. Label of the reason (Long Text) field in DocType 'Unhandled Email'
 #: frappe/email/doctype/unhandled_email/unhandled_email.json
@@ -21474,13 +21474,13 @@ msgstr "Token Frissítése"
 #: frappe/public/js/frappe/list/list_view.js:537
 msgctxt "Document count in list view"
 msgid "Refreshing"
-msgstr "Újratöltés"
+msgstr "Frissítés"
 
 #: frappe/core/doctype/system_settings/system_settings.js:57
 #: frappe/core/doctype/user/user.js:369
 #: frappe/desk/page/setup_wizard/setup_wizard.js:211
 msgid "Refreshing..."
-msgstr "Újratöltés..."
+msgstr "Frissítés..."
 
 #: frappe/core/doctype/user/user.py:1083
 msgid "Registered but disabled"
@@ -22910,7 +22910,7 @@ msgstr "Mentve"
 
 #: frappe/public/js/frappe/list/list_filter.js:20
 msgid "Saved Filters"
-msgstr "Elmentett szűrők"
+msgstr "Mentett Szűrések"
 
 #: frappe/public/js/frappe/list/list_settings.js:41
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:47
@@ -23990,7 +23990,7 @@ msgstr "Munkamenetek"
 #: frappe/desk/doctype/number_card/number_card.js:404
 #: frappe/public/js/frappe/widgets/chart_widget.js:447
 msgid "Set"
-msgstr "Beállítás"
+msgstr "Beállít"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:606
 msgctxt "Field value is set"
@@ -24479,7 +24479,7 @@ msgstr "Sortörések Megjelenítése Szakaszok után"
 
 #: frappe/public/js/frappe/form/toolbar.js:443
 msgid "Show Links"
-msgstr "Hivatkozások Megjelenítése"
+msgstr "Hivatkozások Megtekintése"
 
 #. Label of the show_failed_logs (Check) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
@@ -24529,7 +24529,7 @@ msgstr "Kapcsolódó Hibák Megjelenítése"
 #: frappe/core/doctype/prepared_report/prepared_report.js:43
 #: frappe/core/doctype/report/report.js:16
 msgid "Show Report"
-msgstr "Jelentés Megjelenítése"
+msgstr "Jelentés Megtekintése"
 
 #. Label of the show_section_headings (Check) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -25876,7 +25876,7 @@ msgstr "Kamera Váltása"
 #: frappe/public/js/frappe/desk.js:96
 #: frappe/public/js/frappe/ui/theme_switcher.js:11
 msgid "Switch Theme"
-msgstr "Téma Váltása"
+msgstr "Témaváltás"
 
 #: frappe/templates/includes/navbar/navbar_login.html:17
 msgid "Switch To Desk"
@@ -27542,7 +27542,7 @@ msgstr "Oldalsáv be-/kikapcsolása"
 #. Type: Action
 #: frappe/hooks.py
 msgid "Toggle Theme"
-msgstr "Téma Váltása"
+msgstr "Témaváltás"
 
 #. Option for the 'Response Type' (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -27662,7 +27662,7 @@ msgstr "Összesen"
 #. Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Total Background Workers"
-msgstr "Összes Háttér Munkás"
+msgstr "Összes Háttérmunkás"
 
 #. Label of the total_errors (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -31692,7 +31692,7 @@ msgstr "{0} Lista"
 
 #: frappe/public/js/frappe/list/list_settings.js:33
 msgid "{0} List View Settings"
-msgstr "{0} Listanézet Beállításai"
+msgstr "{0} Listanézet Beállítások"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:37
 msgid "{0} M"
