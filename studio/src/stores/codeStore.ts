@@ -359,7 +359,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		if (resource.fetch_document_using_filters && resource.filters) {
 			// fetch the docname based on filters
 			docname = await call(
-				"studio.api.get_document",
+				"studio.api.get_docname",
 				{doctype: resource.document_type, filters: getEvaluatedFilters(resource.filters, context) }
 			)
 		}
@@ -375,11 +375,11 @@ const useCodeStore = defineStore("codeStore", () => {
 	}
 
 	const getEvaluatedFilters = (filters: Filters | null = null, context: ExpressionEvaluationContext) => {
+		if (!filters) return
 		if (typeof filters === "string") {
 			filters = JSON.parse(filters)
 		}
 
-		if (!filters) return
 		const evaluatedFilters: Filters = {}
 
 		for (const key in filters) {

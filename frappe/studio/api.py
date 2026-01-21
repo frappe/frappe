@@ -2,23 +2,20 @@ from typing import Literal
 
 import frappe
 from frappe import _
-from frappe.client import get_value
 from frappe.model import display_fieldtypes, no_value_fields, table_fields
 
 
 @frappe.whitelist()
-def get_document(doctype: str, filters: dict | str) -> dict:
+def get_docname(doctype: str, filters: dict | str) -> dict:
 	if isinstance(filters, str):
 		filters = frappe.parse_json(filters)
 
-	document = get_value(doctype, "name", filters)
-	if document:
-		return document
-
-	if "name" in filters:
+	# remove name filter if it is dynamic or empty - for fetching a document while testing
+	if "name" in filters and (filters["name"].startswith(":") or not filters["name"]):
 		del filters["name"]
-		document = frappe.get_list(doctype, filters=filters, pluck="name", limit=1)
-		return document[0] if document else None
+
+	document = frappe.get_list(doctype, filters=filters, pluck="name", limit=1)
+	return document[0] if document else None
 
 	return None
 
