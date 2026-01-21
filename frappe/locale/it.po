@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2026-01-21 08:29\n"
+"PO-Revision-Date: 2026-01-21 08:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -32,7 +32,7 @@ msgstr "!="
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Company History\""
-msgstr ""
+msgstr "\"Storia dell'azienda\""
 
 #: frappe/core/doctype/data_export/exporter.py:202
 msgid "\"Parent\" signifies the parent table in which this row must be added"
@@ -42,7 +42,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "\"Team Members\" or \"Management\""
-msgstr ""
+msgstr "\"Membri del team\" o \"Dirigenza\""
 
 #: frappe/public/js/frappe/form/form.js:1013
 msgid "\"amended_from\" field must be present to do an amendment."
@@ -115,12 +115,12 @@ msgstr "+ Aggiungi / Rimuovi Campi"
 #. State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "0 - Draft; 1 - Submitted; 2 - Cancelled"
-msgstr ""
+msgstr "0 - Bozza; 1 - Inviata; 2 - Annullata"
 
 #. Description of the 'Priority' (Int) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "0 is highest"
-msgstr ""
+msgstr "0 è il più alto"
 
 #: frappe/public/js/frappe/form/grid_row.js:820
 msgid "1 = True & 0 = False"
@@ -130,7 +130,8 @@ msgstr "1 = Vero e 0 = Falso"
 #: frappe/geo/doctype/currency/currency.json
 msgid "1 Currency = [?] Fraction\n"
 "For e.g. 1 USD = 100 Cent"
-msgstr ""
+msgstr "1 Valuta = [?] Frazione\n"
+"Ad esempio 1 USD = 100 Centesimi"
 
 #: frappe/public/js/frappe/form/reminders.js:19
 msgid "1 Day"
@@ -313,7 +314,20 @@ msgid "<h3>Custom CSS Help</h3>\n\n"
 "<p>1. Add border to sections except the last section</p>\n\n"
 "<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid #eee; }\n"
 ".section-break:last-child { padding-bottom: 0px; border-bottom: 0px;  }</code></pre>\n"
-msgstr ""
+msgstr "<h3>Aiuto CSS personalizzato</h3>\n\n"
+"<p>Note:</p>\n\n"
+"<ol>\n"
+"<li>Tutti i gruppi di campi (etichetta + valore) sono attributi impostati <code>data-fieldtype</code> e <code>data-fieldname</code></li>\n"
+"<li>A tutti i valori viene assegnata la classe <code>value</code></li>\n"
+"<li>A tutte le interruzioni di sezione viene assegnata la classe <code>section-break</code></li>\n"
+"<li>Tutte le interruzioni di colonna hanno la classe <code>column-break</code></li>\n"
+"</ol>\n\n"
+"<h4>Esempi</h4>\n\n"
+"<p>1. Allinea a sinistra gli interi</p>\n\n"
+"<pre><code>[data-fieldtype=\"Int\"] .value { text-align: left; }</code></pre>\n\n"
+"<p>1. Aggiungi un bordo alle sezioni eccetto l'ultima sezione</p>\n\n"
+"<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid #eee; }\n"
+".section-break:last-child { padding-bottom: 0px; border-bottom: 0px; }</code></pre>\n"
 
 #. Content of the 'Print Format Help' (HTML) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -481,7 +495,17 @@ msgid "<h4>Email Reply Example</h4>\n\n"
 "<p>The fieldnames you can use in your email template are the fields in the document from which you are sending the email. You can find out the fields of any documents via Setup &gt; Customize Form View and selecting the document type (e.g. Sales Invoice)</p>\n\n"
 "<h4>Templating</h4>\n\n"
 "<p>Templates are compiled using the Jinja Templating Language. To learn more about Jinja, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">read this documentation.</a></p>\n"
-msgstr ""
+msgstr "<h4>Esempio di risposta via email</h4>\n\n"
+"<pre>Ordine in ritardo\n\n"
+"La transazione {{ name }} ha superato la data di scadenza. Si prega di intraprendere le azioni necessarie.\n\n"
+"Dettagli\n\n"
+"- Cliente: {{ customer }}\n"
+"- Importo: {{ grand_total }}\n"
+"</pre>\n\n"
+"<h4>Come ottenere i nomi dei campi</h4>\n\n"
+"<p>I nomi dei campi che puoi utilizzare nel tuo modello di email sono i campi nel documento da cui stai inviando l'email. Puoi scoprire i campi di qualsiasi documento tramite Impostazioni &gt; Personalizza la visualizzazione del modulo e seleziona il tipo di documento (ad esempio, Fattura di vendita)</p>\n\n"
+"<h4>Modelli</h4>\n\n"
+"<p>I modelli sono compilati utilizzando il linguaggio di template Jinja. Per saperne di più su Jinja, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">leggi questa documentazione.</a></p>\n"
 
 #. Content of the 'html_5' (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
@@ -716,7 +740,7 @@ msgstr "A3"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "A4"
-msgstr ""
+msgstr "A4"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -746,7 +770,7 @@ msgstr "A9"
 #. Option for the 'Email Sync Option' (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "ALL"
-msgstr ""
+msgstr "TUTTO"
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -891,7 +915,7 @@ msgstr "Account"
 #. Label of a Section Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Account Deletion Settings"
-msgstr ""
+msgstr "Impostazioni di Eliminazione Account"
 
 #. Name of a role
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -1138,7 +1162,7 @@ msgstr ""
 #. Label of a Button field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Add Custom Tags"
-msgstr ""
+msgstr "Aggiungi Tag Personalizzati"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:159
 #: frappe/public/js/frappe/widgets/widget_dialog.js:688
@@ -1349,7 +1373,7 @@ msgstr "Aggiungi {0}"
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO"
-msgstr ""
+msgstr "Aggiunge HTML nella sezione &lt;head&gt; della pagina web, utilizzato principalmente per la verifica del sito web e per la SEO"
 
 #: frappe/core/doctype/log_settings/log_settings.py:82
 msgid "Added default log doctypes: {}"
@@ -1423,7 +1447,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Address and other legal information you may want to put in the footer."
-msgstr ""
+msgstr "Indirizzo e altre informazioni legali che potresti voler inserire nel piè di pagina."
 
 #: frappe/contacts/doctype/address/address.py:206
 msgid "Addresses"
@@ -1488,7 +1512,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'User Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 msgid "Advanced Control"
-msgstr ""
+msgstr "Controllo Avanzato"
 
 #: frappe/public/js/frappe/form/controls/link.js:345
 #: frappe/public/js/frappe/form/controls/link.js:347
@@ -1578,7 +1602,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Align Labels to the Right"
-msgstr ""
+msgstr "Allinea le Etichette a Destra"
 
 #. Label of a Check field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -1748,7 +1772,7 @@ msgstr ""
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Guests to Upload Files"
-msgstr ""
+msgstr "Consenti agli Ospiti di Caricare file"
 
 #. Label of a Check field in DocType 'DocType'
 #. Label of a Check field in DocType 'Customize Form'
@@ -1824,7 +1848,7 @@ msgstr ""
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 msgid "Allow Roles"
-msgstr ""
+msgstr "Consenti Ruoli"
 
 #. Label of a Check field in DocType 'Workflow Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -1893,7 +1917,7 @@ msgstr ""
 #. Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow saving if mandatory fields are not filled"
-msgstr ""
+msgstr "Consenti il salvataggio anche se i campi obbligatori non sono compilati"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:413
 msgid "Allow sending usage data for improving applications"
@@ -2063,12 +2087,12 @@ msgstr ""
 #. Label of a Text Editor field in DocType 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Announcement Widget"
-msgstr ""
+msgstr "Widget di Annuncio"
 
 #. Label of a Section Break field in DocType 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Announcements"
-msgstr ""
+msgstr "Annunci"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -2111,7 +2135,7 @@ msgstr ""
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 #: frappe/website/doctype/website_theme_ignore_app/website_theme_ignore_app.json
 msgid "App"
-msgstr ""
+msgstr "Applicazione"
 
 #. Label of a Data field in DocType 'Dropbox Settings'
 #: frappe/integrations/doctype/dropbox_settings/dropbox_settings.json
@@ -2204,7 +2228,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Application Logo"
-msgstr ""
+msgstr "Logo dell'Applicazione"
 
 #. Label of a Data field in DocType 'Installed Application'
 #. Label of a Data field in DocType 'System Settings'
@@ -2259,7 +2283,7 @@ msgstr ""
 #. Label of a Check field in DocType 'User Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 msgid "Apply To All Document Types"
-msgstr ""
+msgstr "Applica a Tutti i Tipi di Documento"
 
 #. Label of a Link field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
@@ -2931,7 +2955,7 @@ msgstr ""
 #. 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Automated Message"
-msgstr ""
+msgstr "Messaggio Automatico"
 
 #. Option for the 'Desk Theme' (Select) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -2959,7 +2983,7 @@ msgstr ""
 #. Label of a Int field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Automatically delete account within (hours)"
-msgstr ""
+msgstr "Elimina automaticamente l'account entro (ore)"
 
 #. Label of a Card Break in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
@@ -3109,7 +3133,7 @@ msgstr ""
 #: frappe/website/doctype/social_link_settings/social_link_settings.json
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Background Color"
-msgstr ""
+msgstr "Colore di Sfondo"
 
 #. Label of a Attach Image field in DocType 'Web Page Block'
 #: frappe/website/doctype/web_page_block/web_page_block.json
@@ -3143,7 +3167,7 @@ msgstr ""
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Background Workers"
-msgstr ""
+msgstr "Processi in Background"
 
 #: frappe/integrations/doctype/google_drive/google_drive.py:172
 msgid "Backing up Data."
@@ -3228,7 +3252,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Banner"
-msgstr ""
+msgstr "Banner"
 
 #. Label of a Code field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -3245,7 +3269,7 @@ msgstr ""
 #. Description of the 'Banner HTML' (Code) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Banner is above the Top Menu Bar."
-msgstr ""
+msgstr "Il Banner si trova sopra la Barra del Menu in Alto."
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -3391,12 +3415,12 @@ msgstr ""
 #: frappe/website/doctype/about_us_team_member/about_us_team_member.json
 #: frappe/website/doctype/blogger/blogger.json
 msgid "Bio"
-msgstr ""
+msgstr "Biografia"
 
 #. Label of a Date field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Birth Date"
-msgstr ""
+msgstr "Data di Nascita"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:41
 msgid "Blank Template"
@@ -3560,12 +3584,12 @@ msgstr ""
 #. Label of a Code field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Brand HTML"
-msgstr ""
+msgstr "HTML Brand"
 
 #. Label of a Attach Image field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Brand Image"
-msgstr ""
+msgstr "Immagine del Brand"
 
 #. Label of a Attach Image field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -3576,7 +3600,8 @@ msgstr ""
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Brand is what appears on the top-left of the toolbar. If it is an image, make sure it\n"
 "has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px"
-msgstr ""
+msgstr "Il brand è ciò che appare in alto a sinistra della barra degli strumenti. Se si tratta di un'immagine, assicurati che\n"
+"abbia uno sfondo trasparente e usa il tag &lt;img /&gt;. Mantieni le dimensioni a 200px x 30px."
 
 #. Label of a Code field in DocType 'Web Form'
 #. Label of a Code field in DocType 'Web Page'
@@ -3708,17 +3733,17 @@ msgstr ""
 #. Label of a Check field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Button Gradients"
-msgstr ""
+msgstr "Sfumature dei Pulsanti"
 
 #. Label of a Check field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Button Rounded Corners"
-msgstr ""
+msgstr "Angoli dei Pulsanti Arrotondati"
 
 #. Label of a Check field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Button Shadows"
-msgstr ""
+msgstr "Ombre dei Pulsanti"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -3874,12 +3899,12 @@ msgstr ""
 #. Label of a Data field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Call To Action"
-msgstr ""
+msgstr "Invito all'Azione"
 
 #. Label of a Data field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Call To Action URL"
-msgstr ""
+msgstr "URL Di Invito all'Azione"
 
 #. Label of a Section Break field in DocType 'Blog Settings'
 #: frappe/website/doctype/blog_settings/blog_settings.json
@@ -4256,7 +4281,7 @@ msgstr "Cattura"
 #. Label of a Link field in DocType 'Number Card Link'
 #: frappe/desk/doctype/number_card_link/number_card_link.json
 msgid "Card"
-msgstr ""
+msgstr "Scheda"
 
 #. Option for the 'Type' (Select) field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
@@ -4274,7 +4299,7 @@ msgstr "Collegamenti Scheda"
 #. Label of a Table field in DocType 'Dashboard'
 #: frappe/desk/doctype/dashboard/dashboard.json
 msgid "Cards"
-msgstr ""
+msgstr "Schede"
 
 #. Label of a Data field in DocType 'Desktop Icon'
 #. Label of a Link field in DocType 'Help Article'
@@ -4398,14 +4423,14 @@ msgstr ""
 #: frappe/public/js/frappe/views/reports/query_report.js:290
 #: frappe/public/js/frappe/widgets/widget_dialog.js:104
 msgid "Chart Name"
-msgstr ""
+msgstr "Nome del Grafico"
 
 #. Label of a Code field in DocType 'Dashboard'
 #. Label of a Section Break field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard/dashboard.json
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Chart Options"
-msgstr ""
+msgstr "Opzioni grafico"
 
 #. Label of a Link field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -4423,7 +4448,7 @@ msgstr "Tipo di Grafico"
 #: frappe/desk/doctype/dashboard/dashboard.json
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Charts"
-msgstr ""
+msgstr "Grafici"
 
 #. Option for the 'Type' (Select) field in DocType 'Communication'
 #. Option for the 'Communication Type' (Select) field in DocType
@@ -4491,7 +4516,7 @@ msgstr ""
 #. DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Checking this will hide custom doctypes and reports cards in Links section"
-msgstr ""
+msgstr "Selezionando questa opzione verranno nascosti i doctype personalizzati e le schede dei report nella sezione Collegamenti"
 
 #: frappe/website/doctype/web_page/web_page.js:78
 msgid "Checking this will publish the page on your website and it'll be visible to everyone."
@@ -4712,7 +4737,7 @@ msgstr ""
 #: frappe/integrations/doctype/google_settings/google_settings.json
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Client ID"
-msgstr ""
+msgstr "Client ID"
 
 #. Label of a Data field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
@@ -4746,7 +4771,7 @@ msgstr "Script Client"
 #: frappe/integrations/doctype/google_settings/google_settings.json
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Client Secret"
-msgstr ""
+msgstr "Client Secret"
 
 #. Label of a Section Break field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -5077,7 +5102,7 @@ msgstr "Log Comunicazione"
 #. Label of a Select field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Communication Type"
-msgstr ""
+msgstr "Tipo di Comunicazione"
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:32
 msgid "Communication secret not set"
@@ -5681,7 +5706,7 @@ msgstr ""
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Create Entry"
-msgstr ""
+msgstr "Crea Voce"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:59
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:195
@@ -5691,7 +5716,7 @@ msgstr "Crea Intestazione"
 #. Label of a Check field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Create Log"
-msgstr ""
+msgstr "Crea Log"
 
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:41
 #: frappe/public/js/frappe/views/treeview.js:344
@@ -5968,7 +5993,7 @@ msgstr ""
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Custom CSS"
-msgstr ""
+msgstr "CSS Personalizzato"
 
 #. Label of a Section Break field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -6029,12 +6054,12 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Custom Footer"
-msgstr ""
+msgstr "Piè di pagina Personalizzato"
 
 #. Label of a Check field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Custom Format"
-msgstr ""
+msgstr "Formato Personalizzato"
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -6080,12 +6105,12 @@ msgstr ""
 #. Label of a Code field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Custom Options"
-msgstr ""
+msgstr "Opzioni personalizzate"
 
 #. Label of a Code field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Custom Overrides"
-msgstr ""
+msgstr "Sostituzioni Personalizzate"
 
 #. Option for the 'Report Type' (Select) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
@@ -6104,7 +6129,7 @@ msgstr ""
 #. Label of a Code field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Custom SCSS"
-msgstr ""
+msgstr "SCSS Personalizzato"
 
 #. Label of a Section Break field in DocType 'Portal Settings'
 #: frappe/website/doctype/portal_settings/portal_settings.json
@@ -6217,21 +6242,21 @@ msgstr ""
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Cyan"
-msgstr ""
+msgstr "Ciano"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #. Option for the 'Request Method' (Select) field in DocType 'Webhook'
 #: frappe/core/doctype/recorder/recorder.json
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "DELETE"
-msgstr ""
+msgstr "ELIMINA"
 
 #. Option for the 'Default Sort Order' (Select) field in DocType 'DocType'
 #. Option for the 'Sort Order' (Select) field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "DESC"
-msgstr ""
+msgstr "DESCRIZIONE"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -6298,12 +6323,12 @@ msgstr ""
 #. Option for the 'Desk Theme' (Select) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Dark"
-msgstr ""
+msgstr "Scuro"
 
 #. Label of a Link field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Dark Color"
-msgstr ""
+msgstr "Colore Scuro"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:65
 msgid "Dark Theme"
@@ -6357,7 +6382,7 @@ msgstr "Gestore Dashboard"
 #. Label of a Data field in DocType 'Dashboard'
 #: frappe/desk/doctype/dashboard/dashboard.json
 msgid "Dashboard Name"
-msgstr ""
+msgstr "Nome Dashboard"
 
 #. Name of a DocType
 #: frappe/desk/doctype/dashboard_settings/dashboard_settings.json
@@ -7058,7 +7083,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
 msgid "Desk Access"
-msgstr ""
+msgstr "Accesso Scrivania"
 
 #. Label of a Section Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -8078,7 +8103,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Dropdowns"
-msgstr ""
+msgstr "Menu a Discesa"
 
 #. Label of a Date field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
@@ -8183,12 +8208,12 @@ msgstr ""
 #. Label of a Check field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Dynamic Route"
-msgstr ""
+msgstr "Percorso Dinamico"
 
 #. Label of a Check field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Dynamic Template"
-msgstr ""
+msgstr "Modello Dinamico"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:42
 msgid "ESC"
@@ -8368,7 +8393,7 @@ msgstr ""
 #. Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Eg. smsgateway.com/api/send_sms.cgi"
-msgstr ""
+msgstr "Ad esempio smsgateway.com/api/send_sms.cgi"
 
 #: frappe/rate_limiter.py:153
 msgid "Either key or IP flag is required."
@@ -8604,7 +8629,7 @@ msgstr ""
 #. Label of a Select field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Email Status"
-msgstr ""
+msgstr "Stato dell'e-mail"
 
 #. Label of a Select field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -8711,7 +8736,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Enable Comments"
-msgstr ""
+msgstr "Abilita Commenti"
 
 #. Label of a Check field in DocType 'Blog Post'
 #: frappe/website/doctype/blog_post/blog_post.json
@@ -8732,7 +8757,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Enable Google indexing"
-msgstr ""
+msgstr "Abilita l'indicizzazione di Google"
 
 #. Label of a Check field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -8849,7 +8874,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Enable in-app website tracking"
-msgstr ""
+msgstr "Abilita il monitoraggio del sito web in-app"
 
 #. Label of a Check field in DocType 'Language'
 #. Label of a Check field in DocType 'User'
@@ -9074,19 +9099,19 @@ msgstr ""
 #. Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)"
-msgstr ""
+msgstr "Inserisci qui i parametri statici della URL (ad esempio mittente=ERPNext, nome utente=ERPNext, password=1234 ecc.)"
 
 #. Description of the 'Message Parameter' (Data) field in DocType 'SMS
 #. Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Enter url parameter for message"
-msgstr ""
+msgstr "Inserisci il parametro URL per il messaggio"
 
 #. Description of the 'Receiver Parameter' (Data) field in DocType 'SMS
 #. Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Enter url parameter for receiver nos"
-msgstr ""
+msgstr "Inserisci il parametro URL per il numero del destinatario"
 
 #: frappe/public/js/frappe/ui/messages.js:336
 msgid "Enter your password"
@@ -9276,7 +9301,7 @@ msgstr "Tutti"
 #. Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"]"
-msgstr ""
+msgstr "Esempio: \"colori\": [\"#d1d8dd\", \"#ff5858\"]"
 
 #. Label of a Int field in DocType 'Recorder Query'
 #: frappe/core/doctype/recorder_query/recorder_query.json
@@ -10266,7 +10291,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Language'
 #: frappe/core/doctype/language/language.json
 msgid "Flag"
-msgstr ""
+msgstr "Bandiera"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -10299,7 +10324,7 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Fold"
-msgstr ""
+msgstr "Comprimi"
 
 #: frappe/core/doctype/doctype/doctype.py:1413
 msgid "Fold can not be at the end of the form"
@@ -10373,7 +10398,7 @@ msgstr "Carattere"
 #. Label of a Data field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Font Properties"
-msgstr ""
+msgstr "Proprietà Carattere"
 
 #. Label of a Int field in DocType 'Print Format'
 #. Label of a Float field in DocType 'Print Settings'
@@ -10383,7 +10408,7 @@ msgstr ""
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:45
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Font Size"
-msgstr ""
+msgstr "Dimensione Carattere"
 
 #. Label of a Section Break field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -10406,7 +10431,7 @@ msgstr ""
 #. Label of a Small Text field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer \"Powered By\""
-msgstr ""
+msgstr "Piè di pagina \"Powered By\""
 
 #. Label of a Select field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -10421,7 +10446,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer Details"
-msgstr ""
+msgstr "Dettagli del Piè di Pagina"
 
 #. Label of a HTML Editor field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -10441,12 +10466,12 @@ msgstr ""
 #. Label of a Table field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer Items"
-msgstr ""
+msgstr "Elementi del piè di pagina"
 
 #. Label of a Attach Image field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer Logo"
-msgstr ""
+msgstr "Logo del Piè di Pagina"
 
 #. Label of a Code field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -10456,7 +10481,7 @@ msgstr ""
 #. Label of a Link field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer Template"
-msgstr ""
+msgstr "Modello di Piè di Pagina"
 
 #. Label of a Code field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -10514,7 +10539,7 @@ msgstr "Per l'Utente"
 #. Label of a Dynamic Link field in DocType 'User Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 msgid "For Value"
-msgstr ""
+msgstr "Valore"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1991
 #: frappe/public/js/frappe/views/reports/report_view.js:100
@@ -10777,7 +10802,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "From Full Name"
-msgstr ""
+msgstr "Da Nome Completo"
 
 #. Label of a Link field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
@@ -10791,7 +10816,7 @@ msgstr ""
 #. Option for the 'Width' (Select) field in DocType 'Dashboard Chart Link'
 #: frappe/desk/doctype/dashboard_chart_link/dashboard_chart_link.json
 msgid "Full"
-msgstr ""
+msgstr "Intero"
 
 #. Label of a Data field in DocType 'Contact'
 #. Label of a Data field in DocType 'Activity Log'
@@ -10816,7 +10841,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Full Width"
-msgstr ""
+msgstr "Larghezza Intera"
 
 #. Label of a Select field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -11092,12 +11117,12 @@ msgstr "Google"
 #. Label of a Data field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Google Analytics ID"
-msgstr ""
+msgstr "ID di Google Analytics"
 
 #. Label of a Check field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Google Analytics anonymise IP"
-msgstr ""
+msgstr "Anonimizzazione IP di Google Analytics"
 
 #. Label of a Section Break field in DocType 'Event'
 #. Label of a Link field in DocType 'Event'
@@ -11210,12 +11235,12 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Google Settings'
 #: frappe/integrations/doctype/google_settings/google_settings.json
 msgid "Google Drive Picker"
-msgstr ""
+msgstr "Selezione Google Drive"
 
 #. Label of a Check field in DocType 'Google Settings'
 #: frappe/integrations/doctype/google_settings/google_settings.json
 msgid "Google Drive Picker Enabled"
-msgstr ""
+msgstr "Selezione Google Drive Abilitata"
 
 #. Label of a Data field in DocType 'Print Format'
 #. Label of a Data field in DocType 'Website Theme'
@@ -11223,7 +11248,7 @@ msgstr ""
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:28
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Google Font"
-msgstr ""
+msgstr "Carattere Google"
 
 #. Label of a Data field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
@@ -11270,7 +11295,7 @@ msgstr ""
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Gray"
-msgstr ""
+msgstr "Grigio"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:23
 msgid "Greater Than"
@@ -11350,7 +11375,7 @@ msgstr ""
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "HEAD"
-msgstr ""
+msgstr "HEAD"
 
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -11420,7 +11445,7 @@ msgstr ""
 #. Option for the 'Width' (Select) field in DocType 'Dashboard Chart Link'
 #: frappe/desk/doctype/dashboard_chart_link/dashboard_chart_link.json
 msgid "Half"
-msgstr ""
+msgstr "Metà"
 
 #. Option for the 'Period' (Select) field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
@@ -11476,7 +11501,7 @@ msgstr ""
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/website/doctype/website_slideshow/website_slideshow.json
 msgid "Header"
-msgstr ""
+msgstr "Intestazione"
 
 #. Label of a HTML Editor field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -11495,7 +11520,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Header and Breadcrumbs"
-msgstr ""
+msgstr "Intestazione e Navigazione"
 
 #. Label of a Tab Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -11680,7 +11705,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Hide Custom DocTypes and Reports"
-msgstr ""
+msgstr "Nascondi DocType e Report Personalizzati"
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Custom Field'
@@ -11704,7 +11729,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Hide Login"
-msgstr ""
+msgstr "Nascondi Login"
 
 #: frappe/public/js/form_builder/form_builder.bundle.js:43
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:54
@@ -11769,7 +11794,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Hide footer signup"
-msgstr ""
+msgstr "Nascondi la registrazione nel Piè di Pagina"
 
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
@@ -11813,7 +11838,7 @@ msgstr "Home"
 #: frappe/core/doctype/role/role.json
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Home Page"
-msgstr ""
+msgstr "Pagina Iniziale"
 
 #. Label of a Code field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -11996,7 +12021,7 @@ msgstr ""
 #. Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "If checked, negative numeric values of Currency, Quantity or Count would be shown as positive"
-msgstr ""
+msgstr "Se selezionato, i valori numerici negativi di Valuta, Quantità o Conteggio verranno mostrati come positivi"
 
 #. Description of the 'Skip Authorization' (Check) field in DocType 'OAuth
 #. Client'
@@ -12096,7 +12121,7 @@ msgstr ""
 #. Description of the 'Roles' (Table) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "If set, only user with these roles can access this chart. If not set, DocType or Report permissions will be used."
-msgstr ""
+msgstr "Se impostato, solo gli utenti con questi ruoli possono accedere a questo grafico. Se non impostato, verranno utilizzate le autorizzazioni DocType o Report."
 
 #. Description of the 'Condition' (Code) field in DocType 'Energy Point Rule'
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.json
@@ -12163,7 +12188,7 @@ msgstr ""
 #. Description of the 'Source Text' (Code) field in DocType 'Translation'
 #: frappe/core/doctype/translation/translation.json
 msgid "If your data is in HTML, please copy paste the exact HTML code with the tags."
-msgstr ""
+msgstr "Se i tuoi dati sono in formato HTML, copia e incolla esattamente il codice HTML con i tag."
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Custom Field'
@@ -12488,7 +12513,7 @@ msgstr ""
 #. Label of a Link field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "In Reply To"
-msgstr ""
+msgstr "In Risposta A"
 
 #. Label of a Check field in DocType 'Custom Field'
 #. Label of a Check field in DocType 'Customize Form Field'
@@ -12541,7 +12566,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Include Search in Top Bar"
-msgstr ""
+msgstr "Includi la Ricerca nella Barra Superiore"
 
 #: frappe/website/doctype/website_theme/website_theme.js:61
 msgid "Include Theme from Apps"
@@ -12676,7 +12701,7 @@ msgstr ""
 #: frappe/core/doctype/communication/communication.json
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Info"
-msgstr ""
+msgstr "Informazioni"
 
 #: frappe/core/doctype/data_export/exporter.py:144
 msgid "Info:"
@@ -12734,7 +12759,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Insert Style"
-msgstr ""
+msgstr "Inserisci Stile"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:691
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:692
@@ -13194,7 +13219,7 @@ msgstr ""
 #: frappe/core/doctype/role/role.json
 #: frappe/core/doctype/user_document_type/user_document_type.json
 msgid "Is Custom"
-msgstr ""
+msgstr "È Personalizzato"
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
@@ -13228,7 +13253,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Is Hidden"
-msgstr ""
+msgstr "È Nascosto"
 
 #. Label of a Check field in DocType 'File'
 #: frappe/core/doctype/file/file.json
@@ -13387,12 +13412,12 @@ msgstr ""
 #. Label of a Data field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
 msgid "Item Label"
-msgstr ""
+msgstr "Etichetta Elemento"
 
 #. Label of a Select field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
 msgid "Item Type"
-msgstr ""
+msgstr "Tipo Elemento"
 
 #: frappe/utils/nestedset.py:233
 msgid "Item cannot be added to its own descendants"
@@ -13815,7 +13840,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Landing Page"
-msgstr ""
+msgstr "Pagina di Destinazione"
 
 #: frappe/public/js/frappe/form/print_utils.js:30
 msgid "Landscape"
@@ -13851,7 +13876,7 @@ msgstr ""
 #. Label of a Datetime field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Active"
-msgstr ""
+msgstr "Ultimo Attivo"
 
 #. Label of a Datetime field in DocType 'Google Drive'
 #: frappe/integrations/doctype/google_drive/google_drive.json
@@ -13932,7 +13957,7 @@ msgstr ""
 #. Label of a Datetime field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Last Synced On"
-msgstr ""
+msgstr "Ultima Sincronizzazione Il"
 
 #: frappe/model/meta.py:50 frappe/public/js/frappe/model/meta.js:202
 #: frappe/public/js/frappe/model/model.js:130
@@ -14209,7 +14234,7 @@ msgstr ""
 #. Label of a Link field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Light Color"
-msgstr ""
+msgstr "Colore Chiaro"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:60
 msgid "Light Theme"
@@ -14264,7 +14289,7 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Line"
-msgstr ""
+msgstr "Linea"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -14370,7 +14395,7 @@ msgstr ""
 #: frappe/public/js/frappe/widgets/widget_dialog.js:252
 #: frappe/public/js/frappe/widgets/widget_dialog.js:397
 msgid "Link To"
-msgstr ""
+msgstr "Collegamento a"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:325
 msgid "Link To in Row"
@@ -14380,7 +14405,7 @@ msgstr ""
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 #: frappe/public/js/frappe/widgets/widget_dialog.js:244
 msgid "Link Type"
-msgstr ""
+msgstr "Tipo Collegamento"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:321
 msgid "Link Type in Row"
@@ -14393,7 +14418,7 @@ msgstr ""
 #. Description of the 'Home Page' (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Link that is the website home page. Standard Links (home, login, products, blog, about, contact)"
-msgstr ""
+msgstr "Link che rimanda alla home page del sito. Link Standard (home, login, prodotti, blog, informazioni, contatti)"
 
 #. Description of the 'URL' (Data) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -14440,7 +14465,7 @@ msgstr ""
 #: frappe/desk/doctype/form_tour/form_tour.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgid "List"
-msgstr ""
+msgstr "Lista"
 
 #. Label of a Section Break field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -14656,7 +14681,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Login Page"
-msgstr ""
+msgstr "Pagina di Accesso"
 
 #: frappe/www/login.py:150
 msgid "Login To {0}"
@@ -14820,17 +14845,17 @@ msgstr ""
 #. Label of a Text Editor field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Main Section"
-msgstr ""
+msgstr "Sezione Principale"
 
 #. Label of a HTML Editor field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Main Section (HTML)"
-msgstr ""
+msgstr "Sezione Principale (HTML)"
 
 #. Label of a Markdown Editor field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Main Section (Markdown)"
-msgstr ""
+msgstr "Sezione Principale (Markdown)"
 
 #. Name of a role
 #: frappe/contacts/doctype/contact/contact.json
@@ -14972,7 +14997,7 @@ msgstr ""
 #. Description of the 'Dynamic Route' (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Map route parameters into form variables. Example <code>/project/&lt;name&gt;</code>"
-msgstr ""
+msgstr "Mappa i parametri del percorso nelle variabili del modulo. Esempio <code>/project/&lt;name&gt;</code>"
 
 #: frappe/core/doctype/data_import/importer.py:886
 msgid "Mapping column {0} to field {1}"
@@ -14981,22 +15006,22 @@ msgstr ""
 #. Label of a Float field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Margin Bottom"
-msgstr ""
+msgstr "Margine Inferiore"
 
 #. Label of a Float field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Margin Left"
-msgstr ""
+msgstr "Margine Sinistro"
 
 #. Label of a Float field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Margin Right"
-msgstr ""
+msgstr "Margine Destro"
 
 #. Label of a Float field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Margin Top"
-msgstr ""
+msgstr "Margine Superiore"
 
 #. Label of a Section Break field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -15042,7 +15067,7 @@ msgstr "Markdown"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Markdown Editor"
-msgstr ""
+msgstr "Editor Markdown"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -15260,12 +15285,12 @@ msgstr ""
 #: frappe/core/doctype/communication/communication.json
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Message ID"
-msgstr ""
+msgstr "ID messaggio"
 
 #. Label of a Data field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Message Parameter"
-msgstr ""
+msgstr "Parametro Messaggio"
 
 #: frappe/templates/includes/contact.js:36
 msgid "Message Sent"
@@ -15327,7 +15352,7 @@ msgstr ""
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/website/doctype/website_route_meta/website_route_meta.json
 msgid "Meta Tags"
-msgstr ""
+msgstr "Meta tag"
 
 #. Label of a Data field in DocType 'Blog Post'
 #: frappe/website/doctype/blog_post/blog_post.json
@@ -15389,7 +15414,7 @@ msgstr ""
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/core/doctype/user/user.json
 msgid "Middle Name"
-msgstr ""
+msgstr "Secondo Nome"
 
 #. Name of a DocType
 #. Label of a Link in the Tools Workspace
@@ -15541,7 +15566,7 @@ msgstr "Modulo"
 #: frappe/custom/doctype/property_setter/property_setter.json
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Module (for export)"
-msgstr ""
+msgstr "Modulo (per l'esportazione)"
 
 #. Name of a DocType
 #. Linked DocType in Package's connections
@@ -15582,7 +15607,7 @@ msgstr "Profilo del Modulo"
 #. Label of a Data field in DocType 'Module Profile'
 #: frappe/core/doctype/module_profile/module_profile.json
 msgid "Module Profile Name"
-msgstr ""
+msgstr "Nome del Profilo del Modulo"
 
 #: frappe/desk/doctype/module_onboarding/module_onboarding.py:69
 msgid "Module onboarding progress reset"
@@ -15958,7 +15983,7 @@ msgstr ""
 #: frappe/website/doctype/web_template/web_template.json
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Navbar"
-msgstr ""
+msgstr "Barra di Navigazione"
 
 #. Name of a DocType
 #: frappe/core/doctype/navbar_item/navbar_item.json
@@ -15976,7 +16001,7 @@ msgstr "Impostazioni Barra di Navigazione"
 #. Label of a Section Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Navbar Template"
-msgstr ""
+msgstr "Modello di Barra di Navigazione"
 
 #. Label of a Code field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -16164,7 +16189,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "New users will have to be manually registered by system managers."
-msgstr ""
+msgstr "I nuovi utenti dovranno essere registrati manualmente dai gestori del sistema."
 
 #. Description of the 'Set Value' (Small Text) field in DocType 'Property
 #. Setter'
@@ -17200,7 +17225,7 @@ msgstr "Client OAuth"
 #. Label of a Section Break field in DocType 'Google Settings'
 #: frappe/integrations/doctype/google_settings/google_settings.json
 msgid "OAuth Client ID"
-msgstr ""
+msgstr "OAuth Client ID"
 
 #. Name of a DocType
 #: frappe/integrations/doctype/oauth_client_role/oauth_client_role.json
@@ -17859,7 +17884,7 @@ msgstr "PID"
 #: frappe/core/doctype/recorder/recorder.json
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "POST"
-msgstr ""
+msgstr "POST"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #. Option for the 'Request Method' (Select) field in DocType 'Webhook'
@@ -17945,7 +17970,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
 msgid "Page HTML"
-msgstr ""
+msgstr "Pagina HTML"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:73
 msgid "Page Height (in mm)"
@@ -17964,7 +17989,7 @@ msgstr ""
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:63
 msgid "Page Number"
-msgstr ""
+msgstr "Numero di Pagina"
 
 #. Label of a Small Text field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
@@ -18041,14 +18066,14 @@ msgstr "Principale"
 #. Label of a Link field in DocType 'DocType Link'
 #: frappe/core/doctype/doctype_link/doctype_link.json
 msgid "Parent DocType"
-msgstr ""
+msgstr "DocType Principale"
 
 #. Label of a Link field in DocType 'Dashboard Chart'
 #. Label of a Link field in DocType 'Number Card'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Parent Document Type"
-msgstr ""
+msgstr "Tipo Documento Principale"
 
 #: frappe/desk/doctype/number_card/number_card.py:63
 msgid "Parent Document Type is required to create a number card"
@@ -18077,7 +18102,7 @@ msgstr ""
 #. Label of a Select field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "Parent Label"
-msgstr ""
+msgstr "Etichetta Principale"
 
 #: frappe/core/doctype/doctype/doctype.py:1160
 msgid "Parent Missing"
@@ -18086,7 +18111,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Parent Page"
-msgstr ""
+msgstr "Pagina Principale"
 
 #: frappe/core/doctype/data_export/exporter.py:24
 msgid "Parent Table"
@@ -18534,7 +18559,7 @@ msgstr ""
 #: frappe/core/doctype/doctype_state/doctype_state.json
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Pink"
-msgstr ""
+msgstr "Rosa"
 
 #. Label of a Data field in DocType 'DocField'
 #. Label of a Data field in DocType 'Custom Field'
@@ -18553,7 +18578,7 @@ msgstr ""
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Plant"
-msgstr ""
+msgstr "Impianto"
 
 #: frappe/email/oauth.py:29
 msgid "Please Authorize OAuth for Email Account {}"
@@ -18989,7 +19014,7 @@ msgstr ""
 #: frappe/email/doctype/email_domain/email_domain.json
 #: frappe/printing/doctype/network_printer_settings/network_printer_settings.json
 msgid "Port"
-msgstr ""
+msgstr "Porta"
 
 #. Label of a Card Break in the Website Workspace
 #: frappe/website/workspace/website/website.json
@@ -19230,7 +19255,7 @@ msgstr ""
 #. Label of a Link field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Primary Color"
-msgstr ""
+msgstr "Colore Primario"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:17
 msgid "Primary Contact"
@@ -19575,7 +19600,7 @@ msgstr ""
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Provide a list of allowed file extensions for file uploads. Each line should contain one allowed file type. If unset, all file extensions are allowed. Example: <br>CSV<br>JPG<br>PNG"
-msgstr ""
+msgstr "Fornisci un elenco delle estensioni di file consentite per il caricamento. Ogni riga deve contenere un tipo di file consentito. Se non impostato, sono consentite tutte le estensioni. Esempio: <br>CSV<br>JPG<br>PNG"
 
 #. Label of a Data field in DocType 'User Social Login'
 #: frappe/core/doctype/user_social_login/user_social_login.json
@@ -19660,7 +19685,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Publishing Dates"
-msgstr ""
+msgstr "Date di Pubblicazione"
 
 #. Label of a Check field in DocType 'Google Calendar'
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
@@ -20064,12 +20089,12 @@ msgstr ""
 #. Label of a Check field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Read by Recipient"
-msgstr ""
+msgstr "Letto dal Destinatario"
 
 #. Label of a Datetime field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Read by Recipient On"
-msgstr ""
+msgstr "Letto dal Destinatario Il"
 
 #: frappe/desk/doctype/note/note.js:10
 msgid "Read mode"
@@ -20132,7 +20157,7 @@ msgstr ""
 #. Label of a Data field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Receiver Parameter"
-msgstr ""
+msgstr "Parametro Ricevente"
 
 #: frappe/desk/page/user_profile/user_profile.html:39
 msgid "Recent Activity"
@@ -20414,7 +20439,7 @@ msgstr ""
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/communication/communication.json
 msgid "Reference Owner"
-msgstr ""
+msgstr "Proprietario di Riferimento"
 
 #. Label of a Data field in DocType 'Report'
 #. Label of a Link field in DocType 'Onboarding Step'
@@ -20523,7 +20548,7 @@ msgstr ""
 #. Label of a Markdown Editor field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
 msgid "Release Notes"
-msgstr ""
+msgstr "Note di Rilascio"
 
 #: frappe/core/doctype/communication/communication.js:48
 #: frappe/core/doctype/communication/communication.js:159
@@ -21193,14 +21218,14 @@ msgstr ""
 #: frappe/core/doctype/module_def/module_def.json
 #: frappe/core/doctype/page/page.json frappe/core/doctype/role/role.json
 msgid "Restrict To Domain"
-msgstr ""
+msgstr "Limita Al Dominio"
 
 #. Label of a Link field in DocType 'Workspace'
 #. Label of a Link field in DocType 'Workspace Shortcut'
 #: frappe/desk/doctype/workspace/workspace.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgid "Restrict to Domain"
-msgstr ""
+msgstr "Limita al Dominio"
 
 #. Description of the 'Restrict IP' (Small Text) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -21387,7 +21412,7 @@ msgstr ""
 #: frappe/core/doctype/role/role.json
 #: frappe/core/doctype/role_profile/role_profile.json
 msgid "Role Name"
-msgstr ""
+msgstr "Nome del Ruolo"
 
 #. Name of a DocType
 #. Label of a Link in the Users Workspace
@@ -21454,7 +21479,7 @@ msgstr "Ruoli"
 #. Label of a Tab Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Roles & Permissions"
-msgstr ""
+msgstr "Ruoli e Permessi"
 
 #. Label of a Table field in DocType 'Role Profile'
 #. Label of a Table field in DocType 'User'
@@ -21535,7 +21560,7 @@ msgstr ""
 #. Label of a Table field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Route Redirects"
-msgstr ""
+msgstr "Reindirizzamenti Percorso"
 
 #. Description of the 'Home Page' (Data) field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
@@ -21616,7 +21641,7 @@ msgstr ""
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 #: frappe/social/doctype/energy_point_log/energy_point_log.json
 msgid "Rule"
-msgstr ""
+msgstr "Regola"
 
 #. Label of a Section Break field in DocType 'Document Naming Rule'
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
@@ -21701,7 +21726,7 @@ msgstr ""
 #. Label of a Small Text field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "SMS Gateway URL"
-msgstr ""
+msgstr "URL Gateway SMS"
 
 #. Name of a DocType
 #: frappe/core/doctype/sms_parameter/sms_parameter.json
@@ -22554,7 +22579,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Select an image of approx width 150px with a transparent background for best results."
-msgstr ""
+msgstr "Per risultati ottimali, seleziona un'immagine di circa 150px di larghezza con sfondo trasparente."
 
 #: frappe/public/js/frappe/list/bulk_operations.js:36
 msgid "Select atleast 1 record for printing"
@@ -22620,7 +22645,7 @@ msgstr ""
 #: frappe/core/doctype/communication/communication.json
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Send After"
-msgstr ""
+msgstr "Invia Dopo"
 
 #. Label of a Select field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -22727,7 +22752,7 @@ msgstr ""
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Send Welcome Email"
-msgstr ""
+msgstr "Invia Email di Benvenuto"
 
 #: frappe/www/me.html:67
 msgid "Send a request to delete your account"
@@ -22877,12 +22902,12 @@ msgstr ""
 #. Label of a Check field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Sent Read Receipt"
-msgstr ""
+msgstr "Conferma di Lettura Inviata"
 
 #. Label of a Select field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Sent or Received"
-msgstr ""
+msgstr "Inviato o Ricevuto"
 
 #. Option for the 'Event Category' (Select) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
@@ -23025,7 +23050,7 @@ msgstr ""
 #. Description of the 'Chart Options' (Code) field in DocType 'Dashboard'
 #: frappe/desk/doctype/dashboard/dashboard.json
 msgid "Set Default Options for all charts on this Dashboard (Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"])"
-msgstr ""
+msgstr "Imposta le opzioni predefinite per tutti i grafici su questa dashboard (es: \"colori\": [\"#d1d8dd\", \"#ff5858\"])"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:467
 #: frappe/desk/doctype/number_card/number_card.js:367
@@ -23089,7 +23114,7 @@ msgstr ""
 #. Label of a Select field in DocType 'Role Permission for Page and Report'
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 msgid "Set Role For"
-msgstr ""
+msgstr "Imposta Ruolo Per"
 
 #: frappe/core/doctype/user/user.js:138
 #: frappe/core/page/permission_manager/permission_manager.js:65
@@ -23217,7 +23242,7 @@ msgstr ""
 #. Label of a Table field in DocType 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Settings Dropdown"
-msgstr ""
+msgstr "Menu Impostazioni"
 
 #. Description of a DocType
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
@@ -23338,7 +23363,7 @@ msgstr "indirizzo di spedizione"
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Shop"
-msgstr ""
+msgstr "Negozio"
 
 #. Label of a Data field in DocType 'Blogger'
 #: frappe/website/doctype/blogger/blogger.json
@@ -23370,7 +23395,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Show Absolute Values"
-msgstr ""
+msgstr "Mostra Valori Assoluti"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:78
 msgid "Show All"
@@ -23447,12 +23472,12 @@ msgstr ""
 #. Label of a Check field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Show Language Picker"
-msgstr ""
+msgstr "Mostra Selettore Lingua"
 
 #. Label of a Check field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Show Line Breaks after Sections"
-msgstr ""
+msgstr "Mostra Interruzioni di Riga dopo le Sezioni"
 
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -23466,7 +23491,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Show Only Failed Logs"
-msgstr ""
+msgstr "Mostra Solo i Log con Errori"
 
 #. Label of a Check field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -23515,14 +23540,14 @@ msgstr ""
 #. Label of a Check field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Show Section Headings"
-msgstr ""
+msgstr "Mostra Intestazioni di Sezione"
 
 #. Label of a Check field in DocType 'Web Form'
 #. Label of a Check field in DocType 'Web Page'
 #: frappe/website/doctype/web_form/web_form.json
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Show Sidebar"
-msgstr ""
+msgstr "Mostra Barra Laterale"
 
 #: frappe/public/js/frappe/list/list_sidebar.html:66
 #: frappe/public/js/frappe/list/list_view.js:1634
@@ -23532,7 +23557,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Show Title"
-msgstr ""
+msgstr "Mostra Titolo"
 
 #. Label of a Check field in DocType 'DocType'
 #. Label of a Check field in DocType 'Customize Form'
@@ -23564,7 +23589,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Show account deletion link in My Account page"
-msgstr ""
+msgstr "Mostra il link per l'eliminazione dell'account nella pagina Il Mio Account"
 
 #: frappe/core/doctype/version/version.js:6
 msgid "Show all Versions"
@@ -23586,7 +23611,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Show footer on login"
-msgstr ""
+msgstr "Mostra piè di pagina all'accesso"
 
 #. Description of the 'Show Full Form?' (Check) field in DocType 'Onboarding
 #. Step'
@@ -23628,7 +23653,7 @@ msgstr ""
 #. Description of the 'Title Prefix' (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Show title in browser window as \"Prefix - title\""
-msgstr ""
+msgstr "Mostra il titolo nella finestra del browser come \"Prefisso - titolo\""
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:148
 msgid "Show {0} List"
@@ -23660,7 +23685,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Sidebar and Comments"
-msgstr ""
+msgstr "Barra Laterale e Commenti"
 
 #. Label of a Section Break field in DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
@@ -23820,7 +23845,7 @@ msgstr "Webhook URL Slack"
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Slideshow"
-msgstr ""
+msgstr "Slideshow"
 
 #. Label of a Table field in DocType 'Website Slideshow'
 #: frappe/website/doctype/website_slideshow/website_slideshow.json
@@ -24029,7 +24054,7 @@ msgstr ""
 #. Label of a Attach Image field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Splash Image"
-msgstr ""
+msgstr "Immagine Iniziale"
 
 #: frappe/desk/reportview.py:398
 #: frappe/public/js/frappe/web_form/web_form_list.js:175
@@ -24234,7 +24259,7 @@ msgstr ""
 #. Label of a Table field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Static Parameters"
-msgstr ""
+msgstr "Parametri Statici"
 
 #. Label of a Section Break field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
@@ -24323,7 +24348,7 @@ msgstr ""
 #. Label of a Link field in DocType 'Onboarding Step Map'
 #: frappe/desk/doctype/onboarding_step_map/onboarding_step_map.json
 msgid "Step"
-msgstr ""
+msgstr "Fase"
 
 #. Label of a Table field in DocType 'Form Tour'
 #. Label of a Table field in DocType 'Module Onboarding'
@@ -24378,7 +24403,7 @@ msgstr ""
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Strip EXIF tags from uploaded images"
-msgstr ""
+msgstr "Rimuovi i tag EXIF dalle immagini caricate"
 
 #: frappe/public/js/frappe/form/controls/password.js:89
 msgid "Strong"
@@ -24389,7 +24414,7 @@ msgstr ""
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Style"
-msgstr ""
+msgstr "Stile"
 
 #. Label of a Section Break field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -24404,7 +24429,7 @@ msgstr ""
 #. Label of a Tab Break field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Stylesheet"
-msgstr ""
+msgstr "Stile"
 
 #. Description of the 'Fraction' (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -24415,7 +24440,7 @@ msgstr ""
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Sub-domain provided by erpnext.com"
-msgstr ""
+msgstr "Sottodominio fornito da erpnext.com"
 
 #. Label of a Small Text field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -24777,7 +24802,7 @@ msgstr ""
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 msgid "Sync"
-msgstr ""
+msgstr "Sincronizza"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.js:28
 msgid "Sync Calendar"
@@ -25043,7 +25068,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
 msgid "System Page"
-msgstr ""
+msgstr "Pagina di Sistema"
 
 #. Name of a DocType
 #. Label of a shortcut in the Build Workspace
@@ -25283,17 +25308,17 @@ msgstr ""
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Text"
-msgstr ""
+msgstr "Testo"
 
 #. Label of a Select field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Text Align"
-msgstr ""
+msgstr "Allineamento del Testo"
 
 #. Label of a Link field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Text Color"
-msgstr ""
+msgstr "Colore del Testo"
 
 #. Label of a Code field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -25573,7 +25598,7 @@ msgstr ""
 #: frappe/website/doctype/website_settings/website_settings.json
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Theme"
-msgstr ""
+msgstr "Tema"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:130
 msgid "Theme Changed"
@@ -25582,7 +25607,7 @@ msgstr ""
 #. Label of a Tab Break field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Theme Configuration"
-msgstr ""
+msgstr "Configurazione del Tema"
 
 #. Label of a Data field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
@@ -25670,7 +25695,7 @@ msgstr ""
 #. 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "These announcements will appear inside a dismissible alert below the Navbar."
-msgstr ""
+msgstr "Questi annunci appariranno all'interno di un avviso ignorabile sotto la barra di navigazione."
 
 #. Description of the 'LDAP Custom Settings' (Section Break) field in DocType
 #. 'LDAP Settings'
@@ -25729,7 +25754,7 @@ msgstr ""
 #. Description of the 'Is Public' (Check) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "This chart will be available to all Users if this is set"
-msgstr ""
+msgstr "Questo grafico sarà disponibile a tutti gli utenti se questa opzione è impostata"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:212
 msgid "This doctype has no orphan fields to trim"
@@ -26003,7 +26028,7 @@ msgstr ""
 #. Label of a Select field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Time Series Based On"
-msgstr ""
+msgstr "Serie Temporali Basate Su"
 
 #. Label of a Duration field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -26189,7 +26214,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Title Prefix"
-msgstr ""
+msgstr "Prefisso del Titolo"
 
 #: frappe/core/doctype/doctype/doctype.py:1438
 msgid "Title field must be a valid fieldname"
@@ -26257,7 +26282,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "To and CC"
-msgstr ""
+msgstr "A e CC"
 
 #. Description of the 'Use First Day of Period' (Check) field in DocType 'Auto
 #. Email Report'
@@ -26445,7 +26470,7 @@ msgstr ""
 #. Label of a Table field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Top Bar Items"
-msgstr ""
+msgstr "Elementi della Barra Superiore"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
@@ -26687,7 +26712,7 @@ msgstr ""
 #. Label of a Code field in DocType 'Translation'
 #: frappe/core/doctype/translation/translation.json
 msgid "Translated Text"
-msgstr ""
+msgstr "Testo Tradotto"
 
 #. Name of a DocType
 #: frappe/core/doctype/translation/translation.json
@@ -26708,7 +26733,7 @@ msgstr ""
 #: frappe/desk/doctype/form_tour/form_tour.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgid "Tree"
-msgstr ""
+msgstr "Albero"
 
 #: frappe/public/js/frappe/list/base_list.js:209
 msgid "Tree View"
@@ -26786,7 +26811,7 @@ msgstr ""
 #: frappe/core/doctype/role/role.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Two Factor Authentication"
-msgstr ""
+msgstr "Autenticazione a Due Fattori"
 
 #. Label of a Select field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -27278,12 +27303,12 @@ msgstr "Carica {0} file"
 #. Label of a Check field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Uploaded To Dropbox"
-msgstr ""
+msgstr "Caricato su Dropbox"
 
 #. Label of a Check field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Uploaded To Google Drive"
-msgstr ""
+msgstr "Caricato su Google Drive"
 
 #: frappe/integrations/doctype/google_drive/google_drive.py:198
 msgid "Uploading backup to Google Drive."
@@ -27334,12 +27359,12 @@ msgstr ""
 #. Label of a Check field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Use POST"
-msgstr ""
+msgstr "Utilizza POST"
 
 #. Label of a Check field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Use Report Chart"
-msgstr ""
+msgstr "Usa il Grafico del Report"
 
 #. Label of a Check field in DocType 'Email Account'
 #. Label of a Check field in DocType 'Email Domain'
@@ -27503,7 +27528,7 @@ msgstr ""
 #. Label of a Tab Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "User Details"
-msgstr ""
+msgstr "Dettagli Utente"
 
 #. Name of a DocType
 #: frappe/core/doctype/user_document_type/user_document_type.json
@@ -27576,7 +27601,7 @@ msgstr ""
 #. Label of a Attach Image field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "User Image"
-msgstr ""
+msgstr "Immagine Utente"
 
 #: frappe/public/js/frappe/ui/toolbar/navbar.html:115
 msgid "User Menu"
@@ -27869,7 +27894,7 @@ msgstr ""
 #. Label of a Select field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Value Based On"
-msgstr ""
+msgstr "Valore Basato Su"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #. Option for the 'For Document Event' (Select) field in DocType 'Energy Point
@@ -28891,7 +28916,7 @@ msgstr ""
 #: frappe/core/doctype/docshare/docshare.json
 #: frappe/core/doctype/user_document_type/user_document_type.json
 msgid "Write"
-msgstr ""
+msgstr "Scrivi"
 
 #: frappe/model/base_document.py:881
 msgid "Wrong Fetch From value"
@@ -29681,7 +29706,7 @@ msgstr ""
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "blue"
-msgstr ""
+msgstr "blu"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -29863,7 +29888,7 @@ msgstr ""
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "delete"
-msgstr ""
+msgstr "elimina"
 
 #: frappe/public/js/frappe/ui/sort_selector.html:5
 #: frappe/public/js/frappe/ui/sort_selector.js:48
@@ -29960,7 +29985,7 @@ msgstr ""
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "export"
-msgstr ""
+msgstr "esporta"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -30149,13 +30174,13 @@ msgstr ""
 #. Label of a Data field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
 msgid "icon"
-msgstr ""
+msgstr "icona"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "import"
-msgstr ""
+msgstr "importa"
 
 #. Description of the 'Read Time' (Int) field in DocType 'Blog Post'
 #: frappe/website/doctype/blog_post/blog_post.json
@@ -30518,7 +30543,7 @@ msgstr ""
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "read"
-msgstr ""
+msgstr "leggi"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -30633,7 +30658,7 @@ msgstr ""
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "select"
-msgstr ""
+msgstr "seleziona"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -30922,7 +30947,7 @@ msgstr ""
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "write"
-msgstr ""
+msgstr "scrivi"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
