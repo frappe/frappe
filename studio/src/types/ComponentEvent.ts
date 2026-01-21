@@ -33,6 +33,7 @@ export type ComponentEvent = {
 	on_error_script?: string,
 	/** action = 'Run Script' */
 	script?: string
+	additionalScope?: string[]
 	// for editing
 	isEditing?: boolean
 	oldEvent?: Events | string

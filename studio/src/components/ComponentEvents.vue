@@ -191,6 +191,7 @@ const emptyEvent: ComponentEvent = {
 	on_error_script: "",
 	// run script
 	script: "",
+	additionalScope: [],
 }
 const newEvent = ref<ComponentEvent>({ ...emptyEvent })
 
@@ -254,6 +255,24 @@ watch(
 
 const actions: ActionConfigurations = {
 	"Run Script": [
+		{
+			component: FormControl,
+			getProps: () => {
+				return {
+					label: "Additional Scope Variables (comma separated)",
+					modelValue: newEvent.value.additionalScope?.join(", ") || "",
+					autocomplete: "off",
+				}
+			},
+			events: {
+				"update:modelValue": (val: string) => {
+					newEvent.value.additionalScope = val
+						.split(",")
+						.map((s) => s.trim())
+						.filter((s) => s.length > 0)
+				},
+			},
+		},
 		{
 			component: Code,
 			getProps: () => {
@@ -440,6 +459,7 @@ function getEvent(event: ComponentEvent): ComponentEvent {
 	}
 	if (event.action === "Run Script") {
 		_event.script = event.script || ""
+		_event.additionalScope = event.additionalScope || []
 	} else if (event.action === "Call API") {
 		_event.api_endpoint = event.api_endpoint
 		setEventCallbackFields(_event, event)

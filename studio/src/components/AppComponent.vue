@@ -204,8 +204,14 @@ const componentEvents = computed(() => {
 					}).submit()
 				}
 			} else if (event.action === "Run Script") {
-				return () => {
-					codeStore.executeUserScript(event.script, repeaterContext, componentContext?.value)
+				return (...args: any[]) => {
+					codeStore.executeUserScript(
+						event.script,
+						repeaterContext,
+						componentContext?.value,
+						args,
+						event.additionalScope,
+					)
 				}
 			}
 		}
