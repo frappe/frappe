@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2025-03-20 13:58+0000\n"
-"PO-Revision-Date: 2026-01-21 08:28\n"
+"PO-Revision-Date: 2026-01-21 08:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -2009,7 +2009,7 @@ msgstr "Autorisé dans les mentions"
 #. Label of a Section Break field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
 msgid "Allowed Modules"
-msgstr ""
+msgstr "Modules autorisés"
 
 #. Label of a Table MultiSelect field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -2139,7 +2139,7 @@ msgstr "Ancêtres de"
 #. Label of a Text Editor field in DocType 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Announcement Widget"
-msgstr ""
+msgstr "Widget d'annonce"
 
 #. Label of a Section Break field in DocType 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
@@ -2958,12 +2958,12 @@ msgstr "L&#39;affectation automatique a échoué: {0}"
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Auto follow documents that are assigned to you"
-msgstr ""
+msgstr "Suivez automatiquement les documents qui vous sont affectés"
 
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Auto follow documents that are shared with you"
-msgstr ""
+msgstr "Suivez automatiquement les documents partagés avec vous"
 
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -2996,7 +2996,7 @@ msgstr "Auto-complétion"
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Autoincrement"
-msgstr ""
+msgstr "Auto-incrémentation"
 
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -3208,7 +3208,7 @@ msgstr "Vérification des Travaux en Arrière-plan"
 #. Label of a Autocomplete field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "Background Jobs Queue"
-msgstr ""
+msgstr "Fille d'attente des Travaux en Arrière-plan"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:87
 msgid "Background Print (required for >25 documents)"
@@ -4879,7 +4879,7 @@ msgstr ""
 #: frappe/geo/doctype/country/country.json
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Code"
-msgstr ""
+msgstr "Code"
 
 #. Label of a Data field in DocType 'OAuth Authorization Code'
 #: frappe/integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
@@ -5900,7 +5900,7 @@ msgstr "Critiquer"
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Cron"
-msgstr ""
+msgstr "Cron"
 
 #. Label of a Data field in DocType 'Scheduled Job Type'
 #. Label of a Data field in DocType 'Server Script'
@@ -7252,7 +7252,7 @@ msgstr ""
 #. Label of a Check field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Comment Count"
-msgstr ""
+msgstr "Désactiver le comptage des commentaires"
 
 #. Label of a Check field in DocType 'Blog Post'
 #: frappe/website/doctype/blog_post/blog_post.json
@@ -18545,7 +18545,7 @@ msgstr "Personnel"
 #: frappe/public/js/frappe/views/workspace/workspace.js:34
 msgctxt "Workspace Category"
 msgid "Personal"
-msgstr "Personnel"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
@@ -24613,7 +24613,7 @@ msgstr ""
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:128
 msgid "Submit on Creation"
-msgstr ""
+msgstr "Valider à la création"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:400
 msgid "Submit this document to complete this step."
