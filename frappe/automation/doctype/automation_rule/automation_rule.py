@@ -21,6 +21,7 @@ HOOK_MAP = {
 }
 AFTER_INSERT_ACTION_TYPES: set[str] = {"email", "add_comment"}
 BEFORE_SAVE_ACTION_TYPES: set[str] = {"set"}
+TIME_BASED_EVENTS = ["Minutes Before", "Minutes After", "Days Before", "Days After"]
 
 
 class AutomationRule(Document):
@@ -45,6 +46,10 @@ class AutomationRule(Document):
 
 	def validate(self) -> None:
 		validate_json_string(self.rule)
+
+		if self.doctype_event in ("Minutes Before", "Minutes After") and self.time_offset is not None:
+			if self.time_offset < 5:
+				frappe.throw("Time Offset must be at least 5 minutes")
 
 	def apply(self, doc, hook: str) -> None:
 		rule = json.loads(self.rule)
@@ -164,6 +169,96 @@ class AutomationRule(Document):
 			message = frappe.render_template(action.get("message", ""), context={**doc.as_dict()})
 
 		return subject, message
+
+	def on_update(self):
+		"""
+		cases:
+			1. if not enabled, cancel jobs
+			2. if dt changed, then log sei saari dt nikalkei cancelled kardo
+			3. if doctype_event changed and previous one of TIME_BASED_EVENTS and now not these then cancel all jobs from log
+			4. time_offset changed? find jobs with time_field + dt + scheduled => update_execute_at
+			5. time_field changed? find jobs with old_time_field + dt + scheduled => update_execute_at, update fieldname and execute_at
+		"""
+
+		# Case 1: if not enabled, cancel jobs
+		if not self.enabled:
+			frappe.db.set_value(
+				"Automation Scheduled Job",
+				{"automation_rule": self.name, "status": "Scheduled"},
+				"status",
+				"Cancelled",
+				update_modified=False,
+			)
+			return
+
+		dt_changed = self.has_value_changed("dt")
+		doctype_event_changed = self.has_value_changed("doctype_event")
+		time_offset_changed = self.has_value_changed("time_offset")
+		time_field_changed = self.has_value_changed("time_field")
+
+		# Case 2: dt changed -> cancel scheduled jobs for this rule
+		if dt_changed:
+			frappe.db.set_value(
+				"Automation Scheduled Job",
+				{"automation_rule": self.name, "status": "Scheduled"},
+				"status",
+				"Cancelled",
+				update_modified=False,
+			)
+			return
+
+		# Case 3: doctype_event moved out of time-based events -> cancel scheduled jobs
+		if doctype_event_changed:
+			previous_event = self.get_doc_before_save().doctype_event
+			if previous_event in TIME_BASED_EVENTS and self.doctype_event not in TIME_BASED_EVENTS:
+				frappe.db.set_value(
+					"Automation Scheduled Job",
+					{"automation_rule": self.name, "status": "Scheduled"},
+					"status",
+					"Cancelled",
+					update_modified=False,
+				)
+				return
+
+			# If switching between time-based events, recalc execute_at
+			if previous_event in TIME_BASED_EVENTS and self.doctype_event in TIME_BASED_EVENTS:
+				time_offset_changed = True
+
+		# Case 4/5: time_offset or time_field change -> recalc execute_at
+		if time_offset_changed or time_field_changed:
+			jobs = frappe.get_all(
+				"Automation Scheduled Job",
+				filters={"automation_rule": self.name, "status": "Scheduled"},
+				fields=["name", "reference_doctype", "reference_name"],
+			)
+
+			for job in jobs:
+				field_value = frappe.db.get_value(
+					job.reference_doctype,
+					job.reference_name,
+					self.time_field,
+				)
+				if not field_value:
+					frappe.db.set_value(
+						"Automation Scheduled Job",
+						job.name,
+						{"status": "Cancelled"},
+						update_modified=False,
+					)
+					continue
+
+				execute_at = calculate_execute_at(self.doctype_event, field_value, self.time_offset)
+
+				updates: dict[str, object] = {"execute_at": execute_at}
+				if time_field_changed and self.time_field:
+					updates["fieldname"] = self.time_field
+
+				frappe.db.set_value(
+					"Automation Scheduled Job",
+					job.name,
+					updates,
+					update_modified=False,
+				)
 
 
 operatorMap = {
@@ -290,10 +385,6 @@ def calculate_execute_at(doctype_event, field_value, offset):
 
 
 def execute_automation_logs():
-	# find_jobs_to_run()
-	# enqueue the automations found in find_jobs_to_run
-	# onSuccess change the status of the log to "Completed"
-	# onError change the status of the log to "Failed"
 	print("Executing scheduled automation jobs...")
 	jobs_to_run = frappe.get_list(
 		"Automation Scheduled Job",
