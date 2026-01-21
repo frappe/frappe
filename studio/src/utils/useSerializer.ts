@@ -50,21 +50,37 @@ export const useSerializer = () => {
 	}
 
 	function parseObjectString(jsString: string) {
-		const codeStore = useCodeStore()
-		const registeredComponents = window.__APP_COMPONENTS__ || {}
 		try {
-			// Quote dynamic values before parsing
 			const processedString = quoteDynamicValues(jsString)
-			const fn = new Function(
-				"h",
-				...Object.keys(registeredComponents),
-				...Object.keys(codeStore.globalExecutionContext),
-				`return (${processedString})`
-			)
-			return fn(h, ...Object.values(registeredComponents), ...Object.values(codeStore.globalExecutionContext))
+			const obj = new Function(`return (${processedString})`)()
+			return stringifyFunctions(obj, jsString)
 		} catch (e) {
 			throw e
 		}
+	}
+
+	function stringifyFunctions(obj: any, originalSource: string): any {
+		if (obj === null || obj === undefined) {
+			return obj
+		}
+
+		if (typeof obj === "function") {
+			return obj.toString()
+		}
+
+		if (Array.isArray(obj)) {
+			return obj.map((item) => stringifyFunctions(item, originalSource))
+		}
+
+		if (typeof obj === "object") {
+			const result: Record<string, any> = {}
+			for (const [key, value] of Object.entries(obj)) {
+				result[key] = stringifyFunctions(value, originalSource)
+			}
+			return result
+		}
+
+		return obj
 	}
 
 	function quoteDynamicValues(str: string): string {
