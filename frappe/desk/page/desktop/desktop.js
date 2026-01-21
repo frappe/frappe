@@ -91,6 +91,9 @@ function get_route(desktop_icon) {
 						type: first_link.link_type,
 						name: first_link.link_to,
 						tab: first_link.tab,
+						route_options: {
+							sidebar: desktop_icon.label,
+						},
 					});
 				}
 			}
@@ -997,21 +1000,6 @@ class DesktopIcon {
 				this.icon.attr("target", "_blank");
 			}
 			this.icon.attr("href", this.icon_route);
-		}
-		if (this.icon_data.sidebar) {
-			const me = this;
-			this.icon.on("click", function () {
-				if (me.icon_data.sidebar == "My Workspaces") {
-					let sidebar_name = me.icon_data.sidebar.toLowerCase();
-					if (frappe.boot.workspace_sidebar_item[sidebar_name].items.length == 0) {
-						frappe.toast("No Private Workspaces for user");
-					} else {
-						let workspace_name =
-							frappe.boot.workspace_sidebar_item[sidebar_name].items[0]["link_to"];
-						frappe.set_route("Workspaces", "private", workspace_name);
-					}
-				}
-			});
 		}
 	}
 

@@ -366,7 +366,7 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 		order by
 			if(locate(%(_txt)s, `tabContact`.full_name), locate(%(_txt)s, `tabContact`.company_name), 99999),
 			`tabContact`.idx desc, `tabContact`.full_name
-		limit %(start)s, %(page_len)s """,
+		limit %(page_len)s offset %(start)s """,
 		{
 			"txt": "%" + txt + "%",
 			"_txt": txt.replace("%", ""),

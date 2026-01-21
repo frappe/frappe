@@ -2359,7 +2359,7 @@
   "currency_fraction": "Halala",
   "currency_fraction_units": 100,
   "currency_name": "Saudi Riyal",
-  "currency_symbol": "\u0631.\u0633",
+  "currency_symbol": "\u20C1",
   "number_format": "#,###.##",
   "timezones": [
    "Asia/Riyadh"

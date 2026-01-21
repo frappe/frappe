@@ -65,6 +65,7 @@
   "print_hide",
   "print_hide_if_no_value",
   "print_width",
+  "alignment",
   "columns",
   "width",
   "is_custom_field"
@@ -355,6 +356,13 @@
    "label": "Print Width",
    "print_width": "50px",
    "width": "50px"
+  },
+  {
+   "depends_on": "eval:in_list(['Data', 'Int', 'Float', 'Currency', 'Percent'], doc.fieldtype)",
+   "fieldname": "alignment",
+   "fieldtype": "Select",
+   "label": "Alignment",
+   "options": "\nLeft\nCenter\nRight"
   },
   {
    "depends_on": "eval:parent.istable",
