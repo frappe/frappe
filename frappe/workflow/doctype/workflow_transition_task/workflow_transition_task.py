@@ -15,11 +15,13 @@ class WorkflowTransitionTask(Document):
 		from frappe.types import DF
 
 		asynchronous: DF.Check
+		email_template: DF.Link | None
 		enabled: DF.Check
 		link: DF.DynamicLink | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		receiver_by_document_field: DF.Data | None
 		task: DF.Literal[None]
 	# end: auto-generated types
 

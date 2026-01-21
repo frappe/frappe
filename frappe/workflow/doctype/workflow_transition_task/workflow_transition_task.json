@@ -8,7 +8,9 @@
   "task",
   "asynchronous",
   "enabled",
-  "link"
+  "link",
+  "email_template",
+  "receiver_by_document_field"
  ],
  "fields": [
   {
@@ -44,13 +46,26 @@
    "in_list_view": 1,
    "in_preview": 1,
    "label": "Asynchronous"
+  },
+  {
+   "depends_on": "eval: doc.task == \"Email Notification\"",
+   "fieldname": "email_template",
+   "fieldtype": "Link",
+   "label": "Email Template",
+   "options": "Email Template"
+  },
+  {
+   "depends_on": "eval: doc.task == \"Email Notification\"",
+   "fieldname": "receiver_by_document_field",
+   "fieldtype": "Data",
+   "label": "Receiver By Document Field"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-14 12:13:18.108225",
+ "modified": "2026-01-20 17:14:02.427361",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Transition Task",

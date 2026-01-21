@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 	from frappe.workflow.doctype.workflow.workflow import Workflow
 
 
-DEFAULT_WORKFLOW_TASKS = ["Webhook", "Server Script"]
+DEFAULT_WORKFLOW_TASKS = ["Webhook", "Server Script", "Email Notification"]
 
 
 class WorkflowStateError(frappe.ValidationError):
@@ -154,7 +154,7 @@ def apply_workflow(doc, action):
 		workflow_transitions = frappe.db.get_all(
 			"Workflow Transition Task",
 			{"parent": transition.transition_tasks, "enabled": True},
-			["task", "link", "asynchronous"],
+			["task", "link", "asynchronous", "receiver_by_document_field", "email_template"],
 			order_by="idx",
 		)
 
@@ -183,6 +183,25 @@ def apply_workflow(doc, action):
 					case "Server Script":
 						server_script = frappe.get_doc("Server Script", workflow_transition.link)
 						task_method = server_script.execute_workflow_task
+
+					case "Email Notification":
+						from frappe.core.doctype.communication.email import make
+						recipients = []
+						data_field, child_field = _parse_receiver_by_document_field(
+							workflow_transition.receiver_by_document_field
+						)
+
+						if child_field:
+							for d in doc.get(child_field):
+								email_id = d.get(data_field)
+								if email_id:
+									recipients.append(email_id)
+								else:
+									email_ids_value = doc.get(data_field)
+									email_ids = email_ids_value.replace(",", "\n")
+									recipients = recipients + email_ids.split("\n")
+						
+						make(recipients=recipients, email_template=workflow_transition.email_template)
 
 			else:  # normal app-defined tasks
 				try:
@@ -310,6 +329,15 @@ def send_email_alert(workflow_name):
 def get_workflow_field_value(workflow_name, field):
 	return frappe.get_cached_value("Workflow", workflow_name, field)
 
+def _parse_receiver_by_document_field(receiver_fields):
+	fragments = receiver_fields.split(",")
+	# fields from child table or linked doctype
+	if len(fragments) > 1:
+		data_field, child_field = fragments
+	else:
+		data_field, child_field = fragments[0], None
+
+	return data_field, child_field
 
 @frappe.whitelist()
 def bulk_workflow_approval(docnames, doctype, action):
