@@ -3,7 +3,6 @@
 import re
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
-from functools import lru_cache
 from io import BytesIO
 from typing import Any, ClassVar, Literal
 
@@ -290,12 +289,10 @@ class XLSXStyleBuilder:
 
 	### Format Getters ###
 	@staticmethod
-	@lru_cache(maxsize=1)
 	def get_date_format() -> str:
 		return frappe.get_system_settings("date_format")
 
 	@staticmethod
-	@lru_cache(maxsize=1)
 	def get_time_format() -> str:
 		return frappe.get_system_settings("time_format")
 
@@ -304,7 +301,6 @@ class XLSXStyleBuilder:
 		return f"{XLSXStyleBuilder.get_date_format()} {XLSXStyleBuilder.get_time_format()}"
 
 	@staticmethod
-	@lru_cache(maxsize=64)
 	def get_number_format(fieldtype: Literal["Float", "Percent"]) -> str:
 		from frappe.locale import get_number_format as _get_format
 
@@ -329,7 +325,7 @@ class XLSXStyleBuilder:
 
 	#### Excel Color Utils ####
 	@staticmethod
-	@lru_cache(maxsize=64)
+	@frappe.request_cache
 	def hex_to_argb(color: str) -> str:
 		"""
 		Convert a CSS-style hex color to openpyxl ARGB ("AARRGGBB").
@@ -380,6 +376,8 @@ def make_xlsx(
 	def _apply_style(target, style: dict) -> None:
 		if font := style.get("font"):
 			target.font = font
+		if border := style.get("border"):
+			target.border = border
 		if fill := style.get("fill"):
 			target.fill = fill
 		if alignment := style.get("alignment"):
@@ -401,7 +399,6 @@ def make_xlsx(
 		for col_idx, style in column_styles.items():
 			_apply_style(ws.column_dimensions[get_column_letter(col_idx + 1)], style)
 
-	# TODO: Can be in XLSXStyleBuilder?
 	for idx, width in enumerate(column_widths, start=1):
 		if width:
 			ws.column_dimensions[get_column_letter(idx)].width = width
