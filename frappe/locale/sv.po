@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-21 10:33\n"
+"PO-Revision-Date: 2026-01-22 12:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2147,51 +2147,51 @@ msgstr "Tillåter DocType, DocType. Var försiktig!"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:52
 msgid "Allows printing or PDF download of documents."
-msgstr ""
+msgstr "Tillåter utskrift eller nedladdning av PDF dokument."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:77
 msgid "Allows sharing document access with other users."
-msgstr ""
+msgstr "Tillåter delning av dokument åtkomst med andra användare."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:62
 msgid "Allows the user to access reports related to the document."
-msgstr ""
+msgstr "Tillåter användare att få tillgång för rapporter relaterade till dokument."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:42
 msgid "Allows the user to create new documents."
-msgstr ""
+msgstr "Tillåter användare att skapa nya dokument."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:47
 msgid "Allows the user to delete documents."
-msgstr ""
+msgstr "Tillåter användare att radera dokument."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:37
 msgid "Allows the user to edit existing records they have access to."
-msgstr ""
+msgstr "Tillåter användare att redigera befintliga poster som de har åtkomst till."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:57
 msgid "Allows the user to email from the document."
-msgstr ""
+msgstr "Tillåter användare att skicka e-post från dokument."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:67
 msgid "Allows the user to export data from the Report view."
-msgstr ""
+msgstr "Tillåter användare att exportera data från rapport vy."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:27
 msgid "Allows the user to search and see records."
-msgstr ""
+msgstr "Tillåter användare att söka och se poster."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:72
 msgid "Allows the user to use Data Import tool to create / update records."
-msgstr ""
+msgstr "Tillåter användare att använda data import verktyg för att skapa/uppdatera poster."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:32
 msgid "Allows the user to view the document."
-msgstr ""
+msgstr "Tillåter användare att visa dokument."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:82
 msgid "Allows users to enable the mask property for any field of the respective doctype."
-msgstr ""
+msgstr "Tillåter användare att aktivera mask egenskap för vilket fält som helst i respektive doctype."
 
 #: frappe/core/doctype/user/user.py:981
 msgid "Already Registered"
@@ -2987,7 +2987,7 @@ msgstr "Försöker starta QZ Aktivitet Fält..."
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/doctype/event_participants/event_participants.json
 msgid "Attending"
-msgstr ""
+msgstr "Deltar"
 
 #. Label of a Table field in DocType 'Newsletter'
 #: frappe/email/doctype/newsletter/newsletter.json
@@ -9681,7 +9681,7 @@ msgstr "Händelse Intervall"
 #. Name of a DocType
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 msgid "Event Notifications"
-msgstr ""
+msgstr "Händelse Aviseringar"
 
 #. Label of a Table field in DocType 'Event'
 #. Name of a DocType
@@ -12628,11 +12628,11 @@ msgstr "Om villkor är uppfylld kommer Användare att belönas med poäng. t.ex.
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:83
 msgid "If the user enables the mask property for the phone number field, the value will be displayed in a masked format (e.g., 811XXXXXXX)."
-msgstr ""
+msgstr "Om användare aktiverar mask egenskap för telefonnummer fält visas värdet i ett maskerat format (t.ex. 811XXXXXXX)."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:63
 msgid "If the user has access to Employee and Report is enabled, they can view Employee-based reports."
-msgstr ""
+msgstr "Om användare har åtkomst till Personal och Rapport och är aktiverad kan de visa Personal baserade rapporter."
 
 #. Description of the 'User Type' (Link) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -13396,7 +13396,7 @@ msgstr "Internt register över dokument delningar"
 #. Label of a Select field in DocType 'Event Notifications'
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 msgid "Interval"
-msgstr ""
+msgstr "Intervall"
 
 #: frappe/desk/page/user_profile/user_profile_sidebar.html:22
 msgid "Intro"
@@ -13631,7 +13631,7 @@ msgstr "Ogiltig uttryck angiven i sortering {0} ({1})"
 
 #: frappe/desk/page/user_profile/user_profile.py:34
 msgid "Invalid field for grouping"
-msgstr ""
+msgstr "Ogiltigt fält för gruppering"
 
 #: frappe/utils/data.py:2007
 msgid "Invalid field name {0}"
@@ -15843,7 +15843,7 @@ msgstr "Maximum {0} rader tillåtna"
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/doctype/event_participants/event_participants.json
 msgid "Maybe"
-msgstr ""
+msgstr "Kanske"
 
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:221
 msgid "Me"
@@ -15851,7 +15851,7 @@ msgstr "Jag"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:14
 msgid "Meaning of Different Permission Types"
-msgstr ""
+msgstr "Betydelsen av olika typer av behörigheter"
 
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #. Label of a Data field in DocType 'Web Page View'
@@ -19196,7 +19196,7 @@ msgstr "Permanent ta bort {0}?"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:19
 msgid "Permission"
-msgstr ""
+msgstr "Behörighet"
 
 #: frappe/core/doctype/user_type/user_type.py:83
 msgid "Permission Error"
@@ -26485,7 +26485,7 @@ msgstr "Vald Dokument Typ är underordnad tabell, så överordnad Dokument Typ e
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:58
 msgid "The email button is enabled for the user in the document."
-msgstr ""
+msgstr "E-post knapp är aktiverad för användare i dokument."
 
 #: frappe/core/doctype/user_type/user_type.py:109
 msgid "The field {0} is mandatory"
@@ -26556,7 +26556,7 @@ msgstr "Ditt Konto Lösenord har gått ut."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:53
 msgid "The print button is enabled for the user in the document."
-msgstr ""
+msgstr "Utskrift knapp är aktiverad för användare i dokument."
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:394
 msgid "The process for deletion of {0} data associated with {1} has been initiated."
@@ -26609,35 +26609,35 @@ msgstr "Totalt antal användar dokument typer är passerad."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:43
 msgid "The user can create a new Item but cannot edit existing items."
-msgstr ""
+msgstr "Användare kan skapa ny Artikel men kan inte redigera befintliga artiklar."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:48
 msgid "The user can delete Draft / Cancelled documents."
-msgstr ""
+msgstr "Användare kan ta bort Utkast / Anullerade dokument."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:68
 msgid "The user can export report data."
-msgstr ""
+msgstr "Användare kan exportera rapport data."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:73
 msgid "The user can import new records or update existing data for the document."
-msgstr ""
+msgstr "Användare kan importera nya poster eller uppdatera befintlig data för dokument."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:28
 msgid "The user can select a Customer in Sales Order but cannot open the Customer master."
-msgstr ""
+msgstr "Användare kan välja Kund i Försäljning Order men kan inte öppna Kund registret."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:78
 msgid "The user can share document access with another user."
-msgstr ""
+msgstr "Användare kan dela dokument åtkomst med en annan användare."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:38
 msgid "The user can update a customer or any other fields in an existing Sales Order but cannot create a new Sales Order."
-msgstr ""
+msgstr "Användare kan uppdatera kund eller andra fält i befintlig Försäljning Order men kan inte skapa ny Försäljning Order."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:33
 msgid "The user can view Sales Invoices but cannot modify any field values in them."
-msgstr ""
+msgstr "Användare kan visa Försäljning Fakturor men kan inte ändra några fältvärde."
 
 #. Description of the 'User Field' (Select) field in DocType 'Energy Point
 #. Rule'
@@ -30293,7 +30293,7 @@ msgstr "Du har inte behörighet att skicka e-post i kopplad till detta dokument"
 
 #: frappe/desk/doctype/event/event.py:248
 msgid "You are not allowed to update the status of this event."
-msgstr ""
+msgstr "Du har inte tillåtelse att uppdatera status för denna händelse."
 
 #: frappe/website/doctype/web_form/web_form.py:595
 msgid "You are not allowed to update this Web Form Document"
