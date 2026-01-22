@@ -1341,28 +1341,51 @@ def get_enabled_users():
 
 
 @frappe.whitelist(methods=["POST"])
-def impersonate(user: str, reason: str):
+def impersonate(user: str, reason: str = "No reason provided"):
 	# Note: For now we only allow admins, we MIGHT allow system manager in future.
 	# All the impersonation code doesn't assume anything about user.
-	frappe.only_for("Administrator")
+    if not frappe.has_permission("User", "write"):
+        frappe.throw(_("No permission to impersonate"))
 
-	impersonator = frappe.session.user
-	frappe.get_doc(
-		{
-			"doctype": "Activity Log",
-			"user": user,
-			"status": "Success",
-			"subject": _("User {0} impersonated as {1}").format(impersonator, user),
-			"operation": "Impersonate",
-		}
-	).insert(ignore_permissions=True, ignore_links=True)
+    impersonator = frappe.session.user
 
-	notification = frappe.new_doc(
-		"Notification Log",
-		for_user=user,
-		from_user=frappe.session.user,
-		subject=_("{0} just impersonated as you. They gave this reason: {1}").format(impersonator, reason),
-	)
-	notification.set("type", "Alert")
-	notification.insert(ignore_permissions=True)
-	frappe.local.login_manager.impersonate(user)
+    frappe.get_doc(
+        {
+            "doctype": "Activity Log",
+            "user": user,
+            "status": "Success",
+            "subject": _("User {0} impersonated as {1}").format(impersonator, user),
+            "operation": "Impersonate",
+        }
+    ).insert(ignore_permissions=True, ignore_links=True)
+
+    notification = frappe.new_doc(
+        "Notification Log",
+        for_user=user,
+        from_user=frappe.session.user,
+        subject=_("{0} just impersonated as you. Reason: {1}").format(impersonator, reason),
+    )
+    notification.set("type", "Alert")
+    notification.insert(ignore_permissions=True)
+
+    
+    email_subject = _("Security Alert: Your account was impersonated by {0}").format(impersonator)
+    email_message = _("""
+        <div style="font-family: sans-serif; padding: 10px;">
+            <h3>Security Alert</h3>
+            <p>Hello,</p>
+            <p>User <b>{0}</b> has just signed in to your account using the <b>Impersonate</b> feature.</p>
+            <p><b>Reason:</b> {1}</p>
+            <p><b>Time:</b> {2}</p>
+        </div>
+    """).format(impersonator, reason, frappe.utils.format_datetime(frappe.utils.now(), "medium"))
+
+    frappe.sendmail(
+        recipients=user,
+        subject=email_subject,
+        message=email_message,
+        header=[_("Security Alert"), "orange"],
+        now=True 
+    )
+
+    frappe.local.login_manager.impersonate(user)
