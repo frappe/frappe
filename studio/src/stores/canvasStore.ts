@@ -1,7 +1,7 @@
 import { defineStore } from "pinia"
 import { ref, reactive, computed, nextTick } from "vue"
 import type Block from "@/utils/block"
-import { useSerializer } from "@/utils/useSerializer"
+import { getBlockCopy, getBlockInstance } from "@/utils/serializer"
 
 import type StudioCanvas from "@/components/StudioCanvas.vue"
 import type { EditingMode, BlockOptions } from "@/types"
@@ -102,8 +102,6 @@ const useCanvasStore = defineStore("canvasStore", () => {
 	const showFragmentCanvas = computed(() => {
 		return editingMode.value === "fragment" || editingMode.value === "component" && fragmentData.value?.block
 	})
-
-	const { getBlockCopy, getBlockInstance } = useSerializer()
 
 	async function editOnCanvas(
 		block: Block,

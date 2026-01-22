@@ -126,7 +126,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import { studioPages } from "@/data/studioPages"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
-import { useSerializer } from "@/utils/useSerializer"
+import { getRootBlock } from "@/utils/serializer"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 
 const route = useRoute()
@@ -180,7 +180,6 @@ watch(
 	{ deep: true },
 )
 
-const { getRootBlock } = useSerializer()
 async function setPage() {
 	if (route.params.pageID === store.selectedPage) return
 

@@ -4,7 +4,7 @@
 		:studioComponent="block"
 		:evaluationContext="evaluationContext"
 	/>
-	<template v-else>
+	<template v-else-if="block.canHaveChildren()">
 		<component
 			ref="componentRef"
 			v-if="showComponent"
@@ -34,6 +34,20 @@
 
 			<AppComponent v-for="child in block?.children" :key="child.componentId" :block="child" />
 		</component>
+	</template>
+
+	<!-- Rendering separately to avoid empty slots being passed as default slots to components like Dropdown -->
+	<template v-else>
+		<component
+			ref="componentRef"
+			v-if="showComponent"
+			:is="componentName"
+			v-bind="componentProps"
+			v-on="{ ...vModelListeners, ...componentEvents }"
+			:data-component-id="block.componentId"
+			:style="styles"
+			:class="classes"
+		/>
 	</template>
 </template>
 
@@ -99,7 +113,7 @@ const getComponentProps = () => {
 	Object.entries(propValues).forEach(([propName, propValue]) => {
 		if (propValue?.$type === "variable") {
 			propValues[propName] = codeStore.getValueFromVariable(propValue.name, evaluationContext.value)
-		} else if (isDynamicValue(propValue)) {
+		} else {
 			propValues[propName] = codeStore.evaluateDynamicValues(propValue, evaluationContext.value)
 		}
 	})
@@ -152,10 +166,11 @@ const componentEvents = computed(() => {
 					router.push(event.page)
 				}
 			} else if (event.action === "Call API") {
-				return () => {
+				return (...eventArgs: any[]) => {
 					const path: string[] = event.api_endpoint.split(".")
 					// get resource
 					const resource = codeStore.resources[path[0]]
+					event.eventArgs = eventArgs
 
 					if (resource) {
 						// access and call whitelisted method
@@ -171,11 +186,12 @@ const componentEvents = computed(() => {
 					}
 				}
 			} else if (event.action === "Insert a Document") {
-				return () => {
+				return (...eventArgs: any[]) => {
 					const fields: Record<string, any> = {}
 					event.fields.forEach((field: Field) => {
-						fields[field.field] = codeStore.getValueFromVariable(field.value)
+						fields[field.field] = codeStore.getValueFromVariable(field.value, evaluationContext.value)
 					})
+					event.eventArgs = eventArgs
 					createResource({
 						url: "frappe.client.insert",
 						method: "POST",
@@ -190,8 +206,8 @@ const componentEvents = computed(() => {
 					}).submit()
 				}
 			} else if (event.action === "Run Script") {
-				return () => {
-					codeStore.executeUserScript(event.script, repeaterContext, componentContext?.value)
+				return (...eventArgs: any[]) => {
+					codeStore.executeUserScript(event.script, repeaterContext, componentContext?.value, eventArgs)
 				}
 			}
 		}
@@ -203,7 +219,13 @@ const componentEvents = computed(() => {
 
 const handleSuccess = (event: any) => (data: DataResult) => {
 	if (event.on_success === "script" && event.on_success_script) {
-		return codeStore.handleSuccess(event.on_success_script, data, repeaterContext, componentContext?.value)
+		return codeStore.handleSuccess(
+			event.on_success_script,
+			data,
+			repeaterContext,
+			componentContext?.value,
+			event.eventArgs,
+		)
 	} else {
 		if (event.action === "Insert a Document") {
 			toast.success(event.success_message || `${event.doctype} created successfully`)
@@ -215,7 +237,13 @@ const handleSuccess = (event: any) => (data: DataResult) => {
 
 const handleError = (event: any) => (error: any) => {
 	if (event.on_error === "script" && event.on_error_script) {
-		return codeStore.handleError(event.on_error_script, error, repeaterContext, componentContext?.value)
+		return codeStore.handleError(
+			event.on_error_script,
+			error,
+			repeaterContext,
+			componentContext?.value,
+			event.eventArgs,
+		)
 	} else {
 		if (event.action === "Insert a Document") {
 			toast.error(event.error_message || `Error creating ${event.doctype}`)

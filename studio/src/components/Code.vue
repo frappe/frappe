@@ -24,6 +24,7 @@
 			@blur="syncToParent"
 		/>
 
+		<span class="text-p-xs text-ink-gray-6" v-show="description" v-html="description"></span>
 		<Button v-if="showSaveButton" variant="solid" @click="emit('save', code)" class="mt-3 w-full text-base">
 			Save
 		</Button>
@@ -50,7 +51,7 @@ import { tomorrow } from "thememirror"
 import JSON5 from "json5"
 import { isPrivateKey } from "@/utils/helpers"
 import { normalizeCode } from "@/utils/code"
-import { useSerializer } from "@/utils/useSerializer"
+import { jsonReplacer, parseObjectString } from "@/utils/serializer"
 
 import InputLabel from "@/components/InputLabel.vue"
 
@@ -65,6 +66,7 @@ const props = withDefaults(
 		showLineNumbers?: boolean
 		completions?: Function | null
 		label?: string
+		description?: string
 		required?: boolean
 		readonly?: boolean
 		borderless?: boolean
@@ -87,7 +89,6 @@ const props = withDefaults(
 	},
 )
 const emit = defineEmits(["update:modelValue", "save"])
-const { jsonReplacer, jsonToJs, parseObjectString } = useSerializer()
 
 const code = ref<string>("")
 const editorView = ref<EditorView | null>(null)
@@ -114,7 +115,7 @@ const syncToParent = () => {
 		let value = code.value || ""
 		if (value && !value.startsWith("{{")) {
 			if (props.language === "json") {
-				value = jsonToJs(value)
+				value = JSON.parse(value)
 			} else if (props.language === "javascript" && isValidObjectString(value)) {
 				value = parseObjectString(value)
 			}

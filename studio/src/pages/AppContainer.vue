@@ -8,7 +8,7 @@ import { useRoute } from "vue-router"
 import { usePageMeta } from "frappe-ui"
 
 import { findPageWithRoute } from "@/utils/helpers"
-import { useSerializer } from "@/utils/useSerializer"
+import { getBlockInstance } from "@/utils/serializer"
 import AppComponent from "@/components/AppComponent.vue"
 
 import useAppStore from "@/stores/appStore"
@@ -23,8 +23,6 @@ const codeStore = useCodeStore()
 const page = ref<StudioPage | null>(null)
 
 const rootBlock = ref<Block | null>(null)
-
-const { jsonToJs, getBlockInstance } = useSerializer()
 
 watch(
 	() => route.path,
@@ -47,8 +45,8 @@ watch(
 			await codeStore.setPageWatchers(page.value)
 
 			const blocks = window.is_preview
-				? jsonToJs(page.value?.draft_blocks || page.value?.blocks)
-				: jsonToJs(page.value?.blocks)
+				? JSON.parse(page.value?.draft_blocks || page.value?.blocks)
+				: JSON.parse(page.value?.blocks)
 			if (blocks) {
 				rootBlock.value = getBlockInstance(blocks[0])
 			}

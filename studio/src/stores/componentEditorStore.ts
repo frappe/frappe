@@ -3,7 +3,7 @@ import { ref } from "vue"
 import { studioComponents } from "@/data/studioComponents"
 import { confirm } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
-import { useSerializer } from "@/utils/useSerializer"
+import { getBlockObjectCopy, getBlockInstance, getComponentBlock } from "@/utils/serializer"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import { toast } from "vue-sonner"
@@ -16,7 +16,6 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const studioComponentBlock = ref<Block | null>(null)
 	const componentInputs = ref<ComponentInput[]>([])
 	const componentStore = useComponentStore()
-	const { getBlockObjectCopy, getBlockInstance, getComponentBlock } = useSerializer()
 
 	async function createComponent(componentName: string, block?: Block | null) {
 		const component: any = { component_name: componentName }

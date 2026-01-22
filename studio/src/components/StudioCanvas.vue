@@ -118,7 +118,7 @@ import { useCanvasUtils } from "@/utils/useCanvasUtils"
 import type { BreakpointConfig, CanvasHistory } from "@/types/StudioCanvas"
 import type { Slot } from "@/types"
 import { useCanvasEvents } from "@/utils/useCanvasEvents"
-import { useSerializer } from "@/utils/useSerializer"
+import { getBlockCopy } from "@/utils/serializer"
 
 const props = defineProps({
 	componentTree: {
@@ -185,8 +185,6 @@ watch(
 		setScaleAndTranslate()
 	},
 )
-
-const { getBlockCopy } = useSerializer()
 
 // clone props.block into canvas data to avoid mutating them
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
