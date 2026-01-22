@@ -49,10 +49,16 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			$(this.wrapper)
 				.find("input, select")
 				.on(
-					"change input awesomplete-selectcomplete",
+					"change awesomplete-selectcomplete",
 					frappe.utils.debounce(() => {
 						this.dirty = true;
 						me.refresh_dependency();
+					}, 100)
+				)
+				.on(
+					"input",
+					frappe.utils.debounce(() => {
+						this.dirty = true;
 					}, 100)
 				);
 		}
