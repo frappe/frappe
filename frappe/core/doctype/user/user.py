@@ -1481,6 +1481,7 @@ def impersonate(user: str, reason: str = "No reason provided"):
 		subject=email_subject,
 		message=email_message,
 		header=[_("Security Alert"), "orange"],
+		
 		now=True
 	)
 
