@@ -133,6 +133,11 @@
 									@update:modelValue="(val: string) => (newEvent.on_error_script = val)"
 								/>
 							</div>
+
+							<span
+								class="mt-1 text-p-xs text-ink-gray-6"
+								v-html="getScriptDescription(newEvent.event)"
+							></span>
 						</template>
 					</div>
 				</template>
