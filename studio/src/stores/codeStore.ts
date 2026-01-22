@@ -237,20 +237,9 @@ const useCodeStore = defineStore("codeStore", () => {
 		repeaterContext?: Record<string, any>,
 		componentContext?: Record<string, any>,
 		eventArgs?: Record<string, any>,
-		additionalScope?: string[],
 	) {
 		try {
-			// Map event arguments to named parameters
-			const namedEventArgs: Record<string, any> = {}
-			if (eventArgs && additionalScope) {
-				additionalScope.forEach((paramName, index) => {
-					if (paramName && index < eventArgs.length) {
-						namedEventArgs[paramName] = eventArgs[index]
-					}
-				})
-			}
-
-			const context = { ...globalExecutionContext.value, ...repeaterContext, ...componentContext, ...namedEventArgs }
+			const context = { ...globalExecutionContext.value, ...repeaterContext, ...componentContext, args: eventArgs }
 
 			const scriptToExecute = `
 				with (context) {
