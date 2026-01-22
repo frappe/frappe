@@ -29,6 +29,7 @@
 
 .form-section,
 .form-dashboard-section {
+	padding: 0 var(--padding-md);
 	.form-section-description {
 		max-width: var(--page-max-width);
 		margin: auto;
@@ -39,17 +40,22 @@
 
 	.section-head {
 		@extend .head-title;
-		@include get_textstyle("lg", "semibold");
+		@include get_textstyle("md", "medium");
 		color: var(--text-color);
 		width: 100%;
-		padding: var(--padding-sm) var(--padding-md);
+		padding: var(--padding-md);
 		cursor: default;
 
 		.collapse-indicator {
 			color: var(--text-muted);
-			margin-left: 10px;
 			position: relative;
 			padding: 0px;
+			&:focus-visible {
+				outline: 1px solid #c9c9c9;
+			}
+		}
+		&:focus-visible {
+			outline: 1px solid #c9c9c9;
 		}
 	}
 
@@ -72,11 +78,13 @@
 		}
 	}
 }
-
 .section-head,
 .section-body {
-	max-width: var(--page-max-width);
 	margin: auto !important;
+
+	body:not(.full-width) & {
+		max-width: var(--page-max-width);
+	}
 }
 
 #doctype-form_builder_tab .section-body {
@@ -106,11 +114,9 @@
 	display: none !important;
 	border: 0 !important;
 }
-
 .form-section.card-section,
 .form-dashboard-section {
 	border-bottom: 1px solid var(--border-color);
-	padding: var(--padding-md) 0;
 }
 
 .form-section.card-section.hide-border {
@@ -120,6 +126,10 @@
 	&:not(:has(.section-head)) {
 		padding-top: 0;
 	}
+}
+
+.form-section > .section-body:first-child {
+	padding-top: 12px;
 }
 
 .form-dashboard-section {
@@ -162,6 +172,8 @@
 
 		.comment-title {
 			@extend .head-title;
+			font-size: 16px;
+			font-weight: 500;
 		}
 		.comment-count {
 			margin-left: 5px;
@@ -180,6 +192,7 @@
 		.avatar {
 			height: 32px;
 			width: 32px;
+			margin-top: 1px;
 		}
 		.frappe-control {
 			padding-right: 0;
@@ -407,6 +420,7 @@
 	margin-top: 4px;
 	margin-bottom: 8px;
 	line-height: 1.6;
+	word-break: break-word;
 }
 
 .form-heatmap {
@@ -438,32 +452,10 @@
 	}
 }
 
-// above mobile
-@media (min-width: map-get($grid-breakpoints, "md")) {
-	// for 1, 2 column layouts, implement horizontal, else vertical
-	.col-sm-12 > form > .frappe-control > .horizontal,
-	.col-sm-6 > form > .frappe-control > .horizontal {
-		display: flex;
-		justify-content: space-between;
-		vertical-align: middle;
-
-		.clearfix {
-			width: 38%;
-		}
-
-		.control-input-wrapper {
-			width: 62%; // golden ratio
-		}
-
-		.control-label {
-			margin-top: 3px;
-			margin-bottom: 3px;
-		}
-	}
-}
-
 .form-footer {
-	max-width: var(--page-max-width);
+	body:not(.full-width) & {
+		max-width: var(--page-max-width);
+	}
 	margin: auto;
 	padding: 0 15px;
 
@@ -497,15 +489,23 @@
 			white-space: nowrap;
 			@include get_textstyle("base", "regular");
 			.nav-link {
-				color: var(--text-muted);
+				color: var(--text-light);
 				padding: 10px 0;
 				margin: 0 var(--margin-md);
-
+				background-color: var(--card-bg);
+				border: 0;
+				display: flex;
+				align-items: center;
+				gap: 6px;
 				&.active {
-					font-weight: 600;
+					font-weight: 400;
 					border-bottom: 1px solid var(--text-color);
-					color: var(--text-color);
+					color: var(--text-neutral);
 					padding-bottom: 9px;
+				}
+				&:focus-visible {
+					outline: none;
+					font-weight: 600;
 				}
 			}
 		}
@@ -519,7 +519,10 @@
 	top: calc(var(--navbar-height) - 1px);
 }
 .form-tabs-sticky-down {
-	top: calc(var(--navbar-height) + var(--page-head-height) - 1px);
+	top: calc(var(--navbar-height) - 2px);
+	&.show-navbar {
+		top: calc(var(--navbar-height) + var(--page-head-height) - 1px);
+	}
 }
 
 .progress-area {
@@ -590,4 +593,9 @@
 	.form-column:not(:first-child) {
 		padding-top: var(--padding-md);
 	}
+}
+
+.popover-header {
+	background: var(--bg-color);
+	color: var(--ink-gray-9);
 }

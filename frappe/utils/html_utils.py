@@ -126,7 +126,7 @@ def clean_email_html(html):
 		},
 		attributes=["border", "colspan", "rowspan", "src", "href", "style", "id"],
 		css_sanitizer=css_sanitizer,
-		protocols=["cid", "http", "https", "mailto", "data"],
+		protocols=["cid", "http", "https", "mailto", "data", "tel"],
 		strip=True,
 		strip_comments=True,
 	)
@@ -185,7 +185,7 @@ def sanitize_html(html, linkify=False, always_sanitize=False):
 		attributes=attributes,
 		css_sanitizer=css_sanitizer,
 		strip_comments=False,
-		protocols={"cid", "http", "https", "mailto"},
+		protocols={"cid", "http", "https", "mailto", "tel"},
 	)
 
 	return escaped_html

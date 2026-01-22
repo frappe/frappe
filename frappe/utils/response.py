@@ -19,7 +19,6 @@ import werkzeug.utils
 from werkzeug.exceptions import Forbidden, NotFound
 from werkzeug.local import LocalProxy
 from werkzeug.wrappers import Response
-from werkzeug.wsgi import wrap_file
 
 import frappe
 import frappe.model.document
@@ -68,11 +67,13 @@ def report_error(status_code):
 def is_traceback_allowed():
 	from frappe.permissions import is_system_user
 
-	return (
-		frappe.db
-		and frappe.get_system_settings("allow_error_traceback")
-		and (not frappe.local.flags.disable_traceback or frappe._dev_server)
-		and is_system_user()
+	return frappe.db and (
+		frappe._dev_server
+		or (
+			frappe.get_system_settings("allow_error_traceback")
+			and not frappe.local.flags.disable_traceback
+			and is_system_user()
+		)
 	)
 
 
@@ -158,7 +159,7 @@ def as_pdf():
 	response = Response()
 	response.mimetype = "application/pdf"
 	filename = frappe.response["filename"].encode("utf-8").decode("unicode-escape", "ignore")
-	response.headers.add("Content-Disposition", None, filename=filename)
+	response.headers.add("Content-Disposition", "inline", filename=filename)
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -168,7 +169,7 @@ def as_binary():
 	response.mimetype = "application/octet-stream"
 	filename = frappe.response["filename"]
 	filename = filename.encode("utf-8").decode("unicode-escape", "ignore")
-	response.headers.add("Content-Disposition", None, filename=filename)
+	response.headers.add("Content-Disposition", "attachment", filename=filename)
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -200,7 +201,7 @@ def _make_logs_v1():
 			[orjson.dumps(d).decode() for d in frappe.local.message_log]
 		).decode()
 
-	if frappe.debug_log:
+	if frappe.debug_log and is_traceback_allowed():
 		response["_debug_messages"] = orjson.dumps(frappe.local.debug_log).decode()
 
 	if frappe.flags.error_message:
@@ -213,7 +214,7 @@ def _make_logs_v2():
 	if frappe.local.message_log:
 		response["messages"] = frappe.local.message_log
 
-	if frappe.debug_log:
+	if frappe.debug_log and is_traceback_allowed():
 		response["debug"] = [{"message": m} for m in frappe.local.debug_log]
 
 
@@ -297,35 +298,39 @@ def download_private_file(path: str) -> Response:
 	return send_private_file(path.split("/private", 1)[1])
 
 
+FORCE_DOWNLOAD_EXTENSIONS = (".svg", ".html", ".htm", ".xml")
+
+
 def send_private_file(path: str) -> Response:
 	path = os.path.join(frappe.local.conf.get("private_path", "private"), path.strip("/"))
 	filename = os.path.basename(path)
+
+	extension = os.path.splitext(path)[1]
+	as_attachment = extension.lower() in FORCE_DOWNLOAD_EXTENSIONS
 
 	if frappe.local.request.headers.get("X-Use-X-Accel-Redirect"):
 		path = "/protected/" + path
 		response = Response()
 		response.headers["X-Accel-Redirect"] = quote(frappe.utils.encode(path))
 		response.headers["Cache-Control"] = "private,max-age=3600,stale-while-revalidate=86400"
+		response.headers["Accept-Ranges"] = "bytes"
+		response.headers["Content-Type"] = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+
+		if as_attachment:
+			response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{quote(filename)}"
 
 	else:
 		filepath = frappe.utils.get_site_path(path)
-		try:
-			f = open(filepath, "rb")
-		except OSError:
+		if not os.path.exists(filepath):
 			raise NotFound
 
-		response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
-
-	# no need for content disposition and force download. let browser handle its opening.
-	# Except for those that can be injected with scripts.
-
-	extension = os.path.splitext(path)[1]
-	blacklist = [".svg", ".html", ".htm", ".xml"]
-
-	if extension.lower() in blacklist:
-		response.headers.add("Content-Disposition", "attachment", filename=filename)
-
-	response.mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+		response = werkzeug.utils.send_file(
+			filepath,
+			environ=frappe.local.request.environ,
+			conditional=True,
+			as_attachment=as_attachment,
+			download_name=filename if as_attachment else None,
+		)
 
 	return response
 

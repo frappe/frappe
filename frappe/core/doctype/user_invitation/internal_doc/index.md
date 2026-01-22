@@ -24,13 +24,9 @@ Define user invitation hooks in your app's `hooks.py` file. An example is shown 
 
 ![user invitation hooks example](./user_invitation_hooks_example.png)
 
-- `only_for`
-
-  Roles that are allowed to invite users to your app.
-
 - `allowed_roles`
 
-  Roles that are allowed to be invited to your app.
+  A map of `only_for` roles to a list of roles that are allowed to be invited to your app.
 
 - `after_accept`
 
@@ -104,3 +100,4 @@ Cancels a specific pending invitation associated with an installed Framework app
 - Once an invitation document is created from Desk, all of the fields are immutable except the `Redirect To Path` field which is mutable only when the invitation status is `Pending`.
 - To manually mark an invitation as expired, you can use the `expire` method on the invitation document.
 - To manually cancel an invitation, you can use the `cancel_invite` method on the invitation document.
+- Disabled users cannot be invited. Trying to invite a disabled user from the Desk will generate an error and the whitelisted functions will ignore emails associated with disabled users.

@@ -129,7 +129,7 @@ frappe.report_utils = {
 				report_name: report_name,
 			})
 			.then((r) => {
-				frappe.dom.eval(r.script || "");
+				frappe.dom.eval(r.script);
 				return frappe.after_ajax(() => {
 					if (
 						frappe.query_reports[report_name] &&
@@ -179,6 +179,11 @@ frappe.report_utils = {
 				options: ["Excel", "CSV"],
 				default: "Excel",
 				reqd: 1,
+			},
+			{
+				label: __("Export in Background"),
+				fieldname: "export_in_background",
+				fieldtype: "Check",
 			},
 			{
 				fieldtype: "Section Break",

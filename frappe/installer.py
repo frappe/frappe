@@ -296,6 +296,14 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 
 	print(f"\nInstalling {name}...")
 
+	other_class_overrides = frappe.get_hooks("override_doctype_class")
+	if (
+		other_class_overrides
+		and app_hooks.override_doctype_class
+		and any(dt in app_hooks.override_doctype_class for dt in other_class_overrides)
+	):
+		click.secho(f"App {name} overrides a doctype that is already overridden by another app.", fg="yellow")
+
 	if name != "frappe":
 		frappe.only_for("System Manager")
 
@@ -359,6 +367,7 @@ def remove_from_installed_apps(app_name):
 			"DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps)
 		)
 		_clear_cache("__global")
+		frappe.local.doc_events_hooks = None
 		frappe.get_single("Installed Applications").update_versions()
 		frappe.db.commit()
 		if frappe.flags.in_install:

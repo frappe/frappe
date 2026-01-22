@@ -40,7 +40,7 @@
   {
    "fieldname": "deletion_steps",
    "fieldtype": "Table",
-   "label": "Deletion Steps ",
+   "label": "Deletion Steps",
    "options": "Personal Data Deletion Step"
   }
  ],

@@ -186,6 +186,12 @@ export default class Block {
 				icon: frappe.utils.icon("down-arrow", "sm"),
 				action: () => this.move_block("down"),
 			},
+			{
+				label: "Duplicate",
+				title: "Duplicate",
+				icon: frappe.utils.icon("copy", "sm"),
+				action: () => this.duplicate_block(),
+			},
 		];
 
 		let $widget_control = $(this.wrapper).find(".widget-control");
@@ -336,5 +342,18 @@ export default class Block {
 		let current_index = this.api.blocks.getCurrentBlockIndex();
 		let new_index = current_index + (direction == "down" ? 1 : -1);
 		this.api.blocks.move(new_index, current_index);
+	}
+
+	duplicate_block() {
+		const current_block_index = this.api.blocks.getCurrentBlockIndex();
+		const current_block = this.api.blocks.getBlockByIndex(current_block_index);
+
+		if (!current_block) return;
+
+		const type = current_block.name;
+		const data = this.data;
+
+		this.api.blocks.insert(type, data, null, current_block_index + 1, true);
+		this.api.caret.setToBlock(current_block_index + 1, "end");
 	}
 }

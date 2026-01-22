@@ -1,4 +1,10 @@
-frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_columns) {
+frappe.ui.get_print_settings = function (
+	pdf,
+	callback,
+	letter_head,
+	pick_columns,
+	has_filters = false
+) {
 	var print_settings = locals[":Print Settings"]["Print Settings"];
 
 	var company = frappe.defaults.get_default("company");
@@ -21,13 +27,14 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_column
 		},
 		{
 			fieldtype: "Link",
-			fieldname: "report",
-			label: __("Report"),
+			fieldname: "print_format",
+			label: __("Print Format"),
 			options: "Print Format",
-			default: letter_head || default_letter_head,
 			get_query: () => ({
 				filters: {
 					print_format_for: "Report",
+					print_format_type: "JS",
+					report: frappe.query_report ? frappe.query_report.report_name : "",
 					disabled: 0,
 				},
 			}),
@@ -47,12 +54,21 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_column
 		},
 	];
 
+	if (has_filters) {
+		columns.push({
+			label: __("Include filters"),
+			fieldtype: "Check",
+			fieldname: "include_filters",
+		});
+	}
+
 	if (pick_columns) {
 		columns.push(
 			{
 				label: __("Pick Columns"),
 				fieldtype: "Check",
 				fieldname: "pick_columns",
+				depends_on: "eval: !doc.print_format",
 			},
 			{
 				label: __("Select Columns"),
@@ -71,15 +87,27 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_column
 
 	return frappe.prompt(
 		columns,
-		function (data) {
-			data = $.extend(print_settings, data);
-			if (!data.with_letter_head) {
-				data.letter_head = null;
+		function (settings) {
+			settings = $.extend(print_settings, settings);
+
+			if (!settings.with_letter_head) {
+				settings.letter_head = null;
 			}
-			if (data.letter_head) {
-				data.letter_head = frappe.boot.letter_heads[print_settings.letter_head];
+
+			if (settings.letter_head) {
+				settings.letter_head = frappe.boot.letter_heads[print_settings.letter_head];
 			}
-			callback(data);
+
+			if (settings.print_format) {
+				settings.pick_columns = 0;
+				settings.columns = null;
+			}
+
+			callback(settings);
+			// clean up print format to avoid affecting next print
+			if (settings.print_format) {
+				settings.print_format = null;
+			}
 		},
 		__("Print Settings")
 	);
@@ -216,7 +244,7 @@ frappe.ui.form.qz_fail = function (e) {
 	// notify qz errors
 	frappe.show_alert(
 		{
-			message: __("QZ Tray Failed: ") + e.toString(),
+			message: __("QZ Tray Failed:") + " " + e.toString(),
 			indicator: "red",
 		},
 		20

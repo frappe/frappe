@@ -54,7 +54,7 @@ from .utils.jinja import (
 	render_template,
 )
 
-__version__ = "16.0.0-dev"
+__version__ = "17.0.0-dev"
 __title__ = "Frappe Framework"
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -73,8 +73,8 @@ if TYPE_CHECKING:  # pragma: no cover
 controllers: dict[str, type] = {}
 lazy_controllers: dict[str, type] = {}
 local = Local()
-cache: Optional["RedisWrapper"] = None
-client_cache: Optional["ClientCache"] = None
+cache: "RedisWrapper" | None = None
+client_cache: "ClientCache" | None = None
 STANDARD_USERS = ("Guest", "Administrator")
 
 # this global may be subsequently changed by frappe.tests.utils.toggle_test_mode()
@@ -88,22 +88,20 @@ if _dev_server:
 
 
 # local-globals
-ConfType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+type ConfType = _dict[str, Any]  # type: ignore[no-any-explicit]
 # TODO: make session a dataclass instead of undtyped _dict
-SessionType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+type SessionType = _dict[str, Any]  # type: ignore[no-any-explicit]
 # TODO: implement dataclass
-LogMessageType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
+type LogMessageType = _dict[str, Any]  # type: ignore[no-any-explicit]
 # TODO: implement dataclass
 # holds job metadata if the code is run in a background job context
-JobMetaType: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
-ResponseDict: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
-FlagsDict: TypeAlias = _dict[str, Any]  # type: ignore[no-any-explicit]
-FormDict: TypeAlias = _dict[str, str]
+type JobMetaType = _dict[str, Any]  # type: ignore[no-any-explicit]
+type ResponseDict = _dict[str, Any]  # type: ignore[no-any-explicit]
+type FlagsDict = _dict[str, Any]  # type: ignore[no-any-explicit]
+type FormDict = _dict[str, str]
 
-db: LocalProxy[Union["PyMariaDBDatabase", "MariaDBDatabase", "PostgresDatabase", "SQLiteDatabase"]] = local(
-	"db"
-)
-qb: LocalProxy[Union["MariaDB", "Postgres", "SQLite"]] = local("qb")
+db: LocalProxy["PyMariaDBDatabase" | "MariaDBDatabase" | "PostgresDatabase" | "SQLiteDatabase"] = local("db")
+qb: LocalProxy["MariaDB" | "Postgres" | "SQLite"] = local("qb")
 conf: LocalProxy[ConfType] = local("conf")
 form_dict: LocalProxy[FormDict] = local("form_dict")
 form = form_dict
@@ -188,7 +186,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 
 	local.user = None
 	local.user_perms = None
-	local.session = None
 	local.role_permissions = {}
 	local.valid_columns = {}
 	local.new_doc_templates = {}
@@ -199,7 +196,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.cache = {}
 	local.form_dict = _dict()
 	local.preload_assets = {"style": [], "script": [], "icons": []}
-	local.session = _dict()
+	local.session = _dict(user="Guest", data=_dict())
 	local.dev_server = _dev_server  # only for backwards compatibility
 	local.qb = get_query_builder(local.conf.db_type)
 	if not cache or not client_cache:
@@ -676,7 +673,7 @@ def is_table(doctype: str) -> bool:
 
 
 def get_precision(
-	doctype: str, fieldname: str, currency: str | None = None, doc: Optional["Document"] = None
+	doctype: str, fieldname: str, currency: str | None = None, doc: "Document" | None = None
 ) -> int:
 	"""Get precision for a given field"""
 	from frappe.model.meta import get_field_precision
@@ -924,7 +921,7 @@ def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
 
 def get_doc_hooks():
 	"""Return hooked methods for given doc. Expand the dict tuple if required."""
-	if not hasattr(local, "doc_events_hooks"):
+	if not getattr(local, "doc_events_hooks", None):
 		hooks = get_hooks("doc_events", {})
 		out = {}
 		for key, value in hooks.items():
@@ -1355,9 +1352,9 @@ def get_list(doctype, *args, **kwargs):
 	        # filter as a list of lists
 	        frappe.get_list("ToDo", fields="*", filters = [["modified", ">", "2014-01-01"]])
 	"""
-	import frappe.model.db_query
+	import frappe.model.qb_query
 
-	return frappe.model.db_query.DatabaseQuery(doctype).execute(*args, **kwargs)
+	return frappe.model.qb_query.DatabaseQuery(doctype).execute(*args, **kwargs)
 
 
 def get_all(doctype, *args, **kwargs):
@@ -1473,18 +1470,28 @@ def logger(
 
 
 def get_desk_link(doctype, name, show_title_with_name=False, open_in_new_tab=False):
+	from urllib.parse import quote
+
 	meta = get_meta(doctype)
 	title = get_value(doctype, name, meta.get_title_field())
 
 	target_attr = ' target="_blank"' if open_in_new_tab else ""
 
+	# encode for href
+	encoded_name = quote(name)
+
 	if show_title_with_name and name != title:
-		html = '<a href="/app/Form/{doctype}/{name}"{target} style="font-weight: bold;">{doctype_local} {name}: {title_local}</a>'
+		html = '<a href="/desk/Form/{doctype}/{encoded_name}"{target} style="font-weight: bold;">{doctype_local} {name}: {title_local}</a>'
 	else:
-		html = '<a href="/app/Form/{doctype}/{name}"{target} style="font-weight: bold;">{doctype_local} {title_local}</a>'
+		html = '<a href="/desk/Form/{doctype}/{encoded_name}"{target} style="font-weight: bold;">{doctype_local} {title_local}</a>'
 
 	return html.format(
-		doctype=doctype, name=name, doctype_local=_(doctype), title_local=_(title), target=target_attr
+		doctype=doctype,
+		name=name,
+		encoded_name=encoded_name,
+		doctype_local=_(doctype),
+		title_local=_(title),
+		target=target_attr,
 	)
 
 
@@ -1511,7 +1518,13 @@ def is_setup_complete():
 	if not frappe.db.table_exists("Installed Application"):
 		return setup_complete
 
-	if all(frappe.get_all("Installed Application", {"has_setup_wizard": 1}, pluck="is_setup_complete")):
+	if all(
+		frappe.get_all(
+			"Installed Application",
+			{"app_name": ("in", ["frappe", "erpnext"])},
+			pluck="is_setup_complete",
+		)
+	):
 		setup_complete = True
 
 	return setup_complete

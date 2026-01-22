@@ -14,7 +14,7 @@ from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
 from frappe.model.base_document import get_controller
-from frappe.model.db_query import DatabaseQuery
+from frappe.model.qb_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
@@ -60,15 +60,15 @@ def get_count() -> int | None:
 		return frappe.call(controller.get_count, args=args, **args)
 
 	args.distinct = sbool(args.distinct)
-	distinct = "distinct " if args.distinct else ""
 	args.limit = cint(args.limit)
-	fieldname = f"{distinct}`tab{args.doctype}`.name"
+	fieldname = f"`tab{args.doctype}`.name"
 	args.order_by = None
 
 	# args.limit is specified to avoid getting accurate count.
 	if not args.limit:
-		args.fields = [f"count({fieldname}) as total_count"]
-		return execute(**args)[0].get("total_count")
+		args.fields = [fieldname]
+		partial_query = execute(**args, run=0).get_sql()
+		return frappe.db.sql(f"select count(*) from ( {partial_query} ) p")[0][0]
 
 	args.fields = [fieldname]
 	partial_query = execute(**args, run=0)
@@ -124,6 +124,10 @@ def validate_fields(data):
 	wildcard = update_wildcard_field_param(data)
 
 	for field in list(data.fields or []):
+		# TODO: extract_fieldnames needs to handle dict fields for qb_query aggregations
+		if isinstance(field, dict):
+			continue
+
 		fieldname = extract_fieldnames(field)[0]
 		if not fieldname:
 			raise_invalid_field(fieldname)
@@ -186,9 +190,8 @@ def setup_group_by(data):
 			frappe.throw(_("Invalid aggregate function"))
 
 		if frappe.db.has_column(data.aggregate_on_doctype, data.aggregate_on_field):
-			data.fields.append(
-				f"{data.aggregate_function}(`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`) AS _aggregate_column"
-			)
+			field = f"`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`"
+			data.fields.append({data.aggregate_function.upper(): field, "as": "_aggregate_column"})
 		else:
 			raise_invalid_field(data.aggregate_on_field)
 
@@ -371,11 +374,48 @@ def delete_report(name):
 @frappe.read_only()
 def export_query():
 	"""export from report builder"""
-	from frappe.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
+	from frappe.desk.utils import pop_csv_params
 
 	form_params = get_form_params()
 	form_params["limit_page_length"] = None
+
 	form_params["as_list"] = True
+	csv_params = pop_csv_params(form_params)
+	export_in_background = int(form_params.pop("export_in_background", 0))
+
+	if export_in_background:
+		user = frappe.session.user
+		user_email = frappe.get_cached_value("User", user, "email")
+		frappe.enqueue(
+			"frappe.desk.reportview.run_report_view_export_job",
+			user_email=user_email,
+			form_params=form_params,
+			csv_params=csv_params,
+			queue="long",
+			now=frappe.flags.in_test,
+		)
+
+		frappe.msgprint(
+			_(
+				"Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
+			).format(user_email)
+		)
+		return
+
+	return _export_query(form_params, csv_params)
+
+
+def run_report_view_export_job(user_email, form_params, csv_params):
+	from frappe.desk.utils import send_report_email
+
+	report_name, file_extension, content = _export_query(form_params, csv_params, populate_response=False)
+	send_report_email(user_email, report_name, file_extension, content, attached_to_name=report_name)
+
+
+def _export_query(form_params, csv_params, populate_response=True):
+	from frappe.desk.utils import get_csv_bytes, provide_binary_file
+	from frappe.utils.xlsxutils import handle_html, make_xlsx
+
 	doctype = form_params.pop("doctype")
 	if isinstance(form_params["fields"], list):
 		form_params["fields"].append("owner")
@@ -383,7 +423,6 @@ def export_query():
 		form_params["fields"] = form_params["fields"] + ("owner",)
 	file_format_type = form_params.pop("file_format_type")
 	title = form_params.pop("title", doctype)
-	csv_params = pop_csv_params(form_params)
 	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
 	translate_values = 1 if form_params.pop("translate_values", None) == "1" else None
 
@@ -434,20 +473,19 @@ def export_query():
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
 	if file_format_type == "CSV":
-		from frappe.utils.xlsxutils import handle_html
-
 		file_extension = "csv"
 		content = get_csv_bytes(
 			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in data],
 			csv_params,
 		)
 	elif file_format_type == "Excel":
-		from frappe.utils.xlsxutils import make_xlsx
-
 		file_extension = "xlsx"
 		content = make_xlsx(data, doctype).getvalue()
 
-	provide_binary_file(title, file_extension, content)
+	if not populate_response:
+		return title, file_extension, content
+
+	provide_binary_file(_(title), file_extension, content)
 
 
 def append_totals_row(data):
@@ -512,7 +550,7 @@ def get_field_info(fields, doctype):
 			if parenttype != doctype:
 				# If the column is from a child table, append the child doctype.
 				# For example, "Item Code (Sales Invoice Item)".
-				label += f" ({ _(parenttype) })"
+				label += f" ({_(parenttype)})"
 
 		field_info.append(
 			{"name": name, "label": label, "fieldtype": fieldtype, "translatable": translatable}
@@ -649,7 +687,7 @@ def get_stats(stats, doctype, filters=None):
 		try:
 			tag_count = frappe.get_list(
 				doctype,
-				fields=[column, "count(*)"],
+				fields=[column, {"COUNT": "*"}],
 				filters=[*filters, [column, "!=", ""]],
 				group_by=column,
 				as_list=True,
@@ -660,7 +698,7 @@ def get_stats(stats, doctype, filters=None):
 				results[column] = scrub_user_tags(tag_count)
 				no_tag_count = frappe.get_list(
 					doctype,
-					fields=[column, "count(*)"],
+					fields=[column, {"COUNT": "1"}],
 					filters=[*filters, [column, "in", ("", ",")]],
 					as_list=True,
 					group_by=column,
@@ -697,10 +735,12 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 			continue
 		tagcount = []
 		if tag["type"] not in ["Date", "Datetime"]:
+			from frappe.query_builder import Field, functions
+
 			tagcount = frappe.get_list(
 				doctype,
-				fields=[tag["name"], "count(*)"],
-				filters=[*filters, "ifnull(`{}`,'')!=''".format(tag["name"])],
+				fields=[tag["name"], {"COUNT": "*"}],
+				filters=[*filters, functions.IfNull(Field(tag["name"]), "") != ""],
 				group_by=tag["name"],
 				as_list=True,
 			)
@@ -721,7 +761,7 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 					"No Data",
 					frappe.get_list(
 						doctype,
-						fields=[tag["name"], "count(*)"],
+						fields=[tag["name"], {"COUNT": "*"}],
 						filters=[*filters, "({0} = '' or {0} is null)".format(tag["name"])],
 						as_list=True,
 					)[0][1],
@@ -754,6 +794,8 @@ def scrub_user_tags(tagcount):
 
 # used in building query in queries.py
 def get_match_cond(doctype, as_condition=True):
+	from frappe.model.db_query import DatabaseQuery
+
 	cond = DatabaseQuery(doctype).build_match_conditions(as_condition=as_condition)
 	if not as_condition:
 		return cond
@@ -762,6 +804,8 @@ def get_match_cond(doctype, as_condition=True):
 
 
 def build_match_conditions(doctype, user=None, as_condition=True):
+	from frappe.model.db_query import DatabaseQuery
+
 	match_conditions = DatabaseQuery(doctype, user=user).build_match_conditions(as_condition=as_condition)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
@@ -797,6 +841,8 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 					flt.append([doctype, f[0], f[1][0], f[1][1]])
 				else:
 					flt.append([doctype, f[0], "=", f[1]])
+
+		from frappe.model.db_query import DatabaseQuery
 
 		query = DatabaseQuery(doctype)
 		query.filters = flt

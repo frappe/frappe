@@ -28,7 +28,7 @@
 	--purple-avatar-color: var(--purple-500);
 
 	--gray-avatar-bg: var(--gray-50);
-	--gray-avatar-color: var(--gray-50);
+	--gray-avatar-color: var(--gray-700);
 }
 
 [data-theme="dark"] {
@@ -60,7 +60,7 @@
 	--purple-avatar-bg: var(--purple-500);
 	--purple-avatar-color: var(--purple-50);
 
-	--gray-avatar-bg: var(--gray-50);
+	--gray-avatar-bg: var(--gray-700);
 	--gray-avatar-color: var(--gray-50);
 }
 
@@ -94,14 +94,13 @@
 	text-align: center;
 
 	.standard-image {
-		font-size: var(--text-xs);
+		@include get_textstyle("xs", "regular");
 	}
 }
 
 .avatar-medium {
 	width: 28px;
 	height: 28px;
-
 	.standard-image {
 		@include get_textstyle("base", "regular");
 	}

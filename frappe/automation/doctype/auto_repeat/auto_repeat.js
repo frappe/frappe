@@ -30,7 +30,7 @@ frappe.ui.form.on("Auto Repeat", {
 	refresh: function (frm) {
 		// auto repeat message
 		if (frm.is_new()) {
-			let customize_form_link = `<a href="/app/customize-form">${__("Customize Form")}</a>`;
+			let customize_form_link = `<a href="/desk/customize-form">${__("Customize Form")}</a>`;
 			frm.dashboard.set_headline(
 				__('To configure Auto Repeat, enable "Allow Auto Repeat" from {0}.', [
 					customize_form_link,
@@ -85,14 +85,17 @@ frappe.ui.form.on("Auto Repeat", {
 	},
 
 	preview_message: function (frm) {
+		if (frm.is_dirty()) {
+			frappe.msgprint(__("Please save the form before previewing the message"));
+			return;
+		}
+
 		if (frm.doc.message) {
 			frappe.call({
 				method: "frappe.automation.doctype.auto_repeat.auto_repeat.generate_message_preview",
+				type: "POST",
 				args: {
-					reference_dt: frm.doc.reference_doctype,
-					reference_doc: frm.doc.reference_document,
-					subject: frm.doc.subject,
-					message: frm.doc.message,
+					name: frm.doc.name,
 				},
 				callback: function (r) {
 					if (r.message) {

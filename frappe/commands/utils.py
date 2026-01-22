@@ -78,6 +78,8 @@ def build(
 
 		# don't minify in developer_mode for faster builds
 		development = frappe.local.conf.developer_mode or frappe._dev_server
+		esbuild_target = frappe.local.conf.get("esbuild_target") or os.environ.get("ESBUILD_TARGET")
+
 		mode = "development" if development else "production"
 		if production:
 			mode = "production"
@@ -93,6 +95,7 @@ def build(
 			skip_frappe=skip_frappe,
 			save_metafiles=save_metafiles,
 			using_cached=using_cached,
+			esbuild_target=esbuild_target,
 		)
 
 		if apps and isinstance(apps, str):
@@ -435,8 +438,7 @@ def import_doc(context: CliCtxObj, path, force=False):
 	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
 	required=True,
 	help=(
-		"Path to import file (.csv, .xlsx)."
-		"Consider that relative paths will resolve from 'sites' directory"
+		"Path to import file (.csv, .xlsx). Consider that relative paths will resolve from 'sites' directory"
 	),
 )
 @click.option("--doctype", type=str, required=True)
@@ -914,7 +916,7 @@ def set_config(context: CliCtxObj, key, value, global_=False, parse=False):
 	"output",
 	type=click.Choice(["plain", "table", "json", "legacy"]),
 	help="Output format",
-	default="legacy",
+	default="plain",
 )
 def get_version(output):
 	"""Show the versions of all the installed apps."""
@@ -1028,6 +1030,13 @@ def list_sites(context: CliCtxObj, output_json=False):
 		click.echo("No sites found")
 
 
+@click.command("setup-chrome")
+def setup_chrome():
+	from frappe.utils.print_utils import setup_chromium
+
+	setup_chromium()
+
+
 commands = [
 	build,
 	clear_cache,
@@ -1060,4 +1069,5 @@ commands = [
 	add_to_email_queue,
 	rebuild_global_search,
 	list_sites,
+	setup_chrome,
 ]

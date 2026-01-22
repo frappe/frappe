@@ -13,7 +13,7 @@ frappe.ui.form.on("RQ Job", {
 			frm.add_custom_button(__("Force Stop job"), () => {
 				frappe.confirm(
 					__(
-						"This will terminate the job immediately and might be dangerous, are you sure? "
+						"This will terminate the job immediately and might be dangerous, are you sure?"
 					),
 					() => {
 						frappe

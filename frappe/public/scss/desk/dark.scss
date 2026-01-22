@@ -116,6 +116,7 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	// "diff" colors
 	--diff-added: var(--green-800);
 	--diff-removed: var(--red-800);
+	--diff-changed: var(--blue-800);
 
 	// sidebar toggle
 	.page-title .sidebar-toggle-btn {

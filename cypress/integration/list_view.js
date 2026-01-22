@@ -1,7 +1,7 @@
 context("List View", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 		return cy
 			.window()
 			.its("frappe")
@@ -22,6 +22,7 @@ context("List View", () => {
 		const actions = [
 			"Approve",
 			"Reject",
+			"Copy to Clipboard",
 			"Export",
 			"Assign To",
 			"Clear Assignment",
@@ -34,7 +35,7 @@ context("List View", () => {
 		cy.get(".list-header-subject .list-subject .list-check-all").click();
 		cy.findByRole("button", { name: "Actions" }).click();
 		cy.get(".dropdown-menu li:visible .dropdown-item")
-			.should("have.length", 8)
+			.should("have.length", 9)
 			.each((el, index) => {
 				cy.wrap(el).contains(actions[index]);
 			})
@@ -65,10 +66,9 @@ context("List View", () => {
 			cy.go_to_list("ToDo");
 
 			// Check if the 'Open' button is present in the ToDo list view
-			cy.get(".btn-default[data-name='" + todo_name + "']")
-				.should((el) => {
-					expect(el).to.exist;
-				})
+			cy.get(`.btn-default[data-name="${todo_name}"]`)
+				.scrollIntoView({ inline: "center", block: "nearest" })
+				.should("be.visible")
 				.click();
 
 			cy.window()

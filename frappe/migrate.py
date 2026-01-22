@@ -5,7 +5,12 @@ import contextlib
 import functools
 import json
 import os
+import threading
+import time
+from collections import defaultdict
 from textwrap import dedent
+
+import click
 
 import frappe
 import frappe.model.sync
@@ -22,7 +27,7 @@ from frappe.modules.utils import sync_customizations
 from frappe.search.website_search import build_index_for_all_routes
 from frappe.utils.connections import check_connection
 from frappe.utils.dashboard import sync_dashboards
-from frappe.utils.data import cint
+from frappe.utils.data import cint, comma_and
 from frappe.utils.fixtures import sync_fixtures
 from frappe.website.utils import clear_website_cache
 
@@ -69,9 +74,12 @@ class SiteMigration:
 	- run after migrate hooks
 	"""
 
-	def __init__(self, skip_failing: bool = False, skip_search_index: bool = False) -> None:
+	def __init__(
+		self, skip_failing: bool = False, skip_search_index: bool = False, skip_fixtures: bool = False
+	) -> None:
 		self.skip_failing = skip_failing
 		self.skip_search_index = skip_search_index
+		self.skip_fixtures = skip_fixtures
 
 	def setUp(self):
 		"""Complete setup required for site migration"""
@@ -91,6 +99,7 @@ class SiteMigration:
 		"""Run operations that should be run post schema updation processes
 		This should be executed irrespective of outcome
 		"""
+		self.db_monitor.stop()
 		frappe.translate.clear_cache()
 		clear_website_cache()
 		clear_notifications()
@@ -109,9 +118,20 @@ class SiteMigration:
 	@atomic
 	def pre_schema_updates(self):
 		"""Executes `before_migrate` hooks"""
+		overrides = defaultdict(list)
 		for app in frappe.get_installed_apps():
 			for fn in frappe.get_hooks("before_migrate", app_name=app):
 				frappe.get_attr(fn)()
+
+			for doctype in frappe.get_hooks("override_doctype_class", {}, app_name=app).keys():
+				overrides[doctype].append(app)
+
+		for doctype, app_names in overrides.items():
+			if len(app_names) > 1:
+				click.secho(
+					f"The controller for {doctype} is overridden by multiple apps: {comma_and(app_names, add_quotes=False)}.",
+					fg="yellow",
+				)
 
 	@atomic
 	def run_schema_updates(self):
@@ -140,9 +160,11 @@ class SiteMigration:
 		"""
 		print("Syncing jobs...")
 		sync_jobs()
-
-		print("Syncing fixtures...")
-		sync_fixtures()
+		if not self.skip_fixtures:
+			print("Syncing fixtures...")
+			sync_fixtures()
+		else:
+			print("Skipping fixtures...")
 		sync_standard_items()
 
 		print("Syncing dashboards...")
@@ -159,6 +181,9 @@ class SiteMigration:
 
 		print("Removing orphan doctypes...")
 		frappe.model.sync.remove_orphan_doctypes()
+
+		frappe.model.sync.remove_orphan_entities()
+		frappe.model.sync.delete_duplicate_icons()
 
 		print("Syncing portal menu...")
 		frappe.get_single("Portal Settings").sync_menu()
@@ -236,6 +261,8 @@ class SiteMigration:
 			frappe.init(site)
 			frappe.connect()
 
+		self.db_monitor = DBQueryProgressMonitor()
+
 		if not self.required_services_running():
 			raise SystemExit(1)
 
@@ -248,3 +275,65 @@ class SiteMigration:
 			finally:
 				self.tearDown()
 				frappe.destroy()
+
+
+class DBQueryProgressMonitor(threading.Thread):
+	POLL_DURATION = 10
+
+	def __init__(self) -> None:
+		super().__init__()
+		self.site = frappe.local.site
+		self.daemon = True
+		self._running = threading.Event()
+		if frappe.db.db_type == "mariadb":
+			self.conn_id = frappe.db.sql("select connection_id()")[0][0]
+			self.start()
+
+	def run(self):
+		if self._running.is_set():
+			return
+		self._running.set()
+
+		frappe.init(self.site)
+		frappe.connect()
+
+		while self._running.is_set():
+			time.sleep(self.POLL_DURATION)
+			queries = frappe.db.sql(
+				"SELECT * FROM information_schema.PROCESSLIST WHERE ID = %s",
+				self.conn_id,
+				as_dict=True,
+			)
+
+			if not queries:
+				continue
+
+			query = frappe._dict(queries[0])
+			time_taken = query.TIME
+			if not time_taken or time_taken < 5:
+				continue
+
+			msg = []
+			command = query.COMMAND or ""
+			msg.append(f"Command: {command}")
+			msg.append(f"Time: {time_taken}s")
+			msg.append(f"State: {query.STATE or 'N/A'}")
+			if query.PROGRESS:
+				msg.append(f"Progress: {query.PROGRESS}%")
+
+			if command and command == "Query":
+				sql_query = query.INFO or ""
+				sql_query = sql_query.replace("\r", "").replace("\n", " ").replace("\t", " ")
+				if len(sql_query) > 100:
+					sql_query = sql_query[:40] + " ... " + sql_query[-20:]
+				msg.append(f"Query: {sql_query}")
+
+			msg = "\r" + " | ".join(msg)
+			if self._running.is_set():
+				print(msg, end="", flush=True)
+
+		frappe.destroy()
+
+	def stop(self):
+		print("")  # Clear current line
+		self._running.clear()

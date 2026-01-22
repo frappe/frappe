@@ -163,6 +163,23 @@
 						</svg>
 						<div class="mt-1">{{ __("Google Drive") }}</div>
 					</button>
+					<template v-for="option in additional_upload_handlers">
+						<button class="btn btn-file-upload" @click="option.wrappedAction">
+							<svg
+								v-if="typeof option.icon === 'string'"
+								v-html="option.icon"
+								width="30"
+								height="30"
+							/>
+							<component
+								v-else-if="option.icon"
+								:is="option.icon"
+								width="30"
+								height="30"
+							/>
+							<div class="mt-1">{{ option.label }}</div>
+						</button>
+					</template>
 				</div>
 				<div class="mt-3 text-center" v-if="upload_notes">
 					{{ upload_notes }}
@@ -291,6 +308,9 @@ const props = defineProps({
 	allow_google_drive: {
 		default: true,
 	},
+	additional_upload_handlers: {
+		default: [],
+	},
 });
 
 // variables
@@ -357,6 +377,7 @@ function on_file_input(e) {
 }
 function remove_file(file) {
 	files.value = files.value.filter((f) => f !== file);
+	if (file_input.value) file_input.value.value = "";
 }
 function toggle_image_cropper(index) {
 	crop_image_with_index.value = show_image_cropper.value ? -1 : index;
@@ -420,7 +441,7 @@ function add_files(file_array) {
 				request_succeeded: false,
 				error_message: null,
 				uploading: false,
-				private: !props.make_attachments_public,
+				private: !props.make_attachments_public || !frappe.utils.can_upload_public_files(),
 			};
 		});
 
@@ -599,27 +620,29 @@ function upload_file(file, i) {
 				} else if (xhr.status === 403) {
 					file.failed = true;
 					let response = parse_error_response(xhr.responseText);
-					file.error_message = `Not permitted. ${response.error_message || ""}.`;
+					file.error_message = __("Not permitted. {0}.", [response.error_message || ""]);
 					if (response.server_messages.length) {
 						file.error_message += `\n${response.server_messages.join("\n")}`;
 					}
 				} else if (xhr.status === 413) {
 					file.failed = true;
-					file.error_message = "Size exceeds the maximum allowed file size.";
+					file.error_message = __("Size exceeds the maximum allowed file size.");
 				} else if (xhr.status === 417) {
 					// regular frappe.throw() in backend
 					file.failed = true;
-					file.error_message = null;
 					let response = parse_error_response(xhr.responseText);
-					if (response.server_messages.length) {
-						file.error_message = response.server_messages.join("\n");
-					}
+					file.error_message = response.server_messages.length
+						? response.server_messages.join("\n")
+						: __("File upload failed.");
 				} else {
 					file.failed = true;
+					let detail =
+						xhr.statusText ||
+						__("Server error during upload. The file might be corrupted.");
 					file.error_message =
 						xhr.status === 0
-							? "XMLHttpRequest Error"
-							: `${xhr.status} : ${xhr.statusText}`;
+							? __("XMLHttpRequest Error")
+							: `${xhr.status} : ${detail}`;
 
 					let error = null;
 					try {
@@ -645,7 +668,9 @@ function upload_file(file, i) {
 		if (file.file_url) {
 			form_data.append("file_url", file.file_url);
 		}
-
+		if (file.file_size) {
+			form_data.append("file_size", file.file_size);
+		}
 		if (file.file_name) {
 			form_data.append("file_name", file.file_name);
 		}
@@ -682,20 +707,27 @@ function upload_file(file, i) {
 	});
 }
 function parse_error_response(response_text) {
-	let response = JSON.parse(response_text);
-	let error_message = response._error_message;
+	let error_message = "";
 	let server_messages = [];
 
 	try {
-		server_messages.push(
-			...JSON.parse(response._server_messages).map((m) => {
-				let parsed = JSON.parse(m);
-				return parsed.message;
-			})
-		);
+		let response = JSON.parse(response_text);
+		error_message = response._error_message || "";
+
+		try {
+			server_messages.push(
+				...JSON.parse(response._server_messages).map((m) => {
+					let parsed = JSON.parse(m);
+					return parsed.message;
+				})
+			);
+		} catch (e) {
+			console.warning("Failed to parse server message", e);
+		}
 	} catch (e) {
-		console.warning("Failed to parse server message", e);
+		console.warning("Failed to parse error response", e);
 	}
+
 	return {
 		error_message,
 		server_messages,
@@ -762,6 +794,7 @@ watch(
 defineExpose({
 	files,
 	add_files,
+	upload_file,
 	upload_files,
 	toggle_all_private,
 	wrapper_ready,

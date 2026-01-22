@@ -5,8 +5,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "disable_contact_us",
   "introduction_section",
+  "is_disabled",
   "forward_to_email",
   "heading",
   "introduction",
@@ -56,7 +56,6 @@
    "label": "Query Options"
   },
   {
-   "collapsible": 1,
    "fieldname": "address",
    "fieldtype": "Section Break",
    "label": "Address"
@@ -120,16 +119,16 @@
   },
   {
    "default": "0",
-   "fieldname": "disable_contact_us",
+   "fieldname": "is_disabled",
    "fieldtype": "Check",
-   "label": "Disable Contact Us Page"
+   "label": "Disabled"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-05-15 07:19:31.401053",
+ "modified": "2025-08-22 12:59:39.463182",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Contact Us Settings",
@@ -145,6 +144,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

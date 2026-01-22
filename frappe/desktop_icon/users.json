@@ -1,0 +1,21 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-05 11:24:16.756563",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "users",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Users",
+ "link_to": "Users",
+ "link_type": "Workspace Sidebar",
+ "modified": "2026-01-01 20:07:01.597388",
+ "modified_by": "Administrator",
+ "name": "Users",
+ "owner": "Administrator",
+ "parent_icon": "Framework",
+ "restrict_removal": 0,
+ "roles": [],
+ "standard": 1
+}

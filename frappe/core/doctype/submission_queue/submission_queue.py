@@ -132,7 +132,7 @@ class SubmissionQueue(Document):
 				{
 					"message": message.format(
 						*message_replacements,
-						f"<a href='/app/{quote(doctype.lower().replace(' ', '-'))}/{quote(docname)}'><b>here</b></a>",
+						f"<a href='/desk/{quote(doctype.lower().replace(' ', '-'))}/{quote(docname)}'><b>here</b></a>",
 					),
 					"alert": True,
 					"indicator": "red" if submission_status == "Failed" else "green",
@@ -164,6 +164,18 @@ class SubmissionQueue(Document):
 
 
 def queue_submission(doc: Document, action: str, alert: bool = True):
+	if existing_queue := frappe.db.get_value(
+		"Submission Queue", {"ref_doctype": doc.doctype, "ref_docname": doc.name, "status": "Queued"}
+	):
+		frappe.msgprint(
+			_(
+				"This document has already been queued for submission. You can track the progress over {0}."
+			).format(f"<a href='/desk/submission-queue/{existing_queue}'><b>here</b></a>"),
+			indicator="orange",
+			alert=True,
+		)
+		return
+
 	queue = frappe.new_doc("Submission Queue")
 	queue.ref_doctype = doc.doctype
 	queue.ref_docname = doc.name
@@ -172,7 +184,7 @@ def queue_submission(doc: Document, action: str, alert: bool = True):
 	if alert:
 		frappe.msgprint(
 			_("Queued for Submission. You can track the progress over {0}.").format(
-				f"<a href='/app/submission-queue/{queue.name}'><b>here</b></a>"
+				f"<a href='/desk/submission-queue/{queue.name}'><b>here</b></a>"
 			),
 			indicator="green",
 			alert=True,

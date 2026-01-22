@@ -37,7 +37,7 @@ class WebsiteSlideshow(Document):
 	def validate_images(self):
 		"""atleast one image file should be public for slideshow"""
 		files = map(lambda row: row.image, self.slideshow_items)
-		if files:
+		if files and self.slideshow_items:
 			result = frappe.get_all("File", filters={"file_url": ("in", list(files))}, fields="is_private")
 			if any(file.is_private for file in result):
 				frappe.throw(_("All Images attached to Website Slideshow should be public"))

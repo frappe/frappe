@@ -11,7 +11,8 @@ frappe.ui.form.Share = class Share {
 	}
 	render_sidebar() {
 		const shared = this.shared || this.frm.get_docinfo().shared;
-		const shared_users = shared.filter(Boolean).map((s) => s.user);
+		const has_everyone = shared.some((s) => s && s.everyone);
+		const shared_users = shared.filter((s) => s && s.user && !s.everyone).map((s) => s.user);
 
 		if (this.frm.is_new()) {
 			this.parent.find(".share-doc-btn").hide();
@@ -26,7 +27,7 @@ frappe.ui.form.Share = class Share {
 
 		this.shares.empty();
 
-		if (!shared_users.length) {
+		if (!shared_users.length && !has_everyone) {
 			this.shares.hide();
 			return;
 		}
@@ -36,7 +37,12 @@ frappe.ui.form.Share = class Share {
 		avatar_group.on("click", () => {
 			this.frm.share_doc();
 		});
-		// REDESIGN-TODO: handle "shared with everyone"
+
+		if (has_everyone) {
+			avatar_group.prepend(
+				frappe.avatar_group(["Everyone"], 1, { align: "left", overlap: true })
+			);
+		}
 		this.shares.append(avatar_group);
 	}
 	show() {
@@ -86,6 +92,7 @@ frappe.ui.form.Share = class Share {
 				frm: this.frm,
 				shared: this.shared,
 				everyone: everyone,
+				custom_perm_types: this.frm.get_docinfo().custom_perm_types || [],
 			})
 		).appendTo(d.body);
 
@@ -126,18 +133,34 @@ frappe.ui.form.Share = class Share {
 				if (!user) {
 					return;
 				}
+
+				// Build args dynamically with all permission types
+				var args = {
+					doctype: me.frm.doctype,
+					name: me.frm.doc.name,
+					user: user,
+					notify: 1,
+				};
+
+				// Add standard permissions
+				args.read = $(d.body).find(".add-share-read").prop("checked") ? 1 : 0;
+				args.write = $(d.body).find(".add-share-write").prop("checked") ? 1 : 0;
+				args.submit = $(d.body).find(".add-share-submit").prop("checked") ? 1 : 0;
+				args.share = $(d.body).find(".add-share-share").prop("checked") ? 1 : 0;
+
+				// Add custom permissions
+				var custom_perm_types = me.frm.get_docinfo().custom_perm_types || [];
+				custom_perm_types.forEach(function (perm) {
+					args[perm] = $(d.body)
+						.find(".add-share-" + perm)
+						.prop("checked")
+						? 1
+						: 0;
+				});
+
 				frappe.call({
 					method: "frappe.share.add",
-					args: {
-						doctype: me.frm.doctype,
-						name: me.frm.doc.name,
-						user: user,
-						read: $(d.body).find(".add-share-read").prop("checked") ? 1 : 0,
-						write: $(d.body).find(".add-share-write").prop("checked") ? 1 : 0,
-						submit: $(d.body).find(".add-share-submit").prop("checked") ? 1 : 0,
-						share: $(d.body).find(".add-share-share").prop("checked") ? 1 : 0,
-						notify: 1,
-					},
+					args: args,
 					btn: this,
 					callback: function (r) {
 						$.each(me.shared, function (i, s) {

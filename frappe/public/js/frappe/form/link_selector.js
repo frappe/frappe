@@ -116,7 +116,15 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 								if (me.target.is_grid) {
 									// set in grid
 									// call search after value is set to get latest filtered results
-									me.set_in_grid(value).then(() => me.search());
+									me.set_in_grid(value).then(() => {
+										let previous_start = me.start;
+										let previous_page_length = me.page_length;
+										me.start = 0;
+										me.page_length = previous_start + previous_page_length;
+										me.search();
+										me.start = previous_start;
+										me.page_length = previous_page_length;
+									});
 								} else {
 									if (me.target.doctype)
 										me.target.parse_validate_and_set_in_model(value);
@@ -148,6 +156,7 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 						});
 				}
 
+				parent.append('<div style="margin-bottom: 15px;"></div>');
 				var more_btn = me.dialog.fields_dict.more.$wrapper;
 				if (results.length < me.page_length) {
 					more_btn.hide();

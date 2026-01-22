@@ -27,7 +27,7 @@ class TestQueryReport(IntegrationTestCase):
 		visible_idx = [0, 2, 3]
 
 		# Build the result
-		xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths, _ = build_xlsx_data(data, visible_idx, include_indentation=0)
 
 		self.assertEqual(type(xlsx_data), list)
 		self.assertEqual(len(xlsx_data), 4)  # columns + data
@@ -53,9 +53,11 @@ class TestQueryReport(IntegrationTestCase):
 		visible_idx = [0, 2, 3]
 
 		# Build the result
-		xlsx_data, column_widths = build_xlsx_data(
+		xlsx_data, _column_widths, header_index = build_xlsx_data(
 			data, visible_idx, include_indentation=False, include_filters=True
 		)
+
+		self.assertEqual(header_index, 3)  # 2 filter rows + 1 empty row
 
 		# Check if unset filters are skipped | Rows - 2 filters + 1 empty + 1 column + 3 data
 		self.assertEqual(len(xlsx_data), 7)
@@ -80,9 +82,9 @@ class TestQueryReport(IntegrationTestCase):
 		visible_idx = [0, 1]
 
 		# Build the result
-		xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths, header_index = build_xlsx_data(data, visible_idx, include_indentation=0)
 		# Export to excel
-		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
+		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths, header_index=header_index)
 
 		for row in xlsx_data:
 			# column_b should be 'str' even with composite cell value
@@ -245,6 +247,40 @@ data = columns, result
 		except Exception as e:
 			raise e
 			frappe.db.rollback()
+
+	def test_export_report_via_email(self):
+		REPORT_NAME = "Test CSV Report"
+		REF_DOCTYPE = "DocType"
+		REPORT_COLUMNS = ["name", "module", "issingle"]
+
+		if not frappe.db.exists("Report", REPORT_NAME):
+			report = frappe.new_doc("Report")
+			report.report_name = REPORT_NAME
+			report.ref_doctype = "User"
+			report.report_type = "Query Report"
+			report.query = frappe.qb.from_(REF_DOCTYPE).select(*REPORT_COLUMNS).limit(10).get_sql()
+			report.is_standard = "No"
+			report.save()
+
+		frappe.local.form_dict = frappe._dict(
+			{
+				"report_name": REPORT_NAME,
+				"file_format_type": "CSV",
+				"include_indentation": 0,
+				"visible_idx": [0, 1, 2],
+				"export_in_background": 1,
+			}
+		)
+		frappe.db.delete("Email Queue")
+		export_query()
+
+		jobs = frappe.get_all("RQ Job")
+		email_queue = frappe.get_all("Email Queue")
+
+		self.assertTrue(jobs, "Background job was not enqueued")
+		self.assertTrue(email_queue, "Email was not enqueued")
+
+		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
 
 
 def create_mock_data():

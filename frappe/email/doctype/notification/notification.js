@@ -105,6 +105,16 @@ frappe.notification = {
 				"options",
 				[""].concat(["owner"]).concat(receiver_fields)
 			);
+
+			// set options for "From Attach Field"
+			let attach_fields = fields.filter((d) =>
+				["Attach", "Attach Image"].includes(d.fieldtype)
+			);
+			let attach_options = $.map(attach_fields, function (d) {
+				return get_select_options(d);
+			});
+
+			frm.set_df_property("from_attach_field", "options", [""].concat(attach_options));
 		});
 	},
 	setup_example_message: function (frm) {
@@ -112,7 +122,7 @@ frappe.notification = {
 		if (frm.doc.channel === "Email") {
 			template = `<h5>Message Example</h5>
 
-<pre>&lt;h3&gt;Order Overdue&lt;/h3&gt;
+<pre><code class="language-xml">&lt;h3&gt;Order Overdue&lt;/h3&gt;
 
 &lt;p&gt;Transaction {{ doc.name }} has exceeded Due Date. Please take necessary action.&lt;/p&gt;
 
@@ -127,7 +137,7 @@ Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
 &lt;li&gt;Customer: {{ doc.customer }}&lt;/li&gt;
 &lt;li&gt;Amount: {{ doc.grand_total }}&lt;/li&gt;
 &lt;/ul&gt;
-</pre>
+</code></pre>
 			`;
 		} else if (["Slack", "System Notification", "SMS"].includes(frm.doc.channel)) {
 			template = `<h5>Message Example</h5>
@@ -148,7 +158,11 @@ Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
 </pre>`;
 		}
 		if (template) {
-			frm.set_df_property("message_examples", "options", template);
+			const message_examples_field = frm.get_field("message_examples");
+			message_examples_field.html(template);
+			if (frm.doc.channel === "Email") {
+				frappe.utils.highlight_pre(message_examples_field.$wrapper);
+			}
 		}
 	},
 };
@@ -243,7 +257,7 @@ frappe.ui.form.on("Notification", {
 			frm.set_df_property(
 				"channel",
 				"description",
-				`To use SMS Channel, initialize <a href="/app/sms-settings">SMS Settings</a>.`
+				`To use SMS Channel, initialize <a href="/desk/sms-settings">SMS Settings</a>.`
 			);
 		} else {
 			frm.set_df_property("channel", "description", ` `);

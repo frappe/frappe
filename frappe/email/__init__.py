@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Literal, Optional
 
 import frappe
@@ -79,6 +81,7 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 	user_perms = frappe.utils.user.UserPermissions(frappe.session.user)
 	user_perms.build_permissions()
 	can_read = user_perms.can_read
+	from frappe import _
 	from frappe.modules import load_doctype_module
 
 	com_doctypes = []
@@ -96,7 +99,15 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 			d[0] for d in frappe.db.get_values("DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0})
 		]
 
-	return [[dt] for dt in com_doctypes if txt.lower().replace("%", "") in dt.lower() and dt in can_read]
+	results = []
+	txt_lower = txt.lower().replace("%", "")
+
+	for dt in list(set(com_doctypes)):
+		if dt in can_read:
+			if txt_lower in dt.lower() or txt_lower in _(dt).lower():
+				results.append([dt])
+
+	return results
 
 
 def sendmail(
@@ -139,7 +150,9 @@ def sendmail(
 	email_read_tracker_url=None,
 	x_priority: Literal[1, 3, 5] = 3,
 	email_headers=None,
-) -> Optional["EmailQueue"]:
+	raw_html=False,
+	add_css=True,
+) -> EmailQueue | None:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -168,6 +181,8 @@ def sendmail(
 	:param with_container: Wraps email inside a styled container
 	:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
 	:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
+	:param raw_html: Whether to treat email template as a complete HTML file
+	:param add_css: Whether to add CSS from hooks/email_css to the email template
 	"""
 
 	from frappe.utils.jinja import get_email_from_template
@@ -227,7 +242,13 @@ def sendmail(
 		email_read_tracker_url=email_read_tracker_url,
 		x_priority=x_priority,
 		email_headers=email_headers,
+		raw_html=raw_html,
+		add_css=add_css,
 	)
 
 	# build email queue and send the email if send_now is True.
-	return builder.process(send_now=now)
+
+	q = builder.process(send_now=False)
+	if now and q:
+		frappe.db.after_commit.add(q.send)
+	return q

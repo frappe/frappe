@@ -67,7 +67,7 @@
    "label": "Assignment Rules"
   },
   {
-   "description": "Simple Python Expression, Example: status == 'Open' and type == 'Bug'",
+   "description": "Simple Python Expression, Example: <code class=\"language-python\">status == 'Open' and issue_type == 'Bug'</code>",
    "fieldname": "assign_condition",
    "fieldtype": "Code",
    "in_list_view": 1,
@@ -80,7 +80,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Simple Python Expression, Example: Status in (\"Closed\", \"Cancelled\")",
+   "description": "Simple Python Expression, Example: <code class=\"language-python\">status in (\"Closed\", \"Cancelled\")</code>",
    "fieldname": "unassign_condition",
    "fieldtype": "Code",
    "label": "Unassign Condition",
@@ -119,7 +119,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "Simple Python Expression, Example: Status in (\"Invalid\")",
+   "description": "Simple Python Expression, Example: <code class=\"language-python\">status == \"Invalid\"</code>",
    "fieldname": "close_condition",
    "fieldtype": "Code",
    "label": "Close Condition",
@@ -152,9 +152,10 @@
    "mandatory_depends_on": "eval: doc.rule == 'Based on Field'"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-03-23 16:01:27.590910",
+ "modified": "2025-08-25 17:09:11.644603",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule",
@@ -174,6 +175,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

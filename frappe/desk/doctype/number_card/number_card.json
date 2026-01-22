@@ -38,7 +38,7 @@
  ],
  "fields": [
   {
-   "depends_on": "eval: doc.type == 'Document Type'",
+   "depends_on": "eval: ['Document Type', 'Custom'].includes(doc.type)",
    "fieldname": "document_type",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -229,7 +229,7 @@
   }
  ],
  "links": [],
- "modified": "2025-05-21 17:33:04.908518",
+ "modified": "2025-09-17 21:00:11.351605",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",

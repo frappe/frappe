@@ -14,6 +14,7 @@ class WebsiteRouteRedirect(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		forward_query_parameters: DF.Check
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data

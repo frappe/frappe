@@ -55,7 +55,7 @@
   },
   {
    "collapsible": 1,
-   "description": "Change the starting / current sequence number of an existing series. <br>\n\nWarning: Incorrectly updating counters can prevent documents from getting created. ",
+   "description": "Change the starting / current sequence number of an existing series. <br>\n\nWarning: Incorrectly updating counters can prevent documents from getting created.",
    "fieldname": "update_series",
    "fieldtype": "Section Break",
    "label": "Update Series Counter"

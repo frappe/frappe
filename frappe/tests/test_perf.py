@@ -154,7 +154,7 @@ class TestPerformance(IntegrationTestCase):
 		)
 
 	def test_homepage_resolver(self):
-		paths = ["/", "/app"]
+		paths = ["/", "/desk"]
 		for path in paths:
 			PathResolver(path).resolve()
 			with self.assertQueryCount(1):
@@ -166,20 +166,20 @@ class TestPerformance(IntegrationTestCase):
 		self.assertEqual(get_build_version(), get_build_version())
 
 	def test_get_list_single_query(self):
-		"""get_list should only perform single query."""
+		"""
+		get_list should only perform single query.
 
-		user = frappe.get_doc("User", TEST_USER)
-
-		frappe.set_user(TEST_USER)
-		# Give full read access, no share/user perm check should be done.
-		user.add_roles("System Manager")
+		Note:
+		this test will work only as Admistrator.
+		other users will have permission queries - so share conditions will be added.
+		"""
 
 		frappe.get_list("User")
 		with self.assertQueryCount(1):
 			frappe.get_list("User")
 
 	def test_no_ifnull_checks(self):
-		query = frappe.get_all("DocType", {"autoname": ("is", "set")}, run=0).lower()
+		query = frappe.get_all("DocType", {"autoname": ("is", "set")}, run=0).get_sql().lower()
 		self.assertNotIn("coalesce", query)
 		self.assertNotIn("ifnull", query)
 
@@ -193,14 +193,16 @@ class TestPerformance(IntegrationTestCase):
 		"""
 
 		query = "select * from tabUser"
+		expected_refcount = 1
 		for kwargs in ({}, {"as_dict": True}, {"as_list": True}):
 			result = frappe.db.sql(query, **kwargs)
-			self.assertEqual(sys.getrefcount(result), 2)  # Note: This always returns +1
+			self.assertEqual(sys.getrefcount(result), expected_refcount)  # Note: This always returns +1
 			self.assertFalse(gc.get_referrers(result))
 
 	def test_no_cyclic_references(self):
 		doc = frappe.get_doc("User", "Administrator")
-		self.assertEqual(sys.getrefcount(doc), 2)  # Note: This always returns +1
+		expected_refcount = 1
+		self.assertEqual(sys.getrefcount(doc), expected_refcount)  # Note: This always returns +1
 
 	def test_get_doc_cache_calls(self):
 		frappe.get_doc("User", "Administrator")
@@ -247,7 +249,7 @@ class TestPerformance(IntegrationTestCase):
 
 		default_affinity_16 = list(range(16))
 		# "linear" siblings = (0,1) (2,3) ...
-		linear_siblings_16 = list(itertools.batched(range(16), 2))
+		linear_siblings_16 = list(itertools.batched(range(16), 2, strict=True))
 		logical_cores = list(range(16))
 		expected_assignments = [*(l[0] for l in linear_siblings_16), *(l[1] for l in linear_siblings_16)]
 		for pid, expected_core in zip(logical_cores, expected_assignments, strict=True):

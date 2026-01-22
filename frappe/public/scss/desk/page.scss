@@ -1,6 +1,13 @@
+body:not([data-route^="Form"]) {
+	.layout-side-section {
+		display: none;
+	}
+}
+
 .page-title {
 	display: flex;
 	align-items: center;
+	padding: 0 15px;
 	.sidebar-toggle-btn {
 		display: flex;
 		margin-right: var(--margin-sm);
@@ -34,16 +41,8 @@
 
 	.title-area {
 		display: inline-flex;
-		align-items: center;
-		.title-text {
-			@include get_textstyle("xl", "semibold");
-			cursor: pointer;
-			margin-bottom: 0px;
-			margin-right: var(--margin-sm);
-			max-width: 25vw;
-		}
 		.indicator-pill {
-			margin-top: 2px;
+			margin-left: var(--margin-sm);
 		}
 		.sub-heading {
 			@include get_textstyle("sm", "regular");
@@ -93,7 +92,15 @@
 }
 
 .layout-main-section-wrapper {
-	width: 100%;
+	flex: 1 0 80%;
+	width: 80%;
+}
+
+body[data-route^="Form"] {
+	.layout-main-section-wrapper {
+		width: calc(100% - var(--form-sidebar-width));
+		flex: calc(100% - var(--form-sidebar-width));
+	}
 }
 
 .layout-main-section.frappe-card {
@@ -106,14 +113,18 @@
 .page-head {
 	z-index: 6;
 	position: sticky;
-	top: var(--navbar-height);
 	background: var(--bg-color);
 	border-bottom: 1px solid var(--border-color);
 	transition: 0.5s top;
+	top: 0;
+	&.show-navbar {
+		top: var(--navbar-height);
+	}
 
 	.page-head-content {
 		height: var(--page-head-height);
 		padding: 8px 0px;
+		gap: 10px;
 	}
 }
 
@@ -126,7 +137,7 @@
 
 	.form-group {
 		padding: 0 10px 0 0;
-		margin: 5px 0;
+		margin: 8px 0;
 	}
 	.checkbox {
 		margin-top: 4px;
@@ -184,11 +195,7 @@
 		.result,
 		.no-result,
 		.freeze {
-			min-height: "200px";
-		}
-
-		.result {
-			overflow: auto;
+			min-height: 200px;
 		}
 	}
 
@@ -220,4 +227,10 @@
 .page-only-label {
 	margin-top: var(--margin-xs);
 	text-align: center;
+}
+
+.frappe-control {
+	.form-control.fields_order {
+		padding-top: 1.5px;
+	}
 }

@@ -18,7 +18,7 @@ STANDARD_EXCLUSIONS = [
 	"*.scss",
 	"*.vue",
 	"*.html",
-	"*/test_*",
+	"*/test_*/*",
 	"*/node_modules/*",
 	"*/doctype/*/*_dashboard.py",
 	"*/patches/*",

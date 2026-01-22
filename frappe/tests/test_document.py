@@ -553,13 +553,9 @@ class TestDocumentWebView(IntegrationTestCase):
 		document_key = todo.get_document_share_key()
 
 		# with old-style signature key
-		with self.change_settings("System Settings", {"allow_older_web_view_links": True}):
-			old_document_key = todo.get_signature()
-			url = f"/ToDo/{todo.name}?key={old_document_key}"
-			self.assertEqual(self.get(url).status, "200 OK")
-
-		with self.change_settings("System Settings", {"allow_older_web_view_links": False}):
-			self.assertEqual(self.get(url).status, "403 FORBIDDEN")
+		old_document_key = todo.get_signature()
+		url = f"/ToDo/{todo.name}?key={old_document_key}"
+		self.assertEqual(self.get(url).status, "403 FORBIDDEN")
 
 		# with valid key
 		url = f"/ToDo/{todo.name}?key={document_key}"

@@ -564,6 +564,7 @@ class FormTimeline extends BaseTimeline {
 			last_email: communication_doc,
 			subject: communication_doc && communication_doc.subject,
 			reply_all: reply_all,
+			sender: communication_doc?.sender,
 		};
 
 		const email_accounts = frappe.boot.email_accounts

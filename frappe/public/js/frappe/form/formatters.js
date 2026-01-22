@@ -35,8 +35,12 @@ frappe.form.formatters = {
 	},
 	Data: function (value, df) {
 		if (df && df.options == "URL") {
-			if (!value) return;
+			if (!value) return "";
 			return `<a href="${value}" title="Open Link" target="_blank">${value}</a>`;
+		}
+		if (df && df.options == "IBAN") {
+			if (!value) return "";
+			return frappe.utils.get_formatted_iban(value);
 		}
 		value = value == null ? "" : value;
 
@@ -95,7 +99,7 @@ frappe.form.formatters = {
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
 			2;
-		return frappe.form.formatters._right(flt(value, precision) + "%", options);
+		return frappe.form.formatters._right(format_number(value, null, precision) + "%", options);
 	},
 	Rating: function (value, docfield) {
 		let rating_html = "";
@@ -198,7 +202,7 @@ frappe.form.formatters = {
 		} else if (docfield && doctype) {
 			if (frappe.model.can_read(doctype)) {
 				const a = document.createElement("a");
-				a.href = `/app/${encodeURIComponent(
+				a.href = `/desk/${encodeURIComponent(
 					frappe.router.slug(doctype)
 				)}/${encodeURIComponent(original_value)}`;
 				a.dataset.doctype = doctype;
@@ -393,7 +397,7 @@ frappe.form.formatters = {
 	},
 	Icon: (value) => {
 		return value
-			? `<div>
+			? `<div class='flex' style='gap: 8px;'>
 			<div class="selected-icon">${frappe.utils.icon(value, "md")}</div>
 			<span class="icon-value">${value}</span>
 		</div>`
@@ -413,7 +417,13 @@ frappe.form.get_formatter = function (fieldtype) {
 };
 
 frappe.format = function (value, df, options, doc) {
-	if (!df) df = { fieldtype: "Data" };
+	let mask_readonly = false;
+	if (df?.parent) {
+		const mask_fields = frappe.get_meta(df.parent)?.masked_fields;
+		mask_readonly = mask_fields?.includes(df.fieldname);
+	}
+
+	if (!df || mask_readonly) df = { fieldtype: "Data" };
 	if (df.fieldname == "_user_tags") df = { ...df, fieldtype: "Tag" };
 	var fieldtype = df.fieldtype || "Data";
 

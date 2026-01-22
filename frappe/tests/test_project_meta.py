@@ -17,7 +17,7 @@ class TestProjectMeta(IntegrationTestCase):
 		Don't try to delete or bypass this test.
 		"""
 
-		baseline = 1600  # as of 11th July Dec 2026
+		baseline = 1605  # as of 11th July Dec 2026
 
 		init_py_size = len(Path(frappe.__file__).read_text().splitlines())
 

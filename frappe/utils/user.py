@@ -9,7 +9,7 @@ import frappe.share
 from frappe import _dict
 from frappe.boot import get_allowed_reports
 from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
-from frappe.permissions import AUTOMATIC_ROLES, get_roles, get_valid_perms
+from frappe.permissions import AUTOMATIC_ROLES, get_rights, get_roles, get_valid_perms
 from frappe.query_builder import DocType, Order
 from frappe.query_builder.functions import Concat_ws
 
@@ -101,7 +101,8 @@ class UserPermissions:
 			if dt not in self.perm_map:
 				self.perm_map[dt] = {}
 
-			for k in frappe.permissions.rights:
+			rights = get_rights(dt)
+			for k in rights:
 				if not self.perm_map[dt].get(k):
 					self.perm_map[dt][k] = r.get(k)
 
@@ -160,7 +161,9 @@ class UserPermissions:
 						getattr(self, "can_" + key).append(dt)
 
 				if not dtp.get("istable"):
-					if not dtp.get("issingle") and not dtp.get("read_only"):
+					if frappe.session.user == "Administrator":
+						self.can_search.append(dt)
+					elif not dtp.get("issingle") and not dtp.get("read_only"):
 						self.can_search.append(dt)
 					if dtp.get("module") not in self.allow_modules:
 						if active_modules and dtp.get("module") not in active_modules:
@@ -173,7 +176,10 @@ class UserPermissions:
 		self.can_read += self.can_write
 
 		self.shared = frappe.get_all(
-			"DocShare", {"user": self.name, "read": 1}, distinct=True, pluck="share_doctype"
+			"DocShare",
+			{"user": self.name, "read": 1},
+			distinct=True,
+			pluck="share_doctype",
 		)
 		self.can_read = list(set(self.can_read + self.shared))
 		self.all_read += self.can_read
@@ -435,3 +441,21 @@ def get_users_with_role(role: str) -> list[str]:
 		.distinct()
 		.run(pluck=True)
 	)
+
+
+def is_portal_user():
+	from frappe.utils import has_common
+
+	roles = get_portal_roles()
+	user_type = frappe.session.data.user_type
+	if user_type == "Website User" and has_common(frappe.get_roles(), roles):
+		return True
+
+
+def get_portal_roles():
+	roles = []
+	for menu_item in frappe.get_single("Portal Settings").menu:
+		if menu_item.role and menu_item.role not in roles:
+			roles.append(menu_item.role)
+
+	return roles

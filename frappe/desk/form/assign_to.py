@@ -72,7 +72,7 @@ def add(args=None, *, ignore_permissions=False):
 		else:
 			from frappe.utils import nowdate
 
-			description = str(args.get("description", ""))
+			description = args.get("description") or ""
 			has_content = strip_html(description) or "<img" in description
 			if not has_content:
 				args["description"] = _("Assignment for {0} {1}").format(args["doctype"], args["name"])
@@ -155,7 +155,7 @@ def close_all_assignments(doctype, name, ignore_permissions=False):
 	assignments = frappe.get_all(
 		"ToDo",
 		fields=["allocated_to", "name"],
-		filters=dict(reference_type=doctype, reference_name=name, status=("!=", "Cancelled")),
+		filters=dict(reference_type=doctype, reference_name=name, status=("not in", ["Cancelled", "Closed"])),
 	)
 	if not assignments:
 		return False

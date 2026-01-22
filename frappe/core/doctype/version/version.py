@@ -1,10 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import difflib
 import json
 
 import frappe
-from frappe.model import no_value_fields, table_fields
+from frappe.model import datetime_fields, no_value_fields, table_fields
 from frappe.model.document import Document
 from frappe.utils import cstr
 
@@ -74,6 +75,29 @@ class Version(Document):
 	def get_data(self):
 		return json.loads(self.data)
 
+	def onload(self):
+		"""Generate HTML diffs for multiline changes on document load."""
+		if not self.data:
+			return
+
+		data = self.get_data()
+		changed = data.get("changed", [])
+		if not changed:
+			return
+
+		html_diffs = {}
+		for item in changed:
+			if len(item) >= 3:
+				fieldname, old_str, new_str = item[0], _as_string(item[1]), _as_string(item[2])
+				if not _should_generate_html_diff(old_str, new_str):
+					continue
+				html_diff = _generate_html_diff(old_str, new_str)
+				if html_diff:
+					html_diffs[fieldname] = html_diff
+
+		if html_diffs:
+			self.set_onload("html_diffs", html_diffs)
+
 
 def get_diff(old, new, for_child=False, compare_cancelled=False):
 	"""Get diff between 2 document objects
@@ -119,6 +143,10 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 		old_value, new_value = old.get(df.fieldname), new.get(df.fieldname)
 		if df.fieldtype in ("Link", "Dynamic Link"):
 			old_value, new_value = cstr(old_value), cstr(new_value)
+
+		if df.fieldtype in datetime_fields:
+			if old_value is None and new_value == "":
+				new_value = None
 
 		if not for_child and df.fieldtype in table_fields:
 			old_rows_by_name = {}
@@ -199,3 +227,32 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 
 def on_doctype_update():
 	frappe.db.add_index("Version", ["ref_doctype", "docname"])
+
+
+def _generate_html_diff(old_str: str, new_str: str) -> str | None:
+	"""Generate HTML diff for the given old and new strings."""
+	old_lines = old_str.splitlines(keepends=True)
+	new_lines = new_str.splitlines(keepends=True)
+
+	differ = difflib.HtmlDiff(wrapcolumn=80)
+	html_diff = differ.make_table(
+		old_lines,
+		new_lines,
+		fromdesc=frappe._("Original"),
+		todesc=frappe._("New"),
+		context=True,
+		numlines=3,
+	)
+	return html_diff
+
+
+def _should_generate_html_diff(old_str: str, new_str: str) -> bool:
+	"""Determine if HTML diff should be generated for the given values."""
+	return (
+		old_str and new_str and ("\n" in old_str or "\n" in new_str or len(old_str) > 80 or len(new_str) > 80)
+	)
+
+
+def _as_string(value: str | None) -> str:
+	"""Convert the given value to a string."""
+	return cstr(value) if value is not None else ""

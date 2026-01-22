@@ -1,11 +1,11 @@
 context("Kanban Board", () => {
 	before(() => {
 		cy.login("frappe@example.com");
-		cy.visit("/app");
+		cy.visit("/desk");
 	});
 
 	it("Create ToDo Kanban", () => {
-		cy.visit("/app/todo");
+		cy.visit("/desk/todo");
 
 		cy.get(".page-actions .custom-btn-group button").click();
 		cy.get(".page-actions .custom-btn-group ul.dropdown-menu li").contains("Kanban").click();
@@ -33,7 +33,7 @@ context("Kanban Board", () => {
 	});
 
 	it("Add and Remove fields", () => {
-		cy.visit("/app/todo/view/kanban/ToDo Kanban");
+		cy.visit("/desk/todo/view/kanban/ToDo Kanban");
 
 		cy.intercept(
 			"POST",
@@ -110,7 +110,7 @@ context("Kanban Board", () => {
 
 		cy.switch_to_user(not_system_manager);
 
-		cy.visit("/app/todo/view/kanban/Admin Kanban");
+		cy.visit("/desk/todo/view/kanban/Admin Kanban");
 
 		// Menu button should be hidden (dropdown for 'Save Filters' and 'Delete Kanban Board')
 		cy.get(".no-list-sidebar .menu-btn-group .btn-default[data-original-title='Menu']").should(

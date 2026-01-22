@@ -15,7 +15,7 @@ from frappe.database.utils import FallBackDateTimeStr
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests import IntegrationTestCase, timeout
-from frappe.tests.test_query_builder import db_type_is, run_only_if
+from frappe.tests.test_query_builder import db_type_is, run_only_if, unimplemented_for
 from frappe.utils import add_days, now, random_string, set_request
 from frappe.utils.data import now_datetime
 from frappe.utils.testutils import clear_custom_fields
@@ -93,12 +93,12 @@ class TestDB(IntegrationTestCase):
 			),
 		)
 		self.assertEqual(
-			frappe.db.sql("""SELECT name FROM `tabUser` WHERE name > 's' ORDER BY MODIFIED DESC""")[0][0],
+			frappe.db.sql("""SELECT name FROM `tabUser` WHERE name > 's' ORDER BY creation DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">", "s"]}),
 		)
 
 		self.assertEqual(
-			frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 't' ORDER BY MODIFIED DESC""")[0][0],
+			frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 't' ORDER BY creation DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">=", "t"]}),
 		)
 		self.assertEqual(
@@ -403,8 +403,8 @@ class TestDB(IntegrationTestCase):
 			random_field,
 		)
 		self.assertEqual(
-			next(iter(frappe.get_all("ToDo", fields=[f"count(`{random_field}`)"], limit=1)[0])),
-			"count" if frappe.conf.db_type == "postgres" else f"count(`{random_field}`)",
+			next(iter(frappe.get_all("ToDo", fields=[{"COUNT": random_field}], limit=1, order_by=None)[0])),
+			"count" if frappe.conf.db_type == "postgres" else f"COUNT(`{random_field}`)",
 		)
 
 		# Testing update
@@ -1050,14 +1050,13 @@ class TestDDLCommandsPost(IntegrationTestCase):
 
 	def test_is(self):
 		user = frappe.qb.DocType("User")
-		self.assertIn(
-			'coalesce("name",',
-			frappe.db.get_values(user, filters={user.name: ("is", "set")}, run=False).lower(),
-		)
-		self.assertIn(
-			'coalesce("name",',
-			frappe.db.get_values(user, filters={user.name: ("is", "not set")}, run=False).lower(),
-		)
+		query_is_set = frappe.db.get_values(user, filters={user.name: ("is", "set")}, run=False).lower()
+
+		query_is_not_set = frappe.db.get_values(
+			user, filters={user.name: ("is", "not set")}, run=False
+		).lower()
+		self.assertIn('"name"<>%(param1)s', query_is_set)
+		self.assertIn('"name" is null or "name"=%(param1)s', query_is_not_set)
 
 
 @run_only_if(db_type_is.POSTGRES)
@@ -1143,6 +1142,32 @@ class TestConcurrency(IntegrationTestCase):
 		with self.secondary_connection():
 			self.assertRaises(frappe.QueryTimeoutError, frappe.delete_doc, note.doctype, note.name)
 
+	@timeout(5, "unexpected locking")
+	def test_value_cache_invalidation(self):
+		note = frappe.new_doc("Note")
+		note.title = note.content = frappe.generate_hash()
+		note.insert()
+		frappe.db.commit()  # ensure that second connection can see the document
+		original_title = note.title
+		new_title = frappe.generate_hash()
+
+		with self.primary_connection():
+			note = frappe.get_doc(note.doctype, note.name)
+			note.title = new_title
+			note.save()  # NOT commited yet, secondary connection will still see old value
+
+		with self.secondary_connection():
+			rr_value = frappe.db.get_value("Note", note.name, "title", cache=True)
+			self.assertEqual(rr_value, original_title)
+
+		with self.primary_connection():
+			frappe.db.commit()
+
+		with self.secondary_connection():
+			frappe.db.rollback()
+			new_value = frappe.db.get_value("Note", note.name, "title", cache=True)
+			self.assertEqual(new_value, new_title)
+
 
 def bad_hook(*args, **kwargs):
 	frappe.db.commit()
@@ -1182,10 +1207,46 @@ class TestSqlIterator(IntegrationTestCase):
 				msg=f"{query=} results not same as iterator",
 			)
 
-	@run_only_if(db_type_is.MARIADB)
+	@unimplemented_for(db_type_is.POSTGRES, db_type_is.SQLITE)
 	def test_unbuffered_cursor(self):
 		with frappe.db.unbuffered_cursor():
 			self.test_db_sql_iterator()
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_unbuffered_cursor_postgres(self):
+		test_queries = [
+			"select * from `tabCountry` order by name",
+			"select code from `tabCountry` order by name",
+			"select code from `tabCountry` order by name limit 5",
+		]
+
+		for query in test_queries:
+			with frappe.db.unbuffered_cursor():
+				iter_query_val = list(frappe.db.sql(query, as_dict=True, as_iterator=True))
+			query_val = frappe.db.sql(query, as_dict=True)
+			self.assertEqual(
+				query_val,
+				iter_query_val,
+				msg=f"{query=} results not same as iterator",
+			)
+
+			with frappe.db.unbuffered_cursor():
+				iter_query_val = list(frappe.db.sql(query, pluck=True, as_iterator=True))
+			query_val = frappe.db.sql(query, pluck=True)
+			self.assertEqual(
+				query_val,
+				iter_query_val,
+				msg=f"{query=} results not same as iterator",
+			)
+
+			with frappe.db.unbuffered_cursor():
+				iter_query_val = list(frappe.db.sql(query, as_list=True, as_iterator=True))
+			query_val = frappe.db.sql(query, as_list=True)
+			self.assertEqual(
+				query_val,
+				iter_query_val,
+				msg=f"{query=} results not same as iterator",
+			)
 
 
 class ExtIntegrationTestCase(IntegrationTestCase):

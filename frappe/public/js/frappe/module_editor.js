@@ -1,7 +1,8 @@
 frappe.ModuleEditor = class ModuleEditor {
-	constructor(frm, wrapper) {
+	constructor(frm, wrapper, disable) {
 		this.frm = frm;
 		this.wrapper = wrapper;
+		this.disable = disable;
 		const block_modules = this.frm.doc.block_modules.map((row) => row.module);
 		this.multicheck = frappe.ui.form.make_control({
 			parent: wrapper,
@@ -27,12 +28,18 @@ frappe.ModuleEditor = class ModuleEditor {
 			render_input: true,
 		});
 	}
+	set_enable_disable() {
+		$(this.wrapper)
+			.find('input[type="checkbox"]')
+			.attr("disabled", this.disable ? true : false);
+	}
 
 	show() {
 		const block_modules = this.frm.doc.block_modules.map((row) => row.module);
 		const all_modules = this.frm.doc.__onload.all_modules;
 		this.multicheck.selected_options = all_modules.filter((m) => !block_modules.includes(m));
 		this.multicheck.refresh_input();
+		this.set_enable_disable();
 	}
 
 	set_modules_in_table() {

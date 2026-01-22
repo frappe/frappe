@@ -13,13 +13,14 @@
   "event_category",
   "event_type",
   "color",
-  "send_reminder",
   "repeat_this_event",
+  "location",
   "column_break_4",
   "starts_on",
   "ends_on",
   "status",
   "sender",
+  "attending",
   "all_day",
   "sync_with_google_calendar",
   "add_video_conferencing",
@@ -43,8 +44,18 @@
   "sunday",
   "section_break_8",
   "description",
-  "participants",
-  "event_participants"
+  "participants_tab",
+  "event_participants",
+  "links_tab",
+  "section_break_jlqd",
+  "reference_doctype",
+  "column_break_pjkw",
+  "reference_docname",
+  "section_break_qemp",
+  "links",
+  "notifications_tab",
+  "send_reminder",
+  "notifications"
  ],
  "fields": [
   {
@@ -205,12 +216,6 @@
    "width": "300px"
   },
   {
-   "fieldname": "participants",
-   "fieldtype": "Section Break",
-   "label": "Participants",
-   "oldfieldtype": "Section Break"
-  },
-  {
    "fieldname": "event_participants",
    "fieldtype": "Table",
    "label": "Event Participants",
@@ -291,14 +296,76 @@
    "label": "Google Meet Link",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_jlqd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "links",
+   "fieldtype": "Table",
+   "label": "Links",
+   "options": "Dynamic Link"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference Document Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "column_break_pjkw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reference_docname",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Doc",
+   "options": "reference_doctype"
+  },
+  {
+   "fieldname": "section_break_qemp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "notifications_tab",
+   "fieldtype": "Tab Break",
+   "label": "Notifications"
+  },
+  {
+   "fieldname": "notifications",
+   "fieldtype": "Table",
+   "label": "Notifications",
+   "options": "Event Notifications"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location"
+  },
+  {
+   "fieldname": "participants_tab",
+   "fieldtype": "Tab Break",
+   "label": "Participants"
+  },
+  {
+   "fieldname": "links_tab",
+   "fieldtype": "Tab Break",
+   "label": "Links"
+  },
+  {
+   "fieldname": "attending",
+   "fieldtype": "Select",
+   "label": "Attending",
+   "options": "\nYes\nNo\nMaybe"
   }
  ],
  "grid_page_length": 50,
  "icon": "fa fa-calendar",
  "idx": 1,
  "links": [],
- "modified": "2025-06-17 15:31:01.945146",
- "modified_by": "Administrator",
+ "modified": "2025-10-07 08:53:24.732646",
+ "modified_by": "shariq@frappe.io",
  "module": "Desk",
  "name": "Event",
  "naming_rule": "Expression (old style)",

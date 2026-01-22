@@ -90,5 +90,9 @@ const subscriber = get_redis_subscriber();
 let uds = conf.socketio_uds;
 let port = conf.socketio_port;
 server.listen(uds || port, () => {
-	console.log("Realtime service listening on: ", uds || port);
+	if (uds) {
+		console.log(`Realtime service listening on UDS: ${uds}`);
+	} else {
+		console.log(`Realtime service listening on: ws://0.0.0.0:${port}`);
+	}
 });

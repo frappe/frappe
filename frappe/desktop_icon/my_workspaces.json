@@ -1,0 +1,21 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-16 01:29:41.871347",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "user-round",
+ "icon_type": "Link",
+ "idx": 101,
+ "label": "My Workspaces",
+ "link_to": "My Workspaces",
+ "link_type": "Workspace Sidebar",
+ "modified": "2026-01-01 20:07:01.338117",
+ "modified_by": "Administrator",
+ "name": "My Workspaces",
+ "owner": "Administrator",
+ "restrict_removal": 1,
+ "roles": [],
+ "sidebar": "My Workspaces",
+ "standard": 1
+}
