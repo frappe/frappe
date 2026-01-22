@@ -9,6 +9,8 @@
   "enabled",
   "dt",
   "doctype_event",
+  "event_frequency",
+  "cron_format",
   "column_break_ezbz",
   "time_field",
   "time_offset",
@@ -35,7 +37,7 @@
    "fieldname": "doctype_event",
    "fieldtype": "Select",
    "label": "DocType Event",
-   "options": "On Creation\nOn Update\nDays Before\nDays After\nMinutes Before\nMinutes After"
+   "options": "On Creation\nOn Update\nDays Before\nDays After\nMinutes Before\nMinutes After\nScheduled"
   },
   {
    "fieldname": "rule",
@@ -72,12 +74,25 @@
   {
    "fieldname": "section_break_tvym",
    "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval: doc.event_frequency == \"CRON Expression\"",
+   "fieldname": "cron_format",
+   "fieldtype": "Data",
+   "label": "Cron Format"
+  },
+  {
+   "depends_on": "eval: doc.doctype_event == \"Scheduled\"",
+   "fieldname": "event_frequency",
+   "fieldtype": "Select",
+   "label": "Event Frequency",
+   "options": "Every 5 Minutes\nEvery 10 Minutes\nEvery 30 Minutes\nEvery Hour\nEvery 6 Hours\nEvery 12 Hours\nEvery Day\nCRON Expression"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-09 13:11:32.243763",
+ "modified": "2026-01-22 17:12:58.112839",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation Rule",

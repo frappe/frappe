@@ -5,6 +5,7 @@ import json
 from typing import TYPE_CHECKING, cast
 
 import frappe
+from frappe import _
 from frappe.email.doctype.email_template.email_template import get_email_template
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
@@ -96,8 +97,7 @@ class AutomationRule(Document):
 		if is_automation_triggered:
 			self.db_set("last_triggered_at", frappe.utils.now())
 
-		if hook == "time_based":
-			doc.save(ignore_permissions=True)
+		self.should_save_doc(doc, hook)
 
 	def run_actions(self, doc, actions: list["AutomationAction"], hook: str) -> None:
 		for a in actions:
@@ -154,6 +154,23 @@ class AutomationRule(Document):
 				}
 			)
 			communication.insert(ignore_permissions=True)
+
+	def should_save_doc(self, doc, hook):
+		if hook in ["time_based", "on_update"] and not doc.flags.in_automation_rule:
+			try:
+				doc.flags.updater_reference = {
+					"doctype": self.doctype,
+					"docname": self.name,
+					"label": _("via Automation Rule {0}").format(self.name),
+				}
+				doc.flags.in_automation_rule = True
+				doc.save(ignore_permissions=True)
+				doc.flags.in_automation_rule = False
+			except Exception:
+				doc.flags.in_automation_rule = False
+				self.log_error("Document update failed")
+			finally:
+				doc.flags.in_automation_rule = False
 
 	def get_message_and_subject(self, action: "EmailAction", doc):
 		source = action.get("via")
@@ -336,6 +353,9 @@ def eval_conditions(conditions: list[list[str] | str], context: dict) -> bool:
 
 def apply_automations(doc, hook=None) -> None:
 	# Frappe doc_events call handlers as (doc, method)
+	if doc.flags.get("skip_automation"):
+		return
+
 	doctype: str = doc.doctype
 	if doctype == "Automation Rule":
 		return
@@ -351,13 +371,13 @@ def apply_automations(doc, hook=None) -> None:
 	if event == "On Creation" and hook == "before_save" and not doc.is_new():
 		return
 
-	automations: list[str] = frappe.get_list(
+	automations: list[str] = frappe.get_all(
 		"Automation Rule",
 		{"enabled": 1, "doctype_event": event, "dt": doctype},
 		pluck="name",
 	)
 	for a in automations:
-		automation_doc = frappe.get_doc("Automation Rule", a)
+		automation_doc = frappe.get_cached_doc("Automation Rule", a)
 		automation_doc.apply(doc, hook)
 
 	handle_time_based_automations(doc, hook)
@@ -372,9 +392,9 @@ def handle_time_based_automations(doc, hook):
 
 def create_automation_jobs(doc):
 	doctype = doc.doctype
-	time_based_automations = frappe.get_list(
+	time_based_automations = frappe.get_all(
 		"Automation Rule",
-		filters={"enabled": 1, "doctype_event": ["not in", ["On Creation", "On Update"]], "dt": doctype},
+		filters={"enabled": 1, "doctype_event": ["in", TIME_BASED_EVENTS], "dt": doctype},
 		fields=["name", "dt", "doctype_event", "rule", "time_field", "time_offset"],
 	)
 
@@ -455,6 +475,7 @@ def clear_scheduled_jobs_reference(doc, hook=None):
 
 	if doctype == "Automation Rule":
 		return
+
 	allowed_doctypes = frappe.get_hooks("automation_rule_config").get("allowed_doctypes", [])
 	if doctype not in allowed_doctypes:
 		return
@@ -493,7 +514,7 @@ def calculate_execute_at(doctype_event, field_value, offset):
 
 def execute_automation_logs():
 	print("Executing scheduled automation jobs...")
-	jobs_to_run = frappe.get_list(
+	jobs_to_run = frappe.get_all(
 		"Automation Scheduled Job",
 		filters={
 			"status": ["in", ["Scheduled", "Failed"]],
@@ -506,10 +527,10 @@ def execute_automation_logs():
 	)
 
 	for job in jobs_to_run:
-		automation_rule = frappe.get_doc("Automation Rule", job.automation_rule)
+		automation_rule = frappe.get_cached_doc("Automation Rule", job.automation_rule)
 		if not automation_rule.enabled:
 			continue
-		reference_doc = frappe.get_doc(job.reference_doctype, job.reference_name)
+		reference_doc = frappe.get_cached_doc(job.reference_doctype, job.reference_name)
 		enqueue(
 			automation_rule.apply,
 			doc=reference_doc,
@@ -529,7 +550,9 @@ def mark_automation_job_completed(job, connection, result):
 	frappe.init(site=site)
 	frappe.connect()
 	try:
-		frappe.db.set_value("Automation Scheduled Job", job_id, "status", "Completed")
+		frappe.db.set_value(
+			"Automation Scheduled Job", job_id, {"status": "Completed", "completed_at": frappe.utils.now()}
+		)
 		frappe.db.commit()  # nosemgrep
 	finally:
 		frappe.destroy()
