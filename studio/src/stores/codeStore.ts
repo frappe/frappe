@@ -239,7 +239,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		eventArgs?: Record<string, any>,
 	) {
 		try {
-			const context = { ...globalExecutionContext.value, ...repeaterContext, ...componentContext, args: eventArgs }
+			const context = { ...globalExecutionContext.value, ...repeaterContext, ...componentContext, eventArgs }
 
 			const scriptToExecute = `
 				with (context) {
