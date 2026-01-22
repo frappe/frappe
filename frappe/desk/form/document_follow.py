@@ -1,6 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-
+from typing import TYPE_CHECKING, List, Dict, Union
 import frappe
 import frappe.utils
 from frappe import _
@@ -8,6 +8,8 @@ from frappe.model import log_types
 from frappe.query_builder import DocType
 from frappe.utils import get_url_to_form
 
+if TYPE_CHECKING:
+	from frappe.model.document import Document
 
 @frappe.whitelist()
 def update_follow(doctype: str, doc_name: str, following: bool):
@@ -18,7 +20,7 @@ def update_follow(doctype: str, doc_name: str, following: bool):
 
 
 @frappe.whitelist()
-def follow_document(doctype, doc_name, user):
+def follow_document(doctype: str, doc_name: str, user: str) -> Union["Document", bool]:
 	"""
 	param:
 	Doctype name
@@ -67,7 +69,7 @@ def follow_document(doctype, doc_name, user):
 
 
 @frappe.whitelist()
-def unfollow_document(doctype, doc_name, user):
+def unfollow_document(doctype: str, doc_name: str, user: str) -> bool:
 	doc = frappe.get_all(
 		"Document Follow",
 		filters={"ref_doctype": doctype, "ref_docname": doc_name, "user": user},
