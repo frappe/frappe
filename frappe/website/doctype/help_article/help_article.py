@@ -61,7 +61,7 @@ class HelpArticle(WebsiteGenerator):
 		context.level_class = get_level_class(self.level)
 		context.comment_list = get_comment_list(self.doctype, self.name)
 		context.show_sidebar = True
-		context.sidebar_items = get_sidebar_items()
+		context.sidebar_items = get_help_article_sidebar_items()
 		context.parents = self.get_parents(context)
 
 	def get_parents(self, context):
@@ -80,7 +80,7 @@ def get_list_context(context=None):
 		title=category or _("Knowledge Base"),
 		get_level_class=get_level_class,
 		show_sidebar=True,
-		sidebar_items=get_sidebar_items(),
+		sidebar_items=get_help_article_sidebar_items(),
 		hide_filters=True,
 		filters=filters,
 		category=frappe.local.form_dict.category,
@@ -98,7 +98,7 @@ def get_level_class(level):
 	return {"Beginner": "green", "Intermediate": "orange", "Expert": "red"}[level]
 
 
-def get_sidebar_items():
+def get_help_article_sidebar_items():
 	def _get():
 		return frappe.db.sql(
 			"""select
