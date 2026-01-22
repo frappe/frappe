@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-21 10:33\n"
+"PO-Revision-Date: 2026-01-22 12:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Slovenian\n"
 "MIME-Version: 1.0\n"
@@ -151,7 +151,7 @@ msgstr "1 Poročilo"
 
 #: frappe/website/doctype/blog_post/blog_post.py:374
 msgid "1 comment"
-msgstr ""
+msgstr "1 komentar"
 
 #: frappe/tests/test_utils.py:816
 msgid "1 day ago"
@@ -554,7 +554,7 @@ msgstr "<h4>Primer Odgovora po E-pošti</h4>\n\n"
 #. Content of the 'html_5' (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "<h5 class=\"text-muted uppercase\">Or</h5>"
-msgstr "<h5 class=\"text-muted uppercase\">Ali</h5>"
+msgstr ""
 
 #. Content of the 'Message Examples' (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
