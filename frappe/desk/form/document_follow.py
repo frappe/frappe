@@ -1,6 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-
+from typing import TYPE_CHECKING, List, Dict, Union
 import frappe
 import frappe.utils
 from frappe import _
@@ -8,7 +8,7 @@ from frappe.model import log_types
 from frappe.query_builder import DocType
 from frappe.utils import get_url_to_form
 
-from typing import TYPE_CHECKING, List, Dict, Union
+
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
