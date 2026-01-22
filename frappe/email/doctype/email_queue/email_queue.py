@@ -521,6 +521,7 @@ class QueueBuilder:
 		email_headers=None,
 		raw_html=False,
 		add_css=True,
+		ignore_unsubscribed=False,
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -550,6 +551,7 @@ class QueueBuilder:
 		:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
 		:param raw_html: Whether to treat email template as a complete HTML file
 		:param add_css: Add default CSS from hooks/email_css to the email template (default True)
+		:param ignore_unsubscribed: Whether to sent email for all the users if they unsubscribed to the event
 		"""
 
 		self._unsubscribe_method = unsubscribe_method
@@ -589,6 +591,7 @@ class QueueBuilder:
 		self.email_headers = email_headers
 		self.raw_html = raw_html
 		self.add_css = add_css
+		self.ignore_unsubscribed = ignore_unsubscribed
 
 	@property
 	def unsubscribe_method(self):
@@ -669,11 +672,13 @@ class QueueBuilder:
 		)
 		return self._email_account
 
-	def get_unsubscribed_user_emails(self):
+	def get_unsubscribed_user_emails(self, email_ids):
 		if self._unsubscribed_user_emails is not None:
 			return self._unsubscribed_user_emails
 
-		all_ids = list(set(self.recipients + self.cc + self.bcc))
+		if self.ignore_unsubscribed:
+			return []
+		all_ids = list(set(email_ids))
 
 		EmailUnsubscribe = DocType("Email Unsubscribe")
 
@@ -700,15 +705,15 @@ class QueueBuilder:
 		return self._unsubscribed_user_emails
 
 	def final_recipients(self):
-		unsubscribed_emails = self.get_unsubscribed_user_emails()
+		unsubscribed_emails = self.get_unsubscribed_user_emails(self.recipients)
 		return [mail_id for mail_id in self.recipients if mail_id not in unsubscribed_emails]
 
 	def final_cc(self):
-		unsubscribed_emails = self.get_unsubscribed_user_emails()
+		unsubscribed_emails = self.get_unsubscribed_user_emails(self.cc)
 		return [mail_id for mail_id in self.cc if mail_id not in unsubscribed_emails]
 
 	def final_bcc(self):
-		unsubscribed_emails = self.get_unsubscribed_user_emails()
+		unsubscribed_emails = self.get_unsubscribed_user_emails(self.bcc)
 		return [mail_id for mail_id in self.bcc if mail_id not in unsubscribed_emails]
 
 	def get_attachments(self):
