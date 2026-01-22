@@ -8,11 +8,6 @@ from frappe.model import log_types
 from frappe.query_builder import DocType
 from frappe.utils import get_url_to_form
 
-from typing import TYPE_CHECKING, List, Dict, Union
-
-if TYPE_CHECKING:
-	from frappe.model.document import Document
-
 
 @frappe.whitelist()
 def update_follow(doctype: str, doc_name: str, following: bool):
@@ -23,7 +18,7 @@ def update_follow(doctype: str, doc_name: str, following: bool):
 
 
 @frappe.whitelist()
-def follow_document(doctype: str, doc_name: str, user: str) -> Union["Document", bool]:
+def follow_document(doctype, doc_name, user):
 	"""
 	param:
 	Doctype name
@@ -72,7 +67,7 @@ def follow_document(doctype: str, doc_name: str, user: str) -> Union["Document",
 
 
 @frappe.whitelist()
-def unfollow_document(doctype: str, doc_name: str, user: str) -> bool:
+def unfollow_document(doctype, doc_name, user):
 	doc = frappe.get_all(
 		"Document Follow",
 		filters={"ref_doctype": doctype, "ref_docname": doc_name, "user": user},
@@ -82,7 +77,7 @@ def unfollow_document(doctype: str, doc_name: str, user: str) -> bool:
 	if doc:
 		frappe.delete_doc("Document Follow", doc[0].name, force=True)
 		frappe.toast(_("Un-following document {0}").format(doc_name))
-		return True
+		return False
 	return False
 
 
@@ -245,7 +240,7 @@ def is_document_followed(doctype, doc_name, user):
 
 
 @frappe.whitelist()
-def get_follow_users(doctype: str, doc_name: str) -> List[Dict]:
+def get_follow_users(doctype, doc_name):
 	return frappe.get_all(
 		"Document Follow", filters={"ref_doctype": doctype, "ref_docname": doc_name}, fields=["user"]
 	)
