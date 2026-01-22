@@ -1443,9 +1443,9 @@ def get_enabled_users():
 def impersonate(user: str, reason: str = "No reason provided"):
 	# Note: For now we only allow admins, we MIGHT allow system manager in future.
 	# All the impersonation code doesn't assume anything about user.
-    if not frappe.has_permission("User", "write"):
-        frappe.throw(_("No permission to impersonate"))
-
+	if not ("System Manager" in frappe.get_roles() or frappe.session.user == "Administrator"):
+		frappe.throw(_("No permission to impersonate"))
+		
     impersonator = frappe.session.user
 
     frappe.get_doc(
