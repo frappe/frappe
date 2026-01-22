@@ -236,9 +236,10 @@ const useCodeStore = defineStore("codeStore", () => {
 		script: string,
 		repeaterContext?: Record<string, any>,
 		componentContext?: Record<string, any>,
+		eventArgs?: Record<string, any>,
 	) {
 		try {
-			const context = { ...globalExecutionContext.value, ...repeaterContext, ...componentContext }
+			const context = { ...globalExecutionContext.value, ...repeaterContext, ...componentContext, eventArgs }
 
 			const scriptToExecute = `
 				with (context) {
@@ -257,12 +258,14 @@ const useCodeStore = defineStore("codeStore", () => {
 		data: DataResult,
 		repeaterContext?: Record<string, any>,
 		componentContext?: Record<string, any>,
+		eventArgs?: string[],
 	) {
 		try {
 			const context = {
 				...globalExecutionContext.value,
 				...repeaterContext,
 				...componentContext,
+				eventArgs,
 				data,
 			}
 			const successFn = new Function(
@@ -283,12 +286,14 @@ const useCodeStore = defineStore("codeStore", () => {
 		error: any,
 		repeaterContext?: Record<string, any>,
 		componentContext?: Record<string, any>,
+		eventArgs?: string[],
 	) {
 		try {
 			const context = {
 				...globalExecutionContext.value,
 				...repeaterContext,
 				...componentContext,
+				eventArgs,
 				error,
 			}
 			const errorFn = new Function(

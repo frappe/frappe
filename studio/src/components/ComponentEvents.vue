@@ -18,7 +18,7 @@
 			<Dialog
 				v-model="showAddEventDialog"
 				:options="{
-					title: newEvent.isEditing ? 'Edit Event' : 'Add Event',
+					title: (newEvent.isEditing ? 'Edit Event' : 'Add Event') + ' - ' + block.getBlockDescription(),
 					size: '3xl',
 					actions: [
 						{
@@ -133,6 +133,11 @@
 									@update:modelValue="(val: string) => (newEvent.on_error_script = val)"
 								/>
 							</div>
+
+							<span
+								class="mt-1 text-p-xs text-ink-gray-6"
+								v-html="getScriptDescription(newEvent.event)"
+							></span>
 						</template>
 					</div>
 				</template>
@@ -197,7 +202,6 @@ const newEvent = ref<ComponentEvent>({ ...emptyEvent })
 const eventOptions = computed(() => {
 	if (!props.block || props.block.isRoot()) return []
 	return [
-		...getComponentEvents(props.block?.componentName),
 		"click",
 		"change",
 		"focus",
@@ -206,16 +210,18 @@ const eventOptions = computed(() => {
 		"keydown",
 		"keyup",
 		"keypress",
+		...componentEvents.value,
 	]
 })
 
-function getComponentEvents(name: string) {
-	const component = resolveComponent(name)
+const componentEvents = computed(() => {
+	if (!props.block?.componentName) return []
+	const component = resolveComponent(props.block?.componentName)
 	if (typeof component === "string" || !component) {
 		return []
 	}
 	return component?.emits || []
-}
+})
 
 const doctypeFields = ref<{ label: string; value: string }[]>([])
 watch(
@@ -264,6 +270,7 @@ const actions: ActionConfigurations = {
 					height: "400px",
 					maxHeight: "400px",
 					emitOnChange: true,
+					description: getScriptDescription(newEvent.value.event),
 					completions: (context: CompletionContext) =>
 						getEditorCompletions(context, props.block?.getCompletions()),
 				}
@@ -533,5 +540,31 @@ const getEventMenu = (event: ComponentEvent) => {
 			onClick: () => deleteEvent(event),
 		},
 	]
+}
+
+function getScriptDescription(eventName: string): string {
+	let docsLink = ""
+	if (props.block && componentEvents.value.includes(eventName)) {
+		const componentSlug = props.block.componentName.toLowerCase()
+		docsLink = `https://ui.frappe.io/docs/components/${componentSlug}#emit-events`
+	}
+	let docs = `You can access event arguments using the ${getCodeBlock("eventArgs")} array: ${getCodeBlock("eventArgs[index]")}<br><br>`
+
+	if (docsLink) {
+		docs += `
+			<b>Example:</b> The ${getCodeBlock("change")} event on DatePicker emits the selected date, which can be accessed as:<br>
+			${getCodeBlock("const date = eventArgs[0]")} <br><br>Refer to the <a class="underline" href="${docsLink}" target="_blank">${[props.block?.componentName]} documentation</a> to see what arguments are emitted for ${eventName} event
+		`
+	} else {
+		docs += `
+			<b>Example:</b> For a ${getCodeBlock("click")} event, you can access the MouseEvent object as:<br>
+			${getCodeBlock("const mouseEvent = eventArgs[0]")}
+		`
+	}
+	return docs
+}
+
+function getCodeBlock(string: string): string {
+	return `<span class="font-mono font-medium">${string}</span>`
 }
 </script>

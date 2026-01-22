@@ -24,6 +24,7 @@
 			@blur="syncToParent"
 		/>
 
+		<span class="text-p-xs text-ink-gray-6" v-show="description" v-html="description"></span>
 		<Button v-if="showSaveButton" variant="solid" @click="emit('save', code)" class="mt-3 w-full text-base">
 			Save
 		</Button>
@@ -65,6 +66,7 @@ const props = withDefaults(
 		showLineNumbers?: boolean
 		completions?: Function | null
 		label?: string
+		description?: string
 		required?: boolean
 		readonly?: boolean
 		borderless?: boolean
