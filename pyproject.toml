@@ -32,7 +32,7 @@ dependencies = [
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.13.5",
     "bleach-allowlist~=1.0.3",
-    "bleach[css]~=6.3.0",
+    "bleach[css]",
     "chardet~=5.2.0",
     "croniter~=6.0.0",
     "cryptography~=46.0.3",
