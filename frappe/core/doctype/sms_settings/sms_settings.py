@@ -83,6 +83,19 @@ def send_sms(receiver_list, msg, sender_name="", success_msg=True):
 		msgprint(_("Please Update SMS Settings"))
 
 
+def create_nested_param(data, key, value):
+	if "." in key:
+		parent = data
+		key_parts = key.split(".")
+		for k in key_parts[:-1]:
+			if k not in parent:
+				parent[k] = {}
+			parent = parent[k]
+		parent[key_parts[-1]] = value
+	else:
+		data[key] = value
+
+
 def send_via_gateway(arg):
 	ss = frappe.get_doc("SMS Settings", "SMS Settings")
 	headers = get_headers(ss)
@@ -92,7 +105,7 @@ def send_via_gateway(arg):
 	args = {ss.message_parameter: message}
 	for d in ss.get("parameters"):
 		if not d.header:
-			args[d.parameter] = d.value
+			create_nested_param(args, d.parameter, d.value)
 
 	success_list = []
 	for d in arg.get("receiver_list"):
@@ -116,7 +129,7 @@ def get_headers(sms_settings=None):
 	headers = {"Accept": "text/plain, text/html, */*"}
 	for d in sms_settings.get("parameters"):
 		if d.header == 1:
-			headers.update({d.parameter: d.value})
+			create_nested_param(headers, d.parameter, d.value)
 
 	return headers
 
