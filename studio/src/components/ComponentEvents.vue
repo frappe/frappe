@@ -548,8 +548,9 @@ function getScriptDescription(eventName: string): string {
 		const componentSlug = props.block.componentName.toLowerCase()
 		docsLink = `https://ui.frappe.io/docs/components/${componentSlug}#emit-events`
 	}
-	return `You can access event arguments in your script using the ${getCodeBlock("eventArgs")} array<br>
-		<b>Example:</b> ${getCodeBlock("varName.value = eventArgs[0]")} ${docsLink ? `<br>Refer to the <a class="underline" href="${docsLink}" target="_blank">component documentation</a> to check what arguments are passed in the emitted event` : ""}
+	return `You can access event arguments using the ${getCodeBlock("eventArgs")} array: ${getCodeBlock("eventArgs[index]")}<br><br>
+		<b>Example:</b> A ${getCodeBlock("change")} event on TextEditor emits the editor content, which can be accessed as:<br>
+		${getCodeBlock("const editorContent = eventArgs[0]")} ${docsLink ? `<br><br>Refer to the <a class="underline" href="${docsLink}" target="_blank">${[props.block?.componentName]} documentation</a> to see what arguments are emitted for ${eventName} event` : ""}
 		`
 }
 
