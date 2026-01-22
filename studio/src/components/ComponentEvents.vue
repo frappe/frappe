@@ -18,7 +18,7 @@
 			<Dialog
 				v-model="showAddEventDialog"
 				:options="{
-					title: newEvent.isEditing ? 'Edit Event' : 'Add Event',
+					title: (newEvent.isEditing ? 'Edit Event' : 'Add Event') + ' - ' + block.getBlockDescription(),
 					size: '3xl',
 					actions: [
 						{
