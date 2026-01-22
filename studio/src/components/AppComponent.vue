@@ -166,10 +166,11 @@ const componentEvents = computed(() => {
 					router.push(event.page)
 				}
 			} else if (event.action === "Call API") {
-				return () => {
+				return (...eventArgs: any[]) => {
 					const path: string[] = event.api_endpoint.split(".")
 					// get resource
 					const resource = codeStore.resources[path[0]]
+					event.eventArgs = eventArgs
 
 					if (resource) {
 						// access and call whitelisted method
@@ -185,11 +186,12 @@ const componentEvents = computed(() => {
 					}
 				}
 			} else if (event.action === "Insert a Document") {
-				return () => {
+				return (...eventArgs: any[]) => {
 					const fields: Record<string, any> = {}
 					event.fields.forEach((field: Field) => {
-						fields[field.field] = codeStore.getValueFromVariable(field.value)
+						fields[field.field] = codeStore.getValueFromVariable(field.value, evaluationContext.value)
 					})
+					event.eventArgs = eventArgs
 					createResource({
 						url: "frappe.client.insert",
 						method: "POST",
@@ -204,8 +206,8 @@ const componentEvents = computed(() => {
 					}).submit()
 				}
 			} else if (event.action === "Run Script") {
-				return (...args: any[]) => {
-					codeStore.executeUserScript(event.script, repeaterContext, componentContext?.value, args)
+				return (...eventArgs: any[]) => {
+					codeStore.executeUserScript(event.script, repeaterContext, componentContext?.value, eventArgs)
 				}
 			}
 		}
@@ -217,7 +219,13 @@ const componentEvents = computed(() => {
 
 const handleSuccess = (event: any) => (data: DataResult) => {
 	if (event.on_success === "script" && event.on_success_script) {
-		return codeStore.handleSuccess(event.on_success_script, data, repeaterContext, componentContext?.value)
+		return codeStore.handleSuccess(
+			event.on_success_script,
+			data,
+			repeaterContext,
+			componentContext?.value,
+			event.eventArgs,
+		)
 	} else {
 		if (event.action === "Insert a Document") {
 			toast.success(event.success_message || `${event.doctype} created successfully`)
@@ -229,7 +237,13 @@ const handleSuccess = (event: any) => (data: DataResult) => {
 
 const handleError = (event: any) => (error: any) => {
 	if (event.on_error === "script" && event.on_error_script) {
-		return codeStore.handleError(event.on_error_script, error, repeaterContext, componentContext?.value)
+		return codeStore.handleError(
+			event.on_error_script,
+			error,
+			repeaterContext,
+			componentContext?.value,
+			event.eventArgs,
+		)
 	} else {
 		if (event.action === "Insert a Document") {
 			toast.error(event.error_message || `Error creating ${event.doctype}`)

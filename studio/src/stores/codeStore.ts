@@ -258,12 +258,14 @@ const useCodeStore = defineStore("codeStore", () => {
 		data: DataResult,
 		repeaterContext?: Record<string, any>,
 		componentContext?: Record<string, any>,
+		eventArgs?: string[],
 	) {
 		try {
 			const context = {
 				...globalExecutionContext.value,
 				...repeaterContext,
 				...componentContext,
+				eventArgs,
 				data,
 			}
 			const successFn = new Function(
@@ -284,12 +286,14 @@ const useCodeStore = defineStore("codeStore", () => {
 		error: any,
 		repeaterContext?: Record<string, any>,
 		componentContext?: Record<string, any>,
+		eventArgs?: string[],
 	) {
 		try {
 			const context = {
 				...globalExecutionContext.value,
 				...repeaterContext,
 				...componentContext,
+				eventArgs,
 				error,
 			}
 			const errorFn = new Function(
