@@ -115,6 +115,9 @@ def get_static_default_value(df, doctype_user_permissions, allowed_records):
 				return df.default
 
 	elif df.fieldtype == "Select" and df.options and df.options not in ("[Select]", "Loading..."):
+		# If fetch_if_empty is enabled, keep empty so fetch_from can populate later.
+		if df.get("fetch_from") and df.get("fetch_if_empty"):
+			return None
 		return df.options.split("\n", 1)[0]
 
 
