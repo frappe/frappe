@@ -86,16 +86,13 @@ class DesktopIcon(Document):
 		else:
 			try:
 				items = bootinfo.workspace_sidebar_item[self.label.lower()]["items"]
-				#
-				if len(items) == 0:
-					return False
 
 				if len(items) and all(item["type"] == "Section Break" for item in items):
 					return False
 
 				return True
 			except KeyError:
-				return False
+				return True
 
 	def check_app_permission(self):
 		for a in frappe.get_installed_apps():
@@ -193,7 +190,6 @@ def get_desktop_icons(user=None, bootinfo=None):
 
 		permitted_icons = []
 		permitted_parent_labels = set()
-
 		if bootinfo:
 			for s in user_icons:
 				icon = frappe.get_doc("Desktop Icon", s)

@@ -393,7 +393,7 @@ def get_names_for_mentions(search_term):
 def get_users_for_mentions():
 	return frappe.get_all(
 		"User",
-		fields=["name as id", "full_name as value"],
+		fields=["name as id", "full_name as value", "email"],
 		filters={
 			"name": ["not in", ("Administrator", "Guest")],
 			"allowed_in_mentions": True,

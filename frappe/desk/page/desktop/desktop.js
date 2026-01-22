@@ -890,9 +890,6 @@ class DesktopIcon {
 		if (this.icon_type == "Folder") {
 			if (this.icon_data.child_icons.length == 0) return false;
 		}
-		if (this.icon_type == "Link" && !this.icon_route) {
-			return false;
-		}
 		return true;
 	}
 	get_child_icons_data() {
@@ -999,7 +996,17 @@ class DesktopIcon {
 			if (this.icon_route && this.icon_route.startsWith("http")) {
 				this.icon.attr("target", "_blank");
 			}
-			this.icon.attr("href", this.icon_route);
+			if (this.icon_route) {
+				this.icon.attr("href", this.icon_route);
+			} else {
+				this.icon.on("click", function (event) {
+					frappe.msgprint(
+						__(
+							"Icon is not correctly configured please check the workspace sidebar to it"
+						)
+					);
+				});
+			}
 		}
 	}
 

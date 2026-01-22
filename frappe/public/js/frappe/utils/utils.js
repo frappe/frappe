@@ -1606,8 +1606,13 @@ Object.assign(frappe.utils, {
 		 *	max_no_of_decimals - max number of decimals of the shortened number
 		 */
 
+		// return empty for null, undefined, or empty string
+		if (!number || isNaN(number)) {
+			return "";
+		}
+
 		// return number if total digits is lesser than min_length
-		const len = String(number).match(/\d/g).length;
+		const len = String(number).match(/\d/g)?.length || 0;
 		if (len < min_length) {
 			return number.toString();
 		}

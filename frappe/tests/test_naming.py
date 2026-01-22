@@ -2,9 +2,9 @@
 # License: MIT. See LICENSE
 
 import time
+import uuid
 from uuid import UUID
 
-import uuid_utils
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_full_jitter
 
 import frappe
@@ -430,12 +430,12 @@ class TestNaming(IntegrationTestCase):
 		self.assertEqual(uid.version, 7)  # Default version
 
 		# Applications can specify UUID themselves, useful for APIs to set name themselves.
-		for uid in (uuid_utils.uuid4(), uuid_utils.uuid7()):
+		for uid in (uuid.uuid4(), uuid.uuid7()):
 			doc = frappe.new_doc(uuid_doctype, name=uid).insert()
 			self.assertEqual(doc.name, str(uid))
 
 		# Can specify valid UUID strings too
-		for uid in (uuid_utils.uuid4(), uuid_utils.uuid7()):
+		for uid in (uuid.uuid4(), uuid.uuid7()):
 			doc = frappe.new_doc(uuid_doctype, name=str(uid)).insert()
 			self.assertEqual(doc.name, str(uid))
 

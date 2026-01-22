@@ -50,31 +50,29 @@ class WorkspaceSidebar(Document):
 			self.user.build_permissions()
 
 	def before_save(self):
-		allow_export = self.app and not frappe.flags.in_import and frappe.conf.developer_mode
-		if allow_export:
-			self.export_sidebar()
+		self.export_sidebar()
 		self.set_module()
 
 	def export_sidebar(self):
-		folder_path = create_directory_on_app_path("workspace_sidebar", self.app)
-		file_path = os.path.join(folder_path, f"{frappe.scrub(self.title)}.json")
-		doc_export = self.as_dict(no_nulls=True, no_private_properties=True)
-		doc_export = strip_default_fields(self, doc_export)
-		with open(file_path, "w+") as doc_file:
-			doc_file.write(frappe.as_json(doc_export) + "\n")
-
-	def delete_file(self):
-		folder_path = create_directory_on_app_path("workspace_sidebar", self.app)
-		file_path = os.path.join(folder_path, f"{frappe.scrub(self.title)}.json")
-		if os.path.exists(file_path):
-			os.remove(file_path)
+		allow_export = self.app and not frappe.flags.in_import and frappe.conf.developer_mode
+		if allow_export:
+			folder_path = create_directory_on_app_path("workspace_sidebar", self.app)
+			file_path = os.path.join(folder_path, f"{frappe.scrub(self.title)}.json")
+			doc_export = self.as_dict(no_nulls=True, no_private_properties=True)
+			doc_export = strip_default_fields(self, doc_export)
+			with open(file_path, "w+") as doc_file:
+				doc_file.write(frappe.as_json(doc_export) + "\n")
 
 	def on_trash(self):
 		if is_workspace_manager():
 			if frappe.conf.developer_mode and self.app:
-				self.delete_file()
+				delete_file(self.app, self.title)
 		else:
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
+
+	def after_rename(self, old, new, merge):
+		delete_file(self.app, old)
+		self.export_sidebar()
 
 	def is_item_allowed(self, name, item_type, allowed_workspaces):
 		if frappe.session.user == "Administrator":
@@ -136,6 +134,13 @@ class WorkspaceSidebar(Document):
 			self.user.build_permissions()
 
 		return self.user.allow_modules
+
+
+def delete_file(app, title):
+	folder_path = create_directory_on_app_path("workspace_sidebar", app)
+	file_path = os.path.join(folder_path, f"{frappe.scrub(title)}.json")
+	if os.path.exists(file_path):
+		os.remove(file_path)
 
 
 def is_workspace_manager():
