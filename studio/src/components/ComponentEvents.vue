@@ -197,7 +197,6 @@ const newEvent = ref<ComponentEvent>({ ...emptyEvent })
 const eventOptions = computed(() => {
 	if (!props.block || props.block.isRoot()) return []
 	return [
-		...getComponentEvents(props.block?.componentName),
 		"click",
 		"change",
 		"focus",
@@ -206,16 +205,18 @@ const eventOptions = computed(() => {
 		"keydown",
 		"keyup",
 		"keypress",
+		...componentEvents.value,
 	]
 })
 
-function getComponentEvents(name: string) {
-	const component = resolveComponent(name)
+const componentEvents = computed(() => {
+	if (!props.block?.componentName) return []
+	const component = resolveComponent(props.block?.componentName)
 	if (typeof component === "string" || !component) {
 		return []
 	}
 	return component?.emits || []
-}
+})
 
 const doctypeFields = ref<{ label: string; value: string }[]>([])
 watch(
@@ -264,6 +265,7 @@ const actions: ActionConfigurations = {
 					height: "400px",
 					maxHeight: "400px",
 					emitOnChange: true,
+					description: getScriptDescription(newEvent.value.event),
 					completions: (context: CompletionContext) =>
 						getEditorCompletions(context, props.block?.getCompletions()),
 				}
@@ -533,5 +535,20 @@ const getEventMenu = (event: ComponentEvent) => {
 			onClick: () => deleteEvent(event),
 		},
 	]
+}
+
+function getScriptDescription(eventName: string): string {
+	let docsLink = ""
+	if (props.block && componentEvents.value.includes(eventName)) {
+		const componentSlug = props.block.componentName.toLowerCase()
+		docsLink = `https://ui.frappe.io/docs/components/${componentSlug}#emit-events`
+	}
+	return `You can access event arguments in your script using the ${getCodeBlock("eventArgs")} array<br>
+		<b>Example:</b> ${getCodeBlock("varName.value = eventArgs[0]")} ${docsLink ? `<br>Refer to the <a class="underline" href="${docsLink}" target="_blank">component documentation</a> to check what arguments are passed in the emitted event` : ""}
+		`
+}
+
+function getCodeBlock(string: string): string {
+	return `<span class="font-mono font-medium">${string}</span>`
 }
 </script>
