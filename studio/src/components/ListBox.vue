@@ -5,10 +5,16 @@
 		v-model="model"
 		@keydown="focusSearchInput"
 	>
-		<ListboxFilter :as="TextInput" variant="outline" placeholder="Search" ref="searchInput" />
+		<ListboxFilter
+			:as="TextInput"
+			variant="outline"
+			placeholder="Search"
+			ref="searchInput"
+			v-model="searchTerm"
+		/>
 		<ListboxContent class="max-h-48 overflow-auto pt-1">
 			<ListboxItem
-				v-for="option in options"
+				v-for="option in optionList"
 				:key="option.label"
 				:value="option.value"
 				class="relative flex h-[28px] w-full select-none items-center rounded px-2 text-sm leading-none text-ink-gray-9 outline-none"
@@ -22,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from "vue"
+import { nextTick, onMounted, ref, watch } from "vue"
 import { TextInput } from "frappe-ui"
 import { ListboxContent, ListboxItem, ListboxItemIndicator, ListboxRoot, ListboxFilter } from "reka-ui"
 import LucideCheck from "~icons/lucide/check"
@@ -39,6 +45,21 @@ const props = defineProps<{
 }>()
 
 const model = defineModel<string | null>()
+
+const searchTerm = ref<string>("")
+const optionList = ref<Option[]>(props.options || [])
+watch(
+	() => searchTerm.value,
+	(term) => {
+		if (!props.options) return
+		const lowercasedTerm = term.toLowerCase()
+		const filteredOptions = props.options.filter((option) =>
+			option.label.toLowerCase().includes(lowercasedTerm),
+		)
+		optionList.value = filteredOptions
+	},
+	{ immediate: true },
+)
 
 const searchInput = ref<InstanceType<typeof TextInput>>()
 const focusSearchInput = () => {
