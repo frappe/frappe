@@ -97,6 +97,7 @@ const props = defineProps({
 
 const store = useStudioStore()
 const boxShadow = useEspressoTokens("boxShadow")
+const borderRadius = useEspressoTokens("borderRadius")
 
 // command + f should focus on search input
 window.addEventListener("keydown", (e) => {
@@ -503,10 +504,12 @@ const styleSectionProperties = [
 		component: InlineInput,
 		getProps: () => {
 			return {
+				type: "autocomplete",
 				label: "Radius",
 				modelValue: blockController.getStyle("borderRadius"),
 				enableSlider: true,
 				unitOptions: ["px", "%"],
+				options: borderRadius,
 				minValue: 0,
 			}
 		},
