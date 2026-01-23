@@ -5,13 +5,7 @@
 		v-model="model"
 		@keydown="focusSearchInput"
 	>
-		<ListboxFilter
-			:as="TextInput"
-			variant="outline"
-			placeholder="Search"
-			ref="searchInput"
-			:autoFocus="true"
-		/>
+		<ListboxFilter :as="TextInput" variant="outline" placeholder="Search" ref="searchInput" />
 		<ListboxContent class="max-h-48 overflow-auto pt-1">
 			<ListboxItem
 				v-for="option in options"
@@ -28,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { nextTick, onMounted, ref } from "vue"
 import { TextInput } from "frappe-ui"
 import { ListboxContent, ListboxItem, ListboxItemIndicator, ListboxRoot, ListboxFilter } from "reka-ui"
 import LucideCheck from "~icons/lucide/check"
@@ -48,9 +42,15 @@ const model = defineModel<string | null>()
 
 const searchInput = ref<InstanceType<typeof TextInput>>()
 const focusSearchInput = () => {
-	const input = searchInput.value?.querySelector?.("input") || searchInput.value
+	const input = searchInput.value?.$el?.querySelector?.("input") || searchInput.value
 	if (input && "focus" in input && typeof input.focus === "function") {
 		input.focus()
 	}
 }
+
+onMounted(() => {
+	nextTick(() => {
+		focusSearchInput()
+	})
+})
 </script>
