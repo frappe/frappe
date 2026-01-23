@@ -1,6 +1,6 @@
-<!-- Extracted from Builder -->
+<!-- Extracted from Builder, modified later -->
 <template>
-	<Popover transition="default" placement="bottom-start" class="!block w-full" popoverClass="!min-w-fit">
+	<Popover transition="default" :placement="placement" class="!block w-full" popoverClass="!min-w-fit">
 		<template #target="{ togglePopover, isOpen }">
 			<slot
 				name="target"
@@ -14,7 +14,7 @@
 			></slot>
 		</template>
 		<template #body="{ close }">
-			<div class="flex w-52 rounded bg-surface-white shadow-lg">
+			<div class="flex rounded bg-surface-white shadow-lg">
 				<Tabs :tabs="[{ label: 'Picker' }, { label: 'Tokens' }]" :modelValue="1">
 					<template #tab-panel="{ tab }">
 						<div v-show="tab.label === 'Picker'" ref="colorPicker" class="rounded-b-lg bg-surface-white p-3">
@@ -113,7 +113,7 @@
 	</Popover>
 </template>
 <script setup lang="ts">
-import { PropType, Ref, StyleValue, computed, nextTick, ref, watch } from "vue"
+import { Ref, StyleValue, computed, nextTick, ref, watch } from "vue"
 import { Popover, Tabs } from "frappe-ui"
 import EyeDropperIcon from "@/components/Icons/EyeDropper.vue"
 import useCanvasStore from "@/stores/canvasStore"
@@ -139,9 +139,23 @@ const props = withDefaults(
 	defineProps<{
 		modelValue: HashString | RGBString | null
 		property?: "backgroundColor" | "borderColor" | "color"
+		placement?:
+			| "bottom-start"
+			| "top-start"
+			| "top-end"
+			| "bottom-end"
+			| "right-start"
+			| "right-end"
+			| "left-start"
+			| "left-end"
+			| "bottom"
+			| "top"
+			| "right"
+			| "left"
 	}>(),
 	{
 		modelValue: null,
+		placement: "bottom-start",
 	},
 )
 
@@ -165,8 +179,6 @@ const colors = [
 if (!isSupported.value) {
 	colors.push("#B34D4D")
 }
-// frappe-ui grays
-colors.push("#F3F3F3", "#EDEDED")
 
 const setColorSelectorPosition = (color: HashString) => {
 	if (!colorMap.value) return

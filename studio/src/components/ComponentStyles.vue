@@ -530,7 +530,7 @@ const styleSectionProperties = [
 				modelValue: blockController.getStyle("zIndex"),
 			}
 		},
-		searchKeyWords: "Z, Index, ZIndex, Z Index",
+		searchKeyWords: "Z, Index, ZIndex, Z Index, Z-index, Z-Index",
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("zIndex", val),
 		},
