@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-21 10:33\n"
+"PO-Revision-Date: 2026-01-23 12:59\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -2149,23 +2149,23 @@ msgstr "Dozvoljavanje DocType, DocType. Budite oprezni!"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:52
 msgid "Allows printing or PDF download of documents."
-msgstr ""
+msgstr "Dozvoljava štampanje ili preuzimanje PDF dokumenta."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:77
 msgid "Allows sharing document access with other users."
-msgstr ""
+msgstr "Dozvoljava deljenje pristupa dokumentima sa drugim korisnicima."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:62
 msgid "Allows the user to access reports related to the document."
-msgstr ""
+msgstr "Dozvoljava korisniku pristup izveštajima vezanim za dokument."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:42
 msgid "Allows the user to create new documents."
-msgstr ""
+msgstr "Dozvoljava korisniku kreiranje novih dokumenata."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:47
 msgid "Allows the user to delete documents."
-msgstr ""
+msgstr "Dozvoljava korisniku brisanje dokumenata."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:37
 msgid "Allows the user to edit existing records they have access to."
