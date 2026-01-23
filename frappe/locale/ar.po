@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-22 12:50\n"
+"PO-Revision-Date: 2026-01-23 12:58\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Arabic\n"
 "MIME-Version: 1.0\n"
@@ -252,24 +252,26 @@ msgstr "; غير مسموح به في حالة"
 #. Condition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "<"
-msgstr ""
+msgstr "<"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
 #: frappe/core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgid "<="
-msgstr ""
+msgstr "≤"
 
 #. Description of the 'Generate Keys' (Button) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "<a href=\"https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication\" target=\"_blank\">\n"
 "  Click here to learn about token-based authentication\n"
 "</a>"
-msgstr ""
+msgstr "<a href=\"https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication\" target=\"_blank\">\n"
+"  انقر هنا لمعرفة المزيد عن المصادقة القائمة على الرموز المميزة\n"
+"</a>"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:582
 msgid "<b>{0}</b> is not a valid URL"
-msgstr ""
+msgstr "<b>{0}</b> ليس عنوان URL صالحًا"
 
 #. Content of the 'Help' (HTML) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
@@ -1199,7 +1201,7 @@ msgstr "إضافة قاعدة"
 
 #: frappe/public/js/frappe/form/grid.js:63
 msgid "Add Row"
-msgstr "إضافة صف"
+msgstr ""
 
 #. Label of a Check field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -5804,7 +5806,7 @@ msgstr "مقاطعة"
 #: frappe/public/js/frappe/utils/number_systems.js:45
 msgctxt "Number system"
 msgid "Cr"
-msgstr ""
+msgstr "Cr"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
@@ -27483,7 +27485,7 @@ msgstr "إجمالي المستخدمين"
 #. Label of a Int field in DocType 'Newsletter'
 #: frappe/email/doctype/newsletter/newsletter.json
 msgid "Total Views"
-msgstr ""
+msgstr "إجمالي المشاهدات"
 
 #. Label of a Duration field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
@@ -32112,7 +32114,7 @@ msgstr "{0} الاسم"
 
 #: frappe/model/base_document.py:1074
 msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
-msgstr ""
+msgstr "{0} غير مسموح بتغيير {1} بعد الإرسال من {2} إلى {3}"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:95
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:96
