@@ -71,6 +71,7 @@ import Block from "@/utils/block"
 import OptionToggle from "@/components/OptionToggle.vue"
 import useStudioStore from "@/stores/studioStore"
 import blockController from "@/utils/blockController"
+import { useEspressoTokens } from "@/utils/useEspressoTokens"
 import { CSSProperties, Ref, computed, ref } from "vue"
 
 import Input from "@/components/Input.vue"
@@ -95,6 +96,7 @@ const props = defineProps({
 })
 
 const store = useStudioStore()
+const boxShadow = useEspressoTokens("boxShadow")
 
 // command + f should focus on search input
 window.addEventListener("keydown", (e) => {
@@ -544,27 +546,7 @@ const styleSectionProperties = [
 			return {
 				label: "Shadow",
 				type: "select",
-				options: [
-					{
-						value: null,
-						label: "None",
-					},
-					{
-						label: "Small",
-						value:
-							"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px, rgba(0, 0, 0, 0.05) 0px 1px 3px 0px",
-					},
-					{
-						label: "Medium",
-						value:
-							"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
-					},
-					{
-						label: "Large",
-						value:
-							"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1) 0px 10px 10px -5px",
-					},
-				],
+				options: boxShadow,
 				modelValue: blockController.getStyle("boxShadow"),
 			}
 		},
