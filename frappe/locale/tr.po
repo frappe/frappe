@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-21 10:33\n"
+"PO-Revision-Date: 2026-01-23 12:59\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -8043,7 +8043,7 @@ msgstr "Belge adı"
 
 #: frappe/client.py:435
 msgid "Document Name must be a string"
-msgstr "Belge Adı bir dize olmalıdır"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
@@ -21814,7 +21814,7 @@ msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1787
 msgid "Report cannot be set for Single types"
-msgstr "Rapor Tek türler için ayarlanamaz"
+msgstr ""
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:208
 #: frappe/desk/doctype/number_card/number_card.js:194
@@ -22497,7 +22497,7 @@ msgstr "Satır #"
 #: frappe/core/doctype/doctype/doctype.py:1809
 #: frappe/core/doctype/doctype/doctype.py:1819
 msgid "Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
-msgstr "Satır # {0}: Yönetici olmayan kullanıcı {1} rolünü özel doctype'a ayarlayamaz"
+msgstr ""
 
 #: frappe/model/base_document.py:909
 msgid "Row #{0}:"
@@ -27517,18 +27517,18 @@ msgstr ""
 #: frappe/public/js/frappe/ui/page.js:196
 #: frappe/public/js/frappe/views/reports/report_view.js:1577
 msgid "Toggle Sidebar"
-msgstr "Kenar Çubuğunu Aç/Kapat"
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:1755
 msgctxt "Button in list view menu"
 msgid "Toggle Sidebar"
-msgstr "Kenar Çubuğunu Aç/Kapat"
+msgstr ""
 
 #. Label of a standard navbar item
 #. Type: Action
 #: frappe/hooks.py
 msgid "Toggle Theme"
-msgstr "Temayı Değiştir"
+msgstr ""
 
 #. Option for the 'Response Type' (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -33085,7 +33085,7 @@ msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1780
 msgid "{0}: Cannot set Import without Create"
-msgstr "{0}: Oluşturmadan İçe Aktarma ayarlanamıyor"
+msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1776
 msgid "{0}: Cannot set Submit, Cancel, Amend without Write"
