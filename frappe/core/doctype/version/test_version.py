@@ -51,7 +51,7 @@ class TestVersion(FrappeTestCase):
 
 		version.onload()
 
-		html_diffs = version.get_onload().get("html_diffs")
+		html_diffs = (version.get_onload() or frappe._dict()).get("html_diffs")
 		self.assertIsNone(html_diffs)
 
 	def test_onload_handles_empty_data(self):
@@ -65,11 +65,11 @@ class TestVersion(FrappeTestCase):
 
 		# Should not raise an error
 		version.onload()
-		self.assertIsNone(version.get_onload().get("html_diffs"))
+		self.assertIsNone((version.get_onload() or frappe._dict()).get("html_diffs"))
 
 		version.data = frappe.as_json({"changed": []})
 		version.onload()
-		self.assertIsNone(version.get_onload().get("html_diffs"))
+		self.assertIsNone((version.get_onload() or frappe._dict()).get("html_diffs"))
 
 	def test_get_diff(self):
 		frappe.set_user("Administrator")
