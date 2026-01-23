@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-21 10:33\n"
+"PO-Revision-Date: 2026-01-23 12:58\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -1252,7 +1252,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:63
 msgid "Add Multiple"
-msgstr "Aggiunta Multipla"
+msgstr ""
 
 #: frappe/core/page/permission_manager/permission_manager.js:490
 msgid "Add New Permission Rule"
@@ -19113,7 +19113,7 @@ msgstr ""
 #. Label of a shortcut in the Users Workspace
 #: frappe/core/workspace/users/users.json
 msgid "Permission Manager"
-msgstr "Gestore Permessi"
+msgstr ""
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -27357,7 +27357,7 @@ msgstr ""
 #. Type: Action
 #: frappe/hooks.py
 msgid "Toggle Full Width"
-msgstr "Cambia Visualizzazione"
+msgstr ""
 
 #: frappe/public/js/frappe/views/file/file_view.js:33
 msgid "Toggle Grid View"
@@ -27371,18 +27371,18 @@ msgstr ""
 #: frappe/public/js/frappe/ui/page.js:196
 #: frappe/public/js/frappe/views/reports/report_view.js:1577
 msgid "Toggle Sidebar"
-msgstr "Cambia Barra Laterale"
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:1755
 msgctxt "Button in list view menu"
 msgid "Toggle Sidebar"
-msgstr "Cambia Barra Laterale"
+msgstr ""
 
 #. Label of a standard navbar item
 #. Type: Action
 #: frappe/hooks.py
 msgid "Toggle Theme"
-msgstr "Cambia Tema"
+msgstr ""
 
 #. Option for the 'Response Type' (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
