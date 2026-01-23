@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-21 10:32\n"
+"PO-Revision-Date: 2026-01-23 12:58\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -30493,7 +30493,7 @@ msgstr ""
 
 #: frappe/client.py:446
 msgid "You do not have Read or Select Permissions for {}"
-msgstr "No tienes permisos de lectura o selección para {}"
+msgstr ""
 
 #: frappe/public/js/frappe/request.js:172
 msgid "You do not have enough permissions to access this resource. Please contact your manager to get access."
