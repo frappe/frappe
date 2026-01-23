@@ -3,7 +3,6 @@
 		class="flex flex-col overflow-hidden rounded-lg bg-surface-white p-2 text-ink-gray-5"
 		:class="{ 'border border-outline-gray-2 shadow-sm': !borderLess }"
 		v-model="model"
-		@keydown="focusSearchInput"
 	>
 		<ListboxFilter
 			:as="TextInput"
