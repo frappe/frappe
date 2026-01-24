@@ -58,8 +58,16 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 		this.setup_section_settings();
 		this.setup_column_selector();
 		this.setup_edit_custom_html();
+		this.show_sidebar();
 		// $(this.page.sidebar).css({"position": 'fixed'});
 		// $(this.page.main).parent().css({"margin-left": '16.67%'});
+	}
+	show_sidebar() {
+		$(".layout-side-section").css({
+			display: "block",
+			flex: "0 0 260px",
+			maxWidth: "260px",
+		});
 	}
 	show_start() {
 		this.page.main.html(frappe.render_template("print_format_builder_start", {}));
