@@ -1,4 +1,3 @@
-// clean-this-file
 :root {
 	--sidebar-hover-color: #f3f3f3;
 	--sidebar-active-color: rgba(255, 255, 255, 1);
@@ -37,10 +36,8 @@
 	width: 50px;
 	background: var(--surface-menu-bar);
 	border-right: 1px solid var(--sidebar-border-color);
-	transition-property: all;
-	transition-duration: 0.3s;
-	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-	// @include transition(all, 0.3s ,cubic-bezier(0.4, 0, 0.2, 1));
+	transition: width 0.2s ease-out;
+	will-change: width;
 
 	display: flex;
 	flex-direction: column;
@@ -62,11 +59,8 @@
 		overflow-y: auto;
 		position: static;
 		font-size: var(--text-base);
-		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
-		// transition: width 200ms;
 		.sidebar-items {
 			width: 100%;
-			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 	}
 
@@ -83,7 +77,7 @@
 
 	.standard-sidebar-item {
 		display: flex;
-		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
+		transition: background-color 0.15s ease;
 
 		margin-bottom: 1px;
 		.sidebar-item-control {
@@ -104,7 +98,6 @@
 			display: block;
 			flex: 1 1 auto;
 			align-items: center;
-			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 			cursor: pointer;
 		}
 		.item-anchor {
@@ -117,7 +110,6 @@
 			height: 30px;
 			color: var(--ink-gray-8);
 			text-decoration: none;
-			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 			.sidebar-item-icon {
 				padding: 7px;
 				display: flex;
@@ -127,20 +119,50 @@
 		}
 	}
 
+	.sidebar-controls {
+		display: flex;
+		align-items: center;
+		height: 24px;
+	}
+
 	.collapse-sidebar-link {
 		text-decoration: none;
 		font-size: var(--text-sm);
 		display: flex;
 		align-items: center;
+		flex: 1;
+		cursor: pointer;
+
 		svg {
 			margin: 0px;
 			flex: 0 0 auto;
 		}
-		span {
+
+		.sidebar-link-label {
+			display: none;
 			margin-left: 10px;
 			@include truncate();
 		}
-		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
+	}
+
+	.hover-expand-toggle {
+		display: none;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		padding: 7px;
+		border-radius: 4px;
+		cursor: pointer;
+		color: var(--ink-gray-7);
+
+		&:hover {
+			background-color: var(--sidebar-hover-color);
+		}
+
+		&:focus-visible {
+			outline: 2px solid var(--primary);
+			outline-offset: 2px;
+		}
 	}
 	.nav-item {
 		margin-left: -5px;
@@ -183,8 +205,32 @@
 	}
 }
 
-.body-sidebar-container.expanded {
+// Shared styles for both expanded states
+.body-sidebar-container.expanded,
+.body-sidebar-container.hover-expanded {
 	@include body-sidebar-expanded();
+
+	.collapse-sidebar-link {
+		.sidebar-link-label {
+			display: block;
+		}
+
+		// Flip the icon to point left when expanded
+		> svg {
+			transform: scaleX(-1);
+		}
+	}
+
+	.hover-expand-toggle {
+		display: flex;
+	}
+}
+
+// Hover-expanded specific overrides
+.body-sidebar-container.hover-expanded {
+	.avatar-name-email {
+		display: block !important;
+	}
 }
 
 @include media-breakpoint-down(sm) {

@@ -1,5 +1,6 @@
 import "./sidebar_item";
 import { SidebarEditor } from "./sidebar_editor";
+
 frappe.ui.Sidebar = class Sidebar {
 	constructor() {
 		if (!frappe.boot.setup_complete) {
@@ -10,7 +11,7 @@ frappe.ui.Sidebar = class Sidebar {
 		// states
 		this.editor = new SidebarEditor(this);
 		this.edit_mode = this.editor.edit_mode;
-		this.sidebar_expanded = false;
+		// sidebar_expanded is set by load_sidebar_state() in make_dom()
 		this.all_sidebar_items = frappe.boot.workspace_sidebar_item;
 		this.$items = [];
 		this.fields_for_dialog = [];
@@ -23,6 +24,71 @@ frappe.ui.Sidebar = class Sidebar {
 		this.sidebar_module_map = {};
 		this.build_sidebar_module_map();
 		this.standard_items_setup = false;
+
+		this.setup_hover_expand();
+	}
+
+	setup_hover_expand() {
+		const stored = localStorage.getItem("sidebar-hover-expand");
+		if (stored !== null) {
+			this.hover_expand_enabled = stored !== "false";
+		} else {
+			// First-time user: default to locked if sidebar is expanded (consistent state)
+			this.hover_expand_enabled = !this.sidebar_expanded;
+		}
+		this.update_hover_expand_toggle_icon();
+
+		this.wrapper.on("mouseenter", ".body-sidebar", () => {
+			if (this.should_hover_expand()) {
+				this.wrapper.addClass("hover-expanded");
+			}
+		});
+
+		this.wrapper.on("mouseleave", ".body-sidebar", () => {
+			if (this.should_hover_expand()) {
+				this.wrapper.removeClass("hover-expanded");
+			}
+		});
+
+		this.wrapper.on("click", ".hover-expand-toggle", () => {
+			this.hover_expand_enabled = !this.hover_expand_enabled;
+			localStorage.setItem("sidebar-hover-expand", this.hover_expand_enabled);
+			this.update_hover_expand_toggle_icon();
+
+			if (this.hover_expand_enabled && this.sidebar_expanded) {
+				// Convert to hover-expanded when unlocking - will collapse on mouse leave
+				this.sidebar_expanded = false;
+				this.wrapper.addClass("hover-expanded").removeClass("expanded");
+				localStorage.setItem("sidebar-expanded", false);
+			} else if (!this.hover_expand_enabled && this.wrapper.hasClass("hover-expanded")) {
+				// Keep expanded when locking while hover-expanded
+				this.wrapper.addClass("expanded").removeClass("hover-expanded");
+				this.sidebar_expanded = true;
+				this.wrapper.find(".avatar-name-email").show();
+				localStorage.setItem("sidebar-expanded", true);
+			}
+		});
+	}
+
+	should_hover_expand() {
+		return !this.sidebar_expanded && !frappe.is_mobile() && this.hover_expand_enabled;
+	}
+
+	update_hover_expand_toggle_icon() {
+		const $toggle = this.wrapper.find(".hover-expand-toggle");
+		const is_locked = !this.hover_expand_enabled;
+		const icon = is_locked ? "lock" : "lock-open";
+
+		$toggle.find("use").attr("href", `#icon-${icon}`);
+		$toggle.attr("title", is_locked ? __("Unlock sidebar") : __("Lock sidebar"));
+		$toggle.attr("aria-label", is_locked ? __("Unlock sidebar") : __("Lock sidebar"));
+	}
+
+	update_collapse_icon(direction) {
+		this.wrapper
+			.find(".body-sidebar .collapse-sidebar-link")
+			.find("use")
+			.attr("href", `#icon-panel-${direction}-open`);
 	}
 
 	prepare() {
@@ -365,17 +431,12 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	expand_sidebar() {
-		let direction;
 		if (this.sidebar_expanded) {
-			this.wrapper.addClass("expanded");
-			// this.sidebar_expanded = false
-			direction = "right";
+			this.wrapper.addClass("expanded").removeClass("hover-expanded");
 			$('[data-toggle="tooltip"]').tooltip("dispose");
 			this.wrapper.find(".avatar-name-email").show();
 		} else {
-			this.wrapper.removeClass("expanded");
-			// this.sidebar_expanded = true
-			direction = "left";
+			this.wrapper.removeClass("expanded hover-expanded");
 			$('[data-toggle="tooltip"]').tooltip({
 				boundary: "window",
 				container: "body",
@@ -385,10 +446,6 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		localStorage.setItem("sidebar-expanded", this.sidebar_expanded);
-		this.wrapper
-			.find(".body-sidebar .collapse-sidebar-link")
-			.find("use")
-			.attr("href", `#icon-panel-${direction}-open`);
 		this.sidebar_header.toggle_width(this.sidebar_expanded);
 		$(document).trigger("sidebar-expand", {
 			sidebar_expand: this.sidebar_expanded,

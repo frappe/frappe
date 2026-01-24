@@ -39,10 +39,17 @@
 						Save
 					</button>
 				</div>
-				<a class="collapse-sidebar-link">
-					{%= frappe.utils.icon("panel-right-open" , "sm", "", "", "text-ink-gray-7 current-color", true)%}
-		 			<span> {%= __("Collapse") %} </span>
-				</a>
+				<div class="sidebar-controls">
+					<a class="collapse-sidebar-link">
+						{%= frappe.utils.icon("panel-right-open" , "sm", "", "", "text-ink-gray-7 current-color", true)%}
+						<span class="sidebar-link-label"> {%= __("Collapse") %} </span>
+					</a>
+					<button class="btn-reset hover-expand-toggle"
+						title="{%= __('Lock sidebar') %}"
+						aria-label="{%= __('Lock sidebar') %}">
+						{%= frappe.utils.icon("lock-open", "sm", "", "", "text-ink-gray-7 current-color", true, "lucide")%}
+					</button>
+				</div>
 				<div class="nav-item dropdown dropdown-navbar-user dropdown-mobile mt-3">
 					<button
 						class="align-center btn-reset flex nav-link"
