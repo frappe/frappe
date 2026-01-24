@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-22 13:03+0000\n"
-"PO-Revision-Date: 2026-01-23 13:49\n"
+"PO-Revision-Date: 2026-01-24 14:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -1272,7 +1272,7 @@ msgstr "Szegély Hozzáadása Felül"
 
 #: frappe/public/js/frappe/views/communication.js:195
 msgid "Add CSS"
-msgstr ""
+msgstr "CSS Hozzáadása"
 
 #: frappe/desk/doctype/number_card/number_card.js:37
 msgid "Add Card to Dashboard"
@@ -1461,7 +1461,7 @@ msgstr "Mező Hozzáadása"
 
 #: frappe/public/js/frappe/form/grid.js:66
 msgid "Add multiple"
-msgstr ""
+msgstr "Több hozzáadása"
 
 #: frappe/public/js/form_builder/components/Sidebar.vue:46
 #: frappe/public/js/form_builder/components/Tabs.vue:153
@@ -1478,7 +1478,7 @@ msgstr "Oldaltörés Hozzáadása"
 
 #: frappe/public/js/frappe/form/grid.js:66
 msgid "Add row"
-msgstr ""
+msgstr "Sor hozzáadása"
 
 #: frappe/custom/doctype/client_script/client_script.js:18
 msgid "Add script for Child Table"
@@ -1794,7 +1794,7 @@ msgstr "Igazítás Értéke"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Alignment"
-msgstr ""
+msgstr "Igazítás"
 
 #. Name of a role
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
