@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-23 12:59\n"
+"PO-Revision-Date: 2026-01-24 12:55\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -2169,31 +2169,31 @@ msgstr "Dozvoljava korisniku brisanje dokumenata."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:37
 msgid "Allows the user to edit existing records they have access to."
-msgstr ""
+msgstr "Dozvoljava korisniku uređivanje postojećih zapisa kojima ima pristup."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:57
 msgid "Allows the user to email from the document."
-msgstr ""
+msgstr "Dozvoljava korisniku slanje imejla iz dokumenta."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:67
 msgid "Allows the user to export data from the Report view."
-msgstr ""
+msgstr "Dozvoljava korisniku izvoz podataka iz prikaza izveštaja."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:27
 msgid "Allows the user to search and see records."
-msgstr ""
+msgstr "Dozvoljava korisniku pretragu i pregled zapisa."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:72
 msgid "Allows the user to use Data Import tool to create / update records."
-msgstr ""
+msgstr "Dozvoljava korisniku korišćenje alata za uvoz podataka za kreiranje / ažuriranje zapisa."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:32
 msgid "Allows the user to view the document."
-msgstr ""
+msgstr "Dozvoljava korisniku prikaz dokumenta."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:82
 msgid "Allows users to enable the mask property for any field of the respective doctype."
-msgstr ""
+msgstr "Dozvoljava korisnicima omogućavanje svojstva maske za bilo koje polje odgovarajuće vrste dokumenta."
 
 #: frappe/core/doctype/user/user.py:981
 msgid "Already Registered"
@@ -2989,7 +2989,7 @@ msgstr "Pokušava se pokretanje QZ Tray..."
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/doctype/event_participants/event_participants.json
 msgid "Attending"
-msgstr ""
+msgstr "Prisustvuje"
 
 #. Label of a Table field in DocType 'Newsletter'
 #: frappe/email/doctype/newsletter/newsletter.json
@@ -9683,7 +9683,7 @@ msgstr "Učestalost događaja"
 #. Name of a DocType
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 msgid "Event Notifications"
-msgstr ""
+msgstr "Obaveštenja o događajima"
 
 #. Label of a Table field in DocType 'Event'
 #. Name of a DocType
@@ -12631,11 +12631,11 @@ msgstr "Ukoliko je uslov ispunjen, korisnik će biti nagrađen poenima. Na prime
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:83
 msgid "If the user enables the mask property for the phone number field, the value will be displayed in a masked format (e.g., 811XXXXXXX)."
-msgstr ""
+msgstr "Ukoliko korisnik omogući svojstvo maske za polje broj telefona, vrednost će biti prikazana u maskiranom formatu (npr. 811XXXXXXX)."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:63
 msgid "If the user has access to Employee and Report is enabled, they can view Employee-based reports."
-msgstr ""
+msgstr "Ukoliko korisnik ima pristup zaposlenom licu i omogućeni su izveštaji, može pregledati izveštaje zasnovane na zaposlenim licima."
 
 #. Description of the 'User Type' (Link) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -13399,7 +13399,7 @@ msgstr "Interna evidencija deljenja dokumenata"
 #. Label of a Select field in DocType 'Event Notifications'
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 msgid "Interval"
-msgstr ""
+msgstr "Interval"
 
 #: frappe/desk/page/user_profile/user_profile_sidebar.html:22
 msgid "Intro"
@@ -13634,7 +13634,7 @@ msgstr "Nevažeći izraz postavljen u filteru {0} ({1})"
 
 #: frappe/desk/page/user_profile/user_profile.py:34
 msgid "Invalid field for grouping"
-msgstr ""
+msgstr "Nevažeće polje za grupisanje"
 
 #: frappe/utils/data.py:2007
 msgid "Invalid field name {0}"
@@ -15847,7 +15847,7 @@ msgstr "Dozvoljeno je najviše {0} redova"
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/doctype/event_participants/event_participants.json
 msgid "Maybe"
-msgstr ""
+msgstr "Možda"
 
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:221
 msgid "Me"
@@ -15855,7 +15855,7 @@ msgstr "Ja"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:14
 msgid "Meaning of Different Permission Types"
-msgstr ""
+msgstr "Značenje različitih vrsta dozvola"
 
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #. Label of a Data field in DocType 'Web Page View'
@@ -19200,7 +19200,7 @@ msgstr "Trajno obrisati {0}?"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:19
 msgid "Permission"
-msgstr ""
+msgstr "Dozvola"
 
 #: frappe/core/doctype/user_type/user_type.py:83
 msgid "Permission Error"
@@ -26493,7 +26493,7 @@ msgstr "Izabrana vrsta dokumenta je zavisna tabela, stoga je potrebna matična v
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:58
 msgid "The email button is enabled for the user in the document."
-msgstr ""
+msgstr "Dugme za imejl je omogućeno korisniku u dokumentu."
 
 #: frappe/core/doctype/user_type/user_type.py:109
 msgid "The field {0} is mandatory"
@@ -26564,7 +26564,7 @@ msgstr "Lozinka za Vaš nalog je istekla."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:53
 msgid "The print button is enabled for the user in the document."
-msgstr ""
+msgstr "Dugme za štampu je omogućeno korisniku u dokumentu."
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:394
 msgid "The process for deletion of {0} data associated with {1} has been initiated."
@@ -26617,35 +26617,35 @@ msgstr "Ukupan broj korisničkih vrsta dokumenata je premašen."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:43
 msgid "The user can create a new Item but cannot edit existing items."
-msgstr ""
+msgstr "Korisnik može kreirati novu stavku, ali ne može uređivati postojeće stavke."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:48
 msgid "The user can delete Draft / Cancelled documents."
-msgstr ""
+msgstr "Korisnik može obrisati dokumenta u statusu nacrt / otkazano."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:68
 msgid "The user can export report data."
-msgstr ""
+msgstr "Korisnik može izvoziti podatke iz izveštaja."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:73
 msgid "The user can import new records or update existing data for the document."
-msgstr ""
+msgstr "Korisnik može uvoziti nove zapise ili ažurirati postojeće podatke za dokument."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:28
 msgid "The user can select a Customer in Sales Order but cannot open the Customer master."
-msgstr ""
+msgstr "Korisnik može odabrati kupca u prodajnoj porudžbini, ali ne može otvoriti master podatke kupca."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:78
 msgid "The user can share document access with another user."
-msgstr ""
+msgstr "Korisnik može deliti pristup dokumentu sa drugim korisnikom."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:38
 msgid "The user can update a customer or any other fields in an existing Sales Order but cannot create a new Sales Order."
-msgstr ""
+msgstr "Korisnik može ažurirati kupca ili bilo koje drugo polje u postojećoj prodajnoj porudžbini, ali ne može kreirati novu prodajnu porudžbinu."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:33
 msgid "The user can view Sales Invoices but cannot modify any field values in them."
-msgstr ""
+msgstr "Korisnik može pregledati izlazne fakture, ali ne može menjati vrednosti polja u njima."
 
 #. Description of the 'User Field' (Select) field in DocType 'Energy Point
 #. Rule'
@@ -30304,7 +30304,7 @@ msgstr "Nemate dozvolu da pošaljete imejl vezan za ovaj dokument"
 
 #: frappe/desk/doctype/event/event.py:248
 msgid "You are not allowed to update the status of this event."
-msgstr ""
+msgstr "Nije Vam dozvoljeno ažuriranje statusa ovog događaja."
 
 #: frappe/website/doctype/web_form/web_form.py:595
 msgid "You are not allowed to update this Web Form Document"
