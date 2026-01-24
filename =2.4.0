@@ -1,0 +1,7 @@
+Defaulting to user installation because normal site-packages is not writeable
+Requirement already satisfied: pyjwt in /usr/lib/python3/dist-packages (2.3.0)
+Collecting pyjwt
+  Using cached PyJWT-2.10.1-py3-none-any.whl.metadata (4.0 kB)
+Using cached PyJWT-2.10.1-py3-none-any.whl (22 kB)
+Installing collected packages: pyjwt
+Successfully installed pyjwt-2.10.1

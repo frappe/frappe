@@ -1,0 +1,6 @@
+Defaulting to user installation because normal site-packages is not writeable
+Requirement already satisfied: certifi in /usr/lib/python3/dist-packages (2020.6.20)
+Collecting certifi
+  Using cached certifi-2026.1.4-py3-none-any.whl (152 kB)
+Installing collected packages: certifi
+Successfully installed certifi-2026.1.4

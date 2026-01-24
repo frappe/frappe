@@ -1,0 +1,12 @@
+Defaulting to user installation because normal site-packages is not writeable
+Requirement already satisfied: ansible in /usr/local/lib/python3.10/dist-packages (10.7.0)
+Requirement already satisfied: ansible-core~=2.17.7 in /usr/local/lib/python3.10/dist-packages (from ansible) (2.17.14)
+Requirement already satisfied: jinja2>=3.0.0 in /usr/local/lib/python3.10/dist-packages (from ansible-core~=2.17.7->ansible) (3.1.6)
+Requirement already satisfied: PyYAML>=5.1 in /usr/lib/python3/dist-packages (from ansible-core~=2.17.7->ansible) (5.4.1)
+Requirement already satisfied: cryptography in /home/tridots055/.local/lib/python3.10/site-packages (from ansible-core~=2.17.7->ansible) (46.0.3)
+Requirement already satisfied: packaging in /usr/local/lib/python3.10/dist-packages (from ansible-core~=2.17.7->ansible) (25.0)
+Requirement already satisfied: resolvelib<1.1.0,>=0.5.3 in /usr/local/lib/python3.10/dist-packages (from ansible-core~=2.17.7->ansible) (1.0.1)
+Requirement already satisfied: MarkupSafe>=2.0 in /home/tridots055/.local/lib/python3.10/site-packages (from jinja2>=3.0.0->ansible-core~=2.17.7->ansible) (3.0.3)
+Requirement already satisfied: cffi>=2.0.0 in /home/tridots055/.local/lib/python3.10/site-packages (from cryptography->ansible-core~=2.17.7->ansible) (2.0.0)
+Requirement already satisfied: typing-extensions>=4.13.2 in /home/tridots055/.local/lib/python3.10/site-packages (from cryptography->ansible-core~=2.17.7->ansible) (4.15.0)
+Requirement already satisfied: pycparser in /home/tridots055/.local/lib/python3.10/site-packages (from cffi>=2.0.0->cryptography->ansible-core~=2.17.7->ansible) (3.0)

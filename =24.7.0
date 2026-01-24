@@ -1,0 +1,24 @@
+Defaulting to user installation because normal site-packages is not writeable
+Requirement already satisfied: twisted in /usr/lib/python3/dist-packages (22.1.0)
+Collecting twisted
+  Downloading twisted-25.5.0-py3-none-any.whl.metadata (22 kB)
+Collecting attrs>=22.2.0 (from twisted)
+  Using cached attrs-25.4.0-py3-none-any.whl.metadata (10 kB)
+Collecting automat>=24.8.0 (from twisted)
+  Downloading automat-25.4.16-py3-none-any.whl.metadata (8.4 kB)
+Requirement already satisfied: constantly>=15.1 in /usr/lib/python3/dist-packages (from twisted) (15.1.0)
+Requirement already satisfied: hyperlink>=17.1.1 in /usr/lib/python3/dist-packages (from twisted) (21.0.0)
+Collecting incremental>=24.7.0 (from twisted)
+  Downloading incremental-24.11.0-py3-none-any.whl.metadata (9.5 kB)
+Requirement already satisfied: typing-extensions>=4.2.0 in /home/tridots055/.local/lib/python3.10/site-packages (from twisted) (4.15.0)
+Requirement already satisfied: zope-interface>=5 in /usr/lib/python3/dist-packages (from twisted) (5.4.0)
+Requirement already satisfied: packaging>=17.0 in /usr/local/lib/python3.10/dist-packages (from incremental>=24.7.0->twisted) (25.0)
+Requirement already satisfied: tomli in /usr/local/lib/python3.10/dist-packages (from incremental>=24.7.0->twisted) (2.3.0)
+Downloading twisted-25.5.0-py3-none-any.whl (3.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.2/3.2 MB 8.9 MB/s  0:00:00
+Using cached attrs-25.4.0-py3-none-any.whl (67 kB)
+Downloading automat-25.4.16-py3-none-any.whl (42 kB)
+Downloading incremental-24.11.0-py3-none-any.whl (21 kB)
+Installing collected packages: incremental, automat, attrs, twisted
+
+Successfully installed attrs-25.4.0 automat-25.4.16 incremental-24.11.0 twisted-25.5.0
