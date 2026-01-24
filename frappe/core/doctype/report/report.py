@@ -5,7 +5,6 @@ import json
 import threading
 
 import frappe
-import frappe.desk.query_report
 from frappe import _, scrub
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.core.doctype.page.page import delete_custom_role
@@ -230,8 +229,10 @@ class Report(Document):
 	def run_query_report(
 		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
 	):
+		from frappe.desk.query_report import run
+
 		columns, result = [], []
-		data = frappe.desk.query_report.run(
+		data = run(
 			self.name,
 			filters=filters,
 			user=user,
