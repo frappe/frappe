@@ -238,6 +238,11 @@ $.extend(frappe.model, {
 	},
 
 	with_doctype: function (doctype, callback, async) {
+		if (!doctype) {
+			callback && callback();
+			return Promise.resolve();
+		}
+
 		if (locals.DocType[doctype]) {
 			callback && callback();
 			return Promise.resolve();
