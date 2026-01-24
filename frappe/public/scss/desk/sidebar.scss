@@ -249,6 +249,11 @@
 				}
 			}
 		}
+
+		// Hide hover-expand toggle on mobile (hover doesn't apply)
+		.hover-expand-toggle {
+			display: none !important;
+		}
 	}
 
 	// expands when navbar-brand is clicked
