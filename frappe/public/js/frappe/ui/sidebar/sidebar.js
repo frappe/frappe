@@ -56,16 +56,16 @@ frappe.ui.Sidebar = class Sidebar {
 			this.update_hover_expand_toggle_icon();
 
 			if (this.hover_expand_enabled && this.sidebar_expanded) {
-				// Convert to hover-expanded when unlocking - will collapse on mouse leave
+				// Unlocking while expanded: switch to hover mode
 				this.sidebar_expanded = false;
-				this.wrapper.addClass("hover-expanded").removeClass("expanded");
 				localStorage.setItem("sidebar-expanded", false);
+				this.wrapper.addClass("hover-expanded").removeClass("expanded");
 			} else if (!this.hover_expand_enabled && this.wrapper.hasClass("hover-expanded")) {
-				// Keep expanded when locking while hover-expanded
-				this.wrapper.addClass("expanded").removeClass("hover-expanded");
+				// Locking while hover-expanded: keep it expanded
 				this.sidebar_expanded = true;
-				this.wrapper.find(".avatar-name-email").show();
 				localStorage.setItem("sidebar-expanded", true);
+				this.wrapper.addClass("expanded").removeClass("hover-expanded");
+				this.wrapper.find(".avatar-name-email").show();
 			}
 		});
 	}
@@ -82,13 +82,6 @@ frappe.ui.Sidebar = class Sidebar {
 		$toggle.find("use").attr("href", `#icon-${icon}`);
 		$toggle.attr("title", is_locked ? __("Unlock sidebar") : __("Lock sidebar"));
 		$toggle.attr("aria-label", is_locked ? __("Unlock sidebar") : __("Lock sidebar"));
-	}
-
-	update_collapse_icon(direction) {
-		this.wrapper
-			.find(".body-sidebar .collapse-sidebar-link")
-			.find("use")
-			.attr("href", `#icon-panel-${direction}-open`);
 	}
 
 	prepare() {

@@ -317,7 +317,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	}
 
 	setup_hover() {
-		$(".sidebar-header").on("mouseover", function (event) {
+		$(".sidebar-header").on("mouseover", function () {
 			if ($(this).parent().hasClass("active-sidebar")) return;
 			$(this).addClass("hover");
 		});
