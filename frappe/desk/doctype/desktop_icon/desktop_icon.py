@@ -192,7 +192,7 @@ def get_desktop_icons(user=None, bootinfo=None):
 		permitted_parent_labels = set()
 		if bootinfo:
 			for s in user_icons:
-				icon = frappe.get_doc("Desktop Icon", s)
+				icon = frappe.get_doc("Desktop Icon", s.name)
 				if icon.is_permitted(bootinfo):
 					permitted_icons.append(s)
 
