@@ -190,11 +190,14 @@ class Report(Document):
 
 		return res
 
+	def get_module_method(self, method):
+		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
+		method_path = get_report_module_dotted_path(module, self.name) + "." + method
+		return frappe.get_attr(method_path)
+
 	def execute_module(self, filters):
 		# report in python module
-		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
-		method_name = get_report_module_dotted_path(module, self.name) + ".execute"
-		return frappe.get_attr(method_name)(frappe._dict(filters))
+		return self.get_module_method("execute")(frappe._dict(filters))
 
 	def execute_script(self, filters):
 		# server script
