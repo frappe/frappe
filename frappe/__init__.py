@@ -810,8 +810,20 @@ def rename_doc(
 
 
 def get_module(modulename: str):
-	"""Return a module object for given Python module name using `importlib.import_module`."""
-	return importlib.import_module(modulename)
+	"""Return a module object for given Python module name using `importlib.import_module`.
+
+	If the module is not found and looks like an app, suggest possible fixes.
+	"""
+	try:
+		return importlib.import_module(modulename)
+	except ModuleNotFoundError as e:
+		# Provide a helpful error message when an app module is missing
+		if "." not in modulename and e.name == modulename:
+			# This is a top-level app module that's missing
+			_suggest_module_not_found_app_fix(modulename, e)
+			# The function above will exit, but just in case:
+			raise
+		raise
 
 
 def scrub(txt: str) -> str:
@@ -871,6 +883,88 @@ def get_pymodule_path(modulename, *joins):
 		joins = [scrub(part) for part in joins]
 
 	return abspath(join(dirname(get_module(scrub(modulename)).__file__ or ""), *joins))
+
+
+def _suggest_module_not_found_app_fix(app_name: str, exception: ModuleNotFoundError):
+	"""Print traceback followed by helpful suggestions when an app module cannot be imported."""
+	import traceback
+	from pathlib import Path
+
+	def _get_relative_path(path: Path, base: Path):
+		"""Try to convert absolute path to relative path for cleaner display."""
+		try:
+			return path.relative_to(base)
+		except ValueError:
+			return path
+
+	# Print the original traceback first
+	print()
+	traceback.print_exception(type(exception), exception, exception.__traceback__)
+
+	# Now print our helpful diagnostic message
+	print(f"\n{'=' * 80}")
+	print(f"ERROR: Cannot import Python module '{app_name}'")
+	print()
+
+	sites_path = Path(frappe.get_site_path()).absolute()
+	bench_root = sites_path.parent
+	apps_txt = sites_path / "apps.txt"
+
+	if os.path.exists(apps_txt):
+		apps_list = get_file_items(apps_txt)
+		if app_name in apps_list:
+			print(f"- '{app_name}' is listed in sites/apps.txt")
+
+	# Check if app directory exists
+	app_dir = bench_root / "apps" / app_name
+	if app_dir.exists():
+		print(f"- Directory exists: {_get_relative_path(app_dir, bench_root)}")
+
+		# Check if it's a valid Python package
+		init_file = app_dir / app_name / "__init__.py"
+		if not init_file.exists():
+			print(f"- Missing {app_name}/__init__.py (not a valid Python package)")
+
+		# Check for pyproject.toml or requirements.txt (legacy)
+		pyproject = app_dir / "pyproject.toml"
+		requirements = app_dir / "requirements.txt"
+		has_config = pyproject.exists() or requirements.exists()
+
+		if pyproject.exists():
+			try:
+				import tomllib
+
+				with open(pyproject, "rb") as f:
+					config = tomllib.load(f)
+					actual_name = config.get("project", {}).get("name")
+					if actual_name and actual_name != app_name:
+						print(
+							f"- Module name mismatch: directory is '{app_name}', but pyproject.toml defines '{actual_name}'"
+						)
+					elif actual_name == app_name and init_file.exists():
+						# Module name matches and __init__.py exists, might be other issues
+						print("- Module structure appears correct")
+						print(
+							f"- Possible causes: missing dependencies, syntax errors, or import errors in {app_name}/__init__.py"
+						)
+			except Exception:
+				pass
+		elif not has_config:
+			print(
+				f"- Missing pyproject.toml or requirements.txt in {_get_relative_path(app_dir, bench_root)}"
+			)
+	else:
+		print(f"- Directory does not exist: {_get_relative_path(app_dir, bench_root)}")
+
+	print()
+	print("Possible solutions:")
+	print(f"  1. Remove '{app_name}' from sites/apps.txt if it's a duplicate")
+	print(f"  2. Run 'bench get-app {app_name}' if the app is missing")
+	print("  3. Check if the app directory name matches the Python module name")
+	print(f"{'=' * 80}\n")
+
+	# Exit without re-raising to avoid duplicate traceback
+	sys.exit(1)
 
 
 def get_module_list(app_name):
