@@ -558,6 +558,28 @@ const styleSectionProperties = [
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("boxShadow", val),
 		},
 	},
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Cursor",
+				type: "select",
+				options: [
+					{ value: null, label: "Default" },
+					{ value: "pointer", label: "Pointer" },
+					{ value: "move", label: "Move" },
+					{ value: "text", label: "Text" },
+					{ value: "crosshair", label: "Crosshair" },
+					{ value: "not-allowed", label: "Not Allowed" },
+				],
+				modelValue: blockController.getStyle("cursor"),
+			}
+		},
+		searchKeyWords: "Cursor, Pointer, Move, Text, Crosshair, NotAllowed, Not Allowed",
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("cursor", val),
+		},
+	},
 ]
 
 const rawStyleSectionProperties = [
