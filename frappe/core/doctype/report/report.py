@@ -14,6 +14,7 @@ from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
 from frappe.utils import cint, cstr
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
+from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder
 
 
 class Report(Document):
@@ -400,6 +401,22 @@ class Report(Document):
 			frappe.throw(_("You are not allowed to edit the report."))
 
 		self.db_set("disabled", cint(disable))
+
+	# Xlsx Styles formatting
+	def get_xlsx_styles(self, metadata: XLSXMetadata) -> dict | None:
+		return self._get_styles(metadata) or XLSXStyleBuilder(metadata).apply_default_styles().build()
+
+	def _get_styles(self, metadata: XLSXMetadata) -> dict:
+		if self.is_standard != "Yes" or self.report_type not in ("Query Report", "Script Report"):
+			return
+
+		try:
+			method = self.get_module_method("get_xlsx_styles")
+		except AttributeError:
+			# Ignore if hook(method) is not defined
+			return
+
+		return method(metadata)
 
 
 def is_prepared_report_enabled(report):
