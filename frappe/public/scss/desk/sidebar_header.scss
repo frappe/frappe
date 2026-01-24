@@ -9,6 +9,18 @@
 		@include truncate();
 	}
 }
+
+// Override JS inline styles for consistent header padding
+.body-sidebar-container.expanded .sidebar-header,
+.body-sidebar-container.hover-expanded .sidebar-header {
+	padding-left: 8px !important;
+	padding-right: 8px !important;
+}
+
+.body-sidebar-container:not(.expanded):not(.hover-expanded) .sidebar-header {
+	padding-left: 0px !important;
+	padding-right: 0px !important;
+}
 .header-logo-container {
 	border-radius: 8px;
 	background-color: var(--surface-gray-3);
