@@ -77,11 +77,9 @@
 <div class="sidebar-section form-attachments border-bottom">
 	<div class="attachments-actions">
 		<span class="form-sidebar-items">
-			<span>
-				<a class="pill-label ellipsis form-sidebar-label explore-link">
-					{%= frappe.utils.icon("paperclip") %}
-					{%= __("Attachments") %}
-				</a>
+			<span class="add-assignment-label form-sidebar-label">
+				{%= frappe.utils.icon("paperclip") %}
+				<span class="ellipsis">{%= __("Attachments") %}</span>
 			</span>
 			<button class="add-attachment-btn btn btn-link icon-btn">
 				<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>
