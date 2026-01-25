@@ -5,33 +5,58 @@
     "TextBlockProps": {
       "type": "object",
       "properties": {
+        "text": {
+          "type": "string"
+        },
         "tag": {
           "type": "string"
         },
         "fontSize": {
           "type": "string",
           "enum": [
+            "text-2xs",
             "text-xs",
             "text-sm",
             "text-base",
             "text-lg",
             "text-xl",
             "text-2xl",
-            "text-3xl"
+            "text-3xl",
+            "text-p-2xs",
+            "text-p-xs",
+            "text-p-sm",
+            "text-p-base",
+            "text-p-lg",
+            "text-p-xl",
+            "text-p-2xl",
+            "text-p-3xl"
           ]
         },
         "fontWeight": {
           "type": "string",
           "enum": [
+            "font-thin",
+            "font-extralight",
+            "font-light",
             "font-normal",
             "font-medium",
             "font-semibold",
-            "font-bold"
+            "font-bold",
+            "font-extrabold",
+            "font-black"
           ]
         },
         "lineHeight": {
           "type": "string",
           "enum": [
+            "leading-3",
+            "leading-4",
+            "leading-5",
+            "leading-6",
+            "leading-7",
+            "leading-8",
+            "leading-9",
+            "leading-10",
             "leading-none",
             "leading-tight",
             "leading-snug",
@@ -43,16 +68,34 @@
         "textColor": {
           "type": "string",
           "enum": [
-            "text-gray-900",
-            "text-gray-800",
-            "text-gray-700",
-            "text-gray-600",
-            "text-gray-500",
-            "text-gray-400"
+            "text-ink-gray-1",
+            "text-ink-gray-2",
+            "text-ink-gray-3",
+            "text-ink-gray-4",
+            "text-ink-gray-5",
+            "text-ink-gray-6",
+            "text-ink-gray-7",
+            "text-ink-gray-8",
+            "text-ink-gray-9",
+            "text-ink-white",
+            "text-ink-red-1",
+            "text-ink-red-2",
+            "text-ink-red-3",
+            "text-ink-red-4",
+            "text-ink-green-1",
+            "text-ink-green-2",
+            "text-ink-green-3",
+            "text-ink-amber-1",
+            "text-ink-amber-2",
+            "text-ink-amber-3",
+            "text-ink-blue-1",
+            "text-ink-blue-2",
+            "text-ink-blue-3",
+            "text-ink-cyan-1",
+            "text-ink-pink-1",
+            "text-ink-violet-1",
+            "text-ink-blue-link"
           ]
-        },
-        "text": {
-          "type": "string"
         }
       },
       "additionalProperties": false

@@ -9,9 +9,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "html"
-      ],
       "additionalProperties": false
     }
   }

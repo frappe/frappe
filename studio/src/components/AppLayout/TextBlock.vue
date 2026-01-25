@@ -12,7 +12,7 @@ withDefaults(defineProps<TextBlockProps>(), {
 	fontSize: "text-base",
 	fontWeight: "font-normal",
 	lineHeight: "leading-normal",
-	textColor: "text-gray-900",
+	textColor: "text-ink-gray-9",
 	text: "Text Block",
 })
 </script>

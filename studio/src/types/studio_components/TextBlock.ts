@@ -32,7 +32,7 @@ type LineHeight =
 	| "leading-relaxed"
 	| "leading-loose"
 type TextColor =
-	"text-ink-gray-1"
+	| "text-ink-gray-1"
 	| "text-ink-gray-2"
 	| "text-ink-gray-3"
 	| "text-ink-gray-4"
@@ -41,12 +41,30 @@ type TextColor =
 	| "text-ink-gray-7"
 	| "text-ink-gray-8"
 	| "text-ink-gray-9"
+	| "text-ink-white"
+	| "text-ink-red-1"
+	| "text-ink-red-2"
+	| "text-ink-red-3"
+	| "text-ink-red-4"
+	| "text-ink-green-1"
+	| "text-ink-green-2"
+	| "text-ink-green-3"
+	| "text-ink-amber-1"
+	| "text-ink-amber-2"
+	| "text-ink-amber-3"
+	| "text-ink-blue-1"
+	| "text-ink-blue-2"
+	| "text-ink-blue-3"
+	| "text-ink-cyan-1"
+	| "text-ink-pink-1"
+	| "text-ink-violet-1"
+	| "text-ink-blue-link"
 
 export interface TextBlockProps {
+	text?: string
 	tag?: string
 	fontSize?: FontSize
 	fontWeight?: FontWeight
 	lineHeight?: LineHeight
 	textColor?: TextColor
-	text?: string
 }
