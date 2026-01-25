@@ -70,9 +70,21 @@ class XLSXStyleBuilder:
 			"cell_styles": {},
 		}
 
+		self._set_defaults()
+
 		self._register_default_highlight_styles()
 		self._register_default_indent_styles()
 		self._register_default_fieldtype_formats()
+
+	### POST INIT METHODS ###
+	def _set_defaults(self):
+		self.currency_field_exists = any(col.get("fieldtype") == "Currency" for col in self.metadata.columns)
+		self.currency_fields = {}
+
+		if self.currency_field_exists:
+			for idx, col in enumerate(self.metadata.columns):
+				if col.get("fieldtype") == "Currency":
+					self.currency_fields[idx] = col
 
 	### STYLE REGISTRATION ###
 	def _register_default_highlight_styles(self):
@@ -239,8 +251,74 @@ class XLSXStyleBuilder:
 	def style_total_row(self):
 		return self.style_row(self.metadata.last_row_index, "total_row")
 
-	def apply_default_fieldtype_formats(self):
-		pass
+	def apply_default_fieldtype_formats(
+		self, *, currency_formatting: bool = False, currency: str | dict | None = None
+	):
+		for idx, col in enumerate(self.metadata.columns):
+			if style_name := self.default_fieldtype_styles.get(col.get("fieldtype")):
+				self.style_column(idx, style_name)
+
+		if currency_formatting:
+			self.apply_currency_fieldtype_formats(currency)
+
+		return self
+
+	def apply_currency_fieldtype_formats(self, currency: str | dict | None = None):
+		if not self.currency_field_exists:
+			return self
+
+		def _register(currency: str) -> str:
+			return self.register_currency_format(currency).get_currency_style_name(currency)
+
+		# if single currency is provided, use it for all currency fields
+		if isinstance(currency, str):
+			style_name = _register(currency)
+
+			for idx in self.currency_fields.keys():
+				self.style_column(idx, style_name)
+
+		# if currency mapping is provided, use it for respective fields
+		elif isinstance(currency, dict):
+			for fieldname, code in currency.items():
+				if idx := self.get_column_index(fieldname):
+					self.style_column(idx, _register(code))
+
+		# currency per row based on metadata
+		else:
+			default_currency = frappe.db.get_default("currency")
+
+			for row_idx, row in self.metadata.rows_map.items():
+				if not isinstance(row, dict):
+					continue
+
+				for col_idx, col in self.currency_fields.items():
+					currency = self.get_field_currency(col, row) or default_currency
+
+					style_name = _register(currency)
+					self.style_cell(row_idx, col_idx, style_name=style_name)
+
+		return self
+
+	@staticmethod
+	def get_field_currency(df: dict, doc: dict) -> str | None:
+		fieldname = df.get("fieldname")
+		options = df.get("options")
+
+		if not (options and fieldname and doc):
+			return
+
+		if ":" in options:
+			parts = options.split(":")
+			if len(parts) == 3 and (docname := doc.get(parts[1])):
+				return XLSXStyleBuilder._get_currency(parts[0], docname, parts[2])
+			else:
+				return
+		else:
+			return doc.get(options)
+
+	@staticmethod
+	def _get_currency(doctype: str, docname: str, fieldname: str) -> str | None:
+		return frappe.get_value(doctype, docname, fieldname)
 
 	### Format Getters ###
 	@staticmethod
@@ -256,7 +334,10 @@ class XLSXStyleBuilder:
 		return f"{XLSXStyleBuilder.get_date_format()} {XLSXStyleBuilder.get_time_format()}"
 
 	@staticmethod
-	def get_number_format(fieldtype: Literal["Float", "Percent"]) -> str:
+	def get_number_format(
+		fieldtype: Literal["Currency", "Float", "Percent"],
+		currency: str | None = None,
+	) -> str:
 		from frappe.locale import get_number_format as _get_format
 
 		number_format = _get_format()
@@ -264,12 +345,45 @@ class XLSXStyleBuilder:
 		decimal_sep = number_format.decimal_separator
 		precision = number_format.precision
 
-		if fieldtype in ("Float", "Percent"):
+		if fieldtype == "Currency":
+			precision = cint(frappe.db.get_default("currency_precision")) or precision
+			format_str = XLSXStyleBuilder._build_number_format(thousands_sep, decimal_sep, precision)
+			currency_symbol, symbol_on_right = XLSXStyleBuilder._get_currency_symbol_info(currency)
+			return XLSXStyleBuilder._get_currency_format(format_str, currency_symbol, symbol_on_right)
+
+		elif fieldtype in ("Float", "Percent"):
 			precision = cint(frappe.db.get_default("float_precision")) or precision
 			format_str = XLSXStyleBuilder._build_number_format(thousands_sep, decimal_sep, precision)
 			return f'{format_str}"%" ' if fieldtype == "Percent" else format_str
 
 		return "General"
+
+	@staticmethod
+	def _get_currency_symbol_info(currency: str | None) -> tuple[str, bool]:
+		if not currency or frappe.db.get_default("hide_currency_symbol") == "Yes":
+			return "", False
+
+		symbol, on_right = frappe.db.get_value("Currency", currency, ["symbol", "symbol_on_right"])
+
+		return frappe._(symbol or currency), bool(on_right)
+
+	@staticmethod
+	def _get_currency_format(
+		format_string: str,
+		currency_symbol: str | None = None,
+		symbol_on_right: bool = False,
+	) -> str:
+		if not currency_symbol:
+			return format_string
+
+		if symbol_on_right:
+			return f'{format_string}" {currency_symbol}";-{format_string}" {currency_symbol}"'
+
+		return f'"{currency_symbol} "{format_string};"{currency_symbol} "-{format_string}'
+
+	@staticmethod
+	def get_currency_style_name(currency: str) -> str:
+		return f"{currency.lower()}_currency_format"
 
 	@staticmethod
 	def _build_number_format(thousands_sep: str, decimal_sep: str, precision: int = 0) -> str:
