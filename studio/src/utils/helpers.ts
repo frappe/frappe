@@ -204,6 +204,17 @@ function isPrivateKey(key: string) {
 	return key.startsWith("_") || key.startsWith("__")
 }
 
+function objToArray(obj?: ObjectLiteral) {
+	if (!obj) return []
+	return Object.keys(obj || {}).map((key) => {
+		if (!key) return
+		return {
+			label: key,
+			value: obj[key],
+		}
+	})
+}
+
 const mapToObject = (map: Map<any, any>) => Object.fromEntries(map.entries());
 
 function replaceMapKey(map: Map<any, any>, oldKey: string, newKey: string) {
@@ -523,7 +534,8 @@ export {
 	getValueFromObject,
 	setValueInObject,
 	isPrivateKey,
-	// maps
+	// maps & objects
+	objToArray,
 	mapToObject,
 	replaceMapKey,
 	isTargetEditable,

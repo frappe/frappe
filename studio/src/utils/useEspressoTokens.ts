@@ -1,6 +1,7 @@
 import resolveConfig from "tailwindcss/resolveConfig"
 import tailwindConfig from "../../tailwind.config.js"
 import { computed } from "vue"
+import { objToArray } from "@/utils/helpers.js"
 
 const designTokens = resolveConfig(tailwindConfig).theme
 
@@ -18,49 +19,6 @@ export const useEspressoTokens = (
 		| "letterSpacing"
 ) => {
 	const colors = computed(() => {
-		const boxShadow = Object.keys(designTokens?.boxShadow || {}).map((key) => {
-			if (!key) return
-			return {
-				label: key,
-				value: designTokens?.boxShadow?.[key as keyof typeof designTokens.boxShadow],
-			}
-		})
-
-		const borderRadius = Object.keys(designTokens?.borderRadius || {}).map((key) => {
-			if (!key) return
-			return {
-				label: key,
-				value: designTokens?.borderRadius?.[key as keyof typeof designTokens.borderRadius],
-			}
-		})
-
-		const surfaceColors = designTokens?.backgroundColor?.surface as Record<string, string> | undefined
-		const backgroundColor = Object.keys(surfaceColors || {}).map((key) => {
-			if (!key) return
-			return {
-				label: key,
-				value: surfaceColors?.[key],
-			}
-		})
-
-		const borderColors = designTokens?.borderColor?.outline as Record<string, string> | undefined
-		const borderColor = Object.keys(borderColors || {}).map((key) => {
-			if (!key) return
-			return {
-				label: key,
-				value: borderColors?.[key],
-			}
-		})
-
-		const textColors = designTokens?.textColor?.ink as Record<string, string> | undefined
-		const textColor = Object.keys(textColors || {}).map((key) => {
-			if (!key) return
-			return {
-				label: key,
-				value: textColors?.[key],
-			}
-		})
-
 		const fontSizes = Object.keys(designTokens?.fontSize || {}).map((key) => {
 			if (!key) return
 			return {
@@ -69,41 +27,17 @@ export const useEspressoTokens = (
 			}
 		})
 
-		const fontWeights = Object.keys(designTokens?.fontWeight || {}).map((key) => {
-			if (!key) return
-			return {
-				label: key,
-				value: designTokens?.fontWeight?.[key as keyof typeof designTokens.fontWeight],
-			}
-		})
-
-		const lineHeights = Object.keys(designTokens?.lineHeight || {}).map((key) => {
-			if (!key) return
-			return {
-				label: key,
-				value: designTokens?.lineHeight?.[key as keyof typeof designTokens.lineHeight],
-			}
-		})
-
-		const letterSpacing = Object.keys(designTokens?.letterSpacing || {}).map((key) => {
-			if (!key) return
-			return {
-				label: key,
-				value: designTokens?.letterSpacing?.[key as keyof typeof designTokens.letterSpacing],
-			}
-		})
-
 		return {
-			backgroundColor: backgroundColor,
-			borderColor: borderColor,
-			boxShadow: boxShadow,
-			borderRadius: borderRadius,
-			color: textColor,
-			textColor: textColor,
+			backgroundColor: objToArray(designTokens?.backgroundColor?.surface as Record<string, string> | undefined),
+			borderColor: objToArray(designTokens?.borderColor?.outline as Record<string, string> | undefined),
+			color: objToArray(designTokens?.textColor?.ink as Record<string, string> | undefined),
+			textColor: objToArray(designTokens?.textColor?.ink as Record<string, string> | undefined),
+			boxShadow: objToArray(designTokens?.boxShadow),
+			borderRadius: objToArray(designTokens?.borderRadius),
 			fontSize: fontSizes,
-			fontWeight: fontWeights,
-			lineHeight: lineHeights,
-			letterSpacing: letterSpacing,
+			fontWeight: objToArray(designTokens?.fontWeight),
+			lineHeight: objToArray(designTokens?.lineHeight),
+			letterSpacing: objToArray(designTokens?.letterSpacing),
 		}
 	})
 
