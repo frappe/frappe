@@ -404,7 +404,10 @@ class Report(Document):
 
 	# Xlsx Styles formatting
 	def get_xlsx_styles(self, metadata: XLSXMetadata) -> dict | None:
-		return self._get_styles(metadata) or XLSXStyleBuilder(metadata).apply_default_styles().build()
+		return (
+			self._get_styles(metadata)
+			or XLSXStyleBuilder(metadata).apply_default_styles(currency_formatting=True).build()
+		)
 
 	def _get_styles(self, metadata: XLSXMetadata) -> dict:
 		if self.is_standard != "Yes" or self.report_type not in ("Query Report", "Script Report"):
