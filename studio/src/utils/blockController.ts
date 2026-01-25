@@ -36,6 +36,22 @@ const blockController = {
 	isGrid() {
 		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isGrid();
 	},
+	getProp(prop: string) {
+		let propValue = "__initial__" as any;
+		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
+			if (propValue === "__initial__") {
+				propValue = block.getProp(prop);
+			} else if (propValue !== block.getProp(prop)) {
+				propValue = "Mixed";
+			}
+		});
+		return propValue;
+	},
+	setProp(prop: string, value: any) {
+		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
+			block.setProp(prop, value);
+		})
+	},
 	getClasses: () => {
 		let classes = [] as string[]
 		if (blockController.isAnyBlockSelected()) {

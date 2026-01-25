@@ -98,6 +98,7 @@ const props = defineProps({
 const store = useStudioStore()
 const boxShadow = useEspressoTokens("boxShadow")
 const borderRadius = useEspressoTokens("borderRadius")
+const fontSize = useEspressoTokens("fontSize")
 
 // command + f should focus on search input
 window.addEventListener("keydown", (e) => {
@@ -424,15 +425,21 @@ const typographySectionProperties = [
 		getProps: () => {
 			return {
 				label: "Size",
-				enableSlider: true,
-				minValue: 1,
 				type: "autocomplete",
-				unitOptions: ["px", "em", "rem"],
-				modelValue: blockController.getStyle("fontSize"),
+				options: fontSize,
+				modelValue: blockController.getProp("fontSize") || blockController.getStyle("fontSize"),
 			}
 		},
 		events: {
-			"update:modelValue": (val: StyleValue) => blockController.setStyle("fontSize", val),
+			"update:modelValue": (val: string) => {
+				if (val?.startsWith("text-")) {
+					blockController.setProp("fontSize", val)
+					blockController.setStyle("fontSize", "unset")
+				} else {
+					blockController.setStyle("fontSize", val)
+					blockController.setProp("fontSize", "")
+				}
+			},
 		},
 		searchKeyWords: "Font, Size, FontSize",
 		condition: () => blockController.isText(),

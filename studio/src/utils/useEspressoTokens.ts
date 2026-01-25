@@ -12,6 +12,7 @@ export const useEspressoTokens = (
 		| "boxShadow"
 		| "borderRadius"
 		| "textColor"
+		| "fontSize"
 		| "fontWeight"
 		| "lineHeight"
 		| "letterSpacing"
@@ -60,6 +61,14 @@ export const useEspressoTokens = (
 			}
 		})
 
+		const fontSizes = Object.keys(designTokens?.fontSize || {}).map((key) => {
+			if (!key) return
+			return {
+				label: key,
+				value: `text-${key}`,
+			}
+		})
+
 		const fontWeights = Object.keys(designTokens?.fontWeight || {}).map((key) => {
 			if (!key) return
 			return {
@@ -87,10 +96,11 @@ export const useEspressoTokens = (
 		return {
 			backgroundColor: backgroundColor,
 			borderColor: borderColor,
-			color: textColor,
-			textColor: textColor,
 			boxShadow: boxShadow,
 			borderRadius: borderRadius,
+			color: textColor,
+			textColor: textColor,
+			fontSize: fontSizes,
 			fontWeight: fontWeights,
 			lineHeight: lineHeights,
 			letterSpacing: letterSpacing,

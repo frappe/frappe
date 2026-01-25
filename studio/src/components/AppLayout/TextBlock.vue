@@ -1,5 +1,5 @@
 <template>
-	<component :is="tag" class="transition-colors">
+	<component :is="tag" :class="[fontSize, 'transition-colors']">
 		{{ text }}
 	</component>
 </template>
@@ -10,5 +10,6 @@ import type { TextBlockProps } from "@/types/studio_components/TextBlock"
 withDefaults(defineProps<TextBlockProps>(), {
 	tag: "span",
 	text: "Text Block",
+	fontSize: "text-base",
 })
 </script>
