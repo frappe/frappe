@@ -89,7 +89,7 @@ export interface FrappeUIComponent {
 	editInFragmentMode?: boolean, // whether to open a separate canvas for editing this component
 	proxyComponent?: any, // pseudo-component to be used in edit mode
 	additionalProps?: Record<string, any> // additional props to be shown in the properties panel that are not explicitly defined in the component
-	overrideProps?: Record<string, ComponentProp | { props?: Record<string, any> }> // to override prop editors for specific props
+	overrideProps?: Record<string, ComponentProp & { props?: Record<string, any> }> // to override prop editors for specific props
 }
 
 export interface FrappeUIComponents {

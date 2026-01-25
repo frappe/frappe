@@ -47,6 +47,11 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 		const { required, properties } = componentSchema || {}
 
 		Object.entries(props as Record<string, VueProp>).forEach(([propName, prop]) => {
+			if (overrideProps && overrideProps[propName]) {
+				propsConfig[propName] = overrideProps[propName]
+				return
+			}
+
 			let propType = getPropType(prop.type)
 			let isRequired = prop.required
 			const propertySchema = properties?.[propName]
@@ -88,10 +93,6 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 					config.inputType = "select"
 					config.options = enums
 				}
-			}
-
-			if (overrideProps && overrideProps[propName]) {
-				Object.assign(config, overrideProps[propName])
 			}
 
 			propsConfig[propName] = config

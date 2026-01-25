@@ -718,6 +718,10 @@ export const COMPONENTS: FrappeUIComponents = {
 			floatingMenu: {
 				type: "boolean",
 				inputType: "checkbox",
+			},
+			starterkitOptions: {
+				type: "object",
+				inputType: "code",
 			}
 		}
 	},
