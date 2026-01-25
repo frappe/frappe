@@ -1,19 +1,16 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import datetime
 import re
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from io import BytesIO
 from typing import Any, Literal
 
-import openpyxl
 import xlrd
+import xlsxwriter
 from openpyxl import load_workbook
-from openpyxl.cell import WriteOnlyCell
-from openpyxl.styles import Alignment, Font, PatternFill
-from openpyxl.utils import get_column_letter
 from openpyxl.workbook.child import INVALID_TITLE_REGEX
+from xlsxwriter.format import Format
 
 import frappe
 from frappe import _
@@ -362,10 +359,9 @@ class XLSXStyleBuilder:
 def make_xlsx(
 	data: list[list[Any]],
 	sheet_name: str,
-	wb: openpyxl.Workbook | None = None,
+	wb: xlsxwriter.Workbook | None = None,
 	column_widths: list[int] | None = None,
-	header_index: int = 0,
-	has_filters: bool = False,
+	styles: dict | None = None,
 ) -> BytesIO:
 	"""
 	Create an Excel file with the given data and formatting options.
@@ -375,61 +371,90 @@ def make_xlsx(
 		sheet_name: Name of the Excel sheet
 		wb: Existing workbook to add sheet to. If None, creates new workbook
 		column_widths: List of column widths in Excel units. If None, auto-sized
-		header_index: Row index (0-based) that should be formatted as header making it bold
-		has_filters: If True, applies bold formatting to the first column of filter rows
+		styles: Dictionary defining styles for cells, rows, and columns
+			- mapping: dict of style name to style properties
+			- column_styles: dict of column index to style name
+			- row_styles: dict of row index to style name
+			- cell_styles: dict of (row index, column index) to style name
 
 	Returns:
 		BytesIO: object containing the Excel file data
 	"""
 	column_widths = column_widths or []
-	if wb is None:
-		wb = openpyxl.Workbook(write_only=True)
+	styles = styles or {}
 
+	# creating workbook
+	xlsx_file = BytesIO()
+	created_wb = wb is None  # to know to close it later
+
+	if created_wb:
+		wb = xlsxwriter.Workbook(xlsx_file, {"in_memory": True})
+
+	# sanitize sheet name
 	sheet_name_sanitized = INVALID_TITLE_REGEX.sub(" ", sheet_name)
-	ws = wb.create_sheet(sheet_name_sanitized, 0)
+	ws = wb.add_worksheet(sheet_name_sanitized[:31])
 
+	# set column widths
 	for i, column_width in enumerate(column_widths):
 		if column_width:
-			ws.column_dimensions[get_column_letter(i + 1)].width = column_width
+			ws.set_column(i, i, column_width)
 
-	date_format = XLSXStyleBuilder.get_date_format()
-	time_format = XLSXStyleBuilder.get_time_format()
+	# handle styles
+	style_map: dict = styles.get("mapping") or {}
+	col_styles: dict[int, str] = styles.get("column_styles") or {}
+	row_styles: dict[int, str] = styles.get("row_styles") or {}
+	cell_styles: dict[tuple[int, int], str] = styles.get("cell_styles") or {}
+	format_map: dict[tuple[str, ...], Format] = {}
 
-	bold_font = Font(name="Calibri", bold=True)
+	styling_enabled = bool(col_styles or row_styles or cell_styles)
+
+	if not styling_enabled:
+		ws.set_row(0, cell_format=wb.add_format({"bold": True}))
+
+	def get_cell_style(r: int, c: int):
+		key = tuple(s for s in (col_styles.get(c), row_styles.get(r), cell_styles.get((r, c))) if s)
+
+		if not key:
+			return
+
+		format = format_map.get(key)
+
+		if not format:
+			style_dict = {}
+
+			if len(key) == 1:
+				style_dict = style_map.get(key[0]) or {}
+			else:
+				for style_name in key:
+					# priority: cell > row > column
+					style_dict.update(style_map.get(style_name) or {})
+
+			format = wb.add_format(style_dict)
+			format_map[key] = format
+
+		return format
+
+	handle_html_content = sheet_name not in {"Data Import Template", "Data Export"}
 
 	for row_idx, row in enumerate(data):
-		clean_row = []
-		is_header_row = row_idx == header_index
-		is_filter_row = has_filters and row_idx < header_index
+		for col_idx, value in enumerate(row):
+			cell_format = None
 
-		for col_idx, item in enumerate(row):
-			if isinstance(item, str) and (sheet_name not in ["Data Import Template", "Data Export"]):
-				value = handle_html(item)
-			else:
-				value = item
+			if isinstance(value, str):
+				if handle_html_content:
+					value = handle_html(value)
 
-			if isinstance(item, str) and next(ILLEGAL_CHARACTERS_RE.finditer(value), None):
-				# Remove illegal characters from the string
 				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
-			cell = WriteOnlyCell(ws, value=value)
+			if styling_enabled:
+				cell_format = get_cell_style(row_idx, col_idx)
 
-			if isinstance(value, datetime.date | datetime.datetime):
-				number_format = date_format
-				if isinstance(value, datetime.datetime):
-					number_format = f"{date_format} {time_format}"
-				cell.number_format = number_format
+			ws.write(row_idx, col_idx, value, cell_format)
 
-			# Apply bold font for header row or first column of filter rows
-			if is_header_row or (is_filter_row and col_idx == 0):
-				cell.font = bold_font
+	if created_wb:
+		wb.close()
 
-			clean_row.append(cell)
-
-		ws.append(clean_row)
-
-	xlsx_file = BytesIO()
-	wb.save(xlsx_file)
+	xlsx_file.seek(0)
 	return xlsx_file
 
 
