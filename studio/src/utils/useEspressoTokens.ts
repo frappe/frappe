@@ -4,7 +4,18 @@ import { computed } from "vue"
 
 const designTokens = resolveConfig(tailwindConfig).theme
 
-export const useEspressoTokens = (property: "backgroundColor" | "borderColor" | "color" | "boxShadow" | "borderRadius" | "textColor") => {
+export const useEspressoTokens = (
+	property:
+		| "backgroundColor"
+		| "borderColor"
+		| "color"
+		| "boxShadow"
+		| "borderRadius"
+		| "textColor"
+		| "fontWeight"
+		| "lineHeight"
+		| "letterSpacing"
+) => {
 	const colors = computed(() => {
 		const boxShadow = Object.keys(designTokens?.boxShadow || {}).map((key) => {
 			if (!key) return
@@ -27,7 +38,7 @@ export const useEspressoTokens = (property: "backgroundColor" | "borderColor" | 
 			if (!key) return
 			return {
 				label: key,
-				value: (surfaceColors)?.[key],
+				value: surfaceColors?.[key],
 			}
 		})
 
@@ -36,7 +47,7 @@ export const useEspressoTokens = (property: "backgroundColor" | "borderColor" | 
 			if (!key) return
 			return {
 				label: key,
-				value: (borderColors)?.[key],
+				value: borderColors?.[key],
 			}
 		})
 
@@ -45,7 +56,31 @@ export const useEspressoTokens = (property: "backgroundColor" | "borderColor" | 
 			if (!key) return
 			return {
 				label: key,
-				value: (textColors)?.[key],
+				value: textColors?.[key],
+			}
+		})
+
+		const fontWeights = Object.keys(designTokens?.fontWeight || {}).map((key) => {
+			if (!key) return
+			return {
+				label: key,
+				value: designTokens?.fontWeight?.[key as keyof typeof designTokens.fontWeight],
+			}
+		})
+
+		const lineHeights = Object.keys(designTokens?.lineHeight || {}).map((key) => {
+			if (!key) return
+			return {
+				label: key,
+				value: designTokens?.lineHeight?.[key as keyof typeof designTokens.lineHeight],
+			}
+		})
+
+		const letterSpacing = Object.keys(designTokens?.letterSpacing || {}).map((key) => {
+			if (!key) return
+			return {
+				label: key,
+				value: designTokens?.letterSpacing?.[key as keyof typeof designTokens.letterSpacing],
 			}
 		})
 
@@ -56,6 +91,9 @@ export const useEspressoTokens = (property: "backgroundColor" | "borderColor" | 
 			textColor: textColor,
 			boxShadow: boxShadow,
 			borderRadius: borderRadius,
+			fontWeight: fontWeights,
+			lineHeight: lineHeights,
+			letterSpacing: letterSpacing,
 		}
 	})
 

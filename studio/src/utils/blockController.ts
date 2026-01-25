@@ -144,6 +144,9 @@ const blockController = {
 	isHTML: () => {
 		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isHTML();
 	},
+	isText: () => {
+		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isText();
+	},
 }
 
 export default blockController

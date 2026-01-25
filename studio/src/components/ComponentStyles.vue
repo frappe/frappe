@@ -383,6 +383,163 @@ const spacingSectionProperties = [
 	},
 ]
 
+const typographySectionProperties = [
+	// {
+	// 	component: InlineInput,
+	// 	getProps: () => {
+	// 		return {
+	// 			label: "Content",
+	// 			controlType: "key",
+	// 			styleProperty: "innerHTML",
+	// 			// @ts-ignore
+	// 			allowDynamicValue: true,
+	// 			getModelValue: () => blockController.getText(),
+	// 			setModelValue: (val: string) => {
+	// 				blockController.setInnerHTML(val);
+	// 			},
+	// 		};
+	// 	},
+	// 	searchKeyWords: "Content, Text, ContentText, Content Text",
+	// 	condition: () =>
+	// 		(blockController.isText() || blockController.isButton()) && !blockController.multipleBlocksSelected(),
+	// },
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Weight",
+				styleProperty: "fontWeight",
+				type: "autocomplete",
+				options: useEspressoTokens("fontWeight"),
+				modelValue: blockController.getStyle("fontWeight"),
+			}
+		},
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("fontWeight", val),
+		},
+		searchKeyWords: "Font, Weight, FontWeight",
+	},
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Size",
+				enableSlider: true,
+				minValue: 1,
+				type: "autocomplete",
+				unitOptions: ["px", "em", "rem"],
+				modelValue: blockController.getStyle("fontSize"),
+			}
+		},
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("fontSize", val),
+		},
+		searchKeyWords: "Font, Size, FontSize",
+		condition: () => blockController.isText(),
+	},
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Height",
+				type: "autocomplete",
+				options: useEspressoTokens("lineHeight"),
+				modelValue: blockController.getStyle("lineHeight"),
+			}
+		},
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("lineHeight", val),
+		},
+		searchKeyWords: "Font, Height, LineHeight, Line Height",
+		condition: () => blockController.isText(),
+	},
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Letter",
+				type: "autocomplete",
+				options: useEspressoTokens("letterSpacing"),
+				modelValue: blockController.getStyle("letterSpacing"),
+			}
+		},
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("letterSpacing", val),
+		},
+		searchKeyWords: "Font, Letter, LetterSpacing, Letter Spacing",
+		condition: () => blockController.isText(),
+	},
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Transform",
+				type: "select",
+				options: [
+					{
+						value: null,
+						label: "None",
+					},
+					{
+						value: "uppercase",
+						label: "Uppercase",
+					},
+					{
+						value: "lowercase",
+						label: "Lowercase",
+					},
+					{
+						value: "capitalize",
+						label: "Capitalize",
+					},
+				],
+				modelValue: blockController.getStyle("textTransform"),
+			}
+		},
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("textTransform", val),
+		},
+		searchKeyWords: "Font, Transform, TextTransform, Text Transform, Capitalize, Uppercase, Lowercase",
+		condition: () => blockController.isText(),
+	},
+	{
+		component: OptionToggle,
+		getProps: () => {
+			return {
+				label: "Align",
+				styleProperty: "textAlign",
+				options: [
+					{
+						label: "Left",
+						value: "left",
+						icon: "align-left",
+						hideLabel: true,
+					},
+					{
+						label: "Center",
+						value: "center",
+						icon: "align-center",
+						hideLabel: true,
+					},
+					{
+						label: "Right",
+						value: "right",
+						icon: "align-right",
+						hideLabel: true,
+					},
+				],
+				defaultValue: "left",
+				modelValue: blockController.getStyle("textAlign"),
+			}
+		},
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("textAlign", val),
+		},
+		searchKeyWords: "Font, Align, TextAlign, Text Align, Left, Center, Right, Justify",
+		condition: () => blockController.isText(),
+	},
+]
+
 const styleSectionProperties = [
 	{
 		component: ColorInput,
@@ -632,6 +789,11 @@ const sections = [
 		name: "Layout",
 		properties: layoutSectionProperties,
 		condition: () => !blockController.multipleBlocksSelected(),
+	},
+	{
+		name: "Typography",
+		properties: typographySectionProperties,
+		condition: () => blockController.isText(),
 	},
 	{
 		name: "Dimension",

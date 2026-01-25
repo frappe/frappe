@@ -58,18 +58,9 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Text Block",
 		icon: LucideType,
 		initialState: {
-			fontSize: "text-sm",
-			fontWeight: "font-normal",
+			text: "Text Block",
+			tag: "p",
 		},
-		overrideProps: {
-			"textColor": {
-				type: "string",
-				inputType: "color",
-				props: {
-					property: "textColor",
-				}
-			}
-		}
 	},
 	Alert: {
 		name: "Alert",
