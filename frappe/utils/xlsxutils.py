@@ -98,7 +98,7 @@ class XLSXStyleBuilder:
 		}
 
 		for name, style in highlight_styles.items():
-			self.register_style(name, **style)
+			self.register_style(name, style)
 
 	def _register_default_indent_styles(self):
 		if not self.metadata.max_indent_level:
@@ -130,7 +130,7 @@ class XLSXStyleBuilder:
 			return self
 
 		number_format = self.get_number_format("Currency", currency)
-		self.register_style(style_name, number_format=number_format)
+		self.register_style(style_name, {"num_format": number_format})
 
 		return self
 
@@ -161,11 +161,11 @@ class XLSXStyleBuilder:
 	def build(self) -> frappe._dict:
 		return {
 			**self.config,
-			"styles": self.styles,
+			"mapping": self.styles,
 		}
 
 	### Utility Methods ###
-	def apply_default_styles(self):
+	def apply_default_styles(self, currency_formatting: bool = False, currency: str | dict | None = None):
 		self.style_header()
 
 		if self.metadata.include_filters:
@@ -177,7 +177,7 @@ class XLSXStyleBuilder:
 		if self.metadata.include_indentation:
 			self.apply_indentations(0)
 
-		self.apply_default_fieldtype_formats()
+		self.apply_default_fieldtype_formats(currency_formatting=currency_formatting, currency=currency)
 
 		return self
 
