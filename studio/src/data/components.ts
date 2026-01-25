@@ -61,6 +61,15 @@ export const COMPONENTS: FrappeUIComponents = {
 			fontSize: "text-sm",
 			fontWeight: "font-normal",
 		},
+		overridePropEditors: {
+			"textColor": {
+				type: "string",
+				inputType: "color",
+				props: {
+					property: "textColor",
+				}
+			}
+		}
 	},
 	Alert: {
 		name: "Alert",

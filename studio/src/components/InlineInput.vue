@@ -1,7 +1,9 @@
 <template>
+	<!-- prettier-ignore -->
 	<div
 		class="flex [&>div>input]:!bg-red-600 [&>div>input]:pr-6"
-		:class="type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between'"
+		:class="[type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between', attrs.class]"
+		:style="(attrs.style as StyleValue)"
 	>
 		<InputLabel
 			:class="[
@@ -35,12 +37,14 @@
 			:showInputAsOption="showInputAsOption"
 			class="w-full"
 			:disabled="disabled"
+			v-bind="attrsWithoutClassAndStyle"
 		/>
 		<ColorInput
 			v-else-if="type === 'color'"
 			:modelValue="modelValue"
 			@update:modelValue="handleChange"
 			:disabled="disabled"
+			v-bind="attrsWithoutClassAndStyle"
 		/>
 		<Input
 			v-else
@@ -50,6 +54,7 @@
 			@update:modelValue="handleChange"
 			@keydown.stop="handleKeyDown"
 			:disabled="disabled"
+			v-bind="attrsWithoutClassAndStyle"
 		/>
 	</div>
 </template>
@@ -57,7 +62,7 @@
 <script setup lang="ts">
 import { isNumber } from "@tiptap/vue-3"
 import { Popover } from "frappe-ui"
-import { computed } from "vue"
+import { computed, StyleValue, useAttrs } from "vue"
 import { extractNumberAndUnit } from "@/utils/helpers"
 import Input from "@/components/Input.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
@@ -97,6 +102,13 @@ const props = withDefaults(
 )
 
 const emit = defineEmits(["update:modelValue"])
+defineOptions({ inheritAttrs: false })
+
+const attrs = useAttrs()
+const attrsWithoutClassAndStyle = computed(() => {
+	const { class: _class, style: _style, ...rest } = attrs
+	return rest
+})
 
 type Option = {
 	label: string

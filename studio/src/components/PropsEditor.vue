@@ -53,6 +53,7 @@
 				:modelValue="getFormattedValue(propName)"
 				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
 				class="flex-1"
+				v-bind="config.props"
 			/>
 		</div>
 	</div>

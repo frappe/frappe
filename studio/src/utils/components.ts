@@ -22,6 +22,7 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 	// TODO: make this less convoluted
 	if (typeof component === "string") return {}
 	const useOverridenPropTypes = components.get(componentName)?.useOverridenPropTypes
+	const overridePropEditors = components.get(componentName)?.overridePropEditors
 	const props = { ...component.props, ...components.get(componentName)?.additionalProps }
 	if (!props) return {}
 
@@ -90,10 +91,13 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 				}
 			}
 
+			if (overridePropEditors && overridePropEditors[propName]) {
+				Object.assign(config, overridePropEditors[propName])
+			}
+
 			propsConfig[propName] = config
 		})
 	}
-
 	return propsConfig
 }
 

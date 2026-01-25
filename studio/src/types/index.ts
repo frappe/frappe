@@ -61,10 +61,11 @@ export interface ContextMenuOption {
 
 export type ComponentProp = {
 	type: string
-	default: VuePropDefault
+	default?: VuePropDefault
 	inputType: string
 	modelValue?: any
 	required?: boolean
+	props?: Record<string, any>
 	options?: Array<SelectOption> | Array<string>
 	condition?: (state: object | null | undefined) => boolean
 }
@@ -89,6 +90,7 @@ export interface FrappeUIComponent {
 	proxyComponent?: any, // pseudo-component to be used in edit mode
 	additionalProps?: Record<string, any> // additional props to be shown in the properties panel that are not explicitly defined in the component
 	useOverridenPropTypes?: boolean // whether to use the prop types defined in json_types
+	overridePropEditors?: Record<string, ComponentProp | { props: Record<string, any> }> // to override prop editors for specific props
 }
 
 export interface FrappeUIComponents {
