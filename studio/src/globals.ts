@@ -32,7 +32,6 @@ import {
 	Popover,
 	Rating,
 	Select,
-	Spinner,
 	Switch,
 	TabButtons,
 	Tabs,
@@ -102,7 +101,6 @@ export function registerGlobalComponents(app: App) {
 	app.component("Popover", Popover)
 	app.component("Rating", Rating)
 	app.component("Select", Select)
-	app.component("Spinner", Spinner)
 	app.component("Switch", Switch)
 	app.component("TabButtons", TabButtons)
 	app.component("Tabs", Tabs)
