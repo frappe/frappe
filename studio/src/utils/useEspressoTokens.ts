@@ -22,11 +22,38 @@ export const useEspressoTokens = (property: "backgroundColor" | "borderColor" | 
 			}
 		})
 
+		const surfaceColors = designTokens?.backgroundColor?.surface as Record<string, string> | undefined
+		const backgroundColor = Object.keys(surfaceColors || {}).map((key) => {
+			if (!key) return
+			return {
+				label: key,
+				value: (surfaceColors)?.[key],
+			}
+		})
+
+		const borderColors = designTokens?.borderColor?.outline as Record<string, string> | undefined
+		const borderColor = Object.keys(borderColors || {}).map((key) => {
+			if (!key) return
+			return {
+				label: key,
+				value: (borderColors)?.[key],
+			}
+		})
+
+		const textColors = designTokens?.textColor?.ink as Record<string, string> | undefined
+		const textColor = Object.keys(textColors || {}).map((key) => {
+			if (!key) return
+			return {
+				label: key,
+				value: (textColors)?.[key],
+			}
+		})
+
 		return {
-			backgroundColor: designTokens?.backgroundColor?.surface,
-			borderColor: designTokens?.borderColor?.outline,
-			color: designTokens?.textColor?.ink,
-			textColor: designTokens?.textColor?.ink,
+			backgroundColor: backgroundColor,
+			borderColor: borderColor,
+			color: textColor,
+			textColor: textColor,
 			boxShadow: boxShadow,
 			borderRadius: borderRadius,
 		}

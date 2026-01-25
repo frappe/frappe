@@ -305,12 +305,6 @@ watch(
 // Tokens
 const tokens = computed(() => {
 	if (!props.property) return []
-	const _tokens = useEspressoTokens(props.property)
-	return Object.keys(_tokens).map((key) => {
-		return {
-			label: key,
-			value: _tokens[key],
-		}
-	})
+	return useEspressoTokens(props.property)
 })
 </script>
