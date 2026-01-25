@@ -21,8 +21,7 @@ const componentFolders: Record<string, string> = {
 function getComponentProps(componentName: string, component: ConcreteComponent | string): ComponentProps {
 	// TODO: make this less convoluted
 	if (typeof component === "string") return {}
-	const useOverridenPropTypes = components.get(componentName)?.useOverridenPropTypes
-	const overridePropEditors = components.get(componentName)?.overridePropEditors
+	const overrideProps = components.get(componentName)?.overrideProps
 	const props = { ...component.props, ...components.get(componentName)?.additionalProps }
 	if (!props) return {}
 
@@ -32,7 +31,7 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 
 	const propsConfig: ComponentProps = {}
 
-	if (Array.isArray(props) && !useOverridenPropTypes) {
+	if (Array.isArray(props)) {
 		props.forEach((prop) => {
 			propsConfig[prop] = {
 				type: "string",
@@ -52,7 +51,7 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 			let isRequired = prop.required
 			const propertySchema = properties?.[propName]
 
-			if ((!propType || useOverridenPropTypes) && !isObjectEmpty(propertySchema)) {
+			if (!propType && !isObjectEmpty(propertySchema)) {
 				isRequired = required?.includes(propName)
 
 				if ("anyOf" in propertySchema) {
@@ -77,7 +76,7 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 			const config: ComponentProp = {
 				type: propType,
 				default: prop.default,
-				inputType: getPropInputType(propType, propName),
+				inputType: getPropInputType(propType),
 				required: isRequired,
 				condition: prop.condition,
 			}
@@ -91,8 +90,8 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 				}
 			}
 
-			if (overridePropEditors && overridePropEditors[propName]) {
-				Object.assign(config, overridePropEditors[propName])
+			if (overrideProps && overrideProps[propName]) {
+				Object.assign(config, overrideProps[propName])
 			}
 
 			propsConfig[propName] = config
@@ -109,10 +108,7 @@ function getPropType(propType: VuePropType | VuePropType[]) {
 	return propType?.name
 }
 
-function getPropInputType(propType: string, propName: string) {
-	if (propName.toLowerCase() === "html") {
-		return "html"
-	}
+function getPropInputType(propType: string) {
 	switch (propType) {
 		case "string":
 			return "text"

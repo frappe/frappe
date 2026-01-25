@@ -61,7 +61,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			fontSize: "text-sm",
 			fontWeight: "font-normal",
 		},
-		overridePropEditors: {
+		overrideProps: {
 			"textColor": {
 				type: "string",
 				inputType: "color",
@@ -706,7 +706,20 @@ export const COMPONENTS: FrappeUIComponents = {
 			fixedMenu: true,
 			bubbleMenu: true,
 		},
-		useOverridenPropTypes: true,
+		overrideProps: {
+			bubbleMenu: {
+				type: "boolean",
+				inputType: "checkbox",
+			},
+			fixedMenu: {
+				type: "boolean",
+				inputType: "checkbox",
+			},
+			floatingMenu: {
+				type: "boolean",
+				inputType: "checkbox",
+			}
+		}
 	},
 	Tooltip: {
 		name: "Tooltip",
@@ -781,7 +794,12 @@ export const COMPONENTS: FrappeUIComponents = {
 		initialState: {
 			html: "<p>Your HTML content here</p>",
 		},
-		useOverridenPropTypes: true,
+		overrideProps: {
+			"html": {
+				type: "string",
+				inputType: "html",
+			}
+		}
 	},
 	Header: {
 		name: "Header",
