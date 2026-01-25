@@ -263,6 +263,9 @@ def get_company_address(company):
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def address_query(
+	# The `doctype` parameter is required for API compatibility with the
+	# `@frappe.validate_and_sanitize_search_inputs` decorator, but is not used in this function.
+	# The function is hardcoded to operate on the "Address" doctype.
 	doctype: str = "Address",
 	txt: str = "",
 	searchfield: str = "name",
