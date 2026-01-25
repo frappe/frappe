@@ -36,6 +36,7 @@ type Option = {
 	label: string
 	value: string
 	disabled?: boolean
+	[key: string]: any
 }
 
 const props = defineProps<{

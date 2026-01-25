@@ -14,7 +14,7 @@
 			></slot>
 		</template>
 		<template #body="{ close }">
-			<div class="flex rounded bg-surface-white shadow-lg">
+			<div class="flex w-[200px] rounded bg-surface-white shadow-lg">
 				<Tabs :tabs="[{ label: 'Picker' }, { label: 'Tokens' }]" :modelValue="1">
 					<template #tab-panel="{ tab }">
 						<div v-show="tab.label === 'Picker'" ref="colorPicker" class="rounded-b-lg bg-surface-white p-3">
