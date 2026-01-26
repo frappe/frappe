@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from io import BytesIO
@@ -411,20 +412,22 @@ def make_xlsx(
 	if not styling_enabled:
 		ws.set_row(0, cell_format=wb.add_format({"bold": True}))
 
-	def get_cell_style(r: int, c: int):
-		key = tuple(s for s in (col_styles.get(c), row_styles.get(r), cell_styles.get((r, c))) if s)
+	def get_style_names(r: int, c: int) -> Iterator[str]:
+		yield col_styles.get(c)
+		yield row_styles.get(r)
+		yield cell_styles.get((r, c))
 
+	def get_cell_style(r: int, c: int):
+		key = tuple(s for s in get_style_names(r, c) if s is not None)
 		if not key:
 			return
 
 		format = format_map.get(key)
-
 		if not format:
-			style_dict = {}
-
 			if len(key) == 1:
 				style_dict = style_map.get(key[0]) or {}
 			else:
+				style_dict = {}
 				for style_name in key:
 					# priority: cell > row > column
 					style_dict.update(style_map.get(style_name) or {})
@@ -438,17 +441,13 @@ def make_xlsx(
 
 	for row_idx, row in enumerate(data):
 		for col_idx, value in enumerate(row):
-			cell_format = None
-
 			if isinstance(value, str):
 				if handle_html_content:
 					value = handle_html(value)
 
 				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
-			if styling_enabled:
-				cell_format = get_cell_style(row_idx, col_idx)
-
+			cell_format = get_cell_style(row_idx, col_idx) if styling_enabled else None
 			ws.write(row_idx, col_idx, value, cell_format)
 
 	if created_wb:
