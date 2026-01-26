@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import re
-from collections.abc import Iterator
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from io import BytesIO
@@ -413,18 +412,15 @@ def make_xlsx(
 	if not styling_enabled:
 		ws.set_row(0, cell_format=wb.add_format({"bold": True}))
 
-	def get_style_names(r: int, c: int) -> Iterator[str]:
-		yield col_styles.get(c)
-		yield row_styles.get(r)
-		yield cell_styles.get((r, c))
-
 	def get_cell_style(r: int, c: int):
-		key = tuple(s for s in get_style_names(r, c) if s is not None)
+		key = tuple(
+			s for s in (col_styles.get(c), row_styles.get(r), cell_styles.get((r, c))) if s is not None
+		)
 		if not key:
 			return
 
 		format = format_map.get(key)
-		if not format:
+		if format is None:
 			if len(key) == 1:
 				style_dict = style_map.get(key[0]) or {}
 			else:
