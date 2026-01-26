@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import functools
 import re
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
@@ -224,7 +225,7 @@ class XLSXStyleBuilder:
 		if not self.currency_field_exists:
 			return self
 
-		@frappe.request_cache
+		@functools.cache
 		def _register(currency: str) -> str:
 			return self.register_currency_format(currency).get_currency_style_name(currency)
 
