@@ -41,12 +41,20 @@ frappe.ui.Sidebar = class Sidebar {
 		this.wrapper.on("mouseenter", ".body-sidebar", () => {
 			if (this.should_hover_expand()) {
 				this.wrapper.addClass("hover-expanded");
+				// Restore section visibility based on collapsed state
+				this.items.forEach((item) => {
+					if (item.$nested_items && !item.collapsed) {
+						item.$nested_items.removeClass("hidden");
+					}
+				});
 			}
 		});
 
 		this.wrapper.on("mouseleave", ".body-sidebar", () => {
 			if (this.should_hover_expand()) {
 				this.wrapper.removeClass("hover-expanded");
+				// Hide all nested sections
+				this.wrapper.find(".nested-container").addClass("hidden");
 			}
 		});
 
