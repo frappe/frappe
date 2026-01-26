@@ -15,6 +15,7 @@ from xlsxwriter.format import Format
 
 import frappe
 from frappe import _
+from frappe.core.utils import html2text
 from frappe.utils import cint
 from frappe.utils.html_utils import unescape_html
 
@@ -458,12 +459,8 @@ def make_xlsx(
 
 
 ### Utilities ###
-def handle_html(data):
-	from frappe.core.utils import html2text
-
+def handle_html(data: str) -> str:
 	# return if no html tags found
-	data = frappe.as_unicode(data)
-
 	if "<" not in data or ">" not in data:
 		return data
 
@@ -475,9 +472,7 @@ def handle_html(data):
 		# unable to parse html, send it raw
 		return data
 
-	value = ", ".join(value.split("  \n"))
-	value = " ".join(value.split("\n"))
-	return ", ".join(value.split("# "))
+	return value.replace("  \n", ", ").replace("\n", " ").replace("# ", ", ")
 
 
 def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=None):

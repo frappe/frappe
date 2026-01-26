@@ -275,16 +275,15 @@ frappe.views.BaseList = class BaseList {
 		frappe.breadcrumbs.add(this.meta.module, this.doctype);
 	}
 
-	show_or_hide_sidebar() {
-		let show_sidebar = JSON.parse(localStorage.show_sidebar || "true");
-		$(document.body).toggleClass("no-list-sidebar", !show_sidebar);
+	hide_sidebar() {
+		$(document.body).toggleClass("no-list-sidebar", true);
 	}
 
 	setup_main_section() {
 		return frappe.run_serially(
 			[
 				this.setup_list_wrapper,
-				this.show_or_hide_sidebar,
+				this.hide_sidebar,
 				this.setup_filter_area,
 				this.setup_sort_selector,
 				this.setup_result_container_area,

@@ -475,7 +475,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 	if file_format_type == "CSV":
 		file_extension = "csv"
 		content = get_csv_bytes(
-			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in data],
+			[[handle_html(v) if isinstance(v, str) else v for v in r] for r in data],
 			csv_params,
 		)
 	elif file_format_type == "Excel":

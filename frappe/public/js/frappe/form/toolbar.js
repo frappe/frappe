@@ -204,7 +204,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	setup_editable_title(element) {
 		let me = this;
 
-		if (me.is_title_editable()) {
+		if (me.is_title_editable() || me.can_rename()) {
 			let edit_icon = this.page.add_action_icon(
 				"square-pen",
 				() => {
@@ -469,7 +469,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			return;
 		}
 		this.page.add_menu_item(
-			__("Open Sidebar"),
+			__("Toggle Sidebar"),
 			() => {
 				this.setup_sidebar_toggle(this.frm.sidebar.sidebar.parent());
 			},
@@ -888,7 +888,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	setup_sidebar_toggle(sidebar_wrapper) {
-		console.log(sidebar_wrapper);
 		if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
 			this.setup_overlay_sidebar(sidebar_wrapper);
 		} else {
