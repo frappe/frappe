@@ -334,13 +334,7 @@ class BaseDocument:
 			else:
 				value.idx = 1
 
-		if not __dict.get("name"):
-			__dict["__islocal"] = 1
-			__dict["__temporary_name"] = frappe.generate_hash(length=10)
-
-		if getattr(value, "__islocal", None):
-			value.__dict__["name"] = None
-		elif not getattr(value, "name", None):
+		if not getattr(value, "name", None):
 			value.__dict__["__islocal"] = 1
 
 		return value
