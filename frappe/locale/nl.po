@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-22 12:50\n"
+"PO-Revision-Date: 2026-01-26 13:28\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Dutch\n"
 "MIME-Version: 1.0\n"
@@ -6999,17 +6999,17 @@ msgstr ""
 #: frappe/templates/discussions/reply_card.html:35
 #: frappe/templates/discussions/reply_section.html:29
 msgid "Delete"
-msgstr "Verwijder"
+msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:1966
 msgctxt "Button in list view actions menu"
 msgid "Delete"
-msgstr "Verwijder"
+msgstr ""
 
 #: frappe/website/doctype/web_form/templates/web_form.html:49
 msgctxt "Button in web form"
 msgid "Delete"
-msgstr "Verwijder"
+msgstr ""
 
 #: frappe/www/me.html:75
 msgid "Delete Account"
