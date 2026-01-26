@@ -575,7 +575,7 @@ def get_site_url(site):
 
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], str) and isinstance(d[key], str):
+		if isinstance(d[key], str):
 			d[key] = d[key].encode(encoding)
 
 	return d
