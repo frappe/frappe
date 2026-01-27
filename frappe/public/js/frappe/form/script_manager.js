@@ -168,10 +168,10 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 				handlers.new_style.push(fn);
 			});
 		}
-		if (this.frm.cscript && this.frm.cscript[event_name]) {
+		if (this.frm.cscript?.[event_name]) {
 			handlers.old_style.push(event_name);
 		}
-		if (this.frm.cscript && this.frm.cscript["custom_" + event_name]) {
+		if (this.frm.cscript?.["custom_" + event_name]) {
 			handlers.old_style.push("custom_" + event_name);
 		}
 		return handlers;

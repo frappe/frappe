@@ -175,7 +175,7 @@ frappe.ui.Sidebar = class Sidebar {
 		if (active_section) {
 			let section = this.get_item(active_section);
 			if (section) {
-				if (section.collapsed) {
+				if (this.sidebar_expanded && section.collapsed) {
 					section.open();
 				}
 			}

@@ -33,11 +33,12 @@
 <div class="sidebar-section sidebar-meta-details border-bottom">
 	<div class="flex justify-between overflow-hidden">
 		<div class="ellipsis">
-			{% if frm.doc.name != frm.get_title() %}
+			{% let title = frm.get_title(); %}
+			{% if (title && title !== frm.doc.name) { %}
 			<div class="form-details flex justify-between">
-				<span class="bold ellipsis form-title-text mr-3 text-medium">{%= frappe.utils.html2text(frm.get_title()) %}</span>
+				<span class="bold ellipsis form-title-text mr-3 text-medium">{%= frappe.utils.html2text(title) %}</span>
 			</div>
-			{% endif %}
+			{% } %}
 			<div class="form-name-container mt-2 flex justify-between form-name-copy" data-copy="{{frm.doc.name}}" >
 				<span class="ellipsis mr-3">{%= frm.doc.name %}</span>
 			</div>

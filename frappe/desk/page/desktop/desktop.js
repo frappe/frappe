@@ -129,8 +129,9 @@ function save_desktop(icons) {
 }
 
 function reset_to_default() {
-	frappe.model.user_settings.save("Desktop Icon", "icons_to_create", null);
-	frappe.model.user_settings.save("Desktop Icon", "desktop_layout", null);
+	frappe.db.delete_doc("Desktop Layout", frappe.session.user).then(() => {
+		frappe.ui.toolbar.clear_cache();
+	});
 }
 
 function toggle_icons(icons) {
@@ -890,9 +891,6 @@ class DesktopIcon {
 		if (this.icon_type == "Folder") {
 			if (this.icon_data.child_icons.length == 0) return false;
 		}
-		if (this.icon_type == "Link" && !this.icon_route) {
-			return false;
-		}
 		return true;
 	}
 	get_child_icons_data() {
@@ -991,15 +989,24 @@ class DesktopIcon {
 				modal.show();
 			});
 			if (this.icon_type == "App") {
-				$($(this.icon_caption_area).children()[1]).html(
-					`${this.child_icons.length} Workspaces`
-				);
+				let content = `${this.child_icons.length} Workspaces`;
+				$($(this.icon_caption_area).children()[1]).html(__(content));
 			}
 		} else {
 			if (this.icon_route && this.icon_route.startsWith("http")) {
 				this.icon.attr("target", "_blank");
 			}
-			this.icon.attr("href", this.icon_route);
+			if (this.icon_route) {
+				this.icon.attr("href", this.icon_route);
+			} else {
+				this.icon.on("click", function (event) {
+					frappe.msgprint(
+						__(
+							"Icon is not correctly configured please check the workspace sidebar to it"
+						)
+					);
+				});
+			}
 		}
 	}
 
@@ -1055,6 +1062,10 @@ class DesktopModal {
 	setup(icon_title, child_icons_data, grid_row_size) {
 		const me = this;
 		this.make_modal(icon_title);
+
+		// Check if we're in edit mode
+		const is_edit_mode = frappe.pages["desktop"].desktop_page.edit_mode;
+
 		this.child_icon_grid = new DesktopIconGrid({
 			wrapper: this.$child_icons_wrapper,
 			icons_data: child_icons_data,
@@ -1062,7 +1073,15 @@ class DesktopModal {
 			in_folder: false,
 			in_modal: true,
 			parent_icon: this.parent_icon_obj,
+			edit_mode: is_edit_mode, // Pass edit mode state
 		});
+
+		// If in edit mode, setup reordering for the modal icons
+		if (is_edit_mode) {
+			this.child_icon_grid.grids.forEach((grid) => {
+				this.child_icon_grid.setup_reordering(grid);
+			});
+		}
 
 		this.modal.on("hidden.bs.modal", function () {
 			me.modal.remove();
@@ -1167,7 +1186,7 @@ class InlineEditor {
 		this.container.html(`
 			<div class="title-widget">
 				<div class="title-input-label">
-					<span>${this.initialValue}</span>
+					<span>${__(this.initialValue)}</span>
 				</div>
 				<div class="title-input-wrapper">
 					<input class="title-input">
@@ -1181,8 +1200,10 @@ class InlineEditor {
 
 	bindEvents() {
 		this.container.on("click", () => {
-			this.label.css("visibility", "hidden");
-			this.input.focus().select();
+			if (frappe.pages["desktop"].desktop_page.edit_mode) {
+				this.label.css("visibility", "hidden");
+				this.input.focus().select();
+			}
 		});
 
 		this.input.on("keydown", (event) => {

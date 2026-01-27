@@ -309,6 +309,7 @@ frappe.PermissionEngine = class PermissionEngine {
 			.attr("data-doctype", d.parent);
 
 		checkbox.find("label").css("text-transform", "capitalize");
+		checkbox.find("label").css("align-items", "center");
 
 		return checkbox;
 	}
@@ -415,7 +416,7 @@ frappe.PermissionEngine = class PermissionEngine {
 	add_delete_button(row, d) {
 		$(
 			`<button class='btn btn-danger btn-remove-perm btn-xs'>${frappe.utils.icon(
-				"delete"
+				"x"
 			)}</button>`
 		)
 			.appendTo($(`<td class="pt-4">`).appendTo(row))
