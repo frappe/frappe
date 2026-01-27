@@ -8,7 +8,7 @@
 			</SectionContainer>
 
 			<!-- slots -->
-			<SectionContainer title="Slots">
+			<SectionContainer title="Slots" v-if="!isObjectEmpty(componentSlots)">
 				<template #actions>
 					<Autocomplete
 						:options="componentSlots"
@@ -53,7 +53,7 @@
 			</SectionContainer>
 
 			<!-- Visibility Condition -->
-			<SectionContainer title="Visibility Condition">
+			<CollapsibleSection sectionName="Visibility Condition" :sectionCollapsed="!block?.hasVisibilityCondition()">
 				<template #actions>
 					<Button
 						v-if="block?.hasVisibilityCondition()"
@@ -73,17 +73,17 @@
 					:readonly="!!block.__lastVisibilityCondition"
 					@update:modelValue="blockController.setKeyValue('visibilityCondition', $event)"
 				/>
-			</SectionContainer>
+			</CollapsibleSection>
 
 			<!-- attributes -->
-			<SectionContainer title="Attributes">
+			<CollapsibleSection sectionName="Attributes" :sectionCollapsed="isObjectEmpty(blockController.getAttributes())">
 				<ObjectEditor
 					ref="attributesEditor"
 					:obj="blockController.getAttributes() || {}"
 					@update:obj="(obj: Record<string, any>) => blockController.setAttributes(obj)"
 					description="Pass additional HTML attributes or props that are not explicitly defined in the component"
 				/>
-			</SectionContainer>
+			</CollapsibleSection>
 		</div>
 	</div>
 </template>

@@ -162,7 +162,7 @@ function areObjectsEqual(obj1: ObjectLiteral, obj2: ObjectLiteral): boolean {
 	return true
 }
 
-function isObjectEmpty(obj: object | null | undefined) {
+function isObjectEmpty(obj: object | null | undefined | any): boolean {
 	if (!obj) return true
 	return Object.keys(obj).length === 0
 }

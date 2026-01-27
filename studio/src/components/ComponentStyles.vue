@@ -1,19 +1,5 @@
 <template>
 	<div v-if="blockController.isAnyBlockSelected()" class="flex select-none flex-col pb-16">
-		<div class="sticky top-[41px] z-50 mt-[-15px] flex w-full bg-white py-3">
-			<Input
-				ref="searchInput"
-				type="text"
-				variant="outline"
-				placeholder="Search properties"
-				v-model="store.stylePropertyFilter"
-				@input="
-					(value: string) => {
-						store.stylePropertyFilter = value
-					}
-				"
-			/>
-		</div>
 		<div class="flex flex-col gap-3">
 			<CollapsibleSection
 				:sectionName="section.name"
@@ -74,7 +60,6 @@ import blockController from "@/utils/blockController"
 import { useEspressoTokens } from "@/utils/useEspressoTokens"
 import { CSSProperties, Ref, computed, ref } from "vue"
 
-import Input from "@/components/Input.vue"
 import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue"
 import BlockGridLayoutHandler from "@/components/BlockGridLayoutHandler.vue"
 import BlockPositionHandler from "@/components/BlockPositionHandler.vue"
@@ -100,14 +85,6 @@ const boxShadow = useEspressoTokens("boxShadow")
 const borderRadius = useEspressoTokens("borderRadius")
 const fontSize = useEspressoTokens("fontSize")
 
-// command + f should focus on search input
-window.addEventListener("keydown", (e) => {
-	if (e.key === "f" && (e.metaKey || e.ctrlKey)) {
-		e.preventDefault()
-		document.querySelector(".properties-search-input")?.querySelector("input")?.focus()
-	}
-})
-
 export type BlockProperty = {
 	component: any
 	getProps: () => Record<string, unknown>
@@ -126,15 +103,13 @@ type PropertySection = {
 	collapsed?: boolean
 }
 
-const searchInput = ref(null) as Ref<HTMLElement | null>
-
 const filteredSections = computed(() => {
 	return sections.filter((section) => {
 		let showSection = true
 		if (section.condition) {
 			showSection = section.condition()
 		}
-		if (showSection && store.stylePropertyFilter) {
+		if (showSection && store.propertyFilter) {
 			showSection = getFilteredProperties(section).length > 0
 		}
 		return showSection
@@ -147,10 +122,10 @@ const getFilteredProperties = (section: PropertySection) => {
 		if (property.condition) {
 			showProperty = property.condition()
 		}
-		if (showProperty && store.stylePropertyFilter) {
+		if (showProperty && store.propertyFilter) {
 			showProperty =
-				section.name.toLowerCase().includes(store.stylePropertyFilter.toLowerCase()) ||
-				property.searchKeyWords.toLowerCase().includes(store.stylePropertyFilter.toLowerCase())
+				section.name.toLowerCase().includes(store.propertyFilter.toLowerCase()) ||
+				property.searchKeyWords.toLowerCase().includes(store.propertyFilter.toLowerCase())
 		}
 		return showProperty
 	})
@@ -802,6 +777,7 @@ const sections = [
 		name: "Layout",
 		properties: layoutSectionProperties,
 		condition: () => !blockController.multipleBlocksSelected(),
+		collapsed: computed(() => blockController.isText()),
 	},
 	{
 		name: "Typography",

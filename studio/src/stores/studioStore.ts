@@ -282,7 +282,7 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	// styles
-	const stylePropertyFilter = ref<string | null>(null)
+	const propertyFilter = ref<string | null>(null)
 
 	// data
 	const routeObject = computed(() => {
@@ -375,7 +375,7 @@ const useStudioStore = defineStore("store", () => {
 		// app build
 		generateAppBuild,
 		// styles
-		stylePropertyFilter,
+		propertyFilter,
 		// data/code
 		variableConfigs,
 		setPageData,
