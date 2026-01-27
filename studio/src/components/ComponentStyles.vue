@@ -360,25 +360,6 @@ const spacingSectionProperties = [
 ]
 
 const typographySectionProperties = [
-	// {
-	// 	component: InlineInput,
-	// 	getProps: () => {
-	// 		return {
-	// 			label: "Content",
-	// 			controlType: "key",
-	// 			styleProperty: "innerHTML",
-	// 			// @ts-ignore
-	// 			allowDynamicValue: true,
-	// 			getModelValue: () => blockController.getText(),
-	// 			setModelValue: (val: string) => {
-	// 				blockController.setInnerHTML(val);
-	// 			},
-	// 		};
-	// 	},
-	// 	searchKeyWords: "Content, Text, ContentText, Content Text",
-	// 	condition: () =>
-	// 		(blockController.isText() || blockController.isButton()) && !blockController.multipleBlocksSelected(),
-	// },
 	{
 		component: InlineInput,
 		getProps: () => {
@@ -437,6 +418,21 @@ const typographySectionProperties = [
 		searchKeyWords: "Font, Height, LineHeight, Line Height",
 		condition: () => blockController.isText(),
 		allowDynamicValue: true,
+	},
+	{
+		component: ColorInput,
+		getProps: () => {
+			return {
+				label: "Color",
+				value: blockController.getStyle("color"),
+				property: "color",
+			}
+		},
+		events: {
+			change: (val: StyleValue) => blockController.setStyle("color", val),
+		},
+		allowDynamicValue: true,
+		searchKeyWords: "Text, Color, TextColor, Text Color",
 	},
 	{
 		component: InlineInput,
@@ -791,7 +787,7 @@ const sections = [
 	{
 		name: "Position",
 		properties: positionSectionProperties,
-		condition: () => !blockController.multipleBlocksSelected(),
+		condition: () => !blockController.multipleBlocksSelected() && !blockController.isRoot(),
 		collapsed: computed(() => {
 			return (
 				!blockController.getStyle("top") &&
