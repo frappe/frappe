@@ -95,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch, ref } from "vue"
+import { ref, computed } from "vue"
 import { Autocomplete } from "frappe-ui"
 import Block from "@/utils/block"
 
@@ -110,7 +110,6 @@ import Code from "@/components/Code.vue"
 import blockController from "@/utils/blockController"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
-import { Switch } from "@/json_types"
 
 const props = defineProps<{
 	block?: Block
@@ -119,30 +118,13 @@ const getCompletions = useStudioCompletions()
 
 const attributesEditor = ref<InstanceType<typeof ObjectEditor> | null>(null)
 
-const componentSlots = ref<string[]>([])
-watch(
-	() => props.block?.componentName,
-	() => updateAvailableSlots(),
-)
-
-watch(
-	() => props.block?.componentSlots,
-	() => {
-		if (props.block?.isContainer()) return
-		updateAvailableSlots()
-	},
-	{ deep: true },
-)
-
-const updateAvailableSlots = () => {
-	if (!props.block || props.block.isRoot() || props.block.isContainer()) return
+const componentSlots = computed(() => {
+	if (!props.block || props.block.isRoot() || props.block.isContainer()) return []
 
 	const slots = getComponentSlots(props.block.componentName)
 	// filter out already added slots
-	componentSlots.value = slots
-		.filter((slot) => !(slot.name in (props.block?.componentSlots || [])))
-		.map((slot) => slot.name)
-}
+	return slots.filter((slot) => !(slot.name in (props.block?.componentSlots || []))).map((slot) => slot.name)
+})
 
 const getSlotContent = (slot: Slot) => {
 	if (!slot.slotContent) return ""
