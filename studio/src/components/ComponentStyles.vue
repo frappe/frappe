@@ -424,12 +424,12 @@ const typographySectionProperties = [
 		getProps: () => {
 			return {
 				label: "Color",
-				value: blockController.getStyle("color"),
+				modelValue: blockController.getStyle("color"),
 				property: "color",
 			}
 		},
 		events: {
-			change: (val: StyleValue) => blockController.setStyle("color", val),
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("color", val),
 		},
 		allowDynamicValue: true,
 		searchKeyWords: "Text, Color, TextColor, Text Color",
@@ -530,13 +530,13 @@ const styleSectionProperties = [
 		getProps: () => {
 			return {
 				label: "BG Color",
-				value: blockController.getStyle("background"),
+				modelValue: blockController.getStyle("background"),
 				property: "backgroundColor",
 			}
 		},
 		searchKeyWords: "Background, BackgroundColor, Background Color, BG, BGColor, BG Color",
 		events: {
-			change: (val: StyleValue) => blockController.setStyle("background", val),
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("background", val),
 		},
 		allowDynamicValue: true,
 		getValue: () => {
@@ -548,13 +548,13 @@ const styleSectionProperties = [
 		getProps: () => {
 			return {
 				label: "Border Color",
-				value: blockController.getStyle("borderColor"),
+				modelValue: blockController.getStyle("borderColor"),
 				property: "borderColor",
 			}
 		},
 		searchKeyWords: "Border, Color, BorderColor, Border Color",
 		events: {
-			change: (val: StyleValue) => {
+			"update:modelValue": (val: StyleValue) => {
 				blockController.setStyle("borderColor", val)
 				if (val) {
 					if (!blockController.getStyle("borderWidth")) {
@@ -577,12 +577,12 @@ const styleSectionProperties = [
 		getProps: () => {
 			return {
 				label: "Text Color",
-				value: blockController.getStyle("color"),
+				modelValue: blockController.getStyle("color"),
 				property: "color",
 			}
 		},
 		events: {
-			change: (val: StyleValue) => blockController.setStyle("color", val),
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("color", val),
 		},
 		allowDynamicValue: true,
 		searchKeyWords: "Text, Color, TextColor, Text Color",

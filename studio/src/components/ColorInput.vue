@@ -2,7 +2,7 @@
 <template>
 	<ColorPicker
 		:modelValue="modelValue"
-		@update:modelValue="(color) => emit('change', color)"
+		@update:modelValue="(color) => emit('update:modelValue', color)"
 		:property="property"
 	>
 		<template #target="{ togglePopover, isOpen }">
@@ -27,7 +27,7 @@
 						@update:modelValue="
 							(value: string | null) => {
 								value = getRGB(value)
-								emit('change', value)
+								emit('update:modelValue', value)
 							}
 						"
 					/>
@@ -54,7 +54,7 @@ const props = withDefaults(
 		modelValue: null,
 	},
 )
-const emit = defineEmits(["change"])
+const emit = defineEmits(["update:modelValue"])
 
 const displayValue = computed(() => {
 	if (!props.modelValue) return ""

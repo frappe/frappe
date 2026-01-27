@@ -303,8 +303,5 @@ watch(
 )
 
 // Tokens
-const tokens = computed(() => {
-	if (!props.property) return []
-	return useEspressoTokens(props.property)
-})
+const tokens = computed(() =>  useEspressoTokens(props.property || "color"))
 </script>

@@ -152,7 +152,7 @@ import EmptyState from "@/components/EmptyState.vue"
 import type { SelectOption } from "@/types"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
-import ColorPicker from "@/components/ColorPicker.vue"
+import ColorInput from "@/components/ColorInput.vue"
 import PropsEditor from "@/components/PropsEditor.vue"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import { isCtrlOrCmd } from "@/utils/helpers"
@@ -228,7 +228,7 @@ const setInputControl = () => {
 	if (editingInput.value.type === "code") {
 		editingInput.value.inputControl = markRaw(Code)
 	} else if (editingInput.value.type === "color") {
-		editingInput.value.inputControl = markRaw(ColorPicker)
+		editingInput.value.inputControl = markRaw(ColorInput)
 	} else {
 		editingInput.value.inputControl = "FormControl"
 		editingInput.value.inputType = editingInput.value?.type === "textarea" ? "textarea" : "text"
