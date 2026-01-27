@@ -61,6 +61,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			text: "Text Block",
 			tag: "p",
 		},
+		hideProps: ["fontSize"],
 	},
 	Alert: {
 		name: "Alert",
@@ -438,7 +439,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			doctype: "User",
 			filters: {
 				enabled: 1,
-			}
+			},
 		},
 	},
 	FormControl: {
@@ -536,7 +537,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			doctype: "User",
 			filters: {
 				enabled: 1,
-			}
+			},
 		},
 	},
 	MultiSelect: {
@@ -713,8 +714,8 @@ export const COMPONENTS: FrappeUIComponents = {
 			starterkitOptions: {
 				type: "object",
 				inputType: "code",
-			}
-		}
+			},
+		},
 	},
 	Tooltip: {
 		name: "Tooltip",
@@ -790,11 +791,11 @@ export const COMPONENTS: FrappeUIComponents = {
 			html: "<p>Your HTML content here</p>",
 		},
 		overrideProps: {
-			"html": {
+			html: {
 				type: "string",
 				inputType: "html",
-			}
-		}
+			},
+		},
 	},
 	Header: {
 		name: "Header",
