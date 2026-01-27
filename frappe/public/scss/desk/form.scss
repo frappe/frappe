@@ -469,6 +469,18 @@
 		height: 28px;
 		right: 15px;
 		bottom: 15px;
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(10px);
+		transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+		pointer-events: none;
+
+		&.show {
+			opacity: 1;
+			visibility: visible;
+			transform: translateY(0);
+			pointer-events: auto;
+		}
 	}
 }
 

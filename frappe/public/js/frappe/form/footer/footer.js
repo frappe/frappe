@@ -17,6 +17,57 @@ frappe.ui.form.Footer = class FormFooter {
 		this.wrapper.find(".btn-save").click(() => {
 			this.frm.save("Save", null, this);
 		});
+		this.setup_scroll_to_top();
+	}
+	setup_scroll_to_top() {
+		const $scroll_to_top_btn = this.wrapper.find(".scroll-to-top");
+		const $scroll_container = $(".main-section");
+
+		if (!$scroll_to_top_btn.length || !$scroll_container.length) {
+			return;
+		}
+
+		this.toggle_scroll_to_top_button($scroll_to_top_btn, $scroll_container);
+
+		$scroll_container.on(
+			"scroll.form-footer",
+			frappe.utils.throttle(() => {
+				this.toggle_scroll_to_top_button($scroll_to_top_btn, $scroll_container);
+			}, 100)
+		);
+
+		$(window).on(
+			"resize.form-footer",
+			frappe.utils.throttle(() => {
+				this.toggle_scroll_to_top_button($scroll_to_top_btn, $scroll_container);
+			}, 100)
+		);
+
+		setTimeout(() => {
+			this.toggle_scroll_to_top_button($scroll_to_top_btn, $scroll_container);
+		}, 500);
+	}
+	toggle_scroll_to_top_button($button, $container) {
+		if (!$button.length || !$container.length) {
+			return;
+		}
+
+		const container_element = $container[0];
+		if (!container_element) {
+			return;
+		}
+
+		const scroll_top = $container.scrollTop();
+		const scroll_height = container_element.scrollHeight || 0;
+		const client_height = container_element.clientHeight || 0;
+		const needs_scroll = scroll_height > client_height;
+		const is_scrolled = scroll_top > 50;
+
+		if (needs_scroll && is_scrolled) {
+			$button.addClass("show");
+		} else {
+			$button.removeClass("show");
+		}
 	}
 	make_comment_box() {
 		this.frm.comment_box = frappe.ui.form.make_control({
