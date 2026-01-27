@@ -4,7 +4,11 @@
 		:message="`${block?.getBlockDescription()} has no editable properties`"
 	/>
 	<div v-else class="mt-3 flex flex-col gap-3">
-		<div v-for="(config, propName) in componentProps" :key="propName" class="group flex w-full items-center">
+		<div
+			v-for="(config, propName) in filteredComponentProps"
+			:key="propName"
+			class="group flex w-full items-center"
+		>
 			<DynamicValueSelector
 				v-if="!isTestingComponent"
 				:block="block"
@@ -77,6 +81,7 @@ import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { ComponentProps } from "@/types"
 import { ComponentInput } from "@/types/Studio/StudioComponent"
 import DynamicValueSelector from "@/components/DynamicValueSelector.vue"
+import useStudioStore from "@/stores/studioStore"
 
 const props = defineProps<{
 	block?: Block
@@ -85,6 +90,7 @@ const props = defineProps<{
 
 const getCompletions = useStudioCompletions()
 const canvasStore = useCanvasStore()
+const store = useStudioStore()
 
 const componentInstance = computed(() => {
 	if (!props.block?.componentName || props.block.isStudioComponent) return {}
@@ -141,6 +147,26 @@ const componentProps = computed(() => {
 
 	return filteredProps
 })
+
+const filteredComponentProps = computed(() => {
+	if (!store.propertyFilter) {
+		return componentProps.value
+	}
+
+	const filter = store.propertyFilter.toLowerCase()
+	const filtered: typeof componentProps.value = {}
+
+	Object.entries(componentProps.value).forEach(([propName, config]) => {
+		if (propName.toLowerCase().includes(filter)) {
+			filtered[propName] = config
+		}
+	})
+
+	return filtered
+})
+
+const hasFilteredProps = computed(() => !isObjectEmpty(filteredComponentProps.value))
+defineExpose({ hasFilteredProps })
 
 function getStudioComponentProps(componentInputs: ComponentInput[]): ComponentProps {
 	if (isObjectEmpty(componentInputs)) return {}

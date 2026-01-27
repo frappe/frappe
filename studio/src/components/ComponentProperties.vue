@@ -1,14 +1,14 @@
 <template>
-	<div class="flex select-none flex-col pb-16">
+	<div class="flex select-none flex-col pb-16" v-show="filteredSections?.length">
 		<EmptyState v-if="!block?.componentName || block?.isRoot()" message="Select a block to edit properties" />
 		<div v-else class="flex flex-col gap-3">
 			<!-- props -->
-			<SectionContainer title="Props" v-if="!block.isContainer()">
-				<PropsEditor :block="block" />
+			<SectionContainer title="Props" v-show="filteredSections.includes('props')">
+				<PropsEditor ref="propsEditor" :block="block" />
 			</SectionContainer>
 
 			<!-- slots -->
-			<SectionContainer title="Slots" v-if="!isObjectEmpty(componentSlots)">
+			<SectionContainer title="Slots" v-show="filteredSections.includes('slots')">
 				<template #actions>
 					<Autocomplete
 						:options="componentSlots"
@@ -54,8 +54,9 @@
 
 			<!-- Visibility Condition -->
 			<CollapsibleSection
+				v-show="filteredSections.includes('visibility')"
 				sectionName="Visibility Condition"
-				:sectionCollapsed="!block?.hasVisibilityCondition()"
+				:sectionCollapsed="sections.visibility?.collapsed"
 			>
 				<template #actions>
 					<Button
@@ -80,8 +81,9 @@
 
 			<!-- attributes -->
 			<CollapsibleSection
+				v-show="filteredSections.includes('attributes')"
 				sectionName="Attributes"
-				:sectionCollapsed="isObjectEmpty(blockController.getAttributes())"
+				:sectionCollapsed="sections.attributes?.collapsed"
 			>
 				<ObjectEditor
 					ref="attributesEditor"
@@ -110,13 +112,16 @@ import Code from "@/components/Code.vue"
 import blockController from "@/utils/blockController"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
+import useStudioStore from "@/stores/studioStore"
 
 const props = defineProps<{
 	block?: Block
 }>()
 const getCompletions = useStudioCompletions()
+const studioStore = useStudioStore()
 
 const attributesEditor = ref<InstanceType<typeof ObjectEditor> | null>(null)
+const propsEditor = ref<InstanceType<typeof PropsEditor> | null>(null)
 
 const componentSlots = computed(() => {
 	if (!props.block || props.block.isRoot() || props.block.isContainer()) return []
@@ -132,4 +137,40 @@ const getSlotContent = (slot: Slot) => {
 	// hack to show the clear button for slot blocks
 	return " "
 }
+
+const sections: Record<string, { condition?: any; collapsed?: any; searchKeyWords: string }> = {
+	props: {
+		condition: computed(() => !props.block?.isContainer()),
+		searchKeyWords: "Props, Properties, Inputs",
+	},
+	slots: {
+		condition: computed(() => !isObjectEmpty(componentSlots.value)),
+		searchKeyWords: "Slots, Slot, Component Slots, Component Slot, Customize Template",
+	},
+	visibility: {
+		collapsed: computed(() => !props.block?.hasVisibilityCondition()),
+		searchKeyWords:
+			"Condition, Visibility, VisibilityCondition, Visibility Condition, show, hide, display, hideIf, showIf",
+	},
+	attributes: {
+		collapsed: computed(() => isObjectEmpty(blockController.getAttributes())),
+		searchKeyWords: "Attributes, CustomAttributes, Custom Attributes, HTML Attributes, Data Attributes",
+	},
+}
+
+const filteredSections = computed(() => {
+	let filtered = Object.keys(sections).filter((sectionName) => {
+		const hasCondition = sections[sectionName]?.condition
+		if (hasCondition && !hasCondition.value) return false
+
+		const filter = studioStore.propertyFilter?.toLowerCase()
+		if (!filter) return true
+
+		if (sectionName === "props" && propsEditor.value?.hasFilteredProps) {
+			return true
+		}
+		return sections[sectionName]?.searchKeyWords.toLowerCase().includes(filter) || false
+	})
+	return filtered
+})
 </script>
