@@ -925,12 +925,39 @@ def create_frappe_ui_template(info):
 			text=True,
 		)
 		if result.returncode == 0:
+			make_frappe_ui_boilerplate(app_path, info)
 			click.secho(f"Frappe UI is setup for the app {info.app_name} ", fg="green")
 		else:
 			click.secho("Something went wrong while fetching the template", fg="red")
 			print(result.stderr)
 	except ModuleNotFoundError:
 		click.secho(f"App {info.app_name} does not exist", fg="red")
+
+
+def make_frappe_ui_boilerplate(app_path, data):
+	boilerplate_path = os.path.join(app_path, "frontend", "boilerplate")
+	target_directory_map = {
+		"vite.config.js.tpl": os.path.join(app_path, "frontend"),
+		"router.ts.tpl": os.path.join(app_path, "frontend", "src"),
+	}
+	if os.path.exists(boilerplate_path):
+		for file in os.listdir(boilerplate_path):
+			make_boilerplate(boilerplate_path, file, target_directory_map[file], data)
+
+
+def make_boilerplate(boilerplate_path, file_name, target_directory, data):
+	from string import Template
+
+	target_file_name = file_name.replace(".tpl", "")
+	target_file_path = os.path.join(target_directory, target_file_name)
+	boilerplate_file_path = os.path.join(boilerplate_path, file_name)
+	template_content = None
+	with open(boilerplate_file_path) as source:
+		template_content = Template(source.read())
+
+	custom_content = template_content.substitute(app_name=data["app_name"], app_route=data["route"])
+	with open(target_file_path, "w") as target:
+		target.write(custom_content)
 
 
 @click.command("create-patch")
