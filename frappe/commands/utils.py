@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 import sys
 import typing
@@ -902,8 +903,6 @@ def validate_if_app_is_installed(app_name):
 def create_frappe_ui_template(info):
 	template_url = "sokumon/frappe-ui-starter"
 	template_dir = "frontend"
-	import os
-	import shutil
 
 	try:
 		app_path = os.path.dirname(frappe.get_app_path(info.app_name))
@@ -939,10 +938,12 @@ def make_frappe_ui_boilerplate(app_path, data):
 	target_directory_map = {
 		"vite.config.js.tpl": os.path.join(app_path, "frontend"),
 		"router.ts.tpl": os.path.join(app_path, "frontend", "src"),
+		"package.json.tpl": app_path,
 	}
 	if os.path.exists(boilerplate_path):
 		for file in os.listdir(boilerplate_path):
 			make_boilerplate(boilerplate_path, file, target_directory_map[file], data)
+	shutil.rmtree(boilerplate_path)
 
 
 def make_boilerplate(boilerplate_path, file_name, target_directory, data):
