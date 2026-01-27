@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-23 12:58\n"
+"PO-Revision-Date: 2026-01-27 13:32\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -4993,7 +4993,7 @@ msgstr "Script del Client"
 #: frappe/public/js/frappe/ui/messages.js:246
 #: frappe/website/js/bootstrap-4.js:24
 msgid "Close"
-msgstr "Vicino"
+msgstr "Chiudi"
 
 #. Label of a Code field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
