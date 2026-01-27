@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-22 12:50\n"
+"PO-Revision-Date: 2026-01-27 13:33\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -8954,7 +8954,7 @@ msgstr "E-post"
 #. Label of a Table field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Email IDs"
-msgstr "E-post ID"
+msgstr "E-post"
 
 #. Label of a Data field in DocType 'Contact Us Settings'
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:48
@@ -13881,7 +13881,7 @@ msgstr "Är Primär Adress"
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:49
 msgid "Is Primary Contact"
-msgstr "Är Primär Kontakt Person"
+msgstr "Är Primär Kontakt"
 
 #. Label of a Check field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
