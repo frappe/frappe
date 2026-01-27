@@ -676,7 +676,7 @@ def validate_auth():
     if frappe.request and hasattr(frappe.request, "path"):
         path = frappe.request.path or ""
         if "onlyoffice.save_document" in path:
-            frappe.logger().info("🔓 OnlyOffice callback - bypassing auth")
+            frappe.logger().info("🔓 OnlyOffice callback - bypassing auth ")
             frappe.set_user("Guest")
             return
 
