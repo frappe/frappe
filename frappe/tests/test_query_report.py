@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import frappe
-import frappe.utils
 from frappe.desk.query_report import build_xlsx_data, export_query, run
 from frappe.tests import IntegrationTestCase
 from frappe.utils.xlsxutils import make_xlsx
@@ -47,17 +46,17 @@ class TestQueryReport(IntegrationTestCase):
 
 		# Create mock data
 		data = create_mock_data()
-		data.filters = {"Label 1": "Filter Value", "Label 2": None, "Label 3": list(range(5))}
 
 		# Define the visible rows
 		visible_idx = [0, 2, 3]
 
 		# Build the result
-		xlsx_data, _column_widths, header_index = build_xlsx_data(
-			data, visible_idx, include_indentation=False, include_filters=True
+		xlsx_data, _column_widths, _ = build_xlsx_data(
+			data,
+			visible_idx,
+			include_indentation=False,
+			include_filters=True,
 		)
-
-		self.assertEqual(header_index, 3)  # 2 filter rows + 1 empty row
 
 		# Check if unset filters are skipped | Rows - 2 filters + 1 empty + 1 column + 3 data
 		self.assertEqual(len(xlsx_data), 7)
@@ -69,6 +68,7 @@ class TestQueryReport(IntegrationTestCase):
 		"""Test excel export using rows with composite cell value"""
 
 		data = frappe._dict()
+
 		data.columns = [
 			{"label": "Column A", "fieldname": "column_a", "fieldtype": "Float"},
 			{"label": "Column B", "fieldname": "column_b", "width": 150, "fieldtype": "Data"},
@@ -82,9 +82,9 @@ class TestQueryReport(IntegrationTestCase):
 		visible_idx = [0, 1]
 
 		# Build the result
-		xlsx_data, column_widths, header_index = build_xlsx_data(data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths, _ = build_xlsx_data(data, visible_idx, include_indentation=0)
 		# Export to excel
-		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths, header_index=header_index)
+		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
 
 		for row in xlsx_data:
 			# column_b should be 'str' even with composite cell value
@@ -285,15 +285,22 @@ data = columns, result
 
 def create_mock_data():
 	data = frappe._dict()
+	data.report_name = "Mock Report"
+
 	data.columns = [
 		{"label": "Column A", "fieldname": "column_a", "fieldtype": "Float"},
 		{"label": "Column B", "fieldname": "column_b", "width": 100, "fieldtype": "Float"},
 		{"label": "Column C", "fieldname": "column_c", "width": 150, "fieldtype": "Duration"},
 	]
+
 	data.result = [
 		[1.0, 3.0, 600],
 		{"column_a": 22.1, "column_b": 21.8, "column_c": 86412},
 		{"column_b": 5.1, "column_c": 53234, "column_a": 11.1},
 		[3.0, 1.5, 333],
 	]
+
+	data.filters = {"Label 1": "Filter Value", "Label 2": None, "Label 3": list(range(5))}
+	data._filters = {"label_1": "Filter Value", "label_2": None, "label_3": list(range(5))}
+
 	return data
