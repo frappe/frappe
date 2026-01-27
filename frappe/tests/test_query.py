@@ -2289,6 +2289,47 @@ class TestQuery(IntegrationTestCase):
 		# the filter should still apply and return no results
 		self.assertEqual(len(result), 0, "Filter should not be bypassed by shared doc OR condition")
 
+	def test_drop_unique_constraint_for_deleted_fields(self):
+		trial_dt = new_doctype(
+			"Trial Doctype",
+			fields=[
+				{
+					"fieldname": "field_one",
+					"fieldtype": "Data",
+					"label": "Field One",
+				},
+				{
+					"fieldname": "field_two",
+					"fieldtype": "Data",
+					"label": "Field Two",
+					"unique": 1,
+				},
+			],
+		)
+
+		trial_dt.insert(ignore_if_duplicate=True)
+
+		indexes = frappe.db.sql("""
+			SHOW INDEX FROM `tabTrial Doctype`
+			WHERE Column_name = 'field_two'
+		""")
+
+		self.assertTrue(indexes)
+
+		for field in trial_dt.fields:
+			if field.fieldname == "field_two":
+				trial_dt.fields.remove(field)
+				break
+
+		trial_dt.save()
+
+		indexes = frappe.db.sql("""
+			SHOW INDEX FROM `tabTrial Doctype`
+			WHERE Column_name = 'field_two'
+		""")
+
+		self.assertFalse(indexes)
+
 
 # This function is used as a permission query condition hook
 def test_permission_hook_condition(user):
