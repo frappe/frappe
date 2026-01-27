@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-23 12:59\n"
+"PO-Revision-Date: 2026-01-27 13:33\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -33195,7 +33195,7 @@ msgstr ""
 #. Count format of shortcut in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "{} Active"
-msgstr "{} Aktif"
+msgstr ""
 
 #: frappe/public/js/frappe/form/form.js:505
 msgid "{} Complete"
