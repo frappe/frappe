@@ -236,14 +236,7 @@ body.modal-open[style^="padding-right"] {
 	}
 }
 
-/* confirm dialog message */
-.frappe-confirm-message {
-	word-wrap: break-word;
-	margin: 0;
-	padding: 0;
-	line-height: 1.5;
-	max-width: 100%;
-}
+
 
 // used in CommunicationComposer
 .modal .to_section {
@@ -272,6 +265,15 @@ body.modal-open[style^="padding-right"] {
 			}
 		}
 	}
+}
+
+/* confirm dialog message */
+.frappe-confirm-message {
+	word-wrap: break-word;
+	margin: 0;
+	padding: 0;
+	line-height: 1.5;
+	max-width: 100%;
 }
 
 .modal [data-fieldname="email_template_section_break"] {
