@@ -419,6 +419,7 @@ const typographySectionProperties = [
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("fontWeight", val),
 		},
 		searchKeyWords: "Font, Weight, FontWeight",
+		allowDynamicValue: true,
 	},
 	{
 		component: InlineInput,
@@ -443,6 +444,7 @@ const typographySectionProperties = [
 		},
 		searchKeyWords: "Font, Size, FontSize",
 		condition: () => blockController.isText(),
+		allowDynamicValue: true,
 	},
 	{
 		component: InlineInput,
@@ -459,6 +461,7 @@ const typographySectionProperties = [
 		},
 		searchKeyWords: "Font, Height, LineHeight, Line Height",
 		condition: () => blockController.isText(),
+		allowDynamicValue: true,
 	},
 	{
 		component: InlineInput,
@@ -475,6 +478,7 @@ const typographySectionProperties = [
 		},
 		searchKeyWords: "Font, Letter, LetterSpacing, Letter Spacing",
 		condition: () => blockController.isText(),
+		allowDynamicValue: true,
 	},
 	{
 		component: InlineInput,
@@ -508,6 +512,7 @@ const typographySectionProperties = [
 		},
 		searchKeyWords: "Font, Transform, TextTransform, Text Transform, Capitalize, Uppercase, Lowercase",
 		condition: () => blockController.isText(),
+		allowDynamicValue: true,
 	},
 	{
 		component: OptionToggle,
@@ -544,6 +549,7 @@ const typographySectionProperties = [
 		},
 		searchKeyWords: "Font, Align, TextAlign, Text Align, Left, Center, Right, Justify",
 		condition: () => blockController.isText(),
+		allowDynamicValue: true,
 	},
 ]
 
