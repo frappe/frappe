@@ -59,6 +59,7 @@
   "lifespan_qrcode_image",
   "otp_issuer_name",
   "otp_sms_template",
+  "bypass_two_factor_auth_for_administrator",
   "password_tab",
   "password_settings",
   "logout_on_password_reset",
@@ -765,6 +766,14 @@
    "label": "OTP SMS Template"
   },
   {
+   "default": "1",
+   "depends_on": "enable_two_factor_auth",
+   "description": "If enabled, the Administrator user will not be required to use Two Factor Authentication",
+   "fieldname": "bypass_two_factor_auth_for_administrator",
+   "fieldtype": "Check",
+   "label": "Bypass Two Factor Auth for Administrator"
+  },
+  {
    "fieldname": "column_break_bzfr",
    "fieldtype": "Column Break"
   },
@@ -790,7 +799,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-01-02 18:13:45.430712",
+ "modified": "2026-01-27 11:08:45.430712",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

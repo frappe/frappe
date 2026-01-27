@@ -99,9 +99,21 @@ class TestTwoFactor(IntegrationTestCase):
 		"""Should return true if enabled for user."""
 		toggle_2fa_all_role(state=True)
 		self.assertTrue(two_factor_is_enabled_for_(self.user))
-		self.assertFalse(two_factor_is_enabled_for_("Administrator"))
 		toggle_2fa_all_role(state=False)
 		self.assertFalse(two_factor_is_enabled_for_(self.user))
+
+	def test_two_factor_for_administrator(self):
+		"""Test 2FA bypass setting for Administrator user."""
+		toggle_2fa_all_role(state=True)
+
+		frappe.db.set_single_value("System Settings", "bypass_two_factor_auth_for_administrator", 1)
+		self.assertFalse(two_factor_is_enabled_for_("Administrator"))
+
+		frappe.db.set_single_value("System Settings", "bypass_two_factor_auth_for_administrator", 0)
+		self.assertTrue(two_factor_is_enabled_for_("Administrator"))
+
+		frappe.db.set_single_value("System Settings", "bypass_two_factor_auth_for_administrator", 1)
+		toggle_2fa_all_role(state=False)
 
 	def test_get_otpsecret_for_user(self):
 		"""OTP secret should be set for user."""
