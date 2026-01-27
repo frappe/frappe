@@ -901,12 +901,22 @@ def validate_if_app_is_installed(app_name):
 
 def create_frappe_ui_template(info):
 	template_url = "sokumon/frappe-ui-starter"
+	template_dir = "frontend"
 	import os
+	import shutil
 
 	try:
 		app_path = os.path.dirname(frappe.get_app_path(info.app_name))
 		os.chdir(app_path)
-		command = f"npx degit {template_url} frontend"
+		if os.path.exists(os.path.join(app_path, template_dir)):
+			if click.confirm(f"Looks like there already is a {template_dir} dir, Do you want to delete it"):
+				shutil.rmtree(os.path.join(app_path, template_dir))
+				click.echo("Restarting initializing")
+				create_frappe_ui_template(info)
+			else:
+				click.echo(f"Delete the {template_dir} in apps/{info.app_name} directory to continue")
+			return
+		command = f"npx degit {template_url} {template_dir}"
 		result = subprocess.run(
 			command,
 			shell=True,
