@@ -583,7 +583,7 @@ def encode_dict(d, encoding="utf-8"):
 
 def decode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], str) and not isinstance(d[key], str):
+		if isinstance(d[key], bytes):
 			d[key] = d[key].decode(encoding, "ignore")
 	return d
 
