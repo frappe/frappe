@@ -127,10 +127,8 @@ frappe.PermissionEngine = class PermissionEngine {
 		});
 
 		// show standard permissions
-		let $d = $(d.wrapper)
-			.find(".frappe-confirm-message")
-			.append(`<hr><h5>${__("Standard Permissions")}:</h5><br>`);
-		let $wrapper = $("<p></p>").appendTo($d);
+		d.$body.append(`<hr><h5 class="mb-3">${__("Standard Permissions")}:</h5>`);
+		let $wrapper = $("<div></div>").appendTo(d.$body);
 		data.message.forEach((d) => {
 			let custom_rights = this.options.doctype_ptype_map[doctype] || [];
 			d.rights = this.rights
@@ -140,10 +138,10 @@ frappe.PermissionEngine = class PermissionEngine {
 					return __(toTitle(frappe.unscrub(r)));
 				});
 
-			$wrapper.append(`<div class="row">\
-				<div class="col-xs-5"><b>${__(d.role)}</b>, ${__("Level")} ${d.permlevel || 0}</div>\
-				<div class="col-xs-7">${d.rights}</div>\
-			</div><br>`);
+			$wrapper.append(`<div class="row mb-2">\
+				<div class="col-5"><b>${__(d.role)}</b>, ${__("Level")} ${d.permlevel || 0}</div>\
+				<div class="col-7">${d.rights.join(", ")}</div>\
+			</div>`);
 		});
 	}
 
