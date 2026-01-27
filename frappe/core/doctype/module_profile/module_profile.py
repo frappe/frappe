@@ -31,9 +31,17 @@ class ModuleProfile(Document):
 
 	def on_update(self):
 		self.clear_cache()
+		# Run synchronously during maintenance operations to avoid stale locks
+		# if migration fails after lock creation but before job completes
+		run_now = (
+			frappe.flags.in_test
+			or frappe.flags.in_install
+			or frappe.flags.in_migrate
+			or frappe.flags.in_fixtures
+		)
 		self.queue_action(
 			"update_all_users",
-			now=frappe.flags.in_test or frappe.flags.in_install,
+			now=run_now,
 			enqueue_after_commit=True,
 		)
 
