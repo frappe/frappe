@@ -58,7 +58,7 @@ import OptionToggle from "@/components/OptionToggle.vue"
 import useStudioStore from "@/stores/studioStore"
 import blockController from "@/utils/blockController"
 import { useEspressoTokens } from "@/utils/useEspressoTokens"
-import { CSSProperties, Ref, computed, ref } from "vue"
+import { CSSProperties, computed } from "vue"
 
 import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue"
 import BlockGridLayoutHandler from "@/components/BlockGridLayoutHandler.vue"
@@ -425,7 +425,7 @@ const typographySectionProperties = [
 			return {
 				label: "Color",
 				modelValue: blockController.getStyle("color"),
-				property: "color",
+				property: "textColor",
 			}
 		},
 		events: {
@@ -578,7 +578,7 @@ const styleSectionProperties = [
 			return {
 				label: "Text Color",
 				modelValue: blockController.getStyle("color"),
-				property: "color",
+				property: "textColor",
 			}
 		},
 		events: {

@@ -156,6 +156,7 @@ function getStudioComponentProps(componentInputs: ComponentInput[]): ComponentPr
 				input.type === "select"
 					? input.options?.split("\n").map((opt: string) => ({ value: opt, label: opt }))
 					: undefined,
+			props: input.type === "color" ? { showTokens: false } : {},
 		}
 	})
 	return _props

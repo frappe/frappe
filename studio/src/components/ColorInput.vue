@@ -48,7 +48,7 @@ const props = withDefaults(
 	defineProps<{
 		modelValue?: HashString | null
 		label?: string
-		property?: "backgroundColor" | "borderColor" | "color"
+		property?: "backgroundColor" | "borderColor" | "textColor"
 	}>(),
 	{
 		modelValue: null,

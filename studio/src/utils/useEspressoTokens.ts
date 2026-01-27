@@ -9,14 +9,13 @@ export const useEspressoTokens = (
 	property:
 		| "backgroundColor"
 		| "borderColor"
-		| "color"
 		| "boxShadow"
 		| "borderRadius"
 		| "textColor"
 		| "fontSize"
 		| "fontWeight"
 		| "lineHeight"
-		| "letterSpacing"
+		| "letterSpacing",
 ) => {
 	const colors = computed(() => {
 		const fontSizes = Object.keys(designTokens?.fontSize || {}).map((key) => {
@@ -28,9 +27,10 @@ export const useEspressoTokens = (
 		})
 
 		return {
-			backgroundColor: objToArray(designTokens?.backgroundColor?.surface as Record<string, string> | undefined),
+			backgroundColor: objToArray(
+				designTokens?.backgroundColor?.surface as Record<string, string> | undefined,
+			),
 			borderColor: objToArray(designTokens?.borderColor?.outline as Record<string, string> | undefined),
-			color: objToArray(designTokens?.textColor?.ink as Record<string, string> | undefined),
 			textColor: objToArray(designTokens?.textColor?.ink as Record<string, string> | undefined),
 			boxShadow: objToArray(designTokens?.boxShadow),
 			borderRadius: objToArray(designTokens?.borderRadius),
