@@ -99,6 +99,9 @@ def make_xlsx(
 			clean_row.append(cell)
 
 		ws.append(clean_row)
+		ws.oddFooter.right.text = f"Downloaded on: &D &T" 
+		ws.oddFooter.right.size = 10
+		ws.oddFooter.right.font = "Calibri"
 
 	xlsx_file = BytesIO()
 	wb.save(xlsx_file)
