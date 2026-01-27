@@ -425,7 +425,7 @@ function getRGB(color: HashString | RGBString | string | null): HashString | nul
 	return color as HashString;
 }
 
-function isColorToken(tokenString?: string) {
+function isColorToken(tokenString?: string | null) {
 	return tokenString?.startsWith("var(--")
 }
 
