@@ -163,6 +163,9 @@ const blockController = {
 	isText: () => {
 		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isText();
 	},
+	isContainer: () => {
+		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isContainer();
+	}
 }
 
 export default blockController

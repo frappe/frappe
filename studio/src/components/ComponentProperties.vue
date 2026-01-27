@@ -3,7 +3,7 @@
 		<EmptyState v-if="!block?.componentName || block?.isRoot()" message="Select a block to edit properties" />
 		<div v-else class="flex flex-col gap-3">
 			<!-- props -->
-			<SectionContainer title="Props">
+			<SectionContainer title="Props" v-if="!block.isContainer()">
 				<PropsEditor :block="block" />
 			</SectionContainer>
 
@@ -53,7 +53,10 @@
 			</SectionContainer>
 
 			<!-- Visibility Condition -->
-			<CollapsibleSection sectionName="Visibility Condition" :sectionCollapsed="!block?.hasVisibilityCondition()">
+			<CollapsibleSection
+				sectionName="Visibility Condition"
+				:sectionCollapsed="!block?.hasVisibilityCondition()"
+			>
 				<template #actions>
 					<Button
 						v-if="block?.hasVisibilityCondition()"
@@ -76,7 +79,10 @@
 			</CollapsibleSection>
 
 			<!-- attributes -->
-			<CollapsibleSection sectionName="Attributes" :sectionCollapsed="isObjectEmpty(blockController.getAttributes())">
+			<CollapsibleSection
+				sectionName="Attributes"
+				:sectionCollapsed="isObjectEmpty(blockController.getAttributes())"
+			>
 				<ObjectEditor
 					ref="attributesEditor"
 					:obj="blockController.getAttributes() || {}"
