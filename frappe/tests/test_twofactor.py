@@ -107,12 +107,15 @@ class TestTwoFactor(IntegrationTestCase):
 		toggle_2fa_all_role(state=True)
 
 		frappe.db.set_single_value("System Settings", "bypass_two_factor_auth_for_administrator", 1)
+		frappe.clear_cache()
 		self.assertFalse(two_factor_is_enabled_for_("Administrator"))
 
 		frappe.db.set_single_value("System Settings", "bypass_two_factor_auth_for_administrator", 0)
+		frappe.clear_cache()
 		self.assertTrue(two_factor_is_enabled_for_("Administrator"))
 
 		frappe.db.set_single_value("System Settings", "bypass_two_factor_auth_for_administrator", 1)
+		frappe.clear_cache()
 		toggle_2fa_all_role(state=False)
 
 	def test_get_otpsecret_for_user(self):
