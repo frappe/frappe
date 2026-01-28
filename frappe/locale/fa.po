@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-21 10:33\n"
+"PO-Revision-Date: 2026-01-28 13:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -9230,7 +9230,7 @@ msgstr "تاریخ پایان نمی‌تواند قبل از تاریخ شرو�
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:141
 msgid "End Date cannot be today."
-msgstr ""
+msgstr "تاریخ پایان نمی‌تواند امروز باشد."
 
 #. Label of a Datetime field in DocType 'RQ Job'
 #. Label of a Datetime field in DocType 'Submission Queue'
@@ -11659,7 +11659,7 @@ msgstr "کلاس شیء گروهی"
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Group your custom doctypes under modules"
-msgstr "Doctype های سفارشی خود را در زیر ماژول ها گروه بندی کنید"
+msgstr "Doctype های سفارشی خود را در زیر ماژول‌ها گروه بندی کنید"
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:428
 msgid "Grouped by <span style='font-weight:600;'>{0}</b>"
@@ -32502,7 +32502,7 @@ msgstr "{0} یک فایل فشرده نیست"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:182
 msgid "{0} is not an allowed role for {1}"
-msgstr ""
+msgstr "{0} نقشی مجاز برای {1} نیست"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1445
 msgid "{0} is not equal to {1}"
