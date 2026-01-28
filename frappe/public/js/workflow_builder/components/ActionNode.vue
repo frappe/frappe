@@ -115,7 +115,6 @@ function openTaskConfig(task, index) {
 
 	// Get fields from the store (already fetched for the main document)
 	// Filter for fields that are of type 'Email' using the metadata.
-	console.log(store.workflow_doc_fields);
 	const receiver_options = store.workflow_doc_fields
 		.filter(f => f.options == 'Email')
 		.map(f => ({
