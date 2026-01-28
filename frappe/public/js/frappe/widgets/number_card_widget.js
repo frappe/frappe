@@ -189,7 +189,12 @@ export default class NumberCardWidget extends Widget {
 	get_number_for_custom_card(res) {
 		if (typeof res === "object") {
 			this.number = res.value;
-			this.set_formatted_number(res);
+			// Support pre-formatted number from server (e.g., with thousands separators)
+			if (res.formatted_number) {
+				this.formatted_number = res.formatted_number;
+			} else {
+				this.set_formatted_number(res);
+			}
 		} else {
 			this.formatted_number = res;
 		}
@@ -273,6 +278,11 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	render_stats() {
+		// Support stats for Custom cards that provide stats data in response
+		if (this.card_doc.type === "Custom" && this.data?.show_percentage_stats && this.card_doc.show_percentage_stats) {
+			return this.render_stats_for_custom_card();
+		}
+
 		if (this.card_doc.type !== "Document Type" || !this.card_doc.show_percentage_stats) {
 			return;
 		}
@@ -319,6 +329,39 @@ export default class NumberCardWidget extends Widget {
 				</span>
 			</div>`);
 		});
+	}
+
+	render_stats_for_custom_card() {
+		let caret_html = "";
+		let color_class = "grey-stat";
+		const stat = this.data.percentage_stat || 0;
+
+		if (stat > 0) {
+			caret_html = `<span class="indicator-pill-round green">
+				${frappe.utils.icon("es-line-arrow-up-right", "xs")}
+			</span>`;
+			color_class = "green-stat";
+		} else if (stat < 0) {
+			caret_html = `<span class="indicator-pill-round red">
+				${frappe.utils.icon("arrow-down-right", "xs")}
+			</span>`;
+			color_class = "red-stat";
+		}
+
+		const stats_qualifier_map = {
+			Daily: __("since yesterday"),
+			Weekly: __("since last week"),
+			Monthly: __("since last month"),
+			Yearly: __("since last year"),
+		};
+		const interval = this.data.stats_time_interval || this.card_doc.stats_time_interval || "Daily";
+		const stats_qualifier = stats_qualifier_map[interval];
+
+		$(this.body).find(".widget-content").append(`<div class="card-stats ${color_class}">
+			<span class="percentage-stat-area">
+				${caret_html} ${Math.abs(stat)} % ${stats_qualifier}
+			</span>
+		</div>`);
 	}
 
 	get_percentage_stats() {
