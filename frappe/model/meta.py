@@ -331,6 +331,8 @@ class Meta(Document):
 			search_fields.append("name")
 		if "idx" not in search_fields:
 			search_fields.append("idx")
+		if "creation" not in search_fields:
+			search_fields.append("creation")
 
 		return search_fields
 
