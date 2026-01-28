@@ -441,6 +441,8 @@ class DesktopPage {
 				},
 			},
 		];
+		if (frappe.ui.desktop_menu_items && frappe.ui.desktop_menu_items.length)
+			menu_items = [...menu_items, ...frappe.ui.desktop_menu_items];
 		frappe.ui.create_menu({
 			parent: $(".desktop-avatar"),
 			menu_items: menu_items,
