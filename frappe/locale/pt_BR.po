@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-21 10:33\n"
+"PO-Revision-Date: 2026-01-28 13:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -5496,7 +5496,7 @@ msgstr "Conexão perdida. Alguns recursos podem não funcionar."
 #: frappe/core/doctype/user/user.json
 #: frappe/public/js/frappe/form/dashboard.js:54
 msgid "Connections"
-msgstr ""
+msgstr "Conexões"
 
 #. Label of a Code field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
@@ -8650,7 +8650,7 @@ msgstr ""
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 #: frappe/www/login.html:7 frappe/www/login.py:104
 msgid "Email"
-msgstr ""
+msgstr "E-Mail"
 
 #. Label of a Link in the Tools Workspace
 #. Label of a Link field in DocType 'Communication'
@@ -11180,7 +11180,7 @@ msgstr ""
 #: frappe/contacts/doctype/gender/gender.json
 #: frappe/core/doctype/user/user.json
 msgid "Gender"
-msgstr "Sexo"
+msgstr "Gênero"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:32
 msgid "Genderqueer"
@@ -15999,7 +15999,7 @@ msgstr ""
 #: frappe/tests/test_translate.py:89 frappe/tests/test_translate.py:91
 #: frappe/tests/test_translate.py:94
 msgid "Mobile No"
-msgstr "Telefone Celular"
+msgstr "Celular"
 
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
@@ -20045,7 +20045,7 @@ msgstr "Ocultar Impressão se não Preenchido"
 
 #: frappe/public/js/frappe/views/communication.js:179
 msgid "Print Language"
-msgstr ""
+msgstr "Idioma de Impressão"
 
 #: frappe/public/js/frappe/form/print_utils.js:234
 msgid "Print Sent to the printer!"
@@ -24787,7 +24787,7 @@ msgstr "Ordenar campo {0} deve ser um nome do campo válido"
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json
 #: frappe/website/report/website_analytics/website_analytics.js:38
 msgid "Source"
-msgstr "Fonte"
+msgstr "Origem"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Source Code"
@@ -25033,7 +25033,7 @@ msgstr ""
 #: frappe/contacts/doctype/address/address.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "State/Province"
-msgstr "Estado / Província"
+msgstr "Estado"
 
 #. Label of a Table field in DocType 'DocType'
 #. Label of a Table field in DocType 'Customize Form'
@@ -25125,7 +25125,7 @@ msgstr "Estatísticas com base no desempenho da semana passada (de {0} a {1})"
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 msgid "Status"
-msgstr ""
+msgstr "Situação"
 
 #: frappe/www/update-password.html:161
 msgid "Status Updated"
@@ -28016,7 +28016,7 @@ msgstr ""
 #: frappe/email/doctype/email_group_member/email_group_member.json
 #: frappe/email/queue.py:123
 msgid "Unsubscribed"
-msgstr "Inscrição Cancelada"
+msgstr "Descadastrado"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:72
 msgid "Untitled Column"
@@ -30984,7 +30984,7 @@ msgstr "ejetar"
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 #: frappe/website/doctype/social_link_settings/social_link_settings.json
 msgid "email"
-msgstr ""
+msgstr "E-Mail"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:305
 msgid "email inbox"
