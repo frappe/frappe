@@ -99,8 +99,10 @@ def application(request: Request):
 	response = None
 
 	try:
-		init_request(request)
+		if request.path == "/_healthcheck" and request.method == "GET":
+			return handle_health_check(request)
 
+		init_request(request)
 		validate_auth()
 
 		if request.method == "OPTIONS":
@@ -531,3 +533,26 @@ def application_with_statics():
 	application = StaticDataMiddleware(application, {"/files": str(os.path.abspath(_sites_path))})
 
 	return application
+
+
+def handle_health_check(request):
+	"""Handle health check requests without requiring site initialization.
+
+	This endpoint is useful for load balancers and monitoring systems to verify
+	that the Frappe application is running and responsive.
+	"""
+
+	import json
+
+	from frappe.utils.health_check import HealthChecker
+
+	# Just to make other code work, not essential for health check
+	frappe.local.request = request
+	frappe.local.request.after_response = CallbackManager()
+
+	frappe.init(site="")  # Empty init is required to make rest of the things work
+
+	result, status_code = HealthChecker().run_health_checks()
+
+	response = Response(json.dumps(result), status=status_code, mimetype="application/json")
+	return response

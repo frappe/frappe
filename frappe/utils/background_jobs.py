@@ -569,10 +569,7 @@ def validate_queue(queue: str, default_queue_list: list | None = None) -> None:
 	reraise=True,
 )
 def get_redis_conn(username=None, password=None):
-	if not hasattr(frappe.local, "conf"):
-		raise Exception("You need to call frappe.init")
-
-	conf = frappe.get_site_config()
+	conf = frappe.conf
 	if not conf.redis_queue:
 		raise Exception("redis_queue missing in common_site_config.json")
 

@@ -202,7 +202,9 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	if not cache or not client_cache:
 		setup_redis_cache_connection()
 
-	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
+	setup_module_map(
+		include_all_apps=not site or not (frappe.request or frappe.job or frappe.flags.in_migrate)
+	)
 
 	local.initialised = True
 
