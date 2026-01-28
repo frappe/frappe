@@ -167,6 +167,7 @@ class DesktopPage {
 	constructor(page) {
 		this.page = page;
 		this.edit_mode = false;
+		this.desktop_menu_items = [];
 		this.make(this.page);
 		this.setup();
 	}
@@ -263,6 +264,7 @@ class DesktopPage {
 	}
 
 	setup() {
+		$(document).trigger("desktop_screen", { desktop: this });
 		this.setup_avatar();
 		this.setup_notifications();
 		this.setup_navbar();
@@ -441,6 +443,8 @@ class DesktopPage {
 				},
 			},
 		];
+		if (this.desktop_menu_items && this.desktop_menu_items.length)
+			menu_items = [...menu_items, ...this.desktop_menu_items];
 		frappe.ui.create_menu({
 			parent: $(".desktop-avatar"),
 			menu_items: menu_items,
@@ -448,6 +452,9 @@ class DesktopPage {
 			// if it's LTR, we want it to open on the left (true).
 			open_on_left: !frappe.utils.is_rtl(),
 		});
+	}
+	add_menu_item(item) {
+		this.desktop_menu_items.push(item);
 	}
 	setup_navbar() {
 		$(".sticky-top > .navbar").hide();
