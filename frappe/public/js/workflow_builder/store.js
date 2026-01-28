@@ -139,62 +139,69 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		fetch();
 	}
 
+	async function update_transition_tasks() {
+		// Persist Transition Tasks first
+		for (const element of workflow.value.elements) {
+			if (element.type === 'action') {
+				const doc_name = workflow_name.value + "-" + element.data.action;
+
+				if (element.data.action && ((element.data.tasks && element.data.tasks.length > 0) || element.data.transition_tasks)) {
+					let doc_exists;
+					let is_new = true;
+
+					doc_exists = await frappe.db.get_value("Workflow Transition Tasks", doc_name, "name");
+
+					if (doc_exists && doc_exists.message.name) {
+						is_new = false;
+					}
+
+					// Map tasks to backend format
+					const tasks_payload = (element.data.tasks || []).map(t => ({
+						task: t.task,
+						email_template: t.email_template,
+						receiver_by_document_field: t.receiver_by_document_field
+					}));
+
+					if (is_new) {
+						if (element.data.tasks && element.data.tasks.length > 0) {
+							frappe.call({
+								method: "frappe.client.insert",
+								args: {
+									doc: {
+										name: doc_name,
+										doctype: "Workflow Transition Tasks",
+										tasks: tasks_payload
+									}
+								},
+								async: false,
+							});
+							element.data.transition_tasks = doc_name;
+						}
+					} else {
+						let doc = await frappe.db.get_doc("Workflow Transition Tasks", doc_name);
+						doc.tasks = tasks_payload;
+
+						await frappe.call({
+							method: "frappe.client.save",
+							args: { doc: doc },
+							async: false,
+						});
+						element.data.transition_tasks = doc_name;
+					}
+				}
+			}
+		}
+	}
+
 	async function save_changes() {
 		frappe.dom.freeze(__("Saving..."));
 
 		try {
-			// Persist Transition Tasks first
-			for (const element of workflow.value.elements) {
-				if (element.type === 'action') {
-					const doc_name = workflow_name.value + "-" + element.data.action;
-
-					if (element.data.action && ((element.data.tasks && element.data.tasks.length > 0) || element.data.transition_tasks)) {
-						let doc;
-						let is_new = false;
-
-						try {
-							doc = await frappe.db.get_doc("Workflow Transition Tasks", doc_name);
-						} catch (e) {
-							is_new = true;
-						}
-
-						// Map tasks to backend format
-						const tasks_payload = (element.data.tasks || []).map(t => ({
-							task: t.task,
-							email_template: t.email_template,
-							receiver_by_document_field: t.receiver_by_document_field
-						}));
-
-						if (is_new) {
-							if (element.data.tasks && element.data.tasks.length > 0) {
-								await frappe.call({
-									method: "frappe.client.insert",
-									args: {
-										doc: {
-											name: doc_name,
-											doctype: "Workflow Transition Tasks",
-											tasks: tasks_payload
-										}
-									}
-								});
-								element.data.transition_tasks = doc_name;
-							}
-						} else {
-							doc.tasks = tasks_payload;
-							await frappe.call({
-								method: "frappe.client.save",
-								args: { doc: doc }
-							});
-							element.data.transition_tasks = doc_name;
-						}
-					}
-				}
-			}
-
 			let doc = workflow_doc.value;
 			doc.states = get_updated_states();
 			doc.transitions = get_updated_transitions();
 			validate_workflow(doc);
+			await update_transition_tasks();
 			const workflow_data = clean_workflow_data();
 			doc.workflow_data = JSON.stringify(workflow_data);
 			await frappe.call("frappe.client.save", { doc });
