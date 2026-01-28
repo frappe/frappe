@@ -641,35 +641,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const me = this;
 		let filter_no = this.filter_row_length - 1;
 		if (this.filters[filter_no]) {
-<<<<<<< HEAD
 			this.$collapse_button = $(`<div>${frappe.utils.icon("chevron-down", "md")}</div>`);
 			$(this.filters[filter_no].wrapper).append(this.$collapse_button);
 			$(this.filters[filter_no].wrapper).css("display", "flex");
 			$(this.filters[filter_no].wrapper).css("align-items", "center");
 			$(this.filters[filter_no].wrapper).css("gap", "5px");
-=======
-			this.$collapse_button = $(
-				`<div class='btn btn-xs btn-secondary collapsible-filters'>${frappe.utils.icon(
-					"chevron-down"
-				)}</div>`
-			);
-			$(this.filters[filter_no].wrapper).append(this.$collapse_button);
-			$(this.filters[filter_no].wrapper).css("display", "flex");
-			$(this.filters[filter_no].wrapper).css("align-items", "center");
-			$(this.filters[filter_no].wrapper).css("gap", "16px");
-<<<<<<< HEAD
-			if ($(this.filters[filter_no].wrapper).find("select")) {
-				$(this.filters[filter_no].wrapper)
-					.find(".select-icon")
-					.css(
-						"left",
-						$(this.filters[filter_no].wrapper).find("select").width() + 18 + "px"
-					);
-			}
->>>>>>> ed7f78cf0d (fix(report_view): handle select filters correctly)
-=======
 			this.handle_filter_styles($(this.filters[filter_no].wrapper));
->>>>>>> 8c3177ea6e (fix(report_view): multiselect filter)
 			this.$collapse_button.on("click", function () {
 				me.toggle_filter_visiblity();
 			});
