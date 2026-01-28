@@ -919,7 +919,9 @@ class Engine:
 							self.query = child_field_handler.apply_join(self.query, engine=self)
 							return child_field_handler.field
 
-				self._check_field_permission(target_doctype, target_fieldname, parent_doctype_for_perm)
+				permission_type = self.get_permission_type(doctype, parent_doctype)
+				if permission_type != "select":
+					self._check_field_permission(target_doctype, target_fieldname, parent_doctype_for_perm)
 				# Convert string field name to pypika Field object for the specified/current doctype
 				return frappe.qb.DocType(target_doctype)[target_fieldname]
 
