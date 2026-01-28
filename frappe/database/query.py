@@ -951,7 +951,7 @@ class Engine:
 		if fieldname not in permitted_fields:
 			frappe.throw(
 				_("You do not have permission to access field: {0}").format(
-					frappe.bold(f"{doctype}.{fieldname}")
+					frappe.bold(f"{doctype}.{fieldname} {permitted_fields} {permission_type}")
 				),
 				frappe.PermissionError,
 				title=_("Permission Error"),
