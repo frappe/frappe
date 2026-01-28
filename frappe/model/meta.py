@@ -329,6 +329,8 @@ class Meta(Document):
 		search_fields = [d.strip() for d in search_fields.split(",")]
 		if "name" not in search_fields:
 			search_fields.append("name")
+		if "idx" not in search_fields:
+			search_fields.append("idx")
 
 		return search_fields
 
