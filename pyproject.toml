@@ -32,7 +32,7 @@ dependencies = [
 =======
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.1",
-    "WeasyPrint>=68.0",
+    "WeasyPrint==66.0",
     "pydyf==0.12.1",
     "Werkzeug==3.1.5",
 >>>>>>> deb4ae4e65 (fix(security): require WeasyPrint >= 68.0 to address CVE-2025-68616)
