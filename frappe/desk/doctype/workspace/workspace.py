@@ -307,7 +307,8 @@ def new_page(new_page):
 	# add to workspace sidebar items
 	if not doc.public:
 		add_to_my_workspace(doc)
-	return {"workspace_pages": get_workspace_sidebar_items(), "sidebar_items": get_sidebar_items()}
+	workspaces = get_workspace_sidebar_items()
+	return {"workspace_pages": workspaces, "sidebar_items": get_sidebar_items(workspaces)}
 
 
 @frappe.whitelist()

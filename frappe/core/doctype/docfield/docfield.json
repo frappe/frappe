@@ -72,6 +72,7 @@
   "mandatory_depends_on",
   "read_only_depends_on",
   "display",
+  "alignment",
   "print_width",
   "width",
   "max_height",
@@ -474,6 +475,13 @@
    "label": "Read Only Depends On (JS)",
    "max_height": "3rem",
    "options": "JS"
+  },
+  {
+   "depends_on": "eval:in_list([\"Data\", \"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "fieldname": "alignment",
+   "fieldtype": "Select",
+   "label": "Alignment",
+   "options": "\nLeft\nCenter\nRight"
   },
   {
    "fieldname": "column_break_38",

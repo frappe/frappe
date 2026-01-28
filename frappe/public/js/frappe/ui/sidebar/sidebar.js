@@ -113,7 +113,11 @@ frappe.ui.Sidebar = class Sidebar {
 	setup_events() {
 		const me = this;
 		frappe.router.on("change", function (router) {
-			frappe.app.sidebar.set_workspace_sidebar(router);
+			if (frappe.route_options.sidebar) {
+				frappe.app.sidebar.setup(frappe.route_options.sidebar);
+			} else {
+				frappe.app.sidebar.set_workspace_sidebar(router);
+			}
 		});
 		$(document).on("page-change", function () {
 			frappe.app.sidebar.toggle();
@@ -171,7 +175,7 @@ frappe.ui.Sidebar = class Sidebar {
 		if (active_section) {
 			let section = this.get_item(active_section);
 			if (section) {
-				if (section.collapsed) {
+				if (this.sidebar_expanded && section.collapsed) {
 					section.open();
 				}
 			}

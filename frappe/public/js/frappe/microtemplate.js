@@ -187,9 +187,6 @@ frappe.render_pdf = function (html, opts = {}) {
 
 	//Push the HTML content into an element
 	formData.append("html", html);
-	if (opts.doctype) {
-		formData.append("doctype", opts.doctype);
-	}
 	if (opts.orientation) {
 		formData.append("orientation", opts.orientation);
 	}

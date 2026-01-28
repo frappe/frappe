@@ -88,14 +88,20 @@ frappe.ui.get_print_settings = function (
 	return frappe.prompt(
 		columns,
 		function (settings) {
-			settings = $.extend({}, print_settings, settings);
+			settings = $.extend(print_settings, settings);
 
 			if (!settings.with_letter_head) {
 				settings.letter_head = null;
-			}
-
-			if (settings.letter_head) {
-				settings.letter_head = frappe.boot.letter_heads[print_settings.letter_head];
+				settings.letter_head_name = null;
+			} else {
+				const letter_head_name =
+					settings.letter_head ||
+					settings.letter_head_name ||
+					print_settings.letter_head;
+				if (letter_head_name) {
+					settings.letter_head_name = letter_head_name;
+					settings.letter_head = frappe.boot.letter_heads[letter_head_name];
+				}
 			}
 
 			if (settings.print_format) {
@@ -104,6 +110,10 @@ frappe.ui.get_print_settings = function (
 			}
 
 			callback(settings);
+			// clean up print format to avoid affecting next print
+			if (settings.print_format) {
+				settings.print_format = null;
+			}
 		},
 		__("Print Settings")
 	);

@@ -72,6 +72,17 @@
 						</div>
 						<button class="btn btn-primary btn-sm hide primary-action"></button>
 					</div>
+					{% if (frappe.boot.read_only) { %}
+					<span class="ml-3 indicator-pill yellow no-indicator-dot read-only-banner" title="{%= __(" Your site is undergoing
+						maintenance or being updated.") %}">
+						{%= __("Read Only Mode") %}
+					</span>
+					{% } %}
+					{% if (frappe.boot.user.impersonated_by) { %}
+					<span class="ml-3 indicator-pill red no-indicator-dot" title="{%= __(" You are impersonating as another user.") %}">
+						{%= __("Impersonating {0}", [frappe.boot.user.name]) %}
+					</span>
+					{% } %}
 				</div>
 			</div>
 		</div>

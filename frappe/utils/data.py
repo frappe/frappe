@@ -524,7 +524,7 @@ def get_first_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date
 	return date.strftime(DATE_FORMAT) if as_str else date
 
 
-def get_week_start_offset_days(dt):
+def get_week_start_offset_days(dt: datetime.date | datetime.datetime) -> int:
 	current_day_index = get_normalized_weekday_index(dt)
 	start_of_week_index = get_start_of_week_index()
 
@@ -534,7 +534,7 @@ def get_week_start_offset_days(dt):
 		return 7 - (start_of_week_index - current_day_index)
 
 
-def get_normalized_weekday_index(dt):
+def get_normalized_weekday_index(dt: datetime.date | datetime.datetime) -> int:
 	# starts Sunday with 0
 	return (dt.weekday() + 1) % 7
 
@@ -832,7 +832,7 @@ def format_duration(seconds: float | int, hide_days: bool = False) -> str:
 	return duration
 
 
-def duration_to_seconds(duration):
+def duration_to_seconds(duration: str) -> int:
 	"""Convert the given duration formatted value to duration value in seconds.
 
 	example: convert '3h 34m 45s' to 12885 (value in seconds)
@@ -862,7 +862,7 @@ def duration_to_seconds(duration):
 	return value
 
 
-def validate_duration_format(duration):
+def validate_duration_format(duration: str) -> None:
 	if not DURATION_PATTERN.match(duration):
 		frappe.throw(
 			frappe._("Value {0} must be in the valid duration format: d h m s").format(frappe.bold(duration))

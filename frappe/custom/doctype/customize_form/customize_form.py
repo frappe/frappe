@@ -768,6 +768,7 @@ docfield_properties = {
 	"permlevel": "Int",
 	"width": "Data",
 	"print_width": "Data",
+	"alignment": "Select",
 	"non_negative": "Check",
 	"reqd": "Check",
 	"unique": "Check",

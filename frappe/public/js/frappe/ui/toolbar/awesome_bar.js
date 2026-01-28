@@ -110,6 +110,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				if (d.type == "Desktop Icon") {
 					target = frappe.utils.get_route_for_icon(d.icon_data);
 					d.route = target;
+					d.route_options = {
+						sidebar: d.icon_data.label,
+					};
 				}
 				let html = `<span>${__(d.label || d.value)}</span>`;
 
