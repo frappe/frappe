@@ -1,7 +1,8 @@
 # Copyright (c) 2021, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-# import frappe
+import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
@@ -32,4 +33,21 @@ class WorkspaceLink(Document):
 		type: DF.Literal["Link", "Card Break"]
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		"""Validate workspace link fields"""
+		self.validate_card_break()
+		self.validate_link_fields()
+
+	def validate_card_break(self):
+		"""Card Break doesn't need link_to or link_type"""
+		if self.type == "Card Break":
+			self.link_to = None
+			self.link_type = None
+			self.is_query_report = 0
+
+	def validate_link_fields(self):
+		"""Ensure link_to is present for non-Card Break types"""
+		if self.type != "Card Break" and not self.link_to:
+			frappe.throw(
+				_("Link To is mandatory for type {0}").format(self.type), title=_("Mandatory Field Missing")
+			)
