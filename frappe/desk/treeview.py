@@ -39,11 +39,16 @@ def get_children(doctype, parent="", **filters):
 	return _get_children(doctype, parent)
 
 
+<<<<<<< HEAD
 def _get_children(doctype, parent="", ignore_permissions=False):
 	parent_field = "parent_" + frappe.scrub(doctype)
 	filters = [[f"ifnull(`{parent_field}`,'')", "=", parent], ["docstatus", "<", 2]]
 
+=======
+def _get_children(doctype, parent="", ignore_permissions=False, include_disabled=False):
+>>>>>>> af8e132e47 (fix: custom parent field in tree (#35860))
 	meta = frappe.get_meta(doctype)
+	parent_field = meta.get("nsm_parent_field") or "parent_" + frappe.scrub(doctype)
 
 	return frappe.get_list(
 		doctype,
