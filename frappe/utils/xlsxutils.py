@@ -430,7 +430,8 @@ def make_xlsx(
 		data: List of rows, where each row is a list of cell values
 		sheet_name: Name of the Excel sheet
 		wb: Existing workbook to add sheet to. If None, creates new workbook
-			- Note: Workbook must be closed by caller if provided
+			- Workbook must be closed by caller if provided
+			- Should be created with constant_memory=True for large datasets
 		column_widths: List of column widths in Excel units. If None, auto-sized
 		styles: Dictionary defining styles for cells, rows, and columns
 			- styles: list of style dicts
@@ -450,7 +451,7 @@ def make_xlsx(
 
 	if created_wb:
 		xlsx_file = BytesIO()
-		wb = xlsxwriter.Workbook(xlsx_file, {"in_memory": True})
+		wb = xlsxwriter.Workbook(xlsx_file, {"constant_memory": True})
 
 	# sanitize sheet name
 	sheet_name_sanitized = INVALID_TITLE_REGEX.sub(" ", sheet_name)
@@ -500,7 +501,7 @@ def make_xlsx(
 		ws.set_column(col_idx, col_idx, cell_format=get_format(ids))
 
 	# row level styles
-	for row_idx, ids in row_style_ids.items():
+	for row_idx, ids in sorted(row_style_ids.items()):
 		ws.set_row(row_idx, cell_format=get_format(ids))
 
 	# priority: column < row < cell (later in tuple = higher priority)
