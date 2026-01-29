@@ -252,6 +252,11 @@ frappe.views.Calendar = class Calendar {
 		defaults.meridiem = "false";
 		this.cal_options = {
 			locale: frappe.boot.lang,
+			eventTimeFormat: {
+				hour: "numeric",
+				minute: "2-digit",
+				hour12: true,
+			},
 			header: {
 				left: "prev, title, next",
 				right: "today, month, agendaWeek, agendaDay",
