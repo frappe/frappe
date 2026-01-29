@@ -5,7 +5,7 @@
 	--dt-light-yellow: var(--yellow-50);
 	--dt-orange: var(--orange-500);
 	--dt-text-color: var(--text-muted);
-	--dt-text-light: var(--text-light);
+	--dt-text-light: var(--neutral-white);
 	--dt-spacer-1: 0.25rem;
 	--dt-spacer-2: var(--padding-xs);
 	--dt-spacer-3: 1rem;
@@ -51,6 +51,7 @@
 		.dt-row[data-is-filter] {
 			display: flex !important;
 		}
+
 		.dt-row-header {
 			background-color: var(--subtle-fg);
 		}
@@ -185,6 +186,7 @@ table td.dt-cell {
 	0% {
 		background-color: transparent;
 	}
+
 	// 50% {
 	// 	background-color: $extra-light-yellow;
 	// }
