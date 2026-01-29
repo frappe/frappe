@@ -32609,3 +32609,7 @@ msgstr ""
 msgid "← Back to upload files"
 msgstr ""
 
+#: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:36
+msgid "Search or type a command"
+msgstr "Tìm kiếm hoặc nhập lệnh"
+
