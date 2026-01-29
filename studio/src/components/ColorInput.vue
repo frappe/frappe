@@ -9,15 +9,6 @@
 			<div class="flex items-center justify-between">
 				<InputLabel v-if="label">{{ label }}</InputLabel>
 				<div class="relative w-full">
-					<div
-						class="absolute left-2 top-[6px] z-10 h-4 w-4 rounded shadow-sm"
-						@click="togglePopover"
-						:style="{
-							background: modelValue
-								? modelValue
-								: `url(/assets/builder/images/color-circle.png) center / contain`,
-						}"
-					></div>
 					<Input
 						type="text"
 						class="[&>div>input]:pl-8"
@@ -30,7 +21,19 @@
 								emit('update:modelValue', value)
 							}
 						"
-					/>
+					>
+						<template #prefix>
+							<div
+								class="h-4 w-4 rounded shadow-sm"
+								@click="togglePopover"
+								:style="{
+									background: modelValue
+										? modelValue
+										: `url(/assets/studio/frontend/color-circle.png) center / contain`,
+								}"
+							></div>
+						</template>
+					</Input>
 				</div>
 			</div>
 		</template>
