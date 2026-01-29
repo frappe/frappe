@@ -80,6 +80,18 @@ class DesktopIcon(Document):
 			os.remove(file_path)
 
 	def is_permitted(self, bootinfo):
+		icon_module = None
+		if self.icon_type == "Link" and self.link_to:
+			icon_module = frappe.db.get_value("Workspace", self.link_to, "module")
+		# module permission check
+		if icon_module:
+			blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
+			if icon_module in blocked_modules:
+				return False
+		# perform a permission check based on roles table (desktop icons)
+		allowed_roles = [d.role for d in self.get("roles") or []]
+		if allowed_roles and not set(allowed_roles).intersection(frappe.get_roles()):
+			return False
 		if self.icon_type == "Folder":
 			return True
 		elif self.icon_type == "App":
