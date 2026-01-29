@@ -69,6 +69,7 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "box",
    "indent": 0,
    "keep_closed": 0,
    "label": "Module Def",
@@ -91,7 +92,7 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "",
+   "icon": "workflow",
    "indent": 0,
    "keep_closed": 0,
    "label": "Workflow",
@@ -103,7 +104,7 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "",
+   "icon": "code",
    "indent": 0,
    "keep_closed": 0,
    "label": "Server Script",
@@ -115,7 +116,7 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": "",
+   "icon": "braces",
    "indent": 0,
    "keep_closed": 0,
    "label": "Client Script",
@@ -127,6 +128,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": "customization",
    "indent": 0,
    "keep_closed": 0,
    "label": "Customize Form",
@@ -138,6 +140,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": "text-cursor-input",
    "indent": 0,
    "keep_closed": 0,
    "label": "Custom Field",
@@ -149,6 +152,7 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "table-properties",
    "indent": 0,
    "keep_closed": 0,
    "label": "Property Setter",
@@ -158,7 +162,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-12 15:48:51.863039",
+ "modified": "2026-01-29 23:34:14.146773",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Build",
