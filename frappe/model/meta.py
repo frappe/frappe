@@ -333,6 +333,8 @@ class Meta(Document):
 			search_fields.append("idx")
 		if "creation" not in search_fields:
 			search_fields.append("creation")
+		if "status" not in search_fields:
+			search_fields.append("status")
 
 		return search_fields
 
