@@ -57,7 +57,7 @@ import Block from "@/utils/block"
 import OptionToggle from "@/components/OptionToggle.vue"
 import useStudioStore from "@/stores/studioStore"
 import blockController from "@/utils/blockController"
-import { useEspressoTokens } from "@/utils/useEspressoTokens"
+import { getEspressoTokens } from "@/utils/espressoTokens"
 import { CSSProperties, computed } from "vue"
 
 import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue"
@@ -81,9 +81,6 @@ const props = defineProps({
 })
 
 const store = useStudioStore()
-const boxShadow = useEspressoTokens("boxShadow")
-const borderRadius = useEspressoTokens("borderRadius")
-const fontSize = useEspressoTokens("fontSize")
 
 export type BlockProperty = {
 	component: any
@@ -367,7 +364,7 @@ const typographySectionProperties = [
 				label: "Weight",
 				styleProperty: "fontWeight",
 				type: "autocomplete",
-				options: useEspressoTokens("fontWeight"),
+				options: getEspressoTokens("fontWeight"),
 				modelValue: blockController.getStyle("fontWeight"),
 			}
 		},
@@ -383,7 +380,7 @@ const typographySectionProperties = [
 			return {
 				label: "Size",
 				type: "autocomplete",
-				options: fontSize,
+				options: getEspressoTokens("fontSize"),
 				modelValue: blockController.getProp("fontSize") || blockController.getStyle("fontSize"),
 			}
 		},
@@ -408,7 +405,7 @@ const typographySectionProperties = [
 			return {
 				label: "Height",
 				type: "autocomplete",
-				options: useEspressoTokens("lineHeight"),
+				options: getEspressoTokens("lineHeight"),
 				modelValue: blockController.getStyle("lineHeight"),
 			}
 		},
@@ -440,7 +437,7 @@ const typographySectionProperties = [
 			return {
 				label: "Letter",
 				type: "autocomplete",
-				options: useEspressoTokens("letterSpacing"),
+				options: getEspressoTokens("letterSpacing"),
 				modelValue: blockController.getStyle("letterSpacing"),
 			}
 		},
@@ -650,7 +647,7 @@ const styleSectionProperties = [
 				modelValue: blockController.getStyle("borderRadius"),
 				enableSlider: true,
 				unitOptions: ["px", "%"],
-				options: borderRadius,
+				options: getEspressoTokens("borderRadius"),
 				minValue: 0,
 			}
 		},
@@ -690,7 +687,7 @@ const styleSectionProperties = [
 			return {
 				label: "Shadow",
 				type: "select",
-				options: boxShadow,
+				options: getEspressoTokens("boxShadow"),
 				modelValue: blockController.getStyle("boxShadow"),
 			}
 		},
