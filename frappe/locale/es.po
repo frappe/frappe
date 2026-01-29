@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-27 13:32\n"
+"PO-Revision-Date: 2026-01-29 13:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -18635,7 +18635,7 @@ msgstr "Generación de PDF en progreso"
 #. Label of a Select field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "PDF Generator"
-msgstr ""
+msgstr "Generador de PDF"
 
 #. Label of a Float field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
