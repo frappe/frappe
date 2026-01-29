@@ -229,6 +229,7 @@ frappe.views.TreeView = class TreeView {
 		if (use_value == null) {
 			use_value = use_label;
 		}
+
 		this.tree = new frappe.ui.Tree({
 			parent: this.body,
 			label: use_label,
