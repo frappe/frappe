@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-25 09:36+0000\n"
-"PO-Revision-Date: 2026-01-28 16:03\n"
+"PO-Revision-Date: 2026-01-29 16:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -12430,7 +12430,7 @@ msgstr ""
 #. Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "If checked, negative numeric values of Currency, Quantity or Count would be shown as positive"
-msgstr ""
+msgstr "در صورت علامت زدن، مقادیر عددی منفی برای واحد پول، مقدار یا تعداد به صورت مثبت نمایش داده می‌شوند"
 
 #. Description of the 'Skip Authorization' (Check) field in DocType 'OAuth
 #. Client'
