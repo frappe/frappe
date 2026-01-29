@@ -140,7 +140,6 @@ class XLSXStyleBuilder:
 		Returns:
 			int: Style ID (index in the registry)
 		"""
-		# TODO: can use counter?
 		style_id = len(self.styles)
 		self.styles.append(style)
 
@@ -185,7 +184,6 @@ class XLSXStyleBuilder:
 		Returns:
 			frappe._dict: Config with style registry (list) and style ID mappings.
 		"""
-		# TODO: better naming?
 		self.config["styles"] = self.styles
 		return self.config
 
@@ -245,38 +243,52 @@ class XLSXStyleBuilder:
 		if not self.currency_field_exists:
 			return self
 
-		# if single currency is provided, use it for all currency fields
+		# single currency for all currency fields
 		if isinstance(currency, str):
 			style_id = self.register_currency_format(currency)
 
 			if style_id is not None:
-				for idx in self.currency_fields:
-					self.style_column(idx, style_id)
+				for col_idx in self.currency_fields:
+					self.style_column(col_idx, style_id)
 
-		# if currency mapping is provided, use it for respective fields
-		elif isinstance(currency, dict):
+			return self
+
+		mapped_columns: set[int] = set()
+
+		# currency mapping per field (highest priority)
+		if isinstance(currency, dict):
 			for fieldname, code in currency.items():
 				col_idx = self.column_fieldname_to_index.get(fieldname)
-				style_id = self.register_currency_format(code)
-
-				if col_idx is not None and style_id is not None:
-					self.style_column(col_idx, style_id)
-		# TODO: handle also that formatting which are not in column map
-		# currency per row based on metadata
-		else:
-			default_currency = frappe.db.get_default("currency")
-
-			for row_idx, row in self.metadata.row_map.items():
-				# currency format should not be applied to total row
-				if row_idx == self.metadata.last_row_index and self.metadata.ignore_visible_idx:
+				if col_idx is None:
 					continue
 
-				for col_idx, col in self.currency_fields.items():
-					curr = self.get_field_currency(col, row) or default_currency
-					style_id = self.register_currency_format(curr)
+				style_id = self.register_currency_format(code)
+				if style_id is not None:
+					self.style_column(col_idx, style_id)
+					mapped_columns.add(col_idx)
 
-					if style_id is not None:
-						self.style_cell(row_idx, col_idx, style_id)
+			# skip row-wise currency formatting
+			if mapped_columns == set(self.currency_fields.keys()):
+				return self
+
+		# currency per row (fallback for unmapped fields)
+		default_currency = frappe.db.get_default("currency")
+
+		for row_idx, row in self.metadata.row_map.items():
+			# currency format should not be applied to total row
+			if row_idx == self.metadata.last_row_index and self.metadata.ignore_visible_idx:
+				continue
+
+			for col_idx, col in self.currency_fields.items():
+				# skip columns already styled via mapping
+				if col_idx in mapped_columns:
+					continue
+
+				curr = self.get_field_currency(col, row) or default_currency
+				style_id = self.register_currency_format(curr)
+
+				if style_id is not None:
+					self.style_cell(row_idx, col_idx, style_id)
 
 		return self
 
