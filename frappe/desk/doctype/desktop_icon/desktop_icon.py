@@ -82,7 +82,7 @@ class DesktopIcon(Document):
 	def is_permitted(self, bootinfo):
 		# perform a permission check based on roles table (desktop icons)
 		allowed_roles = [d.role for d in self.get("roles") or []]
-		if not set(allowed_roles).intersection(frappe.get_roles()):
+		if frappe.session.user != "Administrator" and not set(allowed_roles).intersection(frappe.get_roles()):
 			return False
 		if self.icon_type == "Folder":
 			return True
