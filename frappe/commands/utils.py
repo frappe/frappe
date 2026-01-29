@@ -881,16 +881,20 @@ def init_frappe_ui():
 		create_frappe_ui_template(info)
 
 
-def validate_if_app_is_installed(app_name):
+def get_apps_site_map():
 	from frappe.utils import get_bench_path
 
-	app_not_installed = False
 	out = subprocess.check_output(
 		["bench", "--site", "all", "list-apps", "--format", "json"],
 		stderr=open(os.devnull, "wb"),
 		cwd=get_bench_path(),
 	).decode("utf-8")
-	apps_sites_dict = json.loads(out)
+	return json.loads(out)
+
+
+def validate_if_app_is_installed(app_name):
+	app_not_installed = False
+	apps_sites_dict = get_apps_site_map()
 	for apps in apps_sites_dict.values():
 		if app_name in apps:
 			app_not_installed = True
@@ -903,7 +907,7 @@ def validate_if_app_is_installed(app_name):
 def create_frappe_ui_template(info):
 	template_url = "sokumon/frappe-ui-starter"
 	template_dir = "frontend"
-
+	info.app_publisher = frappe.get_hooks(hook="app_publisher", app_name=info.app_name)[0]
 	try:
 		app_path = os.path.dirname(frappe.get_app_path(info.app_name))
 		os.chdir(app_path)
@@ -926,6 +930,13 @@ def create_frappe_ui_template(info):
 		if result.returncode == 0:
 			make_frappe_ui_boilerplate(app_path, info)
 			click.secho(f"Frappe UI is setup for the app {info.app_name} ", fg="green")
+			next_steps = [
+				f"Navigate to bench/apps/{info.app_name}/{template_dir}",
+				"Run `yarn install`",
+				"Start the dev server `yarn run dev`",
+			]
+			for i, step in enumerate(next_steps):
+				click.secho(f"{i + 1}. {step}")
 		else:
 			click.secho("Something went wrong while fetching the template", fg="red")
 			print(result.stderr)
@@ -939,6 +950,7 @@ def make_frappe_ui_boilerplate(app_path, data):
 		"vite.config.js.tpl": os.path.join(app_path, "frontend"),
 		"router.ts.tpl": os.path.join(app_path, "frontend", "src"),
 		"package.json.tpl": app_path,
+		"Home.vue.tpl": os.path.join(app_path, "frontend", "src", "pages"),
 	}
 	if os.path.exists(boilerplate_path):
 		for file in os.listdir(boilerplate_path):
@@ -956,7 +968,9 @@ def make_boilerplate(boilerplate_path, file_name, target_directory, data):
 	with open(boilerplate_file_path) as source:
 		template_content = Template(source.read())
 
-	custom_content = template_content.substitute(app_name=data["app_name"], app_route=data["route"])
+	custom_content = template_content.substitute(
+		app_name=data["app_name"], app_route=data["route"], app_publisher=data["app_publisher"]
+	)
 	with open(target_file_path, "w") as target:
 		target.write(custom_content)
 
