@@ -134,12 +134,25 @@ def get_from_date_from_timespan(to_date, timespan):
 
 def get_period(date, interval="Monthly"):
 	date = getdate(date)
-	months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+	months = [
+		_("Jan"),
+		_("Feb"),
+		_("Mar"),
+		_("Apr"),
+		_("May"),
+		_("Jun"),
+		_("Jul"),
+		_("Aug"),
+		_("Sep"),
+		_("Oct"),
+		_("Nov"),
+		_("Dec"),
+	]
 	return {
 		"Daily": date.strftime("%d-%m-%y"),
 		"Weekly": date.strftime("%d-%m-%y"),
 		"Monthly": str(months[date.month - 1]) + " " + str(date.year),
-		"Quarterly": "Quarter " + str(((date.month - 1) // 3) + 1) + " " + str(date.year),
+		"Quarterly": _("Quarter") + " " + str(((date.month - 1) // 3) + 1) + " " + str(date.year),
 		"Yearly": str(date.year),
 	}[interval]
 
