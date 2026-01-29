@@ -1,12 +1,13 @@
 <template>
-	<div class="relative flex h-full w-full flex-col gap-1.5">
+	<div class="group relative flex h-full w-full flex-col gap-1.5">
 		<InputLabel v-if="label" :class="[required ? `after:text-red-600 after:content-['_*']` : '']">
 			{{ label }}
 		</InputLabel>
-		<div v-if="actionButton" class="absolute bottom-1.5 right-1.5 z-10 flex gap-1">
+		<div v-if="actionButton" class="absolute bottom-[3px] right-[3px] z-10 flex gap-1">
 			<Button
 				@click="actionButton?.handler"
-				variant="outline"
+				variant="subtle"
+				class="h-2 w-2 rounded-sm text-ink-gray-3 opacity-0 transition-opacity group-hover:opacity-100"
 				:icon="actionButton.icon"
 				:title="actionButton.label"
 				:disabled="readonly"
@@ -25,7 +26,7 @@
 		/>
 
 		<span class="text-p-xs text-ink-gray-6" v-show="description" v-html="description"></span>
-		<Button v-if="showSaveButton" variant="solid" @click="emit('save', code)" class="mt-3 w-full text-base">
+		<Button v-if="showSaveButton" variant="solid" @click="emit('save', syncToParent())" class="mt-3 w-full text-base">
 			Save
 		</Button>
 		<ErrorMessage class="text-xs leading-4" v-if="errorMessage" :message="errorMessage" />

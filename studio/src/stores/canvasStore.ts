@@ -31,6 +31,20 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		editableBlock.value = null
 	}
 
+	const showCodeDialog = ref(false)
+	const editableCode = ref({
+		propName: "" as string,
+		code: "" as string,
+	})
+	function editCode(block: Block, propName: string, code: string) {
+		editableBlock.value = block
+		editableCode.value.code = code
+		editableCode.value.propName = propName
+		nextTick(() => {
+			showCodeDialog.value = true
+		})
+	}
+
 	// drag & drop
 	const isDragging = ref(false)
 	const dropTarget = reactive({
@@ -165,6 +179,9 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		editableBlock,
 		editHTML,
 		closeHTMLDialog,
+		showCodeDialog,
+		editCode,
+		editableCode,
 		// drag & drop
 		dropTarget,
 		isDragging,

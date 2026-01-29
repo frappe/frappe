@@ -29,7 +29,7 @@
 				height="250px"
 				class="overflow-hidden"
 				:actionButton="{
-					icon: 'maximize-2',
+					icon: 'maximize',
 					label: 'Expand',
 					handler: () => {
 						if (!props.block) return
@@ -47,6 +47,14 @@
 				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
 				:showLineNumbers="false"
 				class="overflow-hidden"
+				:actionButton="{
+					icon: 'maximize',
+					label: 'Expand',
+					handler: () => {
+						if (!props.block) return
+						canvasStore.editCode(props.block, propName, getFormattedValue(propName))
+					},
+				}"
 			/>
 			<InlineInput
 				v-else
