@@ -169,6 +169,7 @@ frappe.views.TreeView = class TreeView {
 			args: me.args,
 			callback: function (r) {
 				if (r.message) {
+<<<<<<< HEAD
 					if (r.message.length > 1) {
 						me.root_label = me.doctype;
 						me.root_value = "";
@@ -176,6 +177,16 @@ frappe.views.TreeView = class TreeView {
 						me.root_label = r.message[0]["value"];
 						me.root_value = me.root_label;
 					}
+=======
+					if (r.message.length == 1) {
+						me.root_label = r.message[0]["value"];
+						me.root_value = me.root_label;
+					} else {
+						me.root_label = me.doctype;
+						me.root_value = "";
+					}
+
+>>>>>>> b8574b032b (fix: fetch parent node when filter is applied (#36482))
 					me.make_tree();
 				}
 			},
