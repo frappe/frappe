@@ -2461,6 +2461,7 @@ def dict_with_keys(dict, keys):
 def guess_date_format(date_string: str) -> str:
 	DATE_FORMATS = [
 		r"%d/%b/%y",
+		r"%d/%b/%Y",
 		r"%d-%m-%Y",
 		r"%m-%d-%Y",
 		r"%Y-%m-%d",
