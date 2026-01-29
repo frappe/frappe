@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-27 13:32\n"
+"PO-Revision-Date: 2026-01-29 13:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -1125,7 +1125,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/dashboard.js:22
 #: frappe/public/js/frappe/form/footer/form_timeline.js:60
 msgid "Activity"
-msgstr ""
+msgstr "Attività"
 
 #. Name of a DocType
 #. Linked DocType in User's connections
@@ -2877,7 +2877,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:65
 #: frappe/website/doctype/web_form/templates/web_form.html:110
 msgid "Attachments"
-msgstr ""
+msgstr "Allegati"
 
 #: frappe/public/js/frappe/form/print_utils.js:128
 msgid "Attempting Connection to QZ Tray..."
@@ -3131,7 +3131,7 @@ msgstr "Messaggio Automatico"
 #: frappe/core/doctype/user/user.json
 #: frappe/public/js/frappe/ui/theme_switcher.js:69
 msgid "Automatic"
-msgstr ""
+msgstr "Automatico"
 
 #: frappe/email/doctype/email_account/email_account.py:716
 msgid "Automatic Linking can be activated only for one Email Account."
@@ -3413,7 +3413,7 @@ msgstr ""
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Backups"
-msgstr ""
+msgstr "Backup"
 
 #. Label of a Float field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -3505,7 +3505,7 @@ msgstr ""
 #. Label of a Section Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Basic Info"
-msgstr ""
+msgstr "Informazioni di base"
 
 #. Label of a Int field in DocType 'Event Notifications'
 #: frappe/desk/doctype/event_notifications/event_notifications.json
@@ -3890,7 +3890,7 @@ msgstr ""
 #: frappe/automation/workspace/tools/tools.json
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "Bulk Update"
-msgstr ""
+msgstr "Aggiornamento massivo"
 
 #: frappe/model/workflow.py:253
 msgid "Bulk approval only support up to 500 documents."
@@ -5046,12 +5046,12 @@ msgstr ""
 #: frappe/public/js/frappe/form/form_tour.js:276
 #: frappe/public/js/frappe/widgets/base_widget.js:159
 msgid "Collapse"
-msgstr ""
+msgstr "Riduci"
 
 #: frappe/public/js/frappe/form/controls/code.js:179
 msgctxt "Shrink code field."
 msgid "Collapse"
-msgstr ""
+msgstr "Riduci"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2049
 #: frappe/public/js/frappe/views/treeview.js:110
@@ -5253,7 +5253,7 @@ msgstr ""
 #: frappe/public/js/frappe/model/model.js:135
 #: frappe/website/doctype/web_form/templates/web_form.html:126
 msgid "Comments"
-msgstr ""
+msgstr "Commenti"
 
 #. Description of the 'Timeline Field' (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -5363,7 +5363,7 @@ msgstr ""
 #: frappe/core/doctype/scheduled_job_log/scheduled_job_log.json
 #: frappe/www/complete_signup.html:21
 msgid "Complete"
-msgstr ""
+msgstr "Completato"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:202
 msgid "Complete By"
@@ -6057,7 +6057,7 @@ msgstr ""
 #: frappe/public/js/frappe/model/model.js:125
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:479
 msgid "Created On"
-msgstr ""
+msgstr "Creato il"
 
 #: frappe/public/js/frappe/desk.js:506
 #: frappe/public/js/frappe/views/treeview.js:359
@@ -6569,7 +6569,7 @@ msgstr "Colore Scuro"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:65
 msgid "Dark Theme"
-msgstr ""
+msgstr "Tema scuro"
 
 #. Label of a Check field in DocType 'User'
 #. Label of a Link in the Build Workspace
@@ -6671,7 +6671,7 @@ msgstr ""
 #. Name of a DocType
 #: frappe/core/doctype/data_export/data_export.json
 msgid "Data Export"
-msgstr ""
+msgstr "Esportazione Dati"
 
 #. Name of a DocType
 #. Label of a Link field in DocType 'Data Import Log'
@@ -7027,7 +7027,7 @@ msgstr ""
 
 #: frappe/core/doctype/session_default_settings/session_default_settings.py:37
 msgid "Default {0}"
-msgstr "{0} Predefinito"
+msgstr "{0} di default"
 
 #. Description of the 'Heading' (Data) field in DocType 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
@@ -7209,12 +7209,12 @@ msgstr ""
 #. Label of a Data field in DocType 'Deleted Document'
 #: frappe/core/doctype/deleted_document/deleted_document.json
 msgid "Deleted DocType"
-msgstr ""
+msgstr "DocType eliminato"
 
 #. Name of a DocType
 #: frappe/core/doctype/deleted_document/deleted_document.json
 msgid "Deleted Document"
-msgstr ""
+msgstr "Documenti eliminati"
 
 #. Label of a Link in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
@@ -7224,7 +7224,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Deleted Document'
 #: frappe/core/doctype/deleted_document/deleted_document.json
 msgid "Deleted Name"
-msgstr ""
+msgstr "Nome cancellato"
 
 #: frappe/desk/reportview.py:612
 msgid "Deleted all documents successfully"
@@ -7875,7 +7875,7 @@ msgstr ""
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 #: frappe/desk/doctype/notification_subscribed_document/notification_subscribed_document.json
 msgid "Document"
-msgstr ""
+msgstr "Documento"
 
 #. Label of a Section Break field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -10456,7 +10456,7 @@ msgstr "File"
 #: frappe/public/js/frappe/ui/filters/filter_list.js:134
 #: frappe/website/doctype/web_form/web_form.js:210
 msgid "Filter"
-msgstr ""
+msgstr "Filtro"
 
 #: frappe/public/js/frappe/list/list_sidebar.html:35
 msgid "Filter By"
@@ -11081,7 +11081,7 @@ msgstr "Frappe Framework"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:59
 msgid "Frappe Light"
-msgstr ""
+msgstr "Chiaro"
 
 #. Label of a standard help item
 #. Type: Route
@@ -11949,7 +11949,7 @@ msgstr "Ciao,"
 #: frappe/public/js/frappe/ui/toolbar/navbar.html:87
 #: frappe/public/js/frappe/utils/help.js:27
 msgid "Help"
-msgstr ""
+msgstr "Aiuto"
 
 #. Name of a DocType
 #. Label of a Link in the Website Workspace
@@ -12293,13 +12293,13 @@ msgstr ""
 #: frappe/public/js/frappe/model/meta.js:197
 #: frappe/public/js/frappe/model/model.js:122
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #: frappe/desk/reportview.py:500
 #: frappe/public/js/frappe/views/reports/report_view.js:990
 msgctxt "Label of name column in report"
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:199
 msgid "ID (name)"
@@ -14780,7 +14780,7 @@ msgstr "Colore Chiaro"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:60
 msgid "Light Theme"
-msgstr ""
+msgstr "Tema chiaro"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
@@ -17682,7 +17682,7 @@ msgstr ""
 #: frappe/email/doctype/notification/notification.json
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "Notification"
-msgstr ""
+msgstr "Notifiche"
 
 #. Name of a DocType
 #: frappe/desk/doctype/notification_log/notification_log.json
@@ -17718,7 +17718,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/notifications/notifications.js:50
 #: frappe/public/js/frappe/ui/notifications/notifications.js:187
 msgid "Notifications"
-msgstr ""
+msgstr "Notifiche"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:299
 msgid "Notifications Disabled"
@@ -18493,7 +18493,7 @@ msgstr "Outlook.com"
 #: frappe/desk/doctype/system_console/system_console.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Output"
-msgstr ""
+msgstr "Risultato"
 
 #: frappe/desk/page/user_profile/user_profile.html:6
 #: frappe/public/js/frappe/form/templates/form_dashboard.html:5
@@ -19130,7 +19130,7 @@ msgstr ""
 #. Label of a Select field in DocType 'Permission Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "Permission Type"
-msgstr ""
+msgstr "Tipo permesso"
 
 #. Label of a Section Break field in DocType 'Custom DocPerm'
 #. Label of a Section Break field in DocType 'DocField'
@@ -21250,7 +21250,7 @@ msgstr ""
 #. Label of a Link field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
 msgid "Reference Type"
-msgstr ""
+msgstr "Tipo riferimento"
 
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.py:145
 msgid "Reference document has been cancelled"
@@ -22007,7 +22007,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Deleted Document'
 #: frappe/core/doctype/deleted_document/deleted_document.json
 msgid "Restored"
-msgstr ""
+msgstr "Ripristinato"
 
 #: frappe/core/doctype/deleted_document/deleted_document.py:74
 msgid "Restoring Deleted Document"
@@ -23857,7 +23857,7 @@ msgstr "Impostazioni Sessione Predefinita"
 #: frappe/core/doctype/session_default_settings/session_default_settings.json
 #: frappe/hooks.py frappe/public/js/frappe/ui/toolbar/toolbar.js:321
 msgid "Session Defaults"
-msgstr "Predefiniti Sessione"
+msgstr "Sessione predefinita"
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:306
 msgid "Session Defaults Saved"
@@ -25664,11 +25664,11 @@ msgstr "Cambia Fotocamera"
 #: frappe/public/js/frappe/desk.js:51
 #: frappe/public/js/frappe/ui/theme_switcher.js:11
 msgid "Switch Theme"
-msgstr ""
+msgstr "Cambia tema"
 
 #: frappe/templates/includes/navbar/navbar_login.html:17
 msgid "Switch To Desk"
-msgstr ""
+msgstr "Vai al Desk"
 
 #: frappe/public/js/frappe/list/list_sidebar.js:296
 msgid "Switch to Frappe CRM for smarter sales"
@@ -26331,7 +26331,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/list_view.js:667
 msgid "The count shown is an estimated count. Click here to see the accurate count."
-msgstr ""
+msgstr "Il conteggio mostrato è una stima. Clicca qui per vedere il conteggio esatto."
 
 #: frappe/public/js/frappe/views/interaction.js:301
 msgid "The document could not be correctly assigned"
@@ -27064,7 +27064,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:64
 msgid "Timeless Night"
-msgstr ""
+msgstr "Scuro"
 
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -28851,7 +28851,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:70
 msgid "Uses system's theme to switch between light and dark mode"
-msgstr ""
+msgstr "Utilizza il tema del sistema per passare dalla modalità chiara a quella scura"
 
 #: frappe/public/js/frappe/desk.js:113
 msgid "Using this console may allow attackers to impersonate you and steal your information. Do not enter or paste code that you do not understand."
@@ -29227,7 +29227,7 @@ msgstr ""
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Warning"
-msgstr ""
+msgstr "Attenzione"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:217
 msgid "Warning: DATA LOSS IMMINENT! Proceeding will permanently delete following database columns from doctype {0}:"
@@ -29426,7 +29426,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 #: frappe/website/workspace/website/website.json
 msgid "Website"
-msgstr ""
+msgstr "Sito web"
 
 #. Name of a report
 #: frappe/website/report/website_analytics/website_analytics.json
@@ -29937,7 +29937,7 @@ msgstr ""
 #. Option for the 'View' (Select) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "Workspaces"
-msgstr ""
+msgstr "Spazi di lavoro"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:739
 msgid "Would you like to publish this comment? This means it will become visible to website/portal users."
@@ -32383,7 +32383,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:33
 msgid "{0} d"
-msgstr ""
+msgstr "{0} d"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:60
 msgid "{0} days ago"
@@ -32428,7 +32428,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:29
 msgid "{0} h"
-msgstr ""
+msgstr "{0} h"
 
 #: frappe/core/doctype/user_permission/user_permission.py:77
 msgid "{0} has already assigned default value for {1}."
@@ -32632,7 +32632,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:27
 msgid "{0} m"
-msgstr ""
+msgstr "{0} m"
 
 #: frappe/desk/notifications.py:409
 msgid "{0} mentioned you in a comment in {1} {2}"
@@ -32640,7 +32640,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:50
 msgid "{0} minutes ago"
-msgstr ""
+msgstr "{0} minuti fa"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:68
 msgid "{0} months ago"
