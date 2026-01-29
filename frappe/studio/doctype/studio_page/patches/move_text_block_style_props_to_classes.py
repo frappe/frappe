@@ -52,15 +52,16 @@ def move_style_props_to_classes(blocks):
 		if block.get("componentName") == "TextBlock":
 			props = block.get("componentProps", {})
 			classes = block.get("classes", [])
+			classes = set(classes)
 
 			prop_names = ["fontWeight", "lineHeight", "textColor"]
 			for prop in prop_names:
 				if prop in props:
 					value = props.get(prop)
 					if value:
-						classes.append(value)
+						classes.add(value)
 
-			block["classes"] = classes
+			block["classes"] = list(classes)
 		if block.get("children"):
 			block["children"] = move_style_props_to_classes(block["children"])
 		if block.get("componentSlots"):
