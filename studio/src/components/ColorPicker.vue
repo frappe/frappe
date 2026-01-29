@@ -15,7 +15,7 @@
 		</template>
 		<template #body="{ close }">
 			<div class="flex w-[200px] flex-col rounded bg-surface-white shadow-lg">
-				<Tabs v-if="showTokens" :tabs="[{ label: 'Picker' }, { label: 'Tokens' }]" v-model="activeTab"></Tabs>
+				<Tabs v-if="showTokens" :tabs="[{ label: 'Custom' }, { label: 'Tokens' }]" v-model="activeTab"></Tabs>
 				<div
 					v-show="!showTokens || activeTab === 0"
 					ref="colorPicker"
