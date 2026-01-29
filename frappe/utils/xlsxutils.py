@@ -103,9 +103,6 @@ class XLSXStyleBuilder:
 	def _register_default_indent_styles(self):
 		self._indent_styles: dict[int, int] = {}  # indent_level -> style_id
 
-		if not self.metadata.max_indent_level:
-			return
-
 		for indent in range(self.metadata.max_indent_level + 1):
 			self._indent_styles[indent] = self.register_style({"align": "left", "indent": indent * 2})
 
@@ -147,6 +144,9 @@ class XLSXStyleBuilder:
 
 	### STYLE APPLICATION ###
 	def style_column(self, col_idx: int, style_id: int):
+		if style_id is None:
+			return self
+
 		column_styles = self.config["column_styles"]
 
 		if col_idx in column_styles:
@@ -157,6 +157,9 @@ class XLSXStyleBuilder:
 		return self
 
 	def style_row(self, row_idx: int, style_id: int):
+		if style_id is None:
+			return self
+
 		row_styles = self.config["row_styles"]
 
 		if row_idx in row_styles:
@@ -167,6 +170,9 @@ class XLSXStyleBuilder:
 		return self
 
 	def style_cell(self, row_idx: int, col_idx: int, style_id: int):
+		if style_id is None:
+			return self
+
 		key = (row_idx, col_idx)
 		cell_styles = self.config["cell_styles"]
 
