@@ -417,10 +417,11 @@ def _export_query(form_params, csv_params, populate_response=True):
 	from frappe.utils.xlsxutils import handle_html, make_xlsx
 
 	doctype = form_params.pop("doctype")
+	owner_field = f"`tab{doctype}`.`owner`"
 	if isinstance(form_params["fields"], list):
-		form_params["fields"].append("owner")
+		form_params["fields"].append(owner_field)
 	elif isinstance(form_params["fields"], tuple):
-		form_params["fields"] = form_params["fields"] + ("owner",)
+		form_params["fields"] = form_params["fields"] + (owner_field,)
 	file_format_type = form_params.pop("file_format_type")
 	title = form_params.pop("title", doctype)
 	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
