@@ -236,7 +236,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		script: string,
 		repeaterContext?: Record<string, any>,
 		componentContext?: Record<string, any>,
-		eventArgs?: Record<string, any>,
+		eventArgs?: any[],
 	) {
 		try {
 			const context = { ...globalExecutionContext.value, ...repeaterContext, ...componentContext, eventArgs }
@@ -258,7 +258,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		data: DataResult,
 		repeaterContext?: Record<string, any>,
 		componentContext?: Record<string, any>,
-		eventArgs?: string[],
+		eventArgs?: any[],
 	) {
 		try {
 			const context = {
@@ -286,7 +286,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		error: any,
 		repeaterContext?: Record<string, any>,
 		componentContext?: Record<string, any>,
-		eventArgs?: string[],
+		eventArgs?: any[],
 	) {
 		try {
 			const context = {
