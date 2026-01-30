@@ -72,13 +72,14 @@ def extract_javascript(code, keywords=None, options=None, lineno=1):
 	closing_operators = {"]", "}"}
 	all_container_operators = opening_operators.union(closing_operators)
 	dotted = any("." in kw for kw in keywords)
+	# Offset for line numbers
+	line_offset = lineno - 1
 
 	for token in tokenize(
 		code,
 		jsx=True,
 		dotted=dotted,
 		template_string=options.get("template_string", True),
-		lineno=lineno,
 	):
 		if (  # Turn keyword`foo` expressions into keyword("foo") calls:
 			funcname
@@ -86,18 +87,18 @@ def extract_javascript(code, keywords=None, options=None, lineno=1):
 			and token.type  # we've seen nothing after the keyword...
 			== "template_string"  # this is a template string
 		):
-			message_lineno = token.lineno
+			message_lineno = token.lineno + line_offset
 			messages = [unquote_string(token.value)]
 			call_stack = 0
 			tree_level = 0
 			token = Token("operator", ")", token.lineno)
 
 		if not funcname and token.type == "template_string":
-			yield from parse_template_string(token.value, keywords, options, token.lineno)
+			yield from parse_template_string(token.value, keywords, options, token.lineno + line_offset)
 
 		if token.type == "operator" and token.value == "(":
 			if funcname:
-				message_lineno = token.lineno
+				message_lineno = token.lineno + line_offset
 				call_stack += 1
 
 		elif call_stack >= 0 and token.type == "operator" and token.value in all_container_operators:
@@ -191,9 +192,12 @@ def parse_template_string(
 	level = 0
 	inside_str = False
 	expression_contents = ""
+	expression_start_lineno = lineno
+
 	for character in template_string[1:-1]:
-		# Track newlines to maintain correct line numbers
-		if character == "\n":
+		# Track newlines outside of ${...} expressions to maintain correct line numbers.
+		# Newlines inside expressions are accounted for separately via line_re on expression_contents.
+		if character == "\n" and level == 0:
 			lineno += 1
 
 		# Only track strings when we're inside an expression
@@ -208,11 +212,14 @@ def parse_template_string(
 		if not inside_str:
 			if character == "{" and prev_character == "$":
 				level += 1
+				expression_start_lineno = lineno
 			elif level and character == "}":
 				level -= 1
 				if level == 0 and expression_contents:
 					expression_contents = expression_contents[:-1]
-					yield from extract_javascript(expression_contents, keywords, options, lineno)
+					yield from extract_javascript(
+						expression_contents, keywords, options, expression_start_lineno
+					)
 					lineno += len(line_re.findall(expression_contents))
 					expression_contents = ""
 		prev_character = character
