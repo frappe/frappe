@@ -8,6 +8,7 @@ Note:
 	  internal implementation can change without treating it as "breaking change".
 """
 
+import inspect
 import json
 from typing import Any
 
@@ -148,38 +149,55 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 	if group_by and not isinstance(group_by, str):
 		raise FrappeValueError("'group_by' must be a string")
 
-	query = frappe.qb.get_query(
-		table=doctype,
-		fields=fields,
-		filters=filters,
-		order_by=order_by,
-		offset=start,
-		limit=limit + 1,  # Fetch one extra to check if there's a next page
-		group_by=group_by,
-		ignore_permissions=False,
-	)
+	page_length = limit + 1
+	supports_ignore_permissions = "ignore_permissions" in inspect.signature(
+		frappe.database.query.Engine.get_query
+	).parameters
+	if supports_ignore_permissions:
+		query = frappe.qb.get_query(
+			table=doctype,
+			fields=fields,
+			filters=filters,
+			order_by=order_by,
+			offset=start,
+			limit=page_length,  # Fetch one extra to check if there's a next page
+			group_by=group_by,
+			ignore_permissions=False,
+		)
 
-	# Check if the doctype controller has a static get_list method
-	controller = get_controller(doctype)
-	if hasattr(controller, "get_list"):
-		try:
-			return_value = controller.get_list(query)
+		# Check if the doctype controller has a static get_list method
+		controller = get_controller(doctype)
+		if hasattr(controller, "get_list"):
+			try:
+				return_value = controller.get_list(query)
 
-			if return_value is not None:
-				# Validate that the returned value has a run method (is a QueryBuilder-like object)
-				if not hasattr(return_value, "run"):
-					frappe.throw(
-						_(
-							"Custom get_list method for {0} must return a QueryBuilder object or None, got {1}"
-						).format(doctype, type(return_value).__name__)
-					)
+				if return_value is not None:
+					# Validate that the returned value has a run method (is a QueryBuilder-like object)
+					if not hasattr(return_value, "run"):
+						frappe.throw(
+							_(
+								"Custom get_list method for {0} must return a QueryBuilder object or None, got {1}"
+							).format(doctype, type(return_value).__name__)
+						)
 
-				query = return_value
+					query = return_value
 
-		except Exception as e:
-			frappe.throw(_("Error in {0}.get_list: {1}").format(doctype, str(e)))
+			except Exception as e:
+				frappe.throw(_("Error in {0}.get_list: {1}").format(doctype, str(e)))
 
-	data = query.run(as_dict=as_dict, debug=debug)
+		data = query.run(as_dict=as_dict, debug=debug)
+	else:
+		data = frappe.get_list(
+			doctype,
+			fields=fields,
+			filters=filters,
+			order_by=order_by,
+			limit_start=start,
+			limit_page_length=page_length,
+			group_by=group_by,
+			debug=debug,
+			as_list=not as_dict,
+		)
 	frappe.response["has_next_page"] = len(data) > limit
 	return data[:limit]
 
