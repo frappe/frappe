@@ -470,38 +470,25 @@ def send_link_titles(link_titles):
 	frappe.local.response["_link_titles"].update(link_titles)
 
 
-<<<<<<< HEAD
-def update_user_info(docinfo):
+def update_user_info(docinfo, doc=None):
+	if doc:
+		for field in ("owner", "modified_by"):
+			if user := doc.get(field):
+				frappe.utils.add_user_info(user, docinfo.user_info)
+
 	for d in docinfo.communications:
 		frappe.utils.add_user_info(d.sender, docinfo.user_info)
 
 	for d in docinfo.shared:
 		frappe.utils.add_user_info(d.user, docinfo.user_info)
-=======
-def update_user_info(docinfo, doc=None):
-	users = set()
-
-	if doc:
-		users.add(doc.owner)
-		users.add(doc.modified_by)
-
-	users.update(d.sender for d in docinfo.communications)
-	users.update(d.user for d in docinfo.shared)
-	users.update(d.owner for d in docinfo.assignments)
-	users.update(d.owner for d in docinfo.views)
-	users.update(d.owner for d in docinfo.workflow_logs)
-	users.update(d.owner for d in docinfo.like_logs)
-	users.update(d.owner for d in docinfo.info_logs)
-	users.update(d.owner for d in docinfo.attachment_logs)
-	users.update(d.owner for d in docinfo.assignment_logs)
-	users.update(d.owner for d in docinfo.comments)
-	users.update(d.owner for d in docinfo.versions)
->>>>>>> e7598ec3a8 (fix: Fetch user info for owner, modified_by and versions (#35557))
 
 	for d in docinfo.assignments:
 		frappe.utils.add_user_info(d.owner, docinfo.user_info)
 
 	for d in docinfo.views:
+		frappe.utils.add_user_info(d.owner, docinfo.user_info)
+
+	for d in docinfo.versions:
 		frappe.utils.add_user_info(d.owner, docinfo.user_info)
 
 
