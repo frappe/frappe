@@ -946,6 +946,9 @@ class Engine:
 				frappe.PermissionError,
 			)
 
+		if permission_type == "select":
+			return
+
 		permitted_fields = self._get_cached_permitted_fields(doctype, parent_doctype, permission_type)
 
 		if fieldname not in permitted_fields:
