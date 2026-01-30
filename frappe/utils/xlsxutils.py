@@ -457,7 +457,9 @@ def make_xlsx(
 
 	if created_wb:
 		xlsx_file = BytesIO()
-		wb = xlsxwriter.Workbook(xlsx_file, {"constant_memory": True})
+		wb = xlsxwriter.Workbook(
+			xlsx_file, {"constant_memory": True, "default_date_format": XLSXStyleBuilder.get_date_format()}
+		)
 
 	# sanitize sheet name
 	sheet_name_sanitized = INVALID_TITLE_REGEX.sub(" ", sheet_name)
