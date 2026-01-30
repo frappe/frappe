@@ -607,7 +607,7 @@ export default class GridRow {
 							</div>
 							<div class='col-1' style='padding-top: 3px;'>
 								<a class='text-muted remove-field' data-fieldname='${docfield.fieldname}'>
-									<i class='fa fa-trash-o' aria-hidden='true'></i>
+									${frappe.utils.icon("trash", "xs")}
 								</a>
 							</div>
 						</div>

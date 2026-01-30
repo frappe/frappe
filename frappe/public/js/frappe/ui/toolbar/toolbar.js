@@ -24,6 +24,8 @@ frappe.ui.toolbar.Toolbar = class {
 			$(this).closest(".dropdown-menu").prev().dropdown("toggle");
 		});
 
+		this.setup_help();
+
 		this.setup_read_only_mode();
 		this.setup_announcement_widget();
 		this.make();
@@ -35,6 +37,88 @@ frappe.ui.toolbar.Toolbar = class {
 		this.navbar = $(".navbar-brand");
 		this.bind_click();
 	}
+
+	setup_help() {
+		if (!frappe.boot.desk_settings.notifications) {
+			// hide the help section
+			$(".navbar .vertical-bar").removeClass("d-sm-block");
+			$(".dropdown-help").removeClass("d-lg-block");
+			return;
+		}
+		frappe.provide("frappe.help");
+		frappe.help.show_results = show_results;
+
+		this.search = new frappe.search.SearchDialog();
+		frappe.provide("frappe.searchdialog");
+		frappe.searchdialog.search = this.search;
+
+		$(".dropdown-help .dropdown-toggle").on("click", function () {
+			$(".dropdown-help input").focus();
+		});
+
+		$(".dropdown-help .dropdown-menu").on("click", "input, button", function (e) {
+			e.stopPropagation();
+		});
+
+		$("#input-help").on("keydown", function (e) {
+			if (e.which == 13) {
+				$(this).val("");
+			}
+		});
+
+		$(document).on("page-change", function () {
+			var $help_links = $(".dropdown-help #help-links");
+			$help_links.html("");
+
+			var route = frappe.get_route_str();
+			var breadcrumbs = route.split("/");
+
+			var links = [];
+			for (let i = 0; i < breadcrumbs.length; i++) {
+				var r = route.split("/", i + 1);
+				var key = r.join("/");
+				var help_links = frappe.help.help_links[key] || [];
+				links = $.merge(links, help_links);
+			}
+
+			if (links.length === 0) {
+				$help_links.next().hide();
+			} else {
+				$help_links.next().show();
+			}
+
+			for (let i = 0; i < links.length; i++) {
+				var link = links[i];
+				var url = link.url;
+				$("<a>", {
+					href: url,
+					class: "dropdown-item",
+					text: __(link.label),
+					target: "_blank",
+				}).appendTo($help_links);
+			}
+
+			$(".dropdown-help .dropdown-menu").on("click", "a", show_results);
+		});
+
+		var $result_modal = frappe.get_modal("", "");
+		$result_modal.addClass("help-modal");
+
+		$(document).on("click", ".help-modal a", show_results);
+
+		function show_results(e) {
+			//edit links
+			var href = e.target.href;
+			if (href.indexOf("blob") > 0) {
+				window.open(href, "_blank");
+			}
+			var path = $(e.target).attr("data-path");
+			if (path) {
+				e.preventDefault();
+			}
+		}
+	}
+
 	change_toolbar() {
 		$(".navbar .container").css("max-width", "43%");
 		$(".navbar-brand").css("display", "block");

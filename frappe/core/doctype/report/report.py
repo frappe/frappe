@@ -416,9 +416,10 @@ def get_report_module_dotted_path(module, report_name):
 
 def get_group_by_field(args, doctype):
 	if args["aggregate_function"] == "count":
-		group_by_field = "count(*) as _aggregate_column"
+		group_by_field = {"COUNT": "*", "as": "_aggregate_column"}
 	else:
-		group_by_field = f"{args.aggregate_function}({args.aggregate_on}) as _aggregate_column"
+		func_name = args["aggregate_function"].upper()
+		group_by_field = {func_name: args["aggregate_on"], "as": "_aggregate_column"}
 
 	return group_by_field
 
