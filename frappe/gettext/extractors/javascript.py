@@ -192,10 +192,17 @@ def parse_template_string(
 	inside_str = False
 	expression_contents = ""
 	for character in template_string[1:-1]:
-		if not inside_str and character in ('"', "'", "`"):
-			inside_str = character
-		elif inside_str == character and prev_character != r"\\":
-			inside_str = False
+		# Track newlines to maintain correct line numbers
+		if character == "\n":
+			lineno += 1
+
+		# Only track strings when we're inside an expression
+		if level > 0:
+			if not inside_str and character in ('"', "'", "`"):
+				inside_str = character
+			elif inside_str == character and prev_character != "\\":
+				inside_str = False
+
 		if level:
 			expression_contents += character
 		if not inside_str:
