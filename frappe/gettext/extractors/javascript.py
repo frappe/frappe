@@ -204,8 +204,17 @@ def parse_template_string(
 		if level > 0:
 			if not inside_str and character in ('"', "'", "`"):
 				inside_str = character
-			elif inside_str == character and prev_character != "\\":
-				inside_str = False
+			elif inside_str == character:
+				# Count consecutive backslashes before the quote
+				# The quote is escaped only if there's an odd number of backslashes
+				num_backslashes = 0
+				check_pos = len(expression_contents) - 1
+				while check_pos >= 0 and expression_contents[check_pos] == "\\":
+					num_backslashes += 1
+					check_pos -= 1
+				# If even number of backslashes (including 0), the quote is not escaped
+				if num_backslashes % 2 == 0:
+					inside_str = False
 
 		if level:
 			expression_contents += character
