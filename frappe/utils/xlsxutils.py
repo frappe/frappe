@@ -288,12 +288,14 @@ class XLSXStyleBuilder:
 
 		# currency per row (fallback for unmapped fields)
 		default_currency = frappe.db.get_default("currency")
+
+		has_total_row = self.metadata.add_total_row
 		last_row_index = self.metadata.get_last_row_index()
 		ignore_visible_idx = self.metadata.ignore_visible_idx
 
 		for row_idx, row in self.metadata.row_map.items():
 			# currency format should not be applied to total row
-			if row_idx == last_row_index and ignore_visible_idx:
+			if row_idx == last_row_index and has_total_row and ignore_visible_idx:
 				continue
 
 			for col_idx, col in self.currency_fields.items():
@@ -430,6 +432,71 @@ class XLSXStyleBuilder:
 	@staticmethod
 	def get_datetime_format() -> str:
 		return f"{XLSXStyleBuilder.get_date_format()} {XLSXStyleBuilder.get_time_format()}"
+
+
+def get_default_xlsx_styles(
+	columns: list[dict],
+	data: list[list | dict],
+	applied_filters: list[list] | None = None,
+	*,
+	filters: dict | None = None,
+	has_total_row: bool = False,
+	has_filters: bool = False,
+	has_indentation: bool = False,
+	apply_currency_format: bool = False,
+	currency: str | dict | None = None,
+	return_builder: bool = False,
+) -> XLSXStyleBuilder | dict:
+	"""
+	Generate default XLSX styles for xlsx exports.
+
+	Args:
+		columns: Column definitions with keys: fieldname, fieldtype, label, options.
+		data: Row data as list of dicts or lists (excluding header and filter rows).
+		applied_filters: Filter rows to display at top of sheet. Each item is [label, value].
+		filters: Raw filters dict (fieldname -> value).
+		has_total_row: If True, applies bold styling to the last row.
+		ignore_total_row: If True, skips styling the total row.
+		has_filters: If True, applies bold styling to filter labels.
+		has_indentation: If True, applies indent styles based on row's 'indent' key.
+		apply_currency_format: If True, applies currency number formats to Currency fields.
+		currency: Currency for formatting. Can be:
+			- str: Single currency code for all Currency fields (e.g., "USD")
+			- dict: Mapping of fieldname -> currency code for per-field formatting
+			- None: Resolves currency per-row from field options
+		return_builder: If True, returns XLSXStyleBuilder instance for further customization.
+	"""
+	applied_filters = applied_filters or []
+	filters = filters or {}
+
+	header_index = len(applied_filters) + 1 if applied_filters else 0
+
+	applied_filters_map = dict(enumerate(applied_filters))
+	column_map = dict(enumerate(columns))
+	row_map = {header_index + 1 + idx: row for idx, row in enumerate(data)}
+
+	max_indent_level = 0
+	if has_indentation:
+		for row in data:
+			if isinstance(row, dict) and "indent" in row:
+				max_indent_level = max(max_indent_level, row["indent"])
+
+	metadata = XLSXMetadata(
+		filters=filters,
+		column_map=column_map,
+		row_map=row_map,
+		applied_filters_map=applied_filters_map,
+		header_index=header_index,
+		max_indent_level=max_indent_level,
+		add_total_row=has_total_row,
+		include_filters=has_filters,
+		include_indentation=has_indentation,
+	)
+
+	builder = XLSXStyleBuilder(metadata)
+	builder.apply_default_styles(currency_formatting=apply_currency_format, currency=currency)
+
+	return builder if return_builder else builder.build()
 
 
 ### Excel Creation ###
