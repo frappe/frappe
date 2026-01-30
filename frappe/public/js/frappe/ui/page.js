@@ -67,8 +67,6 @@ frappe.ui.Page = class Page {
 					(frappe.boot.read_only || frappe.boot.user.impersonated_by)
 				) {
 					$(".page-head").css("top", "-15px");
-				} else if (frappe.boot.read_only || frappe.boot.user.impersonated_by) {
-					$(".page-head").css("top", "var(--navbar-height)");
 				}
 				last_scroll = current_scroll;
 			}, 500)

@@ -23,6 +23,7 @@
   "link",
   "hidden",
   "restrict_removal",
+  "bg_color",
   "roles_tab",
   "roles"
  ],
@@ -141,10 +142,16 @@
    "fieldname": "restrict_removal",
    "fieldtype": "Check",
    "label": "Restrict Removal"
+  },
+  {
+   "fieldname": "bg_color",
+   "fieldtype": "Select",
+   "label": "Background Color",
+   "options": "blue\ngray"
   }
  ],
  "links": [],
- "modified": "2026-01-23 14:33:55.594120",
+ "modified": "2026-01-27 18:17:48.667070",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desktop Icon",
@@ -160,6 +167,18 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Desk User",
    "share": 1,
    "write": 1
   }

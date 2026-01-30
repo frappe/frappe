@@ -24,6 +24,7 @@ class DesktopIcon(Document):
 		from frappe.types import DF
 
 		app: DF.Autocomplete | None
+		bg_color: DF.Literal["blue", "gray"]
 		hidden: DF.Check
 		icon_image: DF.Attach | None
 		icon_type: DF.Literal["Link", "Folder", "App"]
@@ -147,6 +148,7 @@ def get_desktop_icons(user=None, bootinfo=None):
 	if not user_icons:
 		fields = [
 			"label",
+			"bg_color",
 			"link",
 			"link_type",
 			"app",

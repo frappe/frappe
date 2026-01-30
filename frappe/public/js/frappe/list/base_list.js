@@ -333,7 +333,7 @@ frappe.views.BaseList = class BaseList {
 	 */
 	setup_result_container_area() {
 		if (this.view == "List") {
-			this.$frappe_list.append($(`<div class="result-container">`));
+			this.$frappe_list.append($(`<div class="result-container border rounded">`));
 		}
 	}
 
@@ -367,7 +367,7 @@ frappe.views.BaseList = class BaseList {
 	setup_paging_area() {
 		const paging_values = [20, 100, 500, 2500];
 		this.$paging_area = $(
-			`<div class="list-paging-area level">
+			`<div class="list-paging-area level ${this.view == "List" ? "border-0" : ""}">
 				<div class="level-left">
 					<div class="btn-group">
 						${paging_values

@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-01-22 13:03+0000\n"
-"PO-Revision-Date: 2026-01-24 14:52\n"
+"POT-Creation-Date: 2026-01-25 09:36+0000\n"
+"PO-Revision-Date: 2026-01-26 15:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -167,7 +167,7 @@ msgstr "1 nap"
 msgid "1 Google Calendar Event synced."
 msgstr "1 Google Naptár esemény szinkronizálva."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:983
+#: frappe/public/js/frappe/views/reports/query_report.js:978
 msgid "1 Report"
 msgstr "1 Jelentés"
 
@@ -1168,7 +1168,7 @@ msgstr "A {0} művelet nem sikerült a következőn: {1} {2}. Tekintse meg {3}"
 #: frappe/public/js/frappe/views/reports/query_report.js:192
 #: frappe/public/js/frappe/views/reports/query_report.js:205
 #: frappe/public/js/frappe/views/reports/query_report.js:215
-#: frappe/public/js/frappe/views/reports/query_report.js:870
+#: frappe/public/js/frappe/views/reports/query_report.js:865
 msgid "Actions"
 msgstr "Műveletek"
 
@@ -1287,8 +1287,8 @@ msgid "Add Child"
 msgstr "Alkategória Hozzáadása"
 
 #: frappe/public/js/frappe/views/kanban/kanban_board.html:4
-#: frappe/public/js/frappe/views/reports/query_report.js:1911
-#: frappe/public/js/frappe/views/reports/query_report.js:1914
+#: frappe/public/js/frappe/views/reports/query_report.js:1937
+#: frappe/public/js/frappe/views/reports/query_report.js:1940
 #: frappe/public/js/frappe/views/reports/report_view.js:354
 #: frappe/public/js/frappe/views/reports/report_view.js:379
 #: frappe/public/js/print_format_builder/Field.vue:112
@@ -1664,7 +1664,7 @@ msgstr "Rendszergazda Bejelentkezve"
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "A rendszergazda a {1} oldalon a {2} IP-címen keresztül lépett be a {0} címre."
 
-#: frappe/desk/form/document_follow.py:52
+#: frappe/desk/form/document_follow.py:58
 msgid "Administrator can't follow"
 msgstr "A rendszergazda nem követheti"
 
@@ -2667,7 +2667,7 @@ msgstr "Biztosan törölni szeretné ezt a bejegyzést?"
 msgid "Are you sure you want to discard the changes?"
 msgstr "Biztosan elveti a változtatásokat?"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:997
+#: frappe/public/js/frappe/views/reports/query_report.js:992
 msgid "Are you sure you want to generate a new report?"
 msgstr "Biztosan új jelentést szeretne létrehozni?"
 
@@ -2803,7 +2803,7 @@ msgstr "Hozzárendelte"
 msgid "Assigned By Full Name"
 msgstr "Hozzárendelte Teljes Nevén"
 
-#: frappe/model/meta.py:62 frappe/public/js/frappe/list/base_list.js:809
+#: frappe/model/meta.py:62 frappe/public/js/frappe/list/base_list.js:808
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:37
 #: frappe/public/js/frappe/model/meta.js:218
 #: frappe/public/js/frappe/model/model.js:136
@@ -3020,11 +3020,11 @@ msgstr "Csatolmány Beállításai"
 msgid "Attachments"
 msgstr "Csatolmányok"
 
-#: frappe/public/js/frappe/form/print_utils.js:132
+#: frappe/public/js/frappe/form/print_utils.js:138
 msgid "Attempting Connection to QZ Tray..."
 msgstr "Csatlakozás kísérlete a QZ tálcával..."
 
-#: frappe/public/js/frappe/form/print_utils.js:148
+#: frappe/public/js/frappe/form/print_utils.js:154
 msgid "Attempting to launch QZ Tray..."
 msgstr "A QZ tálca elindítására tett kísérlet..."
 
@@ -4144,7 +4144,7 @@ msgstr "Csak akkor válthat az Autoincrement elnevezési szabályra/ről, ha nin
 msgid "Can only list down the document types which has been linked to the User document type."
 msgstr "Csak azokat a dokumentumtípusokat tudja felsorolni, amelyek a Felhasználó dokumentumtípushoz kapcsolódnak."
 
-#: frappe/desk/form/document_follow.py:48
+#: frappe/desk/form/document_follow.py:54
 msgid "Can't follow since changes are not tracked."
 msgstr "Nem követhető, mivel a változások nincsenek rögzítve."
 
@@ -5051,7 +5051,7 @@ msgctxt "Shrink code field."
 msgid "Collapse"
 msgstr "Összezár"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2199
+#: frappe/public/js/frappe/views/reports/query_report.js:2225
 #: frappe/public/js/frappe/views/treeview.js:123
 msgid "Collapse All"
 msgstr "Minden Összezárása"
@@ -5108,7 +5108,7 @@ msgstr "Összecsukhatóság Ettől Függ (JS)"
 #: frappe/desk/doctype/number_card/number_card.json
 #: frappe/desk/doctype/todo/todo.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
-#: frappe/public/js/frappe/views/reports/query_report.js:1280
+#: frappe/public/js/frappe/views/reports/query_report.js:1275
 #: frappe/public/js/frappe/widgets/widget_dialog.js:546
 #: frappe/public/js/frappe/widgets/widget_dialog.js:694
 #: frappe/website/doctype/color/color.json
@@ -5560,8 +5560,8 @@ msgstr "Csatlakozott Alkalmazás"
 msgid "Connected User"
 msgstr "Csatlakozott Felhasználó"
 
-#: frappe/public/js/frappe/form/print_utils.js:138
-#: frappe/public/js/frappe/form/print_utils.js:162
+#: frappe/public/js/frappe/form/print_utils.js:144
+#: frappe/public/js/frappe/form/print_utils.js:168
 msgid "Connected to QZ Tray!"
 msgstr "Csatlakoztatva a QZ tálcához!"
 
@@ -5905,7 +5905,7 @@ msgstr "Cr"
 #: frappe/public/js/frappe/list/list_filter.js:120
 #: frappe/public/js/frappe/views/file/file_view.js:112
 #: frappe/public/js/frappe/views/interaction.js:18
-#: frappe/public/js/frappe/views/reports/query_report.js:1312
+#: frappe/public/js/frappe/views/reports/query_report.js:1307
 #: frappe/public/js/frappe/views/workspace/workspace.js:531
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
@@ -5925,7 +5925,7 @@ msgid "Create Card"
 msgstr "Kártya Létrehozása"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:286
-#: frappe/public/js/frappe/views/reports/query_report.js:1239
+#: frappe/public/js/frappe/views/reports/query_report.js:1234
 msgid "Create Chart"
 msgstr "Diagram Létrehozása"
 
@@ -6035,7 +6035,7 @@ msgstr "Létrehozva ekkor"
 msgid "Created At"
 msgstr "Létrehozva Ekkor"
 
-#: frappe/model/meta.py:58 frappe/public/js/frappe/list/base_list.js:811
+#: frappe/model/meta.py:58 frappe/public/js/frappe/list/base_list.js:810
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:39
 #: frappe/public/js/frappe/model/meta.js:214
 #: frappe/public/js/frappe/model/model.js:123
@@ -6243,7 +6243,7 @@ msgstr "Egyedi Dokumentum Típusok (Engedély Kiválasztása)"
 msgid "Custom Document Types Limit Exceeded"
 msgstr "Egyedi Dokumentum Típusok Korlátja Túllépve"
 
-#: frappe/desk/desktop.py:524
+#: frappe/desk/desktop.py:510
 msgid "Custom Documents"
 msgstr "Egyedi Dokumentumok"
 
@@ -6334,7 +6334,7 @@ msgstr "Egyedi Felülírások"
 msgid "Custom Report"
 msgstr "Egyedi Jelentés"
 
-#: frappe/desk/desktop.py:525
+#: frappe/desk/desktop.py:511
 msgid "Custom Reports"
 msgstr "Egyedi Jelentések"
 
@@ -7132,7 +7132,7 @@ msgstr ""
 msgid "Delete all {0} rows"
 msgstr ""
 
-#: frappe/public/js/frappe/views/reports/query_report.js:964
+#: frappe/public/js/frappe/views/reports/query_report.js:959
 msgid "Delete and Generate New"
 msgstr "Törlés és Új Létrehozása"
 
@@ -7954,7 +7954,7 @@ msgstr "Dokumentum Műveletek"
 msgid "Document Follow"
 msgstr "Dokumentum Követése"
 
-#: frappe/desk/form/document_follow.py:94
+#: frappe/desk/form/document_follow.py:100
 msgid "Document Follow Notification"
 msgstr "Dokumentum Követési Értesítés"
 
@@ -8192,7 +8192,7 @@ msgstr "Dokumentum Feloldva"
 msgid "Document cannot be used as a filter value"
 msgstr "A dokumentum nem használható szűrőként"
 
-#: frappe/desk/form/document_follow.py:56
+#: frappe/desk/form/document_follow.py:62
 msgid "Document follow is not enabled for this user."
 msgstr "A dokumentumkövetés nincs engedélyezve ennek a felhasználónak."
 
@@ -8373,7 +8373,7 @@ msgstr "Letöltési Link"
 msgid "Download PDF"
 msgstr "PDF Letöltése"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:860
+#: frappe/public/js/frappe/views/reports/query_report.js:855
 msgid "Download Report"
 msgstr "Jelentés Letöltése"
 
@@ -8582,8 +8582,8 @@ msgstr "ESC"
 #: frappe/public/js/frappe/form/templates/contact_list.html:13
 #: frappe/public/js/frappe/form/toolbar.js:214
 #: frappe/public/js/frappe/form/toolbar.js:784
-#: frappe/public/js/frappe/views/reports/query_report.js:908
-#: frappe/public/js/frappe/views/reports/query_report.js:1863
+#: frappe/public/js/frappe/views/reports/query_report.js:903
+#: frappe/public/js/frappe/views/reports/query_report.js:1889
 #: frappe/public/js/frappe/widgets/base_widget.js:64
 #: frappe/public/js/frappe/widgets/chart_widget.js:299
 #: frappe/public/js/frappe/widgets/number_card_widget.js:359
@@ -8660,7 +8660,7 @@ msgstr "Lábléc Szerkesztése"
 msgid "Edit Format"
 msgstr "Formátum Szerkesztése"
 
-#: frappe/public/js/frappe/form/quick_entry.js:373
+#: frappe/public/js/frappe/form/quick_entry.js:349
 msgid "Edit Full Form"
 msgstr "Teljes Űrlap Szerkesztése"
 
@@ -9489,7 +9489,7 @@ msgstr "Jogalany Neve"
 msgid "Entity Type"
 msgstr "Jogalany Típusa"
 
-#: frappe/public/js/frappe/list/base_list.js:1273
+#: frappe/public/js/frappe/list/base_list.js:1272
 #: frappe/public/js/frappe/ui/filters/filter.js:16
 msgid "Equals"
 msgstr "Egyenlő"
@@ -9538,12 +9538,12 @@ msgstr "Hiba Napló"
 msgid "Error Logs"
 msgstr "Hiba Naplók"
 
-#. Label of the error_message (Text) field in DocType 'Prepared Report'
+#. Label of the error_message (Code) field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
 msgid "Error Message"
 msgstr "Hiba Üzenet"
 
-#: frappe/public/js/frappe/form/print_utils.js:169
+#: frappe/public/js/frappe/form/print_utils.js:175
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
 msgstr "Hiba a QZ tálca alkalmazáshoz való csatlakozásban...<br><br> A Raw Print funkció használatához telepíteni és futtatni kell a QZ Tray alkalmazást.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Kattintson ide a QZ Tray letöltéséhez és telepítéséhez</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Kattintson ide, ha többet szeretne megtudni a nyers nyomtatásról</a>."
 
@@ -9774,7 +9774,7 @@ msgstr "Kód Végrehajtása"
 msgid "Executing..."
 msgstr "Futtatás..."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2223
+#: frappe/public/js/frappe/views/reports/query_report.js:2249
 msgid "Execution Time: {0} sec"
 msgstr "Futtatási idő: {0} mp"
 
@@ -9800,7 +9800,7 @@ msgctxt "Enlarge code field."
 msgid "Expand"
 msgstr "Kiterjeszt"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2199
+#: frappe/public/js/frappe/views/reports/query_report.js:2225
 #: frappe/public/js/frappe/views/treeview.js:133
 msgid "Expand All"
 msgstr "Összes Kiterjesztése"
@@ -9864,7 +9864,7 @@ msgstr "A QR kód képoldal lejárati ideje"
 #: frappe/core/page/permission_manager/permission_manager_help.html:66
 #: frappe/public/js/frappe/data_import/data_exporter.js:92
 #: frappe/public/js/frappe/data_import/data_exporter.js:244
-#: frappe/public/js/frappe/views/reports/query_report.js:1899
+#: frappe/public/js/frappe/views/reports/query_report.js:1925
 #: frappe/public/js/frappe/views/reports/report_view.js:1634
 #: frappe/public/js/frappe/widgets/chart_widget.js:315
 msgid "Export"
@@ -10243,7 +10243,7 @@ msgstr "Mezők lekérése innen: {0}..."
 #: frappe/public/js/frappe/list/bulk_operations.js:327
 #: frappe/public/js/frappe/list/list_view_permission_restrictions.html:3
 #: frappe/public/js/frappe/views/reports/query_report.js:237
-#: frappe/public/js/frappe/views/reports/query_report.js:1958
+#: frappe/public/js/frappe/views/reports/query_report.js:1984
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json
 msgid "Field"
@@ -10565,7 +10565,7 @@ msgstr "Fájlok"
 #: frappe/desk/doctype/number_card/number_card.js:208
 #: frappe/desk/doctype/number_card/number_card.js:347
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:93
-#: frappe/public/js/frappe/list/base_list.js:1353
+#: frappe/public/js/frappe/list/base_list.js:1352
 #: frappe/public/js/frappe/ui/filters/filter_list.js:134
 #: frappe/website/doctype/web_form/web_form.js:213
 msgid "Filter"
@@ -10834,7 +10834,7 @@ msgid "Folio"
 msgstr "Folio"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:149
-#: frappe/public/js/frappe/form/toolbar.js:945
+#: frappe/public/js/frappe/form/toolbar.js:944
 msgid "Follow"
 msgstr "Kövesse"
 
@@ -10846,7 +10846,7 @@ msgstr "Követte"
 msgid "Following Report Filters have missing values:"
 msgstr "A következő jelentésszűrők hiányzó értékeket tartalmaznak:"
 
-#: frappe/desk/form/document_follow.py:63
+#: frappe/desk/form/document_follow.py:69
 msgid "Following document {0}"
 msgstr "Dokumentum követése {0}"
 
@@ -10854,7 +10854,7 @@ msgstr "Dokumentum követése {0}"
 msgid "Following fields are missing:"
 msgstr "Következő mezők hiányoznak:"
 
-#: frappe/public/js/frappe/ui/field_group.js:139
+#: frappe/public/js/frappe/ui/field_group.js:144
 msgid "Following fields have invalid values:"
 msgstr "Következő mezőkben érvénytelenek az értékek:"
 
@@ -10862,7 +10862,7 @@ msgstr "Következő mezőkben érvénytelenek az értékek:"
 msgid "Following fields have missing values"
 msgstr "Következő mezőkben hiányoznak az értékek"
 
-#: frappe/public/js/frappe/ui/field_group.js:126
+#: frappe/public/js/frappe/ui/field_group.js:131
 msgid "Following fields have missing values:"
 msgstr "Következő mezőkben hiányoznak az értékek:"
 
@@ -11024,7 +11024,7 @@ msgstr "Értéknek"
 msgid "For a dynamic subject, use Jinja tags like this: <code>{{ doc.name }} Delivered</code>"
 msgstr "Dinamikus tárgy esetén használj Jinja tageket, mint ez: <code>{{ doc.name }} Kézbesítve</code>"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2220
+#: frappe/public/js/frappe/views/reports/query_report.js:2246
 #: frappe/public/js/frappe/views/reports/report_view.js:102
 msgid "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
 msgstr "Az összehasonlításhoz használja a >5, <10 vagy =324 értékeket. Tartományok esetén használja az 5:10-et (5 és 10 közötti értékek esetén)."
@@ -11312,7 +11312,7 @@ msgstr "Dátumtól"
 msgid "From Date Field"
 msgstr "Dátum Mezőtől"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1919
+#: frappe/public/js/frappe/views/reports/query_report.js:1945
 msgid "From Document Type"
 msgstr "Dokumentum Típusától"
 
@@ -11444,7 +11444,7 @@ msgstr "Általános"
 msgid "Generate Keys"
 msgstr "Kulcsok Generálása"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:902
+#: frappe/public/js/frappe/views/reports/query_report.js:897
 msgid "Generate New Report"
 msgstr "Új Jelentések Generálása"
 
@@ -12192,7 +12192,7 @@ msgstr "Rejtett"
 msgid "Hidden Fields"
 msgstr "Rejtett Mezők"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1716
+#: frappe/public/js/frappe/views/reports/query_report.js:1742
 msgid "Hidden columns include: <br> {0}"
 msgstr ""
 
@@ -12544,7 +12544,7 @@ msgstr "Ikon Stílus"
 msgid "Icon Type"
 msgstr "Ikon Típus"
 
-#: frappe/desk/page/desktop/desktop.js:1004
+#: frappe/desk/page/desktop/desktop.js:1003
 msgid "Icon is not correctly configured please check the workspace sidebar to it"
 msgstr ""
 
@@ -13175,15 +13175,15 @@ msgid "Include Web View Link in Email"
 msgstr "Webes nézet link beillesztése E-mail-be"
 
 #: frappe/public/js/frappe/form/print_utils.js:59
-#: frappe/public/js/frappe/views/reports/query_report.js:1690
+#: frappe/public/js/frappe/views/reports/query_report.js:1716
 msgid "Include filters"
 msgstr "Tartalmazza szűrést"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1712
+#: frappe/public/js/frappe/views/reports/query_report.js:1738
 msgid "Include hidden columns"
 msgstr "Rejtett oszlopokat is"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1682
+#: frappe/public/js/frappe/views/reports/query_report.js:1708
 msgid "Include indentation"
 msgstr "Tartalmazza a behúzást"
 
@@ -13353,7 +13353,7 @@ msgstr "Beszúrás fölé"
 
 #. Label of the insert_after (Select) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
-#: frappe/public/js/frappe/views/reports/query_report.js:1964
+#: frappe/public/js/frappe/views/reports/query_report.js:1990
 msgid "Insert After"
 msgstr "Beszúrás utána"
 
@@ -13712,7 +13712,7 @@ msgstr "Érvénytelen URL"
 msgid "Invalid User Name or Support Password. Please rectify and try again."
 msgstr "Érvénytelen Felhasználónév vagy Támogatási Jelszó. Kérjük orvosolja, és próbálja újra."
 
-#: frappe/public/js/frappe/ui/field_group.js:137
+#: frappe/public/js/frappe/ui/field_group.js:142
 msgid "Invalid Values"
 msgstr "Érvénytelen Értékek"
 
@@ -15098,7 +15098,7 @@ msgstr "Világos Téma"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
-#: frappe/public/js/frappe/list/base_list.js:1273
+#: frappe/public/js/frappe/list/base_list.js:1272
 #: frappe/public/js/frappe/ui/filters/filter.js:18
 msgid "Like"
 msgstr "Mint"
@@ -15412,7 +15412,7 @@ msgstr "Listák"
 msgid "Load Balancing"
 msgstr "Terheléselosztás"
 
-#: frappe/public/js/frappe/list/base_list.js:381
+#: frappe/public/js/frappe/list/base_list.js:380
 #: frappe/public/js/frappe/web_form/web_form_list.js:306
 #: frappe/website/doctype/help_article/templates/help_article_list.html:30
 msgid "Load More"
@@ -15430,10 +15430,10 @@ msgstr "Továbbiak Betöltése"
 #: frappe/core/page/permission_manager/permission_manager.js:172
 #: frappe/public/js/frappe/form/controls/multicheck.js:13
 #: frappe/public/js/frappe/form/linked_with.js:13
-#: frappe/public/js/frappe/list/base_list.js:510
+#: frappe/public/js/frappe/list/base_list.js:509
 #: frappe/public/js/frappe/list/list_view.js:367
 #: frappe/public/js/frappe/ui/listing.html:16
-#: frappe/public/js/frappe/views/reports/query_report.js:1136
+#: frappe/public/js/frappe/views/reports/query_report.js:1131
 msgid "Loading"
 msgstr "Betöltés"
 
@@ -15451,7 +15451,7 @@ msgstr "Verziók betöltése..."
 
 #: frappe/public/js/frappe/file_uploader/TreeNode.vue:45
 #: frappe/public/js/frappe/form/sidebar/share.js:57
-#: frappe/public/js/frappe/list/base_list.js:1063
+#: frappe/public/js/frappe/list/base_list.js:1062
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:91
 #: frappe/public/js/frappe/views/kanban/kanban_board.html:11
 #: frappe/public/js/frappe/widgets/chart_widget.js:50
@@ -16072,7 +16072,7 @@ msgstr "Maximum {0} sor engedélyezett"
 msgid "Maybe"
 msgstr ""
 
-#: frappe/public/js/frappe/list/base_list.js:947
+#: frappe/public/js/frappe/list/base_list.js:946
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:168
 msgid "Me"
 msgstr "Nekem"
@@ -16411,7 +16411,7 @@ msgstr "Hiányzó Engedély"
 msgid "Missing Value"
 msgstr "Hiányzó Érték"
 
-#: frappe/public/js/frappe/ui/field_group.js:124
+#: frappe/public/js/frappe/ui/field_group.js:129
 #: frappe/public/js/frappe/widgets/widget_dialog.js:374
 #: frappe/public/js/workflow_builder/store.js:97
 #: frappe/workflow/doctype/workflow/workflow.js:71
@@ -17160,7 +17160,7 @@ msgstr "Az új felhasználókat a rendszergazdáknak manuálisan kell regisztrá
 msgid "New value to be set"
 msgstr "Új érték kerül beállításra"
 
-#: frappe/public/js/frappe/form/quick_entry.js:190
+#: frappe/public/js/frappe/form/quick_entry.js:180
 #: frappe/public/js/frappe/form/toolbar.js:47
 #: frappe/public/js/frappe/form/toolbar.js:234
 #: frappe/public/js/frappe/form/toolbar.js:249
@@ -17336,7 +17336,7 @@ msgstr "Következő Kattintáskor"
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/public/js/form_builder/utils.js:341
 #: frappe/public/js/frappe/form/controls/link.js:574
-#: frappe/public/js/frappe/list/base_list.js:949
+#: frappe/public/js/frappe/list/base_list.js:948
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:170
 #: frappe/public/js/frappe/views/reports/query_report.js:47
 #: frappe/website/doctype/help_article/templates/help_article.html:26
@@ -17583,7 +17583,7 @@ msgstr "Nem találtunk Kanban oszlopként használható mezőket. Használja a T
 msgid "No file attached"
 msgstr "Nincs csatolt fájl"
 
-#: frappe/public/js/frappe/list/base_list.js:1076
+#: frappe/public/js/frappe/list/base_list.js:1075
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:100
 msgid "No filters found"
 msgstr "Nincsenek szűrők"
@@ -17835,7 +17835,7 @@ msgstr "Nincs Megtekintve"
 msgid "Not Sent"
 msgstr "Nincs Elküldve"
 
-#: frappe/public/js/frappe/list/base_list.js:945
+#: frappe/public/js/frappe/list/base_list.js:944
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:166
 msgid "Not Set"
 msgstr "Nincs Beállítva"
@@ -17978,7 +17978,7 @@ msgstr "Nincs mit újracsinálni"
 msgid "Nothing left to undo"
 msgstr "Nincs mit visszavonni"
 
-#: frappe/public/js/frappe/list/base_list.js:365
+#: frappe/public/js/frappe/list/base_list.js:364
 #: frappe/public/js/frappe/views/reports/query_report.js:106
 #: frappe/templates/includes/list/list.html:9
 #: frappe/website/doctype/help_article/templates/help_article_list.html:21
@@ -18905,11 +18905,11 @@ msgstr "PATCH"
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 #: frappe/printing/page/print/print.js:91
 #: frappe/public/js/frappe/form/templates/print_layout.html:44
-#: frappe/public/js/frappe/views/reports/query_report.js:1884
+#: frappe/public/js/frappe/views/reports/query_report.js:1910
 msgid "PDF"
 msgstr "PDF"
 
-#: frappe/utils/print_format.py:147 frappe/utils/print_format.py:191
+#: frappe/utils/print_format.py:148 frappe/utils/print_format.py:192
 msgid "PDF Generation in Progress"
 msgstr "PDF Generálás Folyamatban"
 
@@ -18940,7 +18940,7 @@ msgstr "PDF Oldalszélesség (mm-ben)"
 msgid "PDF Settings"
 msgstr "PDF Beállítások"
 
-#: frappe/utils/print_format.py:292
+#: frappe/utils/print_format.py:334
 msgid "PDF generation failed"
 msgstr "PDF generálása sikertelen"
 
@@ -19958,7 +19958,7 @@ msgstr "Kérjük, először válasszon ki a jogalany típusát"
 msgid "Please select Minimum Password Score"
 msgstr "Kérjük, válasszon Minimum jelszó erősséget"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1232
+#: frappe/public/js/frappe/views/reports/query_report.js:1227
 msgid "Please select X and Y fields"
 msgstr "Kérjük, válassza ki az X és Y mezőket"
 
@@ -20020,7 +20020,7 @@ msgstr "Kérjük, állítsa be az E-mail Címet"
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr "Kérjük, állítsa be a nyomtató leképezését ehhez a nyomtatási formátumhoz a Nyomtató Beállítások részben"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1455
+#: frappe/public/js/frappe/views/reports/query_report.js:1450
 msgid "Please set filters"
 msgstr "Kérjük, állítsa be a szűrőket"
 
@@ -20407,7 +20407,7 @@ msgstr "A(z) {0} doctype elsődleges kulcsa nem módosítható, mivel már léte
 #: frappe/public/js/frappe/form/success_action.js:81
 #: frappe/public/js/frappe/form/templates/print_layout.html:46
 #: frappe/public/js/frappe/list/bulk_operations.js:95
-#: frappe/public/js/frappe/views/reports/query_report.js:1869
+#: frappe/public/js/frappe/views/reports/query_report.js:1895
 #: frappe/public/js/frappe/views/reports/report_view.js:1533
 #: frappe/public/js/frappe/views/treeview.js:492 frappe/www/printview.html:18
 msgid "Print"
@@ -20514,7 +20514,7 @@ msgstr "Nyomtatás elrejtése, ha nincs érték"
 msgid "Print Language"
 msgstr "Nyomtatás Nyelve"
 
-#: frappe/public/js/frappe/form/print_utils.js:238
+#: frappe/public/js/frappe/form/print_utils.js:244
 msgid "Print Sent to the printer!"
 msgstr "Nyomtatás Elküldve a nyomtatónak!"
 
@@ -20528,7 +20528,7 @@ msgstr "Nyomtatási Kiszolgáló"
 #: frappe/printing/doctype/print_settings/print_settings.json
 #: frappe/printing/doctype/print_style/print_style.js:6
 #: frappe/printing/page/print/print.js:182
-#: frappe/public/js/frappe/form/print_utils.js:112
+#: frappe/public/js/frappe/form/print_utils.js:118
 #: frappe/public/js/frappe/form/templates/print_layout.html:35
 msgid "Print Settings"
 msgstr "Nyomtatási Beállítások"
@@ -20598,7 +20598,7 @@ msgstr "Nyomtató Beállítások"
 msgid "Printer mapping not set."
 msgstr "Nyomtató-hozzárendelés nincs beállítva."
 
-#: frappe/utils/print_format.py:294
+#: frappe/utils/print_format.py:336
 msgid "Printing failed"
 msgstr "Nyomtatás Sikertelen"
 
@@ -20647,7 +20647,7 @@ msgstr "Protipp: <code>Hivatkozás hozzáadása: {{ reference_doctype }} {{ refe
 msgid "Proceed"
 msgstr "Folytatás"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:960
+#: frappe/public/js/frappe/views/reports/query_report.js:955
 msgid "Proceed Anyway"
 msgstr "Folytatás Mindenképpen"
 
@@ -20909,7 +20909,7 @@ msgstr "QR Kód"
 msgid "QR Code for Login Verification"
 msgstr "QR Kód a Bejelentkezés Ellenőrzéséhez"
 
-#: frappe/public/js/frappe/form/print_utils.js:247
+#: frappe/public/js/frappe/form/print_utils.js:253
 msgid "QZ Tray Failed:"
 msgstr "QZ Tálca Hiba:"
 
@@ -21253,7 +21253,7 @@ msgstr "Valós idejű kommunikáció (SocketIO)"
 msgid "Reason"
 msgstr "Ok"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:914
+#: frappe/public/js/frappe/views/reports/query_report.js:909
 msgid "Rebuild"
 msgstr "Újjáépítés"
 
@@ -21638,7 +21638,7 @@ msgstr "Referrer"
 #: frappe/public/js/frappe/form/form.js:1242
 #: frappe/public/js/frappe/form/templates/print_layout.html:6
 #: frappe/public/js/frappe/list/base_list.js:67
-#: frappe/public/js/frappe/views/reports/query_report.js:1858
+#: frappe/public/js/frappe/views/reports/query_report.js:1884
 #: frappe/public/js/frappe/views/treeview.js:498
 #: frappe/public/js/frappe/widgets/chart_widget.js:291
 #: frappe/public/js/frappe/widgets/number_card_widget.js:352
@@ -22065,7 +22065,7 @@ msgstr "Jelentéskezelő"
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:39
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/desk/doctype/number_card/number_card.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2048
+#: frappe/public/js/frappe/views/reports/query_report.js:2074
 msgid "Report Name"
 msgstr "Jelentés Neve"
 
@@ -22113,7 +22113,7 @@ msgstr "A jelentés nem tartalmaz adatokat, kérjük, módosítsa a szűrőket v
 msgid "Report has no numeric fields, please change the Report Name"
 msgstr "A jelentésnek nincsenek numerikus mezői, kérjük, változtassa meg a jelentés nevét"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1041
+#: frappe/public/js/frappe/views/reports/query_report.js:1036
 msgid "Report initiated, click to view status"
 msgstr "Jelentés kezdeményezve, kattintson az állapot megtekintéséhez"
 
@@ -22133,7 +22133,7 @@ msgstr "Jelentés sikeresen frissítve"
 msgid "Report was not saved (there were errors)"
 msgstr "A jelentés nem került mentésre (hibák voltak)"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2086
+#: frappe/public/js/frappe/views/reports/query_report.js:2112
 msgid "Report with more than 10 columns looks better in Landscape mode."
 msgstr "A 10-nél több oszlopot tartalmazó jelentés jobban néz ki fekvő módban."
 
@@ -22169,7 +22169,7 @@ msgstr "Jelentések"
 msgid "Reports & Masters"
 msgstr "Jelentések és Törzsadatok"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:957
+#: frappe/public/js/frappe/views/reports/query_report.js:952
 msgid "Reports already in Queue"
 msgstr "Jelentések már várólistán vannak"
 
@@ -23051,7 +23051,7 @@ msgstr "Szombat"
 #: frappe/printing/page/print/print.js:937
 #: frappe/printing/page/print_format_builder/print_format_builder.js:160
 #: frappe/public/js/frappe/form/footer/form_timeline.js:678
-#: frappe/public/js/frappe/form/quick_entry.js:196
+#: frappe/public/js/frappe/form/quick_entry.js:186
 #: frappe/public/js/frappe/list/list_settings.js:37
 #: frappe/public/js/frappe/list/list_settings.js:245
 #: frappe/public/js/frappe/list/list_view.js:2006
@@ -23060,7 +23060,7 @@ msgstr "Szombat"
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:45
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:189
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:357
-#: frappe/public/js/frappe/views/reports/query_report.js:2040
+#: frappe/public/js/frappe/views/reports/query_report.js:2066
 #: frappe/public/js/frappe/views/reports/report_view.js:1740
 #: frappe/public/js/frappe/views/workspace/workspace.js:398
 #: frappe/public/js/frappe/widgets/base_widget.js:142
@@ -23083,7 +23083,7 @@ msgstr "Mentés másként"
 msgid "Save Customizations"
 msgstr " Testreszabás Mentése"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2043
+#: frappe/public/js/frappe/views/reports/query_report.js:2069
 msgid "Save Report"
 msgstr "Jelentés Mentése"
 
@@ -23467,7 +23467,7 @@ msgstr "Biztonsági Beállítások"
 msgid "See all Activity"
 msgstr "Összes Tevékenység Megtekintése"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:883
+#: frappe/public/js/frappe/views/reports/query_report.js:878
 msgid "See all past reports."
 msgstr "Lásd az összes korábbi jelentést."
 
@@ -23715,12 +23715,6 @@ msgstr "Munkafolyamat Kiválasztása"
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "Select Workspace"
 msgstr "Munkaterület Kiválasztása"
-
-#. Label of the select_workspaces_section (Section Break) field in DocType
-#. 'Workspace Settings'
-#: frappe/desk/doctype/workspace_settings/workspace_settings.json
-msgid "Select Workspaces"
-msgstr "Munkaterületek kiválasztása"
 
 #: frappe/website/doctype/website_settings/website_settings.js:23
 msgid "Select a Brand Image first."
@@ -24238,7 +24232,7 @@ msgstr "Szűrők Beállítása"
 msgid "Set Filters for {0}"
 msgstr "{0} szűrők beállítása"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2199
+#: frappe/public/js/frappe/views/reports/query_report.js:2225
 msgid "Set Level"
 msgstr "Beállított szint"
 
@@ -24475,7 +24469,7 @@ msgstr "Telepítés > Felhasználó"
 msgid "Setup > User Permissions"
 msgstr "Telepítés > Felhasználói Engedélyek"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1905
+#: frappe/public/js/frappe/views/reports/query_report.js:1931
 #: frappe/public/js/frappe/views/reports/report_view.js:1718
 msgid "Setup Auto Email"
 msgstr "Automatikus E-mail Beállítása"
@@ -25811,7 +25805,7 @@ msgstr "Beküldési Sor"
 #: frappe/core/doctype/user_document_type/user_document_type.json
 #: frappe/core/doctype/user_permission/user_permission_list.js:138
 #: frappe/email/doctype/notification/notification.json
-#: frappe/public/js/frappe/form/quick_entry.js:268
+#: frappe/public/js/frappe/form/quick_entry.js:248
 #: frappe/public/js/frappe/form/templates/set_sharing.html:4
 #: frappe/public/js/frappe/ui/capture.js:308
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
@@ -26309,7 +26303,6 @@ msgstr "Rendszer Naplók"
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 #: frappe/desk/doctype/tag/tag.json frappe/desk/doctype/tag_link/tag_link.json
 #: frappe/desk/doctype/todo/todo.json
-#: frappe/desk/doctype/workspace_settings/workspace_settings.json
 #: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 #: frappe/email/doctype/document_follow/document_follow.json
@@ -26507,8 +26500,8 @@ msgstr "Címke Hivatkozás"
 
 #: frappe/model/meta.py:59
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:123
-#: frappe/public/js/frappe/list/base_list.js:813
-#: frappe/public/js/frappe/list/base_list.js:996
+#: frappe/public/js/frappe/list/base_list.js:812
+#: frappe/public/js/frappe/list/base_list.js:995
 #: frappe/public/js/frappe/list/bulk_operations.js:444
 #: frappe/public/js/frappe/model/meta.js:215
 #: frappe/public/js/frappe/model/model.js:133
@@ -27007,7 +27000,7 @@ msgstr "Nincsenek közelgő események az Ön számára."
 msgid "There are no {0} for this {1}, why don't you start one!"
 msgstr "Nincs {0} erre a {1}, miért nem indítasz egyet!"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:993
+#: frappe/public/js/frappe/views/reports/query_report.js:988
 msgid "There are {0} with the same filters already in the queue:"
 msgstr "{0} ugyanazokkal a szűrőkkel már szerepel a sorban:"
 
@@ -27040,7 +27033,7 @@ msgstr "Most nincs semmi újdonság, amit megmutathatnék."
 msgid "There is some problem with the file url: {0}"
 msgstr "Valami probléma van a fájl url-jével: {0}"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:990
+#: frappe/public/js/frappe/views/reports/query_report.js:985
 msgid "There is {0} with the same filters already in the queue:"
 msgstr "{0} ugyanazokkal a szűrőkkel már szerepel a sorban:"
 
@@ -27255,7 +27248,7 @@ msgstr "Ez a geolokációs szolgáltató még nem támogatott."
 msgid "This goes above the slideshow."
 msgstr "Ez a diavetítés fölé kerül."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2280
+#: frappe/public/js/frappe/views/reports/query_report.js:2306
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
 msgstr "Ez egy háttér jelentés. Adja meg a megfelelő szűrőket, majd hozzon létre újat."
 
@@ -27305,7 +27298,7 @@ msgstr "Előfordulhat, hogy több oldalra nyomtatják"
 msgid "This month"
 msgstr "Ebben a hónapban"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1069
+#: frappe/public/js/frappe/views/reports/query_report.js:1064
 msgid "This report contains {0} rows and is too big to display in browser, you can {1} this report instead."
 msgstr "Ez a jelentés {0} sort tartalmaz, és túl nagy a böngészőben való megjelenítéshez, ehelyett ezt a jelentést {1} jelenítheti meg."
 
@@ -27313,7 +27306,7 @@ msgstr "Ez a jelentés {0} sort tartalmaz, és túl nagy a böngészőben való 
 msgid "This report was generated on {0}"
 msgstr "Ez a jelentés ekkor készült: {0}"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:881
+#: frappe/public/js/frappe/views/reports/query_report.js:876
 msgid "This report was generated {0}."
 msgstr "Ez a jelentést készült {0}."
 
@@ -27723,7 +27716,7 @@ msgstr "Ha ezt a lépést JSON-ként szeretné exportálni, kapcsolja be egy Onb
 msgid "To generate password click {0}"
 msgstr "Jelszó létrehozásához kattintson a(z) {0} gombra"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:882
+#: frappe/public/js/frappe/views/reports/query_report.js:877
 msgid "To get the updated report, click on {0}."
 msgstr "A frissített jelentéshez kattintson erre: {0}."
 
@@ -27897,7 +27890,7 @@ msgstr "Téma"
 
 #: frappe/desk/query_report.py:621
 #: frappe/public/js/frappe/views/reports/print_grid.html:50
-#: frappe/public/js/frappe/views/reports/query_report.js:1371
+#: frappe/public/js/frappe/views/reports/query_report.js:1366
 #: frappe/public/js/frappe/views/reports/report_view.js:1548
 msgid "Total"
 msgstr "Összesen"
@@ -28051,7 +28044,7 @@ msgstr "Átmenetek"
 msgid "Translatable"
 msgstr "Lefordítható"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2341
+#: frappe/public/js/frappe/views/reports/query_report.js:2367
 msgid "Translate Data"
 msgstr "Adatok Fordítása"
 
@@ -28385,7 +28378,7 @@ msgstr "UTM Forrás"
 msgid "UUID"
 msgstr "UUID"
 
-#: frappe/desk/form/document_follow.py:79
+#: frappe/desk/form/document_follow.py:85
 msgid "Un-following document {0}"
 msgstr "Dokumentum követésének megszüntetése {0}"
 
@@ -28443,7 +28436,7 @@ msgid "Undo last action"
 msgstr "Visszavonás"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:152
-#: frappe/public/js/frappe/form/toolbar.js:945
+#: frappe/public/js/frappe/form/toolbar.js:944
 msgid "Unfollow"
 msgstr "Kikövet"
 
@@ -28672,7 +28665,6 @@ msgstr "{0} rekord frissítése"
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/permission_log/permission_log.json
-#: frappe/desk/doctype/workspace_settings/workspace_settings.py:41
 #: frappe/public/js/frappe/web_form/web_form.js:447
 msgid "Updated"
 msgstr "Frissítve"
@@ -29071,7 +29063,7 @@ msgstr "Felhasználói Engedély"
 #. Label of a Link in the Users Workspace
 #: frappe/core/page/permission_manager/permission_manager_help.html:97
 #: frappe/core/workspace/users/users.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2027
+#: frappe/public/js/frappe/views/reports/query_report.js:2053
 #: frappe/public/js/frappe/views/reports/report_view.js:1766
 msgid "User Permissions"
 msgstr "Felhasználói Engedélyek"
@@ -30361,7 +30353,6 @@ msgstr "Munkaterület Link"
 #. Name of a role
 #: frappe/desk/doctype/custom_html_block/custom_html_block.json
 #: frappe/desk/doctype/workspace/workspace.json
-#: frappe/desk/doctype/workspace_settings/workspace_settings.json
 msgid "Workspace Manager"
 msgstr "Munkaterület Kezelő"
 
@@ -30374,17 +30365,6 @@ msgstr "Munkaterület Szám Kártya"
 #: frappe/desk/doctype/workspace_quick_list/workspace_quick_list.json
 msgid "Workspace Quick List"
 msgstr "Munkaterület Gyors Lista"
-
-#. Name of a DocType
-#: frappe/desk/doctype/workspace_settings/workspace_settings.json
-msgid "Workspace Settings"
-msgstr "Munkaterület Beállításai"
-
-#. Label of the workspace_setup_completed (Check) field in DocType 'Workspace
-#. Settings'
-#: frappe/desk/doctype/workspace_settings/workspace_settings.json
-msgid "Workspace Setup Completed"
-msgstr "Munkaterület Beállítása Befejeződött"
 
 #. Name of a DocType
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
@@ -30403,12 +30383,6 @@ msgstr "Munkaterület Oldalsáv"
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Workspace Sidebar Item"
 msgstr "Munkaterület Oldalsáv Elem"
-
-#. Label of the workspace_visibility_json (JSON) field in DocType 'Workspace
-#. Settings'
-#: frappe/desk/doctype/workspace_settings/workspace_settings.json
-msgid "Workspace Visibility"
-msgstr "Munkaterület Láthatóság"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:602
 msgid "Workspace {0} created"
@@ -30477,7 +30451,7 @@ msgstr "Y Tengely Mezők"
 
 #. Label of the y_field (Select) field in DocType 'Dashboard Chart Field'
 #: frappe/desk/doctype/dashboard_chart_field/dashboard_chart_field.json
-#: frappe/public/js/frappe/views/reports/query_report.js:1272
+#: frappe/public/js/frappe/views/reports/query_report.js:1267
 msgid "Y Field"
 msgstr "Y Mező"
 
@@ -30542,7 +30516,7 @@ msgstr "Sárga"
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/public/js/form_builder/utils.js:336
 #: frappe/public/js/frappe/form/controls/link.js:574
-#: frappe/public/js/frappe/list/base_list.js:949
+#: frappe/public/js/frappe/list/base_list.js:948
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:170
 #: frappe/public/js/frappe/views/reports/query_report.js:47
 #: frappe/website/doctype/help_article/templates/help_article.html:25
@@ -30971,7 +30945,7 @@ msgstr "Engedélyeznie kell a JavaScriptet az alkalmazás működéséhez."
 msgid "You need to have \"Share\" permission"
 msgstr "'Megosztás' joggal kell rendelkeznie"
 
-#: frappe/utils/print_format.py:271
+#: frappe/utils/print_format.py:313
 msgid "You need to install pycups to use this feature!"
 msgstr "A funkció használatához telepítened kell a pycups csomagot!"
 
@@ -31980,7 +31954,7 @@ msgstr "{0} H"
 msgid "{0} Map"
 msgstr "{0} Térkép"
 
-#: frappe/public/js/frappe/form/quick_entry.js:135
+#: frappe/public/js/frappe/form/quick_entry.js:134
 msgid "{0} Name"
 msgstr "{0} Név"
 
@@ -31992,7 +31966,7 @@ msgstr "{0} Nem megengedett a {1} megváltoztatása a benyújtás után {2}-ről
 msgid "{0} Report"
 msgstr "{0} Jelentés"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:984
+#: frappe/public/js/frappe/views/reports/query_report.js:979
 msgid "{0} Reports"
 msgstr "{0} Jelentések"
 
@@ -32687,7 +32661,7 @@ msgstr "{0} {1}: A Beküldött rekordot nem lehet törölni. Először {2} vissz
 msgid "{0}, Row {1}"
 msgstr "{0}, Sor {1}"
 
-#: frappe/utils/print_format.py:148 frappe/utils/print_format.py:192
+#: frappe/utils/print_format.py:149 frappe/utils/print_format.py:193
 msgid "{0}/{1} complete | Please leave this tab open until completion."
 msgstr "{0}/{1} kész | Kérjük, hagyja ezt a fület nyitva a befejezésig."
 
@@ -32808,7 +32782,7 @@ msgstr "{0}: {1}"
 msgid "{0}: {1} is set to state {2}"
 msgstr "{0}: {1} beállítva erre az állapotra: {2}"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1330
+#: frappe/public/js/frappe/views/reports/query_report.js:1325
 msgid "{0}: {1} vs {2}"
 msgstr "{0} {1} a {2}"
 
@@ -32816,7 +32790,7 @@ msgstr "{0} {1} a {2}"
 msgid "{0}:Fieldtype {1} for {2} cannot be indexed"
 msgstr "{0}: A {2} mezőtípusa {1} nem indexelhető"
 
-#: frappe/public/js/frappe/form/quick_entry.js:222
+#: frappe/public/js/frappe/form/quick_entry.js:203
 msgid "{1} saved"
 msgstr "{1} mentve"
 

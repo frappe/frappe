@@ -6,7 +6,7 @@
 <h1>{{ _("QR Code for Login Verification") }}</h1>
 <div class='row'>
 	<div class='col-sm-6'>
-		<p>{{ _("Hi {0}").format(qr_code_user.first_name) }},</p>
+		<p>{{ _("Hi {0}").format(qr_code_user.first_name | e) }},</p>
 
 		<p>{{ _("Steps to verify your login") }}:</p>
 			<ol>

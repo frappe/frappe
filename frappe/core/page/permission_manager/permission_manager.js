@@ -138,11 +138,12 @@ frappe.PermissionEngine = class PermissionEngine {
 				.concat(custom_rights)
 				.map((r) => {
 					return __(toTitle(frappe.unscrub(r)));
-				});
+				})
+				.join(", ");
 
 			$wrapper.append(`<div class="row">\
 				<div class="col-xs-5"><b>${__(d.role)}</b>, ${__("Level")} ${d.permlevel || 0}</div>\
-				<div class="col-xs-7">${d.rights}</div>\
+				<div class="col-xs-7 text-break">${d.rights}</div>\
 			</div><br>`);
 		});
 	}

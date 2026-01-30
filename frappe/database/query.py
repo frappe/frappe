@@ -1607,6 +1607,24 @@ class Engine:
 			meta = frappe.get_meta(doctype)
 			df = meta.get_field(fieldname)
 		except Exception:
+			if frappe.db.db_type == "postgres":
+				"""check type and accordingly choose fallback (to avoid postgres type cast errors)"""
+				target_table = frappe.utils.get_table_name(doctype)
+				info_schema = frappe.qb.Schema("information_schema")
+				columns = info_schema.columns
+				current_schema = frappe.conf.get("db_schema", "public")
+				res = (
+					frappe.qb.from_(columns)
+					.select(columns.data_type)
+					.where(
+						(columns.table_name == target_table)
+						& (columns.column_name == fieldname)
+						& (columns.table_schema == current_schema)
+					)
+				).run(pluck=True)
+				data_type = res[0] if res else None
+				if data_type in ("smallint", "bigint", "int", "numeric"):  # can add as needed
+					return "0"
 			return "''"
 
 		if df is None:

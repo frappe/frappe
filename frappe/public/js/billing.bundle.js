@@ -40,11 +40,19 @@ function setErrorMessage(message) {
 }
 
 function addManageBillingDropdown() {
-	$(".dropdown-navbar-user .dropdown-menu .dropdown-divider").before(
-		`<button class="dropdown-item login-to-fc" target="_blank">Manage Billing</button>`
-	);
+	$(document).on("desktop_screen", function (event, data) {
+		data.desktop.add_menu_item({
+			label: __("Manage Billing"),
+			icon: "receipt-text",
+			condition: function () {
+				return frappe.boot.sysdefaults.demo_company;
+			},
+			onClick: function () {
+				return openFrappeCloudDashboard();
+			},
+		});
+	});
 }
-
 function openFrappeCloudDashboard() {
 	window.open(`${frappeCloudBaseEndpoint}/dashboard/sites/${frappe.boot.sitename}`, "_blank");
 }

@@ -3,7 +3,8 @@ frappe.ui.get_print_settings = function (
 	callback,
 	letter_head,
 	pick_columns,
-	has_filters = false
+	has_filters = false,
+	title = null
 ) {
 	var print_settings = locals[":Print Settings"]["Print Settings"];
 
@@ -115,7 +116,7 @@ frappe.ui.get_print_settings = function (
 				settings.print_format = null;
 			}
 		},
-		__("Print Settings")
+		title ? __(title) : __("Print Settings")
 	);
 };
 

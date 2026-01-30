@@ -291,11 +291,16 @@ class OAuthWebRequestValidator(RequestValidator):
 		- Refresh Token Grant
 		"""
 
-		otoken = frappe.get_doc("OAuth Bearer Token", {"refresh_token": refresh_token, "status": "Active"})
+		otoken = frappe.get_doc(
+			"OAuth Bearer Token",
+			{"refresh_token": refresh_token, "status": "Active"},
+		)
 
 		if not otoken:
 			return False
 		else:
+			# Set request.user to the user associated with the refresh token
+			request.user = otoken.user
 			return True
 
 	# OpenID Connect
