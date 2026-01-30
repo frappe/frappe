@@ -2309,25 +2309,21 @@ class TestQuery(IntegrationTestCase):
 
 		trial_dt.insert(ignore_if_duplicate=True)
 
-		indexes = frappe.db.sql("""
-			SHOW INDEX FROM `tabTrial Doctype`
-			WHERE Column_name = 'field_two'
-		""")
-
+		indexes = frappe.db.get_column_index("tabTrial Doctype", "field_two", unique=True)
 		self.assertTrue(indexes)
+
+		field_to_remove = None
 
 		for field in trial_dt.fields:
 			if field.fieldname == "field_two":
-				trial_dt.fields.remove(field)
+				field_to_remove = field
 				break
 
-		trial_dt.save()
+		if field_to_remove:
+			trial_dt.fields.remove(field_to_remove)
+			trial_dt.save()
 
-		indexes = frappe.db.sql("""
-			SHOW INDEX FROM `tabTrial Doctype`
-			WHERE Column_name = 'field_two'
-		""")
-
+		indexes = frappe.db.get_column_index("tabTrial Doctype", "field_two", unique=True)
 		self.assertFalse(indexes)
 
 
