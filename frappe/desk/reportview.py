@@ -414,7 +414,7 @@ def run_report_view_export_job(user_email, form_params, csv_params):
 
 def _export_query(form_params, csv_params, populate_response=True):
 	from frappe.desk.utils import get_csv_bytes, provide_binary_file
-	from frappe.utils.xlsxutils import handle_html, make_xlsx
+	from frappe.utils.xlsxutils import get_default_xlsx_styles, handle_html, make_xlsx
 
 	doctype = form_params.pop("doctype")
 	owner_field = f"`tab{doctype}`.`owner`"
@@ -456,7 +456,8 @@ def _export_query(form_params, csv_params, populate_response=True):
 	fields_info = get_field_info(db_query.fields, doctype)
 
 	labels = [info["label"] for info in fields_info]
-	data = [[_("Sr"), *labels]]
+	sr_label = _("Sr")
+	data = [[sr_label, *labels]]
 	processed_data = []
 
 	if frappe.local.lang == "en" or not translate_values:
@@ -481,7 +482,22 @@ def _export_query(form_params, csv_params, populate_response=True):
 		)
 	elif file_format_type == "Excel":
 		file_extension = "xlsx"
-		content = make_xlsx(data, doctype).getvalue()
+
+		styles = get_default_xlsx_styles(
+			columns=[
+				{
+					"fieldname": "sr",
+					"label": sr_label,
+					"fieldtype": "Int",
+				},
+				*fields_info,
+			],
+			data=data[1:],  # exclude header row
+			has_total_row=bool(add_totals_row),
+			apply_currency_format=True,
+		)
+
+		content = make_xlsx(data, doctype, styles=styles).getvalue()
 
 	if not populate_response:
 		return title, file_extension, content
