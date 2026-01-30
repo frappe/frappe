@@ -1389,10 +1389,6 @@ Object.assign(frappe.utils, {
 		blue: "#0981E3",
 		gray: "#7B808A",
 	},
-	desktop_bg_color(color_name) {
-		let color_value = this.desktop_pallete[color_name];
-		color_value + "";
-	},
 	icon(
 		icon_name,
 		size = "sm",

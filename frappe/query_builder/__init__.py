@@ -13,6 +13,7 @@ from frappe.query_builder.utils import (
 )
 
 pypika.terms.ValueWrapper = ParameterizedValueWrapper
+pypika.terms.Function.get_sql = ParameterizedFunction.get_sql
 pypika.terms.Function = ParameterizedFunction
 
 # * Overrides the field() method and replaces it with the a `PseudoColumn` 'field' for consistency

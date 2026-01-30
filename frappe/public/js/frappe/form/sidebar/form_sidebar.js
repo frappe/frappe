@@ -73,6 +73,7 @@ frappe.ui.form.Sidebar = class {
 	setup_copy_event() {
 		$(this.sidebar)
 			.find(".sidebar-meta-details .form-name-copy")
+			.tooltip()
 			.on("click", (e) => {
 				frappe.utils.copy_to_clipboard($(e.currentTarget).attr("data-copy"));
 			});
