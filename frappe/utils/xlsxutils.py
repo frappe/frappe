@@ -28,6 +28,9 @@ ILLEGAL_CHARACTERS_RE = re.compile(
 class XLSXMetadata:
 	"""
 	Metadata for XLSX reports for exports.
+
+	NOTE:
+	- indexes based on excel sheet rows/columns position (0-indexed)
 	"""
 
 	report_name: str = ""
@@ -36,9 +39,9 @@ class XLSXMetadata:
 
 	row_map: dict[int, dict | list] = dataclass_field(default_factory=dict)
 	column_map: dict[int, dict] = dataclass_field(default_factory=dict)
+	applied_filters_map: dict[int, list] = dataclass_field(default_factory=dict)
 
 	header_index: int = 0
-	last_row_index: int = 0
 	max_indent_level: int = 0
 
 	add_total_row: bool = False
@@ -55,6 +58,12 @@ class XLSXMetadata:
 
 	def get_row(self, row_idx: int) -> dict | list | None:
 		return self.row_map.get(row_idx)
+
+	def get_last_row_index(self) -> int | None:
+		if self.row_map:
+			return max(self.row_map.keys())
+
+		return None
 
 
 class XLSXStyleBuilder:
@@ -216,7 +225,7 @@ class XLSXStyleBuilder:
 	def style_filters(self):
 		LABEL_COLUMN_INDEX = 0
 
-		for row_idx in range(self.metadata.header_index):
+		for row_idx in self.metadata.applied_filters_map.keys():
 			self.style_cell(row_idx, LABEL_COLUMN_INDEX, self._filter_label_style)
 
 		return self
@@ -229,7 +238,7 @@ class XLSXStyleBuilder:
 		return self
 
 	def style_total_row(self):
-		return self.style_row(self.metadata.last_row_index, self._total_row_style)
+		return self.style_row(self.metadata.get_last_row_index(), self._total_row_style)
 
 	def apply_default_fieldtype_formats(
 		self, *, currency_formatting: bool = False, currency: str | dict | None = None
@@ -279,10 +288,12 @@ class XLSXStyleBuilder:
 
 		# currency per row (fallback for unmapped fields)
 		default_currency = frappe.db.get_default("currency")
+		last_row_index = self.metadata.get_last_row_index()
+		ignore_visible_idx = self.metadata.ignore_visible_idx
 
 		for row_idx, row in self.metadata.row_map.items():
 			# currency format should not be applied to total row
-			if row_idx == self.metadata.last_row_index and self.metadata.ignore_visible_idx:
+			if row_idx == last_row_index and ignore_visible_idx:
 				continue
 
 			for col_idx, col in self.currency_fields.items():

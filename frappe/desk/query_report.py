@@ -449,6 +449,10 @@ def format_fields(data: frappe._dict) -> None:
 					row[index] = round(row[index], col.get("precision"))
 
 
+def parse_filter_value(value):
+	return ", ".join([cstr(x) for x in value]) if isinstance(value, list) else cstr(value)
+
+
 def build_xlsx_data(
 	data: frappe._dict,
 	visible_idx: list[int],
@@ -503,30 +507,38 @@ def build_xlsx_data(
 
 	result = []
 	column_widths = []
+	column_data = []
+
 	header_index = 0
+	excel_row_idx = 0
+	max_indent_level = 0
 
 	include_hidden_columns = cint(include_hidden_columns)
 	include_indentation = cint(include_indentation)
 	include_filters = cint(include_filters)
 
+	# adding applied filter rows
 	if include_filters and data.filters:
 		filter_data = []
 		for filter_name, filter_value in data.filters.items():
 			if not filter_value:
 				continue
-			filter_value = (
-				", ".join([cstr(x) for x in filter_value])
-				if isinstance(filter_value, list)
-				else cstr(filter_value)
-			)
-			filter_data.append([cstr(filter_name), filter_value])
+
+			applied_filter = [cstr(filter_name), parse_filter_value(filter_value)]
+
+			if build_styles:
+				metadata.applied_filters_map[excel_row_idx] = applied_filter
+				excel_row_idx += 1
+
+			filter_data.append(applied_filter)
+
 		filter_data.append([])
+		excel_row_idx += 1  # for empty row after filters
 		result += filter_data
 
-	# header is after filters + 1 empty row
-	header_index = len(result)
+	header_index = excel_row_idx
 
-	column_data = []
+	# adding header row
 	for idx, column in enumerate(data.columns):
 		if column.get("hidden") and not include_hidden_columns:
 			continue
@@ -539,10 +551,9 @@ def build_xlsx_data(
 		# to convert into scale accepted by openpyxl
 		column_width /= 10
 		column_widths.append(column_width)
-	result.append(column_data)
 
-	excel_row_idx = header_index + 1
-	max_indent_level = 0
+	result.append(column_data)
+	excel_row_idx += 1
 
 	# build table from result
 	for row_idx, row in enumerate(data.result):
@@ -588,7 +599,6 @@ def build_xlsx_data(
 		metadata.filters = data._filters or frappe._dict()
 
 		metadata.header_index = header_index
-		metadata.last_row_index = len(result) - 1
 		metadata.max_indent_level = max_indent_level
 
 		metadata.include_filters = include_filters
