@@ -10,7 +10,7 @@ const sidebar_width = ref(240);
 const isLoading = ref(true);
 
 const showTasks = computed(() => {
-    return store.workflow.selected && store.workflow.selected.type === 'action';
+	return store.workflow.selected && store.workflow.selected.type === "action";
 });
 
 function onDragStart(event, item, type) {
@@ -18,40 +18,40 @@ function onDragStart(event, item, type) {
 		event.dataTransfer.effectAllowed = "move";
 		event.dataTransfer.setData("item_name", item.name);
 		event.dataTransfer.setData("item_type", type);
-        
-        // Legacy support for main canvas state dropping
-        if (type === 'state') {
-		    event.dataTransfer.setData("state", item.name);
-		    event.dataTransfer.setData("is_new_state", true);
-        }
+
+		// Legacy support for main canvas state dropping
+		if (type === "state") {
+			event.dataTransfer.setData("state", item.name);
+			event.dataTransfer.setData("is_new_state", true);
+		}
 	}
 }
 
 function getTaskIcon(taskName) {
-    const lowerName = taskName.toLowerCase();
-    let iconName = 'clipboard'; // Default
+	const lowerName = taskName.toLowerCase();
+	let iconName = "clipboard"; // Default
 
-    if (lowerName.includes('signature')) {
-        iconName = 'file-pen';
-    } else if (lowerName.includes('ekyc')) {
-        iconName = 'scan-face';
-    } else if (lowerName.includes('cibil')) {
-        iconName = 'file-digit';
-    } else if (lowerName.includes('loan')) {
-        iconName = 'banknote';
-    } else if (lowerName.includes('bank')) {
-        iconName = 'landmark';
-    } else if (lowerName.includes('education')) {
-        iconName = 'graduation-cap';
-    } else if (lowerName.includes('mail') || lowerName.includes('notification')) {
-        iconName = 'mail';
-    } else if (lowerName.includes('webhook')) {
-        iconName = 'webhook';
-    } else if (lowerName.includes('server script') || lowerName.includes('script')) {
-        iconName = 'code-xml';
-    }
+	if (lowerName.includes("signature")) {
+		iconName = "file-pen";
+	} else if (lowerName.includes("ekyc")) {
+		iconName = "scan-face";
+	} else if (lowerName.includes("cibil")) {
+		iconName = "file-digit";
+	} else if (lowerName.includes("loan")) {
+		iconName = "banknote";
+	} else if (lowerName.includes("bank")) {
+		iconName = "landmark";
+	} else if (lowerName.includes("education")) {
+		iconName = "graduation-cap";
+	} else if (lowerName.includes("mail") || lowerName.includes("notification")) {
+		iconName = "mail";
+	} else if (lowerName.includes("webhook")) {
+		iconName = "webhook";
+	} else if (lowerName.includes("server script") || lowerName.includes("script")) {
+		iconName = "code-xml";
+	}
 
-    return frappe.utils.icon(iconName, 'sm');
+	return frappe.utils.icon(iconName, "sm");
 }
 
 async function fetch_states() {
@@ -60,7 +60,7 @@ async function fetch_states() {
 		states.value = await frappe.db.get_list("Workflow State", {
 			fields: ["name"],
 			limit: 0,
-			order_by: "name asc"
+			order_by: "name asc",
 		});
 	} catch (e) {
 		console.error("Failed to fetch Workflow States:", e);
@@ -72,29 +72,31 @@ async function fetch_states() {
 async function fetch_tasks() {
 	isLoading.value = true;
 	try {
-		const response = await frappe.call({method:"frappe.workflow.doctype.workflow.workflow.get_workflow_methods", type:"GET"});
+		const response = await frappe.call({
+			method: "frappe.workflow.doctype.workflow.workflow.get_workflow_methods",
+			type: "GET",
+		});
 		// The API returns a list of items where each item is a dict with 'label' and 'value'
 		// or potentially just a list of strings depending on implementation.
 		// Let's assume standard frappe.call behavior returns 'message'
-		
+
 		// Based on common Frappe patterns for such named methods:
 		// usually returns list of dicts like [{label: 'x', value: 'x'}] or just strings.
 		// We will map it to objects with 'name' property to match the existing template.
-		
+
 		let data = response.message || [];
-		
+
 		// If data is list of strings (simple values)
-		if (data.length > 0 && typeof data[0] === 'string') {
-			tasks.value = data.map(d => ({ name: d }));
-		} 
+		if (data.length > 0 && typeof data[0] === "string") {
+			tasks.value = data.map((d) => ({ name: d }));
+		}
 		// If data is list of dicts (options)
-		else if (data.length > 0 && typeof data[0] === 'object') {
-			 // Adapt based on keys. Assuming standard 'value' or 'name' or 'label'
-			 tasks.value = data.map(d => ({ name: d.value || d.name || d.label }));
+		else if (data.length > 0 && typeof data[0] === "object") {
+			// Adapt based on keys. Assuming standard 'value' or 'name' or 'label'
+			tasks.value = data.map((d) => ({ name: d.value || d.name || d.label }));
 		} else {
 			tasks.value = [];
 		}
-		
 	} catch (e) {
 		console.error("Failed to fetch Workflow Tasks:", e);
 		tasks.value = [];
@@ -130,23 +132,21 @@ onMounted(() => {
 
 <template>
 	<div class="state-sidebar" :style="{ width: `${sidebar_width}px` }">
-		<div 
-			class="resizer" 
-			@mousedown="start_resize"
-			:class="{ active: resizing }"
-		></div>
-		
+		<div class="resizer" @mousedown="start_resize" :class="{ active: resizing }"></div>
+
 		<template v-if="!showTasks">
 			<div class="header p-3 border-b shrink-0">
 				<h5 class="font-bold text-base mb-0">{{ __("States") }}</h5>
-				<p class="text-xs text-muted mt-1 mb-0">{{ __("Drag to add states to workflow") }}</p>
+				<p class="text-xs text-muted mt-1 mb-0">
+					{{ __("Drag to add states to workflow") }}
+				</p>
 			</div>
 
 			<div class="states-list p-2 overflow-y-auto">
 				<div v-if="isLoading" class="p-4 text-center text-muted">
 					{{ __("Loading...") }}
 				</div>
-				
+
 				<template v-else>
 					<div class="sidebar-list-container">
 						<div
@@ -161,7 +161,7 @@ onMounted(() => {
 							</div>
 						</div>
 					</div>
-					
+
 					<div v-if="states.length === 0" class="p-4 text-center text-muted">
 						{{ __("No states found") }}
 					</div>
@@ -171,14 +171,16 @@ onMounted(() => {
 		<template v-if="showTasks">
 			<div class="header p-3 border-b shrink-0">
 				<h5 class="font-bold text-base mb-0">{{ __("Tasks") }}</h5>
-				<p class="text-xs text-muted mt-1 mb-0">{{ __("Drag and drop tasks on action node to add to workflow") }}</p>
+				<p class="text-xs text-muted mt-1 mb-0">
+					{{ __("Drag and drop tasks on action node to add to workflow") }}
+				</p>
 			</div>
 			<div class="states-list p-2 overflow-y-auto">
 				<div v-if="isLoading" class="p-4 text-center text-muted">
 					{{ __("Loading...") }}
 				</div>
-				
-			<template v-else>
+
+				<template v-else>
 					<div class="sidebar-list-container">
 						<div
 							v-for="task in tasks"
@@ -220,8 +222,9 @@ onMounted(() => {
 	height: 100%;
 	cursor: col-resize;
 	z-index: 10;
-	
-	&:hover, &.active {
+
+	&:hover,
+	&.active {
 		background-color: var(--primary);
 		opacity: 0.5;
 	}
@@ -233,15 +236,40 @@ onMounted(() => {
 	min-height: 0;
 }
 
-.p-3 { padding: 0.75rem; }
-.mb-0 { margin-bottom: 0; }
-.mt-1 { margin-top: 0.25rem; }
-.text-base { font-size: var(--text-base); }
-.text-muted { color: var(--text-muted); }
-.p-2 { padding: 0.5rem; }
-.p-4 { padding: 1rem; }
-.w-full { width: 100%; }
-.border-b { border-bottom: 1px solid var(--border-color); }
+.p-3 {
+	padding: 0.75rem;
+}
+
+.mb-0 {
+	margin-bottom: 0;
+}
+
+.mt-1 {
+	margin-top: 0.25rem;
+}
+
+.text-base {
+	font-size: var(--text-base);
+}
+
+.text-muted {
+	color: var(--text-muted);
+}
+
+.p-2 {
+	padding: 0.5rem;
+}
+
+.p-4 {
+	padding: 1rem;
+}
+
+.w-full {
+	width: 100%;
+}
+.border-b {
+	border-bottom: 1px solid var(--border-color);
+}
 
 /* Common List Styles */
 .sidebar-list-container {

@@ -65,7 +65,7 @@ async function onDrop(event) {
 			await store.add_task_to_transition(props.node, item_name);
 			frappe.show_alert({
 				message: __("Task '{0}' added to transition", [item_name]),
-				indicator: "green"
+				indicator: "green",
 			});
 		} catch (e) {
 			console.error(e);
@@ -82,9 +82,10 @@ function onTaskDragStart(event, index) {
 }
 
 function onTaskDragOver(event) {
-	if (event.dataTransfer.types.includes("type") || true) { // simplified check
+	if (event.dataTransfer.types.includes("type") || true) {
+		// simplified check
 		event.preventDefault(); // allow drop
-		event.dataTransfer.dropEffect = "move"; 
+		event.dataTransfer.dropEffect = "move";
 	}
 }
 
@@ -108,74 +109,178 @@ async function removeTask(task) {
 }
 
 function openTaskConfig(task, index) {
+	// Server Script Configuration
+	if (task.task.toLowerCase().includes("server script")) {
+		let script_name = task.link;
+
+		const show_dialog = (script_code = "") => {
+			const d = new frappe.ui.Dialog({
+				title: __("Configure Server Script"),
+				fields: [
+					{
+						label: "Script Name",
+						fieldname: "script_name",
+						fieldtype: "Data",
+						reqd: 1,
+						default: script_name,
+						description: "Name of the Server Script (API Method)",
+					},
+					{
+						label: "Script",
+						fieldname: "script",
+						fieldtype: "Code",
+						reqd: 1,
+						default: script_code,
+						enable_ace_editor: true,
+					},
+				],
+				primary_action_label: script_name ? __("Update Script") : __("Create Script"),
+				primary_action(values) {
+					frappe.db.get_value("Server Script", values.script_name, "name").then((r) => {
+						if (r && r.message && r.message.name) {
+							// Update existing
+							frappe.db.get_doc("Server Script", values.script_name).then((doc) => {
+								doc.script = values.script;
+								doc.script_type = "API";
+								doc.api_method = values.script_name;
+
+								frappe.call({
+									method: "frappe.client.save",
+									args: { doc: doc },
+									callback: function (r) {
+										if (!r.exc) {
+											frappe.show_alert({
+												message: __("Server Script Updated"),
+												indicator: "green",
+											});
+											store.update_task_config(props.node, index, {
+												link: values.script_name,
+											});
+											d.hide();
+										}
+									},
+								});
+							});
+						} else {
+							// Create new
+							frappe.call({
+								method: "frappe.client.insert",
+								args: {
+									doc: {
+										doctype: "Server Script",
+										name: values.script_name,
+										script_type: "API",
+										api_method: values.script_name,
+										script: values.script,
+										allow_guest: 0,
+									},
+								},
+								callback: function (r) {
+									if (!r.exc) {
+										frappe.show_alert({
+											message: __("Server Script Created"),
+											indicator: "green",
+										});
+										store.update_task_config(props.node, index, {
+											link: values.script_name,
+										});
+										d.hide();
+									}
+								},
+							});
+						}
+					});
+				},
+			});
+			d.show();
+		};
+
+		if (script_name) {
+			// Fetch existing script content
+			frappe.db.get_value("Server Script", script_name, "script").then((r) => {
+				if (r && r.message && r.message.script) {
+					show_dialog(r.message.script);
+				} else {
+					show_dialog(); // Fallback if script deleted but link remains
+				}
+			});
+		} else {
+			show_dialog();
+		}
+
+		return;
+	}
+
 	// Only open config for Email Notification tasks for now
-	if (!task.task.toLowerCase().includes('email') && !task.task.toLowerCase().includes('notification')) {
+	if (
+		!task.task.toLowerCase().includes("email") &&
+		!task.task.toLowerCase().includes("notification")
+	) {
 		return;
 	}
 
 	// Get fields from the store (already fetched for the main document)
 	// Filter for fields that are of type 'Email' using the metadata.
 	const receiver_options = store.workflow_doc_fields
-		.filter(f => f.options == 'Email')
-		.map(f => ({
+		.filter((f) => f.options == "Email")
+		.map((f) => ({
 			label: f.label,
-			value: f.value
+			value: f.value,
 		}));
 
 	console.log(receiver_options);
 
 	const d = new frappe.ui.Dialog({
-		title: __('Configure {0}', [task.task]),
+		title: __("Configure {0}", [task.task]),
 		fields: [
 			{
-				label: 'Email Template',
-				fieldname: 'email_template',
-				fieldtype: 'Link',
-				options: 'Email Template',
+				label: "Email Template",
+				fieldname: "email_template",
+				fieldtype: "Link",
+				options: "Email Template",
 				default: task.email_template,
-				reqd: 1
+				reqd: 1,
 			},
 			{
-				label: 'Receiver By Document Field',
-				fieldname: 'receiver_by_document_field',
-				fieldtype: 'Select',
+				label: "Receiver By Document Field",
+				fieldname: "receiver_by_document_field",
+				fieldtype: "Select",
 				options: receiver_options,
 				default: task.receiver_by_document_field,
-				reqd: 1
-			}
+				reqd: 1,
+			},
 		],
-		primary_action_label: __('Update'),
+		primary_action_label: __("Update"),
 		primary_action(values) {
 			store.update_task_config(props.node, index, {
 				email_template: values.email_template,
-				receiver_by_document_field: values.receiver_by_document_field
+				receiver_by_document_field: values.receiver_by_document_field,
 			});
 			d.hide();
-			frappe.show_alert({ message: __('Task updated'), indicator: 'green' });
-		}
+			frappe.show_alert({ message: __("Task updated"), indicator: "green" });
+		},
 	});
 
 	d.show();
 }
-
 </script>
 
 <template>
-	<div 
-		class="node" 
-		tabindex="0" 
+	<div
+		class="node"
+		tabindex="0"
 		@click.stop="store.workflow.selected = node"
 		@drop.stop="onDrop"
 		@dragover.stop="onDragOver"
 	>
 		<div v-if="label" class="node-label">{{ __(label) }}</div>
 		<div v-else class="node-placeholder text-muted">{{ __("No Label") }}</div>
-		
+
 		<!-- Display added tasks -->
 		<div v-if="node.data && node.data.tasks && node.data.tasks.length" class="tasks-container">
-			<div 
-				v-for="(task, index) in node.data.tasks" 
-				:key="task.task" 
+			<div
+				v-for="(task, index) in node.data.tasks"
+				:key="task.task"
 				class="task-badge"
 				draggable="true"
 				@dragstart.stop="(e) => onTaskDragStart(e, index)"
@@ -185,12 +290,17 @@ function openTaskConfig(task, index) {
 			>
 				<div class="flex items-center justify-between">
 					<span>{{ task.task }}</span>
-					<div 
-						class="remove-icon" 
-						@click.stop="removeTask(task)"
-						title="Remove Task"
-					>
-						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<div class="remove-icon" @click.stop="removeTask(task)" title="Remove Task">
+						<svg
+							width="12"
+							height="12"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
 							<line x1="18" y1="6" x2="6" y2="18"></line>
 							<line x1="6" y1="6" x2="18" y2="18"></line>
 						</svg>
@@ -234,7 +344,7 @@ function openTaskConfig(task, index) {
 .tasks-container {
 	margin-top: 8px;
 	padding-top: 8px;
-	border-top: 1px solid rgba(0,0,0,0.1);
+	border-top: 1px solid rgba(0, 0, 0, 0.1);
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
@@ -247,7 +357,7 @@ function openTaskConfig(task, index) {
 	padding: 4px 8px;
 	border-radius: 4px;
 	border: 1px solid #d1d8dd;
-	box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 	font-weight: 500;
 	margin-bottom: 2px;
 	display: block;
@@ -255,7 +365,7 @@ function openTaskConfig(task, index) {
 	box-sizing: border-box;
 	text-align: left;
 	cursor: pointer; /* Changed from grab to pointer for clickable effect */
-	
+
 	&:hover {
 		border-color: var(--primary);
 	}
@@ -287,7 +397,7 @@ function openTaskConfig(task, index) {
 	cursor: pointer;
 	color: #8d99a6;
 	margin-left: 4px;
-	
+
 	&:hover {
 		background-color: #f0f4f8;
 		color: #000000;

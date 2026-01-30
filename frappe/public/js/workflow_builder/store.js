@@ -61,7 +61,6 @@ export const useStore = defineStore("workflow-builder-store", () => {
 				JSON.parse(workflow_doc.value.workflow_data)) ||
 			[];
 
-
 		workflow.value.elements = get_workflow_elements(workflow_doc.value, workflow_data);
 
 		// Fetch tasks for all transitions
@@ -69,8 +68,8 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 		// 1. Identify potential docs to fetch (Existing Links OR Safe Guesses)
 		const docs_to_check = new Set();
-		workflow.value.elements.forEach(el => {
-			if (el.type === 'action' && el.data.action) {
+		workflow.value.elements.forEach((el) => {
+			if (el.type === "action" && el.data.action) {
 				if (el.data.transition_tasks) {
 					docs_to_check.add(el.data.transition_tasks);
 				} else {
@@ -87,24 +86,36 @@ export const useStore = defineStore("workflow-builder-store", () => {
 				const exists = await frappe.call("frappe.client.get_value", {
 					doctype: "Workflow Transition Tasks",
 					filters: { name: doc_name },
-					fieldname: "name"
+					fieldname: "name",
 				});
 
 				if (exists && exists.message && exists.message.name) {
-					const tasks_doc = await frappe.db.get_doc("Workflow Transition Tasks", doc_name);
+					const tasks_doc = await frappe.db.get_doc(
+						"Workflow Transition Tasks",
+						doc_name
+					);
 					if (tasks_doc) {
-						const tasks = tasks_doc.tasks ? tasks_doc.tasks.map(t => ({
-							task: t.task,
-							email_template: t.email_template,
-							receiver_by_document_field: t.receiver_by_document_field
-						})) : [];
+						const tasks = tasks_doc.tasks
+							? tasks_doc.tasks.map((t) => ({
+									task: t.task,
+									email_template: t.email_template,
+									receiver_by_document_field: t.receiver_by_document_field,
+									link: t.link,
+							  }))
+							: [];
 
 						// Assign to map if it matches
-						workflow.value.elements.forEach(el => {
-							if (el.type === 'action' && el.data.action) {
+						workflow.value.elements.forEach((el) => {
+							if (el.type === "action" && el.data.action) {
 								const expected_name = workflow_name.value + "-" + el.data.action;
-								if (el.data.transition_tasks === doc_name || expected_name === doc_name) {
-									action_tasks_map[el.data.action] = { tasks: tasks, doc_name: doc_name };
+								if (
+									el.data.transition_tasks === doc_name ||
+									expected_name === doc_name
+								) {
+									action_tasks_map[el.data.action] = {
+										tasks: tasks,
+										doc_name: doc_name,
+									};
 								}
 							}
 						});
@@ -117,11 +128,11 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 		// 3. Assign tasks to ALL nodes
 		for (const element of workflow.value.elements) {
-			if (element.type === 'action') {
+			if (element.type === "action") {
 				const action_data = action_tasks_map[element.data.action];
 				if (action_data) {
 					// Deep copy tasks to avoid reference issues
-					element.data.tasks = action_data.tasks.map(t => ({ ...t }));
+					element.data.tasks = action_data.tasks.map((t) => ({ ...t }));
 					if (!element.data.transition_tasks) {
 						element.data.transition_tasks = action_data.doc_name;
 					}
@@ -142,24 +153,33 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	async function update_transition_tasks() {
 		// Persist Transition Tasks first
 		for (const element of workflow.value.elements) {
-			if (element.type === 'action') {
+			if (element.type === "action") {
 				const doc_name = workflow_name.value + "-" + element.data.action;
 
-				if (element.data.action && ((element.data.tasks && element.data.tasks.length > 0) || element.data.transition_tasks)) {
+				if (
+					element.data.action &&
+					((element.data.tasks && element.data.tasks.length > 0) ||
+						element.data.transition_tasks)
+				) {
 					let doc_exists;
 					let is_new = true;
 
-					doc_exists = await frappe.db.get_value("Workflow Transition Tasks", doc_name, "name");
+					doc_exists = await frappe.db.get_value(
+						"Workflow Transition Tasks",
+						doc_name,
+						"name"
+					);
 
 					if (doc_exists && doc_exists.message.name) {
 						is_new = false;
 					}
 
 					// Map tasks to backend format
-					const tasks_payload = (element.data.tasks || []).map(t => ({
+					const tasks_payload = (element.data.tasks || []).map((t) => ({
 						task: t.task,
 						email_template: t.email_template,
-						receiver_by_document_field: t.receiver_by_document_field
+						receiver_by_document_field: t.receiver_by_document_field,
+						link: t.link,
 					}));
 
 					if (is_new) {
@@ -170,8 +190,8 @@ export const useStore = defineStore("workflow-builder-store", () => {
 									doc: {
 										name: doc_name,
 										doctype: "Workflow Transition Tasks",
-										tasks: tasks_payload
-									}
+										tasks: tasks_payload,
+									},
 								},
 								async: false,
 							});
@@ -243,7 +263,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 				obj.data = {
 					from_id: data.from_id,
 					to_id: data.to_id,
-					transition_tasks: data.transition_tasks
+					transition_tasks: data.transition_tasks,
 				};
 			}
 
@@ -348,16 +368,16 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	}
 
 	async function remove_task_from_transition(p_node, task_obj) {
-		let source_node = workflow.value.elements.find(el => el.id === p_node.id);
+		let source_node = workflow.value.elements.find((el) => el.id === p_node.id);
 		if (!source_node || !source_node.data) return;
 		const action_name = source_node.data.action;
 
-		workflow.value.elements.forEach(node => {
-			if (node.type === 'action' && node.data.action === action_name) {
+		workflow.value.elements.forEach((node) => {
+			if (node.type === "action" && node.data.action === action_name) {
 				if (!node.data.tasks) return;
 
 				// Match by task name (assuming task names are unique in the list)
-				const index = node.data.tasks.findIndex(t => t.task === task_obj.task);
+				const index = node.data.tasks.findIndex((t) => t.task === task_obj.task);
 				if (index > -1) {
 					node.data.tasks.splice(index, 1);
 					node.data = { ...node.data };
@@ -368,12 +388,12 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	}
 
 	async function move_task(p_node, from_index, to_index) {
-		let source_node = workflow.value.elements.find(el => el.id === p_node.id);
+		let source_node = workflow.value.elements.find((el) => el.id === p_node.id);
 		if (!source_node || !source_node.data) return;
 		const action_name = source_node.data.action;
 
-		workflow.value.elements.forEach(node => {
-			if (node.type === 'action' && node.data.action === action_name) {
+		workflow.value.elements.forEach((node) => {
+			if (node.type === "action" && node.data.action === action_name) {
 				if (!node.data.tasks) return;
 
 				if (to_index >= 0 && to_index < node.data.tasks.length) {
@@ -389,20 +409,21 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	}
 
 	async function add_task_to_transition(p_node, task_name) {
-		let source_node = workflow.value.elements.find(el => el.id === p_node.id);
+		let source_node = workflow.value.elements.find((el) => el.id === p_node.id);
 		if (!source_node || !source_node.data) return;
 		const action_name = source_node.data.action;
 
-		workflow.value.elements.forEach(node => {
-			if (node.type === 'action' && node.data.action === action_name) {
+		workflow.value.elements.forEach((node) => {
+			if (node.type === "action" && node.data.action === action_name) {
 				if (!node.data.tasks) node.data.tasks = [];
 
-				if (!node.data.tasks.some(t => t.task === task_name)) {
+				if (!node.data.tasks.some((t) => t.task === task_name)) {
 					// Add task object
 					node.data.tasks.push({
 						task: task_name,
 						email_template: null,
-						receiver_by_document_field: null
+						receiver_by_document_field: null,
+						link: null,
 					});
 					node.data = { ...node.data };
 				}
@@ -414,12 +435,12 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	}
 
 	async function update_task_config(p_node, task_index, updates) {
-		let source_node = workflow.value.elements.find(el => el.id === p_node.id);
+		let source_node = workflow.value.elements.find((el) => el.id === p_node.id);
 		if (!source_node || !source_node.data) return;
 		const action_name = source_node.data.action;
 
-		workflow.value.elements.forEach(node => {
-			if (node.type === 'action' && node.data.action === action_name) {
+		workflow.value.elements.forEach((node) => {
+			if (node.type === "action" && node.data.action === action_name) {
 				if (node.data.tasks && node.data.tasks[task_index]) {
 					Object.assign(node.data.tasks[task_index], updates);
 					node.data = { ...node.data };
@@ -445,6 +466,6 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		add_task_to_transition,
 		remove_task_from_transition,
 		move_task,
-		update_task_config
+		update_task_config,
 	};
 });
