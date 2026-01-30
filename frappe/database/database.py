@@ -628,6 +628,9 @@ class Database:
 		        # return last login of **User** `test@example.com`
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
+
+		from frappe.model.utils import is_single_doctype
+
 		out = None
 		if cache and isinstance(filters, str) and fieldname in self.value_cache[doctype][filters]:
 			return self.value_cache[doctype][filters][fieldname]
@@ -695,7 +698,7 @@ class Database:
 
 					else:
 						raise
-			else:
+			elif is_single_doctype(doctype):
 				fields = [fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
 				out = self.get_values_from_single(
 					fields,
@@ -708,6 +711,8 @@ class Database:
 					pluck=pluck,
 					distinct=distinct,
 				)
+			else:
+				return None
 
 		if cache and isinstance(filters, str):
 			self.value_cache[doctype][filters][fieldname] = out
