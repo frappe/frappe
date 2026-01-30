@@ -347,6 +347,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.update_url_with_filters();
 			this.setup_realtime_updates();
 			this.apply_styles_basedon_dropdown();
+			this.set_primary_action();
 		});
 	}
 
