@@ -538,8 +538,8 @@ def get_sidebar_items(allowed_workspaces):
 	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import auto_generate_sidebar_from_module
 
 	sidebars = frappe.get_all("Workspace Sidebar", fields=["name", "header_icon"])
-	module_sidebars = auto_generate_sidebar_from_module()
-	sidebars.extend(module_sidebars)
+	# module_sidebars = auto_generate_sidebar_from_module()
+	# sidebars.extend(module_sidebars)
 	sidebar_items = {}
 
 	for s in sidebars:

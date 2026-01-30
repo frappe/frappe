@@ -461,17 +461,23 @@ frappe.ui.Sidebar = class Sidebar {
 					entity_name = route[1];
 			}
 			let sidebars = this.get_workspace_sidebars(entity_name);
+			let original_sidebars = [...sidebars]; // Keep original list before filtering
 			this.preffered_sidebars = sidebars;
 			let module = router?.meta?.module;
 			if (this.sidebar_title && sidebars.includes(this.sidebar_title)) {
 				this.set_active_workspace_item();
 				return;
 			}
-			if (module) {
-				sidebars = this.filter_sidebars_from_app(
+			// Only filter when there are multiple sidebars
+			if (module && sidebars.length > 1) {
+				let filtered = this.filter_sidebars_from_app(
 					sidebars,
 					frappe.boot.module_app[module.toLowerCase()]
 				);
+				// Only use filtered result if there are sidebars left
+				if (filtered.length > 0) {
+					sidebars = filtered;
+				}
 			}
 			if (sidebars.length == 1) {
 				frappe.app.sidebar.setup(sidebars[0]);
@@ -480,8 +486,11 @@ frappe.ui.Sidebar = class Sidebar {
 				if (sidebars.includes(this.get_workspace_for_module(module))) {
 					frappe.app.sidebar.setup(sidebar);
 				} else {
-					frappe.app.sidebar.setup(module);
+					frappe.app.sidebar.setup(sidebars[0]);
 				}
+			} else if (original_sidebars.length > 0) {
+				// If filter removed all but we had sidebars originally, use first one
+				frappe.app.sidebar.setup(original_sidebars[0]);
 			} else if (module) {
 				this.show_sidebar_for_module(module);
 			}
