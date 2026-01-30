@@ -66,6 +66,7 @@ function getComponentRoot(componentRef: Ref) {
 	}
 }
 
+// css
 function numberToPx(number: StyleValue, round: boolean = true): string {
 	/* appends "px" to number with optional rounding */
 	if (number === null || number === undefined) return ""
@@ -83,6 +84,56 @@ function pxToNumber(px: string | number | null | undefined): number {
 	const number = Number(px.replace("px", ""))
 	if (isNaN(number)) return 0
 	return number
+}
+
+/**
+ * Extracts the numeric value and unit from a CSS value string
+ * @param value - CSS value string (e.g., "10px", "1.5em", "20")
+ * @returns Object containing the number and unit parts
+ */
+function extractNumberAndUnit(value: string): { number: string; unit: string } {
+	const match = value.match(/([0-9.]+)([a-z%]*)/) || ["", "0", ""];
+	return { number: match[1], unit: match[2] };
+}
+
+
+/**
+ * Adds a unit to a number if it doesn't already have one
+ * @param numberStr - String containing a number with or without a unit
+ * @param unit - Default unit to add if none exists
+ * @returns String with unit attached
+ */
+function addUnitToNumber(numberStr: string, unit: string): string {
+	const match = numberStr.match(/^([0-9.]+)([a-z%]*)$/);
+	if (match) {
+		const [, number, existingUnit] = match;
+		return existingUnit ? numberStr : number + unit;
+	}
+	return numberStr;
+}
+
+/**
+ * Normalizes CSS values by adding default units where missing
+ * Handles both single values and spacing properties with multiple values
+ * @param value - CSS value string
+ * @param unitOptions - Array of possible units, first is used as default
+ * @param styleProperty - CSS property name (used to detect spacing properties)
+ * @returns Normalized value string with units added
+ */
+function normalizeValueWithUnits(value: string, unitOptions: string[], styleProperty: string): string {
+	if (!unitOptions.length) return value;
+
+	const defaultUnit = unitOptions[0];
+	const isSpacingProperty = styleProperty === "margin" || styleProperty === "padding";
+
+	if (isSpacingProperty) {
+		const parts = value.trim().split(/\s+/);
+		if (parts.length > 1) {
+			return parts.map((part) => addUnitToNumber(part, defaultUnit)).join(" ");
+		}
+	}
+
+	return addUnitToNumber(value, defaultUnit);
 }
 
 function kebabToCamelCase(str: string) {
@@ -111,7 +162,7 @@ function areObjectsEqual(obj1: ObjectLiteral, obj2: ObjectLiteral): boolean {
 	return true
 }
 
-function isObjectEmpty(obj: object | null | undefined) {
+function isObjectEmpty(obj: object | null | undefined | any): boolean {
 	if (!obj) return true
 	return Object.keys(obj).length === 0
 }
@@ -151,6 +202,17 @@ function setValueInObject(obj: Record<string, any>, key: string, value: any) {
 
 function isPrivateKey(key: string) {
 	return key.startsWith("_") || key.startsWith("__")
+}
+
+function objToArray(obj?: ObjectLiteral) {
+	if (!obj) return []
+	return Object.keys(obj || {}).map((key) => {
+		if (!key) return
+		return {
+			label: key,
+			value: obj[key],
+		}
+	})
 }
 
 const mapToObject = (map: Map<any, any>) => Object.fromEntries(map.entries());
@@ -363,6 +425,20 @@ function getRGB(color: HashString | RGBString | string | null): HashString | nul
 	return color as HashString;
 }
 
+function isColorToken(tokenString?: string | null) {
+	return tokenString?.startsWith("var(--")
+}
+
+function getColorFromToken(tokenString: string) {
+	if (!tokenString) return tokenString
+	if (!isColorToken(tokenString)) return tokenString
+	return tokenString
+		.replace("var(--", "")
+		.replace(")", "")
+		.split(",")[0]
+		.trim()
+}
+
 // general utils
 function isCtrlOrCmd(e: KeyboardEvent | MouseEvent) {
 	return e.ctrlKey || e.metaKey;
@@ -447,15 +523,19 @@ export {
 	deepCloneObject,
 	getBlockInfo,
 	getComponentRoot,
+	// css
 	numberToPx,
 	pxToNumber,
+	extractNumberAndUnit,
+	normalizeValueWithUnits,
 	kebabToCamelCase,
 	areObjectsEqual,
 	isObjectEmpty,
 	getValueFromObject,
 	setValueInObject,
 	isPrivateKey,
-	// maps
+	// maps & objects
+	objToArray,
 	mapToObject,
 	replaceMapKey,
 	isTargetEditable,
@@ -481,6 +561,8 @@ export {
 	HSVToHex,
 	RGBToHex,
 	getRGB,
+	isColorToken,
+	getColorFromToken,
 	// general utils
 	isCtrlOrCmd,
 	copyToClipboard,

@@ -1,6 +1,6 @@
-<!-- Extracted from Builder -->
+<!-- Extracted from Builder, modified later -->
 <template>
-	<Popover transition="default" placement="left" class="!block w-full" popoverClass="!w-fit">
+	<Popover transition="default" :placement="placement" class="!block w-full" popoverClass="!min-w-fit">
 		<template #target="{ togglePopover, isOpen }">
 			<slot
 				name="target"
@@ -14,94 +14,114 @@
 			></slot>
 		</template>
 		<template #body="{ close }">
-			<div ref="colorPicker" class="rounded-lg bg-surface-white p-3 shadow-lg">
+			<div class="flex w-[200px] flex-col rounded bg-surface-white shadow-lg">
+				<Tabs v-if="showTokens" :tabs="[{ label: 'Custom' }, { label: 'Tokens' }]" v-model="activeTab"></Tabs>
 				<div
-					ref="colorMap"
-					:style="{
-						background: `
-							linear-gradient(0deg, black, transparent),
-							linear-gradient(90deg, white, transparent),
-							hsl(${hue}, 100%, 50%)
-						`,
-					}"
-					@mousedown.prevent="handleSelectorMove"
-					class="relative m-auto h-24 w-44 rounded-md"
-					@click.prevent="setColor"
+					v-show="!showTokens || activeTab === 0"
+					ref="colorPicker"
+					class="rounded-b-lg bg-surface-white p-3"
 				>
 					<div
-						ref="colorSelector"
-						@mousedown.stop.prevent="handleSelectorMove"
-						class="absolute rounded-full border border-black border-opacity-20 before:absolute before:h-full before:w-full before:rounded-full before:border-2 before:border-white before:!bg-[currentColor] after:absolute after:left-[2px] after:top-[2px] after:h-[calc(100%-4px)] after:w-[calc(100%-4px)] after:rounded-full after:border after:border-black after:border-opacity-20 after:bg-transparent"
-						:style="
-							{
+						ref="colorMap"
+						:style="{
+							background: `
+								linear-gradient(0deg, black, transparent),
+								linear-gradient(90deg, white, transparent),
+								hsl(${hue}, 100%, 50%)
+							`,
+						}"
+						@mousedown.prevent="handleSelectorMove"
+						class="relative m-auto h-24 w-44 rounded-md"
+						@click.prevent="setColor"
+					>
+						<div
+							ref="colorSelector"
+							@mousedown.stop.prevent="handleSelectorMove"
+							class="absolute rounded-full border border-black border-opacity-20 before:absolute before:h-full before:w-full before:rounded-full before:border-2 before:border-white before:!bg-[currentColor] after:absolute after:left-[2px] after:top-[2px] after:h-[calc(100%-4px)] after:w-[calc(100%-4px)] after:rounded-full after:border after:border-black after:border-opacity-20 after:bg-transparent"
+							:style="
+								{
+									height: '12px',
+									width: '12px',
+									left: `calc(${colorSelectorPosition.x}px - 6px)`,
+									top: `calc(${colorSelectorPosition.y}px - 6px)`,
+									color: modelColor || '#FFF',
+									background: 'transparent',
+								} as StyleValue
+							"
+						></div>
+					</div>
+					<div
+						ref="hueMap"
+						class="relative m-auto mt-2 h-3 w-44 rounded-md"
+						@click="setHue"
+						@mousedown.prevent="handleHueSelectorMove"
+						:style="{
+							background: `
+								linear-gradient(90deg, hsl(0, 100%, 50%),
+								hsl(60, 100%, 50%), hsl(120, 100%, 50%),
+								hsl(180, 100%, 50%), hsl(240, 100%, 50%),
+								hsl(300, 100%, 50%), hsl(360, 100%, 50%))
+							`,
+						}"
+					>
+						<div
+							ref="hueSelector"
+							@mousedown="handleHueSelectorMove"
+							class="absolute rounded-full border border-[rgba(0,0,0,.2)] before:absolute before:h-full before:w-full before:rounded-full before:border-2 before:border-white before:bg-[currentColor] after:absolute after:left-[2px] after:top-[2px] after:h-[calc(100%-4px)] after:w-[calc(100%-4px)] after:rounded-full after:border after:border-[rgba(0,0,0,.2)] after:bg-transparent"
+							:style="{
 								height: '12px',
 								width: '12px',
-								left: `calc(${colorSelectorPosition.x}px - 6px)`,
-								top: `calc(${colorSelectorPosition.y}px - 6px)`,
-								color: modelColor || '#FFF',
+								left: `calc(${hueSelectorPosition.x}px - 6px)`,
+								color: `hsl(${hue}, 100%, 50%)`,
 								background: 'transparent',
-							} as StyleValue
-						"
-					></div>
-				</div>
-				<div
-					ref="hueMap"
-					class="relative m-auto mt-2 h-3 w-44 rounded-md"
-					@click="setHue"
-					@mousedown.prevent="handleHueSelectorMove"
-					:style="{
-						background: `
-							linear-gradient(90deg, hsl(0, 100%, 50%),
-							hsl(60, 100%, 50%), hsl(120, 100%, 50%),
-							hsl(180, 100%, 50%), hsl(240, 100%, 50%),
-							hsl(300, 100%, 50%), hsl(360, 100%, 50%))
-						`,
-					}"
-				>
-					<div
-						ref="hueSelector"
-						@mousedown="handleHueSelectorMove"
-						class="absolute rounded-full border border-[rgba(0,0,0,.2)] before:absolute before:h-full before:w-full before:rounded-full before:border-2 before:border-white before:bg-[currentColor] after:absolute after:left-[2px] after:top-[2px] after:h-[calc(100%-4px)] after:w-[calc(100%-4px)] after:rounded-full after:border after:border-[rgba(0,0,0,.2)] after:bg-transparent"
-						:style="{
-							height: '12px',
-							width: '12px',
-							left: `calc(${hueSelectorPosition.x}px - 6px)`,
-							color: `hsl(${hue}, 100%, 50%)`,
-							background: 'transparent',
-						}"
-					></div>
-				</div>
-				<div ref="colorPalette" class="max-w-[11rem]">
-					<div class="mt-3 flex flex-wrap gap-1.5">
-						<div
-							v-for="color in colors"
-							:key="color"
-							class="h-3.5 w-3.5 cursor-pointer rounded-full shadow-sm"
-							@click="
-								() => {
-									setSelectorPosition(color)
-									updateColor()
-								}
-							"
-							:style="{
-								background: color,
 							}"
 						></div>
-						<EyeDropperIcon v-if="isSupported" class="text-ink-gray-7" @click="() => open()" />
 					</div>
+					<div ref="colorPalette" class="max-w-[11rem]">
+						<div class="mt-3 flex flex-wrap gap-1.5">
+							<div
+								v-for="color in colors"
+								:key="color"
+								class="h-3.5 w-3.5 cursor-pointer rounded-full shadow-sm"
+								@click="
+									() => {
+										setSelectorPosition(color)
+										updateColor()
+									}
+								"
+								:style="{
+									background: color,
+								}"
+							></div>
+							<EyeDropperIcon v-if="isSupported" class="text-ink-gray-7" @click="() => open()" />
+						</div>
+					</div>
+				</div>
+				<div v-show="showTokens && activeTab === 1" class="p-1">
+					<ListBox
+						:borderLess="true"
+						:options="tokens"
+						@update:modelValue="emit('update:modelValue', $event)"
+						class="h-[184px]"
+					>
+						<template #option-prefix="{ option }">
+							<div class="mr-2 size-4 rounded border" :style="{ background: option.value }"></div>
+						</template>
+					</ListBox>
 				</div>
 			</div>
 		</template>
 	</Popover>
 </template>
 <script setup lang="ts">
-import { PropType, Ref, StyleValue, computed, nextTick, ref, watch } from "vue"
+import { Ref, StyleValue, computed, nextTick, ref, watch } from "vue"
+import { Popover, Tabs } from "frappe-ui"
 import EyeDropperIcon from "@/components/Icons/EyeDropper.vue"
 import useCanvasStore from "@/stores/canvasStore"
 import { HSVToHex, HexToHSV, getRGB } from "@/utils/helpers"
 import { clamp, useEyeDropper } from "@vueuse/core"
-import { Popover } from "frappe-ui"
 import type { HashString, RGBString } from "@/types"
+import { getEspressoTokens } from "@/utils/espressoTokens"
 
 const canvasStore = useCanvasStore()
 
@@ -116,13 +136,33 @@ let currentColor = "#FFF" as HashString
 
 const { isSupported, sRGBHex, open } = useEyeDropper()
 
-const props = defineProps({
-	modelValue: {
-		type: String as PropType<HashString | RGBString | null>,
-		default: null,
+const props = withDefaults(
+	defineProps<{
+		modelValue: HashString | RGBString | null
+		property?: "backgroundColor" | "borderColor" | "textColor"
+		showTokens?: boolean
+		placement?:
+			| "bottom-start"
+			| "top-start"
+			| "top-end"
+			| "bottom-end"
+			| "right-start"
+			| "right-end"
+			| "left-start"
+			| "left-end"
+			| "bottom"
+			| "top"
+			| "right"
+			| "left"
+	}>(),
+	{
+		modelValue: null,
+		placement: "bottom-start",
+		showTokens: true,
 	},
-})
+)
 
+const activeTab = ref(1)
 const modelColor = computed(() => {
 	return getRGB(props.modelValue)
 })
@@ -143,8 +183,6 @@ const colors = [
 if (!isSupported.value) {
 	colors.push("#B34D4D")
 }
-// frappe-ui grays
-colors.push("#F3F3F3", "#EDEDED")
 
 const setColorSelectorPosition = (color: HashString) => {
 	if (!colorMap.value) return
@@ -267,4 +305,10 @@ watch(
 	},
 	{ immediate: true },
 )
+
+// Tokens
+const tokens = computed(() => {
+	if (!props.property || !props.showTokens) return []
+	return getEspressoTokens(props.property)
+})
 </script>

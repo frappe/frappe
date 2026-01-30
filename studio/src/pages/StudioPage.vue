@@ -79,7 +79,7 @@
 			v-model="canvasStore.showHTMLDialog"
 			class="overscroll-none"
 			:options="{
-				title: 'HTML',
+				title: `Edit HTML - ${canvasStore.editableBlock?.componentName}`,
 				size: '7xl',
 			}"
 		>
@@ -100,6 +100,44 @@
 							canvasStore.closeHTMLDialog()
 						}
 					"
+					height="500px"
+					max-height="500px"
+					required
+				/>
+			</template>
+		</Dialog>
+
+		<Dialog
+			v-model="canvasStore.showCodeDialog"
+			class="overscroll-none"
+			:options="{
+				title: `Edit ${canvasStore.editableBlock?.componentName} prop - ${canvasStore.editableCode.propName}`,
+				size: '7xl',
+			}"
+		>
+			<template #body-content>
+				<Code
+					:modelValue="canvasStore.editableCode.code"
+					language="javascript"
+					label="Edit Code"
+					:showLineNumbers="true"
+					:showSaveButton="true"
+					:completions="
+						(context: CompletionContext) =>
+							getCompletions(context, canvasStore.editableBlock?.getCompletions())
+					"
+					@save="
+						(val) => {
+							canvasStore.editableBlock?.setProp(
+								canvasStore.editableCode.propName,
+								val,
+							)
+							canvasStore.showCodeDialog = false
+						}
+					"
+					:emitOnChange="true"
+					height="500px"
+					max-height="500px"
 					required
 				/>
 			</template>

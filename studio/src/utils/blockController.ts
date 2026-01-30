@@ -36,6 +36,22 @@ const blockController = {
 	isGrid() {
 		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isGrid();
 	},
+	getProp(prop: string) {
+		let propValue = "__initial__" as any;
+		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
+			if (propValue === "__initial__") {
+				propValue = block.getProp(prop);
+			} else if (propValue !== block.getProp(prop)) {
+				propValue = "Mixed";
+			}
+		});
+		return propValue;
+	},
+	setProp(prop: string, value: any) {
+		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
+			block.setProp(prop, value);
+		})
+	},
 	getClasses: () => {
 		let classes = [] as string[]
 		if (blockController.isAnyBlockSelected()) {
@@ -60,6 +76,9 @@ const blockController = {
 		return styleValue;
 	},
 	setStyle: (style: styleProperty, value: StyleValue) => {
+		if (value === "unset") {
+			value = null
+		}
 		canvasStore.activeCanvas?.selectedBlocks.forEach((block) => {
 			block.setStyle(style, value);
 		});
@@ -141,6 +160,12 @@ const blockController = {
 	isHTML: () => {
 		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isHTML();
 	},
+	isText: () => {
+		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isText();
+	},
+	isContainer: () => {
+		return blockController.isAnyBlockSelected() && blockController.getFirstSelectedBlock().isContainer();
+	}
 }
 
 export default blockController

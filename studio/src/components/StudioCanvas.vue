@@ -226,7 +226,6 @@ function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false, se
 
 	if (block.isContainer()) {
 		store.studioLayout.leftPanelActiveTab = "Layers"
-		store.studioLayout.rightPanelActiveTab = "Styles"
 	} else {
 		store.studioLayout.rightPanelActiveTab = "Properties"
 	}

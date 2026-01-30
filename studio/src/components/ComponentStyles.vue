@@ -1,19 +1,5 @@
 <template>
 	<div v-if="blockController.isAnyBlockSelected()" class="flex select-none flex-col pb-16">
-		<div class="sticky top-[41px] z-50 mt-[-15px] flex w-full bg-white py-3">
-			<Input
-				ref="searchInput"
-				type="text"
-				variant="outline"
-				placeholder="Search properties"
-				v-model="store.stylePropertyFilter"
-				@input="
-					(value: string) => {
-						store.stylePropertyFilter = value
-					}
-				"
-			/>
-		</div>
 		<div class="flex flex-col gap-3">
 			<CollapsibleSection
 				:sectionName="section.name"
@@ -71,9 +57,9 @@ import Block from "@/utils/block"
 import OptionToggle from "@/components/OptionToggle.vue"
 import useStudioStore from "@/stores/studioStore"
 import blockController from "@/utils/blockController"
-import { CSSProperties, Ref, computed, ref } from "vue"
+import { getEspressoTokens } from "@/utils/espressoTokens"
+import { CSSProperties, computed } from "vue"
 
-import Input from "@/components/Input.vue"
 import BlockFlexLayoutHandler from "@/components/BlockFlexLayoutHandler.vue"
 import BlockGridLayoutHandler from "@/components/BlockGridLayoutHandler.vue"
 import BlockPositionHandler from "@/components/BlockPositionHandler.vue"
@@ -96,14 +82,6 @@ const props = defineProps({
 
 const store = useStudioStore()
 
-// command + f should focus on search input
-window.addEventListener("keydown", (e) => {
-	if (e.key === "f" && (e.metaKey || e.ctrlKey)) {
-		e.preventDefault()
-		document.querySelector(".properties-search-input")?.querySelector("input")?.focus()
-	}
-})
-
 export type BlockProperty = {
 	component: any
 	getProps: () => Record<string, unknown>
@@ -122,15 +100,13 @@ type PropertySection = {
 	collapsed?: boolean
 }
 
-const searchInput = ref(null) as Ref<HTMLElement | null>
-
 const filteredSections = computed(() => {
 	return sections.filter((section) => {
 		let showSection = true
 		if (section.condition) {
 			showSection = section.condition()
 		}
-		if (showSection && store.stylePropertyFilter) {
+		if (showSection && store.propertyFilter) {
 			showSection = getFilteredProperties(section).length > 0
 		}
 		return showSection
@@ -143,10 +119,10 @@ const getFilteredProperties = (section: PropertySection) => {
 		if (property.condition) {
 			showProperty = property.condition()
 		}
-		if (showProperty && store.stylePropertyFilter) {
+		if (showProperty && store.propertyFilter) {
 			showProperty =
-				section.name.toLowerCase().includes(store.stylePropertyFilter.toLowerCase()) ||
-				property.searchKeyWords.toLowerCase().includes(store.stylePropertyFilter.toLowerCase())
+				section.name.toLowerCase().includes(store.propertyFilter.toLowerCase()) ||
+				property.searchKeyWords.toLowerCase().includes(store.propertyFilter.toLowerCase())
 		}
 		return showProperty
 	})
@@ -209,8 +185,8 @@ const layoutSectionProperties = [
 			return {
 				label: "Overflow X",
 				type: "select",
-				options: ["auto", "visible", "hidden", "scroll"],
-				modelValue: blockController.getStyle("overflowX") || blockController.getStyle("overflow"),
+				options: ["unset", "auto", "visible", "hidden", "scroll"],
+				modelValue: blockController.getStyle("overflowX") ?? blockController.getStyle("overflow") ?? "",
 			}
 		},
 		searchKeyWords:
@@ -225,8 +201,8 @@ const layoutSectionProperties = [
 			return {
 				label: "Overflow Y",
 				type: "select",
-				options: ["auto", "visible", "hidden", "scroll"],
-				modelValue: blockController.getStyle("overflowY") || blockController.getStyle("overflow"),
+				options: ["unset", "auto", "visible", "hidden", "scroll"],
+				modelValue: blockController.getStyle("overflowY") ?? blockController.getStyle("overflow") ?? "",
 			}
 		},
 		searchKeyWords:
@@ -380,18 +356,184 @@ const spacingSectionProperties = [
 	},
 ]
 
+const typographySectionProperties = [
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Weight",
+				styleProperty: "fontWeight",
+				type: "autocomplete",
+				options: getEspressoTokens("fontWeight"),
+				modelValue: blockController.getStyle("fontWeight"),
+			}
+		},
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("fontWeight", val),
+		},
+		searchKeyWords: "Font, Weight, FontWeight",
+		allowDynamicValue: true,
+	},
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Size",
+				type: "autocomplete",
+				options: getEspressoTokens("fontSize"),
+				modelValue: blockController.getProp("fontSize") || blockController.getStyle("fontSize"),
+			}
+		},
+		events: {
+			"update:modelValue": (val: string) => {
+				if (val?.startsWith("text-")) {
+					blockController.setProp("fontSize", val)
+					blockController.setStyle("fontSize", "unset")
+				} else {
+					blockController.setStyle("fontSize", val)
+					blockController.setProp("fontSize", "")
+				}
+			},
+		},
+		searchKeyWords: "Font, Size, FontSize",
+		condition: () => blockController.isText(),
+		allowDynamicValue: true,
+	},
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Height",
+				type: "autocomplete",
+				options: getEspressoTokens("lineHeight"),
+				modelValue: blockController.getStyle("lineHeight"),
+			}
+		},
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("lineHeight", val),
+		},
+		searchKeyWords: "Font, Height, LineHeight, Line Height",
+		condition: () => blockController.isText(),
+		allowDynamicValue: true,
+	},
+	{
+		component: ColorInput,
+		getProps: () => {
+			return {
+				label: "Color",
+				modelValue: blockController.getStyle("color"),
+				property: "textColor",
+			}
+		},
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("color", val),
+		},
+		allowDynamicValue: true,
+		searchKeyWords: "Text, Color, TextColor, Text Color",
+	},
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Letter",
+				type: "autocomplete",
+				options: getEspressoTokens("letterSpacing"),
+				modelValue: blockController.getStyle("letterSpacing"),
+			}
+		},
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("letterSpacing", val),
+		},
+		searchKeyWords: "Font, Letter, LetterSpacing, Letter Spacing",
+		condition: () => blockController.isText(),
+		allowDynamicValue: true,
+	},
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Transform",
+				type: "select",
+				options: [
+					{
+						value: null,
+						label: "None",
+					},
+					{
+						value: "uppercase",
+						label: "Uppercase",
+					},
+					{
+						value: "lowercase",
+						label: "Lowercase",
+					},
+					{
+						value: "capitalize",
+						label: "Capitalize",
+					},
+				],
+				modelValue: blockController.getStyle("textTransform"),
+			}
+		},
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("textTransform", val),
+		},
+		searchKeyWords: "Font, Transform, TextTransform, Text Transform, Capitalize, Uppercase, Lowercase",
+		condition: () => blockController.isText(),
+		allowDynamicValue: true,
+	},
+	{
+		component: OptionToggle,
+		getProps: () => {
+			return {
+				label: "Align",
+				styleProperty: "textAlign",
+				options: [
+					{
+						label: "Left",
+						value: "left",
+						icon: "align-left",
+						hideLabel: true,
+					},
+					{
+						label: "Center",
+						value: "center",
+						icon: "align-center",
+						hideLabel: true,
+					},
+					{
+						label: "Right",
+						value: "right",
+						icon: "align-right",
+						hideLabel: true,
+					},
+				],
+				defaultValue: "left",
+				modelValue: blockController.getStyle("textAlign"),
+			}
+		},
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("textAlign", val),
+		},
+		searchKeyWords: "Font, Align, TextAlign, Text Align, Left, Center, Right, Justify",
+		condition: () => blockController.isText(),
+		allowDynamicValue: true,
+	},
+]
+
 const styleSectionProperties = [
 	{
 		component: ColorInput,
 		getProps: () => {
 			return {
 				label: "BG Color",
-				value: blockController.getStyle("background"),
+				modelValue: blockController.getStyle("background"),
+				property: "backgroundColor",
 			}
 		},
 		searchKeyWords: "Background, BackgroundColor, Background Color, BG, BGColor, BG Color",
 		events: {
-			change: (val: StyleValue) => blockController.setStyle("background", val),
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("background", val),
 		},
 		allowDynamicValue: true,
 		getValue: () => {
@@ -403,12 +545,13 @@ const styleSectionProperties = [
 		getProps: () => {
 			return {
 				label: "Border Color",
-				value: blockController.getStyle("borderColor"),
+				modelValue: blockController.getStyle("borderColor"),
+				property: "borderColor",
 			}
 		},
 		searchKeyWords: "Border, Color, BorderColor, Border Color",
 		events: {
-			change: (val: StyleValue) => {
+			"update:modelValue": (val: StyleValue) => {
 				blockController.setStyle("borderColor", val)
 				if (val) {
 					if (!blockController.getStyle("borderWidth")) {
@@ -431,11 +574,12 @@ const styleSectionProperties = [
 		getProps: () => {
 			return {
 				label: "Text Color",
-				value: blockController.getStyle("color"),
+				modelValue: blockController.getStyle("color"),
+				property: "textColor",
 			}
 		},
 		events: {
-			change: (val: StyleValue) => blockController.setStyle("color", val),
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("color", val),
 		},
 		allowDynamicValue: true,
 		searchKeyWords: "Text, Color, TextColor, Text Color",
@@ -498,10 +642,12 @@ const styleSectionProperties = [
 		component: InlineInput,
 		getProps: () => {
 			return {
+				type: "autocomplete",
 				label: "Radius",
 				modelValue: blockController.getStyle("borderRadius"),
 				enableSlider: true,
 				unitOptions: ["px", "%"],
+				options: getEspressoTokens("borderRadius"),
 				minValue: 0,
 			}
 		},
@@ -522,7 +668,7 @@ const styleSectionProperties = [
 				modelValue: blockController.getStyle("zIndex"),
 			}
 		},
-		searchKeyWords: "Z, Index, ZIndex, Z Index",
+		searchKeyWords: "Z, Index, ZIndex, Z Index, Z-index, Z-Index",
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("zIndex", val),
 		},
@@ -541,33 +687,35 @@ const styleSectionProperties = [
 			return {
 				label: "Shadow",
 				type: "select",
-				options: [
-					{
-						value: null,
-						label: "None",
-					},
-					{
-						label: "Small",
-						value:
-							"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px, rgba(0, 0, 0, 0.05) 0px 1px 3px 0px",
-					},
-					{
-						label: "Medium",
-						value:
-							"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px",
-					},
-					{
-						label: "Large",
-						value:
-							"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1) 0px 10px 10px -5px",
-					},
-				],
+				options: getEspressoTokens("boxShadow"),
 				modelValue: blockController.getStyle("boxShadow"),
 			}
 		},
 		searchKeyWords: "Shadow, BoxShadow, Box Shadow",
 		events: {
 			"update:modelValue": (val: StyleValue) => blockController.setStyle("boxShadow", val),
+		},
+	},
+	{
+		component: InlineInput,
+		getProps: () => {
+			return {
+				label: "Cursor",
+				type: "select",
+				options: [
+					{ value: null, label: "Default" },
+					{ value: "pointer", label: "Pointer" },
+					{ value: "move", label: "Move" },
+					{ value: "text", label: "Text" },
+					{ value: "crosshair", label: "Crosshair" },
+					{ value: "not-allowed", label: "Not Allowed" },
+				],
+				modelValue: blockController.getStyle("cursor"),
+			}
+		},
+		searchKeyWords: "Cursor, Pointer, Move, Text, Crosshair, NotAllowed, Not Allowed",
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("cursor", val),
 		},
 	},
 ]
@@ -622,6 +770,12 @@ const sections = [
 		name: "Layout",
 		properties: layoutSectionProperties,
 		condition: () => !blockController.multipleBlocksSelected(),
+		collapsed: computed(() => blockController.isText()),
+	},
+	{
+		name: "Typography",
+		properties: typographySectionProperties,
+		condition: () => blockController.isText(),
 	},
 	{
 		name: "Dimension",
@@ -630,7 +784,7 @@ const sections = [
 	{
 		name: "Position",
 		properties: positionSectionProperties,
-		condition: () => !blockController.multipleBlocksSelected(),
+		condition: () => !blockController.multipleBlocksSelected() && !blockController.isRoot(),
 		collapsed: computed(() => {
 			return (
 				!blockController.getStyle("top") &&

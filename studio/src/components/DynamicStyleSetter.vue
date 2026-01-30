@@ -9,15 +9,11 @@
 			},
 		]"
 	>
-		<FeatherIcon
-			ref="dropdownTrigger"
-			name="plus-circle"
-			class="mr-1 h-3 w-4 cursor-pointer select-none text-ink-gray-5 outline-none hover:text-ink-gray-9"
-		/>
+		<IconButton ref="dropdownTrigger" icon="plus-circle" placement="bottom" class="mr-1" size="sm" />
 	</Dropdown>
 	<DraggablePopup
 		v-model="showDynamicValueModal"
-		:container="dropdownTrigger?.$el"
+		:container="dropdownTrigger?.rootRef"
 		placement="middle-right"
 		:clickOutsideToClose="false"
 		:placementOffset="20"
@@ -42,8 +38,9 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue"
-import { Dropdown, FeatherIcon } from "frappe-ui"
+import { Dropdown } from "frappe-ui"
 import Code from "@/components/Code.vue"
+import IconButton from "@/components/IconButton.vue"
 import Block from "@/utils/block"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
@@ -54,7 +51,7 @@ const emit = defineEmits<{
 	(event: "update:modelValue", value: string): void
 }>()
 
-const dropdownTrigger = ref<typeof FeatherIcon | null>(null)
+const dropdownTrigger = ref<typeof IconButton | null>(null)
 const showDynamicValueModal = ref(false)
 const getCompletions = useStudioCompletions()
 

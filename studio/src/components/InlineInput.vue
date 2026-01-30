@@ -1,7 +1,9 @@
 <template>
+	<!-- prettier-ignore -->
 	<div
 		class="flex [&>div>input]:!bg-red-600 [&>div>input]:pr-6"
-		:class="type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between'"
+		:class="[type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between', attrs.class]"
+		:style="(attrs.style as StyleValue)"
 	>
 		<InputLabel
 			:class="[
@@ -35,12 +37,14 @@
 			:showInputAsOption="showInputAsOption"
 			class="w-full"
 			:disabled="disabled"
+			v-bind="attrsWithoutClassAndStyle"
 		/>
 		<ColorInput
 			v-else-if="type === 'color'"
 			:modelValue="modelValue"
 			@update:modelValue="handleChange"
 			:disabled="disabled"
+			v-bind="attrsWithoutClassAndStyle"
 		/>
 		<Input
 			v-else
@@ -50,6 +54,7 @@
 			@update:modelValue="handleChange"
 			@keydown.stop="handleKeyDown"
 			:disabled="disabled"
+			v-bind="attrsWithoutClassAndStyle"
 		/>
 	</div>
 </template>
@@ -57,69 +62,53 @@
 <script setup lang="ts">
 import { isNumber } from "@tiptap/vue-3"
 import { Popover } from "frappe-ui"
-import { PropType, computed } from "vue"
+import { computed, StyleValue, useAttrs } from "vue"
+import { extractNumberAndUnit } from "@/utils/helpers"
 import Input from "@/components/Input.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
 import ColorInput from "@/components/ColorInput.vue"
 import InputLabel from "@/components/InputLabel.vue"
 
-const props = defineProps({
-	modelValue: {
-		type: [String, Number, Boolean, Object, Array],
-		default: null,
+const props = withDefaults(
+	defineProps<{
+		modelValue: string | number | boolean | object | null
+		label?: string
+		description?: string
+		type?: string
+		unitOptions?: string[]
+		options?: Array<string | number | { label: string; value: string }>
+		enableSlider?: boolean
+		changeFactor?: number
+		minValue?: number
+		maxValue?: number | null
+		showInputAsOption?: boolean
+		height?: string
+		required?: boolean
+		disabled?: boolean
+	}>(),
+	{
+		modelValue: null,
+		label: "",
+		description: "",
+		type: "text",
+		unitOptions: () => [],
+		options: () => [],
+		enableSlider: false,
+		changeFactor: 1,
+		minValue: 0,
+		maxValue: null,
+		showInputAsOption: false,
 	},
-	label: {
-		type: String,
-		default: "",
-	},
-	description: {
-		type: String,
-		default: "",
-	},
-	type: {
-		type: String,
-		default: "text",
-	},
-	unitOptions: {
-		type: Array as PropType<string[]>,
-		default: () => [],
-	},
-	options: {
-		type: Array,
-		default: () => [],
-	},
-	enableSlider: {
-		type: Boolean,
-		default: false,
-	},
-	changeFactor: {
-		type: Number,
-		default: 1,
-	},
-	minValue: {
-		type: Number,
-		default: 0,
-	},
-	maxValue: {
-		type: Number,
-		default: null,
-	},
-	showInputAsOption: {
-		type: Boolean,
-		default: false,
-	},
-	height: {
-		type: String,
-	},
-	required: {
-		type: Boolean,
-	},
-	disabled: {
-		type: Boolean,
-	},
-})
+)
 
 const emit = defineEmits(["update:modelValue"])
+defineOptions({ inheritAttrs: false })
+
+const attrs = useAttrs()
+const attrsWithoutClassAndStyle = computed(() => {
+	const { class: _class, style: _style, ...rest } = attrs
+	return rest
+})
 
 type Option = {
 	label: string
@@ -144,7 +133,7 @@ const handleChange = (value: string | number | null | { label: string; value: st
 		value = value.value
 	}
 	if (value && typeof value === "string") {
-		let [_, number, unit] = value.match(/([0-9]+)([a-z%]*)/) || ["", "", ""]
+		const { number, unit } = extractNumberAndUnit(value)
 		if (!unit && props.unitOptions.length && number) {
 			value = number + props.unitOptions[0]
 		}
@@ -154,10 +143,8 @@ const handleChange = (value: string | number | null | { label: string; value: st
 }
 
 const handleMouseDown = (e: MouseEvent) => {
-	if (!props.enableSlider) {
-		return
-	}
-	const number = ((props.modelValue + "" || "") as string).match(/([0-9]+)/)?.[0] || "0"
+	if (!props.enableSlider) return
+	const { number } = extractNumberAndUnit(String(props.modelValue || ""))
 	const startY = e.clientY
 	const startValue = Number(number)
 	const handleMouseMove = (e: MouseEvent) => {
@@ -173,6 +160,7 @@ const handleMouseDown = (e: MouseEvent) => {
 }
 
 const handleKeyDown = (e: KeyboardEvent) => {
+	if (!props.enableSlider) return
 	if (e.key === "ArrowUp" || e.key === "ArrowDown") {
 		const step = e.key === "ArrowUp" ? 1 : -1
 		incrementOrDecrement(step)
@@ -181,11 +169,10 @@ const handleKeyDown = (e: KeyboardEvent) => {
 }
 
 const incrementOrDecrement = (step: number, initialValue: null | number = null) => {
-	const value = props.modelValue + "" || ""
-	let [_, number, unit] = value.match(/([0-9]+)([a-z%]*)/) || ["", "", ""]
-	if (!unit && props.unitOptions.length && !isNaN(Number(number))) {
-		unit = props.unitOptions[0]
-	}
+	const value = String(props.modelValue || "")
+	const { number, unit: existingUnit } = extractNumberAndUnit(value)
+	const unit =
+		existingUnit || (props.unitOptions.length && !isNaN(Number(number)) ? props.unitOptions[0] : "")
 	let newValue = (initialValue != null ? Number(initialValue) : Number(number)) + step
 	if (isNumber(props.minValue) && newValue <= props.minValue) {
 		newValue = props.minValue

@@ -1,32 +1,21 @@
-type FontSize =
-	| "text-xs"
-	| "text-sm"
-	| "text-base"
-	| "text-lg"
-	| "text-xl"
-	| "text-2xl"
-	| "text-3xl"
-type FontWeight = "font-normal" | "font-medium" | "font-semibold" | "font-bold"
-type LineHeight =
-	| "leading-none"
-	| "leading-tight"
-	| "leading-snug"
-	| "leading-normal"
-	| "leading-relaxed"
-	| "leading-loose"
-type TextColor =
-	| "text-gray-900"
-	| "text-gray-800"
-	| "text-gray-700"
-	| "text-gray-600"
-	| "text-gray-500"
-	| "text-gray-400"
-
 export interface TextBlockProps {
-	tag?: string
-	fontSize?: FontSize
-	fontWeight?: FontWeight
-	lineHeight?: LineHeight
-	textColor?: TextColor
 	text?: string
+	tag?: string
+	fontSize?:
+		"text-2xs"
+		| "text-xs"
+		| "text-sm"
+		| "text-base"
+		| "text-lg"
+		| "text-xl"
+		| "text-2xl"
+		| "text-3xl"
+		| "text-p-2xs"
+		| "text-p-xs"
+		| "text-p-sm"
+		| "text-p-base"
+		| "text-p-lg"
+		| "text-p-xl"
+		| "text-p-2xl"
+		| "text-p-3xl"
 }

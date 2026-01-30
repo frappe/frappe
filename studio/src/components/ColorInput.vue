@@ -1,53 +1,68 @@
 <!-- Extracted from Builder -->
 <template>
-	<ColorPicker :modelValue="value" @update:modelValue="(color) => emit('change', color)">
+	<ColorPicker
+		:modelValue="modelValue"
+		@update:modelValue="(color) => emit('update:modelValue', color)"
+		:property="property"
+	>
 		<template #target="{ togglePopover, isOpen }">
 			<div class="flex items-center justify-between">
 				<InputLabel v-if="label">{{ label }}</InputLabel>
 				<div class="relative w-full">
-					<div
-						class="absolute left-2 top-[6px] z-10 h-4 w-4 rounded shadow-sm"
-						@click="togglePopover"
-						:style="{
-							background: value ? value : `url(/assets/builder/images/color-circle.png) center / contain`,
-						}"
-					></div>
 					<Input
 						type="text"
 						class="[&>div>input]:pl-8"
 						placeholder="Set Color"
-						@focus="togglePopover"
-						:modelValue="value"
+						:modelValue="displayValue"
+						:disabled="disabled"
 						@update:modelValue="
 							(value: string | null) => {
 								value = getRGB(value)
-								emit('change', value)
+								emit('update:modelValue', value)
 							}
 						"
-					/>
+					>
+						<template #prefix>
+							<div
+								class="h-4 w-4 rounded shadow-sm"
+								@click="togglePopover"
+								:style="{
+									background: modelValue
+										? modelValue
+										: `url(/assets/studio/frontend/color-circle.png) center / contain`,
+								}"
+							></div>
+						</template>
+					</Input>
 				</div>
 			</div>
 		</template>
 	</ColorPicker>
 </template>
 <script setup lang="ts">
-import { PropType } from "vue"
+import { computed } from "vue"
 import ColorPicker from "@/components/ColorPicker.vue"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
-import { getRGB } from "@/utils/helpers"
+import { getColorFromToken, getRGB, isColorToken } from "@/utils/helpers"
 import type { HashString } from "@/types"
 
-defineProps({
-	value: {
-		type: String as PropType<HashString | null>,
-		default: null,
+const props = withDefaults(
+	defineProps<{
+		modelValue?: HashString | null
+		label?: string
+		property?: "backgroundColor" | "borderColor" | "textColor"
+	}>(),
+	{
+		modelValue: null,
 	},
-	label: {
-		type: String,
-		default: "",
-	},
+)
+const emit = defineEmits(["update:modelValue"])
+
+const displayValue = computed(() => {
+	if (!props.modelValue) return ""
+	return getColorFromToken(props.modelValue)
 })
 
-const emit = defineEmits(["change"])
+const disabled = computed(() => isColorToken(props.modelValue))
 </script>

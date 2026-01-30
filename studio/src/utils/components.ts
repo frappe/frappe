@@ -21,9 +21,13 @@ const componentFolders: Record<string, string> = {
 function getComponentProps(componentName: string, component: ConcreteComponent | string): ComponentProps {
 	// TODO: make this less convoluted
 	if (typeof component === "string") return {}
-	const useOverridenPropTypes = components.get(componentName)?.useOverridenPropTypes
+	const overrideProps = components.get(componentName)?.overrideProps
 	const props = { ...component.props, ...components.get(componentName)?.additionalProps }
 	if (!props) return {}
+
+	function hideProp(propName: string) {
+		return components.get(componentName)?.hideProps?.includes(propName)
+	}
 
 	if ("modelModifiers" in props) {
 		delete props.modelModifiers
@@ -31,7 +35,7 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 
 	const propsConfig: ComponentProps = {}
 
-	if (Array.isArray(props) && !useOverridenPropTypes) {
+	if (Array.isArray(props)) {
 		props.forEach((prop) => {
 			propsConfig[prop] = {
 				type: "string",
@@ -47,11 +51,18 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 		const { required, properties } = componentSchema || {}
 
 		Object.entries(props as Record<string, VueProp>).forEach(([propName, prop]) => {
+			if (hideProp(propName)) return
+
+			if (overrideProps && overrideProps[propName]) {
+				propsConfig[propName] = overrideProps[propName]
+				return
+			}
+
 			let propType = getPropType(prop.type)
 			let isRequired = prop.required
 			const propertySchema = properties?.[propName]
 
-			if ((!propType || useOverridenPropTypes) && !isObjectEmpty(propertySchema)) {
+			if (!propType && !isObjectEmpty(propertySchema)) {
 				isRequired = required?.includes(propName)
 
 				if ("anyOf" in propertySchema) {
@@ -76,7 +87,7 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 			const config: ComponentProp = {
 				type: propType,
 				default: prop.default,
-				inputType: getPropInputType(propType, propName),
+				inputType: getPropInputType(propType),
 				required: isRequired,
 				condition: prop.condition,
 			}
@@ -93,7 +104,6 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 			propsConfig[propName] = config
 		})
 	}
-
 	return propsConfig
 }
 
@@ -105,10 +115,7 @@ function getPropType(propType: VuePropType | VuePropType[]) {
 	return propType?.name
 }
 
-function getPropInputType(propType: string, propName: string) {
-	if (propName.toLowerCase() === "html") {
-		return "html"
-	}
+function getPropInputType(propType: string) {
 	switch (propType) {
 		case "string":
 			return "text"
@@ -125,7 +132,11 @@ function getPropInputType(propType: string, propName: string) {
 	}
 }
 
-function getPropEnums(properties: Record<string, any>, componentDefinitions: Record<string, any>, propName: string): string[] | undefined {
+function getPropEnums(
+	properties: Record<string, any>,
+	componentDefinitions: Record<string, any>,
+	propName: string,
+): string[] | undefined {
 	// fetches prop enums like Button.json > definitions > ButtonProps > properties > variant > enum - ["solid", "subtle", "outline", "ghost"]
 	const propertySchema = properties?.[propName]
 	if (!propertySchema) return undefined
@@ -148,7 +159,9 @@ function getComponentDefinitions(componentName: string) {
 
 function getSinglePropType(propTypes: string | string[]) {
 	if (typeof propTypes === "string") return propTypes
-	const hasNonPrimitiveType = propTypes.find((type: string) => ["array", "object", "function"].includes(type?.toLowerCase()))
+	const hasNonPrimitiveType = propTypes.find((type: string) =>
+		["array", "object", "function"].includes(type?.toLowerCase()),
+	)
 	if (hasNonPrimitiveType) {
 		return "object"
 	}
@@ -157,17 +170,15 @@ function getSinglePropType(propTypes: string | string[]) {
 
 // ?raw to get raw content of a file as string
 const frappeUIModules: Record<string, string> = import.meta.glob(
-	[
-		"../../../node_modules/frappe-ui/src/components/**/*.vue",
-		"!**/*.story.vue",
-	],
-	{ query: "?raw", eager: true, import: "default" }
+	["../../../node_modules/frappe-ui/src/components/**/*.vue", "!**/*.story.vue"],
+	{ query: "?raw", eager: true, import: "default" },
 )
 
-const studioModules: Record<string, string> = import.meta.glob(
-	"@/components/AppLayout/*.vue",
-	{ query: "?raw", eager: true, import: "default" }
-)
+const studioModules: Record<string, string> = import.meta.glob("@/components/AppLayout/*.vue", {
+	query: "?raw",
+	eager: true,
+	import: "default",
+})
 
 const templateCache = new Map<string, string>()
 

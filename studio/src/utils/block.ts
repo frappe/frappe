@@ -362,6 +362,15 @@ class Block implements BlockOptions {
 		return [...this.classes || []]
 	}
 
+	addClass(className: string) {
+		if (!this.classes) {
+			this.classes = []
+		}
+		if (!this.classes.includes(className)) {
+			this.classes.push(className)
+		}
+	}
+
 	toggleVisibility(show: boolean | null = null) {
 		if ((this.getStyle("display") === "none" && show !== false) || (show === true)) {
 			this.setStyle("display", this.getStyle("__last_display") || "flex");
@@ -402,6 +411,10 @@ class Block implements BlockOptions {
 		if (this.isHTML()) {
 			this.setProp("html", html)
 		}
+	}
+
+	isText() {
+		return this.componentName === "TextBlock"
 	}
 
 	isSVG() {

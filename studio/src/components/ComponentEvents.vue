@@ -1,5 +1,5 @@
 <template>
-	<div class="flex flex-col p-4">
+	<div class="flex flex-col">
 		<div v-if="block" class="flex flex-col gap-3">
 			<div class="flex w-full flex-col space-y-1" v-if="!isObjectEmpty(block?.componentEvents)">
 				<div

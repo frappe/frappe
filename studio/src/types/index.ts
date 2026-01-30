@@ -39,15 +39,15 @@ export type StudioMode = "select" | "container"
 
 // slot
 export interface Slot {
-	slotId: string,
-	slotName: string,
-	slotContent: string | Block[],
+	slotId: string
+	slotName: string
+	slotContent: string | Block[]
 	parentBlockId: string
 }
 
 export interface SlotConfig {
-	slotName: string,
-	componentId: string,
+	slotName: string
+	componentId: string
 	// componentId:slotName
 	slotId: string
 }
@@ -61,10 +61,11 @@ export interface ContextMenuOption {
 
 export type ComponentProp = {
 	type: string
-	default: VuePropDefault
+	default?: VuePropDefault
 	inputType: string
 	modelValue?: any
 	required?: boolean
+	props?: Record<string, any>
 	options?: Array<SelectOption> | Array<string>
 	condition?: (state: object | null | undefined) => boolean
 }
@@ -72,30 +73,43 @@ export type ComponentProp = {
 export type ComponentProps = Record<string, ComponentProp>
 
 // controls
-export type SelectOption = { value: string, label: string }
+export type SelectOption = { value: string; label: string }
 
 // dynamic data
 export type ExpressionEvaluationContext = Record<string, any> | undefined
 
 export interface FrappeUIComponent {
-	name: string,
-	title: string,
-	icon: string | FunctionalComponent,
-	initialState?: Record<string, any>,
-	initialSlots?: Array<string>,
-	props?: Array<Record<string, any>>,
-	emits?: Array<string> | Record<string, any>,
-	editInFragmentMode?: boolean, // whether to open a separate canvas for editing this component
-	proxyComponent?: any, // pseudo-component to be used in edit mode
+	name: string
+	title: string
+	icon: string | FunctionalComponent
+	initialState?: Record<string, any>
+	initialSlots?: Array<string>
+	props?: Array<Record<string, any>>
+	emits?: Array<string> | Record<string, any>
+	editInFragmentMode?: boolean // whether to open a separate canvas for editing this component
+	proxyComponent?: any // pseudo-component to be used in edit mode
 	additionalProps?: Record<string, any> // additional props to be shown in the properties panel that are not explicitly defined in the component
-	useOverridenPropTypes?: boolean // whether to use the prop types defined in json_types
+	overrideProps?: Record<string, ComponentProp & { props?: Record<string, any> }> // to override prop editors for specific props
+	hideProps?: Array<string> // to hide specific props from the properties panel
 }
 
 export interface FrappeUIComponents {
 	[key: string]: FrappeUIComponent
 }
 
-export type Fieldtype = "Check" | "Link" | "Float" | "Int" | "Select" | "Data" | "Long Text" | "Small Text" | "Text Editor" | "Text" | "JSON" | "Code"
+export type Fieldtype =
+	| "Check"
+	| "Link"
+	| "Float"
+	| "Int"
+	| "Select"
+	| "Data"
+	| "Long Text"
+	| "Small Text"
+	| "Text Editor"
+	| "Text"
+	| "JSON"
+	| "Code"
 export type DocTypeField = {
 	fieldname: string
 	fieldtype: Fieldtype
@@ -107,7 +121,21 @@ export type DocTypeField = {
 	read_only: number
 	description?: string
 }
-export type Operators = "=" | "!=" | ">" | "<" | ">=" | "<=" | "like" | "not like" | "in" | "not in" | "between" | "not between" | "is" | "is not"
+export type Operators =
+	| "="
+	| "!="
+	| ">"
+	| "<"
+	| ">="
+	| "<="
+	| "like"
+	| "not like"
+	| "in"
+	| "not in"
+	| "between"
+	| "not between"
+	| "is"
+	| "is not"
 
 export type Filter = {
 	fieldname: string
@@ -117,7 +145,7 @@ export type Filter = {
 }
 
 export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code"
-export type RightPanelOptions = "Properties" | "Events" | "Styles" | "Interface"
+export type RightPanelOptions = "Properties" | "Styles" | "Events" | "Interface"
 export type leftPanelComponentTabOptions = "Standard" | "Custom"
 
 // right panel
@@ -134,6 +162,6 @@ export type RepeaterContext = {
 
 // completions
 export type CompletionSource = {
-	item: any,
+	item: any
 	completion: Completion
 }
