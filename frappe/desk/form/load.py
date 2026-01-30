@@ -473,7 +473,8 @@ def send_link_titles(link_titles):
 def update_user_info(docinfo, doc=None):
 	if doc:
 		for field in ("owner", "modified_by"):
-			if user := doc.get(field):
+			user = doc.get(field)
+			if user:
 				frappe.utils.add_user_info(user, docinfo.user_info)
 
 	for d in docinfo.communications:
