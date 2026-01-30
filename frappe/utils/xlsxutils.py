@@ -37,9 +37,9 @@ class XLSXMetadata:
 
 	filters: dict = dataclass_field(default_factory=dict)
 
-	row_map: dict[int, dict | list] = dataclass_field(default_factory=dict)
 	column_map: dict[int, dict] = dataclass_field(default_factory=dict)
-	applied_filters_map: dict[int, list] = dataclass_field(default_factory=dict)
+	row_map: dict[int, dict | list] = dataclass_field(default_factory=dict)
+	applied_filters_map: dict[int, list | dict] = dataclass_field(default_factory=dict)
 
 	header_index: int = 0
 	max_indent_level: int = 0
