@@ -509,66 +509,79 @@ def append_totals_row(data):
 	return data
 
 
-def get_field_info(fields, doctype):
-	"""Get column names, labels, field types, and translatable properties based on column names."""
+def get_field_info(fields, parent_doctype):
+	"""
+	Get column names, labels, field types, and translatable properties based on column names.
+
+	:param fields: List of field names (can include child table fields and aggregate functions).
+	:param parent_doctype: The main doctype from which the report is generated.
+	"""
 
 	field_info = []
-	for key in fields:
+
+	for field in fields:
 		df = None
+
 		try:
-			parenttype, fieldname = parse_field(key)
+			doctype, fieldname = parse_field(field)
 		except ValueError:
 			# handles aggregate functions
-			parenttype = doctype
-			fieldname = key.split("(", 1)[0]
+			doctype = parent_doctype
+			fieldname = field.split("(", 1)[0]
 			fieldname = fieldname[0].upper() + fieldname[1:]
 
-		parenttype = parenttype or doctype
+		doctype = doctype or parent_doctype
+		options = None
 
-		if parenttype == doctype and fieldname == "name":
-			name = fieldname
+		# Special-case the primary `name` column on the parent doctype
+		if doctype == parent_doctype and fieldname == "name":
 			label = _("ID", context="Label of name column in report")
 			fieldtype = "Data"
 			translatable = True
 		else:
-			df = frappe.get_meta(parenttype).get_field(fieldname)
-			if df and df.fieldtype in ("Data", "Select", "Small Text", "Text"):
-				name = df.name
-				label = _(df.label)
+			df = frappe.get_meta(doctype).get_field(fieldname)
+
+			if df:
+				fieldname = df.fieldname
+				label = _(df.label) if getattr(df, "label", None) else _(df.fieldname)
 				fieldtype = df.fieldtype
-				translatable = getattr(df, "translatable", False)
-			elif df and df.fieldtype == "Link" and frappe.get_meta(df.options).translated_doctype:
-				name = df.name
-				label = _(df.label)
-				fieldtype = df.fieldtype
-				translatable = True
+				translatable = bool(df.translatable) or False
+				options = df.options
+
+				if df.fieldtype == "Link" and options and frappe.get_meta(options).translated_doctype:
+					translatable = True
 			else:
-				name = fieldname
-				label = _(df.label) if df else _(fieldname)
+				label = _(fieldname)
 				fieldtype = "Data"
 				translatable = False
 
-			if parenttype != doctype:
+			if doctype != parent_doctype:
 				# If the column is from a child table, append the child doctype.
 				# For example, "Item Code (Sales Invoice Item)".
-				label += f" ({_(parenttype)})"
+				label += f" ({_(doctype)})"
 
 		field_info.append(
-			{"name": name, "label": label, "fieldtype": fieldtype, "translatable": translatable}
+			{
+				"fieldname": fieldname,
+				"label": label,
+				"fieldtype": fieldtype,
+				"translatable": translatable,
+				"options": options,
+			}
 		)
 
 	return field_info
 
 
-def handle_duration_fieldtype_values(doctype, data, fields):
+def handle_duration_fieldtype_values(parent_doctype, data, fields):
 	for field in fields:
 		try:
-			parenttype, fieldname = parse_field(field)
+			doctype, fieldname = parse_field(field)
 		except ValueError:
 			continue
 
-		parenttype = parenttype or doctype
-		df = frappe.get_meta(parenttype).get_field(fieldname)
+		doctype = doctype or parent_doctype
+		df = frappe.get_meta(doctype).get_field(fieldname)
 
 		if df and df.fieldtype == "Duration":
 			index = fields.index(field) + 1
@@ -581,7 +594,14 @@ def handle_duration_fieldtype_values(doctype, data, fields):
 
 
 def parse_field(field: str) -> tuple[str | None, str]:
-	"""Parse a field into parenttype and fieldname."""
+	"""
+	Parse a field into doctype and fieldname.
+
+	:param field: The field string to parse.
+	:returns: A tuple of (doctype, fieldname). Doctype is None if not specified.
+
+	:raises ValueError: If the field contains aggregate functions.
+	"""
 	key = field.split(" as ", 1)[0]
 
 	if key.startswith(("count(", "sum(", "avg(")):
