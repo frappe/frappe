@@ -23,17 +23,10 @@ dependencies = [
     "pypdf==6.6.2",
     "PyPika==0.48.9",
     "PyQRCode~=1.2.1",
-<<<<<<< HEAD
     "PyYAML~=6.0.2",
     "RestrictedPython~=8.0",
-    "WeasyPrint==59.0",
-    "pydyf==0.10.0",
-=======
-    "PyYAML~=6.0.3",
-    "RestrictedPython~=8.1",
     "WeasyPrint==68.0",
-    "pydyf==0.12.1",
->>>>>>> b5f07c8d9e (chore(deps): bump weasyprint from 66.0 to 68.0)
+    "pydyf==0.10.0",
     "Werkzeug==3.1.5",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.12.2",
