@@ -186,6 +186,7 @@ def apply_workflow(doc, action):
 
 					case "Email Notification":
 						from frappe.core.doctype.communication.email import make
+
 						recipients = []
 						data_field, child_field = _parse_receiver_by_document_field(
 							workflow_transition.receiver_by_document_field
@@ -200,7 +201,7 @@ def apply_workflow(doc, action):
 									email_ids_value = doc.get(data_field)
 									email_ids = email_ids_value.replace(",", "\n")
 									recipients = recipients + email_ids.split("\n")
-						
+
 						make(recipients=recipients, email_template=workflow_transition.email_template)
 
 			else:  # normal app-defined tasks
@@ -329,6 +330,7 @@ def send_email_alert(workflow_name):
 def get_workflow_field_value(workflow_name, field):
 	return frappe.get_cached_value("Workflow", workflow_name, field)
 
+
 def _parse_receiver_by_document_field(receiver_fields):
 	fragments = receiver_fields.split(",")
 	# fields from child table or linked doctype
@@ -338,6 +340,7 @@ def _parse_receiver_by_document_field(receiver_fields):
 		data_field, child_field = fragments[0], None
 
 	return data_field, child_field
+
 
 @frappe.whitelist()
 def bulk_workflow_approval(docnames, doctype, action):
