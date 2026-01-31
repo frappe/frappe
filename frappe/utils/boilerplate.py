@@ -106,6 +106,7 @@ def _get_app_info():
 				if not validator_function(value):
 					value = None
 		hooks[property] = value
+	hooks.app_publisher = frappe.get_hooks(hook="app_publisher", app_name=hooks.app_name)[0]
 	return hooks
 
 

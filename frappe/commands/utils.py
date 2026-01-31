@@ -872,13 +872,14 @@ def make_app(destination, app_name, no_git=False):
 	make_boilerplate(destination, app_name, no_git=no_git)
 
 
-@click.command("init-frappe-ui")
-def init_frappe_ui():
+@click.command("create-ui")
+@click.argument("starter_template_repo")
+def init_frontend(starter_template_repo):
 	from frappe.utils.boilerplate import _get_app_info
 
 	info = _get_app_info()
 	if validate_if_app_is_installed(info.app_name):
-		create_frappe_ui_template(info)
+		create_frontend_template(info, starter_template_repo)
 
 
 def get_apps_site_map():
@@ -904,10 +905,9 @@ def validate_if_app_is_installed(app_name):
 	return app_not_installed
 
 
-def create_frappe_ui_template(info):
-	template_url = "sokumon/frappe-ui-starter"
+def create_frontend_template(info, starter_template_repo):
+	template_url = starter_template_repo
 	template_dir = "frontend"
-	info.app_publisher = frappe.get_hooks(hook="app_publisher", app_name=info.app_name)[0]
 	try:
 		app_path = os.path.dirname(frappe.get_app_path(info.app_name))
 		os.chdir(app_path)
@@ -915,7 +915,7 @@ def create_frappe_ui_template(info):
 			if click.confirm(f"Looks like there already is a {template_dir} dir, Do you want to delete it"):
 				shutil.rmtree(os.path.join(app_path, template_dir))
 				click.echo("Restarting initializing")
-				create_frappe_ui_template(info)
+				create_frontend_template(info, starter_template_repo)
 			else:
 				click.echo(f"Delete the {template_dir} in apps/{info.app_name} directory to continue")
 			return
@@ -928,7 +928,7 @@ def create_frappe_ui_template(info):
 			text=True,
 		)
 		if result.returncode == 0:
-			make_frappe_ui_boilerplate(app_path, info)
+			run_boilderplate_commands(app_path, info)
 			click.secho(f"Frappe UI is setup for the app {info.app_name} ", fg="green")
 			next_steps = [
 				f"Navigate to bench/apps/{info.app_name}/{template_dir}",
@@ -944,35 +944,23 @@ def create_frappe_ui_template(info):
 		click.secho(f"App {info.app_name} does not exist", fg="red")
 
 
-def make_frappe_ui_boilerplate(app_path, data):
-	boilerplate_path = os.path.join(app_path, "frontend", "boilerplate")
-	target_directory_map = {
-		"vite.config.js.tpl": os.path.join(app_path, "frontend"),
-		"router.ts.tpl": os.path.join(app_path, "frontend", "src"),
-		"package.json.tpl": app_path,
-		"Home.vue.tpl": os.path.join(app_path, "frontend", "src", "pages"),
-	}
-	if os.path.exists(boilerplate_path):
-		for file in os.listdir(boilerplate_path):
-			make_boilerplate(boilerplate_path, file, target_directory_map[file], data)
-	shutil.rmtree(boilerplate_path)
-
-
-def make_boilerplate(boilerplate_path, file_name, target_directory, data):
-	from string import Template
-
-	target_file_name = file_name.replace(".tpl", "")
-	target_file_path = os.path.join(target_directory, target_file_name)
-	boilerplate_file_path = os.path.join(boilerplate_path, file_name)
-	template_content = None
-	with open(boilerplate_file_path) as source:
-		template_content = Template(source.read())
-
-	custom_content = template_content.substitute(
-		app_name=data["app_name"], app_route=data["route"], app_publisher=data["app_publisher"]
-	)
-	with open(target_file_path, "w") as target:
-		target.write(custom_content)
+def run_boilderplate_commands(app_path, info):
+	print(app_path)
+	package_json_path = os.path.join(app_path, "frontend", "package.json")
+	if os.path.exists(package_json_path):
+		package_json_content = None
+		with open(package_json_path) as f:
+			package_json_content = json.loads(f.read())
+		try:
+			boilerplate_script = package_json_content["boilerplate_script"]
+		except KeyError:
+			click.secho("No boilerplate commands found in package.json", fg="yellow")
+			return
+		subprocess.run(
+			["node", boilerplate_script, info.app_name],
+			cwd=os.path.join(app_path, "frontend"),
+		)
+		os.remove(os.path.join(app_path, "frontend", boilerplate_script))
 
 
 @click.command("create-patch")
@@ -1174,5 +1162,5 @@ commands = [
 	rebuild_global_search,
 	list_sites,
 	setup_chrome,
-	init_frappe_ui,
+	init_frontend,
 ]
