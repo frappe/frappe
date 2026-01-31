@@ -12,7 +12,7 @@ from frappe import _
 from frappe.commands import get_site, pass_context
 from frappe.coverage import CodeCoverage
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import cint, update_progress_bar
+from frappe.utils import cint, get_bench_path, update_progress_bar
 from frappe.utils.bench_helper import CliCtxObj
 
 EXTRA_ARGS_CTX = {"ignore_unknown_options": True, "allow_extra_args": True}
@@ -930,9 +930,10 @@ def create_frontend_template(info, starter_template_repo):
 		if result.returncode == 0:
 			run_boilderplate_commands(app_path, info)
 			click.secho(f"Frappe UI is setup for the app {info.app_name} ", fg="green")
+			click.secho("Next steps are:")
 			next_steps = [
-				f"Navigate to bench/apps/{info.app_name}/{template_dir}",
-				"Run `yarn install`",
+				f"Navigate using `cd {get_bench_path()}/apps/{info.app_name}/{template_dir}`",
+				"Install packages `yarn install`",
 				"Start the dev server `yarn run dev`",
 			]
 			for i, step in enumerate(next_steps):
@@ -945,7 +946,6 @@ def create_frontend_template(info, starter_template_repo):
 
 
 def run_boilderplate_commands(app_path, info):
-	print(app_path)
 	package_json_path = os.path.join(app_path, "frontend", "package.json")
 	if os.path.exists(package_json_path):
 		package_json_content = None
@@ -957,7 +957,7 @@ def run_boilderplate_commands(app_path, info):
 			click.secho("No boilerplate commands found in package.json", fg="yellow")
 			return
 		subprocess.run(
-			["node", boilerplate_script, info.app_name],
+			["node", boilerplate_script, json.dumps(info)],
 			cwd=os.path.join(app_path, "frontend"),
 		)
 		os.remove(os.path.join(app_path, "frontend", boilerplate_script))
