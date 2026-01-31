@@ -146,13 +146,13 @@ class PostgresTable(DBTable):
 					SELECT 1
 					FROM pg_indexes
 					WHERE tablename = %s
-					AND indexdef ILIKE %s
-					AND indexdef ILIKE %s
+					AND indexname IN (%s, %s)
+					LIMIT 1
 					""",
 					(
 						self.table_name,
-						"%unique%",
-						f"%{col}%",
+						f"{self.table_name}_{col}_key",
+						f"unique_{col}",
 					),
 				)
 
