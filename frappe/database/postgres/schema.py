@@ -141,6 +141,24 @@ class PostgresTable(DBTable):
 				and col not in frappe.db.DEFAULT_COLUMNS
 				and col not in frappe.db.OPTIONAL_COLUMNS
 			):
+				has_unique_index = frappe.db.sql(
+					"""
+					SELECT 1
+					FROM pg_indexes
+					WHERE tablename = %s
+					AND indexdef ILIKE %s
+					AND indexdef ILIKE %s
+					""",
+					(
+						self.table_name,
+						"%unique%",
+						f"%{col}%",
+					),
+				)
+
+				if not has_unique_index:
+					continue
+
 				current_col = self.current_columns.get(col)
 
 				deleted_col = DbColumn(
