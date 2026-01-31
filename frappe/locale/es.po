@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-29 13:29\n"
+"PO-Revision-Date: 2026-01-31 14:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -1493,7 +1493,7 @@ msgstr "Agregar nueva pestaña"
 
 #: frappe/utils/password_strength.py:187
 msgid "Add numbers or special characters."
-msgstr ""
+msgstr "Añadir números o caracteres especiales."
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
@@ -2479,7 +2479,7 @@ msgstr "Versión de la aplicación"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:195
 msgid "Application is not installed"
-msgstr ""
+msgstr "La aplicación no está instalada"
 
 #. Label of a Select field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
@@ -2871,7 +2871,7 @@ msgstr "Adjuntar Documento para Imprimir"
 #. Label of a Select field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Attach Files"
-msgstr ""
+msgstr "Adjuntar archivos"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -5879,7 +5879,7 @@ msgstr "Copiar al Portapapeles"
 
 #: frappe/core/doctype/user/user.js:476
 msgid "Copy token to clipboard"
-msgstr ""
+msgstr "Copiar código al portapapeles"
 
 #. Label of a Data field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -8557,7 +8557,7 @@ msgstr "El duplicado de {0} llamado como {1} se crea correctamente"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Duration"
-msgstr ""
+msgstr "Duración"
 
 #. Option for the 'Row Format' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -13484,7 +13484,7 @@ msgstr "Credenciales no válidas"
 
 #: frappe/email/smtp.py:138
 msgid "Invalid Credentials for Email Account: {0}"
-msgstr ""
+msgstr "Credenciales no válidas para la cuenta de correo electrónico: {0}"
 
 #: frappe/utils/data.py:106 frappe/utils/data.py:255
 msgid "Invalid Date"
@@ -13740,15 +13740,15 @@ msgstr ""
 
 #: frappe/core/api/user_invitation.py:84
 msgid "Invitation cannot be cancelled"
-msgstr ""
+msgstr "La invitación no puede ser cancelada"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:127
 msgid "Invitation is cancelled"
-msgstr ""
+msgstr "La invitación ha sido cancelada"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:125
 msgid "Invitation is expired"
-msgstr ""
+msgstr "La invitación ha expirado"
 
 #: frappe/core/api/user_invitation.py:73 frappe/core/api/user_invitation.py:78
 msgid "Invitation not found"
@@ -13756,11 +13756,11 @@ msgstr ""
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:59
 msgid "Invitation to join {0} cancelled"
-msgstr ""
+msgstr "Invitación para unirse a {0} cancelada"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:76
 msgid "Invitation to join {0} expired"
-msgstr ""
+msgstr "La invitación para unirse a {0} ha expirado"
 
 #: frappe/contacts/doctype/contact/contact.js:30
 msgid "Invite as User"
@@ -13932,7 +13932,7 @@ msgstr "¿Es la solicitud remota?"
 #. Label of a Check field in DocType 'Installed Application'
 #: frappe/core/doctype/installed_application/installed_application.json
 msgid "Is Setup Complete?"
-msgstr ""
+msgstr "¿Está completada la instalación?"
 
 #. Label of a Check field in DocType 'DocType'
 #. Label of a Check field in DocType 'Onboarding Step'
@@ -14735,7 +14735,7 @@ msgstr "Legal"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Length"
-msgstr ""
+msgstr "Largo"
 
 #: frappe/public/js/frappe/ui/chart.js:11
 msgid "Length of passed data array is greater than value of maximum allowed label points!"
@@ -14964,7 +14964,7 @@ msgstr "Línea"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Link"
-msgstr ""
+msgstr "Enlace"
 
 #. Label of a Tab Break field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -15596,7 +15596,7 @@ msgstr "Gestiona tus aplicaciones"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Mandatory"
-msgstr ""
+msgstr "Obligatorio"
 
 #. Label of a Code field in DocType 'Custom Field'
 #. Label of a Code field in DocType 'Customize Form Field'
@@ -16107,7 +16107,7 @@ msgstr "Segundo Nombre"
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Middle Name (Optional)"
-msgstr ""
+msgstr "Segundo Nombre (Opcional)"
 
 #. Name of a DocType
 #. Label of a Link in the Tools Workspace
@@ -17347,7 +17347,7 @@ msgstr "No hay contactos vinculados al documento"
 
 #: frappe/website/doctype/web_form/web_form.js:177
 msgid "No currency fields in {0}"
-msgstr ""
+msgstr "No hay campos de moneda en {0}"
 
 #: frappe/desk/query_report.py:379
 msgid "No data to export"
@@ -17461,7 +17461,7 @@ msgstr "No se encontraron plantillas en la ruta: {0}"
 
 #: frappe/core/page/permission_manager/permission_manager.js:357
 msgid "No user has the role <strong>{0}</strong>"
-msgstr ""
+msgstr "Ningún usuario tiene el rol <strong>{0}</strong>"
 
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:257
 msgid "No values to show"
@@ -17692,7 +17692,7 @@ msgstr "No se permite ver {0}"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:602
 msgid "Not permitted. {0}."
-msgstr ""
+msgstr "No está permitido. {0}."
 
 #. Label of a Link in the Tools Workspace
 #. Name of a DocType
@@ -18052,11 +18052,11 @@ msgstr "Nombre del Emisor de OTP"
 #. Label of a Small Text field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP SMS Template"
-msgstr ""
+msgstr "Plantilla de SMS OTP"
 
 #: frappe/core/doctype/system_settings/system_settings.py:163
 msgid "OTP SMS Template must contain <code>{0}</code> placeholder to insert the OTP."
-msgstr ""
+msgstr "La plantilla SMS OTP debe contener el marcador de posición <code>{0}</code> para insertar el OTP."
 
 #: frappe/twofactor.py:455
 msgid "OTP Secret Reset - {0}"
@@ -18070,7 +18070,7 @@ msgstr "OTP Secret ha sido restablecido. Re-registro será necesario en el próx
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP placeholder should be defined as <code>{{ otp }}</code> "
-msgstr ""
+msgstr "El marcador de posición OTP debe definirse como <code>{{ otp }}</code> "
 
 #: frappe/templates/includes/login/login.js:363
 msgid "OTP setup using OTP App was not completed. Please contact Administrator."
@@ -19163,7 +19163,7 @@ msgstr "Verificación pendiente"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Percent"
-msgstr ""
+msgstr "Porcentaje"
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -19347,7 +19347,7 @@ msgstr "Solicitud de descarga de datos personales"
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Phone"
-msgstr ""
+msgstr "Teléfono"
 
 #. Label of a Data field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -19933,7 +19933,7 @@ msgstr "Precisión"
 
 #: frappe/core/doctype/doctype/doctype.py:1634
 msgid "Precision ({0}) for {1} cannot be greater than its length ({2})."
-msgstr ""
+msgstr "La precisión ({0}) para {1} no puede ser mayor que su longitud ({2})."
 
 #: frappe/core/doctype/doctype/doctype.py:1365
 msgid "Precision should be between 1 and 6"
@@ -20877,7 +20877,7 @@ msgstr "Límite de inicio de sesión mediante enlace de correo"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Rating"
-msgstr ""
+msgstr "Clasificación"
 
 #. Label of a Code field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -21816,7 +21816,7 @@ msgstr "Tipo de reporte"
 
 #: frappe/public/js/frappe/list/base_list.js:202
 msgid "Report View"
-msgstr ""
+msgstr "Vista de Reporte"
 
 #: frappe/core/doctype/doctype/doctype.py:1787
 msgid "Report cannot be set for Single types"
@@ -23493,7 +23493,7 @@ msgstr "Seleccione un campo para editar sus propiedades."
 
 #: frappe/public/js/frappe/views/treeview.js:324
 msgid "Select a group {0} first."
-msgstr ""
+msgstr "Seleccione primero un grupo {0}."
 
 #: frappe/core/doctype/doctype/doctype.py:1920
 msgid "Select a valid Sender Field for creating documents from Email"
@@ -24130,7 +24130,7 @@ msgstr "Ajuste de precisión no-estándar para los decimales o las monedas"
 #. Description of the 'Precision' (Select) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "Set non-standard precision for a Float, Currency or Percent field"
-msgstr ""
+msgstr "Establecer una precisión no estándar para un campo de tipo flotante, moneda o porcentaje"
 
 #. Label of a Check field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -29384,7 +29384,7 @@ msgstr "Almacén"
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Warning"
-msgstr ""
+msgstr "Advertencia"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:217
 msgid "Warning: DATA LOSS IMMINENT! Proceeding will permanently delete following database columns from doctype {0}:"
@@ -33017,7 +33017,7 @@ msgstr "Hace {0} semanas"
 
 #: frappe/core/page/permission_manager/permission_manager.js:373
 msgid "{0} with the role <strong>{1}</strong>"
-msgstr ""
+msgstr "{0} con el rol <strong>{1}</strong>"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:39
 msgid "{0} y"
