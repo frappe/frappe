@@ -950,7 +950,7 @@ class DesktopIcon {
 					label: "Create Folder",
 					icon: "folder",
 					onClick: function () {
-						let folder = me.grid.add_folder();
+						let folder = me.icon_grid.add_folder();
 						add_icons_to_folder(folder.label, [icon_data.label]);
 					},
 				},
