@@ -506,7 +506,8 @@ def make_xlsx(
 	wb: xlsxwriter.Workbook | None = None,
 	column_widths: list[int] | None = None,
 	styles: dict | None = None,
-) -> BytesIO | None:
+	file_path: str | None = None,
+) -> BytesIO | str | None:
 	"""
 	Create an Excel file with the given data and formatting options.
 
@@ -522,9 +523,12 @@ def make_xlsx(
 			- column_styles: dict of column index to list of style ids
 			- row_styles: dict of row index to list of style ids
 			- cell_styles: dict of (row index, column index) to list of style ids
+		file_path: Path to save the Excel file. If provided, writes to file instead of BytesIO
 
 	Returns:
-		BytesIO: object containing the Excel file data, or None if wb was provided
+		BytesIO: object containing the Excel file data,
+		- or file_path string if file was saved to disk,
+		- or None if wb or file_path was provided
 	"""
 	column_widths = column_widths or []
 	styles = styles or {}
@@ -534,7 +538,8 @@ def make_xlsx(
 	created_wb = wb is None  # to know to close it later
 
 	if created_wb:
-		xlsx_file = BytesIO()
+		xlsx_file = file_path or BytesIO()
+
 		wb = xlsxwriter.Workbook(
 			xlsx_file, {"constant_memory": True, "default_date_format": XLSXStyleBuilder.get_date_format()}
 		)
@@ -634,7 +639,9 @@ def make_xlsx(
 
 	if created_wb:
 		wb.close()
-		xlsx_file.seek(0)
+
+		if xlsx_file and isinstance(xlsx_file, BytesIO):
+			xlsx_file.seek(0)
 
 	return xlsx_file
 
