@@ -186,9 +186,34 @@ class PostgresTable(DBTable):
 			# primary key
 			if col.fieldname != "name":
 				# drop unique constraint first if exists which automatically drops the underlying index also
-				drop_contraint_query += f'ALTER TABLE "{self.table_name}" DROP CONSTRAINT IF EXISTS "{self.table_name}_{col.fieldname}_key" ;'
+				unique_constraint_exists = frappe.db.sql(
+					"""
+					SELECT 1
+					FROM pg_constraint
+					WHERE conname = %s
+					""",
+					(f"{self.table_name}_{col.fieldname}_key",),
+				)
+
+				if unique_constraint_exists:
+					drop_contraint_query += f'ALTER TABLE "{self.table_name}" DROP CONSTRAINT IF EXISTS "{self.table_name}_{col.fieldname}_key" ;'
+
 				# drop the unique index backed by no constraint directly
-				drop_contraint_query += f'DROP INDEX IF EXISTS "unique_{col.fieldname}" ;'
+				unique_index_exists = frappe.db.sql(
+					"""
+					SELECT 1
+					FROM pg_indexes
+					WHERE tablename = %s
+					AND indexname = %s
+					""",
+					(
+						self.table_name,
+						f"unique_{col.fieldname}",
+					),
+				)
+
+				if unique_index_exists:
+					drop_contraint_query += f'DROP INDEX IF EXISTS "unique_{col.fieldname}" ;'
 
 		change_nullability = []
 		for col in self.change_nullability:
