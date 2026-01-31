@@ -336,6 +336,18 @@ def get_gravatar(email: str) -> str:
 	return has_gravatar(email) or Identicon(email).base64()
 
 
+def get_traceback_msg() -> str:
+	"""Return only the message of the current exception, without traceback."""
+	from frappe.utils import strip_html
+
+	exc_type, exc_value, exc_tb = sys.exc_info()
+
+	if not exc_value:
+		return ""
+
+	return strip_html(str(exc_value))
+
+
 def get_traceback(with_context: bool = False) -> str:
 	"""Return the traceback of the Exception."""
 	from traceback_with_variables import iter_exc_lines
