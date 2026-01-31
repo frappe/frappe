@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-25 09:36+0000\n"
-"PO-Revision-Date: 2026-01-26 15:51\n"
+"PO-Revision-Date: 2026-01-31 16:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -21759,11 +21759,11 @@ msgstr "Kom ihåg Senast Valda Värde"
 #: frappe/automation/doctype/reminder/reminder.json
 #: frappe/public/js/frappe/form/reminders.js:33
 msgid "Remind At"
-msgstr "Påminn Mig"
+msgstr "Påminn"
 
 #: frappe/public/js/frappe/form/toolbar.js:515
 msgid "Remind Me"
-msgstr "Påminn mig"
+msgstr "Påminn Mig"
 
 #: frappe/public/js/frappe/form/reminders.js:13
 msgid "Remind Me In"
