@@ -2298,6 +2298,7 @@ class TestQuery(IntegrationTestCase):
 		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "skipped"), "0")
 		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "patch"), "''")
 
+	@run_only_if(db_type_is.MARIADB)
 	def test_drop_unique_constraint_for_deleted_fields(self):
 		trial_dt = new_doctype(
 			"Trial Doctype",
