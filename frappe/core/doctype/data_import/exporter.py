@@ -7,7 +7,7 @@ from frappe.model import display_fieldtypes, no_value_fields
 from frappe.model import table_fields as table_fieldtypes
 from frappe.utils import flt, format_duration, groupby_metric
 from frappe.utils.csvutils import build_csv_response
-from frappe.utils.xlsxutils import build_xlsx_response
+from frappe.utils.xlsxutils import build_xlsx_response, get_default_xlsx_styles
 
 
 class Exporter:
@@ -253,7 +253,14 @@ class Exporter:
 		if self.file_type == "CSV":
 			build_csv_response(self.get_csv_array_for_export(), _(self.doctype))
 		elif self.file_type == "Excel":
-			build_xlsx_response(self.get_csv_array_for_export(), _(self.doctype))
+			data = self.get_csv_array_for_export()
+			styles = get_default_xlsx_styles(
+				columns=self.fields,
+				data=data[1:],  # exclude header row
+				apply_currency_format=False,  # child table row not have currency value from parent
+			)
+
+			build_xlsx_response(data, _(self.doctype), styles=styles)
 
 	def group_children_data_by_parent(self, children_data: dict[str, list]):
 		return groupby_metric(children_data, key="parent")
