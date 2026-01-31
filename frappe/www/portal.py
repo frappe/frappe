@@ -18,8 +18,6 @@ def get_context(context, **dict_params):
 		context.home_page = "/portal"
 		context.doctype = frappe.local.form_dict.doctype
 	return context
-	if frappe.session.user == "Guest" and not context.doc.allow_guest_to_view:
-		raise frappe.PermissionError
 
 
 def set_route(context):
