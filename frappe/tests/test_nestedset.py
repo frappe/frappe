@@ -336,3 +336,59 @@ class TestNestedSet(IntegrationTestCase):
 		# Check if disabled records are skipped is set to False
 		# Children of disabled records are automatically skipped in recursion
 		self.assertEqual(len(get_children(doctype)), 1)
+
+	def test_tree_with_overridden_on_update(self):
+		"""
+		Ensure Nested Set logic runs even if controller overrides on_update
+		without calling super()
+		"""
+
+		doctype = new_doctype(
+			name="Test Tree Override",
+			is_tree=True,
+			autoname="field:some_fieldname",
+		).insert()
+
+		controller = frappe.model.base_document.get_controller(doctype.name)
+
+		def broken_on_update(self):
+			pass
+
+		controller.on_update = broken_on_update
+
+		# Insert tree records
+		root = frappe.new_doc(doctype.name)
+		root.some_fieldname = "Root"
+		root.is_group = 1
+		root.insert()
+
+		child = frappe.new_doc(doctype.name)
+		child.some_fieldname = "Child"
+		parent_field = "parent_" + doctype.name.lower().replace(" ", "_")
+		setattr(child, parent_field, "Root")
+
+		child.is_group = 0
+		child.insert()
+
+		root_lft, root_rgt = frappe.db.get_value(doctype.name, "Root", ["lft", "rgt"])
+		child_lft, child_rgt = frappe.db.get_value(doctype.name, "Child", ["lft", "rgt"])
+
+		self.assertTrue(root_lft < child_lft < child_rgt < root_rgt)
+
+		# Detach child and make it a root node
+		child = frappe.get_doc(doctype.name, "Child")
+		setattr(child, parent_field, "")
+		child.save()
+
+		root_lft, root_rgt = frappe.db.get_value(doctype.name, "Root", ["lft", "rgt"])
+		child_lft, child_rgt = frappe.db.get_value(doctype.name, "Child", ["lft", "rgt"])
+
+		# After detaching child, both should be separate roots
+		self.assertTrue(root_lft < root_rgt)
+		self.assertTrue(child_lft < child_rgt)
+
+		# Child must not be nested under root
+		self.assertFalse(root_lft < child_lft < child_rgt < root_rgt)
+
+		# Root should now be a leaf node
+		self.assertEqual(root_rgt - root_lft, 1)

@@ -1371,9 +1371,15 @@ class Document(BaseDocument):
 		- `on_cancel` for **Cancel**
 		- `update_after_submit` for **Update after Submit**"""
 
+		from frappe.utils.nestedset import update_nsm
+
 		if self._action == "save":
+			if getattr(self.meta, "is_tree", False):
+				update_nsm(self)
 			self.run_method("on_update")
 		elif self._action == "submit":
+			if getattr(self.meta, "is_tree", False):
+				update_nsm(self)
 			self.run_method("on_update")
 			self.run_method("on_submit")
 		elif self._action == "cancel":

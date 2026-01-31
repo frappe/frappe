@@ -275,7 +275,6 @@ class NestedSet(Document):
 			frappe.cache.hdel("user_permissions", frappe.session.user)
 
 	def on_update(self):
-		update_nsm(self)
 		self.validate_ledger()
 
 	def on_trash(self, allow_root_deletion=False):
