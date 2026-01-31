@@ -166,26 +166,10 @@ def get_desktop_icons(user=None, bootinfo=None):
 		]
 
 		standard_icons = frappe.get_all("Desktop Icon", fields=fields, filters={"standard": 1})
-
-		user_icons = frappe.get_all("Desktop Icon", fields=fields, filters={"standard": 0, "owner": user})
+		user_icons = frappe.get_all(
+			"Desktop Icon", fields=fields, filters=[["standard", "=", 0], "or", ["owner", "=", user]]
+		)
 		user_icons = user_icons + standard_icons
-		# for icon in user_icons:
-		# 	standard_icon = standard_map.get(icon.module_name, None)
-
-		# 	# override properties from standard icon
-		# 	if standard_icon:
-		# 		for key in ("route", "label", "color", "icon", "link"):
-		# 			if standard_icon.get(key):
-		# 				icon[key] = standard_icon.get(key)
-
-		# 		if standard_icon.blocked:
-		# 			icon.hidden = 1
-
-		# 			# flag for modules_select dialog
-		# 			icon.hidden_in_standard = 1
-
-		# 		elif standard_icon.force_show:
-		# 			icon.hidden = 0
 
 		# sort by idx
 		user_icons.sort(key=lambda a: a.idx)
