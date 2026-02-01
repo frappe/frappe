@@ -10,6 +10,7 @@ from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_li
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
 from frappe.utils import cstr
+from frappe.utils.user import is_website_user
 
 
 class Address(Document):
@@ -222,14 +223,15 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, o
 
 
 def has_website_permission(doc, ptype, user, verbose=False):
-	"""Return True if there is a related lead or contact related to this document."""
-	contact_name = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
+	if user != "Guest" and is_website_user():
+		"""Return True if there is a related lead or contact related to this document."""
+		contact_name = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
 
-	if contact_name:
-		contact = frappe.get_doc("Contact", contact_name)
-		return contact.has_common_link(doc)
-
-	return False
+		if contact_name:
+			contact = frappe.get_doc("Contact", contact_name)
+			return contact.has_common_link(doc)
+	else:
+		return False
 
 
 def get_address_templates(address):
