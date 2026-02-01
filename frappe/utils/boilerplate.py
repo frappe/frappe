@@ -80,13 +80,21 @@ def _get_user_inputs(app_name):
 
 
 def _get_app_info():
+	import questionary
+
+	from frappe.utils import get_bench_path
+
 	hooks = frappe._dict()
+
+	def get_apps():
+		if os.path.exists(os.path.join(get_bench_path(), "sites", "apps.txt")):
+			with open(os.path.join(get_bench_path(), "sites", "apps.txt")) as f:
+				return [app.strip() for app in f.readlines() if app.strip()]
+
+	app_name = questionary.select("App Name", qmark="", choices=get_apps()).ask()
+	hooks.app_name = app_name
 	new_app_config = {
-		"app_name": {
-			"prompt": "App Name",
-			"validator": is_valid_title,
-		},
-		"route": {"prompt": "Frontend to be hosted at", "get_default": "app_name"},
+		"route": {"prompt": "Frontend to be hosted at", "default": f"/{app_name}"},
 	}
 
 	for property, config in new_app_config.items():
