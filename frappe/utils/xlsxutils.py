@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import datetime
 import functools
 import re
 from dataclasses import dataclass
@@ -7,9 +8,13 @@ from dataclasses import field as dataclass_field
 from io import BytesIO
 from typing import Any, Literal
 
+import openpyxl
 import xlrd
 import xlsxwriter
 from openpyxl import load_workbook
+from openpyxl.cell import WriteOnlyCell
+from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
 from openpyxl.workbook.child import INVALID_TITLE_REGEX
 from xlsxwriter.format import Format
 
@@ -526,9 +531,8 @@ def make_xlsx(
 		file_path: Path to save the Excel file. If provided, writes to file instead of BytesIO
 
 	Returns:
-		BytesIO: object containing the Excel file data,
-		- or file_path string if file was saved to disk,
-		- or None if wb or file_path was provided
+		BytesIO | str | None: BytesIO object containing the Excel file data, or file path if saved to disk
+
 	"""
 	column_widths = column_widths or []
 	styles = styles or {}
@@ -544,9 +548,7 @@ def make_xlsx(
 			xlsx_file, {"constant_memory": True, "default_date_format": XLSXStyleBuilder.get_date_format()}
 		)
 
-	# sanitize sheet name
-	sheet_name_sanitized = INVALID_TITLE_REGEX.sub(" ", sheet_name)
-	ws = wb.add_worksheet(sheet_name_sanitized[:31])
+	ws = wb.add_worksheet(get_sanitized_sheet_name(sheet_name))
 
 	# extract style components
 	def _extract_ids(key: str) -> dict:
@@ -613,7 +615,7 @@ def make_xlsx(
 			if pos not in cell_formats:
 				cell_formats[pos] = get_format(col_ids + row_ids)
 
-	handle_html_content = sheet_name not in {"Data Import Template", "Data Export"}
+	handle_html_content = need_to_handle_html_content(sheet_name)
 
 	# pre-compile check for illegal characters
 	illegal_chars_search = ILLEGAL_CHARACTERS_RE.search
@@ -644,6 +646,88 @@ def make_xlsx(
 			xlsx_file.seek(0)
 
 	return xlsx_file
+
+
+def make_xls(
+	data: list[list[Any]],
+	sheet_name: str,
+	wb: openpyxl.Workbook | None = None,
+	column_widths: list[int] | None = None,
+	file_path: str | None = None,
+) -> BytesIO | str:
+	"""
+	Create an Excel file (old format xls) with the given data and formatting options.
+
+	Args:
+		data: List of rows, where each row is a list of cell values
+		sheet_name: Name of the Excel sheet
+		wb: Existing workbook to add sheet to. If None, creates new workbook
+		column_widths: List of column widths in Excel units. If None, auto-sized
+		file_path: Path to save the Excel file. If None, returns BytesIO object.
+
+	Returns:
+		BytesIO | str: BytesIO object containing the Excel file data, or file path if saved to disk
+	"""
+	column_widths = column_widths or []
+
+	if wb is None:
+		wb = openpyxl.Workbook(write_only=True)
+
+	ws = wb.create_sheet(get_sanitized_sheet_name(sheet_name), 0)
+
+	for i, column_width in enumerate(column_widths):
+		if column_width:
+			ws.column_dimensions[get_column_letter(i + 1)].width = column_width
+
+	ws.row_dimensions[1].font = Font(name="Calibri", bold=True)
+
+	date_format = XLSXStyleBuilder.get_date_format()
+	time_format = XLSXStyleBuilder.get_time_format()
+	datetime_format = XLSXStyleBuilder.get_datetime_format()
+
+	handle_html_content = need_to_handle_html_content(sheet_name)
+
+	# pre-compile check for illegal characters
+	illegal_chars_search = ILLEGAL_CHARACTERS_RE.search
+	illegal_chars_sub = ILLEGAL_CHARACTERS_RE.sub
+
+	for row in data:
+		excel_row = []
+
+		for value in row:
+			if isinstance(value, str):
+				if handle_html_content:
+					value = handle_html(value)
+
+				if illegal_chars_search(value):
+					value = illegal_chars_sub("", value)
+
+			cell = WriteOnlyCell(ws, value=value)
+
+			# date/time formatting
+			if isinstance(value, datetime.datetime):
+				cell.number_format = datetime_format
+			elif isinstance(value, datetime.date):
+				cell.number_format = date_format
+			elif isinstance(value, datetime.time):
+				cell.number_format = time_format
+
+			excel_row.append(cell)
+
+		ws.append(excel_row)
+
+	file = file_path if file_path else BytesIO()
+
+	wb.save(file)
+	return file
+
+
+def get_sanitized_sheet_name(name: str) -> str:
+	return INVALID_TITLE_REGEX.sub(" ", name)[:31]
+
+
+def need_to_handle_html_content(sheet_name: str) -> bool:
+	return sheet_name not in {"Data Import Template", "Data Export"}
 
 
 ### Utilities ###
