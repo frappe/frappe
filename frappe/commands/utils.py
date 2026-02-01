@@ -880,6 +880,26 @@ def init_frontend(starter_template_repo):
 	info = _get_app_info()
 	if validate_if_app_is_installed(info.app_name):
 		create_frontend_template(info, starter_template_repo)
+		add_files_for_production_build(info)
+
+
+def add_files_for_production_build(info):
+	app_path = frappe.get_app_path(info.app_name)
+	www_folder = os.path.join(app_path, "www")
+	context_file = os.path.join(www_folder, f"{info.app_name}.py")
+	content = """import frappe
+
+def get_context(context):
+	context.boot = get_boot()
+	return context
+
+def get_boot():
+	boot = frappe._dict()
+	boot.csrf_token = frappe.sessions.get_csrf_token()
+	return boot
+ """
+	with open(context_file, "w") as f:
+		f.write(content)
 
 
 def get_apps_site_map():
