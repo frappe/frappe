@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import getdate
+from frappe.utils import escape_html, get_url_to_form, getdate
 
 
 def execute(filters=None):
@@ -46,12 +46,9 @@ def execute(filters=None):
 	for todo in todo_list:
 		if todo.owner == frappe.session.user or todo.assigned_by == frappe.session.user:
 			if todo.reference_type:
-				todo.reference = """<a href="/desk/Form/{}/{}">{}: {}</a>""".format(
-					todo.reference_type,
-					todo.reference_name,
-					todo.reference_type,
-					todo.reference_name,
-				)
+				href = get_url_to_form(todo.reference_type, todo.reference_name)
+				label = "{}: {}".format(escape_html(todo.reference_type), escape_html(todo.reference_name))
+				todo.reference = f'<a href="{href}">{label}</a>'
 			else:
 				todo.reference = None
 			result.append(
@@ -59,7 +56,7 @@ def execute(filters=None):
 					todo.name,
 					todo.priority,
 					todo.date,
-					todo.description,
+					escape_html(todo.description),
 					todo.owner,
 					todo.assigned_by,
 					todo.reference,

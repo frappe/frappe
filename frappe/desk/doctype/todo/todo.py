@@ -1,12 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import html
 import json
 
 import frappe
 from frappe.model.document import Document
 from frappe.permissions import AUTOMATIC_ROLES
-from frappe.utils import get_fullname, parse_addr
+from frappe.utils import get_fullname, parse_addr, strip_html
 
 exclude_from_linked_with = True
 
@@ -38,6 +39,7 @@ class ToDo(Document):
 	DocType = "ToDo"
 
 	def validate(self):
+		self.description = strip_html(html.unescape(self.description))
 		self._assignment = None
 		if self.is_new():
 			if self.assigned_by == self.allocated_to:
