@@ -147,12 +147,10 @@ def is_frontend_code(file):
 
 
 def matches_postgres_filenames(files_list):
-    """Check if any changed files suggest database involvement."""
-    db_keywords = ["database", "query", "schema", "postgres"]
-    return any(
-        any(word in f.lower() for word in db_keywords) 
-        for f in files_list
-    )
+	"""Check if any changed files suggest database involvement."""
+	db_keywords = ["database", "query", "schema", "postgres"]
+	return any(any(word in f.lower() for word in db_keywords) for f in files_list)
+
 
 def is_docs(file):
 	"""Check if the file is documentation or image."""
@@ -184,10 +182,7 @@ if __name__ == "__main__":
 	only_frontend_code_changed = len(list(filter(is_frontend_code, files_list))) == len(files_list)
 	updated_py_file_count = len(list(filter(is_server_side_code, files_list)))
 	only_py_changed = updated_py_file_count == len(files_list)
-	run_postgres = (
-        has_label(pr_number, "postgres", repo) or 
-        matches_postgres_filenames(files_list)
-    )
+	run_postgres = has_label(pr_number, "postgres", repo) or matches_postgres_filenames(files_list)
 
 	# Check for Skip CI label and other conditions
 	if has_skip_ci_label(pr_number, repo):

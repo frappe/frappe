@@ -420,6 +420,7 @@ class TestEmailIntegrationTest(IntegrationTestCase):
 
 	def test_send_password_reset_mail_on_global_unsubscribe(self):
 		from frappe.utils.verified_command import get_signed_params
+
 		user_id = frappe.generate_hash() + "@example.com"
 		user = frappe.get_doc(doctype="User", email=user_id, first_name="Tester").insert()
 		frappe.db.commit()
