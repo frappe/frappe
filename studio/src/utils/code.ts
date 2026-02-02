@@ -1,4 +1,8 @@
-import { FUNCTION_STRING_REGEX, DYNAMIC_EXPRESSION_REGEX, QUOTED_STRING_CONTENT_REGEX } from "@/utils/constants"
+import {
+	FUNCTION_STRING_REGEX,
+	DYNAMIC_EXPRESSION_REGEX,
+	QUOTED_STRING_CONTENT_REGEX,
+} from "@/utils/constants"
 
 export function isDynamicValue(value: string) {
 	// Check if the prop value is a string and contains a dynamic expression
@@ -44,9 +48,14 @@ export function unquoteDynamicExpressions(json5String: string) {
 
 function unescape(str: string) {
 	return str
-		.replace(/\\n/g, '\n')
-		.replace(/\\t/g, '\t')
-		.replace(/\\"/g, '"')
-		.replace(/\\\\/g, '\\')
+		.replace(/\\(\\|n|t|")/g, (match, content) => {
+			const map: Record<string, string> = {
+				n: "\n",
+				t: "\t",
+				'"': '"',
+				"\\": "\\",
+			}
+			return map[content] || match
+		})
 		.trim()
 }
