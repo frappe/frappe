@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-28 13:31\n"
+"PO-Revision-Date: 2026-02-02 14:45\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1802,7 +1802,7 @@ msgstr "اجازه ورود با استفاده از نام کاربری"
 #. Label of a Section Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Allow Modules"
-msgstr "اجازه دادن به ماژول ها"
+msgstr "اجازه دادن به ماژول‌ها"
 
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -1960,7 +1960,7 @@ msgstr "در ذکر نام مجاز است"
 #. Label of a Section Break field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
 msgid "Allowed Modules"
-msgstr "ماژول های مجاز"
+msgstr "ماژول‌های مجاز"
 
 #. Label of a Table MultiSelect field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -3549,7 +3549,7 @@ msgstr "بلوک ماژول"
 #: frappe/core/doctype/module_profile/module_profile.json
 #: frappe/core/doctype/user/user.json
 msgid "Block Modules"
-msgstr "بلوک کردن ماژول ها"
+msgstr "بلوک کردن ماژول‌ها"
 
 #. Label of a Check field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
@@ -5720,7 +5720,7 @@ msgstr "DocTypeهای اصلی قابل سفارشی‌سازی نیستند."
 
 #: frappe/desk/doctype/global_search_settings/global_search_settings.py:36
 msgid "Core Modules {0} cannot be searched in Global Search."
-msgstr "ماژول های اصلی {0} را نمی‌توان در جستجوی سراسری جستجو کرد."
+msgstr "ماژول‌های اصلی {0} را نمی‌توان در جستجوی سراسری جستجو کرد."
 
 #: frappe/printing/page/print/print.js:620
 msgid "Correct version :"
@@ -16151,12 +16151,12 @@ msgstr "ماژول {} یافت نشد"
 #: frappe/core/doctype/package/package.json
 #: frappe/core/workspace/build/build.json
 msgid "Modules"
-msgstr "ماژول ها"
+msgstr "ماژول‌ها"
 
 #. Label of a HTML field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Modules HTML"
-msgstr "ماژول های HTML"
+msgstr "ماژول‌های HTML"
 
 #. Option for the 'Day' (Select) field in DocType 'Assignment Rule Day'
 #. Option for the 'Day' (Select) field in DocType 'Auto Repeat Day'
@@ -32109,7 +32109,7 @@ msgstr "{0} نقشه"
 
 #: frappe/public/js/frappe/utils/utils.js:940
 msgid "{0} Modules"
-msgstr "{0} ماژول ها"
+msgstr "{0} ماژول‌ها"
 
 #: frappe/public/js/frappe/form/quick_entry.js:118
 msgid "{0} Name"
