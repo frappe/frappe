@@ -67,8 +67,6 @@ frappe.ui.Page = class Page {
 					(frappe.boot.read_only || frappe.boot.user.impersonated_by)
 				) {
 					$(".page-head").css("top", "-15px");
-				} else if (frappe.boot.read_only || frappe.boot.user.impersonated_by) {
-					$(".page-head").css("top", "var(--navbar-height)");
 				}
 				last_scroll = current_scroll;
 			}, 500)
@@ -145,7 +143,7 @@ frappe.ui.Page = class Page {
 		this.container = this.wrapper.find(".page-body");
 		this.sidebar = this.wrapper.find(".layout-side-section");
 		this.footer = this.wrapper.find(".layout-footer");
-		this.indicator = this.wrapper.find(".indicator-pill");
+		this.indicator = this.wrapper.find(".title-area .indicator-pill");
 
 		this.page_actions = this.wrapper.find(".page-actions");
 		this.filters = this.wrapper.find(".filters");

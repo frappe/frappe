@@ -3,6 +3,12 @@
 <p class="help-message alert alert-warning">
 	{{ __("Some columns might get cut off when printing to PDF. Try to keep number of columns under 10.") }}
 </p>
+<div class="row" style="margin-bottom: 15px;">
+	<div class="col-sm-12">
+		<button class="btn btn-xs btn-default select-all-btn" type="button">{{ __("Select All") }}</button>
+		<button class="btn btn-xs btn-default unselect-all-btn" type="button" style="margin-left: 5px;">{{ __("Unselect All") }}</button>
+	</div>
+</div>
 <div class="row">
 	<div class="col-sm-6"><p class="bold">{{ __("Column") }}</p></div>
 	<div class="col-sm-6 text-right"><p class="bold">{{ __("Width") }}</p></div>

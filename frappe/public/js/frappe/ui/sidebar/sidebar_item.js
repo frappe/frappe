@@ -180,9 +180,9 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		super.make();
 		if (!this.item.nested_items || this.item.nested_items.length == 0) return;
 		this.add_items();
+		$(this.container).append(this.full_template);
 		this.toggle_on_collapse();
 		this.enable_collapsible(this.item, this.full_template);
-		$(this.container).append(this.full_template);
 	}
 	open() {
 		this.collapsed = false;
@@ -265,7 +265,7 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		const me = this;
 		let current_sidebar_state = this.section_breaks_state[this.workspace_title];
 		for (const [element_name, collapsed] of Object.entries(current_sidebar_state)) {
-			if ($(this.wrapper).attr("item-name") == element_name) {
+			if ($(this.wrapper).attr("title") == element_name) {
 				me.collapsed = collapsed;
 				me.toggle();
 			}

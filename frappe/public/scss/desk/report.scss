@@ -88,6 +88,10 @@
 	overflow: auto;
 	padding-left: 15px;
 	padding-right: 15px;
+
+	.datatable {
+		border-radius: var(--border-radius);
+	}
 }
 @include media-breakpoint-up(sm) {
 	.report-view {

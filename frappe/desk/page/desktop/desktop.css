@@ -183,6 +183,7 @@
         & .modal-content {
             top: 120px;
             border-radius: var(--desktop-modal-radius);
+            align-items: center;
         }
     }
 }
@@ -196,9 +197,12 @@
     width: var(--desktop-modal-width);
     height: var(--desktop-modal-height);
     padding: 24px 23px !important;
-    width: fit-content;
     & .icons{
         gap: 0px 0px;
+    }
+    & .icons:has(.desktop-edit-mode){
+        margin-top: 4px;
+        gap: 6px 6px;
     }
     .icon-container{
         min-height: var(--desktop-icon-dimension);
@@ -275,8 +279,8 @@
                     height: 5px;
                 }
                 & img{
-                    width: 9px;
-                    height: 9px;
+                    width: var(--folder-thumbnail-icon-height);
+                    height: var(--folder-thumbnail-icon-height);
                 }
             }
 

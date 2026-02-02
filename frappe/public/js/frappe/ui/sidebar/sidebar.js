@@ -23,6 +23,7 @@ frappe.ui.Sidebar = class Sidebar {
 		this.sidebar_module_map = {};
 		this.build_sidebar_module_map();
 		this.standard_items_setup = false;
+		this.preferred_sidebars = [];
 	}
 
 	prepare() {
@@ -175,7 +176,7 @@ frappe.ui.Sidebar = class Sidebar {
 		if (active_section) {
 			let section = this.get_item(active_section);
 			if (section) {
-				if (section.collapsed) {
+				if (this.sidebar_expanded && section.collapsed) {
 					section.open();
 				}
 			}
@@ -461,7 +462,7 @@ frappe.ui.Sidebar = class Sidebar {
 					entity_name = route[1];
 			}
 			let sidebars = this.get_workspace_sidebars(entity_name);
-			this.preffered_sidebars = sidebars;
+			this.preferred_sidebars = sidebars;
 			let module = router?.meta?.module;
 			if (this.sidebar_title && sidebars.includes(this.sidebar_title)) {
 				this.set_active_workspace_item();
@@ -504,7 +505,7 @@ frappe.ui.Sidebar = class Sidebar {
 		return filter_sidebars;
 	}
 	show_sidebar_for_module(module) {
-		if (this.sidebar_title && this.preffered_sidebars.includes(this.sidebar_title)) {
+		if (this.sidebar_title && this.preferred_sidebars.includes(this.sidebar_title)) {
 			this.set_active_workspace_item();
 			return;
 		}

@@ -275,16 +275,15 @@ frappe.views.BaseList = class BaseList {
 		frappe.breadcrumbs.add(this.meta.module, this.doctype);
 	}
 
-	show_or_hide_sidebar() {
-		let show_sidebar = JSON.parse(localStorage.show_sidebar || "true");
-		$(document.body).toggleClass("no-list-sidebar", !show_sidebar);
+	hide_sidebar() {
+		$(document.body).toggleClass("no-list-sidebar", true);
 	}
 
 	setup_main_section() {
 		return frappe.run_serially(
 			[
 				this.setup_list_wrapper,
-				this.show_or_hide_sidebar,
+				this.hide_sidebar,
 				this.setup_filter_area,
 				this.setup_sort_selector,
 				this.setup_result_container_area,
@@ -334,7 +333,7 @@ frappe.views.BaseList = class BaseList {
 	 */
 	setup_result_container_area() {
 		if (this.view == "List") {
-			this.$frappe_list.append($(`<div class="result-container">`));
+			this.$frappe_list.append($(`<div class="result-container border rounded">`));
 		}
 	}
 
@@ -368,7 +367,7 @@ frappe.views.BaseList = class BaseList {
 	setup_paging_area() {
 		const paging_values = [20, 100, 500, 2500];
 		this.$paging_area = $(
-			`<div class="list-paging-area level">
+			`<div class="list-paging-area level ${this.view == "List" ? "border-0" : ""}">
 				<div class="level-left">
 					<div class="btn-group">
 						${paging_values

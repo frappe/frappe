@@ -138,11 +138,12 @@ frappe.PermissionEngine = class PermissionEngine {
 				.concat(custom_rights)
 				.map((r) => {
 					return __(toTitle(frappe.unscrub(r)));
-				});
+				})
+				.join(", ");
 
 			$wrapper.append(`<div class="row">\
 				<div class="col-xs-5"><b>${__(d.role)}</b>, ${__("Level")} ${d.permlevel || 0}</div>\
-				<div class="col-xs-7">${d.rights}</div>\
+				<div class="col-xs-7 text-break">${d.rights}</div>\
 			</div><br>`);
 		});
 	}
@@ -309,6 +310,7 @@ frappe.PermissionEngine = class PermissionEngine {
 			.attr("data-doctype", d.parent);
 
 		checkbox.find("label").css("text-transform", "capitalize");
+		checkbox.find("label").css("align-items", "center");
 
 		return checkbox;
 	}
@@ -415,7 +417,7 @@ frappe.PermissionEngine = class PermissionEngine {
 	add_delete_button(row, d) {
 		$(
 			`<button class='btn btn-danger btn-remove-perm btn-xs'>${frappe.utils.icon(
-				"delete"
+				"x"
 			)}</button>`
 		)
 			.appendTo($(`<td class="pt-4">`).appendTo(row))
