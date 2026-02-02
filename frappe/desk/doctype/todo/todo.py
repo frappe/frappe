@@ -7,7 +7,7 @@ import json
 import frappe
 from frappe.model.document import Document
 from frappe.permissions import AUTOMATIC_ROLES
-from frappe.utils import get_fullname, parse_addr, strip_html
+from frappe.utils import get_fullname, parse_addr, sanitize_html
 
 exclude_from_linked_with = True
 
@@ -39,7 +39,7 @@ class ToDo(Document):
 	DocType = "ToDo"
 
 	def validate(self):
-		self.description = strip_html(html.unescape(self.description))
+		self.description = sanitize_html(html.unescape(self.description))
 		self._assignment = None
 		if self.is_new():
 			if self.assigned_by == self.allocated_to:
