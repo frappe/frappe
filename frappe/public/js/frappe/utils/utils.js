@@ -285,15 +285,11 @@ Object.assign(frappe.utils, {
 		if (!txt) return txt;
 
 		var content = $("<div></div>").html(txt);
-		content
-			.find("blockquote")
-			.parent("blockquote")
-			.addClass("hidden")
-			.before(
-				'<p><a class="text-muted btn btn-default toggle-blockquote" style="padding: 2px 7px 0px; line-height: 1;"> \
+		content.find("blockquote").parent("blockquote").addClass("hidden").before(
+			'<p><a class="text-muted btn btn-default toggle-blockquote" style="padding: 2px 7px 0px; line-height: 1;"> \
 					• • • \
 				</a></p>'
-			);
+		);
 		return content.html();
 	},
 	scroll_page_to_top() {
@@ -2189,21 +2185,33 @@ Object.assign(frappe.utils, {
 		}
 		return links;
 	},
+<<<<<<< HEAD
 	eval_expression(value, number_format) {
+=======
+	eval_expression(value) {
+>>>>>>> 2d9c23cf70 (fix: #22219)
 		if (typeof value === "string") {
 			const parsed_components = value.match(/[^\d.,]+|[\d.,]+/g);
 			var parsed_value = value;
 			if (parsed_components !== null) {
 				parsed_value = parsed_components
 					.map((v) => {
+<<<<<<< HEAD
 						return isNaN(parseFloat(v)) ? v : flt(v, null, number_format);
+=======
+						return isNaN(parseFloat(v)) ? v : flt(v);
+>>>>>>> 2d9c23cf70 (fix: #22219)
 					})
 					.join("");
 			}
 			if (parsed_value.match(/^[0-9+\-/*.() ]+$/)) {
 				// If it is a string containing operators
 				try {
+<<<<<<< HEAD
 					return (0, eval)(parsed_value);
+=======
+					return eval(parsed_value);
+>>>>>>> 2d9c23cf70 (fix: #22219)
 				} catch (e) {
 					// bad expression
 					return value;
@@ -2212,6 +2220,7 @@ Object.assign(frappe.utils, {
 		}
 		return value;
 	},
+<<<<<<< HEAD
 	get_installed_apps() {
 		return frappe.boot.app_data.map((app) => {
 			return app.app_name;
@@ -2224,4 +2233,6 @@ Object.assign(frappe.utils, {
 		}
 		return i === small.length;
 	},
+=======
+>>>>>>> 2d9c23cf70 (fix: #22219)
 });

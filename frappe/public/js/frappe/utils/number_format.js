@@ -188,6 +188,7 @@ function get_number_format(currency) {
 }
 
 function get_number_format_info(format) {
+	if (!format) format = get_number_format();
 	var info = frappe.number_format_info[format];
 
 	if (!info) {
@@ -313,6 +314,7 @@ function fmt_money(v, format) {
 	// for backward compatibility
 	return format_currency(v, format);
 }
+
 
 Object.assign(window, {
 	flt,
