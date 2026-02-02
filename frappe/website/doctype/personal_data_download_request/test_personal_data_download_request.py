@@ -49,6 +49,29 @@ class TestRequestPersonalData(IntegrationTestCase):
 
 		frappe.db.delete("Email Queue")
 
+	def test_large_file_request(self):
+		import frappe
+
+		original_sendmail = frappe.sendmail
+		frappe.sendmail = lambda *args, **kwargs: None
+
+		frappe.set_user("test_privacy@example.com")
+
+		file = frappe.new_doc("Personal Data Download Request")
+		file.user = "test_privacy@example.com"
+		file.save(ignore_permissions=True)
+
+		file_count = frappe.db.count(
+			"File",
+			{
+				"attached_to_doctype": "Personal Data Download Request",
+				"attached_to_name": file.name,
+			},
+		)
+		self.assertEqual(file_count, 1)
+
+		frappe.sendmail = original_sendmail
+
 
 def create_user_if_not_exists(email, first_name=None):
 	frappe.delete_doc_if_exists("User", email)
