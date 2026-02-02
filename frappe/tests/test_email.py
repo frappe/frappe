@@ -417,3 +417,38 @@ class TestEmailIntegrationTest(IntegrationTestCase):
 
 			if not attachment_found:
 				self.fail("Attachment not found", email_content)
+
+	def test_send_password_reset_mail_on_global_unsubscribe(self):
+		from frappe.utils.verified_command import get_signed_params
+		user_id = frappe.generate_hash() + "@example.com"
+		user = frappe.get_doc(doctype="User", email=user_id, first_name="Tester").insert()
+		frappe.db.commit()
+
+		# Unsubscribe globally
+		frappe.get_doc(
+			{
+				"doctype": "Email Unsubscribe",
+				"email": user.email,
+				"global_unsubscribe": 1,
+			}
+		).insert()
+		frappe.db.commit()
+
+		# Generate password reset link
+		signed_params = get_signed_params({"user": user.name}, expires_in_days=1)
+		reset_link = f"{frappe.utils.get_url()}/api/method/frappe.core.doctype.user.user.reset_password?{signed_params}"
+
+		# Send password reset mail
+		frappe.sendmail(
+			recipients=user.email,
+			subject="Password Reset",
+			message=f"Click the link to reset your password: {reset_link}",
+			now=True,
+		)
+		frappe.db.commit()
+
+		sent_mails = self.get_last_sent_emails()
+		self.assertEqual(len(sent_mails), 1)
+		self.assertEqual(sent_mails[0]["to"][0], user.email)
+		self.assertIn("Password Reset", sent_mails[0]["subject"])
+		self.assertIn(reset_link, sent_mails[0]["body"])
