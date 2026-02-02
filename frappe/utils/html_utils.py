@@ -158,29 +158,31 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 		if not bool(BeautifulSoup(html, "html.parser").find()):
 			return html
 
-	tags = (
-		acceptable_elements
-		+ svg_elements
-		+ mathml_elements
-		+ ["html", "head", "meta", "link", "body", "style", "o:p"]
-	)
+	tags = {
+		*acceptable_elements,
+		*svg_elements,
+		*mathml_elements,
+		"html",
+		"head",
+		"meta",
+		"link",
+		"body",
+		"style",
+		"o:p",
+	}
 
-<<<<<<< HEAD
 	def attributes_filter(tag, name, value):
 		if name.startswith("data-"):
 			return True
 		return name in acceptable_attributes
 
-	attributes = {"*": attributes_filter, "svg": svg_attributes}
-	styles = bleach_allowlist.all_styles
-	strip_comments = False
-=======
 	# Allow caller to explicitly disallow some tags
 	if disallowed_tags:
 		tags.difference_update(disallowed_tags)
 
-	attributes = {"*": acceptable_attributes, "svg": svg_attributes}
->>>>>>> 116e406e8f (feat(sanitize_html): allow the caller to block additional tags)
+	attributes = {"*": attributes_filter, "svg": svg_attributes}
+	styles = bleach_allowlist.all_styles
+	strip_comments = False
 
 	# returns html with escaped tags, escaped orphan >, <, etc.
 	escaped_html = bleach.clean(
