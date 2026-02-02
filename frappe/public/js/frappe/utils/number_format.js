@@ -315,7 +315,6 @@ function fmt_money(v, format) {
 	return format_currency(v, format);
 }
 
-
 Object.assign(window, {
 	flt,
 	cint,
