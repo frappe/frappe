@@ -1,5 +1,7 @@
+import atexit
 import os
 import platform
+import signal
 import subprocess
 import time
 from pathlib import Path
@@ -10,8 +12,6 @@ import requests
 import frappe
 from frappe import _
 from frappe.utils.print_utils import find_or_download_chromium_executable
-
-# TODO: close browser when worker is killed.
 
 
 class ChromePDFGenerator:
@@ -40,7 +40,9 @@ class ChromePDFGenerator:
 		self._chromium_process = None
 		self._chromium_path = None
 		self._devtools_url = None
+		self._cleanup_registered = False
 		self._initialize_chromium()
+		self._register_cleanup_handlers()
 
 	def _initialize_chromium(self):
 		# ideally browser is initailized from before request hook.
@@ -217,6 +219,73 @@ class ChromePDFGenerator:
 			self._chromium_process.terminate()
 			raise TimeoutError("Chromium took too long to start.")
 
+	def _register_cleanup_handlers(self):
+		"""
+		Register signal handlers and atexit handler to ensure browser cleanup
+		when worker is killed or process exits.
+		"""
+		if self._cleanup_registered:
+			return
+
+		# Register atexit handler for normal process exit
+		atexit.register(self._cleanup_on_exit)
+
+		# Only register signal handlers on Unix-like systems
+		# Windows doesn't support SIGTERM
+		if platform.system() != "Windows":
+			# Get original handlers before replacing
+			original_sigterm = signal.getsignal(signal.SIGTERM)
+			original_sigint = signal.getsignal(signal.SIGINT)
+
+			# Register signal handlers for SIGTERM and SIGINT
+			# These are the signals typically sent when a worker is killed
+			def signal_handler(signum, frame):
+				"""Handle termination signals by cleaning up browser."""
+				self._cleanup_on_exit()
+				# Chain to previous handler if one exists
+				# This ensures we don't break existing signal handling
+				if signum == signal.SIGTERM and original_sigterm and original_sigterm != signal.SIG_DFL and original_sigterm != signal.SIG_IGN:
+					if callable(original_sigterm):
+						original_sigterm(signum, frame)
+				elif signum == signal.SIGINT and original_sigint and original_sigint != signal.SIG_DFL and original_sigint != signal.SIG_IGN:
+					if callable(original_sigint):
+						original_sigint(signum, frame)
+
+			signal.signal(signal.SIGTERM, signal_handler)
+			signal.signal(signal.SIGINT, signal_handler)
+
+		self._cleanup_registered = True
+
+	def _cleanup_on_exit(self):
+		"""
+		Cleanup handler called on process exit or signal.
+		Ensures Chromium browser is properly closed.
+		"""
+		if self._chromium_process and self._chromium_process.poll() is None:
+			# Process is still running
+			try:
+				# Try graceful termination first
+				self._chromium_process.terminate()
+				# Wait up to 5 seconds for graceful shutdown
+				try:
+					self._chromium_process.wait(timeout=5)
+				except subprocess.TimeoutExpired:
+					# Force kill if graceful termination didn't work
+					self._chromium_process.kill()
+					self._chromium_process.wait()
+			except (OSError, ProcessLookupError):
+				# Process may have already terminated
+				pass
+			except Exception as e:
+				# Log any unexpected errors during cleanup
+				frappe.log_error(f"Error during Chromium cleanup: {e}")
+
+		# Reset instance and process references
+		if ChromePDFGenerator._instance == self:
+			ChromePDFGenerator._instance = None
+		self._chromium_process = None
+		self._devtools_url = None
+
 	def _close_browser(self):
 		"""
 		Close the headless Chromium browser.
@@ -225,7 +294,18 @@ class ChromePDFGenerator:
 			frappe.log("Cannot close Chromium as there are active browser instances.")
 			return
 		if self._chromium_process:
-			self._chromium_process.terminate()
+			try:
+				self._chromium_process.terminate()
+				# Wait for graceful shutdown
+				try:
+					self._chromium_process.wait(timeout=5)
+				except subprocess.TimeoutExpired:
+					# Force kill if graceful termination didn't work
+					self._chromium_process.kill()
+					self._chromium_process.wait()
+			except (OSError, ProcessLookupError):
+				# Process may have already terminated
+				pass
 		ChromePDFGenerator._instance = None
 		self._chromium_process = None
 		self._devtools_url = None
