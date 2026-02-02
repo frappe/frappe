@@ -223,8 +223,8 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, o
 
 
 def has_website_permission(doc, ptype, user, verbose=False):
+	"""Return True if there is a related lead or contact related to this document."""
 	if user != "Guest" and is_website_user():
-		"""Return True if there is a related lead or contact related to this document."""
 		contact_name = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
 
 		if contact_name:
