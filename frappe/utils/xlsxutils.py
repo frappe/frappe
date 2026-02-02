@@ -544,9 +544,12 @@ def make_xlsx(
 	if created_wb:
 		xlsx_file = file_path or BytesIO()
 
-		wb = xlsxwriter.Workbook(
-			xlsx_file, {"constant_memory": True, "default_date_format": XLSXStyleBuilder.get_date_format()}
-		)
+		options = {"constant_memory": True}
+
+		if not styles:
+			options["default_date_format"] = XLSXStyleBuilder.get_date_format()
+
+		wb = xlsxwriter.Workbook(xlsx_file, options)
 
 	ws = wb.add_worksheet(get_sanitized_sheet_name(sheet_name))
 
