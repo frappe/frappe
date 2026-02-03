@@ -32,28 +32,31 @@ class PackageRelease(Document):
 	def set_version(self):
 		# set the next patch release by default
 		doctype = frappe.qb.DocType("Package Release")
-		if not self.major:
+		if self.major is None:
 			self.major = (
 				frappe.qb.from_(doctype)
 				.where(doctype.package == self.package)
-				.select(Max(doctype.minor))
+				.select(Max(doctype.major))
 				.run()[0][0]
 				or 0
 			)
 
-		if not self.minor:
+		if self.minor is None:
 			self.minor = (
 				frappe.qb.from_(doctype)
 				.where(doctype.package == self.package)
-				.select(Max("minor"))
+				.where(doctype.major == self.major)
+				.select(Max(doctype.minor))
 				.run()[0][0]
 				or 0
 			)
-		if not self.patch:
+		if self.patch is None:
 			value = (
 				frappe.qb.from_(doctype)
 				.where(doctype.package == self.package)
-				.select(Max("patch"))
+				.where(doctype.major == self.major)
+				.where(doctype.minor == self.minor)
+				.select(Max(doctype.patch))
 				.run()[0][0]
 				or 0
 			)
