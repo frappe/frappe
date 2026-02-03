@@ -794,9 +794,11 @@ def scrub_user_tags(tagcount):
 
 # used in building query in queries.py
 def get_match_cond(doctype, as_condition=True):
-	from frappe.model.db_query import DatabaseQuery
+	from frappe.database.query import Engine
 
-	cond = DatabaseQuery(doctype).build_match_conditions(as_condition=as_condition)
+	engine = Engine()
+	engine.get_query(doctype, db_query_compat=True)
+	cond = engine.build_match_conditions(as_condition=as_condition)
 	if not as_condition:
 		return cond
 
@@ -804,9 +806,11 @@ def get_match_cond(doctype, as_condition=True):
 
 
 def build_match_conditions(doctype, user=None, as_condition=True):
-	from frappe.model.db_query import DatabaseQuery
+	from frappe.database.query import Engine
 
-	match_conditions = DatabaseQuery(doctype, user=user).build_match_conditions(as_condition=as_condition)
+	engine = Engine()
+	engine.get_query(doctype, user=user, db_query_compat=True)
+	match_conditions = engine.build_match_conditions(as_condition=as_condition)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
 	return match_conditions
@@ -842,18 +846,18 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 				else:
 					flt.append([doctype, f[0], "=", f[1]])
 
-		from frappe.model.db_query import DatabaseQuery
+		from frappe.database.query import Engine
 
-		query = DatabaseQuery(doctype)
-		query.filters = flt
-		query.conditions = conditions
+		engine = Engine()
+		engine.get_query(doctype, ignore_permissions=ignore_permissions, db_query_compat=True)
 
 		if with_match_conditions:
-			query.build_match_conditions()
+			if match_cond := engine.build_match_conditions():
+				conditions.append(match_cond)
 
-		query.build_filter_conditions(flt, conditions, ignore_permissions)
+		engine.build_filter_conditions(flt, conditions)
 
-		cond = " and " + " and ".join(query.conditions)
+		cond = " and " + " and ".join(conditions) if conditions else ""
 	else:
 		cond = ""
 	return cond
