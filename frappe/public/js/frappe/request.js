@@ -100,6 +100,17 @@ frappe.call = function (opts) {
 			const { doctype, name } = opts.doc;
 			const method = opts.method;
 
+			// Validate required parameters for API v2 document method calls
+			const missing = [
+				!doctype && "doc.doctype",
+				!name && "doc.name",
+				!method && "method",
+			].filter(Boolean);
+			if (missing.length) {
+				console.error("frappe.call missing parameters");
+				throw new Error(`frappe.call: missing '${missing.join("', '")}' required for API v2 document method calls`);
+			}
+
 			url = `/api/v2/document/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/method/${encodeURIComponent(method)}/`;
 		} else {
 			let prefix = "/api/method/";
