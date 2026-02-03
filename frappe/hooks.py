@@ -553,7 +553,3 @@ add_to_apps_screen = [
 		"route": app_home,
 	}
 ]
-
-link_formatters = {
-	"User": {"user": "user_full_name"},
-}

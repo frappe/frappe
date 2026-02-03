@@ -1959,8 +1959,8 @@ frappe.ui.form.Form = class FrappeForm {
 				var label;
 				if (get_text) {
 					label = get_text(doc);
-				} else if (frappe.form.link_formatters[df.options]) {
-					label = frappe.form.link_formatters[df.options](value, doc, df);
+				} else if (frappe.form.link_formatters[df.options]?.[df.fieldname]) {
+					label = frappe.form.link_formatters[df.options][df.fieldname](value, doc, df);
 				} else {
 					label = value;
 				}

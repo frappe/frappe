@@ -166,6 +166,7 @@ frappe.form.formatters = {
 	},
 	Link: function (value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
+		var fieldname = docfield.fieldname;
 		var original_value = value;
 		let link_title = frappe.utils.get_link_title(doctype, value);
 
@@ -181,10 +182,10 @@ frappe.form.formatters = {
 			return link_title || value;
 		}
 
-		if (frappe.form.link_formatters[doctype]) {
+		if (frappe.form.link_formatters[doctype]?.[fieldname]) {
 			// don't apply formatters in case of composite (parent field of same type)
 			if (doc && doctype !== doc.doctype) {
-				value = frappe.form.link_formatters[doctype](value, doc, docfield);
+				value = frappe.form.link_formatters[doctype][fieldname](value, doc, docfield);
 			}
 		}
 
@@ -470,11 +471,13 @@ frappe.get_format_helper = function (doc) {
 Object.keys(frappe.boot.link_formatters || {}).forEach((doctype) => {
 	const mappings = frappe.boot.link_formatters[doctype];
 
+	frappe.form.link_formatters[doctype] ||= {};
+
 	Object.keys(mappings).forEach((source_field) => {
 		const target_field = mappings[source_field];
 
-		frappe.form.link_formatters[doctype] = function (value, doc, df) {
-			return add_link_title(value, doc, source_field, target_field);
+		frappe.form.link_formatters[doctype][source_field] = function (value, doc, df) {
+			return add_link_title(value, doc, df.fieldname, target_field);
 		};
 	});
 });

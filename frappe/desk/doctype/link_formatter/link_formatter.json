@@ -1,0 +1,44 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-02-01 19:58:35.201516",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "link_field_display"
+ ],
+ "fields": [
+  {
+   "fieldname": "link_field_display",
+   "fieldtype": "Table",
+   "label": "Link Field Display",
+   "options": "Link Field Display"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-02-01 20:57:18.758863",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Link Formatter",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

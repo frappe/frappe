@@ -100,7 +100,7 @@ def get_bootinfo():
 	bootinfo.error_report_email = frappe.conf.error_report_email
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
 	bootinfo.treeviews = frappe.get_hooks("treeviews") or []
-	bootinfo.link_formatters = frappe.get_hooks("link_formatters")
+	bootinfo.link_formatters = get_link_formatters()
 	bootinfo.lang_dict = get_lang_dict()
 	bootinfo.success_action = get_success_action()
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
@@ -398,6 +398,21 @@ def load_print_css(bootinfo, print_settings):
 	bootinfo.print_css = frappe.www.printview.get_print_style(
 		print_settings.print_style or "Redesign", for_legacy=True
 	)
+
+
+def get_link_formatters():
+	link_display_fields = frappe.get_all(
+		"Link Field Display", fields=["doctype_name", "link_fieldname", "display_fieldname"], filters={}
+	)
+
+	link_formatters = {}
+
+	for field in link_display_fields:
+		link_formatters.setdefault(field.doctype_name, {}).update(
+			{field.link_fieldname: field.display_fieldname}
+		)
+
+	return link_formatters
 
 
 def get_success_action():
