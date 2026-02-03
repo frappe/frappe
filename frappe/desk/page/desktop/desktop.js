@@ -129,8 +129,11 @@ function save_desktop(icons) {
 }
 
 function reset_to_default() {
-	frappe.db.delete_doc("Desktop Layout", frappe.session.user).then(() => {
-		frappe.ui.toolbar.clear_cache();
+	frappe.call({
+		method: "frappe.desk.doctype.desktop_layout.desktop_layout.delete_layout",
+		callback: function (r) {
+			frappe.ui.toolbar.clear_cache();
+		},
 	});
 }
 
@@ -454,6 +457,8 @@ class DesktopPage {
 		});
 	}
 	add_menu_item(item) {
+		if (this.desktop_menu_items && this.desktop_menu_items.find((i) => i.label === item.label))
+			return;
 		this.desktop_menu_items.push(item);
 	}
 	setup_navbar() {
@@ -490,9 +495,10 @@ class DesktopPage {
 	handle_route_change() {
 		const me = this;
 		frappe.router.on("change", function () {
-			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "")
+			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "") {
 				me.setup_navbar();
-			else {
+				me.setup_edit_button();
+			} else {
 				$(".navbar").show();
 				frappe.desktop_utils.close_desktop_modal();
 				// stop edit mode if route changes and cleanup

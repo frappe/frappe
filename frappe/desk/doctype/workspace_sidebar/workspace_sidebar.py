@@ -54,7 +54,9 @@ class WorkspaceSidebar(Document):
 		self.set_module()
 
 	def export_sidebar(self):
-		allow_export = self.app and not frappe.flags.in_import and frappe.conf.developer_mode
+		allow_export = (
+			self.app and self.standard and not frappe.flags.in_import and frappe.conf.developer_mode
+		)
 		if allow_export:
 			folder_path = create_directory_on_app_path("workspace_sidebar", self.app)
 			file_path = os.path.join(folder_path, f"{frappe.scrub(self.title)}.json")

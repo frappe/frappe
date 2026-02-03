@@ -3,6 +3,7 @@
 import getpass
 
 import frappe
+from frappe.email.doctype.notification.notification import install_notification_templates
 from frappe.geo.doctype.country.country import import_country_and_currency
 from frappe.utils import cint
 from frappe.utils.password import update_password
@@ -57,6 +58,9 @@ def after_install():
 
 	add_standard_navbar_items()
 	add_link_field_formatters(LINK_FIELD_DATA)
+
+	# default templates
+	install_notification_templates()
 
 	frappe.db.commit()
 

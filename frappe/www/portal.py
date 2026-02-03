@@ -8,13 +8,14 @@ from frappe.www.list import get_list_context, get_list_data
 
 
 def get_context(context, **dict_params):
-	if frappe.session.user == "Guest":
-		raise frappe.PermissionError
 	frappe.local.form_dict.update(dict_params)
 	context.show_sidebar = True
 	doctype = frappe.local.form_dict.doctype
 	if doctype:
-		context.meta = frappe.get_meta(doctype)
+		meta = frappe.get_meta(doctype)
+		if frappe.session.user == "Guest" and not meta.allow_guest_to_view:
+			frappe.throw(_("Login to view"), frappe.PermissionError)
+		context.meta = meta
 		context.update(get_list_context(context, doctype) or {})
 		context.update(get(**frappe.local.form_dict))
 		context.home_page = "/portal"

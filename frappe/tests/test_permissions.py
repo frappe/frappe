@@ -101,7 +101,7 @@ class TestPermissions(IntegrationTestCase):
 		permitted_record = frappe.get_list("Test Blog Post", fields="*", limit=1)[0]
 		full_record = frappe.get_all("Test Blog Post", fields="*", limit=1)[0]
 		self.assertNotEqual(permitted_record, full_record)
-		self.assertSequenceSubset(post.meta.get_search_fields(), permitted_record)
+		self.assertSequenceSubset(post.meta.default_fields + post.meta.get_search_fields(), permitted_record)
 
 	def test_user_permissions_in_doc(self):
 		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")

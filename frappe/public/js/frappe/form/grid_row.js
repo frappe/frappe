@@ -1038,7 +1038,7 @@ export default class GridRow {
 		let is_focused = false;
 
 		var $col = $(
-			`<div class="col grid-static-col col-xs-${colsize} ${add_class}" style="${add_style}"></div>`
+			`<div class="col grid-static-col grid-data-column col-xs-${colsize} ${add_class}" style="${add_style}"></div>`
 		)
 			.attr("data-fieldname", df.fieldname)
 			.attr("data-fieldtype", df.fieldtype)

@@ -179,9 +179,23 @@ frappe.ui.menu = class ContextMenu {
 
 	show(event) {
 		this.make();
-		const parent_rect = this.parent.get(0).getBoundingClientRect();
 		this.gap = 4;
+
+		if (this.opts.right_click && event) {
+			this.template.css({
+				display: "block",
+				position: "fixed",
+				left: `${event.clientX}px`,
+				top: `${event.clientY}px`,
+			});
+			this.visible = true;
+			frappe.visible_menus.push(this);
+			return;
+		}
+
+		const parent_rect = this.parent.get(0).getBoundingClientRect();
 		let top, left;
+
 		if (this.opts.nested && this.opts.parent_menu) {
 			let parent_menu_el = frappe.menu_map[this.opts.parent_menu].template;
 			let parent_menu_rect = parent_menu_el.get(0).getBoundingClientRect();
@@ -200,13 +214,6 @@ frappe.ui.menu = class ContextMenu {
 		}
 
 		if (left < 0) left = 10;
-
-		if (this.opts.right_click) {
-			this.template.css({
-				left: `${event.clientX}px`,
-				top: `${event.clientY}px`,
-			});
-		}
 
 		this.template.css({
 			display: "block",

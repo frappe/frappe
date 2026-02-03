@@ -23,6 +23,7 @@ frappe.ui.Sidebar = class Sidebar {
 		this.sidebar_module_map = {};
 		this.build_sidebar_module_map();
 		this.standard_items_setup = false;
+		this.preferred_sidebars = [];
 	}
 
 	prepare() {
@@ -30,6 +31,7 @@ frappe.ui.Sidebar = class Sidebar {
 			this.add_standard_items();
 			this.sidebar_data = frappe.boot.workspace_sidebar_item[this.workspace_title];
 			this.workspace_sidebar_items = this.sidebar_data.items;
+			this.all_sidebar_items = frappe.boot.workspace_sidebar_item;
 			if (this.edit_mode) {
 				this.workspace_sidebar_items = this.editor.new_sidebar_items;
 			}
@@ -461,7 +463,7 @@ frappe.ui.Sidebar = class Sidebar {
 					entity_name = route[1];
 			}
 			let sidebars = this.get_workspace_sidebars(entity_name);
-			this.preffered_sidebars = sidebars;
+			this.preferred_sidebars = sidebars;
 			let module = router?.meta?.module;
 			if (this.sidebar_title && sidebars.includes(this.sidebar_title)) {
 				this.set_active_workspace_item();
@@ -504,7 +506,7 @@ frappe.ui.Sidebar = class Sidebar {
 		return filter_sidebars;
 	}
 	show_sidebar_for_module(module) {
-		if (this.sidebar_title && this.preffered_sidebars.includes(this.sidebar_title)) {
+		if (this.sidebar_title && this.preferred_sidebars.includes(this.sidebar_title)) {
 			this.set_active_workspace_item();
 			return;
 		}
@@ -550,7 +552,6 @@ frappe.ui.Sidebar = class Sidebar {
 		let sidebars = [];
 		Object.entries(this.all_sidebar_items).forEach(([name, sidebar]) => {
 			const { items, label } = sidebar;
-			if (label.includes("My Workspaces")) return;
 			items.forEach((item) => {
 				if (item.link_to === link_to) {
 					sidebars.push(label || name);

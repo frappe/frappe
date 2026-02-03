@@ -172,7 +172,12 @@ def delete_file(path: str) -> None:
 def remove_file_by_url(file_url: str, doctype: str | None = None, name: str | None = None) -> "Document":
 	if doctype and name:
 		fid = frappe.db.get_value(
-			"File", {"file_url": file_url, "attached_to_doctype": doctype, "attached_to_name": name}
+			"File",
+			{
+				"file_url": file_url,
+				"attached_to_doctype": doctype,
+				"attached_to_name": name,
+			},
 		)
 	else:
 		fid = frappe.db.get_value("File", {"file_url": file_url})
@@ -189,20 +194,28 @@ def get_content_hash(content: bytes | str) -> str:
 	return hashlib.md5(content, usedforsecurity=False).hexdigest()  # nosec
 
 
-def generate_file_name(name: str, suffix: str | None = None, is_private: bool = False) -> str:
+def generate_file_name(
+	name: str, suffix: str | None = None, is_private: bool = False, content_hash=None
+) -> str:
 	"""Generate conflict-free file name. Suffix will be ignored if name available. If the
 	provided suffix doesn't result in an available path, a random suffix will be picked.
 	"""
 
-	def path_exists(name, is_private):
-		return os.path.exists(encode(get_files_path(name, is_private=is_private)))
+	def different_file_exists_at_path(name, is_private):
+		path = encode(get_files_path(name, is_private=is_private))
+		if not os.path.exists(path):
+			return False
+		if content_hash:
+			with open(path, "rb") as f:
+				return get_content_hash(f.read()) != content_hash
+		return True
 
-	if not path_exists(name, is_private):
+	if not different_file_exists_at_path(name, is_private):
 		return name
 
 	candidate_path = get_file_name(name, suffix)
 
-	if path_exists(candidate_path, is_private):
+	if different_file_exists_at_path(candidate_path, is_private):
 		return generate_file_name(name, is_private=is_private)
 	return candidate_path
 

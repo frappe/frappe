@@ -48,3 +48,8 @@ def save_layout(user, layout, new_icons):
 		desktop_icon.save()
 
 	return {"layout": layout}
+
+
+@frappe.whitelist()
+def delete_layout():
+	return frappe.delete_doc_if_exists("Desktop Layout", frappe.session.user)
