@@ -170,8 +170,29 @@ select.form-control {
 		}
 		.edit-btn {
 			position: absolute;
-			top: 5px;
-			right: 5px;
+			top: 1px;
+			right: 1px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			padding: var(--padding-sm);
+		}
+	}
+	.contact-box {
+		background-color: var(--control-bg);
+		padding: var(--padding-sm);
+		margin-bottom: var(--margin-sm);
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius);
+		word-wrap: break-word;
+		position: relative;
+		p:last-child {
+			margin-bottom: 0;
+		}
+		.edit-btn {
+			position: absolute;
+			top: 0px;
+			right: 0px;
 			display: flex;
 			justify-content: center;
 			align-items: center;
