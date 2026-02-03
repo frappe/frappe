@@ -165,6 +165,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		return false;
 	}
 	new_doc() {
+		this.$input._created_new_doc = true; // This is used to disable HTTP cache on this link field
 		var doctype = this.get_options();
 		var me = this;
 
@@ -425,7 +426,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 
 		const filters = args.filters;
-		let use_get = !term;
+		let use_get = !term && !this.$input._created_new_doc;
 		if (use_get) {
 			const [are_filters_large, filters_str] = this.are_filters_large(filters);
 			use_get = !are_filters_large;
