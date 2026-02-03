@@ -256,3 +256,4 @@ frappe.patches.v16_0.add_standard_field_in_workspace_sidebar
 execute:frappe.db.set_single_value("Desktop Settings", "icon_style", "Solid")
 execute:frappe.delete_doc_if_exists("Workspace Sidebar", "Productivity")
 frappe.patches.v16_0.unset_standard_field_for_auto_generated_icons
+execute:from frappe.email.doctype.notification.notification import install_notification_templates; install_notification_templates()

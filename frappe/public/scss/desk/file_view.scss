@@ -6,7 +6,9 @@
 			margin-top: var(--margin-md);
 		}
 	}
-
+	.list-header-subject .list-subject input {
+		margin-left: 10px;
+	}
 	.list-paging-area {
 		padding: var(--padding-md) var(--padding-sm);
 	}
