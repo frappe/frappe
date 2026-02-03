@@ -4,10 +4,12 @@
 import html
 import json
 
+import nh3
+
 import frappe
 from frappe.model.document import Document
 from frappe.permissions import AUTOMATIC_ROLES
-from frappe.utils import get_fullname, parse_addr, sanitize_html
+from frappe.utils import get_fullname, parse_addr
 
 exclude_from_linked_with = True
 
@@ -39,7 +41,11 @@ class ToDo(Document):
 	DocType = "ToDo"
 
 	def validate(self):
-		self.description = sanitize_html(html.unescape(self.description))
+		decoded_html = html.unescape(self.description)
+		self.description = nh3.clean(
+			decoded_html,
+			url_schemes=nh3.ALLOWED_URL_SCHEMES.union({"data"}),
+		)
 		self._assignment = None
 		if self.is_new():
 			if self.assigned_by == self.allocated_to:
