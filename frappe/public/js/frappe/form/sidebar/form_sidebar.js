@@ -61,7 +61,7 @@ frappe.ui.form.Sidebar = class {
 			this.frm.attachments.refresh();
 			this.frm.shared.refresh();
 
-			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo().tags);
+			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo()?.tags);
 
 			this.refresh_web_view_count();
 			this.refresh_creation_modified();
