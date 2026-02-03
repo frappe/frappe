@@ -390,7 +390,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 	make_calculator(txt) {
 		const decimalStr = get_number_format_info().decimal_str;
-		var first = txt.substr(0, 1);
+		const first = txt.substr(0, 1);
 
 		if (first == parseInt(first) || first === "(" || first === "=") {
 			if (first === "=") {
@@ -398,19 +398,19 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			}
 			try {
 				// Split the input to find the numbers and their decimal places
-				var numbers = txt.match(/[+-]?([0-9]*[.,])?[0-9]+/g);
+				const numbers = txt.match(/[+-]?([0-9]*[.,])?[0-9]+/g);
 
-				var maxDecimalPlaces = 0;
+				let maxDecimalPlaces = 0;
 				if (numbers) {
 					maxDecimalPlaces = Math.max(
 						...numbers.map((num) => num.split(decimalStr)[1]?.length || 0)
 					);
 				}
 
-				// Find the result to the appropriate number of decimal
-				var val = frappe.utils.eval_expression(txt);
-				var result = format_number(val, null, maxDecimalPlaces);
-				var formatted_value = __("{0} = {1}", [
+				// Find the result to the appropriate number of decimal places
+				const val = frappe.utils.eval_expression(txt);
+				const result = format_number(val, null, maxDecimalPlaces);
+				const formatted_value = __("{0} = {1}", [
 					frappe.utils.xss_sanitise(txt),
 					result.bold(),
 				]);
