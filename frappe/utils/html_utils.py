@@ -138,7 +138,7 @@ def clean_script_and_style(html):
 	return frappe.as_unicode(soup)
 
 
-def sanitize_html(html, linkify=False, always_sanitize=False):
+def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=None):
 	"""
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
 	Based on bleach clean, bleach whitelist and html5lib's Sanitizer defaults
@@ -158,17 +158,27 @@ def sanitize_html(html, linkify=False, always_sanitize=False):
 		if not bool(BeautifulSoup(html, "html.parser").find()):
 			return html
 
-	tags = (
-		acceptable_elements
-		+ svg_elements
-		+ mathml_elements
-		+ ["html", "head", "meta", "link", "body", "style", "o:p"]
-	)
+	tags = {
+		*acceptable_elements,
+		*svg_elements,
+		*mathml_elements,
+		"html",
+		"head",
+		"meta",
+		"link",
+		"body",
+		"style",
+		"o:p",
+	}
 
 	def attributes_filter(tag, name, value):
 		if name.startswith("data-"):
 			return True
 		return name in acceptable_attributes
+
+	# Allow caller to explicitly disallow some tags
+	if disallowed_tags:
+		tags.difference_update(disallowed_tags)
 
 	attributes = {"*": attributes_filter, "svg": svg_attributes}
 	styles = bleach_allowlist.all_styles
