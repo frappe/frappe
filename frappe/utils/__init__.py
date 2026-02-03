@@ -340,7 +340,7 @@ def get_traceback_msg() -> str:
 	"""Return only the message of the current exception, without traceback."""
 	from frappe.utils import strip_html
 
-	exc_type, exc_value, exc_tb = sys.exc_info()
+	_exc_type, exc_value, _exc_tb = sys.exc_info()
 
 	if not exc_value:
 		return ""
