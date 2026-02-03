@@ -1380,6 +1380,7 @@ class SQLiteSearch(ABC):
 
 			for i in range(0, len(documents), chunk_size):
 				chunk = documents[i : i + chunk_size]
+				doc_ids_to_delete = []
 				values_to_insert = []
 
 				for doc in chunk:
@@ -1399,17 +1400,10 @@ class SQLiteSearch(ABC):
 							doc.get("doctype", ""), doc.get("name", ""), missing_text_fields
 						)
 						continue
-					# validation to check if doc_id exists in the the search_fts table
-					doc_id = f"{doc.get('doctype', '')}:{doc.get('name', '')}"
-					existing = self.sql(
-						"SELECT 1 FROM search_fts WHERE doc_id = ?", (doc_id,), read_only=True
-					)
-					if existing:
-						# If exists, skip to avoid duplicates
-						continue
 
 					# Build values tuple dynamically based on schema
 					values = []
+					doc_id = None
 					for field in all_fields:
 						# Build doc_id automatically from doctype:name
 						if field == "doc_id":
@@ -1418,7 +1412,15 @@ class SQLiteSearch(ABC):
 						else:
 							values.append(doc.get(field, ""))
 
+					doc_ids_to_delete.append(doc_id)
+
 					values_to_insert.append(tuple(values))
+
+				# Delete existing rows for these doc_ids first using a single statement
+				if doc_ids_to_delete:
+					placeholders_for_delete = ",".join(["?" for _ in doc_ids_to_delete])
+					delete_sql = f"DELETE FROM search_fts WHERE doc_id IN ({placeholders_for_delete})"
+					cursor.execute(delete_sql, doc_ids_to_delete)
 
 				# Insert the chunk
 				if values_to_insert:
