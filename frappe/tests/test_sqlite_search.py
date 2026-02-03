@@ -483,6 +483,29 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 		disabled_search.build_index()  # Should not raise error but do nothing
 		self.assertFalse(disabled_search.index_exists())
 
+	@patch("frappe.enqueue")
+	def test_background_operations(self, mock_enqueue):
+		"""Test background job integration and module-level functions."""
+		from frappe.search.sqlite_search import build_index_in_background, get_search_classes
+
+		# Test getting search classes
+		with patch("frappe.get_hooks") as mock_get_hooks:
+			mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+			classes = get_search_classes()
+			self.assertEqual(len(classes), 1)
+			self.assertEqual(classes[0], TestSQLiteSearch)
+
+		# Ensure index doesn't exist so build_index_in_background will enqueue a job
+		self.search.drop_index()
+
+		# Test background index building
+		with patch("frappe.get_hooks") as mock_get_hooks:
+			mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+			build_index_in_background()
+
+			# Should have enqueued a background job since index doesn't exist
+			self.assertTrue(mock_enqueue.called)
+
 	def test_deduplication_on_reindex(self):
 		"""Test that re-indexing the same document does not create duplicates."""
 		self.search.build_index()
@@ -546,26 +569,3 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 
 		finally:
 			test_note.delete()
-
-	@patch("frappe.enqueue")
-	def test_background_operations(self, mock_enqueue):
-		"""Test background job integration and module-level functions."""
-		from frappe.search.sqlite_search import (
-			build_index_in_background,
-			get_search_classes,
-		)
-
-		# Test getting search classes
-		with patch("frappe.get_hooks") as mock_get_hooks:
-			mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
-			classes = get_search_classes()
-			self.assertEqual(len(classes), 1)
-			self.assertEqual(classes[0], TestSQLiteSearch)
-
-		# Test background index building
-		with patch("frappe.get_hooks") as mock_get_hooks:
-			mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
-			build_index_in_background()
-
-			# Should have enqueued a background job
-			self.assertTrue(mock_enqueue.called)
