@@ -1,8 +1,11 @@
 import atexit
+import logging
 import os
 import platform
 import signal
 import subprocess
+import sys
+import threading
 import time
 from pathlib import Path
 from typing import ClassVar
@@ -13,9 +16,13 @@ import frappe
 from frappe import _
 from frappe.utils.print_utils import find_or_download_chromium_executable
 
+logger = logging.getLogger(__name__)
+
 
 class ChromePDFGenerator:
 	_instance = None
+	_cleanup_handlers_registered = False
+	_cleanup_lock = threading.Lock()
 
 	_browsers: ClassVar[list] = []
 
@@ -40,9 +47,10 @@ class ChromePDFGenerator:
 		self._chromium_process = None
 		self._chromium_path = None
 		self._devtools_url = None
-		self._cleanup_registered = False
 		self._initialize_chromium()
-		self._register_cleanup_handlers()
+		# Only register cleanup handlers when a local Chromium process is started
+		if self._chromium_process:
+			self._register_cleanup_handlers()
 
 	def _initialize_chromium(self):
 		# ideally browser is initailized from before request hook.
@@ -219,72 +227,106 @@ class ChromePDFGenerator:
 			self._chromium_process.terminate()
 			raise TimeoutError("Chromium took too long to start.")
 
+	@classmethod
+	def _cleanup_signal_handler(cls, signum, frame):
+		"""
+		Class method signal handler to avoid closure issues.
+		Looks up the current instance dynamically.
+		"""
+		instance = cls._instance
+		if instance:
+			instance._cleanup_on_exit()
+		# Chain to original handler if it exists
+		# This is handled in _register_cleanup_handlers
+
 	def _register_cleanup_handlers(self):
 		"""
 		Register signal handlers and atexit handler to ensure browser cleanup
 		when worker is killed or process exits.
+		Uses class-level flag to prevent multiple registrations.
 		"""
-		if self._cleanup_registered:
-			return
+		with ChromePDFGenerator._cleanup_lock:
+			if ChromePDFGenerator._cleanup_handlers_registered:
+				return
 
-		# Register atexit handler for normal process exit
-		atexit.register(self._cleanup_on_exit)
+			# Register atexit handler for normal process exit
+			atexit.register(ChromePDFGenerator._cleanup_on_exit_class)
 
-		# Only register signal handlers on Unix-like systems
-		# Windows doesn't support SIGTERM
-		if platform.system() != "Windows":
-			# Get original handlers before replacing
-			original_sigterm = signal.getsignal(signal.SIGTERM)
-			original_sigint = signal.getsignal(signal.SIGINT)
+			# Only register signal handlers on Unix-like systems
+			# Windows doesn't support SIGTERM
+			if platform.system() != "Windows":
+				# Get original handlers before replacing
+				original_sigterm = signal.getsignal(signal.SIGTERM)
+				original_sigint = signal.getsignal(signal.SIGINT)
 
-			# Register signal handlers for SIGTERM and SIGINT
-			# These are the signals typically sent when a worker is killed
-			def signal_handler(signum, frame):
-				"""Handle termination signals by cleaning up browser."""
-				self._cleanup_on_exit()
-				# Chain to previous handler if one exists
-				# This ensures we don't break existing signal handling
-				if signum == signal.SIGTERM and original_sigterm and original_sigterm != signal.SIG_DFL and original_sigterm != signal.SIG_IGN:
-					if callable(original_sigterm):
-						original_sigterm(signum, frame)
-				elif signum == signal.SIGINT and original_sigint and original_sigint != signal.SIG_DFL and original_sigint != signal.SIG_IGN:
-					if callable(original_sigint):
-						original_sigint(signum, frame)
+				# Create signal handler that chains to original handlers
+				def signal_handler(signum, frame):
+					"""Handle termination signals by cleaning up browser."""
+					ChromePDFGenerator._cleanup_signal_handler(signum, frame)
+					# Chain to previous handler if one exists
+					if signum == signal.SIGTERM:
+						if original_sigterm not in (signal.SIG_DFL, signal.SIG_IGN):
+							original_sigterm(signum, frame)
+					elif signum == signal.SIGINT:
+						if original_sigint not in (signal.SIG_DFL, signal.SIG_IGN):
+							original_sigint(signum, frame)
 
-			signal.signal(signal.SIGTERM, signal_handler)
-			signal.signal(signal.SIGINT, signal_handler)
+				signal.signal(signal.SIGTERM, signal_handler)
+				signal.signal(signal.SIGINT, signal_handler)
 
-		self._cleanup_registered = True
+			ChromePDFGenerator._cleanup_handlers_registered = True
+
+	@classmethod
+	def _cleanup_on_exit_class(cls):
+		"""
+		Class method wrapper for atexit handler to avoid closure issues.
+		"""
+		instance = cls._instance
+		if instance:
+			instance._cleanup_on_exit()
 
 	def _cleanup_on_exit(self):
 		"""
 		Cleanup handler called on process exit or signal.
 		Ensures Chromium browser is properly closed.
+		Uses lock to prevent concurrent cleanup operations.
 		"""
-		if self._chromium_process and self._chromium_process.poll() is None:
-			# Process is still running
-			try:
-				# Try graceful termination first
-				self._chromium_process.terminate()
-				# Wait up to 5 seconds for graceful shutdown
-				try:
-					self._chromium_process.wait(timeout=5)
-				except subprocess.TimeoutExpired:
-					# Force kill if graceful termination didn't work
-					self._chromium_process.kill()
-					self._chromium_process.wait()
-			except (OSError, ProcessLookupError):
-				# Process may have already terminated
-				pass
-			except Exception as e:
-				# Log any unexpected errors during cleanup
-				frappe.log_error(f"Error during Chromium cleanup: {e}")
+		# Use lock to prevent concurrent cleanup
+		if not ChromePDFGenerator._cleanup_lock.acquire(blocking=False):
+			# Another thread is already cleaning up
+			return
 
-		# Reset instance and process references
-		if ChromePDFGenerator._instance == self:
-			ChromePDFGenerator._instance = None
-		self._chromium_process = None
-		self._devtools_url = None
+		try:
+			if self._chromium_process and self._chromium_process.poll() is None:
+				# Process is still running
+				try:
+					# Try graceful termination first
+					self._chromium_process.terminate()
+					# Wait up to 5 seconds for graceful shutdown
+					try:
+						self._chromium_process.wait(timeout=5)
+					except subprocess.TimeoutExpired:
+						# Force kill if graceful termination didn't work
+						self._chromium_process.kill()
+						self._chromium_process.wait()
+				except (OSError, ProcessLookupError):
+					# Process may have already terminated
+					pass
+				except Exception as e:
+					# Use robust logging that doesn't depend on frappe being operational
+					try:
+						frappe.log_error(f"Error during Chromium cleanup: {e}")
+					except Exception:
+						# Fallback to stderr if frappe logging is unavailable
+						print(f"Error during Chromium cleanup: {e}", file=sys.stderr)
+						logger.error(f"Error during Chromium cleanup: {e}", exc_info=True)
+
+			# Clear process references but don't reset _instance to None
+			# to maintain singleton pattern integrity
+			self._chromium_process = None
+			self._devtools_url = None
+		finally:
+			ChromePDFGenerator._cleanup_lock.release()
 
 	def _close_browser(self):
 		"""
@@ -303,9 +345,14 @@ class ChromePDFGenerator:
 					# Force kill if graceful termination didn't work
 					self._chromium_process.kill()
 					self._chromium_process.wait()
-			except (OSError, ProcessLookupError):
-				# Process may have already terminated
-				pass
+			except (OSError, ProcessLookupError) as e:
+				# Process may have already terminated, but log for observability
+				try:
+					frappe.log_error(f"Error while closing Chromium in _close_browser: {e}")
+				except Exception:
+					# Fallback to stderr if frappe logging is unavailable
+					print(f"Error while closing Chromium in _close_browser: {e}", file=sys.stderr)
+					logger.error(f"Error while closing Chromium in _close_browser: {e}", exc_info=True)
 		ChromePDFGenerator._instance = None
 		self._chromium_process = None
 		self._devtools_url = None
