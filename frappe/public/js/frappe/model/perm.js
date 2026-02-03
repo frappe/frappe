@@ -62,7 +62,10 @@ $.extend(frappe.perm, {
 					: [0];
 			const admin_perm = [];
 			permlevels.forEach((level) => {
-				const p = { permlevel: level, rights_without_if_owner: new Set(frappe.perm.rights) };
+				const p = {
+					permlevel: level,
+					rights_without_if_owner: new Set(frappe.perm.rights),
+				};
 				frappe.perm.rights.forEach((right) => {
 					p[right] = 1;
 				});
