@@ -763,9 +763,7 @@ class SQLiteSearch(ABC):
 	def _queue_continuation_job(self):
 		"""Queue a continuation job to resume indexing."""
 		search_class_path = f"{self.__class__.__module__}.{self.__class__.__name__}"
-		# timeout for 1 hour 10 minutes to account for job queue delays
-		timeout = 1 * 60 * 60 + 10 * 60
-		_enqueue_index_job(search_class_path, is_continuation=True, timeout=timeout)
+		_enqueue_index_job(search_class_path, is_continuation=True)
 
 	def _tables_exist(self):
 		"""Check if the required tables exist in the current database."""
@@ -1726,7 +1724,7 @@ def build_index(
 		search.build_index(is_continuation=is_continuation)
 
 
-def _enqueue_index_job(search_class_path: str, is_continuation: bool = False, timeout: int | None = None):
+def _enqueue_index_job(search_class_path: str, is_continuation: bool = False):
 	"""Enqueue a search index build job.
 
 	Args:
@@ -1738,6 +1736,9 @@ def _enqueue_index_job(search_class_path: str, is_continuation: bool = False, ti
 	job_type = "continuation" if is_continuation else "fresh build"
 	print(f"Enqueuing {job_type} for {search_class_path}.build_index")
 
+	# timeout for 1 hour 10 minutes to account for job queue delays
+	timeout = 1 * 60 * 60 + 10 * 60
+
 	enqueue_kwargs = {
 		"queue": "long",
 		"job_id": job_id,
@@ -1745,9 +1746,8 @@ def _enqueue_index_job(search_class_path: str, is_continuation: bool = False, ti
 		"search_class_path": search_class_path,
 		"force": True,
 		"is_continuation": is_continuation,
+		"timeout": timeout,
 	}
-	if timeout is not None:
-		enqueue_kwargs["timeout"] = timeout
 
 	frappe.enqueue("frappe.search.sqlite_search.build_index", **enqueue_kwargs)
 
