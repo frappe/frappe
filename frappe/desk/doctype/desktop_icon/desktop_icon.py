@@ -316,3 +316,24 @@ def create_user_icons(user, data):
 			frappe.cache.hset("_user_settings", f"{'Desktop Icon'}::{user}", json.dumps(user_settings))
 			return json.dumps(user_settings)
 	return data
+
+
+@frappe.whitelist()
+def add_workspace_to_desktop(workspace):
+	sidebar = frappe.new_doc("Workspace Sidebar")
+	sidebar_item = frappe.new_doc("Workspace Sidebar Item")
+	sidebar_item.label = workspace
+	sidebar_item.type = "Link"
+	sidebar_item.link_to = workspace
+	sidebar_item.link_type = "Workspace"
+	sidebar.title = workspace
+	sidebar.append("items", sidebar_item)
+	sidebar.save()
+
+	new_icon = frappe.new_doc("Desktop Icon")
+	new_icon.label = workspace
+	new_icon.icon_type = "Link"
+	new_icon.link_to = workspace
+	new_icon.link_type = "Workspace Sidebar"
+	new_icon.insert()
+	return {"message": "Desktop Icon added successfully"}
