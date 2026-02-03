@@ -9,6 +9,7 @@ import shutil
 import zipfile
 from urllib.parse import quote, unquote
 
+import filetype
 from PIL import Image, ImageFile, ImageOps
 
 import frappe
@@ -609,16 +610,19 @@ class File(Document):
 			encodings = FILE_ENCODING_OPTIONS
 		with open(file_path, mode="rb") as f:
 			self._content = f.read()
-			# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
-			# encoded so the first iteration will be enough most of the time
-			for encoding in encodings:
-				try:
-					# read file with proper encoding
-					self._content = self._content.decode(encoding)
-					break
-				except UnicodeDecodeError:
-					# for .png, .jpg, etc
-					continue
+			# Only decode if not a binary file
+			kind = filetype.guess(self._content)
+			if not kind:
+				# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
+				# encoded so the first iteration will be enough most of the time
+				for encoding in encodings:
+					try:
+						# read file with proper encoding
+						self._content = self._content.decode(encoding)
+						break
+					except UnicodeDecodeError:
+						# for .png, .jpg, etc
+						continue
 
 		return self._content
 
