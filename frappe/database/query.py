@@ -1210,6 +1210,17 @@ class Engine:
 			if parsed := self._parse_backtick_field_notation(field_name):
 				table_name, field_name = parsed
 				self._check_field_permission(table_name, field_name)
+
+				# Check if this is a child table of the main doctype
+				meta = frappe.get_meta(self.doctype)
+				for df in meta.get_table_fields():
+					if df.options == table_name:
+						child_field = ChildTableField(
+							table_name, field_name, self.doctype, df.fieldname, alias=None
+						)
+						self.query = child_field.apply_join(self.query, engine=self)
+						return child_field.field
+					
 				return frappe.qb.DocType(table_name)[field_name]
 
 			# If parsing failed, fall through to error handling below
