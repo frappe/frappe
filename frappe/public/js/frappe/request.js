@@ -98,24 +98,17 @@ frappe.call = function (opts) {
 			return;
 		}
 
-		// For API v1 or undefined: only 'memory' (run_doc_method) is available
-		// If doc_origin is specified as 'database', warn and ignore
-		if (!opts.api_version || opts.api_version === "v1") {
-			if (opts.doc_origin === "database") {
-				console.warn(
-					"frappe.call: doc_origin='database' is ignored for API v1. " +
-					"Database document origin is only available in API v2."
-				);
-			}
-			opts.doc_origin = "memory";
-			return;
+		// Both API v1 and v2 support both origins:
+		// - 'memory' (default): Uses run_doc_method, sends full in-memory document to server
+		// - 'database': Server loads document from DB (lighter payload)
+		//
+		// For undefined api_version: default to 'memory' for backward compatibility
+		// When api_version is not specified and doc_origin='database' is requested,
+		// we default to v1 for the database origin endpoint
+		if (opts.doc_origin === "database" && !opts.api_version) {
+			opts.api_version = "v1";
 		}
 
-		// For API v2: default to 'memory' (run_doc_method) for backward compatibility
-		// with original behavior. Use doc_origin='database' to opt-in to RESTful endpoint.
-		// 
-		// 'memory' (default): Uses run_doc_method, sends full in-memory document to server
-		// 'database': Uses RESTful endpoint, server loads document from DB (lighter payload)
 		opts.doc_origin = opts.doc_origin || "memory";
 	}
 
@@ -132,8 +125,18 @@ frappe.call = function (opts) {
 					method: opts.method,
 					args: opts.args,
 				});
+			} else if (opts.doc_origin === "database") {
+				// Database origin: server loads document from DB
+				// For v1: method is passed via run_method in form data
+				// For v2: method is in URL path, no need to add to args
+				if (opts.api_version === "v1") {
+					args.run_method = opts.method;
+				}
+				// Pass any method arguments
+				if (opts.args) {
+					$.extend(args, opts.args);
+				}
 			}
-			// For 'database' origin, no cmd is set here - URL will be built differently
 		} else if (opts.method) {
 			// Direct method call
 			args.cmd = opts.method;
@@ -168,8 +171,18 @@ frappe.call = function (opts) {
 		var method = opts.method;
 
 		validateDocumentMethodParams(doctype, name, method);
+
+		var prefix = `/api/${opts.api_version || "v1"}`;
+
+		if (opts.api_version === "v1") {
+			// v1: POST to /api/v1/resource/<doctype>/<name>/ with run_method in form data
+			return `${prefix}/resource/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/`;
+		}
 		
-		return `/api/${opts.api_version}/document/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/method/${encodeURIComponent(method)}/`;
+		if (opts.api_version === "v2") {
+			// v2: method is part of the URL path
+			return `${prefix}/document/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/method/${encodeURIComponent(method)}/`;
+		}
 	}
 
 	function validateDocumentMethodParams(doctype, name, method) {
