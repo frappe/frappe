@@ -508,7 +508,7 @@ class TestHTMLUtils(IntegrationTestCase):
 		sample = """<h1>Hello</h1><p>Para</p><a href="http://test.com">text</a>"""
 		clean = clean_email_html(sample)
 		self.assertTrue("<h1>Hello</h1>" in clean)
-		self.assertTrue('<a href="http://test.com">text</a>' in clean)
+		self.assertTrue('<a href="http://test.com" rel="noopener noreferrer">text</a>' in clean)
 
 	def test_sanitize_html(self):
 		from frappe.utils.html_utils import sanitize_html

@@ -6,10 +6,8 @@ import datetime
 import re
 import time
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Optional
-from uuid import UUID
-
-import uuid_utils
+from typing import TYPE_CHECKING
+from uuid import UUID, uuid7
 
 import frappe
 from frappe import _
@@ -166,8 +164,8 @@ def set_new_name(doc):
 
 	if meta.autoname == "UUID":
 		if not doc.name:
-			doc.name = str(uuid_utils.uuid7())
-		elif isinstance(doc.name, UUID | uuid_utils.UUID):
+			doc.name = str(uuid7())
+		elif isinstance(doc.name, UUID):
 			doc.name = str(doc.name)
 		elif isinstance(doc.name, str):  # validate
 			try:

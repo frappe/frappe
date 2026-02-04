@@ -179,55 +179,48 @@ frappe.ui.menu = class ContextMenu {
 
 	show(event) {
 		this.make();
-		const offset = $(this.parent).offset();
-		const height = $(this.parent).outerHeight();
-		this.left_offset = 0;
 		this.gap = 4;
-		if (this.opts.nested && this.opts.parent_menu) {
-			let top =
-				this.parent.get(0).getBoundingClientRect().bottom -
-				this.parent.get(0).getBoundingClientRect().height;
-			let dropdown = frappe.menu_map[this.opts.parent_menu].template;
-			let width = dropdown.outerWidth();
-			let offset = $(dropdown).offset();
-			let left = offset.left;
-			if (frappe.utils.is_rtl()) {
-				left = left - width - this.gap;
-			} else {
-				left = left + width + this.gap;
-			}
+
+		if (this.opts.right_click && event) {
 			this.template.css({
 				display: "block",
-				position: "absolute",
-				top: top + "px",
-				left: left + "px",
-			});
-		} else {
-			this.template.css({
-				display: "block",
-				position: "absolute",
-				top: offset.top + height + this.gap + "px",
-				left: offset.left,
-			});
-		}
-
-		if (this.open_on_left) {
-			this.left_offset = this.parent.get(0).getBoundingClientRect().width;
-			this.template.css({
-				left:
-					offset.left -
-					this.template.get(0).getBoundingClientRect().width +
-					this.left_offset +
-					"px",
-			});
-		}
-
-		if (this.opts.right_click) {
-			this.template.css({
+				position: "fixed",
 				left: `${event.clientX}px`,
 				top: `${event.clientY}px`,
 			});
+			this.visible = true;
+			frappe.visible_menus.push(this);
+			return;
 		}
+
+		const parent_rect = this.parent.get(0).getBoundingClientRect();
+		let top, left;
+
+		if (this.opts.nested && this.opts.parent_menu) {
+			let parent_menu_el = frappe.menu_map[this.opts.parent_menu].template;
+			let parent_menu_rect = parent_menu_el.get(0).getBoundingClientRect();
+			top = parent_rect.top;
+			if (frappe.utils.is_rtl()) {
+				left = parent_menu_rect.left - this.template.outerWidth() - this.gap;
+			} else {
+				left = parent_menu_rect.right + this.gap;
+			}
+		} else {
+			top = parent_rect.bottom + this.gap;
+			left = parent_rect.left;
+			if (this.open_on_left || frappe.utils.is_rtl()) {
+				left = parent_rect.right - this.template.outerWidth();
+			}
+		}
+
+		if (left < 0) left = 10;
+
+		this.template.css({
+			display: "block",
+			position: "fixed",
+			top: top + "px",
+			left: left + "px",
+		});
 
 		this.visible = true;
 		frappe.visible_menus.push(this);

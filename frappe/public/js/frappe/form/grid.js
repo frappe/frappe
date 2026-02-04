@@ -351,7 +351,10 @@ export default class Grid {
 			? false
 			: true;
 		this.remove_rows_button.toggleClass("hidden", show_buttons);
-		this.duplicate_rows_button.toggleClass("hidden", show_buttons);
+		this.duplicate_rows_button.toggleClass(
+			"hidden",
+			show_buttons || this.cannot_add_rows || (this.df && this.df.cannot_add_rows)
+		);
 
 		let select_all_checkbox_checked = this.wrapper.find(
 			".grid-heading-row .grid-row-check:checked:first"
@@ -371,7 +374,7 @@ export default class Grid {
 	);
 
 	refresh_duplicate_rows_button() {
-		if (this.df.cannot_add_rows) {
+		if (this.df.cannot_add_rows || (this.df && this.df.cannot_add_rows)) {
 			return;
 		}
 

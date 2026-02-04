@@ -139,7 +139,7 @@ frappe.ui.form.Form = class FrappeForm {
 	add_form_keyboard_shortcuts() {
 		// Navigate to next record
 		frappe.ui.keys.add_shortcut({
-			shortcut: "shift+ctrl+right",
+			shortcut: "shift+ctrl+>",
 			action: () => this.navigate_records(0),
 			page: this.page,
 			description: __("Go to next record"),
@@ -149,7 +149,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// Navigate to previous record
 		frappe.ui.keys.add_shortcut({
-			shortcut: "shift+ctrl+left",
+			shortcut: "shift+ctrl+<",
 			action: () => this.navigate_records(1),
 			page: this.page,
 			description: __("Go to previous record"),
@@ -609,6 +609,8 @@ frappe.ui.form.Form = class FrappeForm {
 					toolbar: this.toolbar,
 				});
 				this.sidebar.make();
+			} else {
+				this.page.sidebar.hide();
 			}
 
 			// clear layout message
@@ -659,12 +661,18 @@ frappe.ui.form.Form = class FrappeForm {
 		let el = this.page.page_actions[0];
 		const rect = el.getBoundingClientRect();
 		let is_outside = rect.right > document.documentElement.clientWidth;
+
 		if (is_outside) {
 			// check if the default actions are outside of the screen
 			const overflow = Math.max(0, rect.right - document.documentElement.clientWidth);
-			this.page.$title_area
-				.parent()
-				.css("max-width", overflow ? `calc(50% - ${overflow}px)` : "50%");
+
+			if (!overflow) return;
+			let max_breadcrumb_width = Math.max(
+				290,
+				this.page.$title_area.find("ul").width() - overflow
+			);
+
+			this.page.$title_area.parent().css("max-width", `${max_breadcrumb_width}px`);
 			let breadcrumb = this.page.$title_area.find("ul li.ellipsis");
 
 			if (cint(breadcrumb[0]?.clientWidth) <= 30) {
@@ -1509,7 +1517,9 @@ frappe.ui.form.Form = class FrappeForm {
 		if (group && group.indexOf("fa fa-") !== -1) group = null;
 
 		let btn = this.page.add_inner_button(label, fn, group);
-
+		if (btn) {
+			this.custom_buttons[label] = btn;
+		}
 		return btn;
 	}
 

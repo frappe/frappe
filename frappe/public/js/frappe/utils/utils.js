@@ -1310,7 +1310,7 @@ Object.assign(frappe.utils, {
 		if (!desktop_icon) return;
 		let item = {};
 		if (desktop_icon.link_type == "External" && desktop_icon.link) {
-			route = window.location.origin + desktop_icon.link;
+			route = desktop_icon.link;
 		} else {
 			let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
 			if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
@@ -1388,10 +1388,6 @@ Object.assign(frappe.utils, {
 	desktop_pallete: {
 		blue: "#0981E3",
 		gray: "#7B808A",
-	},
-	desktop_bg_color(color_name) {
-		let color_value = this.desktop_pallete[color_name];
-		color_value + "";
 	},
 	icon(
 		icon_name,
@@ -1606,8 +1602,13 @@ Object.assign(frappe.utils, {
 		 *	max_no_of_decimals - max number of decimals of the shortened number
 		 */
 
+		// return empty for null, undefined, or empty string
+		if (!number || isNaN(number)) {
+			return "";
+		}
+
 		// return number if total digits is lesser than min_length
-		const len = String(number).match(/\d/g).length;
+		const len = String(number).match(/\d/g)?.length || 0;
 		if (len < min_length) {
 			return number.toString();
 		}
@@ -2181,5 +2182,28 @@ Object.assign(frappe.utils, {
 			links.push({ is_divider: true });
 		}
 		return links;
+	},
+	eval_expression(value) {
+		if (typeof value === "string") {
+			const parsed_components = value.match(/[^\d.,]+|[\d.,]+/g);
+			var parsed_value = value;
+			if (parsed_components !== null) {
+				parsed_value = parsed_components
+					.map((v) => {
+						return isNaN(parseFloat(v)) ? v : flt(v);
+					})
+					.join("");
+			}
+			if (parsed_value.match(/^[0-9+\-/*.() ]+$/)) {
+				// If it is a string containing operators
+				try {
+					return eval(parsed_value);
+				} catch (e) {
+					// bad expression
+					return value;
+				}
+			}
+		}
+		return value;
 	},
 });

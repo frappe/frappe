@@ -101,7 +101,7 @@ frappe.views.Page = class Page {
 		this.trigger_page_event("on_page_load");
 		frappe.breadcrumbs.add({
 			type: "Custom",
-			label: this.pagedoc.title,
+			label: __(this.pagedoc.title),
 			route: frappe.get_route_str(),
 		});
 

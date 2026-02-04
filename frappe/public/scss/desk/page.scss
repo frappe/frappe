@@ -1,9 +1,3 @@
-body:not([data-route^="Form"]) {
-	.layout-side-section {
-		display: none;
-	}
-}
-
 .page-title {
 	display: flex;
 	align-items: center;
@@ -41,6 +35,7 @@ body:not([data-route^="Form"]) {
 
 	.title-area {
 		display: inline-flex;
+		align-items: center;
 		.indicator-pill {
 			margin-left: var(--margin-sm);
 		}
@@ -117,9 +112,6 @@ body[data-route^="Form"] {
 	border-bottom: 1px solid var(--border-color);
 	transition: 0.5s top;
 	top: 0;
-	&.show-navbar {
-		top: var(--navbar-height);
-	}
 
 	.page-head-content {
 		height: var(--page-head-height);

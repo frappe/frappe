@@ -24,6 +24,7 @@ class DesktopIcon(Document):
 		from frappe.types import DF
 
 		app: DF.Autocomplete | None
+		bg_color: DF.Literal["blue", "gray"]
 		hidden: DF.Check
 		icon_image: DF.Attach | None
 		icon_type: DF.Literal["Link", "Folder", "App"]
@@ -47,29 +48,30 @@ class DesktopIcon(Document):
 	def on_trash(self):
 		clear_desktop_icons_cache()
 		if frappe.conf.developer_mode and self.standard and self.app:
-			self.delete_desktop_icon_file()
+			delete_desktop_icon_file(self.app, self.label)
 
 	def check_for_restrict_removal(self):
 		if self.restrict_removal:
 			frappe.throw(_("Cannot delete Desktop Icon '{0}' as it is restricted").format(self.label))
 
 	def on_update(self):
+		self.export_desktop_icon()
+
+	def after_rename(self, old, new, merge):
+		delete_desktop_icon_file(self.app, old)
+		self.export_desktop_icon()
+
+	def export_desktop_icon(self):
 		allow_export = (
 			self.standard and self.app and not frappe.flags.in_import and frappe.conf.developer_mode
 		)
 		if allow_export:
-			self.export_desktop_icon()
-
-	def export_desktop_icon(self):
-		folder_path = create_directory_on_app_path("desktop_icon", self.app)
-		file_path = os.path.join(folder_path, f"{frappe.scrub(self.label)}.json")
-		doc_export = self.as_dict(no_nulls=True, no_private_properties=True)
-		strip_default_fields(self, doc_export)
-		# if self.parent_icon:
-		# 	print(self.parent_icon)
-		# 	doc_export["parent_icon"] = frappe.db.get_value("Desktop Icon", self.parent_icon, "label")
-		with open(file_path, "w+") as icon_file_doc:
-			icon_file_doc.write(frappe.as_json(doc_export) + "\n")
+			folder_path = create_directory_on_app_path("desktop_icon", self.app)
+			file_path = os.path.join(folder_path, f"{frappe.scrub(self.label)}.json")
+			doc_export = self.as_dict(no_nulls=True, no_private_properties=True)
+			strip_default_fields(self, doc_export)
+			with open(file_path, "w+") as icon_file_doc:
+				icon_file_doc.write(frappe.as_json(doc_export) + "\n")
 
 	def delete_desktop_icon_file(self):
 		folder_path = create_directory_on_app_path("desktop_icon", self.app)
@@ -78,6 +80,18 @@ class DesktopIcon(Document):
 			os.remove(file_path)
 
 	def is_permitted(self, bootinfo):
+		icon_module = None
+		if self.icon_type == "Link" and self.link_to:
+			icon_module = frappe.db.get_value("Workspace", self.link_to, "module")
+		# module permission check
+		if icon_module:
+			blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
+			if icon_module in blocked_modules:
+				return False
+		# perform a permission check based on roles table (desktop icons)
+		allowed_roles = [d.role for d in self.get("roles") or []]
+		if allowed_roles and not set(allowed_roles).intersection(frappe.get_roles()):
+			return False
 		if self.icon_type == "Folder":
 			return True
 		elif self.icon_type == "App":
@@ -85,13 +99,11 @@ class DesktopIcon(Document):
 		else:
 			try:
 				items = bootinfo.workspace_sidebar_item[self.label.lower()]["items"]
-				#
-				if len(items) == 0:
-					return False
 
 				if len(items) and all(item["type"] == "Section Break" for item in items):
 					return False
-
+				if len(items) == 0:
+					return False
 				return True
 			except KeyError:
 				return False
@@ -125,6 +137,13 @@ class DesktopIcon(Document):
 		clear_desktop_icons_cache()
 
 
+def delete_desktop_icon_file(app, label):
+	folder_path = create_directory_on_app_path("desktop_icon", app)
+	file_path = os.path.join(folder_path, f"{frappe.scrub(label)}.json")
+	if os.path.exists(file_path):
+		os.remove(file_path)
+
+
 def get_workspace_names(workspaces):
 	workspace_list = []
 	for w in workspaces["pages"]:
@@ -142,6 +161,7 @@ def get_desktop_icons(user=None, bootinfo=None):
 	if not user_icons:
 		fields = [
 			"label",
+			"bg_color",
 			"link",
 			"link_type",
 			"app",
@@ -158,42 +178,36 @@ def get_desktop_icons(user=None, bootinfo=None):
 			"icon_image",
 		]
 
-		standard_icons = frappe.get_all("Desktop Icon", fields=fields, filters={"standard": 1})
+		from frappe.query_builder import DocType
 
-		user_icons = frappe.get_all("Desktop Icon", fields=fields, filters={"standard": 0, "owner": user})
-		user_icons = user_icons + standard_icons
-		# for icon in user_icons:
-		# 	standard_icon = standard_map.get(icon.module_name, None)
+		DesktopIcon = DocType("Desktop Icon")
 
-		# 	# override properties from standard icon
-		# 	if standard_icon:
-		# 		for key in ("route", "label", "color", "icon", "link"):
-		# 			if standard_icon.get(key):
-		# 				icon[key] = standard_icon.get(key)
-
-		# 		if standard_icon.blocked:
-		# 			icon.hidden = 1
-
-		# 			# flag for modules_select dialog
-		# 			icon.hidden_in_standard = 1
-
-		# 		elif standard_icon.force_show:
-		# 			icon.hidden = 0
+		user_icons = (
+			frappe.qb.from_(DesktopIcon)
+			.select(*fields)
+			.where(
+				(DesktopIcon.standard == 1)
+				| (
+					(DesktopIcon.standard == 0)
+					& (DesktopIcon.owner.isin(["Administrator", frappe.session.user]))
+				)
+			)
+			.distinct()
+		).run(as_dict=True)
 
 		# sort by idx
 		user_icons.sort(key=lambda a: a.idx)
 
 		permitted_icons = []
 		permitted_parent_labels = set()
-
 		if bootinfo:
 			for s in user_icons:
-				icon = frappe.get_doc("Desktop Icon", s)
+				icon = frappe.get_doc("Desktop Icon", s.name)
 				if icon.is_permitted(bootinfo):
 					permitted_icons.append(s)
 
-				if not s.parent_icon:
-					permitted_parent_labels.add(s.label)
+					if not s.parent_icon:
+						permitted_parent_labels.add(s.label)
 
 		user_icons = [
 			s for s in permitted_icons if not s.parent_icon or s.parent_icon in permitted_parent_labels

@@ -75,6 +75,10 @@
 	}
 	.grid-static-col {
 		padding: 6px 8px !important;
+		&.grid-data-column {
+			flex: 1;
+			max-width: none;
+		}
 		.static-area {
 			&.reqd:after {
 				content: " *";
@@ -245,6 +249,9 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		flex-grow: 0;
+		max-width: 30px;
+		flex-basis: auto;
 	}
 
 	.col {
@@ -388,6 +395,10 @@
 	}
 	.grid-static-col {
 		background-color: var(--fg-color);
+		&.grid-data-column {
+			flex: 1;
+			max-width: none;
+		}
 		&.sticky-grid-col {
 			position: sticky;
 			z-index: 1;

@@ -447,10 +447,7 @@ class BaseDocument:
 		if __dict.get("docstatus") is None:
 			__dict["docstatus"] = DocStatus.DRAFT
 
-		if __dict.get("__islocal"):
-			__dict["name"] = None
-			__dict["__temporary_name"] = frappe.generate_hash(length=10)
-		elif not __dict.get("name"):
+		if not __dict.get("name"):
 			__dict["__islocal"] = 1
 			__dict["__temporary_name"] = frappe.generate_hash(length=10)
 
@@ -1407,7 +1404,10 @@ class BaseDocument:
 		):
 			currency = frappe.db.get_value("Currency", currency_value, cache=True)
 
-		val = self.get(fieldname)
+		if fieldname and (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
+			val = getattr(self, fieldname)
+		else:
+			val = self.get(fieldname)
 
 		if translated:
 			val = _(val)
