@@ -48,6 +48,7 @@ class PersonalDataDownloadRequest(Document):
 				"is_private": 1,
 			}
 		)
+		f.flags.skip_max_file_size_check = True
 		f.save(ignore_permissions=True)
 
 		file_link = (

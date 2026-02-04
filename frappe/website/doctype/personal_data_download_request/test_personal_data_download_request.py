@@ -50,27 +50,35 @@ class TestRequestPersonalData(IntegrationTestCase):
 		frappe.db.delete("Email Queue")
 
 	def test_large_file_request(self):
-		import frappe
+		from unittest.mock import patch
 
-		original_sendmail = frappe.sendmail
-		frappe.sendmail = lambda *args, **kwargs: None
+		frappe.db.delete("File")
+		frappe.db.delete("Email Queue")
 
 		frappe.set_user("test_privacy@example.com")
 
-		file = frappe.new_doc("Personal Data Download Request")
-		file.user = "test_privacy@example.com"
-		file.save(ignore_permissions=True)
+		with patch("frappe.sendmail"):
+			req = frappe.new_doc("Personal Data Download Request")
+			req.user = "test_privacy@example.com"
+			req.insert(ignore_permissions=True)
 
-		file_count = frappe.db.count(
+			req.generate_file_and_send_mail(
+				{
+					"data": "x" * (60 * 1024 * 1024)  # 60MB
+				}
+			)
+
+		files = frappe.get_all(
 			"File",
-			{
+			filters={
 				"attached_to_doctype": "Personal Data Download Request",
-				"attached_to_name": file.name,
+				"attached_to_name": req.name,
 			},
+			fields=["file_size"],
 		)
-		self.assertEqual(file_count, 1)
 
-		frappe.sendmail = original_sendmail
+		large_files = [f for f in files if f.file_size >= 60 * 1024 * 1024]
+		self.assertEqual(len(large_files), 1)
 
 
 def create_user_if_not_exists(email, first_name=None):
