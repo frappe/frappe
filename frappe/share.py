@@ -240,6 +240,10 @@ def check_share_permission(doctype, name, permissions=None, custom_perms=None):
 
 	user_perms = get_role_permissions(doc.meta, user=frappe.session.user, is_owner=is_owner)
 
+	# Apply if_owner permissions for owners
+	if is_owner and user_perms.get("has_if_owner_enabled"):
+		user_perms.update(user_perms.get("if_owner", {}))
+
 	for ptype in restricted_permissions:
 		if cint(permissions.get(ptype)) and not user_perms.get(ptype):
 			frappe.throw(
