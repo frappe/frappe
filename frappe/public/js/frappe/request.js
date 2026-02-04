@@ -29,128 +29,251 @@ frappe.xcall = function (method, params, type, opts = {}) {
 
 // generic server call (call page, object)
 frappe.call = function (opts) {
-	if (!frappe.is_online()) {
-		frappe.show_alert(
-			{
-				indicator: "orange",
-				message: __("Connection Lost"),
-				subtitle: __("You are not connected to Internet. Retry after sometime."),
-			},
-			3
-		);
-	}
-	if (typeof arguments[0] === "string") {
-		opts = {
-			method: arguments[0],
-			args: arguments[1],
-			callback: arguments[2],
-			headers: arguments[3],
-		};
+	// Helpers separates responsibilities for better readability and maintainability
+	// Keep helpers inside frappe.call to avoid polluting global namespace
+	// Below this helper functions, the main execution flow is outlined
+
+	function checkConnectivity() {
+		if (!frappe.is_online()) {
+			frappe.show_alert(
+				{
+					indicator: "orange",
+					message: __("Connection Lost"),
+					subtitle: __("You are not connected to Internet. Retry after sometime."),
+				},
+				3
+			);
+		}
 	}
 
-	if (opts.quiet) {
-		opts.no_spinner = true;
+	function normalizeArguments(originalOpts, originalArguments) {
+		// Handle legacy calling convention: frappe.call(method, args, callback, headers)
+		if (typeof originalOpts === "string") {
+			return {
+				method: originalArguments[0],
+				args: originalArguments[1],
+				callback: originalArguments[2],
+				headers: originalArguments[3],
+			};
+		}
+		return originalOpts;
 	}
-	var args = $.extend({}, opts.args);
 
-	if (args.freeze) {
-		opts.freeze = opts.freeze || args.freeze;
-		opts.freeze_message = opts.freeze_message || args.freeze_message;
+	function normalizeOptions(opts) {
+		var args = $.extend({}, opts.args);
+
+		// quiet mode implies no_spinner
+		if (opts.quiet) {
+			opts.no_spinner = true;
+		}
+
+		// freeze can come from args
+		if (args.freeze) {
+			opts.freeze = opts.freeze || args.freeze;
+			opts.freeze_message = opts.freeze_message || args.freeze_message;
+		}
+
+		return args;
 	}
 
-	if (opts.api_version && !["v1", "v2"].includes(opts.api_version)) {
-		console.error("frappe.call unsupported api_version");
-		throw new Error(`frappe.call: api_version '${opts.api_version}' is not supported.`);
+	function validateApiVersion(api_version) {
+		const valid_versions = ["v1", "v2"];
+		if (api_version && !valid_versions.includes(api_version)) {
+			console.error("frappe.call unsupported api_version");
+			throw new Error(`frappe.call: api_version '${api_version}' is not supported. Use one of: ${valid_versions.join(", ")}`);
+		}
+	}
+
+	function validateDocOrigin(doc_origin) {
+		const valid_origins = ["memory", "database"];
+		if (doc_origin && !valid_origins.includes(doc_origin)) {
+			console.error("frappe.call unsupported doc_origin");
+			throw new Error(`frappe.call: doc_origin '${doc_origin}' is not supported. Use one of: ${valid_origins.join(", ")}`);
+		}
+	}
+
+	function resolveDocOrigin(opts) {
+		// doc_origin is only relevant when opts.doc is provided
+		if (!opts.doc) {
+			return;
+		}
+
+		// For API v1 or undefined: only 'memory' (run_doc_method) is available
+		// If doc_origin is specified as 'database', warn and ignore
+		if (!opts.api_version || opts.api_version === "v1") {
+			if (opts.doc_origin === "database") {
+				console.warn(
+					"frappe.call: doc_origin='database' is ignored for API v1. " +
+					"Database document origin is only available in API v2."
+				);
+			}
+			opts.doc_origin = "memory";
+			return;
+		}
+
+		// For API v2: default to 'memory' (run_doc_method) for backward compatibility
+		// with original behavior. Use doc_origin='database' to opt-in to RESTful endpoint.
+		// 
+		// 'memory' (default): Uses run_doc_method, sends full in-memory document to server
+		// 'database': Uses RESTful endpoint, server loads document from DB (lighter payload)
+		opts.doc_origin = opts.doc_origin || "memory";
+	}
+
+	function buildCommand(opts, args) {
+		if (opts.module && opts.page) {
+			// Page method
+			args.cmd = `${opts.module}.page.${opts.page}.${opts.page}.${opts.method}`;
+		} else if (opts.doc) {
+			if (opts.doc_origin === "memory") {
+				// Memory origin: sends full in-memory document to server via run_doc_method
+				$.extend(args, {
+					cmd: "run_doc_method",
+					docs: frappe.get_doc(opts.doc.doctype, opts.doc.name),
+					method: opts.method,
+					args: opts.args,
+				});
+			}
+			// For 'database' origin, no cmd is set here - URL will be built differently
+		} else if (opts.method) {
+			// Direct method call
+			args.cmd = opts.method;
+		}
+	}
+
+	function buildUrl(opts, args) {
+		if (opts.url) {
+			return opts.url;
+		}
+
+		var url;
+
+		if (opts.doc && opts.doc_origin === "database") {
+			// Database origin: server loads document from DB (lighter payload)
+			url = buildDocumentMethodUrl(opts);
+		} else {
+			// Memory origin: /api/method/<cmd> or /api/<version>/method/<cmd>
+			url = buildStandardMethodUrl(opts, args);
+		}
+
+		if (window.cordova) {
+			url = applyCordovaHost(url);
+		}
+
+		return url;
+	}
+
+	function buildDocumentMethodUrl(opts) {
+		// Database origin: RESTful endpoint, server loads document from DB (lighter payload)
+		var { doctype, name } = opts.doc;
+		var method = opts.method;
+
+		validateDocumentMethodParams(doctype, name, method);
+		
+		return `/api/${opts.api_version}/document/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/method/${encodeURIComponent(method)}/`;
+	}
+
+	function validateDocumentMethodParams(doctype, name, method) {
+		var missing = [
+			!doctype && "doc.doctype",
+			!name && "doc.name",
+			!method && "method",
+		].filter(Boolean);
+
+		if (missing.length) {
+			console.error("frappe.call missing parameters");
+			throw new Error(
+				`frappe.call: missing '${missing.join("', '")}' required for database origin document method calls`
+			);
+		}
+	}
+
+	function buildStandardMethodUrl(opts, args) {
+		var prefix = "/api/method/";
+		if (opts.api_version) {
+			// Both 'v1' and 'v2' use same prefix for non-doc calls
+			prefix = `/api/${opts.api_version}/method/`;
+		}
+		return prefix + args.cmd;
 	}
 	
-	// cmd
-	if (opts.module && opts.page) {
-		args.cmd = opts.module + ".page." + opts.page + "." + opts.page + "." + opts.method;
-	} else if (opts.doc) {
-		if (!opts.api_version || opts.api_version === "v1") {
-			$.extend(args, {
-				cmd: "run_doc_method",
-				docs: frappe.get_doc(opts.doc.doctype, opts.doc.name),
-				method: opts.method,
-				args: opts.args,
-			});
-		}
-	} else if (opts.method) {
-		args.cmd = opts.method;
+	function applyCordovaHost(url) {
+		var host = frappe.request.url;
+		host = host.slice(0, host.length - 1);
+		return host + url;
 	}
 
-	var callback = function (data, response_text) {
-		if (data.task_id) {
-			// async call, subscribe
-			frappe.realtime.subscribe(data.task_id, opts);
+	function createSuccessCallback(opts) {
+		const successCallback = function (data, response_text) {
+			// Async task: subscribe to realtime updates
+			if (data.task_id) {
+				frappe.realtime.subscribe(data.task_id, opts);
 
-			if (opts.queued) {
-				opts.queued(data);
-			}
-		} else if (opts.callback) {
-			// ajax
-			return opts.callback(data, response_text);
-		}
-	};
+				if (opts.queued) {
+					opts.queued(data);
+				}
 
-	let url = opts.url;
-	if (!url) {
-		// API v2 (api_version='v2'): RESTful endpoint, loads document from DB (lighter payload)
-		// API v1 (default): RPC run_doc_method, sends full document to server
-		if (opts.doc && opts.api_version === "v2") {
-			// RESTful document method endpoint for API v2
-			const { doctype, name } = opts.doc;
-			const method = opts.method;
-
-			// Validate required parameters for API v2 document method calls
-			const missing = [
-				!doctype && "doc.doctype",
-				!name && "doc.name",
-				!method && "method",
-			].filter(Boolean);
-			if (missing.length) {
-				console.error("frappe.call missing parameters");
-				throw new Error(`frappe.call: missing '${missing.join("', '")}' required for API v2 document method calls`);
+				return;
 			}
 
-			url = `/api/${opts.api_version}/document/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/method/${encodeURIComponent(method)}/`;
-		} else {
-			let prefix = "/api/method/";
-			if (opts.api_version) { // Both 'v1' and 'v2' use same prefix for non-doc calls
-				prefix = `/api/${opts.api_version}/method/`;
+			// Regular callback
+			if (opts.callback) {
+				return opts.callback(data, response_text);
 			}
-			url = prefix + args.cmd;
-		}
-		if (window.cordova) {
-			let host = frappe.request.url;
-			host = host.slice(0, host.length - 1);
-			url = host + url;
-		}
+		};
+		return successCallback;
+	}
+
+	function shouldDebounce(opts, args) {
+		return opts.debounce && frappe.request.is_fresh(args, opts.debounce);
+	}
+
+	function dispatchRequest(opts, args, url) {
+		return frappe.request.call({
+			type: opts.type || "POST",
+			args: args,
+			success: createSuccessCallback(opts),
+			error: opts.error,
+			always: opts.always,
+			btn: opts.btn,
+			freeze: opts.freeze,
+			freeze_message: opts.freeze_message,
+			headers: opts.headers || {},
+			error_handlers: opts.error_handlers || {},
+			async: opts.async,
+			silent: opts.silent,
+			api_version: opts.api_version,
+			url: url,
+			cache: opts.cache,
+		});
+	}
+
+	// Main execution flow
+
+	checkConnectivity();
+
+	opts = normalizeArguments(opts, arguments);
+
+	var args = normalizeOptions(opts);
+
+	validateApiVersion(opts.api_version);
+	validateDocOrigin(opts.doc_origin);
+	resolveDocOrigin(opts);
+
+	buildCommand(opts, args);
+
+	var url = buildUrl(opts, args);
+
+	if (!opts.url) {
+		// When URL is built (not provided via opts.url), cmd is embedded in URL path
+		// Remove from args to avoid sending it twice (as path and as POST data)
 		delete args.cmd;
 	}
 
-	// debouce if required
-	if (opts.debounce && frappe.request.is_fresh(args, opts.debounce)) {
+	if (shouldDebounce(opts, args)) {
 		return Promise.resolve();
 	}
 
-	return frappe.request.call({
-		type: opts.type || "POST",
-		args: args,
-		success: callback,
-		error: opts.error,
-		always: opts.always,
-		btn: opts.btn,
-		freeze: opts.freeze,
-		freeze_message: opts.freeze_message,
-		headers: opts.headers || {},
-		error_handlers: opts.error_handlers || {},
-		async: opts.async,
-		silent: opts.silent,
-		api_version: opts.api_version,
-		url,
-		cache: opts.cache,
-	});
+	return dispatchRequest(opts, args, url);
 };
 
 frappe.request.call = function (opts) {
