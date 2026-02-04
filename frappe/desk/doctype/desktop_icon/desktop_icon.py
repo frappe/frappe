@@ -24,7 +24,7 @@ class DesktopIcon(Document):
 		from frappe.types import DF
 
 		app: DF.Autocomplete | None
-		bg_color: DF.Literal["blue", "gray"]
+		bg_color: DF.Literal["gray", "blue"]
 		hidden: DF.Check
 		icon_image: DF.Attach | None
 		icon_type: DF.Literal["Link", "Folder", "App"]
