@@ -58,12 +58,15 @@ frappe.call = function (opts) {
 		opts.freeze_message = opts.freeze_message || args.freeze_message;
 	}
 
+	if (opts.api_version && !["v1", "v2"].includes(opts.api_version)) {
+		console.error("frappe.call unsupported api_version");
+		throw new Error(`frappe.call: api_version '${opts.api_version}' is not supported.`);
+	}
+	
 	// cmd
 	if (opts.module && opts.page) {
 		args.cmd = opts.module + ".page." + opts.page + "." + opts.page + "." + opts.method;
 	} else if (opts.doc) {
-		// API v2 (api_version='v2'): RESTful endpoint, loads document from DB (lighter payload)
-		// API v1 (default): RPC run_doc_method, sends full document to server
 		if (!opts.api_version || opts.api_version === "v1") {
 			$.extend(args, {
 				cmd: "run_doc_method",
@@ -71,9 +74,6 @@ frappe.call = function (opts) {
 				method: opts.method,
 				args: opts.args,
 			});
-		} else if (opts.api_version !== "v2") {
-			console.warn(`Unsupported api_version "${opts.api_version}" for doc method call, falling back to "v2".`);
-			opts.api_version = "v2"; // Fallback to v2
 		}
 	} else if (opts.method) {
 		args.cmd = opts.method;
@@ -95,6 +95,8 @@ frappe.call = function (opts) {
 
 	let url = opts.url;
 	if (!url) {
+		// API v2 (api_version='v2'): RESTful endpoint, loads document from DB (lighter payload)
+		// API v1 (default): RPC run_doc_method, sends full document to server
 		if (opts.doc && opts.api_version === "v2") {
 			// RESTful document method endpoint for API v2
 			const { doctype, name } = opts.doc;
@@ -111,7 +113,7 @@ frappe.call = function (opts) {
 				throw new Error(`frappe.call: missing '${missing.join("', '")}' required for API v2 document method calls`);
 			}
 
-			url = `/api/v2/document/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/method/${encodeURIComponent(method)}/`;
+			url = `/api/${opts.api_version}/document/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/method/${encodeURIComponent(method)}/`;
 		} else {
 			let prefix = "/api/method/";
 			if (opts.api_version) { // Both 'v1' and 'v2' use same prefix for non-doc calls
