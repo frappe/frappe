@@ -536,14 +536,14 @@ export default class Grid {
 	}
 
 	render_result_rows($rows, append_row) {
-		let result_length = this.grid_pagination.get_result_length();
-		let page_index = this.grid_pagination.page_index;
-		let page_length = this.grid_pagination.page_length;
+		const result_length = this.grid_pagination.get_result_length();
+		const page_index = this.grid_pagination.page_index;
+		const page_length = this.grid_pagination.page_length;
 		if (!this.grid_rows) {
 			return;
 		}
-		for (var ri = (page_index - 1) * page_length; ri < result_length; ri++) {
-			var d = this.data[ri];
+		for (let ri = (page_index - 1) * page_length; ri < result_length; ri++) {
+			const d = this.data[ri];
 			if (!d) {
 				return;
 			}
@@ -571,6 +571,30 @@ export default class Grid {
 			}
 
 			this.grid_rows_by_docname[d.name] = grid_row;
+		}
+
+		if (!append_row && !this.frm.is_dirty()) {
+			const start_idx = (page_index - 1) * page_length;
+			this.reorder_rows_by_idx($rows, start_idx, result_length);
+		}
+	}
+
+	reorder_rows_by_idx($rows, start_idx, result_length) {
+		const rows_by_name = {};
+		this.grid_rows.forEach((row) => {
+			if (row && row.doc) {
+				rows_by_name[row.doc.name] = row;
+			}
+		});
+
+		for (let ri = start_idx; ri < result_length; ri++) {
+			const doc = this.data[ri];
+			if (!doc || !rows_by_name[doc.name]) continue;
+
+			this.grid_rows[ri] = rows_by_name[doc.name];
+			this.grid_rows[ri].doc = doc;
+			this.grid_rows[ri].wrapper.appendTo($rows);
+			this.grid_rows[ri].doc.idx = ri + 1;
 		}
 	}
 
@@ -675,17 +699,18 @@ export default class Grid {
 				}
 			},
 			onUpdate: (event) => {
-				let idx = $(event.item).closest(".grid-row").attr("data-idx") - 1;
-				let doc = this.data[idx % this.grid_pagination.page_length];
+				const idx = $(event.item).closest(".grid-row").attr("data-idx") - 1;
+				const doc = this.data[idx % this.grid_pagination.page_length];
 				this.renumber_based_on_dom();
-				this.frm &&
+				if (this.frm) {
 					this.frm.script_manager.trigger(
 						this.df.fieldname + "_move",
 						this.df.options,
 						doc.name
 					);
+				}
+				if (this.frm) this.frm.dirty();
 				this.refresh();
-				this.frm && this.frm.dirty();
 			},
 		});
 
@@ -953,13 +978,13 @@ export default class Grid {
 
 	renumber_based_on_dom() {
 		// renumber based on dom
-		let $rows = $(this.parent).find(".rows");
+		const $rows = $(this.parent).find(".rows");
 
 		$rows.find(".grid-row").each((i, item) => {
-			let $item = $(item);
-			let index =
+			const $item = $(item);
+			const index =
 				(this.grid_pagination.page_index - 1) * this.grid_pagination.page_length + i;
-			let d = this.grid_rows_by_docname[$item.attr("data-name")].doc;
+			const d = this.grid_rows_by_docname[$item.attr("data-name")].doc;
 			d.idx = index + 1;
 			$item.attr("data-idx", d.idx);
 
