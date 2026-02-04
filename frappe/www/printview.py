@@ -8,7 +8,7 @@ import re
 from typing import TYPE_CHECKING, Optional, TypedDict
 
 import frappe
-from frappe import _, cstr, get_module_path
+from frappe import _, cstr
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
 from frappe.utils import cint, escape_html, strip_html
@@ -442,26 +442,16 @@ def get_print_format(doctype: str, print_format: "PrintFormat") -> str:
 	if print_format.disabled:
 		frappe.throw(_("Print Format {0} is disabled").format(print_format.name), frappe.DoesNotExistError)
 
-	# server, find template
-	module = print_format.module or frappe.db.get_value("DocType", doctype, "module")
-
-	is_custom_module = frappe.get_cached_value("Module Def", module, "custom")
-
-	if not is_custom_module:
-		path = os.path.join(
-			get_module_path(module, "Print Format", print_format.name),
-			frappe.scrub(print_format.name) + ".html",
-		)
-		if os.path.exists(path):
-			with open(path) as pffile:
-				return pffile.read()
-
 	if print_format.raw_printing:
-		return print_format.raw_commands
-	if print_format.html:
-		return print_format.html
+		return print_format.get_format_raw_commands()
 
-	frappe.throw(_("No template found at path: {0}").format(path), frappe.TemplateNotFoundError)
+	html = print_format.get_format_html()
+	if html:
+		return html
+
+	frappe.throw(
+		_("No template found for Print Format: {0}").format(print_format.name), frappe.TemplateNotFoundError
+	)
 
 
 def make_layout(doc: "Document", meta: "Meta", format_data=None) -> list:
@@ -611,8 +601,10 @@ def get_print_style(
 		# prepend css with at_import
 		css = at_import + css
 
-	if print_format and print_format.css:
-		css += "\n\n" + print_format.css
+	if print_format:
+		format_css = print_format.get_format_css()
+		if format_css:
+			css += "\n\n" + format_css
 
 	return css
 

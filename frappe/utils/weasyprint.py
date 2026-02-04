@@ -47,6 +47,7 @@ class PrintFormatGenerator:
 		"""
 		self.base_url = frappe.utils.get_url()
 		self.print_format = frappe.get_doc("Print Format", print_format)
+		self.print_format.css = self.print_format.get_format_css()
 		self.doc = doc
 
 		if letterhead == _("No Letterhead"):

@@ -117,9 +117,11 @@
    "fieldname": "html",
    "fieldtype": "Code",
    "label": "HTML",
+   "mandatory_depends_on": "eval:doc.custom_format && !doc.raw_printing && doc.standard == \"No\"",
    "oldfieldname": "html",
    "oldfieldtype": "Text Editor",
-   "options": "Jinja"
+   "options": "Jinja",
+   "read_only_depends_on": "eval:doc.standard == \"Yes\""
   },
   {
    "depends_on": "raw_printing",
@@ -127,7 +129,9 @@
    "fieldname": "raw_commands",
    "fieldtype": "Code",
    "label": "Raw Commands",
-   "options": "Jinja"
+   "mandatory_depends_on": "eval:doc.custom_format && doc.raw_printing && doc.standard == \"No\"",
+   "options": "Jinja",
+   "read_only_depends_on": "eval:doc.standard == \"Yes\""
   },
   {
    "depends_on": "eval:!doc.custom_format",
@@ -175,10 +179,12 @@
    "fieldtype": "Section Break"
   },
   {
+   "depends_on": "eval:!doc.raw_printing",
    "fieldname": "css",
    "fieldtype": "Code",
    "label": "Custom CSS",
-   "options": "CSS"
+   "options": "CSS",
+   "read_only_depends_on": "eval:doc.standard == \"Yes\""
   },
   {
    "fieldname": "custom_html_help",
@@ -292,7 +298,7 @@
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2025-09-23 10:39:51.123539",
+ "modified": "2026-02-04 13:19:51.123539",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
