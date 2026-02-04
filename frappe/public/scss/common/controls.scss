@@ -157,7 +157,8 @@ select.form-control {
 	.ql-editor:not(.read-mode) {
 		background-color: var(--control-bg);
 	}
-	.address-box, .contact-box {
+	.address-box,
+	.contact-box {
 		background-color: var(--control-bg);
 		padding: var(--padding-sm);
 		margin-bottom: var(--margin-sm);
