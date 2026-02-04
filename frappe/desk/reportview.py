@@ -532,6 +532,7 @@ def get_field_info(fields, parent_doctype):
 	:param fields: List of field names (can include child table fields and aggregate functions).
 	:param parent_doctype: The main doctype from which the report is generated.
 	"""
+	from frappe.model.meta import get_default_df
 
 	field_info = []
 
@@ -555,19 +556,19 @@ def get_field_info(fields, parent_doctype):
 			fieldtype = "Data"
 			translatable = True
 		else:
-			df = frappe.get_meta(doctype).get_field(fieldname)
+			df = frappe.get_meta(doctype).get_field(fieldname) or get_default_df(fieldname)
 
 			if df:
 				fieldname = df.fieldname
-				label = _(df.label) if getattr(df, "label", None) else _(df.fieldname)
+				label = _(df.label) if df.label else _(frappe.unscrub(fieldname))
 				fieldtype = df.fieldtype
-				translatable = bool(df.translatable) or False
+				translatable = df.translatable or False
 				options = df.options
 
 				if df.fieldtype == "Link" and options and frappe.get_meta(options).translated_doctype:
 					translatable = True
 			else:
-				label = _(fieldname)
+				label = _(frappe.unscrub(fieldname))
 				fieldtype = "Data"
 				translatable = False
 
