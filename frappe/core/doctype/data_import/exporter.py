@@ -257,7 +257,7 @@ class Exporter:
 			styles = get_default_xlsx_styles(
 				columns=self.fields,
 				data=data[1:],  # exclude header row
-				apply_currency_format=False,  # child table row not have currency value from parent
+				currency_formatting=False,  # child table row not have currency value from parent
 			)
 
 			build_xlsx_response(data, _(self.doctype), styles=styles)
