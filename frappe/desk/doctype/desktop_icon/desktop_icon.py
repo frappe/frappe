@@ -336,4 +336,4 @@ def add_workspace_to_desktop(workspace):
 	new_icon.link_to = workspace
 	new_icon.link_type = "Workspace Sidebar"
 	new_icon.insert()
-	return {"message": "Desktop Icon added successfully"}
+	return {"icon": new_icon.as_dict()}

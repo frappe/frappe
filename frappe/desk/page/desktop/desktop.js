@@ -30,6 +30,9 @@ frappe.pages["desktop"].on_page_load = function (wrapper) {
 	// setup();
 };
 
+frappe.pages["desktop"].on_page_show = function (wrapper) {
+	frappe.pages["desktop"].desktop_page.update();
+};
 function get_workspaces_from_app_name(app_name) {
 	const app = frappe.boot.app_data.filter((a) => {
 		return a.app_title === app_name;
