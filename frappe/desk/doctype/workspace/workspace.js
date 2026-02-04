@@ -16,7 +16,8 @@ frappe.ui.form.on("Workspace", {
 						workspace: frm.doc.name,
 					},
 					callback: function (r) {
-						if (r.message.status) {
+						if (r.message) {
+							frappe.boot.desktop_icons.push(r.message.icon);
 							frappe.toast({
 								message: __("Workspace added to desktop"),
 								indicator: "green",
