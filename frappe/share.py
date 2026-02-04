@@ -233,12 +233,10 @@ def check_share_permission(doctype, name, permissions=None, custom_perms=None):
 		custom_perms = get_doctype_ptype_map().get(doctype, [])
 	restricted_permissions.extend(custom_perms)
 
-	from frappe.permissions import get_role_permissions
+	from frappe.permissions import get_doc_permissions
 
 	doc = frappe.get_doc(doctype, name)
-	is_owner = (doc.get("owner") or "").lower() == frappe.session.user.lower()
-
-	user_perms = get_role_permissions(doc.meta, user=frappe.session.user, is_owner=is_owner)
+	user_perms = get_doc_permissions(doc, user=frappe.session.user)
 
 	for ptype in restricted_permissions:
 		if cint(permissions.get(ptype)) and not user_perms.get(ptype):
