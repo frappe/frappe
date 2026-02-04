@@ -861,6 +861,16 @@ from {tables}
 			)
 
 		if f.operator.lower() in ("in", "not in"):
+			# Handle empty lists for IN/NOT IN operators
+			# SQL semantics: IN () returns 0 results, NOT IN () returns all results
+			if isinstance(f.value, (list, tuple)) and len(f.value) == 0:
+				if f.operator.lower() == "in":
+					# IN () naturally returns 0 results in SQL
+					return f"{column_name} IN ()"
+				else:  # not in
+					# NOT IN () naturally returns all results in SQL
+					return f"{column_name} NOT IN ()"
+
 			# if values contain '' or falsy values then only coalesce column
 			# for `in` query this is only required if values contain '' or values are empty.
 			# for `not in` queries we can't be sure as column values might contain null.
