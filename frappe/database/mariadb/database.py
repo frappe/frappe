@@ -133,17 +133,9 @@ class MariaDBConnectionUtil:
 		if self.port:
 			conn_settings["port"] = int(self.port)
 
-<<<<<<< HEAD
-		if frappe.conf.local_infile:
-			conn_settings["local_infile"] = frappe.conf.local_infile
 
 		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
 			conn_settings["ssl"] = {
-=======
-		# Configure SSL settings
-		if frappe.conf.db_ssl_ca:
-			ssl_config = {
->>>>>>> 9fc1787a18 (fix: make default flags same on both connectors (#36697))
 				"ca": frappe.conf.db_ssl_ca,
 				"cert": frappe.conf.db_ssl_cert,
 				"key": frappe.conf.db_ssl_key,
