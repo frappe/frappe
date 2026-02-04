@@ -247,3 +247,13 @@ class TestDocShare(IntegrationTestCase):
 			frappe.share.add("Communication", doc.name, "test1@example.com")
 		finally:
 			doc.delete()
+
+	def test_owner_can_share_write_with_if_owner_permission(self):
+		"""Test that document owner can share write permission when if_owner grants write."""
+		frappe.share.add("Event", self.event.name, self.user, write=1, share=1)
+
+		frappe.set_user(self.user)
+
+		# user is not the owner, but has write+share via docshare
+		# should be able to share write with another user
+		frappe.share.add("Event", self.event.name, "test1@example.com", write=1)
