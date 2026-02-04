@@ -56,10 +56,16 @@ $.extend(frappe.perm, {
 
 		// Administrator should get all rights (consistent with Python has_permission/get_role_permissions)
 		if (user === "Administrator" || frappe.user_roles.includes("Administrator")) {
-			const permlevels =
-				meta && meta.permissions
-					? [...new Set([0, ...meta.permissions.map((p) => cint(p.permlevel))])].sort()
-					: [0];
+			// Default permission level
+			let permlevels = [0];
+
+			// Get all unique permission levels from the doctype's permissions
+			// Always include level 0 (default level) and sort in ascending order
+			if (meta && meta.permissions) {
+				const levels = meta.permissions.map((permission) => cint(permission.permlevel));
+				// used Set for "unique" levels
+				permlevels = [...new Set([0, ...levels])].sort();
+			}
 			const admin_perm = [];
 			permlevels.forEach((level) => {
 				const p = {
