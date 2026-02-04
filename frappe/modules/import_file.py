@@ -25,6 +25,59 @@ def calculate_hash(path: str) -> str:
 	return hash_md5.hexdigest()
 
 
+def code_files_have_changed(path: str, doctype: str, docname: str) -> bool:
+	"""Check if code file contents differ from what's stored in the database.
+
+	Args:
+	    path (str): Path to the JSON file
+	    doctype (str): The doctype to check
+	    docname (str): The document name
+
+	Returns:
+	    True if any code file content differs from DB, False otherwise
+	"""
+	try:
+		controller = get_controller(doctype)
+	except Exception:
+		return False
+
+	if not hasattr(controller, "get_code_fields"):
+		return False
+
+	# Check if it's defined directly on the controller (not inherited from Meta)
+	if "get_code_fields" not in controller.__dict__:
+		return False
+
+	try:
+		code_fields = controller.get_code_fields(controller)
+	except Exception:
+		return False
+
+	if not code_fields or not isinstance(code_fields, dict):
+		return False
+
+	dirname, filename = os.path.split(path)
+	base_name = filename[: filename.rfind(".")]
+
+	for field_name, extn in code_fields.items():
+		codefile = os.path.join(dirname, f"{base_name}.{extn}")
+		if os.path.exists(codefile):
+			with open(codefile) as f:
+				file_content = f.read()
+
+			# Get current value from database
+			try:
+				db_content = frappe.db.get_value(doctype, docname, field_name)
+			except Exception:
+				# Field might not exist yet, or document doesn't exist
+				return True
+
+			if file_content != (db_content or ""):
+				return True
+
+	return False
+
+
 ignore_values = {
 	"Report": ["disabled", "prepared_report", "add_total_row"],
 	"Print Format": ["disabled"],
@@ -90,6 +143,9 @@ def import_file_by_path(
 	- Check if there is a hash in DB for that file. If there is, Calculate the Hash of the file to import and compare it with the one in DB if they are not equal.
 	        Import the file. If Hash doesn't exist, move ahead.
 	- Check if `db_modified_timestamp` is older than the timestamp in the file; if it is, we import the file.
+	- Check if any associated code files (e.g., .py, .html) have content that differs from the database.
+	        If any code file content has changed, import the file even if the JSON hasn't changed.
+	        This is content-based (not timestamp-based) so it works correctly across deployments.
 
 	If timestamp comparison happens for doctypes, that means the Hash for it doesn't exist.
 	So, even if the timestamp is newer on DB (When comparing timestamps), we import the file and add the calculated Hash to the DB.
@@ -133,12 +189,14 @@ def import_file_by_path(
 					except Exception:
 						pass
 
-				# if hash exists and is equal no need to update
-				if stored_hash and stored_hash == calculated_hash:
+				code_files_changed = code_files_have_changed(path, doc["doctype"], doc["name"])
+
+				# if hash exists and is equal, check if code files have changed
+				if stored_hash and stored_hash == calculated_hash and not code_files_changed:
 					continue
 
 				# if hash doesn't exist, check if db timestamp is same as json timestamp, add hash if from doctype
-				if is_db_timestamp_latest and doc["doctype"] != "DocType":
+				if is_db_timestamp_latest and doc["doctype"] != "DocType" and not code_files_changed:
 					continue
 
 			import_doc(
