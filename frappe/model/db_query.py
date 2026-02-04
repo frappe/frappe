@@ -861,14 +861,12 @@ from {tables}
 			)
 
 		if f.operator.lower() in ("in", "not in"):
-			# Handle empty lists for IN/NOT IN operators
-			# SQL semantics: IN () returns 0 results, NOT IN () returns all results
+			# Handle empty lists for IN/NOT IN operators - generate native SQL syntax
+			# Generate IN () / NOT IN () syntax, let database handle errors naturally
 			if isinstance(f.value, (list, tuple)) and len(f.value) == 0:
 				if f.operator.lower() == "in":
-					# IN () naturally returns 0 results in SQL
 					return f"{column_name} IN ()"
 				else:  # not in
-					# NOT IN () naturally returns all results in SQL
 					return f"{column_name} NOT IN ()"
 
 			# if values contain '' or falsy values then only coalesce column

@@ -1050,11 +1050,11 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertNotIn("IF", frappe.get_all("User", {"first_name": ("in", ["a", "b"])}, run=0).get_sql())
 		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("in", ["a", None])}, run=0).get_sql())
 		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("in", ["a", ""])}, run=0).get_sql())
-		# Empty list with IN should return IN (), not use IFNULL
+		# Empty list with IN should generate native SQL IN () syntax
 		self.assertIn("IN ()", frappe.get_all("User", {"first_name": ("in", [])}, run=0).get_sql())
 		self.assertNotIn("IFNULL", frappe.get_all("User", {"first_name": ("in", [])}, run=0).get_sql())
 		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", ["a"])}, run=0).get_sql())
-		# Empty list with NOT IN should return NOT IN (), not use IFNULL
+		# Empty list with NOT IN should generate native SQL NOT IN () syntax
 		self.assertIn("NOT IN ()", frappe.get_all("User", {"first_name": ("not in", [])}, run=0).get_sql())
 		self.assertNotIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", [])}, run=0).get_sql())
 		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", [""])}, run=0).get_sql())
@@ -1063,7 +1063,7 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ["a", None])}, run=0).get_sql())
 		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ["a", ""])}, run=0).get_sql())
 		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", (""))}, run=0).get_sql())
-		# Empty tuple with IN should return IN (), not use IFNULL
+		# Empty tuple with IN should generate native SQL IN () syntax
 		self.assertIn("IN ()", frappe.get_all("User", {"name": ("in", ())}, run=0).get_sql())
 		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ())}, run=0).get_sql())
 

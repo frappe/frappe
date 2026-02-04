@@ -410,7 +410,7 @@ class TestQuery(IntegrationTestCase):
 			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('ToDo','Note')",
 		)
 
-		# Empty list with IN operator should return 0 results (IN () condition)
+		# Empty list with IN operator should generate native SQL IN () syntax
 		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
@@ -419,7 +419,7 @@ class TestQuery(IntegrationTestCase):
 			"SELECT `name` FROM `tabDocType` WHERE `name` IN ()",
 		)
 
-		# Empty list with NOT IN operator should return all results (NOT IN () condition)
+		# Empty list with NOT IN operator should generate native SQL NOT IN () syntax
 		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",

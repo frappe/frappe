@@ -597,8 +597,8 @@ class Engine:
 					v.strip().strip("'") for v in get_between_date_filter(_value, df).split(" AND ")
 				)
 
-		# Handle empty lists for IN/NOT IN operators before conversion
-		# SQL semantics: IN () returns 0 results, NOT IN () returns all results
+		# Handle empty lists for IN/NOT IN operators - generate native SQL syntax
+		# Generate IN () / NOT IN () syntax, let database handle errors naturally
 		if _operator.lower() in ("in", "not in") and (
 			(isinstance(value, (list, tuple, set)) and len(value) == 0)
 			or (isinstance(_value, (list, tuple, set)) and len(_value) == 0)
@@ -606,11 +606,9 @@ class Engine:
 			quote_char = '"' if self.is_postgres else "`"
 			try:
 				field_sql = _field.get_sql(quote_char=quote_char, with_alias=False)
-
 			except (AttributeError, TypeError):
 				field_sql = str(_field)
 				field_sql = field_sql.replace("`", '"') if self.is_postgres else field_sql.replace('"', "`")
-				
 			operator_sql = "IN" if _operator.lower() == "in" else "NOT IN"
 			return RawCriterion(f"{field_sql} {operator_sql} ()")
 
