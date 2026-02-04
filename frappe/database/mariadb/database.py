@@ -133,7 +133,6 @@ class MariaDBConnectionUtil:
 		if self.port:
 			conn_settings["port"] = int(self.port)
 
-
 		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
 			conn_settings["ssl"] = {
 				"ca": frappe.conf.db_ssl_ca,
