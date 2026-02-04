@@ -175,7 +175,7 @@ class AutoEmailReport(Document):
 			report_data = frappe._dict(
 				{
 					"report_name": self.report,
-					"_filters": self.filters,
+					"filters": self.filters,
 					"columns": columns,
 					"result": data,
 				}

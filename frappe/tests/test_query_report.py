@@ -30,7 +30,7 @@ class TestQueryReport(IntegrationTestCase):
 
 		self.assertEqual(type(xlsx_data), list)
 		self.assertEqual(len(xlsx_data), 4)  # columns + data
-		# column widths are divided by 10 to match the scale that is supported by openpyxl
+		# column widths are divided by 10 to match the scale that is supported by xlsxwriter
 		self.assertListEqual(column_widths, [0, 10, 15])
 
 		for row in xlsx_data:
@@ -58,7 +58,7 @@ class TestQueryReport(IntegrationTestCase):
 			include_filters=True,
 		)
 
-		# Check if unset filters are skipped | Rows - 2 filters + 1 empty + 1 column + 3 data
+		# Check if unset filters are skipped | Rows -> 2 filters + 1 empty + 1 column + 3 data
 		self.assertEqual(len(xlsx_data), 7)
 
 		# Check filter formatting
@@ -300,7 +300,7 @@ def create_mock_data():
 		[3.0, 1.5, 333],
 	]
 
-	data.filters = {"Label 1": "Filter Value", "Label 2": None, "Label 3": list(range(5))}
-	data._filters = {"label_1": "Filter Value", "label_2": None, "label_3": list(range(5))}
+	data.applied_filters = {"Label 1": "Filter Value", "Label 2": None, "Label 3": list(range(5))}
+	data.filters = {"label_1": "Filter Value", "label_2": None, "label_3": list(range(5))}
 
 	return data
