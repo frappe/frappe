@@ -770,37 +770,6 @@ export default class GridRow {
 	}
 
 	set_dependant_property(df) {
-<<<<<<< HEAD
-		if (
-			!df.reqd &&
-			df.mandatory_depends_on &&
-			this.evaluate_depends_on_value(df.mandatory_depends_on)
-		) {
-			df.reqd = 1;
-			this.dependent_fields["mandatory"].push(df);
-		}
-
-		if (
-			!df.read_only &&
-			df.read_only_depends_on &&
-			this.evaluate_depends_on_value(df.read_only_depends_on)
-		) {
-			df.read_only = 1;
-			this.dependent_fields["read_only"].push(df);
-		}
-	}
-
-	refresh_dependency() {
-		this.dependent_fields["read_only"].forEach((df) => {
-			df.read_only = 0;
-			this.set_dependant_property(df);
-		});
-		this.dependent_fields["mandatory"].forEach((df) => {
-			df.reqd = 0;
-			this.set_dependant_property(df);
-		});
-		this.refresh();
-=======
 		let changed = false;
 
 		for (const { expr, prop, negate } of DEPENDENCY_PROPERTIES) {
@@ -827,7 +796,6 @@ export default class GridRow {
 		if (changed) {
 			this.refresh();
 		}
->>>>>>> 1011b59493 (perf: refresh grid only if props are changed)
 	}
 
 	evaluate_depends_on_value(expression) {
