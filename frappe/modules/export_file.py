@@ -47,7 +47,7 @@ def write_document_file(doc, record_module=None, create_init=True, folder_name=N
 		folder = create_folder(module, doc.doctype, doc.name, create_init, is_custom_module)
 
 	fname = scrub(doc.name)
-	write_code_files(folder, fname, doc, doc_export)
+	write_code_files(folder, fname, doc, doc_export, module)
 
 	# write the data file
 	path = os.path.join(folder, f"{fname}.json")
@@ -72,14 +72,20 @@ def strip_default_fields(doc, doc_export):
 	return doc_export
 
 
-def write_code_files(folder, fname, doc, doc_export):
+def write_code_files(folder, fname, doc, doc_export, module):
 	"""Export code files and strip from values"""
 	if hasattr(doc, "get_code_fields"):
 		for key, extn in doc.get_code_fields().items():
 			if doc.get(key):
 				path = os.path.join(folder, fname + "." + extn)
-				if not Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
-					frappe.throw("Invalid export path: " + Path(path).as_posix())
+				resolved_code_path = Path(path).resolve()
+				resolved_module_path = Path(frappe.get_module_path(module)).resolve()
+				if not resolved_code_path.is_relative_to(resolved_module_path):
+					frappe.throw(
+						frappe._("Invalid export path: {0}. Must be within module path: {1}").format(
+							resolved_code_path.as_posix(), resolved_module_path.as_posix()
+						)
+					)
 				with open(path, "w+") as txtfile:
 					txtfile.write(doc.get(key))
 
