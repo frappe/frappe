@@ -1220,7 +1220,7 @@ class Engine:
 						)
 						self.query = child_field.apply_join(self.query, engine=self)
 						return child_field.field
-					
+
 				return frappe.qb.DocType(table_name)[field_name]
 
 			# If parsing failed, fall through to error handling below
