@@ -375,11 +375,11 @@ def _export_query(form_params, csv_params, populate_response=True):
 
 	data = run(report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False)
 	data = frappe._dict(data)
-	data.filters = form_params.applied_filters
+	data.applied_filters = form_params.applied_filters
 
 	# for excel metadata, require for styling
 	data.report_name = report_name
-	data._filters = form_params.filters
+	data.filters = form_params.filters
 
 	if not data.columns:
 		frappe.respond_as_web_page(
@@ -466,7 +466,7 @@ def build_xlsx_data(
 	Build Excel data structure from report data with proper formatting.
 
 	Args:
-		data: Report data containing columns, result, and filters
+		data: Report data containing report name, columns, result, applied_filters, filters etc.
 		visible_idx: List of row indices that are visible in the report
 		include_indentation: Whether to include indentation for tree-like data
 		include_filters: Whether to include filter rows at the top of the Excel sheet
@@ -482,9 +482,6 @@ def build_xlsx_data(
 	"""
 	metadata = None
 	styles = None
-
-	if build_styles:
-		metadata = XLSXMetadata()
 
 	EXCEL_TYPES = (
 		str,
@@ -506,21 +503,29 @@ def build_xlsx_data(
 		visible_idx = set(visible_idx)
 
 	result = []
-	column_widths = []
 	column_data = []
+	column_widths = []
 
-	header_index = 0
 	excel_row_idx = 0
-	max_indent_level = 0
 
-	include_hidden_columns = cint(include_hidden_columns)
-	include_indentation = cint(include_indentation)
 	include_filters = cint(include_filters)
+	include_indentation = cint(include_indentation)
+	include_hidden_columns = cint(include_hidden_columns)
+
+	if build_styles:
+		metadata = XLSXMetadata(
+			report_name=data.report_name,
+			filters=data.filters or frappe._dict(),
+			add_total_row=data.get("add_total_row", False),
+			include_filters=include_filters,
+			include_indentation=include_indentation,
+			include_hidden_columns=include_hidden_columns,
+		)
 
 	# adding applied filter rows
-	if include_filters and data.filters:
+	if include_filters and data.applied_filters:
 		filter_data = []
-		for filter_name, filter_value in data.filters.items():
+		for filter_name, filter_value in data.applied_filters.items():
 			if not filter_value:
 				continue
 
@@ -536,7 +541,8 @@ def build_xlsx_data(
 		excel_row_idx += 1  # for empty row after filters
 		result += filter_data
 
-	header_index = excel_row_idx
+	if build_styles:
+		metadata.header_index = excel_row_idx
 
 	# adding header row
 	for idx, column in enumerate(data.columns):
@@ -548,12 +554,14 @@ def build_xlsx_data(
 
 		column_data.append(_(column.get("label")))
 		column_width = cint(column.get("width", 0))
-		# to convert into scale accepted by openpyxl
+		# to convert into scale accepted by xlsxwriter
 		column_width /= 10
 		column_widths.append(column_width)
 
 	result.append(column_data)
 	excel_row_idx += 1
+
+	handle_indentation = include_indentation and not build_styles
 
 	# build table from result
 	for row_idx, row in enumerate(data.result):
@@ -565,15 +573,15 @@ def build_xlsx_data(
 		row_data = []
 		row_is_dict = isinstance(row, dict)
 
-		if row_is_dict:
-			indent = cint(row.get("indent", 0))
-
-			if indent > max_indent_level:
-				max_indent_level = indent
-
 		if build_styles:
 			metadata.row_map[excel_row_idx] = row
 			excel_row_idx += 1
+
+		if row_is_dict and handle_indentation:
+			indent = row.get("indent", 0) or 0
+
+			if indent:
+				indent = cint(indent)
 
 		for col_idx, column in enumerate(data.columns):
 			if column.get("hidden") and not include_hidden_columns:
@@ -587,7 +595,7 @@ def build_xlsx_data(
 				cell_value = cstr(cell_value)
 
 			# Indentation by adding spaces before string value if styles are not being built (for CSV)
-			if not build_styles and include_indentation and col_idx == 0 and indent:
+			if handle_indentation and col_idx == 0 and indent:
 				cell_value = ("    " * indent) + cstr(cell_value)
 
 			row_data.append(cell_value)
@@ -595,21 +603,8 @@ def build_xlsx_data(
 		result.append(row_data)
 
 	if build_styles:
-		metadata.report_name = data.report_name
-		metadata.filters = data._filters or frappe._dict()
-
-		metadata.header_index = header_index
-		metadata.max_indent_level = max_indent_level
-
-		metadata.include_filters = include_filters
-		metadata.add_total_row = data.add_total_row
-		metadata.ignore_visible_idx = ignore_visible_idx
-		metadata.include_indentation = include_indentation
-		metadata.include_hidden_columns = include_hidden_columns
-
-		if data.report_name:
-			report = frappe.get_doc("Report", data.report_name)
-			styles = report.get_xlsx_styles(metadata)
+		report = frappe.get_doc("Report", data.report_name)
+		styles = report.get_xlsx_styles(metadata)
 
 	return result, column_widths, styles
 
