@@ -1700,8 +1700,6 @@ def build_index_if_not_exists():
 	Called by scheduler every 3 hours to continue incomplete builds.
 	"""
 	search_classes = get_search_classes()
-	frappe.db.set_value("HD Ticket", "32355", "custom_is_legacy_customer", 1)
-	frappe.db.commit()
 
 	for SearchClass in search_classes:
 		search = SearchClass()
