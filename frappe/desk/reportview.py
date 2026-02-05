@@ -527,7 +527,12 @@ def append_totals_row(data):
 
 def get_field_info(fields, parent_doctype):
 	"""
-	Get column names, labels, field types, and translatable properties based on column names.
+	Get field's
+		- fieldname
+		- label
+		- fieldtype
+		- translatable
+		- options (if any)
 
 	:param fields: List of field names (can include child table fields and aggregate functions).
 	:param parent_doctype: The main doctype from which the report is generated.
@@ -556,11 +561,12 @@ def get_field_info(fields, parent_doctype):
 			fieldtype = "Data"
 			translatable = True
 		else:
-			df = frappe.get_meta(doctype).get_field(fieldname) or get_default_df(fieldname)
+			meta = frappe.get_meta(doctype)
+			df = meta.get_field(fieldname) or get_default_df(fieldname)
 
 			if df:
 				fieldname = df.fieldname
-				label = _(df.label) if df.label else _(frappe.unscrub(fieldname))
+				label = _(df.label) if df.label else _(meta.get_label(fieldname))
 				fieldtype = df.fieldtype
 				translatable = df.translatable or False
 				options = df.options
