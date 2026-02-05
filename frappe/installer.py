@@ -252,7 +252,7 @@ def parse_app_name(name: str) -> str:
 	:rtype: str
 	"""
 	name = name.rstrip("/")
-	if os.path.exists(name):
+	if os.path.exists(os.path.join("..", "apps", name)):
 		repo = os.path.split(name)[-1]
 	elif is_git_url(name):
 		if name.startswith("git@") or name.startswith("ssh://"):
