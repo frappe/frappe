@@ -375,11 +375,10 @@ def _export_query(form_params, csv_params, populate_response=True):
 
 	data = run(report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False)
 	data = frappe._dict(data)
-	data.applied_filters = form_params.applied_filters
 
-	# for excel metadata, require for styling
 	data.report_name = report_name
 	data.filters = form_params.filters
+	data.applied_filters = form_params.applied_filters
 
 	if not data.columns:
 		frappe.respond_as_web_page(
@@ -410,7 +409,10 @@ def _export_query(form_params, csv_params, populate_response=True):
 		file_extension = "xlsx"
 		content = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths, styles=styles).getvalue()
 	else:
-		frappe.throw(_("Unsupported file format: {0}").format(file_format_type))
+		frappe.throw(
+			title=_("Unsupported file format: {0}").format(file_format_type),
+			msg=_("Supported formats are CSV and Excel."),
+		)
 
 	if include_filters:
 		for value in (data.filters or {}).values():
@@ -594,7 +596,6 @@ def build_xlsx_data(
 			if not isinstance(cell_value, EXCEL_TYPES):
 				cell_value = cstr(cell_value)
 
-			# Indentation by adding spaces before string value if styles are not being built (for CSV)
 			if handle_indentation and col_idx == 0 and indent:
 				cell_value = ("    " * indent) + cstr(cell_value)
 
