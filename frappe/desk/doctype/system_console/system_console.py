@@ -28,6 +28,7 @@ class SystemConsole(Document):
 		frappe.only_for(["System Manager", "Administrator"])
 		try:
 			frappe.local.debug_log = []
+			frappe.db.begin(read_only=1)
 			if self.type == "Python":
 				safe_exec(
 					self.console, script_filename="System Console", restrict_commit_rollback=not self.commit
