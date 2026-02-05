@@ -291,13 +291,14 @@ class SQLiteSearch(ABC):
 			},
 		}
 
-	def build_index(self, batch_size=1000, max_runtime_minutes=60, is_continuation=False):
-		"""Build the search index incrementally with progress tracking and time-based exit."""
+	def build_index(self, batch_size=1000, is_continuation=False):
+		"""Build the search index incrementally with progress tracking.
+
+		The job runs until completion or until killed by the queue timeout.
+		Progress is tracked in the database so builds can resume from where they left off.
+		"""
 		if not self.is_search_enabled():
 			return
-
-		start_time = time.time()
-		max_runtime = max_runtime_minutes * 60
 
 		# Use temporary database path for atomic replacement (only for new index builds)
 		temp_db_path = None
@@ -359,14 +360,6 @@ class SQLiteSearch(ABC):
 			processed_doctypes = 0
 
 			for doctype in self.doc_configs.keys():
-				# Check time limit
-				if time.time() - start_time > max_runtime:
-					self._update_progress(
-						"Time limit reached, queuing continuation job", 90, 100, absolute=True
-					)
-					self._queue_continuation_job()
-					return
-
 				doctype_progress = progress.get(doctype, {})
 
 				# Skip if doctype is already complete
@@ -386,17 +379,6 @@ class SQLiteSearch(ABC):
 				batch_count = 0
 
 				while True:
-					# Check time limit before each batch
-					if time.time() - start_time > max_runtime:
-						self._update_progress(
-							"Time limit reached during doctype processing, queuing continuation",
-							90,
-							100,
-							absolute=True,
-						)
-						self._queue_continuation_job()
-						return
-
 					# Get batch of documents
 					docs = self.get_documents_paginated(
 						doctype, limit=batch_size, last_indexed_modified=last_indexed_modified
@@ -408,7 +390,6 @@ class SQLiteSearch(ABC):
 						break
 
 					# Prepare and index documents
-					# print(time.time() - start_time)
 					documents = []
 					for doc in docs:
 						document = self.prepare_document(doc)
@@ -435,7 +416,7 @@ class SQLiteSearch(ABC):
 							f"Indexing {doctype} (batch {batch_count})", current_progress, 100, absolute=True
 						)
 
-			processed_doctypes += 1
+				processed_doctypes += 1
 
 			# Check if all doctypes are indexed before building vocabulary
 			if not self._is_vocabulary_built_needed():
@@ -456,10 +437,12 @@ class SQLiteSearch(ABC):
 			# Print warning summary
 			self._print_warning_summary()
 
-		except Exception:
-			# Clean up temp file on error
-			if temp_db_path and os.path.exists(temp_db_path):
-				os.unlink(temp_db_path)
+		except Exception as e:
+			# Log the error
+			frappe.log_error(
+				title="Search Index Build Error",
+				message=f"Error during search index build: {e}",
+			)
 			raise
 		finally:
 			# Restore original database path
@@ -759,11 +742,6 @@ class SQLiteSearch(ABC):
 		"""Check if all doctypes are completely indexed and vocabulary is built."""
 		count = self._get_incomplete_count("is_complete = 0 OR vocabulary_built = 0")
 		return count == 0 if count >= 0 else False
-
-	def _queue_continuation_job(self):
-		"""Queue a continuation job to resume indexing."""
-		search_class_path = f"{self.__class__.__module__}.{self.__class__.__name__}"
-		_enqueue_index_job(search_class_path, is_continuation=True)
 
 	def _tables_exist(self):
 		"""Check if the required tables exist in the current database."""
@@ -1690,11 +1668,29 @@ class SQLiteSearch(ABC):
 
 
 def build_index_if_not_exists():
-	"""Build index if it doesn't exist."""
+	"""Build index if it doesn't exist or continue if temp DB exists.
+
+	Called by scheduler every 3 hours to continue incomplete builds.
+	"""
 	search_classes = get_search_classes()
+	frappe.db.set_value("HD Ticket", "32355", "custom_is_legacy_customer", 1)
+	frappe.db.commit()
 
 	for SearchClass in search_classes:
-		build_index(SearchClass, force=False)
+		search = SearchClass()
+		if not search.is_search_enabled():
+			continue
+
+		# Check if a temp DB exists (incomplete build from previous run)
+		temp_db_path = search._get_db_path(is_temp=True)
+		if os.path.exists(temp_db_path):
+			# Continue the incomplete build
+			print(f"{SearchClass.__name__}: Found temp DB, continuing build...")
+			build_index(SearchClass, force=True, is_continuation=True)
+		elif not search.index_exists():
+			# No index exists, start fresh build
+			print(f"{SearchClass.__name__}: No index exists, starting fresh build...")
+			build_index(SearchClass, force=False)
 
 
 def build_index(
@@ -1730,14 +1726,14 @@ def _enqueue_index_job(search_class_path: str, is_continuation: bool = False):
 	Args:
 	    search_class_path: Full path to the search class (e.g., 'module.ClassName')
 	    is_continuation: Whether this is a continuation of an incomplete build
-	    timeout: Optional timeout in seconds for the job
 	"""
 	job_id = f"{search_class_path}_continuation" if is_continuation else search_class_path
 	job_type = "continuation" if is_continuation else "fresh build"
 	print(f"Enqueuing {job_type} for {search_class_path}.build_index")
 
 	# timeout for 1 hour 10 minutes to account for job queue delays
-	timeout = 1 * 60 * 60 + 10 * 60
+	# timeout = 1 * 60 * 60 + 10 * 60
+	timeout = 180
 
 	enqueue_kwargs = {
 		"queue": "long",
@@ -1753,7 +1749,10 @@ def _enqueue_index_job(search_class_path: str, is_continuation: bool = False):
 
 
 def build_index_in_background():
-	"""Enqueue index building in background."""
+	"""Enqueue index building in background.
+
+	Called after migrate to start/continue index building.
+	"""
 	search_classes = get_search_classes()
 	for SearchClass in search_classes:
 		search = SearchClass()
@@ -1762,21 +1761,16 @@ def build_index_in_background():
 
 		search_class_path = f"{SearchClass.__module__}.{SearchClass.__name__}"
 
-		# Check if indexing is already in progress or complete
-		if search.index_exists():
-			try:
-				# Check if there are any incomplete progress records
-				progress = search._get_index_progress()
-				if progress and not search._is_indexing_complete():
-					_enqueue_index_job(search_class_path, is_continuation=True)
-				else:
-					print(f"Index for {search_class_path} is already complete")
-			except Exception:
-				# If we can't check progress, assume we need to rebuild
-				_enqueue_index_job(search_class_path, is_continuation=False)
-		else:
+		# Check if a temp DB exists (incomplete build from previous run)
+		temp_db_path = search._get_db_path(is_temp=True)
+		if os.path.exists(temp_db_path):
+			# Continue the incomplete build
+			_enqueue_index_job(search_class_path, is_continuation=True)
+		elif not search.index_exists():
 			# No index exists, start fresh build
 			_enqueue_index_job(search_class_path, is_continuation=False)
+		else:
+			print(f"Index for {search_class_path} already exists")
 
 
 def update_doc_index(doc: Document, method=None):
