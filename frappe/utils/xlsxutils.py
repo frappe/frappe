@@ -416,7 +416,7 @@ def get_default_xlsx_styles(
 		include_indentation=has_indentation,
 	)
 
-	return XLSXStyleBuilder(metadata).apply_default_styles(currency_formatting).result
+	return XLSXStyleBuilder(metadata, default_styling=False).apply_default_styles(currency_formatting).result
 
 
 def get_report_header_index(applied_filters: list[list]) -> int:

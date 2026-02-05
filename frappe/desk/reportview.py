@@ -494,7 +494,6 @@ def _export_query(form_params, csv_params, populate_response=True):
 			],
 			data=data[1:],  # exclude header row
 			has_total_row=bool(add_totals_row),
-			currency_formatting=False,  # child table row not have currency value from parent
 		)
 
 		content = make_xlsx(data, doctype, styles=styles).getvalue()
