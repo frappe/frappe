@@ -462,7 +462,7 @@ def make_xlsx(
 		options = {"constant_memory": True}
 
 		if not styles:
-			options["default_date_format"] = XLSXStyleBuilder.get_date_format()
+			options["default_date_format"] = XLSXStyleBuilder.get_datetime_format()
 
 		wb = xlsxwriter.Workbook(xlsx_file, options)
 
