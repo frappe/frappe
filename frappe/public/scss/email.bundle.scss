@@ -429,3 +429,32 @@ blockquote {
 .ql-editor li.ql-indent-3:not(.ql-direction-rtl) {
 	padding-left: 10.5em;
 }
+
+.indicator {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	margin-right: 6px;
+	vertical-align: middle;
+}
+
+.indicator.red {
+	background-color: #dc2626;
+}
+
+.indicator.green {
+	background-color: #16a34a;
+}
+
+.indicator.orange {
+	background-color: #ea580c;
+}
+
+.indicator.blue {
+	background-color: #2563eb;
+}
+
+.indicator.gray {
+	background-color: #6b7280;
+}

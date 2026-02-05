@@ -335,6 +335,45 @@ class TestEmail(IntegrationTestCase):
 		# Cleanup
 		frappe.db.delete("User", {"email": target_user})
 
+	def test_email_header_indicator(self):
+		frappe.sendmail(
+			recipients=["test@example.com"],
+			subject="Indicator Test",
+			header=["Status", "red"],
+			message="Hello",
+		)
+
+		email_queue = frappe.db.get_value(
+			"Email Queue",
+			{"status": "Not Sent"},
+			"name",
+		)
+		self.assertTrue(email_queue)
+
+		from frappe.email.queue import flush
+
+		flush()
+
+		raw = frappe.db.get_value(
+			"Email Queue",
+			{"status": "Sent"},
+			"message",
+		)
+
+		import email
+
+		msg = email.message_from_string(frappe.safe_decode(raw))
+
+		html = None
+		for part in msg.walk():
+			if part.get_content_type() == "text/html":
+				html = part.get_payload(decode=True).decode()
+				break
+
+		self.assertIsNotNone(html)
+		self.assertIn('class="indicator', html)
+		self.assertIn("background-color:#dc2626", html)
+
 
 class TestVerifiedRequests(IntegrationTestCase):
 	def test_round_trip(self):
