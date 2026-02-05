@@ -18,6 +18,7 @@ frappe.ui.form.on("Print Format", {
 		if (frm.doc.standard === "Yes" && frappe.session.user !== "Administrator") {
 			frm.set_intro(__("Please duplicate this to make changes"));
 		}
+		frm.trigger("update_field_requirements");
 		frm.trigger("render_buttons");
 		frm.toggle_display("standard", frappe.boot.developer_mode);
 		frm.trigger("hide_absolute_value_field");
@@ -37,8 +38,6 @@ frappe.ui.form.on("Print Format", {
 						frappe.set_route("print-format-builder", frm.doc.name);
 					}
 				});
-			} else if (frm.doc.custom_format && !frm.doc.raw_printing) {
-				frm.set_df_property("html", "reqd", 1);
 			}
 			if (frappe.model.can_write("Customize Form")) {
 				frappe.model.with_doctype(frm.doc.doc_type, function () {
@@ -68,6 +67,28 @@ frappe.ui.form.on("Print Format", {
 		frm.set_value("show_section_headings", value);
 		frm.set_value("line_breaks", value);
 		frm.trigger("render_buttons");
+		frm.trigger("update_field_requirements");
+	},
+	raw_printing: function (frm) {
+		frm.trigger("update_field_requirements");
+	},
+	update_field_requirements: function (frm) {
+		// Update field requirements based on custom_format and raw_printing
+		if (frm.doc.custom_format) {
+			if (frm.doc.raw_printing) {
+				// Raw printing enabled: raw_commands required, HTML not required
+				frm.set_df_property("html", "reqd", 0);
+				frm.set_df_property("raw_commands", "reqd", 1);
+			} else {
+				// Raw printing disabled: HTML required, raw_commands not required
+				frm.set_df_property("html", "reqd", 1);
+				frm.set_df_property("raw_commands", "reqd", 0);
+			}
+		} else {
+			// Not custom format: neither field required
+			frm.set_df_property("html", "reqd", 0);
+			frm.set_df_property("raw_commands", "reqd", 0);
+		}
 	},
 	doc_type: function (frm) {
 		frm.trigger("hide_absolute_value_field");
