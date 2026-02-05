@@ -915,7 +915,7 @@ def get_precision_from_currency_format(currency: str) -> int:
 	from frappe.utils.number_format import NumberFormat
 
 	use_format_from_currency = frappe.get_system_settings("use_number_format_from_currency")
-	number_format = NumberFormat.from_string(frappe.db.get_default("number_format") or "#,###.##")
+	number_format = NumberFormat.from_string(frappe.db.get_default("number_format"))
 	if use_format_from_currency:
 		currency_format = frappe.db.get_value("Currency", currency, "number_format", cache=True)
 		number_format = NumberFormat.from_string(currency_format) if currency_format else number_format
