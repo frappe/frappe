@@ -65,6 +65,12 @@ class Oauth:
 		)
 
 		if not res.startswith(b"+OK"):
+			frappe.log_error(
+				title="POP3 OAuth Authentication Failed",
+				message=f"Response: {res}",
+				reference_doctype="Email Account",
+				reference_name=self.email_account,
+			)
 			frappe.throw(
 				frappe._("POP3 OAuth authentication failed for Email Account {0}").format(self.email_account),
 				frappe.AuthenticationError,
