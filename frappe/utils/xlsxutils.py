@@ -49,8 +49,6 @@ class XLSXMetadata:
 	row_map: dict[int, dict | list] = dataclass_field(default_factory=dict)
 	applied_filters_map: dict[int, list] = dataclass_field(default_factory=dict)
 
-	header_index: int = 0
-
 	add_total_row: bool = False
 	include_filters: bool = False
 	ignore_visible_idx: bool = True
@@ -65,6 +63,9 @@ class XLSXMetadata:
 
 	def get_row(self, row_idx: int) -> dict | list | None:
 		return self.row_map.get(row_idx)
+
+	def get_header_index(self) -> int:
+		return get_report_header_index(list(self.applied_filters_map.values()))
 
 	def get_first_row_index(self) -> int:
 		return min(self.row_map.keys()) if self.row_map else 0
@@ -180,7 +181,7 @@ class XLSXStyleBuilder:
 
 	def style_header(self):
 		return self.style_row(
-			self.metadata.header_index, self.register_style({"bold": True, "font_size": 13})
+			self.metadata.get_header_index(), self.register_style({"bold": True, "font_size": 13})
 		)
 
 	def style_filters(self):
@@ -398,7 +399,7 @@ def get_default_xlsx_styles(
 	applied_filters = applied_filters or []
 	filters = filters or {}
 
-	header_index = len(applied_filters) + 1 if applied_filters else 0  # +1 for empty row
+	header_index = get_report_header_index(applied_filters)
 
 	applied_filters_map = dict(enumerate(applied_filters))
 	column_map = dict(enumerate(columns))
@@ -410,13 +411,16 @@ def get_default_xlsx_styles(
 		column_map=column_map,
 		row_map=row_map,
 		applied_filters_map=applied_filters_map,
-		header_index=header_index,
 		add_total_row=has_total_row,
 		include_filters=has_filters,
 		include_indentation=has_indentation,
 	)
 
 	return XLSXStyleBuilder(metadata).apply_default_styles(currency_formatting).result
+
+
+def get_report_header_index(applied_filters: list[list]) -> int:
+	return len(applied_filters) + 1 if applied_filters else 0  # +1 for empty row after filters
 
 
 ### Excel Creation ###

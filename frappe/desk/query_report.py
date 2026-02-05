@@ -520,6 +520,7 @@ def build_xlsx_data(
 			filters=data.filters or frappe._dict(),
 			add_total_row=data.get("add_total_row", False),
 			include_filters=include_filters,
+			ignore_visible_idx=ignore_visible_idx,
 			include_indentation=include_indentation,
 			include_hidden_columns=include_hidden_columns,
 		)
@@ -542,9 +543,6 @@ def build_xlsx_data(
 		filter_data.append([])
 		excel_row_idx += 1  # for empty row after filters
 		result += filter_data
-
-	if build_styles:
-		metadata.header_index = excel_row_idx
 
 	# adding header row
 	for idx, column in enumerate(data.columns):
