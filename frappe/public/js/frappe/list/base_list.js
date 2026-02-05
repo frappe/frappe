@@ -333,7 +333,7 @@ frappe.views.BaseList = class BaseList {
 	 */
 	setup_result_container_area() {
 		if (this.view == "List") {
-			this.$frappe_list.append($(`<div class="result-container border rounded">`));
+			this.$frappe_list.append($(`<div class="result-container">`));
 		}
 	}
 
@@ -367,7 +367,7 @@ frappe.views.BaseList = class BaseList {
 	setup_paging_area() {
 		const paging_values = [20, 100, 500, 2500];
 		this.$paging_area = $(
-			`<div class="list-paging-area level ${this.view == "List" ? "border-0" : ""}">
+			`<div class="list-paging-area level">
 				<div class="level-left">
 					<div class="btn-group">
 						${paging_values
@@ -649,7 +649,7 @@ class FilterArea {
 	setup_mobile(list_view) {
 		const me = this;
 		this.standard_filters_visible = false;
-		this.standard_filters_wrapper.hide();
+		this.standard_filters_wrapper?.hide();
 		this.list_view.page.page_form.css("justify-content", "flex-end");
 		$(`<button class="filter-toggle btn btn-default btn-sm filter-button">
 					<span class="filter-icon button-icon">
@@ -1214,6 +1214,7 @@ class FilterArea {
 						onchange: () => this.debounced_refresh_list_view(),
 						ignore_link_validation: fieldtype === "Dynamic Link",
 						is_filter: 1,
+						link_filters: df.link_filters,
 					};
 				})
 		);

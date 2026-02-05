@@ -905,6 +905,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							aria-valuemin="0" aria-valuemax="100" style="width: ${Math.round(value)}%;">
 						</div>
 					</div>`;
+			} else if (df.fieldtype === "Data") {
+				return frappe.format(frappe.utils.escape_html(value), df, null, doc);
 			} else {
 				return frappe.format(value, df, null, doc);
 			}
@@ -1218,7 +1220,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					count_without_children !== current_count ? count_without_children : undefined;
 
 				let count_str;
-				if (this.total_count === this.count_upper_bound) {
+				if (current_count > this.total_count) {
+					count_str = `${format_number(current_count, null, 0)}+`;
+				} else if (this.total_count === this.count_upper_bound) {
 					count_str = `${format_number(this.total_count - 1, null, 0)}+`;
 				} else if (this.total_count == null) {
 					count_str = "??";

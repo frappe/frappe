@@ -80,6 +80,18 @@ class DesktopIcon(Document):
 			os.remove(file_path)
 
 	def is_permitted(self, bootinfo):
+		icon_module = None
+		if self.icon_type == "Link" and self.link_to:
+			icon_module = frappe.db.get_value("Workspace", self.link_to, "module")
+		# module permission check
+		if icon_module:
+			blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
+			if icon_module in blocked_modules:
+				return False
+		# perform a permission check based on roles table (desktop icons)
+		allowed_roles = [d.role for d in self.get("roles") or []]
+		if allowed_roles and not set(allowed_roles).intersection(frappe.get_roles()):
+			return False
 		if self.icon_type == "Folder":
 			return True
 		elif self.icon_type == "App":
@@ -90,10 +102,11 @@ class DesktopIcon(Document):
 
 				if len(items) and all(item["type"] == "Section Break" for item in items):
 					return False
-
+				if len(items) == 0:
+					return False
 				return True
 			except KeyError:
-				return True
+				return False
 
 	def check_app_permission(self):
 		for a in frappe.get_installed_apps():
@@ -165,27 +178,22 @@ def get_desktop_icons(user=None, bootinfo=None):
 			"icon_image",
 		]
 
-		standard_icons = frappe.get_all("Desktop Icon", fields=fields, filters={"standard": 1})
+		from frappe.query_builder import DocType
 
-		user_icons = frappe.get_all("Desktop Icon", fields=fields, filters={"standard": 0, "owner": user})
-		user_icons = user_icons + standard_icons
-		# for icon in user_icons:
-		# 	standard_icon = standard_map.get(icon.module_name, None)
+		DesktopIcon = DocType("Desktop Icon")
 
-		# 	# override properties from standard icon
-		# 	if standard_icon:
-		# 		for key in ("route", "label", "color", "icon", "link"):
-		# 			if standard_icon.get(key):
-		# 				icon[key] = standard_icon.get(key)
-
-		# 		if standard_icon.blocked:
-		# 			icon.hidden = 1
-
-		# 			# flag for modules_select dialog
-		# 			icon.hidden_in_standard = 1
-
-		# 		elif standard_icon.force_show:
-		# 			icon.hidden = 0
+		user_icons = (
+			frappe.qb.from_(DesktopIcon)
+			.select(*fields)
+			.where(
+				(DesktopIcon.standard == 1)
+				| (
+					(DesktopIcon.standard == 0)
+					& (DesktopIcon.owner.isin(["Administrator", frappe.session.user]))
+				)
+			)
+			.distinct()
+		).run(as_dict=True)
 
 		# sort by idx
 		user_icons.sort(key=lambda a: a.idx)
@@ -194,12 +202,12 @@ def get_desktop_icons(user=None, bootinfo=None):
 		permitted_parent_labels = set()
 		if bootinfo:
 			for s in user_icons:
-				icon = frappe.get_doc("Desktop Icon", s)
+				icon = frappe.get_doc("Desktop Icon", s.name)
 				if icon.is_permitted(bootinfo):
 					permitted_icons.append(s)
 
-				if not s.parent_icon:
-					permitted_parent_labels.add(s.label)
+					if not s.parent_icon:
+						permitted_parent_labels.add(s.label)
 
 		user_icons = [
 			s for s in permitted_icons if not s.parent_icon or s.parent_icon in permitted_parent_labels

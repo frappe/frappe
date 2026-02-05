@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-25 09:36+0000\n"
-"PO-Revision-Date: 2026-01-27 16:05\n"
+"PO-Revision-Date: 2026-01-30 16:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -4559,7 +4559,7 @@ msgstr ""
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:39
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "City"
-msgstr ""
+msgstr "Cidade"
 
 #. Label of the city (Data) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -4691,7 +4691,7 @@ msgstr ""
 #: frappe/integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 msgid "Client"
-msgstr ""
+msgstr "Cliente"
 
 #. Label of the client_code_section (Section Break) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
@@ -5388,7 +5388,7 @@ msgstr ""
 #: frappe/core/doctype/user/user.json
 #: frappe/public/js/frappe/form/dashboard.js:54
 msgid "Connections"
-msgstr ""
+msgstr "Conexões"
 
 #. Label of the console (Code) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
@@ -5671,7 +5671,7 @@ msgstr ""
 #: frappe/geo/doctype/country/country.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Country"
-msgstr ""
+msgstr "País"
 
 #: frappe/utils/__init__.py:123
 msgid "Country Code Required"
@@ -5931,7 +5931,7 @@ msgstr ""
 #: frappe/geo/doctype/currency/currency.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Currency"
-msgstr ""
+msgstr "Moeda"
 
 #. Label of the currency_name (Data) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -6533,7 +6533,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/interaction.js:80
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Date"
-msgstr ""
+msgstr "Data"
 
 #. Label of the date_format (Select) field in DocType 'Language'
 #. Label of the date_format (Select) field in DocType 'System Settings'
@@ -7150,7 +7150,7 @@ msgstr ""
 #: frappe/website/doctype/website_slideshow_item/website_slideshow_item.json
 #: frappe/www/attribution.html:24
 msgid "Description"
-msgstr ""
+msgstr "Descrição"
 
 #. Description of the 'Description' (Section Break) field in DocType
 #. 'Onboarding Step'
@@ -7252,7 +7252,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/layout.js:155
 #: frappe/public/js/frappe/views/treeview.js:292
 msgid "Details"
-msgstr ""
+msgstr "Detalhes"
 
 #. Label of the use_csv_sniffer (Check) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
@@ -7405,7 +7405,7 @@ msgstr ""
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Disabled"
-msgstr ""
+msgstr "Desativado"
 
 #: frappe/email/doctype/email_account/email_account.js:300
 msgid "Disabled Auto Reply"
@@ -8632,7 +8632,7 @@ msgstr ""
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 #: frappe/www/login.html:8 frappe/www/login.py:104
 msgid "Email"
-msgstr ""
+msgstr "E-Mail"
 
 #. Label of the email_account (Link) field in DocType 'Communication'
 #. Label of the email_account (Link) field in DocType 'User Email'
@@ -11228,7 +11228,7 @@ msgstr ""
 #: frappe/contacts/doctype/gender/gender.json
 #: frappe/core/doctype/user/user.json
 msgid "Gender"
-msgstr ""
+msgstr "Gênero"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:32
 msgid "Genderqueer"
@@ -12660,7 +12660,7 @@ msgstr ""
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/website/doctype/website_slideshow_item/website_slideshow_item.json
 msgid "Image"
-msgstr ""
+msgstr "Imagem"
 
 #. Label of the image_field (Data) field in DocType 'DocType'
 #. Label of the image_field (Data) field in DocType 'Customize Form'
@@ -14596,7 +14596,7 @@ msgstr ""
 #: frappe/core/web_form/edit_profile/edit_profile.json
 #: frappe/www/complete_signup.html:19
 msgid "Last Name"
-msgstr ""
+msgstr "Sobrenome"
 
 #. Label of the last_password_reset_date (Date) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -16228,7 +16228,7 @@ msgstr ""
 #: frappe/tests/test_translate.py:89 frappe/tests/test_translate.py:91
 #: frappe/tests/test_translate.py:94
 msgid "Mobile No"
-msgstr "Telefone Celular"
+msgstr "Celular"
 
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
@@ -19442,7 +19442,7 @@ msgstr ""
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Phone"
-msgstr ""
+msgstr "Telefone"
 
 #. Label of the phone_no (Data) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -20307,7 +20307,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/communication.js:186
 msgid "Print Language"
-msgstr ""
+msgstr "Idioma de Impressão"
 
 #: frappe/public/js/frappe/form/print_utils.js:244
 msgid "Print Sent to the printer!"
@@ -25056,7 +25056,7 @@ msgstr ""
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json
 #: frappe/website/report/website_analytics/website_analytics.js:38
 msgid "Source"
-msgstr ""
+msgstr "Origem"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Source Code"
@@ -25307,7 +25307,7 @@ msgstr ""
 #: frappe/contacts/doctype/address/address.json
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "State/Province"
-msgstr ""
+msgstr "Estado"
 
 #. Label of the document_states_section (Tab Break) field in DocType 'DocType'
 #. Label of the states (Table) field in DocType 'Customize Form'
@@ -25394,7 +25394,7 @@ msgstr ""
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 msgid "Status"
-msgstr ""
+msgstr "Situação"
 
 #: frappe/www/update-password.html:188
 msgid "Status Updated"
@@ -28295,7 +28295,7 @@ msgstr ""
 #: frappe/email/doctype/email_group_member/email_group_member.json
 #: frappe/email/queue.py:123
 msgid "Unsubscribed"
-msgstr ""
+msgstr "Descadastrado"
 
 #: frappe/database/query.py:1098
 msgid "Unsupported function or operator: {0}"
@@ -29623,7 +29623,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 #: frappe/website/workspace/website/website.json
 msgid "Website"
-msgstr ""
+msgstr "Site"
 
 #. Name of a report
 #: frappe/website/report/website_analytics/website_analytics.json
@@ -31094,7 +31094,7 @@ msgstr ""
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 #: frappe/website/doctype/social_link_settings/social_link_settings.json
 msgid "email"
-msgstr ""
+msgstr "E-Mail"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:318
 msgid "email inbox"

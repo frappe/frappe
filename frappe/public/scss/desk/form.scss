@@ -583,18 +583,6 @@
 	}
 }
 
-// mobile
-@media (max-width: map-get($grid-breakpoints, "sm")) {
-	// padding to form section on mobile
-
-	.form-column:not(:last-child) {
-		border-bottom: 1px solid var(--border-color);
-	}
-	.form-column:not(:first-child) {
-		padding-top: var(--padding-md);
-	}
-}
-
 .popover-header {
 	background: var(--bg-color);
 	color: var(--ink-gray-9);

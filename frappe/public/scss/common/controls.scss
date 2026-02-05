@@ -195,6 +195,13 @@ select.form-control {
 		@extend .action-btn;
 		background-color: var(--control-bg);
 		display: none;
+		border-radius: var(--border-radius-sm);
+		height: 100%;
+		a {
+			display: flex;
+			height: 100%;
+			align-items: center;
+		}
 	}
 }
 

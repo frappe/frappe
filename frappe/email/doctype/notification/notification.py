@@ -867,3 +867,75 @@ def _parse_receiver_by_document_field(s):
 	else:
 		data_field, child_field = fragments[0], None
 	return data_field, child_field
+
+
+def create_notifications(notifications: list[dict], update: bool = False):
+	"""
+	Unlike standard notifications, these are NOT marked as is_standard=1,
+	so they won't be overwritten during migrations. Users can freely customize them.
+
+	Args:
+		notifications: List of notification dicts.
+		update: If True, update existing notification. If False (default), skip if exists.
+	"""
+	for notif_dict in notifications:
+		name = notif_dict.get("name")
+		existing = frappe.db.exists("Notification", name)
+
+		if existing and not update:
+			continue
+
+		if existing and update:
+			doc = frappe.get_doc("Notification", name)
+			doc.update(notif_dict)
+			doc.flags.ignore_validate = True
+			doc.save(ignore_permissions=True)
+			continue
+
+		notif_dict["doctype"] = "Notification"
+		notif_dict["is_standard"] = 0
+		notif_dict["owner"] = "Administrator"
+
+		doc = frappe.get_doc(notif_dict)
+		doc.flags.ignore_validate = True
+		doc.insert(ignore_permissions=True)
+
+
+def get_notification_templates(templates_dir: str) -> list[dict]:
+	"""
+	Load notification templates from the templates directory.
+
+	Templates are stored in subdirectories:
+		<templates_dir>/<name>/<name>.json
+		<templates_dir>/<name>/<name>.html|.md|.txt (optional message content based on message_type)
+	"""
+	templates = []
+
+	if not os.path.exists(templates_dir):
+		return templates
+
+	for folder_name in os.listdir(templates_dir):
+		folder_path = os.path.join(templates_dir, folder_name)
+		if not os.path.isdir(folder_path):
+			continue
+
+		json_file = os.path.join(folder_path, f"{folder_name}.json")
+		template = frappe.get_file_json(json_file) if os.path.exists(json_file) else None
+		if not template:
+			continue
+
+		message_type = template.get("message_type", "HTML")
+		ext = FORMATS.get(message_type, ".html")
+		message_file = os.path.join(folder_path, f"{folder_name}{ext}")
+		if message := frappe.read_file(message_file):
+			template["message"] = message
+
+		templates.append(template)
+
+	return templates
+
+
+def install_notification_templates():
+	templates_dir = frappe.get_module_path("Email", "doctype", "notification", "templates")
+	templates = get_notification_templates(templates_dir)
+	create_notifications(templates, update=False)
