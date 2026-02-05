@@ -17,11 +17,12 @@ class NavbarSettings(Document):
 		from frappe.types import DF
 
 		announcement_widget: DF.TextEditor | None
+		announcement_widget_color: DF.Color | None
 		app_logo: DF.AttachImage | None
+		dismissible_announcement_widget: DF.Check
 		help_dropdown: DF.Table[NavbarItem]
 		settings_dropdown: DF.Table[NavbarItem]
 	# end: auto-generated types
-
 
 def get_app_logo():
 	app_logo = frappe.get_website_settings("app_logo") or frappe.get_cached_value(
