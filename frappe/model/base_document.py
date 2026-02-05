@@ -605,7 +605,8 @@ class BaseDocument:
 		return valid_columns_cache[self.doctype]
 
 	def is_new(self) -> bool:
-		return self.get("__islocal")
+		"""Returns True if the document is new (not yet saved in the database)."""
+		return getattr(self, "__islocal", False) or getattr(self, "_was_new", False)
 
 	@property
 	def docstatus(self) -> DocStatus:

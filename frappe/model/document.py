@@ -431,6 +431,7 @@ class Document(BaseDocument):
 			self.flags.ignore_mandatory = ignore_mandatory
 
 		self.set("__islocal", True)
+		self._was_new = True
 
 		self._set_defaults()
 		self.set_user_and_timestamp()
@@ -477,6 +478,10 @@ class Document(BaseDocument):
 		# delete __islocal
 		if hasattr(self, "__islocal"):
 			delattr(self, "__islocal")
+			
+		# delete _was_new
+		if hasattr(self, "_was_new"):
+			delattr(self, "_was_new")	
 
 		# clear unsaved flag
 		if hasattr(self, "__unsaved"):
@@ -539,6 +544,7 @@ class Document(BaseDocument):
 		if self.get("__islocal") or not self.get("name"):
 			return self.insert()
 
+		self._was_new = False
 		self.check_if_locked()
 		self._set_defaults()
 		self.check_permission("write", "save")
