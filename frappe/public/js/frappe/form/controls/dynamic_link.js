@@ -7,15 +7,25 @@ frappe.ui.form.ControlDynamicLink = class ControlDynamicLink extends frappe.ui.f
 			//for dialog box
 			options = cur_dialog.get_value(this.df.options);
 		} else if (!cur_frm) {
+			const selector = `input[data-fieldname="${this.df.options}"]`;
+			let input = null;
 			if (cur_list) {
 				// for list page
-				options = cur_list.page.fields_dict[this.df.options].get_input_value();
-			} else if (cur_page) {
-				const selector = `input[data-fieldname="${this.df.options}"]`;
-				let input = $(cur_page.page).find(selector);
-				options = input.length
-					? input.val()
-					: frappe.model.get_value(this.df.parent, this.docname, this.df.options);
+				input = cur_list.filter_area.standard_filters_wrapper.find(selector);
+			}
+			if (cur_page && !input) {
+				input = $(cur_page.page).find(selector);
+			}			
+			if (input) {
+				options = input.val();
+				// Try using Party Type translation map
+				// Map is pre-populated in link.js when party_type field initializes
+				if (options && !frappe.get_meta(options)) {
+					const map = frappe._party_type_translation_map || {};
+					if (map[options]) {
+						options = map[options];
+					}
+				}
 			}
 		} else {
 			options = frappe.model.get_value(this.df.parent, this.docname, this.df.options);

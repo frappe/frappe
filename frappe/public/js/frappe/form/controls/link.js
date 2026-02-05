@@ -353,6 +353,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				me.$input.val("");
 			}
 		});
+		if (this.df.fieldname === "party_type") {
+			setTimeout(() => {
+				// Trigger a search with empty term to get all values and populate the map
+				this.$input.trigger("input");
+			}, 100);
+		}
 	}
 
 	/**
@@ -441,6 +447,24 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			cache: use_get,
 			args: args,
 			callback: async (r) => {
+				if (this.df.fieldname === "party_type" && Array.isArray(r.message)) {
+					frappe._party_type_translation_map = {};
+					r.message.forEach((item) => {
+						const value = item?.value;
+						if (!value) return;
+						// Map the actual displayed text (same logic used by the Link control)
+						const display_text = this.get_translated(item.label || item.value);
+						if (display_text) {
+							frappe._party_type_translation_map[display_text] = value;
+						}
+						// Map description (often module/section translation)
+						if (item?.description) {
+							frappe._party_type_translation_map[item.description] = value;
+						}
+						// Map raw label/value as fallback
+						frappe._party_type_translation_map[item.label || item.value] = value;
+					});
+				}
 				if (!window.Cypress && !this.$input.is(":focus")) {
 					return;
 				}
