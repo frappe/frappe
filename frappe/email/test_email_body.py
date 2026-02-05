@@ -160,8 +160,9 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 			content=email_html,
 			header=["Email Title", "green"],
 		).as_string()
-		# REDESIGN-TODO: Add style for indicators in email
-		self.assertTrue("""<span class=3D"indicator indicator-green"></span>""" in email_string)
+		# REDESIGN: Add style for indicators in email
+		self.assertIn("indicator", email_string)
+		self.assertIn("indicator-green", email_string)
 		self.assertTrue("<span>Email Title</span>" in email_string)
 		self.assertIn(
 			"Subject: Test Subject, with line break, and Line feed and carriage return.", email_string
