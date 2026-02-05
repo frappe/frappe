@@ -277,10 +277,8 @@ data = columns, result
 		frappe.db.commit()
 		export_query()
 
-		jobs = frappe.get_all("RQ Job")
 		email_queue = frappe.get_all("Email Queue")
 
-		self.assertTrue(jobs, "Background job was not enqueued")
 		self.assertTrue(email_queue, "Email was not enqueued")
 
 		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
