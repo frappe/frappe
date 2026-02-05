@@ -6,7 +6,7 @@
 
 	.page-form {
 		.form-group {
-			padding: 0px var(--padding-sm);
+			padding: 0px 16px 0px 0px;
 			margin: var(--margin-sm) 0px;
 		}
 	}
@@ -88,6 +88,10 @@
 	overflow: auto;
 	padding-left: 15px;
 	padding-right: 15px;
+
+	.datatable {
+		border-radius: var(--border-radius);
+	}
 }
 @include media-breakpoint-up(sm) {
 	.report-view {
@@ -231,6 +235,7 @@
 			background: var(--card-bg);
 			border-radius: var(--border-radius-sm, 4px);
 			border: 1px solid var(--dark-border-color);
+			padding: 4px 6px;
 
 			&.green {
 				color: var(--green-500);
@@ -301,9 +306,5 @@
 .check-filter-area {
 	display: flex;
 	flex-wrap: wrap;
-}
-
-.datatable-wrapper {
-	padding-left: var(--padding-md);
-	padding-right: var(--padding-md);
+	width: 100%;
 }

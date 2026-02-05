@@ -395,7 +395,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 
 	if file_format_type == "CSV":
 		content = get_csv_bytes(
-			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in xlsx_data],
+			[[handle_html(v) if isinstance(v, str) else v for v in r] for r in xlsx_data],
 			csv_params,
 		)
 		file_extension = "csv"
@@ -497,10 +497,9 @@ def build_xlsx_data(
 	include_hidden_columns = cint(include_hidden_columns)
 	include_indentation = cint(include_indentation)
 
-	if cint(include_filters):
+	if cint(include_filters) and data.filters:
 		filter_data = []
-		filters = data.filters
-		for filter_name, filter_value in filters.items():
+		for filter_name, filter_value in data.filters.items():
 			if not filter_value:
 				continue
 			filter_value = (

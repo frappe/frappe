@@ -286,11 +286,13 @@ def create_or_update_user(args):  # nosemgrep
 
 	if user := frappe.db.get_value("User", email, ["first_name", "last_name"], as_dict=True):
 		if user.first_name != first_name or user.last_name != last_name:
+			User = frappe.qb.DocType("User")
 			(
-				frappe.qb.update("User")
-				.set("first_name", first_name)
-				.set("last_name", last_name)
-				.set("full_name", args.get("full_name"))
+				frappe.qb.update(User)
+				.set(User.first_name, first_name)
+				.set(User.last_name, last_name)
+				.set(User.full_name, args.get("full_name"))
+				.where(User.name == email)
 			).run()
 	else:
 		_mute_emails, frappe.flags.mute_emails = frappe.flags.mute_emails, True

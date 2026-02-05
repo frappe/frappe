@@ -160,20 +160,21 @@ frappe.router = {
 	},
 
 	async convert_to_standard_route(route) {
-		// /app/settings = ["Workspaces", "Settings"]
-		// /app/private/settings = ["Workspaces", "private", "Settings"]
-		// /app/user = ["List", "User"]
-		// /app/user/view/report = ["List", "User", "Report"]
-		// /app/user/view/tree = ["Tree", "User"]
-		// /app/user/user-001 = ["Form", "User", "user-001"]
-		// /app/user/user-001 = ["Form", "User", "user-001"]
-		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
+		// /desk/settings = ["Workspaces", "Settings"]
+		// /desk/private/settings = ["Workspaces", "private", "Settings"]
+		// /desk/user = ["List", "User"]
+		// /desk/user/view/report = ["List", "User", "Report"]
+		// /desk/user/view/tree = ["Tree", "User"]
+		// /desk/user/user-001 = ["Form", "User", "user-001"]
+		// /desk/user/user-001 = ["Form", "User", "user-001"]
+		// /desk/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
 		if (frappe.workspaces[route[0]]) {
 			// public workspace
 			route = ["Workspaces", frappe.workspaces[route[0]].name];
 		} else if (route[0] == "private") {
 			// private workspace
-			let private_workspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
+			let private_workspace =
+				route[1] && frappe.router.slug(`${route[1]}-${frappe.user.name.toLowerCase()}`);
 			if (!frappe.workspaces[private_workspace]) {
 				frappe.msgprint(
 					__("Workspace <b>{0}</b> does not exist", [
@@ -405,6 +406,11 @@ frappe.router = {
 			route.shift();
 		}
 
+		// Handle cases where "/" is part of the name
+		if (route[0] === "Form" && route.length > 3) {
+			route = [route[0], route[1], route.slice(2).join("/")];
+		}
+
 		return route;
 	},
 
@@ -499,7 +505,7 @@ frappe.router = {
 	 * Changes the URL and calls the router.
 	 *
 	 * @param {string} path - The desired URI path to replace or push,
-	 *    without query string. Example: "/app/todo"
+	 *    without query string. Example: "/desk/todo"
 	 * @param {string} query_params - The desired query parameter string.
 	 * @returns {void}
 	 */
@@ -524,7 +530,7 @@ frappe.router = {
 	},
 
 	strip_prefix(route) {
-		if (route.substr(0, 1) == "/") route = route.substr(1); // for /app/sub
+		if (route.substr(0, 1) == "/") route = route.substr(1); // for /desk/sub
 		if (route == "desk") route = route.substr(4); // for app
 		if (route.startsWith("desk/")) route = route.substr(4); // for desk/sub
 		if (route.substr(0, 1) == "/") route = route.substr(1);

@@ -155,7 +155,7 @@ def close_all_assignments(doctype, name, ignore_permissions=False):
 	assignments = frappe.get_all(
 		"ToDo",
 		fields=["allocated_to", "name"],
-		filters=dict(reference_type=doctype, reference_name=name, status=("!=", "Cancelled")),
+		filters=dict(reference_type=doctype, reference_name=name, status=("not in", ["Cancelled", "Closed"])),
 	)
 	if not assignments:
 		return False

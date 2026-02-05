@@ -1,11 +1,20 @@
-<div class="page-head flex {% if frappe.boot.read_only || frappe.boot.user.impersonated_by %}show-navbar{% endif %}">
+<div class="page-head flex">
 	<div class="container">
 		<div class="row flex-nowrap align-center page-head-content justify-between">
-			<div class="col-md-5 col-sm-6 col-xs-7 page-title">
+			<div class="page-title">
+				<button class="btn-reset sidebar-toggle-btn navbar-brand">
+					<svg class="icon icon-md sidebar-toggle-placeholder">
+						<use href="#icon-menu"></use>
+					</svg>
+					<span class="sidebar-toggle-icon">
+						<svg class="es-icon icon-md">
+							<use href="#es-line-sidebar-collapse">
+							</use>
+						</svg>
+					</span>
+				</button>
 				<div class="flex fill-width title-area ellipsis">
-					{% if (!frappe.is_mobile()) { %}
-						<ul class="nav d-sm-flex navbar-breadcrumbs ellipsis"></ul>
-					{% endif %}
+					<ul class="nav d-sm-flex navbar-breadcrumbs ellipsis {{frappe.is_mobile() ? "mobile-no-divider" : ""}}  "></ul>
 					<button class="btn btn-default more-button hide">
 						<svg class="icon icon-sm">
 							<use href="#icon-dot-horizontal">
@@ -15,40 +24,65 @@
 					<span class="indicator-pill whitespace-nowrap"></span>
 				</div>
 			</div>
-			<div class="flex col page-actions justify-content-end">
-				<!-- buttons -->
-				<div class="filters flex"></div>
-				<div class="custom-actions hide hidden-xs hidden-md"></div>
-				<div class="standard-actions flex">
-					<span class="page-icon-group hide hidden-xs hidden-sm"></span>
-					<div class="menu-btn-group hide">
-						<button type="button" class="btn btn-default icon-btn" data-toggle="dropdown" aria-expanded="false" aria-label="{{ __("Menu") }}">
-							<span>
-								<span class="menu-btn-group-label">
-									<svg class="icon icon-sm">
-										<use href="#icon-dot-horizontal">
+			<div class="align-center flex standard-items-section">
+				{% if frappe.is_mobile() %}
+					<div class="search-bar text-muted hidden">
+						<div
+							class="navbar-modal-search-mobile"
+							placeholder="Search for type a command"
+						>
+							<span class="search-icon">
+								<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
+							</span>
+						</div>
+					</div>
+				{% endif %}
+				<div class="flex col page-actions justify-content-end {% if frappe.is_mobile() %} pl-0 {% endif %}">
+					<!-- buttons -->
+					{% if (frappe.boot.read_only) { %}
+					<span class="mr-3 indicator-pill yellow no-indicator-dot read-only-banner" title="{%= __(" Your site is undergoing
+						maintenance or being updated.") %}">
+						{%= __("Read Only Mode") %}
+					</span>
+					{% } %}
+					{% if (frappe.boot.user.impersonated_by) { %}
+					<span class="mr-3 indicator-pill red no-indicator-dot" title="{%= __(" You are impersonating as another user.") %}">
+						{%= __("Impersonating {0}", [frappe.boot.user.name]) %}
+					</span>
+					{% } %}
+					<div class="filters flex"></div>
+					<div class="custom-actions hide hidden-xs hidden-md"></div>
+					<div class="standard-actions flex">
+						<span class="page-icon-group hide hidden-xs hidden-sm"></span>
+						<div class="menu-btn-group hide">
+							<button type="button" class="btn btn-default icon-btn menu-more-button" data-toggle="dropdown" aria-expanded="false" aria-label="{{ __("Menu") }}">
+								<span>
+									<span class="menu-btn-group-label">
+										<svg class="icon icon-sm">
+											<use href="#icon-dot-horizontal">
+											</use>
+										</svg>
+									</span>
+								</span>
+							</button>
+							<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
+						</div>
+						<button class="btn btn-secondary btn-default btn-sm hide"></button>
+						<div class="actions-btn-group hide">
+							<button type="button" class="btn btn-primary btn-sm justify-center" data-toggle="dropdown" aria-expanded="false">
+								<span>
+									<span class="hidden-xs actions-btn-group-label">{%= __("Actions") %}</span>
+									<svg class="icon icon-xs">
+										<use href="#icon-select">
 										</use>
 									</svg>
 								</span>
-							</span>
-						</button>
-						<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
+							</button>
+							<ul class="dropdown-menu dropdown-menu-right" role="menu">
+							</ul>
+						</div>
+						<button class="btn btn-primary btn-sm hide primary-action"></button>
 					</div>
-					<button class="btn btn-secondary btn-default btn-sm hide"></button>
-					<div class="actions-btn-group hide">
-						<button type="button" class="btn btn-primary btn-sm justify-center" data-toggle="dropdown" aria-expanded="false">
-							<span>
-								<span class="hidden-xs actions-btn-group-label">{%= __("Actions") %}</span>
-								<svg class="icon icon-xs">
-									<use href="#icon-select">
-									</use>
-								</svg>
-							</span>
-						</button>
-						<ul class="dropdown-menu dropdown-menu-right" role="menu">
-						</ul>
-					</div>
-					<button class="btn btn-primary btn-sm hide primary-action"></button>
 				</div>
 			</div>
 		</div>

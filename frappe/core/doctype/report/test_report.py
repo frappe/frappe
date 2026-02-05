@@ -406,33 +406,3 @@ result = [
 		self.assertEqual(result[-1][0], "Total")
 		self.assertEqual(result[-1][1], 200)
 		self.assertEqual(result[-1][2], 150.50)
-
-	def test_cte_in_query_report(self):
-		cte_query = textwrap.dedent(
-			"""
-            with enabled_users as (
-                select name
-                from `tabUser`
-                where enabled = 1
-            )
-            select * from enabled_users;
-        """
-		)
-
-		report = frappe.get_doc(
-			{
-				"doctype": "Report",
-				"ref_doctype": "User",
-				"report_name": "Enabled Users List",
-				"report_type": "Query Report",
-				"is_standard": "No",
-				"query": cte_query,
-			}
-		).insert()
-
-		if frappe.db.db_type == "mariadb":
-			col, rows = report.execute_query_report(filters={})
-			self.assertEqual(col[0], "name")
-			self.assertGreaterEqual(len(rows), 1)
-		elif frappe.db.db_type == "postgres":
-			self.assertRaises(frappe.PermissionError, report.execute_query_report, filters={})

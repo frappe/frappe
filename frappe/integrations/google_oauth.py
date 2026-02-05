@@ -49,7 +49,7 @@ class GoogleOAuth:
 			self.validate_google_settings()
 
 	def validate_google_settings(self):
-		google_settings = "<a href='/app/google-settings'>Google Settings</a>"
+		google_settings = "<a href='/desk/google-settings'>Google Settings</a>"
 
 		if not self.google_settings.enable:
 			frappe.throw(frappe._("Please enable {} before continuing.").format(google_settings))

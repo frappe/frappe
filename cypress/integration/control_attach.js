@@ -118,7 +118,7 @@ context("Attach Control", () => {
 		//Navigating to the new form for the newly created doctype
 		let doctype = "Test Attach Control";
 		let dt_in_route = doctype.toLowerCase().replace(/ /g, "-");
-		cy.visit(`/app/${dt_in_route}/new`, {
+		cy.visit(`/desk/${dt_in_route}/new`, {
 			onBeforeLoad(win) {
 				// Mock "window.navigator.mediaDevices" property
 				// to return mock mediaDevices object
@@ -144,7 +144,7 @@ context("Attach Control", () => {
 		//Navigating to the new form for the newly created doctype
 		let doctype = "Test Attach Control";
 		let dt_in_route = doctype.toLowerCase().replace(/ /g, "-");
-		cy.visit(`/app/${dt_in_route}/new`, {
+		cy.visit(`/desk/${dt_in_route}/new`, {
 			onBeforeLoad(win) {
 				// Delete "window.navigator.mediaDevices" property
 				delete win.navigator.mediaDevices;

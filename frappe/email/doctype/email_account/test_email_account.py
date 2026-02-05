@@ -132,7 +132,7 @@ class TestEmailAccount(IntegrationTestCase):
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
-		self.assertTrue("From: &quot;Microsoft Outlook&quot; &lt;test_sender@example.com&gt;" in comm.content)
+		self.assertTrue('From: "Microsoft Outlook" &lt;test_sender@example.com&gt;' in comm.content)
 		self.assertTrue(
 			"This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content
 		)
@@ -153,7 +153,7 @@ class TestEmailAccount(IntegrationTestCase):
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
-		self.assertTrue("From: &quot;Microsoft Outlook&quot; &lt;test_sender@example.com&gt;" in comm.content)
+		self.assertTrue('From: "Microsoft Outlook" &lt;test_sender@example.com&gt;' in comm.content)
 		self.assertTrue(
 			"This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content
 		)
@@ -183,8 +183,9 @@ class TestEmailAccount(IntegrationTestCase):
 			recipients="test_recipient@example.com",
 			content="test mail 001",
 			subject="test-mail-001",
-			delayed=False,
+			now=True,
 		)
+		frappe.db.commit()  # now=True requires commit
 
 		sent_mail = email.message_from_string(frappe.safe_decode(frappe.flags.sent_mail))
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))

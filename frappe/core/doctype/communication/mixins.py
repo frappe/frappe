@@ -258,6 +258,8 @@ class CommunicationEmailMixin:
 		print_letterhead=None,
 		is_inbound_mail_communcation=None,
 		print_language=None,
+		raw_html=False,
+		add_css=True,
 	) -> dict:
 		outgoing_email_account = self.get_outgoing_email_account()
 		if not outgoing_email_account:
@@ -307,6 +309,8 @@ class CommunicationEmailMixin:
 			"is_notification": (self.sent_or_received == "Received"),
 			"print_letterhead": print_letterhead,
 			"send_after": self.send_after,
+			"raw_html": raw_html,
+			"add_css": add_css,
 		}
 
 	def send_email(
@@ -318,6 +322,8 @@ class CommunicationEmailMixin:
 		is_inbound_mail_communcation=None,
 		print_language=None,
 		now=False,
+		raw_html=False,
+		add_css=True,
 	):
 		if input_dict := self.sendmail_input_dict(
 			print_html=print_html,
@@ -326,5 +332,7 @@ class CommunicationEmailMixin:
 			print_letterhead=print_letterhead,
 			is_inbound_mail_communcation=is_inbound_mail_communcation,
 			print_language=print_language,
+			raw_html=raw_html,
+			add_css=add_css,
 		):
 			frappe.sendmail(now=now, **input_dict)

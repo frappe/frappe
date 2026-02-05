@@ -42,6 +42,7 @@ class UserPermissions:
 		self.can_print = []
 		self.can_email = []
 		self.allow_modules = []
+		self.permitted_modules = []
 		self.in_create = []
 		self.setup_user()
 
@@ -143,7 +144,8 @@ class UserPermissions:
 						no_list_view_link.append(dt)
 					else:
 						self.can_read.append(dt)
-
+						if dtp["module"] not in self.permitted_modules:
+							self.permitted_modules.append(dtp["module"])
 			if p.get("submit"):
 				self.can_submit.append(dt)
 
@@ -269,6 +271,7 @@ class UserPermissions:
 			"can_import",
 			"can_print",
 			"can_email",
+			"permitted_modules",
 		):
 			d[key] = list(set(getattr(self, key)))
 
@@ -441,3 +444,21 @@ def get_users_with_role(role: str) -> list[str]:
 		.distinct()
 		.run(pluck=True)
 	)
+
+
+def is_portal_user():
+	from frappe.utils import has_common
+
+	roles = get_portal_roles()
+	user_type = frappe.session.data.user_type
+	if user_type == "Website User" and has_common(frappe.get_roles(), roles):
+		return True
+
+
+def get_portal_roles():
+	roles = []
+	for menu_item in frappe.get_single("Portal Settings").menu:
+		if menu_item.role and menu_item.role not in roles:
+			roles.append(menu_item.role)
+
+	return roles

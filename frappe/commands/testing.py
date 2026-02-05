@@ -465,7 +465,13 @@ def run_ui_tests(
 
 	os.chdir(app_base_path)
 
-	node_bin = subprocess.getoutput("(cd ../frappe && yarn bin)")
+	node_bin = subprocess.run(
+		"(cd ../frappe && yarn bin)",
+		shell=True,
+		stdout=subprocess.PIPE,
+		stderr=subprocess.DEVNULL,
+		text=True,
+	).stdout.strip()
 	cypress_path = f"{node_bin}/cypress"
 	drag_drop_plugin_path = f"{node_bin}/../@4tw/cypress-drag-drop"
 	real_events_plugin_path = f"{node_bin}/../cypress-real-events"

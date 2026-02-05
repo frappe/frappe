@@ -426,11 +426,10 @@
    "fieldtype": "Column Break"
   }
  ],
- "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2025-12-11 16:29:35.806107",
+ "modified": "2025-12-12 16:29:35.806107",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

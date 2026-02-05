@@ -25,7 +25,7 @@ context("Grid Row Form Tabs", () => {
 
 		// Add a row to the child table
 		cy.get('.frappe-control[data-fieldname="items"]').as("table");
-		cy.get("@table").findByRole("button", { name: "Add Row" }).click();
+		cy.get("@table").findByRole("button", { name: "Add row" }).click();
 
 		// Open the grid row form
 		cy.get("@table").find('[data-idx="1"]').as("row1");
@@ -48,7 +48,7 @@ context("Grid Row Form Tabs", () => {
 
 		// Add a row to the child table
 		cy.get('.frappe-control[data-fieldname="items"]').as("table");
-		cy.get("@table").findByRole("button", { name: "Add Row" }).click();
+		cy.get("@table").findByRole("button", { name: "Add row" }).click();
 
 		// Open the grid row form
 		cy.get("@table").find('[data-idx="1"]').as("row1");
@@ -88,8 +88,8 @@ context("Grid Row Form Tabs", () => {
 
 		// Add two rows to the child table
 		cy.get('.frappe-control[data-fieldname="items"]').as("table");
-		cy.get("@table").findByRole("button", { name: "Add Row" }).click();
-		cy.get("@table").findByRole("button", { name: "Add Row" }).click();
+		cy.get("@table").findByRole("button", { name: "Add row" }).click();
+		cy.get("@table").findByRole("button", { name: "Add row" }).click();
 
 		// Open first row and switch to Details tab
 		cy.get("@table").find('[data-idx="1"]').as("row1");
@@ -118,7 +118,7 @@ context("Grid Row Form Tabs", () => {
 
 		// Add a row to the child table
 		cy.get('.frappe-control[data-fieldname="items"]').as("table");
-		cy.get("@table").findByRole("button", { name: "Add Row" }).click();
+		cy.get("@table").findByRole("button", { name: "Add row" }).click();
 
 		// Open the grid row form
 		cy.get("@table").find('[data-idx="1"]').as("row1");

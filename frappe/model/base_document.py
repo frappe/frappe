@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+import keyword
+import re
 import weakref
 from types import MappingProxyType
 from typing import TYPE_CHECKING, TypeVar
@@ -800,7 +802,21 @@ class BaseDocument:
 				),
 				[*list(d.values()), name],
 			)
+
 		except Exception as e:
+			if frappe.db.is_data_too_long(e):
+				column = re.search(r"column\s+'([^']+)'", e.args[1])
+				if column:
+					label = self.get_label_from_fieldname(column.group(1))
+
+					# data too long for column
+					frappe.throw(
+						_(
+							"The value of the field {0} is too long in the {1} document. To resolve this issue, please reduce the value length or change the {0} field Type to Long Text using customize form, and then try again."
+						).format(frappe.bold(label), frappe.bold(self.doctype)),
+						title=_("Value Too Long"),
+					)
+
 			if frappe.db.is_unique_key_violation(e):
 				self.show_unique_validation_message(e)
 			else:
@@ -962,9 +978,7 @@ class BaseDocument:
 			if not docname:
 				continue
 
-			assert isinstance(docname, str | int) or (
-				isinstance(docname, list | tuple | set) and len(docname) == 1
-			), f"Unexpected value for field {df.fieldname}: {docname}"
+			assert isinstance(docname, str | int), f"Unexpected value for field {df.fieldname}: {docname}"
 
 			if df.fieldtype == "Link":
 				doctype = df.options
@@ -1390,7 +1404,10 @@ class BaseDocument:
 		):
 			currency = frappe.db.get_value("Currency", currency_value, cache=True)
 
-		val = self.get(fieldname)
+		if fieldname and (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
+			val = getattr(self, fieldname)
+		else:
+			val = self.get(fieldname)
 
 		if translated:
 			val = _(val)

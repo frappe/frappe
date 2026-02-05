@@ -16,7 +16,7 @@
     "url": "https://github.com/frappe/frappe/issues"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=24"
   },
   "homepage": "https://frappeframework.com",
   "dependencies": {

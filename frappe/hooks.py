@@ -8,7 +8,7 @@ app_publisher = "Frappe Technologies"
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 app_license = "MIT"
 app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
-develop_version = "15.x.x-develop"
+develop_version = "17.x.x-develop"
 app_home = "/app/build"
 
 app_email = "developers@frappe.io"
@@ -38,9 +38,10 @@ app_include_css = [
 	"report.bundle.css",
 ]
 app_include_icons = [
-	"/assets/frappe/icons/icons.svg",
+	"/assets/frappe/icons/lucide/icons.svg",
 	"/assets/frappe/icons/timeless/icons.svg",
 	"/assets/frappe/icons/espresso/icons.svg",
+	"/assets/frappe/icons/desktop_icons/alphabets.svg",
 ]
 
 doctype_js = {
@@ -51,6 +52,7 @@ doctype_js = {
 web_include_js = ["website_script.js"]
 web_include_css = []
 web_include_icons = [
+	"/assets/frappe/icons/lucide/icons.svg",
 	"/assets/frappe/icons/timeless/icons.svg",
 	"/assets/frappe/icons/espresso/icons.svg",
 ]
@@ -215,7 +217,7 @@ scheduler_events = {
 			"frappe.automation.doctype.reminder.reminder.send_reminders",
 			"frappe.model.utils.link_count.update_link_count",
 			"frappe.search.sqlite_search.build_index_if_not_exists",
-			"frappe.pulse.client.send_queued_events",
+			"frappe.utils.telemetry.pulse.client.send_queued_events",
 		],
 		# 10 minutes
 		"0/10 * * * *": [
@@ -474,53 +476,6 @@ standard_navbar_items = [
 		"is_standard": 1,
 	},
 	{
-		"item_label": "Workspace Settings",
-		"item_type": "Action",
-		"action": "frappe.quick_edit('Workspace Settings')",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Session Defaults",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.setup_session_defaults()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Reload",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.clear_cache()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "View Website",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.view_website()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Apps",
-		"item_type": "Route",
-		"route": "/apps",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Toggle Full Width",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.toggle_full_width()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Toggle Theme",
-		"item_type": "Action",
-		"action": "new frappe.ui.ThemeSwitcher().show()",
-		"is_standard": 1,
-	},
-	{
-		"item_type": "Separator",
-		"is_standard": 1,
-		"item_label": "",
-	},
-	{
 		"item_label": "Log out",
 		"item_type": "Action",
 		"action": "frappe.app.logout()",
@@ -544,7 +499,7 @@ standard_help_items = [
 	{
 		"item_label": "System Health",
 		"item_type": "Route",
-		"route": "/app/system-health-report",
+		"route": "/desk/system-health-report",
 		"is_standard": 1,
 	},
 	{

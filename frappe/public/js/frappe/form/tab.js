@@ -1,3 +1,9 @@
+const ICON_MAP = {
+	"More Info": "info",
+	Dashboard: "layout-dashboard",
+	Details: "notepad-text",
+	Connections: "waypoints",
+};
 export default class Tab {
 	constructor(layout, df, frm, tab_link_container, tabs_content) {
 		this.layout = layout;

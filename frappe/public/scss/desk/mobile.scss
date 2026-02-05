@@ -74,7 +74,7 @@ body {
 
 		@media (max-width: 480px) {
 			li > a {
-				width: 100px;
+				// width: 100px;
 			}
 		}
 	}
@@ -127,6 +127,12 @@ body {
 
 	.sidebar .user-menu img {
 		margin-top: -1px;
+	}
+
+	body[data-route^="Form"] {
+		.page-title {
+			padding-right: 0px;
+		}
 	}
 }
 
@@ -309,6 +315,35 @@ body {
 		}
 		.asset-details {
 			line-height: 24px; /*Height of avtar image -36px to align text center vertically*/
+		}
+	}
+}
+
+@media (max-width: 480px) {
+	body[data-route^="Form"] {
+		.navbar-breadcrumbs {
+			max-width: 165px;
+		}
+		.page-title {
+			width: 100%;
+			.title-area {
+				.indicator-pill {
+					margin-left: 5px;
+				}
+				.mobile-no-divider li a {
+					line-height: 20px;
+				}
+			}
+		}
+		.page-actions {
+			.standard-actions {
+				.menu-btn-group .menu-more-button {
+					margin-left: 0;
+				}
+			}
+		}
+		.standard-items-section .search-bar {
+			margin-right: 10px;
 		}
 	}
 }

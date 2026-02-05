@@ -11,8 +11,8 @@ import frappe
 from frappe import _
 from frappe.modules.utils import get_doctype_app_map
 from frappe.monitor import add_data_to_monitor
-from frappe.pulse.app_heartbeat_event import capture_app_heartbeat
 from frappe.utils.response import build_response
+from frappe.utils.telemetry.pulse.app_heartbeat_event import capture_app_heartbeat
 
 
 class ApiVersion(str, Enum):

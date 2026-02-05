@@ -12,8 +12,9 @@ body {
 .checkbox {
 	label {
 		display: inline-flex;
-		align-items: center;
+		align-items: start;
 		margin-bottom: 0;
+		padding-top: 2.5px;
 	}
 	--checkbox-right-margin: 8px;
 
@@ -25,14 +26,8 @@ body {
 	.input-area,
 	.disp-area {
 		display: flex;
-	}
-
-	.input-area {
-		padding-top: 2.5px;
-
-		@media (max-width: map-get($grid-breakpoints, "lg")) {
-			padding-top: 1px;
-		}
+		align-items: center;
+		height: 20px;
 	}
 
 	.help-box {
@@ -76,6 +71,8 @@ body {
 		-moz-appearance: none;
 		/* for Chrome */
 		-webkit-appearance: none;
+
+		padding-right: 28px;
 	}
 
 	.select-icon {

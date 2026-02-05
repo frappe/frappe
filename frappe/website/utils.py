@@ -20,6 +20,7 @@ from frappe.utils import (
 	get_system_timezone,
 	md_to_html,
 )
+from frappe.utils.user import is_portal_user
 
 FRONTMATTER_PATTERN = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M)
 H1_TAG_PATTERN = re.compile("<h1>([^<]*)")
@@ -124,9 +125,10 @@ def get_home_page():
 			home_page = "login" if frappe.session.user == "Guest" else "me"
 
 		home_page = home_page.strip("/")
-
 		if home_page == "me" and frappe.session.data.user_type == "System User":
 			home_page = "desk"
+		if home_page == "me" and is_portal_user():
+			home_page = "portal"
 		return home_page
 
 	if frappe._dev_server:

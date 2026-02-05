@@ -42,7 +42,6 @@ def get_monthly_results(
 				Function(aggregation, goal_field),
 			],
 			filters=filters,
-			validate_filters=True,
 			ignore_permissions=False,
 		)
 		.groupby("month_year")

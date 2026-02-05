@@ -4,7 +4,7 @@
 	border-bottom: 1px solid var(--border-color);
 	padding: 0;
 	.navbar-brand {
-		margin-right: 15px;
+		margin-right: 0px;
 	}
 
 	@include media-breakpoint-up(md) {
@@ -50,7 +50,7 @@
 .search-bar {
 	max-width: 300px;
 	svg {
-		stroke: var(--text-light);
+		stroke: var(--icon-stroke);
 		margin-bottom: 2px;
 	}
 	.awesomplete {
@@ -80,7 +80,7 @@
 	}
 	.search-icon {
 		background-color: var(--control-bg);
-		border-radius: 16px;
+		border-radius: 8px;
 		padding: 6px;
 	}
 }
@@ -115,12 +115,13 @@
 		background-color: var(--border-color);
 		position: absolute;
 		top: 40px;
+		left: 0px;
 		border-radius: 50%;
 	}
 }
 
 .cool-awesomebar-modal-footer {
-	padding: 10px 18px !important;
+	padding: 10px !important;
 }
 
 .awesomebar-modal-footer {

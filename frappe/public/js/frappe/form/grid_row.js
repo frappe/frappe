@@ -1,5 +1,11 @@
 import GridRowForm from "./grid_row_form";
 
+const DEPENDENCY_PROPERTIES = [
+	{ expr: "depends_on", prop: "hidden_due_to_dependency", negate: true },
+	{ expr: "mandatory_depends_on", prop: "reqd", negate: false },
+	{ expr: "read_only_depends_on", prop: "read_only", negate: false },
+];
+
 export default class GridRow {
 	constructor(opts) {
 		this.on_grid_fields_dict = {};
@@ -8,10 +14,6 @@ export default class GridRow {
 		this.set_docfields();
 		this.columns = {};
 		this.columns_list = [];
-		this.dependent_fields = {
-			mandatory: [],
-			read_only: [],
-		};
 		this.row_check_html = '<input type="checkbox" class="grid-row-check" tabIndex="-1">';
 		this.default_rows_threshold_for_grid_search = 20;
 		this.make();
@@ -387,7 +389,7 @@ export default class GridRow {
 		if (this.configure_columns && this.frm) {
 			this.configure_columns_button = $(`
 				<div class="col grid-static-col pointer">
-					<a>${frappe.utils.icon("setting-gear", "sm", "", "filter: opacity(0.5)")}</a>
+					<a>${frappe.utils.icon("settings", "sm", "", "filter: opacity(0.5)")}</a>
 				</div>
 			`)
 				.appendTo(this.row)
@@ -605,7 +607,7 @@ export default class GridRow {
 							</div>
 							<div class='col-1' style='padding-top: 3px;'>
 								<a class='text-muted remove-field' data-fieldname='${docfield.fieldname}'>
-									<i class='fa fa-trash-o' aria-hidden='true'></i>
+									${frappe.utils.icon("trash", "xs")}
 								</a>
 							</div>
 						</div>
@@ -796,35 +798,32 @@ export default class GridRow {
 	}
 
 	set_dependant_property(df) {
-		if (
-			!df.reqd &&
-			df.mandatory_depends_on &&
-			this.evaluate_depends_on_value(df.mandatory_depends_on)
-		) {
-			df.reqd = 1;
-			this.dependent_fields["mandatory"].push(df);
+		let changed = false;
+
+		for (const { expr, prop, negate } of DEPENDENCY_PROPERTIES) {
+			if (df[expr]) {
+				const result = this.evaluate_depends_on_value(df[expr]);
+				const new_value = (negate ? !result : result) ? 1 : 0;
+				changed ||= df[prop] !== new_value;
+				df[prop] = new_value;
+			}
 		}
 
-		if (
-			!df.read_only &&
-			df.read_only_depends_on &&
-			this.evaluate_depends_on_value(df.read_only_depends_on)
-		) {
-			df.read_only = 1;
-			this.dependent_fields["read_only"].push(df);
-		}
+		return changed;
 	}
 
 	refresh_dependency() {
-		this.dependent_fields["read_only"].forEach((df) => {
-			df.read_only = 0;
-			this.set_dependant_property(df);
-		});
-		this.dependent_fields["mandatory"].forEach((df) => {
-			df.reqd = 0;
-			this.set_dependant_property(df);
-		});
-		this.refresh();
+		// re-evaluate dependency expressions of visible columns
+		// refresh if some property changed
+		let changed = false;
+		for (const { df } of this.columns_list) {
+			if (DEPENDENCY_PROPERTIES.some((d) => df[d.expr])) {
+				changed ||= this.set_dependant_property(df);
+			}
+		}
+		if (changed) {
+			this.refresh();
+		}
 	}
 
 	evaluate_depends_on_value(expression) {
@@ -1211,13 +1210,22 @@ export default class GridRow {
 		// sync get_query
 		field.get_query = this.grid.get_field(df.fieldname).get_query;
 		// df.onchange is common for all rows in grid
-		let field_on_change_function = df.onchange;
-		field.df.change = (e) => {
-			this.refresh_dependency();
-			// trigger onchange with current grid row field as "this"
-			field_on_change_function && field_on_change_function.apply(field, [e]);
-			me.refresh_field(field.df.fieldname);
-		};
+		let field_onchange_function = df.onchange;
+		let field_change_function = df.change;
+
+		if (!field.df.change) {
+			field.df.change = (e) => {
+				this.refresh_dependency();
+				// trigger onchange with current grid row field as "this"
+				if (field_onchange_function) {
+					field_onchange_function.apply(field, [e]);
+				} else if (field_change_function) {
+					field_change_function.apply(field, [e]);
+				}
+
+				me.refresh_field(field.df.fieldname);
+			};
+		}
 
 		field.refresh();
 		if (field.$input) {

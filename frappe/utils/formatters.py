@@ -36,18 +36,19 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 
 	if not df:
 		df = frappe._dict()
-		if isinstance(value, datetime.datetime):
-			df.fieldtype = "Datetime"
-		elif isinstance(value, datetime.date):
-			df.fieldtype = "Date"
-		elif isinstance(value, datetime.timedelta):
-			df.fieldtype = "Time"
-		elif isinstance(value, int):
-			df.fieldtype = "Int"
-		elif isinstance(value, float):
-			df.fieldtype = "Float"
-		else:
-			df.fieldtype = "Data"
+		match value:
+			case datetime.datetime():
+				df.fieldtype = "Datetime"
+			case datetime.date():
+				df.fieldtype = "Date"
+			case datetime.timedelta():
+				df.fieldtype = "Time"
+			case int():
+				df.fieldtype = "Int"
+			case float():
+				df.fieldtype = "Float"
+			case _:
+				df.fieldtype = "Data"
 
 	elif isinstance(df, dict):
 		# Convert dict to object if necessary

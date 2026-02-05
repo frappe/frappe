@@ -60,7 +60,7 @@ export default class GridRowForm {
 						<button class="btn btn-secondary btn-sm pull-right grid-insert-row-below hidden-xs">
 							${__("Insert Below")}</button>
 						<button class="btn btn-danger btn-sm pull-right grid-delete-row">
-							${frappe.utils.icon("delete")}
+							${frappe.utils.icon("trash-2")} ${__("Delete")}
 						</button>
 					</span>
 				</div>

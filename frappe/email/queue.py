@@ -147,7 +147,7 @@ def flush():
 	failed_email_queues = []
 	for row in email_queue_batch:
 		try:
-			email_queue: EmailQueue = frappe.get_doc("Email Queue", row.name)
+			email_queue: EmailQueue = frappe.get_doc("Email Queue", row.name, for_update=True)
 			email_queue.send()
 		except Exception:
 			frappe.get_doc("Email Queue", row.name).log_error()

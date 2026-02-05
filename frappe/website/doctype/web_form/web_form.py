@@ -377,7 +377,7 @@ def get_context(context):
 					"No Data",
 					"Delete",
 					"Delete All",
-					"Add Row",
+					"Add row",
 					"Add Multiple",
 					"Download",
 					"of",

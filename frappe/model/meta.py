@@ -498,8 +498,13 @@ class Meta(Document):
 			return
 
 		if frappe.db.estimate_count(self.name) > LARGE_TABLE_SIZE_THRESHOLD:
-			recent_change = frappe.db.get_value(self.name, {}, "creation", order_by="creation desc")
-			if get_datetime(recent_change) > add_to_date(None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD):
+			# Raw SQL to prevent querying meta when already in meta
+			recent_change = frappe.db.sql(
+				f"SELECT `creation` FROM `tab{self.name}` ORDER BY `creation` DESC LIMIT 1"
+			)  # nosemgrep
+			if recent_change and get_datetime(recent_change[0][0]) > add_to_date(
+				None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD
+			):
 				self.is_large_table = True
 
 	@cached_property
@@ -700,7 +705,7 @@ class Meta(Document):
 		)
 
 		if 0 not in permlevel_access and permission_type in ("read", "select"):
-			if frappe.share.get_shared(self.name, user, rights=[permission_type], limit=1):
+			if frappe.share.get_shared(self.name, user, rights=["read"], limit=1):
 				permlevel_access.add(0)
 
 		permitted_fieldnames.extend(

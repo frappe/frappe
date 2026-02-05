@@ -12,6 +12,9 @@ context("Dashboard Chart", () => {
 		cy.fill_field("chart_name", "Test Chart", "Data");
 		cy.fill_field("document_type", "Workspace Link", "Link");
 
+		// wait for link field events to complete
+		cy.wait(1000);
+
 		cy.get('[data-fieldname="filters_json"]').click();
 		cy.get(".modal-dialog", { timeout: 500 }).should("be.visible");
 

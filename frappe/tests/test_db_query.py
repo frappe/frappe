@@ -1298,6 +1298,20 @@ class TestReportView(IntegrationTestCase):
 		user.remove_roles("Blogger", "Website Manager")
 		user.add_roles(*user_roles)
 
+	def test_reportview_child_table_alias(self):
+		from frappe.desk import reportview
+
+		frappe.local.form_dict = frappe._dict(
+			{
+				"doctype": "DocType",
+				"fields": ["name", "`tabDocField`.`fieldname` as 'DocField:fieldname'"],
+				"limit": 1,
+			}
+		)
+		response = reportview.get()
+		self.assertIn("DocField:fieldname", response["keys"])
+		self.assertNotIn("'DocField:fieldname'", response["keys"])
+
 	def test_reportview_get_aggregation(self):
 		# test aggregation based on child table field
 		frappe.local.request = frappe._dict()

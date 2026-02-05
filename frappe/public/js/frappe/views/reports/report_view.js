@@ -77,12 +77,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		super.setup_page();
 	}
 
-	toggle_side_bar() {
-		super.toggle_side_bar();
-		// refresh datatable when sidebar is toggled to accomodate extra space
-		this.render(true);
-	}
-
 	setup_result_area() {
 		super.setup_result_area();
 		this.setup_charts_area();
@@ -1027,7 +1021,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			columns: 2,
 			options: columns[this.doctype]
 				.filter((df) => {
-					return !df.hidden && df.fieldname !== "name";
+					return !df.hidden && df.fieldname !== "name" && !df.is_virtual;
 				})
 				.map((df) => ({
 					label: __(df.label, null, df.parent),
@@ -1304,7 +1298,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					this.remove_column_from_datatable(col);
 				}
 			} else if (col.field in d) {
-				const value = d[col.field];
+				let rendered_value = d[col.field];
+				if (col.docfield.fieldtype == "Data") {
+					rendered_value = frappe.utils.escape_html(rendered_value);
+				}
+				const value = rendered_value;
 				return {
 					name: d.name,
 					doctype: col.docfield.parent,
@@ -1537,6 +1535,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			},
 			{
 				label: __("Print"),
+				condition: () => frappe.model.can_print(this.doctype),
 				action: () => {
 					// prepare rows in their current state, sorted and filtered
 					const rows_in_order = this.datatable.datamanager.rowViewOrder
@@ -1571,11 +1570,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			{
 				label: __("Toggle Chart"),
 				action: () => this.toggle_charts(),
-			},
-			{
-				label: __("Toggle Sidebar"),
-				action: () => this.toggle_side_bar(),
-				shortcut: "Ctrl+K",
 			},
 			{
 				label: __("Pick Columns"),

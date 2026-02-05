@@ -522,7 +522,6 @@ class SQLiteSearch(ABC):
                 ORDER BY bm25_score
                 LIMIT ?
             """
-			print(sql)
 			return self.sql(sql, params, read_only=True)
 
 	def _process_search_results(self, raw_results, query):
@@ -962,6 +961,7 @@ class SQLiteSearch(ABC):
 
 			for i in range(0, len(documents), chunk_size):
 				chunk = documents[i : i + chunk_size]
+				doc_ids_to_delete = []
 				values_to_insert = []
 
 				for doc in chunk:
@@ -984,6 +984,7 @@ class SQLiteSearch(ABC):
 
 					# Build values tuple dynamically based on schema
 					values = []
+					doc_id = None
 					for field in all_fields:
 						# Build doc_id automatically from doctype:name
 						if field == "doc_id":
@@ -992,7 +993,14 @@ class SQLiteSearch(ABC):
 						else:
 							values.append(doc.get(field, ""))
 
+					doc_ids_to_delete.append(doc_id)
 					values_to_insert.append(tuple(values))
+
+				# Delete existing rows for these doc_ids first using a single statement
+				if doc_ids_to_delete:
+					placeholders_for_delete = ",".join(["?" for _ in doc_ids_to_delete])
+					delete_sql = f"DELETE FROM search_fts WHERE doc_id IN ({placeholders_for_delete})"
+					cursor.execute(delete_sql, doc_ids_to_delete)
 
 				# Insert the chunk
 				if values_to_insert:

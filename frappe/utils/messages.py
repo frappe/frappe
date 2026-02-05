@@ -1,5 +1,6 @@
 import functools
 import sys
+from collections.abc import Sequence
 from typing import Literal
 
 import frappe
@@ -11,7 +12,7 @@ _strip_html_tags = functools.lru_cache(maxsize=1024)(strip_html_tags)
 
 
 def msgprint(
-	msg: str,
+	msg: str | Sequence[str] | Sequence[Sequence[str]],
 	title: str | None = None,
 	raise_exception: bool | type[Exception] | Exception = False,
 	as_table: bool = False,
@@ -60,20 +61,22 @@ def msgprint(
 		_raise_exception()
 		return
 
-	if as_table and type(msg) in (list, tuple):
-		out.as_table = 1
-
-	if as_list and type(msg) in (list, tuple):
-		out.as_list = 1
+	if isinstance(msg, Sequence):
+		if as_list:
+			out.as_list = as_list
+		else:
+			out.as_table = as_table
 
 	if sys.stdin and sys.stdin.isatty():
 		if out.as_list:
-			msg = [_strip_html_tags(msg) for msg in out.message]
+			msg = [_strip_html_tags(cell) for cell in msg]
+		elif out.as_table:
+			msg = [[_strip_html_tags(cell) for cell in row] for row in msg]
 		else:
-			msg = _strip_html_tags(out.message)
+			msg = _strip_html_tags(msg)
 
 	if frappe.flags.print_messages and out.message:
-		print(f"Message: {_strip_html_tags(out.message)}")
+		print(f"Message: {msg}")
 
 	out.title = title or _("Message", context="Default title of the message dialog")
 
@@ -124,7 +127,7 @@ def clear_last_message():
 
 
 def throw(
-	msg: str,
+	msg: str | Sequence[str],
 	exc: type[Exception] | Exception = frappe.ValidationError,
 	title: str | None = None,
 	is_minimizable: bool = False,

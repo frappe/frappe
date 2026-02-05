@@ -35,11 +35,11 @@ frappe.form.formatters = {
 	},
 	Data: function (value, df) {
 		if (df && df.options == "URL") {
-			if (!value) return;
+			if (!value) return "";
 			return `<a href="${value}" title="Open Link" target="_blank">${value}</a>`;
 		}
 		if (df && df.options == "IBAN") {
-			if (!value) return;
+			if (!value) return "";
 			return frappe.utils.get_formatted_iban(value);
 		}
 		value = value == null ? "" : value;
@@ -202,7 +202,7 @@ frappe.form.formatters = {
 		} else if (docfield && doctype) {
 			if (frappe.model.can_read(doctype)) {
 				const a = document.createElement("a");
-				a.href = `/app/${encodeURIComponent(
+				a.href = `/desk/${encodeURIComponent(
 					frappe.router.slug(doctype)
 				)}/${encodeURIComponent(original_value)}`;
 				a.dataset.doctype = doctype;
@@ -418,7 +418,7 @@ frappe.form.get_formatter = function (fieldtype) {
 
 frappe.format = function (value, df, options, doc) {
 	let mask_readonly = false;
-	if (df.parent) {
+	if (df?.parent) {
 		const mask_fields = frappe.get_meta(df.parent)?.masked_fields;
 		mask_readonly = mask_fields?.includes(df.fieldname);
 	}

@@ -50,6 +50,8 @@ def make(
 	send_after=None,
 	print_language=None,
 	now=False,
+	raw_html=False,
+	add_css=True,
 	**kwargs,
 ) -> dict[str, str]:
 	"""Make a new communication. Checks for email permissions for specified Document.
@@ -69,10 +71,12 @@ def make(
 	:param send_me_a_copy: Send a copy to the sender (default **False**).
 	:param email_template: Template which is used to compose mail .
 	:param send_after: Send after the given datetime.
+	:param raw_html: Whether to use html version of email template
+	:param add_css: Add default CSS from hooks/email_css to the email template (default **True**)
 	"""
-	if kwargs:
-		from frappe.utils.commands import warn
+	from frappe.utils.commands import warn
 
+	if kwargs:
 		warn(
 			f"Options {kwargs} used in frappe.core.doctype.communication.email.make "
 			"are deprecated or unsupported",
@@ -81,6 +85,20 @@ def make(
 
 	if doctype and name:
 		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
+
+	if (
+		raw_html
+		and email_template
+		and not frappe.get_cached_value("Email Template", email_template, "use_html")
+	):
+		warn(
+			_(
+				"Raw HTML can be used only with Email Templates having 'Use HTML' checked. "
+				"Proceeding with plain text email."
+			),
+			category=UserWarning,
+		)
+		raw_html = False
 
 	return _make(
 		doctype=doctype,
@@ -107,6 +125,8 @@ def make(
 		send_after=send_after,
 		print_language=print_language,
 		now=now,
+		raw_html=raw_html,
+		add_css=add_css,
 	)
 
 
@@ -135,6 +155,8 @@ def _make(
 	send_after=None,
 	print_language=None,
 	now=False,
+	raw_html=False,
+	add_css=True,
 ) -> dict[str, str]:
 	"""Internal method to make a new communication that ignores Permission checks."""
 
@@ -165,7 +187,9 @@ def _make(
 			"send_after": send_after,
 		}
 	)
-	comm.flags.skip_add_signature = not add_signature
+	comm.flags.skip_add_signature = not add_signature or (
+		raw_html and frappe.get_cached_value("Email Template", email_template, "use_html")
+	)
 	comm.insert(ignore_permissions=True)
 
 	# if not committed, delayed task doesn't find the communication
@@ -190,6 +214,8 @@ def _make(
 			print_letterhead=print_letterhead,
 			print_language=print_language,
 			now=now,
+			raw_html=raw_html,
+			add_css=add_css,
 		)
 
 	emails_not_sent_to = comm.exclude_emails_list(include_sender=send_me_a_copy)

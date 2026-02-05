@@ -5,36 +5,22 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "icon_style",
-  "navbar_style",
-  "show_app_icons_as_folder"
+  "icon_style"
  ],
  "fields": [
   {
-   "default": "Subtle",
+   "default": "Solid",
    "fieldname": "icon_style",
    "fieldtype": "Select",
    "label": "Icon Style",
    "options": "Subtle\nSolid"
-  },
-  {
-   "fieldname": "navbar_style",
-   "fieldtype": "Select",
-   "label": "Navbar Style",
-   "options": "Awesomebar\nmacOS Launchpad\nBrand Logo\nBrand Logo with Search\nTimeless Launchpad\nApps with Search"
-  },
-  {
-   "default": "0",
-   "fieldname": "show_app_icons_as_folder",
-   "fieldtype": "Check",
-   "label": "Show App Icons As Folder"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-12-12 07:11:57.947973",
+ "modified": "2026-01-12 14:14:52.189474",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desktop Settings",

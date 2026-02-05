@@ -116,7 +116,7 @@ def is_invalid_date_string(date_string: str) -> bool:
 
 
 def getdate(
-	string_date: Optional["DateTimeLikeObject"] = None, parse_day_first: bool = False
+	string_date: DateTimeLikeObject | None = None, parse_day_first: bool = False
 ) -> datetime.date | None:
 	"""
 	Convert string date (yyyy-mm-dd) to datetime.date object.
@@ -148,7 +148,7 @@ def getdate(
 
 
 def get_datetime(
-	datetime_str: Optional["DateTimeLikeObject"] | tuple | list = None,
+	datetime_str: DateTimeLikeObject | None | tuple | list = None,
 ) -> datetime.datetime | None:
 	"""Return the below mentioned values based on the given `datetime_str`:
 
@@ -373,7 +373,7 @@ def now_datetime() -> datetime.datetime:
 	return datetime.datetime.now(ZoneInfo(get_system_timezone())).replace(tzinfo=None)
 
 
-def get_timestamp(date: Optional["DateTimeLikeObject"] = None) -> float:
+def get_timestamp(date: DateTimeLikeObject | None = None) -> float:
 	"""Return the Unix timestamp (seconds since Epoch) for the given `date`.
 	If `date` is None, the current timestamp is returned.
 	"""
@@ -402,7 +402,7 @@ def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) ->
 
 def get_datetime_in_timezone(time_zone: str) -> datetime.datetime:
 	"""Return the current datetime in the given timezone (e.g. 'Asia/Kolkata')."""
-	utc_timestamp = datetime.datetime.now(datetime.timezone.utc)
+	utc_timestamp = datetime.datetime.now(datetime.UTC)
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
@@ -524,7 +524,7 @@ def get_first_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date
 	return date.strftime(DATE_FORMAT) if as_str else date
 
 
-def get_week_start_offset_days(dt):
+def get_week_start_offset_days(dt: datetime.date | datetime.datetime) -> int:
 	current_day_index = get_normalized_weekday_index(dt)
 	start_of_week_index = get_start_of_week_index()
 
@@ -534,7 +534,7 @@ def get_week_start_offset_days(dt):
 		return 7 - (start_of_week_index - current_day_index)
 
 
-def get_normalized_weekday_index(dt):
+def get_normalized_weekday_index(dt: datetime.date | datetime.datetime) -> int:
 	# starts Sunday with 0
 	return (dt.weekday() + 1) % 7
 
@@ -832,7 +832,7 @@ def format_duration(seconds: float | int, hide_days: bool = False) -> str:
 	return duration
 
 
-def duration_to_seconds(duration):
+def duration_to_seconds(duration: str) -> int:
 	"""Convert the given duration formatted value to duration value in seconds.
 
 	example: convert '3h 34m 45s' to 12885 (value in seconds)
@@ -862,7 +862,7 @@ def duration_to_seconds(duration):
 	return value
 
 
-def validate_duration_format(duration):
+def validate_duration_format(duration: str) -> None:
 	if not DURATION_PATTERN.match(duration):
 		frappe.throw(
 			frappe._("Value {0} must be in the valid duration format: d h m s").format(frappe.bold(duration))
@@ -1558,10 +1558,16 @@ def money_in_words(
 	elif main == "0":
 		out = f"{fraction_in_words()} {fraction_currency}"
 	else:
-		out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
+		if main_currency == "DZD":
+			# Use Dinars for Algerian Compliance
+			out = in_words(main, in_million).title() + " " + _("Dinars", context="Currency")
+		else:
+			out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
 		if cint(fraction):
 			out = out + " " + _("and") + " " + fraction_in_words() + " " + fraction_currency
 
+	if main_currency == "DZD":
+		return _("{0}.", context="Money in words").format(out)
 	return _("{0} only.", context="Money in words").format(out)
 
 
@@ -1904,7 +1910,7 @@ def get_link_to_form(doctype: str, name: str | None = None, label: str | None = 
 	"""Return the HTML link to the given document's form view.
 
 	e.g. get_link_to_form("Sales Invoice", "INV-0001", "Link Label") returns:
-	    '<a href="https://frappe.io/app/sales-invoice/INV-0001">Link Label</a>'.
+	    '<a href="https://frappe.io/desk/sales-invoice/INV-0001">Link Label</a>'.
 	"""
 	from frappe import _
 
@@ -1924,7 +1930,7 @@ def get_link_to_report(
 	"""Return the HTML link to the given report.
 
 	e.g. get_link_to_report("Revenue Report", "Link Label") returns:
-	        '<a href="https://frappe.io/app/query-report/Revenue%20Report">Link Label</a>'.
+	        '<a href="https://frappe.io/desk/query-report/Revenue%20Report">Link Label</a>'.
 	"""
 	from frappe import _
 
@@ -1967,21 +1973,21 @@ def get_link_to_report(
 def get_absolute_url(doctype: str, name: str) -> str:
 	"""Return the absolute route for the form view of the given document in the desk.
 
-	e.g. when doctype="Sales Invoice" and name="INV-00001", returns '/app/sales-invoice/INV-00001'
+	e.g. when doctype="Sales Invoice" and name="INV-00001", returns '/desk/sales-invoice/INV-00001'
 	"""
-	return f"/app/{quoted(slug(doctype))}/{quoted(name)}"
+	return f"/desk/{quoted(slug(doctype))}/{quoted(name)}"
 
 
 def get_url_to_form(doctype: str, name: str | None = None) -> str:
 	"""Return the absolute URL for the form view of the given document in the desk.
 
 	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
-	         returns 'https://frappe.io/app/sales-invoice/INV-00001'
+	         returns 'https://frappe.io/desk/sales-invoice/INV-00001'
 	"""
 	if not name:
-		uri = f"/app/{quoted(slug(doctype))}"
+		uri = f"/desk/{quoted(slug(doctype))}"
 	else:
-		uri = f"/app/{quoted(slug(doctype))}/{quoted(name)}"
+		uri = f"/desk/{quoted(slug(doctype))}/{quoted(name)}"
 
 	return get_url(uri=uri)
 
@@ -1990,33 +1996,33 @@ def get_url_to_list(doctype: str) -> str:
 	"""Return the absolute URL for the list view of the given document in the desk.
 
 	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
-	         returns 'https://frappe.io/app/sales-invoice'
+	         returns 'https://frappe.io/desk/sales-invoice'
 	"""
-	return get_url(uri=f"/app/{quoted(slug(doctype))}")
+	return get_url(uri=f"/desk/{quoted(slug(doctype))}")
 
 
 def get_url_to_report(name, report_type: str | None = None, doctype: str | None = None) -> str:
 	"""Return the absolute URL for the report in the desk.
 
 	e.g. when name="Sales Register" and your site URL is "https://frappe.io",
-	         returns 'https://frappe.io/app/query-report/Sales%20Register'
+	         returns 'https://frappe.io/desk/query-report/Sales%20Register'
 
 	You can optionally pass `report_type` and `doctype` to get the URL for a Report Builder report.
 
-	get_url_to_report("Revenue", "Report Builder", "Sales Invoice") -> 'https://frappe.io/app/sales-invoice/view/report/Revenue'
+	get_url_to_report("Revenue", "Report Builder", "Sales Invoice") -> 'https://frappe.io/desk/sales-invoice/view/report/Revenue'
 	"""
 	if report_type == "Report Builder":
-		return get_url(uri=f"/app/{quoted(slug(doctype))}/view/report/{quoted(name)}")
+		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report/{quoted(name)}")
 	else:
-		return get_url(uri=f"/app/query-report/{quoted(name)}")
+		return get_url(uri=f"/desk/query-report/{quoted(name)}")
 
 
 def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None):
 	"""Return the absolute URL for the report in the desk with filters."""
 	if report_type == "Report Builder":
-		return get_url(uri=f"/app/{quoted(slug(doctype))}/view/report?{filters}")
+		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report?{filters}")
 
-	return get_url(uri=f"/app/query-report/{quoted(name)}?{filters}")
+	return get_url(uri=f"/desk/query-report/{quoted(name)}?{filters}")
 
 
 def get_filtered_list_url(doctype: str, docnames: list[str] | None = None) -> str:
@@ -2404,7 +2410,7 @@ def to_markdown(html: str) -> str:
 		pass
 
 
-def md_to_html(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
+def md_to_html(markdown_text: str) -> "UnicodeWithAttrs" | None:
 	"""Convert the given markdown text to HTML and returns it."""
 	from markdown2 import MarkdownError
 	from markdown2 import markdown as _markdown
@@ -2424,7 +2430,7 @@ def md_to_html(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
 		pass
 
 
-def markdown(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
+def markdown(markdown_text: str) -> "UnicodeWithAttrs" | None:
 	"""Convert the given markdown text to HTML and returns it."""
 	return md_to_html(markdown_text)
 
@@ -2461,6 +2467,7 @@ def dict_with_keys(dict, keys):
 def guess_date_format(date_string: str) -> str:
 	DATE_FORMATS = [
 		r"%d/%b/%y",
+		r"%d/%b/%Y",
 		r"%d-%m-%Y",
 		r"%m-%d-%Y",
 		r"%Y-%m-%d",

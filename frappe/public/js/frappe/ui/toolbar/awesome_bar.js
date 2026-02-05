@@ -28,7 +28,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		});
 
 		let search_modal_body = `<div class="align-baseline flex py-2 px-1 relative navbar-modal-wrapper">
-			<div class="modal-search-icon absolute pr-2 pl-3">${frappe.utils.icon("search")}</div>
+			<div class="modal-search-icon absolute pr-2 pl-2">${frappe.utils.icon("search")}</div>
 			<input
 				id="navbar-search"
 				type="text"
@@ -106,6 +106,13 @@ frappe.search.AwesomeBar = class AwesomeBar {
 							)
 						)
 					);
+				}
+				if (d.type == "Desktop Icon") {
+					target = frappe.utils.get_route_for_icon(d.icon_data);
+					d.route = target;
+					d.route_options = {
+						sidebar: d.icon_data.label,
+					};
 				}
 				let html = `<span>${__(d.label || d.value)}</span>`;
 
@@ -189,7 +196,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				if (event.ctrlKey || event.metaKey) {
 					frappe.open_in_new_tab = true;
 				}
-				if (item.route[0].startsWith("https://")) {
+				if (item.route && item.route[0].startsWith("https://")) {
 					window.open(item.route[0], "_blank");
 					return;
 				}
@@ -278,7 +285,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				frappe.search.utils.get_doctypes(txt),
 				frappe.search.utils.get_reports(txt),
 				frappe.search.utils.get_pages(txt),
-				frappe.search.utils.get_workspaces(txt),
+				frappe.search.utils.get_desktop_icons(txt),
 				frappe.search.utils.get_dashboards(txt),
 				frappe.search.utils.get_recent_pages(txt || ""),
 				frappe.search.utils.get_executables(txt),
@@ -364,10 +371,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.options.push({
 			label: `
 				<span class="flex justify-between text-medium">
-					<span class="ellipsis">${
-						frappe.search.utils.make_icon("search") +
-						__("Search for {0}", [frappe.utils.xss_sanitise(txt).bold()])
-					}</span>
+					<span class="ellipsis">${__("Search for {0}", [frappe.utils.xss_sanitise(txt).bold()])}</span>
 					<kbd>↵</kbd>
 				</span>
 			`,
@@ -392,12 +396,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			var options = {};
 			options[search_field] = ["like", "%" + txt + "%"];
 			this.options.push({
-				label:
-					frappe.search.utils.make_icon("search") +
-					__("Find {0} in {1}", [
-						frappe.utils.xss_sanitise(txt).bold(),
-						__(route[1]).bold(),
-					]),
+				label: __("Find {0} in {1}", [
+					frappe.utils.xss_sanitise(txt).bold(),
+					__(route[1]).bold(),
+				]),
 				value: __("Find {0} in {1}", [frappe.utils.xss_sanitise(txt), __(route[1])]),
 				route_options: options,
 				onclick: function () {
@@ -411,44 +413,35 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	}
 
 	make_calculator(txt) {
-		function getDecimalPlaces(num) {
-			if (Math.floor(num) === num) return 0;
-			return num.toString().split(".")[1].length || 0;
-		}
+		const decimalStr = get_number_format_info().decimal_str;
+		const first = txt.substr(0, 1);
 
-		var first = txt.substr(0, 1);
 		if (first == parseInt(first) || first === "(" || first === "=") {
 			if (first === "=") {
 				txt = txt.substr(1);
 			}
 			try {
-				var val = eval(txt);
-
 				// Split the input to find the numbers and their decimal places
-				var numbers = txt.match(/[+-]?([0-9]*[.])?[0-9]+/g);
-				var maxDecimalPlaces = 0;
+				const numbers = txt.match(/[+-]?([0-9]*[.,])?[0-9]+/g);
+
+				let maxDecimalPlaces = 0;
 				if (numbers) {
 					maxDecimalPlaces = Math.max(
-						...numbers.map((num) => getDecimalPlaces(parseFloat(num)))
+						...numbers.map((num) => num.split(decimalStr)[1]?.length || 0)
 					);
 				}
 
-				// Use a default precision of 2 decimal places if no decimal places are found
-				if (maxDecimalPlaces === 0) {
-					maxDecimalPlaces = 2;
-				}
-
-				// Adjust the result to the maximum number of decimal places found or default precision
-				var rounded_val = parseFloat(val.toFixed(maxDecimalPlaces));
-
-				var formatted_value = __("{0} = {1}", [
+				// Find the result to the appropriate number of decimal places
+				const val = frappe.utils.eval_expression(txt);
+				const result = format_number(val, null, maxDecimalPlaces);
+				const formatted_value = __("{0} = {1}", [
 					frappe.utils.xss_sanitise(txt),
-					(rounded_val + "").bold(),
+					result.bold(),
 				]);
 				this.options.push({
 					label: formatted_value,
-					value: __("{0} = {1}", [frappe.utils.xss_sanitise(txt), rounded_val]),
-					match: rounded_val,
+					value: __("{0} = {1}", [frappe.utils.xss_sanitise(txt), result]),
+					match: result,
 					index: 80,
 					default: "Calculator",
 					onclick: function () {
@@ -464,7 +457,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	make_random(txt) {
 		if (txt.toLowerCase().includes("random")) {
 			this.options.push({
-				label: frappe.search.utils.make_icon("key") + __("Generate Random Password"),
+				label: __("Generate Random Password"),
 				value: frappe.utils.get_random(16),
 				onclick: function () {
 					frappe.msgprint(frappe.utils.get_random(16), __("Result"));

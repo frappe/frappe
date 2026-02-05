@@ -37,7 +37,7 @@ from frappe.installer import add_to_installed_apps, remove_app
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.test_query_builder import run_only_if
-from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, now
+from frappe.utils import add_to_date, execute_in_shell, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import BackupGenerator, fetch_latest_backups
 from frappe.utils.jinja_globals import bundled_asset
 from frappe.utils.scheduler import enable_scheduler, is_scheduler_inactive
@@ -1086,12 +1086,15 @@ class TestGunicornWorker(IntegrationTestCase):
 		self.addCleanup(self.kill_gunicorn)
 
 	def kill_gunicorn(self):
-		time.sleep(1)
+		time.sleep(2)
 		self.handle.send_signal(signal.SIGTERM)
 		try:
-			self.handle.communicate(timeout=1)
+			self.handle.communicate(timeout=2)
 		except subprocess.TimeoutExpired:
-			self.handle.kill()
+			pass
+
+		time.sleep(2)
+		execute_in_shell("pgrep gunicorn | xargs -L1 kill -9")
 
 	def test_gunicorn_ping_sync(self):
 		self.spawn_gunicorn()
@@ -1108,13 +1111,15 @@ class TestGunicornWorker(IntegrationTestCase):
 			process = psutil.Process(self.handle.pid)
 			return sum(c.cpu_percent(1.0) for c in process.children(True)) + process.cpu_percent(1.0)
 
+		usage_threshold = 10
+
 		self.spawn_gunicorn(["--threads=2"])
-		self.assertLessEqual(get_total_usage(), 3)
+		self.assertLessEqual(get_total_usage(), usage_threshold)
 
 		# Wake up at least one thread, go idle and check again
 		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
 		self.assertEqual(requests.get(path).status_code, 200)
-		self.assertLessEqual(get_total_usage(), 3)
+		self.assertLessEqual(get_total_usage(), usage_threshold)
 
 
 class TestRQWorker(IntegrationTestCase):

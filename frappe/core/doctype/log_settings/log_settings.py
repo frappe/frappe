@@ -123,7 +123,7 @@ def has_unseen_error_log():
 		return {
 			"show_alert": True,
 			"message": _("You have unseen {0}").format(
-				'<a href="/app/List/Error%20Log/List"> Error Logs </a>'
+				'<a href="/desk/List/Error%20Log/List"> Error Logs </a>'
 			),
 		}
 
@@ -131,7 +131,7 @@ def has_unseen_error_log():
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_log_doctypes(doctype, txt, searchfield, start, page_len, filters):
-	filters = filters or {}
+	filters = filters or []
 
 	filters.extend(
 		[

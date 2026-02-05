@@ -143,7 +143,7 @@ context("Workspace Blocks", () => {
 	});
 
 	it("Number Card Block", () => {
-		cy.visit("/app/private/test-block-page");
+		cy.visit("/desk/private/test-block-page");
 		cy.create_records([
 			{
 				doctype: "Number Card",

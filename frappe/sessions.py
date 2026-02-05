@@ -8,7 +8,7 @@ permission, homepage, default variables, system defaults etc
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from urllib.parse import unquote
 
 import redis
@@ -370,7 +370,7 @@ class Session:
 
 			if self.time_diff > expiry or (
 				(session_end := session_data.get("session_end"))
-				and datetime.now(tz=timezone.utc) > datetime.fromisoformat(session_end)
+				and datetime.now(tz=UTC) > datetime.fromisoformat(session_end)
 			):
 				self._delete_session()
 				data = None

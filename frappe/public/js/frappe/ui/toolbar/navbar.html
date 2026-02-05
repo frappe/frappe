@@ -1,46 +1,4 @@
 <div class="sticky-top">
-	{% if (frappe.boot.read_only || frappe.boot.user.impersonated_by || frappe.is_mobile()) { %}
-	<header class="navbar navbar-expand" role="navigation">
-		<div class="container">
-			<a class="navbar-brand navbar-home">
-				<span class="app-logo">
-					<svg class="es-icon icon-md">
-						<use href="#es-line-align-justify"></use>
-					</svg>
-				</span>
-			</a>
-			{% if (frappe.is_mobile()) { %}
-				<ul class="nav d-sm-flex navbar-breadcrumbs mobile-no-divider ellipsis"></ul>
-			{% endif %}
-			<div class="collapse navbar-collapse justify-content-end">
-				{% if (frappe.boot.read_only) { %}
-					<span class="indicator-pill yellow no-indicator-dot read-only-banner" title="{%= __("Your site is undergoing maintenance or being updated.") %}">
-						{%= __("Read Only Mode") %}
-					</span>
-				{% } %}
-				{% if (frappe.boot.user.impersonated_by) { %}
-					<span class="indicator-pill red no-indicator-dot" title="{%= __("You are impersonating as another user.") %}">
-						{%= __("Impersonating {0}", [frappe.boot.user.name]) %}
-					</span>
-				{% } %}
-				{% if frappe.is_mobile() %}
-					<div class="search-bar text-muted hidden">
-						<div
-							id="navbar-modal-search"
-							class="navbar-modal-search-mobile"
-							placeholder="Search for type a command"
-						>
-							<span class="search-icon">
-								<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
-							</span>
-						</div>
-					</div>
-				{% endif %}
-			</div>
-		</div>
-	</header>
-	{% endif %}
-
 	{% if !localStorage.getItem("dismissed_announcement_widget") && strip_html(navbar_settings.announcement_widget) != '' %}
 	<div class="announcement-widget form-message p-2 m-0" style="position: relative; z-index: -1; border-radius: 0; background-color: var(--bg-blue);">
 		<div class="container flex justify-between align-center mx-auto">

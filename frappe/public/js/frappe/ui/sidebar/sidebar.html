@@ -46,14 +46,20 @@
 				<div class="nav-item dropdown dropdown-navbar-user dropdown-mobile mt-3">
 					<button
 						class="align-center btn-reset flex nav-link"
+						style="width: 100%; height: 40px;"
 						data-toggle="dropdown"
 						aria-label="{{ __("User Menu") }}"
 					>
 						<div> {{ avatar }} </div>
-						<div class="avatar-name-email ml-2 text-small">
-							<span>{{frappe.session.user_fullname}}</span>
-							<span class="text-secondary">{{frappe.session.user_email}}</span>
+						<div class="avatar-name-email ml-2 text-small overflow-hidden w-75">
+							<span class="d-block text-truncate">
+								{{ frappe.session.user_fullname }}
+							</span>
+							<span class="d-block text-secondary text-truncate">
+								{{ frappe.session.user_email }}
+							</span>
 						</div>
+
 					</button>
 					<div class="dropdown-menu dropdown-menu-left" id="toolbar-user" role="menu">
 						{% for item in navbar_settings.settings_dropdown %}

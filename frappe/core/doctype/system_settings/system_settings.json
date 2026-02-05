@@ -298,6 +298,7 @@
   {
    "default": "2",
    "depends_on": "eval:doc.enable_password_policy==1",
+   "description": "0 - too guessable: risky password.\n<br>\n1 - very guessable: protection from throttled online attacks. \n<br>\n2 - somewhat guessable: protection from unthrottled online attacks.\n<br>\n3 - safely unguessable: moderate protection from offline slow-hash scenario.\n<br>\n4 - very unguessable: strong protection from offline slow-hash scenario.",
    "fieldname": "minimum_password_score",
    "fieldtype": "Select",
    "label": "Minimum Password Score",
@@ -785,10 +786,11 @@
    "label": "Only allow System Managers to upload public files"
   }
  ],
+ "hide_toolbar": 1,
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2025-12-10 20:43:50.675887",
+ "modified": "2026-01-02 18:13:45.430712",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

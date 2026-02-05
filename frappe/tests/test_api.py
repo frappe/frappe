@@ -432,7 +432,7 @@ def after_request(*args, **kwargs):
 	_test_REQ_HOOK["after_request"] = time()
 
 
-class TestResponse(FrappeAPITestCase):
+class TestAPIResponse(FrappeAPITestCase):
 	def test_generate_pdf(self):
 		response = self.get(
 			"/api/method/frappe.utils.print_format.download_pdf",
@@ -483,7 +483,9 @@ class TestResponse(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.headers["content-type"], "application/octet-stream")
 		self.assertGreater(cint(response.headers["content-length"]), 0)
-		self.assertEqual(response.headers["content-disposition"], f'filename="{encoded_filename}"')
+		self.assertEqual(
+			response.headers["content-disposition"], f'attachment; filename="{encoded_filename}"'
+		)
 
 	def test_download_private_file_with_unique_url(self):
 		test_content = frappe.generate_hash()
@@ -502,8 +504,8 @@ class TestResponse(FrappeAPITestCase):
 
 	def test_login_redirects(self):
 		expected_redirects = {
-			"/app/user": "http://localhost/app/user",
-			"/app/user?enabled=1": "http://localhost/app/user?enabled=1",
+			"/desk/user": "http://localhost/desk/user",
+			"/desk/user?enabled=1": "http://localhost/desk/user?enabled=1",
 			"http://example.com": "http://localhost/desk",  # No external redirect
 			"https://google.com": "http://localhost/desk",
 			"http://localhost:8000": "http://localhost/desk",
