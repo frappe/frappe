@@ -327,7 +327,6 @@ class SQLiteSearch(ABC):
 				print(f"Continuation: Using regular database {self.db_path}")
 			# If no temp db exists, we're continuing with regular database (already set)
 
-		# Debug: Show which database we're working with
 		if temp_db_path:
 			print(f"Working with temporary database: {self.db_path}")
 		else:
@@ -409,12 +408,19 @@ class SQLiteSearch(ABC):
 
 					batch_count += 1
 
-					# Show progress within doctype
+					# Show progress based on current doctype's document counts
 					if batch_count % 5 == 0:  # Update every 5 batches
-						current_progress = 20 + (processed_doctypes * 60 // total_doctypes)
-						self._update_progress(
-							f"Indexing {doctype} (batch {batch_count})", current_progress, 100, absolute=True
-						)
+						indexed_docs, total_docs = self._get_doctype_progress(doctype)
+						if total_docs > 0:
+							progress_percent = (
+								indexed_docs * 100
+							) // total_docs  # 0-100% for current doctype
+							self._update_progress(
+								f"Indexing {doctype} - {indexed_docs:,}/{total_docs:,} documents ({progress_percent}%)",
+								progress_percent,
+								100,
+								absolute=True,
+							)
 
 				processed_doctypes += 1
 
@@ -630,7 +636,7 @@ class SQLiteSearch(ABC):
 			doctype,
 			fields=fields,
 			filters=filters,
-			order_by="modified ASC, name ASC",  # Secondary sort by name for consistency
+			order_by="creation ASC, name ASC",  # Secondary sort by name for consistency
 			limit=limit,
 		)
 
@@ -742,6 +748,27 @@ class SQLiteSearch(ABC):
 		"""Check if all doctypes are completely indexed and vocabulary is built."""
 		count = self._get_incomplete_count("is_complete = 0 OR vocabulary_built = 0")
 		return count == 0 if count >= 0 else False
+
+	def _get_doctype_progress(self, doctype):
+		"""Get indexing progress for a specific doctype."""
+		try:
+			result = self.sql(
+				"""
+				SELECT total_docs, indexed_docs
+				FROM search_index_progress
+				WHERE doctype = ?
+			""",
+				(doctype,),
+				read_only=True,
+			)
+
+			if result and result[0]:
+				total_docs = result[0]["total_docs"] or 0
+				indexed_docs = result[0]["indexed_docs"] or 0
+				return indexed_docs, total_docs
+			return 0, 0
+		except sqlite3.Error:
+			return 0, 0
 
 	def _tables_exist(self):
 		"""Check if the required tables exist in the current database."""
@@ -1710,9 +1737,11 @@ def build_index(
 	if not search.is_search_enabled():
 		return
 
+	if search.index_exists() and not force:
+		return
+
 	# For continuation jobs, always proceed regardless of existing index
-	# For fresh builds, only build if index doesn't exist or force=True
-	if is_continuation or not search.index_exists() or force:
+	if is_continuation or force:
 		if is_continuation:
 			print(f"{SearchClass.__name__}: Continuing incremental index build...")
 		else:
@@ -1731,9 +1760,8 @@ def _enqueue_index_job(search_class_path: str, is_continuation: bool = False):
 	job_type = "continuation" if is_continuation else "fresh build"
 	print(f"Enqueuing {job_type} for {search_class_path}.build_index")
 
-	# timeout for 1 hour 10 minutes to account for job queue delays
-	# timeout = 1 * 60 * 60 + 10 * 60
-	timeout = 180
+	# timeout for 2 hour 10 minutes to account for job queue delays
+	timeout = 2 * 60 * 60 + 10 * 60
 
 	enqueue_kwargs = {
 		"queue": "long",
