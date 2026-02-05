@@ -25,7 +25,7 @@ class DesktopLayout(Document):
 
 
 @frappe.whitelist()
-def save_layout(user, layout, new_icons):
+def save_layout(user: str, layout: str, new_icons: str):
 	if not user:
 		user = frappe.session.user
 	layout = json.loads(layout)
