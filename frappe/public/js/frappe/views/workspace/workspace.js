@@ -245,16 +245,6 @@ frappe.views.Workspace = class Workspace {
 									return current_page.is_editable;
 								},
 							},
-							{
-								label: "New",
-								icon: "plus",
-								onClick: function () {
-									me.initialize_new_page(true);
-								},
-								condition: () => {
-									return me.has_create_access;
-								},
-							},
 						],
 					});
 					this.add_workspace_controls = true;
