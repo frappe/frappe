@@ -1,10 +1,6 @@
 import os
 from io import BytesIO
-<<<<<<< HEAD
-=======
-from typing import Literal
 from urllib.parse import urlparse
->>>>>>> 48e52e152b (fix(report_to_pdf): add some restrictions (#36674))
 
 from PyPDF2 import PdfWriter
 
