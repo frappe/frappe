@@ -13,10 +13,12 @@ from frappe.website.doctype.personal_data_download_request.personal_data_downloa
 
 class TestRequestPersonalData(IntegrationTestCase):
 	def setUp(self):
+		frappe.set_user("Administrator")
 		create_user_if_not_exists(email="test_privacy@example.com")
 
 	def tearDown(self):
 		frappe.db.delete("Personal Data Download Request")
+		frappe.set_user("Administrator")
 
 	def test_user_data_creation(self):
 		user_data = json.loads(get_user_data("test_privacy@example.com"))
