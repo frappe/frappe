@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 NUMBER_FORMAT_MAP = {
 	"#,###.##": (".", ",", 2),
 	"#.###,##": (",", ".", 2),

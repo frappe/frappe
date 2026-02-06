@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+
 import base64
 import calendar
 import datetime
@@ -1105,6 +1106,7 @@ def cast(fieldtype, value=None):
 	return value
 
 
+
 @typing.overload
 def flt(s: NumericType | str, precision: Literal[0]) -> int: ...
 
@@ -1118,7 +1120,9 @@ def flt(s: None) -> Literal[0.0]: ...
 
 
 def flt(
-	s: NumericType | str | None, precision: int | None = None, rounding_method: str | None = None
+	s: NumericType | str | None,
+	precision: int | None = None,
+	rounding_method: str | None = None,
 ) -> float:
 	"""Convert to float (ignoring commas in string).
 
@@ -1127,19 +1131,6 @@ def flt(
 	:returns: Converted number in python float type.
 
 	Return 0 if input can not be converted to float.
-
-	Examples:
-
-	>>> flt("43.5", precision=0)
-	44
-	>>> flt("42.5", precision=0)
-	42
-	>>> flt("10,500.5666", precision=2)
-	10500.57
-	>>> flt("a")
-	0.0
-	>>> flt(None)
-	0.0
 	"""
 
 	if s is None:
@@ -1150,14 +1141,20 @@ def flt(
 
 	try:
 		num = float(s)
+
+		# IMPORTANT:
+		# Precision must be explicitly provided by the caller.
+		# No locale- or language-based precision fallback is allowed.
 		if precision is not None:
 			num = rounded(num, precision, rounding_method)
+
 	except Exception as e:
 		if isinstance(e, frappe.InvalidRoundingMethod):
 			raise
 		num = 0.0
 
 	return num
+
 
 
 def cint(s: NumericType | str | None, default: int = 0) -> int:

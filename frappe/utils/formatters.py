@@ -1,5 +1,3 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# License: MIT. See LICENSE
 
 import datetime
 import re
@@ -19,6 +17,7 @@ from frappe.utils import (
 	format_timedelta,
 	formatdate,
 )
+from frappe.utils.currency import get_currency_precision
 
 BLOCK_TAGS_PATTERN = re.compile(r"(<br|<div|<p)")
 
@@ -51,7 +50,6 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 				df.fieldtype = "Data"
 
 	elif isinstance(df, dict):
-		# Convert dict to object if necessary
 		df = frappe._dict(df)
 
 	if value is None:
@@ -79,21 +77,22 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		and df.get("fieldtype") in ("Int", "Float", "Currency", "Percent")
 		and df.get("print_hide_if_no_value")
 	):
-		# this is required to show 0 as blank in table columns
 		return ""
 
 	elif df.get("fieldtype") == "Currency":
 		default_currency = frappe.db.get_default("currency")
 		currency = currency or get_field_currency(df, doc) or default_currency
-		return fmt_money(value, precision=get_field_precision(df, doc), currency=currency, format=format)
+
+		# IMPORTANT FIX:
+		# Precision must come from Currency DocType, never from locale/language
+		precision = get_currency_precision(currency)
+
+		return fmt_money(value, precision=precision, currency=currency, format=format)
 
 	elif df.get("fieldtype") == "Float":
 		precision = get_field_precision(df, doc)
-		# I don't know why we support currency option for float
 		currency = currency or get_field_currency(df, doc)
 
-		# show 1.000000 as 1
-		# options should not specified
 		if not df.options and value is not None:
 			temp = cstr(value).split(".")
 			if len(temp) == 1 or cint(temp[1]) == 0:
@@ -149,3 +148,15 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 			return frappe._(value, context=df.parent or "")
 
 	return value
+
+
+def format_currency(value, currency=None, **kwargs):
+	"""
+	Format currency value with precision strictly derived from Currency DocType.
+	Locale affects only separators, not decimal precision.
+	"""
+	precision = get_currency_precision(currency)
+	return format_value(
+		value,
+		dict(fieldtype="Currency", precision=precision, options=currency),
+	)

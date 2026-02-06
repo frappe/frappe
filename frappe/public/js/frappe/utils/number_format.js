@@ -148,8 +148,12 @@ function format_currency(v, currency, decimals) {
 	const show_symbol_on_right =
 		frappe.model.get_value(":Currency", currency, "symbol_on_right") ?? false;
 
+	// 🔧 FIX: precision must come from Currency DocType, not locale/sysdefaults
 	if (decimals === undefined) {
-		decimals = frappe.boot.sysdefaults.currency_precision || null;
+		decimals =
+			frappe.boot?.currencies?.[currency]?.precision ??
+			frappe.boot.sysdefaults.currency_precision ??
+			null;
 	}
 
 	if (symbol) {
@@ -171,7 +175,6 @@ function get_currency_symbol(currency) {
 
 		return frappe.model.get_value(":Currency", currency, "symbol") || currency;
 	} else {
-		// load in template
 		return frappe.currency_symbols[currency];
 	}
 }
@@ -195,7 +198,6 @@ function get_number_format_info(format) {
 		info = { decimal_str: ".", group_sep: "," };
 	}
 
-	// get the precision from the number format
 	info.precision =
 		info.decimal_str == "" ? 0 : format.split(info.decimal_str).slice(1)[0].length;
 
@@ -211,7 +213,7 @@ function _round(num, precision, rounding_method) {
 	if (rounding_method == "Banker's Rounding (legacy)") {
 		var d = cint(precision);
 		var m = Math.pow(10, d);
-		var n = +(d ? Math.abs(num) * m : Math.abs(num)).toFixed(8); // Avoid rounding errors
+		var n = +(d ? Math.abs(num) * m : Math.abs(num)).toFixed(8);
 		var i = Math.floor(n),
 			f = n - i;
 		var r = !precision && f == 0.5 ? (i % 2 == 0 ? i : i + 1) : Math.round(n);
@@ -226,8 +228,6 @@ function _round(num, precision, rounding_method) {
 
 		let floor_num = Math.floor(num);
 		let decimal_part = num - floor_num;
-
-		// For explanation of this method read python flt implementation notes.
 		let epsilon = 2.0 ** (Math.log2(Math.abs(num)) - 52.0);
 
 		if (Math.abs(decimal_part - 0.5) < epsilon) {
@@ -244,8 +244,6 @@ function _round(num, precision, rounding_method) {
 		let multiplier = Math.pow(10, digits);
 
 		num = num * multiplier;
-
-		// For explanation of this method read python flt implementation notes.
 		let epsilon = 2.0 ** (Math.log2(Math.abs(num)) - 52.0);
 		if (is_negative) {
 			epsilon = -1 * epsilon;
@@ -259,7 +257,6 @@ function _round(num, precision, rounding_method) {
 }
 
 function roundNumber(num, precision) {
-	// backward compatibility
 	return _round(num, precision);
 }
 
@@ -267,7 +264,6 @@ function precision(fieldname, doc) {
 	if (cur_frm) {
 		if (!doc) doc = cur_frm.doc;
 		var df = frappe.meta.get_docfield(doc.doctype, fieldname, doc.parent || doc.name);
-		if (!df) console.log(fieldname + ": could not find docfield in method precision()");
 		return frappe.meta.get_field_precision(df, doc);
 	} else {
 		return frappe.boot.sysdefaults.float_precision;
@@ -310,8 +306,6 @@ function round_based_on_smallest_currency_fraction(value, currency, precision) {
 }
 
 function fmt_money(v, format) {
-	// deprecated!
-	// for backward compatibility
 	return format_currency(v, format);
 }
 
