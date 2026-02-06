@@ -66,6 +66,8 @@ def _new_site(
 
 	frappe.init(site)
 
+	generate_socketio_secret()
+
 	if not db_name:
 		db_name = f"_{frappe.generate_hash(length=16)}"
 
@@ -949,3 +951,18 @@ def get_db_dump_header(file_path: str, file_bytes: int = 256) -> str:
 
 	with open(file_path, "rb") as f:
 		return f.read(file_bytes).decode()
+
+
+def generate_socketio_secret():
+	"""Generate a socketio_secret in common_site_config.json"""
+	from frappe.utils import generate_hash
+
+	if not frappe.get_conf().get("socketio_secret"):
+		new_secret = generate_hash(length=32)
+
+		common_config_path = os.path.join(frappe.local.sites_path, "common_site_config.json")
+
+		if os.path.exists(common_config_path):
+			update_site_config(
+				"socketio_secret", new_secret, validate=False, site_config_path=common_config_path
+			)

@@ -48,6 +48,13 @@ function authenticate_with_frappe(socket, next) {
 			headers["Cookie"] = `sid=${socket.sid}`;
 		}
 
+		const current_conf = get_conf();
+		const secret = current_conf.socketio_secret;
+
+		if (secret) {
+			headers["X-Frappe-Socket-Secret"] = secret;
+		}
+
 		return fetch(get_url(socket, path), {
 			...opts,
 			headers,

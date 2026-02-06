@@ -124,6 +124,14 @@ def has_permission(doctype: str, name: str) -> bool:
 @frappe.whitelist(allow_guest=True)
 def get_user_info():
 	user_type = frappe.session.data.user_type
+	trusted_secret = frappe.conf.get("socketio_secret")
+	provided_secret = frappe.get_request_header("X-Frappe-Socket-Secret")
+	if trusted_secret and trusted_secret != provided_secret:
+		return {
+			"user": frappe.session.user,
+			"user_type": user_type,
+		}
+
 	# For requests with Bearer tokens, user_type is not set in the session data
 	if not user_type:
 		user_type = frappe.get_cached_value("User", frappe.session.user, "user_type")
