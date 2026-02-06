@@ -284,7 +284,6 @@ const props = defineProps({
 			max_file_size: null, // 2048 -> 2KB
 			max_number_of_files: null,
 			allowed_file_types: [], // ['image/*', 'video/*', '.jpg', '.gif', '.pdf'],
-			blocked_file_types: [], // ['image/heic', 'image/tiff'],
 			crop_image_aspect_ratio: null, // 1, 16 / 9, 4 / 3, NaN (free)
 		}),
 	},
@@ -473,7 +472,6 @@ function check_restrictions(file) {
 
 	let is_correct_type = true;
 	let valid_file_size = true;
-	let is_unsupported_file_type = check_unsupported_file_type(file);
 
 	if (allowed_file_types && allowed_file_types.length) {
 		is_correct_type = allowed_file_types.some((type) => {
@@ -495,22 +493,12 @@ function check_restrictions(file) {
 		valid_file_size = file.size < max_file_size;
 	}
 
-	if (!is_correct_type || is_unsupported_file_type) {
+	if (!is_correct_type) {
 		console.warn("File skipped because of invalid file type", file);
-		if (is_unsupported_file_type) {
-			frappe.show_alert({
-				message: __('File "{0}" was skipped because of unsupported file type "{1}"', [
-					file.name,
-					file.type,
-				]),
-				indicator: "orange",
-			});
-		} else {
-			frappe.show_alert({
-				message: __('File "{0}" was skipped because of invalid file type', [file.name]),
-				indicator: "orange",
-			});
-		}
+		frappe.show_alert({
+			message: __('File "{0}" was skipped because of invalid file type', [file.name]),
+			indicator: "orange",
+		});
 	}
 	if (!valid_file_size) {
 		console.warn("File skipped because of invalid file size", file.size, file);
@@ -523,22 +511,8 @@ function check_restrictions(file) {
 		});
 	}
 
-	return is_correct_type && valid_file_size && !is_unsupported_file_type;
+	return is_correct_type && valid_file_size;
 }
-
-function check_unsupported_file_type(file) {
-	let { blocked_file_types = [] } = props.restrictions;
-	return blocked_file_types.some((type) => {
-		if (type.includes("/")) {
-			if (!file.type) return false;
-			return file.type.match(type);
-		}
-		if (type[0] === ".") {
-			return file.name.toLowerCase().endsWith(type.toLowerCase());
-		}
-	});
-}
-
 function upload_files(dialog) {
 	if (show_file_browser.value) {
 		return upload_via_file_browser();
