@@ -78,19 +78,20 @@ frappe.call = function (opts) {
 	}
 
 	/**
-	 * Derives UI-related options from various sources.
-	 * @param {{ freeze: boolean, freeze_message: string, args_freeze: boolean, args_freeze_message: string }} config
+	 * Resolves parameter precedence between top-level opts and args.
+	 * Top-level options take precedence over args options.
+	 * @param {{ opts: { freeze: boolean, freeze_message: string }, args: { freeze: boolean, freeze_message: string } }} config
 	 * @returns {{ freeze: boolean, freeze_message: string }}
 	 */
-	function derive_ui_options(config) {
-		var { freeze, freeze_message, args_freeze, args_freeze_message } = config;
+	function resolve_parameter_precedence(config) {
+		var { opts, args } = config;
 
-		var derived_freeze = freeze || args_freeze || false;
-		var derived_freeze_message = freeze_message || args_freeze_message || "";
+		var resolved_freeze = opts.freeze || args.freeze || false;
+		var resolved_freeze_message = opts.freeze_message || args.freeze_message || "";
 
 		return {
-			freeze: derived_freeze,
-			freeze_message: derived_freeze_message,
+			freeze: resolved_freeze,
+			freeze_message: resolved_freeze_message,
 		};
 	}
 
@@ -567,13 +568,11 @@ frappe.call = function (opts) {
 		throw doc_origin_validation.error;
 	}
 
-	// Derive UI options (freeze, spinner settings)
+	// Resolve parameter precedence (freeze, spinner settings)
 	var input_args = options.args || {};
-	var ui_options = derive_ui_options({
-		freeze: options.freeze,
-		freeze_message: options.freeze_message,
-		args_freeze: input_args.freeze,
-		args_freeze_message: input_args.freeze_message,
+	var resolved_params = resolve_parameter_precedence({
+		opts: { freeze: options.freeze, freeze_message: options.freeze_message },
+		args: { freeze: input_args.freeze, freeze_message: input_args.freeze_message },
 	});
 
 	// Resolve effective doc_origin and api_version
@@ -628,8 +627,8 @@ frappe.call = function (opts) {
 
 	// Create success handler
 	var realtime_opts = $.extend({}, options, {
-		freeze: ui_options.freeze,
-		freeze_message: ui_options.freeze_message,
+		freeze: resolved_params.freeze,
+		freeze_message: resolved_params.freeze_message,
 		api_version: effective_api_version,
 		args: final_payload,
 	});
@@ -649,8 +648,8 @@ frappe.call = function (opts) {
 		error_callback: options.error,
 		always_callback: options.always,
 		btn: options.btn,
-		freeze: ui_options.freeze,
-		freeze_message: ui_options.freeze_message,
+		freeze: resolved_params.freeze,
+		freeze_message: resolved_params.freeze_message,
 		headers: options.headers,
 		error_handlers: options.error_handlers,
 		async: options.async,
