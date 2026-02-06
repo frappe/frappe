@@ -64,13 +64,15 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	}
 	on_attach_doc_image() {
 		this.set_upload_options();
-		this.upload_options.restrictions.allowed_file_types = ["image/*"];
-		// file types like .heic/.tiff are not supported for preview directly in the browser, so we block the user from uploading them
-		this.upload_options.restrictions.blocked_file_types = [
-			"image/heic",
-			"image/heif",
-			"image/tiff",
-			"image/tif",
+		this.upload_options.restrictions.allowed_file_types = [
+			"image/jpeg",
+			"image/png",
+			"image/gif",
+			"image/webp",
+			"image/svg+xml",
+			"image/avif",
+			"image/bmp",
+			"image/x-icon",
 		];
 		this.file_uploader = new frappe.ui.FileUploader(this.upload_options);
 	}
