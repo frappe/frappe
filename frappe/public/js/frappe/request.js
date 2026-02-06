@@ -56,19 +56,21 @@ frappe.call = function (opts) {
 
 	/**
 	 * Handles legacy calling convention: frappe.call(method, args, callback, headers)
-	 * @param {string|object} first_arg - First argument passed to frappe.call
 	 * @param {IArguments} caller_arguments - The arguments object from frappe.call
 	 * @returns {{ opts: object }}
 	 */
-	function parse_caller_arguments(first_arg, caller_arguments) {
-		// TODO: This could be simplified by handling just the arguments object directly passed from frappe.call
+	function parse_caller_arguments(caller_arguments) {
+		var [ first_arg ] = caller_arguments;
+
 		if (typeof first_arg === "string") {
+			var [ method, args, callback, headers ] = caller_arguments;
+
 			return {
 				opts: {
-					method: caller_arguments[0],
-					args: caller_arguments[1],
-					callback: caller_arguments[2],
-					headers: caller_arguments[3],
+					method,
+					args,
+					callback,
+					headers,
 				},
 			};
 		}
@@ -551,7 +553,7 @@ frappe.call = function (opts) {
 	check_connectivity();
 
 	// Parse caller arguments (handle legacy calling convention)
-	var parsed = parse_caller_arguments(opts, arguments);
+	var parsed = parse_caller_arguments(arguments);
 	var options = parsed.opts;
 
 	// Validate API version and doc_origin
