@@ -29,12 +29,19 @@ frappe.xcall = function (method, params, type, opts = {}) {
 
 // generic server call (call page, object)
 frappe.call = function (opts) {
-	// Helpers separates responsibilities for better readability and maintainability
-	// Keep helpers inside frappe.call to avoid polluting global namespace
-	// Below this helper functions, the main execution flow is outlined
+	// ============================================================================
+	// PURE HELPER FUNCTIONS
+	// ============================================================================
+	
+	// Methods here are defined here to keep them encapsulated, without exposing them globally
 
-	function checkConnectivity() {
-		if (!frappe.is_online()) {
+	/**
+	 * Shows connectivity warning if offline.
+	 * @returns {{ is_online: boolean }}
+	 */
+	function check_connectivity() {
+		var is_online = frappe.is_online();
+		if (!is_online) {
 			frappe.show_alert(
 				{
 					indicator: "orange",
@@ -44,148 +51,250 @@ frappe.call = function (opts) {
 				3
 			);
 		}
+		return { is_online: is_online };
 	}
 
-	function normalizeArguments(originalOpts, originalArguments) {
-		// Handle legacy calling convention: frappe.call(method, args, callback, headers)
-		if (typeof originalOpts === "string") {
+	/**
+	 * Handles legacy calling convention: frappe.call(method, args, callback, headers)
+	 * @param {string|object} first_arg - First argument passed to frappe.call
+	 * @param {IArguments} caller_arguments - The arguments object from frappe.call
+	 * @returns {{ opts: object }}
+	 */
+	function parse_caller_arguments(first_arg, caller_arguments) {
+		// TODO: This could be simplified by handling just the arguments object directly passed from frappe.call
+		if (typeof first_arg === "string") {
 			return {
-				method: originalArguments[0],
-				args: originalArguments[1],
-				callback: originalArguments[2],
-				headers: originalArguments[3],
+				opts: {
+					method: caller_arguments[0],
+					args: caller_arguments[1],
+					callback: caller_arguments[2],
+					headers: caller_arguments[3],
+				},
 			};
 		}
-		return originalOpts;
+		return { opts: first_arg };
 	}
 
-	function normalizeOptions(opts) {
-		var args = $.extend({}, opts.args);
+	/**
+	 * Derives UI-related options from various sources.
+	 * @param {{ freeze: boolean, freeze_message: string, args_freeze: boolean, args_freeze_message: string }} config
+	 * @returns {{ freeze: boolean, freeze_message: string }}
+	 */
+	function derive_ui_options(config) {
+		var { freeze, freeze_message, args_freeze, args_freeze_message } = config;
 
-		// quiet mode implies no_spinner
-		if (opts.quiet) {
-			opts.no_spinner = true;
-		}
+		var derived_freeze = freeze || args_freeze || false;
+		var derived_freeze_message = freeze_message || args_freeze_message || "";
 
-		// freeze can come from args
-		if (args.freeze) {
-			opts.freeze = opts.freeze || args.freeze;
-			opts.freeze_message = opts.freeze_message || args.freeze_message;
-		}
-
-		return args;
+		return {
+			freeze: derived_freeze,
+			freeze_message: derived_freeze_message,
+		};
 	}
 
-	function validateApiVersion(api_version) {
-		const valid_versions = ["v1", "v2"];
+	/**
+	 * Validates API version parameter.
+	 * @param {string|undefined} api_version
+	 * @returns {{ is_valid: boolean, error: Error|null }}
+	 */
+	function validate_api_version(api_version) {
+		var valid_versions = ["v1", "v2"];
+		// No api_version is also valid (defaults to legacy behavior)
 		if (api_version && !valid_versions.includes(api_version)) {
 			console.error("frappe.call unsupported api_version");
-			throw new Error(`frappe.call: api_version '${api_version}' is not supported. Use one of: ${valid_versions.join(", ")}`);
+			return {
+				is_valid: false,
+				error: new Error(
+					`frappe.call: api_version '${api_version}' is not supported. Use one of: ${valid_versions.join(", ")}`
+				),
+			};
 		}
+		return { is_valid: true, error: null };
 	}
 
-	function validateDocOrigin(doc_origin) {
-		const valid_origins = ["memory", "database"];
+	/**
+	 * Validates doc_origin parameter.
+	 * @param {string|undefined} doc_origin
+	 * @returns {{ is_valid: boolean, error: Error|null }}
+	 */
+	function validate_doc_origin(doc_origin) {
+		var valid_origins = ["memory", "database"];
 		if (doc_origin && !valid_origins.includes(doc_origin)) {
 			console.error("frappe.call unsupported doc_origin");
-			throw new Error(`frappe.call: doc_origin '${doc_origin}' is not supported. Use one of: ${valid_origins.join(", ")}`);
+			return {
+				is_valid: false,
+				error: new Error(
+					`frappe.call: doc_origin '${doc_origin}' is not supported. Use one of: ${valid_origins.join(", ")}`
+				),
+			};
 		}
+		return { is_valid: true, error: null };
 	}
 
-	function resolveDocOrigin(opts) {
-		// doc_origin is only relevant when opts.doc is provided
-		if (!opts.doc) {
-			return;
+	/**
+	 * Resolves the effective doc_origin and api_version based on provided options.
+	 * Both API v1 and v2 support both origins:
+	 * - 'memory' (default): Uses run_doc_method, sends full in-memory document to server
+	 * - 'database': Server loads document from DB (lighter payload)
+	 *
+	 * @param {{ api_version: string|undefined, doc_origin: string|undefined, has_doc: boolean }} config
+	 * @returns {{ api_version: string|undefined, doc_origin: string|undefined }}
+	 */
+	function resolve_doc_origin_and_api_version(config) {
+		var { api_version, doc_origin, has_doc } = config;
+
+		// doc_origin is only relevant when doc is provided
+		if (!has_doc) {
+			return {
+				api_version: api_version,
+				doc_origin: undefined,
+			};
 		}
 
-		// Both API v1 and v2 support both origins:
-		// - 'memory' (default): Uses run_doc_method, sends full in-memory document to server
-		// - 'database': Server loads document from DB (lighter payload)
-		//
-		// For undefined api_version: default to 'memory' for backward compatibility
+		var resolved_api_version = api_version;
+		var resolved_doc_origin = doc_origin || "memory";
+
 		// When api_version is not specified and doc_origin='database' is requested,
 		// we default to v1 for the database origin endpoint
-		if (opts.doc_origin === "database" && !opts.api_version) {
-			opts.api_version = "v1";
+		if (resolved_doc_origin === "database" && !resolved_api_version) {
+			resolved_api_version = "v1";
 		}
 
-		opts.doc_origin = opts.doc_origin || "memory";
+		return {
+			api_version: resolved_api_version,
+			doc_origin: resolved_doc_origin,
+		};
 	}
 
-	function buildCommand(opts, args) {
-		if (opts.module && opts.page) {
-			// Page method
-			args.cmd = `${opts.module}.page.${opts.page}.${opts.page}.${opts.method}`;
-		} else if (opts.doc) {
-			if (opts.doc_origin === "memory") {
-				// Memory origin: sends full in-memory document to server via run_doc_method
-				$.extend(args, {
-					cmd: "run_doc_method",
-					docs: frappe.get_doc(opts.doc.doctype, opts.doc.name),
-					method: opts.method,
-					args: opts.args,
-				});
-			} else if (opts.doc_origin === "database") {
-				// Database origin: server loads document from DB
-				// For v1: method is passed via run_method in form data
-				// For v2: method is in URL path, no need to add to args
-				if (opts.api_version === "v1") {
-					args.run_method = opts.method;
-				}
-				// Pass any method arguments
-				if (opts.args) {
-					$.extend(args, opts.args);
-				}
-			}
-		} else if (opts.method) {
-			// Direct method call
-			args.cmd = opts.method;
-		}
+	/**
+	 * Builds the command string for page methods.
+	 * @param {{ module: string, page: string, method: string }} config
+	 * @returns {{ cmd: string }}
+	 */
+	function build_page_method_command(config) {
+		var { module, page, method } = config;
+
+		return {
+			cmd: `${module}.page.${page}.${page}.${method}`,
+		};
 	}
 
-	function buildUrl(opts, args) {
-		if (opts.url) {
-			return opts.url;
-		}
+	/**
+	 * Builds the payload for document method calls with memory origin.
+	 * Uses run_doc_method, sends full in-memory document to server.
+	 * @param {{ doctype: string, name: string, method: string, args: object }} config
+	 * @returns {{ payload: object, cmd: string }}
+	 */
+	function build_doc_memory_payload(config) {
+		var { doctype, name, method, args } = config;
 
-		var url;
-
-		if (opts.doc && opts.doc_origin === "database") {
-			// Database origin: server loads document from DB (lighter payload)
-			url = buildDocumentMethodUrl(opts);
-		} else {
-			// Memory origin: /api/method/<cmd> or /api/<version>/method/<cmd>
-			url = buildStandardMethodUrl(opts, args);
-		}
-
-		if (window.cordova) {
-			url = applyCordovaHost(url);
-		}
-
-		return url;
+		return {
+			payload: {
+				cmd: "run_doc_method",
+				docs: frappe.get_doc(doctype, name),
+				method: method,
+				args: args,
+			},
+			cmd: "run_doc_method",
+		};
 	}
 
-	function buildDocumentMethodUrl(opts) {
-		// Database origin: RESTful endpoint, server loads document from DB (lighter payload)
-		var { doctype, name } = opts.doc;
-		var method = opts.method;
+	/**
+	 * Builds the payload for document method calls with database origin.
+	 * Server loads document from DB (lighter payload).
+	 * @param {{ api_version: string, method: string, args: object }} config
+	 * @returns {{ payload: object, cmd: string|undefined }}
+	 */
+	function build_doc_database_payload(config) {
+		var { api_version, method, args } = config;
 
-		validateDocumentMethodParams(doctype, name, method);
+		var payload = {};
 
-		var prefix = `/api/${opts.api_version || "v1"}`;
-
-		if (opts.api_version === "v1") {
-			// v1: POST to /api/v1/resource/<doctype>/<name>/ with run_method in form data
-			return `${prefix}/resource/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/`;
+		// For v1: method is passed via run_method in form data
+		// For v2: method is in URL path, no need to add inside payload
+		if (api_version === "v1") {
+			payload.run_method = method;
 		}
-		
-		if (opts.api_version === "v2") {
-			// v2: method is part of the URL path
-			return `${prefix}/document/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}/method/${encodeURIComponent(method)}/`;
+
+		// Pass any method arguments
+		if (args) {
+			payload = $.extend({}, args, payload);
 		}
+
+		return {
+			payload: payload,
+			cmd: undefined, // database origin doesn't use cmd in payload
+		};
 	}
 
-	function validateDocumentMethodParams(doctype, name, method) {
+	/**
+	 * Builds the server payload based on call type (page, doc memory, doc database, or direct method).
+	 * @param {{ method: string, args: object, doc: object|undefined, doc_origin: string|undefined, api_version: string|undefined, module: string|undefined, page: string|undefined }} config
+	 * @returns {{ payload: object, cmd: string|undefined }}
+	 */
+	function build_server_payload(config) {
+		var { method, args, doc, doc_origin, api_version, module, page } = config;
+
+		// Page method call
+		if (module && page) {
+			var page_cmd = build_page_method_command({
+				module: module,
+				page: page,
+				method: method,
+			});
+			var page_payload = $.extend({}, args);
+			page_payload.cmd = page_cmd.cmd;
+			return {
+				payload: page_payload,
+				cmd: page_cmd.cmd,
+			};
+		}
+
+		// Document method call with memory origin
+		if (doc && doc_origin === "memory") {
+			return build_doc_memory_payload({
+				doctype: doc.doctype,
+				name: doc.name,
+				method: method,
+				args: args,
+			});
+		}
+
+		// Document method call with database origin
+		if (doc && doc_origin === "database") {
+			return build_doc_database_payload({
+				api_version: api_version,
+				method: method,
+				args: args,
+			});
+		}
+
+		// Direct method call
+		if (method) {
+			var direct_payload = $.extend({}, args);
+			direct_payload.cmd = method;
+			return {
+				payload: direct_payload,
+				cmd: method,
+			};
+		}
+
+		// No recognized call type
+		// TODO: What should happen here? Throw error?
+		return {
+			payload: $.extend({}, args),
+			cmd: undefined,
+		};
+	}
+
+	/**
+	 * Validates required parameters for database origin document method calls.
+	 * @param {{ doctype: string|undefined, name: string|undefined, method: string|undefined }} config
+	 * @returns {{ is_valid: boolean, error: Error|null }}
+	 */
+	function validate_document_method_params(config) {
+		var { doctype, name, method } = config;
+
 		var missing = [
 			!doctype && "doc.doctype",
 			!name && "doc.name",
@@ -194,99 +303,362 @@ frappe.call = function (opts) {
 
 		if (missing.length) {
 			console.error("frappe.call missing parameters");
-			throw new Error(
-				`frappe.call: missing '${missing.join("', '")}' required for database origin document method calls`
-			);
+			return {
+				is_valid: false,
+				error: new Error(
+					`frappe.call: missing '${missing.join("', '")}' required for database origin document method calls`
+				),
+			};
 		}
+		return { is_valid: true, error: null };
 	}
 
-	function buildStandardMethodUrl(opts, args) {
-		var prefix = "/api/method/";
-		if (opts.api_version) {
-			// Both 'v1' and 'v2' use same prefix for non-doc calls
-			prefix = `/api/${opts.api_version}/method/`;
-		}
-		return prefix + args.cmd;
+	/**
+	 * Builds URL for database origin document method calls (v1 API).
+	 * v1: POST to /api/v1/resource/<doctype>/<name>/ with run_method in form data
+	 * @param {{ doctype: string, name: string }} config
+	 * @returns {{ url: string }}
+	 */
+	function build_doc_database_url_v1(config) {
+		// TODO: Merge with build_doc_database_url_v2
+		var { doctype, name } = config;
+
+		var url =
+			`/api/v1/resource/` +
+			`${encodeURIComponent(doctype)}/` +
+			`${encodeURIComponent(name)}/`;
+		return { url: url };
 	}
-	
-	function applyCordovaHost(url) {
+
+	/**
+	 * Builds URL for database origin document method calls (v2 API).
+	 * v2: method is part of the URL path
+	 * @param {{ doctype: string, name: string, method: string }} config
+	 * @returns {{ url: string }}
+	 */
+	function build_doc_database_url_v2(config) {
+		// TODO: Merge with build_doc_database_url_v1
+		var { doctype, name, method } = config;
+
+		var url =
+			`/api/v2/document/` +
+			`${encodeURIComponent(doctype)}/` +
+			`${encodeURIComponent(name)}/` +
+			`method/${encodeURIComponent(method)}/`;
+		return { url: url };
+	}
+
+	/**
+	 * Builds URL for standard method calls.
+	 * @param {{ api_version: string|undefined, cmd: string }} config
+	 * @returns {{ url: string }}
+	 */
+	function build_standard_method_url(config) {
+		var { api_version, cmd } = config;
+
+		var prefix = "/api/method";
+		if (api_version) {
+			// Both 'v1' and 'v2' use same prefix for non-doc calls
+			prefix = `/api/${api_version}/method`;
+		}
+		return { url: `${prefix}/${cmd}` };
+	}
+
+	/**
+	 * Applies Cordova host prefix to URL.
+	 * @param {string} url
+	 * @returns {{ url: string }}
+	 */
+	function apply_cordova_host(url) {
 		var host = frappe.request.url;
 		host = host.slice(0, host.length - 1);
-		return host + url;
+		return { url: host + url };
 	}
 
-	function createSuccessCallback(opts) {
-		const successCallback = function (data, response_text) {
+	/**
+	 * Builds the complete request URL if needed.
+	 * @param {{ custom_url: string|undefined, doc: object|undefined, doc_origin: string|undefined, api_version: string|undefined, cmd: string|undefined, method: string|undefined }} config
+	 * @returns {{ url: string, error: Error|null }}
+	 */
+	function build_request_url(config) {
+		var { custom_url, doc, doc_origin, api_version, cmd, method } = config;
+
+		// Use custom URL if provided
+		if (custom_url) {
+			return { url: custom_url, error: null };
+		}
+
+		var url;
+
+		// Database origin document method URL
+		if (doc && doc_origin === "database") {
+			// Validate required params for database origin
+			var validation = validate_document_method_params({
+				doctype: doc.doctype,
+				name: doc.name,
+				method: method,
+			});
+			if (!validation.is_valid) {
+				return { url: null, error: validation.error };
+			}
+
+			if (api_version === "v1") {
+				var v1_url = build_doc_database_url_v1({
+					doctype: doc.doctype,
+					name: doc.name,
+				});
+				url = v1_url.url;
+			} else if (api_version === "v2") {
+				var v2_url = build_doc_database_url_v2({
+					doctype: doc.doctype,
+					name: doc.name,
+					method: method,
+				});
+				url = v2_url.url;
+			}
+		} else {
+			// Standard method URL
+			var std_url = build_standard_method_url({
+				api_version: api_version,
+				cmd: cmd,
+			});
+			url = std_url.url;
+		}
+
+		// Apply Cordova host if needed
+		if (window.cordova) {
+			var cordova_url = apply_cordova_host(url);
+			url = cordova_url.url;
+		}
+
+		return { url: url, error: null };
+	}
+
+	/**
+	 * Removes cmd from payload when URL is built (not custom).
+	 * Prevents sending cmd twice (as path and POST data).
+	 * @param {object} payload
+	 * @param {boolean} has_custom_url
+	 * @returns {{ payload: object }}
+	 */
+	function prepare_final_payload(payload, has_custom_url) {
+		// TODO: Maybe this method can be unified with build_server_payload?
+		if (has_custom_url) {
+			return { payload: payload };
+		}
+		// Create new object without cmd
+		var final_payload = $.extend({}, payload);
+		delete final_payload.cmd;
+		return { payload: final_payload };
+	}
+
+	/**
+	 * Creates the success callback handler.
+	 * For async tasks, the realtime_opts object is passed to frappe.realtime.subscribe
+	 * which requires the full set of callback and cleanup options.
+	 * @param {{ callback: function|undefined, queued: function|undefined, realtime_opts: object }} config
+	 * @returns {function}
+	 */
+	function create_success_handler(config) {
+		var { callback, queued, realtime_opts } = config;
+
+		const success_handler = (data, response_text) => {
 			// Async task: subscribe to realtime updates
 			if (data.task_id) {
-				frappe.realtime.subscribe(data.task_id, opts);
+				frappe.realtime.subscribe(data.task_id, realtime_opts);
 
-				if (opts.queued) {
-					opts.queued(data);
+				if (queued) {
+					queued(data);
 				}
-
 				return;
 			}
 
 			// Regular callback
-			if (opts.callback) {
-				return opts.callback(data, response_text);
+			if (callback) {
+				return callback(data, response_text);
 			}
 		};
-		return successCallback;
+		return success_handler;
 	}
 
-	function shouldDebounce(opts, args) {
-		return opts.debounce && frappe.request.is_fresh(args, opts.debounce);
+	/**
+	 * Checks if request should be debounced (skipped due to recent identical request).
+	 * @param {{ debounce: number|undefined, cmd: string, payload: object }} config
+	 * @returns {{ should_skip: boolean }}
+	 */
+	function check_debounce_status(config) {
+		var { debounce, cmd, payload } = config;
+
+		if (!debounce) {
+			return { should_skip: false };
+		}
+
+		// Build args object with cmd for is_fresh check
+		var args_with_cmd = $.extend({}, payload, { cmd: cmd });
+		// TODO: Check if it is correct implementation to skip the request when not fresh
+		var is_fresh = frappe.request.is_fresh(args_with_cmd, debounce);
+		return { should_skip: is_fresh };
 	}
 
-	function dispatchRequest(opts, args, url) {
-		return frappe.request.call({
-			type: opts.type || "POST",
-			args: args,
-			success: createSuccessCallback(opts),
-			error: opts.error,
-			always: opts.always,
-			btn: opts.btn,
-			freeze: opts.freeze,
-			freeze_message: opts.freeze_message,
-			headers: opts.headers || {},
-			error_handlers: opts.error_handlers || {},
-			async: opts.async,
-			silent: opts.silent,
-			api_version: opts.api_version,
-			url: url,
-			cache: opts.cache,
-		});
+	/**
+	 * Assembles the final configuration object for frappe.request.call.
+	 * @param {{
+	 *   type: string,
+	 *   payload: object,
+	 *   url: string,
+	 *   success_handler: function,
+	 *   error_callback: function|undefined,
+	 *   always_callback: function|undefined,
+	 *   btn: HTMLElement|undefined,
+	 *   freeze: boolean,
+	 *   freeze_message: string,
+	 *   headers: object,
+	 *   error_handlers: object,
+	 *   async: boolean|undefined,
+	 *   silent: boolean|undefined,
+	 *   api_version: string|undefined,
+	 *   cache: boolean|undefined
+	 * }} config
+	 * @returns {object} Configuration for frappe.request.call
+	 */
+	function assemble_request_config(config) {
+		return {
+			type: config.type || "POST",
+			args: config.payload,
+			success: config.success_handler,
+			error: config.error_callback,
+			always: config.always_callback,
+			btn: config.btn,
+			freeze: config.freeze,
+			freeze_message: config.freeze_message,
+			headers: config.headers || {},
+			error_handlers: config.error_handlers || {},
+			async: config.async,
+			silent: config.silent,
+			api_version: config.api_version,
+			url: config.url,
+			cache: config.cache,
+		};
 	}
 
-	// Main execution flow
+	// ============================================================================
+	// MAIN EXECUTION FLOW
+	// ============================================================================
+	
+	// Perform execution through unidirectionally and clearly defined steps
 
-	checkConnectivity();
+	// Check connectivity (side effect, but informational)
+	check_connectivity();
 
-	opts = normalizeArguments(opts, arguments);
+	// Parse caller arguments (handle legacy calling convention)
+	var parsed = parse_caller_arguments(opts, arguments);
+	var options = parsed.opts;
 
-	var args = normalizeOptions(opts);
-
-	validateApiVersion(opts.api_version);
-	validateDocOrigin(opts.doc_origin);
-	resolveDocOrigin(opts);
-
-	buildCommand(opts, args);
-
-	var url = buildUrl(opts, args);
-
-	if (!opts.url) {
-		// When URL is built (not provided via opts.url), cmd is embedded in URL path
-		// Remove from args to avoid sending it twice (as path and as POST data)
-		delete args.cmd;
+	// Validate API version and doc_origin
+	var api_validation = validate_api_version(options.api_version);
+	if (!api_validation.is_valid) {
+		throw api_validation.error;
 	}
 
-	if (shouldDebounce(opts, args)) {
+	var doc_origin_validation = validate_doc_origin(options.doc_origin);
+	if (!doc_origin_validation.is_valid) {
+		throw doc_origin_validation.error;
+	}
+
+	// Derive UI options (freeze, spinner settings)
+	var input_args = options.args || {};
+	var ui_options = derive_ui_options({
+		freeze: options.freeze,
+		freeze_message: options.freeze_message,
+		args_freeze: input_args.freeze,
+		args_freeze_message: input_args.freeze_message,
+	});
+
+	// Resolve effective doc_origin and api_version
+	var doc_origin_resolution = resolve_doc_origin_and_api_version({
+		api_version: options.api_version,
+		doc_origin: options.doc_origin,
+		has_doc: !!options.doc,
+	});
+
+	var effective_doc_origin = doc_origin_resolution.doc_origin;
+	var effective_api_version = doc_origin_resolution.api_version;
+
+	// Build server payload
+	var payload_result = build_server_payload({
+		method: options.method,
+		args: input_args,
+		doc: options.doc,
+		doc_origin: effective_doc_origin,
+		api_version: effective_api_version,
+		module: options.module,
+		page: options.page,
+	});
+
+	// Build request URL
+	var url_result = build_request_url({
+		custom_url: options.url,
+		doc: options.doc,
+		doc_origin: effective_doc_origin,
+		api_version: effective_api_version,
+		cmd: payload_result.cmd,
+		method: options.method,
+	});
+
+	if (url_result.error) {
+		throw url_result.error;
+	}
+
+	// Prepare final payload (remove cmd if URL was built)
+	var final_payload_result = prepare_final_payload(payload_result.payload, !!options.url);
+	var final_payload = final_payload_result.payload;
+
+	// Check debounce status
+	var debounce_check = check_debounce_status({
+		debounce: options.debounce,
+		cmd: payload_result.cmd,
+		payload: final_payload,
+	});
+
+	if (debounce_check.should_skip) {
 		return Promise.resolve();
 	}
 
-	return dispatchRequest(opts, args, url);
+	// Create success handler
+	var realtime_opts = $.extend({}, options, {
+		freeze: ui_options.freeze,
+		freeze_message: ui_options.freeze_message,
+		api_version: effective_api_version,
+		args: final_payload,
+	});
+	var success_handler = create_success_handler({
+		callback: options.callback,
+		queued: options.queued,
+		realtime_opts: realtime_opts,
+	});
+
+	// Assemble request configuration
+	// TODO: Consider passing properties directly to frappe.request.call instead of an intermediate method
+	var request_config = assemble_request_config({
+		type: options.type,
+		payload: final_payload,
+		url: url_result.url,
+		success_handler: success_handler,
+		error_callback: options.error,
+		always_callback: options.always,
+		btn: options.btn,
+		freeze: ui_options.freeze,
+		freeze_message: ui_options.freeze_message,
+		headers: options.headers,
+		error_handlers: options.error_handlers,
+		async: options.async,
+		silent: options.silent,
+		api_version: effective_api_version,
+		cache: options.cache,
+	});
+
+	// Dispatch request
+	return frappe.request.call(request_config);
 };
 
 frappe.request.call = function (opts) {
