@@ -454,7 +454,6 @@ frappe.PermissionEngine = class PermissionEngine {
 		});
 
 		this.body.on("click", "input[type='checkbox']", function () {
-			frappe.dom.freeze();
 			let chk = $(this);
 			let args = {
 				role: chk.attr("data-role"),
@@ -469,8 +468,8 @@ frappe.PermissionEngine = class PermissionEngine {
 				page: "permission_manager",
 				method: "update",
 				args: args,
+				freeze: true,
 				callback: (r) => {
-					frappe.dom.unfreeze();
 					if (r.exc) {
 						// exception: reverse
 						chk.prop("checked", !chk.prop("checked"));
@@ -485,6 +484,10 @@ frappe.PermissionEngine = class PermissionEngine {
 						}
 					}
 				},
+				error: () => {
+					// Revert checkbox when server returns 417/5xx (e.g. validation error)
+					chk.prop("checked", !chk.prop("checked"));
+				}
 			});
 		});
 	}
