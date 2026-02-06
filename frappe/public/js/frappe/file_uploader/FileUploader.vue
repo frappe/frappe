@@ -497,10 +497,20 @@ function check_restrictions(file) {
 
 	if (!is_correct_type || is_unsupported_file_type) {
 		console.warn("File skipped because of invalid file type", file);
-		frappe.show_alert({
-			message: __('File "{0}" was skipped because of invalid file type', [file.name]),
-			indicator: "orange",
-		});
+		if (is_unsupported_file_type) {
+			frappe.show_alert({
+				message: __('File "{0}" was skipped because of unsupported file type "{1}"', [
+					file.name,
+					file.type,
+				]),
+				indicator: "orange",
+			});
+		} else {
+			frappe.show_alert({
+				message: __('File "{0}" was skipped because of invalid file type', [file.name]),
+				indicator: "orange",
+			});
+		}
 	}
 	if (!valid_file_size) {
 		console.warn("File skipped because of invalid file size", file.size, file);
