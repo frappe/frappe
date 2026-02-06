@@ -9,12 +9,15 @@ import os
 import sys
 import uuid
 from typing import TYPE_CHECKING
-from urllib.parse import quote
+from urllib.parse import quote 
+import pathlib
 
 import werkzeug.utils
 from werkzeug.exceptions import Forbidden, NotFound
 from werkzeug.local import LocalProxy
 from werkzeug.wrappers import Response
+
+
 
 import frappe
 import frappe.model.document
@@ -59,9 +62,10 @@ def report_error(status_code):
 def is_traceback_allowed():
 	return (
 		frappe.db
+
 		and frappe.get_system_settings("allow_error_traceback")
 		and (not frappe.local.flags.disable_traceback or frappe._dev_server)
-	)
+	)																																																																																															
 
 
 def _link_error_with_message_log(error_log, exception, message_logs):
@@ -206,7 +210,9 @@ def _make_logs_v2():
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
 	from collections.abc import Iterable
+	from pathlib import Path
 	from re import Match
+
 
 	if isinstance(obj, datetime.date | datetime.datetime | datetime.time):
 		return str(obj)
@@ -236,6 +242,12 @@ def json_handler(obj):
 
 	elif isinstance(obj, uuid.UUID):
 		return str(obj)
+	
+	elif isinstance(obj, Path):
+		path = Path(obj)
+		data = {'path': str(path)}
+		return data
+	
 
 	else:
 		raise TypeError(f"""Object of type {type(obj)} with value of {obj!r} is not JSON serializable""")
