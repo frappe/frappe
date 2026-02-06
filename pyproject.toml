@@ -37,6 +37,7 @@ dependencies = [
     "cryptography~=46.0.3",
     "cssutils~=2.11.1",
     "email-reply-parser~=0.5.12",
+    "Faker~=18.10.1",
     "gunicorn @ git+https://github.com/frappe/gunicorn@bb554053bb87218120d76ab6676af7015680e8b6",
     "html5lib~=1.1",
     "ipython~=8.37.0",
@@ -127,7 +128,6 @@ dev = [
 test = [
     "unittest-xml-reporting~=3.2.0",
     "coverage~=7.10.0",
-    "Faker~=18.10.1",
     "hypothesis~=6.77.0",
     "freezegun~=1.5.1",
 ]
@@ -145,7 +145,6 @@ skip_namespaces = [
 
 [tool.bench.dev-dependencies]
 coverage = "~=7.10.0"
-Faker = "~=18.10.1"
 pyngrok = "~=7.5.0"
 unittest-xml-reporting = "~=3.2.0"
 watchdog = "~=6.0.0"
