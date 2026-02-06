@@ -121,12 +121,31 @@ def has_permission(doctype: str, name: str) -> bool:
 	return True
 
 
+def get_socketio_secret(site=None):
+	"""Generate socket.io secret and store in redis cache"""
+	if not site:
+		site = frappe.local.site
+
+	key = f"socketio_auth_secret:{site}"
+
+	secret = frappe.cache().get_value(key)
+	if secret:
+		return secret
+
+	from frappe.utils import generate_hash
+
+	secret = generate_hash(length=32)
+	frappe.cache().set_value(key, secret)
+
+	return secret
+
+
 @frappe.whitelist(allow_guest=True)
 def get_user_info():
 	user_type = frappe.session.data.user_type
-	trusted_secret = frappe.conf.get("socketio_secret")
+	trusted_secret = get_socketio_secret()
 	provided_secret = frappe.get_request_header("X-Frappe-Socket-Secret")
-	if trusted_secret and trusted_secret != provided_secret:
+	if trusted_secret != provided_secret:
 		return {
 			"user": frappe.session.user,
 			"user_type": user_type,
@@ -140,6 +159,11 @@ def get_user_info():
 		"user_type": user_type,
 		"installed_apps": frappe.get_installed_apps(),
 	}
+
+
+@frappe.whitelist()
+def get_socketio_secret_for_node():
+	return get_socketio_secret()
 
 
 def get_doctype_room(doctype):

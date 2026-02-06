@@ -712,10 +712,7 @@ def disable_user(context: CliCtxObj, email):
 def migrate(context: CliCtxObj, skip_failing=False, skip_search_index=False, skip_fixtures=False):
 	"Run patches, sync schema and rebuild files/translations"
 
-	from frappe.installer import generate_socketio_secret
 	from frappe.migrate import SiteMigration
-
-	generate_socketio_secret()
 
 	for site in context.sites:
 		click.secho(f"Migrating {site}", fg="green")
