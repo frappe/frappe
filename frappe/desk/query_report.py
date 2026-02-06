@@ -518,10 +518,10 @@ def build_xlsx_data(
 		metadata = XLSXMetadata(
 			report_name=data.report_name,
 			filters=data.filters or frappe._dict(),
-			add_total_row=data.get("add_total_row", False),
-			include_filters=include_filters,
+			has_filters=include_filters,
+			has_total_row=data.get("add_total_row", False),
+			has_indentation=include_indentation,
 			ignore_visible_idx=ignore_visible_idx,
-			include_indentation=include_indentation,
 		)
 
 	# adding applied filter rows

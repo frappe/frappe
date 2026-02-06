@@ -35,10 +35,20 @@ MAX_SHEET_NAME_LENGTH = 31
 @dataclass(slots=True)
 class XLSXMetadata:
 	"""
-	Metadata for XLSX reports for exports.
+	Metadata container for XLSX report styling.
 
-	NOTE:
-	- indexes based on excel sheet rows/columns position (0-indexed)
+	- All indexes are 0-based.
+
+	Attributes:
+		report_name: Name of the report.
+		filters: Raw filter values.
+		column_map: Maps column index to column dict (fieldname, fieldtype, etc.).
+		row_map: Maps row index to row data (dict or list).
+		applied_filters_map: Maps row index to applied filter label-value pairs.
+		has_filters: Whether filter rows are included at the top.
+		has_total_row: Whether the last row is a total row.
+		has_indentation: Whether indentation styling should be applied.
+		ignore_visible_idx: Whether all rows are exported (not filtered by visible_idx).
 	"""
 
 	report_name: str = ""
@@ -49,18 +59,27 @@ class XLSXMetadata:
 	row_map: dict[int, dict | list] = dataclass_field(default_factory=dict)
 	applied_filters_map: dict[int, list] = dataclass_field(default_factory=dict)
 
-	add_total_row: bool = False
-	include_filters: bool = False
+	has_filters: bool = False
+	has_total_row: bool = False
+	has_indentation: bool = False
 	ignore_visible_idx: bool = True
-	include_indentation: bool = False
 
 	def get_column_index(self, fieldname: str) -> int | None:
+		"""
+		Get column index by fieldname, or None if not found.
+		"""
 		return next((idx for idx, col in self.column_map.items() if col.get("fieldname") == fieldname), None)
 
 	def get_column(self, fieldname: str) -> dict | None:
+		"""
+		Get column dict by fieldname, or None if not found.
+		"""
 		return next((col for col in self.column_map.values() if col.get("fieldname") == fieldname), None)
 
 	def get_row(self, row_idx: int) -> dict | list | None:
+		"""
+		Get row data by index.
+		"""
 		return self.row_map.get(row_idx)
 
 	def get_header_index(self) -> int:
@@ -74,6 +93,24 @@ class XLSXMetadata:
 
 
 class XLSXStyleBuilder:
+	"""
+	Builder for XLSX cell styles based on report metadata.
+
+	Builds a style dictionary with:
+		- styles: List of style definitions (xlsxwriter format properties).
+		- column_styles: Maps column index to list of style IDs.
+		- row_styles: Maps row index to list of style IDs.
+		- cell_styles: Maps (row, col) tuple to list of style IDs.
+
+	**Usage:**
+
+	```
+	builder = XLSXStyleBuilder(metadata)
+	builder.style_column(0, builder.register_style({"bold": True}))
+	styles = builder.result
+	```
+	"""
+
 	RIGHT_ALIGN_FIELDS: ClassVar[set[str]] = {
 		*frappe.model.numeric_fieldtypes,
 		*frappe.model.datetime_fields,
@@ -109,6 +146,11 @@ class XLSXStyleBuilder:
 
 	### STYLE REGISTRATION ###
 	def register_style(self, style: dict) -> int:
+		"""
+		Register a style and return its ID.
+
+		Style dict uses xlsxwriter format properties.
+		"""
 		if not style:
 			frappe.throw(_("Cannot register an empty style."))
 
@@ -133,6 +175,13 @@ class XLSXStyleBuilder:
 
 	### STYLE APPLICATION ###
 	def style_column(self, col_idx: int, style_id: int):
+		"""
+		Apply a style to all cells in a column.
+
+		Args:
+			col_idx: 0-based column index
+			style_id: ID of the style to apply (from register_style)
+		"""
 		if style_id is None:
 			return self
 
@@ -144,6 +193,13 @@ class XLSXStyleBuilder:
 		return self
 
 	def style_row(self, row_idx: int, style_id: int):
+		"""
+		Apply a style to all cells in a row.
+
+		Args:
+			row_idx: 0-based row index
+			style_id: ID of the style to apply (from register_style)
+		"""
 		if style_id is None:
 			return self
 
@@ -155,6 +211,14 @@ class XLSXStyleBuilder:
 		return self
 
 	def style_cell(self, row_idx: int, col_idx: int, style_id: int):
+		"""
+		Apply a style to a specific cell.
+
+		Args:
+			row_idx: 0-based row index
+			col_idx: 0-based column index
+			style_id: ID of the style to apply (from register_style)
+		"""
 		if style_id is None:
 			return self
 
@@ -169,15 +233,25 @@ class XLSXStyleBuilder:
 
 	### UTILITY METHODS FOR STYLING ###
 	def apply_default_styles(self, currency_formatting: bool = True):
+		"""
+		Apply all default styles:
+
+		- Header row styling
+		- Filter rows styling (if has_filters)
+		- Total row styling (if has_total_row and ignore_visible_idx)
+		- Indentation styling (if has_indentation)
+		- Default fieldtype formatting (numbers, dates, etc.)
+			- Currency formatting can be toggled with currency_formatting flag
+		"""
 		self.style_header()
 
-		if self.metadata.include_filters:
+		if self.metadata.has_filters:
 			self.style_filters()
 
-		if self.metadata.add_total_row and self.metadata.ignore_visible_idx:
+		if self.metadata.has_total_row and self.metadata.ignore_visible_idx:
 			self.style_total_row()
 
-		if self.metadata.include_indentation:
+		if self.metadata.has_indentation:
 			self.apply_indentations(0)
 
 		self.apply_default_fieldtype_formats(currency_formatting)
@@ -251,7 +325,7 @@ class XLSXStyleBuilder:
 
 		field_index = self.field_index
 		last_row_index = self.metadata.get_last_row_index()
-		skip_last_row = self.metadata.add_total_row and self.metadata.ignore_visible_idx
+		skip_last_row = self.metadata.has_total_row and self.metadata.ignore_visible_idx
 		row_is_dict = isinstance(self.metadata.get_row(self.metadata.get_first_row_index()), dict)
 
 		# helpers
@@ -342,6 +416,9 @@ class XLSXStyleBuilder:
 		fieldtype: Literal["Currency", "Float", "Percent"],
 		currency: str | None = None,
 	) -> str:
+		"""
+		Get Excel number format string for the given fieldtype.
+		"""
 		from frappe.locale import get_number_format as _get_format
 
 		number_format = _get_format()
@@ -432,9 +509,9 @@ def get_default_xlsx_styles(
 		column_map=column_map,
 		row_map=row_map,
 		applied_filters_map=applied_filters_map,
-		add_total_row=has_total_row,
-		include_filters=has_filters,
-		include_indentation=has_indentation,
+		has_total_row=has_total_row,
+		has_filters=has_filters,
+		has_indentation=has_indentation,
 	)
 
 	return XLSXStyleBuilder(metadata, default_styling=False).apply_default_styles(currency_formatting).result
