@@ -2197,7 +2197,7 @@ Object.assign(frappe.utils, {
 			if (parsed_value.match(/^[0-9+\-/*.() ]+$/)) {
 				// If it is a string containing operators
 				try {
-					return eval(parsed_value);
+					return (0, eval)(parsed_value);
 				} catch (e) {
 					// bad expression
 					return value;
