@@ -316,7 +316,16 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 		let route = frappe.get_route();
 		let doc = this.doc;
 		if (route && !(route[0] === "List" && route[1] === doc.doctype)) {
+			// User is not on list view, so navigate to form
 			frappe.run_serially([() => frappe.set_route("Form", doc.doctype, doc.name)]);
+		} else {
+			// User is on the list view - refresh it to show the new document
+			if (cur_list && cur_list.doctype === doc.doctype) {
+				// Clear the throttling cache to force API call
+				cur_list.last_args = null;
+				// Refresh the list view
+				cur_list.refresh();
+			}
 		}
 	}
 
