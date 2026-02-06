@@ -306,7 +306,8 @@ class SendMailContext:
 		recipient.update_db(status="Sent", commit=True)
 
 	def get_message_object(self, message):
-		return Parser(policy=SMTP).parsestr(message)
+		policy = SMTP.clone(refold_source="none")
+		return Parser(policy=policy).parsestr(message)
 
 	def message_placeholder(self, placeholder_key):
 		# sourcery skip: avoid-builtin-shadow
@@ -415,27 +416,8 @@ class SendMailContext:
 				print_format_file.update({"parent": message_obj})
 				add_attachment(**print_format_file)
 
-		message_str = self.handle_in_reply_to(message_obj)
-		return safe_encode(message_str)
+		return safe_encode(message_obj.as_string())
 
-	def handle_in_reply_to(self, message_obj):
-		"""Handle In-Reply-To header to avoid issues in Header Folding."""
-		in_reply_to = ""
-		if "In-Reply-To" in message_obj:
-			try:
-				current_value = message_obj["In-Reply-To"]
-				if current_value:
-					clean_id = str(current_value).strip().replace("\n", "").replace("\r", "").strip("<>")
-					in_reply_to = f"<{clean_id}>"
-					message_obj.replace_header("In-Reply-To", "{IN_REPLY_TO_PLACEHOLDER}")
-			except Exception as e:
-				frappe.log_error(title="In-Reply-To Header Patch Error", message=str(e))
-
-		msg_str = message_obj.as_string()
-		if in_reply_to:
-			msg_str = msg_str.replace("{IN_REPLY_TO_PLACEHOLDER}", in_reply_to)
-
-		return msg_str
 
 	def _store_file(self, file_name, content):
 		if not frappe.get_system_settings("store_attached_pdf_document"):
