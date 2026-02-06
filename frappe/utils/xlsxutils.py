@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from io import BytesIO
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 import openpyxl
 import xlrd
@@ -53,7 +53,6 @@ class XLSXMetadata:
 	include_filters: bool = False
 	ignore_visible_idx: bool = True
 	include_indentation: bool = False
-	include_hidden_columns: bool = False
 
 	def get_column_index(self, fieldname: str) -> int | None:
 		return next((idx for idx, col in self.column_map.items() if col.get("fieldname") == fieldname), None)
@@ -75,6 +74,12 @@ class XLSXMetadata:
 
 
 class XLSXStyleBuilder:
+	RIGHT_ALIGN_FIELDS: ClassVar[set[str]] = {
+		*frappe.model.numeric_fieldtypes,
+		*frappe.model.datetime_fields,
+		"Rating",
+	}
+
 	def __init__(self, metadata: XLSXMetadata, default_styling: bool = True):
 		self.metadata = metadata
 
@@ -180,9 +185,21 @@ class XLSXStyleBuilder:
 		return self
 
 	def style_header(self):
-		return self.style_row(
-			self.metadata.get_header_index(), self.register_style({"bold": True, "font_size": 13})
-		)
+		header_index = self.metadata.get_header_index()
+
+		self.style_row(header_index, self.register_style({"bold": True, "font_size": 13}))
+
+		right_align = self.register_style({"align": "right"})
+		left_align = self.register_style({"align": "left"})
+
+		for col_idx, col in self.metadata.column_map.items():
+			self.style_cell(
+				header_index,
+				col_idx,
+				right_align if self.is_right_align(col.get("fieldtype")) else left_align,
+			)
+
+		return self
 
 	def style_filters(self):
 		style = self.register_style({"bold": True})
@@ -363,6 +380,10 @@ class XLSXStyleBuilder:
 	@staticmethod
 	def get_datetime_format() -> str:
 		return f"{XLSXStyleBuilder.get_date_format()} {XLSXStyleBuilder.get_time_format()}"
+
+	@staticmethod
+	def is_right_align(fieldtype: str) -> bool:
+		return fieldtype in XLSXStyleBuilder.RIGHT_ALIGN_FIELDS
 
 
 def get_default_xlsx_styles(
