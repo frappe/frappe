@@ -6,6 +6,7 @@ class RealTimeClient {
 	constructor() {
 		this.open_tasks = {};
 		this.open_docs = new Set();
+		this.disabled = false;
 	}
 
 	on(event, callback) {
@@ -22,6 +23,7 @@ class RealTimeClient {
 	}
 
 	connect() {
+		if (this.disabled) return;
 		if (this.lazy_connect) {
 			this.socket.connect();
 			this.lazy_connect = false;
@@ -29,12 +31,14 @@ class RealTimeClient {
 	}
 
 	emit(event, ...args) {
+		if (this.disabled) return;
 		this.connect();
 		this.socket.emit(event, ...args);
 	}
 
 	init(port = 9000, lazy_connect = false) {
 		if (frappe.boot.disable_async) {
+			this.disabled = true;
 			return;
 		}
 
