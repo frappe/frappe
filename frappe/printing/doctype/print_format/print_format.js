@@ -38,7 +38,10 @@ frappe.ui.form.on("Print Format", {
 					}
 				});
 			} else if (frm.doc.custom_format && !frm.doc.raw_printing) {
-				frm.set_df_property("html", "reqd", 1);
+				frm.toggle_reqd("html", 1);
+			}
+			if (frm.doc.raw_printing || !frm.doc.custom_format) {
+				frm.toggle_reqd("html", 0);
 			}
 			if (frappe.model.can_write("Customize Form")) {
 				frappe.model.with_doctype(frm.doc.doc_type, function () {
