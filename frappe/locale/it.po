@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-01 14:27\n"
+"PO-Revision-Date: 2026-02-05 16:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -22291,7 +22291,7 @@ msgstr "Ruoli"
 #. Label of a Tab Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Roles & Permissions"
-msgstr "Ruoli e Permessi"
+msgstr "Ruoli e permessi"
 
 #. Label of a Table field in DocType 'Role Profile'
 #. Label of a Table field in DocType 'User'
@@ -28503,7 +28503,7 @@ msgstr ""
 
 #: frappe/core/doctype/has_role/has_role.py:25
 msgid "User '{0}' already has the role '{1}'"
-msgstr ""
+msgstr "L'utente '{0}' ha già il ruolo '{1}'"
 
 #. Name of a DocType
 #: frappe/core/doctype/report/user_activity_report.json
@@ -28542,7 +28542,7 @@ msgstr ""
 #. Label of a Tab Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "User Details"
-msgstr "Dettagli Utente"
+msgstr "Dettagli utente"
 
 #. Name of a DocType
 #: frappe/core/doctype/user_document_type/user_document_type.json
@@ -28778,7 +28778,7 @@ msgstr ""
 
 #: frappe/permissions.py:156
 msgid "User {0} does not have doctype access via role permission for document {1}"
-msgstr ""
+msgstr "L'utente {0} non ha accesso al doctype tramite autorizzazione di ruolo per il documento {1}"
 
 #: frappe/desk/doctype/workspace/workspace.py:265
 msgid "User {0} does not have the permission to create a Workspace."

@@ -14,10 +14,6 @@ export default class GridRow {
 		this.set_docfields();
 		this.columns = {};
 		this.columns_list = [];
-		this.dependent_fields = {
-			mandatory: [],
-			read_only: [],
-		};
 		this.row_check_html = '<input type="checkbox" class="grid-row-check" tabIndex="-1">';
 		this.default_rows_threshold_for_grid_search = 20;
 		this.make();
