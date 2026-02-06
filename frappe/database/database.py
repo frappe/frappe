@@ -275,9 +275,11 @@ class Database:
 				frappe.log(f"Syntax error in query:\n{query} {values or ''}")
 
 			elif self.is_deadlocked(e):
+				self.db_type == "mariadb" and frappe.log_error("Query deadlocked", defer_insert=True)
 				raise frappe.QueryDeadlockError(e) from e
 
 			elif self.is_timedout(e):
+				self.db_type == "mariadb" and frappe.log_error("Query timed out", defer_insert=True)
 				raise frappe.QueryTimeoutError(e) from e
 
 			elif self.is_read_only_mode_error(e):
