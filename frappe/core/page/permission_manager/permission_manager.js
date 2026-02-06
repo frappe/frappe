@@ -487,7 +487,7 @@ frappe.PermissionEngine = class PermissionEngine {
 				error: () => {
 					// Revert checkbox when server returns 417/5xx (e.g. validation error)
 					chk.prop("checked", !chk.prop("checked"));
-				}
+				},
 			});
 		});
 	}

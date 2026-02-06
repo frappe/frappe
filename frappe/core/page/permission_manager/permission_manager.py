@@ -144,19 +144,29 @@ def update(doctype: str, role: str, permlevel: int, ptype: str, value=None, if_o
 	# Submit -> Write permission must be set
 	# Amend -> Write and Create permission must be set
 	if ptype in ["submit", "amend"] and value == "1":
-		has_write, has_create = frappe.db.get_value("Custom DocPerm", {"role": role}, ["write", "create"], order_by="modified desc")
+		has_write, has_create = frappe.db.get_value(
+			"Custom DocPerm", {"role": role}, ["write", "create"], order_by="modified desc"
+		)
 		if ptype == "submit" and not has_write:
 			frappe.throw(_(f"Cannot set {ptype.capitalize()} permission without setting Write permission"))
 		if ptype == "amend" and not (has_create and has_write):
-			frappe.throw(_(f"Cannot set {ptype.capitalize()} permission without setting Create or Write permission"))
+			frappe.throw(
+				_(f"Cannot set {ptype.capitalize()} permission without setting Create or Write permission")
+			)
 
 	if ptype in ["write", "create"] and value == "0":
 		# cannot remove write and create permission without removing submit and amend permissions
-		has_submit, has_amend = frappe.db.get_value("Custom DocPerm", {"role": role}, ["submit", "amend"], order_by="modified desc")
+		has_submit, has_amend = frappe.db.get_value(
+			"Custom DocPerm", {"role": role}, ["submit", "amend"], order_by="modified desc"
+		)
 		if ptype == "write" and has_submit:
-			frappe.throw(_(f"Cannot remove {ptype.capitalize()} permission without removing Submit permission"))
+			frappe.throw(
+				_(f"Cannot remove {ptype.capitalize()} permission without removing Submit permission")
+			)
 		if (ptype == "create" or ptype == "write") and has_amend:
-			frappe.throw(_(f"Cannot remove {ptype.capitalize()} permission without removing Amend permission"))
+			frappe.throw(
+				_(f"Cannot remove {ptype.capitalize()} permission without removing Amend permission")
+			)
 
 	out = update_permission_property(doctype, role, permlevel, ptype, value, if_owner=if_owner)
 
