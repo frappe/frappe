@@ -206,6 +206,7 @@ def _make_logs_v2():
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
 	from collections.abc import Iterable
+	from pathlib import Path
 	from re import Match
 
 	if isinstance(obj, datetime.date | datetime.datetime | datetime.time):
@@ -236,6 +237,12 @@ def json_handler(obj):
 
 	elif isinstance(obj, uuid.UUID):
 		return str(obj)
+	
+	# elif isinstance(obj, Path):
+	# 	path = Path('suhail@astromingroup.com (suhail@astromingroup.com)/AMG-ACCOUNTS/2.AMG-ACC-UAE-JAFZAaz')
+	# 	data = {'path': str(os.path)}  # Convert to string
+	# 	return data
+	
 
 	else:
 		raise TypeError(f"""Object of type {type(obj)} with value of {obj!r} is not JSON serializable""")
