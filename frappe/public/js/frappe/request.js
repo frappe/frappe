@@ -345,38 +345,38 @@ frappe.call = function (opts) {
 	}
 
 	/**
-	 * Builds URL for database origin document method calls (v1 API).
-	 * v1: POST to /api/v1/resource/<doctype>/<name>/ with run_method in form data
-	 * @param {{ doctype: string, name: string }} config
+	 * Builds URL for database origin document method calls.
+	 * Supports both v1 and v2 API versions:
+	 * - v1: POST to /api/v1/resource/<doctype>/<name>/ with run_method in form data
+	 * - v2: method is part of the URL path /api/v2/document/<doctype>/<name>/method/<method>/
+	 * @param {{ api_version: string, doctype: string, name: string, method?: string }} config
 	 * @returns {{ url: string }}
 	 */
-	function build_doc_database_url_v1(config) {
-		// TODO: Merge with build_doc_database_url_v2
-		var { doctype, name } = config;
+	function build_doc_db_origin_url(config) {
+		var { api_version, doctype, name, method } = config;
 
-		var url =
-			`/api/v1/resource/` +
-			`${encodeURIComponent(doctype)}/` +
-			`${encodeURIComponent(name)}/`;
-		return { url: url };
-	}
+		var identifier = `${encodeURIComponent(doctype)}/${encodeURIComponent(name)}`;
+		var version = api_version || "v1";
+		var method_name = null;
+		var route;
 
-	/**
-	 * Builds URL for database origin document method calls (v2 API).
-	 * v2: method is part of the URL path
-	 * @param {{ doctype: string, name: string, method: string }} config
-	 * @returns {{ url: string }}
-	 */
-	function build_doc_database_url_v2(config) {
-		// TODO: Merge with build_doc_database_url_v1
-		var { doctype, name, method } = config;
-
-		var url =
-			`/api/v2/document/` +
-			`${encodeURIComponent(doctype)}/` +
-			`${encodeURIComponent(name)}/` +
-			`method/${encodeURIComponent(method)}/`;
-		return { url: url };
+		switch (version) {
+			case "v2":
+				method_name = `method/${encodeURIComponent(method)}`;
+				route = "document";
+				break;
+			
+			case "v1":
+			default:
+				method_name = ""; // method is passed via form data in v1, not in URL
+				route = "resource";
+				break;
+		}
+		
+		var url = `/api/${version}/${route}/${identifier}`;
+		if (method_name) url += `/${method_name}`;
+		
+		return { url };
 	}
 
 	/**
@@ -433,20 +433,13 @@ frappe.call = function (opts) {
 				return { url: null, error: validation.error };
 			}
 
-			if (api_version === "v1") {
-				var v1_url = build_doc_database_url_v1({
-					doctype: doc.doctype,
-					name: doc.name,
-				});
-				url = v1_url.url;
-			} else if (api_version === "v2") {
-				var v2_url = build_doc_database_url_v2({
-					doctype: doc.doctype,
-					name: doc.name,
-					method: method,
-				});
-				url = v2_url.url;
-			}
+			var doc_url = build_doc_db_origin_url({
+				api_version: api_version,
+				doctype: doc.doctype,
+				name: doc.name,
+				method: method,
+			});
+			url = doc_url.url;
 		} else {
 			// Standard method URL
 			var std_url = build_standard_method_url({
