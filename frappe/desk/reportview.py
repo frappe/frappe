@@ -698,14 +698,13 @@ def get_stats(stats, doctype, filters=None):
 				results[column] = scrub_user_tags(tag_count)
 				no_tag_count = frappe.get_list(
 					doctype,
-					fields=[column, {"COUNT": "1"}],
+					fields=[column, {"COUNT": "1", "as": "count"}],
 					filters=[*filters, [column, "in", ("", ",")]],
-					as_list=True,
 					group_by=column,
 					order_by=column,
 				)
 
-				no_tag_count = no_tag_count[0][1] if no_tag_count else 0
+				no_tag_count = no_tag_count[0].get("count", 0) if no_tag_count else 0
 
 				results[column].append([_("No Tags"), no_tag_count])
 			else:
