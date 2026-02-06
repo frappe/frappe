@@ -135,6 +135,38 @@ frappe.call = function (opts) {
 	}
 
 	/**
+	 * Validates that at least one valid call type is specified.
+	 * Valid call types are: page method (module + page), document method (doc), or direct method (method).
+	 * @param {{ method: string|undefined, doc: object|undefined, module: string|undefined, page: string|undefined }} config
+	 * @returns {{ is_valid: boolean, error: Error|null }}
+	 */
+	function validate_call_type(config) {
+		var { method, doc, module, page } = config;
+
+		var has_page_call = module && page;
+		var has_doc_call = !!doc;
+		var has_method_call = !!method;
+
+		if (has_page_call || has_doc_call || has_method_call) {
+			return { is_valid: true, error: null };
+		}
+
+		var missing_options = [
+			!has_method_call && "'method' (direct method call)",
+			!has_doc_call && "'doc' (document method call)",
+			!has_page_call && "'module' and 'page' (page method call)",
+		].filter(Boolean);
+
+		console.error("frappe.call invalid call configuration");
+		return {
+			is_valid: false,
+			error: new Error(
+				`frappe.call: invalid call configuration. Must provide one of: ${missing_options.join(", ")}`
+			),
+		};
+	}
+
+	/**
 	 * Resolves the effective doc_origin and api_version based on provided options.
 	 * Both API v1 and v2 support both origins:
 	 * - 'memory' (default): Uses run_doc_method, sends full in-memory document to server
@@ -282,12 +314,8 @@ frappe.call = function (opts) {
 			};
 		}
 
-		// No recognized call type
-		// TODO: What should happen here? Throw error?
-		return {
-			payload: $.extend({}, args),
-			cmd: undefined,
-		};
+		// This should never be reached, previous validations should catch invalid configurations
+		throw new Error("frappe.call: unable to build server payload due to unknown call type");
 	}
 
 	/**
@@ -566,6 +594,17 @@ frappe.call = function (opts) {
 	var doc_origin_validation = validate_doc_origin(options.doc_origin);
 	if (!doc_origin_validation.is_valid) {
 		throw doc_origin_validation.error;
+	}
+
+	// Validate call type
+	var call_type_validation = validate_call_type({
+		method: options.method,
+		doc: options.doc,
+		module: options.module,
+		page: options.page,
+	});
+	if (!call_type_validation.is_valid) {
+		throw call_type_validation.error;
 	}
 
 	// Resolve parameter precedence (freeze, spinner settings)
