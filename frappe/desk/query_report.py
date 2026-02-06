@@ -522,7 +522,6 @@ def build_xlsx_data(
 			include_filters=include_filters,
 			ignore_visible_idx=ignore_visible_idx,
 			include_indentation=include_indentation,
-			include_hidden_columns=include_hidden_columns,
 		)
 
 	# adding applied filter rows
