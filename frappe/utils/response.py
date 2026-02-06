@@ -238,10 +238,10 @@ def json_handler(obj):
 	elif isinstance(obj, uuid.UUID):
 		return str(obj)
 	
-	# elif isinstance(obj, Path):
-	# 	path = Path('suhail@astromingroup.com (suhail@astromingroup.com)/AMG-ACCOUNTS/2.AMG-ACC-UAE-JAFZAaz')
-	# 	data = {'path': str(os.path)}  # Convert to string
-	# 	return data
+	elif isinstance(obj, Path):
+		path = Path(obj)
+		data = {'path': str(path)}
+		return data
 	
 
 	else:
