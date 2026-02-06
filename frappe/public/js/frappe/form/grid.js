@@ -205,8 +205,10 @@ export default class Grid {
 
 	setup_check() {
 		this.wrapper.on("click touchend", ".grid-row-check", (e) => {
-			e.stopPropagation();
-			if (e.type === "touchend") return;
+			if (e.type === "touchend") {
+				e.stopPropagation();
+				return;
+			}
 
 			const $check = $(e.currentTarget);
 			const checked = $check.prop("checked");
