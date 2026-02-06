@@ -230,15 +230,6 @@ def check_share_permission(doctype, name, permissions=None):
 	# Validate user has the permissions they're trying to grant
 	restricted_permissions = ["read", "write", "submit"]
 
-<<<<<<< HEAD
-	from frappe.permissions import get_role_permissions
-=======
-	# Append custom permissions
-	if custom_perms is None:
-		custom_perms = get_doctype_ptype_map().get(doctype, [])
-	restricted_permissions.extend(custom_perms)
->>>>>>> 7d67a5514a (fix(share): use `has_permission` instead of `get_role_permissions`)
-
 	doc = frappe.get_doc(doctype, name)
 
 	for ptype in restricted_permissions:
