@@ -83,7 +83,8 @@ class XLSXMetadata:
 		return self.row_map.get(row_idx)
 
 	def get_header_index(self) -> int:
-		return get_report_header_index(list(self.applied_filters_map.values()))
+		count = len(self.applied_filters_map)
+		return count + 1 if count else 0
 
 	def get_first_row_index(self) -> int:
 		return min(self.row_map.keys()) if self.row_map else 0
@@ -138,7 +139,6 @@ class XLSXStyleBuilder:
 		}
 
 		# caches
-		self.currency_styles = {}
 		self.indent_styles = {}
 
 		if default_styling:
@@ -158,14 +158,6 @@ class XLSXStyleBuilder:
 		self.styles.append(style)
 
 		return style_id
-
-	def register_currency_style(self, currency: str) -> int | None:
-		if currency not in self.currency_styles:
-			self.currency_styles[currency] = self.register_style(
-				{"num_format": self.get_number_format("Currency", currency)}
-			)
-
-		return self.currency_styles[currency]
 
 	def register_indent_style(self, indent: int) -> int | None:
 		if indent not in self.indent_styles:
@@ -316,17 +308,22 @@ class XLSXStyleBuilder:
 		return self
 
 	def apply_currency_fieldtype_formats(self):
-		currency_fields = self.get_fields_mapping("Currency")
+		currency_options = {
+			col_idx: col.get("options")
+			for col_idx, col in self.metadata.column_map.items()
+			if col.get("fieldtype") == "Currency"
+		}
 
-		if not currency_fields:
+		if not currency_options:
 			return self
 
 		default_currency = frappe.db.get_default("currency")
 
 		field_index = self.field_index
 		last_row_index = self.metadata.get_last_row_index()
-		skip_last_row = self.metadata.has_total_row and self.metadata.ignore_visible_idx
+		skip_last_row = bool(self.metadata.has_total_row and self.metadata.ignore_visible_idx)
 		row_is_dict = isinstance(self.metadata.get_row(self.metadata.get_first_row_index()), dict)
+		currency_options_items = currency_options.items()
 
 		# helpers
 		@functools.cache
@@ -335,57 +332,43 @@ class XLSXStyleBuilder:
 
 		@functools.cache
 		def parse_options(options: str) -> tuple:
-			if ":" in options:
-				parts = options.split(":")
-				if len(parts) == 3:
-					doctype, link_field, curr_field = parts
-					link_idx = None if row_is_dict else field_index.get(link_field)
-					curr_field_idx = None if row_is_dict else field_index.get(curr_field)
-					return (doctype, link_field, link_idx, curr_field, curr_field_idx)
+			parts = options.split(":")
+			return parts if len(parts) == 3 else (None, None, None)
 
-			return (None, None, None, options, None if row_is_dict else field_index.get(options))
+		@functools.cache
+		def register_currency_style(currency: str) -> int:
+			return self.register_style({"num_format": self.get_number_format("Currency", currency)})
 
-		def get_currency(options: str, row: list | dict) -> str | None:
-			if not options or not row:
-				return None
+		# dispatch dict/list row access once, not per cell
+		if row_is_dict:
 
-			doctype, link_field, link_idx, curr_field, curr_field_idx = parse_options(options)
+			def get_row_value(row, field):
+				return row.get(field)
+		else:
+			_field_index_get = field_index.get
 
-			# linked document lookup
-			if doctype:
-				link_value = (
-					row.get(link_field) if row_is_dict else (row[link_idx] if link_idx is not None else None)
-				)
+			def get_row_value(row, field):
+				idx = _field_index_get(field)
+				return row[idx] if idx is not None else None
 
-				if not link_value:
-					return None
-
-				return _get_value(doctype, link_value, curr_field)
-
-			# direct field reference
-			if row_is_dict:
-				return row.get(curr_field)
-
-			return row[curr_field_idx] if curr_field_idx is not None else None
-
-		# apply formatting
 		for row_idx, row in self.metadata.row_map.items():
-			if row_idx == last_row_index and skip_last_row:
+			if skip_last_row and row_idx == last_row_index:
 				continue
 
-			for col_idx, col in currency_fields.items():
-				currency = get_currency(col.get("options"), row) or default_currency
-				self.style_cell(row_idx, col_idx, self.register_currency_style(currency))
+			for col_idx, options in currency_options_items:
+				currency = None
+
+				if options:
+					if ":" not in options:
+						currency = get_row_value(row, options)
+					else:
+						doctype, link_field, currency_field = parse_options(options)
+						if doctype is not None and (link_value := get_row_value(row, link_field)):
+							currency = _get_value(doctype, link_value, currency_field)
+
+				self.style_cell(row_idx, col_idx, register_currency_style(currency or default_currency))
 
 		return self
-
-	### CURRENCY RESOLUTION ###
-	def get_fields_mapping(self, fieldtype: str | None = None) -> dict[int, dict]:
-		return {
-			col_idx: col
-			for col_idx, col in self.metadata.column_map.items()
-			if not fieldtype or col.get("fieldtype") == fieldtype
-		}
 
 	@staticmethod
 	def _get_currency_symbol_info(currency: str | None) -> tuple[str, bool]:
@@ -485,14 +468,9 @@ def get_default_xlsx_styles(
 		report_name: Name of the report.
 		filters: Raw filters dict (fieldname -> value).
 		has_total_row: If True, applies bold styling to the last row.
-		ignore_total_row: If True, skips styling the total row.
 		has_filters: If True, applies bold styling to filter labels.
 		has_indentation: If True, applies indent styles based on row's 'indent' key.
-		apply_currency_format: If True, applies currency number formats to Currency fields.
-		currency: Currency for formatting. Can be:
-			- str: Single currency code for all Currency fields (e.g., "USD")
-			- dict: Mapping of fieldname -> currency code for per-field formatting
-			- None: Resolves currency per-row from field options
+		currency_formatting: If True, applies currency number formats to Currency fields.
 	"""
 	applied_filters = applied_filters or []
 	filters = filters or {}
