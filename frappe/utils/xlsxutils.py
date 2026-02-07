@@ -206,11 +206,12 @@ class XLSXStyleBuilder:
 			return self
 
 		key = (row_idx, col_idx)
+		cell_styles = self.cell_styles
 
-		if key not in self.cell_styles:
-			self.cell_styles[key] = []
+		if key not in cell_styles:
+			cell_styles[key] = []
 
-		self.cell_styles[key].append(style_id)
+		cell_styles[key].append(style_id)
 
 		return self
 
@@ -326,6 +327,7 @@ class XLSXStyleBuilder:
 		skip_last_row = bool(self.metadata.has_total_row and self.metadata.ignore_visible_idx)
 		row_is_dict = isinstance(self.metadata.get_row(self.metadata.get_first_row_index()), dict)
 		currency_options_items = currency_options.items()
+		style_cell = self.style_cell
 
 		# helpers
 		@functools.cache
@@ -368,7 +370,7 @@ class XLSXStyleBuilder:
 						if doctype is not None and (link_value := get_row_value(row, link_field)):
 							currency = _get_value(doctype, link_value, currency_field)
 
-				self.style_cell(row_idx, col_idx, register_currency_style(currency or default_currency))
+				style_cell(row_idx, col_idx, register_currency_style(currency or default_currency))
 
 		return self
 
