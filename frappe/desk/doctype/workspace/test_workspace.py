@@ -46,7 +46,7 @@ class TestWorkspace(IntegrationTestCase):
 			workspace_titles = [p.title for p in result["pages"]]
 			self.assertIn("Role Test Workspace", workspace_titles)
 		finally:
-			frappe.delete_doc("Workspace", workspace.name, force=True)
+			frappe.db.delete("Workspace", {"name": workspace.name})
 
 
 def create_module(module_name):
