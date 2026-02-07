@@ -32,9 +32,12 @@ class TestWorkspace(IntegrationTestCase):
 		"""Non-public workspace with roles should be visible to users with matching role."""
 		from frappe.desk.desktop import get_workspace_sidebar_items
 
-		workspace = create_workspace(name="Role Test Workspace", label="Role Test Workspace")
+		workspace = frappe.new_doc("Workspace")
+		workspace.label = "Role Test Workspace"
 		workspace.title = "Role Test Workspace"
+		workspace.category = "Modules"
 		workspace.public = 0
+		workspace.module = "Desk"
 		workspace.append("roles", {"role": "System Manager"})
 		workspace.insert(ignore_if_duplicate=True)
 
