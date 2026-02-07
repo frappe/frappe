@@ -235,15 +235,15 @@ def set_name_from_naming_options(autoname, doc):
 		def get_param_value_for_match(match):
 			param = match.group()
 			return parse_naming_series([param[1:-1]], doc=doc)
-		
+
 		# Replace braced params first
 		name_with_params = BRACED_PARAMS_PATTERN.sub(get_param_value_for_match, autoname)
-		
+
 		# Normalize pattern: convert '-.#####' to '.-.#####' to support both formats
 		# This handles cases like {fieldname}-.##### (without dot before dash)
 		# Pattern matches: dash followed by dot followed by one or more hashes, but only if not preceded by a dot
 		normalized_autoname = re.sub(r"(?<!\.)(-\.#+)", r".\1", name_with_params)
-		
+
 		# Process the series
 		doc.name = make_autoname(normalized_autoname, doc=doc)
 
