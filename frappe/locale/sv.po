@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-01 09:42+0000\n"
-"PO-Revision-Date: 2026-02-02 16:52\n"
+"PO-Revision-Date: 2026-02-03 16:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -24314,11 +24314,11 @@ msgstr "Ange Värde"
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:103
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:162
 msgid "Set all private"
-msgstr "Ange som Privat"
+msgstr "Privat"
 
 #: frappe/public/js/frappe/file_uploader/file_uploader.bundle.js:103
 msgid "Set all public"
-msgstr "Ange som Allmän"
+msgstr "Publik"
 
 #: frappe/printing/doctype/print_format/print_format.js:50
 msgid "Set as Default"

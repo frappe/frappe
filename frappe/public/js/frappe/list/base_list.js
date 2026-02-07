@@ -649,7 +649,7 @@ class FilterArea {
 	setup_mobile(list_view) {
 		const me = this;
 		this.standard_filters_visible = false;
-		this.standard_filters_wrapper.hide();
+		this.standard_filters_wrapper?.hide();
 		this.list_view.page.page_form.css("justify-content", "flex-end");
 		$(`<button class="filter-toggle btn btn-default btn-sm filter-button">
 					<span class="filter-icon button-icon">
@@ -1214,6 +1214,7 @@ class FilterArea {
 						onchange: () => this.debounced_refresh_list_view(),
 						ignore_link_validation: fieldtype === "Dynamic Link",
 						is_filter: 1,
+						link_filters: df.link_filters,
 					};
 				})
 		);

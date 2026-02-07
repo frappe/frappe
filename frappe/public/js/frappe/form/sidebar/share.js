@@ -10,7 +10,7 @@ frappe.ui.form.Share = class Share {
 		this.render_sidebar();
 	}
 	render_sidebar() {
-		const shared = this.shared || this.frm.get_docinfo().shared;
+		const shared = this.shared || this.frm.get_docinfo()?.shared || [];
 		const has_everyone = shared.some((s) => s && s.everyone);
 		const shared_users = shared.filter((s) => s && s.user && !s.everyone).map((s) => s.user);
 
