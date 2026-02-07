@@ -138,9 +138,6 @@ class XLSXStyleBuilder:
 			"cell_styles": self.cell_styles,
 		}
 
-		# caches
-		self.indent_styles = {}
-
 		if default_styling:
 			self.apply_default_styles()
 
@@ -158,12 +155,6 @@ class XLSXStyleBuilder:
 		self.styles.append(style)
 
 		return style_id
-
-	def register_indent_style(self, indent: int) -> int | None:
-		if indent not in self.indent_styles:
-			self.indent_styles[indent] = self.register_style({"align": "left", "indent": indent * 2})
-
-		return self.indent_styles[indent]
 
 	### STYLE APPLICATION ###
 	def style_column(self, col_idx: int, style_id: int):
@@ -276,9 +267,13 @@ class XLSXStyleBuilder:
 		return self
 
 	def apply_indentations(self, col_idx: int, field: str = "indent"):
+		@functools.cache
+		def register_indent_style(indent: int) -> int:
+			return self.register_style({"align": "left", "indent": indent * 2})
+
 		for row_idx, row in self.metadata.row_map.items():
 			if isinstance(row, dict) and (indent := row.get(field)):
-				self.style_cell(row_idx, col_idx, self.register_indent_style(indent))
+				self.style_cell(row_idx, col_idx, register_indent_style(indent))
 
 		return self
 
