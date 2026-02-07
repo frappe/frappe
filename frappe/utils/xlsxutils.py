@@ -271,8 +271,15 @@ class XLSXStyleBuilder:
 		def register_indent_style(indent: int) -> int:
 			return self.register_style({"align": "left", "indent": indent * 2})
 
+		row_is_dict = isinstance(self.metadata.get_row(self.metadata.get_first_row_index()), dict)
+		last_row_index = self.metadata.get_last_row_index()
+		skip_last_row = bool(self.metadata.has_total_row and self.metadata.ignore_visible_idx)
+
 		for row_idx, row in self.metadata.row_map.items():
-			if isinstance(row, dict) and (indent := row.get(field)):
+			if skip_last_row and row_idx == last_row_index:
+				continue
+
+			if row_is_dict and (indent := row.get(field)):
 				self.style_cell(row_idx, col_idx, register_indent_style(indent))
 
 		return self
