@@ -408,19 +408,16 @@ class SQLiteSearch(ABC):
 
 					batch_count += 1
 
-					# Show progress based on current doctype's document counts
-					if batch_count % 5 == 0:  # Update every 5 batches
-						indexed_docs, total_docs = self._get_doctype_progress(doctype)
-						if total_docs > 0:
-							progress_percent = (
-								indexed_docs * 100
-							) // total_docs  # 0-100% for current doctype
-							self._update_progress(
-								f"Indexing {doctype} - {indexed_docs:,}/{total_docs:,} documents ({progress_percent}%)",
-								progress_percent,
-								100,
-								absolute=True,
-							)
+					# Show progress based on total document counts across all doctypes
+					indexed_docs, total_docs = self._get_indexing_progress()
+					if total_docs > 0:
+						progress_percent = 20 + (indexed_docs * 60) // total_docs
+						self._update_progress(
+							f"Indexing {doctype} {indexed_docs}/{total_docs}",
+							progress_percent,
+							100,
+							absolute=True,
+						)
 
 				processed_doctypes += 1
 
@@ -749,16 +746,14 @@ class SQLiteSearch(ABC):
 		count = self._get_incomplete_count("is_complete = 0 OR vocabulary_built = 0")
 		return count == 0 if count >= 0 else False
 
-	def _get_doctype_progress(self, doctype):
-		"""Get indexing progress for a specific doctype."""
+	def _get_indexing_progress(self):
+		"""Get overall indexing progress across all doctypes."""
 		try:
 			result = self.sql(
 				"""
-				SELECT total_docs, indexed_docs
+				SELECT SUM(total_docs) as total_docs, SUM(indexed_docs) as indexed_docs
 				FROM search_index_progress
-				WHERE doctype = ?
 			""",
-				(doctype,),
 				read_only=True,
 			)
 
