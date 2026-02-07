@@ -544,12 +544,14 @@ def build_xlsx_data(
 		result += filter_data
 
 	# adding header row
-	for idx, column in enumerate(data.columns):
+	column_idx = 0
+	for column in data.columns:
 		if column.get("hidden") and not include_hidden_columns:
 			continue
 
 		if build_styles:
-			metadata.column_map[idx] = column
+			metadata.column_map[column_idx] = column
+			column_idx += 1
 
 		column_data.append(_(column.get("label")))
 		column_width = cint(column.get("width", 0))
