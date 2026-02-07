@@ -28,6 +28,23 @@ class TestWorkspace(IntegrationTestCase):
 	# 	else:
 	# 		self.assertEqual(len(cards), 1)
 
+	def test_role_restricted_non_public_workspace_visible_to_permitted_user(self):
+		"""Non-public workspace with roles should be visible to users with matching role."""
+		from frappe.desk.desktop import get_workspace_sidebar_items
+
+		workspace = create_workspace(name="Role Test Workspace", label="Role Test Workspace")
+		workspace.title = "Role Test Workspace"
+		workspace.public = 0
+		workspace.append("roles", {"role": "System Manager"})
+		workspace.insert(ignore_if_duplicate=True)
+
+		try:
+			result = get_workspace_sidebar_items()
+			workspace_titles = [p.title for p in result["pages"]]
+			self.assertIn("Role Test Workspace", workspace_titles)
+		finally:
+			frappe.delete_doc("Workspace", workspace.name, force=True)
+
 
 def create_module(module_name):
 	module = frappe.get_doc({"doctype": "Module Def", "module_name": module_name, "app_name": "frappe"})
