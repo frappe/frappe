@@ -56,12 +56,11 @@ frappe.call = function (opts) {
 
 	/**
 	 * Handles legacy calling convention: frappe.call(method, args, callback, headers)
-	 * @param {IArguments} caller_arguments - The arguments object from frappe.call
+	 * @param {string|object} first_arg - The first argument passed to frappe.call
+	 * @param {IArguments} caller_arguments - The full arguments object from frappe.call
 	 * @returns {{ opts: object }}
 	 */
-	function parse_caller_arguments(caller_arguments) {
-		var [ first_arg ] = caller_arguments;
-
+	function parse_caller_arguments(first_arg, caller_arguments) {
 		if (typeof first_arg === "string") {
 			var [ method, args, callback, headers ] = caller_arguments;
 
@@ -80,7 +79,7 @@ frappe.call = function (opts) {
 	/**
 	 * Resolves parameter precedence between top-level opts and args.
 	 * Top-level options take precedence over args options.
-	 * @param {{ opts: { freeze: boolean, freeze_message: string }, args: { freeze: boolean, freeze_message: string } }} config
+	 * @param {{ opts: object, args: object }} config
 	 * @returns {{ freeze: boolean, freeze_message: string }}
 	 */
 	function resolve_parameter_precedence(config) {
@@ -575,7 +574,7 @@ frappe.call = function (opts) {
 	check_connectivity();
 
 	// Parse caller arguments (handle legacy calling convention)
-	var parsed = parse_caller_arguments(arguments);
+	var parsed = parse_caller_arguments(opts, arguments);
 	var options = parsed.opts;
 
 	// Validate API version and doc_origin
@@ -600,7 +599,7 @@ frappe.call = function (opts) {
 		throw call_type_validation.error;
 	}
 
-	// Resolve parameter precedence (freeze, spinner settings)
+	// Resolve parameters precedence
 	var input_args = options.args || {};
 	var resolved_params = resolve_parameter_precedence({
 		opts: { freeze: options.freeze, freeze_message: options.freeze_message },
