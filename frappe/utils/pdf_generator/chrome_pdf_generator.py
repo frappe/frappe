@@ -252,27 +252,24 @@ class ChromePDFGenerator:
 			# Register atexit handler for normal process exit
 			atexit.register(ChromePDFGenerator._cleanup_on_exit_class)
 
-			# Only register signal handlers on Unix-like systems
-			# Windows doesn't support SIGTERM
-			if platform.system() != "Windows":
-				# Get original handlers before replacing
-				original_sigterm = signal.getsignal(signal.SIGTERM)
-				original_sigint = signal.getsignal(signal.SIGINT)
+			# Get original handlers before replacing
+			original_sigterm = signal.getsignal(signal.SIGTERM)
+			original_sigint = signal.getsignal(signal.SIGINT)
 
-				# Create signal handler that chains to original handlers
-				def signal_handler(signum, frame):
-					"""Handle termination signals by cleaning up browser."""
-					ChromePDFGenerator._cleanup_signal_handler(signum, frame)
-					# Chain to previous handler if one exists
-					if signum == signal.SIGTERM:
-						if original_sigterm not in (signal.SIG_DFL, signal.SIG_IGN):
-							original_sigterm(signum, frame)
-					elif signum == signal.SIGINT:
-						if original_sigint not in (signal.SIG_DFL, signal.SIG_IGN):
-							original_sigint(signum, frame)
+			# Create signal handler that chains to original handlers
+			def signal_handler(signum, frame):
+				"""Handle termination signals by cleaning up browser."""
+				ChromePDFGenerator._cleanup_signal_handler(signum, frame)
+				# Chain to previous handler if one exists
+				if signum == signal.SIGTERM:
+					if original_sigterm not in (signal.SIG_DFL, signal.SIG_IGN):
+						original_sigterm(signum, frame)
+				elif signum == signal.SIGINT:
+					if original_sigint not in (signal.SIG_DFL, signal.SIG_IGN):
+						original_sigint(signum, frame)
 
-				signal.signal(signal.SIGTERM, signal_handler)
-				signal.signal(signal.SIGINT, signal_handler)
+			signal.signal(signal.SIGTERM, signal_handler)
+			signal.signal(signal.SIGINT, signal_handler)
 
 			ChromePDFGenerator._cleanup_handlers_registered = True
 
