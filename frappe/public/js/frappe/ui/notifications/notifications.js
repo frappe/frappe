@@ -53,9 +53,7 @@ frappe.ui.Notifications = class Notifications {
 			${frappe.utils.icon("x")}
 		</span>`)
 			.on("click", (e) => {
-				if (!this.full_height) {
-					this.dropdown.addClass("hidden");
-				}
+				this.dropdown.addClass("hidden");
 			})
 			.appendTo(this.header_actions)
 			.attr("title", __("Close"))
