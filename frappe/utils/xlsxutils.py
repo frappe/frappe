@@ -138,6 +138,13 @@ class XLSXStyleBuilder:
 			"cell_styles": self.cell_styles,
 		}
 
+		# metadata indexes for quick access
+		self.header_index = self.metadata.get_header_index()
+		self.first_row_index = self.metadata.get_first_row_index()
+		self.last_row_index = self.metadata.get_last_row_index()
+		self.row_is_dict = isinstance(self.metadata.get_row(self.first_row_index), dict)
+		self.has_total_row = bool(self.metadata.has_total_row and self.metadata.ignore_visible_idx)
+
 		if default_styling:
 			self.apply_default_styles()
 
@@ -232,7 +239,7 @@ class XLSXStyleBuilder:
 		if self.metadata.has_filters:
 			self.style_filters()
 
-		if self.metadata.has_total_row and self.metadata.ignore_visible_idx:
+		if self.has_total_row:
 			self.style_total_row()
 
 		if self.metadata.has_indentation:
@@ -243,18 +250,19 @@ class XLSXStyleBuilder:
 		return self
 
 	def style_header(self):
-		header_index = self.metadata.get_header_index()
+		header_index = self.header_index
 
 		self.style_row(header_index, self.register_style({"bold": True, "font_size": 13}))
 
 		right_align = self.register_style({"align": "right"})
 		left_align = self.register_style({"align": "left"})
+		right_align_fields = self.RIGHT_ALIGN_FIELDS
 
 		for col_idx, col in self.metadata.column_map.items():
 			self.style_cell(
 				header_index,
 				col_idx,
-				right_align if self.is_right_align(col.get("fieldtype")) else left_align,
+				right_align if col.get("fieldtype") in right_align_fields else left_align,
 			)
 
 		return self
@@ -267,28 +275,30 @@ class XLSXStyleBuilder:
 			self.style_cell(row_idx, 0, style)
 		return self
 
-	def apply_indentations(self, col_idx: int, field: str = "indent"):
+	def apply_indentations(self, col_idx: int, field: str = "indent", align: str = "left", pt: int = 2):
+		if not self.row_is_dict:
+			return self
+
 		@functools.cache
 		def register_indent_style(indent: int) -> int:
-			return self.register_style({"align": "left", "indent": indent * 2})
+			return self.register_style({"align": align, "indent": indent * pt})
 
-		row_is_dict = isinstance(self.metadata.get_row(self.metadata.get_first_row_index()), dict)
-		last_row_index = self.metadata.get_last_row_index()
-		skip_last_row = bool(self.metadata.has_total_row and self.metadata.ignore_visible_idx)
+		# quick access for hot loop
+		last_row_index = self.last_row_index
+		skip_last_row = self.has_total_row
+		style_cell = self.style_cell
 
 		for row_idx, row in self.metadata.row_map.items():
 			if skip_last_row and row_idx == last_row_index:
 				continue
 
-			if row_is_dict and (indent := row.get(field)):
-				self.style_cell(row_idx, col_idx, register_indent_style(indent))
+			if indent := row.get(field):
+				style_cell(row_idx, col_idx, register_indent_style(indent))
 
 		return self
 
 	def style_total_row(self):
-		return self.style_row(
-			self.metadata.get_last_row_index(), self.register_style({"bold": True, "font_size": 12})
-		)
+		return self.style_row(self.last_row_index, self.register_style({"bold": True, "font_size": 12}))
 
 	def apply_default_fieldtype_formats(self, currency_formatting: bool = True):
 		formats: dict[str, int] = {
@@ -322,10 +332,9 @@ class XLSXStyleBuilder:
 
 		default_currency = frappe.db.get_default("currency")
 
-		field_index = self.field_index
-		last_row_index = self.metadata.get_last_row_index()
-		skip_last_row = bool(self.metadata.has_total_row and self.metadata.ignore_visible_idx)
-		row_is_dict = isinstance(self.metadata.get_row(self.metadata.get_first_row_index()), dict)
+		# quick access for hot loop
+		last_row_index = self.last_row_index
+		skip_last_row = self.has_total_row
 		currency_options_items = currency_options.items()
 		style_cell = self.style_cell
 
@@ -344,17 +353,18 @@ class XLSXStyleBuilder:
 			return self.register_style({"num_format": self.get_number_format("Currency", currency)})
 
 		# dispatch dict/list row access once, not per cell
-		if row_is_dict:
+		if self.row_is_dict:
 
 			def get_row_value(row, field):
 				return row.get(field)
 		else:
-			_field_index_get = field_index.get
+			_field_index_get = self.field_index.get
 
 			def get_row_value(row, field):
 				idx = _field_index_get(field)
 				return row[idx] if idx is not None else None
 
+		# currency formatting
 		for row_idx, row in self.metadata.row_map.items():
 			if skip_last_row and row_idx == last_row_index:
 				continue
@@ -444,10 +454,6 @@ class XLSXStyleBuilder:
 	@staticmethod
 	def get_datetime_format() -> str:
 		return f"{XLSXStyleBuilder.get_date_format()} {XLSXStyleBuilder.get_time_format()}"
-
-	@staticmethod
-	def is_right_align(fieldtype: str) -> bool:
-		return fieldtype in XLSXStyleBuilder.RIGHT_ALIGN_FIELDS
 
 
 def get_default_xlsx_styles(
@@ -585,7 +591,7 @@ def make_xlsx(
 	for col_idx, style_ids in col_style_ids.items():
 		ws.set_column(col_idx, col_idx, cell_format=get_format(style_ids))
 
-	# row level styles
+	# row level styles (sorted because constant_memory mode requires writing rows in order)
 	for row_idx, style_ids in sorted(row_style_ids.items()):
 		ws.set_row(row_idx, cell_format=get_format(style_ids))
 
@@ -607,13 +613,11 @@ def make_xlsx(
 			if pos not in cell_formats:
 				cell_formats[pos] = get_format(col_ids + row_ids)
 
+	# quick access for hot loop
 	handle_html_content = should_handle_html_content(sheet_name)
-
-	# pre-compile check for illegal characters
 	illegal_chars_search = ILLEGAL_CHARACTERS_RE.search
 	illegal_chars_sub = ILLEGAL_CHARACTERS_RE.sub
 
-	# bind method for hot loop
 	write = ws.write
 	has_cell_formats = bool(cell_formats)
 	get_cell_format = cell_formats.get
@@ -628,7 +632,6 @@ def make_xlsx(
 					value = illegal_chars_sub("", value)
 
 			cell_format = get_cell_format((row_idx, col_idx)) if has_cell_formats else None
-
 			write(row_idx, col_idx, value, cell_format)
 
 	if created_wb:
