@@ -407,7 +407,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 		)
 	elif file_format_type == "Excel":
 		file_extension = "xlsx"
-		content = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths, styles=styles).getvalue()
+		content = make_xlsx(xlsx_data, report_name, column_widths=column_widths, styles=styles).getvalue()
 	else:
 		frappe.throw(
 			title=_("Unsupported file format: {0}").format(file_format_type),
