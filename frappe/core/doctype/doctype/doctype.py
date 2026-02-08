@@ -680,7 +680,7 @@ class DocType(Document):
 				where doctype=%s and field='name' and value = %s""",
 				(new, new, old),
 			)
-		else:
+		elif not self.is_virtual:
 			frappe.db.rename_table(old, new)
 			frappe.db.commit()
 
