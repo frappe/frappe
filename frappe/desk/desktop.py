@@ -469,6 +469,8 @@ def get_workspaces():
 					pages.append(page)
 				elif page.for_user == frappe.session.user:
 					private_pages.append(page)
+				elif not page.public and not page.for_user:
+					pages.append(page)
 				page["label"] = _(page.get("name"))
 
 			# Derived, never stored: there is no `Workspace.app` any more, so the module decides
