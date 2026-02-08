@@ -201,120 +201,71 @@ frappe.call = function (opts) {
 	}
 
 	/**
-	 * Builds the command string for page methods.
-	 * @param {{ module: string, page: string, method: string }} config
-	 * @returns {{ cmd: string }}
-	 */
-	function build_page_method_command(config) {
-		var { module, page, method } = config;
-
-		return {
-			cmd: `${module}.page.${page}.${page}.${method}`,
-		};
-	}
-
-	/**
-	 * Builds the payload for document method calls with memory origin.
-	 * Uses run_doc_method, sends full in-memory document to server.
-	 * @param {{ doctype: string, name: string, method: string, args: object }} config
-	 * @returns {{ payload: object, cmd: string }}
-	 */
-	function build_doc_memory_payload(config) {
-		var { doctype, name, method, args } = config;
-
-		return {
-			payload: {
-				cmd: "run_doc_method",
-				docs: frappe.get_doc(doctype, name),
-				method: method,
-				args: args,
-			},
-			cmd: "run_doc_method",
-		};
-	}
-
-	/**
-	 * Builds the payload for document method calls with database origin.
-	 * Server loads document from DB (lighter payload).
-	 * @param {{ api_version: string, method: string, args: object }} config
-	 * @returns {{ payload: object, cmd: string|undefined }}
-	 */
-	function build_doc_database_payload(config) {
-		var { api_version, method, args } = config;
-
-		var payload = {};
-
-		// For v1: method is passed via run_method in form data
-		// For v2: method is in URL path, no need to add inside payload
-		if (api_version === "v1") {
-			payload.run_method = method;
-		}
-
-		// Pass any method arguments
-		if (args) {
-			payload = $.extend({}, args, payload);
-		}
-
-		return {
-			payload: payload,
-			cmd: undefined, // database origin doesn't use cmd in payload
-		};
-	}
-
-	/**
-	 * Builds the server payload based on call type (page, doc memory, doc database, or direct method).
-	 * @param {{ method: string, args: object, doc: object|undefined, doc_origin: string|undefined, api_version: string|undefined, module: string|undefined, page: string|undefined }} config
+	 * Builds and prepares the server payload
+	 * Determinates the appropriate cmd and payload structure based on call type and doc_origin.
+	 * @param {{ method: string, args: object, doc: object|undefined, doc_origin: string|undefined, api_version: string|undefined, module: string|undefined, page: string|undefined, has_custom_url: boolean }} config
 	 * @returns {{ payload: object, cmd: string|undefined }}
 	 */
 	function build_server_payload(config) {
-		var { method, args, doc, doc_origin, api_version, module, page } = config;
+		var { method, args, doc, doc_origin, api_version, module, page, has_custom_url } = config;
 
-		// Page method call
+		var base_payload;
+		var cmd_value;
+
 		if (module && page) {
-			var page_cmd = build_page_method_command({
-				module: module,
-				page: page,
-				method: method,
-			});
-			var page_payload = $.extend({}, args);
-			page_payload.cmd = page_cmd.cmd;
-			return {
-				payload: page_payload,
-				cmd: page_cmd.cmd,
+			// Page method call
+			base_payload = $.extend({}, args);
+			cmd_value = `${module}.page.${page}.${page}.${method}`
+			
+			// Add cmd to payload if custom URL
+			if (has_custom_url) {
+				base_payload.cmd = cmd_value;
+			}
+		} else if (doc && doc_origin === "memory") {
+			// Document method call with memory origin
+			cmd_value = "run_doc_method";
+
+			const { doctype, name } = doc;
+			// Retrieve full document
+			// from in-memory cache if available, or from server if not in cache
+			const docs = frappe.get_doc(doctype, name);
+
+			base_payload = {
+				docs,
+				method,
+				args,
 			};
+			
+			// Add cmd to payload if custom URL
+			if (has_custom_url) {
+				base_payload.cmd = cmd_value;
+			}
+		} else if (doc && doc_origin === "database") {
+			// Document method call with database origin
+			// Server loads document from DB (lighter payload).
+			cmd_value = undefined; // database origin doesn't use cmd
+			base_payload = $.extend({}, args);
+
+			// For v1: method is passed via run_method in form data
+			// For v2: method is in URL path, no need to add inside payload
+			if (api_version === "v1") {
+				base_payload.run_method = method;
+			}
+		} else if (method) {
+			// Direct method call
+			cmd_value = method;
+			base_payload = $.extend({}, args);
+			
+			// Add cmd to payload if custom URL
+			if (has_custom_url) {
+				base_payload.cmd = cmd_value;
+			}
 		}
 
-		// Document method call with memory origin
-		if (doc && doc_origin === "memory") {
-			return build_doc_memory_payload({
-				doctype: doc.doctype,
-				name: doc.name,
-				method: method,
-				args: args,
-			});
-		}
-
-		// Document method call with database origin
-		if (doc && doc_origin === "database") {
-			return build_doc_database_payload({
-				api_version: api_version,
-				method: method,
-				args: args,
-			});
-		}
-
-		// Direct method call
-		if (method) {
-			var direct_payload = $.extend({}, args);
-			direct_payload.cmd = method;
-			return {
-				payload: direct_payload,
-				cmd: method,
-			};
-		}
-
-		// This should never be reached, previous validations should catch invalid configurations
-		throw new Error("frappe.call: unable to build server payload due to unknown call type");
+		return {
+			payload: base_payload,
+			cmd: cmd_value,
+		};
 	}
 
 	/**
@@ -455,24 +406,6 @@ frappe.call = function (opts) {
 		}
 
 		return { url: url, error: null };
-	}
-
-	/**
-	 * Removes cmd from payload when URL is built (not custom).
-	 * Prevents sending cmd twice (as path and POST data).
-	 * @param {object} payload
-	 * @param {boolean} has_custom_url
-	 * @returns {{ payload: object }}
-	 */
-	function prepare_final_payload(payload, has_custom_url) {
-		// TODO: Maybe this method can be unified with build_server_payload?
-		if (has_custom_url) {
-			return { payload: payload };
-		}
-		// Create new object without cmd
-		var final_payload = $.extend({}, payload);
-		delete final_payload.cmd;
-		return { payload: final_payload };
 	}
 
 	/**
@@ -625,6 +558,7 @@ frappe.call = function (opts) {
 		api_version: effective_api_version,
 		module: options.module,
 		page: options.page,
+		has_custom_url: !!options.url,
 	});
 
 	// Build request URL
@@ -641,15 +575,11 @@ frappe.call = function (opts) {
 		throw url_result.error;
 	}
 
-	// Prepare final payload (remove cmd if URL was built)
-	var final_payload_result = prepare_final_payload(payload_result.payload, !!options.url);
-	var final_payload = final_payload_result.payload;
-
 	// Check debounce status
 	var debounce_check = check_debounce_status({
 		debounce: options.debounce,
 		cmd: payload_result.cmd,
-		payload: final_payload,
+		payload: payload_result.payload,
 	});
 
 	if (debounce_check.should_skip) {
@@ -661,7 +591,7 @@ frappe.call = function (opts) {
 		freeze: resolved_params.freeze,
 		freeze_message: resolved_params.freeze_message,
 		api_version: effective_api_version,
-		args: final_payload,
+		args: payload_result.payload,
 	});
 	var success_handler = create_success_handler({
 		callback: options.callback,
@@ -673,7 +603,7 @@ frappe.call = function (opts) {
 	// TODO: Consider passing properties directly to frappe.request.call instead of an intermediate method
 	var request_config = assemble_request_config({
 		type: options.type,
-		payload: final_payload,
+		payload: payload_result.payload,
 		url: url_result.url,
 		success_handler: success_handler,
 		error_callback: options.error,
