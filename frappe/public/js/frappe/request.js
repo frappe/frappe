@@ -456,47 +456,6 @@ frappe.call = function (opts) {
 		return { should_skip: is_fresh };
 	}
 
-	/**
-	 * Assembles the final configuration object for frappe.request.call.
-	 * @param {{
-	 *   type: string,
-	 *   payload: object,
-	 *   url: string,
-	 *   success_handler: function,
-	 *   error_callback: function|undefined,
-	 *   always_callback: function|undefined,
-	 *   btn: HTMLElement|undefined,
-	 *   freeze: boolean,
-	 *   freeze_message: string,
-	 *   headers: object,
-	 *   error_handlers: object,
-	 *   async: boolean|undefined,
-	 *   silent: boolean|undefined,
-	 *   api_version: string|undefined,
-	 *   cache: boolean|undefined
-	 * }} config
-	 * @returns {object} Configuration for frappe.request.call
-	 */
-	function assemble_request_config(config) {
-		return {
-			type: config.type || "POST",
-			args: config.payload,
-			success: config.success_handler,
-			error: config.error_callback,
-			always: config.always_callback,
-			btn: config.btn,
-			freeze: config.freeze,
-			freeze_message: config.freeze_message,
-			headers: config.headers || {},
-			error_handlers: config.error_handlers || {},
-			async: config.async,
-			silent: config.silent,
-			api_version: config.api_version,
-			url: config.url,
-			cache: config.cache,
-		};
-	}
-
 	// ============================================================================
 	// MAIN EXECUTION FLOW
 	// ============================================================================
@@ -599,28 +558,24 @@ frappe.call = function (opts) {
 		realtime_opts: realtime_opts,
 	});
 
-	// Assemble request configuration
-	// TODO: Consider passing properties directly to frappe.request.call instead of an intermediate method
-	var request_config = assemble_request_config({
-		type: options.type,
-		payload: payload_result.payload,
-		url: url_result.url,
-		success_handler: success_handler,
-		error_callback: options.error,
-		always_callback: options.always,
+	// Dispatch request
+	return frappe.request.call({
+		type: options.type || "POST",
+		args: payload_result.payload,
+		success: success_handler,
+		error: options.error,
+		always: options.always,
 		btn: options.btn,
 		freeze: resolved_params.freeze,
 		freeze_message: resolved_params.freeze_message,
-		headers: options.headers,
-		error_handlers: options.error_handlers,
+		headers: options.headers || {},
+		error_handlers: options.error_handlers || {},
 		async: options.async,
 		silent: options.silent,
 		api_version: effective_api_version,
+		url: url_result.url,
 		cache: options.cache,
 	});
-
-	// Dispatch request
-	return frappe.request.call(request_config);
 };
 
 frappe.request.call = function (opts) {
