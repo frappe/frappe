@@ -81,21 +81,12 @@ dependencies = [
 
     # integration dependencies
     "boto3~=1.34.143",
-<<<<<<< HEAD
-    "dropbox~=11.36.2",
+    "dropbox~=12.0.2",
     "google-auth-httplib2~=0.2.1",
     "google-api-python-client~=2.172.0",
     "google-auth-oauthlib~=1.2.2",
     "google-auth~=2.40.3",
     "posthog~=3.0.1",
-=======
-    "dropbox~=12.0.2",
-    "google-api-python-client~=2.188.0",
-    "google-auth-oauthlib~=1.2.4",
-    "google-auth~=2.48.0",
-    "posthog~=3.21.0",
-    "vobject~=0.9.7",
->>>>>>> 6272505652 (chore: bump dropbox to 12.0.2 (#36855))
 ]
 
 [build-system]
