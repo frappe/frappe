@@ -26,6 +26,7 @@ BRACKETS_PATTERN = re.compile(r"\(.*?\)|$")
 SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
 COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 
+
 class Engine:
 	def get_query(
 		self,
@@ -231,9 +232,11 @@ class Engine:
 							has_primitive_operator = True
 							field = operator_mapping(
 								*map(
-									lambda field: Field(field.strip())
-									if "`" not in field
-									else PseudoColumnMapper(field.strip()),
+									lambda field: (
+										Field(field.strip())
+										if "`" not in field
+										else PseudoColumnMapper(field.strip())
+									),
 									arg.split(_operator),
 								),
 							)
