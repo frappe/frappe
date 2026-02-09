@@ -195,7 +195,12 @@ export default class Grid {
 	}
 
 	setup_check() {
-		this.wrapper.on("click", ".grid-row-check", (e) => {
+		this.wrapper.on("click touchend", ".grid-row-check", (e) => {
+			if (e.type === "touchend") {
+				e.stopPropagation();
+				return;
+			}
+
 			const $check = $(e.currentTarget);
 			const checked = $check.prop("checked");
 			const is_select_all = $check.parents(".grid-heading-row:first").length !== 0;

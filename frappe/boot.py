@@ -551,7 +551,7 @@ def get_sidebar_items(allowed_workspaces):
 			w = s
 		if (
 			frappe.session.user == "Administrator"
-			or w.module in w.user.permitted_modules
+			or w.module in w.user.allow_modules
 			or sidebar_title == "My Workspaces"
 		):
 			sidebar_items[sidebar_title.lower()] = {

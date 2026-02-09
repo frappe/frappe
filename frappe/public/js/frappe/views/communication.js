@@ -870,6 +870,7 @@ frappe.views.CommunicationComposer = class {
 				print_language: form_values.print_language,
 				raw_html: form_values.use_html,
 				add_css: form_values.add_css,
+				in_reply_to: (this.is_a_reply && this.last_email?.name) || null,
 			},
 			btn,
 			callback(r) {
