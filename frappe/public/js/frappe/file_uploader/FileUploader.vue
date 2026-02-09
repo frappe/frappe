@@ -636,10 +636,13 @@ function upload_file(file, i) {
 						: __("File upload failed.");
 				} else {
 					file.failed = true;
+					let detail =
+						xhr.statusText ||
+						__("Server error during upload. The file might be corrupted.");
 					file.error_message =
 						xhr.status === 0
 							? __("XMLHttpRequest Error")
-							: `${xhr.status} : ${xhr.statusText}`;
+							: `${xhr.status} : ${detail}`;
 
 					let error = null;
 					try {

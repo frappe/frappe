@@ -19,10 +19,12 @@ frappe.ui.Sidebar = class Sidebar {
 		this.$standard_items_sections = this.wrapper.find(".standard-items-sections");
 		this.$sidebar = this.wrapper.find(".body-sidebar");
 		this.items = [];
+		this.cards = [];
 		this.setup_events();
 		this.sidebar_module_map = {};
 		this.build_sidebar_module_map();
 		this.standard_items_setup = false;
+		this.preferred_sidebars = [];
 	}
 
 	prepare() {
@@ -30,6 +32,7 @@ frappe.ui.Sidebar = class Sidebar {
 			this.add_standard_items();
 			this.sidebar_data = frappe.boot.workspace_sidebar_item[this.workspace_title];
 			this.workspace_sidebar_items = this.sidebar_data.items;
+			this.all_sidebar_items = frappe.boot.workspace_sidebar_item;
 			if (this.edit_mode) {
 				this.workspace_sidebar_items = this.editor.new_sidebar_items;
 			}
@@ -41,7 +44,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	build_sidebar_module_map() {
 		for (const [key, value] of Object.entries(frappe.boot.workspace_sidebar_item)) {
-			if (value.module) {
+			if (value.module && !value.label.includes("My Workspaces")) {
 				if (!this.sidebar_module_map[value.module]) {
 					this.sidebar_module_map[value.module] = [];
 				}
@@ -104,7 +107,24 @@ frappe.ui.Sidebar = class Sidebar {
 		this.$sidebar.attr("data-title", this.sidebar_title);
 		this.sidebar_header = new frappe.ui.SidebarHeader(this);
 		this.make_sidebar();
+		this.add_sidebar_cards();
 	}
+	add_card(card) {
+		if (
+			this.desktop_menu_items &&
+			this.desktop_menu_items.find((i) => i.to_title_case === card.title)
+		)
+			return;
+		this.cards.push(card);
+	}
+	add_sidebar_cards() {
+		this.wrapper.find(".body-sidebar-cards").html("");
+		this.cards.forEach((card) => {
+			let card_obj = new frappe.ui.SidebarCard(card);
+			card.obj = card_obj;
+		});
+	}
+
 	check_for_private_workspace(workspace_title) {
 		if (workspace_title == "private" || workspace_title == "Personal") {
 			this.sidebar_title = "My Workspaces";
@@ -113,7 +133,11 @@ frappe.ui.Sidebar = class Sidebar {
 	setup_events() {
 		const me = this;
 		frappe.router.on("change", function (router) {
-			frappe.app.sidebar.set_workspace_sidebar(router);
+			if (frappe.route_options.sidebar) {
+				frappe.app.sidebar.setup(frappe.route_options.sidebar);
+			} else {
+				frappe.app.sidebar.set_workspace_sidebar(router);
+			}
 		});
 		$(document).on("page-change", function () {
 			frappe.app.sidebar.toggle();
@@ -155,6 +179,34 @@ frappe.ui.Sidebar = class Sidebar {
 	set_active_workspace_item() {
 		if (this.is_route_in_sidebar()) {
 			this.active_item.addClass("active-sidebar");
+			this.expand_parent_section();
+		}
+	}
+
+	expand_parent_section() {
+		if (!this.active_item) return;
+		let active_section;
+		$(".section-item").each((index, element) => {
+			if (element.contains(this.active_item.get(0))) {
+				active_section = element.dataset.id;
+			}
+		});
+
+		if (active_section) {
+			let section = this.get_item(active_section);
+			if (section) {
+				if (this.sidebar_expanded && section.collapsed) {
+					section.open();
+				}
+			}
+		}
+	}
+
+	get_item(name) {
+		for (let item of this.items) {
+			if (item.item.label === name) {
+				return item;
+			}
 		}
 	}
 
@@ -162,11 +214,16 @@ frappe.ui.Sidebar = class Sidebar {
 		let match = false;
 		const that = this;
 		$(".item-anchor").each(function () {
-			let href = decodeURIComponent($(this).attr("href")?.split("?")[0]);
+			let href = decodeURIComponent($(this).attr("href")?.split("?")[0].split("#")[0]);
+
 			const path = decodeURIComponent(window.location.pathname);
 
-			// Match only if path equals href or starts with it followed by "/" or end of string
-			const isActive = href === path;
+			// ensure no trailing slash mismatch
+			const clean_href = href.replace(/\/$/, "");
+			const clean_path = path.replace(/\/$/, "");
+
+			const isActive = clean_path === clean_href || clean_path.startsWith(clean_href + "/");
+
 			if (href && isActive) {
 				match = true;
 				if (that.active_item) that.active_item.removeClass("active-sidebar");
@@ -273,6 +330,14 @@ frappe.ui.Sidebar = class Sidebar {
 		this.setup_notifications();
 		this.standard_items_setup = true;
 	}
+	get_workspace_for_module(module) {
+		for (let i = 0; i < frappe.boot.workspaces.pages.length; i++) {
+			const workspace = frappe.boot.workspaces.pages[i];
+			if (workspace.module == module && !workspace.parent_page) {
+				return workspace.name;
+			}
+		}
+	}
 	setup_awesomebar() {
 		if (frappe.boot.desk_settings.search_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
@@ -291,7 +356,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	setup_notifications() {
 		if (frappe.boot.desk_settings.notifications && frappe.session.user !== "Guest") {
-			this.notifications = new frappe.ui.Notifications();
+			this.notifications = new frappe.ui.Notifications({ full_height: true });
 		}
 	}
 	add_item(container, item) {
@@ -415,16 +480,28 @@ frappe.ui.Sidebar = class Sidebar {
 				default:
 					entity_name = route[1];
 			}
-
-			let sidebars = this.get_correct_workspace_sidebars(entity_name);
+			let sidebars = this.get_workspace_sidebars(entity_name);
+			this.preferred_sidebars = sidebars;
 			let module = router?.meta?.module;
 			if (this.sidebar_title && sidebars.includes(this.sidebar_title)) {
 				this.set_active_workspace_item();
 				return;
 			}
-
+			if (module) {
+				sidebars = this.filter_sidebars_from_app(
+					sidebars,
+					frappe.boot.module_app[module.toLowerCase()]
+				);
+			}
 			if (sidebars.length == 1) {
 				frappe.app.sidebar.setup(sidebars[0]);
+			} else if (sidebars.length > 1) {
+				let sidebar = this.get_workspace_for_module(module);
+				if (sidebars.includes(this.get_workspace_for_module(module))) {
+					frappe.app.sidebar.setup(sidebar);
+				} else {
+					frappe.app.sidebar.setup(module);
+				}
 			} else if (module) {
 				this.show_sidebar_for_module(module);
 			}
@@ -434,15 +511,42 @@ frappe.ui.Sidebar = class Sidebar {
 
 		this.set_active_workspace_item();
 	}
+	filter_sidebars_from_app(sidebars, app) {
+		let filter_sidebars = [];
+		sidebars.forEach((sidebar) => {
+			if (
+				!filter_sidebars.includes(sidebar) &&
+				frappe.boot.workspace_sidebar_item[sidebar.toLowerCase()].app === app
+			) {
+				filter_sidebars.push(sidebar);
+			}
+		});
+		return filter_sidebars;
+	}
 	show_sidebar_for_module(module) {
-		let sidebars =
-			this.sidebar_module_map[module] &&
-			this.sidebar_module_map[module].sort((a, b) => {
-				return a.localeCompare(b);
-			});
-		if (sidebars && sidebars.length) {
-			if (this.sidebar_title) return;
-			frappe.app.sidebar.setup(sidebars[0]);
+		if (this.sidebar_title && this.preferred_sidebars.includes(this.sidebar_title)) {
+			this.set_active_workspace_item();
+			return;
+		}
+		if (this.sidebar_fixes && this.sidebar_title != module) return;
+		let workspace_name = this.get_workspace_for_module(module);
+		if (frappe.boot.workspace_sidebar_item[module.toLowerCase()]) {
+			frappe.app.sidebar.setup(module);
+		} else if (
+			workspace_name &&
+			frappe.boot.workspace_sidebar_item[workspace_name.toLowerCase()]
+		) {
+			frappe.app.sidebar.setup(workspace_name);
+		} else {
+			let sidebars =
+				this.sidebar_module_map[module] &&
+				this.sidebar_module_map[module].sort((a, b) => {
+					return a.localeCompare(b);
+				});
+			if (frappe.get_route())
+				if (sidebars && sidebars.length) {
+					frappe.app.sidebar.setup(sidebars[0]);
+				}
 		}
 	}
 	set_sidebar_for_page() {
@@ -452,9 +556,9 @@ frappe.ui.Sidebar = class Sidebar {
 		if (matches) return;
 		let workspace_title;
 		if (route.length == 2) {
-			workspace_title = this.get_correct_workspace_sidebars(route[1]);
+			workspace_title = this.get_workspace_sidebars(route[1]);
 		} else {
-			workspace_title = this.get_correct_workspace_sidebars(route[0]);
+			workspace_title = this.get_workspace_sidebars(route[0]);
 		}
 		let module_name = workspace_title[0];
 		if (module_name) {
@@ -462,7 +566,7 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
-	get_correct_workspace_sidebars(link_to) {
+	get_workspace_sidebars(link_to) {
 		let sidebars = [];
 		Object.entries(this.all_sidebar_items).forEach(([name, sidebar]) => {
 			const { items, label } = sidebar;

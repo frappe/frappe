@@ -416,6 +416,11 @@ class TestDB(IntegrationTestCase):
 			frappe.delete_doc(test_doctype, doc)
 		clear_custom_fields(test_doctype)
 
+	@unimplemented_for(db_type_is.POSTGRES)
+	def test_multi_statements(self):
+		with self.assertRaises(frappe.db.ProgrammingError):
+			frappe.db.sql("select 1; select 1")
+
 	def test_savepoints(self):
 		frappe.db.rollback()
 		save_point = "todonope"

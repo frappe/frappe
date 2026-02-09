@@ -172,6 +172,8 @@
 
 		.comment-title {
 			@extend .head-title;
+			font-size: 16px;
+			font-weight: 500;
 		}
 		.comment-count {
 			margin-left: 5px;
@@ -418,6 +420,7 @@
 	margin-top: 4px;
 	margin-bottom: 8px;
 	line-height: 1.6;
+	word-break: break-word;
 }
 
 .form-heatmap {
@@ -577,18 +580,6 @@
 @media (max-width: map-get($grid-breakpoints, "md")) {
 	.form-section .form-section-heading {
 		margin-top: 10px;
-	}
-}
-
-// mobile
-@media (max-width: map-get($grid-breakpoints, "sm")) {
-	// padding to form section on mobile
-
-	.form-column:not(:last-child) {
-		border-bottom: 1px solid var(--border-color);
-	}
-	.form-column:not(:first-child) {
-		padding-top: var(--padding-md);
 	}
 }
 

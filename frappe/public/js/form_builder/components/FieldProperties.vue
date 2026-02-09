@@ -53,7 +53,10 @@ let docfield_df = computed(() => {
 					args.value.is_table_field = 1;
 				}
 			}
-			if (store.form.selected_field.fieldtype === "Data") {
+			if (
+				store.form.selected_field.fieldtype === "Data" &&
+				!store.form.selected_field.is_virtual
+			) {
 				df.fieldtype = "Select";
 				df.options = ["", "Email", "Name", "Phone", "URL", "Barcode", "IBAN"];
 			}

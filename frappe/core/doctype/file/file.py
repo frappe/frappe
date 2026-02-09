@@ -9,6 +9,7 @@ import shutil
 import zipfile
 from urllib.parse import quote, unquote
 
+import filetype
 from PIL import Image, ImageFile, ImageOps
 
 import frappe
@@ -609,16 +610,19 @@ class File(Document):
 			encodings = FILE_ENCODING_OPTIONS
 		with open(file_path, mode="rb") as f:
 			self._content = f.read()
-			# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
-			# encoded so the first iteration will be enough most of the time
-			for encoding in encodings:
-				try:
-					# read file with proper encoding
-					self._content = self._content.decode(encoding)
-					break
-				except UnicodeDecodeError:
-					# for .png, .jpg, etc
-					continue
+			# Only decode if not a binary file
+			kind = filetype.guess(self._content)
+			if not kind:
+				# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
+				# encoded so the first iteration will be enough most of the time
+				for encoding in encodings:
+					try:
+						# read file with proper encoding
+						self._content = self._content.decode(encoding)
+						break
+					except UnicodeDecodeError:
+						# for .png, .jpg, etc
+						continue
 
 		return self._content
 
@@ -738,6 +742,7 @@ class File(Document):
 					name=self.file_name,
 					suffix=self.content_hash[-6:],
 					is_private=self.is_private,
+					content_hash=self.content_hash,
 				)
 			call_hook_method("before_write_file", file_size=self.file_size)
 			write_file_method = get_hook_method("write_file")
@@ -762,7 +767,7 @@ class File(Document):
 		max_file_size = get_max_file_size()
 		file_size = len(self._content or b"")
 
-		if file_size > max_file_size:
+		if not self.flags.skip_file_size_check and file_size > max_file_size:
 			msg = _("File size exceeded the maximum allowed size of {0} MB").format(max_file_size / 1048576)
 			if frappe.has_permission("System Settings", "write"):
 				msg += ".<br>" + _("You can increase the limit from System Settings.")
@@ -892,7 +897,7 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 		try:
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
-		except ModuleNotFoundError:
+		except (ModuleNotFoundError, ImportError):
 			return False
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()

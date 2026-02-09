@@ -40,7 +40,6 @@ def update_user_settings(doctype, user_settings, for_update=False):
 			current = {}
 
 		current.update(user_settings)
-
 	frappe.cache.hset("_user_settings", f"{doctype}::{frappe.session.user}", json.dumps(current))
 
 
@@ -54,10 +53,7 @@ def sync_user_settings():
 				"mariadb": """INSERT INTO `__UserSettings`(`user`, `doctype`, `data`)
 				VALUES (%s, %s, %s)
 				ON DUPLICATE key UPDATE `data`=%s""",
-				"postgres": """INSERT INTO `__UserSettings` (`user`, `doctype`, `data`)
-				VALUES (%s, %s, %s)
-				ON CONFLICT ("user", "doctype") DO UPDATE SET `data`=%s""",
-				"sqlite": """INSERT INTO `__UserSettings` (`user`, `doctype`, `data`)
+				"*": """INSERT INTO `__UserSettings` (`user`, `doctype`, `data`)
 				VALUES (%s, %s, %s)
 				ON CONFLICT (`user`, `doctype`) DO UPDATE SET `data`=%s""",
 			},

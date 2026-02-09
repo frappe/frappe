@@ -35,9 +35,14 @@
 
 	.title-area {
 		display: inline-flex;
-		align-items: baseline;
+		align-items: center;
 		.indicator-pill {
 			margin-left: var(--margin-sm);
+			.indicator-doc-html {
+				height: 8px;
+				width: 8px;
+				border-radius: inherit;
+			}
 		}
 		.sub-heading {
 			@include get_textstyle("sm", "regular");
@@ -112,13 +117,11 @@ body[data-route^="Form"] {
 	border-bottom: 1px solid var(--border-color);
 	transition: 0.5s top;
 	top: 0;
-	&.show-navbar {
-		top: var(--navbar-height);
-	}
 
 	.page-head-content {
 		height: var(--page-head-height);
 		padding: 8px 0px;
+		gap: 10px;
 	}
 }
 

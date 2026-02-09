@@ -40,7 +40,7 @@ import gettext
 
 import babel
 import babel.messages
-import bleach
+import nh3
 import num2words
 import pydantic
 
@@ -48,7 +48,7 @@ import frappe.boot
 import frappe.client
 import frappe.core.doctype.file.file
 import frappe.core.doctype.user.user
-import frappe.database.mariadb.database  # Load database related utils
+import frappe.database.mariadb.mysqlclient  # Load database related utils
 import frappe.database.query
 import frappe.desk.desktop  # workspace
 import frappe.desk.form.save

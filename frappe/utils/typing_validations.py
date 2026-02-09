@@ -1,3 +1,4 @@
+import inspect
 from collections.abc import Callable
 from functools import lru_cache, wraps
 from inspect import _empty, isclass
@@ -22,7 +23,13 @@ ForwardRefOrStr = ForwardRef | str
 FrappePydanticConfig = ConfigDict(arbitrary_types_allowed=True)
 
 
-def validate_argument_types(func: Callable, apply_condition: Callable | None = None):
+def validate_argument_types(
+	func: Callable,
+	apply_condition: Callable | None = None,
+	force_types: bool | None = None,
+):
+	app = func.__module__.split(".")[0]
+
 	@wraps(func)
 	def wrapper(*args, **kwargs):
 		"""Validate argument types of whitelisted functions.
@@ -30,8 +37,14 @@ def validate_argument_types(func: Callable, apply_condition: Callable | None = N
 		:param args: Function arguments.
 		:param kwargs: Function keyword arguments."""
 
+		nonlocal force_types
+
+		# Resolve it only once
+		if force_types is None:
+			force_types = any(frappe.get_hooks("require_type_annotated_api_methods", app_name=app))
+
 		if apply_condition is None or apply_condition():
-			args, kwargs = transform_parameter_types(func, args, kwargs)
+			args, kwargs = transform_parameter_types(func, args, kwargs, force_types)
 
 		return func(*args, **kwargs)
 
@@ -88,13 +101,25 @@ def TypeAdapter(type_):
 		raise e
 
 
-def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
+def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_types=False):
 	"""
 	Validate the types of the arguments passed to a function with the type annotations
 	defined on the function.
 	"""
 
 	annotations = func.__annotations__
+	func_params = frappe._get_cached_signature_params(func)[0]
+
+	if force_types:
+		for param_name, parameter in func_params.items():
+			if parameter.kind in (inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL):
+				continue
+			if param_name not in annotations:
+				module, qualname = func.__module__, func.__qualname__
+				raise FrappeTypeError(
+					f"Argument '{param_name}' in '{module}.{qualname}' is missing type annotation. "
+					f"All arguments must have type annotations when type checking is enforced."
+				)
 
 	if (
 		not (args or kwargs)
@@ -117,9 +142,6 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 
 	else:
 		prepared_args = kwargs
-
-	# check if type hints dont match the default values
-	func_params = frappe._get_cached_signature_params(func)[0]
 
 	# check if the argument types are correct
 	for current_arg, current_arg_type in annotations.items():

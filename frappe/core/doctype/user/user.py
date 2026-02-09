@@ -85,7 +85,7 @@ class User(Document):
 		default_app: DF.Literal[None]
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
-		desk_theme: DF.Literal["Automatic", "Light", "Dark"]
+		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
 		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
 		document_follow_notify: DF.Check
 		email: DF.Data
@@ -557,7 +557,7 @@ class User(Document):
 		if custom_template:
 			from frappe.email.doctype.email_template.email_template import get_email_template
 
-			email_template = get_email_template(custom_template, args)
+			email_template = get_email_template(custom_template, args, sender=sender)
 			subject = email_template.get("subject")
 			content = email_template.get("message")
 
@@ -1462,6 +1462,17 @@ def impersonate(user: str, reason: str):
 	)
 	notification.set("type", "Alert")
 	notification.insert(ignore_permissions=True)
+	# notify user via email too
+	user_email = frappe.db.get_value("User", user, "email")
+	email_message = _(
+		"User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
+	).format(escape_html(impersonator), escape_html(reason))
+
+	frappe.sendmail(
+		recipients=[user_email],
+		subject=_("Security Alert: Your account is being impersonated"),
+		content=email_message,
+	)
 	frappe.local.login_manager.impersonate(user)
 
 

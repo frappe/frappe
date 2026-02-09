@@ -175,7 +175,7 @@ def find_or_download_chromium_executable():
 	import shutil
 	from pathlib import Path
 
-	if chromium_path := shutil.which(frappe.get_common_site_config().chromium_path):
+	if chromium_path := shutil.which(frappe.get_common_site_config().get("chromium_path", "")):
 		return chromium_path
 
 	bench_path = frappe.utils.get_bench_path()

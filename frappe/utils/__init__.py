@@ -575,7 +575,7 @@ def get_site_url(site):
 
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], str) and isinstance(d[key], str):
+		if isinstance(d[key], str):
 			d[key] = d[key].encode(encoding)
 
 	return d
@@ -1189,3 +1189,14 @@ def create_folder(path, with_init=False):
 
 
 cached_property = functools.cached_property
+
+
+def get_frappe_version() -> str:
+	return getattr(frappe, "__version__", "unknown")
+
+
+def get_app_version(app_name: str) -> str:
+	try:
+		return frappe.get_attr(app_name + ".__version__")
+	except Exception:
+		return "0.0.1"

@@ -24,6 +24,8 @@ frappe.pages["print"].on_page_load = function (wrapper) {
 				? frappe.route_options.frm
 				: frappe.route_options.frm.frm;
 			frappe.route_options.frm = null;
+			let meta = print_view.frm.meta;
+			meta.module && frappe.app.sidebar.show_sidebar_for_module(meta.module);
 			print_view.show(print_view.frm);
 		}
 	});
@@ -34,6 +36,10 @@ frappe.ui.form.PrintView = class {
 		this.wrapper = $(wrapper);
 		this.page = wrapper.page;
 		this.make();
+
+		this.wrapper.on("show", () => {
+			this.page.sidebar.show();
+		});
 	}
 
 	make() {
@@ -708,8 +714,14 @@ frappe.ui.form.PrintView = class {
 			);
 		}
 	}
-
-	render_page(method, printit = false, pdf_generator = "wkhtmltopdf") {
+	get_pdf_generator(pdf_generator) {
+		if (!pdf_generator) {
+			pdf_generator = this.print_settings.pdf_generator || "wkhtmltopdf";
+		}
+		return pdf_generator;
+	}
+	render_page(method, printit = false, pdf_generator) {
+		pdf_generator = this.get_pdf_generator(pdf_generator);
 		let w = window.open(
 			frappe.urllib.get_full_url(
 				method +

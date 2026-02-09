@@ -637,7 +637,7 @@
    "fieldname": "desk_theme",
    "fieldtype": "Select",
    "label": "Desk Theme",
-   "options": "Automatic\nLight\nDark"
+   "options": "Light\nDark\nAutomatic"
   },
   {
    "fieldname": "module_profile",
@@ -853,7 +853,7 @@
    "options": "User Session Display"
   },
   {
-   "default": "1",
+   "default": "0",
    "fieldname": "form_navigation_buttons",
    "fieldtype": "Check",
    "label": "Navigation Buttons"
@@ -910,7 +910,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-01-02 16:00:51.406511",
+ "modified": "2026-01-12 16:04:21.542524",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
