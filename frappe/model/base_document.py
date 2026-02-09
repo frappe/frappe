@@ -1,8 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import datetime
+import functools
 import json
-import keyword
 import re
 import weakref
 from types import MappingProxyType
@@ -67,18 +67,15 @@ DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
 def _reduce_extended_instance(doc):
 	"""Make extended class instances pickle-able.
 
-	When unpickling, this will use get_controller() to recreate the extended class.
+	Stores __bases__ for reconstructing the extended class during unpickling.
 	Respects the __getstate__ method for proper state handling.
 	"""
-	return (_reconstruct_extended_instance, (doc.doctype,), doc.__getstate__())
+	return (_reconstruct_extended_instance, (type(doc).__bases__,), doc.__getstate__())
 
 
-def _reconstruct_extended_instance(doctype):
-	"""
-	Helper function to reconstruct an extended class instance during unpickling.
-	"""
-	# Get the current extended class (uses caching from get_controller)
-	extended_class = get_controller(doctype)
+def _reconstruct_extended_instance(bases):
+	"""Reconstruct an extended class instance during unpickling."""
+	extended_class = _create_extended_class(bases)
 	return extended_class.__new__(extended_class)
 
 
@@ -208,9 +205,25 @@ def _get_extended_class(base_class, doctype):
 
 	# Create the extended class by combining extension classes with base class
 	# Extension classes come first in MRO, then base class
+	return _create_extended_class((*extension_classes, base_class))
+
+
+# cached to avoid recreating the same class multiple times during unpickling
+# safe to cache, classes on file don't change at runtime
+@functools.cache
+def _create_extended_class(bases):
+	"""Create an extended class from base classes.
+
+	Args:
+		bases: Tuple of base classes (extension classes first, then the controller class)
+
+	Returns:
+		Extended class combining all bases with pickle support
+	"""
+	base_class = bases[-1]
 	return type(
 		f"Extended{base_class.__name__}",
-		(*extension_classes, base_class),
+		bases,
 		{
 			"__reduce__": _reduce_extended_instance,
 			"__module__": base_class.__module__,
