@@ -660,7 +660,7 @@ class FilterArea {
 
 		$(`<button class="filter-toggle btn btn-default btn-sm filter-button">
 					<span class="filter-icon button-icon">
-						${frappe.utils.icon("funnel-plus")}
+						${frappe.utils.icon("chevrons-up-down")}
 					</span>
 				</button>
 			</div>`)
@@ -680,11 +680,6 @@ class FilterArea {
 			this.standard_filters_visible = true;
 			this.standard_filters_wrapper.show();
 		}
-		let icon_name = !this.standard_filters_visible ? "funnel-plus" : "funnel-x";
-		this.$filter_list_wrapper
-			.find(".filter-toggle")
-			.find("use")
-			.attr("href", `#icon-${icon_name}`);
 	}
 
 	setup() {

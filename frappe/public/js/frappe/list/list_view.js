@@ -1985,7 +1985,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		items.push({
-			label: __("Edit Filters", null, "Edit filters of List View"),
+			label: __("Customize Quick Filters", null, "Customize qucik filters of List View"),
 			action: () => {
 				this.make_group_by_fields_modal();
 			},

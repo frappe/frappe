@@ -432,7 +432,7 @@ class DesktopPage {
 			},
 			{
 				icon: "rotate-ccw",
-				label: "Reset to Default",
+				label: "Reset Desktop Layout",
 				onClick: function () {
 					reset_to_default();
 					window.location.reload();
