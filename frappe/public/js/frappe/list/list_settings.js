@@ -115,13 +115,13 @@ export default class ListSettings {
 					data-label="${me.fields[idx].label}" data-type="${me.fields[idx].type}">
 
 					<div class="row">
-						<div class="col-1">
+						<div class="col-1 d-flex align-items-center justify-content-center px-1">
 							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
 						</div>
-						<div class="col-10" style="padding-left:0px;">
+						<div class="col-10 d-flex align-items-center px-0" style="padding-left:0px;">
 							${__(me.fields[idx].label, null, me.doctype)}
 						</div>
-						<div class="col-1 ${can_remove} pl-0 pl-sm-3">
+						<div class="col-1 d-flex align-items-center justify-content-center px-1 ${can_remove}">
 							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
 								${frappe.utils.icon("trash", "xs")}
 							</a>
