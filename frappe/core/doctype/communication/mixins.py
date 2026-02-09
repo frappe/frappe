@@ -298,6 +298,12 @@ class CommunicationEmailMixin:
 			"is_notification": (self.sent_or_received == "Received" and True) or False,
 			"print_letterhead": print_letterhead,
 			"send_after": self.send_after,
+<<<<<<< HEAD
+=======
+			"raw_html": raw_html,
+			"add_css": add_css,
+			"in_reply_to": self.in_reply_to,
+>>>>>>> 786adfd341 (fix(Communication): set `In-Reply-To` (#36746))
 		}
 
 	def send_email(

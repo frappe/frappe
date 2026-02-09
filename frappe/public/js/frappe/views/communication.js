@@ -820,6 +820,12 @@ frappe.views.CommunicationComposer = class {
 				print_letterhead: me.is_print_letterhead_checked(),
 				send_after: form_values.send_after ? form_values.send_after : null,
 				print_language: form_values.print_language,
+<<<<<<< HEAD
+=======
+				raw_html: form_values.use_html,
+				add_css: form_values.add_css,
+				in_reply_to: (this.is_a_reply && this.last_email?.name) || null,
+>>>>>>> 786adfd341 (fix(Communication): set `In-Reply-To` (#36746))
 			},
 			btn,
 			callback(r) {
