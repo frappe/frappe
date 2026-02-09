@@ -297,7 +297,18 @@ Object.assign(frappe.utils, {
 		return content.html();
 	},
 	scroll_page_to_top() {
-		$(".main-section").scrollTop(0);
+		const $container = $(".main-section");
+		$container.animate(
+			{ scrollTop: 0 },
+			{
+				duration: 300,
+				easing: "swing",
+				complete: function () {
+					// Ensure we're at the top
+					$container.scrollTop(0);
+				},
+			}
+		);
 	},
 	scroll_to: function (
 		element,
@@ -1386,7 +1397,7 @@ Object.assign(frappe.utils, {
 		return icon_html.get(0).outerHTML;
 	},
 	desktop_pallete: {
-		blue: "#0981E3",
+		blue: "#0289F7",
 		gray: "#7B808A",
 	},
 	icon(
