@@ -46,7 +46,12 @@ def validate_argument_types(
 		if apply_condition is None or apply_condition():
 			args, kwargs = transform_parameter_types(func, args, kwargs, force_types)
 
-		return func(*args, **kwargs)
+		ret = func(*args, **kwargs)
+
+		# One successful run of function means we don't to validate anymore
+		force_types = False
+
+		return ret
 
 	return wrapper
 
