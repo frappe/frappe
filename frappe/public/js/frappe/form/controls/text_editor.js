@@ -361,7 +361,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 	}
 
 	get_keyboard_bindings() {
-		let bindings = {
+		const bindings = {
 			"table enter": {
 				key: "Enter",
 				formats: ["table"],
@@ -388,6 +388,14 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 				},
 			},
 		};
+
+		if (this.grid_row) {
+			bindings["tab"] = {
+				key: "Tab",
+				handler: () => true, // call default handler
+			};
+		}
+
 		return bindings;
 	}
 };
