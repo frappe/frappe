@@ -22,52 +22,24 @@ frappe.ui.form.Footer = class FormFooter {
 	setup_scroll_to_top() {
 		const $scroll_to_top_btn = this.wrapper.find(".scroll-to-top");
 		const $scroll_container = $(".main-section");
-
-		if (!$scroll_to_top_btn.length || !$scroll_container.length) {
-			return;
-		}
-
-		this.toggle_scroll_to_top_button($scroll_to_top_btn, $scroll_container);
-
-		$scroll_container.on(
-			"scroll.form-footer",
-			frappe.utils.throttle(() => {
-				this.toggle_scroll_to_top_button($scroll_to_top_btn, $scroll_container);
-			}, 100)
-		);
-
-		$(window).on(
-			"resize.form-footer",
-			frappe.utils.throttle(() => {
-				this.toggle_scroll_to_top_button($scroll_to_top_btn, $scroll_container);
-			}, 100)
-		);
-
-		setTimeout(() => {
+		if (!$scroll_to_top_btn.length || !$scroll_container.length) return;
+		const update = () =>
 			this.toggle_scroll_to_top_button($scroll_to_top_btn, $scroll_container);
-		}, 500);
+		const throttled_update = frappe.utils.throttle(update, 100);
+		$scroll_container.off("scroll.form-footer").on("scroll.form-footer", throttled_update);
+		$(window).off("resize.form-footer").on("resize.form-footer", throttled_update);
+		setTimeout(update, 500);
 	}
 	toggle_scroll_to_top_button($button, $container) {
-		if (!$button.length || !$container.length) {
-			return;
-		}
-
+		if (!$button.length || !$container.length) return;
 		const container_element = $container[0];
-		if (!container_element) {
-			return;
-		}
-
+		if (!container_element) return;
 		const scroll_top = $container.scrollTop();
 		const scroll_height = container_element.scrollHeight || 0;
 		const client_height = container_element.clientHeight || 0;
 		const needs_scroll = scroll_height > client_height;
 		const is_scrolled = scroll_top > 50;
-
-		if (needs_scroll && is_scrolled) {
-			$button.addClass("show");
-		} else {
-			$button.removeClass("show");
-		}
+		$button.toggleClass("show", needs_scroll && is_scrolled);
 	}
 	make_comment_box() {
 		this.frm.comment_box = frappe.ui.form.make_control({
