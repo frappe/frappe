@@ -26,9 +26,86 @@ BRACKETS_PATTERN = re.compile(r"\(.*?\)|$")
 SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
 COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 
+<<<<<<< HEAD
 # less restrictive version of frappe.core.doctype.doctype.doctype.START_WITH_LETTERS_PATTERN
 # to allow table names like __Auth
 TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
+=======
+# Pattern for validating simple field names (alphanumeric + underscore)
+SIMPLE_FIELD_PATTERN = re.compile(r"^\w+$", flags=re.ASCII)
+
+# Pattern for validating SQL identifiers (aliases, field names in functions)
+# More restrictive: must start with letter or underscore
+IDENTIFIER_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$", flags=re.ASCII)
+
+# Pattern for detecting SQL function calls: identifier followed by opening parenthesis
+FUNCTION_CALL_PATTERN = re.compile(r"^\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\(", flags=re.ASCII)
+
+
+# Pattern to validate field names in SELECT:
+# Allows: name, `name`, name as alias, `name` as alias, table.name, table.name as alias
+# Also allows backtick-qualified identifiers with spaces/hyphens:
+#   - `tabTable`.`field`
+#   - `tabTable Name`.`field` (spaces in table name)
+#   - `tabTable-Field`.`field` (hyphens in table name)
+#   - Any of above with aliases: ... as alias
+#   - Single-quoted aliases with colons (used by reportview child fields):
+#     - ... as 'Child:field'
+ALLOWED_FIELD_PATTERN = re.compile(
+	r"^(?:(`[\w\s-]+`|\w+)\.)?(`\w+`|\w+)(?:\s+as\s+(?:`[\w\s-]+`|'[\w\s:-]+'|\w+))?$",
+	flags=re.ASCII | re.IGNORECASE,
+)
+
+# Regex to parse field names:
+# Group 1: Optional quote for table name
+# Group 2: Optional table name (e.g., `tabDocType` or tabDocType or `tabNote Seen By`)
+# Group 3: Optional quote for field name
+# Group 4: Field name (e.g., `field` or field)
+FIELD_PARSE_REGEX = re.compile(r"^(?:(`?)(tab[\w\s-]+)\1\.)?(`?)(\w+)\3$")
+
+# Like FIELD_PARSE_REGEX but compulsary table name with backticks
+BACKTICK_FIELD_PARSE_REGEX = re.compile(r"^`tab([\w\s-]+)`\.(`?)(\w+)\2$")
+
+# Pattern to match child table field notation: tabChildDoc.field or `tabChild Doc`.field
+# Group 1: Child doctype name (without 'tab' prefix)
+# Group 2: Optional quote for fieldname
+# Group 3: Fieldname
+CHILD_TABLE_FIELD_PATTERN = re.compile(r'^[`"]?tab([\w\s]+)[`"]?\.([`"]?)(\w+)\2$')
+
+# Direct mapping from uppercase function names to pypika function classes
+FUNCTION_MAPPING = {
+	"COUNT": functions.Count,
+	"SUM": functions.Sum,
+	"AVG": functions.Avg,
+	"MAX": functions.Max,
+	"MIN": functions.Min,
+	"ABS": functions.Abs,
+	"EXTRACT": functions.Extract,
+	"LOCATE": functions.Locate,
+	"TIMESTAMP": functions.Timestamp,
+	"IFNULL": functions.IfNull,
+	"CONCAT": functions.Concat,
+	"NOW": functions.Now,
+	"NULLIF": functions.NullIf,
+	"MONTHNAME": MonthName,
+	"QUARTER": Quarter,
+	"MONTH": Month,
+}
+
+# Functions that accept '*' as an argument (e.g., COUNT(*))
+STAR_ALLOWED_FUNCTIONS = frozenset(("COUNT",))
+
+# Mapping from operator names to pypika Arithmetic enum values
+# Operators use dict format: {"ADD": [left, right], "as": "alias"}
+# Supported: ADD (+), SUB (-), MUL (*), DIV (/)
+# Can be nested with functions: {"DIV": [1, {"NULLIF": ["value", 0]}]}
+OPERATOR_MAPPING = {
+	"ADD": Arithmetic.add,
+	"SUB": Arithmetic.sub,
+	"MUL": Arithmetic.mul,
+	"DIV": Arithmetic.div,
+}
+>>>>>>> a93b84df3c (fix(query_builder): added validation to check DocType name (#36878))
 
 
 class Engine:
@@ -60,8 +137,12 @@ class Engine:
 			self.doctype = get_doctype_name(table.get_sql())
 		else:
 			self.doctype = table
+<<<<<<< HEAD
 			self.validate_doctype()
 			self.table = frappe.qb.DocType(table)
+=======
+			self.table = qb.DocType(table)
+>>>>>>> a93b84df3c (fix(query_builder): added validation to check DocType name (#36878))
 
 		if update:
 			self.query = frappe.qb.update(self.table)
@@ -92,10 +173,6 @@ class Engine:
 			self.query = self.query.groupby(group_by)
 
 		return self.query
-
-	def validate_doctype(self):
-		if not TABLE_NAME_PATTERN.match(self.doctype):
-			frappe.throw(_("Invalid DocType: {0}").format(self.doctype))
 
 	def apply_fields(self, fields):
 		# add fields
@@ -286,12 +363,41 @@ class Engine:
 		if field == "*":
 			return self.table.star
 		alias = None
+<<<<<<< HEAD
 		if " as " in field:
 			field, alias = field.split(" as ")
 		if "`" in field:
 			if alias:
 				return PseudoColumnMapper(f"{field} {alias}")
 			return PseudoColumnMapper(field)
+=======
+		field_part = field
+		if " as " in field.lower():  # Case-insensitive check for ' as '
+			# Find the last occurrence of ' as ' to handle potential aliases named 'as'
+			parts = re.split(r"\s+as\s+", field, flags=re.IGNORECASE)
+			if len(parts) > 1:
+				field_part = parts[0].strip()
+				alias = parts[1].strip().strip("`\"'")  # Remove potential quotes from alias
+
+		match = FIELD_PARSE_REGEX.match(field_part)
+
+		if not match:
+			frappe.throw(_("Could not parse field: {0}").format(field))
+
+		# Groups: 1: table_quote, 2: table_name_with_tab, 3: field_quote, 4: field_name
+		groups = match.groups()
+		table_name = groups[1]  # This will be None if no table part (e.g., just 'field')
+		field_name = groups[3]  # This will be the field name (e.g., 'field')
+
+		if table_name:
+			doctype_name = table_name[3:] if table_name.startswith("tab") else table_name
+			table_obj = frappe.qb.DocType(doctype_name)
+			pypika_field = table_obj[field_name]
+		else:
+			# Simple field name (e.g., `y` or y) - use the main table
+			pypika_field = self.table[field_name]
+
+>>>>>>> a93b84df3c (fix(query_builder): added validation to check DocType name (#36878))
 		if alias:
 			return self.table[field].as_(alias)
 		return self.table[field]
