@@ -247,12 +247,10 @@ frappe.ui.form.remove_old_form_route = () => {
 frappe.ui.form.update_calling_link = async (newdoc) => {
 	if (!frappe._from_link) return;
 
-	const { field_obj, from_doctype, from_docname, scrollY } = frappe._from_link;
+	const { field_obj, doc, set_route_args, scrollY } = frappe._from_link;
 	const df = field_obj.df;
 
 	if (!["Link", "Dynamic Link", "Table MultiSelect"].includes(df.fieldtype)) return;
-
-	const doc = frappe.get_doc(from_doctype, from_docname);
 
 	const is_valid_doctype = () => {
 		switch (df.fieldtype) {
@@ -270,7 +268,7 @@ frappe.ui.form.update_calling_link = async (newdoc) => {
 	// switch back to the original doc first,
 	// this is necessary in case from_link.doctype === newdoc.doctype
 	if (field_obj.frm) {
-		await frappe.set_route("Form", from_doctype, from_docname);
+		await frappe.set_route(...set_route_args);
 		frappe.utils.scroll_to(scrollY);
 	}
 
@@ -286,15 +284,10 @@ frappe.ui.form.update_calling_link = async (newdoc) => {
 
 	// set value
 	if (doc && doc.parentfield) {
-		//update values for child table
-		$.each(
-			field_obj.frm.fields_dict[doc.parentfield].grid.grid_rows,
-			function (_index, field) {
-				if (field.doc && field.doc.name === from_docname) {
-					field_obj.set_value(newdoc.name);
-				}
-			}
+		const row_exists = field_obj.frm.fields_dict[doc.parentfield].grid.grid_rows.find(
+			(row) => row.doc.name === doc.name
 		);
+		if (row_exists) field_obj.set_value(newdoc.name);
 	} else {
 		// parsing is needed for table multiselect to convert string to array
 		field_obj.parse_validate_and_set_in_model(newdoc.name);

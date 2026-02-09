@@ -19,12 +19,15 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 					type: this.item.link_type,
 					name: this.item.link_to,
 				};
-
-				if (this.item.report || !frappe.app.sidebar.editor.edit_mode) {
-					args.is_query_report =
-						this.item.report.report_type === "Query Report" ||
-						this.item.report.report_type == "Script Report";
-					args.report_ref_doctype = this.item.report.ref_doctype;
+				if (!frappe.app.sidebar.editor.edit_mode) {
+					if (this.item.report) {
+						args.is_query_report =
+							this.item.report.report_type === "Query Report" ||
+							this.item.report.report_type == "Script Report";
+						args.report_ref_doctype = this.item.report.ref_doctype;
+					} else {
+						return;
+					}
 				}
 
 				path = frappe.utils.generate_route(args);
@@ -33,7 +36,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 				if (workspaces.public) {
 					path = "/desk/" + frappe.router.slug(this.item.link_to);
 				} else {
-					path = "/desk/private/" + frappe.router.slug(workspaces.title);
+					path = "/desk/private/" + frappe.router.slug(this.item.link_to);
 				}
 
 				if (this.item.route) {
@@ -48,20 +51,43 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 					route_options: JSON.parse(this.item.route_options),
 				});
 			} else {
-				path = frappe.utils.generate_route({
+				let args = {
 					type: this.item.link_type,
 					name: this.item.link_to,
 					tab: this.item.tab,
-				});
+				};
+				if (this.item.filters) {
+					let filters_json = JSON.parse(
+						frappe.utils.get_filter_as_json(JSON.parse(this.item.filters))
+					);
+					filters_json = this.transform_filters(filters_json);
+					if (this.item.link_type == "DocType") {
+						args.doc_view = "List";
+						args.route_options = filters_json;
+					}
+				}
+				path = frappe.utils.generate_route(args);
 			}
 		}
 		if (path) {
 			return encodeURI(path);
 		}
 	}
+	transform_filters(filters_json) {
+		for (const [key, value] of Object.entries(filters_json)) {
+			if (Array.isArray(value)) {
+				filters_json[key] = value[1];
+			}
+		}
+		return filters_json;
+	}
+
 	prepare() {}
 	make() {
 		this.path = this.get_path();
+		if (!this.path && !this.item.standard && this.item.type != "Section Break") {
+			return;
+		}
 		this.set_suffix();
 		if (!this.item.icon && !(this.item.child && this.item.parent.indent)) {
 			this.item.icon = "list";
@@ -161,12 +187,15 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		this.full_template = $(this.wrapper);
 	}
 	make() {
-		if (this.item.nested_items.length == 0) return;
+		if (this.nested_items.length == 0) {
+			return;
+		}
 		super.make();
+		if (!this.item.nested_items || this.item.nested_items.length == 0) return;
 		this.add_items();
+		$(this.container).append(this.full_template);
 		this.toggle_on_collapse();
 		this.enable_collapsible(this.item, this.full_template);
-		$(this.container).append(this.full_template);
 	}
 	open() {
 		this.collapsed = false;
@@ -249,7 +278,7 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		const me = this;
 		let current_sidebar_state = this.section_breaks_state[this.workspace_title];
 		for (const [element_name, collapsed] of Object.entries(current_sidebar_state)) {
-			if ($(this.wrapper).attr("item-name") == element_name) {
+			if ($(this.wrapper).attr("title") == element_name) {
 				me.collapsed = collapsed;
 				me.toggle();
 			}

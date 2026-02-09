@@ -6,6 +6,8 @@ import number_systems from "./number_systems";
 
 frappe.provide("frappe.utils");
 
+const eval_function_cache = new Map();
+
 // Array de duplicate
 if (!Array.prototype.uniqBy) {
 	Object.defineProperty(Array.prototype, "uniqBy", {
@@ -295,7 +297,18 @@ Object.assign(frappe.utils, {
 		return content.html();
 	},
 	scroll_page_to_top() {
-		$(".main-section").scrollTop(0);
+		const $container = $(".main-section");
+		$container.animate(
+			{ scrollTop: 0 },
+			{
+				duration: 300,
+				easing: "swing",
+				complete: function () {
+					// Ensure we're at the top
+					$container.scrollTop(0);
+				},
+			}
+		);
 	},
 	scroll_to: function (
 		element,
@@ -942,44 +955,21 @@ Object.assign(frappe.utils, {
 		let route = route_str.split("/");
 
 		if (route[2] === "Report" || route[0] === "query-report") {
-			return (
-				frappe.search.utils.make_icon("table") +
-				(__(route[3]) || __(route[1])).bold() +
-				" " +
-				__("Report")
-			);
+			return (__(route[3]) || __(route[1])).bold() + " " + __("Report");
 		}
 		if (route[0] === "List") {
-			return frappe.search.utils.make_icon("list") + __(route[1]).bold() + " " + __("List");
+			return __(route[1]).bold() + " " + __("List");
 		}
 		if (route[0] === "modules") {
-			return (
-				frappe.search.utils.make_icon("component") +
-				__(route[1]).bold() +
-				" " +
-				__("Module")
-			);
+			return __(route[1]).bold() + " " + __("Module");
 		}
 		if (route[0] === "Workspaces") {
-			return (
-				frappe.search.utils.make_icon("wallpaper") +
-				__(route[1]).bold() +
-				" " +
-				__("Workspace")
-			);
+			return __(route[1]).bold() + " " + __("Workspace");
 		}
 		if (route[0] === "dashboard") {
-			return (
-				frappe.search.utils.make_icon("dashboard") +
-				__(route[1]).bold() +
-				" " +
-				__("Dashboard")
-			);
+			return __(route[1]).bold() + " " + __("Dashboard");
 		}
-		return (
-			frappe.search.utils.make_icon("file-text") +
-			__(frappe.utils.to_title_case(__(route[0]), true))
-		);
+		return __(frappe.utils.to_title_case(__(route[0]), true));
 	},
 	report_column_total: function (values, column, type) {
 		if (column.column.disable_total) {
@@ -1002,25 +992,54 @@ Object.assign(frappe.utils, {
 		const $search_input = $wrapper.find('[data-element="search"]').show();
 		$search_input.focus().val("");
 		const $elements = $wrapper.find(el_class).show();
+		const $multichecks = $wrapper.find('[data-fieldtype="MultiCheck"]');
+
+		let $no_results = $wrapper.find(".no-results-message");
+		if (!$no_results.length) {
+			$no_results = $(`
+				<div class="no-results-message text-muted text-center" style="padding: 5px; display: none;">
+					${__("No values to show")}
+				</div>
+			`).appendTo($wrapper);
+		}
+
+		$no_results.hide();
+
+		const matches_filter = ($el, filter) => {
+			const $text_el = $el.find(text_class);
+			const text = $text_el.text().toLowerCase();
+
+			let name = "";
+			if (data_attr && $text_el.attr(data_attr)) {
+				name = $text_el.attr(data_attr).toLowerCase();
+			}
+
+			return text.includes(filter) || name.includes(filter);
+		};
 
 		$search_input.off("keyup").on("keyup", () => {
-			let text_filter = $search_input.val().toLowerCase();
-			// Replace trailing and leading spaces
-			text_filter = text_filter.replace(/^\s+|\s+$/g, "");
-			for (let i = 0; i < $elements.length; i++) {
-				const text_element = $elements.eq(i).find(text_class);
-				const text = text_element.text().toLowerCase();
+			const text_filter = $search_input.val().toLowerCase().trim();
+			let any_visible = false;
 
-				let name = "";
-				if (data_attr && text_element.attr(data_attr)) {
-					name = text_element.attr(data_attr).toLowerCase();
-				}
+			$elements.each(function () {
+				const match = matches_filter($(this), text_filter);
+				$(this).toggle(match);
+				if (match) any_visible = true;
+			});
 
-				if (text.includes(text_filter) || name.includes(text_filter)) {
-					$elements.eq(i).css("display", "");
-				} else {
-					$elements.eq(i).css("display", "none");
-				}
+			if ($multichecks.length) {
+				$multichecks.show();
+
+				$multichecks.each(function () {
+					const has_visible = $(this).find(el_class + ":visible").length;
+					$(this).toggle(!!has_visible);
+				});
+			}
+
+			if (text_filter) {
+				$no_results.toggle(!any_visible);
+			} else {
+				$no_results.hide();
 			}
 		});
 	},
@@ -1110,14 +1129,35 @@ Object.assign(frappe.utils, {
 		if (code.substr(0, 5) == "eval:") {
 			code = code.substr(5);
 		}
+
 		let variable_names = Object.keys(context);
 		let variables = Object.values(context);
-		code = `let out = ${code}; return out`;
+
+		// only cache expressions under 500 chars
+		const should_cache = code.length < 500;
+		const cache_key = should_cache ? code + "|" + variable_names.join(",") : null;
+
+		let expression_function = cache_key && eval_function_cache.get(cache_key);
+
+		if (!expression_function) {
+			const function_code = `let out = ${code}; return out`;
+			try {
+				expression_function = new Function(...variable_names, function_code);
+			} catch (error) {
+				console.log("Error evaluating the following expression:");
+				console.error(function_code);
+				throw error;
+			}
+
+			if (cache_key) {
+				eval_function_cache.set(cache_key, expression_function);
+			}
+		}
+
 		try {
-			let expression_function = new Function(...variable_names, code);
 			return expression_function(...variables);
 		} catch (error) {
-			console.log("Error evaluating the following expression:");
+			console.log("Error executing the following expression:");
 			console.error(code);
 			throw error;
 		}
@@ -1276,6 +1316,64 @@ Object.assign(frappe.utils, {
 		},
 		image_path: "/assets/frappe/images/leaflet/",
 	},
+	get_route_for_icon(desktop_icon) {
+		let route;
+		if (!desktop_icon) return;
+		let item = {};
+		if (desktop_icon.link_type == "External" && desktop_icon.link) {
+			route = desktop_icon.link;
+		} else {
+			let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
+			if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
+				let first_link = sidebar.items.find((i) => i.type == "Link");
+				if (first_link) {
+					if (first_link.link_type === "Report") {
+						let args = {
+							type: first_link.link_type,
+							name: first_link.link_to,
+						};
+
+						if (first_link.report || !frappe.app.sidebar.editor.edit_mode) {
+							args.is_query_report =
+								first_link.report.report_type === "Query Report" ||
+								first_link.report.report_type == "Script Report";
+							args.report_ref_doctype = first_link.report.ref_doctype;
+						}
+
+						route = frappe.utils.generate_route(args);
+					} else if (first_link.link_type == "Workspace") {
+						let workspaces = frappe.workspaces[frappe.router.slug(first_link.link_to)];
+						if (workspaces) {
+							if (workspaces.public) {
+								route = "/desk/" + frappe.router.slug(first_link.link_to);
+							} else {
+								route = "/desk/private/" + frappe.router.slug(workspaces.title);
+							}
+						}
+
+						if (first_link.route) {
+							route = first_link.route;
+						}
+					} else if (first_link.link_type === "URL") {
+						route = first_link.url;
+					} else if (first_link.link_type == "Page" && first_link.route_options) {
+						route = frappe.utils.generate_route({
+							type: first_link.link_type,
+							name: first_link.link_to,
+							route_options: JSON.parse(first_link.route_options),
+						});
+					} else {
+						route = frappe.utils.generate_route({
+							type: first_link.link_type,
+							name: first_link.link_to,
+							tab: first_link.tab,
+						});
+					}
+				}
+			}
+		}
+		return route;
+	},
 	desktop_icon(label, color, size) {
 		let letter = label.charAt(0).toUpperCase();
 		let icon_size = size ? size : "md";
@@ -1299,12 +1397,8 @@ Object.assign(frappe.utils, {
 		return icon_html.get(0).outerHTML;
 	},
 	desktop_pallete: {
-		blue: "#0981E3",
+		blue: "#0289F7",
 		gray: "#7B808A",
-	},
-	desktop_bg_color(color_name) {
-		let color_value = this.desktop_pallete[color_name];
-		color_value + "";
 	},
 	icon(
 		icon_name,
@@ -1381,13 +1475,12 @@ Object.assign(frappe.utils, {
 	},
 	get_desktop_icon_by_label(title, filters) {
 		if (!filters) {
-			return frappe.boot.desktop_icons.find((f) => f.label === title && f.hidden != 1);
+			return frappe.boot.desktop_icons.find((f) => f.label === title);
 		} else {
 			return frappe.boot.desktop_icons.find((f) => {
 				return (
 					f.label === title &&
-					Object.keys(filters).every((key) => f[key] === filters[key]) &&
-					f.hidden != 1
+					Object.keys(filters).every((key) => f[key] === filters[key])
 				);
 			});
 		}
@@ -1438,7 +1531,7 @@ Object.assign(frappe.utils, {
 				let doctype_slug = frappe.router.slug(item.doctype);
 
 				if (frappe.model.is_single(item.doctype)) {
-					route = doctype_slug;
+					route = `${doctype_slug}/${item.doctype}`;
 				} else {
 					switch (item.doc_view) {
 						case "List":
@@ -1482,8 +1575,7 @@ Object.assign(frappe.utils, {
 				if (item.is_query_report) {
 					route = "query-report/" + item.name;
 				} else if (!item.is_query_report && item.report_ref_doctype) {
-					route =
-						frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
+					route = frappe.router.slug(item.report_ref_doctype) + "/view/report/";
 				} else {
 					route = "report/" + item.name;
 				}
@@ -1520,8 +1612,13 @@ Object.assign(frappe.utils, {
 		 *	max_no_of_decimals - max number of decimals of the shortened number
 		 */
 
+		// return empty for null, undefined, or empty string
+		if (!number || isNaN(number)) {
+			return "";
+		}
+
 		// return number if total digits is lesser than min_length
-		const len = String(number).match(/\d/g).length;
+		const len = String(number).match(/\d/g)?.length || 0;
 		if (len < min_length) {
 			return number.toString();
 		}
@@ -1805,9 +1902,17 @@ Object.assign(frappe.utils, {
 	},
 
 	process_filter_expression(filter) {
-		return new Function(`return ${filter}`)();
+		let filters = [];
+		filters = filter ? new Function(`return ${filter}`)() : [];
+		return this.cleanup_filters(filters);
 	},
-
+	cleanup_filters(filters) {
+		if (filters.length && filters[0].length == 5) {
+			filters.pop();
+			return filters;
+		}
+		return filters;
+	},
 	get_filter_from_json(filter_json, doctype) {
 		// convert json to filter array
 		if (filter_json) {
@@ -2044,5 +2149,71 @@ Object.assign(frappe.utils, {
 			return true;
 		}
 		return frappe.user.has_role(["System Manager", "Administrator"]);
+	},
+
+	get_help_siblings() {
+		const navbar_settings = frappe.boot.navbar_settings;
+		let help_dropdown_items = [];
+
+		let custom_help_links = this.get_custom_help_links();
+
+		help_dropdown_items = custom_help_links.concat(help_dropdown_items);
+
+		navbar_settings.help_dropdown.forEach((element) => {
+			let dropdown_children = {
+				name: element.name,
+				label: element.item_label,
+			};
+			if (element.item_type === "Route") {
+				dropdown_children.url = element.route;
+			}
+			if (element.item_type === "Action") {
+				dropdown_children.onClick = function () {
+					frappe.utils.eval(element.action);
+				};
+			}
+			help_dropdown_items.push(dropdown_children);
+		});
+
+		return help_dropdown_items;
+	},
+	get_custom_help_links() {
+		let route = frappe.get_route_str();
+		let breadcrumbs = route.split("/");
+
+		let links = [];
+		for (let i = 0; i < breadcrumbs.length; i++) {
+			let r = route.split("/", i + 1);
+			let key = r.join("/");
+			let help_links = frappe.help.help_links[key] || [];
+			links = $.merge(links, help_links);
+		}
+		if (links.length) {
+			links.push({ is_divider: true });
+		}
+		return links;
+	},
+	eval_expression(value) {
+		if (typeof value === "string") {
+			const parsed_components = value.match(/[^\d.,]+|[\d.,]+/g);
+			var parsed_value = value;
+			if (parsed_components !== null) {
+				parsed_value = parsed_components
+					.map((v) => {
+						return isNaN(parseFloat(v)) ? v : flt(v);
+					})
+					.join("");
+			}
+			if (parsed_value.match(/^[0-9+\-/*.() ]+$/)) {
+				// If it is a string containing operators
+				try {
+					return (0, eval)(parsed_value);
+				} catch (e) {
+					// bad expression
+					return value;
+				}
+			}
+		}
+		return value;
 	},
 });

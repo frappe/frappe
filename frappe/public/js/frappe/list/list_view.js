@@ -312,7 +312,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		];
 		this.filter_area.get().forEach((f) => {
 			if (allowed_filter_types.includes(f[2]) && frappe.model.is_non_std_field(f[1])) {
-				options[f[1]] = f[3];
+				const df = frappe.meta.get_field(doctype, f[1]);
+				if (df && !df.read_only) {
+					options[f[1]] = f[3];
+				}
 			}
 		});
 		frappe.new_doc(doctype, options);
@@ -796,13 +799,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_left_html(doc) {
 		let left_html = "";
+		const mobile_field_columns = this.columns.filter(
+			(col) => col.type === "Field" && col.df?.fieldname
+		);
 		let has_value_in_second_column = true;
-		for (let i = 0; i < this.columns.length; i++) {
-			let col = this.columns[i];
-
-			if (i == 4 && !doc[col.df.fieldname] && doc[col.df.fieldname] != 0) {
+		if (mobile_field_columns.length > 1) {
+			const fieldname = mobile_field_columns[1].df.fieldname;
+			if (!doc[fieldname] && doc[fieldname] != 0) {
 				has_value_in_second_column = false;
 			}
+		}
+		for (let i = 0; i < this.columns.length; i++) {
+			let col = this.columns[i];
 
 			if (frappe.is_mobile() && col.type == "Field" && [3, 4].includes(i)) {
 				left_html += `<div class="mobile-layout ${
@@ -897,6 +905,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							aria-valuemin="0" aria-valuemax="100" style="width: ${Math.round(value)}%;">
 						</div>
 					</div>`;
+			} else if (df.fieldtype === "Data") {
+				return frappe.format(frappe.utils.escape_html(value), df, null, doc);
 			} else {
 				return frappe.format(value, df, null, doc);
 			}
@@ -1210,7 +1220,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					count_without_children !== current_count ? count_without_children : undefined;
 
 				let count_str;
-				if (this.total_count === this.count_upper_bound) {
+				if (current_count > this.total_count) {
+					count_str = `${format_number(current_count, null, 0)}+`;
+				} else if (this.total_count === this.count_upper_bound) {
 					count_str = `${format_number(this.total_count - 1, null, 0)}+`;
 				} else if (this.total_count == null) {
 					count_str = "??";
@@ -1973,7 +1985,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		items.push({
-			label: __("Edit Filters", null, "Edit filters of List View"),
+			label: __("Customize Quick Filters", null, "Customize qucik filters of List View"),
 			action: () => {
 				this.make_group_by_fields_modal();
 			},

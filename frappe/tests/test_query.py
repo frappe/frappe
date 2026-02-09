@@ -410,12 +410,22 @@ class TestQuery(IntegrationTestCase):
 			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('ToDo','Note')",
 		)
 
+		# Empty list with IN operator should return 0 results (1=0 condition)
 		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				filters={"name": ("in", [])},
 			).get_sql(),
-			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('')",
+			"SELECT `name` FROM `tabDocType` WHERE 1=0",
+		)
+
+		# Empty list with NOT IN operator should return all results (1=1 condition)
+		self.assertQueryEqual(
+			frappe.qb.get_query(
+				"DocType",
+				filters={"name": ("not in", [])},
+			).get_sql(),
+			"SELECT `name` FROM `tabDocType` WHERE 1=1",
 		)
 
 		self.assertQueryEqual(
@@ -1812,10 +1822,21 @@ class TestQuery(IntegrationTestCase):
 			],
 		)
 		sql = query.get_sql()
-		self.assertIn(
-			self.normalize_sql("1/NULLIF(LOCATE('test',`name`),0) `relevance`"),
-			self.normalize_sql(sql),
-		)
+		if frappe.db.db_type == "mariadb":
+			self.assertIn(
+				self.normalize_sql("1/NULLIF(LOCATE('test',`name`),0) `relevance`"),
+				self.normalize_sql(sql),
+			)
+		elif frappe.db.db_type == "postgres":
+			self.assertIn(
+				self.normalize_sql("1/NULLIF(STRPOS(`name`,'test'),0) `relevance`"),
+				self.normalize_sql(sql),
+			)
+		elif frappe.db.db_type == "sqlite":
+			self.assertIn(
+				self.normalize_sql("1/NULLIF(INSTR(`name`,'test'),0) `relevance`"),
+				self.normalize_sql(sql),
+			)
 
 		# Test multiple operators in fields
 		query = frappe.qb.get_query(
@@ -2277,6 +2298,15 @@ class TestQuery(IntegrationTestCase):
 		# Even though user has shared access to their own User doc,
 		# the filter should still apply and return no results
 		self.assertEqual(len(result), 0, "Filter should not be bypassed by shared doc OR condition")
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_ifnull_fallback_postgres(self):
+		"""Test ifnull fallback in postgres"""
+		from frappe.database.query import Engine
+
+		engine = Engine()
+		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "skipped"), "0")
+		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "patch"), "''")
 
 
 # This function is used as a permission query condition hook

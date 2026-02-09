@@ -3,6 +3,7 @@
 import getpass
 
 import frappe
+from frappe.email.doctype.notification.notification import install_notification_templates
 from frappe.geo.doctype.country.country import import_country_and_currency
 from frappe.utils import cint
 from frappe.utils.password import update_password
@@ -52,6 +53,9 @@ def after_install():
 	_clear_test_log()
 
 	add_standard_navbar_items()
+
+	# default templates
+	install_notification_templates()
 
 	frappe.db.commit()
 
@@ -186,10 +190,10 @@ def auto_generate_icons_and_sidebar(app_name=None):
 	)
 
 	try:
-		print("Creating Desktop Icons")
-		create_desktop_icons()
 		print("Creating Workspace Sidebars")
 		create_workspace_sidebar_for_workspaces()
+		print("Creating Desktop Icons")
+		create_desktop_icons()
 		# Save the generated icons
 		frappe.db.commit()  # nosemgrep
 		# Save the genreated sidebar links

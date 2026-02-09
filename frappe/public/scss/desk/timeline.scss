@@ -22,12 +22,6 @@ $threshold: 34;
 	position: relative;
 	padding-top: var(--padding-lg);
 
-	@include media-breakpoint-down(xs) {
-		padding-left: calc(var(--padding-sm) + var(--timeline-item-icon-size) / 2);
-		.timeline-dot {
-			margin-left: -2px;
-		}
-	}
 	&:before {
 		content: " ";
 		top: 90px; // TODO: get top and bottom programmatically
@@ -67,7 +61,8 @@ $threshold: 34;
 		h4 {
 			flex: auto;
 			margin-bottom: 0;
-			font-weight: 700;
+			font-size: 16px;
+			font-weight: 500;
 		}
 	}
 	.timeline-item {
@@ -184,11 +179,6 @@ $threshold: 34;
 }
 
 @include media-breakpoint-down(sm) {
-	.new-timeline {
-		.timeline-item {
-			margin-left: 0px;
-		}
-	}
 	.up {
 		position: relative;
 		bottom: 1px;

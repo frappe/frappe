@@ -1,6 +1,12 @@
 {
- "charts": [],
- "content": "[{\"id\":\"b7abeqw4NZ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"User\",\"col\":3}},{\"id\":\"eghSJPhZRC\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Role\",\"col\":3}},{\"id\":\"uAzl_lT_C0\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Permission Manager\",\"col\":3}},{\"id\":\"oFB4l28FMU\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"NMpIkExl3i\",\"type\":\"card\",\"data\":{\"card_name\":\"Users\",\"col\":4}},{\"id\":\"VepG3durKm\",\"type\":\"card\",\"data\":{\"card_name\":\"Logs\",\"col\":4}},{\"id\":\"S9FeWt7xXE\",\"type\":\"card\",\"data\":{\"card_name\":\"Permissions\",\"col\":4}}]",
+ "app": "frappe",
+ "charts": [
+  {
+   "chart_name": "Login",
+   "label": "Login Activity"
+  }
+ ],
+ "content": "[{\"id\":\"T_8h_1kB6j\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Login Activity\",\"col\":12}},{\"id\":\"Y9G8gIH9lP\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"System Users\",\"col\":4}},{\"id\":\"78JTmWaYfY\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Website Users\",\"col\":4}},{\"id\":\"vAh1zw5jLk\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Failed Login Attempts\",\"col\":4}}]",
  "creation": "2020-03-02 15:12:16.754449",
  "custom_blocks": [],
  "docstatus": 0,
@@ -12,14 +18,6 @@
  "is_hidden": 0,
  "label": "Users",
  "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Logs",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
   {
    "dependencies": "",
    "hidden": 0,
@@ -41,14 +39,6 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Permissions",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
   },
   {
    "dependencies": "",
@@ -105,65 +95,26 @@
    "onboard": 0,
    "report_ref_doctype": "DocShare",
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Users",
-   "link_count": 4,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "User",
-   "link_count": 0,
-   "link_to": "User",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Role",
-   "link_count": 0,
-   "link_to": "Role",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Role Profile",
-   "link_count": 0,
-   "link_to": "Role Profile",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Module Profile",
-   "link_count": 0,
-   "link_to": "Module Profile",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
   }
  ],
- "modified": "2024-08-19 11:48:35.908082",
+ "modified": "2026-01-11 23:30:10.696298",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Users",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "Website Users",
+   "number_card_name": "Total Website Users"
+  },
+  {
+   "label": "System Users",
+   "number_card_name": "Users"
+  },
+  {
+   "label": "Failed Login Attempts",
+   "number_card_name": "Failed Login Attempts"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
@@ -171,26 +122,7 @@
  "restrict_to_domain": "",
  "roles": [],
  "sequence_id": 13.0,
- "shortcuts": [
-  {
-   "doc_view": "",
-   "label": "User",
-   "link_to": "User",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "",
-   "label": "Role",
-   "link_to": "Role",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "label": "Permission Manager",
-   "link_to": "permission-manager",
-   "type": "Page"
-  }
- ],
- "title": "Users"
+ "shortcuts": [],
+ "title": "Users",
+ "type": "Workspace"
 }

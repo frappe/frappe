@@ -362,19 +362,7 @@ class DocType(Document):
 						continue  # Invalid expression
 					link_df = new_meta.get_field(link_fieldname)
 
-					if frappe.db.db_type == "postgres":
-						update_query = """
-							UPDATE `tab{doctype}`
-							SET `{fieldname}` = source.`{source_fieldname}`
-							FROM `tab{link_doctype}` as source
-							WHERE `{link_fieldname}` = source.name
-						"""
-						if df.not_nullable:
-							update_query += "AND `{fieldname}`=''"
-						else:
-							update_query += "AND ifnull(`{fieldname}`, '')=''"
-
-					else:
+					if frappe.db.db_type == "mariadb":
 						update_query = """
 							UPDATE `tab{doctype}` as target
 							INNER JOIN `tab{link_doctype}` as source
@@ -385,6 +373,18 @@ class DocType(Document):
 							update_query += "WHERE `target`.`{fieldname}`=''"
 						else:
 							update_query += "WHERE ifnull(`target`.`{fieldname}`, '')=''"
+
+					else:
+						update_query = """
+							UPDATE `tab{doctype}`
+							SET `{fieldname}` = source.`{source_fieldname}`
+							FROM `tab{link_doctype}` as source
+							WHERE `{link_fieldname}` = source.name
+						"""
+						if df.not_nullable:
+							update_query += "AND `{fieldname}`=''"
+						else:
+							update_query += "AND ifnull(`{fieldname}`, '')=''"
 
 					self.flags.update_fields_to_fetch_queries.append(
 						update_query.format(
@@ -680,7 +680,7 @@ class DocType(Document):
 				where doctype=%s and field='name' and value = %s""",
 				(new, new, old),
 			)
-		else:
+		elif not self.is_virtual:
 			frappe.db.rename_table(old, new)
 			frappe.db.commit()
 
@@ -876,6 +876,12 @@ class DocType(Document):
 			make_boilerplate("test_controller._py", self.as_dict())
 			make_boilerplate("controller.js", self.as_dict())
 			# make_boilerplate("controller_list.js", self.as_dict())
+
+		if self.is_tree:
+			make_boilerplate("controller_tree.js", self.as_dict())
+
+		if self.is_calendar_and_gantt:
+			make_boilerplate("controller_calendar.js", self.as_dict())
 
 		if self.has_web_view:
 			templates_path = frappe.get_module_path(
@@ -1838,34 +1844,84 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 
 	def check_permission_dependency(d):
 		if d.cancel and not d.submit:
-			frappe.throw(_("{0}: Cannot set Cancel without Submit").format(get_txt(d)))
+			frappe.throw(
+				_("{0}: The 'Cancel' permission cannot be granted without the 'Submit' permission.").format(
+					get_txt(d)
+				)
+			)
 
 		if (d.submit or d.cancel or d.amend) and not d.write:
-			frappe.throw(_("{0}: Cannot set Submit, Cancel, Amend without Write").format(get_txt(d)))
-		if d.amend and not d.write:
-			frappe.throw(_("{0}: Cannot set Amend without Cancel").format(get_txt(d)))
+			frappe.throw(
+				_(
+					"{0}: The 'Submit', 'Cancel', and 'Amend' permissions cannot be granted without the 'Write' permission."
+				).format(get_txt(d))
+			)
+		if d.amend and not d.create:
+			frappe.throw(
+				_("{0}: The 'Amend' permission cannot be granted without the 'Create' permission.").format(
+					get_txt(d)
+				)
+			)
 		if d.get("import") and not d.create:
-			frappe.throw(_("{0}: Cannot set Import without Create").format(get_txt(d)))
+			frappe.throw(
+				_("{0}: The 'Import' permission cannot be granted without the 'Create' permission.").format(
+					get_txt(d)
+				)
+			)
 
 	def remove_rights_for_single(d):
 		if not issingle:
 			return
 
-		if d.report:
-			frappe.msgprint(_("Report cannot be set for Single types"))
-			d.report = 0
+		if d.get("report"):
+			d.set("report", 0)
+			frappe.msgprint(
+				_(
+					"{0}: The 'Report' permission was removed because it cannot be granted for a 'single' DocType."
+				).format(get_txt(d))
+			)
+
+		if d.get("import"):
 			d.set("import", 0)
+			frappe.msgprint(
+				_(
+					"{0}: The 'Import' permission was removed because it cannot be granted for a 'single' DocType."
+				).format(get_txt(d))
+			)
+
+		if d.get("export"):
 			d.set("export", 0)
+			frappe.msgprint(
+				_(
+					"{0}: The 'Export' permission was removed because it cannot be granted for a 'single' DocType."
+				).format(get_txt(d))
+			)
 
 	def check_if_submittable(d):
-		if d.submit and not issubmittable:
-			frappe.throw(_("{0}: Cannot set Assign Submit if not Submittable").format(get_txt(d)))
-		elif d.amend and not issubmittable:
-			frappe.throw(_("{0}: Cannot set Assign Amend if not Submittable").format(get_txt(d)))
+		if issubmittable:
+			return
+
+		if d.submit:
+			frappe.throw(
+				_("{0}: The 'Submit' permission cannot be granted for a non-submittable DocType.").format(
+					get_txt(d)
+				)
+			)
+
+		if d.amend:
+			frappe.throw(
+				_("{0}: The 'Amend' permission cannot be granted for a non-submittable DocType.").format(
+					get_txt(d)
+				)
+			)
 
 	def check_if_importable(d):
 		if d.get("import") and not isimportable:
-			frappe.throw(_("{0}: Cannot set import as {1} is not importable").format(get_txt(d), doctype))
+			frappe.throw(
+				_("{0}: The 'Import' permission cannot be granted for a non-importable DocType.").format(
+					get_txt(d)
+				)
+			)
 
 	def validate_permission_for_all_role(d):
 		if frappe.session.user == "Administrator":
@@ -1875,7 +1931,7 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 			if d.role in AUTOMATIC_ROLES:
 				frappe.throw(
 					_(
-						"Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
+						"Row # {0}: Non-administrator users cannot add the role {1} to a custom DocType."
 					).format(d.idx, frappe.bold(_(d.role))),
 					title=_("Permissions Error"),
 				)
@@ -1885,7 +1941,7 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 			if d.role in roles:
 				frappe.throw(
 					_(
-						"Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
+						"Row # {0}: Non-administrator users cannot add the role {1} to a custom DocType."
 					).format(d.idx, frappe.bold(_(d.role))),
 					title=_("Permissions Error"),
 				)

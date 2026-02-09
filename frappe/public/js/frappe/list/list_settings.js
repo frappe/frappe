@@ -121,9 +121,9 @@ export default class ListSettings {
 						<div class="col-10" style="padding-left:0px;">
 							${__(me.fields[idx].label, null, me.doctype)}
 						</div>
-						<div class="col-1 ${can_remove}">
+						<div class="col-1 ${can_remove} pl-0 pl-sm-3">
 							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
-								${frappe.utils.icon("delete", "xs")}
+								${frappe.utils.icon("trash", "xs")}
 							</a>
 						</div>
 					</div>

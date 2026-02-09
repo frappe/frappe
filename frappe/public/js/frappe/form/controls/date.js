@@ -108,7 +108,6 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		});
 	}
 	update_datepicker_position() {
-		if (!this.frm) return;
 		// show datepicker above or below the input
 
 		const $input = this.$input;
