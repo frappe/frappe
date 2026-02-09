@@ -549,6 +549,7 @@ def get_sidebar_items(allowed_workspaces):
 		else:
 			sidebar_title = s.title
 			w = s
+<<<<<<< HEAD
 		sidebar_items[sidebar_title.lower()] = {
 			"label": sidebar_title,
 			"items": [],
@@ -573,6 +574,19 @@ def get_sidebar_items(allowed_workspaces):
 				"filters": si.filters,
 				"route_options": si.route_options,
 				"tab": si.navigate_to_tab,
+=======
+		if (
+			frappe.session.user == "Administrator"
+			or w.module in w.user.allow_modules
+			or sidebar_title == "My Workspaces"
+		):
+			sidebar_items[sidebar_title.lower()] = {
+				"label": sidebar_title,
+				"items": [],
+				"header_icon": s.get("header_icon"),
+				"module": w.module,
+				"app": w.app,
+>>>>>>> d603aff29e (fix: use allow modules)
 			}
 			if si.link_type == "Report" and si.link_to and frappe.db.exists("Report", si.link_to):
 				report_type, ref_doctype = frappe.db.get_value(
