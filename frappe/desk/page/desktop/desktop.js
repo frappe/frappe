@@ -432,7 +432,7 @@ class DesktopPage {
 			},
 			{
 				icon: "rotate-ccw",
-				label: "Reset to Default",
+				label: "Reset Desktop Layout",
 				onClick: function () {
 					reset_to_default();
 					window.location.reload();
@@ -466,6 +466,12 @@ class DesktopPage {
 	}
 
 	setup_awesomebar() {
+		if (!frappe.is_mobile()) {
+			$(".desktop-keyboard-shortcut").html("Ctrl+K");
+			if (frappe.utils.is_mac()) {
+				$(".desktop-keyboard-shortcut").html("⌘K");
+			}
+		}
 		if (this.awesomebar_setup) return;
 		this.awesomebar_setup = true;
 

@@ -267,14 +267,14 @@
                 height: var(--folder-thumbnail-icon-height);
                 width: var(--folder-thumbnail-icon-height);
                 padding: 0px;
-                border-radius: 2px;
+                border-radius: 4px;
                 & .icon{
                     width: 5px;
                     height: 5px;
                 }
                 & img{
-                    width: 9px;
-                    height: 9px;
+                    width: var(--folder-thumbnail-icon-height);
+                    height: var(--folder-thumbnail-icon-height);
                 }
             }
 

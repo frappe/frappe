@@ -1050,15 +1050,21 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertNotIn("IF", frappe.get_all("User", {"first_name": ("in", ["a", "b"])}, run=0).get_sql())
 		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("in", ["a", None])}, run=0).get_sql())
 		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("in", ["a", ""])}, run=0).get_sql())
-		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("in", [])}, run=0).get_sql())
+		# Empty list with IN should return 1=0, not use IFNULL
+		self.assertIn("1=0", frappe.get_all("User", {"first_name": ("in", [])}, run=0).get_sql())
+		self.assertNotIn("IFNULL", frappe.get_all("User", {"first_name": ("in", [])}, run=0).get_sql())
 		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", ["a"])}, run=0).get_sql())
-		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", [])}, run=0).get_sql())
+		# Empty list with NOT IN should return 1=1, not use IFNULL
+		self.assertIn("1=1", frappe.get_all("User", {"first_name": ("not in", [])}, run=0).get_sql())
+		self.assertNotIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", [])}, run=0).get_sql())
 		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", [""])}, run=0).get_sql())
 
 		# primary key is never nullable
 		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ["a", None])}, run=0).get_sql())
 		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ["a", ""])}, run=0).get_sql())
 		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", (""))}, run=0).get_sql())
+		# Empty tuple with IN should return 1=0, not use IFNULL
+		self.assertIn("1=0", frappe.get_all("User", {"name": ("in", ())}, run=0).get_sql())
 		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ())}, run=0).get_sql())
 
 	def test_coalesce_with_datetime_ops(self):

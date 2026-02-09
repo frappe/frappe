@@ -868,6 +868,15 @@ from {tables}
 			if f.operator.lower() == "in":
 				can_be_null &= not f.value or any(v is None or v == "" for v in f.value)
 
+			# Handle empty lists for IN/NOT IN operators before processing
+			# IN with empty list should return 0 results (always False: 1=0)
+			# NOT IN with empty list should return all results (always True: 1=1)
+			if isinstance(f.value, (list, tuple)) and len(f.value) == 0:
+				if f.operator.lower() == "in":
+					return "1=0"
+				else:  # not in
+					return "1=1"
+
 			if value is None:
 				values = f.value or ""
 				if isinstance(values, str):

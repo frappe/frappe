@@ -157,8 +157,10 @@ class Report(Document):
 
 		check_safe_sql_query(self.query)
 
+		frappe.db.begin(read_only=True)
 		result = [list(t) for t in frappe.db.sql(self.query, filters)]
 		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
+		frappe.db.rollback()
 
 		return [columns, result]
 

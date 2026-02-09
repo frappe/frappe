@@ -287,6 +287,16 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				// hide link arrow to doctype if none is set
 				me.$link.toggle(false);
 			}
+
+			const dropdown = this.awesomplete.ul;
+			const dropdownRect = dropdown.getBoundingClientRect();
+			const viewportWidth = window.innerWidth;
+
+			if (dropdownRect.right > viewportWidth) {
+				dropdown.classList.add("awesomplete-align-right");
+			} else {
+				dropdown.classList.remove("awesomplete-align-right");
+			}
 		});
 
 		this.$input.on("awesomplete-close", (e) => {
@@ -851,6 +861,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 
 		return this.validate_link_and_fetch(value);
+	}
+	after_set_value() {
+		for (const target_field of Object.keys(this.fetch_map)) {
+			this.frm.refresh_field(target_field);
+		}
 	}
 	validate_link_and_fetch(value) {
 		const args = this.get_search_args(value);

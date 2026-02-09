@@ -148,6 +148,64 @@ class TestNaming(IntegrationTestCase):
 
 		self.assertEqual(todo.name, f"TODO-{week}-{series}")
 
+	def test_expression_autoname_multiple_fields_pattern_without_dot_before_dash(self):
+		"""
+		Test Expression naming rule: {field_1}-{field_2}-.#####
+		Should produce: field_1-field_2-00001
+		"""
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": "test_field_a", "fieldtype": "Data", "label": "Test Field A"},
+				{"fieldname": "test_field_b", "fieldtype": "Data", "label": "Test Field B"},
+			],
+			autoname="{test_field_a}-{test_field_b}-.#####",
+		).insert()
+
+		test_field_a = "Sumit"
+		test_field_b = "Jain"
+
+		doc = frappe.new_doc(doctype.name)
+		doc.test_field_a = test_field_a
+		doc.test_field_b = test_field_b
+		doc.insert()
+
+		series = getseries(f"{test_field_a}-{test_field_b}-", 5)
+		series = int(series) - 1
+
+		self.assertEqual(doc.name, f"{test_field_a}-{test_field_b}-{series:05d}")
+
+		doc.delete()
+		doctype.delete()
+
+	def test_expression_autoname_multiple_fields_pattern_with_dots_between_fields(self):
+		"""
+		Test Expression naming rule: {field_1}.-.{field_2}.-.#####
+		Should produce: field_1-field_2-00001 (same as pattern without dots)
+		"""
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": "test_field_x", "fieldtype": "Data", "label": "Test Field X"},
+				{"fieldname": "test_field_y", "fieldtype": "Data", "label": "Test Field Y"},
+			],
+			autoname="{test_field_x}.-.{test_field_y}.-.#####",
+		).insert()
+
+		test_field_x = "Sumit"
+		test_field_y = "Jain"
+
+		doc = frappe.new_doc(doctype.name)
+		doc.test_field_x = test_field_x
+		doc.test_field_y = test_field_y
+		doc.insert()
+
+		series = getseries(f"{test_field_x}-{test_field_y}-", 5)
+		series = int(series) - 1
+
+		self.assertEqual(doc.name, f"{test_field_x}-{test_field_y}-{series:05d}")
+
+		doc.delete()
+		doctype.delete()
+
 	def test_revert_series(self):
 		from datetime import datetime
 

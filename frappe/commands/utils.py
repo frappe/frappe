@@ -247,70 +247,18 @@ def reset_perms(context: CliCtxObj):
 		raise SiteNotSpecifiedError
 
 
-@click.command("execute")
+@click.command("execute", context_settings=EXTRA_ARGS_CTX)
 @click.argument("method")
 @click.option("--args")
 @click.option("--kwargs")
 @click.option("--profile", is_flag=True, default=False)
+@click.argument("extra_args", nargs=-1)
 @pass_context
-def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False):
+def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False, extra_args=None):
 	"Execute a function"
-	for site in context.sites:
-		ret = ""
-		try:
-			frappe.init(site)
-			frappe.connect()
+	from frappe.commands.execute import _execute
 
-			if args:
-				try:
-					fn_args = eval(args)
-				except NameError:
-					fn_args = [args]
-			else:
-				fn_args = ()
-
-			if kwargs:
-				fn_kwargs = eval(kwargs)
-			else:
-				fn_kwargs = {}
-
-			if profile:
-				import cProfile
-
-				pr = cProfile.Profile()
-				pr.enable()
-
-			try:
-				ret = frappe.get_attr(method)(*fn_args, **fn_kwargs)
-			except Exception:
-				# eval is safe here because input is from console
-				code = compile(method, "<bench execute>", "eval")
-				ret = eval(code, globals(), locals())  # nosemgrep
-				if callable(ret):
-					suffix = "(*fn_args, **fn_kwargs)"
-					code = compile(method + suffix, "<bench execute>", "eval")
-					ret = eval(code, globals(), locals())  # nosemgrep
-
-			if profile:
-				import pstats
-				from io import StringIO
-
-				pr.disable()
-				s = StringIO()
-				pstats.Stats(pr, stream=s).sort_stats("cumulative").print_stats(0.5)
-				print(s.getvalue())
-
-			if frappe.db:
-				frappe.db.commit()
-		finally:
-			frappe.destroy()
-		if ret:
-			from frappe.utils.response import json_handler
-
-			print(json.dumps(ret, default=json_handler).strip('"'))
-
-	if not context.sites:
-		raise SiteNotSpecifiedError
+	_execute(context, method, args, kwargs, profile, extra_args)
 
 
 @click.command("add-to-email-queue")

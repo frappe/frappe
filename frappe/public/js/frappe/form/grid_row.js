@@ -1038,7 +1038,7 @@ export default class GridRow {
 		let is_focused = false;
 
 		var $col = $(
-			`<div class="col grid-static-col grid-data-column col-xs-${colsize} ${add_class}" style="${add_style}"></div>`
+			`<div class="col grid-static-col col-xs-${colsize} ${add_class}" style="${add_style}"></div>`
 		)
 			.attr("data-fieldname", df.fieldname)
 			.attr("data-fieldtype", df.fieldtype)
@@ -1238,6 +1238,12 @@ export default class GridRow {
 				field.$input.attr("data-last-input", 1);
 			} else if (this.columns_list && this.columns_list.slice(0)[0] === column) {
 				field.$input.attr("data-first-input", 1);
+			}
+			if (df.fieldtype === "Currency") {
+				this.update_currency_symbol_in_grid_input(field, df);
+				field.$input.off("input.grid-currency").on("input.grid-currency", () => {
+					this.update_currency_symbol_in_grid_input(field, df);
+				});
 			}
 		}
 
@@ -1565,12 +1571,58 @@ export default class GridRow {
 			// - after row removals via customize_form.js on links, actions and states child-tables
 			if (this.doc) field.docname = this.doc.name;
 			field.refresh();
+			if (df && df.fieldtype === "Currency") {
+				this.update_currency_symbol_in_grid_input(field, df);
+			}
 		}
 
 		// in form
 		if (this.grid_form) {
 			this.grid_form.refresh_field(fieldname);
 		}
+	}
+
+	update_currency_symbol_in_grid_input(field, df) {
+		if (!field?.$input || !this.grid?.is_editable?.()) return;
+
+		const currency = frappe.meta.get_field_currency(df, this.doc);
+		const symbol = window.get_currency_symbol(currency);
+		const show_on_right =
+			cint(frappe.model.get_value(":Currency", currency, "symbol_on_right")) === 1;
+
+		let $wrapper = field.$input.parent();
+		if (!$wrapper.hasClass("grid-currency-input")) {
+			field.$input.wrap('<div class="grid-currency-input"></div>');
+		}
+
+		$wrapper.toggleClass("grid-currency-symbol-right", show_on_right);
+
+		let $prefix = $wrapper.find(".grid-currency-prefix");
+		let $suffix = $wrapper.find(".grid-currency-suffix");
+
+		if (!symbol) {
+			$prefix.remove();
+			$suffix.remove();
+			$wrapper.removeClass("grid-currency-has-value");
+			return;
+		}
+
+		if (show_on_right) {
+			if (!$suffix.length) {
+				$suffix = $('<span class="grid-currency-suffix"></span>').appendTo($wrapper);
+			}
+			$suffix.text(symbol);
+			$prefix.remove();
+		} else {
+			if (!$prefix.length) {
+				$prefix = $('<span class="grid-currency-prefix"></span>').prependTo($wrapper);
+			}
+			$prefix.text(symbol);
+			$suffix.remove();
+		}
+
+		const has_value = /\d/.test(field.$input.val() || "");
+		$wrapper.toggleClass("grid-currency-has-value", has_value);
 	}
 	get_field(fieldname) {
 		let field = this.on_grid_fields_dict[fieldname];
