@@ -394,6 +394,26 @@ class TestMoney(IntegrationTestCase):
 		words = money_in_words("42.01", "VND")
 		self.assertEqual(words, "VND Forty Two only.")
 
+	def test_money_in_words_missing_fraction_name(self):
+		# Test currency with fraction_units but no fraction name does not crash
+		# Simulates the CNY scenario where fraction_units=100 but fraction is None
+		import frappe
+
+		# Temporarily clear fraction name to simulate the bug condition
+		original_fraction = frappe.db.get_value("Currency", "CNY", "fraction")
+		frappe.db.set_value("Currency", "CNY", "fraction", None)
+		frappe.clear_cache()
+
+		try:
+			# This should NOT raise TypeError
+			words = money_in_words(400.12, "CNY")
+			self.assertIsInstance(words, str)
+			self.assertIn("CNY", words)
+			self.assertNotIn("None", words)
+		finally:
+			frappe.db.set_value("Currency", "CNY", "fraction", original_fraction or "Fen")
+			frappe.clear_cache()
+
 
 class TestDataManipulation(IntegrationTestCase):
 	def test_scrub_urls(self):

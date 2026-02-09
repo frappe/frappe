@@ -1526,14 +1526,16 @@ def money_in_words(
 		main_currency = d.get("currency", "INR")
 
 	if not fraction_currency:
-		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction", cache=True)
+		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction", cache=True) or _(
+			"Cent"
+		)
 
 	number_format = get_number_format()
 
 	fraction_units = frappe.db.get_value("Currency", main_currency, "fraction_units", cache=True)
 	if fraction_units:
 		fraction_length = math.ceil(math.log10(fraction_units))
-	elif not fraction_units or not fraction_currency:
+	elif not fraction_units:
 		fraction_units = fraction_length = 0
 
 	n = f"%.{fraction_length}f" % number
