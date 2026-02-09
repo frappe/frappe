@@ -6,6 +6,12 @@ import decimal
 import json
 import mimetypes
 import os
+<<<<<<< HEAD
+=======
+import sys
+import uuid
+from pathlib import Path
+>>>>>>> f54f73ff59 (fix: Resolve JSON serialization error for Path objects (#36822))
 from typing import TYPE_CHECKING
 from urllib.parse import quote
 
@@ -187,6 +193,15 @@ def json_handler(obj):
 	elif callable(obj):
 		return repr(obj)
 
+<<<<<<< HEAD
+=======
+	elif isinstance(obj, uuid.UUID):
+		return str(obj)
+
+	elif isinstance(obj, Path):
+		return str(obj)
+
+>>>>>>> f54f73ff59 (fix: Resolve JSON serialization error for Path objects (#36822))
 	else:
 		raise TypeError(f"""Object of type {type(obj)} with value of {obj!r} is not JSON serializable""")
 
