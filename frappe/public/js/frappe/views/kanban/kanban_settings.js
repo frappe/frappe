@@ -87,19 +87,20 @@ export default class KanbanSettings {
 
 			fields += `
 				<div class="control-input flex align-center form-control fields_order sortable"
-					style="display: block; margin-bottom: 5px;"
+					style="display: block; margin-bottom: 5px; padding-top:2.5px;"
 					data-fieldname="${field.fieldname}"
 					data-label="${field.label}"
 					data-type="${field.type}">
 
 					<div class="row">
-						<div class="col-md-1">
+						<div class="col-md-1" style="display:flex; align-items:center;">
 							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle")}
 						</div>
-						<div class="col-md-10" style="padding-left:0px;">
+						<div class="col-md-10" style="padding-left:0px; display:flex; align-items:center;">
 							${__(field.label, null, field.parent)}
 						</div>
-						<div class="col-md-1">
+						<div class="col-md-1"  style="display:flex; align-items:center; justify-content:center">
+
 							<a class="text-muted remove-field" data-fieldname="${field.fieldname}">
 								${frappe.utils.icon("delete", "xs")}
 							</a>
