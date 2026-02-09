@@ -332,6 +332,31 @@ context("Control Link", () => {
 		});
 	});
 
+	it("should not select stale dropdown item on fast input followed by Tab", () => {
+		// Simulates barcode scanner behavior: rapid input + immediate Tab
+		// Before the fix, the Tab key would select a stale item from the initial
+		// dropdown (loaded on focus) because the debounced search hadn't fired yet.
+		get_dialog_with_link().as("dialog");
+
+		cy.intercept("/api/method/frappe.client.validate_link_and_fetch*").as("validate_link");
+
+		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
+		// Wait for initial dropdown to appear (stale results for empty search)
+		cy.get("@input").parent().findByRole("listbox").should("be.visible");
+
+		// Type a non-existent value very fast (no delay) to simulate barcode scanner,
+		// then immediately Tab out — before the 500ms debounced search can fire.
+		cy.get("@input").type("NONEXISTENT-BARCODE-12345{tab}", { delay: 0 });
+
+		cy.wait("@validate_link");
+		// The input should be empty (invalid value cleared by validate_link),
+		// NOT set to the first item from the stale dropdown.
+		cy.get("@dialog").then((dialog) => {
+			let value = dialog.get_value("link");
+			expect(value).to.not.contain("todo");
+		});
+	});
+
 	it("show custom link option", () => {
 		cy.window()
 			.its("frappe")

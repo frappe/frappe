@@ -206,7 +206,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.$input.cache = {};
 
 		this.awesomplete = new Awesomplete(me.input, {
-			tabSelect: true,
+			tabSelect: false,
 			minChars: 0,
 			maxItems: 99,
 			autoFirst: true,
@@ -264,6 +264,42 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		this._debounced_input_handler = frappe.utils.debounce(this.on_input.bind(this), 500);
 		this.$input.on("input", this._debounced_input_handler);
+
+		// Track which search term the current dropdown results correspond to.
+		// When null, results are stale (user typed but search hasn't completed).
+		this._results_loaded_for_term = null;
+
+		// Mark results as stale immediately when user types (before debounce fires)
+		this.$input.on("input", () => {
+			this._results_loaded_for_term = null;
+		});
+
+		// Re-implement tab-select behavior with freshness check.
+		// This prevents barcode scanners from selecting stale dropdown items
+		// when the Tab key arrives before the debounced search completes.
+		this.$input.on("keydown", (e) => {
+			if (e.key !== "Tab") return;
+			if (!me.awesomplete.opened) return;
+			if (me.awesomplete.index === -1) return;
+
+			const current_input = me.get_label_value();
+
+			// If results are stale (search hasn't returned for current input),
+			// close dropdown and let the blur handler validate the typed value.
+			if (this._results_loaded_for_term !== current_input) {
+				me.awesomplete.close();
+				return;
+			}
+
+			// Results are fresh — safe to select highlighted item if it matches.
+			const item = me.awesomplete.get_item(
+				me.awesomplete.suggestions[me.awesomplete.index]?.value
+			);
+			if (item && me.input_matches_item(current_input.toLowerCase(), item)) {
+				me.selected = true;
+				me.awesomplete.select(undefined, undefined, e.originalEvent);
+			}
+		});
 
 		this.$input.on("blur", function () {
 			if (me.selected) {
@@ -433,6 +469,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		if (cache[doctype][term] != null) {
 			// immediately show from cache
 			this.awesomplete.list = cache[doctype][term];
+			this._results_loaded_for_term = term;
 		}
 
 		const filters = args.filters;
@@ -511,6 +548,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				}
 				cache[doctype][term] = r.message;
 				this.awesomplete.list = cache[doctype][term];
+				this._results_loaded_for_term = term;
 				this.toggle_href(doctype);
 				r.message.forEach((item) => {
 					frappe.utils.add_link_title(doctype, item.value, item.label);
