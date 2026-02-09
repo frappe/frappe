@@ -1,28 +1,15 @@
 const cookie = require("cookie");
-const { get_conf } = require("../../node_utils");
+const { get_conf, get_redis_subscriber } = require("../../node_utils");
 const { get_url } = require("../utils");
 const conf = get_conf();
-const socketioSecrets = {};
+const redisClient = get_redis_subscriber("redis_queue");
 
-async function fetchSocketIOSecret(socket) {
+async function getSecretFromRedis(socket) {
 	const site = get_site_name(socket);
 
-	if (socketioSecrets[site]) {
-		return socketioSecrets[site];
-	}
-
-	const res = await fetch(
-		get_url(socket, "/api/method/frappe.realtime.get_socketio_secret_for_node"),
-		{
-			headers: socket.authorization_header
-				? { Authorization: socket.authorization_header }
-				: { Cookie: `sid=${socket.sid}` },
-		}
-	);
-
-	const data = await res.json();
-	socketioSecrets[site] = data.message;
-	return socketioSecrets[site];
+	if (!redisClient.isOpen) await redisClient.connect();
+	const val = await redisClient.get(`socketio_auth_secret:${site}`);
+	return val;
 }
 
 function authenticate_with_frappe(socket, next) {
@@ -69,7 +56,7 @@ function authenticate_with_frappe(socket, next) {
 		} else if (socket.sid) {
 			headers["Cookie"] = `sid=${socket.sid}`;
 		}
-		const secret = await fetchSocketIOSecret(socket);
+		const secret = await getSecretFromRedis(socket);
 		if (secret) {
 			headers["X-Frappe-Socket-Secret"] = secret;
 		}
@@ -83,10 +70,7 @@ function authenticate_with_frappe(socket, next) {
 		.frappe_request("/api/method/frappe.realtime.get_user_info")
 		.then((res) => res.json())
 		.then(async ({ message }) => {
-			const site = get_site_name(socket);
-
-			if (socket.user !== "Guest" && !message.installed_apps && socketioSecrets[site]) {
-				delete socketioSecrets[site];
+			if (socket.user !== "Guest" && !message.installed_apps) {
 				const retry_res = await socket.frappe_request(
 					"/api/method/frappe.realtime.get_user_info"
 				);

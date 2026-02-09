@@ -122,21 +122,23 @@ def has_permission(doctype: str, name: str) -> bool:
 
 
 def get_socketio_secret(site=None):
-	"""Generate socket.io secret and store in redis cache"""
+	"""Generate socket.io secret and store in redis"""
 	if not site:
 		site = frappe.local.site
 
 	key = f"socketio_auth_secret:{site}"
 
-	secret = frappe.cache().get_value(key)
+	from frappe.utils.background_jobs import get_redis_connection_without_auth
+
+	r = get_redis_connection_without_auth()
+	secret = r.get(key)
 	if secret:
-		return secret
+		return secret.decode()
 
 	from frappe.utils import generate_hash
 
 	secret = generate_hash(length=32)
-	frappe.cache().set_value(key, secret)
-
+	r.set(key, secret)
 	return secret
 
 
@@ -150,7 +152,6 @@ def get_user_info():
 			"user": frappe.session.user,
 			"user_type": user_type,
 		}
-
 	# For requests with Bearer tokens, user_type is not set in the session data
 	if not user_type:
 		user_type = frappe.get_cached_value("User", frappe.session.user, "user_type")
@@ -159,11 +160,6 @@ def get_user_info():
 		"user_type": user_type,
 		"installed_apps": frappe.get_installed_apps(),
 	}
-
-
-@frappe.whitelist()
-def get_socketio_secret_for_node():
-	return get_socketio_secret()
 
 
 def get_doctype_room(doctype):
