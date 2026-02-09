@@ -134,10 +134,6 @@ TAB_PATTERN = re.compile("^tab")
 WORDS_PATTERN = re.compile(r"\w+")
 COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 
-# less restrictive version of frappe.core.doctype.doctype.doctype.START_WITH_LETTERS_PATTERN
-# to allow table names like __Auth
-TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
-
 # Pattern for validating simple field names (alphanumeric + underscore)
 SIMPLE_FIELD_PATTERN = re.compile(r"^\w+$", flags=re.ASCII)
 
@@ -272,7 +268,6 @@ class Engine:
 			self.doctype = get_doctype_name(table.get_sql())
 		else:
 			self.doctype = table
-			self.validate_doctype()
 			self.table = qb.DocType(table)
 
 		if self.apply_permissions:
@@ -339,10 +334,6 @@ class Engine:
 
 		self.query.immutable = True
 		return self.query
-
-	def validate_doctype(self):
-		if not TABLE_NAME_PATTERN.match(self.doctype):
-			frappe.throw(_("Invalid DocType: {0}").format(self.doctype))
 
 	def apply_fields(self, fields):
 		self.fields = self.parse_fields(fields)
@@ -1023,11 +1014,6 @@ class Engine:
 		field_name = groups[3]  # This will be the field name (e.g., 'field')
 
 		if table_name:
-			# Table name specified (e.g., `tabX`.`y` or tabX.y or `tabX Y`.`y`)
-			# Ensure the extracted table name is valid before creating DocType object
-			if not TABLE_NAME_PATTERN.match(table_name.lstrip("tab")):
-				frappe.throw(_("Invalid characters in table name: {0}").format(table_name))
-
 			doctype_name = table_name[3:] if table_name.startswith("tab") else table_name
 			table_obj = frappe.qb.DocType(doctype_name)
 			pypika_field = table_obj[field_name]
