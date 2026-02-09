@@ -8,6 +8,7 @@ import mimetypes
 import os
 import sys
 import uuid
+from pathlib import Path
 from typing import TYPE_CHECKING
 from urllib.parse import quote
 
@@ -235,6 +236,9 @@ def json_handler(obj):
 		return repr(obj)
 
 	elif isinstance(obj, uuid.UUID):
+		return str(obj)
+
+	elif isinstance(obj, Path):
 		return str(obj)
 
 	else:
