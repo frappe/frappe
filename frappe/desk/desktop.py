@@ -467,6 +467,8 @@ def get_workspace_sidebar_items():
 					pages.append(page)
 				elif page.for_user == frappe.session.user:
 					private_pages.append(page)
+				elif not page.public and not page.for_user:
+					pages.append(page)
 				page["label"] = _(page.get("name"))
 
 			if not page["app"] and page["module"]:

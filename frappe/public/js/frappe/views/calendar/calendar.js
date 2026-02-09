@@ -261,6 +261,7 @@ frappe.views.Calendar = class Calendar {
 				hour12: true,
 			},
 			firstDay: 1,
+			eventDisplay: "block",
 			headerToolbar: {
 				left: "prev,title,next",
 				center: "",

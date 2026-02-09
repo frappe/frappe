@@ -1,0 +1,31 @@
+<div class="sidebar-card d-inline-flex flex-column px-2 py-2">
+    {% if(!card.close_button) { %}
+    <div>
+        <div class="card-title-container">
+            {%= frappe.utils.icon(card.icon, "sm", "", "", "card-icon") %}
+            <div class="sidebar-card-title">{{ card.title }}</div>
+        </div>
+        <div class="sidebar-card-description">{{ card.message }}</div>
+    </div>
+    {% } else { %}
+        <div class="card-title-container card-close-button">
+            {%= frappe.utils.icon(card.icon, "sm", "", "", "card-icon") %}
+            <span class="flex flex-column">
+                <div class="sidebar-card-title">{{ card.title }}</div>
+                <div class="sidebar-card-description">{{ card.message }}</div>
+            </span>
+        {%= frappe.utils.icon("x","sm", "", "", "card-icon cursor-pointer") %}
+         </div>
+    {% } %}
+    {% if(card.primary_action_label) { %}
+    <button class="sidebar-card-button btn">
+        {% if (card.primary_action_icon) %}
+            {{ frappe.utils.icon(card.primary_action_icon, "sm", "", "", "", true) }}
+        {% } %}
+        {{ card.primary_action_label }}
+        {% if card.primary_action_suffix_icon %}
+            {{ frappe.utils.icon(card.primary_action_suffix_icon, "sm", "", "", "", true) }}
+        {% endif %}
+    </button>
+    {% } %}
+</div>

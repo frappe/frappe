@@ -14,10 +14,10 @@ class DocField(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		alignment: DF.Literal["", "Left", "Center", "Right"]
 		allow_bulk_edit: DF.Check
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
-		alignment: DF.Literal["", "Left", "Center", "Right"]
 		bold: DF.Check
 		button_color: DF.Literal["", "Default", "Primary", "Info", "Success", "Warning", "Danger"]
 		collapsible: DF.Check
@@ -117,6 +117,7 @@ class DocField(Document):
 		search_index: DF.Check
 		set_only_once: DF.Check
 		show_dashboard: DF.Check
+		show_description_on_click: DF.Check
 		show_on_timeline: DF.Check
 		sort_options: DF.Check
 		sticky: DF.Check

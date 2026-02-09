@@ -67,7 +67,7 @@ frappe.ui.form.Footer = class FormFooter {
 	}
 
 	refresh_comments_count() {
-		let count = (this.frm.get_docinfo().comments || []).length;
+		let count = (this.frm.get_docinfo()?.comments || []).length;
 		this.wrapper.find(".comment-count")?.html(count ? `(${count})` : "");
 	}
 };

@@ -308,6 +308,33 @@ class TestEmail(IntegrationTestCase):
 		if changed_flag:
 			email_account.enable_incoming = False
 
+	def test_impersonation_alert_queue(self):
+		"""Verifies that impersonation alerts are sent as mail too"""
+		from frappe.core.doctype.user.user import impersonate
+
+		target_user = "testimpersonate@example.com"
+		frappe.db.delete("Email Queue Recipient", {"recipient": target_user})  # sanity
+		if not frappe.db.exists("User", target_user):
+			frappe.get_doc(
+				{"doctype": "User", "email": target_user, "first_name": "Target", "enabled": 1}
+			).insert(ignore_permissions=True)
+
+		with (
+			patch("frappe.sendmail") as mocked_sendmail,
+			patch("frappe.local.login_manager", create=True) as mocked_lm,
+		):
+			reason = "Testing Security Alert"
+			impersonate(user=target_user, reason=reason)
+
+			self.assertTrue(mocked_sendmail.called)
+			_, kwargs = mocked_sendmail.call_args
+			self.assertIn(target_user, kwargs.get("recipients"))
+			self.assertIn(reason, kwargs.get("content"))
+			mocked_lm.impersonate.assert_called_with(target_user)
+
+		# Cleanup
+		frappe.db.delete("User", {"email": target_user})
+
 
 class TestVerifiedRequests(IntegrationTestCase):
 	def test_round_trip(self):

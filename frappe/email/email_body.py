@@ -277,7 +277,9 @@ class EMail:
 		validate_email_address(strip(self.sender), True)
 		self.validate_reply_to()
 
-		self.set_header("X-Original-From", self.sender)
+		if self.email_account.add_x_original_from:
+			self.set_header("X-Original-From", self.sender)
+
 		self.replace_sender()
 		self.replace_sender_name()
 

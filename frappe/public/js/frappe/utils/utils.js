@@ -1564,8 +1564,7 @@ Object.assign(frappe.utils, {
 				if (item.is_query_report) {
 					route = "query-report/" + item.name;
 				} else if (!item.is_query_report && item.report_ref_doctype) {
-					route =
-						frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
+					route = frappe.router.slug(item.report_ref_doctype) + "/view/report/";
 				} else {
 					route = "report/" + item.name;
 				}
@@ -2197,7 +2196,7 @@ Object.assign(frappe.utils, {
 			if (parsed_value.match(/^[0-9+\-/*.() ]+$/)) {
 				// If it is a string containing operators
 				try {
-					return eval(parsed_value);
+					return (0, eval)(parsed_value);
 				} catch (e) {
 					// bad expression
 					return value;
