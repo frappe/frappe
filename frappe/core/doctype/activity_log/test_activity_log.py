@@ -5,6 +5,7 @@ import time
 import frappe
 from frappe.auth import CookieManager, LoginManager
 from frappe.tests import IntegrationTestCase
+from frappe.utils import set_request
 
 
 class TestActivityLog(IntegrationTestCase):
@@ -20,7 +21,7 @@ class TestActivityLog(IntegrationTestCase):
 				"usr": "Administrator",
 			}
 		)
-		frappe.local.request.path = "/api/method/login"
+		set_request(method="POST", path="/api/method/login")
 
 		frappe.local.request_ip = "127.0.0.1"
 		frappe.local.cookie_manager = CookieManager()
@@ -62,7 +63,7 @@ class TestActivityLog(IntegrationTestCase):
 		frappe.local.form_dict = frappe._dict(
 			{"sid": "Guest", "pwd": self.ADMIN_PASSWORD, "usr": "Administrator"}
 		)
-		frappe.local.request.path = "/api/method/login"
+		set_request(method="POST", path="/api/method/login")
 
 		frappe.local.request_ip = "127.0.0.1"
 		frappe.local.cookie_manager = CookieManager()
