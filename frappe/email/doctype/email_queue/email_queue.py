@@ -755,7 +755,8 @@ class QueueBuilder:
 			mail.msg_root["Disposition-Notification-To"] = self.sender
 		if self.in_reply_to:
 			if message_id := frappe.db.get_value("Communication", self.in_reply_to, "message_id"):
-				mail.set_in_reply_to(get_string_between("<", message_id, ">"))
+				message_id = message_id.strip("<> \t\n")
+				mail.set_in_reply_to(f"<{message_id}>")
 		return mail
 
 	def process(self, send_now=False) -> EmailQueue | None:

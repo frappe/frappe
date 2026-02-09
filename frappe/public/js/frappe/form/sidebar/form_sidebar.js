@@ -61,7 +61,7 @@ frappe.ui.form.Sidebar = class {
 			this.frm.attachments.refresh();
 			this.frm.shared.refresh();
 
-			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo().tags);
+			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo()?.tags);
 
 			this.refresh_web_view_count();
 			this.refresh_creation_modified();
@@ -73,6 +73,7 @@ frappe.ui.form.Sidebar = class {
 	setup_copy_event() {
 		$(this.sidebar)
 			.find(".sidebar-meta-details .form-name-copy")
+			.tooltip()
 			.on("click", (e) => {
 				frappe.utils.copy_to_clipboard($(e.currentTarget).attr("data-copy"));
 			});

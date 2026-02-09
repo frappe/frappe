@@ -40,7 +40,7 @@ import gettext
 
 import babel
 import babel.messages
-import bleach
+import nh3
 import num2words
 import pydantic
 

@@ -176,6 +176,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		help_dropdown_items = custom_help_links.concat(help_dropdown_items);
 
 		navbar_settings.help_dropdown.forEach((element) => {
+			if (element.hidden) return;
 			let dropdown_children = {
 				name: element.name,
 				label: element.item_label,

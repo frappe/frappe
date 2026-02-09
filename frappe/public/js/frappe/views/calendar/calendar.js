@@ -255,7 +255,13 @@ frappe.views.Calendar = class Calendar {
 			plugins: frappe.FullCalendar.Plugins,
 			initialView: defaults.initialView || "dayGridMonth",
 			locale: frappe.boot.lang,
+			eventTimeFormat: {
+				hour: "numeric",
+				minute: "2-digit",
+				hour12: true,
+			},
 			firstDay: 1,
+			eventDisplay: "block",
 			headerToolbar: {
 				left: "prev,title,next",
 				center: "",
