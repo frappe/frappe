@@ -301,7 +301,7 @@ Object.assign(frappe.utils, {
 		$container.animate(
 			{ scrollTop: 0 },
 			{
-				duration: 500,
+				duration: 300,
 				easing: "swing",
 				complete: function () {
 					// Ensure we're at the top
