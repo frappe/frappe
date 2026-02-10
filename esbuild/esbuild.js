@@ -545,7 +545,7 @@ async function get_assets_json_path_and_obj(is_rtl) {
 
 function get_build_concurrency(app_count) {
 	const env_limit = Number(process.env.FRAPPE_BUILD_CONCURRENCY);
-	if (Number.isFinite(env_limit)) {
+	if (Number.isInteger(env_limit)) {
 		if (env_limit === 0) {
 			return Math.min(1, app_count);
 		}
