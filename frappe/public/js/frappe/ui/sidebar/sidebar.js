@@ -616,7 +616,7 @@ frappe.ui.Sidebar = class Sidebar {
 			switch (route.length) {
 				case 1:
 					view = "Page";
-					entity_name = route[1];
+					entity_name = route[0];
 					break;
 				case 2:
 					view = route[0];
