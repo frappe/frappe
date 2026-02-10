@@ -103,6 +103,8 @@ const NODE_PATHS = [].concat(
 	app_list.map((app) => path.resolve(apps_path, app)).filter(fs.existsSync)
 );
 const USING_CACHED = Boolean(argv["using-cached"]);
+// Keep only the most recent child-process output so failed builds still have
+// actionable context without retaining unbounded logs in memory.
 const MAX_OUTPUT_BUFFER = 20000;
 
 function log_verbose(...args) {
@@ -158,7 +160,20 @@ async function execute() {
 		await write_assets_json(result.metafile);
 	}
 	if (RUN_BUILD_COMMAND) {
-		await run_build_command_for_apps(APPS);
+		try {
+			await run_build_command_for_apps(APPS);
+		} catch (error) {
+			if (VERBOSE) {
+				log_error("Error while running build commands for apps:");
+				log(`  Apps: ${APPS.join(", ")}`);
+				if (error && error.stack) {
+					log(chalk.dim(error.stack));
+				} else {
+					log(chalk.dim(String(error)));
+				}
+			}
+			throw error;
+		}
 	}
 	if (!WATCH_MODE) {
 		process.exit(0);
@@ -530,16 +545,42 @@ async function get_assets_json_path_and_obj(is_rtl) {
 
 function get_build_concurrency(app_count) {
 	const env_limit = Number(process.env.FRAPPE_BUILD_CONCURRENCY);
-	if (Number.isFinite(env_limit) && env_limit > 0) {
-		return Math.min(env_limit, app_count);
+	if (Number.isFinite(env_limit)) {
+		if (env_limit === 0) {
+			return Math.min(1, app_count);
+		}
+		if (env_limit > 0) {
+			return Math.min(env_limit, app_count);
+		}
 	}
 	const cpu_limit = Math.max(1, Math.floor(os.cpus().length / 2));
 	return Math.min(cpu_limit, app_count);
 }
 
+// Track running app-build children so failures or signals can terminate all of
+// them together and avoid orphaned processes.
 const BUILD_CHILDREN = new Set();
 
+function register_build_signal_handlers() {
+	const exit_after_cleanup = (exit_code) => {
+		terminate_build_children();
+		process.exit(exit_code);
+	};
+
+	const on_sigint = () => exit_after_cleanup(130);
+	const on_sigterm = () => exit_after_cleanup(143);
+
+	process.once("SIGINT", on_sigint);
+	process.once("SIGTERM", on_sigterm);
+
+	return () => {
+		process.removeListener("SIGINT", on_sigint);
+		process.removeListener("SIGTERM", on_sigterm);
+	};
+}
+
 async function run_build_command_for_apps(apps) {
+	BUILD_CHILDREN.clear();
 	const build_apps = [];
 	for (let app of apps) {
 		if (app === "frappe") continue;
@@ -576,6 +617,7 @@ async function run_build_command_for_apps(apps) {
 				run_app_build(app, root_app_path)
 	);
 
+	const unregister_signal_handlers = register_build_signal_handlers();
 	try {
 		await run_with_concurrency(tasks, concurrency);
 	} catch (error) {
@@ -589,6 +631,8 @@ async function run_build_command_for_apps(apps) {
 			}
 		}
 		throw error;
+	} finally {
+		unregister_signal_handlers();
 	}
 
 	if (!VERBOSE) {
