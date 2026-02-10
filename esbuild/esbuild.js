@@ -689,14 +689,21 @@ function run_command(command, { cwd, app, step }) {
 			reject(error);
 		});
 
-		child.on("close", (code) => {
+		child.on("close", (code, signal) => {
 			BUILD_CHILDREN.delete(child);
 			if (code === 0) {
 				resolve();
 				return;
 			}
 
-			const error = new Error(`${step} command failed for ${app} (exit code ${code})`);
+			let exit_details = `exit code ${code}`;
+			if (signal) {
+				exit_details = `signal ${signal}`;
+			} else if (code === null) {
+				exit_details = "unknown exit status";
+			}
+
+			const error = new Error(`${step} command failed for ${app} (${exit_details})`);
 			error.app = app;
 			error.step = step;
 			error.output = output;
