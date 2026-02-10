@@ -2,7 +2,6 @@ import GridRowForm from "./grid_row_form";
 
 const DEPENDENCY_PROPERTIES = [
 	{ expr: "depends_on", prop: "hidden_due_to_dependency", negate: true },
-	{ expr: "mandatory_depends_on", prop: "reqd", negate: false },
 	{ expr: "read_only_depends_on", prop: "read_only", negate: false },
 ];
 
@@ -740,7 +739,7 @@ export default class GridRow {
 			let df = fields.find((field) => field?.fieldname === col[0].fieldname);
 
 			this.set_dependant_property(df);
-
+			this.set_row_mandatory(df);
 			let colsize = col[1];
 
 			total_colsize += colsize;
@@ -1676,5 +1675,11 @@ export default class GridRow {
 	}
 	toggle_editable(fieldname, editable) {
 		this.set_field_property(fieldname, "read_only", editable ? 0 : 1);
+	}
+	set_row_mandatory(df) {
+		if (!df.mandatory_depends_on) return;
+
+		const is_mandatory = !!this.evaluate_depends_on_value(df.mandatory_depends_on);
+		this.toggle_reqd(df.fieldname, is_mandatory);
 	}
 }
