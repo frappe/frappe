@@ -27,7 +27,35 @@ def test_password_strength(password: str, user_inputs: "Iterable[object] | None"
 
 	result = zxcvbn(password, user_inputs, max_length=128)
 	result["feedback"] = get_feedback(result.get("score"), result.get("sequence"))
+	_clamp_large_ints(result)
 	return result
+
+
+_INT64_MAX = 2**63 - 1
+_INT64_MIN = -(2**63)
+
+
+def _clamp_large_ints(obj):
+	"""Clamp integers exceeding 64-bit range in-place.
+
+	orjson cannot serialize integers outside the signed 64-bit range.
+	zxcvbn can produce astronomically large guess counts for strong passwords.
+	"""
+	if isinstance(obj, dict):
+		items = obj.items()
+	elif isinstance(obj, list):
+		items = enumerate(obj)
+	else:
+		return
+
+	for key, value in items:
+		if isinstance(value, (dict, list)):
+			_clamp_large_ints(value)
+		elif isinstance(value, int) and not isinstance(value, bool):
+			if value > _INT64_MAX:
+				obj[key] = _INT64_MAX
+			elif value < _INT64_MIN:
+				obj[key] = _INT64_MIN
 
 
 # NOTE: code modified for frappe translations
