@@ -1,5 +1,6 @@
 import os
 from io import BytesIO
+from urllib.parse import urlparse
 
 from PyPDF2 import PdfWriter
 
@@ -142,7 +143,15 @@ def download_pdf(
 def report_to_pdf(html, orientation="Landscape"):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
-	frappe.local.response.filecontent = get_pdf(html, {"orientation": orientation})
+	frappe.local.response.filecontent = get_pdf(
+		html,
+		{
+			"orientation": orientation,
+			"proxy": "http://0.0.0.0:0",
+			"bypass-proxy-for": urlparse(frappe.utils.get_url(allow_header_override=False)).hostname,
+			"load-error-handling": "ignore",
+		},
+	)
 	frappe.local.response.type = "pdf"
 
 

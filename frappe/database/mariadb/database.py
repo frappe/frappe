@@ -124,6 +124,7 @@ class MariaDBConnectionUtil:
 			"charset": "utf8mb4",
 			"collation": "utf8mb4_unicode_ci",
 			"use_unicode": True,
+			"local_infile": False,
 		}
 
 		if self.user not in (frappe.flags.root_login, "root"):
@@ -131,9 +132,6 @@ class MariaDBConnectionUtil:
 
 		if self.port:
 			conn_settings["port"] = int(self.port)
-
-		if frappe.conf.local_infile:
-			conn_settings["local_infile"] = frappe.conf.local_infile
 
 		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
 			conn_settings["ssl"] = {

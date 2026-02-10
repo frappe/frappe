@@ -6,6 +6,7 @@ import decimal
 import json
 import mimetypes
 import os
+from pathlib import Path
 from typing import TYPE_CHECKING
 from urllib.parse import quote
 
@@ -186,6 +187,9 @@ def json_handler(obj):
 
 	elif callable(obj):
 		return repr(obj)
+
+	elif isinstance(obj, Path):
+		return str(obj)
 
 	else:
 		raise TypeError(f"""Object of type {type(obj)} with value of {obj!r} is not JSON serializable""")
