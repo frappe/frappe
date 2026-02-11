@@ -407,6 +407,14 @@ body[data-route^="Form"] {
 	}
 }
 
+.add-assignment-label,
+.tags-label,
+.share-label {
+	&:hover {
+		cursor: pointer;
+	}
+}
+
 .liked-by-popover {
 	.popover-body {
 		min-height: 30px;

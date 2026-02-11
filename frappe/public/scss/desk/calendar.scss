@@ -65,8 +65,8 @@ th.fc-col-header-cell {
 	border: none !important;
 }
 
-.fc-event-main .fc-event-time {
-	display: none;
+.fc-event-main-frame {
+	flex-direction: column;
 }
 
 .fc-time-grid-event {
