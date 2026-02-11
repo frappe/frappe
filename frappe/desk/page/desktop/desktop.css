@@ -7,7 +7,7 @@
     --folder-icon-background-color: var(--surface-gray-1);
     --desktop-modal-radius: 30px;
     --desktop-icon-line-height: 115%;
-    --navbar-height: 52px;
+    --desktop-navbar-height: 52px;
 }
 [data-theme="dark"]{
     --folder-icon-background-color: #2b2b2b;
@@ -28,7 +28,7 @@
     width: 100%;
     padding: 10px 20px 10px 20px;
     box-sizing: border-box;
-    height: var(--navbar-height);
+    height: var(--desktop-navbar-height);
     position: sticky;
     top: 0px;
     z-index: 1030;
@@ -141,14 +141,12 @@
     text-wrap: nowrap;
     display: flex;
     justify-content: space-between;
-    width: 95px;
     height: 35px;
     flex-direction: column;
 }
 .icon-title{
     font-weight: var(--weight-semibold);
     font-size: var(--text-md);
-    max-width: 95px;
     overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -183,7 +181,6 @@
         & .modal-content {
             top: 120px;
             border-radius: var(--desktop-modal-radius);
-            align-items: center;
         }
     }
 }
@@ -197,12 +194,9 @@
     width: var(--desktop-modal-width);
     height: var(--desktop-modal-height);
     padding: 24px 23px !important;
+    width: fit-content;
     & .icons{
         gap: 0px 0px;
-    }
-    & .icons:has(.desktop-edit-mode){
-        margin-top: 4px;
-        gap: 6px 6px;
     }
     .icon-container{
         min-height: var(--desktop-icon-dimension);
@@ -273,7 +267,7 @@
                 height: var(--folder-thumbnail-icon-height);
                 width: var(--folder-thumbnail-icon-height);
                 padding: 0px;
-                border-radius: 2px;
+                border-radius: 4px;
                 & .icon{
                     width: 5px;
                     height: 5px;
@@ -474,7 +468,7 @@
 }
 .desktop-pane{
     position: absolute;
-    top: var(--navbar-height);
+    top: var(--desktop-navbar-height);
     right: 0px;
     width: 300px;
     border-left: 1px solid var(--border-color);

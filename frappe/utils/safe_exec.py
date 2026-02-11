@@ -481,20 +481,17 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 
 	Safe queries:
 	        1. Read only 'select' or 'explain' queries
-	        2. CTE on mariadb where writes are not allowed.
 	"""
 
 	query = query.strip().lower()
 	whitelisted_statements = ("select", "explain")
 
-	if query.startswith(whitelisted_statements) or (
-		query.startswith("with") and frappe.db.db_type == "mariadb"
-	):
+	if query.startswith(whitelisted_statements):
 		return True
 
 	if throw:
 		frappe.throw(
-			_("Query must be of SELECT or read-only WITH type."),
+			_("Read-Only queries are allowed"),
 			title=_("Unsafe SQL query"),
 			exc=frappe.PermissionError,
 		)

@@ -182,12 +182,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
 		if (match_rules_list.length) {
 			this.restricted_list = $(
-				`<button class="btn btn-xs restricted-button flex align-center">
+				`<button class="btn btn-xs restricted-button flex align-center ${
+					frappe.is_mobile() ? "ml-2" : ""
+				}">
 					${frappe.utils.icon("restriction", "xs")}
 				</button>`
 			)
 				.click(() => this.show_restrictions(match_rules_list))
-				.appendTo(this.page.page_form);
+				.appendTo(
+					frappe.is_mobile()
+						? this.page.page_form.find(".filter-section")
+						: this.page.page_form
+				);
 		}
 	}
 
@@ -905,6 +911,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							aria-valuemin="0" aria-valuemax="100" style="width: ${Math.round(value)}%;">
 						</div>
 					</div>`;
+			} else if (df.fieldtype === "Data") {
+				return frappe.format(frappe.utils.escape_html(value), df, null, doc);
 			} else {
 				return frappe.format(value, df, null, doc);
 			}
@@ -1983,7 +1991,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		items.push({
-			label: __("Edit Filters", null, "Edit filters of List View"),
+			label: __("Customize Quick Filters", null, "Customize qucik filters of List View"),
 			action: () => {
 				this.make_group_by_fields_modal();
 			},

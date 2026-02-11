@@ -639,7 +639,10 @@ app_license = "{app_license}"
 # ]
 
 # Automatically update python controller files with type annotations for this app.
-# export_python_type_annotations = True
+export_python_type_annotations = True
+
+# Require all whitelisted methods to have type annotations
+require_type_annotated_api_methods = True
 
 # default_log_clearing_doctypes = {{
 # 	"Logging DocType Name": 30  # days to retain logs

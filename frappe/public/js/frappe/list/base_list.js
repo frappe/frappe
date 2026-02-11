@@ -333,7 +333,7 @@ frappe.views.BaseList = class BaseList {
 	 */
 	setup_result_container_area() {
 		if (this.view == "List") {
-			this.$frappe_list.append($(`<div class="result-container border rounded">`));
+			this.$frappe_list.append($(`<div class="result-container">`));
 		}
 	}
 
@@ -367,7 +367,7 @@ frappe.views.BaseList = class BaseList {
 	setup_paging_area() {
 		const paging_values = [20, 100, 500, 2500];
 		this.$paging_area = $(
-			`<div class="list-paging-area level ${this.view == "List" ? "border-0" : ""}">
+			`<div class="list-paging-area level">
 				<div class="level-left">
 					<div class="btn-group">
 						${paging_values
@@ -646,14 +646,21 @@ class FilterArea {
 		this.setup();
 		if (frappe.is_mobile()) this.setup_mobile(list_view);
 	}
+
 	setup_mobile(list_view) {
 		const me = this;
 		this.standard_filters_visible = false;
-		this.standard_filters_wrapper.hide();
+		this.standard_filters_wrapper?.hide();
 		this.list_view.page.page_form.css("justify-content", "flex-end");
+		list_view.page.page_form.addClass("flex-column");
+		this.$filter_list_wrapper.addClass("justify-between p-0");
+
+		// added this to manage spaceing between filter and sorf area
+		this.$filter_list_wrapper.find(".filter-selector").css("margin", "0 0 0 auto");
+
 		$(`<button class="filter-toggle btn btn-default btn-sm filter-button">
 					<span class="filter-icon button-icon">
-						${frappe.utils.icon("funnel-plus")}
+						${frappe.utils.icon("chevrons-up-down")}
 					</span>
 				</button>
 			</div>`)
@@ -673,11 +680,6 @@ class FilterArea {
 			this.standard_filters_visible = true;
 			this.standard_filters_wrapper.show();
 		}
-		let icon_name = !this.standard_filters_visible ? "funnel-plus" : "funnel-x";
-		this.$filter_list_wrapper
-			.find(".filter-toggle")
-			.find("use")
-			.attr("href", `#icon-${icon_name}`);
 	}
 
 	setup() {
@@ -1126,13 +1128,22 @@ class FilterArea {
 		let fields = [];
 
 		if (!this.list_view.settings.hide_name_filter) {
-			fields.push({
+			let field = {
 				fieldtype: "Data",
 				label: "ID",
 				condition: "like",
 				fieldname: "name",
 				onchange: () => this.debounced_refresh_list_view(),
-			});
+			};
+
+			if (frappe.is_mobile()) {
+				let mobile_id_filter = this.$filter_list_wrapper.append(
+					`<div class="mobile-id-filter"></div>`
+				);
+				this.list_view.page.add_field(field, mobile_id_filter.find(".mobile-id-filter"));
+			} else {
+				fields.push(field);
+			}
 		}
 
 		if (
@@ -1214,6 +1225,7 @@ class FilterArea {
 						onchange: () => this.debounced_refresh_list_view(),
 						ignore_link_validation: fieldtype === "Dynamic Link",
 						is_filter: 1,
+						link_filters: df.link_filters,
 					};
 				})
 		);

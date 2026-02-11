@@ -458,17 +458,43 @@
 	}
 	margin: auto;
 	padding: 0 15px;
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	gap: 15px;
 
 	h5 {
 		margin: 15px 0px;
 		font-weight: bold;
 	}
-	position: relative;
+
+	.after-save {
+		flex: 1;
+		min-width: 0;
+	}
+
 	.scroll-to-top {
 		position: absolute;
-		height: 28px;
 		right: 15px;
 		bottom: 15px;
+		height: 28px;
+		flex-shrink: 0;
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(10px);
+		transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+		pointer-events: none;
+
+		&.show {
+			position: fixed;
+			right: calc(var(--form-sidebar-width, 277px) + 20px);
+			bottom: 20px;
+			z-index: 1050;
+			opacity: 1;
+			visibility: visible;
+			transform: translateY(0);
+			pointer-events: auto;
+		}
 	}
 }
 
@@ -580,18 +606,6 @@
 @media (max-width: map-get($grid-breakpoints, "md")) {
 	.form-section .form-section-heading {
 		margin-top: 10px;
-	}
-}
-
-// mobile
-@media (max-width: map-get($grid-breakpoints, "sm")) {
-	// padding to form section on mobile
-
-	.form-column:not(:last-child) {
-		border-bottom: 1px solid var(--border-color);
-	}
-	.form-column:not(:first-child) {
-		padding-top: var(--padding-md);
 	}
 }
 

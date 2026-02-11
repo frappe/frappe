@@ -680,7 +680,7 @@ class DocType(Document):
 				where doctype=%s and field='name' and value = %s""",
 				(new, new, old),
 			)
-		else:
+		elif not self.is_virtual:
 			frappe.db.rename_table(old, new)
 			frappe.db.commit()
 
@@ -879,6 +879,9 @@ class DocType(Document):
 
 		if self.is_tree:
 			make_boilerplate("controller_tree.js", self.as_dict())
+
+		if self.is_calendar_and_gantt:
+			make_boilerplate("controller_calendar.js", self.as_dict())
 
 		if self.has_web_view:
 			templates_path = frappe.get_module_path(
