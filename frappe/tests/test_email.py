@@ -445,9 +445,29 @@ class TestEmailIntegrationTest(IntegrationTestCase):
 			if not attachment_found:
 				self.fail("Attachment not found", email_content)
 
+
+class TestPasswordResetEmail(IntegrationTestCase):
+	SMTP4DEV_WEB = "http://localhost:3000"
+
+	def _clear_mailbox(self):
+		messages = requests.get(f"{self.SMTP4DEV_WEB}/api/Messages").json().get("results", [])
+		for message in messages:
+			requests.delete(f"{self.SMTP4DEV_WEB}/api/Messages/{message['id']}")
+
+	def setUp(self) -> None:
+		# Frappe code is configured to not attempting sending emails during test.
+		frappe.flags.testing_email = True
+		self._clear_mailbox()
+		return super().setUp()
+
+	@classmethod
+	def get_last_sent_emails(cls):
+		return requests.get(f"{cls.SMTP4DEV_WEB}/api/Messages").json().get("results")
+
 	def test_send_password_reset_mail_on_global_unsubscribe(self):
 		from frappe.utils.verified_command import get_signed_params
 
+		SUBJECT_PASSWORD_RESET = "Password Reset"
 		user_id = frappe.generate_hash() + "@example.com"
 		user = frappe.get_doc(doctype="User", email=user_id, first_name="Tester").insert()
 
@@ -461,13 +481,13 @@ class TestEmailIntegrationTest(IntegrationTestCase):
 		).insert()
 
 		# Generate password reset link
-		signed_params = get_signed_params({"user": user.name}, expires_in_days=1)
+		signed_params = get_signed_params({"user": user.name})
 		reset_link = f"{frappe.utils.get_url()}/api/method/frappe.core.doctype.user.user.reset_password?{signed_params}"
 
 		# Send password reset mail
 		frappe.sendmail(
 			recipients=user.email,
-			subject="Password Reset",
+			subject=SUBJECT_PASSWORD_RESET,
 			message=f"Click the link to reset your password: {reset_link}",
 			now=True,
 		)
@@ -475,5 +495,6 @@ class TestEmailIntegrationTest(IntegrationTestCase):
 		sent_mails = self.get_last_sent_emails()
 		self.assertEqual(len(sent_mails), 1)
 		self.assertEqual(sent_mails[0]["to"][0], user.email)
-		self.assertIn("Password Reset", sent_mails[0]["subject"])
+		self.assertIn(SUBJECT_PASSWORD_RESET, sent_mails[0]["subject"])
 		self.assertIn(reset_link, sent_mails[0]["body"])
+		self._clear_mailbox()
