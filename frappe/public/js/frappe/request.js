@@ -174,7 +174,8 @@ frappe.call._helpers = {
 				},
 			};
 		}
-		return { opts: first_arg };
+		
+		return { opts: { ...first_arg } };
 	},
 
 	/**
@@ -330,7 +331,7 @@ frappe.call._helpers = {
 			base_payload = {
 				docs,
 				method,
-				args,
+				args: { ...args },
 			};
 			
 			// Add cmd to payload if custom URL
