@@ -59,8 +59,8 @@ frappe.call = function (opts) {
 		args: { freeze: options.args?.freeze, freeze_message: options.args?.freeze_message },
 	});
 
-	// Resolve effective doc_origin and api_version
-	var doc_origin_resolution = helpers.resolve_doc_origin_and_api_version({
+	// Normalize effective doc_origin and api_version
+	var doc_call_context = helpers.normalize_doc_call_context({
 		api_version: options.api_version,
 		doc_origin: options.doc_origin,
 		has_doc: !!options.doc,
@@ -71,8 +71,8 @@ frappe.call = function (opts) {
 		method: options.method,
 		args: options.args,
 		doc: options.doc,
-		doc_origin: doc_origin_resolution.doc_origin,
-		api_version: doc_origin_resolution.api_version,
+		doc_origin: doc_call_context.doc_origin,
+		api_version: doc_call_context.api_version,
 		module: options.module,
 		page: options.page,
 		has_custom_url: !!options.url,
@@ -82,8 +82,8 @@ frappe.call = function (opts) {
 	var url_result = helpers.build_request_url({
 		custom_url: options.url,
 		doc: options.doc,
-		doc_origin: doc_origin_resolution.doc_origin,
-		api_version: doc_origin_resolution.api_version,
+		doc_origin: doc_call_context.doc_origin,
+		api_version: doc_call_context.api_version,
 		cmd: payload_result.cmd,
 		method: options.method,
 	});
@@ -103,7 +103,7 @@ frappe.call = function (opts) {
 	var realtime_opts = $.extend({}, options, {
 		freeze: resolved_params.freeze,
 		freeze_message: resolved_params.freeze_message,
-		api_version: doc_origin_resolution.api_version,
+		api_version: doc_call_context.api_version,
 		args: payload_result.payload,
 	});
 	var success_wrapper = helpers.route_success_callback({
@@ -126,7 +126,7 @@ frappe.call = function (opts) {
 		error_handlers: options.error_handlers || {},
 		async: options.async,
 		silent: options.silent,
-		api_version: doc_origin_resolution.api_version,
+		api_version: doc_call_context.api_version,
 		url: url_result.url,
 		cache: options.cache,
 	});
@@ -266,7 +266,7 @@ frappe.call._helpers = {
 	},
 
 	/**
-	 * Resolves the effective doc_origin and api_version based on provided options.
+	 * Normalizes doc_origin and api_version by applying defaults based on provided options.
 	 * Both API v1 and v2 support both origins:
 	 * - 'memory' (default): Uses run_doc_method, sends full in-memory document to server
 	 * - 'database': Server loads document from DB (lighter payload)
@@ -274,7 +274,7 @@ frappe.call._helpers = {
 	 * @param {{ api_version: string|undefined, doc_origin: string|undefined, has_doc: boolean }} config
 	 * @returns {{ api_version: string|undefined, doc_origin: string|undefined }}
 	 */
-	resolve_doc_origin_and_api_version(config) {
+	normalize_doc_call_context(config) {
 		var { api_version, doc_origin, has_doc } = config;
 
 		// doc_origin is only relevant when doc is provided
