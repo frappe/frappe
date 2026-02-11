@@ -256,11 +256,6 @@ frappe.views.Calendar = class Calendar {
 				left: "prev, title, next",
 				right: "today, month, agendaWeek, agendaDay",
 			},
-			eventTimeFormat: {
-				hour: "numeric",
-				minute: "2-digit",
-				hour12: true,
-			},
 			editable: true,
 			selectable: true,
 			selectHelper: true,
