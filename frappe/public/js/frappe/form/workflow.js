@@ -107,7 +107,7 @@ frappe.ui.form.States = class FormStates {
 								doc: me.frm.doc,
 							})
 							.then((r) => {
-								if (r.message) {
+								if (r) {
 									frappe.confirm(
 										__("Are you sure you want to {0}?", [d.action]),
 										() => me.handle_workflow_action(d)
