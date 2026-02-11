@@ -128,6 +128,7 @@
    "fieldname": "raw_commands",
    "fieldtype": "Code",
    "label": "Raw Commands",
+   "mandatory_depends_on": "raw_printing",
    "options": "Jinja"
   },
   {
@@ -293,7 +294,7 @@
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2026-02-09 16:16:42.887398",
+ "modified": "2026-02-11 13:17:55.662780",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
