@@ -48,7 +48,7 @@ frappe.call = function (opts) {
 					message: __("Connection Lost"),
 					subtitle: __("You are not connected to Internet. Retry after sometime."),
 				},
-				3
+				3 // Display time in seconds
 			);
 		}
 		return { is_online: is_online };
@@ -80,13 +80,13 @@ frappe.call = function (opts) {
 	 * Resolves parameter precedence between top-level opts and args.
 	 * Top-level options take precedence over args options.
 	 * @param {{ opts: object, args: object }} config
-	 * @returns {{ freeze: boolean, freeze_message: string }}
+	 * @returns {{ freeze: boolean, freeze_message: string|undefined }}
 	 */
 	function resolve_parameter_precedence(config) {
 		var { opts, args } = config;
 
 		var resolved_freeze = opts.freeze || args.freeze || false;
-		var resolved_freeze_message = opts.freeze_message || args.freeze_message || "";
+		var resolved_freeze_message = opts.freeze_message || args.freeze_message;
 
 		return {
 			freeze: resolved_freeze,
@@ -141,10 +141,10 @@ frappe.call = function (opts) {
 	 */
 	function validate_call_type(config) {
 		var { method, doc, module, page } = config;
-
-		var has_page_call = module && page;
-		var has_doc_call = !!doc;
-		var has_method_call = !!method;
+		
+		var has_page_call = module != null && page != null;
+		var has_doc_call = doc != null;
+		var has_method_call = method != null;
 
 		if (has_page_call || has_doc_call || has_method_call) {
 			return { is_valid: true, error: null };
@@ -260,6 +260,11 @@ frappe.call = function (opts) {
 			if (has_custom_url) {
 				base_payload.cmd = cmd_value;
 			}
+		} else {
+			// No call pattern specified (custom URL case)
+			// Just use args as-is, no cmd
+			cmd_value = undefined;
+			base_payload = $.extend({}, args);
 		}
 
 		return {
@@ -480,15 +485,18 @@ frappe.call = function (opts) {
 		throw doc_origin_validation.error;
 	}
 
-	// Validate call type
-	var call_type_validation = validate_call_type({
-		method: options.method,
-		doc: options.doc,
-		module: options.module,
-		page: options.page,
-	});
-	if (!call_type_validation.is_valid) {
-		throw call_type_validation.error;
+	// Validate call type ONLY if no custom URL is provided
+	// When using custom URL, method/doc/page are optional since URL is already specified
+	if (!options.url) {
+		var call_type_validation = validate_call_type({
+			method: options.method,
+			doc: options.doc,
+			module: options.module,
+			page: options.page,
+		});
+		if (!call_type_validation.is_valid) {
+			throw call_type_validation.error;
+		}
 	}
 
 	// Resolve parameters precedence
@@ -505,16 +513,13 @@ frappe.call = function (opts) {
 		has_doc: !!options.doc,
 	});
 
-	var effective_doc_origin = doc_origin_resolution.doc_origin;
-	var effective_api_version = doc_origin_resolution.api_version;
-
 	// Build server payload
 	var payload_result = build_server_payload({
 		method: options.method,
 		args: input_args,
 		doc: options.doc,
-		doc_origin: effective_doc_origin,
-		api_version: effective_api_version,
+		doc_origin: doc_origin_resolution.doc_origin,
+		api_version: doc_origin_resolution.api_version,
 		module: options.module,
 		page: options.page,
 		has_custom_url: !!options.url,
@@ -524,8 +529,8 @@ frappe.call = function (opts) {
 	var url_result = build_request_url({
 		custom_url: options.url,
 		doc: options.doc,
-		doc_origin: effective_doc_origin,
-		api_version: effective_api_version,
+		doc_origin: doc_origin_resolution.doc_origin,
+		api_version: doc_origin_resolution.api_version,
 		cmd: payload_result.cmd,
 		method: options.method,
 	});
@@ -549,7 +554,7 @@ frappe.call = function (opts) {
 	var realtime_opts = $.extend({}, options, {
 		freeze: resolved_params.freeze,
 		freeze_message: resolved_params.freeze_message,
-		api_version: effective_api_version,
+		api_version: doc_origin_resolution.api_version,
 		args: payload_result.payload,
 	});
 	var success_handler = create_success_handler({
@@ -572,7 +577,7 @@ frappe.call = function (opts) {
 		error_handlers: options.error_handlers || {},
 		async: options.async,
 		silent: options.silent,
-		api_version: effective_api_version,
+		api_version: doc_origin_resolution.api_version,
 		url: url_result.url,
 		cache: options.cache,
 	});
