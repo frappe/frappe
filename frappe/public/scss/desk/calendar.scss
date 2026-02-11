@@ -65,8 +65,8 @@ th.fc-col-header-cell {
 	border: none !important;
 }
 
-.fc-event-main .fc-event-time {
-	display: none;
+.fc-event-main-frame {
+	flex-direction: column;
 }
 
 .fc-time-grid-event {
@@ -226,4 +226,16 @@ th.fc-col-header-cell {
 
 .fc-now-indicator-arrow {
 	display: none !important;
+}
+
+#fc-calendar-wrapper .btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	line-height: 1.4;
+
+	svg {
+		width: 14px;
+		height: 14px;
+	}
 }

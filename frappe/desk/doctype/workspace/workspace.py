@@ -130,11 +130,18 @@ class Workspace(Document):
 		self.delete_from_my_workspaces()
 
 	def delete_from_my_workspaces(self):
-		if not self.public:
+		if self.public:
+			return
+
+		try:
 			my_workspaces = frappe.get_doc("Workspace Sidebar", f"My Workspaces-{frappe.session.user}")
-			for w in my_workspaces.items:
-				if self.name == w.link_to:
-					frappe.delete_doc("Workspace Sidebar Item", w.name)
+		except frappe.DoesNotExistError:
+			frappe.clear_messages()
+			return
+
+		for w in my_workspaces.items:
+			if self.name == w.link_to:
+				frappe.delete_doc("Workspace Sidebar Item", w.name)
 
 	def after_delete(self):
 		if disable_saving_as_public():

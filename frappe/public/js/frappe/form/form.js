@@ -609,6 +609,8 @@ frappe.ui.form.Form = class FrappeForm {
 					toolbar: this.toolbar,
 				});
 				this.sidebar.make();
+			} else {
+				this.page.sidebar.hide();
 			}
 
 			// clear layout message

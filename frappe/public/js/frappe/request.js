@@ -145,6 +145,7 @@ frappe.request.call = function (opts) {
 				title: __("Not found"),
 				indicator: "red",
 				message: __("The resource you are looking for is not available"),
+				re_route: true,
 			});
 			opts.error_callback && opts.error_callback();
 		},

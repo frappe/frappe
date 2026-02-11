@@ -166,8 +166,9 @@ frappe.views.Calendar = class Calendar {
 			this.$wrapper,
 			__("Select or drag across time slots to create a new event.")
 		);
-		this.footnote_area.css({ "border-top": "0px" });
-
+		this.footnote_area.addClass("px-4 pb-4").css({
+			"border-top": "0px",
+		});
 		this.fullCalendar = new frappe.FullCalendar(this.$cal[0], this.cal_options);
 		this.fullCalendar.render();
 
@@ -255,7 +256,13 @@ frappe.views.Calendar = class Calendar {
 			plugins: frappe.FullCalendar.Plugins,
 			initialView: defaults.initialView || "dayGridMonth",
 			locale: frappe.boot.lang,
+			eventTimeFormat: {
+				hour: "numeric",
+				minute: "2-digit",
+				hour12: true,
+			},
 			firstDay: 1,
+			eventDisplay: "block",
 			headerToolbar: {
 				left: "prev,title,next",
 				center: "",

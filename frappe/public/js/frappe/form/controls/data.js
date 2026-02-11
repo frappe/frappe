@@ -147,7 +147,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		this.$wrapper.find(".control-input").append(
 			`<span class="link-btn">
 				<a class="btn-open no-decoration" title="${__("Scan")}">
-					${frappe.utils.icon("scan", "sm")}
+					${frappe.utils.icon("scan-barcode", "sm")}
 				</a>
 			</span>`
 		);

@@ -203,7 +203,7 @@ def remove_orphan_entities():
 	entites = ["Workspace", "Dashboard", "Page", "Report"]
 	app_level_entities = ["Workspace Sidebar", "Desktop Icon"]
 	entity_filter_map = {
-		"Workspace": {"public": 1},
+		"Workspace": [{"public": 1, "module": ["is", "set"], "app": ["is", "set"]}],
 		"Page": {"standard": "Yes"},
 		"Report": {"is_standard": "Yes"},
 		"Dashboard": {"is_standard": True},

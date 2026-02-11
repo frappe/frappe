@@ -90,6 +90,20 @@ def new_site(
 	from frappe.installer import _new_site
 
 	frappe.init(site, new_site=True)
+	db_labels = {
+		"postgres": "PostgreSQL",
+		"sqlite": "SQLite",
+	}
+	if db_type in db_labels:
+		click.secho(
+			f"\nNote: {db_labels[db_type]} support is currently in development and considered experimental.",
+			fg="yellow",
+			bold=True,
+		)
+		click.secho(
+			"Please report issues with a full traceback here:\nhttps://github.com/frappe/frappe/issues\n",
+			fg="cyan",
+		)
 
 	if site in frappe.get_all_apps():
 		click.secho(

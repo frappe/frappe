@@ -260,6 +260,8 @@ def parse_app_name(name: str) -> str:
 		else:
 			_repo = name.rsplit("/", 2)[2]
 		repo = _repo.split(".", 1)[0]
+	elif name in frappe.get_all_apps():
+		return name
 	else:
 		_, repo, _ = fetch_details_from_tag(name)
 	return repo

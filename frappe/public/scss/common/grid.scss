@@ -75,6 +75,10 @@
 	}
 	.grid-static-col {
 		padding: 6px 8px !important;
+		&.grid-data-column {
+			flex: 1;
+			max-width: none;
+		}
 		.static-area {
 			&.reqd:after {
 				content: " *";
@@ -444,6 +448,50 @@
 			position: relative;
 			z-index: 1;
 		}
+	}
+
+	.grid-currency-input {
+		position: relative;
+		display: flex;
+		align-items: center;
+		width: 100%;
+	}
+
+	.grid-currency-prefix,
+	.grid-currency-suffix {
+		position: absolute;
+		color: var(--text-muted);
+		pointer-events: none;
+		z-index: 2;
+		display: none;
+	}
+
+	.grid-currency-prefix {
+		left: 8px;
+	}
+
+	.grid-currency-suffix {
+		right: 8px;
+	}
+
+	// for left aligned currency symbol
+	.grid-currency-input.grid-currency-has-value:not(.grid-currency-symbol-right) .form-control {
+		padding-left: calc(4px + 1em);
+		position: relative;
+		z-index: 1;
+		text-align: left;
+	}
+
+	// for right aligned currency symbol
+	.grid-currency-input.grid-currency-has-value.grid-currency-symbol-right .form-control {
+		padding-right: calc(4px + 1em);
+		position: relative;
+		z-index: 1;
+	}
+
+	.grid-currency-input.grid-currency-has-value .grid-currency-prefix,
+	.grid-currency-input.grid-currency-has-value .grid-currency-suffix {
+		display: block;
 	}
 }
 
