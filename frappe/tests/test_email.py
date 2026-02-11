@@ -450,7 +450,6 @@ class TestEmailIntegrationTest(IntegrationTestCase):
 
 		user_id = frappe.generate_hash() + "@example.com"
 		user = frappe.get_doc(doctype="User", email=user_id, first_name="Tester").insert()
-		frappe.db.commit()
 
 		# Unsubscribe globally
 		frappe.get_doc(
@@ -460,7 +459,6 @@ class TestEmailIntegrationTest(IntegrationTestCase):
 				"global_unsubscribe": 1,
 			}
 		).insert()
-		frappe.db.commit()
 
 		# Generate password reset link
 		signed_params = get_signed_params({"user": user.name}, expires_in_days=1)
@@ -473,7 +471,6 @@ class TestEmailIntegrationTest(IntegrationTestCase):
 			message=f"Click the link to reset your password: {reset_link}",
 			now=True,
 		)
-		frappe.db.commit()
 
 		sent_mails = self.get_last_sent_emails()
 		self.assertEqual(len(sent_mails), 1)
