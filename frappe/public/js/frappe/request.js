@@ -39,28 +39,18 @@ frappe.call = function (opts) {
 	var options = parsed.opts;
 
 	// Validate API version and doc_origin
-	var api_validation = helpers.validate_api_version(options.api_version);
-	if (!api_validation.is_valid) {
-		throw api_validation.error;
-	}
-
-	var doc_origin_validation = helpers.validate_doc_origin(options.doc_origin);
-	if (!doc_origin_validation.is_valid) {
-		throw doc_origin_validation.error;
-	}
+	helpers.validate_api_version(options.api_version);
+	helpers.validate_doc_origin(options.doc_origin);
 
 	// Validate call type ONLY if no custom URL is provided
 	// When using custom URL, method/doc/page are optional since URL is already specified
 	if (!options.url) {
-		var call_type_validation = helpers.validate_call_type({
+		helpers.validate_call_type({
 			method: options.method,
 			doc: options.doc,
 			module: options.module,
 			page: options.page,
 		});
-		if (!call_type_validation.is_valid) {
-			throw call_type_validation.error;
-		}
 	}
 
 	// Resolve parameters precedence
@@ -99,10 +89,6 @@ frappe.call = function (opts) {
 		method: options.method,
 	});
 
-	if (url_result.error) {
-		throw url_result.error;
-	}
-
 	// Check debounce status
 	var debounce_check = helpers.check_debounce_status({
 		debounce: options.debounce,
@@ -121,7 +107,7 @@ frappe.call = function (opts) {
 		api_version: doc_origin_resolution.api_version,
 		args: payload_result.payload,
 	});
-	var success_handler = helpers.create_success_handler({
+	var success_wrapper = helpers.route_success_callback({
 		callback: options.callback,
 		queued: options.queued,
 		realtime_opts: realtime_opts,
@@ -131,7 +117,7 @@ frappe.call = function (opts) {
 	return frappe.request.call({
 		type: options.type || "POST",
 		args: payload_result.payload,
-		success: success_handler,
+		success: success_wrapper.handler,
 		error: options.error,
 		always: options.always,
 		btn: options.btn,
@@ -166,7 +152,7 @@ frappe.call._helpers = {
 				3 // Display time in seconds
 			);
 		}
-		return { is_online: is_online };
+		return { is_online };
 	},
 
 	/**
@@ -211,48 +197,46 @@ frappe.call._helpers = {
 
 	/**
 	 * Validates API version parameter.
+	 * Throws if the provided version is not supported.
 	 * @param {string|undefined} api_version
-	 * @returns {{ is_valid: boolean, error: Error|null }}
+	 * @returns {{ is_valid: boolean }}
 	 */
 	validate_api_version(api_version) {
 		var valid_versions = ["v1", "v2"];
-		// No api_version is also valid (defaults to legacy behavior)
-		if (api_version && !valid_versions.includes(api_version)) {
+		let is_valid = !api_version || valid_versions.includes(api_version);
+		if (!is_valid) {
 			console.error("frappe.call unsupported api_version");
-			return {
-				is_valid: false,
-				error: new Error(
-					`frappe.call: api_version '${api_version}' is not supported. Use one of: ${valid_versions.join(", ")}`
-				),
-			};
+			throw new Error(
+				`frappe.call: api_version '${api_version}' is not supported. Use one of: ${valid_versions.join(", ")}`
+			);
 		}
-		return { is_valid: true, error: null };
+		return { is_valid };
 	},
 
 	/**
 	 * Validates doc_origin parameter.
+	 * Throws if the provided origin is not supported.
 	 * @param {string|undefined} doc_origin
-	 * @returns {{ is_valid: boolean, error: Error|null }}
+	 * @returns {{ is_valid: boolean }}
 	 */
 	validate_doc_origin(doc_origin) {
 		var valid_origins = ["memory", "database"];
-		if (doc_origin && !valid_origins.includes(doc_origin)) {
+		let is_valid = !doc_origin || valid_origins.includes(doc_origin);
+		if (!is_valid) {
 			console.error("frappe.call unsupported doc_origin");
-			return {
-				is_valid: false,
-				error: new Error(
-					`frappe.call: doc_origin '${doc_origin}' is not supported. Use one of: ${valid_origins.join(", ")}`
-				),
-			};
+			throw new Error(
+				`frappe.call: doc_origin '${doc_origin}' is not supported. Use one of: ${valid_origins.join(", ")}`
+			);
 		}
-		return { is_valid: true, error: null };
+		return { is_valid };
 	},
 
 	/**
 	 * Validates that at least one valid call type is specified.
 	 * Valid call types are: page method (module + page), document method (doc), or direct method (method).
+	 * Throws if none of the valid call types is specified.
 	 * @param {{ method: string|undefined, doc: object|undefined, module: string|undefined, page: string|undefined }} config
-	 * @returns {{ is_valid: boolean, error: Error|null }}
+	 * @returns {{ is_valid: boolean }}
 	 */
 	validate_call_type(config) {
 		var { method, doc, module, page } = config;
@@ -261,8 +245,9 @@ frappe.call._helpers = {
 		var has_doc_call = doc != null;
 		var has_method_call = method != null;
 
-		if (has_page_call || has_doc_call || has_method_call) {
-			return { is_valid: true, error: null };
+		let is_valid = has_page_call || has_doc_call || has_method_call;
+		if (is_valid) {
+			return { is_valid };
 		}
 
 		var missing_options = [
@@ -272,12 +257,9 @@ frappe.call._helpers = {
 		].filter(Boolean);
 
 		console.error("frappe.call invalid call configuration");
-		return {
-			is_valid: false,
-			error: new Error(
-				`frappe.call: invalid call configuration. Must provide one of: ${missing_options.join(", ")}`
-			),
-		};
+		throw new Error(
+			`frappe.call: invalid call configuration. Must provide one of: ${missing_options.join(", ")}`
+		);
 	},
 
 	/**
@@ -390,28 +372,34 @@ frappe.call._helpers = {
 
 	/**
 	 * Validates required parameters for database origin document method calls.
+	 * Throws if any required parameter is missing.
 	 * @param {{ doctype: string|undefined, name: string|undefined, method: string|undefined }} config
-	 * @returns {{ is_valid: boolean, error: Error|null }}
+	 * @returns {{ is_valid: boolean }}
 	 */
 	validate_document_method_params(config) {
 		var { doctype, name, method } = config;
+		
+		var has_doctype = doctype != null;
+		var has_name = name != null;
+		var has_method = method != null;
 
-		var missing = [
-			!doctype && "doc.doctype",
-			!name && "doc.name",
-			!method && "method",
-		].filter(Boolean);
+		var is_valid = has_doctype && has_name && has_method;
+		if (!is_valid) {
+			var missing = [
+				!has_doctype && "doc.doctype (document doctype)",
+				!has_name && "doc.name (document name)",
+				!has_method && "method (method name to run on the document)",
+			].filter(Boolean);
 
-		if (missing.length) {
-			console.error("frappe.call missing parameters");
-			return {
-				is_valid: false,
-				error: new Error(
+			if (missing.length) {
+				console.error("frappe.call missing parameters");
+				throw new Error(
 					`frappe.call: missing '${missing.join("', '")}' required for database origin document method calls`
-				),
-			};
+				);
+			}
 		}
-		return { is_valid: true, error: null };
+
+		return { is_valid };
 	},
 
 	/**
@@ -473,35 +461,33 @@ frappe.call._helpers = {
 	apply_cordova_host(url) {
 		var host = frappe.request.url;
 		host = host.slice(0, host.length - 1);
-		return { url: host + url };
+		return { url: `${host}${url}` };
 	},
 
 	/**
 	 * Builds the complete request URL if needed.
+	 * Throws (via validate_document_method_params) if required params are missing for database origin calls.
 	 * @param {{ custom_url: string|undefined, doc: object|undefined, doc_origin: string|undefined, api_version: string|undefined, cmd: string|undefined, method: string|undefined }} config
-	 * @returns {{ url: string, error: Error|null }}
+	 * @returns {{ url: string }}
 	 */
 	build_request_url(config) {
 		var { custom_url, doc, doc_origin, api_version, cmd, method } = config;
 
 		// Use custom URL if provided
 		if (custom_url) {
-			return { url: custom_url, error: null };
+			return { url: custom_url };
 		}
 
 		var url;
 
 		// Database origin document method URL
 		if (doc && doc_origin === "database") {
-			// Validate required params for database origin
-			var validation = this.validate_document_method_params({
+			// Validate required params for database origin — throws if missing
+			this.validate_document_method_params({
 				doctype: doc.doctype,
 				name: doc.name,
 				method: method,
 			});
-			if (!validation.is_valid) {
-				return { url: null, error: validation.error };
-			}
 
 			var doc_url = this.build_doc_db_origin_url({
 				api_version: api_version,
@@ -525,7 +511,7 @@ frappe.call._helpers = {
 			url = cordova_url.url;
 		}
 
-		return { url: url, error: null };
+		return { url };
 	},
 
 	/**
@@ -535,10 +521,10 @@ frappe.call._helpers = {
 	 * @param {{ callback: function|undefined, queued: function|undefined, realtime_opts: object }} config
 	 * @returns {function}
 	 */
-	create_success_handler(config) {
+	route_success_callback(config) {
 		var { callback, queued, realtime_opts } = config;
 
-		const success_handler = (data, response_text) => {
+		const handler = (data, response_text) => {
 			// Async task: subscribe to realtime updates
 			if (data.task_id) {
 				frappe.realtime.subscribe(data.task_id, realtime_opts);
@@ -554,7 +540,8 @@ frappe.call._helpers = {
 				return callback(data, response_text);
 			}
 		};
-		return success_handler;
+
+		return { handler };
 	},
 
 	/**
@@ -571,8 +558,8 @@ frappe.call._helpers = {
 
 		// Build args object with cmd for is_fresh check
 		var args_with_cmd = $.extend({}, payload, { cmd: cmd });
-		// TODO: Check if it is correct implementation to skip the request when not fresh
 		var is_fresh = frappe.request.is_fresh(args_with_cmd, debounce);
+
 		return { should_skip: is_fresh };
 	},
 };
