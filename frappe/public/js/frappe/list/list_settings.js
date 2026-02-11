@@ -364,7 +364,7 @@ export default class ListSettings {
 		let multiselect_fields = [];
 
 		meta.fields.forEach((field) => {
-			if (!frappe.model.no_value_type.includes(field.fieldtype)) {
+			if (!frappe.model.no_value_type.includes(field.fieldtype) && !field.is_virtual) {
 				multiselect_fields.push({
 					label: __(field.label, null, field.doctype),
 					value: field.fieldname,
