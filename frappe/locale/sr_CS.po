@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-08 09:41+0000\n"
-"PO-Revision-Date: 2026-02-08 18:25\n"
+"PO-Revision-Date: 2026-02-11 19:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -15629,7 +15629,7 @@ msgstr "Prijavite se da biste započeli novu diskusiju"
 
 #: frappe/www/portal.py:17
 msgid "Login to view"
-msgstr ""
+msgstr "Prijavite se za prikaz"
 
 #: frappe/www/login.html:64
 msgid "Login to {0}"
@@ -18983,7 +18983,7 @@ msgstr "PID"
 
 #: frappe/email/oauth.py:75
 msgid "POP3 OAuth authentication failed for Email Account {0}"
-msgstr ""
+msgstr "POP3 OAuth autentifikacija nije uspela za imejl nalog {0}"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #. Option for the 'Request Method' (Select) field in DocType 'Webhook'
@@ -21259,7 +21259,7 @@ msgstr "Pročitajte dokumentaciju za više informacija"
 
 #: frappe/utils/safe_exec.py:494
 msgid "Read-Only queries are allowed"
-msgstr ""
+msgstr "Dozvoljeni su samo upiti za čitanje"
 
 #. Label of the readme (Markdown Editor) field in DocType 'Package'
 #: frappe/core/doctype/package/package.json
@@ -23484,7 +23484,7 @@ msgstr "Odeljka mora imati najmanje jednu kolonu"
 
 #: frappe/core/doctype/user/user.py:1473
 msgid "Security Alert: Your account is being impersonated"
-msgstr ""
+msgstr "Bezbednosno upozorenje: Neko se predstavlja kao Vaš nalog"
 
 #. Label of the sb3 (Section Break) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -29242,7 +29242,7 @@ msgstr "Korisnik {0} je zatražio brisanje podataka"
 
 #: frappe/core/doctype/user/user.py:1467
 msgid "User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
-msgstr ""
+msgstr "Korisnik {0} je započeo sesiju predstavljanja kao Vi. <br><br><b>Navedeni razlog:</b> {1}"
 
 #: frappe/core/doctype/user/user.py:1452
 msgid "User {0} impersonated as {1}"
