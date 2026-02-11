@@ -175,10 +175,7 @@ Object.assign(frappe.model, {
 			}
 		}
 
-		if (
-			(local_doc?.on_paste_event || doc.__islocal) &&
-			local_doc?.__newname
-		) {
+		if ((local_doc?.on_paste_event || doc.__islocal) && local_doc?.__newname) {
 			doc.__newname = local_doc.__newname;
 		}
 
