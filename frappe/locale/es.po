@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-08 09:41+0000\n"
-"PO-Revision-Date: 2026-02-08 18:24\n"
+"PO-Revision-Date: 2026-02-11 19:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -137,7 +137,15 @@ msgid "0 - too guessable: risky password.\n"
 "3 - safely unguessable: moderate protection from offline slow-hash scenario.\n"
 "<br>\n"
 "4 - very unguessable: strong protection from offline slow-hash scenario."
-msgstr ""
+msgstr "0 - demasiado adivinable: contraseña arriesgada.\n"
+"<br>\n"
+"1 - muy fácil de adivinar: protección frente a ataques en línea no regulados. \n"
+"<br>\n"
+"2 - algo adivinable: protección frente a ataques en línea no acelerados.\n"
+"<br>\n"
+"3 - seguro que no se puede adivinar: protección moderada frente a ataques en línea lentos.\n"
+"<br>\n"
+"4 - muy difícil de adivinar: protección fuerte frente a un escenario slow-hash offline."
 
 #. Description of the 'Priority' (Int) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -1914,7 +1922,7 @@ msgstr "Permitir ver al invitado"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Guests to Upload Files"
-msgstr ""
+msgstr "Permitir a los Invitados cargar archivos"
 
 #. Label of the allow_import (Check) field in DocType 'DocType'
 #. Label of the allow_import (Check) field in DocType 'Customize Form'
@@ -1926,19 +1934,19 @@ msgstr ""
 #. Label of the allow_login_after_fail (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Login After Fail"
-msgstr ""
+msgstr "Permitir inicio de sesión después de error"
 
 #. Label of the allow_login_using_mobile_number (Check) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Login using Mobile Number"
-msgstr ""
+msgstr "Permitir inicio de sesión con número de teléfono móvil"
 
 #. Label of the allow_login_using_user_name (Check) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Login using User Name"
-msgstr ""
+msgstr "Permitir inicio de sesión con Nombre de Usuario"
 
 #. Label of the sb_allow_modules (Section Break) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -1986,7 +1994,7 @@ msgstr "Permitir la autoaprobación"
 #. Label of the enable_telemetry (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Sending Usage Data for Improving Applications"
-msgstr ""
+msgstr "Permitir el envío de datos de uso para mejorar las aplicaciones"
 
 #. Description of the 'Allow Self Approval' (Check) field in DocType 'Workflow
 #. Transition'
@@ -2062,7 +2070,7 @@ msgstr "Permitir en 'validar'"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow only one session per user"
-msgstr ""
+msgstr "Permitir sólo una sesión por usuario"
 
 #. Label of the allow_page_break_inside_tables (Check) field in DocType 'Print
 #. Settings'
@@ -2114,7 +2122,7 @@ msgstr ""
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allowed File Extensions"
-msgstr ""
+msgstr "Extensiones de Archivos permitidas"
 
 #. Label of the allowed_in_mentions (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -2550,7 +2558,7 @@ msgstr ""
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Apply Strict User Permissions"
-msgstr ""
+msgstr "Aplicar Permisos Estrictos de Usuario"
 
 #. Label of the view (Select) field in DocType 'Client Script'
 #: frappe/custom/doctype/client_script/client_script.json
@@ -7498,7 +7506,7 @@ msgstr ""
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Change Log Notification"
-msgstr ""
+msgstr "Deshabilitar la notificación del Registro de Cambios"
 
 #. Label of the disable_comment_count (Check) field in DocType 'List View
 #. Settings'
@@ -7551,19 +7559,19 @@ msgstr "Desactivar el registro para su sitio"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Standard Email Footer"
-msgstr ""
+msgstr "Desactivar pie de página estándar en los correos electrónicos"
 
 #. Label of the disable_system_update_notification (Check) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable System Update Notification"
-msgstr ""
+msgstr "Desactivar la notificación de Actualización del Sistema"
 
 #. Label of the disable_user_pass_login (Check) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Username/Password Login"
-msgstr ""
+msgstr "Deshabilitar el inicio de sesión con nombre de Usuario/Contraseña"
 
 #. Label of the disable_signup (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -8831,7 +8839,7 @@ msgstr ""
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 #: frappe/www/login.html:8 frappe/www/login.py:104
 msgid "Email"
-msgstr ""
+msgstr "Correo electrónico"
 
 #. Label of the email_account (Link) field in DocType 'Communication'
 #. Label of the email_account (Link) field in DocType 'User Email'
@@ -8907,7 +8915,7 @@ msgstr "Señal de la bandera del correo electrónico"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Email Footer Address"
-msgstr ""
+msgstr "Adjuntar dirección en pie de página"
 
 #. Name of a DocType
 #. Label of the email_group (Link) field in DocType 'Email Group Member'
@@ -8979,7 +8987,7 @@ msgstr ""
 #. Label of the email_retry_limit (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Email Retry Limit"
-msgstr ""
+msgstr "Límite de reintento de correo"
 
 #. Name of a DocType
 #: frappe/email/doctype/email_rule/email_rule.json
@@ -9727,7 +9735,7 @@ msgstr ""
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Example: Setting this to 24:00 will log out a user if they are not active for 24:00 hours."
-msgstr ""
+msgstr "Ejemplo: al configurar esto en 24:00, cerrará la sesión de un usuario si no está activo durante las 24:00 horas."
 
 #. Description of the 'Description' (Small Text) field in DocType 'Assignment
 #. Rule'
@@ -10663,7 +10671,7 @@ msgstr ""
 #. Label of the filters_config (Code) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Filters Configuration"
-msgstr ""
+msgstr "Configuración de filtros"
 
 #. Label of the filters_display (HTML) field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
@@ -10673,7 +10681,7 @@ msgstr ""
 #. Label of the filters_editor (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Filters Editor"
-msgstr ""
+msgstr "Editor de filtros"
 
 #. Label of the filters_json (Code) field in DocType 'Dashboard Chart'
 #. Label of the filters_json (Code) field in DocType 'Number Card'
@@ -10685,7 +10693,7 @@ msgstr ""
 #. Label of the filters_section (Section Break) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Filters Section"
-msgstr ""
+msgstr "Sección de filtros"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:202
 msgid "Filters saved"
@@ -10731,7 +10739,7 @@ msgstr ""
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "First Day of the Week"
-msgstr ""
+msgstr "Primer día de la semana"
 
 #. Label of the first_name (Data) field in DocType 'Contact'
 #. Label of the first_name (Data) field in DocType 'User'
@@ -10784,7 +10792,7 @@ msgstr "Coma Flotante"
 #. Label of the float_precision (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Float Precision"
-msgstr ""
+msgstr "Factor de Redondeo"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -11089,7 +11097,7 @@ msgstr "Forzar detención del trabajo"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Force User to Reset Password"
-msgstr ""
+msgstr "Forzar al usuario a restablecer la contraseña"
 
 #. Label of the force_web_capture_mode_for_uploads (Check) field in DocType
 #. 'System Settings'
@@ -11281,7 +11289,7 @@ msgstr "Frecuencia"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Friday"
-msgstr ""
+msgstr "Viernes"
 
 #. Label of the sender (Data) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -11888,14 +11896,14 @@ msgstr "AQUÍ"
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "HH:mm"
-msgstr ""
+msgstr "HH:mm"
 
 #. Option for the 'Time Format' (Select) field in DocType 'Language'
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "HH:mm:ss"
-msgstr ""
+msgstr "HH:mm:ss"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -12255,7 +12263,7 @@ msgstr "Ocultar descendientes"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Hide Empty Read-Only Fields"
-msgstr ""
+msgstr "Ocultar campos vacíos de solo lectura"
 
 #: frappe/www/error.html:62
 msgid "Hide Error"
@@ -12647,7 +12655,7 @@ msgstr ""
 #. (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "If enabled, only System Managers can upload public files. Other users can't see the checkbox <i>Is Private</i> in the upload dialog."
-msgstr ""
+msgstr "Si está activada, sólo los Administradores del Sistema pueden subir archivos públicos. Los demás usuarios no pueden ver la casilla <i>Es privado</i> en el diálogo de carga."
 
 #. Description of the 'Track Seen' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -13047,7 +13055,7 @@ msgstr "En"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "In Days"
-msgstr ""
+msgstr "En días"
 
 #. Label of the in_filter (Check) field in DocType 'DocField'
 #. Label of the in_filter (Check) field in DocType 'Customize Form Field'
@@ -13128,7 +13136,7 @@ msgstr ""
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "In seconds"
-msgstr ""
+msgstr "En segundos"
 
 #: frappe/core/doctype/recorder/recorder_list.js:209
 msgid "Inactive"
@@ -15638,7 +15646,7 @@ msgstr "Ingresar con LDAP"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Login with email link"
-msgstr ""
+msgstr "Iniciar sesión con enlace de correo"
 
 #. Label of the login_with_email_link_expiry (Int) field in DocType 'System
 #. Settings'
@@ -15677,7 +15685,7 @@ msgstr "Cerrar sesión en todas las sesiones"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Logout All Sessions on Password Reset"
-msgstr ""
+msgstr "Cerrar sesión en todas las sesiones al restablecer la contraseña"
 
 #. Label of the logout_all_sessions (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -16012,7 +16020,7 @@ msgstr ""
 #. Label of the max_file_size (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Max File Size (MB)"
-msgstr ""
+msgstr "Tamaño máximo del archivo (MB)"
 
 #. Label of the max_height (Data) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -16027,7 +16035,7 @@ msgstr ""
 #. Label of the max_report_rows (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Max Report Rows"
-msgstr ""
+msgstr "Máximas filas de reportes"
 
 #. Label of the max_value (Int) field in DocType 'Web Form Field'
 #: frappe/website/doctype/web_form_field/web_form_field.json
@@ -16355,7 +16363,7 @@ msgstr ""
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Minimum Password Score"
-msgstr ""
+msgstr "Puntuación mínima de contraseña"
 
 #. Label of the minor (Int) field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
@@ -16578,7 +16586,7 @@ msgstr ""
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Monday"
-msgstr ""
+msgstr "Lunes"
 
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -16650,7 +16658,7 @@ msgstr ""
 #: frappe/core/doctype/user/user.json
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "More Information"
-msgstr ""
+msgstr "Más información"
 
 #: frappe/website/doctype/help_article/templates/help_article.html:19
 #: frappe/website/doctype/help_article/templates/help_article.html:33
@@ -17957,7 +17965,7 @@ msgstr ""
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Note: Multiple sessions will be allowed in case of mobile device"
-msgstr ""
+msgstr "Nota: Varias sesiones serán permitidas en el caso de los dispositivos móviles"
 
 #: frappe/core/doctype/user/user.js:397
 msgid "Note: This will be shared with user."
@@ -18132,12 +18140,12 @@ msgstr "Tarjetas de números"
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/geo/doctype/currency/currency.json
 msgid "Number Format"
-msgstr ""
+msgstr "Formato de Número"
 
 #. Label of the backup_limit (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Number of Backups"
-msgstr ""
+msgstr "Número de copias de seguridad"
 
 #. Label of the number_of_groups (Int) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -18256,12 +18264,12 @@ msgstr "O"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP App"
-msgstr ""
+msgstr "Aplicación OTP"
 
 #. Label of the otp_issuer_name (Data) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP Issuer Name"
-msgstr ""
+msgstr "Nombre del Emisor de OTP"
 
 #. Label of the otp_sms_template (Small Text) field in DocType 'System
 #. Settings'
@@ -18343,7 +18351,7 @@ msgstr "Los nombres de campos antiguos y nuevos son iguales."
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Older backups will be automatically deleted"
-msgstr ""
+msgstr "Copias de seguridad anteriores se eliminarán de forma automática"
 
 #. Label of the oldest_unscheduled_job (Link) field in DocType 'System Health
 #. Report'
@@ -19290,7 +19298,7 @@ msgstr "Restablecer contraseña"
 #. Label of the password_reset_limit (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Password Reset Link Generation Limit"
-msgstr ""
+msgstr "Límite de generación de enlaces de restablecimiento de contraseña"
 
 #: frappe/public/js/frappe/form/grid_row.js:895
 msgid "Password cannot be filtered"
@@ -20739,7 +20747,7 @@ msgstr ""
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Provide a list of allowed file extensions for file uploads. Each line should contain one allowed file type. If unset, all file extensions are allowed. Example: <br>CSV<br>JPG<br>PNG"
-msgstr ""
+msgstr "Proporcione una lista de extensiones de archivo permitidas para la carga de archivos. Cada línea debe contener un tipo de archivo permitido. Si no está configurado, se permiten todas las extensiones de archivo. Ejemplo: <br>CSV<br>JPG<br>PNG"
 
 #. Label of the provider (Data) field in DocType 'User Social Login'
 #. Label of the provider (Select) field in DocType 'Geolocation Settings'
@@ -22168,7 +22176,7 @@ msgstr "Informe:"
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:561
 msgid "Reports"
-msgstr ""
+msgstr "Informes"
 
 #: frappe/patches/v14_0/update_workspace2.py:50
 msgid "Reports & Masters"
@@ -22341,7 +22349,7 @@ msgstr "Duración de la caducidad del enlace de restablecimiento de contraseña"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Reset Password Template"
-msgstr ""
+msgstr "Plantilla para Restablecer Contraseña"
 
 #: frappe/core/page/permission_manager/permission_manager.js:116
 msgid "Reset Permissions for {0}?"
@@ -22728,7 +22736,7 @@ msgstr "Ronda secuencial"
 #. Label of the rounding_method (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Rounding Method"
-msgstr ""
+msgstr "Método de Redondeo"
 
 #. Label of the route (Data) field in DocType 'DocType'
 #. Option for the 'Action Type' (Select) field in DocType 'DocType Action'
@@ -23046,7 +23054,7 @@ msgstr ""
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Saturday"
-msgstr ""
+msgstr "Sábado"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: cypress/integration/web_form.js:52
@@ -23342,7 +23350,7 @@ msgstr "Scripts"
 #: frappe/templates/discussions/search.html:2
 #: frappe/templates/includes/search_template.html:26
 msgid "Search"
-msgstr ""
+msgstr "Buscar"
 
 #. Label of the search_bar (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -24185,7 +24193,7 @@ msgstr "Sesión expirada"
 #. Label of the session_expiry (Data) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Session Expiry (idle timeout)"
-msgstr ""
+msgstr "Expiración de la sesión (tiempo de inactivad)"
 
 #: frappe/core/doctype/system_settings/system_settings.py:125
 msgid "Session Expiry must be in format {0}"
@@ -24559,7 +24567,7 @@ msgstr "Mostrar"
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/core/doctype/user/user.json
 msgid "Show Absolute Datetime in Timeline"
-msgstr ""
+msgstr "Mostrar fecha y hora absolutas en la línea de tiempo"
 
 #. Label of the absolute_value (Check) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -24613,7 +24621,7 @@ msgstr "Mostrar error"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Show External Link Warning"
-msgstr ""
+msgstr "Mostrar advertencia de enlace externo"
 
 #: frappe/public/js/frappe/form/layout.js:597
 msgid "Show Fieldname (click to copy on clipboard)"
@@ -26054,7 +26062,7 @@ msgstr "Resumen"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Sunday"
-msgstr ""
+msgstr "Domingo"
 
 #: frappe/email/doctype/email_queue/email_queue_list.js:27
 msgid "Suspend Sending"
@@ -26348,7 +26356,7 @@ msgstr "Registros del sistema"
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 #: frappe/workflow/doctype/workflow_transition_tasks/workflow_transition_tasks.json
 msgid "System Manager"
-msgstr ""
+msgstr "Administrador del sistema"
 
 #: frappe/desk/page/backups/backups.js:38
 msgid "System Manager privileges required."
@@ -26367,7 +26375,7 @@ msgstr ""
 #. Name of a DocType
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "System Settings"
-msgstr ""
+msgstr "Configuración del Sistema"
 
 #. Label of a number card in the Users Workspace
 #: frappe/core/workspace/users/users.json
@@ -26546,7 +26554,7 @@ msgstr "Subtítulo de miembros del equipo"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Telemetry"
-msgstr ""
+msgstr "Telemetría"
 
 #. Label of the template (Link) field in DocType 'Auto Repeat'
 #. Label of the template (Code) field in DocType 'Address Template'
@@ -27389,7 +27397,7 @@ msgstr ""
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Thursday"
-msgstr ""
+msgstr "Jueves"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the time (Datetime) field in DocType 'Recorder'
@@ -27415,7 +27423,7 @@ msgstr "Hora"
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Time Format"
-msgstr ""
+msgstr "Formato de tiempo"
 
 #. Label of the time_interval (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -27462,7 +27470,7 @@ msgstr ""
 #. Label of the time_format (Data) field in DocType 'Country'
 #: frappe/geo/doctype/country/country.json
 msgid "Time format"
-msgstr ""
+msgstr "Formato de tiempo"
 
 #. Label of the time_in_queries (Float) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -28162,7 +28170,7 @@ msgstr "Trate de usar un patrón teclado ya con más vueltas"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Tuesday"
-msgstr ""
+msgstr "Martes"
 
 #. Label of the two_factor_auth (Check) field in DocType 'Role'
 #. Label of the two_factor_authentication (Section Break) field in DocType
@@ -28170,12 +28178,12 @@ msgstr ""
 #: frappe/core/doctype/role/role.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Two Factor Authentication"
-msgstr ""
+msgstr "Autenticación de doble factor"
 
 #. Label of the two_factor_method (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Two Factor Authentication method"
-msgstr ""
+msgstr "Método de autenticación de dos factores"
 
 #. Label of the communication_medium (Select) field in DocType 'Communication'
 #. Label of the fieldtype (Select) field in DocType 'DocField'
@@ -30017,7 +30025,7 @@ msgstr "WebSocket"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Wednesday"
-msgstr ""
+msgstr "Miércoles"
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:282
 msgid "Week"
@@ -30067,7 +30075,7 @@ msgstr "Bienvenido"
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Welcome Email Template"
-msgstr ""
+msgstr "Plantilla de Correo de bienvenida"
 
 #. Label of the welcome_url (Data) field in DocType 'Email Group'
 #: frappe/email/doctype/email_group/email_group.json
@@ -31110,7 +31118,7 @@ msgstr "Su antigua contraseña es incorrecta."
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Your organization name and address for the email footer."
-msgstr ""
+msgstr "El nombre de la organización y dirección para el pie de página del correo electrónico."
 
 #: frappe/templates/emails/auto_reply.html:2
 msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
@@ -31243,21 +31251,21 @@ msgstr "tablero"
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "dd-mm-yyyy"
-msgstr ""
+msgstr "dd-mm-aaaa"
 
 #. Option for the 'Date Format' (Select) field in DocType 'Language'
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "dd.mm.yyyy"
-msgstr ""
+msgstr "dd.mm.aaaa"
 
 #. Option for the 'Date Format' (Select) field in DocType 'Language'
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "dd/mm/yyyy"
-msgstr ""
+msgstr "dd/mm/aaaa"
 
 #. Option for the 'Queue' (Select) field in DocType 'RQ Job'
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
@@ -31488,14 +31496,14 @@ msgstr "fusionado {0} en {1}"
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "mm-dd-yyyy"
-msgstr ""
+msgstr "mm-dd-aaaa"
 
 #. Option for the 'Date Format' (Select) field in DocType 'Language'
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "mm/dd/yyyy"
-msgstr ""
+msgstr "mm/dd/aaaa"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:247
 msgid "module name..."
@@ -31861,7 +31869,7 @@ msgstr "ayer"
 #: frappe/core/doctype/language/language.json
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "yyyy-mm-dd"
-msgstr ""
+msgstr "aaaa-mm-dd"
 
 #: frappe/desk/doctype/event/event.js:87
 #: frappe/public/js/frappe/form/footer/form_timeline.js:547
