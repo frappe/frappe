@@ -42,6 +42,30 @@ def get_workflow_name(doctype):
 
 
 @frappe.whitelist()
+def is_enable_action_confirmation(
+	doc: Document | str | dict,
+	workflow: Workflow = None,
+) -> bool:
+	from frappe.model.document import Document
+
+	# loading doc, using same pattern as get_transitions
+	# for better compatibility
+	if not isinstance(doc, Document):
+		doc = frappe.get_doc(frappe.parse_json(doc))
+		doc.load_from_db()
+	doc.check_permission("read")
+
+	# get active workflow
+	workflow = workflow or get_workflow(doc.doctype)
+
+	if not workflow:
+		return False
+
+	# return value of `enable_action_confirmation` field
+	return workflow.enable_action_confirmation
+
+
+@frappe.whitelist()
 def get_transitions(
 	doc: Document | str | dict, workflow: Workflow = None, raise_exception: bool = False
 ) -> list[dict]:

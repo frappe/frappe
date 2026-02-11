@@ -102,14 +102,13 @@ frappe.ui.form.States = class FormStates {
 				if (frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
 					added = true;
 					me.frm.page.add_action_item(__(d.action), function () {
-						frappe.db
-							.get_value(
-								"Workflow",
-								{ document_type: me.frm.doctype },
-								"enable_action_confirmation"
-							)
+						frappe
+							.xcall(
+								"frappe.model.workflow.get_workflow_action_confirmation", {
+								doc: me.frm.doc,
+							})
 							.then((r) => {
-								if (r.message.enable_action_confirmation) {
+								if (r.message) {
 									frappe.confirm(
 										__("Are you sure you want to {0}?", [d.action]),
 										() => me.handle_workflow_action(d)
