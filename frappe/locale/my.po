@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-21 10:33\n"
+"PO-Revision-Date: 2026-02-11 17:42\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Burmese\n"
 "MIME-Version: 1.0\n"
@@ -104,11 +104,11 @@ msgstr ""
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:302
 msgid "(Mandatory)"
-msgstr ""
+msgstr "(မဖြစ်မနေထည့်သွင်းရန်)"
 
 #: frappe/model/rename_doc.py:699
 msgid "** Failed: {0} to {1}: {2}"
-msgstr ""
+msgstr "** Failed: {2}: {0} {1} မှ"
 
 #: frappe/public/js/frappe/list/list_settings.js:135
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:111
@@ -138,7 +138,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/reminders.js:19
 msgid "1 Day"
-msgstr ""
+msgstr "၁ ရက်"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:374
 msgid "1 Google Calendar Event synced."
@@ -146,7 +146,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/reports/query_report.js:889
 msgid "1 Report"
-msgstr ""
+msgstr "၁ အစီရင်ခံစာ"
 
 #: frappe/website/doctype/blog_post/blog_post.py:374
 msgid "1 comment"
@@ -154,7 +154,7 @@ msgstr ""
 
 #: frappe/tests/test_utils.py:816
 msgid "1 day ago"
-msgstr ""
+msgstr "လွန်ခဲ့သော ၁ ရက်က"
 
 #: frappe/public/js/frappe/form/reminders.js:17
 msgid "1 hour"
@@ -163,21 +163,21 @@ msgstr ""
 #: frappe/public/js/frappe/utils/pretty_date.js:52
 #: frappe/tests/test_utils.py:814
 msgid "1 hour ago"
-msgstr ""
+msgstr "လွန်ခဲ့သော 1 နာရီက"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:48
 #: frappe/tests/test_utils.py:812
 msgid "1 minute ago"
-msgstr ""
+msgstr "လွန်ခဲ့သော 1 မိနစ်က"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:66
 #: frappe/tests/test_utils.py:820
 msgid "1 month ago"
-msgstr ""
+msgstr "လွန်ခဲ့သော 1 လ"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:3
 msgid "1 of 2"
-msgstr ""
+msgstr "၁ သို့ ၂"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:227
 msgid "1 record will be exported"
@@ -195,37 +195,37 @@ msgstr ""
 
 #: frappe/tests/test_utils.py:811
 msgid "1 second ago"
-msgstr ""
+msgstr "လွန်ခဲ့သော ၁ စက္ကန့် က"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:62
 #: frappe/tests/test_utils.py:818
 msgid "1 week ago"
-msgstr ""
+msgstr "လွန်ခဲ့သော ၁ ပတ်က"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:70
 #: frappe/tests/test_utils.py:822
 msgid "1 year ago"
-msgstr ""
+msgstr "လွန်ခဲ့သော 1 နှစ်"
 
 #: frappe/tests/test_utils.py:815
 msgid "2 hours ago"
-msgstr ""
+msgstr "လွန်ခဲ့သော၂ နာရီက"
 
 #: frappe/tests/test_utils.py:821
 msgid "2 months ago"
-msgstr ""
+msgstr "လွန်ခဲ့သော 2 လက"
 
 #: frappe/tests/test_utils.py:819
 msgid "2 weeks ago"
-msgstr ""
+msgstr "လွန်ခဲ့သော၂ ပတ်က"
 
 #: frappe/tests/test_utils.py:823
 msgid "2 years ago"
-msgstr ""
+msgstr "လွန်ခဲ့သော၂ နှစ်က"
 
 #: frappe/tests/test_utils.py:813
 msgid "3 minutes ago"
-msgstr ""
+msgstr "လွန်ခဲ့တဲ့ ၃ မိနစ်က"
 
 #: frappe/public/js/frappe/form/reminders.js:16
 msgid "30 minutes"
@@ -241,7 +241,7 @@ msgstr ""
 
 #: frappe/tests/test_utils.py:817
 msgid "5 days ago"
-msgstr ""
+msgstr "လွန်ခဲ့သော ၅ ရက်"
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:38
 msgid "; not allowed in condition"
@@ -1533,12 +1533,12 @@ msgstr ""
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Save"
-msgstr ""
+msgstr "သိမ်းဆည်းပြီးနောက်"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Save (Submitted Document)"
-msgstr ""
+msgstr "သိမ်းဆည်းပြီးနောက် (အတည်ပြုခြင်း)"
 
 #. Label of a Section Break field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -2088,7 +2088,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/save.js:12
 msgctxt "Freeze message while amending a document"
 msgid "Amending"
-msgstr ""
+msgstr "ပြင်ဆင်ချက်"
 
 #. Label of a Table field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
@@ -2476,7 +2476,7 @@ msgstr ""
 
 #: frappe/workflow/doctype/workflow/workflow.js:125
 msgid "Are you sure you want to save this document?"
-msgstr ""
+msgstr "လက်ရှိ လုပ်ဆောင်ချက်ကို သိမ်းဆည်းမည် မှာ သေချာပါသလား။"
 
 #: frappe/email/doctype/newsletter/newsletter.js:60
 msgid "Are you sure you want to send this newsletter now?"
@@ -3453,12 +3453,12 @@ msgstr ""
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Before Save"
-msgstr ""
+msgstr "သိမ်းဆည်းခြင်းမပြုမီ"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Before Save (Submitted Document)"
-msgstr ""
+msgstr "သိမ်းဆည်းခြင်းမပြုမီ (စာရွက်စာတမ်းအားတင်သွင်းပြီး)"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -4138,7 +4138,7 @@ msgstr ""
 #: frappe/public/js/frappe/model/indicator.js:78
 #: frappe/public/js/frappe/ui/filters/filter.js:538
 msgid "Cancelled"
-msgstr ""
+msgstr "ပယ်ဖျက်ခဲ့သည်။"
 
 #: frappe/core/doctype/deleted_document/deleted_document.py:52
 msgid "Cancelled Document restored as Draft"
@@ -4147,7 +4147,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/save.js:13
 msgctxt "Freeze message while cancelling a document"
 msgid "Cancelling"
-msgstr ""
+msgstr "ပယ်ဖျက်နေသည်။"
 
 #: frappe/desk/form/linked_with.py:381
 msgid "Cancelling documents"
@@ -7888,7 +7888,7 @@ msgstr ""
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:420
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:439
 msgid "Document Saved"
-msgstr ""
+msgstr "အချက်အလက်ကို သိမ်းဆည်းပြီးပါပြီ။"
 
 #. Label of a Check field in DocType 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
@@ -9157,7 +9157,7 @@ msgstr ""
 #. Description of a DocType
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "Enabling this will register your site on a central relay server to send push notifications for all installed apps through Firebase Cloud Messaging. This server only stores user tokens and error logs, and no messages are saved."
-msgstr ""
+msgstr "၎င်းကိုဖွင့်ခြင်းဖြင့် Firebase Cloud Messaging မှတစ်ဆင့် ထည့်သွင်းထားသော အက်ပ်အားလုံးအတွက် push အကြောင်းကြားချက်များပေးပို့ရန်အတွက် သင့်ဆိုက်ကို ဗဟို relay server တွင် မှတ်ပုံတင်ပေးမည်ဖြစ်သည်။ ဤဆာဗာသည် အသုံးပြုသူတိုကင်များနှင့် အမှားမှတ်တမ်းများကိုသာ သိမ်းဆည်းပြီး မက်ဆေ့ချ်များကို မသိမ်းဆည်းပါ။"
 
 #. Description of the 'Relay Settings' (Section Break) field in DocType 'Push
 #. Notification Settings'
@@ -22606,7 +22606,7 @@ msgstr ""
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:15
 #: frappe/public/js/workflow_builder/workflow_builder.bundle.js:33
 msgid "Save"
-msgstr ""
+msgstr "သိမ်းမည်။"
 
 #: frappe/workflow/doctype/workflow/workflow.js:143
 msgid "Save Anyway"
@@ -29991,7 +29991,7 @@ msgstr ""
 #: frappe/public/js/frappe/utils/user.js:33
 msgctxt "Name of the current user. For example: You edited this 5 hours ago."
 msgid "You"
-msgstr ""
+msgstr "သင်"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:464
 msgid "You Liked"
@@ -32297,7 +32297,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:60
 msgid "{0} days ago"
-msgstr ""
+msgstr "လွန်ခဲ့တဲ့ {0} ရက်ပတ်လုံး"
 
 #: frappe/website/doctype/website_settings/website_settings.py:96
 #: frappe/website/doctype/website_settings/website_settings.py:116
@@ -32358,7 +32358,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:54
 msgid "{0} hours ago"
-msgstr ""
+msgstr "{0} နာရီအကြာက"
 
 #: frappe/website/doctype/web_form/templates/web_form.html:152
 msgid "{0} if you are not redirected within {1} seconds"
@@ -32550,11 +32550,11 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:50
 msgid "{0} minutes ago"
-msgstr ""
+msgstr "{0} မိနစ်အကြာက"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:68
 msgid "{0} months ago"
-msgstr ""
+msgstr "{0} လ အကြာက"
 
 #: frappe/model/document.py:1644
 msgid "{0} must be after {1}"
@@ -32766,7 +32766,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:64
 msgid "{0} weeks ago"
-msgstr ""
+msgstr "{0} ရက်သတ္တပတ်များ အကြာက"
 
 #: frappe/core/page/permission_manager/permission_manager.js:373
 msgid "{0} with the role <strong>{1}</strong>"
@@ -32778,7 +32778,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:72
 msgid "{0} years ago"
-msgstr ""
+msgstr "{0} လွန်ခဲ့တဲ့နှစ်ပေါင်း အကြာက"
 
 #: frappe/public/js/frappe/form/link_selector.js:219
 msgid "{0} {1} added"
