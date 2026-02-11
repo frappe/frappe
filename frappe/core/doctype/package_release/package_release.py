@@ -51,6 +51,7 @@ class PackageRelease(Document):
 				or 0
 			)
 		if self.patch is None:
+			# if no patch ver from query, will be incremented to 0
 			value = (
 				frappe.qb.from_(doctype)
 				.where(doctype.package == self.package)
@@ -58,7 +59,7 @@ class PackageRelease(Document):
 				.where(doctype.minor == self.minor)
 				.select(Max(doctype.patch))
 				.run()[0][0]
-				or 0
+				or -1
 			)
 			self.patch = value + 1
 
