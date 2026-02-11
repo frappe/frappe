@@ -175,8 +175,16 @@ Object.assign(frappe.model, {
 			}
 		}
 
+<<<<<<< HEAD
 		if (local_doc?.on_paste_event && local_doc?.__newname) {
 			doc.__newname = local_doc.__newname;
+=======
+		if (
+			(local_parent_doc?.on_paste_event || updated_doc.__islocal) &&
+			local_parent_doc?.__newname
+		) {
+			updated_doc.__newname = local_parent_doc.__newname;
+>>>>>>> 7f35fa222e (refactor: DRYer __newname preservation)
 		}
 
 		// clear keys on parent
