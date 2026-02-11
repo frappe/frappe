@@ -53,11 +53,10 @@ frappe.call = function (opts) {
 		});
 	}
 
-	// Resolve parameters precedence
-	var input_args = options.args || {};
+	// Resolve parameters precedence between top-level options and args
 	var resolved_params = helpers.resolve_parameter_precedence({
 		opts: { freeze: options.freeze, freeze_message: options.freeze_message },
-		args: { freeze: input_args.freeze, freeze_message: input_args.freeze_message },
+		args: { freeze: options.args?.freeze, freeze_message: options.args?.freeze_message },
 	});
 
 	// Resolve effective doc_origin and api_version
@@ -70,7 +69,7 @@ frappe.call = function (opts) {
 	// Build server payload
 	var payload_result = helpers.build_server_payload({
 		method: options.method,
-		args: input_args,
+		args: options.args,
 		doc: options.doc,
 		doc_origin: doc_origin_resolution.doc_origin,
 		api_version: doc_origin_resolution.api_version,
@@ -168,14 +167,17 @@ frappe.call._helpers = {
 			return {
 				opts: {
 					method,
-					args,
+					args: args || {},
 					callback,
 					headers,
 				},
 			};
 		}
+
+		var opts = first_arg;
+		opts.args = opts.args || {};
 		
-		return { opts: { ...first_arg } };
+		return { opts };
 	},
 
 	/**
