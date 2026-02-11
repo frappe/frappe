@@ -499,9 +499,11 @@ from {tables}
 				if isinstance(token, Function):
 					if (name := (token.get_name())) and name.lower() in blacklisted_functions:
 						_raise_exception()
-				if token.ttype == tokens.Keyword:
-					if token.value.lower() in blacklisted_keywords:
+
+				if token.ttype in (tokens.Keyword, tokens.Name):
+					if any(re.search(rf"\b{kw}\b", token.value.lower()) for kw in blacklisted_keywords):
 						_raise_exception()
+
 				if token.is_group:
 					_check_sql_token(token)
 

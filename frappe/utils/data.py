@@ -2293,7 +2293,7 @@ def _sanitize_column(column_name: str, db_type: str) -> str:
 	def _raise_exception():
 		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
 
-	regex = re.compile("^.*[,'();\n].*")
+	regex = re.compile("^.*[,'();\n`].*")
 	if "ifnull" in column_name:
 		if regex.match(column_name):
 			# to avoid and, or

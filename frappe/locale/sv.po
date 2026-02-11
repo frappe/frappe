@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-08 09:41+0000\n"
-"PO-Revision-Date: 2026-02-08 18:25\n"
+"PO-Revision-Date: 2026-02-10 18:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -6096,7 +6096,7 @@ msgstr "Cron Format"
 
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.py:62
 msgid "Cron format is required for job types with Cron frequency."
-msgstr "Cron format erfordras för jobbtyper med Cron frekvens."
+msgstr "Cron format erfordras för jobbtyper med Cron intervall."
 
 #: frappe/public/js/frappe/file_uploader/ImageCropper.vue:34
 msgid "Crop"
@@ -20090,7 +20090,7 @@ msgstr "Ange giltig överordnad DocType för {0}"
 
 #: frappe/email/doctype/notification/notification.py:165
 msgid "Please specify at least 10 minutes due to the trigger cadence of the scheduler"
-msgstr "Ange minst 10 minuter på grund av utlösande stegfrekvens av schemaläggare"
+msgstr "Ange minst 10 minuter på grund av utlösande steg intervall av schemaläggare"
 
 #: frappe/email/doctype/notification/notification.py:172
 msgid "Please specify the field from which to attach files"
@@ -23846,7 +23846,7 @@ msgstr "Skicka"
 #. Description of the 'Minutes Offset' (Int) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Send <b>at the earliest</b> this number of minutes before or after the reference datetime. The actual sending may be delayed by up to 5 minutes due to the scheduler's trigger cadence."
-msgstr "Skicka <b>tidigast</b> detta antal minuter före eller efter referensdatum. Den faktiska sändningen kan fördröjas med upp till 5 minuter på grund av schemaläggarens stegfrekvens."
+msgstr "Skicka <b>tidigast</b> detta antal minuter före eller efter referensdatum. Den faktiska sändningen kan fördröjas med upp till 5 minuter på grund av schemaläggarens steg intervall."
 
 #. Label of the send_after (Datetime) field in DocType 'Communication'
 #. Label of the send_after (Datetime) field in DocType 'Email Queue'

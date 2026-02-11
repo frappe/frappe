@@ -291,7 +291,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	set_primary_action() {
 		if (this.can_create && !frappe.boot.read_only) {
 			const doctype_name = __(frappe.router.doctype_layout) || __(this.doctype);
-			this.page.set_primary_action(
+			const create_button = this.page.set_primary_action(
 				__("Add {0}", [doctype_name], "Primary action in list view"),
 				() => {
 					if (this.settings.primary_action) {
@@ -302,6 +302,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 				"add"
 			);
+			if (frappe.is_mobile()) {
+				create_button.append(__("Add"));
+			}
 		} else {
 			this.page.clear_primary_action();
 		}
