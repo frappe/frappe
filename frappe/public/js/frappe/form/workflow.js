@@ -103,8 +103,7 @@ frappe.ui.form.States = class FormStates {
 					added = true;
 					me.frm.page.add_action_item(__(d.action), function () {
 						frappe
-							.xcall(
-								"frappe.model.workflow.get_workflow_action_confirmation", {
+							.xcall("frappe.model.workflow.get_workflow_action_confirmation", {
 								doc: me.frm.doc,
 							})
 							.then((r) => {
