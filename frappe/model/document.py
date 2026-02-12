@@ -1051,10 +1051,28 @@ class Document(BaseDocument):
 		- Submit (1) > Cancel (2)
 
 		"""
+
 		if to_docstatus == DocStatus.DRAFT:
 			if self.docstatus.is_draft():
 				self._action = "save"
 			elif self.docstatus.is_submitted():
+				if not getattr(self.meta, "is_submittable", False):
+					# Exception: workflows can manage docstatus for non-submittable doctypes
+					workflow_name = self.meta.get_workflow()
+					if workflow_name:
+						from frappe.model.workflow import get_workflow
+
+						workflow = get_workflow(self.doctype)
+						if not (workflow and workflow.get("_update_state_docstatus")):
+							raise frappe.DocstatusTransitionError(
+								_("Cannot change docstatus of non submittable doctype {0}").format(
+									self.doctype
+								)
+							)
+					else:
+						raise frappe.DocstatusTransitionError(
+							_("Cannot change docstatus of non submittable doctype {0}").format(self.doctype)
+						)
 				self._action = "submit"
 				self.check_permission("submit")
 			elif self.docstatus.is_cancelled():
