@@ -74,22 +74,12 @@ frappe.ui.form.on("Print Format", {
 	},
 	update_field_requirements: function (frm) {
 		// Update field requirements based on custom_format and raw_printing
-		if (frm.doc.custom_format) {
-			if (frm.doc.raw_printing) {
-				// Raw printing enabled: raw_commands required, HTML not required
-				frm.set_df_property("html", "reqd", 0);
-				frm.set_df_property("raw_commands", "reqd", 1);
-			} else {
-				// Raw printing disabled: HTML required, raw_commands not required
-				frm.set_df_property("html", "reqd", 1);
-				frm.set_df_property("raw_commands", "reqd", 0);
-			}
-		} else {
-			// Not custom format: neither field required
-			frm.set_df_property("html", "reqd", 0);
-			frm.set_df_property("raw_commands", "reqd", 0);
-		}
-	},
+		const is_custom = frm.doc.custom_format;
+		const is_raw_printing = frm.doc.raw_printing;
+		
+		frm.set_df_property("html", "reqd", is_custom && !is_raw_printing);
+		frm.set_df_property("raw_commands", "reqd", is_custom && is_raw_printing);
+	}
 	doc_type: function (frm) {
 		frm.trigger("hide_absolute_value_field");
 	},
