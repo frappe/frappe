@@ -66,6 +66,18 @@ class PrintFormat(Document):
 			filters={"document_type": self.doc_type},
 		)
 		self.set_onload("print_templates", templates)
+		self.load_content_from_files()
+
+	def load_content_from_files(self):
+		"""Hydrate file-backed content in-memory for frontend actions."""
+		if self.standard != "Yes" or not self.custom_format:
+			return
+
+		if self.raw_printing:
+			self.raw_commands = self.get_format_raw_commands()
+		else:
+			self.html = self.get_format_html()
+			self.css = self.get_format_css()
 
 	def before_save(self):
 		if self.print_format_for == "Report":
@@ -161,18 +173,18 @@ class PrintFormat(Document):
 		self.create_format_file(html, "html")
 		self.create_format_file(css, "css")
 
-	def import_from_files(self):
+	def import_from_files(self, overwrite_existing=False):
 		if self.custom_format:
 			if self.raw_printing:
 				raw_commands = self._get_format_file_content("txt")
-				if raw_commands is not None:
+				if raw_commands is not None and (overwrite_existing or self.raw_commands is None):
 					self.raw_commands = raw_commands
 			else:
 				html = self._get_format_file_content("html")
-				if html is not None:
+				if html is not None and (overwrite_existing or self.html is None):
 					self.html = html
 				css = self._get_format_file_content("css")
-				if css is not None:
+				if css is not None and (overwrite_existing or self.css is None):
 					self.css = css
 		folder = self.get_format_folder()
 		if folder and folder.exists():
@@ -315,6 +327,24 @@ def make_default(name: str):
 			frappe.bold(name), frappe.bold(print_format.doc_type)
 		)
 	)
+
+
+@frappe.whitelist()
+def get_print_format_file_content(name: str) -> dict:
+	if not name:
+		return {}
+
+	try:
+		print_format = frappe.get_doc("Print Format", name)
+	except frappe.DoesNotExistError:
+		return {}
+
+	print_format.check_permission("read")
+	return {
+		"html": print_format.get_format_html(),
+		"css": print_format.get_format_css(),
+		"raw_commands": print_format.get_format_raw_commands(),
+	}
 
 
 @frappe.whitelist()

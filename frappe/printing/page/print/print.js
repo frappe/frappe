@@ -277,10 +277,32 @@ frappe.ui.form.PrintView = class {
 			print_format.print_format_type === "Jinja";
 
 		if (is_standard_jinja_custom) {
-			let doc = frappe.get_doc("Print Format", print_format.name);
-			frappe.model.with_doctype("Print Format", () => {
-				let newdoc = frappe.model.copy_doc(doc);
-				frappe.set_route("Form", "Print Format", newdoc.name);
+			frappe.model.with_doc("Print Format", print_format.name, () => {
+				let doc = frappe.get_doc("Print Format", print_format.name);
+
+				frappe
+					.xcall(
+						"frappe.printing.doctype.print_format.print_format.get_print_format_file_content",
+						{
+							name: print_format.name,
+						}
+					)
+					.then((content) => {
+						content = content || {};
+						if (doc.raw_printing) {
+							doc.raw_commands = content.raw_commands || "";
+						} else {
+							doc.html = content.html || "";
+							doc.css = content.css || "";
+						}
+					})
+					.catch(() => null)
+					.finally(() => {
+						frappe.model.with_doctype("Print Format", () => {
+							let newdoc = frappe.model.copy_doc(doc);
+							frappe.set_route("Form", "Print Format", newdoc.name);
+						});
+					});
 			});
 			return;
 		}

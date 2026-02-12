@@ -19,8 +19,60 @@ frappe.ui.form.on("Print Format", {
 			frm.set_intro(__("Please duplicate this to make changes"));
 		}
 		frm.trigger("render_buttons");
+		frm.trigger("load_standard_content_from_files");
 		frm.toggle_display("standard", frappe.boot.developer_mode);
 		frm.trigger("hide_absolute_value_field");
+	},
+	before_copy: function (frm) {
+		return frm.trigger("load_standard_content_from_files");
+	},
+	load_standard_content_from_files: function (frm) {
+		if (
+			frm.is_new() ||
+			frm.doc.standard !== "Yes" ||
+			!frm.doc.custom_format ||
+			!frm.doc.name
+		) {
+			return Promise.resolve();
+		}
+
+		const needs_content = frm.doc.raw_printing
+			? frm.doc.raw_commands == null
+			: frm.doc.html == null || frm.doc.css == null;
+		if (!needs_content) {
+			return Promise.resolve();
+		}
+
+		if (frm.__standard_content_loading) {
+			return frm.__standard_content_loading;
+		}
+
+		frm.__standard_content_loading = frappe
+			.xcall(
+				"frappe.printing.doctype.print_format.print_format.get_print_format_file_content",
+				{
+					name: frm.doc.name,
+				}
+			)
+			.then((content) => {
+				content = content || {};
+				if (frm.doc.raw_printing) {
+					frm.doc.raw_commands = content.raw_commands || "";
+					frm.refresh_field("raw_commands");
+					return;
+				}
+
+				frm.doc.html = content.html || "";
+				frm.doc.css = content.css || "";
+				frm.refresh_field("html");
+				frm.refresh_field("css");
+			})
+			.catch(() => null)
+			.finally(() => {
+				frm.__standard_content_loading = null;
+			});
+
+		return frm.__standard_content_loading;
 	},
 	render_buttons: function (frm) {
 		frm.page.clear_inner_toolbar();
