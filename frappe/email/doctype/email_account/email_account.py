@@ -186,7 +186,8 @@ class EmailAccount(Document):
 					self.no_failed = 0
 
 				if self.enable_outgoing:
-					self.validate_smtp_conn()
+					session = self.validate_smtp_conn()
+					self.validate_dsn(session)
 			else:
 				if self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
 					if not use_oauth:
@@ -217,6 +218,18 @@ class EmailAccount(Document):
 
 		server = self.get_smtp_server()
 		return server.session
+
+	def validate_dsn(self, smtp_session) -> None:
+		"""Validate if the configured SMTP server supports DSN (Delivery Status Notification)."""
+
+		if not self.dsn_notify_type:
+			return
+
+		if not smtp_session.has_extn("DSN"):
+			self.dsn_notify_type = None
+			frappe.msgprint(
+				_("The configured SMTP server does not support DSN (Delivery Status Notification).")
+			)
 
 	def before_save(self):
 		messages = []
