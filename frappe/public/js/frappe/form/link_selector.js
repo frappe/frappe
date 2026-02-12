@@ -97,9 +97,9 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 						var row = $(
 							repl(
 								'<div class="row link-select-row">\
-						<div class="col-xs-4" style="overflow-wrap: break-word;">\
+						<div class="col-xs-4 text-break">\
 							<b><a href="#">%(name)s</a></b></div>\
-						<div class="col-xs-8" style="overflow-wrap: break-word;">\
+						<div class="col-xs-8 text-break">\
 							<span class="text-muted">%(values)s</span></div>\
 						</div>',
 								{
