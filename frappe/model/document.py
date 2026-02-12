@@ -1050,6 +1050,8 @@ class Document(BaseDocument):
 		- Submit (1) > Cancel (2)
 
 		"""
+		if not self.meta.is_submittable:
+			raise frappe.DocstatusTransitionError(_("Cannot change docstatus of non submittable doctype {0}").format(self.doctype))
 		if to_docstatus == DocStatus.DRAFT:
 			if self.docstatus.is_draft():
 				self._action = "save"
