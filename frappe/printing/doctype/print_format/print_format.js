@@ -67,7 +67,7 @@ frappe.ui.form.on("Print Format", {
 		frm.set_value("show_section_headings", value);
 		frm.set_value("line_breaks", value);
 		frm.trigger("render_buttons");
-		frm.trigger("update_field_requirements");
+		frm.trigger("update_field_conditions");
 	},
 	raw_printing: function (frm) {
 		frm.trigger("update_field_requirements");
