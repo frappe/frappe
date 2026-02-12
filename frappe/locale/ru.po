@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-08 09:41+0000\n"
-"PO-Revision-Date: 2026-02-08 18:25\n"
+"PO-Revision-Date: 2026-02-12 19:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -16130,7 +16130,7 @@ msgstr ""
 #. Group in Email Group's connections
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Members"
-msgstr ""
+msgstr "Члены"
 
 #. Label of the cache_memory_usage (Data) field in DocType 'System Health
 #. Report'
@@ -17174,7 +17174,7 @@ msgstr "Доступны новые обновления"
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "New users will have to be manually registered by system managers."
-msgstr ""
+msgstr "Новые пользователи должны будут регистрироваться вручную менеджерами системы."
 
 #. Description of the 'Set Value' (Small Text) field in DocType 'Property
 #. Setter'
@@ -18860,7 +18860,7 @@ msgstr "Исходное значение"
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/page/setup_wizard/install_fixtures.py:30
 msgid "Other"
-msgstr ""
+msgstr "Другие"
 
 #. Label of the outgoing_tab (Tab Break) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -19630,7 +19630,7 @@ msgstr ""
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Personal"
-msgstr ""
+msgstr "Личный"
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
@@ -20688,7 +20688,7 @@ msgstr "Профессор"
 #. Group in User's connections
 #: frappe/core/doctype/user/user.json
 msgid "Profile"
-msgstr ""
+msgstr "Профиль"
 
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
@@ -23272,7 +23272,7 @@ msgstr "Планировщик: Неактивен"
 #. Label of the scope (Data) field in DocType 'OAuth Scope'
 #: frappe/integrations/doctype/oauth_scope/oauth_scope.json
 msgid "Scope"
-msgstr ""
+msgstr "Область применения"
 
 #. Label of the sb_scope_section (Section Break) field in DocType 'Connected
 #. App'
