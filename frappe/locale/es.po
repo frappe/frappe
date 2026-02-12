@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-31 14:30\n"
+"PO-Revision-Date: 2026-02-12 17:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -11232,7 +11232,7 @@ msgstr "Frecuencia"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Friday"
-msgstr ""
+msgstr "Viernes"
 
 #. Label of a Data field in DocType 'Communication'
 #. Label of a Section Break field in DocType 'Newsletter'
@@ -15782,7 +15782,7 @@ msgstr "Longitud Máxima"
 #. Label of a Int field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Max Report Rows"
-msgstr ""
+msgstr "Máximas filas de reportes"
 
 #. Label of a Int field in DocType 'Web Form Field'
 #: frappe/website/doctype/web_form_field/web_form_field.json
@@ -16348,7 +16348,7 @@ msgstr "Módulos HTML"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Monday"
-msgstr ""
+msgstr "Lunes"
 
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -22781,7 +22781,7 @@ msgstr "Muestra."
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Saturday"
-msgstr ""
+msgstr "Sábado"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: cypress/integration/web_form.js:46
@@ -24386,7 +24386,7 @@ msgstr "Mostrar \"Llamada a la acción\" en el blog"
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Show Absolute Datetime in Timeline"
-msgstr ""
+msgstr "Mostrar fecha y hora absolutas en la línea de tiempo"
 
 #. Label of a Check field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -25787,7 +25787,7 @@ msgstr "Resumen"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Sunday"
-msgstr ""
+msgstr "Domingo"
 
 #: frappe/email/doctype/email_queue/email_queue_list.js:27
 msgid "Suspend Sending"
@@ -27112,7 +27112,7 @@ msgstr "URL en miniatura"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Thursday"
-msgstr ""
+msgstr "Jueves"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of a Datetime field in DocType 'Recorder'
@@ -27956,7 +27956,7 @@ msgstr "Trate de usar un patrón teclado ya con más vueltas"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Tuesday"
-msgstr ""
+msgstr "Martes"
 
 #. Label of a Check field in DocType 'Role'
 #. Label of a Section Break field in DocType 'System Settings'
@@ -29724,7 +29724,7 @@ msgstr "WebSocket"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Wednesday"
-msgstr ""
+msgstr "Miércoles"
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:270
 msgid "Week"
