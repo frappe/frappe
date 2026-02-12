@@ -249,6 +249,8 @@ frappe.views.Calendar = class Calendar {
 	}
 	setup_options(defaults) {
 		var me = this;
+		const user_time_fmt = frappe.datetime.get_user_time_fmt();
+		const event_time_fmt = user_time_fmt.replace(/[:.]s{1,2}/g, "").trim();
 		defaults.meridiem = "false";
 		this.cal_options = {
 			locale: frappe.boot.lang,
@@ -256,11 +258,7 @@ frappe.views.Calendar = class Calendar {
 				left: "prev, title, next",
 				right: "today, month, agendaWeek, agendaDay",
 			},
-			eventTimeFormat: {
-				hour: "numeric",
-				minute: "2-digit",
-				hour12: true,
-			},
+			eventTimeFormat: event_time_fmt,
 			editable: true,
 			selectable: true,
 			selectHelper: true,
