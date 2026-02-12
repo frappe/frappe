@@ -1420,14 +1420,17 @@ frappe.ui.form.Form = class FrappeForm {
 
 	copy_doc(onload, from_amend) {
 		this.validate_form_action("Create");
-		var newdoc = frappe.model.copy_doc(this.doc, from_amend);
+		return this.script_manager.trigger("before_copy").then(() => {
+			var newdoc = frappe.model.copy_doc(this.doc, from_amend);
 
-		newdoc.idx = null;
-		newdoc.__run_link_triggers = false;
-		if (onload) {
-			onload(newdoc);
-		}
-		frappe.set_route("Form", newdoc.doctype, newdoc.name);
+			newdoc.idx = null;
+			newdoc.__run_link_triggers = false;
+			if (onload) {
+				onload(newdoc);
+			}
+			frappe.set_route("Form", newdoc.doctype, newdoc.name);
+			return newdoc;
+		});
 	}
 
 	reload_doc() {
