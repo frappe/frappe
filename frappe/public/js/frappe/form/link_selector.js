@@ -99,7 +99,7 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 								'<div class="row link-select-row">\
 						<div class="col-xs-4" style="overflow-wrap: break-word;">\
 							<b><a href="#">%(name)s</a></b></div>\
-						<div class="col-xs-8">\
+						<div class="col-xs-8" style="overflow-wrap: break-word;">\
 							<span class="text-muted">%(values)s</span></div>\
 						</div>',
 								{
