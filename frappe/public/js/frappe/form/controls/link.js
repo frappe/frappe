@@ -242,7 +242,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				) {
 					html +=
 						'<br><span class="small">' +
-						__(frappe.utils.escape_html(d.description)) +
+						__(frappe.utils.escape_html(frappe.utils.html2text(d.description))) +
 						"</span>";
 				}
 				return $(`<div role="option">`)
