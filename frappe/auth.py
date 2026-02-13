@@ -176,9 +176,12 @@ class LoginManager:
 		self.set_user_info()
 
 	def get_user_info(self):
-		self.info = frappe.get_cached_value(
+		result = frappe.get_cached_value(
 			"User", self.user, ["user_type", "first_name", "last_name", "user_image"], as_dict=1
 		)
+		if result is None:
+			frappe.throw(_("User does not exist"), frappe.DoesNotExistError)
+		self.info = result
 		self.user_type = self.info.user_type
 
 	def setup_boot_cache(self):
