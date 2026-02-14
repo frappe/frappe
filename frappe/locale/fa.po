@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-08 09:41+0000\n"
-"PO-Revision-Date: 2026-02-08 18:25\n"
+"PO-Revision-Date: 2026-02-14 19:43\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -4313,7 +4313,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/interaction.js:72
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Category"
-msgstr "دسته بندی"
+msgstr "دسته‌بندی"
 
 #. Label of the category_description (Text) field in DocType 'Help Category'
 #: frappe/website/doctype/help_category/help_category.json
@@ -11680,7 +11680,7 @@ msgstr ""
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/website/report/website_analytics/website_analytics.js:32
 msgid "Group By"
-msgstr "دسته بندی بر اساس"
+msgstr "دسته‌بندی بر اساس"
 
 #. Label of the group_by_based_on (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
