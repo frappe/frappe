@@ -424,21 +424,27 @@ class Email:
 
 	def set_subject(self):
 		"""Parse and decode `Subject` header."""
-		_subject = decode_header(self.mail.get("Subject", "No Subject"))
-		self.subject = _subject[0][0] or ""
 
-		if charset := _subject[0][1]:
-			# Encoding is known by decode_header (might also be unknown-8bit)
-			self.subject = safe_decode(self.subject, charset, ALTERNATE_CHARSET_MAP)
+		raw_subject = self.mail.get("Subject")
+		if not raw_subject:
+			self.subject = "No Subject"
+			return
 
-		if isinstance(self.subject, bytes):
-			# Fall back to utf-8 if the charset is unknown or decoding fails
-			# Replace invalid characters with '<?>'
-			self.subject = self.subject.decode("utf-8", "replace")
+		decoded_fragments = []
+		for fragment, charset in decode_header(raw_subject):
+			if isinstance(fragment, bytes):
+				charset = charset or "utf-8"
+				try:
+					fragment = fragment.decode(charset, errors="replace")
+				except LookupError:
+					# Fallback to utf-8 if decoding fails
+					fragment = fragment.decode("utf-8", errors="replace")
+			decoded_fragments.append(fragment)
 
-		# Convert non-string (e.g. None)
+		subject = "".join(decoded_fragments).strip()
+
 		# Truncate to 140 chars (can be used as a document name)
-		self.subject = str(self.subject).strip()[:140] or "No Subject"
+		self.subject = subject[:140] if subject else "No Subject"
 
 	def set_from(self):
 		# gmail mailing-list compatibility
