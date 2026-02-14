@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-08 09:41+0000\n"
-"PO-Revision-Date: 2026-02-08 18:25\n"
+"PO-Revision-Date: 2026-02-14 19:43\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Slovenian\n"
 "MIME-Version: 1.0\n"
@@ -606,7 +606,7 @@ msgstr "<h4>Primer Odgovora po E-pošti</h4>\n\n"
 #. Content of the 'html_5' (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "<h5 class=\"text-muted uppercase\">Or</h5>"
-msgstr ""
+msgstr "<h5 class=\"text-muted uppercase\">Ali</h5>"
 
 #. Content of the 'Message Examples' (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -2112,7 +2112,7 @@ msgstr "Dovoli uporabniku prijavo samo pred to uro (0–24)"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow users to log in without a password, using a login link sent to their email"
-msgstr ""
+msgstr "Dovoli uporabnikom prijavo brez gesla z uporabo povezave za prijavo, poslane na njihovo e-pošto"
 
 #. Label of the allowed (Link) field in DocType 'Workflow Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -2412,7 +2412,7 @@ msgstr ""
 #. Description of the 'Raw Commands' (Code) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Any string-based printer languages can be used. Writing raw commands requires knowledge of the printer's native language provided by the printer manufacturer. Please refer to the developer manual provided by the printer manufacturer on how to write their native commands. These commands are rendered on the server side using the Jinja Templating Language."
-msgstr ""
+msgstr "Lahko se uporabijo vsi tiskarski jeziki, ki temeljijo na nizih. Za pisanje surovih ukazov je potrebno poznavanje maternega jezika tiskalnika, ki ga zagotovi proizvajalec tiskalnika. Prosimo, glejte priročnik za razvijalce, ki ga je priskrbel proizvajalec tiskalnika, o tem, kako zapisati njihove izvorne ukaze. Ti ukazi se prikažejo na strani strežnika z uporabo Jinja predlogov jezika."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:103
 msgid "Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type."
