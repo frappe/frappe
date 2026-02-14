@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-11 17:42\n"
+"PO-Revision-Date: 2026-02-14 18:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Slovenian\n"
 "MIME-Version: 1.0\n"
@@ -329,7 +329,44 @@ msgid "<div class=\"well\">\n"
 "    </ul>\n"
 "</div>\n"
 "<br>\n"
-msgstr ""
+msgstr "<div class=\"well\">\n"
+"    Uredite seznam serij v polju. Pravila:\n"
+"    <ul>\n"
+"        <li>Vsaka predpona serije v novi vrstici.</li>\n"
+"        <li>Dovoljeni posebni znaki so \"/\" in \"-\"</li>\n"
+"        <li>\n"
+"            Po želji nastavite število števk v seriji s piko (.), ki ji sledijo lojstre (#). Na primer, \".####\" pomeni, da bo imela serija\n"
+"            štiri števke. Privzeto je pet števk.\n"
+"        </li>\n"
+"        <li>\n"
+"            Spremenljivke lahko uporabite tudi v imenu serije tako, da jih postavite\n"
+"            med (.) pike\n"
+"            <br>\n"
+"            Podprte spremenljivke:\n"
+"            <ul>\n"
+"                <li><code>.YYYY.</code> - Leto s 4 števkami</li>\n"
+"                <li><code>.LL.</code> - Leto z 2 števkama</li>\n"
+"                <li><code>.MM.</code> - Mesec</li>\n"
+"                <li><code>.DD.</code> - Dan v mesecu</li>\n"
+"                <li><code>.WW.</code> - Teden v letu</li>\n"
+"                <li>\n"
+"                    <code>.{fieldname}.</code> - ime polja v dokumentu, npr.\n"
+"                    <code>podružnica</code>\n"
+"                </li>\n"
+"                <li><code>.FY.</code> - Poslovno leto (zahteva namestitev programa ERPNext)</li>\n"
+"                <li><code>.ABBR.</code> - Kratica podjetja (zahteva namestitev programa ERPNext)</li>\n"
+"            </ul>\n"
+"        </li>\n"
+"    </ul>\n"
+"    Primeri:\n"
+"    <ul>\n"
+"        <li>INV-</li>\n"
+"        <li>INV-10-</li>\n"
+"        <li>INVK-</li>\n"
+"        <li>INV-.LLLL.-.{branch}.-.MM.-.####</li>\n"
+"    </ul>\n"
+"</div>\n"
+"<br>\n"
 
 #. Content of the 'Custom HTML Help' (HTML) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -554,7 +591,7 @@ msgstr "<h4>Primer Odgovora po E-pošti</h4>\n\n"
 #. Content of the 'html_5' (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "<h5 class=\"text-muted uppercase\">Or</h5>"
-msgstr ""
+msgstr "<h5 class=\"text-muted uppercase\">Ali</h5>"
 
 #. Content of the 'Message Examples' (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -699,24 +736,24 @@ msgstr "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
 #. Header text in the Welcome Workspace Workspace
 #: frappe/core/workspace/welcome_workspace/welcome_workspace.json
 msgid "<span class=\"h2\">Hi,</span>"
-msgstr ""
+msgstr "<span class=\"h2\">Živjo,</span>"
 
 #. Header text in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "<span class=\"h4\"><b>Documents</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Dokumenti</b></span>"
 
 #. Header text in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Reports & Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Poročila & Nastavitve</b></span>"
 
 #. Header text in the Users Workspace
 #. Header text in the Integrations Workspace
 #: frappe/core/workspace/users/users.json
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Poročila &amp; Nastavitve</b></span>"
 
 #. Header text in the Tools Workspace
 #. Header text in the Users Workspace
@@ -725,17 +762,17 @@ msgstr ""
 #: frappe/core/workspace/users/users.json
 #: frappe/website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Bližnjice</b></span>"
 
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Components to build your app</b></span>"
-msgstr ""
+msgstr "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Komponente za izdelavo aplikacije</b></span>"
 
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Get started</b><br></span>"
-msgstr ""
+msgstr "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Začnite</b><br></span>"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
@@ -775,7 +812,7 @@ msgstr "Povezava za prenos z vašimi podatki bo poslana na e-poštni naslov, pov
 
 #: frappe/website/doctype/blog_post/blog_post.py:93
 msgid "A featured post must have a cover image"
-msgstr ""
+msgstr "Priporočena objava mora imeti sliko naslovnice"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:174
 msgid "A field with the name {0} already exists in {1}"
@@ -2072,7 +2109,7 @@ msgstr "Dovoli uporabniku prijavo samo pred to uro (0–24)"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow users to log in without a password, using a login link sent to their email"
-msgstr ""
+msgstr "Dovoli uporabnikom prijavo brez gesla z uporabo povezave za prijavo, poslane na njihovo e-pošto"
 
 #. Label of a Link field in DocType 'Workflow Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -2313,7 +2350,7 @@ msgstr ""
 #. Description of the 'Raw Commands' (Code) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Any string-based printer languages can be used. Writing raw commands requires knowledge of the printer's native language provided by the printer manufacturer. Please refer to the developer manual provided by the printer manufacturer on how to write their native commands. These commands are rendered on the server side using the Jinja Templating Language."
-msgstr ""
+msgstr "Lahko se uporabijo vsi tiskarski jeziki, ki temeljijo na nizih. Za pisanje surovih ukazov je potrebno poznavanje maternega jezika tiskalnika, ki ga zagotovi proizvajalec tiskalnika. Prosimo, glejte priročnik za razvijalce, ki ga je priskrbel proizvajalec tiskalnika, o tem, kako zapisati njihove izvorne ukaze. Ti ukazi se prikažejo na strani strežnika z uporabo Jinja predlogov jezika."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:103
 msgid "Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type."
