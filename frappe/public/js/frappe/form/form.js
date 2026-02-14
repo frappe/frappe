@@ -168,6 +168,10 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.ui.keys.add_shortcut({
 			shortcut: "ctrl+p",
 			action: () => this.print_doc(),
+<<<<<<< HEAD
+=======
+			page: this.page,
+>>>>>>> upstream/develop
 			description: __("Print document"),
 			condition: () => frappe.model.can_print(this.doctype, this) && !this.meta.issingle,
 		});
@@ -608,6 +612,11 @@ frappe.ui.form.Form = class FrappeForm {
 					toolbar: this.toolbar,
 				});
 				this.sidebar.make();
+<<<<<<< HEAD
+=======
+			} else {
+				this.page.sidebar.hide();
+>>>>>>> upstream/develop
 			}
 
 			// clear layout message
@@ -658,12 +667,27 @@ frappe.ui.form.Form = class FrappeForm {
 		let el = this.page.page_actions[0];
 		const rect = el.getBoundingClientRect();
 		let is_outside = rect.right > document.documentElement.clientWidth;
+<<<<<<< HEAD
 		if (is_outside) {
 			// check if the default actions are outside of the screen
 			const overflow = Math.max(0, rect.right - document.documentElement.clientWidth);
 			this.page.$title_area
 				.parent()
 				.css("max-width", overflow ? `calc(50% - ${overflow}px)` : "50%");
+=======
+
+		if (is_outside) {
+			// check if the default actions are outside of the screen
+			const overflow = Math.max(0, rect.right - document.documentElement.clientWidth);
+
+			if (!overflow) return;
+			let max_breadcrumb_width = Math.max(
+				290,
+				this.page.$title_area.find("ul").width() - overflow
+			);
+
+			this.page.$title_area.parent().css("max-width", `${max_breadcrumb_width}px`);
+>>>>>>> upstream/develop
 			let breadcrumb = this.page.$title_area.find("ul li.ellipsis");
 
 			if (cint(breadcrumb[0]?.clientWidth) <= 30) {
@@ -1399,7 +1423,11 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	email_doc(message) {
+<<<<<<< HEAD
 		new frappe.views.CommunicationComposer({
+=======
+		return new frappe.views.CommunicationComposer({
+>>>>>>> upstream/develop
 			doc: this.doc,
 			frm: this,
 			subject: __(this.meta.name) + ": " + this.docname,
@@ -1508,7 +1536,13 @@ frappe.ui.form.Form = class FrappeForm {
 		if (group && group.indexOf("fa fa-") !== -1) group = null;
 
 		let btn = this.page.add_inner_button(label, fn, group);
+<<<<<<< HEAD
 
+=======
+		if (btn) {
+			this.custom_buttons[label] = btn;
+		}
+>>>>>>> upstream/develop
 		return btn;
 	}
 

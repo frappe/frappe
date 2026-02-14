@@ -204,7 +204,11 @@ frappe.ui.form.Toolbar = class Toolbar {
 	setup_editable_title(element) {
 		let me = this;
 
+<<<<<<< HEAD
 		if (me.is_title_editable()) {
+=======
+		if (me.is_title_editable() || me.can_rename()) {
+>>>>>>> upstream/develop
 			let edit_icon = this.page.add_action_icon(
 				"square-pen",
 				() => {
@@ -469,7 +473,11 @@ frappe.ui.form.Toolbar = class Toolbar {
 			return;
 		}
 		this.page.add_menu_item(
+<<<<<<< HEAD
 			__("Open Sidebar"),
+=======
+			__("Toggle Sidebar"),
+>>>>>>> upstream/develop
 			() => {
 				this.setup_sidebar_toggle(this.frm.sidebar.sidebar.parent());
 			},
@@ -670,6 +678,10 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 	can_submit() {
 		return (
+<<<<<<< HEAD
+=======
+			frappe.model.is_submittable(this.frm.doc.doctype) &&
+>>>>>>> upstream/develop
 			this.get_docstatus() === 0 &&
 			!this.frm.doc.__islocal &&
 			!this.frm.doc.__unsaved &&
@@ -888,7 +900,10 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	setup_sidebar_toggle(sidebar_wrapper) {
+<<<<<<< HEAD
 		console.log(sidebar_wrapper);
+=======
+>>>>>>> upstream/develop
 		if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
 			this.setup_overlay_sidebar(sidebar_wrapper);
 		} else {

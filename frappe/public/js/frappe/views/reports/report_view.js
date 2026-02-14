@@ -17,7 +17,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	setup_defaults() {
 		super.setup_defaults();
+<<<<<<< HEAD
 		this.page_title = __("Report:") + " " + this.page_title;
+=======
+		if (!frappe.is_mobile()) {
+			this.page_title = __("Report:") + " " + this.page_title;
+		}
+>>>>>>> upstream/develop
 		this.view = "Report";
 
 		this.link_title_doctype_fields = [];
@@ -1298,7 +1304,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					this.remove_column_from_datatable(col);
 				}
 			} else if (col.field in d) {
+<<<<<<< HEAD
 				const value = d[col.field];
+=======
+				let rendered_value = d[col.field];
+				if (col.docfield.fieldtype == "Data") {
+					rendered_value = frappe.utils.escape_html(rendered_value);
+				}
+				const value = rendered_value;
+>>>>>>> upstream/develop
 				return {
 					name: d.name,
 					doctype: col.docfield.parent,
@@ -1531,6 +1545,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			},
 			{
 				label: __("Print"),
+<<<<<<< HEAD
+=======
+				condition: () => frappe.model.can_print(this.doctype),
+>>>>>>> upstream/develop
 				action: () => {
 					// prepare rows in their current state, sorted and filtered
 					const rows_in_order = this.datatable.datamanager.rowViewOrder

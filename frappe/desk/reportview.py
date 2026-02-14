@@ -475,7 +475,11 @@ def _export_query(form_params, csv_params, populate_response=True):
 	if file_format_type == "CSV":
 		file_extension = "csv"
 		content = get_csv_bytes(
+<<<<<<< HEAD
 			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in data],
+=======
+			[[handle_html(v) if isinstance(v, str) else v for v in r] for r in data],
+>>>>>>> upstream/develop
 			csv_params,
 		)
 	elif file_format_type == "Excel":
@@ -641,7 +645,13 @@ def delete_bulk(doctype, items):
 		)
 	else:
 		frappe.msgprint(
+<<<<<<< HEAD
 			_("Deleted all documents successfully"), realtime=True, title=_("Bulk Operation Successful")
+=======
+			_(f"Deleted {len(items)} records from {doctype} doctype"),
+			realtime=True,
+			title=_("Bulk Operation Successful"),
+>>>>>>> upstream/develop
 		)
 
 
@@ -698,14 +708,23 @@ def get_stats(stats, doctype, filters=None):
 				results[column] = scrub_user_tags(tag_count)
 				no_tag_count = frappe.get_list(
 					doctype,
+<<<<<<< HEAD
 					fields=[column, {"COUNT": "1"}],
 					filters=[*filters, [column, "in", ("", ",")]],
 					as_list=True,
+=======
+					fields=[column, {"COUNT": "1", "as": "count"}],
+					filters=[*filters, [column, "in", ("", ",")]],
+>>>>>>> upstream/develop
 					group_by=column,
 					order_by=column,
 				)
 
+<<<<<<< HEAD
 				no_tag_count = no_tag_count[0][1] if no_tag_count else 0
+=======
+				no_tag_count = no_tag_count[0].get("count", 0) if no_tag_count else 0
+>>>>>>> upstream/develop
 
 				results[column].append([_("No Tags"), no_tag_count])
 			else:
@@ -794,9 +813,17 @@ def scrub_user_tags(tagcount):
 
 # used in building query in queries.py
 def get_match_cond(doctype, as_condition=True):
+<<<<<<< HEAD
 	from frappe.model.db_query import DatabaseQuery
 
 	cond = DatabaseQuery(doctype).build_match_conditions(as_condition=as_condition)
+=======
+	from frappe.database.query import Engine
+
+	engine = Engine()
+	engine.get_query(doctype, db_query_compat=True)
+	cond = engine.build_match_conditions(as_condition=as_condition)
+>>>>>>> upstream/develop
 	if not as_condition:
 		return cond
 
@@ -804,9 +831,17 @@ def get_match_cond(doctype, as_condition=True):
 
 
 def build_match_conditions(doctype, user=None, as_condition=True):
+<<<<<<< HEAD
 	from frappe.model.db_query import DatabaseQuery
 
 	match_conditions = DatabaseQuery(doctype, user=user).build_match_conditions(as_condition=as_condition)
+=======
+	from frappe.database.query import Engine
+
+	engine = Engine()
+	engine.get_query(doctype, user=user, db_query_compat=True)
+	match_conditions = engine.build_match_conditions(as_condition=as_condition)
+>>>>>>> upstream/develop
 	if as_condition:
 		return match_conditions.replace("%", "%%")
 	return match_conditions
@@ -842,6 +877,7 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 				else:
 					flt.append([doctype, f[0], "=", f[1]])
 
+<<<<<<< HEAD
 		from frappe.model.db_query import DatabaseQuery
 
 		query = DatabaseQuery(doctype)
@@ -854,6 +890,20 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 		query.build_filter_conditions(flt, conditions, ignore_permissions)
 
 		cond = " and " + " and ".join(query.conditions)
+=======
+		from frappe.database.query import Engine
+
+		engine = Engine()
+		engine.get_query(doctype, ignore_permissions=ignore_permissions, db_query_compat=True)
+
+		if with_match_conditions:
+			if match_cond := engine.build_match_conditions():
+				conditions.append(match_cond)
+
+		engine.build_filter_conditions(flt, conditions)
+
+		cond = " and " + " and ".join(conditions) if conditions else ""
+>>>>>>> upstream/develop
 	else:
 		cond = ""
 	return cond

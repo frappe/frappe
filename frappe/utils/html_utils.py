@@ -1,6 +1,10 @@
 import json
 import re
 
+<<<<<<< HEAD
+=======
+import nh3
+>>>>>>> upstream/develop
 from bleach_allowlist import bleach_allowlist
 
 import frappe
@@ -16,6 +20,7 @@ EMOJI_PATTERN = re.compile(
 	flags=re.UNICODE,
 )
 
+<<<<<<< HEAD
 
 def clean_html(html):
 	import bleach
@@ -25,6 +30,18 @@ def clean_html(html):
 
 	return bleach.clean(
 		clean_script_and_style(html),
+=======
+# tags for which content needs to be removed from output
+REMOVE_CONTENT_TAGS = {"script", "style"}
+
+
+def clean_html(html):
+	if not isinstance(html, str):
+		return html
+
+	return nh3.clean(
+		html,
+>>>>>>> upstream/develop
 		tags={
 			"div",
 			"p",
@@ -43,13 +60,18 @@ def clean_html(html):
 			"td",
 			"tr",
 		},
+<<<<<<< HEAD
 		attributes=[],
 		strip=True,
+=======
+		clean_content_tags=REMOVE_CONTENT_TAGS,
+>>>>>>> upstream/develop
 		strip_comments=True,
 	)
 
 
 def clean_email_html(html):
+<<<<<<< HEAD
 	import bleach
 	from bleach.css_sanitizer import CSSSanitizer
 
@@ -94,6 +116,47 @@ def clean_email_html(html):
 
 	return bleach.clean(
 		clean_script_and_style(html),
+=======
+	if not isinstance(html, str):
+		return html
+
+	allowed_css_properties = {
+		"color",
+		"border-color",
+		"width",
+		"height",
+		"max-width",
+		"background-color",
+		"border-collapse",
+		"border-radius",
+		"border",
+		"border-top",
+		"border-bottom",
+		"border-left",
+		"border-right",
+		"margin",
+		"margin-top",
+		"margin-bottom",
+		"margin-left",
+		"margin-right",
+		"padding",
+		"padding-top",
+		"padding-bottom",
+		"padding-left",
+		"padding-right",
+		"font-size",
+		"font-weight",
+		"font-family",
+		"text-decoration",
+		"line-height",
+		"text-align",
+		"vertical-align",
+		"display",
+	}
+
+	return nh3.clean(
+		html,
+>>>>>>> upstream/develop
 		tags={
 			"div",
 			"p",
@@ -124,16 +187,32 @@ def clean_email_html(html):
 			"button",
 			"img",
 		},
+<<<<<<< HEAD
 		attributes=["border", "colspan", "rowspan", "src", "href", "style", "id"],
 		css_sanitizer=css_sanitizer,
 		protocols=["cid", "http", "https", "mailto", "data", "tel"],
 		strip=True,
 		strip_comments=True,
+=======
+		attributes={"*": {"border", "colspan", "rowspan", "src", "href", "style", "id"}},
+		clean_content_tags=REMOVE_CONTENT_TAGS,
+		filter_style_properties=allowed_css_properties,
+		strip_comments=True,
+		url_schemes=nh3.ALLOWED_URL_SCHEMES.union({"cid", "data"}),
+>>>>>>> upstream/develop
 	)
 
 
 def clean_script_and_style(html):
+<<<<<<< HEAD
 	# remove script and style
+=======
+	"""
+	Remove script and style tags.
+	DEPRECATED: prefer nh3.clean's clean_content_tags parameter.
+	"""
+
+>>>>>>> upstream/develop
 	from bs4 import BeautifulSoup
 
 	soup = BeautifulSoup(html, "html5lib")
@@ -142,6 +221,7 @@ def clean_script_and_style(html):
 	return frappe.as_unicode(soup)
 
 
+<<<<<<< HEAD
 def sanitize_html(html, linkify=False, always_sanitize=False):
 	"""
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
@@ -151,6 +231,15 @@ def sanitize_html(html, linkify=False, always_sanitize=False):
 	"""
 	import bleach
 	from bleach.css_sanitizer import CSSSanitizer
+=======
+def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=None):
+	"""
+	Sanitize HTML tags, attributes and style to prevent XSS attacks
+	Based on nh3 clean, bleach whitelist and html5lib's Sanitizer defaults
+
+	Does not sanitize JSON unless explicitly specified, as it could lead to future problems
+	"""
+>>>>>>> upstream/develop
 	from bs4 import BeautifulSoup
 
 	if not isinstance(html, str):
@@ -164,6 +253,7 @@ def sanitize_html(html, linkify=False, always_sanitize=False):
 			return html
 
 	tags = (
+<<<<<<< HEAD
 		acceptable_elements
 		+ svg_elements
 		+ mathml_elements
@@ -186,6 +276,28 @@ def sanitize_html(html, linkify=False, always_sanitize=False):
 		css_sanitizer=css_sanitizer,
 		strip_comments=False,
 		protocols={"cid", "http", "https", "mailto", "tel"},
+=======
+		acceptable_elements.union(svg_elements)
+		.union(mathml_elements)
+		.union(["html", "head", "meta", "link", "body", "o:p"])
+	)
+
+	# Allow caller to explicitly disallow some tags
+	if disallowed_tags:
+		tags.difference_update(disallowed_tags)
+
+	attributes = {"*": acceptable_attributes, "svg": svg_attributes}
+
+	# returns html with escaped tags, escaped orphan >, <, etc.
+	escaped_html = nh3.clean(
+		html,
+		tags=tags,
+		attributes=attributes,
+		generic_attribute_prefixes={"data-"},
+		strip_comments=False,
+		filter_style_properties=set(bleach_allowlist.all_styles),
+		url_schemes=nh3.ALLOWED_URL_SCHEMES.union({"cid"}),
+>>>>>>> upstream/develop
 	)
 
 	return escaped_html
@@ -225,7 +337,11 @@ def unescape_html(value):
 
 
 # adapted from https://raw.githubusercontent.com/html5lib/html5lib-python/4aa79f113e7486c7ec5d15a6e1777bfe546d3259/html5lib/sanitizer.py
+<<<<<<< HEAD
 acceptable_elements = [
+=======
+acceptable_elements = {
+>>>>>>> upstream/develop
 	"a",
 	"abbr",
 	"acronym",
@@ -327,9 +443,15 @@ acceptable_elements = [
 	"ul",
 	"var",
 	"video",
+<<<<<<< HEAD
 ]
 
 mathml_elements = [
+=======
+}
+
+mathml_elements = {
+>>>>>>> upstream/develop
 	"maction",
 	"math",
 	"merror",
@@ -357,9 +479,15 @@ mathml_elements = [
 	"munder",
 	"munderover",
 	"none",
+<<<<<<< HEAD
 ]
 
 svg_elements = [
+=======
+}
+
+svg_elements = {
+>>>>>>> upstream/develop
 	"a",
 	"animate",
 	"animateColor",
@@ -395,9 +523,15 @@ svg_elements = [
 	"title",
 	"tspan",
 	"use",
+<<<<<<< HEAD
 ]
 
 acceptable_attributes = [
+=======
+}
+
+acceptable_attributes = {
+>>>>>>> upstream/develop
 	"abbr",
 	"accept",
 	"accept-charset",
@@ -501,7 +635,10 @@ acceptable_attributes = [
 	"prompt",
 	"radiogroup",
 	"readonly",
+<<<<<<< HEAD
 	"rel",
+=======
+>>>>>>> upstream/develop
 	"repeat-max",
 	"repeat-min",
 	"replace",
@@ -559,6 +696,7 @@ acceptable_attributes = [
 	"itemtype",
 	"itemid",
 	"itemref",
+<<<<<<< HEAD
 	"datetime",
 	"data-is-group",
 ]
@@ -569,6 +707,15 @@ mathml_attributes = [
 	"columnalign",
 	"columnalign",
 	"columnalign",
+=======
+	"data-is-group",
+}
+
+mathml_attributes = {
+	"actiontype",
+	"align",
+	"columnalign",
+>>>>>>> upstream/develop
 	"columnlines",
 	"columnspacing",
 	"columnspan",
@@ -587,13 +734,19 @@ mathml_attributes = [
 	"mathbackground",
 	"mathcolor",
 	"mathvariant",
+<<<<<<< HEAD
 	"mathvariant",
+=======
+>>>>>>> upstream/develop
 	"maxsize",
 	"minsize",
 	"other",
 	"rowalign",
+<<<<<<< HEAD
 	"rowalign",
 	"rowalign",
+=======
+>>>>>>> upstream/develop
 	"rowlines",
 	"rowspacing",
 	"rowspan",
@@ -603,15 +756,24 @@ mathml_attributes = [
 	"separator",
 	"stretchy",
 	"width",
+<<<<<<< HEAD
 	"width",
+=======
+>>>>>>> upstream/develop
 	"xlink:href",
 	"xlink:show",
 	"xlink:type",
 	"xmlns",
 	"xmlns:xlink",
+<<<<<<< HEAD
 ]
 
 svg_attributes = [
+=======
+}
+
+svg_attributes = {
+>>>>>>> upstream/develop
 	"accent-height",
 	"accumulate",
 	"additive",
@@ -754,4 +916,8 @@ svg_attributes = [
 	"y1",
 	"y2",
 	"zoomAndPan",
+<<<<<<< HEAD
 ]
+=======
+}
+>>>>>>> upstream/develop

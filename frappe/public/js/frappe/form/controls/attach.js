@@ -64,7 +64,20 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	}
 	on_attach_doc_image() {
 		this.set_upload_options();
+<<<<<<< HEAD
 		this.upload_options.restrictions.allowed_file_types = ["image/*"];
+=======
+		this.upload_options.restrictions.allowed_file_types = [
+			"image/jpeg",
+			"image/png",
+			"image/gif",
+			"image/webp",
+			"image/svg+xml",
+			"image/avif",
+			"image/bmp",
+			"image/x-icon",
+		];
+>>>>>>> upstream/develop
 		this.file_uploader = new frappe.ui.FileUploader(this.upload_options);
 	}
 	set_upload_options() {

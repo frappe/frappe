@@ -188,6 +188,10 @@ function get_number_format(currency) {
 }
 
 function get_number_format_info(format) {
+<<<<<<< HEAD
+=======
+	if (!format) format = get_number_format();
+>>>>>>> upstream/develop
 	var info = frappe.number_format_info[format];
 
 	if (!info) {

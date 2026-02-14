@@ -5,6 +5,10 @@ frappe.ui.form.AssignTo = class AssignTo {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.btn = this.parent.find(".add-assignment-btn").on("click", () => this.add());
+<<<<<<< HEAD
+=======
+		this.parent.find(".add-assignment-label").on("click", () => this.add());
+>>>>>>> upstream/develop
 		this.btn_wrapper = this.btn.parent();
 
 		this.refresh();
@@ -14,6 +18,16 @@ frappe.ui.form.AssignTo = class AssignTo {
 			this.parent.toggle(false);
 			return;
 		}
+<<<<<<< HEAD
+=======
+
+		let docinfo = this.frm.get_docinfo?.();
+		if (!docinfo || !docinfo.assignments) {
+			this.parent.toggle(false);
+			return;
+		}
+
+>>>>>>> upstream/develop
 		this.parent.toggle(true);
 		this.render(this.frm.get_docinfo().assignments);
 	}

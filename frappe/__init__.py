@@ -54,7 +54,11 @@ from .utils.jinja import (
 	render_template,
 )
 
+<<<<<<< HEAD
 __version__ = "16.1.1"
+=======
+__version__ = "17.0.0-dev"
+>>>>>>> upstream/develop
 __title__ = "Frappe Framework"
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -196,7 +200,11 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.cache = {}
 	local.form_dict = _dict()
 	local.preload_assets = {"style": [], "script": [], "icons": []}
+<<<<<<< HEAD
 	local.session = _dict(user="Guest")
+=======
+	local.session = _dict(user="Guest", data=_dict())
+>>>>>>> upstream/develop
 	local.dev_server = _dev_server  # only for backwards compatibility
 	local.qb = get_query_builder(local.conf.db_type)
 	if not cache or not client_cache:
@@ -414,13 +422,22 @@ def _in_request_or_test():
 	return getattr(local, "request", None) or in_test
 
 
+<<<<<<< HEAD
 def whitelist(allow_guest=False, xss_safe=False, methods=None):
+=======
+def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None):
+>>>>>>> upstream/develop
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
 
 	:param allow_guest: Allow non logged-in user to access this method.
 	:param methods: Allowed http method to access the method.
+<<<<<<< HEAD
+=======
+	:param force_types: Method should have type annotations. If unset, defaults to hooks
+						specification.
+>>>>>>> upstream/develop
 
 	Use as:
 
@@ -438,7 +455,11 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
 
 		# validate argument types if request is present or in test context
+<<<<<<< HEAD
 		fn = validate_argument_types(fn, apply_condition=_in_request_or_test)
+=======
+		fn = validate_argument_types(fn, apply_condition=_in_request_or_test, force_types=force_types)
+>>>>>>> upstream/develop
 
 		whitelisted.add(fn)
 		allowed_http_methods_for_whitelisted_func[fn] = methods

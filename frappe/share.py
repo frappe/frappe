@@ -233,6 +233,7 @@ def check_share_permission(doctype, name, permissions=None, custom_perms=None):
 		custom_perms = get_doctype_ptype_map().get(doctype, [])
 	restricted_permissions.extend(custom_perms)
 
+<<<<<<< HEAD
 	from frappe.permissions import get_role_permissions
 
 	doc = frappe.get_doc(doctype, name)
@@ -242,6 +243,12 @@ def check_share_permission(doctype, name, permissions=None, custom_perms=None):
 
 	for ptype in restricted_permissions:
 		if cint(permissions.get(ptype)) and not user_perms.get(ptype):
+=======
+	doc = frappe.get_doc(doctype, name)
+
+	for ptype in restricted_permissions:
+		if cint(permissions.get(ptype)) and not frappe.has_permission(doctype, ptype, doc=doc):
+>>>>>>> upstream/develop
 			frappe.throw(
 				_("You cannot share `{0}` on {1} `{2}` as you do not have `{0}` permission on `{1}`").format(
 					_(ptype), _(doctype), name

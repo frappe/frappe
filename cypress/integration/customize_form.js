@@ -11,7 +11,10 @@ context("Customize Form", () => {
 			"Set by user": "prompt",
 			"By fieldname": "field:",
 			Expression: "",
+<<<<<<< HEAD
 			"Expression (old style)": "format:",
+=======
+>>>>>>> upstream/develop
 			Random: "hash",
 			"By script": "",
 		};

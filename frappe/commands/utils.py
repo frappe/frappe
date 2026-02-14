@@ -247,11 +247,16 @@ def reset_perms(context: CliCtxObj):
 		raise SiteNotSpecifiedError
 
 
+<<<<<<< HEAD
 @click.command("execute")
+=======
+@click.command("execute", context_settings=EXTRA_ARGS_CTX)
+>>>>>>> upstream/develop
 @click.argument("method")
 @click.option("--args")
 @click.option("--kwargs")
 @click.option("--profile", is_flag=True, default=False)
+<<<<<<< HEAD
 @pass_context
 def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False):
 	"Execute a function"
@@ -311,6 +316,15 @@ def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False):
 
 	if not context.sites:
 		raise SiteNotSpecifiedError
+=======
+@click.argument("extra_args", nargs=-1)
+@pass_context
+def execute(context: CliCtxObj, method, args=None, kwargs=None, profile=False, extra_args=None):
+	"Execute a function"
+	from frappe.commands.execute import _execute
+
+	_execute(context, method, args, kwargs, profile, extra_args)
+>>>>>>> upstream/develop
 
 
 @click.command("add-to-email-queue")

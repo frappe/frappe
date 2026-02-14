@@ -121,9 +121,15 @@ export default class ListSettings {
 						<div class="col-10" style="padding-left:0px;">
 							${__(me.fields[idx].label, null, me.doctype)}
 						</div>
+<<<<<<< HEAD
 						<div class="col-1 ${can_remove}">
 							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
 								${frappe.utils.icon("delete", "xs")}
+=======
+						<div class="col-1 ${can_remove} pl-0 pl-sm-3">
+							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
+								${frappe.utils.icon("x", "xs")}
+>>>>>>> upstream/develop
 							</a>
 						</div>
 					</div>

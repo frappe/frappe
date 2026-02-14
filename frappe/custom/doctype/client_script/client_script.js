@@ -9,9 +9,19 @@ frappe.ui.form.on("Client Script", {
 	},
 	refresh(frm) {
 		if (frm.doc.dt && frm.doc.script) {
+<<<<<<< HEAD
 			frm.add_custom_button(__("Go to {0}", [frm.doc.dt]), () =>
 				frappe.set_route("List", frm.doc.dt, "List")
 			);
+=======
+			frm.add_custom_button(__("Go to {0}", [frm.doc.dt]), () => {
+				if (frappe.model.is_single(frm.doc.dt)) {
+					frappe.set_route("Form", frm.doc.dt);
+				} else {
+					frappe.set_route("List", frm.doc.dt);
+				}
+			});
+>>>>>>> upstream/develop
 		}
 
 		if (frm.doc.view == "Form") {

@@ -85,6 +85,13 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 			if (option.danger) {
 				checkbox.find(".label-area").addClass("text-danger");
 			}
+<<<<<<< HEAD
+=======
+			if (option.warning) {
+				checkbox.find(".label-area").addClass("text-warning");
+			}
+
+>>>>>>> upstream/develop
 			option.$checkbox = checkbox;
 		});
 		if (this.df.select_all) {

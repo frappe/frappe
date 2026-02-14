@@ -84,6 +84,10 @@ export class SidebarEditor {
 	}
 	prepare_data() {
 		this.new_sidebar_items.forEach((item) => {
+<<<<<<< HEAD
+=======
+			if (!item.nested_items) return;
+>>>>>>> upstream/develop
 			item.nested_items.forEach((nested_item) => {
 				if (nested_item.parent) {
 					delete nested_item.parent;

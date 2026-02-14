@@ -17,6 +17,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				items: this.sibling_workspaces,
 			},
 			{
+<<<<<<< HEAD
 				name: "desktop",
 				label: __("Desktop"),
 				icon: "layout-grid",
@@ -25,6 +26,8 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				},
 			},
 			{
+=======
+>>>>>>> upstream/develop
 				name: "edit-sidebar",
 				label: __("Edit Sidebar"),
 				icon: "edit",
@@ -184,6 +187,10 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		help_dropdown_items = custom_help_links.concat(help_dropdown_items);
 
 		navbar_settings.help_dropdown.forEach((element) => {
+<<<<<<< HEAD
+=======
+			if (element.hidden) return;
+>>>>>>> upstream/develop
 			let dropdown_children = {
 				name: element.name,
 				label: element.item_label,

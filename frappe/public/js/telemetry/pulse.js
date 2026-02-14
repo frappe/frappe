@@ -34,7 +34,11 @@ class PulseProvider {
 			event_name: event,
 			app: app,
 			properties: props,
+<<<<<<< HEAD
 			user: frappe.session.user,
+=======
+			user: frappe.session?.user,
+>>>>>>> upstream/develop
 			captured_at: new Date().toISOString(),
 		});
 	}

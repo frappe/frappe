@@ -13,7 +13,13 @@ frappe.ui.form.ControlDynamicLink = class ControlDynamicLink extends frappe.ui.f
 			} else if (cur_page) {
 				const selector = `input[data-fieldname="${this.df.options}"]`;
 				let input = $(cur_page.page).find(selector);
+<<<<<<< HEAD
 				options = input.length ? input.val() : null;
+=======
+				options = input.length
+					? input.val()
+					: frappe.model.get_value(this.df.parent, this.docname, this.df.options);
+>>>>>>> upstream/develop
 			}
 		} else {
 			options = frappe.model.get_value(this.df.parent, this.docname, this.df.options);

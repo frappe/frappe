@@ -48,12 +48,26 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 
 			$(this.wrapper)
 				.find("input, select")
+<<<<<<< HEAD
 				.on("change awesomplete-selectcomplete", () => {
 					this.dirty = true;
 					frappe.run_serially([
 						() => frappe.timeout(0.1),
 						() => me.refresh_dependency(),
 					]);
+=======
+				.on(
+					"change awesomplete-selectcomplete",
+					frappe.utils.debounce(() => {
+						this.dirty = true;
+						me.refresh_dependency();
+					}, 100)
+				)
+				.on("input", () => {
+					if (!this.dirty) {
+						this.dirty = true;
+					}
+>>>>>>> upstream/develop
 				});
 		}
 	}
@@ -76,7 +90,11 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 				if (e.which == 13) {
 					if (me.has_primary_action) {
 						e.preventDefault();
+<<<<<<< HEAD
 						me.get_primary_btn().trigger("click");
+=======
+						frappe.app.trigger_primary_action();
+>>>>>>> upstream/develop
 					}
 				}
 			});

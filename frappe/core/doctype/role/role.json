@@ -53,7 +53,11 @@
    "options": "Domain"
   },
   {
+<<<<<<< HEAD
    "description": "Route: Example \"/app\"",
+=======
+   "description": "Route: Example \"/desk\"",
+>>>>>>> upstream/develop
    "fieldname": "home_page",
    "fieldtype": "Data",
    "label": "Home Page"
@@ -74,7 +78,11 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2024-09-19 17:07:08.672124",
+=======
+ "modified": "2026-01-28 15:58:11.939407",
+>>>>>>> upstream/develop
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",
@@ -94,9 +102,17 @@
   }
  ],
  "quick_entry": 1,
+<<<<<<< HEAD
+=======
+ "row_format": "Dynamic",
+>>>>>>> upstream/develop
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1,
  "translated_doctype": 1
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> upstream/develop

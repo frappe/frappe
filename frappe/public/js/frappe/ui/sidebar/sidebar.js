@@ -19,10 +19,18 @@ frappe.ui.Sidebar = class Sidebar {
 		this.$standard_items_sections = this.wrapper.find(".standard-items-sections");
 		this.$sidebar = this.wrapper.find(".body-sidebar");
 		this.items = [];
+<<<<<<< HEAD
+=======
+		this.cards = [];
+>>>>>>> upstream/develop
 		this.setup_events();
 		this.sidebar_module_map = {};
 		this.build_sidebar_module_map();
 		this.standard_items_setup = false;
+<<<<<<< HEAD
+=======
+		this.preferred_sidebars = [];
+>>>>>>> upstream/develop
 	}
 
 	prepare() {
@@ -30,6 +38,10 @@ frappe.ui.Sidebar = class Sidebar {
 			this.add_standard_items();
 			this.sidebar_data = frappe.boot.workspace_sidebar_item[this.workspace_title];
 			this.workspace_sidebar_items = this.sidebar_data.items;
+<<<<<<< HEAD
+=======
+			this.all_sidebar_items = frappe.boot.workspace_sidebar_item;
+>>>>>>> upstream/develop
 			if (this.edit_mode) {
 				this.workspace_sidebar_items = this.editor.new_sidebar_items;
 			}
@@ -104,7 +116,28 @@ frappe.ui.Sidebar = class Sidebar {
 		this.$sidebar.attr("data-title", this.sidebar_title);
 		this.sidebar_header = new frappe.ui.SidebarHeader(this);
 		this.make_sidebar();
+<<<<<<< HEAD
 	}
+=======
+		this.add_sidebar_cards();
+	}
+	add_card(card) {
+		if (
+			this.desktop_menu_items &&
+			this.desktop_menu_items.find((i) => i.to_title_case === card.title)
+		)
+			return;
+		this.cards.push(card);
+	}
+	add_sidebar_cards() {
+		this.wrapper.find(".body-sidebar-cards").html("");
+		this.cards.forEach((card) => {
+			let card_obj = new frappe.ui.SidebarCard(card);
+			card.obj = card_obj;
+		});
+	}
+
+>>>>>>> upstream/develop
 	check_for_private_workspace(workspace_title) {
 		if (workspace_title == "private" || workspace_title == "Personal") {
 			this.sidebar_title = "My Workspaces";
@@ -113,7 +146,15 @@ frappe.ui.Sidebar = class Sidebar {
 	setup_events() {
 		const me = this;
 		frappe.router.on("change", function (router) {
+<<<<<<< HEAD
 			frappe.app.sidebar.set_workspace_sidebar(router);
+=======
+			if (frappe.route_options.sidebar) {
+				frappe.app.sidebar.setup(frappe.route_options.sidebar);
+			} else {
+				frappe.app.sidebar.set_workspace_sidebar(router);
+			}
+>>>>>>> upstream/develop
 		});
 		$(document).on("page-change", function () {
 			frappe.app.sidebar.toggle();
@@ -155,6 +196,37 @@ frappe.ui.Sidebar = class Sidebar {
 	set_active_workspace_item() {
 		if (this.is_route_in_sidebar()) {
 			this.active_item.addClass("active-sidebar");
+<<<<<<< HEAD
+=======
+			this.expand_parent_section();
+		}
+	}
+
+	expand_parent_section() {
+		if (!this.active_item) return;
+		let active_section;
+		$(".section-item").each((index, element) => {
+			if (element.contains(this.active_item.get(0))) {
+				active_section = element.dataset.id;
+			}
+		});
+
+		if (active_section) {
+			let section = this.get_item(active_section);
+			if (section) {
+				if (this.sidebar_expanded && section.collapsed) {
+					section.open();
+				}
+			}
+		}
+	}
+
+	get_item(name) {
+		for (let item of this.items) {
+			if (item.item.label === name) {
+				return item;
+			}
+>>>>>>> upstream/develop
 		}
 	}
 
@@ -304,7 +376,11 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	setup_notifications() {
 		if (frappe.boot.desk_settings.notifications && frappe.session.user !== "Guest") {
+<<<<<<< HEAD
 			this.notifications = new frappe.ui.Notifications();
+=======
+			this.notifications = new frappe.ui.Notifications({ full_height: true });
+>>>>>>> upstream/develop
 		}
 	}
 	add_item(container, item) {
@@ -429,7 +505,11 @@ frappe.ui.Sidebar = class Sidebar {
 					entity_name = route[1];
 			}
 			let sidebars = this.get_workspace_sidebars(entity_name);
+<<<<<<< HEAD
 			this.preffered_sidebars = sidebars;
+=======
+			this.preferred_sidebars = sidebars;
+>>>>>>> upstream/develop
 			let module = router?.meta?.module;
 			if (this.sidebar_title && sidebars.includes(this.sidebar_title)) {
 				this.set_active_workspace_item();
@@ -447,6 +527,11 @@ frappe.ui.Sidebar = class Sidebar {
 				let sidebar = this.get_workspace_for_module(module);
 				if (sidebars.includes(this.get_workspace_for_module(module))) {
 					frappe.app.sidebar.setup(sidebar);
+<<<<<<< HEAD
+=======
+				} else {
+					frappe.app.sidebar.setup(module);
+>>>>>>> upstream/develop
 				}
 			} else if (module) {
 				this.show_sidebar_for_module(module);
@@ -470,7 +555,11 @@ frappe.ui.Sidebar = class Sidebar {
 		return filter_sidebars;
 	}
 	show_sidebar_for_module(module) {
+<<<<<<< HEAD
 		if (this.sidebar_title && this.preffered_sidebars.includes(this.sidebar_title)) {
+=======
+		if (this.sidebar_title && this.preferred_sidebars.includes(this.sidebar_title)) {
+>>>>>>> upstream/develop
 			this.set_active_workspace_item();
 			return;
 		}
@@ -516,7 +605,10 @@ frappe.ui.Sidebar = class Sidebar {
 		let sidebars = [];
 		Object.entries(this.all_sidebar_items).forEach(([name, sidebar]) => {
 			const { items, label } = sidebar;
+<<<<<<< HEAD
 			if (label.includes("My Workspaces")) return;
+=======
+>>>>>>> upstream/develop
 			items.forEach((item) => {
 				if (item.link_to === link_to) {
 					sidebars.push(label || name);

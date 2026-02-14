@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
 	"branches": ["version-16"],
+=======
+	"branches": ["version-17"],
+>>>>>>> upstream/develop
 	"plugins": [
 		"@semantic-release/commit-analyzer", {
 			"preset": "angular",

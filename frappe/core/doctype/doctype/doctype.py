@@ -680,7 +680,11 @@ class DocType(Document):
 				where doctype=%s and field='name' and value = %s""",
 				(new, new, old),
 			)
+<<<<<<< HEAD
 		else:
+=======
+		elif not self.is_virtual:
+>>>>>>> upstream/develop
 			frappe.db.rename_table(old, new)
 			frappe.db.commit()
 
@@ -877,6 +881,15 @@ class DocType(Document):
 			make_boilerplate("controller.js", self.as_dict())
 			# make_boilerplate("controller_list.js", self.as_dict())
 
+<<<<<<< HEAD
+=======
+		if self.is_tree:
+			make_boilerplate("controller_tree.js", self.as_dict())
+
+		if self.is_calendar_and_gantt:
+			make_boilerplate("controller_calendar.js", self.as_dict())
+
+>>>>>>> upstream/develop
 		if self.has_web_view:
 			templates_path = frappe.get_module_path(
 				frappe.scrub(self.module), "doctype", frappe.scrub(self.name), "templates"
@@ -1838,6 +1851,7 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 
 	def check_permission_dependency(d):
 		if d.cancel and not d.submit:
+<<<<<<< HEAD
 			frappe.throw(_("{0}: Cannot set Cancel without Submit").format(get_txt(d)))
 
 		if (d.submit or d.cancel or d.amend) and not d.write:
@@ -1846,11 +1860,38 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 			frappe.throw(_("{0}: Cannot set Amend without Cancel").format(get_txt(d)))
 		if d.get("import") and not d.create:
 			frappe.throw(_("{0}: Cannot set Import without Create").format(get_txt(d)))
+=======
+			frappe.throw(
+				_("{0}: The 'Cancel' permission cannot be granted without the 'Submit' permission.").format(
+					get_txt(d)
+				)
+			)
+
+		if (d.submit or d.cancel or d.amend) and not d.write:
+			frappe.throw(
+				_(
+					"{0}: The 'Submit', 'Cancel', and 'Amend' permissions cannot be granted without the 'Write' permission."
+				).format(get_txt(d))
+			)
+		if d.amend and not d.create:
+			frappe.throw(
+				_("{0}: The 'Amend' permission cannot be granted without the 'Create' permission.").format(
+					get_txt(d)
+				)
+			)
+		if d.get("import") and not d.create:
+			frappe.throw(
+				_("{0}: The 'Import' permission cannot be granted without the 'Create' permission.").format(
+					get_txt(d)
+				)
+			)
+>>>>>>> upstream/develop
 
 	def remove_rights_for_single(d):
 		if not issingle:
 			return
 
+<<<<<<< HEAD
 		if d.report:
 			frappe.msgprint(_("Report cannot be set for Single types"))
 			d.report = 0
@@ -1866,6 +1907,57 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 	def check_if_importable(d):
 		if d.get("import") and not isimportable:
 			frappe.throw(_("{0}: Cannot set import as {1} is not importable").format(get_txt(d), doctype))
+=======
+		if d.get("report"):
+			d.set("report", 0)
+			frappe.msgprint(
+				_(
+					"{0}: The 'Report' permission was removed because it cannot be granted for a 'single' DocType."
+				).format(get_txt(d))
+			)
+
+		if d.get("import"):
+			d.set("import", 0)
+			frappe.msgprint(
+				_(
+					"{0}: The 'Import' permission was removed because it cannot be granted for a 'single' DocType."
+				).format(get_txt(d))
+			)
+
+		if d.get("export"):
+			d.set("export", 0)
+			frappe.msgprint(
+				_(
+					"{0}: The 'Export' permission was removed because it cannot be granted for a 'single' DocType."
+				).format(get_txt(d))
+			)
+
+	def check_if_submittable(d):
+		if issubmittable:
+			return
+
+		if d.submit:
+			frappe.throw(
+				_("{0}: The 'Submit' permission cannot be granted for a non-submittable DocType.").format(
+					get_txt(d)
+				)
+			)
+
+		if d.amend:
+			frappe.throw(
+				_("{0}: The 'Amend' permission cannot be granted for a non-submittable DocType.").format(
+					get_txt(d)
+				)
+			)
+
+	def check_if_importable(d):
+		if d.get("import") and not isimportable:
+			frappe.throw(
+				_("{0}: The 'Import' permission cannot be granted for a non-importable DocType.").format(
+					get_txt(d)
+				)
+			)
+>>>>>>> upstream/develop
 
 	def validate_permission_for_all_role(d):
 		if frappe.session.user == "Administrator":
@@ -1875,7 +1967,11 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 			if d.role in AUTOMATIC_ROLES:
 				frappe.throw(
 					_(
+<<<<<<< HEAD
 						"Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
+=======
+						"Row # {0}: Non-administrator users cannot add the role {1} to a custom DocType."
+>>>>>>> upstream/develop
 					).format(d.idx, frappe.bold(_(d.role))),
 					title=_("Permissions Error"),
 				)
@@ -1885,7 +1981,11 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 			if d.role in roles:
 				frappe.throw(
 					_(
+<<<<<<< HEAD
 						"Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
+=======
+						"Row # {0}: Non-administrator users cannot add the role {1} to a custom DocType."
+>>>>>>> upstream/develop
 					).format(d.idx, frappe.bold(_(d.role))),
 					title=_("Permissions Error"),
 				)

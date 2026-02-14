@@ -1,9 +1,12 @@
+<<<<<<< HEAD
 body:not([data-route^="Form"]) {
 	.layout-side-section {
 		display: none;
 	}
 }
 
+=======
+>>>>>>> upstream/develop
 .page-title {
 	display: flex;
 	align-items: center;
@@ -41,8 +44,19 @@ body:not([data-route^="Form"]) {
 
 	.title-area {
 		display: inline-flex;
+<<<<<<< HEAD
 		.indicator-pill {
 			margin-left: var(--margin-sm);
+=======
+		align-items: center;
+		.indicator-pill {
+			margin-left: var(--margin-sm);
+			.indicator-doc-html {
+				height: 8px;
+				width: 8px;
+				border-radius: inherit;
+			}
+>>>>>>> upstream/develop
 		}
 		.sub-heading {
 			@include get_textstyle("sm", "regular");
@@ -117,9 +131,12 @@ body[data-route^="Form"] {
 	border-bottom: 1px solid var(--border-color);
 	transition: 0.5s top;
 	top: 0;
+<<<<<<< HEAD
 	&.show-navbar {
 		top: var(--navbar-height);
 	}
+=======
+>>>>>>> upstream/develop
 
 	.page-head-content {
 		height: var(--page-head-height);

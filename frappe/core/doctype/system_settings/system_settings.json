@@ -786,10 +786,18 @@
    "label": "Only allow System Managers to upload public files"
   }
  ],
+<<<<<<< HEAD
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
  "modified": "2025-12-17 15:01:24.823184",
+=======
+ "hide_toolbar": 1,
+ "icon": "fa fa-cog",
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-01-02 18:13:45.430712",
+>>>>>>> upstream/develop
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

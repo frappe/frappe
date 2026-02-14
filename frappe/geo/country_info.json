@@ -27,7 +27,11 @@
  "Algeria": {
   "code": "dz",
   "currency": "DZD",
+<<<<<<< HEAD
   "currency_fraction": "Santeem",
+=======
+  "currency_fraction": "Centime",
+>>>>>>> upstream/develop
   "currency_fraction_units": 100,
   "currency_name": "Algerian Dinar",
   "currency_symbol": "\u062f.\u062c",

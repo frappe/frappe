@@ -86,7 +86,11 @@ class TestTranslate(IntegrationTestCase):
 		self.assertEqual(_("Mobile No"), "Mobile No")
 		try:
 			frappe.local.lang = "pt-BR"
+<<<<<<< HEAD
 			self.assertEqual(_("Mobile No"), "Telefone Celular")
+=======
+			self.assertEqual(_("Mobile No"), "Celular")
+>>>>>>> upstream/develop
 			frappe.local.lang = "pt"
 			self.assertEqual(_("Mobile No"), "Nr. de Telemóvel")
 		finally:

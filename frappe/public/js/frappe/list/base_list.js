@@ -275,16 +275,25 @@ frappe.views.BaseList = class BaseList {
 		frappe.breadcrumbs.add(this.meta.module, this.doctype);
 	}
 
+<<<<<<< HEAD
 	show_or_hide_sidebar() {
 		let show_sidebar = JSON.parse(localStorage.show_sidebar || "true");
 		$(document.body).toggleClass("no-list-sidebar", !show_sidebar);
+=======
+	hide_sidebar() {
+		$(document.body).toggleClass("no-list-sidebar", true);
+>>>>>>> upstream/develop
 	}
 
 	setup_main_section() {
 		return frappe.run_serially(
 			[
 				this.setup_list_wrapper,
+<<<<<<< HEAD
 				this.show_or_hide_sidebar,
+=======
+				this.hide_sidebar,
+>>>>>>> upstream/develop
 				this.setup_filter_area,
 				this.setup_sort_selector,
 				this.setup_result_container_area,
@@ -435,7 +444,14 @@ frappe.views.BaseList = class BaseList {
 		this.$result[0].style.removeProperty("height");
 		// place it at the footer of the page
 
+<<<<<<< HEAD
 		const resultContainerHeight = window.innerHeight - this.$paging_area.get(0).offsetHeight;
+=======
+		let resultContainerHeight = window.innerHeight - this.$paging_area.get(0).offsetHeight;
+		if (!frappe.is_mobile()) {
+			resultContainerHeight = resultContainerHeight - this.$result.get(0).offsetTop;
+		}
+>>>>>>> upstream/develop
 		this.$result.parent(".result-container").css({
 			height: resultContainerHeight - (frappe.is_mobile() ? 100 : 0) + "px",
 		});
@@ -644,6 +660,7 @@ class FilterArea {
 		this.setup();
 		if (frappe.is_mobile()) this.setup_mobile(list_view);
 	}
+<<<<<<< HEAD
 	setup_mobile(list_view) {
 		const me = this;
 		this.standard_filters_visible = false;
@@ -652,6 +669,23 @@ class FilterArea {
 		$(`<button class="filter-toggle btn btn-default btn-sm filter-button">
 					<span class="filter-icon button-icon">
 						${frappe.utils.icon("funnel-plus")}
+=======
+
+	setup_mobile(list_view) {
+		const me = this;
+		this.standard_filters_visible = false;
+		this.standard_filters_wrapper?.hide();
+		this.list_view.page.page_form.css("justify-content", "flex-end");
+		list_view.page.page_form.addClass("flex-column");
+		this.$filter_list_wrapper.addClass("justify-between p-0");
+
+		// added this to manage spaceing between filter and sorf area
+		this.$filter_list_wrapper.find(".filter-selector").css("margin", "0 0 0 auto");
+
+		$(`<button class="filter-toggle btn btn-default btn-sm filter-button">
+					<span class="filter-icon button-icon">
+						${frappe.utils.icon("chevrons-up-down")}
+>>>>>>> upstream/develop
 					</span>
 				</button>
 			</div>`)
@@ -671,11 +705,14 @@ class FilterArea {
 			this.standard_filters_visible = true;
 			this.standard_filters_wrapper.show();
 		}
+<<<<<<< HEAD
 		let icon_name = !this.standard_filters_visible ? "funnel-plus" : "funnel-x";
 		this.$filter_list_wrapper
 			.find(".filter-toggle")
 			.find("use")
 			.attr("href", `#icon-${icon_name}`);
+=======
+>>>>>>> upstream/develop
 	}
 
 	setup() {
@@ -1124,13 +1161,30 @@ class FilterArea {
 		let fields = [];
 
 		if (!this.list_view.settings.hide_name_filter) {
+<<<<<<< HEAD
 			fields.push({
+=======
+			let field = {
+>>>>>>> upstream/develop
 				fieldtype: "Data",
 				label: "ID",
 				condition: "like",
 				fieldname: "name",
 				onchange: () => this.debounced_refresh_list_view(),
+<<<<<<< HEAD
 			});
+=======
+			};
+
+			if (frappe.is_mobile()) {
+				let mobile_id_filter = this.$filter_list_wrapper.append(
+					`<div class="mobile-id-filter"></div>`
+				);
+				this.list_view.page.add_field(field, mobile_id_filter.find(".mobile-id-filter"));
+			} else {
+				fields.push(field);
+			}
+>>>>>>> upstream/develop
 		}
 
 		if (
@@ -1212,6 +1266,10 @@ class FilterArea {
 						onchange: () => this.debounced_refresh_list_view(),
 						ignore_link_validation: fieldtype === "Dynamic Link",
 						is_filter: 1,
+<<<<<<< HEAD
+=======
+						link_filters: df.link_filters,
+>>>>>>> upstream/develop
 					};
 				})
 		);

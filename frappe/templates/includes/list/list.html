@@ -1,7 +1,16 @@
 {% if sub_title %}
 <h4 class="text-muted">{{ sub_title }}</h4>
 {% endif %}
+<<<<<<< HEAD
 {% if not result -%}
+=======
+
+{% if (not hide_filters) and (result or txt) %}
+	{% include "templates/includes/list/filters.html" %}
+{% endif %}
+
+{% if not result %}
+>>>>>>> upstream/develop
 	<div class="empty-apps-state">
 		<svg class="icon icon-xl" style="stroke: var(--text-light);">
 			<use href="#icon-small-file"></use>
@@ -11,9 +20,12 @@
 {% else %}
 	<div class="website-list" data-doctype="{{ doctype }}"
 		data-txt="{{ (txt or '')|e }}">
+<<<<<<< HEAD
 		<!-- {% if not hide_filters -%}
 			{% include "templates/includes/list/filters.html" %}
 		{%- endif %} -->
+=======
+>>>>>>> upstream/develop
 		{% if result_heading_template %}{% include result_heading_template %}{% endif %}
 
 		<div class="result">

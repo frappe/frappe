@@ -6,6 +6,11 @@ import number_systems from "./number_systems";
 
 frappe.provide("frappe.utils");
 
+<<<<<<< HEAD
+=======
+const eval_function_cache = new Map();
+
+>>>>>>> upstream/develop
 // Array de duplicate
 if (!Array.prototype.uniqBy) {
 	Object.defineProperty(Array.prototype, "uniqBy", {
@@ -295,7 +300,22 @@ Object.assign(frappe.utils, {
 		return content.html();
 	},
 	scroll_page_to_top() {
+<<<<<<< HEAD
 		$(".main-section").scrollTop(0);
+=======
+		const $container = $(".main-section");
+		$container.animate(
+			{ scrollTop: 0 },
+			{
+				duration: 300,
+				easing: "swing",
+				complete: function () {
+					// Ensure we're at the top
+					$container.scrollTop(0);
+				},
+			}
+		);
+>>>>>>> upstream/develop
 	},
 	scroll_to: function (
 		element,
@@ -1116,6 +1136,7 @@ Object.assign(frappe.utils, {
 		if (code.substr(0, 5) == "eval:") {
 			code = code.substr(5);
 		}
+<<<<<<< HEAD
 		let variable_names = Object.keys(context);
 		let variables = Object.values(context);
 		code = `let out = ${code}; return out`;
@@ -1124,6 +1145,37 @@ Object.assign(frappe.utils, {
 			return expression_function(...variables);
 		} catch (error) {
 			console.log("Error evaluating the following expression:");
+=======
+
+		let variable_names = Object.keys(context);
+		let variables = Object.values(context);
+
+		// only cache expressions under 500 chars
+		const should_cache = code.length < 500;
+		const cache_key = should_cache ? code + "|" + variable_names.join(",") : null;
+
+		let expression_function = cache_key && eval_function_cache.get(cache_key);
+
+		if (!expression_function) {
+			const function_code = `let out = ${code}; return out`;
+			try {
+				expression_function = new Function(...variable_names, function_code);
+			} catch (error) {
+				console.log("Error evaluating the following expression:");
+				console.error(function_code);
+				throw error;
+			}
+
+			if (cache_key) {
+				eval_function_cache.set(cache_key, expression_function);
+			}
+		}
+
+		try {
+			return expression_function(...variables);
+		} catch (error) {
+			console.log("Error executing the following expression:");
+>>>>>>> upstream/develop
 			console.error(code);
 			throw error;
 		}
@@ -1287,7 +1339,11 @@ Object.assign(frappe.utils, {
 		if (!desktop_icon) return;
 		let item = {};
 		if (desktop_icon.link_type == "External" && desktop_icon.link) {
+<<<<<<< HEAD
 			route = window.location.origin + desktop_icon.link;
+=======
+			route = desktop_icon.link;
+>>>>>>> upstream/develop
 		} else {
 			let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
 			if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
@@ -1363,6 +1419,7 @@ Object.assign(frappe.utils, {
 		return icon_html.get(0).outerHTML;
 	},
 	desktop_pallete: {
+<<<<<<< HEAD
 		blue: "#0981E3",
 		gray: "#7B808A",
 	},
@@ -1370,6 +1427,11 @@ Object.assign(frappe.utils, {
 		let color_value = this.desktop_pallete[color_name];
 		color_value + "";
 	},
+=======
+		blue: "#0289F7",
+		gray: "#7B808A",
+	},
+>>>>>>> upstream/develop
 	icon(
 		icon_name,
 		size = "sm",
@@ -1545,8 +1607,12 @@ Object.assign(frappe.utils, {
 				if (item.is_query_report) {
 					route = "query-report/" + item.name;
 				} else if (!item.is_query_report && item.report_ref_doctype) {
+<<<<<<< HEAD
 					route =
 						frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
+=======
+					route = frappe.router.slug(item.report_ref_doctype) + "/view/report/";
+>>>>>>> upstream/develop
 				} else {
 					route = "report/" + item.name;
 				}
@@ -1583,8 +1649,18 @@ Object.assign(frappe.utils, {
 		 *	max_no_of_decimals - max number of decimals of the shortened number
 		 */
 
+<<<<<<< HEAD
 		// return number if total digits is lesser than min_length
 		const len = String(number).match(/\d/g).length;
+=======
+		// return empty for null, undefined, or empty string
+		if (!number || isNaN(number)) {
+			return "";
+		}
+
+		// return number if total digits is lesser than min_length
+		const len = String(number).match(/\d/g)?.length || 0;
+>>>>>>> upstream/develop
 		if (len < min_length) {
 			return number.toString();
 		}
@@ -2159,4 +2235,30 @@ Object.assign(frappe.utils, {
 		}
 		return links;
 	},
+<<<<<<< HEAD
+=======
+	eval_expression(value) {
+		if (typeof value === "string") {
+			const parsed_components = value.match(/[^\d.,]+|[\d.,]+/g);
+			var parsed_value = value;
+			if (parsed_components !== null) {
+				parsed_value = parsed_components
+					.map((v) => {
+						return isNaN(parseFloat(v)) ? v : flt(v);
+					})
+					.join("");
+			}
+			if (parsed_value.match(/^[0-9+\-/*.() ]+$/)) {
+				// If it is a string containing operators
+				try {
+					return (0, eval)(parsed_value);
+				} catch (e) {
+					// bad expression
+					return value;
+				}
+			}
+		}
+		return value;
+	},
+>>>>>>> upstream/develop
 });

@@ -252,10 +252,18 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			return null;
 		}
 		let me = this;
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/develop
 		return {
 			allowedChars: /^[A-Za-z0-9_]*$/,
 			mentionDenotationChars: ["@"],
 			isolateCharacter: true,
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/develop
 			source: frappe.utils.debounce(async function (search_term, renderList) {
 				let method =
 					me.mention_search_method || "frappe.desk.search.get_names_for_mentions";
@@ -268,7 +276,12 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			}, 300),
 			renderItem(item) {
 				let value = item.value;
+<<<<<<< HEAD
 				return `${value} ${item.is_group ? frappe.utils.icon("users") : ""}`;
+=======
+				let email = item?.email ? `(${item?.email})` : "";
+				return `${value} ${email} ${item.is_group ? frappe.utils.icon("users") : ""}`;
+>>>>>>> upstream/develop
 			},
 		};
 	}
@@ -389,7 +402,11 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 	}
 
 	get_keyboard_bindings() {
+<<<<<<< HEAD
 		let bindings = {
+=======
+		const bindings = {
+>>>>>>> upstream/develop
 			"table enter": {
 				key: "Enter",
 				formats: ["table"],
@@ -416,6 +433,17 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 				},
 			},
 		};
+<<<<<<< HEAD
+=======
+
+		if (this.grid_row) {
+			bindings["tab"] = {
+				key: "Tab",
+				handler: () => true, // call default handler
+			};
+		}
+
+>>>>>>> upstream/develop
 		return bindings;
 	}
 };

@@ -22,12 +22,15 @@ $threshold: 34;
 	position: relative;
 	padding-top: var(--padding-lg);
 
+<<<<<<< HEAD
 	@include media-breakpoint-down(xs) {
 		padding-left: calc(var(--padding-sm) + var(--timeline-item-icon-size) / 2);
 		.timeline-dot {
 			margin-left: -2px;
 		}
 	}
+=======
+>>>>>>> upstream/develop
 	&:before {
 		content: " ";
 		top: 90px; // TODO: get top and bottom programmatically
@@ -185,11 +188,14 @@ $threshold: 34;
 }
 
 @include media-breakpoint-down(sm) {
+<<<<<<< HEAD
 	.new-timeline {
 		.timeline-item {
 			margin-left: 0px;
 		}
 	}
+=======
+>>>>>>> upstream/develop
 	.up {
 		position: relative;
 		bottom: 1px;

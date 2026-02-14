@@ -72,6 +72,10 @@
   "mandatory_depends_on",
   "read_only_depends_on",
   "display",
+<<<<<<< HEAD
+=======
+  "alignment",
+>>>>>>> upstream/develop
   "print_width",
   "width",
   "max_height",
@@ -81,7 +85,12 @@
   "documentation_url",
   "placeholder",
   "oldfieldname",
+<<<<<<< HEAD
   "oldfieldtype"
+=======
+  "oldfieldtype",
+  "show_description_on_click"
+>>>>>>> upstream/develop
  ],
  "fields": [
   {
@@ -476,6 +485,16 @@
    "options": "JS"
   },
   {
+<<<<<<< HEAD
+=======
+   "depends_on": "eval:in_list([\"Data\", \"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "fieldname": "alignment",
+   "fieldtype": "Select",
+   "label": "Alignment",
+   "options": "\nLeft\nCenter\nRight"
+  },
+  {
+>>>>>>> upstream/develop
    "fieldname": "column_break_38",
    "fieldtype": "Column Break"
   },
@@ -625,6 +644,15 @@
    "fieldtype": "Select",
    "label": "Button Color",
    "options": "\nDefault\nPrimary\nInfo\nSuccess\nWarning\nDanger"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "default": "0",
+   "fieldname": "show_description_on_click",
+   "fieldtype": "Check",
+   "label": "Show Description on Click"
+>>>>>>> upstream/develop
   }
  ],
  "grid_page_length": 50,
@@ -632,7 +660,11 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2026-01-06 01:37:29.723265",
+=======
+ "modified": "2026-02-06 15:13:03.688027",
+>>>>>>> upstream/develop
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

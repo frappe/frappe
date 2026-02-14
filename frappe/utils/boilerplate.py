@@ -639,7 +639,14 @@ app_license = "{app_license}"
 # ]
 
 # Automatically update python controller files with type annotations for this app.
+<<<<<<< HEAD
 # export_python_type_annotations = True
+=======
+export_python_type_annotations = True
+
+# Require all whitelisted methods to have type annotations
+require_type_annotated_api_methods = True
+>>>>>>> upstream/develop
 
 # default_log_clearing_doctypes = {{
 # 	"Logging DocType Name": 30  # days to retain logs
@@ -818,7 +825,11 @@ jobs:
 
 patches_template = """[pre_model_sync]
 # Patches added in this section will be executed before doctypes are migrated
+<<<<<<< HEAD
 # Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
+=======
+# Read docs to understand patches: https://docs.frappe.io/framework/user/en/database-migrations
+>>>>>>> upstream/develop
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated"""

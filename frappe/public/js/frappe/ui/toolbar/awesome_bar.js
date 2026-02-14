@@ -110,6 +110,12 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				if (d.type == "Desktop Icon") {
 					target = frappe.utils.get_route_for_icon(d.icon_data);
 					d.route = target;
+<<<<<<< HEAD
+=======
+					d.route_options = {
+						sidebar: d.icon_data.label,
+					};
+>>>>>>> upstream/develop
 				}
 				let html = `<span>${__(d.label || d.value)}</span>`;
 
@@ -410,17 +416,24 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	}
 
 	make_calculator(txt) {
+<<<<<<< HEAD
 		function getDecimalPlaces(num) {
 			if (Math.floor(num) === num) return 0;
 			return num.toString().split(".")[1].length || 0;
 		}
 
 		var first = txt.substr(0, 1);
+=======
+		const decimalStr = get_number_format_info().decimal_str;
+		const first = txt.substr(0, 1);
+
+>>>>>>> upstream/develop
 		if (first == parseInt(first) || first === "(" || first === "=") {
 			if (first === "=") {
 				txt = txt.substr(1);
 			}
 			try {
+<<<<<<< HEAD
 				var val = eval(txt);
 
 				// Split the input to find the numbers and their decimal places
@@ -448,6 +461,29 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					label: formatted_value,
 					value: __("{0} = {1}", [frappe.utils.xss_sanitise(txt), rounded_val]),
 					match: rounded_val,
+=======
+				// Split the input to find the numbers and their decimal places
+				const numbers = txt.match(/[+-]?([0-9]*[.,])?[0-9]+/g);
+
+				let maxDecimalPlaces = 0;
+				if (numbers) {
+					maxDecimalPlaces = Math.max(
+						...numbers.map((num) => num.split(decimalStr)[1]?.length || 0)
+					);
+				}
+
+				// Find the result to the appropriate number of decimal places
+				const val = frappe.utils.eval_expression(txt);
+				const result = format_number(val, null, maxDecimalPlaces);
+				const formatted_value = __("{0} = {1}", [
+					frappe.utils.xss_sanitise(txt),
+					result.bold(),
+				]);
+				this.options.push({
+					label: formatted_value,
+					value: __("{0} = {1}", [frappe.utils.xss_sanitise(txt), result]),
+					match: result,
+>>>>>>> upstream/develop
 					index: 80,
 					default: "Calculator",
 					onclick: function () {

@@ -606,6 +606,21 @@ $.extend(frappe.model, {
 		}
 	},
 
+<<<<<<< HEAD
+=======
+	get_title_from_title_field: function (doc, meta) {
+		let df = meta.fields.find((df) => df.fieldname === meta.title_field);
+		let title_value = doc[meta.title_field];
+
+		if (df?.fieldtype && ["Link", "Dynamic Link"].includes(df.fieldtype)) {
+			const doctype = df.fieldtype === "Dynamic Link" ? doc[df.options] : df.options;
+			title_value = frappe.utils.get_link_title(doctype, title_value) ?? title_value;
+		}
+
+		return title_value;
+	},
+
+>>>>>>> upstream/develop
 	get_doc_title(doc) {
 		if (typeof doc.name == "string") {
 			if (doc.name.startsWith("new-" + doc.doctype.toLowerCase().replace(/ /g, "-"))) {
@@ -614,7 +629,11 @@ $.extend(frappe.model, {
 		}
 		let meta = frappe.get_meta(doc.doctype);
 		if (meta.title_field) {
+<<<<<<< HEAD
 			return doc[meta.title_field];
+=======
+			return this.get_title_from_title_field(doc, meta);
+>>>>>>> upstream/develop
 		} else {
 			return String(doc.name);
 		}

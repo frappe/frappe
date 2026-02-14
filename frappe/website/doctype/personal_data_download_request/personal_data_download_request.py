@@ -48,6 +48,10 @@ class PersonalDataDownloadRequest(Document):
 				"is_private": 1,
 			}
 		)
+<<<<<<< HEAD
+=======
+		f.flags.skip_file_size_check = True
+>>>>>>> upstream/develop
 		f.save(ignore_permissions=True)
 
 		file_link = (

@@ -57,7 +57,11 @@ def bulk_capture(events):
 			event.get("event_name"),
 			site=event.get("site"),
 			app=event.get("app"),
+<<<<<<< HEAD
 			user=event.get("user"),
+=======
+			user=event.get("user") or frappe.session.user,
+>>>>>>> upstream/develop
 			captured_at=event.get("captured_at"),
 			properties=event.get("properties"),
 			interval=event.get("interval"),

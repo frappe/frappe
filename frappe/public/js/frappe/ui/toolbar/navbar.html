@@ -1,4 +1,5 @@
 <div class="sticky-top">
+<<<<<<< HEAD
 	{% if (frappe.boot.read_only || frappe.boot.user.impersonated_by) { %}
 	<header class="navbar navbar-expand" role="navigation">
 		<div class="container">
@@ -18,6 +19,8 @@
 	</header>
 	{% endif %}
 
+=======
+>>>>>>> upstream/develop
 	{% if !localStorage.getItem("dismissed_announcement_widget") && strip_html(navbar_settings.announcement_widget) != '' %}
 	<div class="announcement-widget form-message p-2 m-0" style="position: relative; z-index: -1; border-radius: 0; background-color: var(--bg-blue);">
 		<div class="container flex justify-between align-center mx-auto">

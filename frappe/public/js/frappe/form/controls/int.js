@@ -15,6 +15,7 @@ frappe.ui.form.ControlInt = class ControlInt extends frappe.ui.form.ControlData 
 		return this.parse(value);
 	}
 	eval_expression(value) {
+<<<<<<< HEAD
 		if (typeof value === "string") {
 			const parsed_components = value.match(/[^\d.,]+|[\d.,]+/g);
 			var parsed_value = value;
@@ -36,6 +37,9 @@ frappe.ui.form.ControlInt = class ControlInt extends frappe.ui.form.ControlData 
 			}
 		}
 		return value;
+=======
+		return typeof value === "string" ? frappe.utils.eval_expression(value) : value;
+>>>>>>> upstream/develop
 	}
 	parse(value) {
 		return cint(this.eval_expression(value), null);

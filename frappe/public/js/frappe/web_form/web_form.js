@@ -103,10 +103,13 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		$(".web-form-footer .left-area").prepend(this.$previous_button);
 
 		this.$previous_button.on("click", () => {
+<<<<<<< HEAD
 			let is_validated = me.validate_section();
 
 			if (!is_validated) return false;
 
+=======
+>>>>>>> upstream/develop
 			/**
 				The eslint utility cannot figure out if this is an infinite loop in backwards and
 				throws an error. Disabling for-direction just for this section.

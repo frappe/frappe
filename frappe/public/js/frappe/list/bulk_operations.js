@@ -485,3 +485,8 @@ export default class BulkOperations {
 		});
 	}
 }
+<<<<<<< HEAD
+=======
+
+frappe.ui.BulkOperations = BulkOperations;
+>>>>>>> upstream/develop

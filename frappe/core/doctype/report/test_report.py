@@ -406,6 +406,7 @@ result = [
 		self.assertEqual(result[-1][0], "Total")
 		self.assertEqual(result[-1][1], 200)
 		self.assertEqual(result[-1][2], 150.50)
+<<<<<<< HEAD
 
 	def test_cte_in_query_report(self):
 		cte_query = textwrap.dedent(
@@ -436,3 +437,5 @@ result = [
 			self.assertGreaterEqual(len(rows), 1)
 		elif frappe.db.db_type == "postgres":
 			self.assertRaises(frappe.PermissionError, report.execute_query_report, filters={})
+=======
+>>>>>>> upstream/develop

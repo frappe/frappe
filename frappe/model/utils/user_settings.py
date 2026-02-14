@@ -40,7 +40,10 @@ def update_user_settings(doctype, user_settings, for_update=False):
 			current = {}
 
 		current.update(user_settings)
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/develop
 	frappe.cache.hset("_user_settings", f"{doctype}::{frappe.session.user}", json.dumps(current))
 
 

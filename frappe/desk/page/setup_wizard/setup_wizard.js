@@ -400,9 +400,12 @@ frappe.setup.slides_settings = [
 				reqd: 1,
 			},
 			{
+<<<<<<< HEAD
 				fieldtype: "Section Break",
 			},
 			{
+=======
+>>>>>>> upstream/develop
 				fieldname: "timezone",
 				label: __("Time Zone"),
 				placeholder: __("Select Time Zone"),
@@ -417,9 +420,12 @@ frappe.setup.slides_settings = [
 				reqd: 1,
 			},
 			{
+<<<<<<< HEAD
 				fieldtype: "Section Break",
 			},
 			{
+=======
+>>>>>>> upstream/develop
 				fieldname: "enable_telemetry",
 				label: __("Allow sending usage data for improving applications"),
 				fieldtype: "Check",

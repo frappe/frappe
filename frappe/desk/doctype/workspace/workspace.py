@@ -130,11 +130,26 @@ class Workspace(Document):
 		self.delete_from_my_workspaces()
 
 	def delete_from_my_workspaces(self):
+<<<<<<< HEAD
 		if not self.public:
 			my_workspaces = frappe.get_doc("Workspace Sidebar", f"My Workspaces-{frappe.session.user}")
 			for w in my_workspaces.items:
 				if self.name == w.link_to:
 					frappe.delete_doc("Workspace Sidebar Item", w.name)
+=======
+		if self.public:
+			return
+
+		try:
+			my_workspaces = frappe.get_doc("Workspace Sidebar", f"My Workspaces-{frappe.session.user}")
+		except frappe.DoesNotExistError:
+			frappe.clear_messages()
+			return
+
+		for w in my_workspaces.items:
+			if self.name == w.link_to:
+				frappe.delete_doc("Workspace Sidebar Item", w.name)
+>>>>>>> upstream/develop
 
 	def after_delete(self):
 		if disable_saving_as_public():
@@ -307,7 +322,12 @@ def new_page(new_page):
 	# add to workspace sidebar items
 	if not doc.public:
 		add_to_my_workspace(doc)
+<<<<<<< HEAD
 	return {"workspace_pages": get_workspace_sidebar_items(), "sidebar_items": get_sidebar_items()}
+=======
+	workspaces = get_workspace_sidebar_items()
+	return {"workspace_pages": workspaces, "sidebar_items": get_sidebar_items(workspaces)}
+>>>>>>> upstream/develop
 
 
 @frappe.whitelist()

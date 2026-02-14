@@ -147,7 +147,11 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		this.$wrapper.find(".control-input").append(
 			`<span class="link-btn">
 				<a class="btn-open no-decoration" title="${__("Scan")}">
+<<<<<<< HEAD
 					${frappe.utils.icon("scan", "sm")}
+=======
+					${frappe.utils.icon("scan-barcode", "sm")}
+>>>>>>> upstream/develop
 				</a>
 			</span>`
 		);
@@ -251,6 +255,16 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		if (this.df.input_class) {
 			this.$input.addClass(this.df.input_class);
 		}
+<<<<<<< HEAD
+=======
+		// Apply alignment for supported field types
+		if (
+			this.df.alignment &&
+			["Data", "Int", "Float", "Currency", "Percent"].includes(this.df.fieldtype)
+		) {
+			this.$input.css("text-align", this.df.alignment.toLowerCase());
+		}
+>>>>>>> upstream/develop
 	}
 	set_input(value) {
 		this.last_value = this.value;

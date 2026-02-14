@@ -58,7 +58,11 @@
   },
   {
    "fieldname": "error_message",
+<<<<<<< HEAD
    "fieldtype": "Text",
+=======
+   "fieldtype": "Code",
+>>>>>>> upstream/develop
    "label": "Error Message",
    "no_copy": 1,
    "print_hide": 1,

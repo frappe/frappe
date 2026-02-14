@@ -420,6 +420,10 @@
 	margin-top: 4px;
 	margin-bottom: 8px;
 	line-height: 1.6;
+<<<<<<< HEAD
+=======
+	word-break: break-word;
+>>>>>>> upstream/develop
 }
 
 .form-heatmap {
@@ -457,17 +461,55 @@
 	}
 	margin: auto;
 	padding: 0 15px;
+<<<<<<< HEAD
+=======
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	gap: 15px;
+>>>>>>> upstream/develop
 
 	h5 {
 		margin: 15px 0px;
 		font-weight: bold;
 	}
+<<<<<<< HEAD
 	position: relative;
 	.scroll-to-top {
 		position: absolute;
 		height: 28px;
 		right: 15px;
 		bottom: 15px;
+=======
+
+	.after-save {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.scroll-to-top {
+		position: absolute;
+		right: 15px;
+		bottom: 15px;
+		height: 28px;
+		flex-shrink: 0;
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(10px);
+		transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+		pointer-events: none;
+
+		&.show {
+			position: fixed;
+			right: calc(var(--form-sidebar-width, 277px) + 20px);
+			bottom: 20px;
+			z-index: 1050;
+			opacity: 1;
+			visibility: visible;
+			transform: translateY(0);
+			pointer-events: auto;
+		}
+>>>>>>> upstream/develop
 	}
 }
 
@@ -582,6 +624,7 @@
 	}
 }
 
+<<<<<<< HEAD
 // mobile
 @media (max-width: map-get($grid-breakpoints, "sm")) {
 	// padding to form section on mobile
@@ -594,6 +637,8 @@
 	}
 }
 
+=======
+>>>>>>> upstream/develop
 .popover-header {
 	background: var(--bg-color);
 	color: var(--ink-gray-9);

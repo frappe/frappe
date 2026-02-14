@@ -248,7 +248,11 @@ def load_code_properties(doc, path):
 		if hasattr(doc, "get_code_fields"):
 			dirname, filename = os.path.split(path)
 			for key, extn in doc.get_code_fields().items():
+<<<<<<< HEAD
 				codefile = os.path.join(dirname, filename.split(".", 1)[0] + "." + extn)
+=======
+				codefile = os.path.join(dirname, filename[: filename.rfind(".")] + "." + extn)
+>>>>>>> upstream/develop
 				if os.path.exists(codefile):
 					with open(codefile) as txtfile:
 						doc.set(key, txtfile.read())

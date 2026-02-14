@@ -46,6 +46,10 @@
   "print_hide",
   "print_hide_if_no_value",
   "print_width",
+<<<<<<< HEAD
+=======
+  "alignment",
+>>>>>>> upstream/develop
   "no_copy",
   "allow_on_submit",
   "in_list_view",
@@ -303,6 +307,16 @@
    "print_hide": 1
   },
   {
+<<<<<<< HEAD
+=======
+   "depends_on": "eval:['Data', 'Int', 'Float', 'Currency', 'Percent'].includes(doc.fieldtype)",
+   "fieldname": "alignment",
+   "fieldtype": "Select",
+   "label": "Alignment",
+   "options": "\nLeft\nCenter\nRight"
+  },
+  {
+>>>>>>> upstream/develop
    "default": "0",
    "fieldname": "no_copy",
    "fieldtype": "Check",

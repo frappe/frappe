@@ -162,6 +162,15 @@ jobs:
         update_to_version 15 3.13
         exit $?
         
+<<<<<<< HEAD
+=======
+    - name: Update to v16
+      run: |
+        source $RUNNER_TEMP/migrate
+        update_to_version 16
+        exit $?
+
+>>>>>>> upstream/develop
     - name: Update to last commit
       run: |
         source $RUNNER_TEMP/migrate

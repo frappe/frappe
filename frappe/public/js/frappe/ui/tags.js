@@ -37,6 +37,14 @@ frappe.ui.Tags = class {
 			me.$input.val("");
 		};
 
+<<<<<<< HEAD
+=======
+		const activate_input = () => {
+			this.activate();
+			this.$input.focus();
+		};
+
+>>>>>>> upstream/develop
 		this.$input.keypress((e) => {
 			if (e.which == 13 || e.keyCode == 13) {
 				// Triggers event when <enter> is pressed
@@ -55,10 +63,15 @@ frappe.ui.Tags = class {
 			this.deactivate();
 		});
 
+<<<<<<< HEAD
 		this.$placeholder.on("click", () => {
 			this.activate();
 			this.$input.focus(); // focus only when clicked
 		});
+=======
+		this.$placeholder.on("click", activate_input);
+		this.$ul.find(".tags-label").on("click", activate_input);
+>>>>>>> upstream/develop
 	}
 
 	boot() {

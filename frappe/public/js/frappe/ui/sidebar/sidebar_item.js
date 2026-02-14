@@ -36,7 +36,11 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 				if (workspaces.public) {
 					path = "/desk/" + frappe.router.slug(this.item.link_to);
 				} else {
+<<<<<<< HEAD
 					path = "/desk/private/" + frappe.router.slug(workspaces.title);
+=======
+					path = "/desk/private/" + frappe.router.slug(this.item.link_to);
+>>>>>>> upstream/develop
 				}
 
 				if (this.item.route) {
@@ -60,6 +64,10 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 					let filters_json = JSON.parse(
 						frappe.utils.get_filter_as_json(JSON.parse(this.item.filters))
 					);
+<<<<<<< HEAD
+=======
+					filters_json = this.transform_filters(filters_json);
+>>>>>>> upstream/develop
 					if (this.item.link_type == "DocType") {
 						args.doc_view = "List";
 						args.route_options = filters_json;
@@ -72,6 +80,18 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 			return encodeURI(path);
 		}
 	}
+<<<<<<< HEAD
+=======
+	transform_filters(filters_json) {
+		for (const [key, value] of Object.entries(filters_json)) {
+			if (Array.isArray(value)) {
+				filters_json[key] = value[1];
+			}
+		}
+		return filters_json;
+	}
+
+>>>>>>> upstream/develop
 	prepare() {}
 	make() {
 		this.path = this.get_path();
@@ -177,12 +197,24 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		this.full_template = $(this.wrapper);
 	}
 	make() {
+<<<<<<< HEAD
 		if (this.item.nested_items.length == 0) return;
 		super.make();
 		this.add_items();
 		this.toggle_on_collapse();
 		this.enable_collapsible(this.item, this.full_template);
 		$(this.container).append(this.full_template);
+=======
+		if (this.nested_items.length == 0) {
+			return;
+		}
+		super.make();
+		if (!this.item.nested_items || this.item.nested_items.length == 0) return;
+		this.add_items();
+		$(this.container).append(this.full_template);
+		this.toggle_on_collapse();
+		this.enable_collapsible(this.item, this.full_template);
+>>>>>>> upstream/develop
 	}
 	open() {
 		this.collapsed = false;
@@ -265,7 +297,11 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		const me = this;
 		let current_sidebar_state = this.section_breaks_state[this.workspace_title];
 		for (const [element_name, collapsed] of Object.entries(current_sidebar_state)) {
+<<<<<<< HEAD
 			if ($(this.wrapper).attr("item-name") == element_name) {
+=======
+			if ($(this.wrapper).attr("title") == element_name) {
+>>>>>>> upstream/develop
 				me.collapsed = collapsed;
 				me.toggle();
 			}

@@ -628,6 +628,12 @@ class Database:
 		        # return last login of **User** `test@example.com`
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
+<<<<<<< HEAD
+=======
+
+		from frappe.model.utils import is_single_doctype
+
+>>>>>>> upstream/develop
 		out = None
 		if cache and isinstance(filters, str) and fieldname in self.value_cache[doctype][filters]:
 			return self.value_cache[doctype][filters][fieldname]
@@ -677,6 +683,7 @@ class Database:
 						or str(e).startswith("Invalid DocType")
 					):
 						out = None
+<<<<<<< HEAD
 					elif (not ignore) and frappe.db.is_table_missing(e):
 						# table not found, look in singles
 						fields = (
@@ -696,6 +703,11 @@ class Database:
 					else:
 						raise
 			else:
+=======
+					else:
+						raise
+			elif is_single_doctype(doctype):
+>>>>>>> upstream/develop
 				fields = [fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
 				out = self.get_values_from_single(
 					fields,
@@ -708,6 +720,11 @@ class Database:
 					pluck=pluck,
 					distinct=distinct,
 				)
+<<<<<<< HEAD
+=======
+			else:
+				return None
+>>>>>>> upstream/develop
 
 		if cache and isinstance(filters, str):
 			self.value_cache[doctype][filters][fieldname] = out

@@ -83,7 +83,12 @@
 .list-row-container {
 	display: flex;
 	flex-direction: column;
+<<<<<<< HEAD
 	border-bottom: 1px solid $border-color;
+=======
+	padding-inline: var(--padding-sm);
+	border-radius: var(--border-radius);
+>>>>>>> upstream/develop
 
 	&:focus {
 		.list-row {
@@ -92,8 +97,20 @@
 	}
 
 	&:first-child {
+<<<<<<< HEAD
 		padding-top: 0;
 		border-bottom: none;
+=======
+		padding: 0;
+	}
+
+	&:hover {
+		background-color: var(--highlight-color);
+	}
+
+	&:hover .level-right {
+		background-color: var(--highlight-color);
+>>>>>>> upstream/develop
 	}
 }
 
@@ -127,20 +144,28 @@
 }
 
 .list-row {
+<<<<<<< HEAD
 	border-radius: var(--border-radius);
+=======
+	border-bottom: 1px solid var(--border-color);
+>>>>>>> upstream/develop
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
 	@include get_textstyle("base", "regular");
 
 	&:hover:not(.list-row-head) {
+<<<<<<< HEAD
 		background-color: var(--highlight-color);
 		border-radius: unset;
+=======
+>>>>>>> upstream/develop
 		.level-right {
 			box-shadow: -5px 0px 5px var(--highlight-color);
 		}
 	}
 
+<<<<<<< HEAD
 	&:hover .level-right {
 		background-color: var(--highlight-color);
 	}
@@ -149,6 +174,8 @@
 		border-bottom: 0px;
 	}
 
+=======
+>>>>>>> upstream/develop
 	.level-left {
 		flex: 4;
 		min-width: 80%;
@@ -213,7 +240,11 @@
 	}
 
 	.file-select {
+<<<<<<< HEAD
 		padding-left: 11px;
+=======
+		padding: 0 10px;
+>>>>>>> upstream/develop
 	}
 }
 
@@ -228,6 +259,10 @@
 	background-color: var(--subtle-fg);
 	border-radius: var(--border-radius);
 	height: var(--list-row-height);
+<<<<<<< HEAD
+=======
+	padding-inline: var(--padding-sm);
+>>>>>>> upstream/develop
 
 	.list-subject {
 		font-weight: normal;
@@ -238,7 +273,10 @@
 	}
 	.level-right {
 		background-color: var(--subtle-fg);
+<<<<<<< HEAD
 		border-radius: var(--border-radius);
+=======
+>>>>>>> upstream/develop
 		height: var(--list-row-height);
 		border-left: none;
 		&:hover {
@@ -264,6 +302,13 @@
 	}
 }
 
+<<<<<<< HEAD
+=======
+.list-row-col .indicator-pill {
+	max-width: 150px;
+}
+
+>>>>>>> upstream/develop
 $level-margin-right: 8px;
 
 .list-subject {
@@ -303,7 +348,11 @@ $level-margin-right: 8px;
 .layout-main-list {
 	.list-paging-area,
 	.footnote-area {
+<<<<<<< HEAD
 		padding: var(--padding-sm) var(--padding-md);
+=======
+		padding: var(--padding-sm) 0;
+>>>>>>> upstream/develop
 	}
 }
 
@@ -675,7 +724,11 @@ input.list-header-checkbox {
 					width: auto;
 					border-left: none;
 					.level-item.visible-xs {
+<<<<<<< HEAD
 						margin-top: 5px;
+=======
+						margin-top: 1px;
+>>>>>>> upstream/develop
 					}
 				}
 			}

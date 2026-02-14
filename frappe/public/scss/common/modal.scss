@@ -33,6 +33,11 @@ body.modal-open[style^="padding-right"] {
 		border-color: var(--border-color);
 	}
 	.modal-header {
+<<<<<<< HEAD
+=======
+		display: flex;
+		align-items: center;
+>>>>>>> upstream/develop
 		position: sticky;
 		top: 0;
 		z-index: 3;
@@ -53,6 +58,7 @@ body.modal-open[style^="padding-right"] {
 		}
 
 		.modal-actions {
+<<<<<<< HEAD
 			.btn-modal-minimize {
 				padding-right: 0;
 
@@ -62,6 +68,13 @@ body.modal-open[style^="padding-right"] {
 					use {
 						stroke: var(--gray-500);
 					}
+=======
+			margin-right: -6px;
+			.btn-modal-minimize {
+				.icon {
+					width: 14px;
+					height: 14px;
+>>>>>>> upstream/develop
 				}
 			}
 		}

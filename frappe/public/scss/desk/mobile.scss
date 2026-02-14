@@ -320,9 +320,19 @@ body {
 }
 
 @media (max-width: 480px) {
+<<<<<<< HEAD
 	body[data-route^="Form"] {
 		.navbar-breadcrumbs {
 			max-width: 165px;
+=======
+	.mobile-id-filter .form-group {
+		width: 120px;
+	}
+
+	body[data-route^="Form"] {
+		.navbar-breadcrumbs {
+			max-width: 125px;
+>>>>>>> upstream/develop
 		}
 		.page-title {
 			width: 100%;

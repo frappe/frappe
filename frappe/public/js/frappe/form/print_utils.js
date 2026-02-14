@@ -3,7 +3,12 @@ frappe.ui.get_print_settings = function (
 	callback,
 	letter_head,
 	pick_columns,
+<<<<<<< HEAD
 	has_filters = false
+=======
+	has_filters = false,
+	title = null
+>>>>>>> upstream/develop
 ) {
 	var print_settings = locals[":Print Settings"]["Print Settings"];
 
@@ -88,6 +93,7 @@ frappe.ui.get_print_settings = function (
 	return frappe.prompt(
 		columns,
 		function (settings) {
+<<<<<<< HEAD
 			settings = $.extend({}, print_settings, settings);
 
 			if (!settings.with_letter_head) {
@@ -96,16 +102,45 @@ frappe.ui.get_print_settings = function (
 
 			if (settings.letter_head) {
 				settings.letter_head = frappe.boot.letter_heads[print_settings.letter_head];
+=======
+			settings = $.extend(print_settings, settings);
+
+			if (!settings.with_letter_head) {
+				settings.letter_head = null;
+				settings.letter_head_name = null;
+			} else {
+				const letter_head_name =
+					settings.letter_head ||
+					settings.letter_head_name ||
+					print_settings.letter_head;
+				if (letter_head_name) {
+					settings.letter_head_name = letter_head_name;
+					settings.letter_head = frappe.boot.letter_heads[letter_head_name];
+				}
+>>>>>>> upstream/develop
 			}
 
 			if (settings.print_format) {
 				settings.pick_columns = 0;
+<<<<<<< HEAD
 				settings.columns = [];
 			}
 
 			callback(settings);
 		},
 		__("Print Settings")
+=======
+				settings.columns = null;
+			}
+
+			callback(settings);
+			// clean up print format to avoid affecting next print
+			if (settings.print_format) {
+				settings.print_format = null;
+			}
+		},
+		title ? __(title) : __("Print Settings")
+>>>>>>> upstream/develop
 	);
 };
 

@@ -8,7 +8,11 @@ app_publisher = "Frappe Technologies"
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 app_license = "MIT"
 app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
+<<<<<<< HEAD
 develop_version = "15.x.x-develop"
+=======
+develop_version = "17.x.x-develop"
+>>>>>>> upstream/develop
 app_home = "/app/build"
 
 app_email = "developers@frappe.io"
@@ -216,7 +220,10 @@ scheduler_events = {
 			"frappe.deferred_insert.save_to_db",
 			"frappe.automation.doctype.reminder.reminder.send_reminders",
 			"frappe.model.utils.link_count.update_link_count",
+<<<<<<< HEAD
 			"frappe.search.sqlite_search.build_index_if_not_exists",
+=======
+>>>>>>> upstream/develop
 			"frappe.utils.telemetry.pulse.client.send_queued_events",
 		],
 		# 10 minutes
@@ -227,6 +234,12 @@ scheduler_events = {
 		"30 * * * *": [],
 		# Daily but offset by 45 minutes
 		"45 0 * * *": [],
+<<<<<<< HEAD
+=======
+		"0 */3 * * *": [
+			"frappe.search.sqlite_search.build_index_if_not_exists",
+		],
+>>>>>>> upstream/develop
 	},
 	"all": [
 		"frappe.email.queue.flush",

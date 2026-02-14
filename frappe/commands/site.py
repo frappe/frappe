@@ -90,6 +90,23 @@ def new_site(
 	from frappe.installer import _new_site
 
 	frappe.init(site, new_site=True)
+<<<<<<< HEAD
+=======
+	db_labels = {
+		"postgres": "PostgreSQL",
+		"sqlite": "SQLite",
+	}
+	if db_type in db_labels:
+		click.secho(
+			f"\nNote: {db_labels[db_type]} support is currently in development and considered experimental.",
+			fg="yellow",
+			bold=True,
+		)
+		click.secho(
+			"Please report issues with a full traceback here:\nhttps://github.com/frappe/frappe/issues\n",
+			fg="cyan",
+		)
+>>>>>>> upstream/develop
 
 	if site in frappe.get_all_apps():
 		click.secho(
@@ -1583,6 +1600,7 @@ def bypass_patch(context: CliCtxObj, patch_name: str, yes: bool):
 			frappe.destroy()
 
 
+<<<<<<< HEAD
 @click.command("create-desktop-icons-and-sidebar")
 @pass_context
 def create_icons_and_sidebar(context: CliCtxObj):
@@ -1608,6 +1626,36 @@ def create_icons_and_sidebar(context: CliCtxObj):
 			print(f"Error creating icons {site}: {e}")
 		finally:
 			frappe.destroy()
+=======
+@click.command("sync-desktop-icons")
+@pass_context
+def sync_desktop_icons(context: CliCtxObj):
+	from frappe.model.sync import import_file_by_path
+	from frappe.modules.utils import get_app_level_directory_path
+	from frappe.utils import update_progress_bar
+
+	files = []
+	app_level_folders = ["desktop_icon"]
+	for site in context.sites:
+		print("Sycning icons for " + site)
+		frappe.init(site)
+		frappe.connect()
+		for app_name in frappe.get_installed_apps():
+			for folder_name in app_level_folders:
+				directory_path = get_app_level_directory_path(folder_name, app_name)
+				if os.path.exists(directory_path):
+					icon_files = [
+						os.path.join(directory_path, filename) for filename in os.listdir(directory_path)
+					]
+					for doc_path in icon_files:
+						files.append(doc_path)
+		for i, doc_path in enumerate(files):
+			imported = import_file_by_path(doc_path, force=True, ignore_version=True)
+			if imported:
+				frappe.db.commit(chain=True)
+
+			update_progress_bar("Updating Desktop Icons", i, len(files))
+>>>>>>> upstream/develop
 
 
 commands = [
@@ -1646,5 +1694,9 @@ commands = [
 	trim_database,
 	clear_log_table,
 	bypass_patch,
+<<<<<<< HEAD
 	create_icons_and_sidebar,
+=======
+	sync_desktop_icons,
+>>>>>>> upstream/develop
 ]

@@ -166,8 +166,14 @@ frappe.views.Calendar = class Calendar {
 			this.$wrapper,
 			__("Select or drag across time slots to create a new event.")
 		);
+<<<<<<< HEAD
 		this.footnote_area.css({ "border-top": "0px" });
 
+=======
+		this.footnote_area.addClass("px-4 pb-4").css({
+			"border-top": "0px",
+		});
+>>>>>>> upstream/develop
 		this.fullCalendar = new frappe.FullCalendar(this.$cal[0], this.cal_options);
 		this.fullCalendar.render();
 
@@ -188,10 +194,17 @@ frappe.views.Calendar = class Calendar {
 		const me = this;
 		let btn_group = me.$wrapper.find(".fc-button-group");
 		btn_group.on("click", ".btn", function () {
+<<<<<<< HEAD
 			let value = $(this).hasClass("fc-dayGridWeek-button")
 				? "dayGridWeek"
 				: $(this).hasClass("fc-dayGridDay-button")
 				? "dayGridDay"
+=======
+			let value = $(this).hasClass("fc-timeGridWeek-button")
+				? "timeGridWeek"
+				: $(this).hasClass("fc-timeGridDay-button")
+				? "timeGridDay"
+>>>>>>> upstream/develop
 				: "dayGridMonth";
 			me.set_localStorage_option("cal_initialView", value);
 		});
@@ -206,7 +219,11 @@ frappe.views.Calendar = class Calendar {
 	}
 	set_css() {
 		const viewButtons =
+<<<<<<< HEAD
 			".fc-dayGridMonth-button, .fc-dayGridWeek-button, .fc-dayGridDay-button, .fc-today-button";
+=======
+			".fc-dayGridMonth-button, .fc-timeGridWeek-button, .fc-timeGridDay-button, .fc-today-button";
+>>>>>>> upstream/develop
 		const fcViewButtonClasses = "fc-button fc-button-primary fc-button-active";
 
 		// remove fc-button styles
@@ -255,11 +272,25 @@ frappe.views.Calendar = class Calendar {
 			plugins: frappe.FullCalendar.Plugins,
 			initialView: defaults.initialView || "dayGridMonth",
 			locale: frappe.boot.lang,
+<<<<<<< HEAD
 			firstDay: 1,
 			headerToolbar: {
 				left: "prev,title,next",
 				center: "",
 				right: "today,dayGridMonth,dayGridWeek,dayGridDay",
+=======
+			eventTimeFormat: {
+				hour: "numeric",
+				minute: "2-digit",
+				hour12: true,
+			},
+			firstDay: 1,
+			eventDisplay: "block",
+			headerToolbar: {
+				left: "prev,title,next",
+				center: "",
+				right: "today,dayGridMonth,timeGridWeek,timeGridDay",
+>>>>>>> upstream/develop
 			},
 			editable: true,
 			droppable: true,

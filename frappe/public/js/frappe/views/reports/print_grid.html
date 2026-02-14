@@ -48,6 +48,11 @@
 							{% format_data = row.is_total_row && ["Currency", "Float"].includes(col.fieldtype) ? data[0] : row %}
 							{% if (row.is_total_row && col._index == 0) { %}
 								{{ __("Total") }}
+<<<<<<< HEAD
+=======
+							{% } else if (col.fieldtype == "Check") { %}
+								{{ value == 1 ? "✓" : "✗" }}
+>>>>>>> upstream/develop
 							{% } else { %}
 								{{
 									col.formatter

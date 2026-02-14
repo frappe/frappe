@@ -45,6 +45,10 @@ frappe.ui.menu = class ContextMenu {
 	}
 	make() {
 		this.template.empty();
+<<<<<<< HEAD
+=======
+		this.menu_items_to_show = [];
+>>>>>>> upstream/develop
 		this.menu_items.forEach((f) => {
 			f.condition =
 				f.condition ||
@@ -53,13 +57,26 @@ frappe.ui.menu = class ContextMenu {
 				};
 			if (f.condition()) {
 				this.add_menu_item(f);
+<<<<<<< HEAD
+=======
+				this.menu_items_to_show.push(f);
+>>>>>>> upstream/develop
 			}
 		});
 
 		// if (!$.contains(document.body, this.template[0])) {
 		// 	$(document.body).append(this.template);
 		// }
+<<<<<<< HEAD
 		$(document.body).append(this.template);
+=======
+
+		// only append if there are items to show
+		if (this.menu_items_to_show.length > 0) {
+			$(document.body).append(this.template);
+		}
+
+>>>>>>> upstream/develop
 		this.set_styles();
 	}
 	set_styles() {
@@ -96,10 +113,20 @@ frappe.ui.menu = class ContextMenu {
 						${iconMarkup}
 					</div>
 					<span class="menu-item-title">${__(item.label)}</span>
+<<<<<<< HEAD
 					<div class="menu-item-icon" style="margin-left:auto">
 						${item.items && item.items.length ? frappe.utils.icon(`chevron-${chevron_direction}`) : ""}
 					</div>
 
+=======
+					${
+						item.items && item.items.length
+							? `<div class="menu-item-icon" style="margin-left:auto">
+						${frappe.utils.icon(`chevron-${chevron_direction}`)}
+					</div>`
+							: ""
+					}
+>>>>>>> upstream/develop
 				</a>
 			</div>`);
 			if (!item.url) {
@@ -132,6 +159,7 @@ frappe.ui.menu = class ContextMenu {
 								me.current_menu.show();
 							}
 						}
+<<<<<<< HEAD
 
 						// debugger
 						// if(!current_menu.visible){
@@ -145,6 +173,9 @@ frappe.ui.menu = class ContextMenu {
 					// me.nested_menus.forEach((menu) => {
 					// 	menu.hide();
 					// });
+=======
+					}
+>>>>>>> upstream/develop
 				});
 			} else if (item.items) {
 				$();
@@ -184,6 +215,7 @@ frappe.ui.menu = class ContextMenu {
 
 	show(event) {
 		this.make();
+<<<<<<< HEAD
 		const offset = $(this.parent).offset();
 		const height = $(this.parent).outerHeight();
 		this.left_offset = 0;
@@ -234,6 +266,51 @@ frappe.ui.menu = class ContextMenu {
 			});
 		}
 
+=======
+		this.gap = 4;
+
+		if (this.opts.right_click && event) {
+			this.template.css({
+				display: "block",
+				position: "fixed",
+				left: `${event.clientX}px`,
+				top: `${event.clientY}px`,
+			});
+			this.visible = true;
+			frappe.visible_menus.push(this);
+			return;
+		}
+
+		const parent_rect = this.parent.get(0).getBoundingClientRect();
+		let top, left;
+
+		if (this.opts.nested && this.opts.parent_menu) {
+			let parent_menu_el = frappe.menu_map[this.opts.parent_menu].template;
+			let parent_menu_rect = parent_menu_el.get(0).getBoundingClientRect();
+			top = parent_rect.top;
+			if (frappe.utils.is_rtl()) {
+				left = parent_menu_rect.left - this.template.outerWidth() - this.gap;
+			} else {
+				left = parent_menu_rect.right + this.gap;
+			}
+		} else {
+			top = parent_rect.bottom + this.gap;
+			left = parent_rect.left;
+			if (this.open_on_left || frappe.utils.is_rtl()) {
+				left = parent_rect.right - this.template.outerWidth();
+			}
+		}
+
+		if (left < 0) left = 10;
+
+		this.template.css({
+			display: "block",
+			position: "fixed",
+			top: top + "px",
+			left: left + "px",
+		});
+
+>>>>>>> upstream/develop
 		this.visible = true;
 		frappe.visible_menus.push(this);
 	}

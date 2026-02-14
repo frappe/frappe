@@ -4,6 +4,10 @@ import os
 import uuid
 from io import BytesIO
 from typing import Literal
+<<<<<<< HEAD
+=======
+from urllib.parse import urlparse
+>>>>>>> upstream/develop
 
 from pypdf import PdfWriter
 
@@ -11,6 +15,10 @@ import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.translate import print_language
+<<<<<<< HEAD
+=======
+from frappe.utils.jinja import render_template
+>>>>>>> upstream/develop
 from frappe.utils.pdf import get_pdf
 
 no_cache = 1
@@ -256,11 +264,67 @@ def download_pdf(
 def report_to_pdf(html, orientation="Landscape"):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
+<<<<<<< HEAD
 	frappe.local.response.filecontent = get_pdf(html, {"orientation": orientation})
+=======
+	frappe.local.response.filecontent = get_pdf(
+		html,
+		{
+			"orientation": orientation,
+			"proxy": "http://0.0.0.0:0",
+			"bypass-proxy-for": urlparse(frappe.utils.get_url(allow_header_override=False)).hostname,
+			"load-error-handling": "ignore",
+		},
+	)
+>>>>>>> upstream/develop
 	frappe.local.response.type = "pdf"
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
+=======
+def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str | None = None) -> dict:
+	"""Render letterhead HTML (header/footer) with Jinja for report printing."""
+
+	if not frappe.has_permission("Letter Head", "read"):
+		return {}
+
+	if isinstance(doc, str):
+		try:
+			doc = json.loads(doc)
+		except Exception:
+			doc = {}
+
+	letter_head = frappe._dict(
+		frappe.db.get_value(
+			"Letter Head",
+			letterhead or {"is_default": 1},
+			["content", "footer", "header_script", "footer_script"],
+			as_dict=True,
+		)
+		or {}
+	)
+
+	context_doc = frappe._dict(doc or {})
+	rendered = {}
+
+	if letter_head.content:
+		header = render_template(letter_head.content, {"doc": context_doc})
+		if letter_head.header_script:
+			header += f"\n<script>\n{letter_head.header_script}\n</script>\n"
+		rendered["header"] = header
+
+	if letter_head.footer:
+		footer = render_template(letter_head.footer, {"doc": context_doc})
+		if letter_head.footer_script:
+			footer += f"\n<script>\n{letter_head.footer_script}\n</script>\n"
+		rendered["footer"] = footer
+
+	return rendered
+
+
+@frappe.whitelist()
+>>>>>>> upstream/develop
 def print_by_server(
 	doctype, name, printer_setting, print_format=None, doc=None, no_letterhead=0, file_path=None
 ):

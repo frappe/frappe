@@ -1010,7 +1010,11 @@ body {
 				}
 
 				.ce-header b {
+<<<<<<< HEAD
 					font-weight: var(--weight-regular) !important;
+=======
+					font-weight: var(--weight-bold) !important;
+>>>>>>> upstream/develop
 				}
 
 				.new-block-button {
@@ -1313,8 +1317,21 @@ body {
 			}
 		}
 
+<<<<<<< HEAD
 		.ce-inline-tool,
 		.ce-inline-toolbar__dropdown {
+=======
+		.ce-inline-toolbar {
+			background-color: var(--bg-color);
+		}
+
+		.ce-inline-tool,
+		.ce-inline-toolbar__dropdown {
+			&:hover {
+				background-color: var(--fg-hover-color);
+			}
+
+>>>>>>> upstream/develop
 			.icon {
 				fill: currentColor;
 			}

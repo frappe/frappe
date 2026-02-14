@@ -121,6 +121,12 @@ frappe.ui.form.on("User", {
 		}
 
 		frm.toggle_display(["sb1", "sb3", "modules_access"], false);
+<<<<<<< HEAD
+=======
+		if (frm.is_new() && has_access_to_edit_user()) {
+			frm.toggle_display(["sb1", "sb3", "modules_access"], true);
+		}
+>>>>>>> upstream/develop
 		frm.trigger("setup_impersonation");
 
 		if (!frm.is_new()) {
@@ -429,18 +435,40 @@ frappe.ui.form.on("User Email", {
 frappe.ui.form.on("User Role Profile", {
 	role_profiles_add: function (frm) {
 		if (frm.doc.role_profiles.length > 0) {
+<<<<<<< HEAD
 			frm.roles_editor.disable = 1;
 			frm.call("populate_role_profile_roles").then(() => {
 				frm.roles_editor.show();
 			});
 			$(".deselect-all, .select-all").prop("disabled", true);
+=======
+			if (frm.roles_editor) {
+				frm.roles_editor.disable = 1;
+			}
+			frm.call("populate_role_profile_roles").then(() => {
+				if (frm.roles_editor) {
+					frm.roles_editor.show();
+				}
+			});
+			if (frm.roles_editor) {
+				$(".deselect-all, .select-all").prop("disabled", true);
+			}
+>>>>>>> upstream/develop
 		}
 	},
 	role_profiles_remove: function (frm) {
 		if (frm.doc.role_profiles.length == 0) {
+<<<<<<< HEAD
 			frm.roles_editor.disable = 0;
 			frm.roles_editor.show();
 			$(".deselect-all, .select-all").prop("disabled", false);
+=======
+			if (frm.roles_editor) {
+				frm.roles_editor.disable = 0;
+				frm.roles_editor.show();
+				$(".deselect-all, .select-all").prop("disabled", false);
+			}
+>>>>>>> upstream/develop
 		}
 	},
 });

@@ -704,6 +704,43 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 				update_column_count_message();
 			});
 
+<<<<<<< HEAD
+=======
+			// Toggle all checkboxes in column selector
+			const toggle_all_checkboxes = function (should_check, should_clear_value) {
+				// Scope to column selector list checkboxes only
+				$body
+					.find(".column-selector-list input[type='checkbox'][data-fieldname]")
+					.each(function () {
+						const $checkbox = $(this);
+						const is_checked = $checkbox.prop("checked");
+
+						// Only process checkboxes that need to be changed
+						if ((should_check && !is_checked) || (!should_check && is_checked)) {
+							$checkbox.prop("checked", should_check);
+							const fieldname = $checkbox.attr("data-fieldname");
+							const input = get_width_input(fieldname);
+							input.prop("disabled", !should_check);
+
+							if (should_clear_value) {
+								input.val("");
+							}
+						}
+					});
+				update_column_count_message();
+			};
+
+			// Select All functionality
+			$body.on("click", ".select-all-btn", function () {
+				toggle_all_checkboxes(true, false);
+			});
+
+			// Unselect All functionality
+			$body.on("click", ".unselect-all-btn", function () {
+				toggle_all_checkboxes(false, true);
+			});
+
+>>>>>>> upstream/develop
 			d.show();
 
 			return false;

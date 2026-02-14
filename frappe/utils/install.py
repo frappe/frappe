@@ -3,6 +3,10 @@
 import getpass
 
 import frappe
+<<<<<<< HEAD
+=======
+from frappe.email.doctype.notification.notification import install_notification_templates
+>>>>>>> upstream/develop
 from frappe.geo.doctype.country.country import import_country_and_currency
 from frappe.utils import cint
 from frappe.utils.password import update_password
@@ -53,6 +57,12 @@ def after_install():
 
 	add_standard_navbar_items()
 
+<<<<<<< HEAD
+=======
+	# default templates
+	install_notification_templates()
+
+>>>>>>> upstream/develop
 	frappe.db.commit()
 
 

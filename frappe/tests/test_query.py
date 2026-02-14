@@ -410,12 +410,29 @@ class TestQuery(IntegrationTestCase):
 			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('ToDo','Note')",
 		)
 
+<<<<<<< HEAD
+=======
+		# Empty list with IN operator should return 0 results (1=0 condition)
+>>>>>>> upstream/develop
 		self.assertQueryEqual(
 			frappe.qb.get_query(
 				"DocType",
 				filters={"name": ("in", [])},
 			).get_sql(),
+<<<<<<< HEAD
 			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('')",
+=======
+			"SELECT `name` FROM `tabDocType` WHERE 1=0",
+		)
+
+		# Empty list with NOT IN operator should return all results (1=1 condition)
+		self.assertQueryEqual(
+			frappe.qb.get_query(
+				"DocType",
+				filters={"name": ("not in", [])},
+			).get_sql(),
+			"SELECT `name` FROM `tabDocType` WHERE 1=1",
+>>>>>>> upstream/develop
 		)
 
 		self.assertQueryEqual(
@@ -2289,6 +2306,18 @@ class TestQuery(IntegrationTestCase):
 		# the filter should still apply and return no results
 		self.assertEqual(len(result), 0, "Filter should not be bypassed by shared doc OR condition")
 
+<<<<<<< HEAD
+=======
+	@run_only_if(db_type_is.POSTGRES)
+	def test_ifnull_fallback_postgres(self):
+		"""Test ifnull fallback in postgres"""
+		from frappe.database.query import Engine
+
+		engine = Engine()
+		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "skipped"), "0")
+		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "patch"), "''")
+
+>>>>>>> upstream/develop
 
 # This function is used as a permission query condition hook
 def test_permission_hook_condition(user):

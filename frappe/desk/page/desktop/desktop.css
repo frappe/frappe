@@ -7,6 +7,10 @@
     --folder-icon-background-color: var(--surface-gray-1);
     --desktop-modal-radius: 30px;
     --desktop-icon-line-height: 115%;
+<<<<<<< HEAD
+=======
+    --desktop-navbar-height: 52px;
+>>>>>>> upstream/develop
 }
 [data-theme="dark"]{
     --folder-icon-background-color: #2b2b2b;
@@ -27,7 +31,11 @@
     width: 100%;
     padding: 10px 20px 10px 20px;
     box-sizing: border-box;
+<<<<<<< HEAD
     height: 52px;
+=======
+    height: var(--desktop-navbar-height);
+>>>>>>> upstream/develop
     position: sticky;
     top: 0px;
     z-index: 1030;
@@ -103,7 +111,11 @@
     padding: 13px 16px 12px 16px;
     position: relative;
 }
+<<<<<<< HEAD
 .desktop-icon.edit-mode .hide-button {
+=======
+.desktop-icon.desktop-edit-mode .hide-button {
+>>>>>>> upstream/develop
     display: flex;
 }
 .icon-container:has(.app-logo) {
@@ -140,14 +152,20 @@
     text-wrap: nowrap;
     display: flex;
     justify-content: space-between;
+<<<<<<< HEAD
     width: 95px;
+=======
+>>>>>>> upstream/develop
     height: 35px;
     flex-direction: column;
 }
 .icon-title{
     font-weight: var(--weight-semibold);
     font-size: var(--text-md);
+<<<<<<< HEAD
     max-width: 95px;
+=======
+>>>>>>> upstream/develop
     overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -234,7 +252,11 @@
 }
 .modal-body .icons{
     margin-top: 0px;
+<<<<<<< HEAD
     place-self: start;
+=======
+    place-self: anchor-center;
+>>>>>>> upstream/develop
     & .desktop-icon{
         height: 126px;
         width: 127px;
@@ -268,14 +290,23 @@
                 height: var(--folder-thumbnail-icon-height);
                 width: var(--folder-thumbnail-icon-height);
                 padding: 0px;
+<<<<<<< HEAD
                 border-radius: 2px;
+=======
+                border-radius: 4px;
+>>>>>>> upstream/develop
                 & .icon{
                     width: 5px;
                     height: 5px;
                 }
                 & img{
+<<<<<<< HEAD
                     width: 9px;
                     height: 9px;
+=======
+                    width: var(--folder-thumbnail-icon-height);
+                    height: var(--folder-thumbnail-icon-height);
+>>>>>>> upstream/develop
                 }
             }
 
@@ -337,7 +368,11 @@
     left: 108px;
 }
 
+<<<<<<< HEAD
 .edit-mode{
+=======
+.desktop-edit-mode{
+>>>>>>> upstream/develop
     border: 1px dashed var(--outline-gray-2);
     border-radius: 20px;
 }
@@ -395,7 +430,13 @@
   }
 
     .desktop-modal-body {
+<<<<<<< HEAD
         width: 90vw;
+=======
+        width: calc(100vw - 20px);
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+>>>>>>> upstream/develop
         > .icons-container {
             width: 100%;
             overflow: hidden !important;
@@ -404,10 +445,15 @@
             padding: 0;
 
             > .icons {
+<<<<<<< HEAD
                 position: relative;
                 right: 6%;
                 column-gap: 4px;
                 row-gap: 8px;
+=======
+                column-gap: 6px;
+                row-gap: 6px;
+>>>>>>> upstream/develop
 
                 @media screen and (max-width: 380px) {
                 --desktop-icon-container: 100px;
@@ -463,4 +509,73 @@
 [data-theme="dark"] .desktop-edit:hover{
 	opacity: 0.8;
 	transition: opacity 0.3s;
+<<<<<<< HEAD
 }
+=======
+}
+.desktop-navbar-modal-search:hover{
+    outline: 1px solid var(--surface-gray-3);
+}
+.desktop-pane{
+    position: absolute;
+    top: var(--desktop-navbar-height);
+    right: 0px;
+    width: 300px;
+    border-left: 1px solid var(--border-color);
+    background-color: rgba(255,255,255, 1);
+    height: 100vh;
+}
+.pane-header{
+    display: flex;
+    font-size: var(--text-lg);
+    padding: var(--padding-md);
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-color);
+}
+.pane-icons-area{
+    .icons-container {
+        height: 100%;
+        margin-top: 0px;
+    }
+    .icons{
+        height: 100%;
+        overflow: scroll;
+    }
+}
+
+.add-new-icon{
+    cursor: pointer;
+    gap: 0px;
+    justify-content: center;
+}
+
+.title-widget{
+    display: inline-block;
+    position: relative;
+}
+
+.title-input-label{
+  position: absolute;
+  top: 0px;
+  color: var(--neutral-white);
+  line-height: 22px;
+  z-index: 1;
+  pointers-events: none;
+  width: 100%;
+    text-align: center;
+}
+.title-input-wrapper{
+    position: relative;
+    display: inline-block;
+
+}
+
+.title-input-wrapper input{
+  border: 1px solid transparent;
+  width: 100%;
+  height: 100%;
+  background: none;
+    color: var(--neutral-white);
+}
+>>>>>>> upstream/develop

@@ -80,7 +80,11 @@ frappe.ui.form.Attachments = class Attachments {
 	}
 
 	get_attachments() {
+<<<<<<< HEAD
 		return this.frm.get_docinfo().attachments || [];
+=======
+		return this.frm.get_docinfo()?.attachments || [];
+>>>>>>> upstream/develop
 	}
 
 	render_attachments(attachments) {

@@ -182,12 +182,26 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
 		if (match_rules_list.length) {
 			this.restricted_list = $(
+<<<<<<< HEAD
 				`<button class="btn btn-xs restricted-button flex align-center">
+=======
+				`<button class="btn btn-xs restricted-button flex align-center ${
+					frappe.is_mobile() ? "ml-2" : ""
+				}">
+>>>>>>> upstream/develop
 					${frappe.utils.icon("restriction", "xs")}
 				</button>`
 			)
 				.click(() => this.show_restrictions(match_rules_list))
+<<<<<<< HEAD
 				.appendTo(this.page.page_form);
+=======
+				.appendTo(
+					frappe.is_mobile()
+						? this.page.page_form.find(".filter-section")
+						: this.page.page_form
+				);
+>>>>>>> upstream/develop
 		}
 	}
 
@@ -285,7 +299,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	set_primary_action() {
 		if (this.can_create && !frappe.boot.read_only) {
 			const doctype_name = __(frappe.router.doctype_layout) || __(this.doctype);
+<<<<<<< HEAD
 			this.page.set_primary_action(
+=======
+			const create_button = this.page.set_primary_action(
+>>>>>>> upstream/develop
 				__("Add {0}", [doctype_name], "Primary action in list view"),
 				() => {
 					if (this.settings.primary_action) {
@@ -296,6 +314,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 				"add"
 			);
+<<<<<<< HEAD
+=======
+			if (frappe.is_mobile()) {
+				create_button.append(__("Add"));
+			}
+>>>>>>> upstream/develop
 		} else {
 			this.page.clear_primary_action();
 		}
@@ -312,7 +336,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		];
 		this.filter_area.get().forEach((f) => {
 			if (allowed_filter_types.includes(f[2]) && frappe.model.is_non_std_field(f[1])) {
+<<<<<<< HEAD
 				options[f[1]] = f[3];
+=======
+				const df = frappe.meta.get_field(doctype, f[1]);
+				if (df && !df.read_only) {
+					options[f[1]] = f[3];
+				}
+>>>>>>> upstream/develop
 			}
 		});
 		frappe.new_doc(doctype, options);
@@ -796,6 +827,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_left_html(doc) {
 		let left_html = "";
+<<<<<<< HEAD
 		let has_value_in_second_column = true;
 		for (let i = 0; i < this.columns.length; i++) {
 			let col = this.columns[i];
@@ -803,6 +835,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (i == 4 && !doc[col.df.fieldname] && doc[col.df.fieldname] != 0) {
 				has_value_in_second_column = false;
 			}
+=======
+		const mobile_field_columns = this.columns.filter(
+			(col) => col.type === "Field" && col.df?.fieldname
+		);
+		let has_value_in_second_column = true;
+		if (mobile_field_columns.length > 1) {
+			const fieldname = mobile_field_columns[1].df.fieldname;
+			if (!doc[fieldname] && doc[fieldname] != 0) {
+				has_value_in_second_column = false;
+			}
+		}
+		for (let i = 0; i < this.columns.length; i++) {
+			let col = this.columns[i];
+>>>>>>> upstream/develop
 
 			if (frappe.is_mobile() && col.type == "Field" && [3, 4].includes(i)) {
 				left_html += `<div class="mobile-layout ${
@@ -897,6 +943,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							aria-valuemin="0" aria-valuemax="100" style="width: ${Math.round(value)}%;">
 						</div>
 					</div>`;
+<<<<<<< HEAD
+=======
+			} else if (df.fieldtype === "Data") {
+				return frappe.format(frappe.utils.escape_html(value), df, null, doc);
+>>>>>>> upstream/develop
 			} else {
 				return frappe.format(value, df, null, doc);
 			}
@@ -1210,7 +1261,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					count_without_children !== current_count ? count_without_children : undefined;
 
 				let count_str;
+<<<<<<< HEAD
 				if (this.total_count === this.count_upper_bound) {
+=======
+				if (current_count > this.total_count) {
+					count_str = `${format_number(current_count, null, 0)}+`;
+				} else if (this.total_count === this.count_upper_bound) {
+>>>>>>> upstream/develop
 					count_str = `${format_number(this.total_count - 1, null, 0)}+`;
 				} else if (this.total_count == null) {
 					count_str = "??";
@@ -1973,7 +2030,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		items.push({
+<<<<<<< HEAD
 			label: __("Edit Filters", null, "Edit filters of List View"),
+=======
+			label: __("Customize Quick Filters", null, "Customize qucik filters of List View"),
+>>>>>>> upstream/develop
 			action: () => {
 				this.make_group_by_fields_modal();
 			},

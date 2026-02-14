@@ -35,7 +35,11 @@ class LinkSearchResults(TypedDict):
 
 # this is called by the Link Field
 @frappe.whitelist()
+<<<<<<< HEAD
 @http_cache(max_age=60 * 5, stale_while_revalidate=60 * 5)
+=======
+@http_cache(max_age=60, stale_while_revalidate=5 * 60)
+>>>>>>> upstream/develop
 def search_link(
 	doctype: str,
 	txt: str,
@@ -109,6 +113,7 @@ def search_widget(
 	if filters is None:
 		filters = {}
 
+<<<<<<< HEAD
 	are_filters_dict = isinstance(filters, dict)
 	include_disabled = False
 	if not query and are_filters_dict:
@@ -134,6 +139,8 @@ def search_widget(
 		# we want to match "A" with "A" only and not "A1", "BA" etc.
 		page_length = PAGE_LENGTH_FOR_LINK_VALIDATION
 
+=======
+>>>>>>> upstream/develop
 	if query:  # Query = custom search query i.e. python function
 		try:
 			is_whitelisted(frappe.get_attr(query))
@@ -163,6 +170,22 @@ def search_widget(
 				return []
 
 	meta = frappe.get_meta(doctype)
+<<<<<<< HEAD
+=======
+
+	include_disabled = False
+	if isinstance(filters, dict):
+		if "include_disabled" in filters:
+			if filters["include_disabled"] == 1:
+				include_disabled = True
+			filters.pop("include_disabled")
+
+		filters = [make_filter_tuple(doctype, key, value) for key, value in filters.items()]
+
+	if for_link_validation:
+		filters.append([doctype, "name", "=", txt])
+
+>>>>>>> upstream/develop
 	or_filters = []
 
 	# build from doctype
@@ -364,8 +387,13 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 			results.append(autosuggest_row)
 	else:
 		for item in res:
+<<<<<<< HEAD
 			value = _(item[0]) if meta.translated_doctype else item[0]
 			results.append({"value": item[0], "description": to_string(item[1:]), "label": value})
+=======
+			label = _(item[0]) if meta.translated_doctype else item[0]
+			results.append({"value": item[0], "description": to_string(item[1:]), "label": label})
+>>>>>>> upstream/develop
 
 	return results
 
@@ -405,7 +433,11 @@ def get_names_for_mentions(search_term):
 def get_users_for_mentions():
 	return frappe.get_all(
 		"User",
+<<<<<<< HEAD
 		fields=["name as id", "full_name as value"],
+=======
+		fields=["name as id", "full_name as value", "email"],
+>>>>>>> upstream/develop
 		filters={
 			"name": ["not in", ("Administrator", "Guest")],
 			"allowed_in_mentions": True,

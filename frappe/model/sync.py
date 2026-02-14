@@ -201,13 +201,23 @@ def remove_orphan_doctypes():
 
 def remove_orphan_entities():
 	entites = ["Workspace", "Dashboard", "Page", "Report"]
+<<<<<<< HEAD
 	app_level_entities = ["Workspace Sidebar"]
 	entity_filter_map = {
 		"Workspace": {"public": 1},
+=======
+	app_level_entities = ["Workspace Sidebar", "Desktop Icon"]
+	entity_filter_map = {
+		"Workspace": [{"public": 1, "module": ["is", "set"], "app": ["is", "set"]}],
+>>>>>>> upstream/develop
 		"Page": {"standard": "Yes"},
 		"Report": {"is_standard": "Yes"},
 		"Dashboard": {"is_standard": True},
 		"Workspace Sidebar": {"standard": True},
+<<<<<<< HEAD
+=======
+		"Desktop Icon": {"standard": True},
+>>>>>>> upstream/develop
 	}
 	entity_file_map = create_entity_file_map(entites)
 

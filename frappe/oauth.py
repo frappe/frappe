@@ -5,7 +5,10 @@ import re
 from http import cookies
 from urllib.parse import unquote, urljoin, urlparse
 
+<<<<<<< HEAD
 import jwt
+=======
+>>>>>>> upstream/develop
 from oauthlib.openid import RequestValidator
 
 import frappe
@@ -292,16 +295,33 @@ class OAuthWebRequestValidator(RequestValidator):
 		- Refresh Token Grant
 		"""
 
+<<<<<<< HEAD
 		otoken = frappe.get_doc("OAuth Bearer Token", {"refresh_token": refresh_token, "status": "Active"})
+=======
+		otoken = frappe.get_doc(
+			"OAuth Bearer Token",
+			{"refresh_token": refresh_token, "status": "Active"},
+		)
+>>>>>>> upstream/develop
 
 		if not otoken:
 			return False
 		else:
+<<<<<<< HEAD
+=======
+			# Set request.user to the user associated with the refresh token
+			request.user = otoken.user
+>>>>>>> upstream/develop
 			return True
 
 	# OpenID Connect
 
 	def finalize_id_token(self, id_token, token, token_handler, request):
+<<<<<<< HEAD
+=======
+		import jwt
+
+>>>>>>> upstream/develop
 		# Check whether frappe server URL is set
 		id_token_header = {"typ": "jwt", "alg": "HS256"}
 
@@ -437,6 +457,11 @@ class OAuthWebRequestValidator(RequestValidator):
 		- OpenIDConnectImplicit
 		- OpenIDConnectHybrid
 		"""
+<<<<<<< HEAD
+=======
+		import jwt
+
+>>>>>>> upstream/develop
 		if id_token_hint:
 			try:
 				user = None

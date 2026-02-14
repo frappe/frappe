@@ -99,7 +99,11 @@
 			transition: opacity 0.3s;
 			width: var(--form-sidebar-image-width);
 			height: var(--form-sidebar-image-width);
+<<<<<<< HEAD
 			border-radius: var(--border-radius-full);
+=======
+			border-radius: var(--border-radius-lg);
+>>>>>>> upstream/develop
 		}
 
 		.sidebar-image-wrapper:hover {
@@ -407,6 +411,17 @@ body[data-route^="Form"] {
 	}
 }
 
+<<<<<<< HEAD
+=======
+.add-assignment-label,
+.tags-label,
+.share-label {
+	&:hover {
+		cursor: pointer;
+	}
+}
+
+>>>>>>> upstream/develop
 .liked-by-popover {
 	.popover-body {
 		min-height: 30px;

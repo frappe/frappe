@@ -311,6 +311,10 @@ class CommunicationEmailMixin:
 			"send_after": self.send_after,
 			"raw_html": raw_html,
 			"add_css": add_css,
+<<<<<<< HEAD
+=======
+			"in_reply_to": self.in_reply_to,
+>>>>>>> upstream/develop
 		}
 
 	def send_email(

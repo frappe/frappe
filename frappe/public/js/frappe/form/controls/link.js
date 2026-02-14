@@ -165,6 +165,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		return false;
 	}
 	new_doc() {
+<<<<<<< HEAD
+=======
+		this.$input._created_new_doc = true; // This is used to disable HTTP cache on this link field
+>>>>>>> upstream/develop
 		var doctype = this.get_options();
 		var me = this;
 
@@ -180,12 +184,15 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			frappe.route_options = df.get_route_options_for_new_doc(this);
 		} else {
 			frappe.route_options = {};
+<<<<<<< HEAD
 			// Reuse set_custom_query to extract filters from link_filters, get_query, and df.filters
 			let args = {};
 			this.set_custom_query(args);
 			if (args.filters) {
 				Object.assign(frappe.route_options, args.filters);
 			}
+=======
+>>>>>>> upstream/develop
 		}
 
 		// partially entered name field
@@ -292,6 +299,19 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				// hide link arrow to doctype if none is set
 				me.$link.toggle(false);
 			}
+<<<<<<< HEAD
+=======
+
+			const dropdown = this.awesomplete.ul;
+			const dropdownRect = dropdown.getBoundingClientRect();
+			const viewportWidth = window.innerWidth;
+
+			if (dropdownRect.right > viewportWidth) {
+				dropdown.classList.add("awesomplete-align-right");
+			} else {
+				dropdown.classList.remove("awesomplete-align-right");
+			}
+>>>>>>> upstream/develop
 		});
 
 		this.$input.on("awesomplete-close", (e) => {
@@ -431,7 +451,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 
 		const filters = args.filters;
+<<<<<<< HEAD
 		let use_get = !term;
+=======
+		let use_get = !term && !this.$input._created_new_doc;
+>>>>>>> upstream/develop
 		if (use_get) {
 			const [are_filters_large, filters_str] = this.are_filters_large(filters);
 			use_get = !are_filters_large;
@@ -600,7 +624,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			}
 
 			// Numbers, dates, etc. - not translated, not quoted
+<<<<<<< HEAD
 			return frappe.format(val, docfield || {});
+=======
+			return frappe.format(val, docfield || {}, { inline: true });
+>>>>>>> upstream/develop
 		}
 
 		async function describe_filter(filter) {
@@ -857,9 +885,20 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		return this.validate_link_and_fetch(value);
 	}
+<<<<<<< HEAD
 	validate_link_and_fetch(value) {
 		const args = this.get_search_args(value);
 		if (!args.doctype) return;
+=======
+	after_set_value() {
+		for (const target_field of Object.keys(this.fetch_map)) {
+			this.frm.refresh_field(target_field);
+		}
+	}
+	validate_link_and_fetch(value) {
+		const args = this.get_search_args(value);
+		if (!args) return;
+>>>>>>> upstream/develop
 
 		const columns_to_fetch = Object.values(this.fetch_map);
 

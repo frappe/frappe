@@ -529,12 +529,15 @@ frappe.ui.form.Layout = class Layout {
 		}
 	}
 
+<<<<<<< HEAD
 	refresh_section_count() {
 		this.wrapper.find(".section-count-label:visible").each(function (i) {
 			$(this).html(i + 1);
 		});
 	}
 
+=======
+>>>>>>> upstream/develop
 	setup_events() {
 		let last_scroll = 0;
 		let tabs_list = $(".form-tabs-list");
@@ -724,6 +727,7 @@ frappe.ui.form.Layout = class Layout {
 			build dependants' dictionary
 		*/
 
+<<<<<<< HEAD
 		let has_dep = false;
 
 		const fields = this.fields_list.concat(this.tabs);
@@ -758,6 +762,18 @@ frappe.ui.form.Layout = class Layout {
 						f.df.hidden_due_to_dependency = true;
 						f.refresh();
 					}
+=======
+		const fields = this.fields_list.concat(this.tabs);
+
+		// show / hide based on values
+		for (const f of fields) {
+			if (f.df.depends_on) {
+				const should_hide = !this.evaluate_depends_on_value(f.df.depends_on);
+
+				if (f.df.hidden_due_to_dependency !== should_hide) {
+					f.df.hidden_due_to_dependency = should_hide;
+					f.refresh();
+>>>>>>> upstream/develop
 				}
 			}
 
@@ -772,9 +788,19 @@ frappe.ui.form.Layout = class Layout {
 					"read_only"
 				);
 			}
+<<<<<<< HEAD
 		}
 
 		this.refresh_section_count();
+=======
+
+			if (f.df.fieldtype === "Table") {
+				for (const row of f.grid?.grid_rows || []) {
+					row.refresh_dependency();
+				}
+			}
+		}
+>>>>>>> upstream/develop
 	}
 
 	set_dependant_property(condition, fieldname, property) {

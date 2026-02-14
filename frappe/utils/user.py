@@ -42,6 +42,10 @@ class UserPermissions:
 		self.can_print = []
 		self.can_email = []
 		self.allow_modules = []
+<<<<<<< HEAD
+=======
+		self.permitted_modules = []
+>>>>>>> upstream/develop
 		self.in_create = []
 		self.setup_user()
 
@@ -143,7 +147,12 @@ class UserPermissions:
 						no_list_view_link.append(dt)
 					else:
 						self.can_read.append(dt)
+<<<<<<< HEAD
 
+=======
+						if dtp["module"] not in self.permitted_modules:
+							self.permitted_modules.append(dtp["module"])
+>>>>>>> upstream/develop
 			if p.get("submit"):
 				self.can_submit.append(dt)
 
@@ -269,6 +278,10 @@ class UserPermissions:
 			"can_import",
 			"can_print",
 			"can_email",
+<<<<<<< HEAD
+=======
+			"permitted_modules",
+>>>>>>> upstream/develop
 		):
 			d[key] = list(set(getattr(self, key)))
 

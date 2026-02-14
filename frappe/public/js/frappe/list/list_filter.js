@@ -12,6 +12,10 @@ export default class ListFilter {
 	}
 
 	refresh_list_filter() {
+<<<<<<< HEAD
+=======
+		if (frappe.is_mobile()) return;
+>>>>>>> upstream/develop
 		this.get_list_filters().then(() => {
 			this.render_saved_filters();
 		});
@@ -84,11 +88,19 @@ export default class ListFilter {
 	append_create_new_item($menu) {
 		const new_filter = {
 			name: "create_new",
+<<<<<<< HEAD
 			filter_name: "Create New",
 		};
 
 		const $create_item = this.filter_template(new_filter, true);
 		$create_item.find(".filter-label").on("click", (e) => {
+=======
+			filter_name: "Save Current Filter",
+		};
+
+		const $create_item = this.filter_template(new_filter, true);
+		$create_item.find(".dropdown-item").on("click", (e) => {
+>>>>>>> upstream/develop
 			this.show_create_filter_dialog();
 		});
 		$menu.append($create_item);

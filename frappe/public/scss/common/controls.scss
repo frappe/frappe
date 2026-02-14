@@ -157,7 +157,12 @@ select.form-control {
 	.ql-editor:not(.read-mode) {
 		background-color: var(--control-bg);
 	}
+<<<<<<< HEAD
 	.address-box {
+=======
+	.address-box,
+	.contact-box {
+>>>>>>> upstream/develop
 		background-color: var(--control-bg);
 		padding: var(--padding-sm);
 		margin-bottom: var(--margin-sm);
@@ -170,14 +175,25 @@ select.form-control {
 		}
 		.edit-btn {
 			position: absolute;
+<<<<<<< HEAD
 			top: 5px;
 			right: 5px;
+=======
+			top: 0px;
+			right: 0px;
+>>>>>>> upstream/develop
 			display: flex;
 			justify-content: center;
 			align-items: center;
 			padding: var(--padding-sm);
 		}
 	}
+<<<<<<< HEAD
+=======
+	.contact-box p {
+		line-height: 1.1;
+	}
+>>>>>>> upstream/develop
 	.action-btn {
 		position: absolute;
 		top: 0px;
@@ -195,6 +211,16 @@ select.form-control {
 		@extend .action-btn;
 		background-color: var(--control-bg);
 		display: none;
+<<<<<<< HEAD
+=======
+		border-radius: var(--border-radius-sm);
+		height: 100%;
+		a {
+			display: flex;
+			height: 100%;
+			align-items: center;
+		}
+>>>>>>> upstream/develop
 	}
 }
 

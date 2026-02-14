@@ -52,6 +52,10 @@ def make(
 	now=False,
 	raw_html=False,
 	add_css=True,
+<<<<<<< HEAD
+=======
+	in_reply_to=None,
+>>>>>>> upstream/develop
 	**kwargs,
 ) -> dict[str, str]:
 	"""Make a new communication. Checks for email permissions for specified Document.
@@ -73,6 +77,10 @@ def make(
 	:param send_after: Send after the given datetime.
 	:param raw_html: Whether to use html version of email template
 	:param add_css: Add default CSS from hooks/email_css to the email template (default **True**)
+<<<<<<< HEAD
+=======
+	:param in_reply_to: Name of the Communication document to which this communication is a reply.
+>>>>>>> upstream/develop
 	"""
 	from frappe.utils.commands import warn
 
@@ -127,6 +135,10 @@ def make(
 		now=now,
 		raw_html=raw_html,
 		add_css=add_css,
+<<<<<<< HEAD
+=======
+		in_reply_to=in_reply_to,
+>>>>>>> upstream/develop
 	)
 
 
@@ -157,6 +169,10 @@ def _make(
 	now=False,
 	raw_html=False,
 	add_css=True,
+<<<<<<< HEAD
+=======
+	in_reply_to=None,
+>>>>>>> upstream/develop
 ) -> dict[str, str]:
 	"""Internal method to make a new communication that ignores Permission checks."""
 
@@ -185,6 +201,10 @@ def _make(
 			"has_attachment": 1 if attachments else 0,
 			"communication_type": communication_type,
 			"send_after": send_after,
+<<<<<<< HEAD
+=======
+			"in_reply_to": in_reply_to,
+>>>>>>> upstream/develop
 		}
 	)
 	comm.flags.skip_add_signature = not add_signature or (

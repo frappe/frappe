@@ -287,6 +287,22 @@ frappe.data_import.DataExporter = class DataExporter {
 			return false;
 		};
 
+<<<<<<< HEAD
+=======
+		let is_field_depends_on = (df) => {
+			if (df.depends_on && this.exporting_for == "Insert New Records") {
+				return true;
+			}
+			if (autoname_field && df.fieldname == autoname_field.fieldname) {
+				return true;
+			}
+			if (df.fieldname === "name") {
+				return true;
+			}
+			return false;
+		};
+
+>>>>>>> upstream/develop
 		return fields
 			.filter((df) => {
 				if (autoname_field && df.fieldname === "name") {
@@ -299,6 +315,10 @@ frappe.data_import.DataExporter = class DataExporter {
 					label: __(df.label, null, df.parent),
 					value: df.fieldname,
 					danger: is_field_mandatory(df),
+<<<<<<< HEAD
+=======
+					warning: is_field_depends_on(df),
+>>>>>>> upstream/develop
 					checked: false,
 					description: `${df.fieldname} ${df.reqd ? __("(Mandatory)") : ""}`,
 				};

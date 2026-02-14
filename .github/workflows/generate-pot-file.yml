@@ -12,7 +12,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+<<<<<<< HEAD
         branch: ["develop"]
+=======
+        branch: ["develop", "version-16-hotfix"]
+>>>>>>> upstream/develop
     permissions:
       contents: write
 
@@ -27,6 +31,14 @@ jobs:
           with:
             python-version: "3.14"
 
+<<<<<<< HEAD
+=======
+        - name: Setup Node
+          uses: actions/setup-node@v6
+          with:
+            node-version: 24
+
+>>>>>>> upstream/develop
         - name: Run script to update POT file
           run: |
             bash ${GITHUB_WORKSPACE}/.github/helper/update_pot_file.sh

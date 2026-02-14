@@ -483,7 +483,13 @@ class TestAPIResponse(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.headers["content-type"], "application/octet-stream")
 		self.assertGreater(cint(response.headers["content-length"]), 0)
+<<<<<<< HEAD
 		self.assertEqual(response.headers["content-disposition"], f'filename="{encoded_filename}"')
+=======
+		self.assertEqual(
+			response.headers["content-disposition"], f'attachment; filename="{encoded_filename}"'
+		)
+>>>>>>> upstream/develop
 
 	def test_download_private_file_with_unique_url(self):
 		test_content = frappe.generate_hash()

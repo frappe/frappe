@@ -2,6 +2,7 @@ frappe.provide("frappe.contacts");
 
 $.extend(frappe.contacts, {
 	clear_address_and_contact: function (frm) {
+<<<<<<< HEAD
 		$(frm.fields_dict["address_html"].wrapper).html("");
 		frm.fields_dict["contact_html"] && $(frm.fields_dict["contact_html"].wrapper).html("");
 	},
@@ -23,6 +24,44 @@ $.extend(frappe.contacts, {
 				.on("click", () => new_record("Contact", frm));
 		}
 	},
+=======
+		for (const field of ["address_html", "contact_html"]) {
+			$(frm.fields_dict[field]?.wrapper)?.html("");
+		}
+	},
+
+	render_address_and_contact: function (frm) {
+		const items = [
+			{
+				field: "address_html",
+				data: "addr_list",
+				template: "address_list",
+				btn: ".btn-address",
+				doctype: "Address",
+			},
+			{
+				field: "contact_html",
+				data: "contact_list",
+				template: "contact_list",
+				btn: ".btn-contact",
+				doctype: "Contact",
+			},
+		];
+
+		for (const item of items) {
+			// render address or contact
+			const field_wrapper = frm.fields_dict[item.field]?.wrapper;
+
+			if (field_wrapper && frm.doc.__onload && item.data in frm.doc.__onload) {
+				$(field_wrapper)
+					.html(frappe.render_template(item.template, frm.doc.__onload))
+					.find(item.btn)
+					.on("click", () => new_record(item.doctype, frm));
+			}
+		}
+	},
+
+>>>>>>> upstream/develop
 	get_last_doc: function (frm) {
 		const reverse_routes = frappe.route_history.slice().reverse();
 		const last_route = reverse_routes.find((route) => {
@@ -38,6 +77,10 @@ $.extend(frappe.contacts, {
 			docname,
 		};
 	},
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/develop
 	get_address_display: function (frm, address_field, display_field) {
 		if (frm.updating_party_details) {
 			return;
