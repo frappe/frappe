@@ -1,0 +1,45 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+
+<div id="swagger-ui"></div>
+
+<link rel="stylesheet" href="/assets/frappe/css/openapi/swagger-ui.css" />
+<script src="/assets/frappe/js/openapi/swagger-ui-bundle.js"></script>
+
+{% if enable_openapi %}
+<script>
+  window.onload = function() {
+    const ui = SwaggerUIBundle({
+      url: "/files/openapi.json",
+      dom_id: '#swagger-ui',
+      deepLinking: true,
+      presets: [
+        SwaggerUIBundle.presets.apis,
+      ],
+      plugins: [
+        SwaggerUIBundle.plugins.DownloadUrl
+      ],
+      onComplete: function() {
+        console.log('Swagger UI loaded');
+      },
+      onFailure: function(data) {
+        console.error('Failed to load Swagger UI', data);
+      }
+    });
+
+    function fixPaths() {
+      document.querySelectorAll('.opblock-summary-path').forEach(function(el) {
+        el.innerHTML = el.innerHTML.replace(/%20/g, ' ');
+      });
+    }
+    setTimeout(fixPaths, 1000);
+  };
+</script>
+{% else %}
+<div class="alert alert-warning">
+  {{ message }}
+</div>
+{% endif %}
+
+{% endblock %}

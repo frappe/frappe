@@ -111,6 +111,7 @@ def get_commands():
 	from .site import commands as site_commands
 	from .translate import commands as translate_commands
 	from .utils import commands as utils_commands
+	from .openapi import generate_openapi_spec
 
 	clickable_link = "https://frappeframework.com/docs"
 	all_commands = (
@@ -120,6 +121,7 @@ def get_commands():
 		+ gettext_commands
 		+ utils_commands
 		+ redis_commands
+		+ [generate_openapi_spec]
 	)
 
 	for command in all_commands:
