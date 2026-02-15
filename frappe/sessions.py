@@ -411,7 +411,6 @@ class Session:
 
 		# database persistence is secondary, don't update it too often
 		updated_in_db = False
-
 		if (
 			force or (time_diff is None) or (time_diff > threshold) or self._update_in_cache
 		) and not frappe.flags.read_only:
