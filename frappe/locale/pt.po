@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-21 10:33\n"
+"PO-Revision-Date: 2026-02-15 18:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese\n"
 "MIME-Version: 1.0\n"
@@ -150,7 +150,7 @@ msgstr "1 Relatório"
 
 #: frappe/website/doctype/blog_post/blog_post.py:374
 msgid "1 comment"
-msgstr ""
+msgstr "1 comentário"
 
 #: frappe/tests/test_utils.py:816
 msgid "1 day ago"
@@ -554,12 +554,12 @@ msgstr ""
 #. Header text in the Welcome Workspace Workspace
 #: frappe/core/workspace/welcome_workspace/welcome_workspace.json
 msgid "<span class=\"h2\">Hi,</span>"
-msgstr ""
+msgstr "<span class=\"h2\">Olá,</span>"
 
 #. Header text in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "<span class=\"h4\"><b>Documents</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Documentos</b></span>"
 
 #. Header text in the Website Workspace
 #: frappe/website/workspace/website/website.json
@@ -580,7 +580,7 @@ msgstr ""
 #: frappe/core/workspace/users/users.json
 #: frappe/website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>Os seus Atalhos</b></span>"
 
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -590,7 +590,7 @@ msgstr ""
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Get started</b><br></span>"
-msgstr ""
+msgstr "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Começar</b><br></span>"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
@@ -852,12 +852,12 @@ msgstr ""
 #. Label of a Data field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "Access Key ID"
-msgstr ""
+msgstr "ID da Chave de Acesso"
 
 #. Label of a Password field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "Access Key Secret"
-msgstr ""
+msgstr "Segredo da Chave de Acesso"
 
 #. Name of a DocType
 #. Linked DocType in User's connections
@@ -1165,7 +1165,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:63
 msgid "Add Multiple"
-msgstr ""
+msgstr "Adicionar Vários"
 
 #: frappe/core/page/permission_manager/permission_manager.js:490
 msgid "Add New Permission Rule"
@@ -1182,7 +1182,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/sidebar/review.js:45
 msgid "Add Review"
-msgstr ""
+msgstr "Adicione uma avaliação"
 
 #: frappe/core/doctype/user/user.py:770
 msgid "Add Roles"
@@ -1190,7 +1190,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:63
 msgid "Add Row"
-msgstr ""
+msgstr "Adicionar Linha"
 
 #. Label of a Check field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -1575,7 +1575,7 @@ msgstr ""
 #. Label of a Card Break in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "Alerts and Notifications"
-msgstr ""
+msgstr "Alertas e Notificações"
 
 #. Label of a Select field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -1706,7 +1706,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow Comments"
-msgstr ""
+msgstr "Permitir Comentários"
 
 #. Label of a Int field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -1716,17 +1716,17 @@ msgstr ""
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow Delete"
-msgstr ""
+msgstr "Permitir Eliminar"
 
 #. Label of a Button field in DocType 'Dropbox Settings'
 #: frappe/integrations/doctype/dropbox_settings/dropbox_settings.json
 msgid "Allow Dropbox Access"
-msgstr ""
+msgstr "Permitir Acesso ao Dropbox"
 
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow Editing After Submit"
-msgstr ""
+msgstr "Permitir Edição Após Submissão"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:79
 msgid "Allow Google Calendar Access"
@@ -1738,7 +1738,7 @@ msgstr ""
 
 #: frappe/integrations/doctype/google_drive/google_drive.py:52
 msgid "Allow Google Drive Access"
-msgstr ""
+msgstr "Permitir acesso ao Google Drive"
 
 #. Label of a Check field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -1770,7 +1770,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow Incomplete Forms"
-msgstr ""
+msgstr "Permitir Formulários Incompletos"
 
 #. Label of a Int field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -1795,7 +1795,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow Multiple Responses"
-msgstr ""
+msgstr "Permitir Respostas Múltiplas"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -1805,7 +1805,7 @@ msgstr ""
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow Print"
-msgstr ""
+msgstr "Permitir Impressão"
 
 #. Label of a Check field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
