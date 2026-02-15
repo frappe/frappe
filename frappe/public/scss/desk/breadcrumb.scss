@@ -8,12 +8,30 @@
 	flex-wrap: nowrap;
 	align-items: center;
 	line-height: 1;
+	min-width: 0;
+
+	li {
+		min-width: 0;
+		flex-shrink: 1;
+	}
+
+	//prevent desk home icon from shrinking
+	li:first-child {
+		flex-shrink: 0;
+	}
+
 	a {
 		text-decoration: none;
 		color: var(--ink-gray-5);
 		font-weight: var(--weight-medium);
 		font-size: var(--text-lg);
 		letter-spacing: get_letterspacing("sm", "regular");
+
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+
 		&:hover {
 			color: var(--ink-gray-7);
 		}
