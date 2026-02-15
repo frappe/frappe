@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-08 09:41+0000\n"
-"PO-Revision-Date: 2026-02-14 19:43\n"
+"PO-Revision-Date: 2026-02-15 19:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -5440,7 +5440,7 @@ msgstr "لاگ‌های کنسول را نمی‌توان حذف کرد"
 #. Label of the constraints_section (Section Break) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "Constraints"
-msgstr ""
+msgstr "محدودیت‌ها"
 
 #. Name of a DocType
 #: frappe/contacts/doctype/contact/contact.json
@@ -23166,7 +23166,7 @@ msgstr ""
 #. Label of the scripts_section (Section Break) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Scripts"
-msgstr ""
+msgstr "اسکریپت‌ها"
 
 #. Label of the search_section (Section Break) field in DocType 'System
 #. Settings'
@@ -23425,7 +23425,7 @@ msgstr "انتخاب داشبورد"
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Select Date Range"
-msgstr ""
+msgstr "انتخاب محدوده تاریخ"
 
 #. Label of the doc_type (Link) field in DocType 'Web Form'
 #: frappe/public/js/form_builder/components/controls/FetchFromControl.vue:28
@@ -30052,7 +30052,7 @@ msgstr ""
 #. Label of the workflow_data (JSON) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Workflow Data"
-msgstr ""
+msgstr "داده‌های گردش کار"
 
 #: frappe/public/js/workflow_builder/components/Properties.vue:44
 msgid "Workflow Details"
