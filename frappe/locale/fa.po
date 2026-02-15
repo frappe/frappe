@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-03 15:46\n"
+"PO-Revision-Date: 2026-02-15 18:32\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -3572,7 +3572,7 @@ msgstr "وبلاگ"
 #: frappe/website/doctype/blog_post/blog_post.json
 #: frappe/website/workspace/website/website.json
 msgid "Blog Category"
-msgstr "دسته بندی وبلاگ"
+msgstr "دسته‌بندی وبلاگ"
 
 #. Label of a Small Text field in DocType 'Blog Post'
 #: frappe/website/doctype/blog_post/blog_post.json
@@ -3728,7 +3728,7 @@ msgstr "Breadcrumbs"
 #: frappe/website/doctype/blog_post/templates/blog_post_list.html:21
 #: frappe/website/doctype/blog_settings/blog_settings.json
 msgid "Browse by category"
-msgstr "مرور بر اساس دسته بندی"
+msgstr "مرور بر اساس دسته‌بندی"
 
 #. Label of a Data field in DocType 'Web Page View'
 #: frappe/website/doctype/web_page_view/web_page_view.json
@@ -4431,7 +4431,7 @@ msgstr "کارت ها"
 #: frappe/public/js/frappe/views/interaction.js:72
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Category"
-msgstr "دسته بندی"
+msgstr "دسته‌بندی"
 
 #. Label of a Text field in DocType 'Help Category'
 #: frappe/website/doctype/help_category/help_category.json
@@ -11635,7 +11635,7 @@ msgstr "گروه"
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/website/report/website_analytics/website_analytics.js:32
 msgid "Group By"
-msgstr "دسته بندی بر اساس"
+msgstr "دسته‌بندی بر اساس"
 
 #. Label of a Select field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
