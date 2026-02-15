@@ -411,13 +411,10 @@ class Session:
 
 		# database persistence is secondary, don't update it too often
 		updated_in_db = False
-<<<<<<< HEAD
-		if (force or (time_diff is None) or (time_diff > 600)) and not frappe.flags.read_only:
-=======
+
 		if (
 			force or (time_diff is None) or (time_diff > threshold) or self._update_in_cache
 		) and not frappe.flags.read_only:
->>>>>>> 4e91b1a281 (fix: Support short session idle durations (#36773))
 			self.data.data.last_updated = now
 			self.data.data.lang = str(frappe.lang)
 			# update sessions table
