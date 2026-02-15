@@ -289,6 +289,17 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			}
 
 			const dropdown = this.awesomplete.ul;
+			if (this.$input.closest(".grid-row").length) {
+				const column = this.$input.closest(".grid-static-col")[0];
+				const width = column
+					? column.getBoundingClientRect().width
+					: this.$input[0].getBoundingClientRect().width;
+
+				dropdown.style.width = width + "px";
+				dropdown.style.minWidth = width + "px";
+				dropdown.style.maxWidth = width + "px";
+			}
+
 			const dropdownRect = dropdown.getBoundingClientRect();
 			const viewportWidth = window.innerWidth;
 
