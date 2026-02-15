@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-08 09:41+0000\n"
-"PO-Revision-Date: 2026-02-08 18:24\n"
+"PO-Revision-Date: 2026-02-15 19:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese\n"
 "MIME-Version: 1.0\n"
@@ -569,7 +569,7 @@ msgstr ""
 #. Header text in the Welcome Workspace Workspace
 #: frappe/core/workspace/welcome_workspace/welcome_workspace.json
 msgid "<span class=\"h2\">Hi,</span>"
-msgstr ""
+msgstr "<span class=\"h2\">Olá,</span>"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
