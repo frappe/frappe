@@ -64,8 +64,8 @@ class FrappeClient:
 	def _login(self, username, password):
 		"""Login/start a session. Called internally on init"""
 		r = self.session.post(
-			self.url,
-			params={"cmd": "login", "usr": username, "pwd": password},
+			self.url + "/api/method/login",
+			data={"usr": username, "pwd": password},
 			verify=self.verify,
 			headers=self.headers,
 		)
