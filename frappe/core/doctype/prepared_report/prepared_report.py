@@ -165,7 +165,7 @@ def update_job_id(prepared_report):
 
 
 @frappe.whitelist()
-def make_prepared_report(report_name: str, filters: dict[str, Any] | str | None = None):
+def make_prepared_report(report_name: str, filters: dict[str, Any] | str | list | None = None):
 	"""run reports in background"""
 	prepared_report = frappe.get_doc(
 		{
@@ -200,7 +200,7 @@ def stop_prepared_report(report_name: str):
 		frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
 
 
-def process_filters_for_prepared_report(filters: dict | str | list) -> str:
+def process_filters_for_prepared_report(filters: dict[str, Any] | str) -> str:
 	if isinstance(filters, str):
 		filters = json.loads(filters)
 
@@ -212,7 +212,7 @@ def process_filters_for_prepared_report(filters: dict | str | list) -> str:
 
 
 @frappe.whitelist()
-def get_reports_in_queued_state(report_name: str, filters: dict | str | list):
+def get_reports_in_queued_state(report_name: str, filters: dict[str, Any] | str | list):
 	return frappe.get_all(
 		"Prepared Report",
 		filters={
@@ -252,7 +252,7 @@ def expire_stalled_report():
 
 
 @frappe.whitelist()
-def delete_prepared_reports(reports: str | list):
+def delete_prepared_reports(reports: str | list[dict[str, Any]]):
 	reports = frappe.parse_json(reports)
 	for report in reports:
 		prepared_report = frappe.get_doc("Prepared Report", report["name"])

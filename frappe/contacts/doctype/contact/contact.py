@@ -1,5 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from typing import Any
+
 import frappe
 from frappe import _
 from frappe.contacts.address_and_contact import set_link_title
@@ -341,7 +343,9 @@ def update_contact(doc, method):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def contact_query(doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict):
+def contact_query(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]
+):
 	from frappe.desk.reportview import get_match_cond
 
 	doctype = "Contact"

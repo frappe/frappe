@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from typing import Any
 
 import frappe
 
@@ -43,7 +44,7 @@ def get_permission_query_conditions(user):
 
 
 @frappe.whitelist()
-def save_chart_config(reset: str | list, config: str, chart_name: str):
+def save_chart_config(reset: int | str | bool, config: str | dict[str, Any], chart_name: str):
 	reset = frappe.parse_json(reset)
 	doc = frappe.get_doc("Dashboard Settings", frappe.session.user)
 	chart_config = frappe.parse_json(doc.chart_config) or {}

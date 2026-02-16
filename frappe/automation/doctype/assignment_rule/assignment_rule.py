@@ -199,7 +199,7 @@ def get_assignments(doc) -> list[dict]:
 
 
 @frappe.whitelist()
-def bulk_apply(doctype: str, docnames: str | list):
+def bulk_apply(doctype: str, docnames: str | list[str]):
 	docnames = frappe.parse_json(docnames)
 	background = len(docnames) > 5
 
