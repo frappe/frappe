@@ -92,13 +92,6 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		# I don't know why we support currency option for float
 		currency = currency or get_field_currency(df, doc)
 
-		# show 1.000000 as 1
-		# options should not specified
-		if not df.options and value is not None:
-			temp = cstr(value).split(".")
-			if len(temp) == 1 or cint(temp[1]) == 0:
-				precision = 0
-
 		return fmt_money(value, precision=precision, currency=currency)
 
 	elif df.get("fieldtype") == "Percent":

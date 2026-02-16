@@ -499,9 +499,11 @@ from {tables}
 				if isinstance(token, Function):
 					if (name := (token.get_name())) and name.lower() in blacklisted_functions:
 						_raise_exception()
-				if token.ttype == tokens.Keyword:
-					if token.value.lower() in blacklisted_keywords:
+
+				if token.ttype in (tokens.Keyword, tokens.Name):
+					if any(re.search(rf"\b{kw}\b", token.value.lower()) for kw in blacklisted_keywords):
 						_raise_exception()
+
 				if token.is_group:
 					_check_sql_token(token)
 
@@ -867,6 +869,15 @@ from {tables}
 			can_be_null &= not getattr(df, "not_nullable", False)
 			if f.operator.lower() == "in":
 				can_be_null &= not f.value or any(v is None or v == "" for v in f.value)
+
+			# Handle empty lists for IN/NOT IN operators before processing
+			# IN with empty list should return 0 results (always False: 1=0)
+			# NOT IN with empty list should return all results (always True: 1=1)
+			if isinstance(f.value, (list, tuple)) and len(f.value) == 0:
+				if f.operator.lower() == "in":
+					return "1=0"
+				else:  # not in
+					return "1=1"
 
 			if value is None:
 				values = f.value or ""

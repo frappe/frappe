@@ -105,6 +105,11 @@
 		}
 	}
 }
+@include media-breakpoint-down(sm) {
+	.datatable .dt-scrollable {
+		height: calc(100vh - 260px) !important;
+	}
+}
 
 .group-by-button {
 	margin: 5px;
@@ -121,7 +126,6 @@
 	--icon-stroke: var(--primary);
 }
 .comparison-message {
-	margin-left: var(--margin-sm);
 	@include get_textstyle("base", "regular");
 }
 

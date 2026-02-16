@@ -230,7 +230,22 @@ def set_name_from_naming_options(autoname, doc):
 	elif _autoname.startswith("format:"):
 		doc.name = _format_autoname(autoname, doc)
 	elif "#" in autoname:
-		doc.name = make_autoname(autoname, doc=doc)
+		# For Expression naming rule, first replace braced params, then normalize, then process series
+		# This handles patterns like {full_name}-{description}-.#####
+		def get_param_value_for_match(match):
+			param = match.group()
+			return parse_naming_series([param[1:-1]], doc=doc)
+
+		# Replace braced params first
+		name_with_params = BRACED_PARAMS_PATTERN.sub(get_param_value_for_match, autoname)
+
+		# Normalize pattern: convert '-.#####' to '.-.#####' to support both formats
+		# This handles cases like {fieldname}-.##### (without dot before dash)
+		# Pattern matches: dash followed by dot followed by one or more hashes, but only if not preceded by a dot
+		normalized_autoname = re.sub(r"(?<!\.)(-\.#+)", r".\1", name_with_params)
+
+		# Process the series
+		doc.name = make_autoname(normalized_autoname, doc=doc)
 
 
 def set_naming_from_document_naming_rule(doc):
@@ -584,10 +599,18 @@ def _format_autoname(autoname: str, doc):
 	Independent of remaining string or separators.
 
 	Example pattern: 'format:LOG-{MM}-{fieldname1}-{fieldname2}-{#####}'
+	Supports both patterns:
+	- {fieldname}.-.##### (with dot before dash)
+	- {fieldname}-.##### (without dot before dash)
 	"""
 
 	first_colon_index = autoname.find(":")
 	autoname_value = autoname[first_colon_index + 1 :]
+
+	# Normalize pattern: convert '-.#####' to '.-.#####' to support both formats
+	# This handles cases like {fieldname}-.##### (without dot before dash)
+	# Pattern matches: dash followed by dot followed by one or more hashes, but only if not preceded by a dot
+	autoname_value = re.sub(r"(?<!\.)(-\.#+)", r".\1", autoname_value)
 
 	def get_param_value_for_match(match):
 		param = match.group()
@@ -595,5 +618,9 @@ def _format_autoname(autoname: str, doc):
 
 	# Replace braced params with their parsed value
 	name = BRACED_PARAMS_PATTERN.sub(get_param_value_for_match, autoname_value)
+
+	# If the result still contains unbraced hash patterns (like .#####), process them as naming series
+	if "#" in name and "{" not in name:
+		name = make_autoname(name, doc=doc)
 
 	return name

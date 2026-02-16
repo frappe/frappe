@@ -103,10 +103,13 @@ frappe.ui.menu = class ContextMenu {
 						${iconMarkup}
 					</div>
 					<span class="menu-item-title">${__(item.label)}</span>
-					<div class="menu-item-icon" style="margin-left:auto">
-						${item.items && item.items.length ? frappe.utils.icon(`chevron-${chevron_direction}`) : ""}
-					</div>
-
+					${
+						item.items && item.items.length
+							? `<div class="menu-item-icon" style="margin-left:auto">
+						${frappe.utils.icon(`chevron-${chevron_direction}`)}
+					</div>`
+							: ""
+					}
 				</a>
 			</div>`);
 			if (!item.url) {
