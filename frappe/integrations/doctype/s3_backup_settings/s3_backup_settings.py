@@ -97,8 +97,13 @@ def take_backups_monthly():
 def take_backups_if(freq):
 	if cint(frappe.db.get_single_value("S3 Backup Settings", "enabled")):
 		if frappe.db.get_single_value("S3 Backup Settings", "frequency") == freq:
-			take_backups_s3()
-
+			# Enqueue a job with longer timeout instead of attemtping backup
+			enqueue(
+				"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_s3",
+				queue="long",
+				timeout=7200,
+				**args,
+			)
 
 @frappe.whitelist()
 def take_backups_s3(retry_count=0):

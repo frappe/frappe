@@ -75,6 +75,7 @@ class ScheduledJobType(Document):
 					job_type=self.method,  # Not actually used, kept for logging
 					job_id=self.rq_job_id,
 					scheduled_job_type=self.name,
+					at_front="poll_pending_jobs" in self.method,
 				)
 				return True
 			else:

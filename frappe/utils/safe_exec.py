@@ -35,7 +35,7 @@ from frappe.utils.number_format import NumberFormat
 from frappe.website.utils import get_next_link, get_toc
 from frappe.www.printview import get_visible_columns
 from frappe.utils import dateutils
-
+import re
 
 class ServerScriptNotEnabled(frappe.PermissionError):
 	pass
@@ -191,6 +191,7 @@ def get_safe_globals():
 	out = NamespaceDict(
 		# make available limited methods of frappe
 		json=NamespaceDict(loads=json.loads, dumps=json.dumps),
+		re=re,
 		as_json=frappe.as_json,
 		dict=dict,
 		log=frappe.log,

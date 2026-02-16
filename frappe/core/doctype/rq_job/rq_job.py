@@ -3,6 +3,7 @@
 
 import functools
 import re
+import json
 
 from rq.command import send_stop_job_command
 from rq.exceptions import InvalidJobOperation, NoSuchJobError
@@ -159,7 +160,7 @@ def serialize_job(job: Job) -> frappe._dict:
 		ended_at=convert_utc_to_system_timezone(job.ended_at) if job.ended_at else "",
 		time_taken=(job.ended_at - job.started_at).total_seconds() if job.ended_at else "",
 		exc_info=exc_info,
-		arguments=frappe.as_json(job.kwargs),
+		arguments=json.dumps(job.kwargs, default=str, sort_keys=True, indent=1),
 		timeout=job.timeout,
 		creation=convert_utc_to_system_timezone(job.created_at),
 		modified=convert_utc_to_system_timezone(modified),

@@ -414,7 +414,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			self.commit()
 			self.sql(
 				"""ALTER TABLE `{}`
-				ADD INDEX IF NOT EXISTS `{}`({})""".format(table_name, index_name, ", ".join(fields))
+				ADD INDEX IF NOT EXISTS `{}`({})""".format(table_name, index_name, ", ".join([f"`{field}`" for field in fields]))
 			)
 			# Ensure that DB migration doesn't clear this index, assuming this is manually added
 			# via code or console.
