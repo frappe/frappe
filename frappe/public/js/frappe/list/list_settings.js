@@ -123,7 +123,7 @@ export default class ListSettings {
 						</div>
 						<div class="col-1 ${can_remove} pl-0 pl-sm-3">
 							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
-								${frappe.utils.icon("trash", "xs")}
+								${frappe.utils.icon("x", "xs")}
 							</a>
 						</div>
 					</div>

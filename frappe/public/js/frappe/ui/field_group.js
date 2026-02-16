@@ -81,7 +81,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 				if (e.which == 13) {
 					if (me.has_primary_action) {
 						e.preventDefault();
-						me.get_primary_btn().trigger("click");
+						frappe.app.trigger_primary_action();
 					}
 				}
 			});

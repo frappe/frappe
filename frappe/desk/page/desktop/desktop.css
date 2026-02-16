@@ -7,7 +7,7 @@
     --folder-icon-background-color: var(--surface-gray-1);
     --desktop-modal-radius: 30px;
     --desktop-icon-line-height: 115%;
-    --navbar-height: 52px;
+    --desktop-navbar-height: 52px;
 }
 [data-theme="dark"]{
     --folder-icon-background-color: #2b2b2b;
@@ -28,7 +28,7 @@
     width: 100%;
     padding: 10px 20px 10px 20px;
     box-sizing: border-box;
-    height: var(--navbar-height);
+    height: var(--desktop-navbar-height);
     position: sticky;
     top: 0px;
     z-index: 1030;
@@ -267,14 +267,14 @@
                 height: var(--folder-thumbnail-icon-height);
                 width: var(--folder-thumbnail-icon-height);
                 padding: 0px;
-                border-radius: 2px;
+                border-radius: 4px;
                 & .icon{
                     width: 5px;
                     height: 5px;
                 }
                 & img{
-                    width: 9px;
-                    height: 9px;
+                    width: var(--folder-thumbnail-icon-height);
+                    height: var(--folder-thumbnail-icon-height);
                 }
             }
 
@@ -468,7 +468,7 @@
 }
 .desktop-pane{
     position: absolute;
-    top: var(--navbar-height);
+    top: var(--desktop-navbar-height);
     right: 0px;
     width: 300px;
     border-left: 1px solid var(--border-color);

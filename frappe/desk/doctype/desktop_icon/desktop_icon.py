@@ -56,6 +56,11 @@ class DesktopIcon(Document):
 
 	def on_update(self):
 		self.export_desktop_icon()
+		if self.standard:
+			frappe.cache.delete_key("desktop_icons")
+			frappe.cache.delete_key("bootinfo")
+		else:
+			clear_desktop_icons_cache(user=self.owner)
 
 	def after_rename(self, old, new, merge):
 		delete_desktop_icon_file(self.app, old)
@@ -111,12 +116,15 @@ class DesktopIcon(Document):
 	def check_app_permission(self):
 		for a in frappe.get_installed_apps():
 			if frappe.get_hooks(app_name=a)["app_title"][0] == self.label or self.app == a:
-				permission_method = frappe.get_hooks(app_name=a)["add_to_apps_screen"][0].get(
-					"has_permission", None
-				)
-				if permission_method:
-					return frappe.call(permission_method)
+				app_detail = frappe.get_hooks("add_to_apps_screen", app_name=a)
+				if len(app_detail) != 0:
+					permission_method = app_detail[0].get("has_permission", None)
+					if permission_method:
+						return frappe.call(permission_method)
+					else:
+						return True
 				else:
+					# App hooks.py doesn't have add_to_apps_screen
 					return True
 
 	# def is_permitted(self):

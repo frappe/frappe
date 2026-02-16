@@ -297,7 +297,18 @@ Object.assign(frappe.utils, {
 		return content.html();
 	},
 	scroll_page_to_top() {
-		$(".main-section").scrollTop(0);
+		const $container = $(".main-section");
+		$container.animate(
+			{ scrollTop: 0 },
+			{
+				duration: 300,
+				easing: "swing",
+				complete: function () {
+					// Ensure we're at the top
+					$container.scrollTop(0);
+				},
+			}
+		);
 	},
 	scroll_to: function (
 		element,
@@ -1386,7 +1397,7 @@ Object.assign(frappe.utils, {
 		return icon_html.get(0).outerHTML;
 	},
 	desktop_pallete: {
-		blue: "#0981E3",
+		blue: "#0289F7",
 		gray: "#7B808A",
 	},
 	icon(
@@ -1564,8 +1575,7 @@ Object.assign(frappe.utils, {
 				if (item.is_query_report) {
 					route = "query-report/" + item.name;
 				} else if (!item.is_query_report && item.report_ref_doctype) {
-					route =
-						frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
+					route = frappe.router.slug(item.report_ref_doctype) + "/view/report/";
 				} else {
 					route = "report/" + item.name;
 				}
@@ -2197,7 +2207,7 @@ Object.assign(frappe.utils, {
 			if (parsed_value.match(/^[0-9+\-/*.() ]+$/)) {
 				// If it is a string containing operators
 				try {
-					return eval(parsed_value);
+					return (0, eval)(parsed_value);
 				} catch (e) {
 					// bad expression
 					return value;

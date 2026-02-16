@@ -33,6 +33,8 @@ body.modal-open[style^="padding-right"] {
 		border-color: var(--border-color);
 	}
 	.modal-header {
+		display: flex;
+		align-items: center;
 		position: sticky;
 		top: 0;
 		z-index: 3;
@@ -53,15 +55,11 @@ body.modal-open[style^="padding-right"] {
 		}
 
 		.modal-actions {
+			margin-right: -6px;
 			.btn-modal-minimize {
-				padding-right: 0;
-
 				.icon {
 					width: 14px;
 					height: 14px;
-					use {
-						stroke: var(--gray-500);
-					}
 				}
 			}
 		}

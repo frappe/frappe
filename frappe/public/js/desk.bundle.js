@@ -14,6 +14,8 @@ import "./frappe/ui/sidebar/sidebar_header.html";
 import "./frappe/ui/sidebar/sidebar.html";
 import "./frappe/ui/sidebar/sidebar_item.html";
 import "./frappe/ui/sidebar/sidebar.js";
+import "./frappe/ui/sidebar/sidebar_card.html";
+import "./frappe/ui/sidebar/sidebar_card.js";
 import "./frappe/ui/link_preview.js";
 
 import "./frappe/request.js";

@@ -1,3 +1,4 @@
+import { InfoCard } from "../info_card";
 frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control {
 	static horizontal = true;
 	make() {
@@ -7,7 +8,6 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 		// set description
 		this.set_max_width();
-
 		// set initial value if set
 		if (this.df.initial_value) {
 			this.set_value(this.df.initial_value);
@@ -158,6 +158,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 
 	set_disp_area(value) {
+		let is_val_html = frappe.utils.is_html(value);
 		if (
 			["Currency", "Int", "Float"].includes(this.df.fieldtype) &&
 			(this.value === 0 || value === 0)
@@ -178,7 +179,9 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
 		// This is used to display formatted output AND showing values in read only fields
 		if (this.disp_area) {
-			$(this.disp_area).html(display_value);
+			$(this.disp_area).html(
+				is_val_html ? frappe.utils.html2text(display_value) : display_value
+			);
 			// Apply alignment only for supported fields
 			if (
 				this.df.alignment &&
@@ -189,6 +192,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		}
 	}
 	set_label(label) {
+		const me = this;
 		if (label) this.df.label = label;
 
 		if (this.only_input || this.df.label == this._label) return;
@@ -197,14 +201,24 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		this.label_span.innerHTML =
 			(icon ? '<i class="' + icon + '"></i> ' : "") +
 				__(this.df.label, null, this.df.parent) || "&nbsp;";
+		this.show_description_on_click();
 		this._label = this.df.label;
 	}
-
+	show_description_on_click() {
+		const me = this;
+		if (this.df.show_description_on_click) {
+			let info_card = new InfoCard({
+				label_area: this.label_area,
+				label_span: this.label_span,
+				df: this.df,
+			});
+		}
+	}
 	set_doc_url() {
+		if (this.df.show_description_on_click) return;
 		let unsupported_fieldtypes = frappe.model.no_value_type.filter(
 			(x) => frappe.model.table_fields.indexOf(x) === -1
 		);
-
 		if (
 			!this.df.label ||
 			!this.df?.documentation_url ||
@@ -214,6 +228,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 		let $help = this.$wrapper.find("span.help");
 		$help.empty();
+
 		$(`<a
 			href="${frappe.utils.escape_html(this.df.documentation_url)}"
 			target="_blank"
@@ -224,6 +239,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 
 	set_description(description) {
+		if (this.df.show_description_on_click) return;
 		if (description !== undefined) {
 			this.df.description = description;
 		}
