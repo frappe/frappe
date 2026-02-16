@@ -43,7 +43,7 @@ def get_session_default_values():
 
 
 @frappe.whitelist()
-def set_session_default_values(default_values: str):
+def set_session_default_values(default_values: str | dict):
 	default_values = frappe.parse_json(default_values)
 	for entry in default_values:
 		try:
