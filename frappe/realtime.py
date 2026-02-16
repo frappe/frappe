@@ -121,24 +121,21 @@ def has_permission(doctype: str, name: str) -> bool:
 	return True
 
 
-def get_socketio_secret(site=None):
-	"""Generate socket.io secret and store in redis"""
-	if not site:
-		site = frappe.local.site
+SOCKETIO_SECRET_KEY = "socketio_auth_secret"
 
-	key = f"socketio_auth_secret:{site}"
+
+def get_socketio_secret():
+	"""Generate socket.io secret and store in redis"""
 
 	from frappe.utils.background_jobs import get_redis_connection_without_auth
 
 	r = get_redis_connection_without_auth()
-	secret = r.get(key)
+	secret = r.get(SOCKETIO_SECRET_KEY)
 	if secret:
 		return secret.decode()
 
-	from frappe.utils import generate_hash
-
-	secret = generate_hash(length=32)
-	r.set(key, secret)
+	secret = frappe.generate_hash(length=32)
+	r.set(SOCKETIO_SECRET_KEY, secret)
 	return secret
 
 

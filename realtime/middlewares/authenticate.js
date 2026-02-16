@@ -4,11 +4,9 @@ const { get_url } = require("../utils");
 const conf = get_conf();
 const redisClient = get_redis_subscriber("redis_queue");
 
-async function getSecretFromRedis(socket) {
-	const site = get_site_name(socket);
-
+async function getSecretFromRedis() {
 	if (!redisClient.isOpen) await redisClient.connect();
-	const val = await redisClient.get(`socketio_auth_secret:${site}`);
+	const val = await redisClient.get("socketio_auth_secret");
 	return val;
 }
 
@@ -56,7 +54,7 @@ function authenticate_with_frappe(socket, next) {
 		} else if (socket.sid) {
 			headers["Cookie"] = `sid=${socket.sid}`;
 		}
-		const secret = await getSecretFromRedis(socket);
+		const secret = await getSecretFromRedis();
 		if (secret) {
 			headers["X-Frappe-Socket-Secret"] = secret;
 		}
