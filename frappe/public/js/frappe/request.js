@@ -9,6 +9,19 @@ frappe.request.url = "/";
 frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
 frappe.request.logs = {};
+frappe.request.get_headers = function (opts) {
+	return Object.assign(
+		{
+			"X-Frappe-CSRF-Token": frappe.csrf_token,
+			Accept: "application/json",
+			"X-Frappe-CMD": (opts.args && opts.args.cmd) || "" || "",
+		},
+		opts.headers || {},
+		opts.args && opts.args.doctype
+			? { "X-Frappe-Doctype": encodeURIComponent(opts.args.doctype) }
+			: {}
+	);
+};
 
 frappe.xcall = function (method, params, type, opts = {}) {
 	return new Promise((resolve, reject) => {
@@ -263,20 +276,9 @@ frappe.request.call = function (opts) {
 		type: opts.type,
 		dataType: opts.dataType || "json",
 		async: opts.async,
-		headers: Object.assign(
-			{
-				"X-Frappe-CSRF-Token": frappe.csrf_token,
-				Accept: "application/json",
-				"X-Frappe-CMD": (opts.args && opts.args.cmd) || "" || "",
-			},
-			opts.headers
-		),
+		headers: frappe.request.get_headers(opts),
 		cache: window.dev_server ? false : opts.cache || false,
 	};
-
-	if (opts.args && opts.args.doctype) {
-		ajax_args.headers["X-Frappe-Doctype"] = encodeURIComponent(opts.args.doctype);
-	}
 
 	frappe.last_request = ajax_args.data;
 
