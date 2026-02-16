@@ -660,7 +660,7 @@ frappe.ui.form.Form = class FrappeForm {
 	configure_breadcrumb_width() {
 		let el = this.page.page_actions[0];
 		const rect = el.getBoundingClientRect();
-		let is_outside = rect.right > document.documentElement.clientWidth;
+		let is_outside = cint(rect.right) > cint(document.documentElement.clientWidth);
 
 		if (is_outside) {
 			// check if the default actions are outside of the screen
