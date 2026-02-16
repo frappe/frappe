@@ -55,3 +55,20 @@
 .ql-editor {
 	counter-reset: none;
 }
+/* Ensure table headers repeat on every page in PDF */
+thead {
+	display: table-header-group !important;
+}
+
+tfoot {
+	display: table-footer-group !important;
+}
+
+table {
+	page-break-inside: auto;
+}
+
+tr {
+	page-break-inside: avoid !important;
+	page-break-after: auto;
+}
