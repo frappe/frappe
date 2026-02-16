@@ -57,8 +57,8 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 				};
 			},
 			filter: function (item, input) {
-				var d = this.get_item(item.value);
-				let hay = d.description ? d.label + d.description + d.value : d.label + d.value;
+				const d = this.get_item(item.value);
+				const hay = d.description ? d.label + d.description + d.value : d.label + d.value;
 				return Awesomplete.FILTER_CONTAINS(hay, input);
 			},
 			item: function (item) {
