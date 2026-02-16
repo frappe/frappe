@@ -44,7 +44,7 @@ def _get_value_from_version(version_name: int | str, fieldname: str):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def version_query(doctype, txt, searchfield, start, page_len, filters):
+def version_query(doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict):
 	version_filters = {
 		"docname": filters["docname"],
 		"ref_doctype": filters["ref_doctype"],
