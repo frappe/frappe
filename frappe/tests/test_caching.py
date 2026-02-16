@@ -67,6 +67,7 @@ class TestCachingUtils(FrappeTestCase):
 		self.assertTrue(external_service.call_count, 3)
 		self.assertTrue(same_output_received())
 
+<<<<<<< HEAD
 		# ensure key generation capacity for different types
 		retval.clear()
 		for arg in acceptable_args:
@@ -75,6 +76,23 @@ class TestCachingUtils(FrappeTestCase):
 				request_specific_api(arg, 13)
 			self.assertTrue(external_service.call_count, 1)
 		self.assertTrue(same_output_received())
+=======
+		# ensure single call if key is hashable
+		for arg in hashable_values:
+			external_service.reset_mock()
+			for _ in range(2):
+				request_specific_api(arg, 13)
+
+			self.assertEqual(external_service.call_count, 1)
+
+		# multiple calls if key cannot be generated
+		for arg in unhashable_values:
+			external_service.reset_mock()
+			for _ in range(2):
+				request_specific_api(arg, 13)
+
+			self.assertEqual(external_service.call_count, 2)
+>>>>>>> 773938a6e8 (test: Reset mock the right way (#37045))
 
 
 class TestSiteCache(FrappeAPITestCase):
