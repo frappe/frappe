@@ -262,7 +262,7 @@ def get_company_address(company):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def address_query(doctype, txt, searchfield, start, page_len, filters):
+def address_query(doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict):
 	from frappe.desk.search import search_widget
 
 	_filters = []
