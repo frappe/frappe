@@ -145,10 +145,7 @@ def get_user_info():
 	trusted_secret = get_socketio_secret()
 	provided_secret = frappe.get_request_header("X-Frappe-Socket-Secret")
 	if trusted_secret != provided_secret:
-		return {
-			"user": frappe.session.user,
-			"user_type": user_type,
-		}
+		return {}
 	# For requests with Bearer tokens, user_type is not set in the session data
 	if not user_type:
 		user_type = frappe.get_cached_value("User", frappe.session.user, "user_type")
