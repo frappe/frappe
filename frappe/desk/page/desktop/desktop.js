@@ -68,15 +68,15 @@ function get_route(desktop_icon) {
 				} else if (first_link.link_type == "Workspace") {
 					let workspaces = frappe.workspaces[frappe.router.slug(first_link.link_to)];
 					if (workspaces) {
-						if (workspaces.public) {
-							route = "/desk/" + frappe.router.slug(first_link.link_to);
-						} else {
-							route = "/desk/private/" + frappe.router.slug(workspaces.title);
-						}
-					}
-
-					if (first_link.route) {
-						route = first_link.route;
+						let args = {
+							type: "workspace",
+							name: first_link.link_to,
+							public: workspaces.public ? 1 : 0,
+							route_options: {
+								sidebar: desktop_icon.label,
+							},
+						};
+						route = frappe.utils.generate_route(args);
 					}
 				} else if (first_link.link_type === "URL") {
 					route = first_link.url;
