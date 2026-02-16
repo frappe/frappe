@@ -77,7 +77,14 @@ def update_comment_publicity(name: str, publish: bool):
 
 
 @frappe.whitelist()
-def get_next(doctype, value, prev, filters=None, sort_order="desc", sort_field="creation"):
+def get_next(
+	doctype: str,
+	value: str,
+	prev: str | int,
+	filters: dict | str | None = None,
+	sort_order: str = "desc",
+	sort_field: str = "creation",
+):
 	prev = int(prev)
 	if not filters:
 		filters = []
