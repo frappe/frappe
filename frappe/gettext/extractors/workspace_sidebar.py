@@ -2,8 +2,8 @@ import json
 
 
 def extract(fileobj, *args, **kwargs):
-	"""
-	Extract messages from Workspace Sidebar JSON files. To be used to babel extractor
+	"""Extract messages from Workspace Sidebar JSON files. To be used by babel extractor.
+
 	:param fileobj: the file-like object the messages should be extracted from
 	:rtype: `iterator`
 	"""
