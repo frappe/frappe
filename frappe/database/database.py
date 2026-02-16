@@ -582,16 +582,11 @@ class Database:
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 		out = None
-<<<<<<< HEAD
-		if cache and isinstance(filters, str) and (doctype, filters, fieldname) in self.value_cache:
-			return self.value_cache[(doctype, filters, fieldname)]
-=======
 		if isinstance(fieldname, list):
 			fieldname = tuple(fieldname)
 
-		if cache and isinstance(filters, str) and fieldname in self.value_cache[doctype][filters]:
-			return self.value_cache[doctype][filters][fieldname]
->>>>>>> 69e655d08b (fix(db): support list of fields in get_value method when cache is True (#37050))
+		if cache and isinstance(filters, str) and (doctype, filters, fieldname) in self.value_cache:
+			return self.value_cache[(doctype, filters, fieldname)]
 
 		if distinct:
 			order_by = None
