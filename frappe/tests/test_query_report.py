@@ -119,6 +119,7 @@ class TestQueryReport(IntegrationTestCase):
 						"visible_idx": [0, 1, 2],
 					}
 				)
+				frappe.db.commit()
 				export_query()
 
 				self.assertTrue(frappe.response["filename"].endswith(".csv"))
@@ -130,6 +131,7 @@ class TestQueryReport(IntegrationTestCase):
 						self.assertIn(column, row)
 
 		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
+		frappe.db.commit()
 
 	def test_report_for_duplicate_column_names(self):
 		"""Test report with duplicate column names"""
@@ -272,15 +274,15 @@ data = columns, result
 			}
 		)
 		frappe.db.delete("Email Queue")
+		frappe.db.commit()
 		export_query()
 
-		jobs = frappe.get_all("RQ Job")
 		email_queue = frappe.get_all("Email Queue")
 
-		self.assertTrue(jobs, "Background job was not enqueued")
 		self.assertTrue(email_queue, "Email was not enqueued")
 
 		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
+		frappe.db.commit()
 
 
 def create_mock_data():

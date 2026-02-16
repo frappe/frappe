@@ -4,8 +4,17 @@
 	{% include "templates/includes/meta_block.html" %}
 {% endblock %}
 
-{% if hide_navbar %}{% block navbar %}{% endblock %}{% endif %}
-{% if hide_footer %}{% block footer %}{% endblock %}{% endif %}
+{% block navbar %}
+	{% if not hide_navbar %}
+        {% include "templates/includes/navbar/navbar.html" %}
+	{% endif %}
+{% endblock %}
+
+{% block footer %}
+	{% if not hide_footer %}
+        {% include "templates/includes/footer/footer.html" %}
+	{% endif %}
+{% endblock %}
 
 {% block breadcrumbs %}{% endblock %}
 

@@ -35,7 +35,7 @@ class LinkSearchResults(TypedDict):
 
 # this is called by the Link Field
 @frappe.whitelist()
-@http_cache(max_age=60 * 5, stale_while_revalidate=60 * 5)
+@http_cache(max_age=60, stale_while_revalidate=5 * 60)
 def search_link(
 	doctype: str,
 	txt: str,

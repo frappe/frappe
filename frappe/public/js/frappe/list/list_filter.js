@@ -89,7 +89,7 @@ export default class ListFilter {
 		};
 
 		const $create_item = this.filter_template(new_filter, true);
-		$create_item.find(".filter-label").on("click", (e) => {
+		$create_item.find(".dropdown-item").on("click", (e) => {
 			this.show_create_filter_dialog();
 		});
 		$menu.append($create_item);

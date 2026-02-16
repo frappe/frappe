@@ -56,6 +56,11 @@ class DesktopIcon(Document):
 
 	def on_update(self):
 		self.export_desktop_icon()
+		if self.standard:
+			frappe.cache.delete_key("desktop_icons")
+			frappe.cache.delete_key("bootinfo")
+		else:
+			clear_desktop_icons_cache(user=self.owner)
 
 	def after_rename(self, old, new, merge):
 		delete_desktop_icon_file(self.app, old)

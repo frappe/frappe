@@ -1441,7 +1441,7 @@ def get_enabled_users():
 
 @frappe.whitelist(methods=["POST"])
 def impersonate(user: str, reason: str):
-	frappe.has_permission("User", "impersonate")
+	frappe.has_permission("User", "impersonate", throw=True)
 
 	impersonator = frappe.session.user
 	frappe.get_doc(
@@ -1462,6 +1462,18 @@ def impersonate(user: str, reason: str):
 	)
 	notification.set("type", "Alert")
 	notification.insert(ignore_permissions=True)
+	# notify user via email too
+	if not frappe.conf.get("developer_mode"):  # bypass for testing locally
+		user_email = frappe.db.get_value("User", user, "email")
+		email_message = _(
+			"User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
+		).format(escape_html(impersonator), escape_html(reason))
+
+		frappe.sendmail(
+			recipients=[user_email],
+			subject=_("Security Alert: Your account is being impersonated"),
+			content=email_message,
+		)
 	frappe.local.login_manager.impersonate(user)
 
 
