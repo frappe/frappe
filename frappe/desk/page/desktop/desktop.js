@@ -296,6 +296,9 @@ class DesktopPage {
 			{
 				label: "Edit Layout",
 				icon: "edit",
+				condition: function () {
+					return !me.edit_mode;
+				},
 				onClick: function () {
 					me.$desktop_edit_button.hide();
 					frappe.new_desktop_icons = JSON.parse(JSON.stringify(frappe.desktop_icons));
