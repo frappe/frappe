@@ -285,7 +285,7 @@ frappe.views.Calendar = class Calendar {
 					},
 				});
 			},
-			timezone: 'local',
+			timezone: "local",
 			displayEventEnd: true,
 			eventRender: function (event, element) {
 				element.attr("title", event.tooltip);
