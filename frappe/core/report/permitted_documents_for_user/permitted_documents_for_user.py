@@ -44,7 +44,7 @@ def get_columns_and_fields(doctype):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def query_doctypes(doctype, txt, searchfield, start, page_len, filters):
+def query_doctypes(doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict):
 	user = filters.get("user")
 	user_perms = frappe.utils.user.UserPermissions(user)
 	user_perms.build_permissions()
