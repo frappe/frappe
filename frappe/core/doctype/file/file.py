@@ -715,15 +715,7 @@ class File(Document):
 			return self.save_file_on_filesystem()
 
 	def save_file_on_filesystem(self):
-<<<<<<< HEAD
-<<<<<<< HEAD
 		safe_file_name = re.sub(r"[/\\%?#]", "_", self.file_name)
-=======
-		safe_file_name = self.file_name.replace("%", "_")
->>>>>>> b23f24a4fc (fix(File): Disallow percent sign in file_name)
-=======
-		safe_file_name = re.sub(r"[/\\%?#]", "_", self.file_name)
->>>>>>> 772df163cf (fix(file): Remove illegal chars in file_name)
 		if self.is_private:
 			self.file_url = f"/private/files/{safe_file_name}"
 		else:
