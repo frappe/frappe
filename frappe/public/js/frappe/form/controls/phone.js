@@ -145,7 +145,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 
 		if (!this.get_value()) {
 			this.reset_input();
-			this.country_code_picker?.on_change(frappe.sys_defaults?.country || "India", false);
+			this.set_default_country();
 		}
 	}
 
