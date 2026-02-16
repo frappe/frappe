@@ -158,6 +158,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 
 	set_disp_area(value) {
+		let is_val_html = frappe.utils.is_html(value);
 		if (
 			["Currency", "Int", "Float"].includes(this.df.fieldtype) &&
 			(this.value === 0 || value === 0)
@@ -178,7 +179,9 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
 		// This is used to display formatted output AND showing values in read only fields
 		if (this.disp_area) {
-			$(this.disp_area).html(display_value);
+			$(this.disp_area).html(
+				is_val_html ? frappe.utils.html2text(display_value) : display_value
+			);
 			// Apply alignment only for supported fields
 			if (
 				this.df.alignment &&
