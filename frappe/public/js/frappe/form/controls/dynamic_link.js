@@ -13,11 +13,19 @@ frappe.ui.form.ControlDynamicLink = class ControlDynamicLink extends frappe.ui.f
 				// for list page
 				input = cur_list.filter_area.standard_filters_wrapper.find(selector);
 			}
-			if (cur_page) {
+			if (cur_page && !input) {
 				input = $(cur_page.page).find(selector);
 			}
 			if (input) {
-				options = input.val();
+				// Use the control instance's get_input_value() to resolve
+				// translated display text back to the actual value via title_value_map
+				let control = cur_list?.page?.fields_dict?.[this.df.options]
+					|| cur_page?.page?.fields_dict?.[this.df.options];
+				if (control && typeof control.get_input_value === "function") {
+					options = control.get_input_value();
+				} else {
+					options = input.val();
+				}
 			}
 		} else {
 			options = frappe.model.get_value(this.df.parent, this.docname, this.df.options);
