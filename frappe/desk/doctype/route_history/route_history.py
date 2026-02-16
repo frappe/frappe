@@ -29,7 +29,7 @@ class RouteHistory(Document):
 
 
 @frappe.whitelist()
-def deferred_insert(routes):
+def deferred_insert(routes: str):
 	routes = [
 		{
 			"user": frappe.session.user,
