@@ -1,5 +1,6 @@
 import BulkOperations from "./bulk_operations";
 import ListSettings from "./list_settings";
+import ListViewSelector from "./list_view_selector";
 
 frappe.provide("frappe.views");
 
@@ -335,8 +336,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.render_header();
 		this.render_skeleton();
 		this.setup_events();
+		this.setup_view_selector();
 		this.settings.onload && this.settings.onload(this);
 		this.show_restricted_list_indicator_if_applicable();
+	}
+
+	setup_view_selector() {
+		// Initialize the saved views selector
+		this.view_selector = new ListViewSelector({
+			list_view: this,
+			doctype: this.doctype,
+		});
 	}
 
 	refresh_columns(meta, list_view_settings) {

@@ -1,0 +1,206 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2024-02-13 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "view_name",
+  "reference_doctype",
+  "column_break_1",
+  "is_public",
+  "owner",
+  "section_break_columns",
+  "columns",
+  "section_break_filters",
+  "filters",
+  "section_break_sorting",
+  "sort_by",
+  "sort_order",
+  "section_break_settings",
+  "disable_count",
+  "disable_auto_refresh",
+  "disable_sidebar_stats",
+  "disable_automatic_recency_filters",
+  "column_break_settings",
+  "disable_comment_count",
+  "disable_scrolling",
+  "allow_edit",
+  "show_tags"
+ ],
+ "fields": [
+  {
+   "fieldname": "view_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "View Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "If checked, this view will be visible to all users with access to this DocType",
+   "fieldname": "is_public",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Public"
+  },
+  {
+   "fieldname": "owner",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Owner",
+   "options": "User"
+  },
+  {
+   "fieldname": "section_break_columns",
+   "fieldtype": "Section Break",
+   "label": "Columns"
+  },
+  {
+   "description": "JSON array of columns with fieldname, label, and width",
+   "fieldname": "columns",
+   "fieldtype": "Code",
+   "label": "Columns",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "section_break_filters",
+   "fieldtype": "Section Break",
+   "label": "Filters"
+  },
+  {
+   "description": "JSON array of filters",
+   "fieldname": "filters",
+   "fieldtype": "Code",
+   "label": "Filters",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "section_break_sorting",
+   "fieldtype": "Section Break",
+   "label": "Sorting"
+  },
+  {
+   "fieldname": "sort_by",
+   "fieldtype": "Data",
+   "label": "Sort By"
+  },
+  {
+   "default": "desc",
+   "fieldname": "sort_order",
+   "fieldtype": "Select",
+   "label": "Sort Order",
+   "options": "asc\ndesc"
+  },
+  {
+   "fieldname": "section_break_settings",
+   "fieldtype": "Section Break",
+   "label": "List View Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_count",
+   "fieldtype": "Check",
+   "label": "Disable Count"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_auto_refresh",
+   "fieldtype": "Check",
+   "label": "Disable Auto Refresh"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_sidebar_stats",
+   "fieldtype": "Check",
+   "label": "Disable Sidebar Stats"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_automatic_recency_filters",
+   "fieldtype": "Check",
+   "label": "Disable Automatic Recency Filters"
+  },
+  {
+   "fieldname": "column_break_settings",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_comment_count",
+   "fieldtype": "Check",
+   "label": "Disable Comment Count"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_scrolling",
+   "fieldtype": "Check",
+   "label": "Disable Scrolling"
+  },
+  {
+   "default": "0",
+   "description": "Allow editing even if the doctype has a workflow set up",
+   "fieldname": "allow_edit",
+   "fieldtype": "Check",
+   "label": "Allow Bulk Editing"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_tags",
+   "fieldtype": "Check",
+   "label": "Show Tags"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2024-02-13 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "User Saved List View",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Desk User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

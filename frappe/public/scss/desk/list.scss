@@ -684,3 +684,57 @@ input.list-header-checkbox {
 		}
 	}
 }
+
+// Saved Views Selector Styles
+.view-item {
+	padding: 0.5rem 1rem;
+	cursor: pointer;
+	
+	&:hover {
+		background-color: var(--bg-light-gray);
+	}
+	
+	&.active {
+		background-color: var(--bg-blue);
+		
+		.view-name {
+			font-weight: 600;
+		}
+	}
+	
+	.view-name {
+		color: var(--text-color);
+		text-decoration: none;
+		
+		&:hover {
+			color: var(--text-color);
+		}
+	}
+	
+	.view-actions {
+		display: none;
+		white-space: nowrap;
+		
+		a {
+			padding: 0.25rem;
+			border-radius: var(--border-radius-sm);
+			
+			&:hover {
+				background-color: var(--bg-light-gray);
+			}
+		}
+	}
+	
+	&:hover .view-actions {
+		display: inline-flex;
+		gap: 0.25rem;
+	}
+}
+
+.dropdown-header {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
+	font-weight: 600;
+	text-transform: uppercase;
+	padding: 0.5rem 1rem;
+}
