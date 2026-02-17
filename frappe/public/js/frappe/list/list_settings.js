@@ -55,7 +55,7 @@ export default class ListSettings {
         callback: function (r) {
           me.listview.refresh_columns(
             r.message.meta,
-            r.message.listview_settings,
+            r.message.listview_settings
           );
           me.dialog.hide();
         },
@@ -130,7 +130,7 @@ export default class ListSettings {
                       "xs",
                       "",
                       "",
-                      "sortable-handle " + show_sortable_handle,
+                      "sortable-handle " + show_sortable_handle
                     )}
     				    </div>
 
@@ -193,7 +193,7 @@ export default class ListSettings {
     for (let idx = 0; idx < remove_fields.length; idx++) {
       remove_fields.item(idx).onclick = () =>
         me.remove_fields(
-          remove_fields.item(idx).getAttribute("data-fieldname"),
+          remove_fields.item(idx).getAttribute("data-fieldname")
         );
     }
   }
@@ -213,8 +213,8 @@ export default class ListSettings {
     me.set_removed_fields(
       me.get_removed_listview_fields(
         me.fields.map((f) => f.fieldname),
-        existing_fields,
-      ),
+        existing_fields
+      )
     );
     me.refresh();
     me.update_fields();
@@ -258,7 +258,7 @@ export default class ListSettings {
           fieldname: "fields",
           options: me.get_doctype_fields(
             me.meta,
-            me.fields.map((f) => f.fieldname),
+            me.fields.map((f) => f.fieldname)
           ),
           columns: 2,
         },
@@ -270,8 +270,8 @@ export default class ListSettings {
       me.set_removed_fields(
         me.get_removed_listview_fields(
           values,
-          me.fields.map((f) => f.fieldname),
-        ),
+          me.fields.map((f) => f.fieldname)
+        )
       );
 
       me.fields = [];
@@ -309,7 +309,7 @@ export default class ListSettings {
         "frappe.desk.doctype.list_view_settings.list_view_settings.get_default_listview_fields",
         {
           doctype: me.doctype,
-        },
+        }
       )
       .then((fields) => {
         let field = dialog.get_field("fields");
