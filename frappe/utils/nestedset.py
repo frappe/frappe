@@ -210,10 +210,14 @@ def rebuild_node(doctype, parent, left, parent_field):
 	table = DocType(doctype)
 	column = getattr(table, parent_field)
 
-	result = (frappe.qb.from_(table).where(column == parent).select(table.name)).run()
+	children = (
+		(frappe.qb.from_(table).where(column == parent).select(table.name))
+		.orderby(table.name, order=Order.asc)
+		.run(pluck=True)
+	)
 
-	for r in result:
-		right = rebuild_node(doctype, r[0], right, parent_field)
+	for child in children:
+		right = rebuild_node(doctype, child, right, parent_field)
 
 	# we've got the left value, and now that we've processed
 	# the children of this node we also know the right value
