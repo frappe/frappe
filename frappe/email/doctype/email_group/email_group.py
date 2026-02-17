@@ -106,14 +106,14 @@ class EmailGroup(Document):
 
 
 @frappe.whitelist()
-def import_from(name, doctype):
+def import_from(name: str, doctype: str):
 	nlist = frappe.get_doc("Email Group", name)
 	if nlist.has_permission("write"):
 		return nlist.import_from(doctype)
 
 
 @frappe.whitelist()
-def add_subscribers(name, email_list):
+def add_subscribers(name: str, email_list: str | list | tuple):
 	if not isinstance(email_list, list | tuple):
 		email_list = email_list.replace(",", "\n").split("\n")
 
