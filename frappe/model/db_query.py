@@ -607,6 +607,8 @@ from {tables}
 		if self.flags.ignore_permissions:
 			return
 
+		self.join = "left join"
+
 		if doctype not in self.permission_map:
 			self._set_permission_map(doctype, parent_doctype)
 
