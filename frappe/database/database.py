@@ -582,6 +582,9 @@ class Database:
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 		out = None
+		if isinstance(fieldname, list):
+			fieldname = tuple(fieldname)
+
 		if cache and isinstance(filters, str) and (doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
 

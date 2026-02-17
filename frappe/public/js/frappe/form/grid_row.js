@@ -978,7 +978,7 @@ export default class GridRow {
 		}
 
 		function trigger_focus(input_field, col_df) {
-			if (["Date", "Datetime"].includes(col_df.fieldtype) && col_df?.read_only) {
+			if (["Date", "Datetime", "Time"].includes(col_df.fieldtype) && col_df?.read_only) {
 				return;
 			}
 
