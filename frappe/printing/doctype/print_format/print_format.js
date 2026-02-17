@@ -76,10 +76,10 @@ frappe.ui.form.on("Print Format", {
 		// Update field requirements based on custom_format and raw_printing
 		const is_custom = frm.doc.custom_format;
 		const is_raw_printing = frm.doc.raw_printing;
-		
+
 		frm.set_df_property("html", "reqd", is_custom && !is_raw_printing);
 		frm.set_df_property("raw_commands", "reqd", is_custom && is_raw_printing);
-	}
+	},
 	doc_type: function (frm) {
 		frm.trigger("hide_absolute_value_field");
 	},
