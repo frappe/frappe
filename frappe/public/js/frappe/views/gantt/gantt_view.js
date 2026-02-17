@@ -5,6 +5,9 @@ const DEFAULT_FIELD_MAP = {
 	end: "end",
 	id: "name",
 	progress: "progress",
+	color: "color",
+	is_milestone: "is_milestone",
+	depends_on: "depends_on_tasks",
 };
 
 frappe.views.GanttView = class GanttView extends frappe.views.ListView {
@@ -38,6 +41,34 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 
 	setup_view() {}
 
+	get_fields() {
+		// Add necessary fields for Gantt
+		let fields = super.get_fields();
+		const field_map = this.calendar_settings.field_map || DEFAULT_FIELD_MAP;
+		const meta = this.meta;
+
+		const gantt_fields = [
+			field_map.start,
+			field_map.end,
+			field_map.progress,
+			field_map.id,
+			field_map.title,
+			field_map.color,
+			field_map.is_milestone,
+			field_map.depends_on,
+		].filter((f) => typeof f === "string");
+		gantt_fields.forEach((fieldname) => {
+			let full_fieldname = frappe.model.get_full_column_name(fieldname, this.doctype);
+			if (
+				!fields.includes(full_fieldname) &&
+				meta.fields.find((f) => f.fieldname === fieldname)
+			) {
+				fields.push(full_fieldname);
+			}
+		});
+		return fields;
+	}
+
 	prepare_data(data) {
 		super.prepare_data(data);
 		this.prepare_tasks();
@@ -47,8 +78,19 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		var me = this;
 		var meta = this.meta;
 		let field_map = this.calendar_settings.field_map || DEFAULT_FIELD_MAP;
+
 		if (!this.data[0]?.[field_map.progress]) {
 			this.progress_disabled = true;
+		}
+
+		if (!this.meta.fields.find((k) => k.fieldname === field_map.start)) {
+			frappe.msgprint({
+				title: __("Incorrect configuration"),
+				message: __(
+					"Please configure the start field for this Doctype in the controller file."
+				),
+				indicator: "red",
+			});
 		}
 		this.tasks = this.data.map(function (item) {
 			// set progress
@@ -70,15 +112,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			} else {
 				label = item["name"];
 			}
-			if (!item[field_map.start]) {
-				frappe.msgprint({
-					title: __("Incorrect configuration"),
-					message: __(
-						"Please configure the start field for this Doctype in the controller file."
-					),
-					indicator: "red",
-				});
-			}
+
 			const r = {
 				start: item[field_map.start],
 				end: item[field_map.end] || item[field_map.start],
@@ -86,14 +120,20 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 				id: item[field_map.id],
 				doctype: me.doctype,
 				progress: progress,
-				dependencies: item.depends_on_tasks || "",
+				dependencies: "",
 			};
 
-			if (item.color && frappe.ui.color.validate_hex(item.color)) {
-				r["custom_class"] = "color-" + item.color.substr(1);
+			if (field_map.depends_on) {
+				r.dependencies = item[field_map.depends_on] || "";
 			}
-
-			if (item.is_milestone) {
+			if (
+				field_map.color &&
+				item[field_map.color] &&
+				frappe.ui.color.validate_hex(item[field_map.color])
+			) {
+				r["custom_class"] = "color-" + item[field_map.color].substr(1);
+			}
+			if (field_map.is_milestone && item[field_map.is_milestone]) {
 				r["custom_class"] = "bar-milestone";
 			}
 
@@ -124,7 +164,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			date_format: "YYYY-MM-DD",
 			readonly: !me.can_write,
 			readonly_progress: this.progress_disabled,
-			fixed_duration: field_map.start == field_map.end,
+			fixed_duration: field_map.start === field_map.end,
 			on_double_click: (task) => {
 				frappe.set_route("Form", task.doctype, task.id);
 			},
