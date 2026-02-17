@@ -1603,7 +1603,7 @@ export default class GridRow {
 		const symbol = window.get_currency_symbol(currency);
 
 		// skip if compound symbols like in case of EGP - "£ or ج."
-		if (symbol && (symbol.includes(' or ') || symbol.length > 3)) {
+		if (symbol && (symbol.includes(" or ") || symbol.length > 3)) {
 			return;
 		}
 
