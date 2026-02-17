@@ -523,9 +523,14 @@ download only after 24 hours."""
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def fetch_latest_backups(partial=False):
 	"""Fetches paths of the latest backup taken in the last 30 days
 	Only for: System Managers
+=======
+def fetch_latest_backups(partial: bool = False) -> dict:
+	"""Fetch paths of the latest backup taken in the last 30 days.
+>>>>>>> 9eef4f6dae (fix: force type check in whitelisted methods (#37044))
 
 	Returns:
 	        dict: relative Backup Paths

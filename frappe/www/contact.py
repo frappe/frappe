@@ -30,7 +30,11 @@ def get_context(context):
 
 
 @frappe.whitelist(allow_guest=True)
+<<<<<<< HEAD
 @rate_limit(limit=100, seconds=60 * 60)
+=======
+@rate_limit(limit=1000, seconds=60 * 60)
+>>>>>>> 9eef4f6dae (fix: force type check in whitelisted methods (#37044))
 def send_message(sender: str, message: str, subject: str = "Website Query"):
 	doc = frappe.get_doc("Contact Us Settings", "Contact Us Settings")
 	if doc.is_disabled:
