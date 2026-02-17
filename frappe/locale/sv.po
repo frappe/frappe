@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-05 16:35\n"
+"PO-Revision-Date: 2026-02-17 18:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -22225,7 +22225,7 @@ msgstr "Recension Poäng "
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:87
 msgid "Reviews"
-msgstr "Recension "
+msgstr "Recensioner"
 
 #. Label of a Data field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
