@@ -1,122 +1,121 @@
 export default class ListSettings {
-  constructor({ listview, doctype, meta, settings }) {
-	if (!doctype) {
-	  frappe.throw("DocType required");
-	}
+    constructor({ listview, doctype, meta, settings }) {
+        if (!doctype) {
+            frappe.throw("DocType required");
+        }
 
-	this.listview = listview;
-	this.doctype = doctype;
-	this.meta = meta;
-	this.settings = settings;
-	this.dialog = null;
-	this.fields =
-	  this.settings && this.settings.fields
-		? JSON.parse(this.settings.fields)
-		: [];
-	this.subject_field = null;
-	this.max_number_of_fields = 50;
+        this.listview = listview;
+        this.doctype = doctype;
+        this.meta = meta;
+        this.settings = settings;
+        this.dialog = null;
+        this.fields =
+            this.settings && this.settings.fields
+                ? JSON.parse(this.settings.fields)
+                : [];
+        this.subject_field = null;
+        this.max_number_of_fields = 50;
 
-	frappe.model.with_doctype("List View Settings", () => {
-	  this.make();
-	  this.get_listview_fields(meta);
-	  this.setup_fields();
-	  this.setup_remove_fields();
-	  this.add_new_fields();
-	  this.show_dialog();
-	});
-  }
+        frappe.model.with_doctype("List View Settings", () => {
+            this.make();
+            this.get_listview_fields(meta);
+            this.setup_fields();
+            this.setup_remove_fields();
+            this.add_new_fields();
+            this.show_dialog();
+        });
+    }
 
-  make() {
-	let me = this;
+    make() {
+        let me = this;
 
-	let list_view_settings = frappe.get_meta("List View Settings");
+        let list_view_settings = frappe.get_meta("List View Settings");
 
-	me.dialog = new frappe.ui.Dialog({
-	  title: __("{0} List View Settings", [__(me.doctype)]),
-	  fields: list_view_settings.fields,
-	});
-	me.dialog.set_values(me.settings);
-	me.dialog.set_primary_action(__("Save"), () => {
-	  let values = me.dialog.get_values();
+        me.dialog = new frappe.ui.Dialog({
+            title: __("{0} List View Settings", [__(me.doctype)]),
+            fields: list_view_settings.fields,
+        });
+        me.dialog.set_values(me.settings);
+        me.dialog.set_primary_action(__("Save"), () => {
+            let values = me.dialog.get_values();
 
-	  frappe.show_alert({
-		message: __("Saving"),
-		indicator: "green",
-	  });
+            frappe.show_alert({
+                message: __("Saving"),
+                indicator: "green",
+            });
 
-	  frappe.call({
-		method:
-		  "frappe.desk.doctype.list_view_settings.list_view_settings.save_listview_settings",
-		args: {
-		  doctype: me.doctype,
-		  listview_settings: values,
-		  removed_listview_fields: me.removed_fields || [],
-		},
-		callback: function (r) {
-		  me.listview.refresh_columns(
-			r.message.meta,
-			r.message.listview_settings
-		  );
-		  me.dialog.hide();
-		},
-	  });
-	});
-  }
+            frappe.call({
+                method: "frappe.desk.doctype.list_view_settings.list_view_settings.save_listview_settings",
+                args: {
+                    doctype: me.doctype,
+                    listview_settings: values,
+                    removed_listview_fields: me.removed_fields || [],
+                },
+                callback: function (r) {
+                    me.listview.refresh_columns(
+                        r.message.meta,
+                        r.message.listview_settings,
+                    );
+                    me.dialog.hide();
+                },
+            });
+        });
+    }
 
-  refresh() {
-	let me = this;
+    refresh() {
+        let me = this;
 
-	me.setup_fields();
-	me.add_new_fields();
-	me.setup_remove_fields();
-  }
+        me.setup_fields();
+        me.add_new_fields();
+        me.setup_remove_fields();
+    }
 
-  show_dialog() {
-	let me = this;
+    show_dialog() {
+        let me = this;
 
-	if (!this.settings.fields) {
-	  me.update_fields();
-	}
+        if (!this.settings.fields) {
+            me.update_fields();
+        }
 
-	if (!me.dialog.get_value("total_fields")) {
-	  let field_count = this.settings.total_fields;
+        if (!me.dialog.get_value("total_fields")) {
+            let field_count = this.settings.total_fields;
 
-	  if (!field_count) {
-		field_count = me.fields.length;
-		if (field_count < 4) {
-		  field_count = 4;
-		} else if (field_count > 10) {
-		  field_count = 10;
-		}
-	  }
+            if (!field_count) {
+                field_count = me.fields.length;
+                if (field_count < 4) {
+                    field_count = 4;
+                } else if (field_count > 10) {
+                    field_count = 10;
+                }
+            }
 
-	  me.dialog.set_value("total_fields", field_count);
-	}
+            me.dialog.set_value("total_fields", field_count);
+        }
 
-	me.dialog.show();
-  }
+        me.dialog.show();
+    }
 
-  setup_fields() {
-	function is_status_field(field) {
-	  return field.fieldname === "status_field";
-	}
+    setup_fields() {
+        function is_status_field(field) {
+            return field.fieldname === "status_field";
+        }
 
-	let me = this;
+        let me = this;
 
-	let fields_html = me.dialog.get_field("fields_html");
-	let wrapper = fields_html.$wrapper[0];
-	let fields = ``;
+        let fields_html = me.dialog.get_field("fields_html");
+        let wrapper = fields_html.$wrapper[0];
+        let fields = ``;
 
-	for (let idx in me.fields) {
-	  if (idx == parseInt(this.max_number_of_fields)) {
-		break;
-	  }
-	  let is_sortable = idx == 0 ? `` : `sortable`;
-	  let show_sortable_handle = idx == 0 ? `hide` : ``;
-	  let can_remove =
-		idx == 0 || is_status_field(me.fields[idx]) ? `hide` : ``;
+        for (let idx in me.fields) {
+            if (idx == parseInt(this.max_number_of_fields)) {
+                break;
+            }
+            let is_sortable = idx == 0 ? `` : `sortable`;
+            let show_sortable_handle = idx == 0 ? `hide` : ``;
+            let can_remove =
+                idx == 0 || is_status_field(me.fields[idx]) ? `hide` : ``;
 
-	  fields += `
+            fields += `
 				<div class="control-input form-control fields_order ${is_sortable}"
 	 				style="display: flex; align-items: stretch; margin-bottom: 5px; padding-bottom: 1.5px;"
 	 				data-fieldname="${me.fields[idx].fieldname}"
@@ -126,12 +125,12 @@ export default class ListSettings {
 					<div class="row flex-fill align-items-center">
 						<div class="col-1 d-flex align-items-center justify-content-center px-1">
 							${frappe.utils.icon(
-				"drag",
-				"xs",
-				"",
-				"",
-				"sortable-handle " + show_sortable_handle
-			  )}
+                                "drag",
+                                "xs",
+                                "",
+                                "",
+                                "sortable-handle " + show_sortable_handle,
+                            )}
 						</div>
 
 						<div class="col d-flex align-items-center px-0">
@@ -146,9 +145,9 @@ export default class ListSettings {
 						</div>
 					</div>
 				</div>`;
-	}
+        }
 
-	fields_html.html(`
+        fields_html.html(`
 			<div class="form-group">
 				<div class="clearfix">
 					<label class="control-label" style="padding-right: 0px;">${__("Fields")}</label>
@@ -164,264 +163,274 @@ export default class ListSettings {
 			</div>
 		`);
 
-	new Sortable(wrapper.getElementsByClassName("control-input-wrapper")[0], {
-	  handle: ".sortable-handle",
-	  draggable: ".sortable",
-	  onUpdate: () => {
-		me.update_fields();
-		me.refresh();
-	  },
-	});
-  }
+        new Sortable(
+            wrapper.getElementsByClassName("control-input-wrapper")[0],
+            {
+                handle: ".sortable-handle",
+                draggable: ".sortable",
+                onUpdate: () => {
+                    me.update_fields();
+                    me.refresh();
+                },
+            },
+        );
+    }
 
-  add_new_fields() {
-	let me = this;
+    add_new_fields() {
+        let me = this;
 
-	let fields_html = me.dialog.get_field("fields_html");
-	let add_new_fields =
-	  fields_html.$wrapper[0].getElementsByClassName("add-new-fields")[0];
-	add_new_fields.onclick = () => me.column_selector();
-  }
+        let fields_html = me.dialog.get_field("fields_html");
+        let add_new_fields =
+            fields_html.$wrapper[0].getElementsByClassName("add-new-fields")[0];
+        add_new_fields.onclick = () => me.column_selector();
+    }
 
-  setup_remove_fields() {
-	let me = this;
+    setup_remove_fields() {
+        let me = this;
 
-	let fields_html = me.dialog.get_field("fields_html");
-	let remove_fields =
-	  fields_html.$wrapper[0].getElementsByClassName("remove-field");
+        let fields_html = me.dialog.get_field("fields_html");
+        let remove_fields =
+            fields_html.$wrapper[0].getElementsByClassName("remove-field");
 
-	for (let idx = 0; idx < remove_fields.length; idx++) {
-	  remove_fields.item(idx).onclick = () =>
-		me.remove_fields(
-		  remove_fields.item(idx).getAttribute("data-fieldname")
-		);
-	}
-  }
+        for (let idx = 0; idx < remove_fields.length; idx++) {
+            remove_fields.item(idx).onclick = () =>
+                me.remove_fields(
+                    remove_fields.item(idx).getAttribute("data-fieldname"),
+                );
+        }
+    }
 
-  remove_fields(fieldname) {
-	let me = this;
-	let existing_fields = me.fields.map((f) => f.fieldname);
+    remove_fields(fieldname) {
+        let me = this;
+        let existing_fields = me.fields.map((f) => f.fieldname);
 
-	for (let idx in me.fields) {
-	  let field = me.fields[idx];
+        for (let idx in me.fields) {
+            let field = me.fields[idx];
 
-	  if (field.fieldname == fieldname) {
-		me.fields.splice(idx, 1);
-		break;
-	  }
-	}
-	me.set_removed_fields(
-	  me.get_removed_listview_fields(
-		me.fields.map((f) => f.fieldname),
-		existing_fields
-	  )
-	);
-	me.refresh();
-	me.update_fields();
-  }
+            if (field.fieldname == fieldname) {
+                me.fields.splice(idx, 1);
+                break;
+            }
+        }
+        me.set_removed_fields(
+            me.get_removed_listview_fields(
+                me.fields.map((f) => f.fieldname),
+                existing_fields,
+            ),
+        );
+        me.refresh();
+        me.update_fields();
+    }
 
-  update_fields() {
-	let me = this;
+    update_fields() {
+        let me = this;
 
-	let fields_html = me.dialog.get_field("fields_html");
-	let wrapper = fields_html.$wrapper[0];
+        let fields_html = me.dialog.get_field("fields_html");
+        let wrapper = fields_html.$wrapper[0];
 
-	let fields_order = wrapper.getElementsByClassName("fields_order");
-	me.fields = [];
+        let fields_order = wrapper.getElementsByClassName("fields_order");
+        me.fields = [];
 
-	for (let idx = 0; idx < fields_order.length; idx++) {
-	  me.fields.push({
-		fieldname: fields_order.item(idx).getAttribute("data-fieldname"),
-		label: __(fields_order.item(idx).getAttribute("data-label")),
-	  });
-	}
+        for (let idx = 0; idx < fields_order.length; idx++) {
+            me.fields.push({
+                fieldname: fields_order
+                    .item(idx)
+                    .getAttribute("data-fieldname"),
+                label: __(fields_order.item(idx).getAttribute("data-label")),
+            });
+        }
 
-	me.dialog.set_value("fields", JSON.stringify(me.fields));
-	me.dialog.get_value("fields");
-  }
+        me.dialog.set_value("fields", JSON.stringify(me.fields));
+        me.dialog.get_value("fields");
+    }
 
-  column_selector() {
-	let me = this;
+    column_selector() {
+        let me = this;
 
-	let d = new frappe.ui.Dialog({
-	  title: __("{0} Fields", [__(me.doctype)]),
-	  fields: [
-		{
-		  label: __("Reset Fields"),
-		  fieldtype: "Button",
-		  fieldname: "reset_fields",
-		  click: () => me.reset_listview_fields(d),
-		},
-		{
-		  label: __("Select Fields (Up to {0})", [this.max_number_of_fields]),
-		  fieldtype: "MultiCheck",
-		  fieldname: "fields",
-		  options: me.get_doctype_fields(
-			me.meta,
-			me.fields.map((f) => f.fieldname)
-		  ),
-		  columns: 2,
-		},
-	  ],
-	});
-	d.set_primary_action(__("Save"), () => {
-	  let values = d.get_values().fields;
+        let d = new frappe.ui.Dialog({
+            title: __("{0} Fields", [__(me.doctype)]),
+            fields: [
+                {
+                    label: __("Reset Fields"),
+                    fieldtype: "Button",
+                    fieldname: "reset_fields",
+                    click: () => me.reset_listview_fields(d),
+                },
+                {
+                    label: __("Select Fields (Up to {0})", [
+                        this.max_number_of_fields,
+                    ]),
+                    fieldtype: "MultiCheck",
+                    fieldname: "fields",
+                    options: me.get_doctype_fields(
+                        me.meta,
+                        me.fields.map((f) => f.fieldname),
+                    ),
+                    columns: 2,
+                },
+            ],
+        });
+        d.set_primary_action(__("Save"), () => {
+            let values = d.get_values().fields;
 
-	  me.set_removed_fields(
-		me.get_removed_listview_fields(
-		  values,
-		  me.fields.map((f) => f.fieldname)
-		)
-	  );
+            me.set_removed_fields(
+                me.get_removed_listview_fields(
+                    values,
+                    me.fields.map((f) => f.fieldname),
+                ),
+            );
 
-	  me.fields = [];
-	  me.set_subject_field(me.meta);
-	  me.set_status_field();
+            me.fields = [];
+            me.set_subject_field(me.meta);
+            me.set_status_field();
 
-	  for (let idx in values) {
-		let value = values[idx];
+            for (let idx in values) {
+                let value = values[idx];
 
-		if (me.fields.length === parseInt(this.max_number_of_fields)) {
-		  break;
-		} else if (value != me.subject_field.fieldname) {
-		  let field = frappe.meta.get_docfield(me.doctype, value);
-		  if (field) {
-			me.fields.push({
-			  label: __(field.label, null, me.doctype),
-			  fieldname: field.fieldname,
-			});
-		  }
-		}
-	  }
+                if (me.fields.length === parseInt(this.max_number_of_fields)) {
+                    break;
+                } else if (value != me.subject_field.fieldname) {
+                    let field = frappe.meta.get_docfield(me.doctype, value);
+                    if (field) {
+                        me.fields.push({
+                            label: __(field.label, null, me.doctype),
+                            fieldname: field.fieldname,
+                        });
+                    }
+                }
+            }
 
-	  me.refresh();
-	  me.dialog.set_value("fields", JSON.stringify(me.fields));
-	  d.hide();
-	});
-	d.show();
-  }
+            me.refresh();
+            me.dialog.set_value("fields", JSON.stringify(me.fields));
+            d.hide();
+        });
+        d.show();
+    }
 
-  reset_listview_fields(dialog) {
-	let me = this;
+    reset_listview_fields(dialog) {
+        let me = this;
 
-	frappe
-	  .xcall(
-		"frappe.desk.doctype.list_view_settings.list_view_settings.get_default_listview_fields",
-		{
-		  doctype: me.doctype,
-		}
-	  )
-	  .then((fields) => {
-		let field = dialog.get_field("fields");
-		field.df.options = me.get_doctype_fields(me.meta, fields);
-		dialog.refresh();
-	  });
-  }
+        frappe
+            .xcall(
+                "frappe.desk.doctype.list_view_settings.list_view_settings.get_default_listview_fields",
+                {
+                    doctype: me.doctype,
+                },
+            )
+            .then((fields) => {
+                let field = dialog.get_field("fields");
+                field.df.options = me.get_doctype_fields(me.meta, fields);
+                dialog.refresh();
+            });
+    }
 
-  get_listview_fields(meta) {
-	let me = this;
+    get_listview_fields(meta) {
+        let me = this;
 
-	if (!me.settings.fields) {
-	  me.set_list_view_fields(meta);
-	} else {
-	  me.fields = JSON.parse(this.settings.fields);
-	}
+        if (!me.settings.fields) {
+            me.set_list_view_fields(meta);
+        } else {
+            me.fields = JSON.parse(this.settings.fields);
+        }
 
-	me.fields.uniqBy((f) => f.fieldname);
-  }
+        me.fields.uniqBy((f) => f.fieldname);
+    }
 
-  set_list_view_fields(meta) {
-	let me = this;
+    set_list_view_fields(meta) {
+        let me = this;
 
-	me.set_subject_field(meta);
-	me.set_status_field();
+        me.set_subject_field(meta);
+        me.set_status_field();
 
-	meta.fields.forEach((field) => {
-	  if (
-		field.in_list_view &&
-		!frappe.model.no_value_type.includes(field.fieldtype) &&
-		me.subject_field.fieldname != field.fieldname
-	  ) {
-		me.fields.push({
-		  label: __(field.label, null, me.doctype),
-		  fieldname: field.fieldname,
-		});
-	  }
-	});
-  }
+        meta.fields.forEach((field) => {
+            if (
+                field.in_list_view &&
+                !frappe.model.no_value_type.includes(field.fieldtype) &&
+                me.subject_field.fieldname != field.fieldname
+            ) {
+                me.fields.push({
+                    label: __(field.label, null, me.doctype),
+                    fieldname: field.fieldname,
+                });
+            }
+        });
+    }
 
-  set_subject_field(meta) {
-	let me = this;
+    set_subject_field(meta) {
+        let me = this;
 
-	me.subject_field = {
-	  label: __("ID"),
-	  fieldname: "name",
-	};
+        me.subject_field = {
+            label: __("ID"),
+            fieldname: "name",
+        };
 
-	if (meta.title_field) {
-	  let field = frappe.meta.get_docfield(me.doctype, meta.title_field.trim());
+        if (meta.title_field) {
+            let field = frappe.meta.get_docfield(
+                me.doctype,
+                meta.title_field.trim(),
+            );
 
-	  me.subject_field = {
-		label: __(field.label, null, me.doctype),
-		fieldname: field.fieldname,
-	  };
-	}
+            me.subject_field = {
+                label: __(field.label, null, me.doctype),
+                fieldname: field.fieldname,
+            };
+        }
 
-	me.fields.push(me.subject_field);
-  }
+        me.fields.push(me.subject_field);
+    }
 
-  set_status_field() {
-	let me = this;
+    set_status_field() {
+        let me = this;
 
-	if (frappe.has_indicator(me.doctype)) {
-	  me.fields.push({
-		type: "Status",
-		label: __("Status"),
-		fieldname: "status_field",
-	  });
-	}
-  }
+        if (frappe.has_indicator(me.doctype)) {
+            me.fields.push({
+                type: "Status",
+                label: __("Status"),
+                fieldname: "status_field",
+            });
+        }
+    }
 
-  get_doctype_fields(meta, fields) {
-	let multiselect_fields = [];
+    get_doctype_fields(meta, fields) {
+        let multiselect_fields = [];
 
-	meta.fields.forEach((field) => {
-	  if (!frappe.model.no_value_type.includes(field.fieldtype)) {
-		multiselect_fields.push({
-		  label: __(field.label, null, field.doctype),
-		  value: field.fieldname,
-		  checked: fields.includes(field.fieldname),
-		});
-	  }
-	});
+        meta.fields.forEach((field) => {
+            if (!frappe.model.no_value_type.includes(field.fieldtype)) {
+                multiselect_fields.push({
+                    label: __(field.label, null, field.doctype),
+                    value: field.fieldname,
+                    checked: fields.includes(field.fieldname),
+                });
+            }
+        });
 
-	return multiselect_fields;
-  }
+        return multiselect_fields;
+    }
 
-  get_removed_listview_fields(new_fields, existing_fields) {
-	let me = this;
-	let removed_fields = [];
+    get_removed_listview_fields(new_fields, existing_fields) {
+        let me = this;
+        let removed_fields = [];
 
-	if (frappe.has_indicator(me.doctype)) {
-	  new_fields.push("status_field");
-	}
+        if (frappe.has_indicator(me.doctype)) {
+            new_fields.push("status_field");
+        }
 
-	existing_fields.forEach((column) => {
-	  if (!new_fields.includes(column)) {
-		removed_fields.push(column);
-	  }
-	});
+        existing_fields.forEach((column) => {
+            if (!new_fields.includes(column)) {
+                removed_fields.push(column);
+            }
+        });
 
-	return removed_fields;
-  }
+        return removed_fields;
+    }
 
-  set_removed_fields(fields) {
-	let me = this;
+    set_removed_fields(fields) {
+        let me = this;
 
-	if (me.removed_fields) {
-	  me.removed_fields = me.removed_fields.concat(fields);
-	} else {
-	  me.removed_fields = fields;
-	}
-  }
+        if (me.removed_fields) {
+            me.removed_fields = me.removed_fields.concat(fields);
+        } else {
+            me.removed_fields = fields;
+        }
+    }
 }
