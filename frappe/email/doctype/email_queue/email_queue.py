@@ -782,11 +782,16 @@ class QueueBuilder:
 			if send_now and len(final_recipients) >= 1000:
 				# force queueing if there are too many recipients to avoid timeouts
 				send_now = False
-			for recipients in frappe.utils.create_batch(final_recipients, 1000):
+			batches = list(frappe.utils.create_batch(final_recipients, 1000))
+
+			for i, recipients in enumerate(batches):
+				# only include CC/BCC recipients in the first batch to avoid duplicate emails
+				include_cc_and_bcc = i == 0
 				frappe.enqueue(
 					self.send_emails,
 					queue_data=queue_data,
 					final_recipients=recipients,
+					include_cc_and_bcc=include_cc_and_bcc,
 					job_name=frappe.utils.get_job_name(
 						"send_bulk_emails_for", self.reference_doctype, self.reference_name
 					),
@@ -794,13 +799,31 @@ class QueueBuilder:
 					queue="long",
 				)
 
-	def send_emails(self, queue_data, final_recipients):
+	def send_emails(self, queue_data, final_recipients, include_cc_and_bcc):
 		# This is used to bulk send emails from same sender to multiple recipients separately
 		# This re-uses smtp server instance to minimize the cost of new session creation
 		frappe_mail_client = None
 		smtp_server_instance = None
+
+		# send CC and BCC recipients in a separate email queue to avoid duplicate emails
+		if include_cc_and_bcc:
+			cc_and_bcc_recipients = list(set([*self.final_cc(), *self.final_bcc()]))
+			if cc_and_bcc_recipients:
+				q = EmailQueue.new(
+					{**queue_data, **{"recipients": cc_and_bcc_recipients}}, ignore_permissions=True
+				)
+				if not frappe_mail_client and not smtp_server_instance:
+					email_account = q.get_email_account(raise_error=True)
+					if email_account.service == "Frappe Mail":
+						frappe_mail_client = email_account.get_frappe_mail_client()
+					else:
+						smtp_server_instance = email_account.get_smtp_server()
+				with suppress(Exception):
+					q.send(smtp_server_instance=smtp_server_instance, frappe_mail_client=frappe_mail_client)
+
+		# then send to each TO recipient individually without CC/BCC
 		for r in final_recipients:
-			recipients = list(set([r, *self.final_cc(), *self.final_bcc()]))
+			recipients = list(set([r]))
 			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
 			if not frappe_mail_client and not smtp_server_instance:
 				email_account = q.get_email_account(raise_error=True)
