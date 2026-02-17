@@ -459,7 +459,7 @@ def retry_sending(queues: str | list[str]):
 
 
 @frappe.whitelist()
-def send_now(name, force_send: bool = False):
+def send_now(name: str, force_send: bool = False):
 	record = EmailQueue.find(name)
 	if record:
 		record.check_permission()
@@ -467,7 +467,7 @@ def send_now(name, force_send: bool = False):
 
 
 @frappe.whitelist()
-def toggle_sending(enable):
+def toggle_sending(enable: bool | int | str):
 	frappe.only_for("System Manager")
 	frappe.db.set_default("suspend_email_queue", 0 if sbool(enable) else 1)
 
