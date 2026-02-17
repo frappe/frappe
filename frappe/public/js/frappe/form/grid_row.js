@@ -1601,6 +1601,12 @@ export default class GridRow {
 
 		const currency = frappe.meta.get_field_currency(df, this.doc);
 		const symbol = window.get_currency_symbol(currency);
+
+		// skip if compound symbols like in case of EGP - "£ or ج."
+		if (symbol && (symbol.includes(' or ') || symbol.length > 3)) {
+			return;
+		}
+
 		const show_on_right =
 			cint(frappe.model.get_value(":Currency", currency, "symbol_on_right")) === 1;
 
