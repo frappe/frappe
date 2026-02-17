@@ -1,15 +1,12 @@
-from typing import TYPE_CHECKING
 from urllib.parse import quote
 
 import requests
 
 import frappe
+from frappe.core.doctype.file.file import File
 from frappe.email.receive import InboundMail
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_url
-
-if TYPE_CHECKING:
-	from frappe.core.doctype.file.file import File
 
 EMAIL_CONTENT = """
 Delivered-To: test@example.com
