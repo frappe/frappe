@@ -1,3 +1,9 @@
+.gantt {
+	.grid-column:hover {
+		cursor: copy;
+	}
+}
+
 .gantt-modern .gantt {
 	.bar {
 		fill: white;

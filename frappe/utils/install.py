@@ -204,7 +204,7 @@ def auto_generate_icons_and_sidebar(app_name=None):
 
 def delete_desktop_icon_and_sidebar(app_name, dry_run=False):
 	frappe.get_hooks(app_name=app_name)
-	app_title = frappe.get_hooks(app_name=app_name)["app_title"][0]
+	app_title = frappe.get_hooks("app_name", app_name=app_name)[0]
 	icons_to_be_deleted = frappe.get_all(
 		"Desktop Icon",
 		pluck="name",

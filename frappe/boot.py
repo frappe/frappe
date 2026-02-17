@@ -537,51 +537,52 @@ def get_sidebar_items(allowed_workspaces):
 	from frappe import _
 	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import auto_generate_sidebar_from_module
 
-	sidebars = frappe.get_all("Workspace Sidebar", fields=["name", "header_icon"])
+	workspace_sidebars = frappe.get_all("Workspace Sidebar", fields=["name", "header_icon"])
 	module_sidebars = auto_generate_sidebar_from_module()
-	sidebars.extend(module_sidebars)
+	workspace_sidebars.extend(module_sidebars)
 	sidebar_items = {}
 
-	for s in sidebars:
-		sidebar_title = s.get("name")
+	for sidebar in workspace_sidebars:
+		sidebar_title = sidebar.get("name")
+		sidebar_doc = None
 		if sidebar_title:
-			w = frappe.get_doc("Workspace Sidebar", sidebar_title)
+			sidebar_doc = frappe.get_doc("Workspace Sidebar", sidebar_title)
 		else:
-			sidebar_title = s.title
-			w = s
+			sidebar_title = sidebar.title
+			sidebar_doc = sidebar
 		if (
 			frappe.session.user == "Administrator"
-			or w.module in w.user.allow_modules
+			or sidebar_doc.module in sidebar_doc.user.allow_modules
 			or sidebar_title == "My Workspaces"
 		):
 			sidebar_items[sidebar_title.lower()] = {
 				"label": sidebar_title,
 				"items": [],
-				"header_icon": s.get("header_icon"),
-				"module": w.module,
-				"app": w.app,
+				"header_icon": sidebar.get("header_icon"),
+				"module": sidebar_doc.module,
+				"app": sidebar_doc.app,
 			}
-			for si in w.items:
+			for item in sidebar_doc.items:
 				workspace_sidebar = {
-					"label": _(si.label),
-					"link_to": si.link_to,
-					"link_type": si.link_type,
-					"type": si.type,
-					"icon": si.icon,
-					"child": si.child,
-					"collapsible": si.collapsible,
-					"indent": si.indent,
-					"keep_closed": si.keep_closed,
-					"display_depends_on": si.display_depends_on,
-					"url": si.url,
-					"show_arrow": si.show_arrow,
-					"filters": si.filters,
-					"route_options": si.route_options,
-					"tab": si.navigate_to_tab,
+					"label": _(item.label),
+					"link_to": item.link_to,
+					"link_type": item.link_type,
+					"type": item.type,
+					"icon": item.icon,
+					"child": item.child,
+					"collapsible": item.collapsible,
+					"indent": item.indent,
+					"keep_closed": item.keep_closed,
+					"display_depends_on": item.display_depends_on,
+					"url": item.url,
+					"show_arrow": item.show_arrow,
+					"filters": item.filters,
+					"route_options": item.route_options,
+					"tab": item.navigate_to_tab,
 				}
-				if si.link_type == "Report" and si.link_to and frappe.db.exists("Report", si.link_to):
+				if item.link_type == "Report" and item.link_to and frappe.db.exists("Report", item.link_to):
 					report_type, ref_doctype = frappe.db.get_value(
-						"Report", si.link_to, ["report_type", "ref_doctype"]
+						"Report", item.link_to, ["report_type", "ref_doctype"]
 					)
 					workspace_sidebar["report"] = {
 						"report_type": report_type,
@@ -589,8 +590,8 @@ def get_sidebar_items(allowed_workspaces):
 					}
 				if (
 					"My Workspaces" in sidebar_title
-					or si.type == "Section Break"
-					or w.is_item_allowed(si.link_to, si.link_type, allowed_workspaces)
+					or item.type == "Section Break"
+					or sidebar_doc.is_item_allowed(item.link_to, item.link_type, allowed_workspaces)
 				):
 					sidebar_items[sidebar_title.lower()]["items"].append(workspace_sidebar)
 	add_user_specific_sidebar(sidebar_items)
