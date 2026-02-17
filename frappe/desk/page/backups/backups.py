@@ -69,6 +69,10 @@ def delete_downloadable_backups():
 		if not x.is_file():
 			continue
 
+		# Skip temporary or unrelated files
+		if not any(x.name.endswith(ext) for ext in (".sql.gz", ".tar", ".tgz", ".json")):
+			continue
+
 		# Based on the naming convention of the backup files defined in frappe.utils.backups
 		backup_name = x.name.rsplit("-" + frappe.local.site.replace(".", "_"), maxsplit=1)[0]
 		backups[backup_name].append(x)
