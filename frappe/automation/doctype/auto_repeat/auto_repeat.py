@@ -558,7 +558,7 @@ def get_auto_repeat_entries(date=None):
 @frappe.whitelist()
 def make_auto_repeat(
 	doctype: str,
-	docname: str,
+	docname: str | int,
 	frequency: str = "Daily",
 	start_date: str | None = None,
 	end_date: str | None = None,

@@ -25,7 +25,7 @@ class DiscussionTopic(Document):
 @frappe.whitelist()
 def submit_discussion(
 	doctype: str,
-	docname: str,
+	docname: str | int,
 	reply: str,
 	title: str,
 	topic_name: str | None = None,
