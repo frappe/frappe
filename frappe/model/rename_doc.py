@@ -649,6 +649,9 @@ def update_parenttype_values(old: str, new: str):
 	child_doctypes = set(list(d["options"] for d in child_doctypes) + property_setter_child_doctypes)
 
 	for doctype in child_doctypes:
+		if frappe.get_meta(doctype).is_virtual:
+			continue
+
 		table = frappe.qb.DocType(doctype)
 		frappe.qb.update(table).set(table.parenttype, new).where(table.parenttype == old).run()
 

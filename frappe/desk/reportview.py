@@ -641,7 +641,9 @@ def delete_bulk(doctype, items):
 		)
 	else:
 		frappe.msgprint(
-			_("Deleted all documents successfully"), realtime=True, title=_("Bulk Operation Successful")
+			_(f"Deleted {len(items)} records from {doctype} doctype"),
+			realtime=True,
+			title=_("Bulk Operation Successful"),
 		)
 
 

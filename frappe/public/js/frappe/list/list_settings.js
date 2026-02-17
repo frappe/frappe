@@ -123,7 +123,7 @@ export default class ListSettings {
 						</div>
 						<div class="col-1 d-flex align-items-center justify-content-center px-1 ${can_remove}">
 							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
-								${frappe.utils.icon("trash", "xs")}
+								${frappe.utils.icon("x", "xs")}
 							</a>
 						</div>
 					</div>

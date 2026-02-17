@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-08 09:41+0000\n"
-"PO-Revision-Date: 2026-02-08 18:24\n"
+"PO-Revision-Date: 2026-02-10 18:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -509,7 +509,19 @@ msgid "<h5>Message Example</h5>\n\n"
 "&lt;li&gt;Amount: {{ doc.grand_total }}\n"
 "&lt;/ul&gt;\n"
 "</pre>"
-msgstr ""
+msgstr "<h5>Esempio di messaggio</h5>\n\n"
+"<pre>&lt;h3&gt;Ordine in ritardo&lt;/h3&gt;\n\n"
+"&lt;p&gt;La transazione {{ doc.name }} ha superato la data di scadenza. Si prega di intraprendere le azioni necessarie.&lt;/p&gt;\n\n"
+"&lt;!-- mostra l'ultimo commento --&gt;\n"
+"{% if comments %}\n"
+"Ultimo commento: {{ comments[-1].comment }} di {{ comments[-1].by }}\n"
+"{% endif %}\n\n"
+"&lt;h4&gt;Dettagli&lt;/h4&gt;\n\n"
+"&lt;ul&gt;\n"
+"&lt;li&gt;Cliente: {{ doc.customer }}\n"
+"&lt;li&gt;Importo: {{ doc.grand_total }}\n"
+"&lt;/ul&gt;\n"
+"</pre>"
 
 #. Content of the 'html_7' (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -1257,7 +1269,7 @@ msgstr ""
 #: frappe/templates/includes/comments/comments.html:30
 #: frappe/templates/includes/comments/comments.html:47
 msgid "Add a comment"
-msgstr ""
+msgstr "Aggiungi un commento"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:28
 #: frappe/public/js/form_builder/components/Tabs.vue:192
@@ -1685,7 +1697,7 @@ msgstr ""
 
 #: frappe/templates/includes/comments/comments.html:158
 msgid "All fields are necessary to submit the comment."
-msgstr ""
+msgstr "Tutti i campi sono necessari per inviare il commento."
 
 #. Description of the 'Document States' (Table) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -1843,7 +1855,7 @@ msgstr ""
 #. Label of the allow_comments (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Allow comments"
-msgstr ""
+msgstr "Abilita commenti"
 
 #. Label of the allow_delete (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -5053,7 +5065,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:248
 #: frappe/templates/includes/comments/comments.html:34
 msgid "Comment"
-msgstr ""
+msgstr "Commento"
 
 #. Label of the comment_by (Data) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
@@ -5088,11 +5100,11 @@ msgstr "Commenti"
 #. Description of the 'Timeline Field' (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Comments and Communications will be associated with this linked document"
-msgstr ""
+msgstr "Commenti e comunicazioni saranno associati a questo documento collegato"
 
 #: frappe/templates/includes/comments/comments.py:52
 msgid "Comments cannot have links or email addresses"
-msgstr ""
+msgstr "I commenti non possono contenere link o indirizzi email"
 
 #. Option for the 'Rounding Method' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -5875,15 +5887,15 @@ msgstr ""
 #: frappe/public/js/frappe/model/meta.js:214
 #: frappe/public/js/frappe/model/model.js:123
 msgid "Created By"
-msgstr "Creato Da"
+msgstr "Creato da"
 
 #: frappe/public/js/frappe/form/sidebar/form_sidebar.js:174
 msgid "Created By You"
-msgstr ""
+msgstr "Creato da te"
 
 #: frappe/public/js/frappe/form/sidebar/form_sidebar.js:175
 msgid "Created By {0}"
-msgstr ""
+msgstr "Creato da {0}"
 
 #: frappe/workflow/doctype/workflow/workflow.py:65
 msgid "Created Custom Field {0} in {1}"
@@ -5939,7 +5951,7 @@ msgstr ""
 
 #: frappe/templates/includes/comments/comments.html:32
 msgid "Ctrl+Enter to add comment"
-msgstr ""
+msgstr "Ctrl+Invio per aggiungere un commento"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -6091,7 +6103,7 @@ msgstr "Campo Personalizzato"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:222
 msgid "Custom Field {0} is created by the Administrator and can only be deleted through the Administrator account."
-msgstr ""
+msgstr "Il campo personalizzato {0} viene creato dall'amministratore e può essere eliminato solo tramite l'account amministratore."
 
 #: frappe/custom/doctype/custom_field/custom_field.py:279
 msgid "Custom Fields can only be added to a standard DocType."
@@ -8672,7 +8684,7 @@ msgstr ""
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 #: frappe/www/login.html:8 frappe/www/login.py:104
 msgid "Email"
-msgstr "E-mail"
+msgstr "Email"
 
 #. Label of the email_account (Link) field in DocType 'Communication'
 #. Label of the email_account (Link) field in DocType 'User Email'
@@ -8986,7 +8998,7 @@ msgstr ""
 #. Label of the enable_comments (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Enable Comments"
-msgstr "Abilita Commenti"
+msgstr "Abilita commenti"
 
 #. Label of the enable_dynamic_client_registration (Check) field in DocType
 #. 'OAuth Settings'
@@ -12132,7 +12144,7 @@ msgstr ""
 #. Label of the hide_toolbar (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Hide Sidebar, Menu, and Comments"
-msgstr ""
+msgstr "Nascondi barra laterale, menu e commenti"
 
 #. Label of the hide_standard_menu (Check) field in DocType 'Portal Settings'
 #: frappe/website/doctype/portal_settings/portal_settings.json
@@ -13718,7 +13730,7 @@ msgstr ""
 
 #: frappe/integrations/doctype/connected_app/connected_app.py:208
 msgid "Invalid token state! Check if the token has been created by the OAuth user."
-msgstr ""
+msgstr "Stato del token non valido! Controlla se il token è stato creato dall'utente OAuth."
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:165
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:338
@@ -14362,7 +14374,7 @@ msgstr ""
 #. Label of the ldap_middle_name_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Middle Name Field"
-msgstr ""
+msgstr "Campo secondo nome LDAP"
 
 #. Label of the ldap_mobile_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -14581,11 +14593,11 @@ msgstr "Ultimo Attivo"
 
 #: frappe/public/js/frappe/form/sidebar/form_sidebar.js:163
 msgid "Last Edited by You"
-msgstr ""
+msgstr "Ultima modifica da te"
 
 #: frappe/public/js/frappe/form/sidebar/form_sidebar.js:164
 msgid "Last Edited by {0}"
-msgstr ""
+msgstr "Ultima modifica di {0}"
 
 #. Label of the last_execution (Datetime) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -15440,15 +15452,15 @@ msgstr ""
 
 #: frappe/twofactor.py:164
 msgid "Login session expired, refresh page to retry"
-msgstr ""
+msgstr "Sessione di accesso scaduta, aggiorna la pagina per riprovare"
 
 #: frappe/templates/includes/comments/comments.html:110
 msgid "Login to comment"
-msgstr ""
+msgstr "Accedi per commentare"
 
 #: frappe/templates/includes/comments/comments.html:6
 msgid "Login to start a new discussion"
-msgstr ""
+msgstr "Accedi per iniziare una nuova discussione"
 
 #: frappe/www/portal.py:17
 msgid "Login to view"
@@ -16167,12 +16179,12 @@ msgstr ""
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/core/doctype/user/user.json
 msgid "Middle Name"
-msgstr "Secondo Nome"
+msgstr "Secondo nome"
 
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Middle Name (Optional)"
-msgstr ""
+msgstr "Secondo nome (facoltativo)"
 
 #. Name of a DocType
 #: frappe/automation/doctype/milestone/milestone.json
@@ -19575,7 +19587,7 @@ msgstr ""
 
 #: frappe/templates/includes/comments/comments.html:168
 msgid "Please add a valid comment."
-msgstr ""
+msgstr "Aggiungi un commento valido."
 
 #: frappe/core/doctype/user/user.py:1126
 msgid "Please ask your administrator to verify your sign-up"
@@ -19717,7 +19729,7 @@ msgstr ""
 
 #: frappe/templates/includes/comments/comments.html:163
 msgid "Please enter a valid email address."
-msgstr ""
+msgstr "Si prega di inserire un indirizzo email valido."
 
 #: frappe/templates/includes/contact.js:15
 msgid "Please enter both your email and message so that we can get back to you. Thanks!"
@@ -19751,7 +19763,7 @@ msgstr ""
 #: frappe/templates/includes/comments/comments.py:42
 #: frappe/templates/includes/comments/comments.py:45
 msgid "Please login to post a comment."
-msgstr ""
+msgstr "Effettua il login per pubblicare un commento."
 
 #: frappe/core/doctype/communication/communication.py:186
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
@@ -21496,11 +21508,11 @@ msgstr "Aggiorna"
 #. Label of the refresh_google_sheet (Button) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Refresh Google Sheet"
-msgstr ""
+msgstr "Aggiorna Google Sheet"
 
 #: frappe/printing/page/print/print.js:398
 msgid "Refresh Print Preview"
-msgstr ""
+msgstr "Aggiorna anteprima di stampa"
 
 #. Label of the refresh_token (Password) field in DocType 'Google Calendar'
 #. Label of the refresh_token (Password) field in DocType 'Google Contacts'
@@ -21511,18 +21523,18 @@ msgstr ""
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 #: frappe/integrations/doctype/token_cache/token_cache.json
 msgid "Refresh Token"
-msgstr ""
+msgstr "Aggiorna token"
 
 #: frappe/public/js/frappe/list/list_view.js:540
 msgctxt "Document count in list view"
 msgid "Refreshing"
-msgstr ""
+msgstr "Aggiornamento"
 
 #: frappe/core/doctype/system_settings/system_settings.js:57
 #: frappe/core/doctype/user/user.js:372
 #: frappe/desk/page/setup_wizard/setup_wizard.js:211
 msgid "Refreshing..."
-msgstr ""
+msgstr "Aggiornamento..."
 
 #: frappe/core/doctype/user/user.py:1086
 msgid "Registered but disabled"
@@ -26573,7 +26585,7 @@ msgstr ""
 
 #: frappe/templates/includes/comments/comments.py:48
 msgid "The comment cannot be empty"
-msgstr ""
+msgstr "Il commento non può essere vuoto"
 
 #: frappe/templates/emails/workflow_action.html:9
 msgid "The contents of this email are strictly confidential. Please do not forward this email to anyone."
@@ -26721,7 +26733,7 @@ msgstr ""
 
 #: frappe/utils/response.py:343
 msgid "The system is being updated. Please refresh again after a few moments."
-msgstr ""
+msgstr "Il sistema è in fase di aggiornamento. Aggiorna nuovamente la pagina tra qualche istante."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:9
 msgid "The system provides many pre-defined roles. You can add new roles to set finer permissions."
@@ -29310,7 +29322,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/desk.js:166
 msgid "Version Updated"
-msgstr "Versione Aggiornata"
+msgstr "Versione aggiornata"
 
 #. Label of the video_url (Data) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -30831,7 +30843,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/desk.js:547
 msgid "You've logged in as another user from another tab. Refresh this page to continue using system."
-msgstr ""
+msgstr "Hai effettuato l'accesso come altro utente da un'altra scheda. Aggiorna questa pagina per continuare a utilizzare il sistema."
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "YouTube"
@@ -30851,7 +30863,7 @@ msgstr ""
 
 #: frappe/templates/includes/comments/comments.html:21
 msgid "Your Name"
-msgstr ""
+msgstr "Il tuo nome"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:132
 msgid "Your PDF is ready for download"
