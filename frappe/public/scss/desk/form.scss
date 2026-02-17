@@ -78,12 +78,15 @@
 		}
 	}
 }
-.section-head,
-.section-body {
-	margin: auto !important;
 
-	body:not(.full-width) & {
-		max-width: var(--page-max-width);
+.std-form-layout {
+	.section-head,
+	.section-body {
+		margin: auto !important;
+
+		body:not(.full-width) & {
+			max-width: var(--page-max-width);
+		}
 	}
 }
 

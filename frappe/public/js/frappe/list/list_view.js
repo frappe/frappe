@@ -1349,9 +1349,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_image_url(doc) {
 		let url = doc.image ? doc.image : doc[this.meta.image_field];
 		// absolute url for mobile
-		if (window.cordova && !frappe.utils.is_url(url)) {
-			url = frappe.base_url + url;
-		}
 		return url || null;
 	}
 

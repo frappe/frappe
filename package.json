@@ -53,7 +53,7 @@
     "fast-glob": "^3.2.5",
     "frappe-charts": "2.0.0-rc27",
     "frappe-datatable": "1.19.0",
-    "frappe-gantt": "^0.6.0",
+    "frappe-gantt": "^1.1.0",
     "frappe-quill-image-resize": "^3.0.9",
     "gemoji": "^8.1.0",
     "highlight.js": "^10.4.1",

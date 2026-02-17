@@ -305,11 +305,11 @@ class TestMethodAPI(FrappeAPITestCase):
 		self.assertEqual(response.json["message"], "pong")
 
 	def test_get_user_info(self):
-		# test 3: test for /api/method/frappe.realtime.get_user_info
+		# test 3: test for /api/method/frappe.realtime.get_user_info (server-to-server only)
 		response = self.get(self.method("frappe.realtime.get_user_info"))
 		self.assertEqual(response.status_code, 200)
-		self.assertIsInstance(response.json, dict)
-		self.assertIn(response.json.get("message").get("user"), ("Administrator", "Guest"))
+		message = response.json.get("message")
+		self.assertEqual(message, {})
 
 	def test_auth_cycle(self):
 		# test 4: Pass authorization token in request

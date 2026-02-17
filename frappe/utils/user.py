@@ -12,6 +12,7 @@ from frappe.core.doctype.domain_settings.domain_settings import get_active_modul
 from frappe.permissions import AUTOMATIC_ROLES, get_rights, get_roles, get_valid_perms
 from frappe.query_builder import DocType, Order
 from frappe.query_builder.functions import Concat_ws
+from frappe.utils.translations import _
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.user.user import User
@@ -295,9 +296,10 @@ def get_user_fullname(user: str) -> str:
 
 
 def get_fullname_and_avatar(user: str) -> _dict:
-	first_name, last_name, avatar, name = frappe.get_cached_value(
-		"User", user, ["first_name", "last_name", "user_image", "name"]
-	)
+	result = frappe.get_cached_value("User", user, ["first_name", "last_name", "user_image", "name"])
+	if result is None:
+		frappe.throw(_("User does not exist"), frappe.DoesNotExistError)
+	first_name, last_name, avatar, name = result
 	return _dict(
 		{
 			"fullname": " ".join(list(filter(None, [first_name, last_name]))),

@@ -1309,12 +1309,12 @@ def _bankers_rounding(num, precision):
 	if num == 0:
 		return 0.0
 
-	floor_num = math.floor(num)
+	floor_num = math.floor(num) if num > 0 else math.ceil(num)
 	decimal_part = num - floor_num
 
 	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
 	if abs(decimal_part - 0.5) < epsilon:
-		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
+		num = floor_num if (floor_num % 2 == 0) else floor_num + 1 if num > 0 else floor_num - 1
 	else:
 		num = round(num)
 
