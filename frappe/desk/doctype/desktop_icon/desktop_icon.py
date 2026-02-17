@@ -318,7 +318,8 @@ def create_user_icons(user, data):
 	return data
 
 
-def add_workspace_to_desktop(workspace):
+@frappe.whitelist()
+def add_workspace_to_desktop(workspace: str):
 	sidebar = frappe.new_doc("Workspace Sidebar")
 	sidebar_item = frappe.new_doc("Workspace Sidebar Item")
 	sidebar_item.label = workspace
