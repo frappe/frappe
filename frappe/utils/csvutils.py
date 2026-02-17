@@ -104,7 +104,7 @@ def read_csv_content(fcontent, use_sniffer: bool = False):
 
 
 @frappe.whitelist()
-def send_csv_to_client(args):
+def send_csv_to_client(args: str | dict):
 	if isinstance(args, str):
 		args = json.loads(args)
 
