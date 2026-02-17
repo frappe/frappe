@@ -552,7 +552,13 @@ function upload_via_web_link() {
 		close_dialog.value = true;
 		return Promise.reject();
 	}
-	file_url = decodeURI(file_url);
+	try {
+		file_url = decodeURI(file_url);
+	} catch (e) {
+		// If decodeURI fails, use the URL as-is
+		// This handles URLs with unescaped % characters
+		console.warn("Failed to decode URL, using as-is:", e);
+	}
 	close_dialog.value = true;
 	return upload_file({
 		file_url,
