@@ -212,8 +212,9 @@ class EmailAccount(Document):
 		if not self.smtp_server:
 			frappe.throw(_("SMTP Server is required"))
 
-		server = self.get_smtp_server()
-		return server.session
+		self.flags.validate_smtp_connection = True
+		self.get_smtp_server().session
+		del self._smtp_server_instance
 
 	def before_save(self):
 		messages = []
@@ -507,7 +508,7 @@ class EmailAccount(Document):
 		return oauth_token.get_password("access_token") if oauth_token else None
 
 	def sendmail_config(self):
-		return {
+		config = {
 			"email_account": self.name,
 			"server": self.smtp_server,
 			"port": cint(self.smtp_port),
@@ -518,6 +519,11 @@ class EmailAccount(Document):
 			"use_oauth": self.auth_method == "OAuth",
 			"access_token": self.get_access_token(),
 		}
+
+		if self.flags.validate_smtp_connection:
+			config["timeout"] = 15
+
+		return config
 
 	def get_smtp_server(self):
 		"""Get SMTPServer (wrapper around actual smtplib object) for this account.
