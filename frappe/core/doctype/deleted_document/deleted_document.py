@@ -69,7 +69,7 @@ def restore(name: str, alert: bool = True):
 
 
 @frappe.whitelist()
-def bulk_restore(docnames: str | list):
+def bulk_restore(docnames: str | list[str]):
 	docnames = frappe.parse_json(docnames)
 	message = _("Restoring Deleted Document")
 	restored, invalid, failed = [], [], []

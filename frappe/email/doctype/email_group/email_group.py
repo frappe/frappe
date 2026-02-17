@@ -113,7 +113,7 @@ def import_from(name: str, doctype: str):
 
 
 @frappe.whitelist()
-def add_subscribers(name: str, email_list: str | list | tuple):
+def add_subscribers(name: str, email_list: str | list[str] | tuple[str, ...]):
 	if not isinstance(email_list, list | tuple):
 		email_list = email_list.replace(",", "\n").split("\n")
 
