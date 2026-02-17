@@ -179,6 +179,7 @@ class EmailAccount(Document):
 		):
 			if validate_oauth or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
+					self.flags.validate_imap_pop_connection = True
 					self.get_incoming_server()
 					self.no_failed = 0
 
@@ -304,6 +305,9 @@ class EmailAccount(Document):
 
 		if not args.get("host"):
 			frappe.throw(_("{0} is required").format("Email Server"))
+
+		if self.flags.validate_imap_pop_connection:
+			args.timeout = 15
 
 		email_server = EmailServer(frappe._dict(args))
 		self.check_email_server_connection(email_server, in_receive)
