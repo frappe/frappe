@@ -68,7 +68,6 @@
 	.row-index {
 		position: sticky;
 		left: 0;
-		z-index: 1;
 	}
 	.row-index {
 		left: 31px;
@@ -141,7 +140,6 @@
 		position: sticky;
 		left: 0;
 		background-color: var(--fg-color);
-		z-index: 1;
 	}
 	.row-index {
 		left: 31px;
@@ -270,7 +268,6 @@
 
 	.col:last-child {
 		border: none;
-		background-color: var(--fg-color);
 	}
 
 	.btn-open-row {
@@ -310,7 +307,7 @@
 			border-radius: 0px;
 			border: 0px;
 			padding-top: 10px;
-			padding-bottom: 10px;
+			padding-bottom: calc(var(--padding-md) - 3px);
 			height: auto;
 		}
 
@@ -321,6 +318,7 @@
 
 		.form-control:focus {
 			border-color: $text-muted;
+			box-shadow: inset 0px 0px 0 2px rgba(124, 124, 124, 0.25);
 		}
 
 		.has-error .form-control {
