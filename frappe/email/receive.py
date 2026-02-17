@@ -13,6 +13,7 @@ import ssl
 import time
 from contextlib import suppress
 from email.header import decode_header
+from urllib.parse import unquote
 
 import chardet
 from email_reply_parser import EmailReplyParser
@@ -587,7 +588,7 @@ class Email:
 				_file = frappe.get_doc(
 					{
 						"doctype": "File",
-						"file_name": attachment["fname"],
+						"file_name": unquote(attachment["fname"]),
 						"attached_to_doctype": doc.doctype,
 						"attached_to_name": doc.name,
 						"is_private": 1,
