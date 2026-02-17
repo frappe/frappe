@@ -16,7 +16,7 @@ def sendmail_to_system_managers(subject, content):
 
 
 @frappe.whitelist()
-def get_contact_list(txt, page_length=20, extra_filters: str | None = None) -> list[dict]:
+def get_contact_list(txt: str, page_length: int = 20, extra_filters: str | None = None) -> list[dict]:
 	"""Return email ids for a multiselect field."""
 	if extra_filters:
 		extra_filters = frappe.parse_json(extra_filters)
@@ -61,7 +61,10 @@ def get_system_managers():
 
 @frappe.whitelist()
 def relink(name: str, reference_doctype: str | None = None, reference_name: str | None = None):
+<<<<<<< HEAD
 	frappe.has_permission("Communication", "write", name, throw=True)
+=======
+>>>>>>> 9eef4f6dae (fix: force type check in whitelisted methods (#37044))
 	frappe.db.sql(
 		"""update
 			`tabCommunication`
@@ -78,8 +81,19 @@ def relink(name: str, reference_doctype: str | None = None, reference_name: str 
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
+<<<<<<< HEAD
 def get_communication_doctype(doctype, txt, searchfield, start, page_len, filters):
 	can_read = frappe.get_user().get_can_read()
+=======
+def get_communication_doctype(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: str | list | dict
+):
+	user_perms = frappe.utils.user.UserPermissions(frappe.session.user)
+	user_perms.build_permissions()
+	can_read = user_perms.can_read
+	from frappe import _
+	from frappe.modules import load_doctype_module
+>>>>>>> 9eef4f6dae (fix: force type check in whitelisted methods (#37044))
 
 	com_doctypes = frappe.db.get_values(
 		"DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0}, pluck="name"
