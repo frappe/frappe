@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-27 13:33\n"
+"PO-Revision-Date: 2026-02-17 18:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -7327,7 +7327,7 @@ msgstr "Silinen İsim"
 
 #: frappe/desk/reportview.py:612
 msgid "Deleted all documents successfully"
-msgstr "Tüm belgeler başarıyla silindi"
+msgstr ""
 
 #: frappe/public/js/frappe/web_form/web_form.js:211
 msgid "Deleted!"
