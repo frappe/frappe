@@ -213,7 +213,8 @@ class DataExporter:
 
 		for f in frappe.db.get_table_columns_description(table_name):
 			field = meta.get_field(f.name)
-			if f.name in ["owner", "creation"]:
+			# Check if this is a standard field (not in meta but exists in table)
+			if not field:
 				std_field = next((x for x in frappe.model.std_fields if x["fieldname"] == f.name), None)
 				if std_field:
 					field = frappe._dict(
