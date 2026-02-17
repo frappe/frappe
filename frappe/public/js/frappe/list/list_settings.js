@@ -110,24 +110,35 @@ export default class ListSettings {
 			let can_remove = idx == 0 || is_status_field(me.fields[idx]) ? `hide` : ``;
 
 			fields += `
-				<div class="control-input flex align-center form-control fields_order ${is_sortable}"
-					style="display: block; margin-bottom: 5px;" data-fieldname="${me.fields[idx].fieldname}"
-					data-label="${me.fields[idx].label}" data-type="${me.fields[idx].type}">
+				<div class="control-input form-control fields_order ${is_sortable}"
+     style="
+        display: flex;
+        align-items: stretch;
+        margin-bottom: 5px;
+        padding-bottom: 1.5px;
+     "
+     data-fieldname="${me.fields[idx].fieldname}"
+     data-label="${me.fields[idx].label}"
+     data-type="${me.fields[idx].type}">
 
-					<div class="row">
-						<div class="col-1 d-flex align-items-center justify-content-center px-1">
-							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
-						</div>
-						<div class="col-10 d-flex align-items-center px-0" style="padding-left:0px;">
-							${__(me.fields[idx].label, null, me.doctype)}
-						</div>
-						<div class="col-1 d-flex align-items-center justify-content-center px-1 ${can_remove}">
-							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
-								${frappe.utils.icon("x", "xs")}
-							</a>
-						</div>
-					</div>
-				</div>`;
+    <div class="row flex-fill align-items-center">
+        <div class="col-1 d-flex align-items-center justify-content-center px-1">
+            ${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
+        </div>
+
+        <div class="col d-flex align-items-center px-0">
+            ${__(me.fields[idx].label, null, me.doctype)}
+        </div>
+
+        <div class="col-1 d-flex align-items-center justify-content-center px-0">
+            <a class="text-muted remove-field ${can_remove}"
+               data-fieldname="${me.fields[idx].fieldname}">
+                ${frappe.utils.icon("x", "xs")}
+            </a>
+        </div>
+    </div>
+</div>
+`;
 		}
 
 		fields_html.html(`
