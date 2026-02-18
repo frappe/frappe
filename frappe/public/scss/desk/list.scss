@@ -493,7 +493,7 @@ input.list-header-checkbox {
 
 	.filter-section {
 		display: flex;
-		padding: 0 var(--padding-xs);
+		padding: 0;
 	}
 
 	.filter-selector .btn-group {
@@ -677,7 +677,7 @@ input.list-header-checkbox {
 					width: auto;
 					border-left: none;
 					.level-item.visible-xs {
-						margin-top: 5px;
+						margin-top: 1px;
 					}
 				}
 			}

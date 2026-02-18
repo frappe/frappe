@@ -1440,10 +1440,10 @@ frappe-datatable@1.19.0:
     lodash "^4.17.5"
     sortablejs "^1.7.0"
 
-frappe-gantt@^0.6.0:
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/frappe-gantt/-/frappe-gantt-0.6.1.tgz#57ae0b5f024101fc7cd5ba92f605de97dba9c9a1"
-  integrity sha512-1cSU9vLbwypjzaxnCfnEE03Xr3HlAV2S8dRtjxw62o+amkx1A8bBIFd2jp84mcDdTCM77Ij4LzZBslAKZB8oMg==
+frappe-gantt@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/frappe-gantt/-/frappe-gantt-1.2.1.tgz#3a240f20cadd866a63908c4d9e111e1dc3305c44"
+  integrity sha512-jBd3ZfDuQnWl4+s01nHhn+w9RlX2OzXZjdZvbw/obZDhJNFpS2sGTYkS+ua2Y0+v6jVF2D1ei5OsSCnNV4ReoA==
 
 frappe-quill-image-resize@^3.0.9:
   version "3.0.9"

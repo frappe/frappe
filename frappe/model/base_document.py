@@ -48,6 +48,40 @@ DatetimeTypes = datetime.date | datetime.datetime | datetime.time | datetime.tim
 
 max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
 
+# Sentinel object for cache miss detection in bulk link validation
+# Used to distinguish between "not in cache" and "cached as None (does not exist)"
+_NOT_IN_CACHE = object()
+
+
+def _fetch_link_values(doctype: str, docname: str, fields: tuple, meta) -> dict | None:
+	"""Fetch link field values from database with fallback logic.
+
+	This helper encapsulates the repeated DB query pattern:
+	1. Try get_value with cache=True
+	2. If not found, retry without cache (handles negative caching)
+	3. For virtual doctypes, use frappe.get_doc instead
+
+	Args:
+	    doctype: Target DocType
+	    docname: Document name to fetch
+	    fields: Tuple of field names to fetch
+	    meta: Meta object for the doctype
+
+	Returns:
+	    Dict of field values or None if document doesn't exist
+	"""
+	if not meta.get("is_virtual"):
+		values = frappe.db.get_value(doctype, docname, fields, as_dict=True, cache=True, order_by=None)
+		if not values:
+			values = frappe.db.get_value(doctype, docname, fields, as_dict=True, order_by=None)
+	else:
+		try:
+			values = frappe.get_doc(doctype, docname).as_dict()
+		except frappe.DoesNotExistError:
+			values = None
+	return values
+
+
 DOCTYPE_TABLE_FIELDS = [
 	_dict(fieldname="fields", options="DocField"),
 	_dict(fieldname="permissions", options="DocPerm"),
@@ -971,9 +1005,13 @@ class BaseDocument:
 
 		return missing
 
-	def get_invalid_links(self, is_submittable=False):
-		"""Return list of invalid links and also update fetch values if not set."""
+	def get_invalid_links(self, is_submittable=False, link_value_cache=None):
+		"""Return list of invalid links and also update fetch values if not set.
 
+		Args:
+			is_submittable: Whether the parent document is submittable
+			link_value_cache: Cache of prefetched link values for bulk optimization
+		"""
 		is_submittable = is_submittable or self.meta.is_submittable
 
 		def get_msg(df, docname):
@@ -1019,23 +1057,45 @@ class BaseDocument:
 				if not _df.get("fetch_if_empty")
 				or (_df.get("fetch_if_empty") and not self.get(_df.fieldname))
 			]
-			values_to_fetch = (
-				"name",
-				*(_df.fetch_from.split(".")[-1] for _df in fields_to_fetch),
-			)
-			if check_docstatus:
-				values_to_fetch += ("docstatus",)
-
-			if not meta.get("is_virtual"):
-				values = frappe.db.get_value(
-					doctype, docname, values_to_fetch, as_dict=True, cache=True, order_by=None
+			values_to_fetch = tuple(
+				sorted(
+					{
+						"name",
+						*(_df.fetch_from.split(".")[-1] for _df in fields_to_fetch),
+						*(("docstatus",) if check_docstatus else ()),
+					}
 				)
-				if not values:  # NOTE: DB Value cache does negative caching, which is hard to remove now.
-					values = frappe.db.get_value(
-						doctype, docname, values_to_fetch, as_dict=True, order_by=None
-					)
+			)
+
+			# Use cache if available (bulk optimization)
+			if link_value_cache is not None:
+				cache_for_dt = link_value_cache.get(doctype, {})
+
+				# Get cached value with sentinel for miss detection
+				if frappe.db.db_type == "mariadb" and isinstance(docname, str):
+					cached = cache_for_dt.get(docname, _NOT_IN_CACHE)
+					if cached is _NOT_IN_CACHE:
+						cached = cache_for_dt.get(docname.casefold(), _NOT_IN_CACHE)
+				else:
+					cached = cache_for_dt.get(docname, _NOT_IN_CACHE)
+
+				if cached is _NOT_IN_CACHE:
+					# Not prefetched - fall back to original DB query path
+					values = _fetch_link_values(doctype, docname, values_to_fetch, meta)
+				elif cached is None:
+					# Prefetch confirmed document doesn't exist
+					values = _dict.fromkeys(values_to_fetch, None)
+				elif all(f in cached for f in values_to_fetch):
+					# Cache has all required fields
+					values = cached
+				else:
+					# Cache missing some fields - fall back to DB
+					values = _fetch_link_values(doctype, docname, values_to_fetch, meta)
+					if values is None and not meta.get("is_virtual"):
+						values = cached  # Fall back to partial cache
 			else:
-				values = frappe.get_doc(doctype, docname).as_dict()
+				# No cache - original behavior
+				values = _fetch_link_values(doctype, docname, values_to_fetch, meta)
 
 			# fallback to dict with field_to_fetch=None if link field value is not found
 			# (for compatibility, `values` must have same data type)
