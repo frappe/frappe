@@ -337,7 +337,8 @@ class EMail:
 			"To": ", ".join(self.recipients) if self.expose_recipients == "header" else "<!--recipient-->",
 			"Date": email.utils.formatdate(),
 			"Reply-To": self.reply_to if self.reply_to else None,
-			"CC": ", ".join(self.cc) if self.cc and self.expose_recipients == "header" else None,
+			# cc should always be visible - as that is the semantic meaning of cc, this should not be dependent on expose_recipients
+			"CC": ", ".join(self.cc) if self.cc else None,
 			"X-Frappe-Site": get_url(),
 		}
 
