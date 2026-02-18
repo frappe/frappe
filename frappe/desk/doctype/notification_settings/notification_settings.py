@@ -130,7 +130,7 @@ def has_permission(doc, ptype="read", user=None):
 
 
 @frappe.whitelist()
-def set_seen_value(value, user):
+def set_seen_value(value: int, user: str):
 	if frappe.flags.read_only:
 		return
 
