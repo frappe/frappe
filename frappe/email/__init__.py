@@ -174,7 +174,9 @@ def sendmail(
 	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
 	:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
 	:param send_after: Send after the given datetime.
-	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
+	:param expose_recipients: Controls recipient visibility. "header" shows all TO recipients in the To header.
+    "footer" adds "This email was sent to..." text in footer. None (default) hides TO recipients from each other.
+    Note: CC header is always visible regardless of this setting (as per email semantics).
 	:param communication: Communication link to be set in Email Queue record
 	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
 	:param template: Name of html template from templates/emails folder
