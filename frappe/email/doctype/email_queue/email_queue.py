@@ -306,7 +306,8 @@ class SendMailContext:
 		recipient.update_db(status="Sent", commit=True)
 
 	def get_message_object(self, message):
-		return Parser(policy=SMTP).parsestr(message)
+		policy = SMTP.clone(refold_source="none")
+		return Parser(policy=policy).parsestr(message)
 
 	def message_placeholder(self, placeholder_key):
 		# sourcery skip: avoid-builtin-shadow
