@@ -195,7 +195,7 @@ def get_permitted_documents(doctype):
 
 
 @frappe.whitelist()
-def check_applicable_doc_perm(user: str, doctype: str, docname: str):
+def check_applicable_doc_perm(user: str, doctype: str, docname: str | int):
 	frappe.only_for("System Manager")
 	applicable = []
 	doc_exists = frappe.get_all(

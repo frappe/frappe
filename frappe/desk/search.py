@@ -408,7 +408,7 @@ def get_user_groups():
 
 
 @frappe.whitelist()
-def get_link_title(doctype: str, docname: str):
+def get_link_title(doctype: str, docname: str | int):
 	meta = frappe.get_meta(doctype)
 
 	if meta.show_title_field_in_link:

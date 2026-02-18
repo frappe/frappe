@@ -38,7 +38,7 @@ class DeletedDocument(Document):
 
 
 @frappe.whitelist()
-def restore(name: str, alert: bool = True):
+def restore(name: str | int, alert: bool = True):
 	deleted = frappe.get_doc("Deleted Document", name)
 
 	if deleted.restored:

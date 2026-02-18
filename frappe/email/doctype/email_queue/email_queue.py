@@ -459,7 +459,7 @@ def retry_sending(queues: str | list[str]):
 
 
 @frappe.whitelist()
-def send_now(name: str, force_send: bool = False):
+def send_now(name: str | int, force_send: bool = False):
 	record = EmailQueue.find(name)
 	if record:
 		record.check_permission()
