@@ -397,8 +397,10 @@ def relink_files(doc, fieldname, temp_doc_name):
 
 	if doc.parenttype:
 		attached_to_doctype_filter = ("in", [doc.doctype, doc.parenttype])
+		attached_to_name = doc.parent
 	else:
 		attached_to_doctype_filter = doc.doctype
+		attached_to_name = doc.name
 
 	mislinked_file = frappe.db.get_value(
 		"File",
@@ -418,7 +420,7 @@ def relink_files(doc, fieldname, temp_doc_name):
 		frappe.db.set_value(
 			"File",
 			mislinked_file,
-			field={"attached_to_name": doc.name},
+			field={"attached_to_name": attached_to_name},
 		)
 		return
 
