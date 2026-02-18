@@ -126,6 +126,19 @@ export default class Grid {
 		frappe.utils.bind_actions_with_object(this.wrapper, this);
 
 		this.form_grid = this.wrapper.find(".form-grid");
+
+		this.form_grid.on("scroll", (e) => {
+			if ($(e.currentTarget).scrollLeft() > 0) {
+				this.grid_rows.forEach((grid_row) => {
+					grid_row.on_grid_fields.forEach((field) => {
+						if (field.df.fieldtype === "Link" && field.awesomplete) {
+							field.awesomplete.close();
+						}
+					});
+				});
+			}
+		});
+
 		this.setup_add_row();
 
 		this.setup_grid_pagination();

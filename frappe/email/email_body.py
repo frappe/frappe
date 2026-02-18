@@ -396,7 +396,7 @@ def get_formatted_html(
 	}
 
 	if raw_html:
-		rendered_email = frappe.render_template(message, params)
+		rendered_email = message
 	else:
 		params.update(
 			{

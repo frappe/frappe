@@ -607,6 +607,8 @@ from {tables}
 		if self.flags.ignore_permissions:
 			return
 
+		self.join = "left join"
+
 		if doctype not in self.permission_map:
 			self._set_permission_map(doctype, parent_doctype)
 
@@ -1161,9 +1163,19 @@ from {tables}
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype):
 				conditions.append(c)
 
+		active_child_tables = []
+		if len(self.tables) > 1:  # only if query has multiple tables involved
+			main_table_name = f"tab{self.doctype}"
+			for table_name in self.tables:
+				clean_name = table_name.replace("`", "").replace('"', "")
+				if clean_name != main_table_name:
+					active_child_tables.append(clean_name)
+
 		if permission_script_name := get_server_script_map().get("permission_query", {}).get(self.doctype):
 			script = frappe.get_doc("Server Script", permission_script_name)
-			if condition := script.get_permission_query_conditions(self.user):
+			if condition := script.get_permission_query_conditions(
+				self.user, active_child_tables=active_child_tables
+			):
 				conditions.append(condition)
 
 		return " and ".join(conditions) if conditions else ""

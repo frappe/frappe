@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe.desk.doctype.desktop_icon.desktop_icon import add_workspace_to_desktop
 from frappe.model.document import Document
 
 
@@ -24,7 +25,7 @@ class DesktopLayout(Document):
 
 
 @frappe.whitelist()
-def save_layout(user, layout, new_icons):
+def save_layout(user: str, layout: str, new_icons: str):
 	if not user:
 		user = frappe.session.user
 	layout = json.loads(layout)
@@ -42,6 +43,13 @@ def save_layout(user, layout, new_icons):
 		desktop_layout.save()
 
 	for icon in new_icons:
+		workspace = icon.get("workspace")
+		if workspace:
+			new_workspace = frappe.new_doc("Workspace")
+			new_workspace.update(workspace)
+			new_workspace.title = new_workspace.label
+			new_workspace.save()
+			return add_workspace_to_desktop(new_workspace.name)
 		desktop_icon = frappe.new_doc("Desktop Icon")
 		desktop_icon.update(icon)
 		desktop_icon.owner = frappe.session.user

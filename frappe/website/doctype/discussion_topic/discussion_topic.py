@@ -23,7 +23,14 @@ class DiscussionTopic(Document):
 
 
 @frappe.whitelist()
-def submit_discussion(doctype, docname, reply, title, topic_name=None, reply_name=None):
+def submit_discussion(
+	doctype: str,
+	docname: str | int,
+	reply: str,
+	title: str,
+	topic_name: str | None = None,
+	reply_name: str | None = None,
+):
 	if reply_name:
 		doc = frappe.get_doc("Discussion Reply", reply_name)
 		doc.reply = reply

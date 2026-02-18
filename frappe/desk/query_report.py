@@ -75,7 +75,13 @@ def get_report_result(report, filters):
 
 @frappe.read_only()
 def generate_report_result(
-	report, filters=None, user=None, custom_columns=None, is_tree=False, parent_field=None
+	report,
+	filters=None,
+	user=None,
+	custom_columns=None,
+	is_tree=False,
+	parent_field=None,
+	skip_total_calculation=False,
 ):
 	user = user or frappe.session.user
 	filters = filters or []
@@ -110,12 +116,13 @@ def generate_report_result(
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
 
-	if cint(report.add_total_row) and result and not skip_total_row:
+	has_total_row = cint(report.add_total_row) and result and not skip_total_row
+
+	if has_total_row and not skip_total_calculation:
 		result = add_total_row(result, columns, is_tree=is_tree, parent_field=parent_field)
 
 	if isinstance(filters, dict) and filters.get("translate_data"):
-		total_row = cint(report.add_total_row) and result and not skip_total_row
-		result = translate_report_data(result, total_row)
+		result = translate_report_data(result, has_total_row)
 
 	return {
 		"result": result,
@@ -192,16 +199,17 @@ def get_reference_report(report):
 @frappe.whitelist()
 @frappe.read_only()
 def run(
-	report_name,
-	filters=None,
-	user=None,
-	ignore_prepared_report=False,
-	custom_columns=None,
-	is_tree=False,
-	parent_field=None,
-	are_default_filters=True,
-	js_filters=None,
-):
+	report_name: str,
+	filters: str | dict | None = None,
+	user: str | None = None,
+	ignore_prepared_report: bool = False,
+	custom_columns: str | list | None = None,
+	is_tree: bool = False,
+	parent_field: str | None = None,
+	are_default_filters: bool = True,
+	js_filters: str | list | None = None,
+	skip_total_calculation: bool = False,
+) -> dict:
 	if not user:
 		user = frappe.session.user
 	validate_filters_permissions(report_name, filters, user, js_filters)
@@ -217,8 +225,11 @@ def run(
 	if sbool(are_default_filters) and report.get("custom_filters"):
 		filters = report.custom_filters
 
+	is_prepared_report = report.prepared_report and not sbool(ignore_prepared_report) and not custom_columns
+	skip_total_calculation = sbool(skip_total_calculation)
+
 	try:
-		if report.prepared_report and not sbool(ignore_prepared_report) and not custom_columns:
+		if is_prepared_report:
 			if filters:
 				if isinstance(filters, str):
 					filters = json.loads(filters)
@@ -228,13 +239,19 @@ def run(
 				dn = ""
 			result = get_prepared_report_result(report, filters, dn, user)
 		else:
-			result = generate_report_result(report, filters, user, custom_columns, is_tree, parent_field)
+			result = generate_report_result(
+				report, filters, user, custom_columns, is_tree, parent_field, skip_total_calculation
+			)
 			add_data_to_monitor(report=report.reference_report or report.name)
 	except Exception:
-		frappe.log_error("Report Error")
+		frappe.log_error("Report execution failed for: {}".format(report_name))
 		raise
 
 	result["add_total_row"] = report.add_total_row and not result.get("skip_total_row", False)
+
+	if skip_total_calculation and is_prepared_report:
+		# remove total row from result
+		result["result"] = result["result"][:-1]
 
 	if sbool(are_default_filters) and report.get("custom_filters"):
 		result["custom_filters"] = report.custom_filters
@@ -367,13 +384,22 @@ def _export_query(form_params, csv_params, populate_response=True):
 	custom_columns = frappe.parse_json(form_params.custom_columns or "[]")
 	include_indentation = form_params.include_indentation
 	include_filters = form_params.include_filters
-	visible_idx = form_params.visible_idx
+	visible_idx = form_params.visible_idx or []
+	ignore_visible_idx = sbool(form_params.get("ignore_visible_idx"))
+	skip_all_rows_total = not ignore_visible_idx
 	include_hidden_columns = form_params.include_hidden_columns
 
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
 
-	data = run(report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False)
+	data = run(
+		report_name,
+		form_params.filters,
+		custom_columns=custom_columns,
+		are_default_filters=False,
+		skip_total_calculation=skip_all_rows_total,
+	)
+
 	data = frappe._dict(data)
 	data.filters = form_params.applied_filters
 
@@ -384,13 +410,19 @@ def _export_query(form_params, csv_params, populate_response=True):
 		)
 		return
 
+	# calculate total row only for visible rows
+	if skip_all_rows_total and cint(data.get("add_total_row")):
+		data["result"] = add_total_row(data.result, data.columns, visible_idx=visible_idx)
+
 	format_fields(data)
+
 	xlsx_data, column_widths, header_index = build_xlsx_data(
 		data,
 		visible_idx,
 		include_indentation,
 		include_filters=include_filters,
 		include_hidden_columns=include_hidden_columns,
+		ignore_visible_idx=ignore_visible_idx,
 	)
 
 	if file_format_type == "CSV":
@@ -525,10 +557,14 @@ def build_xlsx_data(
 		column_widths.append(column_width)
 	result.append(column_data)
 
+	last_row_index = len(data.result) - 1
+
 	# build table from result
 	for row_idx, row in enumerate(data.result):
-		# only pick up rows that are visible in the report
-		if not ignore_visible_idx and row_idx not in visible_idx:
+		# only pick up rows that are visible in the report + total row if added
+		if not (
+			ignore_visible_idx or row_idx in visible_idx or (data.add_total_row and row_idx == last_row_index)
+		):
 			continue
 
 		row_data = []
@@ -555,11 +591,31 @@ def build_xlsx_data(
 	return result, column_widths, header_index
 
 
-def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
+def add_total_row(
+	result,
+	columns,
+	meta=None,
+	is_tree=False,
+	parent_field=None,
+	visible_idx: list[int] | None = None,
+	ignore_visible_idx: bool = False,
+) -> list[dict | list[Any]]:
 	total_row = [""] * len(columns)
 	has_percent = []
 
-	for i, col in enumerate(columns):
+	if not visible_idx or len(visible_idx) == len(result):
+		# It's not possible to have same length and different content.
+		ignore_visible_idx = True
+		visible_idx_set = set()
+	else:
+		# Note: converted for faster lookups
+		ignore_visible_idx = False
+		visible_idx_set = set(visible_idx)
+
+	# all rows are dict or list/tuple, we can check the first row to decide the type
+	is_row_dict = isinstance(result[0], dict) if result else False
+
+	for col_idx, col in enumerate(columns):
 		fieldtype, options, fieldname = None, None, None
 		if isinstance(col, str):
 			if meta:
@@ -582,10 +638,16 @@ def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 			fieldname = col.get("fieldname")
 			options = col.get("options")
 
-		for row in result:
-			if i >= len(row):
+		for row_idx, row in enumerate(result):
+			# Skip rows not in visible_idx when filtering is enabled
+			if not ignore_visible_idx and row_idx not in visible_idx_set:
 				continue
-			cell = row.get(fieldname) if isinstance(row, dict) else row[i]
+
+			# Skip if column index is out of bounds for list/tuple rows
+			if not is_row_dict and col_idx >= len(row):
+				continue
+
+			cell = row.get(fieldname) if is_row_dict else row[col_idx]
 			if fieldtype is None:
 				if isinstance(cell, int):
 					fieldtype = "Int"
@@ -593,21 +655,23 @@ def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 					fieldtype = "Float"
 			if fieldtype in ["Currency", "Int", "Float", "Percent", "Duration"] and flt(cell):
 				if not (is_tree and row.get(parent_field)):
-					total_row[i] = flt(total_row[i]) + flt(cell)
+					total_row[col_idx] = flt(total_row[col_idx]) + flt(cell)
 
-			if fieldtype == "Percent" and i not in has_percent:
-				has_percent.append(i)
+			if fieldtype == "Percent" and col_idx not in has_percent:
+				has_percent.append(col_idx)
 
 			if fieldtype == "Time" and cell:
-				if not total_row[i]:
-					total_row[i] = timedelta(hours=0, minutes=0, seconds=0)
-				total_row[i] = total_row[i] + cell
+				if not total_row[col_idx]:
+					total_row[col_idx] = timedelta(hours=0, minutes=0, seconds=0)
+				total_row[col_idx] = total_row[col_idx] + cell
 
 		if fieldtype == "Link" and options == "Currency":
-			total_row[i] = result[0].get(fieldname) if isinstance(result[0], dict) else result[0][i]
+			total_row[col_idx] = result[0].get(fieldname) if is_row_dict else result[0][col_idx]
 
-	for i in has_percent:
-		total_row[i] = flt(total_row[i]) / len(result)
+	for col_idx in has_percent:
+		total_row[col_idx] = flt(total_row[col_idx]) / (
+			len(result) if ignore_visible_idx else len(visible_idx)
+		)
 
 	first_col_fieldtype = None
 	if isinstance(columns[0], str):
@@ -974,7 +1038,7 @@ def validate_filters_permissions(report_name, filters=None, user=None, js_filter
 				)
 
 
-def translate_report_data(data, total_row):
+def translate_report_data(data, total_row: bool):
 	for d in data[:-1] if total_row else data:
 		for field, value in d.items():
 			if isinstance(value, str):
