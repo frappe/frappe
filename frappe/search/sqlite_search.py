@@ -883,7 +883,6 @@ class SQLiteSearch(ABC):
                 ORDER BY bm25_score
                 LIMIT ?
             """
-			print(sql)
 			return self.sql(sql, params, read_only=True)
 
 	def _process_search_results(self, raw_results, query):
@@ -1256,6 +1255,13 @@ class SQLiteSearch(ABC):
                 CREATE INDEX IF NOT EXISTS idx_progress_doctype ON search_index_progress(doctype)
             """)
 
+			cursor.execute("""
+                CREATE TABLE IF NOT EXISTS search_fts_doc_map (
+                    doc_id TEXT PRIMARY KEY,
+                    fts_rowid INTEGER NOT NULL
+                )
+            """)
+
 		self._with_connection(create_tables)
 
 	def _index_documents(self, documents):
@@ -1319,15 +1325,46 @@ class SQLiteSearch(ABC):
 
 					values_to_insert.append(tuple(values))
 
-				# Delete existing rows for these doc_ids first using a single statement
 				if doc_ids_to_delete:
 					placeholders_for_delete = ",".join(["?" for _ in doc_ids_to_delete])
-					delete_sql = f"DELETE FROM search_fts WHERE doc_id IN ({placeholders_for_delete})"
-					cursor.execute(delete_sql, doc_ids_to_delete)
+
+					mapped_rows = cursor.execute(
+						f"SELECT doc_id, fts_rowid FROM search_fts_doc_map WHERE doc_id IN ({placeholders_for_delete})",
+						doc_ids_to_delete,
+					).fetchall()
+
+					if mapped_rows:
+						# Delete FTS rows by rowid (fast integer PK)
+						rowids = [row["fts_rowid"] for row in mapped_rows]
+						rowid_placeholders = ",".join(["?" for _ in rowids])
+						cursor.execute(
+							f"DELETE FROM search_fts WHERE rowid IN ({rowid_placeholders})",
+							rowids,
+						)
+
+						# Remove old map entries
+						cursor.execute(
+							f"DELETE FROM search_fts_doc_map WHERE doc_id IN ({placeholders_for_delete})",
+							doc_ids_to_delete,
+						)
 
 				# Insert the chunk
 				if values_to_insert:
 					cursor.executemany(insert_sql, values_to_insert)
+
+					# Populate map table with new rowids
+					# For bulk inserts, query back the rowids by doc_id
+					inserted_doc_ids = [v[0] for v in values_to_insert]  # doc_id is first field
+					placeholder = ",".join(["?" for _ in inserted_doc_ids])
+					new_rows = cursor.execute(
+						f"SELECT rowid, doc_id FROM search_fts WHERE doc_id IN ({placeholder})",
+						inserted_doc_ids,
+					).fetchall()
+					if new_rows:
+						cursor.executemany(
+							"INSERT OR REPLACE INTO search_fts_doc_map (doc_id, fts_rowid) VALUES (?, ?)",
+							[(row["doc_id"], row["rowid"]) for row in new_rows],
+						)
 
 		self._with_connection(index_chunks)
 
@@ -1339,11 +1376,71 @@ class SQLiteSearch(ABC):
 		if document:
 			self._index_documents([document])
 
+	def update_index(self, doctype, docname, doc=None):
+		"""Update a single document in the index."""
+		self.raise_if_not_indexed()
+
+		# Use passed doc object (fresh from hook) or fetch from DB
+		if doc is None:
+			doc = frappe.get_doc(doctype, docname)
+
+		document = self.prepare_document(doc)
+		if not document:
+			self.remove_doc(doctype, docname)
+			return
+
+		doc_id = f"{doctype}:{docname}"
+		text_fields = self.schema["text_fields"]
+		metadata_fields = self.schema["metadata_fields"]
+		all_fts_fields = text_fields + metadata_fields
+
+		def _update(cursor):
+			map_row = cursor.execute(
+				"SELECT fts_rowid FROM search_fts_doc_map WHERE doc_id = ?", (doc_id,)
+			).fetchone()
+
+			if map_row:
+				# Delete old FTS row by rowid (fast integer PK)
+				cursor.execute("DELETE FROM search_fts WHERE rowid = ?", (map_row["fts_rowid"],))
+				# Remove old map entry
+				cursor.execute("DELETE FROM search_fts_doc_map WHERE doc_id = ?", (doc_id,))
+
+			# Insert new row with fresh data
+			all_fields = ["doc_id", *all_fts_fields]
+			insert_sql = f"""
+				INSERT INTO search_fts({", ".join(all_fields)})
+				VALUES({", ".join(["?" for _ in all_fields])})
+			"""
+			values = (doc_id, *[document.get(f, "") or "" for f in all_fts_fields])
+			cursor.execute(insert_sql, values)
+
+			# Update map with new rowid
+			new_rowid = cursor.lastrowid
+			cursor.execute(
+				"INSERT OR REPLACE INTO search_fts_doc_map (doc_id, fts_rowid) VALUES (?, ?)",
+				(doc_id, new_rowid),
+			)
+
+		self._with_connection(_update)
+
 	def remove_doc(self, doctype, docname):
-		"""Remove a single document from the index."""
+		"""Remove a single document from the index (map-assisted, O(log n))."""
 		self.raise_if_not_indexed()
 		doc_id = f"{doctype}:{docname}"
-		self.sql("DELETE FROM search_fts WHERE doc_id = ?", (doc_id,), commit=True)
+
+		def _remove(cursor):
+			map_row = cursor.execute(
+				"SELECT fts_rowid FROM search_fts_doc_map WHERE doc_id = ?", (doc_id,)
+			).fetchone()
+
+			if not map_row:
+				return  # Not in index, nothing to do
+
+			cursor.execute("DELETE FROM search_fts WHERE rowid = ?", (map_row["fts_rowid"],))
+
+			cursor.execute("DELETE FROM search_fts_doc_map WHERE doc_id = ?", (doc_id,))
+
+		self._with_connection(_remove)
 
 	# Utility Methods
 
@@ -1812,7 +1909,7 @@ def update_doc_index(doc: Document, method=None):
 				any_field_changed = any(doc.has_value_changed(field) for field in fields)
 				if any_field_changed:
 					try:
-						search.index_doc(doctype, doc.name)
+						search.update_index(doctype, doc.name, doc=doc)
 					except Exception:
 						frappe.log_error(
 							title="SQLite Search Index Update Error",
