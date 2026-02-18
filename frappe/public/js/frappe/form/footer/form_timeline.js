@@ -12,12 +12,12 @@ class FormTimeline extends BaseTimeline {
 		super.make();
 		this.setup_timeline_actions();
 		this.render_timeline_items();
-		this.setup_activity_toggle();
 	}
 
 	refresh() {
 		super.refresh();
 		this.frm.trigger("timeline_refresh");
+		this.setup_activity_toggle();
 		this.setup_document_email_link();
 	}
 
@@ -49,19 +49,19 @@ class FormTimeline extends BaseTimeline {
 	}
 
 	setup_activity_toggle() {
-		let doc_info = this.doc_info || this.frm.get_docinfo();
-		let has_communications = () => {
-			let communications = doc_info.communications;
-			let comments = doc_info.comments;
-			return (communications || []).length || (comments || []).length;
-		};
-		let me = this;
+		const doc_info = this.doc_info || this.frm.get_docinfo();
+		const has_communications = () =>
+			doc_info.communications?.length || doc_info.comments?.length;
+
 		this.timeline_wrapper.remove(this.timeline_actions_wrapper);
+		this.timeline_wrapper.find(".timeline-item.activity-title").remove();
 		this.timeline_wrapper.prepend(`
 				<div class="timeline-item activity-title">
 				<h4>${__("Activity")}</h4>
 				</div>
 			`);
+
+		const me = this;
 		if (has_communications()) {
 			this.timeline_wrapper
 				.find(".timeline-item.activity-title")

@@ -1533,6 +1533,16 @@ class Engine:
 
 		return where_condition
 
+	def get_queried_tables(self) -> list[str]:
+		"""Extract all table names involved in the current query."""
+		tables = []
+		for table in self.query._from:
+			tables.append(table.get_sql())
+
+		for join in self.query._joins:
+			tables.append(join.item.get_sql())
+		return list(set(tables))
+
 	def get_permission_query_conditions(self, doctype: str | None = None) -> list["RawCriterion"]:
 		"""Add permission query conditions from hooks and server scripts"""
 		from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
@@ -1546,10 +1556,20 @@ class Engine:
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=doctype):
 				conditions.append(RawCriterion(f"({c})"))
 
+		active_child_tables = []
+		current_tables = self.get_queried_tables()
+		if len(current_tables) > 1:
+			main_table_name = f"tab{self.doctype}"
+			for table_name in current_tables:
+				if table_name != main_table_name:
+					active_child_tables.append(table_name)
+
 		# Get conditions from server scripts
 		if permission_script_name := get_server_script_map().get("permission_query", {}).get(doctype):
 			script = frappe.get_doc("Server Script", permission_script_name)
-			if condition := script.get_permission_query_conditions(self.user):
+			if condition := script.get_permission_query_conditions(
+				self.user, active_child_tables=active_child_tables
+			):
 				conditions.append(RawCriterion(f"({condition})"))
 		return conditions
 

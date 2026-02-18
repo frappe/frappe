@@ -23,7 +23,7 @@
    "default": "1",
    "fieldname": "enabled",
    "fieldtype": "Check",
-   "label": "Enabled"
+   "label": "Enabled System Notification"
   },
   {
    "fieldname": "subscribed_documents",
@@ -98,7 +98,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-16 17:15:25.641232",
+ "modified": "2026-02-17 13:39:35.159083",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",
