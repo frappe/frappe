@@ -107,11 +107,11 @@ export default class ListSettings {
 			}
 			let is_sortable = idx == 0 ? `` : `sortable`;
 			let show_sortable_handle = idx == 0 ? `hide` : ``;
-			let can_remove = idx == 0 || is_status_field(me.fields[idx]) ? `hide` : ``;
+			let can_remove = idx == 0 || is_status_field(me.fields[idx]) ? `hide` : `d-flex`;
 
 			fields += `
-				<div class="control-input form-control fields_order ${is_sortable}"
-	 				style="display: flex; align-items: stretch; margin-bottom: 5px; padding-bottom: 1.5px;"
+				<div class="control-input form-control fields_order ${is_sortable} flex"
+	 				style="margin-bottom: 5px; padding-bottom: 1.5px;"
 	 				data-fieldname="${me.fields[idx].fieldname}"
 	 				data-label="${me.fields[idx].label}"
 	 				data-type="${me.fields[idx].type}">
@@ -126,7 +126,7 @@ export default class ListSettings {
 						</div>
 
 						<div class="col-1 d-flex align-items-center justify-content-center px-0">
-							<a class="text-muted remove-field ${can_remove}"
+							<a class="text-muted remove-field align-items-center ${can_remove}"
 							   data-fieldname="${me.fields[idx].fieldname}">
 								${frappe.utils.icon("x", "xs")}
 							</a>
