@@ -102,6 +102,11 @@ class Report(Document):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role("report", self.name)
 
+	def after_delete(self):
+		from frappe.modules.export_file import delete_folder
+
+		delete_folder(self.module, "Report", self.name)
+
 	def get_permission_log_options(self, event=None):
 		return {"fields": ["roles"]}
 

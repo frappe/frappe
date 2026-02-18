@@ -723,6 +723,11 @@ def get_context(context):
 	def on_trash(self):
 		clear_notification_cache()
 
+	def after_delete(self):
+		from frappe.modules.export_file import delete_folder
+
+		delete_folder(self.module, "Notification", self.name)
+
 
 def clear_notification_cache():
 	frappe.client_cache.delete_keys("notifications::")
