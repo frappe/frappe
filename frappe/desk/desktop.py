@@ -384,7 +384,7 @@ class Workspace:
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_desktop_page(page):
+def get_desktop_page(page: str):
 	"""Apply permissions, customizations and return the configuration for a page on desk.
 
 	Args:
@@ -681,7 +681,7 @@ def prepare_widget(config, doctype, parentfield):
 
 
 @frappe.whitelist()
-def update_onboarding_step(name, field, value):
+def update_onboarding_step(name: str | int, field: str, value: int | str):
 	"""Update status of onboaridng step
 
 	Args:
