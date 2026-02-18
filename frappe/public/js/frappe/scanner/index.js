@@ -79,11 +79,7 @@ frappe.ui.Scanner = class Scanner {
 			this.$torch_button = $(`
 				<button class="btn btn-default torch-button" 
 					style="position: absolute; bottom: 20px; right: 20px; z-index: 1000;">
-					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<path d="M9 2h6l3 7H6l3-7z"/>
-						<path d="M12 9v13"/>
-						<path d="M8 22h8"/>
-					</svg>
+					${frappe.utils.icon("flashlight", "sm")}
 					${__("Torch")}
 				</button>
 			`);
