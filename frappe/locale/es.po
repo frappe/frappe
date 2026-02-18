@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-12 17:49\n"
+"PO-Revision-Date: 2026-02-17 18:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -1418,7 +1418,7 @@ msgstr "Añadir Fila Total"
 #. Label of a Check field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Add Translate Data"
-msgstr ""
+msgstr "Añadir datos de traducción"
 
 #. Label of a Check field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
@@ -2591,7 +2591,7 @@ msgstr "Columnas archivados"
 
 #: frappe/core/doctype/user_invitation/user_invitation.js:18
 msgid "Are you sure you want to cancel the invitation?"
-msgstr ""
+msgstr "¿Está seguro de que desea cancelar la invitación?"
 
 #: frappe/public/js/frappe/form/grid.js:281
 msgid "Are you sure you want to delete all rows?"
@@ -4507,7 +4507,7 @@ msgstr "No se pueden asignar varias impresoras a un único formato de impresión
 
 #: frappe/public/js/frappe/form/grid.js:1117
 msgid "Cannot import table with more than 5000 rows."
-msgstr ""
+msgstr "No se puede importar una tabla con más de 5000 filas."
 
 #: frappe/model/document.py:983
 msgid "Cannot link cancelled document: {0}"
@@ -5506,7 +5506,7 @@ msgstr "Completado por el usuario"
 #. Option for the 'Type' (Select) field in DocType 'Web Template'
 #: frappe/website/doctype/web_template/web_template.json
 msgid "Component"
-msgstr ""
+msgstr "Componente"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:184
 msgid "Compose Email"
@@ -5556,7 +5556,7 @@ msgstr "Descripción de la condición"
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Conditions"
-msgstr ""
+msgstr "Condiciones"
 
 #. Label of a Section Break field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -6250,7 +6250,7 @@ msgstr "La lista de monedas almacena el valor de la moneda, su símbolo y unidad
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Current"
-msgstr ""
+msgstr "Corriente"
 
 #. Label of a Link field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
@@ -7329,7 +7329,7 @@ msgstr "Nombre borrado"
 
 #: frappe/desk/reportview.py:612
 msgid "Deleted all documents successfully"
-msgstr "Todos los documentos eliminados con éxito"
+msgstr ""
 
 #: frappe/public/js/frappe/web_form/web_form.js:211
 msgid "Deleted!"
@@ -7359,7 +7359,7 @@ msgstr "El delimitador debe ser un solo carácter"
 #. Label of a Select field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Delivery Status"
-msgstr ""
+msgstr "Estado del envío"
 
 #. Option for the 'Sign ups' (Select) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -7370,7 +7370,7 @@ msgstr "Denegar"
 #. Label of a Data field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Department"
-msgstr ""
+msgstr "Departamento"
 
 #. Label of a Data field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
@@ -8654,7 +8654,7 @@ msgstr "Editar"
 #: frappe/website/doctype/web_form/templates/web_form.html:20
 msgctxt "Button in web form"
 msgid "Edit"
-msgstr ""
+msgstr "Editar"
 
 #: frappe/public/js/frappe/form/grid_row.js:346
 msgctxt "Edit grid row"

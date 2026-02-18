@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-15 18:32\n"
+"PO-Revision-Date: 2026-02-17 18:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -4319,7 +4319,7 @@ msgstr "نمی‌توان فیلدهای استاندارد را ویرایش ک
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:126
 msgid "Cannot enable {0} for a non-submittable doctype"
-msgstr "نمی‌توان {0} را برای یک نوع سند غیر قابل ارسال فعال کرد"
+msgstr "نمی‌توان {0} را برای یک نوع سند غیرقابل ارسال فعال کرد"
 
 #: frappe/core/doctype/file/file.py:255
 msgid "Cannot find file {} on disk"
@@ -7157,7 +7157,7 @@ msgstr "نام حذف شده"
 
 #: frappe/desk/reportview.py:612
 msgid "Deleted all documents successfully"
-msgstr "تمام اسناد با موفقیت حذف شد"
+msgstr ""
 
 #: frappe/public/js/frappe/web_form/web_form.js:211
 msgid "Deleted!"

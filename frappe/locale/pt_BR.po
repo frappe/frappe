@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-28 13:31\n"
+"PO-Revision-Date: 2026-02-17 18:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -18127,12 +18127,12 @@ msgstr ""
 #: frappe/desk/doctype/event/event.json frappe/desk/doctype/todo/todo.json
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 msgid "Open"
-msgstr "Abrir"
+msgstr "Aberto"
 
 #: frappe/desk/doctype/todo/todo_list.js:14
 msgctxt "Access"
 msgid "Open"
-msgstr "Abrir"
+msgstr "Aberto"
 
 #: frappe/public/js/frappe/ui/keyboard.js:205
 msgid "Open Awesomebar"
