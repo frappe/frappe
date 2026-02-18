@@ -4,10 +4,12 @@ import hashlib
 import re
 from urllib.parse import urljoin, urlparse
 
+from oauthlib.common import Request
 from oauthlib.openid import RequestValidator
 
 import frappe
 from frappe.auth import LoginManager
+from frappe.integrations.doctype.oauth_client.oauth_client import OAuthClient
 from frappe.utils.data import cstr, get_system_timezone, now_datetime
 
 
@@ -89,35 +91,26 @@ class OAuthWebRequestValidator(RequestValidator):
 		oac.save(ignore_permissions=True)
 		frappe.db.commit()
 
-	def authenticate_client(self, request, *args, **kwargs):
+	def authenticate_client(self, request: Request, *args, **kwargs) -> bool | None:
+		"""
+		Loads the client based on request parameters and sets in oauth request.
+		Returns True on success, None on error.
+		"""
 		# Get ClientID in URL
 		if request.client_id:
-			oc = frappe.get_doc("OAuth Client", request.client_id)
+			client_name = request.client_id
 		else:
 			# Extract token, instantiate OAuth Bearer Token and use clientid from there.
 			if "refresh_token" in frappe.form_dict:
-				oc = frappe.get_doc(
-					"OAuth Client",
-					frappe.db.get_value(
-						"OAuth Bearer Token",
-						{"refresh_token": frappe.form_dict["refresh_token"]},
-						"client",
-					),
-				)
+				token_filters = {"refresh_token": frappe.form_dict["refresh_token"]}
 			elif "token" in frappe.form_dict:
-				oc = frappe.get_doc(
-					"OAuth Client",
-					frappe.db.get_value("OAuth Bearer Token", frappe.form_dict["token"], "client"),
-				)
+				token_filters = {"name": frappe.form_dict["token"]}
 			else:
-				oc = frappe.get_doc(
-					"OAuth Client",
-					frappe.db.get_value(
-						"OAuth Bearer Token",
-						frappe.get_request_header("Authorization").split(" ")[1],
-						"client",
-					),
-				)
+				token_filters = {"name": frappe.get_request_header("Authorization").split(" ")[1]}
+
+			client_name = frappe.db.get_value("OAuth Bearer Token", filters=token_filters, fieldname="client")
+
+		oc: OAuthClient = frappe.get_doc("OAuth Client", client_name)
 		try:
 			request.client = request.client or oc.as_dict()
 		except Exception as e:
