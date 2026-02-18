@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-11 17:42\n"
+"PO-Revision-Date: 2026-02-18 18:58\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Burmese\n"
 "MIME-Version: 1.0\n"
@@ -50,7 +50,7 @@ msgstr ""
 
 #: frappe/utils/csvutils.py:221
 msgid "\"{0}\" is not a valid Google Sheets URL"
-msgstr ""
+msgstr "&quot;{0}&quot; သည်မှန်ကန်သော Google Sheets URL မဟုတ်ပါ"
 
 #: frappe/public/js/frappe/ui/toolbar/tag_utils.js:22
 #: frappe/public/js/frappe/ui/toolbar/tag_utils.js:23
@@ -63,12 +63,12 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "&copy; Frappe Technologies Pvt. Ltd. and contributors"
-msgstr ""
+msgstr "&copy; Frappe Technologies Pvt. Ltd. နှင့် ပူးပေါင်းလုပ်ဆောင်သူများ"
 
 #. Label of a Code field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "&lt;head&gt; HTML"
-msgstr ""
+msgstr "&lt;head&gt; HTML ကို"
 
 #: frappe/public/js/form_builder/store.js:206
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
@@ -96,7 +96,7 @@ msgstr ""
 
 #: frappe/utils/__init__.py:247
 msgid "'{0}' is not a valid URL"
-msgstr ""
+msgstr "'{0}' သည် မှန်ကန်သော URL မဟုတ်ပါ။"
 
 #: frappe/core/doctype/doctype/doctype.py:1313
 msgid "'{0}' not allowed for type {1} in row {2}"
@@ -128,7 +128,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/grid_row.js:860
 msgid "1 = True & 0 = False"
-msgstr ""
+msgstr "၁ = မှန်  နှင့် ၀ = မှား"
 
 #. Description of the 'Fraction Units' (Int) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -158,7 +158,7 @@ msgstr "လွန်ခဲ့သော ၁ ရက်က"
 
 #: frappe/public/js/frappe/form/reminders.js:17
 msgid "1 hour"
-msgstr ""
+msgstr "၁ နာရီ"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:52
 #: frappe/tests/test_utils.py:814
@@ -181,7 +181,7 @@ msgstr "၁ သို့ ၂"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:227
 msgid "1 record will be exported"
-msgstr ""
+msgstr "မှတ်တမ်း ၁ခုကို ထုတ်ပေးပါမည်။"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:325
 msgctxt "User removed row from child table"
@@ -229,7 +229,7 @@ msgstr "လွန်ခဲ့တဲ့ ၃ မိနစ်က"
 
 #: frappe/public/js/frappe/form/reminders.js:16
 msgid "30 minutes"
-msgstr ""
+msgstr "မိနစ် 30"
 
 #: frappe/public/js/frappe/form/reminders.js:18
 msgid "4 hours"
@@ -237,7 +237,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:37
 msgid "5 Records"
-msgstr ""
+msgstr "မှတ်တမ်း ၅ ခု"
 
 #: frappe/tests/test_utils.py:817
 msgid "5 days ago"
@@ -245,7 +245,7 @@ msgstr "လွန်ခဲ့သော ၅ ရက်"
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:38
 msgid "; not allowed in condition"
-msgstr ""
+msgstr "အခြေအနေအရ ခွင့်မပြုပါ"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
