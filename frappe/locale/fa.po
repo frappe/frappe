@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-15 09:42+0000\n"
-"PO-Revision-Date: 2026-02-16 19:56\n"
+"PO-Revision-Date: 2026-02-18 20:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1633,7 +1633,7 @@ msgstr "تراز کردن مقدار"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Alignment"
-msgstr ""
+msgstr "ترازبندی"
 
 #. Name of a role
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
@@ -5466,7 +5466,7 @@ msgstr ""
 #. Name of a DocType
 #: frappe/contacts/doctype/contact_email/contact_email.json
 msgid "Contact Email"
-msgstr "تماس با ایمیل"
+msgstr "ایمیل مخاطب"
 
 #. Label of the phone_nos (Table) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
@@ -23239,7 +23239,7 @@ msgstr "جستجو در یک نوع سند"
 
 #: frappe/public/js/form_builder/components/SearchBox.vue:8
 msgid "Search properties..."
-msgstr ""
+msgstr "جستجوی ویژگی‌ها..."
 
 #: frappe/templates/includes/search_box.html:8
 msgid "Search results for"
@@ -31938,7 +31938,7 @@ msgstr "{0} از {1} تا {2}"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:170
 msgid "{0} from {1} to {2} in row #{3}"
-msgstr "{0} از {1} تا {2} در ردیف #{3}"
+msgstr "{0} از {1} به {2} در ردیف #{3}"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:29
 msgid "{0} h"
