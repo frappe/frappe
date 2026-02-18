@@ -418,7 +418,6 @@ class SendMailContext:
 
 		return safe_encode(message_obj.as_string())
 
-
 	def _store_file(self, file_name, content):
 		if not frappe.get_system_settings("store_attached_pdf_document"):
 			return
