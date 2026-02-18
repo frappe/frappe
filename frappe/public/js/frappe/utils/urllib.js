@@ -46,31 +46,26 @@ frappe.urllib = {
 };
 
 window.open_url_post = function open_url_post(URL, PARAMS, new_window) {
-	if (window.cordova) {
-		let url = URL + "api/method/" + PARAMS.cmd + frappe.utils.make_query_string(PARAMS, false);
-		window.location.href = url;
-	} else {
-		// call a url as POST
-		var temp = document.createElement("form");
-		temp.action = URL;
-		temp.method = "POST";
-		temp.style.display = "none";
-		if (new_window) {
-			temp.target = "_blank";
-		}
-		PARAMS["csrf_token"] = frappe.csrf_token;
-		for (var x in PARAMS) {
-			var opt = document.createElement("textarea");
-			opt.name = x;
-			var val = PARAMS[x];
-			if (typeof val != "string") val = JSON.stringify(val);
-			opt.value = val;
-			temp.appendChild(opt);
-		}
-		document.body.appendChild(temp);
-		temp.submit();
-		return temp;
+	// call a url as POST
+	var temp = document.createElement("form");
+	temp.action = URL;
+	temp.method = "POST";
+	temp.style.display = "none";
+	if (new_window) {
+		temp.target = "_blank";
 	}
+	PARAMS["csrf_token"] = frappe.csrf_token;
+	for (var x in PARAMS) {
+		var opt = document.createElement("textarea");
+		opt.name = x;
+		var val = PARAMS[x];
+		if (typeof val != "string") val = JSON.stringify(val);
+		opt.value = val;
+		temp.appendChild(opt);
+	}
+	document.body.appendChild(temp);
+	temp.submit();
+	return temp;
 };
 
 window.get_url_arg = frappe.urllib.get_arg;

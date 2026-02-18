@@ -88,10 +88,8 @@ def make(
 	if doctype and name:
 		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
 
-	if (
-		raw_html
-		and email_template
-		and not frappe.get_cached_value("Email Template", email_template, "use_html")
+	if raw_html and not (
+		email_template and frappe.get_cached_value("Email Template", email_template, "use_html")
 	):
 		warn(
 			_(
@@ -193,7 +191,7 @@ def _make(
 		}
 	)
 	comm.flags.skip_add_signature = not add_signature or (
-		raw_html and frappe.get_cached_value("Email Template", email_template, "use_html")
+		raw_html and email_template and frappe.get_cached_value("Email Template", email_template, "use_html")
 	)
 	comm.insert(ignore_permissions=True)
 

@@ -1,8 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import datetime
+import functools
 import json
-import keyword
 import re
 import weakref
 from types import MappingProxyType
@@ -48,6 +48,40 @@ DatetimeTypes = datetime.date | datetime.datetime | datetime.time | datetime.tim
 
 max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
 
+# Sentinel object for cache miss detection in bulk link validation
+# Used to distinguish between "not in cache" and "cached as None (does not exist)"
+_NOT_IN_CACHE = object()
+
+
+def _fetch_link_values(doctype: str, docname: str, fields: tuple, meta) -> dict | None:
+	"""Fetch link field values from database with fallback logic.
+
+	This helper encapsulates the repeated DB query pattern:
+	1. Try get_value with cache=True
+	2. If not found, retry without cache (handles negative caching)
+	3. For virtual doctypes, use frappe.get_doc instead
+
+	Args:
+	    doctype: Target DocType
+	    docname: Document name to fetch
+	    fields: Tuple of field names to fetch
+	    meta: Meta object for the doctype
+
+	Returns:
+	    Dict of field values or None if document doesn't exist
+	"""
+	if not meta.get("is_virtual"):
+		values = frappe.db.get_value(doctype, docname, fields, as_dict=True, cache=True, order_by=None)
+		if not values:
+			values = frappe.db.get_value(doctype, docname, fields, as_dict=True, order_by=None)
+	else:
+		try:
+			values = frappe.get_doc(doctype, docname).as_dict()
+		except frappe.DoesNotExistError:
+			values = None
+	return values
+
+
 DOCTYPE_TABLE_FIELDS = [
 	_dict(fieldname="fields", options="DocField"),
 	_dict(fieldname="permissions", options="DocPerm"),
@@ -67,18 +101,15 @@ DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
 def _reduce_extended_instance(doc):
 	"""Make extended class instances pickle-able.
 
-	When unpickling, this will use get_controller() to recreate the extended class.
+	Stores __bases__ for reconstructing the extended class during unpickling.
 	Respects the __getstate__ method for proper state handling.
 	"""
-	return (_reconstruct_extended_instance, (doc.doctype,), doc.__getstate__())
+	return (_reconstruct_extended_instance, (type(doc).__bases__,), doc.__getstate__())
 
 
-def _reconstruct_extended_instance(doctype):
-	"""
-	Helper function to reconstruct an extended class instance during unpickling.
-	"""
-	# Get the current extended class (uses caching from get_controller)
-	extended_class = get_controller(doctype)
+def _reconstruct_extended_instance(bases):
+	"""Reconstruct an extended class instance during unpickling."""
+	extended_class = _create_extended_class(bases)
 	return extended_class.__new__(extended_class)
 
 
@@ -208,9 +239,25 @@ def _get_extended_class(base_class, doctype):
 
 	# Create the extended class by combining extension classes with base class
 	# Extension classes come first in MRO, then base class
+	return _create_extended_class((*extension_classes, base_class))
+
+
+# cached to avoid recreating the same class multiple times during unpickling
+# safe to cache, classes on file don't change at runtime
+@functools.cache
+def _create_extended_class(bases):
+	"""Create an extended class from base classes.
+
+	Args:
+		bases: Tuple of base classes (extension classes first, then the controller class)
+
+	Returns:
+		Extended class combining all bases with pickle support
+	"""
+	base_class = bases[-1]
 	return type(
 		f"Extended{base_class.__name__}",
-		(*extension_classes, base_class),
+		bases,
 		{
 			"__reduce__": _reduce_extended_instance,
 			"__module__": base_class.__module__,
@@ -958,9 +1005,13 @@ class BaseDocument:
 
 		return missing
 
-	def get_invalid_links(self, is_submittable=False):
-		"""Return list of invalid links and also update fetch values if not set."""
+	def get_invalid_links(self, is_submittable=False, link_value_cache=None):
+		"""Return list of invalid links and also update fetch values if not set.
 
+		Args:
+			is_submittable: Whether the parent document is submittable
+			link_value_cache: Cache of prefetched link values for bulk optimization
+		"""
 		is_submittable = is_submittable or self.meta.is_submittable
 
 		def get_msg(df, docname):
@@ -1006,23 +1057,45 @@ class BaseDocument:
 				if not _df.get("fetch_if_empty")
 				or (_df.get("fetch_if_empty") and not self.get(_df.fieldname))
 			]
-			values_to_fetch = (
-				"name",
-				*(_df.fetch_from.split(".")[-1] for _df in fields_to_fetch),
-			)
-			if check_docstatus:
-				values_to_fetch += ("docstatus",)
-
-			if not meta.get("is_virtual"):
-				values = frappe.db.get_value(
-					doctype, docname, values_to_fetch, as_dict=True, cache=True, order_by=None
+			values_to_fetch = tuple(
+				sorted(
+					{
+						"name",
+						*(_df.fetch_from.split(".")[-1] for _df in fields_to_fetch),
+						*(("docstatus",) if check_docstatus else ()),
+					}
 				)
-				if not values:  # NOTE: DB Value cache does negative caching, which is hard to remove now.
-					values = frappe.db.get_value(
-						doctype, docname, values_to_fetch, as_dict=True, order_by=None
-					)
+			)
+
+			# Use cache if available (bulk optimization)
+			if link_value_cache is not None:
+				cache_for_dt = link_value_cache.get(doctype, {})
+
+				# Get cached value with sentinel for miss detection
+				if frappe.db.db_type == "mariadb" and isinstance(docname, str):
+					cached = cache_for_dt.get(docname, _NOT_IN_CACHE)
+					if cached is _NOT_IN_CACHE:
+						cached = cache_for_dt.get(docname.casefold(), _NOT_IN_CACHE)
+				else:
+					cached = cache_for_dt.get(docname, _NOT_IN_CACHE)
+
+				if cached is _NOT_IN_CACHE:
+					# Not prefetched - fall back to original DB query path
+					values = _fetch_link_values(doctype, docname, values_to_fetch, meta)
+				elif cached is None:
+					# Prefetch confirmed document doesn't exist
+					values = _dict.fromkeys(values_to_fetch, None)
+				elif all(f in cached for f in values_to_fetch):
+					# Cache has all required fields
+					values = cached
+				else:
+					# Cache missing some fields - fall back to DB
+					values = _fetch_link_values(doctype, docname, values_to_fetch, meta)
+					if values is None and not meta.get("is_virtual"):
+						values = cached  # Fall back to partial cache
 			else:
-				values = frappe.get_doc(doctype, docname).as_dict()
+				# No cache - original behavior
+				values = _fetch_link_values(doctype, docname, values_to_fetch, meta)
 
 			# fallback to dict with field_to_fetch=None if link field value is not found
 			# (for compatibility, `values` must have same data type)

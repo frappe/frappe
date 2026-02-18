@@ -16,7 +16,7 @@ def sendmail_to_system_managers(subject, content):
 
 
 @frappe.whitelist()
-def get_contact_list(txt, page_length=20, extra_filters: str | None = None) -> list[dict]:
+def get_contact_list(txt: str, page_length: int = 20, extra_filters: str | None = None) -> list[dict]:
 	"""Return email ids for a multiselect field."""
 	if extra_filters:
 		extra_filters = frappe.parse_json(extra_filters)
@@ -60,7 +60,7 @@ def get_system_managers():
 
 
 @frappe.whitelist()
-def relink(name, reference_doctype=None, reference_name=None):
+def relink(name: str, reference_doctype: str | None = None, reference_name: str | None = None):
 	frappe.db.sql(
 		"""update
 			`tabCommunication`
@@ -77,7 +77,9 @@ def relink(name, reference_doctype=None, reference_name=None):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_communication_doctype(doctype, txt, searchfield, start, page_len, filters):
+def get_communication_doctype(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: str | list | dict
+):
 	user_perms = frappe.utils.user.UserPermissions(frappe.session.user)
 	user_perms.build_permissions()
 	can_read = user_perms.can_read

@@ -1040,9 +1040,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		table_fields.forEach((df) => {
 			const cdt = df.options;
+			const label = df.label || frappe.unscrub(df.fieldname);
 
 			dialog_fields.push({
-				label: __(df.label, null, df.parent) + ` (${__(cdt)})`,
+				label: __(label) + ` (${__(cdt)})`,
 				fieldname: df.options,
 				fieldtype: "MultiCheck",
 				columns: 2,

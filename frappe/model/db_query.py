@@ -499,9 +499,11 @@ from {tables}
 				if isinstance(token, Function):
 					if (name := (token.get_name())) and name.lower() in blacklisted_functions:
 						_raise_exception()
-				if token.ttype == tokens.Keyword:
-					if token.value.lower() in blacklisted_keywords:
+
+				if token.ttype in (tokens.Keyword, tokens.Name):
+					if any(re.search(rf"\b{kw}\b", token.value.lower()) for kw in blacklisted_keywords):
 						_raise_exception()
+
 				if token.is_group:
 					_check_sql_token(token)
 
@@ -604,6 +606,8 @@ from {tables}
 	def check_read_permission(self, doctype: str, parent_doctype: str | None = None):
 		if self.flags.ignore_permissions:
 			return
+
+		self.join = "left join"
 
 		if doctype not in self.permission_map:
 			self._set_permission_map(doctype, parent_doctype)
@@ -867,6 +871,15 @@ from {tables}
 			can_be_null &= not getattr(df, "not_nullable", False)
 			if f.operator.lower() == "in":
 				can_be_null &= not f.value or any(v is None or v == "" for v in f.value)
+
+			# Handle empty lists for IN/NOT IN operators before processing
+			# IN with empty list should return 0 results (always False: 1=0)
+			# NOT IN with empty list should return all results (always True: 1=1)
+			if isinstance(f.value, (list, tuple)) and len(f.value) == 0:
+				if f.operator.lower() == "in":
+					return "1=0"
+				else:  # not in
+					return "1=1"
 
 			if value is None:
 				values = f.value or ""
@@ -1150,9 +1163,19 @@ from {tables}
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype):
 				conditions.append(c)
 
+		active_child_tables = []
+		if len(self.tables) > 1:  # only if query has multiple tables involved
+			main_table_name = f"tab{self.doctype}"
+			for table_name in self.tables:
+				clean_name = table_name.replace("`", "").replace('"', "")
+				if clean_name != main_table_name:
+					active_child_tables.append(clean_name)
+
 		if permission_script_name := get_server_script_map().get("permission_query", {}).get(self.doctype):
 			script = frappe.get_doc("Server Script", permission_script_name)
-			if condition := script.get_permission_query_conditions(self.user):
+			if condition := script.get_permission_query_conditions(
+				self.user, active_child_tables=active_child_tables
+			):
 				conditions.append(condition)
 
 		return " and ".join(conditions) if conditions else ""

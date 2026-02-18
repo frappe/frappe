@@ -134,10 +134,6 @@ TAB_PATTERN = re.compile("^tab")
 WORDS_PATTERN = re.compile(r"\w+")
 COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 
-# less restrictive version of frappe.core.doctype.doctype.doctype.START_WITH_LETTERS_PATTERN
-# to allow table names like __Auth
-TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
-
 # Pattern for validating simple field names (alphanumeric + underscore)
 SIMPLE_FIELD_PATTERN = re.compile(r"^\w+$", flags=re.ASCII)
 
@@ -272,7 +268,6 @@ class Engine:
 			self.doctype = get_doctype_name(table.get_sql())
 		else:
 			self.doctype = table
-			self.validate_doctype()
 			self.table = qb.DocType(table)
 
 		if self.apply_permissions:
@@ -339,10 +334,6 @@ class Engine:
 
 		self.query.immutable = True
 		return self.query
-
-	def validate_doctype(self):
-		if not TABLE_NAME_PATTERN.match(self.doctype):
-			frappe.throw(_("Invalid DocType: {0}").format(self.doctype))
 
 	def apply_fields(self, fields):
 		self.fields = self.parse_fields(fields)
@@ -596,6 +587,20 @@ class Engine:
 				_value = tuple(
 					v.strip().strip("'") for v in get_between_date_filter(_value, df).split(" AND ")
 				)
+
+		# Handle empty lists for IN/NOT IN operators before conversion
+		# IN with empty list should return 0 results (always False)
+		# NOT IN with empty list should return all results (always True)
+		if _operator.lower() in ("in", "not in"):
+			if isinstance(_value, (list, tuple, set)) and len(_value) == 0:
+				if _operator.lower() == "in":
+					# Return a criterion that always evaluates to False (1=0)
+					# This ensures IN with empty list returns 0 results
+					return RawCriterion("1=0")
+				else:  # not in
+					# Return a criterion that always evaluates to True (1=1)
+					# NOT IN with empty set matches all rows since nothing is excluded
+					return RawCriterion("1=1")
 
 		if not _value and isinstance(_value, list | tuple | set):
 			_value = ("",)
@@ -1023,11 +1028,6 @@ class Engine:
 		field_name = groups[3]  # This will be the field name (e.g., 'field')
 
 		if table_name:
-			# Table name specified (e.g., `tabX`.`y` or tabX.y or `tabX Y`.`y`)
-			# Ensure the extracted table name is valid before creating DocType object
-			if not TABLE_NAME_PATTERN.match(table_name.lstrip("tab")):
-				frappe.throw(_("Invalid characters in table name: {0}").format(table_name))
-
 			doctype_name = table_name[3:] if table_name.startswith("tab") else table_name
 			table_obj = frappe.qb.DocType(doctype_name)
 			pypika_field = table_obj[field_name]
@@ -1533,6 +1533,16 @@ class Engine:
 
 		return where_condition
 
+	def get_queried_tables(self) -> list[str]:
+		"""Extract all table names involved in the current query."""
+		tables = []
+		for table in self.query._from:
+			tables.append(table.get_sql())
+
+		for join in self.query._joins:
+			tables.append(join.item.get_sql())
+		return list(set(tables))
+
 	def get_permission_query_conditions(self, doctype: str | None = None) -> list["RawCriterion"]:
 		"""Add permission query conditions from hooks and server scripts"""
 		from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
@@ -1546,10 +1556,20 @@ class Engine:
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=doctype):
 				conditions.append(RawCriterion(f"({c})"))
 
+		active_child_tables = []
+		current_tables = self.get_queried_tables()
+		if len(current_tables) > 1:
+			main_table_name = f"tab{self.doctype}"
+			for table_name in current_tables:
+				if table_name != main_table_name:
+					active_child_tables.append(table_name)
+
 		# Get conditions from server scripts
 		if permission_script_name := get_server_script_map().get("permission_query", {}).get(doctype):
 			script = frappe.get_doc("Server Script", permission_script_name)
-			if condition := script.get_permission_query_conditions(self.user):
+			if condition := script.get_permission_query_conditions(
+				self.user, active_child_tables=active_child_tables
+			):
 				conditions.append(RawCriterion(f"({condition})"))
 		return conditions
 

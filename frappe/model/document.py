@@ -1129,14 +1129,144 @@ class Document(BaseDocument):
 			)
 		)
 
+	def _prefetch_link_values(self):
+		"""Pre-fetch all link values including fetch_from fields for bulk validation.
+
+		This optimization collects all Link/Dynamic Link values from the doc tree,
+		then bulk-fetches them by doctype to eliminate N+1 queries.
+		"""
+		if self.flags.ignore_links or self._action == "cancel":
+			return
+
+		from collections import defaultdict
+
+		def _chunk(iterable, size):
+			"""Split iterable into chunks of given size."""
+			lst = list(iterable)
+			for i in range(0, len(lst), size):
+				yield lst[i : i + size]
+
+		self._link_value_cache = {}
+		docs_to_validate = [self, *self.get_all_children()]
+
+		# Collect: {doctype: {'names': set(), 'fields': set()}}
+		prefetch_map = defaultdict(lambda: {"names": set(), "fields": {"name"}})
+
+		for doc in docs_to_validate:
+			is_submittable = self.meta.is_submittable
+			link_fields = doc.meta.get_link_fields() + doc.meta.get(
+				"fields", {"fieldtype": ("=", "Dynamic Link")}
+			)
+
+			for df in link_fields:
+				docname = doc.get(df.fieldname)
+				if not docname:
+					continue
+
+				# Skip invalid docname types - let get_invalid_links handle the assertion
+				if not isinstance(docname, str | int):
+					continue
+
+				# Resolve target doctype
+				if df.fieldtype == "Link":
+					doctype = df.options
+					if not doctype:
+						continue
+				else:  # Dynamic Link
+					doctype = doc.get(df.options)
+					if not doctype:
+						continue
+
+				prefetch_map[doctype]["names"].add(docname)
+
+				# Collect fetch_from fields - fetch ALL, let base_document handle fetch_if_empty
+				for fetch_df in doc.meta.get_fields_to_fetch(df.fieldname):
+					if fetch_df.get("fetch_from"):
+						source_field = fetch_df.fetch_from.split(".")[-1]
+						prefetch_map[doctype]["fields"].add(source_field)
+
+				# Add docstatus if needed
+				target_meta = frappe.get_meta(doctype)
+				if is_submittable and target_meta.is_submittable:
+					prefetch_map[doctype]["fields"].add("docstatus")
+
+		# Bulk fetch with chunking
+		for doctype, data in prefetch_map.items():
+			meta = frappe.get_meta(doctype)
+			names = list(data["names"])
+			fields = sorted(data["fields"])  # Sorted for deterministic cache key matching
+
+			# Skip if no names to fetch for this doctype
+			if not names:
+				continue
+
+			if meta.get("is_virtual"):
+				# Virtual doctypes: fetch individually
+				for name in names:
+					try:
+						values = frappe.get_doc(doctype, name).as_dict()
+					except frappe.DoesNotExistError:
+						values = None
+					self._link_value_cache.setdefault(doctype, {})[name] = values
+
+			elif getattr(meta, "issingle", 0):
+				# Single doctypes
+				values = frappe.db.get_singles_dict(doctype)
+				values["name"] = doctype
+				for name in names:
+					self._link_value_cache.setdefault(doctype, {})[name] = frappe._dict(values)
+
+			else:
+				# Regular doctypes: bulk fetch with chunking
+				result_dict = {}
+				field_tuple = tuple(fields)
+
+				for name_chunk in _chunk(names, 1000):
+					results = frappe.db.get_all(
+						doctype,
+						filters={"name": ("in", name_chunk)},
+						fields=fields,
+					)
+					for row in results:
+						result_dict[row.name] = row
+						# Link fields may carry "123" (text) while autoincrement doctypes return 123 (int);
+						# adding str(name) avoids false cache misses that surface as invalid-link errors.
+						result_dict[str(row.name)] = row
+						# Case-insensitive key for MariaDB compatibility (strings only)
+						if frappe.db.db_type == "mariadb" and isinstance(row.name, str):
+							result_dict[row.name.casefold()] = row
+
+				# Store results in both caches
+				for name in names:
+					if frappe.db.db_type == "mariadb" and isinstance(name, str):
+						cached_value = (
+							result_dict.get(name)
+							or result_dict.get(str(name))
+							or result_dict.get(name.casefold())
+						)
+					else:
+						cached_value = result_dict.get(name) or result_dict.get(str(name))
+
+					# Store in local document cache
+					self._link_value_cache.setdefault(doctype, {})[name] = cached_value
+
+					# Also populate global db.value_cache for cross-document caching
+					# Only for string names (matching get_values behavior at line 632)
+					if cached_value is not None and isinstance(name, str):
+						frappe.db.value_cache[doctype][name][field_tuple] = [cached_value]
+
 	def _validate_links(self):
 		if self.flags.ignore_links or self._action == "cancel":
 			return
 
-		invalid_links, cancelled_links = self.get_invalid_links()
+		# Pre-fetch all link values in bulk
+		self._prefetch_link_values()
+		link_cache = getattr(self, "_link_value_cache", None)
+
+		invalid_links, cancelled_links = self.get_invalid_links(link_value_cache=link_cache)
 
 		for d in self.get_all_children():
-			result = d.get_invalid_links(is_submittable=self.meta.is_submittable)
+			result = d.get_invalid_links(is_submittable=self.meta.is_submittable, link_value_cache=link_cache)
 			invalid_links.extend(result[0])
 			cancelled_links.extend(result[1])
 
