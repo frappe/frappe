@@ -14,7 +14,7 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
-from frappe.utils import add_to_date, cast, now_datetime, nowdate, validate_email_address
+from frappe.utils import add_to_date, cast, cint, now_datetime, nowdate, validate_email_address
 from frappe.utils.data import evaluate_filters
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
@@ -721,6 +721,13 @@ def get_context(context):
 		self.message = self.get_template(md_as_html=True)
 
 	def on_trash(self):
+		if (
+			self.is_standard
+			and not cint(getattr(frappe.local.conf, "developer_mode", 0))
+			and not frappe.flags.in_migrate
+			and not frappe.flags.in_patch
+		):
+			frappe.throw(_("You are not allowed to delete Standard Notification"))
 		clear_notification_cache()
 
 	def after_delete(self):
