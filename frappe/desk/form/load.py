@@ -12,12 +12,10 @@ import frappe.utils
 from frappe import _, _dict
 from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.desk.form.document_follow import is_document_followed
+from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import check_doctype_permission, get_doc_permissions, has_permission
 from frappe.utils.data import cstr
-
-if typing.TYPE_CHECKING:
-	from frappe.model.document import Document
 
 
 @frappe.whitelist()
