@@ -135,6 +135,7 @@ frappe.ui.Sidebar = class Sidebar {
 		frappe.router.on("change", function (router) {
 			if (frappe.route_options.sidebar) {
 				frappe.app.sidebar.setup(frappe.route_options.sidebar);
+				frappe.route_options = null;
 			} else {
 				frappe.app.sidebar.set_workspace_sidebar(router);
 			}

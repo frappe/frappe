@@ -1229,6 +1229,9 @@ class Document(BaseDocument):
 					)
 					for row in results:
 						result_dict[row.name] = row
+						# Link fields may carry "123" (text) while autoincrement doctypes return 123 (int);
+						# adding str(name) avoids false cache misses that surface as invalid-link errors.
+						result_dict[str(row.name)] = row
 						# Case-insensitive key for MariaDB compatibility (strings only)
 						if frappe.db.db_type == "mariadb" and isinstance(row.name, str):
 							result_dict[row.name.casefold()] = row
@@ -1236,9 +1239,13 @@ class Document(BaseDocument):
 				# Store results in both caches
 				for name in names:
 					if frappe.db.db_type == "mariadb" and isinstance(name, str):
-						cached_value = result_dict.get(name) or result_dict.get(name.casefold())
+						cached_value = (
+							result_dict.get(name)
+							or result_dict.get(str(name))
+							or result_dict.get(name.casefold())
+						)
 					else:
-						cached_value = result_dict.get(name)
+						cached_value = result_dict.get(name) or result_dict.get(str(name))
 
 					# Store in local document cache
 					self._link_value_cache.setdefault(doctype, {})[name] = cached_value

@@ -557,9 +557,9 @@ def get_auto_repeat_entries(date=None):
 
 @frappe.whitelist()
 def make_auto_repeat(
-	doctype,
-	docname,
-	frequency="Daily",
+	doctype: str,
+	docname: str | int,
+	frequency: str = "Daily",
 	start_date: str | datetime | None = None,
 	end_date: str | datetime | None = None,
 ):
@@ -579,7 +579,9 @@ def make_auto_repeat(
 # method for reference_doctype filter
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters):
+def get_auto_repeat_doctypes(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: str | dict | list
+):
 	res = frappe.get_all(
 		"Property Setter",
 		{

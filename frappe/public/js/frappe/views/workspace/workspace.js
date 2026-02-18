@@ -222,7 +222,8 @@ frappe.views.Workspace = class Workspace {
 					route: "#",
 				});
 				if (!this.add_workspace_controls) {
-					let workspace_actions_button = this.page.add_action_icon("ellipsis");
+					let workspace_actions_button = this.page.add_action_icon("ellipsis", "", "");
+					$(workspace_actions_button).removeAttr("data-original-title");
 					$(workspace_actions_button).removeClass("btn-default");
 					frappe.ui.create_menu({
 						parent: $(workspace_actions_button),
@@ -243,16 +244,6 @@ frappe.views.Workspace = class Workspace {
 								},
 								condition: () => {
 									return current_page.is_editable;
-								},
-							},
-							{
-								label: "New",
-								icon: "plus",
-								onClick: function () {
-									me.initialize_new_page(true);
-								},
-								condition: () => {
-									return me.has_create_access;
 								},
 							},
 						],

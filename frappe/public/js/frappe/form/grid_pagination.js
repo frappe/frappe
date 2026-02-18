@@ -159,8 +159,19 @@ export default class GridPagination {
 
 		this.update_page_numbers();
 		if (!from_refresh) {
+			this.update_select_all_checkbox();
 			this.grid.scroll_to_top();
 		}
+	}
+
+	update_select_all_checkbox() {
+		const start_index = (this.page_index - 1) * this.page_length;
+		const result_length = this.get_result_length();
+		const all_selected =
+			result_length > 0 &&
+			this.grid.data.slice(start_index, result_length).every((row) => row.__checked);
+
+		this.wrapper.find(".grid-heading-row .grid-row-check").prop("checked", all_selected);
 	}
 
 	go_to_last_page_to_add_row() {

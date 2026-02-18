@@ -634,6 +634,9 @@ class Database:
 		from frappe.model.utils import is_single_doctype
 
 		out = None
+		if isinstance(fieldname, list):
+			fieldname = tuple(fieldname)
+
 		if cache and isinstance(filters, str) and fieldname in self.value_cache[doctype][filters]:
 			return self.value_cache[doctype][filters][fieldname]
 
