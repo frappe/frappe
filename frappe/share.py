@@ -99,7 +99,7 @@ def remove(doctype, name, user, flags=None):
 def set_permission(
 	doctype: str,
 	name: str | int,
-	user: str,
+	user: str | None,
 	permission_to: str,
 	value: str | bool | int = 1,
 	everyone: str | bool | int = 0,
