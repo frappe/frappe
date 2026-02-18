@@ -1165,7 +1165,7 @@ class SQLiteSearch(ABC):
 			raise SQLiteSearchIndexMissingError(f"Search database connection failed: {e}") from e
 
 	def _set_pragmas(self, cursor, is_read=False):
-		"""Set SQLite performance pragmas."""
+		cursor.execute("PRAGMA busy_timeout = 5000;")  # Wait up to 5 seconds if the database is locked
 		cursor.execute("PRAGMA journal_mode = WAL;")  # Write-Ahead Logging for concurrency
 		cursor.execute("PRAGMA synchronous = NORMAL;")  # Better performance vs FULL
 		cursor.execute("PRAGMA cache_size = -8192;")  # 8MB cache
