@@ -334,7 +334,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			translations: frappe.utils.datatable.get_translations(),
 			checkboxColumn: true,
 			inlineFilters: true,
-			noDataMessage: "No data in current page",
+			noDataMessage: "No matching entries in the current results",
 			cellHeight: 35,
 			direction: frappe.utils.is_rtl() ? "rtl" : "ltr",
 			events: {
@@ -453,7 +453,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			const current_page_count = this.data.length;
 
 			$count.html(
-				`<span>${__("{0} of {1} filtered (current page only)", [
+				`<span>${__("{0} of {1} records match (filtered on visible rows only)", [
 					filtered_count,
 					current_page_count,
 				])}</span>`

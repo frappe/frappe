@@ -164,6 +164,11 @@
 	.dt-cell--focus .dt-cell__content {
 		border-color: var(--gray-200);
 	}
+
+	.dt-scrollable__no-data .no-data-message {
+		left: 50%;
+		transform: translateX(-50%);
+	}
 }
 
 table td.dt-cell {
