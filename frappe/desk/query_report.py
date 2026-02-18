@@ -544,15 +544,15 @@ def build_xlsx_data(
 	include_filters = cint(include_filters)
 	include_indentation = cint(include_indentation)
 	include_hidden_columns = cint(include_hidden_columns)
+	has_total_row = sbool(data.get("add_total_row"))
 
 	if build_styles:
 		metadata = XLSXMetadata(
 			report_name=data.report_name,
 			filters=data.filters or frappe._dict(),
 			has_filters=include_filters,
-			has_total_row=data.get("add_total_row", False),
+			has_total_row=has_total_row,
 			has_indentation=include_indentation,
-			ignore_visible_idx=ignore_visible_idx,
 		)
 
 	# adding applied filter rows
@@ -592,16 +592,15 @@ def build_xlsx_data(
 
 	result.append(column_data)
 
+	excel_row_idx += 1  # for header row
 	last_row_index = len(data.result) - 1
-	excel_row_idx += 1
-
 	handle_indentation = include_indentation and not build_styles
 
 	# build table from result
 	for row_idx, row in enumerate(data.result):
 		# only pick up rows that are visible in the report + total row if added
 		if not (
-			ignore_visible_idx or row_idx in visible_idx or (data.add_total_row and row_idx == last_row_index)
+			ignore_visible_idx or (row_idx in visible_idx) or (has_total_row and row_idx == last_row_index)
 		):
 			continue
 

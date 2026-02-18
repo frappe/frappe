@@ -37,7 +37,7 @@ class XLSXMetadata:
 	"""
 	Metadata container for XLSX report styling.
 
-	- All indexes are 0-based.
+	- All indexes must be 0-based respecting Excel's indexing.
 
 	Attributes:
 		report_name: Name of the report.
@@ -48,7 +48,6 @@ class XLSXMetadata:
 		has_filters: Whether filter rows are included at the top.
 		has_total_row: Whether the last row is a total row.
 		has_indentation: Whether indentation styling should be applied.
-		ignore_visible_idx: Whether all rows are exported (not filtered by visible_idx).
 	"""
 
 	report_name: str = ""
@@ -62,7 +61,6 @@ class XLSXMetadata:
 	has_filters: bool = False
 	has_total_row: bool = False
 	has_indentation: bool = False
-	ignore_visible_idx: bool = True
 
 	def get_column_index(self, fieldname: str) -> int | None:
 		"""
@@ -143,7 +141,6 @@ class XLSXStyleBuilder:
 		self.first_row_index = self.metadata.get_first_row_index()
 		self.last_row_index = self.metadata.get_last_row_index()
 		self.row_is_dict = isinstance(self.metadata.get_row(self.first_row_index), dict)
-		self.has_total_row = bool(self.metadata.has_total_row and self.metadata.ignore_visible_idx)
 
 		if default_styling:
 			self.apply_default_styles()
@@ -229,7 +226,7 @@ class XLSXStyleBuilder:
 
 		- Header row styling
 		- Filter rows styling (if has_filters)
-		- Total row styling (if has_total_row and ignore_visible_idx)
+		- Total row styling (if has_total_row)
 		- Indentation styling (if has_indentation)
 		- Default fieldtype formatting (numbers, dates, etc.)
 			- Currency formatting can be toggled with currency_formatting flag
@@ -239,7 +236,7 @@ class XLSXStyleBuilder:
 		if self.metadata.has_filters:
 			self.style_filters()
 
-		if self.has_total_row:
+		if self.metadata.has_total_row:
 			self.style_total_row()
 
 		if self.metadata.has_indentation:
@@ -285,7 +282,7 @@ class XLSXStyleBuilder:
 
 		# quick access for hot loop
 		last_row_index = self.last_row_index
-		skip_last_row = self.has_total_row
+		skip_last_row = self.metadata.has_total_row
 		style_cell = self.style_cell
 
 		for row_idx, row in self.metadata.row_map.items():
@@ -334,7 +331,7 @@ class XLSXStyleBuilder:
 
 		# quick access for hot loop
 		last_row_index = self.last_row_index
-		skip_last_row = self.has_total_row
+		skip_last_row = self.metadata.has_total_row
 		currency_options_items = currency_options.items()
 		style_cell = self.style_cell
 
