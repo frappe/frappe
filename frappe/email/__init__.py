@@ -1,7 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from typing import TYPE_CHECKING, Literal
+
 import frappe
+
+if TYPE_CHECKING:
+	from frappe.email.doctype.email_queue.email_queue import EmailQueue
 
 
 def sendmail_to_system_managers(subject, content):
@@ -101,8 +106,6 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 				results.append([dt])
 
 	return results
-<<<<<<< HEAD
-=======
 
 
 def sendmail(
@@ -249,4 +252,3 @@ def sendmail(
 	if now and q:
 		frappe.db.after_commit.add(q.send)
 	return q
->>>>>>> 3e061b026b (fix(email): ensure CC header visibility according to email semantics (#37182))
