@@ -799,14 +799,24 @@ class InboundMail(Email):
 			return self._reference_document
 
 		reference_document = ""
-		parent = self.parent_email_queue() or self.parent_communication()
+		parent_email_queue = self.parent_email_queue()
+		parent_communication = self.parent_communication()
 
-		if parent and parent.reference_doctype:
+		parent = None
+		if parent_email_queue and parent_email_queue.reference_doctype:
+			parent = parent_email_queue
+		elif parent_communication and parent_communication.reference_doctype:
+			parent = parent_communication
+
+		if parent:
 			reference_doctype, reference_name = parent.reference_doctype, parent.reference_name
 			reference_document = self.get_doc(reference_doctype, reference_name, ignore_error=True)
 
 		if not reference_document and self.email_account.append_to:
 			reference_document = self.match_record_by_subject_and_sender(self.email_account.append_to)
+
+		if not reference_document and self.is_reply_to_system_sent_mail():
+			reference_document = parent_communication
 
 		self._reference_document = reference_document or ""
 		return self._reference_document
