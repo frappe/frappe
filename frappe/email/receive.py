@@ -69,7 +69,10 @@ class EmailServer:
 	def __init__(self, args=None):
 		self.retry_limit = 3
 		self.retry_count = 0
+
 		self.settings = args or frappe._dict()
+		self.pop_timeout = self.settings.timeout or frappe.conf.pop_timeout
+		self.imap_timeout = self.settings.timeout or frappe.conf.imap_timeout
 
 	def connect(self):
 		"""Connect to **Email Account**."""
@@ -82,12 +85,12 @@ class EmailServer:
 				self.imap = imaplib.IMAP4_SSL(
 					self.settings.host,
 					self.settings.incoming_port,
-					timeout=frappe.conf.pop_timeout,
+					timeout=self.imap_timeout,
 					ssl_context=ssl.create_default_context(),
 				)
 			else:
 				self.imap = imaplib.IMAP4(
-					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.pop_timeout
+					self.settings.host, self.settings.incoming_port, timeout=self.imap_timeout
 				)
 
 				if cint(self.settings.use_starttls):
@@ -119,12 +122,12 @@ class EmailServer:
 				self.pop = poplib.POP3_SSL(
 					self.settings.host,
 					self.settings.incoming_port,
-					timeout=frappe.conf.pop_timeout,
+					timeout=self.pop_timeout,
 					context=ssl.create_default_context(),
 				)
 			else:
 				self.pop = poplib.POP3(
-					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.pop_timeout
+					self.settings.host, self.settings.incoming_port, timeout=self.pop_timeout
 				)
 
 			if self.settings.use_oauth:
