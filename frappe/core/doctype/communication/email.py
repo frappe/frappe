@@ -3,7 +3,8 @@
 
 import json
 from collections.abc import Iterable
-from typing import TYPE_CHECKING
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
 import frappe
 import frappe.email.smtp
@@ -27,32 +28,32 @@ if TYPE_CHECKING:
 
 @frappe.whitelist()
 def make(
-	doctype=None,
-	name=None,
-	content=None,
-	subject=None,
-	sent_or_received="Sent",
-	sender=None,
-	sender_full_name=None,
-	recipients=None,
-	communication_medium="Email",
-	send_email=False,
-	print_html=None,
-	print_format=None,
-	attachments=None,
-	send_me_a_copy=False,
-	cc=None,
-	bcc=None,
-	read_receipt=None,
-	print_letterhead=True,
-	email_template=None,
-	communication_type=None,
-	send_after=None,
-	print_language=None,
-	now=False,
-	raw_html=False,
-	add_css=True,
-	in_reply_to=None,
+	doctype: str | None = None,
+	name: str | int | None = None,
+	content: str | None = None,
+	subject: str | None = None,
+	sent_or_received: str = "Sent",
+	sender: str | None = None,
+	sender_full_name: str | None = None,
+	recipients: str | list[str] | None = None,
+	communication_medium: str = "Email",
+	send_email: str | bool | int = False,
+	print_html: str | None = None,
+	print_format: str | None = None,
+	attachments: str | list[str | dict[str, Any]] | None = None,
+	send_me_a_copy: str | int | bool = False,
+	cc: str | list[str] | None = None,
+	bcc: str | list[str] | None = None,
+	read_receipt: str | int | bool | None = None,
+	print_letterhead: int | bool = True,
+	email_template: str | None = None,
+	communication_type: str | None = None,
+	send_after: str | datetime | None = None,
+	print_language: str | None = None,
+	now: int | bool = False,
+	raw_html: int | bool = False,
+	add_css: int | bool = True,
+	in_reply_to: str | None = None,
 	**kwargs,
 ) -> dict[str, str]:
 	"""Make a new communication. Checks for email permissions for specified Document.
