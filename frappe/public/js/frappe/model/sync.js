@@ -127,40 +127,14 @@ Object.assign(frappe.model, {
 				}
 
 				// child table, override each row and append new rows if required
-<<<<<<< HEAD
+				const incoming_names = new Set(doc[fieldname].map((d) => d.name));
 				for (let i = 0; i < doc[fieldname].length; i++) {
 					let d = doc[fieldname][i];
 					let local_d = local_doc[fieldname][i];
-					if (local_d) {
-						// deleted and added again
-						if (!locals[d.doctype]) locals[d.doctype] = {};
-=======
-				const incoming_names = new Set(updated_doc[fieldname].map((d) => d.name));
-				for (let i = 0; i < updated_doc[fieldname].length; i++) {
-					let updated_child_doc = updated_doc[fieldname][i];
-					let local_child_doc_in_parent = local_parent_doc[fieldname][i];
-					const local_child_doc = locals[updated_child_doc.doctype]
-						? locals[updated_child_doc.doctype][updated_child_doc.name]
-						: null;
-					if (local_child_doc) {
-						// update the existing child doc in locals
-						Object.assign(local_child_doc, updated_child_doc);
-						clear_keys(updated_child_doc, local_child_doc);
-						// update parent array reference if needed
-						if (local_child_doc_in_parent !== local_child_doc) {
-							local_parent_doc[fieldname][i] = local_child_doc;
-						}
-						continue;
-					}
-					if (
-						local_child_doc_in_parent &&
-						!incoming_names.has(local_child_doc_in_parent.name)
-					) {
+					if (local_d && !incoming_names.has(local_d.name)) {
 						// row at this position is truly deleted/replaced — safe to
 						// reuse the object for the incoming row
-						if (!locals[updated_child_doc.doctype])
-							locals[updated_child_doc.doctype] = {};
->>>>>>> c605130fbd (fix: prevent child row identity corruption on reorder in update_in_locals (#37280))
+						if (!locals[d.doctype]) locals[d.doctype] = {};
 
 						if (!d.name) {
 							// incoming row is new, find a new name
@@ -169,28 +143,31 @@ Object.assign(frappe.model, {
 
 						// if incoming row is not registered, register it
 						if (!locals[d.doctype][d.name]) {
+							const old_name = local_d.name;
+
 							// detach old key
-							delete locals[d.doctype][local_d.name];
+							delete locals[d.doctype][old_name];
 
 							// re-attach with new name
 							locals[d.doctype][d.name] = local_d;
+
+							// migrate per-row docfield overrides to new name
+							const dc = frappe.meta.docfield_copy[d.doctype];
+							if (dc?.[old_name]) {
+								dc[d.name] = dc[old_name];
+								delete dc[old_name];
+							}
 						}
 
 						// row exists, just copy the values
 						Object.assign(local_d, d);
 						clear_keys(d, local_d);
 					} else {
-<<<<<<< HEAD
-						local_doc[fieldname].push(d);
-						if (!d.parent) d.parent = doc.name;
-						frappe.model.add_to_locals(d);
-=======
 						// row at this position is needed at a different index
 						// (or no row here) — create a fresh local entry
-						local_parent_doc[fieldname][i] = updated_child_doc;
-						if (!updated_child_doc.parent) updated_child_doc.parent = updated_doc.name;
-						frappe.model.add_to_locals(updated_child_doc);
->>>>>>> c605130fbd (fix: prevent child row identity corruption on reorder in update_in_locals (#37280))
+						local_doc[fieldname][i] = d;
+						if (!d.parent) d.parent = doc.name;
+						frappe.model.add_to_locals(d);
 					}
 				}
 
