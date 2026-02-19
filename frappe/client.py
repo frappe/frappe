@@ -26,7 +26,7 @@ Requests via FrappeClient are also handled here.
 @frappe.whitelist()
 def get_list(
 	doctype: str,
-	fields: str | list[str] | None = None,
+	fields: str | list[str | dict[str, Any]] | None = None,
 	filters: str | list | dict[str, Any] | None = None,
 	group_by: str | list[str] | None = None,
 	order_by: str | list[str] | None = None,
@@ -120,7 +120,7 @@ def get(
 @frappe.whitelist()
 def get_value(
 	doctype: str,
-	fieldname: str,
+	fieldname: str | list[str] | dict[str, Any],
 	filters: str | list | dict[str, Any] | None = None,
 	as_dict: int | bool = True,
 	debug: int | bool = False,
@@ -181,7 +181,7 @@ def get_single_value(doctype: str, field: str):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def set_value(doctype: str, name: str | int, fieldname: str, value: Any | None = None):
+def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], value: Any | None = None):
 	"""Set a value using get_doc, group of values
 
 	:param doctype: DocType of the document
