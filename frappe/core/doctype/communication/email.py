@@ -137,12 +137,7 @@ def _make(
 	send_after=None,
 	print_language=None,
 	now=False,
-<<<<<<< HEAD
-=======
-	raw_html=False,
-	add_css=True,
 	in_reply_to=None,
->>>>>>> 786adfd341 (fix(Communication): set `In-Reply-To` (#36746))
 ) -> dict[str, str]:
 	"""Internal method to make a new communication that ignores Permission checks."""
 
