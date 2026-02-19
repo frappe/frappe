@@ -478,13 +478,9 @@ class EmailAccount(Document):
 		return account_details
 
 	def sendmail_config(self):
-<<<<<<< HEAD
-		oauth_token = self.get_oauth_token()
+oauth_token = self.get_oauth_token()
 
-		return {
-=======
 		config = {
->>>>>>> e735ae774e (fix: lower timeout when validating Email Account (#37147))
 			"email_account": self.name,
 			"server": self.smtp_server,
 			"port": cint(self.smtp_port),
