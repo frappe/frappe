@@ -5,10 +5,7 @@ frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlI
 	}
 
 	eval_expression(value) {
-		if (typeof value === "string") {
-			return frappe.utils.eval_expression(value, this.get_number_format());
-		}
-		return value;
+		return super.eval_expression(value, this.get_number_format());
 	}
 
 	format_for_input(value) {

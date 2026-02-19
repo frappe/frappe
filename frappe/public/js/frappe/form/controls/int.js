@@ -14,6 +14,7 @@ frappe.ui.form.ControlInt = class ControlInt extends frappe.ui.form.ControlData 
 	validate(value) {
 		return this.parse(value);
 	}
+<<<<<<< HEAD
 	eval_expression(value) {
 		if (typeof value === "string") {
 			const parsed_components = value.match(/[^\d.,]+|[\d.,]+/g);
@@ -36,6 +37,10 @@ frappe.ui.form.ControlInt = class ControlInt extends frappe.ui.form.ControlData 
 			}
 		}
 		return value;
+=======
+	eval_expression(value, number_format) {
+		return typeof value === "string" ? frappe.utils.eval_expression(value, number_format) : value;
+>>>>>>> fa5cc11c92 (fix: use super.eval_expression in ControlFloat instead of full override)
 	}
 	parse(value) {
 		return cint(this.eval_expression(value), null);
