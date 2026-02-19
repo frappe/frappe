@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-21 10:33\n"
+"PO-Revision-Date: 2026-02-19 19:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Thai\n"
 "MIME-Version: 1.0\n"
@@ -569,7 +569,7 @@ msgstr ""
 #: frappe/core/workspace/users/users.json
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>รายงาน &amp; มาสเตอร์</b></span>"
 
 #. Header text in the Tools Workspace
 #. Header text in the Users Workspace
@@ -578,7 +578,7 @@ msgstr ""
 #: frappe/core/workspace/users/users.json
 #: frappe/website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
-msgstr ""
+msgstr "<span class=\"h4\"><b>ทางลัดของคุณ</b></span>"
 
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -830,17 +830,17 @@ msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:16
 msgid "Accept Invitation"
-msgstr ""
+msgstr "ตอบรับคำเชิญ"
 
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted"
-msgstr ""
+msgstr "ตอบรับแล้ว"
 
 #. Label of a Datetime field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted At"
-msgstr ""
+msgstr "ตอบรับเมื่อ"
 
 #. Label of a Section Break field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -1163,7 +1163,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/grid.js:63
 msgid "Add Multiple"
-msgstr ""
+msgstr "เพิ่มหลายรายการ"
 
 #: frappe/core/page/permission_manager/permission_manager.js:490
 msgid "Add New Permission Rule"
@@ -2576,7 +2576,7 @@ msgstr ""
 #: frappe/public/js/frappe/model/model.js:136
 #: frappe/public/js/frappe/views/interaction.js:82
 msgid "Assigned To"
-msgstr ""
+msgstr "มอบหมายให้"
 
 #: frappe/desk/report/todo/todo.py:40
 msgid "Assigned To/Owner"
@@ -5792,7 +5792,7 @@ msgstr ""
 #: frappe/public/js/frappe/utils/number_systems.js:45
 msgctxt "Number system"
 msgid "Cr"
-msgstr ""
+msgstr "เครดิต"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
@@ -7129,7 +7129,7 @@ msgstr "ลบเอกสารแล้ว"
 #. Label of a Link in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "Deleted Documents"
-msgstr ""
+msgstr "เอกสารที่ถูกลบ"
 
 #. Label of a Data field in DocType 'Deleted Document'
 #: frappe/core/doctype/deleted_document/deleted_document.json
@@ -12678,7 +12678,7 @@ msgstr "นำเข้า"
 #. Label of a shortcut in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
 msgid "Import Data"
-msgstr ""
+msgstr "นำเข้าข้อมูล"
 
 #: frappe/email/doctype/email_group/email_group.js:14
 msgid "Import Email From"
@@ -13572,7 +13572,7 @@ msgstr ""
 #. Label of a Link field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Invited By"
-msgstr ""
+msgstr "ได้รับเชิญโดย"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:22
 msgid "Is"
@@ -16880,11 +16880,11 @@ msgstr "โทเค็นการซิงค์ถัดไป"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:690
 msgid "Next Week"
-msgstr ""
+msgstr "สัปดาห์หน้า"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:706
 msgid "Next Year"
-msgstr ""
+msgstr "ปีหน้า"
 
 #: frappe/public/js/frappe/form/workflow.js:45
 msgid "Next actions"
@@ -21012,7 +21012,7 @@ msgstr "วันที่อ้างอิง"
 #. Label of a Dynamic Link field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Reference Doc"
-msgstr ""
+msgstr "เอกสารอ้างอิง"
 
 #. Label of a Data field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
