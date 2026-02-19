@@ -190,8 +190,7 @@ class EmailAccount(Document):
 					self.no_failed = 0
 
 				if self.enable_outgoing:
-					session = self.validate_smtp_conn()
-					self.validate_dsn(session)
+					self.validate_smtp_conn()
 			else:
 				if self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
 					if not use_oauth:
@@ -224,7 +223,8 @@ class EmailAccount(Document):
 			frappe.throw(_("SMTP Server is required"))
 
 		self.flags.validate_smtp_connection = True
-		self.get_smtp_server().session
+		session = self.get_smtp_server().session
+		self.validate_dsn(session)
 		del self._smtp_server_instance
 
 	def validate_reply_to_addresses(self) -> None:
