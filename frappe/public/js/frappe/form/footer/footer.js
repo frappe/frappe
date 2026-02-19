@@ -40,6 +40,7 @@ frappe.ui.form.Footer = class FormFooter {
 		const needs_scroll = scroll_height > client_height;
 		const is_scrolled = scroll_top > 50;
 		$button.toggleClass("show", needs_scroll && is_scrolled);
+		$button.css("right", frappe.is_mobile() && needs_scroll && is_scrolled ? "20px" : "");
 	}
 	make_comment_box() {
 		this.frm.comment_box = frappe.ui.form.make_control({
