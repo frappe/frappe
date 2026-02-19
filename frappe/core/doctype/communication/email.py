@@ -69,12 +69,7 @@ def make(
 	:param send_me_a_copy: Send a copy to the sender (default **False**).
 	:param email_template: Template which is used to compose mail .
 	:param send_after: Send after the given datetime.
-<<<<<<< HEAD
-=======
-	:param raw_html: Whether to use html version of email template
-	:param add_css: Add default CSS from hooks/email_css to the email template (default **True**)
 	:param in_reply_to: Name of the Communication document to which this communication is a reply.
->>>>>>> 786adfd341 (fix(Communication): set `In-Reply-To` (#36746))
 	"""
 	if kwargs:
 		from frappe.utils.commands import warn
