@@ -177,6 +177,7 @@ def _generate_temporary_login_link(email: str, expiry: int, redirect_to: str | N
 	if redirect_to:
 		from urllib.parse import quote
 
+		redirect_to = sanitize_redirect(redirect_to) or "/"
 		link += f"&redirect-to={quote(redirect_to)}"
 
 	return link
