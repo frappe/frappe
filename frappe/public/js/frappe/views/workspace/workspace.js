@@ -180,6 +180,7 @@ frappe.views.Workspace = class Workspace {
 			this._page = current_page;
 			const me = this;
 			let header_dropdown = `${__(this._page.name)}`;
+<<<<<<< HEAD
 			let menu_items = [
 				{
 					label: "Edit",
@@ -266,6 +267,42 @@ frappe.views.Workspace = class Workspace {
 					});
 					this.add_workspace_controls = true;
 				}
+=======
+			frappe.breadcrumbs.add({
+				type: "Custom",
+				label: header_dropdown,
+				route: "#",
+			});
+			if (!this.add_workspace_controls) {
+				this.workspace_actions_button = this.page.add_action_icon("ellipsis", "", "");
+
+				$(this.workspace_actions_button).removeAttr("data-original-title");
+				$(this.workspace_actions_button).removeClass("btn-default");
+				frappe.ui.create_menu({
+					parent: $(this.workspace_actions_button),
+					open_on_left: true,
+					size: "fit-content",
+					menu_items: [
+						{
+							label: "Edit",
+							icon: "edit",
+							onClick: async () => {
+								if (!this.editor || !this.editor.readOnly) return;
+								this.is_read_only = false;
+								await this.editor.readOnly.toggle();
+								this.editor.isReady.then(() => {
+									this.setup_customization_buttons(this._page);
+									this.make_blocks_sortable();
+								});
+							},
+							condition: () => {
+								return current_page.is_editable;
+							},
+						},
+					],
+				});
+				this.add_workspace_controls = true;
+>>>>>>> 30f65e4909 (fix: dont allow editing workspace on mobile)
 			}
 
 			this.wrapper.find(".workspace-header").hide();
