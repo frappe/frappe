@@ -84,13 +84,14 @@ class UserType(Document):
 				title=_("Permission Error"),
 			)
 
-		if not limit:
-			frappe.throw(
+		if limit is None:
+			frappe.msgprint(
 				_("The limit has not set for the user type {0} in the site config file.").format(
 					frappe.bold(self.name)
 				),
 				title=_("Set Limit"),
 			)
+			return
 
 		if self.user_doctypes and len(self.user_doctypes) > limit:
 			frappe.throw(
