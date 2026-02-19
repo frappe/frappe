@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-15 09:42+0000\n"
-"PO-Revision-Date: 2026-02-18 20:54\n"
+"PO-Revision-Date: 2026-02-19 21:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Burmese\n"
 "MIME-Version: 1.0\n"
@@ -247,7 +247,7 @@ msgstr "မိနစ် 30"
 
 #: frappe/public/js/frappe/form/reminders.js:18
 msgid "4 hours"
-msgstr ""
+msgstr "၄ နာရီ"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:37
 msgid "5 Records"
