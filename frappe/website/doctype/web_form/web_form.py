@@ -785,7 +785,6 @@ def get_form_data(doctype: str, docname: str | None = None, web_form_name: str |
 	return out
 
 
-@frappe.whitelist()
 def get_in_list_view_fields(doctype, web_form_name=None):
 	meta = frappe.get_meta(doctype)
 	fields = []
