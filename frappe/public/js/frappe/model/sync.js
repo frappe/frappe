@@ -140,31 +140,21 @@ Object.assign(frappe.model, {
 						}
 
 						// if incoming row is not registered, register it
-<<<<<<< HEAD
 						if (!locals[d.doctype][d.name]) {
+							const old_name = local_d.name;
+
 							// detach old key
-							delete locals[d.doctype][local_d.name];
+							delete locals[d.doctype][old_name];
 
 							// re-attach with new name
 							locals[d.doctype][d.name] = local_d;
-=======
-						if (!locals[updated_child_doc.doctype][updated_child_doc.name]) {
-							const old_name = local_child_doc_in_parent.name;
-
-							// detach old key
-							delete locals[updated_child_doc.doctype][old_name];
-
-							// re-attach with new name
-							locals[updated_child_doc.doctype][updated_child_doc.name] =
-								local_child_doc_in_parent;
 
 							// migrate per-row docfield overrides to new name
-							const dc = frappe.meta.docfield_copy[updated_child_doc.doctype];
+							const dc = frappe.meta.docfield_copy[d.doctype];
 							if (dc?.[old_name]) {
-								dc[updated_child_doc.name] = dc[old_name];
+								dc[d.name] = dc[old_name];
 								delete dc[old_name];
 							}
->>>>>>> f6df0674e4 (fix: migrate child row docfield_copy on rename in update_in_locals (#37274))
 						}
 
 						// row exists, just copy the values
