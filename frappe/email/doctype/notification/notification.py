@@ -96,7 +96,11 @@ class Notification(Document):
 	# START: PreviewRenderer API
 
 	@frappe.whitelist()
+<<<<<<< HEAD
 	def preview_meets_condition(self, preview_document: str | int):
+=======
+	def preview_meets_condition(self, preview_document: str):
+>>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 		if not self.condition and not self.filters:
 			return _("Yes")
 		try:
@@ -111,7 +115,11 @@ class Notification(Document):
 			return _("Failed to evaluate conditions: {}").format(str(e))
 
 	@frappe.whitelist()
+<<<<<<< HEAD
 	def preview_message(self, preview_document: str | int):
+=======
+	def preview_message(self, preview_document: str):
+>>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
 			context = get_context(doc)
@@ -128,7 +136,11 @@ class Notification(Document):
 			return _("Failed to render message: {}").format(str(e))
 
 	@frappe.whitelist()
+<<<<<<< HEAD
 	def preview_subject(self, preview_document: str | int):
+=======
+	def preview_subject(self, preview_document: str):
+>>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
 			context = get_context(doc)
@@ -779,7 +791,7 @@ def clear_notification_cache():
 
 
 @frappe.whitelist()
-def get_documents_for_today(notification):
+def get_documents_for_today(notification: str):
 	notification = frappe.get_doc("Notification", notification)
 	notification.check_permission("read")
 	return [d.name for d in notification.get_documents_for_today()]

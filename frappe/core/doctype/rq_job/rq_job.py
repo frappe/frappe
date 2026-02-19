@@ -241,7 +241,7 @@ def get_all_queued_jobs():
 
 
 @frappe.whitelist()
-def stop_job(job_id):
+def stop_job(job_id: str):
 	frappe.get_doc("RQ Job", job_id).stop_job()
 
 

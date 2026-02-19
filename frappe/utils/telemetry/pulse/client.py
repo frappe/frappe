@@ -1,4 +1,12 @@
+<<<<<<< HEAD
 from typing import Any
+=======
+import time
+from contextlib import suppress
+from typing import Any
+
+from orjson import JSONDecodeError
+>>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 
 import frappe
 
@@ -20,6 +28,7 @@ def is_enabled() -> bool:
 	return bool(not frappe.conf.get("developer_mode", 0) and frappe.get_system_settings("enable_telemetry"))
 
 
+<<<<<<< HEAD
 @frappe.whitelist(allow_guest=True)
 def boot_config() -> dict:
 	"""Direct-mode config for the browser client.
@@ -73,6 +82,17 @@ def capture(
 	interval: int | str | None = None,
 	*,
 	site: str | None = None,
+=======
+@frappe.whitelist()
+def capture(
+	event_name: str,
+	site: str | None = None,
+	app: str | None = None,
+	user: str | None = None,
+	captured_at: str | None = None,
+	properties: dict[str, Any] | None = None,
+	interval: int | str | None = None,
+>>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 ):
 	if not is_enabled():
 		return
@@ -98,6 +118,7 @@ def capture(
 		frappe.logger("pulse").error(f"pulse-client - capture failed: {e!s}")
 
 
+<<<<<<< HEAD
 def identify(properties: str | dict[str, Any] | None = None):
 	"""Attach attributes to the account team — upserts its Pulse profile.
 
@@ -109,6 +130,11 @@ def identify(properties: str | dict[str, Any] | None = None):
 	"""
 	team = frappe.conf.get("fc_team")
 	if not is_enabled() or not team:
+=======
+@frappe.whitelist()
+def bulk_capture(events: str | list[dict[str, Any]]):
+	if not is_enabled():
+>>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 		return
 
 	if isinstance(properties, str):

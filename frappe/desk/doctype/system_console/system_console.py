@@ -51,7 +51,7 @@ class SystemConsole(Document):
 
 
 @frappe.whitelist(methods=["POST"])
-def execute_code(doc):
+def execute_code(doc: str):
 	console = frappe.get_doc(json.loads(doc))
 	console.run()
 	return console.as_dict()
