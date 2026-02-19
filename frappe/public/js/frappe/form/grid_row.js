@@ -777,9 +777,7 @@ export default class GridRow {
 			}
 		});
 
-		let current_grid = $(
-			`div[data-fieldname="${this.grid.df.fieldname}"] .form-grid-container`
-		);
+		let current_grid = this.grid.wrapper.find(".form-grid-container");
 		if (total_colsize > 10) {
 			current_grid.addClass("column-limit-reached");
 		} else if (current_grid.hasClass("column-limit-reached")) {
