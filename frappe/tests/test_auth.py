@@ -166,6 +166,7 @@ class TestAuth(IntegrationTestCase):
 		user = self.test_user_email
 		redirect_to = "/app/todo"
 
+		frappe.local.request = Request(EnvironBuilder(base_url=self.HOST_NAME).get_environ())
 		link = _generate_temporary_login_link(user, 10, redirect_to=redirect_to)
 		self.assertIn("redirect-to", link)
 
@@ -178,6 +179,7 @@ class TestAuth(IntegrationTestCase):
 		"""Login via magic link should not redirect to an external URL."""
 		user = self.test_user_email
 
+		frappe.local.request = Request(EnvironBuilder(base_url=self.HOST_NAME).get_environ())
 		link = _generate_temporary_login_link(user, 10, redirect_to="https://evil.com/steal")
 		res = requests.get(link, allow_redirects=False)
 		# Should still log in successfully but not redirect to the external URL
