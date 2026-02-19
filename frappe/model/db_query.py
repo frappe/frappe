@@ -677,8 +677,14 @@ from {tables}
 		if ignore_permissions is not None:
 			self.flags.ignore_permissions = ignore_permissions
 
+		if isinstance(filters, dict):
+			filters = [filters]
+
 		for f in filters:
-			conditions.append(self.prepare_filter_condition(f))
+			if isinstance(f, str):
+				conditions.append(f)
+			else:
+				conditions.append(self.prepare_filter_condition(f))
 
 	def remove_field(self, idx: int):
 		if self.as_list:
