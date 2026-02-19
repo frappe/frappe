@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-15 09:42+0000\n"
-"PO-Revision-Date: 2026-02-16 19:56\n"
+"PO-Revision-Date: 2026-02-18 20:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Cyrillic)\n"
 "MIME-Version: 1.0\n"
@@ -1415,7 +1415,7 @@ msgstr "Додај видео-конференцију"
 #. Label of the add_x_original_from (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Add X-Original-From header"
-msgstr ""
+msgstr "Додај заглавље X-Original-From"
 
 #: frappe/public/js/frappe/ui/filters/filter_list.js:299
 msgid "Add a Filter"
@@ -6453,7 +6453,7 @@ msgstr "Прилагоди поље обрасца"
 #: frappe/public/js/frappe/list/list_view.js:1997
 msgctxt "Customize qucik filters of List View"
 msgid "Customize Quick Filters"
-msgstr ""
+msgstr "Прилагоди брзе филтере"
 
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -24636,7 +24636,7 @@ msgstr "Прикажи контролну таблу"
 #. Label of the show_description_on_click (Check) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "Show Description on Click"
-msgstr ""
+msgstr "Прикажи опис на клик"
 
 #. Label of the show_document (Button) field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json

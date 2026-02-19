@@ -313,6 +313,8 @@
 
 		.link-btn {
 			background-color: var(--bg-color);
+			height: calc(100% - 4px);
+			margin-top: 2px;
 		}
 
 		.form-control:focus {

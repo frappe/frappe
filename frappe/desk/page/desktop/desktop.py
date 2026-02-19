@@ -14,7 +14,8 @@ def get_context(context):
 		brand_logo = frappe.get_hooks("app_logo_url", app_name="frappe")[0]
 	context.brand_logo = brand_logo
 	try:
-		context.desktop_layout = frappe.get_doc("Desktop Layout", frappe.session.user).layout or {}
+		layout = frappe.get_doc("Desktop Layout", frappe.session.user).layout
+		context.desktop_layout = layout if layout else "[]"
 	except frappe.DoesNotExistError:
 		frappe.clear_last_message()
 		context.desktop_layout = {}

@@ -500,31 +500,72 @@
     justify-content: center;
 }
 
-.title-widget{
-    display: inline-block;
+.title-widget {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.5rem;
+    cursor: text;
     position: relative;
 }
 
-.title-input-label{
-  position: absolute;
-  top: 0px;
-  color: var(--neutral-white);
-  line-height: 22px;
-  z-index: 1;
-  pointers-events: none;
-  width: 100%;
-    text-align: center;
-}
-.title-input-wrapper{
-    position: relative;
-    display: inline-block;
-
+.title-widget--read-only {
+    cursor: default;
 }
 
-.title-input-wrapper input{
-  border: 1px solid transparent;
-  width: 100%;
-  height: 100%;
-  background: none;
+.title-widget--editable:hover .title-input-label {
+    opacity: 0.9;
+}
+
+.desktop-modal-heading .title-widget--read-only .title-input-label:hover {
+    background-color: transparent;
+}
+
+.desktop-modal-heading .title-widget .title-input-label {
     color: var(--neutral-white);
+    font-size: var(--text-2xl);
+    line-height: 1.3;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+}
+
+.desktop-modal-heading .title-widget--editable:hover .title-input-label {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.title-input-wrapper {
+    display: inline-block;
+    min-width: 80px;
+}
+
+.desktop-modal-heading .title-input-wrapper .title-input {
+    color: var(--neutral-white);
+    font-size: var(--text-2xl);
+    line-height: 1.3;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+    padding: 2px 8px;
+    outline: none;
+    min-width: 80px;
+    box-sizing: border-box;
+}
+
+.desktop-modal-heading .title-input-wrapper .title-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.desktop-modal-heading .title-input-wrapper .title-input:focus {
+    border-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.title-input-mirror {
+    position: absolute;
+    visibility: hidden;
+    white-space: pre;
+    font-size: var(--text-2xl);
+    font-family: inherit;
+    padding: 0 4px;
 }

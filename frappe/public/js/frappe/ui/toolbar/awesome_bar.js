@@ -27,8 +27,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			setTimeout(() => input.focus(), 10);
 		});
 
-		let search_modal_body = `<div class="align-baseline flex py-2 px-1 relative navbar-modal-wrapper">
-			<div class="modal-search-icon absolute pr-2 pl-2">${frappe.utils.icon("search")}</div>
+		let search_modal_body = `<div class="align-baseline flex p-2 relative navbar-modal-wrapper">
 			<input
 				id="navbar-search"
 				type="text"
@@ -41,16 +40,18 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		let search_modal_footer = `<div class="awesomebar-modal-footer flex justify-between w-100">
 			<div class="help-navigation">
 				<span class="help-item-navigate">
-					<span class="help-item">${frappe.utils.icon("arrow-up")}</span>
-					<span class="help-item">${frappe.utils.icon("arrow-down")}</span>
+					<span class="help-item">${frappe.utils.icon("arrow-up", "xs")}</span>
+					<span class="help-item">${frappe.utils.icon("arrow-down", "xs")}</span>
 					<span>${__("to navigate")}</span>
 				</span>
 				<span class="help-item-navigate">
-					<span class="help-item">${frappe.utils.icon("corner-down-left")}</span>
+					<span class="help-item">${frappe.utils.icon("corner-down-left", "xs")}</span>
 					<span>${__("to select")}</span>
 				</span>
-				<span class="help-item help-item-esc">${__("esc")}</span>
-				<span>${__("to close")}</span>
+				<span class="help-item-navigate">
+					<span class="help-item help-item-escape">${__("esc")}</span>
+					<span>${__("to close")}</span>
+				</span>
 			</div>
 			<div class="pointer">${frappe.utils.icon("circle-question-mark")}</div>
 		</div>`;
@@ -219,45 +220,20 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	}
 
 	show_help() {
-		const txt =
-			'<table class="table table-bordered">\
-			<tr><td style="width: 50%">' +
-			__("Create a new record") +
-			"</td><td>" +
-			__("new type of document") +
-			"</td></tr>\
-			<tr><td>" +
-			__("List a document type") +
-			"</td><td>" +
-			__("document type..., e.g. customer") +
-			"</td></tr>\
-			<tr><td>" +
-			__("Search in a document type") +
-			"</td><td>" +
-			__("text in document type") +
-			"</td></tr>\
-			<tr><td>" +
-			__("Tags") +
-			"</td><td>" +
-			__("tag name..., e.g. #tag") +
-			"</td></tr>\
-			<tr><td>" +
-			__("Open a module or tool") +
-			"</td><td>" +
-			__("module name...") +
-			"</td></tr>\
-			<tr><td>" +
-			__("Open in new tab") +
-			"</td><td>" +
-			(frappe.utils.is_mac() ? "⌘ + Enter" : "Ctrl + Enter") +
-			"</td></tr>\
-			<tr><td>" +
-			__("Calculate") +
-			"</td><td>" +
-			__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...") +
-			"</td></tr>\
-		</table>";
-		frappe.msgprint(txt, __("Search Help"));
+		const help_data = [
+			[__("Create a new record"), __("new type of document")],
+			[__("List a document type"), __("document type..., e.g. customer")],
+			[__("Search in a document type"), __("text in document type")],
+			[__("Tags"), __("tag name..., e.g. #tag")],
+			[__("Open a module or tool"), __("module name...")],
+			[__("Open in new tab"), frappe.utils.is_mac() ? "⌘ + Enter" : "Ctrl + Enter"],
+			[__("Calculate"), __("e.g. (55 + 434) / 4")],
+		];
+		frappe.msgprint({
+			message: help_data,
+			title: __("Search Help"),
+			as_table: true,
+		});
 	}
 
 	set_specifics(txt, end_txt) {

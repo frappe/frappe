@@ -58,8 +58,10 @@ class EmailAccount(Document):
 
 	if TYPE_CHECKING:
 		from frappe.email.doctype.imap_folder.imap_folder import IMAPFolder
+		from frappe.email.doctype.reply_to_address.reply_to_address import ReplyToAddress
 		from frappe.types import DF
 
+		add_reply_to_header: DF.Check
 		add_signature: DF.Check
 		add_x_original_from: DF.Check
 		always_bcc: DF.Data | None
@@ -102,6 +104,7 @@ class EmailAccount(Document):
 		no_smtp_authentication: DF.Check
 		notify_if_unreplied: DF.Check
 		password: DF.Password | None
+		reply_to_addresses: DF.Table[ReplyToAddress]
 		send_notification_to: DF.SmallText | None
 		send_unsubscribe_message: DF.Check
 		sent_folder_name: DF.Data | None
@@ -179,6 +182,7 @@ class EmailAccount(Document):
 		):
 			if validate_oauth or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
+					self.flags.validate_imap_pop_connection = True
 					self.get_incoming_server()
 					self.no_failed = 0
 
@@ -202,6 +206,9 @@ class EmailAccount(Document):
 					if folder.append_to not in valid_doctypes:
 						frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
+		if self.enable_outgoing:
+			self.validate_reply_to_addresses()
+
 	@frappe.whitelist()
 	def validate_frappe_mail_settings(self):
 		if self.service == "Frappe Mail":
@@ -212,8 +219,15 @@ class EmailAccount(Document):
 		if not self.smtp_server:
 			frappe.throw(_("SMTP Server is required"))
 
-		server = self.get_smtp_server()
-		return server.session
+		self.flags.validate_smtp_connection = True
+		self.get_smtp_server().session
+		del self._smtp_server_instance
+
+	def validate_reply_to_addresses(self) -> None:
+		for reply_to in self.reply_to_addresses:
+			if not reply_to.email:
+				frappe.throw(_("Reply To email is required"))
+			validate_email_address(reply_to.email, True)
 
 	def before_save(self):
 		messages = []
@@ -303,6 +317,9 @@ class EmailAccount(Document):
 
 		if not args.get("host"):
 			frappe.throw(_("{0} is required").format("Email Server"))
+
+		if self.flags.validate_imap_pop_connection:
+			args.timeout = 15
 
 		email_server = EmailServer(frappe._dict(args))
 		self.check_email_server_connection(email_server, in_receive)
@@ -507,7 +524,7 @@ class EmailAccount(Document):
 		return oauth_token.get_password("access_token") if oauth_token else None
 
 	def sendmail_config(self):
-		return {
+		config = {
 			"email_account": self.name,
 			"server": self.smtp_server,
 			"port": cint(self.smtp_port),
@@ -518,6 +535,11 @@ class EmailAccount(Document):
 			"use_oauth": self.auth_method == "OAuth",
 			"access_token": self.get_access_token(),
 		}
+
+		if self.flags.validate_smtp_connection:
+			config["timeout"] = 15
+
+		return config
 
 	def get_smtp_server(self):
 		"""Get SMTPServer (wrapper around actual smtplib object) for this account.

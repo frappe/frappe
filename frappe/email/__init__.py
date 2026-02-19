@@ -158,33 +158,35 @@ def sendmail(
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
-	:param recipients: List of recipients.
-	:param sender: Email sender. Default is current user or default outgoing account.
-	:param subject: Email Subject.
-	:param message: (or `content`) Email Content.
-	:param as_markdown: Convert content markdown to HTML.
-	:param delayed: Send via scheduled email sender **Email Queue**. Don't send immediately. Default is true
-	:param send_priority: Priority for Email Queue, default 1.
-	:param reference_doctype: (or `doctype`) Append as communication to this DocType.
-	:param reference_name: (or `name`) Append as communication to this document name.
-	:param unsubscribe_method: Unsubscribe url with options email, doctype, name. e.g. `/api/method/unsubscribe`
-	:param unsubscribe_params: Unsubscribe paramaters to be loaded on the unsubscribe_method [optional] (dict).
-	:param attachments: List of attachments.
-	:param reply_to: Reply-To Email Address.
-	:param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
-	:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
-	:param send_after: Send after the given datetime.
-	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
-	:param communication: Communication link to be set in Email Queue record
-	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
-	:param template: Name of html template from templates/emails folder
-	:param args: Arguments for rendering the template
-	:param header: Append header in email
-	:param with_container: Wraps email inside a styled container
-	:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
-	:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
-	:param raw_html: Whether to treat email template as a complete HTML file
-	:param add_css: Whether to add CSS from hooks/email_css to the email template
+	    :param recipients: List of recipients.
+	    :param sender: Email sender. Default is current user or default outgoing account.
+	    :param subject: Email Subject.
+	    :param message: (or `content`) Email Content.
+	    :param as_markdown: Convert content markdown to HTML.
+	    :param delayed: Send via scheduled email sender **Email Queue**. Don't send immediately. Default is true
+	    :param send_priority: Priority for Email Queue, default 1.
+	    :param reference_doctype: (or `doctype`) Append as communication to this DocType.
+	    :param reference_name: (or `name`) Append as communication to this document name.
+	    :param unsubscribe_method: Unsubscribe url with options email, doctype, name. e.g. `/api/method/unsubscribe`
+	    :param unsubscribe_params: Unsubscribe paramaters to be loaded on the unsubscribe_method [optional] (dict).
+	    :param attachments: List of attachments.
+	    :param reply_to: Reply-To Email Address.
+	    :param message_id: Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.
+	    :param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
+	    :param send_after: Send after the given datetime.
+	    :param expose_recipients: Controls recipient visibility. "header" shows all TO recipients in the To header.
+	"footer" adds "This email was sent to..." text in footer. None (default) hides TO recipients from each other.
+	Note: CC header is always visible regardless of this setting (as per email semantics).
+	    :param communication: Communication link to be set in Email Queue record
+	    :param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
+	    :param template: Name of html template from templates/emails folder
+	    :param args: Arguments for rendering the template
+	    :param header: Append header in email
+	    :param with_container: Wraps email inside a styled container
+	    :param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
+	    :param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
+	    :param raw_html: Whether to treat email template as a complete HTML file
+	    :param add_css: Whether to add CSS from hooks/email_css to the email template
 	"""
 
 	from frappe.utils.jinja import get_email_from_template

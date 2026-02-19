@@ -59,5 +59,17 @@ def save_layout(user: str, layout: str, new_icons: str):
 
 
 @frappe.whitelist()
+def get_layout():
+	"""Return the current user's saved desktop layout. Used on desk load to avoid stale cached HTML."""
+	try:
+		doc = frappe.get_doc("Desktop Layout", frappe.session.user)
+		if doc.layout:
+			return json.loads(doc.layout)
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
+	return None
+
+
+@frappe.whitelist()
 def delete_layout():
 	return frappe.delete_doc_if_exists("Desktop Layout", frappe.session.user)
