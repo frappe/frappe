@@ -9,6 +9,7 @@ import re
 from email import policy
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
+from email.utils import formataddr
 from typing import TYPE_CHECKING
 
 import frappe
@@ -25,6 +26,7 @@ from frappe.utils import (
 	split_emails,
 	strip,
 	to_markdown,
+	validate_email_address,
 )
 from frappe.utils.pdf import get_pdf
 
@@ -268,13 +270,12 @@ class EMail:
 
 	def validate(self):
 		"""validate the Email Addresses"""
-		from frappe.utils import validate_email_address
 
 		if not self.sender:
 			self.sender = self.email_account.default_sender
 
 		validate_email_address(strip(self.sender), True)
-		self.reply_to = validate_email_address(strip(self.reply_to) or self.sender, True)
+		self.validate_reply_to()
 
 		if self.email_account.add_x_original_from:
 			self.set_header("X-Original-From", self.sender)
@@ -288,6 +289,23 @@ class EMail:
 
 		for e in self.recipients + (self.cc or []) + (self.bcc or []):
 			validate_email_address(e, True)
+
+	def validate_reply_to(self) -> None:
+		if not self.email_account.add_reply_to_header:
+			self.reply_to = None
+			return
+
+		if self.email_account.reply_to_addresses:
+			valid_addresses = [
+				formataddr((reply_to._name, reply_to.email))
+				for reply_to in self.email_account.reply_to_addresses
+				if reply_to.email and validate_email_address(reply_to.email, True)
+			]
+			self.reply_to = ", ".join(valid_addresses) if valid_addresses else None
+			return
+
+		fallback = strip(self.reply_to) or self.sender
+		self.reply_to = validate_email_address(fallback, True)
 
 	def replace_sender(self):
 		if cint(self.email_account.always_use_account_email_id_as_sender):

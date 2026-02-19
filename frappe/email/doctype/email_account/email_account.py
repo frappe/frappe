@@ -58,8 +58,10 @@ class EmailAccount(Document):
 
 	if TYPE_CHECKING:
 		from frappe.email.doctype.imap_folder.imap_folder import IMAPFolder
+		from frappe.email.doctype.reply_to_address.reply_to_address import ReplyToAddress
 		from frappe.types import DF
 
+		add_reply_to_header: DF.Check
 		add_signature: DF.Check
 		add_x_original_from: DF.Check
 		always_bcc: DF.Data | None
@@ -102,6 +104,7 @@ class EmailAccount(Document):
 		no_smtp_authentication: DF.Check
 		notify_if_unreplied: DF.Check
 		password: DF.Password | None
+		reply_to_addresses: DF.Table[ReplyToAddress]
 		send_notification_to: DF.SmallText | None
 		send_unsubscribe_message: DF.Check
 		sent_folder_name: DF.Data | None
@@ -202,6 +205,9 @@ class EmailAccount(Document):
 					if folder.append_to not in valid_doctypes:
 						frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
+		if self.enable_outgoing:
+			self.validate_reply_to_addresses()
+
 	@frappe.whitelist()
 	def validate_frappe_mail_settings(self):
 		if self.service == "Frappe Mail":
@@ -214,6 +220,12 @@ class EmailAccount(Document):
 
 		server = self.get_smtp_server()
 		return server.session
+
+	def validate_reply_to_addresses(self) -> None:
+		for reply_to in self.reply_to_addresses:
+			if not reply_to.email:
+				frappe.throw(_("Reply To email is required"))
+			validate_email_address(reply_to.email, True)
 
 	def before_save(self):
 		messages = []
