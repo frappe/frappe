@@ -478,7 +478,7 @@ class EmailAccount(Document):
 		return account_details
 
 	def sendmail_config(self):
-oauth_token = self.get_oauth_token()
+	oauth_token = self.get_oauth_token()
 
 		config = {
 			"email_account": self.name,
