@@ -177,6 +177,9 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		this.full_template = $(this.wrapper);
 	}
 	make() {
+		if (this.nested_items.length == 0) {
+			return;
+		}
 		super.make();
 		if (!this.item.nested_items || this.item.nested_items.length == 0) return;
 		this.add_items();

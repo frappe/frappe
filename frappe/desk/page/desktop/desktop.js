@@ -174,8 +174,6 @@ class DesktopPage {
 		this.page = page;
 		this.edit_mode = false;
 		this.desktop_menu_items = [];
-		this.make(this.page);
-		this.setup();
 	}
 	update() {
 		this.make(this.page);
