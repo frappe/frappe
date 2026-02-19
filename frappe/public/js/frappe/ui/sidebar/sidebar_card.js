@@ -22,17 +22,18 @@ frappe.ui.SidebarCard = class SidebarCard {
 		if (!this.icon) {
 			this.icon = "info";
 		}
-		if (this.dismiss_it_for) {
-			const next_time_for_show = localStorage.getItem(this.get_dismiss_key());
-			if (next_time_for_show && Date.now() < Number(next_time_for_show)) {
-				this.hide();
-			}
-		}
 		this.card = $(
 			frappe.render_template("sidebar_card", {
 				card: this,
 			})
 		);
+		if (this.dismiss_it_for) {
+			const next_time_for_show = localStorage.getItem(this.get_dismiss_key());
+			if (next_time_for_show && Date.now() < Number(next_time_for_show)) {
+				this.hide();
+				return;
+			}
+		}
 		if (this.popper) {
 			this.popper = createPopper($(this.trigger).get(0), $(this.parent).get(0), {
 				modifiers: [
