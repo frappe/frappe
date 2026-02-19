@@ -522,12 +522,11 @@ export default class Grid {
 			this.grid_rows = [];
 		}
 
-		this.truncate_rows();
 		/** @type {Record<string, GridRow>} */
 		this.grid_rows_by_docname = {};
 
 		this.grid_pagination.update_page_numbers();
-		this.render_result_rows($rows, false);
+		this.render_result_rows($rows);
 		this.grid_pagination.check_page_number();
 		this.wrapper.find(".grid-empty").toggleClass("hidden", Boolean(this.data.length));
 
@@ -553,14 +552,30 @@ export default class Grid {
 		this.wrapper.trigger("change");
 	}
 
-	render_result_rows($rows, append_row) {
+	render_result_rows($rows) {
+		if (!$rows) {
+			$rows = $(this.parent).find(".rows");
+		}
+
 		let result_length = this.grid_pagination.get_result_length();
 		let page_index = this.grid_pagination.page_index;
 		let page_length = this.grid_pagination.page_length;
+		let page_start = (page_index - 1) * page_length;
 		if (!this.grid_rows) {
 			return;
 		}
-		for (var ri = (page_index - 1) * page_length; ri < result_length; ri++) {
+
+		// index existing rows by doc object reference for identity-based matching
+		let rows_by_doc = new Map();
+		for (let row of this.grid_rows) {
+			if (row?.doc) {
+				rows_by_doc.set(row.doc, row);
+			}
+		}
+
+		let matched_rows = new Set();
+
+		for (var ri = page_start; ri < result_length; ri++) {
 			var d = this.data[ri];
 			if (!d) {
 				return;
@@ -571,10 +586,10 @@ export default class Grid {
 			if (d.name === undefined) {
 				d.name = this.get_random_name();
 			}
-			let grid_row;
-			if (this.grid_rows[ri] && !append_row) {
-				grid_row = this.grid_rows[ri];
-				grid_row.update_doc(d);
+
+			let grid_row = rows_by_doc.get(d);
+			if (grid_row) {
+				matched_rows.add(grid_row);
 				grid_row.refresh();
 			} else {
 				grid_row = new GridRow({
@@ -585,10 +600,43 @@ export default class Grid {
 					frm: this.frm,
 					grid: this,
 				});
-				this.grid_rows[ri] = grid_row;
 			}
-
+			this.grid_rows[ri] = grid_row;
 			this.grid_rows_by_docname[d.name] = grid_row;
+		}
+
+		// remove stale / invisible rows
+		for (let [, row] of rows_by_doc) {
+			if (!matched_rows.has(row)) {
+				row.wrapper.remove();
+			}
+		}
+
+		// reorder DOM from the first mismatch onward
+		let $children = $rows.children();
+		let page_count = result_length - page_start;
+		let reorder_from = -1;
+		for (let i = 0; i < page_count; i++) {
+			if ($children.get(i) !== this.grid_rows[page_start + i].wrapper.get(0)) {
+				reorder_from = i;
+				break;
+			}
+		}
+		if (reorder_from >= 0) {
+			for (let ri = page_start + reorder_from; ri < result_length; ri++) {
+				$rows.append(this.grid_rows[ri].wrapper);
+			}
+		}
+
+		// clear non-visible slots to prevent duplicates and stale references
+		for (let i = 0; i < this.grid_rows.length; i++) {
+			if (i < page_start || i >= result_length) {
+				delete this.grid_rows[i];
+			}
+		}
+
+		if (this.grid_rows.length > this.data.length) {
+			this.grid_rows.length = this.data.length;
 		}
 	}
 
@@ -625,17 +673,6 @@ export default class Grid {
 		this.wrapper
 			.find(".grid-add-row, .grid-add-multiple-rows, .grid-upload")
 			.toggle(this.is_editable());
-	}
-
-	truncate_rows() {
-		if (this.grid_rows.length > this.data.length) {
-			// remove extra rows
-			for (var i = this.data.length; i < this.grid_rows.length; i++) {
-				var grid_row = this.grid_rows[i];
-				if (grid_row) grid_row.wrapper.remove();
-			}
-			this.grid_rows.splice(this.data.length);
-		}
 	}
 
 	setup_fields() {
@@ -1333,7 +1370,9 @@ export default class Grid {
 		}
 
 		for (let row of this.grid_rows) {
-			let docfield = row?.docfields?.find((d) => d.fieldname === fieldname);
+			if (!row) continue;
+
+			let docfield = row.docfields?.find((d) => d.fieldname === fieldname);
 			if (docfield) {
 				docfield[property] = value;
 			} else {
@@ -1357,7 +1396,7 @@ export default class Grid {
 	get_current_row(target) {
 		let current_row = null;
 		for (let i = 0; i < this.grid_rows.length; i++) {
-			if (this.grid_rows[i].wrapper.get(0).contains(target)) {
+			if (this.grid_rows[i]?.wrapper.get(0).contains(target)) {
 				current_row = i;
 			}
 		}
