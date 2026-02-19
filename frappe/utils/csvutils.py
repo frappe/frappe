@@ -3,6 +3,7 @@
 import csv
 import json
 from io import StringIO
+from typing import Any
 
 import requests
 
@@ -79,7 +80,7 @@ def read_csv_content(fcontent):
 
 
 @frappe.whitelist()
-def send_csv_to_client(args):
+def send_csv_to_client(args: str | dict[str, Any]):
 	if isinstance(args, str):
 		args = json.loads(args)
 

@@ -41,6 +41,7 @@ class WebPageView(Document):
 
 @frappe.whitelist(allow_guest=True)
 def make_view_log(
+<<<<<<< HEAD
 	referrer=None,
 	browser=None,
 	version=None,
@@ -49,6 +50,17 @@ def make_view_log(
 	campaign=None,
 	medium=None,
 	visitor_id=None,
+=======
+	referrer: str | None = None,
+	browser: str | None = None,
+	version: str | None = None,
+	user_tz: str | None = None,
+	source: str | None = None,
+	campaign: str | None = None,
+	medium: str | None = None,
+	content: str | None = None,
+	visitor_id: str | None = None,
+>>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 ):
 	if not is_tracking_enabled():
 		return
@@ -98,7 +110,12 @@ def make_view_log(
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def get_page_view_count(path):
+=======
+@redis_cache(ttl=5 * 60)
+def get_page_view_count(path: str):
+>>>>>>> 08793c57f7 (fix: force type check in whitelisted methods 2 (#37086))
 	return frappe.db.count("Web Page View", filters={"path": path})
 
 
