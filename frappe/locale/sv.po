@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-17 18:50\n"
+"PO-Revision-Date: 2026-02-19 19:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -14161,7 +14161,7 @@ msgstr "Anslag Tavla"
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: frappe/public/js/frappe/widgets/widget_dialog.js:488
 msgid "Kanban Board"
-msgstr "Anslag Tavla"
+msgstr "Anslagstavla"
 
 #. Name of a DocType
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
