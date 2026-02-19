@@ -57,7 +57,6 @@ class Notification(Document):
 			"Minutes Before",
 			"Value Change",
 			"Method",
-			"Custom",
 		]
 		filters: DF.Code | None
 		from_attach_field: DF.Literal[None]
