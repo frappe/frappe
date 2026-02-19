@@ -62,7 +62,7 @@ def current_site_info():
 
 
 @frappe.whitelist()
-def api(method: str, data: dict[str, Any] | None = None):
+def api(method: str, data: str | dict[str, Any] | None = None):
 	if data is None:
 		data = {}
 	request = requests.post(
