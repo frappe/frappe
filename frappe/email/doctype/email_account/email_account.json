@@ -65,7 +65,6 @@
   "always_use_account_email_id_as_sender",
   "always_use_account_name_as_sender_name",
   "send_unsubscribe_message",
-  "add_x_original_from",
   "track_email_status",
   "headers_section",
   "column_break_mcbu",
