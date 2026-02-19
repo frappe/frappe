@@ -75,7 +75,9 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				action: () => this.set_route("dashboard"),
 			},
 			Calendar: {
-				condition: frappe.views.calendar[this.doctype],
+				condition:
+					frappe.views.calendar[this.doctype] ||
+					frappe.get_meta(this.doctype).is_calendar_and_gantt,
 				action: () => this.set_route("calendar", "default"),
 				current_view_handler: () => {
 					this.get_calendars().then((calendars) => {
@@ -84,7 +86,9 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				},
 			},
 			Gantt: {
-				condition: frappe.views.calendar[this.doctype],
+				condition:
+					frappe.views.calendar[this.doctype] ||
+					frappe.get_meta(this.doctype).is_calendar_and_gantt,
 				action: () => this.set_route("gantt"),
 			},
 			Inbox: {

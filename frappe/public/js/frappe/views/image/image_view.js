@@ -33,7 +33,6 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 	prepare_data(data) {
 		super.prepare_data(data);
 		this.items = this.data.map((d) => {
-			// absolute url if cordova, else relative
 			d._image_url = this.get_image_url(d);
 			return d;
 		});

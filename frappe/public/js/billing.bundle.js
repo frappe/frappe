@@ -19,11 +19,7 @@ $(document).ready(function () {
 				isFCUser = response.is_fc_user;
 
 				if (response.trial_end_date && trial_end_date > new Date()) {
-					if ($(".layout-main-section").closest("#page-desktop").length === 0) {
-						$(".layout-main-section").before(
-							generateTrialSubscriptionBanner(response.trial_end_date)
-						);
-					}
+					addManageTrialBannerDesktop(response.trial_end_date);
 				}
 				addManageBillingDropdown();
 
@@ -39,13 +35,28 @@ function setErrorMessage(message) {
 	$("#fc-login-error").text(message);
 }
 
+function addManageTrialBannerDesktop(trial_end_date) {
+	$(document).on("desktop_screen", function (event, data) {
+		const icons_container = data.desktop.wrapper.find(".icons-container").first();
+
+		$(".desktop-container").before(
+			generateTrialSubscriptionBanner(trial_end_date).css({
+				width: icons_container.width(),
+				margin: "auto",
+				padding: "20px 20px 0px",
+			})
+		);
+		icons_container.css("margin-top", "40px");
+	});
+}
+
 function addManageBillingDropdown() {
 	$(document).on("desktop_screen", function (event, data) {
 		data.desktop.add_menu_item({
 			label: __("Manage Billing"),
 			icon: "receipt-text",
 			condition: function () {
-				return frappe.boot.sysdefaults.demo_company;
+				return frappe.boot.is_fc_site;
 			},
 			onClick: function () {
 				return openFrappeCloudDashboard();
@@ -65,7 +76,7 @@ function generateTrialSubscriptionBanner(trialEndDate) {
 	const trial_end_string =
 		trial_end_days > 1 ? `${trial_end_days} days` : `${trial_end_days} day`;
 
-	return $(`
+	return $(`<div>
 			<style>
 				.trial-banner {
 					display: flex;
@@ -143,5 +154,5 @@ function generateTrialSubscriptionBanner(trialEndDate) {
 						: ""
 				}
 			</div>
-`);
+</div>`);
 }

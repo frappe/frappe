@@ -316,7 +316,8 @@ class SendMailContext:
 		recipient.update_db(status="Sent", commit=True)
 
 	def get_message_object(self, message):
-		return Parser(policy=SMTP).parsestr(message)
+		policy = SMTP.clone(refold_source="none")
+		return Parser(policy=policy).parsestr(message)
 
 	def message_placeholder(self, placeholder_key):
 		# sourcery skip: avoid-builtin-shadow
@@ -469,7 +470,7 @@ def retry_sending(queues: str | list[str]):
 
 
 @frappe.whitelist()
-def send_now(name, force_send: bool = False):
+def send_now(name: str | int, force_send: bool = False):
 	record = EmailQueue.find(name)
 	if record:
 		record.check_permission()
@@ -477,7 +478,7 @@ def send_now(name, force_send: bool = False):
 
 
 @frappe.whitelist()
-def toggle_sending(enable):
+def toggle_sending(enable: bool | int | str):
 	frappe.only_for("System Manager")
 	frappe.db.set_default("suspend_email_queue", 0 if sbool(enable) else 1)
 
@@ -549,7 +550,11 @@ class QueueBuilder:
 		:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
 		:param send_after: Send this email after the given datetime. If value is in integer, then `send_after` will be the automatically set to no of days from current date.
 		:param communication: Communication link to be set in Email Queue record
-		:param queue_separately: Queue each email separately
+		:param queue_separately: Queue each email separately (one per recipient). When True, each TO recipient
+		receives an individual email. Note: If CC/BCC are provided with queue_separately=True, CC/BCC
+		recipients will receive one email for each TO recipient(duplicates), as each TO email is a separate message
+		that includes CC/BCC. To avoid this, either don't use queue_separately, or add CC/BCC recipients
+		to the recipients list instead.
 		:param is_notification: Marks email as notification so will not trigger notifications from system
 		:param add_unsubscribe_link: Send unsubscribe link in the footer of the Email, default 1.
 		:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
@@ -805,6 +810,15 @@ class QueueBuilder:
 				)
 
 	def send_emails(self, queue_data, final_recipients):
+		"""
+		Send emails to recipients separately.
+
+		Note: CC/BCC recipients are included in each email sent to TO recipients.
+		This means CC/BCC will receive one email per TO recipient. This is expected
+		behavior because queue_separately creates individual emails for each TO
+		recipient, and CC/BCC are copied on each individual email.
+
+		"""
 		# This is used to bulk send emails from same sender to multiple recipients separately
 		# This re-uses smtp server instance to minimize the cost of new session creation
 		frappe_mail_client = None

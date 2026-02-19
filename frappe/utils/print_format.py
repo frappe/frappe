@@ -11,6 +11,7 @@ from pypdf import PdfWriter
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.model.document import Document
 from frappe.translate import print_language
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
@@ -224,11 +225,11 @@ from frappe.deprecation_dumpster import read_multi_pdf
 def download_pdf(
 	doctype: str,
 	name: str,
-	format=None,
-	doc=None,
-	no_letterhead=0,
-	language=None,
-	letterhead=None,
+	format: str | None = None,
+	doc: Document | None = None,
+	no_letterhead: bool | int = 0,
+	language: str | None = None,
+	letterhead: str | None = None,
 	pdf_generator: Literal["wkhtmltopdf", "chrome"] | None = None,
 ):
 	if pdf_generator is None:
@@ -255,7 +256,7 @@ def download_pdf(
 
 
 @frappe.whitelist()
-def report_to_pdf(html, orientation="Landscape"):
+def report_to_pdf(html: str, orientation: str = "Landscape"):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
 	frappe.local.response.filecontent = get_pdf(
@@ -313,7 +314,13 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 
 @frappe.whitelist()
 def print_by_server(
-	doctype, name, printer_setting, print_format=None, doc=None, no_letterhead=0, file_path=None
+	doctype: str,
+	name: str | int,
+	printer_setting: str,
+	print_format: str | None = None,
+	doc: Document | None = None,
+	no_letterhead: bool | int = 0,
+	file_path: str | None = None,
 ):
 	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:

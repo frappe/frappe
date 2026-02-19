@@ -39,8 +39,7 @@ body.modal-open[style^="padding-right"] {
 		top: 0;
 		z-index: 3;
 		background: inherit;
-		padding: var(--padding-sm) var(--padding-lg);
-		// padding-bottom: 0;
+		padding: var(--padding-sm) var(--padding-md);
 		border-bottom: 1px solid var(--border-color);
 
 		.modal-title {
@@ -66,7 +65,7 @@ body.modal-open[style^="padding-right"] {
 	}
 
 	.modal-body {
-		padding: var(--padding-md) var(--padding-lg);
+		padding: var(--padding-md) var(--padding-md);
 		.form-layout:first-child > .form-page {
 			.visible-section:first-child {
 				padding-top: 0;
@@ -93,7 +92,7 @@ body.modal-open[style^="padding-right"] {
 		bottom: 0;
 		z-index: 1;
 		background: inherit;
-		padding: var(--padding-md) var(--padding-lg);
+		padding: var(--padding-md);
 		justify-content: space-between;
 
 		button {

@@ -126,6 +126,19 @@ export default class Grid {
 		frappe.utils.bind_actions_with_object(this.wrapper, this);
 
 		this.form_grid = this.wrapper.find(".form-grid");
+
+		this.form_grid.on("scroll", (e) => {
+			if ($(e.currentTarget).scrollLeft() > 0) {
+				this.grid_rows.forEach((grid_row) => {
+					grid_row.on_grid_fields.forEach((field) => {
+						if (field.df.fieldtype === "Link" && field.awesomplete) {
+							field.awesomplete.close();
+						}
+					});
+				});
+			}
+		});
+
 		this.setup_add_row();
 
 		this.setup_grid_pagination();
@@ -561,7 +574,7 @@ export default class Grid {
 			let grid_row;
 			if (this.grid_rows[ri] && !append_row) {
 				grid_row = this.grid_rows[ri];
-				grid_row.doc = d;
+				grid_row.update_doc(d);
 				grid_row.refresh();
 			} else {
 				grid_row = new GridRow({

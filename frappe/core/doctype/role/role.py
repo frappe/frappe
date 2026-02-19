@@ -120,7 +120,9 @@ def get_users(role):
 # searches for active employees
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def role_query(doctype, txt, searchfield, start, page_len, filters):
+def role_query(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: list | dict | str
+):
 	return frappe.get_all(
 		"Role",
 		limit_start=start,

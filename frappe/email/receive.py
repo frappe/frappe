@@ -69,7 +69,10 @@ class EmailServer:
 	def __init__(self, args=None):
 		self.retry_limit = 3
 		self.retry_count = 0
+
 		self.settings = args or frappe._dict()
+		self.pop_timeout = self.settings.timeout or frappe.conf.pop_timeout
+		self.imap_timeout = self.settings.timeout or frappe.conf.imap_timeout
 
 	def connect(self):
 		"""Connect to **Email Account**."""
@@ -82,12 +85,12 @@ class EmailServer:
 				self.imap = imaplib.IMAP4_SSL(
 					self.settings.host,
 					self.settings.incoming_port,
-					timeout=frappe.conf.pop_timeout,
+					timeout=self.imap_timeout,
 					ssl_context=ssl.create_default_context(),
 				)
 			else:
 				self.imap = imaplib.IMAP4(
-					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.pop_timeout
+					self.settings.host, self.settings.incoming_port, timeout=self.imap_timeout
 				)
 
 				if cint(self.settings.use_starttls):
@@ -119,12 +122,12 @@ class EmailServer:
 				self.pop = poplib.POP3_SSL(
 					self.settings.host,
 					self.settings.incoming_port,
-					timeout=frappe.conf.pop_timeout,
+					timeout=self.pop_timeout,
 					context=ssl.create_default_context(),
 				)
 			else:
 				self.pop = poplib.POP3(
-					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.pop_timeout
+					self.settings.host, self.settings.incoming_port, timeout=self.pop_timeout
 				)
 
 			if self.settings.use_oauth:
@@ -424,21 +427,27 @@ class Email:
 
 	def set_subject(self):
 		"""Parse and decode `Subject` header."""
-		_subject = decode_header(self.mail.get("Subject", "No Subject"))
-		self.subject = _subject[0][0] or ""
 
-		if charset := _subject[0][1]:
-			# Encoding is known by decode_header (might also be unknown-8bit)
-			self.subject = safe_decode(self.subject, charset, ALTERNATE_CHARSET_MAP)
+		raw_subject = self.mail.get("Subject")
+		if not raw_subject:
+			self.subject = "No Subject"
+			return
 
-		if isinstance(self.subject, bytes):
-			# Fall back to utf-8 if the charset is unknown or decoding fails
-			# Replace invalid characters with '<?>'
-			self.subject = self.subject.decode("utf-8", "replace")
+		decoded_fragments = []
+		for fragment, charset in decode_header(raw_subject):
+			if isinstance(fragment, bytes):
+				charset = charset or "utf-8"
+				try:
+					fragment = fragment.decode(charset, errors="replace")
+				except LookupError:
+					# Fallback to utf-8 if decoding fails
+					fragment = fragment.decode("utf-8", errors="replace")
+			decoded_fragments.append(fragment)
 
-		# Convert non-string (e.g. None)
+		subject = "".join(decoded_fragments).strip()
+
 		# Truncate to 140 chars (can be used as a document name)
-		self.subject = str(self.subject).strip()[:140] or "No Subject"
+		self.subject = subject[:140] if subject else "No Subject"
 
 	def set_from(self):
 		# gmail mailing-list compatibility
@@ -793,14 +802,24 @@ class InboundMail(Email):
 			return self._reference_document
 
 		reference_document = ""
-		parent = self.parent_email_queue() or self.parent_communication()
+		parent_email_queue = self.parent_email_queue()
+		parent_communication = self.parent_communication()
 
-		if parent and parent.reference_doctype:
+		parent = None
+		if parent_email_queue and parent_email_queue.reference_doctype:
+			parent = parent_email_queue
+		elif parent_communication and parent_communication.reference_doctype:
+			parent = parent_communication
+
+		if parent:
 			reference_doctype, reference_name = parent.reference_doctype, parent.reference_name
 			reference_document = self.get_doc(reference_doctype, reference_name, ignore_error=True)
 
 		if not reference_document and self.email_account.append_to:
 			reference_document = self.match_record_by_subject_and_sender(self.email_account.append_to)
+
+		if not reference_document and self.is_reply_to_system_sent_mail():
+			reference_document = parent_communication
 
 		self._reference_document = reference_document or ""
 		return self._reference_document

@@ -27,7 +27,9 @@ class CustomHTMLBlock(Document):
 
 
 @frappe.whitelist()
-def get_custom_blocks_for_user(doctype, txt, searchfield, start, page_len, filters):
+def get_custom_blocks_for_user(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict | str | list
+):
 	# return logged in users private blocks and all public blocks
 	customHTMLBlock = DocType("Custom HTML Block")
 
