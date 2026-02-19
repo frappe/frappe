@@ -28,7 +28,6 @@ class WebsiteSettings(Document):
 		app_name: DF.Data | None
 		auto_account_deletion: DF.Int
 		banner_html: DF.Code | None
-		banner_image: DF.AttachImage | None
 		brand_html: DF.Code | None
 		call_to_action: DF.Data | None
 		call_to_action_url: DF.Data | None
@@ -186,7 +185,6 @@ def get_website_settings(context=None):
 
 	for k in [
 		"banner_html",
-		"banner_image",
 		"brand_html",
 		"copyright",
 		"twitter_share_via",

@@ -18,13 +18,6 @@ frappe.ui.form.on("Website Settings", {
 		});
 	},
 
-	set_banner_from_image: function (frm) {
-		if (!frm.doc.banner_image) {
-			frappe.msgprint(__("Select a Brand Image first."));
-		}
-		frm.set_value("brand_html", "<img src='" + frm.doc.banner_image + "'>");
-	},
-
 	onload_post_render: function (frm) {
 		frm.trigger("set_parent_label_options");
 	},

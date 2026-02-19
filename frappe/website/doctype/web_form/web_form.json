@@ -49,7 +49,6 @@
   "website_sidebar",
   "customization_tab",
   "button_label",
-  "banner_image",
   "column_break_3",
   "breadcrumbs",
   "section_break_5",
@@ -280,11 +279,6 @@
    "fieldname": "success_title",
    "fieldtype": "Data",
    "label": "Success title"
-  },
-  {
-   "fieldname": "banner_image",
-   "fieldtype": "Attach Image",
-   "label": "Banner Image"
   },
   {
    "fieldname": "form_tab",

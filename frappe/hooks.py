@@ -356,7 +356,6 @@ user_data_fields = [
 			"phone",
 			"mobile_no",
 			"location",
-			"banner_image",
 			"interest",
 			"bio",
 			"email_signature",

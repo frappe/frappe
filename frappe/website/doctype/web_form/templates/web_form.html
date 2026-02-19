@@ -19,10 +19,6 @@
 {% block breadcrumbs %}{% endblock %}
 
 {% block header %}
-	{% if webform_banner_image %}
-		<!-- banner image -->
-		<img class="web-form-banner-image" src="{{ webform_banner_image }}" alt="Banner Image">
-	{% endif %}
 {% endblock %}
 
 {% macro header_buttons() %}
@@ -70,7 +66,7 @@
 	<!-- web form container -->
 	<div class="web-form-container">
 		<!-- breadcrumb -->
-		{% if not webform_banner_image and has_header and login_required and show_list %}
+		{% if has_header and login_required and show_list %}
 			{% include "templates/includes/breadcrumbs.html" %}
 			{% else %}
 				<div style="height: 3rem"></div>
@@ -78,7 +74,7 @@
 
 		<!-- header -->
 		<div class="web-form-header">
-			{% if webform_banner_image and has_header and login_required and show_list %}
+			{% if has_header and login_required and show_list %}
 				{% include "templates/includes/breadcrumbs.html" %}
 			{% endif %}
 			<div class="web-form-head">

@@ -38,7 +38,6 @@ class WebForm(WebsiteGenerator):
 		allowed_embedding_domains: DF.SmallText | None
 		anonymous: DF.Check
 		apply_document_permissions: DF.Check
-		banner_image: DF.AttachImage | None
 		breadcrumbs: DF.Code | None
 		button_label: DF.Data | None
 		client_script: DF.Code | None
@@ -257,9 +256,6 @@ def get_context(context):
 
 		context.boot = get_boot_data()
 		context.boot["link_title_doctypes"] = frappe.boot.get_link_title_doctypes()
-
-		context.webform_banner_image = self.banner_image
-		context.pop("banner_image", None)
 
 	def add_metatags(self, context):
 		description = self.meta_description
