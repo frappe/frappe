@@ -459,16 +459,16 @@ class EmailAccount(Document):
 		:param match_by_email: Find account using emailID
 		:param match_by_doctype: Find account by matching `Append To` doctype
 		"""
-		doc = cls.find_one_by_filters(enable_incoming=1, email_id=match_by_email)
-		if doc:
+		if doc := cls.find_default_incoming():
 			return doc
 
-		doc = cls.find_one_by_filters(enable_incoming=1, append_to=match_by_doctype)
-		if doc:
+		if match_by_email and (doc := cls.find_one_by_filters(enable_incoming=1, email_id=match_by_email)):
 			return doc
 
-		doc = cls.find_default_incoming()
-		return doc
+		if match_by_doctype and (
+			doc := cls.find_one_by_filters(enable_incoming=1, append_to=match_by_doctype)
+		):
+			return doc
 
 	@classmethod
 	def find_default_incoming(cls):

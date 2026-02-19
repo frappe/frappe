@@ -259,3 +259,4 @@ frappe.patches.v16_0.unset_standard_field_for_auto_generated_icons
 execute:from frappe.email.doctype.notification.notification import install_notification_templates; install_notification_templates()
 execute:frappe.db.set_value("Email Account", {}, "add_x_original_from", 1)
 execute:frappe.db.set_value("Email Account", {}, "add_reply_to_header", 1)
+frappe.patches.v16_0.set_reply_to_header
