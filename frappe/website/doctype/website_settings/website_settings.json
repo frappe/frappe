@@ -28,8 +28,10 @@
   "website_theme_image_link",
   "navbar_tab",
   "brand",
+  "banner_image",
   "splash_image",
   "brand_html",
+  "set_banner_from_image",
   "favicon",
   "top_bar",
   "top_bar_items",
@@ -134,11 +136,22 @@
    "label": "Brand"
   },
   {
+   "description": "Select an image of approx width 150px with a transparent background for best results.",
+   "fieldname": "banner_image",
+   "fieldtype": "Attach Image",
+   "label": "Brand Image"
+  },
+  {
    "description": "Brand is what appears on the top-left of the toolbar. If it is an image, make sure it\nhas a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px",
    "fieldname": "brand_html",
    "fieldtype": "Code",
    "label": "Brand HTML",
    "options": "HTML"
+  },
+  {
+   "fieldname": "set_banner_from_image",
+   "fieldtype": "Button",
+   "label": "Set Banner from Image"
   },
   {
    "fieldname": "top_bar",

@@ -5,19 +5,14 @@ import frappe
 
 
 def execute():
-	"""Remove banner_image field from User, Website Settings and Web Form doctypes."""
+	"""Remove banner_image field from User doctype only (issue #37046)."""
 
-	# Drop column from User
+	# Remove any Custom Field for banner_image on User (so form no longer shows the field)
+	frappe.db.delete("Custom Field", {"dt": "User", "fieldname": "banner_image"})
+
+	# Drop column from User table
 	if frappe.db.table_exists("User") and "banner_image" in frappe.db.get_table_columns("User"):
 		frappe.db.sql("ALTER TABLE `tabUser` DROP COLUMN `banner_image`")
 
-	# Drop column from Web Form
-	if frappe.db.table_exists("Web Form") and "banner_image" in frappe.db.get_table_columns("Web Form"):
-		frappe.db.sql("ALTER TABLE `tabWeb Form` DROP COLUMN `banner_image`")
-
-	# Remove from Singles (Website Settings)
-	frappe.db.sql("DELETE FROM `tabSingles` WHERE doctype = 'Website Settings' AND field = 'banner_image'")
-
 	frappe.reload_doc("core", "doctype", "user", force=True)
-	frappe.reload_doc("website", "doctype", "website_settings", force=True)
-	frappe.reload_doc("website", "doctype", "web_form", force=True)
+	frappe.clear_cache(doctype="User")
