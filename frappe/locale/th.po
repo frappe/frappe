@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-15 09:42+0000\n"
-"PO-Revision-Date: 2026-02-16 19:56\n"
+"PO-Revision-Date: 2026-02-19 21:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Thai\n"
 "MIME-Version: 1.0\n"
@@ -823,17 +823,17 @@ msgstr ""
 
 #: frappe/templates/emails/user_invitation.html:16
 msgid "Accept Invitation"
-msgstr ""
+msgstr "ตอบรับคำเชิญ"
 
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted"
-msgstr ""
+msgstr "ตอบรับแล้ว"
 
 #. Label of the accepted_at (Datetime) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted At"
-msgstr ""
+msgstr "ตอบรับเมื่อ"
 
 #. Label of the access_control_section (Section Break) field in DocType 'Web
 #. Form'
@@ -2625,7 +2625,7 @@ msgstr ""
 #: frappe/public/js/frappe/model/model.js:136
 #: frappe/public/js/frappe/views/interaction.js:82
 msgid "Assigned To"
-msgstr ""
+msgstr "มอบหมายให้"
 
 #: frappe/desk/report/todo/todo.py:40
 msgid "Assigned To/Owner"
@@ -5703,7 +5703,7 @@ msgstr ""
 #: frappe/public/js/frappe/utils/number_systems.js:45
 msgctxt "Number system"
 msgid "Cr"
-msgstr ""
+msgstr "เครดิต"
 
 #. Label of the create (Check) field in DocType 'Custom DocPerm'
 #. Label of the create (Check) field in DocType 'DocPerm'
@@ -6946,7 +6946,7 @@ msgstr "ลบแท็บ"
 
 #: frappe/public/js/frappe/form/grid.js:66
 msgid "Delete all"
-msgstr ""
+msgstr "ลบทั้งหมด"
 
 #: frappe/public/js/frappe/form/grid.js:372
 msgid "Delete all {0} rows"
@@ -13762,7 +13762,7 @@ msgstr ""
 #. Label of the invited_by (Link) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Invited By"
-msgstr ""
+msgstr "ได้รับเชิญโดย"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:22
 msgid "Is"
@@ -14686,7 +14686,7 @@ msgstr "ซิงค์ครั้งล่าสุด {0}"
 #. Label of the layout (Code) field in DocType 'Desktop Layout'
 #: frappe/desk/doctype/desktop_layout/desktop_layout.json
 msgid "Layout"
-msgstr ""
+msgstr "เลย์เอาต์"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:194
 msgid "Layout Reset"
@@ -21280,7 +21280,7 @@ msgstr "วันที่และเวลาอ้างอิง"
 #. Label of the reference_docname (Dynamic Link) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Reference Doc"
-msgstr ""
+msgstr "เอกสารอ้างอิง"
 
 #. Label of the reference_name (Data) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
@@ -26329,7 +26329,7 @@ msgstr ""
 #. Label of the tasks (Table) field in DocType 'Workflow Transition Tasks'
 #: frappe/workflow/doctype/workflow_transition_tasks/workflow_transition_tasks.json
 msgid "Tasks"
-msgstr ""
+msgstr "งาน"
 
 #. Label of the sb1 (Section Break) field in DocType 'About Us Settings'
 #. Label of the team_members (Table) field in DocType 'About Us Settings'
