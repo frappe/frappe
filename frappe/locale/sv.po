@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-15 09:42+0000\n"
-"PO-Revision-Date: 2026-02-16 19:56\n"
+"PO-Revision-Date: 2026-02-18 20:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -18912,7 +18912,7 @@ msgstr "Utdata"
 
 #: frappe/public/js/frappe/form/templates/form_dashboard.html:5
 msgid "Overview"
-msgstr "Recension "
+msgstr "Översikt"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -23287,12 +23287,12 @@ msgstr "Omfatning"
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 #: frappe/integrations/doctype/token_cache/token_cache.json
 msgid "Scopes"
-msgstr "Omfattningar"
+msgstr "Omfång"
 
 #. Label of the scopes_supported (Small Text) field in DocType 'OAuth Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Scopes Supported"
-msgstr "Omfattningar som Stöds"
+msgstr "Omfång som Stöds"
 
 #. Label of the report_script (Code) field in DocType 'Report'
 #. Label of the script (Code) field in DocType 'Server Script'
@@ -25688,7 +25688,7 @@ msgstr "Steg för att verifiera din inloggning"
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/public/js/frappe/form/grid_row.js:456
 msgid "Sticky"
-msgstr "Klistrad"
+msgstr "Fast"
 
 #: frappe/core/doctype/recorder/recorder_list.js:87
 msgid "Stop"
@@ -29565,7 +29565,7 @@ msgstr "Visa Fil"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:260
 msgid "View Full Log"
-msgstr "Visa Full Logg"
+msgstr "Visa Fullständig Logg"
 
 #: frappe/public/js/frappe/views/treeview.js:494
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:258
@@ -29575,7 +29575,7 @@ msgstr "Visa Lista"
 #. Name of a DocType
 #: frappe/core/doctype/view_log/view_log.json
 msgid "View Log"
-msgstr "Visa Logg"
+msgstr "Visning Logg"
 
 #: frappe/core/doctype/user/user.js:143
 #: frappe/core/doctype/user_permission/user_permission.js:26

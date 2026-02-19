@@ -68,6 +68,7 @@
 	.row-index {
 		position: sticky;
 		left: 0;
+		z-index: 1;
 	}
 	.row-index {
 		left: 31px;
@@ -140,6 +141,7 @@
 		position: sticky;
 		left: 0;
 		background-color: var(--fg-color);
+		z-index: 1;
 	}
 	.row-index {
 		left: 31px;
@@ -313,6 +315,8 @@
 
 		.link-btn {
 			background-color: var(--bg-color);
+			height: calc(100% - 4px);
+			margin-top: 2px;
 		}
 
 		.form-control:focus {
@@ -381,12 +385,7 @@
 			line-height: 1.3 !important;
 		}
 	}
-	.data-row {
-		div[data-fieldname="options"],
-		div[data-fieldtype="Text Editor"] {
-			height: auto;
-		}
-	}
+
 	.grid-static-col {
 		background-color: var(--fg-color);
 		&.sticky-grid-col {

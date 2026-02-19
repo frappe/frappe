@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-15 09:42+0000\n"
-"PO-Revision-Date: 2026-02-16 19:56\n"
+"PO-Revision-Date: 2026-02-18 20:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -5149,7 +5149,7 @@ msgstr ""
 #. Label of the company_name (Data) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Company Name"
-msgstr ""
+msgstr "Nome da Empresa"
 
 #: frappe/core/doctype/server_script/server_script.js:14
 #: frappe/custom/doctype/client_script/client_script.js:60
@@ -9995,7 +9995,7 @@ msgstr ""
 #. Label of the fax (Data) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Fax"
-msgstr ""
+msgstr "Fax"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:73
 msgid "Feedback"
@@ -16448,7 +16448,7 @@ msgstr ""
 #. Log'
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "More Info"
-msgstr ""
+msgstr "Mais Informações"
 
 #. Label of the more_info (Section Break) field in DocType 'Contact'
 #. Label of the additional_info (Section Break) field in DocType 'Activity Log'
@@ -16990,7 +16990,7 @@ msgstr ""
 #: frappe/public/js/frappe/widgets/widget_dialog.js:72
 #: frappe/website/doctype/web_form/web_form.py:439
 msgid "New {0}"
-msgstr ""
+msgstr "Novo {0}"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:394
 msgid "New {0} Created"
@@ -18383,12 +18383,12 @@ msgstr ""
 #: frappe/desk/doctype/event/event.json frappe/desk/doctype/todo/todo.json
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 msgid "Open"
-msgstr ""
+msgstr "Aberto"
 
 #: frappe/desk/doctype/todo/todo_list.js:14
 msgctxt "Access"
 msgid "Open"
-msgstr ""
+msgstr "Aberto"
 
 #: frappe/desk/page/desktop/desktop.js:489
 #: frappe/desk/page/desktop/desktop.js:498
@@ -18705,7 +18705,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/templates/form_dashboard.html:5
 msgid "Overview"
-msgstr ""
+msgstr "Visão Geral"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -18857,7 +18857,7 @@ msgstr ""
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:63
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Page Break"
-msgstr ""
+msgstr "Quebra de Página"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.js:92
@@ -19274,7 +19274,7 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Percentage"
-msgstr ""
+msgstr "Porcentagem"
 
 #. Label of the dynamic_date_period (Select) field in DocType 'Auto Email
 #. Report'
@@ -20304,7 +20304,7 @@ msgstr ""
 #. Label of the print_heading (Data) field in DocType 'Print Heading'
 #: frappe/printing/doctype/print_heading/print_heading.json
 msgid "Print Heading"
-msgstr ""
+msgstr "Cabeçalho de Impressão"
 
 #. Label of the print_hide (Check) field in DocType 'DocField'
 #. Label of the print_hide (Check) field in DocType 'Custom Field'
@@ -20346,7 +20346,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/print_utils.js:119
 #: frappe/public/js/frappe/form/templates/print_layout.html:35
 msgid "Print Settings"
-msgstr ""
+msgstr "Configurações de Impressão"
 
 #. Label of the print_style_section (Section Break) field in DocType 'Print
 #. Settings'
@@ -21753,7 +21753,7 @@ msgstr ""
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/core/doctype/communication/communication.json
 msgid "Replied"
-msgstr ""
+msgstr "Respondido"
 
 #. Label of the reply (Text Editor) field in DocType 'Discussion Reply'
 #: frappe/core/doctype/communication/communication.js:57
@@ -24329,7 +24329,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/form/templates/address_list.html:31
 msgid "Shipping Address"
-msgstr ""
+msgstr "Endereço de Entrega"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -27680,7 +27680,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/reports/query_report.js:1367
 #: frappe/public/js/frappe/views/reports/report_view.js:1554
 msgid "Total"
-msgstr ""
+msgstr "Total"
 
 #. Label of the total_background_workers (Int) field in DocType 'System Health
 #. Report'
@@ -27730,7 +27730,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1254
 msgid "Totals"
-msgstr ""
+msgstr "Totais"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1229
 msgid "Totals Row"
@@ -29456,7 +29456,7 @@ msgstr ""
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Warehouse"
-msgstr ""
+msgstr "Armazém"
 
 #. Option for the 'Button Color' (Select) field in DocType 'DocField'
 #. Option for the 'Button Color' (Select) field in DocType 'Custom Field'

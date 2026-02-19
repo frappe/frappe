@@ -574,7 +574,7 @@ export default class Grid {
 			let grid_row;
 			if (this.grid_rows[ri] && !append_row) {
 				grid_row = this.grid_rows[ri];
-				grid_row.doc = d;
+				grid_row.update_doc(d);
 				grid_row.refresh();
 			} else {
 				grid_row = new GridRow({
