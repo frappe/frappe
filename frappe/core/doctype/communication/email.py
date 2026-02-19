@@ -108,12 +108,7 @@ def make(
 		send_after=send_after,
 		print_language=print_language,
 		now=now,
-<<<<<<< HEAD
-=======
-		raw_html=raw_html,
-		add_css=add_css,
 		in_reply_to=in_reply_to,
->>>>>>> 786adfd341 (fix(Communication): set `In-Reply-To` (#36746))
 	)
 
 
