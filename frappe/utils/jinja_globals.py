@@ -171,10 +171,9 @@ def get_magic_link(email, redirect_to=None):
 	Optionally accepts a redirect_to path so the user lands on a specific page
 	after authenticating via the magic link.
 
-	Usage in Jinja templates::
-
-	    {{ get_magic_link("user@example.com") }}
-	    {{ get_magic_link("user@example.com", "/app/todo") }}
+	Usage in Jinja templates:
+		{{get_magic_link("user@example.com")}}
+		{{get_magic_link("user@example.com", "/desk/todo")}}
 	"""
 	import frappe
 
