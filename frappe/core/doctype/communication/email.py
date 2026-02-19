@@ -49,12 +49,7 @@ def make(
 	send_after=None,
 	print_language=None,
 	now=False,
-<<<<<<< HEAD
-=======
-	raw_html=False,
-	add_css=True,
 	in_reply_to=None,
->>>>>>> 786adfd341 (fix(Communication): set `In-Reply-To` (#36746))
 	**kwargs,
 ) -> dict[str, str]:
 	"""Make a new communication. Checks for email permissions for specified Document.
