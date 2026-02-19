@@ -1283,11 +1283,14 @@ export default class GridRow {
 						return false;
 					}
 
-					base.toggle_editable_row();
-					var input = base.columns[fieldname].field.$input;
-					if (input) {
-						input.focus();
-					}
+					field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
+						base.toggle_editable_row();
+						const input = base.columns[fieldname].field.$input;
+						if (input) {
+							input.focus();
+						}
+					});
+
 					return true;
 				};
 
