@@ -136,7 +136,7 @@ class TestAuth(IntegrationTestCase):
 		with self.assertRaises(Exception):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
-	def test_login_with_email_link(self):
+	def test_login_with_email_link_with_rate_limiting(self):
 		user = self.test_user_email
 
 		# Logs in
