@@ -164,7 +164,7 @@ def send_login_link(email: str):
 	)
 
 
-def _generate_temporary_login_link(email: str, expiry: int):
+def _generate_temporary_login_link(email: str, expiry: int, redirect_to: str | None = None):
 	assert isinstance(email, str)
 
 	if not frappe.db.exists("User", email):
@@ -172,7 +172,14 @@ def _generate_temporary_login_link(email: str, expiry: int):
 	key = frappe.generate_hash()
 	frappe.cache.set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
 
-	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
+	link = get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
+
+	if redirect_to:
+		from urllib.parse import quote
+
+		link += f"&redirect-to={quote(redirect_to)}"
+
+	return link
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])
@@ -184,6 +191,14 @@ def login_via_key(key: str):
 	if email:
 		frappe.cache.delete_value(cache_key)
 		frappe.local.login_manager.login_as(email)
+
+		redirect_to = frappe.form_dict.get("redirect-to")
+		if redirect_to:
+			redirect_to = sanitize_redirect(redirect_to)
+			if redirect_to:
+				frappe.local.response["type"] = "redirect"
+				frappe.local.response["location"] = redirect_to
+				return
 
 		redirect_post_login(
 			desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User"

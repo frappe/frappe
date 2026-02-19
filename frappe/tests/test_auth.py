@@ -161,6 +161,30 @@ class TestAuth(IntegrationTestCase):
 		else:
 			self.fail("Rate limting not working")
 
+	def test_login_with_email_link_redirect(self):
+		"""Login via magic link should redirect to the given path."""
+		user = self.test_user_email
+		redirect_to = "/app/todo"
+
+		link = _generate_temporary_login_link(user, 10, redirect_to=redirect_to)
+		self.assertIn("redirect-to", link)
+
+		res = requests.get(link, allow_redirects=False)
+		self.assertEqual(res.status_code, 302)
+		self.assertTrue(res.headers.get("Location", "").endswith(redirect_to))
+		self.assertNotEqual(res.cookies.get("sid"), "Guest")
+
+	def test_login_with_email_link_ignores_external_redirect(self):
+		"""Login via magic link should not redirect to an external URL."""
+		user = self.test_user_email
+
+		link = _generate_temporary_login_link(user, 10, redirect_to="https://evil.com/steal")
+		res = requests.get(link, allow_redirects=False)
+		# Should still log in successfully but not redirect to the external URL
+		self.assertNotEqual(res.cookies.get("sid"), "Guest")
+		location = res.headers.get("Location", "")
+		self.assertNotIn("evil.com", location)
+
 	def test_correct_cookie_expiry_set(self):
 		client = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 

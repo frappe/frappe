@@ -163,3 +163,25 @@ def is_rtl(rtl=None):
 	if rtl is None:
 		return local.lang in ["ar", "he", "fa", "ps"]
 	return rtl
+
+
+def get_magic_link(email, redirect_to=None):
+	"""Generate a magic login link for the given email address.
+
+	Optionally accepts a redirect_to path so the user lands on a specific page
+	after authenticating via the magic link.
+
+	Usage in Jinja templates::
+
+	    {{ get_magic_link("user@example.com") }}
+	    {{ get_magic_link("user@example.com", "/app/todo") }}
+	"""
+	import frappe
+
+	if not frappe.get_system_settings("login_with_email_link"):
+		return ""
+
+	from frappe.www.login import _generate_temporary_login_link
+
+	expiry = frappe.get_system_settings("login_with_email_link_expiry") or 10
+	return _generate_temporary_login_link(email, expiry, redirect_to=redirect_to)
