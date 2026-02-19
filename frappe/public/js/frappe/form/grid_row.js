@@ -53,25 +53,20 @@ export default class GridRow {
 		this.wrapper.appendTo(this.parent);
 	}
 
-	set_docfields(update = false) {
+	update_doc(doc) {
+		const changed = !this.doc || this.doc !== doc;
+		this.doc = doc;
+		if (changed) this.set_docfields();
+	}
+
+	set_docfields() {
 		if (this.doc && this.parent_df.options) {
-			frappe.meta.make_docfield_copy_for(
+			this.docfields = frappe.meta.get_docfields(
 				this.parent_df.options,
 				this.doc.name,
-				this.docfields
+				null,
+				this.grid.docfields
 			);
-			const docfields = frappe.meta.get_docfields(this.parent_df.options, this.doc.name);
-			if (update) {
-				// to maintain references
-				this.docfields.forEach((df) => {
-					Object.assign(
-						df,
-						docfields.find((d) => d.fieldname === df.fieldname)
-					);
-				});
-			} else {
-				this.docfields = docfields;
-			}
 		}
 	}
 
@@ -198,11 +193,6 @@ export default class GridRow {
 		);
 	}
 	refresh() {
-		// update docfields for new record
-		if (this.frm && this.doc && this.doc.__islocal) {
-			this.set_docfields(true);
-		}
-
 		if (this.frm && this.doc) {
 			this.doc = locals[this.doc.doctype][this.doc.name];
 		}

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-17 18:50\n"
+"PO-Revision-Date: 2026-02-18 18:58\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -9972,7 +9972,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Fax"
-msgstr ""
+msgstr "Fax"
 
 #. Label of a Check field in DocType 'Blog Post'
 #: frappe/website/doctype/blog_post/blog_post.json
@@ -14604,7 +14604,7 @@ msgstr "Carta"
 #: frappe/public/js/frappe/list/bulk_operations.js:52
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:144
 msgid "Letter Head"
-msgstr "Cabeçalho de Carta"
+msgstr "Papel Timbrado"
 
 #. Label of a Select field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -16721,7 +16721,7 @@ msgstr "Novo valor a ser definido"
 #: frappe/public/js/frappe/views/treeview.js:332
 #: frappe/website/doctype/web_form/web_form.py:403
 msgid "New {0}"
-msgstr ""
+msgstr "Novo {0}"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:394
 msgid "New {0} Created"
@@ -18408,7 +18408,7 @@ msgstr "Saída"
 #: frappe/desk/page/user_profile/user_profile.html:6
 #: frappe/public/js/frappe/form/templates/form_dashboard.html:5
 msgid "Overview"
-msgstr ""
+msgstr "Visão Geral"
 
 #: frappe/core/report/transaction_log_report/transaction_log_report.py:100
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.js:42
@@ -18551,7 +18551,7 @@ msgstr "Página"
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:63
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Page Break"
-msgstr ""
+msgstr "Quebra de Página"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.js:92
@@ -18966,7 +18966,7 @@ msgstr "Por cento"
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Percentage"
-msgstr "Percentagem"
+msgstr "Porcentagem"
 
 #. Label of a Select field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
@@ -20023,7 +20023,7 @@ msgstr ""
 #: frappe/automation/workspace/tools/tools.json
 #: frappe/printing/doctype/print_heading/print_heading.json
 msgid "Print Heading"
-msgstr ""
+msgstr "Cabeçalho de Impressão"
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Custom Field'
@@ -24123,7 +24123,7 @@ msgstr "Expedição"
 
 #: frappe/public/js/frappe/form/templates/address_list.html:25
 msgid "Shipping Address"
-msgstr ""
+msgstr "Endereço de Entrega"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -27422,7 +27422,7 @@ msgstr "Tópico"
 #: frappe/public/js/frappe/views/reports/query_report.js:1258
 #: frappe/public/js/frappe/views/reports/report_view.js:1554
 msgid "Total"
-msgstr ""
+msgstr "Total"
 
 #. Label of a Int field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json

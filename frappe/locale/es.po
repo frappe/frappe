@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-17 18:49\n"
+"PO-Revision-Date: 2026-02-18 18:58\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -1094,7 +1094,7 @@ msgstr "Usuario de Cuentas"
 
 #: frappe/public/js/frappe/form/dashboard.js:510
 msgid "Accurate count can not be fetched, click here to view all documents"
-msgstr ""
+msgstr "No se puede obtener un recuento exacto, haga clic aquí para ver todos los documentos"
 
 #. Label of a Select field in DocType 'Amended Document Naming Settings'
 #. Option for the 'Item Type' (Select) field in DocType 'Navbar Item'
@@ -2086,7 +2086,7 @@ msgstr "Permitir salto de página dentro de las tablas"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:432
 msgid "Allow recording my first session to improve user experience"
-msgstr ""
+msgstr "Permitir la grabación de mi primera sesión para mejorar la experiencia del usuario"
 
 #. Description of the 'Allow Incomplete Forms' (Check) field in DocType 'Web
 #. Form'
@@ -2220,7 +2220,7 @@ msgstr "ID de correo electrónico alternativo"
 #. Label of a Data field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Always BCC Address"
-msgstr ""
+msgstr "Dirección siempre en copia oculta"
 
 #. Label of a Check field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -2293,7 +2293,7 @@ msgstr "Reglas de nomenclatura rectificada actualizadas."
 #. Success message of the request-to-delete-data Web Form
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "An email to verify your request has been sent to your email address. Please verify your request to complete the process."
-msgstr ""
+msgstr "Un correo electrónico para verificar tu solicitud ha sido enviado a tu dirección de correo electrónico. Por favor, verifica tu solicitud para completar el proceso."
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:312
 msgid "An error occurred while setting Session Defaults"
@@ -2623,7 +2623,7 @@ msgstr "¿Está seguro de que desea eliminar la sección? Todas las columnas y l
 
 #: frappe/public/js/frappe/web_form/web_form.js:203
 msgid "Are you sure you want to delete this record?"
-msgstr ""
+msgstr "¿Seguro que deseas eliminar este registro?"
 
 #: frappe/public/js/frappe/web_form/web_form.js:191
 msgid "Are you sure you want to discard the changes?"
@@ -2964,7 +2964,7 @@ msgstr "Adjunto Eliminado"
 #. Label of a Section Break field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Attachment Settings"
-msgstr ""
+msgstr "Configuración de Adjuntos"
 
 #. Label of a Code field in DocType 'Email Queue'
 #. Label of a Table field in DocType 'Newsletter'
@@ -3014,7 +3014,7 @@ msgstr "Datos de URL de autenticación"
 
 #: frappe/integrations/doctype/social_login_key/social_login_key.py:95
 msgid "Auth URL data should be valid JSON"
-msgstr ""
+msgstr "Los datos de la URL de autenticación deben ser JSON válidos"
 
 #. Label of a Check field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -3198,7 +3198,7 @@ msgstr "Seguimiento automático de los documentos que cree"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:230
 msgid "Auto repeat failed. Please enable auto repeat after fixing the issues."
-msgstr ""
+msgstr "La repetición automática ha fallado. Por favor, active la repetición automática después de solucionar los problemas."
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -3241,7 +3241,7 @@ msgstr "La vinculación automática solo se puede activar si está entrante habi
 
 #: frappe/email/doctype/email_queue/email_queue.js:44
 msgid "Automatic sending of emails is disabled via site config."
-msgstr ""
+msgstr "El envío automático de correos electrónicos está deshabilitado a través de la configuración del sitio."
 
 #. Description of a DocType
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -3250,7 +3250,7 @@ msgstr "Asignar automáticamente documentos a los usuarios"
 
 #: frappe/public/js/frappe/list/list_view.js:131
 msgid "Automatically applied a filter for recent data. You can disable this behavior from the list view settings."
-msgstr ""
+msgstr "Se aplicó automáticamente un filtro a los datos recientes. Puede desactivar este comportamiento desde la configuración de la vista de lista."
 
 #. Label of a Int field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -4940,7 +4940,7 @@ msgstr "Haga clic en Personalizar para agregar su primer widget"
 
 #: frappe/templates/emails/user_invitation.html:8
 msgid "Click below to get started:"
-msgstr ""
+msgstr "Haga clic a continuación para empezar:"
 
 #: frappe/website/doctype/web_form/templates/web_form.html:151
 msgid "Click here"
@@ -5345,7 +5345,7 @@ msgstr "Límite de Comentarios por hora"
 
 #: frappe/desk/form/utils.py:75
 msgid "Comment publicity can only be updated by the original author or a System Manager."
-msgstr ""
+msgstr "La visibilidad de los comentarios sólo puede ser actualizada por el autor original o un administrador del sistema."
 
 #: frappe/model/meta.py:55 frappe/public/js/frappe/form/controls/comment.js:9
 #: frappe/public/js/frappe/model/meta.js:206
@@ -5384,7 +5384,7 @@ msgstr "nombres y apellidos comunes son fáciles de adivinar."
 
 #: frappe/utils/password_strength.py:186
 msgid "Common words are easy to guess."
-msgstr ""
+msgstr "Las palabras comunes son fáciles de adivinar."
 
 #. Name of a DocType
 #. Option for the 'Communication Type' (Select) field in DocType
@@ -5403,7 +5403,7 @@ msgstr "Comunicaciones"
 #. Label of a Datetime field in DocType 'Communication Link'
 #: frappe/core/doctype/communication_link/communication_link.json
 msgid "Communication Date"
-msgstr ""
+msgstr "Fecha de la Comunicación"
 
 #. Name of a DocType
 #: frappe/core/doctype/communication_link/communication_link.json
@@ -5944,7 +5944,7 @@ msgstr "Filtro de recuento"
 
 #: frappe/public/js/frappe/form/dashboard.js:509
 msgid "Count of linked documents"
-msgstr ""
+msgstr "Recuento de documentos vinculados"
 
 #. Label of a Int field in DocType 'Document Naming Rule'
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
@@ -6792,7 +6792,7 @@ msgstr "Plantilla para importar datos"
 
 #: frappe/core/doctype/data_import/data_import.py:66
 msgid "Data Import is not allowed for {0}. Enable 'Allow Import' in DocType settings."
-msgstr ""
+msgstr "No se permite la importación de datos para {0}. Habilite \"Permitir importación\" en la configuración de DocType."
 
 #: frappe/custom/doctype/customize_form/customize_form.py:619
 msgid "Data Too Long"
@@ -7160,7 +7160,7 @@ msgstr "Define las acciones en cada estado, los siguientes pasos y roles permiti
 #. field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Defines how long exported reports sent via email are kept in the system. Older files will be automatically deleted."
-msgstr ""
+msgstr "Define cuánto tiempo se conservan en el sistema los informes exportados enviados por correo electrónico. Los archivos más antiguos se borrarán automáticamente."
 
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -7170,7 +7170,7 @@ msgstr "Define estados y reglas del flujo de trabajo para un documento."
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Delayed"
-msgstr ""
+msgstr "Retrasado"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
@@ -7213,7 +7213,7 @@ msgstr "Borrar Todo"
 #. Label of a Int field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Delete Background Exported Reports After (Hours)"
-msgstr ""
+msgstr "Eliminar informes exportados en segundo plano después de (horas)"
 
 #: frappe/public/js/form_builder/components/Section.vue:196
 msgctxt "Title of confirmation dialog"
@@ -7452,7 +7452,7 @@ msgstr "Descripción para informar al usuario sobre cualquier acción que se va 
 #. Label of a Data field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Designation"
-msgstr ""
+msgstr "Designación"
 
 #. Label of a Check field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
@@ -7563,7 +7563,7 @@ msgstr "Desactivar actualización automática"
 #. Label of a Check field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Automatic Recency Filters"
-msgstr ""
+msgstr "Desactivar los filtros automáticos de recurrencia"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -8419,7 +8419,7 @@ msgstr "Descargue sus datos"
 
 #: frappe/core/doctype/prepared_report/prepared_report.js:49
 msgid "Download as CSV"
-msgstr ""
+msgstr "Descargar como CSV"
 
 #: frappe/contacts/doctype/contact/contact.js:98
 msgid "Download vCard"
@@ -8499,7 +8499,7 @@ msgstr "Listas deplegables"
 #. Label of a Date field in DocType 'ToDo'
 #: frappe/desk/doctype/todo/todo.json
 msgid "Due Date"
-msgstr ""
+msgstr "Fecha límite"
 
 #. Label of a Select field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -8562,7 +8562,7 @@ msgstr "Duración"
 #. Option for the 'Row Format' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Dynamic"
-msgstr ""
+msgstr "Dinámico"
 
 #. Label of a Section Break field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -8952,7 +8952,7 @@ msgstr "Miembro de Grupo de Correo Electrónico"
 #: frappe/core/doctype/user_email/user_email.json
 #: frappe/email/doctype/email_rule/email_rule.json
 msgid "Email ID"
-msgstr ""
+msgstr "ID de correo electrónico"
 
 #. Label of a Table field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
@@ -8963,7 +8963,7 @@ msgstr "IDs de Correo Electrónico"
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:48
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Email Id"
-msgstr ""
+msgstr "Id de Correo Electrónico"
 
 #. Label of a Section Break field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -9087,7 +9087,7 @@ msgstr "Correo Electrónico no verificado con {0}"
 
 #: frappe/email/doctype/email_queue/email_queue.js:19
 msgid "Email queue is currently suspended. Resume to automatically send other emails."
-msgstr ""
+msgstr "La cola de correos electrónicos está detenida. Reanúdela para enviar otros correos automáticamente."
 
 #. Label of a Section Break field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -10277,7 +10277,7 @@ msgstr "Falta campo"
 #: frappe/custom/doctype/property_setter/property_setter.json
 #: frappe/desk/doctype/kanban_board/kanban_board.json
 msgid "Field Name"
-msgstr ""
+msgstr "Nombre de Campo"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:141
 msgid "Field Orientation (Left-Right)"
@@ -10539,7 +10539,7 @@ msgstr "El tipo de archivo {0} no está permitido"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:615
 msgid "File upload failed."
-msgstr ""
+msgstr "Error al subir el archivo."
 
 #: frappe/core/doctype/file/file.py:366 frappe/core/doctype/file/file.py:433
 msgid "File {0} does not exist"
@@ -10576,7 +10576,7 @@ msgstr "Filtrar datos"
 #. Label of a HTML field in DocType 'Data Export'
 #: frappe/core/doctype/data_export/data_export.json
 msgid "Filter List"
-msgstr ""
+msgstr "Lista de Filtros"
 
 #. Label of a Text field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
@@ -10639,7 +10639,7 @@ msgstr "Filtrado por \"{0}\""
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 #: frappe/email/doctype/notification/notification.json
 msgid "Filters"
-msgstr ""
+msgstr "Filtros"
 
 #. Label of a Code field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -11921,7 +11921,7 @@ msgstr "Mitad"
 #. Option for the 'Period' (Select) field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Half Yearly"
-msgstr ""
+msgstr "Semestral"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -11957,7 +11957,7 @@ msgstr "Tiene Rol"
 #. Label of a Check field in DocType 'Installed Application'
 #: frappe/core/doctype/installed_application/installed_application.json
 msgid "Has Setup Wizard"
-msgstr ""
+msgstr "Dispone de asistente de configuración"
 
 #. Label of a Check field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -12016,7 +12016,7 @@ msgstr "Encabezados"
 
 #: frappe/email/email_body.py:322
 msgid "Headers must be a dictionary"
-msgstr ""
+msgstr "Los encabezados deben ser un diccionario"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -12068,7 +12068,7 @@ msgstr "Artículo de Ayuda"
 #. Label of a Int field in DocType 'Help Category'
 #: frappe/website/doctype/help_category/help_category.json
 msgid "Help Articles"
-msgstr ""
+msgstr "Artículos de Ayuda"
 
 #. Name of a DocType
 #. Label of a Link in the Website Workspace
@@ -12364,7 +12364,7 @@ msgstr "Cada hora"
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Hourly Maintenance"
-msgstr ""
+msgstr "Mantenimiento por hora"
 
 #. Description of the 'Password Reset Link Generation Limit' (Int) field in
 #. DocType 'System Settings'
@@ -13283,7 +13283,7 @@ msgstr "Insertar estilo"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Instagram"
-msgstr ""
+msgstr "Instagram"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:694
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:695
@@ -13386,7 +13386,7 @@ msgstr "Intereses"
 #. Option for the 'Level' (Select) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Intermediate"
-msgstr ""
+msgstr "Intermedio"
 
 #: frappe/public/js/frappe/request.js:230
 msgid "Internal Server Error"
@@ -13423,7 +13423,7 @@ msgstr "Dar a conocer su empresa al visitante del sitio Web."
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Introduction"
-msgstr ""
+msgstr "Introducción"
 
 #. Title of an Onboarding Step
 #: frappe/website/onboarding_step/introduction_to_website/introduction_to_website.json
@@ -13445,7 +13445,7 @@ msgstr "URI de introspección"
 #. Code'
 #: frappe/integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 msgid "Invalid"
-msgstr ""
+msgstr "Inválido"
 
 #: frappe/public/js/form_builder/utils.js:221
 #: frappe/public/js/frappe/form/grid_row.js:817
@@ -13500,7 +13500,7 @@ msgstr "DocType no válido: {0}"
 
 #: frappe/email/doctype/email_group/email_group.py:51
 msgid "Invalid Doctype"
-msgstr ""
+msgstr "DocType no válido"
 
 #: frappe/core/doctype/doctype/doctype.py:1237
 msgid "Invalid Fieldname"
@@ -13615,7 +13615,7 @@ msgstr "Función de agregación inválida"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:195
 msgid "Invalid app"
-msgstr ""
+msgstr "Aplicación no válida"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:405
 msgid "Invalid column"
@@ -13660,7 +13660,7 @@ msgstr "Ruta de inclusión no válida"
 
 #: frappe/core/api/user_invitation.py:17
 msgid "Invalid input"
-msgstr ""
+msgstr "Entrada no válida"
 
 #: frappe/desk/doctype/dashboard/dashboard.py:67
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:414
@@ -13697,7 +13697,7 @@ msgstr "Argumentos de solicitud inválidos"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:181
 msgid "Invalid role"
-msgstr ""
+msgstr "Rol inválido"
 
 #: frappe/core/doctype/data_import/importer.py:423
 msgid "Invalid template file for import"
@@ -13732,11 +13732,11 @@ msgstr "inverso"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:95
 msgid "Invitation already accepted"
-msgstr ""
+msgstr "La invitación ya ha sido aceptada"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:99
 msgid "Invitation already exists"
-msgstr ""
+msgstr "La invitación ya existe"
 
 #: frappe/core/api/user_invitation.py:84
 msgid "Invitation cannot be cancelled"
@@ -13752,7 +13752,7 @@ msgstr "La invitación ha expirado"
 
 #: frappe/core/api/user_invitation.py:73 frappe/core/api/user_invitation.py:78
 msgid "Invitation not found"
-msgstr ""
+msgstr "Invitación no encontrada"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:59
 msgid "Invitation to join {0} cancelled"
@@ -13778,7 +13778,7 @@ msgstr "Es"
 #. Label of a Check field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Is Active"
-msgstr ""
+msgstr "Está Activo"
 
 #. Label of a Check field in DocType 'File'
 #: frappe/core/doctype/file/file.json
@@ -14496,11 +14496,11 @@ msgstr "Últimos 10 usuarios activos"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:626
 msgid "Last 14 Days"
-msgstr ""
+msgstr "Últimos 14 días"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:630
 msgid "Last 30 Days"
-msgstr ""
+msgstr "Últimos 30 días"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:650
 msgid "Last 6 Months"
@@ -14508,11 +14508,11 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:622
 msgid "Last 7 Days"
-msgstr ""
+msgstr "Últimos 7 días"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:634
 msgid "Last 90 Days"
-msgstr ""
+msgstr "Últimos 90 días"
 
 #. Label of a Datetime field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -14923,7 +14923,7 @@ msgstr "Gustado por"
 #. Label of a Int field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Likes"
-msgstr ""
+msgstr "Me gusta"
 
 #. Label of a Int field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
@@ -15982,7 +15982,7 @@ msgstr "Parámetro del mensaje"
 
 #: frappe/templates/includes/contact.js:36
 msgid "Message Sent"
-msgstr ""
+msgstr "Mensaje enviado"
 
 #. Label of a Select field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -16680,7 +16680,7 @@ msgstr "Regla de Nomenclatura"
 #. Label of a Tab Break field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Naming Series"
-msgstr ""
+msgstr "Serie de nombramiento"
 
 #: frappe/model/naming.py:252
 msgid "Naming Series mandatory"
