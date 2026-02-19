@@ -67,6 +67,28 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		this.render_count();
 	}
 
+	// override set_result_height of base list to use minHeight instead of height
+	set_result_height() {
+		// remove any previously set height
+		this.$result[0].style.removeProperty("height");
+		this.$result[0].style.removeProperty("minHeight");
+
+		let resultContainerHeight = window.innerHeight - this.$paging_area.get(0).offsetHeight;
+		if (!frappe.is_mobile()) {
+			resultContainerHeight = resultContainerHeight - this.$result.get(0).offsetTop;
+		}
+
+		// use minHeight in case of image view to ensure that the result container takes up almost the full height of the page
+		// and the pagination stays at the bottom
+		this.$result[0].style.minHeight =
+			Math.max(this.$result[0].offsetHeight, resultContainerHeight) + "px";
+
+		// set minHeight on no_result area
+		this.$no_result.css({
+			minHeight: window.innerHeight - this.$no_result.get(0).offsetTop + "px",
+		});
+	}
+
 	item_details_html(item) {
 		// TODO: Image view field in DocType
 		let info_fields = this.get_fields_in_list_view().map((el) => el.fieldname) || [];

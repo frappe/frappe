@@ -438,25 +438,12 @@ frappe.views.BaseList = class BaseList {
 		if (!frappe.is_mobile()) {
 			resultContainerHeight = resultContainerHeight - this.$result.get(0).offsetTop;
 		}
+		this.$result.parent(".result-container").css({
+			height: resultContainerHeight - (frappe.is_mobile() ? 100 : 0) + "px",
+		});
 
-		if (this.view_name === "Image") {
-			// use minHeight in case of image view to ensure that the result container takes up almost the full height of the page
-			// and the pagination stays at the bottom
-			this.$result.parent(".result-container").css({
-				minHeight: resultContainerHeight - (frappe.is_mobile() ? 100 : 0) + "px",
-			});
-
-			this.$result[0].style.minHeight =
-				Math.max(this.$result[0].offsetHeight, resultContainerHeight) + "px";
-		} else {
-			this.$result.parent(".result-container").css({
-				height: resultContainerHeight - (frappe.is_mobile() ? 100 : 0) + "px",
-			});
-
-			this.$result[0].style.height =
-				Math.max(this.$result[0].offsetHeight, resultContainerHeight) + "px";
-		}
-
+		this.$result[0].style.height =
+			Math.max(this.$result[0].offsetHeight, resultContainerHeight) + "px";
 		this.$no_result.css({
 			height: window.innerHeight - this.$no_result.get(0).offsetTop + "px",
 		});
