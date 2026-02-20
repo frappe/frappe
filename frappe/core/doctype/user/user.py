@@ -75,7 +75,6 @@ class User(Document):
 		allowed_in_mentions: DF.Check
 		api_key: DF.Data | None
 		api_secret: DF.Password | None
-		banner_image: DF.AttachImage | None
 		bio: DF.SmallText | None
 		birth_date: DF.Date | None
 		block_modules: DF.Table[BlockModule]

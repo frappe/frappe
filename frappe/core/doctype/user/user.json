@@ -49,7 +49,6 @@
   "mute_sounds",
   "desk_theme",
   "code_editor_type",
-  "banner_image",
   "navigation_settings_section",
   "search_bar",
   "notifications",
@@ -297,11 +296,6 @@
    "fieldtype": "Data",
    "label": "Location",
    "no_copy": 1
-  },
-  {
-   "fieldname": "banner_image",
-   "fieldtype": "Attach Image",
-   "label": "Banner Image"
   },
   {
    "fieldname": "column_break_22",
