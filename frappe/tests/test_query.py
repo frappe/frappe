@@ -2379,6 +2379,148 @@ class TestQuery(IntegrationTestCase):
 		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "skipped"), "0")
 		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "patch"), "''")
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_drop_unique_constraint_for_deleted_fields_mariadb(self):
+		trial_dt = new_doctype(
+			"Trial Doctype",
+			fields=[
+				{
+					"fieldname": "field_one",
+					"fieldtype": "Data",
+					"label": "Field One",
+				},
+				{
+					"fieldname": "field_two",
+					"fieldtype": "Data",
+					"label": "Field Two",
+					"unique": 1,
+				},
+			],
+		)
+
+		trial_dt.insert(ignore_if_duplicate=True)
+
+		indexes = frappe.db.get_column_index("tabTrial Doctype", "field_two", unique=True)
+		self.assertTrue(indexes)
+
+		field_to_remove = None
+
+		for field in trial_dt.fields:
+			if field.fieldname == "field_two":
+				field_to_remove = field
+				break
+
+		trial_dt.fields.remove(field_to_remove)
+		trial_dt.save()
+
+		indexes = frappe.db.get_column_index("tabTrial Doctype", "field_two", unique=True)
+		self.assertFalse(indexes)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_drop_unique_constraint_and_indexes_for_deleted_fields_postgres(self):
+		# test for unique index backed by constraint at field creation time
+		trial_dt = new_doctype(
+			"Trial Doctype",
+			fields=[
+				{
+					"fieldname": "field_one",
+					"fieldtype": "Data",
+					"label": "Field One",
+				},
+				{
+					"fieldname": "field_two",
+					"fieldtype": "Data",
+					"label": "Field Two",
+					"unique": 1,
+				},
+			],
+		)
+
+		trial_dt.insert(ignore_if_duplicate=True)
+
+		index_exists = frappe.db.sql(
+			"""
+			SELECT 1
+			FROM pg_indexes
+			WHERE tablename = %s
+			AND indexname = %s
+			""",
+			(
+				f"tab{trial_dt.name}",
+				f"tab{trial_dt.name}_field_two_key",
+			),
+		)
+		self.assertTrue(index_exists)
+
+		field_to_remove = None
+
+		for field in trial_dt.fields:
+			if field.fieldname == "field_two":
+				field_to_remove = field
+				break
+
+		trial_dt.fields.remove(field_to_remove)
+		trial_dt.save()
+
+		index_exists = frappe.db.sql(
+			"""
+			SELECT 1
+			FROM pg_indexes
+			WHERE tablename = %s
+			AND indexname = %s
+			""",
+			(
+				f"tab{trial_dt.name}",
+				f"tab{trial_dt.name}_field_two_key",
+			),
+		)
+		self.assertFalse(index_exists)
+
+		# test for unique index backed by no constraint created at field alteration post creation
+		for field in trial_dt.fields:
+			if field.fieldname == "field_one":
+				field.unique = 1
+
+		trial_dt.save()
+
+		index_exists = frappe.db.sql(
+			"""
+			SELECT 1
+			FROM pg_indexes
+			WHERE tablename = %s
+			AND indexname = %s
+			""",
+			(
+				f"tab{trial_dt.name}",
+				"unique_field_one",
+			),
+		)
+		self.assertTrue(index_exists)
+
+		field_to_remove = None
+
+		for field in trial_dt.fields:
+			if field.fieldname == "field_one":
+				field_to_remove = field
+				break
+
+		trial_dt.fields.remove(field_to_remove)
+		trial_dt.save()
+
+		index_exists = frappe.db.sql(
+			"""
+			SELECT 1
+			FROM pg_indexes
+			WHERE tablename = %s
+			AND indexname = %s
+			""",
+			(
+				f"tab{trial_dt.name}",
+				"unique_field_one",
+			),
+		)
+		self.assertFalse(index_exists)
+
 
 # This function is used as a permission query condition hook
 def test_permission_hook_condition(user):
