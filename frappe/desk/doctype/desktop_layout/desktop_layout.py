@@ -25,11 +25,10 @@ class DesktopLayout(Document):
 
 
 @frappe.whitelist()
-def save_layout(user: str, layout: str, new_icons: str):
+def save_layout(user: str, layout: str, new_icons: str | None = None):
 	if not user:
 		user = frappe.session.user
 	layout = json.loads(layout)
-	new_icons = json.loads(new_icons)
 	desktop_layout = None
 	try:
 		desktop_layout = frappe.get_doc("Desktop Layout", frappe.session.user)
@@ -41,19 +40,20 @@ def save_layout(user: str, layout: str, new_icons: str):
 	if layout:
 		desktop_layout.layout = json.dumps(layout)
 		desktop_layout.save()
-
-	for icon in new_icons:
-		workspace = icon.get("workspace")
-		if workspace:
-			new_workspace = frappe.new_doc("Workspace")
-			new_workspace.update(workspace)
-			new_workspace.title = new_workspace.label
-			new_workspace.save()
-			return add_workspace_to_desktop(new_workspace.name)
-		desktop_icon = frappe.new_doc("Desktop Icon")
-		desktop_icon.update(icon)
-		desktop_icon.owner = frappe.session.user
-		desktop_icon.save()
+	if new_icons:
+		new_icons = json.loads(new_icons)
+		for icon in new_icons:
+			workspace = icon.get("workspace")
+			if workspace:
+				new_workspace = frappe.new_doc("Workspace")
+				new_workspace.update(workspace)
+				new_workspace.title = new_workspace.label
+				new_workspace.save()
+				return add_workspace_to_desktop(new_workspace.name)
+			desktop_icon = frappe.new_doc("Desktop Icon")
+			desktop_icon.update(icon)
+			desktop_icon.owner = frappe.session.user
+			desktop_icon.save()
 
 	return {"layout": layout}
 
