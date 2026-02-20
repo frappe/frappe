@@ -1,6 +1,8 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from typing import Any
+
 import frappe
 from frappe.model.document import Document
 
@@ -29,7 +31,9 @@ class ListViewSettings(Document):
 
 
 @frappe.whitelist()
-def save_listview_settings(doctype, listview_settings, removed_listview_fields):
+def save_listview_settings(
+	doctype: str, listview_settings: str | dict[str, Any], removed_listview_fields: str | list[str]
+):
 	listview_settings = frappe.parse_json(listview_settings)
 	removed_listview_fields = frappe.parse_json(removed_listview_fields)
 
@@ -87,7 +91,7 @@ def set_in_list_view_property(doctype, field, value):
 
 
 @frappe.whitelist()
-def get_default_listview_fields(doctype):
+def get_default_listview_fields(doctype: str):
 	meta = frappe.get_meta(doctype)
 	path = frappe.get_module_path(
 		frappe.scrub(meta.module), "doctype", frappe.scrub(meta.name), frappe.scrub(meta.name) + ".json"

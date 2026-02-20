@@ -162,6 +162,8 @@ jinja = {
 	],
 }
 
+require_type_annotated_api_methods = True
+
 standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
 
 doc_events = {

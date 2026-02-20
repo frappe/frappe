@@ -3,7 +3,12 @@
 
 import json
 import typing
+<<<<<<< HEAD
 from urllib.parse import quote
+=======
+from typing import Any
+from urllib.parse import quote_plus
+>>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
 
 import frappe
 import frappe.defaults
@@ -11,16 +16,14 @@ import frappe.desk.form.meta
 import frappe.utils
 from frappe import _, _dict
 from frappe.desk.form.document_follow import is_document_followed
+from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import check_doctype_permission, get_doc_permissions, has_permission
 from frappe.utils.data import cstr
 
-if typing.TYPE_CHECKING:
-	from frappe.model.document import Document
-
 
 @frappe.whitelist()
-def getdoc(doctype, name):
+def getdoc(doctype: str, name: str | int):
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
 	Requires "doctype", "name" as form variables.
@@ -59,7 +62,7 @@ def getdoc(doctype, name):
 
 
 @frappe.whitelist()
-def getdoctype(doctype, with_parent=False):
+def getdoctype(doctype: str, with_parent: int | bool = False):
 	"""load doctype"""
 
 	docs = []
@@ -89,7 +92,11 @@ def get_meta_bundle(doctype):
 
 
 @frappe.whitelist()
-def get_docinfo(doc=None, doctype=None, name=None):
+def get_docinfo(
+	doc: Document | dict | str | None = None,
+	doctype: str | None = None,
+	name: str | int | None = None,
+):
 	from frappe.share import _get_users as get_docshares
 
 	if not doc:
@@ -198,7 +205,7 @@ def get_versions(doc: "Document") -> list[dict]:
 
 
 @frappe.whitelist()
-def get_communications(doctype, name, start=0, limit=20):
+def get_communications(doctype: str, name: str | int, start: str | int = 0, limit: str | int = 20):
 	from frappe.utils import cint
 
 	frappe.get_lazy_doc(doctype, name).check_permission()
@@ -498,7 +505,7 @@ def update_user_info(docinfo, doc=None):
 
 
 @frappe.whitelist()
-def get_user_info_for_viewers(users):
+def get_user_info_for_viewers(users: str):
 	user_info = {}
 	for user in json.loads(users):
 		frappe.utils.add_user_info(user, user_info)
