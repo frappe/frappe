@@ -253,7 +253,7 @@ def update_attending_status(event_name: str, attendee: str, status: str):
 
 
 @frappe.whitelist()
-def delete_communication(event: str | dict[str, Any], reference_doctype: str, reference_docname: str):
+def delete_communication(event: str | dict[str, Any], reference_doctype: str, reference_docname: str | int):
 	if isinstance(event, str):
 		event = json.loads(event)
 

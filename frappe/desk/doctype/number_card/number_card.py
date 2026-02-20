@@ -125,7 +125,7 @@ def has_permission(doc, ptype, user):
 
 @frappe.whitelist()
 def get_result(
-	doc: str | dict[str, Any],
+	doc: str | dict[str, Any] | Document,
 	filters: str | list | dict[str, Any],
 	to_date: str | datetime | date | None = None,
 ):
