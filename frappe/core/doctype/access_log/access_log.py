@@ -48,7 +48,7 @@ class AccessLog(Document):
 )
 def make_access_log(
 	doctype: str | None = None,
-	document: str | None = None,
+	document: str | int | None = None,
 	method: str | None = None,
 	file_type: str | None = None,
 	report_name: str | None = None,
