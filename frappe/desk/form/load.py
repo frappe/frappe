@@ -3,6 +3,7 @@
 
 import json
 import typing
+from typing import Any
 from urllib.parse import quote_plus
 
 import frappe
@@ -88,7 +89,11 @@ def get_meta_bundle(doctype):
 
 
 @frappe.whitelist()
-def get_docinfo(doc: Document | None = None, doctype: str | None = None, name: str | int | None = None):
+def get_docinfo(
+	doc: Document | dict[str, Any] | str | None = None,
+	doctype: str | None = None,
+	name: str | int | None = None,
+):
 	from frappe.share import _get_users as get_docshares
 
 	if not doc:
