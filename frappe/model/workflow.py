@@ -2,7 +2,11 @@
 # License: MIT. See LICENSE
 import json
 from collections import defaultdict
+<<<<<<< HEAD
 from typing import TYPE_CHECKING, Union
+=======
+from typing import TYPE_CHECKING, Any
+>>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 
 import frappe
 from frappe import _
@@ -37,7 +41,11 @@ def get_workflow_name(doctype):
 
 @frappe.whitelist()
 def get_transitions(
+<<<<<<< HEAD
 	doc: Union["Document", str, dict], workflow: "Workflow" = None, raise_exception: bool = False
+=======
+	doc: Document | str | dict, workflow: Workflow | None = None, raise_exception: bool = False
+>>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 ) -> list[dict]:
 	"""Return list of possible transitions for the given doc"""
 	from frappe.model.document import Document
@@ -96,7 +104,7 @@ def is_transition_condition_satisfied(transition, doc) -> bool:
 
 
 @frappe.whitelist()
-def apply_workflow(doc, action):
+def apply_workflow(doc: Document | str | dict, action: str):
 	"""Allow workflow action on the current doc"""
 	doc = frappe.get_doc(frappe.parse_json(doc))
 	doc.load_from_db()
@@ -151,7 +159,7 @@ def apply_workflow(doc, action):
 
 
 @frappe.whitelist()
-def can_cancel_document(doctype):
+def can_cancel_document(doctype: str):
 	workflow = get_workflow(doctype)
 	cancelling_states = [s.state for s in workflow.states if s.doc_status == "2"]
 	if not cancelling_states:
@@ -234,8 +242,13 @@ def get_workflow_field_value(workflow_name, field):
 	return frappe.get_cached_value("Workflow", workflow_name, field)
 
 
+<<<<<<< HEAD
 @frappe.whitelist(methods=["POST"])
 def bulk_workflow_approval(docnames, doctype, action):
+=======
+@frappe.whitelist()
+def bulk_workflow_approval(docnames: str, doctype: str, action: str):
+>>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 	docnames = json.loads(docnames)
 	if len(docnames) < 20:
 		_bulk_workflow_action(docnames, doctype, action)
@@ -329,7 +342,7 @@ def print_workflow_log(messages, title, doctype, indicator):
 
 
 @frappe.whitelist()
-def get_common_transition_actions(docs, doctype):
+def get_common_transition_actions(docs: str | list[dict[str, Any]], doctype: str):
 	common_actions = []
 	if isinstance(docs, str):
 		docs = json.loads(docs)

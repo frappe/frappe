@@ -5,13 +5,22 @@ import json
 import frappe
 from frappe import _
 from frappe.model import child_table_fields, default_fields, table_fields
+from frappe.model.document import Document
 from frappe.utils import cstr
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def make_mapped_doc(method, source_name, selected_children=None, args=None):
 	"""Returns the mapped document calling the given mapper method.
 	Sets selected_children as flags for the `get_mapped_doc` method.
+=======
+def make_mapped_doc(
+	method: str, source_name: str, selected_children: str | None = None, args: str | None = None
+):
+	"""Return the mapped document calling the given mapper method.
+	Set `selected_children` as flags for the `get_mapped_doc` method.
+>>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 
 	Called from `open_mapped_doc` from create_new.js"""
 	resolved_method_path = frappe.override_whitelisted_method(method)
@@ -32,9 +41,14 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def map_docs(method, source_names, target_doc, args=None):
 	'''Returns the mapped document calling the given mapper method
 	with each of the given source docs on the target doc
+=======
+def map_docs(method: str, source_names: str, target_doc: Document | dict | str, args: str | None = None):
+	"""Return the mapped document calling the given mapper method with each of the given source docs on the target doc.
+>>>>>>> c55ff193a6 (fix: add type hints to whitelisted methods 3 (#37149))
 
 	:param args: Args as string to pass to the mapper method
 	E.g. args: "{ 'supplier': 'XYZ' }"'''
