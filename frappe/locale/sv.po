@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-19 19:11\n"
+"PO-Revision-Date: 2026-02-20 19:34\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -23223,7 +23223,7 @@ msgstr "Visa alla tidigare rapporter."
 #: frappe/public/js/frappe/form/form.js:1158
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.js:4
 msgid "See on Website"
-msgstr "Visapå Webbplats"
+msgstr "Visa på Webbplats"
 
 #: frappe/website/doctype/web_form/templates/web_form.html:157
 msgctxt "Button in web form"
