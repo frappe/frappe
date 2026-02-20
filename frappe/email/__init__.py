@@ -1,12 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
 import frappe
-
-if TYPE_CHECKING:
-	from frappe.email.doctype.email_queue.email_queue import EmailQueue
 
 
 def sendmail_to_system_managers(subject, content):
@@ -150,7 +147,7 @@ def sendmail(
 	email_headers=None,
 	raw_html=False,
 	add_css=True,
-) -> EmailQueue | None:
+):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
