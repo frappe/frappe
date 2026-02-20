@@ -158,7 +158,6 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 
 	set_disp_area(value) {
-		let is_val_html = frappe.utils.is_html(value);
 		if (
 			["Currency", "Int", "Float"].includes(this.df.fieldtype) &&
 			(this.value === 0 || value === 0)
