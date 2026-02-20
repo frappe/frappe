@@ -1,5 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies and contributors
 # License: MIT. See LICENSE
+from typing import Any
+
 from tenacity import retry, retry_if_exception_type, stop_after_attempt
 
 import frappe
@@ -39,14 +41,14 @@ class AccessLog(Document):
 
 @frappe.whitelist()
 def make_access_log(
-	doctype=None,
-	document=None,
-	method=None,
-	file_type=None,
-	report_name=None,
-	filters=None,
-	page=None,
-	columns=None,
+	doctype: str | None = None,
+	document: str | int | None = None,
+	method: str | None = None,
+	file_type: str | None = None,
+	report_name: str | None = None,
+	filters: str | list | dict[str, Any] | None = None,
+	page: str | None = None,
+	columns: str | None = None,
 ):
 	_make_access_log(
 		doctype,

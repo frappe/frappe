@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from typing import Any
+
 import frappe
 from frappe import _
 from frappe.core.doctype.submission_queue.submission_queue import queue_submission
@@ -48,8 +50,19 @@ class BulkUpdate(Document):
 		)
 
 
+<<<<<<< HEAD
 @frappe.whitelist(methods=["POST"])
 def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None, task_id=None):
+=======
+@frappe.whitelist()
+def submit_cancel_or_update_docs(
+	doctype: str,
+	docnames: str | list[str],
+	action: str = "submit",
+	data: str | dict[str, Any] | None = None,
+	task_id: str | None = None,
+):
+>>>>>>> 68727cbd61 (fix: add type hints to whitelisted methods 4 (#37204))
 	if isinstance(docnames, str):
 		docnames = frappe.parse_json(docnames)
 
