@@ -53,25 +53,14 @@ export default class GridRow {
 		this.wrapper.appendTo(this.parent);
 	}
 
-	set_docfields(update = false) {
+	set_docfields() {
 		if (this.doc && this.parent_df.options) {
-			frappe.meta.make_docfield_copy_for(
+			this.docfields = frappe.meta.get_docfields(
 				this.parent_df.options,
 				this.doc.name,
-				this.docfields
+				null,
+				this.grid.docfields
 			);
-			const docfields = frappe.meta.get_docfields(this.parent_df.options, this.doc.name);
-			if (update) {
-				// to maintain references
-				this.docfields.forEach((df) => {
-					Object.assign(
-						df,
-						docfields.find((d) => d.fieldname === df.fieldname)
-					);
-				});
-			} else {
-				this.docfields = docfields;
-			}
 		}
 	}
 
@@ -198,11 +187,6 @@ export default class GridRow {
 		);
 	}
 	refresh() {
-		// update docfields for new record
-		if (this.frm && this.doc && this.doc.__islocal) {
-			this.set_docfields(true);
-		}
-
 		if (this.frm && this.doc) {
 			this.doc = locals[this.doc.doctype][this.doc.name];
 		}
@@ -787,9 +771,7 @@ export default class GridRow {
 			}
 		});
 
-		let current_grid = $(
-			`div[data-fieldname="${this.grid.df.fieldname}"] .form-grid-container`
-		);
+		let current_grid = this.grid.wrapper.find(".form-grid-container");
 		if (total_colsize > 10) {
 			current_grid.addClass("column-limit-reached");
 		} else if (current_grid.hasClass("column-limit-reached")) {
@@ -1293,11 +1275,14 @@ export default class GridRow {
 						return false;
 					}
 
-					base.toggle_editable_row();
-					var input = base.columns[fieldname].field.$input;
-					if (input) {
-						input.focus();
-					}
+					field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
+						base.toggle_editable_row();
+						const input = base.columns[fieldname].field.$input;
+						if (input) {
+							input.focus();
+						}
+					});
+
 					return true;
 				};
 
@@ -1595,6 +1580,12 @@ export default class GridRow {
 
 		const currency = frappe.meta.get_field_currency(df, this.doc);
 		const symbol = window.get_currency_symbol(currency);
+
+		// skip if compound symbols like in case of EGP - "£ or ج."
+		if (symbol && (symbol.includes(" or ") || symbol.length > 3)) {
+			return;
+		}
+
 		const show_on_right =
 			cint(frappe.model.get_value(":Currency", currency, "symbol_on_right")) === 1;
 

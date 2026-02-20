@@ -127,6 +127,7 @@ Object.assign(frappe.model, {
 				}
 
 				// child table, override each row and append new rows if required
+				const incoming_names = new Set(updated_doc[fieldname].map((d) => d.name));
 				for (let i = 0; i < updated_doc[fieldname].length; i++) {
 					let updated_child_doc = updated_doc[fieldname][i];
 					let local_child_doc_in_parent = local_parent_doc[fieldname][i];
@@ -143,8 +144,12 @@ Object.assign(frappe.model, {
 						}
 						continue;
 					}
-					if (local_child_doc_in_parent) {
-						// deleted and added again
+					if (
+						local_child_doc_in_parent &&
+						!incoming_names.has(local_child_doc_in_parent.name)
+					) {
+						// row at this position is truly deleted/replaced — safe to
+						// reuse the object for the incoming row
 						if (!locals[updated_child_doc.doctype])
 							locals[updated_child_doc.doctype] = {};
 
@@ -157,21 +162,30 @@ Object.assign(frappe.model, {
 
 						// if incoming row is not registered, register it
 						if (!locals[updated_child_doc.doctype][updated_child_doc.name]) {
+							const old_name = local_child_doc_in_parent.name;
+
 							// detach old key
-							delete locals[updated_child_doc.doctype][
-								local_child_doc_in_parent.name
-							];
+							delete locals[updated_child_doc.doctype][old_name];
 
 							// re-attach with new name
 							locals[updated_child_doc.doctype][updated_child_doc.name] =
 								local_child_doc_in_parent;
+
+							// migrate per-row docfield overrides to new name
+							const dc = frappe.meta.docfield_copy[updated_child_doc.doctype];
+							if (dc?.[old_name]) {
+								dc[updated_child_doc.name] = dc[old_name];
+								delete dc[old_name];
+							}
 						}
 
 						// row exists, just copy the values
 						Object.assign(local_child_doc_in_parent, updated_child_doc);
 						clear_keys(updated_child_doc, local_child_doc_in_parent);
 					} else {
-						local_parent_doc[fieldname].push(updated_child_doc);
+						// row at this position is needed at a different index
+						// (or no row here) — create a fresh local entry
+						local_parent_doc[fieldname][i] = updated_child_doc;
 						if (!updated_child_doc.parent) updated_child_doc.parent = updated_doc.name;
 						frappe.model.add_to_locals(updated_child_doc);
 					}

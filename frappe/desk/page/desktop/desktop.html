@@ -1,6 +1,6 @@
 <!-- jinja -->
 <div class="desktop-wrapper">
-    <header class="navbar navbar-expand navbar-container" role="navigation">
+    <header class="desktop-navbar navbar navbar-expand navbar-container" role="navigation">
         <div class="navbar-home">
             <img
                 id="brand-logo"
@@ -65,5 +65,5 @@
                 {{ _("Save") }}
             </button>
     </div>
-    <div class="hidden" id="desktop-layout">{{ desktop_layout }}</pre>
+    <div class="hidden" id="desktop-layout">{{ desktop_layout | safe }}</div>
 </div>

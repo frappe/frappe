@@ -99,6 +99,7 @@ frappe.ui.Sidebar = class Sidebar {
 		this.workspace_sidebar_items = updated_items;
 	}
 	setup(workspace_title) {
+		$(document).trigger("sidebar_setup", { sidebar: this });
 		this.sidebar_title = workspace_title;
 		this.check_for_private_workspace(workspace_title);
 		this.workspace_title = this.sidebar_title.toLowerCase();
@@ -110,11 +111,9 @@ frappe.ui.Sidebar = class Sidebar {
 		this.add_sidebar_cards();
 	}
 	add_card(card) {
-		if (
-			this.desktop_menu_items &&
-			this.desktop_menu_items.find((i) => i.to_title_case === card.title)
-		)
-			return;
+		if (this.cards && this.cards.find((i) => i.title === card.title)) return;
+		card.parent = this.wrapper.find(".body-sidebar-cards");
+		delete card.styles;
 		this.cards.push(card);
 	}
 	add_sidebar_cards() {

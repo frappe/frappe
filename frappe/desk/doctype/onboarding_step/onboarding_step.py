@@ -50,7 +50,7 @@ class OnboardingStep(Document):
 
 
 @frappe.whitelist()
-def get_onboarding_steps(ob_steps):
+def get_onboarding_steps(ob_steps: str):
 	steps = []
 	for s in json.loads(ob_steps):
 		doc = frappe.get_doc("Onboarding Step", s.get("step"))

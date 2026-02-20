@@ -883,7 +883,7 @@ def deduplicate_messages(messages):
 
 
 @frappe.whitelist()
-def update_translations_for_source(source=None, translation_dict=None):
+def update_translations_for_source(source: str | None = None, translation_dict: str | None = None):
 	if not (source and translation_dict):
 		return
 

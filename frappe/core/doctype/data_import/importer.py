@@ -93,15 +93,19 @@ class Importer:
 			return
 
 		# setup import log
-		import_log = (
-			frappe.get_all(
-				"Data Import Log",
-				fields=["row_indexes", "success", "log_index"],
-				filters={"data_import": self.data_import.name},
-				order_by="log_index",
+		# Only use import log for retry/resume when Data Import is persisted in DB.
+		# For bench data-import (CLI), the doc is never inserted, so we must not reuse logs
+		import_log = []
+		if self.data_import.name and frappe.db.exists("Data Import", self.data_import.name):
+			import_log = (
+				frappe.get_all(
+					"Data Import Log",
+					fields=["row_indexes", "success", "log_index"],
+					filters={"data_import": self.data_import.name},
+					order_by="log_index",
+				)
+				or []
 			)
-			or []
-		)
 
 		log_index = 0
 

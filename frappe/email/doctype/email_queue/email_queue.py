@@ -196,10 +196,20 @@ class EmailQueue(Document):
 							is_newsletter=is_newsletter,
 						)
 					else:
+						mail_options = []
+						rcpt_options = []
+
+						if ctx.smtp_server.session.has_extn("DSN"):
+							if dsn_notify_type := ctx.email_account_doc.dsn_notify_type:
+								mail_options = ["RET=FULL", f"ENVID={self.name}"]
+								rcpt_options = [f"NOTIFY={dsn_notify_type}"]
+
 						ctx.smtp_server.session.sendmail(
 							from_addr=self.sender,
 							to_addrs=recipient.recipient,
 							msg=message.decode("utf-8").encode(),
+							mail_options=mail_options,
+							rcpt_options=rcpt_options,
 						)
 
 				ctx.update_recipient_status_to_sent(recipient)
@@ -460,7 +470,7 @@ def retry_sending(queues: str | list[str]):
 
 
 @frappe.whitelist()
-def send_now(name, force_send: bool = False):
+def send_now(name: str | int, force_send: bool = False):
 	record = EmailQueue.find(name)
 	if record:
 		record.check_permission()
@@ -468,7 +478,7 @@ def send_now(name, force_send: bool = False):
 
 
 @frappe.whitelist()
-def toggle_sending(enable):
+def toggle_sending(enable: bool | int | str):
 	frappe.only_for("System Manager")
 	frappe.db.set_default("suspend_email_queue", 0 if sbool(enable) else 1)
 
