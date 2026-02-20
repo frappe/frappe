@@ -90,7 +90,7 @@ def get_meta_bundle(doctype):
 
 @frappe.whitelist()
 def get_docinfo(
-	doc: Document | dict[str, Any] | str | None = None,
+	doc: Document | dict | str | None = None,
 	doctype: str | None = None,
 	name: str | int | None = None,
 ):
