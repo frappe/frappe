@@ -138,6 +138,14 @@ class TestDB(IntegrationTestCase):
 			frappe.db.get_value("DocType", "DocField", order_by="creation desc, modified asc, name", run=0),
 		)
 
+		# Test with list of fields and cache=True
+		result = frappe.db.get_value("User", "Administrator", ["name", "email"], cache=True)
+		self.assertEqual(result, ("Administrator", "admin@example.com"))
+		# Verify cache hit - second call should not execute any queries
+		with self.assertQueryCount(0):
+			cached_result = frappe.db.get_value("User", "Administrator", ["name", "email"], cache=True)
+		self.assertEqual(result, cached_result)
+
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode())
 
@@ -415,6 +423,11 @@ class TestDB(IntegrationTestCase):
 		for doc in created_docs:
 			frappe.delete_doc(test_doctype, doc)
 		clear_custom_fields(test_doctype)
+
+	@unimplemented_for(db_type_is.POSTGRES)
+	def test_multi_statements(self):
+		with self.assertRaises(frappe.db.ProgrammingError):
+			frappe.db.sql("select 1; select 1")
 
 	def test_savepoints(self):
 		frappe.db.rollback()
@@ -1211,6 +1224,42 @@ class TestSqlIterator(IntegrationTestCase):
 	def test_unbuffered_cursor(self):
 		with frappe.db.unbuffered_cursor():
 			self.test_db_sql_iterator()
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_unbuffered_cursor_postgres(self):
+		test_queries = [
+			"select * from `tabCountry` order by name",
+			"select code from `tabCountry` order by name",
+			"select code from `tabCountry` order by name limit 5",
+		]
+
+		for query in test_queries:
+			with frappe.db.unbuffered_cursor():
+				iter_query_val = list(frappe.db.sql(query, as_dict=True, as_iterator=True))
+			query_val = frappe.db.sql(query, as_dict=True)
+			self.assertEqual(
+				query_val,
+				iter_query_val,
+				msg=f"{query=} results not same as iterator",
+			)
+
+			with frappe.db.unbuffered_cursor():
+				iter_query_val = list(frappe.db.sql(query, pluck=True, as_iterator=True))
+			query_val = frappe.db.sql(query, pluck=True)
+			self.assertEqual(
+				query_val,
+				iter_query_val,
+				msg=f"{query=} results not same as iterator",
+			)
+
+			with frappe.db.unbuffered_cursor():
+				iter_query_val = list(frappe.db.sql(query, as_list=True, as_iterator=True))
+			query_val = frappe.db.sql(query, as_list=True)
+			self.assertEqual(
+				query_val,
+				iter_query_val,
+				msg=f"{query=} results not same as iterator",
+			)
 
 
 class ExtIntegrationTestCase(IntegrationTestCase):

@@ -1,0 +1,27 @@
+{% extends "templates/web.html" %}
+{% block footer %}{% endblock %}
+
+
+{% block header %}
+    {% if doctype %}
+        <h3 class="my-account-header">
+            {{ title or (_("{0} List").format(_(doctype))) }}
+        </h3>
+    {% endif %}
+{% endblock %}
+
+{% block page_content %}
+{% if not doctype %}
+    <div>Welcome to the Portal<div>
+{% else %}
+    {% if introduction %}
+        <p>{{ introduction }}</p>
+    {% endif %}
+
+    {% include list_template %}
+
+    {% if list_footer %}
+        {{ list_footer }}
+    {% endif %}
+{% endif %}
+{% endblock %}

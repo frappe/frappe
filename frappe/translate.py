@@ -200,8 +200,10 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 		csv_content = read_csv_file(path)
 
 		for item in csv_content:
-			item[0] = item[0].replace("\\n", "\n")
-			item[1] = item[1].replace("\\n", "\n")
+			if len(item) in [2, 3]:
+				item[0] = item[0].replace("\\n", "\n")
+				item[1] = item[1].replace("\\n", "\n")
+
 			if len(item) == 3 and item[2]:
 				key = item[0] + ":" + item[2]
 				translation_map[key] = strip(item[1])
@@ -881,7 +883,7 @@ def deduplicate_messages(messages):
 
 
 @frappe.whitelist()
-def update_translations_for_source(source=None, translation_dict=None):
+def update_translations_for_source(source: str | None = None, translation_dict: str | None = None):
 	if not (source and translation_dict):
 		return
 

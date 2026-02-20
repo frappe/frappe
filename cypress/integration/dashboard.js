@@ -42,7 +42,7 @@ describe("Dashboard view", { scrollBehavior: false }, () => {
 			true
 		);
 
-		cy.visit(`/app/dashboard-view/${dashboard}`);
+		cy.visit(`/desk/dashboard-view/${dashboard}`);
 
 		// expect chart to be loaded
 		cy.findByText(chart).should("be.visible");

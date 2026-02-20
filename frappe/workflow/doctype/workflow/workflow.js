@@ -7,7 +7,7 @@ frappe.ui.form.on("Workflow", {
 	refresh: function (frm) {
 		frm.layout.message.empty();
 		let title, note;
-		let workflow_builder_url = "/app/workflow-builder";
+		let workflow_builder_url = "/desk/workflow-builder";
 		let msg = __(
 			"Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update their properties from the sidebar."
 		);

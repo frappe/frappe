@@ -441,7 +441,7 @@ function add_files(file_array) {
 				request_succeeded: false,
 				error_message: null,
 				uploading: false,
-				private: !props.make_attachments_public,
+				private: !props.make_attachments_public || !frappe.utils.can_upload_public_files(),
 			};
 		});
 
@@ -636,10 +636,13 @@ function upload_file(file, i) {
 						: __("File upload failed.");
 				} else {
 					file.failed = true;
+					let detail =
+						xhr.statusText ||
+						__("Server error during upload. The file might be corrupted.");
 					file.error_message =
 						xhr.status === 0
 							? __("XMLHttpRequest Error")
-							: `${xhr.status} : ${xhr.statusText}`;
+							: `${xhr.status} : ${detail}`;
 
 					let error = null;
 					try {

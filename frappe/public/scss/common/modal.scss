@@ -33,12 +33,13 @@ body.modal-open[style^="padding-right"] {
 		border-color: var(--border-color);
 	}
 	.modal-header {
+		display: flex;
+		align-items: center;
 		position: sticky;
 		top: 0;
 		z-index: 3;
 		background: inherit;
-		padding: var(--padding-sm) var(--padding-lg);
-		// padding-bottom: 0;
+		padding: var(--padding-sm) var(--padding-md);
 		border-bottom: 1px solid var(--border-color);
 
 		.modal-title {
@@ -53,22 +54,18 @@ body.modal-open[style^="padding-right"] {
 		}
 
 		.modal-actions {
+			margin-right: -6px;
 			.btn-modal-minimize {
-				padding-right: 0;
-
 				.icon {
 					width: 14px;
 					height: 14px;
-					use {
-						stroke: var(--gray-500);
-					}
 				}
 			}
 		}
 	}
 
 	.modal-body {
-		padding: var(--padding-md) var(--padding-lg);
+		padding: var(--padding-md) var(--padding-md);
 		.form-layout:first-child > .form-page {
 			.visible-section:first-child {
 				padding-top: 0;
@@ -95,7 +92,7 @@ body.modal-open[style^="padding-right"] {
 		bottom: 0;
 		z-index: 1;
 		background: inherit;
-		padding: var(--padding-md) var(--padding-lg);
+		padding: var(--padding-md);
 		justify-content: space-between;
 
 		button {

@@ -290,7 +290,7 @@ def check_permission_and_not_submitted(doc):
 			_("{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first.").format(
 				_(doc.doctype),
 				doc.name,
-				"<a href='https://docs.erpnext.com//docs/user/manual/en/setting-up/articles/delete-submitted-document' target='_blank'>",
+				"<a href='https://docs.frappe.io/erpnext/user/manual/en/delete-submitted-document' target='_blank'>",
 				"</a>",
 			),
 			raise_exception=True,

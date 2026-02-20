@@ -3,9 +3,7 @@
 
 import json
 import re
-from typing import TypedDict
-
-from typing_extensions import NotRequired  # not required in 3.11+
+from typing import NotRequired, TypedDict
 
 import frappe
 
@@ -15,7 +13,10 @@ from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, escape_html, unique
+from frappe.utils.caching import http_cache
 from frappe.utils.data import make_filter_tuple
+
+PAGE_LENGTH_FOR_LINK_VALIDATION = 25_000
 
 
 def sanitize_searchfield(searchfield: str):
@@ -34,6 +35,7 @@ class LinkSearchResults(TypedDict):
 
 # this is called by the Link Field
 @frappe.whitelist()
+@http_cache(max_age=60, stale_while_revalidate=5 * 60)
 def search_link(
 	doctype: str,
 	txt: str,
@@ -70,12 +72,13 @@ def search_widget(
 	start: int = 0,
 	page_length: int = 10,
 	filters: str | None | dict | list = None,
-	filter_fields=None,
+	filter_fields: str | None = None,
 	as_dict: bool = False,
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
 	*,
 	link_fieldname: str | None = None,
+	for_link_validation: bool = False,
 ):
 	if ignore_user_permissions:
 		if reference_doctype and link_fieldname:
@@ -102,6 +105,9 @@ def search_widget(
 
 	if not query and doctype in standard_queries:
 		query = standard_queries[doctype][-1]
+
+	if filters is None:
+		filters = {}
 
 	if query:  # Query = custom search query i.e. python function
 		try:
@@ -134,15 +140,17 @@ def search_widget(
 	meta = frappe.get_meta(doctype)
 
 	include_disabled = False
-	if filters and "include_disabled" in filters:
-		if filters["include_disabled"] == 1:
-			include_disabled = True
-		filters.pop("include_disabled")
-
 	if isinstance(filters, dict):
+		if "include_disabled" in filters:
+			if filters["include_disabled"] == 1:
+				include_disabled = True
+			filters.pop("include_disabled")
+
 		filters = [make_filter_tuple(doctype, key, value) for key, value in filters.items()]
-	elif filters is None:
-		filters = []
+
+	if for_link_validation:
+		filters.append([doctype, "name", "=", txt])
+
 	or_filters = []
 
 	# build from doctype
@@ -189,7 +197,7 @@ def search_widget(
 	# `idx` is number of times a document is referred, check link_count.py
 	order_by = f"idx desc, {order_by_based_on_meta}"
 
-	if not meta.translated_doctype:
+	if not for_link_validation and not meta.translated_doctype:
 		_txt = frappe.db.escape((txt or "").replace("%", "").replace("@", ""))
 		# locate returns 0 if string is not found, convert 0 to null and then sort null to end in order by
 		_relevance_expr = {"DIV": [1, {"NULLIF": [{"LOCATE": [_txt, "name"]}, 0]}]}
@@ -214,29 +222,30 @@ def search_widget(
 		strict=False,
 	)
 
-	if meta.translated_doctype:
-		# Filtering the values array so that query is included in very element
-		values = (
-			result
-			for result in values
-			if any(
-				re.search(f"{re.escape(txt)}.*", _(cstr(value)) or "", re.IGNORECASE)
-				for value in (result.values() if as_dict else result)
+	if not for_link_validation:
+		if meta.translated_doctype:
+			# Filtering the values array so that query is included in very element
+			values = (
+				result
+				for result in values
+				if any(
+					re.search(f"{re.escape(txt)}.*", _(cstr(value)) or "", re.IGNORECASE)
+					for value in (result.values() if as_dict else result)
+				)
 			)
-		)
 
-	# Sorting the values array so that relevant results always come first
-	# This will first bring elements on top in which query is a prefix of element
-	# Then it will bring the rest of the elements and sort them in lexicographical order
-	values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+		# Sorting the values array so that relevant results always come first
+		# This will first bring elements on top in which query is a prefix of element
+		# Then it will bring the rest of the elements and sort them in lexicographical order
+		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 
-	# remove _relevance from results
-	if not meta.translated_doctype:
-		if as_dict:
-			for r in values:
-				r.pop("_relevance", None)
-		else:
-			values = [r[:-1] for r in values]
+		# remove _relevance from results
+		if not meta.translated_doctype:
+			if as_dict:
+				for r in values:
+					r.pop("_relevance", None)
+			else:
+				values = [r[:-1] for r in values]
 
 	return values
 
@@ -329,8 +338,8 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 			item = list(item)
 			if len(item) == 1:
 				item = [item[0], item[0]]
-			label = item[1]  # use title as label
-			item[1] = item[0]  # show name in description instead of title
+			label = _(item[1]) if meta.translated_doctype else item[1]
+			item[1] = item[0]
 
 			if len(item) >= 3 and item[2] == label:
 				# remove redundant title ("label") value
@@ -342,7 +351,9 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 
 			results.append(autosuggest_row)
 	else:
-		results.extend({"value": item[0], "description": to_string(item[1:])} for item in res)
+		for item in res:
+			label = _(item[0]) if meta.translated_doctype else item[0]
+			results.append({"value": item[0], "description": to_string(item[1:]), "label": label})
 
 	return results
 
@@ -361,7 +372,7 @@ def relevance_sorter(key, query, as_dict):
 
 
 @frappe.whitelist()
-def get_names_for_mentions(search_term):
+def get_names_for_mentions(search_term: str):
 	users_for_mentions = frappe.cache.get_value("users_for_mentions", get_users_for_mentions)
 	user_groups = frappe.cache.get_value("user_groups", get_user_groups)
 
@@ -382,7 +393,7 @@ def get_names_for_mentions(search_term):
 def get_users_for_mentions():
 	return frappe.get_all(
 		"User",
-		fields=["name as id", "full_name as value"],
+		fields=["name as id", "full_name as value", "email"],
 		filters={
 			"name": ["not in", ("Administrator", "Guest")],
 			"allowed_in_mentions": True,
@@ -397,7 +408,7 @@ def get_user_groups():
 
 
 @frappe.whitelist()
-def get_link_title(doctype, docname):
+def get_link_title(doctype: str, docname: str | int):
 	meta = frappe.get_meta(doctype)
 
 	if meta.show_title_field_in_link:

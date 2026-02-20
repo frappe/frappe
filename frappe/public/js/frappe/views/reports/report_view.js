@@ -17,7 +17,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	setup_defaults() {
 		super.setup_defaults();
-		this.page_title = __("Report:") + " " + this.page_title;
+		if (!frappe.is_mobile()) {
+			this.page_title = __("Report:") + " " + this.page_title;
+		}
 		this.view = "Report";
 
 		this.link_title_doctype_fields = [];
@@ -75,12 +77,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_page() {
 		this.menu_items = this.report_menu_items();
 		super.setup_page();
-	}
-
-	toggle_side_bar() {
-		super.toggle_side_bar();
-		// refresh datatable when sidebar is toggled to accomodate extra space
-		this.render(true);
 	}
 
 	setup_result_area() {
@@ -1027,7 +1023,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			columns: 2,
 			options: columns[this.doctype]
 				.filter((df) => {
-					return !df.hidden && df.fieldname !== "name";
+					return !df.hidden && df.fieldname !== "name" && !df.is_virtual;
 				})
 				.map((df) => ({
 					label: __(df.label, null, df.parent),
@@ -1044,9 +1040,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		table_fields.forEach((df) => {
 			const cdt = df.options;
+			const label = df.label || frappe.unscrub(df.fieldname);
 
 			dialog_fields.push({
-				label: __(df.label, null, df.parent) + ` (${__(cdt)})`,
+				label: __(label) + ` (${__(cdt)})`,
 				fieldname: df.options,
 				fieldtype: "MultiCheck",
 				columns: 2,
@@ -1304,7 +1301,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					this.remove_column_from_datatable(col);
 				}
 			} else if (col.field in d) {
-				const value = d[col.field];
+				let rendered_value = d[col.field];
+				if (col.docfield.fieldtype == "Data") {
+					rendered_value = frappe.utils.escape_html(rendered_value);
+				}
+				const value = rendered_value;
 				return {
 					name: d.name,
 					doctype: col.docfield.parent,
@@ -1537,6 +1538,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			},
 			{
 				label: __("Print"),
+				condition: () => frappe.model.can_print(this.doctype),
 				action: () => {
 					// prepare rows in their current state, sorted and filtered
 					const rows_in_order = this.datatable.datamanager.rowViewOrder
@@ -1571,11 +1573,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			{
 				label: __("Toggle Chart"),
 				action: () => this.toggle_charts(),
-			},
-			{
-				label: __("Toggle Sidebar"),
-				action: () => this.toggle_side_bar(),
-				shortcut: "Ctrl+K",
 			},
 			{
 				label: __("Pick Columns"),

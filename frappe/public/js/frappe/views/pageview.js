@@ -81,6 +81,11 @@ frappe.views.Page = class Page {
 				frappe.show_not_found(name);
 				return;
 			}
+			if (this.pagedoc.page_name != "setup-wizard") {
+				this.pagedoc.module &&
+					frappe.app.sidebar.show_sidebar_for_module(this.pagedoc.module);
+			}
+
 			this.wrapper = frappe.container.add_page(this.name);
 			this.wrapper.page_name = this.pagedoc.name;
 
@@ -94,6 +99,11 @@ frappe.views.Page = class Page {
 		}
 
 		this.trigger_page_event("on_page_load");
+		frappe.breadcrumbs.add({
+			type: "Custom",
+			label: __(this.pagedoc.title),
+			route: frappe.get_route_str(),
+		});
 
 		// set events
 		$(this.wrapper).on("show", function () {

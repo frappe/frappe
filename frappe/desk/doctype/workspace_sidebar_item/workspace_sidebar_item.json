@@ -14,6 +14,7 @@
   "type",
   "link_to",
   "child",
+  "navigate_to_tab",
   "url",
   "display_section",
   "collapsible_column",
@@ -24,6 +25,7 @@
   "column_break_jexf",
   "display_depends_on",
   "section_break_whjq",
+  "filter_area",
   "filters",
   "route_options"
  ],
@@ -44,7 +46,7 @@
   },
   {
    "default": "DocType",
-   "depends_on": "eval: doc.type == 'Link' || doc.indent == 1",
+   "depends_on": "eval: doc.type == 'Link'",
    "fieldname": "link_type",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -52,7 +54,7 @@
    "options": "DocType\nPage\nReport\nWorkspace\nDashboard\nURL"
   },
   {
-   "depends_on": "eval: doc.link_type != \"URL\" && doc.type == 'Link' || doc.indent == 1",
+   "depends_on": "eval: doc.link_type != \"URL\" && doc.type == 'Link'",
    "fieldname": "link_to",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
@@ -60,7 +62,7 @@
    "options": "link_type"
   },
   {
-   "depends_on": "eval: doc.type == \"Link\"",
+   "depends_on": "eval: doc.type == \"Link\" || doc.type == \"Section Break\"",
    "fieldname": "icon",
    "fieldtype": "Icon",
    "in_list_view": 1,
@@ -155,13 +157,24 @@
    "fieldtype": "Code",
    "label": "Route Options",
    "options": "JSON"
+  },
+  {
+   "depends_on": "eval: doc.link_type == \"DocType\" && doc.link_to",
+   "fieldname": "navigate_to_tab",
+   "fieldtype": "Autocomplete",
+   "label": "Tab"
+  },
+  {
+   "fieldname": "filter_area",
+   "fieldtype": "HTML",
+   "label": "Filter Area"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-26 18:14:11.682693",
+ "modified": "2026-01-12 15:35:56.930873",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Sidebar Item",

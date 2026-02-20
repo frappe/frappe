@@ -29,6 +29,7 @@
 
 .form-section,
 .form-dashboard-section {
+	padding: 0 var(--padding-md);
 	.form-section-description {
 		max-width: var(--page-max-width);
 		margin: auto;
@@ -39,15 +40,14 @@
 
 	.section-head {
 		@extend .head-title;
-		@include get_textstyle("lg", "semibold");
+		@include get_textstyle("md", "medium");
 		color: var(--text-color);
 		width: 100%;
-		padding: var(--padding-sm) var(--padding-md);
+		padding: var(--padding-md);
 		cursor: default;
 
 		.collapse-indicator {
 			color: var(--text-muted);
-			margin-left: 10px;
 			position: relative;
 			padding: 0px;
 			&:focus-visible {
@@ -79,12 +79,14 @@
 	}
 }
 
-.section-head,
-.section-body {
-	margin: auto !important;
+.std-form-layout {
+	.section-head,
+	.section-body {
+		margin: auto !important;
 
-	body:not(.full-width) & {
-		max-width: var(--page-max-width);
+		body:not(.full-width) & {
+			max-width: var(--page-max-width);
+		}
 	}
 }
 
@@ -115,11 +117,9 @@
 	display: none !important;
 	border: 0 !important;
 }
-
 .form-section.card-section,
 .form-dashboard-section {
 	border-bottom: 1px solid var(--border-color);
-	padding: var(--padding-md) 0;
 }
 
 .form-section.card-section.hide-border {
@@ -129,6 +129,10 @@
 	&:not(:has(.section-head)) {
 		padding-top: 0;
 	}
+}
+
+.form-section > .section-body:first-child {
+	padding-top: 12px;
 }
 
 .form-dashboard-section {
@@ -171,6 +175,8 @@
 
 		.comment-title {
 			@extend .head-title;
+			font-size: 16px;
+			font-weight: 500;
 		}
 		.comment-count {
 			margin-left: 5px;
@@ -417,6 +423,7 @@
 	margin-top: 4px;
 	margin-bottom: 8px;
 	line-height: 1.6;
+	word-break: break-word;
 }
 
 .form-heatmap {
@@ -454,17 +461,43 @@
 	}
 	margin: auto;
 	padding: 0 15px;
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	gap: 15px;
 
 	h5 {
 		margin: 15px 0px;
 		font-weight: bold;
 	}
-	position: relative;
+
+	.after-save {
+		flex: 1;
+		min-width: 0;
+	}
+
 	.scroll-to-top {
 		position: absolute;
-		height: 28px;
 		right: 15px;
 		bottom: 15px;
+		height: 28px;
+		flex-shrink: 0;
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(10px);
+		transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+		pointer-events: none;
+
+		&.show {
+			position: fixed;
+			right: calc(var(--form-sidebar-width, 277px) + 20px);
+			bottom: 20px;
+			z-index: 1030;
+			opacity: 1;
+			visibility: visible;
+			transform: translateY(0);
+			pointer-events: auto;
+		}
 	}
 }
 
@@ -485,15 +518,18 @@
 			white-space: nowrap;
 			@include get_textstyle("base", "regular");
 			.nav-link {
-				color: var(--text-muted);
+				color: var(--text-light);
 				padding: 10px 0;
 				margin: 0 var(--margin-md);
 				background-color: var(--card-bg);
 				border: 0;
+				display: flex;
+				align-items: center;
+				gap: 6px;
 				&.active {
-					font-weight: 600;
+					font-weight: 400;
 					border-bottom: 1px solid var(--text-color);
-					color: var(--text-color);
+					color: var(--text-neutral);
 					padding-bottom: 9px;
 				}
 				&:focus-visible {
@@ -512,7 +548,10 @@
 	top: calc(var(--navbar-height) - 1px);
 }
 .form-tabs-sticky-down {
-	top: calc(var(--navbar-height) + var(--page-head-height) - 1px);
+	top: calc(var(--navbar-height) - 2px);
+	&.show-navbar {
+		top: calc(var(--navbar-height) + var(--page-head-height) - 1px);
+	}
 }
 
 .progress-area {
@@ -570,18 +609,6 @@
 @media (max-width: map-get($grid-breakpoints, "md")) {
 	.form-section .form-section-heading {
 		margin-top: 10px;
-	}
-}
-
-// mobile
-@media (max-width: map-get($grid-breakpoints, "sm")) {
-	// padding to form section on mobile
-
-	.form-column:not(:last-child) {
-		border-bottom: 1px solid var(--border-color);
-	}
-	.form-column:not(:first-child) {
-		padding-top: var(--padding-md);
 	}
 }
 

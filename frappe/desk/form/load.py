@@ -24,7 +24,7 @@ if typing.TYPE_CHECKING:
 def getdoc(doctype, name):
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
-	Requries "doctype", "name" as form variables.
+	Requires "doctype", "name" as form variables.
 	Will also call the "onload" method on the document.
 	"""
 
@@ -94,8 +94,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 	from frappe.share import _get_users as get_docshares
 
 	if not doc:
-		doc = frappe.get_lazy_doc(doctype, name)
-		doc.check_permission("read")
+		doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
 
 	all_communications = _get_communications(doc.doctype, doc.name, limit=21)
 	automated_messages = [
@@ -130,7 +129,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		}
 	)
 
-	update_user_info(docinfo)
+	update_user_info(docinfo, doc)
 
 	frappe.response["docinfo"] = docinfo
 
@@ -204,8 +203,7 @@ def get_versions(doc: "Document") -> list[dict]:
 def get_communications(doctype, name, start=0, limit=20):
 	from frappe.utils import cint
 
-	doc = frappe.get_lazy_doc(doctype, name)
-	doc.check_permission("read")
+	frappe.get_lazy_doc(doctype, name).check_permission()
 
 	return _get_communications(doctype, name, cint(start), cint(limit))
 
@@ -336,8 +334,7 @@ def get_communication_data(
 	return frappe.db.multisql(
 		{
 			"sqlite": sqlite_query,
-			"postgres": query,
-			"mariadb": query,
+			"*": query,
 		},
 		dict(
 			doctype=doctype,
@@ -479,8 +476,13 @@ def send_link_titles(link_titles):
 	frappe.local.response["_link_titles"].update(link_titles)
 
 
-def update_user_info(docinfo):
+def update_user_info(docinfo, doc=None):
 	users = set()
+
+	if doc:
+		for field in ("owner", "modified_by"):
+			if user := doc.get(field):
+				users.add(user)
 
 	users.update(d.sender for d in docinfo.communications)
 	users.update(d.user for d in docinfo.shared)
@@ -492,6 +494,7 @@ def update_user_info(docinfo):
 	users.update(d.owner for d in docinfo.attachment_logs)
 	users.update(d.owner for d in docinfo.assignment_logs)
 	users.update(d.owner for d in docinfo.comments)
+	users.update(d.owner for d in docinfo.versions)
 
 	frappe.utils.add_user_info(users, docinfo.user_info)
 

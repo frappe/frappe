@@ -38,8 +38,6 @@ frappe.call = function (opts) {
 			},
 			3
 		);
-		opts.always && opts.always();
-		return $.ajax();
 	}
 	if (typeof arguments[0] === "string") {
 		opts = {
@@ -95,11 +93,6 @@ frappe.call = function (opts) {
 			prefix = `/api/${opts.api_version}/method/`;
 		}
 		url = prefix + args.cmd;
-		if (window.cordova) {
-			let host = frappe.request.url;
-			host = host.slice(0, host.length - 1);
-			url = host + url;
-		}
 		delete args.cmd;
 	}
 
@@ -147,6 +140,7 @@ frappe.request.call = function (opts) {
 				title: __("Not found"),
 				indicator: "red",
 				message: __("The resource you are looking for is not available"),
+				re_route: true,
 			});
 			opts.error_callback && opts.error_callback();
 		},

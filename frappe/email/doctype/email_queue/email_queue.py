@@ -60,6 +60,7 @@ class EmailQueue(Document):
 		message: DF.Code | None
 		message_id: DF.SmallText | None
 		priority: DF.Int
+		raw_html: DF.Check
 		recipients: DF.Table[EmailQueueRecipient]
 		reference_doctype: DF.Link | None
 		reference_name: DF.Data | None
@@ -195,10 +196,20 @@ class EmailQueue(Document):
 							is_newsletter=is_newsletter,
 						)
 					else:
+						mail_options = []
+						rcpt_options = []
+
+						if ctx.smtp_server.session.has_extn("DSN"):
+							if dsn_notify_type := ctx.email_account_doc.dsn_notify_type:
+								mail_options = ["RET=FULL", f"ENVID={self.name}"]
+								rcpt_options = [f"NOTIFY={dsn_notify_type}"]
+
 						ctx.smtp_server.session.sendmail(
 							from_addr=self.sender,
 							to_addrs=recipient.recipient,
 							msg=message.decode("utf-8").encode(),
+							mail_options=mail_options,
+							rcpt_options=rcpt_options,
 						)
 
 				ctx.update_recipient_status_to_sent(recipient)
@@ -305,7 +316,8 @@ class SendMailContext:
 		recipient.update_db(status="Sent", commit=True)
 
 	def get_message_object(self, message):
-		return Parser(policy=SMTP).parsestr(message)
+		policy = SMTP.clone(refold_source="none")
+		return Parser(policy=policy).parsestr(message)
 
 	def message_placeholder(self, placeholder_key):
 		# sourcery skip: avoid-builtin-shadow
@@ -458,7 +470,7 @@ def retry_sending(queues: str | list[str]):
 
 
 @frappe.whitelist()
-def send_now(name, force_send: bool = False):
+def send_now(name: str | int, force_send: bool = False):
 	record = EmailQueue.find(name)
 	if record:
 		record.check_permission()
@@ -466,7 +478,7 @@ def send_now(name, force_send: bool = False):
 
 
 @frappe.whitelist()
-def toggle_sending(enable):
+def toggle_sending(enable: bool | int | str):
 	frappe.only_for("System Manager")
 	frappe.db.set_default("suspend_email_queue", 0 if sbool(enable) else 1)
 
@@ -518,6 +530,8 @@ class QueueBuilder:
 		email_read_tracker_url=None,
 		x_priority: Literal[1, 3, 5] = 3,
 		email_headers=None,
+		raw_html=False,
+		add_css=True,
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -536,7 +550,11 @@ class QueueBuilder:
 		:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
 		:param send_after: Send this email after the given datetime. If value is in integer, then `send_after` will be the automatically set to no of days from current date.
 		:param communication: Communication link to be set in Email Queue record
-		:param queue_separately: Queue each email separately
+		:param queue_separately: Queue each email separately (one per recipient). When True, each TO recipient
+		receives an individual email. Note: If CC/BCC are provided with queue_separately=True, CC/BCC
+		recipients will receive one email for each TO recipient(duplicates), as each TO email is a separate message
+		that includes CC/BCC. To avoid this, either don't use queue_separately, or add CC/BCC recipients
+		to the recipients list instead.
 		:param is_notification: Marks email as notification so will not trigger notifications from system
 		:param add_unsubscribe_link: Send unsubscribe link in the footer of the Email, default 1.
 		:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
@@ -545,6 +563,8 @@ class QueueBuilder:
 		:param email_read_tracker_url: A URL for tracking whether an email is read by the recipient.
 		:param x_priority: 1 = HIGHEST, 3 = NORMAL, 5 = LOWEST
 		:param email_headers: Additional headers to be added in the email, e.g. {"X-Custom-Header": "value"} or {"Custom-Header": "value"}. Automatically prepends "X-" to the header name if not present.
+		:param raw_html: Whether to treat email template as a complete HTML file
+		:param add_css: Add default CSS from hooks/email_css to the email template (default True)
 		"""
 
 		self._unsubscribe_method = unsubscribe_method
@@ -582,6 +602,8 @@ class QueueBuilder:
 		self.print_letterhead = print_letterhead
 		self.email_read_tracker_url = email_read_tracker_url
 		self.email_headers = email_headers
+		self.raw_html = raw_html
+		self.add_css = add_css
 
 	@property
 	def unsubscribe_method(self):
@@ -638,6 +660,8 @@ class QueueBuilder:
 			email_account=email_account,
 			unsubscribe_link=self.unsubscribe_message(),
 			with_container=self.with_container,
+			raw_html=self.raw_html,
+			add_css=self.add_css,
 		)
 
 	def should_include_unsubscribe_link(self):
@@ -746,7 +770,8 @@ class QueueBuilder:
 			mail.msg_root["Disposition-Notification-To"] = self.sender
 		if self.in_reply_to:
 			if message_id := frappe.db.get_value("Communication", self.in_reply_to, "message_id"):
-				mail.set_in_reply_to(get_string_between("<", message_id, ">"))
+				message_id = message_id.strip("<> \t\n")
+				mail.set_in_reply_to(f"<{message_id}>")
 		return mail
 
 	def process(self, send_now=False) -> EmailQueue | None:
@@ -785,6 +810,15 @@ class QueueBuilder:
 				)
 
 	def send_emails(self, queue_data, final_recipients):
+		"""
+		Send emails to recipients separately.
+
+		Note: CC/BCC recipients are included in each email sent to TO recipients.
+		This means CC/BCC will receive one email per TO recipient. This is expected
+		behavior because queue_separately creates individual emails for each TO
+		recipient, and CC/BCC are copied on each individual email.
+
+		"""
 		# This is used to bulk send emails from same sender to multiple recipients separately
 		# This re-uses smtp server instance to minimize the cost of new session creation
 		frappe_mail_client = None
@@ -843,6 +877,8 @@ class QueueBuilder:
 			"show_as_bcc": ",".join(self.final_bcc()),
 			"email_account": email_account_name or None,
 			"email_read_tracker_url": self.email_read_tracker_url,
+			"raw_html": self.raw_html,
+			"add_css": self.add_css,
 		}
 
 		if include_recipients:

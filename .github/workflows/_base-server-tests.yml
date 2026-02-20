@@ -13,7 +13,7 @@ on:
       node-version:
         required: false
         type: number
-        default: 22
+        default: 24
       parallel-runs:
         required: false
         type: number
@@ -141,7 +141,7 @@ jobs:
           FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: inputs.enable-coverage
         with:
           name: coverage-${{ matrix.db }}-${{ matrix.index }}

@@ -5,7 +5,7 @@ import io
 import json
 import os
 import sys
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import UTC, date, datetime, time, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal, localcontext
 from enum import Enum
 from io import StringIO
@@ -508,7 +508,7 @@ class TestHTMLUtils(IntegrationTestCase):
 		sample = """<h1>Hello</h1><p>Para</p><a href="http://test.com">text</a>"""
 		clean = clean_email_html(sample)
 		self.assertTrue("<h1>Hello</h1>" in clean)
-		self.assertTrue('<a href="http://test.com">text</a>' in clean)
+		self.assertTrue('<a href="http://test.com" rel="noopener noreferrer">text</a>' in clean)
 
 	def test_sanitize_html(self):
 		from frappe.utils.html_utils import sanitize_html
@@ -575,6 +575,39 @@ class TestValidationUtils(IntegrationTestCase):
 		self.assertEqual(
 			validate_email_address("erp+Job%20Applicant=JA00004@frappe.com"),
 			"erp+Job%20Applicant=JA00004@frappe.com",
+		)
+
+		# RFC 5322 format - Display name with comma (main bug fix)
+		self.assertEqual(
+			validate_email_address('"Lastname, Firstname" <test@example.com>'), "test@example.com"
+		)
+		self.assertEqual(validate_email_address('"Doe, John" <john.doe@example.com>'), "john.doe@example.com")
+
+		# RFC 5322 format - Display name without comma
+		self.assertEqual(validate_email_address("Test User <test@example.com>"), "test@example.com")
+
+		# RFC 5322 format - Multiple emails
+		self.assertEqual(
+			validate_email_address('"Last, First" <test1@example.com>, "Another, Name" <test2@example.com>'),
+			"test1@example.com, test2@example.com",
+		)
+
+		# RFC 5322 format - Mixed with plain emails
+		self.assertEqual(
+			validate_email_address("Test User <test@example.com>, plain@example.com"),
+			"test@example.com, plain@example.com",
+		)
+
+		# Emails with newlines
+		self.assertEqual(
+			validate_email_address("test1@example.com\ntest2@example.com"),
+			"test1@example.com, test2@example.com",
+		)
+
+		# Undisclosed recipients should be filtered
+		self.assertEqual(validate_email_address("undisclosed-recipients:;"), "")
+		self.assertEqual(
+			validate_email_address("test@example.com, undisclosed-recipients:;"), "test@example.com"
 		)
 
 	def test_valid_phone(self):
@@ -928,9 +961,9 @@ class TestResponse(IntegrationTestCase):
 					minute=23,
 					second=23,
 					microsecond=23,
-					tzinfo=timezone.utc,
+					tzinfo=UTC,
 				),
-				time(hour=23, minute=23, second=23, microsecond=23, tzinfo=timezone.utc),
+				time(hour=23, minute=23, second=23, microsecond=23, tzinfo=UTC),
 				timedelta(days=10, hours=12, minutes=120, seconds=10),
 			],
 			"float": [
@@ -1219,8 +1252,8 @@ class TestMiscUtils(IntegrationTestCase):
 		self.assertGreaterEqual(len(info["users"]), 1)
 
 	def test_get_url_to_form(self):
-		self.assertTrue(get_url_to_form("System Settings").endswith("/app/system-settings"))
-		self.assertTrue(get_url_to_form("User", "Test User").endswith("/app/user/Test%20User"))
+		self.assertTrue(get_url_to_form("System Settings").endswith("/desk/system-settings"))
+		self.assertTrue(get_url_to_form("User", "Test User").endswith("/desk/user/Test%20User"))
 
 	def test_safe_json_load(self):
 		self.assertEqual(safe_json_loads("{}"), {})
@@ -1275,6 +1308,30 @@ class TestTypingValidations(IntegrationTestCase):
 
 		report.toggle_disable(changed_value)
 		report.toggle_disable(current_value)
+
+	def test_forced_types(self):
+		def func(a, b=None, **kwargs):
+			pass
+
+		lax_types = frappe.whitelist(force_types=False)(func)
+		lax_types(1)  # should run without error
+
+		forced_types = frappe.whitelist(force_types=True)(func)
+		with self.assertRaises(frappe.FrappeTypeError):
+			forced_types(1)
+
+		@frappe.whitelist(force_types=True)
+		def func(a: int, b=None, **kwargs):
+			pass
+
+		with self.assertRaises(frappe.FrappeTypeError):
+			func(1)
+
+		@frappe.whitelist(force_types=True)
+		def func(a: int, b: int | None = None, **kwargs):
+			pass
+
+		func(1)  # should run without error
 
 
 class TestTBSanitization(IntegrationTestCase):

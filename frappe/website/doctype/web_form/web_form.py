@@ -3,6 +3,7 @@
 
 import json
 import os
+from typing import Any
 
 import frappe
 from frappe import _, scrub
@@ -70,6 +71,7 @@ class WebForm(WebsiteGenerator):
 		web_form_fields: DF.Table[WebFormField]
 		website_sidebar: DF.Link | None
 	# end: auto-generated types
+
 	website = frappe._dict(no_cache=1)
 
 	def validate(self):
@@ -376,7 +378,7 @@ def get_context(context):
 					"No Data",
 					"Delete",
 					"Delete All",
-					"Add Row",
+					"Add row",
 					"Add Multiple",
 					"Download",
 					"of",
@@ -614,7 +616,7 @@ def get_web_form_module(doc):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key="web_form", limit=10, seconds=60)
-def accept(web_form, data):
+def accept(web_form: str, data: str):
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))
 
@@ -731,7 +733,7 @@ def delete(web_form_name: str, docname: str | int):
 
 
 @frappe.whitelist()
-def delete_multiple(web_form_name: str, docnames):
+def delete_multiple(web_form_name: str, docnames: str):
 	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 
 	docnames = json.loads(docnames)
@@ -806,7 +808,7 @@ def get_form_data(doctype: str, docname: str | None = None, web_form_name: str |
 
 
 @frappe.whitelist()
-def get_in_list_view_fields(doctype):
+def get_in_list_view_fields(doctype: str):
 	meta = frappe.get_meta(doctype)
 	fields = []
 

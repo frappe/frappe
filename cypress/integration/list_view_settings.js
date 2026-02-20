@@ -17,7 +17,6 @@ context("List View Settings", () => {
 	});
 	it("Default settings", () => {
 		cy.get(".list-count").should("contain", "20 of");
-		cy.get(".list-stats").should("contain", "Tags");
 	});
 	it("disable count and sidebar stats then verify", () => {
 		cy.get(".list-count").should("contain", "20 of");

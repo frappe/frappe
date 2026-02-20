@@ -40,7 +40,7 @@ frappe.ui.form.on("DocType Layout", {
 	add_buttons(frm) {
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Go to {0} List", [frm.doc.name]), () => {
-				window.open(`/app/${frappe.router.slug(frm.doc.name)}`);
+				window.open(`/desk/${frappe.router.slug(frm.doc.name)}`);
 			});
 
 			frm.add_custom_button(__("Sync {0} Fields", [frm.doc.name]), async () => {

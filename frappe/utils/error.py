@@ -109,9 +109,10 @@ def get_error_metadata() -> str:
 			metadata["form_dict"] = sanitized_dict(frappe.form_dict)
 
 		metadata["user"] = getattr(frappe.session, "user", "Unidentified")
-	finally:
+	except Exception:
 		# We don't want to bother with exception handling *while* gathering some error's metadata
-		return frappe.as_json(metadata)  # noqa: B012
+		pass
+	return frappe.as_json(metadata)
 
 
 def log_error_snapshot(exception: Exception):

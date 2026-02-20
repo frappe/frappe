@@ -39,6 +39,7 @@ from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import get_home_page, is_signup_disabled
+from frappe.www.login import sanitize_redirect
 
 desk_properties = (
 	"search_bar",
@@ -47,6 +48,7 @@ desk_properties = (
 	"bulk_actions",
 	"view_switcher",
 	"form_sidebar",
+	"form_navigation_buttons",
 	"timeline",
 	"dashboard",
 )
@@ -95,6 +97,7 @@ class User(Document):
 		follow_created_documents: DF.Check
 		follow_liked_documents: DF.Check
 		follow_shared_documents: DF.Check
+		form_navigation_buttons: DF.Check
 		form_sidebar: DF.Check
 		full_name: DF.Data | None
 		gender: DF.Link | None
@@ -554,7 +557,7 @@ class User(Document):
 		if custom_template:
 			from frappe.email.doctype.email_template.email_template import get_email_template
 
-			email_template = get_email_template(custom_template, args)
+			email_template = get_email_template(custom_template, args, sender=sender)
 			subject = email_template.get("subject")
 			content = email_template.get("message")
 
@@ -1115,7 +1118,7 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 			user.add_roles(default_role)
 
 		if redirect_to:
-			frappe.cache.hset("redirect_after_login", user.name, redirect_to)
+			frappe.cache.hset("redirect_after_login", user.name, sanitize_redirect(redirect_to))
 
 		if user.flags.email_sent:
 			return 1, _("Please check your email for verification")
@@ -1285,7 +1288,27 @@ def handle_password_test_fail(feedback: dict):
 	suggestions = feedback.get("suggestions", [])
 	warning = feedback.get("warning", "")
 
-	frappe.throw(msg=" ".join([warning, *suggestions]), title=_("Invalid Password"))
+	# Add fallback suggestion if nothing provided
+	if not (suggestions or warning):
+		suggestions = [_("Better add a few more letters or another word")]
+
+	message_parts = []
+
+	if warning:
+		message_parts.append(f'<div class="alert alert-warning" role="alert">{warning}</div>')
+
+	if suggestions:
+		suggestions_html = (
+			'<ul style="margin: 0; padding-left: 1em;">'
+			+ "".join(f"<li>{suggestion}</li>" for suggestion in suggestions)
+			+ "</ul>"
+		)
+		message_parts.append(suggestions_html)
+
+	frappe.throw(
+		msg="".join(message_parts),
+		title=_("Password requirements not met"),
+	)
 
 
 def update_gravatar(name):
@@ -1418,7 +1441,7 @@ def get_enabled_users():
 
 @frappe.whitelist(methods=["POST"])
 def impersonate(user: str, reason: str):
-	frappe.has_permission("User", "impersonate")
+	frappe.has_permission("User", "impersonate", throw=True)
 
 	impersonator = frappe.session.user
 	frappe.get_doc(
@@ -1439,6 +1462,18 @@ def impersonate(user: str, reason: str):
 	)
 	notification.set("type", "Alert")
 	notification.insert(ignore_permissions=True)
+	# notify user via email too
+	if not frappe.conf.get("developer_mode"):  # bypass for testing locally
+		user_email = frappe.db.get_value("User", user, "email")
+		email_message = _(
+			"User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
+		).format(escape_html(impersonator), escape_html(reason))
+
+		frappe.sendmail(
+			recipients=[user_email],
+			subject=_("Security Alert: Your account is being impersonated"),
+			content=email_message,
+		)
 	frappe.local.login_manager.impersonate(user)
 
 

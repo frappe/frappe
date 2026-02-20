@@ -150,6 +150,7 @@ frappe.ui.form.Layout = class Layout {
 
 		if (this.is_tabbed_layout()) {
 			// add a tab without `fieldname` to avoid conflicts
+			this.add_default_tabs(fields);
 			let default_tab = {
 				label: __("Details"),
 				fieldtype: "Tab Break",
@@ -201,7 +202,7 @@ frappe.ui.form.Layout = class Layout {
 			(this.fields[0] && this.fields[0].fieldtype != "Section Break") || !this.fields.length
 		);
 	}
-
+	add_default_tabs() {}
 	no_opening_tab() {
 		return (this.fields[1] && this.fields[1].fieldtype != "Tab Break") || !this.fields.length;
 	}
@@ -421,7 +422,8 @@ frappe.ui.form.Layout = class Layout {
 		}
 
 		const visible_tabs = this.tabs.filter((tab) => !tab.hidden);
-		if (visible_tabs && visible_tabs.length == 1) {
+		// Hide single tab only for regular forms, not for child tables
+		if (visible_tabs && visible_tabs.length == 1 && !this.is_child_table) {
 			visible_tabs[0].tab_link.toggleClass("hide show");
 		}
 		this.set_tab_as_active();
@@ -440,7 +442,18 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	set_tab_as_active() {
-		// Set active tab based on hash
+		// For child tables (grid row forms), always activate first visible tab
+		if (this.is_child_table) {
+			if (this.tabs.length) {
+				let first_visible_tab = this.tabs.find((tab) => !tab.is_hidden());
+				if (first_visible_tab && !first_visible_tab.is_active()) {
+					first_visible_tab.set_active();
+				}
+			}
+			return;
+		}
+
+		// Set active tab based on hash (for regular forms only)
 		const tab_from_hash = window.location.hash.replace("#", "");
 		const tab = this.tabs.find((tab) => tab.df.fieldname === tab_from_hash);
 		if (tab) {
@@ -516,12 +529,6 @@ frappe.ui.form.Layout = class Layout {
 		}
 	}
 
-	refresh_section_count() {
-		this.wrapper.find(".section-count-label:visible").each(function (i) {
-			$(this).html(i + 1);
-		});
-	}
-
 	setup_events() {
 		let last_scroll = 0;
 		let tabs_list = $(".form-tabs-list");
@@ -549,7 +556,9 @@ frappe.ui.form.Layout = class Layout {
 			if (tabs_content.getBoundingClientRect().top < 100) {
 				tabs_content.scrollIntoView();
 				setTimeout(() => {
-					$(".page-head").css("top", "-15px");
+					if (frappe.boot.read_only || frappe.boot.user.impersonated_by) {
+						$(".page-head").css("top", "-15px");
+					}
 					$(".form-tabs-list").removeClass("form-tabs-sticky-down");
 					$(".form-tabs-list").addClass("form-tabs-sticky-up");
 				}, 3);
@@ -709,40 +718,16 @@ frappe.ui.form.Layout = class Layout {
 			build dependants' dictionary
 		*/
 
-		let has_dep = false;
-
 		const fields = this.fields_list.concat(this.tabs);
 
-		for (let fkey in fields) {
-			let f = fields[fkey];
-			if (f.df.depends_on || f.df.mandatory_depends_on || f.df.read_only_depends_on) {
-				has_dep = true;
-				break;
-			}
-		}
-
-		if (!has_dep) return;
-
 		// show / hide based on values
-		for (let i = fields.length - 1; i >= 0; i--) {
-			let f = fields[i];
-			f.guardian_has_value = true;
+		for (const f of fields) {
 			if (f.df.depends_on) {
-				// evaluate guardian
+				const should_hide = !this.evaluate_depends_on_value(f.df.depends_on);
 
-				f.guardian_has_value = this.evaluate_depends_on_value(f.df.depends_on);
-
-				// show / hide
-				if (f.guardian_has_value) {
-					if (f.df.hidden_due_to_dependency) {
-						f.df.hidden_due_to_dependency = false;
-						f.refresh();
-					}
-				} else {
-					if (!f.df.hidden_due_to_dependency) {
-						f.df.hidden_due_to_dependency = true;
-						f.refresh();
-					}
+				if (f.df.hidden_due_to_dependency !== should_hide) {
+					f.df.hidden_due_to_dependency = should_hide;
+					f.refresh();
 				}
 			}
 
@@ -757,9 +742,13 @@ frappe.ui.form.Layout = class Layout {
 					"read_only"
 				);
 			}
-		}
 
-		this.refresh_section_count();
+			if (f.df.fieldtype === "Table") {
+				for (const row of f.grid?.grid_rows || []) {
+					row.refresh_dependency();
+				}
+			}
+		}
 	}
 
 	set_dependant_property(condition, fieldname, property) {

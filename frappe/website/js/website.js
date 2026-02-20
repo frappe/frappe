@@ -96,6 +96,18 @@ $.extend(frappe, {
 				403: function () {
 					frappe.msgprint(__("Not permitted"));
 				},
+				417: function (xhr) {
+					var data = xhr.responseJSON;
+					if (!data) {
+						try {
+							data = JSON.parse(xhr.responseText);
+						} catch (e) {
+							data = xhr.responseText;
+						}
+					}
+					if (opts.callback) opts.callback(data);
+					if (opts.error) opts.error(data);
+				},
 				200: function (data) {
 					if (opts.callback) opts.callback(data);
 					if (opts.success) opts.success(data);

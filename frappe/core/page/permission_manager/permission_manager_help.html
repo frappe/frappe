@@ -5,18 +5,85 @@
 		<li>{%= __("Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.") %}</li>
 		<li>{%= __("Permissions get applied on Users based on what Roles they are assigned.") %}</li>
 		<li>{%= __("Roles can be set for users from their User page.") %}
-			<a href="/app/List/User">{%= __("Setup > User") %}</a></li>
-		<li>{%= __("The system provides many pre-defined roles. You can add new roles to set finer permissions.") %}<a href="/app/List/Role"> {%= __("Add a New Role") %}</a></li>
+			<a href="/desk/List/User">{%= __("Setup > User") %}</a></li>
+		<li>{%= __("The system provides many pre-defined roles. You can add new roles to set finer permissions.") %}<a href="/desk/List/Role"> {%= __("Add a New Role") %}</a></li>
 		<li>{%= __("Permissions are automatically applied to Standard Reports and searches.") %}</li>
 		<li>{%= __("As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.") %}</li>
 	</ol>
 	<hr>
-	<h4>{%= __("Meaning of Submit, Cancel, Amend") %}:</h4>
+	<h4>{%= __("Meaning of Different Permission Types") %}:</h4>
 	<ol>
-		<li>{%= __("Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.") %}</li>
-		<li>{%= __("You can change Submitted documents by cancelling them and then, amending them.") %}</li>
-		<li>{%= __("When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.") %}</li>
-		<li>{%= __("For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.") %}</li>
+		<table class="table table-bordered" cellpadding="8" cellspacing="0" style="width:95%">
+			<thead>
+				<tr>
+					<th>{%= __("Permission") %}</th>
+					<th>{%= __("Description") %}</th>
+					<th>{%= __("Example") %}</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>{%= __("Select") %}</td>
+					<td>{%= __("Allows the user to search and see records.") %}</td>
+					<td>{%= __("The user can select a Customer in Sales Order but cannot open the Customer master.") %}</td>
+				</tr>
+				<tr>
+					<td>{%= __("Read") %}</td>
+					<td>{%= __("Allows the user to view the document.") %}</td>
+					<td>{%= __("The user can view Sales Invoices but cannot modify any field values in them.") %}</td>
+				</tr>
+				<tr>
+					<td>{%= __("Write") %}</td>
+					<td>{%= __("Allows the user to edit existing records they have access to.") %}</td>
+					<td>{%= __("The user can update a customer or any other fields in an existing Sales Order but cannot create a new Sales Order.") %}</td>
+				</tr>
+				<tr>
+					<td>{%= __("Create") %}</td>
+					<td>{%= __("Allows the user to create new documents.") %}</td>
+					<td>{%= __("The user can create a new Item but cannot edit existing items.") %}</td>
+				</tr>
+				<tr>
+					<td>{%= __("Delete") %}</td>
+					<td>{%= __("Allows the user to delete documents.") %}</td>
+					<td>{%= __("The user can delete Draft / Cancelled documents.") %}</td>
+				</tr>
+				<tr>
+					<td>{%= __("Print") %}</td>
+					<td>{%= __("Allows printing or PDF download of documents.") %}</td>
+					<td>{%= __("The print button is enabled for the user in the document.") %}</td>
+				</tr>
+				<tr>
+					<td>{%= __("Email") %}</td>
+					<td>{%= __("Allows the user to email from the document.") %}</td>
+					<td>{%= __("The email button is enabled for the user in the document.") %}</td>
+				</tr>
+				<tr>
+					<td>{%= __("Report") %}</td>
+					<td>{%= __("Allows the user to access reports related to the document.") %}</td>
+					<td>{%= __("If the user has access to Employee and Report is enabled, they can view Employee-based reports.") %}</td>
+				</tr>
+				<tr>
+					<td>{%= __("Export") %}</td>
+					<td>{%= __("Allows the user to export data from the Report view.") %}</td>
+					<td>{%= __("The user can export report data.") %}</td>
+				</tr>
+				<tr>
+					<td>{%= __("Import") %}</td>
+					<td>{%= __("Allows the user to use Data Import tool to create / update records.") %}</td>
+					<td>{%= __("The user can import new records or update existing data for the document.") %}</td>
+				</tr>
+				<tr>
+					<td>{%= __("Share") %}</td>
+					<td>{%= __("Allows sharing document access with other users.") %}</td>
+					<td>{%= __("The user can share document access with another user.") %}</td>
+				</tr>
+				<tr>
+					<td>{%= __("Mask") %}</td>
+					<td>{%= __("Allows users to enable the mask property for any field of the respective doctype.") %}</td>
+					<td>{%= __("If the user enables the mask property for the phone number field, the value will be displayed in a masked format (e.g., 811XXXXXXX).") %}</td>
+				</tr>
+			</tbody>
+		</table>
 	</ol>
 	<hr>
 	<h4>{%= __("Permission Levels") %}:</h4>
@@ -24,13 +91,13 @@
 		<li>{%= __("Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.") %}</li>
 		<li>{%= __("If a Role does not have access at Level 0, then higher levels are meaningless.") %}</li>
 		<li>{%= __("Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.") %}</li>
-		<li>{%= __("You can use Customize Form to set levels on fields.") %} <a href="/app/Form/Customize Form">{%= __("Setup > Customize Form") %}</a></li>
+		<li>{%= __("You can use Customize Form to set levels on fields.") %} <a href="/desk/Form/Customize Form">{%= __("Setup > Customize Form") %}</a></li>
 	</ol>
 	<hr>
 	<h4>{%= __("User Permissions") %}:</h4>
 	<ol>
 		<li>{%= __("User Permissions are used to limit users to specific records.") %}
-			 <a href="/app/List/User Permission">{%= __("Setup > User Permissions") %}</a></li>
+			 <a href="/desk/List/User Permission">{%= __("Setup > User Permissions") %}</a></li>
 		<li>{%= __("Select Document Types to set which User Permissions are used to limit access.") %}</li>
 		<li>{%= __("Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).") %}</li>
 		<li>{%= __("Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.") %}</li>

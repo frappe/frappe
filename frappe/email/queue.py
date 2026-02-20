@@ -94,7 +94,7 @@ def get_unsubcribed_url(reference_doctype, reference_name, email, unsubscribe_me
 
 
 @frappe.whitelist(allow_guest=True)
-def unsubscribe(doctype, name, email):
+def unsubscribe(doctype: str, name: str, email: str):
 	# unsubsribe from comments and communications
 	if not frappe.in_test and not verify_request():
 		return
@@ -147,7 +147,7 @@ def flush():
 	failed_email_queues = []
 	for row in email_queue_batch:
 		try:
-			email_queue: EmailQueue = frappe.get_doc("Email Queue", row.name)
+			email_queue: EmailQueue = frappe.get_doc("Email Queue", row.name, for_update=True)
 			email_queue.send()
 		except Exception:
 			frappe.get_doc("Email Queue", row.name).log_error()

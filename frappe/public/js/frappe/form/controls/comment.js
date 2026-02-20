@@ -13,15 +13,6 @@ frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.Cont
 						<span class="comment-title">${__("Comments")}</span>
 						<span class="comment-count"></span>
 					</div>
-
-					<div class="form-stats-likes">
-						<span class="liked-by like-action d-flex align-items-center">
-							<svg class="icon icon-sm like-icon">
-								<use href="#icon-heart"></use>
-							</svg>
-							<span class="like-count ml-2"></span>
-						</span>
-					</div>
 				</div>
 				<div class="comment-input-container">
 				${frappe.avatar(frappe.session.user, "avatar-medium")}

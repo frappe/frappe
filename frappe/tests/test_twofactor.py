@@ -199,11 +199,10 @@ class TestTwoFactor(IntegrationTestCase):
 
 def create_http_request():
 	"""Get http request object."""
-	set_request(method="POST", path="login")
+	set_request(method="POST", path="/api/method/login")
 	enable_2fa()
 	frappe.form_dict["usr"] = "test@example.com"
 	frappe.form_dict["pwd"] = "Eastern_43A1W"
-	frappe.local.form_dict["cmd"] = "login"
 	return HTTPRequest()
 
 

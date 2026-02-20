@@ -12,6 +12,7 @@ from frappe.core.doctype.domain_settings.domain_settings import get_active_modul
 from frappe.permissions import AUTOMATIC_ROLES, get_rights, get_roles, get_valid_perms
 from frappe.query_builder import DocType, Order
 from frappe.query_builder.functions import Concat_ws
+from frappe.utils.translations import _
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.user.user import User
@@ -42,6 +43,7 @@ class UserPermissions:
 		self.can_print = []
 		self.can_email = []
 		self.allow_modules = []
+		self.permitted_modules = []
 		self.in_create = []
 		self.setup_user()
 
@@ -143,7 +145,8 @@ class UserPermissions:
 						no_list_view_link.append(dt)
 					else:
 						self.can_read.append(dt)
-
+						if dtp["module"] not in self.permitted_modules:
+							self.permitted_modules.append(dtp["module"])
 			if p.get("submit"):
 				self.can_submit.append(dt)
 
@@ -269,6 +272,7 @@ class UserPermissions:
 			"can_import",
 			"can_print",
 			"can_email",
+			"permitted_modules",
 		):
 			d[key] = list(set(getattr(self, key)))
 
@@ -292,9 +296,10 @@ def get_user_fullname(user: str) -> str:
 
 
 def get_fullname_and_avatar(user: str) -> _dict:
-	first_name, last_name, avatar, name = frappe.get_cached_value(
-		"User", user, ["first_name", "last_name", "user_image", "name"]
-	)
+	result = frappe.get_cached_value("User", user, ["first_name", "last_name", "user_image", "name"])
+	if result is None:
+		frappe.throw(_("User does not exist"), frappe.DoesNotExistError)
+	first_name, last_name, avatar, name = result
 	return _dict(
 		{
 			"fullname": " ".join(list(filter(None, [first_name, last_name]))),
@@ -441,3 +446,21 @@ def get_users_with_role(role: str) -> list[str]:
 		.distinct()
 		.run(pluck=True)
 	)
+
+
+def is_portal_user():
+	from frappe.utils import has_common
+
+	roles = get_portal_roles()
+	user_type = frappe.session.data.user_type
+	if user_type == "Website User" and has_common(frappe.get_roles(), roles):
+		return True
+
+
+def get_portal_roles():
+	roles = []
+	for menu_item in frappe.get_single("Portal Settings").menu:
+		if menu_item.role and menu_item.role not in roles:
+			roles.append(menu_item.role)
+
+	return roles

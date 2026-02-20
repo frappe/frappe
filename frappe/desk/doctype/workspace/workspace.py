@@ -125,16 +125,32 @@ class Workspace(Document):
 			self.name = doc.name = doc.label = doc.title
 
 	def on_trash(self):
+		if not self.module:
+			self.delete_sidebar()
+			self.delete_desktop_icon()
 		if self.public and not is_workspace_manager():
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
 		self.delete_from_my_workspaces()
 
+	def delete_desktop_icon(self):
+		frappe.delete_doc_if_exists("Desktop Icon", self.title)
+
+	def delete_sidebar(self):
+		frappe.delete_doc_if_exists("Workspace Sidebar", self.title)
+
 	def delete_from_my_workspaces(self):
-		if not self.public:
+		if self.public:
+			return
+
+		try:
 			my_workspaces = frappe.get_doc("Workspace Sidebar", f"My Workspaces-{frappe.session.user}")
-			for w in my_workspaces.items:
-				if self.name == w.link_to:
-					frappe.delete_doc("Workspace Sidebar Item", w.name)
+		except frappe.DoesNotExistError:
+			frappe.clear_messages()
+			return
+
+		for w in my_workspaces.items:
+			if self.name == w.link_to:
+				frappe.delete_doc("Workspace Sidebar Item", w.name)
 
 	def after_delete(self):
 		if disable_saving_as_public():
@@ -307,7 +323,8 @@ def new_page(new_page):
 	# add to workspace sidebar items
 	if not doc.public:
 		add_to_my_workspace(doc)
-	return {"workspace_pages": get_workspace_sidebar_items(), "sidebar_items": get_sidebar_items()}
+	workspaces = get_workspace_sidebar_items()
+	return {"workspace_pages": workspaces, "sidebar_items": get_sidebar_items(workspaces)}
 
 
 @frappe.whitelist()

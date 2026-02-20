@@ -49,7 +49,7 @@ class GoogleContacts(Document):
 
 
 @frappe.whitelist(methods=["POST"])
-def authorize_access(g_contact, reauthorize=False, code=None):
+def authorize_access(g_contact: str, reauthorize: int | bool = False, code: str | None = None):
 	"""
 	If no Authorization code get it from Google and then request for Refresh Token.
 	Google Contact Name is set to flags to set_value after Authorization Code is obtained.
@@ -64,7 +64,7 @@ def authorize_access(g_contact, reauthorize=False, code=None):
 		return oauth_obj.get_authentication_url(
 			{
 				"g_contact": g_contact,
-				"redirect": f"/app/Form/{quote('Google Contacts')}/{quote(g_contact)}",
+				"redirect": f"/desk/Form/{quote('Google Contacts')}/{quote(g_contact)}",
 			},
 		)
 
@@ -88,7 +88,7 @@ def get_google_contacts_object(g_contact):
 
 
 @frappe.whitelist()
-def sync(g_contact=None):
+def sync(g_contact: str | None = None):
 	filters = {"enable": 1}
 
 	if g_contact:

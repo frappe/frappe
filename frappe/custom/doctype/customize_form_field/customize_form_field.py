@@ -16,6 +16,7 @@ class CustomizeFormField(Document):
 		allow_bulk_edit: DF.Check
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
+		alignment: DF.Literal["", "Left", "Center", "Right"]
 		bold: DF.Check
 		button_color: DF.Literal["", "Default", "Primary", "Info", "Success", "Warning", "Danger"]
 		collapsible: DF.Check
@@ -90,6 +91,7 @@ class CustomizeFormField(Document):
 		length: DF.Int
 		link_filters: DF.JSON | None
 		mandatory_depends_on: DF.Code | None
+		mask: DF.Check
 		no_copy: DF.Check
 		non_negative: DF.Check
 		options: DF.SmallText | None

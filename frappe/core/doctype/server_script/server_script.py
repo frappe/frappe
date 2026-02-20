@@ -123,7 +123,14 @@ class ServerScript(Document):
 			if scheduled_script := frappe.db.get_value("Scheduled Job Type", {"server_script": self.name}):
 				return frappe.get_doc("Scheduled Job Type", scheduled_script)
 			else:
-				return frappe.get_doc({"doctype": "Scheduled Job Type", "server_script": self.name})
+				should_create_log = self.event_frequency not in ("All", "Cron")
+				return frappe.get_doc(
+					{
+						"doctype": "Scheduled Job Type",
+						"server_script": self.name,
+						"create_log": should_create_log,
+					}
+				)
 
 		previous_script_type = self.get_value_before_save("script_type")
 		if previous_script_type != self.script_type and previous_script_type == "Scheduler Event":
@@ -204,16 +211,21 @@ class ServerScript(Document):
 
 		safe_exec(self.script, script_filename=self.name)
 
-	def get_permission_query_conditions(self, user: str) -> list[str]:
+	def get_permission_query_conditions(self, user: str, active_child_tables=None) -> list[str]:
 		"""Specific to Permission Query Server Scripts.
 
 		Args:
 		        user (str): Take user email to execute script and return list of conditions.
+				active_child_tables (list, optional): A list of child table names involved in the current SQL query.
 
 		Return:
 		        list: Return list of conditions defined by rules in self.script.
 		"""
-		locals = {"user": user, "conditions": ""}
+		locals = {
+			"user": user,
+			"conditions": "",
+			"active_child_tables": active_child_tables or [],
+		}
 		safe_exec(self.script, None, locals, script_filename=self.name)
 		if locals["conditions"]:
 			return locals["conditions"]

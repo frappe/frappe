@@ -78,7 +78,7 @@ context("Awesome Bar", () => {
 		cy.get("@awesome_bar").type("new web page");
 		cy.wait(150); // Wait a bit before hitting enter
 		cy.get("@awesome_bar").type("{enter}");
-		cy.get(".title-text:visible").should("have.text", "New Web Page");
+		cy.get(".title-text-form:visible").should("have.text", "New Web Page");
 	});
 
 	it("calculates math expressions", () => {
@@ -87,5 +87,31 @@ context("Awesome Bar", () => {
 		cy.get("@awesome_bar").type("{downarrow}{enter}");
 		cy.get(".modal-title").should("contain", "Result");
 		cy.get(".msgprint").should("contain", "55 + 32 = 87");
+	});
+
+	it.only("support number formats in math expressions", () => {
+		cy.window()
+			.its("frappe")
+			.then((frappe) => {
+				frappe.boot.sysdefaults.number_format = "#,###.##";
+			});
+		cy.get("@awesome_bar").type("1,250.2 + 1,250.2");
+		cy.wait(150); // Wait a bit before hitting enter
+		cy.get("@awesome_bar").type("{downarrow}{enter}");
+		cy.get(".modal-title").should("contain", "Result");
+		cy.get(".msgprint").should("contain", "1,250.2 + 1,250.2 = 2,500.4");
+		cy.hide_dialog();
+
+		cy.get("@awesome_bar_search").click();
+		cy.window()
+			.its("frappe")
+			.then((frappe) => {
+				frappe.boot.sysdefaults.number_format = "#.###,##";
+			});
+		cy.get("@awesome_bar").type("1.500,2 + 1.500,2");
+		cy.wait(150); // Wait a bit before hitting enter
+		cy.get("@awesome_bar").type("{downarrow}{enter}");
+		cy.get(".modal-title").should("contain", "Result");
+		cy.get(".msgprint").should("contain", "1.500,2 + 1.500,2 = 3.000,4");
 	});
 });

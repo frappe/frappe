@@ -27,7 +27,7 @@ class TestQueryReport(IntegrationTestCase):
 		visible_idx = [0, 2, 3]
 
 		# Build the result
-		xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths, _ = build_xlsx_data(data, visible_idx, include_indentation=0)
 
 		self.assertEqual(type(xlsx_data), list)
 		self.assertEqual(len(xlsx_data), 4)  # columns + data
@@ -53,9 +53,11 @@ class TestQueryReport(IntegrationTestCase):
 		visible_idx = [0, 2, 3]
 
 		# Build the result
-		xlsx_data, _column_widths = build_xlsx_data(
+		xlsx_data, _column_widths, header_index = build_xlsx_data(
 			data, visible_idx, include_indentation=False, include_filters=True
 		)
+
+		self.assertEqual(header_index, 3)  # 2 filter rows + 1 empty row
 
 		# Check if unset filters are skipped | Rows - 2 filters + 1 empty + 1 column + 3 data
 		self.assertEqual(len(xlsx_data), 7)
@@ -80,9 +82,9 @@ class TestQueryReport(IntegrationTestCase):
 		visible_idx = [0, 1]
 
 		# Build the result
-		xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths, header_index = build_xlsx_data(data, visible_idx, include_indentation=0)
 		# Export to excel
-		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
+		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths, header_index=header_index)
 
 		for row in xlsx_data:
 			# column_b should be 'str' even with composite cell value
@@ -117,6 +119,7 @@ class TestQueryReport(IntegrationTestCase):
 						"visible_idx": [0, 1, 2],
 					}
 				)
+				frappe.db.commit()
 				export_query()
 
 				self.assertTrue(frappe.response["filename"].endswith(".csv"))
@@ -128,6 +131,7 @@ class TestQueryReport(IntegrationTestCase):
 						self.assertIn(column, row)
 
 		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
+		frappe.db.commit()
 
 	def test_report_for_duplicate_column_names(self):
 		"""Test report with duplicate column names"""
@@ -270,19 +274,15 @@ data = columns, result
 			}
 		)
 		frappe.db.delete("Email Queue")
+		frappe.db.commit()
 		export_query()
 
-		jobs = frappe.get_all(
-			"RQ Job",
-			filters={"job_name": "frappe.desk.query_report.run_export_query_job"},
-			fields=["name", "status"],
-		)
 		email_queue = frappe.get_all("Email Queue")
 
-		self.assertTrue(jobs, "Background job was not enqueued")
 		self.assertTrue(email_queue, "Email was not enqueued")
 
 		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
+		frappe.db.commit()
 
 
 def create_mock_data():

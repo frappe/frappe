@@ -36,18 +36,19 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 
 	if not df:
 		df = frappe._dict()
-		if isinstance(value, datetime.datetime):
-			df.fieldtype = "Datetime"
-		elif isinstance(value, datetime.date):
-			df.fieldtype = "Date"
-		elif isinstance(value, datetime.timedelta):
-			df.fieldtype = "Time"
-		elif isinstance(value, int):
-			df.fieldtype = "Int"
-		elif isinstance(value, float):
-			df.fieldtype = "Float"
-		else:
-			df.fieldtype = "Data"
+		match value:
+			case datetime.datetime():
+				df.fieldtype = "Datetime"
+			case datetime.date():
+				df.fieldtype = "Date"
+			case datetime.timedelta():
+				df.fieldtype = "Time"
+			case int():
+				df.fieldtype = "Int"
+			case float():
+				df.fieldtype = "Float"
+			case _:
+				df.fieldtype = "Data"
 
 	elif isinstance(df, dict):
 		# Convert dict to object if necessary
@@ -90,13 +91,6 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		precision = get_field_precision(df, doc)
 		# I don't know why we support currency option for float
 		currency = currency or get_field_currency(df, doc)
-
-		# show 1.000000 as 1
-		# options should not specified
-		if not df.options and value is not None:
-			temp = cstr(value).split(".")
-			if len(temp) == 1 or cint(temp[1]) == 0:
-				precision = 0
 
 		return fmt_money(value, precision=precision, currency=currency)
 

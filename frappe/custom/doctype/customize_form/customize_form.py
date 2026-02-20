@@ -710,7 +710,7 @@ def is_standard_or_system_generated_field(df):
 
 
 @frappe.whitelist()
-def get_link_filters_from_doc_without_customisations(doctype, fieldname):
+def get_link_filters_from_doc_without_customisations(doctype: str, fieldname: str):
 	"""Get the filters of a link field from a doc without customisations
 	In backend the customisations are not applied.
 	Customisations are applied in the client side.
@@ -768,6 +768,7 @@ docfield_properties = {
 	"permlevel": "Int",
 	"width": "Data",
 	"print_width": "Data",
+	"alignment": "Select",
 	"non_negative": "Check",
 	"reqd": "Check",
 	"unique": "Check",
@@ -807,6 +808,7 @@ docfield_properties = {
 	"link_filters": "JSON",
 	"placeholder": "Data",
 	"button_color": "Select",
+	"mask": "Check",
 }
 
 doctype_link_properties = {

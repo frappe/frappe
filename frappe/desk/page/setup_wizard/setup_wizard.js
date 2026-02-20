@@ -400,9 +400,6 @@ frappe.setup.slides_settings = [
 				reqd: 1,
 			},
 			{
-				fieldtype: "Section Break",
-			},
-			{
 				fieldname: "timezone",
 				label: __("Time Zone"),
 				placeholder: __("Select Time Zone"),
@@ -415,9 +412,6 @@ frappe.setup.slides_settings = [
 				placeholder: __("Select Currency"),
 				fieldtype: "Select",
 				reqd: 1,
-			},
-			{
-				fieldtype: "Section Break",
 			},
 			{
 				fieldname: "enable_telemetry",

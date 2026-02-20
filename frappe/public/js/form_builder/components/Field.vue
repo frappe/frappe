@@ -184,7 +184,7 @@ function is_filter_applied() {
 
 function open_child_doctype() {
 	if (!props.field?.df?.options) return;
-	window.open(`/app/doctype/${props.field.df.options}`, "_blank");
+	window.open(`/desk/doctype/${props.field.df.options}`, "_blank");
 }
 
 onMounted(() => selected.value && label_input.value.focus_on_label());

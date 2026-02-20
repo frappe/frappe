@@ -12,8 +12,9 @@ body {
 .checkbox {
 	label {
 		display: inline-flex;
-		align-items: center;
+		align-items: start;
 		margin-bottom: 0;
+		padding-top: 2.5px;
 	}
 	--checkbox-right-margin: 8px;
 
@@ -25,14 +26,8 @@ body {
 	.input-area,
 	.disp-area {
 		display: flex;
-	}
-
-	.input-area {
-		padding-top: 2.5px;
-
-		@media (max-width: map-get($grid-breakpoints, "lg")) {
-			padding-top: 1px;
-		}
+		align-items: center;
+		height: 20px;
 	}
 
 	.help-box {
@@ -76,6 +71,8 @@ body {
 		-moz-appearance: none;
 		/* for Chrome */
 		-webkit-appearance: none;
+
+		padding-right: 28px;
 	}
 
 	.select-icon {
@@ -176,4 +173,16 @@ body {
 }
 .margin-right {
 	margin-right: var(--margin-sm);
+}
+.info-card {
+	display: none;
+}
+
+.info-card[data-show] {
+	display: block;
+	z-index: 1;
+	.sidebar-card {
+		box-shadow: 0px 18px 22px -6px rgba(0, 0, 0, 0.1), 0px 0px 6px 3px rgba(0, 0, 0, 0.03),
+			0px 0px 1.5px 0px rgba(0, 0, 0, 0.18);
+	}
 }

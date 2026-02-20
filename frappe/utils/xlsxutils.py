@@ -3,6 +3,7 @@
 import datetime
 import re
 from io import BytesIO
+from typing import Any
 
 import openpyxl
 import xlrd
@@ -13,6 +14,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.workbook.child import INVALID_TITLE_REGEX
 
 import frappe
+from frappe.core.utils import html2text
 from frappe.utils.html_utils import unescape_html
 
 ILLEGAL_CHARACTERS_RE = re.compile(
@@ -31,7 +33,28 @@ def get_excel_date_format():
 
 
 # return xlsx file object
-def make_xlsx(data, sheet_name, wb=None, column_widths=None):
+def make_xlsx(
+	data: list[list[Any]],
+	sheet_name: str,
+	wb: openpyxl.Workbook | None = None,
+	column_widths: list[int] | None = None,
+	header_index: int = 0,
+	has_filters: bool = False,
+) -> BytesIO:
+	"""
+	Create an Excel file with the given data and formatting options.
+
+	Args:
+		data: List of rows, where each row is a list of cell values
+		sheet_name: Name of the Excel sheet
+		wb: Existing workbook to add sheet to. If None, creates new workbook
+		column_widths: List of column widths in Excel units. If None, auto-sized
+		header_index: Row index (0-based) that should be formatted as header making it bold
+		has_filters: If True, applies bold formatting to the first column of filter rows
+
+	Returns:
+		BytesIO: object containing the Excel file data
+	"""
 	column_widths = column_widths or []
 	if wb is None:
 		wb = openpyxl.Workbook(write_only=True)
@@ -43,14 +66,15 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 		if column_width:
 			ws.column_dimensions[get_column_letter(i + 1)].width = column_width
 
-	row1 = ws.row_dimensions[1]
-	row1.font = Font(name="Calibri", bold=True)
-
 	date_format, time_format = get_excel_date_format()
+	bold_font = Font(name="Calibri", bold=True)
 
-	for row in data:
+	for row_idx, row in enumerate(data):
 		clean_row = []
-		for item in row:
+		is_header_row = row_idx == header_index
+		is_filter_row = has_filters and row_idx < header_index
+
+		for col_idx, item in enumerate(row):
 			if isinstance(item, str) and (sheet_name not in ["Data Import Template", "Data Export"]):
 				value = handle_html(item)
 			else:
@@ -60,16 +84,19 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 				# Remove illegal characters from the string
 				value = ILLEGAL_CHARACTERS_RE.sub("", value)
 
+			cell = WriteOnlyCell(ws, value=value)
+
 			if isinstance(value, datetime.date | datetime.datetime):
 				number_format = date_format
 				if isinstance(value, datetime.datetime):
 					number_format = f"{date_format} {time_format}"
-
-				cell = WriteOnlyCell(ws, value=value)
 				cell.number_format = number_format
-				clean_row.append(cell)
-			else:
-				clean_row.append(value)
+
+			# Apply bold font for header row or first column of filter rows
+			if is_header_row or (is_filter_row and col_idx == 0):
+				cell.font = bold_font
+
+			clean_row.append(cell)
 
 		ws.append(clean_row)
 
@@ -78,12 +105,9 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 	return xlsx_file
 
 
-def handle_html(data):
-	from frappe.core.utils import html2text
-
+### Utilities ###
+def handle_html(data: str) -> str:
 	# return if no html tags found
-	data = frappe.as_unicode(data)
-
 	if "<" not in data or ">" not in data:
 		return data
 
@@ -95,9 +119,7 @@ def handle_html(data):
 		# unable to parse html, send it raw
 		return data
 
-	value = ", ".join(value.split("  \n"))
-	value = " ".join(value.split("\n"))
-	return ", ".join(value.split("# "))
+	return value.replace("  \n", ", ").replace("\n", " ").replace("# ", ", ")
 
 
 def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=None):

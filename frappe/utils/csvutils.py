@@ -4,6 +4,7 @@ import csv
 import json
 from csv import Sniffer
 from io import StringIO
+from typing import Any
 
 import requests
 
@@ -104,7 +105,7 @@ def read_csv_content(fcontent, use_sniffer: bool = False):
 
 
 @frappe.whitelist()
-def send_csv_to_client(args):
+def send_csv_to_client(args: str | dict[str, Any]):
 	if isinstance(args, str):
 		args = json.loads(args)
 
@@ -199,7 +200,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 
 
 def getlink(doctype, name):
-	return '<a href="/app/Form/{doctype}/{name}">{name}</a>'.format(**locals())
+	return '<a href="/desk/Form/{doctype}/{name}">{name}</a>'.format(**locals())
 
 
 def get_csv_content_from_google_sheets(url):

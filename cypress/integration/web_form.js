@@ -122,7 +122,7 @@ context("Web Form", () => {
 		cy.findByRole("tab", { name: "Settings" }).click();
 
 		cy.get('[data-fieldname="list_columns"] .grid-footer button')
-			.contains("Add Row")
+			.contains("Add row")
 			.as("add-row");
 
 		cy.get("@add-row").click();
