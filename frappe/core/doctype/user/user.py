@@ -900,12 +900,6 @@ def get_all_roles():
 
 
 @frappe.whitelist()
-def get_roles():
-	"""get roles for a user"""
-	return frappe.get_roles(frappe.form_dict.get("uid", frappe.session.user))
-
-
-@frappe.whitelist()
 def get_perm_info(role: str):
 	"""get permission info"""
 	from frappe.permissions import get_all_perms
