@@ -537,5 +537,5 @@ def test(*, fail: int | bool = False, handled: int | bool = True, message: str =
 
 
 @whitelist_for_tests(allow_guest=True)
-def test_array(data):
+def test_array(data: typing.Any):
 	return data
