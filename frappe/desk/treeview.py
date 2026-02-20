@@ -7,7 +7,7 @@ from frappe.query_builder import Field, functions
 
 
 @frappe.whitelist()
-def get_all_nodes(doctype: str, label: str, parent: str, tree_method: str, **filters):
+def get_all_nodes(doctype: str, label: str, parent: str, tree_method: str | None, **filters):
 	"""Recursively gets all data from tree nodes"""
 
 	filters.pop("cmd", None)
