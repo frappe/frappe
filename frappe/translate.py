@@ -329,6 +329,9 @@ def get_messages_from_doctype(name):
 
 		if d.fieldtype == "Select" and d.options:
 			options = d.options.split("\n")
+			# for workflow state, we don't want to translate the icon(css classnames)
+			if d.fieldname == "icon" and name == "Workflow State":
+				continue
 			if "icon" not in options[0]:
 				messages.extend(options)
 		if d.fieldtype == "HTML" and d.options:
