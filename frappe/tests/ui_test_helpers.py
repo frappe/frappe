@@ -634,7 +634,7 @@ def add_remove_role(action: str, user: str, role: str):
 @whitelist_for_tests()
 def publish_realtime(
 	event: str | None = None,
-	message: dict | None = None,
+	message: str | dict | None = None,
 	room: str | None = None,
 	user: str | None = None,
 	doctype: str | None = None,
