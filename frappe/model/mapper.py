@@ -33,7 +33,7 @@ def make_mapped_doc(
 
 
 @frappe.whitelist()
-def map_docs(method: str, source_names: str, target_doc: Document, args: str | None = None):
+def map_docs(method: str, source_names: str, target_doc: Document | dict | str, args: str | None = None):
 	"""Return the mapped document calling the given mapper method with each of the given source docs on the target doc.
 
 	:param args: Args as string to pass to the mapper method
