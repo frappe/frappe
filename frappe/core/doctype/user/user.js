@@ -442,9 +442,6 @@ frappe.ui.form.on("User Role Profile", {
 					frm.roles_editor.show();
 				}
 			});
-			if (frm.roles_editor) {
-				$(".deselect-all, .select-all").prop("disabled", true);
-			}
 		}
 	},
 	role_profiles_remove: function (frm) {
@@ -452,7 +449,6 @@ frappe.ui.form.on("User Role Profile", {
 			if (frm.roles_editor) {
 				frm.roles_editor.disable = 0;
 				frm.roles_editor.show();
-				$(".deselect-all, .select-all").prop("disabled", false);
 			}
 		}
 	},
