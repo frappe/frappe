@@ -2,7 +2,7 @@ import frappe
 
 
 @frappe.whitelist()
-def get_print_settings_to_show(doctype, docname):
+def get_print_settings_to_show(doctype: str, docname: str):
 	doc = frappe.get_doc(doctype, docname)
 	print_settings = frappe.get_single("Print Settings")
 
