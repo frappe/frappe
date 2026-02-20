@@ -49,6 +49,7 @@ def make(
 	send_after=None,
 	print_language=None,
 	now=False,
+	in_reply_to=None,
 	**kwargs,
 ) -> dict[str, str]:
 	"""Make a new communication. Checks for email permissions for specified Document.
@@ -68,6 +69,7 @@ def make(
 	:param send_me_a_copy: Send a copy to the sender (default **False**).
 	:param email_template: Template which is used to compose mail .
 	:param send_after: Send after the given datetime.
+	:param in_reply_to: Name of the Communication document to which this communication is a reply.
 	"""
 	if kwargs:
 		from frappe.utils.commands import warn
@@ -106,6 +108,7 @@ def make(
 		send_after=send_after,
 		print_language=print_language,
 		now=now,
+		in_reply_to=in_reply_to,
 	)
 
 
@@ -134,6 +137,7 @@ def _make(
 	send_after=None,
 	print_language=None,
 	now=False,
+	in_reply_to=None,
 ) -> dict[str, str]:
 	"""Internal method to make a new communication that ignores Permission checks."""
 
@@ -162,6 +166,7 @@ def _make(
 			"has_attachment": 1 if attachments else 0,
 			"communication_type": communication_type,
 			"send_after": send_after,
+			"in_reply_to": in_reply_to,
 		}
 	)
 	comm.flags.skip_add_signature = not add_signature

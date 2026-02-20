@@ -141,11 +141,20 @@ Object.assign(frappe.model, {
 
 						// if incoming row is not registered, register it
 						if (!locals[d.doctype][d.name]) {
+							const old_name = local_d.name;
+
 							// detach old key
-							delete locals[d.doctype][local_d.name];
+							delete locals[d.doctype][old_name];
 
 							// re-attach with new name
 							locals[d.doctype][d.name] = local_d;
+
+							// migrate per-row docfield overrides to new name
+							const dc = frappe.meta.docfield_copy[d.doctype];
+							if (dc?.[old_name]) {
+								dc[d.name] = dc[old_name];
+								delete dc[old_name];
+							}
 						}
 
 						// row exists, just copy the values
