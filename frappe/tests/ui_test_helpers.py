@@ -632,6 +632,7 @@ def add_remove_role(action, user, role):
 
 @whitelist_for_tests
 def publish_realtime(
+<<<<<<< HEAD
 	event=None,
 	message=None,
 	room=None,
@@ -639,6 +640,15 @@ def publish_realtime(
 	doctype=None,
 	docname=None,
 	task_id=None,
+=======
+	event: str | None = None,
+	message: str | dict | None = None,
+	room: str | None = None,
+	user: str | None = None,
+	doctype: str | None = None,
+	docname: str | None = None,
+	task_id: str | None = None,
+>>>>>>> cbe479412c (Merge pull request #37318 from AarDG10/fix-types)
 ):
 	frappe.publish_realtime(
 		event=event,
