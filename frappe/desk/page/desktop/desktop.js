@@ -259,6 +259,11 @@ class DesktopPage {
 				},
 			});
 		}
+		this.set_favicon();
+	}
+
+	set_favicon() {
+		frappe.app.set_favicon(frappe.boot.desktop_favicon);
 	}
 
 	render() {

@@ -49,9 +49,7 @@ def get_context(context):
 	context["show_footer_on_login"] = cint(frappe.get_website_settings("show_footer_on_login"))
 	context["disable_user_pass_login"] = cint(frappe.get_system_settings("disable_user_pass_login"))
 	context["logo"] = get_app_logo()
-	context["app_name"] = (
-		frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")
-	)
+	context["app_name"] = get_app_name()
 
 	signup_form_template = frappe.get_hooks("signup_form_template")
 	if signup_form_template and len(signup_form_template):
@@ -138,6 +136,15 @@ def login_via_token(login_token: str):
 
 def get_login_with_email_link_ratelimit() -> int:
 	return frappe.get_system_settings("rate_limit_email_link_login") or 5
+
+
+def get_app_name():
+	app_name = frappe.get_website_settings("app_name")
+
+	if not app_name:
+		app_name = "Frappe Framework" if frappe.conf.developer_mode else "Frappe"
+
+	return app_name
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])

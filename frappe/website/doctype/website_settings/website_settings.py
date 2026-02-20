@@ -234,6 +234,9 @@ def get_website_settings(context=None):
 
 	via_hooks = hooks.website_context or []
 	for key in via_hooks:
+		# splash_image, favicon and brand_image hooks are specific to Framework, can be only changed using Website Settings.
+		if key in ("splash_image", "favicon", "brand_image"):
+			continue
 		context[key] = via_hooks[key]
 		if key not in ("top_bar_items", "footer_items", "post_login") and isinstance(
 			context[key], list | tuple
@@ -249,7 +252,11 @@ def get_website_settings(context=None):
 		context.theme = get_active_theme() or frappe._dict()
 
 	if not context.get("favicon"):
-		context["favicon"] = "/assets/frappe/images/frappe-favicon.svg"
+		context["favicon"] = (
+			frappe.get_hooks("app_logo_url", app_name="frappe")[0]
+			if frappe.local.conf.developer_mode
+			else frappe.get_hooks("website_context", app_name="frappe").get("favicon")[0]
+		)
 
 	if settings.favicon and settings.favicon != "attach_files:":
 		context["favicon"] = settings.favicon
@@ -258,6 +265,13 @@ def get_website_settings(context=None):
 
 	if settings.splash_image:
 		context["splash_image"] = settings.splash_image
+
+	if not context.get("splash_image"):
+		context["splash_image"] = (
+			frappe.get_hooks("website_context", app_name="frappe").get("splash_image")[0]
+			if not frappe.local.conf.developer_mode
+			else frappe.get_hooks("app_logo_url", app_name="frappe")[0]
+		)
 
 	context.read_only_mode = frappe.flags.read_only
 	context.boot = get_boot_data()

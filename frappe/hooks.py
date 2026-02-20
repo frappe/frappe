@@ -59,6 +59,12 @@ web_include_icons = [
 
 email_css = ["email.bundle.css"]
 
+website_context = {
+	"favicon": "/assets/frappe/images/frappe-favicon.svg",
+	"splash_image": "/assets/frappe/images/frappe.svg",
+	"brand_image": "/assets/frappe/images/frappe.svg",
+}
+
 website_route_rules = [
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
 	{"from_route": "/profile", "to_route": "me"},

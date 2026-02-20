@@ -31,10 +31,11 @@ def get_app_logo():
 	)
 
 	if not app_logo:
-		logos = frappe.get_hooks("app_logo_url")
-		app_logo = logos[0]
-		if len(logos) == 2:
-			app_logo = logos[1]
+		app_logo = (
+			frappe.get_hooks("website_context", app_name="frappe").get("brand_image")[0]
+			if not frappe.conf.developer_mode
+			else frappe.get_hooks("app_logo_url", app_name="frappe")[0]
+		)
 
 	return app_logo
 

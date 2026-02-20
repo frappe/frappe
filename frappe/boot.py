@@ -127,6 +127,7 @@ def get_bootinfo():
 	bootinfo.desktop_icon_style = get_icon_style() or "Subtle"
 	if bootinfo.is_fc_site:
 		bootinfo.site_info = current_site_info()
+	bootinfo.desktop_favicon = get_desktop_favicon()
 	return bootinfo
 
 
@@ -625,6 +626,19 @@ def get_desktop_icon_urls():
 						icons_map[app][variant].append(assets_path)
 
 	return icons_map
+
+
+def get_desktop_favicon():
+	favicon = frappe.get_website_settings("app_logo")
+
+	if not favicon:
+		favicon = (
+			frappe.get_hooks("website_context", app_name="frappe").get("favicon")[0]
+			if not frappe.conf.developer_mode
+			else frappe.get_hooks("app_logo_url", app_name="frappe")[0]
+		)
+
+	return favicon
 
 
 def add_user_specific_sidebar(sidebar_items):

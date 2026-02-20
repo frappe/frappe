@@ -396,8 +396,11 @@ frappe.Application = class Application {
 			window.location.pathname + window.location.search
 		)}`;
 	}
-	set_favicon() {
-		var link = $('link[type="image/x-icon"]').remove().attr("href");
+	set_favicon(link) {
+		if (!link) {
+			link = $('link[type="image/x-icon"]').attr("href");
+		}
+		$('link[type="image/x-icon"]').remove();
 		$('<link rel="shortcut icon" href="' + link + '" type="image/x-icon">').appendTo("head");
 		$('<link rel="icon" href="' + link + '" type="image/x-icon">').appendTo("head");
 	}

@@ -38,6 +38,7 @@ frappe.ui.Sidebar = class Sidebar {
 			}
 			this.choose_app_name();
 			this.find_nested_items();
+			frappe.app.set_favicon(this.app_logo_url);
 		} catch (e) {
 			console.log(e);
 		}
