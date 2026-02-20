@@ -274,7 +274,12 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		// set has-error if dialog primary button is clicked
 		if (this.layout && this.layout.is_dialog && !this.layout.primary_action_fulfilled) return;
 
-		this.$wrapper.toggleClass("has-error", Boolean(this.df.reqd && is_null(value)));
+		const is_invalid = this.$wrapper.hasClass("has-error-invalid");
+		this.$wrapper.toggleClass("has-error-mandatory", Boolean(this.df.reqd && is_null(value)));
+		this.$wrapper.toggleClass(
+			"has-error",
+			is_invalid || Boolean(this.df.reqd && is_null(value))
+		);
 	}
 	set_invalid() {
 		let invalid = !!this.df.invalid;
@@ -283,7 +288,9 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			this.$input?.toggleClass("invalid", invalid);
 			this.grid_row.columns[this.df.fieldname].is_invalid = invalid;
 		} else {
-			this.$wrapper.toggleClass("has-error", invalid);
+			const is_mandatory_and_empty = this.$wrapper.hasClass("has-error-mandatory");
+			this.$wrapper.toggleClass("has-error-invalid", invalid);
+			this.$wrapper.toggleClass("has-error", is_mandatory_and_empty || invalid);
 		}
 	}
 	set_required() {
