@@ -138,9 +138,27 @@ class EmailAccount(Document):
 		if self.service == "Sendgrid":
 			self.login_id = "apikey"
 
+<<<<<<< HEAD
 		# validate the imap settings
 		if self.enable_incoming and self.use_imap and len(self.imap_folder) <= 0:
 			frappe.throw(_("You need to set one IMAP folder for {0}").format(frappe.bold(self.email_id)))
+=======
+		if self.service == "Frappe Mail":
+			self.use_imap = 0
+			self.always_use_account_email_id_as_sender = 1
+
+			if self.auth_method == "Basic" or self.get_oauth_token():
+				self.validate_frappe_mail_settings()
+
+		if self.enable_incoming:
+			if self.use_imap and not self.imap_folder:
+				frappe.throw(_("You need to set one IMAP folder for {0}").format(frappe.bold(self.email_id)))
+
+			valid_doctypes = {d[0] for d in get_append_to()}
+			for folder in self.imap_folder:
+				if folder.append_to and folder.append_to not in valid_doctypes:
+					frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
+>>>>>>> 647b376339 (refactor: IMAP settings validation)
 
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
@@ -174,12 +192,23 @@ class EmailAccount(Document):
 			for e in self.get_unreplied_notification_emails():
 				validate_email_address(e, True)
 
+<<<<<<< HEAD
 		if self.enable_incoming:
 			for folder in self.imap_folder:
 				if folder.append_to:
 					valid_doctypes = [d[0] for d in get_append_to()]
 					if folder.append_to not in valid_doctypes:
 						frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
+=======
+		if self.enable_outgoing:
+			self.validate_reply_to_addresses()
+
+	@frappe.whitelist()
+	def validate_frappe_mail_settings(self):
+		if self.service == "Frappe Mail":
+			frappe_mail_client = self.get_frappe_mail_client()
+			frappe_mail_client.validate()
+>>>>>>> 647b376339 (refactor: IMAP settings validation)
 
 	def validate_smtp_conn(self):
 		if not self.smtp_server:
