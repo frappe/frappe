@@ -78,6 +78,7 @@
   "smtp_port",
   "column_break_38",
   "no_smtp_authentication",
+  "dsn_notify_type",
   "always_bcc",
   "signature_section",
   "add_signature",
@@ -754,13 +755,20 @@
    "ignore_xss_filter": 1,
    "label": "Reply-To Addresses",
    "options": "Reply To Address"
+  },
+  {
+   "description": "Select which delivery events should trigger a delivery status notification (DSN) from the SMTP server.",
+   "fieldname": "dsn_notify_type",
+   "fieldtype": "Select",
+   "label": "Delivery Status Notification Type",
+   "options": "\nSUCCESS\nFAILURE\nDELAY\nSUCCESS,FAILURE\nSUCCESS,FAILURE,DELAY\nNEVER"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2026-02-06 11:39:39.412130",
+ "modified": "2026-02-11 16:18:15.572240",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

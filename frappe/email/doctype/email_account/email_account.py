@@ -84,6 +84,9 @@ class EmailAccount(Document):
 		default_incoming: DF.Check
 		default_outgoing: DF.Check
 		domain: DF.Link | None
+		dsn_notify_type: DF.Literal[
+			"SUCCESS", "FAILURE", "DELAY", "SUCCESS,FAILURE", "SUCCESS,FAILURE,DELAY", "NEVER"
+		]
 		email_account_name: DF.Data | None
 		email_id: DF.Data
 		email_server: DF.Data | None
@@ -220,7 +223,8 @@ class EmailAccount(Document):
 			frappe.throw(_("SMTP Server is required"))
 
 		self.flags.validate_smtp_connection = True
-		self.get_smtp_server().session
+		session = self.get_smtp_server().session
+		self.validate_dsn(session)
 		del self._smtp_server_instance
 
 	def validate_reply_to_addresses(self) -> None:
@@ -228,6 +232,18 @@ class EmailAccount(Document):
 			if not reply_to.email:
 				frappe.throw(_("Reply To email is required"))
 			validate_email_address(reply_to.email, True)
+
+	def validate_dsn(self, smtp_session) -> None:
+		"""Validate if the configured SMTP server supports DSN (Delivery Status Notification)."""
+
+		if not self.dsn_notify_type:
+			return
+
+		if not smtp_session.has_extn("DSN"):
+			self.dsn_notify_type = None
+			frappe.msgprint(
+				_("The configured SMTP server does not support DSN (Delivery Status Notification).")
+			)
 
 	def before_save(self):
 		messages = []
