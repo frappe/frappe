@@ -530,14 +530,16 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 			if r.doctype == doctype and r.rank > 0.0:
 				try:
 					meta = frappe.get_meta(r.doctype)
+					doc = frappe.get_lazy_doc(r.doctype, r.name)
 					if meta.image_field:
-						r.image = frappe.db.get_value(r.doctype, r.name, meta.image_field)
+						r.image = doc.get(meta.image_field)
 					if meta.title_field:
-						r.title = frappe.db.get_value(r.doctype, r.name, meta.title_field)
+						r.title = doc.get(meta.title_field)
 				except Exception:
 					frappe.clear_messages()
 
-				sorted_results.extend([r])
+				if doc.has_permission():
+					sorted_results.append(r)
 
 	return sorted_results
 
