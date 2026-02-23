@@ -1679,3 +1679,19 @@ class TestDataUtils(UnitTestCase):
 
 		self.assertEqual(comma_or(["a", "b", "c"]), "'a', 'b' ou 'c'")
 		self.assertEqual(comma_or(["a", "b", "c"], add_quotes=False), "a, b ou c")
+
+
+class TestMsgPrint(UnitTestCase):
+	def tearDown(self) -> None:
+		super().tearDown()
+		frappe.clear_messages()
+
+	def test_msgprint(self):
+		frappe.msgprint("Validate: <script>alert('bounty')</script>")
+		message = frappe.get_message_log()[-1]
+
+		self.assertNotIn("script", message.message)
+
+		frappe.msgprint("<ul><li>abc<li></ul>")
+		message = frappe.get_message_log()[-1]
+		self.assertIn("<ul><li>", message.message)
