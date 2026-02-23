@@ -19,7 +19,9 @@ frappe.pages["workflow-builder"].on_page_show = function (wrapper) {
 function load_workflow_builder(wrapper) {
 	let route = frappe.get_route();
 	let $parent = $(wrapper).find(".layout-main-section");
+
 	$parent.empty();
+	$parent.css("padding", "15px");
 
 	if (route.length > 1) {
 		frappe.require("workflow_builder.bundle.js").then(() => {

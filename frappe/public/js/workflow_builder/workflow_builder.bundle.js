@@ -9,9 +9,6 @@ class WorkflowBuilder {
 		this.$wrapper = $(wrapper);
 		this.page = page;
 		this.workflow = workflow;
-
-		this.page.set_indicator("Beta", "orange");
-
 		this.init();
 	}
 

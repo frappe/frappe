@@ -328,9 +328,7 @@ onMounted(() => store.fetch());
 
 <template>
 	<div class="main" ref="main">
-		<div class="sidebar-container" @click.stop>
-			<Sidebar />
-		</div>
+		<StateSelector />
 		<div class="workflow-container" @drop="onDrop" @click.stop="loose_focus">
 			<VueFlow
 				v-model="store.workflow.elements"
@@ -360,8 +358,9 @@ onMounted(() => store.fetch());
 				</template>
 			</VueFlow>
 		</div>
-		<!-- Right Sidebar for State Selection -->
-		<StateSelector />
+		<div class="sidebar-container" @click.stop>
+			<Sidebar />
+		</div>
 	</div>
 </template>
 
@@ -395,6 +394,8 @@ onMounted(() => store.fetch());
 	border-radius: var(--border-radius-lg);
 	border: 1px solid var(--border-color);
 	background-color: var(--fg-color);
+	margin-left: 10px;
+	margin-right: 10px;
 }
 
 .drag-handle {

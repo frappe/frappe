@@ -133,6 +133,28 @@ function openTaskConfig(task, index) {
 						default: script_code,
 						enable_ace_editor: true,
 					},
+					{
+						fieldtype: "HTML",
+						fieldname: "help_html",
+						options: `
+							<br>
+							<p><b>${__("Example: Workflow Task")}</b></p>
+							<p>${__(
+								"Execute when a Workflow Action is performed. The document is available as <code>doc</code>."
+							)}</p>
+							<p>
+									# create a customer with the same name as the given document<br>
+									<pre>
+										<code>
+											if doc.condition == True:
+												#do something
+											else:
+												#do something else
+										</code>
+									</pre>
+							</p>
+						`,
+					},
 				],
 				primary_action_label: script_name ? __("Update Script") : __("Create Script"),
 				primary_action(values) {
@@ -141,8 +163,7 @@ function openTaskConfig(task, index) {
 							// Update existing
 							frappe.db.get_doc("Server Script", values.script_name).then((doc) => {
 								doc.script = values.script;
-								doc.script_type = "API";
-								doc.api_method = values.script_name;
+								doc.script_type = "Workflow Task";
 
 								frappe.call({
 									method: "frappe.client.save",
@@ -169,10 +190,8 @@ function openTaskConfig(task, index) {
 									doc: {
 										doctype: "Server Script",
 										name: values.script_name,
-										script_type: "API",
-										api_method: values.script_name,
+										script_type: "Workflow Task",
 										script: values.script,
-										allow_guest: 0,
 									},
 								},
 								callback: function (r) {
