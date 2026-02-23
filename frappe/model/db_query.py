@@ -500,7 +500,11 @@ from {tables}
 					if (name := (token.get_name())) and name.lower() in blacklisted_functions:
 						_raise_exception()
 
-				if token.ttype in (tokens.Keyword, tokens.Name):
+				if token.ttype in tokens.Keyword:
+					if any(re.search(rf"\b{kw}\b", token.value.lower()) for kw in blacklisted_keywords):
+						_raise_exception()
+
+				if token.ttype in tokens.Name and not re.match(r"^`\w.*`$", token.value.strip()):
 					if any(re.search(rf"\b{kw}\b", token.value.lower()) for kw in blacklisted_keywords):
 						_raise_exception()
 
