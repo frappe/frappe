@@ -1563,7 +1563,7 @@ def money_in_words(
 			out = in_words(main, in_million).title() + " " + _("Dinars", context="Currency")
 		else:
 			out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
-		if cint(fraction):
+		if cint(fraction) and fraction_currency:
 			out = out + " " + _("and") + " " + fraction_in_words() + " " + fraction_currency
 
 	if main_currency == "DZD":
