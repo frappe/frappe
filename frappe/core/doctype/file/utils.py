@@ -396,7 +396,7 @@ def relink_files(doc, fieldname, temp_doc_name):
 	from frappe.utils.data import add_to_date, now_datetime
 
 	if doc.parenttype:
-		attached_to_doctype_filter = ("in", [doc.doctype, doc.parenttype])
+		attached_to_doctype_filter = doc.parenttype
 		attached_to_name = doc.parent
 	else:
 		attached_to_doctype_filter = doc.doctype
