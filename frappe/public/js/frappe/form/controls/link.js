@@ -276,11 +276,20 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					// immediately show from cache
 					me.awesomplete.list = me.$input.cache[doctype][term];
 				}
+				const reference_doctype = me.get_reference_doctype() || "";
+				const docfield_parent =
+					me.df?.parent || reference_doctype || (me.frm && me.frm.doctype) || "";
+				const meta_df =
+					docfield_parent && me.df?.fieldname
+						? frappe.meta.get_docfield(docfield_parent, me.df.fieldname)
+						: null;
+
 				var args = {
 					txt: term,
 					doctype: doctype,
-					ignore_user_permissions: me.df.ignore_user_permissions,
-					reference_doctype: me.get_reference_doctype() || "",
+					ignore_user_permissions:
+						me.df?.ignore_user_permissions || meta_df?.ignore_user_permissions,
+					reference_doctype: reference_doctype,
 					page_length: cint(frappe.boot.sysdefaults?.link_field_results_limit) || 10,
 				};
 
