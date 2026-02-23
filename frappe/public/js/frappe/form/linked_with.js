@@ -20,7 +20,8 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 
 	make_dialog() {
 		this.dialog = new frappe.ui.Dialog({
-			title: __("Linked With"),
+			title: __("Links"),
+			minimizable: true,
 		});
 
 		this.dialog.on_page_show = () => {
@@ -39,22 +40,34 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 	make_html() {
 		let html = "";
 		const linked_docs = this.frm.__linked_docs;
-		const linked_doctypes = Object.keys(linked_docs);
+		const linked_doctypes = Object.keys(linked_docs).filter((dt) => {
+			const entry = linked_docs[dt];
+			return (entry.docs && entry.docs.length) || entry.hidden_count > 0;
+		});
 
 		if (linked_doctypes.length === 0) {
 			html = __("Not Linked to any record");
 		} else {
-			html = linked_doctypes
-				.map((doctype) => {
-					const docs = linked_docs[doctype];
-					return `
-					<div class="list-item-table margin-bottom">
-						${this.make_doc_head(doctype)}
-						${docs.map((doc) => this.make_doc_row(doc, doctype)).join("")}
+			html = `
+					<div class="margin-bottom">
+					${__("Following documents are linked to {0}", [frappe.utils.get_form_link(this.frm.doctype, this.frm.docname, true).bold()])}
 					</div>
-				`;
-				})
-				.join("");
+					${linked_doctypes
+					.map((doctype) => {
+						const { docs, hidden_count } = linked_docs[doctype];
+						let rows = (docs || []).map((doc) => this.make_doc_row(doc, doctype)).join("");
+						if (hidden_count > 0) {
+							rows += this.make_hidden_count_row(hidden_count);
+						}
+						return `
+						<div class="list-item-table margin-bottom">
+							${this.make_doc_head(doctype)}
+							${rows}
+						</div>
+					`;
+					})
+					.join("")}
+					`;
 		}
 
 		$(this.dialog.body).html(html);
@@ -66,6 +79,16 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 				<div>${__(heading)}</div>
 			</header>
 		`;
+	}
+
+	make_hidden_count_row(count) {
+		return `<div class="list-row-container">
+			<div class="level list-row small text-muted">
+				<div class="level-left">
+					${count == 1 ? __("{0} restricted document", [count]) : __("{0} restricted documents", [count])}
+				</div>
+			</div>
+		</div>`;
 	}
 
 	make_doc_row(doc, doctype) {
