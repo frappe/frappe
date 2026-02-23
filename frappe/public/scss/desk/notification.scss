@@ -60,11 +60,12 @@
 	min-height: 480px;
 	position: absolute;
 	top: 0;
-	box-shadow: rgba(0, 0, 0, 0.1) 8px 0px 8px;
+	box-shadow: var(--shadow-2xl);
 	background-color: var(--bg-color);
 	height: 100vh;
 	overflow: hidden;
-
+	z-index: 1020;
+	left: var(--sidebar-width);
 	.notification-list-header {
 		margin: 0px 10px;
 		@include flex(flex, space-between, center, null);

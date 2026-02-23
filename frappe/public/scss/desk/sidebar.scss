@@ -180,7 +180,6 @@
 @mixin body-sidebar-expanded {
 	.body-sidebar {
 		// make it an overlay on hover
-		position: absolute;
 		width: var(--sidebar-width);
 		.dropdown-notifications {
 			.notifications-list {

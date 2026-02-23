@@ -452,6 +452,7 @@ frappe.ui.Sidebar = class Sidebar {
 		this.handle_outside_click();
 	}
 	add_standard_items(items) {
+		const me = this;
 		if (this.standard_items_setup) return;
 		this.standard_items = [];
 		if (!frappe.is_mobile()) {
@@ -472,12 +473,12 @@ frappe.ui.Sidebar = class Sidebar {
 			icon: "bell",
 			standard: true,
 			type: "Button",
-			class: "sidebar-notification hidden",
+			class: "sidebar-notification",
 			onClick: () => {
-				this.wrapper.find(".dropdown-notifications").toggleClass("hidden");
-				if (frappe.is_mobile()) {
-					this.wrapper.removeClass("expanded");
-				}
+				me.notifications.toggle();
+				// if (frappe.is_mobile()) {
+				// 	this.wrapper.removeClass("expanded");
+				// }
 			},
 		});
 		this.standard_items.forEach((w) => {
@@ -513,7 +514,10 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	setup_notifications() {
 		if (frappe.boot.desk_settings.notifications && frappe.session.user !== "Guest") {
-			this.notifications = new frappe.ui.Notifications({ full_height: true });
+			this.notifications = new frappe.ui.Notifications({
+				container: this.wrapper.find(".notification-wrapper"),
+				full_height: true,
+			});
 		}
 	}
 	add_item(container, item) {

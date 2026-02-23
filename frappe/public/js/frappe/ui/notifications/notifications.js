@@ -3,28 +3,28 @@ frappe.provide("frappe.search");
 frappe.ui.Notifications = class Notifications {
 	constructor(opts) {
 		this.tabs = {};
+		this.visible = false;
 		this.notification_settings = frappe.boot.notification_settings;
 		this.full_height = opts?.full_height || false;
 
-		this.wrapper = opts?.wrapper || $(".standard-items-sections");
+		this.container = $(opts?.container);
 		this.make();
 	}
 
 	make() {
-		this.wrapper.find(".sidebar-notification").removeClass("hidden");
-		this.dropdown = this.wrapper.find(".dropdown-notifications");
-		this.dropdown_list = this.dropdown.find(".notifications-list");
-		this.header_items = this.dropdown_list.find(".header-items");
-		this.header_actions = this.dropdown_list.find(".header-actions");
-		this.body = this.dropdown_list.find(".notification-list-body");
-		this.panel_events = this.dropdown_list.find(".panel-events");
-		this.panel_notifications = this.dropdown_list.find(".panel-notifications");
-		this.panel_changelog_feed = this.dropdown_list.find(".panel-changelog-feed");
+		this.container.html();
+		this.wrapper = $(frappe.render_template("notification_pane")).appendTo(this.container);
+		this.header_items = this.wrapper.find(".header-items");
+		this.header_actions = this.wrapper.find(".header-actions");
+		this.body = this.wrapper.find(".notification-list-body");
+		this.panel_events = this.wrapper.find(".panel-events");
+		this.panel_notifications = this.wrapper.find(".panel-notifications");
+		this.panel_changelog_feed = this.wrapper.find(".panel-changelog-feed");
 
 		this.user = frappe.session.user;
 
 		this.setup_headers();
-		this.setup_dropdown_events();
+		// this.setup_dropdown_events();
 	}
 
 	setup_headers() {
@@ -54,7 +54,7 @@ frappe.ui.Notifications = class Notifications {
 		</span>`)
 			.on("click", (e) => {
 				if (this.full_height) {
-					this.dropdown.addClass("hidden");
+					this.container.addClass("hidden");
 				}
 			})
 			.appendTo(this.header_actions);
@@ -119,28 +119,36 @@ frappe.ui.Notifications = class Notifications {
 		Object.keys(this.tabs).forEach((tab_name) => this.tabs[tab_name].hide());
 		this.tabs[item.id].show();
 	}
-
+	toggle() {
+		if (this.visible) {
+			this.hide();
+		} else {
+			this.show();
+		}
+	}
+	hide() {
+		this.container.addClass("hidden");
+		this.visible = false;
+	}
+	show() {
+		this.container.removeClass("hidden");
+		this.visible = true;
+	}
 	make_tab_view(item) {
-		let tabView = new item.view(item.el, this.dropdown, this.notification_settings);
+		let tabView = new item.view(item.el, this.container, this.notification_settings);
 		this.tabs[item.id] = tabView;
 	}
 
 	mark_all_as_read(e) {
 		e.stopImmediatePropagation();
-		this.dropdown_list.find(".unread").removeClass("unread");
+		this.wrapper.find(".unread").removeClass("unread");
 		frappe.call("frappe.desk.doctype.notification_log.notification_log.mark_all_as_read");
 	}
 
 	setup_dropdown_events() {
 		const dropdown = this.dropdown;
 		const full_height = this.full_height;
-		this.dropdown.on("hide.bs.dropdown", (e) => {
-			let hide = $(e.currentTarget).data("closable");
-			$(e.currentTarget).data("closable", true);
-			return hide;
-		});
-
-		this.dropdown.on("click", (e) => {
+		this.container.on("click", (e) => {
 			$(e.currentTarget).data("closable", true);
 		});
 
