@@ -590,3 +590,7 @@
     font-family: inherit;
     padding: 0 4px;
 }
+
+.desktop-notification-pane{
+    height: 300px;
+}

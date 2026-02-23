@@ -4,6 +4,7 @@ frappe.ui.Notifications = class Notifications {
 	constructor(opts) {
 		this.tabs = {};
 		this.visible = false;
+		$.extend(this, opts);
 		this.notification_settings = frappe.boot.notification_settings;
 		this.full_height = opts?.full_height || false;
 
@@ -24,10 +25,45 @@ frappe.ui.Notifications = class Notifications {
 		this.user = frappe.session.user;
 
 		this.setup_headers();
+		this.setup_trigger();
+		this.set_container_height();
 		// this.setup_dropdown_events();
+	}
+	setup_trigger() {
+		const me = this;
+		if (this.trigger) {
+			$(this.trigger).on("click", function () {
+				let position = {
+					top: $(me.trigger).height() + 20,
+				};
+				position.left = $(me.trigger).offset().left;
+				me.toggle();
+				if (position.left > 1000) {
+					position.left = position.left - me.container.width();
+				}
+				me.container.css({
+					position: "absolute",
+					top: position.top,
+					left: position.left,
+				});
+			});
+		}
+	}
+
+	set_container_height() {
+		if (this.full_height) {
+			this.wrapper.css({
+				height: "100vh",
+			});
+		} else {
+			this.wrapper.css({
+				height: "100%",
+			});
+		}
 	}
 
 	setup_headers() {
+		const me = this;
 		// Add header actions
 		$(`<span class="notification-settings" data-action="go_to_settings">
 			${frappe.utils.icon("setting-gear")}
@@ -53,9 +89,7 @@ frappe.ui.Notifications = class Notifications {
 			${frappe.utils.icon("x")}
 		</span>`)
 			.on("click", (e) => {
-				if (this.full_height) {
-					this.container.addClass("hidden");
-				}
+				me.hide();
 			})
 			.appendTo(this.header_actions);
 

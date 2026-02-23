@@ -436,8 +436,9 @@ class DesktopPage {
 	}
 	setup_notifications() {
 		this.notifications = new frappe.ui.Notifications({
-			wrapper: $(".desktop-notifications"),
+			container: $(".desktop-notification-pane"),
 			full_height: false,
+			trigger: $(".desktop-notification > button"),
 		});
 	}
 

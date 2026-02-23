@@ -4,7 +4,7 @@
 	--sidebar-active-color: rgba(255, 255, 255, 1);
 	--sidebar-border-color: #ededed;
 	--divider-color: rgba(237, 237, 237, 1);
-	--sidebar-width: 220px;
+	--sidebar-width: 50px;
 }
 [data-theme="dark"] {
 	--sidebar-hover-color: rgba(43, 43, 43, 1);
@@ -25,16 +25,10 @@
 	flex-direction: column;
 	height: fit-content;
 	width: fit-content;
-
-	.body-sidebar-placeholder {
-		display: none;
-		width: 50px;
-		height: 100vh;
-	}
 }
 
 .body-sidebar {
-	width: 50px;
+	width: var(--sidebar-width);
 	background: var(--surface-menu-bar);
 	border-right: 1px solid var(--sidebar-border-color);
 	transition-property: all;
@@ -168,24 +162,12 @@
 	.nav-item {
 		margin-left: -5px;
 	}
-	.standard-items-sections {
-		.dropdown-notifications {
-			.notifications-list {
-				left: 3.4%;
-			}
-		}
-	}
 }
 
 @mixin body-sidebar-expanded {
 	.body-sidebar {
 		// make it an overlay on hover
 		width: var(--sidebar-width);
-		.dropdown-notifications {
-			.notifications-list {
-				left: 100%;
-			}
-		}
 
 		.nav-item {
 			margin-left: -5px;
@@ -206,6 +188,7 @@
 }
 
 .body-sidebar-container.expanded {
+	--sidebar-width: 220px;
 	@include body-sidebar-expanded();
 }
 
@@ -217,13 +200,6 @@
 			width: 0px;
 			overflow: hidden;
 			transition-property: none;
-			.standard-items-sections {
-				.dropdown-notifications {
-					.notifications-list {
-						left: 0;
-					}
-				}
-			}
 		}
 	}
 
@@ -247,12 +223,6 @@
 			left: var(--sidebar-width);
 			overflow: auto;
 			background-color: rgba(128, 128, 128, 0.5);
-		}
-
-		// acts a overlay when in mobile view
-		.body-sidebar-placeholder {
-			display: flex;
-			width: 0px;
 		}
 	}
 }
@@ -334,4 +304,10 @@
 		letter-spacing: 0.02em;
 		font-weight: 420;
 	}
+}
+
+.notification-wrapper {
+	position: absolute;
+	z-index: 1020;
+	left: var(--sidebar-width);
 }
