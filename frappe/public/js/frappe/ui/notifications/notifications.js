@@ -27,7 +27,7 @@ frappe.ui.Notifications = class Notifications {
 		this.setup_headers();
 		this.setup_trigger();
 		this.set_container_height();
-		// this.setup_dropdown_events();
+		this.setup_dropdown_events();
 	}
 	setup_trigger() {
 		const me = this;
@@ -180,30 +180,26 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	setup_dropdown_events() {
-		const dropdown = this.dropdown;
-		const full_height = this.full_height;
+		const me = this;
 		this.container.on("click", (e) => {
 			$(e.currentTarget).data("closable", true);
 		});
 
 		$(document).on("click", function (e) {
-			const isInsideNotificationBtn =
-				$(e.target).closest(".standard-items-sections .sidebar-notification").length > 0;
-			const isInsideDropdown = $(e.target).closest(".notifications-list").length > 0;
-			if (!isInsideNotificationBtn && !isInsideDropdown) {
-				if (full_height) {
-					dropdown.addClass("hidden");
+			if (me.trigger) {
+				const is_inside_trigger = $(e.target).closest($(me.trigger)).length > 0;
+				const is_inside_dropdown = $(e.target).closest(".notifications-list").length > 0;
+				if (!is_inside_trigger && !is_inside_dropdown) {
+					me.hide();
 				}
 			}
 		});
 
-		dropdown.find(".notification-item").on("click", (e) => {
-			dropdown.addClass("hidden");
+		this.wrapper.find(".notification-item").on("click", (e) => {
+			me.hide();
 		});
 		$(document).on("page-change", function () {
-			if (dropdown && dropdown.length) {
-				dropdown.addClass("hidden");
-			}
+			me.hide();
 		});
 	}
 };

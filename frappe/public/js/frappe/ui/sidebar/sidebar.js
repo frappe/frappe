@@ -474,7 +474,7 @@ frappe.ui.Sidebar = class Sidebar {
 			standard: true,
 			type: "Button",
 			class: "sidebar-notification",
-			onClick: () => {
+			onClick: (event) => {
 				me.notifications.toggle();
 				// if (frappe.is_mobile()) {
 				// 	this.wrapper.removeClass("expanded");
@@ -517,6 +517,7 @@ frappe.ui.Sidebar = class Sidebar {
 			this.notifications = new frappe.ui.Notifications({
 				container: this.wrapper.find(".notification-wrapper"),
 				full_height: true,
+				trigger: this.wrapper.find(".sidebar-notification"),
 			});
 		}
 	}

@@ -418,8 +418,8 @@ frappe.ui.sidebar_item.TypeButton = class SidebarButton extends frappe.ui.sideba
 	setup_click() {
 		const me = this;
 		if (this.item.onClick) {
-			this.wrapper.on("click", function () {
-				me.item.onClick && me.item.onClick();
+			this.wrapper.on("click", function (event) {
+				me.item.onClick && me.item.onClick(event);
 			});
 		}
 	}
