@@ -721,19 +721,23 @@ def get_context(context):
 		self.message = self.get_template(md_as_html=True)
 
 	def on_trash(self):
+		# Prevent deletion of standard notifications outside developer mode to avoid restoration during migration
 		if (
 			self.is_standard
 			and not cint(getattr(frappe.local.conf, "developer_mode", 0))
 			and not frappe.flags.in_migrate
 			and not frappe.flags.in_patch
 		):
-			frappe.throw(_("You are not allowed to delete Standard Notification"))
+			frappe.throw(
+				_("You are not allowed to delete a standard Notification. You can disable it instead.")
+			)
 		clear_notification_cache()
 
 	def after_delete(self):
 		from frappe.modules.export_file import delete_folder
 
-		delete_folder(self.module, "Notification", self.name)
+		if not frappe.flags.in_test and frappe.conf.developer_mode:
+			delete_folder(self.module, "Notification", self.name)
 
 
 def clear_notification_cache():

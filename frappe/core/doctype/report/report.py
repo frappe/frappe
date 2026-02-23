@@ -105,7 +105,8 @@ class Report(Document):
 	def after_delete(self):
 		from frappe.modules.export_file import delete_folder
 
-		delete_folder(self.module, "Report", self.name)
+		if not frappe.flags.in_test and frappe.conf.developer_mode:
+			delete_folder(self.module, "Report", self.name)
 
 	def get_permission_log_options(self, event=None):
 		return {"fields": ["roles"]}
