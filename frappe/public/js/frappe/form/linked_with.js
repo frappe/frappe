@@ -50,7 +50,7 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 		} else {
 			html = `
 					<div class="margin-bottom">
-					${__("Following documents are linked to {0}", [frappe.utils.get_form_link(this.frm.doctype, this.frm.docname, true).bold()])}
+					${__("Following documents are linked with {0}", [frappe.utils.get_form_link(this.frm.doctype, this.frm.docname, true).bold()])}
 					</div>
 					${linked_doctypes
 					.map((doctype) => {
