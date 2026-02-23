@@ -724,7 +724,7 @@ def get_context(context):
 		# Prevent deletion of standard notifications outside developer mode to avoid restoration during migration
 		if (
 			self.is_standard
-			and not cint(getattr(frappe.local.conf, "developer_mode", 0))
+			and not frappe.conf.developer_mode
 			and not frappe.flags.in_migrate
 			and not frappe.flags.in_patch
 		):
