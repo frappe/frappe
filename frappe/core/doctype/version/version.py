@@ -86,7 +86,29 @@ class Version(Document):
 			data["changed"] = [
 				row for row in data["changed"] if doc.has_permlevel_access_to(row[0], permission_type="read")
 			]
-		for key in ("row_changed", "added", "removed"):
+		parent_meta = doc.meta
+		permlevel_access = doc.get_permlevel_access("read")
+		if data.get("row_changed"):
+			filtered_rows = []
+			for table_field, row_idx, row_name, child_changes in data["row_changed"]:
+				table_df = parent_meta.get_field(table_field)
+				if not table_df:
+					continue
+				child_doctype = table_df.options
+				child_meta = frappe.get_meta(child_doctype)
+				allowed_child_changes = []
+
+				for fieldname, old, new in child_changes:
+					child_df = child_meta.get_field(fieldname)
+					if not child_df:
+						continue
+					if child_df.permlevel in permlevel_access:
+						allowed_child_changes.append([fieldname, old, new])
+
+				if allowed_child_changes:
+					filtered_rows.append([table_field, row_idx, row_name, allowed_child_changes])
+			data["row_changed"] = filtered_rows
+		for key in ("added", "removed"):
 			if data.get(key):
 				data[key] = [
 					row for row in data[key] if doc.has_permlevel_access_to(row[0], permission_type="read")
