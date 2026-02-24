@@ -183,6 +183,7 @@ frappe.msgprint = function (msg, title, is_minimizable, re_route) {
 			onhide: function () {
 				if (frappe.msg_dialog.custom_onhide) {
 					frappe.msg_dialog.custom_onhide();
+					delete frappe.msg_dialog.custom_onhide;
 				}
 				frappe.msg_dialog.msg_area.empty();
 			},
