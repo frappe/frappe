@@ -309,7 +309,15 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	if dt:  # not called from a doctype (from a page)
 		if not dn:
 			dn = dt  # single
+<<<<<<< HEAD
 		doc = frappe.get_doc(dt, dn)
+=======
+
+		if not isinstance(dn, str | int):
+			frappe.throw("'dn' must be a string or an integer")
+
+		doc = frappe.get_doc(dt, dn, check_permission=True)
+>>>>>>> a16938f455 (fix(DX): Throw error when unsupported input is sent (#37438))
 
 	else:
 		docs = frappe.parse_json(docs)
