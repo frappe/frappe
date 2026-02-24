@@ -439,6 +439,7 @@ def run_parallel_tests(
 @click.option("--browser", default="chrome", help="Browser to run tests in")
 @click.option("--spec", help="Spec file to run")
 @click.option("--ci-build-id")
+@click.option("--playwright", is_flag=True, help="Use Playwright instead of Cypress")
 @pass_context
 def run_ui_tests(
 	context: CliCtxObj,
@@ -450,6 +451,7 @@ def run_ui_tests(
 	ci_build_id=None,
 	cypressargs=None,
 	spec=None,
+	playwright=False,
 ):
 	"Run UI tests"
 	site = get_site(context)
@@ -457,6 +459,17 @@ def run_ui_tests(
 	app_base_path = frappe.get_app_source_path(app)
 	site_url = frappe.utils.get_site_url(site)
 	admin_password = frappe.get_conf().admin_password
+
+	if playwright:
+		_run_playwright_tests(
+			app_base_path=app_base_path,
+			site_url=site_url,
+			admin_password=admin_password,
+			headless=headless,
+			browser=browser,
+			spec=spec,
+		)
+		return
 
 	# override baseUrl using env variable
 	site_env = f"CYPRESS_baseUrl={site_url}"
@@ -532,6 +545,61 @@ def run_ui_tests(
 		frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
 	except subprocess.CalledProcessError as e:
 		click.secho("Cypress tests failed", fg="red")
+		raise click.exceptions.Exit(1) from e
+
+
+def _run_playwright_tests(app_base_path, site_url, admin_password, headless, browser, spec):
+	"""Run Playwright-based UI tests."""
+	frappe_path = frappe.get_app_source_path("frappe")
+	node_bin = subprocess.run(
+		"(cd ../frappe && yarn bin)",
+		shell=True,
+		stdout=subprocess.PIPE,
+		stderr=subprocess.DEVNULL,
+		text=True,
+		cwd=app_base_path,
+	).stdout.strip()
+	playwright_path = f"{node_bin}/playwright"
+
+	# Install @playwright/test if not present
+	if not os.path.exists(playwright_path):
+		click.secho("Installing Playwright...", fg="yellow")
+		package_json_path = os.path.join(frappe_path, "package.json")
+		with open(package_json_path) as f:
+			package_json_contents = f.read()
+
+		frappe.commands.popen("(cd ../frappe && yarn add @playwright/test --no-lockfile)")
+
+		with open(package_json_path, "w") as f:
+			f.write(package_json_contents)
+
+		# Install browser binaries
+		click.secho("Installing Playwright browsers...", fg="yellow")
+		frappe.commands.popen(f"{playwright_path} install chromium")
+
+	# Build environment variables
+	env = {"PLAYWRIGHT_baseURL": site_url}
+	if admin_password:
+		env["ADMIN_PASSWORD"] = admin_password
+
+	# Build command
+	cmd = [playwright_path, "test"]
+
+	if headless:
+		cmd.append("--reporter=list")
+
+	browser_map = {"chrome": "chromium", "chromium": "chromium", "firefox": "firefox", "webkit": "webkit"}
+	pw_browser = browser_map.get(browser, "chromium")
+	cmd.extend(["--project", pw_browser])
+
+	if spec:
+		cmd.append(spec)
+
+	click.secho("Running Playwright...", fg="yellow")
+	try:
+		frappe.commands.popen(" ".join(cmd), cwd=app_base_path, raise_err=True, env=env)
+	except subprocess.CalledProcessError as e:
+		click.secho("Playwright tests failed", fg="red")
 		raise click.exceptions.Exit(1) from e
 
 

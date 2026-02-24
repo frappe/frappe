@@ -198,3 +198,5 @@ cypress/videos
 .helix/
 # Aider AI Chat
 .aider*
+playwright.config.js
+test-results/*
