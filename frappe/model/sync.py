@@ -238,19 +238,6 @@ def remove_orphan_entities():
 		all_enitities = frappe.get_all(
 			app_entity, filters=entity_filter_map.get(app_entity), fields=["name", "app"]
 		)
-<<<<<<< HEAD
-		for i, w in enumerate(all_enitities):
-			if w.app and not check_if_record_exists("app", frappe.get_app_path(w.app), app_entity, w.name):
-				try:
-					print(f"Deleting entity {app_entity} {w.name}")
-					frappe.delete_doc(app_entity, w.name, force=True, ignore_missing=True)
-					update_progress_bar(f"Deleting orphaned {app_entity}", i, len(all_enitities))
-					print()
-
-				except Exception as e:
-					print(f"Error occurred while deleting entity: {app_entity} {w.name}")
-					print(e)
-=======
 		for i, entity in enumerate(all_enitities):
 			try:
 				if entity.app:
@@ -268,7 +255,6 @@ def remove_orphan_entities():
 				print(e)
 				print(f"Deleting entity {app_entity} {entity.name}")
 				frappe.db.delete(app_entity, {"name": entity.name})
->>>>>>> 68a8b9fa4a (fix: check if app value exists)
 
 	# save the deleted icons
 	frappe.db.commit()  # nosemgrep
