@@ -197,6 +197,13 @@ class TestFrappeClient(IntegrationTestCase):
 		server.delete("Note", NAME_TO_DELETE)
 		self.assertFalse(frappe.db.get_value("Note", NAME_TO_DELETE))
 
+	def test_frappe_client_run_doc_method(self):
+		server = FrappeClient(get_url() + ":8003", "Administrator", "meow", verify=False)
+		DOCUMENT = server.run_doc_method(doctype="Website Theme", name="Standard", method="get_apps")
+
+		self.assertTrue("name" in DOCUMENT[0])
+		self.assertTrue("title" in DOCUMENT[0])
+
 	def test_auth_via_api_key_secret(self):
 		# generate API key and API secret for administrator
 		keys = generate_keys("Administrator")
