@@ -198,11 +198,32 @@ class TestFrappeClient(IntegrationTestCase):
 		self.assertFalse(frappe.db.get_value("Note", NAME_TO_DELETE))
 
 	def test_frappe_client_run_doc_method(self):
-		server = FrappeClient(get_url() + ":8003", "Administrator", "meow", verify=False)
+		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		DOCUMENT = server.run_doc_method(doctype="Website Theme", name="Standard", method="get_apps")
 
 		self.assertTrue("name" in DOCUMENT[0])
 		self.assertTrue("title" in DOCUMENT[0])
+
+	def test_frappe_client_run_doc_method_with_params(self):
+		social_login_key = frappe.new_doc("Social Login Key")
+		social_login_key.base_url = "http://example.com"
+		social_login_key.authorize_url = "http://example.com"
+		social_login_key.access_token_url = "http://example.com"
+		social_login_key.redirect_url = "http://example.com"
+		social_login_key.provider_name = frappe.utils.random_string(10)
+		social_login_key.social_login_provider = "Frappe"
+		social_login_key.insert()
+		social_login_key.save()
+		frappe.db.commit()  # nosemgrep
+
+		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		DOCUMENT = server.run_doc_method(
+			doctype="Social Login Key",
+			name=social_login_key.name,
+			method="get_social_login_provider",
+			params={"provider": "Frappe"},
+		)
+		self.assertTrue("provider_name" in DOCUMENT)
 
 	def test_auth_via_api_key_secret(self):
 		# generate API key and API secret for administrator
