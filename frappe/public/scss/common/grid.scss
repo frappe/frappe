@@ -270,7 +270,6 @@
 
 	.col:last-child {
 		border: none;
-		background-color: var(--fg-color);
 	}
 
 	.btn-open-row {
@@ -302,7 +301,7 @@
 		}
 
 		textarea {
-			height: 39px !important;
+			height: 43px !important;
 		}
 
 		.form-control,
@@ -310,17 +309,19 @@
 			border-radius: 0px;
 			border: 0px;
 			padding-top: 10px;
-			padding-bottom: 10px;
+			padding-bottom: calc(var(--padding-md) - 3px);
 			height: auto;
 		}
 
 		.link-btn {
-			top: 5px;
 			background-color: var(--bg-color);
+			height: calc(100% - 4px);
+			margin-top: 2px;
 		}
 
 		.form-control:focus {
 			border-color: $text-muted;
+			box-shadow: inset 0px 0px 0 2px rgba(124, 124, 124, 0.25);
 		}
 
 		.has-error .form-control {
@@ -384,12 +385,7 @@
 			line-height: 1.3 !important;
 		}
 	}
-	.data-row {
-		div[data-fieldname="options"],
-		div[data-fieldtype="Text Editor"] {
-			height: 40px;
-		}
-	}
+
 	.grid-static-col {
 		background-color: var(--fg-color);
 		&.sticky-grid-col {
@@ -886,6 +882,12 @@
 
 .grid-scroll-bar-rows {
 	height: 100%;
+}
+
+.sticky-col-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 @media (max-width: map-get($grid-breakpoints, "md")) {

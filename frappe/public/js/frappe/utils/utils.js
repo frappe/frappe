@@ -1583,6 +1583,12 @@ Object.assign(frappe.utils, {
 				route = item.name;
 			} else if (type === "dashboard") {
 				route = `dashboard-view/${item.name}`;
+			} else if (type == "workspace") {
+				if (item.public) {
+					route = frappe.router.slug(item.name);
+				} else {
+					route = "private/" + frappe.router.slug(item.name);
+				}
 			}
 		} else {
 			route = item.route;
@@ -2193,14 +2199,14 @@ Object.assign(frappe.utils, {
 		}
 		return links;
 	},
-	eval_expression(value) {
+	eval_expression(value, number_format) {
 		if (typeof value === "string") {
 			const parsed_components = value.match(/[^\d.,]+|[\d.,]+/g);
 			var parsed_value = value;
 			if (parsed_components !== null) {
 				parsed_value = parsed_components
 					.map((v) => {
-						return isNaN(parseFloat(v)) ? v : flt(v);
+						return isNaN(parseFloat(v)) ? v : flt(v, null, number_format);
 					})
 					.join("");
 			}

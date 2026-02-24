@@ -120,7 +120,7 @@ class Webhook(Document):
 				frappe.throw(_("Invalid Webhook Secret"))
 
 	@frappe.whitelist()
-	def preview_meets_condition(self, preview_document):
+	def preview_meets_condition(self, preview_document: str):
 		if not self.condition:
 			return _("Yes")
 		try:
@@ -132,7 +132,7 @@ class Webhook(Document):
 		return _("Yes") if met_condition else _("No")
 
 	@frappe.whitelist()
-	def preview_request_body(self, preview_document):
+	def preview_request_body(self, preview_document: str):
 		try:
 			doc = frappe.get_cached_doc(self.webhook_doctype, preview_document)
 			return frappe.as_json(get_webhook_data(doc, self))

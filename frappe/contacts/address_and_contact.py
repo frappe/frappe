@@ -1,6 +1,8 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from typing import Any
+
 import frappe
 from frappe import _
 
@@ -110,7 +112,7 @@ def delete_contact_and_address(doctype: str, docname: str) -> None:
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def filter_dynamic_link_doctypes(
-	doctype, txt: str, searchfield, start, page_len, filters: dict
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]
 ) -> list[list[str]]:
 	from frappe.permissions import get_doctypes_with_read
 

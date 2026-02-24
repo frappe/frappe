@@ -2533,6 +2533,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// Copy to clipboard
 		actions_menu_items.push(copy_to_clipboard());
 
+		if (!frappe.boot.desk_settings?.bulk_actions) return actions_menu_items;
+
 		// bulk edit
 		if (has_editable_fields(doctype) && is_bulk_edit_allowed(doctype)) {
 			actions_menu_items.push(bulk_edit());

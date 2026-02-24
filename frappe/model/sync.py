@@ -200,7 +200,7 @@ def remove_orphan_doctypes():
 
 
 def remove_orphan_entities():
-	entites = ["Workspace", "Dashboard", "Page", "Report"]
+	entites = ["Workspace", "Dashboard", "Page", "Report", "Notification"]
 	app_level_entities = ["Workspace Sidebar", "Desktop Icon"]
 	entity_filter_map = {
 		"Workspace": [{"public": 1, "module": ["is", "set"], "app": ["is", "set"]}],
@@ -209,6 +209,7 @@ def remove_orphan_entities():
 		"Dashboard": {"is_standard": True},
 		"Workspace Sidebar": {"standard": True},
 		"Desktop Icon": {"standard": True},
+		"Notification": {"is_standard": True},
 	}
 	entity_file_map = create_entity_file_map(entites)
 

@@ -14,7 +14,9 @@ from frappe.modules import load_doctype_module
 
 
 @frappe.whitelist()
-def get_submitted_linked_docs(doctype: str, name: str, ignore_doctypes_on_cancel_all=None) -> list[tuple]:
+def get_submitted_linked_docs(
+	doctype: str, name: str, ignore_doctypes_on_cancel_all: str | list[str] | None = None
+) -> list[tuple]:
 	"""Get all the nested submitted documents those are present in referencing tables (dependent tables).
 
 	:param doctype: Document type
@@ -365,7 +367,7 @@ def get_referencing_documents(
 
 
 @frappe.whitelist()
-def cancel_all_linked_docs(docs, ignore_doctypes_on_cancel_all=None):
+def cancel_all_linked_docs(docs: str, ignore_doctypes_on_cancel_all: str | list[str] | None = None):
 	"""
 	Cancel all linked doctype, optionally ignore doctypes specified in a list.
 
@@ -527,14 +529,14 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 
 
 @frappe.whitelist()
-def get(doctype, docname):
+def get(doctype: str, docname: str):
 	frappe.has_permission(doctype, doc=docname, throw=True)
 	linked_doctypes = get_linked_doctypes(doctype=doctype)
 	return get_linked_docs(doctype=doctype, name=docname, linkinfo=linked_doctypes)
 
 
 @frappe.whitelist()
-def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
+def get_linked_doctypes(doctype: str, without_ignore_user_permissions_enabled: int | bool = False):
 	"""add list of doctypes this doctype is 'linked' with.
 
 	Example, for Customer:

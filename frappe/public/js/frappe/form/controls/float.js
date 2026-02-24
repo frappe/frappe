@@ -4,6 +4,10 @@ frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlI
 		return isNaN(parseFloat(value)) ? null : flt(value, this.get_precision());
 	}
 
+	eval_expression(value) {
+		return super.eval_expression(value, this.get_number_format());
+	}
+
 	format_for_input(value) {
 		if (value === null || value === undefined || isNaN(Number(value))) {
 			return "";

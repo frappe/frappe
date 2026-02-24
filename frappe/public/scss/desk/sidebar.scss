@@ -127,6 +127,21 @@
 		}
 	}
 
+	.onboarding-sidebar {
+		text-decoration: none;
+		font-size: var(--text-sm);
+		display: flex;
+		align-items: center;
+		svg {
+			margin: 0px;
+			flex: 0 0 auto;
+		}
+		span {
+			margin-left: 10px;
+			@include truncate();
+		}
+	}
+
 	.collapse-sidebar-link {
 		text-decoration: none;
 		font-size: var(--text-sm);

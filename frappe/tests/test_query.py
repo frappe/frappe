@@ -991,6 +991,52 @@ class TestQuery(IntegrationTestCase):
 		test_user.remove_roles(test_role)
 		frappe.delete_doc("Role", test_role, force=True)
 
+	def test_filter_with_select_permission_allows_permlevel_0_fields(self):
+		"""Test that users with only select permission can filter by all permlevel 0 fields."""
+
+		test_role = "SelectFilterTestRole"
+		test_user_email = "test2@example.com"
+		test_note_title = "Select Filter Test Note"
+
+		# Cleanup previous runs
+		frappe.set_user("Administrator")
+		test_user = frappe.get_doc("User", test_user_email)
+		test_user.remove_roles(test_role)
+		frappe.delete_doc("Role", test_role, ignore_missing=True, force=True)
+		frappe.delete_doc("Note", {"title": test_note_title}, ignore_missing=True, force=True)
+
+		# Setup Role with only 'select' on Note (no read)
+		frappe.get_doc({"doctype": "Role", "role_name": test_role}).insert(ignore_if_duplicate=True)
+		add_permission("Note", test_role, 0, ptype="select")
+		update_permission_property("Note", test_role, 0, "read", 0, validate=False)
+		test_user.add_roles(test_role)
+
+		# Create a test note with specific content
+		note = frappe.get_doc(
+			doctype="Note", title=test_note_title, content="Specific Content", public=1
+		).insert(ignore_permissions=True)
+
+		# Register cleanups in reverse order (LIFO) - Administrator restore must happen first
+		def cleanup():
+			frappe.set_user("Administrator")
+			frappe.delete_doc("Note", note.name, ignore_missing=True, force=True)
+			test_user.remove_roles(test_role)
+			frappe.delete_doc("Role", test_role, ignore_missing=True, force=True)
+
+		self.addCleanup(cleanup)
+
+		frappe.set_user(test_user_email)
+
+		# 'content' is a permlevel 0 field but NOT a search field
+		result = frappe.qb.get_query(
+			"Note",
+			filters={"content": "Specific Content"},
+			fields=["name"],  # Only select 'name' which is allowed
+			ignore_permissions=False,
+		).run(as_dict=True)
+		self.assertEqual(len(result), 1, "Should find the note when filtering by permlevel 0 field")
+		self.assertEqual(result[0]["name"], note.name)
+
 	def test_nested_permission(self):
 		"""Test permission on nested doctypes"""
 		frappe.set_user("Administrator")
@@ -2300,6 +2346,100 @@ class TestQuery(IntegrationTestCase):
 		self.assertEqual(len(result), 0, "Filter should not be bypassed by shared doc OR condition")
 
 	@run_only_if(db_type_is.POSTGRES)
+	def test_order_by_group_by_postgres(self):
+		"""PostgreSQL specific test that tests if order_by fields are correctly handled when used with group_by"""
+		# test order by fields already in group by (no aggregate needed)
+		query = frappe.qb.get_query(
+			"User",
+			fields=["creation as created_date", {"COUNT": "*"}],
+			group_by="created_date",
+			order_by="created_date",
+		).get_sql()
+
+		self.assertQueryEqual(
+			query,
+			'SELECT "creation" "created_date",COUNT(*) FROM "tabUser" GROUP BY "created_date" ORDER BY "created_date" DESC',
+		)
+
+		# test order by fields not in group by (aggregate needed)
+		query = frappe.qb.get_query(
+			"User",
+			fields=["creation as created_date", {"COUNT": "*"}],
+			group_by="created_date",
+			order_by="name",
+		).get_sql()
+
+		self.assertQueryEqual(
+			query,
+			'SELECT "creation" "created_date",COUNT(*) FROM "tabUser" GROUP BY "created_date" ORDER BY MAX("name") DESC',
+		)
+
+		query = frappe.qb.get_query(
+			"User",
+			fields=["user_type as type", "enabled as status", {"COUNT": "*"}],
+			group_by="type, status",
+			order_by="status asc",
+		).get_sql()
+
+		self.assertQueryEqual(
+			query,
+			'SELECT "user_type" "type","enabled" "status",COUNT(*) FROM "tabUser" GROUP BY "type","status" ORDER BY "status" ASC',
+		)
+
+		# test no double aggregation rule
+		query = frappe.qb.get_query(
+			"User",
+			fields=["creation", {"COUNT": "*", "as": "total"}],
+			group_by="creation",
+			order_by="total desc",
+		).get_sql()
+
+		self.assertQueryEqual(
+			query,
+			'SELECT "creation",COUNT(*) "total" FROM "tabUser" GROUP BY "creation" ORDER BY "total" DESC',
+		)
+
+		# test multiple order_by fields not in group_by
+		query = frappe.qb.get_query(
+			"User",
+			fields=["user_type", {"COUNT": "*"}],
+			group_by="user_type",
+			order_by="creation desc, modified asc",
+		).get_sql()
+
+		self.assertIn('MAX("creation") DESC', query)
+		self.assertIn('MAX("modified") ASC', query)
+
+		# for queries that have aggregate fields selected but not grouped (these queries are redundant but exist in some parts of codebase)
+		query = frappe.qb.get_query(
+			"User", fields=[{"COUNT": "*", "as": "result"}], order_by="creation desc"
+		).get_sql()
+
+		self.assertQueryEqual(query, 'SELECT COUNT(*) "result" FROM "tabUser" ORDER BY MAX("creation") DESC')
+
+		# test in case user uses `original_col` name instead of alias
+		query = frappe.qb.get_query(
+			"User", fields=["name as user_name"], group_by="user_name", order_by="user_name"
+		)
+		a = query.run()
+
+		query = frappe.qb.get_query("User", fields=["name as user_name"], group_by="name", order_by="name")
+		b = query.run()
+
+		query = frappe.qb.get_query(
+			"User", fields=["name as user_name"], group_by="name", order_by="user_name"
+		)
+		c = query.run()
+
+		query = frappe.qb.get_query(
+			"User", fields=["name as user_name"], group_by="user_name", order_by="name"
+		)
+		d = query.run()
+
+		for val in [b, c, d]:
+			self.assertEqual(a, val, "Query result mismatch detected.")
+
+	@run_only_if(db_type_is.POSTGRES)
 	def test_ifnull_fallback_postgres(self):
 		"""Test ifnull fallback in postgres"""
 		from frappe.database.query import Engine
@@ -2307,6 +2447,148 @@ class TestQuery(IntegrationTestCase):
 		engine = Engine()
 		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "skipped"), "0")
 		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "patch"), "''")
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_drop_unique_constraint_for_deleted_fields_mariadb(self):
+		trial_dt = new_doctype(
+			"Trial Doctype",
+			fields=[
+				{
+					"fieldname": "field_one",
+					"fieldtype": "Data",
+					"label": "Field One",
+				},
+				{
+					"fieldname": "field_two",
+					"fieldtype": "Data",
+					"label": "Field Two",
+					"unique": 1,
+				},
+			],
+		)
+
+		trial_dt.insert(ignore_if_duplicate=True)
+
+		indexes = frappe.db.get_column_index("tabTrial Doctype", "field_two", unique=True)
+		self.assertTrue(indexes)
+
+		field_to_remove = None
+
+		for field in trial_dt.fields:
+			if field.fieldname == "field_two":
+				field_to_remove = field
+				break
+
+		trial_dt.fields.remove(field_to_remove)
+		trial_dt.save()
+
+		indexes = frappe.db.get_column_index("tabTrial Doctype", "field_two", unique=True)
+		self.assertFalse(indexes)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_drop_unique_constraint_and_indexes_for_deleted_fields_postgres(self):
+		# test for unique index backed by constraint at field creation time
+		trial_dt = new_doctype(
+			"Trial Doctype",
+			fields=[
+				{
+					"fieldname": "field_one",
+					"fieldtype": "Data",
+					"label": "Field One",
+				},
+				{
+					"fieldname": "field_two",
+					"fieldtype": "Data",
+					"label": "Field Two",
+					"unique": 1,
+				},
+			],
+		)
+
+		trial_dt.insert(ignore_if_duplicate=True)
+
+		index_exists = frappe.db.sql(
+			"""
+			SELECT 1
+			FROM pg_indexes
+			WHERE tablename = %s
+			AND indexname = %s
+			""",
+			(
+				f"tab{trial_dt.name}",
+				f"tab{trial_dt.name}_field_two_key",
+			),
+		)
+		self.assertTrue(index_exists)
+
+		field_to_remove = None
+
+		for field in trial_dt.fields:
+			if field.fieldname == "field_two":
+				field_to_remove = field
+				break
+
+		trial_dt.fields.remove(field_to_remove)
+		trial_dt.save()
+
+		index_exists = frappe.db.sql(
+			"""
+			SELECT 1
+			FROM pg_indexes
+			WHERE tablename = %s
+			AND indexname = %s
+			""",
+			(
+				f"tab{trial_dt.name}",
+				f"tab{trial_dt.name}_field_two_key",
+			),
+		)
+		self.assertFalse(index_exists)
+
+		# test for unique index backed by no constraint created at field alteration post creation
+		for field in trial_dt.fields:
+			if field.fieldname == "field_one":
+				field.unique = 1
+
+		trial_dt.save()
+
+		index_exists = frappe.db.sql(
+			"""
+			SELECT 1
+			FROM pg_indexes
+			WHERE tablename = %s
+			AND indexname = %s
+			""",
+			(
+				f"tab{trial_dt.name}",
+				"unique_field_one",
+			),
+		)
+		self.assertTrue(index_exists)
+
+		field_to_remove = None
+
+		for field in trial_dt.fields:
+			if field.fieldname == "field_one":
+				field_to_remove = field
+				break
+
+		trial_dt.fields.remove(field_to_remove)
+		trial_dt.save()
+
+		index_exists = frappe.db.sql(
+			"""
+			SELECT 1
+			FROM pg_indexes
+			WHERE tablename = %s
+			AND indexname = %s
+			""",
+			(
+				f"tab{trial_dt.name}",
+				"unique_field_one",
+			),
+		)
+		self.assertFalse(index_exists)
 
 
 # This function is used as a permission query condition hook

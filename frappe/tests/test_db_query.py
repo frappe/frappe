@@ -990,11 +990,14 @@ class TestDBQuery(IntegrationTestCase):
 		from frappe.desk.doctype.dashboard_settings.dashboard_settings import (
 			create_dashboard_settings,
 		)
+		from frappe.model.db_query import DatabaseQuery
 
 		self.doctype = "Dashboard Settings"
 		self.user = "test'5@example.com"
 
-		permission_query_conditions = DatabaseQuery.get_permission_query_conditions(self)
+		db_query = DatabaseQuery(self.doctype, user=self.user)
+
+		permission_query_conditions = db_query.get_permission_query_conditions()
 
 		create_dashboard_settings(self.user)
 
