@@ -190,16 +190,35 @@ def get_attachments(dt, dn):
 	)
 
 
-def get_versions(doc: "Document") -> list[dict]:
-	if not doc.meta.track_changes:
-		return []
-	return frappe.get_all(
+def filter_versions(doc: "Document"):
+	versions = frappe.get_all(
 		"Version",
 		filters=dict(ref_doctype=doc.doctype, docname=str(doc.name)),
 		fields=["name", "owner", "creation", "data"],
 		limit=10,
 		order_by="creation desc",
 	)
+	for v in versions:
+		if not v.get("data"):
+			continue
+		data = json.loads(v["data"])
+		if data.get("changed"):
+			data["changed"] = [
+				row for row in data["changed"] if doc.has_permlevel_access_to(row[0], permission_type="read")
+			]
+		for key in ("row_changed", "added", "removed"):
+			if data.get(key):
+				data[key] = [
+					row for row in data[key] if doc.has_permlevel_access_to(row[0], permission_type="read")
+				]
+		v["data"] = json.dumps(data, separators=(",", ":"))
+	return versions
+
+
+def get_versions(doc: "Document") -> list[dict]:
+	if not doc.meta.track_changes:
+		return []
+	return filter_versions(doc)
 
 
 @frappe.whitelist()
