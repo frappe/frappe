@@ -514,7 +514,18 @@ def send_now(name: str | int, force_send: bool = False):
 @frappe.whitelist()
 def toggle_sending(enable: bool | int | str):
 	frappe.only_for("System Manager")
-	frappe.db.set_default("suspend_email_queue", 0 if sbool(enable) else 1)
+	suspend_value = 0 if sbool(enable) else 1
+	frappe.db.set_default("suspend_email_queue", suspend_value)
+
+	action = "Resumed" if suspend_value == 0 else "Suspended"
+	frappe.get_doc(
+		{
+			"doctype": "Activity Log",
+			"user": frappe.session.user,
+			"status": "Success",
+			"subject": f"Email Queue sending {action.lower()}",
+		}
+	).insert(ignore_permissions=True, ignore_links=True)
 
 
 def on_doctype_update():
