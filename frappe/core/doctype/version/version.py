@@ -80,7 +80,18 @@ class Version(Document):
 		if not self.data:
 			return
 
+		doc = frappe.get_doc(self.ref_doctype, self.docname)
 		data = self.get_data()
+		if data.get("changed"):
+			data["changed"] = [
+				row for row in data["changed"] if doc.has_permlevel_access_to(row[0], permission_type="read")
+			]
+		for key in ("row_changed", "added", "removed"):
+			if data.get(key):
+				data[key] = [
+					row for row in data[key] if doc.has_permlevel_access_to(row[0], permission_type="read")
+				]
+		self.data = json.dumps(data, separators=(",", ":"))
 		changed = data.get("changed", [])
 		if not changed:
 			return
