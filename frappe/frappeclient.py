@@ -4,6 +4,7 @@ FrappeClient is a library that helps you connect with other frappe systems
 
 import base64
 import json
+from urllib.parse import quote
 
 import frappe
 from frappe.utils.data import cstr
@@ -243,6 +244,22 @@ class FrappeClient:
 
 		return self.post_process(res)
 
+	def run_doc_method(self, doctype: str, name: str, method: str, params: dict | None = None):
+		"""Run whitelisted DocType methods.
+		:param doctype: DocType of the document to run the method on
+		:param name: `name` of the document to run method on
+		:param method: method of the document object
+		:param params: (optional) Fields parameters to be passed to the method
+		"""
+		res = self.session.post(
+			self.url + quote(f"/api/v2/document/{doctype}/{name}/method/{method}"),
+			params=params,
+			verify=self.verify,
+			headers=self.headers,
+		)
+
+		return self.post_process(res)
+
 	def rename_doc(self, doctype, old_name, new_name):
 		"""Rename remote document
 
@@ -377,7 +394,6 @@ class FrappeClient:
 		try:
 			rjson = response.json()
 		except ValueError:
-			print(response.text)
 			raise
 
 		if rjson and (rjson.get("exc") or rjson.get("exc_type") or rjson.get("errors")):
@@ -399,6 +415,8 @@ class FrappeClient:
 			return rjson["message"]
 		elif "data" in rjson:
 			return rjson["data"]
+		elif "docs" in rjson:
+			return rjson["docs"][0]
 		else:
 			return None
 
