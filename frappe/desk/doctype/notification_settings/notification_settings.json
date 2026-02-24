@@ -26,7 +26,11 @@
    "default": "1",
    "fieldname": "enabled",
    "fieldtype": "Check",
+<<<<<<< HEAD
    "label": "Enabled"
+=======
+   "label": "Enable System Notification"
+>>>>>>> 3b26e0df77 (fix: update label for notification settings)
   },
   {
    "fieldname": "subscribed_documents",
@@ -119,7 +123,11 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-12-01 12:46:15.490640",
+=======
+ "modified": "2026-02-24 11:06:24.112935",
+>>>>>>> 3b26e0df77 (fix: update label for notification settings)
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",
