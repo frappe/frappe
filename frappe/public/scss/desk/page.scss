@@ -189,9 +189,9 @@ body[data-route^="Form"] {
 
 	.frappe-list,
 	.report-wrapper {
-		.result,
+		.result:first-child,
 		.no-result,
-		.freeze {
+		.freeze:first-child {
 			min-height: 200px;
 		}
 	}
