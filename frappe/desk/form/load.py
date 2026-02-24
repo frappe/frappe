@@ -214,6 +214,8 @@ def filter_versions(doc: "Document"):
 				table_df = parent_meta.get_field(table_field)
 				if not table_df:
 					continue
+				if table_df.permlevel not in permlevel_access:
+					continue
 				child_doctype = table_df.options
 				child_meta = frappe.get_meta(child_doctype)
 				allowed_child_changes = []
@@ -230,9 +232,26 @@ def filter_versions(doc: "Document"):
 			data["row_changed"] = filtered_rows
 		for key in ("added", "removed"):
 			if data.get(key):
-				data[key] = [
-					row for row in data[key] if doc.has_permlevel_access_to(row[0], permission_type="read")
-				]
+				filtered_entries = []
+				for table_field, row_dict in data[key]:
+					table_df = parent_meta.get_field(table_field)
+					if not table_df:
+						continue
+					if table_df.permlevel in permlevel_access:
+						child_meta = frappe.get_meta(table_df.options)
+						keys_to_remove = []
+
+						for fieldname in row_dict.keys():
+							child_df = child_meta.get_field(fieldname)
+
+							if child_df and child_df.permlevel not in permlevel_access:
+								keys_to_remove.append(fieldname)
+
+						for fieldname in keys_to_remove:
+							del row_dict[fieldname]
+
+						filtered_entries.append([table_field, row_dict])
+				data[key] = filtered_entries
 		v["data"] = json.dumps(data, separators=(",", ":"))
 	return versions
 
