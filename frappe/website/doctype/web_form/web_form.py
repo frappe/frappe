@@ -853,9 +853,17 @@ def has_link_option(fields, doctype):
 	for f in fields:
 		if f.options == doctype:
 			return True
-		if hasattr(f, "fields") and isinstance(f.fields, list):
-			if has_link_option(f.fields, doctype):
-				return True
+		if f.fieldtype == "Table" and f.options:
+			child_doctype = f.options
+			if not isinstance(child_doctype, str) or not child_doctype.strip():
+				continue
+			try:
+				child_table_fields = frappe.get_meta(child_doctype).fields
+			except Exception:
+				continue
+			for child_field in child_table_fields:
+				if getattr(child_field, "options", None) == doctype:
+					return True
 	return False
 
 
