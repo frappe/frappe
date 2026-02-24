@@ -50,23 +50,29 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 		} else {
 			html = `
 					<div class="margin-bottom">
-					${__("Following documents are linked with {0}", [frappe.utils.get_form_link(this.frm.doctype, this.frm.docname, true).bold()])}
+					${__("Following documents are linked with {0}", [
+						frappe.utils
+							.get_form_link(this.frm.doctype, this.frm.docname, true)
+							.bold(),
+					])}
 					</div>
 					${linked_doctypes
-					.map((doctype) => {
-						const { docs, hidden_count } = linked_docs[doctype];
-						let rows = (docs || []).map((doc) => this.make_doc_row(doc, doctype)).join("");
-						if (hidden_count > 0) {
-							rows += this.make_hidden_count_row(hidden_count);
-						}
-						return `
+						.map((doctype) => {
+							const { docs, hidden_count } = linked_docs[doctype];
+							let rows = (docs || [])
+								.map((doc) => this.make_doc_row(doc, doctype))
+								.join("");
+							if (hidden_count > 0) {
+								rows += this.make_hidden_count_row(hidden_count);
+							}
+							return `
 						<div class="list-item-table margin-bottom">
 							${this.make_doc_head(doctype)}
 							${rows}
 						</div>
 					`;
-					})
-					.join("")}
+						})
+						.join("")}
 					`;
 		}
 
