@@ -73,6 +73,6 @@ test.describe("List Paging", () => {
 		// Load more - should show 1,000
 		await page.locator(".list-paging-area .btn-more").click();
 		await page.waitForTimeout(1000);
-		await expect(page.locator(".list-paging-area .list-count")).toContainText("1,000 of");
+		await expect(page.locator(".list-paging-area .list-count")).toContainText("of 1,000");
 	});
 });
