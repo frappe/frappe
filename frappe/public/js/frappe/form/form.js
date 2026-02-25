@@ -2090,6 +2090,9 @@ frappe.ui.form.Form = class FrappeForm {
 				if (df.fieldname === fieldname && isLinkToParent) {
 					new_doc[df.fieldname] = me.doc.name;
 				}
+				if (df.fieldtype === "Table" && df.options && df.reqd) {
+					me.set_link_field(df.options, new_doc[df.fieldname][0]);
+				}
 				return;
 			}
 
