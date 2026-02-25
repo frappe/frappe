@@ -1635,7 +1635,15 @@ Object.assign(frappe.utils, {
 	},
 
 	process_filter_expression(filter) {
-		return new Function(`return ${filter}`)();
+		let filters = [];
+		if (filter) {
+			try {
+				filters = JSON.parse(filter);
+			} catch {
+				console.warn("Invalid JSON in filter expression", filter);
+			}
+		}
+		return filters;
 	},
 
 	get_filter_from_json(filter_json, doctype) {
