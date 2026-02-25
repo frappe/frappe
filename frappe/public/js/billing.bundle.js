@@ -1,12 +1,12 @@
 let frappeCloudBaseEndpoint = "https://frappecloud.com";
-let isFCUser = true;
+let isFCUser = false;
 
 $(document).ready(function () {
 	const site_info = frappe.boot.site_info;
 	if (site_info) {
 		const trial_end_date = new Date(site_info.trial_end_date);
 		frappeCloudBaseEndpoint = site_info.base_url;
-		// isFCUser = site_info.is_fc_user;
+		isFCUser = site_info.is_fc_user;
 
 		const today = new Date();
 		const diffTime = trial_end_date - today;
@@ -52,17 +52,14 @@ $(document).ready(function () {
 					card_args.parent = $(".icons-container").first();
 					let banner_card = new frappe.ui.SidebarCard(card_args);
 				}
-				if (isFCUser) {
-					let chat_banner = document.createElement("script");
-					chat_banner.innerHTML =
-						'(function(d,t) {var BASE_URL="https://chat.frappe.cloud"; var g=d.createElement(t),s=d.getElementsByTagName(t)[0];g.src=BASE_URL+"/packs/js/sdk.js";g.async = true;s.parentNode.insertBefore(g,s);g.onload=function(){window.chatwootSDK.run({websiteToken: "LdmfJzftdJGEcFjoTqk8CrSq",baseUrl: BASE_URL})}})(document,"script");';
-					document.body.append(chat_banner);
-				}
 				addManageBillingDropdown(data.desktop);
 
 				$(".login-to-fc, .upgrade-plan-button").on("click", function () {
 					openFrappeCloudDashboard();
 				});
+				if (isFCUser) {
+					addChatBubble();
+				}
 			}
 		});
 	}
@@ -89,4 +86,20 @@ function openFrappeCloudDashboard() {
 		`${frappeCloudBaseEndpoint}/dashboard/sites/${frappe.boot.site_info.name}`,
 		"_blank"
 	);
+}
+
+function addChatBubble() {
+	if (checkBusinessHours()) {
+		let chat_banner = document.createElement("script");
+		chat_banner.innerHTML =
+			'(function(d,t) {var BASE_URL="https://chat.frappe.cloud"; var g=d.createElement(t),s=d.getElementsByTagName(t)[0];g.src=BASE_URL+"/packs/js/sdk.js";g.async = true;s.parentNode.insertBefore(g,s);g.onload=function(){window.chatwootSDK.run({websiteToken: "LdmfJzftdJGEcFjoTqk8CrSq",baseUrl: BASE_URL})}})(document,"script");';
+		document.body.append(chat_banner);
+	}
+}
+
+function checkBusinessHours() {
+	let currentTime = new Date();
+	const istTime = new Date(currentTime.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+
+	return istTime.getHours() >= 11 && istTime.getHours() <= 18;
 }
