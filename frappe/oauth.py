@@ -4,12 +4,9 @@ import hashlib
 import re
 from urllib.parse import urljoin, urlparse
 
-<<<<<<< HEAD
 import jwt
 import pytz
-=======
 from oauthlib.common import Request
->>>>>>> 9b161c9528 (fix(oauth): cleanup code, use user from session (#37434))
 from oauthlib.openid import RequestValidator
 
 import frappe
