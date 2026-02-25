@@ -274,7 +274,6 @@ class DesktopPage {
 		this.setup_navbar();
 		this.setup_awesomebar();
 		this.handle_route_change();
-		this.setup_edit_button();
 	}
 	setup_edit_button() {
 		if (this.edit_mode || frappe.is_mobile()) return;
