@@ -440,6 +440,7 @@ def run_parallel_tests(
 @click.option("--spec", help="Spec file to run")
 @click.option("--ci-build-id")
 @click.option("--playwright", is_flag=True, help="Use Playwright instead of Cypress")
+@click.option("--ui", is_flag=True, help="Run Playwright in UI mode (interactive)")
 @pass_context
 def run_ui_tests(
 	context: CliCtxObj,
@@ -452,6 +453,7 @@ def run_ui_tests(
 	cypressargs=None,
 	spec=None,
 	playwright=False,
+	ui=False,
 ):
 	"Run UI tests"
 	site = get_site(context)
@@ -468,6 +470,7 @@ def run_ui_tests(
 			headless=headless,
 			browser=browser,
 			spec=spec,
+			ui=ui,
 		)
 		return
 
@@ -548,16 +551,16 @@ def run_ui_tests(
 		raise click.exceptions.Exit(1) from e
 
 
-def _run_playwright_tests(app_base_path, site_url, admin_password, headless, browser, spec):
+def _run_playwright_tests(app_base_path, site_url, admin_password, headless, browser, spec, ui=False):
 	"""Run Playwright-based UI tests."""
 	frappe_path = frappe.get_app_source_path("frappe")
 	node_bin = subprocess.run(
-		"(cd ../frappe && yarn bin)",
+		"yarn bin",
 		shell=True,
 		stdout=subprocess.PIPE,
 		stderr=subprocess.DEVNULL,
 		text=True,
-		cwd=app_base_path,
+		cwd=frappe_path,
 	).stdout.strip()
 	playwright_path = f"{node_bin}/playwright"
 
@@ -568,7 +571,7 @@ def _run_playwright_tests(app_base_path, site_url, admin_password, headless, bro
 		with open(package_json_path) as f:
 			package_json_contents = f.read()
 
-		frappe.commands.popen("(cd ../frappe && yarn add @playwright/test --no-lockfile)")
+		frappe.commands.popen("yarn add @playwright/test --no-lockfile", cwd=frappe_path)
 
 		with open(package_json_path, "w") as f:
 			f.write(package_json_contents)
@@ -583,14 +586,23 @@ def _run_playwright_tests(app_base_path, site_url, admin_password, headless, bro
 		env["ADMIN_PASSWORD"] = admin_password
 
 	# Build command
-	cmd = [playwright_path, "test"]
+	cmd = [playwright_path]
 
-	if headless:
-		cmd.append("--reporter=list")
+	if ui:
+		# UI mode provides an interactive interface
+		cmd.append("test")
+		cmd.append("--ui")
+	else:
+		cmd.append("test")
+		if headless:
+			cmd.append("--reporter=list")
+		else:
+			cmd.append("--headed")
+			cmd.append("--workers=1")
 
-	browser_map = {"chrome": "chromium", "chromium": "chromium", "firefox": "firefox", "webkit": "webkit"}
-	pw_browser = browser_map.get(browser, "chromium")
-	cmd.extend(["--project", pw_browser])
+		browser_map = {"chrome": "chromium", "chromium": "chromium", "firefox": "firefox", "webkit": "webkit"}
+		pw_browser = browser_map.get(browser, "chromium")
+		cmd.extend(["--project", pw_browser])
 
 	if spec:
 		cmd.append(spec)
