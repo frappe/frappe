@@ -724,10 +724,14 @@ frappe.views.Workspace = class Workspace {
 					type: "paragraph",
 					data: {
 <<<<<<< HEAD
+<<<<<<< HEAD
 						text: __("Click on {0} to edit", [frappe.utils.icon("ellipsis")]),
 =======
 						text: `Click on  ${frappe.utils.icon("ellipsis")} to edit`,
 >>>>>>> ffcca31d27 (fix: add a default block in workspace)
+=======
+						text: __("Click on {0} to edit", [frappe.utils.icon("ellipsis")]),
+>>>>>>> 88da896790 (fix: Translate user facing string)
 					},
 				});
 			}
