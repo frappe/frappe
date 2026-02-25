@@ -188,6 +188,15 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_t
 		if isinstance(current_arg_value_after, EllipsisType):
 			raise_type_error(func, current_arg, current_arg_type, current_arg_value)
 
+		# if mutable, maintain original reference
+		if isinstance(current_arg_value, list) and isinstance(current_arg_value_after, list):
+			current_arg_value[:] = current_arg_value_after
+			current_arg_value_after = current_arg_value
+		elif isinstance(current_arg_value, dict) and isinstance(current_arg_value_after, dict):
+			current_arg_value.clear()
+			current_arg_value.update(current_arg_value_after)
+			current_arg_value_after = current_arg_value
+
 		# update the args and kwargs with possibly casted value
 		if current_arg in kwargs:
 			new_kwargs[current_arg] = current_arg_value_after
