@@ -20,7 +20,7 @@ import frappe
 from frappe.installer import parse_app_name
 from frappe.model.document import Document
 from frappe.tests import IntegrationTestCase, MockedRequestTestCase, UnitTestCase
-from frappe.tests.utils import toggle_test_mode
+from frappe.tests.utils import toggle_test_mode, whitelist_for_tests
 from frappe.utils import (
 	ceil,
 	dict_to_str,
@@ -1332,6 +1332,27 @@ class TestTypingValidations(IntegrationTestCase):
 			pass
 
 		func(1)  # should run without error
+
+	def test_object_reference(self):
+		@whitelist_for_tests()
+		def whitelisted_func(items: list[str] | dict[str, int]):
+			if isinstance(items, list):
+				items.append("newly_added")
+			elif isinstance(items, dict):
+				items["newly_added"] = 1
+			return items
+
+		original_list = ["original_item"]
+		original_id = id(original_list)
+
+		returned_list = whitelisted_func(original_list)
+		self.assertEqual(id(returned_list), original_id)
+
+		original_dict = {"original_key": 0}
+		original_id = id(original_dict)
+
+		returned_dict = whitelisted_func(original_dict)
+		self.assertEqual(id(returned_dict), original_id)
 
 
 class TestTBSanitization(IntegrationTestCase):
