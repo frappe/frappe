@@ -911,7 +911,7 @@ class Document(BaseDocument):
 
 		return same
 
-	def apply_fieldlevel_read_permissions(self):
+	def apply_fieldlevel_read_permissions(self, versions=None):
 		"""Remove values the user is not allowed to read."""
 		if frappe.session.user == "Administrator":
 			return
@@ -939,6 +939,68 @@ class Document(BaseDocument):
 					for child in self.get(table_field.fieldname) or []:
 						if hasattr(child, df.fieldname):
 							delattr(child, df.fieldname)
+
+		if versions is not None:
+			self._scrub_version_data(versions, has_access_to)
+
+	def _scrub_version_data(self, versions, allowed_levels):
+		"""Util to clean JSON diffs in the version list."""
+		for v in versions:
+			raw_data = v.get("data")
+			if not raw_data:
+				continue
+			data = json.loads(raw_data)
+			if data.get("changed"):
+				data["changed"] = [
+					row
+					for row in data["changed"]
+					if (f := self.meta.get_field(row[0])) and f.permlevel in allowed_levels
+				]
+			if data.get("row_changed"):
+				filtered_rows = []
+				for table_field, row_idx, row_name, child_changes in data["row_changed"]:
+					table_df = self.meta.get_field(table_field)
+					if not table_df:
+						continue
+					if table_df.permlevel not in allowed_levels:
+						continue
+					child_doctype = table_df.options
+					child_meta = frappe.get_meta(child_doctype)
+					allowed_child_changes = []
+					for fieldname, old, new in child_changes:
+						child_df = child_meta.get_field(fieldname)
+						if not child_df:
+							continue
+						if child_df.permlevel in allowed_levels:
+							allowed_child_changes.append([fieldname, old, new])
+					if allowed_child_changes:
+						filtered_rows.append([table_field, row_idx, row_name, allowed_child_changes])
+				data["row_changed"] = filtered_rows
+			for key in ("added", "removed"):
+				if data.get(key):
+					filtered_entries = []
+					for table_field, row_dict in data[key]:
+						table_df = self.meta.get_field(table_field)
+
+						if not table_df:
+							continue
+
+						if table_df.permlevel in allowed_levels:
+							child_meta = frappe.get_meta(table_df.options)
+							keys_to_remove = []
+
+							for fieldname in row_dict.keys():
+								child_df = child_meta.get_field(fieldname)
+								if child_df and child_df.permlevel not in allowed_levels:
+									keys_to_remove.append(fieldname)
+
+							for fieldname in keys_to_remove:
+								del row_dict[fieldname]
+
+							filtered_entries.append([table_field, row_dict])
+					data[key] = filtered_entries
+			scrubbed_json = json.dumps(data, separators=(",", ":"))
+			v.data = scrubbed_json
 
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""

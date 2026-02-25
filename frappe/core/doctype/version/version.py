@@ -81,58 +81,8 @@ class Version(Document):
 			return
 
 		doc = frappe.get_doc(self.ref_doctype, self.docname)
+		doc.apply_fieldlevel_read_permissions(versions=[self])
 		data = self.get_data()
-		if data.get("changed"):
-			data["changed"] = [
-				row for row in data["changed"] if doc.has_permlevel_access_to(row[0], permission_type="read")
-			]
-		parent_meta = doc.meta
-		permlevel_access = doc.get_permlevel_access("read")
-		if data.get("row_changed"):
-			filtered_rows = []
-			for table_field, row_idx, row_name, child_changes in data["row_changed"]:
-				table_df = parent_meta.get_field(table_field)
-				if not table_df:
-					continue
-				if table_df.permlevel not in permlevel_access:
-					continue
-				child_doctype = table_df.options
-				child_meta = frappe.get_meta(child_doctype)
-				allowed_child_changes = []
-
-				for fieldname, old, new in child_changes:
-					child_df = child_meta.get_field(fieldname)
-					if not child_df:
-						continue
-					if child_df.permlevel in permlevel_access:
-						allowed_child_changes.append([fieldname, old, new])
-
-				if allowed_child_changes:
-					filtered_rows.append([table_field, row_idx, row_name, allowed_child_changes])
-			data["row_changed"] = filtered_rows
-		for key in ("added", "removed"):
-			if data.get(key):
-				filtered_entries = []
-				for table_field, row_dict in data[key]:
-					table_df = parent_meta.get_field(table_field)
-					if not table_df:
-						continue
-					if table_df.permlevel in permlevel_access:
-						child_meta = frappe.get_meta(table_df.options)
-
-						keys_to_remove = []
-						for fieldname in row_dict.keys():
-							child_df = child_meta.get_field(fieldname)
-
-							if child_df and child_df.permlevel not in permlevel_access:
-								keys_to_remove.append(fieldname)
-
-						for fieldname in keys_to_remove:
-							del row_dict[fieldname]
-
-						filtered_entries.append([table_field, row_dict])
-				data[key] = filtered_entries
-		self.data = json.dumps(data, separators=(",", ":"))
 		changed = data.get("changed", [])
 		if not changed:
 			return
