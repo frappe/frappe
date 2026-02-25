@@ -1,0 +1,80 @@
+name: Playwright
+
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+concurrency:
+  group: playwright-${{ github.event_name }}-${{ github.event.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      NODE_ENV: production
+      DB_ROOT_PASSWORD: db_root
+
+    services:
+      mariadb:
+        image: mariadb:11.8
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
+        env:
+          MARIADB_ROOT_PASSWORD: db_root
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup
+        name: Environment Setup
+        with:
+          build-assets: true
+          db-root-password: ${{ env.DB_ROOT_PASSWORD }}
+
+      - name: Install Playwright
+        run: |
+          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}
+          yarn add @playwright/test --no-lockfile
+          npx playwright install chromium --with-deps
+
+      - name: Site Setup
+        run: |
+          source ${GITHUB_WORKSPACE}/env/bin/activate
+          bench --site test_site execute frappe.utils.install.complete_setup_wizard
+          bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
+
+      - name: Run Playwright Tests
+        id: tests
+        run: |
+          source ${GITHUB_WORKSPACE}/env/bin/activate
+          bench --site test_site run-ui-tests ${{ github.event.repository.name }} --playwright --headless
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v6
+        if: ${{ always() && steps.tests.outcome != 'skipped' }}
+        with:
+          name: playwright-report
+          path: ./apps/${{ github.event.repository.name }}/playwright-report/
+          retention-days: 30
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v6
+        if: ${{ failure() && steps.tests.outcome == 'failure' }}
+        with:
+          name: playwright-test-results
+          path: ./apps/${{ github.event.repository.name }}/test-results/
+          retention-days: 30
+
+      - name: Show bench output
+        if: ${{ always() }}
+        run: cat bench_start.log || true
