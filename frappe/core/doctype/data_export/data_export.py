@@ -13,7 +13,6 @@ class DataExport(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		export_without_main_header: DF.Check
 		file_type: DF.Literal["Excel", "CSV"]
 		reference_doctype: DF.Link
 	# end: auto-generated types

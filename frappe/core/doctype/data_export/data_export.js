@@ -27,9 +27,6 @@ frappe.ui.form.on("Data Export", {
 			reset_filter_and_field(frm);
 		}
 	},
-	export_without_main_header: (frm) => {
-		frm.refresh();
-	},
 });
 
 const can_export = (frm) => {
@@ -61,9 +58,6 @@ const export_data = (frm) => {
 			select_columns: JSON.stringify(columns),
 			filters: frm.filter_list.get_filters().map((filter) => filter.slice(1, 4)),
 			file_type: frm.doc.file_type,
-			template: !frm.doc.export_without_main_header,
-			with_data: 1,
-			export_without_column_meta: frm.doc.export_without_main_header ? true : false,
 		};
 	};
 
