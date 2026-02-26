@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import frappe
 import frappe.permissions
-from frappe import _, bold
+from frappe import _, bold, scrub
 from frappe.model.document import Document
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import validate_name
@@ -412,6 +412,9 @@ def rename_doctype(doctype: str, old: str, new: str) -> None:
 	# change parenttype for fieldtype Table
 	update_parenttype_values(old, new)
 
+	# update sequence name
+	update_sequence_name(old, new)
+
 
 def update_child_docs(old: str, new: str, meta: "Meta") -> None:
 	# update "parent"
@@ -654,6 +657,15 @@ def update_parenttype_values(old: str, new: str):
 
 		table = frappe.qb.DocType(doctype)
 		frappe.qb.update(table).set(table.parenttype, new).where(table.parenttype == old).run()
+
+
+def update_sequence_name(old: str, new: str, slug: str = "_id_seq"):
+	old_sequence_name = scrub(old + slug)
+	new_sequence_name = scrub(new + slug)
+	if frappe.db.db_type == "mariadb":
+		frappe.db.sql_ddl(f"RENAME TABLE `{old_sequence_name}` TO `{new_sequence_name}`")
+	else:
+		frappe.db.sql_ddl(f'ALTER SEQUENCE "{old_sequence_name}" RENAME TO "{new_sequence_name}"')
 
 
 def rename_dynamic_links(doctype: str, old: str, new: str):
