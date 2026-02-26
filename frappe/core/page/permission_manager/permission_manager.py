@@ -180,6 +180,39 @@ def reset(doctype: str):
 	frappe.only_for("System Manager")
 	reset_perms(doctype)
 	clear_permissions_cache(doctype)
+	_log_reset(doctype)
+
+
+def _log_reset(doctype: str):
+	"""Insert a Permission Log entry to record that permissions were reset to standard defaults."""
+	standard_perms = frappe.get_all("DocPerm", filters={"parent": doctype}, fields="*")
+	changes = frappe.as_json(
+		{
+			"from": {"permissions": "custom"},
+			"to": {
+				"permissions": "standard",
+				"standard_rules": [
+					{"role": p.role, "permlevel": p.permlevel, "read": p.read, "write": p.write}
+					for p in standard_perms
+				],
+			},
+		},
+		indent=0,
+	)
+
+	frappe.get_doc(
+		{
+			"doctype": "Permission Log",
+			"owner": frappe.session.user,
+			"changed_by": frappe.session.user,
+			"reference_type": "DocType",
+			"reference": doctype,
+			"for_doctype": "DocType",
+			"for_document": doctype,
+			"status": "Updated",
+			"changes": changes,
+		}
+	).db_insert()
 
 
 @frappe.whitelist()
@@ -199,3 +232,35 @@ def get_standard_permissions(doctype: str):
 		# also used to setup permissions via patch
 		path = get_file_path(meta.module, "DocType", doctype)
 		return read_doc_from_file(path).get("permissions")
+
+
+@frappe.whitelist()
+def get_permission_logs(doctype: str | None = None, limit: int = 20) -> list:
+	"""Return recent Permission Log entries for the given DocType (or all if not specified).
+
+	Args:
+	        doctype: Filter logs to a specific DocType. If omitted, returns logs for all DocTypes.
+	        limit: Maximum number of log entries to return (default 20).
+	"""
+	frappe.only_for("System Manager")
+
+	filters = {"for_doctype": "DocType"}
+	if doctype:
+		filters["for_document"] = doctype
+
+	logs = frappe.get_all(
+		"Permission Log",
+		filters=filters,
+		fields=["name", "changed_by", "creation", "status", "for_document", "changes"],
+		order_by="creation desc",
+		limit=limit,
+	)
+
+	for log in logs:
+		log["changed_at"] = log.pop("creation")
+		try:
+			log["changes"] = frappe.parse_json(log["changes"])
+		except Exception:
+			pass
+
+	return logs

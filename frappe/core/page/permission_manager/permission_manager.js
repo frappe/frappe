@@ -72,6 +72,11 @@ frappe.PermissionEngine = class PermissionEngine {
 		this.page.add_inner_button(__("Set User Permissions"), () => {
 			return frappe.set_route("List", "User Permission");
 		});
+
+		this.page.add_inner_button(__("View Activity Log"), () => {
+			this.show_activity_log();
+		});
+
 		this.set_from_route();
 	}
 
@@ -576,5 +581,119 @@ frappe.PermissionEngine = class PermissionEngine {
 			fieldtype: "Link",
 			options: ["not in", ["User", "[Select]"]],
 		});
+	}
+
+	show_activity_log() {
+		let doctype = this.get_doctype();
+		let title = doctype
+			? __("Activity Log for {0}", [__(doctype)])
+			: __("Role Permissions Activity Log");
+
+		let d = new frappe.ui.Dialog({
+			title: title,
+			size: "large",
+		});
+
+		let $body = $(d.body);
+		$body.html(`<div class="text-muted text-center p-4">${__("Loading…")}</div>`);
+
+		frappe
+			.call({
+				module: "frappe.core",
+				page: "permission_manager",
+				method: "get_permission_logs",
+				args: { doctype: doctype || null, limit: 50 },
+			})
+			.then((r) => {
+				let logs = r.message || [];
+				$body.empty();
+
+				if (!logs.length) {
+					$body.html(
+						`<div class="text-muted text-center p-4">${__(
+							"No activity recorded yet."
+						)}</div>`
+					);
+					return;
+				}
+
+				let status_color = { Added: "green", Removed: "red", Updated: "orange" };
+
+				let rows = logs
+					.map((log) => {
+						let changes_html = "";
+						try {
+							let ch = log.changes || {};
+							let from = ch.from || {};
+							let to = ch.to || {};
+							let keys = new Set([...Object.keys(from), ...Object.keys(to)]);
+							let parts = [];
+							keys.forEach((k) => {
+								let fv = from[k] !== undefined ? from[k] : "";
+								let tv = to[k] !== undefined ? to[k] : "";
+								if (fv !== tv) {
+									parts.push(
+										`<span class="text-muted">${frappe.model.unscrub(
+											k
+										)}:</span> ` +
+											`<span class="diff-remove">${fv}</span> → ` +
+											`<span class="diff-add">${tv}</span>`
+									);
+								}
+							});
+							changes_html = parts.join("<br>");
+						} catch (e) {
+							changes_html = "";
+						}
+
+						let badge_color = status_color[log.status] || "grey";
+						let dt_display = log.for_document
+							? frappe.utils.get_form_link("DocType", log.for_document, true)
+							: "";
+						let user_display = log.changed_by
+							? frappe.utils.get_form_link("User", log.changed_by, true)
+							: "";
+						let ts = frappe.datetime.str_to_user(log.changed_at);
+
+						return `<tr>
+							<td>${ts}</td>
+							<td>${user_display}</td>
+							<td>${dt_display}</td>
+							<td><span class="indicator-pill ${badge_color}">${__(log.status)}</span></td>
+							<td class="small">${changes_html}</td>
+						</tr>`;
+					})
+					.join("");
+
+				$body.html(`
+					<div style="overflow-x: auto;">
+						<table class="table table-bordered table-sm">
+							<thead>
+								<tr>
+									<th style="min-width:130px">${__("When")}</th>
+									<th style="min-width:120px">${__("Changed By")}</th>
+									<th style="min-width:120px">${__("DocType")}</th>
+									<th style="min-width:80px">${__("Action")}</th>
+									<th>${__("Changes")}</th>
+								</tr>
+							</thead>
+							<tbody>${rows}</tbody>
+						</table>
+					</div>
+					<div class="text-right mt-2">
+						<a href="${frappe.utils.generate_route({
+							type: "Doctype",
+							doctype: "Permission Log",
+							name: "Permission Log",
+							doc_view: "List",
+						})}" class="text-muted small">
+							${frappe.utils.icon("external-link", "sm", "mr-1")}
+							${__("View full log")}
+						</a>
+					</div>
+				`);
+			});
+
+		d.show();
 	}
 };
