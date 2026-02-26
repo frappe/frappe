@@ -1343,16 +1343,14 @@ class TestTypingValidations(IntegrationTestCase):
 			return items
 
 		original_list = ["original_item"]
-		original_id = id(original_list)
-
 		returned_list = whitelisted_func(original_list)
-		self.assertEqual(id(returned_list), original_id)
+
+		self.assertIs(returned_list, original_list)
 
 		original_dict = {"original_key": 0}
-		original_id = id(original_dict)
-
 		returned_dict = whitelisted_func(original_dict)
-		self.assertEqual(id(returned_dict), original_id)
+
+		self.assertIs(returned_dict, original_dict)
 
 
 class TestTBSanitization(IntegrationTestCase):
