@@ -1,9 +1,10 @@
 import inspect
+import typing
 from collections.abc import Callable
 from functools import lru_cache, wraps
 from inspect import _empty, isclass
 from types import EllipsisType
-from typing import ForwardRef, TypeVar, Union
+from typing import ForwardRef, Union
 from unittest import mock
 
 from pydantic import ConfigDict, PydanticUserError
@@ -14,11 +15,9 @@ import frappe
 from frappe.exceptions import FrappeTypeError
 
 SLACK_DICT = {
-	bool: (int, bool, float),
+	bool: bool | int | float,
 }
-T = TypeVar("T")
 ForwardRefOrStr = ForwardRef | str
-
 
 FrappePydanticConfig = ConfigDict(arbitrary_types_allowed=True)
 
@@ -29,6 +28,7 @@ def validate_argument_types(
 	force_types: bool | None = None,
 ):
 	app = func.__module__.split(".")[0]
+	_cached = None
 
 	@wraps(func)
 	def wrapper(*args, **kwargs):
@@ -37,14 +37,17 @@ def validate_argument_types(
 		:param args: Function arguments.
 		:param kwargs: Function keyword arguments."""
 
-		nonlocal force_types
+		nonlocal force_types, _cached
 
 		# Resolve it only once
 		if force_types is None:
 			force_types = any(frappe.get_hooks("require_type_annotated_api_methods", app_name=app))
 
 		if apply_condition is None or apply_condition():
-			args, kwargs = transform_parameter_types(func, args, kwargs, force_types)
+			if _cached is None:
+				_cached = _precompute_validators(func, force_types)
+
+			args, kwargs = _transform_args(func, args, kwargs, *_cached)
 
 		return func(*args, **kwargs)
 
@@ -62,9 +65,7 @@ def qualified_name(obj) -> str:
 	discovered_type = obj if isclass(obj) else type(obj)
 	module, qualname = discovered_type.__module__, discovered_type.__qualname__
 
-	if module in {"typing", "types"}:
-		return obj
-	elif module in {"builtins"}:
+	if module in {"typing", "types", "builtins"}:
 		return qualname
 	else:
 		return f"{module}.{qualname}"
@@ -101,97 +102,116 @@ def TypeAdapter(type_):
 		raise e
 
 
-def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_types=False):
-	"""
-	Validate the types of the arguments passed to a function with the type annotations
-	defined on the function.
-	"""
+def _resolve_annotations(func: Callable) -> dict:
+	"""Resolve type annotations via get_type_hints, falling back to __annotations__.
 
-	annotations = func.__annotations__
+	This correctly handles `from __future__ import annotations` (PEP 563),
+	which stores all annotations as strings. get_type_hints evaluates them
+	back into real type objects.
+
+	If get_type_hints fails (e.g. TYPE_CHECKING imports, circular imports),
+	we fall back to raw __annotations__. Unresolvable annotations (still str
+	or ForwardRef) are skipped later in _precompute_validators.
+	"""
+	try:
+		hints = typing.get_type_hints(func, include_extras=True)
+	except Exception:
+		hints = func.__annotations__.copy()
+
+	hints.pop("return", None)
+	return hints
+
+
+def _build_effective_type(param_type, parameter: inspect.Parameter):
+	"""Apply SLACK_DICT and default-value type widening to a parameter type."""
+	if param_type in SLACK_DICT:
+		param_type = SLACK_DICT[param_type]
+
+	if parameter.default is not _empty and type(parameter.default) is not param_type:
+		param_type = Union[param_type, type(parameter.default)]  # noqa: UP007
+
+	return param_type
+
+
+def _precompute_validators(func: Callable, force_types: bool = False):
+	"""Resolve annotations and build TypeAdapters once per function."""
+	annotations = _resolve_annotations(func)
 	func_params = frappe._get_cached_signature_params(func)[0]
 
-	if force_types:
-		for idx, (param_name, parameter) in enumerate(func_params.items()):
-			if idx == 0 and param_name in ("self", "cls"):
-				continue
-			if parameter.kind in (inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL):
-				continue
-			if param_name not in annotations:
+	param_validators = {}
+	for idx, (param_name, parameter) in enumerate(func_params.items()):
+		if idx == 0 and param_name in ("self", "cls"):
+			continue
+		if parameter.kind in (inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL):
+			continue
+
+		if param_name not in annotations:
+			if force_types:
 				module, qualname = func.__module__, func.__qualname__
 				raise FrappeTypeError(
 					f"Argument '{param_name}' in '{module}.{qualname}' is missing type annotation. "
 					f"All arguments must have type annotations when type checking is enforced."
 				)
+			continue
 
-	if (
-		not (args or kwargs)
-		or not annotations
-		# No input validations to perform
-		or (len(annotations) == 1 and "return" in annotations)
-	):
+		param_type = annotations[param_name]
+
+		# Skip types that still couldn't be resolved after get_type_hints
+		if isinstance(param_type, ForwardRefOrStr):
+			continue
+		if any(isinstance(a, ForwardRefOrStr) for a in getattr(param_type, "__args__", ())):
+			continue
+
+		effective_type = _build_effective_type(param_type, parameter)
+		param_validators[param_name] = TypeAdapter(effective_type)
+
+	arg_index = {name: i for i, name in enumerate(func.__code__.co_varnames[: func.__code__.co_argcount])}
+
+	return annotations, param_validators, arg_index
+
+
+def _transform_args(
+	func: Callable,
+	args: tuple,
+	kwargs: dict,
+	annotations: dict,
+	param_validators: dict,
+	arg_index: dict,
+):
+	"""Validate and coerce argument types using precomputed validators."""
+	if not (args or kwargs) or not param_validators:
 		return args, kwargs
 
 	new_args, new_kwargs = list(args), kwargs
 
 	if args:
-		# generate kwargs dict from args
-		arg_names = func.__code__.co_varnames[: func.__code__.co_argcount]
-		prepared_args = dict(zip(arg_names, args, strict=False))
-
+		prepared_args = dict(zip(arg_index, args, strict=False))
 		if kwargs:
-			# update prepared_args with kwargs
 			prepared_args.update(kwargs)
-
 	else:
 		prepared_args = kwargs
 
-	# check if the argument types are correct
-	for current_arg, current_arg_type in annotations.items():
-		if current_arg not in prepared_args:
+	for param_name, adapter in param_validators.items():
+		if param_name not in prepared_args:
 			continue
 
-		current_arg_value = prepared_args[current_arg]
+		current_value = prepared_args[param_name]
 
-		# if the type is a ForwardRef or str, ignore it
-		if isinstance(current_arg_type, ForwardRefOrStr):
-			continue
-		elif any(isinstance(x, ForwardRefOrStr) for x in getattr(current_arg_type, "__args__", [])):
-			continue
 		# ignore unittest.mock objects
-		elif isinstance(current_arg_value, mock.Mock):
+		if isinstance(current_value, mock.Mock):
 			continue
 
-		# allow slack for Frappe types
-		if current_arg_type in SLACK_DICT:
-			current_arg_type = SLACK_DICT[current_arg_type]
-
-		param_def = func_params.get(current_arg)
-
-		# add default value's type in acceptable types
-		if param_def.default is not _empty:
-			if isinstance(current_arg_type, tuple):
-				if type(param_def.default) not in current_arg_type:
-					current_arg_type += (type(param_def.default),)
-				current_arg_type = Union[current_arg_type]  # noqa: UP007
-
-			elif param_def.default != current_arg_type:
-				current_arg_type = Union[current_arg_type, type(param_def.default)]  # noqa: UP007
-		elif isinstance(current_arg_type, tuple):
-			current_arg_type = Union[current_arg_type]  # noqa: UP007
-
-		# validate the type set using pydantic - raise a TypeError if Validation is raised or Ellipsis is returned
 		try:
-			current_arg_value_after = TypeAdapter(current_arg_type).validate_python(current_arg_value)
+			validated = adapter.validate_python(current_value)
 		except (TypeError, PydanticValidationError) as e:
-			raise_type_error(func, current_arg, current_arg_type, current_arg_value, current_exception=e)
+			raise_type_error(func, param_name, annotations[param_name], current_value, current_exception=e)
 
-		if isinstance(current_arg_value_after, EllipsisType):
-			raise_type_error(func, current_arg, current_arg_type, current_arg_value)
+		if isinstance(validated, EllipsisType):
+			raise_type_error(func, param_name, annotations[param_name], current_value)
 
-		# update the args and kwargs with possibly casted value
-		if current_arg in kwargs:
-			new_kwargs[current_arg] = current_arg_value_after
-		else:
-			new_args[arg_names.index(current_arg)] = current_arg_value_after
+		if param_name in kwargs:
+			new_kwargs[param_name] = validated
+		elif param_name in arg_index:
+			new_args[arg_index[param_name]] = validated
 
 	return new_args, new_kwargs
