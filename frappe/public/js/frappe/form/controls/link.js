@@ -666,10 +666,16 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		return this.validate_link_and_fetch(value);
 	}
 	validate_link_and_fetch(value) {
+<<<<<<< HEAD
 		const options = this.get_options();
 		if (!options) {
 			return;
 		}
+=======
+		const args = this.get_search_args(value);
+		if (!args) return;
+		const has_filters = !!(args.filters && Object.keys(args.filters).length);
+>>>>>>> 3fd45ad05f (fix: enforce link_filters on link fields server-side)
 
 		const columns_to_fetch = Object.values(this.fetch_map);
 
@@ -721,6 +727,51 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			update_dependant_fields({});
 			return value;
 		}
+<<<<<<< HEAD
+=======
+
+		// if there is a search_link call scheduled, cancel it
+		// validation will do it
+		this._debounced_input_handler?.cancel();
+
+		// filters may be too large to be sent as GET
+		let can_cache = !columns_to_fetch.length;
+		if (can_cache) {
+			const [are_filters_large, filters_str] = this.are_filters_large(args.filters);
+			can_cache = !are_filters_large;
+
+			// perf: to prevent stringifying again in the call
+			args.filters = filters_str;
+		}
+
+		return frappe
+			.xcall(
+				"frappe.client.validate_link_and_fetch",
+				{
+					...args,
+					docname: value,
+					fields_to_fetch: columns_to_fetch,
+				},
+				can_cache ? "GET" : "POST",
+				{ cache: can_cache }
+			)
+			.then((response) => {
+				if (!response) return;
+
+				if (!response.name && has_filters) {
+					frappe.show_alert({
+						message: __("{0}: {1} did not match any results.", [
+							__(this.df.label || this.df.fieldname),
+							value,
+						]),
+						indicator: "red",
+					});
+				}
+
+				update_dependant_fields(response);
+				return response.name;
+			});
+>>>>>>> 3fd45ad05f (fix: enforce link_filters on link fields server-side)
 	}
 
 	fetch_map_for_quick_entry() {

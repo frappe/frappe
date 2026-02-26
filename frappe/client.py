@@ -455,7 +455,24 @@ def validate_link(doctype: str, docname: str, fields=None):
 
 	values = frappe._dict()
 
+<<<<<<< HEAD
 	if is_virtual_doctype(doctype):
+=======
+	search_result = frappe.call(
+		search_widget,
+		doctype=doctype,
+		query=query,
+		filters=filters,
+		**search_args,
+	)
+
+	if not search_result:
+		return {}
+
+	values = None
+	is_virtual_dt = bool(meta.get("is_virtual"))
+	if is_virtual_dt:
+>>>>>>> 3fd45ad05f (fix: enforce link_filters on link fields server-side)
 		try:
 			frappe.get_doc(doctype, docname)
 			values.name = docname
