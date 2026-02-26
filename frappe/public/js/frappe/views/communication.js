@@ -5,6 +5,8 @@ import localforage from "localforage";
 
 frappe.last_edited_communication = {};
 const separator_element = "<div>---</div>";
+// Quill uses <p>---</p>; match both when stripping quoted content
+const separator_regex = /<(?:div|p)(?:\s[^>]*)?>---<\/(?:div|p)>/i;
 
 frappe.views.CommunicationComposer = class {
 	constructor(opts) {
@@ -60,6 +62,7 @@ frappe.views.CommunicationComposer = class {
 			{
 				fieldtype: "Button",
 				label: frappe.utils.icon("down", "xs"),
+				title: __("More Options"),
 				fieldname: "option_toggle_button",
 				click: () => {
 					this.toggle_more_options();
@@ -494,7 +497,11 @@ frappe.views.CommunicationComposer = class {
 			},
 		];
 
-		frappe.utils.add_select_group_button(clear_and_add_template, email_template_actions);
+		frappe.utils.add_select_group_button(
+			clear_and_add_template,
+			email_template_actions,
+			"btn-default"
+		);
 		$(fields.use_html.wrapper).addClass("mt-2 text-center").appendTo(clear_and_add_template);
 	}
 
@@ -565,6 +572,18 @@ frappe.views.CommunicationComposer = class {
 
 		const last_edited = this.get_last_edited_communication();
 		if (!last_edited.content && !last_edited.html_content) return;
+
+		// For replies: strip duplicate quoted content (Quill uses <p>---</p>)
+		if (this.is_a_reply) {
+			const reply_block = this.get_earlier_reply();
+			for (const field of ["content", "html_content"]) {
+				if (last_edited[field]) {
+					last_edited[field] =
+						(last_edited[field].split(separator_regex)[0] || "").trimEnd() +
+						reply_block;
+				}
+			}
+		}
 
 		// prevent re-triggering of email template
 		if (last_edited.email_template) {
@@ -789,7 +808,7 @@ frappe.views.CommunicationComposer = class {
 	save_as_draft() {
 		if (this.dialog && this.frm) {
 			let message = this.get_email_content();
-			message = message.split(separator_element)[0];
+			message = message.split(separator_regex)[0];
 			this.save_item_in_local_forage(this.frm.doctype + this.frm.docname, message);
 			this.save_item_in_local_forage(
 				this.frm.doctype + this.frm.docname + "_use_html",
@@ -950,7 +969,7 @@ frappe.views.CommunicationComposer = class {
 		}
 
 		if (this.is_a_reply && !this.reply_set) {
-			message += this.get_earlier_reply();
+			message = message.split(separator_regex)[0] + this.get_earlier_reply();
 		}
 
 		await this.set_email_content(message);

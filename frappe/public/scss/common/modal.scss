@@ -243,10 +243,6 @@ body.modal-open[style^="padding-right"] {
 		}
 		.frappe-control:last-child {
 			margin-left: 10px;
-			button {
-				// same as form-control input
-				height: calc(1.5em + 0.7rem);
-			}
 		}
 	}
 }
@@ -268,7 +264,19 @@ body.modal-open[style^="padding-right"] {
 		}
 
 		.frappe-control:last-child {
-			margin-top: -14px;
+			margin-top: 10px;
+		}
+	}
+}
+
+.modal .frappe-control[data-fieldname="option_toggle_button"] {
+	margin-top: 10px;
+	.form-group {
+		margin-bottom: 0;
+
+		button {
+			width: 28px;
+			height: 28px;
 		}
 	}
 }
@@ -299,15 +307,15 @@ body.modal-open[style^="padding-right"] {
 	}
 	.assignee {
 		flex: 1;
+		display: flex;
+		gap: 8px;
+		align-items: center;
 	}
 	&:hover {
 		.btn-group {
 			opacity: 1;
 			transition: opacity 0.1s ease-in-out;
 		}
-	}
-	.avatar {
-		margin-right: var(--margin-md);
 	}
 }
 

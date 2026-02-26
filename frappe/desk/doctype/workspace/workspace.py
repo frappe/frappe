@@ -76,6 +76,18 @@ class Workspace(Document):
 
 		if self.public and not is_workspace_manager() and not disable_saving_as_public():
 			frappe.throw(_("You need to be Workspace Manager to edit this document"))
+
+		if (
+			not self.public
+			and self.for_user
+			and self.for_user != frappe.session.user
+			and not is_workspace_manager()
+		):
+			frappe.throw(
+				_("You are not allowed to edit this workspace"),
+				frappe.PermissionError,
+			)
+
 		if self.has_value_changed("title"):
 			validate_route_conflict(self.doctype, self.title)
 		else:

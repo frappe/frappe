@@ -2,7 +2,7 @@
     --desktop-blur: blur(10.2px);
     --desktop-modal-width: 590px;
     --desktop-modal-height: 450px;
-    --folder-thumbnail-icon-height: 12px;
+    --folder-thumbnail-icon-height: 16px;
     --desktop-icon-dimension: 54px;
     --folder-icon-background-color: var(--surface-gray-1);
     --desktop-modal-radius: 30px;
@@ -91,7 +91,7 @@
     padding:0px;
     margin: 0px;
     height: 100%;
-    overflow: auto;
+    overflow: hidden;
 }
 .icons{
 	gap: 16px;
@@ -109,6 +109,10 @@
     gap: 12px;
     padding: 13px 16px 12px 16px;
     position: relative;
+    border-radius: 20px;
+    border-width: 1px;
+    border-style: dashed;
+    border-color: transparent;
 }
 .desktop-icon.desktop-edit-mode .hide-button {
     display: flex;
@@ -129,6 +133,7 @@
 .icon-container{
     padding: 10px;
     border-radius: 16px;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -254,13 +259,13 @@
     position: absolute;
 }
 
-.folder-icon{
-    border-radius: 10px;
-   background-color: var(--folder-icon-background-color) !important;
+.folder-icon {
+    border-radius: 16px;
+    background-color: var(--folder-icon-background-color) !important;
     box-shadow: 0px 0px 1px 0px rgba(0, 0, 0, 0.14);
     padding: 7px;
     align-items: normal;
-    box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.14);
+    /* box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.14); */
     & .icons{
         gap: 2.1px;
         margin-top: 0px;
@@ -343,8 +348,7 @@
 }
 
 .desktop-edit-mode{
-    border: 1px dashed var(--outline-gray-2);
-    border-radius: 20px;
+    border-color: var(--outline-gray-2);
 }
 .edit-mode-buttons{
     display: none;
@@ -364,7 +368,7 @@
   :root {
     --desktop-icon-dimension: 50px;
     --desktop-icon-container: 117px;
-    --folder-thumbnail-icon-height:17px;
+    --folder-thumbnail-icon-height:15px;
   }
 
   .desktop-container {
@@ -441,6 +445,12 @@
             }
             }
         }
+}
+
+.icons-container {
+    > .icons-container {
+        padding: 0px;
+    }
 }
 
 .desktop-edit{

@@ -72,10 +72,8 @@ context("Web Form", () => {
 
 		cy.call("logout");
 
-		cy.visit("/note");
-		cy.get_open_dialog()
-			.get(".modal-message")
-			.contains("You are not permitted to access this page without login.");
+		cy.visit("/note", { failOnStatusCode: false });
+		cy.contains("You must be logged in to use this form.");
 	});
 
 	it("Show List", () => {

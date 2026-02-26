@@ -783,6 +783,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.show_submit_message();
 		this.clear_custom_buttons();
 		this.show_web_link();
+		this.show_report_bug_link();
 		this.show_workflow_read_only_banner();
 	}
 
@@ -1277,6 +1278,17 @@ frappe.ui.form.Form = class FrappeForm {
 			if (this.doc.__onload.published) {
 				this.add_web_link("/" + this.doc.route);
 			}
+		}
+	}
+
+	show_report_bug_link() {
+		if (this.meta.beta) {
+			this.add_web_link(
+				"https://github.com/frappe/" +
+					frappe.boot.module_app[frappe.scrub(this.meta.module)] +
+					"/issues/new",
+				__("Report bug")
+			);
 		}
 	}
 
@@ -2007,7 +2019,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
-	make_new(doctype) {
+	make_new(doctype, fieldname) {
 		// make new doctype from the current form
 		// will handover to `make_methods` if defined
 		// or will create and match link fields
@@ -2021,7 +2033,7 @@ frappe.ui.form.Form = class FrappeForm {
 				let new_doc = frappe.model.get_new_doc(doctype, null, null, true);
 
 				// set link fields (if found)
-				me.set_link_field(doctype, new_doc);
+				me.set_link_field(doctype, new_doc, fieldname);
 
 				frappe.ui.form.make_quick_entry(doctype, null, null, new_doc);
 				// frappe.set_route('Form', doctype, new_doc.name);
@@ -2029,16 +2041,27 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
-	set_link_field(doctype, new_doc) {
+	set_link_field(doctype, new_doc, fieldname) {
 		let me = this;
 		frappe.get_meta(doctype).fields.forEach(function (df) {
-			if (df.fieldtype === "Link" && df.options === me.doctype) {
+			const isLinkToParent = df.fieldtype === "Link" && df.options === me.doctype;
+
+			if (fieldname) {
+				if (df.fieldname === fieldname && isLinkToParent) {
+					new_doc[df.fieldname] = me.doc.name;
+				}
+				if (df.fieldtype === "Table" && df.options && df.reqd) {
+					me.set_link_field(df.options, new_doc[df.fieldname][0]);
+				}
+				return;
+			}
+
+			if (isLinkToParent) {
 				new_doc[df.fieldname] = me.doc.name;
 			} else if (["Link", "Dynamic Link"].includes(df.fieldtype) && me.doc[df.fieldname]) {
 				new_doc[df.fieldname] = me.doc[df.fieldname];
 			} else if (df.fieldtype === "Table" && df.options && df.reqd) {
-				let row = new_doc[df.fieldname][0];
-				me.set_link_field(df.options, row);
+				me.set_link_field(df.options, new_doc[df.fieldname][0]);
 			}
 		});
 	}

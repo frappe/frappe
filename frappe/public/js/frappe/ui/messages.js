@@ -442,7 +442,7 @@ frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {})
 				<div class="alert-subtitle">${message.subtitle || ""}</div>
 			</div>
 			<div class="alert-body" style="display: none"></div>
-			<a class="close">${frappe.utils.icon("close-alt")}</a>
+			<a class="close">${frappe.utils.icon("x")}</a>
 		</div>
 	`);
 

@@ -128,6 +128,14 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				) {
 					$input.blur();
 				}
+			})
+			.on("keydown", function (e) {
+				if (e.key === "Escape" || e.keyCode === 27) {
+					// when dialog is open and contains an awesomplete dropdown - do not close the dialog on escape key press
+					if (me.display && me.$wrapper.find(".awesomplete").length) {
+						e.stopImmediatePropagation();
+					}
+				}
 			});
 	}
 

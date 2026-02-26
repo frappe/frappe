@@ -127,6 +127,29 @@
 		}
 	}
 
+	.promotional-banners {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		margin: var(--margin-sm) 0;
+	}
+
+	.onboarding-sidebar,
+	.promotional-banner {
+		text-decoration: none;
+		font-size: var(--text-sm);
+		display: flex;
+		align-items: center;
+		svg {
+			margin: 0px;
+			flex: 0 0 auto;
+		}
+		span {
+			margin-left: 10px;
+			@include truncate();
+		}
+	}
+
 	.collapse-sidebar-link {
 		text-decoration: none;
 		font-size: var(--text-sm);
@@ -272,9 +295,8 @@
 			width: auto;
 		}
 	}
-	.collapse-sidebar-link {
-		display: none;
-	}
+	.promotional-banners,
+	.collapse-sidebar-link,
 	.dropdown-navbar-user {
 		display: none;
 	}

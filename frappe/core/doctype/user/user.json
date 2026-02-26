@@ -53,8 +53,8 @@
   "search_bar",
   "notifications",
   "list_settings_section",
-  "list_sidebar",
   "bulk_actions",
+  "list_sidebar",
   "view_switcher",
   "form_settings_section",
   "form_sidebar",
@@ -598,7 +598,7 @@
    "unique": 1
   },
   {
-   "description": "<a href=\"https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication\" target=\"_blank\">\n  Click here to learn about token-based authentication\n</a>",
+   "description": "<a href=\"https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication\" target=\"_blank\" rel=\"noopener noreferrer\">\n  Click here to learn about token-based authentication\n</a>",
    "fieldname": "generate_keys",
    "fieldtype": "Button",
    "label": "Generate Keys",
@@ -771,13 +771,13 @@
    "default": "1",
    "fieldname": "search_bar",
    "fieldtype": "Check",
-   "label": "Search Bar"
+   "label": "Show search bar"
   },
   {
    "default": "1",
    "fieldname": "notifications",
    "fieldtype": "Check",
-   "label": "Notifications"
+   "label": "Allow notifications"
   },
   {
    "collapsible": 1,
@@ -789,19 +789,20 @@
    "default": "1",
    "fieldname": "list_sidebar",
    "fieldtype": "Check",
-   "label": "Sidebar"
+   "label": "Show sidebar"
   },
   {
    "default": "1",
    "fieldname": "bulk_actions",
    "fieldtype": "Check",
-   "label": "Bulk Actions"
+   "label": "Allow bulk actions",
+   "permlevel": 1
   },
   {
    "default": "1",
    "fieldname": "view_switcher",
    "fieldtype": "Check",
-   "label": "View Switcher"
+   "label": "Show view switcher"
   },
   {
    "collapsible": 1,
@@ -813,25 +814,25 @@
    "default": "1",
    "fieldname": "form_sidebar",
    "fieldtype": "Check",
-   "label": "Sidebar"
+   "label": "Show sidebar"
   },
   {
    "default": "1",
    "fieldname": "timeline",
    "fieldtype": "Check",
-   "label": "Timeline"
+   "label": "Show timeline"
   },
   {
    "default": "1",
    "fieldname": "dashboard",
    "fieldtype": "Check",
-   "label": "Dashboard"
+   "label": "Show dashboard"
   },
   {
    "default": "0",
    "fieldname": "show_absolute_datetime_in_timeline",
    "fieldtype": "Check",
-   "label": "Show Absolute Datetime in Timeline"
+   "label": "Show absolute datetime in timeline"
   },
   {
    "fieldname": "sessions_tab",
@@ -850,7 +851,7 @@
    "default": "0",
    "fieldname": "form_navigation_buttons",
    "fieldtype": "Check",
-   "label": "Navigation Buttons"
+   "label": "Show navigation buttons"
   }
  ],
  "icon": "fa fa-user",
@@ -904,7 +905,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-01-12 16:04:21.542524",
+ "modified": "2026-02-22 13:44:36.317890",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

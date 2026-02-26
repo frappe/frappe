@@ -36,6 +36,9 @@ def download_multi_pdf(
 	"""
 	Calls _download_multi_pdf with the given parameters and returns the response
 	"""
+	if not (frappe.get_cached_value("User", frappe.session.user, "bulk_actions")):
+		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
+
 	return _download_multi_pdf(doctype, name, format, no_letterhead, letterhead, options)
 
 
@@ -51,6 +54,9 @@ def download_multi_pdf_async(
 	"""
 	Calls _download_multi_pdf with the given parameters in a background job, returns task ID
 	"""
+	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)
+
 	task_id = str(uuid.uuid4())
 	if isinstance(doctype, dict):
 		doc_count = sum([len(doctype[dt]) for dt in doctype])

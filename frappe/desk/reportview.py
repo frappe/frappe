@@ -597,6 +597,9 @@ def parse_field(field: str) -> tuple[str | None, str]:
 @frappe.whitelist(methods=["POST", "DELETE"])
 def delete_items():
 	"""delete selected items"""
+	if not (frappe.get_cached_value("User", frappe.session.user, "bulk_actions")):
+		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
+
 	import json
 
 	items = sorted(json.loads(frappe.form_dict.get("items")), reverse=True)

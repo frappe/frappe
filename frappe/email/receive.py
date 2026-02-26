@@ -270,14 +270,29 @@ class EmailServer:
 
 		return match[0] if match else None
 
-	def retrieve_message(self, uid, msg_num, folder):
+	def retrieve_message(self, uid, msg_num, folder) -> None:
 		try:
 			if cint(self.settings.use_imap):
-				_status, message = self.imap.uid("fetch", uid, "(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)")
-				raw = message[0]
+				_status, data = self.imap.uid("fetch", uid, "(BODY.PEEK[] FLAGS)")
 
-				self.get_email_seen_status(uid, raw[0])
-				self.latest_messages.append(raw[1])
+				if _status != "OK" or not data:
+					return
+
+				raw_email = next(
+					(part[1] for part in data if isinstance(part, tuple) and b"BODY[]" in part[0]), None
+				)
+
+				if raw_email is None:
+					return
+
+				flags_line = next(
+					(part for part in data if isinstance(part, bytes) and b"FLAGS" in part), None
+				)
+
+				if flags_line is not None:
+					self.get_email_seen_status(uid, flags_line)
+
+				self.latest_messages.append(raw_email)
 			else:
 				msg = self.pop.retr(msg_num)
 				self.latest_messages.append(b"\n".join(msg[1]))
@@ -559,36 +574,42 @@ class Email:
 			except Exception:
 				return part.get_payload()
 
-	def get_attachment(self, part):
+	def get_attachment(self, part) -> None:
 		# charset = self.get_charset(part)
 		fcontent = part.get_payload(decode=True)
 
-		if fcontent:
-			content_type = part.get_content_type()
-			fname = part.get_filename()
-			if fname:
-				try:
-					fname = fname.replace("\n", " ").replace("\r", "")
-					fname = cstr(decode_header(fname)[0][0])
-				except Exception:
-					fname = get_random_filename(content_type=content_type)
-			else:
-				fname = get_random_filename(content_type=content_type)
-			# Don't clobber existing filename
-			while fname in self.cid_map:
-				fname = get_random_filename(content_type=content_type)
+		if not fcontent:
+			return
 
-			self.attachments.append(
-				{
-					"content_type": content_type,
-					"fname": fname,
-					"fcontent": fcontent,
-				}
-			)
+		attachment_limit = cint(self.email_account.attachment_limit)
+		if attachment_limit and len(fcontent) > attachment_limit * 1024 * 1024:
+			return  # skip attachments that are larger than the specified limit
 
-			cid = (cstr(part.get("Content-Id")) or "").strip("><")
-			if cid:
-				self.cid_map[fname] = cid
+		content_type = part.get_content_type()
+		fname = part.get_filename()
+		if fname:
+			try:
+				fname = fname.replace("\n", " ").replace("\r", "")
+				fname = cstr(decode_header(fname)[0][0])
+			except Exception:
+				fname = get_random_filename(content_type=content_type)
+		else:
+			fname = get_random_filename(content_type=content_type)
+		# Don't clobber existing filename
+		while fname in self.cid_map:
+			fname = get_random_filename(content_type=content_type)
+
+		self.attachments.append(
+			{
+				"content_type": content_type,
+				"fname": fname,
+				"fcontent": fcontent,
+			}
+		)
+
+		cid = (cstr(part.get("Content-Id")) or "").strip("><")
+		if cid:
+			self.cid_map[fname] = cid
 
 	def save_attachments_in_doc(self, doc):
 		"""Save email attachments in given document."""
@@ -636,11 +657,11 @@ class InboundMail(Email):
 	"""Class representation of incoming mail along with mail handlers."""
 
 	def __init__(self, content, email_account, uid=None, seen_status=None, append_to=None):
-		super().__init__(content)
 		self.email_account = email_account
 		self.uid = uid or -1
 		self.append_to = append_to
 		self.seen_status = seen_status or 0
+		super().__init__(content)
 
 		# System documents related to this mail
 		self._parent_email_queue = None
@@ -730,7 +751,10 @@ class InboundMail(Email):
 			return
 
 		return Communication.find_one_by_filters(
-			message_id=self.message_id, sent_or_received="Received", order_by="creation DESC"
+			message_id=self.message_id,
+			email_account=self.email_account.name,
+			sent_or_received="Received",
+			order_by="creation DESC",
 		)
 
 	def is_sender_same_as_receiver(self):

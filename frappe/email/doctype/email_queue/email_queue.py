@@ -173,41 +173,75 @@ class EmailQueue(Document):
 		force_send: bool = False,
 	):
 		"""Send emails to recipients."""
+
 		if not self.can_send_now() and not force_send:
 			return
 
 		with SendMailContext(self, smtp_server_instance, frappe_mail_client) as ctx:
 			ctx.fetch_outgoing_server()
-			message = None
+
+			def validate_and_prepare_message(raw_message: bytes) -> bytes:
+				"""Validate SIZE extension and return encoded message."""
+
+				msg = raw_message if isinstance(raw_message, bytes) else raw_message.encode("utf-8")
+
+				if ctx.smtp_server.session.has_extn("SIZE"):
+					if max_size := ctx.smtp_server.session.esmtp_features.get("size"):
+						max_size = int(max_size)
+						msg_size = len(msg)
+
+						if msg_size > max_size:
+							msg_size_mb = msg_size / (1024 * 1024)
+							max_size_mb = max_size / (1024 * 1024)
+							frappe.throw(
+								_(
+									"Email size {0:.2f} MB exceeds the maximum allowed size of {1:.2f} MB"
+								).format(msg_size_mb, max_size_mb)
+							)
+
+				return msg
+
+			def get_smtp_options() -> tuple[list[str], list[str]]:
+				mail_options: list[str] = []
+				rcpt_options: list[str] = []
+
+				if not ctx.smtp_server.session.has_extn("DSN"):
+					return mail_options, rcpt_options
+
+				if dsn_notify_type := ctx.email_account_doc.dsn_notify_type:
+					mail_options.extend(["RET=FULL", f"ENVID={self.name}"])
+					rcpt_options.append(f"NOTIFY={dsn_notify_type}")
+
+				return mail_options, rcpt_options
+
+			last_message = None
+
 			for recipient in self.recipients:
 				if recipient.is_mail_sent():
 					continue
 
 				message = ctx.build_message(recipient.recipient)
+				last_message = message
+
 				if method := get_hook_method("override_email_send"):
 					method(self, self.sender, recipient.recipient, message)
+
 				elif not frappe.in_test or frappe.flags.testing_email:
 					if ctx.email_account_doc.service == "Frappe Mail":
-						is_newsletter = self.reference_doctype == "Newsletter"
 						ctx.frappe_mail_client.send_raw(
 							sender=self.sender,
 							recipients=recipient.recipient,
 							message=message,
-							is_newsletter=is_newsletter,
+							is_newsletter=self.reference_doctype == "Newsletter",
 						)
 					else:
-						mail_options = []
-						rcpt_options = []
-
-						if ctx.smtp_server.session.has_extn("DSN"):
-							if dsn_notify_type := ctx.email_account_doc.dsn_notify_type:
-								mail_options = ["RET=FULL", f"ENVID={self.name}"]
-								rcpt_options = [f"NOTIFY={dsn_notify_type}"]
+						msg_bytes = validate_and_prepare_message(message)
+						mail_options, rcpt_options = get_smtp_options()
 
 						ctx.smtp_server.session.sendmail(
 							from_addr=self.sender,
 							to_addrs=recipient.recipient,
-							msg=message.decode("utf-8").encode(),
+							msg=msg_bytes,
 							mail_options=mail_options,
 							rcpt_options=rcpt_options,
 						)
@@ -215,11 +249,11 @@ class EmailQueue(Document):
 				ctx.update_recipient_status_to_sent(recipient)
 
 			if frappe.in_test and not frappe.flags.testing_email:
-				frappe.flags.sent_mail = message
+				frappe.flags.sent_mail = last_message
 				return
 
-			if ctx.email_account_doc.append_emails_to_sent_folder:
-				ctx.email_account_doc.append_email_to_sent_folder(message)
+			if last_message and ctx.email_account_doc.append_emails_to_sent_folder:
+				ctx.email_account_doc.append_email_to_sent_folder(last_message)
 
 	@staticmethod
 	def clear_old_logs(days=30):
@@ -480,7 +514,18 @@ def send_now(name: str | int, force_send: bool = False):
 @frappe.whitelist()
 def toggle_sending(enable: bool | int | str):
 	frappe.only_for("System Manager")
-	frappe.db.set_default("suspend_email_queue", 0 if sbool(enable) else 1)
+	suspend_value = 0 if sbool(enable) else 1
+	frappe.db.set_default("suspend_email_queue", suspend_value)
+
+	action = "Resumed" if suspend_value == 0 else "Suspended"
+	frappe.get_doc(
+		{
+			"doctype": "Activity Log",
+			"user": frappe.session.user,
+			"status": "Success",
+			"subject": f"Email Queue sending {action.lower()}",
+		}
+	).insert(ignore_permissions=True, ignore_links=True)
 
 
 def on_doctype_update():

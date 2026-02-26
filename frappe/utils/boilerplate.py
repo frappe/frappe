@@ -147,6 +147,7 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"), with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public", "css"))
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public", "js"))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "patches"), with_init=True)
 
 	# add .gitkeep file so that public folder is committed to git
 	# this is needed because if public doesn't exist, bench build doesn't symlink the apps assets

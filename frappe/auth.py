@@ -253,7 +253,11 @@ class LoginManager:
 		):
 			return
 
-		clear_sessions(frappe.session.user, keep_current=True)
+		clear_sessions(
+			frappe.session.user,
+			keep_current=True,
+			force=frappe.session.user != "Administrator",
+		)
 
 	def authenticate(self, user: str | None = None, pwd: str | None = None):
 		from frappe.core.doctype.user.user import User

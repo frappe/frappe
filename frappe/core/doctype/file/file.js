@@ -43,25 +43,34 @@ frappe.ui.form.on("File", {
 		if (!frappe.utils.can_upload_public_files() && frm.doc.is_private) {
 			frm.set_df_property("is_private", "read_only", 1);
 		}
+
+		if (frm.doc.attached_to_name) {
+			const field = frm.get_field("attached_to_name");
+			field.$input_wrapper
+				.find(".control-value")
+				.html(`${frappe.utils.get_form_link(frm.doctype, frm.docname, true)}`);
+		}
 	},
 
 	preview_file: function (frm) {
 		let $preview = "";
 		let file_extension = frm.doc.file_type.toLowerCase();
+		const full_file_url = frm.doc.file_url + "?fid=" + frm.doc.name;
+		const src_url = frappe.utils.escape_html(full_file_url);
 
-		if (frappe.utils.is_image_file(frm.doc.file_url)) {
+		if (frappe.utils.is_image_file(full_file_url)) {
 			$preview = $(`<div class="img_preview">
 				<img
 					class="img-responsive"
 					style="max-width: 500px";
-					src="${frappe.utils.escape_html(frm.doc.file_url)}"
+					src="${src_url}"
 					onerror="${frm.toggle_display("preview", false)}"
 				/>
 			</div>`);
-		} else if (frappe.utils.is_video_file(frm.doc.file_url)) {
+		} else if (frappe.utils.is_video_file(full_file_url)) {
 			$preview = $(`<div class="img_preview">
 				<video width="480" height="320" controls>
-					<source src="${frappe.utils.escape_html(frm.doc.file_url)}">
+					<source src="${src_url}">
 					${__("Your browser does not support the video element.")}
 				</video>
 			</div>`);
@@ -72,14 +81,14 @@ frappe.ui.form.on("File", {
 						style="background:#323639;"
 						width="100%"
 						height="1190"
-						src="${frappe.utils.escape_html(frm.doc.file_url)}" type="application/pdf"
+						src="${src_url}" type="application/pdf"
 					>
 				</object>
 			</div>`);
 		} else if (file_extension === "mp3") {
 			$preview = $(`<div class="img_preview">
 				<audio width="480" height="60" controls>
-					<source src="${frappe.utils.escape_html(frm.doc.file_url)}" type="audio/mpeg">
+					<source src="${src_url}" type="audio/mpeg">
 					${__("Your browser does not support the audio element.")}
 				</audio >
 			</div>`);

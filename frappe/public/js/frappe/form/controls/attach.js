@@ -126,8 +126,8 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 					.attr("href", dataurl || this.value);
 			}
 		} else {
-			this.$input.toggle(true);
-			this.$value.toggle(false);
+			this.$input?.toggle(true);
+			this.$value?.toggle(false);
 		}
 	}
 

@@ -207,15 +207,59 @@ def return_action_confirmation_page(doc, action, action_link, alert_doc_change=F
 
 
 def return_link_expired_page(doc, doc_workflow_state):
+	user_full_name = get_user_who_set_workflow_state(doc, doc_workflow_state) or frappe.get_value(
+		"User", doc.get("modified_by"), "full_name"
+	)
 	frappe.respond_as_web_page(
 		_("Link Expired"),
 		_("Document {0} has been set to state {1} by {2}").format(
 			frappe.bold(doc.get("name")),
 			frappe.bold(doc_workflow_state),
-			frappe.bold(frappe.get_value("User", doc.get("modified_by"), "full_name")),
+			frappe.bold(
+				user_full_name
+				if user_full_name
+				else frappe.get_value("User", doc.get("modified_by"), "full_name")
+			),
 		),
 		indicator_color="blue",
 	)
+
+
+def get_user_who_set_workflow_state(doc, doc_workflow_state):
+	"""Get the full name of the user who triggered the workflow action that set the document to the given state.
+	Falls back to None if no completed Workflow Action is found (e.g. state was set without workflow).
+	"""
+	workflow_name = get_workflow_name(doc.get("doctype"))
+	if not workflow_name:
+		return None
+
+	# Get states that have a transition to the current workflow state
+	from_states = frappe.get_all(
+		"Workflow Transition",
+		filters={"parent": workflow_name, "next_state": doc_workflow_state},
+		pluck="state",
+	)
+	if not from_states:
+		return None
+
+	# Find the most recently completed Workflow Action that led to this state
+	WorkflowAction = DocType("Workflow Action")
+	completed_by = (
+		frappe.qb.from_(WorkflowAction)
+		.select(WorkflowAction.completed_by)
+		.where(
+			(WorkflowAction.reference_doctype == doc.get("doctype"))
+			& (WorkflowAction.reference_name == doc.get("name"))
+			& (WorkflowAction.status == "Completed")
+			& (WorkflowAction.workflow_state.isin(from_states))
+		)
+		.orderby(WorkflowAction.modified, order=frappe.qb.desc)
+		.limit(1)
+	).run()
+
+	if completed_by and completed_by[0][0]:
+		return frappe.get_value("User", completed_by[0][0], "full_name")
+	return None
 
 
 def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_state=None):

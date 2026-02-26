@@ -17,7 +17,11 @@ frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlI
 	}
 
 	get_number_format() {
-		if (this.df.fieldtype === "Float" && !this.df.options?.trim()) return;
+		if (
+			this.df.fieldtype === "Rating" ||
+			(this.df.fieldtype === "Float" && !this.df.options?.trim())
+		)
+			return;
 
 		const currency = frappe.meta.get_field_currency(this.df, this.get_doc());
 		return get_number_format(currency);

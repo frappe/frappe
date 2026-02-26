@@ -156,6 +156,7 @@ def search_widget(
 	# build from doctype
 	if txt:
 		field_types = {
+			"Autocomplete",
 			"Data",
 			"Text",
 			"Small Text",

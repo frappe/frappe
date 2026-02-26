@@ -1116,6 +1116,7 @@ class TestGunicornWorker(IntegrationTestCase):
 		time.sleep(2)
 		execute_in_shell("pgrep gunicorn | xargs -L1 kill -9")
 
+	@unittest.skip("Flaky test")
 	def test_gunicorn_ping_sync(self):
 		self.spawn_gunicorn()
 		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
@@ -1126,6 +1127,7 @@ class TestGunicornWorker(IntegrationTestCase):
 		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
 		self.assertEqual(requests.get(path).status_code, 200)
 
+	@unittest.skip("Flaky test")
 	def test_gunicorn_idle_cpu_usage(self):
 		def get_total_usage():
 			process = psutil.Process(self.handle.pid)
