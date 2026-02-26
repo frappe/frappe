@@ -8,7 +8,7 @@ import frappe.permissions
 from frappe import _, bold, scrub
 from frappe.model.document import Document
 from frappe.model.dynamic_links import get_dynamic_link_map
-from frappe.model.naming import validate_name
+from frappe.model.naming import is_autoincremented, validate_name
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
 from frappe.query_builder import Field
 from frappe.utils.data import cint, cstr, sbool
@@ -412,8 +412,10 @@ def rename_doctype(doctype: str, old: str, new: str) -> None:
 	# change parenttype for fieldtype Table
 	update_parenttype_values(old, new)
 
-	# update sequence name
-	update_sequence_name(old, new)
+	# if autoincrement is enabled, update sequence name
+	meta = frappe.get_meta(new)
+	if is_autoincremented(new, meta):
+		update_sequence_name(old, new)
 
 
 def update_child_docs(old: str, new: str, meta: "Meta") -> None:
