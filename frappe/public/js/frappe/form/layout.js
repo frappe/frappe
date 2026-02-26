@@ -745,7 +745,7 @@ frappe.ui.form.Layout = class Layout {
 
 			if (f.df.fieldtype === "Table") {
 				for (const row of f.grid?.grid_rows || []) {
-					row?.refresh_dependency?.();
+					row?.refresh_dependency();
 				}
 			}
 		}
