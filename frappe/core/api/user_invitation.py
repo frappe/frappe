@@ -6,7 +6,7 @@ from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
 
 @frappe.whitelist(methods=["POST"])
 def invite_by_email(
-	emails: str, roles: list[str], redirect_to_path: str, app_name: str = "frappe"
+	emails: str, roles: list[str], redirect_to_path: str, app_name: str = "frappe", **args
 ) -> dict[str, list[str]]:
 	UserInvitation.validate_role(app_name)
 
@@ -49,6 +49,7 @@ def invite_by_email(
 			roles=[dict(role=role) for role in roles],
 			app_name=app_name,
 			redirect_to_path=redirect_to_path,
+			**args,
 		).insert(ignore_permissions=True)
 
 	return {
