@@ -408,6 +408,7 @@ export default class BulkOperations {
 				new_df.default = options[0] || options[1];
 			}
 			new_df.label = __("Value");
+			new_df.target_fieldname = new_df.fieldname;
 			new_df.onchange = show_help_text;
 
 			delete new_df.depends_on;
