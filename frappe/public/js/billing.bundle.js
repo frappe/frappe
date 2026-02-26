@@ -92,7 +92,7 @@ function addChatBubble() {
 	const all_apps = frappe.utils.get_installed_apps();
 	const desk_apps = ["erpnext", "hrms"];
 
-	const apps_allowed = frappe.utils.is_sub_array(all_apps, desk_apps);
+	const apps_allowed = desk_apps.some((app) => all_apps.includes(app));
 	if (checkBusinessHours && apps_allowed) {
 		let chat_banner = document.createElement("script");
 		chat_banner.innerHTML =

@@ -536,7 +536,6 @@ class DesktopPage {
 		frappe.router.on("change", function () {
 			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "") {
 				me.setup_navbar();
-				me.setup_edit_button();
 			} else {
 				$(".navbar").show();
 				frappe.desktop_utils.close_desktop_modal();
