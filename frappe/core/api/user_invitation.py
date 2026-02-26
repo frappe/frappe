@@ -66,9 +66,10 @@ def invite_by_email(
 def get_allowed_invite_params(app_name: str, kwargs: dict) -> dict:
 	# get extra args based on app_name
 	allowed_params = frappe._dict()
-	extra_invite_params = frappe.get_hooks("user_invitation", app_name=app_name).get(
-		"extra_invite_params", []
-	)
+	user_invitation_hook = frappe.get_hooks("user_invitation", app_name=app_name)
+	if not isinstance(user_invitation_hook, dict):
+		return {}
+	extra_invite_params = user_invitation_hook.get("extra_invite_params", [])
 	for param in extra_invite_params:
 		if param in kwargs:
 			allowed_params[param] = kwargs[param]
