@@ -12,7 +12,6 @@
 	--sidebar-border-color: #232323;
 	--divider-color: rgba(52, 52, 52, 1);
 }
-
 // sidebar-item states
 @mixin hover-mixin {
 	background-color: var(--sidebar-hover-color);
@@ -310,4 +309,21 @@
 	position: absolute;
 	z-index: 1020;
 	left: var(--sidebar-width);
+}
+
+.unread {
+	position: relative;
+	.unread-dot {
+		display: block;
+	}
+}
+.unread-dot {
+	width: 8px;
+	height: 8px;
+	display: none;
+	position: absolute;
+	background-color: var(--surface-blue-3);
+	top: 1px;
+	right: 1px;
+	border-radius: var(--border-radius-lg);
 }

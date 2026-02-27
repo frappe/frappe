@@ -517,7 +517,6 @@ frappe.ui.Sidebar = class Sidebar {
 			this.notifications = new frappe.ui.Notifications({
 				container: this.wrapper.find(".notification-wrapper"),
 				full_height: true,
-				trigger: this.wrapper.find(".sidebar-notification"),
 			});
 		}
 	}

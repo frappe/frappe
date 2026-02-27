@@ -16,6 +16,7 @@ frappe.ui.Notifications = class Notifications {
 		this.container.html();
 		this.wrapper = $(frappe.render_template("notification_pane")).appendTo(this.container);
 		this.header_items = this.wrapper.find(".header-items");
+		this.tabs_container = this.wrapper.find(".notification-tabs");
 		this.header_actions = this.wrapper.find(".header-actions");
 		this.body = this.wrapper.find(".notification-list-body");
 		this.panel_events = this.wrapper.find(".panel-events");
@@ -64,30 +65,29 @@ frappe.ui.Notifications = class Notifications {
 
 	setup_headers() {
 		const me = this;
-		// Add header actions
-		$(`<span class="notification-settings" data-action="go_to_settings">
-			${frappe.utils.icon("setting-gear")}
-		</span>`)
-			.on("click", (e) => {
-				e.stopImmediatePropagation();
-				console.log("what");
-				frappe.set_route("Form", "Notification Settings", frappe.session.user);
-			})
-			.appendTo(this.header_actions)
-			.attr("title", __("Notification Settings"))
-			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+		// // Add header actions
+		// $(`<span class="notification-settings" data-action="go_to_settings">
+		// 	${frappe.utils.icon("setting-gear")}
+		// </span>`)
+		// 	.on("click", (e) => {
+		// 		e.stopImmediatePropagation();
+		// 		frappe.set_route("Form", "Notification Settings", frappe.session.user);
+		// 	})
+		// 	.appendTo(this.header_actions)
+		// 	.attr("title", __("Notification Settings"))
+		// 	.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
-		$(`<span class="mark-all-read" data-action="mark_all_as_read">
-			${frappe.utils.icon("mark-as-read")}
-		</span>`)
-			.on("click", (e) => this.mark_all_as_read(e))
-			.appendTo(this.header_actions)
-			.attr("title", __("Mark all as read"))
-			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+		// $(`<span class="mark-all-read" data-action="mark_all_as_read">
+		// 	${frappe.utils.icon("mark-as-read")}
+		// </span>`)
+		// 	.on("click", (e) => this.mark_all_as_read(e))
+		// 	.appendTo(this.header_actions)
+		// 	.attr("title", __("Mark all as read"))
+		// 	.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
-		$(`<span class="close-notification-dialogue pull-right">
+		$(`<button class="btn btn-reset close-notification-dialogue pull-right">
 			${frappe.utils.icon("x")}
-		</span>`)
+		</button>`)
 			.on("click", (e) => {
 				me.hide();
 			})
@@ -115,7 +115,7 @@ frappe.ui.Notifications = class Notifications {
 		];
 
 		let get_headers_html = (item) => {
-			let active = item.id == "notifications" ? "active" : "";
+			let active = item.id == "notifications" ? "btn-outline" : "";
 
 			return `<li class="notifications-category ${active}"
    					id="${item.id}"
@@ -134,7 +134,7 @@ frappe.ui.Notifications = class Notifications {
 
 			return item;
 		});
-		navitem.appendTo(this.header_items);
+		navitem.appendTo(this.tabs_container);
 		this.categories.forEach((category) => {
 			this.make_tab_view(category);
 		});
@@ -144,10 +144,10 @@ frappe.ui.Notifications = class Notifications {
 	switch_tab(item) {
 		// Set active tab
 		this.categories.forEach((item) => {
-			item.$tab.removeClass("active");
+			item.$tab.removeClass("btn-outline");
 		});
 
-		item.$tab.addClass("active");
+		item.$tab.addClass("btn-outline");
 
 		// Hide other tabs
 		Object.keys(this.tabs).forEach((tab_name) => this.tabs[tab_name].hide());
