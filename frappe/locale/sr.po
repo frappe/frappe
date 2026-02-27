@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-22 09:42+0000\n"
-"PO-Revision-Date: 2026-02-23 22:07\n"
+"PO-Revision-Date: 2026-02-26 23:27\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Cyrillic)\n"
 "MIME-Version: 1.0\n"
@@ -1357,7 +1357,7 @@ msgstr "Додај параметре упита"
 #. Label of the add_reply_to_header (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Add Reply-To header"
-msgstr ""
+msgstr "Додај заглавље адресе за одговор"
 
 #: frappe/core/doctype/user/user.py:860
 msgid "Add Roles"
@@ -1523,7 +1523,7 @@ msgstr "Додај на контролну таблу"
 
 #: frappe/desk/doctype/workspace/workspace.js:49
 msgid "Add to Desktop"
-msgstr ""
+msgstr "Додај на радну површину"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:110
 msgid "Add to ToDo"
@@ -1646,7 +1646,7 @@ msgstr "Адресе и контакти"
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Addresses added here will be used as the Reply-To header for outgoing emails sent from this account."
-msgstr ""
+msgstr "Адресе додате овде користиће се као адреса за одговор за излазне имејлове послате са овог налога."
 
 #. Description of a DocType
 #: frappe/custom/doctype/client_script/client_script.json
@@ -3082,7 +3082,7 @@ msgstr "Историја измена"
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/users.json
 msgid "Audits"
-msgstr ""
+msgstr "Ревизије"
 
 #. Label of the auth_url_data (Code) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -3516,7 +3516,7 @@ msgstr "Слика позадине"
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/system.json
 msgid "Background Job"
-msgstr ""
+msgstr "Позадински задатак"
 
 #. Label of a Link in the Build Workspace
 #. Label of the background_jobs_section (Section Break) field in DocType
@@ -4934,7 +4934,7 @@ msgstr "Кликните да поставите филтере"
 
 #: frappe/desk/page/desktop/desktop.js:1261
 msgid "Click to edit"
-msgstr ""
+msgstr "Кликните за уређивање"
 
 #: frappe/public/js/frappe/list/list_view.js:754
 msgid "Click to sort by {0}"
@@ -6537,7 +6537,7 @@ msgstr "Цијан"
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "DELAY"
-msgstr ""
+msgstr "ОДЛАГАЊЕ"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #. Option for the 'Request Method' (Select) field in DocType 'Webhook'
@@ -7365,7 +7365,7 @@ msgstr "Статус"
 #. Label of the dsn_notify_type (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Delivery Status Notification Type"
-msgstr ""
+msgstr "Врста обавештења о статусу испоруке"
 
 #. Option for the 'Sign ups' (Select) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -9430,7 +9430,7 @@ msgstr "Планер омогућен"
 #. Label of the enabled (Check) field in DocType 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Enabled System Notification"
-msgstr ""
+msgstr "Омогућено системско обавештење"
 
 #: frappe/email/doctype/email_account/email_account.py:1101
 msgid "Enabled email inbox for user {0}"
@@ -10128,7 +10128,7 @@ msgstr "Додатни параметри"
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "FAILURE"
-msgstr ""
+msgstr "НЕУСПЕХ"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -10272,7 +10272,7 @@ msgstr "Неуспешан покушај пријаве на Frappe Cloud"
 
 #: frappe/email/doctype/email_account/email_account.py:232
 msgid "Failed to retrieve the list of IMAP folders from the server. Please ensure the mailbox is accessible and the account has permission to list folders."
-msgstr ""
+msgstr "Неуспешно преузимање листе IMAP директоријума са сервера. Проверите да ли је поштанско сандуче доступно и да ли налог има дозволу за приказ директоријума."
 
 #: frappe/email/doctype/email_queue/email_queue.py:311
 msgid "Failed to send email with subject:"
@@ -11339,7 +11339,7 @@ msgstr "Јединица фракције"
 #. Label of a Desktop Icon
 #: frappe/desktop_icon/framework.json
 msgid "Framework"
-msgstr ""
+msgstr "Framework"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -12235,7 +12235,7 @@ msgstr "Наслов"
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/system.json
 msgid "Health Report"
-msgstr ""
+msgstr "Извештај о стању система"
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -12654,7 +12654,7 @@ msgstr "IMAP датотека"
 #: frappe/email/doctype/email_account/email_account.py:235
 #: frappe/email/doctype/email_account/email_account.py:263
 msgid "IMAP Folder Not Found"
-msgstr ""
+msgstr "IMAP директоријум није пронађен"
 
 #. Label of the ip_address (Data) field in DocType 'Activity Log'
 #. Label of the ip_address (Data) field in DocType 'Comment'
@@ -13414,7 +13414,7 @@ msgstr "Погрешан верификациони код"
 
 #: frappe/public/js/frappe/views/gantt/gantt_view.js:88
 msgid "Incorrect configuration"
-msgstr ""
+msgstr "Неисправна конфигурација"
 
 #: frappe/model/document.py:1733
 msgid "Incorrect value in row {0}:"
@@ -16979,7 +16979,7 @@ msgstr "MyISAM"
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "NEVER"
-msgstr ""
+msgstr "НИКАДА"
 
 #: frappe/workflow/doctype/workflow/workflow.js:19
 msgid "NOTE: If you add states or transitions in the table, it will be reflected in the Workflow Builder but you will have to position them manually. Also Workflow Builder is currently in <b>BETA</b>."
@@ -17750,7 +17750,7 @@ msgstr "Нема података за извоз"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1543
 msgid "No data to perform this action"
-msgstr ""
+msgstr "Нема података за извршавање ове радње"
 
 #: frappe/contacts/doctype/address/address.py:247
 msgid "No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."
@@ -17795,7 +17795,7 @@ msgstr "Нема додатних записа"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:337
 msgid "No matching entries in the current results"
-msgstr ""
+msgstr "Нема подударних записа у тренутним резултатима"
 
 #: frappe/templates/includes/search_template.html:49
 msgid "No matching records. Search something new"
@@ -18429,7 +18429,7 @@ msgstr "OAuth грешка"
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/integrations.json
 msgid "OAuth Provider"
-msgstr ""
+msgstr "OAuth провајдер"
 
 #. Name of a DocType
 #. Label of a Link in the Integrations Workspace
@@ -18698,7 +18698,7 @@ msgstr "Дозволи уређивање само за"
 
 #: frappe/core/doctype/module_def/module_def.py:95
 msgid "Only Custom Modules can be renamed."
-msgstr ""
+msgstr "Искључиво прилагођени модули могу бити преименовани."
 
 #: frappe/core/doctype/doctype/doctype.py:1652
 msgid "Only Options allowed for Data field are:"
@@ -19969,7 +19969,7 @@ msgstr "Молимо Вас да додате валидан коментар."
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1544
 msgid "Please adjust filters to include some data"
-msgstr ""
+msgstr "Прилагодите филтере како бисте укључили неке податке"
 
 #: frappe/core/doctype/user/user.py:1122
 msgid "Please ask your administrator to verify your sign-up"
@@ -20029,7 +20029,7 @@ msgstr "Молимо Вас да кликнете на следећи линк �
 
 #: frappe/public/js/frappe/views/gantt/gantt_view.js:89
 msgid "Please configure the start field for this Doctype in the controller file."
-msgstr ""
+msgstr "Молимо Вас да конфигуришете почетно поље за овај DocType у датотеци контролера."
 
 #: frappe/www/confirm_workflow_action.html:4
 msgid "Please confirm your action to {0} this document."
@@ -21132,7 +21132,7 @@ msgstr "Љубичасто"
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/integrations.json
 msgid "Push Notification"
-msgstr ""
+msgstr "Push обавештење"
 
 #. Name of a DocType
 #. Label of a Link in the Integrations Workspace
@@ -22225,16 +22225,16 @@ msgstr "Одговори свима"
 #. Name of a DocType
 #: frappe/email/doctype/reply_to_address/reply_to_address.json
 msgid "Reply To Address"
-msgstr ""
+msgstr "Адреса за одговор"
 
 #: frappe/email/doctype/email_account/email_account.py:278
 msgid "Reply To email is required"
-msgstr ""
+msgstr "Адреса за одговор је обавезна"
 
 #. Label of the reply_to_addresses (Table) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Reply-To Addresses"
-msgstr ""
+msgstr "Адреса за одговор"
 
 #. Label of the report (Check) field in DocType 'Custom DocPerm'
 #. Label of the report (Link) field in DocType 'Custom Role'
@@ -23276,19 +23276,19 @@ msgstr "SSL/TLS режим"
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "SUCCESS"
-msgstr ""
+msgstr "УСПЕХ"
 
 #. Option for the 'Delivery Status Notification Type' (Select) field in DocType
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "SUCCESS,FAILURE"
-msgstr ""
+msgstr "УСПЕХ, НЕУСПЕХ"
 
 #. Option for the 'Delivery Status Notification Type' (Select) field in DocType
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "SUCCESS,FAILURE,DELAY"
-msgstr ""
+msgstr "УСПЕХ, НЕУСПЕХ, ОДЛАГАЊЕ"
 
 #: frappe/public/js/frappe/color_picker/color_picker.js:20
 msgid "SWATCHES"
@@ -24115,7 +24115,7 @@ msgstr "Изабери две верзије за приказ разлика."
 #. DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Select which delivery events should trigger a delivery status notification (DSN) from the SMTP server."
-msgstr ""
+msgstr "Изаберите који догађаји испоруке треба да покрену обавештење о статусу испоруке (DNS) са SMTP сервера."
 
 #: frappe/public/js/frappe/form/link_selector.js:24
 #: frappe/public/js/frappe/form/multi_select_dialog.js:80
@@ -27098,7 +27098,7 @@ msgstr "Коментар не може бити празан"
 
 #: frappe/email/doctype/email_account/email_account.py:290
 msgid "The configured SMTP server does not support DSN (Delivery Status Notification)."
-msgstr ""
+msgstr "Конфигурисани SMTP сервер не подржава DNS (обавештење о статусу испоруке)."
 
 #: frappe/templates/emails/workflow_action.html:9
 msgid "The contents of this email are strictly confidential. Please do not forward this email to anyone."
@@ -27160,7 +27160,7 @@ msgstr "Следећа скрипта заглавља ће додати тре�
 
 #: frappe/email/doctype/email_account/email_account.py:257
 msgid "The following configured IMAP folder(s) were not found on the server:<br><ul>{0}</ul>Please verify the folder names exactly as they appear on the server (folder names are case-sensitive)."
-msgstr ""
+msgstr "Следећи конфигурисани IMAP директоријуми нису пронађени на серверу:<br><ul>{0}</ul>Молимо Вас да проверите називе директоријума тачно онако како су приказани на серверу (велика и мала слова су битна за називе датотека)."
 
 #: frappe/core/doctype/data_import/importer.py:1092
 msgid "The following values are invalid: {0}. Values must be one of {1}"
@@ -27252,7 +27252,7 @@ msgstr "Изабрани документ {0} није {1}."
 
 #: frappe/email/doctype/email_account/email_account.py:247
 msgid "The server did not return any IMAP folders for this account."
-msgstr ""
+msgstr "Сервер није вратио ниједан IMAP директоријум за овај налог."
 
 #: frappe/utils/response.py:343
 msgid "The system is being updated. Please refresh again after a few moments."
@@ -29089,7 +29089,7 @@ msgstr "Отпреми"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:663
 msgid "Upload Failed"
-msgstr ""
+msgstr "Отпремање је неуспешно"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:93
 msgid "Upload Image"
@@ -30783,7 +30783,7 @@ msgstr "Ставка бочне траке радног простора"
 
 #: frappe/desk/doctype/workspace/workspace.js:58
 msgid "Workspace added to desktop"
-msgstr ""
+msgstr "Радни простор је додат на радну површину"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:558
 msgid "Workspace {0} created"
@@ -31698,7 +31698,7 @@ msgstr "нпр. \"Подршка\", \"Продаја\", \"Петар Петро�
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:230
 msgid "e.g. (55 + 434) / 4"
-msgstr ""
+msgstr "на пример (55 + 434) / 4"
 
 #. Description of the 'Incoming Server' (Data) field in DocType 'Email Account'
 #. Description of the 'Incoming Server' (Data) field in DocType 'Email Domain'
@@ -32860,7 +32860,7 @@ msgstr "{0} од {1} ({2} редова са зависним подацима)"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:456
 msgid "{0} of {1} records match (filtered on visible rows only)"
-msgstr ""
+msgstr "{0} од {1} записа одговара критеријуму (филтрирано само по видљивим редовима)"
 
 #: frappe/utils/data.py:1571
 msgctxt "Money in words"

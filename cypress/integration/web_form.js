@@ -27,7 +27,9 @@ context("Web Form", () => {
 
 		cy.wait("@save_form");
 
+		cy.get('.frappe-control[data-fieldname="route"]').scrollIntoView();
 		cy.get_field("route").should("have.value", "note");
+
 		cy.get(".title-area .indicator-pill")
 			.should("contain.text", "Published")
 			.should("have.class", "green");

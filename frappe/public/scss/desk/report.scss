@@ -93,6 +93,37 @@
 		border-radius: var(--border-radius);
 	}
 }
+
+.report-view {
+	.layout-main-section {
+		height: calc(100vh - var(--page-head-height));
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+
+		.page-form {
+			flex-shrink: 0;
+		}
+
+		.frappe-list {
+			flex-grow: 1;
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+
+			.result,
+			.no-result {
+				flex-grow: 1;
+				overflow: auto;
+			}
+
+			.comparison-message {
+				display: none;
+			}
+		}
+	}
+}
+
 @include media-breakpoint-up(sm) {
 	.report-view {
 		width: calc(100% - 220px);
@@ -127,6 +158,36 @@
 }
 .comparison-message {
 	@include get_textstyle("base", "regular");
+}
+
+.report-view {
+	.datatable .dt-row-filter .dt-cell__content {
+		position: relative;
+	}
+
+	.datatable .dt-row-filter .dt-filter.dt-input {
+		padding-inline-end: 1.5rem;
+	}
+
+	.datatable .dt-row-filter .comparison-help-icon {
+		position: absolute;
+		top: 50%;
+		right: 10px;
+		transform: translateY(-50%);
+		display: inline-flex;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.15s ease;
+
+		.icon {
+			stroke: currentColor;
+		}
+	}
+
+	.datatable .dt-row-filter .dt-filter.dt-input:focus + .comparison-help-icon {
+		opacity: 1;
+		pointer-events: auto;
+	}
 }
 
 .list-count {

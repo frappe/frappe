@@ -44,7 +44,9 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 		if (this.fields) {
 			super.make();
 			this.refresh();
-			// set default
+
+			let defaults = {};
+
 			$.each(this.fields_list, function (i, field) {
 				let def_value = field.df["default"];
 				// loose equality check matches undefined also
@@ -58,8 +60,10 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 					def_value = me.resolve_date_default_keywords(def_value, field.df.fieldtype);
 				}
 
-				field.set_input(def_value);
-				// if default and has depends_on, render its fields.
+				defaults[field.df.fieldname] = def_value;
+			});
+
+			this.set_values(defaults).then(() => {
 				me.refresh_dependency();
 			});
 

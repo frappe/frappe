@@ -99,16 +99,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		});
 	}
 
-	setup_paging_area() {
-		super.setup_paging_area();
-		const message = __(
-			"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
-		);
-		this.$paging_area.before(
-			`<span class="comparison-message text-extra-muted">${message}</span>`
-		);
-	}
-
 	setup_sort_selector() {
 		this.sort_selector = new frappe.ui.SortSelector({
 			parent: this.filter_area.$filter_list_wrapper,
@@ -430,6 +420,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	setup_inline_filter_observer() {
+		this.setup_inline_filter_help_icons();
+
 		this.$datatable_wrapper.on(
 			"keyup",
 			".dt-filter",
@@ -437,6 +429,29 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				this.update_count_for_inline_filter();
 			}, 350)
 		);
+	}
+
+	setup_inline_filter_help_icons() {
+		const message = __(
+			"For comparison, use >5, <10 or =324.\nFor ranges, use 5:10 (for values between 5 & 10)."
+		);
+
+		this.$datatable_wrapper.find(".dt-filter").each((_, input) => {
+			const $input = $(input);
+
+			if ($input.siblings(".comparison-help-icon").length) {
+				return;
+			}
+
+			const $icon = $(
+				`<span class="comparison-help-icon text-muted" title="${message}">${frappe.utils.icon(
+					"info",
+					"xs"
+				)}</span>`
+			);
+
+			$input.after($icon);
+		});
 	}
 
 	update_count_for_inline_filter() {

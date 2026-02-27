@@ -309,8 +309,8 @@
 			border-radius: 0px;
 			border: 0px;
 			padding-top: 10px;
-			padding-bottom: calc(var(--padding-md) - 3px);
-			height: auto;
+			padding-bottom: 10px;
+			height: 100%;
 		}
 
 		.link-btn {
@@ -430,6 +430,7 @@
 	.frappe-control {
 		margin-bottom: 0px !important;
 		position: relative;
+		flex-grow: 1;
 	}
 
 	.col-sm-6 {
@@ -779,7 +780,7 @@
 .data-row.row {
 	flex-wrap: nowrap;
 }
-.frappe-control[data-fieldtype="Table"].form-group:has(.column-limit-reached) {
+.frappe-control[data-fieldtype="Table"].form-group:has(.column-limit-reached):not(.highlight) {
 	overflow-x: clip;
 }
 .column-limit-reached {

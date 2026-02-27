@@ -427,6 +427,29 @@ def relink_mismatched_files(doc: "Document") -> None:
 	for df in attach_fields:
 		if doc.get(df.fieldname):
 			relink_files(doc, df.fieldname, doc.__temporary_name)
+
+	# Relink files in child table Attach fields
+	table_fields = doc.meta.get("fields", {"fieldtype": "Table"})
+	for table_df in table_fields:
+		child_rows = doc.get(table_df.fieldname) or []
+		if not child_rows:
+			continue
+
+		child_meta = frappe.get_meta(table_df.options)
+		child_attach_fields = child_meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
+
+		if not child_attach_fields:
+			continue
+
+		for child_row in child_rows:
+			for child_df in child_attach_fields:
+				file_url = child_row.get(child_df.fieldname)
+				if file_url:
+					frappe.db.set_value(
+						"File",
+						{"file_url": file_url, "attached_to_name": doc.__temporary_name},
+						{"attached_to_name": doc.name},
+					)
 	# delete temporary name after relinking is done
 	doc.delete_key("__temporary_name")
 

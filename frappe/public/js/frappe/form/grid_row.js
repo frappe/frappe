@@ -1033,7 +1033,7 @@ export default class GridRow {
 		let is_focused = false;
 
 		var $col = $(
-			`<div class="col grid-static-col col-xs-${colsize} ${add_class}" style="${add_style}"></div>`
+			`<div class="col grid-static-col flex col-xs-${colsize} ${add_class}" style="${add_style}"></div>`
 		)
 			.attr("data-fieldname", df.fieldname)
 			.attr("data-fieldtype", df.fieldtype)
@@ -1095,7 +1095,9 @@ export default class GridRow {
 				return out;
 			});
 
-		$col.field_area = $('<div class="field-area"></div>').appendTo($col).toggle(false);
+		$col.field_area = $('<div class="field-area flex flex-grow-1"></div>')
+			.appendTo($col)
+			.toggle(false);
 		$col.static_area = $('<div class="static-area ellipsis"></div>').appendTo($col).html(txt);
 
 		// set title attribute to see full label for columns in the heading row
