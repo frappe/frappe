@@ -46,7 +46,8 @@ const can_export = (frm) => {
 };
 
 const export_data = (frm) => {
-	let get_template_url = "/api/method/frappe.core.doctype.data_export.exporter.export_data";
+	let get_template_url =
+		"/api/method/frappe.core.doctype.data_import.data_import.download_template";
 	var export_params = () => {
 		let columns = {};
 		Object.keys(frm.fields_multicheck).forEach((dt) => {
@@ -55,8 +56,9 @@ const export_data = (frm) => {
 		});
 		return {
 			doctype: frm.doc.reference_doctype,
-			select_columns: JSON.stringify(columns),
-			filters: frm.filter_list.get_filters().map((filter) => filter.slice(1, 4)),
+			export_fields: JSON.stringify(columns),
+			export_records: "by_filter",
+			export_filters: frm.filter_list.get_filters().map((filter) => filter.slice(1, 4)),
 			file_type: frm.doc.file_type,
 		};
 	};
@@ -93,7 +95,10 @@ const set_field_options = (frm) => {
 
 	frm.fields_multicheck = {};
 	related_doctypes.forEach((dt) => {
-		frm.fields_multicheck[dt] = add_doctype_field_multicheck_control(dt, parent_wrapper);
+		frm.fields_multicheck[dt.fieldname] = add_doctype_field_multicheck_control(
+			dt.label,
+			parent_wrapper
+		);
 	});
 
 	frm.refresh();
@@ -133,7 +138,12 @@ const make_multiselect_buttons = (parent_wrapper) => {
 };
 
 const get_doctypes = (parentdt) => {
-	return [parentdt].concat(frappe.meta.get_table_fields(parentdt).map((df) => df.options));
+	return [{ fieldname: parentdt, label: parentdt }].concat(
+		frappe.meta.get_table_fields(parentdt).map((df) => ({
+			fieldname: df.fieldname,
+			label: df.options,
+		}))
+	);
 };
 
 const add_doctype_field_multicheck_control = (doctype, parent_wrapper) => {
