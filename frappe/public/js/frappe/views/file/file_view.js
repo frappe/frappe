@@ -204,17 +204,14 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			type = "file";
 		}
 
-<<<<<<< HEAD
 		let title = d.file_name || d.file_url;
-		title = frappe.utils.escape_html(title);
-=======
+
 		if (type === "folder") {
 			title = this.get_folder_title(d.file_name);
 		} else {
 			title = d.file_name || d.file_url;
 		}
-
->>>>>>> 01189631c2 (fix: don't translate home and attachments folders (#24687))
+		title = frappe.utils.escape_html(title);
 		title = title.slice(0, 60);
 		d._title = title;
 		d.icon_class = icon_class;
