@@ -213,9 +213,11 @@ class CustomField(Document):
 		# clear cache and update the schema
 		if not frappe.flags.in_create_custom_fields:
 			frappe.clear_cache(doctype=self.dt)
-			if not self.get_doc_before_save() and not self.is_virtual:
-				self._drop_orphaned_column()
 			frappe.db.updatedb(self.dt)
+
+	def after_insert(self):
+		if not self.is_virtual:
+			self._drop_orphaned_column()
 
 	def _drop_orphaned_column(self):
 		"""Drop an orphaned database column left behind by a previously deleted
