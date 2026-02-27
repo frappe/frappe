@@ -497,7 +497,6 @@ frappe.ui.form.PrintView = class {
 			const get_options = frappe.ui.form.ControlBarcode.prototype.get_options.bind({
 				df: { options: el.dataset.options },
 			});
-			console.log(get_options(el.dataset.barcodeValue));
 			JsBarcode(el, el.dataset.barcodeValue, get_options(el.dataset.barcodeValue));
 			el.setAttribute("width", "100%");
 		});

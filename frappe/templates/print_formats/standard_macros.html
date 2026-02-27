@@ -157,7 +157,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{% elif df.fieldtype=="Signature" %}
 		<img src="{{ doc[df.fieldname] }}" class="signature-img img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
-	{% elif df.fieldtype=="Barcode" %}
+	{% elif df.fieldtype=="Barcode" and not doc[df.fieldname].startswith("<svg") %}
 		<svg data-barcode-value="{{ doc[df.fieldname] }}" height="80" data-options='{{ df.options }}'></svg>
 	{% elif df.fieldtype in ("Attach", "Attach Image") and frappe.utils.is_image(doc[df.fieldname]) %}
 		<img src="{{ doc[df.fieldname] }}" class="img-responsive"
