@@ -58,6 +58,10 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 
 				if (["Date", "Datetime", "Time"].includes(field.df.fieldtype)) {
 					def_value = me.resolve_date_default_keywords(def_value, field.df.fieldtype);
+				} else if (def_value == "__user" || def_value.toLowerCase() == "user") {
+					def_value = frappe.session.user;
+				} else if (def_value == "user_fullname") {
+					def_value = frappe.session.user_fullname;
 				}
 
 				defaults[field.df.fieldname] = def_value;
