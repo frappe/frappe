@@ -28,9 +28,10 @@ jobs:
     needs: typecheck
     outputs:
       build: ${{ steps.check-build.outputs.build }}
+      run_postgres: ${{ steps.check-build.outputs.run_postgres }}
     steps:
       - name: Clone
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Check if unit tests should be run
         id: check-build
         run: |
@@ -44,7 +45,7 @@ jobs:
     name: Tests
     uses: ./.github/workflows/_base-server-tests.yml
     with:
-      enable-postgres: ${{ contains(github.event.pull_request.labels.*.name, 'postgres') }} # This enables PostgreSQL to run tests
+      enable-postgres: ${{ needs.checkrun.outputs.run_postgres == 'true' }} # This enables PostgreSQL to run tests
       enable-sqlite: false  # This will test against both MariaDB and SQLite if enabled
       parallel-runs: 2
       enable-coverage: ${{ github.event_name != 'pull_request' }}
@@ -57,9 +58,9 @@ jobs:
     needs: checkrun
     uses: ./.github/workflows/_base-migration.yml
     with:
-      db-artifact-url: https://frappeframework.com/files/v13-frappe.sql.gz
-      python-version: '3.10'
-      node-version: 22
+      db-artifact-url: https://frappe.io/files/v14-frappe.sql.gz
+      python-version: '3.14'
+      node-version: 24
       fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
 
   coverage:
@@ -69,9 +70,9 @@ jobs:
     if: ${{ github.event_name != 'pull_request' }}
     steps:
       - name: Clone
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Download artifacts
-        uses: actions/download-artifact@v6.0.0
+        uses: actions/download-artifact@v7.0.0
       - name: Upload coverage data
         uses: codecov/codecov-action@v5
         with:

@@ -10,6 +10,7 @@
   "disable_auto_refresh",
   "disable_sidebar_stats",
   "disable_automatic_recency_filters",
+  "show_tags",
   "column_break_oany",
   "disable_comment_count",
   "disable_scrolling",
@@ -81,11 +82,17 @@
   {
    "fieldname": "section_break_evqq",
    "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_tags",
+   "fieldtype": "Check",
+   "label": "Show Tags"
   }
  ],
  "grid_page_length": 50,
  "links": [],
- "modified": "2025-08-25 15:54:18.886680",
+ "modified": "2025-12-12 14:26:20.920434",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",

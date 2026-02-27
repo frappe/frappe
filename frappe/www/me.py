@@ -2,8 +2,8 @@
 # License: MIT. See LICENSE
 
 import frappe
-import frappe.www.list
 from frappe import _
+from frappe.utils.user import is_portal_user
 
 no_cache = 1
 
@@ -14,3 +14,4 @@ def get_context(context):
 
 	context.current_user = frappe.get_doc("User", frappe.session.user)
 	context.show_sidebar = False
+	context.is_portal_user = is_portal_user()

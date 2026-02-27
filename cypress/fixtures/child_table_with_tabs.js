@@ -1,0 +1,53 @@
+export default {
+	name: "Child Table With Tabs",
+	actions: [],
+	custom: 1,
+	autoname: "hash",
+	doctype: "DocType",
+	editable_grid: 1,
+	engine: "InnoDB",
+	fields: [
+		{
+			fieldname: "tab_general",
+			fieldtype: "Tab Break",
+			label: "General",
+		},
+		{
+			fieldname: "item_name",
+			fieldtype: "Data",
+			in_list_view: 1,
+			label: "Item Name",
+			reqd: 1,
+		},
+		{
+			fieldname: "quantity",
+			fieldtype: "Int",
+			in_list_view: 1,
+			label: "Quantity",
+		},
+		{
+			fieldname: "tab_details",
+			fieldtype: "Tab Break",
+			label: "Details",
+		},
+		{
+			fieldname: "description",
+			fieldtype: "Small Text",
+			label: "Description",
+		},
+		{
+			fieldname: "notes",
+			fieldtype: "Data",
+			label: "Notes",
+		},
+	],
+	istable: 1,
+	links: [],
+	modified_by: "Administrator",
+	module: "Custom",
+	owner: "Administrator",
+	permissions: [],
+	sort_field: "creation",
+	sort_order: "ASC",
+	track_changes: 1,
+};

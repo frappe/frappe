@@ -1,5 +1,7 @@
 import copy
+import faulthandler
 import logging
+import sys
 from contextlib import AbstractContextManager, contextmanager
 from types import MappingProxyType
 
@@ -11,6 +13,8 @@ from ..utils.generators import get_missing_records_module_overrides, make_test_r
 from .unit_test_case import UnitTestCase
 
 logger = logging.Logger(__file__)
+
+STUCK_TEST_THRESHOLD = 5 * 60
 
 
 class IntegrationTestCase(UnitTestCase):
@@ -74,6 +78,8 @@ class IntegrationTestCase(UnitTestCase):
 		super().tearDownClass()
 
 	def setUp(self) -> None:
+		faulthandler.dump_traceback_later(STUCK_TEST_THRESHOLD, file=sys.__stderr__)
+		self.addCleanup(faulthandler.cancel_dump_traceback_later)
 		super().setUp()
 		# Add any per-test setup code here
 

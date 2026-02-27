@@ -23,7 +23,7 @@
 	.navbar {
 		padding: 0 1rem;
 
-		.navbar-search {
+		.navbar-modal-search {
 			width: 75vw;
 		}
 	}
@@ -59,7 +59,7 @@
 		color: white;
 	}
 
-	.navbar-search {
+	.navbar-modal-search {
 		background-color: var(--blue-400);
 		width: 300px;
 		margin-right: 10px;

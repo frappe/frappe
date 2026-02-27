@@ -5,11 +5,14 @@ import json
 import frappe
 from frappe import _
 from frappe.model import child_table_fields, default_fields, table_fields
+from frappe.model.document import Document
 from frappe.utils import cstr
 
 
 @frappe.whitelist()
-def make_mapped_doc(method, source_name, selected_children=None, args=None):
+def make_mapped_doc(
+	method: str, source_name: str, selected_children: str | None = None, args: str | None = None
+):
 	"""Return the mapped document calling the given mapper method.
 	Set `selected_children` as flags for the `get_mapped_doc` method.
 
@@ -30,7 +33,7 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 
 
 @frappe.whitelist()
-def map_docs(method, source_names, target_doc, args=None):
+def map_docs(method: str, source_names: str, target_doc: Document | dict | str, args: str | None = None):
 	"""Return the mapped document calling the given mapper method with each of the given source docs on the target doc.
 
 	:param args: Args as string to pass to the mapper method
@@ -240,9 +243,6 @@ def map_fetch_fields(target_doc, df, no_copy_fields):
 
 	# options should be like "link_fieldname.fieldname_in_liked_doc"
 	for fetch_df in target_doc.meta.get("fields", {"fetch_from": f"^{df.fieldname}."}):
-		if not (fetch_df.fieldtype == "Read Only" or fetch_df.read_only):
-			continue
-
 		if (
 			not target_doc.get(fetch_df.fieldname) or fetch_df.fieldtype == "Read Only"
 		) and fetch_df.fieldname not in no_copy_fields:

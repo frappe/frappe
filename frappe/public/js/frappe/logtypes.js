@@ -17,7 +17,7 @@ frappe.utils.logtypes.show_log_retention_message = (doctype) => {
 		$(`<div>${message}</div>`).appendTo(sidebar_entry);
 	};
 
-	const log_settings_link = `<a href='/app/log-settings'>${__("Log Settings")}</a>`;
+	const log_settings_link = `<a href='/desk/log-settings'>${__("Log Settings")}</a>`;
 	const cta = __("You can change the retention policy from {0}.", [log_settings_link]);
 	let message = __("{0} records are not automatically deleted.", [__(doctype)]);
 

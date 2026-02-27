@@ -24,6 +24,7 @@
   "no_copy",
   "allow_in_quick_entry",
   "translatable",
+  "mask",
   "link_filters",
   "column_break_7",
   "default",
@@ -54,6 +55,7 @@
   "column_break_33",
   "read_only_depends_on",
   "display",
+  "button_color",
   "in_filter",
   "hide_seconds",
   "hide_days",
@@ -63,6 +65,7 @@
   "print_hide",
   "print_hide_if_no_value",
   "print_width",
+  "alignment",
   "columns",
   "width",
   "is_custom_field"
@@ -126,6 +129,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.fieldtype !== 'Link'",
    "fieldname": "is_virtual",
    "fieldtype": "Check",
    "label": "Is Virtual"
@@ -182,7 +186,6 @@
    "label": "Length"
   },
   {
-   "description": "For Links, enter the DocType as range.\nFor Select, enter list of Options, each on a new line.",
    "fieldname": "options",
    "fieldtype": "Small Text",
    "in_list_view": 1,
@@ -355,6 +358,13 @@
    "width": "50px"
   },
   {
+   "depends_on": "eval:in_list(['Data', 'Int', 'Float', 'Currency', 'Percent'], doc.fieldtype)",
+   "fieldname": "alignment",
+   "fieldtype": "Select",
+   "label": "Alignment",
+   "options": "\nLeft\nCenter\nRight"
+  },
+  {
    "depends_on": "eval:parent.istable",
    "description": "Number of columns for a field in a Grid (Total Columns in a grid should be less than 11)",
    "fieldname": "columns",
@@ -485,6 +495,20 @@
    "fieldname": "placeholder",
    "fieldtype": "Data",
    "label": "Placeholder"
+  },
+  {
+   "depends_on": "eval:doc.fieldtype===\"Button\"",
+   "fieldname": "button_color",
+   "fieldtype": "Select",
+   "label": "Button Color",
+   "options": "\nDefault\nPrimary\nInfo\nSuccess\nWarning\nDanger"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:[\"Select\", \"Read Only\", \"Phone\", \"Percent\", \"Password\", \"Link\", \"Int\", \"Float\", \"Dynamic Link\", \"Duration\", \"Datetime\", \"Currency\", \"Data\", \"Date\"].includes(doc.fieldtype)",
+   "fieldname": "mask",
+   "fieldtype": "Check",
+   "label": "Mask"
   }
  ],
  "grid_page_length": 50,
@@ -492,7 +516,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-14 13:56:58.033573",
+ "modified": "2025-12-23 14:17:10.458916",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",

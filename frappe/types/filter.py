@@ -4,10 +4,9 @@ from collections.abc import Generator, Iterable, Mapping, Sequence
 from datetime import date, datetime
 from itertools import groupby
 from operator import attrgetter
-from typing import Any, NamedTuple, TypeAlias, TypeGuard, TypeVar, cast
+from typing import Any, NamedTuple, Self, TypeAlias, TypeGuard, TypeVar, cast, override
 
 from pypika import Column
-from typing_extensions import Self, override
 
 Doct: TypeAlias = str
 Fld: TypeAlias = str
@@ -36,10 +35,8 @@ class Sentinel:
 
 UNSPECIFIED = Sentinel()
 
-T = TypeVar("T")
 
-
-def is_unspecified(value: T | Sentinel) -> TypeGuard[Sentinel]:
+def is_unspecified[T](value: T | Sentinel) -> TypeGuard[Sentinel]:
 	return value is UNSPECIFIED
 
 
@@ -254,7 +251,7 @@ class Filters(list[FilterTuple]):
 				optimized.extend(filters)
 			else:
 
-				def _values() -> Generator[_Value, None, None]:
+				def _values() -> Generator[_Value]:
 					for f in filters:
 						# f.value is already narrowed to Val when we optimize over fully initialized FilterTuple
 						yield cast(_Value, f.value)  # = operator only is allowed to have _Value
@@ -281,4 +278,4 @@ class Filters(list[FilterTuple]):
 		return f"Filters(\n{filters_str}\n)"
 
 
-FilterSignature: TypeAlias = Filters | FilterTuple | FilterMappingSpec | FilterTupleSpec
+type FilterSignature = Filters | FilterTuple | FilterMappingSpec | FilterTupleSpec

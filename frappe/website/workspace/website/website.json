@@ -2,7 +2,7 @@
  "app": "frappe",
  "charts": [
   {
-   "chart_name": "Web Page",
+   "chart_name": "Webpage Views",
    "label": "Website Visits"
   }
  ],
@@ -96,7 +96,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-11-13 13:55:20.457550",
+ "modified": "2026-01-11 23:42:31.758169",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",

@@ -147,7 +147,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		this.$wrapper.find(".control-input").append(
 			`<span class="link-btn">
 				<a class="btn-open no-decoration" title="${__("Scan")}">
-					${frappe.utils.icon("scan", "sm")}
+					${frappe.utils.icon("scan-barcode", "sm")}
 				</a>
 			</span>`
 		);
@@ -241,7 +241,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		this.$input
 			.attr("data-fieldtype", this.df.fieldtype)
 			.attr("data-fieldname", this.df.fieldname)
-			.attr("placeholder", this.df.placeholder || "");
+			.attr("placeholder", __(this.df.placeholder || ""));
 		if (this.doctype) {
 			this.$input.attr("data-doctype", this.doctype);
 		}
@@ -250,6 +250,13 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		}
 		if (this.df.input_class) {
 			this.$input.addClass(this.df.input_class);
+		}
+		// Apply alignment for supported field types
+		if (
+			this.df.alignment &&
+			["Data", "Int", "Float", "Currency", "Percent"].includes(this.df.fieldtype)
+		) {
+			this.$input.css("text-align", this.df.alignment.toLowerCase());
 		}
 	}
 	set_input(value) {

@@ -15,7 +15,10 @@ frappe.ui.form.Sidebar = class {
 		var sidebar_content = frappe.render_template("form_sidebar", {
 			doctype: this.frm.doctype,
 			frm: this.frm,
-			can_write: frappe.model.can_write(this.frm.doctype, this.frm.docname),
+			can_write:
+				frappe.model.can_write(this.frm.doctype, this.frm.docname) &&
+				!this.frm.fields_dict[this.frm.meta.image_field]?.df.read_only,
+			image_field: this.frm.meta.image_field ?? false,
 		});
 
 		this.sidebar = $('<div class="form-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
@@ -23,6 +26,7 @@ frappe.ui.form.Sidebar = class {
 			.appendTo(this.page.sidebar.empty());
 
 		this.user_actions = this.sidebar.find(".user-actions");
+		this.user_actions_list = this.sidebar.find(".user-actions-list");
 		this.image_section = this.sidebar.find(".sidebar-image-section");
 		this.image_wrapper = this.image_section.find(".sidebar-image-wrapper");
 		this.make_assignments();
@@ -34,7 +38,10 @@ frappe.ui.form.Sidebar = class {
 		this.setup_keyboard_shortcuts();
 		this.show_auto_repeat_status();
 		frappe.ui.form.setup_user_image_event(this.frm);
-
+		this.setup_copy_event();
+		this.make_like();
+		this.setup_print();
+		this.setup_editable_title();
 		this.refresh();
 	}
 
@@ -55,12 +62,82 @@ frappe.ui.form.Sidebar = class {
 			this.frm.attachments.refresh();
 			this.frm.shared.refresh();
 
-			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo().tags);
+			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo()?.tags);
 
 			this.refresh_web_view_count();
 			this.refresh_creation_modified();
 			frappe.ui.form.set_user_image(this.frm);
 		}
+		this.refresh_like();
+	}
+
+	setup_copy_event() {
+		$(this.sidebar)
+			.find(".sidebar-meta-details .form-name-copy")
+			.tooltip()
+			.on("click", (e) => {
+				frappe.utils.copy_to_clipboard($(e.currentTarget).attr("data-copy"));
+			});
+	}
+
+	setup_editable_title() {
+		// setup editable title
+		let form_sidebar_text = $(this.sidebar).find(".form-stats-likes .form-title-text");
+		this.toolbar.setup_editable_title(form_sidebar_text);
+	}
+
+	setup_print() {
+		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
+		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
+		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
+
+		if (
+			!frappe.model.is_submittable(this.frm.doc.doctype) ||
+			this.frm.doc.docstatus == 1 ||
+			(allow_print_for_cancelled && this.frm.doc.docstatus == 2) ||
+			(allow_print_for_draft && this.frm.doc.docstatus == 0)
+		) {
+			if (frappe.model.can_print(null, this.frm) && !this.frm.meta.issingle) {
+				let print_icon = this.page.add_action_icon(
+					"printer",
+					() => {
+						this.frm.print_doc();
+					},
+					"",
+					__("Print")
+				);
+				print_icon.css("background-color", "transparent");
+				print_icon.addClass("p-0");
+				this.sidebar.find(".form-print").append(print_icon);
+			}
+		}
+	}
+
+	make_like() {
+		this.like_wrapper = this.sidebar.find(".liked-by");
+		this.like_icon = this.sidebar.find(".liked-by .like-icon");
+		frappe.ui.setup_like_popover(this.sidebar.find(".form-stats-likes"), ".like-icon");
+
+		this.like_icon.on("click", () => {
+			frappe.ui.toggle_like(this.like_wrapper, this.frm.doctype, this.frm.doc.name, () => {
+				this.refresh_like();
+			});
+		});
+	}
+
+	refresh_like() {
+		if (!this.like_icon) {
+			return;
+		}
+
+		this.like_wrapper.attr("data-liked-by", this.frm.doc._liked_by);
+		const liked = frappe.ui.is_liked(this.frm.doc);
+
+		this.like_wrapper
+			.toggleClass("not-liked", !liked)
+			.toggleClass("liked", liked)
+			.attr("data-doctype", this.frm.doctype)
+			.attr("data-name", this.frm.doc.name);
 	}
 
 	refresh_web_view_count() {
@@ -76,62 +153,28 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	refresh_creation_modified() {
-		let user_list = [this.frm.doc.owner, this.frm.doc.modified_by];
-		if (this.frm.doc.owner === this.frm.doc.modified_by) {
-			user_list = [this.frm.doc.owner];
-		}
-
-		let avatar_group = frappe.avatar_group(user_list, 5, {
-			align: "left",
-			overlap: true,
-		});
-
-		this.sidebar.find(".created-modified-section").append(avatar_group);
-
-		let creation_message =
-			get_user_message(
-				this.frm.doc.owner,
-				__("You created this", null),
-				__("{0} created this", [get_user_link(this.frm.doc.owner)])
-			) +
-				" · " +
-				cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
-			cint(frappe.boot.sysdefaults.show_absolute_datetime_in_timeline)
-				? frappe.datetime.str_to_user(this.frm.doc.creation)
-				: comment_when(this.frm.doc.creation);
-		let modified_message =
-			get_user_message(
-				this.frm.doc.modified_by,
-				__("You last edited this", null),
-				__("{0} last edited this", [get_user_link(this.frm.doc.modified_by)])
-			) +
-				" · " +
-				cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
-			cint(frappe.boot.sysdefaults.show_absolute_datetime_in_timeline)
-				? frappe.datetime.str_to_user(this.frm.doc.modified)
-				: comment_when(this.frm.doc.modified);
-
-		if (user_list.length === 1) {
-			// same user created and edited
-
-			avatar_group.find(".avatar").popover({
-				trigger: "hover",
-				html: true,
-				content: creation_message + "<br>" + modified_message,
-			});
-		} else {
-			avatar_group.find(".avatar:first-child").popover({
-				trigger: "hover",
-				html: true,
-				content: creation_message,
-			});
-
-			avatar_group.find(".avatar:last-child").popover({
-				trigger: "hover",
-				html: true,
-				content: modified_message,
-			});
-		}
+		this.sidebar
+			.find(".modified-by")
+			.html(
+				get_user_message(
+					this.frm.doc.modified_by,
+					__("Last Edited by You", null),
+					__("Last Edited by {0}", [get_user_link(this.frm.doc.modified_by)])
+				) +
+					" <br> " +
+					comment_when(this.frm.doc.modified)
+			);
+		this.sidebar
+			.find(".created-by")
+			.html(
+				get_user_message(
+					this.frm.doc.owner,
+					__("Created By You", null),
+					__("Created By {0}", [get_user_link(this.frm.doc.owner)])
+				) +
+					" <br> " +
+					comment_when(this.frm.doc.creation)
+			);
 	}
 
 	show_auto_repeat_status() {
@@ -200,19 +243,23 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	add_user_action(label, click) {
-		return $("<a>")
-			.html(label)
-			.appendTo(
-				$('<div class="user-action-row"></div>').appendTo(
-					this.user_actions.removeClass("hidden")
-				)
+		const parent = this.user_actions_list.length ? this.user_actions_list : this.user_actions;
+		this.user_actions.removeClass("hidden");
+		const row = $('<div class="user-action-row"></div>').appendTo(parent);
+
+		return $('<a class="user-action-link"></a>')
+			.html(
+				`<span class="user-action-label">${label}</span>
+				<span class="user-action-external-icon">${frappe.utils.icon("external-link", "sm")}</span>`
 			)
+			.appendTo(row)
 			.on("click", click);
 	}
 
 	clear_user_actions() {
 		this.user_actions.addClass("hidden");
-		this.user_actions.find(".user-action-row").remove();
+		const parent = this.user_actions_list.length ? this.user_actions_list : this.user_actions;
+		parent.find(".user-action-row").remove();
 	}
 
 	refresh_image() {}

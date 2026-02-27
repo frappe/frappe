@@ -80,7 +80,7 @@ frappe.ui.form.Attachments = class Attachments {
 	}
 
 	get_attachments() {
-		return this.frm.get_docinfo().attachments || [];
+		return this.frm.get_docinfo()?.attachments || [];
 	}
 
 	render_attachments(attachments) {
@@ -124,7 +124,7 @@ frappe.ui.form.Attachments = class Attachments {
 
 		let file_label = `
 			<a href="${file_url}" target="_blank" title="${frappe.utils.escape_html(file_name)}"
-				class="ellipsis attachment-file-label"
+				class="ellipsis attachment-file-label ellipsis-width"
 			>
 				<span>${frappe.utils.xss_sanitise(file_name)}</span>
 			</a>`;
@@ -147,7 +147,7 @@ frappe.ui.form.Attachments = class Attachments {
 			};
 		}
 
-		const icon = `<a href="/app/file/${fileid}" class="attachment-icon">
+		const icon = `<a href="/desk/file/${fileid}" class="attachment-icon">
 				${frappe.utils.icon(attachment.is_private ? "es-line-lock" : "es-line-unlock", "sm ml-0")}
 			</a>`;
 
@@ -180,8 +180,18 @@ frappe.ui.form.Attachments = class Attachments {
 				file_url = "/files/" + attachment.file_name;
 			}
 		}
+
+		const is_web_url = /^(https?:)?\/\//i.test(file_url);
+
+		file_url = encodeURI(file_url);
+
 		// hash is not escaped, https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
-		return encodeURI(file_url).replace(/#/g, "%23");
+		// only encode hash if it's a local file path, not a web URL
+		if (!is_web_url) {
+			file_url = file_url.replace(/#/g, "%23");
+		}
+
+		return file_url;
 	}
 	get_file_id_from_file_url(file_url) {
 		var fid;

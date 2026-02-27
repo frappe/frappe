@@ -465,7 +465,13 @@ def run_ui_tests(
 
 	os.chdir(app_base_path)
 
-	node_bin = subprocess.getoutput("(cd ../frappe && yarn bin)")
+	node_bin = subprocess.run(
+		"(cd ../frappe && yarn bin)",
+		shell=True,
+		stdout=subprocess.PIPE,
+		stderr=subprocess.DEVNULL,
+		text=True,
+	).stdout.strip()
 	cypress_path = f"{node_bin}/cypress"
 	drag_drop_plugin_path = f"{node_bin}/../@4tw/cypress-drag-drop"
 	real_events_plugin_path = f"{node_bin}/../cypress-real-events"
@@ -492,7 +498,16 @@ def run_ui_tests(
 				"@cypress/code-coverage@^3",
 			]
 		)
+
+		# save package.json, install, then restore to avoid modifications
+		package_json_path = frappe.get_app_source_path("frappe", "package.json")
+		with open(package_json_path) as f:
+			package_json_contents = f.read()
+
 		frappe.commands.popen(f"(cd ../frappe && yarn add {packages} --no-lockfile)")
+
+		with open(package_json_path, "w") as f:
+			f.write(package_json_contents)
 
 	# run for headless mode
 	run_or_open = f"run --browser {browser}" if headless else "open"

@@ -212,8 +212,8 @@ frappe.ui.form.Control = class BaseControl {
 	validate_and_set_in_model(value, e, force_set_value = false) {
 		const me = this;
 		const is_value_same = this.get_model_value() === value;
-
 		if (this.inside_change_event || (is_value_same && !force_set_value)) {
+			me.set_formatted_input?.(value);
 			return Promise.resolve();
 		}
 
@@ -244,6 +244,7 @@ frappe.ui.form.Control = class BaseControl {
 					}
 					me.set_invalid && me.set_invalid();
 				},
+				() => me?.after_set_value?.(),
 			]);
 		}
 		value = this.validate(value);

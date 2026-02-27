@@ -19,7 +19,15 @@
 .header-logo {
 	width: 32px;
 	height: 32px;
-	padding: 4px;
+
+	& .icon-container {
+		padding: 4px;
+		border-radius: 10px;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+	}
 	& img {
 		width: 100%;
 		height: 100%;
@@ -39,59 +47,15 @@
 }
 .header-title {
 	font-weight: 500;
-	line-height: 1;
+	line-height: 1.2;
 	@include truncate();
 	overflow: unset;
 }
 
 .header-subtitle {
 	color: var(--ink-gray-6);
+	line-height: 1.2;
 	font-size: var(--text-sm);
 	@include truncate();
-	line-height: 1;
-	margin-top: 4px;
-}
-
-.sidebar-header-menu {
-	position: absolute;
-	top: 60px;
-	left: 9px;
-	width: 200px;
-	padding: 6px;
-	border-radius: var(--border-radius-lg);
-	background: var(--surface-modal);
-	box-shadow: var(--shadow-xl);
-	z-index: 1;
-}
-
-.dropdown-menu-item {
-	// padding: var(--padding-xs);
-	border-radius: var(--border-radius-sm);
-	opacity: 0px;
-	&:hover {
-		background-color: var(--sidebar-hover-color);
-	}
-
-	a {
-		height: 28px;
-		padding: 6px 8px 6px 8px;
-		gap: 8px;
-		text-decoration: none;
-		display: flex;
-		align-items: center;
-		gap: var(--margin-sm);
-		.sidebar-item-icon {
-			line-height: 0px;
-			.app-logo {
-				width: 16px;
-				height: 16px;
-			}
-		}
-	}
-
-	.menu-item-title {
-		text-overflow: ellipsis;
-		text-wrap: nowrap;
-		overflow: hidden;
-	}
+	margin-top: 3px;
 }

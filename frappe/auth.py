@@ -127,7 +127,7 @@ class LoginManager:
 		self.full_name = None
 		self.user_type = None
 
-		if frappe.local.form_dict.get("cmd") == "login" or frappe.local.request.path == "/api/method/login":
+		if frappe.local.request.path == "/api/method/login":
 			if self.login() is False:
 				return
 			self.resume = False
@@ -176,9 +176,12 @@ class LoginManager:
 		self.set_user_info()
 
 	def get_user_info(self):
-		self.info = frappe.get_cached_value(
+		result = frappe.get_cached_value(
 			"User", self.user, ["user_type", "first_name", "last_name", "user_image"], as_dict=1
 		)
+		if result is None:
+			frappe.throw(_("User does not exist"), frappe.DoesNotExistError)
+		self.info = result
 		self.user_type = self.info.user_type
 
 	def setup_boot_cache(self):
@@ -201,7 +204,7 @@ class LoginManager:
 			frappe.local.cookie_manager.set_cookie("system_user", "yes", deduplicate=True)
 			if not resume:
 				frappe.local.response["message"] = "Logged In"
-				frappe.local.response["home_page"] = get_default_path() or "/desk"
+				frappe.local.response["home_page"] = get_home_page() or "/desk"
 
 		if not resume:
 			frappe.response["full_name"] = self.full_name
@@ -250,7 +253,11 @@ class LoginManager:
 		):
 			return
 
-		clear_sessions(frappe.session.user, keep_current=True)
+		clear_sessions(
+			frappe.session.user,
+			keep_current=True,
+			force=frappe.session.user != "Administrator",
+		)
 
 	def authenticate(self, user: str | None = None, pwd: str | None = None):
 		from frappe.core.doctype.user.user import User

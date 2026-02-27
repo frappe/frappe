@@ -13,7 +13,7 @@ from frappe.utils.telemetry import capture_doc
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def savedocs(doc, action):
+def savedocs(doc: str, action: str):
 	"""save / submit / update doclist"""
 	doc = frappe.get_doc(json.loads(doc))
 	capture_doc(doc, action)
@@ -52,7 +52,12 @@ def savedocs(doc, action):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_state=None):
+def cancel(
+	doctype: str | None = None,
+	name: str | int | None = None,
+	workflow_state_fieldname: str | None = None,
+	workflow_state: str | None = None,
+):
 	"""cancel a doclist"""
 	doc = frappe.get_doc(doctype, name)
 	capture_doc(doc, "Cancel")

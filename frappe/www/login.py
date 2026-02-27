@@ -140,7 +140,7 @@ def get_login_with_email_link_ratelimit() -> int:
 	return frappe.get_system_settings("rate_limit_email_link_login") or 5
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
 def send_login_link(email: str):
 	if not frappe.get_system_settings("login_with_email_link"):

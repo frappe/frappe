@@ -1,11 +1,17 @@
+:root {
+	--form-sidebar-width: 277px;
+	--form-sidebar-image-width: 80px;
+}
 .underline-hover {
 	display: initial;
 }
 // form sidebar
 .form-sidebar {
-	padding-top: var(--padding-sm);
-
 	.sidebar-section {
+		padding: var(--padding-md) var(--padding-md) 0;
+		&.border-bottom {
+			padding-bottom: var(--padding-md);
+		}
 		.form-sidebar-items {
 			display: flex;
 			width: 100%;
@@ -13,6 +19,10 @@
 			justify-content: space-between;
 			flex-wrap: wrap;
 			color: var(--text-light);
+
+			.icon {
+				stroke: var(--text-light);
+			}
 
 			.icon-btn {
 				height: unset;
@@ -22,6 +32,90 @@
 				color: var(--text-light);
 			}
 		}
+		.modified-by,
+		.created-by {
+			.frappe-timestamp {
+				color: var(--text-light);
+				margin-top: 5px;
+				display: block;
+			}
+		}
+	}
+
+	.user-actions {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		padding: var(--padding-md);
+
+		.user-actions-list {
+			display: flex;
+			flex-direction: column;
+			gap: 6px;
+		}
+
+		.user-action-row {
+			margin: 0;
+		}
+
+		.user-action-link {
+			display: flex;
+			align-items: center;
+			text-decoration: underline;
+			justify-content: space-between;
+			gap: var(--margin-sm);
+			width: 100%;
+			padding: 4px 8px;
+			margin-left: -6px;
+			margin-right: -8px;
+			border-radius: var(--border-radius-md);
+			transition: background-color 120ms ease;
+
+			&:hover,
+			&:focus-visible {
+				background: var(--subtle-fg);
+			}
+
+			&:focus-visible {
+				outline: none;
+			}
+
+			.user-action-external-icon {
+				display: none;
+				line-height: 0;
+
+				.icon {
+					margin: 0;
+					--icon-stroke: var(--text-muted);
+				}
+			}
+
+			&[target="_blank"] .user-action-external-icon {
+				display: inline-flex;
+				align-items: center;
+				opacity: 0;
+				transform: translateX(-2px);
+				transition: opacity 120ms ease, transform 120ms ease;
+			}
+
+			&[target="_blank"]:hover .user-action-external-icon,
+			&[target="_blank"]:focus-visible .user-action-external-icon {
+				opacity: 1;
+				transform: translateX(0);
+			}
+		}
+
+		.user-action-label {
+			display: block;
+			max-width: 100%;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+	}
+
+	.sidebar-section.user-actions.border-bottom {
+		padding-bottom: 15px;
 	}
 
 	.form-tags {
@@ -62,30 +156,30 @@
 	}
 
 	.sidebar-image-section {
-		width: min(100%, var(--sidebar-width));
-		cursor: pointer;
-
+		padding-bottom: 0px;
 		.sidebar-image {
 			height: auto;
-			max-height: var(--sidebar-width);
 			object-fit: cover;
+			cursor: pointer;
 		}
 
 		.standard-image {
-			font-size: 52px;
+			font-size: 40px;
 			border-radius: var(--border-radius-lg);
 		}
 
 		.sidebar-image-wrapper {
 			position: relative;
+			width: fit-content;
+			height: fit-content;
 		}
 
 		.sidebar-image,
 		.sidebar-standard-image {
 			transition: opacity 0.3s;
+			width: var(--form-sidebar-image-width);
+			height: var(--form-sidebar-image-width);
 			border-radius: var(--border-radius-lg);
-			border: 1px solid var(--border-color);
-			width: 100%;
 		}
 
 		.sidebar-image-wrapper:hover {
@@ -114,22 +208,70 @@
 				padding: 50% 0;
 			}
 		}
+
+		.form-details {
+			display: flex;
+			align-items: center;
+		}
+	}
+	.sidebar-meta-details {
+		.form-name-copy {
+			cursor: copy;
+			font-size: 14px;
+		}
+	}
+
+	.form-title-text {
+		// to match the actions button height for center alignment
+		line-height: 28px;
+	}
+
+	.form-stats-likes {
+		gap: 2px;
+		.form-print {
+			button:hover {
+				background: var(--btn-default-hover-bg);
+			}
+			svg {
+				margin: 0px;
+			}
+		}
+	}
+}
+.form-sidebar-label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+body[data-route^="Form"] {
+	.layout-side-section {
+		overflow-y: auto;
+		overflow-x: hidden;
+		height: calc(100vh - var(--page-head-height));
+		position: sticky;
+		top: var(--page-head-height);
+		.form-sidebar {
+			width: var(--form-sidebar-width);
+		}
+		@media (max-width: 991px) {
+			position: relative;
+		}
 	}
 }
 
 .layout-side-section {
 	@include get_textstyle("sm", "regular");
 	// padding-right: 30px;
-	min-width: var(--sidebar-width);
+	min-width: var(--form-sidebar-width);
 	border-left: 1px solid var(--border-color);
 
 	@media (max-width: map-get($grid-breakpoints, "xl")) {
 		min-width: calc(38vw - var(--sidebar-width));
 	}
 
-	.sidebar-section {
-		padding: var(--padding-sm) var(--padding-md);
-	}
+	// .sidebar-section {
+	// 	border-bottom: 1px solid var(--border-color);
+	// }
 
 	.sidebar-section:last-child {
 		border-bottom: none;
@@ -261,24 +403,56 @@
 
 .attachment-row,
 .form-tag-row {
-	margin: var(--margin-xs) 0;
-	max-width: 100%;
+	margin: 4px 0;
+
 	.data-pill {
 		@include get_textstyle("sm", "regular");
 		justify-content: space-between;
 		box-shadow: none;
+		display: flex;
+		align-items: center;
+		height: 24px;
+		padding: 0px 6px !important;
+
+		.pill-label {
+			color: inherit !important;
+		}
+
+		.icon {
+			stroke: currentColor;
+		}
 	}
 }
 .attachment-row {
+	margin-left: -6px;
+	margin-right: 0px;
+
 	.data-pill {
+		display: flex;
+		align-items: center;
+		height: 28px;
+		border-radius: var(--border-radius-md);
+		padding: 0px 6px !important;
 		background-color: unset;
 		box-shadow: none;
-		padding: 0 var(--padding-xs) 0 var(--padding-md) !important;
+		width: 100%;
+
+		&:hover,
+		&:focus-within {
+			background-color: var(--subtle-fg);
+		}
+
+		&:active {
+			background-color: transparent !important;
+			box-shadow: none !important;
+		}
+
+		> div {
+			gap: 8px;
+		}
 
 		.attachment-file-label {
-			width: 94px;
 			display: block;
-			margin-left: var(--margin-xs);
 			text-align: left;
 		}
 		.attachment-icon {
@@ -291,12 +465,9 @@
 	margin-right: var(--margin-xs);
 	.data-pill {
 		background-color: var(--subtle-fg);
+		max-width: 150px;
 	}
 	display: inline-flex;
-}
-
-.explore-link {
-	margin-top: var(--margin-sm);
 }
 
 .attachments-actions {
@@ -309,22 +480,71 @@
 	background-color: var(--bg-color);
 	text-align: start;
 	margin-top: var(--margin-sm);
-	margin-left: var(--margin-md);
 	margin-bottom: var(--margin-sm);
 	color: var(--text-light);
+}
+
+.form-assignments,
+.form-attachments,
+.form-tags,
+.form-shared {
+	padding: var(--padding-sm) var(--padding-md);
+}
+
+.form-attachments {
+	// to add gap between attachment section label and attachments
+	// without affecting empty state
+	.attachments-actions + .attachment-row {
+		margin-top: 8px;
+	}
+}
+
+.form-tags {
+	// to add gap between tag section label and tags
+	// without affecting empty state
+	:not(.form-tag-row) + .form-tag-row {
+		margin-top: 8px;
+	}
 }
 
 .form-assignments,
 .form-shared {
 	.assignments,
 	.shares {
-		margin: var(--margin-xs) 0px;
+		margin-top: 8px;
+
+		.dialog-assignment-row {
+			display: flex;
+			align-items: center;
+			height: 28px;
+			border-radius: var(--border-radius-md);
+			padding: 0px 6px;
+			margin-left: -8px;
+			margin-right: 0px;
+
+			&:hover,
+			&:focus-within {
+				background-color: var(--subtle-fg);
+			}
+
+			&:not(:last-child) {
+				margin-bottom: 4px;
+			}
+
+			.btn-group {
+				margin-right: -4px;
+			}
+		}
+
+		.view-all-assignment {
+			display: block;
+			margin-top: var(--padding-xs);
+		}
 	}
 }
 .add-assignment-btn,
 .add-attachment-btn,
 .add-review-btn,
-.shares,
 .add-tags-btn,
 .share-doc-btn,
 .followed-by {
@@ -343,17 +563,51 @@
 	}
 }
 
+.add-assignment-label,
+.tags-label,
+.share-label {
+	&:hover {
+		cursor: pointer;
+	}
+}
+
+.liked-by {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+}
+
 .liked-by-popover {
+	max-width: 240px;
+	border-radius: var(--border-radius-md);
+	box-shadow: var(--shadow-md);
+	overflow: hidden;
+
 	.popover-body {
-		min-height: 30px;
 		padding: 0px;
+
+		.liked-by-popover-summary {
+			padding: 4px 10px;
+			margin: 0;
+			color: var(--text-muted);
+			border-bottom: 1px solid var(--subtle-accent);
+			@include get_textstyle("sm", "regular");
+		}
 
 		ul.list-unstyled {
 			margin-bottom: 0px;
+			padding: 4px;
 
 			li {
-				padding: var(--padding-xs) var(--padding-sm);
-				margin: 2px;
+				display: flex;
+				align-items: center;
+				gap: var(--padding-xs);
+				padding: var(--padding-xs);
+				margin: 0;
+				border-radius: var(--border-radius-sm);
+				cursor: pointer;
 
 				&:hover {
 					background-color: var(--fg-hover-color);

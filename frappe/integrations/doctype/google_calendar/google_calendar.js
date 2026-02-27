@@ -6,7 +6,7 @@ frappe.ui.form.on("Google Calendar", {
 		if (frm.is_new()) {
 			frm.dashboard.set_headline(
 				__("To use Google Calendar, enable {0}.", [
-					`<a href='/app/google-settings'>${__("Google Settings")}</a>`,
+					`<a href='/desk/google-settings'>${__("Google Settings")}</a>`,
 				])
 			);
 		}

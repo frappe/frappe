@@ -400,9 +400,6 @@ frappe.setup.slides_settings = [
 				reqd: 1,
 			},
 			{
-				fieldtype: "Section Break",
-			},
-			{
 				fieldname: "timezone",
 				label: __("Time Zone"),
 				placeholder: __("Select Time Zone"),
@@ -415,9 +412,6 @@ frappe.setup.slides_settings = [
 				placeholder: __("Select Currency"),
 				fieldtype: "Select",
 				reqd: 1,
-			},
-			{
-				fieldtype: "Section Break",
 			},
 			{
 				fieldname: "enable_telemetry",
@@ -672,6 +666,7 @@ frappe.setup.utils = {
 		slide.get_input("country").on("change", function () {
 			let data = frappe.setup.data.regional_data;
 			let country = slide.get_input("country").val();
+			country = country.replace(/\s*\([^)]*\)/, "");
 			if (!(country in data.country_info)) return;
 
 			let $timezone = slide.get_input("timezone");

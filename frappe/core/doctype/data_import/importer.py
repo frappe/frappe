@@ -93,15 +93,19 @@ class Importer:
 			return
 
 		# setup import log
-		import_log = (
-			frappe.get_all(
-				"Data Import Log",
-				fields=["row_indexes", "success", "log_index"],
-				filters={"data_import": self.data_import.name},
-				order_by="log_index",
+		# Only use import log for retry/resume when Data Import is persisted in DB.
+		# For bench data-import (CLI), the doc is never inserted, so we must not reuse logs
+		import_log = []
+		if self.data_import.name and frappe.db.exists("Data Import", self.data_import.name):
+			import_log = (
+				frappe.get_all(
+					"Data Import Log",
+					fields=["row_indexes", "success", "log_index"],
+					filters={"data_import": self.data_import.name},
+					order_by="log_index",
+				)
+				or []
 			)
-			or []
-		)
 
 		log_index = 0
 
@@ -617,7 +621,6 @@ class ImportFile:
 			data = read_xlsx_file_from_attached_file(fcontent=content)
 		elif extension == "xls":
 			data = read_xls_file_from_attached_file(content)
-
 		return data
 
 
@@ -1154,7 +1157,8 @@ def build_fields_dict_for_column_matching(parent_doctype):
 	doctypes = [(parent_doctype, None)] + [(df.options, df) for df in parent_meta.get_table_fields()]
 
 	for doctype, table_df in doctypes:
-		translated_table_label = _(table_df.label) if table_df else None
+		table_ref = (table_df.label or table_df.fieldname) if table_df else None
+		translated_table_label = _(table_ref) if table_ref else None
 
 		# name field
 		name_df = frappe._dict(
@@ -1176,7 +1180,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 		else:
 			name_headers = (
 				f"{table_df.fieldname}.name",  # fieldname
-				f"ID ({table_df.label})",  # label
+				f"ID ({table_ref})",  # label
 				"{} ({})".format(_("ID"), translated_table_label),  # translated label
 			)
 
@@ -1230,7 +1234,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 					# fieldname
 					f"{table_df.fieldname}.{df.fieldname}",
 					# label
-					f"{label} ({table_df.label})",
+					f"{label} ({table_ref})",
 					# translated label
 					f"{translated_label} ({translated_table_label})",
 				):

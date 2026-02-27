@@ -7,7 +7,6 @@ frappe.ui.form.Footer = class FormFooter {
 		this.make();
 		this.make_comment_box();
 		this.make_timeline();
-		this.make_like();
 		// render-complete
 		$(this.frm.wrapper).on("render_complete", () => {
 			this.refresh();
@@ -18,6 +17,30 @@ frappe.ui.form.Footer = class FormFooter {
 		this.wrapper.find(".btn-save").click(() => {
 			this.frm.save("Save", null, this);
 		});
+		this.setup_scroll_to_top();
+	}
+	setup_scroll_to_top() {
+		const $scroll_to_top_btn = this.wrapper.find(".scroll-to-top");
+		const $scroll_container = $(".main-section");
+		if (!$scroll_to_top_btn.length || !$scroll_container.length) return;
+		const update = () =>
+			this.toggle_scroll_to_top_button($scroll_to_top_btn, $scroll_container);
+		const throttled_update = frappe.utils.throttle(update, 100);
+		$scroll_container.off("scroll.form-footer").on("scroll.form-footer", throttled_update);
+		$(window).off("resize.form-footer").on("resize.form-footer", throttled_update);
+		setTimeout(update, 500);
+	}
+	toggle_scroll_to_top_button($button, $container) {
+		if (!$button.length || !$container.length) return;
+		const container_element = $container[0];
+		if (!container_element) return;
+		const scroll_top = $container.scrollTop();
+		const scroll_height = container_element.scrollHeight || 0;
+		const client_height = container_element.clientHeight || 0;
+		const needs_scroll = scroll_height > client_height;
+		const is_scrolled = scroll_top > 50;
+		$button.toggleClass("show", needs_scroll && is_scrolled);
+		$button.css("right", frappe.is_mobile() && needs_scroll && is_scrolled ? "20px" : "");
 	}
 	make_comment_box() {
 		this.frm.comment_box = frappe.ui.form.make_control({
@@ -65,40 +88,10 @@ frappe.ui.form.Footer = class FormFooter {
 			this.frm.timeline.refresh();
 		}
 		this.refresh_comments_count();
-		this.refresh_like();
 	}
 
 	refresh_comments_count() {
-		let count = (this.frm.get_docinfo().comments || []).length;
+		let count = (this.frm.get_docinfo()?.comments || []).length;
 		this.wrapper.find(".comment-count")?.html(count ? `(${count})` : "");
-	}
-
-	make_like() {
-		this.like_wrapper = this.wrapper.find(".liked-by");
-		this.like_icon = this.wrapper.find(".liked-by .like-icon");
-		this.like_count = this.wrapper.find(".liked-by .like-count");
-		frappe.ui.setup_like_popover(this.wrapper.find(".form-stats-likes"), ".like-icon");
-
-		this.like_icon.on("click", () => {
-			frappe.ui.toggle_like(this.like_wrapper, this.frm.doctype, this.frm.doc.name, () => {
-				this.refresh_like();
-			});
-		});
-	}
-
-	refresh_like() {
-		if (!this.like_icon) {
-			return;
-		}
-
-		this.like_wrapper.attr("data-liked-by", this.frm.doc._liked_by);
-		const liked = frappe.ui.is_liked(this.frm.doc);
-		this.like_wrapper
-			.toggleClass("not-liked", !liked)
-			.toggleClass("liked", liked)
-			.attr("data-doctype", this.frm.doctype)
-			.attr("data-name", this.frm.doc.name);
-
-		this.like_count && this.like_count.text(JSON.parse(this.frm.doc._liked_by || "[]").length);
 	}
 };

@@ -16,7 +16,6 @@ login.bind_events = function () {
 	$(".form-login").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
-		args.cmd = "login";
 		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
 		if (!args.usr || !args.pwd) {
@@ -24,7 +23,7 @@ login.bind_events = function () {
 			frappe.msgprint("{{ _('Both login and password required') | striptags | e }}");
 			return false;
 		}
-		login.call(args, null, "/login");
+		login.call(args, null, "/api/method/login");
 		return false;
 	});
 
@@ -89,14 +88,13 @@ login.bind_events = function () {
 	{% if ldap_settings and ldap_settings.enabled %}
 	$(".btn-ldap-login").on("click", function () {
 		var args = {};
-		args.cmd = "{{ ldap_settings.method }}";
 		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
 		if (!args.usr || !args.pwd) {
 			login.set_status({{ _("Both login and password required") | tojson }}, 'red');
 			return false;
 		}
-		login.call(args);
+		login.call(args, null, "/api/method/{{ ldap_settings.method }}");
 		return false;
 	});
 	{% endif %}
@@ -215,12 +213,10 @@ login.login_handlers = (function () {
 				}) || []).join('<br>') || default_message;
 			}
 
-			if (message === default_message) {
-				login.set_invalid(message);
-			} else {
+			login.set_invalid(default_message);
+			if (message !== default_message) {
 				login.reset_sections(false);
 			}
-
 		};
 	}
 
@@ -290,7 +286,8 @@ login.login_handlers = (function () {
 		401: get_error_handler({{ _("Invalid Login. Try again.") | tojson }}),
 		417: get_error_handler({{ _("Oops! Something went wrong.") | tojson }}),
 		404: get_error_handler({{ _("User does not exist.") | tojson }}),
-		500: get_error_handler({{ _("Something went wrong.") | tojson }})
+		429: get_error_handler({{ _("Too many requests. Please try again later.") | tojson }}),
+		500: get_error_handler({{ _("Something went wrong.") | tojson }}),
 	};
 
 	return login_handlers;
@@ -311,7 +308,6 @@ var verify_token = function (event) {
 	$(".form-verify").on("submit", function (eventx) {
 		eventx.preventDefault();
 		var args = {};
-		args.cmd = "login";
 		args.otp = $("#login_token").val();
 		args.tmp_id = frappe.get_cookie('tmp_id');
 		if (!args.otp) {
@@ -319,7 +315,7 @@ var verify_token = function (event) {
 			frappe.msgprint("{{ _('Login token required') | striptags | e }}");
 			return false;
 		}
-		login.call(args);
+		login.call(args, null, "/api/method/login");
 		return false;
 	});
 }

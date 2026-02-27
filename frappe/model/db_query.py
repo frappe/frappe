@@ -24,6 +24,7 @@ from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSet
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
+from frappe.model.utils.mask import mask_field_value
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.query_builder.utils import Column
 from frappe.types import Filters, FilterSignature, FilterTuple
@@ -246,13 +247,14 @@ class DatabaseQuery:
 
 	def mask_fields(self, result):
 		"""Mask fields in the result based on the doctype's masked fields"""
+		from frappe.model.utils.mask import mask_dict_results, mask_list_results
+
 		masked_fields = self.get_masked_fields()
 
 		if not masked_fields:
 			return result
 
 		if self.as_list:
-			masked_result = []
 			field_index_map = {}
 			for idx, field in enumerate(self.fields):
 				# handle aliases (e.g. `tabSI`.`posting_date` as posting_date)
@@ -263,25 +265,10 @@ class DatabaseQuery:
 					# extract last part after `.`
 					col = field.split(".")[-1].strip("`")
 					field_index_map[col] = idx
-			# if as_list then we don't have field names in the result so we need to mask by position
-			for row in result:
-				row = list(row)  # convert tuple to list mutable
-				for field in masked_fields:
-					if field.fieldname in field_index_map:
-						idx = field_index_map[field.fieldname]
-						val = row[idx]
-						row[idx] = mask_field_value(field, val)
 
-				masked_result.append(tuple(row))  # convert back to tuple
-			result = masked_result
+			return mask_list_results(result, masked_fields, field_index_map)
 		else:
-			for row in result:
-				for field in masked_fields:
-					if field.fieldname in row:
-						val = row[field.fieldname]
-						row[field.fieldname] = mask_field_value(field, val)
-
-		return result
+			return mask_dict_results(result, masked_fields)
 
 	def get_masked_fields(self):
 		"""Get masked fields for the doctype"""
@@ -512,9 +499,15 @@ from {tables}
 				if isinstance(token, Function):
 					if (name := (token.get_name())) and name.lower() in blacklisted_functions:
 						_raise_exception()
-				if token.ttype == tokens.Keyword:
-					if token.value.lower() in blacklisted_keywords:
+
+				if token.ttype in tokens.Keyword:
+					if any(re.search(rf"\b{kw}\b", token.value.lower()) for kw in blacklisted_keywords):
 						_raise_exception()
+
+				if token.ttype in tokens.Name and not re.match(r"^`\w.*`$", token.value.strip()):
+					if any(re.search(rf"\b{kw}\b", token.value.lower()) for kw in blacklisted_keywords):
+						_raise_exception()
+
 				if token.is_group:
 					_check_sql_token(token)
 
@@ -617,6 +610,8 @@ from {tables}
 	def check_read_permission(self, doctype: str, parent_doctype: str | None = None):
 		if self.flags.ignore_permissions:
 			return
+
+		self.join = "left join"
 
 		if doctype not in self.permission_map:
 			self._set_permission_map(doctype, parent_doctype)
@@ -880,6 +875,15 @@ from {tables}
 			can_be_null &= not getattr(df, "not_nullable", False)
 			if f.operator.lower() == "in":
 				can_be_null &= not f.value or any(v is None or v == "" for v in f.value)
+
+			# Handle empty lists for IN/NOT IN operators before processing
+			# IN with empty list should return 0 results (always False: 1=0)
+			# NOT IN with empty list should return all results (always True: 1=1)
+			if isinstance(f.value, (list, tuple)) and len(f.value) == 0:
+				if f.operator.lower() == "in":
+					return "1=0"
+				else:  # not in
+					return "1=1"
 
 			if value is None:
 				values = f.value or ""
@@ -1163,9 +1167,19 @@ from {tables}
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype):
 				conditions.append(c)
 
+		active_child_tables = []
+		if len(self.tables) > 1:  # only if query has multiple tables involved
+			main_table_name = f"tab{self.doctype}"
+			for table_name in self.tables:
+				clean_name = table_name.replace("`", "").replace('"', "")
+				if clean_name != main_table_name:
+					active_child_tables.append(clean_name)
+
 		if permission_script_name := get_server_script_map().get("permission_query", {}).get(self.doctype):
 			script = frappe.get_doc("Server Script", permission_script_name)
-			if condition := script.get_permission_query_conditions(self.user):
+			if condition := script.get_permission_query_conditions(
+				self.user, active_child_tables=active_child_tables
+			):
 				conditions.append(condition)
 
 		return " and ".join(conditions) if conditions else ""
@@ -1299,26 +1313,6 @@ from {tables}
 		update_user_settings(self.doctype, user_settings)
 
 
-def mask_field_value(field, val):
-	if not val:
-		return val
-
-	if field.fieldtype == "Data" and field.options == "Phone":
-		if len(val) > 3:
-			return val[:3] + "XXXXXX"
-		else:
-			return "X" * len(val)
-	elif field.fieldtype == "Data" and field.options == "Email":
-		email = val.split("@")
-		return "XXXXXX@" + email[1] if len(email) > 1 else "XXXXXX"
-	elif field.fieldtype == "Date":
-		return "XX-XX-XXXX"
-	elif field.fieldtype == "Time":
-		return "XX:XX"
-	else:
-		return "XXXXXXXX"
-
-
 def cast_name(column: str) -> str:
 	"""Casts name field to varchar for postgres
 
@@ -1348,22 +1342,6 @@ def cast_name(column: str) -> str:
 		return CAST_VARCHAR_PATTERN.sub(r"cast(\1 as varchar)", **kwargs)
 
 	return column
-
-
-def check_parent_permission(parent, child_doctype):
-	if parent:
-		# User may pass fake parent and get the information from the child table
-		if child_doctype and not (
-			frappe.db.exists("DocField", {"parent": parent, "options": child_doctype})
-			or frappe.db.exists("Custom Field", {"dt": parent, "options": child_doctype})
-		):
-			raise frappe.PermissionError
-
-		if frappe.permissions.has_permission(parent):
-			return
-
-	# Either parent not passed or the user doesn't have permission on parent doctype of child table!
-	raise frappe.PermissionError
 
 
 def get_order_by(doctype, meta):

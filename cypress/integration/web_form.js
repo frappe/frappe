@@ -19,12 +19,20 @@ context("Web Form", () => {
 		cy.fill_field("doc_type", "Note", "Link");
 		cy.fill_field("module", "Website", "Link");
 		cy.click_custom_action_button("Get Fields");
+		// wait until Get Fields finishes populating the grid
+		cy.get('[data-fieldname="web_form_fields"] .grid-row').should(($rows) => {
+			expect($rows.length, "web form fields").to.be.greaterThan(0);
+		});
 		cy.click_custom_action_button("Publish");
 
 		cy.wait("@save_form");
 
+		cy.get('.frappe-control[data-fieldname="route"]').scrollIntoView();
 		cy.get_field("route").should("have.value", "note");
-		cy.get(".title-area .indicator-pill").contains("Published");
+
+		cy.get(".title-area .indicator-pill")
+			.should("contain.text", "Published")
+			.should("have.class", "green");
 	});
 
 	it("Open Web Form", () => {
@@ -66,10 +74,8 @@ context("Web Form", () => {
 
 		cy.call("logout");
 
-		cy.visit("/note");
-		cy.get_open_dialog()
-			.get(".modal-message")
-			.contains("You are not permitted to access this page without login.");
+		cy.visit("/note", { failOnStatusCode: false });
+		cy.contains("You must be logged in to use this form.");
 	});
 
 	it("Show List", () => {
@@ -116,7 +122,7 @@ context("Web Form", () => {
 		cy.findByRole("tab", { name: "Settings" }).click();
 
 		cy.get('[data-fieldname="list_columns"] .grid-footer button')
-			.contains("Add Row")
+			.contains("Add row")
 			.as("add-row");
 
 		cy.get("@add-row").click();

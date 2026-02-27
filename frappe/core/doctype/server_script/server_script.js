@@ -136,7 +136,7 @@ order by creation desc
 <hr>
 
 <h4>Workflow Task</h4>
-<p>Execute when a particular <a href="/app/workflow-action-master">Workflow Action Master</a> is executed.</p>
+<p>Execute when a particular <a href="/desk/workflow-action-master">Workflow Action Master</a> is executed.</p>
 <p>Gets the document which the action is being applied on in the <code>doc</code> variable.</p>
 <pre><code class="language-python">
 # create a customer with the same name as the given document

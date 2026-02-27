@@ -5,12 +5,26 @@ frappe.ui.form.ControlButton = class ControlButton extends frappe.ui.form.Contro
 	}
 	make_input() {
 		var me = this;
-		const btn_type = this.df.primary ? "btn-primary" : "btn-default";
+		let btn_type = "btn-default";
+		if (this.df.button_color) {
+			const color_map = {
+				Default: "btn-default",
+				Primary: "btn-primary",
+				Info: "btn-info",
+				Success: "btn-success",
+				Warning: "btn-warning",
+				Danger: "btn-danger",
+			};
+			btn_type = color_map[this.df.button_color] || "btn-default";
+		} else if (this.df.primary) {
+			btn_type = "btn-primary";
+		}
+
 		const btn_size = this.df.btn_size ? `btn-${this.df.btn_size}` : "btn-xs";
 		this.$input = $(
 			`<button
 				class="btn ${frappe.utils.escape_html(btn_size)} ${frappe.utils.escape_html(btn_type)}"
-				title="${frappe.utils.escape_html(this.df.label)}"
+				title="${this.df.title || frappe.utils.escape_html(this.df.label)}"
 			>`
 		)
 			.prependTo(me.input_area)

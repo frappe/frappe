@@ -1,5 +1,5 @@
 import frappe
-from frappe.patches.v14_0.drop_unused_indexes import drop_index_if_exists
+from frappe.database.utils import drop_index_if_exists
 
 
 def execute():

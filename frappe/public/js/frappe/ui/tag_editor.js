@@ -99,6 +99,28 @@ frappe.ui.TagEditor = class TagEditor {
 				$input.trigger("input");
 			}
 		});
+		$input.on("enter-pressed-in-addtag", function (e) {
+			var value = e.target.value;
+			// If user typed something, use exactly what they typed
+			// Don't override with suggestions - let user create new tags
+			if (value && value.trim()) {
+				$input.trigger("input-selected");
+				return;
+			}
+			// Only fetch suggestions if input is empty
+			frappe.call({
+				method: "frappe.desk.doctype.tag.tag.get_tags",
+				args: {
+					doctype: me.frm.doctype,
+					txt: value.toLowerCase(),
+				},
+				callback: function (r) {
+					// Updates input to suggestion value (if any) on <enter>
+					if (r.message.length) $input.val(r.message[0]);
+					$input.trigger("input-selected");
+				},
+			});
+		});
 	}
 	get_args(tag) {
 		return {

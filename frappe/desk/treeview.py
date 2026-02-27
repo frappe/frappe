@@ -7,7 +7,7 @@ from frappe.query_builder import Field, functions
 
 
 @frappe.whitelist()
-def get_all_nodes(doctype, label, parent, tree_method, **filters):
+def get_all_nodes(doctype: str, label: str, parent: str, tree_method: str | None, **filters):
 	"""Recursively gets all data from tree nodes"""
 
 	filters.pop("cmd", None)
@@ -35,15 +35,15 @@ def get_all_nodes(doctype, label, parent, tree_method, **filters):
 
 
 @frappe.whitelist()
-def get_children(doctype, parent="", include_disabled=False, **filters):
+def get_children(doctype: str, parent: str = "", include_disabled: str | int | bool = False, **filters):
 	if isinstance(include_disabled, str):
 		include_disabled = frappe.sbool(include_disabled)
 	return _get_children(doctype, parent, include_disabled=include_disabled)
 
 
 def _get_children(doctype, parent="", ignore_permissions=False, include_disabled=False):
-	parent_field = "parent_" + frappe.scrub(doctype)
 	meta = frappe.get_meta(doctype)
+	parent_field = meta.get("nsm_parent_field") or "parent_" + frappe.scrub(doctype)
 
 	qb = (
 		frappe.qb.from_(doctype)
@@ -57,8 +57,8 @@ def _get_children(doctype, parent="", ignore_permissions=False, include_disabled
 	)
 
 	if frappe.db.has_column(doctype, "disabled") and not include_disabled:
-		qb = qb.where(Field("disabled").eq(False))
-
+		# used 0 instead of `false` since type of check in postgres is smallint
+		qb = qb.where(Field("disabled").eq(0))
 	# Order by name and execute
 	return qb.orderby("name").run(as_dict=True)
 

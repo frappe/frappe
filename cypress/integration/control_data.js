@@ -53,7 +53,7 @@ context("Data Control", () => {
 			"contains",
 			"/desk/test-data-control/new-test-data-control"
 		);
-		cy.get(".title-text").should("have.text", "New Test Data Control");
+		cy.get(".title-text-form").should("have.text", "New Test Data Control");
 		cy.get('.frappe-control[data-fieldname="name1"]')
 			.find("label")
 			.should("have.class", "reqd");
@@ -65,7 +65,7 @@ context("Data Control", () => {
 			.should("have.class", "reqd");
 
 		//Checking if the status is "Not Saved" initially
-		cy.get(".indicator-pill").should("have.text", "Not Saved");
+		cy.get(".page-head-content .indicator-pill").should("have.text", "Not Saved");
 
 		//Inputting data in the field
 		cy.fill_field("name1", "@@###", "Data");

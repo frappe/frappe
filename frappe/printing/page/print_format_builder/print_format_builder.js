@@ -35,6 +35,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 			this.show_start();
 		} else {
 			this.page.set_title(this.print_format.name);
+			this.page.sidebar.toggle(true);
 			this.setup_print_format();
 		}
 	}
@@ -65,6 +66,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 		this.page.main.html(frappe.render_template("print_format_builder_start", {}));
 		this.page.clear_actions();
 		this.page.set_title(__("Print Format Builder"));
+		this.page.sidebar.toggle(false);
 		this.start_edit_print_format();
 		this.start_new_print_format();
 	}
@@ -702,6 +704,40 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 				if (disabled) input.val("");
 
 				update_column_count_message();
+			});
+
+			// Toggle all checkboxes in column selector
+			const toggle_all_checkboxes = function (should_check, should_clear_value) {
+				// Scope to column selector list checkboxes only
+				$body
+					.find(".column-selector-list input[type='checkbox'][data-fieldname]")
+					.each(function () {
+						const $checkbox = $(this);
+						const is_checked = $checkbox.prop("checked");
+
+						// Only process checkboxes that need to be changed
+						if ((should_check && !is_checked) || (!should_check && is_checked)) {
+							$checkbox.prop("checked", should_check);
+							const fieldname = $checkbox.attr("data-fieldname");
+							const input = get_width_input(fieldname);
+							input.prop("disabled", !should_check);
+
+							if (should_clear_value) {
+								input.val("");
+							}
+						}
+					});
+				update_column_count_message();
+			};
+
+			// Select All functionality
+			$body.on("click", ".select-all-btn", function () {
+				toggle_all_checkboxes(true, false);
+			});
+
+			// Unselect All functionality
+			$body.on("click", ".unselect-all-btn", function () {
+				toggle_all_checkboxes(false, true);
 			});
 
 			d.show();
