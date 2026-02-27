@@ -183,3 +183,47 @@ class TestCustomField(IntegrationTestCase):
 		self.assertFalse(doc.get(old))
 
 		field.delete()
+
+	def test_recreate_custom_field_with_different_type(self):
+		doctype = "ToDo"
+		fieldname = "custom_test_recreate"
+
+		data_field = frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": doctype,
+				"label": "Test Recreate",
+				"fieldname": fieldname,
+				"fieldtype": "Data",
+			}
+		)
+		data_field.insert()
+
+		doc = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Test orphaned column", fieldname: "hello"}
+		).insert()
+
+		data_field.delete()
+
+		# recreate custom field with same name, different type
+		float_field = frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": doctype,
+				"label": "Test Recreate",
+				"fieldname": fieldname,
+				"fieldtype": "Float",
+			}
+		)
+		float_field.insert()
+
+		# verify the column type is now decimal
+		for col in frappe.db.get_table_columns_description(f"tab{doctype}"):
+			if col.name == fieldname:
+				self.assertEqual(col.type, "decimal(21,9)")
+				break
+		else:
+			self.fail(f"Column {fieldname} not found in tab{doctype}")
+
+		float_field.delete()
+		doc.delete()

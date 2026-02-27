@@ -216,7 +216,7 @@ class CustomField(Document):
 			frappe.db.updatedb(self.dt)
 
 	def after_insert(self):
-		if not self.is_virtual:
+		if not self.is_virtual and not frappe.get_meta(self.dt).issingle:
 			self._drop_orphaned_column()
 
 	def _drop_orphaned_column(self):
