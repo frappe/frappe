@@ -2146,7 +2146,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// scroll to input
-		frappe.utils.scroll_to($el, true, 15);
+		frappe.utils.scroll_to($el, true, 15, $(".main-section"));
 
 		// focus if text field
 		if (focus) {
