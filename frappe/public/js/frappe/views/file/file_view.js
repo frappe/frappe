@@ -204,8 +204,6 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			type = "file";
 		}
 
-		let title = d.file_name || d.file_url;
-
 		if (type === "folder") {
 			title = this.get_folder_title(d.file_name);
 		} else {
