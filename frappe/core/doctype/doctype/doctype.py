@@ -217,6 +217,7 @@ class DocType(Document):
 		self.validate_virtual_doctype_methods()
 		self.ensure_minimum_max_attachment_limit()
 		self.patch_old_naming_expressions()
+		self.deduplicate_document_links()
 		validate_links_table_fieldnames(self)
 
 		if not self.is_new():
@@ -1085,6 +1086,30 @@ class DocType(Document):
 				indicator="yellow",
 			)
 			return True
+
+	def deduplicate_document_links(self):
+		"""Remove duplicate document links from the links child table."""
+
+		seen_links = set()
+		unique_links = []
+
+		for link in self.links or []:
+			if link.is_child_table:
+				link_tuple = (
+					link.link_doctype,
+					link.link_fieldname,
+					link.parent_doctype or "",
+					link.table_fieldname or "",
+				)
+			else:
+				link_tuple = (link.link_doctype, link.link_fieldname)
+
+			if link_tuple not in seen_links:
+				seen_links.add(link_tuple)
+				unique_links.append(link)
+
+		if len(unique_links) < len(self.links or []):
+			self.links = unique_links
 
 
 def validate_series(dt, autoname=None, name=None):
