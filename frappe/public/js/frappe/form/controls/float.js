@@ -4,6 +4,10 @@ frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlI
 		return isNaN(parseFloat(value)) ? null : flt(value, this.get_precision());
 	}
 
+	eval_expression(value) {
+		return super.eval_expression(value, this.get_number_format());
+	}
+
 	format_for_input(value) {
 		if (value === null || value === undefined || isNaN(Number(value))) {
 			return "";
@@ -13,7 +17,11 @@ frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlI
 	}
 
 	get_number_format() {
-		if (this.df.fieldtype === "Float" && !this.df.options?.trim()) return;
+		if (
+			this.df.fieldtype === "Rating" ||
+			(this.df.fieldtype === "Float" && !this.df.options?.trim())
+		)
+			return;
 
 		const currency = frappe.meta.get_field_currency(this.df, this.get_doc());
 		return get_number_format(currency);

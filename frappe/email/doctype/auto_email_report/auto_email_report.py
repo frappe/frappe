@@ -299,7 +299,7 @@ class AutoEmailReport(Document):
 
 
 @frappe.whitelist()
-def download(name):
+def download(name: str):
 	"""Download report locally"""
 	auto_email_report = frappe.get_doc("Auto Email Report", name)
 	auto_email_report.check_permission()
@@ -315,7 +315,7 @@ def download(name):
 
 
 @frappe.whitelist()
-def send_now(name):
+def send_now(name: str):
 	"""Send Auto Email report now"""
 	auto_email_report = frappe.get_doc("Auto Email Report", name)
 	auto_email_report.check_permission()

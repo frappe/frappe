@@ -18,12 +18,35 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 		}
 	}
 
+	resolve_date_default_keywords(def_value, fieldtype) {
+		if (!def_value || typeof def_value !== "string") return def_value;
+
+		def_value = def_value.toLowerCase();
+
+		if (def_value == "today" && fieldtype == "Date") {
+			return frappe.datetime.get_today();
+		}
+
+		if (def_value == "now") {
+			if (fieldtype == "Datetime") {
+				return frappe.datetime.now_datetime();
+			}
+			if (fieldtype == "Time") {
+				return frappe.datetime.now_time();
+			}
+		}
+
+		return def_value;
+	}
+
 	make() {
 		let me = this;
 		if (this.fields) {
 			super.make();
 			this.refresh();
-			// set default
+
+			let defaults = {};
+
 			$.each(this.fields_list, function (i, field) {
 				let def_value = field.df["default"];
 				// loose equality check matches undefined also
@@ -33,12 +56,14 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 				)
 					return;
 
-				if (def_value == "Today" && field.df["fieldtype"] == "Date") {
-					def_value = frappe.datetime.get_today();
+				if (["Date", "Datetime", "Time"].includes(field.df.fieldtype)) {
+					def_value = me.resolve_date_default_keywords(def_value, field.df.fieldtype);
 				}
 
-				field.set_input(def_value);
-				// if default and has depends_on, render its fields.
+				defaults[field.df.fieldname] = def_value;
+			});
+
+			this.set_values(defaults).then(() => {
 				me.refresh_dependency();
 			});
 

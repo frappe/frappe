@@ -680,7 +680,7 @@ class DocType(Document):
 				where doctype=%s and field='name' and value = %s""",
 				(new, new, old),
 			)
-		else:
+		elif not self.is_virtual:
 			frappe.db.rename_table(old, new)
 			frappe.db.commit()
 
@@ -992,7 +992,13 @@ class DocType(Document):
 		self.append("fields", {"label": "Is Group", "fieldtype": "Check", "fieldname": "is_group"})
 		self.append(
 			"fields",
-			{"label": "Old Parent", "fieldtype": "Link", "options": self.name, "fieldname": "old_parent"},
+			{
+				"label": "Old Parent",
+				"fieldtype": "Link",
+				"options": self.name,
+				"fieldname": "old_parent",
+				"hidden": 1,
+			},
 		)
 
 		parent_field_label = f"Parent {self.name}"

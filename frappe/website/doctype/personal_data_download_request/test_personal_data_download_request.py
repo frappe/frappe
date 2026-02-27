@@ -13,10 +13,12 @@ from frappe.website.doctype.personal_data_download_request.personal_data_downloa
 
 class TestRequestPersonalData(IntegrationTestCase):
 	def setUp(self):
+		frappe.set_user("Administrator")
 		create_user_if_not_exists(email="test_privacy@example.com")
 
 	def tearDown(self):
 		frappe.db.delete("Personal Data Download Request")
+		frappe.set_user("Administrator")
 
 	def test_user_data_creation(self):
 		user_data = json.loads(get_user_data("test_privacy@example.com"))
@@ -48,6 +50,37 @@ class TestRequestPersonalData(IntegrationTestCase):
 		self.assertIn(frappe._("Download Your Data"), email_queue[0].message)
 
 		frappe.db.delete("Email Queue")
+
+	def test_large_file_request(self):
+		from unittest.mock import patch
+
+		frappe.db.delete("File")
+		frappe.db.delete("Email Queue")
+
+		frappe.set_user("test_privacy@example.com")
+
+		with patch("frappe.sendmail"):
+			req = frappe.new_doc("Personal Data Download Request")
+			req.user = "test_privacy@example.com"
+			req.insert(ignore_permissions=True)
+
+			req.generate_file_and_send_mail(
+				{
+					"data": "x" * (60 * 1024 * 1024)  # 60MB
+				}
+			)
+
+		files = frappe.get_all(
+			"File",
+			filters={
+				"attached_to_doctype": "Personal Data Download Request",
+				"attached_to_name": req.name,
+			},
+			fields=["file_size"],
+		)
+
+		large_files = [f for f in files if f.file_size >= 60 * 1024 * 1024]
+		self.assertEqual(len(large_files), 1)
 
 
 def create_user_if_not_exists(email, first_name=None):

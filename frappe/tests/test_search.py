@@ -4,6 +4,7 @@
 import re
 from contextlib import contextmanager
 from functools import partial
+from typing import Any
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -382,7 +383,15 @@ def get_data(doctype, txt, searchfield, start, page_len, filters):
 
 @whitelist_for_tests()
 @frappe.validate_and_sanitize_search_inputs
-def query_with_reference_doctype(doctype, txt, searchfield, start, page_len, filters, reference_doctype=None):
+def query_with_reference_doctype(
+	doctype: str,
+	txt: str,
+	searchfield: str,
+	start: int,
+	page_len: int,
+	filters: str | list | dict[str, Any],
+	reference_doctype: str | None = None,
+):
 	return []
 
 

@@ -14,6 +14,7 @@
 	--dt-border-color: var(--table-border-color);
 	--dt-header-cell-bg: var(--subtle-fg);
 	--dt-selection-highlight-color: var(--highlight-color);
+	--dt-no-data-message-width: max-content;
 
 	background-color: var(--bg-color);
 	margin-left: -1px;
@@ -162,6 +163,11 @@
 
 	.dt-cell--focus .dt-cell__content {
 		border-color: var(--gray-200);
+	}
+
+	.dt-scrollable__no-data .no-data-message {
+		left: 50%;
+		transform: translateX(-50%);
 	}
 }
 

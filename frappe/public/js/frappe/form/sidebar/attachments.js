@@ -180,8 +180,18 @@ frappe.ui.form.Attachments = class Attachments {
 				file_url = "/files/" + attachment.file_name;
 			}
 		}
+
+		const is_web_url = /^(https?:)?\/\//i.test(file_url);
+
+		file_url = encodeURI(file_url);
+
 		// hash is not escaped, https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
-		return encodeURI(file_url).replace(/#/g, "%23");
+		// only encode hash if it's a local file path, not a web URL
+		if (!is_web_url) {
+			file_url = file_url.replace(/#/g, "%23");
+		}
+
+		return file_url;
 	}
 	get_file_id_from_file_url(file_url) {
 		var fid;

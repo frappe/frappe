@@ -660,7 +660,7 @@ frappe.ui.form.Form = class FrappeForm {
 	configure_breadcrumb_width() {
 		let el = this.page.page_actions[0];
 		const rect = el.getBoundingClientRect();
-		let is_outside = rect.right > document.documentElement.clientWidth;
+		let is_outside = cint(rect.right) > cint(document.documentElement.clientWidth);
 
 		if (is_outside) {
 			// check if the default actions are outside of the screen
@@ -783,6 +783,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.show_submit_message();
 		this.clear_custom_buttons();
 		this.show_web_link();
+		this.show_report_bug_link();
 		this.show_workflow_read_only_banner();
 	}
 
@@ -1280,6 +1281,17 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
+	show_report_bug_link() {
+		if (this.meta.beta) {
+			this.add_web_link(
+				"https://github.com/frappe/" +
+					frappe.boot.module_app[frappe.scrub(this.meta.module)] +
+					"/issues/new",
+				__("Report bug")
+			);
+		}
+	}
+
 	add_web_link(path, label) {
 		label = __(label) || __("See on Website");
 		this.web_link = this.sidebar
@@ -1562,15 +1574,10 @@ frappe.ui.form.Form = class FrappeForm {
 			var scroll_to = frappe.route_options.scroll_to;
 			delete frappe.route_options.scroll_to;
 
-			var selector = [];
-			for (var key in scroll_to) {
-				var value = scroll_to[key];
-				selector.push(repl('[data-%(key)s="%(value)s"]', { key: key, value: value }));
-			}
-
-			selector = $(selector.join(" "));
-			if (selector.length) {
-				frappe.utils.scroll_to(selector);
+			if (this.scroll_to_field(scroll_to)) {
+				const url = new URL(window.location);
+				url.searchParams.delete("scroll_to");
+				history.replaceState(null, null, url);
 			}
 		} else if (window.location.hash) {
 			if ($(window.location.hash).length) {
@@ -2007,7 +2014,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
-	make_new(doctype) {
+	make_new(doctype, fieldname) {
 		// make new doctype from the current form
 		// will handover to `make_methods` if defined
 		// or will create and match link fields
@@ -2021,7 +2028,7 @@ frappe.ui.form.Form = class FrappeForm {
 				let new_doc = frappe.model.get_new_doc(doctype, null, null, true);
 
 				// set link fields (if found)
-				me.set_link_field(doctype, new_doc);
+				me.set_link_field(doctype, new_doc, fieldname);
 
 				frappe.ui.form.make_quick_entry(doctype, null, null, new_doc);
 				// frappe.set_route('Form', doctype, new_doc.name);
@@ -2029,16 +2036,27 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
-	set_link_field(doctype, new_doc) {
+	set_link_field(doctype, new_doc, fieldname) {
 		let me = this;
 		frappe.get_meta(doctype).fields.forEach(function (df) {
-			if (df.fieldtype === "Link" && df.options === me.doctype) {
+			const isLinkToParent = df.fieldtype === "Link" && df.options === me.doctype;
+
+			if (fieldname) {
+				if (df.fieldname === fieldname && isLinkToParent) {
+					new_doc[df.fieldname] = me.doc.name;
+				}
+				if (df.fieldtype === "Table" && df.options && df.reqd) {
+					me.set_link_field(df.options, new_doc[df.fieldname][0]);
+				}
+				return;
+			}
+
+			if (isLinkToParent) {
 				new_doc[df.fieldname] = me.doc.name;
 			} else if (["Link", "Dynamic Link"].includes(df.fieldtype) && me.doc[df.fieldname]) {
 				new_doc[df.fieldname] = me.doc[df.fieldname];
 			} else if (df.fieldtype === "Table" && df.options && df.reqd) {
-				let row = new_doc[df.fieldname][0];
-				me.set_link_field(df.options, row);
+				me.set_link_field(df.options, new_doc[df.fieldname][0]);
 			}
 		});
 	}
@@ -2083,7 +2101,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// scroll to input
-		frappe.utils.scroll_to($el, true, 15);
+		frappe.utils.scroll_to($el, true, 15, $(".main-section"));
 
 		// focus if text field
 		if (focus) {

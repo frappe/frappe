@@ -513,25 +513,21 @@ function check_restrictions(file) {
 
 	return is_correct_type && valid_file_size;
 }
-function upload_files(dialog) {
+
+function upload_files() {
 	if (show_file_browser.value) {
-		return upload_via_file_browser();
-	}
-	if (show_web_link.value) {
-		return upload_via_web_link();
-	}
-	if (props.as_dataurl) {
-		return return_as_dataurl();
-	}
-	if (!files.value.length) {
+		promise = upload_via_file_browser();
+	} else if (show_web_link.value) {
+		promise = upload_via_web_link();
+	} else if (props.as_dataurl) {
+		promise = return_as_dataurl();
+	} else if (!files.value.length) {
 		frappe.msgprint(__("Please select a file first."));
-		return Promise.reject();
+		promise = Promise.reject();
+	} else {
+		promise = frappe.run_serially(files.value.map((file, i) => () => upload_file(file, i)));
 	}
-
-	dialog?.get_primary_btn().prop("disabled", true);
-	dialog?.get_secondary_btn().prop("disabled", true);
-
-	return frappe.run_serially(files.value.map((file, i) => () => upload_file(file, i)));
+	return promise;
 }
 function upload_via_file_browser() {
 	let selected_file = file_browser.value.selected_node;
@@ -548,12 +544,16 @@ function upload_via_file_browser() {
 function upload_via_web_link() {
 	let file_url = web_link.value.url;
 	if (!file_url) {
-		frappe.msgprint(__("Invalid URL"));
-		close_dialog.value = true;
+		web_link.value.invalid_input(__("Please enter a valid URL"));
 		return Promise.reject();
 	}
-	file_url = decodeURI(file_url);
-	close_dialog.value = true;
+	try {
+		file_url = decodeURI(file_url);
+	} catch (error) {
+		var error_message = error.message;
+		web_link.value.invalid_input(__(error_message));
+		return Promise.reject();
+	}
 	return upload_file({
 		file_url,
 	});
@@ -584,7 +584,6 @@ function upload_file(file, i) {
 		});
 		xhr.upload.addEventListener("load", (e) => {
 			file.uploading = false;
-			resolve();
 		});
 		xhr.addEventListener("error", (e) => {
 			file.failed = true;
@@ -593,6 +592,7 @@ function upload_file(file, i) {
 		xhr.onreadystatechange = () => {
 			if (xhr.readyState == XMLHttpRequest.DONE) {
 				if (xhr.status === 200) {
+					resolve();
 					file.request_succeeded = true;
 					let r = null;
 					let file_doc = null;
@@ -617,7 +617,11 @@ function upload_file(file, i) {
 					) {
 						close_dialog.value = true;
 					}
+					if (show_web_link.value && file.file_url) {
+						close_dialog.value = true;
+					}
 				} else if (xhr.status === 403) {
+					reject();
 					file.failed = true;
 					let response = parse_error_response(xhr.responseText);
 					file.error_message = __("Not permitted. {0}.", [response.error_message || ""]);
@@ -625,16 +629,29 @@ function upload_file(file, i) {
 						file.error_message += `\n${response.server_messages.join("\n")}`;
 					}
 				} else if (xhr.status === 413) {
+					reject();
 					file.failed = true;
 					file.error_message = __("Size exceeds the maximum allowed file size.");
 				} else if (xhr.status === 417) {
+					reject();
 					// regular frappe.throw() in backend
 					file.failed = true;
 					let response = parse_error_response(xhr.responseText);
 					file.error_message = response.server_messages.length
 						? response.server_messages.join("\n")
 						: __("File upload failed.");
+
+					if (show_web_link.value && web_link.value && file.file_url) {
+						web_link.value.invalid_input(__(file.error_message));
+					} else if (!files.value.includes(file)) {
+						frappe.msgprint({
+							title: __("Upload Failed"),
+							message: __(file.error_message),
+							indicator: "red",
+						});
+					}
 				} else {
+					reject();
 					file.failed = true;
 					let detail =
 						xhr.statusText ||

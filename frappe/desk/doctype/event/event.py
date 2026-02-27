@@ -4,6 +4,7 @@
 
 import json
 from datetime import date, datetime
+from typing import Any
 
 import frappe
 import frappe.share
@@ -235,7 +236,7 @@ class Event(Document):
 
 
 @frappe.whitelist()
-def update_attending_status(event_name, attendee, status):
+def update_attending_status(event_name: str, attendee: str, status: str):
 	event_doc = frappe.get_doc("Event", event_name)
 
 	if event_doc.owner == attendee == frappe.session.user:
@@ -252,7 +253,7 @@ def update_attending_status(event_name, attendee, status):
 
 
 @frappe.whitelist()
-def delete_communication(event, reference_doctype, reference_docname):
+def delete_communication(event: str | dict[str, Any], reference_doctype: str, reference_docname: str | int):
 	if isinstance(event, str):
 		event = json.loads(event)
 
@@ -332,7 +333,11 @@ def send_event_digest():
 @frappe.whitelist()
 @http_cache(max_age=5 * 60, stale_while_revalidate=60 * 60)
 def get_events(
-	start: date, end: date, user: str | None = None, for_reminder: bool = False, filters=None
+	start: date,
+	end: date,
+	user: str | None = None,
+	for_reminder: bool = False,
+	filters: str | list | dict[str, Any] | None = None,
 ) -> list[frappe._dict]:
 	user = user or frappe.session.user
 	type EventLikeDict = Event | frappe._dict

@@ -30,6 +30,7 @@
 					</a>
 				</div>
 			</div>
+			<div class="body-sidebar-cards"></div>
 			<div class="body-sidebar-bottom">
 				<div class="edit-mode bottom-edit-controls hidden">
 					<button class="btn-outline btn-sm discard-button">
@@ -39,6 +40,13 @@
 						Save
 					</button>
 				</div>
+				<div class="promotional-banners"></div>
+				<p>
+					<a class="onboarding-sidebar">
+						{%= frappe.utils.icon("user-check" , "sm", "", "", "text-ink-gray-7 current-color", true)%}
+						 <span> {%= __("Getting Started") %} </span>
+					</a>
+				</p>
 				<a class="collapse-sidebar-link">
 					{%= frappe.utils.icon("panel-right-open" , "sm", "", "", "text-ink-gray-7 current-color", true)%}
 		 			<span> {%= __("Collapse") %} </span>
@@ -83,5 +91,6 @@
 			</div>
 		</div>
 		<div class="overlay" style="z-index: 1021;"></div>
+		<div class="user-onboarding"></div>
 	</div>
 </div>

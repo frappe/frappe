@@ -55,13 +55,9 @@ frappe.ui.Notifications = class Notifications {
 			.on("click", (e) => {
 				if (this.full_height) {
 					this.dropdown.addClass("hidden");
-				} else {
-					this.dropdown_list.addClass("hidden");
 				}
 			})
-			.appendTo(this.header_actions)
-			.attr("title", __("Close"))
-			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+			.appendTo(this.header_actions);
 
 		this.categories = [
 			{

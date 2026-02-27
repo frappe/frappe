@@ -369,6 +369,12 @@ def prepare_header_footer(soup: BeautifulSoup):
 
 			# {"header-html": "/tmp/frappe-pdf-random.html"}
 			options[html_id] = fname
+
+			if html_id == "header-html":
+				options["margin-top"] = "25mm"
+			elif html_id == "footer-html":
+				options["margin-bottom"] = "25mm"
+
 		else:
 			if html_id == "header-html":
 				options["margin-top"] = "15mm"

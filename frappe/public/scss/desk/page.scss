@@ -38,6 +38,11 @@
 		align-items: center;
 		.indicator-pill {
 			margin-left: var(--margin-sm);
+			.indicator-doc-html {
+				height: 8px;
+				width: 8px;
+				border-radius: inherit;
+			}
 		}
 		.sub-heading {
 			@include get_textstyle("sm", "regular");

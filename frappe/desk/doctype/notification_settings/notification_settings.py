@@ -130,8 +130,8 @@ def has_permission(doc, ptype="read", user=None):
 
 
 @frappe.whitelist()
-def set_seen_value(value, user):
+def set_seen_value(value: int, user: str):
 	if frappe.flags.read_only:
 		return
 
-	frappe.db.set_value("Notification Settings", user, "seen", value, update_modified=False)
+	frappe.db.set_value("Notification Settings", frappe.session.user, "seen", value, update_modified=False)

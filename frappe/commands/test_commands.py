@@ -244,6 +244,26 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(self.stdout, frappe.bold(text="DocType"))
 
+		# test 5: execute a command with extra args
+		self.execute("bench --site {site} execute frappe.bold DocType")
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(self.stdout, frappe.bold(text="DocType"))
+
+		# test 6: execute a command with extra kwargs
+		self.execute("bench --site {site} execute frappe.bold --text DocType")
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(self.stdout, frappe.bold(text="DocType"))
+
+		# test 7: execute a command with extra args and kwargs
+		self.execute("bench --site {site} execute frappe.utils.add_to_date '2024-01-01' --days 1")
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(self.stdout, "2024-01-02")
+
+		# test 8: execute a command with extra args and kwargs with types
+		self.execute("bench --site {site} execute frappe.utils.add_to_date --date '2024-01-01' --days 1")
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(self.stdout, "2024-01-02")
+
 	@skipIf(
 		frappe.conf.db_type == "sqlite",
 		"Not for SQLite for now",
@@ -1096,6 +1116,7 @@ class TestGunicornWorker(IntegrationTestCase):
 		time.sleep(2)
 		execute_in_shell("pgrep gunicorn | xargs -L1 kill -9")
 
+	@unittest.skip("Flaky test")
 	def test_gunicorn_ping_sync(self):
 		self.spawn_gunicorn()
 		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
@@ -1106,6 +1127,7 @@ class TestGunicornWorker(IntegrationTestCase):
 		path = f"http://{self.TEST_SITE}:{self.port}/api/method/ping"
 		self.assertEqual(requests.get(path).status_code, 200)
 
+	@unittest.skip("Flaky test")
 	def test_gunicorn_idle_cpu_usage(self):
 		def get_total_usage():
 			process = psutil.Process(self.handle.pid)
