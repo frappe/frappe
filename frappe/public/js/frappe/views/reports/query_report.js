@@ -762,7 +762,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				let data = r.message;
 				this.hide_status();
 				clearInterval(this.interval);
-
+				clearInterval(this.stale_report_interval);
+				this.refreshed_at = frappe.datetime.now_datetime();
 				this.execution_time = data.execution_time || 0.1;
 
 				if (data.custom_filters) {
@@ -788,6 +789,37 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					}
 					this.add_prepared_report_buttons(data.doc);
 				}
+
+				this.stale_report_interval = setInterval(
+					// check if report is stale
+					() => {
+						let generated_at = this.prepared_report
+							? this.prepared_report_document.report_end_time
+							: this.refreshed_at;
+						let pretty_diff = frappe.datetime.comment_when(generated_at);
+						const days_old = frappe.datetime.get_day_diff(
+							frappe.datetime.now_datetime(),
+							generated_at
+						);
+						const minutes_old = frappe.datetime.get_minute_diff(
+							frappe.datetime.now_datetime(),
+							generated_at
+						);
+						if (days_old > 1) {
+							pretty_diff = `<span style="color:var(--red-600)">${pretty_diff}</span>`;
+						}
+						if (minutes_old >= 1) {
+							this.show_status(`
+							<div class="indicator orange">
+								<span>
+									${__("This report was generated {0}.", [pretty_diff])}
+								</span>
+							</div>
+						`);
+						}
+					},
+					60000
+				);
 
 				if (data.report_summary) {
 					this.$summary.empty();
@@ -865,28 +897,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				},
 				__("Actions")
 			);
-
-			let pretty_diff = frappe.datetime.comment_when(doc.report_end_time);
-			const days_old = frappe.datetime.get_day_diff(
-				frappe.datetime.now_datetime(),
-				doc.report_end_time
-			);
-			if (days_old > 1) {
-				pretty_diff = `<span style="color:var(--red-600)">${pretty_diff}</span>`;
-			}
-			const part1 = __("This report was generated {0}.", [pretty_diff]);
-			const part2 = __("To get the updated report, click on {0}.", [__("Rebuild")]);
-			const part3 = __("See all past reports.");
-
-			this.show_status(`
-				<div class="indicator orange">
-					<span>
-						${part1}
-						${part2}
-						<a href="/desk/List/Prepared%20Report?report_name=${this.report_name}"> ${part3}</a>
-					</span>
-				</div>
-			`);
 		}
 
 		// Three cases
