@@ -213,7 +213,27 @@ class CustomField(Document):
 		# clear cache and update the schema
 		if not frappe.flags.in_create_custom_fields:
 			frappe.clear_cache(doctype=self.dt)
+			if not self.get_doc_before_save() and not self.is_virtual:
+				self._drop_orphaned_column()
 			frappe.db.updatedb(self.dt)
+
+	def _drop_orphaned_column(self):
+		"""Drop an orphaned database column left behind by a previously deleted
+		field if its type conflicts with the new field being created."""
+		if not frappe.db.has_column(self.dt, self.fieldname):
+			return
+
+		from frappe.database.schema import get_definition
+
+		new_type = get_definition(self.fieldtype, self.precision, self.length)
+		if not new_type:
+			return
+
+		table_name = f"tab{self.dt}"
+		for col in frappe.db.get_table_columns_description(table_name):
+			if col.name.lower() == self.fieldname and col.type != new_type:
+				frappe.db.sql_ddl(f"ALTER TABLE `{table_name}` DROP COLUMN `{self.fieldname}`")
+				break
 
 	def on_trash(self):
 		# check if Admin owned field
