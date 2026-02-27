@@ -492,7 +492,16 @@ frappe.ui.form.PrintView = class {
 		this.$print_format_body
 			.find("body")
 			.html(`<div class="print-format print-format-preview">${out.html}</div>`);
-
+		const iframeDoc = this.$print_format_body[0];
+		const script = iframeDoc.createElement("script");
+		script.src = "https://cdn.jsdelivr.net/npm/jsbarcode@3/dist/JsBarcode.all.min.js";
+		script.onload = () => {
+			iframeDoc.querySelectorAll("svg[data-barcode-value]").forEach((el) => {
+				JsBarcode(el, el.dataset.barcodeValue, { width: 3, height: 50, fontSize: 16 });
+				el.setAttribute("width", "100%");
+			});
+		};
+		iframeDoc.head.appendChild(script);
 		this.show_footer();
 
 		this.$print_format_body.find(".print-format").css({
