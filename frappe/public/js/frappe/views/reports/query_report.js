@@ -810,7 +810,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						}
 						if (minutes_old >= 1) {
 							this.show_status(`
-							<div class="indicator orange">
+							<div class="indicator orange pl-1">
 								<span>
 									${__("This report was generated {0}.", [pretty_diff])}
 								</span>
