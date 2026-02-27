@@ -435,11 +435,15 @@ class DesktopPage {
 		});
 	}
 	setup_notifications() {
+		let notifcation_trigger = $(".desktop-notification > button");
 		this.notifications = new frappe.ui.Notifications({
 			container: $(".desktop-notification-pane"),
 			full_height: false,
-			trigger: $(".desktop-notification > button"),
+			trigger: notifcation_trigger,
 		});
+		if (!frappe.boot.notification_settings.seen) {
+			notifcation_trigger.addClass("unread");
+		}
 	}
 
 	delete_new_icons() {
