@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-21 10:33\n"
+"PO-Revision-Date: 2026-02-28 20:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1959,7 +1959,7 @@ msgstr "Разрешить заполнение форм"
 #. Label of a Int field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Login After Fail"
-msgstr "Разрешить вход после неудачи"
+msgstr "Разрешить вход в систему после неудачной попытки через"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -2150,51 +2150,51 @@ msgstr "Разрешение DocType, DocType. Будьте осторожны!"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:52
 msgid "Allows printing or PDF download of documents."
-msgstr ""
+msgstr "Позволяет распечатывать документы или загружать их в формате PDF."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:77
 msgid "Allows sharing document access with other users."
-msgstr ""
+msgstr "Позволяет предоставлять доступ к документу другим пользователям."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:62
 msgid "Allows the user to access reports related to the document."
-msgstr ""
+msgstr "Предоставляет пользователю доступ к отчетам, связанным с документом."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:42
 msgid "Allows the user to create new documents."
-msgstr ""
+msgstr "Позволяет пользователю создавать новые документы."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:47
 msgid "Allows the user to delete documents."
-msgstr ""
+msgstr "Позволяет пользователю удалять документы."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:37
 msgid "Allows the user to edit existing records they have access to."
-msgstr ""
+msgstr "Позволяет пользователю редактировать существующие записи, к которым у него есть доступ."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:57
 msgid "Allows the user to email from the document."
-msgstr ""
+msgstr "Позволяет пользователю отправлять электронные письма прямо из документа."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:67
 msgid "Allows the user to export data from the Report view."
-msgstr ""
+msgstr "Позволяет пользователю экспортировать данные из представления отчета."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:27
 msgid "Allows the user to search and see records."
-msgstr ""
+msgstr "Позволяет пользователю искать и просматривать записи."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:72
 msgid "Allows the user to use Data Import tool to create / update records."
-msgstr ""
+msgstr "Позволяет пользователю использовать инструмент импорта данных для создания/обновления записей."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:32
 msgid "Allows the user to view the document."
-msgstr ""
+msgstr "Позволяет пользователю просмотреть документ."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:82
 msgid "Allows users to enable the mask property for any field of the respective doctype."
-msgstr ""
+msgstr "Позволяет пользователям включить свойство маски для любого поля соответствующего типа документа."
 
 #: frappe/core/doctype/user/user.py:981
 msgid "Already Registered"
@@ -2990,7 +2990,7 @@ msgstr "Попытка запустить QZ Tray..."
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/doctype/event_participants/event_participants.json
 msgid "Attending"
-msgstr ""
+msgstr "Посещение"
 
 #. Label of a Table field in DocType 'Newsletter'
 #: frappe/email/doctype/newsletter/newsletter.json
@@ -3494,7 +3494,7 @@ msgstr "Частота резервного копирования"
 #. Label of a Data field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "Backup Path"
-msgstr ""
+msgstr "Резервный путь"
 
 #: frappe/desk/page/backups/backups.py:99
 msgid "Backup job is already queued. You will receive an email with the download link"
@@ -3920,7 +3920,7 @@ msgstr "Браузер не поддерживается"
 #. Label of a Section Break field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Brute Force Security"
-msgstr "Безопасность грубой силой"
+msgstr "Защита от брутфорса"
 
 #. Label of a Data field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
@@ -3939,7 +3939,7 @@ msgstr "Размер буферной пула"
 #. Name of a Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Build"
-msgstr "Построить"
+msgstr "Построение"
 
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -9684,7 +9684,7 @@ msgstr "Частота событий"
 #. Name of a DocType
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 msgid "Event Notifications"
-msgstr ""
+msgstr "Уведомления о событиях"
 
 #. Label of a Table field in DocType 'Event'
 #. Name of a DocType
@@ -10765,7 +10765,7 @@ msgstr "Поплавок"
 #. Label of a Select field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Float Precision"
-msgstr "Поплавковая точность"
+msgstr "Точность плавания"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -12370,7 +12370,7 @@ msgstr "Почасовое обслуживание"
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Hourly rate limit for generating password reset links"
-msgstr "Ограничение по часовой ставке для генерации ссылок для сброса пароля"
+msgstr "Почасовой лимит для генерации ссылок на сброс пароля"
 
 #: frappe/public/js/frappe/form/controls/duration.js:22
 msgctxt "Duration"
@@ -12590,7 +12590,7 @@ msgstr "Если эта функция включена, пользовател�
 #. Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "If it's empty, it will backup to the root of the bucket."
-msgstr ""
+msgstr "Если хранилище пустое, резервная копия будет загружена в корневой каталог."
 
 #. Description of the 'Default Workspace' (Link) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -12632,11 +12632,11 @@ msgstr "Если условие выполнено, пользователю н�
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:83
 msgid "If the user enables the mask property for the phone number field, the value will be displayed in a masked format (e.g., 811XXXXXXX)."
-msgstr ""
+msgstr "Если пользователь включит свойство маскирования для поля номера телефона, значение будет отображаться в замаскированном формате (например, 811XXXXXXX)."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:63
 msgid "If the user has access to Employee and Report is enabled, they can view Employee-based reports."
-msgstr ""
+msgstr "Если у пользователя есть доступ к разделу «Сотрудники» и включена функция «Отчеты», он может просматривать отчеты по каждому сотруднику отдельно."
 
 #. Description of the 'User Type' (Link) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -13400,7 +13400,7 @@ msgstr "Внутренний учет долей документов"
 #. Label of a Select field in DocType 'Event Notifications'
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 msgid "Interval"
-msgstr ""
+msgstr "Интервал"
 
 #: frappe/desk/page/user_profile/user_profile_sidebar.html:22
 msgid "Intro"
@@ -13635,7 +13635,7 @@ msgstr "Неверное выражение, заданное в фильтре 
 
 #: frappe/desk/page/user_profile/user_profile.py:34
 msgid "Invalid field for grouping"
-msgstr ""
+msgstr "Недопустимое поле для группировки"
 
 #: frappe/utils/data.py:2007
 msgid "Invalid field name {0}"
@@ -15848,7 +15848,7 @@ msgstr "Максимально допустимое количество стр�
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/doctype/event_participants/event_participants.json
 msgid "Maybe"
-msgstr ""
+msgstr "Может быть"
 
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:221
 msgid "Me"
@@ -15856,7 +15856,7 @@ msgstr "Я"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:14
 msgid "Meaning of Different Permission Types"
-msgstr ""
+msgstr "Значение различных типов разрешений"
 
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #. Label of a Data field in DocType 'Web Page View'
@@ -19201,7 +19201,7 @@ msgstr "Полностью удалить {0}?"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:19
 msgid "Permission"
-msgstr ""
+msgstr "Разрешение"
 
 #: frappe/core/doctype/user_type/user_type.py:83
 msgid "Permission Error"
@@ -22045,7 +22045,7 @@ msgstr "Ключ сброса пароля"
 #. Label of a Duration field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Reset Password Link Expiry Duration"
-msgstr "Ссылка для сброса пароля Срок действия"
+msgstr "Срок действия ссылки для сброса пароля"
 
 #. Label of a Link field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -26494,7 +26494,7 @@ msgstr "Выбранный тип документа является дочер
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:58
 msgid "The email button is enabled for the user in the document."
-msgstr ""
+msgstr "Кнопка отправки электронной почты доступна пользователю в документе."
 
 #: frappe/core/doctype/user_type/user_type.py:109
 msgid "The field {0} is mandatory"
@@ -26565,7 +26565,7 @@ msgstr "Срок действия пароля вашей учетной зап�
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:53
 msgid "The print button is enabled for the user in the document."
-msgstr ""
+msgstr "Кнопка печати доступна пользователю в документе."
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:394
 msgid "The process for deletion of {0} data associated with {1} has been initiated."
@@ -26618,35 +26618,35 @@ msgstr "Превышен лимит общего количества типов
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:43
 msgid "The user can create a new Item but cannot edit existing items."
-msgstr ""
+msgstr "Пользователь может создавать новые товары, но не может редактировать существующие."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:48
 msgid "The user can delete Draft / Cancelled documents."
-msgstr ""
+msgstr "Пользователь может удалять черновики/отменённые документы."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:68
 msgid "The user can export report data."
-msgstr ""
+msgstr "Пользователь может экспортировать данные отчета."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:73
 msgid "The user can import new records or update existing data for the document."
-msgstr ""
+msgstr "Пользователь может импортировать новые записи или обновлять существующие данные для документа."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:28
 msgid "The user can select a Customer in Sales Order but cannot open the Customer master."
-msgstr ""
+msgstr "Пользователь может выбрать клиента в заказе на продажу, но не может открыть основные данные клиента."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:78
 msgid "The user can share document access with another user."
-msgstr ""
+msgstr "Пользователь может предоставить доступ к документу другому пользователю."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:38
 msgid "The user can update a customer or any other fields in an existing Sales Order but cannot create a new Sales Order."
-msgstr ""
+msgstr "Пользователь может обновлять данные клиента или любые другие поля в существующем заказе на продажу, но не может создавать новые заказы на продажу."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:33
 msgid "The user can view Sales Invoices but cannot modify any field values in them."
-msgstr ""
+msgstr "Пользователь может просматривать счета-фактуры, но не может изменять значения полей в них."
 
 #. Description of the 'User Field' (Select) field in DocType 'Energy Point
 #. Rule'
@@ -27378,7 +27378,7 @@ msgstr "Поле \"К дате"
 #: frappe/automation/workspace/tools/tools.json
 #: frappe/desk/doctype/todo/todo_list.js:6
 msgid "To Do"
-msgstr "Сделать"
+msgstr "Задача"
 
 #: frappe/public/js/frappe/form/sidebar/review.js:50
 msgid "To User"
@@ -30305,7 +30305,7 @@ msgstr "Вам запрещено отправлять электронные п
 
 #: frappe/desk/doctype/event/event.py:248
 msgid "You are not allowed to update the status of this event."
-msgstr ""
+msgstr "Изменять статус этого события запрещено."
 
 #: frappe/website/doctype/web_form/web_form.py:595
 msgid "You are not allowed to update this Web Form Document"
