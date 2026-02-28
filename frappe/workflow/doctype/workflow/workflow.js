@@ -109,9 +109,10 @@ frappe.ui.form.on("Workflow", {
 			return;
 		}
 		frappe.model.with_doctype(doc.document_type, () => {
-			const fieldnames = frappe
-				.get_meta(doc.document_type)
-				.fields.filter((field) => !frappe.model.no_value_type.includes(field.fieldtype))
+			const meta = frappe.get_meta(doc.document_type);
+			const is_submittable = meta.is_submittable;
+			const fieldnames = meta.fields
+				.filter((field) => !frappe.model.no_value_type.includes(field.fieldtype))
 				.map((field) => field.fieldname);
 
 			frm.fields_dict.states.grid.update_docfield_property(
@@ -119,6 +120,33 @@ frappe.ui.form.on("Workflow", {
 				"options",
 				[""].concat(fieldnames)
 			);
+
+			frm.fields_dict.states.grid.update_docfield_property(
+				"doc_status",
+				"read_only",
+				!is_submittable
+			);
+
+			if (!is_submittable) {
+				let has_affected_states = false;
+				frm.doc.states.forEach((row) => {
+					if (parseInt(row.doc_status || 0) !== 0) {
+						has_affected_states = true;
+						row.doc_status = "0";
+					}
+				});
+				if (has_affected_states) {
+					frm.refresh_field("states");
+					frappe.msgprint({
+						title: __("Doc Status Reset"),
+						message: __(
+							"The <strong>Doc Status</strong> for all states has been reset to <strong>0</strong> because <strong>{0}</strong> is not submittable",
+							[frm.doc.document_type]
+						),
+						indicator: "orange",
+					});
+				}
+			}
 		});
 	},
 	create_warning_dialog: function (frm) {
