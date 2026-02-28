@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-02-22 09:42+0000\n"
-"PO-Revision-Date: 2026-02-27 23:50\n"
+"PO-Revision-Date: 2026-02-28 23:51\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -8565,7 +8565,7 @@ msgstr "Förfallo Datum"
 #. Label of the due_date_based_on (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Due Date Based On"
-msgstr "Förfallo Datum Baserad På"
+msgstr "Förfallodatum baserat på"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:44
 #: frappe/public/js/frappe/form/toolbar.js:445
@@ -9859,7 +9859,7 @@ msgstr "Exempel: Anges detta till 24:00 loggas användare ut om de inte är akti
 #. Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Example: {{ subject }}"
-msgstr "Exempel: {{subject}}"
+msgstr "Exempel: {{ subject }}"
 
 #. Option for the 'File Type' (Select) field in DocType 'Data Export'
 #: frappe/core/doctype/data_export/data_export.json
