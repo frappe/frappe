@@ -82,7 +82,12 @@ export default class ShortcutWidget extends Widget {
 
 		let filters = frappe.utils.process_filter_expression(this.stats_filter);
 
-		if (this.type == "DocType" && this.doc_view != "New" && filters) {
+		if (
+			this.type == "DocType" &&
+			this.doc_view != "New" &&
+			filters &&
+			!frappe.boot.single_types.includes(this.link_to)
+		) {
 			frappe.db
 				.count(this.link_to, {
 					filters: filters,
