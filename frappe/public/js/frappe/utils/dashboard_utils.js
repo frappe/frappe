@@ -132,7 +132,7 @@ frappe.dashboard_utils = {
 
 	remove_common_static_filter_values(static_filters, dynamic_filters) {
 		if (dynamic_filters) {
-			if ($.isArray(static_filters)) {
+			if (Array.isArray(static_filters)) {
 				static_filters = static_filters.filter((static_filter) => {
 					for (let dynamic_filter of dynamic_filters) {
 						if (
