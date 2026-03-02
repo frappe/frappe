@@ -272,16 +272,22 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	try:
 		retval = method(**kwargs)
 
-	except (frappe.db.InternalError, frappe.RetryBackgroundJobError) as e:
+	except (
+		frappe.db.InternalError,
+		frappe.RetryBackgroundJobError,
+		frappe.QueryDeadlockError,
+		frappe.QueryTimeoutError,
+	) as e:
 		frappe.db.rollback(chain=True)
 
 		if retry < 5 and (
-			isinstance(e, frappe.RetryBackgroundJobError)
+			isinstance(e, (frappe.RetryBackgroundJobError, frappe.QueryDeadlockError, frappe.QueryTimeoutError))
 			or (frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e))
 		):
 			# retry the job if
 			# 1213 = deadlock
 			# 1205 = lock wait timeout
+			# 1020 = snapshot conflict (record changed since last read)
 			# or RetryBackgroundJobError is explicitly raised
 			frappe.job.after_job.reset()
 			frappe.destroy()
