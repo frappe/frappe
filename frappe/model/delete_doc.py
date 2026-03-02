@@ -422,7 +422,6 @@ def raise_link_exists_exception(doc, reference_doctype, reference_docname, row="
 			_(doc.doctype), doc_link, _(reference_doctype), reference_link, row
 		),
 		frappe.LinkExistsError,
-		allow_dangerous_html=True,
 	)
 
 
