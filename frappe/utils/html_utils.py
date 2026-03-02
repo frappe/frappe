@@ -44,6 +44,7 @@ def clean_html(html):
 			"tbody",
 			"td",
 			"tr",
+			"a",
 		},
 		clean_content_tags=REMOVE_CONTENT_TAGS,
 		strip_comments=True,
