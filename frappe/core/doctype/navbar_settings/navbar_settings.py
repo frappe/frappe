@@ -24,6 +24,7 @@ class NavbarSettings(Document):
 		settings_dropdown: DF.Table[NavbarItem]
 	# end: auto-generated types
 
+
 def get_app_logo():
 	app_logo = frappe.get_website_settings("app_logo") or frappe.get_cached_value(
 		"Navbar Settings",
