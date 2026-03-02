@@ -890,6 +890,14 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 	if user != "Guest" and doc.owner == user:
 		return True
+	if (
+		user != "Guest"
+		and ptype in ["read", "write", "share", "submit"]
+		and frappe.share.get_shared(
+			"File", filters=[["share_name", "=", doc.name]], rights=[ptype], user=user
+		)
+	):
+		return True
 
 	if doc.attached_to_doctype and doc.attached_to_name:
 		attached_to_doctype = doc.attached_to_doctype

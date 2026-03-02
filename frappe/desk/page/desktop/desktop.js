@@ -73,7 +73,7 @@ function get_route(desktop_icon) {
 					if (workspaces) {
 						let args = {
 							type: "workspace",
-							name: first_link.link_to,
+							name: workspaces.title,
 							public: workspaces.public ? 1 : 0,
 							route_options: {
 								sidebar: desktop_icon.label,
@@ -174,12 +174,9 @@ class DesktopPage {
 		this.page = page;
 		this.edit_mode = false;
 		this.desktop_menu_items = [];
-		this.make(this.page);
-		this.setup();
 	}
 	update() {
-		this.make(this.page);
-		this.setup();
+		this.make();
 	}
 	prepare() {
 		this.apps_icons = [];
@@ -222,7 +219,7 @@ class DesktopPage {
 		let saved_layout = JSON.parse(localStorage.getItem(`${frappe.session.user}:desktop`));
 		if (!this.data && saved_layout) {
 			this.save_layout(saved_layout);
-		} else if (Object.keys(this.data).length != 0) {
+		} else if (this.data && Array.isArray(this.data) && this.data.length > 0) {
 			frappe.desktop_icons = this.data;
 		} else {
 			frappe.desktop_icons = frappe.boot.desktop_icons;
@@ -248,10 +245,23 @@ class DesktopPage {
 	make() {
 		this.page.page_head.hide();
 		$(this.page.body).empty();
+		this.awesomebar_setup = false;
 		$(frappe.render_template("desktop")).appendTo(this.page.body);
-		if (!this.data) {
-			this.data = JSON.parse($("#desktop-layout").text());
+		if (this.data !== undefined) {
+			this.render();
+		} else {
+			const me = this;
+			frappe.call({
+				method: "frappe.desk.doctype.desktop_layout.desktop_layout.get_layout",
+				callback: function (r) {
+					me.data = r.message;
+					me.render();
+				},
+			});
 		}
+	}
+
+	render() {
 		this.sync_layout();
 		this.prepare();
 		this.wrapper = this.page.body.find(".desktop-container");
@@ -267,8 +277,8 @@ class DesktopPage {
 		if (this.edit_mode) {
 			this.start_editing_layout();
 		}
+		this.setup();
 	}
-
 	setup() {
 		$(document).trigger("desktop_screen", { desktop: this });
 		this.setup_avatar();
@@ -276,7 +286,6 @@ class DesktopPage {
 		this.setup_navbar();
 		this.setup_awesomebar();
 		this.handle_route_change();
-		this.setup_edit_button();
 	}
 	setup_edit_button() {
 		if (this.edit_mode || frappe.is_mobile()) return;
@@ -539,7 +548,6 @@ class DesktopPage {
 		frappe.router.on("change", function () {
 			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "") {
 				me.setup_navbar();
-				me.setup_edit_button();
 			} else {
 				$(".navbar").show();
 				frappe.desktop_utils.close_desktop_modal();
@@ -1028,7 +1036,8 @@ class DesktopIcon {
 				let modal = frappe.desktop_utils.create_desktop_modal(me);
 				modal.setup(me.icon_title, me.child_icons, 4);
 				let $title = modal.modal.find(".modal-title");
-				let title = new InlineEditor($title, this.icon_data.label, function (
+				const edit_mode = frappe.pages["desktop"].desktop_page.edit_mode;
+				let title = new InlineEditor($title, this.icon_data.label, edit_mode, function (
 					old_value,
 					new_value
 				) {
@@ -1040,6 +1049,10 @@ class DesktopIcon {
 					add_icons_to_folder(new_value, folder_icons);
 
 					frappe.pages["desktop"].desktop_page.update();
+
+					if (!frappe.pages["desktop"].desktop_page.edit_mode) {
+						frappe.pages["desktop"].desktop_page.save_layout(frappe.desktop_icons, []);
+					}
 				});
 				modal.show();
 			});
@@ -1072,11 +1085,6 @@ class DesktopIcon {
 			this.folder_grid = new DesktopIconGrid({
 				wrapper: this.folder_wrapper,
 				icons_data: this.child_icons,
-				row_size: 3,
-				page_size: {
-					row: 3,
-					col: 3,
-				},
 				in_folder: true,
 				in_modal: false,
 				no_dragging: true,
@@ -1228,52 +1236,106 @@ class IconsPane {
 }
 
 class InlineEditor {
-	constructor(container, initialValue = "", onRename = () => {}) {
+	constructor(container, initialValue = "", editMode = false, onRename = () => {}) {
 		this.container = container;
-		this.initialValue = initialValue;
-		this.onRename = onRename;
+		this.currentValue = initialValue;
+		this.editMode = editMode;
+		this.onRename = typeof editMode === "function" ? editMode : onRename;
+		if (typeof editMode === "function") {
+			this.editMode = false;
+		}
+		this.isEditing = false;
 
 		this.render();
 		this.bindEvents();
 	}
 
 	render() {
+		const tooltip = this.editMode ? __("Click to edit") : "";
+		const editableClass = this.editMode ? "title-widget--editable" : "title-widget--read-only";
 		this.container.html(`
-			<div class="title-widget">
-				<div class="title-input-label">
-					<span>${__(this.initialValue)}</span>
-				</div>
-				<div class="title-input-wrapper">
-					<input class="title-input">
+			<div class="title-widget ${editableClass}" title="${tooltip}">
+				<span class="title-input-label">${__(this.currentValue)}</span>
+				<div class="title-input-wrapper" style="display: none;">
+					<input type="text" class="title-input" />
 				</div>
 			</div>
 		`);
 
+		this.$widget = this.container.find(".title-widget");
 		this.input = this.container.find(".title-input");
 		this.label = this.container.find(".title-input-label");
+		this.wrapper = this.container.find(".title-input-wrapper");
 	}
 
 	bindEvents() {
-		this.container.on("click", () => {
-			if (frappe.pages["desktop"].desktop_page.edit_mode) {
-				this.label.css("visibility", "hidden");
-				this.input.focus().select();
-			}
+		this.label.on("click", (e) => {
+			e.stopPropagation();
+			if (!frappe.pages["desktop"].desktop_page.edit_mode) return;
+			this.startEditing();
 		});
 
-		this.input.on("keydown", (event) => {
-			if (event.key === "Enter") {
-				const newValue = this.input.val().trim();
-				this.input.css("display", "none");
-				this.label.css("visibility", "visible");
-				this.label.find("span").text(newValue);
-
-				this.onRename(this.initialValue, newValue, this);
+		this.input.on("keydown", (e) => {
+			if (e.key === "Enter") {
+				e.preventDefault();
+				this.commit();
+			} else if (e.key === "Escape") {
+				e.preventDefault();
+				this.cancel();
 			}
 		});
 
 		this.input.on("blur", () => {
-			this.label.css("visibility", "visible");
+			this.commit();
 		});
+
+		this.input.on("input", () => {
+			this.resizeInput();
+		});
+	}
+
+	startEditing() {
+		if (this.isEditing) return;
+		this.isEditing = true;
+		this.initialValue = this.currentValue;
+		this.label.hide();
+		this.wrapper.show();
+		this.input.val(this.currentValue);
+		this.input.css("width", "4px");
+		this.resizeInput();
+		this.input.focus().select();
+	}
+
+	commit() {
+		if (!this.isEditing) return;
+		this.isEditing = false;
+		const newValue = this.input.val().trim();
+		const effective = newValue || this.initialValue;
+		this.label.text(effective).show();
+		this.wrapper.hide();
+		this.input.val(effective);
+		this.currentValue = effective;
+		if (effective !== this.initialValue) {
+			this.onRename(this.initialValue, effective, this);
+		}
+	}
+
+	cancel() {
+		if (!this.isEditing) return;
+		this.isEditing = false;
+		this.label.text(this.initialValue).show();
+		this.wrapper.hide();
+		this.input.val(this.currentValue);
+		this.input.blur();
+	}
+
+	resizeInput() {
+		const mirror = $("<span>")
+			.addClass("title-input-mirror")
+			.text(this.input.val() || "");
+		this.$widget.append(mirror);
+		const textWidth = mirror.get(0).offsetWidth;
+		mirror.remove();
+		this.input.css("width", Math.max(80, textWidth + 20) + "px");
 	}
 }

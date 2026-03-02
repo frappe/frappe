@@ -124,11 +124,6 @@ frappe.ui.form.on("Number Card", {
 			frappe.model.with_doctype(doctype, () => {
 				frappe.get_meta(doctype).fields.map((df) => {
 					if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
-						if (df.fieldtype == "Currency") {
-							if (!df.options || df.options !== "Company:company:default_currency") {
-								return;
-							}
-						}
 						aggregate_based_on_fields.push({ label: df.label, value: df.fieldname });
 					}
 				});
@@ -405,7 +400,13 @@ frappe.ui.form.on("Number Card", {
 			});
 
 			dialog.show();
-			dialog.set_values(frm.dynamic_filters);
+			if (frm.dynamic_filters) {
+				let filter_values = {};
+				frm.dynamic_filters.forEach((f) => {
+					filter_values[f[0] + ":" + f[1]] = f[3];
+				});
+				dialog.set_values(filter_values);
+			}
 		});
 	},
 

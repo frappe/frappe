@@ -570,7 +570,13 @@ export default class ChartWidget extends Widget {
 		let setup_dashboard_chart = () => {
 			const chart_args = this.get_chart_args();
 
+			const is_circular_chart = ["Pie", "Donut", "Percentage"].includes(this.chart_doc.type);
+
 			if (!this.dashboard_chart) {
+				this.dashboard_chart = frappe.utils.make_chart(this.chart_wrapper[0], chart_args);
+			} else if (is_circular_chart) {
+				this.chart_wrapper.empty();
+				delete this.dashboard_chart;
 				this.dashboard_chart = frappe.utils.make_chart(this.chart_wrapper[0], chart_args);
 			} else {
 				this.dashboard_chart.update(this.data);
@@ -619,6 +625,7 @@ export default class ChartWidget extends Widget {
 			colors: colors,
 			height: this.height,
 			maxSlices: this.chart_doc.number_of_groups || max_slices,
+			truncateLegends: 0,
 			axisOptions: {
 				xIsSeries: this.chart_doc.timeseries,
 				shortenYAxisNumbers: 1,

@@ -29,6 +29,7 @@ class WorkspaceSidebar(Document):
 		for_user: DF.Link | None
 		items: DF.Table[WorkspaceSidebarItem]
 		module: DF.Text | None
+		module_onboarding: DF.Link | None
 		standard: DF.Check
 		title: DF.Data | None
 	# end: auto-generated types
@@ -195,7 +196,7 @@ def create_workspace_sidebar_for_workspaces():
 
 
 @frappe.whitelist()
-def add_sidebar_items(sidebar_title, sidebar_items):
+def add_sidebar_items(sidebar_title: str, sidebar_items: str):
 	sidebar_items = loads(sidebar_items)
 	title = f"{sidebar_title}-{frappe.session.user}"
 	w = frappe.get_doc("Workspace Sidebar", sidebar_title)

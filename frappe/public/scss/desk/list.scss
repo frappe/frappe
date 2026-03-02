@@ -371,6 +371,27 @@ input.list-header-checkbox {
 .list-item-table {
 	border: 1px solid $border-color;
 	border-radius: 3px;
+
+	.list-row-head {
+		border-radius: unset;
+	}
+
+	.list-row-container {
+		border-bottom: 1px solid $border-color;
+		border-radius: unset;
+
+		&:last-child {
+			border-bottom: none;
+		}
+	}
+
+	.list-row-container:hover {
+		border-radius: unset;
+	}
+
+	.list-row-container .list-row {
+		border-bottom: none;
+	}
 }
 
 .list-item {
@@ -493,7 +514,7 @@ input.list-header-checkbox {
 
 	.filter-section {
 		display: flex;
-		padding: 0 var(--padding-xs);
+		padding: 0;
 	}
 
 	.filter-selector .btn-group {

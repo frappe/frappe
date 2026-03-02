@@ -261,7 +261,7 @@ frappe.views.Calendar = class Calendar {
 				minute: "2-digit",
 				hour12: true,
 			},
-			firstDay: 1,
+			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
 			eventDisplay: "block",
 			headerToolbar: {
 				left: "prev,title,next",

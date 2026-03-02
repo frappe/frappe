@@ -4,7 +4,7 @@
 	{% if image or user_info.image  %}
 	<img
 		class="avatar-frame standard-image"
-		src="{{ image or user_info.image }}"
+		src="{{ (image or user_info.image) |e }}"
 		title="{{ full_name|e or user_info.name|e }}">
 	{% else %}
 	<span

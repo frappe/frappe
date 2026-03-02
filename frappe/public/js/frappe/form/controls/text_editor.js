@@ -235,7 +235,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			theme: this.df.theme || "snow",
 			readOnly: this.disabled || this.df.read_only,
 			bounds: this.quill_container[0],
-			placeholder: this.df.placeholder || "",
+			placeholder: __(this.df.placeholder || ""),
 		};
 
 		// In a grid row where space is constrained, hide the toolbar.

@@ -200,7 +200,7 @@ def remove_orphan_doctypes():
 
 
 def remove_orphan_entities():
-	entites = ["Workspace", "Dashboard", "Page", "Report"]
+	entites = ["Workspace", "Dashboard", "Page", "Report", "Notification"]
 	app_level_entities = ["Workspace Sidebar", "Desktop Icon"]
 	entity_filter_map = {
 		"Workspace": [{"public": 1, "module": ["is", "set"], "app": ["is", "set"]}],
@@ -209,6 +209,7 @@ def remove_orphan_entities():
 		"Dashboard": {"is_standard": True},
 		"Workspace Sidebar": {"standard": True},
 		"Desktop Icon": {"standard": True},
+		"Notification": {"is_standard": True},
 	}
 	entity_file_map = create_entity_file_map(entites)
 
@@ -238,17 +239,23 @@ def remove_orphan_entities():
 		all_enitities = frappe.get_all(
 			app_entity, filters=entity_filter_map.get(app_entity), fields=["name", "app"]
 		)
-		for i, w in enumerate(all_enitities):
-			if w.app and not check_if_record_exists("app", frappe.get_app_path(w.app), app_entity, w.name):
-				try:
-					print(f"Deleting entity {app_entity} {w.name}")
-					frappe.delete_doc(app_entity, w.name, force=True, ignore_missing=True)
-					update_progress_bar(f"Deleting orphaned {app_entity}", i, len(all_enitities))
-					print()
-
-				except Exception as e:
-					print(f"Error occurred while deleting entity: {app_entity} {w.name}")
-					print(e)
+		for i, entity in enumerate(all_enitities):
+			try:
+				if entity.app:
+					app_path = frappe.get_app_path(entity.app)
+					if not check_if_record_exists("app", app_path, app_entity, entity.name):
+						try:
+							print(f"Deleting entity {app_entity} {entity.name}")
+							frappe.delete_doc(app_entity, entity.name, force=True, ignore_missing=True)
+							update_progress_bar(f"Deleting orphaned {app_entity}", i, len(all_enitities))
+							print()
+						except Exception as e:
+							print(f"Error occurred while deleting entity: {app_entity} {entity.name}")
+							print(e)
+			except ModuleNotFoundError as e:
+				print(e)
+				print(f"Deleting entity {app_entity} {entity.name}")
+				frappe.db.delete(app_entity, {"name": entity.name})
 
 	# save the deleted icons
 	frappe.db.commit()  # nosemgrep

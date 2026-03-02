@@ -19,7 +19,7 @@ from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
-from frappe.integrations.frappe_providers.frappecloud_billing import is_fc_site
+from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
 from frappe.model.base_document import get_controller
 from frappe.permissions import has_permission
 from frappe.query_builder import DocType
@@ -125,6 +125,8 @@ def get_bootinfo():
 	bootinfo.setup_wizard_completed_apps = get_setup_wizard_completed_apps() or []
 	bootinfo.desktop_icon_urls = get_desktop_icon_urls()
 	bootinfo.desktop_icon_style = get_icon_style() or "Subtle"
+	if bootinfo.is_fc_site:
+		bootinfo.site_info = current_site_info()
 	return bootinfo
 
 
@@ -537,7 +539,9 @@ def get_sidebar_items(allowed_workspaces):
 	from frappe import _
 	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import auto_generate_sidebar_from_module
 
-	workspace_sidebars = frappe.get_all("Workspace Sidebar", fields=["name", "header_icon"])
+	workspace_sidebars = frappe.get_all(
+		"Workspace Sidebar", fields=["name", "header_icon", "module_onboarding"]
+	)
 	module_sidebars = auto_generate_sidebar_from_module()
 	workspace_sidebars.extend(module_sidebars)
 	sidebar_items = {}
@@ -559,6 +563,7 @@ def get_sidebar_items(allowed_workspaces):
 				"label": sidebar_title,
 				"items": [],
 				"header_icon": sidebar.get("header_icon"),
+				"module_onboarding": sidebar.get("module_onboarding"),
 				"module": sidebar_doc.module,
 				"app": sidebar_doc.app,
 			}

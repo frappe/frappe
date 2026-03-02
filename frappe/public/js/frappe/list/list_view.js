@@ -291,8 +291,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	set_primary_action() {
 		if (this.can_create && !frappe.boot.read_only) {
 			const doctype_name = __(frappe.router.doctype_layout) || __(this.doctype);
+			const add_button_label = __("Add {0}", [doctype_name], "Primary action in list view");
 			const create_button = this.page.set_primary_action(
-				__("Add {0}", [doctype_name], "Primary action in list view"),
+				add_button_label,
 				() => {
 					if (this.settings.primary_action) {
 						this.settings.primary_action();
@@ -304,9 +305,23 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			);
 			if (frappe.is_mobile()) {
 				create_button.append(__("Add"));
+			} else {
+				this._trim_primary_action_if_overflow(create_button, add_button_label);
 			}
 		} else {
 			this.page.clear_primary_action();
+		}
+	}
+
+	_trim_primary_action_if_overflow(btn, add_button_label) {
+		const container = this.page.wrapper.find(".page-head-content")[0];
+		if (!container || !btn[0]) return;
+		const containerRect = container.getBoundingClientRect();
+		const btnRect = btn[0].getBoundingClientRect();
+		if (btnRect.right > containerRect.right) {
+			const short_label = __("Add");
+			btn.attr("title", add_button_label).tooltip();
+			btn.find("span").text(short_label);
 		}
 	}
 
@@ -2532,6 +2547,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		// Copy to clipboard
 		actions_menu_items.push(copy_to_clipboard());
+
+		if (!frappe.boot.desk_settings?.bulk_actions) return actions_menu_items;
 
 		// bulk edit
 		if (has_editable_fields(doctype) && is_bulk_edit_allowed(doctype)) {

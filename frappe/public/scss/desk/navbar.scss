@@ -86,12 +86,8 @@
 }
 
 .navbar-modal-wrapper {
-	.modal-search-icon {
-		position: absolute;
-	}
-
 	#navbar-search {
-		padding-left: 42px;
+		display: flex;
 	}
 
 	.awesomplete {
@@ -127,17 +123,23 @@
 .awesomebar-modal-footer {
 	font-size: 12px;
 	.help-navigation {
+		display: flex;
+		gap: var(--margin-md);
 		.help-item-navigate {
-			margin-right: 1rem;
+			display: flex;
+			gap: var(--margin-xs);
+			align-items: center;
 		}
 		.help-item {
 			background-color: var(--border-color);
-			padding: 2px;
-			margin-right: 0.25rem;
+			padding: 3px;
+			display: flex;
+			font-size: x-small;
 			border-radius: 4px;
 		}
-		.help-item-esc {
+		.help-item-escape {
 			padding: 2px 4px;
+			display: inline-flex;
 		}
 	}
 }

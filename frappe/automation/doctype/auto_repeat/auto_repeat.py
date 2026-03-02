@@ -1,7 +1,7 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from dateutil.relativedelta import relativedelta
 
@@ -560,8 +560,8 @@ def make_auto_repeat(
 	doctype: str,
 	docname: str | int,
 	frequency: str = "Daily",
-	start_date: str | None = None,
-	end_date: str | None = None,
+	start_date: str | datetime | None = None,
+	end_date: str | datetime | None = None,
 ):
 	if not start_date:
 		start_date = getdate(today())

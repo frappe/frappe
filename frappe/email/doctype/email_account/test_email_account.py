@@ -521,12 +521,14 @@ class TestInboundMail(IntegrationTestCase):
 
 	def test_mail_exist_validation(self):
 		"""Do not create communication record if the mail is already downloaded into the system."""
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		mail_content = self.get_test_mail(fname="incoming-1.raw")
 		message_id = Email(mail_content).message_id
 		# Create new communication record in DB
-		communication = self.new_communication(message_id=message_id, sent_or_received="Received")
+		communication = self.new_communication(
+			message_id=message_id, email_account=email_account.name, sent_or_received="Received"
+		)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		new_communication = inbound_mail.process()
 

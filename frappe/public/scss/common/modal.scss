@@ -2,6 +2,12 @@ h5.modal-title {
 	margin: 0px !important;
 }
 
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
 // Hack to fix incorrect padding applied by Bootstrap
 body.modal-open[style^="padding-right"] {
 	padding-right: 12px !important;
@@ -39,8 +45,7 @@ body.modal-open[style^="padding-right"] {
 		top: 0;
 		z-index: 3;
 		background: inherit;
-		padding: var(--padding-sm) var(--padding-lg);
-		// padding-bottom: 0;
+		padding: var(--padding-sm) var(--padding-md);
 		border-bottom: 1px solid var(--border-color);
 
 		.modal-title {
@@ -66,7 +71,7 @@ body.modal-open[style^="padding-right"] {
 	}
 
 	.modal-body {
-		padding: var(--padding-md) var(--padding-lg);
+		padding: var(--padding-md) var(--padding-md);
 		.form-layout:first-child > .form-page {
 			.visible-section:first-child {
 				padding-top: 0;
@@ -93,7 +98,7 @@ body.modal-open[style^="padding-right"] {
 		bottom: 0;
 		z-index: 1;
 		background: inherit;
-		padding: var(--padding-md) var(--padding-lg);
+		padding: var(--padding-md);
 		justify-content: space-between;
 
 		button {
@@ -103,6 +108,11 @@ body.modal-open[style^="padding-right"] {
 		.standard-actions {
 			button:not(:last-child) {
 				margin-right: var(--margin-xs);
+			}
+
+			.btn-primary-dark {
+				min-width: 80px;
+				max-width: 200px;
 			}
 		}
 
@@ -244,10 +254,6 @@ body.modal-open[style^="padding-right"] {
 		}
 		.frappe-control:last-child {
 			margin-left: 10px;
-			button {
-				// same as form-control input
-				height: calc(1.5em + 0.7rem);
-			}
 		}
 	}
 }
@@ -269,7 +275,19 @@ body.modal-open[style^="padding-right"] {
 		}
 
 		.frappe-control:last-child {
-			margin-top: -14px;
+			margin-top: 10px;
+		}
+	}
+}
+
+.modal .frappe-control[data-fieldname="option_toggle_button"] {
+	margin-top: 10px;
+	.form-group {
+		margin-bottom: 0;
+
+		button {
+			width: 28px;
+			height: 28px;
 		}
 	}
 }
@@ -300,15 +318,15 @@ body.modal-open[style^="padding-right"] {
 	}
 	.assignee {
 		flex: 1;
+		display: flex;
+		gap: 8px;
+		align-items: center;
 	}
 	&:hover {
 		.btn-group {
 			opacity: 1;
 			transition: opacity 0.1s ease-in-out;
 		}
-	}
-	.avatar {
-		margin-right: var(--margin-md);
 	}
 }
 

@@ -37,24 +37,35 @@ export default class Column {
 	}
 
 	resize_all_columns() {
-		// distribute all columns equally
-		let columns = this.section.wrapper.find(".form-column").length;
+		// distribute visible columns equally
+		let all_columns = this.section.wrapper.find(".form-column");
+		let visible_columns = all_columns.filter(":not(.hide-control)");
+		let columns = visible_columns.length || all_columns.length;
 		let colspan = cint(12 / columns);
 
 		if (columns == 5) {
 			colspan = 20;
 		}
 
-		this.section.wrapper
-			.find(".form-column")
-			.removeClass()
-			.addClass("form-column")
-			.addClass("col-sm-" + colspan);
+		all_columns.each(function () {
+			const $col = $(this);
+			const is_hidden = $col.hasClass("hide-control");
+			$col.removeClass()
+				.addClass("form-column")
+				.addClass("col-sm-" + colspan);
+			if (is_hidden) {
+				$col.addClass("hide-control");
+			}
+		});
 	}
 
 	add_field() {}
 
 	refresh() {
+		if (!this.df) return;
+		const hide = this.df.hidden || this.df.hidden_due_to_dependency;
+		this.wrapper.toggleClass("hide-control", !!hide);
+		this.resize_all_columns();
 		this.section.refresh();
 	}
 }

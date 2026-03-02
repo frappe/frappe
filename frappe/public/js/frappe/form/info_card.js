@@ -35,6 +35,7 @@ export class InfoCard {
 			trigger: $(this.label_span).find("svg").get(0),
 			close_button: true,
 			popper: true,
+			primary_button_width: "full",
 		};
 		if (this.df.documentation_url) {
 			card_args.primary_action_label = "Read More";

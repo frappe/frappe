@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from typing import Any
 
 import frappe
 from frappe import _
@@ -48,7 +49,7 @@ def get_setup_stages(args):  # nosemgrep
 
 
 @frappe.whitelist()
-def setup_complete(args):
+def setup_complete(args: str | dict[str, Any]):
 	"""Calls hooks for `setup_wizard_complete`, sets home page as `desktop`
 	and clears cache. If wizard breaks, calls `setup_wizard_exception` hook"""
 
@@ -68,7 +69,9 @@ def setup_complete(args):
 
 
 @frappe.whitelist()
-def initialize_system_settings_and_user(system_settings_data, user_data):
+def initialize_system_settings_and_user(
+	system_settings_data: str | dict[str, Any], user_data: str | dict[str, Any]
+):
 	system_settings = frappe.get_single("System Settings")
 
 	if cint(system_settings.setup_complete):
@@ -377,7 +380,7 @@ def disable_future_access():
 
 
 @frappe.whitelist()
-def load_messages(language):
+def load_messages(language: str):
 	"""Load translation messages for given language from all `setup_wizard_requires`
 	javascript files"""
 	from frappe.translate import get_messages_for_boot

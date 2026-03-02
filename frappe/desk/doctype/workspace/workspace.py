@@ -76,6 +76,18 @@ class Workspace(Document):
 
 		if self.public and not is_workspace_manager() and not disable_saving_as_public():
 			frappe.throw(_("You need to be Workspace Manager to edit this document"))
+
+		if (
+			not self.public
+			and self.for_user
+			and self.for_user != frappe.session.user
+			and not is_workspace_manager()
+		):
+			frappe.throw(
+				_("You are not allowed to edit this workspace"),
+				frappe.PermissionError,
+			)
+
 		if self.has_value_changed("title"):
 			validate_route_conflict(self.doctype, self.title)
 		else:
@@ -284,7 +296,7 @@ def get_report_type(report):
 
 
 @frappe.whitelist()
-def new_page(new_page):
+def new_page(new_page: str):
 	if not loads(new_page):
 		return
 
@@ -328,7 +340,7 @@ def new_page(new_page):
 
 
 @frappe.whitelist()
-def save_page(name, public, new_widgets, blocks):
+def save_page(name: str, public: str | int, new_widgets: str, blocks: str):
 	public = frappe.parse_json(public)
 
 	doc = frappe.get_doc("Workspace", name)
@@ -343,7 +355,7 @@ def save_page(name, public, new_widgets, blocks):
 
 
 @frappe.whitelist()
-def update_page(name, title, icon, indicator_color, parent, public):
+def update_page(name: str, title: str, icon: str, indicator_color: str, parent: str, public: str | int):
 	public = frappe.parse_json(public)
 	doc = frappe.get_doc("Workspace", name)
 

@@ -208,7 +208,7 @@ frappe.dashboard_utils = {
 			: null;
 
 		if (!dynamic_filters || !Object.keys(dynamic_filters).length) {
-			return this.cleanup_filters(filters);
+			return filters;
 		}
 
 		if (Array.isArray(dynamic_filters)) {
@@ -232,13 +232,6 @@ frappe.dashboard_utils = {
 			Object.assign(filters, dynamic_filters);
 		}
 
-		return this.cleanup_filters(filters);
-	},
-	cleanup_filters(filters) {
-		if (filters.length && filters[0].length == 5) {
-			filters.pop();
-			return filters;
-		}
 		return filters;
 	},
 	get_dashboard_link_field() {
@@ -271,7 +264,7 @@ frappe.dashboard_utils = {
 			primary_action: (values) => {
 				values.name = docname;
 				values.set_standard = frappe.boot.developer_mode;
-				frappe.xcall(method, { args: values }).then(() => {
+				return frappe.xcall(method, { args: values }).then(() => {
 					let dashboard_route_html = `<a href = "/desk/dashboard/${values.dashboard}">${values.dashboard}</a>`;
 					let message = __("{0} {1} added to Dashboard {2}", [
 						doctype,
@@ -280,9 +273,8 @@ frappe.dashboard_utils = {
 					]);
 
 					frappe.msgprint(message);
+					dialog.hide();
 				});
-
-				dialog.hide();
 			},
 		});
 

@@ -24,13 +24,13 @@ page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 # website
 app_include_js = [
 	"libs.bundle.js",
+	"billing.bundle.js",
 	"desk.bundle.js",
 	"list.bundle.js",
 	"form.bundle.js",
 	"controls.bundle.js",
 	"report.bundle.js",
 	"telemetry.bundle.js",
-	"billing.bundle.js",
 ]
 
 app_include_css = [
@@ -149,6 +149,8 @@ jinja = {
 		"frappe.website.utils.abs_url",
 	],
 }
+
+require_type_annotated_api_methods = True
 
 standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
 
@@ -356,7 +358,6 @@ user_data_fields = [
 			"phone",
 			"mobile_no",
 			"location",
-			"banner_image",
 			"interest",
 			"bio",
 			"email_signature",

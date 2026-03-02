@@ -68,6 +68,7 @@
 	.row-index {
 		position: sticky;
 		left: 0;
+		z-index: 1;
 	}
 	.row-index {
 		left: 31px;
@@ -140,6 +141,7 @@
 		position: sticky;
 		left: 0;
 		background-color: var(--fg-color);
+		z-index: 1;
 	}
 	.row-index {
 		left: 31px;
@@ -268,6 +270,7 @@
 
 	.col:last-child {
 		border: none;
+		background-color: var(--fg-color);
 	}
 
 	.btn-open-row {
@@ -299,7 +302,7 @@
 		}
 
 		textarea {
-			height: 39px !important;
+			height: 43px !important;
 		}
 
 		.form-control,
@@ -307,13 +310,14 @@
 			border-radius: 0px;
 			border: 0px;
 			padding-top: 10px;
-			padding-bottom: calc(var(--padding-md) - 3px);
-			height: auto;
+			padding-bottom: 10px;
+			height: 100%;
 		}
 
 		.link-btn {
-			top: 5px;
 			background-color: var(--bg-color);
+			height: calc(100% - 4px);
+			margin-top: 2px;
 		}
 
 		.form-control:focus {
@@ -382,12 +386,7 @@
 			line-height: 1.3 !important;
 		}
 	}
-	.data-row {
-		div[data-fieldname="options"],
-		div[data-fieldtype="Text Editor"] {
-			height: 40px;
-		}
-	}
+
 	.grid-static-col {
 		background-color: var(--fg-color);
 		&.sticky-grid-col {
@@ -432,6 +431,7 @@
 	.frappe-control {
 		margin-bottom: 0px !important;
 		position: relative;
+		flex-grow: 1;
 	}
 
 	.col-sm-6 {
@@ -781,7 +781,7 @@
 .data-row.row {
 	flex-wrap: nowrap;
 }
-.frappe-control[data-fieldtype="Table"].form-group:has(.column-limit-reached) {
+.frappe-control[data-fieldtype="Table"].form-group:has(.column-limit-reached):not(.highlight) {
 	overflow-x: clip;
 }
 .column-limit-reached {
@@ -884,6 +884,12 @@
 
 .grid-scroll-bar-rows {
 	height: 100%;
+}
+
+.sticky-col-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 @media (max-width: map-get($grid-breakpoints, "md")) {

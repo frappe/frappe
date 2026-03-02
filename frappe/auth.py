@@ -253,7 +253,11 @@ class LoginManager:
 		):
 			return
 
-		clear_sessions(frappe.session.user, keep_current=True)
+		clear_sessions(
+			frappe.session.user,
+			keep_current=True,
+			force=frappe.session.user != "Administrator",
+		)
 
 	def authenticate(self, user: str | None = None, pwd: str | None = None):
 		from frappe.core.doctype.user.user import User
@@ -679,7 +683,10 @@ def validate_oauth(authorization_header):
 			uri, http_method, body, headers, required_scopes
 		)
 		if valid:
-			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
+			user = frappe.db.get_value("OAuth Bearer Token", token, "user")
+			if not frappe.db.get_value("User", user, "enabled"):
+				frappe.throw(_("User {0} is disabled").format(user), frappe.AuthenticationError)
+			frappe.set_user(user)
 			frappe.local.form_dict = form_dict
 	except AttributeError:
 		pass

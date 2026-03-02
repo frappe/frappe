@@ -200,6 +200,9 @@ def get_assignments(doc) -> list[dict]:
 
 @frappe.whitelist()
 def bulk_apply(doctype: str, docnames: str | list[str]):
+	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)
+
 	docnames = frappe.parse_json(docnames)
 	background = len(docnames) > 5
 

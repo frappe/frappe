@@ -452,9 +452,7 @@ export default class BulkOperations {
 			primary_action: () => {
 				let args = dialog.get_values();
 				if (args && args.tags) {
-					dialog.set_message("Adding Tags...");
-
-					frappe.call({
+					return frappe.call({
 						method: "frappe.desk.doctype.tag.tag.add_tags",
 						args: {
 							tags: args.tags,

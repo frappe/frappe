@@ -526,7 +526,7 @@ def generate_admin_keys():
 
 
 @whitelist_for_tests()
-def test(*, fail=False, handled=True, message="Failed"):
+def test(*, fail: int | bool = False, handled: int | bool = True, message: str = "Failed"):
 	if fail:
 		if handled:
 			frappe.throw(message)
@@ -537,5 +537,5 @@ def test(*, fail=False, handled=True, message="Failed"):
 
 
 @whitelist_for_tests(allow_guest=True)
-def test_array(data):
+def test_array(data: typing.Any):
 	return data
