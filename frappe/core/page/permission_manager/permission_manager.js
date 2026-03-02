@@ -584,18 +584,33 @@ frappe.PermissionEngine = class PermissionEngine {
 	}
 
 	show_activity_log() {
+		const PERM_FIELDS = [
+			"select",
+			"read",
+			"write",
+			"create",
+			"delete",
+			"submit",
+			"cancel",
+			"amend",
+			"print",
+			"email",
+			"report",
+			"import",
+			"export",
+			"share",
+			"mask",
+		];
+		const STATUS_COLOR = { Added: "green", Removed: "red", Updated: "orange" };
+
 		let doctype = this.get_doctype();
 		let title = doctype
 			? __("Activity Log for {0}", [__(doctype)])
 			: __("Role Permissions Activity Log");
 
-		let d = new frappe.ui.Dialog({
-			title: title,
-			size: "large",
-		});
-
+		let d = new frappe.ui.Dialog({ title, size: "large" });
 		let $body = $(d.body);
-		$body.html(`<div class="text-muted text-center p-4">${__("Loading…")}</div>`);
+		$body.html(`<div class="text-muted text-center p-4">${__("Loading\u2026")}</div>`);
 
 		frappe
 			.call({
@@ -617,63 +632,66 @@ frappe.PermissionEngine = class PermissionEngine {
 					return;
 				}
 
-				let status_color = { Added: "green", Removed: "red", Updated: "orange" };
-
 				let rows = logs
 					.map((log) => {
-						let changes_html = "";
-						try {
-							let ch = log.changes || {};
-							let from = ch.from || {};
-							let to = ch.to || {};
-							let keys = new Set([...Object.keys(from), ...Object.keys(to)]);
+						let ch = log.changes || {};
+						let from = ch.from || {};
+						let to = ch.to || {};
+
+						// Role: prefer the side that has data
+						let role =
+							(log.status === "Removed" ? from.role : to.role) || from.role || "—";
+
+						// Active permissions: for Added/Removed show the full set;
+						// for Updated show only what flipped
+						let changes_text = "";
+						if (log.status === "Updated") {
 							let parts = [];
-							keys.forEach((k) => {
-								let fv = from[k] !== undefined ? from[k] : "";
-								let tv = to[k] !== undefined ? to[k] : "";
-								if (fv !== tv) {
+							PERM_FIELDS.forEach((f) => {
+								if (f in to && to[f] !== from[f]) {
+									let label = toTitle(frappe.unscrub(f));
 									parts.push(
-										`<span class="text-muted">${frappe.model.unscrub(
-											k
-										)}:</span> ` +
-											`<span class="diff-remove">${fv}</span> → ` +
-											`<span class="diff-add">${tv}</span>`
+										to[f]
+											? `<span class="diff-add">${__(label)}</span>`
+											: `<span class="diff-remove">${__(label)}</span>`
 									);
 								}
 							});
-							changes_html = parts.join("<br>");
-						} catch (e) {
-							changes_html = "";
+							changes_text = parts.join(", ") || "—";
+						} else {
+							// Added or Removed — list the active permission types
+							let source = log.status === "Removed" ? from : to;
+							let active = PERM_FIELDS.filter(
+								(f) => source[f] == 1 || source[f] === true
+							);
+							changes_text =
+								active.map((f) => __(toTitle(frappe.unscrub(f)))).join(", ") ||
+								"—";
 						}
 
-						let badge_color = status_color[log.status] || "grey";
-						let dt_display = log.for_document
-							? frappe.utils.get_form_link("DocType", log.for_document, true)
-							: "";
-						let user_display = log.changed_by
-							? frappe.utils.get_form_link("User", log.changed_by, true)
-							: "";
+						let badge_color = STATUS_COLOR[log.status] || "grey";
 						let ts = frappe.datetime.str_to_user(log.changed_at);
+						let user_display = log.changed_by || "—";
 
 						return `<tr>
-							<td>${ts}</td>
+							<td style="white-space:nowrap">${ts}</td>
 							<td>${user_display}</td>
-							<td>${dt_display}</td>
 							<td><span class="indicator-pill ${badge_color}">${__(log.status)}</span></td>
-							<td class="small">${changes_html}</td>
+							<td>${__(role)}</td>
+							<td class="small">${changes_text}</td>
 						</tr>`;
 					})
 					.join("");
 
 				$body.html(`
 					<div style="overflow-x: auto;">
-						<table class="table table-bordered table-sm">
-							<thead>
+						<table class="table table-bordered table-sm" style="font-size:13px">
+							<thead style="background:var(--fg-color)">
 								<tr>
-									<th style="min-width:130px">${__("When")}</th>
-									<th style="min-width:120px">${__("Changed By")}</th>
-									<th style="min-width:120px">${__("DocType")}</th>
-									<th style="min-width:80px">${__("Action")}</th>
+									<th style="min-width:130px">${__("Date")}</th>
+									<th style="min-width:110px">${__("Modified By")}</th>
+									<th style="min-width:90px">${__("Action")}</th>
+									<th style="min-width:110px">${__("Role")}</th>
 									<th>${__("Changes")}</th>
 								</tr>
 							</thead>
