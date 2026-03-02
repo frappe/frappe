@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _, are_emails_muted, safe_encode, task
-from frappe.core.utils import html2text
+from frappe.core.utils import html_to_plain_text
 from frappe.database.database import savepoint
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import add_attachment, get_email, get_formatted_html
@@ -691,7 +691,7 @@ class QueueBuilder:
 			return self._text_content + unsubscribe_text_message
 
 		try:
-			text_content = html2text(self._message)
+			text_content = html_to_plain_text(self._message)
 		except Exception:
 			text_content = "See html attachment"
 		return text_content + unsubscribe_text_message
