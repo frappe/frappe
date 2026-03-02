@@ -109,7 +109,13 @@ def msgprint(
 		out.primary_action = primary_action
 
 	if wide:
-		out.wide = wide
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			marked="unknown",
+			graduation="v17",
+			msg="The `wide` parameter has no effect and is deprecated",
+		)
 
 	if realtime:
 		frappe.publish_realtime(event="msgprint", message=out)
@@ -156,6 +162,14 @@ def throw(
 	:param as_list: [optional] If `msg` is a list, render as un-ordered list.
 	:param primary_action: [optional] Bind a primary server/client side action.
 	"""
+	if wide:
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			marked="unknown",
+			graduation="v17",
+			msg="The `wide` parameter has no effect and is deprecated",
+		)
 	msgprint(
 		msg,
 		raise_exception=exc,

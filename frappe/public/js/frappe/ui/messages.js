@@ -282,16 +282,7 @@ frappe.msgprint = function (msg, title, is_minimizable, re_route) {
 		frappe.msg_dialog.indicator.removeClass().addClass("hidden");
 	}
 
-	// width
-	if (data.wide) {
-		// msgprint should be narrower than the usual dialog
-		if (frappe.msg_dialog.wrapper.classList.contains("msgprint-dialog")) {
-			frappe.msg_dialog.wrapper.classList.remove("msgprint-dialog");
-		}
-	} else {
-		// msgprint should be narrower than the usual dialog
-		frappe.msg_dialog.wrapper.classList.add("msgprint-dialog");
-	}
+	frappe.msg_dialog.wrapper.classList.add("msgprint-dialog");
 
 	if (msg_exists) {
 		frappe.msg_dialog.msg_area.append("<hr>");
