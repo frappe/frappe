@@ -58,9 +58,14 @@ div#driver-popover-item {
 	}
 }
 
+#driver-page-overlay {
+	pointer-events: none !important;
+}
+
 #driver-highlighted-element-stage {
 	background-color: var(--bg-color) !important;
 	border-radius: var(--border-radius) !important;
+	pointer-events: auto !important;
 }
 
 input.driver-highlighted-element {

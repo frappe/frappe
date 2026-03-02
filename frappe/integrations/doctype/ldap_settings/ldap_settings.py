@@ -424,6 +424,8 @@ def login():
 
 @frappe.whitelist()
 def reset_password(user: str, password: str, logout: int):
+	frappe.only_for("System Manager")
+
 	ldap: LDAPSettings = frappe.get_doc("LDAP Settings")
 	if not ldap.enabled:
 		frappe.throw(_("LDAP is not enabled."))

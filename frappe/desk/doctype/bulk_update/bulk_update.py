@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from typing import Any
+
 import frappe
 from frappe import _
 from frappe.core.doctype.submission_queue.submission_queue import queue_submission
@@ -46,7 +48,16 @@ class BulkUpdate(Document):
 
 
 @frappe.whitelist()
-def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None, task_id=None):
+def submit_cancel_or_update_docs(
+	doctype: str,
+	docnames: str | list[str],
+	action: str = "submit",
+	data: str | dict[str, Any] | None = None,
+	task_id: str | None = None,
+) -> list[str] | None:
+	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
+
 	if isinstance(docnames, str):
 		docnames = frappe.parse_json(docnames)
 

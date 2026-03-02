@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from typing import Any
 
 import frappe
 from frappe import _
@@ -48,7 +49,7 @@ def get_setup_stages(args):  # nosemgrep
 
 
 @frappe.whitelist()
-def setup_complete(args):
+def setup_complete(args: str | dict[str, Any]):
 	"""Calls hooks for `setup_wizard_complete`, sets home page as `desktop`
 	and clears cache. If wizard breaks, calls `setup_wizard_exception` hook"""
 
@@ -68,7 +69,9 @@ def setup_complete(args):
 
 
 @frappe.whitelist()
-def initialize_system_settings_and_user(system_settings_data, user_data):
+def initialize_system_settings_and_user(
+	system_settings_data: str | dict[str, Any], user_data: str | dict[str, Any]
+):
 	system_settings = frappe.get_single("System Settings")
 
 	if cint(system_settings.setup_complete):
@@ -377,7 +380,7 @@ def disable_future_access():
 
 
 @frappe.whitelist()
-def load_messages(language):
+def load_messages(language: str):
 	"""Load translation messages for given language from all `setup_wizard_requires`
 	javascript files"""
 	from frappe.translate import get_messages_for_boot
@@ -391,16 +394,34 @@ def load_messages(language):
 
 @frappe.whitelist()
 def load_languages():
-	language_codes = frappe.db.sql(
-		"select language_code, language_name from tabLanguage order by name", as_dict=True
+	Language = frappe.qb.DocType("Language")
+	language_codes = (
+		frappe.qb.from_(Language)
+		.select(Language.language_code, Language.language_name)
+		.where(Language.enabled == 1)
+		.orderby(Language.language_code)
+		.run(as_dict=1)
+	)
+
+	language_opts = (
+		frappe.qb.from_(Language)
+		.select(
+			Language.language_name.as_("value"),
+			Language.language_name.as_("label"),
+			Language.language_code.as_("description"),
+		)
+		.where(Language.enabled == 1)
+		.orderby(Language.language_code)
+		.run(as_dict=1)
 	)
 	codes_to_names = {}
 	for d in language_codes:
 		codes_to_names[d.language_code] = d.language_name
+
 	return {
 		"default_language": frappe.db.get_value("Language", frappe.local.lang, "language_name")
 		or frappe.local.lang,
-		"languages": sorted(frappe.db.sql_list("select language_name from tabLanguage order by name")),
+		"languages": language_opts,
 		"codes_to_names": codes_to_names,
 	}
 

@@ -5,6 +5,7 @@
 
 import json
 from functools import lru_cache
+from typing import Any
 
 from sql_metadata import Parser
 
@@ -319,7 +320,7 @@ def compress(data, args=None):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def save_report(name, doctype, report_settings):
+def save_report(name: str | int, doctype: str, report_settings: str):
 	"""Save reports of type Report Builder from Report View"""
 
 	if frappe.db.exists("Report", name):
@@ -349,7 +350,7 @@ def save_report(name, doctype, report_settings):
 
 
 @frappe.whitelist(methods=["POST", "DELETE"])
-def delete_report(name):
+def delete_report(name: str | int):
 	"""Delete reports of type Report Builder from Report View"""
 
 	report = frappe.get_doc("Report", name)
@@ -596,6 +597,9 @@ def parse_field(field: str) -> tuple[str | None, str]:
 @frappe.whitelist(methods=["POST", "DELETE"])
 def delete_items():
 	"""delete selected items"""
+	if not (frappe.get_cached_value("User", frappe.session.user, "bulk_actions")):
+		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
+
 	import json
 
 	items = sorted(json.loads(frappe.form_dict.get("items")), reverse=True)
@@ -641,13 +645,17 @@ def delete_bulk(doctype, items):
 		)
 	else:
 		frappe.msgprint(
-			_("Deleted all documents successfully"), realtime=True, title=_("Bulk Operation Successful")
+			_(f"Deleted {len(items)} records from {doctype} doctype"),
+			realtime=True,
+			title=_("Bulk Operation Successful"),
 		)
 
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_sidebar_stats(stats, doctype, filters=None):
+def get_sidebar_stats(
+	stats: str | list[str], doctype: str, filters: str | list | dict[str, Any] | None = None
+):
 	if filters is None:
 		filters = []
 
@@ -663,7 +671,7 @@ def get_sidebar_stats(stats, doctype, filters=None):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_stats(stats, doctype, filters=None):
+def get_stats(stats: str, doctype: str, filters: str | None = None):
 	"""get tag info"""
 	import json
 
@@ -698,14 +706,13 @@ def get_stats(stats, doctype, filters=None):
 				results[column] = scrub_user_tags(tag_count)
 				no_tag_count = frappe.get_list(
 					doctype,
-					fields=[column, {"COUNT": "1"}],
+					fields=[column, {"COUNT": "1", "as": "count"}],
 					filters=[*filters, [column, "in", ("", ",")]],
-					as_list=True,
 					group_by=column,
 					order_by=column,
 				)
 
-				no_tag_count = no_tag_count[0][1] if no_tag_count else 0
+				no_tag_count = no_tag_count[0].get("count", 0) if no_tag_count else 0
 
 				results[column].append([_("No Tags"), no_tag_count])
 			else:
@@ -721,7 +728,7 @@ def get_stats(stats, doctype, filters=None):
 
 
 @frappe.whitelist()
-def get_filter_dashboard_data(stats, doctype, filters=None):
+def get_filter_dashboard_data(stats: str, doctype: str, filters: str | None = None):
 	"""get tags info"""
 	import json
 

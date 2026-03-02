@@ -48,9 +48,6 @@ frappe.ui.AddressAutocompleteDialog = class AddressAutocompleteDialog {
 			],
 			primary_action_label: __("Create Address"),
 			primary_action: () => {
-				// Insert the address into the database
-				dialog.hide();
-
 				const address = this.parse_selected_value();
 				address["doctype"] = "Address";
 				address["links"] = [
@@ -59,7 +56,8 @@ frappe.ui.AddressAutocompleteDialog = class AddressAutocompleteDialog {
 						link_name: this.link_name,
 					},
 				];
-				frappe.db.insert(address).then((doc) => {
+				return frappe.db.insert(address).then((doc) => {
+					dialog.hide();
 					this.after_insert && this.after_insert(doc);
 				});
 			},

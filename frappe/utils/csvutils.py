@@ -4,6 +4,7 @@ import csv
 import json
 from csv import Sniffer
 from io import StringIO
+from typing import Any
 
 import requests
 
@@ -104,7 +105,7 @@ def read_csv_content(fcontent, use_sniffer: bool = False):
 
 
 @frappe.whitelist()
-def send_csv_to_client(args):
+def send_csv_to_client(args: str | dict[str, Any]):
 	if isinstance(args, str):
 		args = json.loads(args)
 

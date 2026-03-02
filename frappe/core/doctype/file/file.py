@@ -767,7 +767,7 @@ class File(Document):
 		max_file_size = get_max_file_size()
 		file_size = len(self._content or b"")
 
-		if file_size > max_file_size:
+		if not self.flags.skip_file_size_check and file_size > max_file_size:
 			msg = _("File size exceeded the maximum allowed size of {0} MB").format(max_file_size / 1048576)
 			if frappe.has_permission("System Settings", "write"):
 				msg += ".<br>" + _("You can increase the limit from System Settings.")
@@ -889,6 +889,14 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 		return True
 
 	if user != "Guest" and doc.owner == user:
+		return True
+	if (
+		user != "Guest"
+		and ptype in ["read", "write", "share", "submit"]
+		and frappe.share.get_shared(
+			"File", filters=[["share_name", "=", doc.name]], rights=[ptype], user=user
+		)
+	):
 		return True
 
 	if doc.attached_to_doctype and doc.attached_to_name:

@@ -211,8 +211,7 @@ frappe.ui.form.on("Communication", {
 			],
 			primary_action_label: __("Move"),
 			primary_action(values) {
-				d.hide();
-				frappe.call({
+				return frappe.call({
 					method: "frappe.email.inbox.move_email",
 					args: {
 						communication: frm.doc.name,
@@ -220,6 +219,7 @@ frappe.ui.form.on("Communication", {
 					},
 					freeze: true,
 					callback: function () {
+						d.hide();
 						window.history.back();
 					},
 				});

@@ -120,7 +120,7 @@ export default class ListFilter {
 			fields: fields,
 			primary_action_label: __("Create"),
 			primary_action: (values) => {
-				this.bind_save_filter(dialog, values.filter_name, values?.is_global);
+				return this.bind_save_filter(dialog, values.filter_name, values?.is_global);
 			},
 		});
 		dialog.show();
@@ -138,7 +138,7 @@ export default class ListFilter {
 			dialog.fields_dict.filter_name.set_description(__("Duplicate Filter Name"));
 			return;
 		}
-		this.save_filter(value, is_global).then(() => {
+		return this.save_filter(value, is_global).then(() => {
 			this.refresh_list_filter();
 			dialog.hide();
 		});

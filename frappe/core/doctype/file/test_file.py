@@ -641,6 +641,77 @@ class TestAttachment(IntegrationTestCase):
 		self.assertTrue(exists)
 
 
+class TestCopyAttachmentsFromAmendedFrom(IntegrationTestCase):
+	"""Test that attached_to_field and folder are copied when amending a document."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		cls.test_doctype = "Test Amendable Attachment"
+		new_doctype(
+			cls.test_doctype,
+			is_submittable=1,
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
+			],
+		).insert(ignore_if_duplicate=True)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("DocType", cls.test_doctype)
+
+	def test_attached_to_field_and_folder_copied_on_amend(self):
+		# Create custom folder
+		custom_folder = frappe.get_doc(
+			{"doctype": "File", "file_name": "Test Amend Folder", "is_folder": 1, "folder": "Home"}
+		).insert()
+
+		# Create original document and attach file with attached_to_field and custom folder
+		doc = frappe.get_doc(doctype=self.test_doctype, title="Original").insert()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "amend_test_attach.txt",
+				"content": "Test Content",
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "attachment",
+				"folder": custom_folder.name,
+			}
+		).insert()
+
+		doc.attachment = file.file_url
+		doc.save()
+
+		# Submit and cancel
+		doc.submit()
+		doc.cancel()
+
+		# Amend document
+		amended_doc = frappe.copy_doc(doc)
+		amended_doc.docstatus = 0
+		amended_doc.amended_from = doc.name
+		amended_doc.save()
+
+		# Verify copied file has attached_to_field and folder from original
+		copied_files = frappe.get_all(
+			"File",
+			filters={
+				"attached_to_doctype": self.test_doctype,
+				"attached_to_name": amended_doc.name,
+				"file_name": "amend_test_attach.txt",
+			},
+			fields=["name", "attached_to_field", "folder"],
+		)
+		self.assertEqual(len(copied_files), 1, "Exactly one file should be copied to amended doc")
+		self.assertEqual(copied_files[0].attached_to_field, "attachment")
+		self.assertEqual(copied_files[0].folder, custom_folder.name)
+
+
 class TestAttachmentsAccess(IntegrationTestCase):
 	def setUp(self) -> None:
 		frappe.db.delete("File", {"is_folder": 0})

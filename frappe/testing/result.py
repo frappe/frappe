@@ -29,8 +29,9 @@ logger = logging.getLogger(__name__)
 
 
 class TestResult(unittest.TextTestResult):
-	def __init__(self, stream, descriptions, verbosity):
+	def __init__(self, stream, descriptions, verbosity, failfast=False):
 		super().__init__(stream, descriptions, verbosity)
+		self.failfast = failfast
 		self._old_stdout = []
 		self._old_stderr = []
 

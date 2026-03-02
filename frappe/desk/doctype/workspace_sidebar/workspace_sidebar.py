@@ -29,6 +29,7 @@ class WorkspaceSidebar(Document):
 		for_user: DF.Link | None
 		items: DF.Table[WorkspaceSidebarItem]
 		module: DF.Text | None
+		module_onboarding: DF.Link | None
 		standard: DF.Check
 		title: DF.Data | None
 	# end: auto-generated types
@@ -51,7 +52,8 @@ class WorkspaceSidebar(Document):
 
 	def before_save(self):
 		self.export_sidebar()
-		self.set_module()
+		if not self.for_user:
+			self.set_module()
 
 	def export_sidebar(self):
 		allow_export = (
@@ -194,7 +196,7 @@ def create_workspace_sidebar_for_workspaces():
 
 
 @frappe.whitelist()
-def add_sidebar_items(sidebar_title, sidebar_items):
+def add_sidebar_items(sidebar_title: str, sidebar_items: str):
 	sidebar_items = loads(sidebar_items)
 	title = f"{sidebar_title}-{frappe.session.user}"
 	w = frappe.get_doc("Workspace Sidebar", sidebar_title)
@@ -274,8 +276,8 @@ def auto_generate_sidebar_from_module():
 	sidebars = []
 	for module in frappe.get_all("Module Def", pluck="name"):
 		if not (
-			frappe.db.exists("Workspace Sidebar", {"module": module})
-			or frappe.db.exists("Workspace Sidebar", {"name": module})
+			frappe.db.exists("Workspace Sidebar", {"module": module, "for_user": None})
+			or frappe.db.exists("Workspace Sidebar", {"name": module, "for_user": None})
 		):
 			module_info = get_module_info(module)
 			sidebar_items = create_sidebar_items(module_info)

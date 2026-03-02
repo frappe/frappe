@@ -165,7 +165,7 @@ def update_job_id(prepared_report):
 
 
 @frappe.whitelist()
-def make_prepared_report(report_name, filters=None):
+def make_prepared_report(report_name: str, filters: dict[str, Any] | str | list | None = None):
 	"""run reports in background"""
 	prepared_report = frappe.get_doc(
 		{
@@ -212,7 +212,7 @@ def process_filters_for_prepared_report(filters: dict[str, Any] | str) -> str:
 
 
 @frappe.whitelist()
-def get_reports_in_queued_state(report_name, filters):
+def get_reports_in_queued_state(report_name: str, filters: dict[str, Any] | str | list):
 	return frappe.get_all(
 		"Prepared Report",
 		filters={
@@ -252,7 +252,7 @@ def expire_stalled_report():
 
 
 @frappe.whitelist()
-def delete_prepared_reports(reports):
+def delete_prepared_reports(reports: str | list[dict[str, Any]]):
 	reports = frappe.parse_json(reports)
 	for report in reports:
 		prepared_report = frappe.get_doc("Prepared Report", report["name"])
@@ -284,7 +284,7 @@ def create_json_gz_file(data, dt, dn, report_name):
 
 
 @frappe.whitelist()
-def download_attachment(dn):
+def download_attachment(dn: str):
 	pr = frappe.get_doc("Prepared Report", dn)
 	if not pr.has_permission("read"):
 		frappe.throw(frappe._("Cannot Download Report due to insufficient permissions"))
@@ -330,7 +330,7 @@ def has_permission(doc, user):
 
 
 @frappe.whitelist()
-def enqueue_json_to_csv_conversion(prepared_report_name):
+def enqueue_json_to_csv_conversion(prepared_report_name: str):
 	"""Call this to enqueue the conversion in background."""
 	enqueue(method=convert_json_to_csv, queue="long", prepared_report_name=prepared_report_name)
 

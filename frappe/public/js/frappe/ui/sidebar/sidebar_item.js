@@ -60,6 +60,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 					let filters_json = JSON.parse(
 						frappe.utils.get_filter_as_json(JSON.parse(this.item.filters))
 					);
+					filters_json = this.transform_filters(filters_json);
 					if (this.item.link_type == "DocType") {
 						args.doc_view = "List";
 						args.route_options = filters_json;
@@ -68,10 +69,17 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 				path = frappe.utils.generate_route(args);
 			}
 		}
-		if (path) {
-			return encodeURI(path);
-		}
+		return path;
 	}
+	transform_filters(filters_json) {
+		for (const [key, value] of Object.entries(filters_json)) {
+			if (Array.isArray(value)) {
+				filters_json[key] = value[1];
+			}
+		}
+		return filters_json;
+	}
+
 	prepare() {}
 	make() {
 		this.path = this.get_path();
@@ -224,7 +232,6 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 			} else {
 				$(me.wrapper.find(".section-break")).addClass("hidden");
 				$(me.wrapper.find(".divider")).removeClass("hidden");
-				$(me.wrapper).removeAttr("data-original-title");
 				me.old_state = me.collapsed;
 				me.open();
 				if (me.item.indent) {

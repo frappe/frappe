@@ -139,6 +139,10 @@ export default class Section {
 		this.indicator && this.indicator.html(frappe.utils.icon(indicator_icon, "sm", "mb-1"));
 	}
 
+	set_label(label) {
+		this.wrapper.find(".section-head").html(label);
+	}
+
 	is_collapsed() {
 		return this.body.hasClass("hide");
 	}

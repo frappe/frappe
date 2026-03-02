@@ -52,7 +52,7 @@ def get(
 	list_context = frappe.flags.list_context
 
 	if not raw_result:
-		return {"result": []}
+		return {"result": [], "txt": txt}
 
 	if txt:
 		list_context.default_subtitle = _('Filtered by "{0}"').format(txt)
@@ -84,4 +84,5 @@ def get(
 		"result": result,
 		"show_more": show_more,
 		"next_start": limit_start + limit,
+		"txt": txt,
 	}

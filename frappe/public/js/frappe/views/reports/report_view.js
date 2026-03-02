@@ -17,7 +17,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	setup_defaults() {
 		super.setup_defaults();
-		this.page_title = __("Report:") + " " + this.page_title;
+		if (!frappe.is_mobile()) {
+			this.page_title = __("Report:") + " " + this.page_title;
+		}
 		this.view = "Report";
 
 		this.link_title_doctype_fields = [];
@@ -95,16 +97,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.$charts_wrapper.find(".btn-chart-configure").on("click", () => {
 			this.setup_charts();
 		});
-	}
-
-	setup_paging_area() {
-		super.setup_paging_area();
-		const message = __(
-			"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
-		);
-		this.$paging_area.before(
-			`<span class="comparison-message text-extra-muted">${message}</span>`
-		);
 	}
 
 	setup_sort_selector() {
@@ -332,6 +324,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			translations: frappe.utils.datatable.get_translations(),
 			checkboxColumn: true,
 			inlineFilters: true,
+			noDataMessage: __("No matching entries in the current results"),
 			cellHeight: 35,
 			direction: frappe.utils.is_rtl() ? "rtl" : "ltr",
 			events: {
@@ -422,6 +415,68 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				},
 			],
 		});
+
+		this.setup_inline_filter_observer();
+	}
+
+	setup_inline_filter_observer() {
+		this.setup_inline_filter_help_icons();
+
+		this.$datatable_wrapper.on(
+			"keyup",
+			".dt-filter",
+			frappe.utils.debounce(() => {
+				this.update_count_for_inline_filter();
+			}, 350)
+		);
+	}
+
+	setup_inline_filter_help_icons() {
+		const message = __(
+			"For comparison, use >5, <10 or =324.\nFor ranges, use 5:10 (for values between 5 & 10)."
+		);
+
+		this.$datatable_wrapper.find(".dt-filter").each((_, input) => {
+			const $input = $(input);
+
+			if ($input.siblings(".comparison-help-icon").length) {
+				return;
+			}
+
+			const $icon = $(
+				`<span class="comparison-help-icon text-muted" title="${message}">${frappe.utils.icon(
+					"info",
+					"xs"
+				)}</span>`
+			);
+
+			$input.after($icon);
+		});
+	}
+
+	update_count_for_inline_filter() {
+		if (!this.datatable) return;
+
+		const has_active_filters = this.datatable.columnmanager
+			? Object.keys(this.datatable.columnmanager.getAppliedFilters()).length > 0
+			: false;
+
+		const $count = this.get_count_element();
+
+		if (has_active_filters) {
+			const filtered_count = this.datatable.datamanager.getFilteredRowIndices().length;
+			const current_page_count = this.data.length;
+
+			$count.html(
+				`<span>${__("{0} of {1} records match (filtered on visible rows only)", [
+					filtered_count,
+					current_page_count,
+				])}</span>`
+			);
+		} else {
+			// Restore the normal count
+			this.render_count();
+		}
 	}
 
 	toggle_charts() {
@@ -1038,9 +1093,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		table_fields.forEach((df) => {
 			const cdt = df.options;
+			const label = df.label || frappe.unscrub(df.fieldname);
 
 			dialog_fields.push({
-				label: __(df.label, null, df.parent) + ` (${__(cdt)})`,
+				label: __(label) + ` (${__(cdt)})`,
 				fieldname: df.options,
 				fieldtype: "MultiCheck",
 				columns: 2,
@@ -1298,7 +1354,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					this.remove_column_from_datatable(col);
 				}
 			} else if (col.field in d) {
-				const value = d[col.field];
+				let rendered_value = d[col.field];
+				if (col.docfield.fieldtype == "Data") {
+					rendered_value = frappe.utils.escape_html(rendered_value);
+				}
+				const value = rendered_value;
 				return {
 					name: d.name,
 					doctype: col.docfield.parent,

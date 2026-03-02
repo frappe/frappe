@@ -9,7 +9,8 @@ frappe.ui.toolbar.Toolbar = class {
 		if (
 			frappe.boot.read_only ||
 			frappe.boot.user.impersonated_by ||
-			(!localStorage.getItem("dismissed_announcement_widget") &&
+			((!localStorage.getItem("dismissed_announcement_widget") ||
+				!frappe.boot.navbar_settings.dismissible_announcement_widget) &&
 				strip_html(frappe.boot.navbar_settings.announcement_widget) != "") ||
 			frappe.is_mobile()
 		) {

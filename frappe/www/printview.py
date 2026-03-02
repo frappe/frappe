@@ -92,6 +92,7 @@ def get_context(context) -> PrintContext:
 
 	# Include selected print format name in access log
 	print_format_name = getattr(print_format, "name", "Standard")
+	pdf_generator = getattr(print_format, "pdf_generator", "wkhtmltopdf")
 
 	make_access_log(
 		doctype=frappe.form_dict.doctype,
@@ -114,7 +115,7 @@ def get_context(context) -> PrintContext:
 		"print_format": print_format_name,
 		"letterhead": letterhead,
 		"no_letterhead": frappe.form_dict.no_letterhead,
-		"pdf_generator": frappe.form_dict.get("pdf_generator", "wkhtmltopdf"),
+		"pdf_generator": frappe.form_dict.get("pdf_generator", pdf_generator),
 	}
 
 
@@ -342,7 +343,8 @@ def get_html_and_style(
 	if isinstance(name, str):
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
-		document = frappe.get_doc(json.loads(doc), check_permission=True)
+		details = json.loads(doc)
+		document = frappe.get_cached_doc(details["doctype"], details["name"], check_permission=True)
 
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 	set_link_titles(document)

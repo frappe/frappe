@@ -246,7 +246,7 @@ def is_document_followed(doctype, doc_name, user):
 
 
 @frappe.whitelist()
-def get_follow_users(doctype, doc_name):
+def get_follow_users(doctype: str, doc_name: str):
 	return frappe.get_all(
 		"Document Follow", filters={"ref_doctype": doctype, "ref_docname": doc_name}, fields=["user"]
 	)

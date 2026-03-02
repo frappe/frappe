@@ -670,6 +670,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 	can_submit() {
 		return (
+			frappe.model.is_submittable(this.frm.doc.doctype) &&
 			this.get_docstatus() === 0 &&
 			!this.frm.doc.__islocal &&
 			!this.frm.doc.__unsaved &&

@@ -117,7 +117,7 @@ class SocialLoginKey(Document):
 			self.icon = f"/assets/frappe/icons/social/{icon_file}"
 
 	@frappe.whitelist()
-	def get_social_login_provider(self, provider, initialize=False):
+	def get_social_login_provider(self, provider: str, initialize: int | bool = False):
 		providers = {}
 
 		providers["Office 365"] = {
