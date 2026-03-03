@@ -880,6 +880,42 @@ class TestDocType(IntegrationTestCase):
 		with self.assertRaises(frappe.DoesNotExistError):
 			frappe.get_meta(dt.name)
 
+	def test_orphaned_column_type_change(self):
+		dt = new_doctype(
+			"Test Orphaned Column Validation",
+			fields=[{"fieldname": "some_field", "fieldtype": "Data", "label": "Some Field"}],
+		).insert()
+
+		doc = frappe.get_doc({"doctype": dt.name, "some_field": "test data"}).insert()
+
+		# make the field orphan
+		dt.fields = []
+		dt.save()
+		frappe.db.commit()
+
+		# recreate orphaned column with different type
+		dt.append("fields", {"fieldname": "some_field", "fieldtype": "Int", "label": "Some Field"})
+		dt.save()
+
+		self.assertIn("int", frappe.db.get_column_type(dt.name, "some_field").lower())
+		doc.reload()
+		self.assertEqual(doc.some_field, 0)
+
+		doc.some_field = 42
+		doc.save()
+
+		dt.fields = []
+		dt.save()
+		frappe.db.commit()
+
+		# recreate orphaned column with compatible type (int -> varchar)
+		# old column data is preserved but with typecast
+		dt.append("fields", {"fieldname": "some_field", "fieldtype": "Data", "label": "Some Field"})
+		dt.save()
+
+		doc.reload()
+		self.assertEqual(doc.some_field, "42")
+
 
 def new_doctype(
 	name: str | None = None,
