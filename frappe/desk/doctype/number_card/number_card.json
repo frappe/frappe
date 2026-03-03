@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:label",
  "creation": "2020-04-15 18:06:39.444683",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -72,7 +73,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Label",
-   "reqd": 1
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fieldname": "color",
@@ -229,10 +231,11 @@
   }
  ],
  "links": [],
- "modified": "2025-09-17 21:00:11.351605",
+ "modified": "2026-02-25 16:33:09.032056",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

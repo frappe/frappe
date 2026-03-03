@@ -99,8 +99,8 @@ function addChatBubble() {
 	const all_apps = frappe.utils.get_installed_apps();
 	const desk_apps = ["erpnext", "hrms"];
 
-	const apps_allowed = frappe.utils.is_sub_array(all_apps, desk_apps);
-	if (checkBusinessHours && apps_allowed) {
+	const apps_allowed = desk_apps.some((app) => all_apps.includes(app));
+	if (checkBusinessHours() && apps_allowed) {
 		let chat_banner = document.createElement("script");
 		chat_banner.setAttribute("id", "chat_widget_trigger");
 		chat_banner.innerHTML =
@@ -112,10 +112,16 @@ function addChatBubble() {
 }
 
 function checkBusinessHours() {
-	let currentTime = new Date();
-	const istTime = new Date(currentTime.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+	let current_time = new Date();
+	const ist_time = new Date(current_time.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
 
-	return istTime.getHours() >= 11 && istTime.getHours() < 18;
+	const hours = ist_time.getHours();
+	const day = ist_time.getDay();
+
+	const is_weekend = day === 0 || day === 6;
+	const is_business_hour = hours >= 11 && hours < 18;
+
+	return !is_weekend && is_business_hour;
 }
 
 function toggleChatBubble(toggle) {

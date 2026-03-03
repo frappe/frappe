@@ -683,7 +683,10 @@ def validate_oauth(authorization_header):
 			uri, http_method, body, headers, required_scopes
 		)
 		if valid:
-			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
+			user = frappe.db.get_value("OAuth Bearer Token", token, "user")
+			if not frappe.db.get_value("User", user, "enabled"):
+				frappe.throw(_("User {0} is disabled").format(user), frappe.AuthenticationError)
+			frappe.set_user(user)
 			frappe.local.form_dict = form_dict
 	except AttributeError:
 		pass

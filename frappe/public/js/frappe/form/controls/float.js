@@ -32,5 +32,3 @@ frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlI
 		return this.df.precision || cint(frappe.boot.sysdefaults.float_precision, null);
 	}
 };
-
-frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
