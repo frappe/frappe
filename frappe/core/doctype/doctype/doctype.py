@@ -84,6 +84,63 @@ class CannotCreateStandardDoctypeError(frappe.ValidationError):
 
 form_grid_templates = {"fields": "templates/form_grid/fields.html"}
 
+FIELDTYPE_CAST_FAMILIES = {
+	# Numeric Family
+	"Int": "Numeric",
+	"Long Int": "Numeric",
+	"Float": "Numeric",
+	"Currency": "Numeric",
+	"Percent": "Numeric",
+	"Duration": "Numeric",
+	"Rating": "Numeric",
+	"Check": "Numeric",
+	# Date Family
+	"Date": "Date",
+	"Datetime": "Date",
+	# Time Family
+	"Time": "Time",
+	# String Family
+	"Data": "String",
+	"Select": "String",
+	"Read Only": "String",
+	"Color": "String",
+	"Icon": "String",
+	"Phone": "String",
+	"Autocomplete": "String",
+	"Link": "String",
+	"Dynamic Link": "String",
+	"Password": "String",
+	"Text": "String",
+	"Small Text": "String",
+	"Attach": "String",
+	"Attach Image": "String",
+	"Long Text": "String",
+	"Code": "String",
+	"Text Editor": "String",
+	"Markdown Editor": "String",
+	"HTML Editor": "String",
+	"Signature": "String",
+	"Barcode": "String",
+	"Geolocation": "String",
+	"JSON": "String",
+}
+
+
+def get_db_type_family(db_type):
+	"""Convert a MariaDB SQL type like 'varchar(140)' or 'int(11)' into High Level Families"""
+	db_type = str(db_type).lower()
+
+	if db_type.startswith(("int", "bigint", "tinyint", "decimal", "float", "double")):
+		return "Numeric"
+	elif db_type.startswith("datetime"):
+		return "Date"
+	elif db_type.startswith("date"):
+		return "Date"
+	elif db_type.startswith("time"):
+		return "Time"
+	else:
+		return "String"
+
 
 class DocType(Document):
 	# begin: auto-generated types
@@ -532,6 +589,9 @@ class DocType(Document):
 		if self.get("can_change_name_type"):
 			self.setup_autoincrement_and_sequence()
 
+		# Clean up any orphaned columns having the same name but different type as the new fields
+		self.drop_recreated_orphaned_columns()
+
 		try:
 			frappe.db.updatedb(self.name, Meta(self))
 		except Exception as e:
@@ -572,6 +632,32 @@ class DocType(Document):
 			self.sync_global_search()
 
 		clear_linked_doctype_cache()
+
+	def drop_recreated_orphaned_columns(self):
+		if self.is_new():
+			return
+
+		doc_before_save = self.get_doc_before_save()
+		if not doc_before_save:
+			return
+		old_fields = {df.fieldname for df in doc_before_save.get("fields") if df.fieldname}
+
+		for df in self.get("fields"):
+			# Only care about fields that didn't exist in the previous version
+			if not df.fieldname or df.fieldname in old_fields:
+				continue
+
+			if df.fieldname in (*frappe.db.OPTIONAL_COLUMNS, *frappe.db.DEFAULT_COLUMNS, "_seen"):
+				continue
+
+			if frappe.db.has_column(self.name, df.fieldname):
+				current_sql_type = frappe.db.get_column_type(self.name, df.fieldname)
+				old_type_family = get_db_type_family(current_sql_type)
+				new_type_family = FIELDTYPE_CAST_FAMILIES.get(df.fieldtype, "String")
+
+				is_safe = (old_type_family == new_type_family) or (new_type_family == "String")
+				if not is_safe:
+					frappe.db.sql_ddl(f"ALTER TABLE `tab{self.name}` DROP COLUMN `{df.fieldname}`")
 
 	@savepoint(catch=Exception)
 	def sync_doctype_layouts(self):
