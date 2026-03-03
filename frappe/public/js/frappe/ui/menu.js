@@ -133,7 +133,9 @@ frappe.ui.menu = class ContextMenu {
 								me.current_menu = null;
 							} else {
 								// this ensures the other nested item would close before opening the next one
+								me.current_menu.nested_menus.forEach((m) => m.hide());
 								me.current_menu.hide();
+								me.current_menu = null;
 								me.nested_menus.forEach((menu) => {
 									if (menu.parent.get(0) == this) {
 										me.current_menu = menu;
