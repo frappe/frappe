@@ -891,7 +891,6 @@ class TestDocType(IntegrationTestCase):
 		# make the field orphan
 		dt.fields = []
 		dt.save()
-		frappe.db.commit()
 
 		# recreate orphaned column with different type
 		dt.append("fields", {"fieldname": "some_field", "fieldtype": "Int", "label": "Some Field"})
@@ -906,7 +905,6 @@ class TestDocType(IntegrationTestCase):
 
 		dt.fields = []
 		dt.save()
-		frappe.db.commit()
 
 		# recreate orphaned column with compatible type (int -> varchar)
 		# old column data is preserved but with typecast
