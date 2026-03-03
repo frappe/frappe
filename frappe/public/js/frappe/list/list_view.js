@@ -2279,14 +2279,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			};
 		};
 
-		const bulk_consolidated_printing = () => {
-			return {
-				label: __("Consolidated Print", null, "Button in list view actions menu"),
-				action: () => bulk_operations.consolidated_print(this.get_checked_items()),
-				standard: true,
-			};
-		};
-
 		const bulk_delete = () => {
 			return {
 				label: __("Delete", null, "Button in list view actions menu"),
@@ -2577,7 +2569,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// bulk printing
 		if (frappe.model.can_print(doctype)) {
 			actions_menu_items.push(bulk_printing());
-			actions_menu_items.push(bulk_consolidated_printing());
 		}
 
 		// bulk submit
