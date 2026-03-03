@@ -880,7 +880,7 @@ class TestDocType(IntegrationTestCase):
 		with self.assertRaises(frappe.DoesNotExistError):
 			frappe.get_meta(dt.name)
 
-	def test_orphaned_column_type_change(self):
+	def test_orphaned_column_add_with_different_type(self):
 		dt = new_doctype(
 			"Test Orphaned Column Validation",
 			fields=[{"fieldname": "some_field", "fieldtype": "Data", "label": "Some Field"}],
