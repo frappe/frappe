@@ -180,14 +180,17 @@ def reset(doctype: str):
 	frappe.only_for("System Manager")
 	reset_perms(doctype)
 	clear_permissions_cache(doctype)
-	_log_reset(doctype)
 
+	from frappe.core.doctype.permission_log.permission_log import insert_perm_log
 
-def _log_reset(doctype: str):
-	"""Insert a Permission Log entry to record that permissions were reset to standard defaults."""
+	doc = frappe.new_doc("DocType")
+	doc.name = doctype
 	standard_perms = frappe.get_all("DocPerm", filters={"parent": doctype}, fields="*")
-	changes = frappe.as_json(
-		{
+	insert_perm_log(
+		doc,
+		for_doctype="DocType",
+		for_document=doctype,
+		custom_changes={
 			"from": {"permissions": "custom"},
 			"to": {
 				"permissions": "standard",
@@ -196,23 +199,9 @@ def _log_reset(doctype: str):
 					for p in standard_perms
 				],
 			},
-		},
-		indent=0,
-	)
-
-	frappe.get_doc(
-		{
-			"doctype": "Permission Log",
-			"owner": frappe.session.user,
-			"changed_by": frappe.session.user,
-			"reference_type": "DocType",
-			"reference": doctype,
-			"for_doctype": "DocType",
-			"for_document": doctype,
 			"status": "Updated",
-			"changes": changes,
-		}
-	).db_insert()
+		},
+	)
 
 
 @frappe.whitelist()

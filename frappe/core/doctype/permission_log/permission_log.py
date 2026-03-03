@@ -46,16 +46,24 @@ def insert_perm_log(
 	for_doctype: str | None = None,
 	for_document: str | None = None,
 	fields: list | tuple | None = None,
+	custom_changes: dict | None = None,
 ):
+	"""Log a permission change. When custom_changes is provided (e.g. for reset-to-standard),
+	it must be {"from": {...}, "to": {...}} and optionally "status"; doc is used for
+	reference/owner only."""
 	if frappe.flags.in_install or frappe.flags.in_migrate:
 		# no need to log changes when migrating or installing app/site
 		return
 
-	current, previous = get_changes(doc, doc_before_save, fields)
-	if not previous and not current:
-		return
-
-	status = "Updated" if doc_before_save else ("Added" if doc.flags.in_insert else "Removed")
+	if custom_changes is not None:
+		previous = custom_changes.get("from", {})
+		current = custom_changes.get("to", {})
+		status = custom_changes.get("status", "Updated")
+	else:
+		current, previous = get_changes(doc, doc_before_save, fields)
+		if not previous and not current:
+			return
+		status = "Updated" if doc_before_save else ("Added" if doc.flags.in_insert else "Removed")
 
 	frappe.get_doc(
 		{

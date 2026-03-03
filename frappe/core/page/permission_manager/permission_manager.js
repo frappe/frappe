@@ -699,17 +699,21 @@ frappe.PermissionEngine = class PermissionEngine {
 						</table>
 					</div>
 					<div class="text-right mt-2">
-						<a href="${frappe.utils.generate_route({
-							type: "Doctype",
-							doctype: "Permission Log",
-							name: "Permission Log",
-							doc_view: "List",
-						})}" class="text-muted small">
+						<button class="btn btn-sm btn-default btn-view-full-log">
 							${frappe.utils.icon("external-link", "sm", "mr-1")}
 							${__("View full log")}
-						</a>
+						</button>
 					</div>
 				`);
+
+				$body.find(".btn-view-full-log").on("click", () => {
+					d.hide();
+					frappe.route_options = { for_doctype: "DocType" };
+					if (doctype) {
+						frappe.route_options.for_document = doctype;
+					}
+					frappe.set_route("List", "Permission Log");
+				});
 			});
 
 		d.show();
