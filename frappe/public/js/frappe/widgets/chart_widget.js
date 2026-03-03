@@ -568,7 +568,6 @@ export default class ChartWidget extends Widget {
 
 	async render() {
 		let setup_dashboard_chart = () => {
-			this.translate_chart_labels();
 			const chart_args = this.get_chart_args();
 
 			const is_circular_chart = ["Pie", "Donut", "Percentage"].includes(this.chart_doc.type);
@@ -701,26 +700,6 @@ export default class ChartWidget extends Widget {
 		}
 
 		return chart_args;
-	}
-
-	translate_chart_labels() {
-		if (this.data && Array.isArray(this.data.labels)) {
-			this.data.labels = this.data.labels.map((label) => {
-				if (label === null || label === undefined) {
-					return label;
-				}
-				return typeof label === "string" ? __(label) : label;
-			});
-		}
-
-		if (this.data && Array.isArray(this.data.datasets)) {
-			this.data.datasets = this.data.datasets.map((dataset) => {
-				if (dataset && typeof dataset.name === "string") {
-					dataset.name = __(dataset.name);
-				}
-				return dataset;
-			});
-		}
 	}
 
 	get_chart_colors() {
