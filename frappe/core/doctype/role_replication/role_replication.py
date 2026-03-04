@@ -30,11 +30,14 @@ class RoleReplication(Document):
 
 		perms = get_permissions(role=self.existing_role)
 
+		doctypes_with_custom_perms_setup = set()
 		for perm in perms:
-			if perm.get("parent"):
+			doctype = perm.get("parent")
+			if doctype and doctype not in doctypes_with_custom_perms_setup:
 				# if no Custom DocPerm exists for the doctype, move standard permissions to Custom DocPerm
 				# before creating first Custom DocPerm for the new role
-				setup_custom_perms(perm["parent"])
+				setup_custom_perms(doctype)
+				doctypes_with_custom_perms_setup.add(doctype)
 
 			# Create Custom DocPerm for the new role
 			frappe.get_doc(
