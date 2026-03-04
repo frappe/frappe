@@ -453,7 +453,7 @@ class Engine:
 							self.query = self.query.where(combined_criterion)
 				except Exception as e:
 					# Log the original filters list for better debugging context
-					frappe.throw(_("Error parsing nested filters: {0}. {1}").format(filters, e), exc=e)
+					frappe.throw(_("Error parsing nested filters: {0}. {1}").format(filters, str(e)), exc=e)
 
 			else:  # Not a nested structure, assume it's a list of simple filters (implicitly ANDed)
 				for filter_item in filters:

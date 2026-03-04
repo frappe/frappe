@@ -99,7 +99,7 @@ class LDAPSettings(Document):
 
 				except LDAPAttributeError as ex:
 					frappe.throw(
-						_("LDAP settings incorrect. validation response was: {0}").format(ex),
+						_("LDAP settings incorrect. validation response was: {0}").format(str(ex)),
 						title=_("Misconfigured"),
 					)
 
