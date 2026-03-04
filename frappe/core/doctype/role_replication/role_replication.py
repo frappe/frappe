@@ -4,6 +4,7 @@
 import frappe
 from frappe.core.page.permission_manager.permission_manager import get_permissions
 from frappe.model.document import Document
+from frappe.permissions import setup_custom_perms
 
 
 class RoleReplication(Document):
@@ -29,32 +30,11 @@ class RoleReplication(Document):
 
 		perms = get_permissions(role=self.existing_role)
 
-		# Get doctypes that already have Custom DocPerm for the existing role
-		existing_custom_docperms = set(
-			frappe.get_all(
-				"Custom DocPerm", filters={"role": self.existing_role}, pluck="parent", distinct=True
-			)
-		)
-
 		for perm in perms:
-			# If the original role's permission comes from DocPerm (not Custom DocPerm),
-			# we need to also create a Custom DocPerm for the original role.
-			# Otherwise, once we create Custom DocPerm for the new role, the original
-			# role's DocPerm will be hidden by get_all_perms() logic.
-			if perm.get("parent") and perm["parent"] not in existing_custom_docperms:
-				frappe.get_doc(
-					{
-						"doctype": "Custom DocPerm",
-						**perm,
-						"name": None,
-						"creation": None,
-						"modified": None,
-						"modified_by": None,
-						"owner": None,
-						"linked_doctypes": None,
-					}
-				).insert()
-				existing_custom_docperms.add(perm["parent"])
+			if perm.get("parent"):
+				# if no Custom DocPerm exists for the doctype, move standard permissions to Custom DocPerm
+				# before creating first Custom DocPerm for the new role
+				setup_custom_perms(perm["parent"])
 
 			# Create Custom DocPerm for the new role
 			frappe.get_doc(
