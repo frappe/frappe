@@ -71,6 +71,16 @@ def insert_perm_log(
 		if not previous and not current:
 			return
 		status = "Updated" if doc_before_save else ("Added" if doc.flags.in_insert else "Removed")
+		# Ensure role (and parent) are always in changes for Custom DocPerm so the UI can show them
+		if doc.doctype == "Custom DocPerm":
+			previous["role"] = previous.get("role") or (
+				doc_before_save and getattr(doc_before_save, "role", None)
+			)
+			current["role"] = current.get("role") or getattr(doc, "role", None)
+			previous["parent"] = previous.get("parent") or (
+				doc_before_save and getattr(doc_before_save, "parent", None)
+			)
+			current["parent"] = current.get("parent") or getattr(doc, "parent", None)
 
 	frappe.get_doc(
 		{
