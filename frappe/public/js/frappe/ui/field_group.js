@@ -19,7 +19,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 	}
 
 	resolve_date_default_keywords(def_value, fieldtype) {
-		if (!def_value || typeof def_value !== "string") return def_value;
+		if (!def_value) return def_value;
 
 		def_value = def_value.toLowerCase();
 
@@ -39,6 +39,28 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 		return def_value;
 	}
 
+	get_field_default_value(field) {
+		let def_value = field.df["default"];
+		// loose equality check matches undefined also
+		if (
+			def_value == null ||
+			(!def_value && !frappe.model.is_numeric_field(field.df.fieldtype))
+		)
+			return;
+
+		if (typeof def_value !== "string") return def_value;
+
+		if (["Date", "Datetime", "Time"].includes(field.df.fieldtype)) {
+			def_value = this.resolve_date_default_keywords(def_value, field.df.fieldtype);
+		} else if (def_value == "__user" || def_value.toLowerCase() == "user") {
+			def_value = frappe.session.user;
+		} else if (def_value == "user_fullname") {
+			def_value = frappe.session.user_fullname;
+		}
+
+		return def_value;
+	}
+
 	make() {
 		let me = this;
 		if (this.fields) {
@@ -47,19 +69,9 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 
 			let defaults = {};
 
-			$.each(this.fields_list, function (i, field) {
-				let def_value = field.df["default"];
-				// loose equality check matches undefined also
-				if (
-					def_value == null ||
-					(!def_value && !frappe.model.is_numeric_field(field.df.fieldtype))
-				)
-					return;
-
-				if (["Date", "Datetime", "Time"].includes(field.df.fieldtype)) {
-					def_value = me.resolve_date_default_keywords(def_value, field.df.fieldtype);
-				}
-
+			$.each(this.fields_list, (i, field) => {
+				let def_value = this.get_field_default_value(field);
+				if (def_value === undefined) return;
 				defaults[field.df.fieldname] = def_value;
 			});
 
