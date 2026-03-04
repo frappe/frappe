@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.core.page.permission_manager.permission_manager import get_permissions
 from frappe.model.document import Document
 from frappe.website.path_resolver import validate_path
 from frappe.website.router import clear_routing_cache
@@ -85,6 +86,32 @@ class Role(Document):
 			user.set_system_user()
 			if user_type != user.user_type:
 				user.save()
+
+	@frappe.whitelist()
+	def replicate_role(self, cur_role: str, new_role: str) -> str:
+		frappe.only_for("System Manager")
+
+		if frappe.db.get_value("Role", new_role, "name"):
+			return frappe.errprint(f"Role {new_role} already exist.")
+
+		new_role = frappe.get_doc({"doctype": "Role", "role_name": new_role}).insert().name
+
+		perms = get_permissions(role=cur_role)
+		for perm in perms:
+			perm.update(
+				{
+					"name": None,
+					"creation": None,
+					"modified": None,
+					"modified_by": None,
+					"owner": None,
+					"linked_doctypes": None,
+					"role": new_role,
+				}
+			)
+			frappe.get_doc({"doctype": "Custom DocPerm", **perm}).insert()
+
+		return new_role
 
 
 def get_info_based_on_role(role, field="email", ignore_permissions=False):
