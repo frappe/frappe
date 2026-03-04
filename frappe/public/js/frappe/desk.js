@@ -178,11 +178,7 @@ frappe.Application = class Application {
 			localStorage.removeItem("session_last_route");
 		} else {
 			// route to home page
-			if (frappe.boot.apps_data.default_path) {
-				window.location.href = frappe.boot.home_page;
-			} else {
-				frappe.router.set_route();
-			}
+			frappe.router.set_route();
 		}
 		frappe.router.on("change", () => {
 			$(".tooltip").hide();
@@ -287,7 +283,6 @@ frappe.Application = class Application {
 
 			frappe.boot.setup_complete = frappe.boot.sysdefaults["setup_complete"];
 			frappe.user.name = frappe.boot.user.name;
-			console.log(frappe.boot.home_page);
 			frappe.router.setup();
 		} else {
 			this.set_as_guest();
