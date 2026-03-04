@@ -419,7 +419,8 @@ function get_link_display_value(doctype, link_title, value) {
 	return link_title || value;
 }
 function format_attachment_url(url) {
-	return url ? `<a href="${url}" target="_blank">${url}</a>` : "";
+	let escaped = frappe.utils.escape_html(url);
+	return url ? `<a href="${escaped}" target="_blank">${escaped}</a>` : "";
 }
 
 frappe.form.get_formatter = function (fieldtype) {

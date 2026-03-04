@@ -75,8 +75,9 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		let set = false;
 		info_fields.forEach((field, index) => {
 			if (item[field] && !set) {
-				if (index == 0) info_html += `<li>${__(item[field])}</li>`;
-				else info_html += `<li class="text-muted">${__(item[field])}</li>`;
+				let value = frappe.utils.escape_html(__(item[field]));
+				if (index == 0) info_html += `<li>${value}</li>`;
+				else info_html += `<li class="text-muted">${value}</li>`;
 				set = true;
 			}
 		});
@@ -91,7 +92,9 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		const escaped_title = frappe.utils.escape_html(title);
 		const _class = !item._image_url ? "no-image" : "";
 		const _html = item._image_url
-			? `<img data-name="${encoded_name}" src="${item._image_url}" alt="${title}">`
+			? `<img data-name="${encoded_name}" src="${frappe.utils.escape_html(
+					item._image_url
+			  )}" alt="${title}">`
 			: `<span class="placeholder-text">
 				${frappe.get_abbr(title)}
 			</span>`;
