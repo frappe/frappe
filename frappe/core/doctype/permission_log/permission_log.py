@@ -23,7 +23,7 @@ class PermissionLog(Document):
 		for_document: DF.DynamicLink
 		reference: DF.DynamicLink | None
 		reference_type: DF.Link | None
-		status: DF.Literal["Updated", "Removed", "Added"]
+		status: DF.Literal["Updated", "Removed", "Added", "Reset"]
 	# end: auto-generated types
 
 	@property

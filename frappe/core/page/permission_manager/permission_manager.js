@@ -601,7 +601,25 @@ frappe.PermissionEngine = class PermissionEngine {
 			"share",
 			"mask",
 		];
-		const STATUS_COLOR = { Added: "green", Removed: "red", Updated: "orange" };
+		const STATUS_COLOR = { Added: "green", Removed: "red", Updated: "orange", Reset: "blue" };
+
+		function format_datetime(datetime_str) {
+			if (!datetime_str) return "—";
+			let d = frappe.datetime.convert_to_user_tz(datetime_str, false);
+			if (!d || !d.isValid()) return frappe.datetime.str_to_user(datetime_str);
+			let now = moment();
+			let today = now.clone().startOf("day");
+			let log_day = d.clone().startOf("day");
+			let time_fmt = frappe.datetime.get_user_time_fmt();
+			let time_str = d.format(time_fmt);
+			if (log_day.isSame(today)) {
+				return __("Today at {0}", [time_str]);
+			}
+			if (log_day.isSame(today.clone().subtract(1, "day"))) {
+				return __("Yesterday at {0}", [time_str]);
+			}
+			return d.format("D MMM YYYY") + ", " + time_str;
+		}
 
 		let doctype = this.get_doctype();
 		let title = doctype
@@ -670,7 +688,7 @@ frappe.PermissionEngine = class PermissionEngine {
 						}
 
 						let badge_color = STATUS_COLOR[log.status] || "grey";
-						let ts = frappe.datetime.str_to_user(log.changed_at);
+						let ts = format_datetime(log.changed_at);
 						let user_display = log.changed_by || "—";
 
 						return `<tr>

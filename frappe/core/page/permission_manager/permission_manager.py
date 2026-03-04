@@ -199,7 +199,7 @@ def reset(doctype: str):
 					for p in standard_perms
 				],
 			},
-			"status": "Updated",
+			"status": "Reset",
 		},
 	)
 
