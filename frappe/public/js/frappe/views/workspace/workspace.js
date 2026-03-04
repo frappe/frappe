@@ -180,42 +180,6 @@ frappe.views.Workspace = class Workspace {
 			this._page = current_page;
 			const me = this;
 			let header_dropdown = `${__(this._page.name)}`;
-<<<<<<< HEAD
-			let menu_items = [
-				{
-					label: "Edit",
-					icon: "edit",
-					onClick: async () => {
-						if (!this.editor || !this.editor.readOnly) return;
-						this.is_read_only = false;
-						await this.editor.readOnly.toggle();
-						this.editor.isReady.then(() => {
-							this.setup_customization_buttons(this._page);
-							this.make_blocks_sortable();
-						});
-					},
-					condition: () => {
-						return current_page.is_editable;
-					},
-				},
-				{
-					label: "New",
-					icon: "plus",
-					onClick: function () {
-						me.initialize_new_page(true);
-					},
-					condition: () => {
-						return me.has_create_access;
-					},
-				},
-			];
-			if (frappe.is_mobile()) {
-				frappe.breadcrumbs.add({
-					type: "Custom",
-					label: header_dropdown + `${frappe.utils.icon("chevron-down")}`,
-					route: "#",
-					menu_items: menu_items,
-=======
 			frappe.breadcrumbs.add({
 				type: "Custom",
 				label: header_dropdown,
@@ -256,7 +220,6 @@ frappe.views.Workspace = class Workspace {
 							},
 						},
 					],
->>>>>>> 3faa12b3b8 (fix: add "New" workspace btn to menu items)
 				});
 			} else {
 				frappe.breadcrumbs.add({
