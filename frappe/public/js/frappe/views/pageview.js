@@ -81,12 +81,17 @@ frappe.views.Page = class Page {
 				frappe.show_not_found(name);
 				return;
 			}
+			if (this.pagedoc.page_name != "setup-wizard") {
+				this.pagedoc.module &&
+					frappe.app.sidebar.show_sidebar_for_module(this.pagedoc.module);
+			}
+
 			this.wrapper = frappe.container.add_page(this.name);
 			this.wrapper.page_name = this.pagedoc.name;
 
 			// set content, script and style
 			if (this.pagedoc.content) this.wrapper.innerHTML = this.pagedoc.content;
-			frappe.dom.eval(this.pagedoc.__script || this.pagedoc.script || "");
+			frappe.dom.eval(this.pagedoc.__script || this.pagedoc.script);
 			frappe.dom.set_style(this.pagedoc.style || "");
 
 			// set breadcrumbs
@@ -94,6 +99,11 @@ frappe.views.Page = class Page {
 		}
 
 		this.trigger_page_event("on_page_load");
+		frappe.breadcrumbs.add({
+			type: "Custom",
+			label: __(this.pagedoc.title),
+			route: frappe.get_route_str(),
+		});
 
 		// set events
 		$(this.wrapper).on("show", function () {
@@ -147,7 +157,7 @@ frappe.show_message_page = function (opts) {
 			<div class="text-center message-page-content">\
 				%(img)s\
 				<p class="lead">%(message)s</p>\
-				<a class="btn btn-default btn-sm btn-home" href="/app">%(home)s</a>\
+				<a class="btn btn-default btn-sm btn-home" href="/desk">%(home)s</a>\
 			</div>\
 		</div>',
 			{

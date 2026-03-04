@@ -49,7 +49,7 @@ class GoogleOAuth:
 			self.validate_google_settings()
 
 	def validate_google_settings(self):
-		google_settings = "<a href='/app/google-settings'>Google Settings</a>"
+		google_settings = "<a href='/desk/google-settings'>Google Settings</a>"
 
 		if not self.google_settings.enable:
 			frappe.throw(frappe._("Please enable {} before continuing.").format(google_settings))
@@ -173,7 +173,7 @@ def callback(state: str, code: str | None = None, error: str | None = None) -> N
 	along with committing and redirecting us back to frappe site."""
 
 	state = json.loads(state)
-	redirect = state.pop("redirect", "/app")
+	redirect = state.pop("redirect", "/desk")
 	success_query_param = state.pop("success_query_param", "")
 	failure_query_param = state.pop("failure_query_param", "")
 

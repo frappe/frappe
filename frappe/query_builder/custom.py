@@ -1,6 +1,6 @@
 from typing import Any
 
-from pypika.functions import DistinctOptionFunction
+from pypika.functions import DistinctOptionFunction, Function
 from pypika.terms import Term
 from pypika.utils import builder, format_alias_sql, format_quotes
 
@@ -98,3 +98,18 @@ class ConstantColumn(Term):
 			quote_char=quote_char,
 			**kwargs,
 		)
+
+
+class MonthName(Function):
+	def __init__(self, field, alias=None):
+		super().__init__("MONTHNAME", field, alias=alias)
+
+
+class Quarter(Function):
+	def __init__(self, field, alias=None):
+		super().__init__("QUARTER", field, alias=alias)
+
+
+class Month(Function):
+	def __init__(self, field, alias=None):
+		super().__init__("MONTH", field, alias=alias)

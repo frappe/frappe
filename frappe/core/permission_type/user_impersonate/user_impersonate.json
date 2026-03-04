@@ -1,0 +1,10 @@
+{
+ "creation": "2025-11-13 16:34:50.584738",
+ "doc_type": "User",
+ "doctype": "Permission Type",
+ "modified": "2025-11-14 14:21:45.603237",
+ "modified_by": "Administrator",
+ "name": "user_impersonate",
+ "owner": "Administrator",
+ "perm_type": "impersonate"
+}

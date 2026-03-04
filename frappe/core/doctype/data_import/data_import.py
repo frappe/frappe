@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import os
+from typing import Any
 
 from rq.command import send_stop_job_command
 from rq.exceptions import InvalidJobOperation
@@ -14,6 +15,7 @@ from frappe.core.doctype.data_import.importer import Importer
 from frappe.model import CORE_DOCTYPES
 from frappe.model.document import Document
 from frappe.modules.import_file import import_file_by_path
+from frappe.utils import cint
 from frappe.utils.background_jobs import enqueue, get_redis_conn, is_job_enqueued
 from frappe.utils.csvutils import validate_google_sheets_url
 
@@ -69,6 +71,20 @@ class DataImport(Document):
 		if self.reference_doctype in BLOCKED_DOCTYPES:
 			frappe.throw(_("Importing {0} is not allowed.").format(self.reference_doctype))
 
+		meta = frappe.get_meta(self.reference_doctype)
+		if not cint(meta.allow_import):
+			frappe.throw(
+				_("Data Import is not allowed for {0}. Enable 'Allow Import' in DocType settings.").format(
+					self.reference_doctype
+				)
+			)
+
+		if not frappe.has_permission(self.reference_doctype, "import"):
+			frappe.throw(
+				_("You do not have import permission for {0}").format(self.reference_doctype),
+				frappe.PermissionError,
+			)
+
 	def validate_import_file(self):
 		if self.import_file:
 			# validate template
@@ -87,7 +103,7 @@ class DataImport(Document):
 			self.payload_count = len(payloads)
 
 	@frappe.whitelist()
-	def get_preview_from_template(self, import_file=None, google_sheets_url=None):
+	def get_preview_from_template(self, import_file: str | None = None, google_sheets_url: str | None = None):
 		if import_file:
 			self.import_file = import_file
 			self.set_delimiters_flag()
@@ -188,7 +204,13 @@ def start_import(data_import):
 
 
 @frappe.whitelist()
-def download_template(doctype, export_fields=None, export_records=None, export_filters=None, file_type="CSV"):
+def download_template(
+	doctype: str,
+	export_fields: str | dict[str, list[str]] | None = None,
+	export_records: str | None = None,
+	export_filters: str | dict[str, Any] | list[list[Any]] | None = None,
+	file_type: str = "CSV",
+):
 	"""
 	Download template from Exporter
 	        :param doctype: Document Type
@@ -236,7 +258,7 @@ def get_import_status(data_import_name: str):
 	import_status = {"status": data_import.status}
 	logs = frappe.get_all(
 		"Data Import Log",
-		fields=["count(*) as count", "success"],
+		fields=[{"COUNT": "*", "as": "count"}, "success"],
 		filters={"data_import": data_import_name},
 		group_by="success",
 	)

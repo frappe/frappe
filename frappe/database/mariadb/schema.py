@@ -2,7 +2,7 @@ from pymysql.constants.ER import DUP_ENTRY
 
 import frappe
 from frappe import _
-from frappe.database.schema import DBTable
+from frappe.database.schema import DbColumn, DBTable
 from frappe.utils.defaults import get_not_null_defaults
 
 
@@ -95,6 +95,37 @@ class MariaDBTable(DBTable):
 			self.table_name, "modified", unique=False
 		):
 			add_index_query.append("ADD INDEX `modified`(`modified`)")
+
+		# logic to drop unique constraint for fields deleted from a doctype
+		meta_columns = set(self.columns.keys())
+		db_columns = set(self.current_columns.keys())
+
+		for col in db_columns:
+			if (
+				col not in meta_columns
+				and col not in frappe.db.DEFAULT_COLUMNS
+				and col not in frappe.db.OPTIONAL_COLUMNS
+			):
+				has_unique = frappe.db.get_column_index(self.table_name, col, unique=True)
+
+				if not has_unique:
+					continue
+
+				current_col = self.current_columns.get(col)
+
+				deleted_col = DbColumn(
+					table=self,
+					fieldname=current_col.name,
+					fieldtype=current_col.type,
+					length=None,
+					default=None,
+					set_index=current_col.index,
+					options=None,
+					unique=False,
+					precision=None,
+					not_nullable=current_col.not_nullable,
+				)
+				self.drop_unique.append(deleted_col)
 
 		drop_index_query = []
 

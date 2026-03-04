@@ -153,24 +153,25 @@ class TestDocType(IntegrationTestCase):
 	def test_all_depends_on_fields_conditions(self):
 		import re
 
-		docfields = frappe.get_all(
-			"DocField",
-			or_filters={
-				"ifnull(depends_on, '')": ("!=", ""),
-				"ifnull(collapsible_depends_on, '')": ("!=", ""),
-				"ifnull(mandatory_depends_on, '')": ("!=", ""),
-				"ifnull(read_only_depends_on, '')": ("!=", ""),
-			},
-			fields=[
-				"parent",
-				"depends_on",
-				"collapsible_depends_on",
-				"mandatory_depends_on",
-				"read_only_depends_on",
-				"fieldname",
-				"fieldtype",
-			],
+		DocField = frappe.qb.DocType("DocField")
+		docfields_query = (
+			frappe.qb.from_(DocField)
+			.select(
+				DocField.parent,
+				DocField.depends_on,
+				DocField.collapsible_depends_on,
+				DocField.mandatory_depends_on,
+				DocField.read_only_depends_on,
+				DocField.fieldname,
+			)
+			.where(
+				(DocField.depends_on != "")
+				| (DocField.collapsible_depends_on != "")
+				| (DocField.mandatory_depends_on != "")
+				| (DocField.read_only_depends_on != "")
+			)
 		)
+		docfields = docfields_query.run(as_dict=True)
 
 		pattern = r'[\w\.:_]+\s*={1}\s*[\w\.@\'"]+'
 		for field in docfields:
@@ -534,6 +535,25 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertRaises(InvalidFieldNameError, validate_links_table_fieldnames, doc)
 
+	def test_deduplicate_document_links(self):
+		"""Test that duplicate document links are automatically removed during validation."""
+		doc = new_doctype("Test Deduplicate Links")
+
+		doc.append("links", {"link_doctype": "User", "link_fieldname": "email"})
+		doc.append("links", {"link_doctype": "User", "link_fieldname": "email"})
+		doc.append("links", {"link_doctype": "User", "link_fieldname": "email"})
+		doc.append("links", {"link_doctype": "User", "link_fieldname": "first_name"})
+		doc.append("links", {"link_doctype": "Role", "link_fieldname": "name"})
+
+		self.assertEqual(len(doc.links), 5)
+		doc.deduplicate_document_links()
+		self.assertEqual(len(doc.links), 3)
+
+		link_tuples = [(link.link_doctype, link.link_fieldname) for link in doc.links]
+		self.assertIn(("User", "email"), link_tuples)
+		self.assertIn(("User", "first_name"), link_tuples)
+		self.assertIn(("Role", "name"), link_tuples)
+
 	def test_create_virtual_doctype(self):
 		"""Test virtual DocType."""
 		virtual_doc = new_doctype("Test Virtual Doctype")
@@ -840,7 +860,20 @@ class TestDocType(IntegrationTestCase):
 			],
 		).insert(ignore_if_duplicate=True)
 		decimal_field_type = frappe.db.get_column_type(doctype.name, "decimal_field")
-		self.assertIn("(30,3)", decimal_field_type.lower())
+		if frappe.db.db_type == "postgres":
+			result = frappe.db.sql(
+				"""
+				SELECT numeric_precision, numeric_scale
+				FROM information_schema.columns
+				WHERE lower(table_name) = lower(%s)
+				AND column_name = %s
+				""",
+				(f"tab{doctype.name}", "decimal_field"),
+			)
+			length, precision = result[0]
+			self.assertEqual((length, precision), (30, 3))
+		elif frappe.db.db_type == "mariadb":
+			self.assertIn("(30,3)", decimal_field_type.lower())
 
 	def test_decimal_field_precision_exceeds_length(self):
 		doctype = new_doctype(

@@ -4,11 +4,11 @@ inputs:
   python-version:
     description: 'Python version to use'
     required: false
-    default: '3.12.6'
+    default: '3.14'
   node-version:
     description: 'Node.js version to use'
     required: false
-    default: '22'
+    default: '24'
   build-assets:
     required: false
     description: 'Wether to build assets'
@@ -45,12 +45,12 @@ runs:
       git config --global advice.detachedHead false
 
   - name: Clone
-    uses: actions/checkout@v4
+    uses: actions/checkout@v6
     with:
       path: apps/${{ github.event.repository.name }}
 
   - name: Setup Python
-    uses: actions/setup-python@v5
+    uses: actions/setup-python@v6
     with:
       python-version: ${{ inputs.python-version }}
 
@@ -64,14 +64,14 @@ runs:
       fi
 
   - name: Checkout Frappe
-    uses: actions/checkout@v4
+    uses: actions/checkout@v6
     with:
       repository: ${{ env.FRAPPE_GH_ORG || github.repository_owner }}/frappe
       ref: ${{ github.event.client_payload.frappe_sha || github.base_ref || github.ref_name }}
       path: apps/frappe
     if: github.event.repository.name != 'frappe'
 
-  - uses: actions/setup-node@v4
+  - uses: actions/setup-node@v6
     with:
       node-version: ${{ inputs.node-version }}
       check-latest: true
@@ -100,10 +100,16 @@ runs:
     run: |
       # Install System Dependencies
       start_time=$(date +%s)
-      curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | sudo bash
+      curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | sudo bash -s -- --mariadb-server-version="mariadb-11.8.5" --skip-maxscale
+
+      sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+      wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+
       sudo apt -qq update
       sudo apt -qq remove mysql-server mysql-client
-      sudo apt -qq install libcups2-dev redis-server mariadb-client libmariadb-dev
+      sudo apt -qq remove -y postgresql-client postgresql-client-16 postgresql-client-common
+      sudo apt -qq install libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev
+      echo "/usr/lib/postgresql/18/bin" >> $GITHUB_PATH
 
       wget -q -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
       sudo apt install /tmp/wkhtmltox.deb
@@ -167,6 +173,14 @@ runs:
         mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "GRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost'";
 
         mariadb --host 127.0.0.1 --port 3306 -u root -p${{ inputs.db-root-password }} -e "FLUSH PRIVILEGES";
+      fi
+
+      if [ "$DB" == "postgres" ]; then
+        export PGPASSWORD='travis'
+        psql -h 127.0.0.1 -p 5432 -c "CREATE DATABASE test_frappe" -U postgres
+        psql -h 127.0.0.1 -p 5432 -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe'" -U postgres
+        psql -h 127.0.0.1 -p 5432 -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE test_frappe TO test_frappe;"
+        unset PGPASSWORD
       fi
 
   - shell: bash -e {0}

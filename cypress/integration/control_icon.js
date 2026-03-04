@@ -1,7 +1,7 @@
 context("Control Icon", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 	});
 
 	function get_dialog_with_icon() {

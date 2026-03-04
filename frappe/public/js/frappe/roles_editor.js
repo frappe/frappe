@@ -47,6 +47,9 @@ frappe.RoleEditor = class {
 		$(this.wrapper)
 			.find('input[type="checkbox"]')
 			.attr("disabled", this.disable ? true : false);
+		$(this.wrapper)
+			.find("button")
+			.attr("disabled", this.disable ? true : false);
 	}
 	show_permissions(role) {
 		// show permissions for a role

@@ -36,7 +36,7 @@ context("Login", () => {
 		cy.get("#login_password").type(Cypress.env("adminPassword"));
 
 		cy.findByRole("button", { name: "Login" }).click();
-		cy.location("pathname").should("match", /^\/app/);
+		cy.location("pathname").should("match", /^\/desk/);
 		cy.window().its("frappe.session.user").should("eq", "Administrator");
 	});
 

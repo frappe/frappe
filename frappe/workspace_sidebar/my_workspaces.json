@@ -1,0 +1,15 @@
+{
+ "app": "frappe",
+ "creation": "2025-11-03 03:11:08.482620",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "user-round",
+ "idx": 0,
+ "items": [],
+ "modified": "2026-01-08 14:16:38.600691",
+ "modified_by": "Administrator",
+ "name": "My Workspaces",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "My Workspaces"
+}

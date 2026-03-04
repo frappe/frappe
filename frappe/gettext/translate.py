@@ -10,6 +10,7 @@ from babel.messages.catalog import Catalog
 from babel.messages.extract import DEFAULT_KEYWORDS, extract_from_dir
 from babel.messages.mofile import read_mo, write_mo
 from babel.messages.pofile import read_po, write_po
+from click import secho
 
 import frappe
 from frappe.utils import get_bench_path
@@ -136,6 +137,7 @@ def generate_pot(target_app: str | None = None):
 	for app in apps:
 		app_path = frappe.get_pymodule_path(app, "..")
 		catalog = new_catalog(app)
+		ignored_strings = _get_ignored_strings(app)
 
 		# Each file will only be processed by the first method that matches,
 		# so more specific methods should come first.
@@ -148,10 +150,61 @@ def generate_pot(target_app: str | None = None):
 			if not message:
 				continue
 
+			if (message, context) in ignored_strings:
+				continue
+
 			catalog.add(message, locations=[(filename, lineno)], auto_comments=comments, context=context)
 
 		pot_path = write_catalog(app, catalog)
 		print(f"POT file created at {pot_path}")
+
+
+def _get_ignored_strings(app: str) -> set[tuple[str, str | None]]:
+	"""Return a set of tuples (message, context) that should be excluded from the given app's POT file.
+
+	Example:
+	    If [app]/hooks.py contains:
+	        ignore_translatable_strings_from = ["frappe"]
+
+	    Then this will return a set of tuples (message, context) with all
+	    entries from frappe's POT file.
+	"""
+	ignored_strings = set()
+	for ignore_app in frappe.get_hooks("ignore_translatable_strings_from", [], app_name=app):
+		if ignore_app == app:
+			raise ValueError(
+				f"Invalid configuration: App '{app}' cannot ignore its own translatable strings. "
+				f"Remove '{app}' from the 'ignore_translatable_strings_from' hook in {app}/hooks.py to fix this."
+			)
+
+		try:
+			catalog = get_catalog(ignore_app)
+		except ModuleNotFoundError:
+			secho(
+				f"App '{ignore_app}' specified in '{app}/hooks.py' 'ignore_translatable_strings_from' hook is not installed. Skipping",
+				err=True,
+				fg="yellow",
+			)
+			continue
+		except ImportError:
+			secho(
+				f"App '{ignore_app}' specified in '{app}/hooks.py' 'ignore_translatable_strings_from' hook could not be imported. Skipping",
+				err=True,
+				fg="yellow",
+			)
+			continue
+		except AttributeError:
+			secho(
+				f"Site not initialized. Cannot load app '{ignore_app}' specified in '{app}/hooks.py' 'ignore_translatable_strings_from' hook. Skipping",
+				err=True,
+				fg="yellow",
+			)
+			continue
+
+		for message in catalog:
+			ignored_strings.add((message.id, message.context))
+
+	return ignored_strings
 
 
 def get_is_gitignored_function_for_app(app: str | None):

@@ -4,7 +4,7 @@ context("Realtime updates", () => {
 	});
 
 	beforeEach(() => {
-		cy.visit("/app/todo");
+		cy.visit("/desk/todo");
 		// required because immediately after load socket is still connecting.
 		// Not a huge deal breaker in prod.
 		cy.wait(500);
@@ -13,7 +13,7 @@ context("Realtime updates", () => {
 
 	it("Shows version conflict warning", { scrollBehavior: false }, () => {
 		cy.insert_doc("ToDo", { description: "old" }).then((doc) => {
-			cy.visit(`/app/todo/${doc.name}`);
+			cy.visit(`/desk/todo/${doc.name}`);
 			// make form dirty
 			cy.fill_field("status", "Cancelled", "Select");
 

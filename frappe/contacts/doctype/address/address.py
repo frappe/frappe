@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from typing import Any
+
 from jinja2 import TemplateSyntaxError
 
 import frappe
@@ -262,7 +264,9 @@ def get_company_address(company):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def address_query(doctype, txt, searchfield, start, page_len, filters):
+def address_query(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]
+):
 	from frappe.desk.search import search_widget
 
 	_filters = []
@@ -310,7 +314,7 @@ def get_address_display_list(doctype: str, name: str) -> list[dict]:
 			["Dynamic Link", "parenttype", "=", "Address"],
 		],
 		fields=["*"],
-		order_by="is_primary_address DESC, `tabAddress`.creation ASC",
+		order_by="is_primary_address DESC, creation ASC",
 	)
 	for a in address_list:
 		a["display"] = get_address_display(a)

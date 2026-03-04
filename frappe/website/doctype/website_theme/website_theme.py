@@ -151,7 +151,7 @@ class WebsiteTheme(Document):
 		return [{"name": app, "title": values["title"]} for app, values in apps.items()]
 
 
-def get_active_theme() -> Optional["WebsiteTheme"]:
+def get_active_theme() -> "WebsiteTheme" | None:
 	if website_theme := frappe.get_website_settings("website_theme"):
 		try:
 			return frappe.client_cache.get_doc("Website Theme", website_theme)

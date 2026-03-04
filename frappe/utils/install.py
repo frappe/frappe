@@ -3,6 +3,7 @@
 import getpass
 
 import frappe
+from frappe.email.doctype.notification.notification import install_notification_templates
 from frappe.geo.doctype.country.country import import_country_and_currency
 from frappe.utils import cint
 from frappe.utils.password import update_password
@@ -52,6 +53,9 @@ def after_install():
 	_clear_test_log()
 
 	add_standard_navbar_items()
+
+	# default templates
+	install_notification_templates()
 
 	frappe.db.commit()
 
@@ -176,3 +180,48 @@ def add_standard_navbar_items():
 		navbar_settings.append("help_dropdown", item)
 
 	navbar_settings.save()
+
+
+def auto_generate_icons_and_sidebar(app_name=None):
+	"""Auto Create desktop icons and workspace sidebars."""
+	from frappe.desk.doctype.desktop_icon.desktop_icon import create_desktop_icons
+	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import (
+		create_workspace_sidebar_for_workspaces,
+	)
+
+	try:
+		print("Creating Workspace Sidebars")
+		create_workspace_sidebar_for_workspaces()
+		print("Creating Desktop Icons")
+		create_desktop_icons()
+		# Save the generated icons
+		frappe.db.commit()  # nosemgrep
+		# Save the genreated sidebar links
+		frappe.db.commit()  # nosemgrep
+	except Exception as e:
+		print(f"Error creating icons {e}")
+
+
+def delete_desktop_icon_and_sidebar(app_name, dry_run=False):
+	frappe.get_hooks(app_name=app_name)
+	app_title = frappe.get_hooks("app_name", app_name=app_name)[0]
+	icons_to_be_deleted = frappe.get_all(
+		"Desktop Icon",
+		pluck="name",
+		or_filters=[
+			["Desktop Icon", "name", "=", app_title],
+			["Desktop Icon", "parent_icon", "=", app_title],
+		],
+	)
+	print("Deleting Desktop Icons")
+	for icon in icons_to_be_deleted:
+		frappe.delete_doc_if_exists("Desktop Icon", icon)
+	# Delete icons
+	sidebar_to_be_deleted = frappe.get_all("Workspace Sidebar", pluck="name", filters={"app": app_name})
+	print("Deleting Workspace Sidebars")
+	for icon in sidebar_to_be_deleted:
+		frappe.delete_doc_if_exists("Workspace Sidebar", icon)
+
+	if dry_run:
+		# Delete icons and sidebars
+		frappe.db.commit()  # nosemgrep

@@ -6,7 +6,9 @@ from json import loads
 
 import frappe
 from frappe import _
+from frappe.boot import get_sidebar_items
 from frappe.desk.desktop import get_workspace_sidebar_items, save_new_widget
+from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import add_to_my_workspace
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
@@ -74,6 +76,18 @@ class Workspace(Document):
 
 		if self.public and not is_workspace_manager() and not disable_saving_as_public():
 			frappe.throw(_("You need to be Workspace Manager to edit this document"))
+
+		if (
+			not self.public
+			and self.for_user
+			and self.for_user != frappe.session.user
+			and not is_workspace_manager()
+		):
+			frappe.throw(
+				_("You are not allowed to edit this workspace"),
+				frappe.PermissionError,
+			)
+
 		if self.has_value_changed("title"):
 			validate_route_conflict(self.doctype, self.title)
 		else:
@@ -123,8 +137,32 @@ class Workspace(Document):
 			self.name = doc.name = doc.label = doc.title
 
 	def on_trash(self):
+		if not self.module:
+			self.delete_sidebar()
+			self.delete_desktop_icon()
 		if self.public and not is_workspace_manager():
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
+		self.delete_from_my_workspaces()
+
+	def delete_desktop_icon(self):
+		frappe.delete_doc_if_exists("Desktop Icon", self.title)
+
+	def delete_sidebar(self):
+		frappe.delete_doc_if_exists("Workspace Sidebar", self.title)
+
+	def delete_from_my_workspaces(self):
+		if self.public:
+			return
+
+		try:
+			my_workspaces = frappe.get_doc("Workspace Sidebar", f"My Workspaces-{frappe.session.user}")
+		except frappe.DoesNotExistError:
+			frappe.clear_messages()
+			return
+
+		for w in my_workspaces.items:
+			if self.name == w.link_to:
+				frappe.delete_doc("Workspace Sidebar Item", w.name)
 
 	def after_delete(self):
 		if disable_saving_as_public():
@@ -258,7 +296,7 @@ def get_report_type(report):
 
 
 @frappe.whitelist()
-def new_page(new_page):
+def new_page(new_page: str):
 	if not loads(new_page):
 		return
 
@@ -294,11 +332,15 @@ def new_page(new_page):
 	doc.sequence_id = last_sequence_id(doc) + 1
 	doc.save(ignore_permissions=True)
 
-	return get_workspace_sidebar_items()
+	# add to workspace sidebar items
+	if not doc.public:
+		add_to_my_workspace(doc)
+	workspaces = get_workspace_sidebar_items()
+	return {"workspace_pages": workspaces, "sidebar_items": get_sidebar_items(workspaces)}
 
 
 @frappe.whitelist()
-def save_page(name, public, new_widgets, blocks):
+def save_page(name: str, public: str | int, new_widgets: str, blocks: str):
 	public = frappe.parse_json(public)
 
 	doc = frappe.get_doc("Workspace", name)
@@ -313,7 +355,7 @@ def save_page(name, public, new_widgets, blocks):
 
 
 @frappe.whitelist()
-def update_page(name, title, icon, indicator_color, parent, public):
+def update_page(name: str, title: str, icon: str, indicator_color: str, parent: str, public: str | int):
 	public = frappe.parse_json(public)
 	doc = frappe.get_doc("Workspace", name)
 

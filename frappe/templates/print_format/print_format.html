@@ -21,7 +21,7 @@
 	{% for section in layout.sections %}
 	<div class="section {{ resolve_class({'page-break': section.page_break}) }}">
 		{% if section.label %}
-		<div class="section-label">{{ section.label }}</div>
+		<div class="section-label">{{ _(section.label) }}</div>
 		{% endif %}
 
 		<div class="section-columns row">

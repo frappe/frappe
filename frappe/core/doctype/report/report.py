@@ -65,14 +65,19 @@ class Report(Document):
 
 		if self.is_standard == "No":
 			# allow only script manager to edit scripts
-			if self.report_type != "Report Builder":
+			if self.report_type not in ("Report Builder", "Custom Report"):
 				frappe.only_for("Script Manager", True)
 
 			if frappe.db.get_value("Report", self.name, "is_standard") == "Yes":
 				frappe.throw(_("Cannot edit a standard report. Please duplicate and create a new report"))
 
-		if self.is_standard == "Yes" and frappe.session.user != "Administrator":
-			frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
+		if self.is_standard == "Yes":
+			if frappe.session.user != "Administrator":
+				frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
+
+			# Letter Head is visible only for non-standard reports.
+			# It should not remain set when it's invisible.
+			self.letter_head = None
 
 		if self.report_type == "Report Builder":
 			self.update_report_json()
@@ -84,18 +89,27 @@ class Report(Document):
 		self.export_doc()
 
 	def before_export(self, doc):
-		doc.letterhead = None
+		doc.letter_head = None
 		doc.prepared_report = 0
 
 	def on_trash(self):
-		if (
-			self.is_standard == "Yes"
-			and not cint(getattr(frappe.local.conf, "developer_mode", 0))
-			and not frappe.flags.in_migrate
-			and not frappe.flags.in_patch
-		):
-			frappe.throw(_("You are not allowed to delete Standard Report"))
+		if self.is_standard == "Yes":
+			if (
+				not cint(getattr(frappe.local.conf, "developer_mode", 0))
+				and not frappe.flags.in_migrate
+				and not frappe.flags.in_patch
+			):
+				frappe.throw(_("You are not allowed to delete Standard Report"))
+
+			if frappe.conf.developer_mode and not frappe.flags.in_test:
+				frappe.db.after_commit(self.delete_report_folder)
+
 		delete_custom_role("report", self.name)
+
+	def delete_report_folder(self):
+		from frappe.modules.export_file import delete_folder
+
+		delete_folder(self.module, "Report", self.name)
 
 	def get_permission_log_options(self, event=None):
 		return {"fields": ["roles"]}
@@ -152,8 +166,10 @@ class Report(Document):
 
 		check_safe_sql_query(self.query)
 
+		frappe.db.begin(read_only=True)
 		result = [list(t) for t in frappe.db.sql(self.query, filters)]
 		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
+		frappe.db.rollback()
 
 		return [columns, result]
 
@@ -411,9 +427,10 @@ def get_report_module_dotted_path(module, report_name):
 
 def get_group_by_field(args, doctype):
 	if args["aggregate_function"] == "count":
-		group_by_field = "count(*) as _aggregate_column"
+		group_by_field = {"COUNT": "*", "as": "_aggregate_column"}
 	else:
-		group_by_field = f"{args.aggregate_function}({args.aggregate_on}) as _aggregate_column"
+		func_name = args["aggregate_function"].upper()
+		group_by_field = {func_name: args["aggregate_on"], "as": "_aggregate_column"}
 
 	return group_by_field
 

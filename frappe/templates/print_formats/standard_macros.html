@@ -14,7 +14,7 @@
 	{%- elif df.fieldtype=="Geolocation" -%}
 		{{ render_geolocation(df, doc) }}
 	{%- elif df.fieldtype=="Signature" -%}
-		{{ render_signature(df, doc) }}
+    	{{ render_field_with_label(df, doc, no_of_cols) }}
 	{%- elif df.fieldtype=="Currency" -%}
 		{%- if doc.print_templates and
 				doc.print_templates.get(df.fieldname) -%}
@@ -129,10 +129,6 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{{ print_value(df, doc) }}
 {% endmacro %}
 
-{%- macro render_signature(df, doc) -%}
-	{{ print_value(df, doc) }}
-{% endmacro %}
-
 {%- macro render_geolocation(df, doc) -%}
 	{{ "" }}
 {%- endmacro -%}
@@ -168,6 +164,9 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		{{ frappe.render_template(df.options, {"doc":doc}) }}
 	{% elif df.fieldtype=="Currency" %}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
+	{% elif df.fieldtype=="Data" %}
+		{%- set parent = parent_doc or doc -%}
+		{{ doc.get_formatted(df.fieldname, parent, translated=df.translatable, absolute_value=parent.absolute_value) |e }}
 	{% else %}
 		{%- set parent = parent_doc or doc -%}
 		{{ doc.get_formatted(df.fieldname, parent, translated=df.translatable, absolute_value=parent.absolute_value) }}

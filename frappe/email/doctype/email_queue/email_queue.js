@@ -43,5 +43,11 @@ frappe.ui.form.on("Email Queue", {
 				});
 			});
 		}
+
+		if (frm.doc.__onload?.mute_emails) {
+			frm.dashboard.set_headline(
+				__("Automatic sending of emails is disabled via site config.")
+			);
+		}
 	},
 });

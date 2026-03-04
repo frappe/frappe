@@ -157,7 +157,8 @@ select.form-control {
 	.ql-editor:not(.read-mode) {
 		background-color: var(--control-bg);
 	}
-	.address-box {
+	.address-box,
+	.contact-box {
 		background-color: var(--control-bg);
 		padding: var(--padding-sm);
 		margin-bottom: var(--margin-sm);
@@ -170,13 +171,16 @@ select.form-control {
 		}
 		.edit-btn {
 			position: absolute;
-			top: 5px;
-			right: 5px;
+			top: 0px;
+			right: 0px;
 			display: flex;
 			justify-content: center;
 			align-items: center;
 			padding: var(--padding-sm);
 		}
+	}
+	.contact-box p {
+		line-height: 1.1;
 	}
 	.action-btn {
 		position: absolute;
@@ -195,6 +199,13 @@ select.form-control {
 		@extend .action-btn;
 		background-color: var(--control-bg);
 		display: none;
+		border-radius: var(--border-radius-sm);
+		height: 100%;
+		a {
+			display: flex;
+			height: 100%;
+			align-items: center;
+		}
 	}
 }
 
@@ -424,7 +435,7 @@ textarea.form-control {
 /* duration control */
 
 .duration-picker {
-	position: absolute;
+	position: fixed;
 	z-index: 999;
 	border-radius: var(--border-radius);
 	box-shadow: var(--shadow-sm);
@@ -470,7 +481,7 @@ textarea.form-control {
 		width: 55px;
 		border: none;
 		color: var(--text-color);
-		background-color: var(--control-bg);
+		background-color: var(--bg-gray);
 		border-radius: var(--border-radius);
 		padding: 4px 8px;
 	}
@@ -486,6 +497,22 @@ textarea.form-control {
 	.picker-row {
 		display: flex;
 		margin: var(--margin-sm);
+
+		.col {
+			&:last-child {
+				.grid-row & {
+					// remove flex and justify content added by grid context
+					display: block;
+					justify-content: initial;
+				}
+			}
+
+			.grid-row & {
+				// remove border and padding added by grid context
+				border-right: none;
+				padding: unset;
+			}
+		}
 	}
 }
 

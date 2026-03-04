@@ -1,7 +1,7 @@
 context("Utils", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app");
+		cy.visit("/desk");
 	});
 
 	function run_util(name, ...args) {

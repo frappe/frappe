@@ -9,6 +9,7 @@ from frappe.core.doctype.doctype.doctype import (
 	clear_permissions_cache,
 	validate_permissions_for_doctype,
 )
+from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.exceptions import DoesNotExistError
 from frappe.modules.import_file import get_file_path, read_doc_from_file
 from frappe.permissions import (
@@ -31,14 +32,20 @@ def get_roles_and_doctypes():
 
 	active_domains = frappe.get_active_domains()
 
-	doctypes = frappe.get_all(
-		"DocType",
-		filters={
-			"istable": 0,
-			"name": ("not in", ",".join(not_allowed_in_permission_manager)),
-		},
-		or_filters={"ifnull(restrict_to_domain, '')": "", "restrict_to_domain": ("in", active_domains)},
-		fields=["name"],
+	DocType = frappe.qb.DocType("DocType")
+	doctype_domain_condition = (DocType.restrict_to_domain.isnull()) | (DocType.restrict_to_domain == "")
+	if active_domains:
+		doctype_domain_condition = doctype_domain_condition | DocType.restrict_to_domain.isin(active_domains)
+
+	doctypes = (
+		frappe.qb.from_(DocType)
+		.select(DocType.name)
+		.where(
+			(DocType.istable == 0)
+			& (DocType.name.notin(not_allowed_in_permission_manager))
+			& doctype_domain_condition
+		)
+		.run(as_dict=True)
 	)
 
 	restricted_roles = ["Administrator"]
@@ -47,14 +54,16 @@ def get_roles_and_doctypes():
 		restricted_roles.extend(row.role for row in custom_user_type_roles)
 		restricted_roles.extend(AUTOMATIC_ROLES)
 
-	roles = frappe.get_all(
-		"Role",
-		filters={
-			"name": ("not in", restricted_roles),
-			"disabled": 0,
-		},
-		or_filters={"ifnull(restrict_to_domain, '')": "", "restrict_to_domain": ("in", active_domains)},
-		fields=["name"],
+	Role = frappe.qb.DocType("Role")
+	role_domain_condition = (Role.restrict_to_domain.isnull()) | (Role.restrict_to_domain == "")
+	if active_domains:
+		role_domain_condition = role_domain_condition | Role.restrict_to_domain.isin(active_domains)
+
+	roles = (
+		frappe.qb.from_(Role)
+		.select(Role.name)
+		.where((Role.name.notin(restricted_roles)) & (Role.disabled == 0) & role_domain_condition)
+		.run(as_dict=True)
 	)
 
 	doctypes_list = [{"label": _(d.get("name")), "value": d.get("name")} for d in doctypes]
@@ -63,6 +72,7 @@ def get_roles_and_doctypes():
 	return {
 		"doctypes": sorted(doctypes_list, key=lambda d: d["label"].casefold()),
 		"roles": sorted(roles_list, key=lambda d: d["label"].casefold()),
+		"doctype_ptype_map": get_doctype_ptype_map(),
 	}
 
 
@@ -103,13 +113,20 @@ def get_permissions(doctype: str | None = None, role: str | None = None):
 
 
 @frappe.whitelist()
-def add(parent, role, permlevel):
+def add(parent: str, role: str, permlevel: int):
 	frappe.only_for("System Manager")
 	add_permission(parent, role, permlevel)
 
 
 @frappe.whitelist()
-def update(doctype: str, role: str, permlevel: int, ptype: str, value=None, if_owner=0) -> str | None:
+def update(
+	doctype: str,
+	role: str,
+	permlevel: int,
+	ptype: str,
+	value: str | int | None = None,
+	if_owner: str | int = 0,
+) -> str | None:
 	"""Update role permission params.
 
 	Args:
@@ -142,7 +159,7 @@ def update(doctype: str, role: str, permlevel: int, ptype: str, value=None, if_o
 
 
 @frappe.whitelist()
-def remove(doctype, role, permlevel, if_owner=0):
+def remove(doctype: str, role: str, permlevel: int, if_owner: str | int = 0):
 	frappe.only_for("System Manager")
 	setup_custom_perms(doctype)
 
@@ -159,20 +176,47 @@ def remove(doctype, role, permlevel, if_owner=0):
 
 
 @frappe.whitelist()
-def reset(doctype):
+def reset(doctype: str):
 	frappe.only_for("System Manager")
-	reset_perms(doctype)
-	clear_permissions_cache(doctype)
+
+	from frappe.core.doctype.permission_log.permission_log import insert_perm_log
+
+	frappe.flags.skip_perm_log_for_doctype = doctype
+	try:
+		reset_perms(doctype)
+		clear_permissions_cache(doctype)
+
+		doc = frappe.new_doc("DocType")
+		doc.name = doctype
+		standard_perms = frappe.get_all("DocPerm", filters={"parent": doctype}, fields="*")
+		insert_perm_log(
+			doc,
+			for_doctype="DocType",
+			for_document=doctype,
+			custom_changes={
+				"from": {"permissions": "custom"},
+				"to": {
+					"permissions": "standard",
+					"standard_rules": [
+						{"role": p.role, "permlevel": p.permlevel, "read": p.read, "write": p.write}
+						for p in standard_perms
+					],
+				},
+				"status": "Reset",
+			},
+		)
+	finally:
+		frappe.flags.pop("skip_perm_log_for_doctype", None)
 
 
 @frappe.whitelist()
-def get_users_with_role(role):
+def get_users_with_role(role: str):
 	frappe.only_for("System Manager")
 	return _get_user_with_role(role)
 
 
 @frappe.whitelist()
-def get_standard_permissions(doctype):
+def get_standard_permissions(doctype: str):
 	frappe.only_for("System Manager")
 	meta = frappe.get_meta(doctype)
 	if meta.custom:
@@ -182,3 +226,35 @@ def get_standard_permissions(doctype):
 		# also used to setup permissions via patch
 		path = get_file_path(meta.module, "DocType", doctype)
 		return read_doc_from_file(path).get("permissions")
+
+
+@frappe.whitelist()
+def get_permission_logs(doctype: str | None = None, limit: int = 20) -> list:
+	"""Return recent Permission Log entries for the given DocType (or all if not specified).
+
+	Args:
+	        doctype: Filter logs to a specific DocType. If omitted, returns logs for all DocTypes.
+	        limit: Maximum number of log entries to return (default 20).
+	"""
+	frappe.only_for("System Manager")
+
+	filters = {"for_doctype": "DocType"}
+	if doctype:
+		filters["for_document"] = doctype
+
+	logs = frappe.get_all(
+		"Permission Log",
+		filters=filters,
+		fields=["name", "changed_by", "creation", "status", "for_document", "changes"],
+		order_by="creation desc",
+		limit=limit,
+	)
+
+	for log in logs:
+		log["changed_at"] = log.pop("creation")
+		try:
+			log["changes"] = frappe.parse_json(log["changes"])
+		except Exception:
+			pass
+
+	return logs

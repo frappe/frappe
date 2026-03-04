@@ -32,6 +32,7 @@
   "fetch_from",
   "fetch_if_empty",
   "visibility_section",
+  "button_color",
   "hidden",
   "show_on_timeline",
   "bold",
@@ -71,6 +72,7 @@
   "mandatory_depends_on",
   "read_only_depends_on",
   "display",
+  "alignment",
   "print_width",
   "width",
   "max_height",
@@ -80,7 +82,8 @@
   "documentation_url",
   "placeholder",
   "oldfieldname",
-  "oldfieldtype"
+  "oldfieldtype",
+  "show_description_on_click"
  ],
  "fields": [
   {
@@ -230,7 +233,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "For Links, enter the DocType as range.\nFor Select, enter list of Options, each on a new line.",
    "fieldname": "options",
    "fieldtype": "Small Text",
    "ignore_xss_filter": 1,
@@ -329,6 +331,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:[\"Link\", \"Dynamic Link\", \"Table MultiSelect\"].includes(doc.fieldtype)",
    "fieldname": "ignore_user_permissions",
    "fieldtype": "Check",
    "label": "Ignore User Permissions"
@@ -475,6 +478,13 @@
    "options": "JS"
   },
   {
+   "depends_on": "eval:in_list([\"Data\", \"Int\", \"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "fieldname": "alignment",
+   "fieldtype": "Select",
+   "label": "Alignment",
+   "options": "\nLeft\nCenter\nRight"
+  },
+  {
    "fieldname": "column_break_38",
    "fieldtype": "Column Break"
   },
@@ -554,6 +564,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.fieldtype !== 'Link'",
    "fieldname": "is_virtual",
    "fieldtype": "Check",
    "label": "Virtual"
@@ -616,6 +627,19 @@
    "fieldname": "mask",
    "fieldtype": "Check",
    "label": "Mask"
+  },
+  {
+   "depends_on": "eval:doc.fieldtype===\"Button\"",
+   "fieldname": "button_color",
+   "fieldtype": "Select",
+   "label": "Button Color",
+   "options": "\nDefault\nPrimary\nInfo\nSuccess\nWarning\nDanger"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_description_on_click",
+   "fieldtype": "Check",
+   "label": "Show Description on Click"
   }
  ],
  "grid_page_length": 50,
@@ -623,7 +647,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-14 14:22:21.517289",
+ "modified": "2026-02-06 15:13:03.688027",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

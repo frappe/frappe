@@ -27,6 +27,7 @@ class IntegrationRequest(Document):
 		request_description: DF.Data | None
 		request_headers: DF.Code | None
 		request_id: DF.Data | None
+		response_headers: DF.Code | None
 		status: DF.Literal["", "Queued", "Authorized", "Completed", "Cancelled", "Failed"]
 		url: DF.SmallText | None
 	# end: auto-generated types

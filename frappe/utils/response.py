@@ -67,11 +67,13 @@ def report_error(status_code):
 def is_traceback_allowed():
 	from frappe.permissions import is_system_user
 
-	return (
-		frappe.db
-		and frappe.get_system_settings("allow_error_traceback")
-		and (not frappe.local.flags.disable_traceback or frappe._dev_server)
-		and is_system_user()
+	return frappe.db and (
+		frappe._dev_server
+		or (
+			frappe.get_system_settings("allow_error_traceback")
+			and not frappe.local.flags.disable_traceback
+			and is_system_user()
+		)
 	)
 
 
@@ -157,7 +159,7 @@ def as_pdf():
 	response = Response()
 	response.mimetype = "application/pdf"
 	filename = frappe.response["filename"].encode("utf-8").decode("unicode-escape", "ignore")
-	response.headers.add("Content-Disposition", None, filename=filename)
+	response.headers.add("Content-Disposition", "inline", filename=filename)
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -167,7 +169,7 @@ def as_binary():
 	response.mimetype = "application/octet-stream"
 	filename = frappe.response["filename"]
 	filename = filename.encode("utf-8").decode("unicode-escape", "ignore")
-	response.headers.add("Content-Disposition", None, filename=filename)
+	response.headers.add("Content-Disposition", "attachment", filename=filename)
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -293,12 +295,18 @@ def download_private_file(path: str) -> Response:
 		raise Forbidden(_("You don't have permission to access this file"))
 
 	make_access_log(doctype="File", document=file.name, file_type=os.path.splitext(path)[-1][1:])
-	return send_private_file(path.split("/private", 1)[1])
+	return send_private_file(path.split("/private", 1)[1], filename=file.file_name)
 
 
-def send_private_file(path: str) -> Response:
+FORCE_DOWNLOAD_EXTENSIONS = (".svg", ".html", ".htm", ".xml")
+
+
+def send_private_file(path: str, filename: str | None = None) -> Response:
 	path = os.path.join(frappe.local.conf.get("private_path", "private"), path.strip("/"))
-	filename = os.path.basename(path)
+	filename = filename or os.path.basename(path)
+
+	extension = os.path.splitext(path)[1]
+	as_attachment = extension.lower() in FORCE_DOWNLOAD_EXTENSIONS
 
 	if frappe.local.request.headers.get("X-Use-X-Accel-Redirect"):
 		path = "/protected/" + path
@@ -308,21 +316,20 @@ def send_private_file(path: str) -> Response:
 		response.headers["Accept-Ranges"] = "bytes"
 		response.headers["Content-Type"] = mimetypes.guess_type(filename)[0] or "application/octet-stream"
 
+		if as_attachment:
+			response.headers["Content-Disposition"] = f"attachment; filename*=UTF-8''{quote(filename)}"
+
 	else:
 		filepath = frappe.utils.get_site_path(path)
 		if not os.path.exists(filepath):
 			raise NotFound
-
-		extension = os.path.splitext(path)[1]
-		blacklist = [".svg", ".html", ".htm", ".xml"]
-		as_attachment = extension.lower() in blacklist
 
 		response = werkzeug.utils.send_file(
 			filepath,
 			environ=frappe.local.request.environ,
 			conditional=True,
 			as_attachment=as_attachment,
-			download_name=filename if as_attachment else None,
+			download_name=filename,
 		)
 
 	return response

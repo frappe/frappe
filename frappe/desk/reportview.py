@@ -5,6 +5,7 @@
 
 import json
 from functools import lru_cache
+from typing import Any
 
 from sql_metadata import Parser
 
@@ -14,7 +15,7 @@ from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
 from frappe.model.base_document import get_controller
-from frappe.model.db_query import DatabaseQuery
+from frappe.model.qb_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
@@ -60,15 +61,14 @@ def get_count() -> int | None:
 		return frappe.call(controller.get_count, args=args, **args)
 
 	args.distinct = sbool(args.distinct)
-	distinct = "distinct " if args.distinct else ""
 	args.limit = cint(args.limit)
-	fieldname = f"{distinct}`tab{args.doctype}`.name"
+	fieldname = f"`tab{args.doctype}`.name"
 	args.order_by = None
 
 	# args.limit is specified to avoid getting accurate count.
 	if not args.limit:
 		args.fields = [fieldname]
-		partial_query = execute(**args, run=0)
+		partial_query = execute(**args, run=0).get_sql()
 		return frappe.db.sql(f"select count(*) from ( {partial_query} ) p")[0][0]
 
 	args.fields = [fieldname]
@@ -125,6 +125,10 @@ def validate_fields(data):
 	wildcard = update_wildcard_field_param(data)
 
 	for field in list(data.fields or []):
+		# TODO: extract_fieldnames needs to handle dict fields for qb_query aggregations
+		if isinstance(field, dict):
+			continue
+
 		fieldname = extract_fieldnames(field)[0]
 		if not fieldname:
 			raise_invalid_field(fieldname)
@@ -187,9 +191,8 @@ def setup_group_by(data):
 			frappe.throw(_("Invalid aggregate function"))
 
 		if frappe.db.has_column(data.aggregate_on_doctype, data.aggregate_on_field):
-			data.fields.append(
-				f"{data.aggregate_function}(`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`) AS _aggregate_column"
-			)
+			field = f"`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`"
+			data.fields.append({data.aggregate_function.upper(): field, "as": "_aggregate_column"})
 		else:
 			raise_invalid_field(data.aggregate_on_field)
 
@@ -317,7 +320,7 @@ def compress(data, args=None):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def save_report(name, doctype, report_settings):
+def save_report(name: str | int, doctype: str, report_settings: str):
 	"""Save reports of type Report Builder from Report View"""
 
 	if frappe.db.exists("Report", name):
@@ -347,7 +350,7 @@ def save_report(name, doctype, report_settings):
 
 
 @frappe.whitelist(methods=["POST", "DELETE"])
-def delete_report(name):
+def delete_report(name: str | int):
 	"""Delete reports of type Report Builder from Report View"""
 
 	report = frappe.get_doc("Report", name)
@@ -473,7 +476,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 	if file_format_type == "CSV":
 		file_extension = "csv"
 		content = get_csv_bytes(
-			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in data],
+			[[handle_html(v) if isinstance(v, str) else v for v in r] for r in data],
 			csv_params,
 		)
 	elif file_format_type == "Excel":
@@ -594,6 +597,9 @@ def parse_field(field: str) -> tuple[str | None, str]:
 @frappe.whitelist(methods=["POST", "DELETE"])
 def delete_items():
 	"""delete selected items"""
+	if not (frappe.get_cached_value("User", frappe.session.user, "bulk_actions")):
+		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
+
 	import json
 
 	items = sorted(json.loads(frappe.form_dict.get("items")), reverse=True)
@@ -639,13 +645,17 @@ def delete_bulk(doctype, items):
 		)
 	else:
 		frappe.msgprint(
-			_("Deleted all documents successfully"), realtime=True, title=_("Bulk Operation Successful")
+			_(f"Deleted {len(items)} records from {doctype} doctype"),
+			realtime=True,
+			title=_("Bulk Operation Successful"),
 		)
 
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_sidebar_stats(stats, doctype, filters=None):
+def get_sidebar_stats(
+	stats: str | list[str], doctype: str, filters: str | list | dict[str, Any] | None = None
+):
 	if filters is None:
 		filters = []
 
@@ -661,7 +671,7 @@ def get_sidebar_stats(stats, doctype, filters=None):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_stats(stats, doctype, filters=None):
+def get_stats(stats: str, doctype: str, filters: str | None = None):
 	"""get tag info"""
 	import json
 
@@ -685,7 +695,7 @@ def get_stats(stats, doctype, filters=None):
 		try:
 			tag_count = frappe.get_list(
 				doctype,
-				fields=[column, "count(*)"],
+				fields=[column, {"COUNT": "*"}],
 				filters=[*filters, [column, "!=", ""]],
 				group_by=column,
 				as_list=True,
@@ -696,14 +706,13 @@ def get_stats(stats, doctype, filters=None):
 				results[column] = scrub_user_tags(tag_count)
 				no_tag_count = frappe.get_list(
 					doctype,
-					fields=[column, "count(*)"],
+					fields=[column, {"COUNT": "1", "as": "count"}],
 					filters=[*filters, [column, "in", ("", ",")]],
-					as_list=True,
 					group_by=column,
 					order_by=column,
 				)
 
-				no_tag_count = no_tag_count[0][1] if no_tag_count else 0
+				no_tag_count = no_tag_count[0].get("count", 0) if no_tag_count else 0
 
 				results[column].append([_("No Tags"), no_tag_count])
 			else:
@@ -719,7 +728,7 @@ def get_stats(stats, doctype, filters=None):
 
 
 @frappe.whitelist()
-def get_filter_dashboard_data(stats, doctype, filters=None):
+def get_filter_dashboard_data(stats: str, doctype: str, filters: str | None = None):
 	"""get tags info"""
 	import json
 
@@ -733,10 +742,12 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 			continue
 		tagcount = []
 		if tag["type"] not in ["Date", "Datetime"]:
+			from frappe.query_builder import Field, functions
+
 			tagcount = frappe.get_list(
 				doctype,
-				fields=[tag["name"], "count(*)"],
-				filters=[*filters, "ifnull(`{}`,'')!=''".format(tag["name"])],
+				fields=[tag["name"], {"COUNT": "*"}],
+				filters=[*filters, functions.IfNull(Field(tag["name"]), "") != ""],
 				group_by=tag["name"],
 				as_list=True,
 			)
@@ -757,7 +768,7 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 					"No Data",
 					frappe.get_list(
 						doctype,
-						fields=[tag["name"], "count(*)"],
+						fields=[tag["name"], {"COUNT": "*"}],
 						filters=[*filters, "({0} = '' or {0} is null)".format(tag["name"])],
 						as_list=True,
 					)[0][1],
@@ -790,7 +801,11 @@ def scrub_user_tags(tagcount):
 
 # used in building query in queries.py
 def get_match_cond(doctype, as_condition=True):
-	cond = DatabaseQuery(doctype).build_match_conditions(as_condition=as_condition)
+	from frappe.database.query import Engine
+
+	engine = Engine()
+	engine.get_query(doctype, db_query_compat=True)
+	cond = engine.build_match_conditions(as_condition=as_condition)
 	if not as_condition:
 		return cond
 
@@ -798,7 +813,11 @@ def get_match_cond(doctype, as_condition=True):
 
 
 def build_match_conditions(doctype, user=None, as_condition=True):
-	match_conditions = DatabaseQuery(doctype, user=user).build_match_conditions(as_condition=as_condition)
+	from frappe.database.query import Engine
+
+	engine = Engine()
+	engine.get_query(doctype, user=user, db_query_compat=True)
+	match_conditions = engine.build_match_conditions(as_condition=as_condition)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
 	return match_conditions
@@ -834,16 +853,18 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 				else:
 					flt.append([doctype, f[0], "=", f[1]])
 
-		query = DatabaseQuery(doctype)
-		query.filters = flt
-		query.conditions = conditions
+		from frappe.database.query import Engine
+
+		engine = Engine()
+		engine.get_query(doctype, ignore_permissions=ignore_permissions, db_query_compat=True)
 
 		if with_match_conditions:
-			query.build_match_conditions()
+			if match_cond := engine.build_match_conditions():
+				conditions.append(match_cond)
 
-		query.build_filter_conditions(flt, conditions, ignore_permissions)
+		engine.build_filter_conditions(flt, conditions)
 
-		cond = " and " + " and ".join(query.conditions)
+		cond = " and " + " and ".join(conditions) if conditions else ""
 	else:
 		cond = ""
 	return cond

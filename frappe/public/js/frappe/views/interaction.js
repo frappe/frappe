@@ -17,7 +17,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 			fields: me.get_fields(),
 			primary_action_label: __("Create"),
 			primary_action: function () {
-				me.create_action();
+				return me.create_action();
 			},
 		});
 

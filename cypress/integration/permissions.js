@@ -2,11 +2,11 @@ context.skip("Permissions API", () => {
 	before(() => {
 		cy.visit("/login");
 		cy.remove_role("frappe@example.com", "System Manager");
-		cy.visit("/app");
+		cy.visit("/desk");
 	});
 
 	it("Checks permissions via `has_perm` for Kanban Board DocType", () => {
-		cy.visit("/app/kanban-board/view/list");
+		cy.visit("/desk/kanban-board/view/list");
 		cy.window()
 			.its("frappe")
 			.then((frappe) => {
@@ -20,7 +20,7 @@ context.skip("Permissions API", () => {
 	});
 
 	it("Checks permissions via `get_perm` for Kanban Board DocType", () => {
-		cy.visit("/app/kanban-board/view/list");
+		cy.visit("/desk/kanban-board/view/list");
 		cy.window()
 			.its("frappe")
 			.then((frappe) => {

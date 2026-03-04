@@ -1,10 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from typing import Any
+
 import frappe
 import frappe.utils.user
 from frappe.model import data_fieldtypes
-from frappe.permissions import rights
+from frappe.permissions import get_rights
 
 
 def execute(filters=None):
@@ -20,6 +22,7 @@ def execute(filters=None):
 	data = frappe.get_list(doctype, fields=fields, as_list=True, user=user)
 
 	if show_permissions:
+		rights = get_rights(doctype)
 		columns = columns + [frappe.unscrub(right) + ":Check:80" for right in rights]
 		data = list(data)
 		for i, doc in enumerate(data):
@@ -43,7 +46,9 @@ def get_columns_and_fields(doctype):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def query_doctypes(doctype, txt, searchfield, start, page_len, filters):
+def query_doctypes(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]
+):
 	user = filters.get("user")
 	user_perms = frappe.utils.user.UserPermissions(user)
 	user_perms.build_permissions()

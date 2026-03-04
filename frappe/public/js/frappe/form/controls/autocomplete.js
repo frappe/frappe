@@ -11,6 +11,9 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 	set_options() {
 		if (this.df.options) {
 			let options = this.df.options || [];
+			if (options == "Installed Applications") {
+				this.load_installed_apps();
+			}
 			this.set_data(options);
 		}
 	}
@@ -54,7 +57,8 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 				};
 			},
 			filter: function (item, input) {
-				let hay = item.label + item.value;
+				const d = this.get_item(item.value);
+				const hay = d.description ? d.label + d.description + d.value : d.label + d.value;
 				return Awesomplete.FILTER_CONTAINS(hay, input);
 			},
 			item: function (item) {
@@ -240,5 +244,17 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 			this.awesomplete.list = data;
 		}
 		this._data = data;
+	}
+
+	async load_installed_apps(frm) {
+		const me = this;
+		await frappe.call({
+			method: "frappe.desk.desktop.get_installed_apps",
+			callback: function (r) {
+				if (r.message) {
+					me.set_data(r.message);
+				}
+			},
+		});
 	}
 };

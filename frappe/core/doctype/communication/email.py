@@ -3,7 +3,8 @@
 
 import json
 from collections.abc import Iterable
-from typing import TYPE_CHECKING
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
 import frappe
 import frappe.email.smtp
@@ -27,29 +28,32 @@ if TYPE_CHECKING:
 
 @frappe.whitelist()
 def make(
-	doctype=None,
-	name=None,
-	content=None,
-	subject=None,
-	sent_or_received="Sent",
-	sender=None,
-	sender_full_name=None,
-	recipients=None,
-	communication_medium="Email",
-	send_email=False,
-	print_html=None,
-	print_format=None,
-	attachments=None,
-	send_me_a_copy=False,
-	cc=None,
-	bcc=None,
-	read_receipt=None,
-	print_letterhead=True,
-	email_template=None,
-	communication_type=None,
-	send_after=None,
-	print_language=None,
-	now=False,
+	doctype: str | None = None,
+	name: str | int | None = None,
+	content: str | None = None,
+	subject: str | None = None,
+	sent_or_received: str = "Sent",
+	sender: str | None = None,
+	sender_full_name: str | None = None,
+	recipients: str | list[str] | None = None,
+	communication_medium: str = "Email",
+	send_email: str | bool | int = False,
+	print_html: str | None = None,
+	print_format: str | None = None,
+	attachments: str | list[str | dict[str, Any]] | None = None,
+	send_me_a_copy: str | int | bool = False,
+	cc: str | list[str] | None = None,
+	bcc: str | list[str] | None = None,
+	read_receipt: str | int | bool | None = None,
+	print_letterhead: int | bool = True,
+	email_template: str | None = None,
+	communication_type: str | None = None,
+	send_after: str | datetime | None = None,
+	print_language: str | None = None,
+	now: int | bool = False,
+	raw_html: int | bool = False,
+	add_css: int | bool = True,
+	in_reply_to: str | None = None,
 	**kwargs,
 ) -> dict[str, str]:
 	"""Make a new communication. Checks for email permissions for specified Document.
@@ -69,10 +73,13 @@ def make(
 	:param send_me_a_copy: Send a copy to the sender (default **False**).
 	:param email_template: Template which is used to compose mail .
 	:param send_after: Send after the given datetime.
+	:param raw_html: Whether to use html version of email template
+	:param add_css: Add default CSS from hooks/email_css to the email template (default **True**)
+	:param in_reply_to: Name of the Communication document to which this communication is a reply.
 	"""
-	if kwargs:
-		from frappe.utils.commands import warn
+	from frappe.utils.commands import warn
 
+	if kwargs:
 		warn(
 			f"Options {kwargs} used in frappe.core.doctype.communication.email.make "
 			"are deprecated or unsupported",
@@ -81,6 +88,18 @@ def make(
 
 	if doctype and name:
 		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
+
+	if raw_html and not (
+		email_template and frappe.get_cached_value("Email Template", email_template, "use_html")
+	):
+		warn(
+			_(
+				"Raw HTML can be used only with Email Templates having 'Use HTML' checked. "
+				"Proceeding with plain text email."
+			),
+			category=UserWarning,
+		)
+		raw_html = False
 
 	return _make(
 		doctype=doctype,
@@ -107,6 +126,9 @@ def make(
 		send_after=send_after,
 		print_language=print_language,
 		now=now,
+		raw_html=raw_html,
+		add_css=add_css,
+		in_reply_to=in_reply_to,
 	)
 
 
@@ -135,6 +157,9 @@ def _make(
 	send_after=None,
 	print_language=None,
 	now=False,
+	raw_html=False,
+	add_css=True,
+	in_reply_to=None,
 ) -> dict[str, str]:
 	"""Internal method to make a new communication that ignores Permission checks."""
 
@@ -163,9 +188,12 @@ def _make(
 			"has_attachment": 1 if attachments else 0,
 			"communication_type": communication_type,
 			"send_after": send_after,
+			"in_reply_to": in_reply_to,
 		}
 	)
-	comm.flags.skip_add_signature = not add_signature
+	comm.flags.skip_add_signature = not add_signature or (
+		raw_html and email_template and frappe.get_cached_value("Email Template", email_template, "use_html")
+	)
 	comm.insert(ignore_permissions=True)
 
 	# if not committed, delayed task doesn't find the communication
@@ -190,6 +218,8 @@ def _make(
 			print_letterhead=print_letterhead,
 			print_language=print_language,
 			now=now,
+			raw_html=raw_html,
+			add_css=add_css,
 		)
 
 	emails_not_sent_to = comm.exclude_emails_list(include_sender=send_me_a_copy)

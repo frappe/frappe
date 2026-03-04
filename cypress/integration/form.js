@@ -1,12 +1,17 @@
 const jump_to_field = (field_label) => {
 	cy.get("body")
 		.type("{esc}") // lose focus if any
-		.type("{ctrl+j}") // jump to field
+		.type("{ctrl+j}"); // jump to field
+
+	cy.get(".modal input[type='text']").first().focus();
+
+	cy.get("body")
 		.type(field_label)
-		.wait(500)
+		.wait(1000)
 		.type("{enter}")
 		.wait(200)
-		.type("{enter}")
+		.findByRole("button", { name: "Go" })
+		.click()
 		.wait(1000);
 };
 
@@ -17,7 +22,7 @@ const type_value = (value) => {
 context("Form", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 		return cy
 			.window()
 			.its("frappe")
@@ -28,11 +33,11 @@ context("Form", () => {
 
 	beforeEach(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 	});
 
 	it("create a new form", () => {
-		cy.visit("/app/todo/new");
+		cy.visit("/desk/todo/new");
 		cy.get_field("description", "Text Editor")
 			.type("this is a test todo", { force: true })
 			.wait(1000);
@@ -51,7 +56,7 @@ context("Form", () => {
 	});
 
 	it("navigates between documents with child table list filters applied", () => {
-		cy.visit("/app/contact");
+		cy.visit("/desk/contact");
 
 		cy.clear_filters();
 		cy.get('.standard-filter-section [data-fieldname="name"] input')
@@ -60,7 +65,7 @@ context("Form", () => {
 		cy.click_listview_row_item_with_text("Test Form Contact 3");
 
 		// clear filters
-		cy.visit("/app/contact");
+		cy.visit("/desk/contact");
 		cy.clear_filters();
 	});
 
@@ -68,9 +73,8 @@ context("Form", () => {
 		// test email validations for set_invalid controller
 		let website_input = "website.in";
 		let valid_email = "user@email.com";
-		let expectBackgroundColor = "rgb(255, 245, 245)";
 
-		cy.visit("/app/contact/new");
+		cy.visit("/desk/contact/new");
 		cy.fill_field("company_name", "Test Company");
 
 		cy.get('.frappe-control[data-fieldname="email_ids"]').as("table");
@@ -105,7 +109,7 @@ context("Form", () => {
 	});
 
 	it("update docfield property using set_df_property in child table", () => {
-		cy.visit("/app/contact/Test Form Contact 1");
+		cy.visit("/desk/contact/Test Form Contact 1");
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {

@@ -72,6 +72,11 @@ frappe.PermissionEngine = class PermissionEngine {
 		this.page.add_inner_button(__("Set User Permissions"), () => {
 			return frappe.set_route("List", "User Permission");
 		});
+
+		this.page.add_inner_button(__("View Activity Log"), () => {
+			this.show_activity_log();
+		});
+
 		this.set_from_route();
 	}
 
@@ -132,17 +137,18 @@ frappe.PermissionEngine = class PermissionEngine {
 			.append(`<hr><h5>${__("Standard Permissions")}:</h5><br>`);
 		let $wrapper = $("<p></p>").appendTo($d);
 		data.message.forEach((d) => {
-			let rights = this.rights
+			let custom_rights = this.options.doctype_ptype_map[doctype] || [];
+			d.rights = this.rights
 				.filter((r) => d[r])
+				.concat(custom_rights)
 				.map((r) => {
 					return __(toTitle(frappe.unscrub(r)));
-				});
-
-			d.rights = rights.join(", ");
+				})
+				.join(", ");
 
 			$wrapper.append(`<div class="row">\
 				<div class="col-xs-5"><b>${__(d.role)}</b>, ${__("Level")} ${d.permlevel || 0}</div>\
-				<div class="col-xs-7">${d.rights}</div>\
+				<div class="col-xs-7 text-break">${d.rights}</div>\
 			</div><br>`);
 		});
 	}
@@ -265,6 +271,10 @@ frappe.PermissionEngine = class PermissionEngine {
 				}
 			});
 
+			this.options.doctype_ptype_map[d.parent]?.forEach((r) => {
+				this.add_check(perm_container, d, r);
+			});
+
 			// buttons
 			this.add_delete_button(row, d);
 		});
@@ -305,6 +315,7 @@ frappe.PermissionEngine = class PermissionEngine {
 			.attr("data-doctype", d.parent);
 
 		checkbox.find("label").css("text-transform", "capitalize");
+		checkbox.find("label").css("align-items", "center");
 
 		return checkbox;
 	}
@@ -340,23 +351,68 @@ frappe.PermissionEngine = class PermissionEngine {
 			.find("a")
 			.attr("data-role", role)
 			.click(function () {
-				let role = $(this).attr("data-role");
+				const role = $(this).attr("data-role");
 				frappe.call({
 					module: "frappe.core",
 					page: "permission_manager",
 					method: "get_users_with_role",
-					args: {
-						role: role,
-					},
+					args: { role },
 					callback: function (r) {
-						r.message = $.map(r.message, function (p) {
-							return $.format('<a href="/app/user/{0}">{1}</a>', [p, p]);
+						let message_html = "";
+
+						const role_label = __(role);
+						const users = (r.message || []).filter(Boolean);
+						const user_count = users.length;
+						const display_count = Math.min(user_count, 5);
+
+						if (user_count === 0) {
+							message_html = __("No user has the role <strong>{0}</strong>", [
+								role_label,
+							]);
+						} else {
+							const user_text = user_count === 1 ? __("User") : __("Users");
+							const display_users = users.slice(0, display_count);
+
+							const user_list = display_users
+								.map(
+									(user) =>
+										`<li class="py-1">
+                        					${frappe.utils.get_form_link("User", user, true)}
+                    					</li>`
+								)
+								.join("");
+
+							message_html = __("{0} with the role <strong>{1}</strong>", [
+								user_text,
+								role_label,
+							]);
+
+							message_html += `<ul class="border rounded pl-4 pb-2 pt-2 mb-3 mt-3">${user_list}</ul>`;
+
+							// show compact "View All" link if more users
+							if (user_count > display_count) {
+								const route = frappe.utils.generate_route({
+									type: "Doctype",
+									doctype: "User",
+									name: "User",
+									doc_view: "List",
+									route_options: { role },
+								});
+
+								message_html += `<div class="text-center">
+                    								<a href="${route}" class="text-muted">
+														${frappe.utils.icon("external-link", "sm", "mr-1")}
+														${__("View all {0} users", [user_count])}
+                    								</a>
+                								</div>`;
+							}
+						}
+
+						frappe.msgprint({
+							title: __("Users"),
+							message: message_html,
+							indicator: user_count === 0 ? "orange" : "blue",
 						});
-						frappe.msgprint(
-							__("Users with role {0}:", [__(role)]) +
-								"<br>" +
-								r.message.join("<br>")
-						);
 					},
 				});
 				return false;
@@ -366,7 +422,7 @@ frappe.PermissionEngine = class PermissionEngine {
 	add_delete_button(row, d) {
 		$(
 			`<button class='btn btn-danger btn-remove-perm btn-xs'>${frappe.utils.icon(
-				"delete"
+				"x"
 			)}</button>`
 		)
 			.appendTo($(`<td class="pt-4">`).appendTo(row))
@@ -525,5 +581,160 @@ frappe.PermissionEngine = class PermissionEngine {
 			fieldtype: "Link",
 			options: ["not in", ["User", "[Select]"]],
 		});
+	}
+
+	show_activity_log() {
+		const PERM_FIELDS = [
+			"select",
+			"read",
+			"write",
+			"create",
+			"delete",
+			"submit",
+			"cancel",
+			"amend",
+			"print",
+			"email",
+			"report",
+			"import",
+			"export",
+			"share",
+			"mask",
+		];
+		const STATUS_COLOR = { Added: "green", Removed: "red", Updated: "orange", Reset: "blue" };
+
+		let doctype = this.get_doctype();
+		let show_doctype_column = !doctype;
+
+		let title = doctype
+			? __("Activity Log for {0}", [__(doctype)])
+			: __("Role Permissions Activity Log");
+
+		let d = new frappe.ui.Dialog({ title, size: "large" });
+		let $body = $(d.body);
+		$body.html(`<div class="text-muted text-center p-4">${__("Loading\u2026")}</div>`);
+
+		frappe
+			.call({
+				module: "frappe.core",
+				page: "permission_manager",
+				method: "get_permission_logs",
+				args: { doctype: doctype || null, limit: 50 },
+			})
+			.then((r) => {
+				let logs = r.message || [];
+				$body.empty();
+
+				if (!logs.length) {
+					$body.html(
+						`<div class="text-muted text-center p-4">${__(
+							"No activity recorded yet."
+						)}</div>`
+					);
+					return;
+				}
+
+				let rows = logs
+					.map((log) => {
+						let ch = log.changes || {};
+						let from = ch.from || {};
+						let to = ch.to || {};
+
+						// Role: prefer the side that has data
+						let role =
+							(log.status === "Removed" ? from.role : to.role) || from.role || "—";
+
+						// Active permissions: for Added/Removed show the full set;
+						// for Updated show only what flipped; for Reset show summary
+						let changes_text = "";
+						if (log.status === "Reset") {
+							changes_text = __("Restored to standard permissions");
+						} else if (log.status === "Updated") {
+							let parts = [];
+							PERM_FIELDS.forEach((f) => {
+								if (f in to && to[f] !== from[f]) {
+									let label = toTitle(frappe.unscrub(f));
+									parts.push(
+										to[f]
+											? `<span class="diff-add">${__(label)}</span>`
+											: `<span class="diff-remove">${__(label)}</span>`
+									);
+								}
+							});
+							changes_text = parts.join(", ") || "—";
+						} else {
+							// Added or Removed — list the active permission types
+							let source = log.status === "Removed" ? from : to;
+							let active = PERM_FIELDS.filter(
+								(f) => source[f] == 1 || source[f] === true
+							);
+							changes_text =
+								active.map((f) => __(toTitle(frappe.unscrub(f)))).join(", ") ||
+								"—";
+						}
+
+						let badge_color = STATUS_COLOR[log.status] || "grey";
+						let ts = frappe.datetime.comment_when(log.changed_at);
+						let user_display = log.changed_by || "—";
+
+						let doctype_cell =
+							show_doctype_column && log.for_document
+								? `<td>${frappe.utils.get_form_link(
+										"DocType",
+										log.for_document,
+										true
+								  )}</td>`
+								: "";
+
+						return `<tr>
+							<td>${user_display}</td>
+							<td><span class="indicator-pill ${badge_color}">${__(log.status)}</span></td>
+							<td>${__(role)}</td>
+							${doctype_cell}
+							<td class="small">${changes_text}</td>
+							<td class="frappe-timestamp-cell">${ts}</td>
+						</tr>`;
+					})
+					.join("");
+
+				let header_doctype = show_doctype_column
+					? `<th style="min-width:120px">${__("DocType")}</th>`
+					: "";
+
+				$body.html(`
+					<div style="overflow-x: auto;">
+						<table class="table table-bordered table-sm" style="font-size:13px">
+							<thead style="background:var(--fg-color)">
+								<tr>
+									<th style="min-width:110px">${__("Modified By")}</th>
+									<th style="min-width:90px">${__("Action")}</th>
+									<th style="min-width:110px">${__("Role")}</th>
+									${header_doctype}
+									<th>${__("Changes")}</th>
+									<th style="min-width:100px">${__("Timestamp")}</th>
+								</tr>
+							</thead>
+							<tbody>${rows}</tbody>
+						</table>
+					</div>
+					<div class="text-right mt-2">
+						<button class="btn btn-sm btn-default btn-view-full-log">
+							${frappe.utils.icon("external-link", "sm", "mr-1")}
+							${__("View full log")}
+						</button>
+					</div>
+				`);
+
+				$body.find(".btn-view-full-log").on("click", () => {
+					d.hide();
+					frappe.route_options = { for_doctype: "DocType" };
+					if (doctype) {
+						frappe.route_options.for_document = doctype;
+					}
+					frappe.set_route("List", "Permission Log");
+				});
+			});
+
+		d.show();
 	}
 };

@@ -3,7 +3,7 @@ context("Control Currency", () => {
 
 	before(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/desk/website");
 	});
 
 	function get_dialog_with_currency(df_options = {}) {

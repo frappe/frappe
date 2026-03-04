@@ -1,11 +1,11 @@
 context("Control Markdown Editor", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app");
+		cy.visit("/desk");
 	});
 
 	it("should allow inserting images by drag and drop", () => {
-		cy.visit("/app/web-page/new");
+		cy.visit("/desk/web-page/new");
 		cy.fill_field("content_type", "Markdown", "Select");
 		cy.get_field("main_section_md", "Markdown Editor").selectFile(
 			"cypress/fixtures/sample_image.jpg",

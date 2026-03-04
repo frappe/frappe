@@ -107,7 +107,7 @@ frappe.router = {
 		if (path.substr(0, 1) === "/") path = path.substr(1);
 		path = path.split("/");
 		if (path[0]) {
-			return path[0] === "app";
+			return path[0] === "desk";
 		}
 	},
 
@@ -144,11 +144,11 @@ frappe.router = {
 
 		this.current_sub_path = sub_path;
 		this.current_route = await this.parse();
+
 		this.set_history(sub_path);
-		this.set_active_sidebar_item();
 		this.render();
 		this.set_title(sub_path);
-		this.trigger("change");
+		this.trigger("change", this);
 	},
 
 	async parse(route) {
@@ -160,20 +160,21 @@ frappe.router = {
 	},
 
 	async convert_to_standard_route(route) {
-		// /app/settings = ["Workspaces", "Settings"]
-		// /app/private/settings = ["Workspaces", "private", "Settings"]
-		// /app/user = ["List", "User"]
-		// /app/user/view/report = ["List", "User", "Report"]
-		// /app/user/view/tree = ["Tree", "User"]
-		// /app/user/user-001 = ["Form", "User", "user-001"]
-		// /app/user/user-001 = ["Form", "User", "user-001"]
-		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
+		// /desk/settings = ["Workspaces", "Settings"]
+		// /desk/private/settings = ["Workspaces", "private", "Settings"]
+		// /desk/user = ["List", "User"]
+		// /desk/user/view/report = ["List", "User", "Report"]
+		// /desk/user/view/tree = ["Tree", "User"]
+		// /desk/user/user-001 = ["Form", "User", "user-001"]
+		// /desk/user/user-001 = ["Form", "User", "user-001"]
+		// /desk/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
 		if (frappe.workspaces[route[0]]) {
 			// public workspace
 			route = ["Workspaces", frappe.workspaces[route[0]].name];
 		} else if (route[0] == "private") {
 			// private workspace
-			let private_workspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
+			let private_workspace =
+				route[1] && frappe.router.slug(`${route[1]}-${frappe.user.name.toLowerCase()}`);
 			if (!frappe.workspaces[private_workspace]) {
 				frappe.msgprint(
 					__("Workspace <b>{0}</b> does not exist", [
@@ -202,7 +203,7 @@ frappe.router = {
 		return frappe.model.with_doctype(doctype_route.doctype).then(() => {
 			// doctype route
 			let meta = frappe.get_meta(doctype_route.doctype);
-
+			this.meta = meta;
 			if (route[1] && route[1] === "view" && route[2]) {
 				route = this.get_standard_route_for_list(
 					route,
@@ -289,10 +290,6 @@ frappe.router = {
 		frappe.ui.hide_open_dialog();
 	},
 
-	async set_active_sidebar_item() {
-		frappe.app.sidebar.set_active_workspace_item();
-	},
-
 	render() {
 		if (this.current_route[0]) {
 			this.render_page();
@@ -308,7 +305,6 @@ frappe.router = {
 
 		const route = this.current_route;
 		const factory = frappe.utils.to_title_case(route[0]);
-
 		if (route[1] && frappe.views[factory + "Factory"]) {
 			route[0] = factory;
 			// has a view generator, generate!
@@ -410,6 +406,11 @@ frappe.router = {
 			route.shift();
 		}
 
+		// Handle cases where "/" is part of the name
+		if (route[0] === "Form" && route.length > 3) {
+			route = [route[0], route[1], route.slice(2).join("/")];
+		}
+
 		return route;
 	},
 
@@ -467,9 +468,12 @@ frappe.router = {
 		}).join("/");
 
 		if (path_string) {
-			return "/app/" + path_string;
+			return "/desk/" + path_string;
 		}
 
+		if (params.length == 0) {
+			return "/desk";
+		}
 		// Resolution order
 		// 1. User's default workspace in user doctype
 		// 2. Private home
@@ -488,18 +492,20 @@ frappe.router = {
 
 		if (workspace) {
 			return (
-				"/app/" + (workspace.public ? "" : "private/") + frappe.router.slug(workspace.name)
+				"/desk/" +
+				(workspace.public ? "" : "private/") +
+				frappe.router.slug(workspace.name)
 			);
 		}
 
-		return "/app";
+		return "/desk";
 	},
 
 	/**
 	 * Changes the URL and calls the router.
 	 *
 	 * @param {string} path - The desired URI path to replace or push,
-	 *    without query string. Example: "/app/todo"
+	 *    without query string. Example: "/desk/todo"
 	 * @param {string} query_params - The desired query parameter string.
 	 * @returns {void}
 	 */
@@ -524,9 +530,9 @@ frappe.router = {
 	},
 
 	strip_prefix(route) {
-		if (route.substr(0, 1) == "/") route = route.substr(1); // for /app/sub
-		if (route == "app") route = route.substr(4); // for app
-		if (route.startsWith("app/")) route = route.substr(4); // for desk/sub
+		if (route.substr(0, 1) == "/") route = route.substr(1); // for /desk/sub
+		if (route == "desk") route = route.substr(4); // for app
+		if (route.startsWith("desk/")) route = route.substr(4); // for desk/sub
 		if (route.substr(0, 1) == "/") route = route.substr(1);
 		if (route.substr(0, 1) == "#") route = route.substr(1);
 		if (route.substr(0, 1) == "!") route = route.substr(1);

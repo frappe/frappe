@@ -1,6 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from typing import Any
+
 import frappe
 from frappe.model import is_default_field
 from frappe.query_builder import Order
@@ -10,7 +12,7 @@ from frappe.query_builder.utils import DocType
 
 
 @frappe.whitelist()
-def get_list_settings(doctype):
+def get_list_settings(doctype: str):
 	try:
 		return frappe.get_cached_doc("List View Settings", doctype)
 	except frappe.DoesNotExistError:
@@ -18,7 +20,7 @@ def get_list_settings(doctype):
 
 
 @frappe.whitelist()
-def set_list_settings(doctype, values):
+def set_list_settings(doctype: str, values: str | dict[str, Any]):
 	try:
 		doc = frappe.get_doc("List View Settings", doctype)
 	except frappe.DoesNotExistError:
@@ -41,7 +43,7 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 			doctype,
 			filters=current_filters,
 			fields=["name"],
-			validate_filters=True,
+			ignore_permissions=False,
 		)
 
 		return (
@@ -68,8 +70,8 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 	data = frappe.get_list(
 		doctype,
 		filters=current_filters,
-		group_by=f"`tab{doctype}`.{field}",
-		fields=["count(*) as count", f"`{field}` as name"],
+		group_by=field,
+		fields=[{"COUNT": "*", "as": "count"}, f"{field} as name"],
 		order_by="count desc",
 		limit=1000,
 	)

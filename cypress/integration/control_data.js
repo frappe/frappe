@@ -1,7 +1,7 @@
 context("Data Control", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/doctype");
+		cy.visit("/desk/doctype");
 		return cy
 			.window()
 			.its("frappe")
@@ -39,7 +39,7 @@ context("Data Control", () => {
 	});
 
 	it("check custom formatters", () => {
-		cy.visit(`/app/doctype/User`);
+		cy.visit(`/desk/doctype/User`);
 		cy.get(
 			'[data-fieldname="fields"] .grid-row[data-idx="3"] [data-fieldname="fieldtype"] .static-area'
 		).should("have.text", "Section Break");
@@ -49,8 +49,11 @@ context("Data Control", () => {
 		cy.new_form("Test Data Control");
 
 		//Checking the URL for the new form of the doctype
-		cy.location("pathname").should("contains", "/app/test-data-control/new-test-data-control");
-		cy.get(".title-text").should("have.text", "New Test Data Control");
+		cy.location("pathname").should(
+			"contains",
+			"/desk/test-data-control/new-test-data-control"
+		);
+		cy.get(".title-text-form").should("have.text", "New Test Data Control");
 		cy.get('.frappe-control[data-fieldname="name1"]')
 			.find("label")
 			.should("have.class", "reqd");
@@ -62,7 +65,7 @@ context("Data Control", () => {
 			.should("have.class", "reqd");
 
 		//Checking if the status is "Not Saved" initially
-		cy.get(".indicator-pill").should("have.text", "Not Saved");
+		cy.get(".page-head-content .indicator-pill").should("have.text", "Not Saved");
 
 		//Inputting data in the field
 		cy.fill_field("name1", "@@###", "Data");
@@ -130,7 +133,7 @@ context("Data Control", () => {
 		//Checking if the fields contains the data which has been filled in
 		cy.location("pathname").should(
 			"not.contains",
-			"/app/test-data-control/new-test-data-control"
+			"/desk/test-data-control/new-test-data-control"
 		);
 		cy.get_field("name1").should("have.value", "Komal");
 		cy.get_field("email").should("have.value", "komal@test.com");

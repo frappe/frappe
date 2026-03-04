@@ -50,8 +50,13 @@ frappe.ui.form.on("User", {
 						let d = frm.add_child("block_modules");
 						d.module = v.module;
 					});
-					frm.module_editor.disable = 1;
-					frm.module_editor && frm.module_editor.show();
+
+					// if I am able to edit module profile,
+					// module editor should always be available, but just in case
+					if (frm.module_editor) {
+						frm.module_editor.disable = 1;
+						frm.module_editor.show();
+					}
 				},
 			});
 		}
@@ -116,6 +121,9 @@ frappe.ui.form.on("User", {
 		}
 
 		frm.toggle_display(["sb1", "sb3", "modules_access"], false);
+		if (frm.is_new() && has_access_to_edit_user()) {
+			frm.toggle_display(["sb1", "sb3", "modules_access"], true);
+		}
 		frm.trigger("setup_impersonation");
 
 		if (!frm.is_new()) {
@@ -193,18 +201,19 @@ frappe.ui.form.on("User", {
 										},
 									],
 									primary_action: (values) => {
-										d.hide();
 										if (values.new_password !== values.confirm_password) {
 											frappe.throw(__("Passwords do not match!"));
 										}
-										frappe.call(
-											"frappe.integrations.doctype.ldap_settings.ldap_settings.reset_password",
-											{
-												user: frm.doc.email,
-												password: values.new_password,
-												logout: values.logout_sessions,
-											}
-										);
+										return frappe
+											.call(
+												"frappe.integrations.doctype.ldap_settings.ldap_settings.reset_password",
+												{
+													user: frm.doc.email,
+													password: values.new_password,
+													logout: values.logout_sessions,
+												}
+											)
+											.then(() => d.hide());
 									},
 								});
 								d.show();
@@ -241,8 +250,10 @@ frappe.ui.form.on("User", {
 				frm.roles_editor.show();
 			}
 
-			frm.module_editor.disable = frm.doc.module_profile ? 1 : 0;
-			frm.module_editor && frm.module_editor.show();
+			if (frm.module_editor) {
+				frm.module_editor.disable = frm.doc.module_profile ? 1 : 0;
+				frm.module_editor.show();
+			}
 
 			if (frappe.session.user == doc.name) {
 				// update display settings
@@ -422,18 +433,22 @@ frappe.ui.form.on("User Email", {
 frappe.ui.form.on("User Role Profile", {
 	role_profiles_add: function (frm) {
 		if (frm.doc.role_profiles.length > 0) {
-			frm.roles_editor.disable = 1;
+			if (frm.roles_editor) {
+				frm.roles_editor.disable = 1;
+			}
 			frm.call("populate_role_profile_roles").then(() => {
-				frm.roles_editor.show();
+				if (frm.roles_editor) {
+					frm.roles_editor.show();
+				}
 			});
-			$(".deselect-all, .select-all").prop("disabled", true);
 		}
 	},
 	role_profiles_remove: function (frm) {
 		if (frm.doc.role_profiles.length == 0) {
-			frm.roles_editor.disable = 0;
-			frm.roles_editor.show();
-			$(".deselect-all, .select-all").prop("disabled", false);
+			if (frm.roles_editor) {
+				frm.roles_editor.disable = 0;
+				frm.roles_editor.show();
+			}
 		}
 	},
 });

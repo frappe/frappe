@@ -1,7 +1,7 @@
 context("Date Range Control", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app");
+		cy.visit("/desk");
 	});
 
 	function get_dialog() {

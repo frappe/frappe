@@ -37,19 +37,31 @@ frappe.ui.Tags = class {
 			me.$input.val("");
 		};
 
+		const activate_input = () => {
+			this.activate();
+			this.$input.focus();
+		};
+
 		this.$input.keypress((e) => {
-			if (e.which == 13 || e.keyCode == 13) select_tag();
+			if (e.which == 13 || e.keyCode == 13) {
+				// Triggers event when <enter> is pressed
+				this.$input.trigger("enter-pressed-in-addtag");
+			}
 		});
 		this.$input.focusout(select_tag);
+
+		this.$input.on("input-selected", () => {
+			// Adds tag if a input is selected
+			select_tag();
+			this.deactivate();
+		});
 
 		this.$input.on("blur", () => {
 			this.deactivate();
 		});
 
-		this.$placeholder.on("click", () => {
-			this.activate();
-			this.$input.focus(); // focus only when clicked
-		});
+		this.$placeholder.on("click", activate_input);
+		this.$ul.find(".tags-label").on("click", activate_input);
 	}
 
 	boot() {

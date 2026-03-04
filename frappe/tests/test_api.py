@@ -16,6 +16,7 @@ from werkzeug.test import TestResponse
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import whitelist_for_tests
 from frappe.utils import cint, get_test_client, get_url
 
 try:
@@ -230,8 +231,7 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	def test_get_list_debug(self):
 		# test 5: fetch response with debug
-		with suppress_stdout():
-			response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid, "debug": True})
+		response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid, "debug": True})
 		self.assertEqual(response.status_code, 200)
 		self.assertIn("_debug_messages", response.json)
 		self.assertIsInstance(response.json["_debug_messages"], str)
@@ -305,11 +305,11 @@ class TestMethodAPI(FrappeAPITestCase):
 		self.assertEqual(response.json["message"], "pong")
 
 	def test_get_user_info(self):
-		# test 3: test for /api/method/frappe.realtime.get_user_info
+		# test 3: test for /api/method/frappe.realtime.get_user_info (server-to-server only)
 		response = self.get(self.method("frappe.realtime.get_user_info"))
 		self.assertEqual(response.status_code, 200)
-		self.assertIsInstance(response.json, dict)
-		self.assertIn(response.json.get("message").get("user"), ("Administrator", "Guest"))
+		message = response.json.get("message")
+		self.assertEqual(message, {})
 
 	def test_auth_cycle(self):
 		# test 4: Pass authorization token in request
@@ -432,7 +432,7 @@ def after_request(*args, **kwargs):
 	_test_REQ_HOOK["after_request"] = time()
 
 
-class TestResponse(FrappeAPITestCase):
+class TestAPIResponse(FrappeAPITestCase):
 	def test_generate_pdf(self):
 		response = self.get(
 			"/api/method/frappe.utils.print_format.download_pdf",
@@ -483,7 +483,9 @@ class TestResponse(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.headers["content-type"], "application/octet-stream")
 		self.assertGreater(cint(response.headers["content-length"]), 0)
-		self.assertEqual(response.headers["content-disposition"], f'filename="{encoded_filename}"')
+		self.assertEqual(
+			response.headers["content-disposition"], f'attachment; filename="{encoded_filename}"'
+		)
 
 	def test_download_private_file_with_unique_url(self):
 		test_content = frappe.generate_hash()
@@ -502,11 +504,11 @@ class TestResponse(FrappeAPITestCase):
 
 	def test_login_redirects(self):
 		expected_redirects = {
-			"/app/user": "http://localhost/app/user",
-			"/app/user?enabled=1": "http://localhost/app/user?enabled=1",
-			"http://example.com": "http://localhost/app",  # No external redirect
-			"https://google.com": "http://localhost/app",
-			"http://localhost:8000": "http://localhost/app",
+			"/desk/user": "http://localhost/desk/user",
+			"/desk/user?enabled=1": "http://localhost/desk/user?enabled=1",
+			"http://example.com": "http://localhost/desk",  # No external redirect
+			"https://google.com": "http://localhost/desk",
+			"http://localhost:8000": "http://localhost/desk",
 			"http://localhost/app": "http://localhost/app",
 			"////example.com": "http://localhost//example.com",  # malicious redirect attempt
 		}
@@ -523,8 +525,8 @@ def generate_admin_keys():
 	frappe.db.commit()
 
 
-@frappe.whitelist()
-def test(*, fail=False, handled=True, message="Failed"):
+@whitelist_for_tests()
+def test(*, fail: int | bool = False, handled: int | bool = True, message: str = "Failed"):
 	if fail:
 		if handled:
 			frappe.throw(message)
@@ -534,6 +536,6 @@ def test(*, fail=False, handled=True, message="Failed"):
 		frappe.msgprint(message)
 
 
-@frappe.whitelist(allow_guest=True)
-def test_array(data):
+@whitelist_for_tests(allow_guest=True)
+def test_array(data: typing.Any):
 	return data

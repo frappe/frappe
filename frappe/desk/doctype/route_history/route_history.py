@@ -1,6 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from typing import Any
+
 import frappe
 from frappe.deferred_insert import deferred_insert as _deferred_insert
 from frappe.model.document import Document
@@ -29,7 +31,7 @@ class RouteHistory(Document):
 
 
 @frappe.whitelist()
-def deferred_insert(routes):
+def deferred_insert(routes: str | list[dict[str, Any]]):
 	routes = [
 		{
 			"user": frappe.session.user,
@@ -46,7 +48,7 @@ def deferred_insert(routes):
 def frequently_visited_links():
 	return frappe.get_all(
 		"Route History",
-		fields=["route", "count(name) as count"],
+		fields=["route", {"COUNT": "name", "as": "count"}],
 		filters={"user": frappe.session.user},
 		group_by="route",
 		order_by="count desc",

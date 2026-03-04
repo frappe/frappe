@@ -262,7 +262,7 @@ def bundle(
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
 
 	with suppress(Exception):
-		frappe.cache.flushall()
+		frappe.cache.flushdb()
 
 
 def watch(apps=None):

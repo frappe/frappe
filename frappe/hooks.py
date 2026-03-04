@@ -8,7 +8,7 @@ app_publisher = "Frappe Technologies"
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
 app_license = "MIT"
 app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
-develop_version = "15.x.x-develop"
+develop_version = "17.x.x-develop"
 app_home = "/app/build"
 
 app_email = "developers@frappe.io"
@@ -16,18 +16,21 @@ app_email = "developers@frappe.io"
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 
+after_app_install = "frappe.utils.install.auto_generate_icons_and_sidebar"
+after_app_uninstall = "frappe.utils.install.delete_desktop_icon_and_sidebar"
+
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 
 # website
 app_include_js = [
 	"libs.bundle.js",
+	"billing.bundle.js",
 	"desk.bundle.js",
 	"list.bundle.js",
 	"form.bundle.js",
 	"controls.bundle.js",
 	"report.bundle.js",
 	"telemetry.bundle.js",
-	"billing.bundle.js",
 ]
 
 app_include_css = [
@@ -35,8 +38,10 @@ app_include_css = [
 	"report.bundle.css",
 ]
 app_include_icons = [
+	"/assets/frappe/icons/lucide/icons.svg",
 	"/assets/frappe/icons/timeless/icons.svg",
 	"/assets/frappe/icons/espresso/icons.svg",
+	"/assets/frappe/icons/desktop_icons/alphabets.svg",
 ]
 
 doctype_js = {
@@ -47,6 +52,7 @@ doctype_js = {
 web_include_js = ["website_script.js"]
 web_include_css = []
 web_include_icons = [
+	"/assets/frappe/icons/lucide/icons.svg",
 	"/assets/frappe/icons/timeless/icons.svg",
 	"/assets/frappe/icons/espresso/icons.svg",
 ]
@@ -56,11 +62,13 @@ email_css = ["email.bundle.css"]
 website_route_rules = [
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
 	{"from_route": "/profile", "to_route": "me"},
-	{"from_route": "/app/<path:app_path>", "to_route": "app"},
+	{"from_route": "/desk/<path:app_path>", "to_route": "desk"},
 ]
 
 website_redirects = [
-	{"source": r"/desk(.*)", "target": r"/app\1"},
+	{"source": r"/app/(.*)", "target": r"/desk/\1", "forward_query_parameters": True},
+	{"source": "/apps", "target": "/desk"},
+	{"source": "/app", "target": "/desk"},
 ]
 
 base_template = "templates/base.html"
@@ -142,6 +150,8 @@ jinja = {
 	],
 }
 
+require_type_annotated_api_methods = True
+
 standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
 
 doc_events = {
@@ -208,8 +218,7 @@ scheduler_events = {
 			"frappe.deferred_insert.save_to_db",
 			"frappe.automation.doctype.reminder.reminder.send_reminders",
 			"frappe.model.utils.link_count.update_link_count",
-			"frappe.search.sqlite_search.build_index_if_not_exists",
-			"frappe.pulse.client.send_queued_events",
+			"frappe.utils.telemetry.pulse.client.send_queued_events",
 		],
 		# 10 minutes
 		"0/10 * * * *": [
@@ -219,6 +228,9 @@ scheduler_events = {
 		"30 * * * *": [],
 		# Daily but offset by 45 minutes
 		"45 0 * * *": [],
+		"0 */3 * * *": [
+			"frappe.search.sqlite_search.build_index_if_not_exists",
+		],
 	},
 	"all": [
 		"frappe.email.queue.flush",
@@ -346,7 +358,6 @@ user_data_fields = [
 			"phone",
 			"mobile_no",
 			"location",
-			"banner_image",
 			"interest",
 			"bio",
 			"email_signature",
@@ -416,6 +427,7 @@ ignore_links_on_delete = [
 	"Route History",
 	"Access Log",
 	"Permission Log",
+	"Desktop Icon",
 ]
 
 # Request Hooks
@@ -467,53 +479,6 @@ standard_navbar_items = [
 		"is_standard": 1,
 	},
 	{
-		"item_label": "Workspace Settings",
-		"item_type": "Action",
-		"action": "frappe.quick_edit('Workspace Settings')",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Session Defaults",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.setup_session_defaults()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Reload",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.clear_cache()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "View Website",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.view_website()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Apps",
-		"item_type": "Route",
-		"route": "/apps",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Toggle Full Width",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.toggle_full_width()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Toggle Theme",
-		"item_type": "Action",
-		"action": "new frappe.ui.ThemeSwitcher().show()",
-		"is_standard": 1,
-	},
-	{
-		"item_type": "Separator",
-		"is_standard": 1,
-		"item_label": "",
-	},
-	{
 		"item_label": "Log out",
 		"item_type": "Action",
 		"action": "frappe.app.logout()",
@@ -537,7 +502,7 @@ standard_help_items = [
 	{
 		"item_label": "System Health",
 		"item_type": "Route",
-		"route": "/app/system-health-report",
+		"route": "/desk/system-health-report",
 		"is_standard": 1,
 	},
 	{
@@ -563,6 +528,7 @@ default_log_clearing_doctypes = {
 	"Route History": 90,
 	"OAuth Bearer Token": 30,
 	"API Request Log": 90,
+	"Email Queue Recipient": 30,  # this is added as a dummy placeholder and clearing is handled by Email Queue itself
 }
 
 # These keys will not be erased when doing frappe.clear_cache()
@@ -581,3 +547,13 @@ user_invitation = {
 		"System Manager": [],
 	},
 }
+
+
+add_to_apps_screen = [
+	{
+		"name": app_name,
+		"logo": app_logo_url,
+		"title": app_title,
+		"route": app_home,
+	}
+]

@@ -219,9 +219,15 @@ def insert_values_for_multiple_docs(all_contents):
 		# ignoring duplicate keys for doctype_name
 		frappe.db.multisql(
 			{
-				"mariadb": """INSERT IGNORE INTO `__global_search`
+				"mariadb": """INSERT INTO `__global_search`
 				(doctype, name, content, published, title, route)
-				VALUES {} """.format(", ".join(batch_values)),
+				VALUES {}
+				ON DUPLICATE KEY UPDATE
+					content=VALUE(content),
+					published=VALUE(published),
+					title=VALUE(title),
+					route=VALUE(route)
+				""".format(", ".join(batch_values)),
 				"postgres": """INSERT INTO `__global_search`
 				(doctype, name, content, published, title, route)
 				VALUES {}
@@ -422,6 +428,7 @@ def sync_value_in_queue(value):
 		frappe.cache.lpush("global_search_queue", json.dumps(value))
 	except redis.exceptions.ConnectionError:
 		# not connected, sync directly
+		assert not frappe.flags.in_test, "Should not fail silently in tests"
 		sync_value(value)
 
 
@@ -470,7 +477,7 @@ def delete_for_document(doc):
 
 
 @frappe.whitelist()
-def search(text, start=0, limit=20, doctype=""):
+def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 	"""
 	Search for given text in __global_search
 	:param text: phrase to be searched
@@ -523,14 +530,16 @@ def search(text, start=0, limit=20, doctype=""):
 			if r.doctype == doctype and r.rank > 0.0:
 				try:
 					meta = frappe.get_meta(r.doctype)
+					doc = frappe.get_lazy_doc(r.doctype, r.name)
 					if meta.image_field:
-						r.image = frappe.db.get_value(r.doctype, r.name, meta.image_field)
+						r.image = doc.get(meta.image_field)
 					if meta.title_field:
-						r.title = frappe.db.get_value(r.doctype, r.name, meta.title_field)
+						r.title = doc.get(meta.title_field)
 				except Exception:
 					frappe.clear_messages()
 
-				sorted_results.extend([r])
+				if doc.has_permission():
+					sorted_results.append(r)
 
 	return sorted_results
 

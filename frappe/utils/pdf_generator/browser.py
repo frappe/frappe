@@ -3,6 +3,7 @@ from typing import ClassVar
 from bs4 import BeautifulSoup
 
 import frappe
+from frappe.utils.pdf import get_host_url
 from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
 
@@ -95,7 +96,7 @@ class Browser:
 
 	def setup_body_page(self):
 		self.body_page = self.new_page("body")
-		self.body_page.set_tab_url(frappe.request.host_url)
+		self.body_page.set_tab_url(get_host_url())
 		self.body_page.wait_for_navigate()
 		self.body_page.set_content(str(self.soup))
 
@@ -394,11 +395,11 @@ class Browser:
 		# It sends CDP command to the browser to open a new tab.
 		if header_content := self.soup.find(id="header-html"):
 			self.header_page = self.new_page("header")
-			self.header_page.set_tab_url(frappe.request.host_url)
+			self.header_page.set_tab_url(get_host_url())
 
 		if footer_content := self.soup.find(id="footer-html"):
 			self.footer_page = self.new_page("footer")
-			self.footer_page.set_tab_url(frappe.request.host_url)
+			self.footer_page.set_tab_url(get_host_url())
 
 		self.header_content = header_content
 		self.footer_content = footer_content

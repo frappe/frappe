@@ -88,9 +88,6 @@ function make_dialog(frm) {
 			let fieldname = props.field.df.fieldname;
 			let field_option = props.field.df.options;
 			let filters = frm.filter_group.get_filters().map((filter) => {
-				// last element is a boolean which hides the filter hence not required to store in meta
-				filter.pop();
-
 				// filter_group component requires options and frm.set_query requires fieldname so storing both
 				filter[0] = field_option;
 				return filter;
@@ -154,7 +151,15 @@ function add_existing_filter(frm, df) {
 }
 
 function edit_filters() {
-	let field_doctype = props.field.df.options;
+	const field_doctype = props.field.df.options;
+
+	if (!field_doctype) {
+		frappe.throw({
+			message: __("Please select a DocType in options before setting filters"),
+			title: __("DocType Missing"),
+		});
+	}
+
 	const { frm } = store;
 
 	make_dialog(frm);
@@ -179,7 +184,7 @@ function is_filter_applied() {
 
 function open_child_doctype() {
 	if (!props.field?.df?.options) return;
-	window.open(`/app/doctype/${props.field.df.options}`, "_blank");
+	window.open(`/desk/doctype/${props.field.df.options}`, "_blank");
 }
 
 onMounted(() => selected.value && label_input.value.focus_on_label());
@@ -329,10 +334,20 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 		}
 	}
 }
+
 .btn-filter-applied {
 	background-color: var(--gray-300) !important;
+
 	&:hover {
 		background-color: var(--gray-400) !important;
+	}
+
+	[data-theme="dark"] & {
+		background-color: var(--gray-700) !important;
+
+		&:hover {
+			background-color: var(--gray-800) !important;
+		}
 	}
 }
 </style>

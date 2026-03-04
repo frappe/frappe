@@ -1,0 +1,60 @@
+:root {
+	// can do sizes later on;
+	--menu-width: 200px;
+	--menu-icon-size: 16px;
+}
+.frappe-menu {
+	position: absolute;
+	width: var(--menu-width);
+	padding: 6px;
+	border-radius: var(--border-radius-lg);
+	background: var(--surface-modal);
+	box-shadow: var(--shadow-xl);
+	z-index: 1030;
+}
+
+.dropdown-menu-item {
+	// padding: var(--padding-xs);
+	border-radius: var(--border-radius-sm);
+	&:hover {
+		background-color: var(--sidebar-hover-color);
+	}
+
+	a {
+		height: 28px;
+		padding: 6px 8px 6px 8px;
+		gap: 8px;
+		text-decoration: none;
+		display: flex;
+		align-items: center;
+		gap: var(--margin-sm);
+		.menu-item-icon {
+			line-height: 0px;
+			.app-logo,
+			img {
+				width: 16px;
+				height: 16px;
+			}
+		}
+	}
+
+	.menu-item-title {
+		text-overflow: ellipsis;
+		text-wrap: nowrap;
+		overflow: hidden;
+	}
+}
+
+.menu-item-icon {
+	width: var(--menu-icon-size);
+	height: var(--menu-icon-size);
+	& .icon-container {
+		width: 100%;
+		height: 100%;
+		padding: unset;
+		border-radius: 4px;
+		& .desktop-alphabet {
+			padding: 4px;
+		}
+	}
+}
