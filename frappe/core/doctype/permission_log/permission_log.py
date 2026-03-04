@@ -34,6 +34,13 @@ class PermissionLog(Document):
 def make_perm_log(doc, method=None):
 	if not hasattr(doc, "get_permission_log_options"):
 		return
+	# During reset we insert a single "Reset" log; skip per-Custom-DocPerm "Removed" logs
+	if (
+		method == "after_delete"
+		and doc.doctype == "Custom DocPerm"
+		and getattr(frappe.flags, "skip_perm_log_for_doctype", None) == doc.parent
+	):
+		return
 
 	params = doc.get_permission_log_options(method) or {}
 	if not getattr(doc, "_no_perm_log", False):

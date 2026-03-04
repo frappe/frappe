@@ -178,30 +178,35 @@ def remove(doctype: str, role: str, permlevel: int, if_owner: str | int = 0):
 @frappe.whitelist()
 def reset(doctype: str):
 	frappe.only_for("System Manager")
-	reset_perms(doctype)
-	clear_permissions_cache(doctype)
 
 	from frappe.core.doctype.permission_log.permission_log import insert_perm_log
 
-	doc = frappe.new_doc("DocType")
-	doc.name = doctype
-	standard_perms = frappe.get_all("DocPerm", filters={"parent": doctype}, fields="*")
-	insert_perm_log(
-		doc,
-		for_doctype="DocType",
-		for_document=doctype,
-		custom_changes={
-			"from": {"permissions": "custom"},
-			"to": {
-				"permissions": "standard",
-				"standard_rules": [
-					{"role": p.role, "permlevel": p.permlevel, "read": p.read, "write": p.write}
-					for p in standard_perms
-				],
+	frappe.flags.skip_perm_log_for_doctype = doctype
+	try:
+		reset_perms(doctype)
+		clear_permissions_cache(doctype)
+
+		doc = frappe.new_doc("DocType")
+		doc.name = doctype
+		standard_perms = frappe.get_all("DocPerm", filters={"parent": doctype}, fields="*")
+		insert_perm_log(
+			doc,
+			for_doctype="DocType",
+			for_document=doctype,
+			custom_changes={
+				"from": {"permissions": "custom"},
+				"to": {
+					"permissions": "standard",
+					"standard_rules": [
+						{"role": p.role, "permlevel": p.permlevel, "read": p.read, "write": p.write}
+						for p in standard_perms
+					],
+				},
+				"status": "Reset",
 			},
-			"status": "Reset",
-		},
-	)
+		)
+	finally:
+		frappe.flags.pop("skip_perm_log_for_doctype", None)
 
 
 @frappe.whitelist()

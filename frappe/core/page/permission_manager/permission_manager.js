@@ -603,25 +603,9 @@ frappe.PermissionEngine = class PermissionEngine {
 		];
 		const STATUS_COLOR = { Added: "green", Removed: "red", Updated: "orange", Reset: "blue" };
 
-		function format_datetime(datetime_str) {
-			if (!datetime_str) return "—";
-			let d = frappe.datetime.convert_to_user_tz(datetime_str, false);
-			if (!d || !d.isValid()) return frappe.datetime.str_to_user(datetime_str);
-			let now = moment();
-			let today = now.clone().startOf("day");
-			let log_day = d.clone().startOf("day");
-			let time_fmt = frappe.datetime.get_user_time_fmt();
-			let time_str = d.format(time_fmt);
-			if (log_day.isSame(today)) {
-				return __("Today at {0}", [time_str]);
-			}
-			if (log_day.isSame(today.clone().subtract(1, "day"))) {
-				return __("Yesterday at {0}", [time_str]);
-			}
-			return d.format("D MMM YYYY") + ", " + time_str;
-		}
-
 		let doctype = this.get_doctype();
+		let show_doctype_column = !doctype;
+
 		let title = doctype
 			? __("Activity Log for {0}", [__(doctype)])
 			: __("Role Permissions Activity Log");
@@ -661,9 +645,11 @@ frappe.PermissionEngine = class PermissionEngine {
 							(log.status === "Removed" ? from.role : to.role) || from.role || "—";
 
 						// Active permissions: for Added/Removed show the full set;
-						// for Updated show only what flipped
+						// for Updated show only what flipped; for Reset show summary
 						let changes_text = "";
-						if (log.status === "Updated") {
+						if (log.status === "Reset") {
+							changes_text = __("Restored to standard permissions");
+						} else if (log.status === "Updated") {
 							let parts = [];
 							PERM_FIELDS.forEach((f) => {
 								if (f in to && to[f] !== from[f]) {
@@ -688,29 +674,44 @@ frappe.PermissionEngine = class PermissionEngine {
 						}
 
 						let badge_color = STATUS_COLOR[log.status] || "grey";
-						let ts = format_datetime(log.changed_at);
+						let ts = frappe.datetime.comment_when(log.changed_at);
 						let user_display = log.changed_by || "—";
 
+						let doctype_cell =
+							show_doctype_column && log.for_document
+								? `<td>${frappe.utils.get_form_link(
+										"DocType",
+										log.for_document,
+										true
+								  )}</td>`
+								: "";
+
 						return `<tr>
-							<td style="white-space:nowrap">${ts}</td>
 							<td>${user_display}</td>
 							<td><span class="indicator-pill ${badge_color}">${__(log.status)}</span></td>
 							<td>${__(role)}</td>
+							${doctype_cell}
 							<td class="small">${changes_text}</td>
+							<td class="frappe-timestamp-cell">${ts}</td>
 						</tr>`;
 					})
 					.join("");
+
+				let header_doctype = show_doctype_column
+					? `<th style="min-width:120px">${__("DocType")}</th>`
+					: "";
 
 				$body.html(`
 					<div style="overflow-x: auto;">
 						<table class="table table-bordered table-sm" style="font-size:13px">
 							<thead style="background:var(--fg-color)">
 								<tr>
-									<th style="min-width:130px">${__("Date")}</th>
 									<th style="min-width:110px">${__("Modified By")}</th>
 									<th style="min-width:90px">${__("Action")}</th>
 									<th style="min-width:110px">${__("Role")}</th>
+									${header_doctype}
 									<th>${__("Changes")}</th>
+									<th style="min-width:100px">${__("Timestamp")}</th>
 								</tr>
 							</thead>
 							<tbody>${rows}</tbody>
