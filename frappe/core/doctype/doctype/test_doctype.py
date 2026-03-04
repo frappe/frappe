@@ -546,7 +546,7 @@ class TestDocType(IntegrationTestCase):
 		doc.append("links", {"link_doctype": "Role", "link_fieldname": "name"})
 
 		self.assertEqual(len(doc.links), 5)
-		doc.validate()
+		doc.deduplicate_document_links()
 		self.assertEqual(len(doc.links), 3)
 
 		link_tuples = [(link.link_doctype, link.link_fieldname) for link in doc.links]
