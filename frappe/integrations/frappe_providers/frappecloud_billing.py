@@ -48,7 +48,7 @@ def current_site_info():
 	request = requests.post(f"{get_base_url()}/api/method/press.saas.api.site.info", headers=get_headers())
 	if request.status_code == 200:
 		res = request.json().get("message")
-		if not res:
+		if not res or not isinstance(res, dict):
 			return None
 
 	return {
