@@ -178,7 +178,7 @@ frappe.Application = class Application {
 			localStorage.removeItem("session_last_route");
 		} else {
 			// route to home page
-			frappe.router.set_route();
+			frappe.router.route();
 		}
 		frappe.router.on("change", () => {
 			$(".tooltip").hide();
