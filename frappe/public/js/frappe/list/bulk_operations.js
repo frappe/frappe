@@ -413,6 +413,10 @@ export default class BulkOperations {
 			delete new_df.depends_on;
 			delete new_df.is_child_field;
 			delete new_df.child_doctype;
+			// Preserve actual fieldname for Link/Dynamic Link so search_link gets correct link_fieldname
+			if (new_df.fieldtype === "Link" || new_df.fieldtype === "Dynamic Link") {
+				new_df.link_fieldname = new_df.fieldname;
+			}
 			dialogObj.replace_field("value", new_df);
 			show_help_text();
 		}
