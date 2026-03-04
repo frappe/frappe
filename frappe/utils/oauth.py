@@ -331,7 +331,7 @@ def update_oauth_user(user: str, data: dict, provider: str):
 
 
 def get_first_name(data: dict) -> str:
-	return data.get("first_name") or data.get("given_name") or data.get("name")
+	return data.get("first_name") or data.get("given_name") or data.get("name") or data.get("login")
 
 
 def get_last_name(data: dict) -> str:
