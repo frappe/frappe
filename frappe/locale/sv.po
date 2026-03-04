@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-23 19:58\n"
+"PO-Revision-Date: 2026-02-28 20:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -8501,7 +8501,7 @@ msgstr "Förfallo Datum"
 #. Label of a Select field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Due Date Based On"
-msgstr "Förfallodatum Baserad På"
+msgstr "Förfallodatum baserat på"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:42
 #: frappe/public/js/frappe/form/toolbar.js:415
@@ -9771,7 +9771,7 @@ msgstr "Exempel: Anges detta till 24:00 loggas användare ut om de inte är akti
 #. Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Example: {{ subject }}"
-msgstr "Exempel: {{subject}}"
+msgstr "Exempel: {{ subject }}"
 
 #. Option for the 'File Type' (Select) field in DocType 'Data Export'
 #: frappe/core/doctype/data_export/data_export.json
@@ -20507,7 +20507,7 @@ msgstr "Publika Filer (MB)"
 
 #: frappe/templates/emails/file_backup_notification.html:5
 msgid "Public Files Backup:"
-msgstr "Allmänna Filer Säkerhetskopiering:"
+msgstr "Publika Filer Säkerhetskopiering:"
 
 #. Label of a Check field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json

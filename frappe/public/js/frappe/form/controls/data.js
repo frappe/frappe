@@ -241,7 +241,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		this.$input
 			.attr("data-fieldtype", this.df.fieldtype)
 			.attr("data-fieldname", this.df.fieldname)
-			.attr("placeholder", this.df.placeholder || "");
+			.attr("placeholder", __(this.df.placeholder || ""));
 		if (this.doctype) {
 			this.$input.attr("data-doctype", this.doctype);
 		}

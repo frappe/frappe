@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-23 19:59\n"
+"PO-Revision-Date: 2026-03-02 21:00\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -15082,7 +15082,7 @@ msgstr "Bağlı Belgeler"
 
 #: frappe/public/js/frappe/form/linked_with.js:23
 msgid "Linked With"
-msgstr "Bağlantılar"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "LinkedIn"
@@ -23217,7 +23217,7 @@ msgstr "Tüm Aktiviteleri Göster"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:789
 msgid "See all past reports."
-msgstr "Tüm geçmiş raporları görün."
+msgstr ""
 
 #: frappe/public/js/frappe/form/form.js:1158
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.js:4
@@ -27436,7 +27436,7 @@ msgstr "Bu adımı JSON olarak dışa aktarmak için, bunu bir Onboarding belges
 
 #: frappe/public/js/frappe/views/reports/query_report.js:788
 msgid "To get the updated report, click on {0}."
-msgstr "Güncellenmiş raporu almak için {0} adresine tıklayın."
+msgstr ""
 
 #: frappe/www/me.html:51
 msgid "To manage your authorized third party apps"

@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-23 12:58\n"
+"PO-Revision-Date: 2026-03-02 20:59\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Arabic\n"
 "MIME-Version: 1.0\n"
@@ -3783,7 +3783,7 @@ msgstr "مبني على {0}"
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Bulk Actions"
-msgstr "الإجراءات الجماعية"
+msgstr ""
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:142
 msgid "Bulk Delete"
@@ -12608,7 +12608,7 @@ msgstr "صورة الميدان"
 #. Label of a Float field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Image Height"
-msgstr "ارتفاع الصورة"
+msgstr ""
 
 #. Label of a Attach field in DocType 'About Us Team Member'
 #: frappe/website/doctype/about_us_team_member/about_us_team_member.json
@@ -12622,7 +12622,7 @@ msgstr "عرض الصورة"
 #. Label of a Float field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Image Width"
-msgstr "عرض الصورة"
+msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1471
 msgid "Image field must be a valid fieldname"
@@ -27001,7 +27001,7 @@ msgstr "ليلة خالدة"
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Timeline"
-msgstr "الجدول الزمني"
+msgstr ""
 
 #. Label of a Link field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
@@ -29185,7 +29185,7 @@ msgstr "شاهد البرنامج التعليمي"
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Watch Video"
-msgstr "شاهد الفيديو"
+msgstr ""
 
 #: frappe/desk/doctype/workspace/workspace.js:36
 msgid "We do not allow editing of this document. Simply click the Edit button on the workspace page to make your workspace editable and customize it as you wish"

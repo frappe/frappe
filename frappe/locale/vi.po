@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-23 19:59\n"
+"PO-Revision-Date: 2026-03-02 21:00\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -3785,7 +3785,7 @@ msgstr "Được xây dựng trên {0}"
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Bulk Actions"
-msgstr "Hành động hàng loạt"
+msgstr ""
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:142
 msgid "Bulk Delete"
@@ -12609,7 +12609,7 @@ msgstr "Trường Hình ảnh"
 #. Label of a Float field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Image Height"
-msgstr "Chiều cao hình ảnh"
+msgstr ""
 
 #. Label of a Attach field in DocType 'About Us Team Member'
 #: frappe/website/doctype/about_us_team_member/about_us_team_member.json
@@ -12623,7 +12623,7 @@ msgstr "Xem hình ảnh"
 #. Label of a Float field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Image Width"
-msgstr "Chiều rộng hình ảnh"
+msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1471
 msgid "Image field must be a valid fieldname"
@@ -17553,7 +17553,7 @@ msgstr ""
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Note: Multiple sessions will be allowed in case of mobile device"
-msgstr "Lưu ý: Sẽ được phép sử dụng nhiều phiên trong trường hợp thiết bị di động"
+msgstr ""
 
 #: frappe/core/doctype/user/user.js:395
 msgid "Note: This will be shared with user."
@@ -22906,7 +22906,7 @@ msgstr "Tìm kiếm"
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Search Bar"
-msgstr "Thanh tìm kiếm"
+msgstr ""
 
 #. Label of a Data field in DocType 'DocType'
 #. Label of a Data field in DocType 'Customize Form'
@@ -25424,7 +25424,7 @@ msgstr "Công ty con"
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 #: frappe/website/doctype/blog_settings/blog_settings.json
 msgid "Subtitle"
-msgstr "Phụ đề"
+msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
@@ -25456,7 +25456,7 @@ msgstr "Hành động thành công"
 #. Label of a Data field in DocType 'Module Onboarding'
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json
 msgid "Success Message"
-msgstr "Thông điệp thành công"
+msgstr ""
 
 #. Label of a Data field in DocType 'Token Cache'
 #: frappe/integrations/doctype/token_cache/token_cache.json
@@ -26998,7 +26998,7 @@ msgstr "Đêm vượt thời gian"
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Timeline"
-msgstr "Dòng thời gian"
+msgstr ""
 
 #. Label of a Link field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json

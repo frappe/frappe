@@ -35,6 +35,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 			this.show_start();
 		} else {
 			this.page.set_title(this.print_format.name);
+			this.page.sidebar.toggle(true);
 			this.setup_print_format();
 		}
 	}
@@ -65,6 +66,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 		this.page.main.html(frappe.render_template("print_format_builder_start", {}));
 		this.page.clear_actions();
 		this.page.set_title(__("Print Format Builder"));
+		this.page.sidebar.toggle(false);
 		this.start_edit_print_format();
 		this.start_new_print_format();
 	}
