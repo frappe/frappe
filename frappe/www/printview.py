@@ -343,8 +343,7 @@ def get_html_and_style(
 	if isinstance(name, str):
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
-		details = json.loads(doc)
-		document = frappe.get_cached_doc(details["doctype"], details["name"], check_permission=True)
+		document = frappe.get_doc(json.loads(doc), check_permission=True)
 
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 	set_link_titles(document)
