@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-03-02 20:59\n"
+"PO-Revision-Date: 2026-03-04 21:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -748,14 +748,14 @@ msgstr "<span class=\"h4\"><b>Документы</b></span>"
 #. Header text in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Reports & Masters</b></span>"
-msgstr "<span class=\"h4\"><b>Отчеты и мастера</b></span>"
+msgstr "<span class=\"h4\"><b>Отчеты и настройки</b></span>"
 
 #. Header text in the Users Workspace
 #. Header text in the Integrations Workspace
 #: frappe/core/workspace/users/users.json
 #: frappe/integrations/workspace/integrations/integrations.json
 msgid "<span class=\"h4\"><b>Reports &amp; Masters</b></span>"
-msgstr "<span class=\"h4\"><b>Отчеты &amp; Мастера</b></span>"
+msgstr "<span class=\"h4\"><b>Отчеты &amp; настройки</b></span>"
 
 #. Header text in the Tools Workspace
 #. Header text in the Users Workspace
@@ -764,7 +764,7 @@ msgstr "<span class=\"h4\"><b>Отчеты &amp; Мастера</b></span>"
 #: frappe/core/workspace/users/users.json
 #: frappe/website/workspace/website/website.json
 msgid "<span class=\"h4\"><b>Your Shortcuts</b></span>"
-msgstr "<span class=\"h4\"><b>Ваши короткие пути</b></span>"
+msgstr "<span class=\"h4\"><b>Ваши быстрые настройки</b></span>"
 
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -16114,7 +16114,7 @@ msgstr "Отчество (необязательно)"
 #: frappe/automation/doctype/milestone/milestone.json
 #: frappe/automation/workspace/tools/tools.json
 msgid "Milestone"
-msgstr "Веха"
+msgstr "Контрольная точка"
 
 #. Label of a Link field in DocType 'Milestone'
 #. Name of a DocType
@@ -20829,12 +20829,12 @@ msgstr "Информационный журнал RAW"
 #. Name of a DocType
 #: frappe/core/doctype/rq_job/rq_job.json
 msgid "RQ Job"
-msgstr "Работа RQ"
+msgstr "RQ Job"
 
 #. Name of a DocType
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "RQ Worker"
-msgstr "Рабочий RQ"
+msgstr "RQ Worker"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -22353,12 +22353,12 @@ msgstr "Ролевые разрешения"
 #: frappe/core/page/permission_manager/permission_manager.js:4
 #: frappe/core/workspace/users/users.json
 msgid "Role Permissions Manager"
-msgstr "Менеджер ролевых разрешений"
+msgstr "Менеджер разрешений ролей"
 
 #: frappe/public/js/frappe/list/list_view.js:1724
 msgctxt "Button in list view menu"
 msgid "Role Permissions Manager"
-msgstr "Менеджер ролевых разрешений"
+msgstr "Менеджер разрешений ролей"
 
 #. Name of a DocType
 #. Label of a Link field in DocType 'User'
@@ -23000,7 +23000,7 @@ msgstr "Планировщик неактивен. Невозможно импо
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:19
 msgid "Scheduler: Active"
-msgstr "Планировщик: Active"
+msgstr "Планировщик: Активен"
 
 #: frappe/core/doctype/rq_job/rq_job_list.js:21
 msgid "Scheduler: Inactive"
@@ -25507,7 +25507,7 @@ msgstr "Тип поля темы должен быть Data, Text, Long Text, Sm
 #. Name of a DocType
 #: frappe/core/doctype/submission_queue/submission_queue.json
 msgid "Submission Queue"
-msgstr "Очередь подачи"
+msgstr "Очередь отправки"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
@@ -30762,7 +30762,7 @@ msgstr "Ваш PDF-файл готов к загрузке"
 
 #: frappe/patches/v14_0/update_workspace2.py:34
 msgid "Your Shortcuts"
-msgstr "Ваши короткие пути"
+msgstr "Ваши быстрые настройки"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:141
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:147
