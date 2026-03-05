@@ -95,6 +95,11 @@ frappe.form.formatters = {
 			return "";
 		}
 
+<<<<<<< HEAD
+=======
+		const valuePrecision = value?.toString().split(".")[1]?.length || 0;
+
+>>>>>>> 29e52f6deb (fix: percent precision when value is undefined (#37755))
 		const precision =
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
