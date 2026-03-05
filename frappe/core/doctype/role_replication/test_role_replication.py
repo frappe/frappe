@@ -23,7 +23,7 @@ class TestRoleReplication(IntegrationTestCase):
 		self.test_doctype = "User"
 
 		# First ensure no Custom DocPerm exists for this doctype
-		frappe.db.delete("Custom DocPerm", {"parent": self.test_doctype, "role": self.test_role_name})
+		frappe.db.delete("Custom DocPerm", {"parent": self.test_doctype})
 
 		# Add DocPerm for the test role
 		self.test_perm = frappe.get_doc(
