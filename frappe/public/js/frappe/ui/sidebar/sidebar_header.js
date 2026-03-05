@@ -87,12 +87,18 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				}
 			);
 		}
+		this.add_navbar_items();
 		this.make();
 		this.setup_app_switcher();
 		this.populate_dropdown_menu();
 		this.setup_select_options();
 	}
-
+	add_navbar_items() {
+		frappe.boot.navbar_settings.settings_dropdown.forEach((item) => {
+			item.label = item.item_label;
+			this.dropdown_items.push(item);
+		});
+	}
 	fetch_related_icons() {
 		let sibling_workspaces = [];
 		let workspaces_not_to_show = ["My Workspaces"];
