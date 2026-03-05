@@ -52,21 +52,12 @@ class TestRoleReplication(IntegrationTestCase):
 		self._cleanup_test_data()
 
 	def test_replicate_role_preserves_original_permissions(self):
-		"""Test that replicating a role does not erase the original role's permissions.
-
+		"""
+		Test that replicating a role does not erase the original role's permissions.
 		This is a regression test for https://github.com/frappe/frappe/issues/34605
-
-		The bug occurs because:
-		1. Original role has permissions in DocPerm table
-		2. After replication, new role gets Custom DocPerm entries
-		3. get_all_perms() hides DocPerm entries when ANY Custom DocPerm exists for that doctype
-		4. Original role's permissions appear empty in the UI
-
-		The fix ensures that when replicating, we also create Custom DocPerm entries
-		for the original role, so its permissions remain visible.
 		"""
 		# Get original permissions count before replication using get_all_perms
-		# (this is what the UI uses)
+		# (this is what the Role Permissions Manager UI uses)
 		original_perms_before = get_all_perms(self.test_role_name)
 		self.assertTrue(
 			len(original_perms_before) > 0, "Test role should have permissions before replication"
@@ -89,9 +80,7 @@ class TestRoleReplication(IntegrationTestCase):
 		new_role_perms = get_all_perms(self.new_role_name)
 		self.assertTrue(len(new_role_perms) > 0, "New role should have permissions after replication")
 
-		# CRITICAL: Verify original role still has its permissions visible via get_all_perms
-		# This is the actual bug - after replication, get_all_perms would return empty
-		# because Custom DocPerm now exists for the doctype (from new role)
+		# Verify original role still has its permissions visible via get_all_perms
 		original_perms_after = get_all_perms(self.test_role_name)
 		self.assertEqual(
 			len(original_perms_before),
@@ -99,7 +88,7 @@ class TestRoleReplication(IntegrationTestCase):
 			"Original role should retain all its permissions after replication",
 		)
 
-		# Verify the original role now has Custom DocPerm entries (the fix)
+		# Verify the original role now has Custom DocPerm entries
 		original_custom_perms = frappe.get_all(
 			"Custom DocPerm", filters={"role": self.test_role_name}, fields=["parent", "read", "write"]
 		)
