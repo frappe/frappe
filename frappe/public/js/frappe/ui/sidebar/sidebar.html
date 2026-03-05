@@ -52,10 +52,10 @@
 		 			<span> {%= __("Collapse") %} </span>
 				</a>
 				<div class="nav-item dropdown dropdown-navbar-user dropdown-mobile mt-3">
-					<button
+					<a
 						class="align-center btn-reset flex nav-link"
 						style="width: 100%; height: 40px;"
-						data-toggle="dropdown"
+						onclick="return frappe.ui.toolbar.route_to_user()"
 						aria-label="{{ __("User Menu") }}"
 					>
 						<div> {{ avatar }} </div>
@@ -68,25 +68,7 @@
 							</span>
 						</div>
 
-					</button>
-					<div class="dropdown-menu dropdown-menu-left" id="toolbar-user" role="menu">
-						{% for item in navbar_settings.settings_dropdown %}
-							{% var condition = item.condition ? eval(item.condition) : true %}
-							{% if (condition && !item.hidden) { %}
-								{% if (item.route) { %}
-									<a class="dropdown-item" href="{{ item.route }}">
-										{%= __(item.item_label) %}
-									</a>
-								{% } else if (item.action) { %}
-									<button class="btn-reset dropdown-item" onclick="return {{ item.action }}">
-										{%= __(item.item_label) %}
-									</button>
-								{% } else { %}
-									<div class="dropdown-divider"></div>
-								{% } %}
-							{% } %}
-						{% endfor %}
-					</div>
+					</a>
 				</div>
 			</div>
 		</div>

@@ -470,21 +470,6 @@ get_changelog_feed = "frappe.desk.doctype.changelog_feed.changelog_feed.get_feed
 
 export_python_type_annotations = True
 
-standard_navbar_items = [
-	{
-		"item_label": "User Settings",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.route_to_user()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Log out",
-		"item_type": "Action",
-		"action": "frappe.app.logout()",
-		"is_standard": 1,
-	},
-]
-
 standard_help_items = [
 	{
 		"item_label": "About",

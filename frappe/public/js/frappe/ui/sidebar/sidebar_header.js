@@ -76,6 +76,14 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 					label: "Help",
 					icon: "info",
 					items: this.get_help_siblings(),
+				},
+				{
+					name: "logout",
+					label: "Logout",
+					icon: "logout",
+					onClick: function () {
+						return frappe.app.logout();
+					},
 				}
 			);
 		}
