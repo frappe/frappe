@@ -1,0 +1,64 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2026-02-01 18:30:14.382402",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "doctype_name",
+  "column_break_untr",
+  "link_fieldname",
+  "column_break_envp",
+  "display_fieldname"
+ ],
+ "fields": [
+  {
+   "fieldname": "doctype_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "DocType Name",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_untr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "link_fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Link Fieldname",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_envp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "display_fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Display Fieldname",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 10,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-03-05 20:55:33.109448",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Link Field Display",
+ "naming_rule": "Random",
+ "owner": "thomas.a@ditto.com",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
