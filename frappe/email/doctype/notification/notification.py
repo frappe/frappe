@@ -104,7 +104,7 @@ class Notification(Document):
 				return _("Yes") if evaluate_filters(doc, json.loads(self.filters)) else _("No")
 		except Exception as e:
 			frappe.local.message_log = []
-			return _("Failed to evaluate conditions: {}").format(e)
+			return _("Failed to evaluate conditions: {}").format(str(e))
 
 	@frappe.whitelist()
 	def preview_message(self, preview_document):
@@ -121,7 +121,7 @@ class Notification(Document):
 				return frappe.utils.strip_html_tags(msg)
 			return msg
 		except Exception as e:
-			return _("Failed to render message: {}").format(e)
+			return _("Failed to render message: {}").format(str(e))
 
 	@frappe.whitelist()
 	def preview_subject(self, preview_document):
@@ -139,7 +139,7 @@ class Notification(Document):
 				return frappe.render_template(self.subject, context)
 			return self.subject
 		except Exception as e:
-			return _("Failed to render subject: {}").format(e)
+			return _("Failed to render subject: {}").format(str(e))
 
 	# END: PreviewRenderer API
 
