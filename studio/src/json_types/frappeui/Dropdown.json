@@ -74,8 +74,7 @@
                 {
                   "type": "object"
                 }
-              ],
-              "description": "Route Location the link should navigate to when clicked on."
+              ]
             },
             "link": {
               "type": "string"
@@ -148,14 +147,13 @@
                       {
                         "type": "object"
                       }
-                    ],
-                    "description": "Route Location the link should navigate to when clicked on."
+                    ]
                   },
                   "condition": {
                     "$comment": "() => boolean"
                   },
                   "submenu": {
-                    "$ref": "#/definitions/alias-1044900505-639-690-1044900505-0-862"
+                    "$ref": "#/definitions/alias-1044900505-639-690-1044900505-0-1196"
                   }
                 },
                 "required": [
@@ -227,14 +225,13 @@
                             {
                               "type": "object"
                             }
-                          ],
-                          "description": "Route Location the link should navigate to when clicked on."
+                          ]
                         },
                         "condition": {
                           "$comment": "() => boolean"
                         },
                         "submenu": {
-                          "$ref": "#/definitions/alias-1044900505-639-690-1044900505-0-862"
+                          "$ref": "#/definitions/alias-1044900505-639-690-1044900505-0-1196"
                         }
                       },
                       "required": [
@@ -281,7 +278,7 @@
       },
       "additionalProperties": false
     },
-    "alias-1044900505-639-690-1044900505-0-862": {
+    "alias-1044900505-639-690-1044900505-0-1196": {
       "type": "array",
       "items": {
         "anyOf": [
@@ -338,14 +335,13 @@
                   {
                     "type": "object"
                   }
-                ],
-                "description": "Route Location the link should navigate to when clicked on."
+                ]
               },
               "condition": {
                 "$comment": "() => boolean"
               },
               "submenu": {
-                "$ref": "#/definitions/alias-1044900505-639-690-1044900505-0-862"
+                "$ref": "#/definitions/alias-1044900505-639-690-1044900505-0-1196"
               }
             },
             "required": [
@@ -417,14 +413,13 @@
                         {
                           "type": "object"
                         }
-                      ],
-                      "description": "Route Location the link should navigate to when clicked on."
+                      ]
                     },
                     "condition": {
                       "$comment": "() => boolean"
                     },
                     "submenu": {
-                      "$ref": "#/definitions/alias-1044900505-639-690-1044900505-0-862"
+                      "$ref": "#/definitions/alias-1044900505-639-690-1044900505-0-1196"
                     }
                   },
                   "required": [

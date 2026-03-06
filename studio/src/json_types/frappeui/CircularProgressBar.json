@@ -25,13 +25,23 @@
           "anyOf": [
             {
               "type": "string",
-              "enum": [
-                "black",
-                "red",
-                "green",
-                "blue",
-                "orange"
-              ]
+              "const": "black"
+            },
+            {
+              "type": "string",
+              "const": "red"
+            },
+            {
+              "type": "string",
+              "const": "green"
+            },
+            {
+              "type": "string",
+              "const": "blue"
+            },
+            {
+              "type": "string",
+              "const": "orange"
             },
             {
               "type": "object",

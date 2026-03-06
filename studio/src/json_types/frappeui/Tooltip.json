@@ -18,15 +18,62 @@
             "right",
             "bottom",
             "left"
-          ],
-          "description": "The preferred side of the trigger to render against when open. Will be reversed when collisions occur and avoidCollisions is enabled."
+          ]
         },
-        "arrowClass": {},
+        "arrowClass": {
+          "anyOf": [
+            {
+              "type": "boolean",
+              "const": false
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/alias-1208222371-19045-19147-1208222371-0-57709"
+              }
+            }
+          ]
+        },
         "disabled": {
           "type": "boolean"
         }
       },
       "additionalProperties": false
+    },
+    "alias-1208222371-19045-19147-1208222371-0-57709": {
+      "anyOf": [
+        {
+          "type": "boolean",
+          "const": false
+        },
+        {
+          "type": "null"
+        },
+        {
+          "not": {}
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "object"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/alias-1208222371-19045-19147-1208222371-0-57709"
+          }
+        }
+      ]
     }
   }
 }

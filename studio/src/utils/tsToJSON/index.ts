@@ -3,20 +3,20 @@ import path from "path"
 import { CompletedConfig, createFormatter, createParser, createProgram, SchemaGenerator } from "ts-json-schema-generator"
 import { SVGElementParser, VueComponentParser, RouteLocationParser } from "./customParser.js"
 
-function tsToJSON(srcFolder: string, destFolder: string, tsconfig = "", isFrappeUI = false) {
+function tsToJSON(srcFolder: string, destFolder: string, skipFolders: string[] | null = null, tsconfig = "", isFrappeUI = false) {
 	// Get project root (where package.json is)
 	const root = process.cwd()
 	const inputDirPath = path.resolve(root, srcFolder)
 	const outputDirPath = path.resolve(root, destFolder)
 	const tsconfigPath = tsconfig ? path.resolve(root, tsconfig) : ""
 
-	const typeFiles = findTypeFiles(inputDirPath, isFrappeUI)
+	const typeFiles = findTypeFiles(inputDirPath, isFrappeUI, skipFolders)
 
 	let config = {
 		skipTypeCheck: true,
 		expose: "none", // only include explicitly requested types
 		topRef: true, // add top-level $ref
-		jsDoc: "extended", // include JSDoc annotations
+		jsDoc: "none", // include JSDoc annotations
 		additionalProperties: false,
 	} as CompletedConfig
 
@@ -44,7 +44,7 @@ function tsToJSON(srcFolder: string, destFolder: string, tsconfig = "", isFrappe
 	}
 }
 
-function findTypeFiles(dir: string, isFrappeUI: boolean): Array<{ filePath: string; componentName: string }> {
+function findTypeFiles(dir: string, isFrappeUI: boolean, skipFolders: string[] | null = null): Array<{ filePath: string; componentName: string }> {
 	const typeFiles: Array<{ filePath: string; componentName: string }> = []
 
 	if (isFrappeUI) {
@@ -54,6 +54,9 @@ function findTypeFiles(dir: string, isFrappeUI: boolean): Array<{ filePath: stri
 			for (const item of items) {
 				const fullPath = path.join(currentDir, item.name)
 				if (item.isDirectory()) {
+					if (skipFolders && skipFolders.includes(item.name)) {
+						continue
+					}
 					scanDirectory(fullPath)
 				} else if (item.isFile() && item.name === "types.ts") {
 					const componentName = path.basename(path.dirname(fullPath))

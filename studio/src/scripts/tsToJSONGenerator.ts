@@ -10,6 +10,7 @@ const configMap: Record<string, any> = {
 		],
 		destFolder: "src/json_types/frappeui",
 		tsconfigPath: "../node_modules/frappe-ui/tsconfig.json",
+		skipFolders: ["drive"]
 	},
 	studio: {
 		srcFolders: ["src/types/studio_components"],
@@ -29,9 +30,9 @@ if (!moduleName || !configMap[moduleName]) {
 }
 
 /* 1. Generate JSON types */
-const { srcFolders, destFolder, tsconfigPath } = configMap[moduleName]
+const { srcFolders, destFolder, tsconfigPath, skipFolders } = configMap[moduleName]
 srcFolders.forEach((srcFolder: string) => {
-	tsToJSON(srcFolder, destFolder, tsconfigPath, moduleName === "frappeui")
+	tsToJSON(srcFolder, destFolder, skipFolders, tsconfigPath, moduleName === "frappeui")
 })
 
 /* 2. Update index file */

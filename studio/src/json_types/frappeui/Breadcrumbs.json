@@ -21,8 +21,7 @@
                   {
                     "type": "object"
                   }
-                ],
-                "description": "Route Location the link should navigate to when clicked on."
+                ]
               },
               "onClick": {
                 "$comment": "() => void"

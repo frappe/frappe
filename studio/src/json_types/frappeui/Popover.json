@@ -76,6 +76,9 @@
         },
         "matchTargetWidth": {
           "type": "boolean"
+        },
+        "offset": {
+          "type": "number"
         }
       },
       "additionalProperties": false

@@ -145,8 +145,15 @@
           ]
         },
         "tags": {
-          "type": "array",
-          "items": {}
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {}
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "uploadFunction": {
           "$comment": "(file: File) => Promise<UploadedFile>",

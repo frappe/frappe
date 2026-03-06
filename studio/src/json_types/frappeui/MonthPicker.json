@@ -7,6 +7,9 @@
       "properties": {
         "placeholder": {
           "type": "string"
+        },
+        "disabled": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
