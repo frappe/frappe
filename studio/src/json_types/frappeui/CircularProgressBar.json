@@ -6,32 +6,46 @@
       "type": "object",
       "properties": {
         "step": {
-          "type": "number"
+          "type": "number",
+          "description": "Current step or progress value"
         },
         "totalSteps": {
-          "type": "number"
+          "type": "number",
+          "description": "Total steps for completion"
         },
         "showPercentage": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Show numeric percentage inside the circle"
         },
         "variant": {
           "type": "string",
           "enum": [
             "solid",
             "outline"
-          ]
+          ],
+          "description": "Visual style of the progress bar"
         },
         "theme": {
           "anyOf": [
             {
               "type": "string",
-              "enum": [
-                "black",
-                "red",
-                "green",
-                "blue",
-                "orange"
-              ]
+              "const": "black"
+            },
+            {
+              "type": "string",
+              "const": "red"
+            },
+            {
+              "type": "string",
+              "const": "green"
+            },
+            {
+              "type": "string",
+              "const": "blue"
+            },
+            {
+              "type": "string",
+              "const": "orange"
             },
             {
               "type": "object",
@@ -49,7 +63,8 @@
               ],
               "additionalProperties": false
             }
-          ]
+          ],
+          "description": "Theme used for the progress bar (predefined or custom colors)"
         },
         "size": {
           "type": "string",
@@ -59,17 +74,20 @@
             "md",
             "lg",
             "xl"
-          ]
+          ],
+          "description": "Size of the progress bar"
         },
         "themeComplete": {
-          "type": "string"
+          "type": "string",
+          "description": "Color used when the progress completes"
         }
       },
       "required": [
         "step",
         "totalSteps"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Props for the CircularProgressBar component"
     }
   }
 }

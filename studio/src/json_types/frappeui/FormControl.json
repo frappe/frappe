@@ -6,10 +6,12 @@
       "type": "object",
       "properties": {
         "label": {
-          "type": "string"
+          "type": "string",
+          "description": "Label text displayed above the input"
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Optional description or helper text shown below the input"
         },
         "type": {
           "type": "string",
@@ -33,24 +35,28 @@
             "checkbox",
             "autocomplete",
             "combobox"
-          ]
+          ],
+          "description": "Type of input to render"
         },
         "size": {
           "type": "string",
           "enum": [
             "sm",
             "md"
-          ]
+          ],
+          "description": "Size of the input"
         },
         "variant": {
           "type": "string",
           "enum": [
             "subtle",
             "outline"
-          ]
+          ],
+          "description": "Visual variant of the input"
         },
         "required": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Whether the input is required"
         }
       },
       "additionalProperties": false

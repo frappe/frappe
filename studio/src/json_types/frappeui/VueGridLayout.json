@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "*": {
+      "type": "object",
+      "properties": {
+        "w": {
+          "type": "number"
+        },
+        "h": {
+          "type": "number"
+        },
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "i": {
+          "type": [
+            "number",
+            "string"
+          ]
+        }
+      },
+      "required": [
+        "w",
+        "h",
+        "x",
+        "y",
+        "i"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

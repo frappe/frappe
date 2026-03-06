@@ -6,13 +6,16 @@
       "type": "object",
       "properties": {
         "value": {
-          "type": "string"
+          "type": "string",
+          "description": "Selected time (uncontrolled)"
         },
         "modelValue": {
-          "type": "string"
+          "type": "string",
+          "description": "Selected time (v-model)"
         },
         "interval": {
-          "type": "number"
+          "type": "number",
+          "description": "Minute interval between options"
         },
         "options": {
           "type": "array",
@@ -30,7 +33,8 @@
               "value"
             ],
             "additionalProperties": false
-          }
+          },
+          "description": "Custom time options"
         },
         "placement": {
           "type": "string",
@@ -43,29 +47,36 @@
             "right-end",
             "left-start",
             "left-end"
-          ]
+          ],
+          "description": "Popover placement"
         },
         "placeholder": {
-          "type": "string"
+          "type": "string",
+          "description": "Placeholder text when no value is selected"
         },
         "variant": {
           "type": "string",
           "enum": [
             "outline",
             "subtle"
-          ]
+          ],
+          "description": "Visual style variant"
         },
         "allowCustom": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Allow entering custom time values"
         },
         "autoClose": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Close picker automatically after selection"
         },
         "use12Hour": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Use 12-hour (AM/PM) format"
         },
         "disabled": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Disable the time picker"
         },
         "scrollMode": {
           "type": "string",
@@ -73,13 +84,16 @@
             "center",
             "start",
             "nearest"
-          ]
+          ],
+          "description": "Scroll behavior when opening the list"
         },
         "minTime": {
-          "type": "string"
+          "type": "string",
+          "description": "Minimum selectable time"
         },
         "maxTime": {
-          "type": "string"
+          "type": "string",
+          "description": "Maximum selectable time"
         }
       },
       "additionalProperties": false

@@ -6,7 +6,8 @@
       "type": "object",
       "properties": {
         "modelValue": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Controls whether the dialog is open (v-model)"
         },
         "options": {
           "type": "object",
@@ -101,7 +102,8 @@
                       "blue",
                       "green",
                       "red"
-                    ]
+                    ],
+                    "description": "Visual color theme of the button"
                   },
                   "size": {
                     "type": "string",
@@ -111,7 +113,8 @@
                       "lg",
                       "xl",
                       "2xl"
-                    ]
+                    ],
+                    "description": "Controls the button size"
                   },
                   "variant": {
                     "type": "string",
@@ -120,37 +123,46 @@
                       "subtle",
                       "outline",
                       "ghost"
-                    ]
+                    ],
+                    "description": "Visual style of the button"
                   },
                   "label": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Text label displayed inside the button"
                   },
                   "icon": {
                     "type": [
                       "string"
-                    ]
+                    ],
+                    "description": "Icon shown when no left or right icon is specified"
                   },
                   "iconLeft": {
                     "type": [
                       "string"
-                    ]
+                    ],
+                    "description": "Icon shown before the label"
                   },
                   "iconRight": {
                     "type": [
                       "string"
-                    ]
+                    ],
+                    "description": "Icon shown after the label"
                   },
                   "tooltip": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Tooltip text shown on hover"
                   },
                   "loading": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "Shows a loading state and disables interaction"
                   },
                   "loadingText": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Text shown while the button is loading"
                   },
                   "disabled": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "Disables the button"
                   },
                   "route": {
                     "anyOf": [
@@ -161,10 +173,11 @@
                         "type": "object"
                       }
                     ],
-                    "description": "Route Location the link should navigate to when clicked on."
+                    "description": "Router destination when used as a link"
                   },
                   "link": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "External link URL"
                   },
                   "type": {
                     "type": "string",
@@ -172,7 +185,8 @@
                       "button",
                       "submit",
                       "reset"
-                    ]
+                    ],
+                    "description": "Native button type"
                   }
                 }
               }
@@ -191,10 +205,12 @@
               ]
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "Configuration options for title, message, size, icon, actions, etc."
         },
         "disableOutsideClickToClose": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Prevents closing the dialog when clicking outside"
         }
       },
       "required": [

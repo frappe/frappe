@@ -6,7 +6,12 @@
       "type": "object",
       "properties": {
         "placeholder": {
-          "type": "string"
+          "type": "string",
+          "description": "Placeholder text shown when no value is selected"
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Disables the month picker"
         }
       },
       "additionalProperties": false

@@ -13,7 +13,8 @@
             "green",
             "orange",
             "red"
-          ]
+          ],
+          "description": "Visual color theme of the badge"
         },
         "size": {
           "type": "string",
@@ -21,7 +22,8 @@
             "sm",
             "md",
             "lg"
-          ]
+          ],
+          "description": "Controls the size of the badge"
         },
         "variant": {
           "type": "string",
@@ -30,7 +32,8 @@
             "subtle",
             "outline",
             "ghost"
-          ]
+          ],
+          "description": "Visual style of the badge"
         },
         "label": {
           "anyOf": [
@@ -44,7 +47,8 @@
             {
               "type": "number"
             }
-          ]
+          ],
+          "description": "Content displayed inside the badge"
         }
       },
       "additionalProperties": false

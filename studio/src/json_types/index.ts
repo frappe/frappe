@@ -28,8 +28,10 @@ export { default as Popover } from "./frappeui/Popover.json"
 export { default as Progress } from "./frappeui/Progress.json"
 export { default as Rating } from "./frappeui/Rating.json"
 export { default as Select } from "./frappeui/Select.json"
+export { default as Slider } from "./frappeui/Slider.json"
 export { default as Switch } from "./frappeui/Switch.json"
 export { default as Tabs } from "./frappeui/Tabs.json"
+export { default as TagInput } from "./frappeui/TagInput.json"
 export { default as TextEditor } from "./frappeui/TextEditor.json"
 export { default as TextInput } from "./frappeui/TextInput.json"
 export { default as Textarea } from "./frappeui/Textarea.json"
@@ -37,6 +39,7 @@ export { default as TimePicker } from "./frappeui/TimePicker.json"
 export { default as Toast } from "./frappeui/Toast.json"
 export { default as Tooltip } from "./frappeui/Tooltip.json"
 export { default as Tree } from "./frappeui/Tree.json"
+export { default as VueGridLayout } from "./frappeui/VueGridLayout.json"
 // end of frappeui components
 
 // studio components

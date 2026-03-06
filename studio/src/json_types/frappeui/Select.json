@@ -5,37 +5,6 @@
     "SelectProps": {
       "type": "object",
       "properties": {
-        "size": {
-          "type": "string",
-          "enum": [
-            "sm",
-            "md",
-            "lg"
-          ]
-        },
-        "variant": {
-          "type": "string",
-          "enum": [
-            "subtle",
-            "outline",
-            "ghost"
-          ]
-        },
-        "placeholder": {
-          "type": "string"
-        },
-        "disabled": {
-          "type": "boolean"
-        },
-        "id": {
-          "type": "string"
-        },
-        "modelValue": {
-          "type": [
-            "string",
-            "number"
-          ]
-        },
         "options": {
           "type": "array",
           "items": {
@@ -52,6 +21,7 @@
                   "value": {
                     "type": "string"
                   },
+                  "icon": {},
                   "disabled": {
                     "type": "boolean"
                   }
@@ -64,8 +34,60 @@
               }
             ]
           }
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "multiple": {
+          "type": "boolean"
+        },
+        "getLabel": {
+          "type": "object",
+          "properties": {
+            "prototype": {},
+            "length": {
+              "type": "number"
+            },
+            "arguments": {},
+            "caller": {
+              "$ref": "#/definitions/interface-1547037400-9888-11315-1547037400-0-217694"
+            }
+          },
+          "required": [
+            "prototype",
+            "length",
+            "arguments",
+            "caller"
+          ],
+          "additionalProperties": false
         }
       },
+      "required": [
+        "options"
+      ],
+      "additionalProperties": false
+    },
+    "interface-1547037400-9888-11315-1547037400-0-217694": {
+      "type": "object",
+      "properties": {
+        "prototype": {},
+        "length": {
+          "type": "number"
+        },
+        "arguments": {},
+        "caller": {
+          "$ref": "#/definitions/interface-1547037400-9888-11315-1547037400-0-217694"
+        }
+      },
+      "required": [
+        "prototype",
+        "length",
+        "arguments",
+        "caller"
+      ],
       "additionalProperties": false
     }
   }

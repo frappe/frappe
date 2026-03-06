@@ -6,20 +6,24 @@
       "type": "object",
       "properties": {
         "show": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Controls visibility of the popover"
         },
         "trigger": {
           "type": "string",
           "enum": [
             "click",
             "hover"
-          ]
+          ],
+          "description": "Event that triggers the popover"
         },
         "hoverDelay": {
-          "type": "number"
+          "type": "number",
+          "description": "Delay in ms before showing popover on hover"
         },
         "leaveDelay": {
-          "type": "number"
+          "type": "number",
+          "description": "Delay in ms before hiding popover on hover leave"
         },
         "placement": {
           "type": "string",
@@ -36,7 +40,8 @@
             "bottom",
             "right",
             "left"
-          ]
+          ],
+          "description": "Placement of the popover relative to the target"
         },
         "popoverClass": {
           "anyOf": [
@@ -69,13 +74,19 @@
           "enum": [
             "default",
             null
-          ]
+          ],
+          "description": "Transition style to use"
         },
         "hideOnBlur": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Whether to hide the popover when clicking outside"
         },
         "matchTargetWidth": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Whether the popover width should match the target element"
+        },
+        "offset": {
+          "type": "number"
         }
       },
       "additionalProperties": false

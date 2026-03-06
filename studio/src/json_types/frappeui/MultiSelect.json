@@ -6,7 +6,8 @@
       "type": "object",
       "properties": {
         "placeholder": {
-          "type": "string"
+          "type": "string",
+          "description": "Placeholder text shown when no item is selected"
         },
         "options": {
           "type": "array",
@@ -28,13 +29,16 @@
               "value"
             ],
             "additionalProperties": false
-          }
+          },
+          "description": "Options available to select from"
         },
         "hideSearch": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Hides the search input if true"
         },
         "loading": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Shows a loading state"
         },
         "compareFn": {
           "$comment": "(a: MultiSelectOption, b: MultiSelectOption) => boolean",
@@ -88,7 +92,8 @@
               ],
               "additionalProperties": false
             }
-          }
+          },
+          "description": "Custom comparison function to check equality of options"
         }
       },
       "required": [

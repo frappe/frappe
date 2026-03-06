@@ -6,7 +6,8 @@
       "type": "object",
       "properties": {
         "value": {
-          "type": "number"
+          "type": "number",
+          "description": "Current progress value"
         },
         "size": {
           "type": "string",
@@ -15,19 +16,24 @@
             "md",
             "lg",
             "xl"
-          ]
+          ],
+          "description": "Size of the progress bar: \"sm\" | \"md\" | \"lg\" | \"xl\""
         },
         "label": {
-          "type": "string"
+          "type": "string",
+          "description": "Optional text label displayed on the progress bar"
         },
         "hint": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Whether to show a hint/tooltip for the progress value"
         },
         "intervals": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Whether to show interval markers on the progress bar"
         },
         "intervalCount": {
-          "type": "number"
+          "type": "number",
+          "description": "Number of intervals to display if `intervals` is true"
         }
       },
       "required": [

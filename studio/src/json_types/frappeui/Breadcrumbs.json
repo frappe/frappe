@@ -11,7 +11,8 @@
             "type": "object",
             "properties": {
               "label": {
-                "type": "string"
+                "type": "string",
+                "description": "Text shown for the breadcrumb item"
               },
               "route": {
                 "anyOf": [
@@ -22,16 +23,21 @@
                     "type": "object"
                   }
                 ],
-                "description": "Route Location the link should navigate to when clicked on."
+                "description": "Route location used when the item is a link"
               },
               "onClick": {
-                "$comment": "() => void"
+                "$comment": "() => void",
+                "description": "Click handler for non-router breadcrumb items"
               }
             },
             "required": [
               "label"
-            ]
-          }
+            ],
+            "additionalProperties": {
+              "description": "Allows passing additional custom fields"
+            }
+          },
+          "description": "Ordered list of breadcrumb items"
         }
       },
       "required": [

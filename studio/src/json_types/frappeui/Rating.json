@@ -6,16 +6,20 @@
       "type": "object",
       "properties": {
         "modelValue": {
-          "type": "number"
+          "type": "number",
+          "description": "The current rating value (controlled)"
         },
         "rating_from": {
-          "type": "number"
+          "type": "number",
+          "description": "Minimum rating value (default is 0 or 1 depending on implementation)"
         },
         "label": {
-          "type": "string"
+          "type": "string",
+          "description": "Optional label displayed alongside the rating"
         },
         "readonly": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "If true, disables interaction and makes the rating read-only"
         },
         "size": {
           "type": "string",
@@ -24,7 +28,8 @@
             "md",
             "lg",
             "xl"
-          ]
+          ],
+          "description": "Size of the rating component"
         }
       },
       "additionalProperties": false

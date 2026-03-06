@@ -10,16 +10,20 @@
           "enum": [
             "sm",
             "md"
-          ]
+          ],
+          "description": "Controls the size of the checkbox"
         },
         "label": {
-          "type": "string"
+          "type": "string",
+          "description": "Text label shown next to the checkbox"
         },
         "disabled": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Disables the checkbox interaction"
         },
         "padding": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Adds padding around the checkbox"
         },
         "modelValue": {
           "anyOf": [
@@ -34,10 +38,12 @@
               "type": "number",
               "const": 0
             }
-          ]
+          ],
+          "description": "Checked state of the checkbox"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "description": "HTML id attribute for the input element"
         }
       },
       "additionalProperties": false

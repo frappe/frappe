@@ -6,10 +6,12 @@
       "type": "object",
       "properties": {
         "text": {
-          "type": "string"
+          "type": "string",
+          "description": "Text content shown inside the tooltip. Ignored if a default slot is provided."
         },
         "hoverDelay": {
-          "type": "number"
+          "type": "number",
+          "description": "Delay (in ms) before showing the tooltip on hover."
         },
         "placement": {
           "type": "string",
@@ -19,11 +21,14 @@
             "bottom",
             "left"
           ],
-          "description": "The preferred side of the trigger to render against when open. Will be reversed when collisions occur and avoidCollisions is enabled."
+          "description": "Position of the tooltip relative to the trigger."
         },
-        "arrowClass": {},
+        "arrowClass": {
+          "description": "Custom classes applied to the tooltip arrow."
+        },
         "disabled": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Disables the tooltip entirely."
         }
       },
       "additionalProperties": false

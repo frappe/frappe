@@ -9,7 +9,8 @@
           "type": [
             "string",
             "null"
-          ]
+          ],
+          "description": "Initial editor content (HTML/string). `null` renders an empty editor"
         },
         "placeholder": {
           "anyOf": [
@@ -19,7 +20,8 @@
             {
               "$comment": "() => string"
             }
-          ]
+          ],
+          "description": "Placeholder text or dynamic placeholder resolver"
         },
         "editorClass": {
           "anyOf": [
@@ -35,29 +37,64 @@
             {
               "type": "object"
             }
-          ]
+          ],
+          "description": "Custom classes applied to the editor root"
         },
         "editable": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Toggles editability of the editor"
         },
         "autofocus": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Autofocus the editor on mount"
         },
         "bubbleMenu": {
-          "type": "boolean"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "array",
+              "items": {}
+            }
+          ],
+          "description": "Enables bubble menu or provides custom bubble menu items"
         },
         "bubbleMenuOptions": {
-          "type": "object"
+          "type": "object",
+          "description": "Configuration options for the bubble menu"
         },
         "fixedMenu": {
-          "type": "boolean"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "array",
+              "items": {}
+            }
+          ],
+          "description": "Enables fixed menu or provides custom fixed menu items"
         },
         "floatingMenu": {
-          "type": "boolean"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "array",
+              "items": {}
+            }
+          ],
+          "description": "Enables floating menu or provides custom floating menu items"
         },
         "extensions": {
           "type": "array",
-          "items": {}
+          "items": {},
+          "description": "Custom TipTap extensions"
+        },
+        "starterkitOptions": {
+          "description": "Options passed to TipTap StarterKit"
         },
         "mentions": {
           "anyOf": [
@@ -142,11 +179,20 @@
             {
               "type": "null"
             }
-          ]
+          ],
+          "description": "Mention extension configuration"
         },
         "tags": {
-          "type": "array",
-          "items": {}
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {}
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Tag / hashtag configuration"
         },
         "uploadFunction": {
           "$comment": "(file: File) => Promise<UploadedFile>",
@@ -189,10 +235,12 @@
               ],
               "additionalProperties": false
             }
-          }
+          },
+          "description": "Async file upload handler (used for images, files, etc.)"
         },
         "uploadArgs": {
-          "type": "object"
+          "type": "object",
+          "description": "Extra arguments passed to the upload function"
         }
       },
       "additionalProperties": false
