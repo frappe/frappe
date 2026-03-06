@@ -41,21 +41,15 @@
           "description": "Text label displayed inside the button"
         },
         "icon": {
-          "type": [
-            "string"
-          ],
+          "type": "string",
           "description": "Icon shown when no left or right icon is specified"
         },
         "iconLeft": {
-          "type": [
-            "string"
-          ],
+          "type": "string",
           "description": "Icon shown before the label"
         },
         "iconRight": {
-          "type": [
-            "string"
-          ],
+          "type": "string",
           "description": "Icon shown after the label"
         },
         "tooltip": {
