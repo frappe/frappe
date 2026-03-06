@@ -40,11 +40,7 @@ frappe.ui.form.ControlMultiSelect = class ControlMultiSelect extends (
 		let options = this.get_parsed_options();
 
 		// find value of label from option list and return actual value string
-<<<<<<< HEAD
-		if (options && options.length && options[0].label) {
-=======
 		if (options && options.length && options[0].label != undefined) {
->>>>>>> 9983472e73 (fix: handle translations in MultiSelect filters (#35465))
 			data = data.split(",").map((op) => op.trim());
 			data = data
 				.map((val) => {
@@ -62,11 +58,7 @@ frappe.ui.form.ControlMultiSelect = class ControlMultiSelect extends (
 		let options = this.get_parsed_options();
 
 		// find label of value from option list and set from it as input
-<<<<<<< HEAD
-		if (options && options.length && options[0].label) {
-=======
 		if (options && options.length && options[0].label != undefined) {
->>>>>>> 9983472e73 (fix: handle translations in MultiSelect filters (#35465))
 			value = value
 				.split(",")
 				.map((d) => d.trim())
