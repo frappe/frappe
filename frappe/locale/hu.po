@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-03 15:46\n"
+"PO-Revision-Date: 2026-03-06 21:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -26628,7 +26628,7 @@ msgstr "A felhasználó új rekordokat importálhat, vagy frissítheti a dokumen
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:28
 msgid "The user can select a Customer in Sales Order but cannot open the Customer master."
-msgstr ""
+msgstr "A felhasználó kiválaszthat egy ügyfelet az értékesítési rendelésben, de nem nyithatja meg az ügyfél törzsadatait."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:78
 msgid "The user can share document access with another user."
@@ -26636,11 +26636,11 @@ msgstr "A felhasználó megoszthatja a dokumentumhoz való hozzáférést egy m�
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:38
 msgid "The user can update a customer or any other fields in an existing Sales Order but cannot create a new Sales Order."
-msgstr ""
+msgstr "A felhasználó frissíthet egy vevőt vagy bármely más mezőt egy meglévő Vevői Rendelésben, de nem hozhat létre új Vevői Rendelést."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:33
 msgid "The user can view Sales Invoices but cannot modify any field values in them."
-msgstr ""
+msgstr "A felhasználó megtekinthet Vevői Számlákat, de nem módosíthatja a bennük lévő mezők értékeit."
 
 #. Description of the 'User Field' (Select) field in DocType 'Energy Point
 #. Rule'
