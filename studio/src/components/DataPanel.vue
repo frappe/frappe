@@ -1,14 +1,15 @@
 <template>
 	<div class="flex flex-col gap-3 p-4">
 		<CollapsibleSection sectionName="Data Sources">
-			<div class="ml-3 flex flex-col gap-2" v-if="!isObjectEmpty(codeStore.resources)">
+			<div class="ml-3 flex flex-col gap-1" v-if="!isObjectEmpty(codeStore.resources)">
 				<div
 					v-for="(resource, resource_name) in codeStore.resources"
 					:key="resource_name"
-					class="group/item flex flex-row justify-between"
+					class="group/item flex flex-row items-center justify-between"
 				>
 					<ObjectBrowser :object="resource" :name="resource_name" class="-ml-[0.9rem] overflow-hidden" />
 					<ItemActions
+						class="-mt-1 self-start"
 						:menuOptions="getResourceMenu(resource, resource_name)"
 						@edit="openResource(resource)"
 					/>
@@ -34,7 +35,7 @@
 				<div
 					v-for="(value, variable_name) in codeStore.variables"
 					:key="variable_name"
-					class="group/item flex flex-row justify-between"
+					class="group/item flex flex-row items-center justify-between"
 				>
 					<ObjectBrowser
 						v-if="typeof value === 'object'"
@@ -50,6 +51,7 @@
 						</template>
 					</div>
 					<ItemActions
+						class="-mt-1 self-start"
 						:menuOptions="getVariableMenu(variable_name, value)"
 						@edit="openVariable(variable_name)"
 					/>

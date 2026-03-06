@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="invisible -mt-1 ml-auto flex items-center self-start text-gray-600 group-hover/item:visible has-[.active-item]:visible"
+		class="invisible ml-auto flex items-center text-gray-600 group-hover/item:visible has-[.active-item]:visible"
 	>
 		<button
 			class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
