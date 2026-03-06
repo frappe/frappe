@@ -24,6 +24,27 @@
           "description": "Position of the tooltip relative to the trigger."
         },
         "arrowClass": {
+          "anyOf": [
+            {
+              "type": "boolean",
+              "const": false
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/alias-1208222371-19045-19147-1208222371-0-57709"
+              }
+            }
+          ],
           "description": "Custom classes applied to the tooltip arrow."
         },
         "disabled": {
@@ -32,6 +53,32 @@
         }
       },
       "additionalProperties": false
+    },
+    "alias-1208222371-19045-19147-1208222371-0-57709": {
+      "anyOf": [
+        {
+          "type": "boolean",
+          "const": false
+        },
+        {
+          "type": "null"
+        },
+        {
+          "not": {}
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "object"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/alias-1208222371-19045-19147-1208222371-0-57709"
+          }
+        }
+      ]
     }
   }
 }

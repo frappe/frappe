@@ -5,6 +5,43 @@
     "SelectProps": {
       "type": "object",
       "properties": {
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "description": "Size of the select input"
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "outline",
+            "ghost"
+          ],
+          "description": "Visual style of the select input"
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Placeholder text displayed when no option is selected"
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "If true, disables the select input"
+        },
+        "id": {
+          "type": "string",
+          "description": "Optional HTML id for the select element"
+        },
+        "modelValue": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "description": "The currently selected value (controlled)"
+        },
         "options": {
           "type": "array",
           "items": {
@@ -21,7 +58,6 @@
                   "value": {
                     "type": "string"
                   },
-                  "icon": {},
                   "disabled": {
                     "type": "boolean"
                   }
@@ -33,61 +69,10 @@
                 "additionalProperties": false
               }
             ]
-          }
-        },
-        "placeholder": {
-          "type": "string"
-        },
-        "disabled": {
-          "type": "boolean"
-        },
-        "multiple": {
-          "type": "boolean"
-        },
-        "getLabel": {
-          "type": "object",
-          "properties": {
-            "prototype": {},
-            "length": {
-              "type": "number"
-            },
-            "arguments": {},
-            "caller": {
-              "$ref": "#/definitions/interface-1547037400-9888-11315-1547037400-0-217694"
-            }
           },
-          "required": [
-            "prototype",
-            "length",
-            "arguments",
-            "caller"
-          ],
-          "additionalProperties": false
+          "description": "Options to display in the dropdown"
         }
       },
-      "required": [
-        "options"
-      ],
-      "additionalProperties": false
-    },
-    "interface-1547037400-9888-11315-1547037400-0-217694": {
-      "type": "object",
-      "properties": {
-        "prototype": {},
-        "length": {
-          "type": "number"
-        },
-        "arguments": {},
-        "caller": {
-          "$ref": "#/definitions/interface-1547037400-9888-11315-1547037400-0-217694"
-        }
-      },
-      "required": [
-        "prototype",
-        "length",
-        "arguments",
-        "caller"
-      ],
       "additionalProperties": false
     }
   }
