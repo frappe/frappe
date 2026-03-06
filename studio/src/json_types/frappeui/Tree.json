@@ -37,35 +37,28 @@
                 }
               }
             ]
-          },
-          "description": "Root tree node to render. Can contain nested children to form the tree structure."
+          }
         },
         "nodeKey": {
-          "type": "string",
-          "description": "Unique key used to identify each node. Usually an id-like property present on every node."
+          "type": "string"
         },
         "options": {
           "type": "object",
           "properties": {
             "rowHeight": {
-              "type": "string",
-              "description": "Height of each tree row (e.g. \"32px\")."
+              "type": "string"
             },
             "indentWidth": {
-              "type": "string",
-              "description": "Horizontal indentation per tree level."
+              "type": "string"
             },
             "showIndentationGuides": {
-              "type": "boolean",
-              "description": "Whether to show vertical indentation guide lines."
+              "type": "boolean"
             },
             "defaultCollapsed": {
-              "type": "boolean",
-              "description": "Whether tree nodes should be collapsed by default."
+              "type": "boolean"
             }
           },
-          "additionalProperties": false,
-          "description": "Optional configuration for tree layout and behavior."
+          "additionalProperties": false
         }
       },
       "required": [

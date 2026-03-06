@@ -6,12 +6,10 @@
       "type": "object",
       "properties": {
         "text": {
-          "type": "string",
-          "description": "Text content shown inside the tooltip. Ignored if a default slot is provided."
+          "type": "string"
         },
         "hoverDelay": {
-          "type": "number",
-          "description": "Delay (in ms) before showing the tooltip on hover."
+          "type": "number"
         },
         "placement": {
           "type": "string",
@@ -20,8 +18,7 @@
             "right",
             "bottom",
             "left"
-          ],
-          "description": "Position of the tooltip relative to the trigger."
+          ]
         },
         "arrowClass": {
           "anyOf": [
@@ -44,12 +41,10 @@
                 "$ref": "#/definitions/alias-1208222371-19045-19147-1208222371-0-57709"
               }
             }
-          ],
-          "description": "Custom classes applied to the tooltip arrow."
+          ]
         },
         "disabled": {
-          "type": "boolean",
-          "description": "Disables the tooltip entirely."
+          "type": "boolean"
         }
       },
       "additionalProperties": false

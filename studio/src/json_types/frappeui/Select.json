@@ -11,8 +11,7 @@
             "sm",
             "md",
             "lg"
-          ],
-          "description": "Size of the select input"
+          ]
         },
         "variant": {
           "type": "string",
@@ -20,27 +19,22 @@
             "subtle",
             "outline",
             "ghost"
-          ],
-          "description": "Visual style of the select input"
+          ]
         },
         "placeholder": {
-          "type": "string",
-          "description": "Placeholder text displayed when no option is selected"
+          "type": "string"
         },
         "disabled": {
-          "type": "boolean",
-          "description": "If true, disables the select input"
+          "type": "boolean"
         },
         "id": {
-          "type": "string",
-          "description": "Optional HTML id for the select element"
+          "type": "string"
         },
         "modelValue": {
           "type": [
             "string",
             "number"
-          ],
-          "description": "The currently selected value (controlled)"
+          ]
         },
         "options": {
           "type": "array",
@@ -69,8 +63,7 @@
                 "additionalProperties": false
               }
             ]
-          },
-          "description": "Options to display in the dropdown"
+          }
         }
       },
       "additionalProperties": false

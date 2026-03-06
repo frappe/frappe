@@ -6,8 +6,7 @@
       "type": "object",
       "properties": {
         "as": {
-          "type": "string",
-          "description": "Element/component used to render the tab container"
+          "type": "string"
         },
         "tabs": {
           "type": "array",
@@ -15,28 +14,23 @@
             "type": "object",
             "properties": {
               "label": {
-                "type": "string",
-                "description": "Text shown for the tab"
+                "type": "string"
               },
               "icon": {
-                "type": "string",
-                "description": "Optional icon name displayed with the label"
+                "type": "string"
               },
               "route": {
-                "type": "string",
-                "description": "Optional route to navigate to when the tab is clicked"
+                "type": "string"
               }
             },
             "required": [
               "label"
             ],
             "additionalProperties": false
-          },
-          "description": "List of tabs to render"
+          }
         },
         "vertical": {
-          "type": "boolean",
-          "description": "Renders tabs vertically instead of horizontally"
+          "type": "boolean"
         }
       },
       "required": [

@@ -12,44 +12,35 @@
             "md",
             "lg",
             "xl"
-          ],
-          "description": "Controls the visual size of the textarea"
+          ]
         },
         "variant": {
           "type": "string",
           "enum": [
             "subtle",
             "outline"
-          ],
-          "description": "Visual style variant"
+          ]
         },
         "placeholder": {
-          "type": "string",
-          "description": "Placeholder text shown when empty"
+          "type": "string"
         },
         "disabled": {
-          "type": "boolean",
-          "description": "Disables user interaction"
+          "type": "boolean"
         },
         "id": {
-          "type": "string",
-          "description": "HTML id attribute"
+          "type": "string"
         },
         "modelValue": {
-          "type": "string",
-          "description": "Bound value of the textarea"
+          "type": "string"
         },
         "debounce": {
-          "type": "number",
-          "description": "Debounce delay (ms) before emitting value updates"
+          "type": "number"
         },
         "rows": {
-          "type": "number",
-          "description": "Number of visible text rows"
+          "type": "number"
         },
         "label": {
-          "type": "string",
-          "description": "Optional label text"
+          "type": "string"
         }
       },
       "additionalProperties": false

@@ -10,27 +10,20 @@
           "enum": [
             "sm",
             "md"
-          ],
-          "description": "Size of the switch control"
+          ]
         },
         "label": {
-          "type": "string",
-          "description": "Label text displayed next to the switch"
+          "type": "string"
         },
         "description": {
-          "type": "string",
-          "description": "Helper or descriptive text shown below the label"
+          "type": "string"
         },
         "disabled": {
-          "type": "boolean",
-          "description": "Disables the switch and prevents interaction"
+          "type": "boolean"
         },
-        "icon": {
-          "description": "Optional icon rendered inside or alongside the switch"
-        },
+        "icon": {},
         "labelClasses": {
-          "type": "string",
-          "description": "Custom classes applied to the label element"
+          "type": "string"
         }
       },
       "additionalProperties": false

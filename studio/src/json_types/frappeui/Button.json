@@ -12,8 +12,7 @@
             "blue",
             "green",
             "red"
-          ],
-          "description": "Visual color theme of the button"
+          ]
         },
         "size": {
           "type": "string",
@@ -23,8 +22,7 @@
             "lg",
             "xl",
             "2xl"
-          ],
-          "description": "Controls the button size"
+          ]
         },
         "variant": {
           "type": "string",
@@ -33,40 +31,31 @@
             "subtle",
             "outline",
             "ghost"
-          ],
-          "description": "Visual style of the button"
+          ]
         },
         "label": {
-          "type": "string",
-          "description": "Text label displayed inside the button"
+          "type": "string"
         },
         "icon": {
-          "type": "string",
-          "description": "Icon shown when no left or right icon is specified"
+          "type": "string"
         },
         "iconLeft": {
-          "type": "string",
-          "description": "Icon shown before the label"
+          "type": "string"
         },
         "iconRight": {
-          "type": "string",
-          "description": "Icon shown after the label"
+          "type": "string"
         },
         "tooltip": {
-          "type": "string",
-          "description": "Tooltip text shown on hover"
+          "type": "string"
         },
         "loading": {
-          "type": "boolean",
-          "description": "Shows a loading state and disables interaction"
+          "type": "boolean"
         },
         "loadingText": {
-          "type": "string",
-          "description": "Text shown while the button is loading"
+          "type": "string"
         },
         "disabled": {
-          "type": "boolean",
-          "description": "Disables the button"
+          "type": "boolean"
         },
         "route": {
           "anyOf": [
@@ -76,12 +65,10 @@
             {
               "type": "object"
             }
-          ],
-          "description": "Router destination when used as a link"
+          ]
         },
         "link": {
-          "type": "string",
-          "description": "External link URL"
+          "type": "string"
         },
         "type": {
           "type": "string",
@@ -89,8 +76,7 @@
             "button",
             "submit",
             "reset"
-          ],
-          "description": "Native button type"
+          ]
         }
       },
       "additionalProperties": false

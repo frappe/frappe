@@ -16,7 +16,7 @@ function tsToJSON(srcFolder: string, destFolder: string, skipFolders: string[] |
 		skipTypeCheck: true,
 		expose: "none", // only include explicitly requested types
 		topRef: true, // add top-level $ref
-		jsDoc: "extended", // include JSDoc annotations
+		jsDoc: "none", // include JSDoc annotations
 		additionalProperties: false,
 	} as CompletedConfig
 

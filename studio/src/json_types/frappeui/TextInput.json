@@ -22,8 +22,7 @@
             "url",
             "week",
             "range"
-          ],
-          "description": "HTML input type (text, email, number, password, etc.)"
+          ]
         },
         "size": {
           "type": "string",
@@ -32,8 +31,7 @@
             "md",
             "lg",
             "xl"
-          ],
-          "description": "Visual size of the input"
+          ]
         },
         "variant": {
           "type": "string",
@@ -41,35 +39,28 @@
             "subtle",
             "outline",
             "ghost"
-          ],
-          "description": "Style variant of the input"
+          ]
         },
         "placeholder": {
-          "type": "string",
-          "description": "Placeholder text shown when the input is empty"
+          "type": "string"
         },
         "disabled": {
-          "type": "boolean",
-          "description": "Disables the input when true"
+          "type": "boolean"
         },
         "id": {
-          "type": "string",
-          "description": "ID attribute for the input element"
+          "type": "string"
         },
         "modelValue": {
           "type": [
             "string",
             "number"
-          ],
-          "description": "Bound value of the input"
+          ]
         },
         "debounce": {
-          "type": "number",
-          "description": "Debounce delay (in ms) before emitting value updates"
+          "type": "number"
         },
         "required": {
-          "type": "boolean",
-          "description": "Marks the input as required"
+          "type": "boolean"
         }
       },
       "additionalProperties": false

@@ -6,8 +6,7 @@
       "type": "object",
       "properties": {
         "title": {
-          "type": "string",
-          "description": "Main heading text of the alert"
+          "type": "string"
         },
         "theme": {
           "type": "string",
@@ -16,27 +15,20 @@
             "blue",
             "red",
             "green"
-          ],
-          "description": "Color theme of the alert",
-          "default": "blue"
+          ]
         },
         "variant": {
           "type": "string",
           "enum": [
             "subtle",
             "outline"
-          ],
-          "description": "Visual style of the alert container",
-          "default": "subtle"
+          ]
         },
         "description": {
-          "type": "string",
-          "description": "Optional supporting text shown below the title"
+          "type": "string"
         },
         "dismissable": {
-          "type": "boolean",
-          "description": "Whether the alert can be closed by the user",
-          "default": false
+          "type": "boolean"
         }
       },
       "required": [

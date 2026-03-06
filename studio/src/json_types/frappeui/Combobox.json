@@ -11,8 +11,7 @@
             "subtle",
             "outline",
             "ghost"
-          ],
-          "description": "Visual style of the combobox"
+          ]
         },
         "options": {
           "type": "array",
@@ -287,31 +286,25 @@
                 "additionalProperties": false
               }
             ]
-          },
-          "description": "List of options to display"
+          }
         },
         "modelValue": {
           "type": [
             "string",
             "null"
-          ],
-          "description": "Currently selected value (v-model)"
+          ]
         },
         "placeholder": {
-          "type": "string",
-          "description": "Placeholder text shown when no value is selected"
+          "type": "string"
         },
         "disabled": {
-          "type": "boolean",
-          "description": "Disables the combobox"
+          "type": "boolean"
         },
         "openOnFocus": {
-          "type": "boolean",
-          "description": "Opens the dropdown when the input is focused"
+          "type": "boolean"
         },
         "openOnClick": {
-          "type": "boolean",
-          "description": "Opens the dropdown when the input is clicked"
+          "type": "boolean"
         },
         "placement": {
           "type": "string",
@@ -319,8 +312,7 @@
             "start",
             "center",
             "end"
-          ],
-          "description": "Dropdown placement relative to the input"
+          ]
         }
       },
       "required": [

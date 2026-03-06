@@ -6,24 +6,20 @@
       "type": "object",
       "properties": {
         "step": {
-          "type": "number",
-          "description": "Current step or progress value"
+          "type": "number"
         },
         "totalSteps": {
-          "type": "number",
-          "description": "Total steps for completion"
+          "type": "number"
         },
         "showPercentage": {
-          "type": "boolean",
-          "description": "Show numeric percentage inside the circle"
+          "type": "boolean"
         },
         "variant": {
           "type": "string",
           "enum": [
             "solid",
             "outline"
-          ],
-          "description": "Visual style of the progress bar"
+          ]
         },
         "theme": {
           "anyOf": [
@@ -63,8 +59,7 @@
               ],
               "additionalProperties": false
             }
-          ],
-          "description": "Theme used for the progress bar (predefined or custom colors)"
+          ]
         },
         "size": {
           "type": "string",
@@ -74,20 +69,17 @@
             "md",
             "lg",
             "xl"
-          ],
-          "description": "Size of the progress bar"
+          ]
         },
         "themeComplete": {
-          "type": "string",
-          "description": "Color used when the progress completes"
+          "type": "string"
         }
       },
       "required": [
         "step",
         "totalSteps"
       ],
-      "additionalProperties": false,
-      "description": "Props for the CircularProgressBar component"
+      "additionalProperties": false
     }
   }
 }
