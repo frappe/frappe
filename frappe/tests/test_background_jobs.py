@@ -62,7 +62,9 @@ class TestBackgroundJobs(IntegrationTestCase):
 			nonlocal call_count
 			call_count += 1
 			if call_count == 1:
-				raise frappe.QueryDeadlockError(1020, "Record has changed since last read in table 'tabContact'")
+				raise frappe.QueryDeadlockError(
+					1020, "Record has changed since last read in table 'tabContact'"
+				)
 			return "success"
 
 		with (
