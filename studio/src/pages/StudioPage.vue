@@ -204,12 +204,6 @@ async function saveFragmentMode() {
 		canvasStore.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
 		hasSavedFragment = true
 	}
-
-	const pageRootBlock = pageCanvas.value?.getRootBlock()
-	if (pageRootBlock) {
-		store.savingPage = true
-		store.savePage(pageRootBlock)
-	}
 }
 
 watch(() => canvasStore.editingMode, () => {
@@ -222,13 +216,16 @@ watch(
 	() => {
 		if (
 			store.selectedPage &&
-			canvasStore.editingMode === "page" &&
 			!pageCanvas.value?.canvasProps?.settingCanvas &&
 			!store.settingPage &&
 			!store.savingPage
 		) {
 			store.savingPage = true
-			debouncedPageSave()
+			if (canvasStore.editingMode === "page") {
+				debouncedPageSave()
+			} else {
+				store.savePage(pageCanvas.value?.getRootBlock())
+			}
 		}
 	},
 	{ deep: true },
