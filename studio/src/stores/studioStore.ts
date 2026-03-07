@@ -32,7 +32,7 @@ const useStudioStore = defineStore("store", () => {
 		showLeftPanel: true,
 		showRightPanel: true,
 		leftPanelActiveTab: <LeftPanelOptions>"Add Component",
-		leftPanelComponentTab: <leftPanelComponentTabOptions> "Standard",
+		leftPanelComponentTab: <leftPanelComponentTabOptions>"Standard",
 		rightPanelActiveTab: <RightPanelOptions>"Properties",
 	})
 	const mode = ref<StudioMode>("select")
@@ -74,7 +74,7 @@ const useStudioStore = defineStore("store", () => {
 		if (!appName) {
 			return
 		}
-		studioPages.filters = { studio_app : appName }
+		studioPages.filters = { studio_app: appName }
 		await studioPages.reload()
 		appPages.value = {}
 
@@ -173,10 +173,14 @@ const useStudioStore = defineStore("store", () => {
 		})
 	}
 
-	function savePage() {
-		const canvasStore = useCanvasStore()
-		if (canvasStore?.activeCanvas) {
-			pageBlocks.value = [canvasStore.activeCanvas.getRootBlock()]
+	function savePage(rootBlock?: Block) {
+		if (rootBlock) {
+			pageBlocks.value = [rootBlock]
+		} else {
+			const canvasStore = useCanvasStore()
+			if (canvasStore?.activeCanvas) {
+				pageBlocks.value = [canvasStore.activeCanvas.getRootBlock()]
+			}
 		}
 		const pageData = jsToJson(pageBlocks.value.map((block) => getBlockCopyWithoutParent(block)))
 

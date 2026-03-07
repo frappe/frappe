@@ -47,7 +47,10 @@
 								icon="settings"
 								@click.prevent="store.studioLayout.rightPanelActiveTab = 'Interface'"
 							></Button>
-							<Button variant="solid" class="text-xs" @click="saveAndExitFragmentMode">
+							<Button variant="subtle" class="text-xs" @click="canvasStore.exitFragmentMode">
+								Close
+							</Button>
+							<Button variant="solid" class="text-xs" @click="saveFragmentMode">
 								{{ canvasStore.fragmentData.saveActionLabel || "Save" }}
 							</Button>
 						</div>
@@ -195,10 +198,23 @@ watchEffect(() => {
 	}
 })
 
-async function saveAndExitFragmentMode(e: Event) {
-	canvasStore.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
-	canvasStore.exitFragmentMode(e)
+let hasSavedFragment = false
+async function saveFragmentMode() {
+	if (!hasSavedFragment) {
+		canvasStore.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
+		hasSavedFragment = true
+	}
+
+	const pageRootBlock = pageCanvas.value?.getRootBlock()
+	if (pageRootBlock) {
+		store.savingPage = true
+		store.savePage(pageRootBlock)
+	}
 }
+
+watch(() => canvasStore.editingMode, () => {
+	hasSavedFragment = false
+})
 
 const debouncedPageSave = useDebounceFn(store.savePage, 300)
 watch(
