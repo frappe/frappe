@@ -20,6 +20,20 @@ from frappe.utils.safe_exec import get_safe_globals
 WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
 
 
+def get_webhook_secret(webhook) -> str | None:
+	"""Return the effective webhook secret for signature generation.
+
+	Uses the global secret from site_config.json if set ("webhook_secret" key),
+	otherwise falls back to the webhook document's webhook_secret (encrypted password).
+	"""
+	global_secret = frappe.conf.get("webhook_secret")
+	if global_secret:
+		return global_secret
+	if hasattr(webhook, "get_password"):
+		return webhook.get_password("webhook_secret")
+	return None
+
+
 class Webhook(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
@@ -114,8 +128,15 @@ class Webhook(Document):
 
 	def validate_secret(self):
 		if self.enable_security:
+			secret = get_webhook_secret(self)
+			if not secret:
+				frappe.throw(
+					_(
+						"Invalid Webhook Secret. Set webhook_secret in site_config.json or enter a Webhook Secret."
+					)
+				)
 			try:
-				self.get_password("webhook_secret", False).encode("utf8")
+				secret.encode("utf8")
 			except Exception:
 				frappe.throw(_("Invalid Webhook Secret"))
 
@@ -221,15 +242,17 @@ def get_webhook_headers(doc, webhook):
 	headers = {}
 
 	if webhook.enable_security:
-		data = get_webhook_data(doc, webhook)
-		signature = base64.b64encode(
-			hmac.new(
-				webhook.get_password("webhook_secret").encode("utf8"),
-				json.dumps(data).encode("utf8"),
-				hashlib.sha256,
-			).digest()
-		)
-		headers[WEBHOOK_SECRET_HEADER] = signature
+		secret = get_webhook_secret(webhook)
+		if secret:
+			data = get_webhook_data(doc, webhook)
+			signature = base64.b64encode(
+				hmac.new(
+					secret.encode("utf8"),
+					json.dumps(data).encode("utf8"),
+					hashlib.sha256,
+				).digest()
+			)
+			headers[WEBHOOK_SECRET_HEADER] = signature
 
 	if webhook.webhook_headers:
 		for h in webhook.webhook_headers:
@@ -258,3 +281,9 @@ def get_all_queues():
 	frappe.only_for("System Manager")
 
 	return get_queues_timeout().keys()
+
+
+@frappe.whitelist()
+def has_global_webhook_secret():
+	"""Return whether webhook_secret is set in site_config.json (for UI to disable editing)."""
+	return bool(frappe.conf.get("webhook_secret"))

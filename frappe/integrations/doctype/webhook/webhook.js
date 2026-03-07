@@ -108,6 +108,24 @@ frappe.ui.form.on("Webhook", {
 				return dialog;
 			});
 		}
+
+		// When global webhook_secret is set in site_config, use it and make field read-only
+		if (frm.doc.enable_security) {
+			frappe.call({
+				method: "frappe.integrations.doctype.webhook.webhook.has_global_webhook_secret",
+				callback: (r) => {
+					if (r.message) {
+						frm.toggle_reqd("webhook_secret", false);
+						frm.set_df_property("webhook_secret", "read_only", 1);
+						frm.set_df_property(
+							"webhook_secret",
+							"description",
+							__("Secret is managed from site_config.json (webhook_secret).")
+						);
+					}
+				},
+			});
+		}
 	},
 
 	request_structure: (frm) => {
@@ -119,7 +137,24 @@ frappe.ui.form.on("Webhook", {
 	},
 
 	enable_security: (frm) => {
-		frm.toggle_reqd("webhook_secret", frm.doc.enable_security);
+		frappe.call({
+			method: "frappe.integrations.doctype.webhook.webhook.has_global_webhook_secret",
+			callback: (r) => {
+				const use_global = r.message;
+				frm.toggle_reqd("webhook_secret", frm.doc.enable_security && !use_global);
+				if (frm.doc.enable_security && use_global) {
+					frm.set_df_property("webhook_secret", "read_only", 1);
+					frm.set_df_property(
+						"webhook_secret",
+						"description",
+						__("Secret is managed from site_config.json (webhook_secret).")
+					);
+				} else {
+					frm.set_df_property("webhook_secret", "read_only", 0);
+					frm.set_df_property("webhook_secret", "description", "");
+				}
+			},
+		});
 	},
 });
 

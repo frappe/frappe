@@ -9,9 +9,11 @@ from responses.matchers import json_params_matcher
 import frappe
 from frappe.integrations.doctype.webhook import flush_webhook_execution_queue
 from frappe.integrations.doctype.webhook.webhook import (
+	WEBHOOK_SECRET_HEADER,
 	enqueue_webhook,
 	get_webhook_data,
 	get_webhook_headers,
+	get_webhook_secret,
 )
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import timeout
@@ -331,3 +333,101 @@ class TestWebhook(IntegrationTestCase):
 			doc = frappe.new_doc("Note")
 			doc.title = "Test Webhook Note"
 			enqueue_webhook(doc, wh)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_webhook_secret_from_site_config(self):
+		"""With webhook_secret in site_config, enable_security works without document secret."""
+		original = frappe.conf.get("webhook_secret")
+		try:
+			frappe.conf["webhook_secret"] = "global_secret_123"
+			wh_config = {
+				"doctype": "Webhook",
+				"webhook_doctype": "User",
+				"webhook_docevent": "after_insert",
+				"enabled": 1,
+				"request_url": "https://httpbin.org/post",
+				"enable_security": 1,
+				"request_structure": "JSON",
+				"webhook_json": "{}",
+			}
+			with get_test_webhook(wh_config) as wh:
+				wh.reload()
+				self.assertTrue(wh.enable_security)
+				headers = get_webhook_headers(doc=self.user, webhook=wh)
+				self.assertIn(WEBHOOK_SECRET_HEADER, headers)
+				self.assertTrue(len(headers[WEBHOOK_SECRET_HEADER]) > 0)
+		finally:
+			if original is not None:
+				frappe.conf["webhook_secret"] = original
+			else:
+				frappe.conf.pop("webhook_secret", None)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_webhook_headers_use_global_secret(self):
+		"""Signature from global secret matches signature from same doc secret."""
+		original = frappe.conf.get("webhook_secret")
+		try:
+			frappe.conf["webhook_secret"] = "same_secret"
+			wh_global = frappe.new_doc("Webhook")
+			wh_global.update(
+				{
+					"webhook_doctype": "User",
+					"webhook_docevent": "after_insert",
+					"request_url": "https://httpbin.org/post",
+					"enable_security": 1,
+					"request_structure": "JSON",
+					"webhook_json": "{}",
+				}
+			)
+			wh_global.insert()
+			wh_doc = frappe.new_doc("Webhook")
+			wh_doc.update(
+				{
+					"webhook_doctype": "User",
+					"webhook_docevent": "after_insert",
+					"request_url": "https://httpbin.org/post",
+					"enable_security": 1,
+					"request_structure": "JSON",
+					"webhook_json": "{}",
+				}
+			)
+			wh_doc.webhook_secret = "same_secret"
+			wh_doc.insert()
+			try:
+				headers_global = get_webhook_headers(doc=self.user, webhook=wh_global)
+				headers_doc = get_webhook_headers(doc=self.user, webhook=wh_doc)
+				self.assertEqual(
+					headers_global[WEBHOOK_SECRET_HEADER],
+					headers_doc[WEBHOOK_SECRET_HEADER],
+					"Same secret should produce same signature",
+				)
+			finally:
+				wh_global.delete()
+				wh_doc.delete()
+		finally:
+			if original is not None:
+				frappe.conf["webhook_secret"] = original
+			else:
+				frappe.conf.pop("webhook_secret", None)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_webhook_secret_required_without_global(self):
+		"""enable_security without global secret and without doc secret should raise."""
+		original = frappe.conf.get("webhook_secret")
+		try:
+			frappe.conf.pop("webhook_secret", None)
+			wh = frappe.new_doc("Webhook")
+			wh.update(
+				{
+					"webhook_doctype": "User",
+					"webhook_docevent": "after_insert",
+					"request_url": "https://httpbin.org/post",
+					"enable_security": 1,
+					"request_structure": "JSON",
+					"webhook_json": "{}",
+				}
+			)
+			self.assertRaises(frappe.ValidationError, wh.insert)
+		finally:
+			if original is not None:
+				frappe.conf["webhook_secret"] = original
