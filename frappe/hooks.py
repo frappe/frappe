@@ -210,6 +210,7 @@ scheduler_events = {
 		# 5 minutes
 		"0/5 * * * *": [
 			"frappe.email.doctype.notification.notification.trigger_offset_alerts",
+			"frappe.search.sqlite_search.index_docs_in_queue",
 		],
 		# 15 minutes
 		"0/15 * * * *": [
