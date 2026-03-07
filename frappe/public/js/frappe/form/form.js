@@ -1355,7 +1355,11 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.re_route[frappe.router.get_sub_path()] = `${encodeURIComponent(
 			frappe.router.slug(this.doctype)
 		)}/${encodeURIComponent(name)}`;
-		!frappe._from_link && frappe.set_route("Form", this.doctype, name);
+
+		// Skip routing only when the document is created from a Form view's Link field
+		if (!frappe._from_link || (frappe._from_link && !frappe._from_link?.field_obj?.frm)) {
+			frappe.set_route("Form", this.doctype, name);
+		}
 	}
 
 	// ACTIONS
