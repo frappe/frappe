@@ -155,8 +155,10 @@ def after_job(*args, **kwargs):
 def freeze_local():
 	locals = frappe.local
 	frappe.local = Local()
-	yield locals
-	frappe.local = locals
+	try:
+		yield locals
+	finally:
+		frappe.local = locals
 
 
 def patch_job_hooks(event: str):

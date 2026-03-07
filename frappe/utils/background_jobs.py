@@ -319,7 +319,8 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			frappe.connect()
 		for after_job_task in frappe.get_hooks("after_job"):
 			frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
-		frappe.local.job.after_job.run()
+		if hasattr(frappe.local, "job"):
+			frappe.local.job.after_job.run()
 
 		if is_async:
 			frappe.destroy()
