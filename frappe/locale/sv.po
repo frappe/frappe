@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-28 20:31\n"
+"PO-Revision-Date: 2026-03-07 21:45\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -27083,7 +27083,7 @@ msgstr "Detta avslutar jobb omedelbart och kan vara farligt, är du säker?"
 
 #: frappe/core/doctype/user/user.py:1221
 msgid "Throttled"
-msgstr "Strypt"
+msgstr "Begränsad"
 
 #. Label of a Small Text field in DocType 'File'
 #: frappe/core/doctype/file/file.json
