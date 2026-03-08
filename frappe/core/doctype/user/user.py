@@ -36,7 +36,7 @@ from frappe.utils import (
 )
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
-from frappe.utils.password import check_password, get_password_reset_limit
+from frappe.utils.password import check_password, get_password_reset_limit, is_password_reused
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import get_home_page, is_signup_disabled
@@ -928,6 +928,14 @@ def update_password(
 		return res["message"]
 	else:
 		user = res["user"]
+
+	if is_password_reused(user, new_password):
+		frappe.throw(
+			_(
+				"New password cannot be the same as your current password. Please choose a different password."
+			),
+			title=_("Invalid Password"),
+		)
 
 	logout_all_sessions = cint(logout_all_sessions) or frappe.get_system_settings("logout_on_password_reset")
 	_update_password(user, new_password, logout_all_sessions=cint(logout_all_sessions))
