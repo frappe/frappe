@@ -1292,7 +1292,7 @@ class SQLiteSearch(ABC):
                 CREATE INDEX IF NOT EXISTS idx_progress_doctype ON search_index_progress(doctype)
             """)
 
-			# Pending Queue table for indexing docs later with only doc_id column that is indexed
+			# Queue table for indexing docs later
 			cursor.execute("""
 				CREATE TABLE IF NOT EXISTS search_index_queue (
 					doc_id TEXT PRIMARY KEY
@@ -1376,17 +1376,14 @@ class SQLiteSearch(ABC):
 
 	def index_doc(self, doctype, docname):
 		"""Index a single document."""
-		# doc = frappe.get_doc(doctype, docname)
 		self.raise_if_not_indexed()
-		# document = self.prepare_document(doc)
-		# add the document is a queue table and let the worker handle it, to avoid locking issues with SQLite during web requests
+		# add the document in the queue table, handled later by a background job "index_docs_in_queue"
 		if frappe.db.exists(doctype, docname):
 			self._ensure_fts_table()
-			# self._index_documents([document])
 			self.add_to_queue(f"{doctype}:{docname}")
 
 	def add_to_queue(self, doc_id):
-		"""Add a document ID to the indexing queue."""
+		"""Add a doc_id to the indexing queue."""
 		self.sql("INSERT OR IGNORE INTO search_index_queue (doc_id) VALUES (?)", (doc_id,), commit=True)
 
 	def remove_doc(self, doctype, docname):
@@ -1908,6 +1905,7 @@ def get_search_classes() -> list[type[SQLiteSearch]]:
 	return search_classes
 
 
+# Called by scheduler every 5 minutes to process indexing queue
 def index_docs_in_queue():
 	"""Process documents in the indexing queue."""
 	search_classes = get_search_classes()
@@ -1921,6 +1919,7 @@ def index_docs_in_queue():
 			rows = cursor.execute("SELECT doc_id FROM search_index_queue LIMIT 30").fetchall()
 			doc_ids = [row["doc_id"] for row in rows]
 			documents = []
+			failed_doc_ids = []
 
 			for doc_id in doc_ids:
 				try:
@@ -1933,12 +1932,16 @@ def index_docs_in_queue():
 					# Doc was deleted before the queue was processed — skip it
 					continue
 				except Exception:
-					frappe.log_error(
-						title="SQLite Search Index Queue Error",
-						message=f"Failed to index document {doc_id} from queue in {search.__class__.__name__}",
-					)
+					failed_doc_ids.append(doc_id)
+
 			if documents:
 				search._index_documents(documents)
+
+			if failed_doc_ids:
+				frappe.log_error(
+					title="SQLite Search Index Queue Error",
+					message=f"Failed to index documents {failed_doc_ids} from queue in {search.__class__.__name__}",
+				)
 
 			# Cleanup processed doc_ids from the queue
 			if doc_ids:
