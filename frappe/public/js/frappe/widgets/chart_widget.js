@@ -61,7 +61,7 @@ export default class ChartWidget extends Widget {
 		this.empty.hide().appendTo(this.body);
 
 		this.error_state = $(
-			`<div class="chart-loading-state text-extra-muted" style="height: ${this.height}px;"></div>`
+			`<div class="chart-loading-state text-danger" style="height: ${this.height}px;"></div>`
 		);
 		this.error_state.hide().appendTo(this.body);
 
@@ -557,7 +557,18 @@ export default class ChartWidget extends Widget {
 				heatmap_year: args && args.heatmap_year ? args.heatmap_year : null,
 			};
 		}
-		return frappe.xcall(method, args);
+		return frappe.xcall(method, args, undefined, {
+			silent: true,
+			error: (err) => {
+				const message = JSON.parse(JSON.parse(err._server_messages)[0])?.message;
+				this.chart_wrapper.hide();
+				this.loading.hide();
+				this.$summary && this.$summary.hide();
+				this.empty.hide();
+				this.error_state.text(message);
+				this.error_state.show();
+			},
+		});
 	}
 
 	async get_source_doctype() {
@@ -588,14 +599,7 @@ export default class ChartWidget extends Widget {
 			}
 		};
 
-		if (this.data && this.data.error_message) {
-			this.chart_wrapper.hide();
-			this.loading.hide();
-			this.$summary && this.$summary.hide();
-			this.empty.hide();
-			this.error_state.text(this.data.error_message);
-			this.error_state.show();
-		} else if (!this.data || !this.data.labels || !Object.keys(this.data).length) {
+		if (!this.data || !this.data.labels || !Object.keys(this.data).length) {
 			this.chart_wrapper.hide();
 			this.loading.hide();
 			this.$summary && this.$summary.hide();
