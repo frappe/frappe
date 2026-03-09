@@ -1202,7 +1202,7 @@ class SQLiteSearch(ABC):
 
 	def _set_pragmas(self, cursor, is_read=False):
 		"""Set SQLite performance pragmas."""
-		cursor.execute("PRAGMA busy_timeout = 5000;")
+		cursor.execute("PRAGMA busy_timeout = 5000;")  # Wait up to 5 seconds if the database is locked
 		cursor.execute("PRAGMA journal_mode = WAL;")  # Write-Ahead Logging for concurrency
 		cursor.execute("PRAGMA synchronous = NORMAL;")  # Better performance vs FULL
 		cursor.execute("PRAGMA cache_size = -8192;")  # 8MB cache
@@ -1384,6 +1384,7 @@ class SQLiteSearch(ABC):
 
 	def add_to_queue(self, doc_id):
 		"""Add a doc_id to the indexing queue."""
+		# Using INSERT OR IGNORE to prevent duplicate entries in the queue
 		self.sql("INSERT OR IGNORE INTO search_index_queue (doc_id) VALUES (?)", (doc_id,), commit=True)
 
 	# method to bypass the queue and index a document immediately, useful if someone wants to inde the document immediately after saving it.
