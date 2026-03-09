@@ -1387,7 +1387,7 @@ class SQLiteSearch(ABC):
 		# Using INSERT OR IGNORE to prevent duplicate entries in the queue
 		self.sql("INSERT OR IGNORE INTO search_index_queue (doc_id) VALUES (?)", (doc_id,), commit=True)
 
-	# method to bypass the queue and index a document immediately, useful if someone wants to inde the document immediately after saving it.
+	# method to bypass the queue and index a document immediately, useful if someone wants to index the document immediately after saving it.
 	def index_doc_immediately(self, doctype, docname):
 		"""Index a single document immediately, bypassing the queue."""
 		self.raise_if_not_indexed()
