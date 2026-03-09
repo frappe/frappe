@@ -1386,6 +1386,20 @@ class SQLiteSearch(ABC):
 		"""Add a doc_id to the indexing queue."""
 		self.sql("INSERT OR IGNORE INTO search_index_queue (doc_id) VALUES (?)", (doc_id,), commit=True)
 
+	# method to bypass the queue and index a document immediately, useful if someone wants to inde the document immediately after saving it.
+	def index_doc_immediately(self, doctype, docname):
+		"""Index a single document immediately, bypassing the queue."""
+		self.raise_if_not_indexed()
+		doc = frappe.get_doc(doctype, docname)
+		prepared_doc = self.prepare_document(doc)
+		if prepared_doc:
+			self._index_documents([prepared_doc])
+			doc_id = f"{doctype}:{docname}"
+			try:
+				self.sql("DELETE FROM search_index_queue WHERE doc_id = ?", (doc_id,), commit=True)
+			except Exception:
+				pass
+
 	def remove_doc(self, doctype, docname):
 		"""Remove a single document from the index."""
 		self.raise_if_not_indexed()
