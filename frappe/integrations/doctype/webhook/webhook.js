@@ -109,22 +109,30 @@ frappe.ui.form.on("Webhook", {
 			});
 		}
 
-		// When global webhook_secret is set in site_config, use it and make field read-only
+		// When global webhook_secret is set in site_config, hide the secret field and show a message only
 		if (frm.doc.enable_security) {
 			frappe.call({
 				method: "frappe.integrations.doctype.webhook.webhook.has_global_webhook_secret",
 				callback: (r) => {
 					if (r.message) {
 						frm.toggle_reqd("webhook_secret", false);
-						frm.set_df_property("webhook_secret", "read_only", 1);
+						frm.set_df_property("webhook_secret", "hidden", 1);
 						frm.set_df_property(
-							"webhook_secret",
+							"sb_security",
 							"description",
-							__("Secret is managed from site_config.json (webhook_secret).")
+							__(
+								"Webhook secret is managed from site_config.json and is not displayed here."
+							)
 						);
+					} else {
+						frm.set_df_property("webhook_secret", "hidden", 0);
+						frm.set_df_property("sb_security", "description", "");
 					}
 				},
 			});
+		} else {
+			frm.set_df_property("webhook_secret", "hidden", 0);
+			frm.set_df_property("sb_security", "description", "");
 		}
 	},
 
@@ -143,15 +151,17 @@ frappe.ui.form.on("Webhook", {
 				const use_global = r.message;
 				frm.toggle_reqd("webhook_secret", frm.doc.enable_security && !use_global);
 				if (frm.doc.enable_security && use_global) {
-					frm.set_df_property("webhook_secret", "read_only", 1);
+					frm.set_df_property("webhook_secret", "hidden", 1);
 					frm.set_df_property(
-						"webhook_secret",
+						"sb_security",
 						"description",
-						__("Secret is managed from site_config.json (webhook_secret).")
+						__(
+							"Webhook secret is managed from site_config.json and is not displayed here."
+						)
 					);
 				} else {
-					frm.set_df_property("webhook_secret", "read_only", 0);
-					frm.set_df_property("webhook_secret", "description", "");
+					frm.set_df_property("webhook_secret", "hidden", 0);
+					frm.set_df_property("sb_security", "description", "");
 				}
 			},
 		});
