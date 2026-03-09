@@ -291,7 +291,8 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			# 1205 = lock wait timeout
 			# 1020 = snapshot conflict (record changed since last read)
 			# or RetryBackgroundJobError is explicitly raised
-			frappe.job.after_job.reset()
+			if hasattr(frappe.local, "job"):
+				frappe.local.job.after_job.reset()
 			frappe.destroy()
 			time.sleep(retry + 1)
 
