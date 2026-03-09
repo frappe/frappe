@@ -101,8 +101,9 @@ frappe.ui.form.on("Customize Form", {
 		frm.page.clear_icons();
 
 		if (frm.doc.doc_type) {
-			frappe.model.with_doctype(frm.doc.doc_type).then(
-				() => {
+			frappe.model
+				.with_doctype(frm.doc.doc_type)
+				.then(() => {
 					frm.page.set_title(__("Customize Form - {0}", [__(frm.doc.doc_type)]));
 					frappe.customize_form.set_primary_action(frm);
 
@@ -164,12 +165,11 @@ frappe.ui.form.on("Customize Form", {
 
 					render_form_builder(frm);
 					frm.get_field("form_builder").tab.set_active();
-				},
-				() => {
+				})
+				.catch(() => {
 					frm.set_value("doc_type", "");
 					localStorage.removeItem("customize_doctype");
-				}
-			);
+				});
 		}
 
 		frm.events.setup_export(frm);
