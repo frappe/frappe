@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-03-02 21:00\n"
+"PO-Revision-Date: 2026-03-09 21:08\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -26555,7 +26555,7 @@ msgstr ""
 #. 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "These announcements will appear inside a dismissible alert below the Navbar."
-msgstr "Những thông báo này sẽ xuất hiện bên trong một cảnh báo có thể loại bỏ bên dưới Thanh điều hướng."
+msgstr ""
 
 #. Description of the 'LDAP Custom Settings' (Section Break) field in DocType
 #. 'LDAP Settings'
@@ -28607,7 +28607,7 @@ msgstr "Người dùng Chọn loại tài liệu"
 
 #: frappe/desk/page/user_profile/user_profile_sidebar.html:52
 msgid "User Settings"
-msgstr "Cài đặt người dùng"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/core/doctype/user_social_login/user_social_login.json
