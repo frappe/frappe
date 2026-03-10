@@ -3,6 +3,7 @@
 
 import os
 from mimetypes import guess_type
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from werkzeug.wrappers import Response
@@ -11,11 +12,11 @@ import frappe
 import frappe.sessions
 import frappe.utils
 from frappe import _, is_whitelisted, ping
-from frappe.core.doctype.file.utils import find_file_by_url
+from frappe.core.doctype.file.utils import find_file_by_url, get_safe_file_name
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.monitor import add_data_to_monitor
 from frappe.permissions import check_doctype_permission
-from frappe.utils import cint
+from frappe.utils import cint, get_files_path
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.deprecations import deprecated
 from frappe.utils.image import optimize_image
@@ -162,9 +163,27 @@ def upload_file():
 
 	if "file" in files:
 		file = files["file"]
-		content = file.stream.read()
 		filename = file.filename
 
+		total_file_size = frappe.form_dict.total_file_size
+		if frappe.form_dict.chunk_index:
+			current_chunk = int(frappe.form_dict.chunk_index)
+			total_chunks = int(frappe.form_dict.total_chunk_count)
+			offset = int(frappe.form_dict.chunk_byte_offset)
+		else:
+			offset = 0
+			current_chunk = 0
+			total_chunks = 1
+
+		temp_path = Path(get_files_path(".temp-" + get_safe_file_name(filename), is_private=is_private))
+		with temp_path.open("ab") as f:
+			f.seek(offset)
+			f.write(file.stream.read())
+			if not f.tell() >= int(total_file_size) or current_chunk != total_chunks - 1:
+				return
+
+		content = temp_path.read_bytes()
+		temp_path.unlink()
 		content_type = guess_type(filename)[0]
 		if optimize and content_type and content_type.startswith("image/"):
 			args = {"content": content, "content_type": content_type}
