@@ -1,7 +1,7 @@
 # Copyright (c) 2025, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-# import frappe
+import frappe
 from frappe.model.document import Document
 
 
@@ -32,6 +32,18 @@ class WorkspaceSidebarItem(Document):
 		show_arrow: DF.Check
 		type: DF.Literal["Link", "Section Break", "Spacer", "Sidebar Item Group"]
 		url: DF.Data | None
+
 	# end: auto-generated types
+	def as_dict(self, **kwargs):
+		doc = super().as_dict()
+		if doc.get("link_type") == "Report":
+			report_type, ref_doctype = frappe.db.get_value(
+				"Report", doc.get("link_to"), ["report_type", "ref_doctype"]
+			)
+			doc["report"] = {
+				"report_type": report_type,
+				"ref_doctype": ref_doctype,
+			}
+		return doc
 
 	pass

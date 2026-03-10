@@ -44,11 +44,11 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	build_sidebar_module_map() {
 		for (const [key, value] of Object.entries(frappe.boot.workspace_sidebar_item)) {
-			if (value.module && !value.label.includes("My Workspaces")) {
+			if (value.module && !value.title.includes("My Workspaces")) {
 				if (!this.sidebar_module_map[value.module]) {
 					this.sidebar_module_map[value.module] = [];
 				}
-				this.sidebar_module_map[value.module].push(value.label);
+				this.sidebar_module_map[value.module].push(value.title);
 			}
 		}
 	}
@@ -768,10 +768,10 @@ frappe.ui.Sidebar = class Sidebar {
 	get_workspace_sidebars(link_to) {
 		let sidebars = [];
 		Object.entries(this.all_sidebar_items).forEach(([name, sidebar]) => {
-			const { items, label } = sidebar;
+			const { items, title } = sidebar;
 			items.forEach((item) => {
 				if (item.link_to === link_to) {
-					sidebars.push(label || name);
+					sidebars.push(title || name);
 				}
 			});
 		});

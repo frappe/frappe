@@ -1348,7 +1348,9 @@ Object.assign(frappe.utils, {
 		} else {
 			let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
 			if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
-				let first_link = sidebar.items.find((i) => i.type == "Link");
+				let first_link = sidebar.items.find(
+					(i) => i.type == "Link" && i.link_type != "URL"
+				);
 				if (first_link) {
 					if (first_link.link_type === "Report") {
 						let args = {

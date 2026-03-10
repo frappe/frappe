@@ -14,7 +14,6 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 )
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
 from frappe.desk.doctype.changelog_feed.changelog_feed import get_changelog_feed_items
-from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
@@ -58,7 +57,6 @@ def get_bootinfo():
 	bootinfo.modules = {}
 	bootinfo.module_list = []
 	load_desktop_data(bootinfo)
-	bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
 	bootinfo.all_domains = frappe.get_all("Domain", pluck="name")
@@ -168,11 +166,11 @@ def load_desktop_data(bootinfo):
 
 	bootinfo.workspaces = get_workspace_sidebar_items()
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
-	bootinfo.workspace_sidebar_item = get_sidebar_items(allowed_pages)
+	bootinfo.allowed_workspaces = allowed_pages
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
 	bootinfo.app_data = []
-
+	get_icons_and_sidebar(bootinfo)
 	Workspace = frappe.qb.DocType("Workspace")
 	Module = frappe.qb.DocType("Module Def")
 
@@ -228,6 +226,10 @@ def load_desktop_data(bootinfo):
 
 def get_allowed_pages(cache=False):
 	return get_user_pages_or_reports("Page", cache=cache)
+
+
+def get_allowed_pages_names(cache=False) -> set[str]:
+	return {cstr(page) for page in get_allowed_pages(cache).keys() if page}
 
 
 def get_allowed_reports(cache=False):
@@ -544,74 +546,64 @@ def get_sentry_dsn():
 	return os.getenv("FRAPPE_SENTRY_DSN")
 
 
-def get_sidebar_items(allowed_workspaces):
-	from frappe import _
-	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import auto_generate_sidebar_from_module
+def get_icons_and_sidebar(bootinfo):
+	bootinfo.desktop_icons = []
+	bootinfo.workspace_sidebar_item = {}
+	for sidebar in frappe.get_all("Workspace Sidebar", pluck="name"):
+		sidebar_doc = frappe.get_doc("Workspace Sidebar", sidebar)
+		allowed_items = []
+		for item in sidebar_doc.items:
+			if is_item_allowed(item.link_to, item.link_type, bootinfo):
+				allowed_items.append(item.as_dict())
+		if len(allowed_items) > 0 and not all(item.type == "Section Break" for item in allowed_items):
+			bootinfo.workspace_sidebar_item[sidebar.lower()] = sidebar_doc.as_dict()
+			bootinfo.workspace_sidebar_item[sidebar.lower()]["items"] = allowed_items
+	for icon in frappe.get_all("Desktop Icon", pluck="name"):
+		icon_doc = frappe.get_doc("Desktop Icon", icon)
+		try:
+			if icon_doc.icon_type == "Folder":
+				bootinfo.desktop_icons.append(icon_doc.as_dict())
+			if icon_doc.icon_type == "App" and check_app_permission(icon_doc):
+				bootinfo.desktop_icons.append(icon_doc.as_dict())
+			if icon_doc.link_type == "Workspace Sidebar" and bootinfo.workspace_sidebar_item[icon.lower()]:
+				bootinfo.desktop_icons.append(icon_doc.as_dict())
+		except KeyError as e:
+			print("Helo", e)
 
-	workspace_sidebars = frappe.get_all(
-		"Workspace Sidebar", fields=["name", "header_icon", "module_onboarding"]
-	)
-	module_sidebars = auto_generate_sidebar_from_module()
-	workspace_sidebars.extend(module_sidebars)
-	sidebar_items = {}
 
-	for sidebar in workspace_sidebars:
-		sidebar_title = sidebar.get("name")
-		sidebar_doc = None
-		if sidebar_title:
-			sidebar_doc = frappe.get_doc("Workspace Sidebar", sidebar_title)
-		else:
-			sidebar_title = sidebar.title
-			sidebar_doc = sidebar
-		if (
-			frappe.session.user == "Administrator"
-			or sidebar_title == "My Workspaces"
-			or not sidebar_doc.module
-			or sidebar_doc.module in sidebar_doc.user.allow_modules
-		):
-			sidebar_items[sidebar_title.lower()] = {
-				"label": sidebar_title,
-				"items": [],
-				"header_icon": sidebar.get("header_icon"),
-				"module_onboarding": sidebar.get("module_onboarding"),
-				"module": sidebar_doc.module,
-				"app": sidebar_doc.app,
-			}
-			for item in sidebar_doc.items:
-				workspace_sidebar = {
-					"label": _(item.label),
-					"link_to": item.link_to,
-					"link_type": item.link_type,
-					"type": item.type,
-					"icon": item.icon,
-					"child": item.child,
-					"collapsible": item.collapsible,
-					"indent": item.indent,
-					"keep_closed": item.keep_closed,
-					"display_depends_on": item.display_depends_on,
-					"url": item.url,
-					"show_arrow": item.show_arrow,
-					"filters": item.filters,
-					"route_options": item.route_options,
-					"tab": item.navigate_to_tab,
-					"open_in_new_tab": item.open_in_new_tab,
-				}
-				if item.link_type == "Report" and item.link_to and frappe.db.exists("Report", item.link_to):
-					report_type, ref_doctype = frappe.db.get_value(
-						"Report", item.link_to, ["report_type", "ref_doctype"]
-					)
-					workspace_sidebar["report"] = {
-						"report_type": report_type,
-						"ref_doctype": ref_doctype,
-					}
-				if (
-					"My Workspaces" in sidebar_title
-					or item.type == "Section Break"
-					or sidebar_doc.is_item_allowed(item.link_to, item.link_type, allowed_workspaces)
-				):
-					sidebar_items[sidebar_title.lower()]["items"].append(workspace_sidebar)
-	add_user_specific_sidebar(sidebar_items)
-	return sidebar_items
+def is_item_allowed(item_name, item_type, bootinfo):
+	if frappe.session.user == "Administrator":
+		return True
+	if not item_name:
+		return True
+	item_type = item_type.lower()
+	if item_type == "doctype":
+		return item_name in (bootinfo.user.can_read or []) and frappe.has_permission(item_name)
+	if item_type == "page":
+		return item_name in get_allowed_pages_names()
+	if item_type == "report":
+		return item_name in get_allowed_report_names()
+	if item_type == "dashboard":
+		return item_name in bootinfo.dashboards
+	if item_type == "url":
+		return True
+	if item_type == "workspace":
+		return item_name in bootinfo.allowed_workspaces
+
+
+def check_app_permission(icon):
+	for a in frappe.get_installed_apps():
+		if frappe.get_hooks(app_name=a)["app_title"][0] == icon.label or icon.app == a:
+			app_detail = frappe.get_hooks("add_to_apps_screen", app_name=a)
+			if len(app_detail) != 0:
+				permission_method = app_detail[0].get("has_permission", None)
+				if permission_method:
+					return frappe.call(permission_method)
+				else:
+					return True
+			else:
+				# App hooks.py doesn't have add_to_apps_screen
+				return True
 
 
 def get_desktop_icon_urls():
