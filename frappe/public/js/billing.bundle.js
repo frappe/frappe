@@ -100,7 +100,7 @@ function addChatBubble() {
 	const desk_apps = ["erpnext", "hrms"];
 
 	const apps_allowed = desk_apps.some((app) => all_apps.includes(app));
-	if (checkBusinessHours() && apps_allowed) {
+	if (apps_allowed) {
 		let chat_banner = document.createElement("script");
 		chat_banner.setAttribute("id", "chat_widget_trigger");
 		chat_banner.innerHTML =
@@ -109,19 +109,6 @@ function addChatBubble() {
 		const root = document.documentElement;
 		root.style.setProperty("--s-700", "var(--gray-500)");
 	}
-}
-
-function checkBusinessHours() {
-	let current_time = new Date();
-	const ist_time = new Date(current_time.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-
-	const hours = ist_time.getHours();
-	const day = ist_time.getDay();
-
-	const is_weekend = day === 0 || day === 6;
-	const is_business_hour = hours >= 11 && hours < 18;
-
-	return !is_weekend && is_business_hour;
 }
 
 function toggleChatBubble(toggle) {
