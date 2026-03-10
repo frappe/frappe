@@ -1,7 +1,6 @@
 import sys
 
 import frappe
-from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 
 
 def get_context(context):
