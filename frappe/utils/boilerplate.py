@@ -598,13 +598,6 @@ app_license = "{app_license}"
 
 # ignore_links_on_delete = ["Communication", "ToDo"]
 
-
-# Ignore links to specified DocTypes when cancelling documents
-# -----------------------------------------------------------
-# ignore_links_on_cancel = {
-# 	"{{doctype_1}}": ["{{linked_doctype_1}}", "{{linked_doctype_2}}"],
-# }
-
 # Request Events
 # ----------------
 # before_request = ["{app_name}.utils.before_request"]
