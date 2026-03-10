@@ -366,11 +366,16 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	for df in get_dynamic_link_map().get(doc.doctype, []):
 		ignore_linked_doctypes = doc.get("ignore_linked_doctypes") or []
 
-		if df.parent in frappe.get_hooks("ignore_links_on_delete") or (
-			df.parent in ignore_linked_doctypes and method == "Cancel"
-		):
-			# don't check for communication and todo!
+		if method == "Delete" and df.parent in frappe.get_hooks("ignore_links_on_delete"):
 			continue
+
+		if method == "Cancel":
+			if df.parent in ignore_linked_doctypes:
+				continue
+
+			cancel_ignores = frappe.get_hooks("ignore_links_on_cancel")
+			if cancel_ignores and df.parent in cancel_ignores.get(doc.doctype, []):
+				continue
 
 		meta = frappe.get_meta(df.parent)
 		if meta.issingle:
@@ -404,11 +409,16 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 					reference_doctype = refdoc.parenttype if meta.istable else df.parent
 					reference_docname = refdoc.parent if meta.istable else refdoc.name
 
-					if reference_doctype in frappe.get_hooks("ignore_links_on_delete") or (
-						reference_doctype in ignore_linked_doctypes and method == "Cancel"
-					):
-						# don't check for communication and todo!
+					if method == "Delete" and reference_doctype in frappe.get_hooks("ignore_links_on_delete"):
 						continue
+
+					if method == "Cancel":
+						if reference_doctype in ignore_linked_doctypes:
+							continue
+
+						cancel_ignores = frappe.get_hooks("ignore_links_on_cancel")
+						if cancel_ignores and reference_doctype in cancel_ignores.get(doc.doctype, []):
+							continue
 
 					at_position = f"at Row: {refdoc.idx}" if meta.istable else ""
 
