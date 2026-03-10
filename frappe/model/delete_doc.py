@@ -306,8 +306,14 @@ def check_if_doc_is_linked(doc, method="Delete"):
 	link_fields = get_link_fields(doc.doctype)
 	ignored_doctypes = set()
 
-	if method == "Cancel" and (doc_ignore_flags := doc.get("ignore_linked_doctypes")):
-		ignored_doctypes.update(doc_ignore_flags)
+	if method == "Cancel":
+		if doc_ignore_flags := doc.get("ignore_linked_doctypes"):
+			ignored_doctypes.update(doc_ignore_flags)
+
+		cancel_ignores = frappe.get_hooks("ignore_links_on_cancel")
+		if cancel_ignores:
+			ignored_doctypes.update(cancel_ignores.get(doc.doctype, []))
+
 	if method == "Delete":
 		ignored_doctypes.update(frappe.get_hooks("ignore_links_on_delete"))
 
