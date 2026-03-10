@@ -1056,7 +1056,11 @@ class Document(BaseDocument):
 			if to_docstatus.is_draft():
 				self._action = "save"
 			elif to_docstatus.is_submitted():
-				if not getattr(self.meta, "is_submittable", False):
+				is_submittable = getattr(self.meta, "is_submittable", False)
+				if not is_submittable and getattr(self.meta, "istable", False) and self.parenttype:
+					is_submittable = frappe.get_meta(self.parenttype).is_submittable
+
+				if not is_submittable:
 					frappe.throw(
 						_("Cannot change docstatus of non submittable doctype {0}").format(self.doctype),
 						frappe.DocstatusTransitionError,
