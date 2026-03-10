@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from random import choice
 
 import frappe
+import frappe.share
 from frappe.model import core_doctypes_list, get_permitted_fields, is_default_field
 from frappe.model.utils import get_fetch_values
 from frappe.tests import IntegrationTestCase
@@ -62,6 +63,50 @@ class TestModelUtils(IntegrationTestCase):
 			self.assertNotIn(
 				"app_name", get_permitted_fields("Installed Application", parenttype="Installed Applications")
 			)
+
+	def test_get_permitted_fields_for_child_table_via_docshare(self):
+		user = "test@example.com"
+
+		doc = frappe.get_doc(
+			{
+				"doctype": "Web Page",
+				"title": "test child table share",
+				"page_blocks": [{"web_template": "Hero with Right Image"}],
+			}
+		).insert()
+
+		try:
+			# user without Website Manager role has no access to child table fields
+			with set_user(user):
+				child_fields = get_permitted_fields(
+					"Web Page Block", parenttype="Web Page", permission_type="read"
+				)
+				self.assertNotIn("web_template", child_fields)
+
+			frappe.share.add("Web Page", doc.name, user)
+
+			# sharing parent grants access to child table fields
+			with set_user(user):
+				child_fields = get_permitted_fields(
+					"Web Page Block", parenttype="Web Page", permission_type="read"
+				)
+				self.assertIn("web_template", child_fields)
+				self.assertIn("css_class", child_fields)
+
+			# child table fields are also accessible via get_list
+			with set_user(user):
+				result = frappe.get_list(
+					"Web Page",
+					fields=["name", "`tabWeb Page Block`.web_template"],
+					limit=5,
+				)
+				matched = [r for r in result if r.get("name") == doc.name]
+				self.assertTrue(matched)
+				self.assertEqual(matched[0].get("web_template"), "Hero with Right Image")
+		finally:
+			frappe.set_user("Administrator")
+			frappe.share.remove("Web Page", doc.name, user)
+			doc.delete(ignore_permissions=True)
 
 	def test_is_default_field(self):
 		self.assertTrue(is_default_field("doctype"))
