@@ -617,7 +617,12 @@ class Meta(Document):
 		)
 
 		if 0 not in permlevel_access and permission_type in ("read", "select"):
+<<<<<<< HEAD
 			if frappe.share.get_shared(self.name, user, rights=[permission_type], limit=1):
+=======
+			check_doctype = parenttype if self.istable and parenttype else self.name
+			if frappe.share.get_shared(check_doctype, user, rights=["read"], limit=1):
+>>>>>>> f9af4d2ff9 (fix: check shared documents as well)
 				permlevel_access.add(0)
 
 		permitted_fieldnames.extend(
