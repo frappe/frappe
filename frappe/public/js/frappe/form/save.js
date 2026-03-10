@@ -198,36 +198,37 @@ frappe.ui.form.check_mandatory = function (frm) {
 	return !has_errors;
 
 	function is_docfield_mandatory(doc, df) {
-		if (df.reqd) return true;
-		if (!df.mandatory_depends_on || !doc) return;
+		if (df.mandatory_depends_on && doc) {
+			let out = null;
+			let expression = df.mandatory_depends_on;
+			let parent = frappe.get_meta(df.parent);
 
-		let out = null;
-		let expression = df.mandatory_depends_on;
-		let parent = frappe.get_meta(df.parent);
-
-		if (typeof expression === "boolean") {
-			out = expression;
-		} else if (typeof expression === "function") {
-			out = expression(doc);
-		} else if (expression.substr(0, 5) == "eval:") {
-			try {
-				out = frappe.utils.eval(expression.substr(5), { doc, parent });
-				if (parent && parent.istable && expression.includes("is_submittable")) {
-					out = true;
+			if (typeof expression === "boolean") {
+				out = expression;
+			} else if (typeof expression === "function") {
+				out = expression(doc);
+			} else if (expression.substr(0, 5) == "eval:") {
+				try {
+					out = frappe.utils.eval(expression.substr(5), { doc, parent });
+					if (parent && parent.istable && expression.includes("is_submittable")) {
+						out = true;
+					}
+				} catch (e) {
+					frappe.throw(__('Invalid "mandatory_depends_on" expression'));
 				}
-			} catch (e) {
-				frappe.throw(__('Invalid "mandatory_depends_on" expression'));
-			}
-		} else {
-			var value = doc[expression];
-			if ($.isArray(value)) {
-				out = !!value.length;
 			} else {
-				out = !!value;
+				var value = doc[expression];
+				if ($.isArray(value)) {
+					out = !!value.length;
+				} else {
+					out = !!value;
+				}
 			}
+
+			return out;
 		}
 
-		return out;
+		return !!df.reqd;
 	}
 
 	function scroll_to(fieldname) {
