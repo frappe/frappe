@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-03-07 21:45\n"
+"PO-Revision-Date: 2026-03-10 21:10\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -19303,7 +19303,7 @@ msgstr "Personal"
 #: frappe/public/js/frappe/views/workspace/workspace.js:34
 msgctxt "Workspace Category"
 msgid "Personal"
-msgstr "Personal"
+msgstr "Personlig"
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
