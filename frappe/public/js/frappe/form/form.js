@@ -1357,7 +1357,7 @@ frappe.ui.form.Form = class FrappeForm {
 		)}/${encodeURIComponent(name)}`;
 
 		// Skip routing only when the document is created from a Form view's Link field
-		if (!frappe._from_link || (frappe._from_link && !frappe._from_link?.field_obj?.frm)) {
+		if (!frappe._from_link?.field_obj?.frm) {
 			frappe.set_route("Form", this.doctype, name);
 		}
 	}
