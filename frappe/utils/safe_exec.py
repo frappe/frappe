@@ -165,9 +165,7 @@ def safe_exec_flags():
 
 
 def safer_copy_doc(doc, ignore_no_copy=True):
-	from frappe.model.document import Document
-
-	assert isinstance(doc, (dict, Document))
+	assert isinstance(doc, dict)
 	assert isinstance(ignore_no_copy, bool)
 	copied_obj = frappe.copy_doc(doc, ignore_no_copy=ignore_no_copy)
 	return copied_obj.as_dict()
@@ -216,9 +214,7 @@ def safe_get_all(*args, **kwargs):
 
 
 def safer_get_meta(doctype, cached=True):
-	from frappe.model.document import Document
-
-	assert isinstance(doctype, (str, Document))
+	assert isinstance(doctype, str)
 	assert isinstance(cached, bool)
 
 	return frappe.get_meta(doctype, cached).as_dict()
