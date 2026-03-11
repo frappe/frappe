@@ -166,6 +166,15 @@ def safe_exec_flags():
 		frappe.flags.in_safe_exec -= 1
 
 
+def safer_copy_doc(doc, ignore_no_copy=True):
+	from frappe.model.document import Document
+
+	assert isinstance(doc, (dict, Document))
+	assert isinstance(ignore_no_copy, bool)
+	copied_obj = frappe.copy_doc(doc, ignore_no_copy=ignore_no_copy)
+	return copied_obj.as_dict()
+
+
 def get_safe_globals():
 	datautils = frappe._dict()
 
