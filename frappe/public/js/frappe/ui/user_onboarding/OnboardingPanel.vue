@@ -85,9 +85,6 @@ function resetAll(skips) {
 }
 
 function handleAction(step) {
-	if (step.is_complete) return;
-	if (step.is_skipped) return;
-
 	if (step.route_options && typeof step.route_options === "string") {
 		frappe.route_options = JSON.parse(step.route_options);
 	}
@@ -284,7 +281,7 @@ function markReset(step) {
 						style="align-items: center"
 						:class="
 							step.is_complete
-								? 'text-extra-muted onb-cursor-disabled'
+								? 'text-extra-muted onb-select-cursor'
 								: 'text-ink-gray-8 onb-select-cursor'
 						"
 					>
@@ -316,15 +313,14 @@ function markReset(step) {
 
 						<div v-if="!step.is_complete">
 							<div v-if="!step.is_skipped">
-								<div
-									class="ml-auto text-base onb-show-on-hover text-sm w-12 text-right text-ink-gray-8"
-								>
+								<div class="ml-auto onb-show-on-hover text-sm w-12 text-right">
 									<span
 										style="
 											font-size: 12px;
 											vertical-align: text-top;
-											margin-right: 10px;
+											margin-right: 0px;
 										"
+										class="text-ink-gray-7"
 										@click="markSkip(step)"
 									>
 										{{ __("Skip") }}
@@ -332,15 +328,14 @@ function markReset(step) {
 								</div>
 							</div>
 							<div v-if="step.is_skipped">
-								<div
-									class="ml-auto text-base onb-show-on-hover text-sm w-12 text-right text-ink-gray-8"
-								>
+								<div class="ml-auto onb-show-on-hover text-sm w-12 text-right">
 									<span
 										style="
 											font-size: 12px;
 											vertical-align: text-top;
-											margin-right: 10px;
+											margin-right: 0px;
 										"
+										class="text-ink-gray-7"
 										@click="markReset(step)"
 									>
 										{{ __("Reset") }}
