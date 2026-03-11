@@ -290,7 +290,12 @@ class TestSearch(IntegrationTestCase):
 		"""Test that ignore_user_permissions is validated correctly"""
 
 		# Clean up any leftover doctypes from previous test runs
-		for dt in ("Test Search Form No Ignore", "Test Search Form Wrong Link", "Test Search Linked2"):
+		for dt in (
+			"Test Search Form No Ignore",
+			"Test Search Form Wrong Link",
+			"Test Search Form With Ignore",
+			"Test Search Linked2",
+		):
 			if frappe.db.exists("DocType", dt):
 				frappe.delete_doc("DocType", dt, force=True)
 
@@ -373,6 +378,30 @@ class TestSearch(IntegrationTestCase):
 			ignore_user_permissions=True,
 			reference_doctype="Test Search Form Wrong Link",
 			link_fieldname="wrong_link",
+		)
+
+		# Should NOT throw when link_fieldname is bogus (e.g. bulk edit sends "value")
+		# but a Link field with ignore_user_permissions exists on the form doctype
+		new_doctype(
+			name="Test Search Form With Ignore",
+			fields=[
+				{
+					"label": "Linked Doc",
+					"fieldname": "linked_doc",
+					"fieldtype": "Link",
+					"options": "Test Search Linked2",
+					"ignore_user_permissions": 1,
+				}
+			],
+		).insert()
+		self.addCleanup(lambda: frappe.delete_doc("DocType", "Test Search Form With Ignore", force=True))
+
+		search_link(
+			doctype="Test Search Linked2",
+			txt="test",
+			ignore_user_permissions=True,
+			reference_doctype="Test Search Form With Ignore",
+			link_fieldname="value",
 		)
 
 
