@@ -858,7 +858,7 @@ export default class ChartWidget extends Widget {
 					}
 				} else if (this.chart_doc.chart_type == "Report") {
 					this.settings = {
-						method: "frappe.desk.query_report.run",
+						method: "frappe.desk.query_report.run_for_chart",
 					};
 					return Promise.resolve();
 				} else {

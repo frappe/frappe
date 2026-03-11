@@ -204,6 +204,41 @@ def get_reference_report(report):
 
 @frappe.whitelist()
 @frappe.read_only()
+def run_for_chart(
+	report_name: str,
+	filters: str | dict | None = None,
+	user: str | None = None,
+	ignore_prepared_report: bool = False,
+	custom_columns: str | list | None = None,
+	is_tree: bool = False,
+	parent_field: str | None = None,
+	are_default_filters: bool = True,
+	js_filters: str | list | None = None,
+	skip_total_calculation: bool = False,
+) -> dict:
+	try:
+		return run(
+			report_name=report_name,
+			filters=filters,
+			user=user,
+			ignore_prepared_report=ignore_prepared_report,
+			custom_columns=custom_columns,
+			is_tree=is_tree,
+			parent_field=parent_field,
+			are_default_filters=are_default_filters,
+			js_filters=js_filters,
+			skip_total_calculation=skip_total_calculation,
+		)
+	except frappe.ValidationError:
+		raise
+	except Exception:
+		frappe.throw(
+			_("Unable to generate chart data for this report. Please check the filters or try again.")
+		)
+
+
+@frappe.whitelist()
+@frappe.read_only()
 def run(
 	report_name: str,
 	filters: str | dict | None = None,
