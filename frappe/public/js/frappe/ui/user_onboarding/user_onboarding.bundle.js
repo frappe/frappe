@@ -31,7 +31,7 @@ class UserOnboarding {
 						title: title,
 						steps: steps.value,
 						minimizeIcon: frappe.utils.icon("minimize-2", "sm"),
-						closeIcon: frappe.utils.icon("close", "sm"),
+						closeIcon: frappe.utils.icon("x", "sm"),
 						headerIcon: header_icon,
 						checklistIcon: frappe.utils.icon("circle-check", "sm"),
 						completeChecklistIcon: frappe.utils.icon(
@@ -59,18 +59,25 @@ class UserOnboarding {
 function addStyles() {
 	if (document.getElementById("user-onboarding-styles")) return;
 
+	const main_section = document.getElementsByClassName("main-section");
+
+	if (main_section) {
+		main_section[0].style.paddingBottom = "90px";
+	}
+
 	const style = document.createElement("style");
 	style.id = "user-onboarding-styles";
 
 	style.innerHTML = `
+
 	.onb-panel {
 		position: fixed;
-		right: 24px;
+		left: 236px;
 		bottom: 24px;
 		width: 310px;
 		max-height: 80vh;
 		background: #fff;
-		border-radius: 16px;
+		border-radius: 8px;
 		box-shadow: 0 12px 40px rgba(0,0,0,0.15);
 		padding: 16px;
 		z-index: 9999;
@@ -82,7 +89,6 @@ function addStyles() {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: 6px;
 	}
 
 	.onb-header-actions button {
@@ -135,21 +141,21 @@ function addStyles() {
 
 	.onb-steps {
 		margin-top: 16px;
-		padding: 0;
+		padding: 0px;
 		list-style: none;
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: 4px;
 		align-items: flex-start;
 	}
 
-	.onb-group:hover {
-		color: #111827;
-		background: #f5f5f5;
+	.onb-group {
+		padding: 4px 8px;
+		border-radius: 8px;
 	}
 
-	.onb-cursor-disabled {
-		cursor: not-allowed;
+	.onb-group:hover {
+		background: #f5f5f5;
 	}
 
 	.onb-select-cursor {
@@ -240,7 +246,7 @@ function addStyles() {
 	}
 
 	[data-theme="dark"] .onb-group:hover {
-		background: #374151;
+		background: #1C1C1C;
 		color: #f3f4f6;
 	}
 

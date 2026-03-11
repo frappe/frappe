@@ -33,14 +33,10 @@ $(document).ready(function () {
 			!frappe.is_mobile() &&
 			frappe.user.has_role("System Manager");
 		if (visiblity_condition && isFCUser) {
-			frappe.router.on("change", function () {
-				if (frappe.get_route()[0] == "") {
-					addChatBubble();
-					toggleChatBubble(true);
-				} else {
-					toggleChatBubble(false);
-				}
-			});
+			if (site_info.trial_end_date && trial_end_date > new Date()) {
+				addChatBubble();
+				toggleChatBubble(true);
+			}
 		}
 		if (isFCUser) {
 			$.extend(card_args, {
@@ -100,28 +96,22 @@ function addChatBubble() {
 	const desk_apps = ["erpnext", "hrms"];
 
 	const apps_allowed = desk_apps.some((app) => all_apps.includes(app));
-	if (checkBusinessHours() && apps_allowed) {
+	if (apps_allowed) {
 		let chat_banner = document.createElement("script");
 		chat_banner.setAttribute("id", "chat_widget_trigger");
 		chat_banner.innerHTML =
-			'window.chatwootSettings = {"position":"right","type":"expanded_bubble","launcherTitle":"Chat with us"}; (function(d,t){var BASE_URL="https://chat.frappe.cloud";var g=d.createElement(t),s=d.getElementsByTagName(t)[0];g.src=BASE_URL+"/packs/js/sdk.js";g.async=true;s.parentNode.insertBefore(g,s);g.onload=function(){window.chatwootSDK.run({websiteToken:"LdmfJzftdJGEcFjoTqk8CrSq",baseUrl:BASE_URL})}})(document,"script");';
+			'window.chatwootSettings = {"position":"right","launcherTitle":"Chat with us", darkMode: "auto"}; (function(d,t){var BASE_URL="https://chat.frappe.cloud";var g=d.createElement(t),s=d.getElementsByTagName(t)[0];g.src=BASE_URL+"/packs/js/sdk.js";g.async=true;s.parentNode.insertBefore(g,s);g.onload=function(){window.chatwootSDK.run({websiteToken:"LdmfJzftdJGEcFjoTqk8CrSq",baseUrl:BASE_URL})}})(document,"script");';
 		document.body.append(chat_banner);
 		const root = document.documentElement;
 		root.style.setProperty("--s-700", "var(--gray-500)");
+
+		// Add padding to the main section to avoid overlapping with the chat bubble
+		const main_section = document.getElementsByClassName("main-section");
+
+		if (main_section) {
+			main_section[0].style.paddingBottom = "90px";
+		}
 	}
-}
-
-function checkBusinessHours() {
-	let current_time = new Date();
-	const ist_time = new Date(current_time.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-
-	const hours = ist_time.getHours();
-	const day = ist_time.getDay();
-
-	const is_weekend = day === 0 || day === 6;
-	const is_business_hour = hours >= 11 && hours < 18;
-
-	return !is_weekend && is_business_hour;
 }
 
 function toggleChatBubble(toggle) {
