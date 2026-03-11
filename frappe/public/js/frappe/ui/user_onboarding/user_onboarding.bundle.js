@@ -72,7 +72,7 @@ function addStyles() {
 
 	.onb-panel {
 		position: fixed;
-		left: 244px;
+		left: 236px;
 		bottom: 24px;
 		width: 310px;
 		max-height: 80vh;
