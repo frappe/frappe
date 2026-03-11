@@ -1103,6 +1103,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				datatable_options = this.report_settings.get_datatable_options(datatable_options);
 			}
 			this.datatable = new window.DataTable(this.$report[0], datatable_options);
+			this._setup_sort_with_pinned_totals();
 		}
 
 		if (typeof this.report_settings.initial_depth == "number") {
@@ -1111,6 +1112,28 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (this.report_settings.after_datatable_render) {
 			this.report_settings.after_datatable_render(this.datatable);
 		}
+	}
+
+	_setup_sort_with_pinned_totals() {
+		if (!this.datatable) return;
+
+		const dm = this.datatable.datamanager;
+		const original_sortRows = dm._sortRows;
+
+		dm._sortRows = function (colIndex, sortOrder) {
+			original_sortRows.call(this, colIndex, sortOrder);
+
+			const order = this.rowViewOrder;
+			let end = order.length;
+			for (let i = 0; i < end; ) {
+				if (this.data[order[i]]?.is_total_row) {
+					order.push(order.splice(i, 1)[0]);
+					end--;
+				} else {
+					i++;
+				}
+			}
+		};
 	}
 
 	update_masked_fields_in_columns(columns) {
