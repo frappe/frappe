@@ -189,6 +189,34 @@ def safer_get_cached_doc(*args, **kwargs):
 	return frappe.get_cached_doc(*args, **kwargs).as_dict()
 
 
+def remove_unsafe_fields(fields):
+	return [f for f in fields if "(" not in f]
+
+
+def safe_get_list(*args, **kwargs):
+	if args and len(args) > 1 and isinstance(args[1], list):
+		args = list(args)
+		args[1] = remove_unsafe_fields(args[1])
+
+	kwargs["run"] = True
+	fields = kwargs.get("fields", [])
+	if fields:
+		kwargs["fields"] = remove_unsafe_fields(fields)
+
+	return frappe.db.get_list(
+		*args,
+		**kwargs,
+	)
+
+
+def safe_get_all(*args, **kwargs):
+	kwargs["ignore_permissions"] = True
+	if "limit_page_length" not in kwargs:
+		kwargs["limit_page_length"] = 0
+
+	return safe_get_list(*args, **kwargs)
+
+
 def get_safe_globals():
 	datautils = frappe._dict()
 
