@@ -259,19 +259,17 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 	link_field = meta.get_field(link_fieldname)
 
 	if not link_field:
-		# try to find another Link field pointing to same doctype with ignore_user_permissions enabled
-		for field in meta.fields:
-			if field.fieldtype == "Link" and field.options == link_doctype and field.ignore_user_permissions:
-				link_field = field
-				link_fieldname = field.fieldname
-				break
+		if any(
+			(field.fieldtype == "Link" and field.options == link_doctype and field.ignore_user_permissions)
+			for field in meta.fields
+		):
+			return
 
-		if not link_field:
-			_throw(
-				_("Field <code>{0}</code> not found in {1}").format(
-					escape_html(link_fieldname), bold(_(form_doctype))
-				)
+		_throw(
+			_("Field <code>{0}</code> not found in {1}").format(
+				escape_html(link_fieldname), bold(_(form_doctype))
 			)
+		)
 
 	ignore_user_permissions = link_field.ignore_user_permissions
 	found_doctype = None
