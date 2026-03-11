@@ -31,7 +31,7 @@ class UserOnboarding {
 						title: title,
 						steps: steps.value,
 						minimizeIcon: frappe.utils.icon("minimize-2", "sm"),
-						closeIcon: frappe.utils.icon("remove", "sm"),
+						closeIcon: frappe.utils.icon("x", "sm"),
 						headerIcon: header_icon,
 						checklistIcon: frappe.utils.icon("circle-check", "sm"),
 						completeChecklistIcon: frappe.utils.icon(
