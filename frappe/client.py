@@ -467,7 +467,7 @@ def validate_link(doctype: str, docname: str, fields=None):
 	)
 
 	if not search_result:
-		return {}
+		return {}  # Either the record does not exist or was excluded by link_filters
 
 	values = None
 	is_virtual_dt = bool(meta.get("is_virtual"))
