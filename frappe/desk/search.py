@@ -256,8 +256,16 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 		frappe.throw(message, title=_('Error validating "Ignore User Permissions"'))
 
 	meta = frappe.get_meta(form_doctype)
-	link_field = meta.get_field(link_fieldname)
 
+	# special early exit - link_fieldname is not being considered here
+	# to avoid cases like bulk edit which have link_fieldname as "value" from failing
+	if any(
+		(field.fieldtype == "Link" and field.options == link_doctype and field.ignore_user_permissions)
+		for field in meta.fields
+	):
+		return
+
+	link_field = meta.get_field(link_fieldname)
 	if not link_field:
 		_throw(
 			_("Field <code>{0}</code> not found in {1}").format(
@@ -267,9 +275,6 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 
 	ignore_user_permissions = link_field.ignore_user_permissions
 	found_doctype = None
-
-	if link_field.fieldtype == "Link":
-		found_doctype = link_field.options
 
 	if link_field.fieldtype == "Table MultiSelect":
 		child_meta = frappe.get_meta(link_field.options)
@@ -296,6 +301,11 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 
 	if link_field.fieldtype == "Dynamic Link":
 		return  # skip doctype check for Dynamic Link fields
+
+	# all cases of valid Link fields are already covered in the early exit above
+	# the following block only serves to show appropriate error message
+	if link_field.fieldtype == "Link":
+		found_doctype = link_field.options
 
 	if found_doctype != link_doctype:
 		_throw(
