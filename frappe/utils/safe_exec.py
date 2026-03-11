@@ -217,6 +217,15 @@ def safe_get_all(*args, **kwargs):
 	return safe_get_list(*args, **kwargs)
 
 
+def safer_get_meta(doctype, cached=True):
+	from frappe.model.document import Document
+
+	assert isinstance(doctype, (str, Document))
+	assert isinstance(cached, bool)
+
+	return frappe.get_meta(doctype, cached).as_dict()
+
+
 def get_safe_globals():
 	datautils = frappe._dict()
 
