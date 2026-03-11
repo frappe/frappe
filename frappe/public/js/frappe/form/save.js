@@ -210,9 +210,6 @@ frappe.ui.form.check_mandatory = function (frm) {
 			} else if (expression.substr(0, 5) == "eval:") {
 				try {
 					out = frappe.utils.eval(expression.substr(5), { doc, parent });
-					if (parent && parent.istable && expression.includes("is_submittable")) {
-						out = true;
-					}
 				} catch (e) {
 					frappe.throw(__('Invalid "mandatory_depends_on" expression'));
 				}
