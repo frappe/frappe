@@ -183,6 +183,10 @@ def safer_get_last_doc(*args, **kwargs):
 	return frappe.get_last_doc(*args, **kwargs).as_dict()
 
 
+def safer_get_cached_doc(*args, **kwargs):
+	return frappe.get_cached_doc(*args, **kwargs).as_dict()
+
+
 def get_safe_globals():
 	datautils = frappe._dict()
 
