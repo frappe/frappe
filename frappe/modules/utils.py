@@ -11,6 +11,7 @@ import frappe
 import frappe.utils
 from frappe import _
 from frappe.utils import cint
+from frappe.utils.caching import site_cache
 
 
 def export_module_json(doc, is_standard, module):
@@ -287,6 +288,19 @@ def get_module_app(module: str) -> str:
 	if app is None:
 		frappe.throw(_("Module {} not found").format(module), exc=frappe.DoesNotExistError)
 	return app
+
+
+@site_cache
+def get_doctype_app_map():
+	DocType = frappe.qb.DocType("DocType")
+	Module = frappe.qb.DocType("Module Def")
+	return dict(
+		frappe.qb.from_(DocType)
+		.left_join(Module)
+		.on(DocType.module == Module.name)
+		.select(DocType.name, Module.app_name)
+		.run()
+	)
 
 
 def get_app_publisher(module: str) -> str:
