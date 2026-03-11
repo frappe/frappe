@@ -175,6 +175,12 @@ def safer_copy_doc(doc, ignore_no_copy=True):
 	return copied_obj.as_dict()
 
 
+def get_doc_as_dict(doctype, name):
+	assert isinstance(doctype, str)
+	assert isinstance(name, (str, int))
+	return frappe.get_doc(doctype, name).as_dict()
+
+
 def get_safe_globals():
 	datautils = frappe._dict()
 
