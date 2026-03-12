@@ -200,18 +200,10 @@ watchEffect(() => {
 	}
 })
 
-let hasSavedFragment = false
 async function saveFragmentMode() {
-	if (!hasSavedFragment) {
-		canvasStore.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
-		hasSavedFragment = true
-	}
+	canvasStore.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
 	toast.success(`${canvasStore.fragmentData.fragmentName} saved successfully`)
 }
-
-watch(() => canvasStore.editingMode, () => {
-	hasSavedFragment = false
-})
 
 const debouncedPageSave = useDebounceFn(store.savePage, 300)
 watch(
