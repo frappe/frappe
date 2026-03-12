@@ -288,9 +288,17 @@ frappe.ui.form.update_calling_link = async (newdoc) => {
 		if (row_exists) field_obj.set_value(newdoc.name);
 	} else {
 		// parsing is needed for table multiselect to convert string to array
-		field_obj.parse_validate_and_set_in_model(newdoc.name);
+		await field_obj.parse_validate_and_set_in_model(newdoc.name);
 	}
 
 	// refresh field
 	field_obj.refresh();
+	const is_quick_entry_field = field_obj.layout?.dialog && doc?.doctype && doc?.name;
+	const from_table_field = field_obj.in_grid();
+	// Ensure routing only after the quick entry dialog is closed (handles nested Quick Entry dialogs)
+	const is_field_hidden = !$(field_obj.layout?.parent).is(":visible");
+
+	if (is_quick_entry_field && !from_table_field && is_field_hidden) {
+		frappe.set_route("Form", doc.doctype, doc.name);
+	}
 };
