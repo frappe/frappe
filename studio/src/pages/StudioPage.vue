@@ -48,7 +48,8 @@
 								@click.prevent="store.studioLayout.rightPanelActiveTab = 'Interface'"
 							></Button>
 							<Button variant="subtle" class="text-xs" @click="canvasStore.exitFragmentMode">
-								Close
+								<template #prefix><FeatherIcon name="chevron-left" class="!h-3 !w-3" /></template>
+								Page
 							</Button>
 							<Button variant="solid" class="text-xs" @click="saveFragmentMode">
 								{{ canvasStore.fragmentData.saveActionLabel || "Save" }}
@@ -169,6 +170,7 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
 import { getRootBlock } from "@/utils/serializer"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import { toast } from "vue-sonner"
 
 const route = useRoute()
 const router = useRouter()
@@ -204,6 +206,7 @@ async function saveFragmentMode() {
 		canvasStore.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
 		hasSavedFragment = true
 	}
+	toast.success(`${canvasStore.fragmentData.fragmentName} saved successfully`)
 }
 
 watch(() => canvasStore.editingMode, () => {
