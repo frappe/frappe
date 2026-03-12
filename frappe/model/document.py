@@ -1051,6 +1051,9 @@ class Document(BaseDocument):
 		- Submit (1) > Cancel (2)
 
 		"""
+		if self.flags.skip_docstatus_validation:
+			return
+
 		to_docstatus = self.docstatus
 		if from_docstatus == DocStatus.DRAFT:
 			if to_docstatus.is_draft():
