@@ -65,7 +65,7 @@ class TestModelUtils(IntegrationTestCase):
 			)
 
 	def test_get_permitted_fields_for_child_table_via_docshare(self):
-		user = "test@example.com"
+		user = "test2@example.com"
 
 		doc = frappe.get_doc(
 			{
