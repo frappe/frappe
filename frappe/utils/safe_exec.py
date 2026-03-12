@@ -261,6 +261,11 @@ def safer_sendmail(*args, **kwargs):
 	return q.name if q else None
 
 
+def safer_enqueue(function, **kwargs):
+	job = safe_enqueue(function, **kwargs)
+	return job.id if hasattr(job, "id") else None
+
+
 def get_safe_globals():
 	datautils = frappe._dict()
 
