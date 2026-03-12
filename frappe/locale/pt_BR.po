@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-03-08 09:40+0000\n"
-"PO-Revision-Date: 2026-03-10 03:08\n"
+"PO-Revision-Date: 2026-03-12 03:09\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -7285,7 +7285,7 @@ msgstr ""
 #. Label of the designation (Data) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Designation"
-msgstr ""
+msgstr "Cargo"
 
 #. Label of the desk_access (Check) field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
@@ -8825,7 +8825,7 @@ msgstr ""
 #: frappe/www/complete_signup.html:11 frappe/www/login.html:184
 #: frappe/www/login.html:211
 msgid "Email Address"
-msgstr ""
+msgstr "Endereço de E-Mail"
 
 #. Description of the 'Email Address' (Data) field in DocType 'Google Contacts'
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
@@ -21839,7 +21839,7 @@ msgstr ""
 #: frappe/core/doctype/communication/communication.json
 #: frappe/core/doctype/translation/translation.json
 msgid "Rejected"
-msgstr ""
+msgstr "Rejeitado"
 
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.py:30
 msgid "Relay Server URL missing"
