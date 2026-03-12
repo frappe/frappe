@@ -234,7 +234,7 @@ def safer_get_mapped_doc(
 	cached=False,
 ):
 	assert isinstance(from_doctype, str)
-	assert isinstance(from_docname, str | int)
+	assert isinstance(from_docname, (str, int))
 	assert isinstance(table_maps, dict)
 	assert isinstance(target_doc, (str, None))
 	assert isinstance(ignore_permissions, bool)
@@ -266,6 +266,25 @@ def safer_sendmail(*args, **kwargs):
 def safer_enqueue(function, **kwargs):
 	job = safe_enqueue(function, **kwargs)
 	return job.id if hasattr(job, "id") else None
+
+
+def safer_log_error(
+	title=None, message=None, reference_doctype=None, reference_name=None, *, defer_insert=False
+):
+	assert isinstance(title, (str, None))
+	assert isinstance(message, (str, None))
+	assert isinstance(reference_doctype, (str, None))
+	assert isinstance(reference_name, (str, int, None))
+	assert isinstance(defer_insert, bool)
+
+	log_doc = frappe.log_error(
+		title=title,
+		message=message,
+		reference_doctype=reference_doctype,
+		reference_name=reference_name,
+		defer_insert=defer_insert,
+	)
+	return log_doc.as_dict() if log_doc else None
 
 
 def get_safe_globals():
