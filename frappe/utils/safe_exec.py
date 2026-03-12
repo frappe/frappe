@@ -258,6 +258,11 @@ def safer_new_doc(*args, **kwargs):
 	return frappe.new_doc(*args, **kwargs).as_dict()
 
 
+def safer_sendmail(*args, **kwargs):
+	q = frappe.sendmail(*args, **kwargs)
+	return q.name if q else None
+
+
 def get_safe_globals():
 	datautils = frappe._dict()
 
