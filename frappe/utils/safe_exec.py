@@ -219,7 +219,39 @@ def safer_get_meta(doctype, cached=True):
 	assert isinstance(doctype, str)
 	assert isinstance(cached, bool)
 
-	return frappe.get_meta(doctype, cached).as_dict()
+	doc = frappe.get_meta(doctype, cached=cached)
+	return doc.as_dict() if doc else None
+
+
+def safer_get_mapped_doc(
+	from_doctype,
+	from_docname,
+	table_maps,
+	target_doc=None,
+	postprocess=None,
+	ignore_permissions=False,
+	ignore_child_tables=False,
+	cached=False,
+):
+	assert isinstance(from_doctype, str)
+	assert isinstance(from_docname, str | int)
+	assert isinstance(table_maps, dict)
+	assert isinstance(target_doc, (str, None))
+	assert isinstance(ignore_permissions, bool)
+	assert isinstance(ignore_child_tables, bool)
+	assert isinstance(cached, bool)
+
+	doc = get_mapped_doc(
+		from_doctype,
+		from_docname,
+		table_maps,
+		target_doc=target_doc,
+		postprocess=postprocess,
+		ignore_permissions=ignore_permissions,
+		ignore_child_tables=ignore_child_tables,
+		cached=cached,
+	)
+	return doc.as_dict() if doc else None
 
 
 def get_safe_globals():
