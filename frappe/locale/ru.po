@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-03-08 09:40+0000\n"
-"PO-Revision-Date: 2026-03-10 03:07\n"
+"PO-Revision-Date: 2026-03-12 03:08\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1240,7 +1240,7 @@ msgstr "Логи активности"
 
 #: frappe/core/page/permission_manager/permission_manager.js:610
 msgid "Activity Log for {0}"
-msgstr ""
+msgstr "Журнал активности для {0}"
 
 #: frappe/core/page/permission_manager/permission_manager.js:539
 #: frappe/email/doctype/email_group/email_group.js:60
@@ -9611,7 +9611,7 @@ msgstr "Введите поля (ключи) и значения по умолч
 
 #: frappe/desk/doctype/number_card/number_card.js:458
 msgid "Enter expressions that will be evaluated when the card is displayed. For example:"
-msgstr ""
+msgstr "Введите выражения, которые будут вычисляться при отображении карточки. Например:"
 
 #: frappe/public/js/frappe/views/file/file_view.js:111
 msgid "Enter folder name"
@@ -12712,11 +12712,11 @@ msgstr "Папка IMAP не найдена"
 #: frappe/email/doctype/email_account/email_account.py:239
 #: frappe/email/doctype/email_account/email_account.py:247
 msgid "IMAP Folder Validation Failed"
-msgstr ""
+msgstr "Проверка папки IMAP завершилась неудачей"
 
 #: frappe/email/doctype/email_account/email_account.py:255
 msgid "IMAP Folder name cannot be empty."
-msgstr ""
+msgstr "Имя папки IMAP не может быть пустым."
 
 #. Label of the ip_address (Data) field in DocType 'Activity Log'
 #. Label of the ip_address (Data) field in DocType 'Comment'
@@ -14247,7 +14247,7 @@ msgstr "По умолчанию"
 #. 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Is Dismissible"
-msgstr ""
+msgstr "Запрещается"
 
 #. Label of the is_dynamic_url (Check) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -15694,7 +15694,7 @@ msgstr "Загрузка..."
 
 #: frappe/core/page/permission_manager/permission_manager.js:615
 msgid "Loading…"
-msgstr ""
+msgstr "Загрузка..."
 
 #. Label of the location (Data) field in DocType 'User'
 #. Label of the location (Data) field in DocType 'Event'
@@ -17675,7 +17675,7 @@ msgstr "Нет событий Календаря Google для синхрони�
 
 #: frappe/email/doctype/email_account/email_account.py:244
 msgid "No IMAP folders were found on the server. Please verify the email account settings and ensure the mailbox contains folders."
-msgstr ""
+msgstr "На сервере не обнаружено папок IMAP. Пожалуйста, проверьте настройки учетной записи электронной почты и убедитесь, что почтовый ящик содержит папки."
 
 #: frappe/public/js/frappe/ui/capture.js:263
 msgid "No Images"
@@ -17774,7 +17774,7 @@ msgstr "Нет предстоящих Событий"
 
 #: frappe/core/page/permission_manager/permission_manager.js:630
 msgid "No activity recorded yet."
-msgstr ""
+msgstr "Пока никаких действий не зафиксировано."
 
 #: frappe/public/js/frappe/form/templates/address_list.html:43
 msgid "No address added yet."
@@ -17862,7 +17862,7 @@ msgstr "Файл не прикреплен"
 
 #: frappe/desk/doctype/number_card/number_card.js:379
 msgid "No filters available for this report"
-msgstr ""
+msgstr "Для этого отчета нет доступных фильтров"
 
 #: frappe/public/js/frappe/list/base_list.js:1077
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:100
@@ -20290,11 +20290,11 @@ msgstr "Перед настройкой фильтров выберите DocTyp
 
 #: frappe/desk/doctype/number_card/number_card.js:365
 msgid "Please select a Document Type first"
-msgstr ""
+msgstr "Пожалуйста, сначала выберите тип документа"
 
 #: frappe/desk/doctype/number_card/number_card.js:375
 msgid "Please select a Report first"
-msgstr ""
+msgstr "Пожалуйста, сначала выберите отчет"
 
 #: frappe/utils/__init__.py:122
 msgid "Please select a country code for field {1}."
@@ -22811,7 +22811,7 @@ msgstr "Восстановленный"
 
 #: frappe/core/page/permission_manager/permission_manager.js:651
 msgid "Restored to standard permissions"
-msgstr ""
+msgstr "Восстановлены стандартные права доступа"
 
 #: frappe/core/doctype/deleted_document/deleted_document.py:74
 msgid "Restoring Deleted Document"
@@ -23002,7 +23002,7 @@ msgstr "Разрешения ролей"
 
 #: frappe/core/page/permission_manager/permission_manager.js:611
 msgid "Role Permissions Activity Log"
-msgstr ""
+msgstr "Журнал активности прав доступа к ролям"
 
 #. Label of a Link in the Users Workspace
 #: frappe/core/page/permission_manager/permission_manager.js:4
@@ -27299,7 +27299,7 @@ msgstr "Следующий сценарий заголовка добавит т
 
 #: frappe/email/doctype/email_account/email_account.py:268
 msgid "The following configured IMAP folder(s) were not found or are not accessible on the server:<br><ul>{0}</ul>Please verify the folder names exactly as they appear on the server and ensure the account has access to them."
-msgstr ""
+msgstr "На сервере не найдены следующие настроенные папки IMAP:<br><ul>{0}</ul>Пожалуйста, проверьте имена папок точно так, как они отображаются на сервере (имена папок чувствительны к регистру)."
 
 #: frappe/core/doctype/data_import/importer.py:1092
 msgid "The following values are invalid: {0}. Values must be one of {1}"
@@ -27555,7 +27555,7 @@ msgstr "При установке имени возникли ошибки, об
 #. 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "These announcements will appear inside an alert below the Navbar."
-msgstr ""
+msgstr "Эти объявления будут отображаться в виде всплывающего окна под панелью навигации."
 
 #. Description of the 'Metadata' (Section Break) field in DocType 'OAuth
 #. Settings'
@@ -30021,7 +30021,7 @@ msgstr "Посмотреть"
 
 #: frappe/core/page/permission_manager/permission_manager.js:76
 msgid "View Activity Log"
-msgstr ""
+msgstr "Просмотреть журнал действий"
 
 #: frappe/core/doctype/success_action/success_action.js:60
 #: frappe/public/js/frappe/form/success_action.js:89
@@ -30102,7 +30102,7 @@ msgstr "Посмотреть документ"
 
 #: frappe/core/page/permission_manager/permission_manager.js:704
 msgid "View full log"
-msgstr ""
+msgstr "Просмотреть полный журнал"
 
 #: frappe/templates/emails/auto_email_report.html:60
 msgid "View report in your browser"
@@ -30593,7 +30593,7 @@ msgstr "Вес"
 #. Option for the 'Rule' (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Weighted Distribution"
-msgstr ""
+msgstr "Взвешенное распределение"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:384
 msgid "Welcome"
@@ -30666,7 +30666,7 @@ msgstr "К какому представлению соответствующе�
 #. Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Widget Color"
-msgstr ""
+msgstr "Цвет виджета"
 
 #. Label of the width (Data) field in DocType 'DocField'
 #. Label of the width (Int) field in DocType 'Report Column'
