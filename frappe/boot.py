@@ -543,6 +543,8 @@ def get_icons_and_sidebar(bootinfo):
 	bootinfo.workspace_sidebar_item = {}
 	for sidebar in frappe.get_all("Workspace Sidebar", pluck="name"):
 		sidebar_doc = frappe.get_doc("Workspace Sidebar", sidebar)
+		if sidebar_doc.module not in frappe.get_user().permitted_modules:
+			continue
 		allowed_items = []
 		for item in sidebar_doc.items:
 			if is_item_allowed(item.link_to, item.link_type, bootinfo):
