@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-02-23 19:59\n"
+"PO-Revision-Date: 2026-03-12 21:27\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -835,7 +835,7 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted"
-msgstr ""
+msgstr "Aceito"
 
 #. Label of a Datetime field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
@@ -7261,7 +7261,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Designation"
-msgstr "Designação"
+msgstr "Cargo"
 
 #. Label of a Check field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
@@ -8701,7 +8701,7 @@ msgstr ""
 #: frappe/www/complete_signup.html:11 frappe/www/login.html:183
 #: frappe/www/login.html:215
 msgid "Email Address"
-msgstr ""
+msgstr "Endereço de E-Mail"
 
 #. Description of the 'Email Address' (Data) field in DocType 'Google Contacts'
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
@@ -21958,7 +21958,7 @@ msgstr "Restrições"
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:362
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:377
 msgid "Result"
-msgstr ""
+msgstr "Resultado"
 
 #: frappe/email/doctype/email_queue/email_queue_list.js:27
 msgid "Resume Sending"
