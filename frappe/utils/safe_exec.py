@@ -285,6 +285,11 @@ def safer_log_error(
 	return log_doc.as_dict() if log_doc else None
 
 
+def safer_get_visible_columns(*args, **kwargs):
+	cols = get_visible_columns(*args, **kwargs)
+	return [c.as_dict() for c in cols] if cols is not None else None
+
+
 def get_safe_globals():
 	datautils = frappe._dict()
 
