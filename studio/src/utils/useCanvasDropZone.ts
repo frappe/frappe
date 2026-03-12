@@ -22,22 +22,18 @@ export function useCanvasDropZone(
 			if (!componentName) return
 			let newBlock = getComponentBlock(componentName, isStudioComponent)
 
-			function saveBlock(block: Block) {
-				if (slotName) {
-					parentComponent?.updateSlot(slotName, block)
-				} else {
-					parentComponent?.addChild(block, index)
-				}
+			if (slotName) {
+				parentComponent?.updateSlot(slotName, newBlock)
+			} else {
+				parentComponent?.addChild(newBlock, index)
 			}
 
 			if (newBlock.editInFragmentMode()) {
 				canvasStore.editOnCanvas(
 					newBlock,
-					(editedBlock: Block) => saveBlock(editedBlock),
+					(editedBlock: Block) => parentComponent?.replaceChild(newBlock, editedBlock),
 					`Save ${componentName}`
 				)
-			} else {
-				saveBlock(newBlock)
 			}
 		},
 		onOver: (_files, ev) => {

@@ -47,7 +47,11 @@
 								icon="settings"
 								@click.prevent="store.studioLayout.rightPanelActiveTab = 'Interface'"
 							></Button>
-							<Button variant="solid" class="text-xs" @click="saveAndExitFragmentMode">
+							<Button variant="subtle" class="text-xs" @click="canvasStore.exitFragmentMode">
+								<template #prefix><FeatherIcon name="chevron-left" class="!h-3 !w-3" /></template>
+								Page
+							</Button>
+							<Button variant="solid" class="text-xs" @click="saveFragmentMode">
 								{{ canvasStore.fragmentData.saveActionLabel || "Save" }}
 							</Button>
 						</div>
@@ -166,6 +170,7 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
 import { getRootBlock } from "@/utils/serializer"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import { toast } from "vue-sonner"
 
 const route = useRoute()
 const router = useRouter()
@@ -195,9 +200,9 @@ watchEffect(() => {
 	}
 })
 
-async function saveAndExitFragmentMode(e: Event) {
+async function saveFragmentMode() {
 	canvasStore.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
-	canvasStore.exitFragmentMode(e)
+	toast.success(`${canvasStore.fragmentData.fragmentName} saved successfully`)
 }
 
 const debouncedPageSave = useDebounceFn(store.savePage, 300)
@@ -206,13 +211,16 @@ watch(
 	() => {
 		if (
 			store.selectedPage &&
-			canvasStore.editingMode === "page" &&
 			!pageCanvas.value?.canvasProps?.settingCanvas &&
 			!store.settingPage &&
 			!store.savingPage
 		) {
 			store.savingPage = true
-			debouncedPageSave()
+			if (canvasStore.editingMode === "page") {
+				debouncedPageSave()
+			} else {
+				store.savePage(pageCanvas.value?.getRootBlock())
+			}
 		}
 	},
 	{ deep: true },
