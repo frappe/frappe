@@ -63,6 +63,7 @@ import { isDynamicValue } from "@/utils/code"
 
 import useCodeStore from "@/stores/codeStore"
 import { toast } from "vue-sonner"
+import type { RepeaterContext } from "@/types"
 import type { Field } from "@/types/ComponentEvent"
 import type { DataResult } from "@/types/Studio/StudioResource"
 
@@ -96,12 +97,12 @@ const classes = computed(() => {
 })
 
 const codeStore = useCodeStore()
-const repeaterContext = inject("repeaterContext", {})
+const repeaterContext = inject<ComputedRef<RepeaterContext> | null>("repeaterContext", null)
 const componentContext = inject<ComputedRef | null>("componentContext", null)
 
 const evaluationContext = computed(() => {
 	return {
-		...repeaterContext,
+		...repeaterContext?.value,
 		...componentContext?.value,
 	}
 })
@@ -207,7 +208,7 @@ const componentEvents = computed(() => {
 				}
 			} else if (event.action === "Run Script") {
 				return (...eventArgs: any[]) => {
-					codeStore.executeUserScript(event.script, repeaterContext, componentContext?.value, eventArgs)
+					codeStore.executeUserScript(event.script, repeaterContext?.value, componentContext?.value, eventArgs)
 				}
 			}
 		}
@@ -222,7 +223,7 @@ const handleSuccess = (event: any) => (data: DataResult) => {
 		return codeStore.handleSuccess(
 			event.on_success_script,
 			data,
-			repeaterContext,
+			repeaterContext?.value,
 			componentContext?.value,
 			event.eventArgs,
 		)
@@ -240,7 +241,7 @@ const handleError = (event: any) => (error: any) => {
 		return codeStore.handleError(
 			event.on_error_script,
 			error,
-			repeaterContext,
+			repeaterContext?.value,
 			componentContext?.value,
 			event.eventArgs,
 		)

@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { provide, reactive } from "vue"
+import { computed, provide } from "vue"
 
 const props = defineProps<{
 	dataItem: any
@@ -11,11 +11,11 @@ const props = defineProps<{
 	dataKey: string
 }>()
 
-const context = reactive({
+const context = computed(() => ({
 	dataItem: props.dataItem,
 	dataIndex: props.dataIndex,
 	dataKey: props.dataKey,
-})
+}))
 
 provide("repeaterContext", context)
 </script>

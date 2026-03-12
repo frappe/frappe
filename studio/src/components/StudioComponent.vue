@@ -169,11 +169,11 @@ const componentName = computed(() => {
 	return proxyComponent ? proxyComponent : props.block.componentName
 })
 
-const repeaterContext = inject<RepeaterContext | object>("repeaterContext", {})
+const repeaterContext = inject<ComputedRef<RepeaterContext> | null>("repeaterContext", null)
 const componentContext = inject<ComputedRef | null>("componentContext", null)
 const evaluationContext = computed(() => {
 	return {
-		...repeaterContext,
+		...repeaterContext?.value,
 		...componentContext?.value,
 	}
 })
@@ -276,8 +276,8 @@ const getClickedComponent = (e: MouseEvent) => {
 const handleClick = (e: MouseEvent) => {
 	const block = getClickedComponent(e) || props.block
 	canvasStore.activeCanvas?.selectBlock(block, e)
-	if (repeaterContext) {
-		block.setRepeaterDataItem((repeaterContext as RepeaterContext).dataItem)
+	if (repeaterContext?.value) {
+		block.setRepeaterDataItem((repeaterContext.value as RepeaterContext).dataItem)
 	}
 
 	const slotName = (e.target as HTMLElement).dataset.slotName
