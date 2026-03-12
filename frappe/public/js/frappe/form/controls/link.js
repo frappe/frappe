@@ -674,8 +674,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 =======
 		const args = this.get_search_args(value);
 		if (!args) return;
+<<<<<<< HEAD
 		const has_filters = !!(args.filters && Object.keys(args.filters).length);
 >>>>>>> 3fd45ad05f (fix: enforce link_filters on link fields server-side)
+=======
+>>>>>>> b31067e769 (refactor: move has_filters declaration to usage location)
 
 		const columns_to_fetch = Object.values(this.fetch_map);
 
@@ -758,6 +761,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			.then((response) => {
 				if (!response) return;
 
+				const has_filters = !!(args.filters && Object.keys(args.filters).length);
 				if (!response.name && has_filters) {
 					frappe.show_alert({
 						message: __("{0}: {1} did not match any results.", [
