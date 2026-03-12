@@ -290,6 +290,20 @@ def safer_get_visible_columns(*args, **kwargs):
 	return [c.as_dict() for c in cols] if cols is not None else None
 
 
+def safer_get_print(*args, **kwargs):
+	print_obj = frappe.get_print(*args, **kwargs)
+	return print_obj if isinstance(print_obj, (str, bytes)) else None
+
+
+def safer_attach_print(*args, **kwargs):
+	print_obj = frappe.attach_print(*args, **kwargs)
+	fname = print_obj.get("fname")
+	fcontent = print_obj.get("fcontent")
+	if isinstance(fname, str) and isinstance(fcontent, (str, bytes)):
+		return print_obj
+	return None
+
+
 def get_safe_globals():
 	datautils = frappe._dict()
 
