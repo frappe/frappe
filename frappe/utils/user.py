@@ -145,8 +145,6 @@ class UserPermissions:
 						no_list_view_link.append(dt)
 					else:
 						self.can_read.append(dt)
-						if dtp["module"] not in self.permitted_modules:
-							self.permitted_modules.append(dtp["module"])
 			if p.get("submit"):
 				self.can_submit.append(dt)
 
@@ -186,6 +184,11 @@ class UserPermissions:
 		)
 		self.can_read = list(set(self.can_read + self.shared))
 		self.all_read += self.can_read
+		# generate permitted_modules using self.all_read
+		for name in self.all_read:
+			module = self.doctype_map[name].get("module")
+			if module not in self.permitted_modules:
+				self.permitted_modules.append(module)
 
 		for dt in no_list_view_link:
 			if dt in self.can_read:

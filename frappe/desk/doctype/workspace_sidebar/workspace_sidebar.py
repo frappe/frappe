@@ -51,9 +51,7 @@ class WorkspaceSidebar(Document):
 			self.user.build_permissions()
 
 	def before_save(self):
-		self.export_sidebar()
-		if not self.for_user:
-			self.set_module()
+		self.set_module()
 
 	def export_sidebar(self):
 		allow_export = (
@@ -115,7 +113,7 @@ class WorkspaceSidebar(Document):
 		return value
 
 	def set_module(self):
-		if not self.module:
+		if self.standard:
 			self.module = self.get_module_from_items()
 
 	def get_module_from_items(self):

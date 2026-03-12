@@ -551,6 +551,8 @@ def get_icons_and_sidebar(bootinfo):
 	bootinfo.workspace_sidebar_item = {}
 	for sidebar in frappe.get_all("Workspace Sidebar", pluck="name"):
 		sidebar_doc = frappe.get_doc("Workspace Sidebar", sidebar)
+		if sidebar_doc.module not in frappe.get_user().permitted_modules:
+			continue
 		allowed_items = []
 		for item in sidebar_doc.items:
 			if is_item_allowed(item.link_to, item.link_type, bootinfo):
@@ -568,7 +570,7 @@ def get_icons_and_sidebar(bootinfo):
 			if icon_doc.link_type == "Workspace Sidebar" and bootinfo.workspace_sidebar_item[icon.lower()]:
 				bootinfo.desktop_icons.append(icon_doc.as_dict())
 		except KeyError as e:
-			print("Helo", e)
+			print(e)
 
 
 def is_item_allowed(item_name, item_type, bootinfo):
