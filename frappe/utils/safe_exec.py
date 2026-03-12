@@ -252,6 +252,10 @@ def safer_get_mapped_doc(
 	return doc.as_dict() if doc else None
 
 
+def safer_new_doc(*args, **kwargs):
+	return frappe.new_doc(*args, **kwargs).as_dict()
+
+
 def get_safe_globals():
 	datautils = frappe._dict()
 
