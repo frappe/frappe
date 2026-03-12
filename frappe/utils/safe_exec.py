@@ -462,6 +462,41 @@ def get_safe_globals():
 	return out
 
 
+def get_safer_globals():
+	"""Safer subset of globals"""
+	out = get_safe_globals()
+
+	out.frappe.pop("qb", None)
+	out.frappe.pop("delete_doc", None)
+	out.frappe.pop("render_template", None)
+	out.frappe.update(
+		{
+			"copy_doc": safer_copy_doc,
+			"get_meta": safer_get_meta,
+			"new_doc": safer_new_doc,
+			"get_doc": get_doc_as_dict,
+			"get_mapped_doc": safer_get_mapped_doc,
+			"get_last_doc": safer_get_last_doc,
+			"get_cached_doc": safer_get_cached_doc,
+			"get_list": safe_get_list,
+			"get_all": safe_get_all,
+			"sendmail": safer_sendmail,
+			"get_print": safer_get_print,
+			"attach_print": safer_attach_print,
+			"enqueue": safer_enqueue,
+			"log_error": safer_log_error,
+			"get_visible_columns": safer_get_visible_columns,
+		}
+	)
+	out.frappe.db.update(
+		{
+			"get_list": safe_get_list,
+			"get_all": safe_get_all,
+		}
+	)
+	return out
+
+
 def get_keys_for_autocomplete(
 	key: str,
 	value: Any,
