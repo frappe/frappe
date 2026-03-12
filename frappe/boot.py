@@ -539,6 +539,15 @@ def get_sidebar_items(allowed_workspaces):
 	from frappe import _
 	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import auto_generate_sidebar_from_module
 
+	if isinstance(allowed_workspaces, dict):
+		allowed_workspaces = allowed_workspaces.get("pages", [])
+
+	allowed_workspace_names = {
+		workspace.get("name") if isinstance(workspace, dict) else workspace
+		for workspace in (allowed_workspaces or [])
+		if workspace
+	}
+
 	workspace_sidebars = frappe.get_all("Workspace Sidebar", fields=["name", "header_icon"])
 	module_sidebars = auto_generate_sidebar_from_module()
 	workspace_sidebars.extend(module_sidebars)
@@ -565,6 +574,9 @@ def get_sidebar_items(allowed_workspaces):
 				"app": sidebar_doc.app,
 			}
 			for item in sidebar_doc.items:
+				if item.link_type == "Workspace" and item.link_to not in allowed_workspace_names:
+					continue
+
 				workspace_sidebar = {
 					"label": _(item.label),
 					"link_to": item.link_to,
@@ -593,7 +605,7 @@ def get_sidebar_items(allowed_workspaces):
 				if (
 					"My Workspaces" in sidebar_title
 					or item.type == "Section Break"
-					or sidebar_doc.is_item_allowed(item.link_to, item.link_type, allowed_workspaces)
+					or sidebar_doc.is_item_allowed(item.link_to, item.link_type, allowed_workspace_names)
 				):
 					sidebar_items[sidebar_title.lower()]["items"].append(workspace_sidebar)
 	add_user_specific_sidebar(sidebar_items)
