@@ -554,6 +554,23 @@ class TestDocument(IntegrationTestCase):
 		changed_val = frappe.db.get_single_value(c.doctype, key)
 		self.assertEqual(val, changed_val)
 
+	def test_non_submittable_doctype_docstatus_transition(self):
+		doc = frappe.get_doc({"doctype": "ToDo", "description": "test submit guard"}).insert()
+		doc.docstatus = 1
+
+		self.assertRaises(frappe.DocstatusTransitionError, doc.save)
+
+	def test_skip_docstatus_validation_flag(self):
+		doc = frappe.get_doc({"doctype": "ToDo", "description": "test skip flag"}).insert()
+		doc.docstatus = 1
+		self.assertRaises(frappe.DocstatusTransitionError, doc.save)
+
+		doc.reload()
+		doc.docstatus = 1
+		doc.flags.skip_docstatus_validation = True
+		doc.save()
+		self.assertEqual(frappe.db.get_value("ToDo", doc.name, "docstatus"), 1)
+
 
 class TestDocumentWebView(IntegrationTestCase):
 	def get(self, path, user="Guest"):
