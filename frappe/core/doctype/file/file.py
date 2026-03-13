@@ -115,6 +115,16 @@ class File(Document):
 		if self.is_folder:
 			return
 
+		if self.flags.copy_from_existing_file:
+			# Preserve the normal insert lifecycle for hooks and validations, but skip
+			# reprocessing an existing blob that is already referenced by `file_url`.
+			if not self.file_url:
+				frappe.throw(
+					_("File URL is required when copying an existing attachment."),
+					exc=frappe.MandatoryError,
+				)
+			return
+
 		if self.is_remote_file:
 			self.validate_remote_file()
 		else:
@@ -127,6 +137,28 @@ class File(Document):
 	def after_insert(self):
 		if not self.is_folder:
 			self.create_attachment_record()
+
+	def create_attachment_copy(
+		self,
+		attached_to_doctype: str,
+		attached_to_name: str,
+		attached_to_field: str | None = None,
+		ignore_permissions: bool = False,
+	):
+		"""Efficiently copy an attachment from one document to another by reusing `file_url`."""
+		if self.is_folder:
+			frappe.throw(_("Cannot attach a folder to a document"))
+
+		attachment = frappe.copy_doc(self)
+		attachment.update(
+			{
+				"attached_to_doctype": attached_to_doctype,
+				"attached_to_name": attached_to_name,
+				"attached_to_field": attached_to_field,
+			}
+		)
+		attachment.flags.copy_from_existing_file = True
+		return attachment.insert(ignore_permissions=ignore_permissions)
 
 	def validate(self):
 		if self.is_folder:
