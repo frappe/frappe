@@ -548,9 +548,16 @@ def get_sentry_dsn():
 
 def get_icons_and_sidebar(bootinfo):
 	bootinfo.desktop_icons = []
+	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import auto_generate_sidebar_from_module
+
 	bootinfo.workspace_sidebar_item = {}
-	for sidebar in frappe.get_all("Workspace Sidebar", pluck="name"):
-		sidebar_doc = frappe.get_doc("Workspace Sidebar", sidebar)
+	sidebars = frappe.get_all("Workspace Sidebar", pluck="name") + auto_generate_sidebar_from_module()
+	for sidebar in sidebars:
+		if isinstance(sidebar, str):
+			sidebar_doc = frappe.get_doc("Workspace Sidebar", sidebar)
+		else:
+			sidebar_doc = sidebar
+			sidebar = sidebar_doc.title
 		if sidebar_doc.module not in frappe.get_user().permitted_modules:
 			continue
 		allowed_items = []
@@ -560,6 +567,7 @@ def get_icons_and_sidebar(bootinfo):
 		if len(allowed_items) > 0 and not all(item.type == "Section Break" for item in allowed_items):
 			bootinfo.workspace_sidebar_item[sidebar.lower()] = sidebar_doc.as_dict()
 			bootinfo.workspace_sidebar_item[sidebar.lower()]["items"] = allowed_items
+
 	for icon in frappe.get_all("Desktop Icon", pluck="name"):
 		icon_doc = frappe.get_doc("Desktop Icon", icon)
 		try:
