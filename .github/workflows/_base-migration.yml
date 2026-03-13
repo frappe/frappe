@@ -1,0 +1,156 @@
+name: Migration Base
+on:
+  workflow_call:
+    inputs:
+      pre:
+        required: false
+        type: string
+      fake-success:
+        required: false
+        type: boolean
+        default: false
+      python-version:
+        required: false
+        type: string
+        default: '3.14'
+      node-version:
+        required: false
+        type: number
+        default: 24
+      db-artifact-url:
+        required: false
+        type: string
+jobs:
+  migration-test:
+    name: Migrate
+    runs-on: ubuntu-latest
+    if: ${{ inputs.fake-success == false }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+    env:
+      PYTHONWARNINGS: "ignore"
+      DB_ROOT_PASSWORD: db_root
+    services:
+      mariadb:
+        image: mariadb:11.8
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
+        env:
+          MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+    steps:
+    - uses: actions/checkout@v6
+    - uses: ./.github/actions/setup
+      name: Environment Setup
+      with:
+        python-version: ${{ inputs.python-version }}
+        node-version: ${{ inputs.node-version }}
+        disable-socketio: true
+        disable-web: true
+        db-root-password: ${{ env.DB_ROOT_PASSWORD }}
+        
+    - name: Setup Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: |
+          3.11
+          3.13
+          ${{ inputs.python-version }}
+          
+
+    - name: Execute pre-migration tasks
+      if: inputs.pre
+      run: |
+        ${{ inputs.pre }}
+
+    - name: Download database artifact
+      env:
+        DB_ARTIFACT_URL: ${{ inputs.db-artifact-url }}
+      run: |
+        wget "$DB_ARTIFACT_URL"
+        bench --site test_site --force restore ${GITHUB_WORKSPACE}/$(basename "$DB_ARTIFACT_URL")
+
+        function update_to_version() {
+            version="$1"
+            python_version="${2:-${{ inputs.python-version }}}"
+
+            if [ -z "$version" ]; then
+                ref="${{ github.sha }}"
+            else
+                ref="version-$version-hotfix"
+            fi
+
+            echo "Updating to $ref"
+
+            git -C apps/frappe fetch --depth 1 upstream "$ref":"$ref"
+            git -C apps/frappe checkout --quiet --force "$ref"
+
+            if pgrep honcho > /dev/null; then
+                pgrep honcho | xargs kill
+                sleep 10
+            fi
+
+            bench migrate-env "python$python_version"
+
+            bench setup requirements
+            bench start &>> ${GITHUB_WORKSPACE}/bench_start.log &
+            bench --site test_site migrate
+        }
+
+        declare -f update_to_version > "$RUNNER_TEMP/migrate"
+
+    - name: Update to v15
+      run: |
+        source $RUNNER_TEMP/migrate
+        update_to_version 15 3.13
+        exit $?
+
+    - name: Update to v16
+      run: |
+        source $RUNNER_TEMP/migrate
+        update_to_version 16
+        exit $?
+
+    - name: Update to last commit
+      run: |
+        source $RUNNER_TEMP/migrate
+        update_to_version
+        exit $?
+        bench --site test_site execute frappe.tests.utils.check_orpahned_doctypes
+
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
+
+    - name: Show bench output
+      if: ${{ always() }}
+      run: |
+        cat bench_start.log || true
+        cd logs
+        for f in ${GITHUB_WORKSPACE}/*.log*; do
+          echo "Printing log: $f";
+          cat $f
+        done
+
+  # TIP: Use these for checks, e.g. Migration / Success
+  success:
+    name: Success
+    needs: [migration-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Migration '${{ needs.migration-test.result }}'
+        shell: python
+        run: |
+          stati = [
+            '${{ needs.migration-test.result }}',
+          ]
+
+          nopass = ["failure", "cancelled"]
+          dopass = ["success", "skipped"]
+          if any(r in nopass for r in stati):
+            exit(1)
+          if all(r in dopass for r in stati):
+            exit(0)
+          exit(1)
