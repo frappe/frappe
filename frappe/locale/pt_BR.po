@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-03-08 09:40+0000\n"
-"PO-Revision-Date: 2026-03-12 03:09\n"
+"PO-Revision-Date: 2026-03-13 03:23\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -13553,7 +13553,7 @@ msgstr ""
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Introduction"
-msgstr ""
+msgstr "Introdução"
 
 #. Description of the 'Introduction' (Text Editor) field in DocType 'Contact Us
 #. Settings'
@@ -15037,7 +15037,7 @@ msgstr ""
 #: frappe/public/js/frappe/list/bulk_operations.js:52
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:144
 msgid "Letter Head"
-msgstr ""
+msgstr "Papel Timbrado"
 
 #. Label of the source (Select) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
@@ -22648,7 +22648,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:424
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:439
 msgid "Result"
-msgstr ""
+msgstr "Resultado"
 
 #: frappe/email/doctype/email_queue/email_queue_list.js:27
 msgid "Resume Sending"
