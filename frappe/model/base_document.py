@@ -1324,7 +1324,7 @@ class BaseDocument:
 			df = self.meta.get_field(key)
 			db_value = db_values.get(key)
 
-			if df and not df.allow_on_submit and (self.get(key) or db_value):
+			if df and not df.allow_on_submit and not df.is_virtual and (self.get(key) or db_value):
 				if df.fieldtype in table_fields:
 					# just check if the table size has changed
 					# individual fields will be checked in the loop for children

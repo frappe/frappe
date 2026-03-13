@@ -727,6 +727,7 @@ doctype_properties = {
 	"sort_field": "Data",
 	"sort_order": "Data",
 	"default_print_format": "Data",
+	"hide_toolbar": "Check",
 	"allow_copy": "Check",
 	"istable": "Check",
 	"quick_entry": "Check",

@@ -671,9 +671,11 @@ export default class Grid {
 			this.wrapper.find(".grid-footer").addClass("hidden");
 		}
 
+		// don't be tempted to use the `.hidden` class here
+		// it is used in other logic for the same buttons and will cause conflicts
 		this.wrapper
 			.find(".grid-add-row, .grid-add-multiple-rows, .grid-upload")
-			.toggleClass("hidden", !is_editable);
+			.toggleClass("d-none", !is_editable);
 	}
 
 	setup_fields() {

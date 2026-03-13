@@ -244,12 +244,15 @@ class UserPermissions:
 			self.build_permissions()
 
 		if d.get("default_workspace"):
-			workspace = frappe.get_cached_doc("Workspace", d.default_workspace)
-			d.default_workspace = {
-				"name": workspace.name,
-				"public": workspace.public,
-				"title": workspace.title,
-			}
+			try:
+				workspace = frappe.get_cached_doc("Workspace", d.default_workspace)
+				d.default_workspace = {
+					"name": workspace.name,
+					"public": workspace.public,
+					"title": workspace.title,
+				}
+			except frappe.DoesNotExistError:
+				d.default_workspace = None
 
 		d.name = self.name
 		d.onboarding_status = frappe.parse_json(d.onboarding_status)

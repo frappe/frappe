@@ -46,15 +46,22 @@ frappe.ui.menu = class ContextMenu {
 	make() {
 		this.template.empty();
 		this.menu_items_to_show = [];
-		this.menu_items.forEach((f) => {
-			f.condition =
-				f.condition ||
+		this.menu_items.forEach((item) => {
+			item.condition =
+				item.condition ||
 				function () {
 					return true;
 				};
-			if (f.condition()) {
-				this.add_menu_item(f);
-				this.menu_items_to_show.push(f);
+			console.log(typeof item.condition);
+			let render = false;
+			if (typeof item.condition == "function") {
+				render = item.condition();
+			} else {
+				render = frappe.utils.eval_expression(item.condition);
+			}
+			if (render) {
+				this.add_menu_item(item);
+				this.menu_items_to_show.push(item);
 			}
 		});
 
@@ -133,7 +140,9 @@ frappe.ui.menu = class ContextMenu {
 								me.current_menu = null;
 							} else {
 								// this ensures the other nested item would close before opening the next one
+								me.current_menu.nested_menus.forEach((m) => m.hide());
 								me.current_menu.hide();
+								me.current_menu = null;
 								me.nested_menus.forEach((menu) => {
 									if (menu.parent.get(0) == this) {
 										me.current_menu = menu;

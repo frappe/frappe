@@ -14,7 +14,7 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
-from frappe.utils import add_to_date, cast, now_datetime, nowdate, validate_email_address
+from frappe.utils import add_to_date, cast, cint, now_datetime, nowdate, validate_email_address
 from frappe.utils.data import evaluate_filters
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
@@ -103,7 +103,7 @@ class Notification(Document):
 				return _("Yes") if evaluate_filters(doc, json.loads(self.filters)) else _("No")
 		except Exception as e:
 			frappe.local.message_log = []
-			return _("Failed to evaluate conditions: {}").format(e)
+			return _("Failed to evaluate conditions: {}").format(str(e))
 
 	@frappe.whitelist()
 	def preview_message(self, preview_document: str):
@@ -120,7 +120,7 @@ class Notification(Document):
 				return frappe.utils.strip_html_tags(msg)
 			return msg
 		except Exception as e:
-			return _("Failed to render message: {}").format(e)
+			return _("Failed to render message: {}").format(str(e))
 
 	@frappe.whitelist()
 	def preview_subject(self, preview_document: str):
@@ -138,7 +138,7 @@ class Notification(Document):
 				return frappe.render_template(self.subject, context)
 			return self.subject
 		except Exception as e:
-			return _("Failed to render subject: {}").format(e)
+			return _("Failed to render subject: {}").format(str(e))
 
 	# END: PreviewRenderer API
 
@@ -721,7 +721,22 @@ def get_context(context):
 		self.message = self.get_template(md_as_html=True)
 
 	def on_trash(self):
+		if self.is_standard:
+			# Prevent deletion of standard notifications outside developer mode to avoid restoration during migration
+			if not frappe.conf.developer_mode and not frappe.flags.in_migrate and not frappe.flags.in_patch:
+				frappe.throw(
+					_("You are not allowed to delete a standard Notification. You can disable it instead.")
+				)
+
+			if frappe.conf.developer_mode and not frappe.flags.in_test:
+				frappe.db.after_commit(self.delete_notification_folder)
+
 		clear_notification_cache()
+
+	def delete_notification_folder(self):
+		from frappe.modules.export_file import delete_folder
+
+		delete_folder(self.module, "Notification", self.name)
 
 
 def clear_notification_cache():

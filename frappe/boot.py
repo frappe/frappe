@@ -151,9 +151,10 @@ def get_letter_heads():
 
 
 def load_conf_settings(bootinfo):
-	from frappe.core.api.file import get_max_file_size
+	from frappe.core.api.file import get_file_chunk_size, get_max_file_size
 
 	bootinfo.max_file_size = get_max_file_size()
+	bootinfo.file_chunk_size = get_file_chunk_size()
 	for key in ("developer_mode", "socketio_port", "file_watcher_port"):
 		if key in frappe.conf:
 			bootinfo[key] = frappe.conf.get(key)
@@ -548,7 +549,9 @@ def get_sidebar_items(allowed_workspaces):
 		if workspace
 	}
 
-	workspace_sidebars = frappe.get_all("Workspace Sidebar", fields=["name", "header_icon"])
+	workspace_sidebars = frappe.get_all(
+		"Workspace Sidebar", fields=["name", "header_icon", "module_onboarding"]
+	)
 	module_sidebars = auto_generate_sidebar_from_module()
 	workspace_sidebars.extend(module_sidebars)
 	sidebar_items = {}
@@ -570,6 +573,7 @@ def get_sidebar_items(allowed_workspaces):
 				"label": sidebar_title,
 				"items": [],
 				"header_icon": sidebar.get("header_icon"),
+				"module_onboarding": sidebar.get("module_onboarding"),
 				"module": sidebar_doc.module,
 				"app": sidebar_doc.app,
 			}

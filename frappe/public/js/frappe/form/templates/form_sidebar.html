@@ -1,4 +1,3 @@
-<div class="sidebar-section user-actions hidden"></div>
 <div class="flex justify-between sidebar-image-section sidebar-section hide">
 	<div class="sidebar-image-wrapper">
 		<img class="sidebar-image">
@@ -25,7 +24,6 @@
 			<svg class="icon icon-sm like-icon pointer">
 				<use href="#icon-heart"></use>
 			</svg>
-			<span class="like-count ml-2"></span>
 		</span>
 	</div>
 	{% endif %}
@@ -34,14 +32,19 @@
 	<div class="flex justify-between overflow-hidden">
 		<div class="ellipsis">
 			{% let title = frm.get_title(); %}
-			{% if (title && title !== frm.doc.name) { %}
 			<div class="form-details flex justify-between">
 				<span class="bold ellipsis form-title-text mr-3 text-medium">{%= frappe.utils.escape_html(frappe.utils.html2text(title)) %}</span>
 			</div>
-			{% } %}
-			<div class="form-name-container mt-2 flex justify-between form-name-copy" data-copy="{{frm.doc.name}}" title="{{frm.doc.name}}" >
+			{% if frm.meta.beta %}
+			<div class="pt-1">
+				<label class="indicator-pill yellow mb-0" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental") }}</label>
+			</div>
+			{% endif %}
+			{% if (title && title !== frm.doc.name) { %}
+			<div class="form-name-container mt-1 flex justify-between form-name-copy" data-copy="{{frm.doc.name}}" title="{{frm.doc.name}}" >
 				<span class="ellipsis mr-3">{%= frm.doc.name %}</span>
 			</div>
+			{% } %}
 		</div>
 		{% if not image_field %}
 		<div class="align-items-baseline flex form-stats-likes">
@@ -51,21 +54,10 @@
 				<svg class="icon icon-sm like-icon pointer">
 					<use href="#icon-heart"></use>
 				</svg>
-				<span class="like-count ml-2"></span>
 			</span>
 		</div>
 		{% endif %}
 	</div>
-	{% if frm.meta.beta %}
-	<div class="flex pt-2 justify-between">
-		<div>
-			<a class="small text-muted" href="https://github.com/frappe/{{ frappe.boot.module_app[frappe.scrub(frm.meta.module)] }}/issues/new"
-				target="_blank">
-			{{ __("Report bug") }}</a>
-		</div>
-		<label class="indicator-pill yellow mb-0" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental") }}</label>
-	</div>
-	{% endif %}
 </div>
 <div class="sidebar-section sidebar-rating hide border-bottom">
 	<div style="position: relative;">
@@ -81,6 +73,15 @@
 		<a class="help-link list-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a>
 	</div>
 	{% } %}
+</div>
+<div class="sidebar-section user-actions hidden border-bottom">
+	<div class="form-sidebar-items user-actions-header">
+		<div class="form-sidebar-label">
+			{%= frappe.utils.icon("link-2") %}
+			<span class="ellipsis">{%= __("Links") %}</span>
+		</div>
+	</div>
+	<div class="user-actions-list"></div>
 </div>
 <div class="sidebar-section form-assignments">
 	<div>

@@ -24,7 +24,7 @@ frappe.ui.form.on("Recorder", {
 		});
 
 		let index_grid = frm.fields_dict.suggested_indexes.grid;
-		index_grid.wrapper.find(".grid-footer").toggle(true);
+		index_grid.wrapper.find(".grid-footer").toggleClass("hidden", false);
 		index_grid.toggle_checkboxes(true);
 		index_grid.df.cannot_delete_rows = true;
 		index_grid.add_custom_button(__("Add Indexes"), function () {

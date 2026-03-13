@@ -793,11 +793,21 @@ class Meta(Document):
 						group.get("items").append(doctype)
 					link.added = True
 
+					# Add fieldname to transaction group for external links
+					if not link.is_child_table:
+						if "fieldnames" not in group:
+							group["fieldnames"] = {}
+						group["fieldnames"][link.link_doctype] = link.link_fieldname
+
 			if not link.added:
 				# group not found, make a new group
-				data.transactions.append(
-					dict(label=link.group, items=[link.parent_doctype or link.link_doctype])
-				)
+				new_group = dict(label=link.group, items=[link.parent_doctype or link.link_doctype])
+
+				# Add fieldname to new transaction group for external links
+				if not link.is_child_table:
+					new_group["fieldnames"] = {link.link_doctype: link.link_fieldname}
+
+				data.transactions.append(new_group)
 
 			if not data.fieldname and link.link_fieldname:
 				data.fieldname = link.link_fieldname
@@ -884,6 +894,12 @@ def get_field_currency(df, doc=None):
 					if frappe.get_meta(doc.parenttype).has_field(df.get("options")):
 						# only get_value if parent has currency field
 						currency = frappe.db.get_value(doc.parenttype, doc.parent, df.get("options"))
+						if not currency:
+							# Parent may not be in DB yet (new document being saved).
+							# Use the in-memory parent document reference if available.
+							parent = getattr(doc, "parent_doc", None)
+							if parent:
+								currency = parent.get(df.get("options"))
 
 		if currency:
 			frappe.local.field_currency.setdefault((doc.doctype, ref_docname), frappe._dict()).setdefault(

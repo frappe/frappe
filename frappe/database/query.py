@@ -19,6 +19,7 @@ from frappe.database.utils import (
 	get_doctype_name,
 	get_doctype_sort_info,
 )
+from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
 from frappe.model.document import Document
@@ -453,7 +454,7 @@ class Engine:
 							self.query = self.query.where(combined_criterion)
 				except Exception as e:
 					# Log the original filters list for better debugging context
-					frappe.throw(_("Error parsing nested filters: {0}. {1}").format(filters, e), exc=e)
+					frappe.throw(_("Error parsing nested filters: {0}. {1}").format(filters, str(e)), exc=e)
 
 			else:  # Not a nested structure, assume it's a list of simple filters (implicitly ANDed)
 				for filter_item in filters:
@@ -1040,8 +1041,8 @@ class Engine:
 			# for select permission on parent doctype, allow all permlevel 0 fields in filters
 			cache_key = (doctype, None, "_filterable_select")
 			if cache_key not in self.permitted_fields_cache:
-				if doctype in CORE_DOCTYPES:
-					# core doctypes have no restrictions - return all valid columns
+				if doctype in PERMITTED_CORE_DOCTYPES:
+					# no restrictions - return all valid columns
 					self.permitted_fields_cache[cache_key] = set(meta.get_valid_columns())
 				else:
 					permlevel_0_fields = set(meta.default_fields) | OPTIONAL_FIELDS

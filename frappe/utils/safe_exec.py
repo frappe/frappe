@@ -543,7 +543,11 @@ def _getattr_for_safe_exec(object, name, default=None):
 	# 2. it is not an UNSAFE_ATTRIBUTES
 	_validate_attribute_read(object, name)
 
-	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
+	ret = RestrictedPython.Guards.safer_getattr(object, name, default=default)
+	if isinstance(ret, types.ModuleType | types.CodeType | types.TracebackType | types.FrameType):
+		raise SyntaxError(f"Reading {type(ret)} is not allowed")
+
+	return ret
 
 
 def _get_attr_for_eval(object, name, default=ARGUMENT_NOT_SET):

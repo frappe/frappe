@@ -92,9 +92,9 @@ class PrintFormatGenerator:
 
 	def get_header_footer_html(self):
 		header_html = footer_html = None
-		if self.letterhead:
+		if self.letterhead or self.layout.get("header"):
 			header_html = frappe.render_template("templates/print_format/print_header.html", self.context)
-		if self.letterhead:
+		if self.letterhead or self.layout.get("footer"):
 			footer_html = frappe.render_template("templates/print_format/print_footer.html", self.context)
 		return header_html, footer_html
 

@@ -29,6 +29,7 @@ class WorkspaceSidebar(Document):
 		for_user: DF.Link | None
 		items: DF.Table[WorkspaceSidebarItem]
 		module: DF.Text | None
+		module_onboarding: DF.Link | None
 		standard: DF.Check
 		title: DF.Data | None
 	# end: auto-generated types
@@ -285,7 +286,6 @@ def auto_generate_sidebar_from_module():
 			sidebar.items = sidebar_items
 			sidebar.module = module
 			sidebar.header_icon = "hammer"
-			sidebar.app = frappe.local.module_app.get(frappe.scrub(module), None)
 			sidebars.append(sidebar)
 	return sidebars
 

@@ -751,7 +751,7 @@ class File(Document):
 			return self.save_file_on_filesystem()
 
 	def save_file_on_filesystem(self):
-		safe_file_name = re.sub(r"[/\\%?#]", "_", self.file_name)
+		safe_file_name = get_safe_file_name(self.file_name)
 		if self.is_private:
 			self.file_url = f"/private/files/{safe_file_name}"
 		else:
@@ -889,6 +889,14 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 		return True
 
 	if user != "Guest" and doc.owner == user:
+		return True
+	if (
+		user != "Guest"
+		and ptype in ["read", "write", "share", "submit"]
+		and frappe.share.get_shared(
+			"File", filters=[["share_name", "=", doc.name]], rights=[ptype], user=user
+		)
+	):
 		return True
 
 	if doc.attached_to_doctype and doc.attached_to_name:

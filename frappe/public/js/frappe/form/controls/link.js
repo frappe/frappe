@@ -938,6 +938,17 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			.then((response) => {
 				if (!response) return;
 
+				const has_filters = !!(args.filters && Object.keys(args.filters).length);
+				if (!response.name && has_filters) {
+					frappe.show_alert({
+						message: __("{0}: {1} did not match any results.", [
+							__(this.df.label || this.df.fieldname),
+							value,
+						]),
+						indicator: "red",
+					});
+				}
+
 				update_dependant_fields(response);
 				return response.name;
 			});

@@ -338,7 +338,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: parent.is_submittable",
+   "depends_on": "eval: parent.is_submittable || parent.istable",
    "fieldname": "allow_on_submit",
    "fieldtype": "Check",
    "label": "Allow on Submit",
@@ -647,7 +647,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-02-06 15:13:03.688027",
+ "modified": "2026-03-10 21:39:58.400441",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

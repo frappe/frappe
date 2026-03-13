@@ -478,17 +478,20 @@ def inline_style_in_html(html, add_css=True):
 
 def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=None, inline=False):
 	"""Add attachment to parent which must an email object"""
+
 	import mimetypes
+	from email import encoders
 	from email.mime.audio import MIMEAudio
 	from email.mime.base import MIMEBase
 	from email.mime.image import MIMEImage
 	from email.mime.text import MIMEText
 
-	if not content_type:
-		content_type, _encoding = mimetypes.guess_type(fname)
-
 	if not parent:
 		return
+
+	# Guess content type if not provided
+	if not content_type:
+		content_type, _encoding = mimetypes.guess_type(fname)
 
 	if content_type is None:
 		# No guess could be made, or the file is encoded (compressed), so
@@ -496,28 +499,38 @@ def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=N
 		content_type = "application/octet-stream"
 
 	maintype, subtype = content_type.split("/", 1)
+
 	if maintype == "text":
-		# Note: we should handle calculating the charset
+		if isinstance(fcontent, bytes):
+			# If bytes are provided, assume UTF-8
+			fcontent = fcontent.decode("utf-8")
+
+		part = MIMEText(fcontent, _subtype=subtype, _charset="utf-8")
+
+	elif maintype == "image":
 		if isinstance(fcontent, str):
 			fcontent = fcontent.encode("utf-8")
-		part = MIMEText(fcontent, _subtype=subtype, _charset="utf-8")
-	elif maintype == "image":
 		part = MIMEImage(fcontent, _subtype=subtype)
+
 	elif maintype == "audio":
+		if isinstance(fcontent, str):
+			fcontent = fcontent.encode("utf-8")
 		part = MIMEAudio(fcontent, _subtype=subtype)
+
 	else:
+		if isinstance(fcontent, str):
+			fcontent = fcontent.encode("utf-8")
+
 		part = MIMEBase(maintype, subtype)
 		part.set_payload(fcontent)
-		# Encode the payload using Base64
-		from email import encoders
-
 		encoders.encode_base64(part)
 
 	# Set the filename parameter
 	if fname:
 		attachment_type = "inline" if inline else "attachment"
-		clean_filename = re.sub("[\r\n]", "", str(fname))
+		clean_filename = re.sub(r"[\r\n]", "", str(fname))
 		part.add_header("Content-Disposition", attachment_type, filename=clean_filename)
+
 	if content_id:
 		part.add_header("Content-ID", f"<{content_id}>")
 

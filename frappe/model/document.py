@@ -598,7 +598,8 @@ class Document(BaseDocument):
 					"file_name": attach_item.file_name,
 					"attached_to_name": self.name,
 					"attached_to_doctype": self.doctype,
-					"folder": "Home/Attachments",
+					"attached_to_field": attach_item.attached_to_field,
+					"folder": attach_item.folder or "Home/Attachments",
 					"is_private": attach_item.is_private,
 				}
 			)
@@ -1040,7 +1041,7 @@ class Document(BaseDocument):
 		if not self.meta.issingle and self._action != "discard":
 			self.check_docstatus_transition(previous.docstatus)
 
-	def check_docstatus_transition(self, to_docstatus):
+	def check_docstatus_transition(self, from_docstatus):
 		"""Ensures valid `docstatus` transition.
 		Valid transitions are (number in brackets is `docstatus`):
 
@@ -1050,34 +1051,43 @@ class Document(BaseDocument):
 		- Submit (1) > Cancel (2)
 
 		"""
-		if to_docstatus == DocStatus.DRAFT:
-			if self.docstatus.is_draft():
+		if self.flags.skip_docstatus_validation:
+			return
+
+		to_docstatus = self.docstatus
+		if from_docstatus == DocStatus.DRAFT:
+			if to_docstatus.is_draft():
 				self._action = "save"
-			elif self.docstatus.is_submitted():
+			elif to_docstatus.is_submitted():
+				if not getattr(self.meta, "is_submittable", False):
+					frappe.throw(
+						_("Cannot change docstatus of non submittable doctype {0}").format(self.doctype),
+						frappe.DocstatusTransitionError,
+					)
 				self._action = "submit"
 				self.check_permission("submit")
-			elif self.docstatus.is_cancelled():
+			elif to_docstatus.is_cancelled():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)")
 				)
 			else:
-				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
+				raise frappe.ValidationError(_("Invalid docstatus"), to_docstatus)
 
-		elif to_docstatus == DocStatus.SUBMITTED:
-			if self.docstatus.is_submitted():
+		elif from_docstatus == DocStatus.SUBMITTED:
+			if to_docstatus.is_submitted():
 				self._action = "update_after_submit"
 				self.check_permission("submit")
-			elif self.docstatus.is_cancelled():
+			elif to_docstatus.is_cancelled():
 				self._action = "cancel"
 				self.check_permission("cancel")
-			elif self.docstatus.is_draft():
+			elif to_docstatus.is_draft():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)")
 				)
 			else:
-				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
+				raise frappe.ValidationError(_("Invalid docstatus"), to_docstatus)
 
-		elif to_docstatus == DocStatus.CANCELLED:
+		elif from_docstatus == DocStatus.CANCELLED:
 			raise frappe.ValidationError(_("Cannot edit cancelled document"))
 
 	def set_parent_in_children(self):

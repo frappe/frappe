@@ -1037,6 +1037,40 @@ class TestQuery(IntegrationTestCase):
 		self.assertEqual(len(result), 1, "Should find the note when filtering by permlevel 0 field")
 		self.assertEqual(result[0]["name"], note.name)
 
+	def test_core_doctype_filterable_fields_with_select_permission(self):
+		"""Core doctypes like User should allow filtering by any field when the user
+		only has select permission. Regression test for #37923."""
+		test_role = "CoreSelectTestRole"
+		test_user_email = "test2@example.com"
+
+		frappe.set_user("Administrator")
+		test_user = frappe.get_doc("User", test_user_email)
+		test_user.remove_roles(test_role)
+		frappe.delete_doc("Role", test_role, ignore_missing=True, force=True)
+
+		frappe.get_doc({"doctype": "Role", "role_name": test_role}).insert(ignore_if_duplicate=True)
+		add_permission("User", test_role, 0, ptype="select")
+		update_permission_property("User", test_role, 0, "read", 0, validate=False)
+		test_user.add_roles(test_role)
+
+		def cleanup():
+			frappe.set_user("Administrator")
+			test_user.remove_roles(test_role)
+			frappe.delete_doc("Role", test_role, ignore_missing=True, force=True)
+
+		self.addCleanup(cleanup)
+
+		frappe.set_user(test_user_email)
+
+		# filter by user_type and enabled — the exact filters used by search_link for assignment
+		result = frappe.qb.get_query(
+			"User",
+			filters={"user_type": "System User", "enabled": 1},
+			fields=["name"],
+			ignore_permissions=False,
+		).run(as_dict=True)
+		self.assertTrue(len(result) > 0, "Should be able to filter User by user_type and enabled")
+
 	def test_nested_permission(self):
 		"""Test permission on nested doctypes"""
 		frappe.set_user("Administrator")

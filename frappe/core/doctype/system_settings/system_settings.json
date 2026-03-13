@@ -248,7 +248,6 @@
   },
   {
    "default": "0",
-   "description": "Note: Multiple sessions will be allowed in case of mobile device",
    "fieldname": "deny_multiple_sessions",
    "fieldtype": "Check",
    "label": "Allow only one session per user"
@@ -790,7 +789,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-01-02 18:13:45.430712",
+ "modified": "2026-02-24 14:27:04.763075",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

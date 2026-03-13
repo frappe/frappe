@@ -270,6 +270,7 @@
 
 	.col:last-child {
 		border: none;
+		background-color: var(--fg-color);
 	}
 
 	.btn-open-row {
@@ -779,7 +780,7 @@
 .data-row.row {
 	flex-wrap: nowrap;
 }
-.frappe-control[data-fieldtype="Table"].form-group:has(.column-limit-reached) {
+.frappe-control[data-fieldtype="Table"].form-group:has(.column-limit-reached):not(.highlight) {
 	overflow-x: clip;
 }
 .column-limit-reached {

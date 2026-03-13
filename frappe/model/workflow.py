@@ -109,7 +109,7 @@ def evaluate_workflow_value(value, evaluate_as_expression, doc):
 			return frappe.safe_eval(value, get_workflow_safe_globals(), dict(doc=doc.as_dict()))
 		except Exception as e:
 			frappe.throw(
-				_("Invalid expression in Workflow Update Value: {0}").format(e),
+				_("Invalid expression in Workflow Update Value: {0}").format(str(e)),
 				title=_("Workflow Evaluation Error"),
 			)
 	else:

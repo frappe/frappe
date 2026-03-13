@@ -13,6 +13,7 @@
   "column_break_pukb",
   "standard",
   "app",
+  "module_onboarding",
   "section_break_vdyo",
   "items"
  ],
@@ -67,12 +68,18 @@
   {
    "fieldname": "section_break_vdyo",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "module_onboarding",
+   "fieldtype": "Link",
+   "label": "Module Onboarding",
+   "options": "Module Onboarding"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-02-02 12:35:38.009501",
+ "modified": "2026-02-20 15:19:27.520469",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Sidebar",

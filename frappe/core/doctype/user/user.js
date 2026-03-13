@@ -201,18 +201,19 @@ frappe.ui.form.on("User", {
 										},
 									],
 									primary_action: (values) => {
-										d.hide();
 										if (values.new_password !== values.confirm_password) {
 											frappe.throw(__("Passwords do not match!"));
 										}
-										frappe.call(
-											"frappe.integrations.doctype.ldap_settings.ldap_settings.reset_password",
-											{
-												user: frm.doc.email,
-												password: values.new_password,
-												logout: values.logout_sessions,
-											}
-										);
+										return frappe
+											.call(
+												"frappe.integrations.doctype.ldap_settings.ldap_settings.reset_password",
+												{
+													user: frm.doc.email,
+													password: values.new_password,
+													logout: values.logout_sessions,
+												}
+											)
+											.then(() => d.hide());
 									},
 								});
 								d.show();

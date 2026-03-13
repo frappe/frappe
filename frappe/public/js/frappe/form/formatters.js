@@ -95,11 +95,16 @@ frappe.form.formatters = {
 			return "";
 		}
 
+		const valuePrecision = value?.toString().split(".")[1]?.length || 0;
+
 		const precision =
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
 			2;
-		return frappe.form.formatters._right(format_number(value, null, precision) + "%", options);
+		return frappe.form.formatters._right(
+			format_number(value, null, Math.min(precision, valuePrecision)) + "%",
+			options
+		);
 	},
 	Rating: function (value, docfield) {
 		let rating_html = "";
@@ -416,7 +421,8 @@ function get_link_display_value(doctype, link_title, value) {
 	return link_title || value;
 }
 function format_attachment_url(url) {
-	return url ? `<a href="${url}" target="_blank">${url}</a>` : "";
+	let escaped = frappe.utils.escape_html(url);
+	return url ? `<a href="${escaped}" target="_blank">${escaped}</a>` : "";
 }
 
 frappe.form.get_formatter = function (fieldtype) {

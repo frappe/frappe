@@ -158,6 +158,13 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.in_refresh_slides = true;
 
 		this.update_values();
+		const welcome_slide = frappe.setup.slides_settings.find((s) => s.name === "welcome");
+		if (welcome_slide && this.values.language) {
+			const lang_field = welcome_slide.fields.find((f) => f.fieldname === "language");
+			if (lang_field) {
+				lang_field.default = this.values.language;
+			}
+		}
 		frappe.setup.slides = [];
 		frappe.setup.run_event("before_load");
 
@@ -444,14 +451,21 @@ frappe.setup.slides_settings = [
 			} else {
 				frappe.setup.utils.load_regional_data(slide, setup_fields);
 			}
+			let current_selection = frappe.wizard.values.language;
 			if (!slide.get_value("language")) {
 				let session_language =
+					current_selection ||
 					frappe.setup.utils.get_language_name_from_code(
 						frappe.boot.lang || navigator.language
-					) || "English";
+					) ||
+					"English";
 				let language_field = slide.get_field("language");
+				language_field.df.default = session_language;
 
 				language_field.set_input(session_language);
+				if (language_field.awesomplete) {
+					language_field.awesomplete.evaluate();
+				}
 				if (!frappe.setup._from_load_messages) {
 					language_field.$input.trigger("change");
 				}
@@ -539,7 +553,8 @@ frappe.setup.utils = {
 					frappe.wizard.values.currency = r.message.currency;
 					frappe.wizard.values.country = r.message.country;
 					frappe.wizard.values.timezone = r.message.time_zone;
-					frappe.wizard.values.language = r.message.language;
+					frappe.wizard.values.language =
+						frappe.wizard.values.language || r.message.language;
 
 					frappe.db.get_value(
 						"User",
@@ -582,6 +597,9 @@ frappe.setup.utils = {
 	setup_language_field: function (slide) {
 		var language_field = slide.get_field("language");
 		language_field.df.options = frappe.setup.data.lang.languages;
+		if (frappe.wizard.values.language) {
+			language_field.df.default = frappe.wizard.values.language;
+		}
 		language_field.set_options();
 	},
 
@@ -647,6 +665,7 @@ frappe.setup.utils = {
 							language: lang,
 						},
 						callback: function () {
+							frappe.wizard.values.language = lang;
 							frappe.setup._from_load_messages = true;
 							frappe.wizard.refresh_slides();
 						},

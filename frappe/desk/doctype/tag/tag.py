@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.utils import unique
@@ -43,6 +44,10 @@ def add_tag(tag: str, dt: str, dn: str, color: str | None = None):
 @frappe.whitelist()
 def add_tags(tags: str | list[str], dt: str, docs: str | list[str], color: str | None = None):
 	"adds a new tag to a record, and creates the Tag master"
+
+	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)
+
 	tags = frappe.parse_json(tags)
 	docs = frappe.parse_json(docs)
 	for doc in docs:
