@@ -190,6 +190,19 @@ def has_permission(
 		debug and _debug_log("Checking if document/doctype is explicitly shared with user")
 		perm = false_if_not_shared()
 
+	# select permission is implied by read permission
+	if not perm and ptype == "select":
+		perm = has_permission(
+			doctype,
+			ptype="read",
+			doc=doc,
+			user=user,
+			parent_doctype=parent_doctype,
+			print_logs=print_logs,
+			debug=debug,
+			ignore_share_permissions=ignore_share_permissions,
+		)
+
 	return bool(perm)
 
 
