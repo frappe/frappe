@@ -545,5 +545,6 @@ add_to_apps_screen = [
 		"logo": app_logo_url,
 		"title": app_title,
 		"route": app_home,
+		"has_permission": "frappe.permissions.has_app_permission",
 	}
 ]

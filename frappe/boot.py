@@ -595,7 +595,7 @@ def is_item_allowed(item_name, item_type, bootinfo):
 
 def check_app_permission(icon):
 	for a in frappe.get_installed_apps():
-		if frappe.get_hooks(app_name=a)["app_title"][0] == icon.label or icon.app == a:
+		if frappe.get_hooks("app_title", app_name=a)[0] == icon.label or icon.app == a:
 			app_detail = frappe.get_hooks("add_to_apps_screen", app_name=a)
 			if len(app_detail) != 0:
 				permission_method = app_detail[0].get("has_permission", None)

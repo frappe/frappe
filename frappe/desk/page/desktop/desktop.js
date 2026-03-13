@@ -202,7 +202,7 @@ class DesktopPage {
 				icon_map[icon.parent_icon].child_icons.push(icon);
 			}
 
-			if (!icon.parent_icon || !icon_map[icon.parent_icon]) {
+			if (!icon.parent_icon) {
 				this.apps_icons.push(icon);
 			}
 		});
