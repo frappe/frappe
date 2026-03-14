@@ -251,7 +251,9 @@ export default class NumberCardWidget extends Widget {
 		// done to add multicurrency support in number card
 		if (this.card_doc.currency) {
 			this.formatted_number =
-				format_currency(number_parts[0], this.card_doc.currency) + " " + symbol;
+				format_currency(parseFloat(number_parts[0]), this.card_doc.currency) +
+				" " +
+				symbol;
 			return;
 		}
 
