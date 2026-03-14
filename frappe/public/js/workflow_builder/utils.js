@@ -159,6 +159,24 @@ export function get_workflow_elements(workflow, workflow_data) {
 		elements.push(action_obj(id, data, position));
 		elements.push(transition_obj("edge-" + source.id + "-" + id, source.id, id));
 		elements.push(transition_obj("edge-" + id + "-" + target.id, id, target.id));
+
+		// Render DMN diamond false_state connection if exists
+		if (transition.false_state) {
+			let false_target = Object.values(states).filter(
+				(state) => state.data?.state == transition.false_state
+			)[0];
+
+			if (false_target) {
+				let false_state_edge = transition_obj(
+					"edge-" + id + "-false-" + false_target.id,
+					id,
+					false_target.id
+				);
+				false_state_edge.sourceHandle = "false_state";
+				false_state_edge.style = { stroke: "var(--yellow-600)", strokeDasharray: "5,5" };
+				elements.push(false_state_edge);
+			}
+		}
 	});
 
 	return elements;

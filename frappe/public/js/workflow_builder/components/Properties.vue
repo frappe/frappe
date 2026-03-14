@@ -7,7 +7,17 @@ let store = useStore();
 let title = ref("Workflow Details");
 
 let doc = computed(() => {
-	return store.workflow.selected ? store.workflow.selected.data : store.workflow_doc;
+	if (store.workflow.selected && store.workflow.selected.selected_task) {
+		if (store.workflow.selected.selected_task.task == "Server Script") {
+			return {
+				name: store.workflow.selected.selected_task.link,
+				script_name: store.workflow.selected.selected_task.link,
+				script: store.workflow.selected.selected_task.script,
+			};
+		}
+	} else {
+		return store.workflow.selected ? store.workflow.selected.data : store.workflow_doc;
+	}
 });
 
 let properties = computed(() => {
@@ -15,12 +25,44 @@ let properties = computed(() => {
 		let field = $(".field input[data-fieldname!='document_type']").first();
 		if (field.val() === "") field.focus();
 	});
-	if (store.workflow.selected && "action" in store.workflow.selected.data) {
+
+	if (store.workflow.selected && store.workflow.selected.selected_task) {
+		title.value = __("Task Properties");
+		let selected_task = store.workflow.selected.selected_task;
+
+		if (selected_task && selected_task.task == "Server Script") {
+			let script_fields = [
+				{
+					label: "Script Name",
+					fieldname: "script_name",
+					fieldtype: "Data",
+					reqd: 1,
+					description: "Name of the Server Script (API Method)",
+				},
+				{
+					label: "Script",
+					fieldname: "script",
+					fieldtype: "Code",
+					reqd: 1,
+					enable_ace_editor: true,
+				},
+			];
+
+			store.script_fields = script_fields;
+			return script_fields;
+		}
+	} else if (store.workflow.selected && "action" in store.workflow.selected.data) {
 		title.value = __("Transition Properties");
 		return store.transitionfields.filter((df) =>
-			["action", "allowed", "allow_self_approval", "condition", "transition_tasks"].includes(
-				df.fieldname
-			)
+			[
+				"action",
+				"allowed",
+				"allow_self_approval",
+				"condition",
+				"false_state",
+				"example",
+				"transition_tasks",
+			].includes(df.fieldname)
 		);
 	} else if (store.workflow.selected && "state" in store.workflow.selected.data) {
 		title.value = __("State Properties");

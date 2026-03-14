@@ -11,6 +11,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	let workflowfields = ref([]);
 	let statefields = ref([]);
 	let transitionfields = ref([]);
+	let taskfields = ref([]);
 	let ref_history = ref(null);
 
 	async function fetch() {
@@ -33,6 +34,11 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		if (!transitionfields.value.length) {
 			await frappe.model.with_doctype("Workflow Transition");
 			transitionfields.value = frappe.get_meta("Workflow Transition").fields;
+		}
+
+		if (!taskfields.value.length) {
+			await frappe.model.with_doctype("Workflow Transition Tasks");
+			taskfields.value = frappe.get_meta("Workflow Transition Tasks").fields;
 		}
 
 		if (!workflow_doc_fields.value.length) {
@@ -103,6 +109,15 @@ export const useStore = defineStore("workflow-builder-store", () => {
 									link: t.link,
 							  }))
 							: [];
+
+						tasks.forEach(async (t) => {
+							if (t.task == "Server Script" && t.link) {
+								// Pre-fetch linked Server Script for smoother UX
+								await frappe.model.with_doc("Server Script", t.link);
+								let server_script_doc = frappe.get_doc("Server Script", t.link);
+								t.script = server_script_doc.script;
+							}
+						});
 
 						// Assign to map if it matches
 						workflow.value.elements.forEach((el) => {
@@ -181,6 +196,37 @@ export const useStore = defineStore("workflow-builder-store", () => {
 						receiver_by_document_field: t.receiver_by_document_field,
 						link: t.link,
 					}));
+
+					// Update individual tasks
+					if (element.data.tasks && element.data.tasks.length > 0) {
+						element.data.tasks.forEach(async (t) => {
+							if (t.task === "Server Script" && t.link) {
+								console.log(t.script);
+								let server_script_doc = await frappe.db.get_doc(
+									"Server Script",
+									t.link
+								);
+								server_script_doc.script = t.script;
+
+								await frappe.call({
+									method: "frappe.client.save",
+									args: { doc: server_script_doc },
+								});
+							} else if (t.task === "Server Script" && !t.link) {
+								await frappe.call({
+									method: "frappe.client.insert",
+									args: {
+										doc: {
+											name: t.script_name,
+											doctype: "Server Script",
+											script_type: "Workflow Task",
+											script: t.script,
+										},
+									},
+								});
+							}
+						});
+					}
 
 					if (is_new) {
 						if (element.data.tasks && element.data.tasks.length > 0) {
@@ -458,6 +504,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		workflowfields,
 		statefields,
 		transitionfields,
+		taskfields,
 		ref_history,
 		fetch,
 		reset_changes,

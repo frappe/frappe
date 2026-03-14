@@ -10,7 +10,7 @@ import StateSelector from "./components/StateSelector.vue";
 import { useStore } from "./store";
 import { validate_transitions } from "./utils";
 import { ref, computed, nextTick, onMounted, watch } from "vue";
-import { onClickOutside, useMagicKeys, whenever, useActiveElement } from "@vueuse/core";
+import { onClickOutside, useMagicKeys, whenever, useActiveElement, set } from "@vueuse/core";
 
 let store = useStore();
 
@@ -90,6 +90,32 @@ onNodeDragStop(() => {
 onConnect((edge) => {
 	let source_node = findNode(edge.source);
 	let target_node = findNode(edge.target);
+
+	// Custom handling for DMN diamond false_state connection
+	if (
+		source_node.type === "action" &&
+		edge.sourceHandle === "false_state" &&
+		target_node.type === "state"
+	) {
+		// Update Action Node data
+		source_node.data.false_state = target_node.data.state;
+
+		// Create the false_state transition edge
+		let false_state_edge = {
+			source: source_node.id,
+			sourceHandle: "false_state",
+			target: target_node.id,
+			targetHandle: edge.targetHandle || "top",
+			type: "transition",
+			updatable: true,
+			animated: true,
+			style: { stroke: "var(--yellow-600)", strokeDasharray: "5,5" }, // Visual indicator
+		};
+		addEdges([false_state_edge]);
+
+		nextTick(() => store.ref_history.commit());
+		return;
+	}
 
 	let error = validate_transitions(source_node.data, target_node.data);
 	if (error) {
@@ -305,13 +331,6 @@ function onDrop(event) {
 			}
 		});
 	}
-}
-
-function onDragStart(event) {
-	if (event.dataTransfer) {
-		event.dataTransfer.effectAllowed = "move";
-	}
-	loose_focus();
 }
 
 function loose_focus() {

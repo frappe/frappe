@@ -10,7 +10,16 @@ const props = defineProps({
 	},
 });
 
-const isValidConnection = ({ source, target }) => {
+const isValidConnection = ({ source, target, sourceHandle }) => {
+	// Allow dragging from the condition diamond to a State node for the false_state transition
+	if (
+		source.startsWith("action-") &&
+		sourceHandle === "false_state" &&
+		!target.startsWith("action-")
+	) {
+		return true;
+	}
+
 	if (
 		(source.startsWith("action-") && !target.startsWith("action-")) ||
 		(!source.startsWith("action-") && target.startsWith("action-")) ||
@@ -23,7 +32,7 @@ const isValidConnection = ({ source, target }) => {
 };
 
 let store = useStore();
-const { edges, findNode } = useVueFlow();
+const { edges, findNode, getNodes } = useVueFlow();
 watch(
 	() => findNode(props.node.id)?.selected,
 	(val) => {
@@ -113,118 +122,118 @@ function openTaskConfig(task, index) {
 	if (task.task.toLowerCase().includes("server script")) {
 		let script_name = task.link;
 
-		const show_dialog = (script_code = "") => {
-			const d = new frappe.ui.Dialog({
-				title: __("Configure Server Script"),
-				fields: [
-					{
-						label: "Script Name",
-						fieldname: "script_name",
-						fieldtype: "Data",
-						reqd: 1,
-						default: script_name,
-						description: "Name of the Server Script (API Method)",
-					},
-					{
-						label: "Script",
-						fieldname: "script",
-						fieldtype: "Code",
-						reqd: 1,
-						default: script_code,
-						enable_ace_editor: true,
-					},
-					{
-						fieldtype: "HTML",
-						fieldname: "help_html",
-						options: `
-							<br>
-							<p><b>${__("Example: Workflow Task")}</b></p>
-							<p>${__(
-								"Execute when a Workflow Action is performed. The document is available as <code>doc</code>."
-							)}</p>
-							<p>
-									# create a customer with the same name as the given document<br>
-									<pre>
-										<code>
-											if doc.condition == True:
-												#do something
-											else:
-												#do something else
-										</code>
-									</pre>
-							</p>
-						`,
-					},
-				],
-				primary_action_label: script_name ? __("Update Script") : __("Create Script"),
-				primary_action(values) {
-					frappe.db.get_value("Server Script", values.script_name, "name").then((r) => {
-						if (r && r.message && r.message.name) {
-							// Update existing
-							frappe.db.get_doc("Server Script", values.script_name).then((doc) => {
-								doc.script = values.script;
-								doc.script_type = "Workflow Task";
+		// const show_dialog = (script_code = "") => {
+		// 	const d = new frappe.ui.Dialog({
+		// 		title: __("Configure Server Script"),
+		// 		fields: [
+		// 			{
+		// 				label: "Script Name",
+		// 				fieldname: "script_name",
+		// 				fieldtype: "Data",
+		// 				reqd: 1,
+		// 				default: script_name,
+		// 				description: "Name of the Server Script (API Method)",
+		// 			},
+		// 			{
+		// 				label: "Script",
+		// 				fieldname: "script",
+		// 				fieldtype: "Code",
+		// 				reqd: 1,
+		// 				default: script_code,
+		// 				enable_ace_editor: true,
+		// 			},
+		// 			{
+		// 				fieldtype: "HTML",
+		// 				fieldname: "help_html",
+		// 				options: `
+		// 					<br>
+		// 					<p><b>${__("Example: Workflow Task")}</b></p>
+		// 					<p>${__(
+		// 						"Execute when a Workflow Action is performed. The document is available as <code>doc</code>."
+		// 					)}</p>
+		// 					<p>
+		// 							# create a customer with the same name as the given document<br>
+		// 							<pre>
+		// 								<code>
+		// 									if doc.condition == True:
+		// 										#do something
+		// 									else:
+		// 										#do something else
+		// 								</code>
+		// 							</pre>
+		// 					</p>
+		// 				`,
+		// 			},
+		// 		],
+		// 		primary_action_label: script_name ? __("Update Script") : __("Create Script"),
+		// 		primary_action(values) {
+		// 			frappe.db.get_value("Server Script", values.script_name, "name").then((r) => {
+		// 				if (r && r.message && r.message.name) {
+		// 					// Update existing
+		// 					frappe.db.get_doc("Server Script", values.script_name).then((doc) => {
+		// 						doc.script = values.script;
+		// 						doc.script_type = "Workflow Task";
 
-								frappe.call({
-									method: "frappe.client.save",
-									args: { doc: doc },
-									callback: function (r) {
-										if (!r.exc) {
-											frappe.show_alert({
-												message: __("Server Script Updated"),
-												indicator: "green",
-											});
-											store.update_task_config(props.node, index, {
-												link: values.script_name,
-											});
-											d.hide();
-										}
-									},
-								});
-							});
-						} else {
-							// Create new
-							frappe.call({
-								method: "frappe.client.insert",
-								args: {
-									doc: {
-										doctype: "Server Script",
-										name: values.script_name,
-										script_type: "Workflow Task",
-										script: values.script,
-									},
-								},
-								callback: function (r) {
-									if (!r.exc) {
-										frappe.show_alert({
-											message: __("Server Script Created"),
-											indicator: "green",
-										});
-										store.update_task_config(props.node, index, {
-											link: values.script_name,
-										});
-										d.hide();
-									}
-								},
-							});
-						}
-					});
-				},
-			});
-			d.show();
-		};
+		// 						frappe.call({
+		// 							method: "frappe.client.save",
+		// 							args: { doc: doc },
+		// 							callback: function (r) {
+		// 								if (!r.exc) {
+		// 									frappe.show_alert({
+		// 										message: __("Server Script Updated"),
+		// 										indicator: "green",
+		// 									});
+		// 									store.update_task_config(props.node, index, {
+		// 										link: values.script_name,
+		// 									});
+		// 									d.hide();
+		// 								}
+		// 							},
+		// 						});
+		// 					});
+		// 				} else {
+		// 					// Create new
+		// 					frappe.call({
+		// 						method: "frappe.client.insert",
+		// 						args: {
+		// 							doc: {
+		// 								doctype: "Server Script",
+		// 								name: values.script_name,
+		// 								script_type: "Workflow Task",
+		// 								script: values.script,
+		// 							},
+		// 						},
+		// 						callback: function (r) {
+		// 							if (!r.exc) {
+		// 								frappe.show_alert({
+		// 									message: __("Server Script Created"),
+		// 									indicator: "green",
+		// 								});
+		// 								store.update_task_config(props.node, index, {
+		// 									link: values.script_name,
+		// 								});
+		// 								d.hide();
+		// 							}
+		// 						},
+		// 					});
+		// 				}
+		// 			});
+		// 		},
+		// 	});
+		// 	d.show();
+		// };
 
 		if (script_name) {
 			// Fetch existing script content
 			frappe.db.get_value("Server Script", script_name, "script").then((r) => {
 				if (r && r.message && r.message.script) {
-					show_dialog(r.message.script);
+					console.log("Editing existing Server Script:", script_name);
 				} else {
-					show_dialog(); // Fallback if script deleted but link remains
+					console.log("New Server Script"); // Fallback if script deleted but link remains
 				}
 			});
 		} else {
-			show_dialog();
+			console.log("Final Error Handling");
 		}
 
 		return;
@@ -246,8 +255,6 @@ function openTaskConfig(task, index) {
 			label: f.label,
 			value: f.value,
 		}));
-
-	console.log(receiver_options);
 
 	const d = new frappe.ui.Dialog({
 		title: __("Configure {0}", [task.task]),
@@ -307,7 +314,10 @@ function openTaskConfig(task, index) {
 				@dragover.stop="(e) => onTaskDragOver(e)"
 				@click.stop="openTaskConfig(task, index)"
 			>
-				<div class="flex items-center justify-between">
+				<div
+					class="flex items-center justify-between"
+					@click.stop="store.workflow.selected.selected_task = task"
+				>
 					<span>{{ task.task }}</span>
 					<div class="remove-icon" @click.stop="removeTask(task)" title="Remove Task">
 						<svg
@@ -338,6 +348,47 @@ function openTaskConfig(task, index) {
 			:isValidConnection="isValidConnection"
 			@click.stop
 		/>
+
+		<!-- DMN Diamond Condition Handle -->
+		<Handle
+			class="condition-diamond-handle"
+			:class="{ 'has-condition': !!node.data?.condition }"
+			type="source"
+			position="bottom"
+			id="false_state"
+			:isValidConnection="isValidConnection"
+			@click.stop="store.workflow.selected = node"
+			title="Configure Condition (Drag to state for False Transition)"
+		>
+			<svg
+				v-if="!node.data?.condition"
+				width="12"
+				height="12"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
+				<line x1="12" y1="5" x2="12" y2="19"></line>
+				<line x1="5" y1="12" x2="19" y2="12"></line>
+			</svg>
+			<svg
+				v-else
+				width="12"
+				height="12"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2.5"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
+				<line x1="18" y1="6" x2="6" y2="18"></line>
+				<line x1="6" y1="6" x2="18" y2="18"></line>
+			</svg>
+		</Handle>
 	</div>
 </template>
 
@@ -367,6 +418,46 @@ function openTaskConfig(task, index) {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
+	padding-bottom: 8px; /* Room for the diamond */
+}
+
+.condition-diamond-handle {
+	position: absolute;
+	bottom: -10px;
+	left: 50%;
+	transform: translateX(-50%) rotate(45deg);
+	width: 18px;
+	height: 18px;
+	background-color: var(--fg-color);
+	border: 1.5px solid var(--gray-600);
+	border-radius: 3px;
+	cursor: pointer;
+	z-index: 20;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.2s ease;
+
+	svg {
+		transform: rotate(-45deg); /* Keep icon straight */
+		color: var(--gray-600);
+		opacity: 0;
+		transition: opacity 0.2s ease;
+	}
+
+	&:hover {
+		border-color: var(--primary);
+		svg {
+			opacity: 1;
+			color: var(--primary);
+		}
+	}
+
+	&.has-condition {
+		svg {
+			opacity: 1;
+		}
+	}
 }
 
 .task-badge {

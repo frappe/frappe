@@ -71,7 +71,12 @@ def get_transitions(
 
 	for transition in workflow.transitions:
 		if transition.state == current_state and transition.allowed in roles:
-			if not is_transition_condition_satisfied(transition, doc):
+			is_satisfied = is_transition_condition_satisfied(transition, doc)
+			if not is_satisfied:
+				if transition.get("false_state"):
+					t = transition.as_dict()
+					t.next_state = transition.false_state
+					transitions.append(t)
 				continue
 			transitions.append(transition.as_dict())
 

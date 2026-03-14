@@ -15,97 +15,105 @@
   "transition_tasks",
   "conditions",
   "condition",
+  "false_state",
   "column_break_7",
   "example",
   "workflow_builder_id"
  ],
  "fields": [
   {
-   "fieldname": "state",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "State",
-   "options": "Workflow State",
-   "print_width": "200px",
-   "reqd": 1,
-   "width": "200px"
+"fieldname": "state",
+"fieldtype": "Link",
+"in_list_view": 1,
+"label": "State",
+"options": "Workflow State",
+"print_width": "200px",
+"reqd": 1,
+"width": "200px"
   },
   {
-   "fieldname": "action",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Action",
-   "options": "Workflow Action Master",
-   "print_width": "200px",
-   "reqd": 1,
-   "width": "200px"
+"fieldname": "action",
+"fieldtype": "Link",
+"in_list_view": 1,
+"label": "Action",
+"options": "Workflow Action Master",
+"print_width": "200px",
+"reqd": 1,
+"width": "200px"
   },
   {
-   "fieldname": "next_state",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Next State",
-   "options": "Workflow State",
-   "print_width": "200px",
-   "reqd": 1,
-   "width": "200px"
+"fieldname": "next_state",
+"fieldtype": "Link",
+"in_list_view": 1,
+"label": "Next State",
+"options": "Workflow State",
+"print_width": "200px",
+"reqd": 1,
+"width": "200px"
   },
   {
-   "fieldname": "allowed",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Allowed",
-   "options": "Role",
-   "print_width": "200px",
-   "reqd": 1,
-   "width": "200px"
+"fieldname": "allowed",
+"fieldtype": "Link",
+"in_list_view": 1,
+"label": "Allowed",
+"options": "Role",
+"print_width": "200px",
+"reqd": 1,
+"width": "200px"
   },
   {
-   "default": "1",
-   "description": "Allow approval for creator of the document",
-   "fieldname": "allow_self_approval",
-   "fieldtype": "Check",
-   "label": "Allow Self Approval"
+"default": "1",
+"description": "Allow approval for creator of the document",
+"fieldname": "allow_self_approval",
+"fieldtype": "Check",
+"label": "Allow Self Approval"
   },
   {
-   "fieldname": "conditions",
-   "fieldtype": "Section Break",
-   "label": "Conditions"
+"fieldname": "conditions",
+"fieldtype": "Section Break",
+"label": "Conditions"
   },
   {
-   "fieldname": "condition",
-   "fieldtype": "Code",
-   "label": "Condition",
-   "options": "Python"
+"fieldname": "condition",
+"fieldtype": "Code",
+"label": "Condition",
+"options": "Python"
   },
   {
-   "fieldname": "column_break_7",
-   "fieldtype": "Column Break"
+"fieldname": "false_state",
+"fieldtype": "Link",
+"label": "False State",
+"options": "Workflow State",
+"description": "If Condition evaluates to False, transition to this state."
   },
   {
-   "fieldname": "example",
-   "fieldtype": "HTML",
-   "label": "Example",
-   "options": "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n<p>Conditions should be written in simple Python. Please use properties available in the form only.</p>\n<p>Allowed functions:\n</p><ul>\n<li>frappe.db.get_value</li>\n<li>frappe.db.get_list</li>\n<li>frappe.session</li>\n<li>frappe.utils.now_datetime</li>\n<li>frappe.utils.get_datetime</li>\n<li>frappe.utils.add_to_date</li>\n<li>frappe.utils.now</li>\n</ul>\n<p>Example: </p><pre><code>doc.creation &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
+"fieldname": "column_break_7",
+"fieldtype": "Column Break"
   },
   {
-   "fieldname": "workflow_builder_id",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Workflow Builder ID"
+"fieldname": "example",
+"fieldtype": "HTML",
+"label": "Example",
+"options": "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n<p>Conditions should be written in simple Python. Please use properties available in the form only.</p>\n<p>Allowed functions:\n</p><ul>\n<li>frappe.db.get_value</li>\n<li>frappe.db.get_list</li>\n<li>frappe.session</li>\n<li>frappe.utils.now_datetime</li>\n<li>frappe.utils.get_datetime</li>\n<li>frappe.utils.add_to_date</li>\n<li>frappe.utils.now</li>\n</ul>\n<p>Example: </p><pre><code>doc.creation &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
   },
   {
-   "default": "0",
-   "depends_on": "eval: doc.allow_self_approval == 1",
-   "fieldname": "send_email_to_creator",
-   "fieldtype": "Check",
-   "label": "Send Email To Creator"
+"fieldname": "workflow_builder_id",
+"fieldtype": "Data",
+"hidden": 1,
+"label": "Workflow Builder ID"
   },
   {
-   "fieldname": "transition_tasks",
-   "fieldtype": "Link",
-   "label": "Transition Tasks",
-   "options": "Workflow Transition Tasks"
+"default": "0",
+"depends_on": "eval: doc.allow_self_approval == 1",
+"fieldname": "send_email_to_creator",
+"fieldtype": "Check",
+"label": "Send Email To Creator"
+  },
+  {
+"fieldname": "transition_tasks",
+"fieldtype": "Link",
+"label": "Transition Tasks",
+"options": "Workflow Transition Tasks"
   }
  ],
  "idx": 1,
