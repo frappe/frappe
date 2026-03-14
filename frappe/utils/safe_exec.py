@@ -272,7 +272,7 @@ def safer_get_mapped_doc(
 	assert isinstance(from_doctype, str)
 	assert isinstance(from_docname, (str, int))
 	assert isinstance(table_maps, dict)
-	assert isinstance(target_doc, (str, None))
+	assert isinstance(target_doc, (str, type(None)))
 	assert isinstance(ignore_permissions, bool)
 	assert isinstance(ignore_child_tables, bool)
 	assert isinstance(cached, bool)
@@ -307,10 +307,10 @@ def safer_enqueue(function, **kwargs):
 def safer_log_error(
 	title=None, message=None, reference_doctype=None, reference_name=None, *, defer_insert=False
 ):
-	assert isinstance(title, (str, None))
-	assert isinstance(message, (str, None))
-	assert isinstance(reference_doctype, (str, None))
-	assert isinstance(reference_name, (str, int, None))
+	assert isinstance(title, (str, type(None)))
+	assert isinstance(message, (str, type(None)))
+	assert isinstance(reference_doctype, (str, type(None)))
+	assert isinstance(reference_name, (str, int, type(None)))
 	assert isinstance(defer_insert, bool)
 
 	log_doc = frappe.log_error(
