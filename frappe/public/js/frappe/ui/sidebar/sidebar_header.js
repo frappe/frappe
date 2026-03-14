@@ -8,6 +8,14 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.sibling_workspaces = this.fetch_related_icons();
 		this.dropdown_items = [
 			{
+				name: "desktop",
+				label: __("Desktop"),
+				icon: "layout-grid",
+				onClick: function (el) {
+					frappe.set_route("/desk");
+				},
+			},
+			{
 				name: "workspaces",
 				label: "Workspaces",
 				icon: "wallpaper",
@@ -40,12 +48,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			let is_dark = frappe.ui.get_current_theme() === "dark";
 			this.dropdown_items.push(
 				{
-					name: "help",
-					label: "Help",
-					icon: "info",
-					items: this.get_help_siblings(),
-				},
-				{
 					label: "Session Defaults",
 					action: "frappe.ui.toolbar.setup_session_defaults()",
 					is_standard: 1,
@@ -68,15 +70,35 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 					action: "new frappe.ui.ThemeSwitcher().show()",
 					is_standard: 1,
 					icon: is_dark ? "sun" : "moon",
+				},
+				{
+					name: "help",
+					label: "Help",
+					icon: "info",
+					items: this.get_help_siblings(),
+				},
+				{
+					name: "logout",
+					label: "Logout",
+					icon: "logout",
+					onClick: function () {
+						return frappe.app.logout();
+					},
 				}
 			);
 		}
+		this.add_navbar_items();
 		this.make();
 		this.setup_app_switcher();
 		this.populate_dropdown_menu();
 		this.setup_select_options();
 	}
-
+	add_navbar_items() {
+		frappe.boot.navbar_settings.settings_dropdown.forEach((item) => {
+			item.label = item.item_label;
+			this.dropdown_items.push(item);
+		});
+	}
 	fetch_related_icons() {
 		let sibling_workspaces = [];
 		let workspaces_not_to_show = ["My Workspaces"];
@@ -176,6 +198,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		help_dropdown_items = custom_help_links.concat(help_dropdown_items);
 
 		navbar_settings.help_dropdown.forEach((element) => {
+			if (element.hidden) return;
 			let dropdown_children = {
 				name: element.name,
 				label: element.item_label,

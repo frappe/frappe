@@ -38,7 +38,7 @@ def get_email_accounts(user=None):
 
 
 @frappe.whitelist()
-def create_email_flag_queue(names, action):
+def create_email_flag_queue(names: str, action: str):
 	"""create email flag queue to mark email either as read or unread"""
 
 	def mark_as_seen_unseen(name, action):

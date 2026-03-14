@@ -4,6 +4,7 @@
 import frappe
 from frappe.core.page.permission_manager.permission_manager import get_permissions
 from frappe.model.document import Document
+from frappe.permissions import setup_custom_perms
 
 
 class RoleReplication(Document):
@@ -28,9 +29,21 @@ class RoleReplication(Document):
 			new_role = frappe.get_doc({"doctype": "Role", "role_name": self.new_role}).insert().name
 
 		perms = get_permissions(role=self.existing_role)
+
+		doctypes_with_custom_perms_setup = set()
 		for perm in perms:
-			perm.update(
+			doctype = perm.get("parent")
+			if doctype and doctype not in doctypes_with_custom_perms_setup:
+				# if no Custom DocPerm exists for the doctype, move standard permissions to Custom DocPerm
+				# before creating first Custom DocPerm for the new role
+				setup_custom_perms(doctype)
+				doctypes_with_custom_perms_setup.add(doctype)
+
+			# Create Custom DocPerm for the new role
+			frappe.get_doc(
 				{
+					"doctype": "Custom DocPerm",
+					**perm,
 					"name": None,
 					"creation": None,
 					"modified": None,
@@ -39,5 +52,4 @@ class RoleReplication(Document):
 					"linked_doctypes": None,
 					"role": new_role,
 				}
-			)
-			frappe.get_doc({"doctype": "Custom DocPerm", **perm}).insert()
+			).insert()

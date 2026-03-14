@@ -1,7 +1,7 @@
 {% if doc.get(df.fieldname) %}
 <div class="child-table" {{ field_attributes(df) }}>
 	<div class="label">
-		{{ df.label }}
+		{{ _(df.label) }}
 	</div>
 	<table class="table table-bordered">
 		{% set columns = df.table_columns %}
@@ -9,7 +9,7 @@
 			<tr class="table-row">
 				{% for column in columns %}
 				<th class="column-header" width="{{ column.width }}%" {{ field_attributes(column) }}>
-					{{ column.label }}
+					{{ _(column.label) }}
 				</th>
 				{% endfor %}
 			</tr>

@@ -762,8 +762,38 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				let data = r.message;
 				this.hide_status();
 				clearInterval(this.interval);
-
+				clearInterval(this.stale_report_interval);
+				this.refreshed_at = frappe.datetime.now_datetime();
 				this.execution_time = data.execution_time || 0.1;
+
+				const check_if_report_is_stale = () => {
+					let generated_at = this.prepared_report
+						? this.prepared_report_document.report_end_time
+						: this.refreshed_at;
+					let pretty_diff = frappe.datetime.comment_when(generated_at);
+					const days_old = frappe.datetime.get_day_diff(
+						frappe.datetime.now_datetime(),
+						generated_at
+					);
+					const minutes_old = frappe.datetime.get_minute_diff(
+						frappe.datetime.now_datetime(),
+						generated_at
+					);
+					if (days_old > 1) {
+						pretty_diff = `<span style="color:var(--red-600)">${pretty_diff}</span>`;
+					}
+					if (minutes_old >= 1) {
+						this.show_status(`
+						<div class="indicator orange pl-1">
+							<span>
+								${__("This report was generated {0}.", [pretty_diff])}
+							</span>
+						</div>
+					`);
+					}
+				};
+
+				this.stale_report_interval = setInterval(check_if_report_is_stale, 60000);
 
 				if (data.custom_filters) {
 					this.set_filters(data.custom_filters);
@@ -787,6 +817,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						});
 					}
 					this.add_prepared_report_buttons(data.doc);
+					check_if_report_is_stale();
 				}
 
 				if (data.report_summary) {
@@ -865,28 +896,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				},
 				__("Actions")
 			);
-
-			let pretty_diff = frappe.datetime.comment_when(doc.report_end_time);
-			const days_old = frappe.datetime.get_day_diff(
-				frappe.datetime.now_datetime(),
-				doc.report_end_time
-			);
-			if (days_old > 1) {
-				pretty_diff = `<span style="color:var(--red-600)">${pretty_diff}</span>`;
-			}
-			const part1 = __("This report was generated {0}.", [pretty_diff]);
-			const part2 = __("To get the updated report, click on {0}.", [__("Rebuild")]);
-			const part3 = __("See all past reports.");
-
-			this.show_status(`
-				<div class="indicator orange">
-					<span>
-						${part1}
-						${part2}
-						<a href="/desk/List/Prepared%20Report?report_name=${this.report_name}"> ${part3}</a>
-					</span>
-				</div>
-			`);
 		}
 
 		// Three cases
@@ -1530,6 +1539,24 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 	}
 
+	get_visible_indexes() {
+		// without total row idx cause, it will always visible
+		return this.datatable?.bodyRenderer.visibleRowIndices || [];
+	}
+
+	validate_visible_indexes_for_action() {
+		const visible_idx = this.get_visible_indexes();
+
+		if (!visible_idx || !visible_idx.length) {
+			frappe.throw({
+				title: __("No data to perform this action"),
+				message: __("Please adjust filters to include some data"),
+			});
+		}
+
+		return visible_idx;
+	}
+
 	async print_report(print_settings) {
 		const filters_html = this.get_filters_html_for_print();
 		const landscape = print_settings.orientation == "Landscape";
@@ -1701,6 +1728,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	export_report() {
+		this.validate_visible_indexes_for_action();
+
 		const extra_fields = [];
 		const applied_filters = this.get_applied_filters(this.get_filter_values());
 
@@ -1768,10 +1797,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					filters.prepared_report_name = this.prepared_report_name;
 				}
 
-				const visible_idx = this.datatable?.bodyRenderer.visibleRowIndices || [];
-				if (visible_idx.length + 1 === this.data?.length) {
-					visible_idx.push(visible_idx.length);
-				}
+				// excluding total row index
+				let visible_idx = this.get_visible_indexes();
+				const ignore_visible_idx =
+					visible_idx.length ===
+					this.data.length - (this.raw_data.add_total_row ? 1 : 0);
+				visible_idx = ignore_visible_idx ? [] : visible_idx;
+
 				const args = {
 					cmd: "frappe.desk.query_report.export_query",
 					report_name: this.report_name,
@@ -1780,6 +1812,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					filters: filters,
 					applied_filters: applied_filters,
 					visible_idx,
+					ignore_visible_idx,
 					csv_delimiter,
 					csv_quoting,
 					csv_decimal_sep,
@@ -1894,7 +1927,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			},
 			{
 				label: __("Print"),
+
 				action: () => {
+					this.validate_visible_indexes_for_action();
+
 					let dialog = frappe.ui.get_print_settings(
 						false,
 						(print_settings) => this.print_report(print_settings),
@@ -1910,6 +1946,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			{
 				label: __("PDF"),
 				action: () => {
+					this.validate_visible_indexes_for_action();
+
 					let dialog = frappe.ui.get_print_settings(
 						false,
 						(print_settings) => this.pdf_report(print_settings),
@@ -2080,7 +2118,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							},
 						],
 						primary_action: (values) => {
-							frappe.call({
+							return frappe.call({
 								method: "frappe.desk.query_report.save_report",
 								args: {
 									reference_report: this.report_name,
@@ -2226,8 +2264,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (this.tree_report) {
 			this.$tree_footer = $(`<div class="tree-footer col-md-3">
 				<div class="input-group">
-				  <input id="tree-level" type="number" class="form-control" aria-label="Tree Level" value="2">
-					<button class="btn btn-xs btn-secondary" data-action="set_tree_level">
+				  <input id="tree-level" type="number" class="form-control" style="width: 60px; border-right: 1px solid var(--border-color);" aria-label="Tree Level" value="2">
+					<button class="btn btn-xs btn-secondary" style="border-top-left-radius: 0px; border-bottom-left-radius: 0px;" data-action="set_tree_level">
 						${__("Set Level")}</button>
 					<button class="btn btn-xs btn-secondary" data-action="expand_all_rows">
 						${__("Expand All")}</button>

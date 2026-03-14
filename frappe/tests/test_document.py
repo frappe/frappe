@@ -66,6 +66,22 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(d.send_reminder, 1)
 		return d
 
+	def test_submittable_insert(self):
+		dt = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"module": "Core",
+				"name": "Test Submittable Doctype",
+				"custom": 1,
+				"is_submittable": 1,
+				"fields": [{"label": "Field", "fieldname": "test_field", "fieldtype": "Data"}],
+				"permissions": [{"role": "System Manager", "read": 1, "write": 1, "submit": 1, "cancel": 1}],
+			}
+		).insert(ignore_if_duplicate=True)
+
+		d = frappe.get_doc({"doctype": dt.name, "test_field": "test"}).insert()
+		return d
+
 	def test_website_route_default(self):
 		default = frappe.generate_hash()
 		child_table = new_doctype(default=default, istable=1).insert().name
@@ -101,7 +117,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value(d.doctype, d.name, "subject"), "subject changed")
 
 	def test_discard_transitions(self):
-		d = self.test_insert()
+		d = self.test_submittable_insert()
 		self.assertEqual(d.docstatus, 0)
 
 		# invalid: Submit > Discard, Cancel > Discard
@@ -113,7 +129,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertRaises(frappe.ValidationError, d.discard)
 
 		# valid: Draft > Discard
-		d2 = self.test_insert()
+		d2 = self.test_submittable_insert()
 		d2.discard()
 		self.assertEqual(d2.docstatus, 2)
 
@@ -537,6 +553,23 @@ class TestDocument(IntegrationTestCase):
 		c.db_set(key, val)
 		changed_val = frappe.db.get_single_value(c.doctype, key)
 		self.assertEqual(val, changed_val)
+
+	def test_non_submittable_doctype_docstatus_transition(self):
+		doc = frappe.get_doc({"doctype": "ToDo", "description": "test submit guard"}).insert()
+		doc.docstatus = 1
+
+		self.assertRaises(frappe.DocstatusTransitionError, doc.save)
+
+	def test_skip_docstatus_validation_flag(self):
+		doc = frappe.get_doc({"doctype": "ToDo", "description": "test skip flag"}).insert()
+		doc.docstatus = 1
+		self.assertRaises(frappe.DocstatusTransitionError, doc.save)
+
+		doc.reload()
+		doc.docstatus = 1
+		doc.flags.skip_docstatus_validation = True
+		doc.save()
+		self.assertEqual(frappe.db.get_value("ToDo", doc.name, "docstatus"), 1)
 
 
 class TestDocumentWebView(IntegrationTestCase):

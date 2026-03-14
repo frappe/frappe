@@ -15,12 +15,12 @@ dependencies = [
     "filetype~=1.2.0",
     "GitPython~=3.1.45",
     "Jinja2~=3.1.6",
-    "Pillow~=12.0.0",
+    "Pillow~=12.1.1",
     "PyJWT~=2.10.1",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.6.2",
+    "pypdf==6.8.0",
     "PyPika @ git+https://github.com/frappe/pypika@2c50e6142b2d61d2d243e466fdd5dc03b3d918f2",
     "mysqlclient==2.2.7",
     "PyQRCode~=1.2.1",
@@ -28,7 +28,7 @@ dependencies = [
     "RestrictedPython~=8.1",
     "WeasyPrint==68.0",
     "pydyf==0.12.1",
-    "Werkzeug==3.1.5",
+    "Werkzeug==3.1.6",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.13.5",
     "bleach-allowlist~=1.0.3",
@@ -37,6 +37,7 @@ dependencies = [
     "cryptography~=46.0.3",
     "cssutils~=2.11.1",
     "email-reply-parser~=0.5.12",
+    "Faker~=18.10.1",
     "gunicorn @ git+https://github.com/frappe/gunicorn@bb554053bb87218120d76ab6676af7015680e8b6",
     "html5lib~=1.1",
     "ipython~=8.37.0",
@@ -127,7 +128,6 @@ dev = [
 test = [
     "unittest-xml-reporting~=3.2.0",
     "coverage~=7.10.0",
-    "Faker~=18.10.1",
     "hypothesis~=6.77.0",
     "freezegun~=1.5.1",
 ]
@@ -145,7 +145,6 @@ skip_namespaces = [
 
 [tool.bench.dev-dependencies]
 coverage = "~=7.10.0"
-Faker = "~=18.10.1"
 pyngrok = "~=7.5.0"
 unittest-xml-reporting = "~=3.2.0"
 watchdog = "~=6.0.0"

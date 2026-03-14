@@ -116,7 +116,7 @@ def serialize_request(request):
 
 
 @frappe.whitelist()
-def add_indexes(indexes):
+def add_indexes(indexes: str):
 	frappe.only_for("Administrator")
 	indexes = json.loads(indexes)
 

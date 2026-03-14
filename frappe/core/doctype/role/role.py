@@ -89,6 +89,12 @@ class Role(Document):
 
 def get_info_based_on_role(role, field="email", ignore_permissions=False):
 	"""Get information of all users that have been assigned this role"""
+	# Administrator is a superuser account, not a typical role with assigned users
+	# so we resolve it directly to the Administrator user
+	if role == "Administrator":
+		user = frappe.db.get_value("User", "Administrator", field)
+		return [user] if user else []
+
 	users = frappe.get_list(
 		"Has Role",
 		filters={"role": role, "parenttype": "User"},
@@ -120,7 +126,9 @@ def get_users(role):
 # searches for active employees
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def role_query(doctype, txt, searchfield, start, page_len, filters):
+def role_query(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: list | dict | str
+):
 	return frappe.get_all(
 		"Role",
 		limit_start=start,

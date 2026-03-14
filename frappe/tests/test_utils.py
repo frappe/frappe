@@ -1309,6 +1309,30 @@ class TestTypingValidations(IntegrationTestCase):
 		report.toggle_disable(changed_value)
 		report.toggle_disable(current_value)
 
+	def test_forced_types(self):
+		def func(a, b=None, **kwargs):
+			pass
+
+		lax_types = frappe.whitelist(force_types=False)(func)
+		lax_types(1)  # should run without error
+
+		forced_types = frappe.whitelist(force_types=True)(func)
+		with self.assertRaises(frappe.FrappeTypeError):
+			forced_types(1)
+
+		@frappe.whitelist(force_types=True)
+		def func(a: int, b=None, **kwargs):
+			pass
+
+		with self.assertRaises(frappe.FrappeTypeError):
+			func(1)
+
+		@frappe.whitelist(force_types=True)
+		def func(a: int, b: int | None = None, **kwargs):
+			pass
+
+		func(1)  # should run without error
+
 
 class TestTBSanitization(IntegrationTestCase):
 	def test_traceback_sanitzation(self):
@@ -1655,3 +1679,19 @@ class TestDataUtils(UnitTestCase):
 
 		self.assertEqual(comma_or(["a", "b", "c"]), "'a', 'b' ou 'c'")
 		self.assertEqual(comma_or(["a", "b", "c"], add_quotes=False), "a, b ou c")
+
+
+class TestMsgPrint(UnitTestCase):
+	def tearDown(self) -> None:
+		super().tearDown()
+		frappe.clear_messages()
+
+	def test_msgprint(self):
+		frappe.msgprint("Validate: <script>alert('bounty')</script>")
+		message = frappe.get_message_log()[-1]
+
+		self.assertNotIn("script", message.message)
+
+		frappe.msgprint("<ul><li>abc<li></ul>")
+		message = frappe.get_message_log()[-1]
+		self.assertIn("<ul><li>", message.message)

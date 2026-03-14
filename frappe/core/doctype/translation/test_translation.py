@@ -92,6 +92,13 @@ class TestTranslation(IntegrationTestCase):
 
 		self.assertTrue(_(source), target)
 
+	def test_html_message_translations(self):
+		"""Test fallback for messages w/ HTML Tags"""
+		message = "Hide descendant records of <b>For Value</b>."
+		translated_message = "隐藏下层节点<b>值</b>"
+		create_translation("zh", message, translated_message)
+		self.assertEqual(_(message, lang="zh"), translated_message)
+
 
 def get_translation_data():
 	html_source_data = """<font color="#848484" face="arial, tahoma, verdana, sans-serif">

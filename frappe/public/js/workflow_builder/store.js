@@ -13,6 +13,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	let transitionfields = ref([]);
 	let taskfields = ref([]);
 	let ref_history = ref(null);
+	let is_submittable = ref(true);
 
 	async function fetch() {
 		await frappe.model.clear_doc("Workflow", workflow_name.value);
@@ -156,6 +157,8 @@ export const useStore = defineStore("workflow-builder-store", () => {
 				}
 			}
 		}
+		await update_is_submittable();
+		reset_non_submittable_states();
 
 		setup_undo_redo();
 		setup_breadcrumbs();
@@ -327,13 +330,46 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		frappe.breadcrumbs.$breadcrumbs.append(breadcrumbs);
 	}
 
+	async function update_is_submittable() {
+		if (!workflow_doc.value?.document_type) {
+			is_submittable.value = true;
+			return;
+		}
+		await frappe.model.with_doctype(workflow_doc.value.document_type);
+		is_submittable.value =
+			frappe.get_meta(workflow_doc.value.document_type)?.is_submittable || false;
+	}
+
+	function reset_non_submittable_states() {
+		if (is_submittable.value) return;
+
+		let has_affected_states = false;
+		workflow.value.elements.forEach((el) => {
+			if (el.type === "state" && el.data.doc_status && el.data.doc_status !== "Draft") {
+				has_affected_states = true;
+				el.data.doc_status = "Draft";
+			}
+		});
+
+		if (has_affected_states) {
+			frappe.msgprint({
+				title: __("Doc Status Reset"),
+				message: __(
+					"The <strong>Doc Status</strong> for all states has been reset to <strong>Draft</strong> because <strong>{0}</strong> is not submittable",
+					[workflow_doc.value.document_type]
+				),
+				indicator: "orange",
+			});
+		}
+	}
+
 	function get_state_df(data) {
 		let doc_status_map = {
 			Draft: 0,
 			Submitted: 1,
 			Cancelled: 2,
 		};
-		data.doc_status = doc_status_map[data.doc_status];
+		data.doc_status = is_submittable.value ? doc_status_map[data.doc_status] : 0;
 		return data;
 	}
 
@@ -514,5 +550,8 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		remove_task_from_transition,
 		move_task,
 		update_task_config,
+		is_submittable,
+		update_is_submittable,
+		reset_non_submittable_states,
 	};
 });

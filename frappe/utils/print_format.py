@@ -4,12 +4,14 @@ import os
 import uuid
 from io import BytesIO
 from typing import Literal
+from urllib.parse import urlparse
 
 from pypdf import PdfWriter
 
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.model.document import Document
 from frappe.translate import print_language
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
@@ -34,6 +36,9 @@ def download_multi_pdf(
 	"""
 	Calls _download_multi_pdf with the given parameters and returns the response
 	"""
+	if not (frappe.get_cached_value("User", frappe.session.user, "bulk_actions")):
+		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
+
 	return _download_multi_pdf(doctype, name, format, no_letterhead, letterhead, options)
 
 
@@ -49,6 +54,9 @@ def download_multi_pdf_async(
 	"""
 	Calls _download_multi_pdf with the given parameters in a background job, returns task ID
 	"""
+	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)
+
 	task_id = str(uuid.uuid4())
 	if isinstance(doctype, dict):
 		doc_count = sum([len(doctype[dt]) for dt in doctype])
@@ -223,11 +231,11 @@ from frappe.deprecation_dumpster import read_multi_pdf
 def download_pdf(
 	doctype: str,
 	name: str,
-	format=None,
-	doc=None,
-	no_letterhead=0,
-	language=None,
-	letterhead=None,
+	format: str | None = None,
+	doc: Document | None = None,
+	no_letterhead: bool | int = 0,
+	language: str | None = None,
+	letterhead: str | None = None,
 	pdf_generator: Literal["wkhtmltopdf", "chrome"] | None = None,
 ):
 	if pdf_generator is None:
@@ -254,10 +262,18 @@ def download_pdf(
 
 
 @frappe.whitelist()
-def report_to_pdf(html, orientation="Landscape"):
+def report_to_pdf(html: str, orientation: str = "Landscape"):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
-	frappe.local.response.filecontent = get_pdf(html, {"orientation": orientation})
+	frappe.local.response.filecontent = get_pdf(
+		html,
+		{
+			"orientation": orientation,
+			"proxy": "http://0.0.0.0:0",
+			"bypass-proxy-for": urlparse(frappe.utils.get_url(allow_header_override=False)).hostname,
+			"load-error-handling": "ignore",
+		},
+	)
 	frappe.local.response.type = "pdf"
 
 
@@ -304,7 +320,13 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 
 @frappe.whitelist()
 def print_by_server(
-	doctype, name, printer_setting, print_format=None, doc=None, no_letterhead=0, file_path=None
+	doctype: str,
+	name: str | int,
+	printer_setting: str,
+	print_format: str | None = None,
+	doc: Document | None = None,
+	no_letterhead: bool | int = 0,
+	file_path: str | None = None,
 ):
 	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:

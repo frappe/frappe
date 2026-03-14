@@ -188,7 +188,7 @@ def get_info_via_oauth(provider: str, code: str, decoder: Callable | None = None
 			email_dict = next(filter(lambda x: x.get("primary"), emails))
 			info["email"] = email_dict.get("email")
 
-	if not (info.get("email_verified") or info.get("email")):
+	if not (info.get("email_verified") or get_email(info)):
 		frappe.throw(_("Email not verified with {0}").format(provider.title()))
 
 	return info
@@ -331,7 +331,7 @@ def update_oauth_user(user: str, data: dict, provider: str):
 
 
 def get_first_name(data: dict) -> str:
-	return data.get("first_name") or data.get("given_name") or data.get("name")
+	return data.get("first_name") or data.get("given_name") or data.get("name") or data.get("login")
 
 
 def get_last_name(data: dict) -> str:
