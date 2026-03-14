@@ -231,6 +231,11 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	set_formatted_number(df, doc) {
+		if (this.number === null) {
+			this.formatted_number = __("N/A", null, "Number not available");
+			return;
+		}
+
 		const default_country = frappe.sys_defaults.country;
 
 		let number_parts;
