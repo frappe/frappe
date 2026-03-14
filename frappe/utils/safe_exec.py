@@ -48,6 +48,8 @@ ARGUMENT_NOT_SET = object()
 SAFE_EXEC_CONFIG_KEY = "server_script_enabled"
 SERVER_SCRIPT_FILE_PREFIX = "<serverscript>"
 
+SAFER_EXEC_CONFIG_KEY = "safer_server_script_enabled"
+
 
 class NamespaceDict(frappe._dict):
 	"""Raise AttributeError if function not found in namespace"""
@@ -86,6 +88,11 @@ def is_safe_exec_enabled() -> bool:
 	return bool(frappe.get_common_site_config(cached=True).get(SAFE_EXEC_CONFIG_KEY))
 
 
+def is_safer_exec_enabled() -> bool:
+	# safer execution of server scripts can only be enabled via common_site_config.json
+	return bool(frappe.get_common_site_config(cached=True).get(SAFER_EXEC_CONFIG_KEY))
+
+
 def safe_exec(
 	script: str,
 	_globals: dict | None = None,
@@ -117,6 +124,35 @@ def safe_exec(
 
 	with safe_exec_flags():
 		# execute script compiled by RestrictedPython
+		exec(_compile_code(script, filename=filename), exec_globals, _locals)
+
+	return exec_globals, _locals
+
+
+def safer_exec(
+	script: str,
+	_globals: dict | None = None,
+	_locals: dict | None = None,
+	*,
+	restrict_commit_rollback: bool = True,
+	script_filename: str | None = None,
+):
+	exec_globals = get_safer_globals()
+	if _globals:
+		exec_globals.update(_globals)
+
+	if restrict_commit_rollback:
+		# prevent user from using these in docevents
+		exec_globals.frappe.db.pop("commit", None)
+		exec_globals.frappe.db.pop("rollback", None)
+		exec_globals.frappe.db.pop("add_index", None)
+
+	filename = SERVER_SCRIPT_FILE_PREFIX
+
+	if script_filename:
+		filename += f": {frappe.scrub(script_filename)}"
+
+	with safe_exec_flags(), patched_qb():
 		exec(_compile_code(script, filename=filename), exec_globals, _locals)
 
 	return exec_globals, _locals
@@ -469,6 +505,7 @@ def get_safer_globals():
 	out.frappe.pop("qb", None)
 	out.frappe.pop("delete_doc", None)
 	out.frappe.pop("render_template", None)
+	out.pop("FrappeClient", None)
 	out.frappe.update(
 		{
 			"copy_doc": safer_copy_doc,
