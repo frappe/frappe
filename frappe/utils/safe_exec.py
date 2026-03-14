@@ -102,6 +102,9 @@ def safe_exec(
 		msg += f"<br><a href='https://frappeframework.com/docs/user/en/desk/scripting/server-script'>{docs_cta}</a>"
 		frappe.throw(msg, ServerScriptNotEnabled, title="Server Scripts Disabled")
 
+	if is_safer_exec_enabled():
+		return safer_exec(script, None, _locals, script_filename=script_filename)
+
 	# build globals
 	exec_globals = get_safe_globals()
 	if _globals:
