@@ -4,8 +4,12 @@
 			<InputLabel v-if="label" :class="[required ? `after:text-red-600 after:content-['_*']` : '']">
 				{{ label }}
 			</InputLabel>
-			<Button variant="ghost" size="sm" @click="isCodeMode = !isCodeMode" :icon="isCodeMode ? 'table': 'code'">
-			</Button>
+			<Button
+				variant="ghost"
+				size="sm"
+				@click="isCodeMode = !isCodeMode"
+				:icon="isCodeMode ? 'table' : 'code'"
+			></Button>
 		</div>
 
 		<Code
@@ -14,10 +18,10 @@
 			:modelValue="codeValue"
 			@update:modelValue="handleCodeUpdate"
 			:showLineNumbers="false"
-			class="overflow-hidden mt-2"
+			class="mt-2 overflow-hidden"
 		/>
 
-		<div v-else class="flex flex-col gap-3 mt-2">
+		<div v-else class="mt-2 flex flex-col gap-3">
 			<div
 				v-for="(item, index) in items"
 				:key="index"
@@ -44,15 +48,10 @@
 						class="flex-1"
 					/>
 				</div>
-				<Button
-					variant="outline"
-					icon="x"
-					class="w-full"
-					@click="removeItem(index)"
-				/>
+				<Button variant="outline" icon="x" class="w-full" @click="removeItem(index)" />
 			</div>
 
-			<Button variant="outline" class="mt-1 w-full" icon="plus" @click="addItem"> Add Item </Button>
+			<Button variant="outline" class="mt-1 w-full" icon="plus" @click="addItem">Add Item</Button>
 		</div>
 	</div>
 </template>
@@ -86,10 +85,10 @@ const codeValue = computed(() => {
 
 const handleCodeUpdate = (val: string) => {
 	try {
-        if (!val) {
-            emit("update:modelValue", [])
-            return
-        }
+		if (!val) {
+			emit("update:modelValue", [])
+			return
+		}
 		const parsed = JSON.parse(val)
 		if (Array.isArray(parsed)) {
 			emit("update:modelValue", parsed)

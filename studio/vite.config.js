@@ -47,6 +47,12 @@ export default defineConfig({
 		chunkSizeWarningLimit: 1000,
 	},
 	optimizeDeps: {
-		include: ["frappe-ui > feather-icons", "showdown", "engine.io-client", "highlight.js/lib/core", "interactjs"],
+		include: [
+			"frappe-ui > feather-icons",
+			"showdown",
+			"engine.io-client",
+			"highlight.js/lib/core",
+			"interactjs",
+		],
 	},
 })

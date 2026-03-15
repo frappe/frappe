@@ -26,7 +26,12 @@
 		/>
 
 		<span class="text-p-xs text-ink-gray-6" v-show="description" v-html="description"></span>
-		<Button v-if="showSaveButton" variant="solid" @click="emit('save', syncToParent())" class="mt-3 w-full text-base">
+		<Button
+			v-if="showSaveButton"
+			variant="solid"
+			@click="emit('save', syncToParent())"
+			class="mt-3 w-full text-base"
+		>
 			Save
 		</Button>
 		<ErrorMessage class="text-xs leading-4" v-if="errorMessage" :message="errorMessage" />
