@@ -367,7 +367,7 @@ export const COMPONENTS: FrappeUIComponents = {
 					{
 						label: "Confirm",
 						variant: "solid",
-						onClick: () => {},
+						onClick: () => { },
 					},
 				],
 			},
@@ -388,17 +388,17 @@ export const COMPONENTS: FrappeUIComponents = {
 			options: [
 				{
 					label: "Edit Title",
-					onClick: () => {},
+					onClick: () => { },
 					icon: "edit-2",
 				},
 				{
 					label: "Manage Members",
-					onClick: () => {},
+					onClick: () => { },
 					icon: "users",
 				},
 				{
 					label: "Delete this project",
-					onClick: () => {},
+					onClick: () => { },
 					icon: "trash",
 				},
 			],
@@ -636,21 +636,9 @@ export const COMPONENTS: FrappeUIComponents = {
 		initialState: {
 			as: "div",
 			tabs: [
-				{
-					label: "Github",
-					content:
-						"Github is a code hosting platform for version control and collaboration. It lets you and others work together on projects from anywhere.",
-				},
-				{
-					label: "Twitter",
-					content:
-						'Twitter is an American microblogging and social networking service on which users post and interact with messages known as "tweets".',
-				},
-				{
-					label: "Linkedin",
-					content:
-						"LinkedIn is an American business and employment-oriented online service that operates via websites and mobile apps.",
-				},
+				{ label: "Github" },
+				{ label: "Twitter" },
+				{ label: "Linkedin" },
 			],
 		},
 		expandArrayProps: true,
