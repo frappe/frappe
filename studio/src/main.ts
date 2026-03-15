@@ -7,6 +7,7 @@ import studio_router from "@/router/studio_router"
 import App from "./App.vue"
 
 import { resourcesPlugin, frappeRequest } from "frappe-ui"
+import { spritePlugin } from "frappe-ui/icons"
 import { registerGlobalComponents } from "./globals"
 
 import { COMPONENTS } from "@/data/components"
@@ -21,6 +22,7 @@ const pinia = createPinia()
 // For the main app builder
 studio.use(studio_router)
 studio.use(resourcesPlugin)
+studio.use(spritePlugin)
 studio.use(pinia)
 registerGlobalComponents(studio)
 window.__APP_COMPONENTS__ = studio._context.components
