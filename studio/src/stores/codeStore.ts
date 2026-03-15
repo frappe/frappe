@@ -5,6 +5,7 @@ import { createDocumentResource, createListResource, createResource, call } from
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
 import { studioWatchers } from "@/data/studioWatchers"
+import * as globalUtils from "@/utils/globalUtils"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
 import { FUNCTION_STRING_REGEX } from "@/utils/constants"
@@ -114,10 +115,13 @@ const useCodeStore = defineStore("codeStore", () => {
 		activeWatchers.value = {}
 	}
 
+	console.log(globalUtils)
+
 	const globalContext = computed(() => {
 		return {
 			...variables.value,
 			...resources.value,
+			...globalUtils,
 			route: unref(routeObject.value),
 		}
 	})
@@ -129,6 +133,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		return {
 			...variablesRefs,
 			...resources.value,
+			...globalUtils,
 			route: unref(routeObject.value),
 		}
 	})
@@ -365,7 +370,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			// fetch the docname based on filters
 			docname = await call(
 				"studio.api.get_docname",
-				{doctype: resource.document_type, filters: getEvaluatedFilters(resource.filters, context) }
+				{ doctype: resource.document_type, filters: getEvaluatedFilters(resource.filters, context) }
 			)
 		}
 

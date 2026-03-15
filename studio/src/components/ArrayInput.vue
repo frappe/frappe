@@ -35,8 +35,11 @@
 					<template v-if="fieldKey === 'icon'">
 						<InputLabel class="text-xs">{{ fieldKey }}</InputLabel>
 						<IconPicker
-							:modelValue="item[fieldKey]"
-							@update:modelValue="(val) => updateItemField(index, fieldKey as string, val)"
+							:modelValue="getUnwrappedIconValue(item[fieldKey])"
+							@update:modelValue="
+								(val) => updateItemField(index, fieldKey as string, `{{ getIcon('${val}') }}`)
+							"
+							class="w-full bg-white"
 						/>
 					</template>
 					<InlineInput
@@ -96,6 +99,13 @@ const handleCodeUpdate = (val: string) => {
 	} catch (e) {
 		// If invalid JSON, ignore until valid
 	}
+}
+
+const getUnwrappedIconValue = (value: string | undefined) => {
+	if (!value) return ""
+	// Match both {{ getIcon('name') }} and getIcon('name') formats
+	const match = value.match(/(?:\{\s*)?(?:getIcon|useIcon)\(['"]([^'"]+)['"]\)(?:\s*\})?/)
+	return match ? match[1] : value
 }
 
 const updateItemField = (index: number, key: string, value: any) => {
