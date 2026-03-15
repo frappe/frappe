@@ -201,7 +201,11 @@ def upload_system_backup_to_google_drive():
 			send_email(False, "Google Drive", "Google Drive", "email", error_status=e)
 
 	set_progress(3, _("Uploading successful."))
-	frappe.db.set_single_value("Google Drive", "last_backup_on", frappe.utils.now_datetime())
+	try:
+		frappe.db.set_single_value("Google Drive", "last_backup_on", frappe.utils.now_datetime())
+	except Exception:
+		frappe.db.connect()
+		frappe.db.set_single_value("Google Drive", "last_backup_on", frappe.utils.now_datetime())
 	send_email(True, "Google Drive", "Google Drive", "email")
 	return _("Google Drive Backup Successful.")
 
