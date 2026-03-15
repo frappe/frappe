@@ -152,3 +152,93 @@ def get_workflow_state_count(doctype: str, workflow_state_field: str, states: st
 @frappe.whitelist(methods=["GET"])
 def get_workflow_methods():
 	return [i["name"] for i in frappe.get_hooks("workflow_methods")] + DEFAULT_WORKFLOW_TASKS
+
+
+@frappe.whitelist()
+def save_workflow(doc, transition_tasks_data=None):
+	"""Save workflow along with its linked transition tasks and server scripts in a single call.
+
+	Args:
+		doc: Workflow document dict
+		transition_tasks_data: dict mapping action names to their task configurations.
+			Format: {
+				"action_name": {
+					"tasks": [
+						{
+							"task": "Server Script",
+							"link": "script_name" or null,
+							"script": "...",
+							"script_name": "name_for_new_script",
+							"email_template": null,
+							"receiver_by_document_field": null
+						}
+					]
+				}
+			}
+	"""
+	doc = frappe.parse_json(doc)
+	transition_tasks_data = frappe.parse_json(transition_tasks_data) or {}
+
+	workflow_doc = frappe.get_doc("Workflow", doc.get("name"))
+	workflow_doc.update(doc)
+
+	_save_transition_tasks(workflow_doc.name, transition_tasks_data)
+
+	workflow_doc.save()
+	return workflow_doc.as_dict()
+
+
+def _save_transition_tasks(workflow_name, transition_tasks_data):
+	"""Save all transition tasks and their linked server scripts."""
+	for action_name, action_data in transition_tasks_data.items():
+		tasks = action_data.get("tasks", [])
+		doc_name = f"{workflow_name}-{action_name}"
+
+		# Save/create linked server scripts first
+		for task in tasks:
+			if task.get("task") != "Server Script":
+				continue
+
+			if task.get("link"):
+				# Update existing server script
+				server_script = frappe.get_doc("Server Script", task["link"])
+				server_script.script = task.get("script", "")
+				server_script.save()
+			elif task.get("script_name"):
+				# Create new server script
+				server_script = frappe.get_doc(
+					{
+						"doctype": "Server Script",
+						"name": task["script_name"],
+						"script_type": "Workflow Task",
+						"script": task.get("script", ""),
+					}
+				)
+				server_script.insert()
+				task["link"] = server_script.name
+
+		# Prepare tasks payload (strip client-only fields)
+		tasks_payload = [
+			{
+				"task": t.get("task"),
+				"email_template": t.get("email_template"),
+				"receiver_by_document_field": t.get("receiver_by_document_field"),
+				"link": t.get("link"),
+			}
+			for t in tasks
+		]
+
+		# Save or create the Workflow Transition Tasks doc
+		if frappe.db.exists("Workflow Transition Tasks", doc_name):
+			tasks_doc = frappe.get_doc("Workflow Transition Tasks", doc_name)
+			tasks_doc.set("tasks", tasks_payload)
+			tasks_doc.save()
+		elif tasks_payload:
+			tasks_doc = frappe.get_doc(
+				{
+					"doctype": "Workflow Transition Tasks",
+					"name": doc_name,
+					"tasks": tasks_payload,
+				}
+			)
+			tasks_doc.insert()

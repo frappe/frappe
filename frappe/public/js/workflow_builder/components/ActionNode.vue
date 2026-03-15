@@ -318,7 +318,7 @@ function openTaskConfig(task, index) {
 					class="flex items-center justify-between"
 					@click.stop="store.workflow.selected.selected_task = task"
 				>
-					<span>{{ task.task }}</span>
+					<span>{{ task.link || task.script_name || task.task }}</span>
 					<div class="remove-icon" @click.stop="removeTask(task)" title="Remove Task">
 						<svg
 							width="12"

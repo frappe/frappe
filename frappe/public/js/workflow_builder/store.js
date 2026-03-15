@@ -168,98 +168,29 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		fetch();
 	}
 
-	async function update_transition_tasks() {
-		// Persist Transition Tasks first
+	function get_transition_tasks_data() {
+		const transition_tasks_data = {};
 		for (const element of workflow.value.elements) {
-			if (element.type === "action") {
-				const doc_name = workflow_name.value + "-" + element.data.action;
-
-				if (
-					element.data.action &&
-					((element.data.tasks && element.data.tasks.length > 0) ||
-						element.data.transition_tasks)
-				) {
-					let doc_exists;
-					let is_new = true;
-
-					doc_exists = await frappe.db.get_value(
-						"Workflow Transition Tasks",
-						doc_name,
-						"name"
-					);
-
-					if (doc_exists && doc_exists.message.name) {
-						is_new = false;
-					}
-
-					// Map tasks to backend format
-					const tasks_payload = (element.data.tasks || []).map((t) => ({
-						task: t.task,
-						email_template: t.email_template,
-						receiver_by_document_field: t.receiver_by_document_field,
-						link: t.link,
-					}));
-
-					// Update individual tasks
-					if (element.data.tasks && element.data.tasks.length > 0) {
-						element.data.tasks.forEach(async (t) => {
-							if (t.task === "Server Script" && t.link) {
-								console.log(t.script);
-								let server_script_doc = await frappe.db.get_doc(
-									"Server Script",
-									t.link
-								);
-								server_script_doc.script = t.script;
-
-								await frappe.call({
-									method: "frappe.client.save",
-									args: { doc: server_script_doc },
-								});
-							} else if (t.task === "Server Script" && !t.link) {
-								await frappe.call({
-									method: "frappe.client.insert",
-									args: {
-										doc: {
-											name: t.script_name,
-											doctype: "Server Script",
-											script_type: "Workflow Task",
-											script: t.script,
-										},
-									},
-								});
-							}
-						});
-					}
-
-					if (is_new) {
-						if (element.data.tasks && element.data.tasks.length > 0) {
-							frappe.call({
-								method: "frappe.client.insert",
-								args: {
-									doc: {
-										name: doc_name,
-										doctype: "Workflow Transition Tasks",
-										tasks: tasks_payload,
-									},
-								},
-								async: false,
-							});
-							element.data.transition_tasks = doc_name;
-						}
-					} else {
-						let doc = await frappe.db.get_doc("Workflow Transition Tasks", doc_name);
-						doc.tasks = tasks_payload;
-
-						await frappe.call({
-							method: "frappe.client.save",
-							args: { doc: doc },
-							async: false,
-						});
-						element.data.transition_tasks = doc_name;
-					}
-				}
+			if (element.type !== "action" || !element.data.action) continue;
+			if (
+				!(element.data.tasks && element.data.tasks.length > 0) &&
+				!element.data.transition_tasks
+			) {
+				continue;
 			}
+
+			transition_tasks_data[element.data.action] = {
+				tasks: (element.data.tasks || []).map((t) => ({
+					task: t.task,
+					email_template: t.email_template,
+					receiver_by_document_field: t.receiver_by_document_field,
+					link: t.link,
+					script: t.script,
+					script_name: t.script_name,
+				})),
+			};
 		}
+		return transition_tasks_data;
 	}
 
 	async function save_changes() {
@@ -270,10 +201,19 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			doc.states = get_updated_states();
 			doc.transitions = get_updated_transitions();
 			validate_workflow(doc);
-			await update_transition_tasks();
 			const workflow_data = clean_workflow_data();
 			doc.workflow_data = JSON.stringify(workflow_data);
-			await frappe.call("frappe.client.save", { doc });
+
+			const transition_tasks_data = get_transition_tasks_data();
+
+			await frappe.call({
+				method: "frappe.workflow.doctype.workflow.workflow.save_workflow",
+				args: {
+					doc: doc,
+					transition_tasks_data: transition_tasks_data,
+				},
+			});
+
 			frappe.toast(__("Workflow updated successfully"));
 			fetch();
 		} catch (e) {
@@ -512,7 +452,6 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			}
 		});
 
-		console.log("Added task locally:", task_name, action_name);
 		ref_history.value.commit();
 	}
 
