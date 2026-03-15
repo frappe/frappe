@@ -367,7 +367,7 @@ export const COMPONENTS: FrappeUIComponents = {
 					{
 						label: "Confirm",
 						variant: "solid",
-						onClick: () => { },
+						onClick: () => {},
 					},
 				],
 			},
@@ -388,17 +388,17 @@ export const COMPONENTS: FrappeUIComponents = {
 			options: [
 				{
 					label: "Edit Title",
-					onClick: () => { },
+					onClick: () => {},
 					icon: "edit-2",
 				},
 				{
 					label: "Manage Members",
-					onClick: () => { },
+					onClick: () => {},
 					icon: "users",
 				},
 				{
 					label: "Delete this project",
-					onClick: () => { },
+					onClick: () => {},
 					icon: "trash",
 				},
 			],
@@ -635,11 +635,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideArrowRightLeft,
 		initialState: {
 			as: "div",
-			tabs: [
-				{ label: "Github" },
-				{ label: "Twitter" },
-				{ label: "Linkedin" },
-			],
+			tabs: [{ label: "Github" }, { label: "Twitter" }, { label: "Linkedin" }],
 		},
 		expandArrayProps: true,
 	},
@@ -803,11 +799,37 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Sidebar",
 		icon: LucideSidebar,
 		initialState: {
-			title: "Frappe",
-			menuItems: [
-				{ label: "Home", featherIcon: "home", route_to: "/" },
-				{ label: "Notifications", featherIcon: "bell", route_to: "/" },
-				{ label: "Settings", featherIcon: "settings", route_to: "/" },
+			header: {
+				title: "Frappe",
+				subtitle: "Jane Doe",
+				menuItems: [
+					{
+						label: "Help",
+						to: "/help",
+						icon: "{{ getIcon('help') }}",
+						onClick: () => alert("Help clicked!"),
+					},
+					{
+						label: "Logout",
+						to: "/logout",
+						icon: "{{ getIcon('logout') }}",
+						onClick: () => alert("Logging out..."),
+					},
+				],
+			},
+			sections: [
+				{
+					label: "",
+					items: [{ label: "Notifications", icon: "{{ getIcon('bell') }}", to: "" }],
+				},
+				{
+					label: "",
+					items: [
+						{ label: "Home", icon: "{{ getIcon('house') }}", to: "" },
+						{ label: "Profile", icon: "{{ getIcon('user-pen') }}", to: "" },
+						{ label: "Settings", icon: "{{ getIcon('settings') }}", to: "" },
+					],
+				},
 			],
 		},
 	},

@@ -32,6 +32,7 @@ import {
 	Popover,
 	Rating,
 	Select,
+	Sidebar,
 	Switch,
 	TabButtons,
 	Tabs,
@@ -53,7 +54,6 @@ import { Filter, Link } from "frappe-ui/frappe"
 import Container from "@/components/AppLayout/Container.vue"
 import FitContainer from "@/components/AppLayout/FitContainer.vue"
 import Header from "@/components/AppLayout/Header.vue"
-import Sidebar from "@/components/AppLayout/Sidebar.vue"
 import SplitView from "@/components/AppLayout/SplitView.vue"
 import Repeater from "@/components/AppLayout/Repeater.vue"
 import HTML from "@/components/AppLayout/HTML.vue"
@@ -101,6 +101,7 @@ export function registerGlobalComponents(app: App) {
 	app.component("Popover", Popover)
 	app.component("Rating", Rating)
 	app.component("Select", Select)
+	app.component("Sidebar", Sidebar)
 	app.component("Switch", Switch)
 	app.component("TabButtons", TabButtons)
 	app.component("Tabs", Tabs)
@@ -121,7 +122,6 @@ export function registerGlobalComponents(app: App) {
 	app.component("Container", Container)
 	app.component("FitContainer", FitContainer)
 	app.component("Header", Header)
-	app.component("Sidebar", Sidebar)
 	app.component("SplitView", SplitView)
 	app.component("Repeater", Repeater)
 	app.component("HTML", HTML)

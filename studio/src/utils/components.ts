@@ -262,11 +262,13 @@ function resolveProperty(
 
 	if (!type && propertySchema && !isObjectEmpty(propertySchema)) {
 		if ("anyOf" in propertySchema) {
+			// prop has multiple types
 			const propTypes = propertySchema.anyOf.map((p: any) => p?.type)
 			type = getSinglePropType(propTypes)
 		} else {
 			type = propertySchema?.type
 			if (!type && propertySchema?.$ref) {
+				// handle reference types
 				const refName = propertySchema.$ref.split("/").pop()
 				const refType = componentDefinitions?.[refName]?.type
 				type = refType || "object"
