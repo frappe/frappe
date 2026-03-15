@@ -92,8 +92,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://frappeframework.com/"
+Homepage = "https://frappe.io/framework"
 Repository = "https://github.com/frappe/frappe.git"
+Documentation = "https://docs.frappe.io/framework"
 "Bug Reports" = "https://github.com/frappe/frappe/issues"
 
 [project.optional-dependencies]
