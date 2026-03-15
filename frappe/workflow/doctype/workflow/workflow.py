@@ -155,7 +155,7 @@ def get_workflow_methods():
 
 
 @frappe.whitelist()
-def save_workflow(doc, transition_tasks_data=None):
+def save_workflow(doc: str, transition_tasks_data: str | None = None):
 	"""Save workflow along with its linked transition tasks and server scripts in a single call.
 
 	Args:

@@ -97,6 +97,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 				});
 
 				if (exists && exists.message && exists.message.name) {
+					await frappe.model.clear_doc("Workflow Transition Tasks", doc_name);
 					const tasks_doc = await frappe.db.get_doc(
 						"Workflow Transition Tasks",
 						doc_name
@@ -111,14 +112,16 @@ export const useStore = defineStore("workflow-builder-store", () => {
 							  }))
 							: [];
 
-						tasks.forEach(async (t) => {
+						for (const t of tasks) {
 							if (t.task == "Server Script" && t.link) {
-								// Pre-fetch linked Server Script for smoother UX
+								// Clear cache to ensure fresh data after save
+								await frappe.model.clear_doc("Server Script", t.link);
 								await frappe.model.with_doc("Server Script", t.link);
 								let server_script_doc = frappe.get_doc("Server Script", t.link);
 								t.script = server_script_doc.script;
+								t.script_name = t.link;
 							}
-						});
+						}
 
 						// Assign to map if it matches
 						workflow.value.elements.forEach((el) => {

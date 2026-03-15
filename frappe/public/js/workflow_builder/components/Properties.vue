@@ -1,10 +1,11 @@
 <script setup>
-import { ref, computed, nextTick, watch } from "vue";
+import { ref, reactive, computed, nextTick, watch } from "vue";
 import { useStore } from "../store";
 
 let store = useStore();
 
 let title = ref("Workflow Details");
+let task_data = reactive({ script_name: "", script: "" });
 
 watch(
 	() => store.workflow_doc?.document_type,
@@ -15,18 +16,32 @@ watch(
 	}
 );
 
-let doc = computed(() => {
-	if (store.workflow.selected && store.workflow.selected.selected_task) {
-		if (store.workflow.selected.selected_task.task == "Server Script") {
-			return {
-				name: store.workflow.selected.selected_task.link,
-				script_name: store.workflow.selected.selected_task.link,
-				script: store.workflow.selected.selected_task.script,
-			};
+// Sync local task_data when a different task is selected
+watch(
+	() => store.workflow.selected?.selected_task,
+	(task) => {
+		if (task && task.task === "Server Script") {
+			task_data.script_name = task.script_name || task.link || "";
+			task_data.script = task.script || "";
 		}
-	} else {
-		return store.workflow.selected ? store.workflow.selected.data : store.workflow_doc;
 	}
+);
+
+function onTaskPropertyChange(fieldname, value) {
+	task_data[fieldname] = value;
+	const selected = store.workflow.selected;
+	if (selected?.selected_task?.task === "Server Script" && selected.selected_task_index >= 0) {
+		store.update_task_config(selected, selected.selected_task_index, {
+			[fieldname]: value,
+		});
+	}
+}
+
+let doc = computed(() => {
+	if (store.workflow.selected?.selected_task?.task === "Server Script") {
+		return task_data;
+	}
+	return store.workflow.selected ? store.workflow.selected.data : store.workflow_doc;
 });
 
 let properties = computed(() => {
@@ -106,6 +121,17 @@ let properties = computed(() => {
 			<div v-if="doc">
 				<div class="field" v-for="df in properties" :key="df.name">
 					<component
+						v-if="store.workflow.selected?.selected_task?.task === 'Server Script'"
+						:is="df.fieldtype.replaceAll(' ', '') + 'Control'"
+						:df="df"
+						:value="doc[df.fieldname]"
+						:modelValue="doc[df.fieldname]"
+						@update:modelValue="(val) => onTaskPropertyChange(df.fieldname, val)"
+						:data-fieldname="df.fieldname"
+						:data-fieldtype="df.fieldtype"
+					/>
+					<component
+						v-else
 						:is="df.fieldtype.replaceAll(' ', '') + 'Control'"
 						:df="df"
 						:value="doc[df.fieldname]"
