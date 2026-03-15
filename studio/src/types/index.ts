@@ -68,7 +68,7 @@ export type ComponentProp = {
 	props?: Record<string, any>
 	options?: Array<SelectOption> | Array<string>
 	condition?: (state: object | null | undefined) => boolean
-	itemSchema?: Record<string, any>
+	items?: Record<string, any>
 }
 
 export type ComponentProps = Record<string, ComponentProp>

@@ -4,9 +4,13 @@
 			{{ label }}
 		</InputLabel>
 
-		<div v-for="(item, index) in items" :key="index" class="group flex flex-col gap-2 rounded-md border p-3">
+		<div
+			v-for="(item, index) in itemsValue"
+			:key="index"
+			class="group flex flex-col gap-2 rounded-md border p-3"
+		>
 			<div
-				v-for="(fieldSchema, fieldKey) in itemSchema"
+				v-for="(fieldSchema, fieldKey) in items"
 				:key="fieldKey"
 				class="flex w-full flex-row items-center gap-1"
 			>
@@ -46,13 +50,13 @@ import InlineInput from "@/components/InlineInput.vue"
 const props = defineProps<{
 	modelValue: any[]
 	label?: string
-	itemSchema?: Record<string, any>
+	items?: Record<string, any>
 	required?: boolean
 }>()
 
 const emit = defineEmits(["update:modelValue"])
 
-const items = computed(() => {
+const itemsValue = computed(() => {
 	return Array.isArray(props.modelValue) ? props.modelValue : []
 })
 

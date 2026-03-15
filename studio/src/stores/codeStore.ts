@@ -115,8 +115,6 @@ const useCodeStore = defineStore("codeStore", () => {
 		activeWatchers.value = {}
 	}
 
-	console.log(globalUtils)
-
 	const globalContext = computed(() => {
 		return {
 			...variables.value,
