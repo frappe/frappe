@@ -5,7 +5,7 @@
 		</InputLabel>
 
 		<div
-			v-for="(item, index) in itemsValue"
+			v-for="(item, index) in itemValues"
 			:key="index"
 			class="group flex flex-col gap-2 rounded-md border p-3"
 		>
@@ -36,7 +36,7 @@
 			<Button variant="outline" icon="x" class="w-full" @click="removeItem(index)" />
 		</div>
 
-		<Button variant="outline" class="mt-1 w-full" icon="plus" @click="addItem">Add Item</Button>
+		<Button variant="outline" class="mt-1 w-full" icon-left="plus" @click="addItem">Add</Button>
 	</div>
 </template>
 
@@ -56,7 +56,7 @@ const props = defineProps<{
 
 const emit = defineEmits(["update:modelValue"])
 
-const itemsValue = computed(() => {
+const itemValues = computed(() => {
 	return Array.isArray(props.modelValue) ? props.modelValue : []
 })
 
@@ -68,21 +68,21 @@ const getUnwrappedIconValue = (value: string | undefined) => {
 }
 
 const updateItemField = (index: number, key: string, value: any) => {
-	const newItems = [...items.value]
+	const newItems = [...itemValues.value]
 	newItems[index] = { ...newItems[index], [key]: value }
 	emit("update:modelValue", newItems)
 }
 
 const removeItem = (index: number) => {
-	const newItems = items.value.filter((_, i) => i !== index)
+	const newItems = itemValues.value.filter((_, i) => i !== index)
 	emit("update:modelValue", newItems)
 }
 
 const addItem = () => {
-	const newItems = [...items.value]
+	const newItems = [...itemValues.value]
 	const newItem: any = {}
-	if (props.itemSchema) {
-		Object.keys(props.itemSchema).forEach((key) => {
+	if (props.items) {
+		Object.keys(props.items).forEach((key) => {
 			newItem[key] = ""
 		})
 	}

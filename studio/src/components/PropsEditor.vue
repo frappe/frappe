@@ -45,7 +45,7 @@
 						size="sm"
 						@click="toggleArrayInputs(propName)"
 						:icon="arrayInputs[propName] === 'code' ? 'table' : 'code'"
-						class="absolute right-0 top-0 z-10"
+						class="absolute right-0 top-0 z-10 hover:bg-transparent"
 						:tooltip="arrayInputs[propName] === 'code' ? 'Switch to table editor' : 'Switch to code editor'"
 					></Button>
 					<Code

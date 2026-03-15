@@ -14,7 +14,7 @@
 				v-show="!option.condition || option.condition()"
 			>
 				<div
-					@click.prevent.stop=";(!option.condition || option.condition()) && handleClick(option.action)"
+					@click.prevent.stop="(!option.condition || option.condition()) && handleClick(option.action)"
 					:class="{
 						'text-gray-900': !disabled,
 						'dark:bg-zinc-700 bg-gray-200': active,
