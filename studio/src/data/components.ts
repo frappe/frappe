@@ -653,6 +653,7 @@ export const COMPONENTS: FrappeUIComponents = {
 				},
 			],
 		},
+		expandArrayProps: true,
 	},
 	TabButtons: {
 		name: "TabButtons",

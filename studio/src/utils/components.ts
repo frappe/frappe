@@ -47,7 +47,7 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 	} else {
 		let folderName = componentFolders[componentName] || componentName
 		const componentDefinitions = getComponentDefinitions(folderName)
-		const componentSchema = componentDefinitions?.[`${folderName}Props`]
+		const componentSchema = componentDefinitions?.[`${folderName}Props`] || componentDefinitions?.["*"]
 		const { required, properties } = componentSchema || {}
 
 		Object.entries(props as Record<string, VueProp>).forEach(([propName, prop]) => {
@@ -90,6 +90,13 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 				inputType: getPropInputType(propType),
 				required: isRequired,
 				condition: prop.condition,
+			}
+
+			if (propType === "array" && components.get(componentName)?.expandArrayProps) {
+				config.inputType = "array"
+				if (propertySchema?.items?.properties) {
+					config.itemSchema = propertySchema.items.properties
+				}
 			}
 
 			if (propType === "string") {

@@ -56,6 +56,13 @@
 					},
 				}"
 			/>
+			<ArrayInput
+				v-else-if="config.inputType === 'array'"
+				:label="propName"
+				:modelValue="getFormattedValue(propName)"
+				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
+				:itemSchema="config.itemSchema"
+			/>
 			<InlineInput
 				v-else
 				:label="propName"
@@ -77,6 +84,7 @@ import EmptyState from "@/components/EmptyState.vue"
 import Block from "@/utils/block"
 
 import InlineInput from "@/components/InlineInput.vue"
+import ArrayInput from "@/components/ArrayInput.vue"
 import { isObjectEmpty } from "@/utils/helpers"
 import Code from "@/components/Code.vue"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
@@ -197,7 +205,7 @@ function getStudioComponentProps(componentInputs: ComponentInput[]): ComponentPr
 }
 
 const isCodeField = (inputType: string) => {
-	return ["code", "html"].includes(inputType)
+	return ["code", "html", "array"].includes(inputType)
 }
 
 function setDynamicValue(propName: string, varName: string, bindVariable: boolean) {
