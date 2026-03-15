@@ -37,9 +37,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue"
+import { computed } from "vue"
 import { Button } from "frappe-ui"
-import Code from "@/components/Code.vue"
 import { IconPicker } from "frappe-ui/icons"
 import InputLabel from "@/components/InputLabel.vue"
 import InlineInput from "@/components/InlineInput.vue"

@@ -40,6 +40,7 @@
 			<template v-else-if="config.inputType === 'code' || config.inputType === 'array'">
 				<div class="relative min-w-0 flex-1">
 					<Button
+						v-if="config.inputType === 'array'"
 						variant="ghost"
 						size="sm"
 						@click="toggleArrayInputs(propName)"
