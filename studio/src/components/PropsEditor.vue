@@ -37,32 +37,45 @@
 					},
 				}"
 			/>
-			<Code
-				v-else-if="config.inputType === 'code'"
-				:label="propName"
-				language="javascript"
-				:modelValue="getFormattedValue(propName)"
-				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
-				:required="config.required"
-				:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
-				:showLineNumbers="false"
-				class="overflow-hidden"
-				:actionButton="{
-					icon: 'maximize',
-					label: 'Expand',
-					handler: () => {
-						if (!props.block) return
-						canvasStore.editCode(props.block, propName, getFormattedValue(propName))
-					},
-				}"
-			/>
-			<ArrayInput
-				v-else-if="config.inputType === 'array'"
-				:label="propName"
-				:modelValue="getFormattedValue(propName)"
-				@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
-				:itemSchema="config.itemSchema"
-			/>
+			<template v-else-if="config.inputType === 'code' || config.inputType === 'array'">
+				<div class="relative min-w-0 flex-1">
+					<Button
+						variant="ghost"
+						size="sm"
+						@click="toggleArrayInputs(propName)"
+						:icon="arrayInputs[propName] === 'code' ? 'table' : 'code'"
+						class="absolute right-0 top-0 z-10"
+						:tooltip="arrayInputs[propName] === 'code' ? 'Switch to table editor' : 'Switch to code editor'"
+					></Button>
+					<Code
+						v-if="config.inputType === 'code' || arrayInputs[propName] === 'code'"
+						:label="propName"
+						language="javascript"
+						:modelValue="getFormattedValue(propName)"
+						@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
+						:required="config.required"
+						:completions="(context: CompletionContext) => getCompletions(context, block?.getCompletions())"
+						:showLineNumbers="false"
+						class="overflow-hidden"
+						:actionButton="{
+							icon: 'maximize',
+							label: 'Expand',
+							handler: () => {
+								if (!props.block) return
+								canvasStore.editCode(props.block, propName, getFormattedValue(propName))
+							},
+						}"
+					/>
+					<ArrayInput
+						v-else-if="config.inputType === 'array'"
+						:label="propName"
+						:required="config.required"
+						:modelValue="getFormattedValue(propName)"
+						@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
+						:itemSchema="config.itemSchema"
+					/>
+				</div>
+			</template>
 			<InlineInput
 				v-else
 				:label="propName"
@@ -79,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, resolveComponent } from "vue"
+import { computed, ref, resolveComponent } from "vue"
 import EmptyState from "@/components/EmptyState.vue"
 import Block from "@/utils/block"
 
@@ -230,5 +243,14 @@ const handlePropUpdate = (propName: string, newValue: any) => {
 
 const isVariableBound = (value: any) => {
 	return value?.$type === "variable" ? value.name : null
+}
+
+const arrayInputs = ref<Record<string, "code" | "table">>({})
+const toggleArrayInputs = (propName: string) => {
+	if (arrayInputs.value[propName] === "code") {
+		arrayInputs.value[propName] = "table"
+	} else {
+		arrayInputs.value[propName] = "code"
+	}
 }
 </script>
