@@ -14,6 +14,7 @@
 				label="Synced with variable. Click to change."
 				placement="bottom"
 				class="mr-1"
+				:tabIndex="-1"
 				@click="togglePopover"
 			/>
 			<IconButton
@@ -23,6 +24,7 @@
 				placement="bottom"
 				class="mr-1"
 				size="sm"
+				:tabIndex="-1"
 				@click="togglePopover"
 			/>
 		</template>

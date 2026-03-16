@@ -41,6 +41,7 @@
 				<div class="relative min-w-0 flex-1">
 					<Button
 						v-if="config.inputType === 'array'"
+						:tabIndex="-1"
 						variant="ghost"
 						size="sm"
 						@click="toggleArrayInputs(propName)"

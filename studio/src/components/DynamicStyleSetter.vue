@@ -9,7 +9,14 @@
 			},
 		]"
 	>
-		<IconButton ref="dropdownTrigger" icon="plus-circle" placement="bottom" class="mr-1" size="sm" />
+		<IconButton
+			ref="dropdownTrigger"
+			icon="plus-circle"
+			placement="bottom"
+			class="mr-1"
+			size="sm"
+			tabIndex="-1"
+		/>
 	</Dropdown>
 	<DraggablePopup
 		v-model="showDynamicValueModal"
