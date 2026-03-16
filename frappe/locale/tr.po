@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-03-09 21:08\n"
+"PO-Revision-Date: 2026-03-16 00:43\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -16211,7 +16211,7 @@ msgstr "Modeller"
 #: frappe/core/report/transaction_log_report/transaction_log_report.py:106
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.js:43
 msgid "Modified By"
-msgstr "Değiştiren"
+msgstr ""
 
 #. Label of a Data field in DocType 'Block Module'
 #. Label of a Link field in DocType 'DocType'
