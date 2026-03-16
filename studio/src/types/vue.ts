@@ -10,4 +10,5 @@ export type VueProp = {
 	type: VuePropType | VuePropType[]
 	default: VuePropDefault
 	required: boolean
+	condition?: (props: any) => boolean
 }

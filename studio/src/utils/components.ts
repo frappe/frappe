@@ -47,7 +47,7 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 	} else {
 		let folderName = componentFolders[componentName] || componentName
 		const componentDefinitions = getComponentDefinitions(folderName)
-		const componentSchema = componentDefinitions?.[`${folderName}Props`]
+		const componentSchema = componentDefinitions?.[`${folderName}Props`] || componentDefinitions?.["*"]
 		const { required, properties } = componentSchema || {}
 
 		Object.entries(props as Record<string, VueProp>).forEach(([propName, prop]) => {
@@ -64,40 +64,43 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 
 			if (!propType && !isObjectEmpty(propertySchema)) {
 				isRequired = required?.includes(propName)
-
-				if ("anyOf" in propertySchema) {
-					// prop has multiple types
-					const propTypes = propertySchema?.anyOf.map((prop: Record<string, any>) => prop?.type)
-					propType = getSinglePropType(propTypes)
-				} else {
-					propType = propertySchema?.type
-					if (!propType && propertySchema?.$ref) {
-						// handle referenced types
-						const refName = propertySchema.$ref.split("/").pop()
-						const refType = componentDefinitions?.[refName]?.type
-						propType = refType || "object"
-					}
-				}
 			}
 
-			if (typeof propType === "string") {
-				propType = propType?.toLowerCase()
-			}
+			const { type, inputType, options } = resolveProperty(
+				propertySchema,
+				componentDefinitions,
+				propName,
+				propType
+			)
 
 			const config: ComponentProp = {
-				type: propType,
+				type,
 				default: prop.default,
-				inputType: getPropInputType(propType),
+				inputType,
 				required: isRequired,
 				condition: prop.condition,
 			}
 
-			if (propType === "string") {
-				const enums = getPropEnums(properties, componentDefinitions, propName)
-				if (enums) {
-					// prop has predefined options
-					config.inputType = "select"
-					config.options = enums
+			if (options) {
+				config.options = options
+			}
+
+			if (type === "array" && components.get(componentName)?.expandArrayProps) {
+				config.inputType = "array"
+				if (propertySchema?.items?.properties) {
+					const itemsConfig: Record<string, any> = {}
+					Object.entries(propertySchema.items.properties).forEach(([key, schema]: [string, any]) => {
+						const resolvedItem = resolveProperty(schema, componentDefinitions, key)
+						itemsConfig[key] = {
+							...schema,
+							type: resolvedItem.type,
+							inputType: resolvedItem.inputType,
+						}
+						if (resolvedItem.options) {
+							itemsConfig[key].options = resolvedItem.options
+						}
+					})
+					config.itemTypes = itemsConfig
 				}
 			}
 
@@ -247,6 +250,48 @@ function getComponentSlots(componentName: string) {
 		}
 	}
 	return slots
+}
+
+function resolveProperty(
+	propertySchema: any,
+	componentDefinitions: Record<string, any>,
+	propName: string,
+	propType?: string
+) {
+	let type = propType
+
+	if (!type && propertySchema && !isObjectEmpty(propertySchema)) {
+		if ("anyOf" in propertySchema) {
+			// prop has multiple types
+			const propTypes = propertySchema.anyOf.map((p: any) => p?.type)
+			type = getSinglePropType(propTypes)
+		} else {
+			type = propertySchema?.type
+			if (!type && propertySchema?.$ref) {
+				// handle reference types
+				const refName = propertySchema.$ref.split("/").pop()
+				const refType = componentDefinitions?.[refName]?.type
+				type = refType || "object"
+			}
+		}
+	}
+
+	if (typeof type === "string") {
+		type = type.toLowerCase()
+	}
+
+	let inputType = getPropInputType(type || "text")
+	let options: string[] | undefined
+
+	if (type === "string") {
+		const enums = getPropEnums({ [propName]: propertySchema }, componentDefinitions, propName)
+		if (enums) {
+			inputType = "select"
+			options = enums
+		}
+	}
+
+	return { type: type as string, inputType, options }
 }
 
 export { getComponentProps, getComponentTemplate, getComponentSlots }

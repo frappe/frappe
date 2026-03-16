@@ -68,6 +68,7 @@ export type ComponentProp = {
 	props?: Record<string, any>
 	options?: Array<SelectOption> | Array<string>
 	condition?: (state: object | null | undefined) => boolean
+	itemTypes?: Record<string, any>
 }
 
 export type ComponentProps = Record<string, ComponentProp>
@@ -91,6 +92,7 @@ export interface FrappeUIComponent {
 	additionalProps?: Record<string, any> // additional props to be shown in the properties panel that are not explicitly defined in the component
 	overrideProps?: Record<string, ComponentProp & { props?: Record<string, any> }> // to override prop editors for specific props
 	hideProps?: Array<string> // to hide specific props from the properties panel
+	expandArrayProps?: boolean // whether to render array props optimally using ArrayInput instead of as Code
 }
 
 export interface FrappeUIComponents {

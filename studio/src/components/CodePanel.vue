@@ -5,7 +5,7 @@
 				v-if="studioPageWatchers.data?.length"
 				v-for="watcher in studioPageWatchers.data"
 				:key="watcher.name"
-				class="group/item flex flex-row justify-between items-center"
+				class="group/item flex flex-row items-center justify-between"
 			>
 				<div class="flex flex-row justify-between">
 					<div class="font-mono text-xs font-semibold text-pink-700">{{ watcher.source }}</div>

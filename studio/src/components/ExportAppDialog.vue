@@ -15,7 +15,9 @@
 				<SettingItem
 					v-if="enableExport"
 					label="Frappe App"
-					:description="`App will be exported to ${targetApp || 'frappe_app_name'}/studio/${scrub(store.activeApp?.app_name)}`"
+					:description="`App will be exported to ${targetApp || 'frappe_app_name'}/studio/${scrub(
+						store.activeApp?.app_name,
+					)}`"
 				>
 					<FormControl
 						type="autocomplete"

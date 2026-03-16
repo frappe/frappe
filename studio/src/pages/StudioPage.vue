@@ -132,10 +132,7 @@
 					"
 					@save="
 						(val) => {
-							canvasStore.editableBlock?.setProp(
-								canvasStore.editableCode.propName,
-								val,
-							)
+							canvasStore.editableBlock?.setProp(canvasStore.editableCode.propName, val)
 							canvasStore.showCodeDialog = false
 						}
 					"

@@ -12,6 +12,7 @@ declare module 'vue' {
     AppDialog: typeof import('./src/components/AppDialog.vue')['default']
     AppHeader: typeof import('./src/components/AppLayout/AppHeader.vue')['default']
     AppLogo: typeof import('./src/components/Icons/AppLogo.vue')['default']
+    ArrayInput: typeof import('./src/components/ArrayInput.vue')['default']
     Audio: typeof import('./src/components/AppLayout/Audio.vue')['default']
     Autocomplete: typeof import('./src/components/Autocomplete.vue')['default']
     AvatarCard: typeof import('./src/components/AppLayout/AvatarCard.vue')['default']

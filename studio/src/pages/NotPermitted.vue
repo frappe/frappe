@@ -5,7 +5,7 @@
 			<div class="mt-2 text-base text-gray-500">
 				You don't have permission to access this page. Make sure you have the right roles & permissions.
 			</div>
-			<a href="/app" class="mt-4 text-base text-gray-600 underline"> Back to Home </a>
+			<a href="/app" class="mt-4 text-base text-gray-600 underline">Back to Home</a>
 		</div>
 	</div>
 </template>

@@ -635,24 +635,9 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideArrowRightLeft,
 		initialState: {
 			as: "div",
-			tabs: [
-				{
-					label: "Github",
-					content:
-						"Github is a code hosting platform for version control and collaboration. It lets you and others work together on projects from anywhere.",
-				},
-				{
-					label: "Twitter",
-					content:
-						'Twitter is an American microblogging and social networking service on which users post and interact with messages known as "tweets".',
-				},
-				{
-					label: "Linkedin",
-					content:
-						"LinkedIn is an American business and employment-oriented online service that operates via websites and mobile apps.",
-				},
-			],
+			tabs: [{ label: "Github" }, { label: "Twitter" }, { label: "Linkedin" }],
 		},
+		expandArrayProps: true,
 	},
 	TabButtons: {
 		name: "TabButtons",
@@ -814,11 +799,37 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Sidebar",
 		icon: LucideSidebar,
 		initialState: {
-			title: "Frappe",
-			menuItems: [
-				{ label: "Home", featherIcon: "home", route_to: "/" },
-				{ label: "Notifications", featherIcon: "bell", route_to: "/" },
-				{ label: "Settings", featherIcon: "settings", route_to: "/" },
+			header: {
+				title: "Frappe",
+				subtitle: "Jane Doe",
+				menuItems: [
+					{
+						label: "Help",
+						to: "/help",
+						icon: "{{ getIcon('help') }}",
+						onClick: () => alert("Help clicked!"),
+					},
+					{
+						label: "Logout",
+						to: "/logout",
+						icon: "{{ getIcon('logout') }}",
+						onClick: () => alert("Logging out..."),
+					},
+				],
+			},
+			sections: [
+				{
+					label: "",
+					items: [{ label: "Notifications", icon: "{{ getIcon('bell') }}", to: "" }],
+				},
+				{
+					label: "",
+					items: [
+						{ label: "Home", icon: "{{ getIcon('house') }}", to: "" },
+						{ label: "Profile", icon: "{{ getIcon('user-pen') }}", to: "" },
+						{ label: "Settings", icon: "{{ getIcon('settings') }}", to: "" },
+					],
+				},
 			],
 		},
 	},
