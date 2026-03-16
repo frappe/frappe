@@ -4,13 +4,9 @@
 			{{ label }}
 		</InputLabel>
 
-		<div
-			v-for="(item, index) in itemValues"
-			:key="index"
-			class="group flex flex-col gap-2 rounded-md border p-3"
-		>
+		<div v-for="(item, index) in items" :key="index" class="group flex flex-col gap-2 rounded-md border p-3">
 			<div
-				v-for="(fieldSchema, fieldKey) in items"
+				v-for="(fieldSchema, fieldKey) in itemTypes"
 				:key="fieldKey"
 				class="flex w-full flex-row items-center gap-1"
 			>
@@ -27,7 +23,7 @@
 				<InlineInput
 					v-else
 					:label="fieldKey"
-					:type="fieldSchema.type"
+					:type="fieldSchema.inputType"
 					:modelValue="item[fieldKey]"
 					@update:modelValue="(newValue) => updateItemField(index, fieldKey as string, newValue)"
 					class="flex-1"
@@ -50,13 +46,13 @@ import InlineInput from "@/components/InlineInput.vue"
 const props = defineProps<{
 	modelValue: any[]
 	label?: string
-	items?: Record<string, any>
+	itemTypes?: Record<string, any>
 	required?: boolean
 }>()
 
 const emit = defineEmits(["update:modelValue"])
 
-const itemValues = computed(() => {
+const items = computed(() => {
 	return Array.isArray(props.modelValue) ? props.modelValue : []
 })
 
@@ -68,21 +64,21 @@ const getUnwrappedIconValue = (value: string | undefined) => {
 }
 
 const updateItemField = (index: number, key: string, value: any) => {
-	const newItems = [...itemValues.value]
+	const newItems = [...items.value]
 	newItems[index] = { ...newItems[index], [key]: value }
 	emit("update:modelValue", newItems)
 }
 
 const removeItem = (index: number) => {
-	const newItems = itemValues.value.filter((_, i) => i !== index)
+	const newItems = items.value.filter((_, i) => i !== index)
 	emit("update:modelValue", newItems)
 }
 
 const addItem = () => {
-	const newItems = [...itemValues.value]
+	const newItems = [...items.value]
 	const newItem: any = {}
-	if (props.items) {
-		Object.keys(props.items).forEach((key) => {
+	if (props.itemTypes) {
+		Object.keys(props.itemTypes).forEach((key) => {
 			newItem[key] = ""
 		})
 	}

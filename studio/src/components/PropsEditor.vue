@@ -73,7 +73,7 @@
 						:required="config.required"
 						:modelValue="getFormattedValue(propName)"
 						@update:modelValue="(newValue) => handlePropUpdate(propName, newValue)"
-						:items="config.items"
+						:itemTypes="config.itemTypes"
 					/>
 				</div>
 			</template>

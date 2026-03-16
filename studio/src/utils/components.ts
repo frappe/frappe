@@ -100,7 +100,7 @@ function getComponentProps(componentName: string, component: ConcreteComponent |
 							itemsConfig[key].options = resolvedItem.options
 						}
 					})
-					config.items = itemsConfig
+					config.itemTypes = itemsConfig
 				}
 			}
 
