@@ -197,8 +197,8 @@ def has_permission(
 			ptype="read",
 			doc=doc,
 			user=user,
+			raise_exception=raise_exception,
 			parent_doctype=parent_doctype,
-			print_logs=print_logs,
 			debug=debug,
 			ignore_share_permissions=ignore_share_permissions,
 		)
