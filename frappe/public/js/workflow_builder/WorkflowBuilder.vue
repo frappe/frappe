@@ -343,6 +343,13 @@ function loose_focus() {
 
 onPaneReady(() => fitView());
 onMounted(() => store.fetch());
+
+watch(
+	() => store.workflow.elements,
+	() => {
+		nextTick(() => fitView());
+	}
+);
 </script>
 
 <template>
