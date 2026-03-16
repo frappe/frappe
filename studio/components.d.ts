@@ -84,7 +84,6 @@ declare module 'vue' {
     SearchBlock: typeof import('./src/components/SearchBlock.vue')['default']
     SectionContainer: typeof import('./src/components/SectionContainer.vue')['default']
     SettingItem: typeof import('./src/components/SettingItem.vue')['default']
-    Sidebar: typeof import('./src/components/AppLayout/Sidebar.vue')['default']
     SlotIcon: typeof import('./src/components/Icons/SlotIcon.vue')['default']
     SplitView: typeof import('./src/components/AppLayout/SplitView.vue')['default']
     StudioCanvas: typeof import('./src/components/StudioCanvas.vue')['default']
