@@ -30,12 +30,12 @@
 		<template #item-suffix="{ option }">
 			<span class="text-ink-gray-4">{{ option.type?.toLowerCase() }}</span>
 		</template>
-		<template #footer>
-			<div class="flex items-center p-2" @mousedown.prevent>
+		<template #footer v-if="dynamicValueOptions.length > 0">
+			<div class="flex items-center gap-1 p-2" @mousedown.prevent>
 				<Tooltip text="Changing the selected variable value will change the prop value and vice versa">
 					<FeatherIcon name="info" class="size-3 text-ink-gray-5" />
 				</Tooltip>
-				<Switch v-model="bindVariable" label="Sync with variable" class="w-full" />
+				<Switch v-model="bindVariable" label="Sync with variable" class="w-full hover:bg-transparent" />
 			</div>
 		</template>
 	</Autocomplete>
