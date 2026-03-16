@@ -91,13 +91,15 @@ frappe.ui.SidebarCard = class SidebarCard {
 	setup_close_button() {
 		const me = this;
 		if (this.close_button) {
-			this.card.find(".close-button").on("click", function () {
+			this.card.find(".close-button").on("click", function (event) {
+				event.preventDefault();
+				event.stopPropagation();
 				if (me.dismiss_it_for) {
 					let next_show_time = Date.now() + me.dismiss_intervals[me.dismiss_it_for];
 
 					localStorage.setItem(me.get_dismiss_key(), next_show_time);
 				}
-				me.toggle();
+				me.hide();
 			});
 		}
 	}

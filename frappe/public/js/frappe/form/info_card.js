@@ -9,7 +9,7 @@ export class InfoCard {
 		this.make_card();
 	}
 	make_toggle_button() {
-		$(
+		this.$trigger = $(
 			`${frappe.utils.icon(
 				"message-circle-question-mark",
 				"sm",
@@ -18,7 +18,7 @@ export class InfoCard {
 				"cursor-pointer m-0"
 			)}`
 		).appendTo($(this.label_span));
-		$(this.label_span).find("svg").attr("role", "button");
+		this.$trigger.attr("role", "button");
 		$(this.label_area).css({
 			display: "flex",
 			gap: "6px",
@@ -53,12 +53,10 @@ export class InfoCard {
 	}
 	setup_click() {
 		const me = this;
-		$(this.label_span)
-			.find("svg")
-			.on("click", (event) => {
-				event.preventDefault();
-				me.card.toggle();
-			});
+		this.$trigger.on("click", (event) => {
+			event.preventDefault();
+			me.card.toggle();
+		});
 		$(document).on("click", function (e) {
 			if (!e.originalEvent.composedPath().includes(me.label_area)) {
 				me.card.hide();
