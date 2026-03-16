@@ -1,6 +1,11 @@
 <template>
+	<div v-if="error" class="border-ink-red-3 flex flex-col gap-2 border p-2 text-ink-red-3" ref="componentRef">
+		<p class="text-sm font-semibold">An error occurred while rendering {{ block.componentName }}:</p>
+		<pre class="text-xs">{{ error }}</pre>
+	</div>
+
 	<StudioComponentWrapper
-		v-if="block.isStudioComponent"
+		v-else-if="block.isStudioComponent"
 		:studioComponent="block"
 		:evaluationContext="evaluationContext"
 		:breakpoint="breakpoint"
@@ -107,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, useAttrs, inject, ComputedRef } from "vue"
+import { computed, ref, watch, useAttrs, inject, ComputedRef, onErrorCaptured } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
@@ -326,4 +331,21 @@ watch(
 	},
 	{ deep: true, immediate: true },
 )
+
+const error = ref<Error | null>(null)
+onErrorCaptured((err, _instance, info) => {
+	console.error(
+		`Error while rendering StudioComponent ${props.block.componentName} ${props.block.componentId}:\n`,
+		`source: ${info}\n`,
+		`error: ${err}`,
+	)
+	error.value = err
+	return false
+})
+
+watch(componentProps, () => {
+	if (error.value) {
+		error.value = null
+	}
+})
 </script>
