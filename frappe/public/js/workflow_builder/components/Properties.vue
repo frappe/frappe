@@ -5,7 +5,12 @@ import { useStore } from "../store";
 let store = useStore();
 
 let title = ref("Workflow Details");
-let task_data = reactive({ script_name: "", script: "" });
+let task_data = reactive({
+	script_name: "",
+	script: "",
+	email_template: "",
+	receiver_by_document_field: "",
+});
 
 watch(
 	() => store.workflow_doc?.document_type,
@@ -23,6 +28,9 @@ watch(
 		if (task && task.task === "Server Script") {
 			task_data.script_name = task.script_name || task.link || "";
 			task_data.script = task.script || "";
+		} else if (task && task.task === "Email Notification") {
+			task_data.email_template = task.email_template || "";
+			task_data.receiver_by_document_field = task.receiver_by_document_field || "";
 		}
 	}
 );
@@ -30,15 +38,20 @@ watch(
 function onTaskPropertyChange(fieldname, value) {
 	task_data[fieldname] = value;
 	const selected = store.workflow.selected;
-	if (selected?.selected_task?.task === "Server Script" && selected.selected_task_index >= 0) {
+	if (selected?.selected_task && selected.selected_task_index >= 0) {
 		store.update_task_config(selected, selected.selected_task_index, {
 			[fieldname]: value,
 		});
 	}
 }
 
+let is_task_selected = computed(() => {
+	const task = store.workflow.selected?.selected_task;
+	return task && (task.task === "Server Script" || task.task === "Email Notification");
+});
+
 let doc = computed(() => {
-	if (store.workflow.selected?.selected_task?.task === "Server Script") {
+	if (is_task_selected.value) {
 		return task_data;
 	}
 	return store.workflow.selected ? store.workflow.selected.data : store.workflow_doc;
@@ -74,6 +87,32 @@ let properties = computed(() => {
 
 			store.script_fields = script_fields;
 			return script_fields;
+		}
+
+		if (selected_task && selected_task.task == "Email Notification") {
+			const receiver_options = store.workflow_doc_fields
+				.filter((f) => f.options == "Email")
+				.map((f) => ({
+					label: f.label,
+					value: f.value,
+				}));
+
+			return [
+				{
+					label: "Email Template",
+					fieldname: "email_template",
+					fieldtype: "Link",
+					options: "Email Template",
+					reqd: 1,
+				},
+				{
+					label: "Receiver By Document Field",
+					fieldname: "receiver_by_document_field",
+					fieldtype: "Select",
+					options: receiver_options,
+					reqd: 1,
+				},
+			];
 		}
 	} else if (store.workflow.selected && "action" in store.workflow.selected.data) {
 		title.value = __("Transition Properties");
@@ -121,7 +160,7 @@ let properties = computed(() => {
 			<div v-if="doc">
 				<div class="field" v-for="df in properties" :key="df.name">
 					<component
-						v-if="store.workflow.selected?.selected_task?.task === 'Server Script'"
+						v-if="is_task_selected"
 						:is="df.fieldtype.replaceAll(' ', '') + 'Control'"
 						:df="df"
 						:value="doc[df.fieldname]"
