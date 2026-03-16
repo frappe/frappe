@@ -1,6 +1,10 @@
 <template>
-	<div class="group relative flex h-full w-full flex-col gap-1.5">
-		<InputLabel v-if="label" :class="[required ? `after:text-red-600 after:content-['_*']` : '']">
+	<div class="flex h-full w-full flex-col gap-2.5">
+		<InputLabel
+			v-if="label"
+			:class="[required ? `after:text-red-600 after:content-['_*']` : '']"
+			class="mb-1"
+		>
 			{{ label }}
 		</InputLabel>
 
