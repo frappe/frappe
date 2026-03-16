@@ -2,7 +2,6 @@
 	<div v-if="error" class="border-ink-red-3 flex flex-col gap-2 border p-2 text-ink-red-3" ref="componentRef">
 		<p class="text-sm font-semibold">An error occurred while rendering {{ block.componentName }}:</p>
 		<pre class="text-xs">{{ error }}</pre>
-		<p class="font-mono text-xs">Ensure all mandatory props are configured properly</p>
 	</div>
 
 	<StudioComponentWrapper
