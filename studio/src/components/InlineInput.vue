@@ -6,6 +6,7 @@
 		:style="(attrs.style as StyleValue)"
 	>
 		<InputLabel
+			:description="label"
 			:class="[
 				enableSlider ? 'cursor-ns-resize' : '',
 				required ? `after:text-red-600 after:content-['_*']` : '',
