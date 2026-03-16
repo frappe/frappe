@@ -78,9 +78,9 @@ function stringifyFunctions(obj: any, originalSource: string): any {
 }
 
 function quoteDynamicValues(str: string): string {
-	// Match {{ ... }} that is not already quoted (not preceded by " or ')
-	// This regex looks for {{ ... }} patterns that are not surrounded by quotes
-	return str.replace(/:\s*({{[^}]+}})\s*([,}\n\r])/g, ': "$1"$2')
+	// Match {{ ... }} that is not already quoted (not preceded by quotes)
+	// Use backticks so that inner single/double quotes don't break
+	return str.replace(/:\s*({{[^}]+}})\s*([,}\n\r])/g, ': `$1`$2')
 }
 
 function getBlockString(block: BlockOptions | Block): string {
