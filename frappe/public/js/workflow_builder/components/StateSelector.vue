@@ -27,30 +27,10 @@ function onDragStart(event, item, type) {
 	}
 }
 
+const task_icon_map = store.task_icons;
+
 function getTaskIcon(taskName) {
-	const lowerName = taskName.toLowerCase();
-	let iconName = "clipboard"; // Default
-
-	if (lowerName.includes("signature")) {
-		iconName = "file-pen";
-	} else if (lowerName.includes("ekyc")) {
-		iconName = "scan-face";
-	} else if (lowerName.includes("cibil")) {
-		iconName = "file-digit";
-	} else if (lowerName.includes("loan")) {
-		iconName = "banknote";
-	} else if (lowerName.includes("bank")) {
-		iconName = "landmark";
-	} else if (lowerName.includes("education")) {
-		iconName = "graduation-cap";
-	} else if (lowerName.includes("mail") || lowerName.includes("notification")) {
-		iconName = "mail";
-	} else if (lowerName.includes("webhook")) {
-		iconName = "webhook";
-	} else if (lowerName.includes("server script") || lowerName.includes("script")) {
-		iconName = "code-xml";
-	}
-
+	let iconName = task_icon_map[taskName] || "clipboard";
 	return frappe.utils.icon(iconName, "sm");
 }
 
@@ -86,17 +66,12 @@ async function fetch_tasks() {
 
 		let data = response.message || [];
 
-		// If data is list of strings (simple values)
-		if (data.length > 0 && typeof data[0] === "string") {
-			tasks.value = data.map((d) => ({ name: d }));
-		}
-		// If data is list of dicts (options)
-		else if (data.length > 0 && typeof data[0] === "object") {
-			// Adapt based on keys. Assuming standard 'value' or 'name' or 'label'
-			tasks.value = data.map((d) => ({ name: d.value || d.name || d.label }));
-		} else {
-			tasks.value = [];
-		}
+		tasks.value = data.map((d) => {
+			let name = typeof d === "string" ? d : d.name || d.value || d.label;
+			let icon = typeof d === "object" && d.icon ? d.icon : "";
+			if (icon) store.task_icons[name] = icon;
+			return { name };
+		});
 	} catch (e) {
 		console.error("Failed to fetch Workflow Tasks:", e);
 		tasks.value = [];

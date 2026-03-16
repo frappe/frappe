@@ -149,7 +149,13 @@ async function removeTask(task) {
 						}
 					"
 				>
-					<span>{{ task.link || task.script_name || task.task }}</span>
+					<span class="flex items-center gap-1">
+						<span
+							v-if="store.task_icons[task.task]"
+							v-html="frappe.utils.icon(store.task_icons[task.task], 'xs')"
+						></span>
+						{{ task.link || task.script_name || task.task }}
+					</span>
 					<div class="remove-icon" @click.stop="removeTask(task)" title="Remove Task">
 						<svg
 							width="12"

@@ -149,9 +149,22 @@ def get_workflow_state_count(doctype: str, workflow_state_field: str, states: st
 		return [r for r in result if r[workflow_state_field]]
 
 
+DEFAULT_TASK_ICONS = {
+	"Webhook": "webhook",
+	"Server Script": "code-xml",
+	"Email Notification": "mail",
+}
+
+
 @frappe.whitelist(methods=["GET"])
 def get_workflow_methods():
-	return [i["name"] for i in frappe.get_hooks("workflow_methods")] + DEFAULT_WORKFLOW_TASKS
+	hook_tasks = [
+		{"name": i["name"], "icon": i.get("icon", "")} for i in frappe.get_hooks("workflow_methods")
+	]
+	default_tasks = [
+		{"name": task, "icon": DEFAULT_TASK_ICONS.get(task, "")} for task in DEFAULT_WORKFLOW_TASKS
+	]
+	return hook_tasks + default_tasks
 
 
 @frappe.whitelist()
