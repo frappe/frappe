@@ -1,5 +1,5 @@
 <template>
-	<Tooltip :text="description" hoverDelay="1">
+	<Tooltip :text="description" :hoverDelay="1">
 		<!-- prettier-ignore -->
 		<span
 			:class="$attrs.class"
