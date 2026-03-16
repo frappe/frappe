@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "prompt",
+ "autoname": "WF-TB-.#####",
  "creation": "2025-07-04 15:41:50.296193",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -19,11 +19,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-08 12:23:01.908648",
+ "modified": "2026-03-16 12:41:51.711741",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Transition Tasks",
- "naming_rule": "Set by user",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

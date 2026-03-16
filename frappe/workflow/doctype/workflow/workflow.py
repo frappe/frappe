@@ -160,9 +160,10 @@ def save_workflow(doc: str, transition_tasks_data: str | None = None):
 
 	Args:
 		doc: Workflow document dict
-		transition_tasks_data: dict mapping action names to their task configurations.
+		transition_tasks_data: dict mapping node IDs to their task configurations.
 			Format: {
-				"action_name": {
+				"action-1": {
+					"transition_tasks": "WF-TB-00001" or null,
 					"tasks": [
 						{
 							"task": "Server Script",
@@ -182,17 +183,40 @@ def save_workflow(doc: str, transition_tasks_data: str | None = None):
 	workflow_doc = frappe.get_doc("Workflow", doc.get("name"))
 	workflow_doc.update(doc)
 
-	_save_transition_tasks(workflow_doc.name, transition_tasks_data)
+	tasks_link_map = _save_transition_tasks(transition_tasks_data)
+
+	# Update transition_tasks link on the transitions child table rows
+	if tasks_link_map:
+		for transition in workflow_doc.transitions:
+			node_id = transition.workflow_builder_id
+			if node_id in tasks_link_map:
+				transition.transition_tasks = tasks_link_map[node_id]
+
+	# Update workflow_data with the new transition_tasks links
+	if tasks_link_map and workflow_doc.workflow_data:
+		workflow_data = frappe.parse_json(workflow_doc.workflow_data)
+		for element in workflow_data:
+			node_id = element.get("id", "")
+			if node_id in tasks_link_map:
+				if not element.get("data"):
+					element["data"] = {}
+				element["data"]["transition_tasks"] = tasks_link_map[node_id]
+		workflow_doc.workflow_data = frappe.as_json(workflow_data)
 
 	workflow_doc.save()
 	return workflow_doc.as_dict()
 
 
-def _save_transition_tasks(workflow_name, transition_tasks_data):
-	"""Save all transition tasks and their linked server scripts."""
-	for action_name, action_data in transition_tasks_data.items():
+def _save_transition_tasks(transition_tasks_data):
+	"""Save all transition tasks and their linked server scripts.
+
+	Returns a dict mapping node IDs to their Workflow Transition Tasks doc names.
+	"""
+	tasks_link_map = {}
+
+	for node_id, action_data in transition_tasks_data.items():
 		tasks = action_data.get("tasks", [])
-		doc_name = f"{workflow_name}-{action_name}"
+		existing_link = action_data.get("transition_tasks")
 
 		# Save/create linked server scripts first
 		for task in tasks:
@@ -200,12 +224,10 @@ def _save_transition_tasks(workflow_name, transition_tasks_data):
 				continue
 
 			if task.get("link"):
-				# Update existing server script
 				server_script = frappe.get_doc("Server Script", task["link"])
 				server_script.script = task.get("script", "")
 				server_script.save()
 			elif task.get("script_name"):
-				# Create new server script
 				server_script = frappe.get_doc(
 					{
 						"doctype": "Server Script",
@@ -228,17 +250,19 @@ def _save_transition_tasks(workflow_name, transition_tasks_data):
 			for t in tasks
 		]
 
-		# Save or create the Workflow Transition Tasks doc
-		if frappe.db.exists("Workflow Transition Tasks", doc_name):
-			tasks_doc = frappe.get_doc("Workflow Transition Tasks", doc_name)
+		if existing_link and frappe.db.exists("Workflow Transition Tasks", existing_link):
+			tasks_doc = frappe.get_doc("Workflow Transition Tasks", existing_link)
 			tasks_doc.set("tasks", tasks_payload)
 			tasks_doc.save()
+			tasks_link_map[node_id] = existing_link
 		elif tasks_payload:
 			tasks_doc = frappe.get_doc(
 				{
 					"doctype": "Workflow Transition Tasks",
-					"name": doc_name,
 					"tasks": tasks_payload,
 				}
 			)
 			tasks_doc.insert()
+			tasks_link_map[node_id] = tasks_doc.name
+
+	return tasks_link_map
