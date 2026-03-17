@@ -5,8 +5,9 @@ from frappe import _
 from frappe.utils import cint, cstr, flt
 from frappe.utils.defaults import get_not_null_defaults
 
-# This matches anything that isn't [a-zA-Z0-9_]
-SPECIAL_CHAR_PATTERN = re.compile(r"[\W]", flags=re.UNICODE)
+# Matches non-ASCII letters/digits/underscore.
+# ASCII-only so Unicode (é, ü, ñ) is caught early (not at query time).
+SPECIAL_CHAR_PATTERN = re.compile(r"[^a-zA-Z0-9_]")
 
 VARCHAR_CAST_PATTERN = re.compile(r"varchar\(([\d]+)\)")
 
