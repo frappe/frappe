@@ -1318,7 +1318,10 @@ class FilterArea {
 					field.set_value(value.replace(/^%+|%+$/g, ""));
 				}
 
-				this.debounced_refresh_list_view();
+				// Only trigger refresh if field has a value
+				if (value) {
+					this.debounced_refresh_list_view();
+				}
 			});
 		}, 100);
 	}
