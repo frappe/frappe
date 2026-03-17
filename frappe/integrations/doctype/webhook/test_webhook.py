@@ -342,9 +342,10 @@ class TestWebhook(IntegrationTestCase):
 			frappe.conf["webhook_secret"] = "global_secret_123"
 			wh_config = {
 				"doctype": "Webhook",
+				# keep disabled to avoid interfering with User inserts in setUp (webhook queue flush on commit)
 				"webhook_doctype": "User",
 				"webhook_docevent": "after_insert",
-				"enabled": 1,
+				"enabled": 0,
 				"request_url": "https://httpbin.org/post",
 				"enable_security": 1,
 				"request_structure": "JSON",
@@ -368,32 +369,30 @@ class TestWebhook(IntegrationTestCase):
 		original = frappe.conf.get("webhook_secret")
 		try:
 			frappe.conf["webhook_secret"] = "same_secret"
-			wh_global = frappe.new_doc("Webhook")
-			wh_global.update(
-				{
-					"webhook_doctype": "User",
-					"webhook_docevent": "after_insert",
-					"request_url": "https://httpbin.org/post",
-					"enable_security": 1,
-					"request_structure": "JSON",
-					"webhook_json": "{}",
-				}
-			)
-			wh_global.insert()
-			wh_doc = frappe.new_doc("Webhook")
-			wh_doc.update(
-				{
-					"webhook_doctype": "User",
-					"webhook_docevent": "after_insert",
-					"request_url": "https://httpbin.org/post",
-					"enable_security": 1,
-					"request_structure": "JSON",
-					"webhook_json": "{}",
-				}
-			)
-			wh_doc.webhook_secret = "same_secret"
-			wh_doc.insert()
-			try:
+			wh_global_config = {
+				"doctype": "Webhook",
+				# keep disabled to avoid interfering with User inserts in setUp (webhook queue flush on commit)
+				"webhook_doctype": "User",
+				"webhook_docevent": "after_insert",
+				"enabled": 0,
+				"request_url": "https://httpbin.org/post",
+				"enable_security": 1,
+				"request_structure": "JSON",
+				"webhook_json": "{}",
+			}
+			wh_doc_config = {
+				"doctype": "Webhook",
+				"webhook_doctype": "User",
+				"webhook_docevent": "after_insert",
+				"enabled": 0,
+				"request_url": "https://httpbin.org/post",
+				"enable_security": 1,
+				"webhook_secret": "same_secret",
+				"request_structure": "JSON",
+				"webhook_json": "{}",
+			}
+
+			with get_test_webhook(wh_global_config) as wh_global, get_test_webhook(wh_doc_config) as wh_doc:
 				headers_global = get_webhook_headers(doc=self.user, webhook=wh_global)
 				headers_doc = get_webhook_headers(doc=self.user, webhook=wh_doc)
 				self.assertEqual(
@@ -401,9 +400,6 @@ class TestWebhook(IntegrationTestCase):
 					headers_doc[WEBHOOK_SECRET_HEADER],
 					"Same secret should produce same signature",
 				)
-			finally:
-				wh_global.delete()
-				wh_doc.delete()
 		finally:
 			if original is not None:
 				frappe.conf["webhook_secret"] = original
