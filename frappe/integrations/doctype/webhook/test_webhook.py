@@ -431,3 +431,5 @@ class TestWebhook(IntegrationTestCase):
 		finally:
 			if original is not None:
 				frappe.conf["webhook_secret"] = original
+			else:
+				frappe.conf.pop("webhook_secret", None)
