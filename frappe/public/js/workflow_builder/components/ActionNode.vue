@@ -226,10 +226,7 @@ async function removeTask(task) {
 		/>
 		<Handle
 			class="condition-diamond-handle"
-			:class="{
-				'has-condition': !!node.data?.condition,
-				'is-focused': store.focus_condition && store.workflow.selected === node,
-			}"
+			:class="{ 'has-condition': !!node.data?.condition }"
 			type="source"
 			position="bottom"
 			id="false_state"
@@ -333,16 +330,6 @@ async function removeTask(task) {
 	&.has-condition {
 		svg {
 			opacity: 1;
-		}
-	}
-
-	&.is-focused {
-		border-color: var(--primary);
-		outline: 1.5px solid var(--primary);
-		outline-offset: 1px;
-		svg {
-			opacity: 1;
-			color: var(--primary);
 		}
 	}
 }
