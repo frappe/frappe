@@ -14,6 +14,7 @@ from time import time
 from typing import TYPE_CHECKING, Any, Literal
 
 from pypika.queries import QueryBuilder, Table
+from pypika.terms import Values
 
 import frappe
 import frappe.defaults
@@ -1505,6 +1506,47 @@ class Database:
 		value_iterator = iter(values)
 		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
 			query.insert(*value_chunk).run()
+
+	def bulk_upsert(
+		self,
+		doctype: str,
+		fields: list[str],
+		values: Iterable[Sequence[Any]],
+		conflict_fields: list[str],
+		update_fields: list[str],
+		*,
+		chunk_size: int = 10_000,
+	):
+		"""
+		Insert multiple records, updating specified fields on conflict.
+
+		Uses INSERT ... ON DUPLICATE KEY UPDATE for MariaDB and
+		INSERT ... ON CONFLICT ... DO UPDATE for PostgreSQL and SQLite.
+
+		:param doctype: Doctype name
+		:param fields: list of all column names being inserted
+		:param values: iterable of value tuples matching fields
+		:param conflict_fields: columns that form the unique constraint
+		:param update_fields: columns to update when a conflict occurs
+		:param chunk_size: number of rows per INSERT statement
+		"""
+
+		table = frappe.qb.DocType(doctype)
+
+		value_iterator = iter(values)
+		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
+			query = frappe.qb.into(table).columns(fields).insert(*value_chunk)
+
+			if frappe.conf.db_type in ("postgres", "sqlite"):
+				query = query.on_conflict(*[table[f] for f in conflict_fields])
+
+			for field in update_fields:
+				if frappe.conf.db_type == "mariadb":
+					query = query.on_duplicate_key_update(table[field], Values(field))
+				elif frappe.conf.db_type in ("postgres", "sqlite"):
+					query = query.do_update(table[field])
+
+			query.run()
 
 	def create_sequence(self, *args, **kwargs):
 		from frappe.database.sequence import create_sequence

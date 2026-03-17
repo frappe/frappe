@@ -649,6 +649,60 @@ class TestDB(IntegrationTestCase):
 		# cleanup
 		frappe.db.delete("ToDo", {"name": ("in", record_names)})
 
+	def test_bulk_upsert(self):
+		test_body = f"test_bulk_upsert - {random_string(10)}"
+
+		frappe.db.bulk_insert(
+			"ToDo",
+			["name", "description", "status"],
+			[[f"ToDo Test Bulk Upsert {i}", test_body, "Open"] for i in range(20)],
+			ignore_duplicates=True,
+		)
+
+		record_names = frappe.get_all("ToDo", filters={"description": test_body}, pluck="name")
+
+		upsert_values = []
+		updated_descriptions = {}
+
+		for name in record_names:
+			updated_description = f"{test_body} - updated - {random_string(10)}"
+			updated_descriptions[name] = updated_description
+			upsert_values.append((name, updated_description, "Closed"))
+
+		new_name = f"ToDo Test Bulk Upsert New {random_string(8)}"
+		upsert_values.append((new_name, f"{test_body} - inserted", "Open"))
+
+		frappe.db.bulk_upsert(
+			"ToDo",
+			["name", "description", "status"],
+			upsert_values,
+			conflict_fields=["name"],
+			update_fields=["description", "status"],
+		)
+
+		updated_records = dict(
+			frappe.get_all(
+				"ToDo", filters={"name": ("in", record_names)}, fields=["name", "description"], as_list=True
+			)
+		)
+		self.assertDictEqual(updated_descriptions, updated_records)
+
+		statuses = dict(
+			frappe.get_all(
+				"ToDo", filters={"name": ("in", record_names)}, fields=["name", "status"], as_list=True
+			)
+		)
+		self.assertTrue(all(status == "Closed" for status in statuses.values()))
+
+		inserted_description, inserted_status = frappe.db.get_value(
+			"ToDo", new_name, ["description", "status"]
+		)
+		self.assertEqual(inserted_description, f"{test_body} - inserted")
+		self.assertEqual(inserted_status, "Open")
+
+		# cleanup
+		frappe.db.delete("ToDo", {"name": ("in", [*record_names, new_name])})
+
 	def test_count(self):
 		frappe.db.delete("Note")
 
