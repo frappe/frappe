@@ -509,6 +509,7 @@ def get_safer_globals():
 	out.frappe.pop("delete_doc", None)
 	out.frappe.pop("render_template", None)
 	out.pop("FrappeClient", None)
+	out.frappe.pop("db", None)
 	out.frappe.update(
 		{
 			"copy_doc": safer_copy_doc,
@@ -526,12 +527,6 @@ def get_safer_globals():
 			"enqueue": safer_enqueue,
 			"log_error": safer_log_error,
 			"get_visible_columns": safer_get_visible_columns,
-		}
-	)
-	out.frappe.db.update(
-		{
-			"get_list": safe_get_list,
-			"get_all": safe_get_all,
 		}
 	)
 	return out
