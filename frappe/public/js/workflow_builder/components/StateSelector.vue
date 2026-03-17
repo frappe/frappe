@@ -19,12 +19,20 @@ function onDragStart(event, item, type) {
 		event.dataTransfer.setData("item_name", item.name);
 		event.dataTransfer.setData("item_type", type);
 
+		if (type === "transition_task") {
+			store.is_dragging_task = true;
+		}
+
 		// Legacy support for main canvas state dropping
 		if (type === "state") {
 			event.dataTransfer.setData("state", item.name);
 			event.dataTransfer.setData("is_new_state", true);
 		}
 	}
+}
+
+function onDragEnd() {
+	store.is_dragging_task = false;
 }
 
 const task_icon_map = store.task_icons;
@@ -163,6 +171,7 @@ onMounted(() => {
 							class="sidebar-card"
 							draggable="true"
 							@dragstart="(e) => onDragStart(e, task, 'transition_task')"
+							@dragend="onDragEnd"
 						>
 							<div class="card-icon" v-html="getTaskIcon(task.name)"></div>
 							<div class="card-name">
@@ -185,7 +194,6 @@ onMounted(() => {
 	display: flex;
 	flex-direction: column;
 	position: relative;
-	margin-left: 10px;
 	overflow: hidden;
 }
 

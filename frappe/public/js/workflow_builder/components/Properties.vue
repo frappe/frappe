@@ -35,13 +35,29 @@ watch(
 	}
 );
 
+watch(
+	() => store.focus_condition,
+	(val) => {
+		if (!val) return;
+		// Use setTimeout to wait for ACE editor to fully initialize after properties render
+		setTimeout(() => {
+			let condEl = document.querySelector(
+				'.field [data-fieldname="condition"] .ace_text-input'
+			);
+			if (condEl) {
+				condEl.closest(".field")?.scrollIntoView({ block: "center" });
+				condEl.focus();
+			}
+			store.focus_condition = false;
+		}, 200);
+	}
+);
+
 function onTaskPropertyChange(fieldname, value) {
 	task_data[fieldname] = value;
 	const selected = store.workflow.selected;
-	if (selected?.selected_task && selected.selected_task_index >= 0) {
-		store.update_task_config(selected, selected.selected_task_index, {
-			[fieldname]: value,
-		});
+	if (selected?.selected_task) {
+		selected.selected_task[fieldname] = value;
 	}
 }
 

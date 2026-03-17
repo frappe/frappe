@@ -397,6 +397,7 @@ watch(
 .main {
 	display: flex;
 	flex-direction: row;
+	gap: 15px;
 	height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 65px);
 
 	&.resizing {
@@ -407,7 +408,6 @@ watch(
 	.sidebar-container {
 		position: relative;
 		height: 100%;
-		margin-right: 10px;
 		border-radius: var(--border-radius-lg);
 		border: 1px solid var(--border-color);
 		background-color: var(--fg-color);
@@ -420,8 +420,6 @@ watch(
 	border-radius: var(--border-radius-lg);
 	border: 1px solid var(--border-color);
 	background-color: var(--fg-color);
-	margin-left: 10px;
-	margin-right: 10px;
 }
 
 .drag-handle {

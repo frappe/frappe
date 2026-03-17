@@ -42,6 +42,7 @@ onMounted(() => {
 watch(
 	() => content.value,
 	(value) => {
+		if (code_control.value?.get_value() === (value ?? "")) return;
 		update_control.value = false;
 		code_control.value?.set_value(value ?? "");
 	}

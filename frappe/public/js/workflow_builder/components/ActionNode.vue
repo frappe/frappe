@@ -1,6 +1,6 @@
 <script setup>
 import { Handle, useVueFlow } from "@vue-flow/core";
-import { watch, computed } from "vue";
+import { watch, computed, ref } from "vue";
 import { useStore } from "../store";
 
 const props = defineProps({
@@ -33,6 +33,22 @@ const isValidConnection = ({ source, target, sourceHandle }) => {
 
 let store = useStore();
 const { edges, findNode, getNodes } = useVueFlow();
+const is_dragover = ref(false);
+
+function onDropZoneDragEnter(event) {
+	event.preventDefault();
+	is_dragover.value = true;
+}
+
+function onDropZoneDragLeave() {
+	is_dragover.value = false;
+}
+
+async function onDropZoneDrop(event) {
+	is_dragover.value = false;
+	onDrop(event);
+}
+
 watch(
 	() => findNode(props.node.id)?.selected,
 	(val) => {
@@ -122,7 +138,12 @@ async function removeTask(task) {
 	<div
 		class="node"
 		tabindex="0"
-		@click.stop="store.workflow.selected = node"
+		@click.stop="
+			() => {
+				store.focus_condition = false;
+				store.workflow.selected = node;
+			}
+		"
 		@drop.stop="onDrop"
 		@dragover.stop="onDragOver"
 	>
@@ -169,6 +190,19 @@ async function removeTask(task) {
 			</div>
 		</div>
 
+		<!-- Drop zone skeleton shown when dragging a task from sidebar -->
+		<div
+			v-if="store.is_dragging_task"
+			class="task-drop-zone"
+			:class="{ 'drag-over': is_dragover }"
+			@dragenter.stop="onDropZoneDragEnter"
+			@dragleave.stop="onDropZoneDragLeave"
+			@dragover.stop="onDragOver"
+			@drop.stop="onDropZoneDrop"
+		>
+			<span class="drop-zone-text">{{ __("Drop task here") }}</span>
+		</div>
+
 		<Handle
 			v-for="handle in ['top', 'right', 'bottom', 'left']"
 			class="handle"
@@ -181,9 +215,21 @@ async function removeTask(task) {
 		/>
 
 		<!-- DMN Diamond Condition Handle -->
+		<div
+			class="condition-diamond-click"
+			@click.stop="
+				() => {
+					store.focus_condition = true;
+					store.workflow.selected = node;
+				}
+			"
+		/>
 		<Handle
 			class="condition-diamond-handle"
-			:class="{ 'has-condition': !!node.data?.condition }"
+			:class="{
+				'has-condition': !!node.data?.condition,
+				'is-focused': store.focus_condition && store.workflow.selected === node,
+			}"
 			type="source"
 			position="bottom"
 			id="false_state"
@@ -289,6 +335,27 @@ async function removeTask(task) {
 			opacity: 1;
 		}
 	}
+
+	&.is-focused {
+		border-color: var(--primary);
+		outline: 1.5px solid var(--primary);
+		outline-offset: 1px;
+		svg {
+			opacity: 1;
+			color: var(--primary);
+		}
+	}
+}
+
+.condition-diamond-click {
+	position: absolute;
+	bottom: -14px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 26px;
+	height: 26px;
+	z-index: 25;
+	cursor: pointer;
 }
 
 .task-badge {
@@ -342,6 +409,31 @@ async function removeTask(task) {
 	&:hover {
 		background-color: #f0f4f8;
 		color: #000000;
+	}
+}
+
+.task-drop-zone {
+	margin-top: 8px;
+	padding: 10px;
+	border: 2px dashed var(--gray-400);
+	border-radius: 4px;
+	text-align: center;
+	transition: all 0.15s ease;
+	min-width: 120px;
+
+	.drop-zone-text {
+		font-size: 11px;
+		color: var(--gray-300);
+		font-weight: 500;
+	}
+
+	&.drag-over {
+		border-color: var(--primary);
+		background-color: rgba(var(--primary-rgb), 0.08);
+
+		.drop-zone-text {
+			color: var(--fg-color);
+		}
 	}
 }
 </style>

@@ -15,6 +15,8 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	let ref_history = ref(null);
 	let is_submittable = ref(true);
 	let task_icons = ref({});
+	let is_dragging_task = ref(false);
+	let focus_condition = ref(false);
 
 	async function fetch() {
 		await frappe.model.clear_doc("Workflow", workflow_name.value);
@@ -412,6 +414,8 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		taskfields,
 		ref_history,
 		task_icons,
+		is_dragging_task,
+		focus_condition,
 		fetch,
 		reset_changes,
 		save_changes,
