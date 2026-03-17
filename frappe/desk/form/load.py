@@ -200,8 +200,6 @@ def get_versions(doc: "Document") -> list[dict]:
 		limit=10,
 		order_by="creation desc",
 	)
-	if not versions:
-		return []
 	doc.apply_fieldlevel_read_permissions(versions=versions)
 	return versions
 
