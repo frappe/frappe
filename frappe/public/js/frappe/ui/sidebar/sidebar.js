@@ -657,7 +657,7 @@ frappe.ui.Sidebar = class Sidebar {
 			if (module) {
 				sidebars = this.filter_sidebars_from_app(
 					sidebars,
-					frappe.boot.module_app[module.toLowerCase()]
+					frappe.boot.module_app[module.toLowerCase().replace(/[ -]/g, "_")]
 				);
 			}
 			if (sidebars.length == 1) {
