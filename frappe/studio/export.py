@@ -51,7 +51,8 @@ def remove_null_fields(docdict):
 	for attr, value in docdict.items():
 		if isinstance(value, list):
 			for v in value:
-				remove_null_fields(v)
+				if isinstance(v, dict):
+					remove_null_fields(v)
 		elif not value:
 			to_remove.append(attr)
 

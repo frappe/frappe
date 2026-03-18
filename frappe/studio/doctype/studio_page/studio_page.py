@@ -203,6 +203,10 @@ class StudioPage(Document):
 
 	def before_export(self, doc):
 		doc.name = self.get_export_docname()
+		for field in ("blocks", "draft_blocks"):
+			if doc.get(field) and isinstance(doc[field], str):
+				doc[field] = frappe.parse_json(doc[field])
+
 		remove_null_fields(doc)
 
 	def before_import(self):
