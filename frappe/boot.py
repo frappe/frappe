@@ -70,6 +70,7 @@ def get_bootinfo():
 	bootinfo.nested_set_doctypes = [
 		d.parent for d in frappe.get_all("DocField", {"fieldname": "lft"}, ["parent"])
 	]
+	bootinfo.tree_view_doctypes = [d.name for d in frappe.get_all("DocType", {"default_view": "Tree"})]
 	add_home_page(bootinfo, doclist)
 	bootinfo.page_info = get_allowed_pages()
 	load_translations(bootinfo)
