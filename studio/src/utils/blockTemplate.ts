@@ -14,6 +14,7 @@ function getBlockTemplate(
 			return {
 				componentId: "root",
 				componentName: "div",
+				blockName: "body",
 				originalElement: "body",
 				children: [],
 				baseStyles: {
