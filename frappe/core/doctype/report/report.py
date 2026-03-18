@@ -1,8 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import datetime
 import json
-import threading
+import time
+from dataclasses import dataclass
+from statistics import median
 
 import frappe
 import frappe.desk.query_report
@@ -15,6 +16,23 @@ from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
 from frappe.utils import cint, cstr
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
+
+
+# These settings tune the cache-backed auto prepared-report heuristic:
+# when to enable background mode after slow runs, when to disable it after fast runs,
+# and how long to retain recent execution history in cache.
+@dataclass(frozen=True, slots=True)
+class AutoPreparedReportSettings:
+	cache_ttl: int = 7 * 24 * 60 * 60
+	enable_slow_run_threshold: int = 15
+	enable_window: int = 3
+	enable_median_threshold: int = 10
+	median_window: int = 5
+	disable_fast_run_threshold: int = 10
+	disable_fast_runs: int = 3
+
+
+AUTO_PREPARED_REPORT = AutoPreparedReportSettings()
 
 
 class Report(Document):
@@ -174,33 +192,60 @@ class Report(Document):
 		return [columns, result]
 
 	def execute_script_report(self, filters):
-		# save the timestamp to automatically set to prepared
-		threshold = 15
+		start_time = time.monotonic()
 
-		start_time = datetime.datetime.now()
-		prepared_report_watcher = None
-		if not self.prepared_report:
-			prepared_report_watcher = threading.Timer(
-				interval=threshold,
-				function=enable_prepared_report,
-				kwargs={"report": self.name, "site": frappe.local.site},
-			)
-			prepared_report_watcher.start()
+		if self.is_standard == "Yes":
+			res = self.execute_module(filters)
+		else:
+			res = self.execute_script(filters)
 
-		# The JOB
-		try:
-			if self.is_standard == "Yes":
-				res = self.execute_module(filters)
-			else:
-				res = self.execute_script(filters)
-		finally:
-			prepared_report_watcher and prepared_report_watcher.cancel()
-
-		execution_time = (datetime.datetime.now() - start_time).total_seconds()
-
-		frappe.cache.hset("report_execution_time", self.name, execution_time)
-
+		execution_time = time.monotonic() - start_time
+		self.record_execution_time(execution_time)
 		return res
+
+	def get_runtime_report_name(self):
+		return self.get("custom_report") or self.name
+
+	def get_execution_time_cache_key(self):
+		return f"report_execution_time:{self.get_runtime_report_name()}"
+
+	def get_auto_prepared_report_state_cache_key(self):
+		return f"report_auto_prepared_state:{self.get_runtime_report_name()}"
+
+	def get_cached_execution_time(self):
+		return frappe.cache().get_value(self.get_execution_time_cache_key()) or 0
+
+	def get_auto_prepared_report_state(self):
+		return frappe.cache().get_value(self.get_auto_prepared_report_state_cache_key()) or {}
+
+	def is_auto_prepared_report_enabled(self):
+		if self.report_type != "Script Report":
+			return False
+
+		return cint(self.get_auto_prepared_report_state().get("auto_prepared_report_enabled"))
+
+	def should_run_as_prepared_report(self):
+		return cint(self.prepared_report) or self.is_auto_prepared_report_enabled()
+
+	def record_execution_time(self, execution_time: float):
+		cache = frappe.cache()
+		cache.set_value(
+			self.get_execution_time_cache_key(),
+			execution_time,
+			expires_in_sec=AUTO_PREPARED_REPORT.cache_ttl,
+		)
+
+		if self.report_type != "Script Report":
+			return
+
+		auto_prepared_report_state = update_auto_prepared_report_state(
+			self.get_auto_prepared_report_state(), execution_time
+		)
+		cache.set_value(
+			self.get_auto_prepared_report_state_cache_key(),
+			auto_prepared_report_state,
+			expires_in_sec=AUTO_PREPARED_REPORT.cache_ttl,
+		)
 
 	def execute_module(self, filters):
 		# report in python module
@@ -413,6 +458,45 @@ def is_prepared_report_enabled(report):
 	return cint(frappe.db.get_value("Report", report, "prepared_report"))
 
 
+def should_enable_auto_prepared_report(execution_times: list[float]) -> bool:
+	recent_runs = execution_times[-AUTO_PREPARED_REPORT.enable_window :]
+	repeated_slow_runs = (
+		sum(run_time > AUTO_PREPARED_REPORT.enable_slow_run_threshold for run_time in recent_runs) >= 2
+	)
+	median_run_time_is_slow = (
+		len(execution_times) >= AUTO_PREPARED_REPORT.median_window
+		and median(execution_times[-AUTO_PREPARED_REPORT.median_window :])
+		> AUTO_PREPARED_REPORT.enable_median_threshold
+	)
+
+	return repeated_slow_runs or median_run_time_is_slow
+
+
+def update_auto_prepared_report_state(current_state: dict | None, execution_time: float) -> dict:
+	current_state = current_state or {}
+	execution_times = [float(run_time) for run_time in current_state.get("execution_times", [])]
+	execution_times = [*execution_times, execution_time][-AUTO_PREPARED_REPORT.median_window :]
+
+	fast_run_streak = cint(current_state.get("fast_run_streak"))
+	if execution_time <= AUTO_PREPARED_REPORT.disable_fast_run_threshold:
+		fast_run_streak += 1
+	else:
+		fast_run_streak = 0
+
+	auto_prepared_report_enabled = cint(current_state.get("auto_prepared_report_enabled"))
+	if auto_prepared_report_enabled and fast_run_streak >= AUTO_PREPARED_REPORT.disable_fast_runs:
+		auto_prepared_report_enabled = 0
+	elif not auto_prepared_report_enabled and should_enable_auto_prepared_report(execution_times):
+		auto_prepared_report_enabled = 1
+		fast_run_streak = 0
+
+	return {
+		"execution_times": execution_times,
+		"fast_run_streak": fast_run_streak,
+		"auto_prepared_report_enabled": auto_prepared_report_enabled,
+	}
+
+
 def get_report_module_dotted_path(module, report_name):
 	return (
 		frappe.local.module_app[scrub(module)]
@@ -443,11 +527,3 @@ def get_group_by_column_label(args, meta):
 		aggregate_on_label = meta.get_label(args.aggregate_on)
 		label = _("{0} of {1}").format(_(sql_fn_map[args.aggregate_function]), _(aggregate_on_label))
 	return label
-
-
-def enable_prepared_report(report: str, site: str):
-	frappe.init(site)
-	frappe.connect()
-	frappe.db.set_value("Report", report, "prepared_report", 1)
-	frappe.db.commit()
-	frappe.destroy()

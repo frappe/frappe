@@ -116,6 +116,7 @@ def generate_report(prepared_report):
 			custom_report_doc = report
 			reference_report = custom_report_doc.reference_report
 			report = frappe.get_doc("Report", reference_report)
+			report.custom_report = instance.report_name
 			if custom_report_doc.json:
 				data = json.loads(custom_report_doc.json)
 				if data:

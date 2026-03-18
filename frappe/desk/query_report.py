@@ -132,7 +132,7 @@ def generate_report_result(
 		"report_summary": report_summary,
 		"skip_total_row": skip_total_row or 0,
 		"status": None,
-		"execution_time": frappe.cache.hget("report_execution_time", report.name) or 0,
+		"execution_time": report.get_cached_execution_time(),
 	}
 
 
@@ -183,7 +183,7 @@ def get_script(report_name: str):
 	return {
 		"script": render_include(script),
 		"html_format": html_format,
-		"execution_time": frappe.cache.hget("report_execution_time", report_name) or 0,
+		"execution_time": report.get_cached_execution_time(),
 		"filters": report.filters,
 		"custom_report_name": report.name if report.get("is_custom_report") else None,
 	}
@@ -225,7 +225,9 @@ def run(
 	if sbool(are_default_filters) and report.get("custom_filters"):
 		filters = report.custom_filters
 
-	is_prepared_report = report.prepared_report and not sbool(ignore_prepared_report) and not custom_columns
+	is_prepared_report = (
+		report.should_run_as_prepared_report() and not sbool(ignore_prepared_report) and not custom_columns
+	)
 	skip_total_calculation = sbool(skip_total_calculation)
 
 	try:
