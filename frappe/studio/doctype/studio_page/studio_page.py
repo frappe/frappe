@@ -5,7 +5,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 
-from studio.export import can_export, delete_file, remove_null_fields, write_document_file
+from studio.export import can_export, delete_file, parse_json, remove_null_fields, write_document_file
 from studio.utils import camel_case_to_kebab_case
 
 
@@ -203,6 +203,9 @@ class StudioPage(Document):
 
 	def before_export(self, doc):
 		doc.name = self.get_export_docname()
+		doc.blocks = parse_json(doc.blocks)
+		doc.draft_blocks = parse_json(doc.draft_blocks)
+
 		remove_null_fields(doc)
 
 	def before_import(self):

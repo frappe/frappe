@@ -45,13 +45,20 @@ def can_export(doc) -> bool:
 	)
 
 
+def parse_json(field):
+	if field and isinstance(field, str):
+		return frappe.parse_json(field)
+	return
+
+
 def remove_null_fields(docdict):
 	"""remove null and empty fields"""
 	to_remove = []
 	for attr, value in docdict.items():
 		if isinstance(value, list):
 			for v in value:
-				remove_null_fields(v)
+				if isinstance(v, dict):
+					remove_null_fields(v)
 		elif not value:
 			to_remove.append(attr)
 
