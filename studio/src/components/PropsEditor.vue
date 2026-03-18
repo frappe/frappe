@@ -170,7 +170,10 @@ const componentProps = computed(() => {
 			config.modelValue = props.block.componentProps[propName]
 		}
 
-		if (isDynamicValue(config.modelValue) && ["select", "checkbox"].includes(config.inputType)) {
+		if (
+			(isDynamicValue(config.modelValue) || isVariableBound(config.modelValue)) &&
+			["select", "checkbox"].includes(config.inputType)
+		) {
 			config.inputType = "text"
 		}
 		filteredProps[propName] = config
