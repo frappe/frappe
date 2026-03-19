@@ -63,11 +63,11 @@ def get_bootinfo():
 	load_desktop_data(bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
-	bootinfo.all_domains = [d.get("name") for d in frappe.get_all("Domain")]
+	bootinfo.all_domains = frappe.get_all("Domain", pluck="name")
 	add_layouts(bootinfo)
 
 	bootinfo.module_app = frappe.local.module_app
-	bootinfo.single_types = [d.name for d in frappe.get_all("DocType", {"issingle": 1})]
+	bootinfo.single_types = frappe.get_all("DocType", {"issingle": 1}, pluck="name")
 	bootinfo.nested_set_doctypes = frappe.get_all("DocField", {"fieldname": "lft"}, pluck="parent")
 	bootinfo.tree_view_doctypes = get_tree_view_doctypes()
 	add_home_page(bootinfo, doclist)
@@ -181,6 +181,62 @@ def load_desktop_data(bootinfo):
 	bootinfo.allowed_workspaces = get_workspace_sidebar_items().get("pages")
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
+<<<<<<< HEAD
+=======
+	bootinfo.app_data = []
+
+	Workspace = frappe.qb.DocType("Workspace")
+	Module = frappe.qb.DocType("Module Def")
+
+	for app_name in frappe.get_installed_apps():
+		# get app details from app_info (/apps)
+		apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
+		app_info = {}
+		if apps:
+			app_info = apps[0]
+			has_permission = app_info.get("has_permission")
+			if has_permission and not frappe.get_attr(has_permission)():
+				continue
+
+		workspaces = [
+			r[0]
+			for r in (
+				frappe.qb.from_(Workspace)
+				.inner_join(Module)
+				.on(Workspace.module == Module.name)
+				.select(Workspace.name)
+				.where(Module.app_name == app_name)
+				.run()
+			)
+			if r[0] in allowed_pages
+		]
+
+		bootinfo.app_data.append(
+			dict(
+				app_name=app_info.get("name") or app_name,
+				app_title=app_info.get("title")
+				or (
+					(
+						frappe.get_hooks("app_title", app_name=app_name)
+						and frappe.get_hooks("app_title", app_name=app_name)[0]
+					)
+					or ""
+				)
+				or app_name,
+				app_route=(
+					frappe.get_hooks("app_home", app_name=app_name)
+					and frappe.get_hooks("app_home", app_name=app_name)[0]
+				)
+				or (workspaces and "/desk/" + frappe.utils.slug(workspaces[0]))
+				or "",
+				app_logo_url=app_info.get("logo")
+				or frappe.get_hooks("app_logo_url", app_name=app_name)
+				or frappe.get_hooks("app_logo_url", app_name="frappe"),
+				modules=frappe.get_all("Module Def", dict(app_name=app_name), pluck="name"),
+				workspaces=workspaces,
+			)
+		)
+>>>>>>> 041a59efe7 (refactor(boot): use pluck in get_all)
 
 
 def get_allowed_pages(cache=False):
@@ -391,7 +447,7 @@ def get_success_action():
 def get_link_preview_doctypes():
 	from frappe.utils import cint
 
-	link_preview_doctypes = [d.name for d in frappe.get_all("DocType", {"show_preview_popup": 1})]
+	link_preview_doctypes = frappe.get_all("DocType", {"show_preview_popup": 1}, pluck="name")
 	customizations = frappe.get_all(
 		"Property Setter", fields=["doc_type", "value"], filters={"property": "show_preview_popup"}
 	)
