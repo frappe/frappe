@@ -110,9 +110,9 @@ jobs:
             run-ui-tests ${{ github.event.repository.name }} \
               --with-coverage \
               --headless \
-              --parallel \
               --browser ${{ env.BROWSER_PATH }} \
-              --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
+              --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT \
+              --group ui-shard-${{ matrix.index }}
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
           SPLIT: ${{ inputs.parallel-runs }}

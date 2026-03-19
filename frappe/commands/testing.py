@@ -447,7 +447,7 @@ def run_ui_tests(
 	context: CliCtxObj,
 	app,
 	headless=False,
-	parallel=True,
+	parallel=False,
 	with_coverage=False,
 	browser="chrome",
 	ci_build_id=None,
@@ -519,7 +519,10 @@ def run_ui_tests(
 	run_or_open = f"run --browser {browser}" if headless else "open"
 	if headless and spec:
 		run_or_open += f" --spec {spec}"
-	formatted_command = f"{site_env} {password_env} {coverage_env} {cypress_path} {run_or_open}"
+	parallel_env = "CYPRESS_CLOUD_PARALLEL=1" if parallel else "CYPRESS_CLOUD_PARALLEL=0"
+	formatted_command = (
+		f"{site_env} {password_env} {coverage_env} {parallel_env} {cypress_path} {run_or_open}"
+	)
 
 	if os.environ.get("CYPRESS_RECORD_KEY"):
 		formatted_command += " --record"
