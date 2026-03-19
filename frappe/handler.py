@@ -204,7 +204,7 @@ def upload_file():
 		funcs = frappe.get_hooks("after_upload_file")
 		for func in funcs:
 			doc = frappe.call(func, doc=doc)
-		doc.save(ignore_permissions=ignore_permissions)
+		return doc.save(ignore_permissions=ignore_permissions)
 
 
 def check_write_permission(doctype: str | None = None, name: str | None = None):
