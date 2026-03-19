@@ -40,7 +40,6 @@
     "cookie": "^0.4.0",
     "cropperjs": "^1.5.12",
     "cssnano": "^5.0.0",
-    "cypress-split": "^1.24.28",
     "driver.js": "^0.9.8",
     "editorjs-undo": "0.1.6",
     "esbuild": "^0.14.29",
