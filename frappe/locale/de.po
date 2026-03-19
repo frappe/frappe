@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-03-15 09:43+0000\n"
-"PO-Revision-Date: 2026-03-16 07:57\n"
+"PO-Revision-Date: 2026-03-19 09:32\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -21662,7 +21662,7 @@ msgstr "Grund"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:919
 msgid "Rebuild"
-msgstr "Wiederaufbau"
+msgstr "Aktualisieren"
 
 #: frappe/public/js/frappe/views/treeview.js:520
 msgid "Rebuild Tree"
