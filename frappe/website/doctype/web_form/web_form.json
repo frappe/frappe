@@ -41,6 +41,8 @@
   "condition_section",
   "condition_description",
   "condition_json",
+  "dynamic_filters_section",
+  "dynamic_filters_json",
   "section_break_3",
   "list_setting_message",
   "show_list",
@@ -396,6 +398,16 @@
    "label": "Condition JSON"
   },
   {
+   "fieldname": "dynamic_filters_section",
+   "fieldtype": "Section Break",
+   "label": "Dynamic Filters"
+  },
+  {
+   "fieldname": "dynamic_filters_json",
+   "fieldtype": "JSON",
+   "label": "Dynamic Filters JSON"
+  },
+  {
    "default": "0",
    "fieldname": "hide_navbar",
    "fieldtype": "Check",
@@ -443,7 +455,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-06-18 15:58:18.453845",
+ "modified": "2026-09-22 02:40:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
