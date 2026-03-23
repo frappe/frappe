@@ -112,6 +112,14 @@ class Workspace(Document):
 
 			self.app = get_module_app(self.module)
 
+	def before_rename(self, old_name, new_name, merge=False):
+		if self.public and not is_workspace_manager() and not disable_saving_as_public():
+			frappe.throw(
+				_("You need to be {0} to rename this document").format(frappe.bold("Workspace Manager")),
+				frappe.PermissionError,
+				title=_("Permission Error"),
+			)
+
 	def clear_cache(self):
 		super().clear_cache()
 		if self.for_user:

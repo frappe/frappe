@@ -274,7 +274,7 @@ class Engine:
 			self.table = qb.DocType(table)
 
 		if self.apply_permissions:
-			self.check_read_permission()
+			self.check_select_permission()
 			self.permission_doctype = parent_doctype or self.doctype
 			self.permission_table = (
 				qb.DocType(self.permission_doctype) if self.permission_doctype != self.doctype else self.table
@@ -1404,18 +1404,11 @@ class Engine:
 
 		return parsed_order_fields
 
-	def check_read_permission(self):
-		"""Check if user has read permission on the doctype"""
-
-		def has_permission(ptype):
-			return frappe.has_permission(
-				self.doctype,
-				ptype,
-				user=self.user,
-				parent_doctype=self.parent_doctype,
-			)
-
-		if not has_permission("select") and not has_permission("read"):
+	def check_select_permission(self):
+		"""Check if user has select (or read) permission on the doctype"""
+		if not frappe.has_permission(
+			self.doctype, "select", user=self.user, parent_doctype=self.parent_doctype
+		):
 			self._raise_permission_error()
 
 	def _raise_permission_error(self, doctype=None):

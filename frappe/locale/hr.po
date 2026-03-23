@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-03-08 09:40+0000\n"
-"PO-Revision-Date: 2026-03-10 03:08\n"
+"POT-Creation-Date: 2026-03-15 09:43+0000\n"
+"PO-Revision-Date: 2026-03-17 08:18\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -70,7 +70,7 @@ msgstr "&copy; Frappe Technologies Pvt. Ltd. i suradnici"
 msgid "&lt;head&gt; HTML"
 msgstr "&lt;head&gt; HTML"
 
-#: frappe/database/query.py:2388
+#: frappe/database/query.py:2410
 msgid "'*' is only allowed in {0} SQL function(s)"
 msgstr "'*' je dopušten samo u {0} SQL funkcijama"
 
@@ -152,7 +152,7 @@ msgstr "0 - previše teško pogoditi: rizična lozinka.\n"
 msgid "0 is highest"
 msgstr "0 je najviše"
 
-#: frappe/public/js/frappe/form/grid_row.js:886
+#: frappe/public/js/frappe/form/grid_row.js:883
 msgid "1 = True & 0 = False"
 msgstr "1 = Točno & 0 = Netočno"
 
@@ -1124,7 +1124,7 @@ msgstr "Radnja / Ruta"
 msgid "Action Complete"
 msgstr "Radnja Završena"
 
-#: frappe/model/document.py:2071
+#: frappe/model/document.py:2080
 msgid "Action Failed"
 msgstr "Radnja Neuspješna"
 
@@ -1167,13 +1167,13 @@ msgstr "Radnja {0} nije uspjela {1} {2}. Pogledaj {3}"
 #: frappe/core/doctype/rq_job/rq_job_list.js:48
 #: frappe/core/doctype/user_session_display/user_session_display.json
 #: frappe/core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.js:48
-#: frappe/custom/doctype/customize_form/customize_form.js:108
-#: frappe/custom/doctype/customize_form/customize_form.js:116
-#: frappe/custom/doctype/customize_form/customize_form.js:124
-#: frappe/custom/doctype/customize_form/customize_form.js:132
-#: frappe/custom/doctype/customize_form/customize_form.js:140
-#: frappe/custom/doctype/customize_form/customize_form.js:148
-#: frappe/custom/doctype/customize_form/customize_form.js:293
+#: frappe/custom/doctype/customize_form/customize_form.js:115
+#: frappe/custom/doctype/customize_form/customize_form.js:123
+#: frappe/custom/doctype/customize_form/customize_form.js:131
+#: frappe/custom/doctype/customize_form/customize_form.js:139
+#: frappe/custom/doctype/customize_form/customize_form.js:147
+#: frappe/custom/doctype/customize_form/customize_form.js:155
+#: frappe/custom/doctype/customize_form/customize_form.js:304
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/public/js/frappe/ui/page.html:75
 #: frappe/public/js/frappe/views/reports/query_report.js:192
@@ -1223,7 +1223,7 @@ msgstr "Aktivne Sesije"
 #. Group in User's connections
 #: frappe/core/doctype/user/user.json
 #: frappe/public/js/frappe/form/dashboard.js:22
-#: frappe/public/js/frappe/form/footer/form_timeline.js:58
+#: frappe/public/js/frappe/form/footer/form_timeline.js:65
 msgid "Activity"
 msgstr "Aktivnost"
 
@@ -1246,9 +1246,9 @@ msgstr "Zapisnik aktivnosti za {0}"
 #: frappe/public/js/frappe/form/grid_row.js:487
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:112
 #: frappe/public/js/frappe/form/templates/set_sharing.html:82
-#: frappe/public/js/frappe/list/bulk_operations.js:451
-#: frappe/public/js/frappe/list/list_view.js:307
-#: frappe/public/js/frappe/list/list_view.js:322
+#: frappe/public/js/frappe/list/bulk_operations.js:453
+#: frappe/public/js/frappe/list/list_view.js:301
+#: frappe/public/js/frappe/list/list_view.js:316
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:441
 #: frappe/public/js/frappe/views/reports/query_report.js:267
 #: frappe/public/js/frappe/views/reports/query_report.js:295
@@ -1397,11 +1397,11 @@ msgstr "Dodaj Razmak na Vrh"
 msgid "Add Subscribers"
 msgstr "Dodaj Pretplatnike"
 
-#: frappe/public/js/frappe/list/bulk_operations.js:439
+#: frappe/public/js/frappe/list/bulk_operations.js:441
 msgid "Add Tags"
 msgstr "Dodaj Oznake"
 
-#: frappe/public/js/frappe/list/list_view.js:2265
+#: frappe/public/js/frappe/list/list_view.js:2259
 msgctxt "Button in list view actions menu"
 msgid "Add Tags"
 msgstr "Dodaj Oznake"
@@ -1546,7 +1546,7 @@ msgstr "Dodaj u Za Uraditi"
 msgid "Add to table"
 msgstr "Dodaj u tablicu"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:99
+#: frappe/public/js/frappe/form/footer/form_timeline.js:104
 msgid "Add to this activity by mailing to {0}"
 msgstr "Dodaj ovoj aktivnosti slanjem na {0}"
 
@@ -1554,7 +1554,7 @@ msgstr "Dodaj ovoj aktivnosti slanjem na {0}"
 msgid "Add {0}"
 msgstr "{0}"
 
-#: frappe/public/js/frappe/list/list_view.js:294
+#: frappe/public/js/frappe/list/list_view.js:288
 msgctxt "Primary action in list view"
 msgid "Add {0}"
 msgstr "{0}"
@@ -1698,11 +1698,11 @@ msgstr "Administracija"
 msgid "Administrator"
 msgstr "Administrator"
 
-#: frappe/core/doctype/user/user.py:1266
+#: frappe/core/doctype/user/user.py:1274
 msgid "Administrator Logged In"
 msgstr "Administrator je prijavljen"
 
-#: frappe/core/doctype/user/user.py:1260
+#: frappe/core/doctype/user/user.py:1268
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "Administrator je pristupio {0} {1} putem IP adrese {2}."
 
@@ -1805,7 +1805,7 @@ msgstr "Polje agregatne funkcije potrebno je za izradu grafikona nadzorne ploče
 msgid "Alert"
 msgstr "Upozorenje"
 
-#: frappe/database/query.py:2436
+#: frappe/database/query.py:2458
 msgid "Alias must be a string"
 msgstr "Alias mora biti niz"
 
@@ -1882,11 +1882,11 @@ msgstr "Sve slike priložene Dijaprojekciji Web Stranice trebaju biti javne"
 msgid "All Records"
 msgstr "Svi Zapisi"
 
-#: frappe/public/js/frappe/form/form.js:2297
+#: frappe/public/js/frappe/form/form.js:2301
 msgid "All Submissions"
 msgstr "Svi Podnesci"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:462
+#: frappe/custom/doctype/customize_form/customize_form.js:473
 msgid "All customizations will be removed. Please confirm."
 msgstr "Sva prilagođavanja će biti uklonjena. Potvrdi."
 
@@ -2138,7 +2138,7 @@ msgstr "Dozvoli prijelom stranice unutar tabela"
 msgid "Allow print"
 msgstr "Dozvoli Ispis"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:425
+#: frappe/desk/page/setup_wizard/setup_wizard.js:432
 msgid "Allow recording my first session to improve user experience"
 msgstr "Dopusti snimanje moje prve sesije radi poboljšanja korisničkog iskustva"
 
@@ -2148,7 +2148,7 @@ msgstr "Dopusti snimanje moje prve sesije radi poboljšanja korisničkog iskustv
 msgid "Allow saving if mandatory fields are not filled"
 msgstr "Dozvoli spremanje ako nisu popunjena obavezna polja"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:418
+#: frappe/desk/page/setup_wizard/setup_wizard.js:425
 msgid "Allow sending usage data for improving applications"
 msgstr "Dozvoli slanje podataka o korištenju za poboljšanje aplikacija"
 
@@ -2296,7 +2296,7 @@ msgstr "Omogućuje korisniku pregled dokumenta."
 msgid "Allows users to enable the mask property for any field of the respective doctype."
 msgstr "Omogućuje korisnicima omogućavanje svojstva maske za bilo koje polje odgovarajućeg tipa dokumenta."
 
-#: frappe/core/doctype/user/user.py:1074
+#: frappe/core/doctype/user/user.py:1082
 msgid "Already Registered"
 msgstr "Već Registrovan"
 
@@ -2304,11 +2304,11 @@ msgstr "Već Registrovan"
 msgid "Already in the following Users ToDo list:{0}"
 msgstr "Već na sljedećoj ToDo listi Korisnika:{0}"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:956
+#: frappe/public/js/frappe/views/reports/report_view.js:953
 msgid "Also adding the dependent currency field {0}"
 msgstr "Takođe se dodaje polje zavisne valute {0}"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:969
+#: frappe/public/js/frappe/views/reports/report_view.js:966
 msgid "Also adding the status dependency field {0}"
 msgstr "Takođe se dodaje polje statusne zavisnosti {0}"
 
@@ -2596,7 +2596,7 @@ msgstr "Primjenjuje se na (DocType)"
 msgid "Apply"
 msgstr "Primjeni"
 
-#: frappe/public/js/frappe/list/list_view.js:2250
+#: frappe/public/js/frappe/list/list_view.js:2244
 msgctxt "Button in list view actions menu"
 msgid "Apply Assignment Rule"
 msgstr "Primijeni Pravilo Dodjele"
@@ -2605,7 +2605,7 @@ msgstr "Primijeni Pravilo Dodjele"
 msgid "Apply Filters"
 msgstr "Primjeni filter"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:271
+#: frappe/custom/doctype/customize_form/customize_form.js:282
 msgid "Apply Module Export Filter"
 msgstr "Primijeni Filter Izvoza Modula"
 
@@ -2683,7 +2683,7 @@ msgstr "Arhivirane Kolone"
 msgid "Are you sure you want to cancel the invitation?"
 msgstr "Jeste li sigurni da želite otkazati pozivnicu?"
 
-#: frappe/public/js/frappe/list/list_view.js:2229
+#: frappe/public/js/frappe/list/list_view.js:2223
 msgid "Are you sure you want to clear the assignments?"
 msgstr "Jeste li sigurni da želite izbrisati zadatke?"
 
@@ -2722,6 +2722,10 @@ msgstr "Jeste li sigurni da želite odbaciti promjene?"
 #: frappe/public/js/frappe/views/reports/query_report.js:1002
 msgid "Are you sure you want to generate a new report?"
 msgstr "Jeste li sigurni da želite generisati novi izvještaj?"
+
+#: frappe/public/js/frappe/desk.js:380
+msgid "Are you sure you want to log out?"
+msgstr "Jeste li sigurni da se želite odjaviti?"
 
 #: frappe/public/js/frappe/form/toolbar.js:130
 msgid "Are you sure you want to merge {0} with {1}?"
@@ -2805,7 +2809,7 @@ msgstr "Dodijeli Uslov"
 msgid "Assign To"
 msgstr "Dodijeli"
 
-#: frappe/public/js/frappe/list/list_view.js:2211
+#: frappe/public/js/frappe/list/list_view.js:2205
 msgctxt "Button in list view actions menu"
 msgid "Assign To"
 msgstr "Dodijeli"
@@ -3321,9 +3325,11 @@ msgstr "Automatsko ponavljanje nije uspjelo. Omogući automatsko ponavljanje nak
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
+#: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Autocomplete"
 msgstr "Automatsko Dovršavanje"
 
@@ -3546,7 +3552,7 @@ msgstr "Posao u Pozadini"
 #. 'System Health Report'
 #: frappe/core/workspace/build/build.json
 #: frappe/desk/doctype/system_health_report/system_health_report.json
-#: frappe/public/js/frappe/ui/sidebar/sidebar.js:510
+#: frappe/public/js/frappe/ui/sidebar/sidebar.js:520
 msgid "Background Jobs"
 msgstr "Poslovi u Pozadini"
 
@@ -3639,9 +3645,11 @@ msgstr "Traka"
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
+#: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Barcode"
 msgstr "Barkod"
 
@@ -3659,8 +3667,8 @@ msgstr "Osnovni URL"
 
 #. Label of the based_on (Link) field in DocType 'Language'
 #: frappe/core/doctype/language/language.json
-#: frappe/printing/page/print/print.js:307
-#: frappe/printing/page/print/print.js:361
+#: frappe/printing/page/print/print.js:297
+#: frappe/printing/page/print/print.js:351
 msgid "Based On"
 msgstr "Na Osnovu"
 
@@ -3755,7 +3763,7 @@ msgstr "Počinje sa"
 msgid "Beta"
 msgstr "Beta"
 
-#: frappe/core/doctype/user/user.py:1283 frappe/utils/password_strength.py:73
+#: frappe/core/doctype/user/user.py:1291 frappe/utils/password_strength.py:73
 msgid "Better add a few more letters or another word"
 msgstr "Bolje dodaj još nekoliko slova ili drugu riječ"
 
@@ -4243,7 +4251,7 @@ msgstr "Nije moguće preimenovati {0} u {1} jer {0} ne postoji."
 msgid "Cancel"
 msgstr "Otkaži"
 
-#: frappe/public/js/frappe/list/list_view.js:2320
+#: frappe/public/js/frappe/list/list_view.js:2314
 msgctxt "Button in list view actions menu"
 msgid "Cancel"
 msgstr "Otkaži"
@@ -4269,7 +4277,7 @@ msgstr "Otkaži Uvoz"
 msgid "Cancel Prepared Report"
 msgstr "Otkaži Pripremljeno Izvješće"
 
-#: frappe/public/js/frappe/list/list_view.js:2325
+#: frappe/public/js/frappe/list/list_view.js:2319
 msgctxt "Title of confirmation dialog"
 msgid "Cancel {0} documents?"
 msgstr "Otkaži {0} dokumenta?"
@@ -4338,13 +4346,17 @@ msgstr "Nije moguće otkazati prije podnošenja. Pogledaj Tranzicija {0}"
 msgid "Cannot cancel {0}."
 msgstr "Nije moguće otkazati {0}."
 
-#: frappe/model/document.py:1062
+#: frappe/model/document.py:1071
 msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
 msgstr "Nije moguće promijeniti status dokumenta iz 0 (Nacrt) u 2 (Otkazano)"
 
-#: frappe/model/document.py:1076
+#: frappe/model/document.py:1085
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
 msgstr "Nije moguće promijeniti status dokumenta sa 1 (Podneseno) u 0 (Nacrt)"
+
+#: frappe/model/document.py:1064
+msgid "Cannot change docstatus of non submittable doctype {0}"
+msgstr "Nije moguće promijeniti status dokumenta za tip dokumenta koji se ne može podnijeti {0}"
 
 #: frappe/public/js/workflow_builder/utils.js:170
 msgid "Cannot change state of Cancelled Document <b>({0} State)</b>"
@@ -4378,15 +4390,15 @@ msgstr "Nije moguće izbrisati mape Početna i Prilozi"
 msgid "Cannot delete or cancel because {0} {1} is linked with {2} {3} {4}"
 msgstr "Nije moguće izbrisati ili otkazati jer je {0} {1} povezan sa {2} {3} {4}"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:379
+#: frappe/custom/doctype/customize_form/customize_form.js:390
 msgid "Cannot delete standard action. You can hide it if you want"
 msgstr "Nije moguće izbrisati standardnu radnju. Možete je sakriti ako želite"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:401
+#: frappe/custom/doctype/customize_form/customize_form.js:412
 msgid "Cannot delete standard document state."
 msgstr "Nije moguće izbrisati standardno stanje dokumenta."
 
-#: frappe/custom/doctype/customize_form/customize_form.js:331
+#: frappe/custom/doctype/customize_form/customize_form.js:342
 msgid "Cannot delete standard field <strong>{0}</strong>. You can hide it instead."
 msgstr "Nije moguće izbrisati standardno polje <strong>{0}</strong>. Umjesto toga, možete ga sakriti."
 
@@ -4397,11 +4409,11 @@ msgstr "Nije moguće izbrisati standardno polje <strong>{0}</strong>. Umjesto to
 msgid "Cannot delete standard field. You can hide it if you want"
 msgstr "Nije moguće izbrisati standardno polje. Možete ga sakriti ako želite"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:357
+#: frappe/custom/doctype/customize_form/customize_form.js:368
 msgid "Cannot delete standard link. You can hide it if you want"
 msgstr "Nije moguće izbrisati standardnu vezu. Možete sakriti ako želite"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:323
+#: frappe/custom/doctype/customize_form/customize_form.js:334
 msgid "Cannot delete system generated field <strong>{0}</strong>. You can hide it instead."
 msgstr "Nije moguće izbrisati sistemski generisano polje <strong>{0}</strong>. Umjesto toga, možete ga sakriti."
 
@@ -4429,7 +4441,7 @@ msgstr "Nije moguće uređivati Standardne Grafikone"
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
 msgstr "Nije moguće uređivati standard izvještaj.Dupliciraj i kreiraj novi izvještaj"
 
-#: frappe/model/document.py:1082
+#: frappe/model/document.py:1091
 msgid "Cannot edit cancelled document"
 msgstr "Nije moguće uređivati otkazani dokument"
 
@@ -4458,7 +4470,7 @@ msgstr "Nije moguće pronaći datoteku {} na disku"
 msgid "Cannot get file contents of a Folder"
 msgstr "Nije moguće dobiti sadržaj mape"
 
-#: frappe/printing/page/print/print.js:920
+#: frappe/printing/page/print/print.js:910
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr "Nije moguće imati više pisača mapiranih u jedan format pisača."
 
@@ -4466,7 +4478,7 @@ msgstr "Nije moguće imati više pisača mapiranih u jedan format pisača."
 msgid "Cannot import table with more than 5000 rows."
 msgstr "Nije moguće uvesti tablicu s više od 5000 redaka."
 
-#: frappe/model/document.py:1280
+#: frappe/model/document.py:1289
 msgid "Cannot link cancelled document: {0}"
 msgstr "Nije moguće povezati otkazani dokument: {0}"
 
@@ -4482,7 +4494,7 @@ msgstr "Nije moguće uskladiti kolonu {0} ni sa jednim poljem"
 msgid "Cannot move row"
 msgstr "Nije moguće pomjeriti red"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:981
+#: frappe/public/js/frappe/views/reports/report_view.js:978
 msgid "Cannot remove ID field"
 msgstr "Nije moguće ukloniti ID polje"
 
@@ -4800,7 +4812,7 @@ msgstr "Podređena Tabela {0} za polje {1} mora biti virtualna"
 msgid "Child Tables are shown as a Grid in other DocTypes"
 msgstr "Podređene tabele su prikazane kao mreža u drugim DocTypes"
 
-#: frappe/database/query.py:1182
+#: frappe/database/query.py:1189
 msgid "Child query fields for '{0}' must be a list or tuple."
 msgstr "Podređena polja upita za '{0}' moraju biti popis ili torka."
 
@@ -4856,7 +4868,7 @@ msgstr "Očisti & Dodaj Šablon"
 msgid "Clear All"
 msgstr "Obriši Sve"
 
-#: frappe/public/js/frappe/list/list_view.js:2226
+#: frappe/public/js/frappe/list/list_view.js:2220
 msgctxt "Button in list view actions menu"
 msgid "Clear Assignment"
 msgstr "Obriši Dodjelu"
@@ -4960,7 +4972,7 @@ msgstr "Klikni da Postavite Filtere"
 msgid "Click to edit"
 msgstr "Kliknite za uređivanje"
 
-#: frappe/public/js/frappe/list/list_view.js:769
+#: frappe/public/js/frappe/list/list_view.js:763
 msgid "Click to sort by {0}"
 msgstr "Klikni da sortirate po {0}"
 
@@ -5104,11 +5116,13 @@ msgstr "Cmd+Enter za dodavanje komentara"
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #. Label of the code (Data) field in DocType 'Country'
 #. Option for the 'Response Type' (Select) field in DocType 'OAuth Client'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/geo/doctype/country/country.json
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
+#: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Code"
 msgstr "Kod"
 
@@ -5844,7 +5858,7 @@ msgstr "Kontrolira mogu li se novi korisnici prijaviti pomoću ovog ključa prij
 msgid "Copied to clipboard."
 msgstr "Kopirano u Međuspremnik."
 
-#: frappe/public/js/frappe/list/list_view.js:2544
+#: frappe/public/js/frappe/list/list_view.js:2538
 msgid "Copied {0} {1} to clipboard"
 msgstr "Kopirano {0} {1} u međuspremnik"
 
@@ -5861,7 +5875,7 @@ msgid "Copy error to clipboard"
 msgstr "Greška pri kopiranju u međuspremnik"
 
 #: frappe/public/js/frappe/form/toolbar.js:543
-#: frappe/public/js/frappe/list/list_view.js:2428
+#: frappe/public/js/frappe/list/list_view.js:2422
 msgid "Copy to Clipboard"
 msgstr "Kopiraj u Međuspremnik"
 
@@ -5882,7 +5896,7 @@ msgstr "Osnovni DocTypes se ne mogu prilagoditi."
 msgid "Core Modules {0} cannot be searched in Global Search."
 msgstr "Osnovni Moduli {0} se ne mogu pretraživati u globalnoj pretrazi."
 
-#: frappe/printing/page/print/print.js:681
+#: frappe/printing/page/print/print.js:671
 msgid "Correct version :"
 msgstr "Ispravna verzija:"
 
@@ -5890,7 +5904,7 @@ msgstr "Ispravna verzija:"
 msgid "Could not connect to outgoing email server"
 msgstr "Povezivanje sa serverom odlazne e-pošte nije uspjelo"
 
-#: frappe/model/document.py:1276
+#: frappe/model/document.py:1285
 msgid "Could not find {0}"
 msgstr "Nije moguće pronaći {0}"
 
@@ -5898,7 +5912,7 @@ msgstr "Nije moguće pronaći {0}"
 msgid "Could not map column {0} to field {1}"
 msgstr "Nije moguće mapirati kolonu {0} na polje {1}"
 
-#: frappe/database/query.py:1085
+#: frappe/database/query.py:1092
 msgid "Could not parse field: {0}"
 msgstr "Nije moguće parsati polje: {0}"
 
@@ -5906,7 +5920,7 @@ msgstr "Nije moguće parsati polje: {0}"
 msgid "Could not start Chromium. Check logs for details."
 msgstr "Nije moguće pokrenuti Chromium. Provjerite zapisnike za detalje."
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:234
+#: frappe/desk/page/setup_wizard/setup_wizard.js:241
 msgid "Could not start up:"
 msgstr "Nije moguće pokrenuti:"
 
@@ -6051,7 +6065,7 @@ msgstr "Kreiraj Zapisnik"
 msgid "Create New"
 msgstr "Kreiraj"
 
-#: frappe/public/js/frappe/list/list_view.js:542
+#: frappe/public/js/frappe/list/list_view.js:536
 msgctxt "Create a new document from list view"
 msgid "Create New"
 msgstr "Kreiraj"
@@ -6091,7 +6105,7 @@ msgstr "Kreiraj novi zapis"
 #: frappe/public/js/frappe/form/controls/link.js:480
 #: frappe/public/js/frappe/form/controls/link.js:482
 #: frappe/public/js/frappe/form/link_selector.js:147
-#: frappe/public/js/frappe/list/list_view.js:534
+#: frappe/public/js/frappe/list/list_view.js:528
 #: frappe/public/js/frappe/web_form/web_form_list.js:226
 msgid "Create a new {0}"
 msgstr "+ {0}"
@@ -6108,7 +6122,7 @@ msgstr "Kreiraj ili Uredi Format Ispisa"
 msgid "Create or Edit Workflow"
 msgstr "Kreiraj ili Uredi Radni Tok"
 
-#: frappe/public/js/frappe/list/list_view.js:537
+#: frappe/public/js/frappe/list/list_view.js:531
 msgid "Create your first {0}"
 msgstr "+ {0}"
 
@@ -6154,7 +6168,7 @@ msgstr "Kreirano Prilagođeno Polje {0} u {1}"
 msgid "Created On"
 msgstr "Kreirano"
 
-#: frappe/public/js/frappe/desk.js:517
+#: frappe/public/js/frappe/desk.js:519
 #: frappe/public/js/frappe/views/treeview.js:402
 msgid "Creating {0}"
 msgstr "Kreiranje {0}"
@@ -6216,7 +6230,7 @@ msgstr "Ctrl+Enter za dodavanje komentara"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/desk/doctype/number_card/number_card.json
-#: frappe/desk/page/setup_wizard/setup_wizard.js:411
+#: frappe/desk/page/setup_wizard/setup_wizard.js:418
 #: frappe/geo/doctype/currency/currency.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Currency"
@@ -6489,7 +6503,7 @@ msgstr "Prilagodjavanje"
 msgid "Customizations Discarded"
 msgstr "Prilagođavanja Odbačena"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:475
+#: frappe/custom/doctype/customize_form/customize_form.js:486
 msgid "Customizations Reset"
 msgstr "Poništi Prilagođavanja"
 
@@ -6506,12 +6520,12 @@ msgstr "Prilagođavanja za <b>{0}</b> eksportirana u:<br>{1}"
 msgid "Customize"
 msgstr "Prilagodi"
 
-#: frappe/public/js/frappe/list/list_view.js:1987
+#: frappe/public/js/frappe/list/list_view.js:1981
 msgctxt "Button in list view menu"
 msgid "Customize"
 msgstr "Prilagodi"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:89
+#: frappe/custom/doctype/customize_form/customize_form.js:94
 msgid "Customize Child Table"
 msgstr "Prilagodi podređenu tabelu"
 
@@ -6531,7 +6545,7 @@ msgstr "Prilagodi nadzornu ploču"
 msgid "Customize Form"
 msgstr "Prilagodi Formu"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:100
+#: frappe/custom/doctype/customize_form/customize_form.js:107
 msgid "Customize Form - {0}"
 msgstr "Prilagodi Formu - {0}"
 
@@ -6540,7 +6554,7 @@ msgstr "Prilagodi Formu - {0}"
 msgid "Customize Form Field"
 msgstr "Prilagodi Polje Obrasca"
 
-#: frappe/public/js/frappe/list/list_view.js:2013
+#: frappe/public/js/frappe/list/list_view.js:2007
 msgctxt "Customize qucik filters of List View"
 msgid "Customize Quick Filters"
 msgstr "Prilagodi Brze Filtere"
@@ -6866,7 +6880,7 @@ msgstr "Format Datuma"
 #. Label of the section_break_dfrx (Section Break) field in DocType 'Audit
 #. Trail'
 #: frappe/core/doctype/audit_trail/audit_trail.json
-#: frappe/public/js/frappe/widgets/chart_widget.js:237
+#: frappe/public/js/frappe/widgets/chart_widget.js:242
 msgid "Date Range"
 msgstr "Datumski Raspon"
 
@@ -7191,11 +7205,11 @@ msgstr "Odgođeno"
 #: frappe/core/doctype/user_document_type/user_document_type.json
 #: frappe/core/doctype/user_permission/user_permission_list.js:189
 #: frappe/core/page/permission_manager/permission_manager_help.html:46
-#: frappe/public/js/frappe/form/footer/form_timeline.js:627
+#: frappe/public/js/frappe/form/footer/form_timeline.js:632
 #: frappe/public/js/frappe/form/grid.js:66
 #: frappe/public/js/frappe/form/grid_row_form.js:44
 #: frappe/public/js/frappe/form/toolbar.js:500
-#: frappe/public/js/frappe/views/reports/report_view.js:1814
+#: frappe/public/js/frappe/views/reports/report_view.js:1811
 #: frappe/public/js/frappe/views/treeview.js:338
 #: frappe/public/js/frappe/web_form/web_form_list.js:283
 #: frappe/templates/discussions/reply_card.html:35
@@ -7203,7 +7217,7 @@ msgstr "Odgođeno"
 msgid "Delete"
 msgstr "Izbriši"
 
-#: frappe/public/js/frappe/list/list_view.js:2288
+#: frappe/public/js/frappe/list/list_view.js:2282
 msgctxt "Button in list view actions menu"
 msgid "Delete"
 msgstr "Izbriši"
@@ -7263,7 +7277,7 @@ msgctxt "Button text"
 msgid "Delete column"
 msgstr "Izbriši Kolonu"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:742
+#: frappe/public/js/frappe/form/footer/form_timeline.js:747
 msgid "Delete comment?"
 msgstr "Izbriši komentar?"
 
@@ -7300,12 +7314,12 @@ msgstr "Izbriši karticu"
 msgid "Delete this record to allow sending to this email address"
 msgstr "Izbrišite ovaj zapis da omogućite slanje na ovu adresu e-pošte"
 
-#: frappe/public/js/frappe/list/list_view.js:2293
+#: frappe/public/js/frappe/list/list_view.js:2287
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} item permanently?"
 msgstr "Trajno izbriši stavku {0}?"
 
-#: frappe/public/js/frappe/list/list_view.js:2299
+#: frappe/public/js/frappe/list/list_view.js:2293
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} items permanently?"
 msgstr "Trajno izbriši {0} stavke?"
@@ -7787,7 +7801,7 @@ msgstr "Odgovor Diskusije"
 msgid "Discussion Topic"
 msgstr "Tema Diskusije"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:639
+#: frappe/public/js/frappe/form/footer/form_timeline.js:644
 #: frappe/templates/discussions/reply_card.html:16
 #: frappe/templates/discussions/reply_section.html:29
 msgid "Dismiss"
@@ -8326,11 +8340,11 @@ msgid "Document Types and Permissions"
 msgstr "Tipovi Dokumenata i Dozvole"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
-#: frappe/model/document.py:2142
+#: frappe/model/document.py:2151
 msgid "Document Unlocked"
 msgstr "Dokument Otključan"
 
-#: frappe/database/query.py:570
+#: frappe/database/query.py:577
 msgid "Document cannot be used as a filter value"
 msgstr "Dokument se ne može koristiti kao vrijednost filtra"
 
@@ -8338,15 +8352,15 @@ msgstr "Dokument se ne može koristiti kao vrijednost filtra"
 msgid "Document follow is not enabled for this user."
 msgstr "Praćenje dokumenta nije omogućeno za ovog korisnika."
 
-#: frappe/public/js/frappe/list/list_view.js:1350
+#: frappe/public/js/frappe/list/list_view.js:1344
 msgid "Document has been cancelled"
 msgstr "Dokument je otkazan"
 
-#: frappe/public/js/frappe/list/list_view.js:1349
+#: frappe/public/js/frappe/list/list_view.js:1343
 msgid "Document has been submitted"
 msgstr "Dokument je podnesen"
 
-#: frappe/public/js/frappe/list/list_view.js:1348
+#: frappe/public/js/frappe/list/list_view.js:1342
 msgid "Document is in draft state"
 msgstr "Dokument je u stanju nacrta"
 
@@ -8680,12 +8694,14 @@ msgstr "Sekcija Dinamičkog Filtera"
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Filter'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/core/doctype/dynamic_link/dynamic_link.json
 #: frappe/core/doctype/report_column/report_column.json
 #: frappe/core/doctype/report_filter/report_filter.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
+#: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Dynamic Link"
 msgstr "Dinamička Veza"
 
@@ -8716,8 +8732,8 @@ msgstr "ESC"
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:46
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:85
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:31
-#: frappe/public/js/frappe/form/footer/form_timeline.js:670
-#: frappe/public/js/frappe/form/footer/form_timeline.js:678
+#: frappe/public/js/frappe/form/footer/form_timeline.js:675
+#: frappe/public/js/frappe/form/footer/form_timeline.js:683
 #: frappe/public/js/frappe/form/templates/address_list.html:13
 #: frappe/public/js/frappe/form/templates/contact_list.html:13
 #: frappe/public/js/frappe/form/toolbar.js:214
@@ -8725,7 +8741,7 @@ msgstr "ESC"
 #: frappe/public/js/frappe/views/reports/query_report.js:913
 #: frappe/public/js/frappe/views/reports/query_report.js:1923
 #: frappe/public/js/frappe/widgets/base_widget.js:64
-#: frappe/public/js/frappe/widgets/chart_widget.js:299
+#: frappe/public/js/frappe/widgets/chart_widget.js:304
 #: frappe/public/js/frappe/widgets/number_card_widget.js:359
 #: frappe/templates/discussions/reply_card.html:29
 #: frappe/templates/discussions/reply_section.html:29
@@ -8734,7 +8750,7 @@ msgstr "ESC"
 msgid "Edit"
 msgstr "Uredi"
 
-#: frappe/public/js/frappe/list/list_view.js:2374
+#: frappe/public/js/frappe/list/list_view.js:2368
 msgctxt "Button in list view actions menu"
 msgid "Edit"
 msgstr "Uredi"
@@ -8773,7 +8789,7 @@ msgstr "Uredi Prilagođeni HTML"
 msgid "Edit DocType"
 msgstr "Uredi DocType"
 
-#: frappe/public/js/frappe/list/list_view.js:2006
+#: frappe/public/js/frappe/list/list_view.js:2000
 msgctxt "Button in list view menu"
 msgid "Edit DocType"
 msgstr "Uredi DocType"
@@ -9020,7 +9036,7 @@ msgstr "Račun e-pošte {0} Onemogućen"
 #. Label of the email_id (Data) field in DocType 'Google Contacts'
 #: frappe/contacts/doctype/address/address.json
 #: frappe/contacts/doctype/contact/contact.json
-#: frappe/desk/page/setup_wizard/setup_wizard.js:479
+#: frappe/desk/page/setup_wizard/setup_wizard.js:493
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 #: frappe/www/complete_signup.html:11 frappe/www/login.html:184
@@ -9134,6 +9150,10 @@ msgstr "Broj Pokušaja e-pošte"
 msgid "Email Rule"
 msgstr "Pravilo e-pošte"
 
+#: frappe/public/js/frappe/views/communication.js:917
+msgid "Email Sent"
+msgstr "E-pošta poslana"
+
 #. Label of the email_sent_at (Datetime) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Email Sent At"
@@ -9206,7 +9226,7 @@ msgstr "E-pošta je premještena u smeće"
 msgid "Email is mandatory to create User Email"
 msgstr "E-pošta je obavezna za kreiranje korisničke e-pošte"
 
-#: frappe/public/js/frappe/views/communication.js:902
+#: frappe/public/js/frappe/views/communication.js:904
 msgid "Email not sent to {0} (unsubscribed / disabled)"
 msgstr "E-pošta nije poslana na {0} (otkazana / onemogućena)"
 
@@ -9218,9 +9238,17 @@ msgstr "E-pošta nije potvrđena sa {0}"
 msgid "Email queue is currently suspended. Resume to automatically send other emails."
 msgstr "Red čekanja e-pošte trenutno je obustavljen. Nastavi za automatsko slanje drugih e-poruka."
 
+#: frappe/public/js/frappe/views/communication.js:955
+msgid "Email sending undone"
+msgstr "Slanje e-pošte poništeno"
+
 #: frappe/email/doctype/email_queue/email_queue.py:197
 msgid "Email size {0:.2f} MB exceeds the maximum allowed size of {1:.2f} MB"
 msgstr "Veličina e-pošte {0:.2f} MB premašuje maksimalnu dopuštenu veličinu od {1:.2f} MB"
+
+#: frappe/core/doctype/communication/email.py:349
+msgid "Email undo window is over. Cannot undo email."
+msgstr "Prozor za poništavanje e-pošte je završen. Ne možete poništiti e-poštu."
 
 #. Label of the section_break_udjs (Section Break) field in DocType 'System
 #. Health Report'
@@ -9249,7 +9277,7 @@ msgstr "E-pošta će biti poslane sa sljedećim mogućim radnjama radnog toka"
 msgid "Embed code copied"
 msgstr "Kod Ugradnje kopiran"
 
-#: frappe/database/query.py:2440
+#: frappe/database/query.py:2462
 msgid "Empty alias is not allowed"
 msgstr "Prazan alias nije dopušten"
 
@@ -9257,7 +9285,7 @@ msgstr "Prazan alias nije dopušten"
 msgid "Empty column"
 msgstr "Prazna kolona"
 
-#: frappe/database/query.py:2382
+#: frappe/database/query.py:2404
 msgid "Empty string arguments are not allowed"
 msgstr "Prazni argumenti niza nisu dopušteni"
 
@@ -9504,11 +9532,11 @@ msgstr "Ako ovo omogućite, dokumenti će se podnijeti u pozadini"
 msgid "Encrypt Backups"
 msgstr "Šifriraj Sigurnosne Kopije"
 
-#: frappe/utils/password.py:196
+#: frappe/utils/password.py:214
 msgid "Encryption key is in invalid format!"
 msgstr "Ključ Šifriranja je u nevažećem formatu!"
 
-#: frappe/utils/password.py:211
+#: frappe/utils/password.py:229
 msgid "Encryption key is invalid! Please check site_config.json"
 msgstr "Ključ Šifriranje je nevažeći! Provjeri site_config.json"
 
@@ -9748,7 +9776,7 @@ msgstr "Greška u formatu za ispisivanje na liniji {0}: {1}"
 msgid "Error in {0}.get_list: {1}"
 msgstr "Pogreška u {0}.get_list: {1}"
 
-#: frappe/database/query.py:456
+#: frappe/database/query.py:463
 msgid "Error parsing nested filters: {0}. {1}"
 msgstr "Pogreška pri parsiranju ugniježđenih filtera: {0}. {1}"
 
@@ -9968,7 +9996,7 @@ msgstr "Proširi"
 msgid "Expand All"
 msgstr "Rasklopi Sve"
 
-#: frappe/database/query.py:736
+#: frappe/database/query.py:743
 msgid "Expected 'and' or 'or' operator, found: {0}"
 msgstr "Očekivani operator 'and' ili 'or', pronađen: {0}"
 
@@ -10028,12 +10056,12 @@ msgstr "Vrijeme isteka stranice sa slikom QR koda"
 #: frappe/public/js/frappe/data_import/data_exporter.js:92
 #: frappe/public/js/frappe/data_import/data_exporter.js:247
 #: frappe/public/js/frappe/views/reports/query_report.js:1965
-#: frappe/public/js/frappe/views/reports/report_view.js:1694
-#: frappe/public/js/frappe/widgets/chart_widget.js:315
+#: frappe/public/js/frappe/views/reports/report_view.js:1691
+#: frappe/public/js/frappe/widgets/chart_widget.js:320
 msgid "Export"
 msgstr "Izvoz"
 
-#: frappe/public/js/frappe/list/list_view.js:2416
+#: frappe/public/js/frappe/list/list_view.js:2410
 msgctxt "Button in list view actions menu"
 msgid "Export"
 msgstr "Izvezi"
@@ -10042,11 +10070,11 @@ msgstr "Izvezi"
 msgid "Export 1 record"
 msgstr "Izvezi 1 zapis"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:262
+#: frappe/custom/doctype/customize_form/customize_form.js:273
 msgid "Export Custom Permissions"
 msgstr "Eksportiraj Prilagođene Dozvole"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:242
+#: frappe/custom/doctype/customize_form/customize_form.js:253
 msgid "Export Customizations"
 msgstr "Eksportiraj Prilagodbe"
 
@@ -10077,11 +10105,11 @@ msgstr "Eksportiraj Izvještaj: {0}"
 msgid "Export Type"
 msgstr "Tip Izvoza"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1705
+#: frappe/public/js/frappe/views/reports/report_view.js:1702
 msgid "Export all matching rows?"
 msgstr "Eksportiraj sve podudarne redove?"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1715
+#: frappe/public/js/frappe/views/reports/report_view.js:1712
 msgid "Export all {0} rows?"
 msgstr "Eksportiraj sve {0} redove?"
 
@@ -10097,7 +10125,7 @@ msgstr "Izvoz u pozadini"
 msgid "Export not allowed. You need {0} role to export."
 msgstr "Izvoz nije dozvoljen. Potrebna vam je {0} uloga za izvoz."
 
-#: frappe/custom/doctype/customize_form/customize_form.js:272
+#: frappe/custom/doctype/customize_form/customize_form.js:283
 msgid "Export only customizations assigned to the selected module.<br><span class='text-muted'><strong>Note:</strong> You must set the <em>Module (for export)</em> field on Custom Field and Property Setter records before applying this filter.</span><p class='alert alert-warning'> <strong>Warning:</strong> Customizations from other modules will be excluded.</p>"
 msgstr "Izvezi samo prilagodbe dodijeljene odabranom modulu.<br><span class='text-muted'><strong>Napomena:</strong> Morate postaviti polje <em>Modul (za izvoz)</em> na zapisima Prilagođenog polja i Postavljača svojstava prije primjene ovog filtra.</span><p class='alert alert-warning'> <strong>Upozorenje:</strong> Prilagodbe iz drugih modula bit će isključene.</p>"
 
@@ -10117,7 +10145,7 @@ msgstr "Eksportiraj bez glavnog zaglavlja"
 msgid "Export {0} records"
 msgstr "Izvezi {0} zapise"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:263
+#: frappe/custom/doctype/customize_form/customize_form.js:274
 msgid "Exported permissions will be force-synced on every migrate overriding any other customization."
 msgstr "Eksportirane dozvole bit će prinudno sinhronizirane pri svakoj migraciji nadjačavajući bilo koje drugo prilagođavanje."
 
@@ -10232,7 +10260,7 @@ msgstr "Nije uspjelo preuzimanje zaključavanja: {}. Zaključavanje može biti z
 msgid "Failed to change password."
 msgstr "Promjena lozinke nije uspjela."
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:232
+#: frappe/desk/page/setup_wizard/setup_wizard.js:239
 #: frappe/desk/page/setup_wizard/setup_wizard.py:43
 msgid "Failed to complete setup"
 msgstr "Nije uspjelo dovršavanje postavljanja"
@@ -10250,9 +10278,13 @@ msgstr "Povezivanje sa serverom nije uspjelo"
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr "Dekodiranje tokena nije uspjelo, navedite važeći token kodiran sa base64."
 
-#: frappe/utils/password.py:210
+#: frappe/utils/password.py:228
 msgid "Failed to decrypt key {0}"
 msgstr "Dešifriranje ključa {0} nije uspjelo"
+
+#: frappe/core/doctype/communication/email.py:344
+msgid "Failed to delete communication"
+msgstr "Brisanje komunikacije nije uspjelo"
 
 #: frappe/desk/reportview.py:642
 msgid "Failed to delete {0} documents: {1}"
@@ -10279,7 +10311,7 @@ msgstr "Nije uspjelo generiranje imena iz serije"
 msgid "Failed to generate preview of series"
 msgstr "Generiranje pregleda serije nije uspjelo"
 
-#: frappe/handler.py:77
+#: frappe/handler.py:78
 msgid "Failed to get method for command {0} with {1}"
 msgstr "Nije uspjelo preuzimanje metode za komandu {0} sa {1}"
 
@@ -10433,7 +10465,7 @@ msgstr "Polje \"naziv\" je obavezno ako je postavljeno \"Polje Pretrage Web Stra
 msgid "Field \"value\" is mandatory. Please specify value to be updated"
 msgstr "Polje \"vrijednost\" je obavezno. Navedi vrijednost koju treba ažurirati"
 
-#: frappe/desk/search.py:263
+#: frappe/desk/search.py:271
 msgid "Field <code>{0}</code> not found in {1}"
 msgstr "Polje <code>{0}</code> nije pronađeno u {1}"
 
@@ -10502,7 +10534,7 @@ msgstr "Polje {0} se odnosi na nepostojeći tip dokumenta {1}."
 msgid "Field {0} must be a virtual field to support virtual doctype."
 msgstr "Polje {0} mora biti virtualno polje kako bi podržalo virtualni doctype."
 
-#: frappe/public/js/frappe/form/form.js:1814
+#: frappe/public/js/frappe/form/form.js:1818
 msgid "Field {0} not found."
 msgstr "Polje {0} nije pronađeno."
 
@@ -10562,7 +10594,7 @@ msgid "Fieldname {0} conflicting with meta object"
 msgstr "Ime polja {0} je u konfliktu sa meta objektom"
 
 #: frappe/core/doctype/doctype/doctype.py:511
-#: frappe/public/js/form_builder/utils.js:302
+#: frappe/public/js/form_builder/utils.js:299
 msgid "Fieldname {0} is restricted"
 msgstr "Ime polja {0} je ograničeno"
 
@@ -10605,7 +10637,7 @@ msgstr "Polja `file_name` ili `file_url` moraju biti postavljena za datoteku"
 msgid "Fields must be a list or tuple when as_list is enabled"
 msgstr "Polja moraju biti lista ili tuple kada je as_list omogućen"
 
-#: frappe/database/query.py:1131
+#: frappe/database/query.py:1138
 msgid "Fields must be a string, list, tuple, pypika Field, or pypika Function"
 msgstr "Polja moraju biti niz, lista, torka, pypika Polje ili pypika Funkcija"
 
@@ -10718,7 +10750,7 @@ msgstr "Datoteka je prevelika"
 msgid "File type of {0} is not allowed"
 msgstr "Tip datoteke {0} nije dozvoljen"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:642
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:651
 msgid "File upload failed."
 msgstr "Prijenos datoteke nije uspio."
 
@@ -10775,11 +10807,11 @@ msgstr "Filter Naziv"
 msgid "Filter Values"
 msgstr "Filter Vrijednosti"
 
-#: frappe/database/query.py:742
+#: frappe/database/query.py:749
 msgid "Filter condition missing after operator: {0}"
 msgstr "Nedostaje uvjet filtra nakon operatora: {0}"
 
-#: frappe/database/query.py:829
+#: frappe/database/query.py:836
 msgid "Filter fields have invalid backtick notation: {0}"
 msgstr "Polja filtra imaju nevažeću notaciju povratnog naznaku: {0}"
 
@@ -10873,7 +10905,7 @@ msgstr "Filteri će biti dostupni putem <code>filters</code>. <br><br>Pošalji i
 msgid "Filters {0}"
 msgstr "Filteri {0}"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1483
+#: frappe/public/js/frappe/views/reports/report_view.js:1480
 msgid "Filters:"
 msgstr "Filteri:"
 
@@ -11533,7 +11565,7 @@ msgstr "Pun"
 #: frappe/contacts/doctype/contact/contact.json
 #: frappe/core/doctype/activity_log/activity_log.json
 #: frappe/core/doctype/user/user.json
-#: frappe/desk/page/setup_wizard/setup_wizard.js:473
+#: frappe/desk/page/setup_wizard/setup_wizard.js:487
 #: frappe/templates/signup.html:4
 #: frappe/website/doctype/about_us_team_member/about_us_team_member.json
 msgid "Full Name"
@@ -11565,7 +11597,7 @@ msgstr "Funkcija zasnovana na"
 msgid "Function {0} is not whitelisted."
 msgstr "Funkcija {0} nije na bijeloj listi."
 
-#: frappe/database/query.py:2286
+#: frappe/database/query.py:2308
 msgid "Function {0} requires arguments but none were provided"
 msgstr "Funkcija {0} zahtijeva argumente, ali nijedan nije naveden"
 
@@ -11644,7 +11676,7 @@ msgstr "Generiši Nasumičnu Lozinku"
 msgid "Generate Separate Documents For Each Assignee"
 msgstr "Generiši zasebne dokumente za svakog Dodijeljenog"
 
-#: frappe/public/js/frappe/ui/sidebar/sidebar.js:505
+#: frappe/public/js/frappe/ui/sidebar/sidebar.js:515
 #: frappe/public/js/frappe/utils/utils.js:2115
 msgid "Generate Tracking URL"
 msgstr "Generiši URL Praćenja"
@@ -11657,9 +11689,11 @@ msgstr "Geoapify"
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
+#: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Geolocation"
 msgstr "Geolokacija"
 
@@ -11719,7 +11753,7 @@ msgid "Get your globally recognized avatar from Gravatar.com"
 msgstr "Preuzmi vaš globalno priznati avatar sa Gravatar.com"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar.html:47
-#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:238
+#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:235
 msgid "Getting Started"
 msgstr "Započni"
 
@@ -11811,7 +11845,7 @@ msgstr "Idi na {0}"
 
 #: frappe/core/doctype/data_import/data_import.js:93
 #: frappe/core/doctype/doctype/doctype.js:55
-#: frappe/custom/doctype/customize_form/customize_form.js:104
+#: frappe/custom/doctype/customize_form/customize_form.js:111
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:42
 #: frappe/workflow/doctype/workflow/workflow.js:44
 msgid "Go to {0} List"
@@ -12055,7 +12089,7 @@ msgstr "Grupiši Po Tipu"
 msgid "Group By field is required to create a dashboard chart"
 msgstr "Polje Grupiši Po je obavezno za kreiranje grafikona nadzorne table"
 
-#: frappe/database/query.py:1350
+#: frappe/database/query.py:1357
 msgid "Group By must be a string"
 msgstr "Grupiraj Po mora biti niz"
 
@@ -12129,9 +12163,11 @@ msgstr "HTML"
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
+#: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "HTML Editor"
 msgstr "HTML Uređivač"
 
@@ -12274,12 +12310,14 @@ msgstr "Zaglavlja moraju biti rječnik"
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #. Label of the heading (Data) field in DocType 'Contact Us Settings'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #. Label of the heading (Data) field in DocType 'Website Slideshow Item'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/printing/page/print_format_builder/print_format_builder.js:611
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
+#: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/website_slideshow_item/website_slideshow_item.json
 msgid "Heading"
 msgstr "Naslov"
@@ -12498,7 +12536,9 @@ msgid "Hide Seconds"
 msgstr "Sakrij Sekunde"
 
 #. Label of the hide_toolbar (Check) field in DocType 'DocType'
+#. Label of the hide_toolbar (Check) field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json
+#: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Hide Sidebar, Menu, and Comments"
 msgstr "Sakrij Bočnu Traku, Meni i Komentare"
 
@@ -12660,16 +12700,16 @@ msgstr "Pretpostavka je da još nemate pristup nijednom radnom prostoru, ali ga 
 #: frappe/public/js/frappe/data_import/data_exporter.js:371
 #: frappe/public/js/frappe/data_import/data_exporter.js:386
 #: frappe/public/js/frappe/list/list_settings.js:340
-#: frappe/public/js/frappe/list/list_view.js:414
-#: frappe/public/js/frappe/list/list_view.js:478
-#: frappe/public/js/frappe/list/list_view.js:2466
+#: frappe/public/js/frappe/list/list_view.js:408
+#: frappe/public/js/frappe/list/list_view.js:472
+#: frappe/public/js/frappe/list/list_view.js:2460
 #: frappe/public/js/frappe/model/meta.js:208
 #: frappe/public/js/frappe/model/model.js:122
 msgid "ID"
 msgstr "ID"
 
 #: frappe/desk/reportview.py:530
-#: frappe/public/js/frappe/views/reports/report_view.js:1038
+#: frappe/public/js/frappe/views/reports/report_view.js:1035
 msgctxt "Label of name column in report"
 msgid "ID"
 msgstr "ID"
@@ -12735,6 +12775,7 @@ msgstr "IP Adresa"
 #. Label of the icon (Data) field in DocType 'Workspace Shortcut'
 #. Label of the icon (Icon) field in DocType 'Workspace Sidebar Item'
 #. Label of the icon (Data) field in DocType 'Social Login Key'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #. Label of the icon (Select) field in DocType 'Workflow State'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/core/doctype/doctype/doctype.json
@@ -12747,6 +12788,7 @@ msgstr "IP Adresa"
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 #: frappe/public/js/frappe/views/workspace/workspace.js:484
+#: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Icon"
 msgstr "Ikona"
@@ -12990,7 +13032,7 @@ msgstr "Ako učitavate nove zapise, ostavite kolonu \"ime\" (ID) praznom."
 msgid "If you have any questions, reach out to your system administrator."
 msgstr "Ako imate bilo kakvih pitanja, obratite se administratoru sustava."
 
-#: frappe/utils/password.py:213
+#: frappe/utils/password.py:231
 msgid "If you have recently restored the site, you may need to copy the site_config.json containing the original encryption key."
 msgstr "Ako ste nedavno vratili web stranicu, možda ćete morati kopirati konfiguraciju web stranice koja sadrži izvorni ključ šifriranja."
 
@@ -13071,6 +13113,7 @@ msgstr "Ilegalan Šablon"
 #. Label of the image (Attach Image) field in DocType 'Letter Head'
 #. Label of the footer_image (Attach Image) field in DocType 'Letter Head'
 #. Option for the 'Footer Based On' (Select) field in DocType 'Letter Head'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #. Label of the meta_image (Attach Image) field in DocType 'Web Page'
 #. Label of the image (Attach) field in DocType 'Website Slideshow Item'
 #: frappe/contacts/doctype/contact/contact.json
@@ -13080,6 +13123,7 @@ msgstr "Ilegalan Šablon"
 #: frappe/desk/doctype/form_tour/form_tour.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: frappe/printing/doctype/letter_head/letter_head.json
+#: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/website/doctype/website_slideshow_item/website_slideshow_item.json
 msgid "Image"
@@ -13174,7 +13218,7 @@ msgstr "Implicitno"
 msgid "Import"
 msgstr "Uvezi"
 
-#: frappe/public/js/frappe/list/list_view.js:1951
+#: frappe/public/js/frappe/list/list_view.js:1945
 msgctxt "Button in list view menu"
 msgid "Import"
 msgstr "Uvezi"
@@ -13464,7 +13508,7 @@ msgstr "Neispravna Konfiguracija"
 msgid "Incorrect URL"
 msgstr "Neispravan URL"
 
-#: frappe/utils/password.py:100
+#: frappe/utils/password.py:118
 msgid "Incorrect User or Password"
 msgstr "Netačan korisnik ili lozinka"
 
@@ -13476,11 +13520,11 @@ msgstr "Netačan Verifikacioni Kod"
 msgid "Incorrect configuration"
 msgstr "Netočna konfiguracija"
 
-#: frappe/model/document.py:1734
+#: frappe/model/document.py:1743
 msgid "Incorrect value in row {0}:"
 msgstr "Netačna vrijednost u redu {0}:"
 
-#: frappe/model/document.py:1736
+#: frappe/model/document.py:1745
 msgid "Incorrect value:"
 msgstr "Netačna vrijednost:"
 
@@ -13497,7 +13541,7 @@ msgstr "Indent"
 #: frappe/custom/doctype/custom_field/custom_field.json frappe/model/meta.py:55
 #: frappe/public/js/frappe/model/meta.js:211
 #: frappe/public/js/frappe/model/model.js:124
-#: frappe/public/js/frappe/views/reports/report_view.js:1059
+#: frappe/public/js/frappe/views/reports/report_view.js:1056
 msgid "Index"
 msgstr "Indeks"
 
@@ -13652,7 +13696,7 @@ msgstr "Instrukcije Poslane e-poštom"
 msgid "Insufficient Permission Level for {0}"
 msgstr "Nedovoljan Nivo Dozvola za {0}"
 
-#: frappe/database/query.py:1416
+#: frappe/database/query.py:1423
 msgid "Insufficient Permission for {0}"
 msgstr "Nedovoljne Dozvole za {0}"
 
@@ -13775,10 +13819,10 @@ msgstr "Introspekcija URI"
 msgid "Invalid"
 msgstr "Nevažeći"
 
-#: frappe/public/js/form_builder/utils.js:221
-#: frappe/public/js/frappe/form/grid_row.js:843
-#: frappe/public/js/frappe/form/layout.js:809
-#: frappe/public/js/frappe/views/reports/report_view.js:770
+#: frappe/public/js/form_builder/utils.js:218
+#: frappe/public/js/frappe/form/grid_row.js:840
+#: frappe/public/js/frappe/form/layout.js:806
+#: frappe/public/js/frappe/views/reports/report_view.js:767
 msgid "Invalid \"depends_on\" expression"
 msgstr "Nevažeći izraz \"depends_on\""
 
@@ -13786,7 +13830,7 @@ msgstr "Nevažeći izraz \"depends_on\""
 msgid "Invalid \"depends_on\" expression set in filter {0}"
 msgstr "Nevažeći izraz \"depends_on\" postavljen u filteru {0}"
 
-#: frappe/public/js/frappe/form/save.js:219
+#: frappe/public/js/frappe/form/save.js:214
 msgid "Invalid \"mandatory_depends_on\" expression"
 msgstr "Nevažeći izraz \"mandatory_depends_on\""
 
@@ -13839,8 +13883,8 @@ msgstr "Nevažeći Naziv Polja"
 msgid "Invalid File URL"
 msgstr "Nevažeći URL Datoteke"
 
-#: frappe/database/query.py:831 frappe/database/query.py:858
-#: frappe/database/query.py:868
+#: frappe/database/query.py:838 frappe/database/query.py:865
+#: frappe/database/query.py:875
 msgid "Invalid Filter"
 msgstr "Nevažeći Filter"
 
@@ -13904,8 +13948,9 @@ msgstr "Nevažeće Nadjačavanje"
 msgid "Invalid Parameters."
 msgstr "Nevažeći Parametri."
 
-#: frappe/www/update-password.html:148 frappe/www/update-password.html:169
-#: frappe/www/update-password.html:171 frappe/www/update-password.html:272
+#: frappe/core/doctype/user/user.py:937 frappe/www/update-password.html:148
+#: frappe/www/update-password.html:169 frappe/www/update-password.html:171
+#: frappe/www/update-password.html:272
 msgid "Invalid Password"
 msgstr "Nevažeća Lozinka"
 
@@ -13952,7 +13997,7 @@ msgstr "Nevažeća Tajna Webhooka"
 msgid "Invalid aggregate function"
 msgstr "Nevažeća agregatna funkcija"
 
-#: frappe/database/query.py:2446
+#: frappe/database/query.py:2468
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
 msgstr "Nevažeći format aliasa: {0}. Alias mora biti jednostavan identifikator."
 
@@ -13960,15 +14005,15 @@ msgstr "Nevažeći format aliasa: {0}. Alias mora biti jednostavan identifikator
 msgid "Invalid app"
 msgstr "Nevažeća aplikacija"
 
-#: frappe/database/query.py:2407 frappe/database/query.py:2422
+#: frappe/database/query.py:2429 frappe/database/query.py:2444
 msgid "Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
 msgstr "Nevažeći format argumenta: {0}. Dopušteni su samo navodni znakovni literali ili jednostavna imena polja."
 
-#: frappe/database/query.py:2371
+#: frappe/database/query.py:2393
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
 msgstr "Nevažeća vrsta argumenta: {0}. Dopušteni su samo strings, numbers, dicts, i None."
 
-#: frappe/database/query.py:864
+#: frappe/database/query.py:871
 msgid "Invalid characters in fieldname: {0}. Only letters, numbers, and underscores are allowed."
 msgstr "Nevažeći znakovi u nazivu polja: {0}. Dopušteni su samo slova, brojevi i podcrte."
 
@@ -13976,15 +14021,15 @@ msgstr "Nevažeći znakovi u nazivu polja: {0}. Dopušteni su samo slova, brojev
 msgid "Invalid column"
 msgstr "Nevažeća kolona"
 
-#: frappe/database/query.py:765
+#: frappe/database/query.py:772
 msgid "Invalid condition type in nested filters: {0}"
 msgstr "Nevažeća vrsta uvjeta u ugniježđenim filtrima: {0}"
 
-#: frappe/database/query.py:1394
+#: frappe/database/query.py:1401
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
 msgstr "Nevažeći smjer u Sortiraj Po: {0}. Mora biti 'ASC' ili 'DESC'."
 
-#: frappe/model/document.py:1065 frappe/model/document.py:1079
+#: frappe/model/document.py:1074 frappe/model/document.py:1088
 msgid "Invalid docstatus"
 msgstr "Nevažeći status dokumenta"
 
@@ -13996,11 +14041,11 @@ msgstr "Nevažeći izraz u vrijednosti ažuriranja tijeka rada: {0}"
 msgid "Invalid expression set in filter {0} ({1})"
 msgstr "Nevažeći izraz postavljen u filteru {0} ({1})"
 
-#: frappe/database/query.py:2174
+#: frappe/database/query.py:2196
 msgid "Invalid field format for SELECT: {0}. Field names must be simple, backticked, table-qualified, aliased, or '*'."
 msgstr "Nevažeći format polja za SELECT: {0}. Nazivi polja moraju biti jednostavni, s obrnutim ukrštenim slovima, kvalificirani prema tablici, aliasi ili '*'."
 
-#: frappe/database/query.py:1335
+#: frappe/database/query.py:1342
 msgid "Invalid field format in {0}: {1}. Use 'field', 'link_field.field', or 'child_table.field'."
 msgstr "Nevažeći format polja u {0}: {1}. Koristi 'field', 'link_field.field' ili 'child_table.field'."
 
@@ -14008,7 +14053,7 @@ msgstr "Nevažeći format polja u {0}: {1}. Koristi 'field', 'link_field.field' 
 msgid "Invalid field name {0}"
 msgstr "Nevažeći naziv polja {0}"
 
-#: frappe/database/query.py:1190
+#: frappe/database/query.py:1197
 msgid "Invalid field type: {0}"
 msgstr "Nevažeći tip polja: {0}"
 
@@ -14020,11 +14065,11 @@ msgstr "Nevažeći naziv polja '{0}' u automatskom nazivu"
 msgid "Invalid file path: {0}"
 msgstr "Nevažeći put datoteke: {0}"
 
-#: frappe/database/query.py:748
+#: frappe/database/query.py:755
 msgid "Invalid filter condition: {0}. Expected a list or tuple."
 msgstr "Nevažeći uslov filtera: {0}. Očekivana je lista ili torka."
 
-#: frappe/database/query.py:854
+#: frappe/database/query.py:861
 msgid "Invalid filter field format: {0}. Use 'fieldname' or 'link_fieldname.target_fieldname'."
 msgstr "Nevažeći format polja filtera: {0}. Koristi 'fieldname' ili 'link_fieldname.target_fieldname'."
 
@@ -14032,7 +14077,7 @@ msgstr "Nevažeći format polja filtera: {0}. Koristi 'fieldname' ili 'link_fiel
 msgid "Invalid filter: {0}"
 msgstr "Nevažeći filter: {0}"
 
-#: frappe/database/query.py:2291
+#: frappe/database/query.py:2313
 msgid "Invalid function argument type: {0}. Only strings, numbers, lists, and None are allowed."
 msgstr "Nevažeći tip argumenta funkcije: {0}. Dozvoljeni su samo nizovi, brojevi, liste i None."
 
@@ -14061,7 +14106,7 @@ msgstr "Nevažeća serija imenovanja {}: nedostaje tačka (.)"
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
 msgstr "Nevažeći niz imenovanja {}: nedostaje točka (.) prije numeričkih rezerviranih mjesta. Molimo koristite format poput <b>ABCD.#####</b>."
 
-#: frappe/database/query.py:2363
+#: frappe/database/query.py:2385
 msgid "Invalid nested expression: dictionary must represent a function or operator"
 msgstr "Nevažeći ugniježđeni izraz: dictionary mora predstavljati funkciju ili operator"
 
@@ -14085,11 +14130,11 @@ msgstr "Nevažeće tijelo zahtjeva"
 msgid "Invalid role"
 msgstr "Nevažeća uloga"
 
-#: frappe/database/query.py:805
+#: frappe/database/query.py:812
 msgid "Invalid simple filter format: {0}"
 msgstr "Nevažeći format jednostavnog filtra: {0}"
 
-#: frappe/database/query.py:725
+#: frappe/database/query.py:732
 msgid "Invalid start for filter condition: {0}. Expected a list or tuple."
 msgstr "Nevažeći početak za uslov filtera: {0}. Očekivana je lista ili torka."
 
@@ -14115,7 +14160,7 @@ msgctxt "Error message in web form"
 msgid "Invalid values for fields:"
 msgstr "Nevažeće vrijednosti za polja:"
 
-#: frappe/printing/page/print/print.js:675
+#: frappe/printing/page/print/print.js:665
 msgid "Invalid wkhtmltopdf version"
 msgstr "Nevažeća verzija wkhtmltopdf"
 
@@ -14123,7 +14168,7 @@ msgstr "Nevažeća verzija wkhtmltopdf"
 msgid "Invalid {0} condition"
 msgstr "Nevažeći {0} uslov"
 
-#: frappe/database/query.py:2252
+#: frappe/database/query.py:2274
 msgid "Invalid {0} dictionary format"
 msgstr "Nevažeći dictionary format {0}"
 
@@ -14441,6 +14486,10 @@ msgstr "Je Standard"
 msgid "It is risky to delete this file: {0}. Please contact your System Manager."
 msgstr "Rizično je brisati ovu datoteku: {0}. Kontaktiraj Upravitelja Sistema."
 
+#: frappe/core/doctype/communication/email.py:359
+msgid "It is too late to undo this email. It is already being sent."
+msgstr "Prekasno je za poništavanje ove e-pošte. Već se šalje."
+
 #. Label of the item_label (Data) field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
 msgid "Item Label"
@@ -14475,11 +14524,13 @@ msgstr "JS Poruka"
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #. Option for the 'Request Structure' (Select) field in DocType 'Webhook'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/core/doctype/report/report.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/integrations/doctype/webhook/webhook.json
+#: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "JSON"
 msgstr "JSON"
 
@@ -15096,7 +15147,7 @@ msgstr "Prošli Tjedan"
 msgid "Last Year"
 msgstr "Prošle Godine"
 
-#: frappe/public/js/frappe/widgets/chart_widget.js:760
+#: frappe/public/js/frappe/widgets/chart_widget.js:778
 msgid "Last synced {0}"
 msgstr "Zadnja Sinhronizacija {0}"
 
@@ -15105,11 +15156,11 @@ msgstr "Zadnja Sinhronizacija {0}"
 msgid "Layout"
 msgstr "Izgled"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:194
+#: frappe/custom/doctype/customize_form/customize_form.js:205
 msgid "Layout Reset"
 msgstr "Poništi Izgled"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:186
+#: frappe/custom/doctype/customize_form/customize_form.js:197
 msgid "Layout will be reset to standard layout, are you sure you want to do this?"
 msgstr "Izgled će biti vraćen na standardni izgled, jeste li sigurni da želite to učiniti?"
 
@@ -15189,7 +15240,7 @@ msgstr "Dužina proslijeđenog niza podataka veća je od vrijednosti maksimalno 
 msgid "Length of {0} should be between 1 and 1000"
 msgstr "Dužina {0} bi trebala biti između 1 i 1000"
 
-#: frappe/public/js/frappe/widgets/chart_widget.js:736
+#: frappe/public/js/frappe/widgets/chart_widget.js:754
 msgid "Less"
 msgstr "Manje"
 
@@ -15214,7 +15265,7 @@ msgstr "Hajde da Počnemo"
 msgid "Let's avoid repeated words and characters"
 msgstr "Hajde da izbjegnemo ponavljane riječi i znakova"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:468
+#: frappe/desk/page/setup_wizard/setup_wizard.js:482
 msgid "Let's set up your account"
 msgstr "Hajde da postavimo vaš račun"
 
@@ -15354,7 +15405,7 @@ msgstr "Lajkova"
 msgid "Limit"
 msgstr "Ograniči"
 
-#: frappe/database/query.py:299
+#: frappe/database/query.py:300
 msgid "Limit must be a non-negative integer"
 msgstr "Granica mora biti cijeli broj koji nije negativan"
 
@@ -15592,7 +15643,7 @@ msgstr "Filter Liste"
 msgid "List Settings"
 msgstr "Postavke Liste"
 
-#: frappe/public/js/frappe/list/list_view.js:2104
+#: frappe/public/js/frappe/list/list_view.js:2098
 msgctxt "Button in list view menu"
 msgid "List Settings"
 msgstr "Postavke Liste"
@@ -15648,7 +15699,7 @@ msgstr "Balansiranje Opterećenja"
 msgid "Load More"
 msgstr "Učitaj Još"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:215
+#: frappe/public/js/frappe/form/footer/form_timeline.js:220
 msgctxt "Form timeline"
 msgid "Load More Communications"
 msgstr "Učitaj još Konverzacije"
@@ -15661,7 +15712,7 @@ msgstr "Učitaj više"
 #: frappe/public/js/frappe/form/controls/multicheck.js:13
 #: frappe/public/js/frappe/form/linked_with.js:13
 #: frappe/public/js/frappe/list/base_list.js:509
-#: frappe/public/js/frappe/list/list_view.js:391
+#: frappe/public/js/frappe/list/list_view.js:385
 #: frappe/public/js/frappe/ui/listing.html:16
 #: frappe/public/js/frappe/views/reports/query_report.js:1141
 msgid "Loading"
@@ -15749,7 +15800,7 @@ msgstr "Prijavite se da pristupite ovoj stranici."
 msgid "Log out"
 msgstr "Odjava"
 
-#: frappe/handler.py:120
+#: frappe/handler.py:121
 msgid "Logged Out"
 msgstr "Odjavljen"
 
@@ -15936,9 +15987,11 @@ msgstr "Zapisi za Brisanje"
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
+#: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Long Text"
 msgstr "Dugi Tekst"
 
@@ -16052,7 +16105,7 @@ msgstr "Muško"
 msgid "Manage 3rd party apps"
 msgstr "Upravljaj aplikacijama trećih strana"
 
-#: frappe/public/js/billing.bundle.js:81
+#: frappe/public/js/billing.bundle.js:77
 msgid "Manage Billing"
 msgstr "Upravljaj Fakturisanjem"
 
@@ -16195,10 +16248,12 @@ msgstr "Markdown"
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
+#: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Markdown Editor"
 msgstr "Markdown Uređivač"
@@ -16446,7 +16501,7 @@ msgstr "Poruka Poslata"
 msgid "Message Type"
 msgstr "Tip Poruke"
 
-#: frappe/public/js/frappe/views/communication.js:1038
+#: frappe/public/js/frappe/views/communication.js:1088
 msgid "Message clipped"
 msgstr "Poruka je isječena"
 
@@ -16787,7 +16842,7 @@ msgstr "Naziv Profila Modula"
 msgid "Module onboarding progress reset"
 msgstr "Poništavanje introdukcijskog progresa modula"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:250
+#: frappe/custom/doctype/customize_form/customize_form.js:261
 msgid "Module to Export"
 msgstr "Modul za Izvoz"
 
@@ -16869,7 +16924,7 @@ msgstr "Cijeli Mjesec"
 #: frappe/public/js/frappe/form/multi_select_dialog.js:72
 #: frappe/public/js/frappe/ui/toolbar/search.js:285
 #: frappe/public/js/frappe/ui/toolbar/search.js:300
-#: frappe/public/js/frappe/widgets/chart_widget.js:736
+#: frappe/public/js/frappe/widgets/chart_widget.js:754
 #: frappe/templates/includes/list/list.html:27
 #: frappe/templates/includes/search_template.html:13
 msgid "More"
@@ -17089,7 +17144,7 @@ msgstr "Naziv"
 msgid "Name (Doc Name)"
 msgstr "Naziv (Naziv dokumenta)"
 
-#: frappe/desk/utils.py:24
+#: frappe/desk/utils.py:28
 msgid "Name already taken, please set a new name"
 msgstr "Naziv je već zauzet, postavite novi naziv"
 
@@ -17183,12 +17238,12 @@ msgstr "Šablon Navigacijske Trake"
 msgid "Navbar Template Values"
 msgstr "Vrijednosti Šablona Navigacijske Trake"
 
-#: frappe/public/js/frappe/list/list_view.js:1425
+#: frappe/public/js/frappe/list/list_view.js:1419
 msgctxt "Description of a list view shortcut"
 msgid "Navigate list down"
 msgstr "Kreći se po listi prema dolje"
 
-#: frappe/public/js/frappe/list/list_view.js:1432
+#: frappe/public/js/frappe/list/list_view.js:1426
 msgctxt "Description of a list view shortcut"
 msgid "Navigate list up"
 msgstr "Kreći se po listi prema gore"
@@ -17203,7 +17258,7 @@ msgstr "Idi na glavni sadržaj"
 msgid "Navigation Settings"
 msgstr "Postavke Navigacije"
 
-#: frappe/public/js/frappe/list/list_view.js:513
+#: frappe/public/js/frappe/list/list_view.js:507
 msgid "Need Help?"
 msgstr "Trebate pomoć?"
 
@@ -17215,7 +17270,7 @@ msgstr "Potrebna je uloga Upravitelja Radnog Prostora za uređivanje privatnog r
 msgid "Negative Value"
 msgstr "Negativna Vrijednost"
 
-#: frappe/database/query.py:717
+#: frappe/database/query.py:724
 msgid "Nested filters must be provided as a list or tuple."
 msgstr "Ugniježđeni filtri moraju biti navedeni kao popis ili torka."
 
@@ -17270,8 +17325,8 @@ msgstr "Novi Kontakt"
 msgid "New Custom Block"
 msgstr "Novi Prilagođeni Blok"
 
-#: frappe/printing/page/print/print.js:329
-#: frappe/printing/page/print/print.js:376
+#: frappe/printing/page/print/print.js:319
+#: frappe/printing/page/print/print.js:366
 msgid "New Custom Print Format"
 msgstr "Novi Prilagođeni Format Ispisa"
 
@@ -17284,7 +17339,7 @@ msgstr "Nova Forma Dokumenta"
 msgid "New Document Shared {0}"
 msgstr "Novi Dokument Dijeljen {0}"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:27
+#: frappe/public/js/frappe/form/footer/form_timeline.js:28
 #: frappe/public/js/frappe/views/communication.js:25
 msgid "New Email"
 msgstr "Nova e-pošta"
@@ -17294,7 +17349,7 @@ msgstr "Nova e-pošta"
 msgid "New Email Account"
 msgstr "Novi Račun e-pošte"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:47
+#: frappe/public/js/frappe/form/footer/form_timeline.js:48
 msgid "New Event"
 msgstr "Novi Događaj"
 
@@ -17341,8 +17396,8 @@ msgstr "Nova Introdukcija"
 msgid "New Password"
 msgstr "Nova Lozinka"
 
-#: frappe/printing/page/print/print.js:301
-#: frappe/printing/page/print/print.js:355
+#: frappe/printing/page/print/print.js:291
+#: frappe/printing/page/print/print.js:345
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:61
 msgid "New Print Format Name"
 msgstr "Novo Ime Formata Ispisa"
@@ -17351,7 +17406,7 @@ msgstr "Novo Ime Formata Ispisa"
 msgid "New Quick List"
 msgstr "Nova Brza Lista"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1440
+#: frappe/public/js/frappe/views/reports/report_view.js:1437
 msgid "New Report name"
 msgstr "Novi Naziv Izvještaja"
 
@@ -17406,6 +17461,10 @@ msgstr "Popis nizova koji predstavljaju načine kontaktiranja osoba odgovornih z
 #: frappe/www/update-password.html:92
 msgid "New password cannot be same as old password"
 msgstr "Nova lozinka ne može biti ista kao stara lozinka"
+
+#: frappe/core/doctype/user/user.py:934
+msgid "New password cannot be the same as your current password. Please choose a different password."
+msgstr "Nova lozinka ne može biti ista kao vaša trenutna lozinka. Molimo odaberite drugu lozinku."
 
 #: frappe/utils/change_log.py:389
 msgid "New updates are available"
@@ -17597,7 +17656,7 @@ msgstr "Dalje na klik"
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 #: frappe/integrations/doctype/webhook/webhook.py:132
 #: frappe/printing/doctype/print_format/print_format.json
-#: frappe/public/js/form_builder/utils.js:341
+#: frappe/public/js/form_builder/utils.js:338
 #: frappe/public/js/frappe/form/controls/link.js:579
 #: frappe/public/js/frappe/list/base_list.js:950
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:170
@@ -17663,7 +17722,7 @@ msgstr "Nema e-pošte"
 msgid "No Entry for the User {0} found within LDAP!"
 msgstr "Nema Unosa pronađenog za korisnika {0} unutar LDAP-a!"
 
-#: frappe/public/js/frappe/widgets/chart_widget.js:407
+#: frappe/public/js/frappe/widgets/chart_widget.js:412
 msgid "No Filters Set"
 msgstr "Nema Postavljenih Filtera"
 
@@ -17694,8 +17753,8 @@ msgstr "Nije pronađen LDAP Korisnik za e-poštu: {0}"
 msgid "No Label"
 msgstr "Nema Oznake"
 
-#: frappe/printing/page/print/print.js:779
-#: frappe/printing/page/print/print.js:860
+#: frappe/printing/page/print/print.js:769
+#: frappe/printing/page/print/print.js:850
 #: frappe/public/js/frappe/list/bulk_operations.js:98
 #: frappe/public/js/frappe/list/bulk_operations.js:170
 #: frappe/utils/weasyprint.py:52
@@ -17730,11 +17789,11 @@ msgstr "Nema Dozvoljenih Grafikona na ovoj Nadzornoj Tabli"
 msgid "No Preview"
 msgstr "Nema Pregleda"
 
-#: frappe/printing/page/print/print.js:783
+#: frappe/printing/page/print/print.js:773
 msgid "No Preview Available"
 msgstr "Pregled nije Dostupan"
 
-#: frappe/printing/page/print/print.js:938
+#: frappe/printing/page/print/print.js:928
 msgid "No Printer is Available."
 msgstr "Nijedan Pisač nije Dostupan."
 
@@ -17951,7 +18010,7 @@ msgstr "Nijedan zapis neće biti izvezen"
 msgid "No rows"
 msgstr "Nema redova"
 
-#: frappe/public/js/frappe/list/list_view.js:2433
+#: frappe/public/js/frappe/list/list_view.js:2427
 msgid "No rows selected"
 msgstr "Nije odabran nijedan red"
 
@@ -17980,7 +18039,7 @@ msgstr "Bez {0}"
 msgid "No {0} found"
 msgstr "Nije pronađeno {0}"
 
-#: frappe/public/js/frappe/list/list_view.js:527
+#: frappe/public/js/frappe/list/list_view.js:521
 msgid "No {0} found with matching filters. Clear filters to see all {0}."
 msgstr "Nije pronađeno {0} sa odgovarajućim filterima. Obrišite filtere da vidite sve {0}."
 
@@ -18032,7 +18091,7 @@ msgstr "Normalizovane Kopije"
 msgid "Normalized Query"
 msgstr "Normalizovani Upit"
 
-#: frappe/core/doctype/user/user.py:1069
+#: frappe/core/doctype/user/user.py:1077
 #: frappe/templates/includes/login/login.js:253 frappe/utils/oauth.py:300
 msgid "Not Allowed"
 msgstr "Nije Dozvoljeno"
@@ -18198,7 +18257,7 @@ msgstr "Nije dozvoljeno"
 msgid "Not permitted to view {0}"
 msgstr "Nije dozvoljen pregled {0}"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:627
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:636
 msgid "Not permitted. {0}."
 msgstr "Nije dopušteno. {0}."
 
@@ -18274,7 +18333,7 @@ msgstr "Ništa za ažuriranje"
 #: frappe/core/doctype/communication/mixins.py:142
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 #: frappe/email/doctype/notification/notification.json
-#: frappe/public/js/frappe/ui/sidebar/sidebar.js:471
+#: frappe/public/js/frappe/ui/sidebar/sidebar.js:481
 #: frappe/workspace_sidebar/system.json
 msgid "Notification"
 msgstr "Obavještenje"
@@ -18611,7 +18670,7 @@ msgstr "Pomak X"
 msgid "Offset Y"
 msgstr "Pomak Y"
 
-#: frappe/database/query.py:304
+#: frappe/database/query.py:305
 msgid "Offset must be a non-negative integer"
 msgstr "Pomak mora biti cijeli broj koji nije negativan"
 
@@ -18686,7 +18745,7 @@ msgstr "Na ili Poslije"
 msgid "On or Before"
 msgstr "Na ili Prije"
 
-#: frappe/public/js/frappe/views/communication.js:1048
+#: frappe/public/js/frappe/views/communication.js:1098
 msgid "On {0}, {1} wrote:"
 msgstr "{0}, {1} je napisao:"
 
@@ -18802,7 +18861,7 @@ msgstr "Dopusti samo Odgovorni Sustava prijenos javnih datoteka"
 msgid "Only allowed to export customizations in developer mode"
 msgstr "Dozvoljeno je izvoziti prilagođavanja samo u načinu rada za programere"
 
-#: frappe/model/document.py:1418
+#: frappe/model/document.py:1427
 msgid "Only draft documents can be discarded"
 msgstr "Mogu se odbaciti samo nacrti dokumenata"
 
@@ -18935,7 +18994,7 @@ msgstr "Otvori u novoj kartici"
 msgid "Open in new tab"
 msgstr "Otvori u novoj kartici"
 
-#: frappe/public/js/frappe/list/list_view.js:1478
+#: frappe/public/js/frappe/list/list_view.js:1472
 msgctxt "Description of a list view shortcut"
 msgid "Open list item"
 msgstr "Otvorite stavku liste"
@@ -18991,7 +19050,7 @@ msgstr "Operacija"
 msgid "Operator must be one of {0}"
 msgstr "Operator mora biti jedan od {0}"
 
-#: frappe/database/query.py:2319
+#: frappe/database/query.py:2341
 msgid "Operator {0} requires exactly 2 arguments (left and right operands)"
 msgstr "Operator {0} zahtijeva točno 2 argumenta (lijevi i desni operand)"
 
@@ -19092,7 +19151,7 @@ msgstr "Narandžasta"
 msgid "Order"
 msgstr "Red"
 
-#: frappe/database/query.py:1366
+#: frappe/database/query.py:1373
 msgid "Order By must be a string"
 msgstr "Sortiraj Po mora biti niz"
 
@@ -19237,11 +19296,11 @@ msgstr "PDF Generisanje nije uspjelo"
 msgid "PDF generation failed because of broken image links"
 msgstr "PDF Generisanje nije uspjelo zbog neispravnih veza slika"
 
-#: frappe/printing/page/print/print.js:677
+#: frappe/printing/page/print/print.js:667
 msgid "PDF generation may not work as expected."
 msgstr "PDF Generisanje možda neće raditi kako se očekuje."
 
-#: frappe/printing/page/print/print.js:595
+#: frappe/printing/page/print/print.js:585
 msgid "PDF printing via \"Raw Print\" is not supported."
 msgstr "PDF ispis putem \"Direktnog Ispisa\" nije podržano."
 
@@ -19562,14 +19621,14 @@ msgstr "Pasivno"
 #: frappe/core/doctype/user/user.js:241
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
-#: frappe/desk/page/setup_wizard/setup_wizard.js:487
+#: frappe/desk/page/setup_wizard/setup_wizard.js:501
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/www/login.html:22
 msgid "Password"
 msgstr "Lozinka"
 
-#: frappe/core/doctype/user/user.py:1134
+#: frappe/core/doctype/user/user.py:1142
 msgid "Password Email Sent"
 msgstr "E-pošta s lozinkom poslana"
 
@@ -19582,7 +19641,7 @@ msgstr "Poništavanje Lozinke"
 msgid "Password Reset Link Generation Limit"
 msgstr "Maksimalan Broj Veza za Poništavanje Lozinke po satu"
 
-#: frappe/public/js/frappe/form/grid_row.js:890
+#: frappe/public/js/frappe/form/grid_row.js:887
 msgid "Password cannot be filtered"
 msgstr "Lozinka se ne može filtrirati"
 
@@ -19611,11 +19670,11 @@ msgstr "Nedostaje Lozinka za Račun e-pošte"
 msgid "Password not found for {0} {1} {2}"
 msgstr "Lozinka nije pronađena za {0} {1} {2}"
 
-#: frappe/core/doctype/user/user.py:1300
+#: frappe/core/doctype/user/user.py:1308
 msgid "Password requirements not met"
 msgstr "Zahtjevi za lozinku nisu ispunjeni"
 
-#: frappe/core/doctype/user/user.py:1133
+#: frappe/core/doctype/user/user.py:1141
 msgid "Password reset instructions have been sent to {}'s email"
 msgstr "Uputstva za poništavanje lozinke su poslana na e-poštu korisnika {}"
 
@@ -19747,9 +19806,11 @@ msgstr "Čeka se Verifikacija"
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
+#: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Percent"
 msgstr "Procenat"
 
@@ -19796,7 +19857,7 @@ msgstr "Trajno izbriši {0}?"
 msgid "Permission"
 msgstr "Dopuštenje"
 
-#: frappe/core/doctype/user_type/user_type.py:84 frappe/database/query.py:1003
+#: frappe/core/doctype/user_type/user_type.py:84 frappe/database/query.py:1010
 msgid "Permission Error"
 msgstr "Greška Dozvole"
 
@@ -19967,8 +20028,8 @@ msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "Telefonski Broj {0} postavljen u polje {1} nije važeći."
 
 #: frappe/public/js/frappe/form/print_utils.js:69
+#: frappe/public/js/frappe/views/reports/report_view.js:1628
 #: frappe/public/js/frappe/views/reports/report_view.js:1631
-#: frappe/public/js/frappe/views/reports/report_view.js:1634
 msgid "Pick Columns"
 msgstr "Odaberi Kolone"
 
@@ -20046,7 +20107,7 @@ msgstr "Dodaj relevantan komentar."
 msgid "Please adjust filters to include some data"
 msgstr "Molimo prilagodite filtere kako biste uključili neke podatke"
 
-#: frappe/core/doctype/user/user.py:1116
+#: frappe/core/doctype/user/user.py:1124
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "Zamoli administratora da potvrdi vašu registraciju"
 
@@ -20074,7 +20135,7 @@ msgstr "Provjeri vrijednosti filtera postavljene za Grafikon Nadzorne Table: {}"
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "Provjeri vrijednost \"Preuzmi iz\" postavljenu za polje {0}"
 
-#: frappe/core/doctype/user/user.py:1114
+#: frappe/core/doctype/user/user.py:1122
 msgid "Please check your email for verification"
 msgstr "Provjeri e-poštu za potvrdu"
 
@@ -20110,7 +20171,7 @@ msgstr "Konfiguriraj početno polje za ovaj Doctype u datoteci kontrolera."
 msgid "Please confirm your action to {0} this document."
 msgstr "Potvrdi akciju {0} ovog dokumenta."
 
-#: frappe/printing/page/print/print.js:679
+#: frappe/printing/page/print/print.js:669
 msgid "Please contact your system manager to install correct version."
 msgstr "Kontaktiraj Upravitelja Sistema da instalira ispravnu verziju."
 
@@ -20140,8 +20201,8 @@ msgstr "Omogući barem jedan ključ za prijavu na društvenim mrežama ili LDAP 
 
 #: frappe/desk/doctype/notification_log/notification_log.js:45
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:17
-#: frappe/printing/page/print/print.js:699
-#: frappe/printing/page/print/print.js:744
+#: frappe/printing/page/print/print.js:689
+#: frappe/printing/page/print/print.js:734
 #: frappe/public/js/frappe/list/bulk_operations.js:161
 #: frappe/public/js/frappe/utils/utils.js:1736
 msgid "Please enable pop-ups"
@@ -20238,7 +20299,7 @@ msgstr "Provjeri da su Referentni Dokumenti Konverzacije kružno povezani."
 msgid "Please refresh to get the latest document."
 msgstr "Osvježi da dobijete najnoviji dokument."
 
-#: frappe/printing/page/print/print.js:596
+#: frappe/printing/page/print/print.js:586
 msgid "Please remove the printer mapping in Printer Settings and try again."
 msgstr "Ukloni mapiranje pisača u Postavkama Pisača i pokušaj ponovo."
 
@@ -20258,7 +20319,7 @@ msgstr "Spremi dokument prije uklanjanja dodjele"
 msgid "Please save the form before previewing the message"
 msgstr "Sačuvaj obrazac prije pregleda poruke"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1783
+#: frappe/public/js/frappe/views/reports/report_view.js:1780
 msgid "Please save the report first"
 msgstr "Prvo spremi izvještaj"
 
@@ -20344,7 +20405,7 @@ msgstr "Odaberi {0}"
 msgid "Please set Email Address"
 msgstr "Postavi adresu e-pošte"
 
-#: frappe/printing/page/print/print.js:610
+#: frappe/printing/page/print/print.js:600
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr "Podesite mapiranje pisača za ovaj format ispisivanja u postavkama pisača"
 
@@ -20433,7 +20494,7 @@ msgstr "Koristi važeći LDAP filter za pretraživanje"
 msgid "Please use following links to download file backup."
 msgstr "Za preuzimanje sigurnosne kopije datoteka koristite sljedeće poveznice."
 
-#: frappe/utils/password.py:217
+#: frappe/utils/password.py:235
 msgid "Please visit https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key for more information."
 msgstr "Za više informacija posjeti https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key."
 
@@ -20678,7 +20739,7 @@ msgstr "Prethodna"
 msgid "Previous Document"
 msgstr "Prethodni dokument"
 
-#: frappe/public/js/frappe/form/form.js:2289
+#: frappe/public/js/frappe/form/form.js:2293
 msgid "Previous Submission"
 msgstr "Prethodno Podnošenje"
 
@@ -20738,12 +20799,12 @@ msgstr "Primarni ključ tipa dokumenta {0} ne može se promijeniti jer postoje p
 #: frappe/public/js/frappe/form/templates/print_layout.html:46
 #: frappe/public/js/frappe/list/bulk_operations.js:95
 #: frappe/public/js/frappe/views/reports/query_report.js:1929
-#: frappe/public/js/frappe/views/reports/report_view.js:1593
+#: frappe/public/js/frappe/views/reports/report_view.js:1590
 #: frappe/public/js/frappe/views/treeview.js:501 frappe/www/printview.html:18
 msgid "Print"
 msgstr "Ispiši"
 
-#: frappe/public/js/frappe/list/list_view.js:2280
+#: frappe/public/js/frappe/list/list_view.js:2274
 msgctxt "Button in list view actions menu"
 msgid "Print"
 msgstr "Ispiši"
@@ -20763,7 +20824,7 @@ msgstr "Ispiši Dokumente"
 #: frappe/email/doctype/notification/notification.json
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/printing/page/print/print.js:116
-#: frappe/printing/page/print/print.js:897
+#: frappe/printing/page/print/print.js:887
 #: frappe/public/js/frappe/form/print_utils.js:32
 #: frappe/public/js/frappe/list/bulk_operations.js:59
 #: frappe/website/doctype/web_form/web_form.json
@@ -20914,11 +20975,11 @@ msgstr "Ispiši Dokument"
 msgid "Print with letterhead"
 msgstr "Ispiši sa Zaglavljem"
 
-#: frappe/printing/page/print/print.js:906
+#: frappe/printing/page/print/print.js:896
 msgid "Printer"
 msgstr "Pisač"
 
-#: frappe/printing/page/print/print.js:883
+#: frappe/printing/page/print/print.js:873
 msgid "Printer Mapping"
 msgstr "Mapiranje Pisača"
 
@@ -20928,11 +20989,11 @@ msgstr "Mapiranje Pisača"
 msgid "Printer Name"
 msgstr "Naziv Pisača"
 
-#: frappe/printing/page/print/print.js:875
+#: frappe/printing/page/print/print.js:865
 msgid "Printer Settings"
 msgstr "Postavke Pisača"
 
-#: frappe/printing/page/print/print.js:609
+#: frappe/printing/page/print/print.js:599
 msgid "Printer mapping not set."
 msgstr "Mapiranje pisača nije postavljeno."
 
@@ -21121,7 +21182,7 @@ msgstr "Sigurnosna Kopija Javnih Datoteka:"
 
 #. Label of the publish (Check) field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
-#: frappe/public/js/frappe/form/footer/form_timeline.js:633
+#: frappe/public/js/frappe/form/footer/form_timeline.js:638
 #: frappe/website/doctype/web_form/web_form.js:86
 msgid "Publish"
 msgstr "Objavi"
@@ -21475,7 +21536,7 @@ msgstr "Direktne Naredbe"
 msgid "Raw Email"
 msgstr "Neobrađena e-pošta"
 
-#: frappe/core/doctype/communication/email.py:96
+#: frappe/core/doctype/communication/email.py:99
 msgid "Raw HTML can be used only with Email Templates having 'Use HTML' checked. Proceeding with plain text email."
 msgstr "HTML može se koristiti samo s predlošcima e-pošte za koje je označena opcija 'Koristi HTML'. Nastavlja se s e-poštom u običnom tekstu."
 
@@ -21509,7 +21570,7 @@ msgid "Re:"
 msgstr "Od:"
 
 #: frappe/core/doctype/communication/communication.js:268
-#: frappe/public/js/frappe/form/footer/form_timeline.js:601
+#: frappe/public/js/frappe/form/footer/form_timeline.js:606
 #: frappe/public/js/frappe/views/communication.js:422
 msgid "Re: {0}"
 msgstr "Od: {0}"
@@ -21539,6 +21600,7 @@ msgstr "Čitaj"
 #. Label of the read_only (Check) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #. Label of the read_only (Check) field in DocType 'Customize Form Field'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #. Label of the read_only (Check) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/custom_field/custom_field.json
@@ -21990,13 +22052,13 @@ msgid "Referrer"
 msgstr "Preporučitelj"
 
 #: frappe/printing/page/print/print.js:93 frappe/public/js/frappe/desk.js:168
-#: frappe/public/js/frappe/desk.js:552
+#: frappe/public/js/frappe/desk.js:554
 #: frappe/public/js/frappe/form/form.js:1251
 #: frappe/public/js/frappe/form/templates/print_layout.html:6
 #: frappe/public/js/frappe/list/base_list.js:67
 #: frappe/public/js/frappe/views/reports/query_report.js:1918
 #: frappe/public/js/frappe/views/treeview.js:507
-#: frappe/public/js/frappe/widgets/chart_widget.js:291
+#: frappe/public/js/frappe/widgets/chart_widget.js:296
 #: frappe/public/js/frappe/widgets/number_card_widget.js:352
 #: frappe/public/js/print_format_builder/Preview.vue:24
 msgid "Refresh"
@@ -22011,7 +22073,7 @@ msgstr "Osvježi Sve"
 msgid "Refresh Google Sheet"
 msgstr "Osvježite Google Sheet"
 
-#: frappe/printing/page/print/print.js:392
+#: frappe/printing/page/print/print.js:382
 msgid "Refresh Print Preview"
 msgstr "Osvježi Pregled Ispisa"
 
@@ -22026,18 +22088,18 @@ msgstr "Osvježi Pregled Ispisa"
 msgid "Refresh Token"
 msgstr "Osvježi Token"
 
-#: frappe/public/js/frappe/list/list_view.js:564
+#: frappe/public/js/frappe/list/list_view.js:558
 msgctxt "Document count in list view"
 msgid "Refreshing"
 msgstr "Osvježava se"
 
 #: frappe/core/doctype/system_settings/system_settings.js:57
 #: frappe/core/doctype/user/user.js:373
-#: frappe/desk/page/setup_wizard/setup_wizard.js:211
+#: frappe/desk/page/setup_wizard/setup_wizard.js:218
 msgid "Refreshing..."
 msgstr "Osvježavanje u toku..."
 
-#: frappe/core/doctype/user/user.py:1076
+#: frappe/core/doctype/user/user.py:1084
 msgid "Registered but disabled"
 msgstr "Registrovan, ali onemogućen"
 
@@ -22083,7 +22145,7 @@ msgstr "Ponovo poveži Konverzaciju"
 msgid "Relinked"
 msgstr "Ponovno povezano"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:120
+#: frappe/custom/doctype/customize_form/customize_form.js:127
 #: frappe/public/js/frappe/form/toolbar.js:483
 msgid "Reload"
 msgstr "Ponovo Učitaj"
@@ -22152,7 +22214,7 @@ msgstr "Ukloni Polje"
 msgid "Remove Section"
 msgstr "Ukloni Sekciju"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:138
+#: frappe/custom/doctype/customize_form/customize_form.js:145
 msgid "Remove all customizations?"
 msgstr "Ukloni sve prilagodbe?"
 
@@ -22296,7 +22358,7 @@ msgstr "Odgovoreno"
 
 #. Label of the reply (Text Editor) field in DocType 'Discussion Reply'
 #: frappe/core/doctype/communication/communication.js:57
-#: frappe/public/js/frappe/form/footer/form_timeline.js:563
+#: frappe/public/js/frappe/form/footer/form_timeline.js:568
 #: frappe/website/doctype/discussion_reply/discussion_reply.json
 msgid "Reply"
 msgstr "Odgovor"
@@ -22499,7 +22561,7 @@ msgstr "Izvještaj je istekao."
 msgid "Report updated successfully"
 msgstr "Izvještaj je uspješno ažuriran"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1413
+#: frappe/public/js/frappe/views/reports/report_view.js:1410
 msgid "Report was not saved (there were errors)"
 msgstr "Izvještaj nije spremljen (bilo je grešaka)"
 
@@ -22650,16 +22712,16 @@ msgstr "Od: {0}"
 #: frappe/desk/doctype/form_tour/form_tour.js:101
 #: frappe/desk/doctype/global_search_settings/global_search_settings.js:19
 #: frappe/desk/doctype/module_onboarding/module_onboarding.js:17
-#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:346
+#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:341
 #: frappe/website/doctype/portal_settings/portal_settings.js:19
 msgid "Reset"
 msgstr "Poništi"
 
-#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:267
+#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:264
 msgid "Reset All"
 msgstr "Poništi Sve"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:136
+#: frappe/custom/doctype/customize_form/customize_form.js:143
 msgid "Reset All Customizations"
 msgstr "Resetuj Sva Prilagođavanja"
 
@@ -22668,7 +22730,7 @@ msgstr "Resetuj Sva Prilagođavanja"
 msgid "Reset Changes"
 msgstr "Poništi Promjene"
 
-#: frappe/public/js/frappe/widgets/chart_widget.js:306
+#: frappe/public/js/frappe/widgets/chart_widget.js:311
 msgid "Reset Chart"
 msgstr "Poništi Grafikon"
 
@@ -22684,7 +22746,7 @@ msgstr "Poništi Polja"
 msgid "Reset LDAP Password"
 msgstr "Poništi LDAP Lozinku"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:128
+#: frappe/custom/doctype/customize_form/customize_form.js:135
 msgid "Reset Layout"
 msgstr "Poništi Izgled"
 
@@ -22847,7 +22909,7 @@ msgstr "Ograniči na Domenu"
 msgid "Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)"
 msgstr "Ograniči korisnika samo sa ove IP adrese. Više IP adresa može se dodati odvajanjem zarezima. Također se prihvaćaju djelomične IP adrese poput (111.111.111)"
 
-#: frappe/public/js/frappe/list/list_view.js:205
+#: frappe/public/js/frappe/list/list_view.js:199
 msgctxt "Title of message showing restrictions in list view"
 msgid "Restrictions"
 msgstr "Ograničenja"
@@ -22863,7 +22925,7 @@ msgstr "Nastavi Slanje"
 
 #. Label of the retry (Int) field in DocType 'Email Queue'
 #: frappe/core/doctype/data_import/data_import.js:111
-#: frappe/desk/page/setup_wizard/setup_wizard.js:297
+#: frappe/desk/page/setup_wizard/setup_wizard.js:304
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Retry"
 msgstr "Pokušaj Ponovno"
@@ -23008,7 +23070,7 @@ msgstr "Zapisnik Aktivnosti Dopuštenja Uloga"
 msgid "Role Permissions Manager"
 msgstr "Upravitelj Dozvola Uloge"
 
-#: frappe/public/js/frappe/list/list_view.js:1973
+#: frappe/public/js/frappe/list/list_view.js:1967
 msgctxt "Button in list view menu"
 msgid "Role Permissions Manager"
 msgstr "Upravitelj Dozvola Uloge"
@@ -23364,7 +23426,7 @@ msgstr "SQL Izlaz"
 msgid "SQL Queries"
 msgstr "SQL Upiti"
 
-#: frappe/database/query.py:2164
+#: frappe/database/query.py:2186
 msgid "SQL functions are not allowed as strings in SELECT: {0}. Use dict syntax like {{'COUNT': '*'}} instead."
 msgstr "SQL funkcije nisu dopuštene kao nizovi znakova u SELECT: {0}. Umjesto toga koristite sintaksu dict-a poput {{'COUNT': '*'}}."
 
@@ -23412,7 +23474,7 @@ msgstr "Glavni Upravitelj Prodaje"
 msgid "Sales User"
 msgstr "Korisnik Prodaje"
 
-#: frappe/public/js/frappe/ui/sidebar/sidebar.js:112
+#: frappe/public/js/frappe/ui/sidebar/sidebar.js:122
 msgid "Sales without complexity, lock-in and per-user costs. Try it for free!"
 msgstr "Prodaja bez složenosti, vezanosti i troškova po korisniku. Isprobajte besplatno!"
 
@@ -23460,20 +23522,20 @@ msgstr "Subota"
 #: frappe/core/doctype/data_import/data_import.js:119
 #: frappe/desk/page/desktop/desktop.html:65
 #: frappe/email/doctype/notification/notification.json
-#: frappe/printing/page/print/print.js:934
+#: frappe/printing/page/print/print.js:924
 #: frappe/printing/page/print_format_builder/print_format_builder.js:162
-#: frappe/public/js/frappe/form/footer/form_timeline.js:678
+#: frappe/public/js/frappe/form/footer/form_timeline.js:683
 #: frappe/public/js/frappe/form/quick_entry.js:186
 #: frappe/public/js/frappe/list/list_settings.js:37
 #: frappe/public/js/frappe/list/list_settings.js:250
-#: frappe/public/js/frappe/list/list_view.js:2035
+#: frappe/public/js/frappe/list/list_view.js:2029
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:337
 #: frappe/public/js/frappe/utils/common.js:452
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:45
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:189
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:357
 #: frappe/public/js/frappe/views/reports/query_report.js:2106
-#: frappe/public/js/frappe/views/reports/report_view.js:1800
+#: frappe/public/js/frappe/views/reports/report_view.js:1797
 #: frappe/public/js/frappe/views/workspace/workspace.js:361
 #: frappe/public/js/frappe/widgets/base_widget.js:142
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:120
@@ -23486,8 +23548,8 @@ msgstr "Spremi"
 msgid "Save Anyway"
 msgstr "Svejedno Spremi"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1444
-#: frappe/public/js/frappe/views/reports/report_view.js:1807
+#: frappe/public/js/frappe/views/reports/report_view.js:1441
+#: frappe/public/js/frappe/views/reports/report_view.js:1804
 msgid "Save As"
 msgstr "Spremi Kao"
 
@@ -23535,11 +23597,11 @@ msgctxt "Freeze message while saving a document"
 msgid "Saving"
 msgstr "Sprema se"
 
-#: frappe/public/js/frappe/list/list_view.js:2046
+#: frappe/public/js/frappe/list/list_view.js:2040
 msgid "Saving Changes..."
 msgstr "Spremanje Promjena..."
 
-#: frappe/custom/doctype/customize_form/customize_form.js:421
+#: frappe/custom/doctype/customize_form/customize_form.js:432
 msgid "Saving Customization..."
 msgstr "Spremaju se Prilagođavanja..."
 
@@ -23749,7 +23811,7 @@ msgstr "Skripte"
 #: frappe/public/js/frappe/form/link_selector.js:46
 #: frappe/public/js/frappe/list/list_sidebar_stat.html:4
 #: frappe/public/js/frappe/ui/address_autocomplete/autocomplete_dialog.js:20
-#: frappe/public/js/frappe/ui/sidebar/sidebar.js:459
+#: frappe/public/js/frappe/ui/sidebar/sidebar.js:469
 #: frappe/public/js/frappe/ui/toolbar/search.js:49
 #: frappe/public/js/frappe/ui/toolbar/search.js:68
 #: frappe/templates/discussions/search.html:2
@@ -23871,7 +23933,7 @@ msgstr "Naziv Sekcije"
 msgid "Section must have at least one column"
 msgstr "Sekcija mora imati najmanje jednu kolonu"
 
-#: frappe/core/doctype/user/user.py:1465
+#: frappe/core/doctype/user/user.py:1473
 msgid "Security Alert: Your account is being impersonated"
 msgstr "Sigurnosno upozorenje: Netko personificira vaš račun"
 
@@ -23937,7 +23999,7 @@ msgstr "Viđeno prema Tabeli"
 #: frappe/core/page/permission_manager/permission_manager_help.html:26
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
-#: frappe/printing/page/print/print.js:663
+#: frappe/printing/page/print/print.js:653
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Select"
@@ -23948,7 +24010,7 @@ msgstr "Odaberi"
 #: frappe/public/js/frappe/form/controls/multicheck.js:179
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:6
 #: frappe/public/js/frappe/form/grid_row.js:483
-#: frappe/public/js/frappe/views/reports/report_view.js:1666
+#: frappe/public/js/frappe/views/reports/report_view.js:1663
 msgid "Select All"
 msgstr "Odaberi sve"
 
@@ -23973,11 +24035,11 @@ msgstr "Odaberi Kolonu"
 msgid "Select Columns"
 msgstr "Odaberi Kolone"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:399
+#: frappe/desk/page/setup_wizard/setup_wizard.js:406
 msgid "Select Country"
 msgstr "Odaberi Zemlju"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:412
+#: frappe/desk/page/setup_wizard/setup_wizard.js:419
 msgid "Select Currency"
 msgstr "Odaberi Valutu"
 
@@ -24045,7 +24107,7 @@ msgstr "Odaberite Polja za Umetanje"
 msgid "Select Fields To Update"
 msgstr "Odaberi Polja za Ažuriranje"
 
-#: frappe/public/js/frappe/list/list_view.js:2031
+#: frappe/public/js/frappe/list/list_view.js:2025
 msgid "Select Filters"
 msgstr "Odaberi Filtere"
 
@@ -24065,7 +24127,7 @@ msgstr "Odaberi Grupiraj prema..."
 msgid "Select Kanban"
 msgstr "Odaberi Oglasnu Tablu"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:391
+#: frappe/desk/page/setup_wizard/setup_wizard.js:398
 msgid "Select Language"
 msgstr "Odaberi Jezik"
 
@@ -24078,12 +24140,12 @@ msgstr "Odaberi Prikaz Liste"
 msgid "Select Mandatory"
 msgstr "Odaberi Obavezno"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:290
+#: frappe/custom/doctype/customize_form/customize_form.js:301
 msgid "Select Module"
 msgstr "Odaberi Modul"
 
 #: frappe/printing/page/print/print.js:197
-#: frappe/printing/page/print/print.js:646
+#: frappe/printing/page/print/print.js:636
 msgid "Select Network Printer"
 msgstr "Odaberi Mrežni Pisač"
 
@@ -24110,7 +24172,7 @@ msgstr "Odaberi Izvještaj"
 msgid "Select Table Columns for {0}"
 msgstr "Odaberi Kolone Tabele za {0}"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:405
+#: frappe/desk/page/setup_wizard/setup_wizard.js:412
 msgid "Select Time Zone"
 msgstr "Odaberi Vremensku Zonu"
 
@@ -24175,13 +24237,13 @@ msgstr "Odaberi najmanje jedan zapis za ispis"
 msgid "Select atleast 2 actions"
 msgstr "Odaberi najmanje dvije radnje"
 
-#: frappe/public/js/frappe/list/list_view.js:1492
+#: frappe/public/js/frappe/list/list_view.js:1486
 msgctxt "Description of a list view shortcut"
 msgid "Select list item"
 msgstr "Odaberi Artikal Liste"
 
-#: frappe/public/js/frappe/list/list_view.js:1444
-#: frappe/public/js/frappe/list/list_view.js:1460
+#: frappe/public/js/frappe/list/list_view.js:1438
+#: frappe/public/js/frappe/list/list_view.js:1454
 msgctxt "Description of a list view shortcut"
 msgid "Select multiple list items"
 msgstr "Odaberi artikle više listi"
@@ -24542,7 +24604,7 @@ msgstr "Server Skripte su onemogućene. Omogućite server skripte iz bench konfi
 msgid "Server Scripts feature is not available on this site."
 msgstr "Funkcija server skripti nije dostupna na ovoj stranici."
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:658
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:667
 msgid "Server error during upload. The file might be corrupted."
 msgstr "Pogreška servera tijekom prijenosa. Datoteka je možda oštećena."
 
@@ -24609,7 +24671,7 @@ msgstr "Sesije"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:400
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:487
-#: frappe/public/js/frappe/widgets/chart_widget.js:447
+#: frappe/public/js/frappe/widgets/chart_widget.js:452
 msgid "Set"
 msgstr "Postavi"
 
@@ -24645,7 +24707,7 @@ msgstr "Postavi Dinamičke Filtere"
 msgid "Set Filters"
 msgstr "Postavi Filtere"
 
-#: frappe/public/js/frappe/widgets/chart_widget.js:436
+#: frappe/public/js/frappe/widgets/chart_widget.js:441
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:105
 msgid "Set Filters for {0}"
 msgstr "Postavi filtere za {0}"
@@ -24677,7 +24739,7 @@ msgstr "Postavi broj sigurnosnih kopija"
 msgid "Set Password"
 msgstr "Postavi lozinku"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:112
+#: frappe/custom/doctype/customize_form/customize_form.js:119
 msgid "Set Permissions"
 msgstr "Postavi dozvole"
 
@@ -24834,7 +24896,7 @@ msgstr "Postavlja se ovog Šablona Adrese kao standard jer ne postoji drugi stan
 msgid "Setting up Global Search documents."
 msgstr "Postavljanje dokumenata Globalne pretrage."
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:285
+#: frappe/desk/page/setup_wizard/setup_wizard.js:292
 msgid "Setting up your system"
 msgstr "Postavljanje vašeg sistema"
 
@@ -24890,13 +24952,13 @@ msgid "Setup > User Permissions"
 msgstr "Postavljanje > Korisničke Dozvole"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1971
-#: frappe/public/js/frappe/views/reports/report_view.js:1778
+#: frappe/public/js/frappe/views/reports/report_view.js:1775
 msgid "Setup Auto Email"
 msgstr "Postavljanje Automatske e-pošte"
 
 #. Label of the setup_complete (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
-#: frappe/desk/page/setup_wizard/setup_wizard.js:211
+#: frappe/desk/page/setup_wizard/setup_wizard.js:218
 msgid "Setup Complete"
 msgstr "Postavljanje je Završeno"
 
@@ -24906,7 +24968,7 @@ msgstr "Postavljanje je Završeno"
 msgid "Setup Series for transactions"
 msgstr "Postavljanje Serije Imenovanja za Transakcije"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:236
+#: frappe/desk/page/setup_wizard/setup_wizard.js:243
 msgid "Setup failed"
 msgstr "Postavljanje nije uspjelo"
 
@@ -25185,7 +25247,7 @@ msgstr "Prikaži Naziv"
 msgid "Show Title in Link Fields"
 msgstr "Prikaži Naziv u Poljima Veza"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1583
+#: frappe/public/js/frappe/views/reports/report_view.js:1580
 msgid "Show Totals"
 msgstr "Prikaži Ukupno"
 
@@ -25227,7 +25289,7 @@ msgstr "Prikaži vezu za brisanje računa na stranici Moj Račun"
 msgid "Show all Versions"
 msgstr "Prikaži sve Verzije"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:69
+#: frappe/public/js/frappe/form/footer/form_timeline.js:75
 msgid "Show all activity"
 msgstr "Prikaži sve Aktivnosti"
 
@@ -25390,7 +25452,7 @@ msgstr "Odjava"
 msgid "Sign Up and Confirmation"
 msgstr "Prijava i Potvrda"
 
-#: frappe/core/doctype/user/user.py:1069
+#: frappe/core/doctype/user/user.py:1077
 msgid "Sign Up is disabled"
 msgstr "Prijava je onemogućena"
 
@@ -25473,17 +25535,17 @@ msgstr "Veličina"
 msgid "Size (MB)"
 msgstr "Veličina (MB)"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:634
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:643
 msgid "Size exceeds the maximum allowed file size."
 msgstr "Veličina premašuje maksimalnu dopuštenu veličinu datoteke."
 
-#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:330
+#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:326
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:82
 #: frappe/public/js/onboarding_tours/onboarding_tours.js:18
 msgid "Skip"
 msgstr "Preskoči"
 
-#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:270
+#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:267
 msgid "Skip All"
 msgstr "Preskoči Sve"
 
@@ -25904,8 +25966,8 @@ msgstr "Standard tip korisnika {0} ne može se izbrisati."
 
 #: frappe/core/doctype/recorder/recorder_list.js:87
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:45
-#: frappe/printing/page/print/print.js:330
-#: frappe/printing/page/print/print.js:377
+#: frappe/printing/page/print/print.js:320
+#: frappe/printing/page/print/print.js:367
 msgid "Start"
 msgstr "Počni"
 
@@ -25965,7 +26027,7 @@ msgstr "Započet"
 msgid "Started At"
 msgstr "Počelo u"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:286
+#: frappe/desk/page/setup_wizard/setup_wizard.js:293
 msgid "Starting Frappe ..."
 msgstr "Pokreće se Frappe..."
 
@@ -26077,8 +26139,8 @@ msgstr "Vremenski Interval Statistike"
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 #: frappe/public/js/frappe/list/list_settings.js:362
-#: frappe/public/js/frappe/list/list_view.js:2472
-#: frappe/public/js/frappe/views/reports/report_view.js:1029
+#: frappe/public/js/frappe/list/list_view.js:2466
+#: frappe/public/js/frappe/views/reports/report_view.js:1026
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
@@ -26271,7 +26333,7 @@ msgstr "Red Podnošenja"
 msgid "Submit"
 msgstr "Rezerviši"
 
-#: frappe/public/js/frappe/list/list_view.js:2347
+#: frappe/public/js/frappe/list/list_view.js:2341
 msgctxt "Button in list view actions menu"
 msgid "Submit"
 msgstr "Rezerviši"
@@ -26329,7 +26391,7 @@ msgstr "Pošalji ovaj dokument da dovršite ovaj korak."
 msgid "Submit this document to confirm"
 msgstr "Pošalji ovaj dokument da potvrdite"
 
-#: frappe/public/js/frappe/list/list_view.js:2352
+#: frappe/public/js/frappe/list/list_view.js:2346
 msgctxt "Title of confirmation dialog"
 msgid "Submit {0} documents?"
 msgstr "Pošalji {0} dokumenata?"
@@ -26452,7 +26514,7 @@ msgstr "Uspješno uvezeno {0} od {1} zapisa."
 msgid "Successfully reset onboarding status for all users."
 msgstr "Uspješno poništen status introdukcije za sve korisnike."
 
-#: frappe/core/doctype/user/user.py:1484
+#: frappe/core/doctype/user/user.py:1492
 msgid "Successfully signed out"
 msgstr "Odjavljen/a"
 
@@ -26514,7 +26576,7 @@ msgstr "Sažetak"
 msgid "Sunday"
 msgstr "Nedjelja"
 
-#: frappe/public/js/frappe/ui/sidebar/sidebar.js:132
+#: frappe/public/js/frappe/ui/sidebar/sidebar.js:142
 msgid "Support without complexity, lock-in and per-user costs. Try it for free!"
 msgstr "Podrška bez složenosti, vezanosti i troškova po korisniku. Isprobajte besplatno!"
 
@@ -26535,11 +26597,11 @@ msgstr "Promijeni Temu"
 msgid "Switch To Desk"
 msgstr "Promjeni na Radnu Površinu"
 
-#: frappe/public/js/frappe/ui/sidebar/sidebar.js:111
+#: frappe/public/js/frappe/ui/sidebar/sidebar.js:121
 msgid "Switch to Frappe CRM"
 msgstr "Prebacite se na Podršku Prodaje"
 
-#: frappe/public/js/frappe/ui/sidebar/sidebar.js:131
+#: frappe/public/js/frappe/ui/sidebar/sidebar.js:141
 msgid "Switch to Helpdesk"
 msgstr "Prebacite se na Korisničku Podršku"
 
@@ -26572,7 +26634,7 @@ msgstr "Sinhroniziraj Kontakte"
 msgid "Sync events from Google as public"
 msgstr "Sinhroniziraj događaje s Googlea kao javne"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:256
+#: frappe/custom/doctype/customize_form/customize_form.js:267
 msgid "Sync on Migrate"
 msgstr "Sinhronizacija pri Migraciji"
 
@@ -26607,7 +26669,7 @@ msgstr "Sinhronizacija u toku"
 msgid "Syncing {0} of {1}"
 msgstr "Sinhronizira se {0} od {1}"
 
-#: frappe/utils/data.py:2627
+#: frappe/utils/data.py:2628
 msgid "Syntax Error"
 msgstr "Greška Sintakse"
 
@@ -26927,17 +26989,19 @@ msgstr "HTML Tabele"
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
+#. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
+#: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Table MultiSelect"
 msgstr "Višestruki Odabir Tabele"
 
-#: frappe/desk/search.py:279
+#: frappe/desk/search.py:284
 msgid "Table MultiSelect requires a table with at least one Link field, but none was found in {0}"
 msgstr "Višestruki odabir tablice zahtijeva tablicu s barem jednim poljem za poveznicu, ali nijedno nije pronađeno u {0}"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:229
+#: frappe/custom/doctype/customize_form/customize_form.js:240
 msgid "Table Trimmed"
 msgstr "Tabela Optimizirana"
 
@@ -26945,7 +27009,7 @@ msgstr "Tabela Optimizirana"
 msgid "Table updated"
 msgstr "Tabela Ažurirana"
 
-#: frappe/model/document.py:1757
+#: frappe/model/document.py:1766
 msgid "Table {0} cannot be empty"
 msgstr "Tabela {0} ne može biti prazna"
 
@@ -26968,7 +27032,7 @@ msgstr "Veza Oznake"
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:125
 #: frappe/public/js/frappe/list/base_list.js:814
 #: frappe/public/js/frappe/list/base_list.js:997
-#: frappe/public/js/frappe/list/bulk_operations.js:444
+#: frappe/public/js/frappe/list/bulk_operations.js:446
 #: frappe/public/js/frappe/model/meta.js:215
 #: frappe/public/js/frappe/model/model.js:133
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:227
@@ -27059,7 +27123,7 @@ msgstr "Šablon Upozorenja"
 msgid "Templates"
 msgstr "Šabloni"
 
-#: frappe/core/doctype/user/user.py:1082
+#: frappe/core/doctype/user/user.py:1090
 msgid "Temporarily Disabled"
 msgstr "Privremeno Onemogućeno"
 
@@ -27241,7 +27305,7 @@ msgstr "Konfigurirani SMTP server ne podržava DSN (Obavijest o Statusu Isporuke
 msgid "The contents of this email are strictly confidential. Please do not forward this email to anyone."
 msgstr "Sadržaj ove e-pošte je strogo povjerljiv. Molimo vas da nikome ne prosljeđujete ovu e-poštu."
 
-#: frappe/public/js/frappe/list/list_view.js:715
+#: frappe/public/js/frappe/list/list_view.js:709
 msgid "The count shown is an estimated count. Click here to see the accurate count."
 msgstr "Prikazani broj je procijenjen. Klikni ovdje da vidite tačan broj."
 
@@ -27271,11 +27335,11 @@ msgstr "Odabrani tip dokumenta je podređena tabela, tako da je obavezan tip nad
 msgid "The email button is enabled for the user in the document."
 msgstr "Gumb e-pošte omogućen je za korisnika u dokumentu."
 
-#: frappe/desk/search.py:292
+#: frappe/desk/search.py:297
 msgid "The field {0} in {1} does not allow ignoring user permissions"
 msgstr "Polje {0} u {1} ne dopušta ignoriranje korisničkih dopuštenja"
 
-#: frappe/desk/search.py:302
+#: frappe/desk/search.py:312
 msgid "The field {0} in {1} links to {2} and not {3}"
 msgstr "Polje {0} u {1} povezuje se s {2}, a ne s {3}"
 
@@ -27363,15 +27427,15 @@ msgstr "Broj projekta dobijen od Google Cloud Console pod <a href=\"https://cons
 "\"IAM &amp; Admin\" &gt; \"Postavke\"\n"
 "</a>"
 
-#: frappe/desk/utils.py:106
+#: frappe/desk/utils.py:110
 msgid "The report you requested has been generated.<br><br>Click here to download:<br><a href='{0}'>{0}</a><br><br>This link will expire in {1} hours."
 msgstr "Izvješće koje ste zatražili je generirano.<br><br>Kliknite ovdje za preuzimanje:<br><a href='{0}'>{0}</a><br><br>Ova poveznica isteći će za {1} sati."
 
-#: frappe/core/doctype/user/user.py:1040
+#: frappe/core/doctype/user/user.py:1048
 msgid "The reset password link has been expired"
 msgstr "Veza za poništavanje lozinke je istekla"
 
-#: frappe/core/doctype/user/user.py:1042
+#: frappe/core/doctype/user/user.py:1050
 msgid "The reset password link has either been used before or is invalid"
 msgstr "Veza za poništavanje lozinke je ili ranije korištena ili je nevažeća"
 
@@ -27541,7 +27605,7 @@ msgstr "Bilo je grešaka"
 msgid "There were errors while creating the document. Please try again."
 msgstr "Bilo je grešaka prilikom kreiranja dokumenta. Molimo pokušajte ponovo."
 
-#: frappe/public/js/frappe/views/communication.js:923
+#: frappe/public/js/frappe/views/communication.js:973
 msgid "There were errors while sending email. Please try again."
 msgstr "Bilo je grešaka prilikom slanja e-pošte. Molimo pokušajte ponovo."
 
@@ -27610,7 +27674,7 @@ msgstr "Ovaj Tjedan"
 msgid "This Year"
 msgstr "Ove Godine"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:220
+#: frappe/custom/doctype/customize_form/customize_form.js:231
 msgid "This action is irreversible. Do you wish to continue?"
 msgstr "Ova radnja je nepovratna. Da li želite da nastavite?"
 
@@ -27638,7 +27702,7 @@ msgstr "Ova kartica će biti dostupna svim korisnicima ako je ovo podešeno"
 msgid "This chart will be available to all Users if this is set"
 msgstr "Ovaj grafikon će biti dostupan svim korisnicima ako je ovo postavljeno"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:212
+#: frappe/custom/doctype/customize_form/customize_form.js:223
 msgid "This doctype has no orphan fields to trim"
 msgstr "Ovaj tip dokumenta nema polja siroče za skraćivanje"
 
@@ -27658,7 +27722,7 @@ msgstr "Ovaj dokument je već stavljen u red čekanja za podnošenje. Napredak m
 msgid "This document has been modified after the email was sent."
 msgstr "Ovaj dokument je izmijenjen nakon slanja e-pošte."
 
-#: frappe/public/js/frappe/form/form.js:1366
+#: frappe/public/js/frappe/form/form.js:1370
 msgid "This document has unsaved changes which might not appear in final PDF. <br> Consider saving the document before printing."
 msgstr "Ovaj dokument ima nespremljene promjene koje se možda neće pojaviti u konačnom PDF-u. <br> Razmislite o spremanju dokumenta prije ispisa."
 
@@ -27712,7 +27776,7 @@ msgstr "Ova datoteka je javna. Može joj se pristupiti bez autentifikacije."
 msgid "This form has been modified after you have loaded it"
 msgstr "Ova forma je izmijenjena nakon što ste je učitali"
 
-#: frappe/public/js/frappe/form/form.js:2332
+#: frappe/public/js/frappe/form/form.js:2336
 msgid "This form is not editable due to a Workflow."
 msgstr "Ova formu nije moguće uređivati zbog Radnog Toka."
 
@@ -27773,7 +27837,7 @@ msgstr "Ova veza je već aktivirana radi verifikacije."
 msgid "This link is invalid or expired. Please make sure you have pasted correctly."
 msgstr "Ova veza nije važeća ili je istekla. Provjerite jeste li ispravno zalijepili."
 
-#: frappe/printing/page/print/print.js:452
+#: frappe/printing/page/print/print.js:442
 msgid "This may get printed on multiple pages"
 msgstr "Ovo se može ispisati na više stranica"
 
@@ -27857,7 +27921,7 @@ msgstr "Ovo će poništiti ovu introdukciju i prikazati ga svim korisnicima. Jes
 msgid "This will terminate the job immediately and might be dangerous, are you sure?"
 msgstr "Ovo će odmah prekinuti posao i može biti opasno, jeste li sigurni?"
 
-#: frappe/core/doctype/user/user.py:1315
+#: frappe/core/doctype/user/user.py:1323
 msgid "Throttled"
 msgstr "Prigušeno"
 
@@ -27940,7 +28004,7 @@ msgstr "Vremenski Prozor (Sekunde)"
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/core/doctype/user/user.json
 #: frappe/core/web_form/edit_profile/edit_profile.json
-#: frappe/desk/page/setup_wizard/setup_wizard.js:404
+#: frappe/desk/page/setup_wizard/setup_wizard.js:411
 #: frappe/website/doctype/web_page_view/web_page_view.json
 msgid "Time Zone"
 msgstr "Vremenska Zona"
@@ -28244,7 +28308,7 @@ msgstr "Za Uraditi"
 msgid "Today"
 msgstr "Danas"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1627
+#: frappe/public/js/frappe/views/reports/report_view.js:1624
 msgid "Toggle Chart"
 msgstr "Prebaci grafikon"
 
@@ -28311,7 +28375,7 @@ msgstr "Previše pozadinskih poslova u čekanju ({0}). Pokušaj ponovno nakon ne
 msgid "Too many requests. Please try again later."
 msgstr "Previše zahtjeva. Pokušajte ponovno kasnije."
 
-#: frappe/core/doctype/user/user.py:1083
+#: frappe/core/doctype/user/user.py:1091
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "Nedavno se prijavilo previše korisnika, pa je registracija onemogućena. Pokušajte ponovo za sat vremena"
 
@@ -28375,7 +28439,7 @@ msgstr "Tema"
 #: frappe/desk/query_report.py:685
 #: frappe/public/js/frappe/views/reports/print_grid.html:50
 #: frappe/public/js/frappe/views/reports/query_report.js:1376
-#: frappe/public/js/frappe/views/reports/report_view.js:1608
+#: frappe/public/js/frappe/views/reports/report_view.js:1605
 msgid "Total"
 msgstr "Ukupno"
 
@@ -28425,11 +28489,11 @@ msgstr "Ukupan broj e-poruka za sinhronizaciju u početnom procesu sinhronizacij
 msgid "Total:"
 msgstr "Ukupno:"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1308
+#: frappe/public/js/frappe/views/reports/report_view.js:1305
 msgid "Totals"
 msgstr "Ukupno"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1283
+#: frappe/public/js/frappe/views/reports/report_view.js:1280
 msgid "Totals Row"
 msgstr "Ukupni Red"
 
@@ -28539,7 +28603,7 @@ msgstr "Prevedi Podatke"
 msgid "Translate Link Fields"
 msgstr "Prevedi Polja Veza"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1723
+#: frappe/public/js/frappe/views/reports/report_view.js:1720
 msgid "Translate values"
 msgstr "Prevedi vrijednosti"
 
@@ -28614,7 +28678,7 @@ msgstr "Okini Keširanje"
 msgid "Trigger on valid methods like \"before_insert\", \"after_update\", etc (will depend on the DocType selected)"
 msgstr "Okidač na važećim metodama kao što su \"before_insert\", \"after_update\" itd (ovisiće o odabranom DocTypeu)"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:144
+#: frappe/custom/doctype/customize_form/customize_form.js:151
 msgid "Trim Table"
 msgstr "Optimirajj Tabelu"
 
@@ -28627,10 +28691,6 @@ msgstr "Pokušaj ponovo"
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Try a Naming Series"
 msgstr "Isprobaj Seriju Imenovanja"
-
-#: frappe/printing/page/print/print.js:212
-msgid "Try the new Print Designer"
-msgstr "Isprobaj novi Dizajner Ispisa"
 
 #: frappe/utils/password_strength.py:106
 msgid "Try to avoid repeated words and characters"
@@ -28889,7 +28949,7 @@ msgstr "Nije moguće otvoriti priloženu datoteku. Jeste li je izvezli kao CSV?"
 msgid "Unable to read file format for {0}"
 msgstr "Nije moguće pročitati format datoteke za {0}"
 
-#: frappe/core/doctype/communication/email.py:208
+#: frappe/core/doctype/communication/email.py:211
 msgid "Unable to send mail because of a missing email account. Please setup default Email Account from Settings > Email Account"
 msgstr "Nije moguće poslati poštu jer nedostaje račun e-pošte. Postavite zadani račun e-pošte iz Postavke > Račun e-pošte"
 
@@ -28915,6 +28975,7 @@ msgid "Unchanged"
 msgstr "Nepromijenjeno"
 
 #: frappe/public/js/frappe/form/toolbar.js:554
+#: frappe/public/js/frappe/views/communication.js:919
 msgid "Undo"
 msgstr "Poništi"
 
@@ -28981,7 +29042,7 @@ msgstr "Nepoznato kodiranje datoteke. Pokušano koristiti: {0}"
 msgid "Unlock Reference Document"
 msgstr "Otključaj Referentni Dokument"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:633
+#: frappe/public/js/frappe/form/footer/form_timeline.js:638
 #: frappe/website/doctype/web_form/web_form.js:86
 msgid "Unpublish"
 msgstr "Poništi Objavu"
@@ -29004,7 +29065,7 @@ msgstr "Nesiguran SQL upit"
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:9
 #: frappe/public/js/frappe/data_import/data_exporter.js:160
 #: frappe/public/js/frappe/form/controls/multicheck.js:179
-#: frappe/public/js/frappe/views/reports/report_view.js:1666
+#: frappe/public/js/frappe/views/reports/report_view.js:1663
 msgid "Unselect All"
 msgstr "Poništi Odabir Svih"
 
@@ -29037,11 +29098,11 @@ msgstr "Parametri Otkazivanja"
 msgid "Unsubscribed"
 msgstr "Otkazano"
 
-#: frappe/database/query.py:1175
+#: frappe/database/query.py:1182
 msgid "Unsupported function or operator: {0}"
 msgstr "Nepodržana funkcija ili operator: {0}"
 
-#: frappe/database/query.py:2255
+#: frappe/database/query.py:2277
 msgid "Unsupported {0}: {1}"
 msgstr "Nepodržano {0}: {1}"
 
@@ -29069,7 +29130,7 @@ msgstr "Nadolazeći Događaji za Danas"
 #: frappe/core/doctype/data_import/data_import_list.js:36
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js:23
-#: frappe/custom/doctype/customize_form/customize_form.js:448
+#: frappe/custom/doctype/customize_form/customize_form.js:459
 #: frappe/desk/doctype/bulk_update/bulk_update.js:15
 #: frappe/desk/doctype/number_card/number_card.js:291
 #: frappe/desk/doctype/number_card/number_card.js:437
@@ -29107,7 +29168,7 @@ msgstr "Ažuriraj Redoslijed Razrješenja Kukica"
 msgid "Update Order"
 msgstr "Redoslijed ažuriranja"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:488
+#: frappe/desk/page/setup_wizard/setup_wizard.js:502
 msgid "Update Password"
 msgstr "Ažuriraj Lozinku"
 
@@ -29164,7 +29225,7 @@ msgstr "Ažurirano"
 msgid "Updated Successfully"
 msgstr "Uspješno Ažurirano"
 
-#: frappe/public/js/frappe/desk.js:446
+#: frappe/public/js/frappe/desk.js:448
 msgid "Updated To A New Version 🎉"
 msgstr "Ažurirano na Novu Verziju 🎉"
 
@@ -29216,7 +29277,7 @@ msgstr "Ažurira se {0} od {1}, {2}"
 msgid "Upload"
 msgstr "Učitaj"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:648
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:657
 msgid "Upload Failed"
 msgstr "Prijenos Neuspješan"
 
@@ -29338,7 +29399,7 @@ msgstr "Koristi ako standard postavke ne očitavaju vaše podatke ispravno"
 msgid "Use of sub-query or function is restricted"
 msgstr "Korištenje podupita ili funkcije je ograničena"
 
-#: frappe/printing/page/print/print.js:313
+#: frappe/printing/page/print/print.js:303
 msgid "Use the new Print Format Builder"
 msgstr "Koristi novi Konstruktor Formata Ispisa"
 
@@ -29454,7 +29515,7 @@ msgstr "Korisnik Nemože Kreirati"
 msgid "User Cannot Search"
 msgstr "Korisnik Nemože Pretraživati"
 
-#: frappe/public/js/frappe/desk.js:550
+#: frappe/public/js/frappe/desk.js:552
 msgid "User Changed"
 msgstr "Korisnik Promijenjen"
 
@@ -29563,11 +29624,11 @@ msgstr "Korisnička Dozvola"
 #: frappe/core/page/permission_manager/permission_manager_help.html:97
 #: frappe/core/workspace/users/users.json
 #: frappe/public/js/frappe/views/reports/query_report.js:2093
-#: frappe/public/js/frappe/views/reports/report_view.js:1826
+#: frappe/public/js/frappe/views/reports/report_view.js:1823
 msgid "User Permissions"
 msgstr "Korisničke Dozvole"
 
-#: frappe/public/js/frappe/list/list_view.js:1962
+#: frappe/public/js/frappe/list/list_view.js:1956
 msgctxt "Button in list view menu"
 msgid "User Permissions"
 msgstr "Korisničke Dozvole"
@@ -29706,11 +29767,11 @@ msgstr "Korisnik {0} nema dozvolu za kreiranje Radnog Prostora."
 msgid "User {0} has requested for data deletion"
 msgstr "Korisnik {0} je zatražio brisanje podataka"
 
-#: frappe/core/doctype/user/user.py:1459
+#: frappe/core/doctype/user/user.py:1467
 msgid "User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
 msgstr "Korisnik {0} započeo je sesiju personifikacije kao vi. <br><br><b>Navedeni razlog:</b> {1}"
 
-#: frappe/core/doctype/user/user.py:1442
+#: frappe/core/doctype/user/user.py:1450
 msgid "User {0} impersonated as {1}"
 msgstr "Korisnik {0} predstavljen kao {1}"
 
@@ -29852,7 +29913,7 @@ msgstr "Validnost"
 #: frappe/integrations/doctype/query_parameters/query_parameters.json
 #: frappe/integrations/doctype/webhook_header/webhook_header.json
 #: frappe/public/js/frappe/list/bulk_operations.js:336
-#: frappe/public/js/frappe/list/bulk_operations.js:410
+#: frappe/public/js/frappe/list/bulk_operations.js:412
 #: frappe/public/js/frappe/list/list_view_permission_restrictions.html:4
 #: frappe/website/doctype/web_form/web_form.js:213
 #: frappe/website/doctype/website_meta_tag/website_meta_tag.json
@@ -30199,7 +30260,7 @@ msgstr "Skladište"
 msgid "Warning"
 msgstr "Upozorenje"
 
-#: frappe/custom/doctype/customize_form/customize_form.js:217
+#: frappe/custom/doctype/customize_form/customize_form.js:228
 msgid "Warning: DATA LOSS IMMINENT! Proceeding will permanently delete following database columns from doctype {0}:"
 msgstr "Upozorenje: GUBITAK PODATAKA NEPOSREDAN! Nastavkom će se trajno izbrisati sljedeće kolone baze podataka iz tipa dokumenta {0}:"
 
@@ -30593,7 +30654,7 @@ msgstr "Težina"
 msgid "Weighted Distribution"
 msgstr "Ponderirana Distribucija"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:384
+#: frappe/desk/page/setup_wizard/setup_wizard.js:391
 msgid "Welcome"
 msgstr "Dobrodošli"
 
@@ -30696,7 +30757,7 @@ msgstr "Zamjenski Filter"
 msgid "Will add \"%\" before and after the query"
 msgstr "Dodat će \"%\" prije i poslije upita"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:479
+#: frappe/desk/page/setup_wizard/setup_wizard.js:493
 msgid "Will be your login ID"
 msgstr "Biti će vaš prijavni ID"
 
@@ -30952,11 +31013,11 @@ msgstr "Radni Prostor {0} kreiran"
 msgid "Workspaces"
 msgstr "Radni Prostori"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:757
+#: frappe/public/js/frappe/form/footer/form_timeline.js:762
 msgid "Would you like to publish this comment? This means it will become visible to website/portal users."
 msgstr "Želite li objaviti ovaj komentar? To znači da će postati vidljiv korisnicima web stranice/portala."
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:761
+#: frappe/public/js/frappe/form/footer/form_timeline.js:766
 msgid "Would you like to unpublish this comment? This means it will no longer be visible to website/portal users."
 msgstr "Želite li poništiti objavu ovog komentara? To znači da više neće biti vidljiv korisnicima web stranice/portala."
 
@@ -30995,7 +31056,7 @@ msgstr "X Polje"
 msgid "XLSX"
 msgstr "XLSX"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:661
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:670
 msgid "XMLHttpRequest Error"
 msgstr "XMLHttpRequest Pogreška"
 
@@ -31073,7 +31134,7 @@ msgstr "Žuta"
 #: frappe/integrations/doctype/webhook/webhook.py:125
 #: frappe/integrations/doctype/webhook/webhook.py:132
 #: frappe/printing/doctype/print_format/print_format.json
-#: frappe/public/js/form_builder/utils.js:336
+#: frappe/public/js/form_builder/utils.js:333
 #: frappe/public/js/frappe/form/controls/link.js:579
 #: frappe/public/js/frappe/list/base_list.js:950
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:170
@@ -31101,7 +31162,7 @@ msgctxt "Name of the current user. For example: You edited this 5 hours ago."
 msgid "You"
 msgstr "Vi"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:463
+#: frappe/public/js/frappe/form/footer/form_timeline.js:468
 msgid "You Liked"
 msgstr "Svidjelo vam se"
 
@@ -31191,6 +31252,10 @@ msgstr "Nije vam dopušteno ažuriranje statusa ovog događaja."
 msgid "You are not allowed to update this Web Form Document"
 msgstr "Nije vam dozvoljeno ažurirati ovaj dokument web forme"
 
+#: frappe/core/doctype/communication/email.py:341
+msgid "You are not authorized to undo this email"
+msgstr "Niste ovlašteni poništiti ovu e-poštu"
+
 #: frappe/public/js/frappe/request.js:37
 msgid "You are not connected to Internet. Retry after sometime."
 msgstr "Niste povezani na Internet. Pokušaj ponovo nakon nekog vremena."
@@ -31219,7 +31284,7 @@ msgstr "Dozvoljeno vam je samo ažurirati redoslijed, nemojte uklanjati ili doda
 msgid "You are selecting Sync Option as ALL, It will resync all read as well as unread message from server. This may also cause the duplication of Communication (emails)."
 msgstr "Birate Opciju Sinhronizacije kao SVE, ona će ponovo sinhronizovati sve pročitane i nepročitane poruke sa servera. Ovo također može uzrokovati dupliciranje komunikacije (e-pošta)."
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:414
+#: frappe/public/js/frappe/form/footer/form_timeline.js:419
 msgctxt "Form timeline"
 msgid "You attached {0}"
 msgstr "Priložili ste {0}"
@@ -31280,7 +31345,7 @@ msgstr "Možete ispisati najviše {0} dokumenata odjednom"
 msgid "You can only set the 3 custom doctypes in the Document Types table."
 msgstr "Možete postaviti samo tri prilagođena tipa dokumenata u tabeli Tipovi Dokumenata."
 
-#: frappe/handler.py:184
+#: frappe/handler.py:203
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
 msgstr "Možete prenijeti samo JPG, PNG, GIF, PDF, TXT, CSV ili Microsoft dokumente."
 
@@ -31356,12 +31421,12 @@ msgstr "Promijenuli ste vrijednosti za {0}"
 msgid "You changed the values for {0} {1}"
 msgstr "Promijenuli ste vrijednosti za {0} {1}"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:443
+#: frappe/public/js/frappe/form/footer/form_timeline.js:448
 msgctxt "Form timeline"
 msgid "You changed {0} to {1}"
 msgstr "Promijenuli ste {0} u {1}"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:140
+#: frappe/public/js/frappe/form/footer/form_timeline.js:145
 msgid "You created this"
 msgstr "Vi ste kreirali ovo"
 
@@ -31382,11 +31447,11 @@ msgstr "Nemate dovoljno dozvola da dovršite radnju"
 msgid "You do not have import permission for {0}"
 msgstr "Nemate dozvolu za uvoz za {0}"
 
-#: frappe/database/query.py:986
+#: frappe/database/query.py:993
 msgid "You do not have permission to access child table field: {0}"
 msgstr "Nemate dopuštenje za pristup podređenom polju tablice: {0}"
 
-#: frappe/database/query.py:999
+#: frappe/database/query.py:1006
 msgid "You do not have permission to access field: {0}"
 msgstr "Nemate dopuštenje za pristup polju: {0}"
 
@@ -31422,7 +31487,7 @@ msgstr "Nemate dozvole za pristup ovom dokumentu"
 msgid "You have a new message from:"
 msgstr "Imate novu poruku od:"
 
-#: frappe/handler.py:120
+#: frappe/handler.py:121
 msgid "You have been successfully logged out"
 msgstr "Uspješno ste odjavljeni"
 
@@ -31430,7 +31495,7 @@ msgstr "Uspješno ste odjavljeni"
 msgid "You have hit the row size limit on database table: {0}"
 msgstr "Dostigli ste ograničenje veličine reda u tabeli baze podataka: {0}"
 
-#: frappe/public/js/frappe/list/bulk_operations.js:426
+#: frappe/public/js/frappe/list/bulk_operations.js:428
 msgid "You have not entered a value. The field will be set to empty."
 msgstr "Niste unijeli vrijednost. Polje će biti prazno."
 
@@ -31450,7 +31515,7 @@ msgstr "Niste vidjeli {0}"
 msgid "You haven't added any Dashboard Charts or Number Cards yet."
 msgstr "Još niste dodali Grafikon Nadrzorne Table ili Numeričke Kartice."
 
-#: frappe/public/js/frappe/list/list_view.js:531
+#: frappe/public/js/frappe/list/list_view.js:525
 msgid "You haven't created a {0} yet"
 msgstr "{0} nema u sistemu"
 
@@ -31458,7 +31523,7 @@ msgstr "{0} nema u sistemu"
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
 msgstr "Dosegli ste ograničenje zbog previše zahtjeva. Molimo pokušajte nakon nekog vremena."
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:151
+#: frappe/public/js/frappe/form/footer/form_timeline.js:156
 msgid "You last edited this"
 msgstr "Zadnji put ste uređivali ovo"
 
@@ -31547,7 +31612,7 @@ msgstr "Trebate {0} dozvolu da preuzmete vrijednosti iz {1} {2}"
 msgid "You removed 1 row from {0}"
 msgstr "Uklonili ste 1 redak iz {0}"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:419
+#: frappe/public/js/frappe/form/footer/form_timeline.js:424
 msgctxt "Form timeline"
 msgid "You removed attachment {0}"
 msgstr "Uklonili ste prilog {0}"
@@ -31582,7 +31647,7 @@ msgstr "Podnijeli ste ovaj dokument {0}"
 msgid "You unfollowed this document"
 msgstr "Prestali ste pratiti ovaj dokument"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:183
+#: frappe/public/js/frappe/form/footer/form_timeline.js:188
 msgid "You viewed this"
 msgstr "Prikazali ste ovo"
 
@@ -31598,7 +31663,7 @@ msgstr "Pozvani ste da se pridružite {0}"
 msgid "You've been invited to join {0}."
 msgstr "Pozvani ste da se pridružite {0}."
 
-#: frappe/public/js/frappe/desk.js:547
+#: frappe/public/js/frappe/desk.js:549
 msgid "You've logged in as another user from another tab. Refresh this page to continue using system."
 msgstr "Prijavili ste se kao drugi korisnik sa druge kartice. Osvježite ovu stranicu da nastavite koristiti sistem."
 
@@ -31610,11 +31675,11 @@ msgstr "Youtube"
 msgid "Your CSV file is being generated and will appear in the Attachments section once ready. Additionally, you will get notified when the file is available for download."
 msgstr "CSV datoteka se generira i pojavit će se u odjeljku Prilozi kada bude spremna. Osim toga, dobit ćete obavijest kada datoteka bude dostupna za preuzimanje."
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:397
+#: frappe/desk/page/setup_wizard/setup_wizard.js:404
 msgid "Your Country"
 msgstr "Vaša Zemlja"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:389
+#: frappe/desk/page/setup_wizard/setup_wizard.js:396
 msgid "Your Language"
 msgstr "Vaš Jezik"
 
@@ -31659,7 +31724,7 @@ msgstr "Vaš zahtjev za povezivanje sa Google Kalendarom je uspješno prihvaćen
 msgid "Your email address"
 msgstr "Vaša adresa e-pošte"
 
-#: frappe/desk/utils.py:105
+#: frappe/desk/utils.py:109
 msgid "Your exported report: {0}"
 msgstr "Vaše izvezeno izvješće: {0}"
 
@@ -31793,8 +31858,8 @@ msgstr "Chrome"
 msgid "commented"
 msgstr "komentarisao"
 
-#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:258
-#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:262
+#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:255
+#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:259
 msgid "completed"
 msgstr "završeno"
 
@@ -32282,11 +32347,11 @@ msgstr "od jučer"
 msgid "started"
 msgstr "pokrenut"
 
-#: frappe/desk/page/setup_wizard/setup_wizard.js:201
+#: frappe/desk/page/setup_wizard/setup_wizard.js:208
 msgid "starting the setup..."
 msgstr "počinje postavljanje..."
 
-#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:252
+#: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:249
 msgid "steps completed"
 msgstr "dovršeni koraci"
 
@@ -32422,7 +32487,7 @@ msgstr "kada se klikne na element, on će fokusirati skočni prozor ako postoji.
 msgid "wkhtmltopdf"
 msgstr "wkhtmltopdf"
 
-#: frappe/printing/page/print/print.js:683
+#: frappe/printing/page/print/print.js:673
 msgid "wkhtmltopdf 0.12.x (with patched qt)."
 msgstr "wkhtmltopdf 0.12.x (sa zakrpljenim qt-om)."
 
@@ -32454,7 +32519,7 @@ msgid "yyyy-mm-dd"
 msgstr "gggg-mm-dd"
 
 #: frappe/desk/doctype/event/event.js:87
-#: frappe/public/js/frappe/form/footer/form_timeline.js:547
+#: frappe/public/js/frappe/form/footer/form_timeline.js:552
 msgid "{0}"
 msgstr "{0}"
 
@@ -32513,11 +32578,11 @@ msgstr "{0} Događaji Google Kalendara su sinhronizovani."
 msgid "{0} Google Contacts synced."
 msgstr "{0} Google Kontakti su sinhronizovani."
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:464
+#: frappe/public/js/frappe/form/footer/form_timeline.js:469
 msgid "{0} Liked"
 msgstr "{0} Lajkade"
 
-#: frappe/public/js/frappe/widgets/chart_widget.js:358 frappe/www/portal.html:8
+#: frappe/public/js/frappe/widgets/chart_widget.js:363 frappe/www/portal.html:8
 msgid "{0} List"
 msgstr "{0} Lista"
 
@@ -32541,7 +32606,7 @@ msgstr "{0} Naziv"
 msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
 msgstr "{0} Nije dozvoljeno mijenjati {1} nakon podnošenja iz {2} u {3}"
 
-#: frappe/public/js/frappe/widgets/chart_widget.js:366
+#: frappe/public/js/frappe/widgets/chart_widget.js:371
 msgid "{0} Report"
 msgstr "{0} Izvještaj"
 
@@ -32557,7 +32622,7 @@ msgstr "{0} Postavke"
 msgid "{0} Tree"
 msgstr "{0} Stablo"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:128
+#: frappe/public/js/frappe/form/footer/form_timeline.js:133
 #: frappe/public/js/frappe/form/sidebar/form_sidebar.js:150
 msgid "{0} Web page views"
 msgstr "{0} Prikaza Web Stranice"
@@ -32606,7 +32671,7 @@ msgstr "{0} vam je dodijelio novi zadatak {1} {2}"
 msgid "{0} assigned {1}: {2}"
 msgstr "{0} dodijeljen {1}: {2}"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:415
+#: frappe/public/js/frappe/form/footer/form_timeline.js:420
 msgctxt "Form timeline"
 msgid "{0} attached {1}"
 msgstr "{0} priloženo {1}"
@@ -32648,7 +32713,7 @@ msgstr "{0} promijenio je vrijednosti za {1}"
 msgid "{0} changed the values for {1} {2}"
 msgstr "{0} promijenio vrijednosti za {1} {2}"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:444
+#: frappe/public/js/frappe/form/footer/form_timeline.js:449
 msgctxt "Form timeline"
 msgid "{0} changed {1} to {2}"
 msgstr "{0} promijenio(la) {1} u {2}"
@@ -32665,7 +32730,7 @@ msgstr "{0} sadrži {1}"
 msgid "{0} created successfully"
 msgstr "{0} je uspješno kreiran"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:141
+#: frappe/public/js/frappe/form/footer/form_timeline.js:146
 msgid "{0} created this"
 msgstr "{0} je kreirao(la) ovo"
 
@@ -32719,7 +32784,7 @@ msgstr "{0} h"
 msgid "{0} has already assigned default value for {1}."
 msgstr "{0} je već dodijelio(la) standard vrijednost za {1}."
 
-#: frappe/database/query.py:1310
+#: frappe/database/query.py:1317
 msgid "{0} has invalid backtick notation: {1}"
 msgstr "{0} ima nevažeću notaciju povratnog aluzija: {1}"
 
@@ -32777,7 +32842,7 @@ msgid "{0} is between {1}"
 msgstr "{0} je između {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:710
-#: frappe/public/js/frappe/views/reports/report_view.js:1524
+#: frappe/public/js/frappe/views/reports/report_view.js:1521
 msgid "{0} is between {1} and {2}"
 msgstr "{0} je između {1} i {2}"
 
@@ -32796,31 +32861,31 @@ msgstr "{0} je onemogućen"
 msgid "{0} is enabled"
 msgstr "{0} je omogućen"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1493
+#: frappe/public/js/frappe/views/reports/report_view.js:1490
 msgid "{0} is equal to {1}"
 msgstr "{0} je jednako {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:691
-#: frappe/public/js/frappe/views/reports/report_view.js:1513
+#: frappe/public/js/frappe/views/reports/report_view.js:1510
 msgid "{0} is greater than or equal to {1}"
 msgstr "{0} je veće ili jednako {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:681
-#: frappe/public/js/frappe/views/reports/report_view.js:1503
+#: frappe/public/js/frappe/views/reports/report_view.js:1500
 msgid "{0} is greater than {1}"
 msgstr "{0} je veće od {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:696
-#: frappe/public/js/frappe/views/reports/report_view.js:1518
+#: frappe/public/js/frappe/views/reports/report_view.js:1515
 msgid "{0} is less than or equal to {1}"
 msgstr "{0} je manje ili jednako {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:686
-#: frappe/public/js/frappe/views/reports/report_view.js:1508
+#: frappe/public/js/frappe/views/reports/report_view.js:1505
 msgid "{0} is less than {1}"
 msgstr "{0} je manje od {1}"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1543
+#: frappe/public/js/frappe/views/reports/report_view.js:1540
 msgid "{0} is like {1}"
 msgstr "{0} je kao {1}"
 
@@ -32898,21 +32963,21 @@ msgid "{0} is not an ancestor of {1}"
 msgstr "{0} nije nadređen {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:668
-#: frappe/public/js/frappe/views/reports/report_view.js:1498
+#: frappe/public/js/frappe/views/reports/report_view.js:1495
 msgid "{0} is not equal to {1}"
 msgstr "{0} nije jednako {1}"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1545
+#: frappe/public/js/frappe/views/reports/report_view.js:1542
 msgid "{0} is not like {1}"
 msgstr "{0} nije kao {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:672
-#: frappe/public/js/frappe/views/reports/report_view.js:1539
+#: frappe/public/js/frappe/views/reports/report_view.js:1536
 msgid "{0} is not one of {1}"
 msgstr "{0} nije jedno od {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:702
-#: frappe/public/js/frappe/views/reports/report_view.js:1549
+#: frappe/public/js/frappe/views/reports/report_view.js:1546
 msgid "{0} is not set"
 msgstr "{0} nije postavljeno"
 
@@ -32929,7 +32994,7 @@ msgid "{0} is on or before {1}"
 msgstr "{0} je na ili prije {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:670
-#: frappe/public/js/frappe/views/reports/report_view.js:1532
+#: frappe/public/js/frappe/views/reports/report_view.js:1529
 msgid "{0} is one of {1}"
 msgstr "{0} je jedan od {1}"
 
@@ -32942,12 +33007,12 @@ msgid "{0} is required"
 msgstr "{0} je obavezan"
 
 #: frappe/public/js/frappe/form/controls/link.js:699
-#: frappe/public/js/frappe/views/reports/report_view.js:1548
+#: frappe/public/js/frappe/views/reports/report_view.js:1545
 msgid "{0} is set"
 msgstr "{0} je postavljeno"
 
 #: frappe/public/js/frappe/form/controls/link.js:723
-#: frappe/public/js/frappe/views/reports/report_view.js:1527
+#: frappe/public/js/frappe/views/reports/report_view.js:1524
 msgid "{0} is within {1}"
 msgstr "{0} je unutar {1}"
 
@@ -32955,15 +33020,15 @@ msgstr "{0} je unutar {1}"
 msgid "{0} is {1}"
 msgstr "{0} je {1}"
 
-#: frappe/public/js/frappe/list/list_view.js:1881
+#: frappe/public/js/frappe/list/list_view.js:1875
 msgid "{0} items selected"
 msgstr "{0} artikala odabrano"
 
-#: frappe/core/doctype/user/user.py:1451
+#: frappe/core/doctype/user/user.py:1459
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} samo se predstavljao kao vi. Naveli su ovaj razlog: {1}"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:152
+#: frappe/public/js/frappe/form/footer/form_timeline.js:157
 msgid "{0} last edited this"
 msgstr "{0} je zadnji put uredio ovo"
 
@@ -32991,23 +33056,23 @@ msgstr "prije {0} minuta"
 msgid "{0} months ago"
 msgstr "{0} mjeseci prije"
 
-#: frappe/model/document.py:1991
+#: frappe/model/document.py:2000
 msgid "{0} must be after {1}"
 msgstr "{0} mora biti iza {1}"
 
-#: frappe/model/document.py:1743
+#: frappe/model/document.py:1752
 msgid "{0} must be beginning with '{1}'"
 msgstr "{0} mora početi sa '{1}'"
 
-#: frappe/model/document.py:1745
+#: frappe/model/document.py:1754
 msgid "{0} must be equal to '{1}'"
 msgstr "{0} mora biti jednako '{1}'"
 
-#: frappe/model/document.py:1741
+#: frappe/model/document.py:1750
 msgid "{0} must be none of {1}"
 msgstr "{0} ne smije biti ni jedna od {1}"
 
-#: frappe/model/document.py:1739 frappe/utils/csvutils.py:162
+#: frappe/model/document.py:1748 frappe/utils/csvutils.py:162
 msgid "{0} must be one of {1}"
 msgstr "{0} mora biti jedan od {1}"
 
@@ -33019,7 +33084,7 @@ msgstr "{0} se mora prvo postaviti"
 msgid "{0} must be unique"
 msgstr "{0} mora biti jedinstven"
 
-#: frappe/model/document.py:1747
+#: frappe/model/document.py:1756
 msgid "{0} must be {1} {2}"
 msgstr "{0} mora biti {1} {2}"
 
@@ -33036,11 +33101,11 @@ msgid "{0} not allowed to be renamed"
 msgstr "{0} nije dozvoljeno preimenovati"
 
 #: frappe/core/doctype/report/report.py:444
-#: frappe/public/js/frappe/list/list_view.js:1261
+#: frappe/public/js/frappe/list/list_view.js:1255
 msgid "{0} of {1}"
 msgstr "{0} od {1}"
 
-#: frappe/public/js/frappe/list/list_view.js:1263
+#: frappe/public/js/frappe/list/list_view.js:1257
 msgid "{0} of {1} ({2} rows with children)"
 msgstr "{0} od {1} ({2} redovi sa potomcima)"
 
@@ -33081,7 +33146,7 @@ msgstr "{0} zapis(a) će biti izvezen(o)"
 msgid "{0} removed 1 row from {1}"
 msgstr "{0} uklonio/la je 1 redak iz {1}"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:420
+#: frappe/public/js/frappe/form/footer/form_timeline.js:425
 msgctxt "Form timeline"
 msgid "{0} removed attachment {1}"
 msgstr "{0} uklonio prilog {1}"
@@ -33106,7 +33171,7 @@ msgstr "{0} ograničeni dokumenti"
 msgid "{0} role does not have permission on any doctype"
 msgstr "{0} uloga nema dozvolu ni za jedan tip dokumenta"
 
-#: frappe/model/document.py:1982
+#: frappe/model/document.py:1991
 msgid "{0} row #{1}:"
 msgstr "{0} red #{1}:"
 
@@ -33184,7 +33249,7 @@ msgstr "{0} ažurirano"
 msgid "{0} values selected"
 msgstr "{0} vrijednosti odabrane"
 
-#: frappe/public/js/frappe/form/footer/form_timeline.js:184
+#: frappe/public/js/frappe/form/footer/form_timeline.js:189
 msgid "{0} viewed this"
 msgstr "{0} je prikazao ovo"
 
@@ -33370,6 +33435,10 @@ msgstr "{0}: naziv polja ne može se postaviti na rezerviranu ključnu riječ {1
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
+#: frappe/public/js/frappe/form/controls/link.js:945
+msgid "{0}: {1} did not match any results."
+msgstr "{0}: {1} nije pronašao nijedan rezultat."
+
 #: frappe/workflow/doctype/workflow_action/workflow_action.py:181
 msgid "{0}: {1} is set to state {2}"
 msgstr "{0}: {1} je postavljeno na stanje {2}"
@@ -33410,11 +33479,11 @@ msgstr "{{{0}}} nije važeća forma naziva polja. Trebalo bi da bude {{field_nam
 msgid "{} Complete"
 msgstr "{} Završeno"
 
-#: frappe/utils/data.py:2621
+#: frappe/utils/data.py:2622
 msgid "{} Invalid python code on line {}"
 msgstr "{} Nevažeći python kod na liniji {}"
 
-#: frappe/utils/data.py:2630
+#: frappe/utils/data.py:2631
 msgid "{} Possibly invalid python code. <br>{}"
 msgstr "{} Možda nevažeći python kod. <br>{}"
 

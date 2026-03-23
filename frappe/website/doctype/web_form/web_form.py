@@ -46,6 +46,7 @@ class WebForm(WebsiteGenerator):
 		condition_json: DF.JSON | None
 		custom_css: DF.Code | None
 		doc_type: DF.Link
+		dynamic_filters_json: DF.JSON | None
 		hide_footer: DF.Check
 		hide_navbar: DF.Check
 		introduction_text: DF.TextEditor | None

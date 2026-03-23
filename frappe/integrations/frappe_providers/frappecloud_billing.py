@@ -44,6 +44,11 @@ def get_headers():
 def current_site_info():
 	from frappe.utils import cint
 
+	cache_key = f"fc_current_site_info:{frappe.local.site}"
+	cached_data = frappe.cache().get_value(cache_key)
+	if cached_data:
+		return cached_data
+
 	res = {}
 	request = requests.post(f"{get_base_url()}/api/method/press.saas.api.site.info", headers=get_headers())
 	if request.status_code == 200:
@@ -51,12 +56,16 @@ def current_site_info():
 		if not res or not isinstance(res, dict):
 			return None
 
-	return {
+	site_info = {
 		**res,
 		"site_name": get_site_name(),
 		"base_url": get_base_url(),
 		"setup_complete": cint(frappe.get_system_settings("setup_complete")),
 	}
+
+	frappe.cache().set_value(cache_key, site_info, expires_in_sec=600)
+
+	return site_info
 
 
 @frappe.whitelist()

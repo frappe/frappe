@@ -1092,7 +1092,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 	}
 
-	get_tags_html(user_tags, limit, colored = false) {
+	get_tags_html(user_tags, limit = null, colored = false) {
 		let get_tag_html = (tag) => {
 			let color = "",
 				style = "";
@@ -1105,11 +1105,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return `<div class="tag-pill ellipsis" title="${tag}" style="${style}">${tag}</div>`;
 			}
 		};
-		return user_tags
-			.split(",")
-			.slice(1, limit + 1)
-			.map(get_tag_html)
-			.join("");
+		user_tags = (user_tags || "").split(",");
+		if (limit !== null) {
+			// if there is a limit apply it
+			user_tags = user_tags.slice(0, limit);
+		}
+		return user_tags.map(get_tag_html).join("");
 	}
 
 	get_meta_html(doc) {

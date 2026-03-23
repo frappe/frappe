@@ -52,12 +52,11 @@ frappe.ui.menu = class ContextMenu {
 				function () {
 					return true;
 				};
-			console.log(typeof item.condition);
 			let render = false;
 			if (typeof item.condition == "function") {
 				render = item.condition();
 			} else {
-				render = frappe.utils.eval_expression(item.condition);
+				render = frappe.utils.eval(item.condition);
 			}
 			if (render) {
 				this.add_menu_item(item);

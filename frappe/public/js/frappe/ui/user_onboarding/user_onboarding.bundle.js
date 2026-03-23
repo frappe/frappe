@@ -80,7 +80,7 @@ function addStyles() {
 		border-radius: 8px;
 		box-shadow: 0 12px 40px rgba(0,0,0,0.15);
 		padding: 16px;
-		z-index: 9999;
+		z-index: 1000;
 		display: flex;
 		flex-direction: column;
 	  }

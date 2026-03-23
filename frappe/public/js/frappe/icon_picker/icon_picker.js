@@ -35,7 +35,6 @@ class Picker {
 		}
 	}
 	setup_emojis() {
-		console.log("Making emojis");
 		// setup tab
 		this.setup_tab();
 		// setup emoji container

@@ -12,6 +12,7 @@ import frappe.utils
 from frappe import _
 from frappe.apps import get_default_path
 from frappe.utils.password import get_decrypted_password
+from frappe.website.utils import get_home_page
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.user.user import User
@@ -347,6 +348,7 @@ def redirect_post_login(desk_user: bool, redirect_to: str | None = None, provide
 
 	if not redirect_to:
 		desk_uri = "/desk/workspace" if provider == "facebook" else get_default_path()
-		redirect_to = frappe.utils.get_url(desk_uri if desk_user else "/me")
+		website_uri = get_default_path() or get_home_page() or "/me"
+		redirect_to = frappe.utils.get_url(desk_uri if desk_user else website_uri)
 
 	frappe.local.response["location"] = redirect_to

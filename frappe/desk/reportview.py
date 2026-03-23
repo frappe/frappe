@@ -809,7 +809,7 @@ def get_match_cond(doctype, as_condition=True):
 	if not as_condition:
 		return cond
 
-	return ((" and " + cond) if cond else "").replace("%", "%%")
+	return ((" and (" + cond + ")") if cond else "").replace("%", "%%")
 
 
 def build_match_conditions(doctype, user=None, as_condition=True):

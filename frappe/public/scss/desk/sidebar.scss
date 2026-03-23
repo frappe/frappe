@@ -196,6 +196,11 @@
 			&:hover {
 				@include hover-mixin();
 			}
+
+			.sidebar-user-button {
+				padding: var(--padding-sm);
+				border-radius: var(--border-radius-sm);
+			}
 		}
 	}
 

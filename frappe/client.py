@@ -472,7 +472,7 @@ def validate_link_and_fetch(
 	if is_virtual_dt:
 		try:
 			doc = frappe.get_doc(doctype, docname)
-			doc.check_permission("select" if frappe.only_has_select_perm(doctype) else "read")
+			doc.check_permission("select")
 			values = {"name": doc.name}
 
 		except frappe.DoesNotExistError:

@@ -26,6 +26,7 @@ from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
 from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
 from frappe.utils import add_user_info, cstr, get_system_timezone
+from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
 from frappe.utils.frappecloud import on_frappecloud
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
@@ -60,14 +61,13 @@ def get_bootinfo():
 	bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
-	bootinfo.all_domains = [d.get("name") for d in frappe.get_all("Domain")]
+	bootinfo.all_domains = frappe.get_all("Domain", pluck="name")
 	add_layouts(bootinfo)
 
 	bootinfo.module_app = frappe.local.module_app
-	bootinfo.single_types = [d.name for d in frappe.get_all("DocType", {"issingle": 1})]
-	bootinfo.nested_set_doctypes = [
-		d.parent for d in frappe.get_all("DocField", {"fieldname": "lft"}, ["parent"])
-	]
+	bootinfo.single_types = frappe.get_all("DocType", {"issingle": 1}, pluck="name")
+	bootinfo.nested_set_doctypes = frappe.get_all("DocField", {"fieldname": "lft"}, pluck="parent")
+	bootinfo.tree_view_doctypes = get_tree_view_doctypes()
 	add_home_page(bootinfo, doclist)
 	bootinfo.page_info = get_allowed_pages()
 	load_translations(bootinfo)
@@ -217,7 +217,7 @@ def load_desktop_data(bootinfo):
 				app_logo_url=app_info.get("logo")
 				or frappe.get_hooks("app_logo_url", app_name=app_name)
 				or frappe.get_hooks("app_logo_url", app_name="frappe"),
-				modules=[m.name for m in frappe.get_all("Module Def", dict(app_name=app_name))],
+				modules=frappe.get_all("Module Def", dict(app_name=app_name), pluck="name"),
 				workspaces=workspaces,
 			)
 		)
@@ -409,7 +409,7 @@ def get_success_action():
 def get_link_preview_doctypes():
 	from frappe.utils import cint
 
-	link_preview_doctypes = [d.name for d in frappe.get_all("DocType", {"show_preview_popup": 1})]
+	link_preview_doctypes = frappe.get_all("DocType", {"show_preview_popup": 1}, pluck="name")
 	customizations = frappe.get_all(
 		"Property Setter", fields=["doc_type", "value"], filters={"property": "show_preview_popup"}
 	)
@@ -520,6 +520,11 @@ def get_marketplace_apps():
 		frappe.cache.set_value(cache_key, apps, shared=True, expires_in_sec=24 * 60 * 60)
 
 	return apps
+
+
+@redis_cache
+def get_tree_view_doctypes():
+	return frappe.get_all("DocType", {"default_view": "Tree"}, pluck="name")
 
 
 def add_subscription_conf():

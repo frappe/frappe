@@ -1207,7 +1207,7 @@ class IconsPane {
 			return;
 		}
 		this.wrapper.append(
-			"<span style='margin-top: 10px; margin-bottom: 20px'>Removed Icons</span>"
+			`<span style='margin-top: 10px; margin-bottom: 20px'>${__("Removed Icons")}</span>`
 		);
 		this.grid = new DesktopIconGrid({
 			name: "hidden-icons-grid",

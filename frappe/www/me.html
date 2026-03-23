@@ -57,16 +57,16 @@
 				</a>
 			</span>
 		</div>
-		<!-- {% if frappe.db.get_single_value("Website Settings", "show_account_deletion_link") %} -->
-		<div class="d-flex justify-content-between align-items-center">
+		{% if frappe.db.get_single_value("Website Settings", "show_account_deletion_link") %}
+		<div class="portal-section">
 			<span class="my-account-item-link">
 				<a href="/request-for-account-deletion?new=1">
-					<svg class="right-icon es-icon icon-md"><use href="#icon-delete"></use></svg>
+					<svg class="icon icon-md"><use href="#icon-trash"></use></svg>
 					<span class="item-link-text">{{_("Delete Account") }}</span>
 				</a>
 			</span>
 		</div>
-		<!-- {% endif %} -->
+		{% endif %}
 	</div>
 </div>
 

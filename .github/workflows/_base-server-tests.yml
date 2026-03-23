@@ -108,7 +108,6 @@ jobs:
 
       - name: Run Tests
         run: |
-          source ${GITHUB_WORKSPACE}/env/bin/activate
           bench --site test_site \
             run-parallel-tests \
             --app "${{ github.event.repository.name }}" \
