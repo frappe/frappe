@@ -386,13 +386,9 @@ def build_comment(
 
 	lines = [
 		COMMENT_MARKER,
-		"## PO Change Review",
+		"Here is a summary of the `.po` file changes:",
 		"",
-		"This PR was opened by `frappe-pr-bot`, so here is a browser-friendly summary of the `.po` file changes.",
-		"",
-		"### Summary",
-		"",
-		f"- Files changed: `{total_files}`",
+		f"- Changed files: `{total_files}`",
 		f"- Added files: `{added_files}`",
 		f"- Removed files: `{removed_files}`",
 		f"- Files in similar change-size groups within 2% tolerance: `{grouped_files_count}`",
