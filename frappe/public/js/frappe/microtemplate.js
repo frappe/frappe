@@ -9,7 +9,7 @@ frappe.template.compile = function (str, name) {
 
 	if (!frappe.template.compiled[key]) {
 		if (str.indexOf("'") !== -1) {
-			str.replace(/'/g, "\\'");
+			str = str.replace(/'/g, "\\'");
 			//console.warn("Warning: Single quotes (') may not work in templates");
 		}
 
