@@ -357,6 +357,12 @@ build-backend = "flit_core.buildapi"
 [tool.bench.dev-dependencies]
 # package_name = "~=1.1.0"
 
+# These apt dependencies will be installed from Ubuntu repositories when you host your app on Frappe Cloud
+[deploy.dependencies.apt]
+packages = [
+    "hello",
+]
+
 [tool.ruff]
 line-length = 110
 target-version = "py314"
