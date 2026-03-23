@@ -315,8 +315,8 @@ def build_language_section(report: dict[str, Any]) -> list[str]:
 	lines = [
 		f"### `{report['language']}` (`{report['path']}`)",
 		"",
-		"| Status | Context | Msgid | Previous | Current |",
-		"| --- | --- | --- | --- | --- |",
+		"| Status | Msgid | Previous | Current |",
+		"| --- | --- | --- | --- |",
 	]
 
 	for change in report["changes"]:
@@ -333,11 +333,8 @@ def build_language_section(report: dict[str, Any]) -> list[str]:
 			+ " | ".join(
 				[
 					str(change["status"]),
-					escape_table_cell(after.context or "(none)"),
 					escape_table_cell(render_msgid(after)),
-					escape_table_cell(
-						"(missing)" if before is None else format_translation(before.translation)
-					),
+					escape_table_cell("" if before is None else format_translation(before.translation)),
 					escape_table_cell(format_translation(after.translation)),
 				]
 			)
@@ -364,7 +361,6 @@ def build_comment(
 	total_files = len(po_files)
 	added_files = status_counts["added"]
 	removed_files = status_counts["removed"]
-	modified_or_renamed_files = total_files - added_files - removed_files
 
 	grouped_files_count = sum(len(group["files"]) for group in similar_groups)
 	translation_change_count = sum(len(report["changes"]) for report in language_reports if report["changes"])
@@ -385,7 +381,6 @@ def build_comment(
 		f"- Files changed: `{total_files}`",
 		f"- Added files: `{added_files}`",
 		f"- Removed files: `{removed_files}`",
-		f"- Modified or renamed files: `{modified_or_renamed_files}`",
 		f"- Files in similar change-size groups within 2% tolerance: `{grouped_files_count}`",
 		f"- Added or changed translations detected: `{translation_change_count}` across `{changed_languages_count}` file(s)",
 	]
