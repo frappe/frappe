@@ -411,12 +411,7 @@ def build_comment(
 		[
 			"",
 			"<details>",
-			(
-				"<summary>"
-				f"Added or changed translations by language "
-				f"({translation_change_count} entries across {changed_languages_count} file(s))"
-				"</summary>"
-			),
+			f"<summary>Added or changed translations by language ({translation_change_count} entries across {changed_languages_count} file(s))</summary>",
 			"",
 		]
 	)
