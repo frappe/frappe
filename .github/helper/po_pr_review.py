@@ -170,6 +170,12 @@ def normalize_translation(value: Any) -> tuple[str, ...]:
 	return (str(value),)
 
 
+def is_translation_empty(translation: tuple[str, ...]) -> bool:
+	"""Return whether every translated value in the entry is empty or whitespace."""
+
+	return not any(part.strip() for part in translation)
+
+
 def normalize_message(message: Any) -> TranslationEntry:
 	if isinstance(message.id, tuple):
 		msgid, msgid_plural = message.id
@@ -217,7 +223,9 @@ def compare_entries(
 	"""Return only the translations that are new or changed in the PR head.
 
 	Removed entries are not included here because reviewers primarily need to
-	inspect what was introduced or modified in the new translation state.
+	inspect what was introduced or modified in the new translation state. Brand
+	new entries with empty `msgstr` values are also skipped to avoid noisy review
+	tables for untranslated strings.
 	"""
 
 	changes: list[dict[str, TranslationEntry | str | None]] = []
@@ -227,6 +235,8 @@ def compare_entries(
 		base_entry = base_entries.get(key)
 
 		if base_entry is None:
+			if is_translation_empty(head_entry.translation):
+				continue
 			changes.append({"status": "added", "before": None, "after": head_entry})
 			continue
 
