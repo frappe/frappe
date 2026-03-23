@@ -24,6 +24,7 @@ from babel.messages.pofile import read_po
 
 COMMENT_MARKER = "<!-- po-translation-review -->"
 SIMILARITY_TOLERANCE = 0.02
+REVIEW_HIDDEN_PO_FILES = {"eo.po"}
 
 
 @dataclass(frozen=True)
@@ -309,6 +310,12 @@ def render_msgid(entry: TranslationEntry) -> str:
 	return "\n".join(parts)
 
 
+def should_hide_report_from_review(report: dict[str, Any]) -> bool:
+	"""Return whether a file should be omitted from reviewer-facing language details."""
+
+	return Path(str(report["path"])).name in REVIEW_HIDDEN_PO_FILES
+
+
 def build_language_section(report: dict[str, Any]) -> list[str]:
 	"""Render one language's added or changed translations as a markdown table."""
 
@@ -361,13 +368,20 @@ def build_comment(
 	total_files = len(po_files)
 	added_files = status_counts["added"]
 	removed_files = status_counts["removed"]
+	reviewable_language_reports = [
+		report for report in language_reports if not should_hide_report_from_review(report)
+	]
 
 	grouped_files_count = sum(len(group["files"]) for group in similar_groups)
-	translation_change_count = sum(len(report["changes"]) for report in language_reports if report["changes"])
-	changed_languages_count = sum(1 for report in language_reports if report["changes"])
-	removed_reports = [report for report in language_reports if report["status"] == "removed"]
+	translation_change_count = sum(
+		len(report["changes"]) for report in reviewable_language_reports if report["changes"]
+	)
+	changed_languages_count = sum(1 for report in reviewable_language_reports if report["changes"])
+	removed_reports = [report for report in reviewable_language_reports if report["status"] == "removed"]
 	metadata_only_reports = [
-		report for report in language_reports if not report["changes"] and report["status"] != "removed"
+		report
+		for report in reviewable_language_reports
+		if not report["changes"] and report["status"] != "removed"
 	]
 
 	lines = [
@@ -412,7 +426,7 @@ def build_comment(
 	)
 
 	if translation_change_count:
-		for report in language_reports:
+		for report in reviewable_language_reports:
 			if not report["changes"]:
 				continue
 			lines.extend(build_language_section(report))
