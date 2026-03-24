@@ -85,6 +85,9 @@ class Report(Document):
 	def before_insert(self):
 		self.set_doctype_roles()
 
+	def after_insert(self):
+		self.update_report_cache()
+
 	def on_update(self):
 		self.export_doc()
 
@@ -101,6 +104,30 @@ class Report(Document):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role("report", self.name)
 
+<<<<<<< HEAD
+=======
+	def after_delete(self):
+		self.update_report_cache()
+
+	def update_report_cache(self):
+		from frappe.boot import get_allowed_reports
+
+		fresh_reports = get_allowed_reports()
+
+		bootinfo = frappe.cache.hget("bootinfo", frappe.session.user)
+		if bootinfo and bootinfo.get("user"):
+			bootinfo["user"]["all_reports"] = fresh_reports
+			frappe.cache.hset("bootinfo", frappe.session.user, bootinfo)
+
+	def delete_report_folder(self):
+		from frappe.modules.export_file import delete_folder
+
+		delete_folder(self.module, "Report", self.name)
+
+	def get_permission_log_options(self, event=None):
+		return {"fields": ["roles"]}
+
+>>>>>>> 2efc3c9cb4 (fix: update user allowed reports cache after insert and trash to reflect updated reports in dropdown)
 	def get_columns(self):
 		return [d.as_dict(no_default_fields=True, no_child_table_fields=True) for d in self.columns]
 
