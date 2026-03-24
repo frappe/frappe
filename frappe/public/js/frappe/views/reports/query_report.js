@@ -1735,7 +1735,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				if (docfield.fieldtype === "Check") {
 					display_value = this.boolean_labels[cint(value)];
 				} else {
-					display_value = frappe.format(value, docfield);
+					display_value = frappe.format(value, docfield, { for_print: true });
 				}
 
 				return `<div class="filter-row">
