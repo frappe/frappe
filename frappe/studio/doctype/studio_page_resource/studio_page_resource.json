@@ -172,14 +172,14 @@
    "fieldname": "auto",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Auto Load?"
+   "label": "Auto fetch data on load"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-03-24 14:58:58.388282",
+ "modified": "2026-03-24 15:56:00.919209",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Page Resource",
