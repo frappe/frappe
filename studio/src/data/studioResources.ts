@@ -6,6 +6,7 @@ export const studioPageResources = createListResource({
 	fields: [
 		"resource_type",
 		"resource_name",
+		"auto",
 		"fields",
 		"filters",
 		"limit",

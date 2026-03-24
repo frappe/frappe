@@ -7,6 +7,8 @@ interface BaseResource {
 	resource_id: string
 	resource_name: string
 	resource_type: ResourceType
+	/** Whether to automatically fetch data on first load */
+	auto?: boolean
 	transform?: string | null
 	on_success?: string
 	on_error?: string

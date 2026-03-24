@@ -136,6 +136,11 @@
 					/>
 				</template>
 
+				<div class="flex w-full flex-row items-center gap-1.5">
+					<FormControl size="sm" type="checkbox" v-model="newResource.auto" />
+					<InputLabel class="max-w-full">Auto fetch data on load</InputLabel>
+				</div>
+
 				<!-- Transform Results for any Resource Type -->
 				<ScriptSection
 					title="Transform Results"
@@ -229,6 +234,7 @@ const emptyResource: Resource = {
 	transform: null,
 	on_success: "",
 	on_error: "",
+	auto: true,
 }
 
 const newResource = ref<Resource>({ ...emptyResource })
