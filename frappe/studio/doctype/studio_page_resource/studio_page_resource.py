@@ -14,6 +14,7 @@ class StudioPageResource(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		auto: DF.Check
 		document_name: DF.Data | None
 		document_type: DF.Link | None
 		fetch_document_using_filters: DF.Check

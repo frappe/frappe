@@ -327,7 +327,7 @@ const useCodeStore = defineStore("codeStore", () => {
 					fields: fields.length ? fields : "*",
 					filters: getEvaluatedFilters(resource.filters, context),
 					pageLength: resource.limit,
-					auto: true,
+					auto: resource.auto,
 					...getTransforms(resource),
 					...getSuccessErrorHandlers(resource),
 				}
@@ -340,7 +340,7 @@ const useCodeStore = defineStore("codeStore", () => {
 					url: resource.url,
 					method: resource.method,
 					params: getAPIParams(resource.params, context),
-					auto: true,
+					auto: resource.auto,
 					...getTransforms(resource),
 					...getSuccessErrorHandlers(resource),
 				})
@@ -375,7 +375,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		return createDocumentResource({
 			doctype: resource.document_type,
 			name: docname,
-			auto: true,
+			auto: resource.auto,
 			...getTransforms(resource),
 			...getSuccessErrorHandlers(resource),
 			...getWhitelistedMethods(resource),

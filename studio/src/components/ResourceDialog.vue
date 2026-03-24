@@ -15,6 +15,10 @@
 					v-model="newResource.resource_name"
 					autocomplete="off"
 				/>
+				<div class="flex w-full flex-row items-center gap-1.5">
+					<FormControl size="sm" type="checkbox" v-model="newResource.auto" />
+					<InputLabel class="max-w-full">Fetch data automatically on load</InputLabel>
+				</div>
 				<div class="flex w-full flex-row gap-2">
 					<FormControl
 						label="Type"
@@ -229,6 +233,7 @@ const emptyResource: Resource = {
 	transform: null,
 	on_success: "",
 	on_error: "",
+	auto: true,
 }
 
 const newResource = ref<Resource>({ ...emptyResource })
