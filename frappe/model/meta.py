@@ -586,6 +586,13 @@ class Meta(Document):
 			self.high_permlevel_fields = [df for df in self.fields if df.permlevel > 0]
 		return self.high_permlevel_fields
 
+<<<<<<< HEAD
+=======
+	@cached_property
+	def high_permlevel_fields(self):
+		return [df for df in self.fields if (df.permlevel or 0) > 0]
+
+>>>>>>> 7e6c9def71 (fix: `get_list` calls fail sometimes due to permlevel TypeError (#38214))
 	def get_permitted_fieldnames(
 		self,
 		parenttype=None,
