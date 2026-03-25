@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-03-22 09:43+0000\n"
-"PO-Revision-Date: 2026-03-23 09:35\n"
+"PO-Revision-Date: 2026-03-25 11:08\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -1354,7 +1354,7 @@ msgstr "Dodaj indekse"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:32
 msgid "Add New"
-msgstr ""
+msgstr "Dodaj novi"
 
 #: frappe/core/page/permission_manager/permission_manager.js:502
 msgid "Add New Permission Rule"
@@ -1563,7 +1563,7 @@ msgstr "Dodaj {0}"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:67
 msgid "Add/Update Filter"
-msgstr ""
+msgstr "Dodaj/ažuriraj filter"
 
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
@@ -4455,7 +4455,7 @@ msgstr "Nije moguće urediti otkazan dokument"
 
 #: frappe/website/doctype/web_form/web_form.js:367
 msgid "Cannot edit filters for standard Web Forms"
-msgstr ""
+msgstr "Nije moguće uređivati filtere za standardne veb-obrasce"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:378
 msgid "Cannot edit filters for standard charts"
@@ -5884,11 +5884,11 @@ msgstr "Kopirano {0} {1} u međuspremnik"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:69
 msgid "Copy Apps Version"
-msgstr ""
+msgstr "Kopiraj verziju aplikacije"
 
 #: frappe/public/js/frappe/views/file/file_view.js:299
 msgid "Copy File URL"
-msgstr ""
+msgstr "Kopiraj URL fajla"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:93
 msgid "Copy Link"
@@ -8705,7 +8705,7 @@ msgstr "Dinamički"
 
 #: frappe/www/list.py:232
 msgid "Dynamic Filter Error"
-msgstr ""
+msgstr "Greška dinamičkog filtera"
 
 #. Label of the dynamic_filters_section (Section Break) field in DocType
 #. 'Dashboard Chart'
@@ -10980,7 +10980,7 @@ msgstr "Završeno u"
 
 #: frappe/public/js/frappe/form/grid_pagination.js:123
 msgid "First"
-msgstr ""
+msgstr "Prvo"
 
 #. Label of the first_day_of_the_week (Select) field in DocType 'Language'
 #. Label of the first_day_of_the_week (Select) field in DocType 'System
@@ -11859,7 +11859,7 @@ msgstr "Vrati se"
 
 #: frappe/website/doctype/web_form/web_form.js:490
 msgid "Go to Login Required field"
-msgstr ""
+msgstr "Idi na polje za obavezno prijavljivanje"
 
 #: frappe/desk/doctype/notification_settings/notification_settings.js:17
 msgid "Go to Notification Settings List"
@@ -12276,7 +12276,7 @@ msgstr "Poseduje prilog"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:102
 msgid "Has Attachments"
-msgstr ""
+msgstr "Sadrži priloge"
 
 #. Name of a DocType
 #: frappe/core/doctype/has_domain/has_domain.json
@@ -14099,7 +14099,7 @@ msgstr "Nevažeći status dokumenta"
 
 #: frappe/www/list.py:231
 msgid "Invalid expression in Web Form Dynamic Filter for {0}: {1}"
-msgstr ""
+msgstr "Nevažeći izraz u dinamičkom filteru veb-obrasca za {0}: {1}"
 
 #: frappe/model/workflow.py:112
 msgid "Invalid expression in Workflow Update Value: {0}"
@@ -15465,7 +15465,7 @@ msgstr "Lajkovano do strane"
 
 #: frappe/public/js/frappe/list/list_view.js:784
 msgid "Liked by me"
-msgstr ""
+msgstr "Lajkovano od mene"
 
 #: frappe/public/js/frappe/ui/like.js:117
 msgid "Liked by {0} people"
@@ -15657,7 +15657,7 @@ msgstr "Povezano"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:109
 msgid "Linked with {0}"
-msgstr ""
+msgstr "Povezano sa {0}"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:40
 msgid "LinkedIn"
@@ -19043,7 +19043,7 @@ msgstr "Otvori pomoć"
 #: frappe/public/js/frappe/form/controls/data.js:84
 #: frappe/public/js/frappe/form/controls/link.js:17
 msgid "Open Link"
-msgstr ""
+msgstr "Otvori link"
 
 #. Label of the open_reference_document (Button) field in DocType 'Notification
 #. Log'
@@ -19061,7 +19061,7 @@ msgstr "Aplikacije otvorenog koda za veb"
 
 #: frappe/public/js/frappe/form/controls/base_control.js:165
 msgid "Open Translation"
-msgstr ""
+msgstr "Otvori prevod"
 
 #. Label of the open_in_new_tab (Check) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -22170,7 +22170,7 @@ msgstr "Osveži Google Sheet"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:53
 msgid "Refresh List"
-msgstr ""
+msgstr "Osveži listu"
 
 #: frappe/printing/page/print/print.js:382
 msgid "Refresh Print Preview"
@@ -22311,7 +22311,7 @@ msgstr "Ukloni polje"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:402
 msgid "Remove Filter"
-msgstr ""
+msgstr "Ukloni filter"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:429
 msgid "Remove Section"
@@ -22359,7 +22359,7 @@ msgstr "Uklonjeno"
 
 #: frappe/desk/page/desktop/desktop.js:1210
 msgid "Removed Icons"
-msgstr ""
+msgstr "Uklonjene ikonice"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:138
 #: frappe/public/js/frappe/form/toolbar.js:282
@@ -23728,7 +23728,7 @@ msgstr "Čuvanje..."
 
 #: frappe/public/js/frappe/form/controls/data.js:149
 msgid "Scan"
-msgstr ""
+msgstr "Skeniranje"
 
 #: frappe/public/js/frappe/scanner/index.js:72
 msgid "Scan QRCode"
@@ -23979,11 +23979,11 @@ msgstr "Pretraga za bilo šta"
 
 #: frappe/public/js/frappe/phone_picker/phone_picker.js:20
 msgid "Search for countries..."
-msgstr ""
+msgstr "Pretraga za države..."
 
 #: frappe/public/js/frappe/icon_picker/icon_picker.js:20
 msgid "Search for icons..."
-msgstr ""
+msgstr "Pretraga ikonica..."
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:350
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:354
@@ -24008,7 +24008,7 @@ msgstr "Rezultati pretrage za"
 
 #: frappe/website/js/website.js:440
 msgid "Search the docs (Press / to focus)"
-msgstr ""
+msgstr "Pretraga za dokumenta (pritisnite/ za fokusiranje)"
 
 #: frappe/templates/includes/navbar/navbar_search.html:6
 #: frappe/templates/includes/search_box.html:2
@@ -24939,7 +24939,7 @@ msgstr "Postavljeno od strane korisnika"
 
 #: frappe/website/doctype/web_form/web_form.js:353
 msgid "Set dynamic filter values as Python expressions."
-msgstr ""
+msgstr "Postavite vrednosti dinamičkog filtera kao python izraze."
 
 #: frappe/public/js/frappe/utils/dashboard_utils.js:163
 msgid "Set dynamic filter values in JavaScript for the required fields here."
@@ -25031,7 +25031,7 @@ msgstr "Postavi putanju do dozvoljenih funkcija koje će vratiti podatke za broj
 
 #: frappe/public/js/frappe/views/workspace/blocks/block.js:201
 msgid "Setting"
-msgstr ""
+msgstr "Podešavanje"
 
 #: frappe/contacts/doctype/address_template/address_template.py:33
 msgid "Setting this Address Template as default as there is no other default"
