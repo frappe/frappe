@@ -112,14 +112,7 @@ class Report(Document):
 		return super().clear_cache()
 
 	def update_report_cache(self):
-		from frappe.boot import get_allowed_reports
-
-		fresh_reports = get_allowed_reports()
-
-		bootinfo = frappe.cache.hget("bootinfo", frappe.session.user)
-		if bootinfo and bootinfo.get("user"):
-			bootinfo["user"]["all_reports"] = fresh_reports
-			frappe.cache.hset("bootinfo", frappe.session.user, bootinfo)
+		frappe.cache.delete_key("bootinfo")
 
 	def delete_report_folder(self):
 		from frappe.modules.export_file import delete_folder
