@@ -1,6 +1,8 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 
+import re
+
 import click
 
 import frappe
@@ -106,6 +108,7 @@ class PrintFormatGenerator:
 
 		self.context.update({"header_height": self.header_height, "footer_height": self.footer_height})
 		main_html = self.get_main_html()
+		main_html = re.sub(r'<link[^>]+href="[^"]*print_format\.bundle[^"]*"[^>]*>', "", main_html)
 
 		html = HTML(string=main_html, base_url=self.base_url)
 		main_doc = html.render()
