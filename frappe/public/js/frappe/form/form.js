@@ -2141,7 +2141,7 @@ frappe.ui.form.Form = class FrappeForm {
 				this.meta.is_submittable &&
 				this.meta.queue_in_background &&
 				!this.doc.__islocal &&
-				this.doc.docstatus === 0
+				this.doc.docstatus <= 1
 			)
 		) {
 			wrapper.length && wrapper.remove();
