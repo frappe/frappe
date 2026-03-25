@@ -74,7 +74,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-28 15:58:11.939407",
+ "modified": "2026-03-24 17:11:56.644129",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",
@@ -91,6 +91,10 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "HR User"
   }
  ],
  "quick_entry": 1,
