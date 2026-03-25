@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-03-09 21:07\n"
+"PO-Revision-Date: 2026-03-25 05:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -11176,11 +11176,11 @@ msgstr "Frapé"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Frappe Blog"
-msgstr ""
+msgstr "Blog Frappe"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Frappe Forum"
-msgstr ""
+msgstr "Foro Frappe"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:8
 msgid "Frappe Framework"
@@ -18417,7 +18417,7 @@ msgstr "Configuración de OpenID"
 
 #: frappe/integrations/doctype/connected_app/connected_app.js:15
 msgid "OpenID Configuration fetched successfully!"
-msgstr ""
+msgstr "¡La configuración de OpenID se ha obtenido correctamente!"
 
 #. Option for the 'Directory Server' (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -19308,7 +19308,7 @@ msgstr "Personal"
 #: frappe/public/js/frappe/views/workspace/workspace.js:34
 msgctxt "Workspace Category"
 msgid "Personal"
-msgstr ""
+msgstr "Personal"
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
@@ -19796,7 +19796,7 @@ msgstr "Por favor, utilice un filtro de búsqueda LDAP válido"
 
 #: frappe/templates/emails/file_backup_notification.html:4
 msgid "Please use following links to download file backup."
-msgstr ""
+msgstr "Por favor, utilice los siguientes enlaces para descargar la copia de seguridad de los archivos."
 
 #: frappe/email/doctype/newsletter/newsletter.py:336
 msgid "Please verify your Email Address"
@@ -20461,11 +20461,11 @@ msgstr "Tipo de Inmueble"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Protect Attached Files"
-msgstr ""
+msgstr "Proteger archivos adjuntos"
 
 #: frappe/core/doctype/file/file.py:508
 msgid "Protected File"
-msgstr ""
+msgstr "Archivo Protegido"
 
 #. Description of the 'Allowed File Extensions' (Small Text) field in DocType
 #. 'System Settings'
@@ -20716,7 +20716,7 @@ msgstr "Cola"
 
 #: frappe/utils/background_jobs.py:634
 msgid "Queue Overloaded"
-msgstr ""
+msgstr "Cola sobrecargada"
 
 #. Label of a Table field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
