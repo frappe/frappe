@@ -89,6 +89,10 @@
 	padding-left: 15px;
 	padding-right: 15px;
 
+	.dt-cell__content--col-0 {
+		font-feature-settings: "tnum" 0 !important;
+	}
+
 	.datatable {
 		border-radius: var(--border-radius);
 	}
