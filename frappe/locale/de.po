@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-03-18 01:13\n"
+"PO-Revision-Date: 2026-03-25 05:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -1493,7 +1493,7 @@ msgstr "Neue Registerkarte hinzufügen"
 
 #: frappe/utils/password_strength.py:187
 msgid "Add numbers or special characters."
-msgstr ""
+msgstr "Fügen Sie Zahlen oder Sonderzeichen hinzu."
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
@@ -5384,7 +5384,7 @@ msgstr "Namen und Nachnamen sind leicht zu erraten."
 
 #: frappe/utils/password_strength.py:186
 msgid "Common words are easy to guess."
-msgstr ""
+msgstr "Gängige Wörter sind leicht zu erraten."
 
 #. Name of a DocType
 #. Option for the 'Communication Type' (Select) field in DocType
@@ -5403,7 +5403,7 @@ msgstr "Kommunikation"
 #. Label of a Datetime field in DocType 'Communication Link'
 #: frappe/core/doctype/communication_link/communication_link.json
 msgid "Communication Date"
-msgstr ""
+msgstr "Kommunikationsdatum"
 
 #. Name of a DocType
 #: frappe/core/doctype/communication_link/communication_link.json
@@ -7881,7 +7881,7 @@ msgstr "DocType Link"
 
 #: frappe/public/js/form_builder/components/Field.vue:162
 msgid "DocType Missing"
-msgstr ""
+msgstr "DocType fehlt"
 
 #. Name of a DocType
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
@@ -13484,7 +13484,7 @@ msgstr "Ungültige Anmeldeinformationen"
 
 #: frappe/email/smtp.py:138
 msgid "Invalid Credentials for Email Account: {0}"
-msgstr ""
+msgstr "Ungültige Anmeldedaten für E-Mail-Konto: {0}"
 
 #: frappe/utils/data.py:106 frappe/utils/data.py:255
 msgid "Invalid Date"
