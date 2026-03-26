@@ -5,9 +5,9 @@ import WorkflowBuilderComponent from "./WorkflowBuilder.vue";
 import { registerGlobalComponents } from "./globals.js";
 
 class WorkflowBuilder {
-	constructor({ wrapper, page, workflow }) {
+	constructor({ wrapper, frm, page, workflow }) {
 		this.$wrapper = $(wrapper);
-		this.page = page;
+		this.page = frm.page;
 		this.workflow = workflow;
 		this.init();
 	}

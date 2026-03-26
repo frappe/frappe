@@ -8,6 +8,9 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
+  "builder_tab",
+  "workflow_builder",
+  "settings_tab",
   "workflow_name",
   "document_type",
   "is_active",
@@ -62,11 +65,11 @@
    "label": "Send Email Alert"
   },
   {
-    "default": "0",
-    "description": "If checked, a confirmation will be required before performing workflow actions.",
-    "fieldname": "enable_action_confirmation",
-    "fieldtype": "Check",
-    "label": "Enable Action Confirmation"
+   "default": "0",
+   "description": "If checked, a confirmation will be required before performing workflow actions.",
+   "fieldname": "enable_action_confirmation",
+   "fieldtype": "Check",
+   "label": "Enable Action Confirmation"
   },
   {
    "description": "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc.",
@@ -107,15 +110,30 @@
    "fieldtype": "JSON",
    "hidden": 1,
    "label": "Workflow Data"
+  },
+  {
+   "fieldname": "builder_tab",
+   "fieldtype": "Tab Break",
+   "label": "Builder"
+  },
+  {
+   "fieldname": "settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "workflow_builder",
+   "fieldtype": "HTML"
   }
  ],
  "icon": "fa fa-random",
  "idx": 1,
  "links": [],
- "modified": "2024-03-23 16:04:04.849665",
+ "modified": "2026-03-25 12:34:42.667390",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -129,6 +147,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "show_name_in_global_search": 1,
  "sort_field": "creation",
  "sort_order": "DESC",

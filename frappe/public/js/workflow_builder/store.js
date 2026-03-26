@@ -373,20 +373,27 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		ref_history.value.commit();
 	}
 
-	async function add_task_to_transition(p_node, task_name) {
+	async function add_task_to_transition(p_node, task_name, { select = false } = {}) {
 		let source_node = workflow.value.elements.find((el) => el.id === p_node.id);
 		if (!source_node || !source_node.data) return;
 
 		if (!source_node.data.tasks) source_node.data.tasks = [];
 
 		if (!source_node.data.tasks.some((t) => t.task === task_name)) {
-			source_node.data.tasks.push({
+			const new_task = {
 				task: task_name,
 				email_template: null,
 				receiver_by_document_field: null,
 				link: null,
-			});
+			};
+			source_node.data.tasks.push(new_task);
 			source_node.data = { ...source_node.data };
+
+			if (select) {
+				workflow.value.selected = source_node;
+				source_node.selected_task = new_task;
+				source_node.selected_task_index = source_node.data.tasks.length - 1;
+			}
 		}
 
 		ref_history.value.commit();

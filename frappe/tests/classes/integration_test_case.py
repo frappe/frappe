@@ -68,8 +68,8 @@ class IntegrationTestCase(UnitTestCase):
 			frappe.db.before_commit.add(_commit_watcher)
 
 		# enqueue teardown actions (executed in LIFO order)
-		cls.addClassCleanup(_restore_ctx_locals, copy.deepcopy(frappe.local.flags))
-		cls.addClassCleanup(_rollback_db)
+		# cls.addClassCleanup(_restore_ctx_locals, copy.deepcopy(frappe.local.flags))
+		# cls.addClassCleanup(_rollback_db)
 		cls._integration_test_case_class_setup_done = True
 
 	@classmethod

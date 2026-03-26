@@ -6,40 +6,6 @@ frappe.ui.form.on("Workflow", {
 	},
 	refresh: function (frm) {
 		frm.layout.message.empty();
-		let title, note;
-		let workflow_builder_url = "/desk/workflow-builder";
-		let msg = __(
-			"Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update their properties from the sidebar."
-		);
-
-		if (frm.is_new()) {
-			title = __("Create your workflow visually using the Workflow Builder.");
-		} else {
-			title = __("Edit your workflow visually using the Workflow Builder.");
-			note = __(
-				"NOTE: If you add states or transitions in the table, it will be reflected in the Workflow Builder but you will have to position them manually. Also Workflow Builder is currently in <b>BETA</b>."
-			);
-			workflow_builder_url += "/" + frm.doc.name;
-		}
-
-		let message = `
-		<div class="flex">
-			<div class="mr-3"><img style="border-radius: var(--border-radius-md)" width="600" src="/assets/frappe/images/workflow-builder.gif"></div>
-			<div>
-				<p style="font-size: var(--text-xl)">${title}</p>
-				<p>${msg}</p>
-				<p class="mb-3">${note || ""}</p>
-				<div>
-					<a class="btn btn-primary btn-sm" href="${workflow_builder_url}">
-						${__("Workflow Builder")} ${frappe.utils.icon("right", "xs")}
-					</a>
-				</div>
-			</div>
-		</div>
-		`;
-
-		frm.layout.show_message(message);
-
 		if (frm.doc.document_type) {
 			frm.add_custom_button(__("Go to {0} List", [frm.doc.document_type]), () => {
 				frappe.set_route("List", frm.doc.document_type);
@@ -62,6 +28,8 @@ frappe.ui.form.on("Workflow", {
 		frm.trigger("get_orphaned_states_and_count").then(() => {
 			frm.trigger("render_state_table");
 		});
+
+		render_workflow_builder(frm);
 	},
 	validate: async (frm) => {
 		if (frm.doc.is_active && (!frm.doc.states.length || !frm.doc.transitions.length)) {
@@ -100,6 +68,21 @@ frappe.ui.form.on("Workflow", {
 			}
 		});
 	},
+
+	on_tab_change: (frm) => {
+		let current_tab = frm.get_active_tab().label;
+
+		if (current_tab === "Builder") {
+			frm.footer.wrapper.hide();
+			frm.form_wrapper.find(".form-message").hide();
+			frm.form_wrapper.addClass("mb-1");
+		} else {
+			frm.footer.wrapper.show();
+			frm.form_wrapper.find(".form-message").show();
+			frm.form_wrapper.removeClass("mb-1");
+		}
+	},
+
 	document_type: function (frm) {
 		frm.events.update_field_options(frm);
 	},
@@ -295,4 +278,32 @@ async function create_docstatus_change_warning(updated_states) {
 			() => resolve(false)
 		);
 	});
+}
+
+function render_workflow_builder(frm) {
+	let route = frappe.get_route();
+
+	if (frappe.workflow_builder && frappe.workflow_builder.doctype === frm.doc.name) {
+		frappe.workflow_builder.setup_page_actions();
+		frappe.workflow_builder.store.fetch();
+		return;
+	}
+
+	if (frappe.workflow_builder) {
+		frappe.workflow_builder.wrapper = $(frm.fields_dict["workflow_builder"].wrapper);
+		frappe.workflow_builder.frm = frm;
+		frappe.workflow_builder.doctype = frm.doc.name;
+		frappe.workflow_builder.customize = false;
+		frappe.workflow_builder.init(true);
+		frappe.workflow_builder.store.fetch();
+	} else {
+		frappe.require("workflow_builder.bundle.js").then(() => {
+			frappe.workflow_builder = new frappe.ui.WorkflowBuilder({
+				wrapper: $(frm.fields_dict["workflow_builder"].wrapper),
+				frm: frm,
+				page: frm.fields_dict["workflow_builder"].wrapper.page,
+				route: route[1],
+			});
+		});
+	}
 }
