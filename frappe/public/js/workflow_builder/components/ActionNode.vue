@@ -87,7 +87,7 @@ async function onDrop(event) {
 		// "transition_task" refers to the dropped Task name
 		// We need to link this task to the current Transition (Action Node)
 		try {
-			await store.add_task_to_transition(props.node, item_name);
+			await store.add_task_to_transition(props.node, item_name, { select: true });
 			frappe.show_alert({
 				message: __("Task '{0}' added to transition", [item_name]),
 				indicator: "green",
@@ -170,7 +170,9 @@ async function removeTask(task) {
 						}
 					"
 				>
-					<span>{{ task.link || task.script_name || task.task }}</span>
+					<span>{{
+						task.link || task.script_name || task.email_template || task.task
+					}}</span>
 					<div class="remove-icon" @click.stop="removeTask(task)" title="Remove Task">
 						<svg
 							width="12"
