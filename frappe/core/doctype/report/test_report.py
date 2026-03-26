@@ -434,26 +434,31 @@ result = [
 			self.assertRaises(frappe.PermissionError, report.execute_query_report, filters={})
 =======
 	def test_report_cache_invalidation(self):
-		from frappe.boot import get_bootinfo
+		import frappe.sessions
+		from frappe.utils import set_request
 
 		frappe.set_user("test@example.com")
+		set_request(method="GET", path="/app")
 
 		try:
+			frappe.sessions.get()
+
 			report_name = _save_report(
 				"Test Cache Invalidation Report",
 				"User",
 				json.dumps([{"fieldname": "email", "fieldtype": "Data", "label": "Email"}]),
 			)
 
-			bootinfo = get_bootinfo()
-			self.assertIn(report_name, bootinfo["user"]["all_reports"])
+			cached_bootinfo = frappe.sessions.get()
+			self.assertIn(report_name, cached_bootinfo["user"]["all_reports"])
 
 			doc = frappe.get_doc("Report", report_name)
 			delete_report(doc.name)
 
-			bootinfo = get_bootinfo()
-			self.assertNotIn(report_name, bootinfo["user"]["all_reports"])
+			cached_bootinfo = frappe.sessions.get()
+			self.assertNotIn(report_name, cached_bootinfo["user"]["all_reports"])
 
 		finally:
+			frappe.local.request = None
 			frappe.set_user("Administrator")
 >>>>>>> 2efc3c9cb4 (fix: update user allowed reports cache after insert and trash to reflect updated reports in dropdown)
