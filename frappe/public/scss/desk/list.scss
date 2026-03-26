@@ -2,7 +2,6 @@
 	.frappe-list {
 		.result-container {
 			.result {
-				display: table;
 				min-width: 100%;
 				width: auto;
 				.list-row-container {
@@ -605,6 +604,8 @@ input.list-header-checkbox {
 			overflow-x: auto;
 			.result {
 				overflow-y: hidden;
+				display: table;
+				width: 100%;
 			}
 		}
 	}
