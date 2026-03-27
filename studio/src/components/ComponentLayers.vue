@@ -204,7 +204,7 @@ const canShowSlotLayer = (block: Block) => {
 }
 
 const openBlockEditor = (block: Block, e: MouseEvent) => {
-	if (block.editInFragmentMode()) {
+	if (canvasStore.editingMode !== "fragment" && block.editInFragmentMode()) {
 		const parentBlock = block.getParentBlock()
 		canvasStore.editOnCanvas(
 			block,

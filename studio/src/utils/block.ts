@@ -22,7 +22,7 @@ class Block implements BlockOptions {
 	componentSlots: Record<string, Slot>
 	componentEvents: Record<string, any>
 	attributes: Record<string, any>
-	blockName: string
+	blockName?: string
 	children: Block[]
 	parentBlock: Block | null
 	baseStyles: BlockStyleMap
@@ -47,7 +47,7 @@ class Block implements BlockOptions {
 
 	constructor(options: BlockOptions) {
 		this.componentName = options.componentName
-		this.blockName = options.blockName || this.componentName
+		this.blockName = options.blockName
 		this.originalElement = options.originalElement
 		this.baseStyles = reactive(options.baseStyles || {})
 		this.rawStyles = reactive(options.rawStyles || {});

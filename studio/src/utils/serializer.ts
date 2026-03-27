@@ -128,7 +128,6 @@ function getComponentBlock(componentName: string, isStudioComponent: boolean = f
 	return getBlockInstance({
 		componentName: componentName,
 		isStudioComponent: isStudioComponent,
-		blockName: componentName,
 	})
 }
 
