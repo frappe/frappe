@@ -8,11 +8,6 @@
 					width: fit-content;
 					min-width: 100%;
 				}
-				.list-row-container:first-child {
-					position: sticky;
-					top: 0;
-					z-index: 2;
-				}
 				.list-row-container {
 					.level-left {
 						.list-row-col {
@@ -94,6 +89,9 @@
 
 	&:first-child {
 		padding: 0;
+		position: sticky;
+		top: 0;
+		z-index: 2;
 	}
 
 	&:hover {
