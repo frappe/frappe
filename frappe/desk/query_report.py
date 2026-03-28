@@ -81,7 +81,7 @@ def generate_report_result(
 	custom_columns=None,
 	is_tree=False,
 	parent_field=None,
-	skip_total_calculation=False,
+	skip_total_row=False,
 ):
 	user = user or frappe.session.user
 	filters = filters or []
@@ -91,7 +91,9 @@ def generate_report_result(
 
 	res = get_report_result(report, filters) or []
 
-	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
+	columns, result, message, chart, report_summary, _skip_total_row = ljust_list(res, 6)
+	skip_total_row = skip_total_row or _skip_total_row
+
 	columns = [get_column_as_dict(col) for col in (columns or [])]
 	report_column_names = [col["fieldname"] for col in columns]
 	# convert to list of dicts
@@ -116,13 +118,13 @@ def generate_report_result(
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
 
-	has_total_row = cint(report.add_total_row) and result and not skip_total_row
+	needs_total_row = cint(report.add_total_row) and result and not skip_total_row
 
-	if has_total_row and not skip_total_calculation:
+	if needs_total_row:
 		result = add_total_row(result, columns, is_tree=is_tree, parent_field=parent_field)
 
 	if isinstance(filters, dict) and filters.get("translate_data"):
-		result = translate_report_data(result, has_total_row)
+		result = translate_report_data(result, needs_total_row)
 
 	return {
 		"result": result,
@@ -208,7 +210,7 @@ def run(
 	parent_field: str | None = None,
 	are_default_filters: bool = True,
 	js_filters: str | list | None = None,
-	skip_total_calculation: bool = False,
+	skip_total_row: bool = False,
 ) -> dict:
 	if not user:
 		user = frappe.session.user
@@ -226,7 +228,7 @@ def run(
 		filters = report.custom_filters
 
 	is_prepared_report = report.prepared_report and not sbool(ignore_prepared_report) and not custom_columns
-	skip_total_calculation = sbool(skip_total_calculation)
+	skip_total_row = sbool(skip_total_row)
 
 	try:
 		if is_prepared_report:
@@ -240,7 +242,7 @@ def run(
 			result = get_prepared_report_result(report, filters, dn, user)
 		else:
 			result = generate_report_result(
-				report, filters, user, custom_columns, is_tree, parent_field, skip_total_calculation
+				report, filters, user, custom_columns, is_tree, parent_field, skip_total_row
 			)
 			add_data_to_monitor(report=report.reference_report or report.name)
 	except Exception:
@@ -249,7 +251,7 @@ def run(
 
 	result["add_total_row"] = report.add_total_row and not result.get("skip_total_row", False)
 
-	if skip_total_calculation and is_prepared_report:
+	if skip_total_row and is_prepared_report:
 		# remove total row from result
 		result["result"] = result["result"][:-1]
 
@@ -397,7 +399,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 		form_params.filters,
 		custom_columns=custom_columns,
 		are_default_filters=False,
-		skip_total_calculation=skip_all_rows_total,
+		skip_total_row=skip_all_rows_total,
 	)
 
 	data = frappe._dict(data)
