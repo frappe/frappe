@@ -179,7 +179,7 @@ def upload_file():
 		file = files["file"]
 		filename = file.filename
 
-		if frappe.form_dict.chunk_index:
+		if frappe.form_dict.get("chunk_index") is not None:
 			current_chunk = int(frappe.form_dict.chunk_index)
 			total_chunks = int(frappe.form_dict.total_chunk_count)
 			offset = int(frappe.form_dict.chunk_byte_offset)
