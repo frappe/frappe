@@ -220,6 +220,63 @@ class BaseTestCommands(IntegrationTestCase):
 
 
 class TestCommands(BaseTestCommands):
+	def test_make_app_forwards_cli_options(self):
+		with (
+			patch("frappe.commands.utils.get_sites", return_value=[]),
+			patch("frappe.utils.boilerplate.make_boilerplate") as make_boilerplate,
+		):
+			result = CliRunner().invoke(
+				frappe.commands.utils.make_app,
+				[
+					"apps",
+					"test_app",
+					"--no-git",
+					"--title",
+					"Test App",
+					"--description",
+					"Test app description",
+					"--publisher",
+					"Test Publisher",
+					"--email",
+					"example@example.org",
+					"--license",
+					"mit",
+					"--github-workflow",
+					"--frontend",
+					"--route",
+					"t",
+					"--branch",
+					"main",
+				],
+			)
+
+		self.assertEqual(result.exit_code, 0)
+		make_boilerplate.assert_called_once_with(
+			"apps",
+			"test_app",
+			no_git=True,
+			options={
+				"app_title": "Test App",
+				"app_description": "Test app description",
+				"app_publisher": "Test Publisher",
+				"app_email": "example@example.org",
+				"app_license": "mit",
+				"create_github_workflow": True,
+				"create_frontend": True,
+				"frontend_route": "t",
+				"branch_name": "main",
+			},
+		)
+
+	def test_make_app_frontend_route_requires_frontend(self):
+		result = CliRunner().invoke(
+			frappe.commands.utils.make_app,
+			["apps", "test_app", "--no-frontend", "--route", "t"],
+		)
+
+		self.assertEqual(result.exit_code, 2)
+		self.assertIn("--route cannot be used with --no-frontend", result.output)
+
 	def test_execute(self):
 		# test 1: execute a command expecting a numeric output
 		self.execute("bench --site {site} execute frappe.db.get_database_size")

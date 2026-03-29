@@ -11,7 +11,7 @@ from frappe import _
 from frappe.commands import get_site, pass_context
 from frappe.coverage import CodeCoverage
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import cint, update_progress_bar
+from frappe.utils import cint, get_sites, get_sites_for_app, update_progress_bar
 from frappe.utils.bench_helper import CliCtxObj
 
 EXTRA_ARGS_CTX = {"ignore_unknown_options": True, "allow_extra_args": True}
@@ -804,19 +804,109 @@ def request(context: CliCtxObj, args=None, path=None):
 @click.argument("destination")
 @click.argument("app_name")
 @click.option("--no-git", is_flag=True, default=False, help="Do not initialize git repository for the app")
-def make_app(destination, app_name, no_git=False):
+@click.option("--title", "app_title", help="App title")
+@click.option("--description", "app_description", help="App description")
+@click.option("--publisher", "app_publisher", help="App publisher")
+@click.option("--email", "app_email", help="App email")
+@click.option("--license", "app_license", help="App license")
+@click.option(
+	"--github-workflow/--no-github-workflow",
+	"github_workflow",
+	default=None,
+	help="Create GitHub Workflow action for unittests",
+)
+@click.option(
+	"--frontend/--no-frontend",
+	"frontend",
+	default=None,
+	help="Create frappe-ui frontend",
+)
+@click.option("--route", help="Frontend route for SPA when creating a frontend")
+@click.option("--branch", "branch_name", help="Initial git branch name")
+def make_app(
+	destination,
+	app_name,
+	no_git=False,
+	app_title=None,
+	app_description=None,
+	app_publisher=None,
+	app_email=None,
+	app_license=None,
+	github_workflow=None,
+	frontend=None,
+	route=None,
+	branch_name=None,
+):
 	"Creates a boilerplate app"
-	from frappe.utils import get_sites
-
 	if app_name in get_sites():
 		click.secho(
 			f"Your bench has a site called {app_name}, please choose another name for the app.", fg="red"
 		)
 		sys.exit(1)
 
+	if route:
+		if frontend is False:
+			raise click.UsageError("--route cannot be used with --no-frontend")
+		if frontend is None:
+			frontend = True
+
 	from frappe.utils.boilerplate import make_boilerplate
 
-	make_boilerplate(destination, app_name, no_git=no_git)
+	make_boilerplate(
+		destination,
+		app_name,
+		no_git=no_git,
+		options={
+			"app_title": app_title,
+			"app_description": app_description,
+			"app_publisher": app_publisher,
+			"app_email": app_email,
+			"app_license": app_license,
+			"create_github_workflow": github_workflow,
+			"create_frontend": frontend,
+			"frontend_route": route,
+			"branch_name": branch_name,
+		},
+	)
+
+
+@click.command("add-frontend")
+@click.argument("app_name")
+@click.option("--framework", default="vue", help="Frontend framework to use (vue)")
+@click.option("--frontend-route", default=None, help="Frontend route for SPA")
+def add_frontend(app_name, framework="vue", frontend_route=None):
+	"Add frontend boilerplate to an existing app"
+
+	import os
+	import re
+	import sys
+	from frappe.utils.boilerplate import make_frontend_boilerplate
+
+	if not frontend_route:
+		default_route = app_name[0]
+		frontend_route = click.prompt("Frontend Route", default=default_route)
+
+	app_directory = os.path.join("..", "apps", app_name)
+	if not os.path.exists(app_directory):
+		click.secho(f"App {app_name} not found in apps directory", fg="red")
+		sys.exit(1)
+
+	app_title = app_name.replace("_", " ").title()
+	hooks_path = os.path.join(app_directory, app_name, "hooks.py")
+	if os.path.exists(hooks_path):
+		with open(hooks_path) as f:
+			content = f.read()
+			match = re.search(r'app_title\s*=\s*["\'](.*?)["\']', content)
+			if match:
+				app_title = match.group(1)
+
+	make_frontend_boilerplate(
+		app_directory=app_directory,
+		app_name=app_name,
+		app_title=app_title,
+		frontend_route=frontend_route,
+		framework=framework,
+	)
 
 
 @click.command("create-patch")
@@ -978,6 +1068,27 @@ def list_sites(context: CliCtxObj, output_json=False):
 		click.echo("No sites found")
 
 
+@click.command("list-app-sites")
+@click.argument("app_name")
+@click.option("--format", "output_format", type=click.Choice(["text", "json"]), default="text")
+@pass_context
+def list_app_sites(context: CliCtxObj, app_name: str, output_format: str):
+	"List sites in current bench where an app is installed."
+	sites = get_sites_for_app(app_name)
+
+	if output_format == "json":
+		click.echo(json.dumps(sites))
+		return
+
+	if not sites:
+		click.echo(f"No sites found with app '{app_name}' installed")
+		return
+
+	click.echo(f"Sites with app '{app_name}' installed:")
+	for site in sites:
+		click.echo(site)
+
+
 @click.command("setup-chrome")
 def setup_chrome():
 	from frappe.utils.print_utils import setup_chromium
@@ -1003,6 +1114,7 @@ commands = [
 	data_import,
 	import_doc,
 	make_app,
+	add_frontend,
 	create_patch,
 	mariadb,
 	sqlite,
@@ -1017,5 +1129,6 @@ commands = [
 	add_to_email_queue,
 	rebuild_global_search,
 	list_sites,
+	list_app_sites,
 	setup_chrome,
 ]

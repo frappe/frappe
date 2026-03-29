@@ -720,6 +720,35 @@ def get_sites(sites_path=None):
 	return sorted(sites)
 
 
+def get_sites_for_app(app_name: str) -> list[str]:
+	import frappe
+
+	bench_path = get_bench_path()
+	sites_path = os.path.join(bench_path, "sites")
+	matching_sites = []
+
+	for site in get_sites(sites_path=sites_path):
+		try:
+			frappe.init(site, sites_path=sites_path)
+			frappe.connect()
+
+			try:
+				installed_applications = frappe.get_single("Installed Applications").get("installed_applications") or []
+				installed_apps = [app.get("app_name") for app in installed_applications if app.get("app_name")]
+			except Exception:
+				installed_apps = frappe.get_installed_apps()
+
+			if app_name in installed_apps:
+				matching_sites.append(site)
+		except Exception:
+			continue
+		finally:
+			if getattr(frappe.local, "site", None):
+				frappe.destroy()
+
+	return matching_sites
+
+
 def get_request_session(max_retries=5):
 	import requests
 	from requests.adapters import HTTPAdapter, Retry
