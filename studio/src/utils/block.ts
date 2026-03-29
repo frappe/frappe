@@ -272,7 +272,7 @@ class Block implements BlockOptions {
 			const componentStore = useComponentStore()
 			return componentStore.getComponentName(this.componentName)
 		}
-		return this.blockName || this.originalElement
+		return this.blockName || this.componentName || this.originalElement
 	}
 
 	editInFragmentMode() {
