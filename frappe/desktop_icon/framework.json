@@ -10,10 +10,18 @@
  "link": "/desk/build",
  "link_type": "External",
  "logo_url": "/assets/frappe/images/frappe-framework-logo.svg",
- "modified": "2025-12-12 07:36:09.059666",
+ "modified": "2026-03-29 13:53:49.960436",
  "modified_by": "Administrator",
  "name": "Framework",
  "owner": "Administrator",
- "roles": [],
+ "restrict_removal": 0,
+ "roles": [
+  {
+   "role": "Administrator"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "standard": 1
 }
