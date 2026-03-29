@@ -1,0 +1,12 @@
+{
+  "name": "{{ app_name }}",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "frontend:install": "cd frontend && yarn",
+    "postinstall": "npm run frontend:install",
+    "dev": "cd frontend && yarn dev",
+    "build": "cd frontend && yarn build",
+    "upgrade-frappeui": "cd frontend && yarn upgrade frappe-ui@latest"
+  }
+}

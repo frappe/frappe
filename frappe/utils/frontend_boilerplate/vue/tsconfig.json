@@ -1,0 +1,10 @@
+{
+  "extends": "frappe-ui/tsconfig.base.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["./src/**/*", "vite/client", "./vite.config.ts"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
+}

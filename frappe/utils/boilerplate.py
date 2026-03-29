@@ -20,20 +20,21 @@ from frappe.utils.change_log import get_app_branch
 APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
 
 
-def make_boilerplate(dest, app_name, no_git=False):
+def make_boilerplate(dest, app_name, no_git=False, options=None):
 	if not os.path.exists(dest):
 		print("Destination directory does not exist")
 		return
 
 	# app_name should be in snake_case
 	app_name = frappe.scrub(app_name)
-	hooks = _get_user_inputs(app_name)
+	hooks = _get_user_inputs(app_name, provided_values=options)
 	_create_app_boilerplate(dest, hooks, no_git=no_git)
 
 
-def _get_user_inputs(app_name):
+def _get_user_inputs(app_name, provided_values=None):
 	"""Prompt user for various inputs related to new app and return config."""
 	app_name = frappe.scrub(app_name)
+	provided_values = provided_values or {}
 
 	hooks = frappe._dict()
 	hooks.app_name = app_name
@@ -58,10 +59,19 @@ def _get_user_inputs(app_name):
 			"default": False,
 			"type": bool,
 		},
+		"create_frontend": {
+			"prompt": "Create frappe-ui frontend",
+			"default": False,
+			"type": bool,
+		},
 		"branch_name": {"prompt": "Branch Name", "default": get_app_branch("frappe")},
 	}
 
 	for property, config in new_app_config.items():
+		if provided_values.get(property) is not None:
+			hooks[property] = _validate_input(property, provided_values[property], config)
+			continue
+
 		value = None
 		input_type = config.get("type", str)
 
@@ -76,7 +86,27 @@ def _get_user_inputs(app_name):
 					value = None
 		hooks[property] = value
 
+	if hooks.create_frontend:
+		frontend_route = provided_values.get("frontend_route")
+		if frontend_route is None:
+			default_route = hooks.app_name[0]
+			frontend_route = click.prompt("Frontend Route", default=default_route)
+		hooks.frontend_route = frontend_route
+
 	return hooks
+
+
+def _validate_input(property, value, config):
+	input_type = config.get("type", str)
+
+	if isinstance(input_type, click.ParamType):
+		value = input_type.convert(value, param=None, ctx=None)
+
+	if validator_function := config.get("validator"):
+		if not validator_function(value):
+			raise click.BadParameter(f"Invalid value for {property.replace('_', ' ')}")
+
+	return value
 
 
 def is_valid_email(email) -> bool:
@@ -201,9 +231,20 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
 		f.write(frappe.as_unicode(readme_template.format(**hooks)))
 
+	if hooks.get("create_frontend"):
+		make_frontend_boilerplate(
+			app_directory=app_directory,
+			app_name=hooks.app_name,
+			app_title=hooks.app_title,
+			frontend_route=hooks.frontend_route,
+		)
+
 	if not no_git:
 		with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
 			f.write(frappe.as_unicode(gitignore_template.format(app_name=hooks.app_name)))
+
+		if hooks.get("create_frontend"):
+			_append_frontend_gitignore(app_directory, hooks.app_name, hooks.frontend_route)
 
 		# initialize git repository
 		app_repo = git.Repo.init(app_directory, initial_branch=hooks.branch_name)
@@ -211,6 +252,143 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 		app_repo.index.commit("feat: Initialize App")
 
 	print(f"'{hooks.app_name}' created at {app_directory}")
+
+
+def make_frontend_boilerplate(app_directory, app_name, app_title, frontend_route, framework="vue"):
+	"""Generate a frappe-ui frontend scaffold for a Frappe app.
+
+	Creates a `frontend/` directory with Vue 3 + Vite + TailwindCSS + frappe-ui + TypeScript,
+	a sidebar layout, and working ToDo CRUD operations.
+
+	Args:
+	        app_directory: Absolute path to the app root (e.g., /path/to/apps/my_app)
+	        app_name: Snake-case app name (e.g., my_app)
+	        app_title: Human-readable app title (e.g., My App)
+	        frontend_route: URL route for the SPA (e.g., 'm')
+	        framework: UI framework to use ('vue' for now, 'react'/'solid' in future)
+	"""
+	if framework != "vue":
+		click.echo(f"Framework '{framework}' is not yet supported. Only 'vue' is available.")
+		return
+
+	frontend_dir = os.path.join(app_directory, "frontend")
+
+	try:
+		res = requests.get("https://registry.npmjs.org/frappe-ui/latest", timeout=5)
+		frappe_ui_version = res.json().get("version", "latest")
+	except Exception:
+		frappe_ui_version = "latest"
+
+	template_vars = {
+		"app_name": app_name,
+		"app_title": app_title,
+		"frontend_route": frontend_route,
+		"frappe_ui_version": frappe_ui_version,
+	}
+
+	boilerplate_dir = os.path.join(os.path.dirname(__file__), "frontend_boilerplate", framework)
+	if not os.path.exists(boilerplate_dir):
+		click.echo(f"Framework '{framework}' boilerplate not found.")
+		return
+
+	for root, dirs, files in os.walk(boilerplate_dir):
+		for d in dirs:
+			relative_dir = os.path.relpath(os.path.join(root, d), boilerplate_dir)
+			if relative_dir.startswith("www"):
+				target_dir = os.path.join(app_directory, app_name, "www")
+			else:
+				target_dir = os.path.join(frontend_dir, relative_dir)
+			frappe.create_folder(target_dir)
+
+		for f in files:
+			src_path = os.path.join(root, f)
+			relative_path = os.path.relpath(src_path, boilerplate_dir)
+
+			if relative_path.startswith("www" + os.sep) or relative_path.startswith("www/"):
+				file_name = f.replace("frontend_route", frontend_route)
+				target_path = os.path.join(app_directory, app_name, "www", file_name)
+			elif relative_path == "root_package.json":
+				target_path = os.path.join(app_directory, "package.json")
+			else:
+				target_path = os.path.join(frontend_dir, relative_path)
+
+			if not os.path.exists(os.path.dirname(target_path)):
+				frappe.create_folder(os.path.dirname(target_path))
+
+			with open(src_path) as src_file:
+				content = src_file.read()
+
+			import jinja2
+			rendered_content = jinja2.Template(content).render(template_vars)
+
+			with open(target_path, "w") as target_file:
+				target_file.write(rendered_content)
+
+	# --- Update hooks.py and .gitignore ---
+	_append_website_route_rules(app_directory, app_name, frontend_route)
+	_append_frontend_gitignore(app_directory, app_name, frontend_route)
+
+	display_cwd = os.path.abspath(os.environ.get("PWD") or os.getcwd())
+	frontend_dir_display = os.path.relpath(os.path.abspath(frontend_dir), display_cwd)
+
+	click.echo()
+	click.secho("Frontend scaffold ready", fg="green")
+	click.echo(f"  Path: {frontend_dir_display}")
+	click.echo("  Next steps:")
+	click.echo(f"    cd {frontend_dir_display}")
+	click.echo("    yarn install")
+	click.echo("    yarn dev")
+
+
+def _append_website_route_rules(app_directory, app_name, frontend_route):
+	"""Append website_route_rules to the app's hooks.py for SPA routing."""
+	hooks_path = os.path.join(app_directory, app_name, "hooks.py")
+	with open(hooks_path) as f:
+		content = f.read()
+
+	route_rule = f'{{"from_route": "/{frontend_route}/<path:app_path>", "to_route": "{frontend_route}"}}'
+
+	if "website_route_rules" not in content:
+		route_rules_block = f"\nwebsite_route_rules = [\n\t{route_rule},\n]\n"
+		with open(hooks_path, "a") as f:
+			f.write(route_rules_block)
+	else:
+		if route_rule in content:
+			click.echo(f"Route rule for /{frontend_route} already exists in hooks.py, skipping...")
+			return
+
+		import re
+
+		match = re.search(r"website_route_rules\s*=\s*\[", content)
+		if match:
+			content = content[:match.end()] + f"\n\t{route_rule}," + content[match.end():]
+			with open(hooks_path, "w") as f:
+				f.write(content)
+			click.echo(f"Added route rule for /{frontend_route} to existing website_route_rules in hooks.py")
+		else:
+			click.secho("Could not properly parse existing website_route_rules list. Please add the route manually.", fg="yellow")
+
+
+def _append_frontend_gitignore(app_directory, app_name, frontend_route):
+	"""Append frontend build output patterns to the app's .gitignore."""
+	gitignore_path = os.path.join(app_directory, ".gitignore")
+
+	entries = [
+		f"\n# Frontend build outputs",
+		f"{app_name}/public/frontend/",
+		f"{app_name}/www/{frontend_route}.html",
+	]
+
+	if os.path.exists(gitignore_path):
+		with open(gitignore_path) as f:
+			content = f.read()
+		new_entries = [e for e in entries if e not in content]
+		if new_entries:
+			with open(gitignore_path, "a") as f:
+				f.write("\n".join(new_entries) + "\n")
+	else:
+		with open(gitignore_path, "w") as f:
+			f.write("\n".join(entries) + "\n")
 
 
 def _create_github_workflow_files(dest, hooks):

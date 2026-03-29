@@ -1,0 +1,26 @@
+{
+  "name": "{{ app_name }}-ui",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "frappe-ui": "^{{ frappe_ui_version }}",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.4",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "autoprefixer": "^10.4.2",
+    "postcss": "^8.4.5",
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.8",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.8.3",
+    "vite": "^8.0.1"
+  }
+}

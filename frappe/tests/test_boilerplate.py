@@ -8,6 +8,7 @@ import unittest
 from io import StringIO
 from unittest.mock import patch
 
+import click
 import git
 import yaml
 
@@ -33,8 +34,9 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_publisher": "Test Publisher",
 				"app_email": "example@example.org",
 				"app_license": "mit",
-				"branch_name": "develop",
 				"create_github_workflow": False,
+				"create_frontend": False,
+				"branch_name": "develop",
 			}
 		)
 
@@ -45,6 +47,7 @@ class TestBoilerPlate(unittest.TestCase):
 			"example@example.org",  # email
 			"",  # license (accept default)
 			"",  # create github workflow (accept default)
+			"",  # create frontend (accept default)
 			"develop",  # branch name
 		]
 
@@ -110,6 +113,50 @@ class TestBoilerPlate(unittest.TestCase):
 
 	def test_valid_ci_yaml(self):
 		yaml.safe_load(github_workflow_template.format(**self.default_hooks))
+
+	def test_provided_values_skip_prompts(self):
+		provided_values = {
+			"app_title": self.default_hooks.app_title,
+			"app_description": self.default_hooks.app_description,
+			"app_publisher": self.default_hooks.app_publisher,
+			"app_email": self.default_hooks.app_email,
+			"app_license": self.default_hooks.app_license,
+			"create_github_workflow": self.default_hooks.create_github_workflow,
+			"create_frontend": self.default_hooks.create_frontend,
+			"branch_name": self.default_hooks.branch_name,
+		}
+
+		with patch("click.prompt") as prompt, patch("click.confirm") as confirm:
+			hooks = _get_user_inputs(self.default_hooks.app_name, provided_values=provided_values)
+
+		self.assertDictEqual(hooks, self.default_hooks)
+		prompt.assert_not_called()
+		confirm.assert_not_called()
+
+	def test_provided_frontend_values_skip_prompts(self):
+		provided_values = {
+			"app_title": self.default_hooks.app_title,
+			"app_description": self.default_hooks.app_description,
+			"app_publisher": self.default_hooks.app_publisher,
+			"app_email": self.default_hooks.app_email,
+			"app_license": self.default_hooks.app_license,
+			"create_github_workflow": self.default_hooks.create_github_workflow,
+			"create_frontend": True,
+			"frontend_route": "t",
+			"branch_name": self.default_hooks.branch_name,
+		}
+
+		with patch("click.prompt") as prompt, patch("click.confirm") as confirm:
+			hooks = _get_user_inputs(self.default_hooks.app_name, provided_values=provided_values)
+
+		self.assertTrue(hooks.create_frontend)
+		self.assertEqual(hooks.frontend_route, "t")
+		prompt.assert_not_called()
+		confirm.assert_not_called()
+
+	def test_invalid_provided_values_raise(self):
+		with self.assertRaises(click.BadParameter):
+			_get_user_inputs(self.default_hooks.app_name, provided_values={"app_email": "not-an-email"})
 
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"

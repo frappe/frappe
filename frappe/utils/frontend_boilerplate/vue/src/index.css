@@ -1,0 +1,5 @@
+@import 'frappe-ui/style.css';
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
