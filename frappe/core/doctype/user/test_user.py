@@ -323,7 +323,7 @@ class TestUser(IntegrationTestCase):
 		with patch.object(user_module, "is_signup_disabled", return_value=True):
 			self.assertRaisesRegex(
 				frappe.exceptions.ValidationError,
-				"Sign Up is disabled",
+				"Cannot create a new user with this email address.",
 				sign_up,
 				random_user,
 				random_user_name,
@@ -339,7 +339,10 @@ class TestUser(IntegrationTestCase):
 		)
 
 		# re-register
-		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"), (0, "Already Registered"))
+		self.assertTupleEqual(
+			sign_up(random_user, random_user_name, "/welcome"),
+			(0, "Cannot create a new user with this email address."),
+		)
 
 		# disabled user
 		user = frappe.get_doc("User", random_user)
@@ -347,7 +350,8 @@ class TestUser(IntegrationTestCase):
 		user.save()
 
 		self.assertTupleEqual(
-			sign_up(random_user, random_user_name, "/welcome"), (0, "Registered but disabled")
+			sign_up(random_user, random_user_name, "/welcome"),
+			(0, "Cannot create a new user with this email address."),
 		)
 
 		# throttle user creation
