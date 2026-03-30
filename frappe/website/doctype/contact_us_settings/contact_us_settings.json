@@ -7,6 +7,7 @@
  "field_order": [
   "introduction_section",
   "is_disabled",
+  "send_acknowledgement_email",
   "forward_to_email",
   "heading",
   "introduction",
@@ -122,13 +123,20 @@
    "fieldname": "is_disabled",
    "fieldtype": "Check",
    "label": "Disabled"
+  },
+  {
+   "default": "1",
+   "description": "Send an acknowledgement email to the email address entered in the contact form.",
+   "fieldname": "send_acknowledgement_email",
+   "fieldtype": "Check",
+   "label": "Send Acknowledgement Email"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-08-22 12:59:39.463182",
+ "modified": "2026-03-30 19:22:44.275306",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Contact Us Settings",

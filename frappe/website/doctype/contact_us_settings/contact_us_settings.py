@@ -21,7 +21,6 @@ class ContactUsSettings(Document):
 		address_title: DF.Data | None
 		city: DF.Data | None
 		country: DF.Data | None
-		disable_contact_us: DF.Check
 		email_id: DF.Data | None
 		forward_to_email: DF.Data | None
 		heading: DF.Data | None
@@ -30,6 +29,7 @@ class ContactUsSettings(Document):
 		phone: DF.Data | None
 		pincode: DF.Data | None
 		query_options: DF.SmallText | None
+		send_acknowledgement_email: DF.Check
 		skype: DF.Data | None
 		state: DF.Data | None
 	# end: auto-generated types
