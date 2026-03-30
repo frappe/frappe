@@ -520,15 +520,17 @@ class TestOperatorIn(IntegrationTestCase):
 		query = func_in(note.name, [None, "user1"])
 		sql_str = str(query).lower()
 
-		self.assertIn("coalesce", sql_str)
+		self.assertNotIn("coalesce", sql_str)
+		self.assertIn("is null", sql_str)
 		self.assertIn("''", sql_str)
 
-	def test_func_in_with_empty_string_uses_coalesce(self):
+	def test_func_in_with_empty_string_uses_or_is_null(self):
 		note = frappe.qb.DocType("Note")
 		query = func_in(note.name, ["", "user1"])
 		sql_str = str(query).lower()
 
-		self.assertIn("coalesce", sql_str)
+		self.assertNotIn("coalesce", sql_str)
+		self.assertIn("is null", sql_str)
 		self.assertIn("''", sql_str)
 
 	def test_func_in_with_mixed_none_and_values(self):
@@ -536,7 +538,8 @@ class TestOperatorIn(IntegrationTestCase):
 		query = func_in(note.name, ["val1", None, "val2"])
 		sql_str = str(query).lower()
 
-		self.assertIn("coalesce", sql_str)
+		self.assertNotIn("coalesce", sql_str)
+		self.assertIn("is null", sql_str)
 
 	def test_in_filter_matches_null_and_empty_columns(self):
 		test_doctype = new_doctype(
