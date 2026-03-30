@@ -182,22 +182,24 @@ defineExpose({ selected_node });
 
 const teams = ref({})
 const is_drive_installed = frappe.utils.get_installed_apps().includes('drive')
-if (is_drive_installed) {
-frappe
-  .call('drive.api.permissions.get_teams', { details: 1, exclude_personal: 0 })
-  .then((k) => (teams.value = k.message))
 
-const updateRoot = (root) => {
-	node.value.value = root
-	if (root === 'Home') {
-		node.value.label = __('Home')
-	} else {
-		const team = Object.values(teams.value).find(k => k.file === root)
-		node.value.label = team.personal ? 'Your Drive' : team.title
+let updateRoot;
+if (is_drive_installed) {
+	frappe
+	.call('drive.api.permissions.get_teams', { details: 1, exclude_personal: 0 })
+	.then((k) => (teams.value = k.message))
+
+	updateRoot = (root) => {
+		node.value.value = root
+		if (root === 'Home') {
+			node.value.label = __('Home')
+		} else {
+			const team = Object.values(teams.value).find(k => k.file === root)
+			node.value.label = team.personal ? 'Your Drive' : team.title
+		}
+		node.value.fetched = false
+		node.value.open = false
 	}
-	node.value.fetched = false
-	node.value.open = false
-}
 }
 </script>
 
