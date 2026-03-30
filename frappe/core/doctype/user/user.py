@@ -1118,7 +1118,7 @@ def verify_password(password: str):
 
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(limit=100, seconds=60 * 60)
+@rate_limit(limit=500, seconds=60)
 def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 	allow = True
 	if is_signup_disabled():
