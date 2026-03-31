@@ -224,6 +224,11 @@ class StudioPage(Document):
 			self.draft_blocks = None
 		self.save()
 
+	@frappe.whitelist()
+	def unpublish(self):
+		self.published = 0
+		self.save()
+
 	def validate_conflicts_with_other_pages(self):
 		other_pages = frappe.get_all(
 			"Studio Page",

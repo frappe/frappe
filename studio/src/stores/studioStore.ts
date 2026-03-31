@@ -247,6 +247,28 @@ const useStudioStore = defineStore("store", () => {
 			})
 	}
 
+	function unpublishPage() {
+		if (!selectedPage.value) return
+		return studioPages.runDocMethod.submit(
+			{
+				name: selectedPage.value,
+				method: "unpublish",
+			},
+			{
+				onSuccess() {
+					activePage.value!.published = 0
+					setAppPages(activeApp.value!.name)
+					toast.success("Page unpublished")
+				},
+				onError(error: any) {
+					toast.error("Failed to unpublish the page", {
+						description: error.messages.join(", "),
+					})
+				},
+			}
+		)
+	}
+
 	async function publishApp() {
 		if (!activeApp.value) return
 		return studioApps.runDocMethod.submit(
@@ -257,11 +279,33 @@ const useStudioStore = defineStore("store", () => {
 			{
 				async onSuccess(data: any) {
 					activePage.value = await fetchPage(selectedPage.value!)
+					setAppPages(activeApp.value!.name)
 					openPageInBrowser(activeApp.value!, activePage.value!)
 					toast.success(`App published successfully (${data?.message?.published_pages} pages)`)
 				},
 				onError(error: any) {
 					toast.error("Failed to publish the app", {
+						description: error?.messages?.join(", "),
+					})
+				},
+			},
+		)
+	}
+
+	function unpublishApp() {
+		if (!activeApp.value) return
+		return studioApps.runDocMethod.submit(
+			{
+				name: activeApp.value.name,
+				method: "unpublish_app",
+			},
+			{
+				onSuccess() {
+					setAppPages(activeApp.value!.name)
+					toast.success("App unpublished")
+				},
+				onError(error: any) {
+					toast.error("Failed to unpublish the app", {
 						description: error?.messages?.join(", "),
 					})
 				},
@@ -396,7 +440,9 @@ const useStudioStore = defineStore("store", () => {
 		savePage,
 		updateActivePage,
 		publishPage,
+		unpublishPage,
 		publishApp,
+		unpublishApp,
 		openPageInBrowser,
 		routeObject,
 		// app build

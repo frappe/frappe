@@ -150,9 +150,6 @@ class StudioApp(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def publish_app(self):
-		if not frappe.has_permission("Studio App", ptype="write"):
-			frappe.throw(_("You do not have permission to publish the app"), frappe.PermissionError)
-
 		pages = frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name")
 		for page_name in pages:
 			page_doc = frappe.get_doc("Studio Page", page_name)
@@ -164,6 +161,13 @@ class StudioApp(WebsiteGenerator):
 			pass
 
 		return {"published_pages": len(pages)}
+
+	@frappe.whitelist()
+	def unpublish_app(self):
+		pages = frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name")
+		for page_name in pages:
+			page_doc = frappe.get_doc("Studio Page", page_name)
+			page_doc.unpublish()
 
 	def get_assets_from_manifest(self):
 		"""

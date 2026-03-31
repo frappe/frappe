@@ -18,12 +18,35 @@
 		<Dropdown
 			:options="[
 				{
-					label: 'Publish App',
-					icon: 'globe',
-					onClick: () => {
-						publishingApp = true
-						store.publishApp().finally(() => (publishingApp = false))
-					},
+					group: 'Publish',
+					hideLabel: true,
+					items: [
+						{
+							label: 'Publish App',
+							icon: LucideGlobe,
+							onClick: () => {
+								publishingApp = true
+								store.publishApp().finally(() => (publishingApp = false))
+							},
+						},
+					],
+				},
+				{
+					group: 'Unpublish',
+					hideLabel: true,
+					items: [
+						{
+							label: 'Unpublish Page',
+							icon: LucideCircleDashed,
+							onClick: () => store.unpublishPage(),
+							condition: () => Boolean(store.activePage?.published),
+						},
+						{
+							label: 'Unpublish App',
+							icon: GlobeOff,
+							onClick: () => store.unpublishApp(),
+						},
+					],
 				},
 			]"
 			size="sm"
@@ -47,6 +70,9 @@
 import { ref } from "vue"
 import { Dropdown } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
+import LucideCircleDashed from "~icons/lucide/circle-dashed"
+import LucideGlobe from "~icons/lucide/globe"
+import GlobeOff from "@/components/Icons/GlobeOff.vue"
 
 defineProps<{
 	disabled?: boolean
