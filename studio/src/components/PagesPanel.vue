@@ -8,10 +8,10 @@
 					:class="[isPageActive(page) ? 'border-[1px] border-gray-300' : 'hover:bg-gray-50']"
 				>
 					<Tooltip :text="page.published ? 'Published' : 'Draft'" placement="top">
-						<component
-							:is="page.published ? LucideCircleCheck : LucideCircleDashed"
-							class="h-3 w-3 flex-shrink-0"
-						/>
+						<div
+							class="h-2 w-2 flex-shrink-0 rounded-full"
+							:class="page.published ? 'bg-green-500' : 'bg-gray-400'"
+						></div>
 					</Tooltip>
 					<div
 						class="flex items-center gap-1 truncate text-base"
@@ -20,9 +20,11 @@
 						{{ page.page_title }} -
 						<span class="text-xs">{{ page.route }}</span>
 					</div>
-					<Badge v-if="isAppHome(page)" variant="outline" size="sm" class="text-xs" theme="blue">
-						App Home
-					</Badge>
+					<Tooltip text="App Home" placement="top">
+						<Badge v-if="isAppHome(page)" variant="subtle" size="sm" class="text-xs" theme="blue">
+							<LucideHome class="h-3 w-3" />
+						</Badge>
+					</Tooltip>
 
 					<!-- Menu -->
 					<div
@@ -57,9 +59,8 @@ import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { isObjectEmpty } from "@/utils/helpers"
 import { useRouter } from "vue-router"
-import LucideCircleCheck from "~icons/lucide/circle-check"
-import LucideCircleDashed from "~icons/lucide/circle-dashed"
 import { Dropdown, Button, Badge, Tooltip } from "frappe-ui"
+import LucideHome from "~icons/lucide/home"
 
 const store = useStudioStore()
 const router = useRouter()
