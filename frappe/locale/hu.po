@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-03-29 09:44+0000\n"
-"PO-Revision-Date: 2026-03-30 13:46\n"
+"PO-Revision-Date: 2026-03-31 13:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -8835,7 +8835,7 @@ msgstr "Meglévő Szerkesztése"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:401
 msgid "Edit Filter"
-msgstr ""
+msgstr "Szűrő Szerkesztése"
 
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:26
 msgid "Edit Filters"
