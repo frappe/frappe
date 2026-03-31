@@ -276,6 +276,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 			this.setup_onboarding();
 		});
+		this.store_last_show_sidebar_for_item();
 	}
 	add_card(card) {
 		if (this.cards && this.cards.find((i) => i.title === card.title)) return;
@@ -298,6 +299,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	setup_events() {
 		const me = this;
+		this.setup_reload();
 		frappe.router.on("change", function (router) {
 			if (frappe.route_options.sidebar) {
 				frappe.app.sidebar.setup(frappe.route_options.sidebar);
@@ -632,6 +634,7 @@ frappe.ui.Sidebar = class Sidebar {
 		try {
 			let route = frappe.get_route();
 			let view, entity_name;
+			let sidebar_item_map = JSON.parse(localStorage.getItem("sidebar_item_map"));
 			switch (route.length) {
 				case 1:
 					view = "Page";
@@ -659,6 +662,14 @@ frappe.ui.Sidebar = class Sidebar {
 			let sidebars = this.get_workspace_sidebars(entity_name);
 			this.preferred_sidebars = sidebars;
 			let module = router?.meta?.module;
+			if (this.sidebar_title && sidebars.includes(this.sidebar_title)) {
+				this.set_active_workspace_item();
+				return;
+			}
+			if (sidebar_item_map[entity_name]) {
+				this.setup(sidebar_item_map[entity_name][0]);
+				return;
+			}
 			if (this.sidebar_title && sidebars.includes(this.sidebar_title)) {
 				this.set_active_workspace_item();
 				return;
@@ -751,5 +762,23 @@ frappe.ui.Sidebar = class Sidebar {
 			});
 		});
 		return sidebars;
+	}
+	setup_reload() {
+		const me = this;
+		this.item_sidebar_map = {};
+		$(window).on("beforeunload", function () {
+			me.store_last_show_sidebar_for_item();
+		});
+	}
+	store_last_show_sidebar_for_item() {
+		const me = this;
+		if (frappe.app.sidebar.active_item) {
+			let active_item = frappe.app.sidebar.active_item.parent().data("id");
+			if (!me.item_sidebar_map[active_item]) {
+				me.item_sidebar_map[active_item] = [];
+			}
+			me.item_sidebar_map[active_item].push(me.sidebar_title);
+			localStorage.setItem("sidebar_item_map", JSON.stringify(me.item_sidebar_map));
+		}
 	}
 };
