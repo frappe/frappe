@@ -10,6 +10,8 @@
  *   • "Manage Templates"  — opens the full manage dialog (overwrite / delete)
  *
  * For saved documents — "Manage Templates" is added to the three-dot (⋮) menu.
+ *
+ * All permission logic (visibility, edit, delete) is enforced server-side.
  */
 frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	static DOCTYPE = "Document Template";
@@ -37,6 +39,15 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		});
 	}
 
+	_get_manageable_templates() {
+		return frappe
+			.call({
+				method: "frappe.desk.doctype.document_template.document_template.get_manageable_templates",
+				args: { reference_doctype: this.frm.doctype },
+			})
+			.then((r) => r.message || []);
+	}
+
 	setup_buttons() {
 		if (!this._can_use_templates()) return;
 		if (!this.frm.doc.__islocal) {
@@ -59,10 +70,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	add_manage_menu_item() {
 		if (!this._can_use_templates()) return;
 		if (this.frm.doc.__islocal) return;
-		if (this._manage_menu_item_added) return;
-		this._manage_menu_item_added = true;
 
-		// Add hidden; reveal only after confirming the user has manageable templates.
 		const $item = this.page.add_menu_item(
 			__("Manage Templates"),
 			() => this.show_manage_dialog(),
@@ -70,14 +78,9 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		);
 		$item.addClass("hide");
 
-		const is_privileged =
-			frappe.user.has_role("Administrator") || frappe.user.has_role("System Manager");
-		this._get_templates()
+		this._get_manageable_templates()
 			.then((templates) => {
-				const has_manageable = (templates || []).some(
-					(t) => t.owner === frappe.session.user || is_privileged
-				);
-				if (has_manageable) $item.removeClass("hide");
+				if ((templates || []).length) $item.removeClass("hide");
 			})
 			.catch(() => {});
 	}
@@ -127,19 +130,10 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		const $list = this.$group.find(".dt-template-list");
 		$list.html(`<span class="dropdown-item disabled text-muted">${__("Loading…")}</span>`);
 
-		this._get_templates()
-			.then((templates) => {
+		Promise.all([this._get_templates(), this._get_manageable_templates()])
+			.then(([templates, manageable]) => {
 				this._loading_templates = false;
-				const is_privileged =
-					frappe.user.has_role("Administrator") ||
-					frappe.user.has_role("System Manager");
-				const visible = (templates || []).filter(
-					(t) => t.owner === frappe.session.user || !t.private || is_privileged
-				);
-				const has_manageable = visible.some(
-					(t) => t.owner === frappe.session.user || is_privileged
-				);
-				this._render_dropdown_templates(visible, has_manageable);
+				this._render_dropdown_templates(templates || [], (manageable || []).length);
 			})
 			.catch((e) => {
 				console.error("Document Template: failed to load templates", e);
@@ -152,7 +146,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			});
 	}
 
-	_render_dropdown_templates(templates, has_manageable) {
+	_render_dropdown_templates(templates, manageableCount = 0) {
 		const $list = this.$group.find(".dt-template-list");
 		const $list_divider = this.$group.find(".dt-list-divider");
 		const $manage_divider = this.$group.find(".dt-manage-divider");
@@ -173,8 +167,8 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		}
 
 		$list_divider.removeClass("hide");
-		$manage_divider.toggleClass("hide", !has_manageable);
-		$manage_btn.toggleClass("hide", !has_manageable);
+		$manage_divider.toggleClass("hide", !manageableCount);
+		$manage_btn.toggleClass("hide", !manageableCount);
 
 		const rows_html = templates
 			.map((t) => {
@@ -243,7 +237,9 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 
 						dialog.hide();
 						frappe.show_alert({
-							message: __("Template {0} saved.", [values.template_name]),
+							message: __("Template {0} saved.", [
+								frappe.utils.escape_html(values.template_name),
+							]),
 							indicator: "green",
 						});
 					})
@@ -308,20 +304,9 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	show_manage_dialog() {
 		if (this._loading_manage) return;
 		this._loading_manage = true;
-		this._get_templates()
+		this._get_manageable_templates()
 			.then((templates) => {
-				const is_privileged =
-					frappe.user.has_role("Administrator") ||
-					frappe.user.has_role("System Manager");
-				const current_user = frappe.session.user;
-				const perms = { is_privileged, current_user };
-
-				// Show only templates this user can manage (write/delete).
-				// Server already excludes others' private templates via
-				// get_permission_query_conditions.
-				let all_templates = (templates || []).filter(
-					(t) => t.owner === current_user || is_privileged
-				);
+				let all_templates = templates || [];
 
 				const dialog = new frappe.ui.Dialog({
 					title: __("Manage Templates"),
@@ -337,7 +322,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 
 				const $wrap = $content.find(".dt-list-wrap");
 
-				const render_list = () => this._render_manage_list($wrap, all_templates, perms);
+				const render_list = () => this._render_manage_list($wrap, all_templates);
 
 				dialog.show();
 				render_list();
@@ -349,7 +334,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 					e.stopPropagation();
 					const $btn = $(e.currentTarget);
 					const name = $btn.data("name");
-					const label = $btn.data("label");
+					const label = frappe.utils.escape_html($btn.data("label"));
 
 					frappe.confirm(
 						__(
@@ -389,7 +374,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 					e.stopPropagation();
 					const $btn = $(e.currentTarget);
 					const name = $btn.data("name");
-					const label = $btn.data("label");
+					const label = frappe.utils.escape_html($btn.data("label"));
 
 					frappe.confirm(__("Delete template {0}?", [label.bold()]), () => {
 						frappe
@@ -416,6 +401,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 				});
 			})
 			.catch((e) => {
+				console.error("Document Template: failed to load manageable templates", e);
 				this._loading_manage = false;
 				frappe.show_alert({
 					message: __("Failed to load templates for {0}.", [__(this.frm.doctype)]),
@@ -424,7 +410,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			});
 	}
 
-	_render_manage_list($wrap, all_templates, { is_privileged, current_user }) {
+	_render_manage_list($wrap, all_templates) {
 		$wrap.empty();
 
 		if (!all_templates.length) {
@@ -438,39 +424,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 
 		const rows_html = all_templates
 			.map((t, idx) => {
-				const is_mine = t.owner === current_user;
-				// write: owner or System Manager/Admin
-				const can_write = is_mine || is_privileged;
-				// delete: same rule
-				const can_delete = is_mine || is_privileged;
 				const is_last = idx === all_templates.length - 1;
-				const edit_btn = can_write
-					? `<a class="btn btn-xs btn-default ml-1"
-						  href="${frappe.utils.get_form_link("Document Template", t.name)}"
-						  title="${__("Open template")}"
-						  aria-label="${__("Edit {0}", [frappe.utils.escape_html(t.template_name)])}">
-						  ${frappe.utils.icon("edit", "xs")}
-					  </a>`
-					: "";
-
-				const overwrite_btn = can_write
-					? `<button class="btn btn-xs btn-default dt-overwrite ml-1"
-						   data-name="${frappe.utils.escape_html(t.name)}"
-						   data-label="${frappe.utils.escape_html(t.template_name)}"
-						   title="${__("Replace with current form values")}">
-						   ${__("Update")}
-					   </button>`
-					: "";
-
-				const del_btn = can_delete
-					? `<button class="btn btn-xs btn-default dt-template-delete ml-1"
-						   data-name="${frappe.utils.escape_html(t.name)}"
-						   data-label="${frappe.utils.escape_html(t.template_name)}"
-						   title="${__("Delete template")}"
-						   aria-label="${__("Delete {0}", [frappe.utils.escape_html(t.template_name)])}">
-						   ${frappe.utils.icon("trash", "xs")}
-					   </button>`
-					: "";
 
 				return `
 					<div class="d-flex align-items-center"
@@ -480,7 +434,25 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 							${frappe.utils.escape_html(t.template_name)}
 						</div>
 						<div class="d-flex align-items-center flex-shrink-0">
-							${overwrite_btn}${edit_btn}${del_btn}
+							<button class="btn btn-xs btn-default dt-overwrite ml-1"
+							   data-name="${frappe.utils.escape_html(t.name)}"
+							   data-label="${frappe.utils.escape_html(t.template_name)}"
+							   title="${__("Replace with current form values")}">
+							   ${__("Update")}
+							</button>
+							<a class="btn btn-xs btn-default ml-1"
+							  href="${frappe.utils.get_form_link("Document Template", t.name)}"
+							  title="${__("Open template")}"
+							  aria-label="${__("Edit {0}", [frappe.utils.escape_html(t.template_name)])}">
+							  ${frappe.utils.icon("edit", "xs")}
+							</a>
+							<button class="btn btn-xs btn-default dt-template-delete ml-1"
+							   data-name="${frappe.utils.escape_html(t.name)}"
+							   data-label="${frappe.utils.escape_html(t.template_name)}"
+							   title="${__("Delete template")}"
+							   aria-label="${__("Delete {0}", [frappe.utils.escape_html(t.template_name)])}">
+							   ${frappe.utils.icon("trash", "xs")}
+							</button>
 						</div>
 					</div>
 				`;
@@ -491,6 +463,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	}
 
 	_apply_template(name, label) {
+		const safe_label = frappe.utils.escape_html(label);
 		frappe
 			.call({
 				method: "frappe.desk.doctype.document_template.document_template.get_template_data",
@@ -518,21 +491,21 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 				}
 
 				if (this.frm.doc.__islocal) {
-					this._apply_to_form(doc, label);
+					this._apply_to_form(doc, safe_label);
 				} else {
 					frappe.confirm(
 						__(
 							"Apply template {0}? Existing field values and child table rows will be replaced.",
-							[label.bold()]
+							[safe_label.bold()]
 						),
-						() => this._apply_to_form(doc, label)
+						() => this._apply_to_form(doc, safe_label)
 					);
 				}
 			})
 			.catch((e) => {
 				console.error("Document Template: failed to load template", e);
 				frappe.show_alert({
-					message: __("Failed to load template {0}.", [label]),
+					message: __("Failed to load template {0}.", [safe_label]),
 					indicator: "red",
 				});
 			});

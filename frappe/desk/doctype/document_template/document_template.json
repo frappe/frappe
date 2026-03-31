@@ -43,7 +43,7 @@
   }
  ],
  "links": [],
- "modified": "2026-03-12 00:00:00.000000",
+ "modified": "2026-03-31 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Document Template",
@@ -52,9 +52,14 @@
   {
    "create": 1,
    "delete": 1,
+   "if_owner": 1,
    "read": 1,
    "role": "Desk User",
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Desk User"
   },
   {
    "create": 1,

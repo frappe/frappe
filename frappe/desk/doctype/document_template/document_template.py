@@ -25,6 +25,8 @@ class DocumentTemplate(Document):
 
 	def validate(self) -> None:
 		self.template_name = self.template_name.strip()
+		if not self.template_name:
+			frappe.throw(frappe._("Template name is required."))
 		if len(self.template_name) > 140:
 			frappe.throw(frappe._("Template name must not exceed 140 characters."))
 
@@ -61,52 +63,50 @@ class DocumentTemplate(Document):
 			)
 
 
+def _is_system_manager(user: str) -> bool:
+	return user == "Administrator" or "System Manager" in frappe.get_roles(user)
+
+
 def get_permission_query_conditions(user: str | None = None) -> str:
-	"""Row-level filter applied to every get_list/get_all query.
+	"""Row-level filter for get_list / get_all queries.
 
-	Returns only:
-	  - public templates  (private = 0)
-	  - templates the current user owns  (owner = current user)
-
-	Administrator and System Manager see ALL templates with no filter.
+	- System Manager / Administrator: see all templates.
+	- Others: see public templates + their own private templates.
 	"""
 	if not user:
 		user = frappe.session.user
 
-	roles = frappe.get_roles(user)
-	if user == "Administrator" or "System Manager" in roles:
+	if _is_system_manager(user):
 		return ""
 
 	return f"(`tabDocument Template`.private = 0 OR `tabDocument Template`.owner = {frappe.db.escape(user)})"
 
 
 def has_permission(doc: "DocumentTemplate", ptype: str, user: str | None = None) -> bool:
-	"""Doc-level ownership guard.
+	"""Doc-level permission check.
 
 	Rules:
-	  - Administrator / System Manager: always allowed
-	  - Owner: always allowed (read, write, delete their own templates)
-	  - Others:
-	      • create   — allowed if they can create the reference_doctype
-	      • read/select public templates — allowed if they can create the reference_doctype
-	      • write/delete others' templates — not allowed
+	  1. System Manager / Administrator — all operations allowed.
+	  2. Owner — all operations allowed on own templates.
+	  3. Others (must be able to create the reference doctype):
+	     - create: allowed
+	     - read public templates: allowed
+	     - write / delete any template: denied (owner + System Manager only)
+	     - read private templates: denied (owner + System Manager only)
 	"""
 	if not user:
 		user = frappe.session.user
 
-	roles = frappe.get_roles(user)
-	if user == "Administrator" or "System Manager" in roles:
+	if _is_system_manager(user):
 		return True
 
 	if user == doc.owner:
 		return True
 
-	ref_doctype = doc.reference_doctype
-	if not ref_doctype:
+	if not doc.reference_doctype:
 		return False
 
-	can_create_ref = frappe.has_permission(ref_doctype, "create", user=user)
-	if not can_create_ref:
+	if not frappe.has_permission(doc.reference_doctype, "create", user=user):
 		return False
 
 	if ptype == "create":
@@ -116,6 +116,27 @@ def has_permission(doc: "DocumentTemplate", ptype: str, user: str | None = None)
 		return True
 
 	return False
+
+
+@frappe.whitelist()
+def get_manageable_templates(reference_doctype: str) -> list[dict]:
+	"""Return templates for the given doctype that the current user can edit/delete.
+
+	System Manager / Administrator: all templates for the doctype.
+	Others: only templates they own.
+	"""
+	user = frappe.session.user
+	filters = {"reference_doctype": reference_doctype}
+
+	if not _is_system_manager(user):
+		filters["owner"] = user
+
+	return frappe.get_list(
+		"Document Template",
+		fields=["name", "template_name", "owner", "private"],
+		filters=filters,
+		order_by="template_name asc",
+	)
 
 
 @frappe.whitelist()
