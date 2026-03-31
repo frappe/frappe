@@ -138,13 +138,16 @@ def get_icon_style():
 
 
 def get_letter_heads():
+	from frappe.utils.data import escape_html
+
 	letter_heads = {}
 
 	if not frappe.has_permission("Letter Head"):
 		return letter_heads
 	for letter_head in frappe.get_list("Letter Head", fields=["name", "content", "footer"]):
 		letter_heads.setdefault(
-			letter_head.name, {"header": letter_head.content, "footer": letter_head.footer}
+			letter_head.name,
+			{"header": escape_html(letter_head.content), "footer": escape_html(letter_head.footer)},
 		)
 
 	return letter_heads
