@@ -44,9 +44,7 @@ def send_message(sender: str, message: str, subject: str = "Website Query"):
 			frappe.sendmail(recipients=forward_to_email, reply_to=sender, content=message, subject=subject)
 
 		if frappe.get_single_value("Contact Us Settings", "send_acknowledgement_email"):
-			reply = _("Thank you for reaching out to us. We will get back to you at the earliest.").format(
-				message
-			)
+			reply = _("Thank you for reaching out to us. We will get back to you at the earliest.")
 			frappe.sendmail(
 				recipients=sender,
 				content=f"<div style='white-space: pre-wrap'>{reply}</div>",
