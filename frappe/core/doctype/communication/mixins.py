@@ -16,9 +16,19 @@ class CommunicationEmailMixin:
 		return self.communication_type == "Communication" and self.communication_medium == "Email"
 
 	def get_owner(self):
-		"""Get owner of the communication docs parent."""
+		"""Get notification email address of the communication docs parent.
+
+		Calls `get_notification_email` on the parent if available; otherwise returns the owner.
+		"""
 		parent_doc = get_parent_doc(self)
-		return parent_doc.owner if parent_doc else None
+		if not parent_doc:
+			return None
+
+		notification_email = parent_doc.run_method("get_notification_email")
+		if notification_email:
+			return notification_email
+
+		return parent_doc.owner
 
 	def get_all_email_addresses(self, exclude_displayname=False):
 		"""Get all Email addresses mentioned in the doc along with display name."""
