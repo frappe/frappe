@@ -247,6 +247,28 @@ const useStudioStore = defineStore("store", () => {
 			})
 	}
 
+	async function publishApp() {
+		if (!activeApp.value) return
+		return studioApps.runDocMethod.submit(
+			{
+				name: activeApp.value.name,
+				method: "publish_app",
+			},
+			{
+				async onSuccess(data: any) {
+					activePage.value = await fetchPage(selectedPage.value!)
+					openPageInBrowser(activeApp.value!, activePage.value!)
+					toast.success(`App published successfully (${data?.message?.published_pages} pages)`)
+				},
+				onError(error: any) {
+					toast.error("Failed to publish the app", {
+						description: error?.messages?.join(", "),
+					})
+				},
+			},
+		)
+	}
+
 	function openPageInBrowser(app: StudioApp, page: StudioPage, preview: boolean = false) {
 		let route = `/${app.route}${page.route}`
 		if (preview) {
@@ -374,6 +396,7 @@ const useStudioStore = defineStore("store", () => {
 		savePage,
 		updateActivePage,
 		publishPage,
+		publishApp,
 		openPageInBrowser,
 		routeObject,
 		// app build

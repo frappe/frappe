@@ -122,20 +122,7 @@
 			>
 				Preview
 			</Button>
-			<Button
-				size="sm"
-				variant="solid"
-				:disabled="canvasStore.showFragmentCanvas"
-				:loading="publishing"
-				@click="
-					() => {
-						publishing = true
-						store.publishPage().finally(() => (publishing = false))
-					}
-				"
-			>
-				Publish
-			</Button>
+			<PublishButton :disabled="canvasStore.showFragmentCanvas" />
 		</div>
 		<AppDialog
 			v-model:showDialog="showAppDialog"
@@ -147,13 +134,14 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { Tooltip, Popover } from "frappe-ui"
+import { Tooltip, Popover, Dropdown } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 
 import PageOptions from "@/components/PageOptions.vue"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
 import ExportAppDialog from "@/components/ExportAppDialog.vue"
+import PublishButton from "@/components/PublishButton.vue"
 
 import type { StudioMode } from "@/types"
 import session from "@/utils/session"
@@ -162,7 +150,6 @@ import { isObjectEmpty, openInDesk } from "@/utils/helpers"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
-const publishing = ref(false)
 
 const routeString = computed(() => store.activePage?.route || "/")
 const showExportAppDialog = ref(false)
