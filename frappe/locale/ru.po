@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-03-29 09:44+0000\n"
-"PO-Revision-Date: 2026-03-30 13:46\n"
+"PO-Revision-Date: 2026-03-31 13:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -17484,7 +17484,7 @@ msgstr "Название нового отчета"
 
 #: frappe/core/doctype/role/role.js:55
 msgid "New Role Name"
-msgstr ""
+msgstr "Новое название должности"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:60
 msgid "New Shortcut"
@@ -17539,7 +17539,7 @@ msgstr "Новый пароль не может совпадать с вашим
 
 #: frappe/core/doctype/role/role.js:78
 msgid "New role created successfully."
-msgstr ""
+msgstr "Программа успешно создана."
 
 #: frappe/utils/change_log.py:389
 msgid "New updates are available"
@@ -19074,7 +19074,7 @@ msgstr "Открыть консоль"
 #. Item'
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Open in New Tab"
-msgstr ""
+msgstr "Открыть в новой вкладке"
 
 #: frappe/public/js/print_format_builder/Preview.vue:17
 msgid "Open in a new tab"
@@ -21525,7 +21525,7 @@ msgstr "В очереди на резервное копирование. Вы �
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:186
 msgid "Queued for {0}. You can track the progress over {1}."
-msgstr ""
+msgstr "В очередь на {0}. Вы можете отслеживать ход выполнения в {1}."
 
 #. Label of the queues (Data) field in DocType 'System Health Report Workers'
 #: frappe/desk/doctype/system_health_report_workers/system_health_report_workers.json
@@ -22445,11 +22445,11 @@ msgstr "Повторить"
 
 #: frappe/core/doctype/role/role.js:40 frappe/core/doctype/role/role.js:52
 msgid "Replicate Role"
-msgstr ""
+msgstr "Реплицировать роль"
 
 #: frappe/core/doctype/role/role.js:63
 msgid "Replicating Role..."
-msgstr ""
+msgstr "Повторение роли..."
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #. Option for the 'Status' (Select) field in DocType 'Communication'
@@ -25401,7 +25401,7 @@ msgstr "Показать трассировку"
 
 #: frappe/core/doctype/role/role.js:30
 msgid "Show Users"
-msgstr ""
+msgstr "Показать пользователей"
 
 #. Label of the show_values_over_chart (Check) field in DocType 'Dashboard
 #. Chart'
@@ -27860,7 +27860,7 @@ msgstr "Этот документ невозможно удалить прямо
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:171
 msgid "This document has already been queued for {0}. You can track the progress over {1}."
-msgstr ""
+msgstr "Этот документ уже добавлен в очередь {0}. Вы можете отслеживать ход выполнения в {1}."
 
 #: frappe/www/confirm_workflow_action.html:8
 msgid "This document has been modified after the email was sent."
@@ -31716,7 +31716,7 @@ msgstr "Вы должны войти в систему, чтобы получи�
 
 #: frappe/desk/doctype/workspace/workspace.py:106
 msgid "You need to be {0} to rename this document"
-msgstr ""
+msgstr "Для переименования этого документа вам необходимо иметь значение {0}"
 
 #: frappe/public/js/frappe/widgets/links_widget.js:68
 msgid "You need to create these first:"
