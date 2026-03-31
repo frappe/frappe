@@ -7,6 +7,12 @@
 					class="group flex cursor-pointer items-center gap-2 truncate rounded px-2 py-2 transition duration-300 ease-in-out"
 					:class="[isPageActive(page) ? 'border-[1px] border-gray-300' : 'hover:bg-gray-50']"
 				>
+					<Tooltip :text="page.published ? 'Published' : 'Draft'" placement="top">
+						<component
+							:is="page.published ? LucideCircleCheck : LucideCircleDashed"
+							class="h-3 w-3 flex-shrink-0"
+						/>
+					</Tooltip>
 					<div
 						class="flex items-center gap-1 truncate text-base"
 						:class="[isPageActive(page) ? 'font-medium text-gray-700' : 'text-gray-500']"
@@ -51,6 +57,9 @@ import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { isObjectEmpty } from "@/utils/helpers"
 import { useRouter } from "vue-router"
+import LucideCircleCheck from "~icons/lucide/circle-check"
+import LucideCircleDashed from "~icons/lucide/circle-dashed"
+import { Dropdown, Button, Badge, Tooltip } from "frappe-ui"
 
 const store = useStudioStore()
 const router = useRouter()
