@@ -22,18 +22,6 @@
  "roles": [
   {
    "role": "System Manager"
-  },
-  {
-   "role": "Sales Manager"
-  },
-  {
-   "role": "Purchase Manager"
-  },
-  {
-   "role": "Accounts Manager"
-  },
-  {
-   "role": "Maintenance Manager"
   }
  ],
  "timeout": 0

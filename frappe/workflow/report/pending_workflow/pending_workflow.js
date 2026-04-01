@@ -11,12 +11,6 @@ frappe.query_reports["Pending Workflow"] = {
 			default: frappe.session.user,
 		},
 		{
-			fieldname: "company",
-			label: __("Company"),
-			fieldtype: "Link",
-			options: "Company",
-		},
-		{
 			fieldname: "reference_doctype",
 			label: __("DocType"),
 			fieldtype: "Link",
@@ -43,6 +37,7 @@ frappe.query_reports["Pending Workflow"] = {
 			label: __("Workflow Action"),
 			fieldtype: "Link",
 			options: "Workflow Action Master",
+			default: "Approve",
 			reqd: 1,
 		},
 	],
@@ -61,10 +56,10 @@ frappe.query_reports["Pending Workflow"] = {
 			let action = report.get_filter_value("workflow_action");
 
 			if (!selected_rows.length) {
-				frappe.throw(__("Please select at least one document to perform {0} action.", [action]));
+				frappe.throw(__("Please select at least one document to apply <b>{0}</b> action.", [action]));
 			}
 			
-			frappe.confirm(__("Are you sure you want to perform {0} action on selected document(s)?", [action]),
+			frappe.confirm(__("Are you sure you want to <b>{0}</b> selected document(s)?", [action]),
 				() => {
 					let docs = selected_rows.map(row => ({
 						doctype: row.reference_doctype,
@@ -78,13 +73,11 @@ frappe.query_reports["Pending Workflow"] = {
 							action: action,
 						},
 						freeze: true,
-						freeze_message: __("Applying workflow action..."),
+						freeze_message: __("{0} in progress...", [action]),
 						callback: function(r) {
-							if (r.exc) {
-								return;
-							}
+							if (r.exc) return;
 							frappe.show_alert({
-								message: __("{0} successfully applied.", [action]),
+								message: __("{0} applied successfully.", [action]),
 								indicator: "green"
 							});
 							if (report.datatable) {

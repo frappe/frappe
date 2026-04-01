@@ -17,13 +17,6 @@ def execute(filters=None):
 def get_columns():
 	return [
 		{
-			"label": _("Company"),
-			"fieldname": "company",
-			"fieldtype": "Link",
-			"options": "Company",
-			"width": 150,
-		},
-		{
 			"label": _("DocType"),
 			"fieldname": "reference_doctype",
 			"fieldtype": "Data",
@@ -97,17 +90,9 @@ def get_data(filters):
 		if filters.get("reference_doctype") and wa.reference_doctype != filters.get("reference_doctype"):
 			continue
 
-		meta = frappe.get_meta(wa.reference_doctype)
-		has_company = meta.has_field("company")
-
-		if filters.get("company") and not has_company:
-			continue
-
 		Doc = frappe.qb.DocType(wa.reference_doctype)
 
 		select_fields = [Doc.name, Doc.workflow_state, Doc.creation.as_("created_date")]
-		if has_company:
-			select_fields.append(Doc.company)
 
 		query = (
 			frappe.qb.from_(Doc)
@@ -115,9 +100,6 @@ def get_data(filters):
 			.where(Doc.name == wa.reference_name)
 			.where(Doc.docstatus < 2)
 		)
-
-		if filters.get("company"):
-			query = query.where(Doc.company == filters.get("company"))
 
 		if filters.get("from_date"):
 			query = query.where(Doc.creation >= get_datetime(filters.get("from_date")))
@@ -146,7 +128,6 @@ def get_data(filters):
 
 		data.append(
 			{
-				"company": result.get("company"),
 				"reference_doctype": wa.reference_doctype,
 				"reference_name": wa.reference_name,
 				"workflow_state": workflow_state,
