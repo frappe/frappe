@@ -247,8 +247,14 @@ const useStudioStore = defineStore("store", () => {
 			})
 	}
 
-	function unpublishPage() {
-		if (!selectedPage.value) return
+	async function unpublishPage() {
+		if (!activePage.value) return
+		const confirmed = await confirm(
+			`Are you sure you want to unpublish the page <b>${activePage.value.page_title}</b>? It will no longer be publicly accessible.`,
+		)
+		if (!confirmed) {
+			return
+		}
 		return studioPages.runDocMethod.submit(
 			{
 				name: selectedPage.value,
@@ -292,8 +298,14 @@ const useStudioStore = defineStore("store", () => {
 		)
 	}
 
-	function unpublishApp() {
+	async function unpublishApp() {
 		if (!activeApp.value) return
+		const confirmed = await confirm(
+			`Are you sure you want to unpublish the app <b>${activeApp.value.app_name}</b>? It will no longer be publicly accessible.`,
+		)
+		if (!confirmed) {
+			return
+		}
 		return studioApps.runDocMethod.submit(
 			{
 				name: activeApp.value.name,
