@@ -21,9 +21,7 @@
 						<span class="text-xs">{{ page.route }}</span>
 					</div>
 					<Tooltip text="App Home" placement="top">
-						<Badge v-if="isAppHome(page)" variant="subtle" size="sm" class="text-xs" theme="blue">
-							<LucideHome class="h-3 w-3" />
-						</Badge>
+						<Badge v-if="isAppHome(page)" variant="subtle" size="sm" class="text-xs">Home</Badge>
 					</Tooltip>
 
 					<!-- Menu -->
@@ -60,7 +58,6 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 import { isObjectEmpty } from "@/utils/helpers"
 import { useRouter } from "vue-router"
 import { Dropdown, Button, Badge, Tooltip } from "frappe-ui"
-import LucideHome from "~icons/lucide/home"
 
 const store = useStudioStore()
 const router = useRouter()
