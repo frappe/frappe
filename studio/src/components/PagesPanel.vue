@@ -7,6 +7,12 @@
 					class="group flex cursor-pointer items-center gap-2 truncate rounded px-2 py-2 transition duration-300 ease-in-out"
 					:class="[isPageActive(page) ? 'border-[1px] border-gray-300' : 'hover:bg-gray-50']"
 				>
+					<Tooltip :text="page.published ? 'Published' : 'Draft'" placement="top">
+						<div
+							class="h-2 w-2 flex-shrink-0 rounded-full"
+							:class="page.published ? 'bg-green-500' : 'bg-gray-400'"
+						></div>
+					</Tooltip>
 					<div
 						class="flex items-center gap-1 truncate text-base"
 						:class="[isPageActive(page) ? 'font-medium text-gray-700' : 'text-gray-500']"
@@ -14,9 +20,9 @@
 						{{ page.page_title }} -
 						<span class="text-xs">{{ page.route }}</span>
 					</div>
-					<Badge v-if="isAppHome(page)" variant="outline" size="sm" class="text-xs" theme="blue">
-						App Home
-					</Badge>
+					<Tooltip text="App Home" placement="top">
+						<Badge v-if="isAppHome(page)" variant="subtle" size="sm" class="text-xs">Home</Badge>
+					</Tooltip>
 
 					<!-- Menu -->
 					<div
@@ -51,6 +57,7 @@ import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { isObjectEmpty } from "@/utils/helpers"
 import { useRouter } from "vue-router"
+import { Dropdown, Button, Badge, Tooltip } from "frappe-ui"
 
 const store = useStudioStore()
 const router = useRouter()

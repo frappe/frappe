@@ -114,7 +114,7 @@ const useCanvasStore = defineStore("canvasStore", () => {
 	})
 
 	const showFragmentCanvas = computed(() => {
-		return editingMode.value === "fragment" || editingMode.value === "component" && fragmentData.value?.block
+		return Boolean(editingMode.value === "fragment" || (editingMode.value === "component" && fragmentData.value?.block))
 	})
 
 	async function editOnCanvas(

@@ -247,6 +247,84 @@ const useStudioStore = defineStore("store", () => {
 			})
 	}
 
+	async function unpublishPage() {
+		if (!activePage.value) return
+		const confirmed = await confirm(
+			`Are you sure you want to unpublish the page <b>${activePage.value.page_title}</b>? It will no longer be publicly accessible.`,
+		)
+		if (!confirmed) {
+			return
+		}
+		return studioPages.runDocMethod.submit(
+			{
+				name: selectedPage.value,
+				method: "unpublish",
+			},
+			{
+				onSuccess() {
+					activePage.value!.published = 0
+					setAppPages(activeApp.value!.name)
+					toast.success("Page unpublished")
+				},
+				onError(error: any) {
+					toast.error("Failed to unpublish the page", {
+						description: error.messages.join(", "),
+					})
+				},
+			}
+		)
+	}
+
+	async function publishApp() {
+		if (!activeApp.value) return
+		return studioApps.runDocMethod.submit(
+			{
+				name: activeApp.value.name,
+				method: "publish_app",
+			},
+			{
+				async onSuccess(data: any) {
+					activePage.value = await fetchPage(selectedPage.value!)
+					setAppPages(activeApp.value!.name)
+					openPageInBrowser(activeApp.value!, activePage.value!)
+					toast.success(`App published successfully (${data?.message?.published_pages} pages)`)
+				},
+				onError(error: any) {
+					toast.error("Failed to publish the app", {
+						description: error?.messages?.join(", "),
+					})
+				},
+			},
+		)
+	}
+
+	async function unpublishApp() {
+		if (!activeApp.value) return
+		const confirmed = await confirm(
+			`Are you sure you want to unpublish the app <b>${activeApp.value.app_name}</b>? It will no longer be publicly accessible.`,
+		)
+		if (!confirmed) {
+			return
+		}
+		return studioApps.runDocMethod.submit(
+			{
+				name: activeApp.value.name,
+				method: "unpublish_app",
+			},
+			{
+				onSuccess() {
+					setAppPages(activeApp.value!.name)
+					toast.success("App unpublished")
+				},
+				onError(error: any) {
+					toast.error("Failed to unpublish the app", {
+						description: error?.messages?.join(", "),
+					})
+				},
+			},
+		)
+	}
+
 	function openPageInBrowser(app: StudioApp, page: StudioPage, preview: boolean = false) {
 		let route = `/${app.route}${page.route}`
 		if (preview) {
@@ -374,6 +452,9 @@ const useStudioStore = defineStore("store", () => {
 		savePage,
 		updateActivePage,
 		publishPage,
+		unpublishPage,
+		publishApp,
+		unpublishApp,
 		openPageInBrowser,
 		routeObject,
 		// app build

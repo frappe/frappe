@@ -4,6 +4,7 @@ import json
 import os
 
 import frappe
+from frappe import _
 from frappe.commands import popen
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
@@ -137,7 +138,7 @@ class StudioApp(WebsiteGenerator):
 	@frappe.whitelist()
 	def generate_app_build(self):
 		if not frappe.has_permission("Studio App", ptype="write"):
-			frappe.throw("You do not have permission to generate the app build", frappe.PermissionError)
+			frappe.throw(_("You do not have permission to generate the app build"), frappe.PermissionError)
 
 		try:
 			components = get_app_components(self.name)
@@ -146,6 +147,27 @@ class StudioApp(WebsiteGenerator):
 			popen(command, cwd=studio_app_path, raise_err=True)
 		except Exception as e:
 			raise Exception(f"Build process failed: {str(e)}")
+
+	@frappe.whitelist()
+	def publish_app(self):
+		pages = frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name")
+		for page_name in pages:
+			page_doc = frappe.get_doc("Studio Page", page_name)
+			page_doc.publish()
+
+		try:
+			self.generate_app_build()
+		except Exception:
+			pass
+
+		return {"published_pages": len(pages)}
+
+	@frappe.whitelist()
+	def unpublish_app(self):
+		pages = frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name")
+		for page_name in pages:
+			page_doc = frappe.get_doc("Studio Page", page_name)
+			page_doc.unpublish()
 
 	def get_assets_from_manifest(self):
 		"""
@@ -217,7 +239,7 @@ class StudioApp(WebsiteGenerator):
 			return
 
 		if not self.frappe_app:
-			frappe.throw("Frappe App must be set to export the Studio App.")
+			frappe.throw(_("Frappe App must be set to export the Studio App."))
 
 		app_path = self.create_app_folder()
 		self.export_studio_pages(app_path)

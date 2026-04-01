@@ -224,6 +224,11 @@ class StudioPage(Document):
 			self.draft_blocks = None
 		self.save()
 
+	@frappe.whitelist()
+	def unpublish(self):
+		self.published = 0
+		self.save()
+
 	def validate_conflicts_with_other_pages(self):
 		other_pages = frappe.get_all(
 			"Studio Page",
@@ -270,7 +275,7 @@ def find_page_with_route(app_name: str, page_route: str) -> str | None:
 @frappe.whitelist()
 def duplicate_page(page_name: str, app_name: str | None):
 	if not frappe.has_permission("Studio Page", ptype="write"):
-		frappe.throw("You do not have permission to duplicate a page.")
+		frappe.throw(_("You do not have permission to duplicate a page."))
 
 	page = frappe.get_doc("Studio Page", page_name)
 	new_page = frappe.copy_doc(page)
