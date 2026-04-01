@@ -20,17 +20,17 @@ frappe.query_reports["Pending Workflow"] = {
 			fieldname: "workflow_state",
 			label: __("Status"),
 			fieldtype: "Link",
-			options: "Workflow State"
+			options: "Workflow State",
 		},
 		{
 			fieldname: "from_date",
 			label: __("From Date"),
-			fieldtype: "Date"
+			fieldtype: "Date",
 		},
 		{
 			fieldname: "to_date",
 			label: __("To Date"),
-			fieldtype: "Date"
+			fieldtype: "Date",
 		},
 		{
 			fieldname: "workflow_action",
@@ -47,23 +47,25 @@ frappe.query_reports["Pending Workflow"] = {
 			checkboxColumn: true,
 		});
 	},
-	
-	onload: function(report) {
-		report.page.add_inner_button(__("Apply Workflow Action"), () => {
 
+	onload: function (report) {
+		report.page.add_inner_button(__("Apply Workflow Action"), () => {
 			let indexes = report.datatable.rowmanager.getCheckedRows();
-			let selected_rows = indexes.map(i => report.data[i]);
+			let selected_rows = indexes.map((i) => report.data[i]);
 			let action = report.get_filter_value("workflow_action");
 
 			if (!selected_rows.length) {
-				frappe.throw(__("Please select at least one document to apply <b>{0}</b> action.", [action]));
+				frappe.throw(
+					__("Please select at least one document to apply <b>{0}</b> action.", [action])
+				);
 			}
-			
-			frappe.confirm(__("Are you sure you want to <b>{0}</b> selected document(s)?", [action]),
+
+			frappe.confirm(
+				__("Are you sure you want to <b>{0}</b> selected document(s)?", [action]),
 				() => {
-					let docs = selected_rows.map(row => ({
+					let docs = selected_rows.map((row) => ({
 						doctype: row.reference_doctype,
-						name: row.reference_name
+						name: row.reference_name,
 					}));
 
 					frappe.call({
@@ -74,36 +76,38 @@ frappe.query_reports["Pending Workflow"] = {
 						},
 						freeze: true,
 						freeze_message: __("{0} in progress...", [action]),
-						callback: function(r) {
+						callback: function (r) {
 							if (r.exc) return;
 							frappe.show_alert({
 								message: __("{0} applied successfully.", [action]),
-								indicator: "green"
+								indicator: "green",
 							});
 							if (report.datatable) {
 								report.datatable.rowmanager.checkAll(false);
 							}
 							report.refresh();
-						}
+						},
 					});
 				}
 			);
 		});
 
-		frappe.db.get_list("Workflow", {
-			fields: ["document_type"],
-			filters: { is_active: 1 },
-		}).then(r => {
-			let doctypes = r.map(d => d.document_type);
+		frappe.db
+			.get_list("Workflow", {
+				fields: ["document_type"],
+				filters: { is_active: 1 },
+			})
+			.then((r) => {
+				let doctypes = r.map((d) => d.document_type);
 
-			report.get_filter("reference_doctype").get_query = function() {
-				return {
-					filters: {
-						name: ["in", doctypes]
-					}
+				report.get_filter("reference_doctype").get_query = function () {
+					return {
+						filters: {
+							name: ["in", doctypes],
+						},
+					};
 				};
-			};
-		});
+			});
 	},
 
 	formatter: function (value, row, column, data, default_formatter) {

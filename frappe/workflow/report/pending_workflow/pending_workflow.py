@@ -3,8 +3,8 @@
 
 import frappe
 from frappe import _
-from frappe.model.workflow import apply_workflow, WorkflowTransitionError
-from frappe.utils import get_datetime, add_days, today, date_diff, parse_json
+from frappe.model.workflow import WorkflowTransitionError, apply_workflow
+from frappe.utils import add_days, date_diff, get_datetime, parse_json, today
 
 
 def execute(filters=None):
@@ -59,18 +59,11 @@ def get_columns():
 def get_data(filters):
 	user = filters.get("user") or frappe.session.user
 	user_roles = frappe.get_roles(user)
-	
+
 	workflow_actions = frappe.get_all(
 		"Workflow Action",
-		filters={
-			"status": "Open",
-			"role": ["in", user_roles]
-		},
-		fields=[
-			"reference_doctype",
-			"reference_name",
-			"creation as workflow_date"
-		],
+		filters={"status": "Open", "role": ["in", user_roles]},
+		fields=["reference_doctype", "reference_name", "creation as workflow_date"],
 		order_by="creation desc",
 	)
 
@@ -117,12 +110,9 @@ def get_data(filters):
 		result = results[0]
 		workflow_state = result.get("workflow_state")
 		workflow_action = filters.get("workflow_action")
-		
+
 		if workflow_action and not workflow_action_allowed(
-			wa.reference_doctype,
-			workflow_state,
-			workflow_action,
-			user_roles
+			wa.reference_doctype, workflow_state, workflow_action, user_roles
 		):
 			continue
 
@@ -133,20 +123,16 @@ def get_data(filters):
 				"workflow_state": workflow_state,
 				"created_date": result.get("created_date"),
 				"workflow_date": wa.workflow_date,
-				"days_pending": date_diff(today(), wa.workflow_date)
+				"days_pending": date_diff(today(), wa.workflow_date),
 			}
 		)
-	
+
 	data = sorted(data, key=lambda x: x.get("workflow_date") or "", reverse=True)
 	return data
 
 
 def workflow_action_allowed(doctype, workflow_state, workflow_action, user_roles):
-	workflow_name = frappe.get_value(
-		"Workflow",
-		{"document_type": doctype, "is_active": 1},
-		"name"
-	)
+	workflow_name = frappe.get_value("Workflow", {"document_type": doctype, "is_active": 1}, "name")
 
 	if not workflow_name:
 		return False
@@ -158,7 +144,7 @@ def workflow_action_allowed(doctype, workflow_state, workflow_action, user_roles
 			"state": workflow_state,
 			"action": workflow_action,
 			"allowed": ["in", user_roles],
-		}
+		},
 	)
 
 
@@ -173,13 +159,11 @@ def apply_workflow_action(rows: str, action: str):
 			apply_workflow(doc, action)
 		except WorkflowTransitionError:
 			errors.append(
-				_("Permission denied for {0} action on {1} {2}.")
-				.format(action, row["doctype"], row["name"])
+				_("Permission denied for {0} action on {1} {2}.").format(action, row["doctype"], row["name"])
 			)
 		except Exception as e:
 			errors.append(
-				_("Cannot apply {0} on {1} {2}: {3}")
-				.format(action, row["doctype"], row["name"], str(e))
+				_("Cannot apply {0} on {1} {2}: {3}").format(action, row["doctype"], row["name"], str(e))
 			)
 
 	if errors:
