@@ -11,7 +11,6 @@
   "route",
   "column_break_aroi",
   "app_home",
-  "published",
   "export_section",
   "is_standard",
   "frappe_app"
@@ -48,14 +47,6 @@
   },
   {
    "default": "0",
-   "fieldname": "published",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Published"
-  },
-  {
-   "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
    "label": "Is Standard"
@@ -80,7 +71,7 @@
    "link_fieldname": "studio_app"
   }
  ],
- "modified": "2025-07-28 18:19:40.202789",
+ "modified": "2026-04-01 12:40:55.395090",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",

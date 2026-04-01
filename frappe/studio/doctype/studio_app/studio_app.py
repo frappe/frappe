@@ -28,7 +28,14 @@ class StudioAppRenderer(DocumentPage):
 			app_route = _path[1]
 		else:
 			app_route = _path[0]
-		return frappe.db.get_value("Studio App", dict(route=app_route), "name")
+
+		studio_app = frappe.db.get_value("Studio App", dict(route=app_route), "name")
+		if not studio_app:
+			return None
+		if self.is_preview():
+			return studio_app
+		has_published_pages = frappe.db.exists("Studio Page", dict(studio_app=studio_app, published=1))
+		return studio_app if has_published_pages else None
 
 	def update_context(self):
 		super().update_context()
