@@ -33,6 +33,7 @@ def set_route(context):
 		context.route = f"{context.pathname or quoted(context.doc.doctype)}/{quoted(context.doc.name)}"
 
 
+@frappe.whitelist(allow_guest=True)
 def get(
 	doctype: str,
 	txt: str | None = None,
