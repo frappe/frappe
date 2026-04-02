@@ -14,7 +14,6 @@
   "column_break_5",
   "reference_doctype",
   "reference_name",
-  "reference_owner",
   "section_break_10",
   "content",
   "ip_address"
@@ -75,12 +74,6 @@
    "options": "reference_doctype"
   },
   {
-   "fieldname": "reference_owner",
-   "fieldtype": "Data",
-   "label": "Reference Owner",
-   "read_only": 1
-  },
-  {
    "fieldname": "section_break_10",
    "fieldtype": "Section Break"
   },
@@ -99,7 +92,7 @@
   }
  ],
  "links": [],
- "modified": "2024-08-14 16:10:15.413830",
+ "modified": "2026-04-02 19:40:05.372307",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Comment",
@@ -131,6 +124,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

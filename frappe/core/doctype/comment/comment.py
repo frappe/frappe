@@ -48,7 +48,6 @@ class Comment(Document):
 		published: DF.Check
 		reference_doctype: DF.Link | None
 		reference_name: DF.DynamicLink | None
-		reference_owner: DF.Data | None
 		seen: DF.Check
 		subject: DF.Text | None
 	# end: auto-generated types
