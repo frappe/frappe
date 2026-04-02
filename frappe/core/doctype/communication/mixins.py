@@ -24,13 +24,13 @@ class CommunicationEmailMixin:
 		"""Get notification recipient of the communication docs parent.
 
 		Calls `get_notification_email` on the parent if available; otherwise returns the owner.
+		This uses `run_method` so hooks can customize recipients per app/site.
 		"""
 		parent_doc = get_parent_doc(self)
 		if not parent_doc:
 			return None
 
-		get_notification_email = getattr(parent_doc, "get_notification_email", None)
-		notification_email = get_notification_email() if callable(get_notification_email) else None
+		notification_email = parent_doc.run_method("get_notification_email")
 		if notification_email:
 			return notification_email
 
