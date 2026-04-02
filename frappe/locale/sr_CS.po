@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-03-29 09:44+0000\n"
-"PO-Revision-Date: 2026-03-30 13:47\n"
+"PO-Revision-Date: 2026-04-02 13:55\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -17481,7 +17481,7 @@ msgstr "Novi naziv izveštaja"
 
 #: frappe/core/doctype/role/role.js:55
 msgid "New Role Name"
-msgstr ""
+msgstr "Naziv nove uloge"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:60
 msgid "New Shortcut"
@@ -17536,7 +17536,7 @@ msgstr "Nova lozinka ne može biti ista kao trenutna lozinka. Molimo Vas da izab
 
 #: frappe/core/doctype/role/role.js:78
 msgid "New role created successfully."
-msgstr ""
+msgstr "Nova uloga je uspešno kreirana."
 
 #: frappe/utils/change_log.py:389
 msgid "New updates are available"
@@ -19071,7 +19071,7 @@ msgstr "Otvori konzolu"
 #. Item'
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Open in New Tab"
-msgstr ""
+msgstr "Otvori u novoj kartici"
 
 #: frappe/public/js/print_format_builder/Preview.vue:17
 msgid "Open in a new tab"
@@ -21522,7 +21522,7 @@ msgstr "U redu za rezervnu kopiju. Dobićete imejl sa linkom za preuzimanje"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:186
 msgid "Queued for {0}. You can track the progress over {1}."
-msgstr ""
+msgstr "Stavljeno u red za {0}. Napredak možete pratiti putem {1}."
 
 #. Label of the queues (Data) field in DocType 'System Health Report Workers'
 #: frappe/desk/doctype/system_health_report_workers/system_health_report_workers.json
@@ -22442,11 +22442,11 @@ msgstr "Replikacija"
 
 #: frappe/core/doctype/role/role.js:40 frappe/core/doctype/role/role.js:52
 msgid "Replicate Role"
-msgstr ""
+msgstr "Replikacija uloge"
 
 #: frappe/core/doctype/role/role.js:63
 msgid "Replicating Role..."
-msgstr ""
+msgstr "Replikacija uloge u toku..."
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #. Option for the 'Status' (Select) field in DocType 'Communication'
@@ -25398,7 +25398,7 @@ msgstr "Prikaži sled greške"
 
 #: frappe/core/doctype/role/role.js:30
 msgid "Show Users"
-msgstr ""
+msgstr "Prikaži korisnike"
 
 #. Label of the show_values_over_chart (Check) field in DocType 'Dashboard
 #. Chart'
@@ -27857,7 +27857,7 @@ msgstr "Ovaj dokument se ne može trenutno obrisati jer ga drugi korisnik uređu
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:171
 msgid "This document has already been queued for {0}. You can track the progress over {1}."
-msgstr ""
+msgstr "Ovaj dokument je već stavljen u red za {0}. Napredak možete pratiti putem {1}."
 
 #: frappe/www/confirm_workflow_action.html:8
 msgid "This document has been modified after the email was sent."
@@ -31712,7 +31712,7 @@ msgstr "Morate biti prijavljeni da biste pristupili ovom {0}."
 
 #: frappe/desk/doctype/workspace/workspace.py:106
 msgid "You need to be {0} to rename this document"
-msgstr ""
+msgstr "Morate biti {0} da biste preimenovali ovaj dokument"
 
 #: frappe/public/js/frappe/widgets/links_widget.js:68
 msgid "You need to create these first:"
