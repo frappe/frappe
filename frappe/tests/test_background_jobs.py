@@ -54,6 +54,66 @@ class TestBackgroundJobs(IntegrationTestCase):
 		# lesser is earlier
 		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
 
+	def test_query_deadlock_error_retries_job(self):
+		"""QueryDeadlockError raised by frappe.db.sql should trigger job retry."""
+		call_count = 0
+
+		def deadlock_once(**kwargs):
+			nonlocal call_count
+			call_count += 1
+			if call_count == 1:
+				raise frappe.QueryDeadlockError(
+					1020, "Record has changed since last read in table 'tabContact'"
+				)
+			return "success"
+
+		with (
+			freeze_local() as locals,
+			frappe.init_site(locals.site),
+			patch("time.sleep"),
+		):
+			frappe.connect()
+			result = execute_job(
+				site=frappe.local.site,
+				user="Administrator",
+				method=deadlock_once,
+				event=None,
+				job_name="test_deadlock",
+				is_async=True,
+				kwargs={},
+			)
+			self.assertEqual(result, "success")
+			self.assertEqual(call_count, 2)
+
+	def test_query_timeout_error_retries_job(self):
+		"""QueryTimeoutError raised by frappe.db.sql should trigger job retry."""
+		call_count = 0
+
+		def timeout_once(**kwargs):
+			nonlocal call_count
+			call_count += 1
+			if call_count == 1:
+				raise frappe.QueryTimeoutError(1205, "Lock wait timeout exceeded")
+			return "success"
+
+		with (
+			freeze_local() as locals,
+			frappe.init_site(locals.site),
+			patch("time.sleep"),
+		):
+			frappe.connect()
+			result = execute_job(
+				site=frappe.local.site,
+				user="Administrator",
+				method=timeout_once,
+				event=None,
+				job_name="test_timeout",
+				is_async=True,
+				kwargs={},
+			)
+			self.assertEqual(result, "success")
+			self.assertEqual(call_count, 2)
+
 	def test_job_hooks(self):
 		self.addCleanup(lambda: _test_JOB_HOOK.clear())
 		with (
@@ -95,8 +155,10 @@ def after_job(*args, **kwargs):
 def freeze_local():
 	locals = frappe.local
 	frappe.local = Local()
-	yield locals
-	frappe.local = locals
+	try:
+		yield locals
+	finally:
+		frappe.local = locals
 
 
 def patch_job_hooks(event: str):
