@@ -5,21 +5,24 @@ frappe.RoleEditor = class {
 	 * @param {HTMLElement|JQuery} wrapper Container for the MultiCheck control.
 	 * @param {frappe.ui.form.Form} frm Form whose role rows are edited.
 	 * @param {boolean} [disable=false] Disable role selection inputs.
-	 * @param {string} [table_fieldname="roles"] Child table field containing role rows.
-	 * @param {string} [role_fieldname="role"] Field in each child row that stores the role value.
+	 * @param {Object} [options] Role row configuration overrides.
+	 * @param {string} [options.table_fieldname="roles"] Child table field containing role rows.
+	 * @param {string} [options.role_fieldname="role"] Field in each child row that stores the role value.
+	 * @param {string} [options.child_doctype="Has Role"] Child DocType used when adding role rows.
 	 */
-	constructor(
-		wrapper,
-		frm,
-		disable = false,
-		table_fieldname = "roles",
-		role_fieldname = "role"
-	) {
+	constructor(wrapper, frm, disable = false, options = {}) {
+		const {
+			table_fieldname = "roles",
+			role_fieldname = "role",
+			child_doctype = "Has Role",
+		} = options || {};
+
 		this.frm = frm;
 		this.wrapper = wrapper;
 		this.disable = disable;
-		this.table_fieldname = table_fieldname || "roles";
-		this.role_fieldname = role_fieldname || "role";
+		this.table_fieldname = table_fieldname;
+		this.role_fieldname = role_fieldname;
+		this.child_doctype = child_doctype;
 		let user_roles = this.get_selected_roles();
 		this.multicheck = frappe.ui.form.make_control({
 			parent: wrapper,
@@ -163,7 +166,7 @@ frappe.RoleEditor = class {
 			if (!roles.find((d) => this.get_role_value(d) === role)) {
 				let role_doc = frappe.model.add_child(
 					this.frm.doc,
-					"Has Role",
+					this.child_doctype,
 					this.table_fieldname
 				);
 				this.set_role_value(role_doc, role);
