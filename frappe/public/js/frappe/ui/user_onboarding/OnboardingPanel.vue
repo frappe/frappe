@@ -239,107 +239,114 @@ function markReset(step) {
 			</div>
 		</div>
 
-		<div v-if="!collapsed" class="body">
-			<div class="onb-title">
-				<div class="onb-title-icon" v-html="headerIcon"></div>
+		<div
+			class="onb-collapsible"
+			:class="collapsed ? 'onb-collapsible--collapsed' : 'onb-collapsible--expanded'"
+		>
+			<div class="body">
+				<div class="onb-title">
+					<div class="onb-title-icon" v-html="headerIcon"></div>
 
-				<div class="text-base font-medium">{{ title }}</div>
+					<div class="text-base font-medium">{{ title }}</div>
 
-				<div class="onb-title-steps">
-					{{ completedCount }}/{{ steps.length }} {{ __("steps completed") }}
-				</div>
-			</div>
-
-			<div class="onb-progress-row">
-				<div v-if="progress !== 100">
-					<div class="onb-progress-badge">{{ progress }}% {{ __("completed") }}</div>
-				</div>
-				<div v-else>
-					<div class="onb-progress-badge-complete">
-						{{ progress }}% {{ __("completed") }}
+					<div class="onb-title-steps">
+						{{ completedCount }}/{{ steps.length }} {{ __("steps completed") }}
 					</div>
 				</div>
 
-				<div v-if="skippAll">
-					<span class="onb-skip" @click="resetAll(steps)"> {{ __("Reset All") }}</span>
-				</div>
-				<div v-else>
-					<span class="onb-skip" @click="skipAll(steps)">{{ __("Skip All") }}</span>
-				</div>
-			</div>
-
-			<!-- Steps -->
-			<div class="onb-steps flex flex-col gap-2.5 overflow-hidden">
-				<div
-					style="width: 100%"
-					v-for="(step, i) in steps"
-					:key="i"
-					:class="{ is_complete: step.is_complete }"
-				>
-					<div
-						class="onb-group w-full step-title flex items-center"
-						style="align-items: center"
-						:class="
-							step.is_complete
-								? 'text-extra-muted onb-select-cursor'
-								: 'text-ink-gray-8 onb-select-cursor'
-						"
-					>
-						<div class="onb-step-left" @click="handleAction(step)">
-							<div class="onb-step-icon" v-if="step.is_complete">
-								<div v-html="completeChecklistIcon"></div>
-							</div>
-							<div class="onb-step-icon" v-else>
-								<div v-html="checklistIcon"></div>
-							</div>
-
-							<div v-if="!step.is_skipped">
-								<span
-									class="text-base onb-step-text"
-									:class="step.is_complete ? 'text-extra-muted' : ''"
-								>
-									{{ __(step.action_label) }}
-								</span>
-							</div>
-							<div v-else>
-								<span
-									class="text-base onb-step-text text-extra-muted"
-									style="text-decoration-line: line-through"
-								>
-									{{ __(step.action_label) }}
-								</span>
-							</div>
+				<div class="onb-progress-row">
+					<div v-if="progress !== 100">
+						<div class="onb-progress-badge">{{ progress }}% {{ __("completed") }}</div>
+					</div>
+					<div v-else>
+						<div class="onb-progress-badge-complete">
+							{{ progress }}% {{ __("completed") }}
 						</div>
+					</div>
 
-						<div v-if="!step.is_complete">
-							<div v-if="!step.is_skipped">
-								<div class="ml-auto onb-show-on-hover text-sm w-12 text-right">
+					<div v-if="skippAll">
+						<span class="onb-skip" @click="resetAll(steps)">
+							{{ __("Reset All") }}</span
+						>
+					</div>
+					<div v-else>
+						<span class="onb-skip" @click="skipAll(steps)">{{ __("Skip All") }}</span>
+					</div>
+				</div>
+
+				<!-- Steps -->
+				<div class="onb-steps flex flex-col gap-2.5 overflow-hidden">
+					<div
+						style="width: 100%"
+						v-for="(step, i) in steps"
+						:key="i"
+						:class="{ is_complete: step.is_complete }"
+					>
+						<div
+							class="onb-group w-full step-title flex items-center"
+							style="align-items: center"
+							:class="
+								step.is_complete
+									? 'text-extra-muted onb-select-cursor'
+									: 'text-ink-gray-8 onb-select-cursor'
+							"
+						>
+							<div class="onb-step-left" @click="handleAction(step)">
+								<div class="onb-step-icon" v-if="step.is_complete">
+									<div v-html="completeChecklistIcon"></div>
+								</div>
+								<div class="onb-step-icon" v-else>
+									<div v-html="checklistIcon"></div>
+								</div>
+
+								<div v-if="!step.is_skipped">
 									<span
-										style="
-											font-size: 12px;
-											vertical-align: text-top;
-											margin-right: 0px;
-										"
-										class="text-ink-gray-7"
-										@click="markSkip(step)"
+										class="text-base onb-step-text"
+										:class="step.is_complete ? 'text-extra-muted' : ''"
 									>
-										{{ __("Skip") }}
+										{{ __(step.action_label) }}
+									</span>
+								</div>
+								<div v-else>
+									<span
+										class="text-base onb-step-text text-extra-muted"
+										style="text-decoration-line: line-through"
+									>
+										{{ __(step.action_label) }}
 									</span>
 								</div>
 							</div>
-							<div v-if="step.is_skipped">
-								<div class="ml-auto onb-show-on-hover text-sm w-12 text-right">
-									<span
-										style="
-											font-size: 12px;
-											vertical-align: text-top;
-											margin-right: 0px;
-										"
-										class="text-ink-gray-7"
-										@click="markReset(step)"
-									>
-										{{ __("Reset") }}
-									</span>
+
+							<div v-if="!step.is_complete">
+								<div v-if="!step.is_skipped">
+									<div class="ml-auto onb-show-on-hover text-sm w-12 text-right">
+										<span
+											style="
+												font-size: 12px;
+												vertical-align: text-top;
+												margin-right: 0px;
+											"
+											class="text-ink-gray-7"
+											@click="markSkip(step)"
+										>
+											{{ __("Skip") }}
+										</span>
+									</div>
+								</div>
+								<div v-if="step.is_skipped">
+									<div class="ml-auto onb-show-on-hover text-sm w-12 text-right">
+										<span
+											style="
+												font-size: 12px;
+												vertical-align: text-top;
+												margin-right: 0px;
+											"
+											class="text-ink-gray-7"
+											@click="markReset(step)"
+										>
+											{{ __("Reset") }}
+										</span>
+									</div>
 								</div>
 							</div>
 						</div>

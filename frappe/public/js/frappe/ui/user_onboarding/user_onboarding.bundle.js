@@ -84,10 +84,28 @@ function addStyles() {
 		display: flex;
 		flex-direction: column;
 		overflow-y: auto;
+		transition-property: all;
+		transition-duration: 0.3s;
+		transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 	}
 
 	.expanded .onb-panel {
 		left: 236px;
+	}
+
+	.onb-collapsible {
+		overflow: hidden;
+		transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.onb-collapsible--expanded {
+		max-height: 3000px;
+		pointer-events: auto;
+	}
+
+	.onb-collapsible--collapsed {
+		max-height: 0;
+		pointer-events: none;
 	}
 
 	.onb-header-main {
