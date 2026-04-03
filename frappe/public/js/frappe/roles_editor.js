@@ -17,16 +17,17 @@ frappe.RoleEditor = class {
 		}
 
 		const { table_fieldname = "roles", role_fieldname = "role", child_doctype } = options;
+		const configured_child_doctype = frappe.meta.get_docfield(
+			frm.doctype,
+			table_fieldname
+		)?.options;
 
 		this.frm = frm;
 		this.wrapper = wrapper;
 		this.disable = Boolean(disable);
 		this.table_fieldname = table_fieldname;
 		this.role_fieldname = role_fieldname;
-		this.child_doctype =
-			child_doctype ||
-			this.frm.fields_dict[this.table_fieldname]?.grid?.doctype ||
-			"Has Role";
+		this.child_doctype = child_doctype || configured_child_doctype || "Has Role";
 		let user_roles = this.get_selected_roles();
 		this.multicheck = frappe.ui.form.make_control({
 			parent: wrapper,
