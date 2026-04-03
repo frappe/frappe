@@ -1,13 +1,19 @@
 frappe.RoleEditor = class {
-	constructor(wrapper, frm, disable) {
+	constructor(wrapper, frm, disable, table_fieldname = "roles") {
+		if (typeof disable === "string") {
+			table_fieldname = disable;
+			disable = false;
+		}
+
 		this.frm = frm;
 		this.wrapper = wrapper;
 		this.disable = disable;
-		let user_roles = this.frm.doc.roles ? this.frm.doc.roles.map((a) => a.role) : [];
+		this.table_fieldname = table_fieldname || "roles";
+		let user_roles = this.get_role_rows().map((a) => a.role);
 		this.multicheck = frappe.ui.form.make_control({
 			parent: wrapper,
 			df: {
-				fieldname: "roles",
+				fieldname: this.table_fieldname,
 				fieldtype: "MultiCheck",
 				select_all: true,
 				columns: "15rem",
@@ -130,12 +136,12 @@ frappe.RoleEditor = class {
 	}
 
 	reset() {
-		let user_roles = (this.frm.doc.roles || []).map((a) => a.role);
+		let user_roles = this.get_role_rows().map((a) => a.role);
 		this.multicheck.selected_options = user_roles;
 		this.multicheck.refresh_input();
 	}
 	set_roles_in_table() {
-		let roles = this.frm.doc.roles || [];
+		let roles = this.get_role_rows();
 		let checked_options = this.multicheck.get_checked_options();
 		roles.map((role_doc) => {
 			if (!checked_options.includes(role_doc.role)) {
@@ -144,10 +150,17 @@ frappe.RoleEditor = class {
 		});
 		checked_options.map((role) => {
 			if (!roles.find((d) => d.role === role)) {
-				let role_doc = frappe.model.add_child(this.frm.doc, "Has Role", "roles");
+				let role_doc = frappe.model.add_child(
+					this.frm.doc,
+					"Has Role",
+					this.table_fieldname
+				);
 				role_doc.role = role;
 			}
 		});
+	}
+	get_role_rows() {
+		return this.frm.doc[this.table_fieldname] || [];
 	}
 	get_roles() {
 		return {
