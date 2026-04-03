@@ -1,4 +1,13 @@
 frappe.RoleEditor = class {
+	/**
+	 * Create a role editor for a form child table.
+	 *
+	 * @param {HTMLElement|JQuery} wrapper Container for the MultiCheck control.
+	 * @param {frappe.ui.form.Form} frm Form whose role rows are edited.
+	 * @param {boolean} [disable=false] Disable role selection inputs.
+	 * @param {string} [table_fieldname="roles"] Child table field containing role rows.
+	 * @param {string} [role_fieldname="role"] Field in each child row that stores the role value.
+	 */
 	constructor(
 		wrapper,
 		frm,
