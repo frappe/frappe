@@ -4,25 +4,29 @@ frappe.RoleEditor = class {
 	 *
 	 * @param {HTMLElement|JQuery} wrapper Container for the MultiCheck control.
 	 * @param {frappe.ui.form.Form} frm Form whose role rows are edited.
-	 * @param {boolean} [disable=false] Disable role selection inputs.
+	 * @param {boolean|number|Object} [disable=false] Disable role selection inputs, or pass role row configuration as the third argument.
 	 * @param {Object} [options] Role row configuration overrides.
 	 * @param {string} [options.table_fieldname="roles"] Child table field containing role rows.
 	 * @param {string} [options.role_fieldname="role"] Field in each child row that stores the role value.
-	 * @param {string} [options.child_doctype="Has Role"] Child DocType used when adding role rows.
+	 * @param {string} [options.child_doctype] Child DocType used when adding role rows. Defaults to the table field's configured child DocType or "Has Role".
 	 */
 	constructor(wrapper, frm, disable = false, options = {}) {
-		const {
-			table_fieldname = "roles",
-			role_fieldname = "role",
-			child_doctype = "Has Role",
-		} = options || {};
+		if (disable && typeof disable === "object") {
+			options = disable;
+			disable = false;
+		}
+
+		const { table_fieldname = "roles", role_fieldname = "role", child_doctype } = options;
 
 		this.frm = frm;
 		this.wrapper = wrapper;
-		this.disable = disable;
+		this.disable = Boolean(disable);
 		this.table_fieldname = table_fieldname;
 		this.role_fieldname = role_fieldname;
-		this.child_doctype = child_doctype;
+		this.child_doctype =
+			child_doctype ||
+			this.frm.fields_dict[this.table_fieldname]?.grid?.doctype ||
+			"Has Role";
 		let user_roles = this.get_selected_roles();
 		this.multicheck = frappe.ui.form.make_control({
 			parent: wrapper,
@@ -157,12 +161,12 @@ frappe.RoleEditor = class {
 	set_roles_in_table() {
 		let roles = this.get_role_rows();
 		let checked_options = this.multicheck.get_checked_options();
-		roles.map((role_doc) => {
+		roles.forEach((role_doc) => {
 			if (!checked_options.includes(this.get_role_value(role_doc))) {
 				frappe.model.clear_doc(role_doc.doctype, role_doc.name);
 			}
 		});
-		checked_options.map((role) => {
+		checked_options.forEach((role) => {
 			if (!roles.find((d) => this.get_role_value(d) === role)) {
 				let role_doc = frappe.model.add_child(
 					this.frm.doc,
