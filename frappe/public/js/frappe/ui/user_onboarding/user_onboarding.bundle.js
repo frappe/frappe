@@ -72,7 +72,7 @@ function addStyles() {
 
 	.onb-panel {
 		position: fixed;
-		left: 236px;
+		left: 66px;
 		bottom: 24px;
 		width: 310px;
 		max-height: 80vh;
@@ -83,7 +83,12 @@ function addStyles() {
 		z-index: 1000;
 		display: flex;
 		flex-direction: column;
-	  }
+		overflow-y: auto;
+	}
+
+	.expanded .onb-panel {
+		left: 236px;
+	}
 
 	.onb-header-main {
 		display: flex;
