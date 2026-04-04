@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-03-29 09:44+0000\n"
-"PO-Revision-Date: 2026-03-30 13:47\n"
+"PO-Revision-Date: 2026-04-04 14:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -3100,17 +3100,17 @@ msgstr "Pripisivanje"
 #. Name of a report
 #: frappe/custom/report/audit_system_hooks/audit_system_hooks.json
 msgid "Audit System Hooks"
-msgstr "Revidiraj Sistemske Kuke (hooks)"
+msgstr "Pregled Kuke Sustava (hooks)"
 
 #. Name of a DocType
 #: frappe/core/doctype/audit_trail/audit_trail.json
 msgid "Audit Trail"
-msgstr "Revizijski Trag"
+msgstr "Povijest Izmjena"
 
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/users.json
 msgid "Audits"
-msgstr "Revizije"
+msgstr "Pregled"
 
 #. Label of the auth_url_data (Code) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -3681,7 +3681,7 @@ msgstr "Na Osnovu Polja"
 #. Label of the user (Link) field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Based on Permissions For User"
-msgstr "Na Osnovu Dozvola za Korisnika"
+msgstr "Na Osnovu Dopuštenja za Korisnika"
 
 #. Option for the 'Method' (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -4318,7 +4318,7 @@ msgstr "Otkazujem {0}"
 
 #: frappe/core/doctype/prepared_report/prepared_report.py:303
 msgid "Cannot Download Report due to insufficient permissions"
-msgstr "Nije moguće preuzeti izvještaj zbog nedovoljnih dozvola"
+msgstr "Nije moguće preuzeti izvještaj zbog nedovoljnih dopuštenja"
 
 #: frappe/client.py:521
 msgid "Cannot Fetch Values"
@@ -4506,7 +4506,7 @@ msgstr "Nije moguće ukloniti ID polje"
 
 #: frappe/core/page/permission_manager/permission_manager.py:149
 msgid "Cannot set 'Report' permission if 'Only If Creator' permission is set"
-msgstr "Ne može se postaviti dopuštenje 'Izvještaj' ako je postavljena dozvola 'Samo ako je Kreator'"
+msgstr "Ne može se postaviti dopuštenje 'Izvještaj' ako je postavljena dozvola 'Samo ako je Autor'"
 
 #: frappe/email/doctype/notification/notification.py:239
 msgid "Cannot set Notification with event {0} on Document Type {1}"
@@ -6364,7 +6364,7 @@ msgstr "Prilagođeni Razdjelnici"
 #. Name of a DocType
 #: frappe/core/doctype/custom_docperm/custom_docperm.json
 msgid "Custom DocPerm"
-msgstr "Prilagođena Dozvola Dokumenta"
+msgstr "Prilagođena Dopuštenja Dokumenta"
 
 #. Label of the custom_select_doctypes (Table) field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
@@ -11318,7 +11318,7 @@ msgstr "Za ažuriranje, možete ažurirati samo selektivne kolone."
 
 #: frappe/core/doctype/doctype/doctype.py:1834
 msgid "For {0} at level {1} in {2} in row {3}"
-msgstr "Za {0} na nivou {1} u {2} u redu {3}"
+msgstr "Za {0} na razini {1} u {2} u redu {3}"
 
 #. Label of the force (Check) field in DocType 'Package Import'
 #. Option for the 'Skip Authorization' (Select) field in DocType 'OAuth
@@ -12903,7 +12903,7 @@ msgstr "Ako je Vlasnik"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:92
 msgid "If a Role does not have access at Level 0, then higher levels are meaningless."
-msgstr "Ako Uloga nema pristup na Nivou 0, tada su viši nivoi besmisleni."
+msgstr "Ako Uloga nema pristup na Razini 0, tada su više razine besmislene."
 
 #. Description of the 'Enable Action Confirmation' (Check) field in DocType
 #. 'Workflow'
@@ -13742,7 +13742,7 @@ msgstr "Instrukcije Poslane e-poštom"
 
 #: frappe/permissions.py:878
 msgid "Insufficient Permission Level for {0}"
-msgstr "Nedovoljan Nivo Dozvola za {0}"
+msgstr "Nedovoljana Razina Dopuštenja za {0}"
 
 #: frappe/database/query.py:1412
 msgid "Insufficient Permission for {0}"
@@ -15390,11 +15390,11 @@ msgstr "Zaglavlje u HTML-u"
 #: frappe/public/js/frappe/roles_editor.js:77
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Level"
-msgstr "Nivo"
+msgstr "Razina"
 
 #: frappe/core/page/permission_manager/permission_manager.js:524
 msgid "Level 0 is for document level permissions, higher levels for field level permissions."
-msgstr "Nivo 0 je za dozvole na nivou dokumenta, viši nivoi za dozvole na nivou polja."
+msgstr "Razina 0 je za doopuštenja na razini dokumenta, više razine za dopuštenja na razini polja."
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:94
 msgid "Library"
@@ -16768,7 +16768,7 @@ msgstr "Obavezni Nedostajući Filteri"
 
 #: frappe/desk/form/assign_to.py:111
 msgid "Missing Permission"
-msgstr "Nedostaje Dozvola"
+msgstr "Nedostaje Dopuštenje"
 
 #: frappe/www/update-password.html:134 frappe/www/update-password.html:141
 msgid "Missing Value"
@@ -17844,7 +17844,7 @@ msgstr "Nema Novih obavještenja"
 
 #: frappe/core/doctype/doctype/doctype.py:1826
 msgid "No Permissions Specified"
-msgstr "Nema Navedenih Dozvola"
+msgstr "Nema Navedenih Dopuštenja"
 
 #: frappe/core/page/permission_manager/permission_manager.js:205
 msgid "No Permissions set for this criteria."
@@ -18835,7 +18835,7 @@ msgstr "Naziv Introdukcije"
 #. Name of a DocType
 #: frappe/desk/doctype/onboarding_permission/onboarding_permission.json
 msgid "Onboarding Permission"
-msgstr "Dozvola Introdukcije"
+msgstr "Dopuštenje Introdukcije"
 
 #. Label of the onboarding_status (Small Text) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -19918,7 +19918,7 @@ msgstr "Razdoblje"
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Perm Level"
-msgstr "Nivo Dozvola"
+msgstr "Razina Dopuštenja"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -19955,29 +19955,29 @@ msgstr "Greška Dozvole"
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 #: frappe/workspace_sidebar/users.json
 msgid "Permission Inspector"
-msgstr "Inspektor Dozvola"
+msgstr "Inspektor Dopuštenja"
 
 #. Label of the permlevel (Int) field in DocType 'Custom Field'
 #: frappe/core/page/permission_manager/permission_manager.js:520
 #: frappe/custom/doctype/custom_field/custom_field.json
 msgid "Permission Level"
-msgstr "Nivo Dozvole"
+msgstr "Razina Dopuštenja"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:89
 msgid "Permission Levels"
-msgstr "Nivoi Dozvola"
+msgstr "Razine Dopuštenja"
 
 #. Name of a DocType
 #. Label of a Workspace Sidebar Item
 #: frappe/core/doctype/permission_log/permission_log.json
 #: frappe/workspace_sidebar/users.json
 msgid "Permission Log"
-msgstr "Zapisnik Dozvola"
+msgstr "Zapisnik Dopuštenja"
 
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/users.json
 msgid "Permission Manager"
-msgstr "Upravitelj dozvola"
+msgstr "Upravitelj Dopuštenja"
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -20028,7 +20028,7 @@ msgstr "Dozvole"
 #: frappe/core/doctype/doctype/doctype.py:1967
 #: frappe/core/doctype/doctype/doctype.py:1977
 msgid "Permissions Error"
-msgstr "Greška Dozvola"
+msgstr "Greška Dopuštenja"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:10
 msgid "Permissions are automatically applied to Standard Reports and searches."
@@ -20036,15 +20036,15 @@ msgstr "Dozvole se automatski primjenjuju na Standardne Izvještaje i pretrage."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:5
 msgid "Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions."
-msgstr "Dozvole se postavljaju za uloge i Tip Dokumenata (zvane DocTypes) postavljanjem prava kao što su čitanje, pisanje, kreiranje, brisanje, slanje, poništavanje, izmjena, izvještaj, uvoz, izvoz, ispisivanje, slanje e-pošte i postavljanje korisničkih dozvola."
+msgstr "Dopuštenja se postavljaju za uloge i Tip Dokumenata (zvane DocTypes) postavljanjem prava kao što su čitanje, pisanje, kreiranje, brisanje, slanje, poništavanje, izmjena, izvještaj, uvoz, izvoz, ispisivanje, slanje e-pošte i postavljanje korisničkih dopuštenja."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:93
 msgid "Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles."
-msgstr "Dozvole na višim nivoima su dozvole na nivou polja. Sva polja imaju postavljen nivo dozvole i pravila definisana u tim dozvolama važe za polje. Ovo je korisno u slučaju da želite sakriti ili učiniti određeno polje samo za čitanje za određene uloge."
+msgstr "Dopuštenja na višim razinama su dopuštenja na razini polja. Sva polja imaju postavljenu razinu dopuštenja i pravila definisana u tim doopuštenjima važe za polje. Ovo je korisno u slučaju da želite sakriti ili učiniti određeno polje samo za čitanje za određene uloge."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:91
 msgid "Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document."
-msgstr "Dozvole na nivou 0 su dozvole na nivou dokumenta, tj. primarne su za pristup dokumentu."
+msgstr "Dopuštenja na razini 0 su dozvole na razini dokumenta, tj. primarne su za pristup dokumentu."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:6
 msgid "Permissions get applied on Users based on what Roles they are assigned."
@@ -21543,7 +21543,7 @@ msgstr "Brzi Unos"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:3
 msgid "Quick Help for Setting Permissions"
-msgstr "Brza Pomoć Postavljanje Dozvola"
+msgstr "Brza Pomoć Postavljanje Dopuštenja"
 
 #. Label of the quick_list_filter (Code) field in DocType 'Workspace Quick
 #. List'
@@ -23151,7 +23151,7 @@ msgstr "Naziv Uloge"
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 #: frappe/core/workspace/users/users.json
 msgid "Role Permission for Page and Report"
-msgstr "Dozvola Uloge za Stranicu i Izvještaj"
+msgstr "Dopuštenje Uloge za Stranicu i Izvještaj"
 
 #. Label of the permissions_section (Section Break) field in DocType 'User
 #. Document Type'
@@ -23169,12 +23169,12 @@ msgstr "Zapisnik Aktivnosti Dopuštenja Uloga"
 #: frappe/core/page/permission_manager/permission_manager.js:4
 #: frappe/core/workspace/users/users.json
 msgid "Role Permissions Manager"
-msgstr "Upravitelj Dozvola Uloge"
+msgstr "Upravitelj Dopuštenja Uloge"
 
 #: frappe/public/js/frappe/list/list_view.js:1969
 msgctxt "Button in list view menu"
 msgid "Role Permissions Manager"
-msgstr "Upravitelj Dozvola Uloge"
+msgstr "Upravitelj Dopuštenja Uloge"
 
 #. Name of a DocType
 #. Label of the role_profile_name (Link) field in DocType 'User'
@@ -23196,7 +23196,7 @@ msgstr "Profili Uloge"
 #: frappe/core/doctype/custom_docperm/custom_docperm.json
 #: frappe/core/doctype/docperm/docperm.json
 msgid "Role and Level"
-msgstr "Uloga i Nivo"
+msgstr "Uloga i Razina"
 
 #: frappe/core/doctype/user/user.py:409
 msgid "Role has been set as per the user type {0}"
@@ -23410,7 +23410,7 @@ msgstr "Uslovi Pravila"
 
 #: frappe/permissions.py:700
 msgid "Rule for this doctype, role, permlevel and if-owner combination already exists."
-msgstr "Pravilo za ovu kombinaciju tipa dokumenta, uloge, nivoa dozvole i vlasnika već postoji."
+msgstr "Pravilo za ovu kombinaciju tipa dokumenta, uloge, razina dopuštenja i vlasnika već postoji."
 
 #. Group in DocType's connections
 #: frappe/core/doctype/doctype/doctype.json
@@ -24840,7 +24840,7 @@ msgstr "Postavi filtere za {0}"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2274
 msgid "Set Level"
-msgstr "Postavi Nivo"
+msgstr "Postavi Razinu"
 
 #: frappe/core/doctype/user_type/user_type.py:92
 msgid "Set Limit"
@@ -27599,7 +27599,7 @@ msgstr "Sistem se ažurira. Osvježite ponovo nakon nekoliko trenutaka."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:9
 msgid "The system provides many pre-defined roles. You can add new roles to set finer permissions."
-msgstr "Sistem pruža mnogo unapred definisanih uloga. Možete dodati nove uloge za postavljanje finijih dozvola."
+msgstr "Sistem pruža mnogo unapred definisanih uloga. Možete dodati nove uloge za postavljanje finijih dopuštenja."
 
 #: frappe/core/doctype/user_type/user_type.py:98
 msgid "The total number of user document types limit has been crossed."
@@ -27776,7 +27776,7 @@ msgstr "Ove su postavke potrebne ako se koristi 'Custom' LDAP imenik"
 #. Description of the 'Defaults' (Section Break) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values."
-msgstr "Ove vrijednosti će se automatski ažurirati u transakcijama, a također će biti korisne za ograničavanje dozvola za ovog korisnika na transakcije koje sadrže ove vrijednosti."
+msgstr "Ove vrijednosti će se automatski ažurirati u transakcijama, a također će biti korisne za ograničavanje dopuštenja za ovog korisnika na transakcije koje sadrže ove vrijednosti."
 
 #: frappe/www/third_party_apps.html:3 frappe/www/third_party_apps.html:14
 msgid "Third Party Apps"
@@ -29760,7 +29760,7 @@ msgstr "Korisničko Ime"
 #: frappe/core/doctype/user_permission/user_permission.json
 #: frappe/workspace_sidebar/users.json
 msgid "User Permission"
-msgstr "Korisnička Dozvola"
+msgstr "Korisničko Dopuštenje"
 
 #. Label of a Link in the Users Workspace
 #: frappe/core/page/permission_manager/permission_manager_help.html:97
@@ -29870,7 +29870,7 @@ msgstr "Korisnik mora uvijek odabrati"
 
 #: frappe/core/doctype/user_permission/user_permission.py:61
 msgid "User permission already exists"
-msgstr "Korisnička dozvola već postoji"
+msgstr "Korisničko dopuštenje već postoji"
 
 #: frappe/www/login.py:171
 msgid "User with email address {0} does not exist"
@@ -30233,7 +30233,7 @@ msgstr "Prikaži Sve"
 
 #: frappe/public/js/frappe/form/toolbar.js:616
 msgid "View Audit Trail"
-msgstr "Prikaži Trag"
+msgstr "Prikaži Povijest Izmjena"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -30242,7 +30242,7 @@ msgstr "Prikaži Dokumente"
 
 #: frappe/core/doctype/user/user.js:152
 msgid "View Doctype Permissions"
-msgstr "Prikaz Doctype Dozvola"
+msgstr "Prikaz Doctype Dopuštenja"
 
 #: frappe/core/doctype/file/file.js:4
 msgid "View File"
@@ -31509,7 +31509,7 @@ msgstr "Možete pokušati promijeniti filtere vašeg izvještaja."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:94
 msgid "You can use Customize Form to set levels on fields."
-msgstr "Možete koristiti Prilagodi Formu za postavljanje nivoa na poljima."
+msgstr "Možete koristiti Prilagodi Obrazac za postavljanje razine u poljima."
 
 #: frappe/public/js/frappe/form/link_selector.js:30
 msgid "You can use wildcard %"
@@ -31577,11 +31577,11 @@ msgstr "Izradili ste ovaj dokument {0}"
 
 #: frappe/public/js/frappe/request.js:178
 msgid "You do not have enough permissions to access this resource. Please contact your manager to get access."
-msgstr "Nemate dovoljno dozvola za pristup ovom resursu. Kontaktiraj svog odgovornog da dobijete pristup."
+msgstr "Nedovoljno dopuštenje za pristup ovom resursu. Kontaktiraj svog odgovornog da dobijete pristup."
 
 #: frappe/app.py:384
 msgid "You do not have enough permissions to complete the action"
-msgstr "Nemate dovoljno dozvola da dovršite radnju"
+msgstr "Nedovoljno dopuštenje da dovršite radnju"
 
 #: frappe/core/doctype/data_import/data_import.py:84
 msgid "You do not have import permission for {0}"
@@ -31681,7 +31681,7 @@ msgstr "Morate se prijaviti da pošaljete ovu formu"
 
 #: frappe/model/document.py:390
 msgid "You need the '{0}' permission on {1} {2} to perform this action."
-msgstr "Potrebna vam je '{0}' dozvola za {1} {2} da biste izvršili ovu radnju."
+msgstr "Potrebno vam je '{0}' dopuštenje za {1} {2} da biste izvršili ovu radnju."
 
 #: frappe/desk/doctype/workspace/workspace.py:140
 #: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.py:75
@@ -33501,7 +33501,7 @@ msgstr "{0}: Nisu postavljene osnovne dozvole"
 
 #: frappe/core/doctype/doctype/doctype.py:1852
 msgid "{0}: Only one rule allowed with the same Role, Level and {1}"
-msgstr "{0}: Dozvoljeno je samo jedno pravilo sa istom ulogom, nivoom i {1}"
+msgstr "{0}: Dopušteno je samo jedno pravilo sa istom ulogom, razinom i {1}"
 
 #: frappe/core/doctype/doctype/doctype.py:1378
 msgid "{0}: Options must be a valid DocType for field {1} in row {2}"
@@ -33517,47 +33517,47 @@ msgstr "{0}: Opcije {1} moraju biti iste kao naziv tipa dokumenta {2} za polje {
 
 #: frappe/public/js/frappe/form/workflow.js:49
 msgid "{0}: Other permission rules may also apply"
-msgstr "{0}: Mogu se primjenjivati i druga pravila o dozvolama"
+msgstr "{0}: Mogu se primjenjivati i druga pravila o dopuštenjama"
 
 #: frappe/core/doctype/doctype/doctype.py:1867
 msgid "{0}: Permission at level 0 must be set before higher levels are set"
-msgstr "{0}: Dozvola na nivou 0 mora biti postavljena prije postavljanja viših nivoa"
+msgstr "{0}: Dopuštenje na razini 0 mora biti postavljeno prije postavljanja viših razina"
 
 #: frappe/core/doctype/doctype/doctype.py:1944
 msgid "{0}: The 'Amend' permission cannot be granted for a non-submittable DocType."
-msgstr "{0}: Dozvola za 'Izmjenu' ne može se odobriti za DocType koji se ne može podnijeti."
+msgstr "{0}: Dopuštenje za 'Izmjenu' ne može se odobriti za DocType koji se ne može podnijeti."
 
 #: frappe/core/doctype/doctype/doctype.py:1892
 msgid "{0}: The 'Amend' permission cannot be granted without the 'Create' permission."
-msgstr "{0}: Dozvola 'Izmjena' ne može se odobriti bez dozvole 'Stvaranje'."
+msgstr "{0}: Dopuštenje 'Izmjena' ne može se odobriti bez dozvole 'Stvaranje'."
 
 #: frappe/core/doctype/doctype/doctype.py:1879
 msgid "{0}: The 'Cancel' permission cannot be granted without the 'Submit' permission."
-msgstr "{0}: Dozvola 'Otkaži' ne može se odobriti bez dozvole 'Podnesi'."
+msgstr "{0}: Dopuštenje 'Otkaži' ne može se odobriti bez dozvole 'Podnesi'."
 
 #: frappe/core/doctype/doctype/doctype.py:1926
 msgid "{0}: The 'Export' permission was removed because it cannot be granted for a 'single' DocType."
-msgstr "{0}: Dozvola za 'Izvoz' je uklonjena jer se ne može odobriti za 'jedan' DocType."
+msgstr "{0}: Dopuštenje za 'Izvoz' je uklonjena jer se ne može odobriti za 'jedan' DocType."
 
 #: frappe/core/doctype/doctype/doctype.py:1952
 msgid "{0}: The 'Import' permission cannot be granted for a non-importable DocType."
-msgstr "{0}: Dozvola za 'Uvoz' ne može se odobriti za DocType koji se ne može uvesti."
+msgstr "{0}: Dopuštenje za 'Uvoz' ne može se odobriti za DocType koji se ne može uvesti."
 
 #: frappe/core/doctype/doctype/doctype.py:1898
 msgid "{0}: The 'Import' permission cannot be granted without the 'Create' permission."
-msgstr "{0}: Dozvola za 'Uvoz' ne može se odobriti bez dozvole za 'Stvaranje'."
+msgstr "{0}: Dopuštenje za 'Uvoz' ne može se odobriti bez dozvole za 'Stvaranje'."
 
 #: frappe/core/doctype/doctype/doctype.py:1918
 msgid "{0}: The 'Import' permission was removed because it cannot be granted for a 'single' DocType."
-msgstr "{0}: Dozvola za 'Uvoz' je uklonjena jer se ne može odobriti za 'jedan' DocType."
+msgstr "{0}: Dopuštenje za 'Uvoz' je uklonjena jer se ne može odobriti za 'jedan' DocType."
 
 #: frappe/core/doctype/doctype/doctype.py:1910
 msgid "{0}: The 'Report' permission was removed because it cannot be granted for a 'single' DocType."
-msgstr "{0}: Dozvola 'Prijavi' je uklonjena jer se ne može odobriti za 'jedan' DocType."
+msgstr "{0}: Dopuštenje 'Prijavi' je uklonjena jer se ne može odobriti za 'jedan' DocType."
 
 #: frappe/core/doctype/doctype/doctype.py:1937
 msgid "{0}: The 'Submit' permission cannot be granted for a non-submittable DocType."
-msgstr "{0}: Dozvola 'Podnesi' ne može se odobriti za DocType koji se ne može podnijeti."
+msgstr "{0}: Dopuštenje 'Podnesi' ne može se odobriti za DocType koji se ne može podnijeti."
 
 #: frappe/core/doctype/doctype/doctype.py:1886
 msgid "{0}: The 'Submit', 'Cancel', and 'Amend' permissions cannot be granted without the 'Write' permission."
