@@ -5,6 +5,7 @@ import os
 
 import frappe
 from frappe import _
+from frappe.build import get_node_env
 from frappe.commands import popen
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
@@ -151,7 +152,7 @@ class StudioApp(WebsiteGenerator):
 			components = get_app_components(self.name)
 			command = f"yarn build-studio-app {self.name} --components {','.join(list(components))}"
 			studio_app_path = frappe.get_app_source_path("studio")
-			popen(command, cwd=studio_app_path, raise_err=True)
+			popen(command, cwd=studio_app_path, env=get_node_env(), raise_err=True)
 		except Exception as e:
 			raise Exception(f"Build process failed: {str(e)}")
 
