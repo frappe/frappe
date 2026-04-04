@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-03-29 09:44+0000\n"
-"PO-Revision-Date: 2026-03-30 13:47\n"
+"PO-Revision-Date: 2026-04-04 14:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -3100,17 +3100,17 @@ msgstr "Pripisivanje"
 #. Name of a report
 #: frappe/custom/report/audit_system_hooks/audit_system_hooks.json
 msgid "Audit System Hooks"
-msgstr "Revidiraj Sistemske Kuke (hooks)"
+msgstr "Pregled Sistemske Kuke (hooks)"
 
 #. Name of a DocType
 #: frappe/core/doctype/audit_trail/audit_trail.json
 msgid "Audit Trail"
-msgstr "Revizijski Trag"
+msgstr "Historija Izmjena"
 
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/users.json
 msgid "Audits"
-msgstr "Revizije"
+msgstr "Pregled"
 
 #. Label of the auth_url_data (Code) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -19977,7 +19977,7 @@ msgstr "Zapisnik Dozvola"
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/users.json
 msgid "Permission Manager"
-msgstr "Upravitelj dozvola"
+msgstr "Upravitelj Dozvola"
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -30233,7 +30233,7 @@ msgstr "Prikaži Sve"
 
 #: frappe/public/js/frappe/form/toolbar.js:616
 msgid "View Audit Trail"
-msgstr "Prikaži Trag"
+msgstr "Prikaži Historiju Izmjena"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -32645,7 +32645,7 @@ msgstr "tranzicija_radnog_toka"
 #. Inspector'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "write"
-msgstr "pisati"
+msgstr "piši"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
