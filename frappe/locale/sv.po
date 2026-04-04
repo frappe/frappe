@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-03-29 09:44+0000\n"
-"PO-Revision-Date: 2026-03-30 13:47\n"
+"PO-Revision-Date: 2026-04-04 14:34\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -3103,12 +3103,12 @@ msgstr "Granska System Hooks"
 #. Name of a DocType
 #: frappe/core/doctype/audit_trail/audit_trail.json
 msgid "Audit Trail"
-msgstr "Granskning Spår"
+msgstr "Granskning Logg"
 
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/users.json
 msgid "Audits"
-msgstr "Revisioner"
+msgstr "Granskning"
 
 #. Label of the auth_url_data (Code) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -3230,7 +3230,7 @@ msgstr "Automatiskt"
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 #: frappe/workspace_sidebar/automation.json
 msgid "Auto Email Report"
-msgstr "Automatiskt E-post Rapport"
+msgstr "E-post Rapport"
 
 #. Label of the autoname (Data) field in DocType 'DocType'
 #. Label of the autoname (Data) field in DocType 'Customize Form'
@@ -3245,24 +3245,24 @@ msgstr "Automatiskt"
 #: frappe/public/js/frappe/utils/common.js:451
 #: frappe/workspace_sidebar/automation.json
 msgid "Auto Repeat"
-msgstr "Återkommande Händelse"
+msgstr "Återkommande"
 
 #. Name of a DocType
 #: frappe/automation/doctype/auto_repeat_day/auto_repeat_day.json
 msgid "Auto Repeat Day"
-msgstr "Återkommande Händelse Dag"
+msgstr "Återkommande Dag"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:173
 msgid "Auto Repeat Day{0} {1} has been repeated."
-msgstr "Återkommande Händelse Dag{0} {1} är upprepad."
+msgstr "Återkommande Dag{0} {1} är upprepad."
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:479
 msgid "Auto Repeat Document Creation Failed"
-msgstr "Återkommande Händelse av Dokument Skapande Misslyckades"
+msgstr "Återkommande Dokument Skapande Misslyckades"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.js:120
 msgid "Auto Repeat Schedule"
-msgstr "Återkommande Händelse Schema"
+msgstr "Återkommande Schema"
 
 #. Name of a DocType
 #: frappe/automation/doctype/auto_repeat_user/auto_repeat_user.json
@@ -3271,11 +3271,11 @@ msgstr "Automatisk Upprepning Användare"
 
 #: frappe/public/js/frappe/utils/common.js:443
 msgid "Auto Repeat created for this document"
-msgstr "Återkommande Händelse skapad för detta dokument"
+msgstr "Återkommande skapad för detta dokument"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:482
 msgid "Auto Repeat failed for {0}"
-msgstr "Återkommande Händelse misslyckades för {0}"
+msgstr "Återkommande misslyckades för {0}"
 
 #. Label of the auto_reply (Section Break) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -30226,7 +30226,7 @@ msgstr "Visa Alla"
 
 #: frappe/public/js/frappe/form/toolbar.js:616
 msgid "View Audit Trail"
-msgstr "Visa Audit Spår"
+msgstr "Visa Granskning Logg"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -32578,7 +32578,7 @@ msgstr "via Tilldelning Regel"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:264
 msgid "via Auto Repeat"
-msgstr "genom Återkommande Händelse"
+msgstr "via Återkommande"
 
 #: frappe/core/doctype/data_import/importer.py:275
 #: frappe/core/doctype/data_import/importer.py:296
