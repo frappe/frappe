@@ -42,6 +42,7 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	// Button Colors
 	--btn-default-bg: var(--gray-800);
 	--btn-default-hover-bg: var(--gray-700);
+	--btn-ghost-hover-bg: var(--gray-800);
 	--btn-primary: var(--gray-300);
 
 	// Border Colors
@@ -266,5 +267,52 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 		.indicator {
 			--indicator-dot-#{"" + $color}: var(--bg-#{$color});
 		}
+	}
+
+	.frappe-control .help-box {
+		color: var(--text-muted);
+
+		code {
+			background-color: var(--gray-800);
+			color: var(--gray-200);
+			border-radius: var(--border-radius-sm);
+			padding: 2px 6px;
+		}
+	}
+
+	.hljs {
+		background: var(--gray-800);
+		color: var(--gray-200);
+	}
+
+	.hljs-keyword,
+	.hljs-selector-tag,
+	.hljs-built_in {
+		color: var(--blue-300);
+	}
+
+	.hljs-string,
+	.hljs-title {
+		color: var(--yellow-200);
+	}
+
+	.hljs-number,
+	.hljs-literal {
+		color: var(--orange-300);
+	}
+
+	.hljs-comment {
+		color: var(--gray-500);
+	}
+
+	.hljs-meta,
+	.hljs-meta-keyword {
+		color: var(--gray-400);
+	}
+
+	.frappe-control pre,
+	.frappe-control pre code {
+		background-color: var(--gray-800);
+		color: var(--gray-200);
 	}
 }

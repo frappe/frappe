@@ -151,6 +151,7 @@ class FileUploader {
 		const dialog_opts = {
 			title: title || __("Upload"),
 			primary_action_label: __("Upload"),
+			primary_action_loading_label: __("Uploading"),
 			primary_action: () => this.upload_files(),
 			on_page_show: () => {
 				this.uploader.wrapper_ready = true;

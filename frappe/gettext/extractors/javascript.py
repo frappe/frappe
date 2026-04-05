@@ -185,27 +185,40 @@ def parse_template_string(
 	:param options: a dictionary of additional options (optional)
 	:param lineno: starting line number (optional)
 	"""
-	from babel.messages.jslexer import line_re
-
 	prev_character = None
+	current_lineno = lineno
 	level = 0
-	inside_str = False
+	inside_expression_str = False
+	expression_lineno = lineno
 	expression_contents = ""
 	for character in template_string[1:-1]:
-		if not inside_str and character in ('"', "'", "`"):
-			inside_str = character
-		elif inside_str == character and prev_character != r"\\":
-			inside_str = False
-		if level:
-			expression_contents += character
-		if not inside_str:
+		if not level:
 			if character == "{" and prev_character == "$":
+				expression_lineno = current_lineno
 				level += 1
-			elif level and character == "}":
-				level -= 1
-				if level == 0 and expression_contents:
-					expression_contents = expression_contents[:-1]
-					yield from extract_javascript(expression_contents, keywords, options, lineno)
-					lineno += len(line_re.findall(expression_contents))
-					expression_contents = ""
+		else:
+			expression_contents += character
+
+			if inside_expression_str:
+				if inside_expression_str == character and prev_character != r"\\":
+					inside_expression_str = False
+			else:
+				if character in ('"', "'", "`"):
+					inside_expression_str = character
+				elif character == "{":
+					level += 1
+				elif character == "}":
+					level -= 1
+					if level == 0 and expression_contents:
+						expression_contents = expression_contents[:-1]
+						yield from extract_javascript(
+							expression_contents,
+							keywords,
+							options,
+							expression_lineno,
+						)
+						expression_contents = ""
+						inside_expression_str = False
+		if character == "\n":
+			current_lineno += 1
 		prev_character = character

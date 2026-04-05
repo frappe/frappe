@@ -79,11 +79,11 @@ class V17FrappeDeprecationWarning(PendingFrappeDeprecationWarning):
 
 
 def __get_deprecation_class(graduation: str | None = None, class_name: str | None = None) -> type:
+	current_module = sys.modules[__name__]
 	if graduation:
 		# Scrub the graduation string to ensure it's a valid class name
 		cleaned_graduation = re.sub(r"\W|^(?=\d)", "_", graduation.upper())
 		class_name = f"{cleaned_graduation}FrappeDeprecationWarning"
-		current_module = sys.modules[__name__]
 	try:
 		return getattr(current_module, class_name)
 	except AttributeError:

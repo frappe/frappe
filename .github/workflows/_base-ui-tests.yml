@@ -94,7 +94,6 @@ jobs:
 
       - name: Site Setup
         run: |
-          source ${GITHUB_WORKSPACE}/env/bin/activate
           bench --site test_site execute frappe.utils.install.complete_setup_wizard
           bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
 
@@ -105,16 +104,17 @@ jobs:
       - name: Run Tests
         id: ui-tests
         run: |
-          source ${GITHUB_WORKSPACE}/env/bin/activate
           bench --site test_site \
             run-ui-tests ${{ github.event.repository.name }} \
               --with-coverage \
               --headless \
-              --parallel \
               --browser ${{ env.BROWSER_PATH }} \
-              --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
+              --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT \
+              --group ui-shard-${{ matrix.index }}
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
+          SPLIT: ${{ inputs.parallel-runs }}
+          SPLIT_INDEX: ${{ strategy.job-index }}
 
       - name: Stop server and wait for coverage file
         if: inputs.enable-coverage
@@ -124,33 +124,33 @@ jobs:
           ( tail -f ${GITHUB_WORKSPACE}/sites/*-coverage*.xml & ) | grep -q "\/coverage"
 
       - name: Upload JS coverage data
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: inputs.enable-coverage
         with:
           name: coverage-js-${{ matrix.index }}
           path: ./apps/${{ github.event.repository.name }}/.cypress-coverage/clover.xml
       - name: Compress Cypress Videos
         if: always() && steps.ui-tests.outcome == 'failure'
-        run: | 
+        run: |
             if find ./cypressVideos -mindepth 1 | read; then
               zip -r cypress_recordings.zip ./cypressVideos
             fi
       - name: Upload Cypress Videos
         if: always() && steps.ui-tests.outcome == 'failure'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: Cypress CI Video Recordings
           path: ./cypress_recordings.zip
 
-        
+
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: inputs.enable-coverage
         with:
           name: coverage-py-${{ matrix.index }}
           path: ./sites/*-coverage*.xml
-    
+
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}

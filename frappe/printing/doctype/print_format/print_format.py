@@ -63,7 +63,6 @@ class PrintFormat(Document):
 	def before_save(self):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
-			self.standard = "No"
 
 	def get_html(self, docname, letterhead=None):
 		return get_html(self.doc_type, docname, self.name, letterhead)

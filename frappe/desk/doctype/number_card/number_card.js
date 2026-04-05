@@ -124,11 +124,6 @@ frappe.ui.form.on("Number Card", {
 			frappe.model.with_doctype(doctype, () => {
 				frappe.get_meta(doctype).fields.map((df) => {
 					if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
-						if (df.fieldtype == "Currency") {
-							if (!df.options || df.options !== "Company:company:default_currency") {
-								return;
-							}
-						}
 						aggregate_based_on_fields.push({ label: df.label, value: df.fieldname });
 					}
 				});
@@ -202,7 +197,6 @@ frappe.ui.form.on("Number Card", {
 	render_filters_table: function (frm) {
 		frm.set_df_property("filters_section", "hidden", 0);
 		let is_document_type = frm.doc.type == "Document Type";
-		let is_dynamic_filter = (f) => ["Date", "DateRange"].includes(f.fieldtype) && f.default;
 
 		let wrapper = $(frm.get_field("filters_json").wrapper).empty();
 		let table = $(`<table class="table table-bordered" style="cursor:${
@@ -219,23 +213,13 @@ frappe.ui.form.on("Number Card", {
 		</table>`).appendTo(wrapper);
 
 		if (frm.has_perm("write")) {
-			$(`<p class="text-muted small">${__("Click table to edit")}</p>`).appendTo(wrapper);
+			$(`<p class="text-muted small mt-2">${__("Click table to edit")}</p>`).appendTo(
+				wrapper
+			);
 		}
 
 		let filters = JSON.parse(frm.doc.filters_json || "[]");
 		let filters_set = false;
-
-		// Set dynamic filters for reports
-		if (frm.doc.type == "Report") {
-			let set_filters = false;
-			frm.filters.forEach((f) => {
-				if (is_dynamic_filter(f)) {
-					filters[f.fieldname] = f.default;
-					set_filters = true;
-				}
-			});
-			set_filters && frm.set_value("filters_json", JSON.stringify(filters));
-		}
 
 		let fields = [];
 		if (is_document_type) {
@@ -290,7 +274,7 @@ frappe.ui.form.on("Number Card", {
 			}
 			let dialog = new frappe.ui.Dialog({
 				title: __("Set Filters"),
-				fields: fields.filter((f) => !is_dynamic_filter(f)),
+				fields,
 				primary_action: function () {
 					let values = this.get_values();
 					if (values) {
@@ -304,7 +288,7 @@ frappe.ui.form.on("Number Card", {
 						frm.trigger("render_filters_table");
 					}
 				},
-				primary_action_label: __("Set"),
+				primary_action_label: __("Update"),
 			});
 
 			if (is_document_type) {
@@ -340,8 +324,6 @@ frappe.ui.form.on("Number Card", {
 
 		frm.set_df_property("dynamic_filters_section", "hidden", 0);
 
-		let is_document_type = frm.doc.type == "Document Type";
-
 		let wrapper = $(frm.get_field("dynamic_filters_json").wrapper).empty();
 
 		frm.dynamic_filter_table = $(`<table class="table table-bordered" style="cursor:${
@@ -349,28 +331,20 @@ frappe.ui.form.on("Number Card", {
 		}; margin:0px;">
 			<thead>
 				<tr>
-					<th style="width: 20%">${__("Filter")}</th>
-					<th style="width: 20%">${__("Condition")}</th>
-					<th>${__("Value")}</th>
+					<th style="width: 30%">${__("Filter")}</th>
+					<th>${__("Expression")}</th>
 				</tr>
 			</thead>
 			<tbody></tbody>
 		</table>`).appendTo(wrapper);
 
-		frm.dynamic_filters =
-			frm.doc.dynamic_filters_json && frm.doc.dynamic_filters_json.length > 2
-				? JSON.parse(frm.doc.dynamic_filters_json)
-				: null;
+		if (frm.has_perm("write")) {
+			$(`<p class="text-muted small mt-2">${__("Click table to edit")}</p>`).appendTo(
+				wrapper
+			);
+		}
 
 		frm.trigger("set_dynamic_filters_in_table");
-
-		let filters = JSON.parse(frm.doc.filters_json || "[]");
-
-		let fields = frappe.dashboard_utils.get_fields_for_dynamic_filter_dialog(
-			is_document_type,
-			filters,
-			frm.dynamic_filters
-		);
 
 		frm.dynamic_filter_table.on("click", () => {
 			if (!frm.has_perm("write")) {
@@ -380,65 +354,215 @@ frappe.ui.form.on("Number Card", {
 			if (!frappe.boot.developer_mode && frm.doc.is_standard) {
 				frappe.throw(__("Cannot edit filters for standard number cards"));
 			}
-			let dialog = new frappe.ui.Dialog({
-				title: __("Set Dynamic Filters"),
-				fields: fields,
-				primary_action: () => {
-					let values = dialog.get_values();
-					dialog.hide();
-					let dynamic_filters = [];
-					for (let key of Object.keys(values)) {
-						if (is_document_type) {
-							let [doctype, fieldname] = key.split(":");
-							dynamic_filters.push([doctype, fieldname, "=", values[key]]);
-						}
-					}
 
-					if (is_document_type) {
-						frm.set_value("dynamic_filters_json", JSON.stringify(dynamic_filters));
-					} else {
-						frm.set_value("dynamic_filters_json", JSON.stringify(values));
-					}
-					frm.trigger("set_dynamic_filters_in_table");
-				},
-				primary_action_label: __("Set"),
-			});
-
-			dialog.show();
-			dialog.set_values(frm.dynamic_filters);
+			frm.trigger("show_dynamic_filter_dialog");
 		});
 	},
 
-	set_dynamic_filters_in_table: function (frm) {
-		frm.dynamic_filters =
-			frm.doc.dynamic_filters_json && frm.doc.dynamic_filters_json.length > 2
-				? JSON.parse(frm.doc.dynamic_filters_json)
-				: null;
+	show_dynamic_filter_dialog: function (frm) {
+		if (frm.doc.type === "Document Type") {
+			if (!frm.doc.document_type) {
+				frappe.msgprint(__("Please select a Document Type first"));
+				return;
+			}
+			frappe.model.with_doctype(frm.doc.document_type, () => {
+				frm.trigger("show_doctype_dynamic_filter_dialog");
+			});
+			return;
+		}
 
-		if (!frm.dynamic_filters) {
-			const filter_row = $(`<tr><td colspan="3" class="text-muted text-center">
+		if (!frm.doc.report_name) {
+			frappe.msgprint(__("Please select a Report first"));
+			return;
+		}
+		if (!frm.filters?.length) {
+			frappe.msgprint(__("No filters available for this report"));
+			return;
+		}
+		frm.trigger("show_report_dynamic_filter_dialog");
+	},
+
+	show_doctype_dynamic_filter_dialog: function (frm) {
+		const meta = frappe.get_meta(frm.doc.document_type);
+		const field_options = meta.fields
+			.filter((df) => df.fieldname && !frappe.model.no_value_type.includes(df.fieldtype))
+			.map((df) => ({ label: df.label || df.fieldname, value: df.fieldname }));
+
+		frappe.model.std_fields.forEach((df) => {
+			field_options.push({ label: df.label, value: df.fieldname });
+		});
+
+		frm.events.show_dynamic_filter_dialog_common(frm, field_options, frm.doc.document_type);
+	},
+
+	show_report_dynamic_filter_dialog: function (frm) {
+		const field_options = frm.filters
+			.filter((f) => f.fieldname)
+			.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }));
+
+		frm.events.show_dynamic_filter_dialog_common(frm, field_options, frm.doc.report_name);
+	},
+
+	show_dynamic_filter_dialog_common: function (frm, field_options, doctype_or_report) {
+		let dynamic_filters =
+			frm.doc.dynamic_filters_json?.length > 2
+				? JSON.parse(frm.doc.dynamic_filters_json)
+				: [];
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("Set Dynamic Filters"),
+			fields: [
+				{
+					fieldtype: "HTML",
+					fieldname: "help_text",
+					options: frm.events.get_dynamic_filter_help_text(),
+				},
+				{ fieldtype: "HTML", fieldname: "filter_area" },
+			],
+			size: "large",
+			primary_action: () => {
+				const filters = [];
+				dialog.$wrapper.find(".dynamic-filter-row").each(function () {
+					const $row = $(this);
+					const fieldname = $row.data("selected_fieldname");
+					const expression = $row.find(".filter-expression").val();
+					if (fieldname && expression) {
+						filters.push([doctype_or_report, fieldname, "=", expression]);
+					}
+				});
+				dialog.hide();
+				frm.set_value("dynamic_filters_json", JSON.stringify(filters));
+				frm.trigger("set_dynamic_filters_in_table");
+			},
+			primary_action_label: __("Update"),
+		});
+
+		const add_filter_row = frm.events.build_dynamic_filter_interface(
+			dialog.fields_dict.filter_area.$wrapper,
+			field_options,
+			doctype_or_report
+		);
+
+		if (dynamic_filters?.length) {
+			dynamic_filters.forEach((filter) => {
+				add_filter_row(filter[1], filter[3]);
+			});
+		} else {
+			add_filter_row();
+		}
+
+		dialog.show();
+	},
+
+	get_dynamic_filter_help_text: function () {
+		return `<p class="text-muted small">
+			${__("Enter expressions that will be evaluated when the card is displayed. For example:")}<br>
+			<code>frappe.defaults.get_user_default("Company")</code><br>
+			<code>frappe.datetime.get_today()</code><br>
+		</p>`;
+	},
+
+	build_dynamic_filter_interface: function ($filter_area, field_options, doctype_or_report) {
+		const filter_html = `
+			<div>
+				<table class="table table-bordered" style="margin-bottom: 12px;">
+					<thead>
+						<tr>
+							<th style="width: 35%">${__("Field")}</th>
+							<th style="width: 60%">${__("Expression")}</th>
+							<th style="width: 5%"></th>
+						</tr>
+					</thead>
+					<tbody class="filter-rows"></tbody>
+				</table>
+				<div style="display: flex; justify-content: space-between; align-items: center;">
+					<button class="text-muted add-filter btn btn-xs">
+						+ ${__("Add Filter")}
+					</button>
+					<button class="btn btn-secondary btn-xs clear-filters">
+						${__("Clear Filters")}
+					</button>
+				</div>
+			</div>
+		`;
+
+		$filter_area.html(filter_html);
+
+		const filter_fields = field_options.map((opt) => ({
+			fieldname: opt.value,
+			label: opt.label,
+			parent: doctype_or_report,
+		}));
+
+		const add_filter_row = (fieldname = "", expression = "") => {
+			const row_html = `
+				<tr class="dynamic-filter-row">
+					<td class="fieldname-select-area"></td>
+					<td>
+						<input type="text" class="form-control input-xs filter-expression">
+					</td>
+					<td class="text-center">
+						<a class="remove-filter text-muted" style="cursor: pointer;">
+							<svg class="icon icon-sm">
+								<use href="#icon-close" class="close"></use>
+							</svg>
+						</a>
+					</td>
+				</tr>
+			`;
+
+			const $row = $(row_html);
+
+			const field_select = new frappe.ui.FieldSelect({
+				parent: $row.find(".fieldname-select-area"),
+				doctype: doctype_or_report,
+				filter_fields: filter_fields,
+				input_class: "input-xs",
+				select: (_, selected_fieldname) => {
+					$row.data("selected_fieldname", selected_fieldname);
+				},
+			});
+
+			if (fieldname) {
+				field_select.set_value(doctype_or_report, fieldname);
+				$row.data("selected_fieldname", fieldname);
+			}
+
+			$row.find(".filter-expression").val(expression);
+			$row.data("field_select", field_select);
+			$filter_area.find(".filter-rows").append($row);
+		};
+
+		$filter_area.on("click", ".add-filter", () => add_filter_row());
+		$filter_area.on("click", ".remove-filter", function () {
+			$(this).closest("tr").remove();
+		});
+		$filter_area.on("click", ".clear-filters", () => {
+			$filter_area.find(".filter-rows").empty();
+			add_filter_row();
+		});
+
+		return add_filter_row;
+	},
+
+	set_dynamic_filters_in_table: function (frm) {
+		let dynamic_filters =
+			frm.doc.dynamic_filters_json?.length > 2
+				? JSON.parse(frm.doc.dynamic_filters_json)
+				: [];
+
+		if (!dynamic_filters?.length) {
+			const filter_row = $(`<tr><td colspan="2" class="text-muted text-center">
 				${__("Click to Set Dynamic Filters")}</td></tr>`);
 			frm.dynamic_filter_table.find("tbody").html(filter_row);
 		} else {
 			let filter_rows = "";
-			if ($.isArray(frm.dynamic_filters)) {
-				frm.dynamic_filters.forEach((filter) => {
-					filter_rows += `<tr>
-							<td>${filter[1]}</td>
-							<td>${filter[2] || ""}</td>
-							<td>${filter[3]}</td>
-						</tr>`;
-				});
-			} else {
-				let condition = "=";
-				for (let [key, val] of Object.entries(frm.dynamic_filters)) {
-					filter_rows += `<tr>
-							<td>${key}</td>
-							<td>${condition}</td>
-							<td>${val || ""}</td>
-						</tr>`;
-				}
-			}
+			dynamic_filters.forEach((filter) => {
+				filter_rows += `<tr>
+						<td>${filter[1]}</td>
+						<td><code>${filter[3] || ""}</code></td>
+					</tr>`;
+			});
 
 			frm.dynamic_filter_table.find("tbody").html(filter_rows);
 		}

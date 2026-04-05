@@ -1309,12 +1309,12 @@ def _bankers_rounding(num, precision):
 	if num == 0:
 		return 0.0
 
-	floor_num = math.floor(num)
+	floor_num = math.floor(num) if num > 0 else math.ceil(num)
 	decimal_part = num - floor_num
 
 	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
 	if abs(decimal_part - 0.5) < epsilon:
-		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
+		num = floor_num if (floor_num % 2 == 0) else floor_num + 1 if num > 0 else floor_num - 1
 	else:
 		num = round(num)
 
@@ -1558,10 +1558,16 @@ def money_in_words(
 	elif main == "0":
 		out = f"{fraction_in_words()} {fraction_currency}"
 	else:
-		out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
+		if main_currency == "DZD":
+			# Use Dinars for Algerian Compliance
+			out = in_words(main, in_million).title() + " " + _("Dinars", context="Currency")
+		else:
+			out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
 		if cint(fraction):
 			out = out + " " + _("and") + " " + fraction_in_words() + " " + fraction_currency
 
+	if main_currency == "DZD":
+		return _("{0}.", context="Money in words").format(out)
 	return _("{0} only.", context="Money in words").format(out)
 
 
@@ -2287,7 +2293,7 @@ def _sanitize_column(column_name: str, db_type: str) -> str:
 	def _raise_exception():
 		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
 
-	regex = re.compile("^.*[,'();\n].*")
+	regex = re.compile("^.*[,'();\n`].*")
 	if "ifnull" in column_name:
 		if regex.match(column_name):
 			# to avoid and, or
@@ -2461,6 +2467,7 @@ def dict_with_keys(dict, keys):
 def guess_date_format(date_string: str) -> str:
 	DATE_FORMATS = [
 		r"%d/%b/%y",
+		r"%d/%b/%Y",
 		r"%d-%m-%Y",
 		r"%m-%d-%Y",
 		r"%Y-%m-%d",
@@ -2482,6 +2489,7 @@ def guess_date_format(date_string: str) -> str:
 		r"%y.%m.%d",
 		r"%d %b %Y",
 		r"%d %B %Y",
+		r"%d-%b-%Y",
 	]
 
 	TIME_FORMATS = [

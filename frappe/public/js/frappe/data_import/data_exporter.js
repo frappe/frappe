@@ -208,7 +208,6 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	update_record_count_message() {
-		let export_records = this.dialog.get_value("export_records");
 		let count_method = {
 			all: () => frappe.db.count(this.doctype),
 			by_filter: () =>
@@ -218,6 +217,10 @@ frappe.data_import.DataExporter = class DataExporter {
 			blank_template: () => Promise.resolve(0),
 			"5_records": () => Promise.resolve(5),
 		};
+
+		let export_records = this.dialog.get_value("export_records");
+
+		if (!export_records || !count_method[export_records]) return;
 
 		count_method[export_records]().then((value) => {
 			let message = "";
@@ -287,6 +290,19 @@ frappe.data_import.DataExporter = class DataExporter {
 			return false;
 		};
 
+		let is_field_depends_on = (df) => {
+			if (df.depends_on && this.exporting_for == "Insert New Records") {
+				return true;
+			}
+			if (autoname_field && df.fieldname == autoname_field.fieldname) {
+				return true;
+			}
+			if (df.fieldname === "name") {
+				return true;
+			}
+			return false;
+		};
+
 		return fields
 			.filter((df) => {
 				if (autoname_field && df.fieldname === "name") {
@@ -299,6 +315,7 @@ frappe.data_import.DataExporter = class DataExporter {
 					label: __(df.label, null, df.parent),
 					value: df.fieldname,
 					danger: is_field_mandatory(df),
+					warning: is_field_depends_on(df),
 					checked: false,
 					description: `${df.fieldname} ${df.reqd ? __("(Mandatory)") : ""}`,
 				};

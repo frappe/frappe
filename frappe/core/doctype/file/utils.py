@@ -172,7 +172,12 @@ def delete_file(path: str) -> None:
 def remove_file_by_url(file_url: str, doctype: str | None = None, name: str | None = None) -> "Document":
 	if doctype and name:
 		fid = frappe.db.get_value(
-			"File", {"file_url": file_url, "attached_to_doctype": doctype, "attached_to_name": name}
+			"File",
+			{
+				"file_url": file_url,
+				"attached_to_doctype": doctype,
+				"attached_to_name": name,
+			},
 		)
 	else:
 		fid = frappe.db.get_value("File", {"file_url": file_url})
@@ -189,20 +194,28 @@ def get_content_hash(content: bytes | str) -> str:
 	return hashlib.md5(content, usedforsecurity=False).hexdigest()  # nosec
 
 
-def generate_file_name(name: str, suffix: str | None = None, is_private: bool = False) -> str:
+def generate_file_name(
+	name: str, suffix: str | None = None, is_private: bool = False, content_hash=None
+) -> str:
 	"""Generate conflict-free file name. Suffix will be ignored if name available. If the
 	provided suffix doesn't result in an available path, a random suffix will be picked.
 	"""
 
-	def path_exists(name, is_private):
-		return os.path.exists(encode(get_files_path(name, is_private=is_private)))
+	def different_file_exists_at_path(name, is_private):
+		path = encode(get_files_path(name, is_private=is_private))
+		if not os.path.exists(path):
+			return False
+		if content_hash:
+			with open(path, "rb") as f:
+				return get_content_hash(f.read()) != content_hash
+		return True
 
-	if not path_exists(name, is_private):
+	if not different_file_exists_at_path(name, is_private):
 		return name
 
 	candidate_path = get_file_name(name, suffix)
 
-	if path_exists(candidate_path, is_private):
+	if different_file_exists_at_path(candidate_path, is_private):
 		return generate_file_name(name, is_private=is_private)
 	return candidate_path
 
@@ -414,6 +427,29 @@ def relink_mismatched_files(doc: "Document") -> None:
 	for df in attach_fields:
 		if doc.get(df.fieldname):
 			relink_files(doc, df.fieldname, doc.__temporary_name)
+
+	# Relink files in child table Attach fields
+	table_fields = doc.meta.get("fields", {"fieldtype": "Table"})
+	for table_df in table_fields:
+		child_rows = doc.get(table_df.fieldname) or []
+		if not child_rows:
+			continue
+
+		child_meta = frappe.get_meta(table_df.options)
+		child_attach_fields = child_meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
+
+		if not child_attach_fields:
+			continue
+
+		for child_row in child_rows:
+			for child_df in child_attach_fields:
+				file_url = child_row.get(child_df.fieldname)
+				if file_url:
+					frappe.db.set_value(
+						"File",
+						{"file_url": file_url, "attached_to_name": doc.__temporary_name},
+						{"attached_to_name": doc.name},
+					)
 	# delete temporary name after relinking is done
 	doc.delete_key("__temporary_name")
 
@@ -440,3 +476,7 @@ def find_file_by_url(path: str, name: str | None = None) -> "File" | None:
 		file: File = frappe.get_doc(doctype="File", **file_data)
 		if file.is_downloadable():
 			return file
+
+
+def get_safe_file_name(file_name: str) -> str:
+	return re.sub(r"[/\\%?#]", "_", file_name)

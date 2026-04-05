@@ -93,14 +93,30 @@ class Report(Document):
 		doc.prepared_report = 0
 
 	def on_trash(self):
-		if (
-			self.is_standard == "Yes"
-			and not cint(getattr(frappe.local.conf, "developer_mode", 0))
-			and not frappe.flags.in_migrate
-			and not frappe.flags.in_patch
-		):
-			frappe.throw(_("You are not allowed to delete Standard Report"))
+		if self.is_standard == "Yes":
+			if (
+				not cint(getattr(frappe.local.conf, "developer_mode", 0))
+				and not frappe.flags.in_migrate
+				and not frappe.flags.in_patch
+			):
+				frappe.throw(_("You are not allowed to delete Standard Report"))
+
+			if frappe.conf.developer_mode and not frappe.flags.in_test:
+				frappe.db.after_commit(self.delete_report_folder)
+
 		delete_custom_role("report", self.name)
+
+	def clear_cache(self):
+		self.update_report_cache()
+		return super().clear_cache()
+
+	def update_report_cache(self):
+		frappe.cache.delete_key("bootinfo")
+
+	def delete_report_folder(self):
+		from frappe.modules.export_file import delete_folder
+
+		delete_folder(self.module, "Report", self.name)
 
 	def get_permission_log_options(self, event=None):
 		return {"fields": ["roles"]}
@@ -157,8 +173,10 @@ class Report(Document):
 
 		check_safe_sql_query(self.query)
 
+		frappe.db.begin(read_only=True)
 		result = [list(t) for t in frappe.db.sql(self.query, filters)]
 		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
+		frappe.db.rollback()
 
 		return [columns, result]
 
@@ -416,9 +434,10 @@ def get_report_module_dotted_path(module, report_name):
 
 def get_group_by_field(args, doctype):
 	if args["aggregate_function"] == "count":
-		group_by_field = "count(*) as _aggregate_column"
+		group_by_field = {"COUNT": "*", "as": "_aggregate_column"}
 	else:
-		group_by_field = f"{args.aggregate_function}({args.aggregate_on}) as _aggregate_column"
+		func_name = args["aggregate_function"].upper()
+		group_by_field = {func_name: args["aggregate_on"], "as": "_aggregate_column"}
 
 	return group_by_field
 

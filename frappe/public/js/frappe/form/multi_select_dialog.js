@@ -554,7 +554,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			}
 		} else {
 			Object.keys(this.setters).forEach(function (setter) {
-				var value = me.dialog.fields_dict[setter].get_value();
+				var value = me.dialog.fields_dict[setter].get_value() || me.setters[setter];
 				if (me.dialog.fields_dict[setter].df.fieldtype == "Data" && value) {
 					filters[setter] = ["like", "%" + value + "%"];
 				} else {

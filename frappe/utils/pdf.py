@@ -58,7 +58,7 @@ def pdf_body_html(template, args, **kwargs):
 		# Guess line number ?
 		frappe.throw(
 			_("Error in print format on line {0}: {1}").format(
-				_guess_template_error_line_number(template), e
+				_guess_template_error_line_number(template), str(e)
 			),
 			exc=frappe.PrintFormatError,
 			title=_("Print Format Error"),

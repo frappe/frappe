@@ -111,6 +111,13 @@ class TestTranslation(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_value("Translation", docname, "translated_text"), target)
 
+	def test_html_message_translations(self):
+		"""Test fallback for messages w/ HTML Tags"""
+		message = "Hide descendant records of <b>For Value</b>."
+		translated_message = "隐藏下层节点<b>值</b>"
+		create_translation("zh", message, translated_message)
+		self.assertEqual(_(message, lang="zh"), translated_message)
+
 
 def create_translation(lang, source_string, new_translation, context=None) -> str:
 	doc = frappe.new_doc("Translation")

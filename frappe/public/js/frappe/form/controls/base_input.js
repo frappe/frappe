@@ -1,3 +1,4 @@
+import { InfoCard } from "../info_card";
 frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control {
 	static horizontal = true;
 	make() {
@@ -7,7 +8,6 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 		// set description
 		this.set_max_width();
-
 		// set initial value if set
 		if (this.df.initial_value) {
 			this.set_value(this.df.initial_value);
@@ -26,7 +26,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 					</div>
 					<div class="control-input-wrapper">
 						<div class="control-input"></div>
-						<div class="control-value like-disabled-input" style="display: none;"></div>
+						<div class="control-value like-disabled-input hide"></div>
 						<div class="help-box small text-extra-muted hide"></div>
 					</div>
 				</div>
@@ -115,8 +115,8 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			let is_fetch_from_read_only = me.read_only_because_of_fetch_from();
 
 			if (me.can_write() && !is_fetch_from_read_only) {
-				me.disp_area && $(me.disp_area).toggle(false);
-				$(me.input_area).toggle(true);
+				me.disp_area && $(me.disp_area).addClass("hide");
+				$(me.input_area).removeClass("hide");
 				me.$input && me.$input.prop("disabled", false);
 				make_input();
 				update_input();
@@ -125,10 +125,10 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 					make_input();
 					update_input();
 				} else {
-					$(me.input_area).toggle(false);
+					$(me.input_area).addClass("hide");
 					if (me.disp_area) {
 						me.set_disp_area(me.value);
-						$(me.disp_area).toggle(true);
+						$(me.disp_area).removeClass("hide");
 					}
 				}
 				me.$input && me.$input.prop("disabled", true);
@@ -189,6 +189,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		}
 	}
 	set_label(label) {
+		const me = this;
 		if (label) this.df.label = label;
 
 		if (this.only_input || this.df.label == this._label) return;
@@ -197,14 +198,24 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		this.label_span.innerHTML =
 			(icon ? '<i class="' + icon + '"></i> ' : "") +
 				__(this.df.label, null, this.df.parent) || "&nbsp;";
+		this.show_description_on_click();
 		this._label = this.df.label;
 	}
-
+	show_description_on_click() {
+		const me = this;
+		if (this.df.show_description_on_click) {
+			let info_card = new InfoCard({
+				label_area: this.label_area,
+				label_span: this.label_span,
+				df: this.df,
+			});
+		}
+	}
 	set_doc_url() {
+		if (this.df.show_description_on_click) return;
 		let unsupported_fieldtypes = frappe.model.no_value_type.filter(
 			(x) => frappe.model.table_fields.indexOf(x) === -1
 		);
-
 		if (
 			!this.df.label ||
 			!this.df?.documentation_url ||
@@ -214,6 +225,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 		let $help = this.$wrapper.find("span.help");
 		$help.empty();
+
 		$(`<a
 			href="${frappe.utils.escape_html(this.df.documentation_url)}"
 			target="_blank"
@@ -224,6 +236,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 
 	set_description(description) {
+		if (this.df.show_description_on_click) return;
 		if (description !== undefined) {
 			this.df.description = description;
 		}
@@ -264,7 +277,12 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		// set has-error if dialog primary button is clicked
 		if (this.layout && this.layout.is_dialog && !this.layout.primary_action_fulfilled) return;
 
-		this.$wrapper.toggleClass("has-error", Boolean(this.df.reqd && is_null(value)));
+		const is_invalid = this.$wrapper.hasClass("has-error-invalid");
+		this.$wrapper.toggleClass("has-error-mandatory", Boolean(this.df.reqd && is_null(value)));
+		this.$wrapper.toggleClass(
+			"has-error",
+			is_invalid || Boolean(this.df.reqd && is_null(value))
+		);
 	}
 	set_invalid() {
 		let invalid = !!this.df.invalid;
@@ -273,7 +291,9 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			this.$input?.toggleClass("invalid", invalid);
 			this.grid_row.columns[this.df.fieldname].is_invalid = invalid;
 		} else {
-			this.$wrapper.toggleClass("has-error", invalid);
+			const is_mandatory_and_empty = this.$wrapper.hasClass("has-error-mandatory");
+			this.$wrapper.toggleClass("has-error-invalid", invalid);
+			this.$wrapper.toggleClass("has-error", is_mandatory_and_empty || invalid);
 		}
 	}
 	set_required() {

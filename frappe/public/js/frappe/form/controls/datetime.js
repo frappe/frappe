@@ -10,11 +10,16 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		} else if (value.toLowerCase() === "now") {
 			value = frappe.datetime.now_datetime();
 		}
+		const raw_value = value;
 		let should_refresh = this.last_value && this.last_value !== value;
 		value = this.format_for_input(value);
 		this.$input && this.$input.val(value);
 		if (should_refresh) {
 			this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
+		} else if (value && !this.datepicker.selectedDates.length) {
+			const date_obj = frappe.datetime.str_to_obj(raw_value);
+			this.datepicker.selectedDates = [date_obj];
+			this.datepicker.viewDate = date_obj;
 		}
 	}
 

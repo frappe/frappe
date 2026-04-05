@@ -6,7 +6,7 @@ from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
 
 @frappe.whitelist(methods=["POST"])
 def invite_by_email(
-	emails: str, roles: list[str], redirect_to_path: str, app_name: str = "frappe"
+	emails: str, roles: list[str], redirect_to_path: str, app_name: str = "frappe", **kwargs
 ) -> dict[str, list[str]]:
 	UserInvitation.validate_role(app_name)
 
@@ -42,6 +42,9 @@ def invite_by_email(
 	to_invite = list(
 		set(email_list) - set(disabled_user_emails) - set(accepted_invite_emails) - set(pending_invite_emails)
 	)
+
+	extra_args = get_allowed_invite_params(app_name, kwargs)
+
 	for email in to_invite:
 		frappe.get_doc(
 			doctype="User Invitation",
@@ -49,6 +52,7 @@ def invite_by_email(
 			roles=[dict(role=role) for role in roles],
 			app_name=app_name,
 			redirect_to_path=redirect_to_path,
+			**extra_args,
 		).insert(ignore_permissions=True)
 
 	return {
@@ -57,6 +61,19 @@ def invite_by_email(
 		"pending_invite_emails": pending_invite_emails,
 		"invited_emails": to_invite,
 	}
+
+
+def get_allowed_invite_params(app_name: str, kwargs: dict) -> dict:
+	# get extra args based on app_name
+	allowed_params = frappe._dict()
+	user_invitation_hook = frappe.get_hooks("user_invitation", app_name=app_name)
+	if not isinstance(user_invitation_hook, dict):
+		return {}
+	extra_invite_params = user_invitation_hook.get("extra_invite_params", [])
+	for param in extra_invite_params:
+		if param in kwargs:
+			allowed_params[param] = kwargs[param]
+	return allowed_params
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])

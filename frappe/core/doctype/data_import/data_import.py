@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import os
+from typing import Any
 
 from rq.command import send_stop_job_command
 from rq.exceptions import InvalidJobOperation
@@ -102,7 +103,7 @@ class DataImport(Document):
 			self.payload_count = len(payloads)
 
 	@frappe.whitelist()
-	def get_preview_from_template(self, import_file=None, google_sheets_url=None):
+	def get_preview_from_template(self, import_file: str | None = None, google_sheets_url: str | None = None):
 		if import_file:
 			self.import_file = import_file
 			self.set_delimiters_flag()
@@ -186,8 +187,14 @@ def stop_data_import(doc_name: str):
 def start_import(data_import):
 	"""This method runs in background job"""
 	data_import = frappe.get_doc("Data Import", data_import)
+	# Apply same delimiter/sniffer settings as preview so CSV is parsed correctly (e.g. EU ";" delimiter)
+	data_import.set_delimiters_flag()
 	try:
-		i = Importer(data_import.reference_doctype, data_import=data_import)
+		i = Importer(
+			data_import.reference_doctype,
+			data_import=data_import,
+			use_sniffer=data_import.use_csv_sniffer,
+		)
 		i.import_data()
 	except JobTimeoutException:
 		frappe.db.rollback()
@@ -203,7 +210,13 @@ def start_import(data_import):
 
 
 @frappe.whitelist()
-def download_template(doctype, export_fields=None, export_records=None, export_filters=None, file_type="CSV"):
+def download_template(
+	doctype: str,
+	export_fields: str | dict[str, list[str]] | None = None,
+	export_records: str | None = None,
+	export_filters: str | dict[str, Any] | list[list[Any]] | None = None,
+	file_type: str = "CSV",
+):
 	"""
 	Download template from Exporter
 	        :param doctype: Document Type

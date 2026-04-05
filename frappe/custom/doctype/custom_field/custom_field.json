@@ -48,6 +48,7 @@
   "print_width",
   "alignment",
   "no_copy",
+  "set_only_once",
   "allow_on_submit",
   "in_list_view",
   "in_standard_filter",
@@ -484,6 +485,12 @@
    "fieldtype": "Select",
    "label": "Button Color",
    "options": "\nDefault\nPrimary\nInfo\nSuccess\nWarning\nDanger"
+  },
+  {
+   "default": "0",
+   "fieldname": "set_only_once",
+   "fieldtype": "Check",
+   "label": "Set only once"
   }
  ],
  "grid_page_length": 50,
@@ -491,7 +498,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-12 01:14:24.753774",
+ "modified": "2026-03-22 10:35:32.555267",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

@@ -1,6 +1,6 @@
 <!-- jinja -->
 <div class="desktop-wrapper">
-    <header class="navbar navbar-expand navbar-container" role="navigation">
+    <header class="desktop-navbar navbar navbar-expand navbar-container" role="navigation">
         <div class="navbar-home">
             <img
                 id="brand-logo"
@@ -8,21 +8,21 @@
                 alt="{{ _("App Logo") |e }}"
             >
         </div>
-        <div class="desktop-search-wrapper input-group search-bar">
-            <button
-                id="desktop-navbar-modal-search"
-                class="btn-reset flex justify-between desktop-navbar-modal-search"
-                title="Search"
-            >
-                <span class="desktop-search-icon">
-                    <svg class="icon icon-sm"><use href="#icon-search"></use></svg>
-                    {{ _("Search") }}
-                </span>
-                <span>
-                    {{ "⌘K" if is_mac else "Ctrl+K" }}
-                </span>
-            </button>
-        </div>
+        {% if (show_search_bar) %}
+            <div class="desktop-search-wrapper input-group search-bar">
+                <button id="desktop-navbar-modal-search" class="btn-reset flex justify-between desktop-navbar-modal-search"
+                    title="Search">
+                    <span class="desktop-search-icon">
+                        <svg class="icon icon-sm">
+                            <use href="#icon-search"></use>
+                        </svg>
+                        {{ _("Search") }}
+                    </span>
+                    <span class="desktop-keyboard-shortcut">
+                    </span>
+                </button>
+            </div>
+        {% endif %}
         <div class="flex" style="gap:16px; align-items: center;">
             <div class="desktop-notifications">
                 <div class="dropdown dropdown-notifications">
@@ -65,5 +65,5 @@
                 {{ _("Save") }}
             </button>
     </div>
-    <div class="hidden" id="desktop-layout">{{ desktop_layout }}</pre>
+    <div class="hidden" id="desktop-layout">{{ desktop_layout | safe }}</div>
 </div>

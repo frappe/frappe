@@ -91,8 +91,8 @@ $.extend(frappe.meta, {
 		};
 	},
 
-	get_docfields: function (doctype, name, filters) {
-		var docfield_map = frappe.meta.get_docfield_copy(doctype, name);
+	get_docfields: function (doctype, name, filters, docfield_list = null) {
+		var docfield_map = frappe.meta.get_docfield_copy(doctype, name, docfield_list);
 
 		var docfields = frappe.meta.sort_docfields(docfield_map);
 
@@ -125,11 +125,11 @@ $.extend(frappe.meta, {
 		});
 	},
 
-	get_docfield_copy: function (doctype, name) {
+	get_docfield_copy: function (doctype, name, docfield_list = null) {
 		if (!name) return frappe.meta.docfield_map[doctype];
 
 		if (!(frappe.meta.docfield_copy[doctype] && frappe.meta.docfield_copy[doctype][name])) {
-			frappe.meta.make_docfield_copy_for(doctype, name);
+			frappe.meta.make_docfield_copy_for(doctype, name, docfield_list);
 		}
 
 		return frappe.meta.docfield_copy[doctype][name];
@@ -332,7 +332,8 @@ $.extend(frappe.meta, {
 		} else if (df && df.fieldtype === "Currency") {
 			precision = cint(frappe.defaults.get_default("currency_precision"));
 			if (!precision) {
-				var number_format = get_number_format();
+				var currency = frappe.meta.get_field_currency(df, doc);
+				var number_format = get_number_format(currency);
 				var number_format_info = get_number_format_info(number_format);
 				precision = number_format_info.precision;
 			}

@@ -84,6 +84,9 @@ export class SidebarEditor {
 	}
 	prepare_data() {
 		this.new_sidebar_items.forEach((item) => {
+			if (item.parent) {
+				delete item.parent;
+			}
 			if (!item.nested_items) return;
 			item.nested_items.forEach((nested_item) => {
 				if (nested_item.parent) {
@@ -138,15 +141,15 @@ export class SidebarEditor {
 				me.sorting = true;
 			},
 			onEnd: function (event) {
+				if (event.from !== event.to) return; // onAdd handles this case
+
 				if (me.new_sidebar_items.length == 0) {
 					me.new_sidebar_items = Array.from(me.workspace_sidebar_items);
 				}
 				let old_index = event.oldIndex;
 				let new_index = event.newIndex;
-				me.new_sidebar_items[old_index];
-				let b = me.new_sidebar_items[old_index];
-				me.new_sidebar_items[old_index] = me.new_sidebar_items[new_index];
-				me.new_sidebar_items[new_index] = b;
+				let [item] = me.new_sidebar_items.splice(old_index, 1);
+				me.new_sidebar_items.splice(new_index, 0, item);
 			},
 		});
 
@@ -195,21 +198,16 @@ export class SidebarEditor {
 					);
 				},
 				onEnd: function (event) {
+					if (event.from !== event.to) return; // onAdd handles this case
+
 					let new_index = event.newIndex;
 					let old_index = event.oldIndex;
-					let item_label = $(event.item).data("id");
-					me.new_sidebar_items.forEach((item) => {
-						if (item.nested_items.length) {
-							let child = item.nested_items.find(
-								(child) => child.label === item_label
-							);
-							if (child) {
-								let b = item.nested_items[old_index];
-								item.nested_items[old_index] = item.nested_items[new_index];
-								item.nested_items[new_index] = b;
-							}
-						}
-					});
+					let section_name = $(event.to).parent().attr("item-name");
+					let section_data = me.get_item_data(section_name);
+					if (section_data && section_data.nested_items) {
+						let [item] = section_data.nested_items.splice(old_index, 1);
+						section_data.nested_items.splice(new_index, 0, item);
+					}
 				},
 			});
 		});
@@ -271,7 +269,11 @@ export class SidebarEditor {
 							break;
 					}
 
-					if (d.get_value("type") == "Link" && d.get_value("link_type") !== "URL") {
+					if (
+						!d.get_value("link_to") &&
+						d.get_value("type") == "Link" &&
+						d.get_value("link_type") !== "URL"
+					) {
 						d.set_value("link_to", label);
 					}
 
@@ -332,6 +334,14 @@ export class SidebarEditor {
 				fieldname: "url",
 				fieldtype: "Data",
 				label: "URL",
+			},
+			{
+				depends_on: 'eval: doc.link_type == "URL"',
+				fieldname: "open_in_new_tab",
+				fieldtype: "Check",
+				default: "1",
+				label: "Open in New Tab",
+				description: "open the URL in a new browser tab",
 			},
 			{
 				depends_on:
@@ -565,8 +575,8 @@ export class SidebarEditor {
 			case "delete":
 				this.delete_item(item_data);
 				break;
-			case "add_item_below":
-				this.edit_item(item_data);
+			case "add_below":
+				this.add_below(item_data);
 				break;
 			case "duplicate":
 				this.duplicate_item(item_data);

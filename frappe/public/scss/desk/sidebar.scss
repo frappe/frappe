@@ -83,6 +83,7 @@
 
 	.standard-sidebar-item {
 		display: flex;
+		position: relative;
 		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 
 		margin-bottom: 1px;
@@ -124,6 +125,29 @@
 				align-items: center;
 				justify-content: center;
 			}
+		}
+	}
+
+	.promotional-banners {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		margin: var(--margin-sm) 0;
+	}
+
+	.onboarding-sidebar,
+	.promotional-banner {
+		text-decoration: none;
+		font-size: var(--text-sm);
+		display: flex;
+		align-items: center;
+		svg {
+			margin: 0px;
+			flex: 0 0 auto;
+		}
+		span {
+			margin-left: 10px;
+			@include truncate();
 		}
 	}
 
@@ -172,6 +196,11 @@
 		.dropdown-navbar-user {
 			&:hover {
 				@include hover-mixin();
+			}
+
+			.sidebar-user-button {
+				padding: var(--padding-sm);
+				border-radius: var(--border-radius-sm);
 			}
 		}
 	}
@@ -269,21 +298,20 @@
 	.standard-sidebar-item:hover {
 		& .sidebar-item-edit-controls {
 			visibility: visible;
-			width: auto;
 		}
 	}
-	.collapse-sidebar-link {
-		display: none;
-	}
+	.promotional-banners,
+	.collapse-sidebar-link,
 	.dropdown-navbar-user {
 		display: none;
 	}
 }
 .sidebar-item-edit-controls {
 	visibility: hidden;
+	position: absolute;
+	right: 0;
 	display: flex;
 	gap: 6px;
-	width: 0;
 }
 .standard-sidebar-item[data-name="add-sidebar-item"] {
 	margin-top: 5px;

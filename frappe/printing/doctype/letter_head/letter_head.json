@@ -98,6 +98,7 @@
    "description": "Letter Head in HTML",
    "fieldname": "content",
    "fieldtype": "HTML Editor",
+   "ignore_xss_filter": 1,
    "label": "Header HTML",
    "oldfieldname": "content",
    "oldfieldtype": "Text Editor"
@@ -113,6 +114,7 @@
    "description": "Footer will display correctly only in PDF",
    "fieldname": "footer",
    "fieldtype": "HTML Editor",
+   "ignore_xss_filter": 1,
    "label": "Footer HTML"
   },
   {
@@ -125,12 +127,12 @@
   {
    "fieldname": "image_height",
    "fieldtype": "Float",
-   "label": "Image Height"
+   "label": "Image Height (px)"
   },
   {
    "fieldname": "image_width",
    "fieldtype": "Float",
-   "label": "Image Width"
+   "label": "Image Width (px)"
   },
   {
    "depends_on": "eval:doc.footer_source==='Image' && doc.letter_head_name",
@@ -146,12 +148,12 @@
   {
    "fieldname": "footer_image_height",
    "fieldtype": "Float",
-   "label": "Image Height"
+   "label": "Image Height (px)"
   },
   {
    "fieldname": "footer_image_width",
    "fieldtype": "Float",
-   "label": "Image Width"
+   "label": "Image Width (px)"
   },
   {
    "fieldname": "footer_align",
@@ -184,6 +186,7 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "eval: doc.header_script || doc.footer_script",
+   "depends_on": "eval: !doc.__islocal",
    "fieldname": "scripts_section",
    "fieldtype": "Section Break",
    "label": "Scripts"
@@ -200,7 +203,7 @@
  "links": [],
  "make_attachments_public": 1,
  "max_attachments": 3,
- "modified": "2024-04-12 10:30:25.793932",
+ "modified": "2026-02-25 14:37:57.061516",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
@@ -223,6 +226,7 @@
    "role": "Desk User"
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

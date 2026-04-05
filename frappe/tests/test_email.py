@@ -57,16 +57,20 @@ class TestEmail(IntegrationTestCase):
 	def test_send_after(self):
 		self.test_email_queue(send_after=1)
 		from frappe.email.queue import flush
+		from frappe.utils import add_to_date, now_datetime
 
-		flush()
+		with self.freeze_time(add_to_date(now_datetime(), seconds=12)):
+			flush()
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 0)
 
 	def test_flush(self):
 		self.test_email_queue()
 		from frappe.email.queue import flush
+		from frappe.utils import add_to_date, now_datetime
 
-		flush()
+		with self.freeze_time(add_to_date(now_datetime(), seconds=12)):
+			flush()
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
 		queue_recipients = [
@@ -82,8 +86,53 @@ class TestEmail(IntegrationTestCase):
 		self.assertEqual(len(queue_recipients), 2)
 		self.assertTrue("Unsubscribe" in frappe.safe_decode(frappe.flags.sent_mail))
 
-	def test_cc_header(self):
-		# test if sending with cc's makes it into header
+	def test_cc_header_always_visible(self):
+		"""Test that CC header is always visible regardless of expose_recipients setting.
+
+		CC (Carbon Copy) should always be visible to all recipients as per email semantics.
+		This enables 'Reply All' functionality. If sender wants hidden recipients, they should use BCC.
+		"""
+		frappe.sendmail(
+			recipients=["test@example.com"],
+			cc=["test1@example.com"],
+			sender="admin@example.com",
+			reference_doctype="User",
+			reference_name="Administrator",
+			subject="Testing CC Header Visibility",
+			message="CC should be visible without expose_recipients",
+			unsubscribe_message="Unsubscribe",
+			# No expose_recipients set - CC should still be visible
+		)
+		email_queue = frappe.db.sql(
+			"""select name from `tabEmail Queue` where status='Not Sent'""", as_dict=1
+		)
+		self.assertEqual(len(email_queue), 1)
+		queue_recipients = [
+			r.recipient
+			for r in frappe.db.sql(
+				"""select recipient from `tabEmail Queue Recipient`
+			where status='Not Sent'""",
+				as_dict=1,
+			)
+		]
+		self.assertTrue("test@example.com" in queue_recipients)
+		self.assertTrue("test1@example.com" in queue_recipients)
+
+		message = frappe.db.sql(
+			"""select message from `tabEmail Queue`
+			where status='Not Sent'""",
+			as_dict=1,
+		)[0].message
+		# CC should be visible even without expose_recipients
+		self.assertTrue("CC: test1@example.com" in message)
+		# TO should use placeholder (hidden) when expose_recipients is not set
+		self.assertTrue("To: <!--recipient-->" in message)
+
+	def test_cc_header_with_expose_recipients(self):
+		"""Test CC and TO visibility when expose_recipients='header' is set.
+
+		With expose_recipients='header', both TO and CC should be visible in headers.
+		"""
 		frappe.sendmail(
 			recipients=["test@example.com"],
 			cc=["test1@example.com"],
@@ -115,6 +164,7 @@ class TestEmail(IntegrationTestCase):
 			where status='Not Sent'""",
 			as_dict=1,
 		)[0].message
+		# Both TO and CC should be visible with expose_recipients="header"
 		self.assertTrue("To: test@example.com" in message)
 		self.assertTrue("CC: test1@example.com" in message)
 
@@ -307,6 +357,34 @@ class TestEmail(IntegrationTestCase):
 
 		if changed_flag:
 			email_account.enable_incoming = False
+
+	def test_impersonation_alert_queue(self):
+		"""Verifies that impersonation alerts are sent as mail too"""
+		from frappe.core.doctype.user.user import impersonate
+
+		target_user = "testimpersonate@example.com"
+		frappe.db.delete("Email Queue Recipient", {"recipient": target_user})  # sanity
+		if not frappe.db.exists("User", target_user):
+			frappe.get_doc(
+				{"doctype": "User", "email": target_user, "first_name": "Target", "enabled": 1}
+			).insert(ignore_permissions=True)
+
+		with (
+			patch("frappe.sendmail") as mocked_sendmail,
+			patch("frappe.local.login_manager", create=True) as mocked_lm,
+		):
+			with patch("frappe.db.exists", return_value=True):
+				reason = "Testing Security Alert"
+				impersonate(user=target_user, reason=reason)
+
+				self.assertTrue(mocked_sendmail.called)
+				_, kwargs = mocked_sendmail.call_args
+				self.assertIn(target_user, kwargs.get("recipients"))
+				self.assertIn(reason, kwargs.get("content"))
+				mocked_lm.impersonate.assert_called_with(target_user)
+
+		# Cleanup
+		frappe.db.delete("User", {"email": target_user})
 
 
 class TestVerifiedRequests(IntegrationTestCase):

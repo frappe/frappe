@@ -346,3 +346,7 @@
 .ql-bubble .ql-editor img {
 	max-width: 500px !important;
 }
+.mention-link::after,
+.mention-link::before {
+	display: none;
+}

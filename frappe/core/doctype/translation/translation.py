@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.translate import MERGED_TRANSLATION_KEY, USER_TRANSLATION_KEY
+from frappe.translate import MERGED_TRANSLATION_KEY, USER_TRANSLATION_KEY, change_translation_version
 from frappe.utils import sanitize_html
 
 
@@ -40,3 +40,4 @@ class Translation(Document):
 def clear_user_translation_cache(lang):
 	frappe.cache.hdel(USER_TRANSLATION_KEY, lang)
 	frappe.cache.hdel(MERGED_TRANSLATION_KEY, lang)
+	change_translation_version()

@@ -37,8 +37,6 @@ frappe.ui.form.on("Print Format", {
 						frappe.set_route("print-format-builder", frm.doc.name);
 					}
 				});
-			} else if (frm.doc.custom_format && !frm.doc.raw_printing) {
-				frm.set_df_property("html", "reqd", 1);
 			}
 			if (frappe.model.can_write("Customize Form")) {
 				frappe.model.with_doctype(frm.doc.doc_type, function () {
@@ -74,7 +72,6 @@ frappe.ui.form.on("Print Format", {
 	},
 	print_format_for: function (frm) {
 		if (frm.doc.print_format_for === "Report") {
-			frm.set_value("standard", "No");
 			frm.set_value("custom_format", 1);
 		}
 	},

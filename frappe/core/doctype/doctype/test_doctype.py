@@ -535,6 +535,25 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertRaises(InvalidFieldNameError, validate_links_table_fieldnames, doc)
 
+	def test_deduplicate_document_links(self):
+		"""Test that duplicate document links are automatically removed during validation."""
+		doc = new_doctype("Test Deduplicate Links")
+
+		doc.append("links", {"link_doctype": "User", "link_fieldname": "email"})
+		doc.append("links", {"link_doctype": "User", "link_fieldname": "email"})
+		doc.append("links", {"link_doctype": "User", "link_fieldname": "email"})
+		doc.append("links", {"link_doctype": "User", "link_fieldname": "first_name"})
+		doc.append("links", {"link_doctype": "Role", "link_fieldname": "name"})
+
+		self.assertEqual(len(doc.links), 5)
+		doc.deduplicate_document_links()
+		self.assertEqual(len(doc.links), 3)
+
+		link_tuples = [(link.link_doctype, link.link_fieldname) for link in doc.links]
+		self.assertIn(("User", "email"), link_tuples)
+		self.assertIn(("User", "first_name"), link_tuples)
+		self.assertIn(("Role", "name"), link_tuples)
+
 	def test_create_virtual_doctype(self):
 		"""Test virtual DocType."""
 		virtual_doc = new_doctype("Test Virtual Doctype")

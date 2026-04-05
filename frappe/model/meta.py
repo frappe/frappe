@@ -672,7 +672,7 @@ class Meta(Document):
 
 	@cached_property
 	def high_permlevel_fields(self):
-		return [df for df in self.fields if df.permlevel > 0]
+		return [df for df in self.fields if (df.permlevel or 0) > 0]
 
 	def get_permitted_fieldnames(
 		self,
@@ -705,7 +705,8 @@ class Meta(Document):
 		)
 
 		if 0 not in permlevel_access and permission_type in ("read", "select"):
-			if frappe.share.get_shared(self.name, user, rights=["read"], limit=1):
+			check_doctype = parenttype if self.istable and parenttype else self.name
+			if frappe.share.get_shared(check_doctype, user, rights=["read"], limit=1):
 				permlevel_access.add(0)
 
 		permitted_fieldnames.extend(
@@ -793,11 +794,21 @@ class Meta(Document):
 						group.get("items").append(doctype)
 					link.added = True
 
+					# Add fieldname to transaction group for external links
+					if not link.is_child_table:
+						if "fieldnames" not in group:
+							group["fieldnames"] = {}
+						group["fieldnames"][link.link_doctype] = link.link_fieldname
+
 			if not link.added:
 				# group not found, make a new group
-				data.transactions.append(
-					dict(label=link.group, items=[link.parent_doctype or link.link_doctype])
-				)
+				new_group = dict(label=link.group, items=[link.parent_doctype or link.link_doctype])
+
+				# Add fieldname to new transaction group for external links
+				if not link.is_child_table:
+					new_group["fieldnames"] = {link.link_doctype: link.link_fieldname}
+
+				data.transactions.append(new_group)
 
 			if not data.fieldname and link.link_fieldname:
 				data.fieldname = link.link_fieldname
@@ -884,6 +895,12 @@ def get_field_currency(df, doc=None):
 					if frappe.get_meta(doc.parenttype).has_field(df.get("options")):
 						# only get_value if parent has currency field
 						currency = frappe.db.get_value(doc.parenttype, doc.parent, df.get("options"))
+						if not currency:
+							# Parent may not be in DB yet (new document being saved).
+							# Use the in-memory parent document reference if available.
+							parent = getattr(doc, "parent_doc", None)
+							if parent:
+								currency = parent.get(df.get("options"))
 
 		if currency:
 			frappe.local.field_currency.setdefault((doc.doctype, ref_docname), frappe._dict()).setdefault(
@@ -912,11 +929,10 @@ def get_field_precision(df, doc=None, currency=None):
 
 def get_precision_from_currency_format(currency: str) -> int:
 	"""Get precision from currency format string if applicable."""
-	from frappe.locale import get_number_format
 	from frappe.utils.number_format import NumberFormat
 
 	use_format_from_currency = frappe.get_system_settings("use_number_format_from_currency")
-	number_format = get_number_format()
+	number_format = NumberFormat.from_string(frappe.db.get_default("number_format"))
 	if use_format_from_currency:
 		currency_format = frappe.db.get_value("Currency", currency, "number_format", cache=True)
 		number_format = NumberFormat.from_string(currency_format) if currency_format else number_format

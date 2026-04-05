@@ -88,7 +88,7 @@ class Webhook(Document):
 			try:
 				frappe.safe_eval(self.condition, eval_locals=get_context(temp_doc))
 			except Exception as e:
-				frappe.throw(_("Invalid Condition: {}").format(e))
+				frappe.throw(_("Invalid Condition: {}").format(str(e)))
 
 	def validate_request_url(self):
 		try:
@@ -120,7 +120,7 @@ class Webhook(Document):
 				frappe.throw(_("Invalid Webhook Secret"))
 
 	@frappe.whitelist()
-	def preview_meets_condition(self, preview_document):
+	def preview_meets_condition(self, preview_document: str):
 		if not self.condition:
 			return _("Yes")
 		try:
@@ -128,17 +128,17 @@ class Webhook(Document):
 			met_condition = frappe.safe_eval(self.condition, eval_locals=get_context(doc))
 		except Exception as e:
 			frappe.local.message_log = []
-			return _("Failed to evaluate conditions: {}").format(e)
+			return _("Failed to evaluate conditions: {}").format(str(e))
 		return _("Yes") if met_condition else _("No")
 
 	@frappe.whitelist()
-	def preview_request_body(self, preview_document):
+	def preview_request_body(self, preview_document: str):
 		try:
 			doc = frappe.get_cached_doc(self.webhook_doctype, preview_document)
 			return frappe.as_json(get_webhook_data(doc, self))
 		except Exception as e:
 			frappe.local.message_log = []
-			return _("Failed to compute request body: {}").format(e)
+			return _("Failed to compute request body: {}").format(str(e))
 
 
 def get_context(doc):

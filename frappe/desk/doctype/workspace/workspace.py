@@ -100,6 +100,14 @@ class Workspace(Document):
 
 			self.app = get_module_app(self.module)
 
+	def before_rename(self, old_name, new_name, merge=False):
+		if self.public and not is_workspace_manager() and not disable_saving_as_public():
+			frappe.throw(
+				_("You need to be {0} to rename this document").format(frappe.bold("Workspace Manager")),
+				frappe.PermissionError,
+				title=_("Permission Error"),
+			)
+
 	def clear_cache(self):
 		super().clear_cache()
 		if self.for_user:
@@ -125,16 +133,32 @@ class Workspace(Document):
 			self.name = doc.name = doc.label = doc.title
 
 	def on_trash(self):
+		if not self.module:
+			self.delete_sidebar()
+			self.delete_desktop_icon()
 		if self.public and not is_workspace_manager():
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
 		self.delete_from_my_workspaces()
 
+	def delete_desktop_icon(self):
+		frappe.delete_doc_if_exists("Desktop Icon", self.title)
+
+	def delete_sidebar(self):
+		frappe.delete_doc_if_exists("Workspace Sidebar", self.title)
+
 	def delete_from_my_workspaces(self):
-		if not self.public:
+		if self.public:
+			return
+
+		try:
 			my_workspaces = frappe.get_doc("Workspace Sidebar", f"My Workspaces-{frappe.session.user}")
-			for w in my_workspaces.items:
-				if self.name == w.link_to:
-					frappe.delete_doc("Workspace Sidebar Item", w.name)
+		except frappe.DoesNotExistError:
+			frappe.clear_messages()
+			return
+
+		for w in my_workspaces.items:
+			if self.name == w.link_to:
+				frappe.delete_doc("Workspace Sidebar Item", w.name)
 
 	def after_delete(self):
 		if disable_saving_as_public():
@@ -268,7 +292,7 @@ def get_report_type(report):
 
 
 @frappe.whitelist()
-def new_page(new_page):
+def new_page(new_page: str):
 	if not loads(new_page):
 		return
 
@@ -312,7 +336,7 @@ def new_page(new_page):
 
 
 @frappe.whitelist()
-def save_page(name, public, new_widgets, blocks):
+def save_page(name: str, public: str | int, new_widgets: str, blocks: str):
 	public = frappe.parse_json(public)
 
 	doc = frappe.get_doc("Workspace", name)
@@ -327,7 +351,7 @@ def save_page(name, public, new_widgets, blocks):
 
 
 @frappe.whitelist()
-def update_page(name, title, icon, indicator_color, parent, public):
+def update_page(name: str, title: str, icon: str, indicator_color: str, parent: str, public: str | int):
 	public = frappe.parse_json(public)
 	doc = frappe.get_doc("Workspace", name)
 

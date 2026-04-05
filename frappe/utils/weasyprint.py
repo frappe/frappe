@@ -8,7 +8,7 @@ from frappe import _
 
 
 @frappe.whitelist()
-def download_pdf(doctype, name, print_format, letterhead=None):
+def download_pdf(doctype: str, name: str | int, print_format: str, letterhead: str | None = None):
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("print")
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
@@ -92,9 +92,9 @@ class PrintFormatGenerator:
 
 	def get_header_footer_html(self):
 		header_html = footer_html = None
-		if self.letterhead:
+		if self.letterhead or self.layout.get("header"):
 			header_html = frappe.render_template("templates/print_format/print_header.html", self.context)
-		if self.letterhead:
+		if self.letterhead or self.layout.get("footer"):
 			footer_html = frappe.render_template("templates/print_format/print_footer.html", self.context)
 		return header_html, footer_html
 

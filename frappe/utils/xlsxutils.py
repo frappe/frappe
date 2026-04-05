@@ -14,6 +14,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.workbook.child import INVALID_TITLE_REGEX
 
 import frappe
+from frappe.core.utils import html2text
 from frappe.utils.html_utils import unescape_html
 
 ILLEGAL_CHARACTERS_RE = re.compile(
@@ -104,12 +105,9 @@ def make_xlsx(
 	return xlsx_file
 
 
-def handle_html(data):
-	from frappe.core.utils import html2text
-
+### Utilities ###
+def handle_html(data: str) -> str:
 	# return if no html tags found
-	data = frappe.as_unicode(data)
-
 	if "<" not in data or ">" not in data:
 		return data
 
@@ -121,9 +119,7 @@ def handle_html(data):
 		# unable to parse html, send it raw
 		return data
 
-	value = ", ".join(value.split("  \n"))
-	value = " ".join(value.split("\n"))
-	return ", ".join(value.split("# "))
+	return value.replace("  \n", ", ").replace("\n", " ").replace("# ", ", ")
 
 
 def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=None):
