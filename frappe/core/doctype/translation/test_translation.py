@@ -82,6 +82,35 @@ class TestTranslation(IntegrationTestCase):
 
 		self.assertEqual(_(source), target)
 
+	def test_translated_html_is_sanitized(self):
+		source = "Translation with HTML"
+		target = """
+			<span style="color:red" onclick="alert('xss')">Hallo</span>
+			<script>alert("xss")</script>
+			<iframe src="https://example.com"></iframe>
+			<div>Ok</div>
+		""".strip()
+
+		docname = create_translation("de", source, target)
+		translated_text = frappe.db.get_value("Translation", docname, "translated_text")
+
+		self.assertIn('<span style="color:red;">Hallo</span>', translated_text)
+		self.assertIn('&lt;script&gt;alert("xss")&lt;/script&gt;', translated_text)
+		self.assertIn('&lt;iframe src="https://example.com"&gt;&lt;/iframe&gt;', translated_text)
+		self.assertIn("<div>Ok</div>", translated_text)
+		self.assertNotIn("onclick", translated_text)
+
+		frappe.local.lang = "de"
+		self.assertEqual(_(source), translated_text)
+
+	def test_plain_text_translation_with_angle_brackets_is_unchanged(self):
+		source = "Comparison"
+		target = "1 < 2 and 3 > 2"
+
+		docname = create_translation("de", source, target)
+
+		self.assertEqual(frappe.db.get_value("Translation", docname, "translated_text"), target)
+
 
 def create_translation(lang, source_string, new_translation, context=None) -> str:
 	doc = frappe.new_doc("Translation")

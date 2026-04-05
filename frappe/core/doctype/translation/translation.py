@@ -1,12 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import json
-
 import frappe
 from frappe.model.document import Document
 from frappe.translate import MERGED_TRANSLATION_KEY, USER_TRANSLATION_KEY
-from frappe.utils import is_html, strip_html_tags
+from frappe.utils import sanitize_html
 
 
 class Translation(Document):
@@ -26,6 +24,9 @@ class Translation(Document):
 		source_text: DF.Code
 		translated_text: DF.Code
 	# end: auto-generated types
+
+	def validate(self):
+		self.translated_text = sanitize_html(self.translated_text)
 
 	def on_update(self):
 		clear_user_translation_cache(self.language)
