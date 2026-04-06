@@ -199,6 +199,7 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 								field_meta.options,
 								{"name": ("in", (old_value, new_value))},
 								["name", title_field],
+								ignore_ifnull=True,
 							)
 							for r in result:
 								if r[0] == old_value:
