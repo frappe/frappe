@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-05 09:44+0000\n"
-"PO-Revision-Date: 2026-04-05 14:45\n"
+"PO-Revision-Date: 2026-04-06 15:03\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -9694,7 +9694,7 @@ msgstr "Введите здесь статические параметры url 
 
 #: frappe/public/js/form_builder/components/FieldProperties.vue:66
 msgid "Enter the fieldname of the currency field or a cached value (e.g. Company:company:default_currency)."
-msgstr ""
+msgstr "Введите имя поля валюты или кэшированное значение (например, Company:company:default_currency)."
 
 #. Description of the 'Message Parameter' (Data) field in DocType 'SMS
 #. Settings'
@@ -23506,7 +23506,7 @@ msgstr "SQL"
 #. Description of the 'Condition' (Small Text) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "SQL Conditions. Example: {\"status\" : \"open\", \"priority\" : \"medium\"}"
-msgstr ""
+msgstr "Условия SQL. Пример: {\"status\" : \"open\", \"priority\" : \"medium\"}"
 
 #. Label of the sql_explain_html (HTML) field in DocType 'Recorder Query'
 #: frappe/core/doctype/recorder/recorder.js:85
@@ -27375,7 +27375,7 @@ msgstr "Автоповтор для этого документа был отк�
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:43
 msgid "The Bulk Update could not happen due to <b>{0}</b>"
-msgstr ""
+msgstr "Массовое обновление не удалось выполнить из-за <b>{0}</b>"
 
 #: frappe/public/js/frappe/form/grid.js:1310
 msgid "The CSV format is case sensitive"
