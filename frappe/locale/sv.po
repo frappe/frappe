@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-03-10 21:10\n"
+"PO-Revision-Date: 2026-04-06 08:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -32139,7 +32139,7 @@ msgstr "via Tilldelning Regel"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:245
 msgid "via Auto Repeat"
-msgstr "genom Återkommande Händelse"
+msgstr "via Återkommande"
 
 #: frappe/core/doctype/data_import/importer.py:267
 #: frappe/core/doctype/data_import/importer.py:288
