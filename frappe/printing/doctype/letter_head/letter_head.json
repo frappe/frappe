@@ -9,6 +9,7 @@
  "field_order": [
   "letter_head_for",
   "letter_head_name",
+  "module",
   "source",
   "footer_source",
   "column_break_3",
@@ -214,6 +215,13 @@
    "label": "Letter Head For",
    "options": "DocType\nReport",
    "reqd": 1
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def",
+   "reqd": 1
   }
  ],
  "icon": "fa fa-font",
@@ -221,7 +229,7 @@
  "links": [],
  "make_attachments_public": 1,
  "max_attachments": 3,
- "modified": "2026-04-05 14:49:12.109984",
+ "modified": "2026-04-06 12:48:57.719484",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",

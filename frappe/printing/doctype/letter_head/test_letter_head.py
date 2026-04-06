@@ -20,6 +20,7 @@ class TestLetterHead(IntegrationTestCase):
 		doc = frappe.new_doc("Letter Head")
 		doc.letter_head_for = "DocType"
 		doc.letter_head_name = "Test Letter Head"
+		doc.module = "Core"
 		doc.standard = "No"
 		doc.insert()
 
@@ -35,5 +36,5 @@ class TestLetterHead(IntegrationTestCase):
 		final_path = f"{export_path}.json"
 		self.assertTrue(os.path.exists(final_path))
 
-		dir_path = os.path.dirname(final_path)
+		dir_path = os.path.dirname(os.path.dirname(final_path))
 		self.addCleanup(shutil.rmtree, dir_path)

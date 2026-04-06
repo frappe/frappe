@@ -34,6 +34,7 @@ class LetterHead(Document):
 		is_default: DF.Check
 		letter_head_for: DF.Literal["DocType", "Report"]
 		letter_head_name: DF.Data
+		module: DF.Link
 		source: DF.Literal["Image", "HTML"]
 		standard: DF.Literal["No", "Yes"]
 	# end: auto-generated types
@@ -150,4 +151,4 @@ class LetterHead(Document):
 			frappe.defaults.clear_default("default_letter_head_content", self.content)
 
 	def export_letter_head(self):
-		return export_module_json(self, self.standard == "Yes", "Accounts")
+		return export_module_json(self, self.standard == "Yes", self.module)
