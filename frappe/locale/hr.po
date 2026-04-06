@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-05 09:44+0000\n"
-"PO-Revision-Date: 2026-04-05 14:45\n"
+"PO-Revision-Date: 2026-04-06 15:04\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -9692,7 +9692,7 @@ msgstr "Ovdje unesi statičke parametre URL-a (npr. pošiljatelj=ERPNext, korisn
 
 #: frappe/public/js/form_builder/components/FieldProperties.vue:66
 msgid "Enter the fieldname of the currency field or a cached value (e.g. Company:company:default_currency)."
-msgstr ""
+msgstr "Unesite naziv polja za valutu ili predmemoriranu vrijednost (npr. Company:company:default_valute)."
 
 #. Description of the 'Message Parameter' (Data) field in DocType 'SMS
 #. Settings'
@@ -23504,7 +23504,7 @@ msgstr "SQL"
 #. Description of the 'Condition' (Small Text) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "SQL Conditions. Example: {\"status\" : \"open\", \"priority\" : \"medium\"}"
-msgstr ""
+msgstr "SQL Uvjeti. Primjer: {\"status\" : \"open\", \"priority\" : \"medium\"}"
 
 #. Label of the sql_explain_html (HTML) field in DocType 'Recorder Query'
 #: frappe/core/doctype/recorder/recorder.js:85
@@ -27373,7 +27373,7 @@ msgstr "Automatsko Ponavljanje za ovaj dokument je onemogućeno."
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:43
 msgid "The Bulk Update could not happen due to <b>{0}</b>"
-msgstr ""
+msgstr "Masovno ažuriranje nije se moglo dogoditi zbog <b>{0}</b>"
 
 #: frappe/public/js/frappe/form/grid.js:1310
 msgid "The CSV format is case sensitive"
