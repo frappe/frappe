@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.modules.utils import export_module_json
 from frappe.utils import flt, is_image
 
 
@@ -31,8 +32,10 @@ class LetterHead(Document):
 		image_height: DF.Float
 		image_width: DF.Float
 		is_default: DF.Check
+		letter_head_for: DF.Literal["DocType", "Report"]
 		letter_head_name: DF.Data
 		source: DF.Literal["Image", "HTML"]
+		standard: DF.Literal["No", "Yes"]
 	# end: auto-generated types
 
 	def before_insert(self):
@@ -50,6 +53,14 @@ class LetterHead(Document):
 	def validate(self):
 		self.set_image()
 		self.validate_disabled_and_default()
+		if (
+			self.standard == "Yes"
+			and not frappe.local.conf.get("developer_mode")
+			and not frappe.flags.in_migrate
+			and not frappe.flags.in_install
+			and not frappe.in_test
+		):
+			frappe.throw(frappe._("Standard Letter Head cannot be updated"))
 
 	def validate_disabled_and_default(self):
 		if self.disabled and self.is_default:
@@ -119,6 +130,7 @@ class LetterHead(Document):
 
 	def on_update(self):
 		self.set_as_default()
+		self.export_letter_head()
 
 		# clear the cache so that the new letter head is uploaded
 		frappe.clear_cache()
@@ -136,3 +148,6 @@ class LetterHead(Document):
 		else:
 			frappe.defaults.clear_default("letter_head", self.name)
 			frappe.defaults.clear_default("default_letter_head_content", self.content)
+
+	def export_letter_head(self):
+		return export_module_json(self, self.standard == "Yes", "Accounts")

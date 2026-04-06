@@ -7,10 +7,12 @@
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
+  "letter_head_for",
   "letter_head_name",
   "source",
   "footer_source",
   "column_break_3",
+  "standard",
   "disabled",
   "is_default",
   "letter_head_image_section",
@@ -196,6 +198,22 @@
    "fieldtype": "HTML",
    "label": "Instructions",
    "read_only": 1
+  },
+  {
+   "default": "No",
+   "fieldname": "standard",
+   "fieldtype": "Select",
+   "label": "Standard",
+   "options": "No\nYes",
+   "reqd": 1
+  },
+  {
+   "default": "DocType",
+   "fieldname": "letter_head_for",
+   "fieldtype": "Select",
+   "label": "Letter Head For",
+   "options": "DocType\nReport",
+   "reqd": 1
   }
  ],
  "icon": "fa fa-font",
@@ -203,7 +221,7 @@
  "links": [],
  "make_attachments_public": 1,
  "max_attachments": 3,
- "modified": "2026-02-25 14:37:57.061516",
+ "modified": "2026-04-05 14:49:12.109984",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",

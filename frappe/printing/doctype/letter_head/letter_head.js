@@ -7,6 +7,17 @@ frappe.ui.form.on("Letter Head", {
 	},
 
 	refresh: function (frm) {
+		frm.set_intro("");
+		frm.disable_save();
+		frm.toggle_display("standard", frappe.boot.developer_mode);
+
+		if (frappe.session.user === "Administrator" || frm.doc.standard === "No") {
+			frm.enable_save();
+		}
+		if (frappe.session.user !== "Administrator" && frm.doc.standard === "Yes") {
+			frm.set_intro(__("Please duplicate this to make changes"));
+		}
+
 		frm.flag_public_attachments = true;
 	},
 

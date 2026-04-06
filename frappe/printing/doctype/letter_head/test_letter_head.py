@@ -1,5 +1,8 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+import os
+import shutil
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
@@ -12,3 +15,25 @@ class TestLetterHead(IntegrationTestCase):
 
 		# test if image is automatically set
 		self.assertTrue(letter_head.image in letter_head.content)
+
+	def test_export_letter_head(self):
+		doc = frappe.new_doc("Letter Head")
+		doc.letter_head_for = "DocType"
+		doc.letter_head_name = "Test Letter Head"
+		doc.standard = "No"
+		doc.insert()
+
+		doc.standard = "Yes"
+
+		dev_mode_before = frappe.conf.developer_mode
+		frappe.conf.developer_mode = True
+
+		export_path = doc.export_letter_head()
+
+		frappe.conf.developer_mode = dev_mode_before
+
+		final_path = f"{export_path}.json"
+		self.assertTrue(os.path.exists(final_path))
+
+		dir_path = os.path.dirname(final_path)
+		self.addCleanup(shutil.rmtree, dir_path)
