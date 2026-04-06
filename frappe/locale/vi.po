@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-03-31 07:10\n"
+"PO-Revision-Date: 2026-04-06 08:52\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -22517,7 +22517,7 @@ msgstr "SQL"
 #. Description of the 'Condition' (Small Text) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "SQL Conditions. Example: status=\"Open\""
-msgstr "Điều kiện SQL. Ví dụ: trạng thái=\"Mở\""
+msgstr ""
 
 #. Label of a HTML field in DocType 'Recorder Query'
 #: frappe/core/doctype/recorder/recorder.js:85
