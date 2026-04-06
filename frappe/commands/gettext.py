@@ -245,51 +245,93 @@ def _word_similarity(a: str, b: str) -> float:
 @click.command("get-missing-translation", help="Translation: get one untranslated entry as JSON")
 @click.option("--app", required=True, help="App name. eg: frappe")
 @click.option("--locale", required=True, help="Locale code. eg: de")
-@click.option("--offset", default=0, type=int, help="Skip first N missing entries")
-def get_missing_translation(app: str, locale: str, offset: int = 0):
+@click.option(
+	"--entry-start",
+	default=0,
+	type=click.IntRange(min=0),
+	help="Inclusive absolute entry index to scan from",
+)
+@click.option(
+	"--entry-end",
+	default=None,
+	type=click.IntRange(min=0),
+	help="Exclusive absolute entry index to scan to",
+)
+@click.option(
+	"--offset",
+	default=0,
+	type=click.IntRange(min=0),
+	help="Skip first N missing entries within the selected entry range",
+)
+def get_missing_translation(
+	app: str,
+	locale: str,
+	entry_start: int = 0,
+	entry_end: int | None = None,
+	offset: int = 0,
+):
 	"""Return one untranslated PO entry as JSON to stdout.
 
 	Outputs a JSON object with the entry's msgid, context, locations, comments,
-	and total_missing count. Use --offset to skip entries the agent can't translate.
-	When no missing entries remain or offset exceeds total, outputs {"total_missing": N}
-	with no entry fields.
+	and shard metadata. Use --entry-start/--entry-end to split the PO file by
+	absolute entry index and --offset to skip missing entries within that range.
+	When no missing entries remain in the selected range or offset exceeds the
+	range's missing count, outputs shard metadata with no entry fields.
 
 	Does not require a site connection.
 
 	Usage:
 	    bench get-missing-translation --app frappe --locale de
 	    bench get-missing-translation --app frappe --locale de --offset 5
+	    bench get-missing-translation --app frappe --locale de --entry-start 100 --entry-end 200
 	"""
 	import json
 
 	catalog = _get_po_catalog(app, locale)
 
-	missing = []
+	entries = []
 	for message in catalog:
 		if not message.id or isinstance(message.id, tuple):
 			continue
-		if not message.string:
-			missing.append(message)
 
+		entries.append(message)
+
+	total_entries = len(entries)
+	shard_start = min(entry_start, total_entries)
+	shard_end = min(entry_end, total_entries) if entry_end is not None else total_entries
+	shard_end = max(shard_start, shard_end)
+	shard_entries = entries[shard_start:shard_end]
+
+	missing = [
+		(shard_start + shard_index, message)
+		for shard_index, message in enumerate(shard_entries)
+		if not message.string
+	]
 	total_missing = len(missing)
+	response = {
+		"total_missing": total_missing,
+		"total_entries": total_entries,
+		"total_entries_in_shard": len(shard_entries),
+		"entry_start": shard_start,
+		"entry_end": shard_end,
+	}
 
 	if total_missing == 0 or offset >= total_missing:
-		click.echo(json.dumps({"total_missing": total_missing}))
+		click.echo(json.dumps(response))
 		return
 
-	message = missing[offset]
-	click.echo(
-		json.dumps(
-			{
-				"total_missing": total_missing,
-				"index": offset,
-				"msgid": message.id,
-				"context": message.context,
-				"locations": list(message.locations),
-				"comments": list(message.auto_comments),
-			}
-		)
+	entry_index, message = missing[offset]
+	response.update(
+		{
+			"index": offset,
+			"entry_index": entry_index,
+			"msgid": message.id,
+			"context": message.context,
+			"locations": list(message.locations),
+			"comments": list(message.auto_comments),
+		}
 	)
+	click.echo(json.dumps(response))
 
 
 @click.command("search-translated", help="Translation: search translated entries by terms across all apps")
