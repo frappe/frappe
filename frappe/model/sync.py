@@ -41,6 +41,7 @@ IMPORTABLE_DOCTYPES = [
 	("core", "server_script"),
 	("custom", "custom_field"),
 	("custom", "property_setter"),
+	("printing", "letter_head"),
 ]
 
 
