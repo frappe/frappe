@@ -320,14 +320,17 @@ def search_translated(app: str | None, locale: str, terms: str, limit: int = 5):
 		click.echo("[]")
 		return
 
-	apps = [app] if app else _get_apps()
+	if app:
+		app_catalogs = [(app, _get_po_catalog(app, locale))]
+	else:
+		app_catalogs = []
+		for app_name in _get_apps():
+			catalog = _try_get_po_catalog(app_name, locale)
+			if catalog is not None:
+				app_catalogs.append((app_name, catalog))
 
 	results = []
-	for app_name in apps:
-		catalog = _try_get_po_catalog(app_name, locale)
-		if catalog is None:
-			continue
-
+	for app_name, catalog in app_catalogs:
 		for message in catalog:
 			if not message.id or isinstance(message.id, tuple):
 				continue
@@ -389,14 +392,27 @@ def update_translation(app: str, locale: str):
 		click.echo(json.dumps({"error": "invalid_json", "detail": "Expected object or array"}), err=True)
 		sys.exit(1)
 
+	normalized_entries = []
+	for index, entry in enumerate(data):
+		if not isinstance(entry, dict):
+			click.echo(
+				json.dumps(
+					{
+						"error": "invalid_json",
+						"detail": "Expected each array item to be an object",
+						"index": index,
+					}
+				),
+				err=True,
+			)
+			sys.exit(1)
+
+		normalized_entries.append((entry.get("msgid", ""), entry.get("context"), entry.get("msgstr", "")))
+
 	catalog = _get_po_catalog(app, locale)
 
 	validated = []
-	for entry in data:
-		msgid = entry.get("msgid", "")
-		context = entry.get("context")
-		msgstr = entry.get("msgstr", "")
-
+	for msgid, context, msgstr in normalized_entries:
 		message = catalog.get(msgid, context)
 		if message is None:
 			similarities = []
