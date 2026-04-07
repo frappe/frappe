@@ -126,6 +126,7 @@ frappe.defaults = {
 		frappe.call(method).then((r) => {
 			if (r.message) {
 				this._user_permissions = Object.assign({}, r.message);
+				frappe.realtime.emit("update_user_permissions");
 			}
 		});
 	},

@@ -311,6 +311,7 @@ class User(Document):
 		self.share_with_self()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
+		frappe.publish_realtime("update_user_permissions", user=self.name, after_commit=True)
 		now = frappe.in_test or frappe.flags.in_install
 		self.send_password_notification(self.__new_password)
 		frappe.enqueue(
@@ -631,6 +632,7 @@ class User(Document):
 			invite_doc = frappe.get_doc("User Invitation", invite)
 			invite_doc.user = None
 			invite_doc.save(ignore_permissions=True)
+		frappe.publish_realtime("update_user_permissions", user=self.name, after_commit=True)
 
 	def before_rename(self, old_name, new_name, merge=False):
 		# if merging, delete the old user notification settings

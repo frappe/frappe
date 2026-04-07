@@ -103,6 +103,40 @@ function frappe_handlers(socket) {
 	socket.on("disconnect", () => {
 		notify_disconnected_documents(socket);
 	});
+
+	socket.on("update_user_permissions", async () => {
+		const current_rooms = Array.from(socket.rooms);
+		for (const room of current_rooms) {
+			let doctype, docname;
+
+			if (room.startsWith("doc:") || room.startsWith("open_doc:")) {
+				const parts = room.split(":")[1].split("/");
+				doctype = parts[0];
+				docname = parts[1];
+			} else if (room.startsWith("doctype:")) {
+				doctype = room.split(":")[1];
+				docname = null;
+			}
+
+			if (doctype) {
+				const has_perm = await new Promise((resolve) => {
+					socket
+						.frappe_request("/api/method/frappe.realtime.has_permission", {
+							doctype,
+							name: docname || "",
+						})
+						.then((res) => res.json())
+						.then(({ message }) => resolve(!!message))
+						.catch(() => resolve(false));
+				});
+
+				if (!has_perm) {
+					socket.leave(room);
+					socket.emit("access_revoked", { room, doctype, docname });
+				}
+			}
+		}
+	});
 }
 
 function notify_disconnected_documents(socket) {
