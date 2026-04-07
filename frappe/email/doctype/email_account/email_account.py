@@ -492,7 +492,7 @@ class EmailAccount(Document):
 
 	@classmethod
 	def create_dummy(cls):
-		return cls.from_record({"sender": "notifications@example.com"})
+		return cls.from_record({"name": "Notifications", "email_id": "notifications@example.com"})
 
 	@classmethod
 	@cache_email_account("outgoing_email_account")
