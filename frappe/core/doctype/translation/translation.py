@@ -1,12 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import json
-
 import frappe
 from frappe.model.document import Document
+<<<<<<< HEAD
 from frappe.translate import MERGED_TRANSLATION_KEY, USER_TRANSLATION_KEY
 from frappe.utils import is_html, strip_html_tags
+=======
+from frappe.translate import MERGED_TRANSLATION_KEY, USER_TRANSLATION_KEY, change_translation_version
+from frappe.utils import sanitize_html
+>>>>>>> dadf822152 (fix(Translation): don't remove HTML from source_text (#33558))
 
 
 class Translation(Document):
@@ -28,11 +31,7 @@ class Translation(Document):
 
 	# end: auto-generated types
 	def validate(self):
-		if is_html(self.source_text):
-			self.remove_html_from_source()
-
-	def remove_html_from_source(self):
-		self.source_text = strip_html_tags(self.source_text).strip()
+		self.translated_text = sanitize_html(self.translated_text)
 
 	def on_update(self):
 		clear_user_translation_cache(self.language)
