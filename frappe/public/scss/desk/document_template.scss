@@ -1,0 +1,42 @@
+// Document Template Manager Styles
+// Styles for the manage templates dialog
+
+.dt-manage-list {
+	.text-center.text-muted {
+		padding: var(--padding-md) 0;
+	}
+}
+
+.dt-manage-row {
+	display: flex;
+	align-items: center;
+	padding: var(--padding-sm) 0;
+	border-bottom: 1px solid var(--border-color);
+
+	&--last {
+		border-bottom: none;
+	}
+
+	&--disabled {
+		opacity: 0.6;
+	}
+}
+
+.dt-manage-row-label {
+	flex: 1;
+	min-width: 0;
+	font-weight: var(--weight-medium);
+}
+
+.dt-item--with-suffix {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.dt-manage-row-actions {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	gap: var(--padding-xs);
+}

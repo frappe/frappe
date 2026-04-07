@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
@@ -17,61 +18,136 @@ class DocumentTemplate(Document):
 		from frappe.types import DF
 
 		data: DF.Code
+		disabled: DF.Check
 		private: DF.Check
 		reference_doctype: DF.Link
 		template_name: DF.Data
-
 	# end: auto-generated types
 
 	def validate(self) -> None:
-		self.template_name = self.template_name.strip()
-		if not self.template_name:
-			frappe.throw(frappe._("Template name is required."))
-		if len(self.template_name) > 140:
-			frappe.throw(frappe._("Template name must not exceed 140 characters."))
-
-		try:
-			json.loads(self.data)
-		except (json.JSONDecodeError, TypeError, ValueError):
-			frappe.throw(frappe._("Template data must be valid JSON."))
-
+		self._validate_template_data_json()
 		self._validate_duplicate_name()
 
 	def _validate_duplicate_name(self) -> None:
 		"""Prevent duplicate template names within the same reference doctype.
 
-		Two private templates owned by different users may share a name.
-		All other combinations (public-public, public-private, same owner) are blocked.
+		Rules:
+		  - Two public templates with the same name for the same doctype: blocked.
+		  - Two private templates with the same name by the same owner: blocked.
+		  - Private templates of different owners may share a name.
+		  - A user may have one public and one private template with the same name.
 		"""
-		conflict = frappe.db.sql(
-			"""
-			SELECT name FROM `tabDocument Template`
-			WHERE reference_doctype = %s
-			  AND template_name = %s
-			  AND name != %s
-			  AND (private = 0 OR %s = 0 OR owner = %s)
-			LIMIT 1
-			""",
-			(self.reference_doctype, self.template_name, self.name, self.private, self.owner),
-		)
+		if self.private:
+			# Private: only block if the same owner already has a private template with this name
+			conflict = frappe.db.exists(
+				"Document Template",
+				{
+					"reference_doctype": self.reference_doctype,
+					"template_name": self.template_name,
+					"owner": self.owner,
+					"private": 1,
+					"name": ("!=", self.name),
+				},
+			)
+		else:
+			# Public: block if another public template has this name
+			conflict = frappe.db.exists(
+				"Document Template",
+				{
+					"reference_doctype": self.reference_doctype,
+					"template_name": self.template_name,
+					"name": ("!=", self.name),
+					"private": 0,
+				},
+			)
+
 		if conflict:
 			frappe.throw(
-				frappe._("A template named {0} already exists for {1}.").format(
+				_("A template named {0} already exists for {1}").format(
 					frappe.bold(self.template_name),
 					frappe.bold(self.reference_doctype),
 				)
 			)
+
+	def _validate_template_data_json(self) -> None:
+		"""Ensure that the 'data' field contains valid, non-empty JSON object data."""
+		try:
+			parsed_data = json.loads(self.data)
+		except (json.JSONDecodeError, TypeError, ValueError):
+			frappe.throw(_("Template data must be valid JSON"))
+
+		if not isinstance(parsed_data, dict):
+			frappe.throw(_("Template data must be a JSON object"))
+
+		if not parsed_data:
+			frappe.throw(_("Template data cannot be empty"))
+
+
+def _check_user_permissions_on_template_data(template_data: str, reference_doctype: str, user: str) -> bool:
+	"""Check if the template's stored field values comply with the user's User Permissions.
+
+	For every link field on *reference_doctype* where the user has User Permission
+	restrictions, the value stored inside the template JSON must be in the
+	allowed set (or empty, unless strict user permissions are enabled).
+
+	This mirrors the same logic that ``frappe.permissions.has_user_permission``
+	applies to real documents.
+	"""
+	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
+
+	user_permissions = get_user_permissions(user)
+	if not user_permissions:
+		return True
+
+	try:
+		data = json.loads(template_data) if isinstance(template_data, str) else template_data
+	except (json.JSONDecodeError, TypeError, ValueError):
+		return True
+
+	if not isinstance(data, dict):
+		return True
+
+	apply_strict = frappe.get_system_settings("apply_strict_user_permissions")
+	meta = frappe.get_meta(reference_doctype)
+
+	for field in meta.get_link_fields():
+		if field.ignore_user_permissions:
+			continue
+
+		if field.options not in user_permissions:
+			continue
+
+		value = data.get(field.fieldname)
+
+		if not value and not apply_strict:
+			continue
+
+		allowed_docs = frappe.permissions.get_allowed_docs_for_doctype(
+			user_permissions.get(field.options, []), reference_doctype
+		)
+
+		if allowed_docs and str(value or "") not in allowed_docs:
+			return False
+
+	return True
 
 
 def _is_system_manager(user: str) -> bool:
 	return user == "Administrator" or "System Manager" in frappe.get_roles(user)
 
 
+def _get_accessible_doctypes(user: str) -> list[str]:
+	"""Return list of DocType names the user can create (used to filter templates in list view)."""
+	from frappe.permissions import get_valid_perms
+
+	return list({p.parent for p in get_valid_perms(user=user) if p.parent and p.create})
+
+
 def get_permission_query_conditions(user: str | None = None) -> str:
 	"""Row-level filter for get_list / get_all queries.
 
 	- System Manager / Administrator: see all templates.
-	- Others: see public templates + their own private templates.
+	- Others: see (public OR own private) AND only for doctypes they can create.
 	"""
 	if not user:
 		user = frappe.session.user
@@ -79,7 +155,17 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 	if _is_system_manager(user):
 		return ""
 
-	return f"(`tabDocument Template`.private = 0 OR `tabDocument Template`.owner = {frappe.db.escape(user)})"
+	escaped_user = frappe.db.escape(user)
+
+	# Visibility: public templates + own private templates
+	visibility = f"(`tabDocument Template`.private = 0 OR `tabDocument Template`.owner = {escaped_user})"
+
+	# DocType filter: only templates for doctypes the user has create permission on
+	accessible = _get_accessible_doctypes(user)
+	escaped_doctypes = ", ".join(frappe.db.escape(dt) for dt in accessible) if accessible else "NULL"
+	doctype_filter = f"`tabDocument Template`.reference_doctype IN ({escaped_doctypes})"
+
+	return f"({visibility} AND {doctype_filter})"
 
 
 def has_permission(doc: "DocumentTemplate", ptype: str, user: str | None = None) -> bool:
@@ -90,7 +176,7 @@ def has_permission(doc: "DocumentTemplate", ptype: str, user: str | None = None)
 	  2. Owner — all operations allowed on own templates.
 	  3. Others (must be able to create the reference doctype):
 	     - create: allowed
-	     - read public templates: allowed
+	     - read/select public templates: allowed (subject to user permission check on data)
 	     - write / delete any template: denied (owner + System Manager only)
 	     - read private templates: denied (owner + System Manager only)
 	"""
@@ -103,9 +189,6 @@ def has_permission(doc: "DocumentTemplate", ptype: str, user: str | None = None)
 	if user == doc.owner:
 		return True
 
-	if not doc.reference_doctype:
-		return False
-
 	if not frappe.has_permission(doc.reference_doctype, "create", user=user):
 		return False
 
@@ -113,62 +196,13 @@ def has_permission(doc: "DocumentTemplate", ptype: str, user: str | None = None)
 		return True
 
 	if not doc.private and ptype in ("read", "select"):
+		# Even for public templates, respect User Permissions on the
+		# reference doctype
+		template_data = getattr(doc, "data", None)
+		if template_data and not _check_user_permissions_on_template_data(
+			template_data, doc.reference_doctype, user
+		):
+			return False
 		return True
 
 	return False
-
-
-@frappe.whitelist()
-def get_manageable_templates(reference_doctype: str) -> list[dict]:
-	"""Return templates for the given doctype that the current user can edit/delete.
-
-	System Manager / Administrator: all templates for the doctype.
-	Others: only templates they own.
-	"""
-	user = frappe.session.user
-	filters = {"reference_doctype": reference_doctype}
-
-	if not _is_system_manager(user):
-		filters["owner"] = user
-
-	return frappe.get_list(
-		"Document Template",
-		fields=["name", "template_name", "owner", "private"],
-		filters=filters,
-		order_by="template_name asc",
-	)
-
-
-@frappe.whitelist()
-def create_template(reference_doctype: str, template_name: str, private: int, data: str) -> str:
-	"""Create a new Document Template and return its name."""
-	doc = frappe.new_doc("Document Template")
-	doc.reference_doctype = reference_doctype
-	doc.template_name = template_name
-	doc.private = frappe.utils.cint(private)
-	doc.data = data
-	doc.insert()
-	return doc.name
-
-
-@frappe.whitelist()
-def update_template(name: str, data: str) -> None:
-	"""Overwrite the captured data of an existing Document Template."""
-	doc = frappe.get_doc("Document Template", name)
-	doc.data = data
-	doc.save()
-
-
-@frappe.whitelist()
-def get_template_data(name: str) -> str | None:
-	"""Return the stored JSON data for a Document Template."""
-	doc = frappe.get_doc("Document Template", name)
-	if not has_permission(doc, "read"):
-		frappe.throw(frappe._("Not permitted"), frappe.PermissionError)
-	return doc.data
-
-
-@frappe.whitelist()
-def delete_template(name: str) -> None:
-	"""Whitelisted server-side delete with full permission enforcement."""
-	frappe.delete_doc("Document Template", name)

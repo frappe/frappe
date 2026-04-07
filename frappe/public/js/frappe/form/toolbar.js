@@ -376,7 +376,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.add_delete();
 		this.add_duplicate();
 		this.add_new();
-		this.doc_template.add_manage_menu_item();
 		this.page.add_divider();
 		this.add_audit_trail();
 		this.add_jump_to_field();
@@ -388,6 +387,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.add_auto_repeat();
 		this.page.add_divider();
 		this.make_customize_buttons();
+		this.doc_template.add_template_menu_section();
 	}
 
 	add_discard() {

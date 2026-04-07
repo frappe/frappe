@@ -27,6 +27,7 @@ ASSET_KEYS = (
 	"__custom_js",
 	"__custom_list_js",
 	"__workspaces",
+	"__document_templates",
 )
 
 
@@ -78,6 +79,15 @@ class FormMeta(Meta):
 
 		# add masked fields (per-user, per-meta)
 		d["masked_fields"] = [df.fieldname for df in self.get_masked_fields()]
+		d["__document_templates"] = (
+			frappe.get_all(
+				"Document Template",
+				filters={"reference_doctype": self.name},
+				fields=["name", "template_name", "owner", "private", "disabled"],
+				order_by="private desc",
+			)
+			or None
+		)
 
 		return d
 

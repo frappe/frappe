@@ -1,13 +1,14 @@
 {
  "actions": [],
  "autoname": "hash",
- "creation": "2026-03-12 00:00:00.000000",
+ "creation": "2026-03-12 00:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "template_name",
   "reference_doctype",
   "private",
+  "disabled",
   "data"
  ],
  "fields": [
@@ -24,7 +25,8 @@
    "in_list_view": 1,
    "label": "Reference Document Type",
    "options": "DocType",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "default": "0",
@@ -40,13 +42,22 @@
    "label": "Data",
    "options": "JSON",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "When enabled, this template is hidden from the template list but can be re-enabled later.",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Disable"
   }
  ],
  "links": [],
- "modified": "2026-03-31 00:00:00.000000",
+ "modified": "2026-04-10 23:05:29.592272",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Document Template",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -74,6 +85,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
