@@ -174,7 +174,7 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 
 	attributes = {"*": acceptable_attributes, "svg": svg_attributes}
 
-	# returns html with escaped tags, escaped orphan >, <, etc.
+	# returns sanitized HTML with unsafe tags and attributes removed
 	escaped_html = nh3.clean(
 		html,
 		tags=tags,
