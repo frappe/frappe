@@ -200,7 +200,7 @@ class StudioApp(WebsiteGenerator):
 				base_path = f"/assets/{self.frappe_app}/app_builds/{self.name}/"
 			else:
 				manifest_path = os.path.join(
-					frappe.get_site_path("public", "files", "app_builds", self.name),
+					get_files_path("app_builds", self.name),
 					".vite",
 					"manifest.json",
 				)
