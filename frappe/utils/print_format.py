@@ -147,7 +147,9 @@ def _download_multi_pdf(
 					{
 						"percent": (idx + 1) / total_docs * 100,
 						"title": _("PDF Generation in Progress"),
-						"description": _("{0}/{1} complete | Please leave this tab open until completion.").format(idx + 1, total_docs),
+						"description": _(
+							"{0}/{1} complete | Please leave this tab open until completion."
+						).format(idx + 1, total_docs),
 					},
 					user=frappe.session.user,
 				)
@@ -192,7 +194,9 @@ def _download_multi_pdf(
 						{
 							"percent": count / total_docs * 100,
 							"title": _("PDF Generation in Progress"),
-							"description": _("{0}/{1} complete | Please leave this tab open until completion.").format(count, total_docs),
+							"description": _(
+								"{0}/{1} complete | Please leave this tab open until completion."
+							).format(count, total_docs),
 						},
 						user=frappe.session.user,
 					)
@@ -211,7 +215,9 @@ def _download_multi_pdf(
 				}
 			)
 			_file.save()
-			frappe.publish_realtime(f"task_complete:{task_id}", message={"file_url": _file.unique_url}, task_id=task_id)
+			frappe.publish_realtime(
+				f"task_complete:{task_id}", message={"file_url": _file.unique_url}, task_id=task_id
+			)
 		else:
 			frappe.local.response.filecontent = merged_pdf.getvalue()
 			frappe.local.response.type = "pdf"
