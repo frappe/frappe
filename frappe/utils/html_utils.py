@@ -188,15 +188,8 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 	if disallowed_tags:
 		tags.difference_update(disallowed_tags)
 
-<<<<<<< HEAD
 	# returns html with escaped tags, escaped orphan >, <, etc.
 	escaped_html = bleach.clean(
-=======
-	attributes = {"*": acceptable_attributes, "svg": svg_attributes}
-
-	# returns sanitized HTML with unsafe tags and attributes removed
-	escaped_html = nh3.clean(
->>>>>>> dadf822152 (fix(Translation): don't remove HTML from source_text (#33558))
 		html,
 		tags=tags,
 		attributes=attributes,

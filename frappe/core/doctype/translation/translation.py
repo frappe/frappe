@@ -3,13 +3,8 @@
 
 import frappe
 from frappe.model.document import Document
-<<<<<<< HEAD
 from frappe.translate import MERGED_TRANSLATION_KEY, USER_TRANSLATION_KEY
-from frappe.utils import is_html, strip_html_tags
-=======
-from frappe.translate import MERGED_TRANSLATION_KEY, USER_TRANSLATION_KEY, change_translation_version
 from frappe.utils import sanitize_html
->>>>>>> dadf822152 (fix(Translation): don't remove HTML from source_text (#33558))
 
 
 class Translation(Document):
