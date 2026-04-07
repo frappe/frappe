@@ -94,7 +94,7 @@ class TestTranslation(IntegrationTestCase):
 		docname = create_translation("de", source, target)
 		translated_text = frappe.db.get_value("Translation", docname, "translated_text")
 
-		self.assertIn('<span style="color:red;">Hallo</span>', translated_text)
+		self.assertIn('<span style="color:red">Hallo</span>', translated_text)
 		self.assertIn('&lt;script&gt;alert("xss")&lt;/script&gt;', translated_text)
 		self.assertIn('&lt;iframe src="https://example.com"&gt;&lt;/iframe&gt;', translated_text)
 		self.assertIn("<div>Ok</div>", translated_text)
