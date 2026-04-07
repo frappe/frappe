@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-06 08:52\n"
+"PO-Revision-Date: 2026-04-07 09:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -7540,7 +7540,7 @@ msgstr "Diff"
 #. Description of the 'States' (Section Break) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc."
-msgstr "Olika \"Tillstånd\" som detta dokument kan existera i. T.ex. \"Öppen\", \"Väntar på Godkännande\" etc."
+msgstr "Olika \"Tillstånd\" som detta dokument kan existera i. T. ex. \"Öppen\", \"Väntar Godkännande\" o. s. v."
 
 #. Label of a Int field in DocType 'Document Naming Rule'
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
