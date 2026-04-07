@@ -195,7 +195,7 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		this.remove_onboarding_wrapper();
-		if (module_name) {
+		if (module_name && !frappe.is_mobile()) {
 			if (
 				this?.onboarding_widget[module_name] &&
 				this.onboarding_widget[module_name].hide_panel
