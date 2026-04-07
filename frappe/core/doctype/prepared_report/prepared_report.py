@@ -87,18 +87,21 @@ class PreparedReport(Document):
 		)
 
 	def get_prepared_data(self, with_file_name=False):
-		if attachments := get_attachments(self.doctype, self.name):
-			attachment = None
-			for f in attachments or []:
-				if f.file_url.endswith(".gz"):
-					attachment = f
-					break
+		attachments = get_attachments(self.doctype, self.name)
+		if not attachments:
+			frappe.throw(_("No attachment found for the prepared report"), title=_("Attachment Not Found"))
 
-			attached_file = frappe.get_doc("File", attachment.name)
+		attachment = None
+		for f in attachments or []:
+			if f.file_url.endswith(".gz"):
+				attachment = f
+				break
 
-			if with_file_name:
-				return (gzip.decompress(attached_file.get_content()), attachment.file_name)
-			return gzip.decompress(attached_file.get_content())
+		attached_file = frappe.get_doc("File", attachment.name)
+
+		if with_file_name:
+			return (gzip.decompress(attached_file.get_content()), attachment.file_name)
+		return gzip.decompress(attached_file.get_content())
 
 
 def generate_report(prepared_report):
