@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-03-25 05:38\n"
+"PO-Revision-Date: 2026-04-07 09:34\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -6792,7 +6792,7 @@ msgstr "Vorlage für Datenimport"
 
 #: frappe/core/doctype/data_import/data_import.py:66
 msgid "Data Import is not allowed for {0}. Enable 'Allow Import' in DocType settings."
-msgstr ""
+msgstr "Datenimport ist für {0} nicht erlaubt. Aktivieren Sie 'Import erlauben' in den DocType-Einstellungen."
 
 #: frappe/custom/doctype/customize_form/customize_form.py:619
 msgid "Data Too Long"
@@ -9491,7 +9491,7 @@ msgstr "Geben Sie den in der OTP-App angezeigten Code ein."
 
 #: frappe/public/js/frappe/views/communication.js:794
 msgid "Enter Email Recipient(s) in the To, CC, or BCC fields"
-msgstr ""
+msgstr "E-Mail-Empfänger in den Feldern An, CC oder BCC eingeben"
 
 #. Label of a Link field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -10539,7 +10539,7 @@ msgstr "Der Dateityp {0} ist nicht zulässig"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:615
 msgid "File upload failed."
-msgstr ""
+msgstr "Datei-Upload fehlgeschlagen."
 
 #: frappe/core/doctype/file/file.py:366 frappe/core/doctype/file/file.py:433
 msgid "File {0} does not exist"
@@ -17461,7 +17461,7 @@ msgstr "Keine Vorlage im Pfad: {0} gefunden"
 
 #: frappe/core/page/permission_manager/permission_manager.js:357
 msgid "No user has the role <strong>{0}</strong>"
-msgstr ""
+msgstr "Kein Benutzer hat die Rolle <strong>{0}</strong>"
 
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:257
 msgid "No values to show"
@@ -17692,7 +17692,7 @@ msgstr "{0} darf nicht angezeigt werden"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:602
 msgid "Not permitted. {0}."
-msgstr ""
+msgstr "Nicht erlaubt. {0}."
 
 #. Label of a Link in the Tools Workspace
 #. Name of a DocType
@@ -19027,7 +19027,7 @@ msgstr "Passwort für {0} {1} {2} nicht gefunden"
 
 #: frappe/core/doctype/user/user.py:1206
 msgid "Password requirements not met"
-msgstr ""
+msgstr "Passwortanforderungen nicht erfüllt"
 
 #: frappe/core/doctype/user/user.py:1040
 msgid "Password reset instructions have been sent to your email"
@@ -19665,7 +19665,7 @@ msgstr "Bitte wählen Sie X- und Y-Felder aus"
 
 #: frappe/public/js/form_builder/components/Field.vue:161
 msgid "Please select a DocType in options before setting filters"
-msgstr ""
+msgstr "Bitte wählen Sie zuerst einen DocType in den Optionen aus, bevor Sie Filter festlegen"
 
 #: frappe/utils/__init__.py:117
 msgid "Please select a country code for field {1}."
@@ -24782,7 +24782,7 @@ msgstr "Größe (MB)"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:608
 msgid "Size exceeds the maximum allowed file size."
-msgstr ""
+msgstr "Die Größe überschreitet die maximal zulässige Dateigröße."
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:82
 #: frappe/public/js/onboarding_tours/onboarding_tours.js:18
@@ -28551,7 +28551,7 @@ msgstr "TLS verwenden"
 
 #: frappe/utils/password_strength.py:187
 msgid "Use a few uncommon words together."
-msgstr ""
+msgstr "Verwenden Sie einige ungewöhnliche Wörter zusammen."
 
 #: frappe/utils/password_strength.py:34
 msgid "Use a few words, avoid common phrases."
@@ -29299,7 +29299,7 @@ msgstr "Webseite anzeigen"
 
 #: frappe/core/page/permission_manager/permission_manager.js:390
 msgid "View all {0} users"
-msgstr ""
+msgstr "Alle {0} Benutzer anzeigen"
 
 #: frappe/www/confirm_workflow_action.html:12
 msgid "View document"
@@ -29959,7 +29959,7 @@ msgstr "Workflow-Generator-ID"
 
 #: frappe/workflow/doctype/workflow/workflow.js:11
 msgid "Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update their properties from the sidebar."
-msgstr ""
+msgstr "Der Workflow-Builder ermöglicht es Ihnen, Workflows visuell zu erstellen. Sie können Status per Drag-and-Drop hinzufügen und verknüpfen, um Übergänge zu erstellen. Außerdem können Sie deren Eigenschaften über die Seitenleiste aktualisieren."
 
 #. Label of a JSON field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -30140,7 +30140,7 @@ msgstr "XLSX"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:620
 msgid "XMLHttpRequest Error"
-msgstr ""
+msgstr "XMLHttpRequest-Fehler"
 
 #. Label of a Table field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -30402,7 +30402,7 @@ msgstr "Sie können nur die 3 benutzerdefinierten DocTypes in der Tabelle Docume
 
 #: frappe/handler.py:230
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
-msgstr ""
+msgstr "Sie können nur JPG, PNG, GIF, PDF, TXT, CSV oder Microsoft-Dokumente hochladen."
 
 #: frappe/core/doctype/data_export/exporter.py:199
 msgid "You can only upload upto 5000 records in one go. (may be less in some cases)"
@@ -30514,7 +30514,7 @@ msgstr "Sie haben nicht genügend Bewertungspunkte"
 
 #: frappe/core/doctype/data_import/data_import.py:73
 msgid "You do not have import permission for {0}"
-msgstr ""
+msgstr "Sie haben keine Importberechtigung für {0}"
 
 #: frappe/desk/query_report.py:899
 msgid "You do not have permission to access {0}: {1}."
@@ -33018,7 +33018,7 @@ msgstr "vor {0} Wochen"
 
 #: frappe/core/page/permission_manager/permission_manager.js:373
 msgid "{0} with the role <strong>{1}</strong>"
-msgstr ""
+msgstr "{0} mit der Rolle <strong>{1}</strong>"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:39
 msgid "{0} y"
