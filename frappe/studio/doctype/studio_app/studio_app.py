@@ -146,18 +146,12 @@ class StudioApp(WebsiteGenerator):
 		if not frappe.has_permission("Studio App", ptype="write"):
 			frappe.throw(_("You do not have permission to generate the app build"), frappe.PermissionError)
 
-		from studio.api import get_app_components
-		from studio.build import build_custom_app, build_standard_app
+		from studio.build import StudioAppBuilder
 
 		try:
-			components = get_app_components(self.name)
-			if not components:
-				return
-
-			if self.is_standard:
-				build_standard_app(self.name, self.frappe_app, components)
-			else:
-				build_custom_app(self.name, components)
+			StudioAppBuilder(
+				studio_app=self.name, is_standard=self.is_standard, frappe_app=self.frappe_app
+			).build()
 		except Exception as e:
 			raise Exception(f"Build process failed: {str(e)}")
 
