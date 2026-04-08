@@ -34,7 +34,7 @@ class LetterHead(Document):
 		is_default: DF.Check
 		letter_head_for: DF.Literal["DocType", "Report"]
 		letter_head_name: DF.Data
-		module: DF.Link
+		module: DF.Link | None
 		source: DF.Literal["Image", "HTML"]
 		standard: DF.Literal["No", "Yes"]
 	# end: auto-generated types
@@ -61,7 +61,10 @@ class LetterHead(Document):
 			and not frappe.flags.in_install
 			and not frappe.in_test
 		):
-			frappe.throw(frappe._("Standard Letter Head cannot be updated"))
+			frappe.throw(_("Standard Letter Head cannot be updated"))
+
+		if self.standard == "Yes" and not self.module:
+			frappe.throw(_("Module is required when Standard is set to 'Yes'"))
 
 	def validate_disabled_and_default(self):
 		if self.disabled and self.is_default:
