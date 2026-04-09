@@ -151,14 +151,14 @@ class StudioAppBuilder:
 
 	def _add_studio_components(self, block: dict):
 		if self.is_standard:
+			comp_name = block.get("componentName")
+			if comp_name and comp_name in self.studio_component_blocks:
+				self._add_block_components(self.studio_component_blocks[comp_name])
+		else:
 			component_block = frappe.db.get_value("Studio Component", block.get("componentName"), "block")
 			if isinstance(component_block, str):
 				component_block = frappe.parse_json(component_block)
 			self._add_block_components(component_block)
-		else:
-			comp_name = block.get("componentName")
-			if comp_name and comp_name in self.studio_component_blocks:
-				self._add_block_components(self.studio_component_blocks[comp_name])
 
 	def _load_studio_components_from_files(self, app_folder: str):
 		"""Load all studio component definitions from disk for recursive component resolution."""
