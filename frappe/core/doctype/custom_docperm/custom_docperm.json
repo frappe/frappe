@@ -215,11 +215,7 @@
   }
  ],
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-02-20 13:19:04.889081",
-=======
  "modified": "2026-04-09 11:13:35.484376",
->>>>>>> d990bece32 (fix: allow importing custom docperms)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Custom DocPerm",
