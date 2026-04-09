@@ -183,9 +183,19 @@ class Engine:
 		elif not _value and isinstance(_value, list | tuple):
 			_value = ("",)
 
+<<<<<<< HEAD
 		# Nested set
 		if _operator in OPERATOR_MAP["nested_set"]:
 			hierarchy = _operator
+=======
+		# db_query compatibility: handle None values for 'in' and 'not in' operators
+		# In db_query, None values are converted to empty tuples for these operators
+		if self.db_query_compat and _value is None and _operator.casefold() in ("in", "not in"):
+			_value = ("",)
+
+		if _operator.casefold() in NESTED_SET_OPERATORS:
+			hierarchy = _operator.casefold()
+>>>>>>> fa380a1 (fix: normalize nested set operator case before lookup)
 			docname = _value
 
 			_df = frappe.get_meta(self.doctype).get_field(field)
