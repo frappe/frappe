@@ -228,11 +228,7 @@ def build_custom_apps() -> None:
 	"""Build all published custom (DB) studio apps for the current site.
 	Requires site context (DB access).
 	"""
-	custom_apps = frappe.get_all(
-		"Studio App",
-		filters={"is_standard": 0, "published": 1},
-		pluck="name",
-	)
+	custom_apps = get_published_custom_apps()
 
 	for app_name in custom_apps:
 		click.echo(f"\nBuilding custom Studio App: {app_name}")
@@ -240,6 +236,25 @@ def build_custom_apps() -> None:
 			StudioAppBuilder(app_name, is_standard=False).build()
 		except Exception as e:
 			click.secho(f"Failed to build {app_name}: {e}", fg="red")
+
+
+def get_published_custom_apps() -> list[str]:
+	StudioApp = frappe.qb.DocType("Studio App")
+	StudioPage = frappe.qb.DocType("Studio Page")
+	custom_apps = (
+		(
+			frappe.qb.from_(StudioApp)
+			.inner_join(StudioPage)
+			.on(StudioPage.studio_app == StudioApp.name)
+			.select(StudioApp.name)
+			.where(StudioApp.is_standard == 0)
+			.where(StudioPage.published == 1)
+		)
+		.distinct()
+		.run(pluck=True)
+	)
+
+	return custom_apps
 
 
 def get_studio_folder(frappe_app: str) -> str | None:

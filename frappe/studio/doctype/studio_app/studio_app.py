@@ -101,6 +101,10 @@ class StudioApp(WebsiteGenerator):
 		if not self.name:
 			self.name = self.app_name or self.app_title.lower().replace(" ", "-")
 
+	@property
+	def is_published(self):
+		return frappe.db.exists("Studio Page", dict(studio_app=self.name, published=1))
+
 	def before_insert(self):
 		if not self.app_title:
 			self.app_title = "My App"
