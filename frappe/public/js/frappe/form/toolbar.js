@@ -735,6 +735,12 @@ frappe.ui.form.Toolbar = class Toolbar {
 					.then((is_amended) => {
 						if (is_amended) {
 							this.page.clear_actions();
+							let btn = this.page.set_secondary_action(__("Amend"), () => {});
+							btn.prop("disabled", true)
+								.wrap('<span style="display:inline-block"></span>')
+								.parent()
+								.attr("title", __("Already amended as {0}", [is_amended]))
+								.tooltip({ delay: { show: 400, hide: 100 }, trigger: "hover" });
 							return;
 						}
 						this.set_page_actions(status);
