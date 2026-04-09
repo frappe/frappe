@@ -24,6 +24,8 @@ export default defineConfig({
 		frappeui({
 			frappeProxy: true,
 			lucideIcons: true,
+			buildConfig: false,
+			jinjaBootData: false,
 		}),
 		vue(),
 	],

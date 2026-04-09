@@ -138,6 +138,8 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 			frappeui({
 				frappeProxy: true,
 				lucideIcons: true,
+				buildConfig: false,
+				jinjaBootData: false,
 			}),
 		],
 		resolve: {
