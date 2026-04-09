@@ -66,6 +66,16 @@ frappe.ui.form.on("Report", {
 				},
 			};
 		});
+
+		frm.set_query("letter_head", () => {
+			return {
+				filters: {
+					letter_head_for: "Report",
+					standard: "Yes",
+					disabled: 0,
+				},
+			};
+		});
 	},
 
 	ref_doctype: function (frm) {

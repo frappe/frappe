@@ -97,7 +97,6 @@
    "label": "Disabled"
   },
   {
-   "depends_on": "eval: doc.is_standard == \"No\"",
    "fieldname": "letter_head",
    "fieldtype": "Link",
    "label": "Default Letter Head",
@@ -214,7 +213,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-31 14:42:49.829920",
+ "modified": "2026-04-10 00:03:15.212213",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

@@ -76,15 +76,14 @@ class Report(Document):
 			if frappe.session.user != "Administrator":
 				frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
 
-			# Letter Head is visible only for non-standard reports.
-			# It should not remain set when it's invisible.
-			self.letter_head = None
-
 		if self.report_type == "Report Builder":
 			self.update_report_json()
 
 		if self.default_print_format and self.has_value_changed("default_print_format"):
 			self.validate_default_print_format()
+
+		if self.letter_head and self.has_value_changed("letter_head"):
+			self.validate_letter_head()
 
 	def before_insert(self):
 		self.set_doctype_roles()
@@ -93,7 +92,6 @@ class Report(Document):
 		self.export_doc()
 
 	def before_export(self, doc):
-		doc.letter_head = None
 		doc.prepared_report = 0
 
 	def on_trash(self):
@@ -428,6 +426,17 @@ class Report(Document):
 			or pf.disabled
 		):
 			frappe.throw(_("Selected Print Format is invalid for this Report."))
+
+	def validate_letter_head(self):
+		lh = frappe.db.get_value(
+			"Letter Head",
+			self.letter_head,
+			["letter_head_for", "standard", "disabled"],
+			as_dict=True,
+		)
+
+		if not lh or lh.letter_head_for != "Report" or lh.standard != "Yes" or lh.disabled:
+			frappe.throw(_("Selected Letter Head is invalid for this Report."))
 
 	@frappe.whitelist()
 	def toggle_disable(self, disable: bool):
