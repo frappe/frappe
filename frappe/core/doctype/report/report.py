@@ -428,16 +428,19 @@ class Report(Document):
 			frappe.throw(_("Selected Print Format is invalid for this Report."))
 
 	def validate_letter_head(self):
-		lh = frappe.db.get_value(
+		letter_head = frappe.db.get_value(
 			"Letter Head",
 			self.letter_head,
 			["letter_head_for", "standard", "disabled"],
 			as_dict=True,
 		)
 
-		expected_standard = "Yes" if self.is_standard == "Yes" else "No"
-
-		if not lh or lh.letter_head_for != "Report" or lh.standard != expected_standard or lh.disabled:
+		if (
+			not letter_head
+			or letter_head.letter_head_for != "Report"
+			or (self.is_standard == "Yes" and letter_head.standard != "Yes")
+			or letter_head.disabled
+		):
 			frappe.throw(_("Selected Letter Head is invalid for this Report."))
 
 	@frappe.whitelist()

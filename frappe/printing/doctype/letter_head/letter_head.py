@@ -52,6 +52,10 @@ class LetterHead(Document):
 		frappe.clear_cache()
 
 	def validate(self):
+		# validate the user
+		if frappe.session.user != "Administrator" and self.standard == "Yes":
+			frappe.throw(_("Only Administrator can modify standard Letter Heads"))
+
 		self.set_image()
 		self.validate_disabled_and_default()
 		if (
