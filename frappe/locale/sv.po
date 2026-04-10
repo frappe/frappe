@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-08 09:45\n"
+"PO-Revision-Date: 2026-04-10 09:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -32655,7 +32655,7 @@ msgstr "{0} är som {1}"
 
 #: frappe/email/doctype/email_account/email_account.py:172
 msgid "{0} is mandatory"
-msgstr "{0} är erfodrad"
+msgstr "{0} erfordras"
 
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.py:50
 msgid "{0} is not a field of doctype {1}"
@@ -32744,7 +32744,7 @@ msgstr "{0} är en av {1}"
 #: frappe/printing/doctype/print_format/print_format.py:105
 #: frappe/utils/csvutils.py:131
 msgid "{0} is required"
-msgstr "{0} är erfodrad"
+msgstr "{0} erfordras"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1495
 msgid "{0} is set"
