@@ -435,7 +435,9 @@ class Report(Document):
 			as_dict=True,
 		)
 
-		if not lh or lh.letter_head_for != "Report" or lh.standard != "Yes" or lh.disabled:
+		expected_standard = "Yes" if self.is_standard == "Yes" else "No"
+
+		if not lh or lh.letter_head_for != "Report" or lh.standard != expected_standard or lh.disabled:
 			frappe.throw(_("Selected Letter Head is invalid for this Report."))
 
 	@frappe.whitelist()

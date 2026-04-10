@@ -68,13 +68,16 @@ frappe.ui.form.on("Report", {
 		});
 
 		frm.set_query("letter_head", () => {
-			return {
-				filters: {
-					letter_head_for: "Report",
-					standard: "Yes",
-					disabled: 0,
-				},
+			const filters = {
+				letter_head_for: "Report",
+				disabled: 0,
 			};
+
+			if (frm.doc.is_standard === "Yes") {
+				filters.standard = "Yes";
+			}
+
+			return { filters };
 		});
 	},
 
