@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-04-10 16:14:40.343135",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "securitytxt_section",
+  "public_contact",
+  "public_language",
+  "public_policy"
+ ],
+ "fields": [
+  {
+   "description": "https://securitytxt.org/",
+   "fieldname": "securitytxt_section",
+   "fieldtype": "Section Break",
+   "label": "Security.txt"
+  },
+  {
+   "description": "Website or email where vulnerabilities can be reported. Defaults to `https://security.frappe.io`",
+   "fieldname": "public_contact",
+   "fieldtype": "Data",
+   "label": "Contact"
+  },
+  {
+   "description": "Defaults to `en`",
+   "fieldname": "public_language",
+   "fieldtype": "Data",
+   "label": "Preferred Language"
+  },
+  {
+   "description": "Guidelines and policies on vulnerability reporting. Defaults to `https://frappe.io/security`",
+   "fieldname": "public_policy",
+   "fieldtype": "Data",
+   "label": "Policy"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-04-10 16:54:30.961213",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Security Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

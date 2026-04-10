@@ -25,6 +25,7 @@ from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, che
 from frappe.integrations.oauth2 import get_resource_url, handle_wellknown, is_oauth_metadata_enabled
 from frappe.middlewares import StaticDataMiddleware
 from frappe.permissions import handle_does_not_exist_error
+from frappe.security import get_security_txt
 from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html
 from frappe.utils.error import log_error, log_error_snapshot
@@ -125,6 +126,9 @@ def application(request: Request):
 
 		elif request.path.startswith("/private/files/"):
 			response = frappe.utils.response.download_private_file(request.path)
+
+		elif request.path == "/.well-known/security.txt" and request.method == "GET":
+			response = get_security_txt()
 
 		elif request.path.startswith("/.well-known/") and request.method == "GET":
 			response = handle_wellknown(request.path)
