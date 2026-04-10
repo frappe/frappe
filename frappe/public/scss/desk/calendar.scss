@@ -31,12 +31,38 @@ th.fc-col-header-cell {
 }
 
 .fc-theme-standard td,
+.fc-theme-standard th,
 .fc-theme-standard hr,
 .fc-theme-standard thead,
 .fc-theme-standard tbody,
 .fc-theme-standard .fc-row,
-.fc-theme-standard .fc-popover {
-	border-color: var(--gray-300) !important;
+.fc-theme-standard .fc-popover,
+.fc-theme-standard .fc-scrollgrid,
+.fc-theme-standard .fc-scrollgrid-section > *,
+.fc-theme-standard .fc-timegrid-slot,
+.fc-theme-standard .fc-timegrid-axis {
+	border-color: var(--table-border-color) !important;
+}
+
+.fc-theme-standard .fc-scrollgrid {
+	border-radius: var(--border-radius) !important;
+	overflow: hidden;
+}
+
+.fc-theme-standard .fc-scrollgrid-section > th:first-child {
+	border-top-left-radius: var(--border-radius) !important;
+}
+
+.fc-theme-standard .fc-scrollgrid-section > th:last-child {
+	border-top-right-radius: var(--border-radius) !important;
+}
+
+.fc-theme-standard .fc-scrollgrid-section:last-child > td:first-child {
+	border-bottom-left-radius: var(--border-radius) !important;
+}
+
+.fc-theme-standard .fc-scrollgrid-section:last-child > td:last-child {
+	border-bottom-right-radius: var(--border-radius) !important;
 }
 
 .fc-theme-standard td.fc-day-sun {
@@ -182,7 +208,7 @@ th.fc-col-header-cell {
 }
 
 .fc-highlight {
-	background: var(--blue-100) !important;
+	background: var(--highlight-color) !important;
 }
 
 .fc-left {
@@ -207,7 +233,7 @@ th.fc-col-header-cell {
 }
 
 .fc-day-grid {
-	border-bottom: 1px solid var(--gray-300);
+	border-bottom: 1px solid var(--table-border-color);
 }
 
 .fc-divider {

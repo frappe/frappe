@@ -138,6 +138,7 @@ frappe.views.Calendar = class Calendar {
 			this.make();
 			this.setup_view_mode_button(defaults);
 			this.bind();
+			this.listen_for_theme_change();
 		});
 	}
 	make_page() {
@@ -203,6 +204,13 @@ frappe.views.Calendar = class Calendar {
 			me.set_localStorage_option("cal_weekends", me.cal_options.weekends);
 			me.set_css();
 			me.setup_view_mode_button(me.cal_options);
+		});
+	}
+	listen_for_theme_change() {
+		this.theme_observer = new MutationObserver(() => this.fullCalendar?.refetchEvents());
+		this.theme_observer.observe(document.documentElement, {
+			attributes: true,
+			attributeFilter: ["data-theme"],
 		});
 	}
 	set_css() {
@@ -429,6 +437,9 @@ frappe.views.Calendar = class Calendar {
 		});
 	}
 	prepare_colors(d) {
+		const is_dark_theme = frappe.ui.get_current_theme() === "dark";
+		const background_shade = is_dark_theme ? "dark" : "extra-light";
+		const text_shade = is_dark_theme ? "light" : "dark";
 		let color, color_name;
 		if (this.get_css_class) {
 			color_name = this.get_css_class(d);
@@ -436,14 +447,17 @@ frappe.views.Calendar = class Calendar {
 
 			if (color_name.startsWith("#")) {
 				color_name = frappe.ui.color.validate_hex(color_name) ? color_name : "blue";
+				d.backgroundColor = color_name;
+				d.textColor = frappe.ui.color.get_contrast_color(color_name);
+				return d;
 			}
 
-			d.backgroundColor = frappe.ui.color.get(color_name, "extra-light");
-			d.textColor = frappe.ui.color.get(color_name, "dark");
+			d.backgroundColor = frappe.ui.color.get(color_name, background_shade);
+			d.textColor = frappe.ui.color.get(color_name, text_shade);
 		} else {
 			color = d.color;
 			if (!frappe.ui.color.validate_hex(color) || !color) {
-				color = frappe.ui.color.get("blue", "extra-light");
+				color = frappe.ui.color.get("blue", background_shade);
 			}
 			d.backgroundColor = color;
 			d.textColor = frappe.ui.color.get_contrast_color(color);
