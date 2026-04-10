@@ -309,10 +309,16 @@ frappe.data_import.DataExporter = class DataExporter {
 			if (autoname_field && df.fieldname == autoname_field.fieldname) {
 				return true;
 			}
-			if (df.fieldname === "name") {
-				return true;
-			}
 			return false;
+		};
+		let get_info_title = (df) => {
+			if (df.depends_on) {
+				return __("Depends on: {0}", [df.depends_on]);
+			}
+			if (autoname_field && df.fieldname == autoname_field.fieldname) {
+				return __("Autoname: {0}", [autoname_field.label]);
+			}
+			return "";
 		};
 
 		return fields
@@ -332,6 +338,7 @@ frappe.data_import.DataExporter = class DataExporter {
 					value: df.fieldname,
 					danger: is_field_mandatory(df),
 					warning: is_field_depends_on(df),
+					warning_title: get_info_title(df),
 					include_in_import_template: !!df.include_in_import_template,
 					checked: false,
 					description: `${df.fieldname} ${df.reqd ? __("(Mandatory)") : ""}`,
