@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-22 12:51\n"
+"PO-Revision-Date: 2026-04-10 09:54\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -26096,7 +26096,7 @@ msgstr "Stranica sistema"
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/core/workspace/build/build.json
 msgid "System Settings"
-msgstr "Postavke Sistema"
+msgstr "Postavke"
 
 #. Description of the 'Allow Roles' (Table MultiSelect) field in DocType
 #. 'Module Onboarding'
@@ -30380,7 +30380,7 @@ msgstr "Možete onemogućiti ovo {0} umjesto da ga obrišete."
 
 #: frappe/core/doctype/file/file.py:737
 msgid "You can increase the limit from System Settings."
-msgstr "Ograničenje možete povećati u Sistemske postavke."
+msgstr "Ograničenje možete povećati u Postavkama Sistema."
 
 #: frappe/utils/synchronization.py:48
 msgid "You can manually remove the lock if you think it's safe: {}"
