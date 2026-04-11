@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-10 09:54\n"
+"PO-Revision-Date: 2026-04-11 10:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2308,7 +2308,7 @@ msgstr "Ett oväntat fel inträffade vid auktorisering av {}."
 #. Label of a Section Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Analytics"
-msgstr "Analyser"
+msgstr "Statistik"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:35
 msgid "Ancestors Of"
@@ -9720,7 +9720,7 @@ msgstr "Händelser i Dagens Kalender"
 msgid "Every form in ERPNext has a standard set of fields. If you need to capture some information, but there is no standard Field available for it, you can insert Custom Field for it.\n\n"
 "Once custom fields are added, you can use them for reports and analytics charts as well.\n"
 msgstr "Varje formulär i System har standard uppsättning fält. Om du behöver fånga information, men det inte finns något standard fält tillgänglig för det, kan du infoga anpassad fält för det..\n\n"
-"När anpassade fält har lagts till kan du också använda dem för rapporter och analys diagram.\n"
+"När anpassade fält har lagts till kan du också använda dem för rapporter och statistik diagram.\n"
 
 #. Label of a Check field in DocType 'DocShare'
 #: frappe/core/doctype/docshare/docshare.json
@@ -19970,7 +19970,7 @@ msgstr "Förberedd Rapport"
 #. Name of a report
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.json
 msgid "Prepared Report Analytics"
-msgstr "Förberedd Rapport Analys"
+msgstr "Förberedd Rapport Statistik"
 
 #. Name of a role
 #: frappe/core/doctype/prepared_report/prepared_report.json
@@ -20696,7 +20696,7 @@ msgstr "Dataförfråga Rapport"
 
 #: frappe/core/doctype/recorder/recorder.py:190
 msgid "Query analysis complete. Check suggested indexes."
-msgstr "Frågeanalys klar. Kontrollera föreslagna index."
+msgstr "Frågestatistik klar. Kontrollera föreslagna index."
 
 #: frappe/utils/safe_exec.py:479
 msgid "Query must be of SELECT or read-only WITH type."
@@ -29576,7 +29576,7 @@ msgstr "Webbplats"
 #. Name of a report
 #: frappe/website/report/website_analytics/website_analytics.json
 msgid "Website Analytics"
-msgstr "Webbplats Analys"
+msgstr "Webbplats Statistik"
 
 #. Name of a role
 #: frappe/core/doctype/comment/comment.json
