@@ -19,6 +19,7 @@
   "section_break_6",
   "print_format_type",
   "raw_printing",
+  "ignore_html_sanitization",
   "html",
   "raw_commands",
   "section_break_9",
@@ -288,12 +289,20 @@
    "label": "Report",
    "mandatory_depends_on": "eval:doc.print_format_for == \"Report\"",
    "options": "Report"
+  },
+  {
+   "default": "1",
+   "description": "Don't strip 'unsafe' HTML tags (like &lt;script&gt;) as this might be used intentionally",
+   "fieldname": "ignore_html_sanitization",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Ignore HTML Sanitization"
   }
  ],
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2026-03-26 16:27:02.559100",
+ "modified": "2026-04-11 23:34:26.713293",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

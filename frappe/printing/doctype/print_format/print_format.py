@@ -31,6 +31,7 @@ class PrintFormat(Document):
 		font_size: DF.Int
 		format_data: DF.Code | None
 		html: DF.Code | None
+		ignore_html_sanitization: DF.Check
 		line_breaks: DF.Check
 		margin_bottom: DF.Float
 		margin_left: DF.Float
@@ -89,6 +90,9 @@ class PrintFormat(Document):
 			doc_type = "DocType" if self.print_format_for == "DocType" else "Report"
 			document_name = self.doc_type if self.print_format_for == "DocType" else self.report
 			self.module = frappe.db.get_value(doc_type, document_name, "module")
+
+		if not self.ignore_html_sanitization and self.html:
+			self.html = frappe.utils.sanitize_html(self.html)
 
 		if self.html and self.print_format_type != "JS":
 			validate_template(self.html)
