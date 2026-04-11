@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "securitytxt_section",
+  "public_expires",
   "public_contacts",
   "public_languages",
   "public_policy",
@@ -44,13 +45,19 @@
    "fieldtype": "Table",
    "label": "Contact",
    "options": "Security Settings Contact"
+  },
+  {
+   "description": "Date after which this security.txt should be considered stale.",
+   "fieldname": "public_expires",
+   "fieldtype": "Datetime",
+   "label": "Expires"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-11 13:20:31.875242",
+ "modified": "2026-04-11 13:41:55.240279",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Security Settings",

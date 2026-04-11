@@ -1,7 +1,10 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+from datetime import datetime
+
 import frappe
+import frappe.utils
 from frappe.model.document import Document
 from frappe.utils import validate_email_address, validate_phone_number, validate_url
 
@@ -22,6 +25,7 @@ class SecuritySettings(Document):
 		from frappe.types import DF
 
 		public_contacts: DF.Table[SecuritySettingsContact]
+		public_expires: DF.Datetime | None
 		public_languages: DF.TableMultiSelect[SecuritySettingsLanguage]
 		public_policy: DF.Data | None
 	# end: auto-generated types
@@ -33,6 +37,7 @@ class SecuritySettings(Document):
 				self.public_policy_section,
 				self.public_contacts_section,
 				self.public_languages_section,
+				self.public_expires_section,
 			]
 		)
 
@@ -55,6 +60,14 @@ class SecuritySettings(Document):
 		value = ", ".join(langs)
 		return f"# We prefer talking in\nPreferred-Languages: {value}"
 
+	@property
+	def public_expires_section(self):
+		expires = self.public_expires or frappe.utils.add_years(frappe.utils.now_datetime(), 1)
+		expires = (isinstance(expires, str) and datetime.fromisoformat(expires)) or expires
+		expires = expires.replace(microsecond=0)
+		value = expires.isoformat()
+		return f"Expires: {value}"
+
 	def with_protocol(self, url: str, type_: str) -> str:
 		"""Prefix the URL with the appropriate protocol based on the contact type."""
 		match type_:
@@ -69,6 +82,7 @@ class SecuritySettings(Document):
 	def validate(self):
 		self.validate_public_policy()
 		self.validate_public_contacts()
+		self.validate_expires()
 
 	def validate_public_policy(self):
 		if self.public_policy:
@@ -86,3 +100,11 @@ class SecuritySettings(Document):
 					validate_url(contact.contact, throw=True)
 					if not contact.contact.startswith("https://"):
 						frappe.throw("URL contact must start with https://")
+
+	def validate_expires(self):
+		if self.public_expires:
+			expires = self.public_expires
+			if isinstance(expires, str):
+				expires = datetime.fromisoformat(expires)
+			if expires <= datetime.now():
+				frappe.throw("Expiration date must be in the future")
