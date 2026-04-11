@@ -6,10 +6,9 @@
  "engine": "InnoDB",
  "field_order": [
   "securitytxt_section",
-  "public_contact",
-  "public_language",
+  "public_contacts",
+  "public_languages",
   "public_policy",
-  "column_break_etah",
   "security_txt"
  ],
  "fields": [
@@ -17,18 +16,6 @@
    "fieldname": "securitytxt_section",
    "fieldtype": "Section Break",
    "label": "Security.txt"
-  },
-  {
-   "description": "Website or email where vulnerabilities can be reported. Defaults to `https://security.frappe.io`",
-   "fieldname": "public_contact",
-   "fieldtype": "Data",
-   "label": "Contact"
-  },
-  {
-   "description": "Defaults to `en`",
-   "fieldname": "public_language",
-   "fieldtype": "Data",
-   "label": "Preferred Language"
   },
   {
    "description": "Guidelines and policies on vulnerability reporting. Defaults to `https://frappe.io/security`",
@@ -45,15 +32,25 @@
    "read_only": 1
   },
   {
-   "fieldname": "column_break_etah",
-   "fieldtype": "Column Break"
+   "description": "Defaults to `en`",
+   "fieldname": "public_languages",
+   "fieldtype": "Table MultiSelect",
+   "label": "Preferred Language",
+   "options": "Security Settings Language"
+  },
+  {
+   "description": "Website, email or phone where vulnerabilities can be reported. Defaults to `https://security.frappe.io`",
+   "fieldname": "public_contacts",
+   "fieldtype": "Table",
+   "label": "Contact",
+   "options": "Security Settings Contact"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-11 12:48:04.726163",
+ "modified": "2026-04-11 13:20:31.875242",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Security Settings",

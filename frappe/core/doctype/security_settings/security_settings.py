@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils import validate_email_address, validate_phone_number, validate_url
 
 
 class SecuritySettings(Document):
@@ -12,46 +13,76 @@ class SecuritySettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.security_settings_contact.security_settings_contact import (
+			SecuritySettingsContact,
+		)
+		from frappe.core.doctype.security_settings_language.security_settings_language import (
+			SecuritySettingsLanguage,
+		)
 		from frappe.types import DF
 
-		public_contact: DF.Data | None
-		public_language: DF.Data | None
+		public_contacts: DF.Table[SecuritySettingsContact]
+		public_languages: DF.TableMultiSelect[SecuritySettingsLanguage]
 		public_policy: DF.Data | None
 	# end: auto-generated types
 
 	@property
 	def security_txt(self):
-		[[policy, contact, preferred_language]] = frappe.db.get_values(
-			"Security Settings", fieldname=["public_policy", "public_contact", "public_language"]
-		)
-		policy = policy or self.default_public_policy
-		contact = contact or self.default_public_contact
-		preferred_language = preferred_language or self.default_public_language
-		return (
-			"# Read our security policy before reporting an issue\n"
-			f"Policy: {policy}\n\n"
-			"# Our security address\n"
-			f"Contact: {contact}\n\n"
-			"# We prefer talking in\n"
-			f"Preferred-Languages: {preferred_language}"
+		return "\n\n".join(
+			[
+				self.public_policy_section,
+				self.public_contacts_section,
+				self.public_languages_section,
+			]
 		)
 
 	@property
-	def default_public_policy(self):
-		return "https://frappe.io/security"
+	def public_policy_section(self):
+		value = self.public_policy or "https://frappe.io/security"
+		return f"# Read our security policy before reporting an issue\nPolicy: {value}"
 
 	@property
-	def default_public_contact(self):
-		return "https://security.frappe.io"
+	def public_contacts_section(self):
+		contacts = [self.with_protocol(c.contact, c.type) for c in self.public_contacts] or [
+			"https://security.frappe.io"
+		]
+		value = "\n".join(f"Contact: {c}" for c in contacts)
+		return f"# Our security address\n{value}"
 
 	@property
-	def default_public_language(self):
-		return "en"
+	def public_languages_section(self):
+		langs = [l.language for l in self.public_languages] or ["en"]
+		value = ", ".join(langs)
+		return f"# We prefer talking in\nPreferred-Languages: {value}"
+
+	def with_protocol(self, url: str, type_: str) -> str:
+		"""Prefix the URL with the appropriate protocol based on the contact type."""
+		match type_:
+			case "Email":
+				if not url.startswith("mailto:"):
+					return f"mailto:{url}"
+			case "Phone":
+				if not url.startswith("tel:"):
+					return f"tel:{url}"
+		return url
 
 	def validate(self):
 		self.validate_public_policy()
+		self.validate_public_contacts()
 
 	def validate_public_policy(self):
 		if self.public_policy:
 			if not self.public_policy.startswith("https://"):
 				frappe.throw("Public Policy URL must start with https://")
+
+	def validate_public_contacts(self):
+		for contact in self.public_contacts:
+			match contact.type:
+				case "Email":
+					validate_email_address(contact.contact, throw=True)
+				case "Phone":
+					validate_phone_number(contact.contact, throw=True)
+				case "Website":
+					validate_url(contact.contact, throw=True)
+					if not contact.contact.startswith("https://"):
+						frappe.throw("URL contact must start with https://")
