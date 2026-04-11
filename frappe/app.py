@@ -127,6 +127,8 @@ def application(request: Request):
 			response = frappe.utils.response.download_private_file(request.path)
 
 		elif request.path == "/.well-known/security.txt" and request.method == "GET":
+			if request.scheme != "https":
+				raise NotFound
 			security_settings = frappe.get_doc("Security Settings")
 			response = Response(security_settings.security_txt, content_type="text/plain")
 
