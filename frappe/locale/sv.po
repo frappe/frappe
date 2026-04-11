@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-05 09:44+0000\n"
-"PO-Revision-Date: 2026-04-08 15:22\n"
+"PO-Revision-Date: 2026-04-11 15:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -2420,7 +2420,7 @@ msgstr "Ett oväntat fel inträffade vid auktorisering av {}."
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Analytics"
-msgstr "Analyser"
+msgstr "Statistik"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:35
 msgid "Ancestors Of"
@@ -20733,7 +20733,7 @@ msgstr "Förberedd Rapport"
 #. Name of a report
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.json
 msgid "Prepared Report Analytics"
-msgstr "Förberedd Rapport Analys"
+msgstr "Förberedd Rapport Statistik"
 
 #. Name of a role
 #: frappe/core/doctype/prepared_report/prepared_report.json
@@ -21458,7 +21458,7 @@ msgstr "Dataförfråga Rapport"
 
 #: frappe/core/doctype/recorder/recorder.py:188
 msgid "Query analysis complete. Check suggested indexes."
-msgstr "Frågeanalys klar. Kontrollera föreslagna index."
+msgstr "Frågestatistik klar. Kontrollera föreslagna index."
 
 #. Label of the queue (Select) field in DocType 'RQ Job'
 #. Label of the queue (Data) field in DocType 'System Health Report Queue'
@@ -30600,7 +30600,7 @@ msgstr "Webbplats"
 #. Name of a report
 #: frappe/website/report/website_analytics/website_analytics.json
 msgid "Website Analytics"
-msgstr "Webbplats Analys"
+msgstr "Webbplats Statistik"
 
 #. Name of a role
 #: frappe/core/doctype/comment/comment.json
@@ -30713,7 +30713,7 @@ msgstr "Webbplats Tema bild länk"
 #. Label of a number card in the Website Workspace
 #: frappe/website/workspace/website/website.json
 msgid "Website Themes Available"
-msgstr "Tillgängliga Webbplatsteman"
+msgstr "Publicerade Webbteman"
 
 #. Label of a number card in the Users Workspace
 #: frappe/core/workspace/users/users.json
@@ -33033,7 +33033,7 @@ msgstr "{0} är som {1}"
 
 #: frappe/email/doctype/email_account/email_account.py:214
 msgid "{0} is mandatory"
-msgstr "{0} är erfodrad"
+msgstr "{0} erfordras"
 
 #: frappe/public/js/frappe/form/controls/link.js:728
 msgid "{0} is not a descendant of {1}"
