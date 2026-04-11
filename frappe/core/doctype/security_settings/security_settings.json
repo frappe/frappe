@@ -36,14 +36,14 @@
    "description": "Defaults to `en`",
    "fieldname": "public_languages",
    "fieldtype": "Table MultiSelect",
-   "label": "Preferred Language",
+   "label": "Preferred Languages",
    "options": "Security Settings Language"
   },
   {
    "description": "Website, email or phone where vulnerabilities can be reported. Defaults to `https://security.frappe.io`",
    "fieldname": "public_contacts",
    "fieldtype": "Table",
-   "label": "Contact",
+   "label": "Contacts",
    "options": "Security Settings Contact"
   },
   {
@@ -57,7 +57,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-11 13:41:55.240279",
+ "modified": "2026-04-11 14:27:00.855833",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Security Settings",
