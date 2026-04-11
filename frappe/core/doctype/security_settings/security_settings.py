@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-# import frappe
+import frappe
 from frappe.model.document import Document
 
 
@@ -19,4 +19,10 @@ class SecuritySettings(Document):
 		public_policy: DF.Data | None
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		self.validate_public_policy()
+
+	def validate_public_policy(self):
+		if self.public_policy:
+			if not self.public_policy.startswith("https://"):
+				frappe.throw("Public Policy URL must start with https://")

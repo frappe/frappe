@@ -12,7 +12,6 @@
  ],
  "fields": [
   {
-   "description": "https://securitytxt.org/",
    "fieldname": "securitytxt_section",
    "fieldtype": "Section Break",
    "label": "Security.txt"
@@ -33,14 +32,15 @@
    "description": "Guidelines and policies on vulnerability reporting. Defaults to `https://frappe.io/security`",
    "fieldname": "public_policy",
    "fieldtype": "Data",
-   "label": "Policy"
+   "label": "Policy",
+   "options": "URL"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-10 16:54:30.961213",
+ "modified": "2026-04-11 12:43:03.056204",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Security Settings",
