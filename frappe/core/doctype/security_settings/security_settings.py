@@ -19,6 +19,35 @@ class SecuritySettings(Document):
 		public_policy: DF.Data | None
 	# end: auto-generated types
 
+	@property
+	def security_txt(self):
+		[[policy, contact, preferred_language]] = frappe.db.get_values(
+			"Security Settings", fieldname=["public_policy", "public_contact", "public_language"]
+		)
+		policy = policy or self.default_public_policy
+		contact = contact or self.default_public_contact
+		preferred_language = preferred_language or self.default_public_language
+		return (
+			"# Read our security policy before reporting an issue\n"
+			f"Policy: {policy}\n\n"
+			"# Our security address\n"
+			f"Contact: {contact}\n\n"
+			"# We prefer talking in\n"
+			f"Preferred-Languages: {preferred_language}"
+		)
+
+	@property
+	def default_public_policy(self):
+		return "https://frappe.io/security"
+
+	@property
+	def default_public_contact(self):
+		return "https://security.frappe.io"
+
+	@property
+	def default_public_language(self):
+		return "en"
+
 	def validate(self):
 		self.validate_public_policy()
 

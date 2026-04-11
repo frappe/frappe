@@ -8,7 +8,9 @@
   "securitytxt_section",
   "public_contact",
   "public_language",
-  "public_policy"
+  "public_policy",
+  "column_break_etah",
+  "security_txt"
  ],
  "fields": [
   {
@@ -34,13 +36,24 @@
    "fieldtype": "Data",
    "label": "Policy",
    "options": "URL"
+  },
+  {
+   "fieldname": "security_txt",
+   "fieldtype": "Small Text",
+   "is_virtual": 1,
+   "label": "Preview",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_etah",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-11 12:43:03.056204",
+ "modified": "2026-04-11 12:48:04.726163",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Security Settings",
