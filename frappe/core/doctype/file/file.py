@@ -157,6 +157,7 @@ class File(Document):
 				"attached_to_field": attached_to_field,
 			}
 		)
+		attachment.folder = None
 		attachment.flags.copy_from_existing_file = True
 		return attachment.insert(ignore_permissions=ignore_permissions)
 

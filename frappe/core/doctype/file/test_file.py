@@ -276,6 +276,10 @@ class TestSameContent(IntegrationTestCase):
 		self.assertEqual(copied_file.file_url, source_file.file_url)
 		self.assertEqual(copied_file.attached_to_doctype, doctype)
 		self.assertEqual(copied_file.attached_to_name, docname)
+		self.assertEqual(
+			copied_file.folder,
+			frappe.db.get_value("File", {"is_attachments_folder": 1}),
+		)
 		self.assertEqual(comment_count_after, comment_count_before + 1)
 
 	def test_create_attachment_copy_respects_attachment_limit(self):
