@@ -92,7 +92,7 @@ class PrintFormat(Document):
 			self.module = frappe.db.get_value(doc_type, document_name, "module")
 
 		if not self.ignore_html_sanitization and self.html:
-			self.html = frappe.utils.sanitize_html(self.html)
+			self.html = frappe.utils.sanitize_html(self.html, always_sanitize=True)
 
 		if self.html and self.print_format_type != "JS":
 			validate_template(self.html)
