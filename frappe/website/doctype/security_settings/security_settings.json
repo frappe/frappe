@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_rename": 1,
  "creation": "2026-04-10 16:14:40.343135",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -19,6 +18,26 @@
    "label": "Security.txt"
   },
   {
+   "description": "Date after which this security.txt should be considered stale.",
+   "fieldname": "public_expires",
+   "fieldtype": "Datetime",
+   "label": "Expires"
+  },
+  {
+   "description": "Website, email or phone where vulnerabilities can be reported. Defaults to `https://security.frappe.io`",
+   "fieldname": "public_contacts",
+   "fieldtype": "Table",
+   "label": "Contact",
+   "options": "Security Settings Contact"
+  },
+  {
+   "description": "Defaults to `en`",
+   "fieldname": "public_languages",
+   "fieldtype": "Table MultiSelect",
+   "label": "Preferred Language",
+   "options": "Security Settings Language"
+  },
+  {
    "description": "Guidelines and policies on vulnerability reporting. Defaults to `https://frappe.io/security`",
    "fieldname": "public_policy",
    "fieldtype": "Data",
@@ -31,35 +50,15 @@
    "is_virtual": 1,
    "label": "Preview",
    "read_only": 1
-  },
-  {
-   "description": "Defaults to `en`",
-   "fieldname": "public_languages",
-   "fieldtype": "Table MultiSelect",
-   "label": "Preferred Languages",
-   "options": "Security Settings Language"
-  },
-  {
-   "description": "Website, email or phone where vulnerabilities can be reported. Defaults to `https://security.frappe.io`",
-   "fieldname": "public_contacts",
-   "fieldtype": "Table",
-   "label": "Contacts",
-   "options": "Security Settings Contact"
-  },
-  {
-   "description": "Date after which this security.txt should be considered stale.",
-   "fieldname": "public_expires",
-   "fieldtype": "Datetime",
-   "label": "Expires"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-11 14:27:00.855833",
+ "modified": "2026-04-12 12:38:40.346761",
  "modified_by": "Administrator",
- "module": "Core",
+ "module": "Website",
  "name": "Security Settings",
  "owner": "Administrator",
  "permissions": [

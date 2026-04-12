@@ -1,20 +1,27 @@
 {
  "actions": [],
- "allow_rename": 1,
- "creation": "2026-04-11 12:53:09.006649",
+ "creation": "2026-04-11 13:06:29.308243",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "language"
+  "type",
+  "contact"
  ],
  "fields": [
   {
-   "fieldname": "language",
-   "fieldtype": "Link",
+   "fieldname": "type",
+   "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Language",
-   "options": "Language",
+   "label": "Type",
+   "options": "Website\nEmail\nPhone",
+   "reqd": 1
+  },
+  {
+   "fieldname": "contact",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Contact",
    "reqd": 1
   }
  ],
@@ -22,10 +29,10 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-04-11 12:53:31.960986",
+ "modified": "2026-04-12 12:37:34.002967",
  "modified_by": "Administrator",
- "module": "Core",
- "name": "Security Settings Language",
+ "module": "Website",
+ "name": "Security Settings Contact",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",
