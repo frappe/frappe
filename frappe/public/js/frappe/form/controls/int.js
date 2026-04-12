@@ -10,6 +10,10 @@ frappe.ui.form.ControlInt = class ControlInt extends frappe.ui.form.ControlData 
 			document.activeElement?.select?.();
 			return false;
 		});
+
+		this.$input.on("input", () => {
+			this.frm?.dirty();
+		});
 	}
 	validate(value) {
 		return this.parse(value);
