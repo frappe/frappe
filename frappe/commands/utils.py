@@ -48,7 +48,6 @@ if typing.TYPE_CHECKING:
 	envvar="USING_CACHED",
 	help="Skips build and uses cached build artifacts (cache is set by Bench). Ignored if developer_mode enabled.",
 )
-@click.option("--skip-after-build", is_flag=True, help="Skip running after build hooks")
 def build(
 	app=None,
 	apps=None,
@@ -58,7 +57,6 @@ def build(
 	force=False,
 	save_metafiles=False,
 	using_cached=False,
-	skip_after_build=False,
 ):
 	"Compile JS and CSS source files"
 	from frappe.build import bundle, download_frappe_assets
@@ -110,8 +108,7 @@ def build(
 			print("Compiling translations for", app)
 			compile_translations(app, force=force)
 
-		if not skip_after_build:
-			run_after_build_hook(apps)
+		run_after_build_hook(apps)
 
 
 def run_after_build_hook(apps):
