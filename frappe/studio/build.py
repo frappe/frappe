@@ -209,9 +209,9 @@ def build_standard_apps(app: str | None = None) -> None:
 
 			try:
 				StudioAppBuilder(studio_app, is_standard=True, frappe_app=app).build()
-				click.secho(f"Successfully built {studio_app}", fg="green")
-			except Exception as e:
-				click.secho(f"Failed to build {studio_app}: {e}", fg="red")
+				click.echo(click.style("✔", fg="green") + f" Built {studio_app}")
+			except Exception:
+				click.echo(click.style("✖", fg="red") + f" Build failed for {studio_app}")
 
 
 def build_custom_apps() -> None:
@@ -221,7 +221,7 @@ def build_custom_apps() -> None:
 	custom_apps = get_published_custom_apps()
 
 	for app_name in custom_apps:
-		click.echo(f"\nBuilding custom Studio App: {app_name}")
+		click.echo(f"\nBuilding Custom Studio App: {app_name}")
 		try:
 			StudioAppBuilder(app_name, is_standard=False).build()
 		except Exception as e:
@@ -253,6 +253,5 @@ def get_studio_folder(frappe_app: str) -> str | None:
 
 def after_build() -> None:
 	"""Hook called after `bench build`. Builds all standard studio apps"""
-	click.echo(click.style("\nBuilding Studio Apps...", fg="cyan"))
+	click.secho("\nBuilding Studio Apps...", fg="cyan")
 	build_standard_apps()
-	click.echo(click.style("Studio Apps built", fg="green"))
