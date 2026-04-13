@@ -199,7 +199,9 @@ watchEffect(() => {
 
 async function saveFragmentMode() {
 	canvasStore.fragmentData.saveAction?.(fragmentCanvas.value?.getRootBlock())
-	toast.success(`${canvasStore.fragmentData.fragmentName} saved successfully`)
+	if (canvasStore.editingMode === "fragment") {
+		toast.success(`${canvasStore.fragmentData.fragmentName} saved successfully`)
+	}
 }
 
 const debouncedPageSave = useDebounceFn(store.savePage, 300)

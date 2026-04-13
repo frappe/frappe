@@ -57,7 +57,7 @@ import { computed, onMounted, ref, useAttrs, inject, type ComputedRef } from "vu
 import type { ComponentPublicInstance } from "vue"
 import { useRouter } from "vue-router"
 import { createResource } from "frappe-ui"
-import { getComponentRoot, isHTML } from "@/utils/helpers"
+import { getComponentRoot, isHTML, isObjectEmpty } from "@/utils/helpers"
 import { useScreenSize } from "@/utils/useScreenSize"
 import { isDynamicValue } from "@/utils/code"
 
@@ -108,7 +108,7 @@ const evaluationContext = computed(() => {
 })
 
 const getComponentProps = () => {
-	if (!props.block || props.block.isRoot()) return []
+	if (isObjectEmpty(props.block) || props.block.isRoot()) return []
 
 	const propValues = props.block.getPropsAndAttributes()
 	Object.entries(propValues).forEach(([propName, propValue]) => {
@@ -123,7 +123,7 @@ const getComponentProps = () => {
 
 // 2-way binding
 const vModelListeners = computed(() => {
-	if (!props.block || props.block.isRoot()) return {}
+	if (isObjectEmpty(props.block) || props.block.isRoot()) return {}
 
 	const listeners: Record<string, Function> = {}
 	const propValues = props.block.getPropsAndAttributes()

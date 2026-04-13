@@ -119,7 +119,7 @@ import ComponentEditor from "@/components/ComponentEditor.vue"
 
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
-import { getComponentRoot, isHTML } from "@/utils/helpers"
+import { getComponentRoot, isHTML, isObjectEmpty } from "@/utils/helpers"
 import { isDynamicValue } from "@/utils/code"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
@@ -184,7 +184,7 @@ const evaluationContext = computed(() => {
 })
 
 const getComponentProps = () => {
-	if (!props.block || props.block.isRoot()) return []
+	if (isObjectEmpty(props.block) || props.block.isRoot()) return []
 
 	const propValues = props.block.getPropsAndAttributes()
 	Object.entries(propValues).forEach(([propName, propValue]) => {
@@ -199,7 +199,7 @@ const getComponentProps = () => {
 
 // 2-way binding
 const vModelListeners = computed(() => {
-	if (!props.block || props.block.isRoot()) return {}
+	if (isObjectEmpty(props.block) || props.block.isRoot()) return {}
 
 	const listeners: Record<string, Function> = {}
 	const propValues = props.block.getPropsAndAttributes()
