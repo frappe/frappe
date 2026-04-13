@@ -838,7 +838,6 @@
  ],
  "route": "doctype",
  "row_format": "Dynamic",
- "rows_threshold_for_grid_search": 20,
  "search_fields": "module",
  "show_name_in_global_search": 1,
  "sort_field": "creation",
