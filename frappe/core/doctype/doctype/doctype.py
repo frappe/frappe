@@ -101,6 +101,7 @@ class DocType(Document):
 
 		actions: DF.Table[DocTypeAction]
 		allow_auto_repeat: DF.Check
+		allow_bulk_edit: DF.Check
 		allow_copy: DF.Check
 		allow_events_in_timeline: DF.Check
 		allow_guest_to_view: DF.Check
