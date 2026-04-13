@@ -5,6 +5,7 @@ import { build } from "vite"
 import vue from "@vitejs/plugin-vue"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { parseArgs } from "node:util"
 import frappeui from "frappe-ui/vite"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
@@ -15,25 +16,31 @@ if (!fs.existsSync(TEMP_DIR)) {
 	fs.mkdirSync(TEMP_DIR, { recursive: true })
 }
 
-const args = process.argv.slice(2)
-const appName = args[0]
-const components = args[2]
+const { values: argv } = parseArgs({
+	options: {
+		app: { type: "string" },
+		components: { type: "string" },
+		"out-dir": { type: "string" },
+		base: { type: "string" },
+	},
+	strict: false,
+})
 
-if (!appName) {
-	console.error("App name is required")
+if (!argv.app) {
+	console.error("--app is required")
 	process.exit(1)
 }
 
-await generateAppBuild(appName, components)
+await generateAppBuild(argv.app, argv.components, argv["out-dir"], argv.base)
 
-export async function generateAppBuild(appName, components) {
+export async function generateAppBuild(appName, components, outDir, base) {
 	if (!appName) return
 
 	const componentList = components ? components.split(",") : []
 	const componentSources = findComponentSources(componentList)
 	const rendererContent = getRendererContent(componentSources)
 	const tempRendererPath = writeRendererFile(appName, rendererContent)
-	await buildWithVite(appName, tempRendererPath)
+	await buildWithVite(appName, tempRendererPath, outDir, base)
 	deleteRendererFile(tempRendererPath)
 }
 
@@ -111,11 +118,14 @@ function writeRendererFile(appName, content) {
 	return rendererPath
 }
 
-async function buildWithVite(appName, entryFilePath) {
+async function buildWithVite(appName, entryFilePath, outDir, basePath) {
+	outDir = outDir || path.resolve(__dirname, `../../../studio/public/app_builds/${appName}`)
+	basePath = basePath || `/assets/studio/app_builds/${appName}/`
+
 	console.log(`Building ${appName} with Vite`)
 	await build({
 		root: path.resolve(__dirname, "../"),
-		base: "/assets/studio/app_builds/",
+		base: basePath,
 		server: {
 			// explicitly set origin of generated assets (images, fonts, etc) during development.
 			// Required for the app renderer running on webserver port
@@ -145,7 +155,7 @@ async function buildWithVite(appName, entryFilePath) {
 					studioRenderer: path.resolve(__dirname, entryFilePath),
 				},
 			},
-			outDir: path.resolve(__dirname, `../../../studio/public/app_builds/${appName}`),
+			outDir: outDir,
 			emptyOutDir: true,
 			target: "es2015",
 			sourcemap: true,

@@ -4,11 +4,15 @@ import frappe
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
 
+from studio.build import build_custom_apps
+
 
 def after_migrate():
 	_patch_mode(True)
 	sync_studio_apps()
 	_patch_mode(False)
+	# Rebuild all published custom (DB) apps.
+	build_custom_apps()
 
 
 def after_app_install(app_name):

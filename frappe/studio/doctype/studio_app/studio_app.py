@@ -5,11 +5,10 @@ import os
 
 import frappe
 from frappe import _
-from frappe.commands import popen
+from frappe.utils import get_files_path
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.website_generator import WebsiteGenerator
 
-from studio.api import get_app_components
 from studio.export import can_export, delete_folder, remove_null_fields, write_document_file
 
 
@@ -95,12 +94,16 @@ class StudioApp(WebsiteGenerator):
 		context.app_title = self.app_title
 		context.base_url = frappe.utils.get_url(self.route)
 		context.app_pages = self.get_studio_pages()
-		context.is_developer_mode = frappe.conf.developer_mode
+		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
 		context.site_name = frappe.local.site
 
 	def autoname(self):
 		if not self.name:
 			self.name = self.app_name or self.app_title.lower().replace(" ", "-")
+
+	@property
+	def is_published(self):
+		return frappe.db.exists("Studio Page", dict(studio_app=self.name, published=1))
 
 	def before_insert(self):
 		if not self.app_title:
@@ -147,11 +150,12 @@ class StudioApp(WebsiteGenerator):
 		if not frappe.has_permission("Studio App", ptype="write"):
 			frappe.throw(_("You do not have permission to generate the app build"), frappe.PermissionError)
 
+		from studio.build import StudioAppBuilder
+
 		try:
-			components = get_app_components(self.name)
-			command = f"yarn build-studio-app {self.name} --components {','.join(list(components))}"
-			studio_app_path = frappe.get_app_source_path("studio")
-			popen(command, cwd=studio_app_path, raise_err=True)
+			StudioAppBuilder(
+				studio_app=self.name, is_standard=self.is_standard, frappe_app=self.frappe_app
+			).build()
 		except Exception as e:
 			raise Exception(f"Build process failed: {str(e)}")
 
@@ -182,15 +186,24 @@ class StudioApp(WebsiteGenerator):
 		https://vite.dev/guide/backend-integration.html#backend-integration
 		"""
 		try:
-			manifest_path = os.path.join(
-				frappe.get_app_source_path("studio"),
-				"studio",
-				"public",
-				"app_builds",
-				self.name,
-				".vite",
-				"manifest.json",
-			)
+			if self.is_standard:
+				manifest_path = os.path.join(
+					frappe.get_app_path(self.frappe_app),
+					"public",
+					"app_builds",
+					self.name,
+					".vite",
+					"manifest.json",
+				)
+				base_path = f"/assets/{self.frappe_app}/app_builds/{self.name}/"
+			else:
+				manifest_path = os.path.join(
+					get_files_path("app_builds", self.name),
+					".vite",
+					"manifest.json",
+				)
+				base_path = f"/files/app_builds/{self.name}/"
+
 			if not os.path.exists(manifest_path):
 				return None
 
@@ -202,7 +215,6 @@ class StudioApp(WebsiteGenerator):
 			entry_key = next((key for key in manifest if key.endswith(entry_key)), entry_key)
 
 			entry = manifest[entry_key]
-			base_path = f"/assets/studio/app_builds/{self.name}/"
 			result = {
 				"script": f"{base_path}{entry['file']}",
 				"stylesheets": [f"{base_path}{css_file}" for css_file in entry.get("css", [])],
