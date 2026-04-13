@@ -224,13 +224,16 @@ def search_widget(
 	)
 
 	if not for_link_validation:
+		# Strip SQL wildcards for use in Python regex/string matching
+		_stripped_txt = txt.replace("%", "") if txt else txt
+
 		if meta.translated_doctype:
 			# Filtering the values array so that query is included in very element
 			values = (
 				result
 				for result in values
 				if any(
-					re.search(f"{re.escape(txt)}.*", _(cstr(value)) or "", re.IGNORECASE)
+					re.search(f"{re.escape(_stripped_txt)}.*", _(cstr(value)) or "", re.IGNORECASE)
 					for value in (result.values() if as_dict else result)
 				)
 			)
@@ -238,7 +241,7 @@ def search_widget(
 		# Sorting the values array so that relevant results always come first
 		# This will first bring elements on top in which query is a prefix of element
 		# Then it will bring the rest of the elements and sort them in lexicographical order
-		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+		values = sorted(values, key=lambda x: relevance_sorter(x, _stripped_txt, as_dict))
 
 		# remove _relevance from results
 		if not meta.translated_doctype:
