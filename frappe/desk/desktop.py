@@ -675,3 +675,61 @@ def update_onboarding_step(name, field, value):
 	frappe.db.set_value("Onboarding Step", name, field, value)
 
 	capture(frappe.scrub(name), app="frappe_onboarding", properties={field: value})
+<<<<<<< HEAD
+=======
+
+
+@frappe.whitelist()
+def get_installed_apps():
+	return frappe.get_installed_apps()
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def get_onboarding_data(module: str):
+	"""Get onboarding data for a page
+
+	Args:
+	        page (string): page name
+
+	Return:
+	        dict: onboarding data
+	"""
+	if not frappe.get_system_settings("enable_onboarding"):
+		return []
+
+	onboardings = []
+	onboarding_doc = frappe.get_doc("Module Onboarding", module)
+	if onboarding_doc.is_complete:
+		return []
+
+	# Check if user is allowed
+	allowed_roles = set(onboarding_doc.get_allowed_roles())
+	user_roles = set(frappe.get_roles())
+	if not allowed_roles & user_roles:
+		return None
+
+	item = {
+		"label": _(module),
+		"title": _(onboarding_doc.title),
+		"items": [],
+	}
+
+	maps = get_onboarding_step_maps(onboarding_doc.name)
+	for step in maps:
+		steps = frappe.get_all("Onboarding Step", filters={"name": step}, order_by="idx", fields=["*"])
+
+		if steps:
+			item["items"].append(steps[0])
+
+	onboardings.append(item)
+
+	if all(step.get("is_complete") or step.get("is_skipped") for step in item["items"]):
+		return []
+
+	return onboardings
+
+
+def get_onboarding_step_maps(onboarding):
+	return frappe.get_all("Onboarding Step Map", filters={"parent": onboarding}, pluck="step", order_by="idx")
+>>>>>>> 72369a329f (fix: respect Enable Onboarding setting in sidebar onboarding panel)
