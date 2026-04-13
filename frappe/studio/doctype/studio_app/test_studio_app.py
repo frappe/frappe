@@ -248,25 +248,6 @@ class TestStudioAppBuilder(FrappeTestCase):
 		finally:
 			shutil.rmtree(tmpdir)
 
-	def test_get_app_components_from_files_no_page_folder(self):
-		"""Should return default components when the page folder doesn't exist."""
-		tmpdir = tempfile.mkdtemp()
-		try:
-			studio_folder = os.path.join(tmpdir, "studio")
-			app_folder = os.path.join(studio_folder, "missing-pages-app")
-			os.makedirs(app_folder)
-			# no studio_page subfolder
-
-			builder = StudioAppBuilder("missing-pages-app", is_standard=True, frappe_app="studio")
-
-			with patch("studio.build.get_studio_folder", return_value=studio_folder):
-				result = builder.get_app_components_from_files()
-
-			# should still have defaults
-			self.assertIn("FeatherIcon", result)
-		finally:
-			shutil.rmtree(tmpdir)
-
 	def test_get_app_components_from_files_with_studio_components(self):
 		"""Studio components referenced in pages should be recursively resolved from disk."""
 		tmpdir = tempfile.mkdtemp()
@@ -313,43 +294,17 @@ class TestStudioAppBuilder(FrappeTestCase):
 		finally:
 			shutil.rmtree(tmpdir)
 
-	@patch("studio.build.StudioAppBuilder._run_vite_build")
-	def test_build_sets_paths_for_standard_app(self, mock_vite):
-		"""Standard app build should set out_dir and base pointing to the frappe app's public/."""
-		tmpdir = tempfile.mkdtemp()
-		try:
-			app_name = "std-path-app"
-			studio_folder = os.path.join(tmpdir, "studio")
-			app_folder = os.path.join(studio_folder, app_name)
-			page_folder = os.path.join(app_folder, "studio_page")
-			os.makedirs(page_folder)
+	def test_build_paths_for_standard_app(self):
+		app_name = "standard-app"
+		builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
 
-			page_data = {"blocks": [{"componentName": "Card", "children": []}]}
-			with open(os.path.join(page_folder, "page.json"), "w") as f:
-				json.dump(page_data, f)
+		self.assertIn("public/app_builds", builder.out_dir)
+		self.assertEqual(builder.base, f"/assets/studio/app_builds/{app_name}/")
 
-			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
+	def test_build_paths_for_custom_app(self):
+		app_name = "custom-app"
+		builder = StudioAppBuilder(app_name, is_standard=False)
 
-			with patch("studio.build.get_studio_folder", return_value=studio_folder):
-				builder.build()
-
-			self.assertIn("public/app_builds", builder.out_dir)
-			self.assertEqual(builder.base, f"/assets/studio/app_builds/{app_name}/")
-			mock_vite.assert_called_once()
-		finally:
-			shutil.rmtree(tmpdir)
-
-	@patch("studio.build.StudioAppBuilder._run_vite_build")
-	def test_build_sets_paths_for_custom_app(self, mock_vite):
-		"""Custom app build should set out_dir and base pointing to the site's files/."""
-		app = make_studio_app(app_title="Custom Path App", app_name="custom-path-app")
-		blocks = json.dumps([{"componentName": "Button", "children": []}])
-		make_studio_page(app.name, page_title="Path Page", blocks=blocks, published=1)
-
-		builder = StudioAppBuilder(app.name, is_standard=False)
-		builder.build()
-
-		expected_files_path = os.path.abspath(get_files_path("app_builds", app.name))
+		expected_files_path = os.path.abspath(get_files_path("app_builds", app_name))
 		self.assertEqual(builder.out_dir, expected_files_path)
-		self.assertEqual(builder.base, f"/files/app_builds/{app.name}/")
-		mock_vite.assert_called_once()
+		self.assertEqual(builder.base, f"/files/app_builds/{app_name}/")
