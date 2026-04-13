@@ -13,6 +13,14 @@ const postCssPlugin = require("@frappe/esbuild-plugin-postcss2").default;
 const ignore_assets = require("./ignore-assets");
 const sass_options = require("./sass_options");
 const build_cleanup_plugin = require("./build-cleanup");
+// Desk-island Tailwind support: processes `@tailwind utilities;` directives in
+// bundle CSS files, scoping all generated utilities to `[data-frappe-ui]`.
+const tailwindcss = require("tailwindcss");
+const DESK_ISLANDS_TAILWIND_CONFIG = path.resolve(
+	__dirname,
+	"../tailwind.config.desk-islands.mjs"
+);
+const frappeUIImportant = require("./postcss-frappe-ui-important");
 
 const {
 	app_list,
@@ -295,6 +303,119 @@ function build_files({ files, outdir }) {
 	return esbuild.build(get_build_options(files, outdir, build_plugins));
 }
 
+/**
+ * esbuild plugin that deduplicates Vue ecosystem packages.
+ * When frappe-ui is installed as a local file: dep, its own node_modules may
+ * contain different versions of vue/vue-router that would be bundled as
+ * separate module instances, breaking cross-bundle Symbol injection.
+ * This plugin forces all such imports to resolve through frappe's node_modules,
+ * explicitly targeting the ESM bundler entry so esbuild gets the right file.
+ */
+function dedup_vue_plugin(frappe_node_modules) {
+	const pkgs = [
+		"vue",
+		"vue-router",
+		"@vue/runtime-core",
+		"@vue/runtime-dom",
+		"@vue/reactivity",
+		"@vue/shared",
+	];
+	const filter = new RegExp(`^(${pkgs.map((p) => p.replace("/", "\\/")).join("|")})$`);
+
+	// Resolve the best ESM bundler entry from a package.json exports field value.
+	// Handles both string values and nested condition objects.
+	function resolve_export(value, priority = ["default", "import", "browser", "require"]) {
+		if (typeof value === "string") return value;
+		if (typeof value === "object" && value !== null) {
+			for (const cond of priority) {
+				if (value[cond] !== undefined) {
+					return resolve_export(value[cond], priority);
+				}
+			}
+		}
+		return null;
+	}
+
+	const resolved_cache = {};
+	return {
+		name: "dedup-vue",
+		setup(build) {
+			build.onResolve({ filter }, (args) => {
+				if (!resolved_cache[args.path]) {
+					try {
+						const pkg_dir = path.resolve(frappe_node_modules, args.path);
+						const pkg_json = JSON.parse(
+							require("fs").readFileSync(path.join(pkg_dir, "package.json"), "utf-8")
+						);
+						// Prefer exports['.']['import'] → module → main
+						const export_entry =
+							pkg_json.exports && pkg_json.exports["."]
+								? resolve_export(
+										pkg_json.exports["."]["import"] || pkg_json.exports["."]
+								  )
+								: null;
+						const rel = export_entry || pkg_json.module || pkg_json.main || "index.js";
+						resolved_cache[args.path] = path.resolve(pkg_dir, rel);
+					} catch (e) {
+						return null; // Let esbuild handle it normally if package not found
+					}
+				}
+				return { path: resolved_cache[args.path] };
+			});
+		},
+	};
+}
+
+/**
+ * Resolve `frappe-ui` and `frappe-ui/*` imports to the real (symlink-resolved)
+ * source directory so that esbuild 0.14.x doesn't misinterpret relative symlink
+ * targets and fall back to the wrong path.
+ */
+function frappe_ui_plugin(frappe_node_modules) {
+	let frappe_ui_dir = null;
+	try {
+		frappe_ui_dir = require("fs").realpathSync(path.resolve(frappe_node_modules, "frappe-ui"));
+	} catch (e) {
+		return { name: "frappe-ui-resolve", setup() {} }; // package not present
+	}
+
+	const pkg_json = JSON.parse(
+		require("fs").readFileSync(path.join(frappe_ui_dir, "package.json"), "utf-8")
+	);
+	const exports_map = pkg_json.exports || {};
+
+	function resolve_export(value, priority = ["import", "module", "default", "require"]) {
+		if (typeof value === "string") return value;
+		if (value && typeof value === "object") {
+			for (const cond of priority) {
+				if (value[cond] !== undefined) return resolve_export(value[cond], priority);
+			}
+		}
+		return null;
+	}
+
+	return {
+		name: "frappe-ui-resolve",
+		setup(build) {
+			build.onResolve({ filter: /^frappe-ui(\/|$)/ }, (args) => {
+				const sub =
+					args.path === "frappe-ui" ? "." : "./" + args.path.slice("frappe-ui/".length);
+				const entry = exports_map[sub];
+				if (entry) {
+					const rel = resolve_export(entry);
+					if (rel) return { path: path.resolve(frappe_ui_dir, rel) };
+				}
+				// Bare import fallback
+				if (args.path === "frappe-ui") {
+					const main = pkg_json.module || pkg_json.main || "index.js";
+					return { path: path.resolve(frappe_ui_dir, main) };
+				}
+				return null;
+			});
+		},
+	};
+}
+
 function build_style_files({ files, outdir, rtl_style = false }) {
 	let plugins = [];
 	if (rtl_style) {
@@ -310,11 +431,17 @@ function build_style_files({ files, outdir, rtl_style = false }) {
 		}),
 	];
 
+	// Process `@tailwind utilities;` in desk-island CSS bundles.
+	// tailwindcss must run before autoprefixer; frappeUIImportant must run last
+	// so it stamps !important on the freshly generated scoped utilities.
+	plugins.push(tailwindcss(DESK_ISLANDS_TAILWIND_CONFIG));
 	plugins.push(require("autoprefixer"));
+	plugins.push(frappeUIImportant);
 	return esbuild.build(get_build_options(files, outdir, build_plugins));
 }
 
 function get_build_options(files, outdir, plugins) {
+	const frappe_node_modules = path.resolve(__dirname, "../node_modules");
 	return {
 		entryPoints: files,
 		entryNames: "[dir]/[name].[hash]",
@@ -330,7 +457,11 @@ function get_build_options(files, outdir, plugins) {
 			__VUE_OPTIONS_API__: JSON.stringify(true),
 			__VUE_PROD_DEVTOOLS__: JSON.stringify(false),
 		},
-		plugins: plugins,
+		plugins: [
+			dedup_vue_plugin(frappe_node_modules),
+			frappe_ui_plugin(frappe_node_modules),
+			...plugins,
+		],
 		watch: get_watch_config(),
 	};
 }

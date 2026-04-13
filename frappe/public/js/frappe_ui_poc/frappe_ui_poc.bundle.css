@@ -1,0 +1,33 @@
+/**
+ * frappe-ui POC – Desk CSS bundle.
+ *
+ * This file is compiled by the Frappe esbuild style pipeline into
+ * `frappe_ui_poc.bundle.{hash}.css`.
+ *
+ * It imports the pre-built frappe-ui desk stylesheet which contains:
+ *  • CSS custom-property design tokens (--ink-gray-*, --surface-*, …)
+ *  • Tailwind utility classes used by Button and Dialog
+ *  • Dialog animation keyframes
+ *
+ * Notably absent (by design):
+ *  • Tailwind preflight browser reset — would clobber Bootstrap
+ *  • html/body global element rules — would override Desk's own styles
+ *  • Inter font-face — Desk loads its own fonts
+ *
+ * `@tailwind utilities` triggers the esbuild PostCSS / Tailwind step that
+ * scans desk-island Vue files under frappe/public/js/ and generates any
+ * scoped utility classes not already in the frappe-ui pre-built stylesheet.
+ * All generated classes are scoped to `[data-frappe-ui]` and stamped with
+ * !important — matching the isolation guarantees of the pre-built CSS.
+ */
+@import "frappe-ui/dist/desk/style.css";
+@tailwind utilities;
+
+
+.dialog-overlay {
+	z-index: 100000 !important;
+}
+
+[data-reka-popper-content-wrapper] {
+	z-index: 100000 !important;
+}
