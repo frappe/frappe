@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 import tempfile
+from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
@@ -19,37 +20,6 @@ class TestStudioApp(FrappeTestCase):
 		app = make_studio_app(app_title="My Build App", app_name="my-build-app")
 		self.assertEqual(app.app_title, "My Build App")
 		self.assertEqual(app.route, "my-build-app")
-
-
-def make_studio_app(**kwargs):
-	app = frappe.new_doc("Studio App")
-	app.update(
-		{
-			"app_title": kwargs.get("app_title", "Test App"),
-			"app_name": kwargs.get("app_name", "test-app"),
-			"is_standard": kwargs.get("is_standard", 0),
-			"frappe_app": kwargs.get("frappe_app", ""),
-		}
-	)
-	if "route" in kwargs:
-		app.route = kwargs.get("route")
-	app.insert()
-	return app
-
-
-def make_studio_page(studio_app, **kwargs):
-	page = frappe.new_doc("Studio Page")
-	page.update(
-		{
-			"studio_app": studio_app,
-			"page_title": kwargs.get("page_title", "Test Page"),
-			"route": kwargs.get("route", "/test-page"),
-			"blocks": kwargs.get("blocks", "[]"),
-			"published": kwargs.get("published", 1),
-		}
-	)
-	page.insert()
-	return page
 
 
 class TestStudioAppBuilder(FrappeTestCase):
@@ -188,111 +158,55 @@ class TestStudioAppBuilder(FrappeTestCase):
 
 	def test_get_app_components_from_files(self):
 		"""Create temp JSON files mimicking an exported app and verify component extraction."""
-		tmpdir = tempfile.mkdtemp()
-		try:
-			# set up folder structure: studio_folder/app_name/studio_page/page.json
-			app_name = "file-test-app"
-			studio_folder = os.path.join(tmpdir, "studio")
-			app_folder = os.path.join(studio_folder, app_name)
-			page_folder = os.path.join(app_folder, "studio_page")
-			os.makedirs(page_folder)
+		app_name = "file-test-app"
+		page_data = {
+			"blocks": [
+				{
+					"componentName": "TextEditor",
+					"children": [{"componentName": "Dropdown", "children": []}],
+				}
+			]
+		}
 
-			page_data = {
-				"blocks": [
-					{
-						"componentName": "TextEditor",
-						"children": [{"componentName": "Dropdown", "children": []}],
-					}
-				]
-			}
-			with open(os.path.join(page_folder, "my_page.json"), "w") as f:
-				json.dump(page_data, f)
-
+		with mock_studio_app_files(app_name, pages={"my_page": page_data}) as studio_folder:
 			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
-
 			with patch("studio.build.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 			self.assertIn("TextEditor", builder.components)
 			self.assertIn("Dropdown", builder.components)
-		finally:
-			shutil.rmtree(tmpdir)
 
 	def test_get_app_components_from_files_with_string_blocks(self):
 		"""Blocks stored as a JSON string (instead of list) should also be parsed."""
-		tmpdir = tempfile.mkdtemp()
-		try:
-			app_name = "str-blocks-app"
-			studio_folder = os.path.join(tmpdir, "studio")
-			app_folder = os.path.join(studio_folder, app_name)
-			page_folder = os.path.join(app_folder, "studio_page")
-			os.makedirs(page_folder)
+		app_name = "str-blocks-app"
+		blocks = [{"componentName": "Card", "children": []}]
+		page_data = {"blocks": json.dumps(blocks)}
 
-			blocks = [
-				{
-					"componentName": "Card",
-					"children": [],
-				}
-			]
-			# blocks stored as a JSON string
-			page_data = {"blocks": json.dumps(blocks)}
-			with open(os.path.join(page_folder, "page.json"), "w") as f:
-				json.dump(page_data, f)
-
+		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
 			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
-
 			with patch("studio.build.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 			self.assertIn("Card", builder.components)
-		finally:
-			shutil.rmtree(tmpdir)
 
 	def test_get_app_components_from_files_with_studio_components(self):
 		"""Studio components referenced in pages should be recursively resolved from disk."""
-		tmpdir = tempfile.mkdtemp()
-		try:
-			app_name = "studio-comp-app"
-			studio_folder = os.path.join(tmpdir, "studio")
-			app_folder = os.path.join(studio_folder, app_name)
-			page_folder = os.path.join(app_folder, "studio_page")
-			comp_folder = os.path.join(app_folder, "studio_components")
-			os.makedirs(page_folder)
-			os.makedirs(comp_folder)
+		app_name = "studio-comp-app"
+		page_data = {"blocks": [{"componentName": "MyWidget", "isStudioComponent": True, "children": []}]}
+		comp_data = {
+			"name": "MyWidget",
+			"block": {"componentName": "Card", "children": [{"componentName": "Badge", "children": []}]},
+		}
 
-			# page references a studio component
-			page_data = {
-				"blocks": [
-					{
-						"componentName": "MyWidget",
-						"isStudioComponent": True,
-						"children": [],
-					}
-				]
-			}
-			with open(os.path.join(page_folder, "page.json"), "w") as f:
-				json.dump(page_data, f)
-
-			# the studio component itself contains a Card
-			comp_data = {
-				"name": "MyWidget",
-				"block": {
-					"componentName": "Card",
-					"children": [{"componentName": "Badge", "children": []}],
-				},
-			}
-			with open(os.path.join(comp_folder, "my_widget.json"), "w") as f:
-				json.dump(comp_data, f)
-
+		with mock_studio_app_files(
+			app_name, pages={"page": page_data}, components={"my_widget": comp_data}
+		) as studio_folder:
 			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
-
 			with patch("studio.build.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 			self.assertIn("Card", builder.components)
 			self.assertIn("Badge", builder.components)
-		finally:
-			shutil.rmtree(tmpdir)
 
 	def test_build_paths_for_standard_app(self):
 		app_name = "standard-app"
@@ -308,3 +222,60 @@ class TestStudioAppBuilder(FrappeTestCase):
 		expected_files_path = os.path.abspath(get_files_path("app_builds", app_name))
 		self.assertEqual(builder.out_dir, expected_files_path)
 		self.assertEqual(builder.base, f"/files/app_builds/{app_name}/")
+
+
+def make_studio_app(**kwargs):
+	app = frappe.new_doc("Studio App")
+	app.update(
+		{
+			"app_title": kwargs.get("app_title", "Test App"),
+			"app_name": kwargs.get("app_name", "test-app"),
+			"is_standard": kwargs.get("is_standard", 0),
+			"frappe_app": kwargs.get("frappe_app", ""),
+		}
+	)
+	if "route" in kwargs:
+		app.route = kwargs.get("route")
+	app.insert()
+	return app
+
+
+def make_studio_page(studio_app, **kwargs):
+	page = frappe.new_doc("Studio Page")
+	page.update(
+		{
+			"studio_app": studio_app,
+			"page_title": kwargs.get("page_title", "Test Page"),
+			"route": kwargs.get("route", "/test-page"),
+			"blocks": kwargs.get("blocks", "[]"),
+			"published": kwargs.get("published", 1),
+		}
+	)
+	page.insert()
+	return page
+
+
+@contextmanager
+def mock_studio_app_files(app_name, pages=None, components=None):
+	tmpdir = tempfile.mkdtemp()
+	try:
+		studio_folder = os.path.join(tmpdir, "studio")
+		app_folder = os.path.join(studio_folder, app_name)
+		page_folder = os.path.join(app_folder, "studio_page")
+		os.makedirs(page_folder)
+
+		if pages:
+			for page_name, page_data in pages.items():
+				with open(os.path.join(page_folder, f"{page_name}.json"), "w") as f:
+					json.dump(page_data, f)
+
+		if components:
+			comp_folder = os.path.join(app_folder, "studio_components")
+			os.makedirs(comp_folder)
+			for comp_name, comp_data in components.items():
+				with open(os.path.join(comp_folder, f"{comp_name}.json"), "w") as f:
+					json.dump(comp_data, f)
+
+		yield studio_folder
+	finally:
+		shutil.rmtree(tmpdir)
