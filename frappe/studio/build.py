@@ -188,12 +188,12 @@ def build_standard_apps(app: str | None = None) -> None:
 	"""
 	apps = [app] if app else frappe.get_all_apps()
 
-	for app in apps:
-		studio_folder = get_studio_folder(app)
+	for frappe_app in apps:
+		studio_folder = get_studio_folder(frappe_app)
 		if not os.path.exists(studio_folder):
 			continue
 
-		if app == "studio":
+		if frappe_app == "studio":
 			apps_list_file = frappe.get_app_path("studio", "studio_apps.txt")
 			if os.path.exists(apps_list_file):
 				studio_apps = frappe.get_file_items(apps_list_file)
@@ -205,10 +205,10 @@ def build_standard_apps(app: str | None = None) -> None:
 			]
 
 		for studio_app in studio_apps:
-			click.echo(f"\nBuilding Studio App: {studio_app} (from {app})")
+			click.echo(f"\nBuilding Studio App: {studio_app} (from {frappe_app})")
 
 			try:
-				StudioAppBuilder(studio_app, is_standard=True, frappe_app=app).build()
+				StudioAppBuilder(studio_app, is_standard=True, frappe_app=frappe_app).build()
 				click.echo(click.style("✔", fg="green") + f" Built {studio_app}")
 			except Exception:
 				click.echo(click.style("✖", fg="red") + f" Build failed for {studio_app}")
