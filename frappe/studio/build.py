@@ -1,16 +1,5 @@
 # Copyright (c) 2026, Frappe Technologies Pvt Ltd and contributors
 # For license information, please see license.txt
-
-"""
-Studio app build orchestration.
-
-This module provides functions to build studio apps for two scenarios:
-1. Standard (exported) apps — built from disk JSON files, output to the
-   host app's public/ folder
-2. Custom (DB) apps — built from database records, output to the site's
-   public/files/ folder
-"""
-
 import json
 import os
 import re
@@ -29,18 +18,14 @@ class StudioAppBuilder:
 		self.app_name = studio_app
 		self.is_standard = is_standard
 		self.frappe_app = frappe_app
-		self.out_dir = ""
-		self.base = ""
 		self.components = set(DEFAULT_COMPONENTS)
 		self.studio_component_blocks = {}
 
-	def build(self):
 		if self.is_standard:
 			"""Build a standard (exported) studio app.
 			Output goes to: apps/{frappe_app}/{frappe_app}/public/app_builds/{app_name}/
 			Served at: /assets/{frappe_app}/app_builds/{app_name}/
 			"""
-			self.get_app_components_from_files()
 			self.out_dir = frappe.get_app_path(self.frappe_app, "public", "app_builds", self.app_name)
 			self.base = f"/assets/{self.frappe_app}/app_builds/{self.app_name}/"
 		else:
@@ -48,9 +33,14 @@ class StudioAppBuilder:
 			Output goes to: sites/{sitename}/public/files/app_builds/{app_name}/
 			Served at: /files/app_builds/{app_name}/
 			"""
-			self.get_app_components()
 			self.out_dir = os.path.abspath(get_files_path("app_builds", self.app_name))
 			self.base = f"/files/app_builds/{self.app_name}/"
+
+	def build(self):
+		if self.is_standard:
+			self.get_app_components_from_files()
+		else:
+			self.get_app_components()
 		self._run_vite_build()
 
 	def _run_vite_build(self) -> None:
