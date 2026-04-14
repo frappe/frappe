@@ -5,6 +5,7 @@ from datetime import datetime
 
 import frappe
 import frappe.utils
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import validate_email_address, validate_phone_number, validate_url
 
@@ -87,7 +88,7 @@ class SecuritySettings(Document):
 	def validate_public_policy(self):
 		if self.public_policy:
 			if not self.public_policy.startswith("https://"):
-				frappe.throw("Public Policy URL must start with https://")
+				frappe.throw(_("Public Policy URL must start with https://"))
 
 	def validate_public_contacts(self):
 		for contact in self.public_contacts:
@@ -99,7 +100,7 @@ class SecuritySettings(Document):
 				case "Website":
 					validate_url(contact.contact, throw=True)
 					if not contact.contact.startswith("https://"):
-						frappe.throw("URL contact must start with https://")
+						frappe.throw(_("URL contact must start with https://"))
 
 	def validate_expires(self):
 		if self.public_expires:
@@ -107,4 +108,4 @@ class SecuritySettings(Document):
 			if isinstance(expires, str):
 				expires = datetime.fromisoformat(expires)
 			if expires <= datetime.now():
-				frappe.throw("Expiration date must be in the future")
+				frappe.throw(_("Expiration date must be in the future"))
