@@ -56,9 +56,9 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-12 12:38:40.346761",
+ "modified": "2026-04-14 12:50:57.138749",
  "modified_by": "Administrator",
- "module": "Website",
+ "module": "Core",
  "name": "Security Settings",
  "owner": "Administrator",
  "permissions": [

@@ -16,13 +16,13 @@ class SecuritySettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-		from frappe.website.doctype.security_settings_contact.security_settings_contact import (
+		from frappe.core.doctype.security_settings_contact.security_settings_contact import (
 			SecuritySettingsContact,
 		)
-		from frappe.website.doctype.security_settings_language.security_settings_language import (
+		from frappe.core.doctype.security_settings_language.security_settings_language import (
 			SecuritySettingsLanguage,
 		)
+		from frappe.types import DF
 
 		public_contacts: DF.Table[SecuritySettingsContact]
 		public_expires: DF.Datetime | None

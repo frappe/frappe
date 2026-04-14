@@ -234,7 +234,7 @@ scheduler_events = {
 		],
 		# Daily at 6:00 AM.
 		"0 6 * * *": [
-			"frappe.website.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
+			"frappe.core.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
 		],
 	},
 	"all": [
