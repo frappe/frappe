@@ -33,13 +33,16 @@ class SecuritySettings(Document):
 
 	@property
 	def security_txt(self):
-		return "\n\n".join(
-			[
-				self.public_policy_section,
-				self.public_contacts_section,
-				self.public_languages_section,
-				self.public_expires_section,
-			]
+		return (
+			"\n\n".join(
+				[
+					self.public_policy_section,
+					self.public_contacts_section,
+					self.public_languages_section,
+					self.public_expires_section,
+				]
+			)
+			+ "\n"
 		)
 
 	@property
