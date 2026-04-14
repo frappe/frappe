@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import frappe
 import frappe.utils
@@ -64,9 +64,11 @@ class SecuritySettings(Document):
 	@property
 	def public_expires_section(self):
 		expires = self.public_expires or frappe.utils.add_years(frappe.utils.now_datetime(), 1)
-		expires = (isinstance(expires, str) and datetime.fromisoformat(expires)) or expires
+		if isinstance(expires, str):
+			expires = datetime.fromisoformat(expires)
 		expires = expires.replace(microsecond=0)
-		value = expires.isoformat()
+		expires = expires.astimezone(UTC)
+		value = expires.strftime("%Y-%m-%dT%H:%M:%SZ")
 		return f"Expires: {value}"
 
 	def with_protocol(self, url: str, type_: str) -> str:
