@@ -3026,7 +3026,7 @@ msgstr ""
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:242
 msgid "Auto repeat failed. Please enable auto repeat after fixing the issues."
-msgstr ""
+msgstr "自動重複失敗。請在修復問題後啟用自動重複。"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -3034,7 +3034,7 @@ msgstr ""
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Autocomplete"
-msgstr ""
+msgstr "自動完成"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -4094,15 +4094,15 @@ msgstr "無法編輯已取消文件"
 
 #: frappe/website/doctype/web_form/web_form.js:367
 msgid "Cannot edit filters for standard Web Forms"
-msgstr ""
+msgstr "無法編輯標準網頁表單的篩選條件"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:378
 msgid "Cannot edit filters for standard charts"
-msgstr ""
+msgstr "無法編輯標準圖表的篩選條件"
 
 #: frappe/desk/doctype/number_card/number_card.js:273 frappe/desk/doctype/number_card/number_card.js:355
 msgid "Cannot edit filters for standard number cards"
-msgstr ""
+msgstr "無法編輯標準數字卡片的篩選條件"
 
 #: frappe/client.py:193
 msgid "Cannot edit standard fields"
@@ -4110,23 +4110,23 @@ msgstr "無法編輯標準欄位"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:131
 msgid "Cannot enable {0} for a non-submittable doctype"
-msgstr ""
+msgstr "無法為不可提交的文件類型啟用 {0}"
 
 #: frappe/core/doctype/file/file.py:308
 msgid "Cannot find file {} on disk"
-msgstr ""
+msgstr "在磁碟上找不到檔案 {}"
 
 #: frappe/core/doctype/file/file.py:627
 msgid "Cannot get file contents of a Folder"
-msgstr ""
+msgstr "無法取得資料夾的檔案內容"
 
 #: frappe/printing/page/print/print.js:910
 msgid "Cannot have multiple printers mapped to a single print format."
-msgstr ""
+msgstr "不能將多台印表機對應到同一個列印格式。"
 
 #: frappe/public/js/frappe/form/grid.js:1250
 msgid "Cannot import table with more than 5000 rows."
-msgstr ""
+msgstr "無法匯入超過 5000 列的表格。"
 
 #: frappe/model/document.py:1289
 msgid "Cannot link cancelled document: {0}"
@@ -6539,32 +6539,32 @@ msgstr "預設值"
 #. Label of the sb2 (Section Break) field in DocType 'User'
 #: frappe/core/doctype/docfield/docfield.json frappe/core/doctype/user/user.json
 msgid "Defaults"
-msgstr ""
+msgstr "預設值"
 
 #: frappe/email/doctype/email_account/email_account.py:331
 msgid "Defaults Updated"
-msgstr ""
+msgstr "預設值已更新"
 
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Defines actions on states and the next step and allowed roles."
-msgstr ""
+msgstr "定義狀態上的操作以及下一步和允許的角色。"
 
 #. Description of the 'Delete Background Exported Reports After (Hours)' (Int)
 #. field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Defines how long exported reports sent via email are kept in the system. Older files will be automatically deleted."
-msgstr ""
+msgstr "定義透過電子郵件傳送的已匯出報告在系統中保留多長時間。較舊的檔案將自動刪除。"
 
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Defines workflow states and rules for a document."
-msgstr ""
+msgstr "定義文件的工作流程狀態和規則。"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Delayed"
-msgstr ""
+msgstr "延遲"
 
 #. Label of the delete (Check) field in DocType 'Custom DocPerm'
 #. Label of the delete (Check) field in DocType 'DocPerm'
@@ -6849,7 +6849,7 @@ msgstr "桌面使用者"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar_header.js:12 frappe/www/me.html:86
 msgid "Desktop"
-msgstr ""
+msgstr "桌面"
 
 #. Name of a DocType
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json frappe/public/js/frappe/ui/toolbar/search_utils.js:578
@@ -6859,12 +6859,12 @@ msgstr "桌面圖標"
 #. Name of a DocType
 #: frappe/desk/doctype/desktop_layout/desktop_layout.json
 msgid "Desktop Layout"
-msgstr ""
+msgstr "桌面佈局"
 
 #. Name of a DocType
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Desktop Settings"
-msgstr ""
+msgstr "桌面設定"
 
 #. Label of the details_tab (Tab Break) field in DocType 'Module Def'
 #. Label of the details (Code) field in DocType 'Scheduled Job Log'
@@ -6879,7 +6879,7 @@ msgstr "詳細資訊"
 #. Label of the use_csv_sniffer (Check) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Detect CSV type"
-msgstr ""
+msgstr "偵測CSV類型"
 
 #: frappe/core/page/permission_manager/permission_manager.js:551
 msgid "Did not add"
@@ -6891,17 +6891,17 @@ msgstr "沒有刪除"
 
 #: frappe/public/js/frappe/utils/diffview.js:57
 msgid "Diff"
-msgstr ""
+msgstr "差異"
 
 #. Description of the 'States' (Section Break) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc."
-msgstr ""
+msgstr "此文件可存在的不同「狀態」。例如「開啟」、「待批准」等。"
 
 #. Label of the prefix_digits (Int) field in DocType 'Document Naming Rule'
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
 msgid "Digits"
-msgstr ""
+msgstr "位數"
 
 #: frappe/utils/data.py:1563
 msgctxt "Currency"
@@ -6912,42 +6912,42 @@ msgstr ""
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Directory Server"
-msgstr ""
+msgstr "目錄伺服器"
 
 #. Label of the disable_auto_refresh (Check) field in DocType 'List View
 #. Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Auto Refresh"
-msgstr ""
+msgstr "禁用自動重新整理"
 
 #. Label of the disable_automatic_recency_filters (Check) field in DocType
 #. 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Automatic Recency Filters"
-msgstr ""
+msgstr "禁用自動時效性篩選器"
 
 #. Label of the disable_change_log_notification (Check) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Change Log Notification"
-msgstr ""
+msgstr "禁用變更日誌通知"
 
 #. Label of the disable_comment_count (Check) field in DocType 'List View
 #. Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Comment Count"
-msgstr ""
+msgstr "禁用留言計數"
 
 #. Label of the disable_count (Check) field in DocType 'List View Settings'
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Count"
-msgstr ""
+msgstr "禁用計數"
 
 #. Label of the disable_document_sharing (Check) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Disable Document Sharing"
-msgstr ""
+msgstr "禁用文件共享"
 
 #. Label of the disable_product_suggestion (Check) field in DocType 'System
 #. Settings'
@@ -9031,16 +9031,16 @@ msgstr "展開全部"
 
 #: frappe/database/query.py:739
 msgid "Expected 'and' or 'or' operator, found: {0}"
-msgstr ""
+msgstr "預期 'and' 或 'or' 運算子，找到：{0}"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:40
 msgid "Experimental"
-msgstr ""
+msgstr "實驗性"
 
 #. Option for the 'Level' (Select) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Expert"
-msgstr ""
+msgstr "專家"
 
 #. Label of the expiration_time (Datetime) field in DocType 'OAuth
 #. Authorization Code'
@@ -9048,29 +9048,29 @@ msgstr ""
 #. Token'
 #: frappe/integrations/doctype/oauth_authorization_code/oauth_authorization_code.json frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 msgid "Expiration time"
-msgstr ""
+msgstr "到期時間"
 
 #. Label of the expire_notification_on (Datetime) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "Expire Notification On"
-msgstr ""
+msgstr "通知到期日"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/communication/communication.json frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Expired"
-msgstr ""
+msgstr "已過期"
 
 #. Label of the expires_in (Int) field in DocType 'OAuth Bearer Token'
 #. Label of the expires_in (Int) field in DocType 'Token Cache'
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json frappe/integrations/doctype/token_cache/token_cache.json
 msgid "Expires In"
-msgstr ""
+msgstr "到期時間"
 
 #. Label of the expires_on (Date) field in DocType 'Document Share Key'
 #: frappe/core/doctype/document_share_key/document_share_key.json
 msgid "Expires On"
-msgstr ""
+msgstr "到期日"
 
 #. Label of the lifespan_qrcode_image (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -9453,7 +9453,7 @@ msgstr "Web視圖必須使用字段“路由”"
 
 #: frappe/core/doctype/doctype/doctype.py:1589
 msgid "Field \"title\" is mandatory if \"Website Search Field\" is set."
-msgstr ""
+msgstr "如果設定了 \"Website Search Field\"，則 \"title\" 欄位為必填項。"
 
 #: frappe/desk/doctype/bulk_update/bulk_update.js:17
 msgid "Field \"value\" is mandatory. Please specify value to be updated"
@@ -9461,30 +9461,30 @@ msgstr "場“價值”是強制性的。請指定值進行更新"
 
 #: frappe/desk/search.py:271
 msgid "Field <code>{0}</code> not found in {1}"
-msgstr ""
+msgstr "在 {1} 中找不到欄位 <code>{0}</code>"
 
 #. Label of the description (Text) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
 msgid "Field Description"
-msgstr ""
+msgstr "欄位描述"
 
 #: frappe/core/doctype/doctype/doctype.py:1129
 msgid "Field Missing"
-msgstr ""
+msgstr "欄位缺失"
 
 #. Label of the field_name (Data) field in DocType 'Property Setter'
 #. Label of the field_name (Select) field in DocType 'Kanban Board'
 #: frappe/custom/doctype/property_setter/property_setter.json frappe/desk/doctype/kanban_board/kanban_board.json
 msgid "Field Name"
-msgstr ""
+msgstr "欄位名稱"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:141
 msgid "Field Orientation (Left-Right)"
-msgstr ""
+msgstr "欄位方向（左-右）"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:148
 msgid "Field Orientation (Top-Down)"
-msgstr ""
+msgstr "欄位方向（上-下）"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:233 frappe/public/js/print_format_builder/utils.js:69
 msgid "Field Template"
@@ -10693,23 +10693,23 @@ msgstr ""
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Go to Page"
-msgstr ""
+msgstr "前往頁面"
 
 #: frappe/public/js/workflow_builder/workflow_builder.bundle.js:41
 msgid "Go to Workflow"
-msgstr ""
+msgstr "前往工作流程"
 
 #: frappe/desk/doctype/workspace/workspace.js:18
 msgid "Go to Workspace"
-msgstr ""
+msgstr "前往工作區"
 
 #: frappe/public/js/frappe/form/form.js:145
 msgid "Go to next record"
-msgstr ""
+msgstr "前往下一筆記錄"
 
 #: frappe/public/js/frappe/form/form.js:155
 msgid "Go to previous record"
-msgstr ""
+msgstr "前往上一筆記錄"
 
 #: frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py:53
 msgid "Go to the document"
@@ -10718,19 +10718,19 @@ msgstr "轉到文檔"
 #. Description of the 'Success URL' (Data) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Go to this URL after completing the form"
-msgstr ""
+msgstr "完成表單後前往此 URL"
 
 #: frappe/core/doctype/doctype/doctype.js:54 frappe/custom/doctype/client_script/client_script.js:12
 msgid "Go to {0}"
-msgstr ""
+msgstr "前往 {0}"
 
 #: frappe/core/doctype/data_import/data_import.js:93 frappe/core/doctype/doctype/doctype.js:55 frappe/custom/doctype/customize_form/customize_form.js:112 frappe/custom/doctype/doctype_layout/doctype_layout.js:42 frappe/workflow/doctype/workflow/workflow.js:44
 msgid "Go to {0} List"
-msgstr ""
+msgstr "前往 {0} 列表"
 
 #: frappe/core/doctype/page/page.js:11
 msgid "Go to {0} Page"
-msgstr ""
+msgstr "前往 {0} 頁面"
 
 #: frappe/utils/goal.py:126 frappe/utils/goal.py:133
 msgid "Goal"
@@ -10741,19 +10741,19 @@ msgstr "目標"
 #. Label of a Workspace Sidebar Item
 #: frappe/integrations/doctype/social_login_key/social_login_key.json frappe/workspace_sidebar/integrations.json
 msgid "Google"
-msgstr ""
+msgstr "Google"
 
 #. Label of the google_analytics_id (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Google Analytics ID"
-msgstr ""
+msgstr "Google Analytics ID"
 
 #. Label of the google_analytics_anonymize_ip (Check) field in DocType
 #. 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Google Analytics anonymise IP"
-msgstr ""
+msgstr "Google Analytics IP 匿名化"
 
 #. Label of the sb_00 (Section Break) field in DocType 'Event'
 #. Label of the google_calendar (Link) field in DocType 'Event'
@@ -10763,50 +10763,50 @@ msgstr ""
 #. Label of a Workspace Sidebar Item
 #: frappe/desk/doctype/event/event.json frappe/integrations/doctype/google_calendar/google_calendar.json frappe/integrations/workspace/integrations/integrations.json frappe/workspace_sidebar/integrations.json
 msgid "Google Calendar"
-msgstr ""
+msgstr "Google 日曆"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:266
 msgid "Google Calendar - Could not create Calendar for {0}, error code {1}."
-msgstr ""
+msgstr "Google 日曆 - 無法為 {0} 建立日曆，錯誤代碼 {1}。"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:611
 msgid "Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}."
-msgstr ""
+msgstr "Google 日曆 - 無法從 Google 日曆刪除事件 {0}，錯誤代碼 {1}。"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:305
 msgid "Google Calendar - Could not fetch event from Google Calendar, error code {0}."
-msgstr ""
+msgstr "Google 日曆 - 無法從 Google 日曆取得事件，錯誤代碼 {0}。"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:252
 msgid "Google Calendar - Could not find Calendar for {0}, error code {1}."
-msgstr ""
+msgstr "Google 日曆 - 找不到 {0} 的日曆，錯誤代碼 {1}。"
 
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:232
 msgid "Google Calendar - Could not insert contact in Google Contacts {0}, error code {1}."
-msgstr ""
+msgstr "Google 日曆 - 無法在 Google 聯絡人 {0} 中新增聯絡人，錯誤代碼 {1}。"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:497
 msgid "Google Calendar - Could not insert event in Google Calendar {0}, error code {1}."
-msgstr ""
+msgstr "Google 日曆 - 無法在 Google 日曆 {0} 中插入事件，錯誤代碼 {1}。"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:581
 msgid "Google Calendar - Could not update Event {0} in Google Calendar, error code {1}."
-msgstr ""
+msgstr "Google 日曆 - 無法更新 Google 日曆中的事件 {0}，錯誤代碼 {1}。"
 
 #. Label of the google_calendar_event_id (Data) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Google Calendar Event ID"
-msgstr ""
+msgstr "Google 日曆事件 ID"
 
 #. Label of the google_calendar_id (Data) field in DocType 'Event'
 #. Label of the google_calendar_id (Data) field in DocType 'Google Calendar'
 #: frappe/desk/doctype/event/event.json frappe/integrations/doctype/google_calendar/google_calendar.json
 msgid "Google Calendar ID"
-msgstr ""
+msgstr "Google 日曆 ID"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:181
 msgid "Google Calendar has been configured."
-msgstr ""
+msgstr "Google 日曆已完成設定。"
 
 #. Label of the sb_00 (Section Break) field in DocType 'Contact'
 #. Label of the google_contacts (Link) field in DocType 'Contact'
@@ -10816,47 +10816,47 @@ msgstr ""
 #. Label of a Workspace Sidebar Item
 #: frappe/contacts/doctype/contact/contact.json frappe/integrations/doctype/google_contacts/google_contacts.json frappe/integrations/workspace/integrations/integrations.json frappe/workspace_sidebar/integrations.json
 msgid "Google Contacts"
-msgstr ""
+msgstr "Google 聯絡人"
 
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:137
 msgid "Google Contacts - Could not sync contacts from Google Contacts {0}, error code {1}."
-msgstr ""
+msgstr "Google 聯絡人 - 無法從 Google 聯絡人 {0} 同步聯絡人，錯誤代碼 {1}。"
 
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:294
 msgid "Google Contacts - Could not update contact in Google Contacts {0}, error code {1}."
-msgstr ""
+msgstr "Google 聯絡人 - 無法更新 Google 聯絡人 {0} 中的聯絡人，錯誤代碼 {1}。"
 
 #. Label of the google_contacts_id (Data) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Google Contacts Id"
-msgstr ""
+msgstr "Google 聯絡人 ID"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:164
 msgid "Google Drive"
-msgstr ""
+msgstr "Google 雲端硬碟"
 
 #. Label of the section_break_7 (Section Break) field in DocType 'Google
 #. Settings'
 #: frappe/integrations/doctype/google_settings/google_settings.json
 msgid "Google Drive Picker"
-msgstr ""
+msgstr "Google 雲端硬碟選擇器"
 
 #. Label of the google_drive_picker_enabled (Check) field in DocType 'Google
 #. Settings'
 #: frappe/integrations/doctype/google_settings/google_settings.json
 msgid "Google Drive Picker Enabled"
-msgstr ""
+msgstr "Google 雲端硬碟選擇器已啟用"
 
 #. Label of the font (Data) field in DocType 'Print Format'
 #. Label of the google_font (Data) field in DocType 'Website Theme'
 #: frappe/printing/doctype/print_format/print_format.json frappe/public/js/print_format_builder/PrintFormatControls.vue:28 frappe/website/doctype/website_theme/website_theme.json
 msgid "Google Font"
-msgstr ""
+msgstr "Google 字型"
 
 #. Label of the google_meet_link (Small Text) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Google Meet Link"
-msgstr ""
+msgstr "Google Meet 連結"
 
 #. Label of a Card Break in the Integrations Workspace
 #: frappe/integrations/workspace/integrations/integrations.json
@@ -11396,7 +11396,7 @@ msgstr "優先級較高的規則將優先套用"
 #. Label of the highlight (Text) field in DocType 'Company History'
 #: frappe/website/doctype/company_history/company_history.json
 msgid "Highlight"
-msgstr ""
+msgstr "重點"
 
 #: frappe/www/update-password.html:301
 msgid "Hint: Include symbols, numbers and capital letters in the password"
@@ -11412,12 +11412,12 @@ msgstr "家"
 #. Label of the home_page (Data) field in DocType 'Website Settings'
 #: frappe/core/doctype/role/role.json frappe/website/doctype/website_settings/website_settings.json
 msgid "Home Page"
-msgstr ""
+msgstr "首頁"
 
 #. Label of the home_settings (Code) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Home Settings"
-msgstr ""
+msgstr "首頁設定"
 
 #: frappe/core/doctype/file/test_file.py:381 frappe/core/doctype/file/test_file.py:383 frappe/core/doctype/file/test_file.py:447
 msgid "Home/Test Folder 1"
@@ -11964,33 +11964,33 @@ msgstr "輸入電子郵件從"
 #. Label of the import_file (Attach) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import File"
-msgstr ""
+msgstr "匯入檔案"
 
 #. Label of the import_warnings_section (Section Break) field in DocType 'Data
 #. Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import File Errors and Warnings"
-msgstr ""
+msgstr "匯入檔案錯誤與警告"
 
 #. Label of the import_log_section (Section Break) field in DocType 'Data
 #. Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import Log"
-msgstr ""
+msgstr "匯入日誌"
 
 #. Label of the import_log_preview (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import Log Preview"
-msgstr ""
+msgstr "匯入日誌預覽"
 
 #. Label of the import_preview (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import Preview"
-msgstr ""
+msgstr "匯入預覽"
 
 #: frappe/core/doctype/data_import/data_import.js:41
 msgid "Import Progress"
-msgstr ""
+msgstr "匯入進度"
 
 #: frappe/email/doctype/email_group/email_group.js:8 frappe/email/doctype/email_group/email_group.js:30
 msgid "Import Subscribers"
@@ -11999,12 +11999,12 @@ msgstr "進口認購"
 #. Label of the import_type (Select) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import Type"
-msgstr ""
+msgstr "匯入類型"
 
 #. Label of the import_warnings (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import Warnings"
-msgstr ""
+msgstr "匯入警告"
 
 #: frappe/public/js/frappe/views/file/file_view.js:117
 msgid "Import Zip"
@@ -12013,47 +12013,47 @@ msgstr "導入郵編"
 #. Label of the google_sheets_url (Data) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Import from Google Sheets"
-msgstr ""
+msgstr "從 Google Sheets 匯入"
 
 #: frappe/core/doctype/data_import/importer.py:617
 msgid "Import template should be of type .csv, .xlsx or .xls"
-msgstr ""
+msgstr "匯入範本應為 .csv、.xlsx 或 .xls 類型"
 
 #: frappe/core/doctype/data_import/importer.py:487
 msgid "Import template should contain a Header and atleast one row."
-msgstr ""
+msgstr "匯入範本應包含一個標頭和至少一列。"
 
 #: frappe/core/doctype/data_import/data_import.js:171
 msgid "Import timed out, please re-try."
-msgstr ""
+msgstr "匯入逾時，請重試。"
 
 #: frappe/core/doctype/data_import/data_import.py:72
 msgid "Importing {0} is not allowed."
-msgstr ""
+msgstr "不允許匯入 {0}。"
 
 #: frappe/integrations/doctype/google_contacts/google_contacts.js:19
 msgid "Importing {0} of {1}"
-msgstr ""
+msgstr "正在匯入 {1} 中的 {0}"
 
 #: frappe/core/doctype/data_import/data_import.js:35
 msgid "Importing {0} of {1}, {2}"
-msgstr ""
+msgstr "正在匯入 {1} 中的 {0}，{2}"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:20
 msgid "In"
-msgstr ""
+msgstr "包含於"
 
 #. Description of the 'Force User to Reset Password' (Int) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "In Days"
-msgstr ""
+msgstr "以天為單位"
 
 #. Label of the in_filter (Check) field in DocType 'DocField'
 #. Label of the in_filter (Check) field in DocType 'Customize Form Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "In Filter"
-msgstr ""
+msgstr "在過濾器中"
 
 #. Label of the in_global_search (Check) field in DocType 'DocField'
 #. Label of the in_global_search (Check) field in DocType 'Custom Field'
@@ -12061,7 +12061,7 @@ msgstr ""
 #. Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "In Global Search"
-msgstr ""
+msgstr "在全域搜尋中"
 
 #: frappe/core/doctype/doctype/doctype.js:88
 msgid "In Grid View"
@@ -12070,7 +12070,7 @@ msgstr "在網格視圖"
 #. Label of the in_standard_filter (Check) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "In List Filter"
-msgstr ""
+msgstr "在列表過濾器中"
 
 #. Label of the in_list_view (Check) field in DocType 'DocField'
 #. Label of the in_list_view (Check) field in DocType 'Custom Field'
@@ -12081,14 +12081,14 @@ msgstr "在列表視圖"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.js:19
 msgid "In Minutes"
-msgstr ""
+msgstr "以分鐘為單位"
 
 #. Label of the in_preview (Check) field in DocType 'DocField'
 #. Label of the in_preview (Check) field in DocType 'Custom Field'
 #. Label of the in_preview (Check) field in DocType 'Customize Form Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "In Preview"
-msgstr ""
+msgstr "在預覽中"
 
 #: frappe/core/doctype/data_import/data_import.js:42
 msgid "In Progress"
@@ -12096,83 +12096,83 @@ msgstr "進行中"
 
 #: frappe/database/database.py:290
 msgid "In Read Only Mode"
-msgstr ""
+msgstr "處於唯讀模式"
 
 #. Label of the in_reply_to (Link) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "In Reply To"
-msgstr ""
+msgstr "回覆"
 
 #. Label of the in_standard_filter (Check) field in DocType 'Custom Field'
 #. Label of the in_standard_filter (Check) field in DocType 'Customize Form
 #. Field'
 #: frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "In Standard Filter"
-msgstr ""
+msgstr "在標準篩選器中"
 
 #. Description of the 'Font Size' (Float) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "In points. Default is 9."
-msgstr ""
+msgstr "以點數為單位。預設為 9。"
 
 #. Description of the 'Allow Login After Fail' (Int) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "In seconds"
-msgstr ""
+msgstr "以秒為單位"
 
 #: frappe/core/doctype/recorder/recorder_list.js:209
 msgid "Inactive"
-msgstr ""
+msgstr "待用"
 
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json frappe/email/doctype/email_account/email_account_list.js:19
 msgid "Inbox"
-msgstr ""
+msgstr "收件匣"
 
 #. Name of a role
 #: frappe/core/doctype/communication/communication.json frappe/email/doctype/email_account/email_account.json
 msgid "Inbox User"
-msgstr ""
+msgstr "收件匣使用者"
 
 #: frappe/public/js/frappe/list/base_list.js:210
 msgid "Inbox View"
-msgstr ""
+msgstr "收件匣檢視"
 
 #: frappe/public/js/frappe/views/treeview.js:111
 msgid "Include Disabled"
-msgstr ""
+msgstr "包含已停用"
 
 #. Label of the include_name_field (Check) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "Include Name Field"
-msgstr ""
+msgstr "包含名稱欄位"
 
 #. Label of the navbar_search (Check) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Include Search in Top Bar"
-msgstr ""
+msgstr "在頂部欄中包含搜尋"
 
 #: frappe/website/doctype/website_theme/website_theme.js:61
 msgid "Include Theme from Apps"
-msgstr ""
+msgstr "包含來自應用程式的主題"
 
 #. Label of the attach_view_link (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Include Web View Link in Email"
-msgstr ""
+msgstr "在電子郵件中包含網頁檢視連結"
 
 #: frappe/public/js/frappe/form/print_utils.js:65 frappe/public/js/frappe/views/reports/query_report.js:1751
 msgid "Include filters"
-msgstr ""
+msgstr "包含篩選條件"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1773
 msgid "Include hidden columns"
-msgstr ""
+msgstr "包含隱藏欄位"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1743
 msgid "Include indentation"
-msgstr ""
+msgstr "包含縮排"
 
 #: frappe/public/js/frappe/form/controls/password.js:106
 msgid "Include symbols, numbers and capital letters in the password"
@@ -12182,31 +12182,31 @@ msgstr "在密碼中加入符號，數字和大寫字母"
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Incoming"
-msgstr ""
+msgstr "來信"
 
 #. Label of the mailbox_settings (Section Break) field in DocType 'Email
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Incoming (POP/IMAP) Settings"
-msgstr ""
+msgstr "來信 (POP/IMAP) 設定"
 
 #. Label of the incoming_emails_last_7_days_column (Column Break) field in
 #. DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Incoming Emails (Last 7 days)"
-msgstr ""
+msgstr "來信電子郵件（最近 7 天）"
 
 #. Label of the email_server (Data) field in DocType 'Email Account'
 #. Label of the email_server (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_account/email_account.json frappe/email/doctype/email_domain/email_domain.json
 msgid "Incoming Server"
-msgstr ""
+msgstr "收件伺服器"
 
 #. Label of the mailbox_settings (Section Break) field in DocType 'Email
 #. Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
 msgid "Incoming Settings"
-msgstr ""
+msgstr "來信設定"
 
 #: frappe/email/doctype/email_domain/email_domain.py:32
 msgid "Incoming email account not correct"
@@ -12214,7 +12214,7 @@ msgstr "收到的電子郵件帳戶不正確"
 
 #: frappe/model/virtual_doctype.py:79 frappe/model/virtual_doctype.py:92
 msgid "Incomplete Virtual Doctype Implementation"
-msgstr ""
+msgstr "Virtual Doctype 實作不完整"
 
 #: frappe/auth.py:270
 msgid "Incomplete login details"
@@ -12222,11 +12222,11 @@ msgstr "登錄詳細信息不完整"
 
 #: frappe/email/smtp.py:109
 msgid "Incorrect Configuration"
-msgstr ""
+msgstr "設定不正確"
 
 #: frappe/utils/csvutils.py:235
 msgid "Incorrect URL"
-msgstr ""
+msgstr "URL 不正確"
 
 #: frappe/utils/password.py:118
 msgid "Incorrect User or Password"
@@ -12238,62 +12238,62 @@ msgstr "驗證碼不正確"
 
 #: frappe/public/js/frappe/views/gantt/gantt_view.js:88
 msgid "Incorrect configuration"
-msgstr ""
+msgstr "設定不正確"
 
 #: frappe/model/document.py:1743
 msgid "Incorrect value in row {0}:"
-msgstr ""
+msgstr "列 {0} 中的值不正確："
 
 #: frappe/model/document.py:1745
 msgid "Incorrect value:"
-msgstr ""
+msgstr "值不正確："
 
 #. Label of the indent (Check) field in DocType 'Workspace Sidebar Item'
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Indent"
-msgstr ""
+msgstr "縮排"
 
 #. Label of the search_index (Check) field in DocType 'DocField'
 #. Label of the index (Int) field in DocType 'Recorder Query'
 #. Label of the search_index (Check) field in DocType 'Custom Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/core/doctype/recorder_query/recorder_query.json frappe/custom/doctype/custom_field/custom_field.json frappe/model/meta.py:55 frappe/public/js/frappe/model/meta.js:211 frappe/public/js/frappe/model/model.js:124 frappe/public/js/frappe/views/reports/report_view.js:1079
 msgid "Index"
-msgstr ""
+msgstr "索引"
 
 #. Label of the index_web_pages_for_search (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Index Web Pages for Search"
-msgstr ""
+msgstr "為搜尋建立網頁索引"
 
 #: frappe/core/doctype/recorder/recorder.py:132
 msgid "Index created successfully on column {0} of doctype {1}"
-msgstr ""
+msgstr "已成功在文件類型 {1} 的欄位 {0} 上建立索引"
 
 #. Label of the indexing_authorization_code (Data) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Indexing authorization code"
-msgstr ""
+msgstr "索引授權碼"
 
 #. Label of the indexing_refresh_token (Data) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Indexing refresh token"
-msgstr ""
+msgstr "索引重新整理權杖"
 
 #. Label of the indicator (Select) field in DocType 'Kanban Board Column'
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Indicator"
-msgstr ""
+msgstr "指示器"
 
 #. Label of the indicator_color (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Indicator Color"
-msgstr ""
+msgstr "指示器顏色"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:489
 msgid "Indicator color"
-msgstr ""
+msgstr "指示器顏色"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Button Color' (Select) field in DocType 'DocField'
@@ -12303,7 +12303,7 @@ msgstr ""
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/core/doctype/comment/comment.json frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Info"
-msgstr ""
+msgstr "資訊"
 
 #: frappe/core/doctype/data_export/exporter.py:145
 msgid "Info:"
@@ -12312,20 +12312,20 @@ msgstr "資訊："
 #. Label of the initial_sync_count (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Initial Sync Count"
-msgstr ""
+msgstr "初始同步計數"
 
 #. Option for the 'Database Engine' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "InnoDB"
-msgstr ""
+msgstr "InnoDB"
 
 #: frappe/core/doctype/data_import/data_import_list.js:35
 msgid "Insert"
-msgstr ""
+msgstr "插入"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:59
 msgid "Insert Above"
-msgstr ""
+msgstr "在上方插入"
 
 #. Label of the insert_after (Select) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json frappe/public/js/frappe/views/reports/query_report.js:2037
@@ -12342,62 +12342,62 @@ msgstr "插入自定義字段“{0}”提到的後場“{1}”，標記為“{2}
 
 #: frappe/public/js/frappe/form/grid_row_form.js:61 frappe/public/js/frappe/form/grid_row_form.js:76
 msgid "Insert Below"
-msgstr ""
+msgstr "在下方插入"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:382
 msgid "Insert Column Before {0}"
-msgstr ""
+msgstr "在 {0} 之前插入欄位"
 
 #: frappe/public/js/frappe/form/controls/markdown_editor.js:82
 msgid "Insert Image in Markdown"
-msgstr ""
+msgstr "在 Markdown 中插入圖片"
 
 #. Option for the 'Import Type' (Select) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Insert New Records"
-msgstr ""
+msgstr "插入新記錄"
 
 #. Label of the insert_style (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Insert Style"
-msgstr ""
+msgstr "插入樣式"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:60
 msgid "Instagram"
-msgstr ""
+msgstr "Instagram"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:690 frappe/public/js/frappe/ui/toolbar/search_utils.js:691
 msgid "Install {0} from Marketplace"
-msgstr ""
+msgstr "從 Marketplace 安裝 {0}"
 
 #. Name of a DocType
 #: frappe/core/doctype/installed_application/installed_application.json
 msgid "Installed Application"
-msgstr ""
+msgstr "已安裝應用程式"
 
 #. Name of a DocType
 #. Label of the installed_applications (Table) field in DocType 'Installed
 #. Applications'
 #: frappe/core/doctype/installed_applications/installed_applications.json
 msgid "Installed Applications"
-msgstr ""
+msgstr "已安裝應用程式"
 
 #: frappe/core/doctype/installed_applications/installed_applications.js:18 frappe/public/js/frappe/ui/toolbar/about.js:67
 msgid "Installed Apps"
-msgstr ""
+msgstr "已安裝應用程式"
 
 #. Label of the instructions (HTML) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Instructions"
-msgstr ""
+msgstr "說明"
 
 #: frappe/templates/includes/login/login.js:257
 msgid "Instructions Emailed"
-msgstr ""
+msgstr "說明已透過電子郵件發送"
 
 #: frappe/permissions.py:878
 msgid "Insufficient Permission Level for {0}"
-msgstr ""
+msgstr "{0} 的權限級別不足"
 
 #: frappe/database/query.py:1412
 msgid "Insufficient Permission for {0}"
@@ -12405,15 +12405,15 @@ msgstr "{0}的權限不足"
 
 #: frappe/desk/reportview.py:364
 msgid "Insufficient Permissions for deleting Report"
-msgstr ""
+msgstr "刪除報告的權限不足"
 
 #: frappe/desk/reportview.py:335
 msgid "Insufficient Permissions for editing Report"
-msgstr ""
+msgstr "編輯報告的權限不足"
 
 #: frappe/core/doctype/doctype/doctype.py:448
 msgid "Insufficient attachment limit"
-msgstr ""
+msgstr "附件數量限制不足"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -12424,7 +12424,7 @@ msgstr ""
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/core/doctype/report_column/report_column.json frappe/core/doctype/report_filter/report_filter.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/website/doctype/web_form_field/web_form_field.json frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Int"
-msgstr ""
+msgstr "Int"
 
 #. Name of a DocType
 #: frappe/integrations/doctype/integration_request/integration_request.json
@@ -12444,22 +12444,22 @@ msgstr "整合"
 #. 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Integrations can use this field to set email delivery status"
-msgstr ""
+msgstr "整合可以使用此欄位設定電子郵件交付狀態"
 
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Inter"
-msgstr ""
+msgstr "Inter"
 
 #. Label of the interest (Small Text) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Interests"
-msgstr ""
+msgstr "興趣"
 
 #. Option for the 'Level' (Select) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Intermediate"
-msgstr ""
+msgstr "中級"
 
 #: frappe/public/js/frappe/request.js:236
 msgid "Internal Server Error"
@@ -12468,23 +12468,23 @@ msgstr "內部服務器錯誤"
 #. Description of a DocType
 #: frappe/core/doctype/docshare/docshare.json
 msgid "Internal record of document shares"
-msgstr ""
+msgstr "文件共享的內部記錄"
 
 #. Label of the interval (Select) field in DocType 'Event Notifications'
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 msgid "Interval"
-msgstr ""
+msgstr "間隔"
 
 #. Label of the intro_video_url (Data) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Intro Video URL"
-msgstr ""
+msgstr "介紹影片 URL"
 
 #. Description of the 'Company Introduction' (Text Editor) field in DocType
 #. 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Introduce your company to the website visitor."
-msgstr ""
+msgstr "向網站訪客介紹您的公司。"
 
 #. Label of the introduction_section (Section Break) field in DocType 'Contact
 #. Us Settings'
@@ -12493,25 +12493,25 @@ msgstr ""
 #. Label of the introduction_text (Text Editor) field in DocType 'Web Form'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json frappe/website/doctype/web_form/web_form.json
 msgid "Introduction"
-msgstr ""
+msgstr "簡介"
 
 #. Description of the 'Introduction' (Text Editor) field in DocType 'Contact
 #. Us
 #. Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Introductory information for the Contact Us Page"
-msgstr ""
+msgstr "聯絡我們頁面的介紹資訊"
 
 #. Label of the introspection_uri (Data) field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
 msgid "Introspection URI"
-msgstr ""
+msgstr "自省 URI"
 
 #. Option for the 'Validity' (Select) field in DocType 'OAuth Authorization
 #. Code'
 #: frappe/integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 msgid "Invalid"
-msgstr ""
+msgstr "無效"
 
 #: frappe/public/js/form_builder/utils.js:218 frappe/public/js/frappe/form/grid_row.js:840 frappe/public/js/frappe/form/layout.js:806 frappe/public/js/frappe/views/reports/report_view.js:790
 msgid "Invalid \"depends_on\" expression"
@@ -12519,15 +12519,15 @@ msgstr "“depends_on”表達式無效"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:520
 msgid "Invalid \"depends_on\" expression set in filter {0}"
-msgstr ""
+msgstr "在過濾器 {0} 中設置了無效的 \"depends_on\" 表達式"
 
 #: frappe/public/js/frappe/form/save.js:214
 msgid "Invalid \"mandatory_depends_on\" expression"
-msgstr ""
+msgstr "無效的 \"mandatory_depends_on\" 表達式"
 
 #: frappe/utils/nestedset.py:178
 msgid "Invalid Action"
-msgstr ""
+msgstr "無效操作"
 
 #: frappe/utils/csvutils.py:38
 msgid "Invalid CSV Format"
@@ -12535,55 +12535,55 @@ msgstr "CSV格式無效。"
 
 #: frappe/integrations/frappe_providers/frappecloud_billing.py:120
 msgid "Invalid Code. Please try again."
-msgstr ""
+msgstr "代碼無效。請重試。"
 
 #: frappe/integrations/doctype/webhook/webhook.py:91
 msgid "Invalid Condition: {}"
-msgstr ""
+msgstr "無效條件: {}"
 
 #: frappe/email/smtp.py:141
 msgid "Invalid Credentials"
-msgstr ""
+msgstr "憑證無效"
 
 #: frappe/email/smtp.py:143
 msgid "Invalid Credentials for Email Account: {0}"
-msgstr ""
+msgstr "電子郵件帳戶的憑證無效: {0}"
 
 #: frappe/utils/data.py:146 frappe/utils/data.py:309
 msgid "Invalid Date"
-msgstr ""
+msgstr "無效的日期"
 
 #: frappe/www/list.py:30
 msgid "Invalid DocType"
-msgstr ""
+msgstr "無效的 DocType"
 
 #: frappe/query_builder/builder.py:59
 msgid "Invalid DocType: {0}"
-msgstr ""
+msgstr "無效的 DocType：{0}"
 
 #: frappe/email/doctype/email_group/email_group.py:51
 msgid "Invalid Doctype"
-msgstr ""
+msgstr "無效的 Doctype"
 
 #: frappe/core/doctype/doctype/doctype.py:1326 frappe/core/doctype/doctype/doctype.py:1335
 msgid "Invalid Fieldname"
-msgstr ""
+msgstr "無效的欄位名稱"
 
 #: frappe/core/doctype/file/file.py:265
 msgid "Invalid File URL"
-msgstr ""
+msgstr "無效的檔案 URL"
 
 #: frappe/database/query.py:834 frappe/database/query.py:861 frappe/database/query.py:871
 msgid "Invalid Filter"
-msgstr ""
+msgstr "無效的篩選條件"
 
 #: frappe/public/js/form_builder/store.js:244
 msgid "Invalid Filter Format for field {0} of type {1}. Try using filter icon on the field to set it correctly"
-msgstr ""
+msgstr "欄位 {0}（類型 {1}）的篩選條件格式無效。請嘗試使用欄位上的篩選圖示來正確設定"
 
 #: frappe/utils/dashboard.py:61
 msgid "Invalid Filter Value"
-msgstr ""
+msgstr "無效的篩選值"
 
 #: frappe/website/doctype/website_settings/website_settings.py:83
 msgid "Invalid Home Page"
@@ -12599,7 +12599,7 @@ msgstr "無效的登錄令牌"
 
 #: frappe/templates/includes/login/login.js:286
 msgid "Invalid Login. Try again."
-msgstr ""
+msgstr "登入無效。請重試。"
 
 #: frappe/email/receive.py:115 frappe/email/receive.py:152
 msgid "Invalid Mail Server. Please rectify and try again."
@@ -12607,19 +12607,19 @@ msgstr "無效的郵件服務器。請糾正，然後再試一次。"
 
 #: frappe/model/naming.py:107
 msgid "Invalid Naming Series: {}"
-msgstr ""
+msgstr "無效的命名序列：{}"
 
 #: frappe/core/doctype/data_import/data_import.py:183 frappe/core/doctype/prepared_report/prepared_report.py:213 frappe/core/doctype/rq_job/rq_job.py:113 frappe/core/doctype/rq_job/rq_job.py:122
 msgid "Invalid Operation"
-msgstr ""
+msgstr "無效的操作"
 
 #: frappe/core/doctype/doctype/doctype.py:1704 frappe/core/doctype/doctype/doctype.py:1712
 msgid "Invalid Option"
-msgstr ""
+msgstr "無效的選項"
 
 #: frappe/email/smtp.py:108
 msgid "Invalid Outgoing Mail Server or Port: {0}"
-msgstr ""
+msgstr "外寄郵件伺服器或連接埠無效：{0}"
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:208
 msgid "Invalid Output Format"
@@ -12627,11 +12627,11 @@ msgstr "無效的輸出格式"
 
 #: frappe/model/base_document.py:159
 msgid "Invalid Override"
-msgstr ""
+msgstr "無效的覆寫"
 
 #: frappe/integrations/doctype/connected_app/connected_app.py:202
 msgid "Invalid Parameters."
-msgstr ""
+msgstr "無效參數。"
 
 #: frappe/core/doctype/user/user.py:965 frappe/www/update-password.html:148 frappe/www/update-password.html:169 frappe/www/update-password.html:171 frappe/www/update-password.html:272
 msgid "Invalid Password"
@@ -12639,7 +12639,7 @@ msgstr "無效的密碼"
 
 #: frappe/utils/__init__.py:116
 msgid "Invalid Phone Number"
-msgstr ""
+msgstr "無效的電話號碼"
 
 #: frappe/auth.py:97 frappe/utils/oauth.py:214 frappe/utils/oauth.py:223 frappe/www/login.py:121
 msgid "Invalid Request"
@@ -12651,15 +12651,15 @@ msgstr "無效的搜索字段{0}"
 
 #: frappe/core/doctype/doctype/doctype.py:1266
 msgid "Invalid Table Fieldname"
-msgstr ""
+msgstr "無效的表格欄位名稱"
 
 #: frappe/public/js/workflow_builder/store.js:229
 msgid "Invalid Transition"
-msgstr ""
+msgstr "無效的轉換"
 
 #: frappe/core/doctype/file/file.py:276 frappe/public/js/frappe/widgets/widget_dialog.js:602 frappe/utils/csvutils.py:227 frappe/utils/csvutils.py:248
 msgid "Invalid URL"
-msgstr ""
+msgstr "無效的 URL"
 
 #: frappe/email/receive.py:160
 msgid "Invalid User Name or Support Password. Please rectify and try again."
@@ -12667,35 +12667,35 @@ msgstr "無效的用戶名或支持密碼。請糾正，然後再試一次。"
 
 #: frappe/public/js/frappe/ui/field_group.js:179
 msgid "Invalid Values"
-msgstr ""
+msgstr "無效的值"
 
 #: frappe/integrations/doctype/webhook/webhook.py:120
 msgid "Invalid Webhook Secret"
-msgstr ""
+msgstr "無效的 Webhook 密鑰"
 
 #: frappe/desk/reportview.py:191
 msgid "Invalid aggregate function"
-msgstr ""
+msgstr "無效的聚合函數"
 
 #: frappe/database/query.py:2458
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
-msgstr ""
+msgstr "無效的別名格式：{0}。別名必須是簡單識別符。"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:195
 msgid "Invalid app"
-msgstr ""
+msgstr "無效的應用程式"
 
 #: frappe/database/query.py:2418 frappe/database/query.py:2434
 msgid "Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
-msgstr ""
+msgstr "無效的參數格式：{0}。僅允許帶引號的字串字面量或簡單欄位名稱。"
 
 #: frappe/database/query.py:2382
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
-msgstr ""
+msgstr "無效的參數類型：{0}。僅允許字串、數字、字典和 None。"
 
 #: frappe/database/query.py:867
 msgid "Invalid characters in fieldname: {0}. Only letters, numbers, and underscores are allowed."
-msgstr ""
+msgstr "欄位名稱中包含無效字元：{0}。僅允許字母、數字和底線。"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:391
 msgid "Invalid column"
@@ -12703,35 +12703,35 @@ msgstr "無效的列"
 
 #: frappe/database/query.py:768
 msgid "Invalid condition type in nested filters: {0}"
-msgstr ""
+msgstr "巢狀篩選條件中的條件類型無效：{0}"
 
 #: frappe/database/query.py:1397
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
-msgstr ""
+msgstr "排序方向無效：{0}。必須為 'ASC' 或 'DESC'。"
 
 #: frappe/model/document.py:1074 frappe/model/document.py:1088
 msgid "Invalid docstatus"
-msgstr ""
+msgstr "無效的 docstatus"
 
 #: frappe/www/list.py:231
 msgid "Invalid expression in Web Form Dynamic Filter for {0}: {1}"
-msgstr ""
+msgstr "Web Form 動態篩選條件中 {0} 的表達式無效：{1}"
 
 #: frappe/model/workflow.py:112
 msgid "Invalid expression in Workflow Update Value: {0}"
-msgstr ""
+msgstr "工作流程更新值中的表達式無效：{0}"
 
 #: frappe/public/js/frappe/utils/dashboard_utils.js:218
 msgid "Invalid expression set in filter {0} ({1})"
-msgstr ""
+msgstr "篩選條件 {0}（{1}）中設定了無效的表達式"
 
 #: frappe/database/query.py:2185
 msgid "Invalid field format for SELECT: {0}. Field names must be simple, backticked, table-qualified, aliased, or '*'."
-msgstr ""
+msgstr "選擇 的欄位格式無效：{0}。欄位名稱必須是簡單名稱、反引號包裹、表限定、別名或 '*'。"
 
 #: frappe/database/query.py:1338
 msgid "Invalid field format in {0}: {1}. Use 'field', 'link_field.field', or 'child_table.field'."
-msgstr ""
+msgstr "{0} 中的欄位格式無效：{1}。請使用 'field'、'link_field.field' 或 'child_table.field'。"
 
 #: frappe/utils/data.py:2294
 msgid "Invalid field name {0}"
@@ -12739,7 +12739,7 @@ msgstr "字段名稱{0}無效"
 
 #: frappe/database/query.py:1193
 msgid "Invalid field type: {0}"
-msgstr ""
+msgstr "無效的欄位類型：{0}"
 
 #: frappe/core/doctype/doctype/doctype.py:1137
 msgid "Invalid fieldname '{0}' in autoname"
@@ -12751,91 +12751,91 @@ msgstr "無效的文件路徑：{0}"
 
 #: frappe/database/query.py:751
 msgid "Invalid filter condition: {0}. Expected a list or tuple."
-msgstr ""
+msgstr "無效的篩選條件：{0}。需要列表或元組。"
 
 #: frappe/database/query.py:857
 msgid "Invalid filter field format: {0}. Use 'fieldname' or 'link_fieldname.target_fieldname'."
-msgstr ""
+msgstr "無效的篩選欄位格式：{0}。請使用 'fieldname' 或 'link_fieldname.target_fieldname'。"
 
 #: frappe/public/js/frappe/ui/filters/filter_list.js:201
 msgid "Invalid filter: {0}"
-msgstr ""
+msgstr "無效的篩選條件：{0}"
 
 #: frappe/database/query.py:2302
 msgid "Invalid function argument type: {0}. Only strings, numbers, lists, and None are allowed."
-msgstr ""
+msgstr "無效的函數參數類型：{0}。僅允許字串、數字、列表和 None。"
 
 #: frappe/core/api/user_invitation.py:17
 msgid "Invalid input"
-msgstr ""
+msgstr "無效的輸入"
 
 #: frappe/desk/doctype/dashboard/dashboard.py:67 frappe/desk/doctype/dashboard_chart/dashboard_chart.py:427
 msgid "Invalid json added in the custom options: {0}"
-msgstr ""
+msgstr "自訂選項中新增了無效的 JSON：{0}"
 
 #: frappe/core/api/user_invitation.py:132
 msgid "Invalid key"
-msgstr ""
+msgstr "無效的金鑰"
 
 #: frappe/model/naming.py:511
 msgid "Invalid name type (integer) for varchar name column"
-msgstr ""
+msgstr "varchar 名稱欄位的名稱類型無效（整數）"
 
 #: frappe/model/naming.py:60
 msgid "Invalid naming series {}: dot (.) missing"
-msgstr ""
+msgstr "無效的命名序列 {}：缺少點號（.）"
 
 #: frappe/model/naming.py:74
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
-msgstr ""
+msgstr "無效的命名序列 {}：數字佔位符前缺少點號（.）。請使用類似 <b>ABCD.#####</b> 的格式。"
 
 #: frappe/database/query.py:2374
 msgid "Invalid nested expression: dictionary must represent a function or operator"
-msgstr ""
+msgstr "無效的巢狀表達式：字典必須表示函數或運算子"
 
 #: frappe/core/doctype/data_import/importer.py:458
 msgid "Invalid or corrupted content for import"
-msgstr ""
+msgstr "匯入的內容無效或已損壞"
 
 #: frappe/website/doctype/website_settings/website_settings.py:139
 msgid "Invalid redirect regex in row #{}: {}"
-msgstr ""
+msgstr "第 #{} 列中的重新導向正規表達式無效：{}"
 
 #: frappe/app.py:340
 msgid "Invalid request arguments"
-msgstr ""
+msgstr "無效的請求參數"
 
 #: frappe/app.py:327
 msgid "Invalid request body"
-msgstr ""
+msgstr "無效的請求內容"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:181
 msgid "Invalid role"
-msgstr ""
+msgstr "無效的角色"
 
 #: frappe/database/query.py:808
 msgid "Invalid simple filter format: {0}"
-msgstr ""
+msgstr "無效的簡單過濾器格式：{0}"
 
 #: frappe/database/query.py:728
 msgid "Invalid start for filter condition: {0}. Expected a list or tuple."
-msgstr ""
+msgstr "過濾條件的起始無效：{0}。預期為列表或元組。"
 
 #: frappe/core/doctype/data_import/importer.py:435
 msgid "Invalid template file for import"
-msgstr ""
+msgstr "匯入的範本檔案無效"
 
 #: frappe/integrations/doctype/connected_app/connected_app.py:208
 msgid "Invalid token state! Check if the token has been created by the OAuth user."
-msgstr ""
+msgstr "權杖狀態無效！請檢查權杖是否由 OAuth 使用者建立。"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:165 frappe/integrations/doctype/ldap_settings/ldap_settings.py:338
 msgid "Invalid username or password"
-msgstr ""
+msgstr "無效的用戶名或密碼"
 
 #: frappe/model/naming.py:174
 msgid "Invalid value specified for UUID: {}"
-msgstr ""
+msgstr "為 UUID 指定的值無效：{}"
 
 #: frappe/public/js/frappe/web_form/web_form.js:249
 msgctxt "Error message in web form"
@@ -12844,7 +12844,7 @@ msgstr ""
 
 #: frappe/printing/page/print/print.js:665
 msgid "Invalid wkhtmltopdf version"
-msgstr ""
+msgstr "無效的 wkhtmltopdf 版本"
 
 #: frappe/core/doctype/doctype/doctype.py:1627
 msgid "Invalid {0} condition"
@@ -12852,44 +12852,44 @@ msgstr "{0}條件無效"
 
 #: frappe/database/query.py:2263
 msgid "Invalid {0} dictionary format"
-msgstr ""
+msgstr "無效的 {0} 字典格式"
 
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Inverse"
-msgstr ""
+msgstr "反轉"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:95
 msgid "Invitation already accepted"
-msgstr ""
+msgstr "邀請已被接受"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:99
 msgid "Invitation already exists"
-msgstr ""
+msgstr "邀請已存在"
 
 #: frappe/core/api/user_invitation.py:101
 msgid "Invitation cannot be cancelled"
-msgstr ""
+msgstr "邀請無法取消"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:127
 msgid "Invitation is cancelled"
-msgstr ""
+msgstr "邀請已註銷"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:125
 msgid "Invitation is expired"
-msgstr ""
+msgstr "邀請已過期"
 
 #: frappe/core/api/user_invitation.py:90 frappe/core/api/user_invitation.py:95
 msgid "Invitation not found"
-msgstr ""
+msgstr "找不到邀請"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:59
 msgid "Invitation to join {0} cancelled"
-msgstr ""
+msgstr "加入 {0} 的邀請已註銷"
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:76
 msgid "Invitation to join {0} expired"
-msgstr ""
+msgstr "加入 {0} 的邀請已過期"
 
 #: frappe/contacts/doctype/contact/contact.js:30
 msgid "Invite as User"
@@ -12898,28 +12898,28 @@ msgstr "邀請成為用戶"
 #. Label of the invited_by (Link) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Invited By"
-msgstr ""
+msgstr "邀請人"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:22
 msgid "Is"
-msgstr ""
+msgstr "是"
 
 #. Label of the is_active (Check) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Is Active"
-msgstr ""
+msgstr "啟用中"
 
 #. Label of the is_attachments_folder (Check) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Is Attachments Folder"
-msgstr ""
+msgstr "是附件資料夾"
 
 #. Label of the is_calendar_and_gantt (Check) field in DocType 'DocType'
 #. Label of the is_calendar_and_gantt (Check) field in DocType 'Customize
 #. Form'
 #: frappe/core/doctype/doctype/doctype.json frappe/custom/doctype/customize_form/customize_form.json
 msgid "Is Calendar and Gantt"
-msgstr ""
+msgstr "是行事曆與甘特圖"
 
 #. Label of the istable (Check) field in DocType 'DocType'
 #. Label of the is_child_table (Check) field in DocType 'DocType Link'
@@ -12931,29 +12931,29 @@ msgstr "是子表"
 #. Label of the is_complete (Check) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/module_onboarding/module_onboarding.json frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Is Complete"
-msgstr ""
+msgstr "已完成"
 
 #. Label of the is_completed (Check) field in DocType 'Email Flag Queue'
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json
 msgid "Is Completed"
-msgstr ""
+msgstr "已完成"
 
 #. Label of the is_current (Check) field in DocType 'User Session Display'
 #: frappe/core/doctype/user_session_display/user_session_display.json
 msgid "Is Current"
-msgstr ""
+msgstr "是目前"
 
 #. Label of the is_custom (Check) field in DocType 'Role'
 #. Label of the is_custom (Check) field in DocType 'User Document Type'
 #: frappe/core/doctype/role/role.json frappe/core/doctype/user_document_type/user_document_type.json
 msgid "Is Custom"
-msgstr ""
+msgstr "是自訂"
 
 #. Label of the is_custom_field (Check) field in DocType 'Customize Form
 #. Field'
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Is Custom Field"
-msgstr ""
+msgstr "是自訂欄位"
 
 #. Label of the is_default (Check) field in DocType 'Address Template'
 #. Label of the is_default (Check) field in DocType 'User Permission'
@@ -12966,17 +12966,17 @@ msgstr "是預設"
 #. 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Is Dismissible"
-msgstr ""
+msgstr "可關閉"
 
 #. Label of the is_dynamic_url (Check) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "Is Dynamic URL?"
-msgstr ""
+msgstr "是動態 URL 嗎？"
 
 #. Label of the is_folder (Check) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Is Folder"
-msgstr ""
+msgstr "是資料夾"
 
 #: frappe/public/js/frappe/list/list_filter.js:113
 msgid "Is Global"
@@ -12984,68 +12984,68 @@ msgstr "是全球性的"
 
 #: frappe/public/js/frappe/views/treeview.js:427
 msgid "Is Group"
-msgstr ""
+msgstr "是集團"
 
 #. Label of the is_hidden (Check) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Is Hidden"
-msgstr ""
+msgstr "已隱藏"
 
 #. Label of the is_home_folder (Check) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Is Home Folder"
-msgstr ""
+msgstr "是主資料夾"
 
 #. Label of the reqd (Check) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
 msgid "Is Mandatory Field"
-msgstr ""
+msgstr "是必填欄位"
 
 #. Label of the is_optional_state (Check) field in DocType 'Workflow Document
 #. State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Is Optional State"
-msgstr ""
+msgstr "是可選狀態"
 
 #. Label of the is_primary (Check) field in DocType 'Contact Email'
 #: frappe/contacts/doctype/contact_email/contact_email.json
 msgid "Is Primary"
-msgstr ""
+msgstr "是主要的"
 
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:43
 msgid "Is Primary Address"
-msgstr ""
+msgstr "是主要地址"
 
 #. Label of the is_primary_contact (Check) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:49
 msgid "Is Primary Contact"
-msgstr ""
+msgstr "是主要聯絡人"
 
 #. Label of the is_primary_mobile_no (Check) field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
 msgid "Is Primary Mobile"
-msgstr ""
+msgstr "是主要手機號碼"
 
 #. Label of the is_primary_phone (Check) field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
 msgid "Is Primary Phone"
-msgstr ""
+msgstr "是主要電話號碼"
 
 #. Label of the is_private (Check) field in DocType 'File'
 #: frappe/core/doctype/file/file.json
 msgid "Is Private"
-msgstr ""
+msgstr "是私人的"
 
 #. Label of the is_public (Check) field in DocType 'Dashboard Chart'
 #. Label of the is_public (Check) field in DocType 'Number Card'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json frappe/desk/doctype/number_card/number_card.json
 msgid "Is Public"
-msgstr ""
+msgstr "是公開的"
 
 #. Label of the is_published_field (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Is Published Field"
-msgstr ""
+msgstr "是已發佈欄位"
 
 #: frappe/core/doctype/doctype/doctype.py:1578
 msgid "Is Published Field must be a valid fieldname"
@@ -13054,19 +13054,19 @@ msgstr "發布現場必須是有效的字段名"
 #. Label of the is_query_report (Check) field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json frappe/public/js/frappe/widgets/widget_dialog.js:341
 msgid "Is Query Report"
-msgstr ""
+msgstr "是查詢報表"
 
 #. Label of the is_remote_request (Check) field in DocType 'Integration
 #. Request'
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Is Remote Request?"
-msgstr ""
+msgstr "是遠端請求？"
 
 #. Label of the is_setup_complete (Check) field in DocType 'Installed
 #. Application'
 #: frappe/core/doctype/installed_application/installed_application.json
 msgid "Is Setup Complete?"
-msgstr ""
+msgstr "設定是否已完成？"
 
 #. Label of the issingle (Check) field in DocType 'DocType'
 #. Label of the is_single (Check) field in DocType 'Onboarding Step'
@@ -13077,12 +13077,12 @@ msgstr "單人"
 #. Label of the is_skipped (Check) field in DocType 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "Is Skipped"
-msgstr ""
+msgstr "已跳過"
 
 #. Label of the is_spam (Check) field in DocType 'Email Rule'
 #: frappe/email/doctype/email_rule/email_rule.json
 msgid "Is Spam"
-msgstr ""
+msgstr "是垃圾郵件"
 
 #. Label of the is_standard (Check) field in DocType 'Navbar Item'
 #. Label of the is_standard (Select) field in DocType 'Report'
@@ -13094,7 +13094,7 @@ msgstr ""
 #. Label of the is_standard (Check) field in DocType 'Notification'
 #: frappe/core/doctype/navbar_item/navbar_item.json frappe/core/doctype/report/report.json frappe/core/doctype/user_type/user_type.json frappe/desk/doctype/dashboard/dashboard.json frappe/desk/doctype/dashboard_chart/dashboard_chart.json frappe/desk/doctype/form_tour/form_tour.json frappe/desk/doctype/number_card/number_card.json frappe/email/doctype/notification/notification.json
 msgid "Is Standard"
-msgstr ""
+msgstr "是標準"
 
 #. Label of the is_submittable (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json frappe/core/doctype/doctype/doctype_list.js:40
@@ -13107,39 +13107,39 @@ msgstr "是可提交的"
 #. Label of the is_system_generated (Check) field in DocType 'Property Setter'
 #: frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/custom/doctype/property_setter/property_setter.json
 msgid "Is System Generated"
-msgstr ""
+msgstr "由系統產生"
 
 #. Label of the istable (Check) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Is Table"
-msgstr ""
+msgstr "是子表"
 
 #. Label of the is_table_field (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Is Table Field"
-msgstr ""
+msgstr "是表格欄位"
 
 #. Label of the is_tree (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Is Tree"
-msgstr ""
+msgstr "是樹狀結構"
 
 #. Label of the is_unique (Data) field in DocType 'Web Page View'
 #: frappe/website/doctype/web_page_view/web_page_view.json
 msgid "Is Unique"
-msgstr ""
+msgstr "是唯一的"
 
 #. Label of the is_virtual (Check) field in DocType 'DocType'
 #. Label of the is_virtual (Check) field in DocType 'Custom Field'
 #. Label of the is_virtual (Check) field in DocType 'Customize Form Field'
 #: frappe/core/doctype/doctype/doctype.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Is Virtual"
-msgstr ""
+msgstr "是虛擬的"
 
 #. Label of the is_standard (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Is standard"
-msgstr ""
+msgstr "是標準"
 
 #: frappe/core/doctype/file/utils.py:157 frappe/utils/file_manager.py:311
 msgid "It is risky to delete this file: {0}. Please contact your System Manager."
@@ -13147,17 +13147,17 @@ msgstr "刪除這個文件是有風險的：{0}。請聯絡您的系統管理員
 
 #: frappe/core/doctype/communication/email.py:359
 msgid "It is too late to undo this email. It is already being sent."
-msgstr ""
+msgstr "撤銷此電子郵件已來不及了，郵件正在發送中。"
 
 #. Label of the item_label (Data) field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
 msgid "Item Label"
-msgstr ""
+msgstr "項目標籤"
 
 #. Label of the item_type (Select) field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
 msgid "Item Type"
-msgstr ""
+msgstr "項目類型"
 
 #: frappe/utils/nestedset.py:233
 msgid "Item cannot be added to its own descendants"
@@ -13166,17 +13166,17 @@ msgstr "項目不能被添加到自己的後代"
 #. Label of the items (Table) field in DocType 'Workspace Sidebar'
 #: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.json
 msgid "Items"
-msgstr ""
+msgstr "項目"
 
 #. Option for the 'Print Format Type' (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "JS"
-msgstr ""
+msgstr "JS"
 
 #. Label of the js_message (HTML) field in DocType 'Custom HTML Block'
 #: frappe/desk/doctype/custom_html_block/custom_html_block.json
 msgid "JS Message"
-msgstr ""
+msgstr "JS 訊息"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the json (Code) field in DocType 'Report'
@@ -13186,26 +13186,26 @@ msgstr ""
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/core/doctype/report/report.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/integrations/doctype/webhook/webhook.json frappe/website/doctype/web_form_field/web_form_field.json
 msgid "JSON"
-msgstr ""
+msgstr "JSON"
 
 #. Label of the webhook_json (Code) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "JSON Request Body"
-msgstr ""
+msgstr "JSON請求主體"
 
 #: frappe/templates/signup.html:5
 msgid "Jane Doe"
-msgstr ""
+msgstr "王小明"
 
 #. Label of the js (Code) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "JavaScript"
-msgstr ""
+msgstr "JavaScript"
 
 #. Description of the 'Javascript' (Code) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "JavaScript Format: frappe.query_reports['REPORTNAME'] = {}"
-msgstr ""
+msgstr "JavaScript 格式：frappe.query_reports['REPORTNAME'] = {}"
 
 #. Label of the javascript (Code) field in DocType 'Report'
 #. Label of the javascript_section (Section Break) field in DocType 'Custom
@@ -13214,66 +13214,66 @@ msgstr ""
 #. Label of the javascript (Code) field in DocType 'Website Script'
 #: frappe/core/doctype/report/report.json frappe/desk/doctype/custom_html_block/custom_html_block.json frappe/website/doctype/web_page/web_page.json frappe/website/doctype/website_script/website_script.json
 msgid "Javascript"
-msgstr ""
+msgstr "Javascript"
 
 #: frappe/www/login.html:73
 msgid "Javascript is disabled on your browser"
-msgstr ""
+msgstr "您的瀏覽器已停用 Javascript"
 
 #. Option for the 'Print Format Type' (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Jinja"
-msgstr ""
+msgstr "Jinja"
 
 #. Label of the job_id (Data) field in DocType 'Prepared Report'
 #. Label of the job_id (Data) field in DocType 'RQ Job'
 #: frappe/core/doctype/prepared_report/prepared_report.json frappe/core/doctype/rq_job/rq_job.json
 msgid "Job ID"
-msgstr ""
+msgstr "工作 ID"
 
 #. Label of the job_id (Link) field in DocType 'Submission Queue'
 #: frappe/core/doctype/submission_queue/submission_queue.json
 msgid "Job Id"
-msgstr ""
+msgstr "工作 Id"
 
 #. Label of the job_info_section (Section Break) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
 msgid "Job Info"
-msgstr ""
+msgstr "工作資訊"
 
 #. Label of the job_name (Data) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
 msgid "Job Name"
-msgstr ""
+msgstr "工作名稱"
 
 #. Label of the job_status_section (Section Break) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
 msgid "Job Status"
-msgstr ""
+msgstr "工作狀態"
 
 #: frappe/core/doctype/data_import/data_import.js:191 frappe/core/doctype/rq_job/rq_job.js:24
 msgid "Job Stopped Successfully"
-msgstr ""
+msgstr "工作已成功停止"
 
 #: frappe/core/doctype/rq_job/rq_job.py:121
 msgid "Job is in {0} state and can't be cancelled"
-msgstr ""
+msgstr "工作處於 {0} 狀態，無法取消"
 
 #: frappe/core/doctype/data_import/data_import.py:183 frappe/core/doctype/prepared_report/prepared_report.py:213 frappe/core/doctype/rq_job/rq_job.py:113
 msgid "Job is not running."
-msgstr ""
+msgstr "工作未在執行。"
 
 #: frappe/core/doctype/prepared_report/prepared_report.py:211
 msgid "Job stopped successfully"
-msgstr ""
+msgstr "工作已成功停止"
 
 #: frappe/desk/doctype/event/event.js:55
 msgid "Join video conference with {0}"
-msgstr ""
+msgstr "透過 {0} 加入視訊會議"
 
 #: frappe/public/js/frappe/form/toolbar.js:421 frappe/public/js/frappe/form/toolbar.js:876
 msgid "Jump to field"
-msgstr ""
+msgstr "跳至欄位"
 
 #: frappe/public/js/frappe/utils/number_systems.js:17 frappe/public/js/frappe/utils/number_systems.js:31 frappe/public/js/frappe/utils/number_systems.js:53
 msgctxt "Number system"
@@ -13285,18 +13285,18 @@ msgstr ""
 #. Shortcut'
 #: frappe/desk/doctype/form_tour/form_tour.json frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgid "Kanban"
-msgstr ""
+msgstr "看板"
 
 #. Name of a DocType
 #. Label of the kanban_board (Link) field in DocType 'Workspace Shortcut'
 #: frappe/desk/doctype/kanban_board/kanban_board.json frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json frappe/public/js/frappe/widgets/widget_dialog.js:511
 msgid "Kanban Board"
-msgstr ""
+msgstr "看板"
 
 #. Name of a DocType
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Kanban Board Column"
-msgstr ""
+msgstr "看板欄位"
 
 #. Label of the kanban_board_name (Data) field in DocType 'Kanban Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json frappe/public/js/frappe/views/kanban/kanban_view.js:425
@@ -13310,22 +13310,22 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/base_list.js:207
 msgid "Kanban View"
-msgstr ""
+msgstr "看板檢視"
 
 #. Label of the keep_closed (Check) field in DocType 'Workspace Sidebar Item'
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Keep Closed"
-msgstr ""
+msgstr "保持關閉"
 
 #. Description of a DocType
 #: frappe/core/doctype/activity_log/activity_log.json
 msgid "Keep track of all update feeds"
-msgstr ""
+msgstr "追蹤所有更新動態"
 
 #. Description of a DocType
 #: frappe/core/doctype/communication/communication.json
 msgid "Keeps track of all communications"
-msgstr ""
+msgstr "追蹤所有通訊記錄"
 
 #. Label of the defkey (Data) field in DocType 'DefaultValue'
 #. Label of the key (Data) field in DocType 'Document Share Key'
@@ -13336,19 +13336,19 @@ msgstr ""
 #. Label of the key (Data) field in DocType 'Website Meta Tag'
 #: frappe/core/doctype/defaultvalue/defaultvalue.json frappe/core/doctype/document_share_key/document_share_key.json frappe/core/doctype/user_invitation/user_invitation.json frappe/integrations/doctype/query_parameters/query_parameters.json frappe/integrations/doctype/webhook_data/webhook_data.json frappe/integrations/doctype/webhook_header/webhook_header.json frappe/website/doctype/website_meta_tag/website_meta_tag.json
 msgid "Key"
-msgstr ""
+msgstr "鍵"
 
 #. Label of a standard help item
 #. Type: Action
 #: frappe/hooks.py frappe/public/js/frappe/ui/keyboard.js:130
 msgid "Keyboard Shortcuts"
-msgstr ""
+msgstr "鍵盤快捷鍵"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Keycloak"
-msgstr ""
+msgstr "Keycloak"
 
 #: frappe/public/js/frappe/utils/number_systems.js:37
 msgctxt "Number system"
@@ -13378,66 +13378,66 @@ msgstr ""
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Auth"
-msgstr ""
+msgstr "LDAP 驗證"
 
 #. Label of the ldap_custom_settings_section (Section Break) field in DocType
 #. 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Custom Settings"
-msgstr ""
+msgstr "LDAP 自訂設定"
 
 #. Label of the ldap_email_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Email Field"
-msgstr ""
+msgstr "LDAP 電子郵件欄位"
 
 #. Label of the ldap_first_name_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP First Name Field"
-msgstr ""
+msgstr "LDAP 名字欄位"
 
 #. Label of the ldap_group (Data) field in DocType 'LDAP Group Mapping'
 #: frappe/integrations/doctype/ldap_group_mapping/ldap_group_mapping.json
 msgid "LDAP Group"
-msgstr ""
+msgstr "LDAP群組"
 
 #. Label of the ldap_group_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Group Field"
-msgstr ""
+msgstr "LDAP群組欄位"
 
 #. Name of a DocType
 #: frappe/integrations/doctype/ldap_group_mapping/ldap_group_mapping.json
 msgid "LDAP Group Mapping"
-msgstr ""
+msgstr "LDAP群組對應"
 
 #. Label of the ldap_group_mappings_section (Section Break) field in DocType
 #. 'LDAP Settings'
 #. Label of the ldap_groups (Table) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Group Mappings"
-msgstr ""
+msgstr "LDAP群組對應"
 
 #. Label of the ldap_group_member_attribute (Data) field in DocType 'LDAP
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Group Member attribute"
-msgstr ""
+msgstr "LDAP群組成員屬性"
 
 #. Label of the ldap_last_name_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Last Name Field"
-msgstr ""
+msgstr "LDAP姓氏欄位"
 
 #. Label of the ldap_middle_name_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Middle Name Field"
-msgstr ""
+msgstr "LDAP中間名欄位"
 
 #. Label of the ldap_mobile_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Mobile Field"
-msgstr ""
+msgstr "LDAP手機欄位"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:163
 msgid "LDAP Not Installed"
@@ -13446,38 +13446,38 @@ msgstr "LDAP未安裝"
 #. Label of the ldap_phone_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Phone Field"
-msgstr ""
+msgstr "LDAP電話欄位"
 
 #. Label of the ldap_search_string (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Search String"
-msgstr ""
+msgstr "LDAP搜尋字串"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:130
 msgid "LDAP Search String must be enclosed in '()' and needs to contian the user placeholder {0}, eg sAMAccountName={0}"
-msgstr ""
+msgstr "LDAP搜尋字串必須包含在'()'中，並且需要包含使用者佔位符{0}，例如 sAMAccountName={0}"
 
 #. Label of the ldap_search_and_paths_section (Section Break) field in DocType
 #. 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Search and Paths"
-msgstr ""
+msgstr "LDAP搜尋與路徑"
 
 #. Label of the ldap_security (Section Break) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Security"
-msgstr ""
+msgstr "LDAP安全性"
 
 #. Label of the ldap_server_settings_section (Section Break) field in DocType
 #. 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Server Settings"
-msgstr ""
+msgstr "LDAP伺服器設定"
 
 #. Label of the ldap_server_url (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Server Url"
-msgstr ""
+msgstr "LDAP伺服器URL"
 
 #. Name of a DocType
 #. Label of a Link in the Integrations Workspace
@@ -13491,30 +13491,30 @@ msgstr "LDAP設置"
 #. DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP User Creation and Mapping"
-msgstr ""
+msgstr "LDAP使用者建立與對應"
 
 #. Label of the ldap_username_field (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Username Field"
-msgstr ""
+msgstr "LDAP使用者名稱欄位"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:310 frappe/integrations/doctype/ldap_settings/ldap_settings.py:431
 msgid "LDAP is not enabled."
-msgstr ""
+msgstr "LDAP未啟用。"
 
 #. Label of the ldap_search_path_group (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP search path for Groups"
-msgstr ""
+msgstr "LDAP群組搜尋路徑"
 
 #. Label of the ldap_search_path_user (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP search path for Users"
-msgstr ""
+msgstr "LDAP使用者搜尋路徑"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:102
 msgid "LDAP settings incorrect. validation response was: {0}"
-msgstr ""
+msgstr "LDAP設置不正確。驗證回覆為：{0}"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Label of the label (Data) field in DocType 'DocField'
@@ -13543,14 +13543,14 @@ msgstr "標籤"
 #. Label of the label_help (HTML) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
 msgid "Label Help"
-msgstr ""
+msgstr "標籤幫助"
 
 #. Label of the label_and_type (Section Break) field in DocType 'Customize
 #. Form
 #. Field'
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Label and Type"
-msgstr ""
+msgstr "標籤和類型"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:148
 msgid "Label is mandatory"
@@ -13559,11 +13559,11 @@ msgstr "標籤是強制性的"
 #. Label of the sb0 (Section Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Landing Page"
-msgstr ""
+msgstr "到達頁面"
 
 #: frappe/public/js/frappe/form/print_utils.js:25
 msgid "Landscape"
-msgstr ""
+msgstr "橫向"
 
 #. Name of a DocType
 #. Label of the language (Link) field in DocType 'System Settings'
@@ -13577,143 +13577,143 @@ msgstr "語言"
 #. Label of the language_code (Data) field in DocType 'Language'
 #: frappe/core/doctype/language/language.json
 msgid "Language Code"
-msgstr ""
+msgstr "語言代碼"
 
 #. Label of the language_name (Data) field in DocType 'Language'
 #: frappe/core/doctype/language/language.json
 msgid "Language Name"
-msgstr ""
+msgstr "語言名稱"
 
 #: frappe/public/js/frappe/form/grid_pagination.js:129
 msgid "Last"
-msgstr ""
+msgstr "最後"
 
 #. Label of the last_10_active_users (Code) field in DocType 'System Health
 #. Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Last 10 active users"
-msgstr ""
+msgstr "最近10個活躍使用者"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:637
 msgid "Last 14 Days"
-msgstr ""
+msgstr "過去14天"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:641
 msgid "Last 30 Days"
-msgstr ""
+msgstr "過去30天"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:661
 msgid "Last 6 Months"
-msgstr ""
+msgstr "過去6個月"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:633
 msgid "Last 7 Days"
-msgstr ""
+msgstr "過去7天"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:645
 msgid "Last 90 Days"
-msgstr ""
+msgstr "過去90天"
 
 #. Label of the last_active (Datetime) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Active"
-msgstr ""
+msgstr "最後活躍"
 
 #: frappe/public/js/frappe/form/sidebar/form_sidebar.js:161
 msgid "Last Edited by You"
-msgstr ""
+msgstr "您最後編輯"
 
 #: frappe/public/js/frappe/form/sidebar/form_sidebar.js:162
 msgid "Last Edited by {0}"
-msgstr ""
+msgstr "最後由 {0} 編輯"
 
 #. Label of the last_execution (Datetime) field in DocType 'Scheduled Job
 #. Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Last Execution"
-msgstr ""
+msgstr "上次執行"
 
 #. Label of the last_heartbeat (Datetime) field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "Last Heartbeat"
-msgstr ""
+msgstr "上一次心跳"
 
 #. Label of the last_ip (Read Only) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last IP"
-msgstr ""
+msgstr "上次IP"
 
 #. Label of the last_known_versions (Text) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Known Versions"
-msgstr ""
+msgstr "最後已知版本"
 
 #. Label of the last_login (Read Only) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Login"
-msgstr ""
+msgstr "上次登入"
 
 #: frappe/email/doctype/notification/notification.js:32
 msgid "Last Modified Date"
-msgstr ""
+msgstr "最後修改日期"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:242 frappe/public/js/frappe/views/dashboard/dashboard_view.js:481
 msgid "Last Modified On"
-msgstr ""
+msgstr "最後修改於"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json frappe/public/js/frappe/ui/filters/filter.js:653
 msgid "Last Month"
-msgstr ""
+msgstr "上個月"
 
 #. Label of the last_name (Data) field in DocType 'Contact'
 #. Label of the last_name (Data) field in DocType 'User'
 #. Label of a field in the edit-profile Web Form
 #: frappe/contacts/doctype/contact/contact.json frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:45 frappe/core/doctype/user/user.json frappe/core/web_form/edit_profile/edit_profile.json frappe/www/complete_signup.html:19
 msgid "Last Name"
-msgstr ""
+msgstr "姓氏"
 
 #. Label of the last_password_reset_date (Date) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Password Reset Date"
-msgstr ""
+msgstr "上次密碼重設日期"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json frappe/public/js/frappe/ui/filters/filter.js:657
 msgid "Last Quarter"
-msgstr ""
+msgstr "上季度"
 
 #. Label of the last_received_at (Datetime) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Last Received At"
-msgstr ""
+msgstr "上次接收於"
 
 #. Label of the last_reset_password_key_generated_on (Datetime) field in
 #. DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Last Reset Password Key Generated On"
-msgstr ""
+msgstr "上次重設密碼金鑰產生於"
 
 #. Label of the datetime_last_run (Datetime) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Last Run"
-msgstr ""
+msgstr "上次執行"
 
 #. Label of the last_sync_on (Datetime) field in DocType 'Google Contacts'
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 msgid "Last Sync On"
-msgstr ""
+msgstr "上次同步於"
 
 #. Label of the last_synced_on (Datetime) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Last Synced On"
-msgstr ""
+msgstr "上次同步於"
 
 #. Label of the last_updated (Datetime) field in DocType 'User Session
 #. Display'
 #: frappe/core/doctype/user_session_display/user_session_display.json
 msgid "Last Updated"
-msgstr ""
+msgstr "最後更新"
 
 #: frappe/model/meta.py:57 frappe/public/js/frappe/model/meta.js:213 frappe/public/js/frappe/model/model.js:130
 msgid "Last Updated By"
@@ -13726,43 +13726,43 @@ msgstr "最後更新日期："
 #. Label of the last_user (Link) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Last User"
-msgstr ""
+msgstr "最後使用者"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json frappe/public/js/frappe/ui/filters/filter.js:649
 msgid "Last Week"
-msgstr ""
+msgstr "上週"
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json frappe/public/js/frappe/ui/filters/filter.js:665
 msgid "Last Year"
-msgstr ""
+msgstr "去年"
 
 #: frappe/public/js/frappe/widgets/chart_widget.js:778
 msgid "Last synced {0}"
-msgstr ""
+msgstr "最後同步於 {0}"
 
 #. Label of the layout (Code) field in DocType 'Desktop Layout'
 #: frappe/desk/doctype/desktop_layout/desktop_layout.json
 msgid "Layout"
-msgstr ""
+msgstr "佈局"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:207
 msgid "Layout Reset"
-msgstr ""
+msgstr "佈局重設"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:199
 msgid "Layout will be reset to standard layout, are you sure you want to do this?"
-msgstr ""
+msgstr "佈局將重設為標準佈局，您確定要執行此操作嗎？"
 
 #: frappe/website/web_template/section_with_features/section_with_features.html:26
 msgid "Learn more"
-msgstr ""
+msgstr "了解更多"
 
 #. Description of the 'Repeat Till' (Date) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Leave blank to repeat always"
-msgstr ""
+msgstr "留空以始終重複"
 
 #: frappe/core/doctype/communication/mixins.py:223 frappe/email/doctype/email_account/email_account.py:816
 msgid "Leave this conversation"
@@ -13771,7 +13771,7 @@ msgstr "離開這個談話"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Ledger"
-msgstr ""
+msgstr "分類帳"
 
 #. Option for the 'Alignment' (Select) field in DocType 'DocField'
 #. Option for the 'Alignment' (Select) field in DocType 'Custom Field'
@@ -13781,7 +13781,7 @@ msgstr ""
 #. Option for the 'Text Align' (Select) field in DocType 'Web Page'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/desk/doctype/form_tour_step/form_tour_step.json frappe/printing/doctype/letter_head/letter_head.json frappe/website/doctype/web_page/web_page.json
 msgid "Left"
-msgstr ""
+msgstr "左"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:485 frappe/public/js/print_format_builder/PrintFormatControls.vue:155
 msgctxt "alignment"
@@ -13791,12 +13791,12 @@ msgstr "左"
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Left Bottom"
-msgstr ""
+msgstr "左下"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Left Center"
-msgstr ""
+msgstr "左中"
 
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.py:58
 msgid "Left this conversation"
@@ -13805,18 +13805,18 @@ msgstr "離開了這個談話"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Legal"
-msgstr ""
+msgstr "Legal"
 
 #. Label of the length (Int) field in DocType 'DocField'
 #. Label of the length (Int) field in DocType 'Custom Field'
 #. Label of the length (Int) field in DocType 'Customize Form Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Length"
-msgstr ""
+msgstr "長度"
 
 #: frappe/public/js/frappe/ui/chart.js:11
 msgid "Length of passed data array is greater than value of maximum allowed label points!"
-msgstr ""
+msgstr "傳遞的資料陣列長度大於允許的最大標籤點數值！"
 
 #: frappe/database/schema.py:138
 msgid "Length of {0} should be between 1 and 1000"
@@ -13824,23 +13824,23 @@ msgstr "的{0}長度應介於1和1000之間"
 
 #: frappe/public/js/frappe/widgets/chart_widget.js:764
 msgid "Less"
-msgstr ""
+msgstr "少"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:24
 msgid "Less Than"
-msgstr ""
+msgstr "小於"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:26
 msgid "Less Than Or Equal To"
-msgstr ""
+msgstr "小於或等於"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:434
 msgid "Let us continue with the onboarding"
-msgstr ""
+msgstr "讓我們繼續入門引導"
 
 #: frappe/public/js/frappe/views/workspace/blocks/onboarding.js:94 frappe/public/js/frappe/widgets/onboarding_widget.js:597
 msgid "Let's Get Started"
-msgstr ""
+msgstr "讓我們開始吧"
 
 #: frappe/utils/password_strength.py:111
 msgid "Let's avoid repeated words and characters"
@@ -13848,16 +13848,16 @@ msgstr "讓我們避免重複的字和字符"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:487
 msgid "Let's set up your account"
-msgstr ""
+msgstr "讓我們設定您的帳戶"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:263 frappe/public/js/frappe/widgets/onboarding_widget.js:304 frappe/public/js/frappe/widgets/onboarding_widget.js:375 frappe/public/js/frappe/widgets/onboarding_widget.js:414
 msgid "Let's take you back to onboarding"
-msgstr ""
+msgstr "讓我們回到入門引導"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Letter"
-msgstr ""
+msgstr "Letter"
 
 #. Name of a DocType
 #: frappe/printing/doctype/letter_head/letter_head.json frappe/printing/page/print/print.js:149 frappe/public/js/frappe/form/print_utils.js:56 frappe/public/js/frappe/form/templates/print_layout.html:16 frappe/public/js/frappe/list/bulk_operations.js:52 frappe/public/js/print_format_builder/LetterHeadEditor.vue:144
@@ -13867,32 +13867,32 @@ msgstr "信頭"
 #. Label of the source (Select) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Letter Head Based On"
-msgstr ""
+msgstr "信頭類型"
 
 #. Label of the letter_head_image_section (Section Break) field in DocType
 #. 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Letter Head Image"
-msgstr ""
+msgstr "信頭圖片"
 
 #. Label of the letter_head_name (Data) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json frappe/public/js/print_format_builder/LetterHeadEditor.vue:198
 msgid "Letter Head Name"
-msgstr ""
+msgstr "信頭名稱"
 
 #: frappe/printing/doctype/letter_head/letter_head.js:30
 msgid "Letter Head Scripts"
-msgstr ""
+msgstr "信頭腳本"
 
 #: frappe/printing/doctype/letter_head/letter_head.py:56
 msgid "Letter Head cannot be both disabled and default"
-msgstr ""
+msgstr "信頭不能同時為已停用和預設"
 
 #. Description of the 'Header HTML' (HTML Editor) field in DocType 'Letter
 #. Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Letter Head in HTML"
-msgstr ""
+msgstr "HTML 格式的信頭"
 
 #. Label of the permlevel (Int) field in DocType 'Custom DocPerm'
 #. Label of the permlevel (Int) field in DocType 'DocPerm'
@@ -13903,41 +13903,41 @@ msgstr "級別"
 
 #: frappe/core/page/permission_manager/permission_manager.js:524
 msgid "Level 0 is for document level permissions, higher levels for field level permissions."
-msgstr ""
+msgstr "級別 0 用於文件級別權限，更高級別用於欄位級別權限。"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:94
 msgid "Library"
-msgstr ""
+msgstr "媒體庫"
 
 #. Label of the license (Markdown Editor) field in DocType 'Package'
 #: frappe/core/doctype/package/package.json frappe/www/attribution.html:36
 msgid "License"
-msgstr ""
+msgstr "授權條款"
 
 #. Label of the license_type (Select) field in DocType 'Package'
 #: frappe/core/doctype/package/package.json
 msgid "License Type"
-msgstr ""
+msgstr "授權類型"
 
 #. Option for the 'Desk Theme' (Select) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Light"
-msgstr ""
+msgstr "淺色"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
 #: frappe/core/doctype/doctype_state/doctype_state.json frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Light Blue"
-msgstr ""
+msgstr "淺藍色"
 
 #. Label of the light_color (Link) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Light Color"
-msgstr ""
+msgstr "淺色"
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:60
 msgid "Light Theme"
-msgstr ""
+msgstr "淺色主題"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json frappe/public/js/frappe/list/base_list.js:1296 frappe/public/js/frappe/ui/filters/filter.js:18
@@ -13954,30 +13954,30 @@ msgstr "喜歡通過"
 
 #: frappe/public/js/frappe/list/list_view.js:785
 msgid "Liked by me"
-msgstr ""
+msgstr "我按讚的"
 
 #: frappe/public/js/frappe/ui/like.js:117
 msgid "Liked by {0} people"
-msgstr ""
+msgstr "{0} 人按讚"
 
 #. Label of the likes (Int) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Likes"
-msgstr ""
+msgstr "按讚數"
 
 #. Label of the limit (Int) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "Limit"
-msgstr ""
+msgstr "限制"
 
 #: frappe/database/query.py:296
 msgid "Limit must be a non-negative integer"
-msgstr ""
+msgstr "限制值必須為非負整數"
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Line"
-msgstr ""
+msgstr "折線圖"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
@@ -13997,30 +13997,30 @@ msgstr ""
 #. Task'
 #: frappe/core/doctype/docfield/docfield.json frappe/core/doctype/report_column/report_column.json frappe/core/doctype/report_filter/report_filter.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/desk/doctype/changelog_feed/changelog_feed.json frappe/desk/doctype/desktop_icon/desktop_icon.json frappe/desk/doctype/notification_log/notification_log.json frappe/desk/doctype/workspace/workspace.json frappe/desk/doctype/workspace_link/workspace_link.json frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json frappe/public/js/frappe/file_uploader/FileUploader.vue:128 frappe/website/doctype/web_form_field/web_form_field.json frappe/website/doctype/web_template_field/web_template_field.json frappe/workflow/doctype/workflow_transition_task/workflow_transition_task.json
 msgid "Link"
-msgstr ""
+msgstr "連結"
 
 #. Label of the tab_break_18 (Tab Break) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Link Cards"
-msgstr ""
+msgstr "連結卡片"
 
 #. Label of the link_count (Int) field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 msgid "Link Count"
-msgstr ""
+msgstr "連結數量"
 
 #. Label of the link_details_section (Section Break) field in DocType
 #. 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 msgid "Link Details"
-msgstr ""
+msgstr "連結詳情"
 
 #. Label of the link_doctype (Link) field in DocType 'Activity Log'
 #. Label of the link_doctype (Link) field in DocType 'Communication Link'
 #. Label of the link_doctype (Link) field in DocType 'DocType Link'
 #: frappe/core/doctype/activity_log/activity_log.json frappe/core/doctype/communication_link/communication_link.json frappe/core/doctype/doctype_link/doctype_link.json
 msgid "Link DocType"
-msgstr ""
+msgstr "連結 DocType"
 
 #. Label of the link_doctype (Link) field in DocType 'Dynamic Link'
 #: frappe/core/doctype/dynamic_link/dynamic_link.json
@@ -14147,7 +14147,7 @@ msgstr ""
 #. Label of the list_columns (Table) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "List Columns"
-msgstr ""
+msgstr "列表欄位"
 
 #. Name of a DocType
 #: frappe/desk/doctype/list_filter/list_filter.json
@@ -14160,7 +14160,7 @@ msgstr "列表過濾器"
 #. Label of the section_break_3 (Section Break) field in DocType 'Web Form'
 #: frappe/core/doctype/user/user.json frappe/custom/doctype/customize_form/customize_form.json frappe/website/doctype/web_form/web_form.json
 msgid "List Settings"
-msgstr ""
+msgstr "列表設置"
 
 #: frappe/public/js/frappe/list/list_view.js:2105
 msgctxt "Button in list view menu"
@@ -14169,7 +14169,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/list/base_list.js:203
 msgid "List View"
-msgstr ""
+msgstr "列表視圖"
 
 #. Name of a DocType
 #: frappe/desk/doctype/list_view_settings/list_view_settings.json
@@ -14184,36 +14184,36 @@ msgstr "列出的文件類型"
 #. Description of the 'Breadcrumbs' (Code) field in DocType 'Web Page'
 #: frappe/website/doctype/web_form/web_form.json frappe/website/doctype/web_page/web_page.json
 msgid "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
-msgstr ""
+msgstr "列表格式為 [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
 
 #. Description of the 'Send Notification to' (Small Text) field in DocType
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "List of email addresses, separated by comma or new line."
-msgstr ""
+msgstr "電子郵件地址列表，以逗號或換行分隔。"
 
 #. Description of a DocType
 #: frappe/core/doctype/patch_log/patch_log.json
 msgid "List of patches executed"
-msgstr ""
+msgstr "已執行的修補程式列表"
 
 #. Label of the list_setting_message (HTML) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "List setting message"
-msgstr ""
+msgstr "列表設置訊息"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:563
 msgid "Lists"
-msgstr ""
+msgstr "列表"
 
 #. Option for the 'Rule' (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Load Balancing"
-msgstr ""
+msgstr "負載平衡"
 
 #: frappe/public/js/frappe/list/base_list.js:387 frappe/public/js/frappe/web_form/web_form_list.js:306 frappe/website/doctype/help_article/templates/help_article_list.html:30
 msgid "Load More"
-msgstr ""
+msgstr "載入更多"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:220
 msgctxt "Form timeline"
@@ -14222,7 +14222,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/file_uploader/TreeNode.vue:45
 msgid "Load more"
-msgstr ""
+msgstr "載入更多"
 
 #: frappe/core/page/permission_manager/permission_manager.js:178 frappe/public/js/frappe/form/controls/multicheck.js:13 frappe/public/js/frappe/form/linked_with.js:14 frappe/public/js/frappe/list/base_list.js:509 frappe/public/js/frappe/list/list_view.js:386 frappe/public/js/frappe/ui/listing.html:16 frappe/public/js/frappe/views/reports/query_report.js:1152
 msgid "Loading"
@@ -14230,15 +14230,15 @@ msgstr "載入中"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:107
 msgid "Loading Filters..."
-msgstr ""
+msgstr "正在載入篩選條件..."
 
 #: frappe/core/doctype/data_import/data_import.js:283
 msgid "Loading import file..."
-msgstr ""
+msgstr "正在載入匯入檔案..."
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:75
 msgid "Loading versions..."
-msgstr ""
+msgstr "正在載入版本..."
 
 #: frappe/public/js/frappe/file_uploader/TreeNode.vue:45 frappe/public/js/frappe/form/sidebar/share.js:62 frappe/public/js/frappe/list/base_list.js:1066 frappe/public/js/frappe/list/list_sidebar_group_by.js:93 frappe/public/js/frappe/views/kanban/kanban_board.html:11 frappe/public/js/frappe/widgets/chart_widget.js:52 frappe/public/js/frappe/widgets/number_card_widget.js:189 frappe/public/js/frappe/widgets/quick_list_widget.js:129
 msgid "Loading..."
@@ -14246,65 +14246,65 @@ msgstr "載入中..."
 
 #: frappe/core/page/permission_manager/permission_manager.js:615
 msgid "Loading…"
-msgstr ""
+msgstr "載入中…"
 
 #. Label of the location (Data) field in DocType 'User'
 #. Label of the location (Data) field in DocType 'Event'
 #: frappe/core/doctype/user/user.json frappe/desk/doctype/event/event.json
 msgid "Location"
-msgstr ""
+msgstr "位置"
 
 #. Label of the log (Code) field in DocType 'Package Import'
 #: frappe/core/doctype/package_import/package_import.json
 msgid "Log"
-msgstr ""
+msgstr "日誌"
 
 #. Label of the log_api_requests (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Log API Requests"
-msgstr ""
+msgstr "記錄 API 請求"
 
 #. Label of the log_data_section (Section Break) field in DocType 'Access Log'
 #: frappe/core/doctype/access_log/access_log.json
 msgid "Log Data"
-msgstr ""
+msgstr "日誌資料"
 
 #. Label of the ref_doctype (Link) field in DocType 'Logs To Clear'
 #: frappe/core/doctype/logs_to_clear/logs_to_clear.json
 msgid "Log DocType"
-msgstr ""
+msgstr "日誌單據類型"
 
 #: frappe/templates/emails/login_with_email_link.html:27
 msgid "Log In To {0}"
-msgstr ""
+msgstr "登入 {0}"
 
 #. Label of the log_index (Int) field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
 msgid "Log Index"
-msgstr ""
+msgstr "日誌索引"
 
 #. Name of a DocType
 #: frappe/core/doctype/log_setting_user/log_setting_user.json
 msgid "Log Setting User"
-msgstr ""
+msgstr "日誌設定使用者"
 
 #. Name of a DocType
 #. Label of a Workspace Sidebar Item
 #: frappe/core/doctype/log_settings/log_settings.json frappe/public/js/frappe/logtypes.js:20 frappe/workspace_sidebar/system.json
 msgid "Log Settings"
-msgstr ""
+msgstr "日誌設定"
 
 #: frappe/www/desk.py:23
 msgid "Log in to access this page."
-msgstr ""
+msgstr "請登入以存取此頁面。"
 
 #: frappe/website/doctype/website_settings/website_settings.py:182
 msgid "Log out"
-msgstr ""
+msgstr "登出"
 
 #: frappe/handler.py:121
 msgid "Logged Out"
-msgstr ""
+msgstr "已登出"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #. Label of the security_tab (Tab Break) field in DocType 'System Settings'
@@ -14315,21 +14315,21 @@ msgstr "登入"
 #. Label of a chart in the Users Workspace
 #: frappe/core/workspace/users/users.json
 msgid "Login Activity"
-msgstr ""
+msgstr "登入活動"
 
 #. Label of the login_after (Int) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Login After"
-msgstr ""
+msgstr "登入起始時間"
 
 #. Label of the login_before (Int) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Login Before"
-msgstr ""
+msgstr "登入截止時間"
 
 #: frappe/public/js/frappe/desk.js:258
 msgid "Login Failed please try again"
-msgstr ""
+msgstr "登入失敗，請重試"
 
 #: frappe/email/doctype/email_account/email_account.py:151
 msgid "Login Id is required"
@@ -14339,17 +14339,17 @@ msgstr "登錄ID是必需的"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Login Methods"
-msgstr ""
+msgstr "登入方式"
 
 #. Label of the misc_section (Section Break) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Login Page"
-msgstr ""
+msgstr "登入頁面"
 
 #: frappe/www/login.py:149
 msgid "Login To {0}"
-msgstr ""
+msgstr "登入 {0}"
 
 #: frappe/twofactor.py:260
 msgid "Login Verification Code from {}"
@@ -14361,11 +14361,11 @@ msgstr "在瀏覽器中登錄和查看"
 
 #: frappe/website/doctype/web_form/web_form.js:494
 msgid "Login is required to see web form list view. Enable {0} to see list settings"
-msgstr ""
+msgstr "需要登入才能查看網頁表單的列表檢視。啟用 {0} 以查看列表設定"
 
 #: frappe/templates/includes/login/login.js:68
 msgid "Login link sent to your email"
-msgstr ""
+msgstr "登入連結已發送至您的電子郵件"
 
 #: frappe/auth.py:354 frappe/auth.py:357
 msgid "Login not allowed at this time"
@@ -14374,7 +14374,7 @@ msgstr "在這個時候不允許登錄"
 #. Label of the login_required (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Login required"
-msgstr ""
+msgstr "需要登入"
 
 #: frappe/twofactor.py:164
 msgid "Login session expired, refresh page to retry"
@@ -14386,27 +14386,27 @@ msgstr "登錄發表評論"
 
 #: frappe/templates/includes/comments/comments.html:6
 msgid "Login to start a new discussion"
-msgstr ""
+msgstr "登入以開始新的討論"
 
 #: frappe/www/portal.py:19
 msgid "Login to view"
-msgstr ""
+msgstr "登入以檢視"
 
 #: frappe/www/login.html:63
 msgid "Login to {0}"
-msgstr ""
+msgstr "登入 {0}"
 
 #: frappe/templates/includes/login/login.js:315
 msgid "Login token required"
-msgstr ""
+msgstr "需要登入權杖"
 
 #: frappe/www/login.html:125 frappe/www/login.html:204
 msgid "Login with Email Link"
-msgstr ""
+msgstr "透過電子郵件連結登入"
 
 #: frappe/www/login.html:115
 msgid "Login with Frappe Cloud"
-msgstr ""
+msgstr "透過 Frappe Cloud 登入"
 
 #: frappe/www/login.html:48
 msgid "Login with LDAP"
@@ -14416,13 +14416,13 @@ msgstr "與LDAP登錄"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Login with email link"
-msgstr ""
+msgstr "透過電子郵件連結登入"
 
 #. Label of the login_with_email_link_expiry (Int) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Login with email link expiry (in minutes)"
-msgstr ""
+msgstr "電子郵件連結登入過期時間（分鐘）"
 
 #: frappe/auth.py:150
 msgid "Login with username and password is not allowed."
@@ -14636,7 +14636,7 @@ msgstr "在表{0}需要強制字段，行{1}"
 
 #: frappe/public/js/frappe/form/save.js:186
 msgid "Mandatory fields required in {0}"
-msgstr ""
+msgstr "{0} 中有必填欄位未填寫"
 
 #: frappe/public/js/frappe/web_form/web_form.js:254
 msgctxt "Error message in web form"
@@ -14650,58 +14650,58 @@ msgstr "強制性："
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "Map"
-msgstr ""
+msgstr "地圖"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:194 frappe/public/js/frappe/data_import/import_preview.js:306
 msgid "Map Columns"
-msgstr ""
+msgstr "對應欄位"
 
 #: frappe/public/js/frappe/list/base_list.js:212
 msgid "Map View"
-msgstr ""
+msgstr "地圖檢視"
 
 #: frappe/public/js/frappe/data_import/import_preview.js:296
 msgid "Map columns from {0} to fields in {1}"
-msgstr ""
+msgstr "將 {0} 中的欄位對應至 {1} 中的欄位"
 
 #. Description of the 'Dynamic Route' (Check) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Map route parameters into form variables. Example <code>/project/&lt;name&gt;</code>"
-msgstr ""
+msgstr "將路由參數對應到表單變數。範例 <code>/project/&lt;name&gt;</code>"
 
 #: frappe/core/doctype/data_import/importer.py:932
 msgid "Mapping column {0} to field {1}"
-msgstr ""
+msgstr "正在將欄位 {0} 對應至欄位 {1}"
 
 #. Label of the margin_bottom (Float) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Margin Bottom"
-msgstr ""
+msgstr "底部邊距"
 
 #. Label of the margin_left (Float) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Margin Left"
-msgstr ""
+msgstr "左邊距"
 
 #. Label of the margin_right (Float) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Margin Right"
-msgstr ""
+msgstr "右邊距"
 
 #. Label of the margin_top (Float) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Margin Top"
-msgstr ""
+msgstr "頂部邊距"
 
 #. Label of the mariadb_variables_section (Section Break) field in DocType
 #. 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "MariaDB Variables"
-msgstr ""
+msgstr "MariaDB 變數"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:48
 msgid "Mark all as read"
-msgstr ""
+msgstr "全部標記為已讀"
 
 #: frappe/core/doctype/communication/communication.js:78 frappe/core/doctype/communication/communication_list.js:19 frappe/public/js/frappe/ui/notifications/notifications.js:308
 msgid "Mark as Read"
