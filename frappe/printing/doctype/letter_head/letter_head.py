@@ -52,23 +52,9 @@ class LetterHead(Document):
 		frappe.clear_cache()
 
 	def validate(self):
-		# validate the user
-		if frappe.session.user != "Administrator" and self.standard == "Yes":
-			frappe.throw(_("Only Administrator can modify standard Letter Heads"))
-
 		self.set_image()
 		self.validate_disabled_and_default()
-		if (
-			self.standard == "Yes"
-			and not frappe.local.conf.get("developer_mode")
-			and not frappe.flags.in_migrate
-			and not frappe.flags.in_install
-			and not frappe.in_test
-		):
-			frappe.throw(_("Standard Letter Head cannot be updated"))
-
-		if self.standard == "Yes" and not self.module:
-			frappe.throw(_("Module is required when Standard is set to 'Yes'"))
+		self.validate_standard_letter_head()
 
 	def validate_disabled_and_default(self):
 		if self.disabled and self.is_default:
@@ -159,3 +145,11 @@ class LetterHead(Document):
 
 	def export_letter_head(self):
 		return export_module_json(self, self.standard == "Yes", self.module)
+
+	def validate_standard_letter_head(self):
+		if self.standard == "Yes":
+			if not frappe.conf.developer_mode and not self.is_new() and not frappe.flags.in_migrate:
+				frappe.throw(_("Standard Letter Head can be updated in Developer Mode only."))
+
+			if not self.module:
+				frappe.throw(_("Module is required when Standard is set to 'Yes'"))

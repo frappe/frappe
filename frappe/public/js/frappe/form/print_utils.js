@@ -61,7 +61,6 @@ frappe.ui.get_print_settings = function (
 				return {
 					filters: {
 						letter_head_for: "Report",
-						standard: "Yes",
 						disabled: 0,
 					},
 				};
