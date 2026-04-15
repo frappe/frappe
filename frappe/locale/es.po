@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-12 09:45+0000\n"
-"PO-Revision-Date: 2026-04-14 16:27\n"
+"PO-Revision-Date: 2026-04-15 16:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -1226,7 +1226,7 @@ msgstr "Registro de Actividad"
 
 #: frappe/core/page/permission_manager/permission_manager.js:610
 msgid "Activity Log for {0}"
-msgstr ""
+msgstr "Registro de Actividad para {0}"
 
 #: frappe/core/page/permission_manager/permission_manager.js:539
 #: frappe/email/doctype/email_group/email_group.js:60
@@ -1343,7 +1343,7 @@ msgstr "Agregar índices"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:32
 msgid "Add New"
-msgstr ""
+msgstr "Agregar nuevo"
 
 #: frappe/core/page/permission_manager/permission_manager.js:502
 msgid "Add New Permission Rule"
@@ -1361,7 +1361,7 @@ msgstr "Agregar parámetros de consulta"
 #. Label of the add_reply_to_header (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Add Reply-To header"
-msgstr ""
+msgstr "Agregar encabezado Reply-To"
 
 #: frappe/core/doctype/user/user.py:882
 msgid "Add Roles"
@@ -1552,7 +1552,7 @@ msgstr "Agregar {0}"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:67
 msgid "Add/Update Filter"
-msgstr ""
+msgstr "Agregar/Actualizar filtro"
 
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
@@ -1654,7 +1654,7 @@ msgstr "Direcciones y contactos"
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Addresses added here will be used as the Reply-To header for outgoing emails sent from this account."
-msgstr ""
+msgstr "Las direcciones agregadas aquí se utilizarán como encabezado Reply-To para los correos electrónicos salientes enviados desde esta cuenta."
 
 #. Description of a DocType
 #: frappe/custom/doctype/client_script/client_script.json
@@ -2045,7 +2045,7 @@ msgstr "Permitir aprobación para el creador del documento"
 #. Label of the bulk_actions (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Allow bulk actions"
-msgstr ""
+msgstr "Permitir acciones masivas"
 
 #. Label of the allow_comments (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -2293,7 +2293,7 @@ msgstr "Ya está Registrado"
 
 #: frappe/public/js/frappe/form/toolbar.js:742
 msgid "Already amended as {0}"
-msgstr ""
+msgstr "Ya enmendado como {0}"
 
 #: frappe/desk/form/assign_to.py:138
 msgid "Already in the following Users ToDo list:{0}"
@@ -3105,7 +3105,7 @@ msgstr "Registro de auditoría"
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/users.json
 msgid "Audits"
-msgstr ""
+msgstr "Auditorías"
 
 #. Label of the auth_url_data (Code) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -4334,7 +4334,7 @@ msgstr "No se puede acceder a la ruta del archivo {0}"
 
 #: frappe/core/doctype/file/file.py:150
 msgid "Cannot attach a folder to a document"
-msgstr ""
+msgstr "No se puede adjuntar una carpeta a un documento"
 
 #: frappe/public/js/workflow_builder/utils.js:183
 msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
@@ -4358,7 +4358,7 @@ msgstr "No se puede cambiar el estado del documento de 1 (Validado) a 0 (Borrado
 
 #: frappe/model/document.py:1064
 msgid "Cannot change docstatus of non submittable doctype {0}"
-msgstr ""
+msgstr "No se puede cambiar docstatus de un Doctype no validable {0}"
 
 #: frappe/public/js/workflow_builder/utils.js:170
 msgid "Cannot change state of Cancelled Document <b>({0} State)</b>"
@@ -4951,7 +4951,7 @@ msgstr "Haga clic en el enlace a continuación para verificar su solicitud"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:699
 msgid "Click on {0} to edit"
-msgstr ""
+msgstr "Haga clic en {0} para editar"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:118
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:41
@@ -5878,11 +5878,11 @@ msgstr "Copiado {0} {1} al portapapeles"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:69
 msgid "Copy Apps Version"
-msgstr ""
+msgstr "Copiar versión de aplicaciones"
 
 #: frappe/public/js/frappe/views/file/file_view.js:299
 msgid "Copy File URL"
-msgstr ""
+msgstr "Copiar URL del archivo"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:93
 msgid "Copy Link"
@@ -6602,7 +6602,7 @@ msgstr "Cian"
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "DELAY"
-msgstr ""
+msgstr "RETRASO"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #. Option for the 'Request Method' (Select) field in DocType 'Webhook'
@@ -7432,7 +7432,7 @@ msgstr "Estado del envío"
 #. Label of the dsn_notify_type (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Delivery Status Notification Type"
-msgstr ""
+msgstr "Tipo de Notificación de Estado de Entrega"
 
 #. Option for the 'Sign ups' (Select) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -7913,7 +7913,7 @@ msgstr "Estado de Doc."
 #: frappe/public/js/workflow_builder/store.js:165
 #: frappe/workflow/doctype/workflow/workflow.js:141
 msgid "Doc Status Reset"
-msgstr ""
+msgstr "Restablecimiento del Estado del Documento"
 
 #. Name of a DocType
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
@@ -8703,7 +8703,7 @@ msgstr "Dinámico"
 
 #: frappe/www/list.py:232
 msgid "Dynamic Filter Error"
-msgstr ""
+msgstr "Error de filtro dinámico"
 
 #. Label of the dynamic_filters_section (Section Break) field in DocType
 #. 'Dashboard Chart'
