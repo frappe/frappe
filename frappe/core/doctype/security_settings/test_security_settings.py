@@ -1,13 +1,13 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+import unittest
 from datetime import datetime, timedelta
 
 import frappe
-from frappe.tests import UnitTestCase
 
 
-class TestSecuritySettings(UnitTestCase):
+class TestSecuritySettings(unittest.TestCase):
 	def test_public_policy_section_default(self):
 		doc = frappe.get_doc(
 			{
