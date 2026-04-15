@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-03-02 20:59\n"
+"PO-Revision-Date: 2026-04-15 11:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Arabic\n"
 "MIME-Version: 1.0\n"
@@ -63,7 +63,7 @@ msgstr "تمت إضافة ${values.doctype_name} إلى قائمة الانتظ�
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "&copy; Frappe Technologies Pvt. Ltd. and contributors"
-msgstr ""
+msgstr "&copy; Frappe Technologies Pvt. Ltd. والمساهمون"
 
 #. Label of a Code field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -178,7 +178,7 @@ msgstr "قبل شهر"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:3
 msgid "1 of 2"
-msgstr ""
+msgstr "1 من 2"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:227
 msgid "1 record will be exported"
@@ -276,17 +276,17 @@ msgstr "<b>{0}</b> ليس عنوان URL صالحًا"
 #. Content of the 'Help' (HTML) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "<div class=\"alert\">Please don't update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>"
-msgstr ""
+msgstr "<div class=\"alert\">يرجى عدم تحديث هذا لأنه قد يتسبب في إفساد النموذج. استخدم عرض تخصيص النموذج والحقول المخصصة لتعيين الخصائص!</div>"
 
 #. Introduction text of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
 msgid "<div class=\"ql-editor read-mode\"><p>Request a file containing your personally identifiable information (PII) that is saved on our system. The file will be in JSON format and is sent to you by email. If you would like to have your PII deleted from our system, please make a <a href=\"/request-to-delete-data\" rel=\"noopener noreferrer\">request to delete data</a>.</p></div>"
-msgstr ""
+msgstr "<div class=\"ql-editor read-mode\"><p>اطلب ملفًا يحتوي على معلوماتك الشخصية القابلة للتحديد (PII) المحفوظة على نظامنا. سيكون الملف بتنسيق JSON ويتم إرساله إليك عبر البريد الإلكتروني. إذا كنت ترغب في حذف معلوماتك الشخصية من نظامنا، يرجى تقديم <a href=\"/request-to-delete-data\" rel=\"noopener noreferrer\">طلب لحذف البيانات</a>.</p></div>"
 
 #. Introduction text of the request-to-delete-data Web Form
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
 msgid "<div class=\"ql-editor read-mode\"><p>Send a request to delete your account and personally identifiable information (PII) that is stored on our system. You will receive an email to verify your request. Once the request is verified we will take care of deleting your PII. If you just want to check what PII we have stored, you can <a href=\"/request-data\" rel=\"noopener noreferrer\">request your data</a>.</p></div>"
-msgstr ""
+msgstr "<div class=\"ql-editor read-mode\"><p>أرسل طلبًا لحذف حسابك ومعلوماتك الشخصية القابلة للتحديد (PII) المخزنة على نظامنا. ستتلقى بريدًا إلكترونيًا للتحقق من طلبك. بمجرد التحقق من الطلب، سنتولى حذف معلوماتك الشخصية. إذا كنت تريد فقط التحقق من المعلومات الشخصية المخزنة لدينا، يمكنك <a href=\"/request-data\" rel=\"noopener noreferrer\">طلب بياناتك</a>.</p></div>"
 
 #. Content of the 'Help HTML' (HTML) field in DocType 'Document Naming
 #. Settings'
@@ -3712,7 +3712,8 @@ msgstr "شعار العلامة التجارية"
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Brand is what appears on the top-left of the toolbar. If it is an image, make sure it\n"
 "has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px"
-msgstr ""
+msgstr "العلامة التجارية هي ما يظهر في أعلى يسار شريط الأدوات. إذا كانت صورة، تأكد من أنها\n"
+"تحتوي على خلفية شفافة واستخدم وسم &lt;img /&gt;. حافظ على الحجم 200px × 30px"
 
 #. Label of a Code field in DocType 'Web Form'
 #. Label of a Code field in DocType 'Web Page'
@@ -4193,7 +4194,7 @@ msgstr "لا يمكن الوصول إلى مسار الملف {0}"
 
 #: frappe/public/js/workflow_builder/utils.js:183
 msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
-msgstr ""
+msgstr "لا يمكن الإلغاء قبل التقديم أثناء الانتقال من <b>حالة {0}</b> إلى <b>حالة {1}</b>"
 
 #: frappe/workflow/doctype/workflow/workflow.py:109
 msgid "Cannot cancel before submitting. See Transition {0}"
@@ -4213,7 +4214,7 @@ msgstr "لا يمكن تغيير حالة المستند من 1 (تم الإرس
 
 #: frappe/public/js/workflow_builder/utils.js:170
 msgid "Cannot change state of Cancelled Document <b>({0} State)</b>"
-msgstr ""
+msgstr "لا يمكن تغيير حالة المستند الملغى <b>(حالة {0})</b>"
 
 #: frappe/workflow/doctype/workflow/workflow.py:98
 msgid "Cannot change state of Cancelled Document. Transition row {0}"
@@ -4257,7 +4258,7 @@ msgstr "لا يمكن حذف حالة المستند القياسي."
 
 #: frappe/custom/doctype/customize_form/customize_form.js:321
 msgid "Cannot delete standard field <strong>{0}</strong>. You can hide it instead."
-msgstr ""
+msgstr "لا يمكن حذف الحقل الأساسي <strong>{0}</strong>. يمكنك إخفاؤه بدلاً من ذلك."
 
 #: frappe/public/js/form_builder/components/Field.vue:38
 #: frappe/public/js/form_builder/components/Section.vue:117
@@ -4272,7 +4273,7 @@ msgstr "لا يمكن حذف الارتباط القياسي. يمكنك إخف�
 
 #: frappe/custom/doctype/customize_form/customize_form.js:313
 msgid "Cannot delete system generated field <strong>{0}</strong>. You can hide it instead."
-msgstr ""
+msgstr "لا يمكن حذف الحقل الذي تم إنشاؤه بواسطة النظام <strong>{0}</strong>. يمكنك إخفاؤه بدلاً من ذلك."
 
 #: frappe/public/js/frappe/list/bulk_operations.js:215
 msgid "Cannot delete {0}"
@@ -5410,7 +5411,9 @@ msgstr "قم بتهيئة الأعمدة لـ {0}"
 msgid "Configure how amended documents will be named.<br>\n\n"
 "Default behaviour is to follow an amend counter which adds a number to the end of the original name indicating the amended version. <br>\n\n"
 "Default Naming will make the amended document to behave same as new documents."
-msgstr ""
+msgstr "قم بتكوين كيفية تسمية المستندات المعدلة.<br>\n\n"
+"السلوك الافتراضي هو اتباع عداد التعديل الذي يضيف رقمًا في نهاية الاسم الأصلي يشير إلى النسخة المعدلة. <br>\n\n"
+"التسمية الافتراضية ستجعل المستند المعدل يتصرف بنفس طريقة المستندات الجديدة."
 
 #. Description of a DocType
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
@@ -7622,7 +7625,10 @@ msgid "DocStatus of the following states have changed:<br><strong>{0}</strong><b
 "\t\t\t\tDo you want to update the docstatus of existing documents in those states?<br>\n"
 "\t\t\t\tThis does not undo any effect bought in by the document's existing docstatus.\n"
 "\t\t\t\t"
-msgstr ""
+msgstr "تم تغيير حالة المستند (DocStatus) للحالات التالية:<br><strong>{0}</strong><br>\n"
+"\t\t\t\tهل تريد تحديث حالة المستند (docstatus) للمستندات الموجودة في تلك الحالات؟<br>\n"
+"\t\t\t\tهذا لا يلغي أي تأثير ناتج عن حالة المستند (docstatus) الحالية.\n"
+"\t\t\t\t"
 
 #. Label of a Link field in DocType 'Amended Document Naming Settings'
 #. Label of a Link field in DocType 'Audit Trail'
