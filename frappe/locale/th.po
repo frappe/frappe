@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-12 09:45+0000\n"
-"PO-Revision-Date: 2026-04-14 16:28\n"
+"PO-Revision-Date: 2026-04-15 16:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Thai\n"
 "MIME-Version: 1.0\n"
@@ -283,7 +283,9 @@ msgstr "<="
 msgid "<a href=\"https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication\" target=\"_blank\" rel=\"noopener noreferrer\">\n"
 "  Click here to learn about token-based authentication\n"
 "</a>"
-msgstr ""
+msgstr "<a href=\"https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication\" target=\"_blank\" rel=\"noopener noreferrer\">\n"
+"  คลิกที่นี่เพื่อเรียนรู้เกี่ยวกับการยืนยันตัวตนด้วยโทเค็น\n"
+"</a>"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:601
 msgid "<b>{0}</b> is not a valid URL"
@@ -1222,7 +1224,7 @@ msgstr "บันทึกกิจกรรม"
 
 #: frappe/core/page/permission_manager/permission_manager.js:610
 msgid "Activity Log for {0}"
-msgstr ""
+msgstr "บันทึกกิจกรรมสำหรับ {0}"
 
 #: frappe/core/page/permission_manager/permission_manager.js:539
 #: frappe/email/doctype/email_group/email_group.js:60
@@ -1339,7 +1341,7 @@ msgstr "เพิ่มดัชนี"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:32
 msgid "Add New"
-msgstr ""
+msgstr "เพิ่มใหม่"
 
 #: frappe/core/page/permission_manager/permission_manager.js:502
 msgid "Add New Permission Rule"
@@ -1357,7 +1359,7 @@ msgstr "เพิ่มพารามิเตอร์การค้นหา
 #. Label of the add_reply_to_header (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Add Reply-To header"
-msgstr ""
+msgstr "เพิ่มส่วนหัว Reply-To"
 
 #: frappe/core/doctype/user/user.py:882
 msgid "Add Roles"
@@ -1523,7 +1525,7 @@ msgstr "เพิ่มไปยังแดชบอร์ด"
 
 #: frappe/desk/doctype/workspace/workspace.js:49
 msgid "Add to Desktop"
-msgstr ""
+msgstr "เพิ่มไปยังเดสก์ท็อป"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:110
 msgid "Add to ToDo"
@@ -1548,7 +1550,7 @@ msgstr "เพิ่ม {0}"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:67
 msgid "Add/Update Filter"
-msgstr ""
+msgstr "เพิ่ม/อัปเดตตัวกรอง"
 
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
@@ -1650,7 +1652,7 @@ msgstr "ที่อยู่และข้อมูลติดต่อ"
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Addresses added here will be used as the Reply-To header for outgoing emails sent from this account."
-msgstr ""
+msgstr "ที่อยู่ที่เพิ่มที่นี่จะถูกใช้เป็นส่วนหัว Reply-To สำหรับอีเมลขาออกที่ส่งจากบัญชีนี้"
 
 #. Description of a DocType
 #: frappe/custom/doctype/client_script/client_script.json
@@ -2041,7 +2043,7 @@ msgstr "อนุญาตให้ผู้สร้างเอกสารอ
 #. Label of the bulk_actions (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Allow bulk actions"
-msgstr ""
+msgstr "อนุญาตการดำเนินการจำนวนมาก"
 
 #. Label of the allow_comments (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -2101,7 +2103,7 @@ msgstr "อนุญาตให้ตอบได้หลายคำตอบ
 #. Label of the notifications (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Allow notifications"
-msgstr ""
+msgstr "อนุญาตการแจ้งเตือน"
 
 #. Label of the allow_on_submit (Check) field in DocType 'DocField'
 #. Label of the allow_on_submit (Check) field in DocType 'Custom Field'
@@ -2289,7 +2291,7 @@ msgstr "ลงทะเบียนแล้ว"
 
 #: frappe/public/js/frappe/form/toolbar.js:742
 msgid "Already amended as {0}"
-msgstr ""
+msgstr "แก้ไขแล้วเป็น {0}"
 
 #: frappe/desk/form/assign_to.py:138
 msgid "Already in the following Users ToDo list:{0}"
@@ -3101,7 +3103,7 @@ msgstr "บันทึกการตรวจสอบ"
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/users.json
 msgid "Audits"
-msgstr ""
+msgstr "การตรวจสอบ"
 
 #. Label of the auth_url_data (Code) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -3537,7 +3539,7 @@ msgstr "ภาพพื้นหลัง"
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/system.json
 msgid "Background Job"
-msgstr ""
+msgstr "งานพื้นหลัง"
 
 #. Label of a Link in the Build Workspace
 #. Label of the background_jobs_section (Section Break) field in DocType
@@ -4330,11 +4332,11 @@ msgstr "ไม่สามารถเข้าถึงเส้นทางไ
 
 #: frappe/core/doctype/file/file.py:150
 msgid "Cannot attach a folder to a document"
-msgstr ""
+msgstr "ไม่สามารถแนบโฟลเดอร์ไปยังเอกสารได้"
 
 #: frappe/public/js/workflow_builder/utils.js:183
 msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
-msgstr ""
+msgstr "ไม่สามารถยกเลิกก่อนส่งขณะเปลี่ยนจาก<b>สถานะ {0}</b> เป็น<b>สถานะ {1}</b>"
 
 #: frappe/workflow/doctype/workflow/workflow.py:125
 msgid "Cannot cancel before submitting. See Transition {0}"
@@ -4354,7 +4356,7 @@ msgstr "ไม่สามารถเปลี่ยนสถานะเอก
 
 #: frappe/model/document.py:1064
 msgid "Cannot change docstatus of non submittable doctype {0}"
-msgstr ""
+msgstr "ไม่สามารถเปลี่ยน docstatus ของประเภทเอกสารที่ไม่สามารถส่งได้ {0}"
 
 #: frappe/public/js/workflow_builder/utils.js:170
 msgid "Cannot change state of Cancelled Document <b>({0} State)</b>"
@@ -4947,7 +4949,7 @@ msgstr "คลิกที่ลิงก์ด้านล่างเพื่
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:699
 msgid "Click on {0} to edit"
-msgstr ""
+msgstr "คลิกที่ {0} เพื่อแก้ไข"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:118
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:41
@@ -4977,7 +4979,7 @@ msgstr "คลิกเพื่อตั้งค่าตัวกรอง"
 
 #: frappe/desk/page/desktop/desktop.js:1253
 msgid "Click to edit"
-msgstr ""
+msgstr "คลิกเพื่อแก้ไข"
 
 #: frappe/public/js/frappe/list/list_view.js:744
 #: frappe/public/js/frappe/list/list_view.js:764
@@ -5874,11 +5876,11 @@ msgstr "คัดลอก {0} {1} ไปยังคลิปบอร์ด"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:69
 msgid "Copy Apps Version"
-msgstr ""
+msgstr "คัดลอกเวอร์ชันแอป"
 
 #: frappe/public/js/frappe/views/file/file_view.js:299
 msgid "Copy File URL"
-msgstr ""
+msgstr "คัดลอก URL ไฟล์"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:93
 msgid "Copy Link"
@@ -6598,7 +6600,7 @@ msgstr "สีฟ้าอมเขียว"
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "DELAY"
-msgstr ""
+msgstr "ล่าช้า"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #. Option for the 'Request Method' (Select) field in DocType 'Webhook'
@@ -7428,7 +7430,7 @@ msgstr "สถานะการจัดส่ง"
 #. Label of the dsn_notify_type (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Delivery Status Notification Type"
-msgstr ""
+msgstr "ประเภทการแจ้งเตือนสถานะการจัดส่ง"
 
 #. Option for the 'Sign ups' (Select) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -7909,7 +7911,7 @@ msgstr "สถานะเอกสาร"
 #: frappe/public/js/workflow_builder/store.js:165
 #: frappe/workflow/doctype/workflow/workflow.js:141
 msgid "Doc Status Reset"
-msgstr ""
+msgstr "รีเซ็ตสถานะเอกสาร"
 
 #. Name of a DocType
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
@@ -8699,7 +8701,7 @@ msgstr "ไดนามิก"
 
 #: frappe/www/list.py:232
 msgid "Dynamic Filter Error"
-msgstr ""
+msgstr "ข้อผิดพลาดฟิลเตอร์ไดนามิก"
 
 #. Label of the dynamic_filters_section (Section Break) field in DocType
 #. 'Dashboard Chart'
