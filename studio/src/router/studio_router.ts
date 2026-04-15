@@ -25,6 +25,11 @@ const routes = [
 		path: "/not-permitted",
 		name: "NotPermitted",
 		component: () => import("@/pages/NotPermitted.vue"),
+	},
+	{
+		path: "/:catchAll(.*)",
+		name: "NotFound",
+		component: () => import("@/pages/NotFound.vue"),
 	}
 ]
 
@@ -46,5 +51,16 @@ router.beforeEach(async (to, _, next) => {
 	}
 	return next()
 })
+
+// Patch router to resolve unmatched routes to NotFound page
+// This ensures router-link renders correctly for the app being edited in studio
+const resolve = router.resolve
+// @ts-ignore
+router.resolve = (to, currentLocation) => {
+	if (!to.matched?.length) {
+		to = "/not-found"
+	}
+	return resolve(to, currentLocation)
+}
 
 export default router

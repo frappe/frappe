@@ -334,6 +334,10 @@ watch(
 
 const error = ref<Error | null>(null)
 onErrorCaptured((err, _instance, info) => {
+	const isRouterError = err.message.includes("No match for")
+	if (isRouterError) {
+		return false
+	}
 	console.error(
 		`Error while rendering StudioComponent ${props.block.componentName} ${props.block.componentId}:\n`,
 		`source: ${info}\n`,
