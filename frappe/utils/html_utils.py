@@ -21,32 +21,37 @@ EMOJI_PATTERN = re.compile(
 REMOVE_CONTENT_TAGS = {"script", "style"}
 
 
-def clean_html(html):
+def clean_html(html, tags_allowed=None, content_tags=None):
 	if not isinstance(html, str):
 		return html
-
+	allowed_tags = {
+		"div",
+		"p",
+		"br",
+		"ul",
+		"ol",
+		"li",
+		"strong",
+		"b",
+		"em",
+		"i",
+		"u",
+		"table",
+		"thead",
+		"tbody",
+		"td",
+		"tr",
+		"a",
+	}
+	remove_content_tags = REMOVE_CONTENT_TAGS
+	if content_tags:
+		remove_content_tags = content_tags
+	if tags_allowed and isinstance(tags_allowed, set):
+		allowed_tags = allowed_tags.union(tags_allowed)
 	return nh3.clean(
 		html,
-		tags={
-			"div",
-			"p",
-			"br",
-			"ul",
-			"ol",
-			"li",
-			"strong",
-			"b",
-			"em",
-			"i",
-			"u",
-			"table",
-			"thead",
-			"tbody",
-			"td",
-			"tr",
-			"a",
-		},
-		clean_content_tags=REMOVE_CONTENT_TAGS,
+		tags=allowed_tags,
+		clean_content_tags=remove_content_tags,
 		strip_comments=True,
 	)
 
