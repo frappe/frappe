@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-12 09:45+0000\n"
-"PO-Revision-Date: 2026-04-14 16:29\n"
+"PO-Revision-Date: 2026-04-15 16:27\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -2301,7 +2301,7 @@ msgstr "Već registrovan"
 
 #: frappe/public/js/frappe/form/toolbar.js:742
 msgid "Already amended as {0}"
-msgstr ""
+msgstr "Već je izmenjeno kao {0}"
 
 #: frappe/desk/form/assign_to.py:138
 msgid "Already in the following Users ToDo list:{0}"
@@ -4342,7 +4342,7 @@ msgstr "Nije moguće pristupiti putanji fajla {0}"
 
 #: frappe/core/doctype/file/file.py:150
 msgid "Cannot attach a folder to a document"
-msgstr ""
+msgstr "Nije moguće priložiti datoteku dokumentu"
 
 #: frappe/public/js/workflow_builder/utils.js:183
 msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
@@ -10779,7 +10779,7 @@ msgstr "URL fajla"
 
 #: frappe/core/doctype/file/file.py:123
 msgid "File URL is required when copying an existing attachment."
-msgstr ""
+msgstr "URL fajla ja obavezan prilikom kopiranja postojećeg priloga."
 
 #: frappe/desk/page/backups/backups.py:107
 msgid "File backup is ready"
@@ -13022,7 +13022,7 @@ msgstr "Ukoliko je ostavljeno prazno, podrazumevani radni prostor će biti posle
 
 #: frappe/public/js/frappe/form/print_utils.js:36
 msgid "If no Print Format is selected, the default template for this report will be used."
-msgstr ""
+msgstr "Ukoliko nije izabran format štampe, biće korišćen podrazumevani šablon za ovaj izveštaj."
 
 #. Description of the 'Port' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
@@ -24082,11 +24082,11 @@ msgstr "Bezbednosno upozorenje: Neko se predstavlja kao Vaš nalog"
 
 #: frappe/core/doctype/user/user.py:394
 msgid "Security Alert: Your password has been changed."
-msgstr ""
+msgstr "Bezbednosno upozorenje: Vaša lozinka je promenjena."
 
 #: frappe/model/utils/__init__.py:77
 msgid "Security Error: The Path provided is not safe."
-msgstr ""
+msgstr "Bezbednosna greška: Navedena putanja nije bezbedna."
 
 #. Label of the sb3 (Section Break) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -24439,7 +24439,7 @@ msgstr "Izaberite {0}"
 
 #: frappe/core/doctype/report/report.py:430
 msgid "Selected Print Format is invalid for this Report."
-msgstr ""
+msgstr "Izabrani format štampe nije važeći za ovaj izveštaj."
 
 #: frappe/model/workflow.py:138
 msgid "Self approval is not allowed"
@@ -30955,7 +30955,7 @@ msgstr "Planirani zadaci će se izvršavati samo jednom dnevno za neaktivne sajt
 
 #: frappe/public/js/frappe/form/print_utils.js:51
 msgid "With Letter Head"
-msgstr ""
+msgstr "Sa zaglavljem"
 
 #. Label of the worker_information_section (Section Break) field in DocType 'RQ
 #. Worker'
@@ -31942,7 +31942,7 @@ msgstr "Naziv i adresa Vaše organizacije za podnožje imejla."
 
 #: frappe/core/doctype/user/user.py:388
 msgid "Your password has been changed and you might have been logged out of all systems.<br>Please contact the Administrator for further assistance."
-msgstr ""
+msgstr "Vaša lozinka je promenjena i možda ste odjavljeni sa svih sistema.<br>Molimo Vas da kontaktirate administratora za dalju pomoć."
 
 #: frappe/templates/emails/auto_reply.html:2
 msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
