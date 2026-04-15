@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 import frappe
 import frappe.utils
@@ -70,7 +70,7 @@ class SecuritySettings(Document):
 		if isinstance(expires, str):
 			expires = datetime.fromisoformat(expires)
 		expires = expires.replace(microsecond=0)
-		expires = expires.astimezone(UTC)
+		expires = expires.astimezone(timezone.utc)
 		value = expires.strftime("%Y-%m-%dT%H:%M:%SZ")
 		return f"Expires: {value}"
 

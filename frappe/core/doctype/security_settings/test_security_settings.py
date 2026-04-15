@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import unittest
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import frappe
 
@@ -240,9 +240,7 @@ class TestSecuritySettings(unittest.TestCase):
 		doc.validate_expires()
 
 	def test_public_expires_section_future_date(self):
-		from datetime import timezone
-
-		future_date = datetime(2027, 12, 31, 23, 59, 59, tzinfo=UTC)
+		future_date = datetime(2027, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
 		doc = frappe.get_doc(
 			{
 				"doctype": "Security Settings",
