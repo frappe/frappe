@@ -1,12 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
-<<<<<<< HEAD
 import unittest
-from datetime import datetime, timedelta
-=======
 from datetime import UTC, datetime, timedelta
->>>>>>> 9997b6c62e (fix(security-settings): newline at end and utc (#38613))
 
 import frappe
 
