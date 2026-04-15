@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-01-21 10:33\n"
+"PO-Revision-Date: 2026-04-15 11:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Norwegian Bokmal\n"
 "MIME-Version: 1.0\n"
@@ -1490,7 +1490,7 @@ msgstr "Legg til ny fane"
 
 #: frappe/utils/password_strength.py:187
 msgid "Add numbers or special characters."
-msgstr ""
+msgstr "Legg til tall eller spesialtegn."
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
@@ -2868,7 +2868,7 @@ msgstr "Legg ved dokumentutskrift"
 #. Label of a Select field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Attach Files"
-msgstr ""
+msgstr "Legg ved filer"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -2961,7 +2961,7 @@ msgstr "Vedlegg fjernet"
 #. Label of a Section Break field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Attachment Settings"
-msgstr ""
+msgstr "Vedleggsinnstillinger"
 
 #. Label of a Code field in DocType 'Email Queue'
 #. Label of a Table field in DocType 'Newsletter'
@@ -5380,7 +5380,7 @@ msgstr "Vanlige navn og etternavn er lette å gjette."
 
 #: frappe/utils/password_strength.py:186
 msgid "Common words are easy to guess."
-msgstr ""
+msgstr "Vanlige ord er enkle å gjette."
 
 #. Name of a DocType
 #. Option for the 'Communication Type' (Select) field in DocType
@@ -5399,7 +5399,7 @@ msgstr "Kommunikasjon"
 #. Label of a Datetime field in DocType 'Communication Link'
 #: frappe/core/doctype/communication_link/communication_link.json
 msgid "Communication Date"
-msgstr ""
+msgstr "Kommunikasjonsdato"
 
 #. Name of a DocType
 #: frappe/core/doctype/communication_link/communication_link.json
@@ -7877,7 +7877,7 @@ msgstr "Lenke (DocType)"
 
 #: frappe/public/js/form_builder/components/Field.vue:162
 msgid "DocType Missing"
-msgstr ""
+msgstr "DocType mangler"
 
 #. Name of a DocType
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
