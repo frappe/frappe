@@ -125,18 +125,12 @@ def application(request: Request):
 		elif request.path.startswith("/private/files/"):
 			response = frappe.utils.response.download_private_file(request.path)
 
-<<<<<<< HEAD
-=======
 		elif request.path == "/.well-known/security.txt" and request.method == "GET":
 			if request.scheme != "https":
 				raise NotFound
 			security_settings = frappe.get_doc("Security Settings")
 			response = Response(security_settings.security_txt, content_type="text/plain")
 
-		elif request.path.startswith("/.well-known/") and request.method == "GET":
-			response = handle_wellknown(request.path)
-
->>>>>>> ec9a60172f (feat: `security.txt` (#38530))
 		elif request.method in ("GET", "HEAD", "POST"):
 			response = get_response()
 
