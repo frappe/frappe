@@ -10,7 +10,7 @@
 			v-if="showComponent"
 			:is="componentName"
 			v-bind="componentProps"
-			v-on="{ ...vModelListeners, ...componentEvents }"
+			v-on="mergedListeners"
 			:data-component-id="block.componentId"
 			:style="styles"
 			:class="classes"
@@ -43,7 +43,7 @@
 			v-if="showComponent"
 			:is="componentName"
 			v-bind="componentProps"
-			v-on="{ ...vModelListeners, ...componentEvents }"
+			v-on="mergedListeners"
 			:data-component-id="block.componentId"
 			:style="styles"
 			:class="classes"
@@ -221,6 +221,25 @@ const componentEvents = computed(() => {
 	})
 
 	return events
+})
+
+const mergedListeners = computed(() => {
+	const merged: Record<string, Function | Array<Function> | undefined> = { ...vModelListeners.value }
+
+	Object.entries(componentEvents.value).forEach(([eventName, handler]) => {
+		if (merged[eventName] && handler) {
+			const existingHandler = merged[eventName]
+			if (Array.isArray(existingHandler)) {
+				merged[eventName] = [...existingHandler, handler]
+			} else {
+				merged[eventName] = [existingHandler, handler]
+			}
+		} else {
+			merged[eventName] = handler
+		}
+	})
+
+	return merged
 })
 
 const handleSuccess = (event: any) => (data: DataResult) => {
