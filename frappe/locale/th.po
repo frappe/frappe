@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-14 11:31\n"
+"PO-Revision-Date: 2026-04-15 11:50\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Thai\n"
 "MIME-Version: 1.0\n"
@@ -4354,7 +4354,7 @@ msgstr "ไม่สามารถเข้าถึงเส้นทางไ
 
 #: frappe/public/js/workflow_builder/utils.js:183
 msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
-msgstr ""
+msgstr "ไม่สามารถยกเลิกก่อนส่งขณะเปลี่ยนจาก<b>สถานะ {0}</b> เป็น<b>สถานะ {1}</b>"
 
 #: frappe/workflow/doctype/workflow/workflow.py:109
 msgid "Cannot cancel before submitting. See Transition {0}"
