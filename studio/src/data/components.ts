@@ -1,4 +1,4 @@
-import { defineAsyncComponent, h } from "vue"
+import { defineAsyncComponent } from "vue"
 import { FRAPPE_UI_COMPONENTS } from "@/utils/constants"
 
 import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
@@ -482,17 +482,6 @@ export const COMPONENTS: FrappeUIComponents = {
 					label: "Name",
 					key: "name",
 					width: 3,
-					getLabel: ({ row }: { row: any }) => {
-						return row.name
-					},
-					prefix: ({ row }: { row: any }) => {
-						// @ts-ignore
-						return h(Avatar, {
-							shape: "circle",
-							image: row.user_image,
-							size: "sm",
-						})
-					},
 				},
 				{
 					label: "Email",
@@ -515,7 +504,6 @@ export const COMPONENTS: FrappeUIComponents = {
 					email: "john@doe.com",
 					status: "Active",
 					role: "Developer",
-					user_image: "https://avatars.githubusercontent.com/u/499550",
 				},
 				{
 					id: 2,
@@ -523,7 +511,6 @@ export const COMPONENTS: FrappeUIComponents = {
 					email: "jane@doe.com",
 					status: "Inactive",
 					role: "HR",
-					user_image: "https://avatars.githubusercontent.com/u/499120",
 				},
 			],
 			rowKey: "id",
