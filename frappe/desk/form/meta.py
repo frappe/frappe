@@ -67,6 +67,7 @@ class FormMeta(Meta):
 			self.load_dashboard()
 			self.load_kanban_meta()
 			self.load_workspaces()
+			self.load_document_templates()
 
 		self.set("__assets_loaded", True)
 
@@ -79,15 +80,6 @@ class FormMeta(Meta):
 
 		# add masked fields (per-user, per-meta)
 		d["masked_fields"] = [df.fieldname for df in self.get_masked_fields()]
-		d["__document_templates"] = (
-			frappe.get_all(
-				"Document Template",
-				filters={"reference_doctype": self.name},
-				fields=["name", "template_name", "owner", "private", "disabled"],
-				order_by="private desc",
-			)
-			or None
-		)
 
 		return d
 
@@ -289,6 +281,21 @@ class FormMeta(Meta):
 		except frappe.PermissionError:
 			# no access to kanban board
 			pass
+
+	def load_document_templates(self):
+		"""Preload document templates for the manage-templates dialog.
+
+		Uses the dedicated ``get_templates`` API which handles permission
+		filtering server-side (including user-permission checks on the
+		JSON data column).  The result is sent to the client as part of
+		the form meta so the dialog can render instantly on first open.
+		"""
+		try:
+			from frappe.desk.doctype.document_template.document_template import get_templates
+
+			self.set("__document_templates", get_templates(self.name, page=1))
+		except Exception:
+			self.set("__document_templates", None)
 
 
 def get_code_files_via_hooks(hook, name):

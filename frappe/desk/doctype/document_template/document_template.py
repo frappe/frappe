@@ -7,6 +7,8 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+PAGE_SIZE = 20
+
 
 class DocumentTemplate(Document):
 	# begin: auto-generated types
@@ -83,15 +85,95 @@ class DocumentTemplate(Document):
 			frappe.throw(_("Template data cannot be empty"))
 
 
+@frappe.whitelist()
+def get_templates(reference_doctype: str, page: int = 1) -> dict:
+	"""Return templates for the manage dialog, filtered and sorted server-side.
+
+	Sorting order: ``disabled asc, private desc, name asc``
+	  - Active templates come first (private before public, then alphabetical).
+	  - Disabled templates fall naturally to the last page(s).
+
+	Returns::
+	    {
+	        "templates": [...],  # paginated slice (active first, disabled at end)
+	        "has_next_page": bool,
+	        "total": int,
+	    }
+	"""
+	user = frappe.session.user
+	is_admin = _is_system_manager(user)
+
+	all_templates = frappe.get_all(
+		"Document Template",
+		filters={"reference_doctype": reference_doctype},
+		fields=["name", "template_name", "owner", "private", "disabled", "data"],
+		order_by="disabled asc, private desc, name asc",
+		ignore_permissions=True,
+	)
+
+	visible: list[dict] = []
+	for t in all_templates:
+		if _is_visible(t, user, is_admin, reference_doctype):
+			t.pop("data", None)
+			visible.append(t)
+
+	page = max(1, int(page))
+	start = (page - 1) * PAGE_SIZE
+	end = start + PAGE_SIZE
+
+	return {
+		"templates": visible[start:end],
+		"has_next_page": end < len(visible),
+		"total": len(visible),
+	}
+
+
+@frappe.whitelist()
+def get_template_data(name: str) -> str:
+	"""Return the ``data`` field for a single template.
+
+	Fetches with ``ignore_permissions=True`` so the row-level SQL filter
+	(``get_permission_query_conditions``) does not block the lookup, then
+	performs an explicit ``has_permission`` check before returning the value.
+	"""
+	row = frappe.db.get_value(
+		"Document Template",
+		name,
+		["name", "data", "private", "owner", "disabled", "reference_doctype"],
+		as_dict=True,
+	)
+
+	user = frappe.session.user
+	if not has_permission(frappe._dict(row), "read", user):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+	if not row:
+		frappe.throw(_("Template {0} not found").format(name), frappe.DoesNotExistError)
+
+	return row.data
+
+
+def _is_visible(template: dict, user: str, is_admin: bool, reference_doctype: str) -> bool:
+	"""Return True if *template* should appear in the listing for *user*."""
+	is_owner = template.owner == user
+
+	if template.disabled:
+		return is_admin or is_owner
+
+	if is_admin or is_owner:
+		return True
+
+	if not template.private:
+		return _check_user_permissions_on_template_data(template.data, reference_doctype, user)
+
+	return False
+
+
 def _check_user_permissions_on_template_data(template_data: str, reference_doctype: str, user: str) -> bool:
 	"""Check if the template's stored field values comply with the user's User Permissions.
 
 	For every link field on *reference_doctype* where the user has User Permission
 	restrictions, the value stored inside the template JSON must be in the
 	allowed set (or empty, unless strict user permissions are enabled).
-
-	This mirrors the same logic that ``frappe.permissions.has_user_permission``
-	applies to real documents.
 	"""
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
@@ -136,18 +218,11 @@ def _is_system_manager(user: str) -> bool:
 	return user == "Administrator" or "System Manager" in frappe.get_roles(user)
 
 
-def _get_accessible_doctypes(user: str) -> list[str]:
-	"""Return list of DocType names the user can create (used to filter templates in list view)."""
-	from frappe.permissions import get_valid_perms
-
-	return list({p.parent for p in get_valid_perms(user=user) if p.parent and p.create})
-
-
 def get_permission_query_conditions(user: str | None = None) -> str:
-	"""Row-level filter for get_list / get_all queries.
+	"""Row-level SQL filter for get_list / get_all queries.
 
-	- System Manager / Administrator: see all templates.
-	- Others: see (public OR own private) AND only for doctypes they can create.
+	System Manager / Administrator see everything.
+	Others see nothing
 	"""
 	if not user:
 		user = frappe.session.user
@@ -155,17 +230,7 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 	if _is_system_manager(user):
 		return ""
 
-	escaped_user = frappe.db.escape(user)
-
-	# Visibility: public templates + own private templates
-	visibility = f"(`tabDocument Template`.private = 0 OR `tabDocument Template`.owner = {escaped_user})"
-
-	# DocType filter: only templates for doctypes the user has create permission on
-	accessible = _get_accessible_doctypes(user)
-	escaped_doctypes = ", ".join(frappe.db.escape(dt) for dt in accessible) if accessible else "NULL"
-	doctype_filter = f"`tabDocument Template`.reference_doctype IN ({escaped_doctypes})"
-
-	return f"({visibility} AND {doctype_filter})"
+	return "1=0"
 
 
 def has_permission(doc: "DocumentTemplate", ptype: str, user: str | None = None) -> bool:
@@ -196,8 +261,6 @@ def has_permission(doc: "DocumentTemplate", ptype: str, user: str | None = None)
 		return True
 
 	if not doc.private and ptype in ("read", "select"):
-		# Even for public templates, respect User Permissions on the
-		# reference doctype
 		template_data = getattr(doc, "data", None)
 		if template_data and not _check_user_permissions_on_template_data(
 			template_data, doc.reference_doctype, user

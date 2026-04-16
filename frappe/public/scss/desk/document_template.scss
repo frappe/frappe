@@ -2,6 +2,8 @@
 // Styles for the manage templates dialog
 
 .dt-manage-list {
+	margin-top: calc(-1 * var(--padding-xs));
+
 	.text-center.text-muted {
 		padding: var(--padding-md) 0;
 	}
@@ -10,15 +12,32 @@
 .dt-manage-row {
 	display: flex;
 	align-items: center;
-	padding: var(--padding-sm) 0;
-	border-bottom: 1px solid var(--border-color);
-
-	&--last {
-		border-bottom: none;
-	}
+	padding: var(--padding-xs) var(--padding-xs);
 
 	&--disabled {
 		opacity: 0.6;
+	}
+}
+
+.dt-manage-row-label-group {
+	display: flex;
+	align-items: center;
+	flex: 1;
+	min-width: 0;
+	border-radius: var(--border-radius-sm);
+	padding: var(--padding-xs);
+	margin-right: var(--padding-xs);
+}
+
+.dt-row--active {
+	cursor: pointer;
+
+	.dt-manage-row-label-group {
+		transition: background-color 0.15s ease;
+	}
+
+	&:hover .dt-manage-row-label-group {
+		background-color: var(--bg-light-gray);
 	}
 }
 
@@ -28,10 +47,11 @@
 	font-weight: var(--weight-medium);
 }
 
-.dt-item--with-suffix {
+.dt-manage-row-lock {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
+	flex-shrink: 0;
+	margin-left: var(--padding-xs);
 }
 
 .dt-manage-row-actions {
@@ -39,4 +59,44 @@
 	align-items: center;
 	flex-shrink: 0;
 	gap: var(--padding-xs);
+}
+
+.dt-pagination {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--padding-sm);
+	padding: var(--padding-sm) 0;
+	margin-top: var(--margin-xs);
+}
+
+.dt-disabled-separator {
+	padding: var(--padding-xs) var(--padding-xs) 0;
+	margin-top: var(--margin-xs);
+	border-top: 1px solid var(--border-color);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	font-size: var(--text-xs);
+}
+
+.dt-section-break {
+	hr {
+		border-top: 1px solid var(--border-color);
+		margin: var(--margin-sm) 0;
+		opacity: 1;
+	}
+}
+
+.dt-save-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+
+	.frappe-control {
+		margin-bottom: 0;
+
+		.form-group {
+			margin-bottom: 0;
+		}
+	}
 }
