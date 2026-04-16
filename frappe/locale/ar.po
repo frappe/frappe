@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-15 11:49\n"
+"PO-Revision-Date: 2026-04-16 11:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Arabic\n"
 "MIME-Version: 1.0\n"
@@ -5468,7 +5468,7 @@ msgstr "مؤكد"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:530
 msgid "Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a target=\"_blank\" href=\"{0}\">here</a>."
-msgstr ""
+msgstr "تهانينا على إكمال إعداد الوحدة. إذا كنت ترغب في معرفة المزيد، يمكنك الرجوع إلى الوثائق <a target=\"_blank\" href=\"{0}\">هنا</a>."
 
 #: frappe/integrations/doctype/connected_app/connected_app.js:20
 msgid "Connect to {}"
@@ -10769,7 +10769,7 @@ msgstr "قيم قالب التذييل"
 
 #: frappe/printing/page/print/print.js:116
 msgid "Footer might not be visible as {0} option is disabled</div>"
-msgstr ""
+msgstr "قد لا يكون تذييل الصفحة مرئيًا لأن خيار {0} معطل</div>"
 
 #. Description of the 'Footer HTML' (HTML Editor) field in DocType 'Letter
 #. Head'
@@ -11666,7 +11666,7 @@ msgstr "قم بتجميع أنواع المستندات المخصصة الخا�
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:428
 msgid "Grouped by <span style='font-weight:600;'>{0}</b>"
-msgstr ""
+msgstr "مجمّع حسب <span style='font-weight:600;'>{0}</b>"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -12091,7 +12091,7 @@ msgstr ""
 #. Permission'
 #: frappe/core/doctype/user_permission/user_permission.json
 msgid "Hide descendant records of <b>For Value</b>."
-msgstr ""
+msgstr "إخفاء السجلات الفرعية لـ <b>للقيمة</b>."
 
 #: frappe/public/js/frappe/form/layout.js:285
 msgid "Hide details"
@@ -13506,7 +13506,7 @@ msgstr "سلسلة تسمية غير صالحة {}: النقطة (.) مفقود�
 
 #: frappe/model/naming.py:69
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
-msgstr ""
+msgstr "سلسلة تسمية غير صالحة {}: النقطة (.) مفقودة قبل العناصر النائبة الرقمية. يرجى استخدام تنسيق مثل <b>ABCD.#####</b>."
 
 #: frappe/core/doctype/data_import/importer.py:446
 msgid "Invalid or corrupted content for import"
