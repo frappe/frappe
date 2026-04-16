@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-15 11:49\n"
+"PO-Revision-Date: 2026-04-16 11:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -3242,7 +3242,7 @@ msgstr "启用自动链接需先开启接收邮件功能"
 
 #: frappe/email/doctype/email_queue/email_queue.js:44
 msgid "Automatic sending of emails is disabled via site config."
-msgstr ""
+msgstr "通过站点配置已禁用自动发送电子邮件。"
 
 #. Description of a DocType
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -10228,7 +10228,7 @@ msgstr "正在获取默认全局搜索文档。"
 
 #: frappe/website/doctype/web_form/web_form.js:165
 msgid "Fetching fields from {0}..."
-msgstr ""
+msgstr "正在从 {0} 获取字段..."
 
 #. Label of a Select field in DocType 'Assignment Rule'
 #. Label of a Select field in DocType 'Document Naming Rule Condition'
@@ -10540,7 +10540,7 @@ msgstr "不允许的文件类型{0}"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:615
 msgid "File upload failed."
-msgstr ""
+msgstr "文件上传失败。"
 
 #: frappe/core/doctype/file/file.py:366 frappe/core/doctype/file/file.py:433
 msgid "File {0} does not exist"
@@ -11251,7 +11251,7 @@ msgstr "从"
 #. Label of a Select field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "From Attach Field"
-msgstr ""
+msgstr "从附件字段"
 
 #. Label of a Date field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -11271,7 +11271,7 @@ msgstr "从文档类型"
 #. Option for the 'Attach Files' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "From Field"
-msgstr ""
+msgstr "从字段"
 
 #. Label of a Data field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -13485,7 +13485,7 @@ msgstr "凭证无效"
 
 #: frappe/email/smtp.py:138
 msgid "Invalid Credentials for Email Account: {0}"
-msgstr ""
+msgstr "电子邮箱帐号的凭据无效: {0}"
 
 #: frappe/utils/data.py:106 frappe/utils/data.py:255
 msgid "Invalid Date"
