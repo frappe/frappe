@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-12 09:45+0000\n"
-"PO-Revision-Date: 2026-04-15 16:26\n"
+"PO-Revision-Date: 2026-04-16 16:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -4455,7 +4455,7 @@ msgstr "Visszavont dokumentumot nem lehet szerkeszteni"
 
 #: frappe/website/doctype/web_form/web_form.js:367
 msgid "Cannot edit filters for standard Web Forms"
-msgstr ""
+msgstr "Az általános webes űrlapok szűrői nem szerkeszthetők"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:378
 msgid "Cannot edit filters for standard charts"
@@ -9291,7 +9291,7 @@ msgstr "E-mail várólista jelenleg felfüggesztésre került. Az e-mailek autom
 
 #: frappe/public/js/frappe/views/communication.js:955
 msgid "Email sending undone"
-msgstr ""
+msgstr "E-mail küldés visszavonva"
 
 #: frappe/email/doctype/email_queue/email_queue.py:199
 msgid "Email size {0:.2f} MB exceeds the maximum allowed size of {1:.2f} MB"
@@ -9299,7 +9299,7 @@ msgstr "Az E-mail mérete {0:.2f} MB meghaladja a maximálisan megengedett {1:.2
 
 #: frappe/core/doctype/communication/email.py:349
 msgid "Email undo window is over. Cannot undo email."
-msgstr ""
+msgstr "Az e-mail visszavonási ablak lejárt. Az e-mail nem vonható vissza."
 
 #. Label of the section_break_udjs (Section Break) field in DocType 'System
 #. Health Report'
@@ -9706,7 +9706,7 @@ msgstr "Írja be a statikus url paramétereket itt (Pl. sender=ERPNext, username
 
 #: frappe/public/js/form_builder/components/FieldProperties.vue:66
 msgid "Enter the fieldname of the currency field or a cached value (e.g. Company:company:default_currency)."
-msgstr ""
+msgstr "Adja meg a pénznem mező mezőnevét vagy egy gyorsítótárazott értéket (pl. Company:company:default_currency)."
 
 #. Description of the 'Message Parameter' (Data) field in DocType 'SMS
 #. Settings'
@@ -10334,7 +10334,7 @@ msgstr "Nem sikerült visszafejteni a kulcsot {0}"
 
 #: frappe/core/doctype/communication/email.py:344
 msgid "Failed to delete communication"
-msgstr ""
+msgstr "A kommunikáció törlése sikertelen"
 
 #: frappe/desk/reportview.py:642
 msgid "Failed to delete {0} documents: {1}"
@@ -10777,7 +10777,7 @@ msgstr "Fájl URL"
 
 #: frappe/core/doctype/file/file.py:123
 msgid "File URL is required when copying an existing attachment."
-msgstr ""
+msgstr "A fájl URL megadása kötelező egy meglévő csatolmány másolásakor."
 
 #: frappe/desk/page/backups/backups.py:107
 msgid "File backup is ready"
@@ -10987,7 +10987,7 @@ msgstr "Befejezve ekkor"
 
 #: frappe/public/js/frappe/form/grid_pagination.js:123
 msgid "First"
-msgstr ""
+msgstr "Első"
 
 #. Label of the first_day_of_the_week (Select) field in DocType 'Language'
 #. Label of the first_day_of_the_week (Select) field in DocType 'System
@@ -12282,7 +12282,7 @@ msgstr "Melléklettel Rendelkezik"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:102
 msgid "Has Attachments"
-msgstr ""
+msgstr "Csatolmányokkal rendelkezik"
 
 #. Name of a DocType
 #: frappe/core/doctype/has_domain/has_domain.json
@@ -12817,11 +12817,11 @@ msgstr "IMAP mappa nem található"
 #: frappe/email/doctype/email_account/email_account.py:239
 #: frappe/email/doctype/email_account/email_account.py:247
 msgid "IMAP Folder Validation Failed"
-msgstr ""
+msgstr "IMAP Mappa érvényesítése sikertelen"
 
 #: frappe/email/doctype/email_account/email_account.py:255
 msgid "IMAP Folder name cannot be empty."
-msgstr ""
+msgstr "Az IMAP Mappa neve nem lehet üres."
 
 #. Label of the ip_address (Data) field in DocType 'Activity Log'
 #. Label of the ip_address (Data) field in DocType 'Comment'
@@ -13019,7 +13019,7 @@ msgstr "Ha üresen hagyja, az alapértelmezett munkaterület az utoljára meglá
 
 #: frappe/public/js/frappe/form/print_utils.js:36
 msgid "If no Print Format is selected, the default template for this report will be used."
-msgstr ""
+msgstr "Ha nincs Nyomtatási formátum kiválasztva, a jelentés alapértelmezett sablonja lesz használva."
 
 #. Description of the 'Port' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
@@ -14104,7 +14104,7 @@ msgstr "Érvénytelen dokumentumállapot"
 
 #: frappe/www/list.py:231
 msgid "Invalid expression in Web Form Dynamic Filter for {0}: {1}"
-msgstr ""
+msgstr "Érvénytelen kifejezés a webes űrlap dinamikus szűrőjében a következőhöz: {0}: {1}"
 
 #: frappe/model/workflow.py:112
 msgid "Invalid expression in Workflow Update Value: {0}"
@@ -14363,7 +14363,7 @@ msgstr "Alapértelmezett"
 #. 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Is Dismissible"
-msgstr ""
+msgstr "Elrejthető"
 
 #. Label of the is_dynamic_url (Check) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -14561,7 +14561,7 @@ msgstr "Kockázatos törölni ezt a fájlt: {0}. Kérjük, forduljon a Rendszerg
 
 #: frappe/core/doctype/communication/email.py:359
 msgid "It is too late to undo this email. It is already being sent."
-msgstr ""
+msgstr "Túl késő visszavonni ezt az e-mailt. Már küldés alatt van."
 
 #. Label of the item_label (Data) field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
@@ -15468,7 +15468,7 @@ msgstr "Kedvelte"
 
 #: frappe/public/js/frappe/list/list_view.js:785
 msgid "Liked by me"
-msgstr ""
+msgstr "Általam kedvelt"
 
 #: frappe/public/js/frappe/ui/like.js:117
 msgid "Liked by {0} people"
@@ -15660,7 +15660,7 @@ msgstr "Kapcsolódó"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:109
 msgid "Linked with {0}"
-msgstr ""
+msgstr "Kapcsolva: {0}"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:40
 msgid "LinkedIn"
@@ -15826,7 +15826,7 @@ msgstr "Betöltés..."
 
 #: frappe/core/page/permission_manager/permission_manager.js:615
 msgid "Loading…"
-msgstr ""
+msgstr "Betöltés…"
 
 #. Label of the location (Data) field in DocType 'User'
 #. Label of the location (Data) field in DocType 'Event'
@@ -17501,7 +17501,7 @@ msgstr "Új Jelentés Neve"
 
 #: frappe/core/doctype/role/role.js:55
 msgid "New Role Name"
-msgstr ""
+msgstr "Új Szerepkör Neve"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:60
 msgid "New Shortcut"
@@ -17552,11 +17552,11 @@ msgstr "Az új jelszó nem lehet ugyanaz, mint a régi jelszó"
 
 #: frappe/core/doctype/user/user.py:962
 msgid "New password cannot be the same as your current password. Please choose a different password."
-msgstr ""
+msgstr "Az új jelszó nem lehet ugyanaz, mint a jelenlegi jelszava. Kérjük, válasszon másik jelszót."
 
 #: frappe/core/doctype/role/role.js:78
 msgid "New role created successfully."
-msgstr ""
+msgstr "Új szerepkör sikeresen létrehozva."
 
 #: frappe/utils/change_log.py:389
 msgid "New updates are available"
@@ -17824,7 +17824,7 @@ msgstr "Nincs szinkronizálható Google Naptár-esemény."
 
 #: frappe/email/doctype/email_account/email_account.py:244
 msgid "No IMAP folders were found on the server. Please verify the email account settings and ensure the mailbox contains folders."
-msgstr ""
+msgstr "Nem találhatók IMAP mappák a szerveren. Kérjük, ellenőrizze az e-mail fiók beállításait, és győződjön meg arról, hogy a postafiók tartalmaz mappákat."
 
 #: frappe/public/js/frappe/ui/capture.js:263
 msgid "No Images"
@@ -17923,7 +17923,7 @@ msgstr "Nincsenek Közelgő Események"
 
 #: frappe/core/page/permission_manager/permission_manager.js:630
 msgid "No activity recorded yet."
-msgstr ""
+msgstr "Még nincs rögzített tevékenység."
 
 #: frappe/public/js/frappe/form/templates/address_list.html:43
 msgid "No address added yet."
@@ -19050,7 +19050,7 @@ msgstr "Súgó Megnyitása"
 #: frappe/public/js/frappe/form/controls/data.js:84
 #: frappe/public/js/frappe/form/controls/link.js:17
 msgid "Open Link"
-msgstr ""
+msgstr "Hivatkozás megnyitása"
 
 #. Label of the open_reference_document (Button) field in DocType 'Notification
 #. Log'
@@ -19068,7 +19068,7 @@ msgstr "Forrás Alkalmazások megnyitása a Webhez"
 
 #: frappe/public/js/frappe/form/controls/base_control.js:165
 msgid "Open Translation"
-msgstr ""
+msgstr "Fordítás megnyitása"
 
 #. Label of the open_in_new_tab (Check) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -19092,7 +19092,7 @@ msgstr "Konzol megnyitása"
 #. Item'
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Open in New Tab"
-msgstr ""
+msgstr "Megnyitás új fülön"
 
 #: frappe/public/js/print_format_builder/Preview.vue:17
 msgid "Open in a new tab"
