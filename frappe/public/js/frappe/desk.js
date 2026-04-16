@@ -292,7 +292,6 @@ frappe.Application = class Application {
 
 			frappe.boot.setup_complete = frappe.boot.sysdefaults["setup_complete"];
 			frappe.user.name = frappe.boot.user.name;
-			frappe.router.setup();
 		} else {
 			this.set_as_guest();
 		}
