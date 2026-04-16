@@ -8723,19 +8723,19 @@ msgstr ""
 
 #: frappe/public/js/form_builder/components/FieldProperties.vue:66
 msgid "Enter the fieldname of the currency field or a cached value (e.g. Company:company:default_currency)."
-msgstr ""
+msgstr "Syötä valuuttakentän kentän nimi tai välimuistiin tallennettu arvo (esim. Company:company:default_currency)."
 
 #. Description of the 'Message Parameter' (Data) field in DocType 'SMS
 #. Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Enter url parameter for message"
-msgstr ""
+msgstr "Syötä URL-parametri viestille"
 
 #. Description of the 'Receiver Parameter' (Data) field in DocType 'SMS
 #. Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Enter url parameter for receiver nos"
-msgstr ""
+msgstr "Syötä URL-parametri vastaanottajien numeroille"
 
 #: frappe/public/js/frappe/ui/messages.js:342
 msgid "Enter your password"
@@ -8780,12 +8780,12 @@ msgstr "error Log"
 #. Label of a Link in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Error Logs"
-msgstr ""
+msgstr "Virhelokit"
 
 #. Label of the error_message (Code) field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
 msgid "Error Message"
-msgstr ""
+msgstr "Virheviesti"
 
 #: frappe/public/js/frappe/form/print_utils.js:182
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
@@ -8793,11 +8793,11 @@ msgstr "Virhe yhteyden muodostamisessa QZ-lokerosovellukseen ... <br><br> Raaka 
 
 #: frappe/email/doctype/email_domain/email_domain.py:32
 msgid "Error connecting via IMAP/POP3: {e}"
-msgstr ""
+msgstr "Virhe IMAP/POP3-yhteyden muodostamisessa: {e}"
 
 #: frappe/email/doctype/email_domain/email_domain.py:33
 msgid "Error connecting via SMTP: {e}"
-msgstr ""
+msgstr "Virhe SMTP-yhteyden muodostamisessa: {e}"
 
 #: frappe/email/doctype/email_domain/email_domain.py:101
 msgid "Error has occurred in {0}"
@@ -8805,15 +8805,15 @@ msgstr "Virhe kohteessa {0}"
 
 #: frappe/public/js/frappe/form/script_manager.js:199
 msgid "Error in Client Script"
-msgstr ""
+msgstr "Virhe Client Script -skriptissä"
 
 #: frappe/public/js/frappe/form/script_manager.js:263
 msgid "Error in Client Script."
-msgstr ""
+msgstr "Virhe Client Script -skriptissä."
 
 #: frappe/printing/doctype/letter_head/letter_head.js:21
 msgid "Error in Header/Footer Script"
-msgstr ""
+msgstr "Virhe ylä-/alatunnisteskriptissä"
 
 #: frappe/email/doctype/notification/notification.py:676 frappe/email/doctype/notification/notification.py:830 frappe/email/doctype/notification/notification.py:836
 msgid "Error in Notification"
@@ -9488,27 +9488,27 @@ msgstr "Kentän suunta (ylhäältä alas)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:233 frappe/public/js/print_format_builder/utils.js:69
 msgid "Field Template"
-msgstr ""
+msgstr "Kenttämalli"
 
 #. Label of the fieldtype (Select) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json frappe/templates/form_grid/fields.html:40
 msgid "Field Type"
-msgstr ""
+msgstr "Kentän tyyppi"
 
 #: frappe/desk/reportview.py:205
 msgid "Field not permitted in query"
-msgstr ""
+msgstr "Kenttä ei ole sallittu kyselyssä"
 
 #. Description of the 'Workflow State Field' (Data) field in DocType
 #. 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)"
-msgstr ""
+msgstr "Kenttä, joka edustaa tapahtuman työnketjun vaihetta (jos kenttää ei ole, luodaan uusi piilotettu mukautettu kenttä)"
 
 #. Label of the track_field (Select) field in DocType 'Milestone Tracker'
 #: frappe/automation/doctype/milestone_tracker/milestone_tracker.json
 msgid "Field to Track"
-msgstr ""
+msgstr "Seurattava kenttä"
 
 #: frappe/custom/doctype/property_setter/property_setter.py:52
 msgid "Field type cannot be changed for {0}"
@@ -9516,15 +9516,15 @@ msgstr "Kenttä tyyppiä ei voi muuttaa {0}"
 
 #: frappe/database/database.py:917
 msgid "Field {0} does not exist on {1}"
-msgstr ""
+msgstr "Kenttää {0} ei ole kohteessa {1}"
 
 #: frappe/desk/form/meta.py:187
 msgid "Field {0} is referring to non-existing doctype {1}."
-msgstr ""
+msgstr "Kenttä {0} viittaa olemattomaan tietuetyyppi {1}."
 
 #: frappe/core/doctype/doctype/doctype.py:1717
 msgid "Field {0} must be a virtual field to support virtual doctype."
-msgstr ""
+msgstr "Kentän {0} on oltava virtuaalinen kenttä tukeakseen virtuaalista tietuetyyppiä."
 
 #: frappe/public/js/frappe/form/form.js:1818
 msgid "Field {0} not found."
@@ -9532,7 +9532,7 @@ msgstr "Kenttä {0} ei löytynyt."
 
 #: frappe/email/doctype/notification/notification.py:563
 msgid "Field {0} on document {1} is neither a Mobile number field nor a Customer or User link"
-msgstr ""
+msgstr "Kenttä {0} asiakirjassa {1} ei ole matkapuhelinnumerokenttä eikä asiakas- tai käyttäjälinkki"
 
 #. Label of the fieldname (Data) field in DocType 'Report Column'
 #. Label of the fieldname (Data) field in DocType 'Report Filter'
@@ -9957,7 +9957,7 @@ msgstr "Kansio"
 #. Label of the folder_name (Data) field in DocType 'IMAP Folder'
 #: frappe/email/doctype/imap_folder/imap_folder.json
 msgid "Folder Name"
-msgstr ""
+msgstr "Kansion nimi"
 
 #: frappe/public/js/frappe/views/file/file_view.js:100
 msgid "Folder name should not include '/' (slash)"
@@ -9970,7 +9970,7 @@ msgstr "Kansio {0} ei ole tyhjä"
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Folio"
-msgstr ""
+msgstr "Folio"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:151 frappe/public/js/frappe/form/toolbar.js:951
 msgid "Follow"
@@ -9978,19 +9978,19 @@ msgstr "seurata"
 
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:146
 msgid "Followed by"
-msgstr ""
+msgstr "Seuraajat"
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:134
 msgid "Following Report Filters have missing values:"
-msgstr ""
+msgstr "Seuraavien raportin suodattimien arvot puuttuvat:"
 
 #: frappe/desk/form/document_follow.py:69
 msgid "Following document {0}"
-msgstr ""
+msgstr "Seurataan asiakirjaa {0}"
 
 #: frappe/public/js/frappe/form/linked_with.js:56
 msgid "Following documents are linked with {0}"
-msgstr ""
+msgstr "Seuraavat asiakirjat ovat linkitetty kohteeseen {0}"
 
 #: frappe/website/doctype/web_form/web_form.py:111
 msgid "Following fields are missing:"
@@ -9998,11 +9998,11 @@ msgstr "Seuraavat kentät puuttuvat:"
 
 #: frappe/public/js/frappe/ui/field_group.js:181
 msgid "Following fields have invalid values:"
-msgstr ""
+msgstr "Seuraavissa kentissä on virheellisiä arvoja:"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:358
 msgid "Following fields have missing values"
-msgstr ""
+msgstr "Seuraavien kenttien arvot puuttuvat"
 
 #: frappe/public/js/frappe/ui/field_group.js:168
 msgid "Following fields have missing values:"
@@ -10011,25 +10011,25 @@ msgstr "Seuraavissa kentissä on puuttuvia arvoja:"
 #. Label of the font (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Font"
-msgstr ""
+msgstr "Fontti"
 
 #. Label of the font_properties (Data) field in DocType 'Website Theme'
 #: frappe/website/doctype/website_theme/website_theme.json
 msgid "Font Properties"
-msgstr ""
+msgstr "Fontin ominaisuudet"
 
 #. Label of the font_size (Int) field in DocType 'Print Format'
 #. Label of the font_size (Float) field in DocType 'Print Settings'
 #. Label of the font_size (Data) field in DocType 'Website Theme'
 #: frappe/printing/doctype/print_format/print_format.json frappe/printing/doctype/print_settings/print_settings.json frappe/public/js/print_format_builder/PrintFormatControls.vue:45 frappe/website/doctype/website_theme/website_theme.json
 msgid "Font Size"
-msgstr ""
+msgstr "Fonttikoko"
 
 #. Label of the section_break_8 (Section Break) field in DocType 'Print
 #. Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Fonts"
-msgstr ""
+msgstr "Fontit"
 
 #. Label of the set_footer (Section Break) field in DocType 'Email Account'
 #. Label of the footer_section (Section Break) field in DocType 'Letter Head'
@@ -10038,18 +10038,18 @@ msgstr ""
 #. Label of the footer_tab (Tab Break) field in DocType 'Website Settings'
 #: frappe/email/doctype/email_account/email_account.json frappe/printing/doctype/letter_head/letter_head.json frappe/website/doctype/about_us_settings/about_us_settings.json frappe/website/doctype/web_template/web_template.json frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer"
-msgstr ""
+msgstr "Alatunniste"
 
 #. Label of the footer_powered (Small Text) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Footer \"Powered By\""
-msgstr ""
+msgstr "Alatunniste \"Palvelun tarjoaa\""
 
 #. Label of the footer_source (Select) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Footer Based On"
-msgstr ""
+msgstr "Alatunniste perustuu"
 
 #. Label of the footer (Text Editor) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -10481,7 +10481,7 @@ msgstr "Toiminto perustuu"
 
 #: frappe/__init__.py:470
 msgid "Function {0} is not whitelisted."
-msgstr ""
+msgstr "Funktio {0} ei ole sallittujen listalla."
 
 #: frappe/database/query.py:2297
 msgid "Function {0} requires arguments but none were provided"
@@ -11510,26 +11510,26 @@ msgstr ""
 #. Name of a DocType
 #: frappe/core/doctype/communication/communication.json frappe/email/doctype/email_account/email_account.json frappe/email/doctype/imap_folder/imap_folder.json
 msgid "IMAP Folder"
-msgstr ""
+msgstr "IMAP-kansio"
 
 #: frappe/email/doctype/email_account/email_account.py:275
 msgid "IMAP Folder Not Found"
-msgstr ""
+msgstr "IMAP-kansiota ei löytynyt"
 
 #: frappe/email/doctype/email_account/email_account.py:239 frappe/email/doctype/email_account/email_account.py:247
 msgid "IMAP Folder Validation Failed"
-msgstr ""
+msgstr "IMAP-kansion vahvistus epäonnistui"
 
 #: frappe/email/doctype/email_account/email_account.py:255
 msgid "IMAP Folder name cannot be empty."
-msgstr ""
+msgstr "IMAP-kansion nimi ei voi olla tyhjä."
 
 #. Label of the ip_address (Data) field in DocType 'Activity Log'
 #. Label of the ip_address (Data) field in DocType 'Comment'
 #. Label of the ip_address (Data) field in DocType 'User Session Display'
 #: frappe/core/doctype/activity_log/activity_log.json frappe/core/doctype/comment/comment.json frappe/core/doctype/user_session_display/user_session_display.json
 msgid "IP Address"
-msgstr ""
+msgstr "IP-osoite"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the icon (Data) field in DocType 'DocType'
@@ -11551,50 +11551,50 @@ msgstr "ikoni"
 #. Label of the icon_image (Attach) field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Icon Image"
-msgstr ""
+msgstr "Kuvakeikoni"
 
 #. Label of the icon_style (Select) field in DocType 'Desktop Settings'
 #: frappe/desk/doctype/desktop_settings/desktop_settings.json
 msgid "Icon Style"
-msgstr ""
+msgstr "Kuvakkeen tyyli"
 
 #. Label of the icon_type (Select) field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Icon Type"
-msgstr ""
+msgstr "Kuvakkeen tyyppi"
 
 #: frappe/desk/page/desktop/desktop.js:1071
 msgid "Icon is not correctly configured please check the workspace sidebar to it"
-msgstr ""
+msgstr "Kuvake ei ole oikein määritetty, tarkista työtilan sivupalkki korjataksesi sen"
 
 #. Description of the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Icon will appear on the button"
-msgstr ""
+msgstr "Kuvake näkyy painikkeessa"
 
 #. Label of the sb_identity_details (Section Break) field in DocType 'Social
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Identity Details"
-msgstr ""
+msgstr "Tunnistetiedot"
 
 #. Label of the idx (Int) field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Idx"
-msgstr ""
+msgstr "Idx"
 
 #. Description of the 'Apply Strict User Permissions' (Check) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User"
-msgstr ""
+msgstr "Jos Käytä tiukkaa käyttöoikeutta on valittu ja käyttöoikeus on määritetty tietuetyypille käyttäjälle, kaikki asiakirjat, joissa linkin arvo on tyhjä, eivät näy kyseiselle käyttäjälle"
 
 #. Description of the 'Don't Override Status' (Check) field in DocType
 #. 'Workflow'
 #. 'Workflow Document State'
 #: frappe/workflow/doctype/workflow/workflow.json frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "If Checked workflow status will not override status in list view"
-msgstr ""
+msgstr "Jos valittu, työketjun tila ei ohita tilaa luettelonäkymässä"
 
 #: frappe/core/doctype/doctype/doctype.py:1846 frappe/core/report/user_doctype_permissions/user_doctype_permissions.py:45 frappe/public/js/frappe/roles_editor.js:103
 msgid "If Owner"
@@ -11602,135 +11602,135 @@ msgstr "mikäli omistaja"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:92
 msgid "If a Role does not have access at Level 0, then higher levels are meaningless."
-msgstr ""
+msgstr "Jos roolilla ei ole käyttöoikeutta tasolla 0, korkeammat tasot ovat merkityksettömiä."
 
 #. Description of the 'Enable Action Confirmation' (Check) field in DocType
 #. 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "If checked, a confirmation will be required before performing workflow actions."
-msgstr ""
+msgstr "Jos valittu, vahvistus vaaditaan ennen työketjutoimintojen suorittamista."
 
 #. Description of the 'Is Active' (Check) field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
 msgid "If checked, all other workflows become inactive."
-msgstr ""
+msgstr "Jos valittu, kaikki muut työketjut muuttuvat epäaktiivisiksi."
 
 #. Description of the 'Show Absolute Values' (Check) field in DocType 'Print
 #. Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "If checked, negative numeric values of Currency, Quantity or Count would be shown as positive"
-msgstr ""
+msgstr "Jos valittu, valuutan, määrän tai lukumäärän negatiiviset numeeriset arvot näytetään positiivisina"
 
 #. Description of the 'Skip Authorization' (Check) field in DocType 'OAuth
 #. Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "If checked, users will not see the Confirm Access dialog."
-msgstr ""
+msgstr "Jos valittu, käyttäjät eivät näe Vahvista pääsy -valintaikkunaa."
 
 #. Description of the 'Disabled' (Check) field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
 msgid "If disabled, this role will be removed from all users."
-msgstr ""
+msgstr "Jos poistettu käytöstä, tämä rooli poistetaan kaikilta käyttäjiltä."
 
 #. Description of the 'Bypass Restricted IP Address Check If Two Factor Auth
 #. Enabled' (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "If enabled,  user can login from any IP Address using Two Factor Auth, this can also be set for all users in System Settings"
-msgstr ""
+msgstr "Jos käytössä, käyttäjä voi kirjautua mistä tahansa IP-osoitteesta käyttäen Kaksivaiheista todennusta. Tämä voidaan asettaa myös kaikille käyttäjille järjestelmäasetuksissa."
 
 #. Description of the 'Anonymous responses' (Check) field in DocType 'Web
 #. Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "If enabled, all responses on the web form will be submitted anonymously"
-msgstr ""
+msgstr "Jos käytössä, kaikki verkkolomakkeen vastaukset lähetetään anonyymisti"
 
 #. Description of the 'Bypass restricted IP Address check If Two Factor Auth
 #. Enabled' (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "If enabled, all users can login from any IP Address using Two Factor Auth. This can also be set only for specific user(s) in User Page"
-msgstr ""
+msgstr "Jos käytössä, kaikki käyttäjät voivat kirjautua mistä tahansa IP-osoitteesta käyttäen Kaksivaiheista todennusta. Tämä voidaan asettaa myös vain tietyille käyttäjille käyttäjäsivulla."
 
 #. Description of the 'Track Changes' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "If enabled, changes to the document are tracked and shown in timeline"
-msgstr ""
+msgstr "Jos käytössä, asiakirjan muutokset seurataan ja näytetään aikajanalla"
 
 #. Description of the 'Track Views' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "If enabled, document views are tracked, this can happen multiple times"
-msgstr ""
+msgstr "Jos käytössä, asiakirjan näyttökerrat seurataan. Tämä voi tapahtua useita kertoja."
 
 #. Description of the 'Only allow System Managers to upload public files'
 #. (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "If enabled, only System Managers can upload public files. Other users can't see the checkbox <i>Is Private</i> in the upload dialog."
-msgstr ""
+msgstr "Jos käytössä, vain Järjestelmänhallitsijat voivat ladata julkisia tiedostoja. Muut käyttäjät eivät näe valintaruutua <i>On yksityinen</i> latausikkunassa."
 
 #. Description of the 'Track Seen' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "If enabled, the document is marked as seen, the first time a user opens it"
-msgstr ""
+msgstr "Jos käytössä, asiakirja merkitään nähdyksi, kun käyttäjä avaa sen ensimmäisen kerran"
 
 #. Description of the 'Send System Notification' (Check) field in DocType
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "If enabled, the notification will show up in the notifications dropdown on the top right corner of the navigation bar."
-msgstr ""
+msgstr "Jos käytössä, ilmoitus näkyy ilmoitusten pudotusvalikossa navigointipalkin oikeassa yläkulmassa."
 
 #. Description of the 'Enable Password Policy' (Check) field in DocType
 #. 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 1 being very weak and 4 being very strong."
-msgstr ""
+msgstr "Jos käytössä, salasanan vahvuus pakotetaan Salasanan vähimmäispisteiden arvon perusteella. Arvo 1 on erittäin heikko ja 4 erittäin vahva."
 
 #. Description of the 'Bypass Two Factor Auth for users who login from
 #. restricted IP Address' (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "If enabled, users who login from Restricted IP Address, won't be prompted for Two Factor Auth"
-msgstr ""
+msgstr "Jos käytössä, käyttäjiltä, jotka kirjautuvat Rajoitetusta IP-osoitteesta, ei vaadita Kaksivaiheista todennusta"
 
 #. Description of the 'Notify Users On Every Login' (Check) field in DocType
 #. 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "If enabled, users will be notified every time they login. If not enabled, users will only be notified once."
-msgstr ""
+msgstr "Jos käytössä, käyttäjille ilmoitetaan joka kerta kun he kirjautuvat. Jos ei käytössä, käyttäjille ilmoitetaan vain kerran."
 
 #. Description of the 'Default Workspace' (Link) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "If left empty, the default workspace will be the last visited workspace"
-msgstr ""
+msgstr "Jos jätetään tyhjäksi, oletustyötila on viimeksi vierailtu työtila"
 
 #: frappe/public/js/frappe/form/print_utils.js:36
 msgid "If no Print Format is selected, the default template for this report will be used."
-msgstr ""
+msgstr "Jos Tulostusmuotoa ei ole valittu, käytetään tämän raportin oletusmallipohjaa."
 
 #. Description of the 'Port' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
 msgid "If non standard port (e.g. 587)"
-msgstr ""
+msgstr "Jos ei-standardiportti (esim. 587)"
 
 #. Description of the 'Port' (Data) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "If non standard port (e.g. 587). If on Google Cloud, try port 2525."
-msgstr ""
+msgstr "Jos ei-standardiportti (esim. 587). Jos Google Cloudissa, kokeile porttia 2525."
 
 #. Description of the 'Port' (Data) field in DocType 'Email Account'
 #. Description of the 'Port' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_account/email_account.json frappe/email/doctype/email_domain/email_domain.json
 msgid "If non-standard port (e.g. POP3: 995/110, IMAP: 993/143)"
-msgstr ""
+msgstr "Jos ei-standardiportti (esim. POP3: 995/110, IMAP: 993/143)"
 
 #. Description of the 'Currency Precision' (Select) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "If not set, the currency precision will depend on number format"
-msgstr ""
+msgstr "Jos ei ole asetettu, valuutan tarkkuus riippuu lukumuodosta"
 
 #. Description of the 'Roles' (Table) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "If set, only user with these roles can access this chart. If not set, DocType or Report permissions will be used."
-msgstr ""
+msgstr "Jos asetettu, vain käyttäjät, joilla on nämä roolit, voivat käyttää tätä kaaviota. Jos ei asetettu, käytetään Tietuetyyppi- tai Raporttioikeuksia."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:83
 msgid "If the user enables the mask property for the phone number field, the value will be displayed in a masked format (e.g., 811XXXXXXX)."
@@ -11944,7 +11944,7 @@ msgstr ""
 #. Option for the 'Grant Type' (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Implicit"
-msgstr ""
+msgstr "Implisiittinen"
 
 #. Label of the import (Check) field in DocType 'Custom DocPerm'
 #. Label of the import (Check) field in DocType 'DocPerm'
@@ -14025,7 +14025,7 @@ msgstr "Linkki DocType"
 #. Label of the link_doctype (Link) field in DocType 'Dynamic Link'
 #: frappe/core/doctype/dynamic_link/dynamic_link.json
 msgid "Link Document Type"
-msgstr ""
+msgstr "Linkin Asiakirjatyyppi"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:407 frappe/workflow/doctype/workflow_action/workflow_action.py:214
 msgid "Link Expired"
@@ -14035,12 +14035,12 @@ msgstr "Linkki umpeutui"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Link Field Results Limit"
-msgstr ""
+msgstr "Linkkikentän Tulosraja"
 
 #. Label of the link_fieldname (Data) field in DocType 'DocType Link'
 #: frappe/core/doctype/doctype_link/doctype_link.json
 msgid "Link Fieldname"
-msgstr ""
+msgstr "Linkkikentän Nimi"
 
 #. Label of the link_filters (JSON) field in DocType 'DocField'
 #. Label of the link_filters (JSON) field in DocType 'Custom Field'
@@ -14048,20 +14048,20 @@ msgstr ""
 #. Label of the link_filters (JSON) field in DocType 'Customize Form Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form/customize_form.json frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Link Filters"
-msgstr ""
+msgstr "Linkkisuodattimet"
 
 #. Label of the link_name (Dynamic Link) field in DocType 'Activity Log'
 #. Label of the link_name (Dynamic Link) field in DocType 'Communication Link'
 #. Label of the link_name (Dynamic Link) field in DocType 'Dynamic Link'
 #: frappe/core/doctype/activity_log/activity_log.json frappe/core/doctype/communication_link/communication_link.json frappe/core/doctype/dynamic_link/dynamic_link.json
 msgid "Link Name"
-msgstr ""
+msgstr "Linkin Nimi"
 
 #. Label of the link_title (Read Only) field in DocType 'Communication Link'
 #. Label of the link_title (Read Only) field in DocType 'Dynamic Link'
 #: frappe/core/doctype/communication_link/communication_link.json frappe/core/doctype/dynamic_link/dynamic_link.json
 msgid "Link Title"
-msgstr ""
+msgstr "Linkin Otsikko"
 
 #. Label of the link_to (Dynamic Link) field in DocType 'Desktop Icon'
 #. Label of the link_to (Dynamic Link) field in DocType 'Workspace'
@@ -14071,11 +14071,11 @@ msgstr ""
 #. Item'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json frappe/desk/doctype/workspace/workspace.json frappe/desk/doctype/workspace_link/workspace_link.json frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json frappe/public/js/frappe/views/workspace/workspace.js:444 frappe/public/js/frappe/widgets/widget_dialog.js:281 frappe/public/js/frappe/widgets/widget_dialog.js:427
 msgid "Link To"
-msgstr ""
+msgstr "Linkki Kohteeseen"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:363
 msgid "Link To in Row"
-msgstr ""
+msgstr "Linkki Kohteeseen Rivillä"
 
 #. Label of the link_type (Select) field in DocType 'Desktop Icon'
 #. Label of the link_type (Select) field in DocType 'Workspace'
@@ -14083,39 +14083,39 @@ msgstr ""
 #. Label of the link_type (Select) field in DocType 'Workspace Sidebar Item'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json frappe/desk/doctype/workspace/workspace.json frappe/desk/doctype/workspace_link/workspace_link.json frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json frappe/public/js/frappe/views/workspace/workspace.js:436 frappe/public/js/frappe/widgets/widget_dialog.js:273
 msgid "Link Type"
-msgstr ""
+msgstr "Linkkityyppi"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:359
 msgid "Link Type in Row"
-msgstr ""
+msgstr "Linkkityyppi rivillä"
 
 #: frappe/website/doctype/about_us_settings/about_us_settings.js:6
 msgid "Link for About Us Page is \"/about\"."
-msgstr ""
+msgstr "Tietoa meistä -sivun linkki on \"/about\"."
 
 #. Description of the 'Home Page' (Data) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Link that is the website home page. Standard Links (home, login, products, blog, about, contact)"
-msgstr ""
+msgstr "Linkki, joka on verkkosivuston kotisivu. Vakiolinkit (home, login, products, blog, about, contact)"
 
 #. Description of the 'URL' (Data) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "Link to the page you want to open. Leave blank if you want to make it a group parent."
-msgstr ""
+msgstr "Linkki sivulle, jonka haluat avata. Jätä tyhjäksi, jos haluat tehdä siitä ryhmän yläelementin."
 
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/activity_log/activity_log.json frappe/core/doctype/communication/communication.json
 msgid "Linked"
-msgstr ""
+msgstr "Linkitetty"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:109
 msgid "Linked with {0}"
-msgstr ""
+msgstr "Linkitetty kohteeseen {0}"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:40
 msgid "LinkedIn"
-msgstr ""
+msgstr "LinkedIn"
 
 #. Label of the links (Table) field in DocType 'Address'
 #. Label of the links (Table) field in DocType 'Contact'
@@ -14136,13 +14136,13 @@ msgstr "Linkit"
 #. Shortcut'
 #: frappe/custom/doctype/client_script/client_script.json frappe/desk/doctype/form_tour/form_tour.json frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json frappe/public/js/frappe/ui/toolbar/search_utils.js:86 frappe/public/js/frappe/utils/utils.js:984
 msgid "List"
-msgstr ""
+msgstr "Luettelo"
 
 #. Label of the list__search_settings_section (Section Break) field in DocType
 #. 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "List / Search Settings"
-msgstr ""
+msgstr "Luettelo- / hakuasetukset"
 
 #. Label of the list_columns (Table) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -14426,26 +14426,26 @@ msgstr "Sähköpostilinkin kirjautumisen vanhentuminen (minuuteissa)"
 
 #: frappe/auth.py:150
 msgid "Login with username and password is not allowed."
-msgstr ""
+msgstr "Kirjautuminen käyttäjätunnuksella ja salasanalla ei ole sallittua."
 
 #: frappe/www/login.html:99
 msgid "Login with {0}"
-msgstr ""
+msgstr "Kirjaudu palvelulla {0}"
 
 #. Label of the logo_uri (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Logo URI"
-msgstr ""
+msgstr "Logon URI"
 
 #. Label of the logo_url (Data) field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Logo URL"
-msgstr ""
+msgstr "Logon URL"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json frappe/www/me.html:91
 msgid "Logout"
-msgstr ""
+msgstr "Kirjaudu ulos"
 
 #: frappe/core/doctype/user/user.js:198
 msgid "Logout All Sessions"
@@ -14455,12 +14455,12 @@ msgstr "Kirjaudu ulos kaikista istunnoista"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Logout All Sessions on Password Reset"
-msgstr ""
+msgstr "Kirjaudu ulos kaikista istunnoista salasanan nollauksen yhteydessä"
 
 #. Label of the logout_all_sessions (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Logout From All Devices After Changing Password"
-msgstr ""
+msgstr "Kirjaudu ulos kaikista laitteista salasanan vaihtamisen jälkeen"
 
 #. Group in User's connections
 #. Label of a Workspace Sidebar Item
@@ -14471,12 +14471,12 @@ msgstr "Lokit"
 #. Name of a DocType
 #: frappe/core/doctype/logs_to_clear/logs_to_clear.json
 msgid "Logs To Clear"
-msgstr ""
+msgstr "Tyhjennettävät lokit"
 
 #. Label of the logs_to_clear (Table) field in DocType 'Log Settings'
 #: frappe/core/doctype/log_settings/log_settings.json
 msgid "Logs to Clear"
-msgstr ""
+msgstr "Tyhjennettävät lokit"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -14484,7 +14484,7 @@ msgstr ""
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Long Text"
-msgstr ""
+msgstr "Pitkä teksti"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:317
 msgid "Looks like you didn't change the value"
@@ -14511,26 +14511,26 @@ msgstr ""
 #. Option for the 'License Type' (Select) field in DocType 'Package'
 #: frappe/core/doctype/package/package.json
 msgid "MIT License"
-msgstr ""
+msgstr "MIT-lisenssi"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:48
 msgid "Madam"
-msgstr ""
+msgstr "Rouva"
 
 #. Label of the main_section (Text Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Main Section"
-msgstr ""
+msgstr "Pääosio"
 
 #. Label of the main_section_html (HTML Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Main Section (HTML)"
-msgstr ""
+msgstr "Pääosio (HTML)"
 
 #. Label of the main_section_md (Markdown Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Main Section (Markdown)"
-msgstr ""
+msgstr "Pääosio (Markdown)"
 
 #. Name of a role
 #: frappe/contacts/doctype/contact/contact.json
@@ -14545,32 +14545,32 @@ msgstr "Huollon peruskäyttäjä"
 #. Label of the major (Int) field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
 msgid "Major"
-msgstr ""
+msgstr "Pääversio"
 
 #. Label of the show_name_in_global_search (Check) field in DocType 'DocType'
 #. Label of the show_name_in_global_search (Check) field in DocType 'Customize
 #. Form'
 #: frappe/core/doctype/doctype/doctype.json frappe/custom/doctype/customize_form/customize_form.json
 msgid "Make \"name\" searchable in Global Search"
-msgstr ""
+msgstr "Tee \"name\" haettavaksi yleisessä haussa"
 
 #. Label of the make_attachment_public (Check) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "Make Attachment Public (by default)"
-msgstr ""
+msgstr "Tee liitteestä julkinen (oletuksena)"
 
 #. Label of the make_attachments_public (Check) field in DocType 'DocType'
 #. Label of the make_attachments_public (Check) field in DocType 'Customize
 #. Form'
 #: frappe/core/doctype/doctype/doctype.json frappe/custom/doctype/customize_form/customize_form.json
 msgid "Make Attachments Public by Default"
-msgstr ""
+msgstr "Tee liitteistä julkisia oletuksena"
 
 #. Description of the 'Disable Username/Password Login' (Check) field in
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Make sure to configure a Social Login Key before disabling to prevent lockout"
-msgstr ""
+msgstr "Varmista, että sosiaalisen kirjautumisen avain on määritetty ennen poistamista käytöstä lukittumisen estämiseksi"
 
 #: frappe/utils/password_strength.py:92
 msgid "Make use of longer keyboard patterns"
@@ -14586,15 +14586,15 @@ msgstr "Julkistaa sivun"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:28
 msgid "Male"
-msgstr ""
+msgstr "Mies"
 
 #: frappe/www/me.html:56
 msgid "Manage 3rd party apps"
-msgstr ""
+msgstr "Hallitse kolmannen osapuolen sovelluksia"
 
 #: frappe/public/js/billing.bundle.js:77
 msgid "Manage Billing"
-msgstr ""
+msgstr "Hallitse laskutusta"
 
 #. Label of the reqd (Check) field in DocType 'DocField'
 #. Label of the mandatory (Check) field in DocType 'Report Filter'
@@ -14603,7 +14603,7 @@ msgstr ""
 #. Label of the reqd (Check) field in DocType 'Web Template Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/core/doctype/report_filter/report_filter.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/website/doctype/web_form_field/web_form_field.json frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Mandatory"
-msgstr ""
+msgstr "Pakollinen"
 
 #. Label of the mandatory_depends_on (Code) field in DocType 'Custom Field'
 #. Label of the mandatory_depends_on (Code) field in DocType 'Customize Form
@@ -14611,12 +14611,12 @@ msgstr ""
 #. Label of the mandatory_depends_on (Code) field in DocType 'Web Form Field'
 #: frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Mandatory Depends On"
-msgstr ""
+msgstr "Pakollinen riippuu"
 
 #. Label of the mandatory_depends_on (Code) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "Mandatory Depends On (JS)"
-msgstr ""
+msgstr "Pakollinen riippuu (JS)"
 
 #: frappe/website/doctype/web_form/web_form.py:536
 msgid "Mandatory Information missing:"
@@ -14719,7 +14719,7 @@ msgstr "Merkitse lukemattomaksi"
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: frappe/email/doctype/notification/notification.json frappe/website/doctype/web_page/web_page.js:95 frappe/website/doctype/web_page/web_page.json
 msgid "Markdown"
-msgstr ""
+msgstr "Markdown"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -14728,17 +14728,17 @@ msgstr ""
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/website/doctype/web_form_field/web_form_field.json frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Markdown Editor"
-msgstr ""
+msgstr "Markdown-editori"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Marked As Spam"
-msgstr ""
+msgstr "Merkitty roskapostiksi"
 
 #. Name of a role
 #: frappe/website/doctype/utm_campaign/utm_campaign.json frappe/website/doctype/utm_medium/utm_medium.json frappe/website/doctype/utm_source/utm_source.json
 msgid "Marketing Manager"
-msgstr ""
+msgstr "Markkinointipäällikkö"
 
 #. Label of the mask (Check) field in DocType 'Custom DocPerm'
 #. Label of the mask (Check) field in DocType 'DocField'
@@ -14746,16 +14746,16 @@ msgstr ""
 #. Label of the mask (Check) field in DocType 'Customize Form Field'
 #: frappe/core/doctype/custom_docperm/custom_docperm.json frappe/core/doctype/docfield/docfield.json frappe/core/doctype/docperm/docperm.json frappe/core/page/permission_manager/permission_manager_help.html:81 frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Mask"
-msgstr ""
+msgstr "Peittäminen"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:50
 msgid "Master"
-msgstr ""
+msgstr "Herra"
 
 #. Description of the 'Limit' (Int) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "Max 500 records at a time"
-msgstr ""
+msgstr "Enintään 500 tietuetta kerrallaan"
 
 #. Label of the max_attachments (Int) field in DocType 'DocType'
 #. Label of the max_attachments (Int) field in DocType 'Customize Form'
@@ -14859,28 +14859,28 @@ msgstr ""
 #. Group in Email Group's connections
 #: frappe/email/doctype/email_group/email_group.json
 msgid "Members"
-msgstr ""
+msgstr "Jäsenet"
 
 #. Label of the cache_memory_usage (Data) field in DocType 'System Health
 #. Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Memory Usage"
-msgstr ""
+msgstr "Muistin käyttö"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:63
 msgid "Memory Usage in MB"
-msgstr ""
+msgstr "Muistin käyttö megatavuina"
 
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Mention"
-msgstr ""
+msgstr "Maininta"
 
 #. Label of the enable_email_mention (Check) field in DocType 'Notification
 #. Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Mentions"
-msgstr ""
+msgstr "Maininnat"
 
 #: frappe/public/js/frappe/ui/page.html:59 frappe/public/js/frappe/ui/page.js:174
 msgid "Menu"
@@ -14920,27 +14920,27 @@ msgstr "Viesti"
 #. Label of the message_examples (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Message Examples"
-msgstr ""
+msgstr "Viestiesimerkit"
 
 #. Label of the message_id (Small Text) field in DocType 'Communication'
 #. Label of the message_id (Small Text) field in DocType 'Email Queue'
 #: frappe/core/doctype/communication/communication.json frappe/email/doctype/email_queue/email_queue.json
 msgid "Message ID"
-msgstr ""
+msgstr "Viestin tunnus"
 
 #. Label of the message_parameter (Data) field in DocType 'SMS Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Message Parameter"
-msgstr ""
+msgstr "Viestiparametri"
 
 #: frappe/templates/includes/contact.js:36
 msgid "Message Sent"
-msgstr ""
+msgstr "Viesti lähetetty"
 
 #. Label of the message_type (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Message Type"
-msgstr ""
+msgstr "Viestityyppi"
 
 #: frappe/public/js/frappe/views/communication.js:1088
 msgid "Message clipped"
@@ -14957,22 +14957,22 @@ msgstr "Viesti ei ole asetettu"
 #. Description of the 'Success message' (Text) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Message to be displayed on successful completion"
-msgstr ""
+msgstr "Viesti, joka näytetään onnistuneen suorituksen jälkeen"
 
 #. Label of the message_id (Code) field in DocType 'Unhandled Email'
 #: frappe/email/doctype/unhandled_email/unhandled_email.json
 msgid "Message-id"
-msgstr ""
+msgstr "Message-id"
 
 #. Label of the messages (Code) field in DocType 'Data Import Log'
 #: frappe/core/doctype/data_import_log/data_import_log.json
 msgid "Messages"
-msgstr ""
+msgstr "Viestit"
 
 #. Label of the meta_section (Section Break) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Meta"
-msgstr ""
+msgstr "Meta"
 
 #: frappe/website/doctype/web_page/web_page.js:124
 msgid "Meta Description"
@@ -14986,7 +14986,7 @@ msgstr "Metakuva"
 #. Label of the meta_tags (Table) field in DocType 'Website Route Meta'
 #: frappe/website/doctype/web_page/web_page.json frappe/website/doctype/website_route_meta/website_route_meta.json
 msgid "Meta Tags"
-msgstr ""
+msgstr "Metatunnisteet"
 
 #: frappe/website/doctype/web_page/web_page.js:117
 msgid "Meta Title"
@@ -14995,17 +14995,17 @@ msgstr "Sisällönkuvausnimi"
 #. Label of the meta_description (Small Text) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Meta description"
-msgstr ""
+msgstr "Sisällönkuvaus"
 
 #. Label of the meta_image (Attach Image) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Meta image"
-msgstr ""
+msgstr "Metakuva"
 
 #. Label of the meta_title (Data) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Meta title"
-msgstr ""
+msgstr "Sisällönkuvausnimi"
 
 #: frappe/website/doctype/web_page/web_page.js:110
 msgid "Meta title for SEO"
@@ -15017,7 +15017,7 @@ msgstr "Meta-otsikko hakukoneoptimoinnille"
 #. Settings'
 #: frappe/core/doctype/error_log/error_log.json frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Metadata"
-msgstr ""
+msgstr "Metatiedot"
 
 #. Label of the method (Data) field in DocType 'Access Log'
 #. Label of the method (Data) field in DocType 'API Request Log'
@@ -15029,31 +15029,31 @@ msgstr ""
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/core/doctype/access_log/access_log.json frappe/core/doctype/api_request_log/api_request_log.json frappe/core/doctype/recorder/recorder.json frappe/core/doctype/scheduled_job_type/scheduled_job_type.json frappe/core/doctype/scheduler_event/scheduler_event.json frappe/desk/doctype/number_card/number_card.json frappe/email/doctype/email_account/email_account.json frappe/email/doctype/notification/notification.json
 msgid "Method"
-msgstr ""
+msgstr "Menetelmä"
 
 #: frappe/__init__.py:472
 msgid "Method Not Allowed"
-msgstr ""
+msgstr "Menetelmä ei sallittu"
 
 #: frappe/desk/doctype/number_card/number_card.py:77
 msgid "Method is required to create a number card"
-msgstr ""
+msgstr "Menetelmä vaaditaan numerokortin luomiseen"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Mid Center"
-msgstr ""
+msgstr "Keskikohta"
 
 #. Label of the middle_name (Data) field in DocType 'Contact'
 #. Label of the middle_name (Data) field in DocType 'User'
 #: frappe/contacts/doctype/contact/contact.json frappe/core/doctype/user/user.json
 msgid "Middle Name"
-msgstr ""
+msgstr "Toinen nimi"
 
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Middle Name (Optional)"
-msgstr ""
+msgstr "Toinen nimi (Valinnainen)"
 
 #. Name of a DocType
 #. Label of a Workspace Sidebar Item
@@ -15070,18 +15070,18 @@ msgstr "Milestone Tracker"
 #. Option for the 'Function' (Select) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Minimum"
-msgstr ""
+msgstr "Minimi"
 
 #. Label of the minimum_password_score (Select) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Minimum Password Score"
-msgstr ""
+msgstr "Salasanan vähimmäispistemäärä"
 
 #. Label of the minor (Int) field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
 msgid "Minor"
-msgstr ""
+msgstr "Sivuversio"
 
 #: frappe/public/js/frappe/form/controls/duration.js:30
 msgctxt "Duration"
@@ -15091,33 +15091,33 @@ msgstr ""
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Minutes After"
-msgstr ""
+msgstr "Minuuttia jälkeen"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Minutes Before"
-msgstr ""
+msgstr "Minuuttia ennen"
 
 #. Label of the minutes_offset (Int) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Minutes Offset"
-msgstr ""
+msgstr "Minuuttisiirtymä"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:103 frappe/integrations/doctype/ldap_settings/ldap_settings.py:108 frappe/integrations/doctype/ldap_settings/ldap_settings.py:117 frappe/integrations/doctype/ldap_settings/ldap_settings.py:125 frappe/integrations/doctype/ldap_settings/ldap_settings.py:335
 msgid "Misconfigured"
-msgstr ""
+msgstr "Väärin määritetty"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:49
 msgid "Miss"
-msgstr ""
+msgstr "Neiti"
 
 #: frappe/desk/form/meta.py:197
 msgid "Missing DocType"
-msgstr ""
+msgstr "Puuttuva tietuetyyppi"
 
 #: frappe/core/doctype/doctype/doctype.py:1589
 msgid "Missing Field"
-msgstr ""
+msgstr "Puuttuva kenttä"
 
 #: frappe/public/js/frappe/form/save.js:192
 msgid "Missing Fields"
@@ -15125,15 +15125,15 @@ msgstr "Puuttuvia kenttiä"
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:133
 msgid "Missing Filters Required"
-msgstr ""
+msgstr "Pakolliset suodattimet puuttuvat"
 
 #: frappe/desk/form/assign_to.py:111
 msgid "Missing Permission"
-msgstr ""
+msgstr "Puuttuva käyttöoikeus"
 
 #: frappe/www/update-password.html:134 frappe/www/update-password.html:141
 msgid "Missing Value"
-msgstr ""
+msgstr "Puuttuva arvo"
 
 #: frappe/public/js/frappe/ui/field_group.js:166 frappe/public/js/frappe/widgets/widget_dialog.js:374 frappe/public/js/workflow_builder/store.js:101 frappe/workflow/doctype/workflow/workflow.js:71
 msgid "Missing Values Required"
@@ -15141,7 +15141,7 @@ msgstr "puuttuvat arvot vaaditaan"
 
 #: frappe/www/login.py:104
 msgid "Mobile"
-msgstr ""
+msgstr "Matkapuhelin"
 
 #. Label of the mobile_no (Data) field in DocType 'Contact'
 #. Label of the mobile_no (Data) field in DocType 'User'
@@ -15152,12 +15152,12 @@ msgstr "Matkapuhelin"
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Mobile Number"
-msgstr ""
+msgstr "Matkapuhelinnumero"
 
 #. Label of the modal_trigger (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Modal Trigger"
-msgstr ""
+msgstr "Modaalinen laukaisin"
 
 #: frappe/core/page/permission_manager/permission_manager.js:709
 msgid "Modified By"
@@ -15193,7 +15193,7 @@ msgstr "Moduuli"
 #. Label of the module (Link) field in DocType 'Web Page'
 #: frappe/core/doctype/server_script/server_script.json frappe/custom/doctype/client_script/client_script.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/property_setter/property_setter.json frappe/website/doctype/web_page/web_page.json
 msgid "Module (for export)"
-msgstr ""
+msgstr "Moduuli (vientiä varten)"
 
 #. Name of a DocType
 #. Label of a Link in the Build Workspace
@@ -15206,12 +15206,12 @@ msgstr "moduulin tunniste"
 #. Label of the module_html (HTML) field in DocType 'Module Profile'
 #: frappe/core/doctype/module_profile/module_profile.json
 msgid "Module HTML"
-msgstr ""
+msgstr "Moduuli HTML"
 
 #. Label of the module_name (Data) field in DocType 'Module Def'
 #: frappe/core/doctype/module_def/module_def.json
 msgid "Module Name"
-msgstr ""
+msgstr "Moduulin nimi"
 
 #. Label of a Link in the Build Workspace
 #. Name of a DocType
@@ -15224,16 +15224,16 @@ msgstr "Moduulin sisällyttäminen"
 #. Label of the module_profile (Link) field in DocType 'User'
 #: frappe/core/doctype/module_profile/module_profile.json frappe/core/doctype/user/user.json
 msgid "Module Profile"
-msgstr ""
+msgstr "Moduuliprofiili"
 
 #. Label of the module_profile_name (Data) field in DocType 'Module Profile'
 #: frappe/core/doctype/module_profile/module_profile.json
 msgid "Module Profile Name"
-msgstr ""
+msgstr "Moduuliprofiilin nimi"
 
 #: frappe/desk/doctype/module_onboarding/module_onboarding.py:70
 msgid "Module onboarding progress reset"
-msgstr ""
+msgstr "Moduulin sisällyttämisen edistyminen nollattu"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:263
 msgid "Module to Export"
@@ -15241,7 +15241,7 @@ msgstr "Moduuli Vie"
 
 #: frappe/modules/utils.py:323
 msgid "Module {} not found"
-msgstr ""
+msgstr "Moduulia {} ei löytynyt"
 
 #. Group in Package's connections
 #. Label of a Card Break in the Build Workspace
@@ -15252,7 +15252,7 @@ msgstr "moduulit"
 #. Label of the modules_html (HTML) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Modules HTML"
-msgstr ""
+msgstr "Moduulit HTML"
 
 #. Option for the 'Day' (Select) field in DocType 'Assignment Rule Day'
 #. Option for the 'Day' (Select) field in DocType 'Auto Repeat Day'
@@ -15263,17 +15263,17 @@ msgstr ""
 #. Option for the 'Day of Week' (Select) field in DocType 'Auto Email Report'
 #: frappe/automation/doctype/assignment_rule_day/assignment_rule_day.json frappe/automation/doctype/auto_repeat_day/auto_repeat_day.json frappe/core/doctype/language/language.json frappe/core/doctype/system_settings/system_settings.json frappe/desk/doctype/event/event.json frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Monday"
-msgstr ""
+msgstr "Maanantai"
 
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Monitor logs for errors, background jobs, communications, and user activity"
-msgstr ""
+msgstr "Seuraa lokeja virheiden, tausta-ajojen, viestinnän ja käyttäjätoiminnan osalta"
 
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Monospace"
-msgstr ""
+msgstr "Monospace"
 
 #: frappe/public/js/frappe/views/calendar/calendar.js:282
 msgid "Month"
@@ -15296,7 +15296,7 @@ msgstr "Kuukausi"
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json frappe/core/doctype/server_script/server_script.json
 msgid "Monthly Long"
-msgstr ""
+msgstr "Kuukausittain pitkä"
 
 #: frappe/public/js/frappe/form/link_selector.js:39 frappe/public/js/frappe/form/multi_select_dialog.js:45 frappe/public/js/frappe/form/multi_select_dialog.js:72 frappe/public/js/frappe/ui/toolbar/search.js:287 frappe/public/js/frappe/ui/toolbar/search.js:301 frappe/public/js/frappe/widgets/chart_widget.js:765 frappe/templates/includes/list/list.html:27 frappe/templates/includes/search_template.html:13
 msgid "More"
@@ -15307,7 +15307,7 @@ msgstr "Lisää"
 #. Log'
 #: frappe/core/doctype/permission_log/permission_log.json
 msgid "More Info"
-msgstr ""
+msgstr "Lisätiedot"
 
 #. Label of the more_info (Section Break) field in DocType 'Contact'
 #. Label of the additional_info (Section Break) field in DocType 'Activity
@@ -15318,11 +15318,11 @@ msgstr ""
 #. Label of a field in the edit-profile Web Form
 #: frappe/contacts/doctype/contact/contact.json frappe/core/doctype/activity_log/activity_log.json frappe/core/doctype/communication/communication.json frappe/core/doctype/user/user.json frappe/core/web_form/edit_profile/edit_profile.json
 msgid "More Information"
-msgstr ""
+msgstr "Lisätiedot"
 
 #: frappe/public/js/frappe/views/communication.js:65
 msgid "More Options"
-msgstr ""
+msgstr "Lisää vaihtoehtoja"
 
 #: frappe/website/doctype/help_article/templates/help_article.html:19
 msgid "More articles on {0}"
@@ -15332,7 +15332,7 @@ msgstr "Lisää artikkeleita {0}"
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "More content for the bottom of the page."
-msgstr ""
+msgstr "Lisää sisältöä sivun alaosaan."
 
 #: frappe/public/js/frappe/ui/sort_selector.js:199
 msgid "Most Used"
@@ -15340,7 +15340,7 @@ msgstr "Aktiivisin"
 
 #: frappe/utils/password.py:75
 msgid "Most probably your password is too long."
-msgstr ""
+msgstr "Salasanasi on todennäköisesti liian pitkä."
 
 #: frappe/core/doctype/communication/communication.js:86 frappe/core/doctype/communication/communication.js:194 frappe/core/doctype/communication/communication.js:212 frappe/public/js/frappe/form/grid_row_form.js:53
 msgid "Move"
@@ -15356,31 +15356,31 @@ msgstr "Siirtää roskakoriin"
 
 #: frappe/public/js/form_builder/components/Section.vue:295
 msgid "Move current and all subsequent sections to a new tab"
-msgstr ""
+msgstr "Siirrä nykyinen ja kaikki seuraavat osiot uudelle välilehdelle"
 
 #: frappe/public/js/frappe/form/form.js:179
 msgid "Move cursor to above row"
-msgstr ""
+msgstr "Siirrä kohdistin ylempään riviin"
 
 #: frappe/public/js/frappe/form/form.js:183
 msgid "Move cursor to below row"
-msgstr ""
+msgstr "Siirrä kohdistin alempaan riviin"
 
 #: frappe/public/js/frappe/form/form.js:187
 msgid "Move cursor to next column"
-msgstr ""
+msgstr "Siirrä kohdistin seuraavaan sarakkeeseen"
 
 #: frappe/public/js/frappe/form/form.js:191
 msgid "Move cursor to previous column"
-msgstr ""
+msgstr "Siirrä kohdistin edelliseen sarakkeeseen"
 
 #: frappe/public/js/form_builder/components/Section.vue:294
 msgid "Move sections to new tab"
-msgstr ""
+msgstr "Siirrä osiot uudelle välilehdelle"
 
 #: frappe/public/js/form_builder/components/Field.vue:242
 msgid "Move the current field and the following fields to a new column"
-msgstr ""
+msgstr "Siirrä nykyinen kenttä ja seuraavat kentät uuteen sarakkeeseen"
 
 #: frappe/public/js/frappe/form/grid_row.js:160
 msgid "Move to Row Number"
@@ -15390,25 +15390,25 @@ msgstr "Siirry rivinumeroon"
 #. Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Move to next step when clicked inside highlighted area."
-msgstr ""
+msgstr "Siirry seuraavaan vaiheeseen, kun napsautetaan korostetun alueen sisällä."
 
 #. Description of the 'Parent Element Selector' (Data) field in DocType 'Form
 #. Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Mozilla doesn't support :has() so you can pass parent selector here as workaround"
-msgstr ""
+msgstr "Mozilla ei tue :has()-valitsinta, joten voit antaa pääelementin valitsimen tähän kiertotapana"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:43
 msgid "Mr"
-msgstr ""
+msgstr "Hra"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:47
 msgid "Mrs"
-msgstr ""
+msgstr "Rva"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:44
 msgid "Ms"
-msgstr ""
+msgstr "Nti"
 
 #: frappe/utils/nestedset.py:348
 msgid "Multiple root nodes not allowed."
@@ -15419,19 +15419,19 @@ msgstr "kannalla ei voi olla useampaa sidosta"
 #. Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Must be a publicly accessible Google Sheets URL"
-msgstr ""
+msgstr "Tulee olla julkisesti saatavilla oleva Google Sheets -URL"
 
 #. Description of the 'LDAP Search String' (Data) field in DocType 'LDAP
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Must be enclosed in '()' and include '{0}', which is a placeholder for the user/login name. i.e. (&(objectclass=user)(uid={0}))"
-msgstr ""
+msgstr "Tulee olla suljettu '()'-merkkeihin ja sisältää '{0}', joka on käyttäjä-/kirjautumisnimen paikkamerkki. esim. (&(objectclass=user)(uid={0}))"
 
 #. Description of the 'Image Field' (Data) field in DocType 'DocType'
 #. Description of the 'Image Field' (Data) field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json frappe/custom/doctype/customize_form/customize_form.json
 msgid "Must be of type \"Attach Image\""
-msgstr ""
+msgstr "Tulee olla tyyppiä \"Liitä kuva\""
 
 #: frappe/desk/query_report.py:219
 msgid "Must have report permission to access this report."
@@ -15444,11 +15444,11 @@ msgstr "kysely on määritettävä jatkaaksesi"
 #. Label of the mute_sounds (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Mute Sounds"
-msgstr ""
+msgstr "Mykistä äänet"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:45
 msgid "Mx"
-msgstr ""
+msgstr "Mx"
 
 #: frappe/templates/includes/web_sidebar.html:41 frappe/website/doctype/web_form/web_form.py:525 frappe/website/doctype/website_settings/website_settings.py:181 frappe/www/me.html:8 frappe/www/update_password.py:10
 msgid "My Account"
@@ -15456,18 +15456,18 @@ msgstr "Oma tili"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:57
 msgid "My Device"
-msgstr ""
+msgstr "Oma laite"
 
 #. Label of a Desktop Icon
 #. Title of a Workspace Sidebar
 #: frappe/desktop_icon/my_workspaces.json frappe/workspace_sidebar/my_workspaces.json
 msgid "My Workspaces"
-msgstr ""
+msgstr "Omat työtilat"
 
 #. Option for the 'Database Engine' (Select) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "MyISAM"
-msgstr ""
+msgstr "MyISAM"
 
 #: frappe/public/js/frappe/widgets/number_card_widget.js:235
 msgctxt "Number not available"
@@ -15479,17 +15479,17 @@ msgstr ""
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "NEVER"
-msgstr ""
+msgstr "EI KOSKAAN"
 
 #: frappe/workflow/doctype/workflow/workflow.js:19
 msgid "NOTE: If you add states or transitions in the table, it will be reflected in the Workflow Builder but you will have to position them manually. Also Workflow Builder is currently in <b>BETA</b>."
-msgstr ""
+msgstr "HUOMIO: Jos lisäät tiloja tai siirtymiä taulukkoon, ne näkyvät työnkulun rakentajassa, mutta sinun on sijoitettava ne manuaalisesti. Työnkulun rakentaja on tällä hetkellä <b>BETA</b>-vaiheessa."
 
 #. Description of the 'LDAP Group Field' (Data) field in DocType 'LDAP
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "NOTE: This box is due for depreciation. Please re-setup LDAP to work with the newer settings"
-msgstr ""
+msgstr "HUOMIO: Tämä kenttä poistetaan käytöstä. Määritä LDAP uudelleen toimimaan uudempien asetusten kanssa"
 
 #. Label of the fieldname (Data) field in DocType 'DocField'
 #. Label of the fieldname (Data) field in DocType 'Customize Form Field'
@@ -15502,11 +15502,11 @@ msgstr "Nimi"
 
 #: frappe/integrations/doctype/webhook/webhook.js:29
 msgid "Name (Doc Name)"
-msgstr ""
+msgstr "Nimi (Asiakirjan nimi)"
 
 #: frappe/desk/utils.py:28
 msgid "Name already taken, please set a new name"
-msgstr ""
+msgstr "Nimi on jo käytössä, aseta uusi nimi"
 
 #: frappe/model/naming.py:525
 msgid "Name cannot contain special characters like {0}"
@@ -15535,7 +15535,7 @@ msgstr "Ja sukunimet itse on helppo arvata."
 #. Form'
 #: frappe/core/doctype/doctype/doctype.json frappe/core/doctype/document_naming_rule/document_naming_rule.json frappe/custom/doctype/customize_form/customize_form.json
 msgid "Naming"
-msgstr ""
+msgstr "Nimeäminen"
 
 #. Description of the 'Auto Name' (Data) field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -15549,14 +15549,14 @@ msgstr ""
 #. Label of the naming_rule (Select) field in DocType 'Customize Form'
 #: frappe/core/doctype/doctype/doctype.json frappe/custom/doctype/customize_form/customize_form.json
 msgid "Naming Rule"
-msgstr ""
+msgstr "Nimeämissääntö"
 
 #. Label of the naming_series_tab (Tab Break) field in DocType 'Document
 #. Naming
 #. Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Naming Series"
-msgstr ""
+msgstr "Naming Series"
 
 #: frappe/model/naming.py:281
 msgid "Naming Series mandatory"
@@ -15567,7 +15567,7 @@ msgstr "sarjan nimeäminen vaaditaan"
 #. Label of the navbar_tab (Tab Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/web_template/web_template.json frappe/website/doctype/website_settings/website_settings.json
 msgid "Navbar"
-msgstr ""
+msgstr "Navigointipalkki"
 
 #. Name of a DocType
 #: frappe/core/doctype/navbar_item/navbar_item.json
@@ -15585,13 +15585,13 @@ msgstr "Navigointipalkin asetukset"
 #. 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Navbar Template"
-msgstr ""
+msgstr "Navigointipalkin malli"
 
 #. Label of the navbar_template_values (Code) field in DocType 'Website
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "Navbar Template Values"
-msgstr ""
+msgstr "Navigointipalkin mallin arvot"
 
 #: frappe/public/js/frappe/list/list_view.js:1426
 msgctxt "Description of a list view shortcut"
@@ -15605,21 +15605,21 @@ msgstr "Selaa luetteloa ylöspäin"
 
 #: frappe/public/js/frappe/ui/page.js:187
 msgid "Navigate to main content"
-msgstr ""
+msgstr "Siirry pääsisältöön"
 
 #. Label of the navigation_settings_section (Section Break) field in DocType
 #. 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Navigation Settings"
-msgstr ""
+msgstr "Navigointiasetukset"
 
 #: frappe/public/js/frappe/list/list_view.js:509
 msgid "Need Help?"
-msgstr ""
+msgstr "Tarvitsetko ohjeita?"
 
 #: frappe/desk/doctype/workspace/workspace.py:360
 msgid "Need Workspace Manager role to edit private workspace of other users"
-msgstr ""
+msgstr "Muiden käyttäjien yksityisen työtilan muokkaamiseen tarvitaan Työtilan hallinnoija -rooli"
 
 #: frappe/model/document.py:837
 msgid "Negative Value"
@@ -15627,7 +15627,7 @@ msgstr "Negatiivinen arvo"
 
 #: frappe/database/query.py:720
 msgid "Nested filters must be provided as a list or tuple."
-msgstr ""
+msgstr "Sisäkkäiset suodattimet on annettava listana tai tuplena."
 
 #: frappe/utils/nestedset.py:94
 msgid "Nested set error. Please contact the Administrator."
@@ -15636,13 +15636,13 @@ msgstr "Sisäkkäisasetusvirhe. Ota yhteyttä järjestelmävalvojaan."
 #. Name of a DocType
 #: frappe/printing/doctype/network_printer_settings/network_printer_settings.json
 msgid "Network Printer Settings"
-msgstr ""
+msgstr "Verkkotulostinasetukset"
 
 #. Option for the 'Show External Link Warning' (Select) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Never"
-msgstr ""
+msgstr "Ei koskaan"
 
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace
 #. Shortcut'
@@ -15657,19 +15657,19 @@ msgstr "Uusi aktiviteetti"
 
 #: frappe/public/js/frappe/form/templates/address_list.html:3 frappe/public/js/frappe/ui/address_autocomplete/autocomplete_dialog.js:5 frappe/public/js/frappe/utils/address_and_contact.js:87
 msgid "New Address"
-msgstr ""
+msgstr "Uusi osoite"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:58
 msgid "New Chart"
-msgstr ""
+msgstr "Uusi kaavio"
 
 #: frappe/public/js/frappe/form/templates/contact_list.html:3
 msgid "New Contact"
-msgstr ""
+msgstr "Uusi yhteyshenkilö"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:70
 msgid "New Custom Block"
-msgstr ""
+msgstr "Uusi mukautettu lohko"
 
 #: frappe/printing/page/print/print.js:319 frappe/printing/page/print/print.js:366
 msgid "New Custom Print Format"
@@ -15678,7 +15678,7 @@ msgstr "uusi oma tulostusmuoto"
 #. Label of the new_document_form (Check) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "New Document Form"
-msgstr ""
+msgstr "Uuden asiakirjan lomake"
 
 #: frappe/desk/doctype/notification_log/notification_log.py:154
 msgid "New Document Shared {0}"
@@ -15706,7 +15706,7 @@ msgstr "Uusi Kanban Board"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:62
 msgid "New Links"
-msgstr ""
+msgstr "Uudet Linkit"
 
 #: frappe/desk/doctype/notification_log/notification_log.py:152
 msgid "New Mention on {0}"
@@ -15727,11 +15727,11 @@ msgstr "Uusi ilmoitus"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:64
 msgid "New Number Card"
-msgstr ""
+msgstr "Uusi numerokortti"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:66
 msgid "New Onboarding"
-msgstr ""
+msgstr "Uusi Käyttöönotto"
 
 #: frappe/core/doctype/user/user.js:186 frappe/www/update-password.html:43
 msgid "New Password"
@@ -15743,7 +15743,7 @@ msgstr "Uusi tulostusmuodon nimi"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:68
 msgid "New Quick List"
-msgstr ""
+msgstr "Uusi pikalista"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1460
 msgid "New Report name"
@@ -15751,28 +15751,28 @@ msgstr "Uusi raportti nimi"
 
 #: frappe/core/doctype/role/role.js:55
 msgid "New Role Name"
-msgstr ""
+msgstr "Uusi roolin nimi"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:60
 msgid "New Shortcut"
-msgstr ""
+msgstr "Uusi pikakuvake"
 
 #. Label of the new_users (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "New Users (Last 30 days)"
-msgstr ""
+msgstr "Uudet käyttäjät (viimeiset 30 päivää)"
 
 #: frappe/core/doctype/version/version_view.html:75 frappe/core/doctype/version/version_view.html:140
 msgid "New Value"
-msgstr ""
+msgstr "Uusi arvo"
 
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:61
 msgid "New Workflow Name"
-msgstr ""
+msgstr "Uuden työketjun nimi"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:416
 msgid "New Workspace"
-msgstr ""
+msgstr "Uusi työtila"
 
 #. Description of the 'Allowed Public Client Origins' (Small Text) field in
 #. DocType 'OAuth Settings'
@@ -15782,29 +15782,32 @@ msgid ""
 "<br>\n"
 "Public clients are restricted by default."
 msgstr ""
+"Rivinvaihdolla eroteltu lista sallituista julkisten asiakkaiden URL-osoitteista (esim. <code>https://frappe.io</code>), tai <code>*</code> hyväksyäksesi kaikki.\n"
+"<br>\n"
+"Julkiset asiakkaat ovat oletuksena rajoitettuja."
 
 #. Description of the 'Scopes Supported' (Small Text) field in DocType 'OAuth
 #. Settings'
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "New line separated list of scope values."
-msgstr ""
+msgstr "Rivinvaihdoilla eroteltu luettelo laajuusarvoista."
 
 #. Description of the 'Contacts' (Small Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "New lines separated list of strings representing ways to contact people responsible for this client, typically email addresses."
-msgstr ""
+msgstr "Rivinvaihdoilla eroteltu luettelo merkkijonoista, jotka kuvaavat tapoja ottaa yhteyttä tästä asiakkaasta vastaaviin henkilöihin, tyypillisesti sähköpostiosoitteita."
 
 #: frappe/www/update-password.html:92
 msgid "New password cannot be same as old password"
-msgstr ""
+msgstr "Uusi salasana ei voi olla sama kuin vanha salasana"
 
 #: frappe/core/doctype/user/user.py:962
 msgid "New password cannot be the same as your current password. Please choose a different password."
-msgstr ""
+msgstr "Uusi salasana ei voi olla sama kuin nykyinen salasanasi. Valitse eri salasana."
 
 #: frappe/core/doctype/role/role.js:78
 msgid "New role created successfully."
-msgstr ""
+msgstr "Uusi rooli luotu onnistuneesti."
 
 #: frappe/utils/change_log.py:389
 msgid "New updates are available"
@@ -15814,13 +15817,13 @@ msgstr "Uusia päivityksiä on saatavilla"
 #. Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
 msgid "New users will have to be manually registered by system managers."
-msgstr ""
+msgstr "Uudet käyttäjät on rekisteröitävä manuaalisesti järjestelmänvalvojien toimesta."
 
 #. Description of the 'Set Value' (Small Text) field in DocType 'Property
 #. Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "New value to be set"
-msgstr ""
+msgstr "Asetettava uusi arvo"
 
 #: frappe/public/js/frappe/form/quick_entry.js:180 frappe/public/js/frappe/form/toolbar.js:47 frappe/public/js/frappe/form/toolbar.js:234 frappe/public/js/frappe/form/toolbar.js:249 frappe/public/js/frappe/form/toolbar.js:597 frappe/public/js/frappe/model/model.js:624 frappe/public/js/frappe/ui/toolbar/search_utils.js:178 frappe/public/js/frappe/ui/toolbar/search_utils.js:179 frappe/public/js/frappe/ui/toolbar/search_utils.js:228 frappe/public/js/frappe/ui/toolbar/search_utils.js:229 frappe/public/js/frappe/views/breadcrumbs.js:232 frappe/public/js/frappe/views/treeview.js:375 frappe/public/js/frappe/widgets/widget_dialog.js:72 frappe/website/doctype/web_form/web_form.py:441
 msgid "New {0}"
@@ -15848,7 +15851,7 @@ msgstr "Seuraavat sovellukset ovat uusia {} -versioita"
 
 #: frappe/core/doctype/user/user.py:878
 msgid "Newly created user {0} has no roles enabled."
-msgstr ""
+msgstr "Juuri luodulla käyttäjällä {0} ei ole rooleja käytössä."
 
 #. Name of a role
 #: frappe/email/doctype/email_group/email_group.json frappe/email/doctype/email_group_member/email_group_member.json frappe/website/doctype/utm_campaign/utm_campaign.json
@@ -15866,99 +15869,99 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:693
 msgid "Next 14 Days"
-msgstr ""
+msgstr "Seuraavat 14 päivää"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:697
 msgid "Next 30 Days"
-msgstr ""
+msgstr "Seuraavat 30 päivää"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:713
 msgid "Next 6 Months"
-msgstr ""
+msgstr "Seuraavat 6 kuukautta"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:689
 msgid "Next 7 Days"
-msgstr ""
+msgstr "Seuraavat 7 päivää"
 
 #. Label of the next_action_email_template (Link) field in DocType 'Workflow
 #. Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Next Action Email Template"
-msgstr ""
+msgstr "Seuraavan toiminnon sähköpostimalli"
 
 #: frappe/core/doctype/success_action/success_action.js:44
 msgid "Next Actions"
-msgstr ""
+msgstr "Seuraavat toiminnot"
 
 #. Label of the next_actions_html (HTML) field in DocType 'Success Action'
 #: frappe/core/doctype/success_action/success_action.json
 msgid "Next Actions HTML"
-msgstr ""
+msgstr "Seuraavat toiminnot HTML"
 
 #: frappe/public/js/frappe/form/toolbar.js:357
 msgid "Next Document"
-msgstr ""
+msgstr "Seuraava asiakirja"
 
 #. Label of the next_execution (Datetime) field in DocType 'Scheduled Job
 #. Type'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Next Execution"
-msgstr ""
+msgstr "Seuraava suoritus"
 
 #. Label of the next_form_tour (Link) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Next Form Tour"
-msgstr ""
+msgstr "Seuraava lomakekierros"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:705
 msgid "Next Month"
-msgstr ""
+msgstr "Seuraava kuukausi"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:709
 msgid "Next Quarter"
-msgstr ""
+msgstr "Seuraava neljännes"
 
 #. Label of the next_schedule_date (Date) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Next Schedule Date"
-msgstr ""
+msgstr "Seuraava aikataulupäivä"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat_schedule.html:6
 msgid "Next Scheduled Date"
-msgstr ""
+msgstr "Seuraava aikataulutettu päivä"
 
 #. Label of the next_state (Link) field in DocType 'Workflow Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Next State"
-msgstr ""
+msgstr "Seuraava tila"
 
 #. Label of the next_step_condition (Code) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Next Step Condition"
-msgstr ""
+msgstr "Seuraavan vaiheen ehto"
 
 #. Label of the next_sync_token (Password) field in DocType 'Google Calendar'
 #. Label of the next_sync_token (Password) field in DocType 'Google Contacts'
 #: frappe/integrations/doctype/google_calendar/google_calendar.json frappe/integrations/doctype/google_contacts/google_contacts.json
 msgid "Next Sync Token"
-msgstr ""
+msgstr "Seuraava Sync Token"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:701
 msgid "Next Week"
-msgstr ""
+msgstr "Seuraava viikko"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:717
 msgid "Next Year"
-msgstr ""
+msgstr "Seuraava vuosi"
 
 #: frappe/public/js/frappe/form/workflow.js:48
 msgid "Next actions"
-msgstr ""
+msgstr "Seuraavat toiminnot"
 
 #. Label of the next_on_click (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Next on Click"
-msgstr ""
+msgstr "Seuraava napsautuksella"
 
 #. Option for the 'Standard' (Select) field in DocType 'Page'
 #. Option for the 'Is Standard' (Select) field in DocType 'Report'
@@ -15991,7 +15994,7 @@ msgstr "Ei aktiivisia istuntoja"
 #. Label of the no_copy (Check) field in DocType 'Customize Form Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "No Copy"
-msgstr ""
+msgstr "Ei kopiointia"
 
 #: frappe/core/doctype/data_export/exporter.py:163 frappe/email/doctype/auto_email_report/auto_email_report.py:309 frappe/public/js/form_builder/components/controls/TableControl.vue:64 frappe/public/js/frappe/data_import/import_preview.js:146 frappe/public/js/frappe/form/multi_select_dialog.js:224 frappe/public/js/frappe/utils/datatable.js:10 frappe/public/js/frappe/widgets/chart_widget.js:59
 msgid "No Data"
@@ -15999,7 +16002,7 @@ msgstr "Ei tietoja"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:134
 msgid "No Data..."
-msgstr ""
+msgstr "Ei tietoja..."
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:176
 msgid "No Email Account"
@@ -16007,11 +16010,11 @@ msgstr "Ei email"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:196
 msgid "No Email Accounts Assigned"
-msgstr ""
+msgstr "Ei asetettuja sähköpostitilejä"
 
 #: frappe/email/doctype/email_group/email_group.py:50
 msgid "No Email field found in {0}"
-msgstr ""
+msgstr "Sähköpostikenttää ei löytynyt kohteesta {0}"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:183
 msgid "No Emails"
@@ -16031,11 +16034,11 @@ msgstr "Ei synkronoitavaa Google-kalenteritapahtumaa."
 
 #: frappe/email/doctype/email_account/email_account.py:244
 msgid "No IMAP folders were found on the server. Please verify the email account settings and ensure the mailbox contains folders."
-msgstr ""
+msgstr "Palvelimelta ei löytynyt IMAP-kansioita. Tarkista sähköpostitilin asetukset ja varmista, että postilaatikko sisältää kansioita."
 
 #: frappe/public/js/frappe/ui/capture.js:263
 msgid "No Images"
-msgstr ""
+msgstr "Ei kuvia"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:366
 msgid "No LDAP User found for email: {0}"
@@ -16043,11 +16046,11 @@ msgstr "LDAP-käyttäjää ei löytynyt sähköpostille: {0}"
 
 #: frappe/public/js/form_builder/components/EditableInput.vue:11 frappe/public/js/form_builder/components/EditableInput.vue:14 frappe/public/js/form_builder/components/Field.vue:214 frappe/public/js/form_builder/components/controls/FetchFromControl.vue:55 frappe/public/js/print_format_builder/Field.vue:24 frappe/public/js/workflow_builder/components/ActionNode.vue:53 frappe/public/js/workflow_builder/components/StateNode.vue:47 frappe/public/js/workflow_builder/store.js:52
 msgid "No Label"
-msgstr ""
+msgstr "Ei otsikkoa"
 
 #: frappe/printing/page/print/print.js:769 frappe/printing/page/print/print.js:850 frappe/public/js/frappe/list/bulk_operations.js:98 frappe/public/js/frappe/list/bulk_operations.js:170 frappe/utils/weasyprint.py:52
 msgid "No Letterhead"
-msgstr ""
+msgstr "Ei kirjelomaketta"
 
 #: frappe/model/naming.py:502
 msgid "No Name Specified for {0}"
@@ -16055,7 +16058,7 @@ msgstr "Nimelle {0} ei määritetty"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:351
 msgid "No New notifications"
-msgstr ""
+msgstr "Ei uusia ilmoituksia"
 
 #: frappe/core/doctype/doctype/doctype.py:1826
 msgid "No Permissions Specified"
@@ -16075,11 +16078,11 @@ msgstr "Ei sallittuja kaavioita tällä hallintapaneelilla"
 
 #: frappe/printing/doctype/print_settings/print_settings.js:13
 msgid "No Preview"
-msgstr ""
+msgstr "Ei esikatselua"
 
 #: frappe/printing/page/print/print.js:774
 msgid "No Preview Available"
-msgstr ""
+msgstr "Esikatselu ei ole käytettävissä"
 
 #: frappe/printing/page/print/print.js:928
 msgid "No Printer is Available."
@@ -16087,7 +16090,7 @@ msgstr "Tulostinta ei ole saatavana."
 
 #: frappe/core/doctype/rq_worker/rq_worker_list.js:5
 msgid "No RQ Workers connected. Try restarting the bench."
-msgstr ""
+msgstr "RQ Workers -työntekijöitä ei ole yhdistetty. Yritä käynnistää bench uudelleen."
 
 #: frappe/public/js/frappe/form/link_selector.js:143
 msgid "No Results"
@@ -16095,19 +16098,19 @@ msgstr "ei tuloksia"
 
 #: frappe/public/js/frappe/ui/toolbar/search.js:51
 msgid "No Results found"
-msgstr ""
+msgstr "Tuloksia ei löytynyt"
 
 #: frappe/core/doctype/user/user.py:879
 msgid "No Roles Specified"
-msgstr ""
+msgstr "Rooleja ei ole määritetty"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:381
 msgid "No Select Field Found"
-msgstr ""
+msgstr "Valintakenttää ei löytynyt"
 
 #: frappe/core/doctype/recorder/recorder.py:179
 msgid "No Suggestions"
-msgstr ""
+msgstr "Ei ehdotuksia"
 
 #: frappe/desk/reportview.py:717
 msgid "No Tags"
@@ -16115,15 +16118,15 @@ msgstr "Ilman tagia"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:510
 msgid "No Upcoming Events"
-msgstr ""
+msgstr "Ei tulevia tapahtumia"
 
 #: frappe/core/page/permission_manager/permission_manager.js:630
 msgid "No activity recorded yet."
-msgstr ""
+msgstr "Toimintaa ei ole vielä tallennettu."
 
 #: frappe/public/js/frappe/form/templates/address_list.html:43
 msgid "No address added yet."
-msgstr ""
+msgstr "Osoitetta ei ole vielä lisätty."
 
 #: frappe/email/doctype/notification/notification.js:246
 msgid "No alerts for today"
@@ -16131,7 +16134,7 @@ msgstr "Ei ilmoituksia tänään"
 
 #: frappe/core/doctype/recorder/recorder.py:178
 msgid "No automatic optimization suggestions available."
-msgstr ""
+msgstr "Automaattisia optimointiehdotuksia ei ole saatavilla."
 
 #: frappe/public/js/frappe/form/save.js:36
 msgid "No changes in document"
@@ -16223,7 +16226,7 @@ msgstr "Ei muita tietueita"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:327
 msgid "No matching entries in the current results"
-msgstr ""
+msgstr "Ei vastaavia merkintöjä nykyisissä tuloksissa"
 
 #: frappe/templates/includes/search_template.html:49
 msgid "No matching records. Search something new"
@@ -16248,17 +16251,17 @@ msgstr "Sarakkeiden lukumäärä"
 #. Label of the no_of_requested_sms (Int) field in DocType 'SMS Log'
 #: frappe/core/doctype/sms_log/sms_log.json
 msgid "No of Requested SMS"
-msgstr ""
+msgstr "Pyydettyjen tekstiviestien lukumäärä"
 
 #. Label of the no_of_rows (Int) field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "No of Rows (Max 500)"
-msgstr ""
+msgstr "Rivien lukumäärä (enintään 500)"
 
 #. Label of the no_of_sent_sms (Int) field in DocType 'SMS Log'
 #: frappe/core/doctype/sms_log/sms_log.json
 msgid "No of Sent SMS"
-msgstr ""
+msgstr "Lähetettyjen tekstiviestien lukumäärä"
 
 #: frappe/__init__.py:627 frappe/client.py:136 frappe/client.py:178
 msgid "No permission for {0}"
@@ -16287,7 +16290,7 @@ msgstr "Ei tallenteita {0}"
 
 #: frappe/public/js/frappe/list/list_sidebar_stat.html:11
 msgid "No records tagged."
-msgstr ""
+msgstr "Ei merkittyjä tietueita."
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:229
 msgid "No records will be exported"
@@ -16295,15 +16298,15 @@ msgstr "Tietueita ei viedä"
 
 #: frappe/public/js/frappe/form/grid.js:78
 msgid "No rows"
-msgstr ""
+msgstr "Ei rivejä"
 
 #: frappe/public/js/frappe/list/list_view.js:2434
 msgid "No rows selected"
-msgstr ""
+msgstr "Rivejä ei ole valittu"
 
 #: frappe/email/doctype/notification/notification.py:136
 msgid "No subject"
-msgstr ""
+msgstr "Ei aihetta"
 
 #: frappe/www/printview.py:468
 msgid "No template found at path: {0}"
@@ -16311,23 +16314,23 @@ msgstr "mallipohjaa ei löydy osoitteesta: {0}"
 
 #: frappe/core/page/permission_manager/permission_manager.js:369
 msgid "No user has the role <strong>{0}</strong>"
-msgstr ""
+msgstr "Yhdelläkään käyttäjällä ei ole roolia <strong>{0}</strong>"
 
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:277 frappe/public/js/frappe/utils/utils.js:1024
 msgid "No values to show"
-msgstr ""
+msgstr "Ei arvoja näytettäväksi"
 
 #: frappe/website/web_template/discussions/discussions.html:2
 msgid "No {0}"
-msgstr ""
+msgstr "Ei {0}"
 
 #: frappe/public/js/frappe/web_form/web_form_list.js:240
 msgid "No {0} found"
-msgstr ""
+msgstr "Ei löytynyt {0}"
 
 #: frappe/public/js/frappe/list/list_view.js:521
 msgid "No {0} found with matching filters. Clear filters to see all {0}."
-msgstr ""
+msgstr "Ei löytynyt {0} vastaavilla suodattimilla. Tyhjennä suodattimet nähdäksesi kaikki {0}."
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:171
 msgid "No {0} mail"
@@ -16341,25 +16344,25 @@ msgstr ""
 #. Option for the 'Provider' (Select) field in DocType 'Geolocation Settings'
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.json
 msgid "Nomatim"
-msgstr ""
+msgstr "Nomatim"
 
 #. Label of the non_negative (Check) field in DocType 'DocField'
 #. Label of the non_negative (Check) field in DocType 'Custom Field'
 #. Label of the non_negative (Check) field in DocType 'Customize Form Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Non Negative"
-msgstr ""
+msgstr "Ei-negatiivinen"
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:33
 msgid "Non-Conforming"
-msgstr ""
+msgstr "Ei-yhdenmukainen"
 
 #. Option for the 'Token Endpoint Auth Method' (Select) field in DocType
 #. 'OAuth
 #. Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "None"
-msgstr ""
+msgstr "Ei mitään"
 
 #: frappe/public/js/frappe/form/workflow.js:36
 msgid "None: End of Workflow"
@@ -16368,12 +16371,12 @@ msgstr "Ei mitään: työketjun loppu"
 #. Label of the normalized_copies (Int) field in DocType 'Recorder Query'
 #: frappe/core/doctype/recorder_query/recorder_query.json
 msgid "Normalized Copies"
-msgstr ""
+msgstr "Normalisoidut kopiot"
 
 #. Label of the normalized_query (Data) field in DocType 'Recorder Query'
 #: frappe/core/doctype/recorder_query/recorder_query.json
 msgid "Normalized Query"
-msgstr ""
+msgstr "Normalisoitu kysely"
 
 #: frappe/core/doctype/user/user.py:1105 frappe/templates/includes/login/login.js:253 frappe/utils/oauth.py:301
 msgid "Not Allowed"
@@ -16381,7 +16384,7 @@ msgstr "Ei sallittu"
 
 #: frappe/templates/includes/login/login.js:255
 msgid "Not Allowed: Disabled User"
-msgstr ""
+msgstr "Ei Sallittu: Käytöstä poistettu käyttäjä"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:36
 msgid "Not Ancestors Of"
@@ -16402,7 +16405,7 @@ msgstr "Not Found"
 #. Label of the not_helpful (Int) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
 msgid "Not Helpful"
-msgstr ""
+msgstr "Ei hyödyllinen"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:21
 msgid "Not In"
@@ -16419,7 +16422,7 @@ msgstr "Ei liity mihinkään ennätys"
 #. Label of the not_nullable (Check) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "Not Nullable"
-msgstr ""
+msgstr "Ei tyhjennettävissä"
 
 #: frappe/__init__.py:554 frappe/app.py:383 frappe/desk/calendar.py:29 frappe/public/js/frappe/web_form/webform_script.js:15 frappe/website/doctype/web_form/web_form.py:786 frappe/website/page_renderers/not_permitted_page.py:22 frappe/www/login.py:186 frappe/www/qrcode.py:22 frappe/www/qrcode.py:25 frappe/www/qrcode.py:37
 msgid "Not Permitted"
@@ -16427,7 +16430,7 @@ msgstr "Ei Sallittu"
 
 #: frappe/desk/query_report.py:708
 msgid "Not Permitted to read {0}"
-msgstr ""
+msgstr "Ei oikeutta lukea {0}"
 
 #: frappe/website/doctype/web_form/web_form_list.js:7 frappe/website/doctype/web_page/web_page_list.js:7
 msgid "Not Published"
@@ -16470,7 +16473,7 @@ msgstr "Ei kelvollinen työnkulun toiminto"
 
 #: frappe/templates/includes/login/login.js:251
 msgid "Not a valid user"
-msgstr ""
+msgstr "Ei kelvollinen käyttäjä"
 
 #: frappe/workflow/doctype/workflow/workflow_list.js:7
 msgid "Not active"
@@ -16566,15 +16569,15 @@ msgstr "Huomautuksia:"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:559
 msgid "Nothing New"
-msgstr ""
+msgstr "Ei mitään uutta"
 
 #: frappe/public/js/frappe/form/undo_manager.js:43
 msgid "Nothing left to redo"
-msgstr ""
+msgstr "Ei mitään toistettavaa"
 
 #: frappe/public/js/frappe/form/undo_manager.js:33
 msgid "Nothing left to undo"
-msgstr ""
+msgstr "Ei mitään peruttavaa"
 
 #: frappe/public/js/frappe/list/base_list.js:364 frappe/public/js/frappe/views/reports/query_report.js:110 frappe/templates/includes/list/list.html:14 frappe/website/doctype/help_article/templates/help_article_list.html:21
 msgid "Nothing to show"
@@ -16615,19 +16618,19 @@ msgstr "Ilmoitettu tilattu asiakirja"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:8
 msgid "Notification sent to"
-msgstr ""
+msgstr "Ilmoitus lähetetty vastaanottajalle"
 
 #: frappe/email/doctype/notification/notification.py:560
 msgid "Notification: customer {0} has no Mobile number set"
-msgstr ""
+msgstr "Ilmoitus: asiakkaalla {0} ei ole matkapuhelinnumeroa asetettuna"
 
 #: frappe/email/doctype/notification/notification.py:546
 msgid "Notification: document {0} has no {1} number set (field: {2})"
-msgstr ""
+msgstr "Ilmoitus: asiakirjassa {0} ei ole {1}-numeroa asetettuna (kenttä: {2})"
 
 #: frappe/email/doctype/notification/notification.py:555
 msgid "Notification: user {0} has no Mobile number set"
-msgstr ""
+msgstr "Ilmoitus: käyttäjällä {0} ei ole matkapuhelinnumeroa asetettuna"
 
 #. Label of the notifications_tab (Tab Break) field in DocType 'Event'
 #. Label of the notifications (Table) field in DocType 'Event'
@@ -16638,43 +16641,43 @@ msgstr "ilmoitukset"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:334
 msgid "Notifications Disabled"
-msgstr ""
+msgstr "Ilmoitukset poistettu käytöstä"
 
 #. Description of the 'Default Outgoing' (Check) field in DocType 'Email
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Notifications and bulk mails will be sent from this outgoing server."
-msgstr ""
+msgstr "Ilmoitukset ja joukkopostit lähetetään tästä lähtevästä palvelimesta."
 
 #. Label of the notify_on_every_login (Check) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "Notify Users On Every Login"
-msgstr ""
+msgstr "Ilmoita käyttäjille jokaisesta kirjautumisesta"
 
 #. Label of the notify_by_email (Check) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Notify by Email"
-msgstr ""
+msgstr "Ilmoita sähköpostitse"
 
 #. Label of the notify_by_email (Check) field in DocType 'DocShare'
 #: frappe/core/doctype/docshare/docshare.json
 msgid "Notify by email"
-msgstr ""
+msgstr "Ilmoita sähköpostitse"
 
 #. Label of the notify_if_unreplied (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Notify if unreplied"
-msgstr ""
+msgstr "Ilmoita jos vastaamaton"
 
 #. Label of the unreplied_for_mins (Int) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Notify if unreplied for (in mins)"
-msgstr ""
+msgstr "Ilmoita jos vastaamaton (minuuteissa)"
 
 #. Label of the notify_on_login (Check) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
 msgid "Notify users with a popup when they log in"
-msgstr ""
+msgstr "Ilmoita käyttäjille ponnahdusikkunalla kirjautumisen yhteydessä"
 
 #: frappe/public/js/frappe/form/controls/datetime.js:33 frappe/public/js/frappe/form/controls/time.js:37
 msgid "Now"
@@ -16683,7 +16686,7 @@ msgstr "Nyt"
 #. Label of the phone (Data) field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
 msgid "Number"
-msgstr ""
+msgstr "Numero"
 
 #. Name of a DocType
 #: frappe/desk/doctype/number_card/number_card.json frappe/public/js/frappe/widgets/widget_dialog.js:628
@@ -16699,7 +16702,7 @@ msgstr "Numerokorttilinkki"
 #. Card'
 #: frappe/desk/doctype/workspace_number_card/workspace_number_card.json
 msgid "Number Card Name"
-msgstr ""
+msgstr "Numerokortin nimi"
 
 #. Label of the number_cards_tab (Tab Break) field in DocType 'Workspace'
 #. Label of the number_cards (Table) field in DocType 'Workspace'
@@ -16712,62 +16715,62 @@ msgstr "Numerokortit"
 #. Label of the number_format (Select) field in DocType 'Currency'
 #: frappe/core/doctype/language/language.json frappe/core/doctype/system_settings/system_settings.json frappe/geo/doctype/currency/currency.json
 msgid "Number Format"
-msgstr ""
+msgstr "Lukumuoto"
 
 #. Label of the backup_limit (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Number of Backups"
-msgstr ""
+msgstr "Varmuuskopioiden lukumäärä"
 
 #. Label of the number_of_groups (Int) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Number of Groups"
-msgstr ""
+msgstr "Ryhmien lukumäärä"
 
 #. Label of the number_of_queries (Int) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "Number of Queries"
-msgstr ""
+msgstr "Kyselyiden lukumäärä"
 
 #: frappe/core/doctype/doctype/doctype.py:445 frappe/public/js/frappe/doctype/index.js:66
 msgid "Number of attachment fields are more than {}, limit updated to {}."
-msgstr ""
+msgstr "Liitekenttien lukumäärä on suurempi kuin {}, raja päivitetty arvoon {}."
 
 #: frappe/core/doctype/system_settings/system_settings.py:189
 msgid "Number of backups must be greater than zero."
-msgstr ""
+msgstr "Varmuuskopioiden lukumäärän on oltava suurempi kuin nolla."
 
 #. Description of the 'Columns' (Int) field in DocType 'Customize Form Field'
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Number of columns for a field in a Grid (Total Columns in a grid should be less than 11)"
-msgstr ""
+msgstr "Sarakkeiden lukumäärä kentälle ruudukossa (Sarakkeiden kokonaismäärä ruudukossa tulee olla alle 11)"
 
 #. Description of the 'Columns' (Int) field in DocType 'DocField'
 #. Description of the 'Columns' (Int) field in DocType 'Custom Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json
 msgid "Number of columns for a field in a List View or a Grid (Total Columns should be less than 11)"
-msgstr ""
+msgstr "Sarakkeiden lukumäärä kentälle luettelonäkymässä tai ruudukossa (Sarakkeiden kokonaismäärä tulee olla alle 11)"
 
 #. Description of the 'Document Share Key Expiry (in Days)' (Int) field in
 #. DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Number of days after which the document Web View link shared on email will be expired"
-msgstr ""
+msgstr "Päivien lukumäärä, jonka jälkeen sähköpostilla jaettu asiakirjan web-näkymälinkki vanhenee"
 
 #. Label of the cache_keys (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Number of keys"
-msgstr ""
+msgstr "Avainten lukumäärä"
 
 #. Label of the onsite_backups (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Number of onsite backups"
-msgstr ""
+msgstr "Paikallisten varmuuskopioiden lukumäärä"
 
 #. Option for the 'Method' (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "OAuth"
-msgstr ""
+msgstr "OAuth"
 
 #. Name of a DocType
 #: frappe/integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
@@ -16789,21 +16792,21 @@ msgstr "OAuth Client"
 #. Label of the sb_00 (Section Break) field in DocType 'Google Settings'
 #: frappe/integrations/doctype/google_settings/google_settings.json
 msgid "OAuth Client ID"
-msgstr ""
+msgstr "OAuth-asiakas-ID"
 
 #. Name of a DocType
 #: frappe/integrations/doctype/oauth_client_role/oauth_client_role.json
 msgid "OAuth Client Role"
-msgstr ""
+msgstr "OAuth-asiakasrooli"
 
 #: frappe/email/oauth.py:30
 msgid "OAuth Error"
-msgstr ""
+msgstr "OAuth-virhe"
 
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/integrations.json
 msgid "OAuth Provider"
-msgstr ""
+msgstr "OAuth-palveluntarjoaja"
 
 #. Name of a DocType
 #. Label of a Link in the Integrations Workspace
@@ -16814,50 +16817,50 @@ msgstr "OAuth Provider Asetukset"
 #. Name of a DocType
 #: frappe/integrations/doctype/oauth_scope/oauth_scope.json
 msgid "OAuth Scope"
-msgstr ""
+msgstr "OAuth-laajuus"
 
 #. Name of a DocType
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "OAuth Settings"
-msgstr ""
+msgstr "OAuth-asetukset"
 
 #: frappe/email/doctype/email_account/email_account.js:250
 msgid "OAuth has been enabled but not authorised. Please use \"Authorise API Access\" button to do the same."
-msgstr ""
+msgstr "OAuth on otettu käyttöön, mutta sitä ei ole valtuutettu. Käytä \"Authorise API Access\" -painiketta valtuutuksen suorittamiseksi."
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "OPTIONS"
-msgstr ""
+msgstr "OPTIONS"
 
 #: frappe/public/js/form_builder/components/Tabs.vue:190
 msgid "OR"
-msgstr ""
+msgstr "TAI"
 
 #. Option for the 'Two Factor Authentication method' (Select) field in DocType
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP App"
-msgstr ""
+msgstr "OTP-sovellus"
 
 #. Label of the otp_issuer_name (Data) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP Issuer Name"
-msgstr ""
+msgstr "OTP-myöntäjän nimi"
 
 #. Label of the otp_sms_template (Small Text) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP SMS Template"
-msgstr ""
+msgstr "OTP SMS -malli"
 
 #: frappe/core/doctype/system_settings/system_settings.py:168
 msgid "OTP SMS Template must contain <code>{0}</code> placeholder to insert the OTP."
-msgstr ""
+msgstr "OTP SMS -mallin tulee sisältää paikkamerkki <code>{0}</code> OTP:n lisäämiseksi."
 
 #: frappe/twofactor.py:459
 msgid "OTP Secret Reset - {0}"
-msgstr ""
+msgstr "OTP-salaisuuden nollaus – {0}"
 
 #: frappe/twofactor.py:478
 msgid "OTP Secret has been reset. Re-registration will be required on next login."
@@ -16867,51 +16870,51 @@ msgstr "OTP Secret on palautettu. Uudelleen rekisteröinti vaaditaan seuraavan k
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP placeholder should be defined as <code>{{ otp }}</code> "
-msgstr ""
+msgstr "OTP-paikkamerkki tulee määrittää muodossa <code>{{ otp }}</code> "
 
 #: frappe/templates/includes/login/login.js:351
 msgid "OTP setup using OTP App was not completed. Please contact Administrator."
-msgstr ""
+msgstr "OTP-asetukset OTP-sovelluksella eivät valmistuneet. Ota yhteyttä Pääkäyttäjään."
 
 #. Label of the occurrences (Int) field in DocType 'System Health Report
 #. Errors'
 #: frappe/desk/doctype/system_health_report_errors/system_health_report_errors.json
 msgid "Occurrences"
-msgstr ""
+msgstr "Esiintymät"
 
 #. Option for the 'SSL/TLS Mode' (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Off"
-msgstr ""
+msgstr "Pois"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Office"
-msgstr ""
+msgstr "Toimisto"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 msgid "Office 365"
-msgstr ""
+msgstr "Office 365"
 
 #: frappe/core/doctype/server_script/server_script.js:36
 msgid "Official Documentation"
-msgstr ""
+msgstr "Virallinen dokumentaatio"
 
 #. Label of the offset_x (Int) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Offset X"
-msgstr ""
+msgstr "Siirtymä X"
 
 #. Label of the offset_y (Int) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Offset Y"
-msgstr ""
+msgstr "Siirtymä Y"
 
 #: frappe/database/query.py:301
 msgid "Offset must be a non-negative integer"
-msgstr ""
+msgstr "Siirtymän on oltava ei-negatiivinen kokonaisluku"
 
 #: frappe/www/update-password.html:38
 msgid "Old Password"
@@ -16919,81 +16922,81 @@ msgstr "Vanha Salasana"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:415
 msgid "Old and new fieldnames are same."
-msgstr ""
+msgstr "Vanha ja uusi kentän nimi ovat samat."
 
 #. Description of the 'Number of Backups' (Int) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Older backups will be automatically deleted"
-msgstr ""
+msgstr "Vanhemmat varmuuskopiot poistetaan automaattisesti"
 
 #. Label of the oldest_unscheduled_job (Link) field in DocType 'System Health
 #. Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Oldest Unscheduled Job"
-msgstr ""
+msgstr "Vanhin ajastamaton tehtävä"
 
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Request'
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "On Hold"
-msgstr ""
+msgstr "Pidossa"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "On Payment Authorization"
-msgstr ""
+msgstr "Maksun valtuutuksessa"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "On Payment Charge Processed"
-msgstr ""
+msgstr "Maksun veloituksen käsittelyssä"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "On Payment Failed"
-msgstr ""
+msgstr "Maksun epäonnistuessa"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "On Payment Mandate Acquisition Processed"
-msgstr ""
+msgstr "Maksutoimeksiannon hankinnan käsittelyssä"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "On Payment Mandate Charge Processed"
-msgstr ""
+msgstr "Maksutoimeksiannon veloituksen käsittelyssä"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "On Payment Paid"
-msgstr ""
+msgstr "Maksun suorituksen yhteydessä"
 
 #. Description of the 'Is Dynamic URL?' (Check) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "On checking this option, URL will be treated like a jinja template string"
-msgstr ""
+msgstr "Tämän vaihtoehdon valitseminen käsittelee URL:n Jinja-mallipohjan merkkijonona"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:66 frappe/public/js/frappe/ui/filters/filter.js:72
 msgid "On or After"
-msgstr ""
+msgstr "Sama päivä tai jälkeen"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:65 frappe/public/js/frappe/ui/filters/filter.js:71
 msgid "On or Before"
-msgstr ""
+msgstr "Sama päivä tai ennen"
 
 #: frappe/public/js/frappe/views/communication.js:1102
 msgid "On {0}, {1} wrote:"
-msgstr ""
+msgstr "{0}, {1} kirjoitti:"
 
 #. Label of the onboard (Check) field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json frappe/public/js/frappe/widgets/widget_dialog.js:335
 msgid "Onboard"
-msgstr ""
+msgstr "Käyttöönotto"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:232
 msgid "Onboarding Name"
-msgstr ""
+msgstr "Käyttöönoton nimi"
 
 #. Name of a DocType
 #: frappe/desk/doctype/onboarding_permission/onboarding_permission.json
@@ -17003,7 +17006,7 @@ msgstr "Onboarding-lupa"
 #. Label of the onboarding_status (Small Text) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Onboarding Status"
-msgstr ""
+msgstr "Käyttöönoton tila"
 
 #. Name of a DocType
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
@@ -17017,7 +17020,7 @@ msgstr "Onboarding-vaihekartta"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:264
 msgid "Onboarding complete"
-msgstr ""
+msgstr "Käyttöönotto valmis"
 
 #. Description of the 'Is Submittable' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json frappe/core/doctype/doctype/doctype_list.js:43
@@ -17026,7 +17029,7 @@ msgstr "Lähetettäviä asiakirjoja ei voi muuttaa toimitettuaan. Niitä voidaan
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:102
 msgid "Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."
-msgstr ""
+msgstr "Kun olet asettanut tämän, käyttäjät voivat käyttää vain asiakirjoja (esim. blogikirjoitus), joissa linkki on olemassa (esim. bloggaaja)."
 
 #: frappe/www/complete_signup.html:7
 msgid "One Last Step"
@@ -17063,11 +17066,11 @@ msgstr "Vain järjestelmänvalvoja voi käyttää tallenninta"
 #. Label of the allow_edit (Link) field in DocType 'Workflow Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Only Allow Edit For"
-msgstr ""
+msgstr "Salli muokkaus vain"
 
 #: frappe/core/doctype/module_def/module_def.py:95
 msgid "Only Custom Modules can be renamed."
-msgstr ""
+msgstr "Vain mukautettuja moduuleja voi nimetä uudelleen."
 
 #: frappe/core/doctype/doctype/doctype.py:1683
 msgid "Only Options allowed for Data field are:"
@@ -17076,35 +17079,35 @@ msgstr "Ainoa Data-kentän sallittuja vaihtoehtoja ovat:"
 #. Label of the data_modified_till (Int) field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Only Send Records Updated in Last X Hours"
-msgstr ""
+msgstr "Lähetä vain viimeisten X tunnin aikana päivitetyt tietueet"
 
 #: frappe/core/doctype/file/file.py:201
 msgid "Only System Managers can make this file public."
-msgstr ""
+msgstr "Vain järjestelmänhallinta voi tehdä tästä tiedostosta julkisen."
 
 #: frappe/desk/doctype/workspace/workspace.js:32
 msgid "Only Workspace Manager can edit public workspaces"
-msgstr ""
+msgstr "Vain Työtilan hallinta voi muokata julkisia työtiloja"
 
 #. Label of the only_allow_system_managers_to_upload_public_files (Check)
 #. field
 #. in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Only allow System Managers to upload public files"
-msgstr ""
+msgstr "Salli vain järjestelmänhallinnan ladata julkisia tiedostoja"
 
 #: frappe/modules/utils.py:80
 msgid "Only allowed to export customizations in developer mode"
-msgstr ""
+msgstr "Mukautusten vienti on sallittu vain kehittäjätilassa"
 
 #: frappe/model/document.py:1427
 msgid "Only draft documents can be discarded"
-msgstr ""
+msgstr "Vain luonnoksia voi hylätä"
 
 #. Label of the only_for (Link) field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json frappe/public/js/frappe/widgets/widget_dialog.js:328
 msgid "Only for"
-msgstr ""
+msgstr "Vain"
 
 #: frappe/core/doctype/data_export/exporter.py:193
 msgid "Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish."
@@ -17116,11 +17119,11 @@ msgstr "Vain yksi {0} voidaan asettaa ensisijaiseksi."
 
 #: frappe/desk/reportview.py:361
 msgid "Only reports of type Report Builder can be deleted"
-msgstr ""
+msgstr "Vain Raportin luontityökalu -tyyppisiä raportteja voi poistaa"
 
 #: frappe/desk/reportview.py:332
 msgid "Only reports of type Report Builder can be edited"
-msgstr ""
+msgstr "Vain Raportin luontityökalu -tyyppisiä raportteja voi muokata"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:131
 msgid "Only standard DocTypes are allowed to be customized from Customize Form."
@@ -17128,19 +17131,19 @@ msgstr "Vain tavallisia DocTypes-tyyppejä voidaan mukauttaa mukautetusta lomakk
 
 #: frappe/model/delete_doc.py:283
 msgid "Only the Administrator can delete a standard DocType."
-msgstr ""
+msgstr "Vain Pääkäyttäjä voi poistaa vakio-DocTypen."
 
 #: frappe/desk/form/assign_to.py:204
 msgid "Only the assignee can complete this to-do."
-msgstr ""
+msgstr "Vain vastuuhenkilö voi suorittaa tämän tehtävän."
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.py:108
 msgid "Only {0} emailed reports are allowed per user."
-msgstr ""
+msgstr "Vain {0} sähköpostiraporttia on sallittu käyttäjää kohti."
 
 #: frappe/templates/includes/login/login.js:287
 msgid "Oops! Something went wrong."
-msgstr ""
+msgstr "Hups! Jokin meni pieleen."
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #. Option for the 'Status' (Select) field in DocType 'Communication'
@@ -17163,7 +17166,7 @@ msgstr "Avaa mahtava palkki"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:75 frappe/public/js/frappe/form/templates/timeline_message_box.html:96 frappe/public/js/frappe/form/templates/timeline_message_box.html:97
 msgid "Open Communication"
-msgstr ""
+msgstr "Avaa viestintä"
 
 #: frappe/templates/emails/new_notification.html:10
 msgid "Open Document"
@@ -17173,7 +17176,7 @@ msgstr "Avaa asiakirja"
 #. 'Notification Settings'
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 msgid "Open Documents"
-msgstr ""
+msgstr "Avoimet asiakirjat"
 
 #: frappe/public/js/frappe/ui/keyboard.js:243
 msgid "Open Help"
@@ -17181,14 +17184,14 @@ msgstr "Avaa ohje"
 
 #: frappe/public/js/frappe/form/controls/data.js:84 frappe/public/js/frappe/form/controls/link.js:17
 msgid "Open Link"
-msgstr ""
+msgstr "Avaa linkki"
 
 #. Label of the open_reference_document (Button) field in DocType
 #. 'Notification
 #. Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
 msgid "Open Reference Document"
-msgstr ""
+msgstr "Avaa vertailuasiakirja"
 
 #: frappe/public/js/frappe/ui/keyboard.js:226
 msgid "Open Settings"
@@ -17196,21 +17199,21 @@ msgstr "Avaa asetukset"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:12
 msgid "Open Source Applications for the Web"
-msgstr ""
+msgstr "Avoimen lähdekoodin verkkosovellukset"
 
 #: frappe/public/js/frappe/form/controls/base_control.js:165
 msgid "Open Translation"
-msgstr ""
+msgstr "Avaa käännös"
 
 #. Label of the open_in_new_tab (Check) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "Open URL in a New Tab"
-msgstr ""
+msgstr "Avaa URL uudessa välilehdessä"
 
 #. Description of the 'Quick Entry' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Open a dialog with mandatory fields to create a new record quickly. There must be at least one mandatory field to show in dialog."
-msgstr ""
+msgstr "Avaa valintaikkuna pakollisine kenttineen uuden tietueen nopeaa luontia varten. Valintaikkunassa näytettäväksi on oltava vähintään yksi pakollinen kenttä."
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:228
 msgid "Open a module or tool"
@@ -17218,21 +17221,21 @@ msgstr "Avaa moduuli tai työkalu"
 
 #: frappe/public/js/frappe/ui/keyboard.js:367
 msgid "Open console"
-msgstr ""
+msgstr "Avaa konsoli"
 
 #. Label of the open_in_new_tab (Check) field in DocType 'Workspace Sidebar
 #. Item'
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Open in New Tab"
-msgstr ""
+msgstr "Avaa uudessa välilehdessä"
 
 #: frappe/public/js/print_format_builder/Preview.vue:17
 msgid "Open in a new tab"
-msgstr ""
+msgstr "Avaa uudessa välilehdessä"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:229
 msgid "Open in new tab"
-msgstr ""
+msgstr "Avaa uudessa välilehdessä"
 
 #: frappe/public/js/frappe/list/list_view.js:1479
 msgctxt "Description of a list view shortcut"
@@ -17241,7 +17244,7 @@ msgstr "Avaa luettelon kohde"
 
 #: frappe/core/doctype/error_log/error_log.js:15
 msgid "Open reference document"
-msgstr ""
+msgstr "Avaa vertailuasiakirja"
 
 #: frappe/www/qrcode.html:13
 msgid "Open your authentication app on your mobile phone."
@@ -17254,26 +17257,26 @@ msgstr "Open {0}"
 #. Label of the openid_configuration (Data) field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
 msgid "OpenID Configuration"
-msgstr ""
+msgstr "OpenID-määritys"
 
 #: frappe/integrations/doctype/connected_app/connected_app.js:15
 msgid "OpenID Configuration fetched successfully!"
-msgstr ""
+msgstr "OpenID-määritys haettu onnistuneesti!"
 
 #. Option for the 'Directory Server' (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "OpenLDAP"
-msgstr ""
+msgstr "OpenLDAP"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Opened"
-msgstr ""
+msgstr "Avattu"
 
 #. Label of the operation (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
 msgid "Operation"
-msgstr ""
+msgstr "Toiminta"
 
 #: frappe/utils/data.py:2225
 msgid "Operator must be one of {0}"
@@ -17281,15 +17284,15 @@ msgstr "Käyttäjän on jokin seuraavista {0}"
 
 #: frappe/database/query.py:2330
 msgid "Operator {0} requires exactly 2 arguments (left and right operands)"
-msgstr ""
+msgstr "Operaattori {0} vaatii täsmälleen 2 argumenttia (vasen ja oikea operandi)"
 
 #: frappe/core/doctype/file/file.js:36 frappe/core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.js:8 frappe/public/js/frappe/file_uploader/FilePreview.vue:31
 msgid "Optimize"
-msgstr ""
+msgstr "Optimoi"
 
 #: frappe/core/doctype/file/file.js:127
 msgid "Optimizing image..."
-msgstr ""
+msgstr "Optimoidaan kuvaa..."
 
 #: frappe/custom/doctype/custom_field/custom_field.js:100
 msgid "Option 1"
@@ -17310,12 +17313,12 @@ msgstr "Kentän {1} vaihtoehto {0} ei ole alipöytä"
 #. Description of the 'CC' (Code) field in DocType 'Notification Recipient'
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
 msgid "Optional: Always send to these ids. Each Email Address on a new row"
-msgstr ""
+msgstr "Valinnainen: Lähetä aina näihin tunnuksiin. Jokainen sähköpostiosoite omalle rivilleen"
 
 #. Description of the 'Condition' (Code) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Optional: The alert will be sent if this expression is true"
-msgstr ""
+msgstr "Valinnainen: Hälytys lähetetään, jos tämä lauseke on tosi"
 
 #. Label of the options (Small Text) field in DocType 'DocField'
 #. Label of the options (Data) field in DocType 'Report Column'
@@ -17327,7 +17330,7 @@ msgstr ""
 #. Label of the options (Small Text) field in DocType 'Web Template Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/core/doctype/report_column/report_column.json frappe/core/doctype/report_filter/report_filter.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/templates/form_grid/fields.html:43 frappe/website/doctype/web_form_field/web_form_field.json frappe/website/doctype/web_form_list_column/web_form_list_column.json frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Options"
-msgstr ""
+msgstr "Vaihtoehdot"
 
 #: frappe/core/doctype/doctype/doctype.py:1429
 msgid "Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"
@@ -17336,11 +17339,11 @@ msgstr "Valinnan \"Dynaaminen linkki\" -tyyppisen kentän tulee viitata toiseen 
 #. Label of the options_help (HTML) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
 msgid "Options Help"
-msgstr ""
+msgstr "Vaihtoehtojen Ohje"
 
 #: frappe/core/doctype/doctype/doctype.py:1730
 msgid "Options for Rating field can range from 3 to 10"
-msgstr ""
+msgstr "Luokitus-kentän vaihtoehdot voivat olla välillä 3–10"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:96
 msgid "Options for select. Each option on a new line."
@@ -17352,7 +17355,7 @@ msgstr "Kohteen {0} asetukset on määritettävä ennen oletusarvon asettamista.
 
 #: frappe/public/js/form_builder/store.js:205
 msgid "Options is required for field {0} of type {1}"
-msgstr ""
+msgstr "Vaihtoehdot ovat pakollisia kentälle {0} tyyppiä {1}"
 
 #: frappe/model/base_document.py:1037
 msgid "Options not set for link field {0}"
@@ -17362,28 +17365,28 @@ msgstr "vaihtoehtomäärityksiä ei ole tehty linkin kentälle {0}"
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
 #: frappe/core/doctype/doctype_state/doctype_state.json frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Orange"
-msgstr ""
+msgstr "Oranssi"
 
 #. Label of the order (Code) field in DocType 'Kanban Board Column'
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Order"
-msgstr ""
+msgstr "Järjestys"
 
 #: frappe/database/query.py:1369
 msgid "Order By must be a string"
-msgstr ""
+msgstr "Järjestä-kentän arvon on oltava merkkijono"
 
 #. Label of the sb0 (Section Break) field in DocType 'About Us Settings'
 #. Label of the company_history (Table) field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Org History"
-msgstr ""
+msgstr "Organisaation historia"
 
 #. Label of the company_history_heading (Data) field in DocType 'About Us
 #. Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Org History Heading"
-msgstr ""
+msgstr "Organisaation historian otsikko"
 
 #: frappe/public/js/frappe/form/print_utils.js:23
 msgid "Orientation"
@@ -17391,11 +17394,11 @@ msgstr "Suuntautuminen"
 
 #: frappe/core/doctype/version/version.py:241
 msgid "Original"
-msgstr ""
+msgstr "Alkuperäinen"
 
 #: frappe/core/doctype/version/version_view.html:74 frappe/core/doctype/version/version_view.html:139
 msgid "Original Value"
-msgstr ""
+msgstr "Alkuperäinen Arvo"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #. Option for the 'Type' (Select) field in DocType 'Communication'
@@ -17403,24 +17406,24 @@ msgstr ""
 #. Option for the 'Event Category' (Select) field in DocType 'Event'
 #: frappe/contacts/doctype/address/address.json frappe/core/doctype/communication/communication.json frappe/core/doctype/doctype/doctype.json frappe/desk/doctype/event/event.json frappe/desk/page/setup_wizard/install_fixtures.py:30
 msgid "Other"
-msgstr ""
+msgstr "Muu"
 
 #. Label of the outgoing_tab (Tab Break) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Outgoing"
-msgstr ""
+msgstr "Lähtevä"
 
 #. Label of the outgoing_mail_settings (Section Break) field in DocType 'Email
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Outgoing (SMTP) Settings"
-msgstr ""
+msgstr "Lähtevän postin (SMTP) Asetukset"
 
 #. Label of the outgoing_emails_column (Column Break) field in DocType 'System
 #. Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Outgoing Emails (Last 7 days)"
-msgstr ""
+msgstr "Lähtevät sähköpostit (viimeiset 7 päivää)"
 
 #. Label of the smtp_server (Data) field in DocType 'Email Account'
 #. Label of the smtp_server (Data) field in DocType 'Email Domain'
@@ -17523,13 +17526,13 @@ msgstr ""
 #. Option for the 'Request Method' (Select) field in DocType 'Webhook'
 #: frappe/core/doctype/recorder/recorder.json frappe/integrations/doctype/webhook/webhook.json
 msgid "POST"
-msgstr ""
+msgstr "POST"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #. Option for the 'Request Method' (Select) field in DocType 'Webhook'
 #: frappe/core/doctype/recorder/recorder.json frappe/integrations/doctype/webhook/webhook.json
 msgid "PUT"
-msgstr ""
+msgstr "PUT"
 
 #. Label of the package (Link) field in DocType 'Module Def'
 #. Name of a DocType
@@ -17537,33 +17540,33 @@ msgstr ""
 #. Label of a Link in the Build Workspace
 #: frappe/core/doctype/module_def/module_def.json frappe/core/doctype/package/package.json frappe/core/doctype/package_release/package_release.json frappe/core/workspace/build/build.json frappe/www/attribution.html:34
 msgid "Package"
-msgstr ""
+msgstr "Paketti"
 
 #. Name of a DocType
 #. Label of a Link in the Build Workspace
 #: frappe/core/doctype/package_import/package_import.json frappe/core/workspace/build/build.json
 msgid "Package Import"
-msgstr ""
+msgstr "Paketin tuonti"
 
 #. Label of the package_name (Data) field in DocType 'Package'
 #: frappe/core/doctype/package/package.json
 msgid "Package Name"
-msgstr ""
+msgstr "Paketin nimi"
 
 #. Name of a DocType
 #: frappe/core/doctype/package_release/package_release.json
 msgid "Package Release"
-msgstr ""
+msgstr "Paketin julkaisu"
 
 #. Label of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Packages"
-msgstr ""
+msgstr "Paketit"
 
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "Packages are lightweight apps (collection of Module Defs) that can be created, imported, or released right from the UI"
-msgstr ""
+msgstr "Paketit ovat kevyitä sovelluksia (kokoelma Module Defs), jotka voidaan luoda, tuoda tai julkaista suoraan käyttöliittymästä"
 
 #. Label of the page (Link) field in DocType 'Custom Role'
 #. Name of a DocType
@@ -17587,51 +17590,51 @@ msgstr "Sivu"
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:63 frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Page Break"
-msgstr ""
+msgstr "Sivunvaihto"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.js:97 frappe/website/doctype/web_page/web_page.json
 msgid "Page Builder"
-msgstr ""
+msgstr "Sivunrakentaja"
 
 #. Label of the page_blocks (Table) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Page Building Blocks"
-msgstr ""
+msgstr "Sivun rakennuspalikat"
 
 #. Label of the page_html (Section Break) field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
 msgid "Page HTML"
-msgstr ""
+msgstr "Sivun HTML"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:73
 msgid "Page Height (in mm)"
-msgstr ""
+msgstr "Sivun korkeus (mm)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:5
 msgid "Page Margins"
-msgstr ""
+msgstr "Sivun marginaalit"
 
 #. Label of the page_name (Data) field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
 msgid "Page Name"
-msgstr ""
+msgstr "Sivun nimi"
 
 #. Label of the page_number (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json frappe/public/js/print_format_builder/PrintFormatControls.vue:63
 msgid "Page Number"
-msgstr ""
+msgstr "Sivunumero"
 
 #. Label of the page_route (Small Text) field in DocType 'Form Tour'
 #: frappe/desk/doctype/form_tour/form_tour.json
 msgid "Page Route"
-msgstr ""
+msgstr "Sivun reitti"
 
 #. Label of the view_link_in_email (Section Break) field in DocType 'Print
 #. Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Page Settings"
-msgstr ""
+msgstr "Sivun asetukset"
 
 #: frappe/public/js/frappe/ui/keyboard.js:125
 msgid "Page Shortcuts"
@@ -17639,16 +17642,16 @@ msgstr "Sivun pikavalinnat"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:66
 msgid "Page Size"
-msgstr ""
+msgstr "Sivun koko"
 
 #. Label of the page_title (Data) field in DocType 'About Us Settings'
 #: frappe/website/doctype/about_us_settings/about_us_settings.json
 msgid "Page Title"
-msgstr ""
+msgstr "Sivun otsikko"
 
 #: frappe/public/js/frappe/list/bulk_operations.js:80
 msgid "Page Width (in mm)"
-msgstr ""
+msgstr "Sivun leveys (mm)"
 
 #: frappe/www/qrcode.py:35
 msgid "Page has expired!"
@@ -17656,7 +17659,7 @@ msgstr "Sivu on vanhentunut!"
 
 #: frappe/printing/doctype/print_settings/print_settings.py:71 frappe/public/js/frappe/list/bulk_operations.js:106
 msgid "Page height and width cannot be zero"
-msgstr ""
+msgstr "Sivun korkeus ja leveys eivät voi olla nolla"
 
 #: frappe/public/js/frappe/views/container.js:52 frappe/www/404.html:23
 msgid "Page not found"
@@ -17665,7 +17668,7 @@ msgstr "Sivua ei löytynyt"
 #. Description of a DocType
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Page to show on the website\n"
-msgstr ""
+msgstr "Verkkosivustolla näytettävä sivu\n"
 
 #: frappe/public/html/print_template.html:38 frappe/public/js/frappe/views/reports/print_tree.html:89 frappe/public/js/frappe/web_form/web_form.js:284 frappe/templates/print_formats/standard.html:34
 msgid "Page {0} of {1}"
@@ -17674,7 +17677,7 @@ msgstr "Sivu {0} - {1}"
 #. Label of the parameter (Data) field in DocType 'SMS Parameter'
 #: frappe/core/doctype/sms_parameter/sms_parameter.json
 msgid "Parameter"
-msgstr ""
+msgstr "Parametri"
 
 #: frappe/public/js/frappe/model/model.js:142 frappe/public/js/frappe/views/workspace/workspace.js:460
 msgid "Parent"
@@ -17683,28 +17686,28 @@ msgstr "Vanhempi"
 #. Label of the parent_doctype (Link) field in DocType 'DocType Link'
 #: frappe/core/doctype/doctype_link/doctype_link.json
 msgid "Parent DocType"
-msgstr ""
+msgstr "Ylätason DocType"
 
 #. Label of the parent_document_type (Link) field in DocType 'Dashboard Chart'
 #. Label of the parent_document_type (Link) field in DocType 'Number Card'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json frappe/desk/doctype/number_card/number_card.json
 msgid "Parent Document Type"
-msgstr ""
+msgstr "Ylätason asiakirjatyyppi"
 
 #: frappe/desk/doctype/number_card/number_card.py:69
 msgid "Parent Document Type is required to create a number card"
-msgstr ""
+msgstr "Ylätason asiakirjatyyppi on pakollinen numerokortin luomiseksi"
 
 #. Label of the parent_element_selector (Data) field in DocType 'Form Tour
 #. Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Parent Element Selector"
-msgstr ""
+msgstr "Ylätason elementtivalitsin"
 
 #. Label of the parent_fieldname (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Parent Field"
-msgstr ""
+msgstr "Ylätason kenttä"
 
 #. Label of the nsm_parent_field (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json frappe/core/doctype/doctype/doctype.py:955
@@ -17718,21 +17721,21 @@ msgstr "Emokentän on oltava kelvollinen kentän nimi"
 #. Label of the parent_icon (Link) field in DocType 'Desktop Icon'
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json
 msgid "Parent Icon"
-msgstr ""
+msgstr "Ylätason ikoni"
 
 #. Label of the parent_label (Select) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
 msgid "Parent Label"
-msgstr ""
+msgstr "Ylätason otsikko"
 
 #: frappe/core/doctype/doctype/doctype.py:1249
 msgid "Parent Missing"
-msgstr ""
+msgstr "Ylätaso puuttuu"
 
 #. Label of the parent_page (Link) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
 msgid "Parent Page"
-msgstr ""
+msgstr "Ylätason sivu"
 
 #: frappe/core/doctype/data_export/exporter.py:25
 msgid "Parent Table"
@@ -17740,7 +17743,7 @@ msgstr "Päätaulukko"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.py:407
 msgid "Parent document type is required to create a dashboard chart"
-msgstr ""
+msgstr "Ylätason asiakirjatyyppi vaaditaan koontinäytön kaavion luomiseksi"
 
 #: frappe/core/doctype/data_export/exporter.py:254
 msgid "Parent is the name of the document to which the data will get added to."
@@ -17748,30 +17751,30 @@ msgstr "Vanhempi on sen asiakirjan nimi, johon tiedot lisätään."
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:253
 msgid "Parent-to-child or child-to-different-child grouping is not allowed."
-msgstr ""
+msgstr "Ylätasolta alitasolle tai alitasolta eri alitasolle ryhmittely ei ole sallittu."
 
 #: frappe/permissions.py:854
 msgid "Parentfield not specified in {0}: {1}"
-msgstr ""
+msgstr "Parentfield ei ole määritetty kohteessa {0}: {1}"
 
 #: frappe/client.py:536
 msgid "Parenttype, Parent and Parentfield are required to insert a child record"
-msgstr ""
+msgstr "Parenttype, Parent ja Parentfield vaaditaan alitason tietueen lisäämiseksi"
 
 #. Label of the partial (Check) field in DocType 'Personal Data Deletion Step'
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 msgid "Partial"
-msgstr ""
+msgstr "Osittainen"
 
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Partial Success"
-msgstr ""
+msgstr "Osittain onnistunut"
 
 #. Option for the 'Status' (Select) field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Partially Sent"
-msgstr ""
+msgstr "Osittain lähetetty"
 
 #. Label of the participants_tab (Tab Break) field in DocType 'Event'
 #: frappe/desk/doctype/event/event.js:30 frappe/desk/doctype/event/event.json
@@ -17782,12 +17785,12 @@ msgstr "Osallistujat"
 #. Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Pass"
-msgstr ""
+msgstr "Hyväksytty"
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #: frappe/contacts/doctype/contact/contact.json
 msgid "Passive"
-msgstr ""
+msgstr "Passiivinen"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the password_settings (Section Break) field in DocType 'System
@@ -17803,7 +17806,7 @@ msgstr "Salasana"
 
 #: frappe/core/doctype/user/user.py:1170
 msgid "Password Email Sent"
-msgstr ""
+msgstr "Salasanasähköposti lähetetty"
 
 #: frappe/core/doctype/user/user.py:510
 msgid "Password Reset"
@@ -17812,11 +17815,11 @@ msgstr "Salasanan palauttaminen"
 #. Label of the password_reset_limit (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Password Reset Link Generation Limit"
-msgstr ""
+msgstr "Salasanan nollauslinkin luontiraja"
 
 #: frappe/public/js/frappe/form/grid_row.js:887
 msgid "Password cannot be filtered"
-msgstr ""
+msgstr "Salasanaa ei voi suodattaa"
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:360
 msgid "Password changed successfully."
@@ -17825,7 +17828,7 @@ msgstr "Salasana vaihdettu onnistuneesti."
 #. Label of the password (Password) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Password for Base DN"
-msgstr ""
+msgstr "Salasana Base DN:lle"
 
 #: frappe/email/doctype/email_account/email_account.py:210
 msgid "Password is required or select Awaiting Password"
@@ -17833,39 +17836,39 @@ msgstr "Tarvitaan salasana tai valitse Odotetaan salasana"
 
 #: frappe/www/update-password.html:94
 msgid "Password is valid. 👍"
-msgstr ""
+msgstr "Salasana on kelvollinen. 👍"
 
 #: frappe/public/js/frappe/desk.js:214
 msgid "Password missing in Email Account"
-msgstr ""
+msgstr "Salasana puuttuu Sähköpostitilistä"
 
 #: frappe/utils/password.py:47
 msgid "Password not found for {0} {1} {2}"
-msgstr ""
+msgstr "Salasanaa ei löytynyt kohteelle {0} {1} {2}"
 
 #: frappe/core/doctype/user/user.py:1336
 msgid "Password requirements not met"
-msgstr ""
+msgstr "Salasanavaatimukset eivät täyty"
 
 #: frappe/core/doctype/user/user.py:1169
 msgid "Password reset instructions have been sent to {}'s email"
-msgstr ""
+msgstr "Salasanan palautusohjeet on lähetetty käyttäjän {} sähköpostiin"
 
 #: frappe/www/update-password.html:191
 msgid "Password set"
-msgstr ""
+msgstr "Salasana asetettu"
 
 #: frappe/auth.py:273
 msgid "Password size exceeded the maximum allowed size"
-msgstr ""
+msgstr "Salasanan koko ylitti suurimman sallitun koon"
 
 #: frappe/core/doctype/user/user.py:945
 msgid "Password size exceeded the maximum allowed size."
-msgstr ""
+msgstr "Salasanan koko ylitti suurimman sallitun koon."
 
 #: frappe/www/update-password.html:93
 msgid "Passwords do not match"
-msgstr ""
+msgstr "Salasanat eivät täsmää"
 
 #: frappe/core/doctype/user/user.js:205
 msgid "Passwords do not match!"
@@ -17879,7 +17882,7 @@ msgstr "Liitä"
 #. Label of the patch (Code) field in DocType 'Patch Log'
 #: frappe/core/doctype/package_release/package_release.json frappe/core/doctype/patch_log/patch_log.json
 msgid "Patch"
-msgstr ""
+msgstr "Korjaus"
 
 #. Name of a DocType
 #. Label of a Workspace Sidebar Item
@@ -17889,7 +17892,7 @@ msgstr "Korjauspäivityksen loki"
 
 #: frappe/modules/patch_handler.py:136
 msgid "Patch type {} not found in patches.txt"
-msgstr ""
+msgstr "Korjaustyyppiä {} ei löydy tiedostosta patches.txt"
 
 #. Label of the path (Data) field in DocType 'API Request Log'
 #. Label of the path (Small Text) field in DocType 'Package Release'
@@ -17903,36 +17906,36 @@ msgstr "polku"
 #. Label of the local_ca_certs_file (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Path to CA Certs File"
-msgstr ""
+msgstr "Polku CA-varmennetiedostoon"
 
 #. Label of the local_server_certificate_file (Data) field in DocType 'LDAP
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Path to Server Certificate"
-msgstr ""
+msgstr "Polku palvelinvarmenteeseen"
 
 #. Label of the local_private_key_file (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Path to private Key File"
-msgstr ""
+msgstr "Polku yksityisen avaimen tiedostoon"
 
 #: frappe/modules/utils.py:252
 msgid "Path {0} is not within module {1}"
-msgstr ""
+msgstr "Polku {0} ei ole moduulin {1} sisällä"
 
 #: frappe/website/path_resolver.py:230
 msgid "Path {0} it not a valid path"
-msgstr ""
+msgstr "Polku {0} ei ole kelvollinen polku"
 
 #. Label of the payload_count (Int) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Payload Count"
-msgstr ""
+msgstr "Kuormamäärä"
 
 #. Label of the peak_memory_usage (Int) field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
 msgid "Peak Memory Usage"
-msgstr ""
+msgstr "Muistin huippukäyttö"
 
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
 #. Option for the 'Contribution Status' (Select) field in DocType
@@ -17942,30 +17945,30 @@ msgstr ""
 #. Step'
 #: frappe/core/doctype/data_import/data_import.json frappe/core/doctype/translation/translation.json frappe/core/doctype/user_invitation/user_invitation.json frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 msgid "Pending"
-msgstr ""
+msgstr "Odottaa"
 
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Request'
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "Pending Approval"
-msgstr ""
+msgstr "Odottaa hyväksyntää"
 
 #. Label of the pending_emails (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Pending Emails"
-msgstr ""
+msgstr "Odottavat sähköpostit"
 
 #. Label of the pending_jobs (Int) field in DocType 'System Health Report
 #. Queue'
 #: frappe/desk/doctype/system_health_report_queue/system_health_report_queue.json
 msgid "Pending Jobs"
-msgstr ""
+msgstr "Odottavat tehtävät"
 
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Request'
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "Pending Verification"
-msgstr ""
+msgstr "Odottaa vahvistusta"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -17973,29 +17976,29 @@ msgstr ""
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Percent"
-msgstr ""
+msgstr "Prosentti"
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Percentage"
-msgstr ""
+msgstr "Prosenttiosuus"
 
 #. Label of the dynamic_date_period (Select) field in DocType 'Auto Email
 #. Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Period"
-msgstr ""
+msgstr "Jakso"
 
 #. Label of the permlevel (Int) field in DocType 'DocField'
 #. Label of the permlevel (Int) field in DocType 'Customize Form Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Perm Level"
-msgstr ""
+msgstr "Käyttöoikeustaso"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Permanent"
-msgstr ""
+msgstr "Pysyvä"
 
 #: frappe/public/js/frappe/form/form.js:1069
 msgid "Permanently Cancel {0}?"
@@ -18003,7 +18006,7 @@ msgstr "Perutaanko pysyvästi {0}?"
 
 #: frappe/public/js/frappe/form/form.js:1115
 msgid "Permanently Discard {0}?"
-msgstr ""
+msgstr "Hylätäänkö {0} pysyvästi?"
 
 #: frappe/public/js/frappe/form/form.js:902
 msgid "Permanently Submit {0}?"
@@ -18015,7 +18018,7 @@ msgstr "Pysyvästi poista {0}?"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:19
 msgid "Permission"
-msgstr ""
+msgstr "Käyttöoikeus"
 
 #: frappe/core/doctype/user_type/user_type.py:84 frappe/database/query.py:1006 frappe/desk/doctype/workspace/workspace.py:108
 msgid "Permission Error"
@@ -18035,29 +18038,29 @@ msgstr "Käyttöoikeustaso"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:89
 msgid "Permission Levels"
-msgstr ""
+msgstr "Käyttöoikeustasot"
 
 #. Name of a DocType
 #. Label of a Workspace Sidebar Item
 #: frappe/core/doctype/permission_log/permission_log.json frappe/workspace_sidebar/users.json
 msgid "Permission Log"
-msgstr ""
+msgstr "Käyttöoikeusloki"
 
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/users.json
 msgid "Permission Manager"
-msgstr ""
+msgstr "Käyttöoikeuksien hallinta"
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Permission Query"
-msgstr ""
+msgstr "Käyttöoikeuskysely"
 
 #. Label of the permission_rules (Section Break) field in DocType 'Custom
 #. Role'
 #: frappe/core/doctype/custom_role/custom_role.json
 msgid "Permission Rules"
-msgstr ""
+msgstr "Käyttöoikeussäännöt"
 
 #. Label of the permission_type (Select) field in DocType 'Permission
 #. Inspector'
@@ -18065,11 +18068,11 @@ msgstr ""
 #. Label of the perm_type (Data) field in DocType 'Permission Type'
 #: frappe/core/doctype/permission_inspector/permission_inspector.json frappe/core/doctype/permission_type/permission_type.json
 msgid "Permission Type"
-msgstr ""
+msgstr "Käyttöoikeustyyppi"
 
 #: frappe/core/doctype/permission_type/permission_type.py:40
 msgid "Permission Type '{0}' is reserved. Please choose another name."
-msgstr ""
+msgstr "Käyttöoikeustyyppi '{0}' on varattu. Valitse toinen nimi."
 
 #. Label of the section_break_4 (Section Break) field in DocType 'Custom
 #. DocPerm'
@@ -18087,27 +18090,27 @@ msgstr "Oikeudet"
 
 #: frappe/core/doctype/doctype/doctype.py:1967 frappe/core/doctype/doctype/doctype.py:1977
 msgid "Permissions Error"
-msgstr ""
+msgstr "Käyttöoikeusvirhe"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:10
 msgid "Permissions are automatically applied to Standard Reports and searches."
-msgstr ""
+msgstr "Käyttöoikeudet sovelletaan automaattisesti vakioraportteihin ja hakuihin."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:5
 msgid "Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions."
-msgstr ""
+msgstr "Käyttöoikeudet asetetaan Rooleille ja Asiakirjatyypeille (DocTypes) määrittämällä oikeuksia kuten Luku, Kirjoitus, Luonti, Poisto, Lähetys, Peruutus, Korjaus, Raportti, Tuonti, Vienti, Tulostus, Sähköposti ja Käyttäjän oikeuksien asetus."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:93
 msgid "Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles."
-msgstr ""
+msgstr "Korkeampien tasojen käyttöoikeudet ovat kenttätason käyttöoikeuksia. Kaikilla kentillä on käyttöoikeustaso ja kyseisellä tasolla määritellyt säännöt koskevat kenttää. Tämä on hyödyllistä, jos haluat piilottaa tai asettaa tiettyjä kenttiä vain luku -tilaan tietyille rooleille."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:91
 msgid "Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document."
-msgstr ""
+msgstr "Tason 0 käyttöoikeudet ovat asiakirjatason käyttöoikeuksia, eli ne ovat ensisijaisia asiakirjaan pääsyä varten."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:6
 msgid "Permissions get applied on Users based on what Roles they are assigned."
-msgstr ""
+msgstr "Käyttöoikeudet kohdistuvat käyttäjiin heidän rooliensa perusteella."
 
 #. Name of a report
 #. Label of a Link in the Users Workspace
@@ -18119,12 +18122,12 @@ msgstr "Käyttäjän sallitut dokumentit"
 #. Action'
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
 msgid "Permitted Roles"
-msgstr ""
+msgstr "Sallitut roolit"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Personal"
-msgstr ""
+msgstr "Henkilökohtainen"
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
@@ -18134,7 +18137,7 @@ msgstr "Henkilötietojen poistopyyntö"
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 msgid "Personal Data Deletion Step"
-msgstr ""
+msgstr "Henkilötietojen poistovaihe"
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_download_request/personal_data_download_request.json
@@ -18153,16 +18156,16 @@ msgstr "Henkilötietojen latauspyyntö"
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/contacts/doctype/address/address.json frappe/contacts/doctype/contact/contact.json frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:47 frappe/core/doctype/communication/communication.json frappe/core/doctype/docfield/docfield.json frappe/core/doctype/user/user.json frappe/core/web_form/edit_profile/edit_profile.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/website/doctype/contact_us_settings/contact_us_settings.json frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Phone"
-msgstr ""
+msgstr "Puhelin"
 
 #. Label of the phone_no (Data) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Phone No."
-msgstr ""
+msgstr "Puhelinnro"
 
 #: frappe/utils/__init__.py:115
 msgid "Phone Number {0} set in field {1} is not valid."
-msgstr ""
+msgstr "Kentässä {1} asetettu puhelinnumero {0} ei ole kelvollinen."
 
 #: frappe/public/js/frappe/form/print_utils.js:75 frappe/public/js/frappe/views/reports/report_view.js:1651 frappe/public/js/frappe/views/reports/report_view.js:1654
 msgid "Pick Columns"
@@ -18171,18 +18174,18 @@ msgstr "Valitse sarakkeet"
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Pie"
-msgstr ""
+msgstr "Ympyrä"
 
 #. Label of the pincode (Data) field in DocType 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Pincode"
-msgstr ""
+msgstr "Postinumero"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
 #: frappe/core/doctype/doctype_state/doctype_state.json frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Pink"
-msgstr ""
+msgstr "Vaaleanpunainen"
 
 #. Label of the placeholder (Data) field in DocType 'DocField'
 #. Label of the placeholder (Data) field in DocType 'Custom Field'
@@ -18190,25 +18193,25 @@ msgstr ""
 #. Label of the placeholder (Data) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Placeholder"
-msgstr ""
+msgstr "Paikkamerkki"
 
 #. Option for the 'Message Type' (Select) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Plain Text"
-msgstr ""
+msgstr "Pelkkä teksti"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Plant"
-msgstr ""
+msgstr "Tehdas"
 
 #: frappe/email/doctype/email_account/email_account.py:640
 msgid "Please Authorize OAuth for Email Account {0}"
-msgstr ""
+msgstr "Valtuuta OAuth sähköpostitilille {0}"
 
 #: frappe/email/oauth.py:29
 msgid "Please Authorize OAuth for Email Account {}"
-msgstr ""
+msgstr "Valtuuta OAuth sähköpostitilille {}"
 
 #: frappe/website/doctype/website_theme/website_theme.py:77
 msgid "Please Duplicate this Website Theme to customize."
@@ -18236,7 +18239,7 @@ msgstr "Lisää kelvollinen kommentti."
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1560
 msgid "Please adjust filters to include some data"
-msgstr ""
+msgstr "Säädä suodattimia sisällyttääksesi tietoja"
 
 #: frappe/core/doctype/user/user.py:1152
 msgid "Please ask your administrator to verify your sign-up"
@@ -18328,7 +18331,7 @@ msgstr "Ole hyvä ja kopioida tämän tehdä muutoksia"
 
 #: frappe/core/doctype/system_settings/system_settings.py:182
 msgid "Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
-msgstr ""
+msgstr "Ota käyttöön vähintään yksi sosiaalisen kirjautumisen avain tai LDAP tai kirjautuminen sähköpostilinkillä ennen käyttäjätunnus/salasana-pohjaisen kirjautumisen poistamista käytöstä."
 
 #: frappe/desk/doctype/notification_log/notification_log.js:45 frappe/email/doctype/auto_email_report/auto_email_report.js:17 frappe/printing/page/print/print.js:689 frappe/printing/page/print/print.js:734 frappe/public/js/frappe/list/bulk_operations.js:161 frappe/public/js/frappe/utils/utils.js:1736
 msgid "Please enable pop-ups"
@@ -18340,7 +18343,7 @@ msgstr "Ota ponnahdusikkunat käyttöön selaimessa"
 
 #: frappe/integrations/google_oauth.py:55
 msgid "Please enable {} before continuing."
-msgstr ""
+msgstr "Ota käyttöön {} ennen jatkamista."
 
 #: frappe/utils/oauth.py:223
 msgid "Please ensure that your profile has an email address"
@@ -18368,7 +18371,7 @@ msgstr "Anna Client Secret ennen kuin sosiaalinen kirjautuminen on käytössä"
 
 #: frappe/integrations/doctype/connected_app/connected_app.py:54
 msgid "Please enter OpenID Configuration URL"
-msgstr ""
+msgstr "Syötä OpenID-määrityksen URL"
 
 #: frappe/integrations/doctype/social_login_key/social_login_key.py:85
 msgid "Please enter Redirect URL"
@@ -18376,15 +18379,15 @@ msgstr "Anna uudelleenohjaus-URL"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:547
 msgid "Please enter a valid URL"
-msgstr ""
+msgstr "Syötä kelvollinen URL"
 
 #: frappe/templates/includes/comments/comments.html:163
 msgid "Please enter a valid email address."
-msgstr ""
+msgstr "Syötä kelvollinen sähköpostiosoite."
 
 #: frappe/templates/includes/contact.js:15
 msgid "Please enter both your email and message so that we can get back to you. Thanks!"
-msgstr ""
+msgstr "Syötä sekä sähköpostiosoitteesi että viestisi, jotta voimme palata asiaan. Kiitos!"
 
 #: frappe/www/update-password.html:259
 msgid "Please enter the password"
@@ -18481,11 +18484,11 @@ msgstr ""
 
 #: frappe/utils/__init__.py:122
 msgid "Please select a country code for field {1}."
-msgstr ""
+msgstr "Valitse maakoodi kentälle {1}."
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:525
 msgid "Please select a file first."
-msgstr ""
+msgstr "Valitse ensin tiedosto."
 
 #: frappe/utils/file_manager.py:50
 msgid "Please select a file or url"
@@ -18519,7 +18522,7 @@ msgstr "Valitse asiakirjatyyppi."
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Please select the LDAP Directory being used"
-msgstr ""
+msgstr "Valitse käytettävä LDAP-hakemisto"
 
 #: frappe/website/doctype/website_settings/website_settings.js:104
 msgid "Please select {0}"
@@ -18543,7 +18546,7 @@ msgstr "Määritä suodattimia arvo Report Suodatin taulukossa."
 
 #: frappe/model/naming.py:593
 msgid "Please set the document name"
-msgstr ""
+msgstr "Aseta dokumentin nimi"
 
 #: frappe/desk/doctype/dashboard/dashboard.py:120
 msgid "Please set the following documents in this Dashboard as standard first."
@@ -18563,11 +18566,11 @@ msgstr "Aseta ensin viesti"
 
 #: frappe/core/doctype/user/user.py:475
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
-msgstr ""
+msgstr "Määritä oletusarvoinen lähtevä sähköpostitili kohdasta Asetukset > Sähköpostitili"
 
 #: frappe/email/doctype/email_account/email_account.py:523
 msgid "Please setup default outgoing Email Account from Tools > Email Account"
-msgstr ""
+msgstr "Määritä oletusarvoinen lähtevä sähköpostitili kohdasta Työkalut > Sähköpostitili"
 
 #: frappe/public/js/frappe/model/model.js:786
 msgid "Please specify"
@@ -18575,19 +18578,19 @@ msgstr "Ilmoitathan"
 
 #: frappe/permissions.py:828
 msgid "Please specify a valid parent DocType for {0}"
-msgstr ""
+msgstr "Määritä kelvollinen ylätason DocType kohteelle {0}"
 
 #: frappe/email/doctype/notification/notification.py:164
 msgid "Please specify at least 10 minutes due to the trigger cadence of the scheduler"
-msgstr ""
+msgstr "Määritä vähintään 10 minuuttia ajastimen käynnistystiheyden vuoksi"
 
 #: frappe/email/doctype/notification/notification.py:171
 msgid "Please specify the field from which to attach files"
-msgstr ""
+msgstr "Määritä kenttä, josta tiedostot liitetään"
 
 #: frappe/email/doctype/notification/notification.py:161
 msgid "Please specify the minutes offset"
-msgstr ""
+msgstr "Määritä minuuttien siirtymä"
 
 #: frappe/email/doctype/notification/notification.py:155
 msgid "Please specify which date field must be checked"
@@ -18595,7 +18598,7 @@ msgstr "Määritä mikä päiväkenttä tulee tarkistaa"
 
 #: frappe/email/doctype/notification/notification.py:159
 msgid "Please specify which datetime field must be checked"
-msgstr ""
+msgstr "Määritä, mikä päivämäärä- ja aikakenttä on tarkistettava"
 
 #: frappe/email/doctype/notification/notification.py:168
 msgid "Please specify which value field must be checked"
@@ -18607,41 +18610,41 @@ msgstr "Yritä uudelleen"
 
 #: frappe/integrations/google_oauth.py:58
 msgid "Please update {} before continuing."
-msgstr ""
+msgstr "Päivitä {} ennen jatkamista."
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:335
 msgid "Please use a valid LDAP search filter"
-msgstr ""
+msgstr "Käytä kelvollista LDAP-hakusuodatinta"
 
 #: frappe/templates/emails/file_backup_notification.html:4
 msgid "Please use following links to download file backup."
-msgstr ""
+msgstr "Lataa tiedostojen varmuuskopio seuraavista linkeistä."
 
 #: frappe/utils/password.py:235
 msgid "Please visit https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key for more information."
-msgstr ""
+msgstr "Lisätietoja osoitteessa https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key."
 
 #. Label of the policy_uri (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Policy URI"
-msgstr ""
+msgstr "Käytännön URI"
 
 #. Option for the 'SocketIO Transport Mode' (Select) field in DocType 'System
 #. Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Polling"
-msgstr ""
+msgstr "Kysely"
 
 #. Label of the popover_element (Check) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Popover Element"
-msgstr ""
+msgstr "Ponnahdusikkuna-elementti"
 
 #. Label of the ondemand_description (HTML Editor) field in DocType 'Form Tour
 #. Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Popover or Modal Description"
-msgstr ""
+msgstr "Ponnahdusikkuna- tai modaalikuvaus"
 
 #. Label of the smtp_port (Data) field in DocType 'Email Account'
 #. Label of the incoming_port (Data) field in DocType 'Email Account'
@@ -18650,16 +18653,16 @@ msgstr ""
 #. Label of the port (Int) field in DocType 'Network Printer Settings'
 #: frappe/email/doctype/email_account/email_account.json frappe/email/doctype/email_domain/email_domain.json frappe/printing/doctype/network_printer_settings/network_printer_settings.json
 msgid "Port"
-msgstr ""
+msgstr "Portti"
 
 #: frappe/www/me.html:81
 msgid "Portal"
-msgstr ""
+msgstr "Portaali"
 
 #. Label of the menu (Table) field in DocType 'Portal Settings'
 #: frappe/website/doctype/portal_settings/portal_settings.json
 msgid "Portal Menu"
-msgstr ""
+msgstr "Portaalivalikko"
 
 #. Name of a DocType
 #: frappe/website/doctype/portal_menu_item/portal_menu_item.json
@@ -18679,7 +18682,7 @@ msgstr "Muotokuva"
 #. Label of the position (Select) field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Position"
-msgstr ""
+msgstr "Sijainti"
 
 #: frappe/templates/discussions/comment_box.html:29 frappe/templates/discussions/reply_card.html:15 frappe/templates/discussions/reply_section.html:29 frappe/templates/discussions/reply_section.html:53 frappe/templates/discussions/topic_modal.html:11
 msgid "Post"
@@ -18687,22 +18690,22 @@ msgstr "Posti"
 
 #: frappe/templates/discussions/reply_section.html:40
 msgid "Post it here, our mentors will help you out."
-msgstr ""
+msgstr "Julkaise se tähän, mentorimme auttavat sinua."
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Postal"
-msgstr ""
+msgstr "Posti"
 
 #. Label of the pincode (Data) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:41
 msgid "Postal Code"
-msgstr ""
+msgstr "Postikoodi"
 
 #. Label of the posting_timestamp (Datetime) field in DocType 'Changelog Feed'
 #: frappe/desk/doctype/changelog_feed/changelog_feed.json
 msgid "Posting Timestamp"
-msgstr ""
+msgstr "Julkaisun aikaleima"
 
 #. Label of the precision (Select) field in DocType 'DocField'
 #. Label of the precision (Select) field in DocType 'Custom Field'
@@ -18710,11 +18713,11 @@ msgstr ""
 #. Label of the precision (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json frappe/custom/doctype/custom_field/custom_field.json frappe/custom/doctype/customize_form_field/customize_form_field.json frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Precision"
-msgstr ""
+msgstr "Tarkkuus"
 
 #: frappe/core/doctype/doctype/doctype.py:1739
 msgid "Precision ({0}) for {1} cannot be greater than its length ({2})."
-msgstr ""
+msgstr "Tarkkuus ({0}) kentälle {1} ei voi olla suurempi kuin sen pituus ({2})."
 
 #: frappe/core/doctype/doctype/doctype.py:1463
 msgid "Precision should be between 1 and 6"
@@ -18726,24 +18729,24 @@ msgstr "Ennustettavissa vaihdot kuten &quot;@&quot; sijasta &quot;a&quot; eivät
 
 #: frappe/desk/page/setup_wizard/install_fixtures.py:34
 msgid "Prefer not to say"
-msgstr ""
+msgstr "En halua kertoa"
 
 #. Label of the is_primary_address (Check) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Preferred Billing Address"
-msgstr ""
+msgstr "Ensisijainen laskutusosoite"
 
 #. Label of the is_shipping_address (Check) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
 msgid "Preferred Shipping Address"
-msgstr ""
+msgstr "Ensisijainen toimitusosoite"
 
 #. Label of the prefix (Data) field in DocType 'Document Naming Rule'
 #. Label of the prefix (Autocomplete) field in DocType 'Document Naming
 #. Settings'
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Prefix"
-msgstr ""
+msgstr "Etuliite"
 
 #. Name of a DocType
 #. Label of the prepared_report (Check) field in DocType 'Report'
