@@ -2468,6 +2468,10 @@ def guess_date_format(date_string: str) -> str:
 	DATE_FORMATS = [
 		r"%d/%b/%y",
 		r"%d/%b/%Y",
+		r"%d %b %Y",
+		r"%d %B %Y",
+		r"%d-%b-%Y",
+		r"%d-%b-%y",
 		r"%d-%m-%Y",
 		r"%m-%d-%Y",
 		r"%Y-%m-%d",
@@ -2487,9 +2491,6 @@ def guess_date_format(date_string: str) -> str:
 		r"%d.%m.%y",
 		r"%m.%d.%y",
 		r"%y.%m.%d",
-		r"%d %b %Y",
-		r"%d %B %Y",
-		r"%d-%b-%Y",
 	]
 
 	TIME_FORMATS = [
