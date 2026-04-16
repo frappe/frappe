@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-15 11:50\n"
+"PO-Revision-Date: 2026-04-16 11:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Thai\n"
 "MIME-Version: 1.0\n"
@@ -10661,7 +10661,7 @@ msgstr "บันทึกตัวกรอง"
 #. Description of the 'Script' (Code) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Filters will be accessible via <code>filters</code>. <br><br>Send output as <code>result = [result]</code>, or for old style <code>data = [columns], [result]</code>"
-msgstr ""
+msgstr "ตัวกรองจะสามารถเข้าถึงได้ผ่าน <code>filters</code> <br><br>ส่งผลลัพธ์เป็น <code>result = [result]</code> หรือในรูปแบบเก่า <code>data = [columns], [result]</code>"
 
 #: frappe/public/js/frappe/ui/filters/filter_list.js:133
 msgid "Filters {0}"
