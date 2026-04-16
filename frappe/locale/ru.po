@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-12 09:45+0000\n"
-"PO-Revision-Date: 2026-04-15 16:26\n"
+"PO-Revision-Date: 2026-04-16 16:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -10782,7 +10782,7 @@ msgstr "URL Файла"
 
 #: frappe/core/doctype/file/file.py:123
 msgid "File URL is required when copying an existing attachment."
-msgstr ""
+msgstr "URL файла обязателен при копировании существующего вложения."
 
 #: frappe/desk/page/backups/backups.py:107
 msgid "File backup is ready"
@@ -13025,7 +13025,7 @@ msgstr "Если оставить пустым, то рабочей област
 
 #: frappe/public/js/frappe/form/print_utils.js:36
 msgid "If no Print Format is selected, the default template for this report will be used."
-msgstr ""
+msgstr "Если Формат печати не выбран, будет использован шаблон по умолчанию для этого отчёта."
 
 #. Description of the 'Port' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
