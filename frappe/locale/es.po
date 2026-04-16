@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-03-31 07:10\n"
+"PO-Revision-Date: 2026-04-16 11:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -11794,7 +11794,7 @@ msgstr "Estado vacío de cuadrícula"
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/custom/doctype/customize_form/customize_form.json
 msgid "Grid Page Length"
-msgstr ""
+msgstr "Longitud de página de la cuadrícula"
 
 #: frappe/public/js/frappe/ui/keyboard.js:126
 msgid "Grid Shortcuts"
@@ -13669,7 +13669,7 @@ msgstr "JSON no válido agregado en las opciones personalizadas: {0}"
 
 #: frappe/core/api/user_invitation.py:115
 msgid "Invalid key"
-msgstr ""
+msgstr "Clave no válida"
 
 #: frappe/model/naming.py:480
 msgid "Invalid name type (integer) for varchar name column"
@@ -13681,7 +13681,7 @@ msgstr "Serie de nombres {} no válida: falta el punto (.)"
 
 #: frappe/model/naming.py:69
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
-msgstr ""
+msgstr "Serie de nomenclatura no válida {}: falta el punto (.) antes de los marcadores numéricos. Utilice un formato como <b>ABCD.#####</b>."
 
 #: frappe/core/doctype/data_import/importer.py:446
 msgid "Invalid or corrupted content for import"
