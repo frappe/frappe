@@ -44,6 +44,26 @@
 	display: none;
 }
 
+.sidebar-notification .sidebar-item-icon.indicator,
+.desktop-notification-icon.indicator {
+	position: relative;
+
+	&::before {
+		position: absolute;
+		top: 0;
+		right: 0;
+		left: auto;
+		height: 6px;
+		width: 6px;
+		margin: 0;
+		z-index: 1;
+	}
+}
+
+.sidebar-notification .item-anchor {
+	overflow: visible;
+}
+
 .mark-read {
 	display: none;
 	margin-left: 10px;

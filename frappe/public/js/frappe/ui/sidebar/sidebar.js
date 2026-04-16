@@ -65,6 +65,16 @@ frappe.ui.Sidebar = class Sidebar {
 				frappe.current_app = app;
 				this.app_logo_url = app.app_logo_url;
 				return;
+			} else {
+				let app_name = frappe.boot.module_app[this.workspace_title];
+				if (app_name) {
+					let app_title = frappe.boot.app_data.find((f) => {
+						return f.app_name == app_name;
+					}).app_title;
+					this.header_subtitle = app_title;
+				} else {
+					this.header_subtitle = frappe.session.user;
+				}
 			}
 		}
 
@@ -185,7 +195,7 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		this.remove_onboarding_wrapper();
-		if (module_name) {
+		if (module_name && !frappe.is_mobile()) {
 			if (
 				this?.onboarding_widget[module_name] &&
 				this.onboarding_widget[module_name].hide_panel
@@ -302,6 +312,12 @@ frappe.ui.Sidebar = class Sidebar {
 		$(document).on("form-refresh", function () {
 			frappe.app.sidebar.toggle();
 		});
+
+		frappe.ui.keys.add_shortcut({
+			shortcut: "ctrl+/",
+			action: () => me.toggle_width(),
+			description: __("Toggle sidebar"),
+		});
 	}
 
 	toggle() {
@@ -324,7 +340,7 @@ frappe.ui.Sidebar = class Sidebar {
 		).prependTo("body");
 		this.$sidebar = this.wrapper.find(".sidebar-items");
 
-		this.wrapper.find(".body-sidebar .collapse-sidebar-link").on("click", () => {
+		this.wrapper.find(".body-sidebar .sidebar-resize-handle").on("click", () => {
 			this.toggle_width();
 		});
 
@@ -416,7 +432,6 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	make_sidebar() {
 		this.empty();
-		this.wrapper.find(".collapse-sidebar-link").removeClass("hidden");
 		if (this.editor.edit_mode) {
 			this.create_sidebar(this.editor.new_sidebar_items);
 		} else {
@@ -444,7 +459,6 @@ frappe.ui.Sidebar = class Sidebar {
 				"<div class='flex' style='padding: 30px'> No Sidebar Items </div>"
 			);
 			this.wrapper.find(".sidebar-items").append(no_items_message);
-			this.wrapper.find(".collapse-sidebar-link").addClass("hidden");
 		}
 		if (this.edit_mode) {
 			$(".edit-menu").removeClass("hidden");
@@ -474,7 +488,11 @@ frappe.ui.Sidebar = class Sidebar {
 			type: "Button",
 			class: "sidebar-notification hidden",
 			onClick: () => {
-				this.wrapper.find(".dropdown-notifications").toggleClass("hidden");
+				const $dropdown = this.wrapper.find(".dropdown-notifications");
+				$dropdown.toggleClass("hidden");
+				if (!$dropdown.hasClass("hidden")) {
+					$dropdown.trigger("show.bs.dropdown");
+				}
 				if (frappe.is_mobile()) {
 					this.wrapper.removeClass("expanded");
 				}
@@ -542,17 +560,12 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	expand_sidebar() {
-		let direction;
 		if (this.sidebar_expanded) {
 			this.wrapper.addClass("expanded");
-			// this.sidebar_expanded = false
-			direction = "right";
 			$('[data-toggle="tooltip"]').tooltip("dispose");
 			this.wrapper.find(".avatar-name-email").show();
 		} else {
 			this.wrapper.removeClass("expanded");
-			// this.sidebar_expanded = true
-			direction = "left";
 			$('[data-toggle="tooltip"]').tooltip({
 				boundary: "window",
 				container: "body",
@@ -562,10 +575,6 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		localStorage.setItem("sidebar-expanded", this.sidebar_expanded);
-		this.wrapper
-			.find(".body-sidebar .collapse-sidebar-link")
-			.find("use")
-			.attr("href", `#icon-panel-${direction}-open`);
 		this.sidebar_header.toggle_width(this.sidebar_expanded);
 		$(document).trigger("sidebar-expand", {
 			sidebar_expand: this.sidebar_expanded,
@@ -616,7 +625,7 @@ frappe.ui.Sidebar = class Sidebar {
 			switch (route.length) {
 				case 1:
 					view = "Page";
-					entity_name = route[1];
+					entity_name = route[0];
 					break;
 				case 2:
 					view = route[0];
@@ -647,7 +656,7 @@ frappe.ui.Sidebar = class Sidebar {
 			if (module) {
 				sidebars = this.filter_sidebars_from_app(
 					sidebars,
-					frappe.boot.module_app[module.toLowerCase()]
+					frappe.boot.module_app[module.toLowerCase().replace(/[ -]/g, "_")]
 				);
 			}
 			if (sidebars.length == 1) {

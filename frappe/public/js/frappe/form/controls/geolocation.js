@@ -26,6 +26,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 
 		// show again on idempotent invocations
 		$(this.disp_area).removeClass("like-disabled-input");
+		$(this.disp_area).removeClass("hide");
 		$(this.disp_area).css("display", "block");
 
 		if (this.frm) {

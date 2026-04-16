@@ -16,6 +16,7 @@
   "child",
   "navigate_to_tab",
   "url",
+  "open_in_new_tab",
   "display_section",
   "collapsible_column",
   "collapsible",
@@ -168,13 +169,20 @@
    "fieldname": "filter_area",
    "fieldtype": "HTML",
    "label": "Filter Area"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.link_type === \"URL\";",
+   "fieldname": "open_in_new_tab",
+   "fieldtype": "Check",
+   "label": "Open in New Tab"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-01-12 15:35:56.930873",
+ "modified": "2026-03-15 02:26:37.285903",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Sidebar Item",

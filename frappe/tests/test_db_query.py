@@ -271,6 +271,33 @@ class TestDBQuery(IntegrationTestCase):
 				result in DatabaseQuery("DocType").execute(filters={"name": ["not in", "DocType,DocField"]})
 			)
 
+	def test_in_filter_json_encoded_values(self):
+		# JSON-encoded list string should work the same as comma-separated
+		for result in [{"name": "DocType"}, {"name": "DocField"}]:
+			self.assertTrue(
+				result
+				in DatabaseQuery("DocType").execute(filters={"name": ["in", '["DocType", "DocField"]']})
+			)
+
+		# Values containing commas must not be split
+		todo = frappe.get_doc(
+			doctype="ToDo", description="Test, With Comma", allocated_to="Administrator"
+		).insert()
+		try:
+			results = DatabaseQuery("ToDo").execute(
+				filters={"description": ["in", '["Test, With Comma"]']},
+				fields=["description"],
+			)
+			self.assertIn({"description": "Test, With Comma"}, results)
+
+			results_split = DatabaseQuery("ToDo").execute(
+				filters={"description": ["in", "Test, With Comma"]},
+				fields=["description"],
+			)
+			self.assertNotIn({"description": "Test, With Comma"}, results_split)
+		finally:
+			frappe.delete_doc("ToDo", todo.name)
+
 	def test_string_as_field(self):
 		self.assertEqual(
 			frappe.get_all("DocType", as_list=True), frappe.get_all("DocType", fields="name", as_list=True)

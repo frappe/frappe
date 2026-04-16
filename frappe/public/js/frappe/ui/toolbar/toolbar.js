@@ -9,7 +9,8 @@ frappe.ui.toolbar.Toolbar = class {
 		if (
 			frappe.boot.read_only ||
 			frappe.boot.user.impersonated_by ||
-			(!localStorage.getItem("dismissed_announcement_widget") &&
+			((!localStorage.getItem("dismissed_announcement_widget") ||
+				!frappe.boot.navbar_settings.dismissible_announcement_widget) &&
 				strip_html(frappe.boot.navbar_settings.announcement_widget) != "") ||
 			frappe.is_mobile()
 		) {
@@ -278,63 +279,60 @@ frappe.ui.toolbar.view_website = function () {
 	website_tab.location = "/index";
 };
 
-frappe.ui.toolbar.setup_session_defaults = function () {
-	let fields = [];
+frappe.ui.toolbar.fetch_session_defaults = function () {
 	frappe.call({
 		method: "frappe.core.doctype.session_default_settings.session_default_settings.get_session_default_values",
 		callback: function (data) {
-			fields = JSON.parse(data.message);
-			let perms = frappe.perm.get_perm("Session Default Settings");
-			//add settings button only if user is a System Manager or has permission on 'Session Default Settings'
-			if (frappe.user_roles.includes("System Manager") || perms[0].read == 1) {
-				fields[fields.length] = {
-					fieldname: "settings",
-					fieldtype: "Button",
-					label: __("Settings"),
-					click: () => {
-						frappe.set_route(
-							"Form",
-							"Session Default Settings",
-							"Session Default Settings"
-						);
-					},
-				};
-			}
-			frappe.prompt(
-				fields,
-				function (values) {
-					//if default is not set for a particular field in prompt
-					fields.forEach(function (d) {
-						if (!values[d.fieldname]) {
-							values[d.fieldname] = "";
-						}
-					});
-					frappe.call({
-						method: "frappe.core.doctype.session_default_settings.session_default_settings.set_session_default_values",
-						args: {
-							default_values: values,
-						},
-						callback: function (data) {
-							if (data.message == "success") {
-								frappe.show_alert({
-									message: __("Session Defaults Saved"),
-									indicator: "green",
-								});
-								frappe.ui.toolbar.clear_cache();
-							} else {
-								frappe.show_alert({
-									message: __(
-										"An error occurred while setting Session Defaults"
-									),
-									indicator: "red",
-								});
-							}
-						},
-					});
-				},
-				__("Session Defaults"),
-				__("Save")
-			);
+			frappe.boot.session_defaults = JSON.parse(data.message);
 		},
 	});
+};
+
+frappe.ui.toolbar.setup_session_defaults = function () {
+	let perms = frappe.perm.get_perm("Session Default Settings");
+	let fields = frappe.boot.session_defaults;
+	//add settings button only if user is a System Manager or has permission on 'Session Default Settings'
+	if (frappe.user_roles.includes("System Manager") || perms[0].read == 1) {
+		fields[fields.length] = {
+			fieldname: "settings",
+			fieldtype: "Button",
+			label: __("Settings"),
+			click: () => {
+				frappe.set_route("Form", "Session Default Settings", "Session Default Settings");
+			},
+		};
+	}
+	frappe.prompt(
+		fields,
+		function (values) {
+			//if default is not set for a particular field in prompt
+			fields.forEach(function (d) {
+				if (!values[d.fieldname]) {
+					values[d.fieldname] = "";
+				}
+			});
+			frappe.call({
+				method: "frappe.core.doctype.session_default_settings.session_default_settings.set_session_default_values",
+				args: {
+					default_values: values,
+				},
+				callback: function (data) {
+					if (data.message == "success") {
+						frappe.show_alert({
+							message: __("Session Defaults Saved"),
+							indicator: "green",
+						});
+						frappe.ui.toolbar.clear_cache();
+					} else {
+						frappe.show_alert({
+							message: __("An error occurred while setting Session Defaults"),
+							indicator: "red",
+						});
+					}
+				},
+			});
+		},
+		__("Session Defaults"),
+		__("Save")
+	);
 };

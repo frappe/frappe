@@ -55,6 +55,17 @@ frappe.ui.form.on("Report", {
 				},
 			};
 		});
+
+		frm.set_query("default_print_format", () => {
+			return {
+				filters: {
+					print_format_for: "Report",
+					report: frm.doc.name,
+					print_format_type: "JS",
+					disabled: 0,
+				},
+			};
+		});
 	},
 
 	ref_doctype: function (frm) {

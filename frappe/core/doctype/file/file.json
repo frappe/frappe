@@ -67,7 +67,8 @@
    "fieldname": "is_home_folder",
    "fieldtype": "Check",
    "hidden": 1,
-   "label": "Is Home Folder"
+   "label": "Is Home Folder",
+   "search_index": 1
   },
   {
    "default": "0",
@@ -190,7 +191,7 @@
  "icon": "fa fa-file",
  "idx": 1,
  "links": [],
- "modified": "2025-01-15 11:46:42.917146",
+ "modified": "2026-04-15 19:56:45.317786",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "File",

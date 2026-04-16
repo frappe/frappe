@@ -48,7 +48,13 @@ frappe.ui.form.on("File", {
 			const field = frm.get_field("attached_to_name");
 			field.$input_wrapper
 				.find(".control-value")
-				.html(`${frappe.utils.get_form_link(frm.doctype, frm.docname, true)}`);
+				.html(
+					`${frappe.utils.get_form_link(
+						frm.doc.attached_to_doctype,
+						frm.doc.attached_to_name,
+						true
+					)}`
+				);
 		}
 	},
 

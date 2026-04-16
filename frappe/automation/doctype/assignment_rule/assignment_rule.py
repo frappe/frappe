@@ -20,14 +20,13 @@ class AssignmentRule(Document):
 
 	if TYPE_CHECKING:
 		from frappe.automation.doctype.assignment_rule_day.assignment_rule_day import AssignmentRuleDay
-		from frappe.automation.doctype.assignment_rule_user.assignment_rule_user import (
-			AssignmentRuleUser,
-		)
+		from frappe.automation.doctype.assignment_rule_user.assignment_rule_user import AssignmentRuleUser
 		from frappe.types import DF
 
 		assign_condition: DF.Code
 		assignment_days: DF.Table[AssignmentRuleDay]
 		close_condition: DF.Code | None
+		current_index: DF.Int
 		description: DF.SmallText
 		disabled: DF.Check
 		document_type: DF.Link
@@ -35,9 +34,10 @@ class AssignmentRule(Document):
 		field: DF.Literal[None]
 		last_user: DF.Link | None
 		priority: DF.Int
-		rule: DF.Literal["Round Robin", "Load Balancing", "Based on Field"]
+		rule: DF.Literal["Round Robin", "Load Balancing", "Based on Field", "Weighted Distribution"]
 		unassign_condition: DF.Code | None
 		users: DF.TableMultiSelect[AssignmentRuleUser]
+		weighted_users: DF.Table[AssignmentRuleUser]
 	# end: auto-generated types
 
 	def validate(self):
@@ -80,25 +80,25 @@ class AssignmentRule(Document):
 
 		user = self.get_user(doc)
 
-		if user:
-			assign_to.add(
-				dict(
-					assign_to=[user],
-					doctype=doc.get("doctype"),
-					name=doc.get("name"),
-					description=frappe.render_template(self.description, doc),
-					assignment_rule=self.name,
-					notify=True,
-					date=doc.get(self.due_date_based_on) if self.due_date_based_on else None,
-				),
-				ignore_permissions=True,
-			)
+		if not user or not frappe.db.exists("User", user):
+			return False
 
-			# set for reference in round robin
-			self.db_set("last_user", user)
-			return True
+		assign_to.add(
+			dict(
+				assign_to=[user],
+				doctype=doc.get("doctype"),
+				name=doc.get("name"),
+				description=frappe.render_template(self.description, doc),
+				assignment_rule=self.name,
+				notify=True,
+				date=doc.get(self.due_date_based_on) if self.due_date_based_on else None,
+			),
+			ignore_permissions=True,
+		)
 
-		return False
+		# set for reference in round robin
+		self.db_set("last_user", user)
+		return True
 
 	def clear_assignment(self, doc):
 		"""Clear assignments"""
@@ -122,6 +122,8 @@ class AssignmentRule(Document):
 			return self.get_user_load_balancing()
 		elif self.rule == "Based on Field":
 			return self.get_user_based_on_field(doc)
+		elif self.rule == "Weighted Distribution":
+			return self.get_weighted_user()
 
 	def get_user_round_robin(self):
 		"""
@@ -166,6 +168,33 @@ class AssignmentRule(Document):
 		val = doc.get(self.field)
 		if frappe.db.exists("User", val):
 			return val
+
+	def get_weighted_user(self):
+		"""
+		Assign to the user based on weights assigned to users
+		Each rule maintains its own counter.
+		"""
+		users = [(d.user, d.weight or 1) for d in self.weighted_users if d.user]
+		if not users:
+			return None
+
+		total_weight = sum(weight for _, weight in users)
+		if total_weight <= 0:
+			return None
+
+		current_index = (
+			frappe.db.get_value("Assignment Rule", self.name, "current_index", for_update=True) or 0
+		)
+		slot = current_index % total_weight
+
+		cumulative_weight = 0
+		for user, weight in users:
+			cumulative_weight += weight
+			if slot < cumulative_weight:
+				frappe.db.set_value(
+					"Assignment Rule", self.name, "current_index", current_index + 1, update_modified=False
+				)
+				return user
 
 	def safe_eval(self, fieldname, doc):
 		try:

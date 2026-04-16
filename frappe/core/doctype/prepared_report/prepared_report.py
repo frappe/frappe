@@ -125,6 +125,19 @@ def generate_report(prepared_report):
 		create_json_gz_file(result, instance.doctype, instance.name, instance.report_name)
 
 		instance.status = "Completed"
+
+		frappe.get_doc(
+			{
+				"doctype": "Notification Log",
+				"subject": f"{instance.report_name} report is ready.",
+				"for_user": frappe.session.user,
+				"type": "Alert",
+				"document_type": "Report",
+				"document_name": report.name,
+				"link": f"/desk/query-report/{report.name}?prepared_report_name={instance.name}",
+			}
+		).insert(ignore_permissions=True)
+
 	except Exception:
 		# we need to ensure that error gets stored
 		_save_error(instance, error=frappe.get_traceback(with_context=True))

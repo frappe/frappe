@@ -888,7 +888,11 @@ from {tables}
 			if value is None:
 				values = f.value or ""
 				if isinstance(values, str):
-					values = values.split(",")
+					try:
+						parsed = json.loads(values)
+						values = parsed if isinstance(parsed, list) else [parsed]
+					except ValueError:
+						values = values.split(",")
 
 				fallback = "''"
 				value = [frappe.db.escape((cstr(v) or "").strip(), percent=False) for v in values]

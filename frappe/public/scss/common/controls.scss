@@ -201,10 +201,17 @@ select.form-control {
 		display: none;
 		border-radius: var(--border-radius-sm);
 		height: 100%;
+		white-space: nowrap;
 		a {
-			display: flex;
+			display: inline-flex;
 			height: 100%;
 			align-items: center;
+			vertical-align: middle;
+		}
+		.btn-clear {
+			&:hover {
+				color: var(--error-color);
+			}
 		}
 	}
 }

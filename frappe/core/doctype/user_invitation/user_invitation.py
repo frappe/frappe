@@ -206,12 +206,11 @@ class UserInvitation(Document):
 
 def mark_expired_invitations() -> None:
 	days = 3
-	invitations_to_expire = frappe.db.get_all(
+	invitations_to_expire = frappe.get_docs(
 		"User Invitation",
 		filters={"status": "Pending", "creation": ["<", frappe.utils.add_days(frappe.utils.now(), -days)]},
 	)
 	for invitation in invitations_to_expire:
-		invitation = frappe.get_doc("User Invitation", invitation.name)
 		invitation.expire()
 		# to avoid losing work in case the job times out without finishing
 		frappe.db.commit()  # nosemgrep

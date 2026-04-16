@@ -60,6 +60,11 @@ export default class ChartWidget extends Widget {
 		);
 		this.empty.hide().appendTo(this.body);
 
+		this.error_state = $(
+			`<div class="chart-loading-state text-danger" style="height: ${this.height}px;"></div>`
+		);
+		this.error_state.hide().appendTo(this.body);
+
 		this.chart_wrapper = $(`<div></div>`);
 		this.chart_wrapper.appendTo(this.body);
 
@@ -552,7 +557,18 @@ export default class ChartWidget extends Widget {
 				heatmap_year: args && args.heatmap_year ? args.heatmap_year : null,
 			};
 		}
-		return frappe.xcall(method, args);
+		return frappe.xcall(method, args, undefined, {
+			silent: true,
+			error: (err) => {
+				const message = JSON.parse(JSON.parse(err._server_messages)[0])?.message;
+				this.chart_wrapper.hide();
+				this.loading.hide();
+				this.$summary && this.$summary.hide();
+				this.empty.hide();
+				this.error_state.text(message);
+				this.error_state.show();
+			},
+		});
 	}
 
 	async get_source_doctype() {
@@ -588,9 +604,11 @@ export default class ChartWidget extends Widget {
 			this.loading.hide();
 			this.$summary && this.$summary.hide();
 			this.empty.show();
+			this.error_state.hide();
 		} else {
 			this.loading.hide();
 			this.empty.hide();
+			this.error_state.hide();
 			this.chart_wrapper.show();
 			this.chart_doc.document_type = await this.get_source_doctype();
 

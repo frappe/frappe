@@ -361,8 +361,8 @@ def process_auto_email_report(report):
 
 def send_monthly():
 	"""Check reports to be sent monthly"""
-	for report in frappe.get_all("Auto Email Report", {"enabled": 1, "frequency": "Monthly"}):
-		frappe.get_doc("Auto Email Report", report.name).send()
+	for report in frappe.get_docs("Auto Email Report", filters={"enabled": 1, "frequency": "Monthly"}):
+		report.send()
 
 
 def make_links(columns, data):

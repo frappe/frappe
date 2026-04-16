@@ -235,7 +235,14 @@ frappe.search.utils = {
 						});
 					}
 
-					out.push(option("List", ["List", item], 0.05));
+					const isTree = (frappe.boot.tree_view_doctypes || []).includes(item);
+					out.push(
+						option(
+							isTree ? "Tree" : "List",
+							isTree ? ["Tree", item] : ["List", item],
+							0.05
+						)
+					);
 					if (frappe.model.can_get_report(item)) {
 						out.push(option("Report", ["List", item, "Report"], 0.04));
 					}

@@ -8,7 +8,6 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	        _('Change', context='Coins')
 	"""
 	from frappe.translate import get_all_translations
-	from frappe.utils import is_html, strip_html_tags
 
 	if not hasattr(frappe.local, "lang"):
 		frappe.local.lang = lang or "en"
@@ -16,25 +15,30 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	if not lang:
 		lang = frappe.local.lang
 
-	non_translated_string = msg
+	all_translations = get_all_translations(lang)
 
-	if is_html(msg):
-		msg = strip_html_tags(msg)
+	non_translated_string = msg
 
 	# msg should always be unicode
 	msg = frappe.as_unicode(msg).strip()
 
-	translated_string = ""
+	msg_with_html = frappe.as_unicode(non_translated_string).strip()
+	msg_list = [msg, msg_with_html]
 
-	all_translations = get_all_translations(lang)
-	if context:
-		string_key = f"{msg}:{context}"
-		translated_string = all_translations.get(string_key)
+	for msg in msg_list:
+		translated_string = ""
 
-	if not translated_string:
-		translated_string = all_translations.get(msg)
+		if context:
+			string_key = f"{msg}:{context}"
+			translated_string = all_translations.get(string_key)
 
-	return translated_string or non_translated_string
+		if not translated_string:
+			translated_string = all_translations.get(msg)
+
+		if translated_string:
+			return translated_string
+
+	return non_translated_string
 
 
 def _lt(msg: str, lang: str | None = None, context: str | None = None):

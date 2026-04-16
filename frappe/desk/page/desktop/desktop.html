@@ -26,9 +26,9 @@
         <div class="flex" style="gap:16px; align-items: center;">
             <div class="desktop-notifications">
                 <div class="dropdown dropdown-notifications">
-                    <button class="btn-reset nav-link text-muted" data-toggle="dropdown" >
+                    <button class="btn-reset nav-link text-muted desktop-notification-icon" data-toggle="dropdown" aria-label="{{ _("Notifications") }}" aria-haspopup="true">
                         <svg
-                            class="icon icon-md"
+                            class="icon icon-md" aria-hidden="true"
                         >
                             <use href="#icon-bell"></use>
                         </svg>
@@ -50,8 +50,8 @@
                     </div>
                 </div>
             </div>
-            <div class="desktop-avatar">
-            </div>
+            <button class="desktop-avatar btn-reset" aria-label="{{ _('User Menu') }}">
+            </button>
             </div>
 
     </header>

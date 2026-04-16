@@ -72,9 +72,9 @@ jobs:
       - name: Clone
         uses: actions/checkout@v6
       - name: Download artifacts
-        uses: actions/download-artifact@v7.0.0
+        uses: actions/download-artifact@v8.0.1
       - name: Upload coverage data
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           name: Server
           token: ${{ secrets.CODECOV_TOKEN }}

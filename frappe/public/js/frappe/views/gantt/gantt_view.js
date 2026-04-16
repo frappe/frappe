@@ -230,7 +230,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 
 		const view_modes = this.gantt.options.view_modes || [];
 		const active_class = (view_mode) => (this.gantt.view_is(view_mode) ? "btn-info" : "");
-		const html = `<div class="btn-group gantt-view-mode">
+		const html = `<div class="btn-group gantt-view-mode mx-2">
 				${view_modes
 					.map(
 						(value) => `<button type="button"

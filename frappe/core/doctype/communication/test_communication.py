@@ -1,12 +1,14 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from datetime import timedelta
 from typing import TYPE_CHECKING
 
 import frappe
 from frappe.core.doctype.communication.communication import Communication, get_emails, parse_email
-from frappe.core.doctype.communication.email import add_attachments, make
+from frappe.core.doctype.communication.email import add_attachments, make, undo_email_send
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
 from frappe.tests import IntegrationTestCase
+from frappe.utils import add_to_date, now_datetime
 
 if TYPE_CHECKING:
 	from frappe.contacts.doctype.contact.contact import Contact
@@ -437,6 +439,79 @@ class TestCommunicationEmailMixin(IntegrationTestCase):
 		attached_file = frappe.get_doc("File", attached_file_name)
 		self.assertEqual(attached_file.file_name, file_name)
 		self.assertEqual(attached_file.get_content(), file_content)
+
+	def test_undo_email_send(self):
+		"""Undo should delete Communication and Email Queue, and return original data."""
+		comm = self.new_communication(recipients=["to@test.com"])
+		comm.sent_or_received = "Sent"
+		comm.save(ignore_permissions=True)
+
+		eq = frappe.get_doc(
+			{
+				"doctype": "Email Queue",
+				"sender": "Test <test@example.com>",
+				"message": "Test message",
+				"status": "Not Sent",
+				"priority": 1,
+				"communication": comm.name,
+				"recipients": [{"recipient": "to@test.com", "status": "Not Sent"}],
+			}
+		).insert(ignore_permissions=True)
+
+		result = undo_email_send(comm.name)
+
+		self.assertFalse(frappe.db.exists("Communication", comm.name))
+		self.assertFalse(frappe.db.exists("Email Queue", eq.name))
+		self.assertFalse(frappe.db.exists("Email Queue Recipient", {"parent": eq.name}))
+		self.assertEqual(result["subject"], comm.subject)
+		self.assertEqual(result["recipients"], comm.recipients)
+
+	def test_undo_email_send_fails_for_different_user(self):
+		"""Undo should fail if the current user is not the owner."""
+		comm = self.new_communication(recipients=["to@test.com"])
+		comm.sent_or_received = "Sent"
+		comm.save(ignore_permissions=True)
+		frappe.db.set_value("Communication", comm.name, "owner", "other@test.com")
+
+		with self.assertRaises(frappe.exceptions.ValidationError):
+			undo_email_send(comm.name)
+
+		self.assertTrue(frappe.db.exists("Communication", comm.name))
+
+	def test_undo_email_send_fails_after_time_window(self):
+		"""Undo should fail if the 10-second window has passed."""
+		comm = self.new_communication(recipients=["to@test.com"])
+		comm.sent_or_received = "Sent"
+		comm.save(ignore_permissions=True)
+
+		with self.freeze_time(add_to_date(now_datetime(), seconds=12)):
+			with self.assertRaises(frappe.exceptions.ValidationError):
+				undo_email_send(comm.name)
+
+		self.assertTrue(frappe.db.exists("Communication", comm.name))
+
+	def test_undo_email_send_fails_if_already_sent(self):
+		"""Undo should fail if Email Queue status is not 'Not Sent'."""
+		comm = self.new_communication(recipients=["to@test.com"])
+		comm.sent_or_received = "Sent"
+		comm.save(ignore_permissions=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "Email Queue",
+				"sender": "Test <test@example.com>",
+				"message": "Test message",
+				"status": "Sent",
+				"priority": 1,
+				"communication": comm.name,
+				"recipients": [{"recipient": "to@test.com", "status": "Sent"}],
+			}
+		).insert(ignore_permissions=True)
+
+		with self.assertRaises(frappe.exceptions.ValidationError):
+			undo_email_send(comm.name)
+
+		self.assertTrue(frappe.db.exists("Communication", comm.name))
 
 
 def create_email_account() -> "EmailAccount":

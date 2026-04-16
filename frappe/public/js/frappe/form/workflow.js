@@ -102,22 +102,16 @@ frappe.ui.form.States = class FormStates {
 				if (frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
 					added = true;
 					me.frm.page.add_action_item(__(d.action), function () {
-						frappe.db
-							.get_value(
-								"Workflow",
-								{ document_type: me.frm.doctype },
-								"enable_action_confirmation"
-							)
-							.then((r) => {
-								if (r.message.enable_action_confirmation) {
-									frappe.confirm(
-										__("Are you sure you want to {0}?", [d.action]),
-										() => me.handle_workflow_action(d)
-									);
-								} else {
-									me.handle_workflow_action(d);
-								}
-							});
+						if (
+							frappe.workflow?.workflows?.[me.frm.doctype]
+								?.enable_action_confirmation
+						) {
+							frappe.confirm(__("Are you sure you want to {0}?", [d.action]), () =>
+								me.handle_workflow_action(d)
+							);
+						} else {
+							me.handle_workflow_action(d);
+						}
 					});
 				}
 			});

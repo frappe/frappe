@@ -16,7 +16,7 @@
 .dropdown-menu-item {
 	// padding: var(--padding-xs);
 	border-radius: var(--border-radius-sm);
-	&:hover {
+	&:hover:has(a) {
 		background-color: var(--sidebar-hover-color);
 	}
 
@@ -37,7 +37,10 @@
 			}
 		}
 	}
-
+	.dropdown-divider {
+		margin-right: calc(var(--margin-xs) + 3px);
+		margin-left: calc(var(--margin-xs) + 3px);
+	}
 	.menu-item-title {
 		text-overflow: ellipsis;
 		text-wrap: nowrap;

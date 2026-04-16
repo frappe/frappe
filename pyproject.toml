@@ -15,12 +15,12 @@ dependencies = [
     "filetype~=1.2.0",
     "GitPython~=3.1.45",
     "Jinja2~=3.1.6",
-    "Pillow~=12.1.1",
-    "PyJWT~=2.10.1",
+    "Pillow~=12.2.0",
+    "PyJWT~=2.12.1",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.7.4",
+    "pypdf==6.10.1",
     "PyPika @ git+https://github.com/frappe/pypika@2c50e6142b2d61d2d243e466fdd5dc03b3d918f2",
     "mysqlclient==2.2.7",
     "PyQRCode~=1.2.1",
@@ -56,7 +56,7 @@ dependencies = [
     "premailer~=3.10.0",
     "psutil~=7.0.0",
     "psycopg2-binary~=2.9.11",
-    "pyOpenSSL~=25.3.0",
+    "pyOpenSSL~=26.0.0",
     "pydantic~=2.12.5",
     "pyotp~=2.9.0",
     "python-dateutil~=2.9.0.post0",
@@ -65,7 +65,7 @@ dependencies = [
     "redis~=7.1.0",
     "hiredis~=3.3.0",
     "requests-oauthlib~=2.0.0",
-    "requests~=2.32.5",
+    "requests~=2.33.0",
     # We depend on internal attributes of RQ.
     # Do NOT add loose requirements on RQ versions.
     # Audit the code changes w.r.t. background_jobs.py before updating.
@@ -93,8 +93,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://frappeframework.com/"
+Homepage = "https://frappe.io/framework"
 Repository = "https://github.com/frappe/frappe.git"
+Documentation = "https://docs.frappe.io/framework"
 "Bug Reports" = "https://github.com/frappe/frappe/issues"
 
 [project.optional-dependencies]

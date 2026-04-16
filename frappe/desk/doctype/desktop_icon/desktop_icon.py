@@ -63,8 +63,9 @@ class DesktopIcon(Document):
 			clear_desktop_icons_cache(user=self.owner)
 
 	def after_rename(self, old, new, merge):
-		delete_desktop_icon_file(self.app, old)
-		self.export_desktop_icon()
+		if self.standard and self.app:
+			delete_desktop_icon_file(self.app, old)
+			self.export_desktop_icon()
 
 	def export_desktop_icon(self):
 		allow_export = (

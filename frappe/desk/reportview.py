@@ -549,8 +549,13 @@ def get_field_info(fields, parent_doctype):
 		except ValueError:
 			# handles aggregate functions
 			doctype = parent_doctype
-			fieldname = field.split("(", 1)[0]
-			fieldname = fieldname[0].upper() + fieldname[1:]
+			if isinstance(field, dict):
+				# Eg: {"COUNT": "name", "as": "count_name"} -> "COUNT"
+				fieldname = next(f for f in field if f != "as")
+			else:
+				# Eg) "count(name)" -> "count"
+				fieldname = field.split("(", 1)[0]
+			fieldname = fieldname.capitalize()
 
 		doctype = doctype or parent_doctype
 		options = None
@@ -616,7 +621,7 @@ def handle_duration_fieldtype_values(parent_doctype, data, fields):
 	return data
 
 
-def parse_field(field: str) -> tuple[str | None, str]:
+def parse_field(field: str | dict) -> tuple[str | None, str]:
 	"""
 	Parse a field into doctype and fieldname.
 
@@ -625,6 +630,9 @@ def parse_field(field: str) -> tuple[str | None, str]:
 
 	:raises ValueError: If the field contains aggregate functions.
 	"""
+	if isinstance(field, dict):  # for aggregates via qb
+		raise ValueError
+
 	key = field.split(" as ", 1)[0]
 
 	if key.startswith(("count(", "sum(", "avg(")):
@@ -727,7 +735,7 @@ def get_stats(stats: str, doctype: str, filters: str | None = None):
 
 	try:
 		db_columns = frappe.db.get_table_columns(doctype)
-	except (frappe.db.InternalError, frappe.db.ProgrammingError):
+	except frappe.db.InternalError, frappe.db.ProgrammingError:
 		# raised when _user_tags column is added on the fly
 		# raised if its a virtual doctype
 		db_columns = []
@@ -852,7 +860,7 @@ def get_match_cond(doctype, as_condition=True):
 	if not as_condition:
 		return cond
 
-	return ((" and " + cond) if cond else "").replace("%", "%%")
+	return ((" and (" + cond + ")") if cond else "").replace("%", "%%")
 
 
 def build_match_conditions(doctype, user=None, as_condition=True):

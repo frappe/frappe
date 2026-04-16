@@ -48,6 +48,8 @@ def save_layout(user: str, layout: str, new_icons: str | None = None):
 				new_workspace = frappe.new_doc("Workspace")
 				new_workspace.update(workspace)
 				new_workspace.title = new_workspace.label
+				if not new_workspace.public:
+					new_workspace.for_user = frappe.session.user
 				new_workspace.save()
 				return add_workspace_to_desktop(new_workspace.name)
 			desktop_icon = frappe.new_doc("Desktop Icon")

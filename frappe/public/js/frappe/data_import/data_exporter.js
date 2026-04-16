@@ -208,7 +208,6 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	update_record_count_message() {
-		let export_records = this.dialog.get_value("export_records");
 		let count_method = {
 			all: () => frappe.db.count(this.doctype),
 			by_filter: () =>
@@ -218,6 +217,10 @@ frappe.data_import.DataExporter = class DataExporter {
 			blank_template: () => Promise.resolve(0),
 			"5_records": () => Promise.resolve(5),
 		};
+
+		let export_records = this.dialog.get_value("export_records");
+
+		if (!export_records || !count_method[export_records]) return;
 
 		count_method[export_records]().then((value) => {
 			let message = "";

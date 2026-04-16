@@ -1,5 +1,9 @@
 {% macro avatar(user_id=None, css_style=None, size="avatar-small", full_name=None, image=None) %}
-{% set user_info = frappe.utils.get_user_info_for_avatar(user_id) %}
+{% if user_id %}
+	{% set user_info = frappe.utils.get_user_info_for_avatar(user_id) %}
+{% else %}
+	{% set user_info = {} %}
+{% endif %}
 <span class="avatar {{ size }}" title="{{ full_name|e or user_info.name|e }}" style="{{ css_style or '' }}">
 	{% if image or user_info.image  %}
 	<img

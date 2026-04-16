@@ -571,12 +571,14 @@ body[data-route^="Form"] {
 	}
 }
 
-.liked-by {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 28px;
-	height: 28px;
+.form-stats-likes {
+	.liked-by {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+	}
 }
 
 .liked-by-popover {

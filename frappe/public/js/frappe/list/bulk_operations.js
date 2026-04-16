@@ -391,12 +391,14 @@ export default class BulkOperations {
 		show_help_text();
 
 		function set_value_field(dialogObj) {
-			const new_df = Object.assign({}, field_mappings[dialogObj.get_value("field")]);
+			const field_value = dialogObj.get_value("field");
+			if (!field_value || !field_mappings[field_value]) return;
+			const new_df = Object.assign({}, field_mappings[field_value]);
 			/* if the field label has status in it and
 			if it has select fieldtype with no default value then
 			set a default value from the available option. */
 			if (
-				new_df.label.match(status_regex) &&
+				new_df.label?.match(status_regex) &&
 				new_df.fieldtype === "Select" &&
 				!new_df.default
 			) {

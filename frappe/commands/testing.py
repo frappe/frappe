@@ -159,11 +159,14 @@ def main(
 			discover_all_tests(apps, runner)
 
 		results = []
+		global unittest_runner
 		for app, category, suite in runner.iterRun():
 			click.secho(
 				f"\nRunning {suite.countTestCases()} {category} tests for {app}", fg="cyan", bold=True
 			)
-			results.append([app, category, runner.run(suite)])
+			main_runner = unittest_runner if junit_xml_output and unittest_runner else runner
+			res = main_runner.run(suite)
+			results.append([app, category, res])
 
 		success = all(r.wasSuccessful() for _, _, r in results)
 		if not success:
@@ -447,7 +450,7 @@ def run_ui_tests(
 	context: CliCtxObj,
 	app,
 	headless=False,
-	parallel=True,
+	parallel=False,
 	with_coverage=False,
 	browser="chrome",
 	ci_build_id=None,
@@ -480,6 +483,7 @@ def run_ui_tests(
 	real_events_plugin_path = f"{node_bin}/../cypress-real-events"
 	testing_library_path = f"{node_bin}/../@testing-library"
 	coverage_plugin_path = f"{node_bin}/../@cypress/code-coverage"
+	cypress_split_path = f"{node_bin}/../cypress-split"
 
 	# check if cypress in path...if not, install it.
 	if not (
@@ -488,6 +492,7 @@ def run_ui_tests(
 		and os.path.exists(real_events_plugin_path)
 		and os.path.exists(testing_library_path)
 		and os.path.exists(coverage_plugin_path)
+		and os.path.exists(cypress_split_path)
 	):
 		# install cypress & dependent plugins
 		click.secho("Installing Cypress...", fg="yellow")
@@ -499,6 +504,7 @@ def run_ui_tests(
 				"@testing-library/cypress@^10",
 				"@testing-library/dom@8.17.1",
 				"@cypress/code-coverage@^3",
+				"cypress-split@^1.0.0",
 			]
 		)
 
@@ -516,7 +522,10 @@ def run_ui_tests(
 	run_or_open = f"run --browser {browser}" if headless else "open"
 	if headless and spec:
 		run_or_open += f" --spec {spec}"
-	formatted_command = f"{site_env} {password_env} {coverage_env} {cypress_path} {run_or_open}"
+	parallel_env = "CYPRESS_CLOUD_PARALLEL=1" if parallel else "CYPRESS_CLOUD_PARALLEL=0"
+	formatted_command = (
+		f"{site_env} {password_env} {coverage_env} {parallel_env} {cypress_path} {run_or_open}"
+	)
 
 	if os.environ.get("CYPRESS_RECORD_KEY"):
 		formatted_command += " --record"

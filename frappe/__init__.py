@@ -1573,6 +1573,7 @@ from frappe.config import get_common_site_config, get_conf, get_site_config
 from frappe.core.doctype.system_settings.system_settings import get_system_settings
 from frappe.model.document import (
 	get_doc,
+	get_docs,
 	get_lazy_doc,
 	copy_doc,
 	new_doc,

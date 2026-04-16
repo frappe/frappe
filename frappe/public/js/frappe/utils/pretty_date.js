@@ -11,10 +11,12 @@ function prettyDate(date, mini) {
 		);
 	}
 
-	let diff =
-		(new Date(frappe.datetime.now_datetime().replace(/-/g, "/")).getTime() - date.getTime()) /
-		1000;
-	let day_diff = Math.floor(diff / 86400);
+	let now = new Date(frappe.datetime.now_datetime().replace(/-/g, "/"));
+	let diff = (now.getTime() - date.getTime()) / 1000;
+
+	let today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+	let event_day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+	let day_diff = Math.floor((today - event_day) / 86400000);
 
 	if (isNaN(day_diff) || day_diff < 0) return "";
 

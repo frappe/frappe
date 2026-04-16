@@ -896,6 +896,8 @@ frappe.views.CommunicationComposer = class {
 				if (!r.exc) {
 					frappe.utils.play_sound("email");
 
+					const communication_name = r.message["name"];
+
 					if (r.message["emails_not_sent_to"]) {
 						frappe.msgprint(
 							__("Email not sent to {0} (unsubscribed / disabled)", [
@@ -909,6 +911,54 @@ frappe.views.CommunicationComposer = class {
 					if (me.frm) {
 						me.frm.reload_doc();
 					}
+
+					let undo_alert = frappe.show_alert(
+						{
+							message: `<span>${__(
+								"Email Sent"
+							)}</span><span class="cursor-pointer ml-4" data-action="undo" style="font-weight: 500; text-decoration: underline;">${__(
+								"Undo"
+							)}</span>`,
+							indicator: "green",
+						},
+						10,
+						{
+							undo: () => {
+								if (undo_alert) {
+									undo_alert.find(".close").click();
+								}
+								frappe
+									.xcall(
+										"frappe.core.doctype.communication.email.undo_email_send",
+										{ communication_name: communication_name }
+									)
+									.then((d) => {
+										if (me.frm) {
+											me.frm.reload_doc();
+										}
+
+										// Reopen the composer with the recovered data
+										new frappe.views.CommunicationComposer({
+											doc: d.doc,
+											subject: d.subject,
+											recipients: d.recipients,
+											cc: d.cc,
+											bcc: d.bcc,
+											message: d.content,
+											sender: d.sender,
+											read_receipt: d.send_read_receipt,
+											attachments: d.attachments,
+											frm: me.frm,
+										});
+
+										frappe.show_alert({
+											message: __("Email sending undone"),
+											indicator: "blue",
+										});
+									});
+							},
+						}
+					);
 
 					// try the success callback if it exists
 					if (me.success) {

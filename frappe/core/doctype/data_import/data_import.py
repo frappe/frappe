@@ -187,8 +187,14 @@ def stop_data_import(doc_name: str):
 def start_import(data_import):
 	"""This method runs in background job"""
 	data_import = frappe.get_doc("Data Import", data_import)
+	# Apply same delimiter/sniffer settings as preview so CSV is parsed correctly (e.g. EU ";" delimiter)
+	data_import.set_delimiters_flag()
 	try:
-		i = Importer(data_import.reference_doctype, data_import=data_import)
+		i = Importer(
+			data_import.reference_doctype,
+			data_import=data_import,
+			use_sniffer=data_import.use_csv_sniffer,
+		)
 		i.import_data()
 	except JobTimeoutException:
 		frappe.db.rollback()

@@ -476,3 +476,7 @@ def find_file_by_url(path: str, name: str | None = None) -> "File" | None:
 		file: File = frappe.get_doc(doctype="File", **file_data)
 		if file.is_downloadable():
 			return file
+
+
+def get_safe_file_name(file_name: str) -> str:
+	return re.sub(r"[/\\%?#]", "_", file_name)

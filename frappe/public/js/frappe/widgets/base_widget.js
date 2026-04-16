@@ -4,6 +4,7 @@ export default class Widget {
 	constructor(opts) {
 		Object.assign(this, opts);
 		this.make();
+		this.apply_hidden_state();
 	}
 
 	refresh() {
@@ -196,5 +197,11 @@ export default class Widget {
 
 	set_footer() {
 		//
+	}
+
+	apply_hidden_state() {
+		const is_hidden = Boolean(this.hidden);
+		const show_for_customize = is_hidden && this.in_customize_mode;
+		this.widget.toggleClass("hidden", is_hidden && !show_for_customize);
 	}
 }

@@ -137,7 +137,7 @@ class Event(Document):
 			return
 
 		for participant in self.event_participants:
-			if communications := frappe.get_all(
+			if communications := frappe.get_docs(
 				"Communication",
 				filters=[
 					["Communication", "reference_doctype", "=", self.doctype],
@@ -145,11 +145,9 @@ class Event(Document):
 					["Communication Link", "link_doctype", "=", participant.reference_doctype],
 					["Communication Link", "link_name", "=", participant.reference_docname],
 				],
-				pluck="name",
 				distinct=True,
 			):
-				for comm in communications:
-					communication = frappe.get_doc("Communication", comm)
+				for communication in communications:
 					self.update_communication(participant, communication)
 			else:
 				meta = frappe.get_meta(participant.reference_doctype)

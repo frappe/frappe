@@ -310,8 +310,8 @@
 			border-radius: 0px;
 			border: 0px;
 			padding-top: 10px;
-			padding-bottom: 10px;
-			height: 100%;
+			padding-bottom: calc(var(--padding-md) - 3px);
+			height: auto;
 		}
 
 		.link-btn {
@@ -431,7 +431,6 @@
 	.frappe-control {
 		margin-bottom: 0px !important;
 		position: relative;
-		flex-grow: 1;
 	}
 
 	.col-sm-6 {

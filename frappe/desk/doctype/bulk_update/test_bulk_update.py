@@ -103,3 +103,45 @@ class TestBulkUpdate(IntegrationTestCase):
 		docnames_bg = frappe.get_all(self.doctype, {"docstatus": 0}, limit=20, pluck="name")
 		submit_cancel_or_update_docs(self.doctype, docnames_bg, action="update", data=update_data)
 		self.wait_for_assertion(lambda: check_child_field(docnames_bg, "_Test Child Updated"))
+
+	def test_bulk_update_conditions(self):
+		"""Test the whitelisted bulk update method"""
+		todo_names = []
+		for i in range(5):
+			doc = frappe.get_doc(
+				{
+					"doctype": "ToDo",
+					"description": f"Bulk Update Status Test {i}",
+					"status": "Open" if i < 3 else "Closed",
+				}
+			).insert()
+			todo_names.append(doc.name)
+
+		try:
+			condition_json = frappe.as_json({"status": "Open", "name": ["in", todo_names]})
+
+			bulk_upd = frappe.get_doc(
+				{
+					"doctype": "Bulk Update",
+					"document_type": "ToDo",
+					"field": "status",
+					"update_value": "Closed",
+					"condition": condition_json,
+					"limit": 5,
+				}
+			)
+
+			bulk_upd.bulk_update()
+
+			updated_docs = frappe.get_all("ToDo", filters={"name": ["in", todo_names]}, fields=["status"])
+
+			for doc in updated_docs:
+				self.assertEqual(doc.status, "Closed")
+
+			remaining_open_count = frappe.db.count("ToDo", {"name": ["in", todo_names], "status": "Open"})
+			self.assertEqual(remaining_open_count, 0)
+
+		finally:
+			for name in todo_names:
+				frappe.delete_doc("ToDo", name)
+			frappe.db.commit()
