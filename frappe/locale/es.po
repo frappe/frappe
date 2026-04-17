@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-16 11:48\n"
+"PO-Revision-Date: 2026-04-17 11:47\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -17172,7 +17172,7 @@ msgstr "No hay cuentas de correo electrónico asignadas"
 
 #: frappe/email/doctype/email_group/email_group.py:50
 msgid "No Email field found in {0}"
-msgstr ""
+msgstr "No se encontró campo de correo electrónico en {0}"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:183
 msgid "No Emails"
@@ -18926,7 +18926,7 @@ msgstr "Parent es el nombre del documento al que se agregarán los datos."
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:253
 msgid "Parent-to-child or child-to-different-child grouping is not allowed."
-msgstr ""
+msgstr "No se permite el agrupamiento de principal a secundario o de secundario a otro secundario diferente."
 
 #: frappe/permissions.py:811
 msgid "Parentfield not specified in {0}: {1}"
@@ -19027,7 +19027,7 @@ msgstr "Contraseña no encontrada para {0} {1} {2}"
 
 #: frappe/core/doctype/user/user.py:1206
 msgid "Password requirements not met"
-msgstr ""
+msgstr "No se cumplen los requisitos de la contraseña"
 
 #: frappe/core/doctype/user/user.py:1040
 msgid "Password reset instructions have been sent to your email"
@@ -19106,7 +19106,7 @@ msgstr "Ruta al archivo de clave privada"
 
 #: frappe/modules/utils.py:209
 msgid "Path {0} is not within module {1}"
-msgstr ""
+msgstr "La ruta {0} no está dentro del módulo {1}"
 
 #: frappe/website/path_resolver.py:202
 msgid "Path {0} it not a valid path"
@@ -19771,7 +19771,7 @@ msgstr "Por favor, especifique un DocType padre válido para {0}"
 
 #: frappe/email/doctype/notification/notification.py:96
 msgid "Please specify the field from which to attach files"
-msgstr ""
+msgstr "Por favor, especifique el campo desde el cual adjuntar archivos"
 
 #: frappe/email/doctype/notification/notification.py:90
 msgid "Please specify which date field must be checked"
