@@ -5,23 +5,25 @@ import socket
 import sys
 import time
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from contextlib import suppress
 from functools import lru_cache
+from multiprocessing import Process
 from threading import Thread
-from typing import Any, NoReturn
+from typing import Any, NamedTuple, NoReturn
 from uuid import uuid4
 
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Callback, Queue, Worker
 from rq.defaults import DEFAULT_WORKER_TTL
-from rq.exceptions import InvalidJobOperation, NoSuchJobError
+from rq.exceptions import InvalidJobOperation, NoSuchJobError, StopRequested
 from rq.job import Job, JobStatus
 from rq.logutils import setup_loghandlers
 from rq.timeouts import JobTimeoutException
-from rq.worker import DequeueStrategy, StopRequested, WorkerStatus
-from rq.worker_pool import WorkerPool
+from rq.utils import parse_names
+from rq.worker import DequeueStrategy, WorkerStatus
+from rq.worker_pool import WorkerPool, run_worker
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 import frappe
@@ -410,6 +412,161 @@ class FrappeWorkerNoFork(FrappeWorker):
 		os.kill(os.getpid(), sig)
 
 
+class QueueGroup(NamedTuple):
+	queue_names: list[str]
+	num_workers: int
+
+
+class WorkerData(NamedTuple):
+	name: str
+	pid: int
+	process: Process
+	pool_index: int
+
+
+class FrappeWorkerPool(WorkerPool):
+	def __init__(
+		self,
+		queues: Iterable[str | Queue],
+		connection,
+		num_workers: int = 1,
+		queue_groups: Iterable[tuple[Iterable[str], int]] | None = None,
+		*args,
+		**kwargs,
+	):
+		super().__init__(
+			queues,
+			connection,
+			num_workers,
+			*args,
+			**kwargs,
+		)
+		self._queue_groups: list[QueueGroup] = self._parse_queue_groups(queues, num_workers, queue_groups)
+		self._queue_names: list[str] = list(
+			dict.fromkeys(name for group in self._queue_groups for name in group.queue_names)
+		)
+
+	@staticmethod
+	def _parse_queue_groups(
+		queues: Iterable[str | Queue],
+		num_workers: int,
+		queue_groups: Iterable[tuple[Iterable[str], int]] | None,
+	) -> list[QueueGroup]:
+		if queue_groups is None:
+			return [QueueGroup(parse_names(queues), num_workers)]
+
+		parsed_groups: list[QueueGroup] = []
+		for queue_group in queue_groups:
+			group_queues, group_num_workers = queue_group
+			parsed_groups.append(QueueGroup(parse_names(group_queues), group_num_workers))
+
+		return parsed_groups
+
+	@property
+	def queue_groups(self) -> list[QueueGroup]:
+		"""Returns the configured queue groups."""
+		return list(self._queue_groups)
+
+	def check_workers(self, respawn: bool = True) -> None:
+		"""
+		Respawn the difference between num_workers and actual workers per queue group.
+		"""
+		self.log.debug("Checking worker processes")
+		self.reap_workers()
+
+		if respawn and self.status != self.Status.STOPPED:
+			active_workers_by_pool = {index: 0 for index in range(len(self._queue_groups))}
+			for worker_data in self.worker_dict.values():
+				active_workers_by_pool[worker_data.pool_index] += 1
+
+			for pool_index, queue_group in enumerate(self._queue_groups):
+				delta = queue_group.num_workers - active_workers_by_pool[pool_index]
+				if delta > 0:
+					for _ in range(delta):
+						self.start_worker(pool_index=pool_index, burst=self._burst, _sleep=self._sleep)
+
+	def get_worker_process(
+		self,
+		name: str,
+		queue_names: Iterable[str],
+		burst: bool,
+		_sleep: float = 0,
+		logging_level: str = "INFO",
+	) -> Process:
+		"""Returns the worker process"""
+		return Process(
+			target=run_worker,
+			args=(name, queue_names, self._connection_class, self._pool_class, self._pool_kwargs),
+			kwargs={
+				"_sleep": _sleep,
+				"burst": burst,
+				"logging_level": logging_level,
+				"worker_class": self.worker_class,
+				"job_class": self.job_class,
+				"queue_class": self.queue_class,
+				"serializer": self.serializer,
+			},
+			name=f"Worker {name} (WorkerPool {self.name})",
+		)
+
+	def start_worker(
+		self,
+		count: int | None = None,
+		pool_index: int = 0,
+		burst: bool = True,
+		_sleep: float = 0,
+		logging_level: str = "INFO",
+	) -> None:
+		name = uuid4().hex
+		queue_group = self._queue_groups[pool_index]
+		process = self.get_worker_process(
+			name=name,
+			queue_names=queue_group.queue_names,
+			burst=burst,
+			_sleep=_sleep,
+			logging_level=logging_level,
+		)
+		process.start()
+
+		worker_data = WorkerData(name=name, pid=process.pid, process=process, pool_index=pool_index)
+		self.worker_dict[name] = worker_data
+		self.log.debug("Spawned worker: %s with PID: %d", name, process.pid)
+
+	def start_workers(self, burst: bool = True, _sleep: float = 0, logging_level: str = "INFO") -> None:
+		self.log.debug(
+			"Spawning %s workers", sum(queue_group.num_workers for queue_group in self._queue_groups)
+		)
+		for pool_index, queue_group in enumerate(self._queue_groups):
+			for i in range(queue_group.num_workers):
+				self.start_worker(
+					i + 1, pool_index=pool_index, burst=burst, _sleep=_sleep, logging_level=logging_level
+				)
+
+
+def parse_worker_pool_queue_group(spec: str, default_num_workers: int) -> tuple[list[str], int]:
+	spec = spec.strip()
+	if not spec:
+		raise ValueError("Queue spec cannot be empty")
+
+	queue_names_part = spec
+	group_num_workers = default_num_workers
+
+	if ":" in spec:
+		possible_queue_names, possible_num_workers = spec.rsplit(":", 1)
+		if possible_num_workers.isdigit():
+			queue_names_part = possible_queue_names
+			group_num_workers = int(possible_num_workers)
+
+	if group_num_workers < 1:
+		raise ValueError("Worker count must be greater than 0")
+
+	queue_names = [q.strip() for q in queue_names_part.split(",") if q.strip()]
+	if not queue_names:
+		raise ValueError(f"Invalid queue spec: {spec}")
+
+	return queue_names, group_num_workers
+
+
 def start_worker_pool(
 	queue: str | None = None,
 	num_workers: int = 1,
@@ -436,8 +593,16 @@ def start_worker_pool(
 		redis_connection = get_redis_conn()
 
 		if queue:
-			queue = [q.strip() for q in queue.split(",")]
-		queues = get_queue_list(queue, build_queue_name=True)
+			queue_groups = []
+			for spec in queue:
+				queue_names, group_num_workers = parse_worker_pool_queue_group(spec, num_workers)
+				resolved_queues = get_queue_list(queue_names, build_queue_name=True)
+				queue_groups.append((resolved_queues, group_num_workers))
+
+			queues = list(dict.fromkeys(q for group_queues, _ in queue_groups for q in group_queues))
+		else:
+			queues = get_queue_list(build_queue_name=True)
+			queue_groups = [(queues, num_workers)]
 
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
@@ -456,10 +621,11 @@ def start_worker_pool(
 		multiprocessing.set_start_method("fork", force=True)
 		worker_klass = FrappeWorker
 
-	pool = WorkerPool(
+	pool = FrappeWorkerPool(
 		queues=queues,
 		connection=redis_connection,
 		num_workers=num_workers,
+		queue_groups=queue_groups,
 		worker_class=worker_klass,
 	)
 	pool.start(logging_level=logging_level, burst=burst)
