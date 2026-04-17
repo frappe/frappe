@@ -81,7 +81,6 @@ def generate_report_result(
 	custom_columns=None,
 	is_tree=False,
 	parent_field=None,
-	skip_total_calculation=False,
 ):
 	user = user or frappe.session.user
 	filters = filters or []
@@ -118,7 +117,7 @@ def generate_report_result(
 
 	has_total_row = cint(report.add_total_row) and result and not skip_total_row
 
-	if has_total_row and not skip_total_calculation:
+	if has_total_row:
 		result = add_total_row(result, columns, is_tree=is_tree, parent_field=parent_field)
 
 	if isinstance(filters, dict) and filters.get("translate_data"):
@@ -208,7 +207,6 @@ def run(
 	parent_field: str | None = None,
 	are_default_filters: bool = True,
 	js_filters: str | list | None = None,
-	skip_total_calculation: bool = False,
 ) -> dict:
 	if not user:
 		user = frappe.session.user
@@ -226,7 +224,6 @@ def run(
 		filters = report.custom_filters
 
 	is_prepared_report = report.prepared_report and not sbool(ignore_prepared_report) and not custom_columns
-	skip_total_calculation = sbool(skip_total_calculation)
 
 	try:
 		if is_prepared_report:
@@ -239,19 +236,13 @@ def run(
 				dn = ""
 			result = get_prepared_report_result(report, filters, dn, user)
 		else:
-			result = generate_report_result(
-				report, filters, user, custom_columns, is_tree, parent_field, skip_total_calculation
-			)
+			result = generate_report_result(report, filters, user, custom_columns, is_tree, parent_field)
 			add_data_to_monitor(report=report.reference_report or report.name)
 	except Exception:
 		frappe.log_error("Report execution failed for: {}".format(report_name))
 		raise
 
 	result["add_total_row"] = report.add_total_row and not result.get("skip_total_row", False)
-
-	if skip_total_calculation and is_prepared_report:
-		# remove total row from result
-		result["result"] = result["result"][:-1]
 
 	if sbool(are_default_filters) and report.get("custom_filters"):
 		result["custom_filters"] = report.custom_filters
@@ -386,7 +377,6 @@ def _export_query(form_params, csv_params, populate_response=True):
 	include_filters = form_params.include_filters
 	visible_idx = form_params.visible_idx or []
 	ignore_visible_idx = sbool(form_params.get("ignore_visible_idx"))
-	skip_all_rows_total = not ignore_visible_idx
 	include_hidden_columns = form_params.include_hidden_columns
 
 	if isinstance(visible_idx, str):
@@ -397,7 +387,6 @@ def _export_query(form_params, csv_params, populate_response=True):
 		form_params.filters,
 		custom_columns=custom_columns,
 		are_default_filters=False,
-		skip_total_calculation=skip_all_rows_total,
 	)
 
 	data = frappe._dict(data)
@@ -410,19 +399,28 @@ def _export_query(form_params, csv_params, populate_response=True):
 		)
 		return
 
-	# calculate total row only for visible rows
-	if skip_all_rows_total and cint(data.get("add_total_row")):
-		data["result"] = add_total_row(data.result, data.columns, visible_idx=visible_idx)
+	has_total_row = cint(data.get("add_total_row"))
+	needs_visible_filtering = (
+		visible_idx
+		and not ignore_visible_idx
+		and len(visible_idx) < len(data.result) - (1 if has_total_row else 0)
+	)
+
+	if needs_visible_filtering:
+		# Filter result to only visible rows, recalculate total row for those rows
+		visible_idx_set = set(visible_idx)
+		filtered_result = [row for idx, row in enumerate(data.result) if idx in visible_idx_set]
+		if has_total_row:
+			filtered_result = add_total_row(filtered_result, data.columns)
+		data["result"] = filtered_result
 
 	format_fields(data)
 
 	xlsx_data, column_widths, header_index = build_xlsx_data(
 		data,
-		visible_idx,
 		include_indentation,
 		include_filters=include_filters,
 		include_hidden_columns=include_hidden_columns,
-		ignore_visible_idx=ignore_visible_idx,
 	)
 
 	if file_format_type == "CSV":
@@ -494,10 +492,8 @@ def format_fields(data: frappe._dict) -> None:
 
 def build_xlsx_data(
 	data: frappe._dict,
-	visible_idx: list[int],
 	include_indentation: bool,
 	include_filters: bool = False,
-	ignore_visible_idx: bool = False,
 	include_hidden_columns: bool = False,
 ) -> tuple[list[list[Any]], list[int], int]:
 	"""
@@ -505,10 +501,8 @@ def build_xlsx_data(
 
 	Args:
 		data: Report data containing columns, result, and filters
-		visible_idx: List of row indices that are visible in the report
 		include_indentation: Whether to include indentation for tree-like data
 		include_filters: Whether to include filter rows at the top of the Excel sheet
-		ignore_visible_idx: Whether to ignore the visible_idx parameter
 		include_hidden_columns: Whether to include columns marked as hidden
 
 	Returns:
@@ -528,13 +522,6 @@ def build_xlsx_data(
 		datetime.time,
 		datetime.timedelta,
 	)
-
-	if len(visible_idx) == len(data.result) or not visible_idx:
-		# It's not possible to have same length and different content.
-		ignore_visible_idx = True
-	else:
-		# Note: converted for faster lookups
-		visible_idx = set(visible_idx)
 
 	result = []
 	column_widths = []
@@ -571,16 +558,8 @@ def build_xlsx_data(
 		column_widths.append(column_width)
 	result.append(column_data)
 
-	last_row_index = len(data.result) - 1
-
 	# build table from result
-	for row_idx, row in enumerate(data.result):
-		# only pick up rows that are visible in the report + total row if added
-		if not (
-			ignore_visible_idx or row_idx in visible_idx or (data.add_total_row and row_idx == last_row_index)
-		):
-			continue
-
+	for row in data.result:
 		row_data = []
 		row_is_dict = isinstance(row, dict)
 
@@ -611,20 +590,9 @@ def add_total_row(
 	meta=None,
 	is_tree=False,
 	parent_field=None,
-	visible_idx: list[int] | None = None,
-	ignore_visible_idx: bool = False,
 ) -> list[dict | list[Any]]:
 	total_row = [""] * len(columns)
 	has_percent = []
-
-	if not visible_idx or len(visible_idx) == len(result):
-		# It's not possible to have same length and different content.
-		ignore_visible_idx = True
-		visible_idx_set = set()
-	else:
-		# Note: converted for faster lookups
-		ignore_visible_idx = False
-		visible_idx_set = set(visible_idx)
 
 	# all rows are dict or list/tuple, we can check the first row to decide the type
 	is_row_dict = isinstance(result[0], dict) if result else False
@@ -652,11 +620,7 @@ def add_total_row(
 			fieldname = col.get("fieldname")
 			options = col.get("options")
 
-		for row_idx, row in enumerate(result):
-			# Skip rows not in visible_idx when filtering is enabled
-			if not ignore_visible_idx and row_idx not in visible_idx_set:
-				continue
-
+		for row in result:
 			# Skip if column index is out of bounds for list/tuple rows
 			if not is_row_dict and col_idx >= len(row):
 				continue
@@ -683,9 +647,7 @@ def add_total_row(
 			total_row[col_idx] = result[0].get(fieldname) if is_row_dict else result[0][col_idx]
 
 	for col_idx in has_percent:
-		total_row[col_idx] = flt(total_row[col_idx]) / (
-			len(result) if ignore_visible_idx else len(visible_idx)
-		)
+		total_row[col_idx] = flt(total_row[col_idx]) / len(result)
 
 	first_col_fieldtype = None
 	if isinstance(columns[0], str):
