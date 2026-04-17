@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-16 11:48\n"
+"PO-Revision-Date: 2026-04-17 11:47\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Arabic\n"
 "MIME-Version: 1.0\n"
@@ -347,7 +347,20 @@ msgid "<h3>Custom CSS Help</h3>\n\n"
 "<p>1. Add border to sections except the last section</p>\n\n"
 "<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid #eee; }\n"
 ".section-break:last-child { padding-bottom: 0px; border-bottom: 0px;  }</code></pre>\n"
-msgstr ""
+msgstr "<h3>مساعدة CSS المخصصة</h3>\n\n"
+"<p>ملاحظات:</p>\n\n"
+"<ol>\n"
+"<li>جميع مجموعات الحقول (تسمية + قيمة) لها السمات <code>data-fieldtype</code> و <code>data-fieldname</code></li>\n"
+"<li>جميع القيم تُعطى الفئة <code>value</code></li>\n"
+"<li>جميع فواصل الأقسام تُعطى الفئة <code>section-break</code></li>\n"
+"<li>جميع فواصل الأعمدة تُعطى الفئة <code>column-break</code></li>\n"
+"</ol>\n\n"
+"<h4>أمثلة</h4>\n\n"
+"<p>1. محاذاة الأعداد الصحيحة لليسار</p>\n\n"
+"<pre><code>[data-fieldtype=\"Int\"] .value { text-align: left; }</code></pre>\n\n"
+"<p>1. إضافة حد للأقسام باستثناء القسم الأخير</p>\n\n"
+"<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid #eee; }\n"
+".section-break:last-child { padding-bottom: 0px; border-bottom: 0px;  }</code></pre>\n"
 
 #. Content of the 'Print Format Help' (HTML) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -483,7 +496,19 @@ msgid "<h5>Message Example</h5>\n\n"
 "&lt;li&gt;Amount: {{ doc.grand_total }}\n"
 "&lt;/ul&gt;\n"
 "</pre>"
-msgstr ""
+msgstr "<h5>مثال الرسالة</h5>\n\n"
+"<pre>&lt;h3&gt;طلب متأخر&lt;/h3&gt;\n\n"
+"&lt;p&gt;المعاملة {{ doc.name }} تجاوزت تاريخ الاستحقاق. يرجى اتخاذ الإجراء اللازم.&lt;/p&gt;\n\n"
+"&lt;!-- عرض آخر تعليق --&gt;\n"
+"{% if comments %}\n"
+"آخر تعليق: {{ comments[-1].comment }} بواسطة {{ comments[-1].by }}\n"
+"{% endif %}\n\n"
+"&lt;h4&gt;التفاصيل&lt;/h4&gt;\n\n"
+"&lt;ul&gt;\n"
+"&lt;li&gt;العميل: {{ doc.customer }}\n"
+"&lt;li&gt;المبلغ: {{ doc.grand_total }}\n"
+"&lt;/ul&gt;\n"
+"</pre>"
 
 #. Content of the 'html_condition' (HTML) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -524,7 +549,7 @@ msgstr ""
 
 #: frappe/twofactor.py:456
 msgid "<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
-msgstr ""
+msgstr "<p>تمت إعادة تعيين مرورك لـ OTP على {0}. إذا لم تقم بهذا الإعادة ولم تطلبها، فيرجى الاتصال بمدير النظام الخاص بك فوراً.</p>"
 
 #. Description of the 'Cron Format' (Data) field in DocType 'Scheduled Job
 #. Type'
@@ -543,7 +568,18 @@ msgid "<pre>*  *  *  *  *\n"
 "* - Any value\n"
 "/ - Step values\n"
 "</pre>\n"
-msgstr ""
+msgstr "<pre>*  *  *  *  *\n"
+"┬  ┬  ┬  ┬  ┬\n"
+"│  │  │  │  │\n"
+"│  │  │  │  └ يوم الأسبوع (0 - 6) (0 هو الأحد)\n"
+"│  │  │  └───── شهر (1 - 12)\n"
+"│  │  └────────── يوم الشهر (1 - 31)\n"
+"│  └─────────────── ساعة (0 - 23)\n"
+"└──────────────────── دقيقة (0 - 59)\n\n"
+"---\n\n"
+"* - أي قيمة\n"
+"/ - قيم الخطوة\n"
+"</pre>\n"
 
 #. Content of the 'Example' (HTML) field in DocType 'Workflow Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -605,7 +641,7 @@ msgstr ""
 
 #: frappe/custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
-msgstr ""
+msgstr "<strong>تحذ搉ير</strong>: هذا الحقل منطم من قبل النظام وقد يتم تجاوزه من قبل تحديث مستقبلي. قم بتحويره باستخدام {0} بدلا من ذلك."
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
@@ -16414,7 +16450,7 @@ msgstr "MYISAM"
 
 #: frappe/workflow/doctype/workflow/workflow.js:19
 msgid "NOTE: If you add states or transitions in the table, it will be reflected in the Workflow Builder but you will have to position them manually. Also Workflow Builder is currently in <b>BETA</b>."
-msgstr ""
+msgstr "ملاحظة: إذا قمت بإضافة حالات أو تحولات في الجدول، فسيتم عكسها في منشئ سير العمل ولكن سيتعين عليك تحديد موضعها يدويًا. كما أن منشئ سير العمل حاليًا في مرحلة <b>تجريبي</b>."
 
 #. Description of the 'LDAP Group Field' (Data) field in DocType 'LDAP
 #. Settings'
@@ -16488,7 +16524,9 @@ msgstr ""
 msgid "Naming Options:\n"
 "<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present)</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n"
 "<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>"
-msgstr ""
+msgstr "خيارات التسمية:\n"
+"<ol><li><b>field:[اسم الحقل]</b> - حسب الحقل</li><li><b>naming_series:</b> - حسب Naming Series (يجب وجود حقل باسم naming_series)</li><li><b>Prompt</b> - مطالبة المستخدم بإدخال اسم</li><li><b>[سلسلة]</b> - سلسلة حسب البادئة (مفصولة بنقطة)؛ على سبيل المثال PRE.#####</li>\n"
+"<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - استبدال جميع الكلمات بين الأقواس (أسماء الحقول، كلمات التاريخ (DD، MM، YY)، السلاسل) بقيمها. خارج الأقواس، يمكن استخدام أي أحرف.</li></ol>"
 
 #. Label of a Select field in DocType 'DocType'
 #. Label of a Select field in DocType 'Customize Form'
@@ -17281,7 +17319,7 @@ msgstr "لم يتم العثور على نموذج في المسار: {0}"
 
 #: frappe/core/page/permission_manager/permission_manager.js:357
 msgid "No user has the role <strong>{0}</strong>"
-msgstr ""
+msgstr "لا يوجد مستعمل لديه الدور <strong>{0}</strong>"
 
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:257
 msgid "No values to show"
@@ -17876,7 +17914,7 @@ msgstr "نموذج رسالة نصية قصيرة لرمز التحقق لمرة
 
 #: frappe/core/doctype/system_settings/system_settings.py:163
 msgid "OTP SMS Template must contain <code>{0}</code> placeholder to insert the OTP."
-msgstr ""
+msgstr "يجب أن يحتوي نموذج رسالة OTP النصية على العنصر النائب <code>{0}</code> لإدراج رمز OTP."
 
 #: frappe/twofactor.py:455
 msgid "OTP Secret Reset - {0}"
@@ -17890,7 +17928,7 @@ msgstr "تمت إعادة تعيين سر مكتب المدعي العام. سو
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP placeholder should be defined as <code>{{ otp }}</code> "
-msgstr ""
+msgstr "يجب تعريف عنصر OTP النائب كـ <code>{{ otp }}</code> "
 
 #: frappe/templates/includes/login/login.js:363
 msgid "OTP setup using OTP App was not completed. Please contact Administrator."
@@ -20951,7 +20989,7 @@ msgstr "إعادة التوجيه إلى المسار"
 #. Label of a Data field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
 msgid "Redirect URI"
-msgstr "عنوان إعادة التوجيه"
+msgstr "إعادة توجيه URI"
 
 #. Label of a Data field in DocType 'OAuth Authorization Code'
 #: frappe/integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
@@ -21272,7 +21310,7 @@ msgstr "إعدادات المرحل"
 #. Group in Package's connections
 #: frappe/core/doctype/package/package.json
 msgid "Release"
-msgstr "يطلق"
+msgstr "يحرر"
 
 #. Label of a Markdown Editor field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
@@ -21753,7 +21791,7 @@ msgstr "رؤوس الطلب"
 #. Label of a Data field in DocType 'Integration Request'
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Request ID"
-msgstr "رقم الطلب"
+msgstr "طلب معرف"
 
 #. Label of a Int field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -24599,7 +24637,7 @@ msgstr "تخطي الخطوة"
 #. Label of a Check field in DocType 'Patch Log'
 #: frappe/core/doctype/patch_log/patch_log.json
 msgid "Skipped"
-msgstr "تم التخطي"
+msgstr "تم تخطيه"
 
 #: frappe/core/doctype/data_import/importer.py:913
 msgid "Skipping Duplicate Column {0}"
@@ -25074,7 +25112,7 @@ msgstr "ثابت معلمات"
 #. Label of a Section Break field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "Statistics"
-msgstr "إحصائيات"
+msgstr "الإحصائيات"
 
 #. Label of a Section Break field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -27706,7 +27744,7 @@ msgstr "طاولة التشذيب"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:323
 msgid "Try Again"
-msgstr "حاول ثانية"
+msgstr "حاول مرة أخرى"
 
 #. Label of a Data field in DocType 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
@@ -29120,7 +29158,7 @@ msgstr "المشاهدات"
 #. Label of a Check field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "Virtual"
-msgstr "افتراضي"
+msgstr "إفتراضي"
 
 #: frappe/model/virtual_doctype.py:76
 msgid "Virtual DocType {} requires a static method called {} found {}"
@@ -31274,7 +31312,7 @@ msgstr "الآن فقط"
 
 #: frappe/desk/desktop.py:259 frappe/desk/query_report.py:290
 msgid "label"
-msgstr "ملصق"
+msgstr "الاسم"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -32963,7 +33001,7 @@ msgstr "{0}: لا يمكن فهرسة Fieldtype {1} لـ {2}"
 
 #: frappe/public/js/frappe/utils/datatable.js:12
 msgid "{count} cell copied"
-msgstr "تم نسخ الخلية {count}"
+msgstr "[صفر] خلية منسوخة"
 
 #: frappe/public/js/frappe/utils/datatable.js:13
 msgid "{count} cells copied"
@@ -33005,7 +33043,7 @@ msgstr ""
 
 #: frappe/core/doctype/log_settings/log_settings.py:54
 msgid "{} does not support automated log clearing."
-msgstr "لا يدعم {} مسح السجلات تلقائيًا."
+msgstr "{} لا يدعم المسح التلقائي للسجلات."
 
 #: frappe/core/doctype/audit_trail/audit_trail.py:32
 #: frappe/core/doctype/audit_trail/audit_trail.py:36
