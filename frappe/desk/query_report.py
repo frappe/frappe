@@ -375,7 +375,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 	custom_columns = frappe.parse_json(form_params.custom_columns or "[]")
 	include_indentation = form_params.include_indentation
 	include_filters = form_params.include_filters
-	visible_idx = form_params.visible_idx or []
+	visible_idx = form_params.visible_idx or []  # excluding total row idx
 	ignore_visible_idx = sbool(form_params.get("ignore_visible_idx"))
 	include_hidden_columns = form_params.include_hidden_columns
 
@@ -407,11 +407,11 @@ def _export_query(form_params, csv_params, populate_response=True):
 	)
 
 	if needs_visible_filtering:
-		# Filter result to only visible rows, recalculate total row for those rows
-		visible_idx_set = set(visible_idx)
-		filtered_result = [row for idx, row in enumerate(data.result) if idx in visible_idx_set]
+		filtered_result = [row for idx, row in enumerate(data.result) if idx in set(visible_idx)]
+
 		if has_total_row:
 			filtered_result = add_total_row(filtered_result, data.columns)
+
 		data["result"] = filtered_result
 
 	format_fields(data)
