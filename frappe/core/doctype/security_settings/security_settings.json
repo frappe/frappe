@@ -56,7 +56,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-17 13:04:39.135743",
+ "modified": "2026-04-17 13:07:45.259146",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Security Settings",
@@ -77,5 +77,6 @@
  "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
