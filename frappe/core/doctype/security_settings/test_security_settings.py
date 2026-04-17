@@ -4,10 +4,10 @@
 from datetime import UTC, datetime, timedelta
 
 import frappe
-from frappe.tests import UnitTestCase
+from frappe.tests import IntegrationTestCase
 
 
-class TestSecuritySettings(UnitTestCase):
+class TestSecuritySettings(IntegrationTestCase):
 	def test_public_policy_section_default(self):
 		doc = frappe.get_doc(
 			{
@@ -239,10 +239,11 @@ class TestSecuritySettings(UnitTestCase):
 		# Should not raise
 		doc.validate_expires()
 
+	@IntegrationTestCase.change_settings("System Settings", {"time_zone": "Etc/UTC"})
 	def test_public_expires_section_future_date(self):
 		from datetime import timezone
 
-		future_date = datetime(2027, 12, 31, 23, 59, 59, tzinfo=UTC)
+		future_date = datetime(2027, 12, 31, 23, 59, 59)
 		doc = frappe.get_doc(
 			{
 				"doctype": "Security Settings",
@@ -252,11 +253,12 @@ class TestSecuritySettings(UnitTestCase):
 		section = doc.public_expires_section
 		self.assertIn("2027-12-31T23:59:59Z", section)
 
+	@IntegrationTestCase.change_settings("System Settings", {"time_zone": "Asia/Kolkata"})
 	def test_public_expires_section_string(self):
 		doc = frappe.get_doc(
 			{
 				"doctype": "Security Settings",
-				"public_expires": "2027-12-31T23:59:59+00:00",
+				"public_expires": "2028-01-01T05:29:59",
 			}
 		)
 		section = doc.public_expires_section

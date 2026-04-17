@@ -18,7 +18,7 @@
    "label": "Security.txt"
   },
   {
-   "description": "Date after which this security.txt should be considered stale.",
+   "description": "Date after which this security.txt should be considered stale. Expires timestamp is converted to UTC.",
    "fieldname": "public_expires",
    "fieldtype": "Datetime",
    "label": "Expires"
@@ -56,7 +56,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-14 12:50:57.138749",
+ "modified": "2026-04-17 13:04:39.135743",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Security Settings",
