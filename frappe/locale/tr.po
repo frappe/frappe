@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-16 11:49\n"
+"PO-Revision-Date: 2026-04-17 11:47\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -9529,7 +9529,7 @@ msgstr "Mesaj için url parametresini girin"
 #. Settings'
 #: frappe/core/doctype/sms_settings/sms_settings.json
 msgid "Enter url parameter for receiver nos"
-msgstr ""
+msgstr "Alıcı numaraları için URL parametresini girin"
 
 #: frappe/public/js/frappe/ui/messages.js:336
 msgid "Enter your password"
@@ -9599,7 +9599,7 @@ msgstr "Hata Günlükleri"
 #. Label of a Text field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
 msgid "Error Message"
-msgstr ""
+msgstr "Hata Mesajı"
 
 #: frappe/public/js/frappe/form/print_utils.js:165
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
@@ -10887,7 +10887,7 @@ msgstr "Alt Bilgi \"Tarafından desteklenmektedir\""
 #. Label of a Select field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Footer Based On"
-msgstr ""
+msgstr "Alt Bilgi Buna Göre"
 
 #. Label of a Text Editor field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
@@ -11322,7 +11322,7 @@ msgstr "Fonksiyon"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:691
 msgid "Function Based On"
-msgstr ""
+msgstr "Fonksiyon Buna Göre"
 
 #: frappe/__init__.py:868
 msgid "Function {0} is not whitelisted."
@@ -12851,7 +12851,7 @@ msgstr "Otomatik hata temizlemeyi etkinleştirmek için 'clear_old_logs' yöntem
 #. Option for the 'Grant Type' (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "Implicit"
-msgstr ""
+msgstr "Örtük"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
@@ -15593,7 +15593,7 @@ msgstr "Uygulamaları Yönet"
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_template_field/web_template_field.json
 msgid "Mandatory"
-msgstr ""
+msgstr "Zorunlu"
 
 #. Label of a Code field in DocType 'Custom Field'
 #. Label of a Code field in DocType 'Customize Form Field'
@@ -15615,7 +15615,7 @@ msgstr "Zorunlu bilgi eksik:"
 
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js:120
 msgid "Mandatory field: set role for"
-msgstr ""
+msgstr "Zorunlu alan: rol belirleyin"
 
 #: frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js:124
 msgid "Mandatory field: {0}"
@@ -15913,7 +15913,7 @@ msgstr "Varolan ile Birleştir"
 
 #: frappe/utils/nestedset.py:324
 msgid "Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"
-msgstr ""
+msgstr "Birleştirme yalnızca Grup-Grup veya Yaprak Düğüm-Yaprak Düğüm arasında yapılabilir"
 
 #. Label of a Text field in DocType 'Auto Repeat'
 #. Label of a Text Editor field in DocType 'Activity Log'
@@ -15979,7 +15979,7 @@ msgstr "Mesaj Parametresi"
 
 #: frappe/templates/includes/contact.js:36
 msgid "Message Sent"
-msgstr ""
+msgstr "Mesaj Gönderildi"
 
 #. Label of a Select field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -16028,7 +16028,7 @@ msgstr "Meta Açıklaması"
 #: frappe/website/doctype/blog_post/blog_post.json
 #: frappe/website/doctype/web_page/web_page.js:131
 msgid "Meta Image"
-msgstr ""
+msgstr "Meta Görseli"
 
 #. Label of a Section Break field in DocType 'Blog Post'
 #. Label of a Section Break field in DocType 'Web Page'
@@ -16053,7 +16053,7 @@ msgstr "Meta Açıklama"
 #. Label of a Attach Image field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Meta image"
-msgstr ""
+msgstr "Meta görseli"
 
 #. Label of a Data field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -16104,7 +16104,7 @@ msgstr "İkinci Adı"
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Middle Name (Optional)"
-msgstr ""
+msgstr "İkinci Ad (İsteğe Bağlı)"
 
 #. Name of a DocType
 #. Label of a Link in the Tools Workspace
@@ -16345,7 +16345,7 @@ msgstr "Modüller HTML"
 #: frappe/desk/doctype/event/event.json
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Monday"
-msgstr ""
+msgstr "Pazartesi"
 
 #. Description of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -16530,7 +16530,7 @@ msgstr "Herkese açık bir Google E-Tablolar URL'si olmalıdır"
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Must be enclosed in '()' and include '{0}', which is a placeholder for the user/login name. i.e. (&(objectclass=user)(uid={0}))"
-msgstr ""
+msgstr "'()' içine alınmalı ve kullanıcı/giriş adı için yer tutucu olan '{0}' içermelidir. örn. (&(objectclass=user)(uid={0}))"
 
 #. Description of the 'Image Field' (Data) field in DocType 'DocType'
 #. Description of the 'Image Field' (Data) field in DocType 'Customize Form'
@@ -16593,7 +16593,7 @@ msgstr "NOT: Tabloya durumlar veya geçişler eklerseniz, bunlar İş Akışı O
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "NOTE: This box is due for depreciation. Please re-setup LDAP to work with the newer settings"
-msgstr ""
+msgstr "NOT: Bu alan yakında kullanımdan kaldırılacaktır. Lütfen LDAP'ı daha yeni ayarlarla çalışacak şekilde yeniden yapılandırın"
 
 #. Label of a Data field in DocType 'DocField'
 #. Label of a Data field in DocType 'Customize Form Field'
@@ -16614,7 +16614,7 @@ msgstr "Adı"
 
 #: frappe/integrations/doctype/webhook/webhook.js:29
 msgid "Name (Doc Name)"
-msgstr ""
+msgstr "Ad (Belge Adı)"
 
 #: frappe/desk/utils.py:24
 msgid "Name already taken, please set a new name"
@@ -16739,7 +16739,7 @@ msgstr "Gezinme Ayarları"
 
 #: frappe/public/js/frappe/list/list_view.js:487
 msgid "Need Help?"
-msgstr ""
+msgstr "Yardıma mı ihtiyacınız var?"
 
 #: frappe/desk/doctype/workspace/workspace.py:314
 msgid "Need Workspace Manager role to edit private workspace of other users"
@@ -17075,7 +17075,7 @@ msgstr "Sonraki Adım Koşulu"
 #: frappe/integrations/doctype/google_calendar/google_calendar.json
 #: frappe/integrations/doctype/google_contacts/google_contacts.json
 msgid "Next Sync Token"
-msgstr ""
+msgstr "Sonraki Sync Token"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:690
 msgid "Next Week"
@@ -17169,7 +17169,7 @@ msgstr "Hiçbir E-posta Hesabı Atanmadı"
 
 #: frappe/email/doctype/email_group/email_group.py:50
 msgid "No Email field found in {0}"
-msgstr ""
+msgstr "{0} içinde e-posta alanı bulunamadı"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:183
 msgid "No Emails"
@@ -17256,7 +17256,7 @@ msgstr "Uygun Yazıcı Bulunamadı."
 
 #: frappe/core/doctype/rq_worker/rq_worker_list.js:3
 msgid "No RQ Workers connected. Try restarting the bench."
-msgstr ""
+msgstr "Bağlı RQ Workers yok. Bench'i yeniden başlatmayı deneyin."
 
 #: frappe/public/js/frappe/form/link_selector.js:135
 msgid "No Results"
@@ -17458,7 +17458,7 @@ msgstr "{0} yolunda şablon bulunamadı"
 
 #: frappe/core/page/permission_manager/permission_manager.js:357
 msgid "No user has the role <strong>{0}</strong>"
-msgstr ""
+msgstr "Hiçbir kullanıcı <strong>{0}</strong> rolüne sahip değil"
 
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:257
 msgid "No values to show"
@@ -17791,7 +17791,7 @@ msgstr "Güncellenecek bir şey yok"
 #: frappe/email/doctype/notification/notification.json
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "Notification"
-msgstr ""
+msgstr "Bildirim"
 
 #. Name of a DocType
 #: frappe/desk/doctype/notification_log/notification_log.json
@@ -17809,7 +17809,7 @@ msgstr "Bildirim Alıcısı"
 #: frappe/desk/doctype/notification_settings/notification_settings.json
 #: frappe/public/js/frappe/ui/notifications/notifications.js:37
 msgid "Notification Settings"
-msgstr ""
+msgstr "Bildirim Ayarları"
 
 #. Name of a DocType
 #: frappe/desk/doctype/notification_subscribed_document/notification_subscribed_document.json
@@ -17818,7 +17818,7 @@ msgstr "Bildirim İçin Abone Olunan Belge"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:7
 msgid "Notification sent to"
-msgstr ""
+msgstr "Bildirim gönderildi"
 
 #. Label of a Check field in DocType 'User'
 #. Label of a Tab Break field in DocType 'Event'
@@ -17936,7 +17936,7 @@ msgstr "Sorgu Sayısı"
 #: frappe/core/doctype/doctype/doctype.py:441
 #: frappe/public/js/frappe/doctype/index.js:59
 msgid "Number of attachment fields are more than {}, limit updated to {}."
-msgstr ""
+msgstr "Ek alanlarının sayısı {}'den fazla, sınır {} olarak güncellendi."
 
 #: frappe/core/doctype/system_settings/system_settings.py:184
 msgid "Number of backups must be greater than zero."
@@ -17983,7 +17983,7 @@ msgstr "OAuth Yetkilendirme Kodu"
 #. Name of a DocType
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 msgid "OAuth Bearer Token"
-msgstr ""
+msgstr "OAuth Taşıyıcı Token"
 
 #. Name of a DocType
 #. Label of a Link in the Integrations Workspace
@@ -18044,34 +18044,34 @@ msgstr "Uygulama"
 #. Label of a Data field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP Issuer Name"
-msgstr ""
+msgstr "OTP Düzenleyici Adı"
 
 #. Label of a Small Text field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP SMS Template"
-msgstr ""
+msgstr "OTP SMS Şablonu"
 
 #: frappe/core/doctype/system_settings/system_settings.py:163
 msgid "OTP SMS Template must contain <code>{0}</code> placeholder to insert the OTP."
-msgstr ""
+msgstr "OTP SMS şablonu, OTP'yi eklemek için <code>{0}</code> yer tutucusunu içermelidir."
 
 #: frappe/twofactor.py:455
 msgid "OTP Secret Reset - {0}"
-msgstr ""
+msgstr "OTP Gizli Anahtarı Sıfırlama - {0}"
 
 #: frappe/twofactor.py:474
 msgid "OTP Secret has been reset. Re-registration will be required on next login."
-msgstr ""
+msgstr "OTP sırrı sıfırlandı. Sonraki girişte yeniden kayıt gerekecektir."
 
 #. Description of the 'OTP SMS Template' (Small Text) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP placeholder should be defined as <code>{{ otp }}</code> "
-msgstr ""
+msgstr "OTP yer tutucusu <code>{{ otp }}</code> olarak tanımlanmalıdır "
 
 #: frappe/templates/includes/login/login.js:363
 msgid "OTP setup using OTP App was not completed. Please contact Administrator."
-msgstr ""
+msgstr "OTP Uygulaması kullanılarak OTP kurulumu tamamlanmadı. Lütfen Yöneticiyle iletişime geçin."
 
 #. Label of a Int field in DocType 'System Health Report Errors'
 #: frappe/desk/doctype/system_health_report_errors/system_health_report_errors.json
@@ -18131,7 +18131,7 @@ msgstr "Planlanmamış En Eski İş"
 #. Request'
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "On Hold"
-msgstr ""
+msgstr "Beklemede"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -18141,21 +18141,21 @@ msgstr "Ödeme Onayında"
 #. Description of the 'Is Dynamic URL?' (Check) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "On checking this option, URL will be treated like a jinja template string"
-msgstr ""
+msgstr "Bu seçenek işaretlendiğinde, URL bir Jinja şablon dizesi olarak işlenecektir"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:64
 #: frappe/public/js/frappe/ui/filters/filter.js:70
 msgid "On or After"
-msgstr ""
+msgstr "Tarihinde veya sonrasında"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:63
 #: frappe/public/js/frappe/ui/filters/filter.js:69
 msgid "On or Before"
-msgstr ""
+msgstr "Tarihinde veya öncesinde"
 
 #: frappe/public/js/frappe/views/communication.js:985
 msgid "On {0}, {1} wrote:"
-msgstr ""
+msgstr "{0} tarihinde {1} yazdı:"
 
 #. Label of a Check field in DocType 'Workspace Link'
 #: frappe/desk/doctype/workspace_link/workspace_link.json
@@ -18170,7 +18170,7 @@ msgstr "Modül Tanıtımı Adı"
 #. Name of a DocType
 #: frappe/desk/doctype/onboarding_permission/onboarding_permission.json
 msgid "Onboarding Permission"
-msgstr ""
+msgstr "Başlangıç İzni"
 
 #. Label of a Small Text field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -18209,11 +18209,11 @@ msgstr "Son Bir Adım"
 
 #: frappe/twofactor.py:279
 msgid "One Time Password (OTP) Registration Code from {}"
-msgstr ""
+msgstr "Tek Kullanımlık Şifre (OTP) Kayıt Kodu {} tarafından"
 
 #: frappe/core/doctype/data_export/exporter.py:331
 msgid "One of"
-msgstr ""
+msgstr "Birini seçin"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:1357
 msgid "One of the child page with name {0} already exist in {1} Section. Please update the name of the child page first before moving"
@@ -18414,7 +18414,7 @@ msgstr "OpenID Yapılandırması"
 
 #: frappe/integrations/doctype/connected_app/connected_app.js:15
 msgid "OpenID Configuration fetched successfully!"
-msgstr ""
+msgstr "OpenID Yapılandırması başarıyla alındı!"
 
 #. Option for the 'Directory Server' (Select) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -18429,11 +18429,11 @@ msgstr "Açıldı"
 #. Label of a Select field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
 msgid "Operation"
-msgstr ""
+msgstr "İşlem"
 
 #: frappe/utils/data.py:1938
 msgid "Operator must be one of {0}"
-msgstr ""
+msgstr "Operatör {0} değerlerinden biri olmalıdır"
 
 #: frappe/core/doctype/file/file.js:34
 #: frappe/core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.js:8
@@ -18530,7 +18530,7 @@ msgstr "Turuncu"
 #. Label of a Code field in DocType 'Kanban Board Column'
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Order"
-msgstr ""
+msgstr "Sıra"
 
 #. Label of a Section Break field in DocType 'About Us Settings'
 #. Label of a Table field in DocType 'About Us Settings'
@@ -18761,7 +18761,7 @@ msgstr "Sayfa Oluşturucu"
 #. Label of a Table field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Page Building Blocks"
-msgstr ""
+msgstr "Sayfa Yapı Taşları"
 
 #. Label of a Section Break field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
@@ -18834,7 +18834,7 @@ msgstr "Sayfa bulunamadı"
 #. Description of a DocType
 #: frappe/website/doctype/web_page/web_page.json
 msgid "Page to show on the website\n"
-msgstr ""
+msgstr "Web sitesinde gösterilecek sayfa\n"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:1344
 msgid "Page with title {0} already exist."
@@ -18850,7 +18850,7 @@ msgstr "{1} {0} Sayfası"
 #. Label of a Data field in DocType 'SMS Parameter'
 #: frappe/core/doctype/sms_parameter/sms_parameter.json
 msgid "Parameter"
-msgstr ""
+msgstr "Parametre"
 
 #: frappe/public/js/frappe/model/model.js:142
 #: frappe/public/js/frappe/views/workspace/workspace.js:651
@@ -18878,22 +18878,22 @@ msgstr "Numara kartı oluşturmak için Ana Belge Türü gereklidir"
 #. Label of a Data field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Parent Element Selector"
-msgstr ""
+msgstr "Üst Öğe Seçici"
 
 #. Label of a Select field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Parent Field"
-msgstr ""
+msgstr "Üst Alan"
 
 #. Label of a Data field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/doctype/doctype.py:914
 msgid "Parent Field (Tree)"
-msgstr ""
+msgstr "Üst Alan (Ağaç)"
 
 #: frappe/core/doctype/doctype/doctype.py:920
 msgid "Parent Field must be a valid fieldname"
-msgstr ""
+msgstr "Üst Alan geçerli bir alan adı olmalıdır"
 
 #. Label of a Select field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -18902,7 +18902,7 @@ msgstr "Ana Etiket"
 
 #: frappe/core/doctype/doctype/doctype.py:1162
 msgid "Parent Missing"
-msgstr ""
+msgstr "Üst öğe eksik"
 
 #. Label of a Data field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -18923,15 +18923,15 @@ msgstr "Üst öğe, verilerin ekleneceği belgenin adıdır."
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:253
 msgid "Parent-to-child or child-to-different-child grouping is not allowed."
-msgstr ""
+msgstr "Üst-alt öğe veya alt öğe-farklı alt öğe gruplandırması yapılamaz."
 
 #: frappe/permissions.py:811
 msgid "Parentfield not specified in {0}: {1}"
-msgstr ""
+msgstr "Parentfield {0} içinde belirtilmemiş: {1}"
 
 #: frappe/client.py:493
 msgid "Parenttype, Parent and Parentfield are required to insert a child record"
-msgstr ""
+msgstr "Alt öğe kaydı eklemek için Parenttype, Parent ve Parentfield gereklidir"
 
 #. Label of a Check field in DocType 'Personal Data Deletion Step'
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
@@ -19008,7 +19008,7 @@ msgstr "Şifre başarıyla değiştirildi."
 #. Label of a Password field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Password for Base DN"
-msgstr ""
+msgstr "Base DN Şifresi"
 
 #: frappe/email/doctype/email_account/email_account.py:168
 msgid "Password is required or select Awaiting Password"
@@ -19024,7 +19024,7 @@ msgstr "{0} {1} {2} için şifre bulunamadı"
 
 #: frappe/core/doctype/user/user.py:1206
 msgid "Password requirements not met"
-msgstr ""
+msgstr "Şifre gereksinimleri karşılanmadı"
 
 #: frappe/core/doctype/user/user.py:1040
 msgid "Password reset instructions have been sent to your email"
@@ -19068,7 +19068,7 @@ msgstr "Yama"
 #. Name of a DocType
 #: frappe/core/doctype/patch_log/patch_log.json
 msgid "Patch Log"
-msgstr ""
+msgstr "Yama Günlüğü"
 
 #: frappe/modules/patch_handler.py:136
 msgid "Patch type {} not found in patches.txt"
@@ -19089,30 +19089,30 @@ msgstr "Path"
 #. Label of a Data field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Path to CA Certs File"
-msgstr ""
+msgstr "CA Sertifika Dosyasının Yolu"
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Path to Server Certificate"
-msgstr ""
+msgstr "Sunucu Sertifikasının Yolu"
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Path to private Key File"
-msgstr ""
+msgstr "Özel Anahtar Dosyasının Yolu"
 
 #: frappe/modules/utils.py:209
 msgid "Path {0} is not within module {1}"
-msgstr ""
+msgstr "Yol {0}, modül {1} içinde değil"
 
 #: frappe/website/path_resolver.py:202
 msgid "Path {0} it not a valid path"
-msgstr ""
+msgstr "Yol {0} geçerli bir yol değildir"
 
 #. Label of a Int field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Payload Count"
-msgstr ""
+msgstr "Yük Sayısı"
 
 #. Label of a Int field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
@@ -19129,7 +19129,7 @@ msgstr "En Yüksek Bellek Kullanımı"
 #: frappe/core/doctype/user_invitation/user_invitation.json
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 msgid "Pending"
-msgstr ""
+msgstr "Beklemede"
 
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Request'
@@ -19160,7 +19160,7 @@ msgstr "Doğrulama Bekleniyor"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 msgid "Percent"
-msgstr ""
+msgstr "Yüzde"
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -19170,7 +19170,7 @@ msgstr "Yüzde"
 #. Label of a Select field in DocType 'Auto Email Report'
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 msgid "Period"
-msgstr ""
+msgstr "Dönem"
 
 #. Label of a Int field in DocType 'DocField'
 #. Label of a Int field in DocType 'Customize Form Field'
@@ -19207,7 +19207,7 @@ msgstr "İzin Hatası"
 #. Name of a DocType
 #: frappe/core/doctype/permission_inspector/permission_inspector.json
 msgid "Permission Inspector"
-msgstr ""
+msgstr "İzin Denetçisi"
 
 #. Label of a Int field in DocType 'Custom Field'
 #: frappe/core/page/permission_manager/permission_manager.js:508
@@ -19305,7 +19305,7 @@ msgstr "Kişisel"
 #: frappe/public/js/frappe/views/workspace/workspace.js:34
 msgctxt "Workspace Category"
 msgid "Personal"
-msgstr ""
+msgstr "Kişisel"
 
 #. Name of a DocType
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
@@ -19344,7 +19344,7 @@ msgstr "Kişisel Veri İndirme Talebi"
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Phone"
-msgstr ""
+msgstr "Telefon"
 
 #. Label of a Data field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -19549,11 +19549,11 @@ msgstr "Sosyal medya ile oturum açma etkinleştirilmeden önce lütfen İstemci
 
 #: frappe/integrations/doctype/social_login_key/social_login_key.py:89
 msgid "Please enter Client Secret before social login is enabled"
-msgstr ""
+msgstr "Sosyal giriş etkinleştirilmeden önce lütfen İstemci Gizli Anahtarını girin"
 
 #: frappe/integrations/doctype/connected_app/connected_app.py:53
 msgid "Please enter OpenID Configuration URL"
-msgstr ""
+msgstr "Lütfen OpenID Yapılandırma URL'sini girin"
 
 #: frappe/integrations/doctype/social_login_key/social_login_key.py:84
 msgid "Please enter Redirect URL"
@@ -19744,7 +19744,7 @@ msgstr "Lütfen kullanılacak seriyi ayarlayın."
 
 #: frappe/core/doctype/system_settings/system_settings.py:127
 msgid "Please setup SMS before setting it as an authentication method, via SMS Settings"
-msgstr ""
+msgstr "Lütfen SMS'i kimlik doğrulama yöntemi olarak ayarlamadan önce SMS Ayarları üzerinden yapılandırın"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.js:107
 msgid "Please setup a message first"
@@ -19756,7 +19756,7 @@ msgstr "Lütfen Ayarlar > E-posta Hesabı bölümünden varsayılan giden E-post
 
 #: frappe/email/doctype/email_account/email_account.py:403
 msgid "Please setup default outgoing Email Account from Tools > Email Account"
-msgstr ""
+msgstr "Lütfen varsayılan giden E-posta Hesabını Araçlar > E-posta Hesabı bölümünden ayarlayın"
 
 #: frappe/public/js/frappe/model/model.js:803
 msgid "Please specify"
@@ -19768,7 +19768,7 @@ msgstr "Lütfen {0} için geçerli bir üst DocType belirtin"
 
 #: frappe/email/doctype/notification/notification.py:96
 msgid "Please specify the field from which to attach files"
-msgstr ""
+msgstr "Lütfen dosyaların ekleneceği alanı belirtin"
 
 #: frappe/email/doctype/notification/notification.py:90
 msgid "Please specify which date field must be checked"
@@ -19793,7 +19793,7 @@ msgstr "Lütfen geçerli bir LDAP arama filtresi kullanın"
 
 #: frappe/templates/emails/file_backup_notification.html:4
 msgid "Please use following links to download file backup."
-msgstr ""
+msgstr "Dosya yedeğini indirmek için lütfen aşağıdaki bağlantıları kullanın."
 
 #: frappe/email/doctype/newsletter/newsletter.py:336
 msgid "Please verify your Email Address"
@@ -19829,12 +19829,12 @@ msgstr "Anket"
 #. Label of a Check field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Popover Element"
-msgstr ""
+msgstr "Açılır Öğe"
 
 #. Label of a HTML Editor field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
 msgid "Popover or Modal Description"
-msgstr ""
+msgstr "Açılır veya Modal Açıklama"
 
 #. Label of a Data field in DocType 'Email Account'
 #. Label of a Data field in DocType 'Email Domain'
@@ -19897,7 +19897,7 @@ msgstr "Posta"
 #: frappe/contacts/doctype/address/address.json
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:41
 msgid "Postal Code"
-msgstr ""
+msgstr "Posta Kodu"
 
 #. Label of a Datetime field in DocType 'Changelog Feed'
 #: frappe/desk/doctype/changelog_feed/changelog_feed.json
@@ -19930,11 +19930,11 @@ msgstr "Kesinlik"
 
 #: frappe/core/doctype/doctype/doctype.py:1634
 msgid "Precision ({0}) for {1} cannot be greater than its length ({2})."
-msgstr ""
+msgstr "{1} için hassasiyet ({0}), uzunluğundan ({2}) büyük olamaz."
 
 #: frappe/core/doctype/doctype/doctype.py:1365
 msgid "Precision should be between 1 and 6"
-msgstr ""
+msgstr "Hassasiyet 1 ile 6 arasında olmalıdır"
 
 #: frappe/utils/password_strength.py:183
 msgid "Predictable substitutions like '@' instead of 'a' don't help very much."
@@ -20167,7 +20167,7 @@ msgstr "Yazdırma Formatı"
 #: frappe/printing/page/print_format_builder/print_format_builder.js:67
 #: frappe/printing/page/print_format_builder_beta/print_format_builder_beta.js:4
 msgid "Print Format Builder"
-msgstr ""
+msgstr "Yazdırma Formatı Oluşturucu"
 
 #. Label of a Link in the Tools Workspace
 #: frappe/automation/workspace/tools/tools.json
@@ -20370,7 +20370,7 @@ msgstr "Özel Dosyalar (MB)"
 
 #: frappe/templates/emails/file_backup_notification.html:6
 msgid "Private Files Backup:"
-msgstr ""
+msgstr "Özel Dosyalar Yedeği:"
 
 #. Description of the 'Auto Reply Message' (Text Editor) field in DocType
 #. 'Email Account'
@@ -20415,7 +20415,7 @@ msgstr "Profil başarıyla güncellendi."
 
 #: frappe/public/js/frappe/socketio_client.js:82
 msgid "Progress"
-msgstr ""
+msgstr "İlerleme"
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:421
 msgid "Project"
@@ -20434,7 +20434,7 @@ msgstr "Özellik"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Property Depends On"
-msgstr ""
+msgstr "Özellik Bağlı Olduğu"
 
 #. Linked DocType in Module Def's connections
 #. Name of a DocType
@@ -20759,7 +20759,7 @@ msgstr "Kuyrukta"
 #. Label of a Data field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
 msgid "Queued By"
-msgstr ""
+msgstr "Kuyruğa Ekleyen"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:186
 msgid "Queued for Submission. You can track the progress over {0}."
@@ -20874,7 +20874,7 @@ msgstr ""
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Rating"
-msgstr ""
+msgstr "Derecelendirme"
 
 #. Label of a Code field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -21025,7 +21025,7 @@ msgstr "{} için ağacın yeniden oluşturulması desteklenmiyor"
 #. Option for the 'Sent or Received' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
 msgid "Received"
-msgstr ""
+msgstr "Alındı"
 
 #: frappe/integrations/doctype/token_cache/token_cache.py:50
 msgid "Received an invalid token type."
@@ -21098,7 +21098,7 @@ msgstr ""
 #. Name of a DocType
 #: frappe/core/doctype/recorder_suggested_index/recorder_suggested_index.json
 msgid "Recorder Suggested Index"
-msgstr ""
+msgstr "Kaydedici Önerilen Dizin"
 
 #: frappe/core/doctype/user_permission/user_permission_help.html:2
 msgid "Records for following doctypes will be filtered"
@@ -21106,7 +21106,7 @@ msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1573
 msgid "Recursive Fetch From"
-msgstr ""
+msgstr "Özyinelemeli Getirme Kaynağı"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
@@ -21128,7 +21128,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
 msgid "Redirect URI"
-msgstr ""
+msgstr "Yönlendirme URI'si"
 
 #. Label of a Data field in DocType 'OAuth Authorization Code'
 #: frappe/integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
@@ -21626,22 +21626,22 @@ msgstr "Tekrarla"
 #. Label of a Date field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Repeat Till"
-msgstr ""
+msgstr "Tekrar Bitiş"
 
 #. Label of a Int field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Repeat on Day"
-msgstr ""
+msgstr "Günde Tekrarla"
 
 #. Label of a Table field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Repeat on Days"
-msgstr ""
+msgstr "Günlerde Tekrarla"
 
 #. Label of a Check field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 msgid "Repeat on Last Day of the Month"
-msgstr ""
+msgstr "Ayın Son Gününde Tekrarla"
 
 #. Label of a Check field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
@@ -21905,7 +21905,7 @@ msgstr "Hesap Silme Talebi"
 #. Label of a Code field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "Request Body"
-msgstr ""
+msgstr "İstek Gövdesi"
 
 #. Label of a Code field in DocType 'Integration Request'
 #. Title of the request-data Web Form
@@ -21913,7 +21913,7 @@ msgstr ""
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/website/web_form/request_data/request_data.json
 msgid "Request Data"
-msgstr ""
+msgstr "İstek Verileri"
 
 #. Label of a Data field in DocType 'Integration Request'
 #: frappe/integrations/doctype/integration_request/integration_request.json
@@ -21925,7 +21925,7 @@ msgstr ""
 #: frappe/core/doctype/recorder/recorder.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Request Headers"
-msgstr ""
+msgstr "İstek Başlıkları"
 
 #. Label of a Data field in DocType 'Integration Request'
 #: frappe/integrations/doctype/integration_request/integration_request.json
@@ -21960,7 +21960,7 @@ msgstr ""
 #. Label of a Small Text field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "Request URL"
-msgstr ""
+msgstr "İstek URL'si"
 
 #. Title of the request-to-delete-data Web Form
 #: frappe/website/web_form/request_to_delete_data/request_to_delete_data.json
@@ -22232,7 +22232,7 @@ msgstr "Yorumlar"
 #. Label of a Data field in DocType 'Connected App'
 #: frappe/integrations/doctype/connected_app/connected_app.json
 msgid "Revocation URI"
-msgstr ""
+msgstr "İptal URI'si"
 
 #: frappe/www/third_party_apps.html:45
 msgid "Revoke"
@@ -23948,7 +23948,7 @@ msgstr "Sunucu bu isteği işleyemeyecek kadar meşguldü. Lütfen tekrar deneyi
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Service"
-msgstr ""
+msgstr "Hizmet"
 
 #. Name of a DocType
 #: frappe/core/doctype/session_default/session_default.json
@@ -24122,12 +24122,12 @@ msgstr "Burada gerekli alanlar için JavaScript'te dinamik filtre değerleri aya
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Set non-standard precision for a Float or Currency field"
-msgstr ""
+msgstr "Ondalık sayı veya Para Birimi alanı için standart dışı hassasiyet ayarlayın"
 
 #. Description of the 'Precision' (Select) field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
 msgid "Set non-standard precision for a Float, Currency or Percent field"
-msgstr ""
+msgstr "Ondalık sayı, Para Birimi veya Yüzde alanı için standart dışı hassasiyet ayarlayın"
 
 #. Label of a Check field in DocType 'DocField'
 #: frappe/core/doctype/docfield/docfield.json
@@ -24609,7 +24609,7 @@ msgstr "Tüm blogları göster"
 #. Label of a Small Text field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
 msgid "Show as cc"
-msgstr ""
+msgstr "CC olarak göster"
 
 #. Label of a Check field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -25059,7 +25059,7 @@ msgstr "Özel bir zaman aşımı belirtin, varsayılan zaman aşımı 1500 saniy
 #. 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
 msgid "Specify the domains or origins that are permitted to embed this form. Enter one domain per line (e.g., https://example.com). If no domains are specified, the form can only be embedded on the same origin."
-msgstr ""
+msgstr "Bu formu yerleştirmeye izin verilen alan adlarını veya kaynakları belirtin. Her satıra bir alan adı girin (örn. https://example.com). Hiçbir alan adı belirtilmezse, form yalnızca aynı kaynakta yerleştirilebilir."
 
 #. Label of a Attach Image field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -26423,7 +26423,7 @@ msgstr ""
 
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.py:29
 msgid "The Push Relay Server URL key (`push_relay_server_url`) is missing in your site config"
-msgstr ""
+msgstr "Push Relay Server URL anahtarı (`push_relay_server_url`) site yapılandırmanızda eksik"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:363
 msgid "The User record for this request has been auto-deleted due to inactivity by system admins."
@@ -26773,7 +26773,7 @@ msgstr "Bu duyurular Navbar'ın altında kapatılabilir bir uyarı içinde gör�
 #. 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "These settings are required if 'Custom' LDAP Directory is used"
-msgstr ""
+msgstr "'Özel' LDAP dizini kullanılıyorsa bu ayarlar gereklidir"
 
 #. Description of the 'Defaults' (Section Break) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -26859,7 +26859,7 @@ msgstr "Bu dcotype için temizlenecek artık alan yok"
 
 #: frappe/core/doctype/doctype/doctype.py:1035
 msgid "This doctype has pending migrations, run 'bench migrate' before modifying the doctype to avoid losing changes."
-msgstr ""
+msgstr "Bu belge türünün bekleyen geçişleri var, değişikliklerin kaybolmasını önlemek için belge türünü değiştirmeden önce 'bench migrate' komutunu çalıştırın."
 
 #: frappe/desk/doctype/workspace/workspace.js:23
 msgid "This document allows you to edit limited fields. For all kinds of workspace customization, use the Edit button located on the workspace page"
@@ -26918,7 +26918,10 @@ msgid "This field will appear only if the fieldname defined here has value OR th
 "myfield\n"
 "eval:doc.myfield=='My Value'\n"
 "eval:doc.age&gt;18"
-msgstr ""
+msgstr "Bu alan, yalnızca burada tanımlanan alan adı bir değere sahipse VEYA kurallar doğruysa görünecektir (örnekler):\n"
+"myfield\n"
+"eval:doc.myfield=='My Value'\n"
+"eval:doc.age&gt;18"
 
 #: frappe/core/doctype/file/file.py:507
 msgid "This file is attached to a protected document and cannot be deleted."
@@ -27061,7 +27064,7 @@ msgstr ""
 #. 'Onboarding Step'
 #: frappe/desk/doctype/onboarding_step/onboarding_step.json
 msgid "This will be shown in a modal after routing"
-msgstr ""
+msgstr "Bu, yönlendirmeden sonra bir modal pencerede gösterilecektir"
 
 #. Description of the 'Report Description' (Data) field in DocType 'Onboarding
 #. Step'
@@ -27156,7 +27159,7 @@ msgstr "Geçen Süre"
 #. Label of a Int field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Time Window (Seconds)"
-msgstr ""
+msgstr "Zaman Penceresi (Saniyeler)"
 
 #. Label of a Select field in DocType 'System Settings'
 #. Label of a Autocomplete field in DocType 'User'
@@ -27183,7 +27186,7 @@ msgstr "Saat Formatı"
 #. Label of a Float field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "Time in Queries"
-msgstr ""
+msgstr "Sorgulardaki Süre"
 
 #. Description of the 'Expiry time of QR Code Image Page' (Int) field in
 #. DocType 'System Settings'
@@ -28772,7 +28775,7 @@ msgstr "Kullanıcı Resmi"
 #. Name of a DocType
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "User Invitation"
-msgstr ""
+msgstr "Kullanıcı Daveti"
 
 #: frappe/public/js/frappe/ui/toolbar/navbar.html:115
 msgid "User Menu"
@@ -29351,7 +29354,7 @@ msgstr "Görünürlülük"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:40
 msgid "Visible to website/portal users."
-msgstr ""
+msgstr "Web sitesi/portal kullanıcılarına görünür."
 
 #. Option for the 'Type' (Select) field in DocType 'Communication'
 #: frappe/core/doctype/communication/communication.json
@@ -30790,7 +30793,7 @@ msgstr "E-posta Adresiniz"
 
 #: frappe/desk/utils.py:87
 msgid "Your exported report: {0}"
-msgstr ""
+msgstr "Aktarılan raporunuz: {0}"
 
 #: frappe/public/js/frappe/web_form/web_form.js:452
 msgid "Your form has been successfully updated"
@@ -31773,7 +31776,7 @@ msgstr "yazdır"
 #. Label of a HTML field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
 msgid "processlist"
-msgstr ""
+msgstr "işlem listesi"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -32012,13 +32015,13 @@ msgstr ""
 #. 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "string value, i.e. member"
-msgstr ""
+msgstr "metin değeri, örn. member"
 
 #. Description of the 'Custom Group Search' (Data) field in DocType 'LDAP
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "string value, i.e. {0} or uid={0},ou=users,dc=example,dc=com"
-msgstr ""
+msgstr "metin değeri, örn. {0} veya uid={0},ou=users,dc=example,dc=com"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -32491,7 +32494,7 @@ msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1570
 msgid "{0} contains an invalid Fetch From expression, Fetch From can't be self-referential."
-msgstr ""
+msgstr "{0} geçersiz bir Şuradan Getir ifadesi içeriyor, Şuradan Getir kendine referans veremez."
 
 #: frappe/public/js/frappe/views/interaction.js:261
 msgid "{0} created successfully"
@@ -33064,7 +33067,7 @@ msgstr "{0}, Satır {1}"
 
 #: frappe/utils/print_format.py:152 frappe/utils/print_format.py:196
 msgid "{0}/{1} complete | Please leave this tab open until completion."
-msgstr ""
+msgstr "{0}/{1} tamamlandı | Lütfen tamamlanana kadar bu sekmeyi açık bırakın."
 
 #: frappe/model/base_document.py:1040
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
