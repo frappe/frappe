@@ -5,9 +5,16 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 import frappe
+<<<<<<< HEAD
 
 
 class TestSecuritySettings(unittest.TestCase):
+=======
+from frappe.tests import IntegrationTestCase
+
+
+class TestSecuritySettings(IntegrationTestCase):
+>>>>>>> 37b05961c7 (fix(security_settings): enabled `track_changes` and convert `expires` to UTC timezone (#38675))
 	def test_public_policy_section_default(self):
 		doc = frappe.get_doc(
 			{
@@ -239,8 +246,15 @@ class TestSecuritySettings(unittest.TestCase):
 		# Should not raise
 		doc.validate_expires()
 
+	@IntegrationTestCase.change_settings("System Settings", {"time_zone": "Etc/UTC"})
 	def test_public_expires_section_future_date(self):
+<<<<<<< HEAD
 		future_date = datetime(2027, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
+=======
+		from datetime import timezone
+
+		future_date = datetime(2027, 12, 31, 23, 59, 59)
+>>>>>>> 37b05961c7 (fix(security_settings): enabled `track_changes` and convert `expires` to UTC timezone (#38675))
 		doc = frappe.get_doc(
 			{
 				"doctype": "Security Settings",
@@ -250,11 +264,12 @@ class TestSecuritySettings(unittest.TestCase):
 		section = doc.public_expires_section
 		self.assertIn("2027-12-31T23:59:59Z", section)
 
+	@IntegrationTestCase.change_settings("System Settings", {"time_zone": "Asia/Kolkata"})
 	def test_public_expires_section_string(self):
 		doc = frappe.get_doc(
 			{
 				"doctype": "Security Settings",
-				"public_expires": "2027-12-31T23:59:59+00:00",
+				"public_expires": "2028-01-01T05:29:59",
 			}
 		)
 		section = doc.public_expires_section
