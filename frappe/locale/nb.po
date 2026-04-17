@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-16 11:49\n"
+"PO-Revision-Date: 2026-04-17 11:48\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Norwegian Bokmal\n"
 "MIME-Version: 1.0\n"
@@ -17455,7 +17455,7 @@ msgstr "Ingen mal funnet på stien: {0}"
 
 #: frappe/core/page/permission_manager/permission_manager.js:357
 msgid "No user has the role <strong>{0}</strong>"
-msgstr ""
+msgstr "Ingen bruker har rollen <strong>{0}</strong>"
 
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:257
 msgid "No values to show"
@@ -18046,11 +18046,11 @@ msgstr "OTP-utsteders navn"
 #. Label of a Small Text field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP SMS Template"
-msgstr ""
+msgstr "OTP SMS-mal"
 
 #: frappe/core/doctype/system_settings/system_settings.py:163
 msgid "OTP SMS Template must contain <code>{0}</code> placeholder to insert the OTP."
-msgstr ""
+msgstr "OTP SMS-malen må inneholde plassholderen <code>{0}</code> for å sette inn OTP."
 
 #: frappe/twofactor.py:455
 msgid "OTP Secret Reset - {0}"
@@ -18064,7 +18064,7 @@ msgstr "Engangspassordet er tilbakestilt. Ny registrering kreves ved neste pålo
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "OTP placeholder should be defined as <code>{{ otp }}</code> "
-msgstr ""
+msgstr "OTP-plassholder skal defineres som <code>{{ otp }}</code> "
 
 #: frappe/templates/includes/login/login.js:363
 msgid "OTP setup using OTP App was not completed. Please contact Administrator."
@@ -19021,7 +19021,7 @@ msgstr "Finner ikke passord for {0} {1} {2}"
 
 #: frappe/core/doctype/user/user.py:1206
 msgid "Password requirements not met"
-msgstr ""
+msgstr "Passordkravene er ikke oppfylt"
 
 #: frappe/core/doctype/user/user.py:1040
 msgid "Password reset instructions have been sent to your email"
@@ -19100,7 +19100,7 @@ msgstr "Sti til privat nøkkelfil"
 
 #: frappe/modules/utils.py:209
 msgid "Path {0} is not within module {1}"
-msgstr ""
+msgstr "Sti {0} er ikke innenfor modul {1}"
 
 #: frappe/website/path_resolver.py:202
 msgid "Path {0} it not a valid path"
@@ -19765,7 +19765,7 @@ msgstr "Spesifiser en gyldig overordnet dokumenttype (DocType) for {0}"
 
 #: frappe/email/doctype/notification/notification.py:96
 msgid "Please specify the field from which to attach files"
-msgstr ""
+msgstr "Vennligst oppgi feltet som filer skal vedlegges fra"
 
 #: frappe/email/doctype/notification/notification.py:90
 msgid "Please specify which date field must be checked"
