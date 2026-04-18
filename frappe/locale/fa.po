@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-17 11:48\n"
+"PO-Revision-Date: 2026-04-18 11:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -22374,7 +22374,7 @@ msgstr "ردیف #{}: نام فیلد مورد نیاز است"
 #. Label of a Select field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Row Format"
-msgstr ""
+msgstr "فرمت ردیف"
 
 #. Label of a Data field in DocType 'Transaction Log'
 #: frappe/core/doctype/transaction_log/transaction_log.json
@@ -25749,7 +25749,7 @@ msgstr "صف گزارش سلامت سیستم"
 #. Name of a DocType
 #: frappe/desk/doctype/system_health_report_tables/system_health_report_tables.json
 msgid "System Health Report Tables"
-msgstr ""
+msgstr "جداول گزارش سلامت سیستم"
 
 #. Name of a DocType
 #: frappe/desk/doctype/system_health_report_workers/system_health_report_workers.json
@@ -26139,7 +26139,7 @@ msgstr "داده‌های آزمایشی"
 #. Label of a Data field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Test Job ID"
-msgstr ""
+msgstr "شناسه کار آزمایشی"
 
 #: frappe/core/doctype/translation/test_translation.py:49
 #: frappe/core/doctype/translation/test_translation.py:57
@@ -30444,7 +30444,7 @@ msgstr "برای انجام این کار به مجوز \"{0}\" در {1} {2} ن�
 
 #: frappe/desk/doctype/workspace/workspace.py:117
 msgid "You need to be Workspace Manager to delete a public workspace."
-msgstr ""
+msgstr "برای حذف یک محیط کار عمومی، باید مدیر محیط کار باشید."
 
 #: frappe/desk/doctype/workspace/workspace.py:71
 msgid "You need to be Workspace Manager to edit this document"
