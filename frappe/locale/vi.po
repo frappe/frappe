@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-12 09:45+0000\n"
-"PO-Revision-Date: 2026-04-16 16:38\n"
+"PO-Revision-Date: 2026-04-18 16:45\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -583,7 +583,9 @@ msgstr "<h5>Ví dụ về tin nhắn</h5>\n\n"
 msgid "<p><strong>Condition Examples:</strong></p>\n"
 "<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</code></pre>\n"
-msgstr ""
+msgstr "<p><strong>Ví dụ về điều kiện:</strong></p>\n"
+"<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
+"</code></pre>\n"
 
 #. Content of the 'html_condition' (HTML) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -33581,11 +33583,11 @@ msgstr "{count} ô được sao chép"
 
 #: frappe/public/js/frappe/utils/datatable.js:16
 msgid "{count} row selected"
-msgstr "Đã chọn hàng {count}"
+msgstr "đã chọn {count} hàng"
 
 #: frappe/public/js/frappe/utils/datatable.js:17
 msgid "{count} rows selected"
-msgstr "Đã chọn {count} hàng"
+msgstr "đã chọn {count} hàng"
 
 #: frappe/core/doctype/doctype/doctype.py:1551
 msgid "{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}."
