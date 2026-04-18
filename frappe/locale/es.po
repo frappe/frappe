@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-12 09:45+0000\n"
-"PO-Revision-Date: 2026-04-16 16:37\n"
+"PO-Revision-Date: 2026-04-18 16:45\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -20452,7 +20452,7 @@ msgstr ""
 
 #: frappe/desk/doctype/number_card/number_card.js:365
 msgid "Please select a Document Type first"
-msgstr ""
+msgstr "Por favor, seleccione primero el Tipo de Documento"
 
 #: frappe/desk/doctype/number_card/number_card.js:375
 msgid "Please select a Report first"
@@ -22367,7 +22367,7 @@ msgstr "Eliminado"
 
 #: frappe/desk/page/desktop/desktop.js:1210
 msgid "Removed Icons"
-msgstr ""
+msgstr "Iconos Eliminados"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:138
 #: frappe/public/js/frappe/form/toolbar.js:282
@@ -22457,7 +22457,7 @@ msgstr "Replicar"
 
 #: frappe/core/doctype/role/role.js:40 frappe/core/doctype/role/role.js:52
 msgid "Replicate Role"
-msgstr ""
+msgstr "Replicar Rol"
 
 #: frappe/core/doctype/role/role.js:63
 msgid "Replicating Role..."
@@ -25050,7 +25050,7 @@ msgstr "Establezca la ruta a una función incluida en la lista blanca que devolv
 
 #: frappe/public/js/frappe/views/workspace/blocks/block.js:201
 msgid "Setting"
-msgstr ""
+msgstr "Ajuste"
 
 #: frappe/contacts/doctype/address_template/address_template.py:33
 msgid "Setting this Address Template as default as there is no other default"
