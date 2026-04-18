@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-17 11:47\n"
+"PO-Revision-Date: 2026-04-18 11:46\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -20451,7 +20451,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "Property Type"
-msgstr ""
+msgstr "Özellik Türü"
 
 #. Label of a Check field in DocType 'DocType'
 #. Label of a Check field in DocType 'Customize Form'
@@ -21206,7 +21206,7 @@ msgstr "Referans"
 #. Label of a Select field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Reference Date"
-msgstr ""
+msgstr "Referans Tarihi"
 
 #. Label of a Dynamic Link field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
@@ -21918,7 +21918,7 @@ msgstr "İstek Verileri"
 #. Label of a Data field in DocType 'Integration Request'
 #: frappe/integrations/doctype/integration_request/integration_request.json
 msgid "Request Description"
-msgstr ""
+msgstr "İstek Açıklaması"
 
 #. Label of a Code field in DocType 'Recorder'
 #. Label of a Code field in DocType 'Integration Request'
@@ -21945,7 +21945,7 @@ msgstr "Talep Metodu"
 #. Label of a Select field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "Request Structure"
-msgstr ""
+msgstr "İstek Yapısı"
 
 #: frappe/public/js/frappe/request.js:226
 msgid "Request Timed Out"
@@ -22513,7 +22513,7 @@ msgstr "Satır #{}: Alan adı gereklidir"
 #. Label of a Select field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
 msgid "Row Format"
-msgstr ""
+msgstr "Satır Biçimi"
 
 #. Label of a Data field in DocType 'Transaction Log'
 #: frappe/core/doctype/transaction_log/transaction_log.json
@@ -23050,7 +23050,7 @@ msgstr "Komut Dosyası Raporu"
 #. Label of a Select field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Script Type"
-msgstr ""
+msgstr "Script Türü"
 
 #. Description of a DocType
 #: frappe/website/doctype/website_script/website_script.json
@@ -23791,7 +23791,7 @@ msgstr "Gönderen"
 #: frappe/email/doctype/newsletter/newsletter.json
 #: frappe/email/doctype/notification/notification.json
 msgid "Sender Email"
-msgstr ""
+msgstr "Gönderen E-postası"
 
 #. Label of a Data field in DocType 'DocType'
 #. Label of a Data field in DocType 'Customize Form'
@@ -25187,7 +25187,7 @@ msgstr "Başlangıç Tarihi Alanı"
 
 #: frappe/core/doctype/data_import/data_import.js:110
 msgid "Start Import"
-msgstr ""
+msgstr "İçe Aktarmayı Başlat"
 
 #: frappe/core/doctype/recorder/recorder_list.js:201
 msgid "Start Recording"
@@ -25196,7 +25196,7 @@ msgstr "Kaydı Başlat"
 #. Label of a Datetime field in DocType 'RQ Worker'
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "Start Time"
-msgstr ""
+msgstr "Başlangıç Zamanı"
 
 #: frappe/templates/includes/comments/comments.html:8
 msgid "Start a new discussion"
@@ -25712,7 +25712,7 @@ msgstr " Başarıyla Güncellendi"
 
 #: frappe/core/doctype/data_import/data_import.js:428
 msgid "Successfully imported {0}"
-msgstr "{0} Başarıyla içe aktarıldı"
+msgstr "{0} başarıyla içe aktarıldı"
 
 #: frappe/desk/doctype/form_tour/form_tour.py:87
 msgid "Successfully reset onboarding status for all users."
@@ -32009,7 +32009,7 @@ msgstr "durdur"
 #. Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
 msgid "string value, i.e. group"
-msgstr ""
+msgstr "metin değeri, örn. group"
 
 #. Description of the 'LDAP Group Member attribute' (Data) field in DocType
 #. 'LDAP Settings'
@@ -32681,7 +32681,7 @@ msgstr "{0} geçerli bir Takvim değil. Varsayılan Takvime yönlendiriliyor."
 
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.py:67
 msgid "{0} is not a valid Cron expression."
-msgstr ""
+msgstr "{0} geçerli bir Cron ifadesi değildir."
 
 #: frappe/public/js/frappe/form/controls/dynamic_link.js:27
 msgid "{0} is not a valid DocType for Dynamic Link"
