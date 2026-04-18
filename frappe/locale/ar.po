@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-12 09:45+0000\n"
-"PO-Revision-Date: 2026-04-16 16:37\n"
+"PO-Revision-Date: 2026-04-18 16:45\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Arabic\n"
 "MIME-Version: 1.0\n"
@@ -404,7 +404,20 @@ msgid "<h3>Custom CSS Help</h3>\n\n"
 "<p>1. Add border to sections except the last section</p>\n\n"
 "<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid #eee; }\n"
 ".section-break:last-child { padding-bottom: 0px; border-bottom: 0px;  }</code></pre>\n"
-msgstr ""
+msgstr "<h3>مساعدة CSS المخصصة</h3>\n\n"
+"<p>ملاحظات:</p>\n\n"
+"<ol>\n"
+"<li>جميع مجموعات الحقول (تسمية + قيمة) لها السمات <code>data-fieldtype</code> و <code>data-fieldname</code></li>\n"
+"<li>جميع القيم تُعطى الفئة <code>value</code></li>\n"
+"<li>جميع فواصل الأقسام تُعطى الفئة <code>section-break</code></li>\n"
+"<li>جميع فواصل الأعمدة تُعطى الفئة <code>column-break</code></li>\n"
+"</ol>\n\n"
+"<h4>أمثلة</h4>\n\n"
+"<p>1. محاذاة الأعداد الصحيحة لليسار</p>\n\n"
+"<pre><code>[data-fieldtype=\"Int\"] .value { text-align: left; }</code></pre>\n\n"
+"<p>1. إضافة حد للأقسام باستثناء القسم الأخير</p>\n\n"
+"<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid #eee; }\n"
+".section-break:last-child { padding-bottom: 0px; border-bottom: 0px;  }</code></pre>\n"
 
 #. Content of the 'Print Format Help' (HTML) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -507,7 +520,17 @@ msgid "<h4>Email Reply Example</h4>\n\n"
 "<p>The fieldnames you can use in your email template are the fields in the document from which you are sending the email. You can find out the fields of any documents via Setup &gt; Customize Form View and selecting the document type (e.g. Sales Invoice)</p>\n\n"
 "<h4>Templating</h4>\n\n"
 "<p>Templates are compiled using the Jinja Templating Language. To learn more about Jinja, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">read this documentation.</a></p>\n"
-msgstr ""
+msgstr "<h4>مثال على رد البريد الإلكتروني</h4>\n\n"
+"<pre>طلب متأخر\n\n"
+"المعاملة {{ name }} تجاوزت بسبب تاريخ. يرجى اتخاذ الإجراء اللازم.\n\n"
+"التفاصيل\n\n"
+"- العميل: {{ customer }}\n"
+"- المبلغ: {{ grand_total }}\n"
+"</pre>\n\n"
+"<h4>كيفية الحصول على أسماء الحقول</h4>\n\n"
+"<p>أسماء الحقول التي يمكنك استخدامها في قالب البريد الإلكتروني هي الحقول الموجودة في المستند الذي ترسل منه البريد الإلكتروني. يمكنك معرفة حقول أي مستندات عبر الإعدادات &gt; عرض تخصيص النموذج واختيار نوع الوثيقة (مثل فاتورة مبيعات)</p>\n\n"
+"<h4>القوالب</h4>\n\n"
+"<p>يتم تجميع القوالب باستخدام لغة قوالب جينجا. لمعرفة المزيد عن جينجا، <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">اقرأ هذه الوثائق.</a></p>\n"
 
 #. Content of the 'html_5' (HTML) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
@@ -530,14 +553,28 @@ msgid "<h5>Message Example</h5>\n\n"
 "&lt;li&gt;Amount: {{ doc.grand_total }}\n"
 "&lt;/ul&gt;\n"
 "</pre>"
-msgstr ""
+msgstr "<h5>مثال الرسالة</h5>\n\n"
+"<pre>&lt;h3&gt;طلب متأخر&lt;/h3&gt;\n\n"
+"&lt;p&gt;المعاملة {{ doc.name }} تجاوزت تاريخ الاستحقاق. يرجى اتخاذ الإجراء اللازم.&lt;/p&gt;\n\n"
+"&lt;!-- عرض آخر تعليق --&gt;\n"
+"{% if comments %}\n"
+"آخر تعليق: {{ comments[-1].comment }} بواسطة {{ comments[-1].by }}\n"
+"{% endif %}\n\n"
+"&lt;h4&gt;التفاصيل&lt;/h4&gt;\n\n"
+"&lt;ul&gt;\n"
+"&lt;li&gt;العميل: {{ doc.customer }}\n"
+"&lt;li&gt;المبلغ: {{ doc.grand_total }}\n"
+"&lt;/ul&gt;\n"
+"</pre>"
 
 #. Content of the 'html_7' (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "<p><strong>Condition Examples:</strong></p>\n"
 "<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</code></pre>\n"
-msgstr ""
+msgstr "<p><strong>أمثلة على الشروط:</strong></p>\n"
+"<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
+"</code></pre>\n"
 
 #. Content of the 'html_condition' (HTML) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -571,7 +608,7 @@ msgstr ""
 
 #: frappe/twofactor.py:460
 msgid "<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
-msgstr ""
+msgstr "<p>تمت إعادة تعيين سر OTP الخاص بك على {0}. إذا لم تقم بإجراء إعادة التعيين هذه ولم تطلبها، يرجى الاتصال بمسؤول النظام الخاص بك على الفور.</p>"
 
 #. Description of the 'Cron Format' (Data) field in DocType 'Scheduled Job
 #. Type'
@@ -590,7 +627,18 @@ msgid "<pre>*  *  *  *  *\n"
 "* - Any value\n"
 "/ - Step values\n"
 "</pre>\n"
-msgstr ""
+msgstr "<pre>*  *  *  *  *\n"
+"┬  ┬  ┬  ┬  ┬\n"
+"│  │  │  │  │\n"
+"│  │  │  │  └ يوم الأسبوع (0 - 6) (0 هو الأحد)\n"
+"│  │  │  └───── شهر (1 - 12)\n"
+"│  │  └────────── يوم الشهر (1 - 31)\n"
+"│  └─────────────── ساعة (0 - 23)\n"
+"└──────────────────── دقيقة (0 - 59)\n\n"
+"---\n\n"
+"* - أي قيمة\n"
+"/ - قيم الخطوة\n"
+"</pre>\n"
 
 #. Content of the 'Example' (HTML) field in DocType 'Workflow Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -616,7 +664,7 @@ msgstr ""
 
 #: frappe/custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
-msgstr ""
+msgstr "<strong>تحذير:</strong> هذا الحقل تم إنشاؤه بواسطة النظام وقد يتم استبداله بواسطة تحديث مستقبلي. قم بتعديله باستخدام {0} بدلاً من ذلك."
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
