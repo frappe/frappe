@@ -4,6 +4,7 @@
 import json
 import os
 import subprocess
+import tarfile
 
 import frappe
 from frappe.desk.form.load import get_attachments
@@ -46,15 +47,10 @@ class PackageImport(Document):
 			os.makedirs(frappe.get_site_path("packages"))
 
 		# extract
-		subprocess.check_output(
-			[
-				"tar",
-				"xzf",
-				get_files_path(attachment.file_name, is_private=attachment.is_private),
-				"-C",
-				frappe.get_site_path("packages"),
-			]
-		)
+		extract_path = frappe.get_site_path("packages")
+		archive_path = get_files_path(attachment.file_name, is_private=attachment.is_private)
+		with tarfile.open(archive_path, "r:gz") as tar:
+			tar.extractall(path=extract_path, filter="data")
 
 		package_path = frappe.get_site_path("packages", package_name)
 
