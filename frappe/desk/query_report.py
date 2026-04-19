@@ -419,7 +419,8 @@ def _export_query(form_params, csv_params, populate_response=True):
 
 	xlsx_data, column_widths, header_index = build_xlsx_data(
 		data,
-		include_indentation,
+		visible_idx=None,  # filtering is already done
+		include_indentation=include_indentation,
 		include_filters=include_filters,
 		include_hidden_columns=include_hidden_columns,
 	)
@@ -493,8 +494,10 @@ def format_fields(data: frappe._dict) -> None:
 
 def build_xlsx_data(
 	data: frappe._dict,
-	include_indentation: bool,
+	visible_idx: list[int] | None = None,
+	include_indentation: bool = False,
 	include_filters: bool = False,
+	ignore_visible_idx: bool = False,
 	include_hidden_columns: bool = False,
 ) -> tuple[list[list[Any]], list[int], int]:
 	"""
@@ -502,8 +505,10 @@ def build_xlsx_data(
 
 	Args:
 		data: Report data containing columns, result, and filters
+		visible_idx: List of row indices that are visible in the report
 		include_indentation: Whether to include indentation for tree-like data
 		include_filters: Whether to include filter rows at the top of the Excel sheet
+		ignore_visible_idx: Whether to ignore the visible_idx parameter
 		include_hidden_columns: Whether to include columns marked as hidden
 
 	Returns:
@@ -523,6 +528,24 @@ def build_xlsx_data(
 		datetime.time,
 		datetime.timedelta,
 	)
+	if visible_idx or ignore_visible_idx:
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"2026-04-19",
+			"v17",
+			"The 'visible_idx' and 'ignore_visible_idx' parameters of build_xlsx_data are deprecated. "
+			"Filter data.result before calling build_xlsx_data instead.",
+		)
+
+	has_total_row = cint(data.get("add_total_row"))
+
+	if not visible_idx or len(visible_idx) == len(data.result) - (1 if has_total_row else 0):
+		# It's not possible to have same length and different content.
+		ignore_visible_idx = True
+	else:
+		# Note: converted for faster lookups
+		visible_idx = set(visible_idx)
 
 	result = []
 	column_widths = []
@@ -559,8 +582,16 @@ def build_xlsx_data(
 		column_widths.append(column_width)
 	result.append(column_data)
 
+	last_row_index = len(data.result) - 1
+
 	# build table from result
-	for row in data.result:
+	for row_idx, row in enumerate(data.result):
+		# only pick up rows that are visible in the report + total row if added
+		if not (
+			ignore_visible_idx or row_idx in visible_idx or (has_total_row and row_idx == last_row_index)
+		):
+			continue
+
 		row_data = []
 		row_is_dict = isinstance(row, dict)
 
