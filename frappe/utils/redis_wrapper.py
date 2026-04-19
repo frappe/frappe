@@ -125,19 +125,19 @@ class RedisWrapper(redis.Redis):
 
 		return ret
 
-	def get_keys(self, key):
+	def get_keys(self, key, user=None, shared=False):
 		"""Return keys starting with `key`."""
 		try:
-			key = self.make_key(key + "*")
+			key = self.make_key(key + "*", user=user, shared=shared)
 			return self.keys(key)
 
 		except redis.exceptions.ConnectionError:
 			regex = re.compile(cstr(key).replace("|", r"\|").replace("*", r"[\w]*"))
 			return [k for k in list(frappe.local.cache) if regex.match(cstr(k))]
 
-	def delete_keys(self, key):
+	def delete_keys(self, key, user=None, shared=False):
 		"""Delete keys with wildcard `*`."""
-		self.delete_value(self.get_keys(key), make_keys=False)
+		self.delete_value(self.get_keys(key, user=user, shared=shared), make_keys=False)
 
 	def delete_key(self, *args, **kwargs):
 		self.delete_value(*args, **kwargs)
