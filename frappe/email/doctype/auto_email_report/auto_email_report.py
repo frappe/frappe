@@ -176,7 +176,9 @@ class AutoEmailReport(Document):
 			report_data["columns"] = columns
 			report_data["result"] = data
 
-			xlsx_data, column_widths, header_index = build_xlsx_data(report_data, include_indentation=True)
+			xlsx_data, column_widths, header_index = build_xlsx_data(
+				report_data, [], 1, ignore_visible_idx=True
+			)
 
 			if self.format == "XLSX":
 				xlsx_file = make_xlsx(

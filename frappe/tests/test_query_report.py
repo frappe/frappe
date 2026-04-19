@@ -24,7 +24,7 @@ class TestQueryReport(IntegrationTestCase):
 		data = create_mock_data()
 
 		# Build the result
-		xlsx_data, column_widths, _ = build_xlsx_data(data, include_indentation=False)
+		xlsx_data, column_widths, _ = build_xlsx_data(data, include_indentation=0)
 
 		self.assertEqual(type(xlsx_data), list)
 		self.assertEqual(len(xlsx_data), 5)  # columns + data
@@ -73,7 +73,7 @@ class TestQueryReport(IntegrationTestCase):
 		]
 
 		# Build the result
-		xlsx_data, column_widths, header_index = build_xlsx_data(data, include_indentation=False)
+		xlsx_data, column_widths, header_index = build_xlsx_data(data, include_indentation=0)
 		# Export to excel
 		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths, header_index=header_index)
 
