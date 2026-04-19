@@ -407,7 +407,8 @@ def _export_query(form_params, csv_params, populate_response=True):
 	)
 
 	if needs_visible_filtering:
-		filtered_result = [row for idx, row in enumerate(data.result) if idx in set(visible_idx)]
+		visible_idx = set(visible_idx)
+		filtered_result = [row for idx, row in enumerate(data.result) if idx in visible_idx]
 
 		if has_total_row:
 			filtered_result = add_total_row(filtered_result, data.columns)
