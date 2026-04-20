@@ -174,6 +174,7 @@ def set_user_lang(user: str, user_language: str | None = None) -> None:
 
 # local-globals
 
+<<<<<<< HEAD
 db = local("db")
 qb = local("qb")
 conf = local("conf")
@@ -184,6 +185,20 @@ response = local("response")
 session = local("session")
 user = local("user")
 flags = local("flags")
+=======
+db: LocalProxy["PyMariaDBDatabase" | "MariaDBDatabase" | "PostgresDatabase" | "SQLiteDatabase"] = local("db")
+duckdb = local("duckdb")
+qb: LocalProxy["MariaDB" | "Postgres" | "SQLite"] = local("qb")
+conf: LocalProxy[ConfType] = local("conf")
+form_dict: LocalProxy[FormDict] = local("form_dict")
+form = form_dict
+request: LocalProxy["Request"] = local("request")
+job: LocalProxy[JobMetaType] = local("job")
+response: LocalProxy[ResponseDict] = local("response")
+session: LocalProxy[SessionType] = local("session")
+user: LocalProxy[str] = local("user")
+flags: LocalProxy[FlagsDict] = local("flags")
+>>>>>>> 7794ae2db4 (refactor: connection and table creation)
 
 error_log = local("error_log")
 debug_log = local("debug_log")
@@ -289,6 +304,18 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 		password=local.conf.db_password,
 		cur_db_name=local.conf.db_name or db_name,
 	)
+<<<<<<< HEAD
+=======
+
+	import duckdb
+
+	local.duckdb = duckdb.connect(f"{db_name_}.db")
+	databases = [x[0] for x in frappe.duckdb.sql("show databases;").fetchall()]
+	if db_name_ not in databases:
+		frappe.duckdb.sql(f"create database {db_name_}")
+	frappe.duckdb.sql(f"use {db_name_}")
+
+>>>>>>> 7794ae2db4 (refactor: connection and table creation)
 	if set_admin_as_user:
 		set_user("Administrator")
 
