@@ -506,11 +506,9 @@ def build_xlsx_data(
 	Args:
 		data: Report data containing columns, result, and filters
 		visible_idx: Deprecated (v17). Row indices to include.
-			- Pre-filter `data.result` instead.
 		include_indentation: Whether to include indentation for tree-like data
 		include_filters: Whether to include filter rows at the top of the Excel sheet
 		ignore_visible_idx: Deprecated (v17). Skips visible_idx filtering.
-			- Pre-filter `data.result` instead.
 		include_hidden_columns: Whether to include columns marked as hidden
 
 	Returns:
@@ -540,7 +538,7 @@ def build_xlsx_data(
 			"Filter data.result before calling build_xlsx_data instead.",
 		)
 
-	# NOTE: for backwards compatibility!!
+	# NOTE: for backwards compatibility. remove in v17.
 	if not visible_idx or len(visible_idx) == len(data.result):
 		# It's not possible to have same length and different content.
 		ignore_visible_idx = True
@@ -583,16 +581,10 @@ def build_xlsx_data(
 		column_widths.append(column_width)
 	result.append(column_data)
 
-	last_row_index = len(data.result) - 1
-	has_total_row = cint(data.get("add_total_row"))
-
 	# build table from result
 	for row_idx, row in enumerate(data.result):
-		# only pick up rows that are visible in the report + total row if added
-		# NOTE: for backwards compatibility!!
-		if not (
-			ignore_visible_idx or row_idx in visible_idx or (has_total_row and row_idx == last_row_index)
-		):
+		# NOTE: for backwards compatibility. remove in v17.
+		if not (ignore_visible_idx or row_idx in visible_idx):
 			continue
 
 		row_data = []
