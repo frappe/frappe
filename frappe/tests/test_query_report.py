@@ -23,11 +23,14 @@ class TestQueryReport(IntegrationTestCase):
 		# Create mock data
 		data = create_mock_data()
 
+		# Define the visible rows
+		visible_idx = [0, 2, 3]
+
 		# Build the result
-		xlsx_data, column_widths, _ = build_xlsx_data(data, include_indentation=0)
+		xlsx_data, column_widths, _ = build_xlsx_data(data, visible_idx, include_indentation=0)
 
 		self.assertEqual(type(xlsx_data), list)
-		self.assertEqual(len(xlsx_data), 5)  # columns + data
+		self.assertEqual(len(xlsx_data), 4)  # columns + data
 		# column widths are divided by 10 to match the scale that is supported by openpyxl
 		self.assertListEqual(column_widths, [0, 10, 15])
 
@@ -46,15 +49,18 @@ class TestQueryReport(IntegrationTestCase):
 		data = create_mock_data()
 		data.filters = {"Label 1": "Filter Value", "Label 2": None, "Label 3": list(range(5))}
 
+		# Define the visible rows
+		visible_idx = [0, 2, 3]
+
 		# Build the result
 		xlsx_data, _column_widths, header_index = build_xlsx_data(
-			data, include_indentation=False, include_filters=True
+			data, visible_idx, include_indentation=False, include_filters=True
 		)
 
 		self.assertEqual(header_index, 3)  # 2 filter rows + 1 empty row
 
-		# Check if unset filters are skipped | Rows - 2 filters + 1 empty + 1 column + 4 data
-		self.assertEqual(len(xlsx_data), 8)
+		# Check if unset filters are skipped | Rows - 2 filters + 1 empty + 1 column + 3 data
+		self.assertEqual(len(xlsx_data), 7)
 
 		# Check filter formatting
 		self.assertListEqual(xlsx_data[:2], [["Label 1", "Filter Value"], ["Label 3", "0, 1, 2, 3, 4"]])
@@ -72,8 +78,11 @@ class TestQueryReport(IntegrationTestCase):
 			{"column_a": 22.1, "column_b": ["Dummy 1", "Dummy 2"]},  # composite value in column_b
 		]
 
+		# Define the visible rows
+		visible_idx = [0, 1]
+
 		# Build the result
-		xlsx_data, column_widths, header_index = build_xlsx_data(data, include_indentation=0)
+		xlsx_data, column_widths, header_index = build_xlsx_data(data, visible_idx, include_indentation=0)
 		# Export to excel
 		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths, header_index=header_index)
 
