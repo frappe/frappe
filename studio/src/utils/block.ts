@@ -201,28 +201,8 @@ class Block implements BlockOptions {
 	}
 
 	canHaveChildren() {
-		return ![
-			"Dropdown",
-			"FileUploader",
-			"Divider",
-			"FeatherIcon",
-			"Avatar",
-			// input components
-			"Autocomplete",
-			"Checkbox",
-			"DatePicker",
-			"DateTimePicker",
-			"DateRangePicker",
-			"Input",
-			"Select",
-			"Switch",
-			"Textarea",
-			"TextEditor",
-			// studio components
-			"Audio",
-			"ImageView",
-			"TextBlock",
-		].includes(this.componentName)
+		if (this.isRoot() || this.isContainer() || this.hasComponentSlots()) return true
+		return false
 	}
 
 	isRoot() {
