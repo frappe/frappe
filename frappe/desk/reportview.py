@@ -543,17 +543,16 @@ def get_field_info(fields, parent_doctype):
 
 	for field in fields:
 		df = None
-
+		doctype = None
 		try:
 			doctype, fieldname = parse_field(field)
 		except ValueError:
 			# handles aggregate functions
-			doctype = parent_doctype
 			if isinstance(field, dict):
 				# Eg: {"COUNT": "name", "as": "count_name"} -> "COUNT"
 				fieldname = next(f for f in field if f != "as")
 			else:
-				# Eg) "count(name)" -> "count"
+				# Eg: "count(name)" -> "count"
 				fieldname = field.split("(", 1)[0]
 			fieldname = fieldname.capitalize()
 
@@ -567,11 +566,12 @@ def get_field_info(fields, parent_doctype):
 			translatable = True
 		else:
 			meta = frappe.get_meta(doctype)
-			df = meta.get_field(fieldname) or get_default_df(fieldname)
+			meta_df = meta.get_field(fieldname)
+			df = meta_df or get_default_df(fieldname)
 
 			if df:
 				fieldname = df.fieldname
-				label = _(df.label) if df.label else _(meta.get_label(fieldname))
+				label = _(df.label or "") if meta_df else meta.get_label(fieldname)
 				fieldtype = df.fieldtype
 				translatable = df.translatable or False
 				options = df.options

@@ -159,7 +159,7 @@ class AutoEmailReport(Document):
 		)
 
 		# add serial numbers
-		columns.insert(0, frappe._dict(fieldname="sr", label="Sr", fieldtype="Int", width="30px"))
+		columns.insert(0, frappe._dict(fieldname="sr", label=_("Sr"), fieldtype="Int", width="30px"))
 		for i in range(len(data)):
 			data[i]["sr"] = i + 1
 

@@ -256,8 +256,11 @@ class Exporter:
 			data = self.get_csv_array_for_export()
 			styles = get_default_xlsx_styles(
 				columns=self.fields,
-				data=data[1:],  # exclude header row
-				currency_formatting=False,  # child table row not have currency value from parent
+				# exclude header row
+				data=data[1:],
+				# from the second child row onwards, parent values will be empty
+				# so currency value from parent doc may be absent, avoid inconsistency
+				currency_formatting=False,
 			)
 
 			build_xlsx_response(data, _(self.doctype), styles=styles)

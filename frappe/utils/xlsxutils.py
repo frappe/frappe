@@ -8,13 +8,9 @@ from dataclasses import field as dataclass_field
 from io import BytesIO
 from typing import Any, ClassVar, Literal
 
-import openpyxl
 import xlrd
 import xlsxwriter
 from openpyxl import load_workbook
-from openpyxl.cell import WriteOnlyCell
-from openpyxl.styles import Font
-from openpyxl.utils import get_column_letter
 from xlsxwriter.format import Format
 
 import frappe
@@ -27,6 +23,7 @@ ILLEGAL_CHARACTERS_RE = re.compile(
 	r"[\000-\010]|[\013-\014]|[\016-\037]|\uFEFF|\uFFFE|\uFFFF|[\uD800-\uDFFF]"
 )
 
+# as required by XLSXWriter
 INVALID_SHEET_NAME_RE = re.compile(r"[\[\]:*?/\\]")
 MAX_SHEET_NAME_LENGTH = 31
 
@@ -37,36 +34,30 @@ class XLSXMetadata:
 	"""
 	Metadata container for XLSX report styling.
 
-	- All indexes must be 0-based respecting Excel's indexing.
+	- All indexes must be 0-based respecting xlsxwriter's indexing.
 
 	Attributes:
-		report_name: Name of the report.
-		filters: Raw filter values.
 		column_map: Maps column index to column dict (fieldname, fieldtype, etc.).
 		row_map: Maps row index to row data (dict or list).
-		applied_filters_map: Maps row index to applied filter label-value pairs.
-		has_filters: Whether filter rows are included at the top.
+		applied_filters_map: Maps row index to list of applied filter label-value pairs.
 		has_total_row: Whether the last row is a total row.
 		has_indentation: Whether indentation styling should be applied.
+
+		# optional metadata for custom style builders
+		report_name: Name of the report.
+		filters: Raw filter values.
 	"""
-
-	report_name: str = ""
-
-	filters: dict = dataclass_field(default_factory=dict)
 
 	column_map: dict[int, dict] = dataclass_field(default_factory=dict)
 	row_map: dict[int, dict | list] = dataclass_field(default_factory=dict)
 	applied_filters_map: dict[int, list] = dataclass_field(default_factory=dict)
 
-	has_filters: bool = False
 	has_total_row: bool = False
 	has_indentation: bool = False
 
-	def get_column_index(self, fieldname: str) -> int | None:
-		"""
-		Get column index by fieldname, or None if not found.
-		"""
-		return next((idx for idx, col in self.column_map.items() if col.get("fieldname") == fieldname), None)
+	# optional
+	report_name: str = ""
+	filters: dict = dataclass_field(default_factory=dict)
 
 	def get_column(self, fieldname: str) -> dict | None:
 		"""
@@ -74,13 +65,11 @@ class XLSXMetadata:
 		"""
 		return next((col for col in self.column_map.values() if col.get("fieldname") == fieldname), None)
 
-	def get_row(self, row_idx: int) -> dict | list | None:
-		"""
-		Get row data by index.
-		"""
-		return self.row_map.get(row_idx)
-
 	def get_header_index(self) -> int:
+		"""
+		Get header row index based on applied filters.
+		Assumes header is always 1 row after the last filter row.
+		"""
 		count = len(self.applied_filters_map)
 		return count + 1 if count else 0
 
@@ -96,7 +85,7 @@ class XLSXStyleBuilder:
 	Builder for XLSX cell styles based on report metadata.
 
 	Builds a style dictionary with:
-		- styles: List of style definitions (xlsxwriter format properties).
+		- styles: List of style definitions (xlsxwriter format properties). List index is the style ID.
 		- column_styles: Maps column index to list of style IDs.
 		- row_styles: Maps row index to list of style IDs.
 		- cell_styles: Maps (row, col) tuple to list of style IDs.
@@ -110,7 +99,7 @@ class XLSXStyleBuilder:
 	```
 	"""
 
-	RIGHT_ALIGN_FIELDS: ClassVar[set[str]] = {
+	RIGHT_ALIGN_FIELDTYPES: ClassVar[set[str]] = {
 		*frappe.model.numeric_fieldtypes,
 		*frappe.model.datetime_fields,
 		"Rating",
@@ -120,8 +109,8 @@ class XLSXStyleBuilder:
 		self.metadata = metadata
 
 		# column fieldname -> index mapping
-		self.field_index = {
-			col.get("fieldname"): idx for idx, col in self.metadata.column_map.items() if col.get("fieldname")
+		self.field_index_map = {
+			col["fieldname"]: idx for idx, col in self.metadata.column_map.items() if col.get("fieldname")
 		}
 
 		self.styles: list[dict] = []
@@ -140,7 +129,7 @@ class XLSXStyleBuilder:
 		self.header_index = self.metadata.get_header_index()
 		self.first_row_index = self.metadata.get_first_row_index()
 		self.last_row_index = self.metadata.get_last_row_index()
-		self.row_is_dict = isinstance(self.metadata.get_row(self.first_row_index), dict)
+		self.row_is_dict = isinstance(self.metadata.row_map.get(self.first_row_index), dict)
 
 		if default_styling:
 			self.apply_default_styles()
@@ -153,7 +142,7 @@ class XLSXStyleBuilder:
 		Style dict uses xlsxwriter format properties.
 		"""
 		if not style:
-			frappe.throw(_("Cannot register an empty style."))
+			frappe.throw(_("Cannot register an empty XLSX style"))
 
 		style_id = len(self.styles)
 		self.styles.append(style)
@@ -169,9 +158,6 @@ class XLSXStyleBuilder:
 			col_idx: 0-based column index
 			style_id: ID of the style to apply (from register_style)
 		"""
-		if style_id is None:
-			return self
-
 		if col_idx not in self.column_styles:
 			self.column_styles[col_idx] = []
 
@@ -187,9 +173,6 @@ class XLSXStyleBuilder:
 			row_idx: 0-based row index
 			style_id: ID of the style to apply (from register_style)
 		"""
-		if style_id is None:
-			return self
-
 		if row_idx not in self.row_styles:
 			self.row_styles[row_idx] = []
 
@@ -206,9 +189,6 @@ class XLSXStyleBuilder:
 			col_idx: 0-based column index
 			style_id: ID of the style to apply (from register_style)
 		"""
-		if style_id is None:
-			return self
-
 		key = (row_idx, col_idx)
 		cell_styles = self.cell_styles
 
@@ -225,7 +205,7 @@ class XLSXStyleBuilder:
 		Apply all default styles:
 
 		- Header row styling
-		- Filter rows styling (if has_filters)
+		- Filter rows styling
 		- Total row styling (if has_total_row)
 		- Indentation styling (if has_indentation)
 		- Default fieldtype formatting (numbers, dates, etc.)
@@ -233,14 +213,14 @@ class XLSXStyleBuilder:
 		"""
 		self.style_header()
 
-		if self.metadata.has_filters:
+		if self.metadata.applied_filters_map:
 			self.style_filters()
 
 		if self.metadata.has_total_row:
 			self.style_total_row()
 
 		if self.metadata.has_indentation:
-			self.apply_indentations(0)
+			self.apply_indentations()
 
 		self.apply_default_fieldtype_formats(currency_formatting)
 
@@ -249,17 +229,16 @@ class XLSXStyleBuilder:
 	def style_header(self):
 		header_index = self.header_index
 
-		self.style_row(header_index, self.register_style({"bold": True, "font_size": 13}))
+		self.style_row(header_index, self.register_style({"bold": True}))
 
 		right_align = self.register_style({"align": "right"})
 		left_align = self.register_style({"align": "left"})
-		right_align_fields = self.RIGHT_ALIGN_FIELDS
 
 		for col_idx, col in self.metadata.column_map.items():
 			self.style_cell(
 				header_index,
 				col_idx,
-				right_align if col.get("fieldtype") in right_align_fields else left_align,
+				right_align if col.get("fieldtype") in self.RIGHT_ALIGN_FIELDTYPES else left_align,
 			)
 
 		return self
@@ -272,13 +251,13 @@ class XLSXStyleBuilder:
 			self.style_cell(row_idx, 0, style)
 		return self
 
-	def apply_indentations(self, col_idx: int, field: str = "indent", align: str = "left", pt: int = 2):
+	def apply_indentations(self, col_idx: int = 0, field: str = "indent", pt: int = 2):
 		if not self.row_is_dict:
 			return self
 
 		@functools.cache
 		def register_indent_style(indent: int) -> int:
-			return self.register_style({"align": align, "indent": indent * pt})
+			return self.register_style({"align": "left", "indent": indent * pt})
 
 		# quick access for hot loop
 		last_row_index = self.last_row_index
@@ -295,7 +274,7 @@ class XLSXStyleBuilder:
 		return self
 
 	def style_total_row(self):
-		return self.style_row(self.last_row_index, self.register_style({"bold": True, "font_size": 12}))
+		return self.style_row(self.last_row_index, self.register_style({"bold": True}))
 
 	def apply_default_fieldtype_formats(self, currency_formatting: bool = True):
 		formats: dict[str, int] = {
@@ -338,7 +317,7 @@ class XLSXStyleBuilder:
 		# helpers
 		@functools.cache
 		def _get_value(doctype: str, docname: str, fieldname: str) -> str | None:
-			return frappe.get_value(doctype, docname, fieldname)
+			return frappe.db.get_value(doctype, docname, fieldname)
 
 		@functools.cache
 		def parse_options(options: str) -> tuple:
@@ -355,7 +334,7 @@ class XLSXStyleBuilder:
 			def get_row_value(row, field):
 				return row.get(field)
 		else:
-			_field_index_get = self.field_index.get
+			_field_index_get = self.field_index_map.get
 
 			def get_row_value(row, field):
 				idx = _field_index_get(field)
@@ -388,7 +367,7 @@ class XLSXStyleBuilder:
 
 		symbol, on_right = frappe.db.get_value("Currency", currency, ["symbol", "symbol_on_right"])
 
-		return frappe._(symbol or currency), bool(on_right)
+		return (symbol or currency), bool(on_right)
 
 	@staticmethod
 	def _build_currency_format(
@@ -458,10 +437,7 @@ def get_default_xlsx_styles(
 	data: list[list | dict],
 	applied_filters: list[list] | None = None,
 	*,
-	report_name: str = "",
-	filters: dict | None = None,
 	has_total_row: bool = False,
-	has_filters: bool = False,
 	has_indentation: bool = False,
 	currency_formatting: bool = True,
 ) -> dict:
@@ -472,38 +448,26 @@ def get_default_xlsx_styles(
 		columns: Column definitions with keys: fieldname, fieldtype, label, options.
 		data: Row data as list of dicts or lists (excluding header and filter rows).
 		applied_filters: Filter rows to display at top of sheet. Each item is [label, value].
-		report_name: Name of the report.
-		filters: Raw filters dict (fieldname -> value).
 		has_total_row: If True, applies bold styling to the last row.
-		has_filters: If True, applies bold styling to filter labels.
 		has_indentation: If True, applies indent styles based on row's 'indent' key.
 		currency_formatting: If True, applies currency number formats to Currency fields.
 	"""
 	applied_filters = applied_filters or []
-	filters = filters or {}
-
-	header_index = get_report_header_index(applied_filters)
+	header_index = len(applied_filters) + 1 if applied_filters else 0
 
 	applied_filters_map = dict(enumerate(applied_filters))
 	column_map = dict(enumerate(columns))
 	row_map = dict(enumerate(data, start=header_index + 1))  # +1 for header row
 
 	metadata = XLSXMetadata(
-		report_name=report_name,
-		filters=filters,
 		column_map=column_map,
 		row_map=row_map,
 		applied_filters_map=applied_filters_map,
 		has_total_row=has_total_row,
-		has_filters=has_filters,
 		has_indentation=has_indentation,
 	)
 
 	return XLSXStyleBuilder(metadata, default_styling=False).apply_default_styles(currency_formatting).result
-
-
-def get_report_header_index(applied_filters: list[list]) -> int:
-	return len(applied_filters) + 1 if applied_filters else 0  # +1 for empty row after filters
 
 
 ### Excel Creation ###
@@ -525,10 +489,7 @@ def make_xlsx(
 			- Should be created with constant_memory=True for large datasets
 		column_widths: List of column widths in Excel units. If None, auto-sized
 		styles: Dictionary defining styles for cells, rows, and columns
-			- styles: list of style dicts
-			- column_styles: dict of column index to list of style ids
-			- row_styles: dict of row index to list of style ids
-			- cell_styles: dict of (row index, column index) to list of style ids
+			- as returned by XLSXStyleBuilder.result
 	Returns:
 		BytesIO | None: BytesIO object containing the Excel file data if a new workbook was created, otherwise None
 
@@ -538,9 +499,9 @@ def make_xlsx(
 
 	# creating workbook
 	xlsx_file = None
-	created_wb = wb is None  # to know to close it later
+	created_wb = False  # to know to close it later
 
-	if created_wb:
+	if wb is None:
 		xlsx_file = BytesIO()
 		options = {"constant_memory": True}
 
@@ -548,6 +509,7 @@ def make_xlsx(
 			options["default_date_format"] = XLSXStyleBuilder.get_datetime_format()
 
 		wb = xlsxwriter.Workbook(xlsx_file, options)
+		created_wb = True
 
 	ws = wb.add_worksheet(get_sanitized_sheet_name(sheet_name))
 
@@ -611,7 +573,7 @@ def make_xlsx(
 				cell_formats[pos] = get_format(col_ids + row_ids)
 
 	# quick access for hot loop
-	handle_html_content = should_handle_html_content(sheet_name)
+	handle_html_content = sheet_name not in {"Data Import Template", "Data Export"}
 	illegal_chars_search = ILLEGAL_CHARACTERS_RE.search
 	illegal_chars_sub = ILLEGAL_CHARACTERS_RE.sub
 
@@ -631,94 +593,19 @@ def make_xlsx(
 			cell_format = get_cell_format((row_idx, col_idx)) if has_cell_formats else None
 			write(row_idx, col_idx, value, cell_format)
 
-	if created_wb:
-		wb.close()
-		xlsx_file.seek(0)
+	if not created_wb:
+		return
 
+	wb.close()
+	xlsx_file.seek(0)
 	return xlsx_file
 
 
-def make_xls(
-	data: list[list[Any]],
-	sheet_name: str,
-	wb: openpyxl.Workbook | None = None,
-	column_widths: list[int] | None = None,
-) -> BytesIO:
-	"""
-	Create an Excel file (old format xls) with the given data and formatting options.
-
-	Args:
-		data: List of rows, where each row is a list of cell values
-		sheet_name: Name of the Excel sheet
-		wb: Existing workbook to add sheet to. If None, creates new workbook
-		column_widths: List of column widths in Excel units. If None, auto-sized
-
-	Returns:
-		BytesIO: BytesIO object containing the Excel file data
-	"""
-	column_widths = column_widths or []
-
-	if wb is None:
-		wb = openpyxl.Workbook(write_only=True)
-
-	ws = wb.create_sheet(get_sanitized_sheet_name(sheet_name), 0)
-
-	for i, column_width in enumerate(column_widths):
-		if column_width:
-			ws.column_dimensions[get_column_letter(i + 1)].width = column_width
-
-	ws.row_dimensions[1].font = Font(name="Calibri", bold=True)
-
-	date_format = XLSXStyleBuilder.get_date_format()
-	time_format = XLSXStyleBuilder.get_time_format()
-	datetime_format = XLSXStyleBuilder.get_datetime_format()
-
-	handle_html_content = should_handle_html_content(sheet_name)
-
-	# pre-compile check for illegal characters
-	illegal_chars_search = ILLEGAL_CHARACTERS_RE.search
-	illegal_chars_sub = ILLEGAL_CHARACTERS_RE.sub
-
-	for row in data:
-		excel_row = []
-
-		for value in row:
-			if isinstance(value, str):
-				if handle_html_content:
-					value = handle_html(value)
-
-				if illegal_chars_search(value):
-					value = illegal_chars_sub("", value)
-
-			cell = WriteOnlyCell(ws, value=value)
-
-			# date/time formatting
-			if isinstance(value, datetime.datetime):
-				cell.number_format = datetime_format
-			elif isinstance(value, datetime.date):
-				cell.number_format = date_format
-			elif isinstance(value, datetime.time):
-				cell.number_format = time_format
-
-			excel_row.append(cell)
-
-		ws.append(excel_row)
-
-	file = BytesIO()
-
-	wb.save(file)
-	return file
-
-
+### Utilities ###
 def get_sanitized_sheet_name(name: str) -> str:
 	return INVALID_SHEET_NAME_RE.sub(" ", name)[:MAX_SHEET_NAME_LENGTH]
 
 
-def should_handle_html_content(sheet_name: str) -> bool:
-	return sheet_name not in {"Data Import Template", "Data Export"}
-
-
-### Utilities ###
 def handle_html(data: str) -> str:
 	# return if no html tags found
 	if "<" not in data or ">" not in data:
