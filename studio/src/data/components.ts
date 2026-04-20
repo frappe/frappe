@@ -793,13 +793,13 @@ export const COMPONENTS: FrappeUIComponents = {
 					{
 						label: "Help",
 						to: "/help",
-						icon: "{{ getIcon('help') }}",
+						icon: "{{ getIcon('circle-question-mark') }}",
 						onClick: () => alert("Help clicked!"),
 					},
 					{
 						label: "Logout",
-						to: "/logout",
-						icon: "{{ getIcon('logout') }}",
+						to: "/log-out",
+						icon: "{{ getIcon('log-out') }}",
 						onClick: () => alert("Logging out..."),
 					},
 				],
