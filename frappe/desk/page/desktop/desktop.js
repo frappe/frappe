@@ -522,25 +522,28 @@ class DesktopPage {
 		if (frappe.boot.desk_settings.search_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
 			awesome_bar.setup(".desktop-search-wrapper #desktop-navbar-modal-search");
+
+			frappe.ui.keys.add_shortcut({
+				shortcut: "ctrl+g",
+				action: function (e) {
+					$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
+					e.preventDefault();
+					return false;
+				},
+				description: __("Open Awesomebar"),
+				ignore_inputs: true,
+			});
+			frappe.ui.keys.add_shortcut({
+				shortcut: "ctrl+k",
+				action: function (e) {
+					$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
+					e.preventDefault();
+					return false;
+				},
+				description: __("Toggle Awesomebar"),
+				ignore_inputs: true,
+			});
 		}
-		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+g",
-			action: function (e) {
-				$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
-				e.preventDefault();
-				return false;
-			},
-			description: __("Open Awesomebar"),
-		});
-		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+k",
-			action: function (e) {
-				$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
-				e.preventDefault();
-				return false;
-			},
-			description: __("Open Awesomebar"),
-		});
 	}
 	handle_route_change() {
 		const me = this;

@@ -1048,7 +1048,7 @@ class FilterArea {
 
 	apply_filter(fieldname, value) {
 		let operator = "=";
-		if (value === "") {
+		if (value === "" || (fieldname === "_user_tags" && value === "No Tags")) {
 			operator = "is";
 			value = "not set";
 		}

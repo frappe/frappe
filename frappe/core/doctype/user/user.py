@@ -232,6 +232,7 @@ class User(Document):
 		self.check_enable_disable()
 		self.ensure_unique_roles()
 		self.ensure_unique_role_profiles()
+		self.sync_role_profile_name()
 		self.remove_all_roles_for_guest()
 		self.validate_username()
 		self.remove_disabled_roles()
@@ -277,11 +278,11 @@ class User(Document):
 	def move_role_profile_name_to_role_profiles(self):
 		"""This handles old role_profile_name field if programatically set.
 
-		This behaviour will be remoed in future versions."""
+		This behaviour will be removed in future versions."""
 		if not self.role_profile_name:
 			return
 
-		current_role_profiles = [r.role_profile for r in self.role_profiles]
+		current_role_profiles = {r.role_profile for r in self.role_profiles}
 		if self.role_profile_name in current_role_profiles:
 			self.role_profile_name = None
 			return
@@ -295,6 +296,10 @@ class User(Document):
 		)
 		self.append("role_profiles", {"role_profile": self.role_profile_name})
 		self.role_profile_name = None
+
+	def sync_role_profile_name(self):
+		"""Keep deprecated role_profile_name in sync for list view display."""
+		self.role_profile_name = self.role_profiles[0].role_profile if self.role_profiles else None
 
 	def validate_allowed_modules(self):
 		if self.module_profile:

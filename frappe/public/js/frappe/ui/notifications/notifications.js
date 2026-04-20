@@ -128,6 +128,7 @@ frappe.ui.Notifications = class Notifications {
 		e.stopImmediatePropagation();
 		this.dropdown_list.find(".unread").removeClass("unread");
 		frappe.call("frappe.desk.doctype.notification_log.notification_log.mark_all_as_read");
+		this.tabs.notifications?.update_count_badge(0);
 	}
 
 	setup_dropdown_events() {
@@ -233,10 +234,12 @@ class NotificationsView extends BaseNotificationsView {
 
 		this.dropdown_items = [];
 		this.notifications_fetched = false;
+		this.unread_count = frappe.boot.notification_unread_count || 0;
 
 		if (this.settings && this.settings.seen == 0) {
 			this.toggle_notification_icon(false);
 		}
+		this.update_count_badge(this.unread_count);
 	}
 
 	update_dropdown() {
@@ -272,6 +275,7 @@ class NotificationsView extends BaseNotificationsView {
 			})
 			.then(() => {
 				$el.removeClass("unread");
+				this.update_count_badge(Math.max(this.unread_count - 1, 0));
 			});
 	}
 
@@ -390,6 +394,23 @@ class NotificationsView extends BaseNotificationsView {
 		this.bell_indicator?.toggleClass("indicator blue", !seen);
 	}
 
+	update_count_badge(count) {
+		this.unread_count = count;
+		const $suffix = this.parent
+			.closest(".body-sidebar")
+			?.find(".sidebar-notification .sidebar-notification-count");
+		if (!$suffix?.length) return;
+
+		if (count > 0) {
+			$suffix
+				.text(count > 99 ? "99+" : count)
+				.attr("aria-label", __("{0} unread notifications", [count]))
+				.removeClass("hidden");
+		} else {
+			$suffix.removeAttr("aria-label").addClass("hidden");
+		}
+	}
+
 	toggle_seen(flag) {
 		frappe.call(
 			"frappe.desk.doctype.notification_settings.notification_settings.set_seen_value",
@@ -404,6 +425,7 @@ class NotificationsView extends BaseNotificationsView {
 		frappe.realtime.on("notification", () => {
 			this.settings.seen = 0;
 			this.toggle_notification_icon(false);
+			this.update_count_badge(this.unread_count + 1);
 			this.update_dropdown();
 		});
 

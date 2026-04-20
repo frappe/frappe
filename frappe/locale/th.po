@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-12 09:45+0000\n"
-"PO-Revision-Date: 2026-04-14 16:28\n"
+"PO-Revision-Date: 2026-04-16 16:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Thai\n"
 "MIME-Version: 1.0\n"
@@ -283,7 +283,9 @@ msgstr "<="
 msgid "<a href=\"https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication\" target=\"_blank\" rel=\"noopener noreferrer\">\n"
 "  Click here to learn about token-based authentication\n"
 "</a>"
-msgstr ""
+msgstr "<a href=\"https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication\" target=\"_blank\" rel=\"noopener noreferrer\">\n"
+"  คลิกที่นี่เพื่อเรียนรู้เกี่ยวกับการยืนยันตัวตนด้วยโทเค็น\n"
+"</a>"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:601
 msgid "<b>{0}</b> is not a valid URL"
@@ -1222,7 +1224,7 @@ msgstr "บันทึกกิจกรรม"
 
 #: frappe/core/page/permission_manager/permission_manager.js:610
 msgid "Activity Log for {0}"
-msgstr ""
+msgstr "บันทึกกิจกรรมสำหรับ {0}"
 
 #: frappe/core/page/permission_manager/permission_manager.js:539
 #: frappe/email/doctype/email_group/email_group.js:60
@@ -1339,7 +1341,7 @@ msgstr "เพิ่มดัชนี"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:32
 msgid "Add New"
-msgstr ""
+msgstr "เพิ่มใหม่"
 
 #: frappe/core/page/permission_manager/permission_manager.js:502
 msgid "Add New Permission Rule"
@@ -1357,7 +1359,7 @@ msgstr "เพิ่มพารามิเตอร์การค้นหา
 #. Label of the add_reply_to_header (Check) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Add Reply-To header"
-msgstr ""
+msgstr "เพิ่มส่วนหัว Reply-To"
 
 #: frappe/core/doctype/user/user.py:882
 msgid "Add Roles"
@@ -1523,7 +1525,7 @@ msgstr "เพิ่มไปยังแดชบอร์ด"
 
 #: frappe/desk/doctype/workspace/workspace.js:49
 msgid "Add to Desktop"
-msgstr ""
+msgstr "เพิ่มไปยังเดสก์ท็อป"
 
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:110
 msgid "Add to ToDo"
@@ -1548,7 +1550,7 @@ msgstr "เพิ่ม {0}"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:67
 msgid "Add/Update Filter"
-msgstr ""
+msgstr "เพิ่ม/อัปเดตตัวกรอง"
 
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
@@ -1650,7 +1652,7 @@ msgstr "ที่อยู่และข้อมูลติดต่อ"
 #. Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Addresses added here will be used as the Reply-To header for outgoing emails sent from this account."
-msgstr ""
+msgstr "ที่อยู่ที่เพิ่มที่นี่จะถูกใช้เป็นส่วนหัว Reply-To สำหรับอีเมลขาออกที่ส่งจากบัญชีนี้"
 
 #. Description of a DocType
 #: frappe/custom/doctype/client_script/client_script.json
@@ -2041,7 +2043,7 @@ msgstr "อนุญาตให้ผู้สร้างเอกสารอ
 #. Label of the bulk_actions (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Allow bulk actions"
-msgstr ""
+msgstr "อนุญาตการดำเนินการจำนวนมาก"
 
 #. Label of the allow_comments (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -2101,7 +2103,7 @@ msgstr "อนุญาตให้ตอบได้หลายคำตอบ
 #. Label of the notifications (Check) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Allow notifications"
-msgstr ""
+msgstr "อนุญาตการแจ้งเตือน"
 
 #. Label of the allow_on_submit (Check) field in DocType 'DocField'
 #. Label of the allow_on_submit (Check) field in DocType 'Custom Field'
@@ -2289,7 +2291,7 @@ msgstr "ลงทะเบียนแล้ว"
 
 #: frappe/public/js/frappe/form/toolbar.js:742
 msgid "Already amended as {0}"
-msgstr ""
+msgstr "แก้ไขแล้วเป็น {0}"
 
 #: frappe/desk/form/assign_to.py:138
 msgid "Already in the following Users ToDo list:{0}"
@@ -3101,7 +3103,7 @@ msgstr "บันทึกการตรวจสอบ"
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/users.json
 msgid "Audits"
-msgstr ""
+msgstr "การตรวจสอบ"
 
 #. Label of the auth_url_data (Code) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -3537,7 +3539,7 @@ msgstr "ภาพพื้นหลัง"
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/system.json
 msgid "Background Job"
-msgstr ""
+msgstr "งานพื้นหลัง"
 
 #. Label of a Link in the Build Workspace
 #. Label of the background_jobs_section (Section Break) field in DocType
@@ -4330,11 +4332,11 @@ msgstr "ไม่สามารถเข้าถึงเส้นทางไ
 
 #: frappe/core/doctype/file/file.py:150
 msgid "Cannot attach a folder to a document"
-msgstr ""
+msgstr "ไม่สามารถแนบโฟลเดอร์ไปยังเอกสารได้"
 
 #: frappe/public/js/workflow_builder/utils.js:183
 msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
-msgstr ""
+msgstr "ไม่สามารถยกเลิกก่อนส่งขณะเปลี่ยนจาก<b>สถานะ {0}</b> เป็น<b>สถานะ {1}</b>"
 
 #: frappe/workflow/doctype/workflow/workflow.py:125
 msgid "Cannot cancel before submitting. See Transition {0}"
@@ -4354,7 +4356,7 @@ msgstr "ไม่สามารถเปลี่ยนสถานะเอก
 
 #: frappe/model/document.py:1064
 msgid "Cannot change docstatus of non submittable doctype {0}"
-msgstr ""
+msgstr "ไม่สามารถเปลี่ยน docstatus ของประเภทเอกสารที่ไม่สามารถส่งได้ {0}"
 
 #: frappe/public/js/workflow_builder/utils.js:170
 msgid "Cannot change state of Cancelled Document <b>({0} State)</b>"
@@ -4445,7 +4447,7 @@ msgstr "ไม่สามารถแก้ไขเอกสารที่ถ
 
 #: frappe/website/doctype/web_form/web_form.js:367
 msgid "Cannot edit filters for standard Web Forms"
-msgstr ""
+msgstr "ไม่สามารถแก้ไขฟิลเตอร์สำหรับเว็บฟอร์มมาตรฐานได้"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:378
 msgid "Cannot edit filters for standard charts"
@@ -4947,7 +4949,7 @@ msgstr "คลิกที่ลิงก์ด้านล่างเพื่
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:699
 msgid "Click on {0} to edit"
-msgstr ""
+msgstr "คลิกที่ {0} เพื่อแก้ไข"
 
 #: frappe/integrations/doctype/google_calendar/google_calendar.py:118
 #: frappe/integrations/doctype/google_contacts/google_contacts.py:41
@@ -4977,7 +4979,7 @@ msgstr "คลิกเพื่อตั้งค่าตัวกรอง"
 
 #: frappe/desk/page/desktop/desktop.js:1253
 msgid "Click to edit"
-msgstr ""
+msgstr "คลิกเพื่อแก้ไข"
 
 #: frappe/public/js/frappe/list/list_view.js:744
 #: frappe/public/js/frappe/list/list_view.js:764
@@ -5874,11 +5876,11 @@ msgstr "คัดลอก {0} {1} ไปยังคลิปบอร์ด"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:69
 msgid "Copy Apps Version"
-msgstr ""
+msgstr "คัดลอกเวอร์ชันแอป"
 
 #: frappe/public/js/frappe/views/file/file_view.js:299
 msgid "Copy File URL"
-msgstr ""
+msgstr "คัดลอก URL ไฟล์"
 
 #: frappe/public/js/frappe/form/templates/timeline_message_box.html:93
 msgid "Copy Link"
@@ -6598,7 +6600,7 @@ msgstr "สีฟ้าอมเขียว"
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "DELAY"
-msgstr ""
+msgstr "ล่าช้า"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #. Option for the 'Request Method' (Select) field in DocType 'Webhook'
@@ -7428,7 +7430,7 @@ msgstr "สถานะการจัดส่ง"
 #. Label of the dsn_notify_type (Select) field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "Delivery Status Notification Type"
-msgstr ""
+msgstr "ประเภทการแจ้งเตือนสถานะการจัดส่ง"
 
 #. Option for the 'Sign ups' (Select) field in DocType 'Social Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
@@ -7909,7 +7911,7 @@ msgstr "สถานะเอกสาร"
 #: frappe/public/js/workflow_builder/store.js:165
 #: frappe/workflow/doctype/workflow/workflow.js:141
 msgid "Doc Status Reset"
-msgstr ""
+msgstr "รีเซ็ตสถานะเอกสาร"
 
 #. Name of a DocType
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
@@ -8699,7 +8701,7 @@ msgstr "ไดนามิก"
 
 #: frappe/www/list.py:232
 msgid "Dynamic Filter Error"
-msgstr ""
+msgstr "ข้อผิดพลาดฟิลเตอร์ไดนามิก"
 
 #. Label of the dynamic_filters_section (Section Break) field in DocType
 #. 'Dashboard Chart'
@@ -9281,15 +9283,15 @@ msgstr "คิวอีเมลถูกระงับชั่วคราว
 
 #: frappe/public/js/frappe/views/communication.js:955
 msgid "Email sending undone"
-msgstr ""
+msgstr "เลิกทำการส่งอีเมลแล้ว"
 
 #: frappe/email/doctype/email_queue/email_queue.py:199
 msgid "Email size {0:.2f} MB exceeds the maximum allowed size of {1:.2f} MB"
-msgstr ""
+msgstr "ขนาดอีเมล {0:.2f} MB เกินขนาดสูงสุดที่อนุญาต {1:.2f} MB"
 
 #: frappe/core/doctype/communication/email.py:349
 msgid "Email undo window is over. Cannot undo email."
-msgstr ""
+msgstr "หมดเวลาเลิกทำอีเมลแล้ว ไม่สามารถเลิกทำอีเมลได้"
 
 #. Label of the section_break_udjs (Section Break) field in DocType 'System
 #. Health Report'
@@ -9696,7 +9698,7 @@ msgstr "ป้อนพารามิเตอร์ URL แบบคงที�
 
 #: frappe/public/js/form_builder/components/FieldProperties.vue:66
 msgid "Enter the fieldname of the currency field or a cached value (e.g. Company:company:default_currency)."
-msgstr ""
+msgstr "ป้อนชื่อฟิลด์ของฟิลด์สกุลเงินหรือค่าที่แคชไว้ (เช่น Company:company:default_currency)"
 
 #. Description of the 'Message Parameter' (Data) field in DocType 'SMS
 #. Settings'
@@ -10237,7 +10239,7 @@ msgstr "พารามิเตอร์เพิ่มเติม"
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "FAILURE"
-msgstr ""
+msgstr "ล้มเหลว"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -10324,7 +10326,7 @@ msgstr "ไม่สามารถถอดรหัสกุญแจได้
 
 #: frappe/core/doctype/communication/email.py:344
 msgid "Failed to delete communication"
-msgstr ""
+msgstr "ไม่สามารถลบการสื่อสารได้"
 
 #: frappe/desk/reportview.py:642
 msgid "Failed to delete {0} documents: {1}"
@@ -10381,7 +10383,7 @@ msgstr "ล้มเหลวในการร้องขอเข้าสู
 
 #: frappe/email/doctype/email_account/email_account.py:236
 msgid "Failed to retrieve the list of IMAP folders from the server. Please ensure the mailbox is accessible and the account has permission to list folders."
-msgstr ""
+msgstr "ไม่สามารถดึงรายการโฟลเดอร์ IMAP จากเซิร์ฟเวอร์ได้ กรุณาตรวจสอบว่ากล่องจดหมายสามารถเข้าถึงได้และบัญชีมีการอนุญาตในการแสดงรายการโฟลเดอร์"
 
 #: frappe/email/doctype/email_queue/email_queue.py:347
 msgid "Failed to send email with subject:"
@@ -10767,7 +10769,7 @@ msgstr "ไฟล์ URL"
 
 #: frappe/core/doctype/file/file.py:123
 msgid "File URL is required when copying an existing attachment."
-msgstr ""
+msgstr "ต้องระบุ URL ของไฟล์เมื่อคัดลอกเอกสารแนบที่มีอยู่"
 
 #: frappe/desk/page/backups/backups.py:107
 msgid "File backup is ready"
@@ -10944,7 +10946,7 @@ msgstr "บันทึกตัวกรอง"
 #. Description of the 'Script' (Code) field in DocType 'Report'
 #: frappe/core/doctype/report/report.json
 msgid "Filters will be accessible via <code>filters</code>. <br><br>Send output as <code>result = [result]</code>, or for old style <code>data = [columns], [result]</code>"
-msgstr ""
+msgstr "ตัวกรองจะสามารถเข้าถึงได้ผ่าน <code>filters</code> <br><br>ส่งผลลัพธ์เป็น <code>result = [result]</code> หรือในรูปแบบเก่า <code>data = [columns], [result]</code>"
 
 #: frappe/public/js/frappe/ui/filters/filter_list.js:133
 msgid "Filters {0}"
@@ -10977,7 +10979,7 @@ msgstr "เสร็จสิ้น ณ"
 
 #: frappe/public/js/frappe/form/grid_pagination.js:123
 msgid "First"
-msgstr ""
+msgstr "แรก"
 
 #. Label of the first_day_of_the_week (Select) field in DocType 'Language'
 #. Label of the first_day_of_the_week (Select) field in DocType 'System
@@ -11105,7 +11107,7 @@ msgstr "เอกสารต่อไปนี้ {0}"
 
 #: frappe/public/js/frappe/form/linked_with.js:56
 msgid "Following documents are linked with {0}"
-msgstr ""
+msgstr "เอกสารต่อไปนี้เชื่อมโยงกับ {0}"
 
 #: frappe/website/doctype/web_form/web_form.py:111
 msgid "Following fields are missing:"
@@ -11284,7 +11286,8 @@ msgstr "สำหรับหัวข้อที่มีการเปลี
 #: frappe/public/js/frappe/views/reports/report_view.js:435
 msgid "For comparison, use >5, <10 or =324.\n"
 "For ranges, use 5:10 (for values between 5 & 10)."
-msgstr ""
+msgstr "สำหรับการเปรียบเทียบ ใช้ >5, <10 หรือ =324\n"
+"สำหรับช่วง ใช้ 5:10 (สำหรับค่าระหว่าง 5 ถึง 10)"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:2293
 msgid "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
@@ -11467,7 +11470,7 @@ msgstr "หน่วยเศษส่วน"
 #. Label of a Desktop Icon
 #: frappe/desktop_icon/framework.json
 msgid "Framework"
-msgstr ""
+msgstr "เฟรมเวิร์ก"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -11804,7 +11807,7 @@ msgstr "รับอวาตาร์ที่ได้รับการยอ
 #: frappe/public/js/frappe/ui/sidebar/sidebar.html:47
 #: frappe/public/js/frappe/ui/user_onboarding/OnboardingPanel.vue:235
 msgid "Getting Started"
-msgstr ""
+msgstr "เริ่มต้นใช้งาน"
 
 #. Label of the git_branch (Data) field in DocType 'Installed Application'
 #: frappe/core/doctype/installed_application/installed_application.json
@@ -12272,7 +12275,7 @@ msgstr "มีไฟล์แนบ"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:102
 msgid "Has Attachments"
-msgstr ""
+msgstr "มีไฟล์แนบ"
 
 #. Name of a DocType
 #: frappe/core/doctype/has_domain/has_domain.json
@@ -12382,7 +12385,7 @@ msgstr "หัวข้อ"
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/system.json
 msgid "Health Report"
-msgstr ""
+msgstr "รายงานสถานะ"
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -12802,16 +12805,16 @@ msgstr "โฟลเดอร์ IMAP"
 
 #: frappe/email/doctype/email_account/email_account.py:275
 msgid "IMAP Folder Not Found"
-msgstr ""
+msgstr "ไม่พบโฟลเดอร์ IMAP"
 
 #: frappe/email/doctype/email_account/email_account.py:239
 #: frappe/email/doctype/email_account/email_account.py:247
 msgid "IMAP Folder Validation Failed"
-msgstr ""
+msgstr "การตรวจสอบโฟลเดอร์ IMAP ล้มเหลว"
 
 #: frappe/email/doctype/email_account/email_account.py:255
 msgid "IMAP Folder name cannot be empty."
-msgstr ""
+msgstr "ชื่อโฟลเดอร์ IMAP ไม่สามารถเว้นว่างได้"
 
 #. Label of the ip_address (Data) field in DocType 'Activity Log'
 #. Label of the ip_address (Data) field in DocType 'Comment'
@@ -13009,7 +13012,7 @@ msgstr "หากเว้นว่างไว้ พื้นที่ทำ�
 
 #: frappe/public/js/frappe/form/print_utils.js:36
 msgid "If no Print Format is selected, the default template for this report will be used."
-msgstr ""
+msgstr "หากไม่ได้เลือกรูปแบบการพิมพ์ จะใช้แม่แบบเริ่มต้นสำหรับรายงานนี้"
 
 #. Description of the 'Port' (Data) field in DocType 'Email Domain'
 #: frappe/email/doctype/email_domain/email_domain.json
@@ -13203,7 +13206,7 @@ msgstr "ฟิลด์ภาพ"
 #. Label of the footer_image_height (Float) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Image Height (px)"
-msgstr ""
+msgstr "ความสูงของรูปภาพ (px)"
 
 #. Label of the image_link (Attach) field in DocType 'About Us Team Member'
 #: frappe/website/doctype/about_us_team_member/about_us_team_member.json
@@ -13218,7 +13221,7 @@ msgstr "มุมมองภาพ"
 #. Label of the footer_image_width (Float) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Image Width (px)"
-msgstr ""
+msgstr "ความกว้างของรูปภาพ (px)"
 
 #: frappe/core/doctype/doctype/doctype.py:1569
 msgid "Image field must be a valid fieldname"
@@ -13581,7 +13584,7 @@ msgstr "รหัสยืนยันไม่ถูกต้อง"
 
 #: frappe/public/js/frappe/views/gantt/gantt_view.js:88
 msgid "Incorrect configuration"
-msgstr ""
+msgstr "การกำหนดค่าไม่ถูกต้อง"
 
 #: frappe/model/document.py:1743
 msgid "Incorrect value in row {0}:"
@@ -14094,7 +14097,7 @@ msgstr "สถานะเอกสารไม่ถูกต้อง"
 
 #: frappe/www/list.py:231
 msgid "Invalid expression in Web Form Dynamic Filter for {0}: {1}"
-msgstr ""
+msgstr "นิพจน์ไม่ถูกต้องในตัวกรองแบบไดนามิกของ Web Form สำหรับ {0}: {1}"
 
 #: frappe/model/workflow.py:112
 msgid "Invalid expression in Workflow Update Value: {0}"
@@ -14353,7 +14356,7 @@ msgstr "ค่าเริ่มต้น"
 #. 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Is Dismissible"
-msgstr ""
+msgstr "สามารถปิดได้"
 
 #. Label of the is_dynamic_url (Check) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -14551,7 +14554,7 @@ msgstr "การลบไฟล์นี้: {0} มีความเสี่
 
 #: frappe/core/doctype/communication/email.py:359
 msgid "It is too late to undo this email. It is already being sent."
-msgstr ""
+msgstr "สายเกินไปที่จะเลิกทำอีเมลนี้ กำลังส่งอยู่แล้ว"
 
 #. Label of the item_label (Data) field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json
@@ -15458,11 +15461,11 @@ msgstr "ถูกใจโดย"
 
 #: frappe/public/js/frappe/list/list_view.js:785
 msgid "Liked by me"
-msgstr ""
+msgstr "ที่ฉันถูกใจ"
 
 #: frappe/public/js/frappe/ui/like.js:117
 msgid "Liked by {0} people"
-msgstr ""
+msgstr "ถูกใจโดย {0} คน"
 
 #. Label of the likes (Int) field in DocType 'Help Article'
 #: frappe/website/doctype/help_article/help_article.json
@@ -15650,7 +15653,7 @@ msgstr "ลิงก์แล้ว"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:109
 msgid "Linked with {0}"
-msgstr ""
+msgstr "เชื่อมโยงกับ {0}"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:40
 msgid "LinkedIn"
@@ -15816,7 +15819,7 @@ msgstr "กำลังโหลด..."
 
 #: frappe/core/page/permission_manager/permission_manager.js:615
 msgid "Loading…"
-msgstr ""
+msgstr "กำลังโหลด…"
 
 #. Label of the location (Data) field in DocType 'User'
 #. Label of the location (Data) field in DocType 'Event'
@@ -17188,7 +17191,7 @@ msgstr "ไม่มี"
 #. 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json
 msgid "NEVER"
-msgstr ""
+msgstr "ไม่เลย"
 
 #: frappe/workflow/doctype/workflow/workflow.js:19
 msgid "NOTE: If you add states or transitions in the table, it will be reflected in the Workflow Builder but you will have to position them manually. Also Workflow Builder is currently in <b>BETA</b>."
@@ -17491,7 +17494,7 @@ msgstr "ชื่อรายงานใหม่"
 
 #: frappe/core/doctype/role/role.js:55
 msgid "New Role Name"
-msgstr ""
+msgstr "ชื่อบทบาทใหม่"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:60
 msgid "New Shortcut"
@@ -17542,11 +17545,11 @@ msgstr "รหัสผ่านใหม่ต้องไม่เหมือ
 
 #: frappe/core/doctype/user/user.py:962
 msgid "New password cannot be the same as your current password. Please choose a different password."
-msgstr ""
+msgstr "รหัสผ่านใหม่ไม่สามารถเหมือนกับรหัสผ่านปัจจุบันของคุณได้ กรุณาเลือกรหัสผ่านอื่น"
 
 #: frappe/core/doctype/role/role.js:78
 msgid "New role created successfully."
-msgstr ""
+msgstr "สร้างบทบาทใหม่สำเร็จแล้ว"
 
 #: frappe/utils/change_log.py:389
 msgid "New updates are available"
@@ -17814,7 +17817,7 @@ msgstr "ไม่มีกิจกรรมใน Google Calendar ที่จ�
 
 #: frappe/email/doctype/email_account/email_account.py:244
 msgid "No IMAP folders were found on the server. Please verify the email account settings and ensure the mailbox contains folders."
-msgstr ""
+msgstr "ไม่พบโฟลเดอร์ IMAP บนเซิร์ฟเวอร์ กรุณาตรวจสอบการตั้งค่าบัญชีอีเมลและตรวจสอบให้แน่ใจว่ากล่องจดหมายมีโฟลเดอร์"
 
 #: frappe/public/js/frappe/ui/capture.js:263
 msgid "No Images"
@@ -17913,7 +17916,7 @@ msgstr "ไม่มีกิจกรรมที่กำลังจะมา
 
 #: frappe/core/page/permission_manager/permission_manager.js:630
 msgid "No activity recorded yet."
-msgstr ""
+msgstr "ยังไม่มีกิจกรรมที่บันทึกไว้"
 
 #: frappe/public/js/frappe/form/templates/address_list.html:43
 msgid "No address added yet."
@@ -18018,7 +18021,7 @@ msgstr "ไม่มีบันทึกเพิ่มเติม"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:327
 msgid "No matching entries in the current results"
-msgstr ""
+msgstr "ไม่พบรายการที่ตรงกันในผลลัพธ์ปัจจุบัน"
 
 #: frappe/templates/includes/search_template.html:49
 msgid "No matching records. Search something new"
@@ -18646,7 +18649,7 @@ msgstr "ข้อผิดพลาด OAuth"
 #. Label of a Workspace Sidebar Item
 #: frappe/workspace_sidebar/integrations.json
 msgid "OAuth Provider"
-msgstr ""
+msgstr "ผู้ให้บริการ OAuth"
 
 #. Name of a DocType
 #. Label of a Link in the Integrations Workspace
@@ -18915,7 +18918,7 @@ msgstr "อนุญาตให้แก้ไขเฉพาะสำหรั
 
 #: frappe/core/doctype/module_def/module_def.py:95
 msgid "Only Custom Modules can be renamed."
-msgstr ""
+msgstr "สามารถเปลี่ยนชื่อได้เฉพาะโมดูลที่กำหนดเองเท่านั้น"
 
 #: frappe/core/doctype/doctype/doctype.py:1683
 msgid "Only Options allowed for Data field are:"
@@ -19040,7 +19043,7 @@ msgstr "เปิดความช่วยเหลือ"
 #: frappe/public/js/frappe/form/controls/data.js:84
 #: frappe/public/js/frappe/form/controls/link.js:17
 msgid "Open Link"
-msgstr ""
+msgstr "เปิดลิงก์"
 
 #. Label of the open_reference_document (Button) field in DocType 'Notification
 #. Log'
@@ -19058,7 +19061,7 @@ msgstr "แอปพลิเคชันโอเพนซอร์สสำห
 
 #: frappe/public/js/frappe/form/controls/base_control.js:165
 msgid "Open Translation"
-msgstr ""
+msgstr "เปิดการแปล"
 
 #. Label of the open_in_new_tab (Check) field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -19082,7 +19085,7 @@ msgstr "เปิดคอนโซล"
 #. Item'
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 msgid "Open in New Tab"
-msgstr ""
+msgstr "เปิดในแท็บใหม่"
 
 #: frappe/public/js/print_format_builder/Preview.vue:17
 msgid "Open in a new tab"
@@ -20204,7 +20207,7 @@ msgstr "โปรดเพิ่มความคิดเห็นที่ถ
 
 #: frappe/public/js/frappe/views/reports/query_report.js:1560
 msgid "Please adjust filters to include some data"
-msgstr ""
+msgstr "กรุณาปรับตัวกรองเพื่อรวมข้อมูลบางส่วน"
 
 #: frappe/core/doctype/user/user.py:1152
 msgid "Please ask your administrator to verify your sign-up"

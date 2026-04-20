@@ -14,7 +14,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		$(`<div class="link-field ui-front" style="position: relative;">
 			<input type="text" class="input-with-feedback form-control">
 			<span class="link-btn">
-				<a class="btn-clear" style="display: inline-block;" title="${__("Clear Link")}">
+				<a class="btn-clear" style="display: inline-flex;" title="${__("Clear Link")}">
 					${frappe.utils.icon("close", "xs", "es-icon")}
 				</a>
 				<a class="btn-open" style="display: inline-flex;" title="${__("Open Link")}">
@@ -82,7 +82,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 
 	is_clear_button_enabled() {
-		return cint(frappe.boot?.sysdefaults?.allow_clearing_link_fields);
+		return Boolean(cint(frappe.boot?.sysdefaults?.allow_clearing_link_fields));
 	}
 
 	hide_link_and_clear_buttons() {

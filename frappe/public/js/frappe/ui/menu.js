@@ -175,7 +175,22 @@ frappe.ui.menu = class ContextMenu {
 		if (item.items) {
 			let nested_menu = this.handle_nested_menu(item_wrapper, item);
 			this.nested_menus.push(nested_menu);
+			me.handle_submenu_hover(item_wrapper);
 		}
+	}
+	handle_submenu_hover(item_wrapper) {
+		const me = this;
+
+		$(item_wrapper).on("mouseenter", function (event) {
+			me.nested_menus.forEach((menu) => {
+				if (menu.parent.get(0) === this) {
+					me.current_menu = menu;
+					menu.show(event);
+				} else {
+					menu.hide();
+				}
+			});
+		});
 	}
 
 	handle_nested_menu(item_wrapper, item) {
@@ -242,6 +257,11 @@ frappe.ui.menu = class ContextMenu {
 	hide() {
 		this.template.css("display", "none");
 		this.visible = false;
+		if (this.nested_menus && this.nested_menus.length) {
+			this.nested_menus.forEach((menu) => {
+				menu.hide();
+			});
+		}
 	}
 	mouseX(evt) {
 		if (evt.pageX) {

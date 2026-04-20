@@ -137,12 +137,7 @@ frappe.views.Workspace = class Workspace {
 	get_page_to_show() {
 		let default_page;
 
-		if (frappe.boot.user.default_workspace) {
-			default_page = {
-				name: frappe.boot.user.default_workspace.name,
-				public: frappe.boot.user.default_workspace.public,
-			};
-		} else if (
+		if (
 			localStorage.current_page &&
 			this.workspaces.filter((page) => page.name == localStorage.current_page).length != 0
 		) {
