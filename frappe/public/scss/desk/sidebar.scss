@@ -72,7 +72,7 @@
 	}
 
 	.body-sidebar-bottom {
-		padding: 7px;
+		padding: 0px;
 		width: 100%;
 	}
 
@@ -153,8 +153,9 @@
 	}
 
 	.nav-item {
-		margin-left: -5px;
+		padding: 4px 0px;
 	}
+
 	.standard-items-sections {
 		.dropdown-notifications {
 			.notifications-list {
@@ -175,8 +176,24 @@
 			}
 		}
 
+		.collapse-sidebar-link {
+			text-decoration: none;
+			font-size: var(--text-sm);
+			display: flex;
+			align-items: center;
+			svg {
+				margin: 0px;
+				flex: 0 0 auto;
+			}
+			span {
+				margin-left: 10px;
+				@include truncate();
+			}
+			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
+		}
+
 		.nav-item {
-			margin-left: -5px;
+			padding: 4px 8px;
 		}
 
 		.dropdown-navbar-user {
@@ -185,7 +202,6 @@
 			}
 
 			.sidebar-user-button {
-				padding: var(--padding-sm);
 				border-radius: var(--border-radius-sm);
 			}
 		}

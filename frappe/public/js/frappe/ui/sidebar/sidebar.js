@@ -336,7 +336,7 @@ frappe.ui.Sidebar = class Sidebar {
 		this.wrapper = $(
 			frappe.render_template("sidebar", {
 				expanded: this.sidebar_expanded,
-				avatar: frappe.avatar(frappe.session.user, "avatar-medium"),
+				avatar: frappe.avatar(frappe.session.user, "avatar-medium-2"),
 				navbar_settings: frappe.boot.navbar_settings,
 			})
 		).prependTo("body");
@@ -344,6 +344,14 @@ frappe.ui.Sidebar = class Sidebar {
 
 		this.wrapper.find(".body-sidebar .sidebar-resize-handle").on("click", () => {
 			this.toggle_width();
+		});
+
+		this.wrapper.find(".body-sidebar .collapse-sidebar-link").on("click", () => {
+			this.toggle_width();
+		});
+
+		this.wrapper.find(".body-sidebar .about-sidebar-link").on("click", () => {
+			frappe.ui.toolbar.show_about();
 		});
 
 		this.wrapper.find(".overlay").on("click", () => {
@@ -434,6 +442,8 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	make_sidebar() {
 		this.empty();
+		this.wrapper.find(".collapse-sidebar-link").removeClass("hidden");
+		this.wrapper.find(".about-sidebar-link").removeClass("hidden");
 		if (this.editor.edit_mode) {
 			this.create_sidebar(this.editor.new_sidebar_items);
 		} else {
@@ -461,6 +471,8 @@ frappe.ui.Sidebar = class Sidebar {
 				"<div class='flex' style='padding: 30px'> No Sidebar Items </div>"
 			);
 			this.wrapper.find(".sidebar-items").append(no_items_message);
+			this.wrapper.find(".collapse-sidebar-link").addClass("hidden");
+			this.wrapper.find(".about-sidebar-link").addClass("hidden");
 		}
 		if (this.edit_mode) {
 			$(".edit-menu").removeClass("hidden");
@@ -563,21 +575,30 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	expand_sidebar() {
+		let direction;
 		if (this.sidebar_expanded) {
 			this.wrapper.addClass("expanded");
+			direction = "right";
 			$('[data-toggle="tooltip"]').tooltip("dispose");
 			this.wrapper.find(".avatar-name-email").show();
+			this.wrapper.find(".about-sidebar-link").show();
 		} else {
 			this.wrapper.removeClass("expanded");
+			direction = "left";
 			$('[data-toggle="tooltip"]').tooltip({
 				boundary: "window",
 				container: "body",
 				trigger: "hover",
 			});
 			this.wrapper.find(".avatar-name-email").hide();
+			this.wrapper.find(".about-sidebar-link").hide();
 		}
 
 		localStorage.setItem("sidebar-expanded", this.sidebar_expanded);
+		this.wrapper
+			.find(".body-sidebar .collapse-sidebar-link")
+			.find("use")
+			.attr("href", `#icon-panel-${direction}-open`);
 		this.sidebar_header.toggle_width(this.sidebar_expanded);
 		$(document).trigger("sidebar-expand", {
 			sidebar_expand: this.sidebar_expanded,
