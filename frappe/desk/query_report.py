@@ -540,8 +540,6 @@ def build_xlsx_data(
 			"Filter data.result before calling build_xlsx_data instead.",
 		)
 
-	has_total_row = cint(data.get("add_total_row"))
-
 	# NOTE: for backwards compatibility!!
 	if not visible_idx or len(visible_idx) == len(data.result):
 		# It's not possible to have same length and different content.
@@ -586,6 +584,7 @@ def build_xlsx_data(
 	result.append(column_data)
 
 	last_row_index = len(data.result) - 1
+	has_total_row = cint(data.get("add_total_row"))
 
 	# build table from result
 	for row_idx, row in enumerate(data.result):
