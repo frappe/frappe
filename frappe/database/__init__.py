@@ -8,6 +8,7 @@ from shutil import which
 from urllib.parse import quote
 
 from frappe.database.database import savepoint
+from frappe.database.duckdb import *
 
 
 def setup_database(force, verbose=None, mariadb_user_host_login_scope=None):
@@ -25,6 +26,9 @@ def setup_database(force, verbose=None, mariadb_user_host_login_scope=None):
 		import frappe.database.postgres.setup_db
 
 		return frappe.database.postgres.setup_db.setup_database()
+
+	# Also setup DuckDB
+	import frappe.database.duckdb.setup_db
 
 
 def bootstrap_database(verbose=None, source_sql=None):
