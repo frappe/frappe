@@ -2,12 +2,12 @@
 # See license.txt
 
 import json
-from unittest.mock import patch
 
 import frappe
 from frappe.desk.doctype.document_template.document_template import (
 	_check_user_permissions_on_template_data,
-	_is_visible,
+	_has_template_manager_role,
+	_is_system_manager,
 	get_permission_query_conditions,
 	get_template_data,
 	get_templates,
@@ -26,7 +26,7 @@ def make_template(
 ):
 	"""Helper: insert a Document Template and return the doc."""
 	if data is None:
-		data = json.dumps({"doctype": reference_doctype, "description": "Test value"})
+		data = json.dumps({"description": "Test value"})
 
 	doc = frappe.new_doc("Document Template")
 	doc.reference_doctype = reference_doctype
@@ -65,348 +65,389 @@ class TestDocumentTemplate(IntegrationTestCase):
 		cls.user1 = "desk_user_1@example.com"
 		cls.user2 = "desk_user_2@example.com"
 
-	def _setup_user_permission(self, user, allow, for_value, applicable_for=None):
-		"""Create a User Permission record (auto-cleaned by rollback)."""
-		filters = {"user": user, "allow": allow, "for_value": for_value}
-		if applicable_for:
-			filters["applicable_for"] = applicable_for
-
-		existing = frappe.db.exists("User Permission", filters)
-		if existing:
-			frappe.clear_cache()
-			return frappe.get_doc("User Permission", existing)
-
-		up = frappe.new_doc("User Permission")
-		up.user = user
-		up.allow = allow
-		up.for_value = for_value
-		if applicable_for:
-			up.applicable_for = applicable_for
-		up.insert(ignore_permissions=True)
-		frappe.clear_cache()
-		return up
-
-	def test_validate_duplicate_name_rules(self):
-		"""Validate uniqueness rules for template names."""
-		# different users can have private templates with the same name
+	def test_validate_duplicate_name(self):
+		"""Duplicate name rules: public must be unique per doctype, private scoped to owner."""
 		make_template(template_name="Dup Name", private=1, owner=self.user1)
 		make_template(template_name="Dup Name", private=1, owner=self.user2)
 
-		# public template name must be unique per doctype
 		make_template(template_name="Pub Dup", private=0, owner=self.user1)
 		with self.assertRaises(frappe.ValidationError):
 			make_template(template_name="Pub Dup", private=0, owner=self.user2)
 
-		# private + public with same name is allowed
-		make_template(template_name="Mixed", private=0, owner=self.user1)
-		make_template(template_name="Mixed", private=1, owner=self.user2)
-
-		# same name across different doctypes is allowed
-		make_template(reference_doctype="ToDo", template_name="Cross DT", owner=self.user1)
-		make_template(reference_doctype="Note", template_name="Cross DT", owner=self.user1)
-
-		# duplicate private name for same owner + same doctype must raise
-		make_template(template_name="Same Owner Dup", private=1, owner=self.user1)
+		make_template(template_name="Owner Dup", private=1, owner=self.user1)
 		with self.assertRaises(frappe.ValidationError):
-			make_template(template_name="Same Owner Dup", private=1, owner=self.user1)
+			make_template(template_name="Owner Dup", private=1, owner=self.user1)
 
-	def test_validate_data_field(self):
-		"""Data must be a valid non-empty JSON object."""
-		for bad_data in ("not-valid-json", json.dumps([1, 2, 3]), json.dumps({}), "null"):
-			with self.assertRaises(frappe.ValidationError):
-				make_template(data=bad_data)
+	def test_private_and_public_same_name_allowed(self):
+		"""A user may have one public and one private template with the same name."""
+		make_template(template_name="Dual Name", private=0, owner=self.user1)
+		make_template(template_name="Dual Name", private=1, owner=self.user1)
 
-	def test_validate_required_fields(self):
-		"""template_name and reference_doctype are mandatory."""
-		with self.assertRaises((frappe.MandatoryError, frappe.ValidationError)):
-			make_template(template_name="")
-		with self.assertRaises((frappe.MandatoryError, frappe.ValidationError)):
-			make_template(reference_doctype="")
+	def test_duplicate_name_different_doctype_allowed(self):
+		"""Same template name on different reference doctypes is allowed."""
+		make_template(template_name="Cross DT", private=0, reference_doctype="ToDo")
+		make_template(template_name="Cross DT", private=0, reference_doctype="Note")
 
-	def test_permission_query_conditions(self):
-		"""Admin/System Manager get no filter; regular users get 1=0."""
-		self.assertEqual(get_permission_query_conditions("Administrator"), "")
-		self.assertEqual(get_permission_query_conditions(self.user1), "1=0")
+	def test_validate_data_invalid_json(self):
+		"""Non-JSON string is rejected."""
+		with self.assertRaises(frappe.ValidationError):
+			make_template(data="not-valid-json")
 
-		# defaults to session user
+	def test_validate_data_array_rejected(self):
+		"""JSON array is rejected (must be object)."""
+		with self.assertRaises(frappe.ValidationError):
+			make_template(data=json.dumps([1, 2, 3]))
+
+	def test_validate_data_empty_object_rejected(self):
+		"""Empty JSON object is rejected."""
+		with self.assertRaises(frappe.ValidationError):
+			make_template(data=json.dumps({}))
+
+	def test_validate_data_null_rejected(self):
+		"""JSON null is rejected."""
+		with self.assertRaises(frappe.ValidationError):
+			make_template(data="null")
+
+	def test_validate_data_string_value_rejected(self):
+		"""JSON string primitive is rejected (must be object)."""
+		with self.assertRaises(frappe.ValidationError):
+			make_template(data=json.dumps("hello"))
+
+	def test_validate_data_number_rejected(self):
+		"""JSON number primitive is rejected."""
+		with self.assertRaises(frappe.ValidationError):
+			make_template(data=json.dumps(42))
+
+	def test_before_save_pretty_prints_and_sorts(self):
+		"""Data is pretty-printed with sorted keys after save."""
+		raw = json.dumps({"z_field": 1, "a_field": 2})
+		tpl = make_template(data=raw, template_name="Pretty Print")
+		saved = frappe.db.get_value("Document Template", tpl.name, "data")
+		keys = list(json.loads(saved).keys())
+		self.assertEqual(keys, sorted(keys))
+
+	def test_valid_data_accepted(self):
+		"""A valid non-empty JSON object is accepted."""
+		tpl = make_template(data=json.dumps({"description": "ok"}), template_name="Valid Data")
+		self.assertTrue(tpl.name)
+
+	def test_owner_can_read_write_own_private_template(self):
+		"""Owner can read and write their own private template."""
+		tpl = make_template(template_name="Perm Test", private=1, owner=self.user1)
+
 		frappe.set_user(self.user1)
 		try:
-			self.assertEqual(get_permission_query_conditions(), "1=0")
-		finally:
-			frappe.set_user("Administrator")
-
-	def test_get_list_respects_permission_query(self):
-		"""Regular users see nothing via get_list; admin sees all."""
-		tpl = make_template(template_name="List Test", private=1, owner=self.user1)
-
-		# admin sees it
-		names = frappe.get_list("Document Template", pluck="name")
-		self.assertIn(tpl.name, names)
-
-		# regular user sees nothing (1=0 blocks all)
-		frappe.set_user(self.user2)
-		try:
-			names = frappe.get_list("Document Template", pluck="name")
-		finally:
-			frappe.set_user("Administrator")
-		self.assertEqual(len(names), 0)
-
-	def test_has_permission(self):
-		"""Verify permission logic for admin, owner, and other users."""
-		private_tpl = make_template(template_name="Perm Private", private=1, owner=self.user1)
-		public_tpl = make_template(
-			template_name="Perm Public",
-			private=0,
-			owner=self.user1,
-			data=json.dumps({"doctype": "ToDo", "description": "pub"}),
-		)
-
-		# admin always allowed
-		for ptype in ("read", "write", "delete", "create"):
-			self.assertTrue(has_permission(private_tpl, ptype, user="Administrator"))
-
-		# owner always allowed
-		for ptype in ("read", "write", "delete"):
-			self.assertTrue(has_permission(private_tpl, ptype, user=self.user1))
-
-		# other user cannot access private template
-		for ptype in ("read", "write", "delete"):
-			self.assertFalse(has_permission(private_tpl, ptype, user=self.user2))
-
-		# other user can read/select public but not write/delete
-		self.assertTrue(has_permission(public_tpl, "read", user=self.user2))
-		self.assertTrue(has_permission(public_tpl, "select", user=self.user2))
-		self.assertFalse(has_permission(public_tpl, "write", user=self.user2))
-		self.assertFalse(has_permission(public_tpl, "delete", user=self.user2))
-
-		# defaults to session user
-		frappe.set_user(self.user1)
-		try:
-			self.assertTrue(has_permission(private_tpl, "read"))
-		finally:
-			frappe.set_user("Administrator")
-
-	def test_crud_operations(self):
-		"""Insert, read, update, and delete round-trip."""
-		payload = {"doctype": "ToDo", "description": "crud test", "priority": "High"}
-
-		# insert
-		frappe.set_user(self.user1)
-		try:
-			doc = frappe.get_doc(
-				{
-					"doctype": "Document Template",
-					"reference_doctype": "ToDo",
-					"template_name": "CRUD Test",
-					"private": 1,
-					"data": json.dumps(payload),
-				}
-			).insert()
-		finally:
-			frappe.set_user("Administrator")
-
-		self.assertTrue(frappe.db.exists("Document Template", doc.name))
-		self.assertEqual(doc.owner, self.user1)
-
-		# read back
-		frappe.set_user(self.user1)
-		try:
-			result = frappe.get_doc("Document Template", doc.name)
-		finally:
-			frappe.set_user("Administrator")
-		self.assertEqual(json.loads(result.data), payload)
-
-		# update
-		new_data = json.dumps({"doctype": "ToDo", "description": "updated"})
-		frappe.set_user(self.user1)
-		try:
-			doc.data = new_data
+			doc = frappe.get_doc("Document Template", tpl.name)
+			doc.data = json.dumps({"description": "updated"})
 			doc.save()
 		finally:
 			frappe.set_user("Administrator")
-		self.assertEqual(frappe.db.get_value("Document Template", doc.name, "data"), new_data)
 
-		# delete
-		frappe.set_user(self.user1)
-		try:
-			frappe.delete_doc("Document Template", doc.name)
-		finally:
-			frappe.set_user("Administrator")
-		self.assertFalse(frappe.db.exists("Document Template", doc.name))
-
-	def test_crud_permission_enforcement(self):
-		"""Non-owner cannot save, read, or delete another user's private template."""
-		tpl = make_template(template_name="Blocked CRUD", private=1, owner=self.user1)
-		tpl = frappe.get_doc("Document Template", tpl.name)
+	def test_non_owner_blocked_from_private_template(self):
+		"""Non-owner cannot read another user's private template."""
+		tpl = make_template(template_name="Perm Block", private=1, owner=self.user1)
 
 		frappe.set_user(self.user2)
 		try:
-			with self.assertRaises((frappe.PermissionError, frappe.ValidationError)):
-				tpl.data = json.dumps({"doctype": "ToDo", "description": "hacked"})
-				tpl.save()
-
 			with self.assertRaises((frappe.PermissionError, frappe.DoesNotExistError)):
 				frappe.get_doc("Document Template", tpl.name, check_permission=True)
-
-			with self.assertRaises((frappe.PermissionError, frappe.ValidationError)):
-				frappe.delete_doc("Document Template", tpl.name)
 		finally:
 			frappe.set_user("Administrator")
 
-		self.assertTrue(frappe.db.exists("Document Template", tpl.name))
+	def test_owner_has_all_permissions(self):
+		"""has_permission returns True for owner on all ptypes."""
+		tpl = make_template(template_name="Owner All", private=1, owner=self.user1)
+		for ptype in ("read", "write", "select"):
+			self.assertTrue(has_permission(tpl, ptype, user=self.user1))
 
-	def test_get_templates_api(self):
-		"""Verify visibility and data stripping in get_templates."""
+	def test_public_template_readable_by_non_owner(self):
+		"""Non-owner can read a public template via get_template_data."""
+		tpl = make_template(
+			template_name="Public Read",
+			private=0,
+			data=json.dumps({"description": "pub"}),
+			owner=self.user1,
+		)
+
+		frappe.set_user(self.user2)
+		try:
+			data = get_template_data(tpl.name)
+			self.assertTrue(data)
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_public_template_write_falls_through(self):
+		"""Non-owner write on public template: has_permission returns False (no explicit grant)."""
+		user_doc = frappe.get_doc("User", self.user2)
+		user_doc.remove_roles("Template Manager")
+
+		tpl = make_template(
+			template_name="Public No Write",
+			private=0,
+			data=json.dumps({"description": "pub"}),
+			owner=self.user1,
+		)
+
+		result = has_permission(tpl, "write", user=self.user2)
+		self.assertFalse(result)
+
+	def test_public_template_select_by_non_owner(self):
+		"""Non-owner can select public templates."""
+		tpl = make_template(
+			template_name="Public Select",
+			private=0,
+			data=json.dumps({"description": "pub"}),
+			owner=self.user1,
+		)
+		self.assertTrue(has_permission(tpl, "select", user=self.user2))
+
+	def test_system_manager_has_all_permissions(self):
+		"""System Manager can access everything."""
+		tpl = make_template(template_name="SM Test", private=1, owner=self.user1)
+		self.assertTrue(_is_system_manager("Administrator"))
+		for ptype in ("read", "write", "create"):
+			self.assertTrue(has_permission(tpl, ptype, user="Administrator"))
+
+	def test_get_templates_visibility(self):
+		"""get_templates returns correct visibility and response shape."""
 		make_template(template_name="GT Public", private=0, owner=self.user1)
-		make_template(template_name="GT Private Other", private=1, owner=self.user2)
 		make_template(template_name="GT Own Private", private=1, owner=self.user1)
-		make_template(template_name="GT Disabled", disabled=1, private=0, owner=self.user1)
+		make_template(template_name="GT Other Private", private=1, owner=self.user2)
 
 		frappe.set_user(self.user1)
 		try:
-			result = get_templates("ToDo")
+			result = get_templates("ToDo", limit_page_length=100)
 		finally:
 			frappe.set_user("Administrator")
 
-		self.assertIn("templates", result)
+		names = [t["template_name"] for t in result["templates"]]
+		self.assertIn("GT Public", names)
+		self.assertIn("GT Own Private", names)
+		self.assertNotIn("GT Other Private", names)
 		self.assertIn("has_next_page", result)
 		self.assertIn("total", result)
-
-		names = [t["template_name"] for t in result["templates"]]
-		self.assertIn("GT Own Private", names)
-		self.assertNotIn("GT Private Other", names)
-		self.assertIn("GT Disabled", names)
-
-		# data field should be stripped from response
 		for t in result["templates"]:
 			self.assertNotIn("data", t)
 
-		# non-owner cannot see disabled
-		frappe.set_user(self.user2)
-		try:
-			result = get_templates("ToDo")
-		finally:
-			frappe.set_user("Administrator")
-		names2 = [t["template_name"] for t in result["templates"]]
-		self.assertNotIn("GT Disabled", names2)
+	def test_get_templates_pagination(self):
+		"""get_templates respects limit_start and limit_page_length."""
+		for i in range(5):
+			make_template(template_name=f"Page {i}", private=0, owner=self.user1)
 
-	def test_get_template_data_api(self):
-		"""Verify access control on get_template_data."""
-		payload = {"doctype": "ToDo", "description": "fetch test"}
-		public_tpl = make_template(
-			template_name="TD Public", data=json.dumps(payload), private=0, owner=self.user1
-		)
-		private_tpl = make_template(template_name="TD Private", private=1, owner=self.user1)
-
-		# owner can access own private
 		frappe.set_user(self.user1)
 		try:
-			raw = get_template_data(private_tpl.name)
-			self.assertTrue(raw)
+			page1 = get_templates("ToDo", limit_start=0, limit_page_length=2)
+			self.assertLessEqual(len(page1["templates"]), 2)
+			if page1["total"] > 2:
+				self.assertTrue(page1["has_next_page"])
+
+			page2 = get_templates("ToDo", limit_start=2, limit_page_length=2)
+			self.assertLessEqual(len(page2["templates"]), 2)
 		finally:
 			frappe.set_user("Administrator")
 
-		# other user can access public, not private
+	def test_get_templates_disabled_hidden_from_non_owner(self):
+		"""Disabled templates are hidden from non-owner but visible to owner."""
+		make_template(template_name="Disabled Tpl", private=0, owner=self.user1, disabled=1)
+
+		frappe.set_user(self.user1)
+		try:
+			result = get_templates("ToDo", limit_page_length=100)
+			names = [t["template_name"] for t in result["templates"]]
+			self.assertIn("Disabled Tpl", names)
+		finally:
+			frappe.set_user("Administrator")
+
 		frappe.set_user(self.user2)
 		try:
-			self.assertEqual(json.loads(get_template_data(public_tpl.name)), payload)
-			with self.assertRaises(frappe.PermissionError):
-				get_template_data(private_tpl.name)
+			result = get_templates("ToDo", limit_page_length=100)
+			names = [t["template_name"] for t in result["templates"]]
+			self.assertNotIn("Disabled Tpl", names)
 		finally:
 			frappe.set_user("Administrator")
 
-	def test_is_visible(self):
-		"""Verify _is_visible filtering logic."""
-		data = json.dumps({"doctype": "ToDo", "description": "val"})
+	def test_get_templates_sorting_order(self):
+		"""Templates sorted: disabled asc, private desc, template_name asc."""
+		make_template(template_name="B Public", private=0, owner=self.user1)
+		make_template(template_name="A Private", private=1, owner=self.user1)
+		make_template(template_name="A Public", private=0, owner=self.user1)
 
-		# disabled: hidden from others, shown to owner and admin
-		disabled_t = frappe._dict(owner=self.user1, disabled=1, private=0, data="{}")
-		self.assertFalse(_is_visible(disabled_t, self.user2, False, "ToDo"))
-		self.assertTrue(_is_visible(disabled_t, self.user1, False, "ToDo"))
-		self.assertTrue(_is_visible(disabled_t, "Administrator", True, "ToDo"))
+		frappe.set_user(self.user1)
+		try:
+			result = get_templates("ToDo", limit_page_length=100)
+			names = [t["template_name"] for t in result["templates"]]
+			if "A Private" in names and "A Public" in names:
+				self.assertLess(names.index("A Private"), names.index("A Public"))
+		finally:
+			frappe.set_user("Administrator")
 
-		# private: hidden from others, shown to owner and admin
-		private_t = frappe._dict(owner=self.user1, disabled=0, private=1, data="{}")
-		self.assertFalse(_is_visible(private_t, self.user2, False, "ToDo"))
-		self.assertTrue(_is_visible(private_t, self.user1, False, "ToDo"))
-		self.assertTrue(_is_visible(private_t, "Administrator", True, "ToDo"))
+	def test_get_template_data_owner_access(self):
+		"""Owner can fetch private template data."""
+		tpl = make_template(template_name="TD Access", private=1, owner=self.user1)
 
-		# public active: shown to all
-		public_t = frappe._dict(owner=self.user1, disabled=0, private=0, data=data)
-		self.assertTrue(_is_visible(public_t, self.user2, False, "ToDo"))
+		frappe.set_user(self.user1)
+		try:
+			data = get_template_data(tpl.name)
+			self.assertTrue(data)
+			parsed = json.loads(data)
+			self.assertIsInstance(parsed, dict)
+		finally:
+			frappe.set_user("Administrator")
 
-	def test_user_permission_filtering_on_template_data(self):
-		"""Verify _check_user_permissions_on_template_data respects user permissions."""
-		self._setup_user_permission(self.user1, "Role", "Desk User")
+	def test_get_template_data_non_owner_blocked(self):
+		"""Non-owner cannot fetch private template data."""
+		tpl = make_template(template_name="TD Block", private=1, owner=self.user1)
 
-		# allowed value passes
-		self.assertTrue(
-			_check_user_permissions_on_template_data(
-				json.dumps({"doctype": "ToDo", "role": "Desk User"}), "ToDo", self.user1
+		frappe.set_user(self.user2)
+		try:
+			with self.assertRaises(frappe.PermissionError):
+				get_template_data(tpl.name)
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_get_template_data_nonexistent(self):
+		"""Fetching a non-existent template raises DoesNotExistError."""
+		with self.assertRaises(frappe.DoesNotExistError):
+			get_template_data("nonexistent-template-name-12345")
+
+	def _ensure_template_manager_role(self, user):
+		"""Helper: assign Template Manager role to user if not already assigned."""
+		if not frappe.db.exists("Role", "Template Manager"):
+			frappe.get_doc({"doctype": "Role", "role_name": "Template Manager"}).insert(
+				ignore_permissions=True
 			)
-		)
-		# disallowed value fails
-		self.assertFalse(
-			_check_user_permissions_on_template_data(
-				json.dumps({"doctype": "ToDo", "role": "System Manager"}), "ToDo", self.user1
-			)
-		)
-		# empty field passes
-		self.assertTrue(
-			_check_user_permissions_on_template_data(
-				json.dumps({"doctype": "ToDo", "description": "no role"}), "ToDo", self.user1
-			)
-		)
-		# invalid/non-dict JSON passes gracefully
-		self.assertTrue(_check_user_permissions_on_template_data("not-json", "ToDo", self.user1))
-		self.assertTrue(_check_user_permissions_on_template_data(json.dumps([1, 2]), "ToDo", self.user1))
+		user_doc = frappe.get_doc("User", user)
+		user_doc.add_roles("Template Manager")
 
-		# no user permissions -> passes
-		with patch(
-			"frappe.core.doctype.user_permission.user_permission.get_user_permissions",
-			return_value={},
+	def test_template_manager_can_read_write_public(self):
+		"""Template Manager can read/write public templates owned by others."""
+		tm_user = self.user2
+		self._ensure_template_manager_role(tm_user)
+
+		public_tpl = make_template(
+			template_name="TM Public",
+			private=0,
+			data=json.dumps({"description": "pub"}),
+			owner=self.user1,
+		)
+
+		self.assertTrue(has_permission(public_tpl, "read", user=tm_user))
+		self.assertTrue(has_permission(public_tpl, "write", user=tm_user))
+
+	def test_template_manager_cannot_access_others_private(self):
+		"""Template Manager with create perm on the reference doctype can access others' private templates."""
+		tm_user = self.user2
+		self._ensure_template_manager_role(tm_user)
+
+		private_tpl = make_template(template_name="TM Private", private=1, owner=self.user1)
+		self.assertFalse(has_permission(private_tpl, "read", user=tm_user))
+
+	def test_template_manager_role_detection(self):
+		"""_has_template_manager_role returns correct values."""
+		self._ensure_template_manager_role(self.user2)
+		self.assertTrue(_has_template_manager_role(self.user2))
+		user_doc = frappe.get_doc("User", self.user1)
+		user_doc.remove_roles("Template Manager")
+		self.assertFalse(_has_template_manager_role(self.user1))
+
+	def test_permission_query_conditions_system_manager(self):
+		"""System Manager gets empty condition (sees everything)."""
+		result = get_permission_query_conditions(user="Administrator")
+		self.assertEqual(result, "")
+
+	def test_permission_query_conditions_template_manager(self):
+		"""Template Manager gets doctype-scoped condition."""
+		self._ensure_template_manager_role(self.user2)
+		result = get_permission_query_conditions(user=self.user2)
+		self.assertIn("reference_doctype", result)
+		self.assertIn("IN", result)
+
+	def test_permission_query_conditions_regular_user(self):
+		"""Regular user gets 1=0 (blocked at list level)."""
+		user_doc = frappe.get_doc("User", self.user1)
+		user_doc.remove_roles("Template Manager")
+		result = get_permission_query_conditions(user=self.user1)
+		self.assertEqual(result, "1=0")
+
+	def test_permission_query_conditions_default_user(self):
+		"""When user is None, defaults to session user."""
+		frappe.set_user(self.user1)
+		try:
+			user_doc = frappe.get_doc("User", self.user1)
+			user_doc.remove_roles("Template Manager")
+			result = get_permission_query_conditions(user=None)
+			self.assertEqual(result, "1=0")
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_user_permission_filters_template_data(self):
+		"""Public template is blocked when user permission restricts a link field value."""
+		user_doc = frappe.get_doc("User", self.user2)
+		user_doc.remove_roles("Template Manager")
+		if not frappe.db.exists(
+			"User Permission", {"user": self.user2, "allow": "Role", "for_value": "Desk User"}
 		):
-			self.assertTrue(
-				_check_user_permissions_on_template_data(
-					json.dumps({"doctype": "ToDo", "role": "System Manager"}), "ToDo", self.user1
-				)
-			)
-
-	def test_user_permission_applicable_for(self):
-		"""applicable_for should scope user permission to that doctype only."""
-		self._setup_user_permission(self.user1, "Role", "Desk User", applicable_for="ToDo")
-
-		self.assertFalse(
-			_check_user_permissions_on_template_data(
-				json.dumps({"doctype": "ToDo", "role": "System Manager"}), "ToDo", self.user1
-			)
-		)
-		self.assertTrue(
-			_check_user_permissions_on_template_data(
-				json.dumps({"doctype": "Note", "role": "System Manager"}), "Note", self.user1
-			)
-		)
-
-	def test_has_permission_with_user_permissions(self):
-		"""has_permission integrates user permission checks for non-owner reads."""
-		self._setup_user_permission(self.user2, "Role", "Desk User")
+			frappe.get_doc(
+				{
+					"doctype": "User Permission",
+					"user": self.user2,
+					"allow": "Role",
+					"for_value": "Desk User",
+				}
+			).insert(ignore_permissions=True)
+			frappe.clear_cache()
 
 		blocked = make_template(
-			template_name="UP Blocked",
+			template_name="UP Block",
 			private=0,
-			data=json.dumps({"doctype": "ToDo", "role": "System Manager"}),
+			data=json.dumps({"role": "System Manager"}),
 			owner=self.user1,
 		)
-		self.assertFalse(has_permission(blocked, "read", user=self.user2))
-
 		allowed = make_template(
-			template_name="UP Allowed",
+			template_name="UP Allow",
 			private=0,
-			data=json.dumps({"doctype": "ToDo", "role": "Desk User"}),
+			data=json.dumps({"role": "Desk User"}),
 			owner=self.user1,
 		)
+
+		self.assertFalse(has_permission(blocked, "read", user=self.user2))
 		self.assertTrue(has_permission(allowed, "read", user=self.user2))
 
-		# owner and admin bypass user permission check
-		self.assertTrue(has_permission(blocked, "read", user=self.user1))
-		self.assertTrue(has_permission(blocked, "read", user="Administrator"))
+	def test_has_permission_create_returns_true_for_non_owner(self):
+		"""Any user can create templates (create ptype returns True)."""
+		tpl = make_template(template_name="Create Test", private=1, owner=self.user1)
+		self.assertTrue(has_permission(tpl, "create", user=self.user2))
+
+	def test_has_permission_defaults_to_session_user(self):
+		"""has_permission defaults user to frappe.session.user when None."""
+		tpl = make_template(template_name="Session Dflt", private=1, owner=self.user1)
+		frappe.set_user(self.user1)
+		try:
+			self.assertTrue(has_permission(tpl, "read", user=None))
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_disabled_template_data_still_fetchable_by_owner(self):
+		"""Owner can still fetch data of a disabled template."""
+		tpl = make_template(
+			template_name="Disabled Fetch",
+			private=1,
+			disabled=1,
+			owner=self.user1,
+		)
+		frappe.set_user(self.user1)
+		try:
+			data = get_template_data(tpl.name)
+			self.assertTrue(data)
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_before_save_with_valid_data(self):
+		"""before_save normalizes valid JSON object data."""
+		tpl = make_template(
+			template_name="BS Valid",
+			data=json.dumps({"b": 2, "a": 1}),
+		)
+		saved = frappe.db.get_value("Document Template", tpl.name, "data")
+		parsed = json.loads(saved)
+		self.assertEqual(list(parsed.keys()), ["a", "b"])

@@ -26,6 +26,7 @@
    "label": "Reference Document Type",
    "options": "DocType",
    "reqd": 1,
+   "search_index": 1,
    "set_only_once": 1
   },
   {
@@ -49,7 +50,7 @@
    "fieldname": "disabled",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Disable"
+   "label": "Disabled"
   }
  ],
  "links": [],
@@ -82,6 +83,13 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Template Manager",
    "write": 1
   }
  ],

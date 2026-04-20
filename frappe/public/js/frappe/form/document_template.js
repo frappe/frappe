@@ -12,16 +12,18 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		this.frm = frm;
 		this.page = page;
 		this.$btn = null;
-		this._templates_cache = null;
 	}
 
 	_is_own(template) {
 		return template.owner === frappe.session.user;
 	}
 
-	_is_admin() {
-		if (frappe.session.user === "Administrator") return true;
+	_is_system_manager() {
 		return frappe.user_roles.includes("System Manager");
+	}
+
+	_is_template_manager() {
+		return frappe.user_roles.includes("Template Manager");
 	}
 
 	_should_include_field(df) {
@@ -38,13 +40,13 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		this.$btn.toggleClass("hide", !this.frm.doc.__islocal);
 	}
 
-	add_template_menu_section() {
+	add_template_menu_item() {
 		if (this.frm.doc.__islocal) return;
 		this.page.add_menu_item(__("Templates"), () => this.show_manage_dialog(), true);
 	}
 
 	show_manage_dialog() {
-		this._manage_page = 1;
+		this._manage_start = 0;
 		this._manage_dialog = new frappe.ui.Dialog({
 			title: __("Templates"),
 			size: "medium",
@@ -56,7 +58,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 
 		$('<div class="dt-section-break">')
 			.append($("<hr>"))
-			.append($("<h5>").text(__("Save as Template")))
+			.append($('<div class="dt-section-heading">').text(__("Save as Template")))
 			.appendTo($body);
 
 		this._template_name_control = frappe.ui.form.make_control({
@@ -95,29 +97,14 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	_load_manage_page() {
 		let $wrap = this._$manage_wrap;
 
-		if (this._manage_page === 1) {
-			let cached = this._templates_cache;
-			if (cached) {
-				this._render_manage_list(
-					$wrap,
-					cached.templates || [],
-					cached.has_next_page || false,
-					cached.total || 0
-				);
-				return;
-			}
-		}
-
 		frappe
 			.xcall("frappe.desk.doctype.document_template.document_template.get_templates", {
 				reference_doctype: this.frm.doctype,
-				page: this._manage_page,
+				limit_start: this._manage_start,
+				limit_page_length: 10,
 			})
 			.then((data) => {
 				data = data || {};
-				if (this._manage_page === 1) {
-					this._templates_cache = data;
-				}
 				this._render_manage_list(
 					$wrap,
 					data.templates || [],
@@ -183,7 +170,6 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 					frappe.db
 						.set_value("Document Template", name, "data", JSON.stringify(data))
 						.then(() => {
-							this._templates_cache = null;
 							frappe.show_alert({
 								message: __("Template {0} updated.", [label]),
 								indicator: "green",
@@ -212,7 +198,6 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 				frappe.db
 					.delete_doc("Document Template", name)
 					.then(() => {
-						this._templates_cache = null;
 						frappe.show_alert({
 							message: __("Template {0} deleted.", [label]),
 							indicator: "green",
@@ -229,14 +214,14 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		});
 
 		$wrap.on("click.dtmanage", ".dt-page-prev", () => {
-			if (this._manage_page > 1) {
-				this._manage_page--;
+			if (this._manage_start > 0) {
+				this._manage_start = Math.max(0, this._manage_start - 10);
 				this._load_manage_page();
 			}
 		});
 
 		$wrap.on("click.dtmanage", ".dt-page-next", () => {
-			this._manage_page++;
+			this._manage_start += 10;
 			this._load_manage_page();
 		});
 
@@ -283,7 +268,6 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 				});
 				this._template_name_control.set_value("");
 				this._private_check.set_value(0);
-				this._templates_cache = null;
 				this._load_manage_page();
 			})
 			.catch((e) => {
@@ -301,7 +285,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 
 		if (!templates.length) {
 			$wrap.append(
-				$('<p class="text-extra-muted text-center mb-0">').text(
+				$('<p class="text-muted text-center mb-0">').text(
 					__("No saved templates. Try saving the current form as a template.")
 				)
 			);
@@ -320,21 +304,22 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			$wrap.append(this._build_row(t));
 		}
 
-		if (total > 0 && (this._manage_page > 1 || has_next_page)) {
+		if (total > 0 && (this._manage_start > 0 || has_next_page)) {
 			let $pager = $('<div class="dt-pagination">');
 
 			let $prev = $('<button class="btn btn-secondary btn-xs dt-page-prev">')
 				.html(frappe.utils.icon("left", "xs"))
 				.attr("title", __("Previous"))
-				.prop("disabled", this._manage_page <= 1);
+				.prop("disabled", this._manage_start <= 0);
 
 			let $next = $('<button class="btn btn-secondary btn-xs dt-page-next">')
 				.html(frappe.utils.icon("right", "xs"))
 				.attr("title", __("Next"))
 				.prop("disabled", !has_next_page);
 
+			let current_page = Math.floor(this._manage_start / 10) + 1;
 			let $info = $('<span class="text-muted text-small dt-page-info">').text(
-				__("Page {0}", [this._manage_page])
+				__("Page {0}", [current_page])
 			);
 
 			$pager.append($prev, $info, $next);
@@ -344,7 +329,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 
 	_build_row(template) {
 		let is_own = this._is_own(template);
-		let is_admin = this._is_admin();
+		let is_system_manager = this._is_system_manager();
 
 		let row_cls = "dt-manage-row";
 		if (!template.disabled) row_cls += " dt-row--active";
@@ -357,6 +342,9 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		let $label = $('<div class="dt-manage-row-label ellipsis"></div>')
 			.attr("title", template.template_name)
 			.text(template.template_name);
+		if (template.disabled) {
+			$label.addClass("text-muted");
+		}
 		let $lock = null;
 		if (template.private) {
 			$lock = $('<div class="dt-manage-row-lock text-muted"></div>')
@@ -366,12 +354,15 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 
 		let $actions = $('<div class="dt-manage-row-actions"></div>');
 
+		let is_template_manager = this._is_template_manager();
+		let can_manage = is_own || is_system_manager || (is_template_manager && !template.private);
+
 		if (template.disabled) {
-			if (is_own || is_admin) {
+			if (can_manage) {
 				this._add_edit_btn($actions, template);
 				this._add_delete_btn($actions, template);
 			}
-		} else if (is_own || is_admin) {
+		} else if (can_manage) {
 			this._add_update_btn($actions, template);
 			this._add_edit_btn($actions, template);
 			this._add_delete_btn($actions, template);
@@ -395,11 +386,16 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	}
 
 	_add_edit_btn($actions, t) {
-		$('<a class="btn btn-xs btn-default"></a>')
-			.attr("href", frappe.utils.get_form_link("Document Template", t.name))
+		$('<button class="btn btn-xs btn-default dt-action-edit" type="button"></button>')
+			.attr("data-name", t.name)
 			.attr("title", __("Open template"))
 			.attr("aria-label", __("Edit {0}", [t.template_name]))
 			.html(frappe.utils.icon("edit", "xs"))
+			.on("click", (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				window.open(frappe.utils.get_form_link("Document Template", t.name), "_blank");
+			})
 			.appendTo($actions);
 	}
 
@@ -467,25 +463,26 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	}
 
 	_capture_template_data() {
-		let frm = this.frm;
-		let doc = frm.doc;
+		let copied = frappe.model.copy_doc(this.frm.doc);
 		let result = {};
 
-		for (let df of frappe.meta.get_docfields(frm.doctype)) {
+		for (let df of frappe.meta.get_docfields(copied.doctype)) {
 			if (!this._should_include_field(df)) continue;
-			let current = doc[df.fieldname];
+			let value = copied[df.fieldname];
 
 			if (frappe.model.table_fields.includes(df.fieldtype)) {
-				let child_docfields = frappe.meta
-					.get_docfields(df.options)
-					.filter((cdf) => this._should_include_field(cdf));
-
-				let rows = (current || [])
+				let rows = (value || [])
 					.map((row) => {
 						let clean = {};
-						for (let cdf of child_docfields) {
-							let val = row[cdf.fieldname];
-							if (val != cdf.__default_value) clean[cdf.fieldname] = val;
+						for (let cdf of frappe.meta.get_docfields(df.options)) {
+							if (!this._should_include_field(cdf)) continue;
+							if (
+								row[cdf.fieldname] != null &&
+								row[cdf.fieldname] !== "" &&
+								row[cdf.fieldname] != cdf.__default_value
+							) {
+								clean[cdf.fieldname] = row[cdf.fieldname];
+							}
 						}
 						return clean;
 					})
@@ -495,8 +492,8 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 				continue;
 			}
 
-			if (current != df.__default_value) {
-				result[df.fieldname] = current;
+			if (value != null && value !== "" && value != df.__default_value) {
+				result[df.fieldname] = value;
 			}
 		}
 

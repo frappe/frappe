@@ -13,10 +13,6 @@
 	display: flex;
 	align-items: center;
 	padding: var(--padding-xs) var(--padding-xs);
-
-	&--disabled {
-		opacity: 0.6;
-	}
 }
 
 .dt-manage-row-label-group {
@@ -45,6 +41,11 @@
 	flex: 1;
 	min-width: 0;
 	font-weight: var(--weight-medium);
+	color: var(--text-color);
+
+	&.text-muted {
+		color: var(--text-muted) !important;
+	}
 }
 
 .dt-manage-row-lock {
@@ -59,6 +60,20 @@
 	align-items: center;
 	flex-shrink: 0;
 	gap: var(--padding-xs);
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.dt-action-edit,
+	.dt-action-delete {
+		padding: var(--padding-xs);
+		min-width: unset;
+		width: 24px;
+		height: 24px;
+	}
 }
 
 .dt-pagination {
@@ -80,10 +95,19 @@
 }
 
 .dt-section-break {
+	margin-top: var(--margin-md);
+
 	hr {
 		border-top: 1px solid var(--border-color);
 		margin: var(--margin-sm) 0;
 		opacity: 1;
+	}
+
+	.dt-section-heading {
+		font-size: var(--text-base);
+		font-weight: var(--weight-semibold);
+		color: var(--heading-color);
+		margin-bottom: var(--margin-md);
 	}
 }
 
