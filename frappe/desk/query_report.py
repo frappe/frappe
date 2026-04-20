@@ -419,7 +419,6 @@ def _export_query(form_params, csv_params, populate_response=True):
 
 	xlsx_data, column_widths, header_index = build_xlsx_data(
 		data,
-		visible_idx=None,  # filtering is already done
 		include_indentation=include_indentation,
 		include_filters=include_filters,
 		include_hidden_columns=include_hidden_columns,
