@@ -22,7 +22,6 @@ function getBlockTemplate(
 					flexWrap: "wrap",
 					flexDirection: "column",
 					flexShrink: 0,
-					alignItems: "center",
 					width: "inherit",
 					overflowX: "hidden",
 					height: "100%",
