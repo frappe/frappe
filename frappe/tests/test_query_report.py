@@ -4,7 +4,7 @@
 import frappe
 from frappe.desk.query_report import build_xlsx_data, export_query, run
 from frappe.tests import IntegrationTestCase
-from frappe.utils.xlsxutils import make_xlsx
+from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
 
 
 class TestQueryReport(IntegrationTestCase):
@@ -249,6 +249,75 @@ data = columns, result
 		except Exception as e:
 			raise e
 			frappe.db.rollback()
+
+	def test_xlsx_styles_structure(self):
+		"""build_xlsx_data with build_styles=True returns a well-formed styles dict"""
+		data = create_mock_data()
+		data.pop("report_name")  # module not needed for this test
+
+		_, _, styles = build_xlsx_data(data, build_styles=True)
+
+		self.assertIsNotNone(styles)
+		for key in ("styles", "column_styles", "row_styles", "cell_styles"):
+			self.assertIn(key, styles)
+
+		# style registry must be non-empty
+		self.assertGreater(len(styles["styles"]), 0)
+
+		# header row (index 0, no filters included) must have bold style
+		self.assertIn(0, styles["row_styles"])
+
+		# resolve the header row's style IDs and confirm bold is set
+		registry = styles["styles"]
+		header_style_ids = styles["row_styles"][0]
+		header_merged = {}
+		for sid in header_style_ids:
+			header_merged.update(registry[sid])
+		self.assertTrue(header_merged.get("bold"))
+
+	def test_xlsx_style_builder_fieldtype_column_styles(self):
+		"""XLSXStyleBuilder applies column styles for Float/Percent/Date but not Data"""
+		column_map = {
+			0: {"fieldname": "name", "fieldtype": "Data", "label": "Name"},
+			1: {"fieldname": "score", "fieldtype": "Float", "label": "Score"},
+			2: {"fieldname": "pct", "fieldtype": "Percent", "label": "Pct"},
+			3: {"fieldname": "dt", "fieldtype": "Date", "label": "Date"},
+		}
+		row_map = {1: {"name": "A", "score": 1.0, "pct": 10.0, "dt": "2025-01-01"}}
+
+		metadata = XLSXMetadata(column_map=column_map, row_map=row_map)
+		builder = XLSXStyleBuilder(metadata, default_styling=False)
+		builder.apply_default_fieldtype_formats(currency_formatting=False)
+
+		def resolve(col_idx):
+			"""Merge all style dicts registered for a column into one dict."""
+			merged = {}
+			for sid in builder.column_styles[col_idx]:
+				merged.update(builder.styles[sid])
+			return merged
+
+		# Float, Percent, Date → column-level styles
+		self.assertIn(1, builder.column_styles)
+		self.assertIn(2, builder.column_styles)
+		self.assertIn(3, builder.column_styles)
+
+		# Data column → no column style
+		self.assertNotIn(0, builder.column_styles)
+
+		# Float → has num_format, no alignment override
+		float_style = resolve(1)
+		self.assertIn("num_format", float_style)
+		self.assertNotIn("align", float_style)
+
+		# Percent → num_format contains "%"
+		percent_style = resolve(2)
+		self.assertIn("num_format", percent_style)
+		self.assertIn("%", percent_style["num_format"])
+
+		# Date → has num_format and explicitly right-aligned
+		date_style = resolve(3)
+		self.assertIn("num_format", date_style)
+		self.assertEqual(date_style.get("align"), "right")
 
 	def test_export_report_via_email(self):
 		REPORT_NAME = "Test CSV Report"
