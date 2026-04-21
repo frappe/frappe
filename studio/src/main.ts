@@ -30,9 +30,14 @@ window.__APP_COMPONENTS__ = studio._context.components
 declare global {
 	interface Window {
 		site_url: string
+		is_developer_mode?: boolean
 		__APP_COMPONENTS__: any
 		[key: string]: string
 	}
+}
+
+if (window.is_developer_mode && typeof window.is_developer_mode === "string") {
+	window.is_developer_mode = window.is_developer_mode === "1" || window.is_developer_mode === "True"
 }
 
 studio_router.isReady().then(async () => {
