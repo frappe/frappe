@@ -119,6 +119,7 @@ import type { BreakpointConfig, CanvasHistory } from "@/types/StudioCanvas"
 import type { Slot } from "@/types"
 import { useCanvasEvents } from "@/utils/useCanvasEvents"
 import { getBlockCopy } from "@/utils/serializer"
+import { useCanvasNavigationGuard } from "@/utils/useCanvasNavigationGuard"
 
 const props = defineProps({
 	componentTree: {
@@ -300,6 +301,8 @@ watch(
 		toggleMode(store.mode)
 	},
 )
+
+useCanvasNavigationGuard(canvasContainer)
 
 onMounted(() => {
 	const canvasContainerEl = canvasContainer.value as unknown as HTMLElement
