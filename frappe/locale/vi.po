@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-20 12:54\n"
+"PO-Revision-Date: 2026-04-21 13:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -17415,7 +17415,7 @@ msgstr "Không được phép"
 
 #: frappe/templates/includes/login/login.js:260
 msgid "Not Allowed: Disabled User"
-msgstr "Không được phép: Người dùng bị vô hiệu hóa"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/filters/filter.js:36
 msgid "Not Ancestors Of"
@@ -17515,7 +17515,7 @@ msgstr "Hành động quy trình làm việc không hợp lệ"
 
 #: frappe/templates/includes/login/login.js:256
 msgid "Not a valid user"
-msgstr "Không phải người dùng hợp lệ"
+msgstr ""
 
 #: frappe/workflow/doctype/workflow/workflow_list.js:7
 msgid "Not active"
@@ -30309,7 +30309,7 @@ msgstr "Bạn có thể sử dụng Tùy chỉnh biểu mẫu để đặt cấp
 
 #: frappe/public/js/frappe/form/link_selector.js:30
 msgid "You can use wildcard %"
-msgstr "Bạn có thể sử dụng ký tự đại diện %"
+msgstr ""
 
 #: frappe/custom/doctype/customize_form/customize_form.py:394
 msgid "You can't set 'Options' for field {0}"
