@@ -1119,6 +1119,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				datatable_options = this.report_settings.get_datatable_options(datatable_options);
 			}
 			this.datatable = new window.DataTable(this.$report[0], datatable_options);
+			this.style_serial_no_column();
 		}
 
 		if (typeof this.report_settings.initial_depth == "number") {
@@ -1126,6 +1127,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 		if (this.report_settings.after_datatable_render) {
 			this.report_settings.after_datatable_render(this.datatable);
+		}
+	}
+
+	style_serial_no_column() {
+		let hasSerialNoCol = this.datatable.datamanager.hasColumnById("_rowIndex");
+		if (hasSerialNoCol) {
+			const srNoColIndex = this.datatable.datamanager.getColumnIndexById("_rowIndex");
+			this.datatable.style.setStyle(`.dt-cell__content--col-${srNoColIndex}`, {
+				padding: "0px !important",
+			});
 		}
 	}
 
