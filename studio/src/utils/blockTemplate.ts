@@ -19,7 +19,6 @@ function getBlockTemplate(
 				children: [],
 				baseStyles: {
 					display: "flex",
-					flexWrap: "wrap",
 					flexDirection: "column",
 					flexShrink: 0,
 					width: "inherit",
