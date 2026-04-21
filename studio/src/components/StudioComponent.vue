@@ -84,7 +84,7 @@
 	<template v-else>
 		<component
 			v-if="showComponent"
-			:is="block.componentName"
+			:is="componentName"
 			v-bind="componentProps"
 			v-on="vModelListeners"
 			:data-component-id="block.componentId"
