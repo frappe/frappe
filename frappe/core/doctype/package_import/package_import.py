@@ -7,6 +7,7 @@ import re
 import tarfile
 
 import frappe
+from frappe.core.doctype.file.utils import check_path_safety
 from frappe.desk.form.load import get_attachments
 from frappe.model.document import Document
 from frappe.model.sync import get_doc_files
@@ -58,10 +59,9 @@ class PackageImport(Document):
 				if member.issym() or member.islnk():
 					frappe.throw(frappe._(f"Package contains disallowed link entry: {member.name}"))
 
-				member_path = os.path.realpath(os.path.join(extract_path, member.name))
-				if os.path.commonpath([member_path, os.path.realpath(extract_path)]) != os.path.realpath(
-					extract_path
-				):  # use util here instead
+				member_path = os.path.join(extract_path, member.name)
+				is_safe = check_path_safety(extract_path, member_path)
+				if not is_safe:
 					frappe.throw(frappe._("Package contains disallowed path entry"))
 
 			tar.extractall(path=extract_path, filter="data")
