@@ -50,11 +50,12 @@ export default defineConfig({
 	},
 	optimizeDeps: {
 		include: [
-			"frappe-ui > feather-icons",
+			"feather-icons",
 			"showdown",
 			"engine.io-client",
 			"highlight.js/lib/core",
 			"interactjs",
+			"debug",
 		],
 	},
 })
