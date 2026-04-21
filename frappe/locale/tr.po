@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-18 11:46\n"
+"PO-Revision-Date: 2026-04-21 13:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -17630,7 +17630,7 @@ msgstr "Geçerli bir İş Akışı Eylemi değil"
 
 #: frappe/templates/includes/login/login.js:256
 msgid "Not a valid user"
-msgstr "Geçerli bir kullanıcı değil"
+msgstr ""
 
 #: frappe/workflow/doctype/workflow/workflow_list.js:7
 msgid "Not active"
@@ -18986,7 +18986,7 @@ msgstr "Şifre"
 
 #: frappe/core/doctype/user/user.py:1041
 msgid "Password Email Sent"
-msgstr "Şifre E-postası Gönderildi"
+msgstr ""
 
 #: frappe/core/doctype/user/user.py:402
 msgid "Password Reset"
@@ -30426,7 +30426,7 @@ msgstr "Alanların yetki seviyelerini ayarlamak için Formu Özelleştir'i kulla
 
 #: frappe/public/js/frappe/form/link_selector.js:30
 msgid "You can use wildcard %"
-msgstr "Filtrede % karakteriyle arama yapabilirsiniz"
+msgstr ""
 
 #: frappe/custom/doctype/customize_form/customize_form.py:394
 msgid "You can't set 'Options' for field {0}"
