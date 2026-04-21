@@ -5,16 +5,17 @@ import json
 import threading
 
 import frappe
-import frappe.desk.query_report
 from frappe import _, scrub
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.core.doctype.page.page import delete_custom_role
+from frappe.desk.query_report import run
 from frappe.desk.reportview import append_totals_row
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
 from frappe.utils import cint, cstr
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
+from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder
 
 
 class Report(Document):
@@ -207,11 +208,14 @@ class Report(Document):
 
 		return res
 
+	def get_module_method(self, method):
+		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
+		method_path = get_report_module_dotted_path(module, self.name) + "." + method
+		return frappe.get_attr(method_path)
+
 	def execute_module(self, filters):
 		# report in python module
-		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
-		method_name = get_report_module_dotted_path(module, self.name) + ".execute"
-		return frappe.get_attr(method_name)(frappe._dict(filters))
+		return self.get_module_method("execute")(frappe._dict(filters))
 
 	def execute_script(self, filters):
 		# server script
@@ -247,7 +251,7 @@ class Report(Document):
 		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
 	):
 		columns, result = [], []
-		data = frappe.desk.query_report.run(
+		data = run(
 			self.name,
 			filters=filters,
 			user=user,
@@ -319,8 +323,6 @@ class Report(Document):
 			columns = params.get("fields")
 		elif params.get("columns"):
 			columns = params.get("columns")
-		elif params.get("fields"):
-			columns = params.get("fields")
 		else:
 			columns = [["name", self.ref_doctype]]
 			columns.extend(
@@ -412,6 +414,18 @@ class Report(Document):
 			frappe.throw(_("You are not allowed to edit the report."))
 
 		self.db_set("disabled", cint(disable))
+
+	def get_xlsx_styles_from_module(self, metadata: XLSXMetadata) -> dict:
+		if self.is_standard != "Yes" or self.report_type not in ("Query Report", "Script Report"):
+			return
+
+		try:
+			method = self.get_module_method("get_xlsx_styles")
+		except AttributeError:
+			# Ignore if hook(method) is not defined
+			return
+
+		return method(metadata)
 
 
 def is_prepared_report_enabled(report):

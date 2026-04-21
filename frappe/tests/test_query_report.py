@@ -2,10 +2,9 @@
 # License: MIT. See LICENSE
 
 import frappe
-import frappe.utils
 from frappe.desk.query_report import build_xlsx_data, export_query, run
 from frappe.tests import IntegrationTestCase
-from frappe.utils.xlsxutils import make_xlsx
+from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
 
 
 class TestQueryReport(IntegrationTestCase):
@@ -31,7 +30,7 @@ class TestQueryReport(IntegrationTestCase):
 
 		self.assertEqual(type(xlsx_data), list)
 		self.assertEqual(len(xlsx_data), 4)  # columns + data
-		# column widths are divided by 10 to match the scale that is supported by openpyxl
+		# column widths are divided by 10 to match the scale that is supported by xlsxwriter
 		self.assertListEqual(column_widths, [0, 10, 15])
 
 		for row in xlsx_data:
@@ -47,19 +46,19 @@ class TestQueryReport(IntegrationTestCase):
 
 		# Create mock data
 		data = create_mock_data()
-		data.filters = {"Label 1": "Filter Value", "Label 2": None, "Label 3": list(range(5))}
 
 		# Define the visible rows
 		visible_idx = [0, 2, 3]
 
 		# Build the result
-		xlsx_data, _column_widths, header_index = build_xlsx_data(
-			data, visible_idx, include_indentation=False, include_filters=True
+		xlsx_data, _column_widths, _ = build_xlsx_data(
+			data,
+			visible_idx,
+			include_indentation=False,
+			include_filters=True,
 		)
 
-		self.assertEqual(header_index, 3)  # 2 filter rows + 1 empty row
-
-		# Check if unset filters are skipped | Rows - 2 filters + 1 empty + 1 column + 3 data
+		# Check if unset filters are skipped | Rows -> 2 filters + 1 empty + 1 column + 3 data
 		self.assertEqual(len(xlsx_data), 7)
 
 		# Check filter formatting
@@ -69,6 +68,7 @@ class TestQueryReport(IntegrationTestCase):
 		"""Test excel export using rows with composite cell value"""
 
 		data = frappe._dict()
+
 		data.columns = [
 			{"label": "Column A", "fieldname": "column_a", "fieldtype": "Float"},
 			{"label": "Column B", "fieldname": "column_b", "width": 150, "fieldtype": "Data"},
@@ -82,9 +82,9 @@ class TestQueryReport(IntegrationTestCase):
 		visible_idx = [0, 1]
 
 		# Build the result
-		xlsx_data, column_widths, header_index = build_xlsx_data(data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths, _ = build_xlsx_data(data, visible_idx, include_indentation=0)
 		# Export to excel
-		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths, header_index=header_index)
+		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
 
 		for row in xlsx_data:
 			# column_b should be 'str' even with composite cell value
@@ -248,6 +248,75 @@ data = columns, result
 			raise e
 			frappe.db.rollback()
 
+	def test_xlsx_styles_structure(self):
+		"""build_xlsx_data with build_styles=True returns a well-formed styles dict"""
+		data = create_mock_data()
+		data.pop("report_name")  # module not needed for this test
+
+		_, _, styles = build_xlsx_data(data, build_styles=True)
+
+		self.assertIsNotNone(styles)
+		for key in ("styles", "column_styles", "row_styles", "cell_styles"):
+			self.assertIn(key, styles)
+
+		# style registry must be non-empty
+		self.assertGreater(len(styles["styles"]), 0)
+
+		# header row (index 0, no filters included) must have bold style
+		self.assertIn(0, styles["row_styles"])
+
+		# resolve the header row's style IDs and confirm bold is set
+		registry = styles["styles"]
+		header_style_ids = styles["row_styles"][0]
+		header_merged = {}
+		for sid in header_style_ids:
+			header_merged.update(registry[sid])
+		self.assertTrue(header_merged.get("bold"))
+
+	def test_xlsx_style_builder_fieldtype_column_styles(self):
+		"""XLSXStyleBuilder applies column styles for Float/Percent/Date but not Data"""
+		column_map = {
+			0: {"fieldname": "name", "fieldtype": "Data", "label": "Name"},
+			1: {"fieldname": "score", "fieldtype": "Float", "label": "Score"},
+			2: {"fieldname": "pct", "fieldtype": "Percent", "label": "Pct"},
+			3: {"fieldname": "dt", "fieldtype": "Date", "label": "Date"},
+		}
+		row_map = {1: {"name": "A", "score": 1.0, "pct": 10.0, "dt": "2025-01-01"}}
+
+		metadata = XLSXMetadata(column_map=column_map, row_map=row_map)
+		builder = XLSXStyleBuilder(metadata, default_styling=False)
+		builder.apply_default_fieldtype_formats(currency_formatting=False)
+
+		def resolve(col_idx):
+			"""Merge all style dicts registered for a column into one dict."""
+			merged = {}
+			for sid in builder.column_styles[col_idx]:
+				merged.update(builder.styles[sid])
+			return merged
+
+		# Float, Percent, Date → column-level styles
+		self.assertIn(1, builder.column_styles)
+		self.assertIn(2, builder.column_styles)
+		self.assertIn(3, builder.column_styles)
+
+		# Data column → no column style
+		self.assertNotIn(0, builder.column_styles)
+
+		# Float → has num_format, no alignment override
+		float_style = resolve(1)
+		self.assertIn("num_format", float_style)
+		self.assertNotIn("align", float_style)
+
+		# Percent → num_format contains "%"
+		percent_style = resolve(2)
+		self.assertIn("num_format", percent_style)
+		self.assertIn("%", percent_style["num_format"])
+
+		# Date → has num_format and explicitly right-aligned
+		date_style = resolve(3)
+		self.assertIn("num_format", date_style)
+		self.assertEqual(date_style.get("align"), "right")
+
 	def test_export_report_via_email(self):
 		REPORT_NAME = "Test CSV Report"
 		REF_DOCTYPE = "DocType"
@@ -285,15 +354,22 @@ data = columns, result
 
 def create_mock_data():
 	data = frappe._dict()
+	data.report_name = "Mock Report"
+
 	data.columns = [
 		{"label": "Column A", "fieldname": "column_a", "fieldtype": "Float"},
 		{"label": "Column B", "fieldname": "column_b", "width": 100, "fieldtype": "Float"},
 		{"label": "Column C", "fieldname": "column_c", "width": 150, "fieldtype": "Duration"},
 	]
+
 	data.result = [
 		[1.0, 3.0, 600],
 		{"column_a": 22.1, "column_b": 21.8, "column_c": 86412},
 		{"column_b": 5.1, "column_c": 53234, "column_a": 11.1},
 		[3.0, 1.5, 333],
 	]
+
+	data.applied_filters = {"Label 1": "Filter Value", "Label 2": None, "Label 3": list(range(5))}
+	data.filters = {"label_1": "Filter Value", "label_2": None, "label_3": list(range(5))}
+
 	return data
