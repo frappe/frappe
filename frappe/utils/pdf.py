@@ -6,6 +6,7 @@ import io
 import mimetypes
 import os
 import subprocess
+import tempfile
 from urllib.parse import parse_qs, urlparse
 
 import cssutils
@@ -96,7 +97,9 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 
 	try:
 		# Set filename property to false, so no file is actually created
-		filedata = pdfkit.from_string(html, options=options or {}, verbose=True)
+		with tempfile.NamedTemporaryFile(mode="w+", delete=True) as html_file:
+			html_file.write(html)
+			filedata = pdfkit.from_file(html_file.file, options=options or {}, verbose=True)
 
 		# create in-memory binary streams from filedata and create a PdfReader object
 		reader = PdfReader(io.BytesIO(filedata))
