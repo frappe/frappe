@@ -396,26 +396,28 @@ class XLSXStyleBuilder:
 
 		number_format = _get_format()
 		thousands_sep = number_format.thousands_separator
-		decimal_sep = number_format.decimal_separator
 		precision = number_format.precision
 
 		if fieldtype == "Currency":
 			precision = cint(frappe.db.get_default("currency_precision")) or precision
-			format_str = XLSXStyleBuilder._build_number_format(thousands_sep, decimal_sep, precision)
+			format_str = XLSXStyleBuilder._build_number_format(thousands_sep, precision)
 			currency_symbol, symbol_on_right = XLSXStyleBuilder._get_currency_symbol_info(currency)
 			return XLSXStyleBuilder._build_currency_format(format_str, currency_symbol, symbol_on_right)
 
 		elif fieldtype in ("Float", "Percent"):
 			precision = cint(frappe.db.get_default("float_precision")) or precision
-			format_str = XLSXStyleBuilder._build_number_format(thousands_sep, decimal_sep, precision)
+			format_str = XLSXStyleBuilder._build_number_format(thousands_sep, precision)
 			return f'{format_str}"%" ' if fieldtype == "Percent" else format_str
 
 		return "General"
 
 	@staticmethod
-	def _build_number_format(thousands_sep: str, decimal_sep: str, precision: int = 0) -> str:
+	def _build_number_format(thousands_sep: str, precision: int = 0) -> str:
+		# Decimal separator is hardcoded to '.' because Excel only understands '.' in format strings.
+		# The system decimal separator is intentionally ignored here.
+		# TODO: can be improved by passing a language/locale to xlsxwriter's Workbook for locale-aware formatting.
 		integer_part = "#,##0" if thousands_sep else "#0"
-		decimal_part = (decimal_sep + "0" * precision) if precision > 0 else ""
+		decimal_part = ("." + "0" * precision) if precision > 0 else ""
 
 		return f"{integer_part}{decimal_part}"
 

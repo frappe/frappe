@@ -669,12 +669,10 @@ def get_xlsx_styles(metadata: XLSXMetadata, report_name: str | None = None) -> d
 	"""
 	styles = None
 	if report_name:
-		print(f"Fetching XLSX styles for report: {report_name}")
 		report = frappe.get_doc("Report", report_name)
 		styles = report.get_xlsx_styles_from_module(metadata)
 
 	if not styles:
-		print("No styles found in report module, using default styles.")
 		styles = XLSXStyleBuilder(metadata).result
 
 	return styles
