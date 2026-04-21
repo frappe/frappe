@@ -54,13 +54,19 @@ router.beforeEach(async (to, _, next) => {
 
 // Patch router to resolve unmatched routes to NotFound page
 // This ensures router-link renders correctly for the app being edited in studio
-const resolve = router.resolve
+const resolve = router.resolve.bind(router)
 // @ts-ignore
 router.resolve = (to, currentLocation) => {
-	if (!to.matched?.length) {
-		to = "/not-found"
+	let resolved
+	try {
+		resolved = resolve(to, currentLocation)
+		if (!resolved.matched?.length) {
+			resolved = resolve("/not-found", currentLocation)
+		}
+	} catch (error) {
+		resolved = resolve("/not-found", currentLocation)
 	}
-	return resolve(to, currentLocation)
+	return resolved
 }
 
 export default router
