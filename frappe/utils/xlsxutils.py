@@ -280,9 +280,9 @@ class XLSXStyleBuilder:
 		formats: dict[str, int] = {
 			"Float": self.register_style({"num_format": self.get_number_format("Float")}),
 			"Percent": self.register_style({"num_format": self.get_number_format("Percent")}),
-			"Date": self.register_style({"num_format": self.get_date_format()}),
-			"Time": self.register_style({"num_format": self.get_time_format()}),
-			"Datetime": self.register_style({"num_format": self.get_datetime_format()}),
+			"Date": self.register_style({"num_format": self.get_date_format(), "align": "right"}),
+			"Time": self.register_style({"num_format": self.get_time_format(), "align": "right"}),
+			"Datetime": self.register_style({"num_format": self.get_datetime_format(), "align": "right"}),
 		}
 
 		for idx, col in self.metadata.column_map.items():
