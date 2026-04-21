@@ -131,10 +131,15 @@ class XLSXStyleBuilder:
 		self.last_row_index = self.metadata.get_last_row_index()
 		self.row_is_dict = isinstance(self.metadata.row_map.get(self.first_row_index), dict)
 
+		self._register_common_styles()
+
 		if default_styling:
 			self.apply_default_styles()
 
 	### STYLE REGISTRATION ###
+	def _register_common_styles(self):
+		self.bold_style_id = self.register_style({"bold": True})
+
 	def register_style(self, style: dict) -> int:
 		"""
 		Register a style and return its ID.
@@ -229,7 +234,7 @@ class XLSXStyleBuilder:
 	def style_header(self):
 		header_index = self.header_index
 
-		self.style_row(header_index, self.register_style({"bold": True}))
+		self.style_row(header_index, self.bold_style_id)
 
 		right_align = self.register_style({"align": "right"})
 		left_align = self.register_style({"align": "left"})
@@ -244,11 +249,9 @@ class XLSXStyleBuilder:
 		return self
 
 	def style_filters(self):
-		style = self.register_style({"bold": True})
-
 		for row_idx in self.metadata.applied_filters_map.keys():
 			# style only the label column (0th index)
-			self.style_cell(row_idx, 0, style)
+			self.style_cell(row_idx, 0, self.bold_style_id)
 		return self
 
 	def apply_indentations(self, col_idx: int = 0, field: str = "indent", pt: int = 2):
@@ -274,7 +277,7 @@ class XLSXStyleBuilder:
 		return self
 
 	def style_total_row(self):
-		return self.style_row(self.last_row_index, self.register_style({"bold": True}))
+		return self.style_row(self.last_row_index, self.bold_style_id)
 
 	def apply_default_fieldtype_formats(self, currency_formatting: bool = True):
 		formats: dict[str, int] = {
