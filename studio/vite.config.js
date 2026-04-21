@@ -55,6 +55,7 @@ export default defineConfig({
 			"engine.io-client",
 			"highlight.js/lib/core",
 			"interactjs",
+			"debug",
 		],
 	},
 })
