@@ -1031,8 +1031,7 @@ def get_timezones():
 		"W-SU",
 		"Zulu",
 	]
-	timezones = zoneinfo.available_timezones()
-	timezones = list(filter(lambda tz: tz not in DEPRECATED_TIMEZONES, timezones))
+	timezones = [tz for tz in zoneinfo.available_timezones() if tz not in DEPRECATED_TIMEZONES]
 
 	return {"timezones": timezones}
 
