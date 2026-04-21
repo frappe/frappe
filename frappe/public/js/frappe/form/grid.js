@@ -327,13 +327,7 @@ export default class Grid {
 	}
 
 	get_selected() {
-		return (this.grid_rows || [])
-			.map((row) => {
-				return row.doc.__checked ? row.doc.name : null;
-			})
-			.filter((d) => {
-				return d;
-			});
+		return (this.data || []).filter((doc) => doc.__checked).map((doc) => doc.name);
 	}
 
 	get_selected_children() {
