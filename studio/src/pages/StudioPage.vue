@@ -148,7 +148,13 @@
 
 <script setup lang="ts">
 import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick } from "vue"
-import { useRoute, useRouter } from "vue-router"
+import {
+	useRoute,
+	useRouter,
+	onBeforeRouteLeave,
+	onBeforeRouteUpdate,
+	type RouteLocationNormalized,
+} from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
 import { usePageMeta, Dialog } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"
@@ -266,6 +272,18 @@ watch(
 	},
 	{ immediate: true },
 )
+
+const validateRouteScope = (to: RouteLocationNormalized, _: RouteLocationNormalized) => {
+	// prevent navigation if route is out of studio scope to avoid routing away from canvas while editing apps
+	if (to.name === "NotFound") return false
+
+	const pageID = Array.isArray(to.params.pageID) ? to.params.pageID[0] : to.params.pageID
+	const isAppPage = to.name === "StudioPage" && !store.hasPage(pageID)
+	if (isAppPage) return false
+	return true
+}
+onBeforeRouteLeave(validateRouteScope)
+onBeforeRouteUpdate(validateRouteScope)
 
 usePageMeta(() => {
 	const page_title = store.activePage?.page_title

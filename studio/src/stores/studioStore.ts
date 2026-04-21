@@ -83,6 +83,10 @@ const useStudioStore = defineStore("store", () => {
 		})
 	}
 
+	function hasPage(pageName: string) {
+		return Object.values(appPages.value).some((page) => page.name === pageName)
+	}
+
 	function updateActiveApp(key: string, value: string) {
 		studioApps.setValue.submit(
 			{ name: activeApp.value?.name, [key]: value },
@@ -441,6 +445,7 @@ const useStudioStore = defineStore("store", () => {
 		duplicateAppPage,
 		appPages,
 		setAppPages,
+		hasPage,
 		getAppPageRoute,
 		// studio pages
 		pageBlocks,
