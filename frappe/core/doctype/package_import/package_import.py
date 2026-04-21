@@ -54,6 +54,16 @@ class PackageImport(Document):
 		extract_path = frappe.get_site_path("packages")
 		archive_path = get_files_path(attachment.file_name, is_private=attachment.is_private)
 		with tarfile.open(archive_path, "r:gz") as tar:
+			for member in tar.getmembers():
+				if member.issym() or member.islnk():
+					frappe.throw(frappe._(f"Package contains disallowed link entry: {member.name}"))
+
+				member_path = os.path.realpath(os.path.join(extract_path, member.name))
+				if os.path.commonpath([member_path, os.path.realpath(extract_path)]) != os.path.realpath(
+					extract_path
+				):  # use util here instead
+					frappe.throw(frappe._("Package contains disallowed path entry"))
+
 			tar.extractall(path=extract_path, filter="data")
 
 		package_path = frappe.get_site_path("packages", package_name)
