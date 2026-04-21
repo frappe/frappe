@@ -297,6 +297,44 @@ class TestNestedSet(IntegrationTestCase):
 		self.assertNotIn(record, str(frappe.qb.get_query(table=linked_doctype, filters=exclusive_link)))
 		self.assertIn(record, str(frappe.qb.get_query(table=linked_doctype, filters=inclusive_link)))
 
+	def test_desc_filters_on_child_table_field(self):
+		"""Nested-set operator on a child-table field should resolve ref_doctype
+		against the child table, not the parent queried doctype."""
+		child_doctype = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"fieldname": "link_field",
+						"fieldtype": "Link",
+						"options": TEST_DOCTYPE,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		parent_doctype = (
+			new_doctype(
+				fields=[
+					{
+						"fieldname": "child_table",
+						"fieldtype": "Table",
+						"options": child_doctype,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+
+		record = "Child 1"
+		child_filter = [[child_doctype, "link_field", "descendants of (inclusive)", record]]
+
+		# Must not raise pymysql/MySQLdb OperationalError 1054 ("Unknown column 'lft'")
+		frappe.get_all(parent_doctype, filters=child_filter, fields=["name"])
+		frappe.qb.get_query(parent_doctype, filters=child_filter).run()
+
 	def test_disabled_records_in_treeview(self):
 		"""
 		Tests the `get_children` util for showing / skipping disabled records in treeview
