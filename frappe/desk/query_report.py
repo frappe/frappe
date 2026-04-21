@@ -637,8 +637,8 @@ def build_xlsx_data(
 				indent = cint(indent)
 
 		if build_styles:
-			excel_row_idx += 1
 			metadata.row_map[excel_row_idx] = row
+			excel_row_idx += 1
 
 		for col_idx, column in enumerate(data.columns):
 			if column.get("hidden") and not include_hidden_columns:
@@ -658,16 +658,23 @@ def build_xlsx_data(
 
 		result.append(row_data)
 
-	return result, column_widths, get_xlsx_styles(data.report_name, metadata) if build_styles else None
+	return result, column_widths, get_xlsx_styles(metadata, data.report_name) if build_styles else None
 
 
-def get_xlsx_styles(report_name, metadata):
+def get_xlsx_styles(metadata: XLSXMetadata, report_name: str | None = None) -> dict | None:
+	"""
+	Returns styles for XLSX export.
+
+	If report_name is provided, it tries to fetch styles defined in the report's module.
+	"""
 	styles = None
 	if report_name:
+		print(f"Fetching XLSX styles for report: {report_name}")
 		report = frappe.get_doc("Report", report_name)
 		styles = report.get_xlsx_styles_from_module(metadata)
 
 	if not styles:
+		print("No styles found in report module, using default styles.")
 		styles = XLSXStyleBuilder(metadata).result
 
 	return styles
