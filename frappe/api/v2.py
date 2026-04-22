@@ -58,7 +58,7 @@ def handle_rpc_call(method: str, doctype: str | None = None):
 	try:
 		method = frappe.get_attr(method)
 	except Exception as e:
-		frappe.throw(_("Failed to get method {0} with {1}").format(method, e))
+		frappe.throw(_("Failed to get method {0} with {1}").format(method, str(e)))
 
 	is_whitelisted(method)
 	is_valid_http_method(method)

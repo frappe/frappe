@@ -23,7 +23,7 @@ class PermissionLog(Document):
 		for_document: DF.DynamicLink
 		reference: DF.DynamicLink | None
 		reference_type: DF.Link | None
-		status: DF.Literal["Updated", "Removed", "Added"]
+		status: DF.Literal["Updated", "Removed", "Added", "Reset"]
 	# end: auto-generated types
 
 	@property
@@ -33,6 +33,13 @@ class PermissionLog(Document):
 
 def make_perm_log(doc, method=None):
 	if not hasattr(doc, "get_permission_log_options"):
+		return
+	# During reset we insert a single "Reset" log; skip per-Custom-DocPerm "Removed" logs
+	if (
+		method == "after_delete"
+		and doc.doctype == "Custom DocPerm"
+		and getattr(frappe.flags, "skip_perm_log_for_doctype", None) == doc.parent
+	):
 		return
 
 	params = doc.get_permission_log_options(method) or {}
@@ -46,16 +53,34 @@ def insert_perm_log(
 	for_doctype: str | None = None,
 	for_document: str | None = None,
 	fields: list | tuple | None = None,
+	custom_changes: dict | None = None,
 ):
+	"""Log a permission change. When custom_changes is provided (e.g. for reset-to-standard),
+	it must be {"from": {...}, "to": {...}} and optionally "status"; doc is used for
+	reference/owner only."""
 	if frappe.flags.in_install or frappe.flags.in_migrate:
 		# no need to log changes when migrating or installing app/site
 		return
 
-	current, previous = get_changes(doc, doc_before_save, fields)
-	if not previous and not current:
-		return
-
-	status = "Updated" if doc_before_save else ("Added" if doc.flags.in_insert else "Removed")
+	if custom_changes is not None:
+		previous = custom_changes.get("from", {})
+		current = custom_changes.get("to", {})
+		status = custom_changes.get("status", "Updated")
+	else:
+		current, previous = get_changes(doc, doc_before_save, fields)
+		if not previous and not current:
+			return
+		status = "Updated" if doc_before_save else ("Added" if doc.flags.in_insert else "Removed")
+		# Ensure role (and parent) are always in changes for Custom DocPerm so the UI can show them
+		if doc.doctype == "Custom DocPerm":
+			previous["role"] = previous.get("role") or (
+				doc_before_save and getattr(doc_before_save, "role", None)
+			)
+			current["role"] = current.get("role") or getattr(doc, "role", None)
+			previous["parent"] = previous.get("parent") or (
+				doc_before_save and getattr(doc_before_save, "parent", None)
+			)
+			current["parent"] = current.get("parent") or getattr(doc, "parent", None)
 
 	frappe.get_doc(
 		{

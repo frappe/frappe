@@ -22,6 +22,7 @@ class CustomField(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		alignment: DF.Literal["", "Left", "Center", "Right"]
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
 		bold: DF.Check
@@ -113,6 +114,7 @@ class CustomField(Document):
 		report_hide: DF.Check
 		reqd: DF.Check
 		search_index: DF.Check
+		set_only_once: DF.Check
 		show_dashboard: DF.Check
 		sort_options: DF.Check
 		translatable: DF.Check
@@ -268,7 +270,7 @@ class CustomField(Document):
 
 
 @frappe.whitelist()
-def get_fields_label(doctype=None):
+def get_fields_label(doctype: str | None = None):
 	meta = frappe.get_meta(doctype)
 
 	if doctype in core_doctypes_list:

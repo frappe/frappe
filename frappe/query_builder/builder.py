@@ -1,3 +1,4 @@
+import re
 import types
 import typing
 
@@ -8,6 +9,10 @@ from pypika.terms import Function
 
 from frappe.query_builder.terms import ParameterizedValueWrapper, SQLiteParameterizedValueWrapper
 from frappe.utils import get_table_name
+
+# less restrictive version of frappe.core.doctype.doctype.doctype.START_WITH_LETTERS_PATTERN
+# to allow table names like __Auth
+TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
 
 
 class Base:
@@ -30,6 +35,7 @@ class Base:
 
 	@staticmethod
 	def DocType(table_name: str, *args, **kwargs) -> Table:
+		Base.validate_doctype(table_name)
 		table_name = get_table_name(table_name)
 		return Table(table_name, *args, **kwargs)
 
@@ -44,6 +50,13 @@ class Base:
 		if isinstance(table, str):
 			table = cls.DocType(table)
 		return super().update(table, *args, **kwargs)
+
+	@staticmethod
+	def validate_doctype(doctype) -> None:
+		from frappe import _, throw
+
+		if not TABLE_NAME_PATTERN.match(doctype):
+			throw(_("Invalid DocType: {0}").format(doctype))
 
 
 class MariaDB(Base, MySQLQuery):

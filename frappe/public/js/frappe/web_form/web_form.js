@@ -103,10 +103,6 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		$(".web-form-footer .left-area").prepend(this.$previous_button);
 
 		this.$previous_button.on("click", () => {
-			let is_validated = me.validate_section();
-
-			if (!is_validated) return false;
-
 			/**
 				The eslint utility cannot figure out if this is an infinite loop in backwards and
 				throws an error. Disabling for-direction just for this section.
@@ -165,7 +161,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		let values = frappe.utils.get_query_params();
 		delete values.new;
 		Object.assign(defaults, values);
-		this.set_values(values);
+		this.set_values(defaults);
 	}
 
 	setup_primary_action() {
@@ -230,6 +226,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			field = this.fields_dict[fieldname];
 
 			if (field && field.get_value) {
+				if (field.df.hidden) continue;
+
 				let value = field.get_value();
 				if (
 					field.df.reqd &&

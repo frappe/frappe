@@ -40,7 +40,6 @@ def update_user_settings(doctype, user_settings, for_update=False):
 			current = {}
 
 		current.update(user_settings)
-
 	frappe.cache.hset("_user_settings", f"{doctype}::{frappe.session.user}", json.dumps(current))
 
 
@@ -64,14 +63,14 @@ def sync_user_settings():
 
 
 @frappe.whitelist()
-def save(doctype, user_settings):
+def save(doctype: str, user_settings: str):
 	user_settings = json.loads(user_settings or "{}")
 	update_user_settings(doctype, user_settings)
 	return user_settings
 
 
 @frappe.whitelist()
-def get(doctype):
+def get(doctype: str):
 	return get_user_settings(doctype)
 
 

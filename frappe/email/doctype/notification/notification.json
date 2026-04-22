@@ -76,7 +76,7 @@
   },
   {
    "depends_on": "eval:doc.channel=='Slack'",
-   "description": "To use Slack Channel, add a <a href=\"#List/Slack%20Webhook%20URL/List\">Slack Webhook URL</a>.",
+   "description": "To use Slack Channel, add a <a href=\"#List/Slack%20Webhook%20URL/List\" rel=\"noopener noreferrer\">Slack Webhook URL</a>.",
    "fieldname": "slack_webhook_url",
    "fieldtype": "Link",
    "label": "Slack Channel",
@@ -135,7 +135,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Send Alert On",
-   "options": "\nNew\nSave\nSubmit\nCancel\nDays After\nDays Before\nMinutes After\nMinutes Before\nValue Change\nMethod\nCustom",
+   "options": "\nNew\nSave\nSubmit\nCancel\nDays After\nDays Before\nMinutes After\nMinutes Before\nValue Change\nMethod",
    "reqd": 1,
    "search_index": 1
   },
@@ -363,7 +363,7 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-21 23:14:52.345857",
+ "modified": "2026-02-19 18:07:15.888314",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

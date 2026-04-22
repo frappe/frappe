@@ -108,7 +108,6 @@ jobs:
 
       - name: Run Tests
         run: |
-          source ${GITHUB_WORKSPACE}/env/bin/activate
           bench --site test_site \
             run-parallel-tests \
             --app "${{ github.event.repository.name }}" \
@@ -141,7 +140,7 @@ jobs:
           FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: inputs.enable-coverage
         with:
           name: coverage-${{ matrix.db }}-${{ matrix.index }}

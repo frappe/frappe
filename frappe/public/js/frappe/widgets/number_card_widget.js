@@ -231,6 +231,11 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	set_formatted_number(df, doc) {
+		if (this.number === null) {
+			this.formatted_number = __("N/A", null, "Number not available");
+			return;
+		}
+
 		const default_country = frappe.sys_defaults.country;
 
 		let number_parts;
@@ -246,14 +251,15 @@ export default class NumberCardWidget extends Widget {
 		// done to add multicurrency support in number card
 		if (this.card_doc.currency) {
 			this.formatted_number =
-				format_currency(number_parts[0], this.card_doc.currency) + " " + symbol;
+				format_currency(parseFloat(number_parts[0]), this.card_doc.currency) +
+				(symbol ? " " + symbol : "");
 			return;
 		}
 
 		number_parts[0] = window.convert_old_to_new_number_format(number_parts[0]);
 		const formatted_number = frappe.format(number_parts[0], df, null, doc);
 		this.formatted_number =
-			($(formatted_number).text() || formatted_number) + " " + __(symbol);
+			($(formatted_number).text() || formatted_number) + (symbol ? " " + symbol : "");
 	}
 
 	_generate_common_doc(rows) {

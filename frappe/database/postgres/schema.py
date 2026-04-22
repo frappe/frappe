@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from frappe.database.schema import DBTable, get_definition
+from frappe.database.schema import DbColumn, DBTable, get_definition
 from frappe.utils import cint, flt
 from frappe.utils.defaults import get_not_null_defaults
 
@@ -131,6 +131,50 @@ class PostgresTable(DBTable):
 					index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
 				)
 
+		# logic to drop unique constraint for fields deleted from a doctype
+		meta_columns = set(self.columns.keys())
+		db_columns = set(self.current_columns.keys())
+
+		for col in db_columns:
+			if (
+				col not in meta_columns
+				and col not in frappe.db.DEFAULT_COLUMNS
+				and col not in frappe.db.OPTIONAL_COLUMNS
+			):
+				has_unique_index = frappe.db.sql(
+					"""
+					SELECT 1
+					FROM pg_indexes
+					WHERE tablename = %s
+					AND indexname IN (%s, %s)
+					LIMIT 1
+					""",
+					(
+						self.table_name,
+						f"{self.table_name}_{col}_key",
+						f"unique_{col}",
+					),
+				)
+
+				if not has_unique_index:
+					continue
+
+				current_col = self.current_columns.get(col)
+
+				deleted_col = DbColumn(
+					table=self,
+					fieldname=current_col.name,
+					fieldtype=current_col.type,
+					length=None,
+					default=None,
+					set_index=current_col.index,
+					options=None,
+					unique=False,
+					precision=None,
+					not_nullable=current_col.not_nullable,
+				)
+				self.drop_unique.append(deleted_col)
+
 		drop_contraint_query = ""
 		for col in self.drop_index:
 			# primary key
@@ -141,8 +185,35 @@ class PostgresTable(DBTable):
 		for col in self.drop_unique:
 			# primary key
 			if col.fieldname != "name":
-				# if index key exists
-				drop_contraint_query += f'DROP INDEX IF EXISTS "unique_{col.fieldname}" ;'
+				# drop unique constraint first if exists which automatically drops the underlying index also
+				unique_constraint_exists = frappe.db.sql(
+					"""
+					SELECT 1
+					FROM pg_constraint
+					WHERE conname = %s
+					""",
+					(f"{self.table_name}_{col.fieldname}_key",),
+				)
+
+				if unique_constraint_exists:
+					drop_contraint_query += f'ALTER TABLE "{self.table_name}" DROP CONSTRAINT IF EXISTS "{self.table_name}_{col.fieldname}_key" ;'
+
+				# drop the unique index backed by no constraint directly
+				unique_index_exists = frappe.db.sql(
+					"""
+					SELECT 1
+					FROM pg_indexes
+					WHERE tablename = %s
+					AND indexname = %s
+					""",
+					(
+						self.table_name,
+						f"unique_{col.fieldname}",
+					),
+				)
+
+				if unique_index_exists:
+					drop_contraint_query += f'DROP INDEX IF EXISTS "unique_{col.fieldname}" ;'
 
 		change_nullability = []
 		for col in self.change_nullability:

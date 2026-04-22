@@ -1,6 +1,7 @@
 frappe.desktop_utils = {};
 frappe.desktop_grids = [];
 frappe.desktop_icons_objects = [];
+frappe.new_icons = [];
 $.extend(frappe.desktop_utils, {
 	modal: null,
 	modal_stack: [],
@@ -29,6 +30,9 @@ frappe.pages["desktop"].on_page_load = function (wrapper) {
 	// setup();
 };
 
+frappe.pages["desktop"].on_page_show = function (wrapper) {
+	frappe.pages["desktop"].desktop_page.update();
+};
 function get_workspaces_from_app_name(app_name) {
 	const app = frappe.boot.app_data.filter((a) => {
 		return a.app_title === app_name;
@@ -42,6 +46,9 @@ function get_route(desktop_icon) {
 	let item = {};
 	if (desktop_icon.link_type == "External" && desktop_icon.link) {
 		route = window.location.origin + desktop_icon.link;
+		if (desktop_icon.link.startsWith("http") || desktop_icon.link.startsWith("https")) {
+			route = desktop_icon.link;
+		}
 	} else {
 		let sidebar = frappe.boot.workspace_sidebar_item[desktop_icon.label.toLowerCase()];
 		if (desktop_icon.link_type == "Workspace Sidebar" && sidebar) {
@@ -64,15 +71,15 @@ function get_route(desktop_icon) {
 				} else if (first_link.link_type == "Workspace") {
 					let workspaces = frappe.workspaces[frappe.router.slug(first_link.link_to)];
 					if (workspaces) {
-						if (workspaces.public) {
-							route = "/desk/" + frappe.router.slug(first_link.link_to);
-						} else {
-							route = "/desk/private/" + frappe.router.slug(workspaces.title);
-						}
-					}
-
-					if (first_link.route) {
-						route = first_link.route;
+						let args = {
+							type: "workspace",
+							name: workspaces.title,
+							public: workspaces.public ? 1 : 0,
+							route_options: {
+								sidebar: desktop_icon.label,
+							},
+						};
+						route = frappe.utils.generate_route(args);
 					}
 				} else if (first_link.link_type === "URL") {
 					route = first_link.url;
@@ -87,6 +94,9 @@ function get_route(desktop_icon) {
 						type: first_link.link_type,
 						name: first_link.link_to,
 						tab: first_link.tab,
+						route_options: {
+							sidebar: desktop_icon.label,
+						},
 					});
 				}
 			}
@@ -95,19 +105,18 @@ function get_route(desktop_icon) {
 	return route;
 }
 
-function get_desktop_icon_by_label(title, filters) {
+function get_desktop_icon_by_label(title, filters, force) {
+	if (force === undefined) force = false;
 	let icons = frappe.desktop_icons;
-	if (frappe.pages["desktop"].desktop_page.edit_mode) {
+	if (!force && frappe.pages["desktop"].desktop_page.edit_mode) {
 		icons = frappe.new_desktop_icons;
 	}
 	if (!filters) {
-		return icons.find((f) => f.label === title && f.hidden != 1);
+		return icons.find((f) => f.label === title);
 	} else {
 		return icons.find((f) => {
 			return (
-				f.label === title &&
-				Object.keys(filters).every((key) => f[key] === filters[key]) &&
-				f.hidden != 1
+				f.label === title && Object.keys(filters).every((key) => f[key] === filters[key])
 			);
 		});
 	}
@@ -119,18 +128,17 @@ function get_desktop_icon_by_idx(idx, parent_icon) {
 
 function save_desktop(icons) {
 	// saving in localStorage;
-	localStorage.setItem(`${frappe.session.user}:desktop`, JSON.stringify(icons));
-	frappe.toast("Desktop Saved");
-	frappe.pages["desktop"].desktop_page.update();
+	frappe.pages["desktop"].desktop_page.save_layout(icons, frappe.new_icons);
 }
 
 function reset_to_default() {
-	localStorage.setItem(`${frappe.session.user}:desktop`, null);
+	frappe.call({
+		method: "frappe.desk.doctype.desktop_layout.desktop_layout.delete_layout",
+		callback: function (r) {
+			frappe.ui.toolbar.clear_cache();
+		},
+	});
 }
-
-frappe.pages["desktop"].on_page_show = function () {
-	frappe.pages["desktop"].desktop_page.setup();
-};
 
 function toggle_icons(icons) {
 	icons.forEach((i) => {
@@ -138,31 +146,54 @@ function toggle_icons(icons) {
 	});
 }
 
+frappe.desktop_utils.get_folder_icons = function (folder_name) {
+	let icons_in_folder = [];
+	let icons = frappe.desktop_icons;
+	if (frappe.pages["desktop"].desktop_page.edit_mode) {
+		icons = frappe.new_desktop_icons;
+	}
+	icons.forEach((icon) => {
+		if (icon.parent_icon == folder_name) {
+			icons_in_folder.push(icon.label);
+		}
+	});
+	return icons_in_folder;
+};
+
+function add_icons_to_folder(folder_name, items) {
+	let folder = get_desktop_icon_by_label(folder_name);
+	items.forEach((item) => {
+		let icon = get_desktop_icon_by_label(item);
+		icon.parent_icon = folder.label;
+	});
+	frappe.pages["desktop"].desktop_page.update();
+}
+
 class DesktopPage {
 	constructor(page) {
 		this.page = page;
 		this.edit_mode = false;
-		this.prepare();
-		this.make(page);
-		this.setup_events();
+		this.desktop_menu_items = [];
 	}
 	update() {
-		this.prepare();
 		this.make();
-		this.setup();
 	}
-
 	prepare() {
 		this.apps_icons = [];
-
+		this.hidden_icons = [];
+		this.folders = [];
 		const icon_map = {};
-		frappe.desktop_icons = this.get_saved_layout() || frappe.boot.desktop_icons;
 		let icons = this.edit_mode ? frappe.new_desktop_icons : frappe.desktop_icons;
 		const all_icons = icons.filter((icon) => {
 			if (icon.hidden != 1) {
 				icon.child_icons = [];
 				icon_map[icon.label] = icon;
+				if (icon.icon_type == "Folder") {
+					this.folders.push(icon.label);
+				}
 				return true;
+			} else {
+				this.hidden_icons.push(icon);
 			}
 			return false;
 		});
@@ -183,20 +214,56 @@ class DesktopPage {
 		}
 		return JSON.parse(localStorage.getItem(`${frappe.session.user}:desktop`));
 	}
-	setup_events() {
-		this.wrapper.find(".hide-button").on("click", function (event) {
-			event.preventDefault();
-			event.stopImmediatePropagation();
-			let desktop_label = event.currentTarget.parentElement.dataset.id;
-			let desktop_icon = get_desktop_icon_by_label(desktop_label);
-			desktop_icon.hidden = 1;
-			frappe.pages["desktop"].desktop_page.update();
+	sync_layout() {
+		const me = this;
+		let saved_layout = JSON.parse(localStorage.getItem(`${frappe.session.user}:desktop`));
+		if (!this.data && saved_layout) {
+			this.save_layout(saved_layout);
+		} else if (this.data && Array.isArray(this.data) && this.data.length > 0) {
+			frappe.desktop_icons = this.data;
+		} else {
+			frappe.desktop_icons = frappe.boot.desktop_icons;
+		}
+	}
+	save_layout(layout, new_icons) {
+		const me = this;
+		frappe.call({
+			method: "frappe.desk.doctype.desktop_layout.desktop_layout.save_layout",
+			args: {
+				user: frappe.session.user,
+				layout: JSON.stringify(layout),
+				new_icons: JSON.stringify(new_icons),
+			},
+			callback: function (r) {
+				me.data = r.message.layout;
+				me.make(me.page);
+				me.setup();
+				frappe.new_icons = [];
+			},
 		});
 	}
 	make() {
 		this.page.page_head.hide();
 		$(this.page.body).empty();
+		this.awesomebar_setup = false;
 		$(frappe.render_template("desktop")).appendTo(this.page.body);
+		if (this.data !== undefined) {
+			this.render();
+		} else {
+			const me = this;
+			frappe.call({
+				method: "frappe.desk.doctype.desktop_layout.desktop_layout.get_layout",
+				callback: function (r) {
+					me.data = r.message;
+					me.render();
+				},
+			});
+		}
+	}
+
+	render() {
+		this.sync_layout();
+		this.prepare();
 		this.wrapper = this.page.body.find(".desktop-container");
 		this.icon_grid = new DesktopIconGrid({
 			wrapper: this.wrapper,
@@ -206,20 +273,22 @@ class DesktopPage {
 				col: 3,
 			},
 		});
+		this.setup_context_menu();
 		if (this.edit_mode) {
 			this.start_editing_layout();
 		}
+		this.setup();
 	}
-
 	setup() {
+		$(document).trigger("desktop_screen", { desktop: this });
 		this.setup_avatar();
 		this.setup_notifications();
 		this.setup_navbar();
 		this.setup_awesomebar();
 		this.handle_route_change();
-		this.setup_events();
 	}
 	setup_edit_button() {
+		if (this.edit_mode || frappe.is_mobile()) return;
 		const me = this;
 		$(".desktop-edit").remove();
 		this.$desktop_edit_button = $(
@@ -233,12 +302,15 @@ class DesktopPage {
 			me.start_editing_layout();
 		});
 	}
-	setup_editing_mode() {
+	setup_context_menu() {
 		const me = this;
 		let menu_items = [
 			{
 				label: "Edit Layout",
 				icon: "edit",
+				condition: function () {
+					return !me.edit_mode;
+				},
 				onClick: function () {
 					frappe.new_desktop_icons = JSON.parse(JSON.stringify(frappe.desktop_icons));
 					me.start_editing_layout();
@@ -261,23 +333,28 @@ class DesktopPage {
 	}
 	stop_editing_layout(action) {
 		this.edit_mode = false;
-
-		$(".desktop-icon").removeClass("edit-mode");
+		$(".desktop-icon").not(".folder-icon .desktop-icon").removeClass("desktop-edit-mode");
 		$(".desktop-wrapper").removeAttr("data-mode");
+		$(".add-new-icon").remove();
+		this.desktop_pane.hide();
 		if (action === "cancel") {
 			frappe.new_desktop_icons = null;
 			this.update();
 			return;
 		}
-
 		// submit
 		save_desktop(frappe.new_desktop_icons);
 	}
 
 	start_editing_layout() {
 		this.edit_mode = true;
-		$(".desktop-icon").addClass("edit-mode");
+		const me = this;
+		this.desktop_pane = new IconsPane();
 		$(".desktop-wrapper").attr("data-mode", "Edit");
+		$(".desktop-edit").remove();
+		frappe.desktop_icons_objects.forEach((icon) => {
+			icon.edit_mode = true;
+		});
 		frappe.desktop_grids.forEach((desktop_grid) => {
 			if (!desktop_grid.no_dragging) {
 				desktop_grid.grids.forEach((grid) => {
@@ -285,16 +362,72 @@ class DesktopPage {
 				});
 			}
 		});
-		frappe.desktop_icons_objects.forEach((icon_object) => {
-			icon_object.setup_dragging();
+		this.add_new_icons_to_grid();
+		if (this.edit_mode) {
+			this.setup_edit_buttons();
+			this.desktop_pane.show();
+		}
+	}
+	add_new_icons_to_grid() {
+		let grid = $($(".desktop-container .icons").get(0));
+		this.add_new_icon = `<div class="desktop-icon desktop-edit-mode add-new-icon" title="Add New Icon">
+		 ${frappe.utils.icon("plus", "lg")}
+		  <div>Workspace</div>
+		 </div>`;
+		grid.append(this.add_new_icon);
+		$(".add-new-icon").on("click", function () {
+			let d = new frappe.ui.Dialog({
+				title: "New Workspace",
+				fields: [
+					{
+						label: "Label",
+						fieldname: "label",
+						fieldtype: "Data",
+					},
+					{
+						label: "Public",
+						fieldname: "public",
+						fieldtype: "Check",
+					},
+				],
+				primary_action_label: "Create",
+				primary_action: function (values) {
+					let icon = frappe.model.get_new_doc("Desktop Icon");
+					icon.workspace = {
+						label: values.label,
+						public: values.public,
+					};
+					icon.link_type = "Workspace Sidebar";
+					icon.label = values.label;
+					frappe.new_desktop_icons.push(icon);
+					frappe.new_icons.push(icon);
+					frappe.pages["desktop"].desktop_page.update();
+					d.hide();
+				},
+			});
+			d.show();
+			// frappe.ui.form.make_quick_entry(
+			// 	"Desktop Icon",
+			// 	function (icon) {
+			// 		frappe.new_desktop_icons.push(icon);
+			// 		frappe.new_icons.push(icon);
+			// 		frappe.pages["desktop"].desktop_page.update();
+			// 	},
+			// 	"",
+			// 	"",
+			// 	null,
+			// 	true,
+			// 	true
+			// );
 		});
-		if (this.edit_mode) this.setup_edit_buttons();
 	}
 	setup_edit_buttons() {
 		const me = this;
 		this.$edit_button = $(".edit-mode-buttons");
 		this.$edit_button.find(".discard").on("click", function () {
 			me.stop_editing_layout("cancel");
+			me.delete_new_icons();
+			$($(".desktop-container .icons").get(0)).find(".add-new-icon").remove();
 		});
 		this.$edit_button.find(".save").on("click", function () {
 			me.stop_editing_layout("submit");
@@ -306,6 +439,11 @@ class DesktopPage {
 			full_height: false,
 		});
 	}
+
+	delete_new_icons() {
+		frappe.new_icons = [];
+	}
+
 	setup_avatar() {
 		$(".desktop-avatar").html(frappe.avatar(frappe.session.user, "avatar-medium"));
 		let is_dark = document.documentElement.getAttribute("data-theme") === "dark";
@@ -338,7 +476,7 @@ class DesktopPage {
 			},
 			{
 				icon: "rotate-ccw",
-				label: "Reset to Default",
+				label: "Reset Desktop Layout",
 				onClick: function () {
 					reset_to_default();
 					window.location.reload();
@@ -352,6 +490,8 @@ class DesktopPage {
 				},
 			},
 		];
+		if (this.desktop_menu_items && this.desktop_menu_items.length)
+			menu_items = [...menu_items, ...this.desktop_menu_items];
 		frappe.ui.create_menu({
 			parent: $(".desktop-avatar"),
 			menu_items: menu_items,
@@ -360,84 +500,76 @@ class DesktopPage {
 			open_on_left: !frappe.utils.is_rtl(),
 		});
 	}
+	add_menu_item(item) {
+		if (this.desktop_menu_items && this.desktop_menu_items.find((i) => i.label === item.label))
+			return;
+		this.desktop_menu_items.push(item);
+	}
 	setup_navbar() {
 		$(".sticky-top > .navbar").hide();
 	}
 
 	setup_awesomebar() {
+		if (!frappe.is_mobile()) {
+			$(".desktop-keyboard-shortcut").html("Ctrl+K");
+			if (frappe.utils.is_mac()) {
+				$(".desktop-keyboard-shortcut").html("⌘K");
+			}
+		}
 		if (this.awesomebar_setup) return;
 		this.awesomebar_setup = true;
 
 		if (frappe.boot.desk_settings.search_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
 			awesome_bar.setup(".desktop-search-wrapper #desktop-navbar-modal-search");
+
+			frappe.ui.keys.add_shortcut({
+				shortcut: "ctrl+g",
+				action: function (e) {
+					$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
+					e.preventDefault();
+					return false;
+				},
+				description: __("Open Awesomebar"),
+				ignore_inputs: true,
+			});
+			frappe.ui.keys.add_shortcut({
+				shortcut: "ctrl+k",
+				action: function (e) {
+					$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
+					e.preventDefault();
+					return false;
+				},
+				description: __("Toggle Awesomebar"),
+				ignore_inputs: true,
+			});
 		}
-		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+g",
-			action: function (e) {
-				$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
-				e.preventDefault();
-				return false;
-			},
-			description: __("Open Awesomebar"),
-		});
-		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+k",
-			action: function (e) {
-				$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
-				e.preventDefault();
-				return false;
-			},
-			description: __("Open Awesomebar"),
-		});
 	}
 	handle_route_change() {
 		const me = this;
 		frappe.router.on("change", function () {
-			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "")
+			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "") {
 				me.setup_navbar();
-			else {
+			} else {
 				$(".navbar").show();
 				frappe.desktop_utils.close_desktop_modal();
 				// stop edit mode if route changes and cleanup
 				me.edit_mode = false;
 				$(".desktop-icon").removeClass("edit-mode");
 				$(".desktop-wrapper").removeAttr("data-mode");
+				$(".desktop-edit").remove();
 			}
 		});
 	}
-
-	// setup_icon_search() {
-	// 	let all_icons = $(".icon-title");
-	// 	let icons_to_show = [];
-	// 	$(".desktop-container .icons").append(
-	// 		"<div class='no-apps-message hidden'> No apps found </div>"
-	// 	);
-	// 	$(".desktop-search-wrapper > #navbar-search").on("input", function (e) {
-	// 		let search_query = $(e.target).val().toLowerCase();
-	// 		console.log(search_query);
-	// 		icons_to_show = [];
-	// 		all_icons.each(function (index, element) {
-	// 			$(element).parent().parent().hide();
-	// 			let label = $(element).text().toLowerCase();
-	// 			if (label.includes(search_query)) {
-	// 				icons_to_show.push(element);
-	// 			}
-	// 		});
-
-	// 		if (icons_to_show.length == 0) {
-	// 			$(".desktop-container .icons").find(".no-apps-message").removeClass("hidden");
-	// 		} else {
-	// 			$(".desktop-container .icons").find(".no-apps-message").addClass("hidden");
-	// 		}
-	// 		toggle_icons(icons_to_show);
-	// 	});
-	// }
 }
 
 class DesktopIconGrid {
 	constructor(opts) {
 		$.extend(this, opts);
+		this.init();
+	}
+	static folder_count = 0;
+	init() {
 		this.icons = [];
 		this.icons_html = [];
 		// this.page_size = {
@@ -452,7 +584,16 @@ class DesktopIconGrid {
 		this.make();
 		frappe.desktop_grids.push(this);
 	}
-
+	add_folder() {
+		DesktopIconGrid.folder_count++;
+		let icon = frappe.model.get_new_doc("Desktop Icon");
+		icon.icon_type = "Folder";
+		icon.label = `Untitled ${DesktopIconGrid.folder_count}`;
+		icon.idx = 100000;
+		frappe.new_desktop_icons.push(icon);
+		frappe.new_icons.push(icon);
+		return icon;
+	}
 	prepare() {
 		this.total_pages = 1;
 		this.icons_data = this.icons_data.sort((a, b) => {
@@ -467,6 +608,9 @@ class DesktopIconGrid {
 	make() {
 		const me = this;
 		this.icons_container = $(`<div class="icons-container"></div>`).appendTo(this.wrapper);
+		if (this.compact) {
+			this.icons_container.css("margin-top", "0px");
+		}
 		for (let i = 0; i < this.total_pages; i++) {
 			let template = `<div class="icons"></div>`;
 
@@ -478,9 +622,6 @@ class DesktopIconGrid {
 			}
 			this.grids.push($(template).appendTo(this.icons_container));
 			this.make_icons(this.icons_data_by_page, this.grids[i]);
-			// if (!this.no_dragging) {
-			// 	this.setup_reordering(this.grids[i]);
-			// }
 		}
 		if (!this.in_folder && this.total_pages > 1) {
 			this.add_page_indicators();
@@ -605,18 +746,30 @@ class DesktopIconGrid {
 	}
 	make_icons(icons_data, grid) {
 		icons_data.forEach((icon) => {
-			let icon_obj = new DesktopIcon(icon, this.in_folder);
+			let icon_obj = new DesktopIcon(icon, this.in_folder, this);
 			let icon_html = icon_obj.get_desktop_icon_html();
 			this.icons.push(icon_obj);
 			this.icons_html.push(icon_html);
+			this.setup_actions_on_icon(icon_obj);
 			grid.append(icon_html);
 		});
 		this.setup_tooltip();
+	}
+	setup_actions_on_icon(icon) {
+		if (this.edit_mode) {
+			icon.edit_mode = true;
+		}
+		if (this.is_pane) {
+			icon.in_pane = true;
+		}
 	}
 	setup_tooltip() {
 		$('[data-toggle="tooltip"]').tooltip({
 			placement: "bottom",
 		});
+	}
+	remove_label_tooltip() {
+		$('[data-toggle="tooltip"]').tooltip("disable");
 	}
 	setup_reordering(grid) {
 		const me = this;
@@ -630,9 +783,21 @@ class DesktopIconGrid {
 				sort: true, // keep sorting normally
 				dragoverBubble: true,
 				group: {
-					name: "desktop",
+					name: this.name || "desktop",
 					put: true,
 					pull: true,
+				},
+				onAdd(evt) {
+					if (Sortable.get(evt.from).option("group").name == "hidden-icons-grid") {
+						let icon_name = $(evt.item).attr("data-id");
+						let icon = get_desktop_icon_by_label(icon_name, {}, true);
+						icon.index = evt.newIndex;
+						icon.hidden = 0;
+						frappe.new_desktop_icons.push(icon);
+						let hidden_icons = frappe.pages.desktop.desktop_page.hidden_icons;
+						let added_icon_index = hidden_icons.findIndex((d) => d.label == icon_name);
+						hidden_icons.splice(added_icon_index, 1);
+					}
 				},
 				onStart(evt) {
 					frappe.desktop_utils.dragged_item = evt.item;
@@ -643,9 +808,6 @@ class DesktopIconGrid {
 						return d.icon_title === title;
 					});
 					dataTransfer.setData("text/plain", JSON.stringify(icon.icon_data)); // `dataTransfer` object of HTML5 DragEvent
-				},
-				onMove() {
-					return frappe.desktop_utils.allow_move || false;
 				},
 				onEnd: function (evt) {
 					if (frappe.desktop_utils.in_folder_creation) return;
@@ -679,6 +841,10 @@ class DesktopIconGrid {
 			});
 		}
 	}
+	update_grid(icons) {
+		this.wrapper.empty();
+		this.init();
+	}
 	reorder_icons(reordered_icons, filters) {
 		reordered_icons.forEach((d, idx) => {
 			let icon = get_desktop_icon_by_label(d);
@@ -694,7 +860,7 @@ class DesktopIconGrid {
 	}
 }
 class DesktopIcon {
-	constructor(icon, in_folder) {
+	constructor(icon, in_folder, grid_obj) {
 		this.icon_data = icon;
 		this.icon_title = this.icon_data.label;
 		this.icon_subtitle = "";
@@ -702,6 +868,8 @@ class DesktopIcon {
 		this.in_folder = in_folder;
 		this.icon_data.in_folder = in_folder;
 		this.link_type = this.icon_data.link_type;
+		this._edit_mode = false;
+		this.in_pane = false;
 		if (this.icon_type != "Folder" && !this.icon_data.sidebar) {
 			this.icon_route = get_route(this.icon_data);
 		}
@@ -720,11 +888,64 @@ class DesktopIcon {
 			this.parent_icon = this.icon_data.icon;
 			this.setup_click();
 			this.render_folder_thumbnail();
+			this.grid = grid_obj;
+			Object.defineProperty(this, "edit_mode", {
+				get: function () {
+					return this._edit_mode;
+				},
+				set: function (value) {
+					if (value) {
+						this.icon.addClass("desktop-edit-mode");
+						if (this.in_folder) {
+							this.icon.removeClass("desktop-edit-mode");
+						}
+						this.grid.remove_label_tooltip();
+						this.setup_dragging();
+						this.setup_edit_menu();
+						this.setup_hide_button();
+						this.icon.removeAttr("href");
+					} else {
+						this.icon.addClass("desktop-edit-mode");
+						this.setup_click();
+					}
+					this._edit_mode = value;
+				},
+			});
+			Object.defineProperty(this, "in_pane", {
+				get: function () {
+					return this._in_pane;
+				},
+				set: function (value) {
+					this._in_pane = value;
+					if (value) {
+						this.icon.find(".hide-button").html(frappe.utils.icon("plus"));
+						this.icon.find(".hide-button").attr("data-mode", "add");
+						this.setup_hide_button();
+					} else {
+						this.icon.find(".hide-button").html(frappe.utils.icon("x"));
+						this.icon.find(".hide-button").attr("data-mode", "hide");
+					}
+				},
+			});
 			frappe.desktop_icons_objects.push(this);
 		}
 
 		// this.child_icons = this.get_desktop_icon(this.icon_title).child_icons;
 		// this.child_icons_data = this.get_child_icons_data();
+	}
+	setup_hide_button() {
+		this.icon.find(".hide-button").on("click", function (event) {
+			event.preventDefault();
+			event.stopImmediatePropagation();
+			let desktop_label = event.currentTarget.parentElement.dataset.id;
+			let desktop_icon = get_desktop_icon_by_label(desktop_label);
+			if (event.target.parentElement.dataset.mode == "hide") {
+				desktop_icon.hidden = 1;
+			} else {
+				desktop_icon.hidden = 0;
+			}
+			frappe.pages["desktop"].desktop_page.update();
+		});
 	}
 	validate_icon() {
 		// validate if my workspaces are empty
@@ -735,9 +956,6 @@ class DesktopIcon {
 		if (this.icon_type == "Folder") {
 			if (this.icon_data.child_icons.length == 0) return false;
 		}
-		if (this.icon_type == "Link" && !this.icon_route) {
-			return false;
-		}
 		return true;
 	}
 	get_child_icons_data() {
@@ -746,36 +964,119 @@ class DesktopIcon {
 	get_desktop_icon_html() {
 		return this.icon;
 	}
+	setup_edit_menu() {
+		const me = frappe.pages["desktop"].desktop_page;
+		let icon_data = this.icon_data;
+		const icon = this;
+		frappe.ui.create_menu({
+			parent: this.icon,
+			right_click: true,
+			menu_items: [
+				{
+					label: "Edit",
+					icon: "edit",
+					condition: function () {
+						return icon_data.standard != 1;
+					},
+					onClick: function () {
+						frappe.ui.form.make_quick_entry(
+							"Desktop Icon",
+							function (icon) {
+								let old_index = frappe.new_desktop_icons.findIndex(
+									(d_icon) => d_icon.label == icon.label
+								);
+								if (old_index !== -1) {
+									frappe.new_desktop_icons.splice(old_index, 1);
+								}
+								frappe.new_desktop_icons.push(icon);
+								frappe.new_icons.push(icon.name);
+								frappe.pages["desktop"].desktop_page.update();
+							},
+							function (dialog) {
+								dialog.set_df_property("label", "read_only", 1);
+								dialog.fields.forEach((field) => {
+									field.default = icon_data[field.fieldname];
+								});
+								dialog.script_manager.trigger("refresh");
+							},
+							icon_data,
+							null
+						);
+					},
+				},
+				{
+					label: "Create Folder",
+					icon: "folder",
+					onClick: function () {
+						let folder = me.icon_grid.add_folder();
+						add_icons_to_folder(folder.label, [icon_data.label]);
+					},
+				},
+				{
+					label: "Add To Folder",
+					icon: "folder-open",
+					condition: function () {
+						return me.folders.length > 0;
+					},
+					items: me.folders.map((name) => {
+						return {
+							label: name,
+							onClick: function () {
+								add_icons_to_folder(this.label, [icon_data.label]);
+							},
+						};
+					}),
+				},
+			],
+		});
+	}
+
 	setup_click() {
 		const me = this;
 		if (this.child_icons?.length && (this.icon_type == "App" || this.icon_type == "Folder")) {
 			$(this.icon).on("click", () => {
 				let modal = frappe.desktop_utils.create_desktop_modal(me);
 				modal.setup(me.icon_title, me.child_icons, 4);
+				let $title = modal.modal.find(".modal-title");
+				const edit_mode = frappe.pages["desktop"].desktop_page.edit_mode;
+				let title = new InlineEditor($title, this.icon_data.label, edit_mode, function (
+					old_value,
+					new_value
+				) {
+					let icon = get_desktop_icon_by_label(old_value);
+					let folder_icons = frappe.desktop_utils.get_folder_icons(old_value);
+					if (icon) {
+						icon.label = new_value;
+					}
+					add_icons_to_folder(new_value, folder_icons);
+
+					frappe.pages["desktop"].desktop_page.update();
+
+					if (!frappe.pages["desktop"].desktop_page.edit_mode) {
+						frappe.pages["desktop"].desktop_page.save_layout(frappe.desktop_icons, []);
+					}
+				});
 				modal.show();
 			});
 			if (this.icon_type == "App") {
-				$($(this.icon_caption_area).children()[1]).html(
-					`${this.child_icons.length} Workspaces`
-				);
+				let content = `${this.child_icons.length} Workspaces`;
+				$($(this.icon_caption_area).children()[1]).html(__(content));
 			}
 		} else {
-			this.icon.attr("href", this.icon_route);
-		}
-		if (this.icon_data.sidebar) {
-			const me = this;
-			this.icon.on("click", function () {
-				if (me.icon_data.sidebar == "My Workspaces") {
-					let sidebar_name = me.icon_data.sidebar.toLowerCase();
-					if (frappe.boot.workspace_sidebar_item[sidebar_name].items.length == 0) {
-						frappe.toast("No Private Workspaces for user");
-					} else {
-						let workspace_name =
-							frappe.boot.workspace_sidebar_item[sidebar_name].items[0]["link_to"];
-						frappe.set_route("Workspaces", "private", workspace_name);
-					}
-				}
-			});
+			if (this.icon_route && this.icon_route.startsWith("http")) {
+				this.icon.attr("target", "_blank");
+			}
+			if (this.icon_route) {
+				this.icon.attr("href", this.icon_route);
+			} else {
+				this.icon.on("click", function (event) {
+					frappe.msgprint(
+						__(
+							"Icon is not correctly configured please check the workspace sidebar to it"
+						)
+					);
+				});
+			}
 		}
 	}
 
@@ -786,11 +1087,6 @@ class DesktopIcon {
 			this.folder_grid = new DesktopIconGrid({
 				wrapper: this.folder_wrapper,
 				icons_data: this.child_icons,
-				row_size: 3,
-				page_size: {
-					row: 3,
-					col: 3,
-				},
 				in_folder: true,
 				in_modal: false,
 				no_dragging: true,
@@ -821,51 +1117,6 @@ class DesktopIcon {
 				}
 			}
 		});
-		this.icon.on("dragstart", function (event) {
-			frappe.desktop_utils.dragged_item = event.target;
-		});
-		this.icon.on("dragover", function (event) {
-			console.log(event.target);
-			if (frappe.desktop_utils.dragged_item == event.target.parentElement) return;
-			if (
-				event.target == frappe.desktop_utils.dragged_item ||
-				frappe.desktop_utils.dragged_item.contains(event.target)
-			) {
-				return;
-			}
-			if (event.target.parentElement.classList.contains("icon-container")) {
-				frappe.desktop_utils.allow_move = false;
-				frappe.desktop_utils.in_folder_creation = true;
-
-				let icon_list = [];
-				icon_list.push(
-					get_desktop_icon_by_label(event.target.parentElement.parentElement.dataset.id)
-				);
-				icon_list.push(
-					get_desktop_icon_by_label(frappe.desktop_utils.dragged_item.dataset.id)
-				);
-
-				let icon = {
-					label: "Untitled Folder",
-					icon_type: "Folder",
-					child_icons: icon_list,
-				};
-				let modal = frappe.desktop_utils.create_desktop_modal(icon);
-				modal.setup(icon.label, icon_list, 4);
-				$(event.target.parentElement).addClass("folder-icon");
-				$(event.target.parentElement).empty();
-				modal.show();
-				frappe.boot.desktop_icons.push(icon);
-				icon_list.forEach((icon) => {
-					let desktop_icon = frappe.utils.get_desktop_icon_by_label(icon.label);
-					desktop_icon.parent_icon = "Untitled Folder";
-					frappe.new_desktop_icons.splice(frappe.boot.desktop_icons.indexOf(icon), 1);
-					frappe.new_desktop_icons.push(desktop_icon);
-				});
-			} else {
-				frappe.desktop_utils.allow_move = true;
-			}
-		});
 	}
 }
 
@@ -876,6 +1127,10 @@ class DesktopModal {
 	setup(icon_title, child_icons_data, grid_row_size) {
 		const me = this;
 		this.make_modal(icon_title);
+
+		// Check if we're in edit mode
+		const is_edit_mode = frappe.pages["desktop"].desktop_page.edit_mode;
+
 		this.child_icon_grid = new DesktopIconGrid({
 			wrapper: this.$child_icons_wrapper,
 			icons_data: child_icons_data,
@@ -883,7 +1138,15 @@ class DesktopModal {
 			in_folder: false,
 			in_modal: true,
 			parent_icon: this.parent_icon_obj,
+			edit_mode: is_edit_mode, // Pass edit mode state
 		});
+
+		// If in edit mode, setup reordering for the modal icons
+		if (is_edit_mode) {
+			this.child_icon_grid.grids.forEach((grid) => {
+				this.child_icon_grid.setup_reordering(grid);
+			});
+		}
 
 		this.modal.on("hidden.bs.modal", function () {
 			me.modal.remove();
@@ -932,5 +1195,149 @@ class DesktopModal {
 	}
 	hide() {
 		this.modal.modal("hide");
+	}
+}
+
+class IconsPane {
+	constructor() {
+		this.wrapper = $($(".desktop-container .icons-container").get(0));
+	}
+	show() {
+		this.wrapper.removeClass("hidden");
+		if (this.grid) {
+			this.grid.icons_data = frappe.pages.desktop.desktop_page.hidden_icons;
+			this.grid.update_grid();
+			return;
+		}
+		this.wrapper.append(
+			`<span style='margin-top: 10px; margin-bottom: 20px'>${__("Removed Icons")}</span>`
+		);
+		this.grid = new DesktopIconGrid({
+			name: "hidden-icons-grid",
+			wrapper: this.wrapper,
+			icons_data: frappe.pages.desktop.desktop_page.hidden_icons,
+			row_size: 6,
+			edit_mode: true,
+			compact: true,
+			is_pane: true,
+		});
+		this.setup();
+	}
+	hide() {
+		this.wrapper.addClass("hidden");
+	}
+	setup() {
+		this.setup_close_button();
+	}
+	setup_close_button() {
+		const me = this;
+		this.wrapper.find(".close-button").on("click", function () {
+			me.hide();
+		});
+	}
+}
+
+class InlineEditor {
+	constructor(container, initialValue = "", editMode = false, onRename = () => {}) {
+		this.container = container;
+		this.currentValue = initialValue;
+		this.editMode = editMode;
+		this.onRename = typeof editMode === "function" ? editMode : onRename;
+		if (typeof editMode === "function") {
+			this.editMode = false;
+		}
+		this.isEditing = false;
+
+		this.render();
+		this.bindEvents();
+	}
+
+	render() {
+		const tooltip = this.editMode ? __("Click to edit") : "";
+		const editableClass = this.editMode ? "title-widget--editable" : "title-widget--read-only";
+		this.container.html(`
+			<div class="title-widget ${editableClass}" title="${tooltip}">
+				<span class="title-input-label">${__(this.currentValue)}</span>
+				<div class="title-input-wrapper" style="display: none;">
+					<input type="text" class="title-input" />
+				</div>
+			</div>
+		`);
+
+		this.$widget = this.container.find(".title-widget");
+		this.input = this.container.find(".title-input");
+		this.label = this.container.find(".title-input-label");
+		this.wrapper = this.container.find(".title-input-wrapper");
+	}
+
+	bindEvents() {
+		this.label.on("click", (e) => {
+			e.stopPropagation();
+			if (!frappe.pages["desktop"].desktop_page.edit_mode) return;
+			this.startEditing();
+		});
+
+		this.input.on("keydown", (e) => {
+			if (e.key === "Enter") {
+				e.preventDefault();
+				this.commit();
+			} else if (e.key === "Escape") {
+				e.preventDefault();
+				this.cancel();
+			}
+		});
+
+		this.input.on("blur", () => {
+			this.commit();
+		});
+
+		this.input.on("input", () => {
+			this.resizeInput();
+		});
+	}
+
+	startEditing() {
+		if (this.isEditing) return;
+		this.isEditing = true;
+		this.initialValue = this.currentValue;
+		this.label.hide();
+		this.wrapper.show();
+		this.input.val(this.currentValue);
+		this.input.css("width", "4px");
+		this.resizeInput();
+		this.input.focus().select();
+	}
+
+	commit() {
+		if (!this.isEditing) return;
+		this.isEditing = false;
+		const newValue = this.input.val().trim();
+		const effective = newValue || this.initialValue;
+		this.label.text(effective).show();
+		this.wrapper.hide();
+		this.input.val(effective);
+		this.currentValue = effective;
+		if (effective !== this.initialValue) {
+			this.onRename(this.initialValue, effective, this);
+		}
+	}
+
+	cancel() {
+		if (!this.isEditing) return;
+		this.isEditing = false;
+		this.label.text(this.initialValue).show();
+		this.wrapper.hide();
+		this.input.val(this.currentValue);
+		this.input.blur();
+	}
+
+	resizeInput() {
+		const mirror = $("<span>")
+			.addClass("title-input-mirror")
+			.text(this.input.val() || "");
+		this.$widget.append(mirror);
+		const textWidth = mirror.get(0).offsetWidth;
+		mirror.remove();
+		this.input.css("width", Math.max(80, textWidth + 20) + "px");
 	}
 }

@@ -364,7 +364,7 @@ def stop(*args, **kwargs):
 @frappe.whitelist()
 @do_not_record
 @administrator_only
-def get(uuid=None, *args, **kwargs):
+def get(uuid: str | None = None, *args, **kwargs):
 	if uuid:
 		result = frappe.cache.hget(RECORDER_REQUEST_HASH, uuid)
 	else:

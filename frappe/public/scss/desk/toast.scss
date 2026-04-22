@@ -2,7 +2,7 @@
 	position: fixed;
 	bottom: 0px;
 	right: 20px;
-	z-index: 1050;
+	z-index: 2000;
 
 	@include media-breakpoint-down(sm) {
 		right: 0;

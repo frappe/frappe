@@ -1,0 +1,16 @@
+{
+ "name": "Error Log",
+ "document_type": "Error Log",
+ "event": "New",
+ "channel": "Email",
+ "enabled": 0,
+ "subject": "[Error] {{ doc.method }}",
+ "message_type": "HTML",
+ "recipients": [
+  {
+   "receiver_by_role": "System Manager"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0
+}

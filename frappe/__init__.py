@@ -16,6 +16,7 @@ import importlib
 import inspect
 import json
 import os
+import re
 import sys
 import threading
 import warnings
@@ -76,6 +77,7 @@ local = Local()
 cache: "RedisWrapper" | None = None
 client_cache: "ClientCache" | None = None
 STANDARD_USERS = ("Guest", "Administrator")
+SITE_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9._-]+$")
 
 # this global may be subsequently changed by frappe.tests.utils.toggle_test_mode()
 in_test = False
@@ -143,6 +145,9 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
 	if getattr(local, "initialised", None) and not force:
 		return
+
+	if site and not SITE_NAME_PATTERN.match(site):
+		raise ValueError(f"Invalid site name `{site}`")
 
 	local.error_log = []
 	local.message_log = []
@@ -414,13 +419,15 @@ def _in_request_or_test():
 	return getattr(local, "request", None) or in_test
 
 
-def whitelist(allow_guest=False, xss_safe=False, methods=None):
+def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
 
 	:param allow_guest: Allow non logged-in user to access this method.
 	:param methods: Allowed http method to access the method.
+	:param force_types: Method should have type annotations. If unset, defaults to hooks
+						specification.
 
 	Use as:
 
@@ -438,7 +445,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
 
 		# validate argument types if request is present or in test context
-		fn = validate_argument_types(fn, apply_condition=_in_request_or_test)
+		fn = validate_argument_types(fn, apply_condition=_in_request_or_test, force_types=force_types)
 
 		whitelisted.add(fn)
 		allowed_http_methods_for_whitelisted_func[fn] = methods
@@ -1470,25 +1477,23 @@ def logger(
 
 
 def get_desk_link(doctype, name, show_title_with_name=False, open_in_new_tab=False):
-	from urllib.parse import quote
+	from frappe.desk.utils import slug
+	from frappe.utils.data import quoted
 
 	meta = get_meta(doctype)
 	title = get_value(doctype, name, meta.get_title_field())
 
 	target_attr = ' target="_blank"' if open_in_new_tab else ""
 
-	# encode for href
-	encoded_name = quote(name)
-
 	if show_title_with_name and name != title:
-		html = '<a href="/desk/Form/{doctype}/{encoded_name}"{target} style="font-weight: bold;">{doctype_local} {name}: {title_local}</a>'
+		html = '<a href="/desk/{doctype}/{encoded_name}"{target} style="font-weight: bold;">{doctype_local} {name}: {title_local}</a>'
 	else:
-		html = '<a href="/desk/Form/{doctype}/{encoded_name}"{target} style="font-weight: bold;">{doctype_local} {title_local}</a>'
+		html = '<a href="/desk/{doctype}/{encoded_name}"{target} style="font-weight: bold;">{doctype_local} {title_local}</a>'
 
 	return html.format(
-		doctype=doctype,
+		doctype=quoted(slug(doctype)),
 		name=name,
-		encoded_name=encoded_name,
+		encoded_name=quoted(name),
 		doctype_local=_(doctype),
 		title_local=_(title),
 		target=target_attr,
@@ -1568,6 +1573,7 @@ from frappe.config import get_common_site_config, get_conf, get_site_config
 from frappe.core.doctype.system_settings.system_settings import get_system_settings
 from frappe.model.document import (
 	get_doc,
+	get_docs,
 	get_lazy_doc,
 	copy_doc,
 	new_doc,

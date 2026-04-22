@@ -32,6 +32,7 @@
   "image_field",
   "max_attachments",
   "column_break_21",
+  "hide_toolbar",
   "allow_copy",
   "make_attachments_public",
   "protect_attached_files",
@@ -104,6 +105,12 @@
    "fieldname": "max_attachments",
    "fieldtype": "Int",
    "label": "Max Attachments"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_toolbar",
+   "fieldtype": "Check",
+   "label": "Hide Sidebar, Menu, and Comments"
   },
   {
    "default": "0",

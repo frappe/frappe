@@ -71,7 +71,7 @@
    "icon": "",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Google Calender",
+   "label": "Google Calendar",
    "link_to": "Google Calendar",
    "link_type": "DocType",
    "show_arrow": 0,
@@ -149,7 +149,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-12 15:53:25.420331",
+ "modified": "2026-02-05 23:38:18.273629",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",

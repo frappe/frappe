@@ -93,8 +93,9 @@ class PackageRelease(Document):
 
 	def export_package_files(self, package):
 		# write readme
-		with open(frappe.get_site_path("packages", package.package_name, "README.md"), "w") as readme:
-			readme.write(package.readme)
+		if package.readme:
+			with open(frappe.get_site_path("packages", package.package_name, "README.md"), "w") as readme:
+				readme.write(package.readme)
 
 		# write license
 		if package.license:

@@ -29,6 +29,7 @@ class WorkspaceSidebar(Document):
 		for_user: DF.Link | None
 		items: DF.Table[WorkspaceSidebarItem]
 		module: DF.Text | None
+		module_onboarding: DF.Link | None
 		standard: DF.Check
 		title: DF.Data | None
 	# end: auto-generated types
@@ -50,32 +51,32 @@ class WorkspaceSidebar(Document):
 			self.user.build_permissions()
 
 	def before_save(self):
-		allow_export = self.app and not frappe.flags.in_import and frappe.conf.developer_mode
-		if allow_export:
-			self.export_sidebar()
-		self.set_module()
+		self.export_sidebar()
+		if not self.for_user:
+			self.set_module()
 
 	def export_sidebar(self):
-		folder_path = create_directory_on_app_path("workspace_sidebar", self.app)
-		file_path = os.path.join(folder_path, f"{frappe.scrub(self.title)}.json")
-		doc_export = self.as_dict(no_nulls=True, no_private_properties=True)
-		doc_export = strip_default_fields(self, doc_export)
-		with open(file_path, "w+") as doc_file:
-			doc_file.write(frappe.as_json(doc_export) + "\n")
-
-	def delete_file(self):
-		folder_path = create_directory_on_app_path("workspace_sidebar", self.app)
-		file_path = os.path.join(folder_path, f"{frappe.scrub(self.title)}.json")
-		if os.path.exists(file_path):
-			os.remove(file_path)
+		allow_export = (
+			self.app and self.standard and not frappe.flags.in_import and frappe.conf.developer_mode
+		)
+		if allow_export:
+			folder_path = create_directory_on_app_path("workspace_sidebar", self.app)
+			file_path = os.path.join(folder_path, f"{frappe.scrub(self.title)}.json")
+			doc_export = self.as_dict(no_nulls=True, no_private_properties=True)
+			doc_export = strip_default_fields(self, doc_export)
+			with open(file_path, "w+") as doc_file:
+				doc_file.write(frappe.as_json(doc_export) + "\n")
 
 	def on_trash(self):
 		if is_workspace_manager():
 			if frappe.conf.developer_mode and self.app:
-				self.delete_file()
-			self.delete_desktop_icon()
+				delete_file(self.app, self.title)
 		else:
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
+
+	def after_rename(self, old, new, merge):
+		delete_file(self.app, old)
+		self.export_sidebar()
 
 	def is_item_allowed(self, name, item_type, allowed_workspaces):
 		if frappe.session.user == "Administrator":
@@ -132,21 +133,18 @@ class WorkspaceSidebar(Document):
 		if counts and counts.most_common(1)[0]:
 			return counts.most_common(1)[0][0]
 
-	def delete_desktop_icon(self):
-		desktop_icon = frappe.get_all(
-			"Desktop Icon",
-			filters=[{"link_type": "Workspace Sidebar"}, {"link_to": self.name}],
-			limit=1,
-			pluck="name",
-		)
-		if desktop_icon:
-			frappe.delete_doc("Desktop Icon", desktop_icon[0])
-
 	def get_allowed_modules(self):
 		if not self.user.allow_modules:
 			self.user.build_permissions()
 
 		return self.user.allow_modules
+
+
+def delete_file(app, title):
+	folder_path = create_directory_on_app_path("workspace_sidebar", app)
+	file_path = os.path.join(folder_path, f"{frappe.scrub(title)}.json")
+	if os.path.exists(file_path):
+		os.remove(file_path)
 
 
 def is_workspace_manager():
@@ -198,7 +196,7 @@ def create_workspace_sidebar_for_workspaces():
 
 
 @frappe.whitelist()
-def add_sidebar_items(sidebar_title, sidebar_items):
+def add_sidebar_items(sidebar_title: str, sidebar_items: str):
 	sidebar_items = loads(sidebar_items)
 	title = f"{sidebar_title}-{frappe.session.user}"
 	w = frappe.get_doc("Workspace Sidebar", sidebar_title)
@@ -278,8 +276,8 @@ def auto_generate_sidebar_from_module():
 	sidebars = []
 	for module in frappe.get_all("Module Def", pluck="name"):
 		if not (
-			frappe.db.exists("Workspace Sidebar", {"module": module})
-			or frappe.db.exists("Workspace Sidebar", {"name": module})
+			frappe.db.exists("Workspace Sidebar", {"module": module, "for_user": None})
+			or frappe.db.exists("Workspace Sidebar", {"name": module, "for_user": None})
 		):
 			module_info = get_module_info(module)
 			sidebar_items = create_sidebar_items(module_info)
@@ -288,7 +286,6 @@ def auto_generate_sidebar_from_module():
 			sidebar.items = sidebar_items
 			sidebar.module = module
 			sidebar.header_icon = "hammer"
-			sidebar.app = frappe.local.module_app.get(frappe.scrub(module), None)
 			sidebars.append(sidebar)
 	return sidebars
 
@@ -334,7 +331,7 @@ def choose_top_doctypes(doctype_names):
 		try:
 			doctype_count_map = {}
 			for doctype in doctype_names:
-				if not is_single_doctype(doctype):
+				if not is_single_doctype(doctype) and not frappe.get_meta(doctype).is_virtual:
 					doctype_count_map[doctype] = frappe.db.count(doctype)
 			top_doctypes = [
 				name

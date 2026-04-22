@@ -100,9 +100,6 @@ def delete_doc(
 			else:
 				return False
 
-		# delete passwords
-		delete_all_passwords_for(doctype, name)
-
 		doc = None
 		if doctype == "DocType":
 			if for_reload:
@@ -199,6 +196,9 @@ def delete_doc(
 					now=frappe.in_test,
 					enqueue_after_commit=True,
 				)
+
+		# delete passwords
+		delete_all_passwords_for(doctype, name)
 
 		# clear cache for Document
 		doc.clear_cache()

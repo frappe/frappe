@@ -449,7 +449,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 							: chart.chart_type;
 					chart.document_type = this.doctype;
 					chart.filters_json = "[]";
-					frappe
+					return frappe
 						.xcall(
 							"frappe.desk.doctype.dashboard_chart.dashboard_chart.create_dashboard_chart",
 							{ args: chart }
@@ -460,6 +460,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 								name: doc.chart_name,
 								label: chart.label,
 							});
+							dialog.hide();
 						});
 				} else {
 					this.chart_group.new_widget.on_create({
@@ -467,8 +468,8 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 						label: __(chart.chart),
 						name: chart.chart,
 					});
+					dialog.hide();
 				}
-				dialog.hide();
 			},
 		});
 		dialog.show();

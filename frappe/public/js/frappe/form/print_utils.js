@@ -3,7 +3,9 @@ frappe.ui.get_print_settings = function (
 	callback,
 	letter_head,
 	pick_columns,
-	has_filters = false
+	has_filters = false,
+	title = null,
+	default_print_format = null
 ) {
 	var print_settings = locals[":Print Settings"]["Print Settings"];
 
@@ -30,6 +32,10 @@ frappe.ui.get_print_settings = function (
 			fieldname: "print_format",
 			label: __("Print Format"),
 			options: "Print Format",
+			default: default_print_format,
+			description: __(
+				"If no Print Format is selected, the default template for this report will be used."
+			),
 			get_query: () => ({
 				filters: {
 					print_format_for: "Report",
@@ -42,7 +48,7 @@ frappe.ui.get_print_settings = function (
 		{
 			fieldtype: "Check",
 			fieldname: "with_letter_head",
-			label: __("With Letter head"),
+			label: __("With Letter Head"),
 		},
 		{
 			fieldtype: "Link",
@@ -51,6 +57,14 @@ frappe.ui.get_print_settings = function (
 			depends_on: "with_letter_head",
 			options: "Letter Head",
 			default: letter_head || default_letter_head,
+			get_query: () => {
+				return {
+					filters: {
+						letter_head_for: "Report",
+						disabled: 0,
+					},
+				};
+			},
 		},
 	];
 
@@ -59,6 +73,7 @@ frappe.ui.get_print_settings = function (
 			label: __("Include filters"),
 			fieldtype: "Check",
 			fieldname: "include_filters",
+			depends_on: "eval: !doc.print_format",
 		});
 	}
 
@@ -88,14 +103,20 @@ frappe.ui.get_print_settings = function (
 	return frappe.prompt(
 		columns,
 		function (settings) {
-			settings = $.extend({}, print_settings, settings);
+			settings = $.extend(print_settings, settings);
 
 			if (!settings.with_letter_head) {
 				settings.letter_head = null;
-			}
-
-			if (settings.letter_head) {
-				settings.letter_head = frappe.boot.letter_heads[print_settings.letter_head];
+				settings.letter_head_name = null;
+			} else {
+				const letter_head_name =
+					settings.letter_head ||
+					settings.letter_head_name ||
+					print_settings.letter_head;
+				if (letter_head_name) {
+					settings.letter_head_name = letter_head_name;
+					settings.letter_head = frappe.boot.letter_heads[letter_head_name];
+				}
 			}
 
 			if (settings.print_format) {
@@ -104,8 +125,12 @@ frappe.ui.get_print_settings = function (
 			}
 
 			callback(settings);
+			// clean up print format to avoid affecting next print
+			if (settings.print_format) {
+				settings.print_format = null;
+			}
 		},
-		__("Print Settings")
+		title ? __(title) : __("Print Settings")
 	);
 };
 

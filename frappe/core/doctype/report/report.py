@@ -5,16 +5,17 @@ import json
 import threading
 
 import frappe
-import frappe.desk.query_report
 from frappe import _, scrub
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.core.doctype.page.page import delete_custom_role
+from frappe.desk.query_report import run
 from frappe.desk.reportview import append_totals_row
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
 from frappe.utils import cint, cstr
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
+from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder
 
 
 class Report(Document):
@@ -32,6 +33,7 @@ class Report(Document):
 		add_total_row: DF.Check
 		add_translate_data: DF.Check
 		columns: DF.Table[ReportColumn]
+		default_print_format: DF.Link | None
 		disabled: DF.Check
 		filters: DF.Table[ReportFilter]
 		is_standard: DF.Literal["No", "Yes"]
@@ -75,12 +77,14 @@ class Report(Document):
 			if frappe.session.user != "Administrator":
 				frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
 
-			# Letter Head is visible only for non-standard reports.
-			# It should not remain set when it's invisible.
-			self.letter_head = None
-
 		if self.report_type == "Report Builder":
 			self.update_report_json()
+
+		if self.default_print_format and self.has_value_changed("default_print_format"):
+			self.validate_default_print_format()
+
+		if self.letter_head and self.has_value_changed("letter_head"):
+			self.validate_letter_head()
 
 	def before_insert(self):
 		self.set_doctype_roles()
@@ -89,18 +93,33 @@ class Report(Document):
 		self.export_doc()
 
 	def before_export(self, doc):
-		doc.letter_head = None
 		doc.prepared_report = 0
 
 	def on_trash(self):
-		if (
-			self.is_standard == "Yes"
-			and not cint(getattr(frappe.local.conf, "developer_mode", 0))
-			and not frappe.flags.in_migrate
-			and not frappe.flags.in_patch
-		):
-			frappe.throw(_("You are not allowed to delete Standard Report"))
+		if self.is_standard == "Yes":
+			if (
+				not cint(getattr(frappe.local.conf, "developer_mode", 0))
+				and not frappe.flags.in_migrate
+				and not frappe.flags.in_patch
+			):
+				frappe.throw(_("You are not allowed to delete Standard Report"))
+
+			if frappe.conf.developer_mode and not frappe.flags.in_test:
+				frappe.db.after_commit(self.delete_report_folder)
+
 		delete_custom_role("report", self.name)
+
+	def clear_cache(self):
+		self.update_report_cache()
+		return super().clear_cache()
+
+	def update_report_cache(self):
+		frappe.cache.delete_key("bootinfo")
+
+	def delete_report_folder(self):
+		from frappe.modules.export_file import delete_folder
+
+		delete_folder(self.module, "Report", self.name)
 
 	def get_permission_log_options(self, event=None):
 		return {"fields": ["roles"]}
@@ -157,8 +176,10 @@ class Report(Document):
 
 		check_safe_sql_query(self.query)
 
+		frappe.db.begin(read_only=True)
 		result = [list(t) for t in frappe.db.sql(self.query, filters)]
 		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
+		frappe.db.rollback()
 
 		return [columns, result]
 
@@ -191,11 +212,14 @@ class Report(Document):
 
 		return res
 
+	def get_module_method(self, method):
+		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
+		method_path = get_report_module_dotted_path(module, self.name) + "." + method
+		return frappe.get_attr(method_path)
+
 	def execute_module(self, filters):
 		# report in python module
-		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
-		method_name = get_report_module_dotted_path(module, self.name) + ".execute"
-		return frappe.get_attr(method_name)(frappe._dict(filters))
+		return self.get_module_method("execute")(frappe._dict(filters))
 
 	def execute_script(self, filters):
 		# server script
@@ -231,7 +255,7 @@ class Report(Document):
 		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
 	):
 		columns, result = [], []
-		data = frappe.desk.query_report.run(
+		data = run(
 			self.name,
 			filters=filters,
 			user=user,
@@ -303,8 +327,6 @@ class Report(Document):
 			columns = params.get("fields")
 		elif params.get("columns"):
 			columns = params.get("columns")
-		elif params.get("fields"):
-			columns = params.get("fields")
 		else:
 			columns = [["name", self.ref_doctype]]
 			columns.extend(
@@ -390,12 +412,64 @@ class Report(Document):
 
 		return data
 
+	def validate_default_print_format(self):
+		pf = frappe.db.get_value(
+			"Print Format",
+			self.default_print_format,
+			["report", "print_format_for", "print_format_type", "disabled"],
+			as_dict=True,
+		)
+
+		if (
+			not pf
+			or pf.report != self.name
+			or pf.print_format_for != "Report"
+			or pf.print_format_type != "JS"
+			or pf.disabled
+		):
+			frappe.throw(_("Selected Print Format is invalid for this Report."))
+
+	def validate_letter_head(self):
+		if not self.letter_head:
+			return
+
+		letter_head = frappe.db.get_value(
+			"Letter Head",
+			self.letter_head,
+			["letter_head_for", "standard", "disabled"],
+			as_dict=True,
+		)
+
+		if (
+			not letter_head
+			or letter_head.letter_head_for != "Report"
+			or (self.is_standard == "Yes" and letter_head.standard != "Yes")
+			or letter_head.disabled
+		):
+			frappe.throw(
+				_("Selected Letter Head '{0}' is invalid for '{1}' Report.").format(
+					self.letter_head, self.name
+				)
+			)
+
 	@frappe.whitelist()
 	def toggle_disable(self, disable: bool):
 		if not self.has_permission("write"):
 			frappe.throw(_("You are not allowed to edit the report."))
 
 		self.db_set("disabled", cint(disable))
+
+	def get_xlsx_styles_from_module(self, metadata: XLSXMetadata) -> dict:
+		if self.is_standard != "Yes" or self.report_type not in ("Query Report", "Script Report"):
+			return
+
+		try:
+			method = self.get_module_method("get_xlsx_styles")
+		except AttributeError:
+			# Ignore if hook(method) is not defined
+			return
+
+		return method(metadata)
 
 
 def is_prepared_report_enabled(report):
@@ -416,9 +490,10 @@ def get_report_module_dotted_path(module, report_name):
 
 def get_group_by_field(args, doctype):
 	if args["aggregate_function"] == "count":
-		group_by_field = "count(*) as _aggregate_column"
+		group_by_field = {"COUNT": "*", "as": "_aggregate_column"}
 	else:
-		group_by_field = f"{args.aggregate_function}({args.aggregate_on}) as _aggregate_column"
+		func_name = args["aggregate_function"].upper()
+		group_by_field = {func_name: args["aggregate_on"], "as": "_aggregate_column"}
 
 	return group_by_field
 

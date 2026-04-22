@@ -205,6 +205,7 @@ frappe.ui.keys.add_shortcut({
 		return false;
 	},
 	description: __("Open Awesomebar"),
+	ignore_inputs: true,
 });
 
 frappe.ui.keys.add_shortcut({
@@ -215,6 +216,7 @@ frappe.ui.keys.add_shortcut({
 		return false;
 	},
 	description: __("Open Awesomebar"),
+	ignore_inputs: true,
 });
 
 frappe.ui.keys.add_shortcut({

@@ -1,0 +1,17 @@
+{
+ "name": "Integration Request",
+ "document_type": "Integration Request",
+ "event": "Save",
+ "channel": "Email",
+ "condition": "doc.status==\"Failed\"",
+ "enabled": 0,
+ "subject": "[Error] {{ doc.integration_request_service }}",
+ "message_type": "HTML",
+ "recipients": [
+  {
+   "receiver_by_role": "System Manager"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0
+}

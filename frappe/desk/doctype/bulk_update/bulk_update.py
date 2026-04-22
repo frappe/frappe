@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from typing import Any
+
 import frappe
 from frappe import _
 from frappe.core.doctype.submission_queue.submission_queue import queue_submission
@@ -29,24 +31,34 @@ class BulkUpdate(Document):
 	def bulk_update(self):
 		self.check_permission("write")
 		limit = self.limit if self.limit and cint(self.limit) < 500 else 500
-
-		condition = ""
+		query_args = {"doctype": self.document_type, "limit": limit, "pluck": "name"}
 		if self.condition:
-			if ";" in self.condition:
-				frappe.throw(_("; not allowed in condition"))
+			try:
+				filters = frappe.parse_json(self.condition)
+				if isinstance(filters, dict):
+					if "or_filters" in filters:
+						query_args["or_filters"] = filters.pop("or_filters")
+				query_args["filters"] = filters
+			except Exception as e:
+				frappe.throw(_("The Bulk Update could not happen due to <b>{0}</b>").format(str(e)))
 
-			condition = f" where {self.condition}"
-
-		docnames = frappe.db.sql_list(
-			f"""select name from `tab{self.document_type}`{condition} limit {limit} offset 0"""
-		)
+		docnames = frappe.get_all(**query_args)
 		return submit_cancel_or_update_docs(
 			self.document_type, docnames, "update", {self.field: self.update_value}
 		)
 
 
 @frappe.whitelist()
-def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None, task_id=None):
+def submit_cancel_or_update_docs(
+	doctype: str,
+	docnames: str | list[str],
+	action: str = "submit",
+	data: str | dict[str, Any] | None = None,
+	task_id: str | None = None,
+) -> list[str] | None:
+	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
+
 	if isinstance(docnames, str):
 		docnames = frappe.parse_json(docnames)
 

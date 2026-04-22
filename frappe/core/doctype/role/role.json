@@ -53,7 +53,7 @@
    "options": "Domain"
   },
   {
-   "description": "Route: Example \"/app\"",
+   "description": "Route: Example \"/desk\"",
    "fieldname": "home_page",
    "fieldtype": "Data",
    "label": "Home Page"
@@ -74,7 +74,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-19 17:07:08.672124",
+ "modified": "2026-01-28 15:58:11.939407",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",
@@ -94,6 +94,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

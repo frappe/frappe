@@ -24,13 +24,13 @@ page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
 # website
 app_include_js = [
 	"libs.bundle.js",
+	"billing.bundle.js",
 	"desk.bundle.js",
 	"list.bundle.js",
 	"form.bundle.js",
 	"controls.bundle.js",
 	"report.bundle.js",
 	"telemetry.bundle.js",
-	"billing.bundle.js",
 ]
 
 app_include_css = [
@@ -150,6 +150,8 @@ jinja = {
 	],
 }
 
+require_type_annotated_api_methods = True
+
 standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
 
 doc_events = {
@@ -208,6 +210,7 @@ scheduler_events = {
 		# 5 minutes
 		"0/5 * * * *": [
 			"frappe.email.doctype.notification.notification.trigger_offset_alerts",
+			"frappe.search.sqlite_search.index_docs_in_queue",
 		],
 		# 15 minutes
 		"0/15 * * * *": [
@@ -216,7 +219,6 @@ scheduler_events = {
 			"frappe.deferred_insert.save_to_db",
 			"frappe.automation.doctype.reminder.reminder.send_reminders",
 			"frappe.model.utils.link_count.update_link_count",
-			"frappe.search.sqlite_search.build_index_if_not_exists",
 			"frappe.utils.telemetry.pulse.client.send_queued_events",
 		],
 		# 10 minutes
@@ -227,6 +229,13 @@ scheduler_events = {
 		"30 * * * *": [],
 		# Daily but offset by 45 minutes
 		"45 0 * * *": [],
+		"0 */3 * * *": [
+			"frappe.search.sqlite_search.build_index_if_not_exists",
+		],
+		# Daily at 6:00 AM.
+		"0 6 * * *": [
+			"frappe.core.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
+		],
 	},
 	"all": [
 		"frappe.email.queue.flush",
@@ -354,7 +363,6 @@ user_data_fields = [
 			"phone",
 			"mobile_no",
 			"location",
-			"banner_image",
 			"interest",
 			"bio",
 			"email_signature",
@@ -467,21 +475,6 @@ extend_bootinfo = [
 get_changelog_feed = "frappe.desk.doctype.changelog_feed.changelog_feed.get_feed"
 
 export_python_type_annotations = True
-
-standard_navbar_items = [
-	{
-		"item_label": "User Settings",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.route_to_user()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Log out",
-		"item_type": "Action",
-		"action": "frappe.app.logout()",
-		"is_standard": 1,
-	},
-]
 
 standard_help_items = [
 	{

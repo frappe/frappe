@@ -204,7 +204,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	setup_editable_title(element) {
 		let me = this;
 
-		if (me.is_title_editable()) {
+		if (me.is_title_editable() || me.can_rename()) {
 			let edit_icon = this.page.add_action_icon(
 				"square-pen",
 				() => {
@@ -341,7 +341,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		// Navigate
 		if (!this.frm.is_new() && !this.frm.meta.issingle) {
 			this.page.add_action_icon(
-				"es-line-left-chevron",
+				frappe.utils.is_rtl() ? "es-line-right-chevron" : "es-line-left-chevron",
 				() => {
 					this.frm.navigate_records(1);
 				},
@@ -349,7 +349,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Previous Document")
 			);
 			this.page.add_action_icon(
-				"es-line-right-chevron",
+				frappe.utils.is_rtl() ? "es-line-left-chevron" : "es-line-right-chevron",
 				() => {
 					this.frm.navigate_records(0);
 				},
@@ -469,7 +469,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			return;
 		}
 		this.page.add_menu_item(
-			__("Open Sidebar"),
+			__("Toggle Sidebar"),
 			() => {
 				this.setup_sidebar_toggle(this.frm.sidebar.sidebar.parent());
 			},
@@ -670,6 +670,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 	can_submit() {
 		return (
+			frappe.model.is_submittable(this.frm.doc.doctype) &&
 			this.get_docstatus() === 0 &&
 			!this.frm.doc.__islocal &&
 			!this.frm.doc.__unsaved &&
@@ -734,6 +735,12 @@ frappe.ui.form.Toolbar = class Toolbar {
 					.then((is_amended) => {
 						if (is_amended) {
 							this.page.clear_actions();
+							let btn = this.page.set_secondary_action(__("Amend"), () => {});
+							btn.prop("disabled", true)
+								.wrap('<span style="display:inline-block"></span>')
+								.parent()
+								.attr("title", __("Already amended as {0}", [is_amended]))
+								.tooltip({ delay: { show: 400, hide: 100 }, trigger: "hover" });
 							return;
 						}
 						this.set_page_actions(status);
@@ -888,7 +895,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	setup_sidebar_toggle(sidebar_wrapper) {
-		console.log(sidebar_wrapper);
 		if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
 			this.setup_overlay_sidebar(sidebar_wrapper);
 		} else {

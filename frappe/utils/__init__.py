@@ -291,10 +291,11 @@ def is_valid_iban(iban: str) -> bool:
 
 def random_string(length: int) -> str:
 	"""generate a random string"""
+	import secrets
 	import string
-	from random import choice
 
-	return "".join(choice(string.ascii_letters + string.digits) for i in range(length))
+	alphabet = string.ascii_letters + string.digits
+	return "".join(secrets.choice(alphabet) for i in range(length))
 
 
 def has_gravatar(email: str) -> str:
@@ -575,7 +576,7 @@ def get_site_url(site):
 
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], str) and isinstance(d[key], str):
+		if isinstance(d[key], str):
 			d[key] = d[key].encode(encoding)
 
 	return d

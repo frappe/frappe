@@ -121,9 +121,31 @@ def has_permission(doctype: str, name: str) -> bool:
 	return True
 
 
+SOCKETIO_SECRET_KEY = "socketio_auth_secret"
+
+
+def get_socketio_secret():
+	"""Generate socket.io secret and store in redis"""
+
+	from frappe.utils.background_jobs import get_redis_connection_without_auth
+
+	r = get_redis_connection_without_auth()
+	secret = r.get(SOCKETIO_SECRET_KEY)
+	if secret:
+		return secret.decode()
+
+	secret = frappe.generate_hash(length=32)
+	r.set(SOCKETIO_SECRET_KEY, secret)
+	return secret
+
+
 @frappe.whitelist(allow_guest=True)
 def get_user_info():
 	user_type = frappe.session.data.user_type
+	trusted_secret = get_socketio_secret()
+	provided_secret = frappe.get_request_header("X-Frappe-Socket-Secret")
+	if trusted_secret != provided_secret:
+		return {}
 	# For requests with Bearer tokens, user_type is not set in the session data
 	if not user_type:
 		user_type = frappe.get_cached_value("User", frappe.session.user, "user_type")

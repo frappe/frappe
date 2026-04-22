@@ -67,8 +67,6 @@ frappe.ui.Page = class Page {
 					(frappe.boot.read_only || frappe.boot.user.impersonated_by)
 				) {
 					$(".page-head").css("top", "-15px");
-				} else if (frappe.boot.read_only || frappe.boot.user.impersonated_by) {
-					$(".page-head").css("top", "var(--navbar-height)");
 				}
 				last_scroll = current_scroll;
 			}, 500)
@@ -145,7 +143,7 @@ frappe.ui.Page = class Page {
 		this.container = this.wrapper.find(".page-body");
 		this.sidebar = this.wrapper.find(".layout-side-section");
 		this.footer = this.wrapper.find(".layout-footer");
-		this.indicator = this.wrapper.find(".indicator-pill");
+		this.indicator = this.wrapper.find(".title-area .indicator-pill");
 
 		this.page_actions = this.wrapper.find(".page-actions");
 		this.filters = this.wrapper.find(".filters");
@@ -161,6 +159,7 @@ frappe.ui.Page = class Page {
 
 		this.standard_actions = this.page_actions.find(".standard-actions");
 		this.custom_actions = this.page_actions.find(".custom-actions");
+		this.custom_mobile_actions = this.page_actions.find(".custom-mobile-actions");
 
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
 		this.inner_toolbar = this.custom_actions;
@@ -204,7 +203,17 @@ frappe.ui.Page = class Page {
 	}
 
 	set_indicator(label, color) {
-		this.clear_indicator().removeClass("hide").html(`<span>${label}</span>`).addClass(color);
+		let indicator_html = `<span>${label}</span>`;
+		const is_mobile = frappe.is_mobile();
+		if (is_mobile) {
+			indicator_html = `<span class="indicator-doc-html" style="background-color: var(--${color}-400)"></span>`;
+		}
+		this.clear_indicator().removeClass("hide").html(indicator_html).addClass(color);
+
+		if (is_mobile) {
+			this.indicator.attr("title", label);
+			this.indicator.tooltip();
+		}
 	}
 
 	add_action_icon(icon, click, css_class = "", tooltip_label) {
@@ -233,7 +242,7 @@ frappe.ui.Page = class Page {
 	}
 
 	setup_main_sidebar_toggle() {
-		$(".sidebar-toggle-btn.navbar-brand").on("click", (event) => {
+		this.wrapper.find(".sidebar-toggle-btn.navbar-brand").on("click", (event) => {
 			frappe.app.sidebar.set_height();
 			frappe.app.sidebar.toggle_width();
 			frappe.app.sidebar.prevent_scroll();
@@ -796,7 +805,8 @@ frappe.ui.Page = class Page {
 			</div>
 		`);
 
-		if (!parent) parent = this.custom_actions;
+		if (!parent)
+			parent = frappe.is_mobile() ? this.custom_mobile_actions : this.custom_actions;
 		parent.removeClass("hide").append(custom_btn_group);
 
 		return custom_btn_group.find(".dropdown-menu");

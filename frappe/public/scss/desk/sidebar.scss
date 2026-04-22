@@ -34,6 +34,7 @@
 }
 
 .body-sidebar {
+	position: relative;
 	width: 50px;
 	background: var(--surface-menu-bar);
 	border-right: 1px solid var(--sidebar-border-color);
@@ -83,6 +84,7 @@
 
 	.standard-sidebar-item {
 		display: flex;
+		position: relative;
 		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 
 		margin-bottom: 1px;
@@ -127,7 +129,15 @@
 		}
 	}
 
-	.collapse-sidebar-link {
+	.promotional-banners {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		margin: var(--margin-sm) 0;
+	}
+
+	.onboarding-sidebar,
+	.promotional-banner {
 		text-decoration: none;
 		font-size: var(--text-sm);
 		display: flex;
@@ -140,8 +150,8 @@
 			margin-left: 10px;
 			@include truncate();
 		}
-		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 	}
+
 	.nav-item {
 		margin-left: -5px;
 	}
@@ -173,6 +183,11 @@
 			&:hover {
 				@include hover-mixin();
 			}
+
+			.sidebar-user-button {
+				padding: var(--padding-sm);
+				border-radius: var(--border-radius-sm);
+			}
 		}
 	}
 
@@ -180,6 +195,9 @@
 	.body-sidebar-placeholder {
 		display: flex;
 		width: var(--sidebar-width);
+	}
+	.sidebar-resize-handle {
+		cursor: w-resize;
 	}
 }
 
@@ -251,6 +269,32 @@
 .overlay {
 	display: none;
 }
+
+.sidebar-resize-handle {
+	position: absolute;
+	top: 0;
+	right: -4px;
+	width: 8px;
+	height: 100%;
+	z-index: 1022;
+	cursor: e-resize;
+
+	&::after {
+		content: "";
+		position: absolute;
+		left: 50%;
+		top: 0;
+		transform: translateX(-50%);
+		width: 2px;
+		height: 100%;
+		background: transparent;
+		transition: background 0.15s ease;
+	}
+
+	&:hover::after {
+		background: var(--ink-gray-2);
+	}
+}
 .section-break {
 	color: var(--ink-gray-5) !important;
 	margin-left: 7px;
@@ -269,21 +313,19 @@
 	.standard-sidebar-item:hover {
 		& .sidebar-item-edit-controls {
 			visibility: visible;
-			width: auto;
 		}
 	}
-	.collapse-sidebar-link {
-		display: none;
-	}
+	.promotional-banners,
 	.dropdown-navbar-user {
 		display: none;
 	}
 }
 .sidebar-item-edit-controls {
 	visibility: hidden;
+	position: absolute;
+	right: 0;
 	display: flex;
 	gap: 6px;
-	width: 0;
 }
 .standard-sidebar-item[data-name="add-sidebar-item"] {
 	margin-top: 5px;

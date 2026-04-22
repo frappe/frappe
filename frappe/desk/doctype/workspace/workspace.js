@@ -8,7 +8,7 @@ frappe.ui.form.on("Workspace", {
 
 	refresh: function (frm) {
 		frm.enable_save();
-
+		frm.trigger("add_to_desktop");
 		let url = `/desk/${
 			frm.doc.public
 				? frappe.router.slug(frm.doc.title)
@@ -44,6 +44,26 @@ frappe.ui.form.on("Workspace", {
 		frm.layout.show_message(message);
 	},
 
+	add_to_desktop: function (frm) {
+		if (frappe.app.sidebar.get_workspace_sidebars(frm.doc.title).length === 0) {
+			frm.add_custom_button(__("Add to Desktop"), function () {
+				frappe.call({
+					method: "frappe.desk.doctype.desktop_icon.desktop_icon.add_workspace_to_desktop",
+					args: {
+						workspace: frm.doc.name,
+					},
+					callback: function (r) {
+						if (r.message.status) {
+							frappe.toast({
+								message: __("Workspace added to desktop"),
+								indicator: "green",
+							});
+						}
+					},
+				});
+			});
+		}
+	},
 	disable_form: function (frm) {
 		frm.fields
 			.filter((field) => field.has_input)

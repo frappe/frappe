@@ -1,9 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import re
 from collections.abc import Iterable
 from datetime import timedelta
 from functools import cached_property
+from typing import Any
 
 import frappe
 import frappe.defaults
@@ -35,7 +37,7 @@ from frappe.utils import (
 )
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
-from frappe.utils.password import check_password, get_password_reset_limit
+from frappe.utils.password import check_password, get_password_reset_limit, is_password_reused
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import get_home_page, is_signup_disabled
@@ -74,7 +76,6 @@ class User(Document):
 		allowed_in_mentions: DF.Check
 		api_key: DF.Data | None
 		api_secret: DF.Password | None
-		banner_image: DF.AttachImage | None
 		bio: DF.SmallText | None
 		birth_date: DF.Date | None
 		block_modules: DF.Table[BlockModule]
@@ -231,6 +232,7 @@ class User(Document):
 		self.check_enable_disable()
 		self.ensure_unique_roles()
 		self.ensure_unique_role_profiles()
+		self.sync_role_profile_name()
 		self.remove_all_roles_for_guest()
 		self.validate_username()
 		self.remove_disabled_roles()
@@ -276,11 +278,11 @@ class User(Document):
 	def move_role_profile_name_to_role_profiles(self):
 		"""This handles old role_profile_name field if programatically set.
 
-		This behaviour will be remoed in future versions."""
+		This behaviour will be removed in future versions."""
 		if not self.role_profile_name:
 			return
 
-		current_role_profiles = [r.role_profile for r in self.role_profiles]
+		current_role_profiles = {r.role_profile for r in self.role_profiles}
 		if self.role_profile_name in current_role_profiles:
 			self.role_profile_name = None
 			return
@@ -294,6 +296,10 @@ class User(Document):
 		)
 		self.append("role_profiles", {"role_profile": self.role_profile_name})
 		self.role_profile_name = None
+
+	def sync_role_profile_name(self):
+		"""Keep deprecated role_profile_name in sync for list view display."""
+		self.role_profile_name = self.role_profiles[0].role_profile if self.role_profiles else None
 
 	def validate_allowed_modules(self):
 		if self.module_profile:
@@ -358,10 +364,10 @@ class User(Document):
 	def clean_name(self):
 		for field in ("first_name", "middle_name", "last_name"):
 			if field_value := self.get(field):
-				self.set(field, sanitize_html(field_value, always_sanitize=True))
+				self.set(field, sanitize_html(field_value, always_sanitize=True, disallowed_tags="*"))
 
 	def set_full_name(self):
-		self.full_name = " ".join(filter(None, [self.first_name, self.last_name]))
+		self.full_name = " ".join(p for p in [self.first_name, self.middle_name, self.last_name] if p)
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
@@ -376,9 +382,23 @@ class User(Document):
 		toggle_notifications(self.name, enable=cint(self.enabled), ignore_permissions=True)
 		self.disable_email_fields_if_user_disabled()
 
-	def email_new_password(self, new_password=None):
+	def set_new_password(self, new_password=None):
+		"""Set New Password for user"""
 		if new_password and not self.flags.in_insert:
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
+			outgoing_email_exists = frappe.db.exists(
+				"Email Account", {"default_outgoing": 1, "awaiting_password": 0}
+			)
+			if outgoing_email_exists:
+				email_message = _(
+					"Your password has been changed and you might have been logged out of all systems.<br>Please contact the Administrator for further assistance."
+				)
+				user_email = frappe.db.get_value("User", self.name, "email")
+				frappe.sendmail(
+					recipients=[user_email],
+					subject=_("Security Alert: Your password has been changed."),
+					content=email_message,
+				)
 
 	def set_system_user(self):
 		"""For the standard users like admin and guest, the user type is fixed."""
@@ -392,6 +412,9 @@ class User(Document):
 		else:
 			"""Set as System User if any of the given roles has desk_access"""
 			self.user_type = "System User" if self.has_desk_access() else "Website User"
+
+		if self.has_value_changed("user_type"):
+			clear_sessions(user=self.name, force=True)
 
 	def set_roles_and_modules_based_on_user_type(self):
 		user_type_doc = frappe.get_cached_doc("User Type", self.user_type)
@@ -427,37 +450,29 @@ class User(Document):
 			self.doctype, self.name, self.name, write=1, share=1, flags={"ignore_share_permission": True}
 		)
 
-	def validate_share(self, docshare):
-		pass
-		# if docshare.user == self.name:
-		# 	if self.user_type=="System User":
-		# 		if docshare.share != 1:
-		# 			frappe.throw(_("Sorry! User should have complete access to their own record."))
-		# 	else:
-		# 		frappe.throw(_("Sorry! Sharing with Website User is prohibited."))
-
 	def send_password_notification(self, new_password):
 		try:
 			if self.flags.in_insert:
-				if self.name not in STANDARD_USERS:
-					if new_password:
-						# new password given, no email required
-						_update_password(
-							user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions
-						)
+				if self.name in STANDARD_USERS:
+					return
+				if new_password:
+					# new password given, no email required
+					_update_password(
+						user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions
+					)
 
-					if (
-						not self.flags.no_welcome_mail
-						and cint(self.send_welcome_email)
-						and not self.flags.email_sent
-					):
-						self.send_welcome_mail_to_user()
-						self.flags.email_sent = 1
-						if frappe.session.user != "Guest":
-							msgprint(_("Welcome email sent"))
-						return
+				if (
+					not self.flags.no_welcome_mail
+					and cint(self.send_welcome_email)
+					and not self.flags.email_sent
+				):
+					self.send_welcome_mail_to_user()
+					self.flags.email_sent = 1
+					if frappe.session.user != "Guest":
+						msgprint(_("Welcome email sent"))
+					return
 			else:
-				self.email_new_password(new_password)
+				self.set_new_password(new_password)
 
 		except frappe.OutgoingEmailError:
 			frappe.clear_last_message()
@@ -471,7 +486,7 @@ class User(Document):
 	def validate_reset_password(self):
 		pass
 
-	def reset_password(self, send_email=False, password_expired=False):
+	def _reset_password(self, send_email=False, password_expired=False):
 		from frappe.utils import get_url
 
 		key = frappe.generate_hash()
@@ -496,18 +511,24 @@ class User(Document):
 	def password_reset_mail(self, link):
 		reset_password_template = frappe.db.get_system_setting("reset_password_template")
 
-		self.send_login_mail(
+		q = self.send_login_mail(
 			_("Password Reset"),
 			"password_reset",
 			{"link": link},
 			now=True,
 			custom_template=reset_password_template,
 		)
+		if q:
+			raw_message = q.message
+			parts = re.split(r"(?i)Dear", raw_message, maxsplit=1)
+			if len(parts) > 1:
+				redacted_message = parts[0] + "[THE FOLLOWING CONTENT HAS BEEN REDACTED FOR SECURITY REASONS]"
+				frappe.db.set_value("Email Queue", q.name, "message", redacted_message, update_modified=False)
 
 	def send_welcome_mail_to_user(self):
 		from frappe.utils import get_url
 
-		link = self.reset_password()
+		link = self._reset_password()
 		subject = None
 		method = frappe.get_hooks("welcome_email")
 		if method:
@@ -521,7 +542,7 @@ class User(Document):
 
 		welcome_email_template = frappe.db.get_system_setting("welcome_email_template")
 
-		self.send_login_mail(
+		q = self.send_login_mail(
 			subject,
 			"new_user",
 			dict(
@@ -530,6 +551,12 @@ class User(Document):
 			),
 			custom_template=welcome_email_template,
 		)
+		if q:
+			raw_message = q.message
+			parts = re.split(r"(?i)Hello", raw_message, maxsplit=1)
+			if len(parts) > 1:
+				redacted_message = parts[0] + "[THE FOLLOWING CONTENT HAS BEEN REDACTED FOR SECURITY REASONS]"
+				frappe.db.set_value("Email Queue", q.name, "message", redacted_message, update_modified=False)
 
 	def send_login_mail(self, subject, template, add_args, now=None, custom_template=None):
 		"""send mail with login details"""
@@ -561,7 +588,7 @@ class User(Document):
 			subject = email_template.get("subject")
 			content = email_template.get("message")
 
-		frappe.sendmail(
+		return frappe.sendmail(
 			recipients=self.email,
 			sender=sender,
 			subject=subject,
@@ -623,18 +650,16 @@ class User(Document):
 		frappe.db.delete("List Filter", {"for_user": self.name})
 
 		# Remove user from Note's Seen By table
-		seen_notes = frappe.get_all("Note", filters=[["Note Seen By", "user", "=", self.name]], pluck="name")
-		for note_id in seen_notes:
-			note = frappe.get_doc("Note", note_id)
+		seen_notes = frappe.get_docs("Note", filters=[["Note Seen By", "user", "=", self.name]])
+		for note in seen_notes:
 			for row in note.seen_by:
 				if row.user == self.name:
 					note.remove(row)
 			note.save(ignore_permissions=True)
 
 		# Unlink user from all of its invitation docs
-		invites = frappe.db.get_all("User Invitation", filters={"email": self.name}, pluck="name")
-		for invite in invites:
-			invite_doc = frappe.get_doc("User Invitation", invite)
+		invites = frappe.get_docs("User Invitation", filters={"email": self.name})
+		for invite_doc in invites:
 			invite_doc.user = None
 			invite_doc.save(ignore_permissions=True)
 
@@ -899,13 +924,7 @@ def get_all_roles():
 
 
 @frappe.whitelist()
-def get_roles(arg=None):
-	"""get roles for a user"""
-	return frappe.get_roles(frappe.form_dict.get("uid", frappe.session.user))
-
-
-@frappe.whitelist()
-def get_perm_info(role):
+def get_perm_info(role: str):
 	"""get permission info"""
 	from frappe.permissions import get_all_perms
 
@@ -941,6 +960,14 @@ def update_password(
 	else:
 		user = res["user"]
 
+	if is_password_reused(user, new_password):
+		frappe.throw(
+			_(
+				"New password cannot be the same as your current password. Please choose a different password."
+			),
+			title=_("Invalid Password"),
+		)
+
 	logout_all_sessions = cint(logout_all_sessions) or frappe.get_system_settings("logout_on_password_reset")
 	_update_password(user, new_password, logout_all_sessions=cint(logout_all_sessions))
 
@@ -966,7 +993,9 @@ def update_password(
 
 
 @frappe.whitelist(allow_guest=True)
-def test_password_strength(new_password: str, key=None, old_password=None, user_data: tuple | None = None):
+def test_password_strength(
+	new_password: str, key: str | None = None, old_password: str | None = None, user_data: tuple | None = None
+):
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
 	if key is not None or old_password is not None:
@@ -1008,7 +1037,7 @@ def has_email_account(email: str):
 
 
 @frappe.whitelist(allow_guest=False)
-def get_email_awaiting(user):
+def get_email_awaiting(user: str):
 	return frappe.get_all(
 		"User Email",
 		fields=["email_account", "email_id"],
@@ -1069,7 +1098,7 @@ def reset_user_data(user):
 
 
 @frappe.whitelist(methods=["POST"])
-def verify_password(password):
+def verify_password(password: str):
 	frappe.local.login_manager.check_password(frappe.session.user, password)
 
 
@@ -1128,30 +1157,37 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=get_password_reset_limit, seconds=60 * 60)
-def reset_password(user: str) -> str:
+def reset_password(user: str) -> None:
+	# Always return the same generic response regardless of whether the user
+	# exists, is disabled, or is restricted. This prevents username enumeration
+	# via different messages or HTTP status codes (CWE-204).
+
 	try:
-		user: User = frappe.get_doc("User", user)
-		if user.name == "Administrator":
-			return "not allowed"
-		if not user.enabled:
-			return "disabled"
-
-		user.validate_reset_password()
-		user.reset_password(send_email=True)
-
-		return frappe.msgprint(
-			msg=_("Password reset instructions have been sent to {}'s email").format(user.full_name),
-			title=_("Password Email Sent"),
-		)
+		user_doc: User = frappe.get_doc("User", user)
+		if user_doc.name != "Administrator" and user_doc.enabled:
+			user_doc.validate_reset_password()
+			user_doc._reset_password(send_email=True)
+		# For Administrator or disabled users: silently skip — same response below
 	except frappe.DoesNotExistError:
-		frappe.local.response["http_status_code"] = 404
 		frappe.clear_messages()
-		return "not found"
+	except frappe.OutgoingEmailError:
+		frappe.clear_messages()
+		frappe.log_error(title="Password reset email could not be sent", message=frappe.get_traceback())
+	except Exception:
+		frappe.clear_messages()
+		frappe.log_error(title="Password reset failed unexpectedly", message=frappe.get_traceback())
+
+	frappe.msgprint(
+		msg=_(
+			"If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
+		),
+		title=_("Password Reset"),
+	)
 
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def user_query(doctype, txt, searchfield, start, page_len, filters):
+def user_query(doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]):
 	doctype = "User"
 
 	list_filters = {
@@ -1426,7 +1462,7 @@ def generate_keys(user: str):
 
 
 @frappe.whitelist()
-def switch_theme(theme):
+def switch_theme(theme: str):
 	if theme in ["Dark", "Light", "Automatic"]:
 		frappe.db.set_value("User", frappe.session.user, "desk_theme", theme)
 
@@ -1441,7 +1477,7 @@ def get_enabled_users():
 
 @frappe.whitelist(methods=["POST"])
 def impersonate(user: str, reason: str):
-	frappe.has_permission("User", "impersonate")
+	frappe.has_permission("User", "impersonate", throw=True)
 
 	impersonator = frappe.session.user
 	frappe.get_doc(
@@ -1462,6 +1498,19 @@ def impersonate(user: str, reason: str):
 	)
 	notification.set("type", "Alert")
 	notification.insert(ignore_permissions=True)
+	# notify user via email too
+	outgoing_email_exists = frappe.db.exists("Email Account", {"default_outgoing": 1, "awaiting_password": 0})
+	if outgoing_email_exists:
+		user_email = frappe.db.get_value("User", user, "email")
+		email_message = _(
+			"User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
+		).format(escape_html(impersonator), escape_html(reason))
+
+		frappe.sendmail(
+			recipients=[user_email],
+			subject=_("Security Alert: Your account is being impersonated"),
+			content=email_message,
+		)
 	frappe.local.login_manager.impersonate(user)
 
 

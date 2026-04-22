@@ -28,7 +28,7 @@ frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.Contro
 		const placeholder_html = `<div class="placeholder ellipsis text-extra-muted ${
 			is_xs_input ? "xs" : ""
 		}">
-				<span>${this.df.placeholder}</span>
+				<span>${__(this.df.placeholder)}</span>
 			</div>`;
 		if (this.only_input) {
 			this.$wrapper.append(placeholder_html);

@@ -1,7 +1,14 @@
 const cookie = require("cookie");
-const { get_conf } = require("../../node_utils");
+const { get_conf, get_redis_subscriber } = require("../../node_utils");
 const { get_url } = require("../utils");
 const conf = get_conf();
+const redisClient = get_redis_subscriber("redis_queue");
+
+async function getSecretFromRedis() {
+	if (!redisClient.isOpen) await redisClient.connect();
+	const val = await redisClient.get("socketio_auth_secret");
+	return val;
+}
 
 function authenticate_with_frappe(socket, next) {
 	let namespace = socket.nsp.name;
@@ -35,7 +42,7 @@ function authenticate_with_frappe(socket, next) {
 	socket.sid = cookies.sid;
 	socket.authorization_header = authorization_header;
 
-	socket.frappe_request = (path, args = {}, opts = {}) => {
+	socket.frappe_request = async (path, args = {}, opts = {}) => {
 		let query_args = new URLSearchParams(args);
 		if (query_args.toString()) {
 			path = path + "?" + query_args.toString();
@@ -47,7 +54,10 @@ function authenticate_with_frappe(socket, next) {
 		} else if (socket.sid) {
 			headers["Cookie"] = `sid=${socket.sid}`;
 		}
-
+		const secret = await getSecretFromRedis();
+		if (secret) {
+			headers["X-Frappe-Socket-Secret"] = secret;
+		}
 		return fetch(get_url(socket, path), {
 			...opts,
 			headers,
@@ -57,10 +67,18 @@ function authenticate_with_frappe(socket, next) {
 	socket
 		.frappe_request("/api/method/frappe.realtime.get_user_info")
 		.then((res) => res.json())
-		.then(({ message }) => {
+		.then(async ({ message }) => {
+			if (socket.user !== "Guest" && !message.installed_apps) {
+				const retry_res = await socket.frappe_request(
+					"/api/method/frappe.realtime.get_user_info"
+				);
+				const retry_data = await retry_res.json();
+				message = retry_data.message;
+			}
+
 			socket.user = message.user;
 			socket.user_type = message.user_type;
-			socket.installed_apps = message.installed_apps;
+			socket.installed_apps = message.installed_apps || [];
 			next();
 		})
 		.catch((e) => {

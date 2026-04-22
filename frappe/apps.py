@@ -88,7 +88,7 @@ def get_default_path():
 
 
 @frappe.whitelist()
-def set_app_as_default(app_name):
+def set_app_as_default(app_name: str):
 	if frappe.db.get_value("User", frappe.session.user, "default_app") == app_name:
 		frappe.db.set_value("User", frappe.session.user, "default_app", "")
 	else:
@@ -96,7 +96,7 @@ def set_app_as_default(app_name):
 
 
 @frappe.whitelist()
-def get_incomplete_setup_route(current_app, app_route):
+def get_incomplete_setup_route(current_app: str, app_route: str):
 	pending_apps = get_apps_with_incomplete_dependencies(current_app)
 
 	if not pending_apps:

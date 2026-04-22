@@ -16,7 +16,6 @@ login.bind_events = function () {
 	$(".form-login").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
-		args.cmd = "login";
 		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
 		if (!args.usr || !args.pwd) {
@@ -24,7 +23,7 @@ login.bind_events = function () {
 			frappe.msgprint("{{ _('Both login and password required') | striptags | e }}");
 			return false;
 		}
-		login.call(args, null, "/login");
+		login.call(args, null, "/api/method/login");
 		return false;
 	});
 
@@ -89,14 +88,13 @@ login.bind_events = function () {
 	{% if ldap_settings and ldap_settings.enabled %}
 	$(".btn-ldap-login").on("click", function () {
 		var args = {};
-		args.cmd = "{{ ldap_settings.method }}";
 		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
 		if (!args.usr || !args.pwd) {
 			login.set_status({{ _("Both login and password required") | tojson }}, 'red');
 			return false;
 		}
-		login.call(args);
+		login.call(args, null, "/api/method/{{ ldap_settings.method }}");
 		return false;
 	});
 	{% endif %}
@@ -249,17 +247,9 @@ login.login_handlers = (function () {
 					window.location.href = data.home_page;
 				}
 			} else if (window.location.hash === '#forgot') {
-				if (data.message === 'not found') {
-					login.set_status({{ _("Not a valid user") | tojson }}, 'red');
-				} else if (data.message == 'not allowed') {
-					login.set_status({{ _("Not Allowed") | tojson }}, 'red');
-				} else if (data.message == 'disabled') {
-					login.set_status({{ _("Not Allowed: Disabled User") | tojson }}, 'red');
-				} else {
-					login.set_status({{ _("Instructions Emailed") | tojson }}, 'green');
-				}
-
-
+				// Always show the same message regardless of whether the account
+				// exists or not, to prevent username enumeration (CWE-204).
+				login.set_status({{ _("Instructions Emailed") | tojson }}, 'green');
 			} else if (window.location.hash === '#signup') {
 				if (cint(data.message[0]) == 0) {
 					login.set_status(data.message[1], 'red');
@@ -287,7 +277,6 @@ login.login_handlers = (function () {
 		},
 		401: get_error_handler({{ _("Invalid Login. Try again.") | tojson }}),
 		417: get_error_handler({{ _("Oops! Something went wrong.") | tojson }}),
-		404: get_error_handler({{ _("User does not exist.") | tojson }}),
 		429: get_error_handler({{ _("Too many requests. Please try again later.") | tojson }}),
 		500: get_error_handler({{ _("Something went wrong.") | tojson }}),
 	};
@@ -310,7 +299,6 @@ var verify_token = function (event) {
 	$(".form-verify").on("submit", function (eventx) {
 		eventx.preventDefault();
 		var args = {};
-		args.cmd = "login";
 		args.otp = $("#login_token").val();
 		args.tmp_id = frappe.get_cookie('tmp_id');
 		if (!args.otp) {
@@ -318,7 +306,7 @@ var verify_token = function (event) {
 			frappe.msgprint("{{ _('Login token required') | striptags | e }}");
 			return false;
 		}
-		login.call(args);
+		login.call(args, null, "/api/method/login");
 		return false;
 	});
 }

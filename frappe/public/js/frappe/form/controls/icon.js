@@ -2,7 +2,7 @@ import Picker from "../../icon_picker/icon_picker";
 
 frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlData {
 	make_input() {
-		this.df.placeholder = this.df.placeholder || __("Choose an icon");
+		this.df.placeholder = __(this.df.placeholder) || __("Choose an icon");
 		super.make_input();
 		this.get_all_icons();
 		this.make_icon_input();

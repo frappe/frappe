@@ -206,22 +206,6 @@ frappe.ui.form.PrintView = class {
 		this.set_breadcrumbs();
 		this.setup_customize_dialog();
 
-		// print designer link
-		if (!cint(frappe.boot.sysdefaults.disable_product_suggestion)) {
-			if (Object.keys(frappe.boot.versions).includes("print_designer")) {
-				this.page.add_inner_message(`
-				<a style="line-height: 2.4" href="/desk/print-designer?doctype=${this.frm.doctype}">
-					${__("Try the new Print Designer")}
-				</a>
-				`);
-			} else {
-				this.page.add_inner_message(`
-				<a style="line-height: 2.4" href="https://frappecloud.com/marketplace/apps/print_designer?utm_source=framework-desk&utm_medium=print-view&utm_campaign=try-link">
-					${__("Try the new Print Designer")}
-				</a>
-				`);
-			}
-		}
 		let tasks = [
 			this.set_default_print_format,
 			this.set_default_print_language,
@@ -499,7 +483,14 @@ frappe.ui.form.PrintView = class {
 		this.$print_format_body
 			.find("body")
 			.html(`<div class="print-format print-format-preview">${out.html}</div>`);
-
+		const iframeDoc = this.$print_format_body[0];
+		iframeDoc.querySelectorAll("svg[data-barcode-value]").forEach((el) => {
+			const get_options = frappe.ui.form.ControlBarcode.prototype.get_options.bind({
+				df: { options: el.dataset.options },
+			});
+			JsBarcode(el, el.dataset.barcodeValue, get_options(el.dataset.barcodeValue));
+			el.setAttribute("width", "100%");
+		});
 		this.show_footer();
 
 		this.$print_format_body.find(".print-format").css({
@@ -706,7 +697,10 @@ frappe.ui.form.PrintView = class {
 				return;
 			}
 		} else {
-			this.is_wkhtmltopdf_valid();
+			let pdf_generator = this.get_pdf_generator(print_format?.pdf_generator);
+			if (pdf_generator === "wkhtmltopdf") {
+				this.is_wkhtmltopdf_valid();
+			}
 			this.render_page(
 				"/api/method/frappe.utils.print_format.download_pdf?",
 				false,

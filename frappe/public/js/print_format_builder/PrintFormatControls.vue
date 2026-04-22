@@ -217,7 +217,7 @@ let fields = computed(() => {
 	return fields;
 });
 let print_templates = computed(() => {
-	let templates = print_format.value.__onload.print_templates || {};
+	let templates = print_format.value.__onload?.print_templates || [];
 	let out = [];
 	for (let template of templates) {
 		let df;

@@ -75,7 +75,7 @@ class FormTour(Document):
 
 
 @frappe.whitelist()
-def reset_tour(tour_name):
+def reset_tour(tour_name: str):
 	for user in frappe.get_all("User", pluck="name"):
 		onboarding_status = frappe.parse_json(frappe.db.get_value("User", user, "onboarding_status"))
 		onboarding_status.pop(tour_name, None)
@@ -88,7 +88,7 @@ def reset_tour(tour_name):
 
 
 @frappe.whitelist()
-def update_user_status(value, step):
+def update_user_status(value: str, step: str):
 	from frappe.utils.telemetry import capture
 
 	step = frappe.parse_json(step)

@@ -17,7 +17,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	setup_defaults() {
 		super.setup_defaults();
-		this.page_title = __("Report:") + " " + this.page_title;
+		if (!frappe.is_mobile()) {
+			this.page_title = __("Report:") + " " + this.page_title;
+		}
 		this.view = "Report";
 
 		this.link_title_doctype_fields = [];
@@ -97,16 +99,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		});
 	}
 
-	setup_paging_area() {
-		super.setup_paging_area();
-		const message = __(
-			"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
-		);
-		this.$paging_area.before(
-			`<span class="comparison-message text-extra-muted">${message}</span>`
-		);
-	}
-
 	setup_sort_selector() {
 		this.sort_selector = new frappe.ui.SortSelector({
 			parent: this.filter_area.$filter_list_wrapper,
@@ -155,16 +147,36 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	set_link_title_field_value() {
+		let rows = this.datatable?.datamanager?.rows;
+		let link_col_indices = this.datatable?.datamanager?.columns
+			?.filter((c) => c.docfield?.fieldtype === "Link")
+			.map((c) => c.colIndex);
+
 		Object.keys(this.link_title_doctype_fields).forEach(async (key) => {
 			let link_title = await this.get_link_title_field_value(
 				this.link_title_doctype_fields[key],
 				key
 			);
 
-			if (link_title !== undefined) {
-				document.querySelectorAll(`a[data-name="${key}"]`).forEach((el) => {
-					el.innerHTML = link_title;
-				});
+			if (link_title === undefined) return;
+
+			// update visible DOM elements and cell tooltip
+			document.querySelectorAll(`a[data-name="${key}"]`).forEach((el) => {
+				if (el.innerHTML === link_title) return;
+				el.innerHTML = link_title;
+
+				$(el).closest(".dt-cell__content").attr("title", link_title);
+			});
+
+			if (rows?.length && link_col_indices?.length) {
+				for (let row of rows) {
+					for (let ci of link_col_indices) {
+						let cell = row[ci];
+						if (cell?.content === key && cell.html) {
+							cell.html = null;
+						}
+					}
+				}
 			}
 		});
 	}
@@ -332,6 +344,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			translations: frappe.utils.datatable.get_translations(),
 			checkboxColumn: true,
 			inlineFilters: true,
+			noDataMessage: __("No matching entries in the current results"),
 			cellHeight: 35,
 			direction: frappe.utils.is_rtl() ? "rtl" : "ltr",
 			events: {
@@ -422,6 +435,68 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				},
 			],
 		});
+
+		this.setup_inline_filter_observer();
+	}
+
+	setup_inline_filter_observer() {
+		this.setup_inline_filter_help_icons();
+
+		this.$datatable_wrapper.on(
+			"keyup",
+			".dt-filter",
+			frappe.utils.debounce(() => {
+				this.update_count_for_inline_filter();
+			}, 350)
+		);
+	}
+
+	setup_inline_filter_help_icons() {
+		const message = __(
+			"For comparison, use >5, <10 or =324.\nFor ranges, use 5:10 (for values between 5 & 10)."
+		);
+
+		this.$datatable_wrapper.find(".dt-filter").each((_, input) => {
+			const $input = $(input);
+
+			if ($input.siblings(".comparison-help-icon").length) {
+				return;
+			}
+
+			const $icon = $(
+				`<span class="comparison-help-icon text-muted" title="${message}">${frappe.utils.icon(
+					"info",
+					"xs"
+				)}</span>`
+			);
+
+			$input.after($icon);
+		});
+	}
+
+	update_count_for_inline_filter() {
+		if (!this.datatable) return;
+
+		const has_active_filters = this.datatable.columnmanager
+			? Object.keys(this.datatable.columnmanager.getAppliedFilters()).length > 0
+			: false;
+
+		const $count = this.get_count_element();
+
+		if (has_active_filters) {
+			const filtered_count = this.datatable.datamanager.getFilteredRowIndices().length;
+			const current_page_count = this.data.length;
+
+			$count.html(
+				`<span>${__("{0} of {1} records match (filtered on visible rows only)", [
+					filtered_count,
+					current_page_count,
+				])}</span>`
+			);
+		} else {
+			// Restore the normal count
+			this.render_count();
+		}
 	}
 
 	toggle_charts() {
@@ -447,6 +522,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// show chart if saved via report or user settings
 		if (!this.chart) {
 			if (this.chart_args) {
+				if (!this.chart_axes_valid(this.chart_args)) {
+					this.reset_chart_state();
+					return;
+				}
+
 				this.build_chart_args(
 					this.chart_args.x_axis,
 					this.chart_args.y_axes,
@@ -588,10 +668,28 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	refresh_charts() {
 		if (!this.chart || !this.chart_args) return;
+
+		if (!this.chart_axes_valid(this.chart_args)) {
+			this.reset_chart_state();
+			return;
+		}
+
 		this.$charts_wrapper.removeClass("hidden");
 		const { x_axis, y_axes, chart_type } = this.chart_args;
 		this.build_chart_args(x_axis, y_axes, chart_type);
 		this.chart.update(this.chart_args);
+	}
+
+	chart_axes_valid(chart_args) {
+		const { x_axis, y_axes } = chart_args;
+		return this.columns_map[x_axis] && y_axes.every((y_axis) => this.columns_map[y_axis]);
+	}
+
+	reset_chart_state() {
+		this.chart = null;
+		this.chart_args = null;
+		this.$charts_wrapper.addClass("hidden");
+		this.save_view_user_settings({ chart_args: null });
 	}
 
 	get_editing_object(colIndex, rowIndex, value, parent) {
@@ -708,9 +806,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		} else if (expression.substr(0, 5) == "eval:") {
 			try {
 				out = frappe.utils.eval(expression.substr(5), { doc: data });
-				if (parent && parent.istable && expression.includes("is_submittable")) {
-					out = true;
-				}
 			} catch (e) {
 				frappe.throw(__('Invalid "depends_on" expression'));
 			}
@@ -1038,9 +1133,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		table_fields.forEach((df) => {
 			const cdt = df.options;
+			const label = df.label || frappe.unscrub(df.fieldname);
 
 			dialog_fields.push({
-				label: __(df.label, null, df.parent) + ` (${__(cdt)})`,
+				label: __(label) + ` (${__(cdt)})`,
 				fieldname: df.options,
 				fieldtype: "MultiCheck",
 				columns: 2,
@@ -1298,7 +1394,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					this.remove_column_from_datatable(col);
 				}
 			} else if (col.field in d) {
-				const value = d[col.field];
+				let rendered_value = d[col.field];
+				if (col.docfield.fieldtype == "Data") {
+					rendered_value = frappe.utils.escape_html(rendered_value);
+				}
+				const value = rendered_value;
 				return {
 					name: d.name,
 					doctype: col.docfield.parent,
@@ -1531,6 +1631,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			},
 			{
 				label: __("Print"),
+				condition: () => frappe.model.can_print(this.doctype),
 				action: () => {
 					// prepare rows in their current state, sorted and filtered
 					const rows_in_order = this.datatable.datamanager.rowViewOrder

@@ -217,6 +217,7 @@ class DocType(Document):
 		self.validate_virtual_doctype_methods()
 		self.ensure_minimum_max_attachment_limit()
 		self.patch_old_naming_expressions()
+		self.deduplicate_document_links()
 		validate_links_table_fieldnames(self)
 
 		if not self.is_new():
@@ -680,7 +681,7 @@ class DocType(Document):
 				where doctype=%s and field='name' and value = %s""",
 				(new, new, old),
 			)
-		else:
+		elif not self.is_virtual:
 			frappe.db.rename_table(old, new)
 			frappe.db.commit()
 
@@ -877,6 +878,12 @@ class DocType(Document):
 			make_boilerplate("controller.js", self.as_dict())
 			# make_boilerplate("controller_list.js", self.as_dict())
 
+		if self.is_tree:
+			make_boilerplate("controller_tree.js", self.as_dict())
+
+		if self.is_calendar_and_gantt:
+			make_boilerplate("controller_calendar.js", self.as_dict())
+
 		if self.has_web_view:
 			templates_path = frappe.get_module_path(
 				frappe.scrub(self.module), "doctype", frappe.scrub(self.name), "templates"
@@ -986,7 +993,13 @@ class DocType(Document):
 		self.append("fields", {"label": "Is Group", "fieldtype": "Check", "fieldname": "is_group"})
 		self.append(
 			"fields",
-			{"label": "Old Parent", "fieldtype": "Link", "options": self.name, "fieldname": "old_parent"},
+			{
+				"label": "Old Parent",
+				"fieldtype": "Link",
+				"options": self.name,
+				"fieldname": "old_parent",
+				"hidden": 1,
+			},
 		)
 
 		parent_field_label = f"Parent {self.name}"
@@ -1073,6 +1086,30 @@ class DocType(Document):
 				indicator="yellow",
 			)
 			return True
+
+	def deduplicate_document_links(self):
+		"""Remove duplicate document links from the links child table."""
+
+		seen_links = set()
+		unique_links = []
+
+		for link in self.links or []:
+			if link.is_child_table:
+				link_tuple = (
+					link.link_doctype,
+					link.link_fieldname,
+					link.parent_doctype or "",
+					link.table_fieldname or "",
+				)
+			else:
+				link_tuple = (link.link_doctype, link.link_fieldname)
+
+			if link_tuple not in seen_links:
+				seen_links.add(link_tuple)
+				unique_links.append(link)
+
+		if len(unique_links) < len(self.links or []):
+			self.links = unique_links
 
 
 def validate_series(dt, autoname=None, name=None):
@@ -1838,34 +1875,84 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 
 	def check_permission_dependency(d):
 		if d.cancel and not d.submit:
-			frappe.throw(_("{0}: Cannot set Cancel without Submit").format(get_txt(d)))
+			frappe.throw(
+				_("{0}: The 'Cancel' permission cannot be granted without the 'Submit' permission.").format(
+					get_txt(d)
+				)
+			)
 
 		if (d.submit or d.cancel or d.amend) and not d.write:
-			frappe.throw(_("{0}: Cannot set Submit, Cancel, Amend without Write").format(get_txt(d)))
-		if d.amend and not d.write:
-			frappe.throw(_("{0}: Cannot set Amend without Cancel").format(get_txt(d)))
+			frappe.throw(
+				_(
+					"{0}: The 'Submit', 'Cancel', and 'Amend' permissions cannot be granted without the 'Write' permission."
+				).format(get_txt(d))
+			)
+		if d.amend and not d.create:
+			frappe.throw(
+				_("{0}: The 'Amend' permission cannot be granted without the 'Create' permission.").format(
+					get_txt(d)
+				)
+			)
 		if d.get("import") and not d.create:
-			frappe.throw(_("{0}: Cannot set Import without Create").format(get_txt(d)))
+			frappe.throw(
+				_("{0}: The 'Import' permission cannot be granted without the 'Create' permission.").format(
+					get_txt(d)
+				)
+			)
 
 	def remove_rights_for_single(d):
 		if not issingle:
 			return
 
-		if d.report:
-			frappe.msgprint(_("Report cannot be set for Single types"))
-			d.report = 0
+		if d.get("report"):
+			d.set("report", 0)
+			frappe.msgprint(
+				_(
+					"{0}: The 'Report' permission was removed because it cannot be granted for a 'single' DocType."
+				).format(get_txt(d))
+			)
+
+		if d.get("import"):
 			d.set("import", 0)
+			frappe.msgprint(
+				_(
+					"{0}: The 'Import' permission was removed because it cannot be granted for a 'single' DocType."
+				).format(get_txt(d))
+			)
+
+		if d.get("export"):
 			d.set("export", 0)
+			frappe.msgprint(
+				_(
+					"{0}: The 'Export' permission was removed because it cannot be granted for a 'single' DocType."
+				).format(get_txt(d))
+			)
 
 	def check_if_submittable(d):
-		if d.submit and not issubmittable:
-			frappe.throw(_("{0}: Cannot set Assign Submit if not Submittable").format(get_txt(d)))
-		elif d.amend and not issubmittable:
-			frappe.throw(_("{0}: Cannot set Assign Amend if not Submittable").format(get_txt(d)))
+		if issubmittable:
+			return
+
+		if d.submit:
+			frappe.throw(
+				_("{0}: The 'Submit' permission cannot be granted for a non-submittable DocType.").format(
+					get_txt(d)
+				)
+			)
+
+		if d.amend:
+			frappe.throw(
+				_("{0}: The 'Amend' permission cannot be granted for a non-submittable DocType.").format(
+					get_txt(d)
+				)
+			)
 
 	def check_if_importable(d):
 		if d.get("import") and not isimportable:
-			frappe.throw(_("{0}: Cannot set import as {1} is not importable").format(get_txt(d), doctype))
+			frappe.throw(
+				_("{0}: The 'Import' permission cannot be granted for a non-importable DocType.").format(
+					get_txt(d)
+				)
+			)
 
 	def validate_permission_for_all_role(d):
 		if frappe.session.user == "Administrator":
@@ -1875,7 +1962,7 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 			if d.role in AUTOMATIC_ROLES:
 				frappe.throw(
 					_(
-						"Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
+						"Row # {0}: Non-administrator users cannot add the role {1} to a custom DocType."
 					).format(d.idx, frappe.bold(_(d.role))),
 					title=_("Permissions Error"),
 				)
@@ -1885,7 +1972,7 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 			if d.role in roles:
 				frappe.throw(
 					_(
-						"Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
+						"Row # {0}: Non-administrator users cannot add the role {1} to a custom DocType."
 					).format(d.idx, frappe.bold(_(d.role))),
 					title=_("Permissions Error"),
 				)

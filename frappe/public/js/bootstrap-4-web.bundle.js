@@ -25,7 +25,7 @@ frappe.get_modal = function (title, content) {
 					<div class="modal-header">
 						<h5 class="modal-title">${title}</h5>
 						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						${frappe.utils.icon("close-alt", "sm", "close-alt")}
+						${frappe.utils.icon("x", "sm", "close-alt")}
 						</button>
 					</div>
 					<div class="modal-body">

@@ -9,6 +9,7 @@ import shutil
 import zipfile
 from urllib.parse import quote, unquote
 
+import filetype
 from PIL import Image, ImageFile, ImageOps
 
 import frappe
@@ -114,6 +115,16 @@ class File(Document):
 		if self.is_folder:
 			return
 
+		if self.flags.copy_from_existing_file:
+			# Preserve the normal insert lifecycle for hooks and validations, but skip
+			# reprocessing an existing blob that is already referenced by `file_url`.
+			if not self.file_url:
+				frappe.throw(
+					_("File URL is required when copying an existing attachment."),
+					exc=frappe.MandatoryError,
+				)
+			return
+
 		if self.is_remote_file:
 			self.validate_remote_file()
 		else:
@@ -126,6 +137,29 @@ class File(Document):
 	def after_insert(self):
 		if not self.is_folder:
 			self.create_attachment_record()
+
+	def create_attachment_copy(
+		self,
+		attached_to_doctype: str,
+		attached_to_name: str,
+		attached_to_field: str | None = None,
+		ignore_permissions: bool = False,
+	):
+		"""Efficiently copy an attachment from one document to another by reusing `file_url`."""
+		if self.is_folder:
+			frappe.throw(_("Cannot attach a folder to a document"))
+
+		attachment = frappe.copy_doc(self)
+		attachment.update(
+			{
+				"attached_to_doctype": attached_to_doctype,
+				"attached_to_name": attached_to_name,
+				"attached_to_field": attached_to_field,
+			}
+		)
+		attachment.folder = None
+		attachment.flags.copy_from_existing_file = True
+		return attachment.insert(ignore_permissions=ignore_permissions)
 
 	def validate(self):
 		if self.is_folder:
@@ -609,16 +643,19 @@ class File(Document):
 			encodings = FILE_ENCODING_OPTIONS
 		with open(file_path, mode="rb") as f:
 			self._content = f.read()
-			# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
-			# encoded so the first iteration will be enough most of the time
-			for encoding in encodings:
-				try:
-					# read file with proper encoding
-					self._content = self._content.decode(encoding)
-					break
-				except UnicodeDecodeError:
-					# for .png, .jpg, etc
-					continue
+			# Only decode if not a binary file
+			kind = filetype.guess(self._content)
+			if not kind:
+				# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
+				# encoded so the first iteration will be enough most of the time
+				for encoding in encodings:
+					try:
+						# read file with proper encoding
+						self._content = self._content.decode(encoding)
+						break
+					except UnicodeDecodeError:
+						# for .png, .jpg, etc
+						continue
 
 		return self._content
 
@@ -738,6 +775,7 @@ class File(Document):
 					name=self.file_name,
 					suffix=self.content_hash[-6:],
 					is_private=self.is_private,
+					content_hash=self.content_hash,
 				)
 			call_hook_method("before_write_file", file_size=self.file_size)
 			write_file_method = get_hook_method("write_file")
@@ -746,7 +784,7 @@ class File(Document):
 			return self.save_file_on_filesystem()
 
 	def save_file_on_filesystem(self):
-		safe_file_name = re.sub(r"[/\\%?#]", "_", self.file_name)
+		safe_file_name = get_safe_file_name(self.file_name)
 		if self.is_private:
 			self.file_url = f"/private/files/{safe_file_name}"
 		else:
@@ -762,7 +800,7 @@ class File(Document):
 		max_file_size = get_max_file_size()
 		file_size = len(self._content or b"")
 
-		if file_size > max_file_size:
+		if not self.flags.skip_file_size_check and file_size > max_file_size:
 			msg = _("File size exceeded the maximum allowed size of {0} MB").format(max_file_size / 1048576)
 			if frappe.has_permission("System Settings", "write"):
 				msg += ".<br>" + _("You can increase the limit from System Settings.")
@@ -885,6 +923,14 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 	if user != "Guest" and doc.owner == user:
 		return True
+	if (
+		user != "Guest"
+		and ptype in ["read", "write", "share", "submit"]
+		and frappe.share.get_shared(
+			"File", filters=[["share_name", "=", doc.name]], rights=[ptype], user=user
+		)
+	):
+		return True
 
 	if doc.attached_to_doctype and doc.attached_to_name:
 		attached_to_doctype = doc.attached_to_doctype
@@ -892,7 +938,7 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 		try:
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
-		except ModuleNotFoundError:
+		except (ModuleNotFoundError, ImportError):
 			return False
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()

@@ -224,6 +224,7 @@ def get_permitted_fields(
 	meta = frappe.get_meta(doctype)
 	valid_columns = meta.get_valid_columns()
 
+	# note: any change here should also be made in _get_filterable_fields in query.py
 	if doctype in CORE_DOCTYPES:
 		return valid_columns
 
@@ -242,7 +243,7 @@ def get_permitted_fields(
 	)
 
 	if permission_type == "select":
-		return permitted_fields
+		return [*meta.default_fields, *permitted_fields]
 
 	valid_columns = set(valid_columns)
 	result = [

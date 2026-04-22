@@ -8,11 +8,6 @@
 					width: fit-content;
 					min-width: 100%;
 				}
-				.list-row-container:first-child {
-					position: sticky;
-					top: 0;
-					z-index: 2;
-				}
 				.list-row-container {
 					.level-left {
 						.list-row-col {
@@ -83,7 +78,8 @@
 .list-row-container {
 	display: flex;
 	flex-direction: column;
-	border-bottom: 1px solid $border-color;
+	padding-inline: var(--padding-sm);
+	border-radius: var(--border-radius);
 
 	&:focus {
 		.list-row {
@@ -92,8 +88,18 @@
 	}
 
 	&:first-child {
-		padding-top: 0;
-		border-bottom: none;
+		padding: 0;
+		position: sticky;
+		top: 0;
+		z-index: 2;
+	}
+
+	&:hover {
+		background-color: var(--highlight-color);
+	}
+
+	&:hover .level-right {
+		background-color: var(--highlight-color);
 	}
 }
 
@@ -127,26 +133,16 @@
 }
 
 .list-row {
-	border-radius: var(--border-radius);
+	border-bottom: 1px solid var(--border-color);
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
 	@include get_textstyle("base", "regular");
 
 	&:hover:not(.list-row-head) {
-		background-color: var(--highlight-color);
-		border-radius: unset;
 		.level-right {
 			box-shadow: -5px 0px 5px var(--highlight-color);
 		}
-	}
-
-	&:hover .level-right {
-		background-color: var(--highlight-color);
-	}
-
-	&:last-child {
-		border-bottom: 0px;
 	}
 
 	.level-left {
@@ -213,7 +209,7 @@
 	}
 
 	.file-select {
-		padding-left: 11px;
+		padding: 0 10px;
 	}
 }
 
@@ -228,6 +224,7 @@
 	background-color: var(--subtle-fg);
 	border-radius: var(--border-radius);
 	height: var(--list-row-height);
+	padding-inline: var(--padding-sm);
 
 	.list-subject {
 		font-weight: normal;
@@ -238,7 +235,6 @@
 	}
 	.level-right {
 		background-color: var(--subtle-fg);
-		border-radius: var(--border-radius);
 		height: var(--list-row-height);
 		border-left: none;
 		&:hover {
@@ -262,6 +258,10 @@
 		cursor: pointer;
 		text-decoration: underline;
 	}
+}
+
+.list-row-col .indicator-pill {
+	max-width: 150px;
 }
 
 $level-margin-right: 8px;
@@ -303,7 +303,7 @@ $level-margin-right: 8px;
 .layout-main-list {
 	.list-paging-area,
 	.footnote-area {
-		padding: var(--padding-sm) var(--padding-md);
+		padding: var(--padding-sm) 0;
 	}
 }
 
@@ -344,7 +344,6 @@ input.list-header-checkbox {
 .modal-body {
 	.list-item--head {
 		position: sticky !important;
-		z-index: 500;
 		top: 0;
 	}
 
@@ -369,6 +368,27 @@ input.list-header-checkbox {
 .list-item-table {
 	border: 1px solid $border-color;
 	border-radius: 3px;
+
+	.list-row-head {
+		border-radius: unset;
+	}
+
+	.list-row-container {
+		border-bottom: 1px solid $border-color;
+		border-radius: unset;
+
+		&:last-child {
+			border-bottom: none;
+		}
+	}
+
+	.list-row-container:hover {
+		border-radius: unset;
+	}
+
+	.list-row-container .list-row {
+		border-bottom: none;
+	}
 }
 
 .list-item {
@@ -491,7 +511,9 @@ input.list-header-checkbox {
 
 	.filter-section {
 		display: flex;
-		padding: 0 var(--padding-xs);
+		padding: 0;
+		align-items: flex-start;
+		margin-top: 3px;
 	}
 
 	.filter-selector .btn-group {
@@ -523,8 +545,8 @@ input.list-header-checkbox {
 }
 
 .restricted-button {
-	margin-top: var(--margin-xs);
-	height: var(--margin-xl);
+	margin: var(--margin-xs) 0 0 var(--margin-sm);
+	height: 29px;
 
 	.icon {
 		width: 14px;
@@ -537,13 +559,6 @@ input.list-header-checkbox {
 	&.btn {
 		@include button-variant($background: $light-yellow, $border: darken($light-yellow, 5%));
 		box-shadow: none;
-	}
-}
-
-.frappe-rtl {
-	.restricted-button {
-		margin: auto auto auto 5px;
-		direction: ltr;
 	}
 }
 
@@ -579,6 +594,8 @@ input.list-header-checkbox {
 			overflow-x: auto;
 			.result {
 				overflow-y: hidden;
+				display: table;
+				width: 100%;
 			}
 		}
 	}
@@ -675,7 +692,7 @@ input.list-header-checkbox {
 					width: auto;
 					border-left: none;
 					.level-item.visible-xs {
-						margin-top: 5px;
+						margin-top: 1px;
 					}
 				}
 			}

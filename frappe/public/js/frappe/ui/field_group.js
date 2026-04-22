@@ -18,27 +18,64 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 		}
 	}
 
+	resolve_date_default_keywords(def_value, fieldtype) {
+		if (!def_value) return def_value;
+
+		def_value = def_value.toLowerCase();
+
+		if (def_value == "today" && fieldtype == "Date") {
+			return frappe.datetime.get_today();
+		}
+
+		if (def_value == "now") {
+			if (fieldtype == "Datetime") {
+				return frappe.datetime.now_datetime();
+			}
+			if (fieldtype == "Time") {
+				return frappe.datetime.now_time();
+			}
+		}
+
+		return def_value;
+	}
+
+	get_field_default_value(field) {
+		let def_value = field.df["default"];
+		// loose equality check matches undefined also
+		if (
+			def_value == null ||
+			(!def_value && !frappe.model.is_numeric_field(field.df.fieldtype))
+		)
+			return;
+
+		if (typeof def_value !== "string") return def_value;
+
+		if (["Date", "Datetime", "Time"].includes(field.df.fieldtype)) {
+			def_value = this.resolve_date_default_keywords(def_value, field.df.fieldtype);
+		} else if (def_value == "__user" || def_value.toLowerCase() == "user") {
+			def_value = frappe.session.user;
+		} else if (def_value == "user_fullname") {
+			def_value = frappe.session.user_fullname;
+		}
+
+		return def_value;
+	}
+
 	make() {
 		let me = this;
 		if (this.fields) {
 			super.make();
 			this.refresh();
-			// set default
-			$.each(this.fields_list, function (i, field) {
-				let def_value = field.df["default"];
-				// loose equality check matches undefined also
-				if (
-					def_value == null ||
-					(!def_value && !frappe.model.is_numeric_field(field.df.fieldtype))
-				)
-					return;
 
-				if (def_value == "Today" && field.df["fieldtype"] == "Date") {
-					def_value = frappe.datetime.get_today();
-				}
+			let defaults = {};
 
-				field.set_input(def_value);
-				// if default and has depends_on, render its fields.
+			$.each(this.fields_list, (i, field) => {
+				let def_value = this.get_field_default_value(field);
+				if (def_value === undefined) return;
+				defaults[field.df.fieldname] = def_value;
+			});
+
+			this.set_values(defaults).then(() => {
 				me.refresh_dependency();
 			});
 
@@ -48,12 +85,17 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 
 			$(this.wrapper)
 				.find("input, select")
-				.on("change awesomplete-selectcomplete", () => {
-					this.dirty = true;
-					frappe.run_serially([
-						() => frappe.timeout(0.1),
-						() => me.refresh_dependency(),
-					]);
+				.on(
+					"change awesomplete-selectcomplete",
+					frappe.utils.debounce(() => {
+						this.dirty = true;
+						me.refresh_dependency();
+					}, 100)
+				)
+				.on("input", () => {
+					if (!this.dirty) {
+						this.dirty = true;
+					}
 				});
 		}
 	}
@@ -76,7 +118,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 				if (e.which == 13) {
 					if (me.has_primary_action) {
 						e.preventDefault();
-						me.get_primary_btn().trigger("click");
+						frappe.app.trigger_primary_action();
 					}
 				}
 			});

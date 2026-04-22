@@ -16,7 +16,7 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 			this.frm.grids[this.frm.grids.length] = this;
 		}
 		const me = this;
-		this.$wrapper.on("paste", ":text", (e) => {
+		this.$wrapper.on("paste", ":text", async (e) => {
 			const table_field = this.df.fieldname;
 			const grid = this.grid;
 			const grid_pagination = grid.grid_pagination;
@@ -70,47 +70,40 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 
 			let row_idx = locals[doctype][row_docname].idx;
 			let data_length = data.length;
-			data.forEach((row, i) => {
-				setTimeout(() => {
-					let blank_row = !row.filter(Boolean).length;
-					if (!blank_row) {
-						if (row_idx > this.frm.doc[table_field].length) {
-							this.grid.add_new_row();
-						}
+			const total_rows_needed = row_idx - 1 + data.length;
+			while (this.frm.doc[table_field].length < total_rows_needed) {
+				this.grid.add_new_row();
+			}
+			for (let i = 0; i < data_length; i++) {
+				const row = data[i];
+				if (!row.filter(Boolean).length) {
+					row_idx++;
+					continue;
+				}
 
-						if (row_idx > 1 && (row_idx - 1) % grid_pagination.page_length === 0) {
-							grid_pagination.go_to_page(grid_pagination.page_index + 1);
+				const doc = this.frm.doc[table_field][row_idx - 1];
+				if (doc) {
+					let row_values = {};
+					row.forEach((value, data_index) => {
+						if (fieldnames[data_index]) {
+							row_values[fieldnames[data_index]] = value_formatter_map[
+								fieldtypes[data_index]
+							]
+								? value_formatter_map[fieldtypes[data_index]](value)
+								: value;
 						}
+					});
 
-						const row_name = grid_rows[row_idx - 1].doc.name;
-						row.forEach((value, data_index) => {
-							if (fieldnames[data_index]) {
-								// format value before setting
-								value = value_formatter_map[fieldtypes[data_index]]
-									? value_formatter_map[fieldtypes[data_index]](value)
-									: value;
-								frappe.model.set_value(
-									doctype,
-									row_name,
-									fieldnames[data_index],
-									value
-								);
-							}
-						});
-						row_idx++;
-						if (data_length >= 10) {
-							let progress = i + 1;
-							frappe.show_progress(
-								__("Processing"),
-								progress,
-								data_length,
-								null,
-								true
-							);
-						}
+					await frappe.model.set_value(doctype, doc.name, row_values);
+
+					if (data_length >= 10) {
+						frappe.show_progress(__("Processing"), i + 1, data_length, null, true);
+						await new Promise((resolve) => setTimeout(resolve, 10));
 					}
-				}, 0);
-			});
+				}
+				row_idx++;
+			}
+			this.grid.refresh();
 			return false; // Prevent the default handler from running.
 		});
 	}

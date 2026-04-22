@@ -280,11 +280,11 @@ frappe.get_cookies = function getCookies() {
 };
 
 frappe.is_mobile = function () {
-	return $(document).width() < 768;
+	return window.innerWidth < 768;
 };
 
 frappe.is_large_screen = function () {
-	return $(document).height() > 1180;
+	return window.innerHeight > 1180;
 };
 
 frappe.utils.xss_sanitise = function (string, options) {

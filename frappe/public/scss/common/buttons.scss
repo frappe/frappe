@@ -87,6 +87,19 @@
 	}
 }
 
+.btn.btn-ghost {
+	background-color: transparent;
+	color: var(--text-color);
+	&:hover,
+	&:active {
+		background-color: var(--btn-ghost-hover-bg);
+		color: var(--text-color);
+	}
+	&:focus-visible {
+		box-shadow: var(--focus-default) !important;
+	}
+}
+
 .btn.btn-default {
 	background-color: var(--control-bg);
 	color: var(--text-color);
