@@ -93,7 +93,10 @@ const WATCH_MODE = Boolean(argv.watch);
 const PRODUCTION = Boolean(argv.production);
 const RUN_BUILD_COMMAND = !WATCH_MODE && Boolean(argv["run-build-command"]);
 const ESBUILD_TARGET = argv["esbuild-target"] || "es2017";
-const VERBOSE = Boolean(argv.verbose);
+// Allow VERBOSE to be inherited by nested esbuild invocations (per-app yarn
+// build) via the environment; CLI flag propagation through yarn run breaks
+// chained scripts like `yarn copy && cp`.
+const VERBOSE = Boolean(argv.verbose) || process.env.FRAPPE_BUILD_VERBOSE === "1";
 
 const TOTAL_BUILD_TIME = `${chalk.black.bgGreen(" DONE ")} Total Build Time`;
 const NODE_PATHS = [].concat(
@@ -642,10 +645,7 @@ async function run_app_build(app, root_app_path) {
 		});
 	}
 
-	// `--` separates yarn's own flags from args forwarded to the build script
-	// so the per-app esbuild picks up `--verbose` too.
-	const build_command = VERBOSE ? "yarn build -- --verbose" : "yarn build";
-	await run_command(build_command, { cwd: root_app_path, app, step: "build" });
+	await run_command("yarn build", { cwd: root_app_path, app, step: "build" });
 
 	if (!VERBOSE) {
 		const elapsed = ((Date.now() - started) / 1000).toFixed(1);
@@ -659,6 +659,7 @@ function run_command(command, { cwd, app, step }) {
 			cwd,
 			shell: true,
 			stdio: ["ignore", "pipe", "pipe"],
+			env: VERBOSE ? { ...process.env, FRAPPE_BUILD_VERBOSE: "1" } : process.env,
 		});
 
 		BUILD_CHILDREN.add(child);
