@@ -915,6 +915,21 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			for (const [target_field, source_field] of Object.entries(this.fetch_map)) {
 				const field_value = has_value ? response[source_field] : "";
 
+				const target_df = layout_set_value
+					? this.layout.fields_dict[target_field]?.df
+					: frappe.meta.get_docfield(this.df.parent, target_field);
+
+				if (target_df?.fetch_if_empty && !field_value) {
+					let current_value;
+					if (layout_set_value) {
+						current_value = this.layout.get_value(target_field);
+					} else {
+						const doc = locals[this.df.parent]?.[this.docname];
+						current_value = doc?.[target_field];
+					}
+					if (current_value) continue;
+				}
+
 				if (layout_set_value) {
 					layout_set_value(target_field, field_value);
 				} else {
