@@ -641,7 +641,10 @@ async function run_app_build(app, root_app_path) {
 		});
 	}
 
-	await run_command("yarn build", { cwd: root_app_path, app, step: "build" });
+	// `--` separates yarn's own flags from args forwarded to the build script
+	// so the per-app esbuild picks up `--verbose` too.
+	const build_command = VERBOSE ? "yarn build -- --verbose" : "yarn build";
+	await run_command(build_command, { cwd: root_app_path, app, step: "build" });
 }
 
 function run_command(command, { cwd, app, step }) {
