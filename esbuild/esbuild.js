@@ -107,12 +107,6 @@ const USING_CACHED = Boolean(argv["using-cached"]);
 // actionable context without retaining unbounded logs in memory.
 const MAX_OUTPUT_BUFFER = 20000;
 
-function log_verbose(...args) {
-	if (VERBOSE) {
-		log(...args);
-	}
-}
-
 execute().catch((e) => {
 	console.error(e);
 	process.exit(1);
@@ -605,11 +599,9 @@ async function run_build_command_for_apps(apps) {
 	}
 
 	const concurrency = get_build_concurrency(build_apps.length);
-	if (!VERBOSE) {
-		log(
-			`Running build commands for ${build_apps.length} app(s) in parallel (${concurrency} workers)...`
-		);
-	}
+	log(
+		`Running build commands for ${build_apps.length} app(s) in parallel (${concurrency} workers)...`
+	);
 
 	const tasks = build_apps.map(
 		({ app, root_app_path }) =>
@@ -636,17 +628,12 @@ async function run_build_command_for_apps(apps) {
 		unregister_signal_handlers();
 	}
 
-	if (!VERBOSE) {
-		log("Build commands finished.");
-	}
+	log("Build commands finished.");
 }
 
 async function run_app_build(app, root_app_path) {
 	let node_modules = path.resolve(root_app_path, "node_modules");
 	if (!fs.existsSync(node_modules)) {
-		log_verbose(
-			`\nInstalling dependencies for ${chalk.bold(app)} (because node_modules not found)`
-		);
 		await run_command("yarn install --frozen-lockfile", {
 			cwd: root_app_path,
 			app,
@@ -654,7 +641,6 @@ async function run_app_build(app, root_app_path) {
 		});
 	}
 
-	log_verbose("\nRunning build command for", chalk.bold(app));
 	await run_command("yarn build", { cwd: root_app_path, app, step: "build" });
 }
 
@@ -663,27 +649,30 @@ function run_command(command, { cwd, app, step }) {
 		const child = spawn(command, {
 			cwd,
 			shell: true,
-			stdio: VERBOSE ? "inherit" : ["ignore", "pipe", "pipe"],
+			stdio: ["ignore", "pipe", "pipe"],
 		});
 
 		BUILD_CHILDREN.add(child);
 
 		let output = "";
-		if (!VERBOSE) {
-			if (child.stdout) {
-				child.stdout.on("data", (chunk) => {
-					output = append_output(output, chunk);
-				});
-			}
-			if (child.stderr) {
-				child.stderr.on("data", (chunk) => {
-					output = append_output(output, chunk);
-				});
-			}
-		}
+		const on_data = (chunk) => {
+			// In verbose mode we keep the full output so we can flush it
+			// contiguously per app; fix 4 replaces this with a chunk-based buffer.
+			output = VERBOSE ? output + chunk.toString() : append_output(output, chunk);
+		};
+		if (child.stdout) child.stdout.on("data", on_data);
+		if (child.stderr) child.stderr.on("data", on_data);
+
+		const flush_verbose = () => {
+			if (!VERBOSE || !output) return;
+			const banner = chalk.dim(`──── ${step} · ${chalk.bold(app)} ────`);
+			const trailing = output.endsWith("\n") ? "" : "\n";
+			process.stdout.write(`\n${banner}\n${output}${trailing}`);
+		};
 
 		child.on("error", (error) => {
 			BUILD_CHILDREN.delete(child);
+			flush_verbose();
 			error.app = app;
 			error.step = step;
 			error.output = output;
@@ -692,6 +681,7 @@ function run_command(command, { cwd, app, step }) {
 
 		child.on("close", (code, signal) => {
 			BUILD_CHILDREN.delete(child);
+			flush_verbose();
 			if (code === 0) {
 				resolve();
 				return;
