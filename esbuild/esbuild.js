@@ -103,8 +103,9 @@ const NODE_PATHS = [].concat(
 	app_list.map((app) => path.resolve(apps_path, app)).filter(fs.existsSync)
 );
 const USING_CACHED = Boolean(argv["using-cached"]);
-// Keep only the most recent child-process output so failed builds still have
-// actionable context without retaining unbounded logs in memory.
+// In non-verbose mode we only keep the tail of child-process output so failed
+// builds still have actionable context without growing unbounded. Verbose mode
+// uses Infinity to preserve the full log for serialized flushing.
 const MAX_OUTPUT_BUFFER = 20000;
 
 execute().catch((e) => {
@@ -657,20 +658,19 @@ function run_command(command, { cwd, app, step }) {
 
 		BUILD_CHILDREN.add(child);
 
-		let output = "";
-		const on_data = (chunk) => {
-			// In verbose mode we keep the full output so we can flush it
-			// contiguously per app; fix 4 replaces this with a chunk-based buffer.
-			output = VERBOSE ? output + chunk.toString() : append_output(output, chunk);
-		};
+		const output_buffer = create_output_buffer({
+			max_bytes: VERBOSE ? Infinity : MAX_OUTPUT_BUFFER,
+		});
+		const on_data = (chunk) => output_buffer.append(chunk);
 		if (child.stdout) child.stdout.on("data", on_data);
 		if (child.stderr) child.stderr.on("data", on_data);
 
 		const flush_verbose = () => {
-			if (!VERBOSE || !output) return;
+			if (!VERBOSE || !output_buffer.length) return;
 			const banner = chalk.dim(`──── ${step} · ${chalk.bold(app)} ────`);
-			const trailing = output.endsWith("\n") ? "" : "\n";
-			process.stdout.write(`\n${banner}\n${output}${trailing}`);
+			const text = output_buffer.toString();
+			const trailing = text.endsWith("\n") ? "" : "\n";
+			process.stdout.write(`\n${banner}\n${text}${trailing}`);
 		};
 
 		child.on("error", (error) => {
@@ -678,7 +678,7 @@ function run_command(command, { cwd, app, step }) {
 			flush_verbose();
 			error.app = app;
 			error.step = step;
-			error.output = output;
+			error.output = output_buffer.toString();
 			reject(error);
 		});
 
@@ -700,19 +700,48 @@ function run_command(command, { cwd, app, step }) {
 			const error = new Error(`${step} command failed for ${app} (${exit_details})`);
 			error.app = app;
 			error.step = step;
-			error.output = output;
+			error.output = output_buffer.toString();
 			reject(error);
 		});
 	});
 }
 
-function append_output(buffer, chunk) {
-	const text = chunk.toString();
-	const next = buffer + text;
-	if (next.length <= MAX_OUTPUT_BUFFER) {
-		return next;
-	}
-	return next.slice(next.length - MAX_OUTPUT_BUFFER);
+function create_output_buffer({ max_bytes }) {
+	const chunks = [];
+	let size = 0;
+	let truncated = false;
+
+	const trim = () => {
+		if (max_bytes === Infinity) return;
+		while (size > max_bytes && chunks.length > 1) {
+			size -= chunks.shift().length;
+			truncated = true;
+		}
+		// A single remaining chunk can still exceed the cap; slice its tail.
+		if (chunks.length === 1 && size > max_bytes) {
+			const last = chunks[0];
+			chunks[0] = last.subarray(last.length - max_bytes);
+			size = chunks[0].length;
+			truncated = true;
+		}
+	};
+
+	return {
+		append(chunk) {
+			const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+			chunks.push(buf);
+			size += buf.length;
+			trim();
+		},
+		toString() {
+			if (!chunks.length) return "";
+			const prefix = truncated ? "…(output truncated)…\n" : "";
+			return prefix + Buffer.concat(chunks, size).toString();
+		},
+		get length() {
+			return size;
+		},
+	};
 }
 
 function run_with_concurrency(tasks, concurrency) {
