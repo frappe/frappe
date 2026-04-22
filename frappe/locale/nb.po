@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-17 11:48\n"
+"PO-Revision-Date: 2026-04-22 13:14\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Norwegian Bokmal\n"
 "MIME-Version: 1.0\n"
@@ -6788,7 +6788,7 @@ msgstr "Mal for dataimport"
 
 #: frappe/core/doctype/data_import/data_import.py:66
 msgid "Data Import is not allowed for {0}. Enable 'Allow Import' in DocType settings."
-msgstr ""
+msgstr "Dataimport er ikke tillatt for {0}. Aktiver 'Tillat Import' i DocType-innstillinger."
 
 #: frappe/custom/doctype/customize_form/customize_form.py:619
 msgid "Data Too Long"
@@ -9487,7 +9487,7 @@ msgstr "Skriv inn koden som vises i OTP-appen."
 
 #: frappe/public/js/frappe/views/communication.js:794
 msgid "Enter Email Recipient(s) in the To, CC, or BCC fields"
-msgstr ""
+msgstr "Skriv inn e-postmottaker(e) i feltene Til, CC eller BCC"
 
 #. Label of a Link field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -17341,7 +17341,7 @@ msgstr "Ingen kontakter koblet til dokumentet"
 
 #: frappe/website/doctype/web_form/web_form.js:177
 msgid "No currency fields in {0}"
-msgstr ""
+msgstr "Ingen valutafelt i {0}"
 
 #: frappe/desk/query_report.py:379
 msgid "No data to export"
@@ -17686,7 +17686,7 @@ msgstr "Ingen rettigheter til å lese {0}"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:602
 msgid "Not permitted. {0}."
-msgstr ""
+msgstr "Ikke tillatt. {0}."
 
 #. Label of a Link in the Tools Workspace
 #. Name of a DocType
@@ -19627,7 +19627,7 @@ msgstr "Lagre dokumentet før du fjerner tildeling"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.js:89
 msgid "Please save the form before previewing the message"
-msgstr ""
+msgstr "Vennligst lagre skjemaet før du forhåndsviser meldingen"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1718
 msgid "Please save the report first"
@@ -19659,7 +19659,7 @@ msgstr "Velg X- og Y-feltene"
 
 #: frappe/public/js/form_builder/components/Field.vue:161
 msgid "Please select a DocType in options before setting filters"
-msgstr ""
+msgstr "Vennligst velg en DocType i Alternativer før du setter Filtre"
 
 #: frappe/utils/__init__.py:117
 msgid "Please select a country code for field {1}."
@@ -24776,7 +24776,7 @@ msgstr "Størrelse (MB)"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:608
 msgid "Size exceeds the maximum allowed file size."
-msgstr ""
+msgstr "Størrelsen overskrider den maksimalt tillatte filstørrelsen."
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:82
 #: frappe/public/js/onboarding_tours/onboarding_tours.js:18
@@ -28544,7 +28544,7 @@ msgstr "Bruk TLS"
 
 #: frappe/utils/password_strength.py:187
 msgid "Use a few uncommon words together."
-msgstr ""
+msgstr "Bruk noen uvanlige ord sammen."
 
 #: frappe/utils/password_strength.py:34
 msgid "Use a few words, avoid common phrases."
@@ -29292,7 +29292,7 @@ msgstr "Vis nettsted"
 
 #: frappe/core/page/permission_manager/permission_manager.js:390
 msgid "View all {0} users"
-msgstr ""
+msgstr "Vis alle {0} brukere"
 
 #: frappe/www/confirm_workflow_action.html:12
 msgid "View document"
@@ -29952,7 +29952,7 @@ msgstr "Arbeidsflytbygger ID"
 
 #: frappe/workflow/doctype/workflow/workflow.js:11
 msgid "Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update their properties from the sidebar."
-msgstr ""
+msgstr "Arbeidsflytbygger lar deg opprette arbeidsflyter visuelt. Du kan dra og slippe tilstander og koble dem sammen for å opprette overganger. Du kan også oppdatere egenskapene deres fra Sidefelt."
 
 #. Label of a JSON field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -30133,7 +30133,7 @@ msgstr "XLSX"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:620
 msgid "XMLHttpRequest Error"
-msgstr ""
+msgstr "XMLHttpRequest-feil"
 
 #. Label of a Table field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -30395,7 +30395,7 @@ msgstr "Du kan bare angi tre egendefinerte dokumenttyper (DocType) i dokumenttyp
 
 #: frappe/handler.py:230
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
-msgstr ""
+msgstr "Du kan kun laste opp JPG, PNG, GIF, PDF, TXT, CSV eller Microsoft-dokumenter."
 
 #: frappe/core/doctype/data_export/exporter.py:199
 msgid "You can only upload upto 5000 records in one go. (may be less in some cases)"
@@ -30507,7 +30507,7 @@ msgstr ""
 
 #: frappe/core/doctype/data_import/data_import.py:73
 msgid "You do not have import permission for {0}"
-msgstr ""
+msgstr "Du har ikke importtillatelse for {0}"
 
 #: frappe/desk/query_report.py:899
 msgid "You do not have permission to access {0}: {1}."
@@ -33010,7 +33010,7 @@ msgstr "{0} uker siden"
 
 #: frappe/core/page/permission_manager/permission_manager.js:373
 msgid "{0} with the role <strong>{1}</strong>"
-msgstr ""
+msgstr "{0} med rollen <strong>{1}</strong>"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:39
 msgid "{0} y"
