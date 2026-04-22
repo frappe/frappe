@@ -19,7 +19,7 @@ function getBlockTemplate(
 				children: [],
 				baseStyles: {
 					display: "flex",
-					flexDirection: "column",
+					flexDirection: "row",
 					flexShrink: 0,
 					width: "inherit",
 					overflowX: "hidden",
@@ -34,7 +34,7 @@ function getBlockTemplate(
 				blockName: "container",
 				baseStyles: {
 					display: "flex",
-					flexDirection: "column",
+					flexDirection: "row",
 					flexShrink: 0,
 				} as BlockStyleMap,
 			};
@@ -46,7 +46,7 @@ function getBlockTemplate(
 				blockName: "container",
 				baseStyles: {
 					display: "flex",
-					flexDirection: "column",
+					flexDirection: "row",
 					flexShrink: 0,
 					height: "fit-content",
 					width: "fit-content",
