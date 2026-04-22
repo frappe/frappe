@@ -632,6 +632,7 @@ async function run_build_command_for_apps(apps) {
 }
 
 async function run_app_build(app, root_app_path) {
+	const started = Date.now();
 	let node_modules = path.resolve(root_app_path, "node_modules");
 	if (!fs.existsSync(node_modules)) {
 		await run_command("yarn install --frozen-lockfile", {
@@ -645,6 +646,11 @@ async function run_app_build(app, root_app_path) {
 	// so the per-app esbuild picks up `--verbose` too.
 	const build_command = VERBOSE ? "yarn build -- --verbose" : "yarn build";
 	await run_command(build_command, { cwd: root_app_path, app, step: "build" });
+
+	if (!VERBOSE) {
+		const elapsed = ((Date.now() - started) / 1000).toFixed(1);
+		log(`${chalk.green("✔")} ${chalk.bold(app)} built in ${elapsed}s`);
+	}
 }
 
 function run_command(command, { cwd, app, step }) {
