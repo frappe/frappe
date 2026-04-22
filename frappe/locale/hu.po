@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-19 09:45+0000\n"
-"PO-Revision-Date: 2026-04-21 17:26\n"
+"PO-Revision-Date: 2026-04-22 18:04\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -1667,7 +1667,7 @@ msgstr "Az itt hozzáadott címek a fiókból küldött kimenő e-mailek válasz
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Adds a clear (×) button to Link fields, allowing users to quickly remove the selected value."
-msgstr ""
+msgstr "Törlés (×) gombot ad a hivatkozási mezőkhöz, lehetővé téve a felhasználóknak a kiválasztott érték gyors eltávolítását."
 
 #. Description of a DocType
 #: frappe/custom/doctype/client_script/client_script.json
@@ -1951,7 +1951,7 @@ msgstr "Engedélyezi a Tömeges Szerkesztést"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Clearing Link Fields"
-msgstr ""
+msgstr "Hivatkozási mezők törlésének engedélyezése"
 
 #. Label of the allow_consecutive_login_attempts (Int) field in DocType 'System
 #. Settings'
@@ -3077,7 +3077,7 @@ msgstr "Csatolmány Hivatkozás"
 
 #: frappe/core/doctype/prepared_report/prepared_report.py:92
 msgid "Attachment Not Found"
-msgstr ""
+msgstr "Csatolmány nem található"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
@@ -6939,7 +6939,7 @@ msgstr "Dátumtartomány"
 #. Description of the 'Expires' (Datetime) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Date after which this security.txt should be considered stale. Expires timestamp is converted to UTC."
-msgstr ""
+msgstr "Az a dátum, amely után ez a security.txt fájl elavultnak tekintendő. A lejárati időbélyeg UTC-re kerül átváltásra."
 
 #. Label of the date_and_number_format (Section Break) field in DocType 'System
 #. Settings'
@@ -7005,7 +7005,7 @@ msgstr "Napok előtt vagy után"
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:13
 msgid "Days Remaining"
-msgstr ""
+msgstr "Hátralévő napok"
 
 #: frappe/public/js/frappe/request.js:253
 msgid "Deadlock Occurred"
@@ -7245,7 +7245,7 @@ msgstr "Alapértelmezések Frissítve"
 #. 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Defaults to `en`"
-msgstr ""
+msgstr "Alapértelmezett érték: `en`"
 
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -9730,7 +9730,7 @@ msgstr "Adja meg az alapértelmezett értékmezőket (kulcsokat) és értékeket
 
 #: frappe/desk/doctype/number_card/number_card.js:459
 msgid "Enter expressions that will be evaluated when the card is displayed. For example:"
-msgstr ""
+msgstr "Adjon meg kifejezéseket, amelyek a kártya megjelenítésekor kiértékelődnek. Például:"
 
 #: frappe/public/js/frappe/views/file/file_view.js:111
 msgid "Enter folder name"
@@ -10103,7 +10103,7 @@ msgstr "Szakértő"
 
 #: frappe/core/doctype/security_settings/security_settings.py:122
 msgid "Expiration date must be in the future"
-msgstr ""
+msgstr "A lejárati dátumnak a jövőben kell lennie"
 
 #. Label of the expiration_time (Datetime) field in DocType 'OAuth
 #. Authorization Code'
@@ -10130,7 +10130,7 @@ msgstr "Lejárt"
 #: frappe/core/doctype/security_settings/security_settings.json
 #: frappe/templates/emails/security_txt_expiry_alert.html:9
 msgid "Expires"
-msgstr ""
+msgstr "Lejárat"
 
 #. Label of the expires_in (Int) field in DocType 'OAuth Bearer Token'
 #. Label of the expires_in (Int) field in DocType 'Token Cache'
@@ -11917,7 +11917,7 @@ msgstr "Vissza"
 
 #: frappe/website/doctype/web_form/web_form.js:490
 msgid "Go to Login Required field"
-msgstr ""
+msgstr "Ugrás ide: Bejelentkezés szükséges mező"
 
 #: frappe/desk/doctype/notification_settings/notification_settings.js:17
 msgid "Go to Notification Settings List"
@@ -12225,7 +12225,7 @@ msgstr "Csoportosítva <span style='font-weight:600;'>{0}</b>"
 #. Description of the 'Policy' (Data) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Guidelines and policies on vulnerability reporting. Defaults to `https://frappe.io/security`"
-msgstr ""
+msgstr "Irányelvek és szabályzatok a sebezhetőségek jelentéséhez. Alapértelmezett érték: `https://frappe.io/security`"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -13125,7 +13125,7 @@ msgstr "Ha ezek az utasítások nem voltak hasznosak, kérjük, írja be javasla
 
 #: frappe/core/doctype/user/user.py:1181
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
-msgstr ""
+msgstr "Ha ez az e-mail cím regisztrálva van nálunk, elküldtük a jelszó-visszaállítási utasításokat. Kérjük, ellenőrizze a beérkezett üzeneteit."
 
 #: frappe/templates/emails/user_invitation_cancelled.html:8
 msgid "If this was a mistake or you need access again, please reach out to your team."
@@ -15440,7 +15440,7 @@ msgstr "Levélfej Alapján"
 #. Label of the letter_head_for (Select) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Letter Head For"
-msgstr ""
+msgstr "Levél fejléc ehhez"
 
 #. Label of the letter_head_image_section (Section Break) field in DocType
 #. 'Letter Head'
@@ -16995,7 +16995,7 @@ msgstr "Modulprofil Név"
 
 #: frappe/printing/doctype/letter_head/letter_head.py:155
 msgid "Module is required when Standard is set to 'Yes'"
-msgstr ""
+msgstr "A modul kötelező, ha az Általános 'Igen' értékre van állítva"
 
 #: frappe/desk/doctype/module_onboarding/module_onboarding.py:70
 msgid "Module onboarding progress reset"
@@ -18012,7 +18012,7 @@ msgstr "Nincsenek értesítések mára"
 
 #: frappe/core/doctype/prepared_report/prepared_report.py:92
 msgid "No attachment found for the prepared report"
-msgstr ""
+msgstr "Nem található csatolmány az előkészített jelentéshez"
 
 #: frappe/core/doctype/recorder/recorder.py:178
 msgid "No automatic optimization suggestions available."
@@ -18092,7 +18092,7 @@ msgstr "Nincs csatolt fájl"
 
 #: frappe/desk/doctype/number_card/number_card.js:379
 msgid "No filters available for this report"
-msgstr ""
+msgstr "Nincsenek elérhető szűrők ehhez a jelentéshez"
 
 #: frappe/public/js/frappe/list/base_list.js:1078
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:101
@@ -20523,11 +20523,11 @@ msgstr "Kérjük, a szűrők beállítása előtt válassza ki a DocType-t a be�
 
 #: frappe/desk/doctype/number_card/number_card.js:365
 msgid "Please select a Document Type first"
-msgstr ""
+msgstr "Kérjük, először válasszon egy Dokumentum Típust"
 
 #: frappe/desk/doctype/number_card/number_card.js:375
 msgid "Please select a Report first"
-msgstr ""
+msgstr "Kérjük, először válasszon egy Jelentést"
 
 #: frappe/utils/__init__.py:122
 msgid "Please select a country code for field {1}."
@@ -20658,7 +20658,7 @@ msgstr "Kérjük, próbálja újra"
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:19
 msgid "Please update your security settings from desk."
-msgstr ""
+msgstr "Kérjük, frissítse biztonsági beállításait az íróasztalról."
 
 #: frappe/integrations/google_oauth.py:58
 msgid "Please update {} before continuing."
@@ -20679,7 +20679,7 @@ msgstr "További információkért kérjük, látogasson el a https://frappeclou
 #. Label of the public_policy (Data) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Policy"
-msgstr ""
+msgstr "Szabályzat"
 
 #. Label of the policy_uri (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -20808,7 +20808,7 @@ msgstr "Preferált Számlázási Cím"
 #. Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Preferred Language"
-msgstr ""
+msgstr "Előnyben részesített nyelv"
 
 #. Label of the is_shipping_address (Check) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -21373,7 +21373,7 @@ msgstr "Nyilvános fájlok biztonsági mentése:"
 
 #: frappe/core/doctype/security_settings/security_settings.py:102
 msgid "Public Policy URL must start with https://"
-msgstr ""
+msgstr "A nyilvános szabályzat URL-jének https:// előtaggal kell kezdődnie"
 
 #. Label of the publish (Check) field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
@@ -21629,7 +21629,7 @@ msgstr "Biztonsági mentésre várakozik. Kapni fog egy e-mailt a letöltési li
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:186
 msgid "Queued for {0}. You can track the progress over {1}."
-msgstr ""
+msgstr "Várakozik a következőre: {0}. Az előrehaladást a következőn keresztül követheti: {1}."
 
 #. Label of the queues (Data) field in DocType 'System Health Report Workers'
 #: frappe/desk/doctype/system_health_report_workers/system_health_report_workers.json
@@ -22270,7 +22270,7 @@ msgstr "Google Táblázatok Frissítése"
 
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:53
 msgid "Refresh List"
-msgstr ""
+msgstr "Lista frissítése"
 
 #: frappe/printing/page/print/print.js:382
 msgid "Refresh Print Preview"
@@ -22411,7 +22411,7 @@ msgstr "Mező Eltávolítása"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:404
 msgid "Remove Filter"
-msgstr ""
+msgstr "Szűrő eltávolítása"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:429
 msgid "Remove Section"
@@ -22459,7 +22459,7 @@ msgstr "Eltávolítva"
 
 #: frappe/desk/page/desktop/desktop.js:1213
 msgid "Removed Icons"
-msgstr ""
+msgstr "Eltávolított ikonok"
 
 #: frappe/custom/doctype/custom_field/custom_field.js:138
 #: frappe/public/js/frappe/form/toolbar.js:282
@@ -22549,11 +22549,11 @@ msgstr "Másolás"
 
 #: frappe/core/doctype/role/role.js:40 frappe/core/doctype/role/role.js:52
 msgid "Replicate Role"
-msgstr ""
+msgstr "Szerepkör másolása"
 
 #: frappe/core/doctype/role/role.js:63
 msgid "Replicating Role..."
-msgstr ""
+msgstr "Szerepkör replikálása..."
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #. Option for the 'Status' (Select) field in DocType 'Communication'
@@ -23079,7 +23079,7 @@ msgstr "Helyreállított"
 
 #: frappe/core/page/permission_manager/permission_manager.js:651
 msgid "Restored to standard permissions"
-msgstr ""
+msgstr "Visszaállítva a szabványos engedélyekre"
 
 #: frappe/core/doctype/deleted_document/deleted_document.py:74
 msgid "Restoring Deleted Document"
@@ -23270,7 +23270,7 @@ msgstr "Szerepkör Engedélyei"
 
 #: frappe/core/page/permission_manager/permission_manager.js:611
 msgid "Role Permissions Activity Log"
-msgstr ""
+msgstr "Szerepkör-jogosultságok tevékenységnapló"
 
 #. Label of a Link in the Users Workspace
 #: frappe/core/doctype/role/role.js:21
@@ -23612,7 +23612,7 @@ msgstr "SQL"
 #. Description of the 'Condition' (Small Text) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
 msgid "SQL Conditions. Example: {\"status\" : \"open\", \"priority\" : \"medium\"}"
-msgstr ""
+msgstr "SQL feltételek. Példa: {\"status\" : \"open\", \"priority\" : \"medium\"}"
 
 #. Label of the sql_explain_html (HTML) field in DocType 'Recorder Query'
 #: frappe/core/doctype/recorder/recorder.js:85
@@ -23825,7 +23825,7 @@ msgstr "Mentés..."
 
 #: frappe/public/js/frappe/form/controls/data.js:149
 msgid "Scan"
-msgstr ""
+msgstr "Szkennelés"
 
 #: frappe/public/js/frappe/scanner/index.js:72
 msgid "Scan QRCode"
@@ -24076,11 +24076,11 @@ msgstr "Keresés bármire"
 
 #: frappe/public/js/frappe/phone_picker/phone_picker.js:20
 msgid "Search for countries..."
-msgstr ""
+msgstr "Országok keresése..."
 
 #: frappe/public/js/frappe/icon_picker/icon_picker.js:20
 msgid "Search for icons..."
-msgstr ""
+msgstr "Ikonok keresése..."
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:354
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:358
@@ -24105,7 +24105,7 @@ msgstr "Keresési eredmények"
 
 #: frappe/website/js/website.js:440
 msgid "Search the docs (Press / to focus)"
-msgstr ""
+msgstr "Keresés a dokumentációban (Nyomja meg a / billentyűt a fókuszhoz)"
 
 #: frappe/templates/includes/navbar/navbar_search.html:6
 #: frappe/templates/includes/search_box.html:2
@@ -24168,11 +24168,11 @@ msgstr "Biztonsági riasztás: Fiókját megszemélyesítik"
 
 #: frappe/core/doctype/user/user.py:399
 msgid "Security Alert: Your password has been changed."
-msgstr ""
+msgstr "Biztonsági figyelmeztetés: Jelszava megváltozott."
 
 #: frappe/model/utils/__init__.py:77
 msgid "Security Error: The Path provided is not safe."
-msgstr ""
+msgstr "Biztonsági hiba: A megadott útvonal nem biztonságos."
 
 #. Name of a DocType
 #. Label of the sb3 (Section Break) field in DocType 'User'
@@ -24184,12 +24184,12 @@ msgstr "Biztonsági Beállítások"
 #. Name of a DocType
 #: frappe/core/doctype/security_settings_contact/security_settings_contact.json
 msgid "Security Settings Contact"
-msgstr ""
+msgstr "Biztonsági beállítások névjegy"
 
 #. Name of a DocType
 #: frappe/core/doctype/security_settings_language/security_settings_language.json
 msgid "Security Settings Language"
-msgstr ""
+msgstr "Biztonsági Beállítások Nyelv"
 
 #. Label of the securitytxt_section (Section Break) field in DocType 'Security
 #. Settings'
@@ -24199,11 +24199,11 @@ msgstr ""
 
 #: frappe/core/doctype/security_settings/security_settings.js:13
 msgid "Security.txt will be served only under HTTPS."
-msgstr ""
+msgstr "A Security.txt csak HTTPS-en keresztül lesz elérhető."
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:1
 msgid "Security.txt will expire soon!"
-msgstr ""
+msgstr "A Security.txt hamarosan lejár!"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:355
 msgid "See all Activity"
@@ -24551,11 +24551,11 @@ msgstr "{0} kiválasztása"
 
 #: frappe/core/doctype/report/report.py:444
 msgid "Selected Letter Head is invalid for this Report."
-msgstr ""
+msgstr "A kiválasztott Levél Fejléc érvénytelen ehhez a Jelentéshez."
 
 #: frappe/core/doctype/report/report.py:428
 msgid "Selected Print Format is invalid for this Report."
-msgstr ""
+msgstr "A kiválasztott nyomtatási formátum érvénytelen ehhez a Jelentéshez."
 
 #: frappe/model/workflow.py:138
 msgid "Self approval is not allowed"
@@ -25078,7 +25078,7 @@ msgstr "Felhasználó által beállítva"
 
 #: frappe/website/doctype/web_form/web_form.js:353
 msgid "Set dynamic filter values as Python expressions."
-msgstr ""
+msgstr "Állítsa be a dinamikus szűrőértékeket Python kifejezésekként."
 
 #: frappe/public/js/frappe/utils/dashboard_utils.js:163
 msgid "Set dynamic filter values in JavaScript for the required fields here."
@@ -25174,7 +25174,7 @@ msgstr "Állítsd be egy fehérlistás függvény elérési útját, amely a sz�
 
 #: frappe/public/js/frappe/views/workspace/blocks/block.js:201
 msgid "Setting"
-msgstr ""
+msgstr "Beállítás"
 
 #: frappe/contacts/doctype/address_template/address_template.py:33
 msgid "Setting this Address Template as default as there is no other default"
@@ -25549,7 +25549,7 @@ msgstr "Visszajelzés Megjelenítése"
 
 #: frappe/core/doctype/role/role.js:30
 msgid "Show Users"
-msgstr ""
+msgstr "Felhasználók megjelenítése"
 
 #. Label of the show_values_over_chart (Check) field in DocType 'Dashboard
 #. Chart'
@@ -25806,7 +25806,7 @@ msgstr "Egyidejű Munkamenetek"
 
 #: frappe/model/document.py:196
 msgid "Single DocType {0} cannot be fetched in bulk."
-msgstr ""
+msgstr "A Single DocType {0} nem kérhető le tömegesen."
 
 #: frappe/custom/doctype/customize_form/customize_form.py:129
 msgid "Single DocTypes cannot be customized."
@@ -25820,7 +25820,7 @@ msgstr "Az Egyszeres típusokhoz csak egy rekord tartozik, nincsenek hozzájuk t
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:5
 msgid "Site"
-msgstr ""
+msgstr "Webhely"
 
 #: frappe/database/database.py:287
 msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
@@ -26219,7 +26219,7 @@ msgstr "A Standard DocType nem rendelkezhet alapértelmezett nyomtatási formát
 
 #: frappe/printing/doctype/letter_head/letter_head.py:152
 msgid "Standard Letter Head can be updated in Developer Mode only."
-msgstr ""
+msgstr "Az Általános Levél Fejléc csak Fejlesztői módban frissíthető."
 
 #: frappe/desk/doctype/dashboard/dashboard.py:58
 msgid "Standard Not Set"
@@ -27539,7 +27539,7 @@ msgstr "A dokumentum automatikus ismétlése le van tiltva."
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:43
 msgid "The Bulk Update could not happen due to <b>{0}</b>"
-msgstr ""
+msgstr "A Tömeges Frissítés nem hajtható végre a következő miatt: <b>{0}</b>"
 
 #: frappe/public/js/frappe/form/grid.js:1310
 msgid "The CSV format is case sensitive"
@@ -27671,7 +27671,7 @@ msgstr "A következő fejlécszkript hozzáadja az aktuális dátumot egy elemhe
 
 #: frappe/email/doctype/email_account/email_account.py:268
 msgid "The following configured IMAP folder(s) were not found or are not accessible on the server:<br><ul>{0}</ul>Please verify the folder names exactly as they appear on the server and ensure the account has access to them."
-msgstr ""
+msgstr "A következő konfigurált IMAP mappák nem találhatók vagy nem érhetők el a szerveren:<br><ul>{0}</ul>Kérjük, ellenőrizze a mappaneveket pontosan úgy, ahogy azok a szerveren megjelennek, és győződjön meg arról, hogy a fiók hozzáféréssel rendelkezik."
 
 #: frappe/core/doctype/data_import/importer.py:1097
 msgid "The following values are invalid: {0}. Values must be one of {1}"
@@ -27927,7 +27927,7 @@ msgstr "Hibák voltak a név beállításakor, kérjük forduljon a rendszergazd
 #. 'Navbar Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "These announcements will appear inside an alert below the Navbar."
-msgstr ""
+msgstr "Ezek a közlemények egy figyelmeztetésben jelennek meg a navigációs sáv alatt."
 
 #. Description of the 'Metadata' (Section Break) field in DocType 'OAuth
 #. Settings'
@@ -28026,7 +28026,7 @@ msgstr "Ez a dokumentum jelenleg nem törölhető, mert egy másik felhasználó
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:171
 msgid "This document has already been queued for {0}. You can track the progress over {1}."
-msgstr ""
+msgstr "Ez a dokumentum már várakozik a(z) {0} műveletre. Az előrehaladást a következőn keresztül követheti: {1}."
 
 #: frappe/www/confirm_workflow_action.html:8
 msgid "This document has been modified after the email was sent."
@@ -28621,7 +28621,7 @@ msgstr "Ma"
 
 #: frappe/desk/page/desktop/desktop.js:543
 msgid "Toggle Awesomebar"
-msgstr ""
+msgstr "Awesomebar be-/kikapcsolása"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1667
 msgid "Toggle Chart"
@@ -28637,7 +28637,7 @@ msgstr "Oldalsáv be-/kikapcsolása"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar.js:319
 msgid "Toggle sidebar"
-msgstr ""
+msgstr "Oldalsáv be-/kikapcsolása"
 
 #. Option for the 'Response Type' (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -29172,7 +29172,7 @@ msgstr "URL"
 
 #: frappe/core/doctype/security_settings/security_settings.py:114
 msgid "URL contact must start with https://"
-msgstr ""
+msgstr "Az URL-kapcsolat https://-vel kell kezdődjön"
 
 #. Description of the 'Documentation Link' (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -30404,7 +30404,7 @@ msgstr "Nézet"
 
 #: frappe/core/page/permission_manager/permission_manager.js:76
 msgid "View Activity Log"
-msgstr ""
+msgstr "Tevékenységnapló megtekintése"
 
 #: frappe/core/doctype/success_action/success_action.js:60
 #: frappe/public/js/frappe/form/success_action.js:89
@@ -30485,7 +30485,7 @@ msgstr "Dokumentum megtekintése"
 
 #: frappe/core/page/permission_manager/permission_manager.js:723
 msgid "View full log"
-msgstr ""
+msgstr "Teljes napló megtekintése"
 
 #: frappe/templates/emails/auto_email_report.html:60
 msgid "View report in your browser"
@@ -30525,7 +30525,7 @@ msgstr "Virtuális"
 
 #: frappe/model/document.py:191
 msgid "Virtual DocType {0} cannot be fetched in bulk."
-msgstr ""
+msgstr "A virtuális DocType {0} nem kérhető le tömegesen."
 
 #: frappe/model/virtual_doctype.py:76
 msgid "Virtual DocType {} requires a static method called {} found {}"
@@ -30917,7 +30917,7 @@ msgstr "Weboldal megtekintések száma"
 #. Description of the 'Contact' (Table) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Website, email or phone where vulnerabilities can be reported. Defaults to `https://security.frappe.io`"
-msgstr ""
+msgstr "Weboldal, e-mail vagy telefon, ahol a sebezhetőségeket jelenteni lehet. Alapértelmezés: `https://security.frappe.io`"
 
 #. Option for the 'SocketIO Transport Mode' (Select) field in DocType 'System
 #. Health Report'
@@ -30982,12 +30982,12 @@ msgstr "Heti Hosszú"
 #. Label of the weight (Int) field in DocType 'Assignment Rule User'
 #: frappe/automation/doctype/assignment_rule_user/assignment_rule_user.json
 msgid "Weight"
-msgstr ""
+msgstr "Súlyozás"
 
 #. Option for the 'Rule' (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Weighted Distribution"
-msgstr ""
+msgstr "Súlyozott elosztás"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:403
 msgid "Welcome"
@@ -31060,7 +31060,7 @@ msgstr "A társított DocType melyik nézetéhez kell a parancsikon segítségé
 #. Settings'
 #: frappe/core/doctype/navbar_settings/navbar_settings.json
 msgid "Widget Color"
-msgstr ""
+msgstr "Widget szín"
 
 #. Label of the width (Data) field in DocType 'DocField'
 #. Label of the width (Int) field in DocType 'Report Column'
@@ -31108,7 +31108,7 @@ msgstr "Az inaktív webhelyek esetében az ütemezett feladatok csak naponta egy
 
 #: frappe/public/js/frappe/form/print_utils.js:51
 msgid "With Letter Head"
-msgstr ""
+msgstr "Levél Fejléccel"
 
 #. Label of the worker_information_section (Section Break) field in DocType 'RQ
 #. Worker'
@@ -31587,7 +31587,7 @@ msgstr "Nem frissítheti ezt a Web Űrlap Dokumentumot"
 
 #: frappe/core/doctype/communication/email.py:341
 msgid "You are not authorized to undo this email"
-msgstr ""
+msgstr "Nincs jogosultsága visszavonni ezt az e-mailt"
 
 #: frappe/public/js/frappe/request.js:37
 msgid "You are not connected to Internet. Retry after sometime."
@@ -31714,7 +31714,7 @@ msgstr "A {0} mezőt nem jelölheti mint 'Fordítható'"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:405
 msgid "You can't set standard field {0} as virtual"
-msgstr ""
+msgstr "Az {0} általános mező nem állítható virtuálisra"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:74
 msgctxt "Form timeline"
@@ -31907,7 +31907,7 @@ msgstr "Be kell jelentkeznie, hogy hozzáférjen ehhez {0}."
 
 #: frappe/desk/doctype/workspace/workspace.py:106
 msgid "You need to be {0} to rename this document"
-msgstr ""
+msgstr "A dokumentum átnevezéséhez {0} jogosultsággal kell rendelkeznie"
 
 #: frappe/public/js/frappe/widgets/links_widget.js:68
 msgid "You need to create these first:"
@@ -32097,7 +32097,7 @@ msgstr "A szervezete neve és címe, az e-mail láblécben."
 
 #: frappe/core/doctype/user/user.py:393
 msgid "Your password has been changed and you might have been logged out of all systems.<br>Please contact the Administrator for further assistance."
-msgstr ""
+msgstr "Jelszava megváltozott, és lehetséges, hogy minden rendszerből kijelentkezett.<br>Kérjük, forduljon a Rendszergazdához további segítségért."
 
 #: frappe/templates/emails/auto_reply.html:2
 msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
@@ -32442,7 +32442,7 @@ msgstr "világoskék"
 
 #: frappe/model/document.py:199
 msgid "limit cannot be None when limit_start is used"
-msgstr ""
+msgstr "A limit nem lehet None, ha limit_start van használatban"
 
 #. Option for the 'Social Link Type' (Select) field in DocType 'Social Link
 #. Settings'
@@ -33585,7 +33585,7 @@ msgstr "{0} visszavonta a dokumentum megosztását ettől: {1}"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:407
 msgid "{0} unread notifications"
-msgstr ""
+msgstr "{0} olvasatlan értesítés"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:257
 msgid "{0} updated"
@@ -33783,7 +33783,7 @@ msgstr "{0}: {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:970
 msgid "{0}: {1} did not match any results."
-msgstr ""
+msgstr "{0}: {1} nem felelt meg egyetlen eredménynek sem."
 
 #: frappe/workflow/doctype/workflow_action/workflow_action.py:181
 msgid "{0}: {1} is set to state {2}"
