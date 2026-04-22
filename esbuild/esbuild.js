@@ -558,8 +558,7 @@ const BUILD_CHILDREN = new Set();
 
 function register_build_signal_handlers() {
 	const exit_after_cleanup = (exit_code) => {
-		terminate_build_children();
-		process.exit(exit_code);
+		terminate_build_children().finally(() => process.exit(exit_code));
 	};
 
 	const on_sigint = () => exit_after_cleanup(130);
@@ -614,7 +613,7 @@ async function run_build_command_for_apps(apps) {
 	try {
 		await run_with_concurrency(tasks, concurrency);
 	} catch (error) {
-		terminate_build_children();
+		await terminate_build_children();
 		if (!VERBOSE) {
 			const step_label = error.step === "install" ? "yarn install" : "yarn build";
 			log_error(`${step_label} failed for ${error.app || "an app"}`);
@@ -784,15 +783,59 @@ function run_with_concurrency(tasks, concurrency) {
 	});
 }
 
-function terminate_build_children() {
-	for (const child of BUILD_CHILDREN) {
+async function terminate_build_children({ grace_period_ms = 5000 } = {}) {
+	const victims = Array.from(BUILD_CHILDREN);
+	BUILD_CHILDREN.clear();
+
+	if (!victims.length) return;
+
+	for (const child of victims) {
 		try {
 			child.kill();
 		} catch (error) {
 			// no-op
 		}
 	}
-	BUILD_CHILDREN.clear();
+
+	await wait_for_children_exit(victims, grace_period_ms);
+
+	// Anything still alive after the grace period gets SIGKILL so we don't
+	// leave orphaned yarn/esbuild processes when the parent exits.
+	for (const child of victims) {
+		if (child.exitCode !== null || child.signalCode !== null) continue;
+		try {
+			child.kill("SIGKILL");
+		} catch (error) {
+			// no-op
+		}
+	}
+}
+
+function wait_for_children_exit(children, timeout_ms) {
+	if (!children.length) return Promise.resolve();
+	return new Promise((resolve) => {
+		let remaining = children.length;
+		let settled = false;
+		const finish = () => {
+			if (settled) return;
+			settled = true;
+			clearTimeout(timer);
+			resolve();
+		};
+		const done = () => {
+			remaining -= 1;
+			if (remaining <= 0) finish();
+		};
+		const timer = setTimeout(finish, timeout_ms);
+		timer.unref();
+		for (const child of children) {
+			if (child.exitCode !== null || child.signalCode !== null) {
+				done();
+			} else {
+				child.once("close", done);
+			}
+		}
+	});
 }
 
 async function notify_redis({ error, success, changed_files }) {
