@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-17 11:47\n"
+"PO-Revision-Date: 2026-04-22 13:14\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -6793,7 +6793,7 @@ msgstr "数据导入模板"
 
 #: frappe/core/doctype/data_import/data_import.py:66
 msgid "Data Import is not allowed for {0}. Enable 'Allow Import' in DocType settings."
-msgstr ""
+msgstr "不允许对 {0} 进行数据导入。请在单据类型设置中启用“允许导入”。"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:619
 msgid "Data Too Long"
@@ -9492,7 +9492,7 @@ msgstr "输入OTP应用中显示的验证码。"
 
 #: frappe/public/js/frappe/views/communication.js:794
 msgid "Enter Email Recipient(s) in the To, CC, or BCC fields"
-msgstr ""
+msgstr "请在收件人、抄送或暗送字段中输入电子邮件收件人"
 
 #. Label of a Link field in DocType 'Customize Form'
 #: frappe/custom/doctype/customize_form/customize_form.json
@@ -17348,7 +17348,7 @@ msgstr "文档未关联联系人"
 
 #: frappe/website/doctype/web_form/web_form.js:177
 msgid "No currency fields in {0}"
-msgstr ""
+msgstr "{0} 中没有货币字段"
 
 #: frappe/desk/query_report.py:379
 msgid "No data to export"
@@ -17693,7 +17693,7 @@ msgstr "无权限查看{0}"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:602
 msgid "Not permitted. {0}."
-msgstr ""
+msgstr "不允许。{0}。"
 
 #. Label of a Link in the Tools Workspace
 #. Name of a DocType
@@ -19634,7 +19634,7 @@ msgstr "移除分配前请先保存文档"
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.js:89
 msgid "Please save the form before previewing the message"
-msgstr ""
+msgstr "请在预览消息之前保存表单"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1718
 msgid "Please save the report first"
@@ -19666,7 +19666,7 @@ msgstr "请选择X和Y字段"
 
 #: frappe/public/js/form_builder/components/Field.vue:161
 msgid "Please select a DocType in options before setting filters"
-msgstr ""
+msgstr "请在设置过滤条件之前先在选项中选择一个单据类型"
 
 #: frappe/utils/__init__.py:117
 msgid "Please select a country code for field {1}."
@@ -24783,7 +24783,7 @@ msgstr "大小（MB）"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:608
 msgid "Size exceeds the maximum allowed file size."
-msgstr ""
+msgstr "大小超过了允许的最大文件大小。"
 
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:82
 #: frappe/public/js/onboarding_tours/onboarding_tours.js:18
@@ -28552,7 +28552,7 @@ msgstr "使用TLS"
 
 #: frappe/utils/password_strength.py:187
 msgid "Use a few uncommon words together."
-msgstr ""
+msgstr "将几个不常见的词组合在一起使用。"
 
 #: frappe/utils/password_strength.py:34
 msgid "Use a few words, avoid common phrases."
@@ -29300,7 +29300,7 @@ msgstr "查看网站"
 
 #: frappe/core/page/permission_manager/permission_manager.js:390
 msgid "View all {0} users"
-msgstr ""
+msgstr "查看全部 {0} 个用户"
 
 #: frappe/www/confirm_workflow_action.html:12
 msgid "View document"
@@ -29960,7 +29960,7 @@ msgstr "工作流构建器ID"
 
 #: frappe/workflow/doctype/workflow/workflow.js:11
 msgid "Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update their properties from the sidebar."
-msgstr ""
+msgstr "工作流设计器允许您以可视化方式创建工作流。您可以拖拽状态并将其链接以创建状态转换。您还可以从侧边栏更新其属性。"
 
 #. Label of a JSON field in DocType 'Workflow'
 #: frappe/workflow/doctype/workflow/workflow.json
@@ -30141,7 +30141,7 @@ msgstr "XLSX格式"
 
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:620
 msgid "XMLHttpRequest Error"
-msgstr ""
+msgstr "XMLHttpRequest 错误"
 
 #. Label of a Table field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
@@ -30403,7 +30403,7 @@ msgstr "文档类型表中最多可设置3个自定义文档类型"
 
 #: frappe/handler.py:230
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
-msgstr ""
+msgstr "您只能上传 JPG、PNG、GIF、PDF、TXT、CSV 或 Microsoft 文档。"
 
 #: frappe/core/doctype/data_export/exporter.py:199
 msgid "You can only upload upto 5000 records in one go. (may be less in some cases)"
@@ -30515,7 +30515,7 @@ msgstr "您的评审点数不足"
 
 #: frappe/core/doctype/data_import/data_import.py:73
 msgid "You do not have import permission for {0}"
-msgstr ""
+msgstr "您没有 {0} 的导入权限"
 
 #: frappe/desk/query_report.py:899
 msgid "You do not have permission to access {0}: {1}."
@@ -33018,7 +33018,7 @@ msgstr "{0}周前"
 
 #: frappe/core/page/permission_manager/permission_manager.js:373
 msgid "{0} with the role <strong>{1}</strong>"
-msgstr ""
+msgstr "{0} 具有角色 <strong>{1}</strong>"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:39
 msgid "{0} y"
