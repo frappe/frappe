@@ -388,20 +388,29 @@ frappe.form.formatters = {
 		return formatted_values.join(", ");
 	},
 	Color: (value) => {
-		return value
-			? `<div>
-			<div class="selected-color" style="background-color: ${value}"></div>
-			<span class="color-value">${value}</span>
-		</div>`
-			: "";
+		if (!value) return "";
+		let escaped_value = frappe.utils.escape_html(value);
+		return `<div>
+			<div class="selected-color" style="background-color: ${escaped_value}"></div>
+			<span class="color-value">${escaped_value}</span>
+		</div>`;
 	},
 	Icon: (value) => {
+<<<<<<< HEAD
 		return value
 			? `<div>
 			<div class="selected-icon">${frappe.utils.icon(value, "md")}</div>
 			<span class="icon-value">${value}</span>
 		</div>`
 			: "";
+=======
+		if (!value) return "";
+		let escaped_value = frappe.utils.escape_html(value);
+		return `<div class='flex' style='gap: 8px;'>
+			<div class="selected-icon">${frappe.utils.icon(escaped_value, "md")}</div>
+			<span class="icon-value">${escaped_value}</span>
+		</div>`;
+>>>>>>> b593285b56 (fix: escape icon and color fields)
 	},
 	Attach: format_attachment_url,
 	AttachImage: format_attachment_url,
