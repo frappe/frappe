@@ -318,14 +318,22 @@ const positionSectionProperties = [
 	},
 ]
 
+const isSingleValue = (value: StyleValue): boolean => {
+	if (!value) return false
+	return value.toString().trim().split(/\s+/).length === 1
+}
+
 const spacingSectionProperties = [
 	{
 		component: InlineInput,
 		searchKeyWords: "Margin, Top, MarginTop, Margin Top",
 		getProps: () => {
+			const value = blockController.getMargin()
 			return {
 				label: "Margin",
-				modelValue: blockController.getMargin(),
+				modelValue: value,
+				enableSlider: isSingleValue(value),
+				unitOptions: ["px", "%", "em", "rem"],
 			}
 		},
 		events: {
@@ -341,9 +349,12 @@ const spacingSectionProperties = [
 		component: InlineInput,
 		searchKeyWords: "Padding, Top, PaddingTop, Padding Top",
 		getProps: () => {
+			const value = blockController.getPadding()
 			return {
 				label: "Padding",
-				modelValue: blockController.getPadding(),
+				modelValue: value,
+				enableSlider: isSingleValue(value),
+				unitOptions: ["px", "%", "em", "rem"],
 			}
 		},
 		events: {
