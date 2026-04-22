@@ -105,7 +105,7 @@ def fetch_assets(url, frappe_head, verbose=True):
 	assets_archive = download_file(url, prefix)
 
 	if not assets_archive:
-		raise AssetsNotDownloadedError(f"Assets could not be retrived from {url}")
+		raise AssetsNotDownloadedError(f"Assets could not be retrieved from {url}")
 
 	if verbose:
 		click.echo(click.style("✔", fg="green") + f" Downloaded Frappe assets from {url}")
