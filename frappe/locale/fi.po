@@ -1750,7 +1750,7 @@ msgstr "Tähän lisättyjä osoitteita käytetään Reply-To-otsikkona tästä t
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Adds a clear (×) button to Link fields, allowing users to quickly remove the selected value."
-msgstr ""
+msgstr "Lisää tyhjennä (×) -painikkeen linkkikenttiin, jolloin käyttäjät voivat nopeasti poistaa valitun arvon."
 
 #. Description of a DocType
 #: frappe/custom/doctype/client_script/client_script.json
@@ -2034,7 +2034,7 @@ msgstr "Salli joukkomuokkaus"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Clearing Link Fields"
-msgstr ""
+msgstr "Salli linkkikenttien tyhjentäminen"
 
 #. Label of the allow_consecutive_login_attempts (Int) field in DocType 'System
 #. Settings'
@@ -3163,7 +3163,7 @@ msgstr "Liitelinkki"
 
 #: frappe/core/doctype/prepared_report/prepared_report.py:92
 msgid "Attachment Not Found"
-msgstr ""
+msgstr "Liitettä ei löydy"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
@@ -5008,7 +5008,7 @@ msgstr "Tyhjennä suodattimet"
 
 #: frappe/public/js/frappe/form/controls/link.js:17
 msgid "Clear Link"
-msgstr ""
+msgstr "Tyhjennä linkki"
 
 #. Label of the days (Int) field in DocType 'Logs To Clear'
 #: frappe/core/doctype/logs_to_clear/logs_to_clear.json
@@ -7037,7 +7037,7 @@ msgstr "Ajanjakso"
 #. Description of the 'Expires' (Datetime) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Date after which this security.txt should be considered stale. Expires timestamp is converted to UTC."
-msgstr ""
+msgstr "Päivämäärä, jonka jälkeen tämä security.txt tulee katsoa vanhentuneeksi. Vanhenemisaikaleima muunnetaan UTC-aikaan."
 
 #. Label of the date_and_number_format (Section Break) field in DocType 'System
 #. Settings'
@@ -7103,7 +7103,7 @@ msgstr "Päivää ennen tai jälkeen"
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:13
 msgid "Days Remaining"
-msgstr ""
+msgstr "Jäljellä olevat päivät"
 
 #: frappe/public/js/frappe/request.js:253
 msgid "Deadlock Occurred"
@@ -7343,7 +7343,7 @@ msgstr "Oletusarvot päivitetty"
 #. 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Defaults to `en`"
-msgstr ""
+msgstr "Oletusarvo on `en`"
 
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -10201,7 +10201,7 @@ msgstr "Asiantuntija"
 
 #: frappe/core/doctype/security_settings/security_settings.py:122
 msgid "Expiration date must be in the future"
-msgstr ""
+msgstr "Vanhenemispäivämäärän on oltava tulevaisuudessa"
 
 #. Label of the expiration_time (Datetime) field in DocType 'OAuth
 #. Authorization Code'
@@ -10228,7 +10228,7 @@ msgstr "Vanhentunut"
 #: frappe/core/doctype/security_settings/security_settings.json
 #: frappe/templates/emails/security_txt_expiry_alert.html:9
 msgid "Expires"
-msgstr ""
+msgstr "Vanhenee"
 
 #. Label of the expires_in (Int) field in DocType 'OAuth Bearer Token'
 #. Label of the expires_in (Int) field in DocType 'Token Cache'
@@ -12016,7 +12016,7 @@ msgstr "Mene takaisin"
 
 #: frappe/website/doctype/web_form/web_form.js:490
 msgid "Go to Login Required field"
-msgstr ""
+msgstr "Siirry kenttään Kirjautuminen vaaditaan"
 
 #: frappe/desk/doctype/notification_settings/notification_settings.js:17
 msgid "Go to Notification Settings List"
@@ -12324,7 +12324,7 @@ msgstr "Ryhmitelty kentän <span style='font-weight:600;'>{0}</b> mukaan"
 #. Description of the 'Policy' (Data) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Guidelines and policies on vulnerability reporting. Defaults to `https://frappe.io/security`"
-msgstr ""
+msgstr "Ohjeet ja käytännöt haavoittuvuuksien raportoinnista. Oletusarvo on `https://frappe.io/security`"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -13223,7 +13223,7 @@ msgstr "Jos nämä ohjeet eivät olleet hyödyllisiä, lisää ehdotuksesi GitHu
 
 #: frappe/core/doctype/user/user.py:1181
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
-msgstr ""
+msgstr "Jos tämä sähköpostiosoite on rekisteröity järjestelmäämme, olemme lähettäneet salasanan nollausohjeet siihen. Tarkista saapuneet-kansiosi."
 
 #: frappe/templates/emails/user_invitation_cancelled.html:8
 msgid "If this was a mistake or you need access again, please reach out to your team."
@@ -15536,7 +15536,7 @@ msgstr "Kirjelomake perustuu"
 #. Label of the letter_head_for (Select) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Letter Head For"
-msgstr ""
+msgstr "Kirjelomake kohteelle"
 
 #. Label of the letter_head_image_section (Section Break) field in DocType
 #. 'Letter Head'
@@ -17091,7 +17091,7 @@ msgstr "Moduuliprofiilin nimi"
 
 #: frappe/printing/doctype/letter_head/letter_head.py:155
 msgid "Module is required when Standard is set to 'Yes'"
-msgstr ""
+msgstr "Moduuli on pakollinen kun perus on asetettu arvoon 'Yes'"
 
 #: frappe/desk/doctype/module_onboarding/module_onboarding.py:70
 msgid "Module onboarding progress reset"
@@ -18112,7 +18112,7 @@ msgstr "Ei ilmoituksia tänään"
 
 #: frappe/core/doctype/prepared_report/prepared_report.py:92
 msgid "No attachment found for the prepared report"
-msgstr ""
+msgstr "Valmistellulle raportille ei löytynyt liitettä"
 
 #: frappe/core/doctype/recorder/recorder.py:178
 msgid "No automatic optimization suggestions available."
@@ -20759,7 +20759,7 @@ msgstr "Yritä uudelleen"
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:19
 msgid "Please update your security settings from desk."
-msgstr ""
+msgstr "Päivitä tietoturva-asetukset työpöydältä."
 
 #: frappe/integrations/google_oauth.py:58
 msgid "Please update {} before continuing."
@@ -20780,7 +20780,7 @@ msgstr "Lisätietoja osoitteessa https://frappecloud.com/docs/sites/migrate-an-e
 #. Label of the public_policy (Data) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Policy"
-msgstr ""
+msgstr "Käytäntö"
 
 #. Label of the policy_uri (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -20909,7 +20909,7 @@ msgstr "Ensisijainen laskutusosoite"
 #. Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Preferred Language"
-msgstr ""
+msgstr "Ensisijainen kieli"
 
 #. Label of the is_shipping_address (Check) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -21473,7 +21473,7 @@ msgstr "Julkisten tiedostojen varmuuskopio:"
 
 #: frappe/core/doctype/security_settings/security_settings.py:102
 msgid "Public Policy URL must start with https://"
-msgstr ""
+msgstr "Julkisen käytännön URL-osoitteen on alettava https://"
 
 #. Label of the publish (Check) field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
@@ -24282,26 +24282,26 @@ msgstr "Turvallisuusasetukset"
 #. Name of a DocType
 #: frappe/core/doctype/security_settings_contact/security_settings_contact.json
 msgid "Security Settings Contact"
-msgstr ""
+msgstr "Tietoturva-asetusten yhteyshenkilö"
 
 #. Name of a DocType
 #: frappe/core/doctype/security_settings_language/security_settings_language.json
 msgid "Security Settings Language"
-msgstr ""
+msgstr "Tietoturva-asetusten kieli"
 
 #. Label of the securitytxt_section (Section Break) field in DocType 'Security
 #. Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Security.txt"
-msgstr ""
+msgstr "Security.txt"
 
 #: frappe/core/doctype/security_settings/security_settings.js:13
 msgid "Security.txt will be served only under HTTPS."
-msgstr ""
+msgstr "Security.txt tarjotaan vain HTTPS-yhteyden kautta."
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:1
 msgid "Security.txt will expire soon!"
-msgstr ""
+msgstr "Security.txt vanhenee pian!"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:355
 msgid "See all Activity"
@@ -24649,7 +24649,7 @@ msgstr "Valitse {0}"
 
 #: frappe/core/doctype/report/report.py:444
 msgid "Selected Letter Head is invalid for this Report."
-msgstr ""
+msgstr "Valittu Kirjelomake on virheellinen tälle Raportille."
 
 #: frappe/core/doctype/report/report.py:428
 msgid "Selected Print Format is invalid for this Report."
@@ -25909,7 +25909,7 @@ msgstr "Samanaikaiset istunnot"
 
 #: frappe/model/document.py:196
 msgid "Single DocType {0} cannot be fetched in bulk."
-msgstr ""
+msgstr "Single DocType {0} ei voida hakea joukkona."
 
 #: frappe/custom/doctype/customize_form/customize_form.py:129
 msgid "Single DocTypes cannot be customized."
@@ -25923,7 +25923,7 @@ msgstr "Yksittäisillä tuotteilla on vain yksi tietue eikä taulukoita liitetä
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:5
 msgid "Site"
-msgstr ""
+msgstr "Sivusto"
 
 #: frappe/database/database.py:287
 msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
@@ -26321,7 +26321,7 @@ msgstr "Standard DOCTYPE ei voi olla oletuksena painatusformaattia, käytä Muok
 
 #: frappe/printing/doctype/letter_head/letter_head.py:152
 msgid "Standard Letter Head can be updated in Developer Mode only."
-msgstr ""
+msgstr "Perus-Kirjelomake voidaan päivittää vain Kehittäjätilassa."
 
 #: frappe/desk/doctype/dashboard/dashboard.py:58
 msgid "Standard Not Set"
@@ -28750,7 +28750,7 @@ msgstr "Tänään"
 
 #: frappe/desk/page/desktop/desktop.js:543
 msgid "Toggle Awesomebar"
-msgstr ""
+msgstr "Vaihda Awesomebar"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1667
 msgid "Toggle Chart"
@@ -28766,7 +28766,7 @@ msgstr "Vaihda sivupalkki"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar.js:319
 msgid "Toggle sidebar"
-msgstr ""
+msgstr "Vaihda sivupalkki"
 
 #. Option for the 'Response Type' (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -29305,7 +29305,7 @@ msgstr "URL"
 
 #: frappe/core/doctype/security_settings/security_settings.py:114
 msgid "URL contact must start with https://"
-msgstr ""
+msgstr "URL-yhteystiedon on alettava https://"
 
 #. Description of the 'Documentation Link' (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -29351,7 +29351,7 @@ msgstr "URL, joka osoittaa asiakkaan ihmisen luettavissa olevaan käytäntöasia
 #. Description of the 'TOS URI' (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "URL that points to a human-readable terms of service document for the client. Should be shown to end-user before authorizing."
-msgstr ""
+msgstr "URL, joka osoittaa ihmisen luettavissa olevaan käyttöehtojen asiakirjaan asiakkaalle. Tulee näyttää loppukäyttäjälle ennen valtuutusta."
 
 #. Description of the 'Logo URI' (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -30449,7 +30449,7 @@ msgstr "Vahvistettava arvo"
 #. State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Value to set when this workflow state is applied. Use plain text (e.g. Approved) or an expression if “Evaluate as Expression” is enabled."
-msgstr ""
+msgstr "Arvo, joka asetetaan kun tämä työnketjun vaihe otetaan käyttöön. Käytä pelkkää tekstiä (esim. Approved) tai lauseketta, jos ”Arvioi lausekkeena” on käyttöönotettu."
 
 #: frappe/model/base_document.py:1320
 msgid "Value too big"
@@ -30658,7 +30658,7 @@ msgstr "Virtuaalinen"
 
 #: frappe/model/document.py:191
 msgid "Virtual DocType {0} cannot be fetched in bulk."
-msgstr ""
+msgstr "Virtual DocType {0} ei voida hakea joukkona."
 
 #: frappe/model/virtual_doctype.py:76
 msgid "Virtual DocType {} requires a static method called {} found {}"
@@ -31050,7 +31050,7 @@ msgstr "Verkkosivuston vierailut"
 #. Description of the 'Contact' (Table) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Website, email or phone where vulnerabilities can be reported. Defaults to `https://security.frappe.io`"
-msgstr ""
+msgstr "Verkkosivusto, sähköposti tai puhelin, johon haavoittuvuuksista voidaan ilmoittaa. Oletusarvo on `https://security.frappe.io`"
 
 #. Option for the 'SocketIO Transport Mode' (Select) field in DocType 'System
 #. Health Report'
@@ -31847,7 +31847,7 @@ msgstr "Et voi asettaa &#39;Translatable&#39; kentälle {0}"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:405
 msgid "You can't set standard field {0} as virtual"
-msgstr ""
+msgstr "Peruskenttää {0} ei voi asettaa virtuaaliseksi"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:74
 msgctxt "Form timeline"
@@ -32575,7 +32575,7 @@ msgstr "vaaleansininen"
 
 #: frappe/model/document.py:199
 msgid "limit cannot be None when limit_start is used"
-msgstr ""
+msgstr "limit ei voi olla None kun limit_start on käytössä"
 
 #. Option for the 'Social Link Type' (Select) field in DocType 'Social Link
 #. Settings'
@@ -33718,7 +33718,7 @@ msgstr "{0} esti dokumentin jakamisen {1}:lta"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:407
 msgid "{0} unread notifications"
-msgstr ""
+msgstr "{0} lukematonta ilmoitusta"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:257
 msgid "{0} updated"
@@ -33895,7 +33895,7 @@ msgstr "{0}: 'Lähetä'-oikeutta ei voi myöntää Tietuetyypille, joka ei ole l
 
 #: frappe/core/doctype/doctype/doctype.py:1886
 msgid "{0}: The 'Submit', 'Cancel', and 'Amend' permissions cannot be granted without the 'Write' permission."
-msgstr ""
+msgstr "{0}: 'Lähettää'-, 'Peru'- ja 'Muuta'-käyttöoikeuksia ei voi myöntää ilman 'Kirjoitus'-oikeutta."
 
 #: frappe/public/js/frappe/form/controls/data.js:51
 msgid "{0}: You can increase the limit for the field if required via {1}"

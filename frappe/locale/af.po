@@ -1750,7 +1750,7 @@ msgstr "Adresse wat hier bygevoeg word, sal as die Reply-To-kopstuk gebruik word
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Adds a clear (×) button to Link fields, allowing users to quickly remove the selected value."
-msgstr ""
+msgstr "Voeg 'n wis (×) knoppie by Skakelveldte, wat gebruikers toelaat om die gekose waarde vinnig te verwyder."
 
 #. Description of a DocType
 #: frappe/custom/doctype/client_script/client_script.json
@@ -2034,7 +2034,7 @@ msgstr "Laat groepsredigering toe"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Clearing Link Fields"
-msgstr ""
+msgstr "Laat Wis van Skakelveldte Toe"
 
 #. Label of the allow_consecutive_login_attempts (Int) field in DocType 'System
 #. Settings'
@@ -3163,7 +3163,7 @@ msgstr "Aanhegselskakel"
 
 #: frappe/core/doctype/prepared_report/prepared_report.py:92
 msgid "Attachment Not Found"
-msgstr ""
+msgstr "Attachment Nie Gevind Nie"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
@@ -5008,7 +5008,7 @@ msgstr "Wis filters"
 
 #: frappe/public/js/frappe/form/controls/link.js:17
 msgid "Clear Link"
-msgstr ""
+msgstr "Wis Skakel"
 
 #. Label of the days (Int) field in DocType 'Logs To Clear'
 #: frappe/core/doctype/logs_to_clear/logs_to_clear.json
@@ -7037,7 +7037,7 @@ msgstr "Datumreeks"
 #. Description of the 'Expires' (Datetime) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Date after which this security.txt should be considered stale. Expires timestamp is converted to UTC."
-msgstr ""
+msgstr "Datum waarna hierdie security.txt as verouderd beskou moet word. Verval-tydstempel word na UTC omgeskakel."
 
 #. Label of the date_and_number_format (Section Break) field in DocType 'System
 #. Settings'
@@ -7103,7 +7103,7 @@ msgstr "Dae voor of na"
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:13
 msgid "Days Remaining"
-msgstr ""
+msgstr "Dae Oorblywend"
 
 #: frappe/public/js/frappe/request.js:253
 msgid "Deadlock Occurred"
@@ -7343,7 +7343,7 @@ msgstr "Verstekwaardes opgedateer"
 #. 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Defaults to `en`"
-msgstr ""
+msgstr "Verstekwaarde is `en`"
 
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -10201,7 +10201,7 @@ msgstr "Kenner"
 
 #: frappe/core/doctype/security_settings/security_settings.py:122
 msgid "Expiration date must be in the future"
-msgstr ""
+msgstr "Vervaldatum moet in die toekoms wees"
 
 #. Label of the expiration_time (Datetime) field in DocType 'OAuth
 #. Authorization Code'
@@ -10228,7 +10228,7 @@ msgstr "Verstryk"
 #: frappe/core/doctype/security_settings/security_settings.json
 #: frappe/templates/emails/security_txt_expiry_alert.html:9
 msgid "Expires"
-msgstr ""
+msgstr "Verval"
 
 #. Label of the expires_in (Int) field in DocType 'OAuth Bearer Token'
 #. Label of the expires_in (Int) field in DocType 'Token Cache'
@@ -12016,7 +12016,7 @@ msgstr "Gaan terug"
 
 #: frappe/website/doctype/web_form/web_form.js:490
 msgid "Go to Login Required field"
-msgstr ""
+msgstr "Gaan na Aanmelding Vereis-veld"
 
 #: frappe/desk/doctype/notification_settings/notification_settings.js:17
 msgid "Go to Notification Settings List"
@@ -12324,7 +12324,7 @@ msgstr "Gegroepeer volgens <span style='font-weight:600;'>{0}</b>"
 #. Description of the 'Policy' (Data) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Guidelines and policies on vulnerability reporting. Defaults to `https://frappe.io/security`"
-msgstr ""
+msgstr "Riglyne en beleide oor kwesbaarheidverslagdoening. Verstekwaarde is `https://frappe.io/security`"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -13223,7 +13223,7 @@ msgstr "As hierdie instruksies nie nuttig was nie, voeg asseblief u voorstelle b
 
 #: frappe/core/doctype/user/user.py:1181
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
-msgstr ""
+msgstr "Indien hierdie e-pos by ons geregistreer is, het ons wagwoordherstelinstruksies daarheen gestuur. Kontroleer asseblief u posbus."
 
 #: frappe/templates/emails/user_invitation_cancelled.html:8
 msgid "If this was a mistake or you need access again, please reach out to your team."
@@ -15536,7 +15536,7 @@ msgstr "Briefhoof Gebaseer Op"
 #. Label of the letter_head_for (Select) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Letter Head For"
-msgstr ""
+msgstr "Briefhoof Vir"
 
 #. Label of the letter_head_image_section (Section Break) field in DocType
 #. 'Letter Head'
@@ -17091,7 +17091,7 @@ msgstr "Moduleprofielnaam"
 
 #: frappe/printing/doctype/letter_head/letter_head.py:155
 msgid "Module is required when Standard is set to 'Yes'"
-msgstr ""
+msgstr "Module is verpligtend wanneer Standard op 'Yes' gestel is"
 
 #: frappe/desk/doctype/module_onboarding/module_onboarding.py:70
 msgid "Module onboarding progress reset"
@@ -18112,7 +18112,7 @@ msgstr "Geen waarskuwings vir vandag nie"
 
 #: frappe/core/doctype/prepared_report/prepared_report.py:92
 msgid "No attachment found for the prepared report"
-msgstr ""
+msgstr "Geen attachment gevind vir die voorbereide verslag nie"
 
 #: frappe/core/doctype/recorder/recorder.py:178
 msgid "No automatic optimization suggestions available."
@@ -20759,7 +20759,7 @@ msgstr "Probeer asseblief weer"
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:19
 msgid "Please update your security settings from desk."
-msgstr ""
+msgstr "Werk asseblief u sekuriteitsinstellings vanaf die lessenaar op."
 
 #: frappe/integrations/google_oauth.py:58
 msgid "Please update {} before continuing."
@@ -20780,7 +20780,7 @@ msgstr "Besoek asseblief https://frappecloud.com/docs/sites/migrate-an-existing-
 #. Label of the public_policy (Data) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Policy"
-msgstr ""
+msgstr "Beleid"
 
 #. Label of the policy_uri (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -20909,7 +20909,7 @@ msgstr "Voorkeur-faktuuradres"
 #. Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Preferred Language"
-msgstr ""
+msgstr "Voorkeur taal"
 
 #. Label of the is_shipping_address (Check) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -21473,7 +21473,7 @@ msgstr "Publieke Lêers Rugsteun:"
 
 #: frappe/core/doctype/security_settings/security_settings.py:102
 msgid "Public Policy URL must start with https://"
-msgstr ""
+msgstr "Publieke Beleid-URL moet met https:// begin"
 
 #. Label of the publish (Check) field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
@@ -24282,26 +24282,26 @@ msgstr "Sekuriteitsinstellings"
 #. Name of a DocType
 #: frappe/core/doctype/security_settings_contact/security_settings_contact.json
 msgid "Security Settings Contact"
-msgstr ""
+msgstr "Sekuriteitsinstellings Kontak"
 
 #. Name of a DocType
 #: frappe/core/doctype/security_settings_language/security_settings_language.json
 msgid "Security Settings Language"
-msgstr ""
+msgstr "Sekuriteitsinstellings Taal"
 
 #. Label of the securitytxt_section (Section Break) field in DocType 'Security
 #. Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Security.txt"
-msgstr ""
+msgstr "Security.txt"
 
 #: frappe/core/doctype/security_settings/security_settings.js:13
 msgid "Security.txt will be served only under HTTPS."
-msgstr ""
+msgstr "Security.txt sal slegs onder HTTPS bedien word."
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:1
 msgid "Security.txt will expire soon!"
-msgstr ""
+msgstr "Security.txt verval binnekort!"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:355
 msgid "See all Activity"
@@ -24649,7 +24649,7 @@ msgstr "Kies {0}"
 
 #: frappe/core/doctype/report/report.py:444
 msgid "Selected Letter Head is invalid for this Report."
-msgstr ""
+msgstr "Gekiesde Briefhoof is ongeldig vir hierdie verslag."
 
 #: frappe/core/doctype/report/report.py:428
 msgid "Selected Print Format is invalid for this Report."
@@ -25909,7 +25909,7 @@ msgstr "Gelyktydige Sessies"
 
 #: frappe/model/document.py:196
 msgid "Single DocType {0} cannot be fetched in bulk."
-msgstr ""
+msgstr "Single DocType {0} kan nie in grootmaat opgehaal word nie."
 
 #: frappe/custom/doctype/customize_form/customize_form.py:129
 msgid "Single DocTypes cannot be customized."
@@ -25923,7 +25923,7 @@ msgstr "Enkel tipes het slegs een rekord, geen tabelle geassosieer nie. Waardes 
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:5
 msgid "Site"
-msgstr ""
+msgstr "Werf"
 
 #: frappe/database/database.py:287
 msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
@@ -26321,7 +26321,7 @@ msgstr "Standaard DocType kan nie standaard afdrukformaat hê nie, Gebruik pasvo
 
 #: frappe/printing/doctype/letter_head/letter_head.py:152
 msgid "Standard Letter Head can be updated in Developer Mode only."
-msgstr ""
+msgstr "Standard Briefhoof kan slegs in Ontwikkelaarsmodus bygewerk word."
 
 #: frappe/desk/doctype/dashboard/dashboard.py:58
 msgid "Standard Not Set"
@@ -28750,7 +28750,7 @@ msgstr "vandag"
 
 #: frappe/desk/page/desktop/desktop.js:543
 msgid "Toggle Awesomebar"
-msgstr ""
+msgstr "Wissel Awesomebar"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1667
 msgid "Toggle Chart"
@@ -28766,7 +28766,7 @@ msgstr "Skuif sybalk"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar.js:319
 msgid "Toggle sidebar"
-msgstr ""
+msgstr "Skuif sybalk"
 
 #. Option for the 'Response Type' (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -29305,7 +29305,7 @@ msgstr "URL"
 
 #: frappe/core/doctype/security_settings/security_settings.py:114
 msgid "URL contact must start with https://"
-msgstr ""
+msgstr "URL-kontak moet met https:// begin"
 
 #. Description of the 'Documentation Link' (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -29351,7 +29351,7 @@ msgstr "URL wat verwys na 'n mensleesbare beleidsdokument vir die kliënt. Moet 
 #. Description of the 'TOS URI' (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "URL that points to a human-readable terms of service document for the client. Should be shown to end-user before authorizing."
-msgstr ""
+msgstr "URL wat verwys na 'n menslik-leesbare diensvoorwaardes-dokument vir die kliënt. Moet aan die eindgebruiker gewys word voor magtiging."
 
 #. Description of the 'Logo URI' (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -30449,7 +30449,7 @@ msgstr "Waarde om te Valideer"
 #. State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Value to set when this workflow state is applied. Use plain text (e.g. Approved) or an expression if “Evaluate as Expression” is enabled."
-msgstr ""
+msgstr "Waarde om te stel wanneer hierdie Workflow State toegepas word. Gebruik gewone teks (bv. Approved) of ‘n uitdrukking as “Evalueer as Uitdrukking” geaktiveer is."
 
 #: frappe/model/base_document.py:1320
 msgid "Value too big"
@@ -30658,7 +30658,7 @@ msgstr "Virtueel"
 
 #: frappe/model/document.py:191
 msgid "Virtual DocType {0} cannot be fetched in bulk."
-msgstr ""
+msgstr "Virtual DocType {0} kan nie in grootmaat opgehaal word nie."
 
 #: frappe/model/virtual_doctype.py:76
 msgid "Virtual DocType {} requires a static method called {} found {}"
@@ -31050,7 +31050,7 @@ msgstr "Webwerf-besoeke"
 #. Description of the 'Contact' (Table) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Website, email or phone where vulnerabilities can be reported. Defaults to `https://security.frappe.io`"
-msgstr ""
+msgstr "Webwerf, e-pos of telefoon waar kwesbaarhede aangemeld kan word. Verstek is `https://security.frappe.io`"
 
 #. Option for the 'SocketIO Transport Mode' (Select) field in DocType 'System
 #. Health Report'
@@ -31847,7 +31847,7 @@ msgstr "Jy kan nie &#39;Vertaalbaar&#39; vir veld {0} stel nie"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:405
 msgid "You can't set standard field {0} as virtual"
-msgstr ""
+msgstr "Jy kan nie standaardveld {0} as virtueel stel nie"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:74
 msgctxt "Form timeline"
@@ -32575,7 +32575,7 @@ msgstr "ligblou"
 
 #: frappe/model/document.py:199
 msgid "limit cannot be None when limit_start is used"
-msgstr ""
+msgstr "limiet kan nie None wees wanneer limit_start gebruik word nie"
 
 #. Option for the 'Social Link Type' (Select) field in DocType 'Social Link
 #. Settings'
@@ -33718,7 +33718,7 @@ msgstr "{0} het hierdie dokument gedeel met {1}"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:407
 msgid "{0} unread notifications"
-msgstr ""
+msgstr "{0} ongelees kennisgewings"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:257
 msgid "{0} updated"
@@ -33895,7 +33895,7 @@ msgstr "{0}: Die 'Indien'-toestemming kan nie toegeken word vir 'n nie-indienbar
 
 #: frappe/core/doctype/doctype/doctype.py:1886
 msgid "{0}: The 'Submit', 'Cancel', and 'Amend' permissions cannot be granted without the 'Write' permission."
-msgstr ""
+msgstr "{0}: Die 'Indien', 'Kanselleer' en 'Wysig' regte kan nie sonder die 'Skryf' toestemming toegeken word nie."
 
 #: frappe/public/js/frappe/form/controls/data.js:51
 msgid "{0}: You can increase the limit for the field if required via {1}"

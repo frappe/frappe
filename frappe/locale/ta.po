@@ -1747,7 +1747,7 @@ msgstr "இங்கு சேர்க்கப்பட்ட முகவர�
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Adds a clear (×) button to Link fields, allowing users to quickly remove the selected value."
-msgstr ""
+msgstr "இணைப்பு புலங்களில் அழி (×) பொத்தானைச் சேர்க்கிறது, இது பயனர்கள் தேர்ந்தெடுக்கப்பட்ட மதிப்பை விரைவாக நீக்க அனுமதிக்கிறது."
 
 #. Description of a DocType
 #: frappe/custom/doctype/client_script/client_script.json
@@ -2031,7 +2031,7 @@ msgstr "மொத்தமாக திருத்துவதை அனும�
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Allow Clearing Link Fields"
-msgstr ""
+msgstr "இணைப்பு புலங்களை அழிக்க அனுமதி"
 
 #. Label of the allow_consecutive_login_attempts (Int) field in DocType 'System
 #. Settings'
@@ -3160,7 +3160,7 @@ msgstr "இணைப்பு இணையம்"
 
 #: frappe/core/doctype/prepared_report/prepared_report.py:92
 msgid "Attachment Not Found"
-msgstr ""
+msgstr "இணைப்பு கண்டறியப்படவில்லை"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: frappe/core/doctype/comment/comment.json
@@ -5005,7 +5005,7 @@ msgstr "வடிகட்டிகளை அழி"
 
 #: frappe/public/js/frappe/form/controls/link.js:17
 msgid "Clear Link"
-msgstr ""
+msgstr "இணைப்பை அழி"
 
 #. Label of the days (Int) field in DocType 'Logs To Clear'
 #: frappe/core/doctype/logs_to_clear/logs_to_clear.json
@@ -7034,7 +7034,7 @@ msgstr "தேதி வரம்பு"
 #. Description of the 'Expires' (Datetime) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Date after which this security.txt should be considered stale. Expires timestamp is converted to UTC."
-msgstr ""
+msgstr "இந்த security.txt காலாவதியானதாகக் கருதப்பட வேண்டிய தேதி. காலாவதி நேர முத்திரை UTC க்கு மாற்றப்படும்."
 
 #. Label of the date_and_number_format (Section Break) field in DocType 'System
 #. Settings'
@@ -7100,7 +7100,7 @@ msgstr "நாட்களுக்கு முன் அல்லது பி
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:13
 msgid "Days Remaining"
-msgstr ""
+msgstr "மீதமுள்ள நாட்கள்"
 
 #: frappe/public/js/frappe/request.js:253
 msgid "Deadlock Occurred"
@@ -7340,7 +7340,7 @@ msgstr "இயல்புநிலை மதிப்புகள் புத�
 #. 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Defaults to `en`"
-msgstr ""
+msgstr "இயல்புநிலை `en`"
 
 #. Description of a DocType
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
@@ -10198,7 +10198,7 @@ msgstr "நிபுணர்"
 
 #: frappe/core/doctype/security_settings/security_settings.py:122
 msgid "Expiration date must be in the future"
-msgstr ""
+msgstr "காலாவதி தேதி எதிர்காலத்தில் இருக்க வேண்டும்"
 
 #. Label of the expiration_time (Datetime) field in DocType 'OAuth
 #. Authorization Code'
@@ -10225,7 +10225,7 @@ msgstr "காலாவதியானது"
 #: frappe/core/doctype/security_settings/security_settings.json
 #: frappe/templates/emails/security_txt_expiry_alert.html:9
 msgid "Expires"
-msgstr ""
+msgstr "காலாவதியாகும்"
 
 #. Label of the expires_in (Int) field in DocType 'OAuth Bearer Token'
 #. Label of the expires_in (Int) field in DocType 'Token Cache'
@@ -12013,7 +12013,7 @@ msgstr "பின்செல்"
 
 #: frappe/website/doctype/web_form/web_form.js:490
 msgid "Go to Login Required field"
-msgstr ""
+msgstr "உள்நுழைவு தேவை புலத்திற்குச் செல்க"
 
 #: frappe/desk/doctype/notification_settings/notification_settings.js:17
 msgid "Go to Notification Settings List"
@@ -12321,7 +12321,7 @@ msgstr "<span style='font-weight:600;'>{0}</b> மூலம் குழுவ�
 #. Description of the 'Policy' (Data) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Guidelines and policies on vulnerability reporting. Defaults to `https://frappe.io/security`"
-msgstr ""
+msgstr "பாதிப்பு அறிக்கையிடல் பற்றிய வழிகாட்டுதல்கள் மற்றும் கொள்கைகள். இயல்புநிலை `https://frappe.io/security`"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
@@ -13220,7 +13220,7 @@ msgstr "இந்த வழிமுறைகள் பயனுள்ளதா�
 
 #: frappe/core/doctype/user/user.py:1181
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
-msgstr ""
+msgstr "இந்த மின்னஞ்சல் எங்களிடம் பதிவு செய்யப்பட்டிருந்தால், கடவுச்சொல் மீட்டமைப்பு வழிமுறைகளை அனுப்பியுள்ளோம். உங்கள் அஞ்சல் பெட்டியைச் சரிபார்க்கவும்."
 
 #: frappe/templates/emails/user_invitation_cancelled.html:8
 msgid "If this was a mistake or you need access again, please reach out to your team."
@@ -15533,7 +15533,7 @@ msgstr "கடிதத் தலைப்பு அடிப்படை"
 #. Label of the letter_head_for (Select) field in DocType 'Letter Head'
 #: frappe/printing/doctype/letter_head/letter_head.json
 msgid "Letter Head For"
-msgstr ""
+msgstr "கடிதத் தலைப்பு இதற்கு"
 
 #. Label of the letter_head_image_section (Section Break) field in DocType
 #. 'Letter Head'
@@ -17088,7 +17088,7 @@ msgstr "தொகுதி சுயவிவர பெயர்"
 
 #: frappe/printing/doctype/letter_head/letter_head.py:155
 msgid "Module is required when Standard is set to 'Yes'"
-msgstr ""
+msgstr "நிலையான 'Yes' எனத் தேர்வு செய்யப்பட்டிருக்கும்போது தொகுதி தேவை"
 
 #: frappe/desk/doctype/module_onboarding/module_onboarding.py:70
 msgid "Module onboarding progress reset"
@@ -18109,7 +18109,7 @@ msgstr "இன்றைக்கு எச்சரிக்கைகள் இ�
 
 #: frappe/core/doctype/prepared_report/prepared_report.py:92
 msgid "No attachment found for the prepared report"
-msgstr ""
+msgstr "தயாரிக்கப்பட்ட அறிக்கைக்கான இணைப்பு கண்டறியப்படவில்லை"
 
 #: frappe/core/doctype/recorder/recorder.py:178
 msgid "No automatic optimization suggestions available."
@@ -20755,7 +20755,7 @@ msgstr "தயவுசெய்து மீண்டும் முயற்�
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:19
 msgid "Please update your security settings from desk."
-msgstr ""
+msgstr "தயவுசெய்து மேசையிலிருந்து உங்கள் பாதுகாப்பு அமைப்புகளைப் புதுப்பிக்கவும்."
 
 #: frappe/integrations/google_oauth.py:58
 msgid "Please update {} before continuing."
@@ -20776,7 +20776,7 @@ msgstr "மேலும் தகவலுக்கு https://frappecloud.com/d
 #. Label of the public_policy (Data) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Policy"
-msgstr ""
+msgstr "கொள்கை"
 
 #. Label of the policy_uri (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -20905,7 +20905,7 @@ msgstr "விருப்பமான பில்லிங் முகவர�
 #. Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Preferred Language"
-msgstr ""
+msgstr "விரும்பும் மொழி"
 
 #. Label of the is_shipping_address (Check) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -21469,7 +21469,7 @@ msgstr "பொதுக் கோப்புகள் காப்புப்�
 
 #: frappe/core/doctype/security_settings/security_settings.py:102
 msgid "Public Policy URL must start with https://"
-msgstr ""
+msgstr "பொதுக் கொள்கை URL https:// உடன் தொடங்க வேண்டும்"
 
 #. Label of the publish (Check) field in DocType 'Package Release'
 #: frappe/core/doctype/package_release/package_release.json
@@ -24278,26 +24278,26 @@ msgstr "பாதுகாப்பு அமைப்புகள்"
 #. Name of a DocType
 #: frappe/core/doctype/security_settings_contact/security_settings_contact.json
 msgid "Security Settings Contact"
-msgstr ""
+msgstr "பாதுகாப்பு அமைப்புகள் தொடர்பு"
 
 #. Name of a DocType
 #: frappe/core/doctype/security_settings_language/security_settings_language.json
 msgid "Security Settings Language"
-msgstr ""
+msgstr "பாதுகாப்பு அமைப்புகள் மொழி"
 
 #. Label of the securitytxt_section (Section Break) field in DocType 'Security
 #. Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Security.txt"
-msgstr ""
+msgstr "Security.txt"
 
 #: frappe/core/doctype/security_settings/security_settings.js:13
 msgid "Security.txt will be served only under HTTPS."
-msgstr ""
+msgstr "Security.txt HTTPS இன் கீழ் மட்டுமே வழங்கப்படும்."
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:1
 msgid "Security.txt will expire soon!"
-msgstr ""
+msgstr "Security.txt விரைவில் காலாவதியாகும்!"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:355
 msgid "See all Activity"
@@ -24645,7 +24645,7 @@ msgstr "{0} தேர்வு செய்யவும்"
 
 #: frappe/core/doctype/report/report.py:444
 msgid "Selected Letter Head is invalid for this Report."
-msgstr ""
+msgstr "தேர்ந்தெடுக்கப்பட்ட கடிதத் தலைப்பு இந்த அறிக்கைக்கு செல்லாதது."
 
 #: frappe/core/doctype/report/report.py:428
 msgid "Selected Print Format is invalid for this Report."
@@ -25905,7 +25905,7 @@ msgstr "ஒரே நேரத்தில் அமர்வுகள்"
 
 #: frappe/model/document.py:196
 msgid "Single DocType {0} cannot be fetched in bulk."
-msgstr ""
+msgstr "Single DocType {0} மொத்தமாக எடுக்க இயலாது."
 
 #: frappe/custom/doctype/customize_form/customize_form.py:129
 msgid "Single DocTypes cannot be customized."
@@ -25919,7 +25919,7 @@ msgstr "ஒற்றை வகைகளில் ஒரே ஒரு பதி�
 
 #: frappe/templates/emails/security_txt_expiry_alert.html:5
 msgid "Site"
-msgstr ""
+msgstr "தளம்"
 
 #: frappe/database/database.py:287
 msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
@@ -26317,7 +26317,7 @@ msgstr "நிலையான DocType இல் இயல்புநிலை �
 
 #: frappe/printing/doctype/letter_head/letter_head.py:152
 msgid "Standard Letter Head can be updated in Developer Mode only."
-msgstr ""
+msgstr "நிலையான கடிதத் தலைப்பை டெவலப்பர் பயன்முறையில் மட்டுமே புதுப்பிக்க முடியும்."
 
 #: frappe/desk/doctype/dashboard/dashboard.py:58
 msgid "Standard Not Set"
@@ -28746,7 +28746,7 @@ msgstr "இன்று"
 
 #: frappe/desk/page/desktop/desktop.js:543
 msgid "Toggle Awesomebar"
-msgstr ""
+msgstr "Awesomebar-ஐ மாற்று"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1667
 msgid "Toggle Chart"
@@ -28762,7 +28762,7 @@ msgstr "பக்கப்பட்டியை நிலைமாற்று"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar.js:319
 msgid "Toggle sidebar"
-msgstr ""
+msgstr "பக்கப்பட்டியை நிலைமாற்று"
 
 #. Option for the 'Response Type' (Select) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -29301,7 +29301,7 @@ msgstr "URL"
 
 #: frappe/core/doctype/security_settings/security_settings.py:114
 msgid "URL contact must start with https://"
-msgstr ""
+msgstr "URL தொடர்பு https:// உடன் தொடங்க வேண்டும்"
 
 #. Description of the 'Documentation Link' (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -29347,7 +29347,7 @@ msgstr "கிளையனுக்கான மனிதர்கள் பட�
 #. Description of the 'TOS URI' (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
 msgid "URL that points to a human-readable terms of service document for the client. Should be shown to end-user before authorizing."
-msgstr ""
+msgstr "கிளையனுக்கான மனிதர்கள் படிக்கக்கூடிய சேவை விதிமுறைகள் ஆவணத்தைச் சுட்டிக்காட்டும் URL. அங்கீகரிப்புக்கு முன் இறுதிப் பயனருக்குக் காட்டப்பட வேண்டும்."
 
 #. Description of the 'Logo URI' (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -30445,7 +30445,7 @@ msgstr "சரிபார்க்க வேண்டிய மதிப்ப�
 #. State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Value to set when this workflow state is applied. Use plain text (e.g. Approved) or an expression if “Evaluate as Expression” is enabled."
-msgstr ""
+msgstr "இந்த Workflow State பொருத்தப்படும்போது அமைக்கப்பட வேண்டிய மதிப்பு. சாதாரண உரையைப் பயன்படுத்தவும் (எ.கா. Approved) அல்லது “வெளிப்பாடாக மதிப்பிடு” இயக்கப்பட்டிருந்தால் ஒரு வெளிப்பாடு பயன்படுத்தவும்."
 
 #: frappe/model/base_document.py:1320
 msgid "Value too big"
@@ -30654,7 +30654,7 @@ msgstr "மெய்நிகர்"
 
 #: frappe/model/document.py:191
 msgid "Virtual DocType {0} cannot be fetched in bulk."
-msgstr ""
+msgstr "Virtual DocType {0} மொத்தமாக எடுக்க இயலாது."
 
 #: frappe/model/virtual_doctype.py:76
 msgid "Virtual DocType {} requires a static method called {} found {}"
@@ -31046,7 +31046,7 @@ msgstr "இணையதள வருகைகள்"
 #. Description of the 'Contact' (Table) field in DocType 'Security Settings'
 #: frappe/core/doctype/security_settings/security_settings.json
 msgid "Website, email or phone where vulnerabilities can be reported. Defaults to `https://security.frappe.io`"
-msgstr ""
+msgstr "பாதிப்புகளைப் புகாரளிக்கக்கூடிய இணையதளம், மின்னஞ்சல் அல்லது தொலைபேசி. இயல்புநிலை `https://security.frappe.io`"
 
 #. Option for the 'SocketIO Transport Mode' (Select) field in DocType 'System
 #. Health Report'
@@ -31843,7 +31843,7 @@ msgstr "புலம் {0} க்கு 'மொழிபெயர்க்க�
 
 #: frappe/custom/doctype/customize_form/customize_form.py:405
 msgid "You can't set standard field {0} as virtual"
-msgstr ""
+msgstr "நிலையான புலம் {0} ஐ மெய்நிகராக அமைக்க இயலாது"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:74
 msgctxt "Form timeline"
@@ -32571,7 +32571,7 @@ msgstr "வெளிர் நீலம்"
 
 #: frappe/model/document.py:199
 msgid "limit cannot be None when limit_start is used"
-msgstr ""
+msgstr "limit_start பயன்படுத்தப்படும்போது limit None ஆக இருக்க முடியாது"
 
 #. Option for the 'Social Link Type' (Select) field in DocType 'Social Link
 #. Settings'
@@ -33714,7 +33714,7 @@ msgstr "{0} இந்த ஆவணத்தை {1} உடன் பகிர்�
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:407
 msgid "{0} unread notifications"
-msgstr ""
+msgstr "{0} படிக்கப்படாத அறிவிப்புகள்"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:257
 msgid "{0} updated"
@@ -33891,7 +33891,7 @@ msgstr "{0}: சமர்ப்பிக்க முடியாத DocType-க
 
 #: frappe/core/doctype/doctype/doctype.py:1886
 msgid "{0}: The 'Submit', 'Cancel', and 'Amend' permissions cannot be granted without the 'Write' permission."
-msgstr ""
+msgstr "{0}: 'எழுதுதல்' அனுமதி இல்லாமல் 'சமர்ப்பிக்க', 'ரத்து செய்' மற்றும் 'திருத்து' அனுமதிகள் வழங்க இயலாது."
 
 #: frappe/public/js/frappe/form/controls/data.js:51
 msgid "{0}: You can increase the limit for the field if required via {1}"
