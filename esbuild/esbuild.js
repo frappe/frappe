@@ -739,6 +739,7 @@ function run_with_concurrency(tasks, concurrency) {
 						}
 					})
 					.catch((error) => {
+						running -= 1;
 						rejected = true;
 						reject(error);
 					});
