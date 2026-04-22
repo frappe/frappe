@@ -67,7 +67,7 @@ function getBlockTemplate(
 					padding: "10px 12px",
 					backgroundColor: "var(--surface-white)",
 					borderStyle: "solid",
-					borderWidth: "1px",
+					borderWidth: "0px 0px 1px 0px",
 					borderColor: "var(--outline-gray-1)",
 				} as BlockStyleMap,
 				children: [
