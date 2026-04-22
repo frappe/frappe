@@ -98,8 +98,7 @@ def get_assets_link(frappe_head) -> str:
 
 
 def fetch_assets(url, frappe_head, verbose=True):
-	if verbose:
-		click.secho("Retrieving assets...", fg="yellow")
+	click.secho("Retrieving assets...", fg="yellow")
 
 	prefix = mkdtemp(prefix="frappe-assets-", suffix=frappe_head)
 	assets_archive = download_file(url, prefix)
@@ -118,8 +117,7 @@ def setup_assets(assets_archive, verbose=True):
 
 	directories_created = set()
 
-	if verbose:
-		click.secho("\nExtracting assets...\n", fg="yellow")
+	click.secho("\nExtracting assets...\n", fg="yellow")
 	with tarfile.open(assets_archive) as tar:
 		for file in tar:
 			if not file.isdir():
