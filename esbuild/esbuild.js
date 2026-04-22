@@ -623,7 +623,8 @@ async function run_build_command_for_apps(apps) {
 	} catch (error) {
 		terminate_build_children();
 		if (!VERBOSE) {
-			log_error(`Build command failed for ${error.app || "an app"}`);
+			const step_label = error.step === "install" ? "yarn install" : "yarn build";
+			log_error(`${step_label} failed for ${error.app || "an app"}`);
 			if (error.output) {
 				log(error.output.trim());
 			} else {
