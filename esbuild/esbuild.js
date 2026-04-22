@@ -112,7 +112,9 @@ const USING_CACHED = Boolean(argv["using-cached"]);
 const MAX_OUTPUT_BUFFER = 20000;
 
 execute().catch((e) => {
-	console.error(e);
+	if (!e?.reported) {
+		console.error(e);
+	}
 	process.exit(1);
 });
 
@@ -158,20 +160,7 @@ async function execute() {
 		await write_assets_json(result.metafile);
 	}
 	if (RUN_BUILD_COMMAND) {
-		try {
-			await run_build_command_for_apps(APPS);
-		} catch (error) {
-			if (VERBOSE) {
-				log_error("Error while running build commands for apps:");
-				log(`  Apps: ${APPS.join(", ")}`);
-				if (error && error.stack) {
-					log(chalk.dim(error.stack));
-				} else {
-					log(chalk.dim(String(error)));
-				}
-			}
-			throw error;
-		}
+		await run_build_command_for_apps(APPS);
 	}
 	if (!WATCH_MODE) {
 		process.exit(0);
@@ -617,15 +606,19 @@ async function run_build_command_for_apps(apps) {
 		await run_with_concurrency(tasks, concurrency);
 	} catch (error) {
 		await terminate_build_children();
+		const step_label = error.step === "install" ? "yarn install" : "yarn build";
+		log_error(`${step_label} failed for ${error.app || "an app"}`);
 		if (!VERBOSE) {
-			const step_label = error.step === "install" ? "yarn install" : "yarn build";
-			log_error(`${step_label} failed for ${error.app || "an app"}`);
 			if (error.output) {
 				log(error.output.trim());
 			} else {
 				log_warn("Run again with --verbose for more details.");
 			}
 		}
+		// Prevent the top-level execute().catch from re-dumping the same error:
+		// verbose builds already streamed the child output, and non-verbose builds
+		// just printed a trimmed summary above.
+		error.reported = true;
 		throw error;
 	} finally {
 		unregister_signal_handlers();
