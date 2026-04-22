@@ -602,9 +602,9 @@ async function run_build_command_for_apps(apps) {
 	}
 
 	const concurrency = get_build_concurrency(build_apps.length);
-	log(
-		`Running build commands for ${build_apps.length} app(s) in parallel (${concurrency} workers)...`
-	);
+	const execution_mode =
+		concurrency === 1 ? "sequentially" : `in parallel (${concurrency} workers)`;
+	log(`Running build commands for ${build_apps.length} app(s) ${execution_mode}...`);
 
 	const tasks = build_apps.map(
 		({ app, root_app_path }) =>
