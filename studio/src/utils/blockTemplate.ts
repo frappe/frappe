@@ -35,7 +35,7 @@ function getBlockTemplate(
 				baseStyles: {
 					display: "flex",
 					flexDirection: "row",
-					flexShrink: 0,
+					flexShrink: 1,
 				} as BlockStyleMap,
 			};
 
@@ -47,7 +47,7 @@ function getBlockTemplate(
 				baseStyles: {
 					display: "flex",
 					flexDirection: "row",
-					flexShrink: 0,
+					flexShrink: 1,
 					height: "fit-content",
 					width: "fit-content",
 				} as BlockStyleMap,
