@@ -93,6 +93,7 @@ export interface FrappeUIComponent {
 	overrideProps?: Record<string, ComponentProp & { props?: Record<string, any> }> // to override prop editors for specific props
 	hideProps?: Array<string> // to hide specific props from the properties panel
 	expandArrayProps?: boolean // whether to render array props optimally using ArrayInput instead of as Code
+	blockTemplate?: string // to specify a block template to be used instead of a vue component when this component is dragged into the canvas
 }
 
 export interface FrappeUIComponents {

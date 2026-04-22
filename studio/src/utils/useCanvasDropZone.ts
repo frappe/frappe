@@ -1,6 +1,7 @@
 import useCanvasStore from "@/stores/canvasStore"
 import Block from "@/utils/block"
-import { getComponentBlock } from "@/utils/serializer"
+import { getBlockInstance, getComponentBlock } from "@/utils/serializer"
+import getBlockTemplate from "@/utils/blockTemplate"
 import { useDropZone } from "@vueuse/core"
 import { Ref } from "vue"
 
@@ -20,7 +21,15 @@ export function useCanvasDropZone(
 			const isStudioComponent = Boolean(ev.dataTransfer?.getData("isStudioComponent"))
 
 			if (!componentName) return
-			let newBlock = getComponentBlock(componentName, isStudioComponent)
+
+			const componentDef = Block.getComponents()?.[componentName]
+			let newBlock: Block
+
+			if (componentDef?.blockTemplate) {
+				newBlock = getBlockInstance(getBlockTemplate(componentDef.blockTemplate as any))
+			} else {
+				newBlock = getComponentBlock(componentName, isStudioComponent)
+			}
 
 			if (slotName) {
 				parentComponent?.updateSlot(slotName, newBlock)

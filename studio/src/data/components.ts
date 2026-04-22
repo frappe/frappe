@@ -805,17 +805,12 @@ export const COMPONENTS: FrappeUIComponents = {
 			},
 		},
 	},
+	// block template based components
 	Header: {
 		name: "Header",
 		title: "Header",
 		icon: LucideFrame,
-		initialState: {
-			title: "Frappe",
-			menuItems: [
-				{ label: "Home", url: "#" },
-				{ label: "Settings", url: "#" },
-			],
-		},
+		blockTemplate: "header",
 	},
 	ImageView: {
 		name: "ImageView",
@@ -826,6 +821,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			size: "xs",
 		},
 	},
+	// charts
 	NumberChart: {
 		name: "NumberChart",
 		title: "Number Chart",
