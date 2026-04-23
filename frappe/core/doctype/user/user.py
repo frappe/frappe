@@ -864,7 +864,7 @@ class User(Document):
 @frappe.whitelist()
 def get_timezones():
 	cache_key = "timezones"
-	timezones = frappe.cache.get_value("timezones")
+	timezones = frappe.cache.get_value(cache_key)
 	if timezones:
 		return {"timezones": timezones}
 
