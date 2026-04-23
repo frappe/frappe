@@ -322,15 +322,20 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	get_custom_filters() {
+		const parent_filters = {};
+		const child_filters = [];
+
 		if (this.add_filters_group && this.filter_group) {
-			return this.filter_group.get_filters().reduce((acc, filter) => {
-				return Object.assign(acc, {
-					[filter[1]]: [filter[2], filter[3]],
-				});
-			}, {});
-		} else {
-			return {};
+			this.filter_group.get_filters().forEach((filter) => {
+				const [doctype, fieldname, op, value] = filter;
+				if (doctype === this.doctype) {
+					parent_filters[fieldname] = [op, value];
+				} else {
+					child_filters.push([doctype, fieldname, op, value]);
+				}
+			});
 		}
+		return { parent_filters, child_filters };
 	}
 
 	bind_events() {
@@ -570,9 +575,21 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	get_args_for_search() {
 		let [filters, filter_fields] = this.get_filters_from_setters();
+		const { parent_filters, child_filters } = this.get_custom_filters();
+		Object.assign(filters, parent_filters);
 
-		let custom_filters = this.get_custom_filters();
-		Object.assign(filters, custom_filters);
+		if (child_filters.length) {
+			const tuple_filters = Object.keys(filters)
+				.filter((key) => filters[key] !== undefined)
+				.map((key) => {
+					const value = filters[key];
+					if (Array.isArray(value) && value.length === 2) {
+						return [this.doctype, key, value[0], value[1]];
+					}
+					return [this.doctype, key, "=", value];
+				});
+			filters = tuple_filters.concat(child_filters);
+		}
 
 		return {
 			doctype: this.doctype,
