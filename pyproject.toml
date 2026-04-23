@@ -129,7 +129,7 @@ dev = [
 ]
 test = [
     "unittest-xml-reporting~=3.2.0",
-    "coverage~=7.10.0",
+    "coverage~=7.13.5",
     "hypothesis~=6.77.0",
     "freezegun~=1.5.1",
 ]
@@ -146,7 +146,7 @@ skip_namespaces = [
 ]
 
 [tool.bench.dev-dependencies]
-coverage = "~=7.10.0"
+coverage = "~=7.13.5"
 pyngrok = "~=7.5.0"
 unittest-xml-reporting = "~=3.2.0"
 watchdog = "~=6.0.0"
