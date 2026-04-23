@@ -34,7 +34,6 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
-from frappe.utils.caching import http_cache
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
 from frappe.utils.password import check_password, get_password_reset_limit, is_password_reused
