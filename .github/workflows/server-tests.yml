@@ -48,7 +48,6 @@ jobs:
       enable-postgres: ${{ needs.checkrun.outputs.run_postgres == 'true' }} # This enables PostgreSQL to run tests
       enable-sqlite: false  # This will test against both MariaDB and SQLite if enabled
       parallel-runs: 2
-      enable-coverage: ${{ github.event_name != 'pull_request' }}
       fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
     needs: checkrun
     secrets: inherit
@@ -67,7 +66,6 @@ jobs:
     name: Coverage Wrap Up
     needs: [test, checkrun]
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' }}
     steps:
       - name: Clone
         uses: actions/checkout@v6

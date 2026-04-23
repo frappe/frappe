@@ -29,7 +29,7 @@ on:
       enable-coverage:
         required: false
         type: boolean
-        default: false
+        default: true
 
 
 jobs:
