@@ -46,7 +46,6 @@ export const STUDIO_COMPONENTS = [
 	"FitContainer",
 	"Repeater",
 	"HTML",
-	"Header",
 	"SplitView",
 	"AvatarCard",
 	"CardList",
