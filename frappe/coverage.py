@@ -83,7 +83,7 @@ class CodeCoverage:
 				source=[source_path],
 				omit=omit,
 				include=STANDARD_INCLUSIONS,
-				concurrency="multiprocessing",
+				data_suffix=True,
 			)
 			self.coverage.start()
 		return self
