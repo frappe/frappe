@@ -608,12 +608,14 @@ async function run_build_command_for_apps(apps) {
 		await terminate_build_children();
 		const step_label = error.step === "install" ? "yarn install" : "yarn build";
 		log_error(`${step_label} failed for ${error.app || "an app"}`);
-		if (!VERBOSE) {
-			if (error.output) {
-				log(error.output.trim());
-			} else {
-				log_warn("Run again with --verbose for more details.");
-			}
+		if (VERBOSE) {
+			// Child output (if any) was already streamed by flush_verbose;
+			// surface the raw error so spawn/ENOENT failures aren't silent.
+			log(chalk.dim(error.stack || error.message || String(error)));
+		} else if (error.output) {
+			log(error.output.trim());
+		} else {
+			log_warn("Run again with --verbose for more details.");
 		}
 		// Prevent the top-level execute().catch from re-dumping the same error:
 		// verbose builds already streamed the child output, and non-verbose builds
