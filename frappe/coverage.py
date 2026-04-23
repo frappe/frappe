@@ -22,6 +22,7 @@ STANDARD_EXCLUSIONS = [
 	"*/node_modules/*",
 	"*/doctype/*/*_dashboard.py",
 	"*/patches/*",
+	"*/.github/*",
 ]
 
 # tested via commands' test suite
