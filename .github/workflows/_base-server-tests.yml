@@ -113,27 +113,8 @@ jobs:
             --with-coverage \
             --app "${{ github.event.repository.name }}" \
             --total-builds ${{ inputs.parallel-runs }} \
-            --build-number ${{ matrix.index }} 2> >(tee -a stderr.log >&2)
+            --build-number ${{ matrix.index }}
 
-          # Process warnings and create annotations
-          if [ -s stderr.log ] && [ "$DB" == "mariadb" ]; then
-            echo "Processing deprecation warnings..."
-            grep -E "DeprecationWarning" stderr.log | sort -u | while read -r warning; do
-              # Extract file path, line number, and warning type
-              file_info=$(echo "$warning" | grep -oP '^.*?:\d+:')
-              file_path=$(echo "$file_info" | cut -d':' -f1)
-              line_number=$(echo "$file_info" | cut -d':' -f2)
-              warning_type=$(echo "$warning" | grep -oP '\w+Warning')
-
-              # Extract the actual warning message
-              message=$(echo "$warning" | sed -E "s/^.*$warning_type: //")
-
-              # Create the annotation
-              echo "::warning file=${file_path},line=${line_number}::${warning_type}: ${message}"
-            done
-          else
-            echo "No deprecation warnings found."
-          fi
         env:
           DB: ${{ matrix.db }}
           # consumed by bench run-parallel-tests
