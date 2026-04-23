@@ -3,7 +3,7 @@
 
 from collections.abc import Iterable
 from datetime import timedelta
-from functools import cached_property
+from functools import cached_property, lru_cache
 from typing import Any
 
 import frappe
@@ -34,6 +34,7 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
+from frappe.utils.caching import http_cache
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
 from frappe.utils.password import check_password, get_password_reset_limit, is_password_reused
@@ -863,16 +864,14 @@ class User(Document):
 
 @frappe.whitelist()
 def get_timezones():
-	cache_key = "timezones"
-	timezones = frappe.cache.get_value(cache_key)
-	if timezones:
-		return {"timezones": timezones}
+	return {"timezones": _get_timezones()}
 
+
+@lru_cache(maxsize=1)
+def _get_timezones():
 	import pytz
 
-	timezones = sorted(pytz.common_timezones)
-	frappe.cache.set_value(cache_key, timezones)
-	return {"timezones": timezones}
+	return sorted(pytz.common_timezones)
 
 
 @frappe.whitelist()
