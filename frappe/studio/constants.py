@@ -1,3 +1,3 @@
-NON_VUE_COMPONENTS = ["div", "container"]
+NON_VUE_COMPONENTS = ["div", "container", "header"]
 # used by studio components internally so needs to be included in the build
 DEFAULT_COMPONENTS = ["FeatherIcon"]

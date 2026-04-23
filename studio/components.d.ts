@@ -53,7 +53,6 @@ declare module 'vue' {
     FormDialog: typeof import('./src/components/FormDialog.vue')['default']
     GlobeOff: typeof import('./src/components/Icons/GlobeOff.vue')['default']
     Grid: typeof import('./src/components/Grid.vue')['default']
-    Header: typeof import('./src/components/AppLayout/Header.vue')['default']
     HTML: typeof import('./src/components/AppLayout/HTML.vue')['default']
     IconButton: typeof import('./src/components/IconButton.vue')['default']
     ImageView: typeof import('./src/components/AppLayout/ImageView.vue')['default']
