@@ -1,12 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-<<<<<<< HEAD
-from datetime import datetime, timezone
-=======
 from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
->>>>>>> 37b05961c7 (fix(security_settings): enabled `track_changes` and convert `expires` to UTC timezone (#38675))
 
 import frappe
 import frappe.utils
@@ -80,12 +76,7 @@ class SecuritySettings(Document):
 		expires = self.public_expires or frappe.utils.add_years(frappe.utils.now_datetime(), 1)
 		if isinstance(expires, str):
 			expires = datetime.fromisoformat(expires)
-<<<<<<< HEAD
-		expires = expires.replace(microsecond=0)
-		expires = expires.astimezone(timezone.utc)
-=======
 		expires = expires.replace(microsecond=0, tzinfo=ZoneInfo(get_system_timezone())).astimezone(UTC)
->>>>>>> 37b05961c7 (fix(security_settings): enabled `track_changes` and convert `expires` to UTC timezone (#38675))
 		value = expires.strftime("%Y-%m-%dT%H:%M:%SZ")
 		return f"Expires: {value}"
 
