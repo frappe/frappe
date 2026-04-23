@@ -64,7 +64,7 @@
 import { isNumber } from "@tiptap/vue-3"
 import { Popover } from "frappe-ui"
 import { computed, StyleValue, useAttrs } from "vue"
-import { extractNumberAndUnit } from "@/utils/helpers"
+import { extractNumberAndUnit, normalizeValueWithUnits } from "@/utils/helpers"
 import Input from "@/components/Input.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
 import ColorInput from "@/components/ColorInput.vue"
@@ -134,10 +134,7 @@ const handleChange = (value: string | number | null | { label: string; value: st
 		value = value.value
 	}
 	if (value && typeof value === "string") {
-		const { number, unit } = extractNumberAndUnit(value)
-		if (!unit && props.unitOptions.length && number) {
-			value = number + props.unitOptions[0]
-		}
+		value = normalizeValueWithUnits(value, props.unitOptions, props.label.toLowerCase())
 	}
 
 	emit("update:modelValue", value)

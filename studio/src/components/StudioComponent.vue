@@ -168,7 +168,7 @@ const styles = computed(() => {
 })
 
 const componentName = computed(() => {
-	if (props.block.isContainer()) return "div"
+	if (props.block.isContainer()) return props.block.originalElement || "div"
 	if (canvasStore.editingMode === "page") return props.block.componentName
 	const proxyComponent = props.block.getProxyComponent()
 	return proxyComponent ? proxyComponent : props.block.componentName

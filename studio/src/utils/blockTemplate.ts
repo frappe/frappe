@@ -5,6 +5,7 @@ function getBlockTemplate(
 		| "body"
 		| "container"
 		| "fit-container"
+		| "header"
 		| "fallback-component"
 		| "empty-component"
 		| "missing-component"
@@ -19,10 +20,8 @@ function getBlockTemplate(
 				children: [],
 				baseStyles: {
 					display: "flex",
-					flexWrap: "wrap",
-					flexDirection: "column",
+					flexDirection: "row",
 					flexShrink: 0,
-					alignItems: "center",
 					width: "inherit",
 					overflowX: "hidden",
 					height: "100%",
@@ -36,8 +35,8 @@ function getBlockTemplate(
 				blockName: "container",
 				baseStyles: {
 					display: "flex",
-					flexDirection: "column",
-					flexShrink: 0,
+					flexDirection: "row",
+					flexShrink: 1,
 				} as BlockStyleMap,
 			};
 
@@ -48,12 +47,58 @@ function getBlockTemplate(
 				blockName: "container",
 				baseStyles: {
 					display: "flex",
-					flexDirection: "column",
-					flexShrink: 0,
+					flexDirection: "row",
+					flexShrink: 1,
 					height: "fit-content",
 					width: "fit-content",
 				} as BlockStyleMap,
 			};
+
+		case "header":
+			return {
+				componentName: "header",
+				blockName: "header",
+				originalElement: "header",
+				baseStyles: {
+					display: "flex",
+					flexDirection: "row",
+					width: "100%",
+					height: "fit-content",
+					padding: "10px 12px",
+					backgroundColor: "var(--surface-white)",
+					borderStyle: "solid",
+					borderWidth: "0px 0px 1px 0px",
+					borderColor: "var(--outline-gray-1)",
+				} as BlockStyleMap,
+				children: [
+					{
+						componentName: "Breadcrumbs",
+						componentProps: {
+							items: [
+								{
+									label: "Home",
+									route: { name: "Home" },
+								},
+								{
+									label: "List",
+									route: "/components/breadcrumbs",
+								},
+							],
+						}
+					},
+					{
+						componentName: "Button",
+						componentProps: {
+							label: "Create",
+							iconLeft: "plus",
+							variant: "solid",
+						},
+						baseStyles: {
+							marginLeft: "auto",
+						} as BlockStyleMap,
+					}
+				],
+			}
 
 		case "fallback-component":
 			return {

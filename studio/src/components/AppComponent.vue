@@ -74,7 +74,7 @@ const props = defineProps<{
 }>()
 
 const componentName = computed(() => {
-	if (props.block.isContainer()) return "div"
+	if (props.block.isContainer()) return props.block.originalElement || "div"
 	return props.block.componentName
 })
 

@@ -227,6 +227,11 @@ function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false, se
 
 	if (block.isContainer()) {
 		store.studioLayout.leftPanelActiveTab = "Layers"
+	}
+
+	if (block.isText() || block.isContainer()) {
+		// combined props and styles
+		store.studioLayout.rightPanelActiveTab = "Styles"
 	} else {
 		store.studioLayout.rightPanelActiveTab = "Properties"
 	}

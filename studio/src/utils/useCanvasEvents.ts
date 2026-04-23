@@ -70,6 +70,12 @@ export function useCanvasEvents(
 			childBlock.setBaseStyle("top", numberToPx(y));
 			childBlock.setBaseStyle("left", numberToPx(x));
 
+			if (store.mode === "container") {
+				childBlock.setBaseStyle("borderWidth", "1px");
+				childBlock.setBaseStyle("borderStyle", "solid");
+				childBlock.setBaseStyle("borderColor", "var(--outline-gray-2");
+			}
+
 			const mouseMoveHandler = (mouseMoveEvent: MouseEvent) => {
 				mouseMoveEvent.preventDefault();
 				let width = (mouseMoveEvent.clientX - initialX) / canvasProps.scale;

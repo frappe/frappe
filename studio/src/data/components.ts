@@ -40,13 +40,10 @@ import LucideCode from "~icons/lucide/code"
 import LucideRepeat from "~icons/lucide/repeat"
 import LucideFrame from "~icons/lucide/frame"
 import LucideSidebar from "~icons/lucide/sidebar"
-import LucideSquareSplitHorizontal from "~icons/lucide/square-split-horizontal"
 import LucideImage from "~icons/lucide/image"
 import LucideList from "~icons/lucide/list"
 import LucideLink from "~icons/lucide/link"
-import LucideMusic from "~icons/lucide/music"
 import LucideType from "~icons/lucide/type"
-import LucideFilePenLine from "~icons/lucide/file-pen-line"
 import LucideDollarSign from "~icons/lucide/dollar-sign"
 import LucideChartLine from "~icons/lucide/chart-line"
 import LucideChartPie from "~icons/lucide/chart-pie"
@@ -606,6 +603,45 @@ export const COMPONENTS: FrappeUIComponents = {
 			],
 		},
 	},
+	Sidebar: {
+		name: "Sidebar",
+		title: "Sidebar",
+		icon: LucideSidebar,
+		initialState: {
+			header: {
+				title: "Frappe",
+				subtitle: "Jane Doe",
+				menuItems: [
+					{
+						label: "Help",
+						to: "/help",
+						icon: "{{ getIcon('circle-question-mark') }}",
+						onClick: () => alert("Help clicked!"),
+					},
+					{
+						label: "Logout",
+						to: "/log-out",
+						icon: "{{ getIcon('log-out') }}",
+						onClick: () => alert("Logging out..."),
+					},
+				],
+			},
+			sections: [
+				{
+					label: "",
+					items: [{ label: "Notifications", icon: "{{ getIcon('bell') }}", to: "" }],
+				},
+				{
+					label: "",
+					items: [
+						{ label: "Home", icon: "{{ getIcon('house') }}", to: "" },
+						{ label: "Profile", icon: "{{ getIcon('user-pen') }}", to: "" },
+						{ label: "Settings", icon: "{{ getIcon('settings') }}", to: "" },
+					],
+				},
+			],
+		},
+	},
 	Switch: {
 		name: "Switch",
 		title: "Switch",
@@ -769,100 +805,12 @@ export const COMPONENTS: FrappeUIComponents = {
 			},
 		},
 	},
+	// block template based components
 	Header: {
 		name: "Header",
 		title: "Header",
 		icon: LucideFrame,
-		initialState: {
-			title: "Frappe",
-			menuItems: [
-				{ label: "Home", url: "#" },
-				{ label: "Settings", url: "#" },
-			],
-		},
-	},
-	Sidebar: {
-		name: "Sidebar",
-		title: "Sidebar",
-		icon: LucideSidebar,
-		initialState: {
-			header: {
-				title: "Frappe",
-				subtitle: "Jane Doe",
-				menuItems: [
-					{
-						label: "Help",
-						to: "/help",
-						icon: "{{ getIcon('circle-question-mark') }}",
-						onClick: () => alert("Help clicked!"),
-					},
-					{
-						label: "Logout",
-						to: "/log-out",
-						icon: "{{ getIcon('log-out') }}",
-						onClick: () => alert("Logging out..."),
-					},
-				],
-			},
-			sections: [
-				{
-					label: "",
-					items: [{ label: "Notifications", icon: "{{ getIcon('bell') }}", to: "" }],
-				},
-				{
-					label: "",
-					items: [
-						{ label: "Home", icon: "{{ getIcon('house') }}", to: "" },
-						{ label: "Profile", icon: "{{ getIcon('user-pen') }}", to: "" },
-						{ label: "Settings", icon: "{{ getIcon('settings') }}", to: "" },
-					],
-				},
-			],
-		},
-	},
-	SplitView: {
-		name: "SplitView",
-		title: "Split View",
-		icon: LucideSquareSplitHorizontal,
-		initialSlots: ["left", "right"],
-	},
-	AvatarCard: {
-		name: "AvatarCard",
-		title: "Avatar Card",
-		icon: LucideImage,
-		initialState: {
-			title: "Up&Up",
-			subtitle: "Coldplay",
-			imageURL: "https://upload.wikimedia.org/wikipedia/en/e/e9/Coldplay%2C_Up%26Up%2C_Artwork.jpg",
-		},
-	},
-	CardList: {
-		name: "CardList",
-		title: "Card List",
-		icon: LucideList,
-		initialState: {
-			title: "Card List",
-			cards: [
-				{
-					title: "Card Title",
-					subtitle: "Subtitle",
-					imageURL: "https://avatars.githubusercontent.com/u/499550",
-				},
-				{
-					title: "Card Title",
-					subtitle: "Subtitle",
-					imageURL: "https://avatars.githubusercontent.com/u/499120",
-				},
-			],
-		},
-	},
-	Audio: {
-		name: "Audio",
-		title: "Audio",
-		icon: LucideMusic,
-		initialState: {
-			file: "https://cdn.uppbeat.io/audio-output/208/3691/main-version/streaming-previews/STREAMING-achievement-philip-anderson-main-version-01-31-13804.mp3",
-		},
+		blockTemplate: "header",
 	},
 	ImageView: {
 		name: "ImageView",
@@ -873,41 +821,7 @@ export const COMPONENTS: FrappeUIComponents = {
 			size: "xs",
 		},
 	},
-	AppHeader: {
-		name: "AppHeader",
-		title: "App Header",
-		icon: LucideFrame,
-		initialState: {
-			title: "Frappe",
-		},
-	},
-	BottomTabs: {
-		name: "BottomTabs",
-		title: "Bottom Tabs",
-		icon: LucideArrowRightLeft,
-		initialState: {
-			tabs: [
-				{
-					label: "Home",
-					icon: "home",
-					route: "/",
-				},
-				{
-					label: "Settings",
-					icon: "settings",
-					route: "/settings",
-				},
-			],
-		},
-	},
-	MarkdownEditor: {
-		name: "MarkdownEditor",
-		title: "Markdown",
-		icon: LucideFilePenLine,
-		initialState: {
-			modelValue: "# This is a markdown editor",
-		},
-	},
+	// charts
 	NumberChart: {
 		name: "NumberChart",
 		title: "Number Chart",

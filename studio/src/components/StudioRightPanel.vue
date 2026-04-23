@@ -46,13 +46,13 @@
 			</div>
 
 			<ComponentProperties
-				v-show="activeTab === 'Properties'"
+				v-show="activeTab === 'Properties' || (activeTab === 'Styles' && combinePropsAndStylesTab)"
 				class="p-3"
 				:class="combinePropsAndStylesTab ? '!pb-0' : ''"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
 			/>
 			<ComponentStyles
-				v-show="activeTab === 'Styles' || (activeTab === 'Properties' && combinePropsAndStylesTab)"
+				v-show="activeTab === 'Styles'"
 				class="p-3"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
 			/>
@@ -96,7 +96,7 @@ const tabs = computed(() => {
 		? ["Interface", "Properties", "Styles", "Events"]
 		: ["Properties", "Styles", "Events"]
 	if (combinePropsAndStylesTab.value) {
-		_tabs = _tabs.filter((tab) => tab !== "Styles")
+		_tabs = _tabs.filter((tab) => tab !== "Properties")
 	}
 	return _tabs
 })

@@ -210,7 +210,7 @@ class Block implements BlockOptions {
 	}
 
 	isContainer() {
-		return this.originalElement === "div" || this.componentName === "FitContainer"
+		return this.originalElement === "div" || this.componentName === "FitContainer" || this.originalElement === "header"
 	}
 
 	getParentBlock(): Block | null {
