@@ -166,7 +166,7 @@ def _accept_invitation(key: str, in_test: bool) -> None:
 	# set redirect_to
 	redirect_to = frappe.utils.get_url(invitation.get_redirect_to_path())
 	if should_update_password:
-		redirect_to = f"{user.reset_password()}&redirect_to=/{invitation.get_redirect_to_path()}"
+		redirect_to = f"{user._reset_password()}&redirect_to=/{invitation.get_redirect_to_path()}"
 
 	# GET requests do not cause an implicit commit
 	frappe.db.commit()  # nosemgrep
