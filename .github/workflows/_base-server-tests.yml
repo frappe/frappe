@@ -110,6 +110,7 @@ jobs:
         run: |
           bench --site test_site \
             run-parallel-tests \
+            --with-coverage \
             --app "${{ github.event.repository.name }}" \
             --total-builds ${{ inputs.parallel-runs }} \
             --build-number ${{ matrix.index }} 2> >(tee -a stderr.log >&2)
@@ -144,7 +145,7 @@ jobs:
         if: inputs.enable-coverage
         with:
           name: coverage-${{ matrix.db }}-${{ matrix.index }}
-          path: ./sites/*-coverage*.xml
+          path: ./sites/*coverage*.xml
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
