@@ -79,7 +79,12 @@ class CodeCoverage:
 			if self.app == "frappe":
 				omit.extend(FRAPPE_EXCLUSIONS)
 
-			self.coverage = Coverage(source=[source_path], omit=omit, include=STANDARD_INCLUSIONS)
+			self.coverage = Coverage(
+				source=[source_path],
+				omit=omit,
+				include=STANDARD_INCLUSIONS,
+				concurrency="multiprocessing",
+			)
 			self.coverage.start()
 		return self
 
