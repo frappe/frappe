@@ -1179,6 +1179,66 @@ class TestDBQuery(IntegrationTestCase):
 		data = get()
 		self.assertEqual(len(data["values"]), 1)
 
+	def test_self_referential_link_joins(self):
+		from frappe.desk.reportview import get
+
+		if not frappe.db.exists("DocType", "Self Linked DocType"):
+			frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"custom": 1,
+					"module": "Custom",
+					"name": "Self Linked DocType",
+					"naming_rule": "Random",
+					"autoname": "hash",
+					"fields": [
+						{
+							"label": "Title",
+							"fieldname": "title",
+							"fieldtype": "Data",
+						},
+						{
+							"label": "Parent Ref",
+							"fieldname": "parent_ref",
+							"fieldtype": "Link",
+							"options": "Self Linked DocType",
+						},
+						{
+							"label": "Sibling Ref",
+							"fieldname": "sibling_ref",
+							"fieldtype": "Link",
+							"options": "Self Linked DocType",
+						},
+					],
+				}
+			).insert()
+		else:
+			frappe.db.delete("Self Linked DocType")
+
+		root = frappe.get_doc({"doctype": "Self Linked DocType", "title": "Root"}).insert()
+		sibling = frappe.get_doc({"doctype": "Self Linked DocType", "title": "Sibling"}).insert()
+		frappe.get_doc(
+			{
+				"doctype": "Self Linked DocType",
+				"title": "Child",
+				"parent_ref": root.name,
+				"sibling_ref": sibling.name,
+			}
+		).insert()
+
+		frappe.form_dict.doctype = "Self Linked DocType"
+		frappe.form_dict.fields = [
+			"`tabSelf Linked DocType`.`name`",
+			"`tabSelf Linked DocType`.`parent_ref`",
+			"`tabSelf Linked DocType`.`sibling_ref`",
+			"parent_ref.title as parent_title",
+			"sibling_ref.title as sibling_title",
+		]
+
+		# Shouldn't raise pymysql.err.OperationalError: (1066, "Not unique table/alias: 'tabSelf Linked DocType2'")
+		data = get()
+		self.assertEqual(len(data["values"]), 3)
+
 	def test_select_star_expansion(self):
 		count = frappe.get_list("Language", [{"SUM": 1}, {"COUNT": "*"}], as_list=1, order_by=None)[0]
 		self.assertEqual(count[0], frappe.db.count("Language"))
