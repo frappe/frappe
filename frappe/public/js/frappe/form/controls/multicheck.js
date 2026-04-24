@@ -82,10 +82,7 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 		}
 		this.options.forEach((option) => {
 			let checkbox = this.get_checkbox_element(option).appendTo(this.$checkbox_area);
-			checkbox.find('[data-toggle="tooltip"]').tooltip({
-				delay: { show: 600, hide: 100 },
-				trigger: "hover",
-			});
+			checkbox.find('[data-toggle="tooltip"]').tooltip();
 
 			option.$checkbox = checkbox;
 		});
