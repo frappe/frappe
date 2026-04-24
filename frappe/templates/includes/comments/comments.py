@@ -24,7 +24,7 @@ def get_limit():
 
 
 @frappe.whitelist(allow_guest=True)
-# @rate_limit(key="reference_name", limit=get_limit, seconds=60 * 60)
+@rate_limit(limit=get_limit, seconds=60 * 60)
 def add_comment(
 	comment: str, comment_email: str, comment_by: str, reference_doctype: str, reference_name: str, route: str
 ):
