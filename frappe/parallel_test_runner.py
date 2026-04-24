@@ -265,6 +265,11 @@ class ParallelTestWithOrchestrator(ParallelTestRunner):
 		self.call_orchestrator("test-completed")
 		return super().print_result()
 
+	# Timeout for connecting to the orchestrator (seconds)
+	ORCHESTRATOR_CONNECT_TIMEOUT = 10
+	# Timeout for waiting for the orchestrator to send a response (seconds)
+	ORCHESTRATOR_READ_TIMEOUT = 60
+
 	def call_orchestrator(self, endpoint, data=None):
 		if data is None:
 			data = {}
@@ -276,8 +281,32 @@ class ParallelTestWithOrchestrator(ParallelTestRunner):
 			"REPO-TOKEN": "2948288382838DE",
 		}
 		url = f"{self.orchestrator_url}/{endpoint}"
-		res = requests.get(url, json=data, headers=headers)
-		res.raise_for_status()
+		click.echo(f"Calling orchestrator endpoint: {endpoint}")
+		try:
+			res = requests.get(
+				url,
+				json=data,
+				headers=headers,
+				timeout=(self.ORCHESTRATOR_CONNECT_TIMEOUT, self.ORCHESTRATOR_READ_TIMEOUT),
+			)
+			res.raise_for_status()
+		except requests.exceptions.Timeout:
+			msg = f"Orchestrator request timed out for endpoint '{endpoint}' (url={url})"
+			if endpoint == "test-completed":
+				click.echo(f"WARNING: {msg} — ignoring to avoid hang on exit", err=True)
+			else:
+				click.echo(f"ERROR: {msg}", err=True)
+				sys.exit(1)
+			return {}
+		except requests.exceptions.ConnectionError as exc:
+			msg = f"Orchestrator connection failed for endpoint '{endpoint}' (url={url}): {exc}"
+			if endpoint == "test-completed":
+				click.echo(f"WARNING: {msg} — ignoring to avoid hang on exit", err=True)
+			else:
+				click.echo(f"ERROR: {msg}", err=True)
+				sys.exit(1)
+			return {}
+
 		response_data = {}
 		if "application/json" in res.headers.get("content-type"):
 			response_data = res.json()
