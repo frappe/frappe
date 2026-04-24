@@ -1190,6 +1190,8 @@ export default class Grid {
 		}
 
 		function show_help_text() {
+			if (dialog.get_primary_btn().is(":focus, :active")) return;
+
 			let value = dialog.get_value("value");
 			if (value == null || value === "") {
 				dialog.set_df_property(
