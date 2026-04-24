@@ -159,7 +159,7 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 			option.warning_title || __("Condition based field")
 		);
 		const warning_icon = option.warning
-			? `<span class="text-muted" style="margin-left: 4px; display: inline-flex; align-items: center; vertical-align: middle; line-height: 1;" data-toggle="tooltip" title="${warning_title}">${frappe.utils.icon(
+			? `<span class="text-muted multicheck-warning-icon" data-toggle="tooltip" title="${warning_title}">${frappe.utils.icon(
 					"info",
 					"xs"
 			  )}</span>`
