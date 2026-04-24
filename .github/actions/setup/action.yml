@@ -15,7 +15,7 @@ inputs:
     default: true
   enable-coverage:
     required: false
-    default: true
+    default: false
   disable-web:
     required: false
     default: false
