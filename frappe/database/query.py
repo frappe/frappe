@@ -2074,16 +2074,22 @@ class LinkTableField(DynamicTableField):
 	) -> None:
 		super().__init__(doctype, fieldname, parent_doctype, alias=alias)
 		self.link_fieldname = link_fieldname
-		self.table = frappe.qb.DocType(self.doctype)
+		self.table = self._get_joined_table()
 		self.field = self.table[self.fieldname]
 
-	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
+	def _get_joined_table(self):
 		table = frappe.qb.DocType(self.doctype)
+		if self.doctype == self.parent_doctype:
+			table = table.as_(f"tab{self.doctype}_{self.link_fieldname}")
+		return table
+
+	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
+		table = self._get_joined_table()
 		query = self.apply_join(query, engine=engine)
 		return query.select(getattr(table, self.fieldname).as_(self.alias or None))
 
 	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
-		table = frappe.qb.DocType(self.doctype)
+		table = self._get_joined_table()
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(table):
 			query = query.left_join(table).on(table.name == getattr(main_table, self.link_fieldname))
