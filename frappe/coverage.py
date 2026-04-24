@@ -85,7 +85,6 @@ class CodeCoverage:
 				include=STANDARD_INCLUSIONS,
 				data_suffix=True,
 			)
-			self.coverage.patch = ["subprocess"]
 			self.coverage.start()
 		return self
 

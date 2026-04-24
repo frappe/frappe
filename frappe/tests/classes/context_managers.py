@@ -172,12 +172,9 @@ def timeout_context(seconds=30, error_message="Operation timed out.") -> None:
 	def _handle_timeout(signum, frame):
 		raise Exception(error_message)
 
-	faulthandler.dump_traceback_later(seconds - 1)
-
 	signal.signal(signal.SIGALRM, _handle_timeout)
 	signal.alarm(30 if callable(seconds) else seconds)
 	yield
-	faulthandler.cancel_dump_traceback_later()
 	signal.alarm(0)
 
 
