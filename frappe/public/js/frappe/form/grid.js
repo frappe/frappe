@@ -1152,7 +1152,13 @@ export default class Grid {
 					this.frm && this.frm.dirty();
 					this.refresh();
 					dialog.hide();
-					frappe.show_alert(__("Updated successfully"));
+					const row_label = selected_children.length === 1 ? __("row") : __("rows");
+					frappe.show_alert(
+						__("Updated {0} selected {1}. Save the form to keep changes.", [
+							selected_children.length,
+							row_label,
+						])
+					);
 				});
 			},
 			primary_action_label: __("Update {0} rows", [selected_children.length]),
