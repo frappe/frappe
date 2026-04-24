@@ -245,3 +245,16 @@ frappe.printing.doctype.print_format.patches.sets_wkhtmltopdf_as_default_for_pdf
 frappe.patches.v16_0.social_eps_deprecation_warning
 frappe.core.doctype.communication_link.patches.copy_communication_date_to_link
 frappe.core.doctype.communication.patches.drop_ref_dt_dn_index
+<<<<<<< HEAD
+=======
+frappe.patches.v16_0.change_link_type_to_workspace_sidebar
+frappe.patches.v16_0.add_standard_field_in_workspace_sidebar
+execute:frappe.db.set_single_value("Desktop Settings", "icon_style", "Solid")
+execute:frappe.delete_doc_if_exists("Workspace Sidebar", "Productivity")
+frappe.patches.v16_0.unset_standard_field_for_auto_generated_icons
+execute:from frappe.email.doctype.notification.notification import install_notification_templates; install_notification_templates()
+execute:frappe.db.set_value("Email Account", {}, "add_x_original_from", 1)
+frappe.patches.v16_0.fix_myanmar_language_name
+execute:frappe.db.set_value("Email Account", {}, "add_reply_to_header", 1)
+frappe.patches.v16_0.set_reply_to_header
+>>>>>>> b484cf0136 (fix: pytz to filter out deprecated timezones (#38751))
