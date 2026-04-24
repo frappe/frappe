@@ -5,7 +5,6 @@ import json
 
 import frappe
 from frappe.desk.doctype.document_template.document_template import (
-	_check_user_permissions_on_template_data,
 	_has_template_manager_role,
 	_is_system_manager,
 	get_permission_query_conditions,

@@ -6,6 +6,7 @@ import orjson
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.permissions import get_role_permissions, has_user_permission
 
 
 class DocumentTemplate(Document):
@@ -25,6 +26,7 @@ class DocumentTemplate(Document):
 	# end: auto-generated types
 
 	def validate(self) -> None:
+		self._validate_private_conversion()
 		self._validate_and_normalise_data()
 		self._validate_duplicate_name()
 
@@ -90,6 +92,14 @@ class DocumentTemplate(Document):
 
 		self.data = frappe.as_json(parsed_data, indent=1)
 
+	def _validate_private_conversion(self) -> None:
+		old_doc = self.get_doc_before_save()
+		if not old_doc:
+			return
+
+		if not self.private and old_doc.private and self.owner != frappe.session.user:
+			frappe.throw(_("Only the owner can convert a private template to public"))
+
 
 @frappe.whitelist()
 def get_templates(reference_doctype: str, limit_start: int = 0, limit_page_length: int = 10) -> dict:
@@ -115,7 +125,8 @@ def get_templates(reference_doctype: str, limit_start: int = 0, limit_page_lengt
 	all_templates = frappe.get_all(
 		"Document Template",
 		filters={"reference_doctype": reference_doctype},
-		fields=["name", "template_name", "owner", "private", "disabled", "data", "reference_doctype"],
+		or_filters={"private": 0, "owner": user},
+		fields="*",
 		order_by="disabled asc, private desc, template_name asc",
 		ignore_permissions=True,
 	)
@@ -125,23 +136,26 @@ def get_templates(reference_doctype: str, limit_start: int = 0, limit_page_lengt
 	end = start + length
 
 	visible: list[dict] = []
-	for t in all_templates:
-		if _check_user_permissions_on_template_data(t.get("data"), t.get("reference_doctype"), user) and (
-			not t.get("disabled") or t.get("owner") == user
-		):
-			visible.append(t)
-			t.pop("data", None)
-			if len(visible) == end + 1:
-				break
+	for template in all_templates:
+		if not _has_user_permissions_on_template_data(template.data, template.reference_doctype, user):
+			continue
+
+		# only owner can see disabled templates
+		if template.disabled and template.owner != user:
+			continue
+
+		visible.append(template)
+		template.pop("data", None)
+		if len(visible) == end + 1:
+			break
 
 	return {
 		"templates": visible[start:end],
 		"has_next_page": end < len(visible),
-		"total": len(visible),
 	}
 
 
-def _check_user_permissions_on_template_data(template_data: str, reference_doctype: str, user: str) -> bool:
+def _has_user_permissions_on_template_data(template_data: str, reference_doctype: str, user: str) -> bool:
 	"""Build a temporary doc from template JSON and check full doc-level permissions.
 
 	Uses ``frappe.permissions.has_permission`` with the constructed doc so that
@@ -150,8 +164,8 @@ def _check_user_permissions_on_template_data(template_data: str, reference_docty
 	"""
 	try:
 		data = orjson.loads(template_data)
-		temp_doc = frappe.get_doc({"doctype": reference_doctype, **data})
-		return frappe.has_permission(doc=temp_doc, ptype="read", user=user)
+		temp_doc = frappe.get_doc({"doctype": reference_doctype, "__islocal": 1, **data})
+		return has_user_permission(temp_doc, user=user, strict=False)
 	except Exception:
 		return True
 
@@ -172,36 +186,38 @@ def _get_creatable_doctypes(user: str) -> list[str]:
 def get_permission_query_conditions(user: str | None = None) -> str:
 	"""Row-level SQL filter for ``get_list`` / ``get_all``.
 
-	- **System Manager** — sees everything.
+	- **System Manager** — sees all templates for DocTypes they can create.
 	- **Template Manager** — public templates and own private templates,
 	  scoped to doctypes they can create.
-	- **Everyone else** — ``1=0`` (desk users use the form dialog API).
+	- **Everyone else** — ``1=0`` (Can't access templates from Document Template list view).
 	"""
 	if not user:
 		user = frappe.session.user
 
-	if _is_system_manager(user):
-		return ""
+	has_write_perms_without_owner_restriction = get_role_permissions(
+		"Document Template", user=user, is_owner=False
+	).get("write")
+	if not has_write_perms_without_owner_restriction:
+		return "1=0"
 
-	if frappe.permissions.get_role_permissions("Document Template", user=user, is_owner=False).get("write"):
-		creatable = _get_creatable_doctypes(user)
-		if not creatable:
-			return "1=0"
-		doctype_list = ", ".join(frappe.db.escape(dt) for dt in creatable)
-		return (
-			f"`tabDocument Template`.`reference_doctype` IN ({doctype_list})"
-			f" AND (`tabDocument Template`.`private` = 0 OR `tabDocument Template`.`owner` = {frappe.db.escape(user)})"
-		)
+	creatable = _get_creatable_doctypes(user)
+	if not creatable:
+		return "1=0"
 
-	return "1=0"
+	doctype_list = ", ".join(frappe.db.escape(dt) for dt in creatable)
+	condition = f"`tabDocument Template`.`reference_doctype` IN ({doctype_list})"
+	if "System Manager" not in frappe.get_roles(user):
+		condition += f" AND (`tabDocument Template`.`private` = 0 OR `tabDocument Template`.`owner` = {frappe.db.escape(user)})"
+
+	return condition
 
 
-def has_permission(doc, user=None) -> bool:
+def has_permission(doc, user=None, ptype=None) -> bool:
 	"""Doc-level permission check.
 
 	Permission levels:
 
-	1. **System Manager** — all operations allowed.
+	1. **System Manager** — all operations allowed for doctypes they can create.
 	2. **Owner** — all operations on own templates.
 	3. **Template Manager** — read/write/delete public templates and
 	   own private templates, scoped to doctypes they can create.
@@ -215,10 +231,13 @@ def has_permission(doc, user=None) -> bool:
 	if not frappe.has_permission(doc.reference_doctype, ptype="create", user=user):
 		return False
 
-	if user == doc.owner:
+	if ptype == "create" or user == doc.owner:
 		return True
 
-	if not frappe.permissions.has_user_permission(doc, user=user):
+	if doc.private and not _is_system_manager(user):
+		return False
+
+	if not _has_user_permissions_on_template_data(doc.data, doc.reference_doctype, user):
 		return False
 
 	return True
