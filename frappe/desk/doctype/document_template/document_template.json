@@ -46,7 +46,6 @@
   },
   {
    "default": "0",
-   "description": "When enabled, this template is hidden from the template list but can be re-enabled later.",
    "fieldname": "disabled",
    "fieldtype": "Check",
    "in_list_view": 1,
@@ -83,13 +82,6 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "read": 1,
-   "role": "Template Manager",
    "write": 1
   }
  ],

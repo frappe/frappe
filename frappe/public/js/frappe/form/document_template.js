@@ -410,20 +410,16 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	}
 
 	_apply_template(name, label) {
-		frappe
-			.xcall("frappe.desk.doctype.document_template.document_template.get_template_data", {
-				name,
-			})
-			.then((raw) => {
-				if (!raw) {
-					frappe.show_alert({
-						message: __("Template data not found."),
-						indicator: "orange",
-					});
-					return;
-				}
-				this._apply_to_form(JSON.parse(raw), label);
-			});
+		frappe.db.get_doc("Document Template", name).then((doc) => {
+			if (!doc || !doc.data) {
+				frappe.show_alert({
+					message: __("Template data not found."),
+					indicator: "orange",
+				});
+				return;
+			}
+			this._apply_to_form(JSON.parse(doc.data), label);
+		});
 	}
 
 	async _apply_to_form(doc, label) {

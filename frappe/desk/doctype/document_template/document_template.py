@@ -25,17 +25,8 @@ class DocumentTemplate(Document):
 	# end: auto-generated types
 
 	def validate(self) -> None:
-		self._validate_template_data_json()
+		self._validate_and_normalise_data()
 		self._validate_duplicate_name()
-
-	def before_save(self) -> None:
-		"""Pretty-print and sort the template data JSON before persisting."""
-		try:
-			parsed = orjson.loads(self.data)
-		except (orjson.JSONDecodeError, TypeError, ValueError):
-			return
-		if isinstance(parsed, dict):
-			self.data = frappe.as_json(parsed, indent=1)
 
 	def _validate_duplicate_name(self) -> None:
 		"""Prevent duplicate template names within the same reference doctype.
@@ -82,18 +73,22 @@ class DocumentTemplate(Document):
 					)
 				)
 
-	def _validate_template_data_json(self) -> None:
-		"""Ensure that the 'data' field contains valid, non-empty JSON object data."""
+	def _validate_and_normalise_data(self) -> None:
+		"""Parse, validate, and reformat the ``data`` field.
+
+		- Raises if the value is not valid JSON.
+		- Raises if the parsed value is not a non-empty JSON object.
+		- Reformats the stored JSON with consistent indentation.
+		"""
 		try:
 			parsed_data = orjson.loads(self.data)
-		except (orjson.JSONDecodeError, TypeError, ValueError):
+		except orjson.JSONDecodeError:
 			frappe.throw(_("Template data must be valid JSON"))
 
-		if not isinstance(parsed_data, dict):
-			frappe.throw(_("Template data must be a JSON object"))
+		if not isinstance(parsed_data, dict) or not parsed_data:
+			frappe.throw(_("Template data must be a non-empty JSON object"))
 
-		if not parsed_data:
-			frappe.throw(_("Template data cannot be empty"))
+		self.data = frappe.as_json(parsed_data, indent=1)
 
 
 @frappe.whitelist()
@@ -108,6 +103,15 @@ def get_templates(reference_doctype: str, limit_start: int = 0, limit_page_lengt
 	"""
 	user = frappe.session.user
 
+	if not frappe.has_permission("Document Template", ptype="read", user=user):
+		frappe.throw(
+			_("Not permitted to view document templates for {0}").format(reference_doctype),
+			frappe.PermissionError,
+		)
+
+	if not frappe.has_permission(reference_doctype, ptype="create", user=user):
+		frappe.throw(_("Not permitted to create {0}").format(reference_doctype), frappe.PermissionError)
+
 	all_templates = frappe.get_all(
 		"Document Template",
 		filters={"reference_doctype": reference_doctype},
@@ -116,17 +120,19 @@ def get_templates(reference_doctype: str, limit_start: int = 0, limit_page_lengt
 		ignore_permissions=True,
 	)
 
+	start = max(0, int(limit_start))
+	length = max(1, int(limit_page_length))
+	end = start + length
+
 	visible: list[dict] = []
 	for t in all_templates:
-		if has_permission(frappe._dict(t), "read", user) and (
+		if _check_user_permissions_on_template_data(t.get("data"), t.get("reference_doctype"), user) and (
 			not t.get("disabled") or t.get("owner") == user
 		):
 			visible.append(t)
 			t.pop("data", None)
-
-	start = max(0, int(limit_start))
-	length = max(1, int(limit_page_length))
-	end = start + length
+			if len(visible) == end + 1:
+				break
 
 	return {
 		"templates": visible[start:end],
@@ -135,49 +141,23 @@ def get_templates(reference_doctype: str, limit_start: int = 0, limit_page_lengt
 	}
 
 
-@frappe.whitelist()
-def get_template_data(name: str) -> str:
-	"""Return the ``data`` field for a single template.
-
-	Fetches with ``ignore_permissions=True`` then performs an explicit
-	``has_permission`` check so the row-level SQL filter does not block.
-	"""
-	row = frappe.db.get_value(
-		"Document Template",
-		name,
-		["name", "data", "private", "owner", "disabled", "reference_doctype"],
-		as_dict=True,
-	)
-
-	if not row:
-		frappe.throw(_("Template {0} not found").format(name), frappe.DoesNotExistError)
-
-	user = frappe.session.user
-	if not has_permission(frappe._dict(row), "read", user):
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
-
-	return row.data
-
-
 def _check_user_permissions_on_template_data(template_data: str, reference_doctype: str, user: str) -> bool:
-	"""Build a temporary doc from template JSON and delegate to
-	``frappe.permissions.has_user_permission`` for link-field checks."""
-	data = orjson.loads(template_data)
+	"""Build a temporary doc from template JSON and check full doc-level permissions.
 
+	Uses ``frappe.permissions.has_permission`` with the constructed doc so that
+	role permissions *and* user permissions (link-field restrictions) are both
+	evaluated, matching the same path taken for real documents.
+	"""
 	try:
-		temp_doc = frappe.new_doc(reference_doctype)
-		temp_doc.update(data)
-		return frappe.permissions.has_user_permission(temp_doc, user=user)
+		data = orjson.loads(template_data)
+		temp_doc = frappe.get_doc({"doctype": reference_doctype, **data})
+		return frappe.has_permission(doc=temp_doc, ptype="read", user=user)
 	except Exception:
-		return False
+		return True
 
 
 def _is_system_manager(user: str) -> bool:
 	return "System Manager" in frappe.get_roles(user)
-
-
-def _has_template_manager_role(user: str) -> bool:
-	return "Template Manager" in frappe.get_roles(user)
 
 
 def _get_creatable_doctypes(user: str) -> list[str]:
@@ -203,7 +183,7 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 	if _is_system_manager(user):
 		return ""
 
-	if _has_template_manager_role(user):
+	if frappe.permissions.get_role_permissions("Document Template", user=user, is_owner=False).get("write"):
 		creatable = _get_creatable_doctypes(user)
 		if not creatable:
 			return "1=0"
@@ -216,7 +196,7 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 	return "1=0"
 
 
-def has_permission(doc, ptype="read", user=None) -> bool:
+def has_permission(doc, user=None) -> bool:
 	"""Doc-level permission check.
 
 	Permission levels:
@@ -232,26 +212,13 @@ def has_permission(doc, ptype="read", user=None) -> bool:
 	if not user:
 		user = frappe.session.user
 
-	if _is_system_manager(user):
-		return True
+	if not frappe.has_permission(doc.reference_doctype, ptype="create", user=user):
+		return False
 
 	if user == doc.owner:
 		return True
 
-	if _has_template_manager_role(user):
-		if not frappe.has_permission(doc.reference_doctype, ptype="create", user=user):
-			return False
-		return not doc.private or user == doc.owner
+	if not frappe.permissions.has_user_permission(doc, user=user):
+		return False
 
-	if frappe.has_permission(doc.reference_doctype, ptype="create", user=user) and ptype == "create":
-		return True
-
-	if not doc.private and ptype in ("read", "select"):
-		template_data = getattr(doc, "data", None)
-		if template_data and not _check_user_permissions_on_template_data(
-			template_data, doc.reference_doctype, user
-		):
-			return False
-		return True
-
-	return False
+	return True
