@@ -197,7 +197,7 @@ frappe.data_import.DataExporter = class DataExporter {
 			...multicheck_fields.map((fieldname) => {
 				let field = this.dialog.get_field(fieldname);
 				return field.options
-					.filter((option) => option.danger || option.include_in_import_template)
+					.filter((option) => option.danger || option.in_import_template)
 					.map((option) => option.$checkbox.find("input").get(0));
 			})
 		);
@@ -282,7 +282,7 @@ frappe.data_import.DataExporter = class DataExporter {
 			let fieldname = meta.autoname.slice("field:".length);
 			autoname_field = frappe.meta.get_field(doctype, fieldname);
 		}
-		const hide_name_for_insert_when_not_set_by_user =
+		const hide_name_for_autoname =
 			this.exporting_for === "Insert New Records" &&
 			!this.hide_blank_template &&
 			!["Prompt", "prompt"].includes(meta.autoname);
@@ -325,7 +325,7 @@ frappe.data_import.DataExporter = class DataExporter {
 			.filter((df) => {
 				if (
 					this.exporting_for === "Insert New Records" &&
-					(autoname_field || hide_name_for_insert_when_not_set_by_user) &&
+					(autoname_field || hide_name_for_autoname) &&
 					df.fieldname === "name"
 				) {
 					return false;
@@ -339,7 +339,7 @@ frappe.data_import.DataExporter = class DataExporter {
 					danger: is_field_mandatory(df),
 					warning: is_field_depends_on(df),
 					warning_title: get_info_title(df),
-					include_in_import_template: !!df.include_in_import_template,
+					in_import_template: !!df.in_import_template,
 					checked: false,
 					description: `${df.fieldname} ${df.reqd ? __("(Mandatory)") : ""}`,
 				};
