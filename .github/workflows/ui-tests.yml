@@ -44,7 +44,7 @@ jobs:
     uses: ./.github/workflows/_base-ui-tests.yml
     with:
       parallel-runs: 3
-      enable-coverage: true
+      enable-coverage: false
       fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
     needs: checkrun
 
