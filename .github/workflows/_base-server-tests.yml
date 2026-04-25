@@ -107,17 +107,14 @@ jobs:
 
       - name: Run Tests
         run: |
-          bench --site test_site \
-            run-parallel-tests \
-            --with-coverage \
-            --app "${{ github.event.repository.name }}" \
-            --total-builds ${{ inputs.parallel-runs }} \
-            --build-number ${{ matrix.index }}
+          cd sites && ../env/bin/python3 ../apps/frappe/.github/helper/ci.py
 
         env:
           DB: ${{ matrix.db }}
           # consumed by bench run-parallel-tests
           CAPTURE_COVERAGE: ${{ inputs.enable-coverage }}
+          BUILD_NUMBER: ${{ matrix.index }}
+          TOTAL_BUILDS: ${{ inputs.parallel-runs }}
           FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
 
       - name: Upload coverage data
