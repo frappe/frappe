@@ -919,7 +919,11 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					? this.layout.fields_dict[target_field]?.df
 					: frappe.meta.get_docfield(this.df.parent, target_field);
 
-				if (target_df?.fetch_if_empty && !field_value) continue;
+				const current_value = layout_set_value
+					? this.layout.get_value(target_field)
+					: frappe.model.get_value(this.df.parent, this.docname, target_field);
+
+				if (target_df?.fetch_if_empty && current_value && !field_value) continue;
 
 				if (layout_set_value) {
 					layout_set_value(target_field, field_value);
