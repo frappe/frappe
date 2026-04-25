@@ -94,11 +94,14 @@ def get_next(
 
 	table = frappe.qb.DocType(doctype)
 	name_column = table.name
-	fallback = _sort_field_fallback(doctype, sort_field)
-	sort_column = IfNull(table[sort_field], fallback)
 	current_sort_value = frappe.db.get_value(doctype, value, sort_field)
-	if current_sort_value is None:
-		current_sort_value = fallback
+	fallback = _sort_field_fallback(doctype, sort_field)
+	if fallback is not None:
+		sort_column = IfNull(table[sort_field], fallback)
+		if current_sort_value is None:
+			current_sort_value = fallback
+	else:
+		sort_column = table[sort_field]
 
 	is_ascending = sort_order.lower() == "asc"
 	if prev == is_ascending:
@@ -128,14 +131,19 @@ def get_next(
 
 
 def _sort_field_fallback(doctype: str, fieldname: str):
+	if fieldname in ("name", "modified", "creation", "modified_by", "owner", "idx", "docstatus"):
+		return None
 	df = frappe.get_meta(doctype).get_field(fieldname)
-	if df:
-		if df.fieldtype in ("Float", "Int", "Currency", "Percent", "Check"):
-			return 0
-		if df.fieldtype in ("Date", "Datetime"):
-			return "0001-01-01"
-		if df.fieldtype == "Time":
-			return "00:00:00"
+	if df is None:
+		return ""
+	if df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
+		return None
+	if getattr(df, "not_nullable", False):
+		return None
+	if df.fieldtype in ("Date", "Datetime"):
+		return "0001-01-01"
+	if df.fieldtype == "Time":
+		return "00:00:00"
 	return ""
 
 

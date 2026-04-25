@@ -14,7 +14,9 @@ class TestForm(IntegrationTestCase):
 		self.assertTrue("DocType" in results)
 
 	def test_sort_field_fallback(self):
-		self.assertEqual(_sort_field_fallback("Note", "public"), 0)
+		self.assertIsNone(_sort_field_fallback("Note", "name"))
+		self.assertIsNone(_sort_field_fallback("Note", "creation"))
+		self.assertIsNone(_sort_field_fallback("Note", "public"))
 		self.assertEqual(_sort_field_fallback("Note", "expire_notification_on"), "0001-01-01")
 		self.assertEqual(_sort_field_fallback("Event Notifications", "time"), "00:00:00")
 		self.assertEqual(_sort_field_fallback("Note", "title"), "")
