@@ -224,11 +224,62 @@ class DocType(Document):
 			self.before_update = frappe.get_doc("DocType", self.name)
 			self.setup_fields_to_fetch()
 			self.validate_field_name_conflicts()
+			self.validate_fieldtype_change()
 
 		check_email_append_to(self)
 
 		if self.default_print_format and not self.custom:
 			frappe.throw(_("Standard DocType cannot have default print format, use Customize Form"))
+
+	def validate_fieldtype_change(self):
+		# Validate that field type changes are allowed
+		if self.issingle or self.is_virtual:
+			return
+
+		old_fields = {df.fieldname: df for df in self.before_update.fields}
+		string_types = frozenset(("varchar", "text", "longtext"))
+		numeric_types = frozenset(("int", "bigint", "decimal", "tinyint"))
+
+		for new_df in self.fields:
+			old_df = old_fields.get(new_df.fieldname)
+			if not old_df or old_df.fieldtype == new_df.fieldtype:
+				continue
+
+			old_db_type = frappe.db.type_map.get(old_df.fieldtype)
+			new_db_type = frappe.db.type_map.get(new_df.fieldtype)
+
+			if not old_db_type or not new_db_type:
+				continue
+
+			old_col = old_db_type[0]
+			new_col = new_db_type[0]
+
+			if old_col == new_col:
+				continue
+
+			# Allow conversions within the same type family
+			if (old_col in numeric_types and new_col in numeric_types) or (
+				old_col in string_types and new_col in string_types
+			):
+				continue
+
+			# Any type -> string is safe
+			if new_col in string_types:
+				continue
+
+			# All other cross family conversions with data are unsafe
+			if frappe.db.count(self.name):
+				frappe.throw(
+					_(
+						"Cannot change field '{0}' from {1} to {2} because the DocType '{3}' has existing data."
+					).format(
+						new_df.label or new_df.fieldname,
+						old_df.fieldtype,
+						new_df.fieldtype,
+						self.name,
+					),
+					title=_("Cannot Change Field Type"),
+				)
 
 	def validate_field_name_conflicts(self):
 		"""Check if field names dont conflict with controller properties and methods"""
