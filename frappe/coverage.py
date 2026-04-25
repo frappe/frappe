@@ -47,6 +47,8 @@ FRAPPE_EXCLUSIONS = [
 	"*frappe/setup.py",
 	"*/doctype/*/*_dashboard.py",
 	"*/patches/*",
+	"*/frappe/database/postgres/*",
+	"*/frappe/database/sqlite/*",
 	*TESTED_VIA_CLI,
 ]
 
