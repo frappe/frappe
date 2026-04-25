@@ -18,14 +18,9 @@ permissions:
   contents: read
 
 jobs:
-  typecheck:
-    name: Types
-    uses: ./.github/workflows/_base-type-check.yml
-
   checkrun:
     name: Plan Tests
     runs-on: ubuntu-latest
-    needs: typecheck
     outputs:
       build: ${{ steps.check-build.outputs.build }}
       run_postgres: ${{ steps.check-build.outputs.run_postgres }}
