@@ -48,6 +48,7 @@ import {
 	NumberChart,
 	AxisChart,
 	DonutChart,
+	frappeRequest,
 } from "frappe-ui"
 import { Filter, Link } from "frappe-ui/frappe"
 
@@ -64,6 +65,9 @@ import TextBlock from "@/components/AppLayout/TextBlock.vue"
 import AppHeader from "@/components/AppLayout/AppHeader.vue"
 import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
 import MarkdownEditor from "@/components/AppLayout/MarkdownEditor.vue"
+
+import { default as componentRegistry } from "@/data/components"
+import { default as Block } from "@/utils/block"
 
 export function registerGlobalComponents(app: App) {
 	app.component("Alert", Alert)
@@ -131,4 +135,50 @@ export function registerGlobalComponents(app: App) {
 	app.component("AppHeader", AppHeader)
 	app.component("BottomTabs", BottomTabs)
 	app.component("MarkdownEditor", MarkdownEditor)
+}
+
+export interface CustomVueComponentMeta {
+	component_name: string
+	frappe_app: string
+	studio_app: string
+	file_path: string
+	props: { name: string; type: string }[]
+}
+
+/**
+ * Dynamically register custom Vue components from external apps into the Vue app instance.
+ * Also registers them in the component data registry so Block class can access their metadata.
+ * Returns the list of registered component metadata for use in the ComponentPanel.
+ */
+export async function registerCustomVueComponents(app: App): Promise<CustomVueComponentMeta[]> {
+	try {
+		const components: CustomVueComponentMeta[] = await frappeRequest({
+			url: "/api/method/studio.api.get_custom_vue_components",
+		})
+
+		for (const comp of components) {
+			try {
+				// In dev mode, Vite needs the /@fs/ prefix to serve files from the filesystem
+				const importPath = import.meta.env.DEV
+					? `/@fs${comp.file_path}`
+					: comp.file_path
+				const module = await import(/* @vite-ignore */ importPath)
+				app.component(comp.component_name, module.default)
+
+				// Register in the component data registry for Block metadata access
+				componentRegistry.registerCustomVueComponent(comp.component_name, comp.frappe_app)
+			} catch (err) {
+				console.error(`Failed to load custom component ${comp.component_name}:`, err)
+			}
+		}
+
+		window.__APP_COMPONENTS__ = app._context.components
+		const { COMPONENTS } = await import("@/data/components")
+		Block.setComponents(COMPONENTS)
+
+		return components
+	} catch (err) {
+		console.error("Failed to fetch custom Vue components:", err)
+		return []
+	}
 }

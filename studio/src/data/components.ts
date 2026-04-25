@@ -977,6 +977,22 @@ function get(name: string): FrappeUIComponent | undefined {
 	return COMPONENTS[name] || undefined
 }
 
+function registerCustomVueComponent(name: string, frappe_app: string) {
+	/**
+	 * Dynamically register a custom Vue component in the component registry.
+	 * Called after custom components are loaded from the backend API.
+	 */
+	if (COMPONENTS[name]) return
+
+	COMPONENTS[name] = {
+		name,
+		title: name,
+		icon: LucideCode,
+		isCustomVueComponent: true,
+		frappe_app: frappe_app,
+	}
+}
+
 export default {
 	...COMPONENTS,
 	list: Object.values(COMPONENTS),
@@ -984,4 +1000,5 @@ export default {
 	getProxyComponent,
 	isFrappeUIComponent,
 	get,
+	registerCustomVueComponent,
 }
