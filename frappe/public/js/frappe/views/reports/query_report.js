@@ -650,6 +650,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.$collapse_button.on("click", function () {
 				me.toggle_filter_visiblity();
 			});
+			this.$collapse_button.css("cursor", "pointer");
 		}
 	}
 	handle_filter_styles(wrapper) {

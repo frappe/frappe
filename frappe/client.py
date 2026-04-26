@@ -189,21 +189,18 @@ def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], va
 	:param fieldname: fieldname string or JSON / dict with key value pair
 	:param value: value if fieldname is JSON / dict"""
 
-	values = {}
-	if value is not None:
-		values = {fieldname: value}
-	elif isinstance(fieldname, dict):
-		values = fieldname
-	elif isinstance(fieldname, str):
-		try:
-			values = json.loads(fieldname)
-		except ValueError:
-			values = {fieldname: ""}
+	if fieldname in (frappe.model.default_fields + frappe.model.child_table_fields):
+		frappe.throw(_("Cannot edit standard fields"))
 
-	forbidden = set(frappe.model.default_fields + frappe.model.child_table_fields)
-	for field in values:
-		if field in forbidden:
-			frappe.throw(_("Cannot edit standard fields"))
+	if not value:
+		values = fieldname
+		if isinstance(fieldname, str):
+			try:
+				values = json.loads(fieldname)
+			except ValueError:
+				values = {fieldname: ""}
+	else:
+		values = {fieldname: value}
 
 	# check for child table doctype
 	if not frappe.get_meta(doctype).istable:
@@ -252,11 +249,6 @@ def save(doc: str | dict[str, Any]):
 	:param doc: JSON or dict object with the properties of the document to be updated"""
 	if isinstance(doc, str):
 		doc = json.loads(doc)
-
-	forbidden = {"docstatus", "idx"}
-	for field in doc:
-		if field in forbidden:
-			frappe.throw(_("Cannot edit standard fields"))
 
 	doc = frappe.get_doc(doc)
 	doc.save()

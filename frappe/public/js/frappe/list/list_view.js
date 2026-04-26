@@ -297,12 +297,31 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 				"add"
 			);
+			frappe.ui.keys.add_shortcut({
+				shortcut: "ctrl+b",
+				action: () => {
+					if (this.settings.primary_action) {
+						this.settings.primary_action();
+					} else {
+						this.make_new_doc();
+					}
+
+					return true;
+				},
+				description: __(
+					"Create a new document",
+					null,
+					"Description of a list view shortcut"
+				),
+				page: this.page,
+			});
 			if (frappe.is_mobile()) {
 				create_button.append(__("Add"));
 			} else {
 				this._trim_primary_action_if_overflow(create_button, add_button_label);
 			}
 		} else {
+			frappe.ui.keys.off("ctrl+b", this.page);
 			this.page.clear_primary_action();
 		}
 	}

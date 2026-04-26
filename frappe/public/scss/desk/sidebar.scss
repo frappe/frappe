@@ -159,7 +159,7 @@
 	.standard-items-sections {
 		.dropdown-notifications {
 			.notifications-list {
-				left: 3.4%;
+				left: 100%;
 			}
 		}
 	}
@@ -170,11 +170,6 @@
 		// make it an overlay on hover
 		position: absolute;
 		width: var(--sidebar-width);
-		.dropdown-notifications {
-			.notifications-list {
-				left: 100%;
-			}
-		}
 
 		.collapse-sidebar-link {
 			text-decoration: none;
@@ -364,6 +359,7 @@
 }
 .sidebar-item-suffix {
 	margin-left: auto;
+	padding: 7px;
 	.keyboard-shortcut {
 		color: var(--ink-gray-4, #999999);
 		font-size: var(--text-sm);

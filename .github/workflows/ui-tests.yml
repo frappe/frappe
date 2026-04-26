@@ -44,14 +44,14 @@ jobs:
     uses: ./.github/workflows/_base-ui-tests.yml
     with:
       parallel-runs: 3
-      enable-coverage: ${{ github.event_name != 'pull_request' }}
+      enable-coverage: false
       fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
     needs: checkrun
 
   coverage:
     name: Coverage Wrap Up
     needs: [test, checkrun]
-    if: ${{ github.event_name != 'pull_request' }}
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
     runs-on: ubuntu-latest
     steps:
       - name: Clone

@@ -530,6 +530,7 @@ persistent_cache_keys = [
 	"monitor-transactions",
 	"rate-limit-counter-*",
 	"rl:*",
+	"concurrency:*",
 ]
 
 user_invitation = {

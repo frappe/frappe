@@ -1179,6 +1179,68 @@ class TestDBQuery(IntegrationTestCase):
 		data = get()
 		self.assertEqual(len(data["values"]), 1)
 
+	def test_self_referential_link_joins(self):
+		"""Test that joined aliases are distinct, when a DocType has multiple links to itself."""
+
+		if not frappe.db.exists("DocType", "Self Linked DocType"):
+			frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"custom": 1,
+					"module": "Custom",
+					"name": "Self Linked DocType",
+					"naming_rule": "Random",
+					"autoname": "hash",
+					"fields": [
+						{
+							"label": "Title",
+							"fieldname": "title",
+							"fieldtype": "Data",
+						},
+						{
+							"label": "Parent Ref",
+							"fieldname": "parent_ref",
+							"fieldtype": "Link",
+							"options": "Self Linked DocType",
+						},
+						{
+							"label": "Sibling Ref",
+							"fieldname": "sibling_ref",
+							"fieldtype": "Link",
+							"options": "Self Linked DocType",
+						},
+					],
+				}
+			).insert()
+		else:
+			frappe.db.delete("Self Linked DocType")
+
+		first_link = frappe.get_doc({"doctype": "Self Linked DocType", "title": "Reference1"}).insert()
+		second_link = frappe.get_doc({"doctype": "Self Linked DocType", "title": "Reference2"}).insert()
+		frappe.get_doc(
+			{
+				"doctype": "Self Linked DocType",
+				"title": "Linked Doc",
+				"parent_ref": first_link.name,
+				"sibling_ref": second_link.name,
+			}
+		).insert()
+
+		fields = ["name", "parent_ref.title as parent_title", "sibling_ref.title as sibling_title"]
+		data = frappe.get_all(
+			"Self Linked DocType",
+			fields=fields,
+		)
+		self.assertEqual(len(data), 3)
+
+		query = frappe.qb.get_query(
+			"Self Linked DocType",
+			fields=fields,
+		).get_sql()
+
+		self.assertIn("LEFT JOIN `tabSelf Linked DocType` `tabSelf Linked DocType_parent_ref`", query)
+		self.assertIn("LEFT JOIN `tabSelf Linked DocType` `tabSelf Linked DocType_sibling_ref`", query)
+
 	def test_select_star_expansion(self):
 		count = frappe.get_list("Language", [{"SUM": 1}, {"COUNT": "*"}], as_list=1, order_by=None)[0]
 		self.assertEqual(count[0], frappe.db.count("Language"))
