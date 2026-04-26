@@ -191,6 +191,9 @@ def mark_all_as_read():
 	if unread_docnames:
 		filters = {"name": ["in", unread_docnames]}
 		frappe.db.set_value("Notification Log", filters, "read", 1, update_modified=False)
+	frappe.db.set_value(
+		"Notification Settings", frappe.session.user, "unread_count", 0, update_modified=False
+	)
 
 
 @frappe.whitelist()
@@ -198,8 +201,17 @@ def mark_as_read(docname: str):
 	if frappe.flags.read_only:
 		return
 
-	if docname:
-		frappe.db.set_value("Notification Log", str(docname), "read", 1, update_modified=False)
+	if not docname:
+		return
+
+	docname = str(docname)
+	doc = frappe.db.get_value("Notification Log", docname, ["read", "for_user"], as_dict=True)
+	if not doc:
+		return
+
+	frappe.db.set_value("Notification Log", docname, "read", 1, update_modified=False)
+	if not doc.read:
+		_decrement_unread_count(doc.for_user)
 
 
 @frappe.whitelist()
@@ -209,6 +221,24 @@ def trigger_indicator_hide():
 
 def set_notifications_as_unseen(user):
 	try:
-		frappe.db.set_value("Notification Settings", user, "seen", 0, update_modified=False)
+		table = frappe.qb.DocType("Notification Settings")
+		(
+			frappe.qb.update(table)
+			.set(table.seen, 0)
+			.set(table.unread_count, table.unread_count + 1)
+			.where(table.name == user)
+		).run()
+		frappe.clear_document_cache("Notification Settings", user)
 	except frappe.DoesNotExistError:
 		return
+
+
+def _decrement_unread_count(user):
+	table = frappe.qb.DocType("Notification Settings")
+	(
+		frappe.qb.update(table)
+		.set(table.unread_count, table.unread_count - 1)
+		.where(table.name == user)
+		.where(table.unread_count > 0)
+	).run()
+	frappe.clear_document_cache("Notification Settings", user)

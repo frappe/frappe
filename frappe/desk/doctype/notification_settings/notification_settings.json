@@ -16,7 +16,8 @@
   "enable_email_share",
   "enable_email_event_reminders",
   "user",
-  "seen"
+  "seen",
+  "unread_count"
  ],
  "fields": [
   {
@@ -93,12 +94,19 @@
    "fieldname": "enable_email_threads_on_assigned_document",
    "fieldtype": "Check",
    "label": "Email Threads on Assigned Document"
+  },
+  {
+   "default": "0",
+   "fieldname": "unread_count",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Unread Count"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-02-24 11:06:24.112935",
+ "modified": "2026-04-23 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",
