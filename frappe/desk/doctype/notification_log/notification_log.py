@@ -234,11 +234,14 @@ def set_notifications_as_unseen(user):
 
 
 def _decrement_unread_count(user):
-	table = frappe.qb.DocType("Notification Settings")
-	(
-		frappe.qb.update(table)
-		.set(table.unread_count, table.unread_count - 1)
-		.where(table.name == user)
-		.where(table.unread_count > 0)
-	).run()
-	frappe.clear_document_cache("Notification Settings", user)
+	try:
+		table = frappe.qb.DocType("Notification Settings")
+		(
+			frappe.qb.update(table)
+			.set(table.unread_count, table.unread_count - 1)
+			.where(table.name == user)
+			.where(table.unread_count > 0)
+		).run()
+		frappe.clear_document_cache("Notification Settings", user)
+	except frappe.DoesNotExistError:
+		return
