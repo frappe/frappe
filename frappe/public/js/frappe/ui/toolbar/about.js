@@ -83,7 +83,16 @@ frappe.ui.misc.about = function () {
 
 				<hr>
 
-				<p class='text-muted'>${__("&copy; Frappe Technologies Pvt. Ltd. and contributors")} </p>
+				<p class='text-muted d-flex justify-content-between align-items-center'>
+					${__("&copy; Frappe Technologies Pvt. Ltd. and contributors")}
+					${
+						frappe.boot.developer_mode
+							? `<span class="indicator-pill no-indicator-dot yellow">${__(
+									"Developer Mode"
+							  )}</span>`
+							: ""
+					}
+				</p>
 			</div>`
 	);
 
