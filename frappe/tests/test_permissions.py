@@ -289,7 +289,7 @@ class TestPermissions(IntegrationTestCase):
 		doctype_meta.get_field("fields").set_only_once = 1
 		doc = frappe.get_doc("DocType", "Test Blog Post")
 		# change one property from the child table
-		doc.fields[-3].fieldtype = "Check"
+		doc.fields[-3].fieldtype = "Small Text"
 		self.assertRaises(frappe.CannotChangeConstantError, doc.save)
 		frappe.clear_cache(doctype="DocType")
 
