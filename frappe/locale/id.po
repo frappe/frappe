@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-04-19 09:45+0000\n"
-"PO-Revision-Date: 2026-04-22 18:04\n"
+"POT-Creation-Date: 2026-04-26 09:46+0000\n"
+"PO-Revision-Date: 2026-04-26 19:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Indonesian\n"
 "MIME-Version: 1.0\n"
@@ -70,7 +70,7 @@ msgstr "&copy; Frappe Technologies Pvt. Ltd. dan kontributor"
 msgid "&lt;head&gt; HTML"
 msgstr ""
 
-#: frappe/database/query.py:2399
+#: frappe/database/query.py:2405
 msgid "'*' is only allowed in {0} SQL function(s)"
 msgstr "'*' hanya diizinkan dalam fungsi SQL {0}"
 
@@ -78,7 +78,7 @@ msgstr "'*' hanya diizinkan dalam fungsi SQL {0}"
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
 msgstr "'Dalam Pencarian Global' tidak diizinkan untuk bidang {0} dengan tipe {1}"
 
-#: frappe/core/doctype/doctype/doctype.py:1417
+#: frappe/core/doctype/doctype/doctype.py:1426
 msgid "'In Global Search' not allowed for type {0} in row {1}"
 msgstr "'Di Pencarian Global' tidak dibolehkan jenis {0} pada baris {1}"
 
@@ -102,7 +102,7 @@ msgstr "'{0}' bukan IBAN yang valid"
 msgid "'{0}' is not a valid URL"
 msgstr "'{0}' bukan URL yang valid"
 
-#: frappe/core/doctype/doctype/doctype.py:1411
+#: frappe/core/doctype/doctype/doctype.py:1420
 msgid "'{0}' not allowed for type {1} in row {2}"
 msgstr "&#39;{0}&#39; tidak diperbolehkan untuk jenis {1} di baris {2}"
 
@@ -171,7 +171,7 @@ msgstr "1 Hari"
 msgid "1 Google Calendar Event synced."
 msgstr "1 Acara Kalender Google disinkronkan."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:995
+#: frappe/public/js/frappe/views/reports/query_report.js:996
 msgid "1 Report"
 msgstr "1 Laporan"
 
@@ -645,21 +645,17 @@ msgstr "<h5>Contoh Pesan</h5>\n\n"
 
 #. Content of the 'html_7' (HTML) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
-msgid "<p><strong>Condition Examples:</strong></p>\n"
+msgid "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n"
 "<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</code></pre>\n"
-msgstr "<p><strong>Contoh Kondisi:</strong></p>\n"
-"<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
-"</code></pre>\n"
+msgstr ""
 
 #. Content of the 'html_condition' (HTML) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
-msgid "<p><strong>Condition Examples:</strong></p>\n"
+msgid "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n"
 "<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</pre>"
-msgstr "<p><strong>Contoh Kondisi:</strong></p>\n"
-"<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
-"</pre>"
+msgstr ""
 
 #. Content of the 'Condition description' (HTML) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -782,7 +778,7 @@ msgstr ""
 msgid ">="
 msgstr ""
 
-#: frappe/core/doctype/doctype/doctype.py:1062
+#: frappe/core/doctype/doctype/doctype.py:1071
 msgid "A DocType's name should start with a letter and can only consist of letters, numbers, spaces, underscores and hyphens"
 msgstr "Nama DOCTYPE harus diawali dengan huruf dan hanya boleh terdiri dari huruf, angka, spasi, garis bawah, dan tanda hubung"
 
@@ -924,7 +920,7 @@ msgstr "Argumen Titik Akhir API harus berupa JSON yang valid"
 #. Label of the api_key (Data) field in DocType 'Google Settings'
 #. Label of the sb_01 (Section Break) field in DocType 'Google Settings'
 #. Label of the api_key (Data) field in DocType 'Push Notification Settings'
-#: frappe/core/doctype/user/user.js:474 frappe/core/doctype/user/user.json
+#: frappe/core/doctype/user/user.js:476 frappe/core/doctype/user/user.json
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.json
 #: frappe/integrations/doctype/google_settings/google_settings.json
@@ -943,7 +939,7 @@ msgstr "Kunci API dan Rahasia API untuk berinteraksi dengan server relay. Ini ak
 msgid "API Key cannot be regenerated"
 msgstr "Kunci API tidak dapat dibuat ulang"
 
-#: frappe/core/doctype/user/user.js:471
+#: frappe/core/doctype/user/user.js:473
 msgid "API Keys"
 msgstr "Kunci API"
 
@@ -969,7 +965,7 @@ msgstr "Log Permintaan API"
 #. Label of the api_secret (Password) field in DocType 'Email Account'
 #. Label of the api_secret (Password) field in DocType 'Push Notification
 #. Settings'
-#: frappe/core/doctype/user/user.js:481 frappe/core/doctype/user/user.json
+#: frappe/core/doctype/user/user.js:483 frappe/core/doctype/user/user.json
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "API Secret"
@@ -1122,7 +1118,7 @@ msgstr "Tindakan / Rute"
 msgid "Action Complete"
 msgstr "Tindakan Selesai"
 
-#: frappe/model/document.py:2241
+#: frappe/model/document.py:2244
 msgid "Action Failed"
 msgstr "aksi Gagal"
 
@@ -1177,7 +1173,7 @@ msgstr "Tindakan {0} gagal pada {1} {2}. Lihat {3}"
 #: frappe/public/js/frappe/views/reports/query_report.js:192
 #: frappe/public/js/frappe/views/reports/query_report.js:205
 #: frappe/public/js/frappe/views/reports/query_report.js:215
-#: frappe/public/js/frappe/views/reports/query_report.js:897
+#: frappe/public/js/frappe/views/reports/query_report.js:898
 msgid "Actions"
 msgstr "Tindakan"
 
@@ -1191,7 +1187,7 @@ msgstr "Aktifkan"
 #. Option for the 'Status' (Select) field in DocType 'OAuth Bearer Token'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
 #: frappe/core/doctype/recorder/recorder_list.js:207
-#: frappe/core/doctype/user/user_list.js:12
+#: frappe/core/doctype/user/user_list.js:15
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 #: frappe/workflow/doctype/workflow/workflow_list.js:5
@@ -1245,8 +1241,8 @@ msgstr "Log Aktivitas untuk {0}"
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:112
 #: frappe/public/js/frappe/form/templates/set_sharing.html:82
 #: frappe/public/js/frappe/list/bulk_operations.js:453
-#: frappe/public/js/frappe/list/list_view.js:301
-#: frappe/public/js/frappe/list/list_view.js:316
+#: frappe/public/js/frappe/list/list_view.js:319
+#: frappe/public/js/frappe/list/list_view.js:335
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:441
 #: frappe/public/js/frappe/views/reports/query_report.js:267
 #: frappe/public/js/frappe/views/reports/query_report.js:295
@@ -1303,8 +1299,8 @@ msgid "Add Child"
 msgstr "Tambah Anak"
 
 #: frappe/public/js/frappe/views/kanban/kanban_board.html:4
-#: frappe/public/js/frappe/views/reports/query_report.js:1984
-#: frappe/public/js/frappe/views/reports/query_report.js:1987
+#: frappe/public/js/frappe/views/reports/query_report.js:1980
+#: frappe/public/js/frappe/views/reports/query_report.js:1983
 #: frappe/public/js/frappe/views/reports/report_view.js:367
 #: frappe/public/js/frappe/views/reports/report_view.js:392
 #: frappe/public/js/print_format_builder/Field.vue:112
@@ -1403,7 +1399,7 @@ msgstr "Tambahkan Pelanggan"
 msgid "Add Tags"
 msgstr "Tambah Tag"
 
-#: frappe/public/js/frappe/list/list_view.js:2266
+#: frappe/public/js/frappe/list/list_view.js:2285
 msgctxt "Button in list view actions menu"
 msgid "Add Tags"
 msgstr "Tambah Tag"
@@ -1710,11 +1706,11 @@ msgstr "Administrasi"
 msgid "Administrator"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1312
+#: frappe/core/doctype/user/user.py:1320
 msgid "Administrator Logged In"
 msgstr "Administrator masuk"
 
-#: frappe/core/doctype/user/user.py:1306
+#: frappe/core/doctype/user/user.py:1314
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "Administrator mengakses {0} pada {1} melalui IP Address {2}."
 
@@ -1817,7 +1813,7 @@ msgstr "Bidang Fungsi Agregat diperlukan untuk membuat bagan dasbor"
 msgid "Alert"
 msgstr "Peringatan"
 
-#: frappe/database/query.py:2448
+#: frappe/database/query.py:2454
 msgid "Alias must be a string"
 msgstr "Alias harus berupa string"
 
@@ -2310,7 +2306,7 @@ msgstr ""
 msgid "Allows users to enable the mask property for any field of the respective doctype."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1113
+#: frappe/core/doctype/user/user.py:1121
 msgid "Already Registered"
 msgstr "Sudah Terdaftar"
 
@@ -2322,11 +2318,11 @@ msgstr "Sudah diamendemen sebagai {0}"
 msgid "Already in the following Users ToDo list:{0}"
 msgstr "Sudah ada di daftar ToDo Pengguna berikut: {0}"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:996
+#: frappe/public/js/frappe/views/reports/report_view.js:997
 msgid "Also adding the dependent currency field {0}"
 msgstr "Juga menambahkan field mata uang dependen {0}"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1009
+#: frappe/public/js/frappe/views/reports/report_view.js:1010
 msgid "Also adding the status dependency field {0}"
 msgstr "Juga menambahkan bidang dependensi status {0}"
 
@@ -2615,7 +2611,7 @@ msgstr "Berlaku Untuk (DOCTYPE)"
 msgid "Apply"
 msgstr "Terapkan"
 
-#: frappe/public/js/frappe/list/list_view.js:2251
+#: frappe/public/js/frappe/list/list_view.js:2270
 msgctxt "Button in list view actions menu"
 msgid "Apply Assignment Rule"
 msgstr "Terapkan Aturan Penugasan"
@@ -2702,7 +2698,7 @@ msgstr "Kolom diarsipkan"
 msgid "Are you sure you want to cancel the invitation?"
 msgstr "Apakah Anda yakin ingin membatalkan undangan?"
 
-#: frappe/public/js/frappe/list/list_view.js:2230
+#: frappe/public/js/frappe/list/list_view.js:2249
 msgid "Are you sure you want to clear the assignments?"
 msgstr "Apakah Anda yakin ingin menghapus penugasan?"
 
@@ -2738,7 +2734,7 @@ msgstr "Apakah Anda yakin ingin menghapus catatan ini?"
 msgid "Are you sure you want to discard the changes?"
 msgstr "Apakah Anda yakin ingin membuang perubahan?"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1011
+#: frappe/public/js/frappe/views/reports/query_report.js:1012
 msgid "Are you sure you want to generate a new report?"
 msgstr "Apakah Anda yakin ingin membuat laporan baru?"
 
@@ -2828,7 +2824,7 @@ msgstr "Kondisi Penugasan"
 msgid "Assign To"
 msgstr "Tugaskan Kepada"
 
-#: frappe/public/js/frappe/list/list_view.js:2212
+#: frappe/public/js/frappe/list/list_view.js:2231
 msgctxt "Button in list view actions menu"
 msgid "Assign To"
 msgstr "Tugaskan Kepada"
@@ -3107,6 +3103,10 @@ msgstr "Mencoba Koneksi ke Baki QZ ..."
 #: frappe/public/js/frappe/form/print_utils.js:169
 msgid "Attempting to launch QZ Tray..."
 msgstr "Mencoba meluncurkan QZ Tray ..."
+
+#: frappe/desk/doctype/event/event.py:256
+msgid "Attendee not found in this event."
+msgstr ""
 
 #. Label of the attending (Select) field in DocType 'Event'
 #. Label of the attending (Select) field in DocType 'Event Participants'
@@ -3575,7 +3575,7 @@ msgstr "Pekerjaan Latar"
 #. 'System Health Report'
 #: frappe/core/workspace/build/build.json
 #: frappe/desk/doctype/system_health_report/system_health_report.json
-#: frappe/public/js/frappe/ui/sidebar/sidebar.js:529
+#: frappe/public/js/frappe/ui/sidebar/sidebar.js:543
 msgid "Background Jobs"
 msgstr "Pekerjaan/Proses Latar"
 
@@ -3786,7 +3786,7 @@ msgstr "Dimulai dengan"
 msgid "Beta"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1329 frappe/utils/password_strength.py:73
+#: frappe/core/doctype/user/user.py:1337 frappe/utils/password_strength.py:73
 msgid "Better add a few more letters or another word"
 msgstr "Lebih baik tambahkan beberapa huruf atau gunakan kata lain"
 
@@ -3992,11 +3992,11 @@ msgstr "Penyuntingan Massal"
 msgid "Bulk Edit {0}"
 msgstr "Sunting Massal {0}"
 
-#: frappe/desk/reportview.py:650
+#: frappe/desk/reportview.py:695
 msgid "Bulk Operation Failed"
 msgstr "Operasi Massal Gagal"
 
-#: frappe/desk/reportview.py:656
+#: frappe/desk/reportview.py:701
 msgid "Bulk Operation Successful"
 msgstr "Operasi Massal Berhasil"
 
@@ -4243,7 +4243,7 @@ msgstr "Deskripsi Kampanye (Opsional)"
 msgid "Can not rename as column {0} is already present on DocType."
 msgstr "Tidak dapat mengganti nama karena kolom {0} sudah ada di DocType."
 
-#: frappe/core/doctype/doctype/doctype.py:1215
+#: frappe/core/doctype/doctype/doctype.py:1224
 msgid "Can only change to/from Autoincrement naming rule when there is no data in the doctype"
 msgstr "Hanya dapat mengubah ke/dari aturan penamaan Autoincrement ketika tidak ada data dalam doctype"
 
@@ -4276,7 +4276,7 @@ msgstr "Tidak dapat mengganti nama {0} menjadi {1} karena {0} tidak ada."
 msgid "Cancel"
 msgstr "Batalkan"
 
-#: frappe/public/js/frappe/list/list_view.js:2321
+#: frappe/public/js/frappe/list/list_view.js:2340
 msgctxt "Button in list view actions menu"
 msgid "Cancel"
 msgstr "Batalkan"
@@ -4302,7 +4302,7 @@ msgstr "Batalkan Impor"
 msgid "Cancel Prepared Report"
 msgstr "Batalkan Laporan Siap"
 
-#: frappe/public/js/frappe/list/list_view.js:2326
+#: frappe/public/js/frappe/list/list_view.js:2345
 msgctxt "Title of confirmation dialog"
 msgid "Cancel {0} documents?"
 msgstr "Batalkan {0} dokumen?"
@@ -4375,15 +4375,15 @@ msgstr "Tidak dapat membatalkan sebelum mengirimkan. Lihat Transition {0}"
 msgid "Cannot cancel {0}."
 msgstr "Tidak dapat membatalkan {0}."
 
-#: frappe/model/document.py:1229
+#: frappe/model/document.py:1232
 msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
 msgstr "Tidak dapat mengubah docstatus dari 0 (Draf) menjadi 2 (Dibatalkan)"
 
-#: frappe/model/document.py:1243
+#: frappe/model/document.py:1246
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
 msgstr "Tidak dapat mengubah docstatus dari 1 (Dikirim) menjadi 0 (Draf)"
 
-#: frappe/model/document.py:1222
+#: frappe/model/document.py:1225
 msgid "Cannot change docstatus of non submittable doctype {0}"
 msgstr "Tidak dapat mengubah docstatus untuk DOCTYPE {0} yang tidak dapat dikirim"
 
@@ -4395,7 +4395,7 @@ msgstr "Tidak dapat mengubah status Dokumen yang Dibatalkan <b>(Status {0})</b>"
 msgid "Cannot change state of Cancelled Document. Transition row {0}"
 msgstr "Tidak dapat mengubah keadaan Dibatalkan Dokumen. Transisi baris {0}"
 
-#: frappe/core/doctype/doctype/doctype.py:1205
+#: frappe/core/doctype/doctype/doctype.py:1214
 msgid "Cannot change to/from autoincrement autoname in Customize Form"
 msgstr "Tidak dapat mengubah ke/dari autoincrement autoname di Sesuaikan Form"
 
@@ -4415,7 +4415,7 @@ msgstr "Tidak dapat menghapus Ikon Desktop '{0}' karena dibatasi"
 msgid "Cannot delete Home and Attachments folders"
 msgstr "Tidak dapat menghapus Rumah dan Lampiran folder"
 
-#: frappe/model/delete_doc.py:421
+#: frappe/model/delete_doc.py:477
 msgid "Cannot delete or cancel because {0} {1} is linked with {2} {3} {4}"
 msgstr "Tidak dapat menghapus atau membatalkan karena {0} {1} dikaitkan dengan {2} {3} {4}"
 
@@ -4466,11 +4466,11 @@ msgstr "Tidak dapat mengedit Pemberitahuan Standar. Untuk mengedit, nonaktifkan 
 msgid "Cannot edit Standard charts"
 msgstr "Tidak dapat menyunting Grafik Standar"
 
-#: frappe/core/doctype/report/report.py:73
+#: frappe/core/doctype/report/report.py:74
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
 msgstr "tidak dapat mengedit laporan standar. Silakan menggandakan dan membuat laporan baru"
 
-#: frappe/model/document.py:1249
+#: frappe/model/document.py:1252
 msgid "Cannot edit cancelled document"
 msgstr "Tidak dapat mengedit dokumen dibatalkan"
 
@@ -4511,7 +4511,7 @@ msgstr "Tidak dapat memetakan banyak printer ke format cetak tunggal."
 msgid "Cannot import table with more than 5000 rows."
 msgstr "Tidak dapat mengimpor tabel dengan lebih dari 5000 baris."
 
-#: frappe/model/document.py:1447
+#: frappe/model/document.py:1450
 msgid "Cannot link cancelled document: {0}"
 msgstr "Tidak dapat menghubungkan dokumen dibatalkan: {0}"
 
@@ -4527,7 +4527,11 @@ msgstr "Tidak dapat mencocokkan kolom {0} dengan bidang apa pun"
 msgid "Cannot move row"
 msgstr "Tidak dapat memindahkan baris"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1021
+#: frappe/utils/xlsxutils.py:150
+msgid "Cannot register an empty XLSX style"
+msgstr ""
+
+#: frappe/public/js/frappe/views/reports/report_view.js:1022
 msgid "Cannot remove ID field"
 msgstr "Tidak dapat menghapus bidang ID"
 
@@ -4733,7 +4737,7 @@ msgstr "Sumber Bagan"
 
 #. Label of the chart_type (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
-#: frappe/public/js/frappe/views/reports/report_view.js:584
+#: frappe/public/js/frappe/views/reports/report_view.js:585
 msgid "Chart Type"
 msgstr "Jenis bagan"
 
@@ -4835,7 +4839,7 @@ msgstr "Doctype Anak"
 msgid "Child Item"
 msgstr "Item Anak"
 
-#: frappe/core/doctype/doctype/doctype.py:1709
+#: frappe/core/doctype/doctype/doctype.py:1718
 msgid "Child Table {0} for field {1} must be virtual"
 msgstr "Tabel Anak {0} untuk kolom {1} harus virtual"
 
@@ -4853,7 +4857,7 @@ msgstr "Field query anak untuk '{0}' harus berupa list atau tuple."
 msgid "Choose Existing Card or create New Card"
 msgstr "Pilih Kartu yang Ada atau buat Kartu Baru"
 
-#: frappe/public/js/frappe/views/workspace/workspace.js:630
+#: frappe/public/js/frappe/views/workspace/workspace.js:625
 msgid "Choose a block or continue typing"
 msgstr "Pilih blok atau lanjutkan mengetik"
 
@@ -4901,7 +4905,7 @@ msgstr "Hapus dan tambahkan templat"
 msgid "Clear All"
 msgstr "Hapus semua"
 
-#: frappe/public/js/frappe/list/list_view.js:2227
+#: frappe/public/js/frappe/list/list_view.js:2246
 msgctxt "Button in list view actions menu"
 msgid "Clear Assignment"
 msgstr "Hapus Penugasan"
@@ -4980,7 +4984,7 @@ msgstr "Klik tautan di bawah untuk mengunduh data Anda"
 msgid "Click on the link below to verify your request"
 msgstr "Klik tautan di bawah untuk memverifikasi permintaan Anda"
 
-#: frappe/public/js/frappe/views/workspace/workspace.js:699
+#: frappe/public/js/frappe/views/workspace/workspace.js:694
 msgid "Click on {0} to edit"
 msgstr "Klik {0} untuk mengedit"
 
@@ -5014,8 +5018,8 @@ msgstr "Klik untuk mengatur filter"
 msgid "Click to edit"
 msgstr "Klik untuk mengedit"
 
-#: frappe/public/js/frappe/list/list_view.js:744
-#: frappe/public/js/frappe/list/list_view.js:764
+#: frappe/public/js/frappe/list/list_view.js:763
+#: frappe/public/js/frappe/list/list_view.js:783
 msgid "Click to sort by {0}"
 msgstr "Klik untuk mengurutkan berdasarkan {0}"
 
@@ -5196,7 +5200,7 @@ msgctxt "Shrink code field."
 msgid "Collapse"
 msgstr "Jatuh"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2280
+#: frappe/public/js/frappe/views/reports/query_report.js:2276
 #: frappe/public/js/frappe/views/treeview.js:124
 msgid "Collapse All"
 msgstr "Perkecil Semua"
@@ -5253,7 +5257,7 @@ msgstr "Dapat Diciutkan Bergantung Pada (JS)"
 #: frappe/desk/doctype/number_card/number_card.json
 #: frappe/desk/doctype/todo/todo.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
-#: frappe/public/js/frappe/views/reports/query_report.js:1292
+#: frappe/public/js/frappe/views/reports/query_report.js:1293
 #: frappe/public/js/frappe/widgets/widget_dialog.js:546
 #: frappe/public/js/frappe/widgets/widget_dialog.js:694
 #: frappe/website/doctype/color/color.json
@@ -5644,7 +5648,7 @@ msgstr "Konfigurasikan bagaimana dokumen yang diamendemen akan diberi nama.<br>\
 msgid "Configure various aspects of how document naming works like naming series, current counter."
 msgstr "Konfigurasikan berbagai aspek cara penamaan dokumen bekerja, seperti seri penamaan dan penghitung saat ini."
 
-#: frappe/core/doctype/user/user.js:411 frappe/public/js/frappe/dom.js:366
+#: frappe/core/doctype/user/user.js:413 frappe/public/js/frappe/dom.js:366
 #: frappe/www/update-password.html:66
 msgid "Confirm"
 msgstr "Menegaskan"
@@ -5663,7 +5667,7 @@ msgstr "Konfirmasi Akses"
 msgid "Confirm Deletion of Account"
 msgstr "Konfirmasi Penghapusan Akun"
 
-#: frappe/core/doctype/user/user.js:192
+#: frappe/core/doctype/user/user.js:194
 msgid "Confirm New Password"
 msgstr "Konfirmasi password baru"
 
@@ -5906,7 +5910,7 @@ msgstr "Mengontrol apakah pengguna baru dapat mendaftar menggunakan Kunci Masuk 
 msgid "Copied to clipboard."
 msgstr "Disalin ke papan klip."
 
-#: frappe/public/js/frappe/list/list_view.js:2545
+#: frappe/public/js/frappe/list/list_view.js:2564
 msgid "Copied {0} {1} to clipboard"
 msgstr "Menyalin {0} {1} ke papan klip"
 
@@ -5932,11 +5936,11 @@ msgstr "Salin kesalahan ke papan klip"
 
 #: frappe/public/js/frappe/form/controls/code.js:32
 #: frappe/public/js/frappe/form/toolbar.js:543
-#: frappe/public/js/frappe/list/list_view.js:2429
+#: frappe/public/js/frappe/list/list_view.js:2448
 msgid "Copy to Clipboard"
 msgstr ""
 
-#: frappe/core/doctype/user/user.js:502
+#: frappe/core/doctype/user/user.js:504
 msgid "Copy token to clipboard"
 msgstr "Salin token ke papan klip"
 
@@ -5961,7 +5965,7 @@ msgstr "Versi yang benar:"
 msgid "Could not connect to outgoing email server"
 msgstr "Tidak dapat terhubung ke server email keluar"
 
-#: frappe/model/document.py:1443
+#: frappe/model/document.py:1446
 msgid "Could not find {0}"
 msgstr "Tidak dapat menemukan {0}"
 
@@ -5981,7 +5985,7 @@ msgstr "Tidak dapat memulai Chromium. Periksa log untuk detailnya."
 msgid "Could not start up:"
 msgstr "Tidak dapat memulai:"
 
-#: frappe/public/js/frappe/web_form/web_form.js:379
+#: frappe/public/js/frappe/web_form/web_form.js:381
 msgid "Couldn't save, please check the data you have entered"
 msgstr "Tidak dapat menyimpan, harap periksa data yang telah Anda masukkan"
 
@@ -6068,8 +6072,8 @@ msgstr ""
 #: frappe/public/js/frappe/list/list_filter.js:121
 #: frappe/public/js/frappe/views/file/file_view.js:112
 #: frappe/public/js/frappe/views/interaction.js:18
-#: frappe/public/js/frappe/views/reports/query_report.js:1324
-#: frappe/public/js/frappe/views/workspace/workspace.js:495
+#: frappe/public/js/frappe/views/reports/query_report.js:1325
+#: frappe/public/js/frappe/views/workspace/workspace.js:490
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
 msgstr "Buat"
@@ -6088,7 +6092,7 @@ msgid "Create Card"
 msgstr "Buat Kartu"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:286
-#: frappe/public/js/frappe/views/reports/query_report.js:1251
+#: frappe/public/js/frappe/views/reports/query_report.js:1252
 msgid "Create Chart"
 msgstr "Buat Bagan"
 
@@ -6122,7 +6126,7 @@ msgstr "Buat Log"
 msgid "Create New"
 msgstr "Buat New"
 
-#: frappe/public/js/frappe/list/list_view.js:539
+#: frappe/public/js/frappe/list/list_view.js:558
 msgctxt "Create a new document from list view"
 msgid "Create New"
 msgstr "Buat New"
@@ -6139,7 +6143,7 @@ msgstr "Buat Papan Kanban Baru"
 msgid "Create Saved Filter"
 msgstr "Buat Filter Tersimpan"
 
-#: frappe/core/doctype/user/user.js:275
+#: frappe/core/doctype/user/user.js:277
 msgid "Create User Email"
 msgstr "Buat Email Pengguna"
 
@@ -6155,6 +6159,11 @@ msgstr "Buat Pengingat"
 msgid "Create a new ..."
 msgstr "Buat baru ..."
 
+#: frappe/public/js/frappe/list/list_view.js:311
+msgctxt "Description of a list view shortcut"
+msgid "Create a new document"
+msgstr ""
+
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:228
 msgid "Create a new record"
 msgstr "Buat catatan baru"
@@ -6162,7 +6171,7 @@ msgstr "Buat catatan baru"
 #: frappe/public/js/frappe/form/controls/link.js:505
 #: frappe/public/js/frappe/form/controls/link.js:507
 #: frappe/public/js/frappe/form/link_selector.js:146
-#: frappe/public/js/frappe/list/list_view.js:528
+#: frappe/public/js/frappe/list/list_view.js:547
 #: frappe/public/js/frappe/web_form/web_form_list.js:230
 msgid "Create a new {0}"
 msgstr "Buat baru {0}"
@@ -6179,7 +6188,7 @@ msgstr "Buat atau Edit Format Cetak"
 msgid "Create or Edit Workflow"
 msgstr "Buat atau Edit Alur Kerja"
 
-#: frappe/public/js/frappe/list/list_view.js:531
+#: frappe/public/js/frappe/list/list_view.js:550
 msgid "Create your first {0}"
 msgstr "Buat {0} pertama Anda"
 
@@ -6205,11 +6214,11 @@ msgstr "Dibuat Pada"
 msgid "Created By"
 msgstr "Dibuat Oleh"
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:172
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:174
 msgid "Created By You"
 msgstr "Dibuat Oleh Anda"
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:173
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:175
 msgid "Created By {0}"
 msgstr "Dibuat Oleh {0}"
 
@@ -6556,7 +6565,7 @@ msgstr "Kustom?"
 msgid "Customization"
 msgstr "Kustomisasi"
 
-#: frappe/public/js/frappe/views/workspace/workspace.js:383
+#: frappe/public/js/frappe/views/workspace/workspace.js:378
 msgid "Customizations Discarded"
 msgstr "Kustomisasi dibuang"
 
@@ -6577,7 +6586,7 @@ msgstr "Penyesuaian untuk <b>{0}</b> diekspor ke: <br> {1}"
 msgid "Customize"
 msgstr "Sesuaikan"
 
-#: frappe/public/js/frappe/list/list_view.js:1988
+#: frappe/public/js/frappe/list/list_view.js:2007
 msgctxt "Button in list view menu"
 msgid "Customize"
 msgstr "Sesuaikan"
@@ -6611,7 +6620,7 @@ msgstr "Sesuaikan Form - {0}"
 msgid "Customize Form Field"
 msgstr "Sesuaikan Form Lapangan"
 
-#: frappe/public/js/frappe/list/list_view.js:2014
+#: frappe/public/js/frappe/list/list_view.js:2033
 msgctxt "Customize qucik filters of List View"
 msgid "Customize Quick Filters"
 msgstr "Sesuaikan Filter Cepat"
@@ -7213,11 +7222,11 @@ msgstr "Ruang Kerja Bawaan"
 msgid "Default display currency"
 msgstr ""
 
-#: frappe/core/doctype/doctype/doctype.py:1439
+#: frappe/core/doctype/doctype/doctype.py:1448
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
 msgstr "Default untuk jenis bidang &#39;Cek&#39; {0} harus berupa &#39;0&#39; atau &#39;1&#39;"
 
-#: frappe/core/doctype/doctype/doctype.py:1452
+#: frappe/core/doctype/doctype/doctype.py:1461
 msgid "Default value for {0} must be in the list of options."
 msgstr "Nilai bawaan untuk {0} harus ada di daftar opsi."
 
@@ -7285,7 +7294,7 @@ msgstr "Tertunda"
 #: frappe/public/js/frappe/form/grid.js:88
 #: frappe/public/js/frappe/form/grid_row_form.js:62
 #: frappe/public/js/frappe/form/toolbar.js:500
-#: frappe/public/js/frappe/views/reports/report_view.js:1854
+#: frappe/public/js/frappe/views/reports/report_view.js:1855
 #: frappe/public/js/frappe/views/treeview.js:338
 #: frappe/public/js/frappe/web_form/web_form_list.js:283
 #: frappe/templates/discussions/reply_card.html:35
@@ -7293,7 +7302,7 @@ msgstr "Tertunda"
 msgid "Delete"
 msgstr "Hapus"
 
-#: frappe/public/js/frappe/list/list_view.js:2289
+#: frappe/public/js/frappe/list/list_view.js:2308
 msgctxt "Button in list view actions menu"
 msgid "Delete"
 msgstr "Hapus"
@@ -7344,7 +7353,7 @@ msgstr "Hapus semua"
 msgid "Delete all {0} rows"
 msgstr "Hapus semua {0} baris"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:978
+#: frappe/public/js/frappe/views/reports/query_report.js:979
 msgid "Delete and Generate New"
 msgstr "Hapus dan buat baru"
 
@@ -7390,12 +7399,12 @@ msgstr "Hapus tab"
 msgid "Delete this record to allow sending to this email address"
 msgstr "Hapus data ini untuk bisa mengirim ke alamat surel ini"
 
-#: frappe/public/js/frappe/list/list_view.js:2294
+#: frappe/public/js/frappe/list/list_view.js:2313
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} item permanently?"
 msgstr "Hapus {0} item secara permanen?"
 
-#: frappe/public/js/frappe/list/list_view.js:2300
+#: frappe/public/js/frappe/list/list_view.js:2319
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} items permanently?"
 msgstr "Hapus {0} item secara permanen?"
@@ -7436,7 +7445,7 @@ msgstr "Nama yang Dihapus"
 msgid "Deleted!"
 msgstr "Dihapus!"
 
-#: frappe/desk/reportview.py:631
+#: frappe/desk/reportview.py:676
 msgid "Deleting {0}"
 msgstr "Menghapus {0}"
 
@@ -7816,7 +7825,7 @@ msgstr "Nonaktifkan pendaftaran"
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
 #: frappe/core/doctype/report/report.json frappe/core/doctype/role/role.json
 #: frappe/core/doctype/server_script/server_script.json
-#: frappe/core/doctype/user/user_list.js:14
+#: frappe/core/doctype/user/user_list.js:17
 #: frappe/printing/doctype/letter_head/letter_head.json
 #: frappe/printing/doctype/print_format/print_format.json
 #: frappe/printing/doctype/print_style/print_style.json
@@ -7835,7 +7844,7 @@ msgstr "Balas Otomatis Dinonaktifkan"
 #: frappe/desk/page/desktop/desktop.html:62
 #: frappe/public/js/frappe/form/toolbar.js:392
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:71
-#: frappe/public/js/frappe/views/workspace/workspace.js:376
+#: frappe/public/js/frappe/views/workspace/workspace.js:371
 #: frappe/public/js/frappe/web_form/web_form.js:189
 msgid "Discard"
 msgstr "Membuang"
@@ -7932,7 +7941,7 @@ msgstr "Jangan buat pengguna baru jika pengguna dengan surel tidak ada di sistem
 msgid "Do not edit headers which are preset in the template"
 msgstr "Jangan edit header yang sudah ada di template"
 
-#: frappe/public/js/frappe/router.js:629
+#: frappe/public/js/frappe/router.js:612
 msgid "Do not warn me again about {0}"
 msgstr "Jangan peringatkan saya lagi tentang {0}"
 
@@ -8042,7 +8051,7 @@ msgstr "DocStatus dari status berikut telah berubah:<br><strong>{0}</strong><br>
 msgid "DocType"
 msgstr "DOCTYPE"
 
-#: frappe/core/doctype/doctype/doctype.py:1640
+#: frappe/core/doctype/doctype/doctype.py:1649
 msgid "DocType <b>{0}</b> provided for the field <b>{1}</b> must have atleast one Link field"
 msgstr "DocType <b>{0} yang</b> disediakan untuk bidang <b>{1}</b> harus memiliki minimal satu bidang Tautan"
 
@@ -8093,11 +8102,11 @@ msgstr "Status DocType"
 msgid "DocType View"
 msgstr "Tampilan DocType"
 
-#: frappe/core/doctype/doctype/doctype.py:671
+#: frappe/core/doctype/doctype/doctype.py:680
 msgid "DocType can not be merged"
 msgstr "DocType tidak dapat digabungkan"
 
-#: frappe/core/doctype/doctype/doctype.py:665
+#: frappe/core/doctype/doctype/doctype.py:674
 msgid "DocType can only be renamed by Administrator"
 msgstr "DOCTYPE hanya dapat diganti oleh Administrator"
 
@@ -8135,7 +8144,7 @@ msgstr "DocType {0} tidak ada."
 msgid "DocType {} not found"
 msgstr "DOCTYPE {} tidak ditemukan"
 
-#: frappe/core/doctype/doctype/doctype.py:1056
+#: frappe/core/doctype/doctype/doctype.py:1065
 msgid "DocType's name should not start or end with whitespace"
 msgstr "Nama DocType tidak boleh dimulai atau diakhiri dengan spasi"
 
@@ -8149,7 +8158,7 @@ msgstr "DOCTYPE tidak dapat diubah, silakan gunakan {0} sebagai gantinya"
 msgid "Doctype"
 msgstr "DOCTYPE"
 
-#: frappe/core/doctype/doctype/doctype.py:1050
+#: frappe/core/doctype/doctype/doctype.py:1059
 msgid "Doctype name is limited to {0} characters ({1})"
 msgstr "Nama DOCTYPE dibatasi hingga {0} karakter ({1})"
 
@@ -8211,19 +8220,19 @@ msgstr "Penautan Dokumen"
 msgid "Document Links"
 msgstr "Tautan Dokumen"
 
-#: frappe/core/doctype/doctype/doctype.py:1263
+#: frappe/core/doctype/doctype/doctype.py:1272
 msgid "Document Links Row #{0}: Could not find field {1} in {2} DocType"
 msgstr "Tautan Dokumen baris #{0}: Tidak dapat menemukan bidang {1} di DOCTYPE {2}"
 
-#: frappe/core/doctype/doctype/doctype.py:1283
+#: frappe/core/doctype/doctype/doctype.py:1292
 msgid "Document Links Row #{0}: Invalid doctype or fieldname."
 msgstr "Tautan Dokumen baris #{0}: DOCTYPE atau nama bidang tidak valid."
 
-#: frappe/core/doctype/doctype/doctype.py:1246
+#: frappe/core/doctype/doctype/doctype.py:1255
 msgid "Document Links Row #{0}: Parent DocType is mandatory for internal links"
 msgstr "Tautan Dokumen baris #{0}: DOCTYPE Induk wajib untuk tautan internal"
 
-#: frappe/core/doctype/doctype/doctype.py:1252
+#: frappe/core/doctype/doctype/doctype.py:1261
 msgid "Document Links Row #{0}: Table Fieldname is mandatory for internal links"
 msgstr "Baris Tautan Dokumen #{0}: Nama Bidang Tabel wajib diisi untuk tautan internal"
 
@@ -8418,7 +8427,7 @@ msgid "Document Types and Permissions"
 msgstr "Jenis Dokumen dan Izin"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
-#: frappe/model/document.py:2312
+#: frappe/model/document.py:2315
 msgid "Document Unlocked"
 msgstr "Dokumen Dibuka Kuncinya"
 
@@ -8430,15 +8439,15 @@ msgstr "Dokumen tidak dapat digunakan sebagai nilai filter"
 msgid "Document follow is not enabled for this user."
 msgstr "Ikuti Dokumen tidak diaktifkan untuk pengguna ini."
 
-#: frappe/public/js/frappe/list/list_view.js:1351
+#: frappe/public/js/frappe/list/list_view.js:1370
 msgid "Document has been cancelled"
 msgstr "Dokumen telah dibatalkan"
 
-#: frappe/public/js/frappe/list/list_view.js:1350
+#: frappe/public/js/frappe/list/list_view.js:1369
 msgid "Document has been submitted"
 msgstr "Dokumen telah dikirim"
 
-#: frappe/public/js/frappe/list/list_view.js:1349
+#: frappe/public/js/frappe/list/list_view.js:1368
 msgid "Document is in draft state"
 msgstr "Dokumen dalam status draf"
 
@@ -8579,7 +8588,7 @@ msgstr "Donat"
 msgid "Double click to edit label"
 msgstr "Klik dua kali untuk mengedit label"
 
-#: frappe/core/doctype/file/file.js:17 frappe/core/doctype/user/user.js:489
+#: frappe/core/doctype/file/file.js:17 frappe/core/doctype/user/user.js:491
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:8
 #: frappe/public/js/frappe/form/grid.js:110
 msgid "Download"
@@ -8610,7 +8619,7 @@ msgstr "Unduh Tautan"
 msgid "Download PDF"
 msgstr "Unduh PDF"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:887
+#: frappe/public/js/frappe/views/reports/query_report.js:888
 msgid "Download Report"
 msgstr "Unduh Laporan"
 
@@ -8830,8 +8839,8 @@ msgstr ""
 #: frappe/public/js/frappe/form/templates/contact_list.html:13
 #: frappe/public/js/frappe/form/toolbar.js:214
 #: frappe/public/js/frappe/form/toolbar.js:791
-#: frappe/public/js/frappe/views/reports/query_report.js:913
-#: frappe/public/js/frappe/views/reports/query_report.js:1928
+#: frappe/public/js/frappe/views/reports/query_report.js:914
+#: frappe/public/js/frappe/views/reports/query_report.js:1924
 #: frappe/public/js/frappe/widgets/base_widget.js:65
 #: frappe/public/js/frappe/widgets/chart_widget.js:304
 #: frappe/public/js/frappe/widgets/number_card_widget.js:365
@@ -8842,7 +8851,7 @@ msgstr ""
 msgid "Edit"
 msgstr "Sunting"
 
-#: frappe/public/js/frappe/list/list_view.js:2375
+#: frappe/public/js/frappe/list/list_view.js:2394
 msgctxt "Button in list view actions menu"
 msgid "Edit"
 msgstr "Sunting"
@@ -8881,7 +8890,7 @@ msgstr "Mengedit Custom HTML"
 msgid "Edit DocType"
 msgstr "mengedit DocType"
 
-#: frappe/public/js/frappe/list/list_view.js:2007
+#: frappe/public/js/frappe/list/list_view.js:2026
 msgctxt "Button in list view menu"
 msgid "Edit DocType"
 msgstr "mengedit DocType"
@@ -8961,6 +8970,10 @@ msgstr "Sunting Properti"
 msgid "Edit Quick List"
 msgstr "Sunting Daftar Cepat"
 
+#: frappe/printing/page/print_format_builder/print_format_builder.js:414
+msgid "Edit Section"
+msgstr ""
+
 #: frappe/public/js/frappe/widgets/widget_dialog.js:40
 msgid "Edit Shortcut"
 msgstr "Sunting Pintasan"
@@ -8992,7 +9005,7 @@ msgstr "Sunting DOCTYPE {0}"
 msgid "Edit to add content"
 msgstr "Edit untuk menambahkan konten"
 
-#: frappe/public/js/frappe/web_form/web_form.js:468
+#: frappe/public/js/frappe/web_form/web_form.js:470
 msgctxt "Button in web form"
 msgid "Edit your response"
 msgstr "Sunting tanggapan Anda"
@@ -9001,7 +9014,7 @@ msgstr "Sunting tanggapan Anda"
 msgid "Edit your workflow visually using the Workflow Builder."
 msgstr "Sunting Alur Kerja Anda secara visual menggunakan Workflow Builder."
 
-#: frappe/public/js/frappe/views/reports/report_view.js:775
+#: frappe/public/js/frappe/views/reports/report_view.js:776
 #: frappe/public/js/frappe/widgets/widget_dialog.js:52
 msgid "Edit {0}"
 msgstr "Sunting {0}"
@@ -9320,7 +9333,7 @@ msgstr "Email telah ditandai sebagai spam"
 msgid "Email has been moved to trash"
 msgstr "Email telah dipindahkan ke sampah"
 
-#: frappe/core/doctype/user/user.js:277
+#: frappe/core/doctype/user/user.js:279
 msgid "Email is mandatory to create User Email"
 msgstr "Email wajib diisi untuk membuat Email Pengguna"
 
@@ -9375,7 +9388,7 @@ msgstr "Email akan dikirim dengan tindakan alur kerja berikutnya yang memungkink
 msgid "Embed code copied"
 msgstr "Kode sematan disalin"
 
-#: frappe/database/query.py:2452
+#: frappe/database/query.py:2458
 msgid "Empty alias is not allowed"
 msgstr "Alias kosong tidak diizinkan"
 
@@ -9383,7 +9396,7 @@ msgstr "Alias kosong tidak diizinkan"
 msgid "Empty column"
 msgstr "Kosongkan kolom"
 
-#: frappe/database/query.py:2393
+#: frappe/database/query.py:2399
 msgid "Empty string arguments are not allowed"
 msgstr "Argumen string kosong tidak diizinkan"
 
@@ -9814,7 +9827,7 @@ msgstr "Sama dengan"
 msgid "Error"
 msgstr "Kesalahan"
 
-#: frappe/public/js/frappe/web_form/web_form.js:260
+#: frappe/public/js/frappe/web_form/web_form.js:262
 msgctxt "Title of error message in web form"
 msgid "Error"
 msgstr "Kesalahan"
@@ -9870,7 +9883,7 @@ msgstr "Kesalahan dalam Skrip Header/Footer"
 msgid "Error in Notification"
 msgstr "Kesalahan dalam Notifikasi"
 
-#: frappe/utils/pdf.py:60
+#: frappe/utils/pdf.py:79
 msgid "Error in print format on line {0}: {1}"
 msgstr "Kesalahan dalam format cetak pada baris {0}: {1}"
 
@@ -9974,7 +9987,7 @@ msgstr "Tipe Acara"
 msgid "Events"
 msgstr "Acara"
 
-#: frappe/desk/doctype/event/event.py:327
+#: frappe/desk/doctype/event/event.py:333
 msgid "Events in Today's Calendar"
 msgstr "Acara Dalam Kalender Hari ini"
 
@@ -10067,7 +10080,7 @@ msgstr "Menjalankan Kode"
 msgid "Executing..."
 msgstr "Menjalankan..."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2296
+#: frappe/public/js/frappe/views/reports/query_report.js:2292
 msgid "Execution Time: {0} sec"
 msgstr "Waktu Eksekusi: {0} dtk"
 
@@ -10088,7 +10101,7 @@ msgctxt "Enlarge code field."
 msgid "Expand"
 msgstr "Memperluas"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2278
+#: frappe/public/js/frappe/views/reports/query_report.js:2274
 #: frappe/public/js/frappe/views/treeview.js:134
 msgid "Expand All"
 msgstr "Melebarkan semua"
@@ -10162,13 +10175,13 @@ msgstr "Waktu kedaluwarsa Halaman Gambar Kode QR"
 #: frappe/core/page/permission_manager/permission_manager_help.html:66
 #: frappe/public/js/frappe/data_import/data_exporter.js:92
 #: frappe/public/js/frappe/data_import/data_exporter.js:247
-#: frappe/public/js/frappe/views/reports/query_report.js:1972
-#: frappe/public/js/frappe/views/reports/report_view.js:1734
+#: frappe/public/js/frappe/views/reports/query_report.js:1968
+#: frappe/public/js/frappe/views/reports/report_view.js:1735
 #: frappe/public/js/frappe/widgets/chart_widget.js:320
 msgid "Export"
 msgstr "Ekspor"
 
-#: frappe/public/js/frappe/list/list_view.js:2417
+#: frappe/public/js/frappe/list/list_view.js:2436
 msgctxt "Button in list view actions menu"
 msgid "Export"
 msgstr "Ekspor"
@@ -10212,11 +10225,11 @@ msgstr "Laporan Ekspor: {0}"
 msgid "Export Type"
 msgstr "Jenis ekspor"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1745
+#: frappe/public/js/frappe/views/reports/report_view.js:1746
 msgid "Export all matching rows?"
 msgstr "Ekspor semua baris yang cocok?"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1755
+#: frappe/public/js/frappe/views/reports/report_view.js:1756
 msgid "Export all {0} rows?"
 msgstr "Ekspor semua {0} baris?"
 
@@ -10290,7 +10303,7 @@ msgstr "Eksternal"
 
 #. Label of the external_link (Data) field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
-#: frappe/public/js/frappe/views/workspace/workspace.js:452
+#: frappe/public/js/frappe/views/workspace/workspace.js:447
 msgid "External Link"
 msgstr "Tautan Eksternal"
 
@@ -10393,7 +10406,7 @@ msgstr "Gagal mendekripsi kunci {0}"
 msgid "Failed to delete communication"
 msgstr "Gagal menghapus komunikasi"
 
-#: frappe/desk/reportview.py:648
+#: frappe/desk/reportview.py:693
 msgid "Failed to delete {0} documents: {1}"
 msgstr "Gagal menghapus {0} dokumen: {1}"
 
@@ -10554,7 +10567,7 @@ msgstr "Mengambil kolom dari {0}..."
 #: frappe/public/js/frappe/list/bulk_operations.js:327
 #: frappe/public/js/frappe/list/list_view_permission_restrictions.html:3
 #: frappe/public/js/frappe/views/reports/query_report.js:237
-#: frappe/public/js/frappe/views/reports/query_report.js:2031
+#: frappe/public/js/frappe/views/reports/query_report.js:2027
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json
 msgid "Field"
@@ -10564,7 +10577,7 @@ msgstr "Bidang"
 msgid "Field \"route\" is mandatory for Web Views"
 msgstr "Bidang &quot;rute&quot; adalah wajib untuk Tampilan Web"
 
-#: frappe/core/doctype/doctype/doctype.py:1589
+#: frappe/core/doctype/doctype/doctype.py:1598
 msgid "Field \"title\" is mandatory if \"Website Search Field\" is set."
 msgstr "Bidang \"title\" wajib diisi jika \"Website Search Field\" telah diatur."
 
@@ -10581,7 +10594,7 @@ msgstr "Bidang <code>{0}</code> tidak ditemukan di {1}"
 msgid "Field Description"
 msgstr "Deskripsi bidang"
 
-#: frappe/core/doctype/doctype/doctype.py:1129
+#: frappe/core/doctype/doctype/doctype.py:1138
 msgid "Field Missing"
 msgstr "Bidang tidak ditemukan"
 
@@ -10637,7 +10650,7 @@ msgstr "Bidang {0} tidak ada pada {1}"
 msgid "Field {0} is referring to non-existing doctype {1}."
 msgstr "Bidang {0} merujuk ke DOCTYPE yang tidak ada {1}."
 
-#: frappe/core/doctype/doctype/doctype.py:1717
+#: frappe/core/doctype/doctype/doctype.py:1726
 msgid "Field {0} must be a virtual field to support virtual doctype."
 msgstr "Bidang {0} harus merupakan bidang virtual untuk mendukung DOCTYPE virtual."
 
@@ -10672,7 +10685,7 @@ msgstr "Nama Bidang"
 msgid "Fieldname '{0}' conflicting with a {1} of the name {2} in {3}"
 msgstr "Nama field '{0}' bertentangan dengan {1} bernama {2} di {3}"
 
-#: frappe/core/doctype/doctype/doctype.py:1128
+#: frappe/core/doctype/doctype/doctype.py:1137
 msgid "Fieldname called {0} must exist to enable autonaming"
 msgstr "Nama field {0} harus ada untuk mengaktifkan penamaan otomatis"
 
@@ -10696,7 +10709,7 @@ msgstr "Nama field {0} muncul beberapa kali"
 msgid "Fieldname {0} cannot have special characters like {1}"
 msgstr "Fieldname {0} tidak dapat memiliki karakter khusus seperti {1}"
 
-#: frappe/core/doctype/doctype/doctype.py:2040
+#: frappe/core/doctype/doctype/doctype.py:2049
 msgid "Fieldname {0} conflicting with meta object"
 msgstr "Fieldname {0} bertentangan dengan objek meta"
 
@@ -11017,7 +11030,7 @@ msgstr "Filter akan dapat diakses melalui <code>filters</code>. <br><br>Kirim ou
 msgid "Filters {0}"
 msgstr ""
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1523
+#: frappe/public/js/frappe/views/reports/report_view.js:1524
 msgid "Filters:"
 msgstr "Filter:"
 
@@ -11120,11 +11133,11 @@ msgstr "Presisi desimal"
 msgid "Fold"
 msgstr "Lipat"
 
-#: frappe/core/doctype/doctype/doctype.py:1513
+#: frappe/core/doctype/doctype/doctype.py:1522
 msgid "Fold can not be at the end of the form"
 msgstr "Lipat tidak bisa di akhir formulir"
 
-#: frappe/core/doctype/doctype/doctype.py:1511
+#: frappe/core/doctype/doctype/doctype.py:1520
 msgid "Fold must come before a Section Break"
 msgstr "Lipat harus datang sebelum Bagian istirahat"
 
@@ -11174,11 +11187,11 @@ msgstr "Mengikuti dokumen {0}"
 msgid "Following documents are linked with {0}"
 msgstr "Dokumen berikut terkait dengan {0}"
 
-#: frappe/website/doctype/web_form/web_form.py:111
+#: frappe/website/doctype/web_form/web_form.py:114
 msgid "Following fields are missing:"
 msgstr "bidang berikut yang hilang:"
 
-#: frappe/public/js/frappe/ui/field_group.js:181
+#: frappe/public/js/frappe/ui/field_group.js:184
 msgid "Following fields have invalid values:"
 msgstr "Kolom berikut memiliki nilai yang tidak valid:"
 
@@ -11186,7 +11199,7 @@ msgstr "Kolom berikut memiliki nilai yang tidak valid:"
 msgid "Following fields have missing values"
 msgstr "Kolom berikut memiliki nilai yang hilang"
 
-#: frappe/public/js/frappe/ui/field_group.js:168
+#: frappe/public/js/frappe/ui/field_group.js:171
 msgid "Following fields have missing values:"
 msgstr "bidang berikut memiliki nilai yang hilang:"
 
@@ -11354,7 +11367,7 @@ msgid "For comparison, use >5, <10 or =324.\n"
 msgstr "Untuk perbandingan, gunakan >5, <10 atau =324.\n"
 "Untuk rentang, gunakan 5:10 (untuk nilai antara 5 & 10)."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2293
+#: frappe/public/js/frappe/views/reports/query_report.js:2289
 msgid "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
 msgstr "Untuk perbandingan, gunakan&gt; 5, &lt;10 atau = 324. Untuk rentang, gunakan 5:10 (untuk nilai antara 5 &amp; 10)."
 
@@ -11391,7 +11404,7 @@ msgstr "Untuk beberapa alamat, masukkan alamat pada baris yang berbeda. cth. tes
 msgid "For updating, you can update only selective columns."
 msgstr "Untuk memperbarui, Anda hanya dapat memperbarui kolom tertentu."
 
-#: frappe/core/doctype/doctype/doctype.py:1834
+#: frappe/core/doctype/doctype/doctype.py:1843
 msgid "For {0} at level {1} in {2} in row {3}"
 msgstr "Untuk {0} pada tingkat {1} dalam {2} berturut-turut {3}"
 
@@ -11541,7 +11554,7 @@ msgstr ""
 #. Login Key'
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
 #: frappe/www/login.html:67 frappe/www/login.html:166 frappe/www/login.py:50
-#: frappe/www/login.py:146
+#: frappe/www/login.py:147
 msgid "Frappe"
 msgstr "Frape"
 
@@ -11647,7 +11660,7 @@ msgstr "Dari Tanggal"
 msgid "From Date Field"
 msgstr "Dari Bidang Tanggal"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1992
+#: frappe/public/js/frappe/views/reports/query_report.js:1988
 msgid "From Document Type"
 msgstr "Dari Jenis Dokumen"
 
@@ -11714,7 +11727,7 @@ msgstr "Fungsi Berdasarkan"
 msgid "Function {0} is not whitelisted."
 msgstr "Fungsi {0} tidak diizinkan."
 
-#: frappe/database/query.py:2297
+#: frappe/database/query.py:2303
 msgid "Function {0} requires arguments but none were provided"
 msgstr "Fungsi {0} memerlukan argumen tetapi tidak ada yang diberikan"
 
@@ -11779,7 +11792,7 @@ msgstr "Umum"
 msgid "Generate Keys"
 msgstr "Buat Kunci"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:907
+#: frappe/public/js/frappe/views/reports/query_report.js:908
 msgid "Generate New Report"
 msgstr "Hasilkan Laporan Baru"
 
@@ -11793,7 +11806,7 @@ msgstr "Buat kata sandi acak"
 msgid "Generate Separate Documents For Each Assignee"
 msgstr "Buat Dokumen Terpisah Untuk Setiap Penerima Tugas"
 
-#: frappe/public/js/frappe/ui/sidebar/sidebar.js:524
+#: frappe/public/js/frappe/ui/sidebar/sidebar.js:538
 #: frappe/public/js/frappe/utils/utils.js:2109
 msgid "Generate Tracking URL"
 msgstr "Buat URL Pelacakan"
@@ -12567,7 +12580,7 @@ msgstr "Tersembunyi"
 msgid "Hidden Fields"
 msgstr "Bidang Tersembunyi"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1777
+#: frappe/public/js/frappe/views/reports/query_report.js:1774
 msgid "Hidden columns include: <br> {0}"
 msgstr "Kolom tersembunyi meliputi: <br> {0}"
 
@@ -12830,16 +12843,16 @@ msgstr ""
 #: frappe/public/js/frappe/data_import/data_exporter.js:371
 #: frappe/public/js/frappe/data_import/data_exporter.js:386
 #: frappe/public/js/frappe/list/list_settings.js:340
-#: frappe/public/js/frappe/list/list_view.js:408
-#: frappe/public/js/frappe/list/list_view.js:472
-#: frappe/public/js/frappe/list/list_view.js:2467
+#: frappe/public/js/frappe/list/list_view.js:427
+#: frappe/public/js/frappe/list/list_view.js:491
+#: frappe/public/js/frappe/list/list_view.js:2486
 #: frappe/public/js/frappe/model/meta.js:208
 #: frappe/public/js/frappe/model/model.js:122
 msgid "ID"
 msgstr ""
 
-#: frappe/desk/reportview.py:533
-#: frappe/public/js/frappe/views/reports/report_view.js:1078
+#: frappe/desk/reportview.py:564
+#: frappe/public/js/frappe/views/reports/report_view.js:1079
 msgctxt "Label of name column in report"
 msgid "ID"
 msgstr ""
@@ -12919,7 +12932,7 @@ msgstr "Alamat IP"
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 #: frappe/integrations/doctype/social_login_key/social_login_key.json
-#: frappe/public/js/frappe/views/workspace/workspace.js:484
+#: frappe/public/js/frappe/views/workspace/workspace.js:479
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Icon"
@@ -12975,7 +12988,7 @@ msgstr "Jika Terapkan Izin Pengguna Ketat dicentang dan Izin Pengguna didefinisi
 msgid "If Checked workflow status will not override status in list view"
 msgstr "Jika dicentang, status alur kerja tidak akan menimpa status dalam tampilan daftar"
 
-#: frappe/core/doctype/doctype/doctype.py:1846
+#: frappe/core/doctype/doctype/doctype.py:1855
 #: frappe/core/report/user_doctype_permissions/user_doctype_permissions.py:45
 #: frappe/public/js/frappe/roles_editor.js:103
 msgid "If Owner"
@@ -13129,7 +13142,7 @@ msgstr "Jika pengguna memiliki peran yang dicentang, maka pengguna menjadi \"Sys
 msgid "If these instructions where not helpful, please add in your suggestions on GitHub Issues."
 msgstr "Jika petunjuk ini tidak bermanfaat, silakan tambahkan saran Anda di GitHub Issues."
 
-#: frappe/core/doctype/user/user.py:1181
+#: frappe/core/doctype/user/user.py:1189
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
 msgstr "Jika email ini terdaftar pada kami, kami telah mengirimkan petunjuk reset kata sandi ke email tersebut. Silakan periksa kotak masuk Anda."
 
@@ -13297,11 +13310,11 @@ msgstr "Tampilan Gambar"
 msgid "Image Width (px)"
 msgstr "Lebar Gambar (px)"
 
-#: frappe/core/doctype/doctype/doctype.py:1569
+#: frappe/core/doctype/doctype/doctype.py:1578
 msgid "Image field must be a valid fieldname"
 msgstr "bidang gambar harus fieldname valid"
 
-#: frappe/core/doctype/doctype/doctype.py:1571
+#: frappe/core/doctype/doctype/doctype.py:1580
 msgid "Image field must be of type Attach Image"
 msgstr "bidang gambar harus dari jenis Lampirkan gambar"
 
@@ -13323,11 +13336,11 @@ msgstr "Gambar"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json
-#: frappe/core/doctype/user/user.js:383
+#: frappe/core/doctype/user/user.js:385
 msgid "Impersonate"
 msgstr "Menyamar"
 
-#: frappe/core/doctype/user/user.js:410
+#: frappe/core/doctype/user/user.js:412
 msgid "Impersonate as {0}"
 msgstr "Menyamar sebagai {0}"
 
@@ -13358,7 +13371,7 @@ msgstr "Implisit"
 msgid "Import"
 msgstr "Impor"
 
-#: frappe/public/js/frappe/list/list_view.js:1952
+#: frappe/public/js/frappe/list/list_view.js:1971
 msgctxt "Button in list view menu"
 msgid "Import"
 msgstr "Impor"
@@ -13581,15 +13594,15 @@ msgid "Include Web View Link in Email"
 msgstr "Sertakan tautan tampilan web di Surel"
 
 #: frappe/public/js/frappe/form/print_utils.js:73
-#: frappe/public/js/frappe/views/reports/query_report.js:1751
+#: frappe/public/js/frappe/views/reports/query_report.js:1748
 msgid "Include filters"
 msgstr "Sertakan filter"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1773
+#: frappe/public/js/frappe/views/reports/query_report.js:1770
 msgid "Include hidden columns"
 msgstr "Sertakan kolom tersembunyi"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1743
+#: frappe/public/js/frappe/views/reports/query_report.js:1740
 msgid "Include indentation"
 msgstr "Termasuk lekukan"
 
@@ -13640,7 +13653,7 @@ msgstr "Implementasi Virtual Doctype tidak lengkap"
 msgid "Incomplete login details"
 msgstr "Rincian login tidak lengkap"
 
-#: frappe/email/smtp.py:109
+#: frappe/email/smtp.py:110
 msgid "Incorrect Configuration"
 msgstr "Konfigurasi Salah"
 
@@ -13660,11 +13673,11 @@ msgstr "Kode Verifikasi salah"
 msgid "Incorrect configuration"
 msgstr "Konfigurasi tidak benar"
 
-#: frappe/model/document.py:1901
+#: frappe/model/document.py:1904
 msgid "Incorrect value in row {0}:"
 msgstr ""
 
-#: frappe/model/document.py:1903
+#: frappe/model/document.py:1906
 msgid "Incorrect value:"
 msgstr ""
 
@@ -13681,7 +13694,7 @@ msgstr "Indentasi"
 #: frappe/custom/doctype/custom_field/custom_field.json frappe/model/meta.py:55
 #: frappe/public/js/frappe/model/meta.js:211
 #: frappe/public/js/frappe/model/model.js:124
-#: frappe/public/js/frappe/views/reports/report_view.js:1099
+#: frappe/public/js/frappe/views/reports/report_view.js:1100
 msgid "Index"
 msgstr "Indeks"
 
@@ -13716,7 +13729,7 @@ msgstr "Indikator"
 msgid "Indicator Color"
 msgstr "Warna Indikator"
 
-#: frappe/public/js/frappe/views/workspace/workspace.js:489
+#: frappe/public/js/frappe/views/workspace/workspace.js:484
 msgid "Indicator color"
 msgstr "Warna indikator"
 
@@ -13758,7 +13771,7 @@ msgstr "Masukkan Di Atas"
 
 #. Label of the insert_after (Select) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2037
+#: frappe/public/js/frappe/views/reports/query_report.js:2033
 msgid "Insert After"
 msgstr "Masukkan Setelah"
 
@@ -13958,7 +13971,7 @@ msgstr "Tidak Valid"
 #: frappe/public/js/form_builder/utils.js:218
 #: frappe/public/js/frappe/form/grid_row.js:840
 #: frappe/public/js/frappe/form/layout.js:806
-#: frappe/public/js/frappe/views/reports/report_view.js:810
+#: frappe/public/js/frappe/views/reports/report_view.js:811
 msgid "Invalid \"depends_on\" expression"
 msgstr "Ekspresi &quot;depend_on&quot; tidak valid"
 
@@ -13986,11 +13999,11 @@ msgstr "Kode Tidak Valid. Silakan coba lagi."
 msgid "Invalid Condition: {}"
 msgstr "Kondisi Tidak Valid: {}"
 
-#: frappe/email/smtp.py:141
+#: frappe/email/smtp.py:142
 msgid "Invalid Credentials"
 msgstr "Kredensial tidak valid"
 
-#: frappe/email/smtp.py:143
+#: frappe/email/smtp.py:144
 msgid "Invalid Credentials for Email Account: {0}"
 msgstr "Kredensial Tidak Valid untuk Akun Email: {0}"
 
@@ -14010,8 +14023,8 @@ msgstr "DocType Tidak Valid: {0}"
 msgid "Invalid Doctype"
 msgstr "Doctype Tidak Valid"
 
-#: frappe/core/doctype/doctype/doctype.py:1326
 #: frappe/core/doctype/doctype/doctype.py:1335
+#: frappe/core/doctype/doctype/doctype.py:1344
 msgid "Invalid Fieldname"
 msgstr "Nama Bidang Tidak Valid"
 
@@ -14063,16 +14076,16 @@ msgstr "Seri Penamaan Tidak Valid: {}"
 msgid "Invalid Operation"
 msgstr "Operasi Tidak Valid"
 
-#: frappe/core/doctype/doctype/doctype.py:1704
-#: frappe/core/doctype/doctype/doctype.py:1712
+#: frappe/core/doctype/doctype/doctype.py:1713
+#: frappe/core/doctype/doctype/doctype.py:1721
 msgid "Invalid Option"
 msgstr "Opsi Tidak Valid"
 
-#: frappe/email/smtp.py:108
+#: frappe/email/smtp.py:109
 msgid "Invalid Outgoing Mail Server or Port: {0}"
 msgstr "Server Email Keluar atau Port Tidak Valid: {0}"
 
-#: frappe/email/doctype/auto_email_report/auto_email_report.py:208
+#: frappe/email/doctype/auto_email_report/auto_email_report.py:210
 msgid "Invalid Output Format"
 msgstr "Output Format valid"
 
@@ -14084,7 +14097,7 @@ msgstr "Override Tidak Valid"
 msgid "Invalid Parameters."
 msgstr "Parameter tidak valid."
 
-#: frappe/core/doctype/user/user.py:968 frappe/www/update-password.html:148
+#: frappe/core/doctype/user/user.py:973 frappe/www/update-password.html:148
 #: frappe/www/update-password.html:169 frappe/www/update-password.html:171
 #: frappe/www/update-password.html:272
 msgid "Invalid Password"
@@ -14103,7 +14116,7 @@ msgstr "Permintaan tidak valid"
 msgid "Invalid Search Field {0}"
 msgstr "Bidang Penelusuran Tidak Valid {0}"
 
-#: frappe/core/doctype/doctype/doctype.py:1266
+#: frappe/core/doctype/doctype/doctype.py:1275
 msgid "Invalid Table Fieldname"
 msgstr "Nama bidang tabel tidak valid"
 
@@ -14121,7 +14134,7 @@ msgstr "URL tidak valid"
 msgid "Invalid User Name or Support Password. Please rectify and try again."
 msgstr "Valid Nama Pengguna atau Dukungan Password. Harap memperbaiki dan coba lagi."
 
-#: frappe/public/js/frappe/ui/field_group.js:179
+#: frappe/public/js/frappe/ui/field_group.js:182
 msgid "Invalid Values"
 msgstr "Nilai tidak valid"
 
@@ -14133,7 +14146,7 @@ msgstr "Webhook Secret tidak valid"
 msgid "Invalid aggregate function"
 msgstr "Fungsi agregat tidak valid"
 
-#: frappe/database/query.py:2458
+#: frappe/database/query.py:2464
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
 msgstr "Format alias tidak valid: {0}. Alias harus berupa pengenal sederhana."
 
@@ -14141,13 +14154,17 @@ msgstr "Format alias tidak valid: {0}. Alias harus berupa pengenal sederhana."
 msgid "Invalid app"
 msgstr "Aplikasi tidak valid"
 
-#: frappe/database/query.py:2418 frappe/database/query.py:2434
+#: frappe/database/query.py:2424 frappe/database/query.py:2440
 msgid "Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
 msgstr "Format argumen tidak valid: {0}. Hanya literal string berkutip atau nama bidang sederhana yang diizinkan."
 
-#: frappe/database/query.py:2382
+#: frappe/database/query.py:2388
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
 msgstr "Tipe argumen tidak valid: {0}. Hanya string, angka, dict, dan None yang diizinkan."
+
+#: frappe/utils/response.py:289
+msgid "Invalid backup path"
+msgstr ""
 
 #: frappe/database/query.py:867
 msgid "Invalid characters in fieldname: {0}. Only letters, numbers, and underscores are allowed."
@@ -14165,7 +14182,7 @@ msgstr "Tipe kondisi tidak valid dalam filter bersarang: {0}"
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
 msgstr "Arah tidak valid dalam Urutkan Berdasarkan: {0}. Harus 'ASC' atau 'DESC'."
 
-#: frappe/model/document.py:1232 frappe/model/document.py:1246
+#: frappe/model/document.py:1235 frappe/model/document.py:1249
 msgid "Invalid docstatus"
 msgstr "docstatus tidak valid"
 
@@ -14181,7 +14198,7 @@ msgstr "Ekspresi tidak valid dalam Workflow Update Value: {0}"
 msgid "Invalid expression set in filter {0} ({1})"
 msgstr "Persamaan tidak valid ditetapkan dalam filter {0} ({1})"
 
-#: frappe/database/query.py:2185
+#: frappe/database/query.py:2191
 msgid "Invalid field format for SELECT: {0}. Field names must be simple, backticked, table-qualified, aliased, or '*'."
 msgstr "Format bidang tidak valid untuk PILIH: {0}. Nama bidang harus sederhana, dalam backtick, dikualifikasi tabel, dengan alias, atau '*'."
 
@@ -14189,7 +14206,7 @@ msgstr "Format bidang tidak valid untuk PILIH: {0}. Nama bidang harus sederhana,
 msgid "Invalid field format in {0}: {1}. Use 'field', 'link_field.field', or 'child_table.field'."
 msgstr "Format bidang tidak valid di {0}: {1}. Gunakan 'field', 'link_field.field', atau 'child_table.field'."
 
-#: frappe/utils/data.py:2302
+#: frappe/utils/data.py:2310
 msgid "Invalid field name {0}"
 msgstr "Nama bidang tidak valid {0}"
 
@@ -14197,7 +14214,7 @@ msgstr "Nama bidang tidak valid {0}"
 msgid "Invalid field type: {0}"
 msgstr "Jenis bidang tidak valid: {0}"
 
-#: frappe/core/doctype/doctype/doctype.py:1137
+#: frappe/core/doctype/doctype/doctype.py:1146
 msgid "Invalid fieldname '{0}' in autoname"
 msgstr "fieldname tidak valid &#39;{0}&#39; di autoname"
 
@@ -14217,7 +14234,7 @@ msgstr "Format bidang filter tidak valid: {0}. Gunakan 'fieldname' atau 'link_fi
 msgid "Invalid filter: {0}"
 msgstr "Filter tidak valid: {0}"
 
-#: frappe/database/query.py:2302
+#: frappe/database/query.py:2308
 msgid "Invalid function argument type: {0}. Only strings, numbers, lists, and None are allowed."
 msgstr "Jenis argumen fungsi tidak valid: {0}. Hanya string, angka, list, dan None yang diizinkan."
 
@@ -14246,7 +14263,7 @@ msgstr "Seri penamaan tidak valid {}: titik (.) tidak ada"
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
 msgstr "Seri penamaan tidak valid {}: titik (.) tidak ada sebelum placeholder numerik. Harap gunakan format seperti <b>ABCD.#####</b>."
 
-#: frappe/database/query.py:2374
+#: frappe/database/query.py:2380
 msgid "Invalid nested expression: dictionary must represent a function or operator"
 msgstr "Ekspresi bertingkat tidak valid: kamus harus mewakili fungsi atau operator"
 
@@ -14295,7 +14312,7 @@ msgstr "username dan password salah"
 msgid "Invalid value specified for UUID: {}"
 msgstr "Nilai tidak valid yang ditentukan untuk UUID: {}"
 
-#: frappe/public/js/frappe/web_form/web_form.js:249
+#: frappe/public/js/frappe/web_form/web_form.js:251
 msgctxt "Error message in web form"
 msgid "Invalid values for fields:"
 msgstr "Nilai tidak valid untuk kolom:"
@@ -14304,11 +14321,11 @@ msgstr "Nilai tidak valid untuk kolom:"
 msgid "Invalid wkhtmltopdf version"
 msgstr "Versi wkhtmltopdf tidak valid"
 
-#: frappe/core/doctype/doctype/doctype.py:1627
+#: frappe/core/doctype/doctype/doctype.py:1636
 msgid "Invalid {0} condition"
 msgstr "Kondisi {0} tidak valid"
 
-#: frappe/database/query.py:2263
+#: frappe/database/query.py:2269
 msgid "Invalid {0} dictionary format"
 msgstr "Format kamus {0} tidak valid"
 
@@ -14513,7 +14530,7 @@ msgstr "Publik"
 msgid "Is Published Field"
 msgstr "Bidang Terpublikasi"
 
-#: frappe/core/doctype/doctype/doctype.py:1578
+#: frappe/core/doctype/doctype/doctype.py:1587
 msgid "Is Published Field must be a valid fieldname"
 msgstr "Apakah Diterbitkan lapangan harus fieldname valid"
 
@@ -15165,11 +15182,11 @@ msgstr "90 Hari Terakhir"
 msgid "Last Active"
 msgstr "Terakhir Aktif"
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:161
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:163
 msgid "Last Edited by You"
 msgstr "Terakhir Diedit oleh Anda"
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:162
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:164
 msgid "Last Edited by {0}"
 msgstr "Terakhir Diedit oleh {0}"
 
@@ -15541,7 +15558,7 @@ msgstr "Menyukai"
 msgid "Liked By"
 msgstr "Dengan menyukai"
 
-#: frappe/public/js/frappe/list/list_view.js:785
+#: frappe/public/js/frappe/list/list_view.js:804
 msgid "Liked by me"
 msgstr "Disukai oleh saya"
 
@@ -15685,7 +15702,7 @@ msgstr "Judul Tautan"
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
-#: frappe/public/js/frappe/views/workspace/workspace.js:444
+#: frappe/public/js/frappe/views/workspace/workspace.js:439
 #: frappe/public/js/frappe/widgets/widget_dialog.js:281
 #: frappe/public/js/frappe/widgets/widget_dialog.js:427
 msgid "Link To"
@@ -15703,7 +15720,7 @@ msgstr "Tautkan Ke di Baris"
 #: frappe/desk/doctype/workspace/workspace.json
 #: frappe/desk/doctype/workspace_link/workspace_link.json
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
-#: frappe/public/js/frappe/views/workspace/workspace.js:436
+#: frappe/public/js/frappe/views/workspace/workspace.js:431
 #: frappe/public/js/frappe/widgets/widget_dialog.js:273
 msgid "Link Type"
 msgstr "Tipe Tautan"
@@ -15801,7 +15818,7 @@ msgstr "Daftar filter"
 msgid "List Settings"
 msgstr "Pengaturan Daftar"
 
-#: frappe/public/js/frappe/list/list_view.js:2105
+#: frappe/public/js/frappe/list/list_view.js:2124
 msgctxt "Button in list view menu"
 msgid "List Settings"
 msgstr "Pengaturan Daftar"
@@ -15870,9 +15887,9 @@ msgstr "Muat lebih banyak"
 #: frappe/public/js/frappe/form/controls/multicheck.js:13
 #: frappe/public/js/frappe/form/linked_with.js:14
 #: frappe/public/js/frappe/list/base_list.js:509
-#: frappe/public/js/frappe/list/list_view.js:386
+#: frappe/public/js/frappe/list/list_view.js:405
 #: frappe/public/js/frappe/ui/listing.html:16
-#: frappe/public/js/frappe/views/reports/query_report.js:1152
+#: frappe/public/js/frappe/views/reports/query_report.js:1153
 msgid "Loading"
 msgstr "Memuat"
 
@@ -15958,7 +15975,7 @@ msgstr "Masuk untuk mengakses halaman ini."
 msgid "Log out"
 msgstr "Keluar"
 
-#: frappe/handler.py:121
+#: frappe/handler.py:125
 msgid "Logged Out"
 msgstr "Keluar"
 
@@ -16011,7 +16028,7 @@ msgstr "Metode Masuk"
 msgid "Login Page"
 msgstr "Halaman Masuk"
 
-#: frappe/www/login.py:149
+#: frappe/www/login.py:150
 msgid "Login To {0}"
 msgstr "Masuk ke {0}"
 
@@ -16111,7 +16128,7 @@ msgstr "URL Logo"
 msgid "Logout"
 msgstr "Keluar"
 
-#: frappe/core/doctype/user/user.js:198
+#: frappe/core/doctype/user/user.js:200
 msgid "Logout All Sessions"
 msgstr "Keluar dari Semua Sesi"
 
@@ -16295,7 +16312,7 @@ msgstr "Wajib Tergantung Pada"
 msgid "Mandatory Depends On (JS)"
 msgstr "Wajib Tergantung Pada (JS)"
 
-#: frappe/website/doctype/web_form/web_form.py:536
+#: frappe/website/doctype/web_form/web_form.py:551
 msgid "Mandatory Information missing:"
 msgstr "Informasi wajib hilang:"
 
@@ -16315,7 +16332,7 @@ msgstr "bidang wajib yang dibutuhkan dalam tabel {0}, Row {1}"
 msgid "Mandatory fields required in {0}"
 msgstr "Bidang wajib yang dibutuhkan dalam {0}"
 
-#: frappe/public/js/frappe/web_form/web_form.js:254
+#: frappe/public/js/frappe/web_form/web_form.js:256
 msgctxt "Error message in web form"
 msgid "Mandatory fields required:"
 msgstr "Kolom wajib diperlukan:"
@@ -16499,7 +16516,7 @@ msgstr "Maks laporan surel otomatis per pengguna"
 msgid "Max signups allowed per hour"
 msgstr "Maksimal pendaftaran yang diizinkan per jam"
 
-#: frappe/core/doctype/doctype/doctype.py:1405
+#: frappe/core/doctype/doctype/doctype.py:1414
 msgid "Max width for type Currency is 100px in row {0}"
 msgstr "Max lebar untuk jenis mata uang adalah 100px berturut-turut {0}"
 
@@ -16848,7 +16865,7 @@ msgstr ""
 msgid "Missing DocType"
 msgstr "DOCTYPE tidak ditemukan"
 
-#: frappe/core/doctype/doctype/doctype.py:1589
+#: frappe/core/doctype/doctype/doctype.py:1598
 msgid "Missing Field"
 msgstr "Bidang tidak ditemukan"
 
@@ -16868,7 +16885,7 @@ msgstr "Izin tidak ditemukan"
 msgid "Missing Value"
 msgstr "Nilai tidak ditemukan"
 
-#: frappe/public/js/frappe/ui/field_group.js:166
+#: frappe/public/js/frappe/ui/field_group.js:169
 #: frappe/public/js/frappe/widgets/widget_dialog.js:374
 #: frappe/public/js/workflow_builder/store.js:101
 #: frappe/workflow/doctype/workflow/workflow.js:71
@@ -17230,11 +17247,11 @@ msgstr "Harus diapit dalam '()' dan menyertakan '{0}', yang merupakan placeholde
 msgid "Must be of type \"Attach Image\""
 msgstr "Harus berjenis \"Lampirkan Gambar\""
 
-#: frappe/desk/query_report.py:219
+#: frappe/desk/query_report.py:218
 msgid "Must have report permission to access this report."
 msgstr "Harus memiliki ijin laporan untuk mengakses laporan ini."
 
-#: frappe/core/doctype/report/report.py:174
+#: frappe/core/doctype/report/report.py:175
 msgid "Must specify a Query to run"
 msgstr "Harus menentukan Query untuk menjalankan"
 
@@ -17248,7 +17265,7 @@ msgid "Mx"
 msgstr ""
 
 #: frappe/templates/includes/web_sidebar.html:41
-#: frappe/website/doctype/web_form/web_form.py:525
+#: frappe/website/doctype/web_form/web_form.py:540
 #: frappe/website/doctype/website_settings/website_settings.py:181
 #: frappe/www/me.html:8 frappe/www/update_password.py:10
 msgid "My Account"
@@ -17408,12 +17425,12 @@ msgstr "Template Navbar"
 msgid "Navbar Template Values"
 msgstr "Nilai Template Navbar"
 
-#: frappe/public/js/frappe/list/list_view.js:1426
+#: frappe/public/js/frappe/list/list_view.js:1445
 msgctxt "Description of a list view shortcut"
 msgid "Navigate list down"
 msgstr "Navigasikan daftar ke bawah"
 
-#: frappe/public/js/frappe/list/list_view.js:1433
+#: frappe/public/js/frappe/list/list_view.js:1452
 msgctxt "Description of a list view shortcut"
 msgid "Navigate list up"
 msgstr "Navigasikan daftar ke atas"
@@ -17428,7 +17445,7 @@ msgstr "Navigasi ke konten utama"
 msgid "Navigation Settings"
 msgstr "Pengaturan Navigasi"
 
-#: frappe/public/js/frappe/list/list_view.js:509
+#: frappe/public/js/frappe/list/list_view.js:528
 msgid "Need Help?"
 msgstr "Butuh Bantuan?"
 
@@ -17436,7 +17453,7 @@ msgstr "Butuh Bantuan?"
 msgid "Need Workspace Manager role to edit private workspace of other users"
 msgstr "Diperlukan peran Manajer Ruang Kerja untuk mengedit ruang kerja pribadi pengguna lain"
 
-#: frappe/model/document.py:995
+#: frappe/model/document.py:998
 msgid "Negative Value"
 msgstr "Nilai Negatif"
 
@@ -17562,7 +17579,7 @@ msgstr "Kartu Angka Baru"
 msgid "New Onboarding"
 msgstr "Orientasi Baru"
 
-#: frappe/core/doctype/user/user.js:186 frappe/www/update-password.html:43
+#: frappe/core/doctype/user/user.js:188 frappe/www/update-password.html:43
 msgid "New Password"
 msgstr "Kata sandi Baru"
 
@@ -17576,7 +17593,7 @@ msgstr "Nama Format Cetak Baru"
 msgid "New Quick List"
 msgstr "Daftar Cepat Baru"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1480
+#: frappe/public/js/frappe/views/reports/report_view.js:1481
 msgid "New Report name"
 msgstr "New nama Laporan"
 
@@ -17602,7 +17619,7 @@ msgstr "Nilai Baru"
 msgid "New Workflow Name"
 msgstr "Nama Alur Kerja Baru"
 
-#: frappe/public/js/frappe/views/workspace/workspace.js:416
+#: frappe/public/js/frappe/views/workspace/workspace.js:411
 msgid "New Workspace"
 msgstr "Ruang Kerja Baru"
 
@@ -17631,7 +17648,7 @@ msgstr "Daftar string yang dipisahkan baris baru yang mewakili cara menghubungi 
 msgid "New password cannot be same as old password"
 msgstr "Kata sandi baru tidak boleh sama dengan kata sandi lama"
 
-#: frappe/core/doctype/user/user.py:965
+#: frappe/core/doctype/user/user.py:970
 msgid "New password cannot be the same as your current password. Please choose a different password."
 msgstr "Kata sandi baru tidak boleh sama dengan kata sandi Anda saat ini. Silakan pilih kata sandi yang berbeda."
 
@@ -17668,7 +17685,7 @@ msgstr "Nilai baru yang akan ditetapkan"
 #: frappe/public/js/frappe/views/breadcrumbs.js:232
 #: frappe/public/js/frappe/views/treeview.js:375
 #: frappe/public/js/frappe/widgets/widget_dialog.js:72
-#: frappe/website/doctype/web_form/web_form.py:441
+#: frappe/website/doctype/web_form/web_form.py:456
 msgid "New {0}"
 msgstr "{0} Baru"
 
@@ -17708,7 +17725,7 @@ msgstr "Surat edaran Manajer"
 #: frappe/public/js/frappe/web_form/web_form.js:94
 #: frappe/public/js/onboarding_tours/onboarding_tours.js:15
 #: frappe/public/js/onboarding_tours/onboarding_tours.js:240
-#: frappe/templates/includes/slideshow.html:38 frappe/website/utils.py:262
+#: frappe/templates/includes/slideshow.html:38 frappe/website/utils.py:267
 #: frappe/website/web_template/slideshow/slideshow.html:44
 msgid "Next"
 msgstr "Lanjut"
@@ -17864,7 +17881,7 @@ msgid "No Copy"
 msgstr "Tidak Disalin"
 
 #: frappe/core/doctype/data_export/exporter.py:163
-#: frappe/email/doctype/auto_email_report/auto_email_report.py:309
+#: frappe/email/doctype/auto_email_report/auto_email_report.py:311
 #: frappe/public/js/form_builder/components/controls/TableControl.vue:64
 #: frappe/public/js/frappe/data_import/import_preview.js:146
 #: frappe/public/js/frappe/form/multi_select_dialog.js:224
@@ -17944,7 +17961,7 @@ msgstr "Tidak Ada Nama Yang Ditentukan untuk {0}"
 msgid "No New notifications"
 msgstr "Tidak Ada Notifikasi Baru"
 
-#: frappe/core/doctype/doctype/doctype.py:1826
+#: frappe/core/doctype/doctype/doctype.py:1835
 msgid "No Permissions Specified"
 msgstr "Tidak ada izin yang ditentukan"
 
@@ -17996,7 +18013,7 @@ msgstr "Bidang pilihan tidak ditemukan"
 msgid "No Suggestions"
 msgstr "Tidak ada saran"
 
-#: frappe/desk/reportview.py:723
+#: frappe/desk/reportview.py:768 frappe/public/js/frappe/list/base_list.js:1051
 msgid "No Tags"
 msgstr "Tidak ada Tags"
 
@@ -18028,7 +18045,7 @@ msgstr "Tidak ada saran optimasi otomatis yang tersedia."
 msgid "No changes in document"
 msgstr "Tidak ada perubahan dalam dokumen"
 
-#: frappe/public/js/frappe/views/workspace/workspace.js:740
+#: frappe/public/js/frappe/views/workspace/workspace.js:735
 msgid "No changes made"
 msgstr "Tidak ada perubahan yang dilakukan"
 
@@ -18060,11 +18077,11 @@ msgstr "Tidak ada kontak yang tertaut ke dokumen"
 msgid "No currency fields in {0}"
 msgstr "Tidak ada kolom mata uang di {0}"
 
-#: frappe/desk/query_report.py:408
+#: frappe/desk/query_report.py:400
 msgid "No data to export"
 msgstr "Tidak ada data untuk diekspor"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1559
+#: frappe/public/js/frappe/views/reports/query_report.js:1556
 msgid "No data to perform this action"
 msgstr "Tidak ada data untuk melakukan tindakan ini"
 
@@ -18189,7 +18206,7 @@ msgstr "Tidak ada catatan yang akan diekspor"
 msgid "No rows"
 msgstr "Tidak ada baris"
 
-#: frappe/public/js/frappe/list/list_view.js:2434
+#: frappe/public/js/frappe/list/list_view.js:2453
 msgid "No rows selected"
 msgstr "Tidak ada baris yang dipilih"
 
@@ -18218,7 +18235,7 @@ msgstr "Tidak ada {0}"
 msgid "No {0} found"
 msgstr "Tidak ada {0} yang ditemukan"
 
-#: frappe/public/js/frappe/list/list_view.js:521
+#: frappe/public/js/frappe/list/list_view.js:540
 msgid "No {0} found with matching filters. Clear filters to see all {0}."
 msgstr "Tidak ada {0} yang ditemukan dengan filter yang cocok. Hapus filter untuk melihat semua {0}."
 
@@ -18270,7 +18287,7 @@ msgstr "Salinan Ternormalisasi"
 msgid "Normalized Query"
 msgstr "Kueri Ternormalisasi"
 
-#: frappe/core/doctype/user/user.py:1108 frappe/utils/oauth.py:301
+#: frappe/core/doctype/user/user.py:1116 frappe/utils/oauth.py:301
 msgid "Not Allowed"
 msgstr "Tidak Diizinkan"
 
@@ -18314,14 +18331,14 @@ msgstr "Tidak Boleh Kosong"
 
 #: frappe/__init__.py:554 frappe/app.py:389 frappe/desk/calendar.py:29
 #: frappe/public/js/frappe/web_form/webform_script.js:15
-#: frappe/website/doctype/web_form/web_form.py:786
+#: frappe/website/doctype/web_form/web_form.py:801
 #: frappe/website/page_renderers/not_permitted_page.py:22
-#: frappe/www/login.py:186 frappe/www/qrcode.py:22 frappe/www/qrcode.py:25
+#: frappe/www/login.py:195 frappe/www/qrcode.py:22 frappe/www/qrcode.py:25
 #: frappe/www/qrcode.py:37
 msgid "Not Permitted"
 msgstr "Tidak Diijinkan"
 
-#: frappe/desk/query_report.py:708
+#: frappe/desk/query_report.py:764
 msgid "Not Permitted to read {0}"
 msgstr "Tidak Diijinkan untuk membaca {0}"
 
@@ -18418,7 +18435,7 @@ msgstr "Tidak dalam Mode Pengembang! Diatur dalam site_config.json atau membuat 
 #: frappe/public/js/frappe/request.js:171
 #: frappe/public/js/frappe/request.js:176
 #: frappe/public/js/frappe/views/kanban/kanban_board.bundle.js:67
-#: frappe/utils/messages.py:173 frappe/website/doctype/web_form/web_form.py:799
+#: frappe/utils/messages.py:173 frappe/website/doctype/web_form/web_form.py:814
 #: frappe/website/js/website.js:97
 msgid "Not permitted"
 msgstr "Tidak diperbolehkan"
@@ -18460,7 +18477,7 @@ msgstr "Catatan: Zona waktu Etc memiliki tanda yang terbalik."
 msgid "Note: For best results,  images must be of the same size and width must be greater than height."
 msgstr "Catatan: Untuk hasil terbaik,  gambar harus berukuran sama dan lebar harus lebih besar dari tinggi."
 
-#: frappe/core/doctype/user/user.js:398
+#: frappe/core/doctype/user/user.js:400
 msgid "Note: This will be shared with user."
 msgstr "Catatan: Ini akan dibagikan dengan pengguna."
 
@@ -18503,7 +18520,7 @@ msgstr "Tidak ada yang diperbarui"
 #: frappe/core/doctype/communication/mixins.py:158
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 #: frappe/email/doctype/notification/notification.json
-#: frappe/public/js/frappe/ui/sidebar/sidebar.js:485
+#: frappe/public/js/frappe/ui/sidebar/sidebar.js:499
 #: frappe/workspace_sidebar/system.json
 msgid "Notification"
 msgstr "Pemberitahuan"
@@ -18598,7 +18615,7 @@ msgstr "Beritahu jika belum dibalas selama (dalam menit)"
 msgid "Notify users with a popup when they log in"
 msgstr "Beritahu pengguna dengan popup saat mereka masuk"
 
-#: frappe/public/js/frappe/form/controls/datetime.js:33
+#: frappe/public/js/frappe/form/controls/datetime.js:34
 #: frappe/public/js/frappe/form/controls/time.js:37
 msgid "Now"
 msgstr "Sekarang"
@@ -18988,7 +19005,7 @@ msgstr "Hanya Administrator dapat menghapus Antrian Surel"
 msgid "Only Administrator can edit"
 msgstr "Hanya Administrator dapat mengedit"
 
-#: frappe/core/doctype/report/report.py:77
+#: frappe/core/doctype/report/report.py:78
 msgid "Only Administrator can save a standard report. Please rename and save."
 msgstr "Hanya Administrator dapat menyimpan laporan standar. Silahkan mengubah nama dan simpan."
 
@@ -19001,11 +19018,15 @@ msgstr "Hanya Administrator yang diizinkan menggunakan Perekam"
 msgid "Only Allow Edit For"
 msgstr "Hanya izinkan penyuntingan untuk"
 
+#: frappe/desk/query_report.py:448
+msgid "Only CSV and Excel formats are supported for export"
+msgstr ""
+
 #: frappe/core/doctype/module_def/module_def.py:95
 msgid "Only Custom Modules can be renamed."
 msgstr "Hanya modul yang disesuaikan yang dapat diganti nama."
 
-#: frappe/core/doctype/doctype/doctype.py:1683
+#: frappe/core/doctype/doctype/doctype.py:1692
 msgid "Only Options allowed for Data field are:"
 msgstr "Hanya Opsi yang diperbolehkan untuk bidang Data adalah:"
 
@@ -19032,7 +19053,7 @@ msgstr "Hanya izinkan manajer sistem untuk mengunggah file publik"
 msgid "Only allowed to export customizations in developer mode"
 msgstr "Ekspor kustomisasi hanya diizinkan dalam mode pengembang"
 
-#: frappe/model/document.py:1585
+#: frappe/model/document.py:1588
 msgid "Only draft documents can be discarded"
 msgstr "Hanya dokumen draf yang dapat dibuang"
 
@@ -19063,7 +19084,7 @@ msgstr "Hanya laporan bertipe Pembuat Laporan yang dapat disunting"
 msgid "Only standard DocTypes are allowed to be customized from Customize Form."
 msgstr "Hanya DocTypes standar yang boleh disesuaikan dari Formulir Kustomisasi."
 
-#: frappe/model/delete_doc.py:283
+#: frappe/model/delete_doc.py:284
 msgid "Only the Administrator can delete a standard DocType."
 msgstr "Hanya Administrator yang dapat menghapus DocType standar."
 
@@ -19179,7 +19200,7 @@ msgstr "Buka di tab baru"
 msgid "Open in new tab"
 msgstr "Buka di tab baru"
 
-#: frappe/public/js/frappe/list/list_view.js:1479
+#: frappe/public/js/frappe/list/list_view.js:1498
 msgctxt "Description of a list view shortcut"
 msgid "Open list item"
 msgstr "Buka item daftar"
@@ -19231,11 +19252,11 @@ msgstr "Dibuka"
 msgid "Operation"
 msgstr "Operasi"
 
-#: frappe/utils/data.py:2233
+#: frappe/utils/data.py:2241
 msgid "Operator must be one of {0}"
 msgstr "Operator harus menjadi salah satu dari {0}"
 
-#: frappe/database/query.py:2330
+#: frappe/database/query.py:2336
 msgid "Operator {0} requires exactly 2 arguments (left and right operands)"
 msgstr "Operator {0} memerlukan tepat 2 argumen (operan kiri dan kanan)"
 
@@ -19261,7 +19282,7 @@ msgstr "Opsi 2"
 msgid "Option 3"
 msgstr "Opsi 3"
 
-#: frappe/core/doctype/doctype/doctype.py:1701
+#: frappe/core/doctype/doctype/doctype.py:1710
 msgid "Option {0} for field {1} is not a child table"
 msgstr "Opsi {0} untuk bidang {1} bukan tabel anak"
 
@@ -19295,7 +19316,7 @@ msgstr "Opsional: Peringatan akan dikirim jika ekspresi ini bernilai benar"
 msgid "Options"
 msgstr "Opsi"
 
-#: frappe/core/doctype/doctype/doctype.py:1429
+#: frappe/core/doctype/doctype/doctype.py:1438
 msgid "Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"
 msgstr "Jenis Options 'Dynamic Link' lapangan harus mengarah ke Link Field lain dengan pilihan sebagai 'DocType'"
 
@@ -19304,7 +19325,7 @@ msgstr "Jenis Options 'Dynamic Link' lapangan harus mengarah ke Link Field lain 
 msgid "Options Help"
 msgstr "Bantuan Opsi"
 
-#: frappe/core/doctype/doctype/doctype.py:1730
+#: frappe/core/doctype/doctype/doctype.py:1739
 msgid "Options for Rating field can range from 3 to 10"
 msgstr "Opsi untuk bidang Penilaian dapat berkisar dari 3 hingga 10"
 
@@ -19312,7 +19333,7 @@ msgstr "Opsi untuk bidang Penilaian dapat berkisar dari 3 hingga 10"
 msgid "Options for select. Each option on a new line."
 msgstr "Pilihan untuk pilih. Setiap opsi pada baris baru."
 
-#: frappe/core/doctype/doctype/doctype.py:1446
+#: frappe/core/doctype/doctype/doctype.py:1455
 msgid "Options for {0} must be set before setting the default value."
 msgstr "Opsi untuk {0} harus disetel sebelum menyetel nilai bawaan."
 
@@ -19438,7 +19459,7 @@ msgstr ""
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 #: frappe/printing/page/print/print.js:91
 #: frappe/public/js/frappe/form/templates/print_layout.html:44
-#: frappe/public/js/frappe/views/reports/query_report.js:1954
+#: frappe/public/js/frappe/views/reports/query_report.js:1950
 msgid "PDF"
 msgstr ""
 
@@ -19477,7 +19498,7 @@ msgstr "Pengaturan PDF"
 msgid "PDF generation failed"
 msgstr "Generasi PDF gagal"
 
-#: frappe/utils/pdf.py:107
+#: frappe/utils/pdf.py:126
 msgid "PDF generation failed because of broken image links"
 msgstr "Generasi PDF gagal karena link gambar rusak"
 
@@ -19666,7 +19687,7 @@ msgstr "Halaman yang akan ditampilkan di situs web\n"
 
 #: frappe/public/html/print_template.html:38
 #: frappe/public/js/frappe/views/reports/print_tree.html:89
-#: frappe/public/js/frappe/web_form/web_form.js:284
+#: frappe/public/js/frappe/web_form/web_form.js:286
 #: frappe/templates/print_formats/standard.html:34
 msgid "Page {0} of {1}"
 msgstr "Halaman {0} dari {1}"
@@ -19677,7 +19698,7 @@ msgid "Parameter"
 msgstr ""
 
 #: frappe/public/js/frappe/model/model.js:142
-#: frappe/public/js/frappe/views/workspace/workspace.js:460
+#: frappe/public/js/frappe/views/workspace/workspace.js:455
 msgid "Parent"
 msgstr "Induk"
 
@@ -19710,11 +19731,11 @@ msgstr "Bidang Induk"
 
 #. Label of the nsm_parent_field (Data) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
-#: frappe/core/doctype/doctype/doctype.py:955
+#: frappe/core/doctype/doctype/doctype.py:964
 msgid "Parent Field (Tree)"
 msgstr "Bidang Induk (Pohon)"
 
-#: frappe/core/doctype/doctype/doctype.py:961
+#: frappe/core/doctype/doctype/doctype.py:970
 msgid "Parent Field must be a valid fieldname"
 msgstr "Bidang Induk harus nama bidang yang valid"
 
@@ -19728,7 +19749,7 @@ msgstr "Ikon Induk"
 msgid "Parent Label"
 msgstr "Label Induk"
 
-#: frappe/core/doctype/doctype/doctype.py:1249
+#: frappe/core/doctype/doctype/doctype.py:1258
 msgid "Parent Missing"
 msgstr "Induk tidak ditemukan"
 
@@ -19802,8 +19823,8 @@ msgstr "Pasif"
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/core/doctype/system_settings/system_settings.json
-#: frappe/core/doctype/user/user.js:173 frappe/core/doctype/user/user.js:221
-#: frappe/core/doctype/user/user.js:241
+#: frappe/core/doctype/user/user.js:175 frappe/core/doctype/user/user.js:223
+#: frappe/core/doctype/user/user.js:243
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/desk/page/setup_wizard/setup_wizard.js:506
@@ -19813,7 +19834,7 @@ msgstr "Pasif"
 msgid "Password"
 msgstr "Kata sandi"
 
-#: frappe/core/doctype/user/user.py:515 frappe/core/doctype/user/user.py:1184
+#: frappe/core/doctype/user/user.py:515 frappe/core/doctype/user/user.py:1192
 msgid "Password Reset"
 msgstr "Reset Kata Sandi"
 
@@ -19851,7 +19872,7 @@ msgstr "Kata sandi tidak ditemukan di Akun Email"
 msgid "Password not found for {0} {1} {2}"
 msgstr "Kata sandi tidak ditemukan untuk {0} {1} {2}"
 
-#: frappe/core/doctype/user/user.py:1346
+#: frappe/core/doctype/user/user.py:1354
 msgid "Password requirements not met"
 msgstr "Persyaratan kata sandi tidak terpenuhi"
 
@@ -19863,7 +19884,7 @@ msgstr "Kata sandi ditetapkan"
 msgid "Password size exceeded the maximum allowed size"
 msgstr "Ukuran kata sandi melebihi ukuran maksimum yang diizinkan"
 
-#: frappe/core/doctype/user/user.py:948
+#: frappe/core/doctype/user/user.py:953
 msgid "Password size exceeded the maximum allowed size."
 msgstr "Ukuran kata sandi melebihi ukuran maksimum yang diizinkan."
 
@@ -19871,7 +19892,7 @@ msgstr "Ukuran kata sandi melebihi ukuran maksimum yang diizinkan."
 msgid "Passwords do not match"
 msgstr "Kata sandi tidak cocok"
 
-#: frappe/core/doctype/user/user.js:205
+#: frappe/core/doctype/user/user.js:207
 msgid "Passwords do not match!"
 msgstr "Sandi tidak cocok!"
 
@@ -20106,16 +20127,16 @@ msgstr "Jenis Izin '{0}' sudah dicadangkan. Silakan pilih nama lain."
 #: frappe/core/doctype/docperm/docperm.json
 #: frappe/core/doctype/doctype/doctype.json
 #: frappe/core/doctype/system_settings/system_settings.json
-#: frappe/core/doctype/user/user.js:139 frappe/core/doctype/user/user.js:148
-#: frappe/core/doctype/user/user.js:157
+#: frappe/core/doctype/user/user.js:141 frappe/core/doctype/user/user.js:150
+#: frappe/core/doctype/user/user.js:159
 #: frappe/core/page/permission_manager/permission_manager.js:227
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
 #: frappe/workspace_sidebar/users.json
 msgid "Permissions"
 msgstr "Otorisasi"
 
-#: frappe/core/doctype/doctype/doctype.py:1967
-#: frappe/core/doctype/doctype/doctype.py:1977
+#: frappe/core/doctype/doctype/doctype.py:1976
+#: frappe/core/doctype/doctype/doctype.py:1986
 msgid "Permissions Error"
 msgstr "Kesalahan Izin"
 
@@ -20208,8 +20229,8 @@ msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "Nomor Telepon {0} yang ditetapkan di bidang {1} tidak valid."
 
 #: frappe/public/js/frappe/form/print_utils.js:83
-#: frappe/public/js/frappe/views/reports/report_view.js:1671
-#: frappe/public/js/frappe/views/reports/report_view.js:1674
+#: frappe/public/js/frappe/views/reports/report_view.js:1672
+#: frappe/public/js/frappe/views/reports/report_view.js:1675
 msgid "Pick Columns"
 msgstr "Pilih Kolom"
 
@@ -20283,11 +20304,11 @@ msgstr "Silakan tambahkan subjek ke email Anda"
 msgid "Please add a valid comment."
 msgstr "Harap tambahkan komentar yang valid."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1560
+#: frappe/public/js/frappe/views/reports/query_report.js:1557
 msgid "Please adjust filters to include some data"
 msgstr "Silakan sesuaikan filter untuk menyertakan beberapa data"
 
-#: frappe/core/doctype/user/user.py:1155
+#: frappe/core/doctype/user/user.py:1163
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "Minta administrator untuk memverifikasi Anda sign-up"
 
@@ -20315,11 +20336,11 @@ msgstr "Silakan periksa nilai filter yang disetel untuk Dasbor: {}"
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "Harap periksa nilai set &quot;Ambil Dari&quot; untuk bidang {0}"
 
-#: frappe/core/doctype/user/user.py:1153
+#: frappe/core/doctype/user/user.py:1161
 msgid "Please check your email for verification"
 msgstr "Silahkan cek email Anda untuk verifikasi"
 
-#: frappe/email/smtp.py:139
+#: frappe/email/smtp.py:140
 msgid "Please check your email login credentials."
 msgstr "Silakan periksa kredensial login email Anda."
 
@@ -20475,7 +20496,7 @@ msgstr "Silakan masuk untuk mengirim komentar."
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
 msgstr "Harap pastikan Dokumen Komunikasi Referensi tidak terhubung secara sirkuler."
 
-#: frappe/model/document.py:1195
+#: frappe/model/document.py:1198
 msgid "Please refresh to get the latest document."
 msgstr "Silahkan refresh untuk mendapatkan dokumen terbaru."
 
@@ -20499,7 +20520,7 @@ msgstr "Silakan menyimpan dokumen sebelum mengeluarkan penugasan"
 msgid "Please save the form before previewing the message"
 msgstr "Silakan simpan formulir sebelum melihat pratinjau pesan"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1823
+#: frappe/public/js/frappe/views/reports/report_view.js:1824
 msgid "Please save the report first"
 msgstr "Harap menyimpan laporan pertama"
 
@@ -20519,7 +20540,7 @@ msgstr "Silakan pilih Tipe Entitas terlebih dahulu"
 msgid "Please select Minimum Password Score"
 msgstr "Harap pilih Skor Minimum Kata Sandi"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1245
+#: frappe/public/js/frappe/views/reports/query_report.js:1246
 msgid "Please select X and Y fields"
 msgstr "Silakan pilih kolom X dan Y"
 
@@ -20589,11 +20610,11 @@ msgstr "Silahkan tetapkan Alamat Email"
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr "Silakan atur pemetaan printer untuk format cetak ini di Pengaturan Printer"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1467
+#: frappe/public/js/frappe/views/reports/query_report.js:1468
 msgid "Please set filters"
 msgstr "Silakan set filter"
 
-#: frappe/email/doctype/auto_email_report/auto_email_report.py:271
+#: frappe/email/doctype/auto_email_report/auto_email_report.py:273
 msgid "Please set filters value in Report Filter table."
 msgstr "Silakan menetapkan nilai filter dalam Laporan Filter meja."
 
@@ -20789,11 +20810,11 @@ msgstr "Stempel Waktu Posting"
 msgid "Precision"
 msgstr "Presisi"
 
-#: frappe/core/doctype/doctype/doctype.py:1739
+#: frappe/core/doctype/doctype/doctype.py:1748
 msgid "Precision ({0}) for {1} cannot be greater than its length ({2})."
 msgstr "Presisi ({0}) untuk {1} tidak boleh lebih besar dari panjangnya ({2})."
 
-#: frappe/core/doctype/doctype/doctype.py:1463
+#: frappe/core/doctype/doctype/doctype.py:1472
 msgid "Precision should be between 1 and 6"
 msgstr "Presisi harus antara 1 dan 6"
 
@@ -20847,7 +20868,7 @@ msgstr "Analitik Laporan yang Disiapkan"
 msgid "Prepared Report User"
 msgstr "Pengguna Laporan yang Disiapkan"
 
-#: frappe/desk/query_report.py:326
+#: frappe/desk/query_report.py:318
 msgid "Prepared report render failed"
 msgstr "Render laporan yang disiapkan gagal"
 
@@ -20991,17 +21012,17 @@ msgstr "Kunci utama DOCTYPE {0} tidak dapat diubah karena sudah ada nilai yang A
 #: frappe/core/doctype/user_document_type/user_document_type.json
 #: frappe/core/page/permission_manager/permission_manager_help.html:51
 #: frappe/printing/page/print/print.js:85
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:107
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:109
 #: frappe/public/js/frappe/form/success_action.js:81
 #: frappe/public/js/frappe/form/templates/print_layout.html:46
 #: frappe/public/js/frappe/list/bulk_operations.js:95
-#: frappe/public/js/frappe/views/reports/query_report.js:1934
-#: frappe/public/js/frappe/views/reports/report_view.js:1633
+#: frappe/public/js/frappe/views/reports/query_report.js:1930
+#: frappe/public/js/frappe/views/reports/report_view.js:1634
 #: frappe/public/js/frappe/views/treeview.js:501 frappe/www/printview.html:19
 msgid "Print"
 msgstr "Mencetak"
 
-#: frappe/public/js/frappe/list/list_view.js:2281
+#: frappe/public/js/frappe/list/list_view.js:2300
 msgctxt "Button in list view actions menu"
 msgid "Print"
 msgstr "Mencetak"
@@ -21045,7 +21066,7 @@ msgstr "Cetak Format Builder"
 msgid "Print Format Builder Beta"
 msgstr "Cetak Format Builder Beta"
 
-#: frappe/utils/pdf.py:64
+#: frappe/utils/pdf.py:83
 msgid "Print Format Error"
 msgstr "Kesalahan Format Cetak"
 
@@ -21069,7 +21090,7 @@ msgstr "Bantuan Format Cetak"
 msgid "Print Format Type"
 msgstr "Jenis Format Cetak"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1679
+#: frappe/public/js/frappe/views/reports/query_report.js:1676
 msgid "Print Format not found"
 msgstr "Format cetak tidak ditemukan"
 
@@ -21249,11 +21270,11 @@ msgstr "ProTip: Tambahkan <code>Reference: {{ reference_doctype }} {{ reference_
 msgid "Proceed"
 msgstr "Lanjutkan"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:972
+#: frappe/public/js/frappe/views/reports/query_report.js:973
 msgid "Proceed Anyway"
 msgstr "Tetap melanjutkan"
 
-#: frappe/public/js/frappe/form/controls/table.js:104
+#: frappe/public/js/frappe/form/controls/table.js:100
 msgid "Processing"
 msgstr "Pengolahan"
 
@@ -21363,7 +21384,7 @@ msgstr "Nama Penyedia"
 #: frappe/desk/doctype/note/note_list.js:6
 #: frappe/desk/doctype/workspace/workspace.json
 #: frappe/public/js/frappe/views/interaction.js:78
-#: frappe/public/js/frappe/views/workspace/workspace.js:466
+#: frappe/public/js/frappe/views/workspace/workspace.js:461
 msgid "Public"
 msgstr "Publik"
 
@@ -21870,7 +21891,7 @@ msgstr "Waktu Nyata (SocketIO)"
 msgid "Reason"
 msgstr "Alasan"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:926
+#: frappe/public/js/frappe/views/reports/query_report.js:927
 msgid "Rebuild"
 msgstr "Membangun kembali"
 
@@ -21965,7 +21986,7 @@ msgstr "Indeks yang Disarankan Perekam"
 msgid "Records for following doctypes will be filtered"
 msgstr "Catatan untuk DocTypes berikut akan disaring"
 
-#: frappe/core/doctype/doctype/doctype.py:1671
+#: frappe/core/doctype/doctype/doctype.py:1680
 msgid "Recursive Fetch From"
 msgstr "Pengambilan Rekursif Dari"
 
@@ -22257,7 +22278,7 @@ msgstr "Perujuk"
 #: frappe/public/js/frappe/form/form.js:1251
 #: frappe/public/js/frappe/form/templates/print_layout.html:6
 #: frappe/public/js/frappe/list/base_list.js:67
-#: frappe/public/js/frappe/views/reports/query_report.js:1923
+#: frappe/public/js/frappe/views/reports/query_report.js:1919
 #: frappe/public/js/frappe/views/treeview.js:507
 #: frappe/public/js/frappe/widgets/chart_widget.js:296
 #: frappe/public/js/frappe/widgets/number_card_widget.js:358
@@ -22293,18 +22314,18 @@ msgstr "Segarkan Pratayang Cetak"
 msgid "Refresh Token"
 msgstr "Token Penyegaran"
 
-#: frappe/public/js/frappe/list/list_view.js:558
+#: frappe/public/js/frappe/list/list_view.js:577
 msgctxt "Document count in list view"
 msgid "Refreshing"
 msgstr "Memperbarui"
 
 #: frappe/core/doctype/system_settings/system_settings.js:57
-#: frappe/core/doctype/user/user.js:373
+#: frappe/core/doctype/user/user.js:375
 #: frappe/desk/page/setup_wizard/setup_wizard.js:230
 msgid "Refreshing..."
 msgstr "Refreshing ..."
 
-#: frappe/core/doctype/user/user.py:1115
+#: frappe/core/doctype/user/user.py:1123
 msgid "Registered but disabled"
 msgstr "Terdaftar tapi dinonaktifkan"
 
@@ -22485,7 +22506,7 @@ msgstr "Ganti nama bidang"
 msgid "Rename {0}"
 msgstr "Ubah nama {0}"
 
-#: frappe/core/doctype/doctype/doctype.py:713
+#: frappe/core/doctype/doctype/doctype.py:722
 msgid "Renamed files and replaced code in controllers, please check!"
 msgstr "Mengganti nama file dan mengganti kode dalam pengontrol, harap periksa!"
 
@@ -22545,7 +22566,7 @@ msgstr "Mengulangi seperti &quot;aaa&quot; mudah ditebak"
 msgid "Repeats like \"abcabcabc\" are only slightly harder to guess than \"abc\""
 msgstr "Mengulangi seperti &quot;abcabcabc&quot; hanya sedikit lebih sulit untuk menebak dari &quot;abc&quot;"
 
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:194
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:196
 msgid "Repeats {0}"
 msgstr "Ulangi {0}"
 
@@ -22664,7 +22685,7 @@ msgstr "Kolom Laporan"
 msgid "Report Description"
 msgstr "Deskripsi Laporan"
 
-#: frappe/core/doctype/report/report.py:174
+#: frappe/core/doctype/report/report.py:175
 msgid "Report Document Error"
 msgstr "Laporkan Kesalahan Dokumen"
 
@@ -22711,7 +22732,7 @@ msgstr "Manajer Laporan"
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:39
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/desk/doctype/number_card/number_card.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2121
+#: frappe/public/js/frappe/views/reports/query_report.js:2117
 msgid "Report Name"
 msgstr "Nama Laporan"
 
@@ -22759,7 +22780,7 @@ msgstr "Laporan tidak memiliki data, harap modifikasi filter atau ubah Nama Lapo
 msgid "Report has no numeric fields, please change the Report Name"
 msgstr "Laporan tidak memiliki bidang numerik, harap ubah Nama Laporan"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1053
+#: frappe/public/js/frappe/views/reports/query_report.js:1054
 msgid "Report initiated, click to view status"
 msgstr "Laporan dimulai, klik untuk melihat status"
 
@@ -22771,15 +22792,15 @@ msgstr "Batas laporan tercapai"
 msgid "Report timed out."
 msgstr "Laporan telah kehabisan waktu."
 
-#: frappe/desk/query_report.py:766
+#: frappe/desk/query_report.py:822
 msgid "Report updated successfully"
 msgstr "Laporan berhasil diperbarui"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1453
+#: frappe/public/js/frappe/views/reports/report_view.js:1454
 msgid "Report was not saved (there were errors)"
 msgstr "Laporan tidak disimpan (ada kesalahan)"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2159
+#: frappe/public/js/frappe/views/reports/query_report.js:2155
 msgid "Report with more than 10 columns looks better in Landscape mode."
 msgstr "Laporan dengan lebih dari 10 kolom terlihat lebih baik dalam mode Lansekap."
 
@@ -22792,7 +22813,7 @@ msgstr "Laporan {0}"
 msgid "Report {0} deleted"
 msgstr "Laporan {0} dihapus"
 
-#: frappe/desk/query_report.py:55
+#: frappe/desk/query_report.py:56
 msgid "Report {0} is disabled"
 msgstr "Laporan {0} dinonaktifkan"
 
@@ -22815,7 +22836,7 @@ msgstr "Laporan"
 msgid "Reports & Masters"
 msgstr "Laporan &amp; Master"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:969
+#: frappe/public/js/frappe/views/reports/query_report.js:970
 msgid "Reports already in Queue"
 msgstr "Laporan sudah dalam Antrian"
 
@@ -22956,7 +22977,7 @@ msgstr "Reset Kustomisasi Dasbor"
 msgid "Reset Fields"
 msgstr "Setel Ulang Bidang"
 
-#: frappe/core/doctype/user/user.js:180 frappe/core/doctype/user/user.js:183
+#: frappe/core/doctype/user/user.js:182 frappe/core/doctype/user/user.js:185
 msgid "Reset LDAP Password"
 msgstr "Setel ulang Kata Sandi LDAP"
 
@@ -22964,11 +22985,11 @@ msgstr "Setel ulang Kata Sandi LDAP"
 msgid "Reset Layout"
 msgstr "Reset Tata Letak"
 
-#: frappe/core/doctype/user/user.js:232
+#: frappe/core/doctype/user/user.js:234
 msgid "Reset OTP Secret"
 msgstr "Setel ulang OTP Secret"
 
-#: frappe/core/doctype/user/user.js:164 frappe/www/login.html:198
+#: frappe/core/doctype/user/user.js:166 frappe/www/login.html:198
 #: frappe/www/me.html:48 frappe/www/update-password.html:3
 #: frappe/www/update-password.html:32
 msgid "Reset Password"
@@ -23285,7 +23306,7 @@ msgstr "Log Aktivitas Izin Peran"
 msgid "Role Permissions Manager"
 msgstr "Pengelola Perizinan Peran"
 
-#: frappe/public/js/frappe/list/list_view.js:1974
+#: frappe/public/js/frappe/list/list_view.js:1993
 msgctxt "Button in list view menu"
 msgid "Role Permissions Manager"
 msgstr "Pengelola Perizinan Peran"
@@ -23433,7 +23454,7 @@ msgstr "Pengalihan Rute"
 msgid "Route: Example \"/desk\""
 msgstr "Rute: Contoh \"/desk\""
 
-#: frappe/model/base_document.py:1024 frappe/model/document.py:980
+#: frappe/model/base_document.py:1024 frappe/model/document.py:983
 msgid "Row"
 msgstr "Baris"
 
@@ -23441,8 +23462,8 @@ msgstr "Baris"
 msgid "Row #"
 msgstr "Baris #"
 
-#: frappe/core/doctype/doctype/doctype.py:1964
-#: frappe/core/doctype/doctype/doctype.py:1974
+#: frappe/core/doctype/doctype/doctype.py:1973
+#: frappe/core/doctype/doctype/doctype.py:1983
 msgid "Row # {0}: Non-administrator users cannot add the role {1} to a custom DocType."
 msgstr "Baris # {0}: Pengguna non-administrator tidak dapat menambahkan peran {1} ke DOCTYPE kustom."
 
@@ -23636,7 +23657,7 @@ msgstr "Output SQL"
 msgid "SQL Queries"
 msgstr "Kueri SQL"
 
-#: frappe/database/query.py:2175
+#: frappe/database/query.py:2181
 msgid "SQL functions are not allowed as strings in SELECT: {0}. Use dict syntax like {{'COUNT': '*'}} instead."
 msgstr "Fungsi SQL tidak diizinkan sebagai string dalam SELECT: {0}. Gunakan sintaks dict seperti {{'COUNT': '*'}} sebagai gantinya."
 
@@ -23738,15 +23759,15 @@ msgstr "Sabtu"
 #: frappe/public/js/frappe/form/quick_entry.js:186
 #: frappe/public/js/frappe/list/list_settings.js:37
 #: frappe/public/js/frappe/list/list_settings.js:250
-#: frappe/public/js/frappe/list/list_view.js:2036
+#: frappe/public/js/frappe/list/list_view.js:2055
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:336
 #: frappe/public/js/frappe/utils/common.js:452
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:45
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:189
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:380
-#: frappe/public/js/frappe/views/reports/query_report.js:2113
-#: frappe/public/js/frappe/views/reports/report_view.js:1840
-#: frappe/public/js/frappe/views/workspace/workspace.js:361
+#: frappe/public/js/frappe/views/reports/query_report.js:2109
+#: frappe/public/js/frappe/views/reports/report_view.js:1841
+#: frappe/public/js/frappe/views/workspace/workspace.js:356
 #: frappe/public/js/frappe/widgets/base_widget.js:143
 #: frappe/public/js/frappe/widgets/quick_list_widget.js:120
 #: frappe/public/js/print_format_builder/print_format_builder.bundle.js:15
@@ -23758,8 +23779,8 @@ msgstr "Simpan"
 msgid "Save Anyway"
 msgstr "Simpan Saja"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1484
-#: frappe/public/js/frappe/views/reports/report_view.js:1847
+#: frappe/public/js/frappe/views/reports/report_view.js:1485
+#: frappe/public/js/frappe/views/reports/report_view.js:1848
 msgid "Save As"
 msgstr "Disimpan Sebagai"
 
@@ -23767,7 +23788,7 @@ msgstr "Disimpan Sebagai"
 msgid "Save Customizations"
 msgstr "Simpan Kustomisasi"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2116
+#: frappe/public/js/frappe/views/reports/query_report.js:2112
 msgid "Save Report"
 msgstr "Menyimpan laporan"
 
@@ -23788,7 +23809,7 @@ msgstr "Simpan dokumen."
 #: frappe/printing/page/print_format_builder/print_format_builder.js:894
 #: frappe/public/js/frappe/form/toolbar.js:315
 #: frappe/public/js/frappe/views/kanban/kanban_board.bundle.js:932
-#: frappe/public/js/frappe/views/workspace/workspace.js:762
+#: frappe/public/js/frappe/views/workspace/workspace.js:757
 msgid "Saved"
 msgstr "Disimpan"
 
@@ -23798,7 +23819,7 @@ msgstr "Filter Tersimpan"
 
 #: frappe/public/js/frappe/list/list_settings.js:41
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:47
-#: frappe/public/js/frappe/views/workspace/workspace.js:373
+#: frappe/public/js/frappe/views/workspace/workspace.js:368
 msgid "Saving"
 msgstr "Menyimpan"
 
@@ -23807,7 +23828,7 @@ msgctxt "Freeze message while saving a document"
 msgid "Saving"
 msgstr "Menyimpan"
 
-#: frappe/public/js/frappe/list/list_view.js:2047
+#: frappe/public/js/frappe/list/list_view.js:2066
 msgid "Saving Changes..."
 msgstr "Menyimpan Perubahan..."
 
@@ -24027,12 +24048,12 @@ msgstr "Skrip"
 #: frappe/public/js/frappe/list/base_list.js:921
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:141
 #: frappe/public/js/frappe/list/list_sidebar_stat.html:4
-#: frappe/public/js/frappe/list/list_view.js:2056
+#: frappe/public/js/frappe/list/list_view.js:2075
 #: frappe/public/js/frappe/ui/address_autocomplete/autocomplete_dialog.js:20
-#: frappe/public/js/frappe/ui/sidebar/sidebar.js:473
+#: frappe/public/js/frappe/ui/sidebar/sidebar.js:487
 #: frappe/public/js/frappe/ui/toolbar/search.js:49
 #: frappe/public/js/frappe/ui/toolbar/search.js:68
-#: frappe/public/js/frappe/views/reports/report_view.js:1720
+#: frappe/public/js/frappe/views/reports/report_view.js:1721
 #: frappe/templates/discussions/search.html:2
 #: frappe/templates/includes/search_template.html:26
 msgid "Search"
@@ -24063,7 +24084,7 @@ msgstr "Hasil Pencarian"
 msgid "Search by filename or extension"
 msgstr "Cari berdasarkan nama file atau ekstensi"
 
-#: frappe/core/doctype/doctype/doctype.py:1530
+#: frappe/core/doctype/doctype/doctype.py:1539
 msgid "Search field {0} is not valid"
 msgstr "kolom pencarian {0} tidak valid"
 
@@ -24168,7 +24189,7 @@ msgstr "Judul Bagian"
 msgid "Section must have at least one column"
 msgstr "Bagian harus memiliki setidaknya satu kolom"
 
-#: frappe/core/doctype/user/user.py:1511
+#: frappe/core/doctype/user/user.py:1519
 msgid "Security Alert: Your account is being impersonated"
 msgstr "Peringatan Keamanan: Akun Anda sedang disamarkan"
 
@@ -24279,10 +24300,10 @@ msgstr "Pilih"
 #: frappe/public/js/frappe/form/controls/multicheck.js:182
 #: frappe/public/js/frappe/form/controls/multiselect_list.js:19
 #: frappe/public/js/frappe/form/grid_row.js:483
-#: frappe/public/js/frappe/list/list_view.js:741
-#: frappe/public/js/frappe/list/list_view.js:806
+#: frappe/public/js/frappe/list/list_view.js:760
+#: frappe/public/js/frappe/list/list_view.js:825
 #: frappe/public/js/frappe/views/file/file_view.js:363
-#: frappe/public/js/frappe/views/reports/report_view.js:1708
+#: frappe/public/js/frappe/views/reports/report_view.js:1709
 msgid "Select All"
 msgstr "Pilih Semua"
 
@@ -24379,7 +24400,7 @@ msgstr "Pilih Bidang Untuk Disisipkan"
 msgid "Select Fields To Update"
 msgstr "Pilih Fields To Update"
 
-#: frappe/public/js/frappe/list/list_view.js:2032
+#: frappe/public/js/frappe/list/list_view.js:2051
 msgid "Select Filters"
 msgstr "Pilih Filter"
 
@@ -24479,11 +24500,11 @@ msgstr "Pilih bidang untuk menyunting propertinya."
 msgid "Select a group {0} first."
 msgstr "Pilih grup {0} terlebih dahulu."
 
-#: frappe/core/doctype/doctype/doctype.py:2075
+#: frappe/core/doctype/doctype/doctype.py:2084
 msgid "Select a valid Sender Field for creating documents from Email"
 msgstr "Pilih Bidang Pengirim yang valid untuk membuat dokumen dari Email"
 
-#: frappe/core/doctype/doctype/doctype.py:2059
+#: frappe/core/doctype/doctype/doctype.py:2068
 msgid "Select a valid Subject field for creating documents from Email"
 msgstr "Pilih bidang Subjek yang valid untuk membuat dokumen dari Email"
 
@@ -24509,13 +24530,13 @@ msgstr "Pilih minimal 1 record untuk pencetakan"
 msgid "Select atleast 2 actions"
 msgstr "Pilih minimal 2 tindakan"
 
-#: frappe/public/js/frappe/list/list_view.js:1493
+#: frappe/public/js/frappe/list/list_view.js:1512
 msgctxt "Description of a list view shortcut"
 msgid "Select list item"
 msgstr "Pilih item daftar"
 
-#: frappe/public/js/frappe/list/list_view.js:1445
-#: frappe/public/js/frappe/list/list_view.js:1461
+#: frappe/public/js/frappe/list/list_view.js:1464
+#: frappe/public/js/frappe/list/list_view.js:1480
 msgctxt "Description of a list view shortcut"
 msgid "Select multiple list items"
 msgstr "Pilih beberapa item daftar"
@@ -24555,11 +24576,11 @@ msgstr "Pilih acara pengiriman mana yang harus memicu notifikasi status pengirim
 msgid "Select {0}"
 msgstr "Pilih {0}"
 
-#: frappe/core/doctype/report/report.py:444
-msgid "Selected Letter Head is invalid for this Report."
-msgstr "Surat Kepala yang dipilih tidak valid untuk Laporan ini."
+#: frappe/core/doctype/report/report.py:450
+msgid "Selected Letter Head '{0}' is invalid for '{1}' Report."
+msgstr ""
 
-#: frappe/core/doctype/report/report.py:428
+#: frappe/core/doctype/report/report.py:430
 msgid "Selected Print Format is invalid for this Report."
 msgstr "Format Cetak yang dipilih tidak valid untuk Laporan ini."
 
@@ -24752,7 +24773,7 @@ msgstr "Email Pengirim"
 msgid "Sender Email Field"
 msgstr "Bidang Email Pengirim"
 
-#: frappe/core/doctype/doctype/doctype.py:2078
+#: frappe/core/doctype/doctype/doctype.py:2087
 msgid "Sender Field should have Email in options"
 msgstr "Sender Field harus memiliki opsi Email in"
 
@@ -24846,7 +24867,7 @@ msgstr "Seri diperbarui untuk {}"
 msgid "Series counter for {} updated to {} successfully"
 msgstr "Penghitung seri untuk {} berhasil diperbarui ke {}"
 
-#: frappe/core/doctype/doctype/doctype.py:1161
+#: frappe/core/doctype/doctype/doctype.py:1170
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:170
 msgid "Series {0} already used in {1}"
 msgstr "Seri {0} sudah digunakan dalam {1}"
@@ -24891,6 +24912,10 @@ msgstr "Kesalahan server saat mengunggah. File mungkin rusak."
 #: frappe/public/js/frappe/request.js:255
 msgid "Server failed to process this request because of a concurrent conflicting request. Please try again."
 msgstr "Server gagal memproses permintaan ini karena permintaan yang bertentangan secara bersamaan. Silakan coba lagi."
+
+#: frappe/concurrency_limiter.py:103
+msgid "Server is busy. Please try again in a few seconds."
+msgstr ""
 
 #: frappe/public/js/frappe/request.js:247
 msgid "Server was too busy to process this request. Please try again."
@@ -24994,7 +25019,7 @@ msgstr "Tetapkan Filter"
 msgid "Set Filters for {0}"
 msgstr "Setel Filter untuk {0}"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2276
+#: frappe/public/js/frappe/views/reports/query_report.js:2272
 msgid "Set Level"
 msgstr "Atur Level"
 
@@ -25048,7 +25073,7 @@ msgstr "Set Kuantitas"
 msgid "Set Role For"
 msgstr "Atur peran untuk"
 
-#: frappe/core/doctype/user/user.js:132
+#: frappe/core/doctype/user/user.js:134
 #: frappe/core/page/permission_manager/permission_manager.js:72
 msgid "Set User Permissions"
 msgstr "Atur izin pengguna"
@@ -25205,7 +25230,7 @@ msgstr "Menyiapkan sistem anda"
 #: frappe/integrations/workspace/integrations/integrations.json
 #: frappe/public/js/frappe/form/templates/print_layout.html:25
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:299
-#: frappe/public/js/frappe/views/workspace/workspace.js:387
+#: frappe/public/js/frappe/views/workspace/workspace.js:382
 #: frappe/website/doctype/web_form/web_form.json
 #: frappe/website/doctype/web_page/web_page.json
 #: frappe/workspace_sidebar/website.json frappe/www/me.html:20
@@ -25245,8 +25270,8 @@ msgstr "Pengaturan > Pengguna"
 msgid "Setup > User Permissions"
 msgstr "Pengaturan > Izin Pengguna"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1978
-#: frappe/public/js/frappe/views/reports/report_view.js:1818
+#: frappe/public/js/frappe/views/reports/query_report.js:1974
+#: frappe/public/js/frappe/views/reports/report_view.js:1819
 msgid "Setup Auto Email"
 msgstr "Atur Email Otomatis"
 
@@ -25541,7 +25566,7 @@ msgstr "Tampilkan Judul"
 msgid "Show Title in Link Fields"
 msgstr "Tampilkan Judul di Bidang Tautan"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1623
+#: frappe/public/js/frappe/views/reports/report_view.js:1624
 msgid "Show Totals"
 msgstr "Tampilkan Total"
 
@@ -25750,7 +25775,7 @@ msgstr "Keluar"
 msgid "Sign Up and Confirmation"
 msgstr "Pendaftaran dan konfirmasi"
 
-#: frappe/core/doctype/user/user.py:1108
+#: frappe/core/doctype/user/user.py:1116
 msgid "Sign Up is disabled"
 msgstr "Sign Up dinonaktifkan"
 
@@ -26102,7 +26127,7 @@ msgstr "Opsi Pengurutan"
 msgid "Sort Order"
 msgstr "Urutan Sortir"
 
-#: frappe/core/doctype/doctype/doctype.py:1613
+#: frappe/core/doctype/doctype/doctype.py:1622
 msgid "Sort field {0} must be a valid fieldname"
 msgstr "bidang semacam {0} harus fieldname valid"
 
@@ -26177,7 +26202,8 @@ msgstr "Tentukan domain atau asal yang diizinkan untuk menyematkan formulir ini.
 msgid "Splash Image"
 msgstr "Gambar Pembuka"
 
-#: frappe/desk/reportview.py:459
+#: frappe/desk/reportview.py:460
+#: frappe/email/doctype/auto_email_report/auto_email_report.py:162
 #: frappe/public/js/frappe/web_form/web_form_list.js:182
 #: frappe/templates/print_formats/standard_macros.html:44
 msgid "Sr"
@@ -26214,7 +26240,7 @@ msgstr ""
 msgid "Standard"
 msgstr "Standar"
 
-#: frappe/model/delete_doc.py:116
+#: frappe/model/delete_doc.py:117
 msgid "Standard DocType can not be deleted."
 msgstr "DocType standar tidak dapat dihapus."
 
@@ -26451,8 +26477,8 @@ msgstr "Interval Waktu Statistik"
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 #: frappe/public/js/frappe/list/list_settings.js:362
-#: frappe/public/js/frappe/list/list_view.js:2473
-#: frappe/public/js/frappe/views/reports/report_view.js:1069
+#: frappe/public/js/frappe/list/list_view.js:2492
+#: frappe/public/js/frappe/views/reports/report_view.js:1070
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 #: frappe/website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 #: frappe/workflow/doctype/workflow_action/workflow_action.json
@@ -26520,7 +26546,7 @@ msgstr "Penggunaan penyimpanan berdasarkan tabel"
 msgid "Store Attached PDF Document"
 msgstr "Simpan Dokumen PDF Terlampir"
 
-#: frappe/core/doctype/user/user.js:512
+#: frappe/core/doctype/user/user.js:514
 msgid "Store the API secret securely. It won't be displayed again."
 msgstr "Simpan rahasia API dengan aman. Ini tidak akan ditampilkan lagi."
 
@@ -26618,7 +26644,7 @@ msgstr "Perihal"
 msgid "Subject Field"
 msgstr "Bidang Subjek"
 
-#: frappe/core/doctype/doctype/doctype.py:2068
+#: frappe/core/doctype/doctype/doctype.py:2077
 msgid "Subject Field type should be Data, Text, Long Text, Small Text, Text Editor"
 msgstr "Jenis Bidang Subjek harus Data, Teks, Teks Panjang, Teks Kecil, Editor Teks"
 
@@ -26646,7 +26672,7 @@ msgstr "Antrean Pengiriman"
 msgid "Submit"
 msgstr "Kirim"
 
-#: frappe/public/js/frappe/list/list_view.js:2348
+#: frappe/public/js/frappe/list/list_view.js:2367
 msgctxt "Button in list view actions menu"
 msgid "Submit"
 msgstr "Kirim"
@@ -26704,7 +26730,7 @@ msgstr "Kirimkan dokumen ini untuk menyelesaikan langkah ini."
 msgid "Submit this document to confirm"
 msgstr "Menyerahkan dokumen ini untuk mengkonfirmasi"
 
-#: frappe/public/js/frappe/list/list_view.js:2353
+#: frappe/public/js/frappe/list/list_view.js:2372
 msgctxt "Title of confirmation dialog"
 msgid "Submit {0} documents?"
 msgstr "Kirim {0} dokumen?"
@@ -26827,7 +26853,7 @@ msgstr "Berhasil mengimpor {0} dari {1} catatan."
 msgid "Successfully reset onboarding status for all users."
 msgstr "Berhasil mereset status orientasi untuk semua pengguna."
 
-#: frappe/core/doctype/user/user.py:1530
+#: frappe/core/doctype/user/user.py:1538
 msgid "Successfully signed out"
 msgstr "Berhasil keluar"
 
@@ -26982,7 +27008,7 @@ msgstr "Sinkronisasi"
 msgid "Syncing {0} of {1}"
 msgstr "Menyinkronkan {0} dari {1}"
 
-#: frappe/utils/data.py:2637
+#: frappe/utils/data.py:2645
 msgid "Syntax Error"
 msgstr "Kesalahan Sintaksis"
 
@@ -27290,7 +27316,7 @@ msgstr "Bidang Tabel"
 msgid "Table Fieldname"
 msgstr "Nama Bidang Tabel"
 
-#: frappe/core/doctype/doctype/doctype.py:1255
+#: frappe/core/doctype/doctype/doctype.py:1264
 msgid "Table Fieldname Missing"
 msgstr "Nama Bidang Tabel tidak ada"
 
@@ -27322,7 +27348,7 @@ msgstr "Tabel dipangkas"
 msgid "Table updated"
 msgstr "Tabel diperbarui"
 
-#: frappe/model/document.py:1924
+#: frappe/model/document.py:1927
 msgid "Table {0} cannot be empty"
 msgstr "Tabel {0} tidak boleh kosong"
 
@@ -27436,7 +27462,7 @@ msgstr "Peringatan Templat"
 msgid "Templates"
 msgstr "Templat"
 
-#: frappe/core/doctype/user/user.py:1121
+#: frappe/core/doctype/user/user.py:1129
 msgid "Temporarily Disabled"
 msgstr "Dinonaktifkan Sementara"
 
@@ -27622,7 +27648,7 @@ msgstr "Server SMTP yang dikonfigurasi tidak mendukung DSN (Notifikasi Status Pe
 msgid "The contents of this email are strictly confidential. Please do not forward this email to anyone."
 msgstr "Isi email ini sangat rahasia. Mohon jangan teruskan email ini kepada siapa pun."
 
-#: frappe/public/js/frappe/list/list_view.js:711
+#: frappe/public/js/frappe/list/list_view.js:730
 msgid "The count shown is an estimated count. Click here to see the accurate count."
 msgstr "Jumlah yang ditampilkan adalah perkiraan. Klik di sini untuk melihat jumlah yang akurat."
 
@@ -27696,7 +27722,7 @@ msgstr "Batas belum diatur untuk tipe pengguna {0} di file konfigurasi situs."
 msgid "The link will expire in {0} minutes"
 msgstr "Tautan akan kedaluwarsa dalam {0} menit"
 
-#: frappe/www/login.py:187
+#: frappe/www/login.py:196
 msgid "The link you trying to login is invalid or expired."
 msgstr "Tautan yang Anda coba gunakan untuk masuk tidak valid atau sudah kedaluwarsa."
 
@@ -27748,11 +27774,11 @@ msgstr "Nomor proyek yang diperoleh dari Google Cloud Console di bawah <a href=\
 msgid "The report you requested has been generated.<br><br>Click here to download:<br><a href='{0}'>{0}</a><br><br>This link will expire in {1} hours."
 msgstr "Laporan yang Anda minta telah dihasilkan.<br><br>Klik di sini untuk mengunduh:<br><a href='{0}'>{0}</a><br><br>Tautan ini akan kedaluwarsa dalam {1} jam."
 
-#: frappe/core/doctype/user/user.py:1079
+#: frappe/core/doctype/user/user.py:1087
 msgid "The reset password link has been expired"
 msgstr "Tautan atur ulang kata sandi telah kedaluwarsa"
 
-#: frappe/core/doctype/user/user.py:1081
+#: frappe/core/doctype/user/user.py:1089
 msgid "The reset password link has either been used before or is invalid"
 msgstr "Tautan atur ulang kata sandi sudah pernah digunakan atau tidak valid"
 
@@ -27768,7 +27794,7 @@ msgstr "Peran {0} harus merupakan peran kustom."
 msgid "The selected document {0} is not a {1}."
 msgstr "Dokumen yang dipilih {0} bukan {1}."
 
-#: frappe/utils/response.py:343
+#: frappe/utils/response.py:351
 msgid "The system is being updated. Please refresh again after a few moments."
 msgstr "Sistem sedang diperbarui. Silakan muat ulang kembali setelah beberapa saat."
 
@@ -27865,7 +27891,7 @@ msgstr "Tidak ada acara mendatang untuk Anda."
 msgid "There are no {0} for this {1}, why don't you start one!"
 msgstr "Tidak ada {0} untuk {1} ini, mengapa Anda tidak memulainya!"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1005
+#: frappe/public/js/frappe/views/reports/query_report.js:1006
 msgid "There are {0} with the same filters already in the queue:"
 msgstr "Ada {0} dengan filter yang sama sudah dalam antrean:"
 
@@ -27874,7 +27900,7 @@ msgstr "Ada {0} dengan filter yang sama sudah dalam antrean:"
 msgid "There can be only 9 Page Break fields in a Web Form"
 msgstr "Hanya boleh ada 9 kolom pemisah halaman dalam formulir web"
 
-#: frappe/core/doctype/doctype/doctype.py:1506
+#: frappe/core/doctype/doctype/doctype.py:1515
 msgid "There can be only one Fold in a form"
 msgstr "Hanya ada satu Fold dalam bentuk"
 
@@ -27898,7 +27924,7 @@ msgstr "Tidak ada yang baru untuk ditampilkan saat ini."
 msgid "There is some problem with the file url: {0}"
 msgstr "Ada beberapa masalah dengan url berkas: {0}"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1002
+#: frappe/public/js/frappe/views/reports/query_report.js:1003
 msgid "There is {0} with the same filters already in the queue:"
 msgstr "Ada {0} dengan filter yang sama sudah dalam antrean:"
 
@@ -28023,11 +28049,11 @@ msgstr "Diagram ini akan tersedia untuk semua Pengguna jika ini diatur"
 msgid "This doctype has no orphan fields to trim"
 msgstr "DOCTYPE ini tidak memiliki kolom yatim untuk dipangkas"
 
-#: frappe/core/doctype/doctype/doctype.py:1082
+#: frappe/core/doctype/doctype/doctype.py:1091
 msgid "This doctype has pending migrations, run 'bench migrate' before modifying the doctype to avoid losing changes."
 msgstr "Doctype ini memiliki migrasi yang tertunda, jalankan 'bench migrate' sebelum memodifikasi doctype untuk menghindari kehilangan perubahan."
 
-#: frappe/model/delete_doc.py:152
+#: frappe/model/delete_doc.py:153
 msgid "This document can not be deleted right now as it's being modified by another user. Please try again after some time."
 msgstr "Dokumen ini tidak dapat dihapus saat ini karena sedang dimodifikasi oleh pengguna lain. Silakan coba lagi setelah beberapa saat."
 
@@ -28112,7 +28138,7 @@ msgstr "Penyedia geolokasi ini belum didukung."
 msgid "This goes above the slideshow."
 msgstr "Ini ditampilkan di atas slideshow."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2353
+#: frappe/public/js/frappe/views/reports/query_report.js:2349
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
 msgstr "Ini adalah laporan latar belakang. Harap atur filter yang sesuai dan kemudian buat yang baru."
 
@@ -28162,7 +28188,7 @@ msgstr "Ini dapat dicetak pada beberapa halaman"
 msgid "This month"
 msgstr "Bulan ini"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1081
+#: frappe/public/js/frappe/views/reports/query_report.js:1082
 msgid "This report contains {0} rows and is too big to display in browser, you can {1} this report instead."
 msgstr "Laporan ini berisi {0} baris dan terlalu besar untuk ditampilkan di peramban, Anda dapat {1} laporan ini sebagai gantinya."
 
@@ -28170,7 +28196,7 @@ msgstr "Laporan ini berisi {0} baris dan terlalu besar untuk ditampilkan di pera
 msgid "This report was generated on {0}"
 msgstr "Laporan ini dibuat pada {0}"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:789
+#: frappe/public/js/frappe/views/reports/query_report.js:790
 msgid "This report was generated {0}."
 msgstr "Laporan ini dihasilkan {0}."
 
@@ -28238,7 +28264,7 @@ msgstr "Ini akan mereset tur ini dan menampilkannya ke semua pengguna. Apakah An
 msgid "This will terminate the job immediately and might be dangerous, are you sure?"
 msgstr "Ini akan menghentikan pekerjaan segera dan mungkin berbahaya, apakah Anda yakin?"
 
-#: frappe/core/doctype/user/user.py:1361
+#: frappe/core/doctype/user/user.py:1369
 msgid "Throttled"
 msgstr "Terhempas"
 
@@ -28386,11 +28412,11 @@ msgstr "Tautan Lini Masa"
 msgid "Timeline Name"
 msgstr "Nama Linimasa"
 
-#: frappe/core/doctype/doctype/doctype.py:1601
+#: frappe/core/doctype/doctype/doctype.py:1610
 msgid "Timeline field must be a Link or Dynamic Link"
 msgstr "bidang Timeline harus Link atau Dynamic Link"
 
-#: frappe/core/doctype/doctype/doctype.py:1597
+#: frappe/core/doctype/doctype/doctype.py:1606
 msgid "Timeline field must be a valid fieldname"
 msgstr "bidang Timeline harus fieldname valid"
 
@@ -28462,7 +28488,7 @@ msgstr "Tips: Coba konsol dropdown baru menggunakan"
 #: frappe/desk/doctype/workspace/workspace.json
 #: frappe/desk/doctype/workspace_sidebar/workspace_sidebar.json
 #: frappe/email/doctype/email_group/email_group.json
-#: frappe/public/js/frappe/views/workspace/workspace.js:419
+#: frappe/public/js/frappe/views/workspace/workspace.js:414
 #: frappe/website/doctype/discussion_topic/discussion_topic.json
 #: frappe/website/doctype/help_article/help_article.json
 #: frappe/website/doctype/portal_menu_item/portal_menu_item.json
@@ -28485,7 +28511,7 @@ msgstr "Bidang Judul"
 msgid "Title Prefix"
 msgstr "Awalan Judul"
 
-#: frappe/core/doctype/doctype/doctype.py:1538
+#: frappe/core/doctype/doctype/doctype.py:1547
 msgid "Title field must be a valid fieldname"
 msgstr "Judul lapangan harus fieldname valid"
 
@@ -28629,7 +28655,7 @@ msgstr "Hari ini"
 msgid "Toggle Awesomebar"
 msgstr "Alihkan Awesomebar"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1667
+#: frappe/public/js/frappe/views/reports/report_view.js:1668
 msgid "Toggle Chart"
 msgstr "Alihkan Bagan"
 
@@ -28641,7 +28667,7 @@ msgstr "Alihkan Tampilan Kisi"
 msgid "Toggle Sidebar"
 msgstr ""
 
-#: frappe/public/js/frappe/ui/sidebar/sidebar.js:319
+#: frappe/public/js/frappe/ui/sidebar/sidebar.js:321
 msgid "Toggle sidebar"
 msgstr "Alihkan bilah sisi"
 
@@ -28700,7 +28726,7 @@ msgstr "Terlalu banyak pekerjaan latar dalam antrean ({0}). Silakan coba lagi se
 msgid "Too many requests. Please try again later."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1122
+#: frappe/core/doctype/user/user.py:1130
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "Terlalu banyak pengguna mendaftar baru, sehingga pendaftaran dinonaktifkan. Silakan coba kembali dalam satu jam"
 
@@ -28761,10 +28787,10 @@ msgstr "Atas Kanan"
 msgid "Topic"
 msgstr "Topik"
 
-#: frappe/desk/query_report.py:699
+#: frappe/desk/query_report.py:755
 #: frappe/public/js/frappe/views/reports/print_grid.html:50
-#: frappe/public/js/frappe/views/reports/query_report.js:1383
-#: frappe/public/js/frappe/views/reports/report_view.js:1648
+#: frappe/public/js/frappe/views/reports/query_report.js:1384
+#: frappe/public/js/frappe/views/reports/report_view.js:1649
 msgid "Total"
 msgstr ""
 
@@ -28814,11 +28840,11 @@ msgstr "Total jumlah email yang akan disinkronkan dalam proses sinkronisasi awal
 msgid "Total:"
 msgstr ""
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1348
+#: frappe/public/js/frappe/views/reports/report_view.js:1349
 msgid "Totals"
 msgstr "Total"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1323
+#: frappe/public/js/frappe/views/reports/report_view.js:1324
 msgid "Totals Row"
 msgstr "Total Row"
 
@@ -28917,7 +28943,7 @@ msgstr "Transisi"
 msgid "Translatable"
 msgstr "Dapat Diterjemahkan"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2414
+#: frappe/public/js/frappe/views/reports/query_report.js:2410
 msgid "Translate Data"
 msgstr "Terjemahkan Data"
 
@@ -28928,7 +28954,7 @@ msgstr "Terjemahkan Data"
 msgid "Translate Link Fields"
 msgstr "Terjemahkan Bidang Tautan"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1763
+#: frappe/public/js/frappe/views/reports/report_view.js:1764
 msgid "Translate values"
 msgstr "Terjemahkan nilai"
 
@@ -29084,7 +29110,7 @@ msgstr "Metode Autentikasi Dua Faktor"
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json
 #: frappe/public/js/frappe/views/file/file_view.js:373
-#: frappe/public/js/frappe/views/workspace/workspace.js:425
+#: frappe/public/js/frappe/views/workspace/workspace.js:420
 #: frappe/public/js/frappe/widgets/widget_dialog.js:404
 #: frappe/website/doctype/web_template/web_template.json
 #: frappe/www/attribution.html:35
@@ -29396,7 +29422,7 @@ msgstr "Kueri SQL tidak aman"
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:9
 #: frappe/public/js/frappe/data_import/data_exporter.js:164
 #: frappe/public/js/frappe/form/controls/multicheck.js:185
-#: frappe/public/js/frappe/views/reports/report_view.js:1709
+#: frappe/public/js/frappe/views/reports/report_view.js:1710
 msgid "Unselect All"
 msgstr "Batalkan semua pilihan"
 
@@ -29429,11 +29455,15 @@ msgstr "Parameter berhenti berlangganan"
 msgid "Unsubscribed"
 msgstr "Berhenti berlangganan"
 
+#: frappe/desk/query_report.py:447
+msgid "Unsupported file format: {0}"
+msgstr ""
+
 #: frappe/database/query.py:1178
 msgid "Unsupported function or operator: {0}"
 msgstr "Fungsi atau operator tidak didukung: {0}"
 
-#: frappe/database/query.py:2266
+#: frappe/database/query.py:2272
 msgid "Unsupported {0}: {1}"
 msgstr "{0} tidak didukung: {1}"
 
@@ -29453,7 +29483,7 @@ msgstr "Buka file {0}"
 msgid "Unzipping files..."
 msgstr "Membuka ritsleting file ..."
 
-#: frappe/desk/doctype/event/event.py:322
+#: frappe/desk/doctype/event/event.py:328
 msgid "Upcoming Events for Today"
 msgstr "Acara Mendatang untuk Hari Ini"
 
@@ -29548,7 +29578,7 @@ msgstr "Perbarui {0} catatan"
 #. Option for the 'Status' (Select) field in DocType 'Permission Log'
 #: frappe/core/doctype/comment/comment.json
 #: frappe/core/doctype/permission_log/permission_log.json
-#: frappe/public/js/frappe/web_form/web_form.js:447
+#: frappe/public/js/frappe/web_form/web_form.js:449
 msgid "Updated"
 msgstr "Diperbarui"
 
@@ -29564,7 +29594,7 @@ msgstr "Diperbarui Ke Versi Baru 🎉"
 msgid "Updated successfully"
 msgstr "Berhasil diperbarui"
 
-#: frappe/utils/response.py:342
+#: frappe/utils/response.py:350
 msgid "Updating"
 msgstr "Memperbarui"
 
@@ -29955,12 +29985,12 @@ msgstr "Pengguna Izin"
 #. Label of a Link in the Users Workspace
 #: frappe/core/page/permission_manager/permission_manager_help.html:97
 #: frappe/core/workspace/users/users.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2100
-#: frappe/public/js/frappe/views/reports/report_view.js:1866
+#: frappe/public/js/frappe/views/reports/query_report.js:2096
+#: frappe/public/js/frappe/views/reports/report_view.js:1867
 msgid "User Permissions"
 msgstr "Permissions Pengguna"
 
-#: frappe/public/js/frappe/list/list_view.js:1963
+#: frappe/public/js/frappe/list/list_view.js:1982
 msgctxt "Button in list view menu"
 msgid "User Permissions"
 msgstr "Permissions Pengguna"
@@ -30058,7 +30088,7 @@ msgstr "Pengguna harus selalu memilih"
 msgid "User permission already exists"
 msgstr "Izin pengguna sudah ada"
 
-#: frappe/www/login.py:164
+#: frappe/www/login.py:173
 msgid "User with email address {0} does not exist"
 msgstr "Pengguna dengan alamat email {0} tidak ada"
 
@@ -30095,11 +30125,11 @@ msgstr "Pengguna {0} tidak memiliki izin untuk membuat Ruang Kerja."
 msgid "User {0} has requested for data deletion"
 msgstr "Pengguna {0} telah meminta penghapusan data"
 
-#: frappe/core/doctype/user/user.py:1505
+#: frappe/core/doctype/user/user.py:1513
 msgid "User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
 msgstr "Pengguna {0} telah memulai sesi penyamaran sebagai Anda. <br><br><b>Alasan yang diberikan:</b> {1}"
 
-#: frappe/core/doctype/user/user.py:1488
+#: frappe/core/doctype/user/user.py:1496
 msgid "User {0} impersonated as {1}"
 msgstr "Pengguna {0} menyamar sebagai {1}"
 
@@ -30213,7 +30243,7 @@ msgstr "Validasi Pengaturan Email Frappe"
 msgid "Validate SSL Certificate"
 msgstr "Validasi Sertifikat SSL"
 
-#: frappe/public/js/frappe/web_form/web_form.js:380
+#: frappe/public/js/frappe/web_form/web_form.js:382
 msgid "Validation Error"
 msgstr "Kesalahan Validasi"
 
@@ -30273,15 +30303,15 @@ msgstr "Nilai Yang Akan Diatur"
 msgid "Value Too Long"
 msgstr "Nilai terlalu panjang"
 
-#: frappe/model/base_document.py:1250 frappe/model/document.py:1036
+#: frappe/model/base_document.py:1250 frappe/model/document.py:1039
 msgid "Value cannot be changed for {0}"
 msgstr "Nilai tidak dapat diubah untuk {0}"
 
-#: frappe/model/document.py:982
+#: frappe/model/document.py:985
 msgid "Value cannot be negative for"
 msgstr "Nilai tidak boleh negatif untuk"
 
-#: frappe/model/document.py:986
+#: frappe/model/document.py:989
 msgid "Value cannot be negative for {0}: {1}"
 msgstr "Nilai tidak boleh negatif untuk {0}: {1}"
 
@@ -30426,7 +30456,7 @@ msgstr "Lihat Jejak Audit"
 msgid "View Docs"
 msgstr "Lihat Dokumen"
 
-#: frappe/core/doctype/user/user.js:152
+#: frappe/core/doctype/user/user.js:154
 msgid "View Doctype Permissions"
 msgstr "Lihat Izin DOCTYPE"
 
@@ -30450,7 +30480,7 @@ msgstr "Lihat Daftar"
 msgid "View Log"
 msgstr "Melihat log"
 
-#: frappe/core/doctype/user/user.js:143
+#: frappe/core/doctype/user/user.js:145
 #: frappe/core/doctype/user_permission/user_permission.js:26
 msgid "View Permitted Documents"
 msgstr "Lihat Dokumen yang Diizinkan"
@@ -30501,7 +30531,7 @@ msgstr "Lihat laporan di browser Anda"
 msgid "View this in your browser"
 msgstr "Lihat ini dalam browser Anda"
 
-#: frappe/public/js/frappe/web_form/web_form.js:476
+#: frappe/public/js/frappe/web_form/web_form.js:478
 msgctxt "Button in web form"
 msgid "View your response"
 msgstr "Lihat tanggapan Anda"
@@ -30541,7 +30571,7 @@ msgstr "DocType Virtual {} memerlukan metode statis bernama {} ditemukan {}"
 msgid "Virtual DocType {} requires overriding an instance method called {} found {}"
 msgstr "DocType Virtual {} memerlukan penggantian metode instans bernama {} ditemukan {}"
 
-#: frappe/core/doctype/doctype/doctype.py:1720
+#: frappe/core/doctype/doctype/doctype.py:1729
 msgid "Virtual tables must be virtual fields"
 msgstr "Tabel virtual harus berupa field virtual"
 
@@ -30589,7 +30619,7 @@ msgstr "Gudang"
 #: frappe/core/doctype/docfield/docfield.json
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json
-#: frappe/public/js/frappe/router.js:618
+#: frappe/public/js/frappe/router.js:601
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
 msgid "Warning"
 msgstr "Peringatan"
@@ -30598,7 +30628,7 @@ msgstr "Peringatan"
 msgid "Warning: DATA LOSS IMMINENT! Proceeding will permanently delete following database columns from doctype {0}:"
 msgstr "Peringatan: KEHILANGAN DATA SEGERA TERJADI! Melanjutkan akan menghapus secara permanen kolom database berikut dari tipe dokumen {0}:"
 
-#: frappe/core/doctype/doctype/doctype.py:1177
+#: frappe/core/doctype/doctype/doctype.py:1186
 msgid "Warning: Naming is not set"
 msgstr "Peringatan: Penamaan tidak diatur"
 
@@ -30843,7 +30873,7 @@ msgstr "Script Website"
 msgid "Website Search Field"
 msgstr "Bidang Pencarian Situs Web"
 
-#: frappe/core/doctype/doctype/doctype.py:1585
+#: frappe/core/doctype/doctype/doctype.py:1594
 msgid "Website Search Field must be a valid fieldname"
 msgstr "Bidang Pencarian Situs Web harus berupa nama bidang yang valid"
 
@@ -31025,7 +31055,7 @@ msgstr "Email Selamat Datang telah dikirim"
 msgid "Welcome to Frappe!"
 msgstr "Selamat Datang di Frappe!"
 
-#: frappe/public/js/frappe/views/workspace/workspace.js:688
+#: frappe/public/js/frappe/views/workspace/workspace.js:683
 msgid "Welcome to the {0} workspace"
 msgstr "Selamat Datang di ruang kerja {0}"
 
@@ -31345,7 +31375,7 @@ msgstr "Item Bilah Sisi Ruang Kerja"
 msgid "Workspace added to desktop"
 msgstr "Ruang kerja ditambahkan ke desktop"
 
-#: frappe/public/js/frappe/views/workspace/workspace.js:567
+#: frappe/public/js/frappe/views/workspace/workspace.js:562
 msgid "Workspace {0} created"
 msgstr "Ruang kerja {0} dibuat"
 
@@ -31412,7 +31442,7 @@ msgstr "Bidang Sumbu Y"
 
 #. Label of the y_field (Select) field in DocType 'Dashboard Chart Field'
 #: frappe/desk/doctype/dashboard_chart_field/dashboard_chart_field.json
-#: frappe/public/js/frappe/views/reports/query_report.js:1284
+#: frappe/public/js/frappe/views/reports/query_report.js:1285
 msgid "Y Field"
 msgstr "Kolom Y"
 
@@ -31517,7 +31547,7 @@ msgstr "Anda menambahkan 1 baris ke {0}"
 msgid "You added {0} rows to {1}"
 msgstr "Anda menambahkan {0} baris ke {1}"
 
-#: frappe/public/js/frappe/router.js:647
+#: frappe/public/js/frappe/router.js:630
 msgid "You are about to open an external link. To confirm, click the link again."
 msgstr "Anda akan membuka tautan eksternal. Untuk mengonfirmasi, klik tautan tersebut sekali lagi."
 
@@ -31541,7 +31571,7 @@ msgstr "Anda tidak diizinkan untuk mengakses catatan {0} ini karena tertaut ke {
 msgid "You are not allowed to create columns"
 msgstr "Anda tidak diizinkan untuk membuat kolom"
 
-#: frappe/core/doctype/report/report.py:104
+#: frappe/core/doctype/report/report.py:105
 msgid "You are not allowed to delete Standard Report"
 msgstr "Anda tidak diizinkan untuk menghapus Laporan Standar"
 
@@ -31553,13 +31583,13 @@ msgstr "Anda tidak diizinkan untuk menghapus Notifikasi standar. Anda dapat meno
 msgid "You are not allowed to delete a standard Website Theme"
 msgstr "Anda tidak diizinkan menghapus Tema Website standar"
 
-#: frappe/core/doctype/report/report.py:449
+#: frappe/core/doctype/report/report.py:458
 msgid "You are not allowed to edit the report."
 msgstr "Anda tidak diizinkan untuk menyunting laporan."
 
 #: frappe/core/doctype/data_import/exporter.py:121
 #: frappe/core/doctype/data_import/exporter.py:125
-#: frappe/desk/reportview.py:448 frappe/desk/reportview.py:451
+#: frappe/desk/reportview.py:449 frappe/desk/reportview.py:452
 #: frappe/permissions.py:651
 msgid "You are not allowed to export {} doctype"
 msgstr "Anda tidak diizinkan mengekspor {} doctype"
@@ -31571,7 +31601,7 @@ msgid "You are not allowed to perform bulk actions"
 msgstr "Anda tidak diizinkan untuk melakukan tindakan massal"
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:60
-#: frappe/desk/reportview.py:607 frappe/utils/print_format.py:40
+#: frappe/desk/reportview.py:652 frappe/utils/print_format.py:40
 msgid "You are not allowed to perform bulk actions."
 msgstr "Anda tidak diizinkan untuk melakukan tindakan massal."
 
@@ -31583,13 +31613,17 @@ msgstr "Anda tidak diizinkan untuk mencetak laporan ini"
 msgid "You are not allowed to send emails related to this document"
 msgstr "Anda tidak diizinkan mengirim email yang terkait dokumen ini"
 
-#: frappe/desk/doctype/event/event.py:250
-msgid "You are not allowed to update the status of this event."
+#: frappe/desk/doctype/event/event.py:244
+msgid "You are not allowed to update attendance for another user."
 msgstr ""
 
-#: frappe/website/doctype/web_form/web_form.py:640
+#: frappe/website/doctype/web_form/web_form.py:655
 msgid "You are not allowed to update this Web Form Document"
 msgstr "Anda tidak diizinkan memperbarui Dokumen Web Form ini"
+
+#: frappe/desk/doctype/event/event.py:351
+msgid "You are not allowed to view events for another user."
+msgstr ""
 
 #: frappe/core/doctype/communication/email.py:341
 msgid "You are not authorized to undo this email"
@@ -31660,7 +31694,7 @@ msgstr "Anda dapat mengubah kebijakan retensi dari {0}."
 msgid "You can continue with the onboarding after exploring this page"
 msgstr "Anda dapat melanjutkan orientasi setelah menjelajahi halaman ini"
 
-#: frappe/model/delete_doc.py:176
+#: frappe/model/delete_doc.py:177
 msgid "You can disable this {0} instead of deleting it."
 msgstr "Anda dapat menonaktifkan {0} ini alih-alih menghapusnya."
 
@@ -31684,7 +31718,7 @@ msgstr "Anda hanya dapat mencetak hingga {0} dokumen sekaligus"
 msgid "You can only set the 3 custom doctypes in the Document Types table."
 msgstr "Anda hanya dapat mengatur 3 tipe dokumen kustom dalam tabel Tipe Dokumen."
 
-#: frappe/handler.py:203
+#: frappe/handler.py:207
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
 msgstr "Anda hanya dapat mengunggah dokumen JPG, PNG, GIF, PDF, TXT, CSV atau Microsoft."
 
@@ -31702,7 +31736,7 @@ msgstr "Anda dapat memilih salah satu dari berikut ini,"
 msgid "You can set a high value here if multiple users will be logging in from the same network."
 msgstr ""
 
-#: frappe/desk/query_report.py:409
+#: frappe/desk/query_report.py:401
 msgid "You can try changing the filters of your report."
 msgstr "Anda dapat mencoba mengubah filter laporan Anda."
 
@@ -31794,7 +31828,7 @@ msgstr "Anda tidak memiliki izin untuk mengakses kolom Anak Table: {0}"
 msgid "You do not have permission to access field: {0}"
 msgstr "Anda tidak memiliki izin untuk mengakses kolom: {0}"
 
-#: frappe/desk/query_report.py:1049
+#: frappe/desk/query_report.py:1105
 msgid "You do not have permission to access {0}: {1}."
 msgstr "Anda tidak memiliki izin untuk mengakses {0}: {1}."
 
@@ -31802,23 +31836,23 @@ msgstr "Anda tidak memiliki izin untuk mengakses {0}: {1}."
 msgid "You do not have permissions to cancel all linked documents."
 msgstr "Anda tidak memiliki izin untuk membatalkan semua dokumen yang ditautkan."
 
-#: frappe/desk/query_report.py:44
+#: frappe/desk/query_report.py:45
 msgid "You don't have access to Report: {0}"
 msgstr "Anda tidak memiliki akses ke Laporan: {0}"
 
-#: frappe/website/doctype/web_form/web_form.py:865
+#: frappe/website/doctype/web_form/web_form.py:880
 msgid "You don't have permission to access the {0} DocType."
 msgstr "Anda tidak memiliki izin untuk mengakses DOCTYPE {0}."
 
-#: frappe/utils/response.py:291 frappe/utils/response.py:295
+#: frappe/utils/response.py:299 frappe/utils/response.py:303
 msgid "You don't have permission to access this file"
 msgstr "Anda tidak memiliki izin untuk mengakses file ini"
 
-#: frappe/desk/query_report.py:50
+#: frappe/desk/query_report.py:51
 msgid "You don't have permission to get a report on: {0}"
 msgstr "Anda tidak memiliki izin untuk mendapatkan laporan tentang: {0}"
 
-#: frappe/website/doctype/web_form/web_form.py:178
+#: frappe/website/doctype/web_form/web_form.py:193
 msgid "You don't have the permissions to access this document"
 msgstr "Anda tidak memiliki izin untuk mengakses dokumen ini"
 
@@ -31826,7 +31860,7 @@ msgstr "Anda tidak memiliki izin untuk mengakses dokumen ini"
 msgid "You have a new message from:"
 msgstr "Anda memiliki pesan baru dari:"
 
-#: frappe/handler.py:121
+#: frappe/handler.py:125
 msgid "You have been successfully logged out"
 msgstr "Anda telah berhasil keluar"
 
@@ -31854,7 +31888,7 @@ msgstr "Anda memiliki {0} yang tak terlihat"
 msgid "You haven't added any Dashboard Charts or Number Cards yet."
 msgstr "Anda belum menambahkan Grafik Dasbor atau Kartu Angka apa pun."
 
-#: frappe/public/js/frappe/list/list_view.js:525
+#: frappe/public/js/frappe/list/list_view.js:544
 msgid "You haven't created a {0} yet"
 msgstr "Anda belum membuat {0}"
 
@@ -31870,11 +31904,11 @@ msgstr "Anda terakhir mengedit ini"
 msgid "You must add atleast one link."
 msgstr "Anda harus menambah setidaknya satu tautan."
 
-#: frappe/website/doctype/web_form/web_form.py:861
+#: frappe/website/doctype/web_form/web_form.py:876
 msgid "You must be logged in to use this form."
 msgstr "Anda harus masuk untuk menggunakan formulir ini."
 
-#: frappe/website/doctype/web_form/web_form.py:684
+#: frappe/website/doctype/web_form/web_form.py:699
 msgid "You must login to submit this form"
 msgstr "Anda harus login untuk mengirimkan formulir ini"
 
@@ -31895,11 +31929,11 @@ msgstr "Anda harus menjadi Manajer Ruang Kerja untuk menyunting dokumen ini"
 msgid "You need to be a system user to access this page."
 msgstr "Anda harus menjadi pengguna sistem untuk mengakses halaman ini."
 
-#: frappe/website/doctype/web_form/web_form.py:94
+#: frappe/website/doctype/web_form/web_form.py:95
 msgid "You need to be in developer mode to edit a Standard Web Form"
 msgstr "Anda perlu berada dalam mode developer untuk mengedit Formulir Web Standar"
 
-#: frappe/utils/response.py:280
+#: frappe/utils/response.py:281
 msgid "You need to be logged in and have System Manager Role to be able to access backups."
 msgstr "Anda harus login dan memiliki Peran Manager Sistem untuk dapat mengakses back-up."
 
@@ -31907,7 +31941,7 @@ msgstr "Anda harus login dan memiliki Peran Manager Sistem untuk dapat mengakses
 msgid "You need to be logged in to access this page"
 msgstr "Anda harus login untuk mengakses halaman ini"
 
-#: frappe/website/doctype/web_form/web_form.py:167
+#: frappe/website/doctype/web_form/web_form.py:182
 msgid "You need to be logged in to access this {0}."
 msgstr "Anda harus login untuk mengakses ini {0}."
 
@@ -31994,7 +32028,7 @@ msgstr "Anda berhenti mengikuti dokumen ini"
 msgid "You viewed this"
 msgstr "Anda melihat ini"
 
-#: frappe/public/js/frappe/router.js:658
+#: frappe/public/js/frappe/router.js:641
 msgid "You will be redirected to:"
 msgstr "Anda akan dialihkan ke:"
 
@@ -32071,7 +32105,7 @@ msgstr "Alamat email anda"
 msgid "Your exported report: {0}"
 msgstr "Laporan Anda yang diekspor: {0}"
 
-#: frappe/public/js/frappe/web_form/web_form.js:448
+#: frappe/public/js/frappe/web_form/web_form.js:450
 msgid "Your form has been successfully updated"
 msgstr "Formulir Anda telah berhasil diperbarui"
 
@@ -32109,7 +32143,7 @@ msgstr "Kata sandi Anda telah diubah dan Anda mungkin telah keluar dari semua si
 msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
 msgstr "Permintaan Anda telah diterima. Kami akan segera menanggapi. Jika Anda memiliki informasi tambahan, silakan balas email ini."
 
-#: frappe/desk/query_report.py:360 frappe/desk/reportview.py:400
+#: frappe/desk/query_report.py:352 frappe/desk/reportview.py:400
 msgid "Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
 msgstr "Laporan Anda sedang dibuat di latar belakang. Anda akan menerima email di {0} dengan tautan unduh setelah siap."
 
@@ -32437,7 +32471,7 @@ msgstr ""
 msgid "just now"
 msgstr "baru saja"
 
-#: frappe/desk/desktop.py:254 frappe/desk/query_report.py:309
+#: frappe/desk/desktop.py:254 frappe/desk/query_report.py:301
 msgid "label"
 msgstr ""
 
@@ -32901,7 +32935,7 @@ msgstr ""
 msgid "{0} Calendar"
 msgstr "{0} Kalender"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:649
+#: frappe/public/js/frappe/views/reports/report_view.js:650
 msgid "{0} Chart"
 msgstr "{0} Bagan"
 
@@ -32958,7 +32992,7 @@ msgstr "{0} Tidak diizinkan mengubah {1} setelah pengiriman dari {2} ke {3}"
 msgid "{0} Report"
 msgstr "{0} Laporan"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:996
+#: frappe/public/js/frappe/views/reports/query_report.js:997
 msgid "{0} Reports"
 msgstr "{0} Laporan"
 
@@ -32971,7 +33005,7 @@ msgid "{0} Tree"
 msgstr "Pohon {0}"
 
 #: frappe/public/js/frappe/form/footer/form_timeline.js:133
-#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:150
+#: frappe/public/js/frappe/form/sidebar/form_sidebar.js:152
 msgid "{0} Web page views"
 msgstr "{0} Tampilan Halaman"
 
@@ -33066,7 +33100,7 @@ msgctxt "Form timeline"
 msgid "{0} changed {1} to {2}"
 msgstr "{0} mengubah {1} menjadi {2}"
 
-#: frappe/core/doctype/doctype/doctype.py:1668
+#: frappe/core/doctype/doctype/doctype.py:1677
 msgid "{0} contains an invalid Fetch From expression, Fetch From can't be self-referential."
 msgstr "{0} mengandung ekspresi Ambil Dari yang tidak valid, Ambil Dari tidak dapat merujuk pada dirinya sendiri."
 
@@ -33157,7 +33191,7 @@ msgstr "{0} di baris {1} tidak dapat memiliki URL dan item turunan"
 msgid "{0} is a descendant of {1}"
 msgstr "{0} adalah turunan dari {1}"
 
-#: frappe/core/doctype/doctype/doctype.py:956
+#: frappe/core/doctype/doctype/doctype.py:965
 msgid "{0} is a mandatory field"
 msgstr "{0} adalah kolom wajib"
 
@@ -33173,7 +33207,7 @@ msgstr "{0} setelah {1}"
 msgid "{0} is an ancestor of {1}"
 msgstr "{0} adalah leluhur dari {1}"
 
-#: frappe/core/doctype/doctype/doctype.py:1681
+#: frappe/core/doctype/doctype/doctype.py:1690
 msgid "{0} is an invalid Data field."
 msgstr "{0} adalah bidang Data yang tidak valid."
 
@@ -33190,7 +33224,7 @@ msgid "{0} is between {1}"
 msgstr "{0} adalah antara {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:735
-#: frappe/public/js/frappe/views/reports/report_view.js:1564
+#: frappe/public/js/frappe/views/reports/report_view.js:1565
 msgid "{0} is between {1} and {2}"
 msgstr "{0} berada antara {1} dan {2}"
 
@@ -33209,31 +33243,31 @@ msgstr "{0} dinonaktifkan"
 msgid "{0} is enabled"
 msgstr "{0} diaktifkan"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1533
+#: frappe/public/js/frappe/views/reports/report_view.js:1534
 msgid "{0} is equal to {1}"
 msgstr "{0} sama dengan {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:716
-#: frappe/public/js/frappe/views/reports/report_view.js:1553
+#: frappe/public/js/frappe/views/reports/report_view.js:1554
 msgid "{0} is greater than or equal to {1}"
 msgstr "{0} lebih besar dari atau sama dengan {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:706
-#: frappe/public/js/frappe/views/reports/report_view.js:1543
+#: frappe/public/js/frappe/views/reports/report_view.js:1544
 msgid "{0} is greater than {1}"
 msgstr "{0} lebih besar dari {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:721
-#: frappe/public/js/frappe/views/reports/report_view.js:1558
+#: frappe/public/js/frappe/views/reports/report_view.js:1559
 msgid "{0} is less than or equal to {1}"
 msgstr "{0} kurang dari atau sama dengan {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:711
-#: frappe/public/js/frappe/views/reports/report_view.js:1548
+#: frappe/public/js/frappe/views/reports/report_view.js:1549
 msgid "{0} is less than {1}"
 msgstr "{0} kurang dari {1}"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1583
+#: frappe/public/js/frappe/views/reports/report_view.js:1584
 msgid "{0} is like {1}"
 msgstr "{0} seperti {1}"
 
@@ -33311,21 +33345,21 @@ msgid "{0} is not an ancestor of {1}"
 msgstr "{0} bukan leluhur dari {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:693
-#: frappe/public/js/frappe/views/reports/report_view.js:1538
+#: frappe/public/js/frappe/views/reports/report_view.js:1539
 msgid "{0} is not equal to {1}"
 msgstr "{0} tidak sama dengan {1}"
 
-#: frappe/public/js/frappe/views/reports/report_view.js:1585
+#: frappe/public/js/frappe/views/reports/report_view.js:1586
 msgid "{0} is not like {1}"
 msgstr "{0} tidak seperti {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:697
-#: frappe/public/js/frappe/views/reports/report_view.js:1579
+#: frappe/public/js/frappe/views/reports/report_view.js:1580
 msgid "{0} is not one of {1}"
 msgstr "{0} bukan salah satu dari {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:727
-#: frappe/public/js/frappe/views/reports/report_view.js:1589
+#: frappe/public/js/frappe/views/reports/report_view.js:1590
 msgid "{0} is not set"
 msgstr "{0} tidak diatur"
 
@@ -33342,7 +33376,7 @@ msgid "{0} is on or before {1}"
 msgstr "{0} pada atau sebelum {1}"
 
 #: frappe/public/js/frappe/form/controls/link.js:695
-#: frappe/public/js/frappe/views/reports/report_view.js:1572
+#: frappe/public/js/frappe/views/reports/report_view.js:1573
 msgid "{0} is one of {1}"
 msgstr "{0} adalah salah satu dari {1}"
 
@@ -33355,12 +33389,12 @@ msgid "{0} is required"
 msgstr "{0} diperlukan"
 
 #: frappe/public/js/frappe/form/controls/link.js:724
-#: frappe/public/js/frappe/views/reports/report_view.js:1588
+#: frappe/public/js/frappe/views/reports/report_view.js:1589
 msgid "{0} is set"
 msgstr "{0} diatur"
 
 #: frappe/public/js/frappe/form/controls/link.js:748
-#: frappe/public/js/frappe/views/reports/report_view.js:1567
+#: frappe/public/js/frappe/views/reports/report_view.js:1568
 msgid "{0} is within {1}"
 msgstr "{0} berada dalam {1}"
 
@@ -33368,11 +33402,11 @@ msgstr "{0} berada dalam {1}"
 msgid "{0} is {1}"
 msgstr "{0} adalah {1}"
 
-#: frappe/public/js/frappe/list/list_view.js:1882
+#: frappe/public/js/frappe/list/list_view.js:1901
 msgid "{0} items selected"
 msgstr "{0} item dipilih"
 
-#: frappe/core/doctype/user/user.py:1497
+#: frappe/core/doctype/user/user.py:1505
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} baru saja menyamar sebagai Anda. Mereka memberikan alasan ini: {1}"
 
@@ -33404,23 +33438,23 @@ msgstr "{0} menit yang lalu"
 msgid "{0} months ago"
 msgstr "{0} bulan yang lalu"
 
-#: frappe/model/document.py:2161
+#: frappe/model/document.py:2164
 msgid "{0} must be after {1}"
 msgstr "{0} harus setelah {1}"
 
-#: frappe/model/document.py:1910
+#: frappe/model/document.py:1913
 msgid "{0} must be beginning with '{1}'"
 msgstr ""
 
-#: frappe/model/document.py:1912
+#: frappe/model/document.py:1915
 msgid "{0} must be equal to '{1}'"
 msgstr ""
 
-#: frappe/model/document.py:1908
+#: frappe/model/document.py:1911
 msgid "{0} must be none of {1}"
 msgstr ""
 
-#: frappe/model/document.py:1906 frappe/utils/csvutils.py:162
+#: frappe/model/document.py:1909 frappe/utils/csvutils.py:162
 msgid "{0} must be one of {1}"
 msgstr "{0} harus merupakan salah satu {1}"
 
@@ -33432,7 +33466,7 @@ msgstr "{0} harus diatur terlebih dahulu"
 msgid "{0} must be unique"
 msgstr "{0} harus merupakan kode unik"
 
-#: frappe/model/document.py:1914
+#: frappe/model/document.py:1917
 msgid "{0} must be {1} {2}"
 msgstr ""
 
@@ -33448,12 +33482,12 @@ msgstr "{0} bukan Keadaan yang berlaku"
 msgid "{0} not allowed to be renamed"
 msgstr "{0} tidak dapat dinamakan kembali"
 
-#: frappe/core/doctype/report/report.py:486
-#: frappe/public/js/frappe/list/list_view.js:1262
+#: frappe/core/doctype/report/report.py:507
+#: frappe/public/js/frappe/list/list_view.js:1281
 msgid "{0} of {1}"
 msgstr "{0} dari {1}"
 
-#: frappe/public/js/frappe/list/list_view.js:1264
+#: frappe/public/js/frappe/list/list_view.js:1283
 msgid "{0} of {1} ({2} rows with children)"
 msgstr "{0} dari {1} ({2} baris dengan anak-anak)"
 
@@ -33519,7 +33553,7 @@ msgstr "{0} dokumen dibatasi"
 msgid "{0} role does not have permission on any doctype"
 msgstr "Peran {0} tidak memiliki izin pada DOCTYPE mana pun"
 
-#: frappe/model/document.py:2152
+#: frappe/model/document.py:2155
 msgid "{0} row #{1}:"
 msgstr "Baris {0} #{1}:"
 
@@ -33533,7 +33567,7 @@ msgctxt "User added rows to child table"
 msgid "{0} rows to {1}"
 msgstr "{0} baris ke {1}"
 
-#: frappe/desk/query_report.py:781
+#: frappe/desk/query_report.py:837
 msgid "{0} saved successfully"
 msgstr "{0} berhasil disimpan"
 
@@ -33657,7 +33691,7 @@ msgstr "{0} {1} ditautkan dengan dokumen yang dikirimkan berikut: {2}"
 msgid "{0} {1} not found"
 msgstr "{0} {1} tidak ditemukan"
 
-#: frappe/model/delete_doc.py:290
+#: frappe/model/delete_doc.py:291
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
 msgstr "{0} {1}: Rekaman yang Dikirim tidak dapat dihapus. Anda harus {2} Membatalkan {3} dulu."
 
@@ -33682,43 +33716,44 @@ msgstr "{0}: '{1}' ({3}) akan terpotong, karena karakter maksimum yang diizinkan
 msgid "{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 msgstr "{0}: Gagal melampirkan dokumen berulang baru. Untuk mengaktifkan melampirkan dokumen di email pemberitahuan ulangi otomatis, aktifkan {1} di Pengaturan Cetak"
 
-#: frappe/core/doctype/doctype/doctype.py:1489
+#: frappe/core/doctype/doctype/doctype.py:1498
 msgid "{0}: Field '{1}' cannot be set as Unique as it has non-unique values"
 msgstr "{0}: Field &#39;{1}&#39; tidak dapat ditetapkan sebagai Unik karena memiliki nilai-nilai non-unik"
 
-#: frappe/core/doctype/doctype/doctype.py:1397
+#: frappe/core/doctype/doctype/doctype.py:1406
+#: frappe/website/doctype/web_form/web_form.py:122
 msgid "{0}: Field {1} in row {2} cannot be hidden and mandatory without default"
 msgstr "{0}: Bidang {1} berturut-turut {2} tidak dapat disembunyikan dan wajib tanpa default"
 
-#: frappe/core/doctype/doctype/doctype.py:1356
+#: frappe/core/doctype/doctype/doctype.py:1365
 msgid "{0}: Field {1} of type {2} cannot be mandatory"
 msgstr "{0}: Bidang {1} dari tipe {2} tidak boleh wajib"
 
-#: frappe/core/doctype/doctype/doctype.py:1344
+#: frappe/core/doctype/doctype/doctype.py:1353
 msgid "{0}: Fieldname {1} appears multiple times in rows {2}"
 msgstr "{0}: Fieldname {1} muncul beberapa kali dalam baris {2}"
 
-#: frappe/core/doctype/doctype/doctype.py:1476
+#: frappe/core/doctype/doctype/doctype.py:1485
 msgid "{0}: Fieldtype {1} for {2} cannot be unique"
 msgstr "{0}: Fieldtype {1} untuk {2} tidak boleh unik"
 
-#: frappe/core/doctype/doctype/doctype.py:1838
+#: frappe/core/doctype/doctype/doctype.py:1847
 msgid "{0}: No basic permissions set"
 msgstr "{0}: Tidak ada perizinan dasar yang ditetapkan"
 
-#: frappe/core/doctype/doctype/doctype.py:1852
+#: frappe/core/doctype/doctype/doctype.py:1861
 msgid "{0}: Only one rule allowed with the same Role, Level and {1}"
 msgstr "{0}: Hanya satu aturan diperbolehkan dengan Peran yang sama, Tingkat dan {1}"
 
-#: frappe/core/doctype/doctype/doctype.py:1378
+#: frappe/core/doctype/doctype/doctype.py:1387
 msgid "{0}: Options must be a valid DocType for field {1} in row {2}"
 msgstr "{0}: Opsi harus berupa DocType yang valid untuk bidang {1} di baris {2}"
 
-#: frappe/core/doctype/doctype/doctype.py:1367
+#: frappe/core/doctype/doctype/doctype.py:1376
 msgid "{0}: Options required for Link or Table type field {1} in row {2}"
 msgstr "{0}: Opsi yang diperlukan untuk bidang jenis Tautan atau jenis tabel {1} di baris {2}"
 
-#: frappe/core/doctype/doctype/doctype.py:1385
+#: frappe/core/doctype/doctype/doctype.py:1394
 msgid "{0}: Options {1} must be the same as doctype name {2} for the field {3}"
 msgstr "{0}: Opsi {1} harus sama dengan nama doctype {2} untuk isian {3}"
 
@@ -33726,47 +33761,47 @@ msgstr "{0}: Opsi {1} harus sama dengan nama doctype {2} untuk isian {3}"
 msgid "{0}: Other permission rules may also apply"
 msgstr "{0}: Aturan izin lainnya mungkin juga berlaku"
 
-#: frappe/core/doctype/doctype/doctype.py:1867
+#: frappe/core/doctype/doctype/doctype.py:1876
 msgid "{0}: Permission at level 0 must be set before higher levels are set"
 msgstr "{0}: Izin pada tingkat 0 harus ditetapkan sebelum tingkat yang lebih tinggi ditetapkan"
 
-#: frappe/core/doctype/doctype/doctype.py:1944
+#: frappe/core/doctype/doctype/doctype.py:1953
 msgid "{0}: The 'Amend' permission cannot be granted for a non-submittable DocType."
 msgstr "{0}: Izin 'Ubah' tidak dapat diberikan untuk DOCTYPE yang tidak dapat diajukan."
 
-#: frappe/core/doctype/doctype/doctype.py:1892
+#: frappe/core/doctype/doctype/doctype.py:1901
 msgid "{0}: The 'Amend' permission cannot be granted without the 'Create' permission."
 msgstr "{0}: Izin 'Ubah' tidak dapat diberikan tanpa izin 'Buat'."
 
-#: frappe/core/doctype/doctype/doctype.py:1879
+#: frappe/core/doctype/doctype/doctype.py:1888
 msgid "{0}: The 'Cancel' permission cannot be granted without the 'Submit' permission."
 msgstr "{0}: Izin 'Batalkan' tidak dapat diberikan tanpa izin 'Kirim'."
 
-#: frappe/core/doctype/doctype/doctype.py:1926
+#: frappe/core/doctype/doctype/doctype.py:1935
 msgid "{0}: The 'Export' permission was removed because it cannot be granted for a 'single' DocType."
 msgstr "{0}: Izin 'Ekspor' telah dihapus karena tidak dapat diberikan untuk DOCTYPE 'single'."
 
-#: frappe/core/doctype/doctype/doctype.py:1952
+#: frappe/core/doctype/doctype/doctype.py:1961
 msgid "{0}: The 'Import' permission cannot be granted for a non-importable DocType."
 msgstr "{0}: Izin 'Impor' tidak dapat diberikan untuk DOCTYPE yang tidak dapat diimpor."
 
-#: frappe/core/doctype/doctype/doctype.py:1898
+#: frappe/core/doctype/doctype/doctype.py:1907
 msgid "{0}: The 'Import' permission cannot be granted without the 'Create' permission."
 msgstr "{0}: Izin 'Impor' tidak dapat diberikan tanpa izin 'Buat'."
 
-#: frappe/core/doctype/doctype/doctype.py:1918
+#: frappe/core/doctype/doctype/doctype.py:1927
 msgid "{0}: The 'Import' permission was removed because it cannot be granted for a 'single' DocType."
 msgstr "{0}: Izin 'Impor' telah dihapus karena tidak dapat diberikan untuk DOCTYPE 'single'."
 
-#: frappe/core/doctype/doctype/doctype.py:1910
+#: frappe/core/doctype/doctype/doctype.py:1919
 msgid "{0}: The 'Report' permission was removed because it cannot be granted for a 'single' DocType."
 msgstr "{0}: Izin 'Laporan' telah dihapus karena tidak dapat diberikan untuk DOCTYPE 'single'."
 
-#: frappe/core/doctype/doctype/doctype.py:1937
+#: frappe/core/doctype/doctype/doctype.py:1946
 msgid "{0}: The 'Submit' permission cannot be granted for a non-submittable DocType."
 msgstr "{0}: Izin 'Kirim' tidak dapat diberikan untuk DOCTYPE yang tidak dapat diajukan."
 
-#: frappe/core/doctype/doctype/doctype.py:1886
+#: frappe/core/doctype/doctype/doctype.py:1895
 msgid "{0}: The 'Submit', 'Cancel', and 'Amend' permissions cannot be granted without the 'Write' permission."
 msgstr "{0}: Izin 'Kirim', 'Batalkan', dan 'Ubah' tidak dapat diberikan tanpa izin 'Tulis'."
 
@@ -33774,11 +33809,11 @@ msgstr "{0}: Izin 'Kirim', 'Batalkan', dan 'Ubah' tidak dapat diberikan tanpa iz
 msgid "{0}: You can increase the limit for the field if required via {1}"
 msgstr "{0}: Anda dapat meningkatkan batas untuk bidang ini jika diperlukan melalui {1}"
 
-#: frappe/core/doctype/doctype/doctype.py:1331
+#: frappe/core/doctype/doctype/doctype.py:1340
 msgid "{0}: fieldname cannot be set to reserved field {1} in DocType"
 msgstr "{0}: nama bidang tidak dapat diatur ke bidang yang dicadangkan {1} di DOCTYPE"
 
-#: frappe/core/doctype/doctype/doctype.py:1322
+#: frappe/core/doctype/doctype/doctype.py:1331
 msgid "{0}: fieldname cannot be set to reserved keyword {1}"
 msgstr "{0}: nama bidang tidak dapat diatur ke kata kunci yang dicadangkan {1}"
 
@@ -33795,11 +33830,11 @@ msgstr "{0}: {1} tidak cocok dengan hasil apa pun."
 msgid "{0}: {1} is set to state {2}"
 msgstr "{0}: {1} diatur untuk menyatakan {2}"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1342
+#: frappe/public/js/frappe/views/reports/query_report.js:1343
 msgid "{0}: {1} vs {2}"
 msgstr ""
 
-#: frappe/core/doctype/doctype/doctype.py:1497
+#: frappe/core/doctype/doctype/doctype.py:1506
 msgid "{0}:Fieldtype {1} for {2} cannot be indexed"
 msgstr "{0}: Fieldtype {1} untuk {2} tidak dapat diindeks"
 
@@ -33823,7 +33858,7 @@ msgstr "{count} baris dipilih"
 msgid "{count} rows selected"
 msgstr "{count} baris dipilih"
 
-#: frappe/core/doctype/doctype/doctype.py:1551
+#: frappe/core/doctype/doctype/doctype.py:1560
 msgid "{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}."
 msgstr "{{{0}}} bukan pola nama-kolom yang sah. Seharusnya {{field_name}}."
 
@@ -33831,11 +33866,11 @@ msgstr "{{{0}}} bukan pola nama-kolom yang sah. Seharusnya {{field_name}}."
 msgid "{} Complete"
 msgstr "{} Selesai"
 
-#: frappe/utils/data.py:2631
+#: frappe/utils/data.py:2639
 msgid "{} Invalid python code on line {}"
 msgstr "{} Kode Python tidak valid pada baris {}"
 
-#: frappe/utils/data.py:2640
+#: frappe/utils/data.py:2648
 msgid "{} Possibly invalid python code. <br>{}"
 msgstr "{} Kemungkinan kode Python tidak valid. <br>{}"
 
