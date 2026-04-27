@@ -204,6 +204,8 @@ useEventListener(componentContainer, "click", (e) => {
 			if (canvasStore.fragmentData.fragmentId) {
 				componentEditorStore.editComponent(componentName)
 			}
+		} else {
+			componentEditorStore.selectedComponent = null
 		}
 	}
 })
