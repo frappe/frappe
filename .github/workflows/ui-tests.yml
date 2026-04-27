@@ -2,8 +2,6 @@ name: UI
 
 on:
   pull_request:
-  repository_dispatch:
-    types: [frappe-framework-change]
   workflow_dispatch:
   schedule:
     # Run everday at midnight UTC / 5:30 IST
@@ -47,32 +45,3 @@ jobs:
       enable-coverage: false
       fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
     needs: checkrun
-
-  coverage:
-    name: Coverage Wrap Up
-    needs: [test, checkrun]
-    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clone
-        uses: actions/checkout@v6
-      - name: Download artifacts
-        uses: actions/download-artifact@v8.0.1
-      - name: Upload python coverage data
-        uses: codecov/codecov-action@v6
-        with:
-          name: UIBackend
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
-          verbose: true
-          exclude: coverage-js*
-          flags: server-ui
-      - name: Upload JS coverage data
-        uses: codecov/codecov-action@v6
-        with:
-          name: Cypress
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
-          exclude: coverage-py*
-          verbose: true
-          flags: ui-tests

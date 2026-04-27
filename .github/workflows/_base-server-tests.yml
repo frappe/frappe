@@ -33,13 +33,6 @@ on:
 
 
 jobs:
-  unit-test:
-    name: Unit
-    runs-on: ubuntu-latest
-    steps:
-      - id: placeholder
-        run: |
-          echo "Evolution towards a set of (fast) unit tests which run without a DB connection is being planned"
   gen-idx-integration:
     name: Gen Integration Test Matrix
     runs-on: ubuntu-latest
@@ -119,7 +112,7 @@ jobs:
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v7
-        if: inputs.enable-coverage
+        if: ${{ inputs.fake-success == false && inputs.enable-coverage }}
         with:
           name: coverage-${{ matrix.db }}-${{ matrix.index }}
           path: ./sites/*coverage*.xml
@@ -142,15 +135,14 @@ jobs:
   # TIP: Use these for checks, e.g. Server / Tests / Success
   success:
     name: Success
-    needs: [unit-test, integration-test]
+    needs: [integration-test]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Unit '${{ needs.unit-test.result }}' / Integration '${{ needs.integration-test.result }}'
+      - name: Integration '${{ needs.integration-test.result }}'
         shell: python
         run: |
           stati = [
-            '${{ needs.unit-test.result }}',
             '${{ needs.integration-test.result }}',
           ]
 
