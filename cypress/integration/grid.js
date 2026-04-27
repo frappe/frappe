@@ -112,6 +112,7 @@ context("Grid", () => {
 			});
 	});
 
+<<<<<<< HEAD
 	it("hides add-row and add-multiple-rows buttons when rows are selected", () => {
 		cy.visit("/desk/contact/Test Contact");
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
@@ -172,5 +173,67 @@ context("Grid", () => {
 
 		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
 		cy.get("@table").find(".grid-selection-toast").should("not.be.visible");
+=======
+	it("shows edit button only when child table allow_bulk_edit is enabled", () => {
+		cy.visit("/desk/contact/Test Contact");
+		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+
+		cy.window()
+			.its("cur_frm")
+			.then((frm) => {
+				const grid = frm.get_field("phone_nos").grid;
+				grid.meta.allow_bulk_edit = false;
+				grid.refresh_edit_rows_button();
+			});
+
+		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
+		cy.get("@table").find(".grid-edit-rows").should("have.class", "hidden");
+
+		cy.window()
+			.its("cur_frm")
+			.then((frm) => {
+				const grid = frm.get_field("phone_nos").grid;
+				grid.meta.allow_bulk_edit = true;
+				grid.refresh_edit_rows_button();
+			});
+
+		cy.get("@table").find(".grid-edit-rows").should("not.have.class", "hidden");
+	});
+
+	it("bulk edit updates only selected child rows", () => {
+		const updated_phone = `99999${Date.now().toString().slice(-5)}`;
+
+		cy.visit("/desk/contact/Test Contact");
+		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+
+		cy.window()
+			.its("cur_frm")
+			.then((frm) => {
+				const grid = frm.get_field("phone_nos").grid;
+				grid.meta.allow_bulk_edit = true;
+				grid.refresh_edit_rows_button();
+
+				expect(frm.doc.phone_nos.length).to.be.greaterThan(1);
+				cy.wrap(frm.doc.phone_nos[1].phone || "").as("secondRowPhoneBefore");
+			});
+
+		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
+		cy.get("@table").find(".grid-edit-rows").click({ force: true });
+
+		cy.get(".modal:visible").within(() => {
+			cy.get('[data-fieldname="field"] select').select("Phone");
+			cy.get('[data-fieldname="value"] input').clear().type(updated_phone);
+			cy.get(".btn-primary").click();
+		});
+
+		cy.window()
+			.its("cur_frm")
+			.then((frm) => {
+				expect(frm.doc.phone_nos[0].phone).to.equal(updated_phone);
+				cy.get("@secondRowPhoneBefore").then((secondRowPhoneBefore) => {
+					expect(frm.doc.phone_nos[1].phone || "").to.equal(secondRowPhoneBefore);
+				});
+			});
+>>>>>>> 25c19683db (feat(grid): add tests for bulk edit functionality in child tables)
 	});
 });
