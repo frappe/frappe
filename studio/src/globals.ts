@@ -48,7 +48,6 @@ import {
 	NumberChart,
 	AxisChart,
 	DonutChart,
-	frappeRequest,
 } from "frappe-ui"
 import { Filter, Link } from "frappe-ui/frappe"
 
@@ -66,6 +65,7 @@ import AppHeader from "@/components/AppLayout/AppHeader.vue"
 import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
 import MarkdownEditor from "@/components/AppLayout/MarkdownEditor.vue"
 
+import { vueComponents } from "@/data/vueComponents"
 import { default as componentRegistry } from "@/data/components"
 import { default as Block } from "@/utils/block"
 
@@ -151,9 +151,7 @@ export interface CustomVueComponentMeta {
  */
 export async function registerCustomVueComponents(app: App): Promise<CustomVueComponentMeta[]> {
 	try {
-		const components: CustomVueComponentMeta[] = await frappeRequest({
-			url: "/api/method/studio.api.get_custom_vue_components",
-		})
+		const components: CustomVueComponentMeta[] = await vueComponents.fetch()
 
 		for (const comp of components) {
 			try {
