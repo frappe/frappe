@@ -138,7 +138,7 @@ def delete_doc(
 			):
 				try:
 					delete_controllers(name, doc.module)
-				except (OSError, KeyError):
+				except OSError, KeyError:
 					# in case a doctype doesnt have any controller code  nor any app and module
 					pass
 
@@ -148,7 +148,7 @@ def delete_doc(
 			# Lock the doc without waiting
 			try:
 				frappe.db.get_value(doctype, name, for_update=True, wait=False)
-			except (frappe.QueryTimeoutError, frappe.QueryDeadlockError):
+			except frappe.QueryTimeoutError, frappe.QueryDeadlockError:
 				frappe.throw(
 					_(
 						"This document can not be deleted right now as it's being modified by another user. Please try again after some time."
@@ -339,7 +339,13 @@ def get_linked_docs(doc, method="Delete") -> list[dict]:
 		if meta.istable:
 			fields.extend(["parent", "parenttype"])
 
-		for item in frappe.db.get_values(link_dt, {link_field: doc.name}, fields, as_dict=True):
+		for item in frappe.db.get_values(
+			link_dt,
+			{link_field: doc.name},
+			fields,
+			as_dict=True,
+			order_by=None,
+		):
 			# available only in child table cases
 			item_parent = getattr(item, "parent", None)
 			linked_parent_doctype = item.parenttype if item_parent else link_dt
