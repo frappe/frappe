@@ -214,28 +214,32 @@ context("Grid", () => {
 				grid.refresh_edit_rows_button();
 
 				expect(frm.doc.phone_nos.length).to.be.greaterThan(1);
+				const phone_df = grid.docfields.find((df) => df.fieldname === "phone");
+				expect(phone_df).to.exist;
+				cy.wrap(phone_df.label).as("phoneFieldLabel");
 				cy.wrap(frm.doc.phone_nos[1].phone || "").as("secondRowPhoneBefore");
 			});
 
 		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
 		cy.get("@table").find(".grid-edit-rows").click({ force: true });
 
-		cy.get(".modal:visible").within(() => {
-			cy.get('[data-fieldname="field"] select').then(($select) => {
-				const phone_option = [...$select[0].options].find((option) =>
-					/phone/i.test(option.text)
-				);
-				expect(phone_option).to.exist;
-				cy.wrap($select).select(phone_option.value);
+		cy.window()
+			.its("cur_dialog")
+			.then((dialog) => {
+				cy.get("@phoneFieldLabel").then((phoneFieldLabel) => {
+					return dialog
+						.set_value("field", phoneFieldLabel)
+						.then(() => dialog.set_value("value", updated_phone))
+						.then(() => {
+							dialog.get_primary_btn().click();
+						});
+				});
 			});
-			cy.get('[data-fieldname="value"] input').clear().type(updated_phone);
-			cy.get(".btn-primary").click();
-		});
 
+		cy.window().its("cur_frm.doc.phone_nos.0.phone").should("eq", updated_phone);
 		cy.window()
 			.its("cur_frm")
 			.then((frm) => {
-				expect(frm.doc.phone_nos[0].phone).to.equal(updated_phone);
 				cy.get("@secondRowPhoneBefore").then((secondRowPhoneBefore) => {
 					expect(frm.doc.phone_nos[1].phone || "").to.equal(secondRowPhoneBefore);
 				});
