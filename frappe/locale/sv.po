@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-26 09:46+0000\n"
-"PO-Revision-Date: 2026-04-26 19:08\n"
+"PO-Revision-Date: 2026-04-27 19:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -3105,7 +3105,7 @@ msgstr "Försöker starta QZ Aktivitet Fält..."
 
 #: frappe/desk/doctype/event/event.py:256
 msgid "Attendee not found in this event."
-msgstr ""
+msgstr "Deltagare hittades inte i denna händelse."
 
 #. Label of the attending (Select) field in DocType 'Event'
 #. Label of the attending (Select) field in DocType 'Event Participants'
@@ -4528,7 +4528,7 @@ msgstr "Kan inte flytta rad"
 
 #: frappe/utils/xlsxutils.py:150
 msgid "Cannot register an empty XLSX style"
-msgstr ""
+msgstr "Det går inte att registrera en tom XLSX stil"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1022
 msgid "Cannot remove ID field"
@@ -6161,7 +6161,7 @@ msgstr "Skapa ny..."
 #: frappe/public/js/frappe/list/list_view.js:311
 msgctxt "Description of a list view shortcut"
 msgid "Create a new document"
-msgstr ""
+msgstr "Skapa ett nytt dokument"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:228
 msgid "Create a new record"
@@ -8971,7 +8971,7 @@ msgstr "Redigera Snabb Listor"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:414
 msgid "Edit Section"
-msgstr ""
+msgstr "Redigera Sektion"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:40
 msgid "Edit Shortcut"
@@ -14163,7 +14163,7 @@ msgstr "Ogiltig argument typ: {0}. Endast strängar, siffror, dikter och None ä
 
 #: frappe/utils/response.py:289
 msgid "Invalid backup path"
-msgstr ""
+msgstr "Ogiltig säkerhetskopiering sökväg"
 
 #: frappe/database/query.py:867
 msgid "Invalid characters in fieldname: {0}. Only letters, numbers, and underscores are allowed."
@@ -19019,7 +19019,7 @@ msgstr "Tillåt Redigering Endast för"
 
 #: frappe/desk/query_report.py:448
 msgid "Only CSV and Excel formats are supported for export"
-msgstr ""
+msgstr "Endast CSV och Excel format stöds för export"
 
 #: frappe/core/doctype/module_def/module_def.py:95
 msgid "Only Custom Modules can be renamed."
@@ -24577,7 +24577,7 @@ msgstr "Välj {0}"
 
 #: frappe/core/doctype/report/report.py:450
 msgid "Selected Letter Head '{0}' is invalid for '{1}' Report."
-msgstr ""
+msgstr "Vald Brevhuvud '{0}' är ogiltigt för '{1}' Rapport."
 
 #: frappe/core/doctype/report/report.py:430
 msgid "Selected Print Format is invalid for this Report."
@@ -24914,7 +24914,7 @@ msgstr "Servern kunde inte behandla denna begäran på grund av en samtidig mots
 
 #: frappe/concurrency_limiter.py:103
 msgid "Server is busy. Please try again in a few seconds."
-msgstr ""
+msgstr "Servern är upptagen. Försök igen om några sekunder."
 
 #: frappe/public/js/frappe/request.js:247
 msgid "Server was too busy to process this request. Please try again."
@@ -29450,7 +29450,7 @@ msgstr "Avregistrerad"
 
 #: frappe/desk/query_report.py:447
 msgid "Unsupported file format: {0}"
-msgstr ""
+msgstr "Filformat som inte stöds: {0}"
 
 #: frappe/database/query.py:1178
 msgid "Unsupported function or operator: {0}"
@@ -31608,7 +31608,7 @@ msgstr "Du har inte behörighet att skicka e-post i kopplad till detta dokument"
 
 #: frappe/desk/doctype/event/event.py:244
 msgid "You are not allowed to update attendance for another user."
-msgstr ""
+msgstr "Du har inte behörighet att uppdatera närvaro för annan användare."
 
 #: frappe/website/doctype/web_form/web_form.py:655
 msgid "You are not allowed to update this Web Form Document"
@@ -31616,7 +31616,7 @@ msgstr "Du har inte behörighet att uppdatera denna Webb Formulär Dokument"
 
 #: frappe/desk/doctype/event/event.py:351
 msgid "You are not allowed to view events for another user."
-msgstr ""
+msgstr "Du har inte behörighet att visa händelser för en annan användare."
 
 #: frappe/core/doctype/communication/email.py:341
 msgid "You are not authorized to undo this email"
