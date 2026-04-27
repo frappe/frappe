@@ -221,7 +221,13 @@ context("Grid", () => {
 		cy.get("@table").find(".grid-edit-rows").click({ force: true });
 
 		cy.get(".modal:visible").within(() => {
-			cy.get('[data-fieldname="field"] select').select("Phone");
+			cy.get('[data-fieldname="field"] select').then(($select) => {
+				const phone_option = [...$select[0].options].find((option) =>
+					/phone/i.test(option.text)
+				);
+				expect(phone_option).to.exist;
+				cy.wrap($select).select(phone_option.value);
+			});
 			cy.get('[data-fieldname="value"] input').clear().type(updated_phone);
 			cy.get(".btn-primary").click();
 		});
