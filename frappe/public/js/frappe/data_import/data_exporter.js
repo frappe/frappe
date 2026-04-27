@@ -1,9 +1,10 @@
 frappe.provide("frappe.data_import");
 
 frappe.data_import.DataExporter = class DataExporter {
-	constructor(doctype, exporting_for, filetype = "CSV") {
+	constructor(doctype, exporting_for, filetype = "CSV", hide_blank_template = false) {
 		this.doctype = doctype;
 		this.exporting_for = exporting_for;
+		this.hide_blank_template = hide_blank_template;
 		frappe.model.with_doctype(doctype, () => {
 			this.make_dialog(filetype);
 		});
@@ -37,13 +38,20 @@ frappe.data_import.DataExporter = class DataExporter {
 							label: __("5 Records"),
 							value: "5_records",
 						},
-						{
-							label: __("Blank Template"),
-							value: "blank_template",
-						},
-					],
+					].concat(
+						this.hide_blank_template
+							? []
+							: [
+									{
+										label: __("Blank Template"),
+										value: "blank_template",
+									},
+							  ]
+					),
 					default:
-						this.exporting_for === "Insert New Records" ? "blank_template" : "all",
+						this.exporting_for === "Insert New Records" && !this.hide_blank_template
+							? "blank_template"
+							: "all",
 					change: () => {
 						this.update_record_count_message();
 					},
@@ -189,7 +197,7 @@ frappe.data_import.DataExporter = class DataExporter {
 			...multicheck_fields.map((fieldname) => {
 				let field = this.dialog.get_field(fieldname);
 				return field.options
-					.filter((option) => option.danger)
+					.filter((option) => option.danger || option.in_import_template)
 					.map((option) => option.$checkbox.find("input").get(0));
 			})
 		);
@@ -274,6 +282,10 @@ frappe.data_import.DataExporter = class DataExporter {
 			let fieldname = meta.autoname.slice("field:".length);
 			autoname_field = frappe.meta.get_field(doctype, fieldname);
 		}
+		const hide_name_for_autoname =
+			this.exporting_for === "Insert New Records" &&
+			!this.hide_blank_template &&
+			!["Prompt", "prompt"].includes(meta.autoname);
 
 		let fields = child_fieldname ? this.column_map[child_fieldname] : this.column_map[doctype];
 
@@ -297,15 +309,25 @@ frappe.data_import.DataExporter = class DataExporter {
 			if (autoname_field && df.fieldname == autoname_field.fieldname) {
 				return true;
 			}
-			if (df.fieldname === "name") {
-				return true;
-			}
 			return false;
+		};
+		let get_info_title = (df) => {
+			if (df.depends_on) {
+				return __("Depends on: {0}", [df.depends_on]);
+			}
+			if (autoname_field && df.fieldname == autoname_field.fieldname) {
+				return __("Autoname: {0}", [autoname_field.label]);
+			}
+			return "";
 		};
 
 		return fields
 			.filter((df) => {
-				if (autoname_field && df.fieldname === "name") {
+				if (
+					this.exporting_for === "Insert New Records" &&
+					(autoname_field || hide_name_for_autoname) &&
+					df.fieldname === "name"
+				) {
 					return false;
 				}
 				return true;
@@ -316,6 +338,8 @@ frappe.data_import.DataExporter = class DataExporter {
 					value: df.fieldname,
 					danger: is_field_mandatory(df),
 					warning: is_field_depends_on(df),
+					warning_title: get_info_title(df),
+					in_import_template: !!df.in_import_template,
 					checked: false,
 					description: `${df.fieldname} ${df.reqd ? __("(Mandatory)") : ""}`,
 				};

@@ -56,6 +56,14 @@ input[type="checkbox"] {
 	}
 }
 
+.checkbox .multicheck-warning-icon {
+	margin-left: 4px !important;
+	display: inline-flex;
+	align-items: center;
+	vertical-align: middle;
+	line-height: 1;
+}
+
 /* The switch - the box around the slider */
 .switch {
 	position: relative;
