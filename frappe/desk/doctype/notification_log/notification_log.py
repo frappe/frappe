@@ -198,20 +198,20 @@ def mark_all_as_read():
 
 @frappe.whitelist()
 def mark_as_read(docname: str):
-	if frappe.flags.read_only:
+	if frappe.flags.read_only or not docname:
 		return
 
-	if not docname:
-		return
+	log = frappe.qb.DocType("Notification Log")
+	(
+		frappe.qb.update(log)
+		.set(log.read, 1)
+		.where(log.name == str(docname))
+		.where(log.for_user == frappe.session.user)
+		.where(log.read == 0)
+	).run()
 
-	docname = str(docname)
-	doc = frappe.db.get_value("Notification Log", docname, ["read", "for_user"], as_dict=True)
-	if not doc:
-		return
-
-	frappe.db.set_value("Notification Log", docname, "read", 1, update_modified=False)
-	if not doc.read:
-		_decrement_unread_count(doc.for_user)
+	if frappe.db._cursor.rowcount:
+		_decrement_unread_count(frappe.session.user)
 
 
 @frappe.whitelist()
