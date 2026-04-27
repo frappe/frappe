@@ -142,7 +142,6 @@ export interface CustomVueComponentMeta {
 	frappe_app: string
 	studio_app: string
 	file_path: string
-	props: { name: string; type: string }[]
 }
 
 /**
