@@ -226,11 +226,7 @@
    "link_fieldname": "webhook"
   }
  ],
-<<<<<<< HEAD
- "modified": "2024-10-28 12:21:52.172428",
-=======
  "modified": "2026-04-22 15:33:54.888415",
->>>>>>> 95d0fecee7 (fix: Makes Condition Examples title translatable)
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
@@ -250,12 +246,7 @@
    "write": 1
   }
  ],
-<<<<<<< HEAD
  "sort_field": "modified",
-=======
- "row_format": "Dynamic",
- "sort_field": "creation",
->>>>>>> 95d0fecee7 (fix: Makes Condition Examples title translatable)
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1
