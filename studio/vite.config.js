@@ -45,8 +45,10 @@ export default defineConfig({
 		// explicitly set origin of generated assets (images, fonts, etc) during development.
 		// Required for the app renderer running on webserver port
 		// https://vite.dev/guide/backend-integration
-		origin: "http://127.0.0.1:8080",
+		origin: "http://127.0.0.1:8086",
 		allowedHosts: true,
+		// Allow cross-origin requests from the renderer running on webserver port to Vite dev server.
+		cors: true,
 		fs: {
 			// Allow serving files from other apps in the bench (for custom Vue components)
 			allow: [path.resolve(__dirname, ".."), path.resolve(__dirname, "../../../")],
