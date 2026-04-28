@@ -1,14 +1,14 @@
-import "./index.css"
+import "@/index.css"
 
 import { createApp } from "vue"
 import { createPinia } from "pinia"
-import "./setupFrappeUIResource"
+import "@/setupFrappeUIResource"
 import app_router from "@/router/app_router"
-import AppRenderer from "./AppRenderer.vue"
+import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 import { spritePlugin } from "frappe-ui/icons"
-import { registerGlobalComponents } from "./globals"
-import "./utils/appUtils"
+import { registerGlobalComponents, registerCustomVueComponents } from "@/globals"
+import "@/utils/appUtils"
 
 // For rendering apps built by studio
 const app = createApp(AppRenderer)
@@ -21,4 +21,13 @@ app.use(spritePlugin)
 registerGlobalComponents(app)
 window.__APP_COMPONENTS__ = app._context.components
 
-app.mount("#app")
+// In dev mode, dynamically import custom Vue components before mounting.
+// In production, they are already bundled by build.js into the app renderer.
+const frappeApp = (window as any).frappe_app
+if (import.meta.env.DEV && frappeApp) {
+	registerCustomVueComponents(app, frappeApp).then(() => {
+		app.mount("#app")
+	})
+} else {
+	app.mount("#app")
+}
