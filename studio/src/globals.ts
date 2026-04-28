@@ -159,11 +159,7 @@ export async function registerCustomVueComponents(app: App, frappeApp: string): 
 
 		for (const comp of components) {
 			try {
-				// In dev mode, Vite needs the /@fs/ prefix to serve files from the filesystem
-				const importPath = import.meta.env.DEV
-					? `/@fs${comp.file_path}`
-					: comp.file_path
-				const module = await import(/* @vite-ignore */ importPath)
+				const module = await import(/* @vite-ignore */ comp.file_path)
 				app.component(comp.component_name, module.default)
 
 				// Register in the component data registry for Block metadata access
