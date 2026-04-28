@@ -83,6 +83,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	}
 
 	file_menu_items() {
+		let me = this;
 		return [
 			{
 				label: __("Home"),
@@ -106,6 +107,9 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 							frappe.call({
 								method: "frappe.core.api.file.create_new_folder",
 								args: data,
+								callback: function (r) {
+									me.refresh();
+								},
 							});
 						},
 						__("Enter folder name"),
