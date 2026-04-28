@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-04-26 09:46+0000\n"
-"PO-Revision-Date: 2026-04-26 19:08\n"
+"PO-Revision-Date: 2026-04-28 19:16\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -647,14 +647,18 @@ msgstr "<h5>Primjer Poruke</h5>\n\n"
 msgid "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n"
 "<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</code></pre>\n"
-msgstr ""
+msgstr "<p><strong>{{ __(\"Primjeri Uslova\") }}:</strong></p>\n"
+"<pre><code class=\"language-python\">doc.status==\"Otvoreno\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
+"</code></pre>\n"
 
 #. Content of the 'html_condition' (HTML) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n"
 "<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</pre>"
-msgstr ""
+msgstr "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n"
+"<pre>doc.status==\"Otvoreno\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
+"</pre>"
 
 #. Content of the 'Condition description' (HTML) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -3105,7 +3109,7 @@ msgstr "Pokušaj pokretanja QZ Tray..."
 
 #: frappe/desk/doctype/event/event.py:256
 msgid "Attendee not found in this event."
-msgstr ""
+msgstr "Učesnik nije pronađen za ovaj događaj."
 
 #. Label of the attending (Select) field in DocType 'Event'
 #. Label of the attending (Select) field in DocType 'Event Participants'
@@ -4527,7 +4531,7 @@ msgstr "Nije moguće pomjeriti red"
 
 #: frappe/utils/xlsxutils.py:150
 msgid "Cannot register an empty XLSX style"
-msgstr ""
+msgstr "Ne može se registrovati prazan XLSX stil"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1022
 msgid "Cannot remove ID field"
@@ -6160,7 +6164,7 @@ msgstr "Kreiraj ..."
 #: frappe/public/js/frappe/list/list_view.js:311
 msgctxt "Description of a list view shortcut"
 msgid "Create a new document"
-msgstr ""
+msgstr "Kreiraj novi dokument"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:228
 msgid "Create a new record"
@@ -8970,7 +8974,7 @@ msgstr "Uredi Brzu Listu"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:414
 msgid "Edit Section"
-msgstr ""
+msgstr "Uredi odjeljak"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:40
 msgid "Edit Shortcut"
@@ -14162,7 +14166,7 @@ msgstr "Nevažeći tip argumenta: {0}. Dozvoljeni su samo strings, numbers, dict
 
 #: frappe/utils/response.py:289
 msgid "Invalid backup path"
-msgstr ""
+msgstr "Nevažeća putanja sigurnosne kopije"
 
 #: frappe/database/query.py:867
 msgid "Invalid characters in fieldname: {0}. Only letters, numbers, and underscores are allowed."
@@ -19018,7 +19022,7 @@ msgstr "Dozvoli uređivanje samo za"
 
 #: frappe/desk/query_report.py:448
 msgid "Only CSV and Excel formats are supported for export"
-msgstr ""
+msgstr "Za izvoz su podržani samo CSV i Excel formati"
 
 #: frappe/core/doctype/module_def/module_def.py:95
 msgid "Only Custom Modules can be renamed."
@@ -24576,7 +24580,7 @@ msgstr "Odaberi {0}"
 
 #: frappe/core/doctype/report/report.py:450
 msgid "Selected Letter Head '{0}' is invalid for '{1}' Report."
-msgstr ""
+msgstr "Odabrano zaglavlje '{0}' nije važeće za '{1}' Izvještaj."
 
 #: frappe/core/doctype/report/report.py:430
 msgid "Selected Print Format is invalid for this Report."
@@ -24913,7 +24917,7 @@ msgstr "Server nije uspio obraditi ovaj zahtjev zbog istovremenog konfliktnog za
 
 #: frappe/concurrency_limiter.py:103
 msgid "Server is busy. Please try again in a few seconds."
-msgstr ""
+msgstr "Server je zauzet. Pokušaj ponovo za nekoliko sekundi."
 
 #: frappe/public/js/frappe/request.js:247
 msgid "Server was too busy to process this request. Please try again."
@@ -29455,7 +29459,7 @@ msgstr "Otkazano"
 
 #: frappe/desk/query_report.py:447
 msgid "Unsupported file format: {0}"
-msgstr ""
+msgstr "Nepodržani format datoteke: {0}"
 
 #: frappe/database/query.py:1178
 msgid "Unsupported function or operator: {0}"
@@ -31613,7 +31617,7 @@ msgstr "Nije vam dozvoljeno slanje e-pošte u vezi sa ovim dokumentom"
 
 #: frappe/desk/doctype/event/event.py:244
 msgid "You are not allowed to update attendance for another user."
-msgstr ""
+msgstr "Nije vam dozvoljeno ažuriranje prisutnosti za drugog korisnika."
 
 #: frappe/website/doctype/web_form/web_form.py:655
 msgid "You are not allowed to update this Web Form Document"
@@ -31621,7 +31625,7 @@ msgstr "Nije vam dozvoljeno ažurirati ovaj dokument web forme"
 
 #: frappe/desk/doctype/event/event.py:351
 msgid "You are not allowed to view events for another user."
-msgstr ""
+msgstr "Nije vam dozvoljeno pregledati događaje drugog korisnika."
 
 #: frappe/core/doctype/communication/email.py:341
 msgid "You are not authorized to undo this email"
