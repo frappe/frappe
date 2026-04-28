@@ -145,13 +145,17 @@ export interface CustomVueComponentMeta {
 }
 
 /**
- * Dynamically register custom Vue components from external apps into the Vue app instance.
+ * Dynamically register custom Vue components from a specific Frappe app into the Vue app instance.
  * Also registers them in the component data registry so Block class can access their metadata.
  * Returns the list of registered component metadata for use in the ComponentPanel.
+ *
+ * @param app - The Vue app instance
+ * @param frappeApp - The Frappe app name to fetch components for
  */
-export async function registerCustomVueComponents(app: App): Promise<CustomVueComponentMeta[]> {
+export async function registerCustomVueComponents(app: App, frappeApp: string): Promise<CustomVueComponentMeta[]> {
 	try {
-		const components: CustomVueComponentMeta[] = await vueComponents.fetch()
+		if (!frappeApp) return []
+		const components: CustomVueComponentMeta[] = await vueComponents.reload({ frappe_app: frappeApp })
 
 		for (const comp of components) {
 			try {
@@ -179,3 +183,18 @@ export async function registerCustomVueComponents(app: App): Promise<CustomVueCo
 		return []
 	}
 }
+
+/**
+ * Unregister previously registered custom Vue components from the Vue app instance.
+ * Called when switching apps to clean up components from the previous app's frappe_app.
+ */
+export function unregisterCustomVueComponents(app: App, components: CustomVueComponentMeta[]) {
+	for (const comp of components) {
+		delete app._context.components[comp.component_name]
+		componentRegistry.unregisterCustomVueComponent(comp.component_name)
+	}
+
+	window.__APP_COMPONENTS__ = app._context.components
+	Block.setComponents(componentRegistry.getComponents())
+}
+

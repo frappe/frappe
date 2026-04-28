@@ -993,6 +993,20 @@ function registerCustomVueComponent(name: string, frappe_app: string) {
 	}
 }
 
+function unregisterCustomVueComponent(name: string) {
+	/**
+	 * Remove a custom Vue component from the component registry.
+	 * Called when switching apps to clean up components from the previous app.
+	 */
+	if (COMPONENTS[name]?.isCustomVueComponent) {
+		delete COMPONENTS[name]
+	}
+}
+
+function getComponents() {
+	return COMPONENTS
+}
+
 export default {
 	...COMPONENTS,
 	list: Object.values(COMPONENTS),
@@ -1001,4 +1015,7 @@ export default {
 	isFrappeUIComponent,
 	get,
 	registerCustomVueComponent,
+	unregisterCustomVueComponent,
+	getComponents,
 }
+

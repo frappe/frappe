@@ -45,7 +45,7 @@
 		</template>
 
 		<template v-else>
-			<CollapsibleSection sectionName="Vue Components" v-if="customVueComponents.length" class="px-2">
+			<CollapsibleSection sectionName="Vue Components" v-if="filteredCustomVueComponents.length" class="px-2">
 				<div class="flex flex-col">
 					<div
 						v-for="component in filteredCustomVueComponents"
@@ -130,7 +130,6 @@ import useStudioStore from "@/stores/studioStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { leftPanelComponentTabOptions } from "@/types"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
-import type { CustomVueComponentMeta } from "@/globals"
 
 const canvasStore = useCanvasStore()
 const store = useStudioStore()
@@ -160,13 +159,9 @@ const componentList = computed(() => {
 	return filtered
 })
 // Custom Vue Components
-const customVueComponents = computed<CustomVueComponentMeta[]>(() => {
-	return window.__CUSTOM_VUE_COMPONENTS__ || []
-})
-
 const filteredCustomVueComponents = computed(() => {
-	if (!componentFilter.value) return customVueComponents.value
-	return customVueComponents.value.filter((comp) =>
+	if (!componentFilter.value) return store.customVueComponents
+	return store.customVueComponents.filter((comp) =>
 		comp.component_name.toLowerCase().includes(componentFilter.value.toLowerCase()),
 	)
 })

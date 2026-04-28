@@ -1,4 +1,4 @@
-import { ref, reactive, nextTick, computed, toRaw } from "vue"
+import { ref, reactive, nextTick, computed, toRaw, getCurrentInstance } from "vue"
 import router from "@/router/studio_router"
 import { defineStore } from "pinia"
 
@@ -16,6 +16,8 @@ import { studioVariables } from "@/data/studioVariables"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
+import { registerCustomVueComponents, unregisterCustomVueComponents } from "@/globals"
+import type { CustomVueComponentMeta } from "@/globals"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
@@ -45,11 +47,30 @@ const useStudioStore = defineStore("store", () => {
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
 	const appPages = ref<Record<string, StudioPage>>({})
+	const customVueComponents = ref<CustomVueComponentMeta[]>([])
 
 	async function setApp(appName: string) {
 		const appDoc = await fetchApp(appName)
 		activeApp.value = appDoc
 		await setAppPages(appName)
+		await loadCustomVueComponents()
+	}
+
+	async function loadCustomVueComponents() {
+		const app = window.__STUDIO_APP__
+		if (!app) return
+
+		// Unregister components from the previous app
+		if (customVueComponents.value.length) {
+			unregisterCustomVueComponents(app, customVueComponents.value)
+			customVueComponents.value = []
+		}
+
+		// Only register if the active app is linked to a Frappe app
+		const frappeApp = activeApp.value?.frappe_app
+		if (!frappeApp) return
+
+		customVueComponents.value = await registerCustomVueComponents(app, frappeApp)
 	}
 
 	async function deleteApp(appName: string, appTitle: string) {
@@ -442,6 +463,7 @@ const useStudioStore = defineStore("store", () => {
 		appPages,
 		setAppPages,
 		getAppPageRoute,
+		customVueComponents,
 		// studio pages
 		pageBlocks,
 		selectedPage,

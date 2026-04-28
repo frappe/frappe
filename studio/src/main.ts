@@ -8,8 +8,7 @@ import App from "./App.vue"
 
 import { resourcesPlugin, frappeRequest } from "frappe-ui"
 import { spritePlugin } from "frappe-ui/icons"
-import { registerGlobalComponents, registerCustomVueComponents } from "./globals"
-import type { CustomVueComponentMeta } from "./globals"
+import { registerGlobalComponents } from "./globals"
 
 import { COMPONENTS } from "@/data/components"
 import Block from "@/utils/block"
@@ -33,7 +32,7 @@ declare global {
 		site_url: string
 		is_developer_mode?: boolean
 		__APP_COMPONENTS__: any
-		__CUSTOM_VUE_COMPONENTS__: CustomVueComponentMeta[]
+		__STUDIO_APP__: any
 		[key: string]: string
 	}
 }
@@ -41,6 +40,9 @@ declare global {
 if (window.is_developer_mode && typeof window.is_developer_mode === "string") {
 	window.is_developer_mode = window.is_developer_mode === "1" || window.is_developer_mode === "True"
 }
+
+// Expose the Vue app instance so the store can register/unregister components on it
+window.__STUDIO_APP__ = studio
 
 studio_router.isReady().then(async () => {
 	if (import.meta.env.DEV) {
@@ -52,9 +54,6 @@ studio_router.isReady().then(async () => {
 			}
 		})
 	}
-
-	const customComponents = await registerCustomVueComponents(studio)
-	window.__CUSTOM_VUE_COMPONENTS__ = customComponents
 
 	studio.mount("#studio")
 })
