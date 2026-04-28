@@ -3,7 +3,10 @@
 
 import frappe
 from frappe import _
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.model import NO_VALUE_FIELDS
 from frappe.model.document import Document
+from frappe.utils import cint
 
 
 class GlobalSearchSettings(Document):
@@ -101,3 +104,233 @@ def show_message(progress, msg):
 		{"progress": progress, "total": 3, "msg": msg},
 		user=frappe.session.user,
 	)
+
+
+def _eligible_global_search_docfields(meta):
+	for df in sorted(meta.fields, key=lambda x: x.idx or 0):
+		if df.fieldtype in NO_VALUE_FIELDS:
+			continue
+		if getattr(df, "hidden", False):
+			continue
+		if getattr(df, "is_virtual", False):
+			continue
+		yield df
+
+
+@frappe.whitelist()
+def get_global_search_field_options(doctype: str | None = None):
+	if not doctype:
+		frappe.throw(_("Document Type is required"))
+
+	frappe.only_for("System Manager")
+
+	meta = frappe.get_meta(doctype)
+
+	options = [
+		{
+			"label": _("Document Name (ID)"),
+			"value": "name",
+			"checked": bool(getattr(meta, "show_name_in_global_search", False)),
+			"is_system_generated": bool(getattr(meta, "show_name_in_global_search", False)),
+		}
+	]
+
+	for df in _eligible_global_search_docfields(meta):
+		is_system_generated = check_is_system_generated_property_setter(df)
+
+		options.append(
+			{
+				"label": _(df.label, context=df.parent),
+				"value": df.fieldname,
+				"checked": bool(df.in_global_search),
+				"is_system_generated": is_system_generated,
+			}
+		)
+
+	# get default global search fields
+	default_global_search_fields = get_all_default_global_search_fields(doctype)
+
+	return {"options": options, "default_global_search_fields": default_global_search_fields}
+
+
+def get_all_default_global_search_fields(doctype: str) -> list[str]:
+	"""Which fields would search-index by **schema + system PS only** (ignore Customize Form / non-system PS)."""
+	meta = frappe.get_meta(doctype)
+	cf = frappe.new_doc("Customize Form")
+	cf.doc_type = doctype
+
+	# Layer 1: shipped DocField / DocType / Custom Field rows (Customize Form does not rewrite these).
+	field_on = {
+		df.fieldname: cint(cf.get_existing_property_value("in_global_search", df.fieldname) or 0)
+		for df in (frappe.get_doc("DocType", doctype).fields or [])
+	}
+	for row in frappe.get_all(
+		"Custom Field",
+		filters={"dt": doctype},
+		fields=["fieldname", "in_global_search"],
+	):
+		field_on[row.fieldname] = cint(row.in_global_search)
+
+	include_name = cint(cf.get_existing_property_value("show_name_in_global_search") or 0)
+
+	# Layer 2: app/system patches only (`is_system_generated` PS).
+	for ps in frappe.get_all(
+		"Property Setter",
+		filters={
+			"doc_type": doctype,
+			"property": ("in", ("in_global_search", "show_name_in_global_search")),
+			"is_system_generated": 1,
+		},
+		fields=["doctype_or_field", "field_name", "property", "value"],
+		order_by="modified asc",
+	):
+		val = cint(ps.value)
+		if ps.doctype_or_field == "DocType" and ps.property == "show_name_in_global_search":
+			include_name = val
+		elif ps.doctype_or_field == "DocField" and ps.property == "in_global_search" and ps.field_name:
+			field_on[ps.field_name] = val
+
+	out = ["name"] if include_name else []
+	out.extend(df.fieldname for df in _eligible_global_search_docfields(meta) if field_on.get(df.fieldname))
+	return out
+
+
+def check_is_system_generated_property_setter(df):
+	# Check if df.in_global_search is true or not if false directly return false
+	# If True is that exist in property setter as is_system_generated is False and value is 1 then return False else True
+	# Why is_system_generated False we are checking the point is few fields which are true are directly the doctype property those will not be in property setter as it is system generated
+
+	if not df.in_global_search:
+		return False
+
+	property_setter = frappe.db.exists(
+		"Property Setter",
+		{
+			"doc_type": df.parent,
+			"field_name": df.fieldname,
+			"property": "in_global_search",
+			"is_system_generated": False,
+			"value": 1,
+		},
+	)
+	return False if property_setter else True
+
+
+@frappe.whitelist()
+def update_global_search_fields(doctype: str, fields: str):
+	fields = frappe.parse_json(fields)
+	meta = frappe.get_meta(doctype)
+
+	all_global_search_fields = [
+		df.fieldname for df in _eligible_global_search_docfields(meta) if df.in_global_search
+	]
+	all_global_search_fields.append("name") if bool(
+		getattr(meta, "show_name_in_global_search", False)
+	) else None
+
+	# Fields to add are those fields which are in fields but not in all_global_search_fields
+	fields_to_add = [field for field in fields if field not in all_global_search_fields]
+	# Fields to remove are those fields which are in all_global_search_fields but not in fields
+	fields_to_remove = [field for field in all_global_search_fields if field not in fields]
+
+	# Property Setter to add are those fields which are in fields_to_add but not in all_global_search_fields
+
+	for field in fields_to_add:
+		# Check if property setter exists for the field, the reason is let say user initially marked unchecked to system generated fields,
+		# then again trying to add right instead of creating new property setter delete the existing property setter
+		if field == "name":
+			handle_name_field_in_global_search(doctype, True)
+		else:
+			property_setter = frappe.db.exists(
+				"Property Setter",
+				{
+					"doc_type": doctype,
+					"field_name": field,
+					"property": "in_global_search",
+					"is_system_generated": False,
+					"value": "0",
+				},
+			)
+			if not property_setter:
+				make_property_setter(
+					doctype, field, "in_global_search", 1, "Check", is_system_generated=False
+				)
+
+			else:
+				frappe.delete_doc("Property Setter", property_setter)
+
+	for field in fields_to_remove:
+		if field == "name":
+			handle_name_field_in_global_search(doctype, False)
+		else:
+			property_setter = frappe.db.exists(
+				"Property Setter",
+				{
+					"doc_type": doctype,
+					"field_name": field,
+					"property": "in_global_search",
+					"is_system_generated": False,
+					"value": "1",
+				},
+			)
+
+			if not property_setter:
+				make_property_setter(
+					doctype, field, "in_global_search", 0, "Check", is_system_generated=False
+				)
+
+			else:
+				frappe.delete_doc("Property Setter", property_setter)
+
+	return {"success": True}
+
+
+def handle_name_field_in_global_search(doctype: str, add: bool = True):
+	"""Toggle DocType ``show_name_in_global_search`` via Property Setter (DocType-level, not DocField ``name``)."""
+	if add:
+		# Turning ON: drop user PS that forced 0, or add PS with 1 if base DocType row is 0.
+		property_setter = frappe.db.exists(
+			"Property Setter",
+			{
+				"doc_type": doctype,
+				"doctype_or_field": "DocType",
+				"property": "show_name_in_global_search",
+				"is_system_generated": False,
+				"value": "0",
+			},
+		)
+		if property_setter:
+			frappe.delete_doc("Property Setter", property_setter)
+		else:
+			make_property_setter(
+				doctype,
+				None,
+				"show_name_in_global_search",
+				1,
+				"Check",
+				for_doctype=True,
+				is_system_generated=False,
+			)
+	else:
+		property_setter = frappe.db.exists(
+			"Property Setter",
+			{
+				"doc_type": doctype,
+				"doctype_or_field": "DocType",
+				"property": "show_name_in_global_search",
+				"is_system_generated": False,
+				"value": "1",
+			},
+		)
+		if property_setter:
+			frappe.delete_doc("Property Setter", property_setter)
+		else:
+			make_property_setter(
+				doctype,
+				None,
+				"show_name_in_global_search",
+				0,
+				"Check",
+				for_doctype=True,
+				is_system_generated=False,
+			)
