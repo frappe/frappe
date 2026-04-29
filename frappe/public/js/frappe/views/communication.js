@@ -194,6 +194,12 @@ frappe.views.CommunicationComposer = class {
 				},
 			},
 			{
+				label: __("Letter Head"),
+				fieldtype: "Link",
+				options: "Letter Head",
+				fieldname: "select_letter_head",
+			},
+			{
 				label: __("Print Language"),
 				fieldtype: "Link",
 				options: "Language",
@@ -629,13 +635,16 @@ frappe.views.CommunicationComposer = class {
 		// print formats
 		const fields = this.dialog.fields_dict;
 
-		// toggle print format
+		// toggle print format and letter head
 		$(fields.attach_document_print.input).click(function () {
-			$(fields.select_print_format.wrapper).toggle($(this).prop("checked"));
+			const checked = $(this).prop("checked");
+			$(fields.select_print_format.wrapper).toggle(checked);
+			$(fields.select_letter_head.wrapper).toggle(checked);
 		});
 
 		// select print format
 		$(fields.select_print_format.wrapper).toggle(false);
+		$(fields.select_letter_head.wrapper).toggle(false);
 
 		if (this.frm) {
 			const print_formats = frappe.meta.get_print_formats(this.frm.meta.name);
@@ -643,10 +652,26 @@ frappe.views.CommunicationComposer = class {
 				.empty()
 				.add_options(print_formats)
 				.val(print_formats[0]);
+			this.set_default_letterhead();
 		} else {
 			$(fields.attach_document_print.wrapper).toggle(false);
 		}
 		this.guess_language();
+	}
+
+	set_default_letterhead() {
+		const fields = this.dialog.fields_dict;
+		if (this.frm.doc.letter_head) {
+			this.dialog.set_value("select_letter_head", this.frm.doc.letter_head);
+			return;
+		}
+		frappe.db
+			.get_value("Letter Head", { disabled: 0, is_default: 1 }, "name")
+			.then(({ message }) => {
+				if (message?.name) {
+					this.dialog.set_value("select_letter_head", message.name);
+				}
+			});
 	}
 
 	setup_attach() {
@@ -784,7 +809,8 @@ frappe.views.CommunicationComposer = class {
 				form_values,
 				selected_attachments,
 				null,
-				form_values.select_print_format || ""
+				form_values.select_print_format || "",
+				form_values.select_letter_head || null
 			);
 		} else {
 			me.send_email(btn, form_values, selected_attachments);
@@ -854,7 +880,7 @@ frappe.views.CommunicationComposer = class {
 		}
 	}
 
-	send_email(btn, form_values, selected_attachments, print_html, print_format) {
+	send_email(btn, form_values, selected_attachments, print_html, print_format, letterhead) {
 		const me = this;
 		this.dialog.hide();
 
@@ -893,6 +919,7 @@ frappe.views.CommunicationComposer = class {
 				attachments: selected_attachments,
 				read_receipt: form_values.send_read_receipt,
 				print_letterhead: me.is_print_letterhead_checked(),
+				letterhead: letterhead || null,
 				send_after: form_values.send_after ? form_values.send_after : null,
 				print_language: form_values.print_language,
 				raw_html: form_values.use_html,
