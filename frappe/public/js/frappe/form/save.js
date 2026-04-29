@@ -123,25 +123,25 @@ frappe.ui.form.check_mandatory = function (frm) {
 
 	if (frm.doc.docstatus == 2) return true; // don't check for cancel
 
+	const table_errors = {};
+
 	$.each(frappe.model.get_all_docs(frm.doc), function (i, doc) {
 		var error_fields = [];
 		var folded = false;
+		const fields_dict = frappe.meta.get_docfield_copy(doc.doctype, doc.name) || {};
 
 		$.each(frappe.meta.docfield_list[doc.doctype] || [], function (i, docfield) {
 			if (docfield.fieldname) {
-				const df = frappe.meta.get_docfield(doc.doctype, docfield.fieldname, doc.name);
+				const df = fields_dict[docfield.fieldname];
+				if (!df) return;
 
-				// skip fields that don't hold data
-				if (
-					["Section Break", "Column Break", "Tab Break", "HTML", "Heading"].includes(
-						df.fieldtype
-					)
-				) {
+				if (!df.reqd && !df.mandatory_depends_on && df.fieldtype !== "Fold") {
 					return;
 				}
 
 				if (df.fieldtype === "Fold") {
 					folded = frm.layout.folded;
+					return;
 				}
 
 				if (
@@ -170,29 +170,60 @@ frappe.ui.form.check_mandatory = function (frm) {
 
 		if (error_fields.length) {
 			let meta = frappe.get_meta(doc.doctype);
-			let message;
 			if (meta.istable) {
-				const table_field = frappe.meta.docfield_map[doc.parenttype][doc.parentfield];
-
-				const table_label = __(
-					table_field.label || frappe.unscrub(table_field.fieldname)
-				).bold();
-
-				message = __("Mandatory fields required in table {0}, Row {1}", [
-					table_label,
-					doc.idx,
-				]);
+				const parentfield = doc.parentfield;
+				if (!table_errors[parentfield]) {
+					const table_field = frappe.meta.docfield_map[doc.parenttype][parentfield];
+					const table_label = __(
+						table_field.label || frappe.unscrub(table_field.fieldname)
+					).bold();
+					table_errors[parentfield] = {
+						label: table_label,
+						fields: {},
+						total_rows: (frm.doc[parentfield] || []).length,
+					};
+				}
+				error_fields.forEach(function (field_label) {
+					if (!table_errors[parentfield].fields[field_label]) {
+						table_errors[parentfield].fields[field_label] = [];
+					}
+					table_errors[parentfield].fields[field_label].push(doc.idx);
+				});
 			} else {
-				message = __("Mandatory fields required in {0}", [__(doc.doctype)]);
+				const message =
+					__("Mandatory fields required in {0}", [__(doc.doctype)]) +
+					"<br><br><ul><li>" +
+					error_fields.join("</li><li>") +
+					"</ul>";
+				frappe.msgprint({
+					message: message,
+					indicator: "red",
+					title: __("Missing Fields"),
+				});
+				frm.refresh();
 			}
-			message = message + "<br><br><ul><li>" + error_fields.join("</li><li>") + "</ul>";
-			frappe.msgprint({
-				message: message,
-				indicator: "red",
-				title: __("Missing Fields"),
-			});
-			frm.refresh();
 		}
+	});
+
+	Object.values(table_errors).forEach(function (te) {
+		const lines = Object.entries(te.fields).map(function (entry) {
+			const rows = entry[1];
+			const display =
+				rows.length === te.total_rows
+					? __("all {0} rows", [te.total_rows])
+					: __("Row {0}", [rows.join(", ")]);
+			return entry[0] + ": " + display;
+		});
+		frappe.msgprint({
+			message:
+				__("Mandatory fields required in table {0}", [te.label]) +
+				"<br><br><ul><li>" +
+				lines.join("</li><li>") +
+				"</ul>",
+			indicator: "red",
+			title: __("Missing Fields"),
+		});
+		frm.refresh();
 	});
 
 	return !has_errors;
