@@ -84,7 +84,6 @@ frappe.global_search_settings.show_configure_search_fields_dialog = function (do
 						freeze_message: __("Updating search index"),
 						callback: function (r) {
 							if (r.exc) {
-								console.log("r", r);
 								frappe.msgprint(r.exc);
 							} else {
 								dialog.hide();
@@ -92,7 +91,9 @@ frappe.global_search_settings.show_configure_search_fields_dialog = function (do
 									message: __("Global Search Fields Updated."),
 									indicator: "green",
 								});
-								frm.refresh();
+								if (frm) {
+									frm.refresh();
+								}
 							}
 						},
 					});

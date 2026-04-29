@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
 from frappe.model import NO_VALUE_FIELDS
 from frappe.model.document import Document
 from frappe.utils import cint
@@ -153,11 +153,17 @@ def get_global_search_field_options(doctype: str | None = None):
 	return {"options": options, "default_global_search_fields": default_global_search_fields}
 
 
+def _customize_form_stub(doctype: str) -> CustomizeForm:
+	"""In-memory Customize Form — same PS helpers as desk Customize Form."""
+	cf = frappe.new_doc("Customize Form")
+	cf.doc_type = doctype
+	return cf
+
+
 def get_all_default_global_search_fields(doctype: str) -> list[str]:
 	"""Which fields would search-index by **schema + system PS only** (ignore Customize Form / non-system PS)."""
 	meta = frappe.get_meta(doctype)
-	cf = frappe.new_doc("Customize Form")
-	cf.doc_type = doctype
+	cf = _customize_form_stub(doctype)
 
 	# Layer 1: shipped DocField / DocType / Custom Field rows (Customize Form does not rewrite these).
 	field_on = {
@@ -218,119 +224,42 @@ def check_is_system_generated_property_setter(df):
 
 @frappe.whitelist()
 def update_global_search_fields(doctype: str, fields: str):
+	"""Apply global-search field selection via the same Property Setter path as Customize Form."""
+	frappe.only_for("System Manager")
+	if not doctype:
+		frappe.throw(_("Document Type is required"))
+	if frappe.get_meta(doctype).module == "Core":
+		frappe.throw(_("Cannot configure Core DocTypes for Global Search."))
+
 	fields = frappe.parse_json(fields)
 	meta = frappe.get_meta(doctype)
 
 	all_global_search_fields = [
 		df.fieldname for df in _eligible_global_search_docfields(meta) if df.in_global_search
 	]
-	all_global_search_fields.append("name") if bool(
-		getattr(meta, "show_name_in_global_search", False)
-	) else None
+	if bool(getattr(meta, "show_name_in_global_search", False)):
+		all_global_search_fields.append("name")
 
-	# Fields to add are those fields which are in fields but not in all_global_search_fields
 	fields_to_add = [field for field in fields if field not in all_global_search_fields]
-	# Fields to remove are those fields which are in all_global_search_fields but not in fields
 	fields_to_remove = [field for field in all_global_search_fields if field not in fields]
 
-	# Property Setter to add are those fields which are in fields_to_add but not in all_global_search_fields
-
+	cf = _customize_form_stub(doctype)
 	for field in fields_to_add:
-		# Check if property setter exists for the field, the reason is let say user initially marked unchecked to system generated fields,
-		# then again trying to add right instead of creating new property setter delete the existing property setter
 		if field == "name":
-			handle_name_field_in_global_search(doctype, True)
+			cf.make_property_setter("show_name_in_global_search", 1, "Check")
 		else:
-			property_setter = frappe.db.exists(
-				"Property Setter",
-				{
-					"doc_type": doctype,
-					"field_name": field,
-					"property": "in_global_search",
-					"is_system_generated": False,
-					"value": "0",
-				},
-			)
-			if not property_setter:
-				make_property_setter(
-					doctype, field, "in_global_search", 1, "Check", is_system_generated=False
-				)
-
-			else:
-				frappe.delete_doc("Property Setter", property_setter)
-
+			cf.make_property_setter("in_global_search", 1, "Check", fieldname=field)
 	for field in fields_to_remove:
 		if field == "name":
-			handle_name_field_in_global_search(doctype, False)
+			cf.make_property_setter("show_name_in_global_search", 0, "Check")
 		else:
-			property_setter = frappe.db.exists(
-				"Property Setter",
-				{
-					"doc_type": doctype,
-					"field_name": field,
-					"property": "in_global_search",
-					"is_system_generated": False,
-					"value": "1",
-				},
-			)
+			cf.make_property_setter("in_global_search", 0, "Check", fieldname=field)
 
-			if not property_setter:
-				make_property_setter(
-					doctype, field, "in_global_search", 0, "Check", is_system_generated=False
-				)
-
-			else:
-				frappe.delete_doc("Property Setter", property_setter)
+	frappe.clear_cache(doctype=doctype)
+	frappe.enqueue(
+		"frappe.utils.global_search.rebuild_for_doctype",
+		doctype=doctype,
+		enqueue_after_commit=True,
+	)
 
 	return {"success": True}
-
-
-def handle_name_field_in_global_search(doctype: str, add: bool = True):
-	"""Toggle DocType ``show_name_in_global_search`` via Property Setter (DocType-level, not DocField ``name``)."""
-	if add:
-		# Turning ON: drop user PS that forced 0, or add PS with 1 if base DocType row is 0.
-		property_setter = frappe.db.exists(
-			"Property Setter",
-			{
-				"doc_type": doctype,
-				"doctype_or_field": "DocType",
-				"property": "show_name_in_global_search",
-				"is_system_generated": False,
-				"value": "0",
-			},
-		)
-		if property_setter:
-			frappe.delete_doc("Property Setter", property_setter)
-		else:
-			make_property_setter(
-				doctype,
-				None,
-				"show_name_in_global_search",
-				1,
-				"Check",
-				for_doctype=True,
-				is_system_generated=False,
-			)
-	else:
-		property_setter = frappe.db.exists(
-			"Property Setter",
-			{
-				"doc_type": doctype,
-				"doctype_or_field": "DocType",
-				"property": "show_name_in_global_search",
-				"is_system_generated": False,
-				"value": "1",
-			},
-		)
-		if property_setter:
-			frappe.delete_doc("Property Setter", property_setter)
-		else:
-			make_property_setter(
-				doctype,
-				None,
-				"show_name_in_global_search",
-				0,
-				"Check",
-				for_doctype=True,
-				is_system_generated=False,
-			)
