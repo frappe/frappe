@@ -1,4 +1,4 @@
-import { App } from "vue"
+import { App, defineAsyncComponent } from "vue"
 import {
 	Alert,
 	Autocomplete,
@@ -159,8 +159,7 @@ export async function registerCustomVueComponents(app: App, frappeApp: string): 
 
 		for (const comp of components) {
 			try {
-				const module = await import(/* @vite-ignore */ comp.file_path)
-				app.component(comp.component_name, module.default)
+				app.component(comp.component_name, defineAsyncComponent(() => import(/* @vite-ignore */ comp.file_path)))
 
 				// Register in the component data registry for Block metadata access
 				componentRegistry.registerCustomVueComponent(comp.component_name, comp.frappe_app)

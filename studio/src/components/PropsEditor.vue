@@ -128,6 +128,9 @@ const componentInstance = computed(() => {
 	const component = resolveComponent(props.block?.componentName)
 	if (typeof component === "string" || !component) {
 		return {}
+	} else if (typeof component === "object" && "__asyncResolved" in component) {
+		// resolved async component
+		return component.__asyncResolved
 	}
 	return component
 })
