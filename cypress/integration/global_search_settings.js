@@ -70,9 +70,8 @@ context("Global Search Settings — configure search fields", () => {
 
 		cy.get("@row").find('[data-fieldname="configure"] button').click();
 
-		cy.get_open_dialog()
-			.find(".modal-title")
-			.should("contain", "Configure search fields of ToDo");
+		cy.get_open_dialog().find(".modal-title").should("contain", "Configure search fields");
+		cy.get_open_dialog().should("contain", "ToDo");
 		cy.get_open_dialog()
 			.find('.checkbox-options input[type="checkbox"][data-unit="name"]')
 			.should("exist");

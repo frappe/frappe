@@ -58,14 +58,17 @@ frappe.global_search_settings.show_configure_search_fields_dialog = function (do
 			const default_global_search_fields = r.message?.default_global_search_fields || [];
 
 			const dialog = new frappe.ui.Dialog({
-				title: __("Configure search fields of {0}", [__(doctype)]),
+				title: __("Configure search fields"),
 				fields: [
+					{
+						fieldtype: "HTML",
+						fieldname: "doctype_heading",
+					},
 					{
 						fieldtype: "HTML",
 						fieldname: "search_bar",
 					},
 					{
-						label: __(doctype),
 						fieldname: "search_fields",
 						fieldtype: "MultiCheck",
 						columns: 2,
@@ -109,6 +112,10 @@ frappe.global_search_settings.show_configure_search_fields_dialog = function (do
 					field.select_options(field.selected_options);
 				},
 			});
+
+			dialog.get_field("doctype_heading").$wrapper.html(`
+				<div class="mb-3 font-weight-bold">${frappe.utils.escape_html(__(doctype))}</div>
+			`);
 
 			dialog.get_field("search_bar").$wrapper.html(`
 				<div class="filters-search mb-3">
