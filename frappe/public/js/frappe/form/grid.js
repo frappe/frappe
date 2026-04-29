@@ -880,8 +880,17 @@ export default class Grid {
 
 							//Show the static area and hide field area if it is not the editable row
 							if (row != frappe.ui.form.editable_row) {
-								column.static_area.show();
-								column.field_area && column.field_area.toggle(false);
+								if (
+									row.should_show_button_in_idle_grid_cell &&
+									row.should_show_button_in_idle_grid_cell(column)
+								) {
+									row.make_control(column);
+									column.static_area.hide();
+									column.field_area && column.field_area.toggle(true);
+								} else {
+									column.static_area.show();
+									column.field_area && column.field_area.toggle(false);
+								}
 							}
 							//Hide the static area and show field area if it is the editable row
 							else {
