@@ -4,6 +4,7 @@ import type { CompletionSource } from "@/types"
 import { isPrivateKey } from "@/utils/helpers"
 import { getCompletions } from "./autocompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
+import * as globalUtils from "@/utils/globalUtils"
 
 export const useStudioCompletions = (canEditValues: boolean = false) => {
 	const codeStore = useCodeStore()
@@ -72,6 +73,28 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 				})
 			})
 		}
+
+		Object.entries(globalUtils).forEach(([funcName, func]) => {
+			if (isPrivateKey(funcName)) {
+				return
+			}
+
+			sources.push({
+				item: func,
+				completion: {
+					label: funcName,
+					type: "function",
+					detail: "Utility Function",
+					apply(view, completion, from, to) {
+						let insertText = `${completion.label}()`
+						view.dispatch({
+							changes: { from, to, insert: insertText },
+							selection: { anchor: from + insertText.length - 1 } // Place cursor inside the parentheses
+						})
+					}
+				}
+			})
+		})
 
 		return sources
 	})
