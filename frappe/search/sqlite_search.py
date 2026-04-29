@@ -1202,6 +1202,7 @@ class SQLiteSearch(ABC):
 
 	def _set_pragmas(self, cursor, is_read=False):
 		"""Set SQLite performance pragmas."""
+		cursor.execute("PRAGMA busy_timeout = 5000;")  # Wait up to 5 seconds if the database is locked
 		cursor.execute("PRAGMA journal_mode = WAL;")  # Write-Ahead Logging for concurrency
 		cursor.execute("PRAGMA synchronous = NORMAL;")  # Better performance vs FULL
 		cursor.execute("PRAGMA cache_size = -8192;")  # 8MB cache
@@ -1291,6 +1292,13 @@ class SQLiteSearch(ABC):
                 CREATE INDEX IF NOT EXISTS idx_progress_doctype ON search_index_progress(doctype)
             """)
 
+			# Queue table for indexing docs later
+			cursor.execute("""
+				CREATE TABLE IF NOT EXISTS search_index_queue (
+					doc_id TEXT PRIMARY KEY
+				)
+			""")
+
 		self._with_connection(create_tables)
 
 	def _index_documents(self, documents):
@@ -1368,17 +1376,23 @@ class SQLiteSearch(ABC):
 
 	def index_doc(self, doctype, docname):
 		"""Index a single document."""
-		doc = frappe.get_doc(doctype, docname)
 		self.raise_if_not_indexed()
-		document = self.prepare_document(doc)
-		if document:
-			self._index_documents([document])
+		# add the document in the queue table, handled later by a background job "index_docs_in_queue"
+		if frappe.db.exists(doctype, docname):
+			self._ensure_fts_table()
+			self.add_to_queue(f"{doctype}:{docname}")
+
+	def add_to_queue(self, doc_id):
+		"""Add a doc_id to the indexing queue."""
+		# Using INSERT OR IGNORE to prevent duplicate entries in the queue
+		self.sql("INSERT OR IGNORE INTO search_index_queue (doc_id) VALUES (?)", (doc_id,), commit=True)
 
 	def remove_doc(self, doctype, docname):
 		"""Remove a single document from the index."""
 		self.raise_if_not_indexed()
 		doc_id = f"{doctype}:{docname}"
 		self.sql("DELETE FROM search_fts WHERE doc_id = ?", (doc_id,), commit=True)
+		self.sql("DELETE FROM search_index_queue WHERE doc_id = ?", (doc_id,), commit=True)
 
 	# Utility Methods
 
@@ -1890,3 +1904,50 @@ def get_search_classes() -> list[type[SQLiteSearch]]:
 			raise TypeError(f"Search class {search_class.__name__} must extend SQLiteSearch")
 
 	return search_classes
+
+
+# Called by scheduler every 5 minutes to process indexing queue
+def index_docs_in_queue():
+	"""Process documents in the indexing queue."""
+	search_classes = get_search_classes()
+
+	for SearchClass in search_classes:
+		search = SearchClass()
+		if not (search.is_search_enabled() and search.index_exists()):
+			continue
+
+		def process_queue(cursor):
+			rows = cursor.execute("SELECT doc_id FROM search_index_queue LIMIT 30").fetchall()
+			doc_ids = [row["doc_id"] for row in rows]
+			documents = []
+			failed_doc_ids = []
+
+			for doc_id in doc_ids:
+				try:
+					doctype, name = doc_id.split(":", 1)
+					doc = frappe.get_doc(doctype, name)
+					document = search.prepare_document(doc)
+					if document:
+						documents.append(document)
+				except frappe.DoesNotExistError:
+					# Doc was deleted before the queue was processed — skip it
+					continue
+				except Exception:
+					failed_doc_ids.append(doc_id)
+
+			if documents:
+				search._index_documents(documents)
+
+			if failed_doc_ids:
+				frappe.log_error(
+					title="SQLite Search Index Queue Error",
+					message=f"Failed to index documents {failed_doc_ids} from queue in {search.__class__.__name__}",
+				)
+
+			# Cleanup processed doc_ids from the queue
+			if doc_ids:
+				placeholders_for_delete = ",".join(["?" for _ in doc_ids])
+				delete_sql = f"DELETE FROM search_index_queue WHERE doc_id IN ({placeholders_for_delete})"
+				cursor.execute(delete_sql, doc_ids)
+
+		search._with_connection(process_queue)

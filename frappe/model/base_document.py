@@ -541,6 +541,15 @@ class BaseDocument:
 			eval_locals={"doc": self},
 		)
 
+	def get_virtual_field_value(self, df):
+		fieldname = df.fieldname
+
+		if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
+			return getattr(self, fieldname)
+
+		elif options := getattr(df, "options", None):
+			return self._evaluate_virtual_field_options(options)
+
 	def get_valid_dict(
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
 	) -> _dict:
@@ -563,12 +572,7 @@ class BaseDocument:
 				if is_virtual_field:
 					if ignore_virtual or fieldname not in self.permitted_fieldnames:
 						continue
-
-					if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
-						value = getattr(self, fieldname)
-
-					elif options := getattr(df, "options", None):
-						value = self._evaluate_virtual_field_options(options)
+					value = self.get_virtual_field_value(df)
 
 				fieldtype = df.fieldtype
 				if isinstance(value, list) and fieldtype not in table_fields:

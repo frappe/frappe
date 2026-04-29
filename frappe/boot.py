@@ -26,6 +26,7 @@ from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
 from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
 from frappe.utils import add_user_info, cstr, get_system_timezone
+from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
 from frappe.utils.frappecloud import on_frappecloud
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
@@ -60,14 +61,13 @@ def get_bootinfo():
 	bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
-	bootinfo.all_domains = [d.get("name") for d in frappe.get_all("Domain")]
+	bootinfo.all_domains = frappe.get_all("Domain", pluck="name")
 	add_layouts(bootinfo)
 
 	bootinfo.module_app = frappe.local.module_app
-	bootinfo.single_types = [d.name for d in frappe.get_all("DocType", {"issingle": 1})]
-	bootinfo.nested_set_doctypes = [
-		d.parent for d in frappe.get_all("DocField", {"fieldname": "lft"}, ["parent"])
-	]
+	bootinfo.single_types = frappe.get_all("DocType", {"issingle": 1}, pluck="name")
+	bootinfo.nested_set_doctypes = frappe.get_all("DocField", {"fieldname": "lft"}, pluck="parent")
+	bootinfo.tree_view_doctypes = get_tree_view_doctypes()
 	add_home_page(bootinfo, doclist)
 	bootinfo.page_info = get_allowed_pages()
 	load_translations(bootinfo)
@@ -78,6 +78,9 @@ def get_bootinfo():
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 	bootinfo.navbar_settings = get_navbar_settings()
 	bootinfo.notification_settings = get_notification_settings()
+	bootinfo.notification_unread_count = frappe.db.count(
+		"Notification Log", {"read": 0, "for_user": frappe.session.user}
+	)
 	bootinfo.onboarding_tours = get_onboarding_ui_tours()
 	set_time_zone(bootinfo)
 
@@ -151,9 +154,10 @@ def get_letter_heads():
 
 
 def load_conf_settings(bootinfo):
-	from frappe.core.api.file import get_max_file_size
+	from frappe.core.api.file import get_file_chunk_size, get_max_file_size
 
 	bootinfo.max_file_size = get_max_file_size()
+	bootinfo.file_chunk_size = get_file_chunk_size()
 	for key in ("developer_mode", "socketio_port", "file_watcher_port"):
 		if key in frappe.conf:
 			bootinfo[key] = frappe.conf.get(key)
@@ -216,7 +220,7 @@ def load_desktop_data(bootinfo):
 				app_logo_url=app_info.get("logo")
 				or frappe.get_hooks("app_logo_url", app_name=app_name)
 				or frappe.get_hooks("app_logo_url", app_name="frappe"),
-				modules=[m.name for m in frappe.get_all("Module Def", dict(app_name=app_name))],
+				modules=frappe.get_all("Module Def", dict(app_name=app_name), pluck="name"),
 				workspaces=workspaces,
 			)
 		)
@@ -341,10 +345,10 @@ def get_user_pages_or_reports(parent, cache=False):
 
 
 def load_translations(bootinfo):
-	from frappe.translate import get_messages_for_boot
+	from frappe.translate import get_translation_version
 
 	bootinfo["lang"] = frappe.lang
-	bootinfo["__messages"] = get_messages_for_boot()
+	bootinfo["translations_version"] = get_translation_version()
 
 
 def get_user_info():
@@ -408,7 +412,7 @@ def get_success_action():
 def get_link_preview_doctypes():
 	from frappe.utils import cint
 
-	link_preview_doctypes = [d.name for d in frappe.get_all("DocType", {"show_preview_popup": 1})]
+	link_preview_doctypes = frappe.get_all("DocType", {"show_preview_popup": 1}, pluck="name")
 	customizations = frappe.get_all(
 		"Property Setter", fields=["doc_type", "value"], filters={"property": "show_preview_popup"}
 	)
@@ -521,6 +525,11 @@ def get_marketplace_apps():
 	return apps
 
 
+@redis_cache
+def get_tree_view_doctypes():
+	return frappe.get_all("DocType", {"default_view": "Tree"}, pluck="name")
+
+
 def add_subscription_conf():
 	try:
 		return frappe.conf.subscription
@@ -556,8 +565,9 @@ def get_sidebar_items(allowed_workspaces):
 			sidebar_doc = sidebar
 		if (
 			frappe.session.user == "Administrator"
-			or sidebar_doc.module in sidebar_doc.user.allow_modules
 			or sidebar_title == "My Workspaces"
+			or not sidebar_doc.module
+			or sidebar_doc.module in sidebar_doc.user.allow_modules
 		):
 			sidebar_items[sidebar_title.lower()] = {
 				"label": sidebar_title,
@@ -584,6 +594,7 @@ def get_sidebar_items(allowed_workspaces):
 					"filters": item.filters,
 					"route_options": item.route_options,
 					"tab": item.navigate_to_tab,
+					"open_in_new_tab": item.open_in_new_tab,
 				}
 				if item.link_type == "Report" and item.link_to and frappe.db.exists("Report", item.link_to):
 					report_type, ref_doctype = frappe.db.get_value(

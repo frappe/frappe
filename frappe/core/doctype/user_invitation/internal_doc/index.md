@@ -28,6 +28,10 @@ Define user invitation hooks in your app's `hooks.py` file. An example is shown 
 
   A map of `only_for` roles to a list of roles that are allowed to be invited to your app.
 
+- `extra_invite_params`
+
+  A list of additional parameters that can be passed when creating a user invitation. Optional parameter.
+
 - `after_accept`
 
   Dot path of the function to execute after the user accepts the invitation.

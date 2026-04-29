@@ -12,13 +12,14 @@ class FormTimeline extends BaseTimeline {
 		super.make();
 		this.setup_timeline_actions();
 		this.render_timeline_items();
+		this.setup_activity_toggle();
 	}
 
 	refresh() {
 		super.refresh();
 		this.frm.trigger("timeline_refresh");
-		this.setup_activity_toggle();
 		this.setup_document_email_link();
+		this.toggle_show_all_activity();
 	}
 
 	setup_timeline_actions() {
@@ -48,11 +49,17 @@ class FormTimeline extends BaseTimeline {
 		}
 	}
 
-	setup_activity_toggle() {
-		const doc_info = this.doc_info || this.frm.get_docinfo();
-		const has_communications = () =>
-			doc_info.communications?.length || doc_info.comments?.length;
+	toggle_show_all_activity() {
+		const btn = this.timeline_wrapper.find(".timeline-item .show-all-activity");
+		btn.toggle(!!this.has_communications());
+	}
 
+	has_communications() {
+		const doc_info = this.doc_info || this.frm.get_docinfo();
+		return doc_info.communications?.length || doc_info.comments?.length;
+	}
+
+	setup_activity_toggle() {
 		this.timeline_wrapper.remove(this.timeline_actions_wrapper);
 		this.timeline_wrapper.find(".timeline-item.activity-title").remove();
 		this.timeline_wrapper.prepend(`
@@ -62,28 +69,26 @@ class FormTimeline extends BaseTimeline {
 			`);
 
 		const me = this;
-		if (has_communications()) {
-			this.timeline_wrapper
-				.find(".timeline-item.activity-title")
-				.append(
-					`
-					<div class="d-flex align-items-center show-all-activity">
-						<span style="color: var(--text-light); margin:0px 6px;">${__("Show all activity")}</span>
-						<label class="switch">
-							<input type="checkbox">
-							<span class="slider round"></span>
-						</label>
-					</div>
+		this.timeline_wrapper
+			.find(".timeline-item.activity-title")
+			.append(
 				`
-				)
-				.find("input[type=checkbox]")
-				.prop("checked", !me.only_communication)
-				.on("click", function (e) {
-					me.only_communication = !this.checked;
-					me.render_timeline_items();
-					$(this).tab("show");
-				});
-		}
+				<div class="flex align-items-center show-all-activity">
+					<span style="color: var(--text-light); margin:0px 6px;">${__("Show all activity")}</span>
+					<label class="switch">
+						<input type="checkbox">
+						<span class="slider round"></span>
+					</label>
+				</div>
+			`
+			)
+			.find("input[type=checkbox]")
+			.prop("checked", !me.only_communication)
+			.on("click", function (e) {
+				me.only_communication = !this.checked;
+				me.render_timeline_items();
+				$(this).tab("show");
+			});
 		this.timeline_wrapper
 			.find(".timeline-item.activity-title")
 			.append(this.timeline_actions_wrapper);

@@ -19,12 +19,17 @@ a {
 a,
 a:hover,
 a:active,
-a:focus,
 .btn,
 .btn:hover,
-.btn:active,
-.btn:focus {
+.btn:active {
 	outline: 0;
+}
+
+a:focus-visible,
+.btn:focus-visible,
+.btn-reset:focus-visible {
+	box-shadow: var(--focus-default);
+	outline: none;
 }
 
 a.grey,

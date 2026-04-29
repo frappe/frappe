@@ -86,6 +86,10 @@ class TooManyRequestsError(Exception):
 	http_status_code = 429
 
 
+class ServiceUnavailableError(Exception):
+	http_status_code = 503
+
+
 class ImproperDBConfigurationError(Exception):
 	"""
 	Used when frappe detects that database or tables are not properly

@@ -210,6 +210,7 @@ scheduler_events = {
 		# 5 minutes
 		"0/5 * * * *": [
 			"frappe.email.doctype.notification.notification.trigger_offset_alerts",
+			"frappe.search.sqlite_search.index_docs_in_queue",
 		],
 		# 15 minutes
 		"0/15 * * * *": [
@@ -230,6 +231,10 @@ scheduler_events = {
 		"45 0 * * *": [],
 		"0 */3 * * *": [
 			"frappe.search.sqlite_search.build_index_if_not_exists",
+		],
+		# Daily at 6:00 AM.
+		"0 6 * * *": [
+			"frappe.core.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
 		],
 	},
 	"all": [
@@ -471,21 +476,6 @@ get_changelog_feed = "frappe.desk.doctype.changelog_feed.changelog_feed.get_feed
 
 export_python_type_annotations = True
 
-standard_navbar_items = [
-	{
-		"item_label": "User Settings",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.route_to_user()",
-		"is_standard": 1,
-	},
-	{
-		"item_label": "Log out",
-		"item_type": "Action",
-		"action": "frappe.app.logout()",
-		"is_standard": 1,
-	},
-]
-
 standard_help_items = [
 	{
 		"item_label": "About",
@@ -540,6 +530,7 @@ persistent_cache_keys = [
 	"monitor-transactions",
 	"rate-limit-counter-*",
 	"rl:*",
+	"concurrency:*",
 ]
 
 user_invitation = {

@@ -39,9 +39,7 @@ class UserInvitation(Document):
 		self._after_insert()
 
 	def accept(self, ignore_permissions: bool = False):
-		accepted_now = self._accept()
-		if not accepted_now:
-			return
+		self._accept()
 		user, user_inserted = self._upsert_user(ignore_permissions)
 		self.save(ignore_permissions)
 		user.save(ignore_permissions)
@@ -120,7 +118,7 @@ class UserInvitation(Document):
 
 	def _accept(self):
 		if self.status == "Accepted":
-			return False
+			frappe.throw(title=_("Error"), msg=_("Invitation already accepted"))
 		if self.status == "Expired":
 			frappe.throw(title=_("Error"), msg=_("Invitation is expired"))
 		if self.status == "Cancelled":
@@ -128,6 +126,7 @@ class UserInvitation(Document):
 		self.status = "Accepted"
 		self.accepted_at = frappe.utils.now()
 		self.user = self.email
+		self.key = None
 		return True
 
 	def _upsert_user(self, ignore_permissions: bool = False):
@@ -206,12 +205,11 @@ class UserInvitation(Document):
 
 def mark_expired_invitations() -> None:
 	days = 3
-	invitations_to_expire = frappe.db.get_all(
+	invitations_to_expire = frappe.get_docs(
 		"User Invitation",
 		filters={"status": "Pending", "creation": ["<", frappe.utils.add_days(frappe.utils.now(), -days)]},
 	)
 	for invitation in invitations_to_expire:
-		invitation = frappe.get_doc("User Invitation", invitation.name)
 		invitation.expire()
 		# to avoid losing work in case the job times out without finishing
 		frappe.db.commit()  # nosemgrep

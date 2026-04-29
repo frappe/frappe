@@ -1,4 +1,5 @@
 frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlInt {
+	static input_mode = "decimal";
 	parse(value) {
 		value = this.eval_expression(value);
 		return isNaN(parseFloat(value)) ? null : flt(value, this.get_precision());
@@ -32,5 +33,3 @@ frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlI
 		return this.df.precision || cint(frappe.boot.sysdefaults.float_precision, null);
 	}
 };
-
-frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;

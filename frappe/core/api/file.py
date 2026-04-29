@@ -90,6 +90,10 @@ def get_max_file_size() -> int:
 	)
 
 
+def get_file_chunk_size() -> int:
+	return cint(frappe.conf.get("file_chunk_size")) or 25 * 1024 * 1024
+
+
 @frappe.whitelist()
 def create_new_folder(file_name: str, folder: str) -> File:
 	"""create new folder under current parent folder"""

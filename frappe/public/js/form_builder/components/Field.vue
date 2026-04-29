@@ -233,18 +233,8 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						<div v-html="frappe.utils.icon('filter', 'sm')" />
 					</button>
 					<AddFieldButton ref="add_field_ref" :column="column" :field="field">
-						<div v-html="frappe.utils.icon('add', 'sm')" />
+						<div v-html="frappe.utils.icon('plus', 'sm')" />
 					</AddFieldButton>
-					<button
-						v-if="column.fields.indexOf(field)"
-						class="btn btn-xs btn-icon"
-						:title="
-							__('Move the current field and the following fields to a new column')
-						"
-						@click="move_fields_to_column"
-					>
-						<div v-html="frappe.utils.icon('move', 'sm')" />
-					</button>
 					<button
 						class="btn btn-xs btn-icon"
 						:title="__('Duplicate field')"
@@ -265,7 +255,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						:title="__('Remove field')"
 						@click.stop="remove_field"
 					>
-						<div v-html="frappe.utils.icon('remove', 'sm')" />
+						<div v-html="frappe.utils.icon('x', 'sm')" />
 					</button>
 				</div>
 			</template>

@@ -173,8 +173,7 @@ frappe.router = {
 			route = ["Workspaces", frappe.workspaces[route[0]].name];
 		} else if (route[0] == "private") {
 			// private workspace
-			let private_workspace =
-				route[1] && frappe.router.slug(`${route[1]}-${frappe.user.name.toLowerCase()}`);
+			let private_workspace = route[1] && frappe.router.slug(`${route[1]}`);
 			if (!frappe.workspaces[private_workspace]) {
 				frappe.msgprint(
 					__("Workspace <b>{0}</b> does not exist", [
@@ -480,23 +479,6 @@ frappe.router = {
 		// 3. Public home
 		// 4. First workspace in list of current app
 		// 5. First workspace in list
-		let private_home = `home-${frappe.user.name.toLowerCase()}`;
-		let default_workspace = frappe.router.slug(frappe.boot.user.default_workspace?.name || "");
-
-		let workspace =
-			frappe.workspaces[default_workspace] ||
-			frappe.workspaces[private_home] ||
-			frappe.workspaces["home"] ||
-			Object.values(frappe.workspace_map).find((w) => w.app === frappe.current_app) ||
-			Object.values(frappe.workspaces)[0];
-
-		if (workspace) {
-			return (
-				"/desk/" +
-				(workspace.public ? "" : "private/") +
-				frappe.router.slug(workspace.name)
-			);
-		}
 
 		return "/desk";
 	},

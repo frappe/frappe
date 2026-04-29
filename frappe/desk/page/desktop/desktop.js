@@ -312,7 +312,6 @@ class DesktopPage {
 					return !me.edit_mode;
 				},
 				onClick: function () {
-					me.$desktop_edit_button.hide();
 					frappe.new_desktop_icons = JSON.parse(JSON.stringify(frappe.desktop_icons));
 					me.start_editing_layout();
 				},
@@ -523,25 +522,28 @@ class DesktopPage {
 		if (frappe.boot.desk_settings.search_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
 			awesome_bar.setup(".desktop-search-wrapper #desktop-navbar-modal-search");
+
+			frappe.ui.keys.add_shortcut({
+				shortcut: "ctrl+g",
+				action: function (e) {
+					$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
+					e.preventDefault();
+					return false;
+				},
+				description: __("Open Awesomebar"),
+				ignore_inputs: true,
+			});
+			frappe.ui.keys.add_shortcut({
+				shortcut: "ctrl+k",
+				action: function (e) {
+					$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
+					e.preventDefault();
+					return false;
+				},
+				description: __("Toggle Awesomebar"),
+				ignore_inputs: true,
+			});
 		}
-		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+g",
-			action: function (e) {
-				$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
-				e.preventDefault();
-				return false;
-			},
-			description: __("Open Awesomebar"),
-		});
-		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+k",
-			action: function (e) {
-				$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
-				e.preventDefault();
-				return false;
-			},
-			description: __("Open Awesomebar"),
-		});
 	}
 	handle_route_change() {
 		const me = this;
@@ -1032,7 +1034,8 @@ class DesktopIcon {
 	setup_click() {
 		const me = this;
 		if (this.child_icons?.length && (this.icon_type == "App" || this.icon_type == "Folder")) {
-			$(this.icon).on("click", () => {
+			$(this.icon).on("click", (event) => {
+				event.preventDefault();
 				let modal = frappe.desktop_utils.create_desktop_modal(me);
 				modal.setup(me.icon_title, me.child_icons, 4);
 				let $title = modal.modal.find(".modal-title");
@@ -1208,7 +1211,7 @@ class IconsPane {
 			return;
 		}
 		this.wrapper.append(
-			"<span style='margin-top: 10px; margin-bottom: 20px'>Removed Icons</span>"
+			`<span style='margin-top: 10px; margin-bottom: 20px'>${__("Removed Icons")}</span>`
 		);
 		this.grid = new DesktopIconGrid({
 			name: "hidden-icons-grid",

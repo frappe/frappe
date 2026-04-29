@@ -391,12 +391,14 @@ export default class BulkOperations {
 		show_help_text();
 
 		function set_value_field(dialogObj) {
-			const new_df = Object.assign({}, field_mappings[dialogObj.get_value("field")]);
+			const field_value = dialogObj.get_value("field");
+			if (!field_value || !field_mappings[field_value]) return;
+			const new_df = Object.assign({}, field_mappings[field_value]);
 			/* if the field label has status in it and
 			if it has select fieldtype with no default value then
 			set a default value from the available option. */
 			if (
-				new_df.label.match(status_regex) &&
+				new_df.label?.match(status_regex) &&
 				new_df.fieldtype === "Select" &&
 				!new_df.default
 			) {
@@ -418,6 +420,8 @@ export default class BulkOperations {
 		}
 
 		function show_help_text() {
+			if (dialog.get_primary_btn().is(":focus, :active")) return;
+
 			let value = dialog.get_value("value");
 			if (value == null || value === "") {
 				dialog.set_df_property(
@@ -474,7 +478,9 @@ export default class BulkOperations {
 		frappe.require("data_import_tools.bundle.js", () => {
 			const data_exporter = new frappe.data_import.DataExporter(
 				doctype,
-				"Insert New Records"
+				"Insert New Records",
+				"CSV",
+				true
 			);
 			data_exporter.dialog.set_value("export_records", "by_filter");
 			data_exporter.filter_group.add_filters_to_filter_group([

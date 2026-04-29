@@ -81,7 +81,6 @@
    "oldfieldname": "standard",
    "oldfieldtype": "Select",
    "options": "No\nYes",
-   "read_only_depends_on": "eval:doc.print_format_for === \"Report\";",
    "reqd": 1,
    "search_index": 1
   },
@@ -294,7 +293,7 @@
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2026-02-11 13:17:55.662780",
+ "modified": "2026-03-26 16:27:02.559100",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

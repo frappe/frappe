@@ -155,7 +155,9 @@ class LoginManager:
 		self.authenticate(user=user, pwd=pwd)
 		if self.force_user_to_reset_password():
 			doc = frappe.get_doc("User", self.user)
-			frappe.local.response["redirect_to"] = doc.reset_password(send_email=False, password_expired=True)
+			frappe.local.response["redirect_to"] = doc._reset_password(
+				send_email=False, password_expired=True
+			)
 			frappe.local.response["message"] = "Password Reset"
 			return False
 
@@ -683,7 +685,10 @@ def validate_oauth(authorization_header):
 			uri, http_method, body, headers, required_scopes
 		)
 		if valid:
-			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
+			user = frappe.db.get_value("OAuth Bearer Token", token, "user")
+			if not frappe.db.get_value("User", user, "enabled"):
+				frappe.throw(_("User {0} is disabled").format(user), frappe.AuthenticationError)
+			frappe.set_user(user)
 			frappe.local.form_dict = form_dict
 	except AttributeError:
 		pass
@@ -721,9 +726,13 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 		raise frappe.AuthenticationError
 
 	doctype = frappe_authorization_source or "User"
-	docname = frappe.db.get_value(
-		doctype=doctype, filters={"api_key": api_key, "enabled": True}, fieldname=["name"]
-	)
+	try:
+		docname = frappe.db.get_value(
+			doctype=doctype, filters={"api_key": api_key, "enabled": True}, fieldname=["name"]
+		)
+	except Exception:
+		raise frappe.AuthenticationError
+
 	if not docname:
 		raise frappe.AuthenticationError
 	form_dict = frappe.local.form_dict

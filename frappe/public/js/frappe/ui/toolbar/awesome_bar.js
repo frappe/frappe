@@ -49,7 +49,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					<span>${__("to select")}</span>
 				</span>
 				<span class="help-item-navigate">
-					<span class="help-item help-item-escape">${__("esc")}</span>
+					<span class="help-item help-item-escape">${frappe.utils.is_mac() ? "⌘K" : "Ctrl+K"}</span>
 					<span>${__("to close")}</span>
 				</span>
 			</div>
@@ -68,6 +68,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		});
 
 		$search_element.on("click", () => {
+			if ($(search_modal).hasClass("show")) {
+				search_modal.modal("hide");
+				return;
+			}
 			search_modal.modal("show");
 
 			if (is_event_listeners_added) return;

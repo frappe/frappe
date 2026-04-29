@@ -242,7 +242,7 @@ frappe.ui.Page = class Page {
 	}
 
 	setup_main_sidebar_toggle() {
-		$(".sidebar-toggle-btn.navbar-brand").on("click", (event) => {
+		this.wrapper.find(".sidebar-toggle-btn.navbar-brand").on("click", (event) => {
 			frappe.app.sidebar.set_height();
 			frappe.app.sidebar.toggle_width();
 			frappe.app.sidebar.prevent_scroll();

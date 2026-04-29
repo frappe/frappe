@@ -3,7 +3,7 @@
 import io
 import os
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 import frappe
 
@@ -32,6 +32,8 @@ def strip_exif_data(content, content_type) -> bytes:
 	"""
 
 	original_image = Image.open(io.BytesIO(content))
+	# Apply EXIF orientation to pixels before stripping the tag.
+	original_image = ImageOps.exif_transpose(original_image)
 	output = io.BytesIO()
 	# ref: https://stackoverflow.com/a/48248432
 	if content_type == "image/jpeg" and original_image.mode in ("RGBA", "P"):

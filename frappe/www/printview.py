@@ -76,7 +76,10 @@ def get_context(context) -> PrintContext:
 		from frappe.utils.weasyprint import get_html
 
 		body = get_html(
-			doctype=frappe.form_dict.doctype, name=frappe.form_dict.name, print_format=print_format.name
+			doctype=frappe.form_dict.doctype,
+			name=frappe.form_dict.name,
+			print_format=print_format.name,
+			letterhead=letterhead,
 		)
 		body += trigger_print_script
 	else:
@@ -227,6 +230,12 @@ def get_rendered_template(
 
 	if letter_head.content:
 		letter_head.content = frappe.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()})
+		if letter_head.custom_css:
+			letter_head.content += f"""
+			<style>
+				{letter_head.custom_css}
+			</style>
+			"""
 		if letter_head.header_script:
 			letter_head.content += f"""
 				<script>
@@ -343,8 +352,7 @@ def get_html_and_style(
 	if isinstance(name, str):
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
-		details = json.loads(doc)
-		document = frappe.get_cached_doc(details["doctype"], details["name"], check_permission=True)
+		document = frappe.get_doc(json.loads(doc), check_permission=True)
 
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 	set_link_titles(document)
@@ -425,7 +433,7 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 		return frappe.db.get_value(
 			"Letter Head",
 			letterhead_name,
-			["content", "footer", "header_script", "footer_script"],
+			["content", "footer", "header_script", "footer_script", "custom_css"],
 			as_dict=True,
 		)
 	else:
@@ -433,7 +441,7 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 			frappe.db.get_value(
 				"Letter Head",
 				{"is_default": 1},
-				["content", "footer", "header_script", "footer_script"],
+				["content", "footer", "header_script", "footer_script", "custom_css"],
 				as_dict=True,
 			)
 			or {}

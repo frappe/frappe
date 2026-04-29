@@ -53,7 +53,7 @@ frappe.ui.form.Share = class Share {
 	show() {
 		var me = this;
 		var d = new frappe.ui.Dialog({
-			title: __("Share {0} with", [this.frm.doc.name]),
+			title: __("Share {0} with", [__(this.frm.doc.name)]),
 		});
 
 		this.dialog = d;

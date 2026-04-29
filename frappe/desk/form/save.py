@@ -64,6 +64,11 @@ def cancel(
 
 	if workflow_state_fieldname and workflow_state:
 		doc.set(workflow_state_fieldname, workflow_state)
+
+	if doc.meta.queue_in_background and not is_scheduler_inactive():
+		queue_submission(doc, "Cancel")
+		return
+
 	doc.cancel()
 	send_updated_docs(doc)
 	frappe.msgprint(frappe._("Cancelled"), indicator="red", alert=True)

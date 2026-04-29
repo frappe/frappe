@@ -90,23 +90,38 @@ class Workflow(Document):
 
 			frappe.throw(frappe._("{0} not a valid State").format(state))
 
+		meta = frappe.get_meta(self.document_type)
+		is_submittable = meta.is_submittable
+
+		if not is_submittable:
+			for state in self.states:
+				if cint(state.doc_status) != 0:
+					frappe.throw(
+						frappe._(
+							"Workflow State '{0}' has Document Status {1}, but DocType '{2}' is not submittable. "
+							"Only Document Status 0 (Draft) is allowed for non-submittable DocTypes."
+						).format(state.state, state.doc_status, self.document_type)
+					)
+
 		for t in self.transitions:
 			state = get_state(t.state)
 			next_state = get_state(t.next_state)
+			state_docstatus = cint(state.doc_status)
+			next_state_docstatus = cint(next_state.doc_status)
 
-			if state.doc_status == "2":
+			if state_docstatus == 2:
 				frappe.throw(
 					frappe._("Cannot change state of Cancelled Document. Transition row {0}").format(t.idx)
 				)
 
-			if state.doc_status == "1" and next_state.doc_status == "0":
+			if state_docstatus == 1 and next_state_docstatus == 0:
 				frappe.throw(
 					frappe._(
 						"Submitted Document cannot be converted back to draft. Transition row {0}"
 					).format(t.idx)
 				)
 
-			if state.doc_status == "0" and next_state.doc_status == "2":
+			if state_docstatus == 0 and next_state_docstatus == 2:
 				frappe.throw(frappe._("Cannot cancel before submitting. See Transition {0}").format(t.idx))
 
 	def set_active(self):

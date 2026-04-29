@@ -21,3 +21,12 @@
 		height: 15px;
 	}
 }
+
+.gantt-modern {
+	height: calc(100vh - 240px);
+	overflow-y: auto;
+
+	.gantt-container {
+		position: relative;
+	}
+}

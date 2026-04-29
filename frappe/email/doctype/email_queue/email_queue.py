@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _, are_emails_muted, safe_encode, task
-from frappe.core.utils import html2text
+from frappe.core.utils import html_to_plain_text
 from frappe.database.database import savepoint
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import add_attachment, get_email, get_formatted_html
@@ -129,7 +129,7 @@ class EmailQueue(Document):
 
 	def update_status(self, status, commit=False, **kwargs):
 		self.update_db(status=status, commit=commit, **kwargs)
-		if self.communication:
+		if self.communication and frappe.db.exists("Communication", self.communication):
 			communication_doc = frappe.get_doc("Communication", self.communication)
 			communication_doc.set_delivery_status(commit=commit)
 
@@ -188,16 +188,18 @@ class EmailQueue(Document):
 				if ctx.smtp_server.session.has_extn("SIZE"):
 					if max_size := ctx.smtp_server.session.esmtp_features.get("size"):
 						max_size = int(max_size)
-						msg_size = len(msg)
 
-						if msg_size > max_size:
-							msg_size_mb = msg_size / (1024 * 1024)
-							max_size_mb = max_size / (1024 * 1024)
-							frappe.throw(
-								_(
-									"Email size {0:.2f} MB exceeds the maximum allowed size of {1:.2f} MB"
-								).format(msg_size_mb, max_size_mb)
-							)
+						if max_size > 0:
+							msg_size = len(msg)
+
+							if msg_size > max_size:
+								msg_size_mb = msg_size / (1024 * 1024)
+								max_size_mb = max_size / (1024 * 1024)
+								frappe.throw(
+									_(
+										"Email size {0:.2f} MB exceeds the maximum allowed size of {1:.2f} MB"
+									).format(msg_size_mb, max_size_mb)
+								)
 
 				return msg
 
@@ -691,7 +693,7 @@ class QueueBuilder:
 			return self._text_content + unsubscribe_text_message
 
 		try:
-			text_content = html2text(self._message)
+			text_content = html_to_plain_text(self._message)
 		except Exception:
 			text_content = "See html attachment"
 		return text_content + unsubscribe_text_message

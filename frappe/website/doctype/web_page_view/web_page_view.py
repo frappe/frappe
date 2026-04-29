@@ -45,7 +45,7 @@ class WebPageView(Document):
 def make_view_log(
 	referrer: str | None = None,
 	browser: str | None = None,
-	version: str | None = None,
+	version: str | int | None = None,
 	user_tz: str | None = None,
 	source: str | None = None,
 	campaign: str | None = None,

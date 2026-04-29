@@ -147,16 +147,36 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	set_link_title_field_value() {
+		let rows = this.datatable?.datamanager?.rows;
+		let link_col_indices = this.datatable?.datamanager?.columns
+			?.filter((c) => c.docfield?.fieldtype === "Link")
+			.map((c) => c.colIndex);
+
 		Object.keys(this.link_title_doctype_fields).forEach(async (key) => {
 			let link_title = await this.get_link_title_field_value(
 				this.link_title_doctype_fields[key],
 				key
 			);
 
-			if (link_title !== undefined) {
-				document.querySelectorAll(`a[data-name="${key}"]`).forEach((el) => {
-					el.innerHTML = link_title;
-				});
+			if (link_title === undefined) return;
+
+			// update visible DOM elements and cell tooltip
+			document.querySelectorAll(`a[data-name="${key}"]`).forEach((el) => {
+				if (el.textContent === link_title) return;
+				el.textContent = link_title;
+
+				$(el).closest(".dt-cell__content").attr("title", link_title);
+			});
+
+			if (rows?.length && link_col_indices?.length) {
+				for (let row of rows) {
+					for (let ci of link_col_indices) {
+						let cell = row[ci];
+						if (cell?.content === key && cell.html) {
+							cell.html = null;
+						}
+					}
+				}
 			}
 		});
 	}
@@ -502,6 +522,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// show chart if saved via report or user settings
 		if (!this.chart) {
 			if (this.chart_args) {
+				if (!this.chart_axes_valid(this.chart_args)) {
+					this.reset_chart_state();
+					return;
+				}
+
 				this.build_chart_args(
 					this.chart_args.x_axis,
 					this.chart_args.y_axes,
@@ -554,6 +579,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					options: y_fields,
 					description: __("Showing only Numeric fields from Report"),
 					default: defaults.y_axes ? defaults.y_axes.join(", ") : null,
+					include_default: true,
 				},
 				{
 					label: __("Chart Type"),
@@ -643,10 +669,28 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	refresh_charts() {
 		if (!this.chart || !this.chart_args) return;
+
+		if (!this.chart_axes_valid(this.chart_args)) {
+			this.reset_chart_state();
+			return;
+		}
+
 		this.$charts_wrapper.removeClass("hidden");
 		const { x_axis, y_axes, chart_type } = this.chart_args;
 		this.build_chart_args(x_axis, y_axes, chart_type);
 		this.chart.update(this.chart_args);
+	}
+
+	chart_axes_valid(chart_args) {
+		const { x_axis, y_axes } = chart_args;
+		return this.columns_map[x_axis] && y_axes.every((y_axis) => this.columns_map[y_axis]);
+	}
+
+	reset_chart_state() {
+		this.chart = null;
+		this.chart_args = null;
+		this.$charts_wrapper.addClass("hidden");
+		this.save_view_user_settings({ chart_args: null });
 	}
 
 	get_editing_object(colIndex, rowIndex, value, parent) {
@@ -763,9 +807,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		} else if (expression.substr(0, 5) == "eval:") {
 			try {
 				out = frappe.utils.eval(expression.substr(5), { doc: data });
-				if (parent && parent.istable && expression.includes("is_submittable")) {
-					out = true;
-				}
 			} catch (e) {
 				frappe.throw(__('Invalid "depends_on" expression'));
 			}

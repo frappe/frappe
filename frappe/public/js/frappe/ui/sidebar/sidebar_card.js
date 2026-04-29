@@ -27,6 +27,9 @@ frappe.ui.SidebarCard = class SidebarCard {
 				card: this,
 			})
 		);
+		if (!this.primary_action_label) {
+			this.card.css("gap", "0px");
+		}
 		if (this.dismiss_it_for) {
 			const next_time_for_show = localStorage.getItem(this.get_dismiss_key());
 			if (next_time_for_show && Date.now() < Number(next_time_for_show)) {
@@ -36,6 +39,7 @@ frappe.ui.SidebarCard = class SidebarCard {
 		}
 		if (this.popper) {
 			this.popper = createPopper($(this.trigger).get(0), $(this.parent).get(0), {
+				placement: "auto",
 				modifiers: [
 					{
 						name: "offset",
@@ -52,7 +56,7 @@ frappe.ui.SidebarCard = class SidebarCard {
 		}
 		this.card.prependTo(this.parent);
 		this.set_button_alignment();
-		this.show();
+		if (!this.popper) this.show();
 	}
 	setup() {
 		this.setup_primary_action();
@@ -91,7 +95,8 @@ frappe.ui.SidebarCard = class SidebarCard {
 	setup_close_button() {
 		const me = this;
 		if (this.close_button) {
-			this.card.find(".close-button").on("click", function () {
+			this.card.find(".close-button").on("click", function (event) {
+				event.preventDefault();
 				if (me.dismiss_it_for) {
 					let next_show_time = Date.now() + me.dismiss_intervals[me.dismiss_it_for];
 

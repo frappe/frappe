@@ -139,7 +139,7 @@ frappe.ui.form.Form = class FrappeForm {
 	add_form_keyboard_shortcuts() {
 		// Navigate to next record
 		frappe.ui.keys.add_shortcut({
-			shortcut: "shift+ctrl+>",
+			shortcut: "shift+ctrl+right",
 			action: () => this.navigate_records(0),
 			page: this.page,
 			description: __("Go to next record"),
@@ -149,7 +149,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// Navigate to previous record
 		frappe.ui.keys.add_shortcut({
-			shortcut: "shift+ctrl+<",
+			shortcut: "shift+ctrl+left",
 			action: () => this.navigate_records(1),
 			page: this.page,
 			description: __("Go to previous record"),
@@ -1355,7 +1355,11 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.re_route[frappe.router.get_sub_path()] = `${encodeURIComponent(
 			frappe.router.slug(this.doctype)
 		)}/${encodeURIComponent(name)}`;
-		!frappe._from_link && frappe.set_route("Form", this.doctype, name);
+
+		// Skip routing only when the document is created from a Form view's Link field
+		if (!frappe._from_link?.field_obj?.frm) {
+			frappe.set_route("Form", this.doctype, name);
+		}
 	}
 
 	// ACTIONS
@@ -2266,7 +2270,7 @@ frappe.ui.form.Form = class FrappeForm {
 				this.meta.is_submittable &&
 				this.meta.queue_in_background &&
 				!this.doc.__islocal &&
-				this.doc.docstatus === 0
+				this.doc.docstatus <= 1
 			)
 		) {
 			wrapper.length && wrapper.remove();
@@ -2284,7 +2288,7 @@ frappe.ui.form.Form = class FrappeForm {
 				args: { doctype: this.doctype, docname: this.docname },
 			})
 			.then((r) => {
-				if (r.message?.latest_submission) {
+				if (r.message?.latest_submission && r.message.status !== "Finished") {
 					// if we are here that means some submission(s) were queued and are in queued/failed state
 					let submission_label = __("Previous Submission");
 					let secondary = "";

@@ -224,6 +224,7 @@
 	.form-title-text {
 		// to match the actions button height for center alignment
 		line-height: 28px;
+		cursor: copy;
 	}
 
 	.form-stats-likes {
@@ -571,12 +572,14 @@ body[data-route^="Form"] {
 	}
 }
 
-.liked-by {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 28px;
-	height: 28px;
+.form-stats-likes {
+	.liked-by {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+	}
 }
 
 .liked-by-popover {
