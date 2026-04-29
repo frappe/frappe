@@ -2,32 +2,27 @@
 // For license information, please see license.txt
 
 /**
- * Document Template manager for form toolbar.
- * For new (unsaved) documents — a "Templates" button opens the manage dialog.
- * For saved documents — "Templates" is added to the three-dot (⋮) menu.
- * At the bottom of the dialog, users can save the current form as a new template.
+ * Document Template manager for the form toolbar.
+ *
+ * - For new (unsaved) documents a "Templates" button is added next to the
+ *   primary action and opens the manage dialog.
+ * - For saved documents "Templates" is appended to the three-dot (⋮) menu.
+ *
+ * The manage dialog lists templates accessible to the user (server-side
+ * filtered) and lets them save the current form values as a new template.
+ *
+ * Per-row actions (update / edit / delete) are gated by client-side
+ * permission checks via ``frappe.perm.has_perm`` which honours role-level
+ * permissions on Document Template and the ``if_owner`` flag, mirroring the
+ * server-side rules without hard-coding any role names.
  */
 frappe.ui.form.DocumentTemplate = class DocumentTemplate {
+	static PAGE_LENGTH = 10;
+
 	constructor({ frm, page }) {
 		this.frm = frm;
 		this.page = page;
 		this.$btn = null;
-	}
-
-	_is_own(template) {
-		return template.owner === frappe.session.user;
-	}
-
-	_is_system_manager() {
-		return frappe.user_roles.includes("System Manager");
-	}
-
-	_is_template_manager() {
-		return frappe.user_roles.includes("Template Manager");
-	}
-
-	_should_include_field(df) {
-		return !(cint(df.no_copy) || cint(df.read_only) || cint(df.hidden));
 	}
 
 	setup_buttons() {
@@ -46,13 +41,18 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	}
 
 	show_manage_dialog() {
+		if (this._manage_dialog) {
+			this._manage_dialog.show();
+			return;
+		}
+
 		this._manage_start = 0;
 		this._manage_dialog = new frappe.ui.Dialog({
 			title: __("Templates"),
 			size: "medium",
 		});
 
-		let $body = this._manage_dialog.$body;
+		const $body = this._manage_dialog.$body;
 
 		this._$manage_wrap = $('<div class="dt-template-list">').appendTo($body);
 
@@ -71,8 +71,8 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			render_input: true,
 		});
 
-		let $save_row_wrapper = $("<div>").appendTo($body);
-		let $save_row_inner = $('<div class="dt-save-row">').appendTo($save_row_wrapper);
+		const $save_row_wrapper = $("<div>").appendTo($body);
+		const $save_row_inner = $('<div class="dt-save-row">').appendTo($save_row_wrapper);
 		this._$save_row = $save_row_wrapper;
 
 		this._private_check = frappe.ui.form.make_control({
@@ -95,142 +95,156 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	}
 
 	_load_manage_page() {
-		let $wrap = this._$manage_wrap;
-
-		frappe
-			.xcall("frappe.desk.doctype.document_template.document_template.get_templates", {
-				reference_doctype: this.frm.doctype,
-				limit_start: this._manage_start,
-				limit_page_length: 10,
-			})
-			.then((data) => {
-				data = data || {};
-				this._render_manage_list(
-					$wrap,
-					data.templates || [],
-					data.has_next_page || false,
-					data.total || 0
-				);
-			});
+		frappe.model.with_doctype("Document Template", () => {
+			frappe
+				.xcall("frappe.desk.doctype.document_template.document_template.get_templates", {
+					reference_doctype: this.frm.doctype,
+					limit_start: this._manage_start,
+					limit_page_length: DocumentTemplate.PAGE_LENGTH,
+				})
+				.then((data) => {
+					data = data || {};
+					this._render_manage_list(
+						this._$manage_wrap,
+						data.templates || [],
+						!!data.has_next_page
+					);
+				});
+		});
 	}
 
 	_bind_manage_events() {
-		let $wrap = this._$manage_wrap;
+		const $wrap = this._$manage_wrap;
 
-		$wrap.on("click.dtmanage", ".dt-row--active", (e) => {
-			if ($(e.target).closest(".dt-manage-row-actions").length) return;
+		$wrap.on("click.dtmanage", ".dt-row--active", (e) => this._on_row_click(e));
+		$wrap.on("click.dtmanage", ".dt-action-update", (e) => this._on_update_click(e));
+		$wrap.on("click.dtmanage", ".dt-action-edit", (e) => this._on_edit_click(e));
+		$wrap.on("click.dtmanage", ".dt-action-delete", (e) => this._on_delete_click(e));
+		$wrap.on("click.dtmanage", ".dt-page-prev", () => this._on_page_prev());
+		$wrap.on("click.dtmanage", ".dt-page-next", () => this._on_page_next());
 
-			let frm = this.frm;
-			if (frm.doc.docstatus >= 1) {
-				frappe.show_alert({
-					message: __("Cannot apply template to a submitted document."),
-					indicator: "orange",
-				});
-				return;
-			}
+		this._$save_row.on("click", ".dt-save-btn", () => this._save_new_template());
+	}
 
-			let $row = $(e.currentTarget);
-			let name = $row.attr("data-name");
-			let label = $row.attr("data-label") || "";
+	_on_row_click(e) {
+		if ($(e.target).closest(".dt-manage-row-actions").length) return;
 
-			if (frm.doc.__islocal) {
-				this._apply_template(name, label);
-				this._manage_dialog.hide();
-			} else {
-				frappe.confirm(
-					__("Apply template {0}? This will modify the current document.", [label]),
-					() => {
-						this._apply_template(name, label);
-						this._manage_dialog.hide();
-					}
-				);
-			}
-		});
+		const frm = this.frm;
+		if (frm.doc.docstatus >= 1) {
+			frappe.show_alert({
+				message: __("Cannot apply template to a submitted document"),
+				indicator: "orange",
+			});
+			return;
+		}
 
-		$wrap.on("click.dtmanage", ".dt-action-update", (e) => {
-			e.preventDefault();
-			e.stopPropagation();
-			let $btn = $(e.currentTarget);
-			let name = $btn.attr("data-name");
-			let label = $btn.attr("data-label") || "";
+		const $row = $(e.currentTarget);
+		const name = $row.attr("data-name");
+		const label = $row.attr("data-label") || "";
 
+		if (frm.doc.__islocal) {
+			this._apply_template(name, label);
+			this._manage_dialog.hide();
+		} else {
 			frappe.confirm(
-				__("Replace template {0} with the current form values? This cannot be undone.", [
-					label,
-				]),
+				__("Apply template {0}? This will modify the current document", [label]),
 				() => {
-					let data = this._capture_template_data();
-					if (!data) {
-						frappe.show_alert({
-							message: __("No data to save. Change at least one field first."),
-							indicator: "orange",
-						});
-						return;
-					}
-					frappe.db
-						.set_value("Document Template", name, "data", JSON.stringify(data))
-						.then(() => {
-							frappe.show_alert({
-								message: __("Template {0} updated.", [label]),
-								indicator: "green",
-							});
-							this._load_manage_page();
-						})
-						.catch(() =>
-							frappe.show_alert({
-								message: __("Failed to update template {0}.", [label]),
-								indicator: "red",
-							})
-						);
+					this._apply_template(name, label);
+					this._manage_dialog.hide();
 				}
 			);
-		});
+		}
+	}
 
-		$wrap.on("click.dtmanage", ".dt-action-delete", (e) => {
-			e.preventDefault();
-			e.stopPropagation();
-			let $btn = $(e.currentTarget);
-			let name = $btn.attr("data-name");
-			let label = $btn.attr("data-label") || "";
-			if (!name) return;
+	_on_update_click(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		const $btn = $(e.currentTarget);
+		const name = $btn.attr("data-name");
+		const label = $btn.attr("data-label") || "";
 
-			frappe.confirm(__("Delete template {0}?", [label]), () => {
+		frappe.confirm(
+			__("Replace template {0} with the current form values? This cannot be undone", [
+				label,
+			]),
+			() => {
+				const data = this._capture_template_data();
+				if (!data) {
+					frappe.show_alert({
+						message: __("No data to save. Change at least one field first."),
+						indicator: "orange",
+					});
+					return;
+				}
 				frappe.db
-					.delete_doc("Document Template", name)
+					.set_value("Document Template", name, "data", JSON.stringify(data))
 					.then(() => {
 						frappe.show_alert({
-							message: __("Template {0} deleted.", [label]),
+							message: __("Template {0} updated", [label]),
 							indicator: "green",
 						});
 						this._load_manage_page();
 					})
 					.catch(() =>
 						frappe.show_alert({
-							message: __("Failed to delete template {0}.", [label]),
+							message: __("Failed to update template {0}", [label]),
 							indicator: "red",
 						})
 					);
-			});
-		});
-
-		$wrap.on("click.dtmanage", ".dt-page-prev", () => {
-			if (this._manage_start > 0) {
-				this._manage_start = Math.max(0, this._manage_start - 10);
-				this._load_manage_page();
 			}
-		});
+		);
+	}
 
-		$wrap.on("click.dtmanage", ".dt-page-next", () => {
-			this._manage_start += 10;
+	_on_edit_click(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		const name = $(e.currentTarget).attr("data-name");
+		if (!name) return;
+		window.open(frappe.utils.get_form_link("Document Template", name), "_blank");
+	}
+
+	_on_delete_click(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		const $btn = $(e.currentTarget);
+		const name = $btn.attr("data-name");
+		const label = $btn.attr("data-label") || "";
+		if (!name) return;
+
+		frappe.confirm(__("Delete template {0}?", [label]), () => {
+			frappe.db
+				.delete_doc("Document Template", name)
+				.then(() => {
+					frappe.show_alert({
+						message: __("Template {0} deleted", [label]),
+						indicator: "green",
+					});
+					this._load_manage_page();
+				})
+				.catch(() =>
+					frappe.show_alert({
+						message: __("Failed to delete template {0}", [label]),
+						indicator: "red",
+					})
+				);
+		});
+	}
+
+	_on_page_prev() {
+		if (this._manage_start > 0) {
+			this._manage_start = Math.max(0, this._manage_start - DocumentTemplate.PAGE_LENGTH);
 			this._load_manage_page();
-		});
+		}
+	}
 
-		this._$save_row.on("click", ".dt-save-btn", () => this._save_new_template());
+	_on_page_next() {
+		this._manage_start += DocumentTemplate.PAGE_LENGTH;
+		this._load_manage_page();
 	}
 
 	_save_new_template() {
-		let name_val = (this._template_name_control.get_value() || "").trim();
-		let is_private = this._private_check.get_value() ? 1 : 0;
+		const name_val = this._template_name_control.get_value().trim();
+		const is_private = this._private_check.get_value() ? 1 : 0;
 
 		if (!name_val) {
 			frappe.show_alert({
@@ -241,7 +255,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			return;
 		}
 
-		let captured = this._capture_template_data();
+		const captured = this._capture_template_data();
 		if (!captured) {
 			frappe.show_alert({
 				message: __("No data to save. Change at least one field before saving."),
@@ -250,7 +264,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			return;
 		}
 
-		let $btn = this._$save_row.find(".dt-save-btn");
+		const $btn = this._$save_row.find(".dt-save-btn");
 		$btn.prop("disabled", true);
 
 		frappe.db
@@ -263,7 +277,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			})
 			.then(() => {
 				frappe.show_alert({
-					message: __("Template {0} saved.", [name_val]),
+					message: __("Template {0} saved", [name_val]),
 					indicator: "green",
 				});
 				this._template_name_control.set_value("");
@@ -280,198 +294,18 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			.finally(() => $btn.prop("disabled", false));
 	}
 
-	_render_manage_list($wrap, templates, has_next_page, total) {
-		$wrap.empty();
-
-		if (!templates.length) {
-			$wrap.append(
-				$('<p class="text-muted text-center mb-0">').text(
-					__("No saved templates. Try saving the current form as a template.")
-				)
-			);
-		}
-
-		let showed_disabled_header = false;
-		for (let t of templates) {
-			if (t.disabled && !showed_disabled_header) {
-				showed_disabled_header = true;
-				$wrap.append(
-					$('<div class="dt-disabled-separator text-muted text-small"></div>').text(
-						__("Disabled")
-					)
-				);
-			}
-			$wrap.append(this._build_row(t));
-		}
-
-		if (total > 0 && (this._manage_start > 0 || has_next_page)) {
-			let $pager = $('<div class="dt-pagination">');
-
-			let $prev = $('<button class="btn btn-secondary btn-xs dt-page-prev">')
-				.html(frappe.utils.icon("left", "xs"))
-				.attr("title", __("Previous"))
-				.prop("disabled", this._manage_start <= 0);
-
-			let $next = $('<button class="btn btn-secondary btn-xs dt-page-next">')
-				.html(frappe.utils.icon("right", "xs"))
-				.attr("title", __("Next"))
-				.prop("disabled", !has_next_page);
-
-			let current_page = Math.floor(this._manage_start / 10) + 1;
-			let $info = $('<span class="text-muted text-small dt-page-info">').text(
-				__("Page {0}", [current_page])
-			);
-
-			$pager.append($prev, $info, $next);
-			$wrap.append($pager);
-		}
-	}
-
-	_build_row(template) {
-		let is_own = this._is_own(template);
-		let is_system_manager = this._is_system_manager();
-
-		let row_cls = "dt-manage-row";
-		if (!template.disabled) row_cls += " dt-row--active";
-		if (template.disabled) row_cls += " dt-manage-row--disabled";
-
-		let $row = $(`<div class="${row_cls}"></div>`)
-			.attr("data-name", template.name)
-			.attr("data-label", template.template_name);
-
-		let $label = $('<div class="dt-manage-row-label ellipsis"></div>')
-			.attr("title", template.template_name)
-			.text(template.template_name);
-		if (template.disabled) {
-			$label.addClass("text-muted");
-		}
-		let $lock = null;
-		if (template.private) {
-			$lock = $('<div class="dt-manage-row-lock text-muted"></div>')
-				.html(frappe.utils.icon("lock", "xs"))
-				.attr("title", __("Private"));
-		}
-
-		let $actions = $('<div class="dt-manage-row-actions"></div>');
-
-		let is_template_manager = this._is_template_manager();
-		let can_manage = is_own || is_system_manager || (is_template_manager && !template.private);
-
-		if (template.disabled) {
-			if (can_manage) {
-				this._add_edit_btn($actions, template);
-				this._add_delete_btn($actions, template);
-			}
-		} else if (can_manage) {
-			this._add_update_btn($actions, template);
-			this._add_edit_btn($actions, template);
-			this._add_delete_btn($actions, template);
-		}
-
-		let $label_group = $('<div class="dt-manage-row-label-group"></div>');
-		$label_group.append($label);
-		if ($lock) $label_group.append($lock);
-		$row.append($label_group);
-		$row.append($actions);
-		return $row;
-	}
-
-	_add_update_btn($actions, t) {
-		$('<button class="btn btn-xs btn-default dt-action-update" type="button"></button>')
-			.attr("data-name", t.name)
-			.attr("data-label", t.template_name)
-			.text(__("Update"))
-			.attr("title", __("Replace with current form values"))
-			.appendTo($actions);
-	}
-
-	_add_edit_btn($actions, t) {
-		$('<button class="btn btn-xs btn-default dt-action-edit" type="button"></button>')
-			.attr("data-name", t.name)
-			.attr("title", __("Open template"))
-			.attr("aria-label", __("Edit {0}", [t.template_name]))
-			.html(frappe.utils.icon("edit", "xs"))
-			.on("click", (e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				window.open(frappe.utils.get_form_link("Document Template", t.name), "_blank");
-			})
-			.appendTo($actions);
-	}
-
-	_add_delete_btn($actions, t) {
-		$('<button class="btn btn-xs btn-default dt-action-delete" type="button"></button>')
-			.attr("data-name", t.name)
-			.attr("data-label", t.template_name)
-			.attr("title", __("Delete template"))
-			.attr("aria-label", __("Delete {0}", [t.template_name]))
-			.html(frappe.utils.icon("trash", "xs"))
-			.appendTo($actions);
-	}
-
-	_apply_template(name, label) {
-		frappe.db.get_doc("Document Template", name).then((doc) => {
-			if (!doc || !doc.data) {
-				frappe.show_alert({
-					message: __("Template data not found."),
-					indicator: "orange",
-				});
-				return;
-			}
-			this._apply_to_form(JSON.parse(doc.data), label);
-		});
-	}
-
-	async _apply_to_form(doc, label) {
-		let frm = this.frm;
-		let field_updates = {};
-
-		for (let df of frappe.meta.get_docfields(frm.doctype)) {
-			if (!this._should_include_field(df)) continue;
-			if (!(df.fieldname in doc)) continue;
-
-			if (frappe.model.table_fields.includes(df.fieldtype)) {
-				let child_rows = [];
-				for (let src_row of doc[df.fieldname] || []) {
-					let row_data = {};
-					for (let cdf of frappe.meta.get_docfields(df.options)) {
-						if (!this._should_include_field(cdf)) continue;
-						if (!(cdf.fieldname in src_row)) continue;
-						row_data[cdf.fieldname] = src_row[cdf.fieldname];
-					}
-					if (Object.keys(row_data).length) child_rows.push(row_data);
-				}
-				if (child_rows.length) field_updates[df.fieldname] = child_rows;
-			} else {
-				field_updates[df.fieldname] = doc[df.fieldname];
-			}
-		}
-
-		if (Object.keys(field_updates).length) {
-			await frm.set_value(field_updates);
-		}
-
-		frm.dirty();
-		frappe.show_alert({
-			message: label ? __("Template {0} applied.", [label]) : __("Template applied."),
-			indicator: "green",
-		});
-	}
-
 	_capture_template_data() {
-		let copied = frappe.model.copy_doc(this.frm.doc);
-		let result = {};
+		const copied = frappe.model.copy_doc(this.frm.doc, false);
+		const result = {};
 
-		for (let df of frappe.meta.get_docfields(copied.doctype)) {
-			if (!this._should_include_field(df)) continue;
-			let value = copied[df.fieldname];
+		for (const df of frappe.meta.get_docfields(copied.doctype)) {
+			const value = copied[df.fieldname];
 
 			if (frappe.model.table_fields.includes(df.fieldtype)) {
-				let rows = (value || [])
+				const rows = (value || [])
 					.map((row) => {
-						let clean = {};
-						for (let cdf of frappe.meta.get_docfields(df.options)) {
-							if (!this._should_include_field(cdf)) continue;
+						const clean = {};
+						for (const cdf of frappe.meta.get_docfields(df.options)) {
 							if (
 								row[cdf.fieldname] != null &&
 								row[cdf.fieldname] !== "" &&
@@ -494,5 +328,152 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		}
 
 		return Object.keys(result).length ? result : null;
+	}
+
+	_render_manage_list($wrap, templates, has_next_page) {
+		$wrap.empty();
+
+		if (!templates.length && this._manage_start === 0) {
+			$wrap.append(
+				$('<p class="text-muted text-center dt-no-saved-templates">').text(
+					__("No saved templates. Try saving the current form as a template.")
+				)
+			);
+		}
+
+		let showed_disabled_header = false;
+		let has_active_templates = false;
+		for (const t of templates) {
+			if (t.disabled && !showed_disabled_header) {
+				showed_disabled_header = true;
+				if (has_active_templates) {
+					$wrap.append($('<hr class="dt-disabled-separator-hr">'));
+				}
+				$wrap.append(
+					$('<div class="dt-disabled-separator text-muted text-small"></div>').text(
+						__("Disabled")
+					)
+				);
+			}
+			if (!t.disabled) has_active_templates = true;
+			$wrap.append(this._build_row(t));
+		}
+
+		if (this._manage_start > 0 || has_next_page) {
+			const $pager = $('<div class="dt-pagination">');
+
+			const $prev = $('<button class="btn btn-secondary btn-xs dt-page-prev">')
+				.html(frappe.utils.icon("left", "xs"))
+				.attr("title", __("Previous"))
+				.prop("disabled", this._manage_start <= 0);
+
+			const $next = $('<button class="btn btn-secondary btn-xs dt-page-next">')
+				.html(frappe.utils.icon("right", "xs"))
+				.attr("title", __("Next"))
+				.prop("disabled", !has_next_page);
+
+			const current_page = Math.floor(this._manage_start / DocumentTemplate.PAGE_LENGTH) + 1;
+			const $info = $('<span class="text-muted text-small dt-page-info">').text(
+				__("Page {0}", [current_page])
+			);
+
+			$pager.append($prev, $info, $next);
+			$wrap.append($pager);
+		}
+	}
+
+	_build_row(template) {
+		let row_cls = "dt-manage-row";
+		if (!template.disabled) row_cls += " dt-row--active";
+
+		const $row = $(`<div class="${row_cls}"></div>`)
+			.attr("data-name", template.name)
+			.attr("data-label", template.template_name);
+
+		const $label = $('<div class="dt-manage-row-label ellipsis"></div>')
+			.attr("title", template.template_name)
+			.text(template.template_name);
+		if (template.disabled) $label.addClass("text-muted");
+
+		const $label_group = $('<div class="dt-manage-row-label-group"></div>').append($label);
+		if (template.private) {
+			$label_group.append(
+				$('<div class="dt-manage-row-lock text-muted"></div>').html(
+					frappe.utils.icon("lock", "xs")
+				)
+			);
+		}
+
+		const $actions = $('<div class="dt-manage-row-actions"></div>');
+		const perm_doc = {
+			doctype: "Document Template",
+			name: template.name,
+			owner: template.owner,
+		};
+		const can_write = frappe.perm.has_perm("Document Template", 0, "write", perm_doc);
+
+		if (!template.disabled && can_write) {
+			this._add_update_btn($actions, template);
+			this._add_edit_btn($actions, template);
+			this._add_delete_btn($actions, template);
+		}
+
+		$row.append($label_group).append($actions);
+		return $row;
+	}
+
+	_add_update_btn($actions, t) {
+		$('<button class="btn btn-xs btn-default dt-action-update" type="button"></button>')
+			.attr("data-name", t.name)
+			.attr("data-label", t.template_name)
+			.text(__("Update"))
+			.attr("title", __("Replace with current form values"))
+			.appendTo($actions);
+	}
+
+	_add_edit_btn($actions, t) {
+		$('<button class="btn btn-xs btn-default dt-action-edit" type="button"></button>')
+			.attr("data-name", t.name)
+			.attr("title", __("Open template"))
+			.attr("aria-label", __("Edit {0}", [t.template_name]))
+			.html(frappe.utils.icon("edit", "xs"))
+			.appendTo($actions);
+	}
+
+	_add_delete_btn($actions, t) {
+		$('<button class="btn btn-xs btn-default dt-action-delete" type="button"></button>')
+			.attr("data-name", t.name)
+			.attr("data-label", t.template_name)
+			.attr("title", __("Delete template"))
+			.attr("aria-label", __("Delete {0}", [t.template_name]))
+			.html(frappe.utils.icon("trash", "xs"))
+			.appendTo($actions);
+	}
+
+	_apply_template(name, label) {
+		frappe.db.get_doc("Document Template", name).then((doc) => {
+			if (!doc) {
+				frappe.show_alert({
+					message: __("Template not found."),
+					indicator: "orange",
+				});
+				return;
+			}
+			this._apply_to_form(JSON.parse(doc.data), label);
+		});
+	}
+
+	async _apply_to_form(doc, label) {
+		const frm = this.frm;
+
+		if (Object.keys(doc).length) {
+			await frm.set_value(doc);
+		}
+
+		frm.dirty();
+		frappe.show_alert({
+			message: label ? __("Template {0} applied", [label]) : __("Template applied"),
+			indicator: "green",
+		});
 	}
 };
