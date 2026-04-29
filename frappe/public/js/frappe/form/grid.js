@@ -1102,6 +1102,8 @@ export default class Grid {
 			return;
 		}
 
+		const grid = this;
+
 		const field_mappings = {};
 		editable_fields.forEach((field_doc) => {
 			const field_key = `${field_doc.label}`;
@@ -1116,8 +1118,17 @@ export default class Grid {
 			field_options.find((value) => status_regex.test(value)) ||
 			field_options.find((value) => field_mappings[value]?.fieldtype === "Select");
 
+		// One child row drives Link get_query(cb, doc, cdt, cdn) / locals lookups in bulk-edit dialog.
+		// Multiple rows selected may diverge — filters follow the first selected row only.
+		const bulk_edit_reference_row = selected_children[0];
+
 		const dialog = new frappe.ui.Dialog({
 			title: __("Bulk Edit"),
+			...(bulk_edit_reference_row && {
+				frm: this.frm,
+				doc: bulk_edit_reference_row,
+				doctype: bulk_edit_reference_row.doctype,
+			}),
 			fields: [
 				{
 					fieldtype: "Select",
@@ -1186,23 +1197,60 @@ export default class Grid {
 			new_df.label = __("Value");
 			new_df.onchange = show_help_text;
 			delete new_df.depends_on;
+
+			const grid_field = grid.get_field(new_df.fieldname);
+			if (grid_field?.get_query) {
+				new_df.get_query = grid_field.get_query;
+			}
+
 			dialogObj.replace_field("value", new_df);
+			// replace_field does not re-run attach_doc; Link needs docname + doctype for set_query third arg.
+			if (bulk_edit_reference_row) {
+				dialogObj.attach_doc_and_docfields(true);
+			}
 			show_help_text();
 		}
 
 		function show_help_text() {
 			if (dialog.get_primary_btn().is(":focus, :active")) return;
 
-			let value = dialog.get_value("value");
-			if (value == null || value === "") {
-				dialog.set_df_property(
-					"value",
-					"description",
-					__("You have not entered a value. The field will be set to empty.")
-				);
-			} else {
-				dialog.set_df_property("value", "description", "");
+			const field_label = dialog.get_value("field");
+			const sel_df =
+				field_label && field_mappings[field_label] ? field_mappings[field_label] : null;
+
+			let link_filter_description = "";
+
+			if (sel_df && ["Link", "Dynamic Link"].includes(sel_df.fieldtype)) {
+				const grid_src = sel_df.fieldname ? grid.get_field(sel_df.fieldname) : null;
+				const has_runtime_query = !!(grid_src && grid_src.get_query);
+				const has_link_filters =
+					sel_df.link_filters && String(sel_df.link_filters).trim().length > 0;
+
+				if (has_runtime_query || has_link_filters) {
+					if (selected_children.length > 1) {
+						link_filter_description = __(
+							"Several rows are selected. Options are based on the first row; what you choose applies to all {0} rows.",
+							[selected_children.length]
+						);
+					}
+				}
 			}
+
+			let value = dialog.get_value("value");
+			let empty_value_description =
+				value == null || value === ""
+					? __("Leave empty to clear this field on all selected rows.")
+					: "";
+
+			const parts = [];
+			if (link_filter_description) {
+				parts.push(link_filter_description);
+			}
+			if (empty_value_description) {
+				parts.push(empty_value_description);
+			}
+
+			dialog.set_df_property("value", "description", parts.join("<br>"));
 		}
 
 		dialog.refresh();
