@@ -179,6 +179,16 @@ class Workspace(Document):
 				rename_doc("Workspace", workspace.name, new_label, force=True, show_alert=False)
 			frappe.db.set_value("Workspace", new_label, {"for_user": new_name, "label": new_label})
 
+		# rename sidebar as well
+		suffix = f"-{old_name}"
+		for sidebar in frappe.get_all("Workspace Sidebar", filters={"for_user": new_name}, fields=["name"]):
+			if not sidebar.name.endswith(suffix):
+				continue
+
+			new_title = sidebar.name.removesuffix(suffix) + f"-{new_name}"
+			rename_doc("Workspace Sidebar", sidebar.name, new_title, force=True, show_alert=False)
+			frappe.db.set_value("Workspace Sidebar", new_title, "title", new_title)
+
 	@staticmethod
 	def get_module_wise_workspaces():
 		workspaces = frappe.get_all(
