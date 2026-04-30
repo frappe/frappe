@@ -92,10 +92,12 @@ class StudioApp(WebsiteGenerator):
 		context.app_name = self.app_name
 		context.app_route = self.route
 		context.app_title = self.app_title
+		context.frappe_app = self.frappe_app or ""
 		context.base_url = frappe.utils.get_url(self.route)
 		context.app_pages = self.get_studio_pages()
 		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
 		context.site_name = frappe.local.site
+		context.vite_dev_server_port = get_vite_dev_server_port()
 
 	def autoname(self):
 		if not self.name:
@@ -298,3 +300,8 @@ class StudioApp(WebsiteGenerator):
 
 	def get_folder_path(self, name: str | None = None):
 		return frappe.get_app_source_path(self.frappe_app, "studio", name or self.name)
+
+
+def get_vite_dev_server_port():
+	port_offset = frappe.conf.webserver_port - 8000
+	return 8080 + port_offset

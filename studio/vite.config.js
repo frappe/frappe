@@ -2,8 +2,10 @@ import vue from "@vitejs/plugin-vue"
 import frappeui from "frappe-ui/vite"
 import path from "path"
 import { defineConfig } from "vite"
+import { getViteDevServerPort } from "./vite/utils"
 
 const STUDIO_ROOT = path.resolve(__dirname, "..")
+const viteDevServerPort = getViteDevServerPort()
 
 /**
  * Vite plugin to redirect shared dependency imports from custom Vue components
@@ -45,7 +47,7 @@ export default defineConfig({
 		// explicitly set origin of generated assets (images, fonts, etc) during development.
 		// Required for the app renderer running on webserver port
 		// https://vite.dev/guide/backend-integration
-		origin: "http://127.0.0.1:8086",
+		origin: `http://127.0.0.1:${viteDevServerPort}`,
 		allowedHosts: true,
 		// Allow cross-origin requests from the renderer running on webserver port to Vite dev server.
 		cors: true,
