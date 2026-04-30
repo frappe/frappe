@@ -7,6 +7,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { parseArgs } from "node:util"
 import frappeui from "frappe-ui/vite"
+import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
 
@@ -141,10 +142,10 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 				buildConfig: false,
 				jinjaBootData: false,
 			}),
+			sharedDependencyResolver(path.resolve(__dirname, "../../")),
 		],
 		resolve: {
 			alias: {
-				vue: "vue/dist/vue.esm-bundler.js",
 				"@": path.resolve(__dirname, "../"),
 			},
 		},

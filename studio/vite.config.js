@@ -3,39 +3,9 @@ import frappeui from "frappe-ui/vite"
 import path from "path"
 import { defineConfig } from "vite"
 import { getViteDevServerPort } from "./vite/utils"
+import sharedDependencyResolver from "./vite/sharedDependencyResolver"
 
-const STUDIO_ROOT = path.resolve(__dirname, "..")
 const viteDevServerPort = getViteDevServerPort()
-
-/**
- * Vite plugin to redirect shared dependency imports from custom Vue components
- * (files outside the Studio project) to Studio's own installations.
- *
- * These are singleton deps (vue, vue-router, frappe-ui) that must resolve from
- * Studio to avoid duplicate instances. App-specific deps
- * resolve normally from the app's own node_modules.
- */
-const STUDIO_SHARED_DEPS = ["vue", "vue-router", "frappe-ui"]
-
-function studioDepsResolver() {
-	return {
-		name: "studio-deps-resolver",
-		enforce: "pre",
-		async resolveId(source, importer, options) {
-			// Only intercept shared deps
-			if (!STUDIO_SHARED_DEPS.some((dep) => source === dep || source.startsWith(dep + "/"))) return null
-			// Only intercept if the importer is outside Studio's project
-			if (!importer || importer.startsWith(STUDIO_ROOT)) return null
-
-			// Re-resolve from Studio's project root so Vite finds the right copy
-			const resolved = await this.resolve(source, path.join(STUDIO_ROOT, "frontend", "_virtual.js"), {
-				...options,
-				skipSelf: true,
-			})
-			return resolved
-		},
-	}
-}
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -68,9 +38,7 @@ export default defineConfig({
 			jinjaBootData: false,
 		}),
 		vue(),
-		// Redirect frappe-ui imports from custom Vue components (outside Studio's project)
-		// to Studio's copy, so they don't resolve to a different/incomplete installation.
-		studioDepsResolver(),
+		sharedDependencyResolver(path.resolve(__dirname, "..")),
 	],
 	resolve: {
 		alias: {
