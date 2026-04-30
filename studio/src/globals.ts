@@ -160,9 +160,8 @@ export async function registerCustomVueComponents(app: App, frappeApp: string): 
 		for (const comp of components) {
 			try {
 				app.component(comp.component_name, defineAsyncComponent(() => import(/* @vite-ignore */ comp.file_path)))
-
 				// Register in the component data registry for Block metadata access
-				componentRegistry.registerCustomVueComponent(comp.component_name, comp.frappe_app)
+				componentRegistry.registerCustomVueComponent(comp.component_name)
 			} catch (err) {
 				console.error(`Failed to load custom component ${comp.component_name}:`, err)
 			}

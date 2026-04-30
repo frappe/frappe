@@ -95,7 +95,6 @@ export interface FrappeUIComponent {
 	expandArrayProps?: boolean // whether to render array props optimally using ArrayInput instead of as Code
 	blockTemplate?: string // to specify a block template to be used instead of a vue component when this component is dragged into the canvas
 	isCustomVueComponent?: boolean // whether this is a dynamically registered custom Vue component
-	frappe_app?: string // the frappe app providing this custom component
 }
 
 export interface FrappeUIComponents {
