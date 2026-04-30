@@ -21,10 +21,8 @@ app.use(spritePlugin)
 registerGlobalComponents(app)
 window.__APP_COMPONENTS__ = app._context.components
 
-// In dev mode, dynamically import custom Vue components before mounting.
-// In production, they are already bundled by build.js into the app renderer.
 const frappeApp = (window as any).frappe_app
-if (import.meta.env.DEV && frappeApp) {
+if (frappeApp) {
 	registerCustomVueComponents(app, frappeApp).then(() => {
 		app.mount("#app")
 	})
