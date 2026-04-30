@@ -127,13 +127,6 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 	await build({
 		root: path.resolve(__dirname, "../"),
 		base: basePath,
-		server: {
-			// explicitly set origin of generated assets (images, fonts, etc) during development.
-			// Required for the app renderer running on webserver port
-			// https://vite.dev/guide/backend-integration
-			origin: "http://127.0.0.1:8080",
-			allowedHosts: true,
-		},
 		plugins: [
 			vue(),
 			frappeui({
