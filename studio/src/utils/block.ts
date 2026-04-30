@@ -38,6 +38,7 @@ class Block implements BlockOptions {
 	isStudioComponent?: boolean
 	isChildOfComponent?: string
 	extendedFromComponent?: Block // for the component root
+	isCustomVueComponent?: boolean // custom vue component from frappe app
 	// temporary properties
 	repeaterDataItem?: Record<string, any> | null
 	componentContext?: Record<string, any> | null
@@ -67,6 +68,9 @@ class Block implements BlockOptions {
 			this.isStudioComponent = options.isStudioComponent
 			const componentStore = useComponentStore()
 			componentStore.loadComponent(this.componentName)
+		}
+		if (options.isCustomVueComponent) {
+			this.isCustomVueComponent = options.isCustomVueComponent
 		}
 
 		// get component props

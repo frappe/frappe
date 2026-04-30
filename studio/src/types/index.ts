@@ -30,6 +30,7 @@ export interface BlockOptions {
 	visibilityCondition?: string
 	isStudioComponent?: boolean
 	isChildOfComponent?: string
+	isCustomVueComponent?: boolean
 	extendedFromComponent?: Block
 	[key: string]: any
 }

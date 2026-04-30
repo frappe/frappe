@@ -53,6 +53,7 @@
 						class="user-component flex cursor-grab select-none items-center justify-between rounded px-2 py-1.5 hover:bg-surface-gray-1"
 						draggable="true"
 						:data-component-name="component.component_name"
+						:data-is-custom-vue-component="true"
 					>
 						<div class="flex items-center gap-2 text-ink-gray-7">
 							<div
@@ -210,8 +211,11 @@ useEventListener(componentContainer, "dragstart", (e) => {
 	if (component) {
 		const componentName = component.dataset.componentName as string
 		const isStudioComponent = component.dataset.isStudioComponent
+		const isCustomVueComponent = component.dataset.isCustomVueComponent
 		if (isStudioComponent) {
 			e.dataTransfer?.setData("isStudioComponent", isStudioComponent)
+		} else if (isCustomVueComponent) {
+			e.dataTransfer?.setData("isCustomVueComponent", isCustomVueComponent)
 		}
 		canvasStore.handleDragStart(e, componentName)
 	}

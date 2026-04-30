@@ -19,6 +19,7 @@ export function useCanvasDropZone(
 			if (!parentComponent) return
 			const componentName = ev.dataTransfer?.getData("componentName")
 			const isStudioComponent = Boolean(ev.dataTransfer?.getData("isStudioComponent"))
+			const isCustomVueComponent = Boolean(ev.dataTransfer?.getData("isCustomVueComponent"))
 
 			if (!componentName) return
 
@@ -28,7 +29,7 @@ export function useCanvasDropZone(
 			if (componentDef?.blockTemplate) {
 				newBlock = getBlockInstance(getBlockTemplate(componentDef.blockTemplate as any))
 			} else {
-				newBlock = getComponentBlock(componentName, isStudioComponent)
+				newBlock = getComponentBlock(componentName, isStudioComponent, isCustomVueComponent)
 			}
 
 			if (slotName) {

@@ -124,10 +124,11 @@ function getBlockInstance(options: BlockOptions | string, retainId = true): Bloc
 	return reactive(new Block(options))
 }
 
-function getComponentBlock(componentName: string, isStudioComponent: boolean = false) {
+function getComponentBlock(componentName: string, isStudioComponent: boolean = false, isCustomVueComponent: boolean = false) {
 	return getBlockInstance({
 		componentName: componentName,
 		isStudioComponent: isStudioComponent,
+		isCustomVueComponent: isCustomVueComponent,
 	})
 }
 
