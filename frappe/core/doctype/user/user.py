@@ -248,6 +248,9 @@ class User(Document):
 		if self.language == "Loading...":
 			self.language = None
 
+		if self.default_app and self.default_app not in frappe.get_installed_apps():
+			self.default_app = ""
+
 		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
 			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
