@@ -72,7 +72,7 @@
 	}
 
 	.body-sidebar-bottom {
-		padding: 7px;
+		padding: 0px;
 		width: 100%;
 	}
 
@@ -153,12 +153,13 @@
 	}
 
 	.nav-item {
-		margin-left: -5px;
+		padding: 4px 0px;
 	}
+
 	.standard-items-sections {
 		.dropdown-notifications {
 			.notifications-list {
-				left: 3.4%;
+				left: 100%;
 			}
 		}
 	}
@@ -169,14 +170,25 @@
 		// make it an overlay on hover
 		position: absolute;
 		width: var(--sidebar-width);
-		.dropdown-notifications {
-			.notifications-list {
-				left: 100%;
+
+		.collapse-sidebar-link {
+			text-decoration: none;
+			font-size: var(--text-sm);
+			display: flex;
+			align-items: center;
+			svg {
+				margin: 0px;
+				flex: 0 0 auto;
 			}
+			span {
+				margin-left: 10px;
+				@include truncate();
+			}
+			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 
 		.nav-item {
-			margin-left: -5px;
+			padding: 4px 8px;
 		}
 
 		.dropdown-navbar-user {
@@ -185,7 +197,6 @@
 			}
 
 			.sidebar-user-button {
-				padding: var(--padding-sm);
 				border-radius: var(--border-radius-sm);
 			}
 		}
@@ -348,6 +359,7 @@
 }
 .sidebar-item-suffix {
 	margin-left: auto;
+	padding: 7px;
 	.keyboard-shortcut {
 		color: var(--ink-gray-4, #999999);
 		font-size: var(--text-sm);

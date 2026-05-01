@@ -758,9 +758,13 @@ frappe.views.Workspace = class Workspace {
 								indicator: "green",
 							});
 							if (page.public) {
-								frappe.set_route("desk", page.title.toLowerCase());
+								frappe.set_route("desk", frappe.router.slug(page.title));
 							} else {
-								frappe.set_route("desk", "private", page.title.toLowerCase());
+								frappe.set_route(
+									"desk",
+									"private",
+									frappe.router.slug(page.title)
+								);
 							}
 						}
 					},

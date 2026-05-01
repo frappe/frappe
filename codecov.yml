@@ -29,10 +29,6 @@ flags:
     paths:
       - "**/*.py"
     carryforward: true
-  ui-tests:
-    paths:
-      - "**/*.js"
-    carryforward: true
   server-ui:
     paths:
       - "**/*.py"

@@ -69,6 +69,8 @@ frappe.ui.form.on("User", {
 			frm.roles_editor.reset();
 		}
 
+		frm.fields_dict.new_password?.$input?.attr("autocomplete", "new-password");
+
 		if (
 			frm.can_edit_roles &&
 			!frm.is_new() &&

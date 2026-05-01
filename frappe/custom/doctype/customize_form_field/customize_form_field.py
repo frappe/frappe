@@ -81,6 +81,7 @@ class CustomizeFormField(Document):
 		ignore_xss_filter: DF.Check
 		in_filter: DF.Check
 		in_global_search: DF.Check
+		in_import_template: DF.Check
 		in_list_view: DF.Check
 		in_preview: DF.Check
 		in_standard_filter: DF.Check

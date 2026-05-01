@@ -48,6 +48,7 @@
   "ignore_user_permissions",
   "allow_on_submit",
   "report_hide",
+  "in_import_template",
   "remember_last_selected_value",
   "hide_border",
   "ignore_xss_filter",
@@ -295,6 +296,13 @@
   },
   {
    "default": "0",
+   "description": "Enable this option to include the field in the data import template",
+   "fieldname": "in_import_template",
+   "fieldtype": "Check",
+   "label": "Include in Import Template"
+  },
+  {
+   "default": "0",
    "depends_on": "eval:(doc.fieldtype == 'Link')",
    "fieldname": "remember_last_selected_value",
    "fieldtype": "Check",
@@ -523,7 +531,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-03-22 10:36:12.968197",
+ "modified": "2026-04-27 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",

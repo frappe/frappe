@@ -371,10 +371,10 @@ class TestQuery(IntegrationTestCase):
 				fields=["name"],
 				filters={"module.app_name": "frappe"},
 			).get_sql(),
-			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module` WHERE `tabModule Def`.`app_name`='frappe'",
+			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` `tabModule Def_module` ON `tabModule Def_module`.`name`=`tabDocType`.`module` WHERE `tabModule Def_module`.`app_name`='frappe'",
 		)
 
-		query = "SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module` WHERE `tabModule Def`.`app_name` LIKE 'frap%'"
+		query = "SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` `tabModule Def_module` ON `tabModule Def_module`.`name`=`tabDocType`.`module` WHERE `tabModule Def_module`.`app_name` LIKE 'frap%'"
 		query = query.replace("LIKE", "ILIKE" if frappe.db.db_type == "postgres" else "LIKE")
 		self.assertQueryEqual(
 			frappe.qb.get_query(
@@ -756,7 +756,7 @@ class TestQuery(IntegrationTestCase):
 				"DocType",
 				fields=["name", "module.app_name as app_name"],
 			).get_sql(),
-			"SELECT `tabDocType`.`name`,`tabModule Def`.`app_name` `app_name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module`",
+			"SELECT `tabDocType`.`name`,`tabModule Def_module`.`app_name` `app_name` FROM `tabDocType` LEFT JOIN `tabModule Def` `tabModule Def_module` ON `tabModule Def_module`.`name`=`tabDocType`.`module`",
 		)
 
 	# fields now has strict validation, so this test is not valid anymore
@@ -2624,6 +2624,19 @@ class TestQuery(IntegrationTestCase):
 			),
 		)
 		self.assertFalse(index_exists)
+
+	def test_limit_offset_query(self):
+		"""Test if query builder correctly uses limit with offset in MariaDB and SQLite when limit is omitted."""
+		from frappe.database.query import MAX_LIMIT
+
+		query = frappe.qb.get_query("Doctype", offset=10).get_sql()
+		if frappe.db.db_type != "postgres":
+			self.assertIn(f"LIMIT {MAX_LIMIT} OFFSET 10", query)
+			query = frappe.qb.get_query("Doctype", limit=10, offset=10).get_sql()
+			self.assertIn("LIMIT 10 OFFSET 10", query)
+		else:
+			self.assertNotIn("LIMIT", query)
+			self.assertIn("OFFSET 10", query)
 
 
 # This function is used as a permission query condition hook

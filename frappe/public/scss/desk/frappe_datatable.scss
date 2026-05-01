@@ -17,7 +17,6 @@
 	--dt-no-data-message-width: max-content;
 
 	background-color: var(--bg-color);
-	margin-left: -1px;
 	margin-top: 0px;
 	border-radius: var(--dt-border-radius);
 	@include get_textstyle("base", "regular");
@@ -150,7 +149,8 @@
 		font-feature-settings: "tnum";
 	}
 
-	.dt-cell__content--header-0 {
+	.dt-cell__content--header-0,
+	.dt-cell__content--col-0 {
 		padding: 0.5rem;
 	}
 

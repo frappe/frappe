@@ -42,7 +42,7 @@
 				</div>
 				<div class="promotional-banners"></div>
 				<p>
-					<a class="onboarding-sidebar">
+					<a class="onboarding-sidebar px-2">
 						{%= frappe.utils.icon("user-check" , "sm", "", "", "text-ink-gray-7 current-color", true)%}
 						 <span> {%= __("Getting Started") %} </span>
 					</a>
@@ -55,16 +55,24 @@
 						aria-label="{{ __("User Menu") }}"
 					>
 						<div> {{ avatar }} </div>
-						<div class="avatar-name-email ml-2 text-small overflow-hidden w-75">
+						<div class="avatar-name-email text-small overflow-hidden w-75" style="margin-left: 8px;">
 							<span class="d-block text-truncate">
 								{{ frappe.session.user_fullname }}
 							</span>
-							<span class="d-block text-secondary text-truncate">
+							<span class="d-block text-secondary text-truncate" style="margin-top: -1px;">
 								{{ frappe.session.user_email }}
 							</span>
 						</div>
 
 					</a>
+				</div>
+				<div class="sidebar-bottom-actions d-flex align-items-center justify-content-between mt-2" style="padding: 0;">
+					<button class="about-sidebar-link btn btn-ghost btn-xs">
+						{%= frappe.utils.icon("info" , "sm", "", "", "text-ink-gray-7 current-color", true)%}
+					</button>
+					<button class="collapse-sidebar-link btn btn-ghost btn-xs">
+						{%= frappe.utils.icon("panel-right-open" , "sm", "", "", "text-ink-gray-7 current-color", true)%}
+					</button>
 				</div>
 			</div>
 			<div class="sidebar-resize-handle"></div>

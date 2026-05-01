@@ -1034,7 +1034,8 @@ class DesktopIcon {
 	setup_click() {
 		const me = this;
 		if (this.child_icons?.length && (this.icon_type == "App" || this.icon_type == "Folder")) {
-			$(this.icon).on("click", () => {
+			$(this.icon).on("click", (event) => {
+				event.preventDefault();
 				let modal = frappe.desktop_utils.create_desktop_modal(me);
 				modal.setup(me.icon_title, me.child_icons, 4);
 				let $title = modal.modal.find(".modal-title");

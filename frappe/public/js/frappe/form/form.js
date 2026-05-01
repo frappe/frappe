@@ -139,7 +139,7 @@ frappe.ui.form.Form = class FrappeForm {
 	add_form_keyboard_shortcuts() {
 		// Navigate to next record
 		frappe.ui.keys.add_shortcut({
-			shortcut: "shift+ctrl+>",
+			shortcut: "shift+ctrl+right",
 			action: () => this.navigate_records(0),
 			page: this.page,
 			description: __("Go to next record"),
@@ -149,7 +149,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// Navigate to previous record
 		frappe.ui.keys.add_shortcut({
-			shortcut: "shift+ctrl+<",
+			shortcut: "shift+ctrl+left",
 			action: () => this.navigate_records(1),
 			page: this.page,
 			description: __("Go to previous record"),

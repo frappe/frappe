@@ -82,12 +82,7 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 		}
 		this.options.forEach((option) => {
 			let checkbox = this.get_checkbox_element(option).appendTo(this.$checkbox_area);
-			if (option.danger) {
-				checkbox.find(".label-area").addClass("text-danger");
-			}
-			if (option.warning) {
-				checkbox.find(".label-area").addClass("text-warning");
-			}
+			checkbox.find('[data-toggle="tooltip"]').tooltip();
 
 			option.$checkbox = checkbox;
 		});
@@ -165,11 +160,25 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 	}
 
 	get_checkbox_element(option) {
+		const mandatory_marker = option.danger
+			? `<span class="text-danger" style="margin-left: 4px;">*</span>`
+			: "";
+		const warning_title = frappe.utils.escape_html(
+			option.warning_title || __("Condition based field")
+		);
+		const warning_icon = option.warning
+			? `<span class="text-muted multicheck-warning-icon" data-toggle="tooltip" title="${warning_title}">${frappe.utils.icon(
+					"info",
+					"xs"
+			  )}</span>`
+			: "";
 		return $(`
 			<div class="checkbox unit-checkbox">
 				<label title="${option.description || ""}" style="display: flex; align-items: center;">
 					<input type="checkbox" data-unit="${option.value}" style="flex-shrink: 0;">
-					<span class="label-area" data-unit="${option.value}">${option.label}</span>
+					<span class="label-area" data-unit="${option.value}">${
+			option.label
+		}${mandatory_marker}${warning_icon}</span>
 				</label>
 			</div>
 		`);

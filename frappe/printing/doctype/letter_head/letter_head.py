@@ -19,6 +19,7 @@ class LetterHead(Document):
 
 		align: DF.Literal["Left", "Right", "Center"]
 		content: DF.HTMLEditor | None
+		custom_css: DF.Code | None
 		disabled: DF.Check
 		footer: DF.HTMLEditor | None
 		footer_align: DF.Literal["Left", "Right", "Center"]
@@ -38,11 +39,6 @@ class LetterHead(Document):
 		source: DF.Literal["Image", "HTML"]
 		standard: DF.Literal["No", "Yes"]
 	# end: auto-generated types
-
-	def before_insert(self):
-		# for better UX, let user set from attachment
-		if not frappe.flags.in_migrate and not frappe.flags.in_install:
-			self.source = "Image"
 
 	def on_trash(self):
 		from frappe.defaults import clear_default

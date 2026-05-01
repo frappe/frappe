@@ -111,6 +111,7 @@ class File(Document):
 		self.validate_attachment_limit()
 		self.set_file_type()
 		self.validate_file_extension()
+		self.validate_private_file_access()
 
 		if self.is_folder:
 			return
@@ -199,6 +200,36 @@ class File(Document):
 				frappe.only_for("System Manager")
 			except PermissionError:
 				frappe.throw(_("Only System Managers can make this file public."))
+
+	def validate_private_file_access(self):
+		"""Validate that the user has permission to access an existing private file."""
+		if not self.file_url:
+			return
+
+		existing_files = frappe.get_all(
+			"File",
+			filters={"file_url": self.file_url},
+			fields=["name", "owner", "is_private"],
+			limit=1,
+		)
+
+		if not existing_files:
+			return
+
+		existing_file = existing_files[0]
+
+		if existing_file.is_private:
+			user = frappe.session.user
+
+			if user == existing_file.owner or user == "Administrator":
+				return
+
+			existing_doc = frappe.get_doc("File", existing_file.name)
+			if not has_permission(existing_doc, "read", user=user):
+				frappe.throw(
+					_("You do not have permission to access this file"),
+					frappe.PermissionError,
+				)
 
 	def after_rename(self, *args, **kwargs):
 		for successor in self.get_successors():

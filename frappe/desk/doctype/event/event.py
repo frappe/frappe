@@ -236,8 +236,15 @@ class Event(Document):
 @frappe.whitelist()
 def update_attending_status(event_name: str, attendee: str, status: str):
 	event_doc = frappe.get_doc("Event", event_name)
+	caller = frappe.session.user
 
-	if event_doc.owner == attendee == frappe.session.user:
+	if attendee != caller:
+		if event_doc.owner != caller and not frappe.has_permission("Event", "write", event_name):
+			frappe.throw(
+				_("You are not allowed to update attendance for another user."), frappe.PermissionError
+			)
+
+	if event_doc.owner == caller:
 		frappe.db.set_value("Event", event_name, "attending", status)
 		return
 
@@ -246,8 +253,7 @@ def update_attending_status(event_name: str, attendee: str, status: str):
 			frappe.db.set_value("Event Participants", participant.name, "attending", status)
 			return
 
-	if not has_permission(event_doc, user=attendee):
-		frappe.throw(_("You are not allowed to update the status of this event."))
+	frappe.throw(_("Attendee not found in this event."))
 
 
 @frappe.whitelist()
@@ -337,7 +343,12 @@ def get_events(
 	for_reminder: bool = False,
 	filters: str | list | dict[str, Any] | None = None,
 ) -> list[frappe._dict]:
-	user = user or frappe.session.user
+	caller = frappe.session.user
+	target_user = user or caller
+
+	if user and user != caller:
+		if not frappe.has_permission("Event", ptype="read"):
+			frappe.throw(_("You are not allowed to view events for another user."), frappe.PermissionError)
 	type EventLikeDict = Event | frappe._dict
 	resolved_events: list[EventLikeDict] = []
 
@@ -409,7 +420,7 @@ def get_events(
 		{
 			"start": start,
 			"end": end,
-			"user": user,
+			"user": target_user,
 		},
 		as_dict=True,
 	)

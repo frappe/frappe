@@ -87,6 +87,10 @@ export default class Grid {
 								data-action="delete_rows">
 								${__("Delete")}
 							</button>
+							<button type="button" class="btn btn-xs btn-secondary grid-edit-rows hidden"
+								data-action="bulk_edit_rows">
+								${__("Edit")}
+							</button>
 							<button type="button" class="btn btn-xs btn-danger grid-remove-all-rows hidden"
 							data-action="delete_all_rows">
 							${__("Delete all")}
@@ -148,6 +152,7 @@ export default class Grid {
 		this.grid_buttons = this.wrapper.find(".grid-buttons");
 		this.grid_custom_buttons = this.wrapper.find(".grid-custom-buttons");
 		this.remove_rows_button = this.grid_buttons.find(".grid-remove-rows");
+		this.edit_rows_button = this.grid_buttons.find(".grid-edit-rows");
 		this.duplicate_rows_button = this.grid_buttons.find(".grid-duplicate-rows");
 		this.remove_all_rows_button = this.grid_buttons.find(".grid-remove-all-rows");
 
@@ -253,13 +258,16 @@ export default class Grid {
 			// update "Delete" and "Duplicate" button labels
 			if (num_selected_rows == 1) {
 				this.remove_rows_button.text(__("Delete row"));
+				this.edit_rows_button.text(__("Edit row"));
 				this.duplicate_rows_button.text(__("Duplicate row"));
 			} else {
 				this.remove_rows_button.text(__("Delete {0} rows", [num_selected_rows]));
+				this.edit_rows_button.text(__("Edit {0} rows", [num_selected_rows]));
 				this.duplicate_rows_button.text(__("Duplicate {0} rows", [num_selected_rows]));
 			}
 
 			this.refresh_remove_rows_button();
+			this.refresh_edit_rows_button();
 			this.refresh_duplicate_rows_button();
 		});
 	}
@@ -384,6 +392,18 @@ export default class Grid {
 		if (show_delete_all_btn) {
 			this.remove_all_rows_button.text(__("Delete all {0} rows", [this.data.length]));
 		}
+	}
+
+	refresh_edit_rows_button() {
+		if (!this.meta?.allow_bulk_edit) {
+			this.edit_rows_button.toggleClass("hidden", true);
+			return;
+		}
+
+		const show_button = this.wrapper.find(".grid-body .grid-row-check:checked:first").length
+			? true
+			: false;
+		this.edit_rows_button.toggleClass("hidden", !show_button);
 	}
 
 	debounced_refresh_remove_rows_button = frappe.utils.debounce(
@@ -547,6 +567,7 @@ export default class Grid {
 		this.form_grid.toggleClass("error", !!(this.df.reqd && !(this.data && this.data.length)));
 
 		this.refresh_remove_rows_button();
+		this.refresh_edit_rows_button();
 		this.refresh_duplicate_rows_button();
 
 		this.wrapper.trigger("change");
@@ -1047,6 +1068,145 @@ export default class Grid {
 		});
 
 		return d;
+	}
+
+	bulk_edit_rows() {
+		if (!this.meta?.allow_bulk_edit) return;
+
+		const selected_children = this.get_selected_children();
+		if (!selected_children.length) {
+			frappe.show_alert({ message: __("No rows selected"), indicator: "orange" });
+			return;
+		}
+
+		const is_field_editable = (field_doc) => {
+			const parent_docstatus = this.frm?.doc?.docstatus;
+			const is_submitted_or_cancelled = [1, 2].includes(parent_docstatus);
+
+			return (
+				field_doc.fieldname &&
+				frappe.model.is_value_type(field_doc) &&
+				field_doc.fieldtype !== "Read Only" &&
+				!field_doc.hidden &&
+				!field_doc.read_only &&
+				!field_doc.is_virtual &&
+				(!is_submitted_or_cancelled || field_doc.allow_on_submit)
+			);
+		};
+
+		const editable_fields = (this.docfields || []).filter((field_doc) =>
+			is_field_editable(field_doc)
+		);
+		if (!editable_fields.length) {
+			frappe.msgprint(__("No editable fields available for bulk edit."));
+			return;
+		}
+
+		const field_mappings = {};
+		editable_fields.forEach((field_doc) => {
+			const field_key = `${field_doc.label}`;
+			field_mappings[field_key] = Object.assign({}, field_doc);
+		});
+
+		const field_options = Object.keys(field_mappings).sort((a, b) =>
+			__(cstr(field_mappings[a].label)).localeCompare(cstr(__(field_mappings[b].label)))
+		);
+		const status_regex = /status/i;
+		const default_field =
+			field_options.find((value) => status_regex.test(value)) ||
+			field_options.find((value) => field_mappings[value]?.fieldtype === "Select");
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("Bulk Edit"),
+			fields: [
+				{
+					fieldtype: "Select",
+					options: field_options,
+					default: default_field,
+					label: __("Field"),
+					fieldname: "field",
+					reqd: 1,
+					onchange: () => {
+						set_value_field(dialog);
+					},
+				},
+				{
+					fieldtype: "Data",
+					label: __("Value"),
+					fieldname: "value",
+					onchange() {
+						show_help_text();
+					},
+				},
+			],
+			primary_action: ({ value }) => {
+				const selected_field = field_mappings[dialog.get_value("field")];
+				const { fieldname } = selected_field;
+				dialog.disable_primary_action();
+
+				const update_value = value || null;
+				const tasks = selected_children.map((doc) =>
+					frappe.model.set_value(doc.doctype, doc.name, fieldname, update_value)
+				);
+
+				Promise.all(tasks).then(() => {
+					this.frm && this.frm.dirty();
+					this.refresh();
+					dialog.hide();
+					const row_label = selected_children.length === 1 ? __("row") : __("rows");
+					frappe.show_alert(
+						__("Updated {0} selected {1}. Save the form to keep changes.", [
+							selected_children.length,
+							row_label,
+						])
+					);
+				});
+			},
+			primary_action_label: __("Update {0} rows", [selected_children.length]),
+		});
+
+		if (default_field) set_value_field(dialog);
+		show_help_text();
+
+		function set_value_field(dialogObj) {
+			const field_value = dialogObj.get_value("field");
+			if (!field_value || !field_mappings[field_value]) return;
+			const new_df = Object.assign({}, field_mappings[field_value]);
+			if (
+				new_df.label?.match(status_regex) &&
+				new_df.fieldtype === "Select" &&
+				!new_df.default
+			) {
+				let options = [];
+				if (typeof new_df.options === "string") {
+					options = new_df.options.split("\n");
+				}
+				new_df.default = options[0] || options[1];
+			}
+			new_df.label = __("Value");
+			new_df.onchange = show_help_text;
+			delete new_df.depends_on;
+			dialogObj.replace_field("value", new_df);
+			show_help_text();
+		}
+
+		function show_help_text() {
+			if (dialog.get_primary_btn().is(":focus, :active")) return;
+
+			let value = dialog.get_value("value");
+			if (value == null || value === "") {
+				dialog.set_df_property(
+					"value",
+					"description",
+					__("You have not entered a value. The field will be set to empty.")
+				);
+			} else {
+				dialog.set_df_property("value", "description", "");
+			}
+		}
+
+		dialog.refresh();
+		dialog.show();
 	}
 
 	set_focus_on_row(idx) {

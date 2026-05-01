@@ -101,6 +101,7 @@ class DocType(Document):
 
 		actions: DF.Table[DocTypeAction]
 		allow_auto_repeat: DF.Check
+		allow_bulk_edit: DF.Check
 		allow_copy: DF.Check
 		allow_events_in_timeline: DF.Check
 		allow_guest_to_view: DF.Check
@@ -550,10 +551,19 @@ class DocType(Document):
 			and (frappe.conf.developer_mode or frappe.flags.allow_doctype_export)
 		)
 		if allow_doctype_export:
-			self.export_doc()
-			self.make_controller_template()
-			self.set_base_class_for_controller()
-			self.export_types_to_controller()
+
+			def export_doctype_files():
+				self.export_doc()
+				self.make_controller_template()
+				self.set_base_class_for_controller()
+				self.export_types_to_controller()
+
+			request = getattr(frappe.local, "request", None)
+			# Defer file writes until after the response so the client can sync the saved doc first.
+			if request and hasattr(request, "after_response"):
+				request.after_response.add(export_doctype_files)
+			else:
+				export_doctype_files()
 
 		# update index
 		if not self.custom:

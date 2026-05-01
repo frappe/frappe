@@ -143,6 +143,9 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			let f = this.fields_dict[key];
 			if (f.get_value) {
 				let v = f.get_value();
+				if (!v && f.df.include_default) {
+					v = f.df.default;
+				}
 				if (f.df.reqd && is_null(typeof v === "string" ? strip_html(v) : v))
 					errors.push(__(f.df.label));
 

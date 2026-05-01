@@ -644,6 +644,7 @@ input.list-header-checkbox {
 	.layout-main-section .frappe-list .result-container {
 		.result {
 			overflow: hidden;
+			display: block;
 			input.list-row-checkbox,
 			input.list-header-checkbox {
 				width: 15px !important;
@@ -697,5 +698,16 @@ input.list-header-checkbox {
 				}
 			}
 		}
+	}
+	.page-indicator-pill {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 375px) {
+	.navbar-breadcrumbs li:last-child > a {
+		max-width: 105px;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 }
