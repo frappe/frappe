@@ -172,9 +172,6 @@ BACKTICK_FIELD_PARSE_REGEX = re.compile(r"^`tab([\w\s-]+)`\.(`?)(\w+)\2$")
 # Group 3: Fieldname
 CHILD_TABLE_FIELD_PATTERN = re.compile(r'^[`"]?tab([\w\s]+)[`"]?\.([`"]?)(\w+)\2$')
 
-# Maximum value of an unsigned 64-bit integer
-MAX_LIMIT = 18446744073709551615
-
 # Direct mapping from uppercase function names to pypika function classes
 FUNCTION_MAPPING = {
 	"COUNT": functions.Count,
@@ -302,11 +299,6 @@ class Engine:
 		if offset:
 			if not isinstance(offset, int) or offset < 0:
 				frappe.throw(_("Offset must be a non-negative integer"), TypeError)
-
-			# In MariaDB and SQLite, offset requires limit
-			if not self.is_postgres and not limit:
-				self.query = self.query.limit(MAX_LIMIT)
-
 			self.query = self.query.offset(offset)
 
 		if distinct:

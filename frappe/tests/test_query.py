@@ -2625,19 +2625,6 @@ class TestQuery(IntegrationTestCase):
 		)
 		self.assertFalse(index_exists)
 
-	def test_limit_offset_query(self):
-		"""Test if query builder correctly uses limit with offset in MariaDB and SQLite when limit is omitted."""
-		from frappe.database.query import MAX_LIMIT
-
-		query = frappe.qb.get_query("Doctype", offset=10).get_sql()
-		if frappe.db.db_type != "postgres":
-			self.assertIn(f"LIMIT {MAX_LIMIT} OFFSET 10", query)
-			query = frappe.qb.get_query("Doctype", limit=10, offset=10).get_sql()
-			self.assertIn("LIMIT 10 OFFSET 10", query)
-		else:
-			self.assertNotIn("LIMIT", query)
-			self.assertIn("OFFSET 10", query)
-
 
 # This function is used as a permission query condition hook
 def test_permission_hook_condition(user):
