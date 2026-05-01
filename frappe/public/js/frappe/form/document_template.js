@@ -295,8 +295,10 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	}
 
 	_capture_template_data() {
-		const copied = frappe.model.copy_doc(this.frm.doc, false);
+		const copied = frappe.model.copy_doc(this.frm.doc);
 		const result = {};
+		const should_copy = (value, df) =>
+			value != null && value !== "" && value != df.__default_value;
 
 		for (const df of frappe.meta.get_docfields(copied.doctype)) {
 			const value = copied[df.fieldname];
@@ -306,11 +308,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 					.map((row) => {
 						const clean = {};
 						for (const cdf of frappe.meta.get_docfields(df.options)) {
-							if (
-								row[cdf.fieldname] != null &&
-								row[cdf.fieldname] !== "" &&
-								row[cdf.fieldname] != cdf.__default_value
-							) {
+							if (should_copy(row[cdf.fieldname], cdf)) {
 								clean[cdf.fieldname] = row[cdf.fieldname];
 							}
 						}
@@ -322,7 +320,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 				continue;
 			}
 
-			if (value != null && value !== "" && value != df.__default_value) {
+			if (should_copy(value, df)) {
 				result[df.fieldname] = value;
 			}
 		}
@@ -450,24 +448,35 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			.appendTo($actions);
 	}
 
-	_apply_template(name, label) {
-		frappe.db.get_doc("Document Template", name).then((doc) => {
-			if (!doc) {
-				frappe.show_alert({
-					message: __("Template not found."),
-					indicator: "orange",
-				});
-				return;
-			}
-			this._apply_to_form(JSON.parse(doc.data), label);
-		});
+	async _apply_template(name, label) {
+		const template = await frappe.db.get_value("Document Template", name, "data");
+		if (!template) {
+			frappe.show_alert({
+				message: __("Template not found"),
+				indicator: "orange",
+			});
+			return;
+		}
+		this._apply_to_form(JSON.parse(template), label);
 	}
 
-	async _apply_to_form(doc, label) {
+	async _apply_to_form(template, label) {
 		const frm = this.frm;
+		for (const key in template) {
+			const df = frappe.meta.get_docfield(frm.doctype, key);
+			if (!df) continue;
 
-		if (Object.keys(doc).length) {
-			await frm.set_value(doc);
+			if (frappe.model.table_fields.includes(df.fieldtype)) {
+				frm.doc[key] = [];
+				const children = template[key] || [];
+				for (const child of children) {
+					const new_child = frm.add_child(key);
+					Object.assign(new_child, child);
+				}
+				continue;
+			}
+
+			frm.doc[key] = template[key];
 		}
 
 		frm.dirty();
