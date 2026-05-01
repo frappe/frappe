@@ -23,7 +23,7 @@ frappe.listview_settings["User"] = {
 
 		frappe.xcall("frappe.apps.get_apps").then((r) => {
 			let apps = r?.map((r) => r.name) || [];
-			default_app_field.options = [" ", ...apps].join("\n");
+			default_app_field.options = ["", ...apps].join("\n");
 		});
 	},
 };
