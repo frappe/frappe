@@ -728,16 +728,14 @@
 	margin-right: auto;
 	margin-top: calc(var(--padding-xl) * -1);
 	z-index: 2;
-	pointer-events: none;
 	display: none;
 
 	&__message {
 		display: inline-block;
 		background-color: rgba(0, 0, 0, 0.8);
 		color: var(--bg-color);
-		border-radius: var(--border-radius-md);
-		padding: var(--padding-xs) var(--padding-sm);
-		font-size: var(--text-sm);
+		border-radius: var(--border-radius-sm);
+		padding: var(--padding-xs) var(--padding-md);
 	}
 }
 
