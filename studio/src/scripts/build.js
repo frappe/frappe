@@ -43,7 +43,7 @@ export async function generateAppBuild(appName, components, outDir, base, custom
 	const componentSources = findComponentSources(componentList, customComponents)
 	const rendererContent = getRendererContent(componentSources)
 	const tempRendererPath = writeRendererFile(appName, rendererContent)
-	await buildWithVite(appName, tempRendererPath, outDir, base, customComponents)
+	await buildWithVite(appName, tempRendererPath, outDir, base)
 	deleteRendererFile(tempRendererPath)
 }
 
@@ -128,15 +128,9 @@ function writeRendererFile(appName, content) {
 	return rendererPath
 }
 
-async function buildWithVite(appName, entryFilePath, outDir, basePath, customComponents = {}) {
+async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 	outDir = outDir || path.resolve(__dirname, `../../../studio/public/app_builds/${appName}`)
 	basePath = basePath || `/assets/studio/app_builds/${appName}/`
-
-	// Build resolve aliases for custom Vue components
-	const customAliases = {}
-	for (const [name, filePath] of Object.entries(customComponents)) {
-		customAliases[`@custom/${name}`] = filePath
-	}
 
 	console.log(`Building ${appName} with Vite`)
 	await build({
@@ -155,7 +149,6 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath, customCom
 		resolve: {
 			alias: {
 				"@": path.resolve(__dirname, "../"),
-				...customAliases,
 			},
 		},
 		build: {
