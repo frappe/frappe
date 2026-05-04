@@ -40,13 +40,16 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		this.page.add_menu_item(__("Templates"), () => this.show_manage_dialog(), true);
 	}
 
-	show_manage_dialog() {
+	async show_manage_dialog() {
 		if (this._manage_dialog) {
 			this._manage_dialog.show();
 			return;
 		}
 
 		this._manage_start = 0;
+
+		const data = await this._fetch_templates();
+
 		this._manage_dialog = new frappe.ui.Dialog({
 			title: __("Templates"),
 			size: "medium",
@@ -90,26 +93,28 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			.appendTo($save_row_inner);
 
 		this._bind_manage_events();
-		this._load_manage_page();
+		this._render_manage_list(this._$manage_wrap, data.templates || [], data.has_next_page);
 		this._manage_dialog.show();
 	}
 
+	_fetch_templates() {
+		const args = {
+			reference_doctype: this.frm.doctype,
+			limit_start: this._manage_start,
+			limit_page_length: DocumentTemplate.PAGE_LENGTH,
+		};
+		// Only request meta if we don't already have it cached client-side.
+		if (!frappe.get_meta("Document Template")) {
+			args.with_meta = true;
+		}
+		return frappe
+			.xcall("frappe.desk.doctype.document_template.document_template.get_templates", args)
+			.then((data) => data || {});
+	}
+
 	_load_manage_page() {
-		frappe.model.with_doctype("Document Template", () => {
-			frappe
-				.xcall("frappe.desk.doctype.document_template.document_template.get_templates", {
-					reference_doctype: this.frm.doctype,
-					limit_start: this._manage_start,
-					limit_page_length: DocumentTemplate.PAGE_LENGTH,
-				})
-				.then((data) => {
-					data = data || {};
-					this._render_manage_list(
-						this._$manage_wrap,
-						data.templates || [],
-						!!data.has_next_page
-					);
-				});
+		this._fetch_templates().then((data) => {
+			this._render_manage_list(this._$manage_wrap, data.templates || [], data.has_next_page);
 		});
 	}
 
@@ -298,7 +303,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		const copied = frappe.model.copy_doc(this.frm.doc);
 		const result = {};
 		const should_copy = (value, df) =>
-			value != null && value !== "" && value != df.__default_value;
+			!frappe.utils.is_empty(value) && value != df.__default_value;
 
 		for (const df of frappe.meta.get_docfields(copied.doctype)) {
 			const value = copied[df.fieldname];
@@ -409,10 +414,13 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			owner: template.owner,
 		};
 		const can_write = frappe.perm.has_perm("Document Template", 0, "write", perm_doc);
+		const can_delete = frappe.perm.has_perm("Document Template", 0, "delete", perm_doc);
 
-		if (!template.disabled && can_write) {
+		if (can_write) {
 			this._add_update_btn($actions, template);
 			this._add_edit_btn($actions, template);
+		}
+		if (can_delete) {
 			this._add_delete_btn($actions, template);
 		}
 
@@ -449,7 +457,8 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	}
 
 	async _apply_template(name, label) {
-		const template = await frappe.db.get_value("Document Template", name, "data");
+		const doc = await frappe.db.get_doc("Document Template", name);
+		let template = doc?.data;
 		if (!template) {
 			frappe.show_alert({
 				message: __("Template not found"),
@@ -478,7 +487,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 
 			frm.doc[key] = template[key];
 		}
-
+		frm.refresh_fields();
 		frm.dirty();
 		frappe.show_alert({
 			message: label ? __("Template {0} applied", [label]) : __("Template applied"),

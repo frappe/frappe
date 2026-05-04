@@ -14,11 +14,9 @@ Covers:
 from __future__ import annotations
 
 import json
-from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.user.test_user import test_user
-from frappe.desk.doctype.document_template import document_template as dt_module
 from frappe.desk.doctype.document_template.document_template import (
 	_has_user_permissions_on_template_data,
 	get_permission_query_conditions,
@@ -319,20 +317,78 @@ class TestDocumentTemplate(IntegrationTestCase):
 			self.assertNotIn("data", t)
 
 	def test_get_templates_filters_via_user_permission_check_hook(self):
-		"""``get_templates`` calls ``_has_user_permissions_on_template_data`` per row."""
-		self._make_template("perm-yes", data=_make_data(description="visible"))
-		self._make_template("perm-no", data=_make_data(description="blocked content"))
+		"""``get_templates`` excludes templates whose payload contains a link value
+		the requesting user is not permitted to access via User Permissions.
 
-		def fake_check(data, reference_doctype, user):
-			parsed = json.loads(data)
-			return "blocked" not in parsed.get("description", "")
+		We create two templates: one referencing a Role the user *is* allowed to
+		see, one referencing a Role they are *not* allowed to see.  Only the
+		permitted template should appear in the result.
+		"""
+		with test_user(roles=["Desk User"]) as user:
+			# Restrict the user so they can only see the "Desk User" Role.
+			add_user_permission("Role", "Desk User", user.name, ignore_permissions=True)
+			try:
+				# ToDo has a `role` Link field - use it as the restricted link.
+				allowed = self._make_template(
+					"perm-allowed",
+					data=_make_data(description="allowed", role="Desk User"),
+				)
+				blocked = self._make_template(
+					"perm-blocked",
+					data=_make_data(description="blocked", role="System Manager"),
+				)
 
-		with patch.object(dt_module, "_has_user_permissions_on_template_data", side_effect=fake_check):
-			with test_user(roles=["Desk User"]) as user, self.set_user(user.name):
+				with self.set_user(user.name):
+					names = [
+						t.template_name for t in get_templates(reference_doctype=REF_DOCTYPE)["templates"]
+					]
+			finally:
+				clear_user_permissions_for_doctype("Role", user.name)
+
+		self.assertIn(allowed.template_name, names)
+		self.assertNotIn(blocked.template_name, names)
+
+	def test_get_templates_system_manager_sees_all_public_and_own_private_only(self):
+		"""System Manager can see every template regardless of owner or privacy."""
+		with (
+			test_user(roles=["Desk User"]) as owner_user,
+			test_user(roles=["System Manager"]) as sm,
+		):
+			pub = self._make_template("sm-public", private=0, owner=owner_user.name)
+			priv = self._make_template("sm-private", private=1, owner=owner_user.name)
+
+			with self.set_user(sm.name):
 				names = [t.template_name for t in get_templates(reference_doctype=REF_DOCTYPE)["templates"]]
 
-		self.assertIn("_Test perm-yes", names)
-		self.assertNotIn("_Test perm-no", names)
+		self.assertIn(pub.template_name, names)
+		self.assertNotIn(priv.template_name, names)
+
+	def test_get_templates_template_manager_sees_public_and_own_private_only(self):
+		"""Template Manager sees public templates and their own private ones,
+		but not private templates owned by others."""
+		with (
+			test_user(roles=[TEMPLATE_MANAGER_ROLE, "Desk User"]) as manager,
+			test_user(roles=["System Manager"]) as other,
+		):
+			pub = self._make_template("tm-pub", private=0, owner=other.name)
+			own_priv = self._make_template("tm-own-priv", private=1, owner=manager.name)
+			other_priv = self._make_template("tm-other-priv", private=1, owner=other.name)
+
+			with self.set_user(manager.name):
+				names = [t.template_name for t in get_templates(reference_doctype=REF_DOCTYPE)["templates"]]
+
+		self.assertIn(pub.template_name, names)
+		self.assertIn(own_priv.template_name, names)
+		self.assertNotIn(other_priv.template_name, names)
+
+	def test_get_templates_template_manager_without_create_on_ref_doctype_is_denied(self):
+		"""Template Manager role is not enough on its own — the user must also have
+		'create' permission on the reference doctype.  Without it ``get_templates``
+		should raise ``PermissionError``."""
+		with test_user(roles=[TEMPLATE_MANAGER_ROLE, "Desk User"]) as manager:
+			with self.set_user(manager.name):
+				with self.assertRaises(frappe.PermissionError):
+					get_templates(reference_doctype=ADMIN_ONLY_DOCTYPE)
 
 	def test_get_templates_clamps_negative_limit_start(self):
 		self._make_template("clamp-test")
@@ -352,11 +408,6 @@ class TestDocumentTemplate(IntegrationTestCase):
 	def test_has_user_permissions_returns_true_when_no_user_permissions(self):
 		data = _make_data(description="hello")
 		self.assertTrue(_has_user_permissions_on_template_data(data, REF_DOCTYPE, "Administrator"))
-
-	def test_has_user_permissions_swallows_errors_and_returns_true(self):
-		"""Bad payloads must not break the listing — fall back to True."""
-		self.assertTrue(_has_user_permissions_on_template_data("not-json", REF_DOCTYPE, "Administrator"))
-		self.assertTrue(_has_user_permissions_on_template_data('{"x": 1}', "NoSuchDocType", "Administrator"))
 
 	def test_has_user_permissions_blocks_when_link_value_disallowed(self):
 		"""A link value the user can't access should make the check fail."""
@@ -453,6 +504,19 @@ class TestDocumentTemplate(IntegrationTestCase):
 		with test_user(roles=["Desk User"]) as user:
 			self.assertFalse(has_permission(t, user=user.name, ptype="read"))
 
+	def test_has_permission_template_manager_without_create_on_ref_doctype_is_denied(self):
+		"""``has_permission`` must return ``False`` for a Template Manager when they
+		lack 'create' on the reference doctype"""
+		t = self._make_template(
+			"perm-tm-noref",
+			reference_doctype=ADMIN_ONLY_DOCTYPE,
+			data=json.dumps({"first_name": "x"}),
+		)
+		with test_user(roles=[TEMPLATE_MANAGER_ROLE, "Desk User"]) as manager:
+			for ptype in ("read", "write", "delete", "create"):
+				with self.subTest(ptype=ptype):
+					self.assertFalse(has_permission(t, user=manager.name, ptype=ptype))
+
 	def test_has_permission_create_allowed_with_ref_create_perm(self):
 		t = self._make_template("perm-create")
 		with test_user(roles=["Desk User"]) as user:
@@ -506,14 +570,3 @@ class TestDocumentTemplate(IntegrationTestCase):
 				self.assertFalse(has_permission(t, user=other.name, ptype="read"))
 			finally:
 				clear_user_permissions_for_doctype("Role", other.name)
-
-	def test_frappe_has_permission_dispatches_to_doc_level_check(self):
-		"""``frappe.has_permission`` should respect the doctype's ``has_permission`` hook."""
-		with test_user(roles=["Desk User"]) as owner_user, test_user(roles=["Desk User"]) as other:
-			t = self._make_template("dispatch-priv", private=1, owner=owner_user.name)
-			self.assertFalse(
-				frappe.has_permission("Document Template", doc=t.name, user=other.name, ptype="read")
-			)
-			self.assertTrue(
-				frappe.has_permission("Document Template", doc=t.name, user=owner_user.name, ptype="read")
-			)

@@ -102,7 +102,12 @@ class DocumentTemplate(Document):
 
 
 @frappe.whitelist()
-def get_templates(reference_doctype: str, limit_start: int = 0, limit_page_length: int = 10) -> dict:
+def get_templates(
+	reference_doctype: str,
+	limit_start: int = 0,
+	limit_page_length: int = 10,
+	with_meta: bool = False,
+) -> dict:
 	"""Return templates for the manage dialog, filtered and sorted server-side.
 
 	Sorting: ``disabled asc, private desc, template_name asc``
@@ -121,6 +126,11 @@ def get_templates(reference_doctype: str, limit_start: int = 0, limit_page_lengt
 
 	if not frappe.has_permission(reference_doctype, ptype="create", user=user):
 		frappe.throw(_("Not permitted to create {0}").format(reference_doctype), frappe.PermissionError)
+
+	if with_meta:
+		from frappe.desk.form.load import getdoctype
+
+		getdoctype("Document Template")
 
 	all_templates = frappe.get_all(
 		"Document Template",
