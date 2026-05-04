@@ -68,7 +68,8 @@
 			</CollapsibleSection>
 
 			<CollapsibleSection sectionName="Studio Components" class="px-2">
-				<div v-if="componentList?.length" class="flex flex-col">
+				<EmptyState v-if="!componentList?.length" message="No components found" />
+				<div v-else class="flex flex-col">
 					<div
 						v-for="component in componentList"
 						:key="component.component_id"
