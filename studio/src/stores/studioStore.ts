@@ -17,7 +17,7 @@ import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
 import { registerCustomVueComponents, unregisterCustomVueComponents } from "@/globals"
-import type { CustomVueComponentMeta } from "@/globals"
+import type { CustomVueComponentMeta } from "@/types/vue"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
@@ -60,13 +60,10 @@ const useStudioStore = defineStore("store", () => {
 		const app = window.__STUDIO_APP__
 		if (!app) return
 
-		// Unregister components from the previous app
 		if (customVueComponents.value.length) {
 			unregisterCustomVueComponents(app, customVueComponents.value)
 			customVueComponents.value = []
 		}
-
-		// Only register if the active app is linked to a Frappe app
 		const frappeApp = activeApp.value?.frappe_app
 		if (!frappeApp) return
 

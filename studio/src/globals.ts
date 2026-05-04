@@ -66,8 +66,6 @@ import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
 import MarkdownEditor from "@/components/AppLayout/MarkdownEditor.vue"
 
 import { vueComponents } from "@/data/vueComponents"
-import { default as componentRegistry } from "@/data/components"
-import { default as Block } from "@/utils/block"
 
 export function registerGlobalComponents(app: App) {
 	app.component("Alert", Alert)
@@ -160,17 +158,10 @@ export async function registerCustomVueComponents(app: App, frappeApp: string): 
 		for (const comp of components) {
 			try {
 				app.component(comp.component_name, defineAsyncComponent(() => import(/* @vite-ignore */ comp.file_path)))
-				// Register in the component data registry for Block metadata access
-				componentRegistry.registerCustomVueComponent(comp.component_name)
 			} catch (err) {
 				console.error(`Failed to load custom component ${comp.component_name}:`, err)
 			}
 		}
-
-		window.__APP_COMPONENTS__ = app._context.components
-		const { COMPONENTS } = await import("@/data/components")
-		Block.setComponents(COMPONENTS)
-
 		return components
 	} catch (err) {
 		console.error("Failed to fetch custom Vue components:", err)
@@ -185,10 +176,6 @@ export async function registerCustomVueComponents(app: App, frappeApp: string): 
 export function unregisterCustomVueComponents(app: App, components: CustomVueComponentMeta[]) {
 	for (const comp of components) {
 		delete app._context.components[comp.component_name]
-		componentRegistry.unregisterCustomVueComponent(comp.component_name)
 	}
-
-	window.__APP_COMPONENTS__ = app._context.components
-	Block.setComponents(componentRegistry.getComponents())
 }
 

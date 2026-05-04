@@ -12,3 +12,10 @@ export type VueProp = {
 	required: boolean
 	condition?: (props: any) => boolean
 }
+
+export interface CustomVueComponentMeta {
+	component_name: string
+	frappe_app: string
+	studio_app: string
+	file_path: string
+}
