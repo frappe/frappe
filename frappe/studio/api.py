@@ -116,44 +116,49 @@ def get_custom_vue_components(frappe_app: str) -> list[dict]:
 	if not os.path.exists(studio_folder):
 		return []
 
+	def has_reserved_name(name: str) -> bool:
+		if name in STANDARD_COMPONENT_NAMES:
+			frappe.log_error(
+				title="Studio: Custom component name conflict",
+				message=f"Custom component '{component_name}' in {frappe_app}/{studio_app} "
+				f"conflicts with a standard component. Skipping.",
+			)
+			return True
+		return False
+
+	def has_conflicting_name(name: str) -> bool:
+		if name in seen_names:
+			frappe.log_error(
+				title="Studio: Duplicate custom component",
+				message=f"Custom component '{component_name}' in {frappe_app}/{studio_app} "
+				f"conflicts with another component. Skipping.",
+			)
+			return True
+		return False
+
 	for studio_app in os.listdir(studio_folder):
-		components_dir = os.path.join(studio_folder, studio_app, "components")
-		if not os.path.isdir(components_dir):
+		studio_app_dir = os.path.join(studio_folder, studio_app)
+		if not os.path.isdir(studio_app_dir):
 			continue
 
-		for filename in sorted(os.listdir(components_dir)):
-			if not filename.endswith(".vue"):
-				continue
+		for dirpath, _dirnames, filenames in os.walk(studio_app_dir):
+			for filename in sorted(filenames):
+				if not filename.endswith(".vue"):
+					continue
 
-			component_name = filename[:-4]  # remove .vue
+				component_name = filename[:-4]  # remove .vue
+				if has_reserved_name(component_name) or has_conflicting_name(component_name):
+					continue
 
-			# reject conflicts with standard components
-			if component_name in STANDARD_COMPONENT_NAMES:
-				frappe.log_error(
-					title="Studio: Custom component name conflict",
-					message=f"Custom component '{component_name}' in {frappe_app}/{studio_app} "
-					f"conflicts with a standard component. Skipping.",
+				seen_names.add(component_name)
+				file_path = os.path.join(dirpath, filename)
+
+				components.append(
+					{
+						"component_name": component_name,
+						"studio_app": studio_app,
+						"file_path": file_path,
+					}
 				)
-				continue
-
-			# reject duplicates across apps
-			if component_name in seen_names:
-				frappe.log_error(
-					title="Studio: Duplicate custom component",
-					message=f"Custom component '{component_name}' in {frappe_app}/{studio_app} "
-					f"is already registered from another app. Skipping.",
-				)
-				continue
-
-			seen_names.add(component_name)
-			file_path = os.path.join(components_dir, filename)
-
-			components.append(
-				{
-					"component_name": component_name,
-					"studio_app": studio_app,
-					"file_path": file_path,
-				}
-			)
 
 	return components

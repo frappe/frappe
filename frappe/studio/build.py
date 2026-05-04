@@ -191,9 +191,11 @@ class StudioAppBuilder:
 		if not studio_folder:
 			return
 
-		file_path = os.path.join(studio_folder, self.app_name, "components", f"{componentName}.vue")
-		if os.path.isfile(file_path):
-			self.custom_vue_components[componentName] = file_path
+		app_dir = os.path.join(studio_folder, self.app_name)
+		for dirpath, _dirnames, filenames in os.walk(app_dir):
+			if f"{componentName}.vue" in filenames:
+				self.custom_vue_components[componentName] = os.path.join(dirpath, f"{componentName}.vue")
+				break
 
 
 def build_standard_apps(app: str | None = None) -> None:
