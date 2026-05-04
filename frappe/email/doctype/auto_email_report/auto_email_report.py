@@ -392,7 +392,7 @@ def make_links(columns, data):
 def update_field_types(columns):
 	for col in columns:
 		if col.fieldtype in ("Link", "Dynamic Link", "Currency") and col.options != "Currency":
-			col.fieldtype = "Data"
+			col.fieldtype = "HTML Editor"
 			col.options = ""
 	return columns
 

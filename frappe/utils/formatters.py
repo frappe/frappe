@@ -60,6 +60,8 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		value = frappe._(value)
 
 	if not df:
+		if isinstance(value, str):
+			return frappe.utils.escape_html(value)
 		return value
 
 	elif df.get("fieldtype") == "Date":
@@ -99,7 +101,8 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 
 	elif df.get("fieldtype") in ("Text", "Small Text"):
 		if not BLOCK_TAGS_PATTERN.search(value):
-			return frappe.safe_decode(value).replace("\n", "<br>")
+			escaped_value = frappe.utils.escape_html(frappe.safe_decode(value))
+			return escaped_value.replace("\n", "<br>")
 
 	elif df.get("fieldtype") == "Markdown Editor":
 		return frappe.utils.markdown(value)
@@ -124,20 +127,28 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 
 	elif df.get("fieldtype") in ["Link", "Dynamic Link"]:
 		if not doc or not doc.get("__link_titles") or not df.options:
-			return value
+			return frappe.utils.escape_html(cstr(value))
 
 		doctype = df.options
 		if df.get("fieldtype") == "Dynamic Link":
 			if not df.parent:
-				return value
+				return frappe.utils.escape_html(cstr(value))
 
 			meta = frappe.get_meta(df.parent)
 			_field = meta.get_field(df.options)
 			doctype = _field.options
-		return doc.__link_titles.get(f"{doctype}::{value}", value)
+		link_title = doc.__link_titles.get(f"{doctype}::{value}", value)
+		return frappe.utils.escape_html(cstr(link_title))
 
 	elif df.get("fieldtype") == "Select":
 		if isinstance(value, str):
-			return frappe._(value, context=df.parent or "")
+			translated_value = frappe._(value, context=df.parent or "")
+			return frappe.utils.escape_html(translated_value)
+
+	elif df.get("fieldtype") == "HTML Editor":
+		return value
+
+	if isinstance(value, str):
+		value = frappe.utils.escape_html(value)
 
 	return value
