@@ -45,10 +45,10 @@
 		</template>
 
 		<template v-else>
-			<CollapsibleSection sectionName="Vue Components" v-if="filteredCustomVueComponents.length" class="px-2">
+			<CollapsibleSection sectionName="Vue Components" v-if="customVueComponents.length" class="px-2">
 				<div class="flex flex-col">
 					<div
-						v-for="component in filteredCustomVueComponents"
+						v-for="component in customVueComponents"
 						:key="component.component_name"
 						class="user-component flex cursor-grab select-none items-center justify-between rounded px-2 py-1.5 hover:bg-surface-gray-1"
 						draggable="true"
@@ -159,8 +159,7 @@ const componentList = computed(() => {
 	}
 	return filtered
 })
-// Custom Vue Components
-const filteredCustomVueComponents = computed(() => {
+const customVueComponents = computed(() => {
 	if (!componentFilter.value) return store.customVueComponents
 	return store.customVueComponents.filter((comp) =>
 		comp.component_name.toLowerCase().includes(componentFilter.value.toLowerCase()),

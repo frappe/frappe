@@ -1,15 +1,12 @@
 <!-- Extracted from Builder -->
 <template>
 	<div>
-		<div class="flex items-center justify-between">
-			<h3
-				class="dark:text-zinc-300 cursor-pointer text-base font-medium text-gray-900"
-				@click="toggleCollapsed"
-			>
+		<div class="flex items-center justify-between text-sm font-medium">
+			<h3 class="cursor-pointer text-base text-ink-gray-9" @click="toggleCollapsed">
 				{{ sectionName }}
 			</h3>
 			<Button
-				class="dark:text-zinc-400 dark:hover:bg-zinc-700"
+				class="text-ink-gray-6 hover:bg-surface-gray-2"
 				:icon="collapsed ? 'chevron-right' : 'chevron-down'"
 				:variant="'ghost'"
 				size="sm"
