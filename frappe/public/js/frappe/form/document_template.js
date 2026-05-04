@@ -74,9 +74,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			render_input: true,
 		});
 
-		const $save_row_wrapper = $("<div>").appendTo($body);
-		const $save_row_inner = $('<div class="dt-save-row">').appendTo($save_row_wrapper);
-		this._$save_row = $save_row_wrapper;
+		const $save_row = $('<div class="dt-save-row">').appendTo($body);
 
 		this._private_check = frappe.ui.form.make_control({
 			df: {
@@ -84,13 +82,22 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 				fieldname: "dt_private",
 				label: __("Private"),
 			},
-			parent: $save_row_inner,
+			parent: $save_row,
 			render_input: true,
 		});
 
-		$('<button class="btn btn-sm btn-primary dt-save-btn">')
-			.text(__("Save"))
-			.appendTo($save_row_inner);
+		this._save_btn_control = frappe.ui.form.make_control({
+			df: {
+				fieldtype: "Button",
+				fieldname: "dt_save",
+				label: __("Save"),
+			},
+			parent: $save_row,
+			render_input: true,
+		});
+		this._save_btn_control.$input
+			.addClass("btn-primary dt-save-btn")
+			.removeClass("btn-default");
 
 		this._bind_manage_events();
 		this._render_manage_list(this._$manage_wrap, data.templates || [], data.has_next_page);
@@ -129,7 +136,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		$wrap.on("click.dtmanage", ".dt-page-prev", () => this._on_page_prev());
 		$wrap.on("click.dtmanage", ".dt-page-next", () => this._on_page_next());
 
-		this._$save_row.on("click", ".dt-save-btn", () => this._save_new_template());
+		this._save_btn_control.$input.on("click", () => this._save_new_template());
 	}
 
 	_on_row_click(e) {
@@ -270,7 +277,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			return;
 		}
 
-		const $btn = this._$save_row.find(".dt-save-btn");
+		const $btn = this._save_btn_control.$input;
 		$btn.prop("disabled", true);
 
 		frappe.db
@@ -426,30 +433,47 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	}
 
 	_add_update_btn($actions, t) {
-		$('<button class="btn btn-xs btn-default dt-action-update" type="button"></button>')
+		const ctrl = frappe.ui.form.make_control({
+			df: { fieldtype: "Button", fieldname: "dt_action_update", label: __("Update") },
+			parent: $("<div>"),
+			render_input: true,
+		});
+		ctrl.$input
+			.addClass("btn-xs dt-action-update")
 			.attr("data-name", t.name)
 			.attr("data-label", t.template_name)
-			.text(__("Update"))
 			.attr("title", __("Replace with current form values"))
 			.appendTo($actions);
 	}
 
 	_add_edit_btn($actions, t) {
-		$('<button class="btn btn-xs btn-default dt-action-edit" type="button"></button>')
+		const ctrl = frappe.ui.form.make_control({
+			df: { fieldtype: "Button", fieldname: "dt_action_edit", label: __("Edit") },
+			parent: $("<div>"),
+			render_input: true,
+		});
+		ctrl.$input
+			.addClass("btn-xs dt-action-edit")
+			.html(frappe.utils.icon("edit", "xs"))
 			.attr("data-name", t.name)
 			.attr("title", __("Open template"))
 			.attr("aria-label", __("Edit {0}", [t.template_name]))
-			.html(frappe.utils.icon("edit", "xs"))
 			.appendTo($actions);
 	}
 
 	_add_delete_btn($actions, t) {
-		$('<button class="btn btn-xs btn-default dt-action-delete" type="button"></button>')
+		const ctrl = frappe.ui.form.make_control({
+			df: { fieldtype: "Button", fieldname: "dt_action_delete", label: __("Delete") },
+			parent: $("<div>"),
+			render_input: true,
+		});
+		ctrl.$input
+			.addClass("btn-xs dt-action-delete")
+			.html(frappe.utils.icon("trash", "xs"))
 			.attr("data-name", t.name)
 			.attr("data-label", t.template_name)
 			.attr("title", __("Delete template"))
 			.attr("aria-label", __("Delete {0}", [t.template_name]))
-			.html(frappe.utils.icon("trash", "xs"))
 			.appendTo($actions);
 	}
 
