@@ -21,6 +21,7 @@
   "report_function",
   "is_public",
   "currency",
+  "show_full_number",
   "custom_configuration_section",
   "filters_config",
   "stats_section",
@@ -37,7 +38,7 @@
  ],
  "fields": [
   {
-   "depends_on": "eval: doc.type == 'Document Type'",
+   "depends_on": "eval: ['Document Type', 'Custom'].includes(doc.type)",
    "fieldname": "document_type",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -218,10 +219,17 @@
    "fieldname": "background_color",
    "fieldtype": "Color",
    "label": "Background Color"
+  },
+  {
+   "default": "0",
+   "description": "Check to display the full numeric value (e.g., 1,234,567 instead of 1.2M).",
+   "fieldname": "show_full_number",
+   "fieldtype": "Check",
+   "label": "Show Full Number"
   }
  ],
  "links": [],
- "modified": "2025-05-21 10:49:51.759985",
+ "modified": "2025-05-21 17:33:04.908518",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",

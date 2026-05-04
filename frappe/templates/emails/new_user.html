@@ -1,5 +1,5 @@
 <p>
-	{{_("Hello")}} {{ first_name }}{% if last_name %} {{ last_name}}{% endif %},
+	{{_("Hello")}} {{ first_name | e }}{% if last_name %} {{ last_name | e }}{% endif %},
 </p>
 {% set site_link = "<a href='" + site_url + "'>" + site_url + "</a>" %}
 <p>{{_("A new account has been created for you at {0}").format(site_link)}}.</p>

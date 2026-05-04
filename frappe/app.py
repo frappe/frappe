@@ -68,6 +68,11 @@ if frappe._tune_gc:
 
 # end: module pre-loading
 
+# better werkzeug default
+# this is necessary because frappe desk sends most requests as form data
+# and some of them can exceed werkzeug's default limit of 500kb
+Request.max_form_memory_size = None
+
 
 def after_response_wrapper(app):
 	"""Wrap a WSGI application to call after_response hooks after we have responded.
@@ -119,6 +124,12 @@ def application(request: Request):
 
 		elif request.path.startswith("/private/files/"):
 			response = frappe.utils.response.download_private_file(request.path)
+
+		elif request.path == "/.well-known/security.txt" and request.method == "GET":
+			if request.scheme != "https":
+				raise NotFound
+			security_settings = frappe.get_doc("Security Settings")
+			response = Response(security_settings.security_txt, content_type="text/plain")
 
 		elif request.method in ("GET", "HEAD", "POST"):
 			response = get_response()

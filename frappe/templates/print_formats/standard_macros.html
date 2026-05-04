@@ -110,9 +110,11 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{%- if df.fieldtype in ("Text", "Code", "Long Text") %}<label>{{ _(df.label, context=df.parent) }}</label>{%- endif %}
 	{%- if df.fieldtype=="Code" %}
 		<pre class="value">{{ doc.get(df.fieldname)|e }}</pre>
-	{% else -%}
+	{%- elif df.fieldtype in ("Text", "Long Text") -%}
+		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable)|e }}
+	{%- else -%}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
-{% endif -%}
+	{%- endif -%}
 </div>
 {%- endif -%}
 {%- endmacro -%}
@@ -160,6 +162,12 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		{{ frappe.render_template(df.options, {"doc":doc}) }}
 	{% elif df.fieldtype=="Currency" %}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
+	{% elif df.fieldtype=="Data" %}
+		{%- set parent = parent_doc or doc -%}
+		{{ doc.get_formatted(df.fieldname, parent, translated=df.translatable, absolute_value=parent.absolute_value) |e }}
+	{% elif df.fieldtype in ("Text", "Long Text") %}
+		{%- set parent = parent_doc or doc -%}
+		{{ doc.get_formatted(df.fieldname, parent, translated=df.translatable, absolute_value=parent.absolute_value) |e }}
 	{% else %}
 		{%- set parent = parent_doc or doc -%}
 		{{ doc.get_formatted(df.fieldname, parent, translated=df.translatable, absolute_value=parent.absolute_value) }}

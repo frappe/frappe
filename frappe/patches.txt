@@ -242,3 +242,5 @@ frappe.patches.v14_0.fix_user_settings_collation
 execute:frappe.core.doctype.system_settings.system_settings.sync_system_settings 
 frappe.printing.doctype.print_format.patches.sets_wkhtmltopdf_as_default_for_pdf_generator_field
 frappe.patches.v16_0.social_eps_deprecation_warning
+frappe.core.doctype.communication_link.patches.copy_communication_date_to_link
+frappe.core.doctype.communication.patches.drop_ref_dt_dn_index

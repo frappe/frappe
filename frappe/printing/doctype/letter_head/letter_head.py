@@ -37,6 +37,13 @@ class LetterHead(Document):
 		# for better UX, let user set from attachment
 		self.source = "Image"
 
+	def on_trash(self):
+		from frappe.defaults import clear_default
+
+		clear_default("letter_head", self.name)
+		clear_default("default_letter_head_content", self.content)
+		frappe.clear_cache()
+
 	def validate(self):
 		self.set_image()
 		self.validate_disabled_and_default()

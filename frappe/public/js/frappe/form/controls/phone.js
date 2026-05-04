@@ -7,6 +7,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		super.make_input();
 		this.setup_country_code_picker();
 		this.input_events();
+		this.set_default_country();
 	}
 
 	async setup_country_codes() {
@@ -21,6 +22,15 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		}
 	}
 
+	set_default_country() {
+		if (!this.get_value()) {
+			const default_country = frappe.sys_defaults?.country || "India";
+			if (this.country_codes && this.country_codes[default_country]) {
+				this.country_code_picker.on_change(default_country, false);
+			}
+		}
+	}
+
 	input_events() {
 		this.$input.keydown((e) => {
 			const key_code = e.keyCode;
@@ -32,7 +42,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		});
 
 		// Replaces code when selected and removes previously selected.
-		this.country_code_picker.on_change = (country) => {
+		this.country_code_picker.on_change = (country, focus = true) => {
 			if (!country) {
 				return this.reset_input();
 			}
@@ -59,7 +69,9 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			this.update_padding();
 			// hide popover and focus input
 			this.$wrapper.popover("hide");
-			this.$input.focus();
+			if (focus) {
+				this.$input.focus();
+			}
 		};
 
 		this.$wrapper.find(".selected-phone").on("click", (e) => {
@@ -133,6 +145,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 
 		if (!this.get_value()) {
 			this.reset_input();
+			this.set_default_country();
 		}
 	}
 

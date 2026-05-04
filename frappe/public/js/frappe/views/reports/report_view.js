@@ -162,16 +162,36 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	set_link_title_field_value() {
+		let rows = this.datatable?.datamanager?.rows;
+		let link_col_indices = this.datatable?.datamanager?.columns
+			?.filter((c) => c.docfield?.fieldtype === "Link")
+			.map((c) => c.colIndex);
+
 		Object.keys(this.link_title_doctype_fields).forEach(async (key) => {
 			let link_title = await this.get_link_title_field_value(
 				this.link_title_doctype_fields[key],
 				key
 			);
 
-			if (link_title !== undefined) {
-				document.querySelectorAll(`a[data-name="${key}"]`).forEach((el) => {
-					el.innerHTML = link_title;
-				});
+			if (link_title === undefined) return;
+
+			// update visible DOM elements and cell tooltip
+			document.querySelectorAll(`a[data-name="${key}"]`).forEach((el) => {
+				if (el.innerHTML === link_title) return;
+				el.innerHTML = link_title;
+
+				$(el).closest(".dt-cell__content").attr("title", link_title);
+			});
+
+			if (rows?.length && link_col_indices?.length) {
+				for (let row of rows) {
+					for (let ci of link_col_indices) {
+						let cell = row[ci];
+						if (cell?.content === key && cell.html) {
+							cell.html = null;
+						}
+					}
+				}
 			}
 		});
 	}
@@ -715,9 +735,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		} else if (expression.substr(0, 5) == "eval:") {
 			try {
 				out = frappe.utils.eval(expression.substr(5), { doc: data });
-				if (parent && parent.istable && expression.includes("is_submittable")) {
-					out = true;
-				}
 			} catch (e) {
 				frappe.throw(__('Invalid "depends_on" expression'));
 			}
@@ -1028,7 +1045,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			columns: 2,
 			options: columns[this.doctype]
 				.filter((df) => {
-					return !df.hidden && df.fieldname !== "name";
+					return !df.hidden && df.fieldname !== "name" && !df.is_virtual;
 				})
 				.map((df) => ({
 					label: __(df.label, null, df.parent),
@@ -1538,6 +1555,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			},
 			{
 				label: __("Print"),
+				condition: () => frappe.model.can_print(this.doctype),
 				action: () => {
 					// prepare rows in their current state, sorted and filtered
 					const rows_in_order = this.datatable.datamanager.rowViewOrder

@@ -195,7 +195,8 @@ function get_number_format_info(format) {
 	}
 
 	// get the precision from the number format
-	info.precision = format.split(info.decimal_str).slice(1)[0].length;
+	info.precision =
+		info.decimal_str == "" ? 0 : format.split(info.decimal_str).slice(1)[0].length;
 
 	return info;
 }

@@ -207,7 +207,7 @@ scheduler_events = {
 			"frappe.deferred_insert.save_to_db",
 			"frappe.automation.doctype.reminder.reminder.send_reminders",
 			"frappe.model.utils.link_count.update_link_count",
-			"frappe.pulse.client.send_queued_events",
+			"frappe.utils.telemetry.pulse.client.send_queued_events",
 			"frappe.search.sqlite_search.build_index_if_not_exists",
 		],
 		# 10 minutes
@@ -218,6 +218,10 @@ scheduler_events = {
 		"30 * * * *": [],
 		# Daily but offset by 45 minutes
 		"45 0 * * *": [],
+		# Daily at 6:00 AM.
+		"0 6 * * *": [
+			"frappe.core.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
+		],
 	},
 	"all": [
 		"frappe.email.queue.flush",

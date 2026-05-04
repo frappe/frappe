@@ -26,6 +26,7 @@ class SMTPServer:
 		use_ssl=None,
 		use_oauth=0,
 		access_token=None,
+		timeout=2 * 60,
 	):
 		self.login = login
 		self.email_account = email_account
@@ -37,6 +38,7 @@ class SMTPServer:
 		self.use_oauth = use_oauth
 		self.access_token = access_token
 		self._session = None
+		self.timeout = timeout
 
 		if not self.server:
 			frappe.msgprint(
@@ -72,7 +74,7 @@ class SMTPServer:
 		SMTP = smtplib.SMTP_SSL if self.use_ssl else smtplib.SMTP
 
 		try:
-			_session = SMTP(self.server, self.port, timeout=2 * 60)
+			_session = SMTP(self.server, self.port, timeout=self.timeout)
 			if not _session:
 				frappe.msgprint(
 					_("Could not connect to outgoing email server"), raise_exception=frappe.OutgoingEmailError
@@ -95,7 +97,7 @@ class SMTPServer:
 			return self._session
 
 		except smtplib.SMTPAuthenticationError:
-			self.throw_invalid_credentials_exception()
+			self.throw_invalid_credentials_exception(email_account=self.email_account)
 
 		except OSError as e:
 			# Invalid mail server -- due to refusing connection
@@ -128,10 +130,17 @@ class SMTPServer:
 				self._session.quit()
 
 	@classmethod
-	def throw_invalid_credentials_exception(cls):
+	def throw_invalid_credentials_exception(cls, email_account=None):
 		original_exception = get_traceback() or "\n"
+		error_message = (
+			_("Please check your email login credentials.") + " " + original_exception.splitlines()[-1]
+		)
+		error_title = _("Invalid Credentials")
+		if email_account:
+			error_title = _("Invalid Credentials for Email Account: {0}").format(email_account)
+
 		frappe.throw(
-			_("Please check your email login credentials.") + " " + original_exception.splitlines()[-1],
-			title=_("Invalid Credentials"),
+			error_message,
+			title=error_title,
 			exc=InvalidEmailCredentials,
 		)

@@ -6,7 +6,8 @@
  "field_order": [
   "link_doctype",
   "link_name",
-  "link_title"
+  "link_title",
+  "communication_date"
  ],
  "fields": [
   {
@@ -31,10 +32,17 @@
    "in_list_view": 1,
    "label": "Link Title",
    "read_only": 1
+  },
+  {
+   "fieldname": "communication_date",
+   "fieldtype": "Datetime",
+   "label": "Communication Date",
+   "read_only": 1
   }
  ],
  "istable": 1,
- "modified": "2019-05-21 09:47:23.043960",
+ "modified": "2025-11-08 11:07:13.960236",
+ "links": [],
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication Link",

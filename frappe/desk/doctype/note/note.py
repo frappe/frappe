@@ -36,6 +36,7 @@ class Note(Document):
 
 		if not self.content:
 			self.content = "<span></span>"
+		self.content = frappe.utils.sanitize_html(self.content, always_sanitize=True)
 
 	def before_print(self, settings=None):
 		self.print_heading = self.name

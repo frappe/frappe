@@ -6,12 +6,14 @@ Utilities for using modules
 
 import json
 import os
+from pathlib import Path
 from textwrap import dedent, indent
 from typing import TYPE_CHECKING, Union
 
 import frappe
 from frappe import _, get_module_path, scrub
 from frappe.utils import cint, cstr, now_datetime
+from frappe.utils.caching import site_cache
 
 if TYPE_CHECKING:
 	from types import ModuleType
@@ -152,6 +154,24 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 							custom_field.flags.ignore_validate = True
 							custom_field.update(d)
 							custom_field.db_update()
+				case "DocType Link":
+					for d in data[key]:
+						link = frappe.db.get_value(
+							"DocType Link",
+							{
+								"parent": doc_type,
+								"link_doctype": d.get("link_doctype"),
+								"link_fieldname": d.get("link_fieldname"),
+							},
+						)
+						if not link:
+							d["owner"] = "Administrator"
+							_insert(d)
+						else:
+							doc_link = frappe.get_doc("DocType Link", link)
+							doc_link.flags.ignore_validate = True
+							doc_link.update(d)
+							doc_link.db_update()
 				case "Property Setter":
 					# Property setter implement their own deduplication, we can just sync them as is
 					for d in data[key]:
@@ -181,6 +201,9 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 		sync("custom_fields", "Custom Field", "dt")
 		update_schema = True
 
+	if data.get("links", False):
+		sync("links", "DocType Link", "parent")
+
 	if data["property_setters"]:
 		sync("property_setters", "Property Setter", "doc_type")
 
@@ -200,8 +223,12 @@ def scrub_dt_dn(dt: str, dn: str) -> tuple[str, str]:
 
 
 def get_doc_path(module: str, doctype: str, name: str) -> str:
-	"""Returns path of a doc in a module"""
-	return os.path.join(get_module_path(module), *scrub_dt_dn(doctype, name))
+	"""Return path of a doc in a module."""
+	module_path = Path(get_module_path(module))
+	path = module_path / Path(*scrub_dt_dn(doctype, name))
+	if not path.resolve().is_relative_to(module_path.resolve()):
+		raise ValueError(_("Path {0} is not within module {1}").format(path, module))
+	return path.resolve()
 
 
 def reload_doc(
@@ -273,6 +300,19 @@ def get_module_app(module: str) -> str:
 	if app is None:
 		frappe.throw(_("Module {} not found").format(module), exc=frappe.DoesNotExistError)
 	return app
+
+
+@site_cache
+def get_doctype_app_map():
+	DocType = frappe.qb.DocType("DocType")
+	Module = frappe.qb.DocType("Module Def")
+	return dict(
+		frappe.qb.from_(DocType)
+		.left_join(Module)
+		.on(DocType.module == Module.name)
+		.select(DocType.name, Module.app_name)
+		.run()
+	)
 
 
 def get_app_publisher(module: str) -> str:

@@ -53,10 +53,14 @@ class ModuleOnboarding(Document):
 		is_complete = [bool(step.is_complete or step.is_skipped) for step in steps]
 		if all(is_complete):
 			self.is_complete = True
-			self.save(ignore_permissions=True)
+			frappe.enqueue(self.mark_as_completed, enqueue_after_commit=True)
 			return True
 
 		return False
+
+	def mark_as_completed(self):
+		self.is_complete = True
+		self.save(ignore_permissions=True)
 
 	@frappe.whitelist()
 	def reset_progress(self):

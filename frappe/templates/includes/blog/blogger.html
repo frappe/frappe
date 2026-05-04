@@ -1,7 +1,7 @@
 {% from "frappe/templates/includes/avatar_macro.html" import avatar %}
 
 <div class="media">
-	{{  avatar(full_name=blogger_info.full_name, image=blogger_info.avatar, size='avatar-large') }}
+	{{  avatar(user_id=blogger_info.user, full_name=blogger_info.full_name, image=blogger_info.avatar, size='avatar-large') }}
 
 	<div class="media-body ml-3">
 		<h5 class="mt-0">

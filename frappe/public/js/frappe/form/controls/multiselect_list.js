@@ -14,7 +14,10 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 					</li>
 					<div class="selectable-items">
 					</div>
-					<li class="text-right">
+					<li class="d-flex justify-content-end">
+						<button class="btn btn-secondary btn-xs select-all-options text-nowrap mr-2">
+							${__("Select All")}
+						</button>
 						<button class="btn btn-primary btn-xs clear-selections text-nowrap">
 							${__("Clear All")}
     					</button>
@@ -34,6 +37,9 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		});
 		this.$list_wrapper.on("click", ".clear-selections", (e) => {
 			this.clear_all_selections();
+		});
+		this.$list_wrapper.on("click", ".select-all-options", (e) => {
+			this.select_all_options();
 		});
 		this.$list_wrapper.on("click", ".selectable-item", (e) => {
 			let $target = $(e.currentTarget);
@@ -90,6 +96,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			this.set_options().then(() => {
 				this.set_selectable_items(this._options);
 			});
+			this.adjust_dropdown_right_position();
 		});
 
 		this.set_input_attributes();
@@ -120,6 +127,14 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 	clear_all_selections() {
 		this.values = [];
 		this._selected_values = [];
+		this.update_status();
+		this.set_selectable_items(this._options);
+		this.parse_validate_and_set_in_model("");
+	}
+
+	select_all_options() {
+		this.values = this._options.map((opt) => opt.value);
+		this._selected_values = this._options.slice();
 		this.update_status();
 		this.set_selectable_items(this._options);
 		this.parse_validate_and_set_in_model("");
@@ -244,22 +259,25 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		this.$list_wrapper.find(".selectable-items").html(html);
 
 		this.highlighted = -1;
-		this.adjust_dropdown_right_position();
 	}
 
 	adjust_dropdown_right_position() {
-		const $dropdown = $(this.$list_wrapper).find("ul.dropdown-menu");
-
-		const dropdown_el = $dropdown[0];
-		const parent_el = dropdown_el.parentElement;
-
-		const dropdown_rect = dropdown_el.getBoundingClientRect();
-		const parent_rect = parent_el.getBoundingClientRect();
-		const right_diff = parent_rect.right - dropdown_rect.right;
-
 		setTimeout(() => {
+			const $dropdown = $(this.$list_wrapper).find("ul.dropdown-menu");
+
+			const dropdown_el = $dropdown[0];
+			const parent_el = dropdown_el.parentElement;
+			const dropdown_rect = dropdown_el.getBoundingClientRect();
+
+			const page_left_position =
+				parent_el?.parentElement?.parentElement?.getBoundingClientRect()?.left;
+
+			if (page_left_position && dropdown_rect.left - page_left_position <= 100) return;
+
+			const parent_rect = parent_el.getBoundingClientRect();
+			const right_diff = parent_rect.right - dropdown_rect.right;
 			dropdown_el.style.left = `${right_diff}px`;
-		}, 10);
+		}, 20);
 	}
 
 	get_value() {

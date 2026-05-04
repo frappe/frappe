@@ -221,8 +221,8 @@ def quick_kanban_board(doctype, board_name, field_name, project=None):
 
 def get_order_for_column(board, colname):
 	filters = [[board.reference_doctype, board.field_name, "=", colname]]
-	if board.filters:
-		filters.append(frappe.parse_json(board.filters)[0])
+	if board.filters and (parsed_filters := frappe.parse_json(board.filters)):
+		filters.append(parsed_filters[0])
 
 	return frappe.as_json(frappe.get_list(board.reference_doctype, filters=filters, pluck="name"))
 

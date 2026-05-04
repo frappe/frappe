@@ -64,7 +64,7 @@ class Dashboard(Document):
 			try:
 				json.loads(self.chart_options)
 			except ValueError as error:
-				frappe.throw(_("Invalid json added in the custom options: {0}").format(error))
+				frappe.throw(_("Invalid json added in the custom options: {0}").format(str(error)))
 
 
 def get_permission_query_conditions(user):

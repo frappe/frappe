@@ -274,7 +274,7 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 		],
 		filters=filters,
 		parent_doctype=chart.parent_document_type,
-		group_by=group_by_field,
+		group_by=group_by_field if "." in group_by_field else f"`tab{doctype}`.`{group_by_field}`",
 		order_by="count desc",
 		ignore_ifnull=True,
 	)
@@ -411,7 +411,7 @@ class DashboardChart(Document):
 			try:
 				json.loads(self.custom_options)
 			except ValueError as error:
-				frappe.throw(_("Invalid json added in the custom options: {0}").format(error))
+				frappe.throw(_("Invalid json added in the custom options: {0}").format(str(error)))
 
 
 @frappe.whitelist()

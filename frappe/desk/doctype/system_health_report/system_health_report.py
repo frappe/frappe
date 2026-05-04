@@ -278,7 +278,7 @@ class SystemHealthReport(Document):
 
 		_cols, data = db_report()
 		self.database = frappe.db.db_type
-		self.db_storage_usage = sum(table.size for table in data)
+		self.db_storage_usage = sum(table.size or 0.0 for table in data)
 		for row in data[:5]:
 			self.append("top_db_tables", row)
 		self.database_version = frappe.db.sql("select version()")[0][0]

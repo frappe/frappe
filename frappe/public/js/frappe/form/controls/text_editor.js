@@ -235,7 +235,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			theme: this.df.theme || "snow",
 			readOnly: this.disabled || this.df.read_only,
 			bounds: this.quill_container[0],
-			placeholder: this.df.placeholder || "",
+			placeholder: __(this.df.placeholder || ""),
 		};
 
 		// In a grid row where space is constrained, hide the toolbar.
@@ -253,7 +253,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 		}
 		let me = this;
 		return {
-			allowedChars: /^[A-Za-z0-9_]*$/,
+			allowedChars: /^[\p{L}0-9_]*$/u,
 			mentionDenotationChars: ["@"],
 			isolateCharacter: true,
 			source: frappe.utils.debounce(async function (search_term, renderList) {
@@ -361,7 +361,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 	}
 
 	get_keyboard_bindings() {
-		let bindings = {
+		const bindings = {
 			"table enter": {
 				key: "Enter",
 				formats: ["table"],
@@ -388,6 +388,14 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 				},
 			},
 		};
+
+		if (this.grid_row) {
+			bindings["tab"] = {
+				key: "Tab",
+				handler: () => true, // call default handler
+			};
+		}
+
 		return bindings;
 	}
 };

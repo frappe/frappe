@@ -128,10 +128,6 @@ body {
 	-webkit-transform: translate(-50%, -50%);
 }
 
-.hide {
-	display: none !important;
-}
-
 .btn-link {
 	box-shadow: none !important;
 	outline: none;
@@ -142,6 +138,10 @@ body {
 }
 
 .hidden {
+	@extend .d-none;
+}
+
+.hide {
 	@extend .d-none;
 }
 

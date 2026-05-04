@@ -12,8 +12,8 @@ from email.policy import SMTP
 from typing import TYPE_CHECKING
 
 import frappe
-from frappe import _, safe_encode, task
-from frappe.core.utils import html2text
+from frappe import _, are_emails_muted, safe_encode, task
+from frappe.core.utils import html_to_plain_text
 from frappe.database.database import savepoint
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import add_attachment, get_email, get_formatted_html
@@ -73,6 +73,9 @@ class EmailQueue(Document):
 	# end: auto-generated types
 	DOCTYPE = "Email Queue"
 
+	def onload(self):
+		self.set_onload("mute_emails", bool(are_emails_muted()))
+
 	def set_recipients(self, recipients):
 		self.set("recipients", [])
 		for r in recipients:
@@ -121,7 +124,7 @@ class EmailQueue(Document):
 
 	def update_status(self, status, commit=False, **kwargs):
 		self.update_db(status=status, commit=commit, **kwargs)
-		if self.communication:
+		if self.communication and frappe.db.exists("Communication", self.communication):
 			communication_doc = frappe.get_doc("Communication", self.communication)
 			communication_doc.set_delivery_status(commit=commit)
 
@@ -291,7 +294,8 @@ class SendMailContext:
 		recipient.update_db(status="Sent", commit=True)
 
 	def get_message_object(self, message):
-		return Parser(policy=SMTP).parsestr(message)
+		policy = SMTP.clone(refold_source="none")
+		return Parser(policy=policy).parsestr(message)
 
 	def message_placeholder(self, placeholder_key):
 		# sourcery skip: avoid-builtin-shadow
@@ -456,7 +460,18 @@ def send_now(name, force_send: bool = False):
 @frappe.whitelist()
 def toggle_sending(enable):
 	frappe.only_for("System Manager")
-	frappe.db.set_default("suspend_email_queue", 0 if sbool(enable) else 1)
+	suspend_value = 0 if sbool(enable) else 1
+	frappe.db.set_default("suspend_email_queue", suspend_value)
+
+	action = "Resumed" if suspend_value == 0 else "Suspended"
+	frappe.get_doc(
+		{
+			"doctype": "Activity Log",
+			"user": frappe.session.user,
+			"status": "Success",
+			"subject": f"Email Queue sending {action.lower()}",
+		}
+	).insert(ignore_permissions=True, ignore_links=True)
 
 
 def on_doctype_update():
@@ -524,7 +539,11 @@ class QueueBuilder:
 		:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
 		:param send_after: Send this email after the given datetime. If value is in integer, then `send_after` will be the automatically set to no of days from current date.
 		:param communication: Communication link to be set in Email Queue record
-		:param queue_separately: Queue each email separately
+		:param queue_separately: Queue each email separately (one per recipient). When True, each TO recipient
+		receives an individual email. Note: If CC/BCC are provided with queue_separately=True, CC/BCC
+		recipients will receive one email for each TO recipient(duplicates), as each TO email is a separate message
+		that includes CC/BCC. To avoid this, either don't use queue_separately, or add CC/BCC recipients
+		to the recipients list instead.
 		:param is_notification: Marks email as notification so will not trigger notifications from system
 		:param add_unsubscribe_link: Send unsubscribe link in the footer of the Email, default 1.
 		:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
@@ -612,7 +631,7 @@ class QueueBuilder:
 			return self._text_content + unsubscribe_text_message
 
 		try:
-			text_content = html2text(self._message)
+			text_content = html_to_plain_text(self._message)
 		except Exception:
 			text_content = "See html attachment"
 		return text_content + unsubscribe_text_message
@@ -652,7 +671,7 @@ class QueueBuilder:
 		if self._unsubscribed_user_emails is not None:
 			return self._unsubscribed_user_emails
 
-		all_ids = list(set(self.recipients + self.cc))
+		all_ids = list(set(self.recipients + self.cc + self.bcc))
 
 		EmailUnsubscribe = DocType("Email Unsubscribe")
 
@@ -686,6 +705,10 @@ class QueueBuilder:
 		unsubscribed_emails = self.get_unsubscribed_user_emails()
 		return [mail_id for mail_id in self.cc if mail_id not in unsubscribed_emails]
 
+	def final_bcc(self):
+		unsubscribed_emails = self.get_unsubscribed_user_emails()
+		return [mail_id for mail_id in self.bcc if mail_id not in unsubscribed_emails]
+
 	def get_attachments(self):
 		attachments = []
 		if self._attachments:
@@ -713,7 +736,7 @@ class QueueBuilder:
 			attachments=self._attachments,
 			reply_to=self.reply_to,
 			cc=self.final_cc(),
-			bcc=self.bcc,
+			bcc=self.final_bcc(),
 			email_account=email_account,
 			expose_recipients=self.expose_recipients,
 			inline_images=self.inline_images,
@@ -730,7 +753,8 @@ class QueueBuilder:
 			mail.msg_root["Disposition-Notification-To"] = self.sender
 		if self.in_reply_to:
 			if message_id := frappe.db.get_value("Communication", self.in_reply_to, "message_id"):
-				mail.set_in_reply_to(get_string_between("<", message_id, ">"))
+				message_id = message_id.strip("<> \t\n")
+				mail.set_in_reply_to(f"<{message_id}>")
 		return mail
 
 	def process(self, send_now=False) -> EmailQueue | None:
@@ -740,7 +764,7 @@ class QueueBuilder:
 		"""
 		final_recipients = self.final_recipients()
 		queue_separately = (final_recipients and self.queue_separately) or len(final_recipients) > 100
-		if not (final_recipients + self.final_cc()):
+		if not (final_recipients + self.final_cc() + self.final_bcc()):
 			return []
 
 		queue_data = self.as_dict(include_recipients=False)
@@ -748,7 +772,7 @@ class QueueBuilder:
 			return []
 
 		if not queue_separately:
-			recipients = list(set(final_recipients + self.final_cc() + self.bcc))
+			recipients = list(set(final_recipients + self.final_cc() + self.final_bcc()))
 			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
 			send_now and q.send()
 			return q
@@ -769,11 +793,20 @@ class QueueBuilder:
 				)
 
 	def send_emails(self, queue_data, final_recipients):
+		"""
+		Send emails to recipients separately.
+
+		Note: CC/BCC recipients are included in each email sent to TO recipients.
+		This means CC/BCC will receive one email per TO recipient. This is expected
+		behavior because queue_separately creates individual emails for each TO
+		recipient, and CC/BCC are copied on each individual email.
+
+		"""
 		# This is used to bulk send emails from same sender to multiple recipients separately
 		# This re-uses smtp server instance to minimize the cost of new session creation
 		smtp_server_instance = None
 		for r in final_recipients:
-			recipients = list(set([r, *self.final_cc(), *self.bcc]))
+			recipients = list(set([r, *self.final_cc(), *self.final_bcc()]))
 			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
 			if not smtp_server_instance:
 				email_account = q.get_email_account(raise_error=True)
@@ -818,7 +851,7 @@ class QueueBuilder:
 			"communication": self.communication,
 			"send_after": self.send_after,
 			"show_as_cc": ",".join(self.final_cc()),
-			"show_as_bcc": ",".join(self.bcc),
+			"show_as_bcc": ",".join(self.final_bcc()),
 			"email_account": email_account_name or None,
 			"email_read_tracker_url": self.email_read_tracker_url,
 		}

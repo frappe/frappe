@@ -36,7 +36,7 @@
   },
   {
    "bold": 1,
-   "description": "SQL Conditions. Example: status=\"Open\"",
+   "description": "SQL Conditions. Example: {\"status\" : \"open\", \"priority\" : \"medium\"}",
    "fieldname": "condition",
    "fieldtype": "Small Text",
    "label": "Condition"
@@ -52,7 +52,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2022-08-03 12:20:50.742376",
+ "modified": "2026-04-01 12:18:08.821282",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Bulk Update",
@@ -70,7 +70,8 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "row_format": "Dynamic",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1
