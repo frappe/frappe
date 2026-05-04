@@ -46,7 +46,7 @@ export default defineConfig({
 		},
 	},
 	build: {
-		rollupOptions: {
+		rolldownOptions: {
 			input: {
 				studio: path.resolve(__dirname, "index.html"),
 				renderer: path.resolve(__dirname, "renderer.html"),

@@ -153,7 +153,7 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 		},
 		build: {
 			manifest: true,
-			rollupOptions: {
+			rolldownOptions: {
 				input: {
 					studioRenderer: path.resolve(__dirname, entryFilePath),
 				},
