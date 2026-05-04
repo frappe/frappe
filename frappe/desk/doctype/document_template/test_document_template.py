@@ -349,7 +349,7 @@ class TestDocumentTemplate(IntegrationTestCase):
 		self.assertNotIn(blocked.template_name, names)
 
 	def test_get_templates_system_manager_sees_all_public_and_own_private_only(self):
-		"""System Manager can see every template regardless of owner or privacy."""
+		"""System Manager sees all public and own private template in the list view."""
 		with (
 			test_user(roles=["Desk User"]) as owner_user,
 			test_user(roles=["System Manager"]) as sm,

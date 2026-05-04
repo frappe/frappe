@@ -254,7 +254,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 
 		if (!name_val) {
 			frappe.show_alert({
-				message: __("Please enter a template name."),
+				message: __("Please enter a template name"),
 				indicator: "orange",
 			});
 			this._template_name_control.$input?.focus();
@@ -293,7 +293,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			.catch((e) => {
 				console.error("Document Template: failed to save template", e);
 				frappe.show_alert({
-					message: __("Failed to save template."),
+					message: __("Failed to save template"),
 					indicator: "red",
 				});
 			})
