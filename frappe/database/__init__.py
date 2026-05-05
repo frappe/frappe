@@ -94,6 +94,19 @@ def get_db(socket=None, host=None, user=None, password=None, port=None, cur_db_n
 		)
 
 
+def get_duckdb(db_name=None):
+	import duckdb
+
+	duckdb_conn = duckdb.connect(f"{db_name}.duckdb")
+
+	# Initialize
+	databases = [x[0] for x in duckdb_conn.sql("show databases;").fetchall()]
+	if db_name not in databases:
+		duckdb_conn.sql(f"create database {db_name}")
+	duckdb_conn.sql(f"use {db_name}")
+	return duckdb_conn
+
+
 def get_command(
 	socket=None, host=None, port=None, user=None, password=None, db_name=None, extra=None, dump=False
 ):
