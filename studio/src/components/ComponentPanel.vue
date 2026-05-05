@@ -59,7 +59,7 @@
 							<div
 								class="flex h-6 w-6 items-center justify-center rounded bg-surface-green-1 text-ink-green-3"
 							>
-								<FeatherIcon name="code" class="h-3 w-3" />
+								<LucideCode class="h-3 w-3" />
 							</div>
 							<p class="text-sm">{{ component.component_name }}</p>
 						</div>
@@ -84,7 +84,7 @@
 					>
 						<div class="flex items-center gap-2 text-ink-gray-7">
 							<div class="flex h-6 w-6 items-center justify-center rounded bg-purple-50 text-purple-600">
-								<FeatherIcon name="box" class="h-3 w-3" />
+								<LucideBox class="h-3 w-3" />
 							</div>
 							<p class="text-sm">
 								{{ component.component_name }}
@@ -132,6 +132,8 @@ import useStudioStore from "@/stores/studioStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { leftPanelComponentTabOptions } from "@/types"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
+import LucideCode from "~icons/lucide/code"
+import LucideBox from "~icons/lucide/box"
 
 const canvasStore = useCanvasStore()
 const store = useStudioStore()
