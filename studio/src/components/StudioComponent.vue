@@ -112,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, useAttrs, inject, ComputedRef, onErrorCaptured } from "vue"
+import { computed, ref, watch, useAttrs, inject, ComputedRef, onErrorCaptured, h } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
@@ -126,6 +126,7 @@ import { isDynamicValue } from "@/utils/code"
 import type { CanvasProps } from "@/types/StudioCanvas"
 import type { RepeaterContext } from "@/types"
 import type HTML from "@/components/AppLayout/HTML.vue"
+import MissingComponent from "@/components/MissingComponent.vue"
 import useCodeStore from "@/stores/codeStore"
 
 const props = withDefaults(
@@ -178,8 +179,10 @@ const componentName = computed(() => {
 		const proxyComponent = props.block.getProxyComponent()
 		name = proxyComponent ? proxyComponent : props.block.componentName
 	}
-	if (typeof name === "string" && customVueComponentsRegistry.value[name]) {
-		return customVueComponentsRegistry.value[name]
+
+	if (props.block.isCustomVueComponent) {
+		name = customVueComponentsRegistry.value[name]
+		if (!name) return h(MissingComponent, { componentName: props.block.componentName })
 	}
 	return name
 })

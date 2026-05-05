@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import Block from "@/utils/block"
-import { computed, onMounted, ref, useAttrs, inject, type ComputedRef } from "vue"
+import { computed, onMounted, ref, useAttrs, inject, type ComputedRef, h } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import { useRouter } from "vue-router"
 import { createResource } from "frappe-ui"
@@ -69,6 +69,7 @@ import type { DataResult } from "@/types/Studio/StudioResource"
 
 import StudioComponentRenderer from "@/components/StudioComponentRenderer.vue"
 import { customVueComponentsRegistry } from "@/globals"
+import MissingComponent from "./MissingComponent.vue"
 
 const props = defineProps<{
 	block: Block
@@ -76,9 +77,10 @@ const props = defineProps<{
 
 const componentName = computed(() => {
 	if (props.block.isContainer()) return props.block.originalElement || "div"
-	const name = props.block.componentName
-	if (customVueComponentsRegistry.value[name]) {
-		return customVueComponentsRegistry.value[name]
+	let name = props.block.componentName
+	if (props.block.isCustomVueComponent) {
+		name = customVueComponentsRegistry.value[name]
+		if (!name) return h(MissingComponent, { componentName: props.block.componentName })
 	}
 	return name
 })
