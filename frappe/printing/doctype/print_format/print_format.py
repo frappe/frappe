@@ -66,7 +66,14 @@ class PrintFormat(Document):
 			filters={"document_type": self.doc_type},
 		)
 		self.set_onload("print_templates", templates)
+		self.set_onload("is_default_print_format", self.is_default_print_format())
 		self.load_content_from_files()
+
+	def is_default_print_format(self):
+		if not self.doc_type:
+			return False
+
+		return frappe.get_meta(self.doc_type).default_print_format == self.name
 
 	def load_content_from_files(self):
 		"""Hydrate file-backed content in-memory for frontend actions."""
@@ -374,3 +381,10 @@ def get_print_format_content(name: str) -> dict:
 		"html": print_format.get_format_html(),
 		"css": print_format.get_format_css(),
 	}
+
+
+@frappe.whitelist()
+def has_number_field(doctype: str) -> bool:
+	frappe.has_permission(doctype, throw=True)
+	meta = frappe.get_meta(doctype)
+	return any(df.fieldtype in ("Int", "Float", "Currency") for df in meta.fields)

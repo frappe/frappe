@@ -1,6 +1,9 @@
 // Copyright (c) 2017, Frappe Technologies and contributors
 // For license information, please see license.txt
 
+// NOTE: Do not use frappe.model.with_doctype() in this file since it will sync
+// outdated print format data to locals, interfering with this form.
+
 frappe.ui.form.on("Print Format", "onload", function (frm) {
 	frm.add_fetch("doc_type", "module", "module");
 	frm.add_fetch("report", "module", "module");
@@ -8,6 +11,15 @@ frappe.ui.form.on("Print Format", "onload", function (frm) {
 
 frappe.ui.form.on("Print Format", {
 	refresh: function (frm) {
+		if (
+			!frm.is_dirty() &&
+			frm.doc.standard === "Yes" &&
+			!(frm.doc.html || frm.doc.css || frm.doc.raw_commands)
+		) {
+			frm.reload_doc();
+			return;
+		}
+
 		frm.set_intro("");
 		frm.toggle_enable(["doc_type", "module"], false);
 		if (frappe.session.user === "Administrator" || frm.doc.standard === "No") {
@@ -19,60 +31,8 @@ frappe.ui.form.on("Print Format", {
 			frm.set_intro(__("Please duplicate this to make changes"));
 		}
 		frm.trigger("render_buttons");
-		frm.trigger("load_standard_content_from_files");
 		frm.toggle_display("standard", frappe.boot.developer_mode);
 		frm.trigger("hide_absolute_value_field");
-	},
-	before_copy: function (frm) {
-		return frm.trigger("load_standard_content_from_files");
-	},
-	load_standard_content_from_files: function (frm) {
-		if (
-			frm.is_new() ||
-			frm.doc.standard !== "Yes" ||
-			!frm.doc.custom_format ||
-			!frm.doc.name
-		) {
-			return Promise.resolve();
-		}
-
-		const needs_content = frm.doc.raw_printing
-			? frm.doc.raw_commands == null
-			: frm.doc.html == null || frm.doc.css == null;
-		if (!needs_content) {
-			return Promise.resolve();
-		}
-
-		if (frm.__standard_content_loading) {
-			return frm.__standard_content_loading;
-		}
-
-		frm.__standard_content_loading = frappe
-			.xcall(
-				"frappe.printing.doctype.print_format.print_format.get_print_format_file_content",
-				{
-					name: frm.doc.name,
-				}
-			)
-			.then((content) => {
-				content = content || {};
-				if (frm.doc.raw_printing) {
-					frm.doc.raw_commands = content.raw_commands || "";
-					frm.refresh_field("raw_commands");
-					return;
-				}
-
-				frm.doc.html = content.html || "";
-				frm.doc.css = content.css || "";
-				frm.refresh_field("html");
-				frm.refresh_field("css");
-			})
-			.catch(() => null)
-			.finally(() => {
-				frm.__standard_content_loading = null;
-			});
-
-		return frm.__standard_content_loading;
 	},
 	render_buttons: function (frm) {
 		frm.page.clear_inner_toolbar();
@@ -91,12 +51,7 @@ frappe.ui.form.on("Print Format", {
 				});
 			}
 			if (frappe.model.can_write("Customize Form")) {
-				frappe.model.with_doctype(frm.doc.doc_type, function () {
-					let current_format = frappe.get_meta(frm.doc.doc_type).default_print_format;
-					if (current_format == frm.doc.name) {
-						return;
-					}
-
+				if (!frm.doc.__onload.is_default_print_format) {
 					frm.add_custom_button(__("Set as Default"), function () {
 						frappe.call({
 							method: "frappe.printing.doctype.print_format.print_format.make_default",
@@ -104,11 +59,11 @@ frappe.ui.form.on("Print Format", {
 								name: frm.doc.name,
 							},
 							callback: function () {
-								frm.refresh();
+								frm.reload_doc();
 							},
 						});
 					});
-				});
+				}
 			}
 		}
 	},
@@ -132,13 +87,13 @@ frappe.ui.form.on("Print Format", {
 		// Problem: frm isn't updated in some random cases
 		const doctype = locals[frm.doc.doctype][frm.doc.name].doc_type;
 		if (doctype) {
-			frappe.model.with_doctype(doctype, () => {
-				const meta = frappe.get_meta(doctype);
-				const has_int_float_currency_field = meta.fields.filter((df) =>
-					["Int", "Float", "Currency"].includes(df.fieldtype)
-				);
-				frm.toggle_display("absolute_value", has_int_float_currency_field.length);
-			});
+			frappe
+				.xcall("frappe.printing.doctype.print_format.print_format.has_number_field", {
+					doctype: doctype,
+				})
+				.then((has_number_field) => {
+					frm.toggle_display("absolute_value", has_number_field);
+				});
 		}
 	},
 });
