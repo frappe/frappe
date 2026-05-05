@@ -57,17 +57,14 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	async function loadCustomVueComponents() {
-		const app = window.__STUDIO_APP__
-		if (!app) return
-
 		if (customVueComponents.value.length) {
-			unregisterCustomVueComponents(app, customVueComponents.value)
+			unregisterCustomVueComponents(customVueComponents.value)
 			customVueComponents.value = []
 		}
 		const frappeApp = activeApp.value?.frappe_app
 		if (!frappeApp) return
 
-		customVueComponents.value = await registerCustomVueComponents(app, frappeApp)
+		customVueComponents.value = await registerCustomVueComponents(frappeApp)
 	}
 
 	async function deleteApp(appName: string, appTitle: string) {

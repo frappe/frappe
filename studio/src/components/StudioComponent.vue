@@ -116,6 +116,7 @@ import { computed, ref, watch, useAttrs, inject, ComputedRef, onErrorCaptured } 
 import type { ComponentPublicInstance } from "vue"
 import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
+import { customVueComponentsRegistry } from "@/globals"
 
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
@@ -169,9 +170,18 @@ const styles = computed(() => {
 
 const componentName = computed(() => {
 	if (props.block.isContainer()) return props.block.originalElement || "div"
-	if (canvasStore.editingMode === "page") return props.block.componentName
-	const proxyComponent = props.block.getProxyComponent()
-	return proxyComponent ? proxyComponent : props.block.componentName
+
+	let name
+	if (canvasStore.editingMode === "page") {
+		name = props.block.componentName
+	} else {
+		const proxyComponent = props.block.getProxyComponent()
+		name = proxyComponent ? proxyComponent : props.block.componentName
+	}
+	if (typeof name === "string" && customVueComponentsRegistry.value[name]) {
+		return customVueComponentsRegistry.value[name]
+	}
+	return name
 })
 
 const repeaterContext = inject<ComputedRef<RepeaterContext> | null>("repeaterContext", null)

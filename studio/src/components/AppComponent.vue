@@ -68,6 +68,7 @@ import type { Field } from "@/types/ComponentEvent"
 import type { DataResult } from "@/types/Studio/StudioResource"
 
 import StudioComponentRenderer from "@/components/StudioComponentRenderer.vue"
+import { customVueComponentsRegistry } from "@/globals"
 
 const props = defineProps<{
 	block: Block
@@ -75,7 +76,11 @@ const props = defineProps<{
 
 const componentName = computed(() => {
 	if (props.block.isContainer()) return props.block.originalElement || "div"
-	return props.block.componentName
+	const name = props.block.componentName
+	if (customVueComponentsRegistry.value[name]) {
+		return customVueComponentsRegistry.value[name]
+	}
+	return name
 })
 
 const componentRef = ref<ComponentPublicInstance | null>(null)

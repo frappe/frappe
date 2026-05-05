@@ -23,7 +23,7 @@ window.__APP_COMPONENTS__ = app._context.components
 
 const frappeApp = (window as any).frappe_app
 if (frappeApp) {
-	registerCustomVueComponents(app, frappeApp).then(() => {
+	registerCustomVueComponents(frappeApp).then(() => {
 		app.mount("#app")
 	})
 } else {

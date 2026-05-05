@@ -32,7 +32,6 @@ declare global {
 		site_url: string
 		is_developer_mode?: boolean
 		__APP_COMPONENTS__: any
-		__STUDIO_APP__: any
 		[key: string]: string
 	}
 }
@@ -40,9 +39,6 @@ declare global {
 if (window.is_developer_mode && typeof window.is_developer_mode === "string") {
 	window.is_developer_mode = window.is_developer_mode === "1" || window.is_developer_mode === "True"
 }
-
-// Expose the Vue app instance so the store can register/unregister components on it
-window.__STUDIO_APP__ = studio
 
 studio_router.isReady().then(async () => {
 	if (import.meta.env.DEV) {

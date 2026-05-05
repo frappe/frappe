@@ -1,4 +1,4 @@
-import { App, defineAsyncComponent } from "vue"
+import { App, defineAsyncComponent, shallowRef } from "vue"
 import {
 	Alert,
 	Autocomplete,
@@ -142,26 +142,30 @@ export interface CustomVueComponentMeta {
 	file_path: string
 }
 
+export const customVueComponentsRegistry = shallowRef<Record<string, any>>({})
+
 /**
- * Dynamically register custom Vue components from a specific Frappe app into the Vue app instance.
- * Also registers them in the component data registry so Block class can access their metadata.
- * Returns the list of registered component metadata for use in the ComponentPanel.
- *
- * @param app - The Vue app instance
- * @param frappeApp - The Frappe app name to fetch components for
+ * Dynamically register custom Vue components from a specific Frappe app into the custom components registry.
+ * @param frappeApp - The Frappe app name to fetch components from
  */
-export async function registerCustomVueComponents(app: App, frappeApp: string): Promise<CustomVueComponentMeta[]> {
+export async function registerCustomVueComponents(frappeApp: string): Promise<CustomVueComponentMeta[]> {
 	try {
 		if (!frappeApp) return []
 		const components: CustomVueComponentMeta[] = await vueComponents.reload({ frappe_app: frappeApp })
 
+		const registry = { ...customVueComponentsRegistry.value }
 		for (const comp of components) {
 			try {
-				app.component(comp.component_name, defineAsyncComponent(() => import(/* @vite-ignore */ comp.file_path)))
+				const asyncComp = defineAsyncComponent(() => import(/* @vite-ignore */ comp.file_path))
+				registry[comp.component_name] = asyncComp
+				if (window.__APP_COMPONENTS__) {
+					window.__APP_COMPONENTS__[comp.component_name] = asyncComp
+				}
 			} catch (err) {
 				console.error(`Failed to load custom component ${comp.component_name}:`, err)
 			}
 		}
+		customVueComponentsRegistry.value = registry
 		return components
 	} catch (err) {
 		console.error("Failed to fetch custom Vue components:", err)
@@ -170,12 +174,16 @@ export async function registerCustomVueComponents(app: App, frappeApp: string): 
 }
 
 /**
- * Unregister previously registered custom Vue components from the Vue app instance.
+ * Unregister previously registered custom Vue components from the custom components registry.
  * Called when switching apps to clean up components from the previous app's frappe_app.
  */
-export function unregisterCustomVueComponents(app: App, components: CustomVueComponentMeta[]) {
+export function unregisterCustomVueComponents(components: CustomVueComponentMeta[]) {
+	const registry = { ...customVueComponentsRegistry.value }
 	for (const comp of components) {
-		delete app._context.components[comp.component_name]
+		delete registry[comp.component_name]
+		if (window.__APP_COMPONENTS__) {
+			delete window.__APP_COMPONENTS__[comp.component_name]
+		}
 	}
+	customVueComponentsRegistry.value = registry
 }
-
