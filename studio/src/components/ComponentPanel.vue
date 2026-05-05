@@ -50,7 +50,7 @@
 					<div
 						v-for="component in customVueComponents"
 						:key="component.component_name"
-						class="user-component flex cursor-grab select-none items-center justify-between rounded px-2 py-1.5 hover:bg-surface-gray-1"
+						class="user-component flex cursor-grab select-none items-center justify-between rounded p-1 hover:bg-surface-gray-1"
 						draggable="true"
 						:data-component-name="component.component_name"
 						:data-is-custom-vue-component="true"
@@ -59,9 +59,9 @@
 							<div
 								class="flex h-6 w-6 items-center justify-center rounded bg-surface-green-1 text-ink-green-3"
 							>
-								<FeatherIcon name="code" class="h-3.5 w-3.5" />
+								<FeatherIcon name="code" class="h-3 w-3" />
 							</div>
-							<p class="text-base">{{ component.component_name }}</p>
+							<p class="text-sm">{{ component.component_name }}</p>
 						</div>
 					</div>
 				</div>
@@ -73,7 +73,7 @@
 					<div
 						v-for="component in componentList"
 						:key="component.component_id"
-						class="group/component user-component flex cursor-grab select-none items-center justify-between rounded px-2 py-1.5 hover:bg-surface-gray-1"
+						class="group/component user-component flex cursor-grab select-none items-center justify-between rounded p-1 hover:bg-surface-gray-1"
 						:class="{
 							'border border-outline-gray-4':
 								componentEditorStore.selectedComponent === component.component_id,
@@ -84,9 +84,9 @@
 					>
 						<div class="flex items-center gap-2 text-ink-gray-7">
 							<div class="flex h-6 w-6 items-center justify-center rounded bg-purple-50 text-purple-600">
-								<FeatherIcon name="box" class="h-3.5 w-3.5" />
+								<FeatherIcon name="box" class="h-3 w-3" />
 							</div>
-							<p class="text-base">
+							<p class="text-sm">
 								{{ component.component_name }}
 							</p>
 						</div>
