@@ -15,7 +15,9 @@ export default function useComponentInstance(blockGetter: () => Block | undefine
 			if (block?.isCustomVueComponent) {
 				const asyncComponent = customVueComponentsRegistry.value[block.componentName]
 				if (!asyncComponent) return
-				if (typeof asyncComponent.__asyncResolved === "object") {
+
+				const isResolved = typeof asyncComponent.__asyncResolved === "object"
+				if (isResolved) {
 					componentInstance.value = asyncComponent.__asyncResolved
 				} else {
 					const resolved = await asyncComponent.__asyncLoader()

@@ -69,7 +69,7 @@ import type { DataResult } from "@/types/Studio/StudioResource"
 
 import StudioComponentRenderer from "@/components/StudioComponentRenderer.vue"
 import { customVueComponentsRegistry } from "@/globals"
-import MissingComponent from "./MissingComponent.vue"
+import MissingComponent from "@/components/MissingComponent.vue"
 
 const props = defineProps<{
 	block: Block

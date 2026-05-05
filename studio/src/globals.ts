@@ -66,6 +66,7 @@ import BottomTabs from "@/components/AppLayout/BottomTabs.vue"
 import MarkdownEditor from "@/components/AppLayout/MarkdownEditor.vue"
 
 import { vueComponents } from "@/data/vueComponents"
+import { CustomVueComponentMeta } from "@/types/vue"
 
 export function registerGlobalComponents(app: App) {
 	app.component("Alert", Alert)
@@ -135,15 +136,7 @@ export function registerGlobalComponents(app: App) {
 	app.component("MarkdownEditor", MarkdownEditor)
 }
 
-export interface CustomVueComponentMeta {
-	component_name: string
-	frappe_app: string
-	studio_app: string
-	file_path: string
-}
-
 export const customVueComponentsRegistry = shallowRef<Record<string, any>>({})
-
 /**
  * Dynamically register custom Vue components from a specific Frappe app into the custom components registry.
  * @param frappeApp - The Frappe app name to fetch components from

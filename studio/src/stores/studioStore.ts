@@ -54,6 +54,7 @@ const useStudioStore = defineStore("store", () => {
 		activeApp.value = appDoc
 		await setAppPages(appName)
 		await loadCustomVueComponents()
+		setupCustomComponentListener()
 	}
 
 	async function loadCustomVueComponents() {
@@ -67,11 +68,13 @@ const useStudioStore = defineStore("store", () => {
 		customVueComponents.value = await registerCustomVueComponents(frappeApp)
 	}
 
-	// Auto-refresh custom components when .vue files are added/removed in studio folders
-	if (import.meta.hot) {
-		import.meta.hot.on("studio:custom-components-changed", () => {
-			loadCustomVueComponents()
-		})
+	function setupCustomComponentListener() {
+		if (activeApp.value?.is_standard && import.meta.hot) {
+			// Auto-refresh custom components when .vue files are added/removed/renamed in studio folders
+			import.meta.hot.on("studio:custom-components-changed", () => {
+				loadCustomVueComponents()
+			})
+		}
 	}
 
 	async function deleteApp(appName: string, appTitle: string) {
