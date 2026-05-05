@@ -472,6 +472,8 @@ frappe.search.utils = {
 					value: d.name,
 					description: make_description(d.content, d.name),
 					route: ["Form", d.doctype, d.name],
+					_global_raw_content: d.content,
+					_global_doctype: d.doctype,
 				};
 				if (d.image || d.image === null) {
 					result.image = d.image;
@@ -491,14 +493,21 @@ frappe.search.utils = {
 			return results_sets;
 		}
 		return new Promise(function (resolve, reject) {
+			var args = { text: keywords };
+			if (doctype) {
+				args.doctype = doctype;
+			}
+			var offset = parseInt(start, 10) || 0;
+			if (offset > 0) {
+				args.start = offset;
+				args.limit = parseInt(limit, 10);
+				if (!args.limit || args.limit < 1) {
+					args.limit = 20;
+				}
+			}
 			frappe.call({
 				method: "frappe.utils.global_search.search",
-				args: {
-					text: keywords,
-					start: start,
-					limit: limit,
-					doctype: doctype,
-				},
+				args: args,
 				callback: function (r) {
 					if (r.message) {
 						resolve(get_results_sets(r.message));
@@ -508,6 +517,66 @@ frappe.search.utils = {
 				},
 			});
 		});
+	},
+
+	parse_global_search_fields: function (content) {
+		const fields = {};
+		if (!content) return fields;
+		for (const raw of content.split("|||")) {
+			let part = (raw || "").trim();
+			if (!part.length) continue;
+			let sep = " : ";
+			let idx = part.indexOf(sep);
+			if (idx === -1) {
+				sep = " &&& ";
+				idx = part.indexOf(sep);
+			}
+			if (idx === -1) continue;
+			const label = part.slice(0, idx).trim();
+			const value = part.slice(idx + sep.length).trim();
+			if (!label.length || /^name$/i.test(label)) continue;
+			fields[label] = fields[label] ? fields[label] + "," + value : value;
+		}
+		return fields;
+	},
+
+	global_search_field_columns_for_results: function (results) {
+		const cols = [];
+		const seen = Object.create(null);
+		for (const r of results || []) {
+			const fields = this.parse_global_search_fields(r._global_raw_content);
+			for (const col of Object.keys(fields)) {
+				if (!seen[col]) {
+					seen[col] = 1;
+					cols.push(col);
+				}
+			}
+		}
+		return cols;
+	},
+
+	highlight_global_search_terms: function (text, keywords) {
+		const s = text == null ? "" : String(text);
+		const terms = keywords
+			.split("&")
+			.map((p) => p.trim())
+			.filter(Boolean);
+		if (!terms.length) return frappe.utils.escape_html(s);
+		const escaped = terms.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+		try {
+			const re = new RegExp("(" + escaped.join("|") + ")", "gi");
+			return s
+				.split(re)
+				.map((part) => {
+					const isMatch =
+						part && terms.some((t) => part.toLowerCase() === t.toLowerCase());
+					const esc = frappe.utils.escape_html(part);
+					return isMatch ? "<mark>" + esc + "</mark>" : esc;
+				})
+				.join("");
+		} catch (e) {
+			return frappe.utils.escape_html(s);
+		}
 	},
 
 	get_nav_results: function (keywords) {
