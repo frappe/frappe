@@ -706,6 +706,9 @@ class User(Document):
 		frappe.db.set_value("User", new_name, "email", new_name)
 
 		get_controller("Workspace").rename_private_workspaces(old_name, new_name)
+		get_controller("Workspace Sidebar").rename_private_sidebars(
+			old_name, new_name, after_rename_user=True
+		)
 
 		clear_sessions(user=old_name, force=True)
 		clear_sessions(user=new_name, force=True)

@@ -10,7 +10,7 @@ from frappe.boot import get_sidebar_items
 from frappe.desk.desktop import get_workspaces, save_new_widget
 from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import add_to_my_workspace
 from frappe.desk.utils import validate_route_conflict
-from frappe.model.document import Document
+from frappe.model.document import Document, get_controller
 from frappe.model.rename_doc import rename_doc
 from frappe.modules.export_file import delete_folder, export_to_files
 from frappe.utils import strip_html
@@ -178,16 +178,6 @@ class Workspace(Document):
 			if workspace.name != new_label:
 				rename_doc("Workspace", workspace.name, new_label, force=True, show_alert=False)
 			frappe.db.set_value("Workspace", new_label, {"for_user": new_name, "label": new_label})
-
-		# rename sidebar as well
-		suffix = f"-{old_name}"
-		for sidebar in frappe.get_all("Workspace Sidebar", filters={"for_user": new_name}, fields=["name"]):
-			if not sidebar.name.endswith(suffix):
-				continue
-
-			new_title = sidebar.name.removesuffix(suffix) + f"-{new_name}"
-			rename_doc("Workspace Sidebar", sidebar.name, new_title, force=True, show_alert=False)
-			frappe.db.set_value("Workspace Sidebar", new_title, "title", new_title)
 
 	@staticmethod
 	def get_module_wise_workspaces():
