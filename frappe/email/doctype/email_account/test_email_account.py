@@ -521,12 +521,14 @@ class TestInboundMail(IntegrationTestCase):
 
 	def test_mail_exist_validation(self):
 		"""Do not create communication record if the mail is already downloaded into the system."""
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		mail_content = self.get_test_mail(fname="incoming-1.raw")
 		message_id = Email(mail_content).message_id
 		# Create new communication record in DB
-		communication = self.new_communication(message_id=message_id, sent_or_received="Received")
+		communication = self.new_communication(
+			message_id=message_id, email_account=email_account.name, sent_or_received="Received"
+		)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		new_communication = inbound_mail.process()
 
@@ -650,6 +652,68 @@ class TestInboundMail(IntegrationTestCase):
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
+
+	def test_inbound_mail_decodes_rfc2047_subject(self):
+		subjects = [
+			# UTF-8 Quoted-Printable (English)
+			(
+				"=?UTF-8?Q?New_Notifications?=",
+				"RE: New Notifications",
+			),
+			# UTF-8 Base64 (English)
+			(
+				"=?UTF-8?B?TmV3IE5vdGlmaWNhdGlvbnM=?=",
+				"RE: New Notifications",
+			),
+			# FWD prefix + Base64 (Russian)
+			(
+				"FWD: =?UTF-8?B?0J/RgNC40LLQtdGCINC80LjRgA==?=",
+				"RE: FWD: Привет мир",
+			),
+			# RE prefix + Quoted-Printable (Russian)
+			(
+				"RE: =?UTF-8?Q?=D0=9E=D1=82=D1=87=D0=B5=D1=82_=D0=B3=D0=BE=D1=82=D0=BE=D0=B2?=",
+				"RE: RE: Отчет готов",
+			),
+			# Mixed plain + encoded (number symbol)
+			(
+				"Invoice =?UTF-8?Q?=E2=84=96_1234?=",
+				"RE: Invoice № 1234",
+			),
+			# Multiple encoded words (split header)
+			(
+				"=?UTF-8?B?TmV3?= =?UTF-8?B?IE5vdGlmaWNhdGlvbnM=?=",
+				"RE: New Notifications",
+			),
+			# Emoji (Quoted-Printable)
+			(
+				"=?UTF-8?Q?Deployment_complete_=F0=9F=9A=80?=",
+				"RE: Deployment complete 🚀",
+			),
+			# Lowercase encoding markers
+			(
+				"=?utf-8?b?TmV3IE5vdGlmaWNhdGlvbnM=?=",
+				"RE: New Notifications",
+			),
+			# ISO-8859-1 Quoted-Printable
+			(
+				"=?ISO-8859-1?Q?Ol=E1_Mundo?=",
+				"RE: Olá Mundo",
+			),
+			# Encoded word inside sentence
+			(
+				"Meeting about =?UTF-8?B?0L/RgNC+0LXQutGC?= tomorrow",
+				"RE: Meeting about проект tomorrow",
+			),
+		]
+
+		for subject, expected in subjects:
+			mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
+				"{{ subject }}", subject
+			)
+			email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+			inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+			self.assertEqual(inbound_mail.subject, expected)
 
 	def test_create_communication_from_mail(self):
 		# Create email queue record

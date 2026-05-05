@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.modules.export_file import delete_folder
 
@@ -88,6 +89,10 @@ class ModuleDef(Document):
 			modules_txt.write_text("\n".join(modules))
 			frappe.clear_cache()
 			frappe.setup_module_map()
+
+	def before_rename(self, old, new, merge=False):
+		if not self.custom:
+			frappe.throw(_("Only Custom Modules can be renamed."))
 
 
 @frappe.whitelist()

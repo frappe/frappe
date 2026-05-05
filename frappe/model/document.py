@@ -156,6 +156,164 @@ def get_lazy_doc(
 	raise ImportError(doctype)
 
 
+def get_docs(
+	doctype: str,
+	filters: dict | None = None,
+	*,
+	chunk_size: int = 1000,
+	limit: int | None = None,
+	limit_start: int = 0,
+	order_by: str = "creation asc",
+	as_iterator: bool = False,
+	for_update: bool = False,
+	distinct: bool = False,
+) -> list["Document"] | Generator["Document"]:
+	"""Fetch fully instantiated Document objects from the database.
+
+	Returns a list of Documents by default. Pass `as_iterator=True` to get
+	a chunked generator that yields a list of Documents per chunk to reduce memory usage.
+
+	:param doctype: DocType of the records to fetch.
+	:param filters: Dict or list of filters to apply.
+	:param chunk_size: Number of records to fetch in each chunk if using `as_iterator`.
+	:param limit: Maximum total number of records to fetch.
+	:param limit_start: Start results at record #. Default 0.
+	:param order_by: Order By string, e.g. `creation desc`.
+	:param as_iterator: If True, returns a iterator yielding Documents.
+	:param for_update: If True, locks the fetched rows for update.
+	:param distinct: If True, return distinct rows.
+
+
+	Note: Chunk size controls memory usage vs # of queries tradeoff. Using chunk size larger than
+	10,000 is not advisable.
+	"""
+	if is_virtual_doctype(doctype):
+		frappe.throw(_("Virtual DocType {0} cannot be fetched in bulk.").format(doctype))
+
+	meta = frappe.get_meta(doctype)
+
+	if meta.issingle:
+		frappe.throw(_("Single DocType {0} cannot be fetched in bulk.").format(doctype))
+
+	if limit_start and limit is None:
+		frappe.throw(_("limit cannot be None when limit_start is used"))
+
+	if not order_by:
+		# Sort order is mandatory for iterator logic
+		order_by = "name asc"
+
+	child_tables = [
+		(df.fieldname, df.options) for df in meta.get_table_fields() if not is_virtual_doctype(df.options)
+	]
+	controller = get_controller(doctype)
+	for_update = for_update and frappe.db.db_type != "sqlite"
+
+	iterator = _get_docs_generator(
+		doctype,
+		controller,
+		child_tables,
+		filters=filters,
+		chunk_size=chunk_size,
+		limit_start=limit_start,
+		order_by=order_by,
+		for_update=for_update,
+		distinct=distinct,
+	)
+
+	iterator = itertools.islice(iterator, limit)
+
+	if as_iterator:
+		return iterator
+	return list(iterator)
+
+
+def _get_docs_generator(
+	doctype,
+	controller,
+	child_tables,
+	*,
+	filters,
+	chunk_size,
+	limit_start,
+	order_by,
+	for_update,
+	distinct,
+) -> Generator["Document"]:
+	offset = limit_start
+
+	while True:
+		chunk_data = _fetch_rows(
+			doctype,
+			filters=filters,
+			order_by=order_by,
+			limit=chunk_size,
+			offset=offset,
+			for_update=for_update,
+			child_tables=child_tables,
+			distinct=distinct,
+		)
+		if not chunk_data:
+			break
+		yield from _build_document_objects(controller, chunk_data, for_update)
+		offset += chunk_size
+
+
+def _fetch_rows(doctype, *, filters, order_by, limit, offset, for_update, child_tables, distinct=False):
+	kwargs = {}
+	if limit is not None:
+		kwargs["limit"] = limit
+	if offset:
+		kwargs["offset"] = offset
+
+	data = frappe.qb.get_query(
+		table=doctype,
+		filters=filters or {},
+		fields=["*"],
+		order_by=order_by,
+		for_update=for_update,
+		distinct=distinct,
+		**kwargs,
+	).run(as_dict=True)
+
+	if not data:
+		return []
+
+	for row in data:
+		row["doctype"] = doctype
+
+	fetched_docs_by_name = {row.name: row for row in data}
+	parent_names = list(fetched_docs_by_name.keys())
+
+	for fieldname, child_doctype in child_tables:
+		child_table_data = frappe.qb.get_query(
+			table=child_doctype,
+			filters={"parent": ("in", parent_names), "parenttype": doctype, "parentfield": fieldname},
+			fields=["*"],
+			order_by="idx asc",
+			for_update=for_update,
+		).run(as_dict=True)
+
+		for child in child_table_data:
+			child["doctype"] = child_doctype
+
+		for parent_doc in fetched_docs_by_name.values():
+			parent_doc[fieldname] = []
+
+		for child in child_table_data:
+			if child.parent in fetched_docs_by_name:
+				fetched_docs_by_name[child.parent][fieldname].append(child)
+
+	return list(fetched_docs_by_name.values())
+
+
+def _build_document_objects(controller, data: list, for_update: bool):
+	for row in data:
+		doc = controller(row)
+		if for_update:
+			doc.flags.for_update = True
+		yield doc
+
+
 def get_doc_permission_check(doc: "Document", check_permission: str | bool | None = None) -> "Document":
 	"""
 	Checks permissions for the given document, if specified.
@@ -598,7 +756,8 @@ class Document(BaseDocument):
 					"file_name": attach_item.file_name,
 					"attached_to_name": self.name,
 					"attached_to_doctype": self.doctype,
-					"folder": "Home/Attachments",
+					"attached_to_field": attach_item.attached_to_field,
+					"folder": attach_item.folder or "Home/Attachments",
 					"is_private": attach_item.is_private,
 				}
 			)
@@ -739,6 +898,9 @@ class Document(BaseDocument):
 
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
+		if self.meta.is_virtual:
+			return
+
 		frappe.db.delete("Singles", {"doctype": self.doctype})
 		for field, value in d.items():
 			if field != "doctype":
@@ -1040,7 +1202,7 @@ class Document(BaseDocument):
 		if not self.meta.issingle and self._action != "discard":
 			self.check_docstatus_transition(previous.docstatus)
 
-	def check_docstatus_transition(self, to_docstatus):
+	def check_docstatus_transition(self, from_docstatus):
 		"""Ensures valid `docstatus` transition.
 		Valid transitions are (number in brackets is `docstatus`):
 
@@ -1050,34 +1212,43 @@ class Document(BaseDocument):
 		- Submit (1) > Cancel (2)
 
 		"""
-		if to_docstatus == DocStatus.DRAFT:
-			if self.docstatus.is_draft():
+		if self.flags.skip_docstatus_validation:
+			return
+
+		to_docstatus = self.docstatus
+		if from_docstatus == DocStatus.DRAFT:
+			if to_docstatus.is_draft():
 				self._action = "save"
-			elif self.docstatus.is_submitted():
+			elif to_docstatus.is_submitted():
+				if not getattr(self.meta, "is_submittable", False):
+					frappe.throw(
+						_("Cannot change docstatus of non submittable doctype {0}").format(self.doctype),
+						frappe.DocstatusTransitionError,
+					)
 				self._action = "submit"
 				self.check_permission("submit")
-			elif self.docstatus.is_cancelled():
+			elif to_docstatus.is_cancelled():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)")
 				)
 			else:
-				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
+				raise frappe.ValidationError(_("Invalid docstatus"), to_docstatus)
 
-		elif to_docstatus == DocStatus.SUBMITTED:
-			if self.docstatus.is_submitted():
+		elif from_docstatus == DocStatus.SUBMITTED:
+			if to_docstatus.is_submitted():
 				self._action = "update_after_submit"
 				self.check_permission("submit")
-			elif self.docstatus.is_cancelled():
+			elif to_docstatus.is_cancelled():
 				self._action = "cancel"
 				self.check_permission("cancel")
-			elif self.docstatus.is_draft():
+			elif to_docstatus.is_draft():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)")
 				)
 			else:
-				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
+				raise frappe.ValidationError(_("Invalid docstatus"), to_docstatus)
 
-		elif to_docstatus == DocStatus.CANCELLED:
+		elif from_docstatus == DocStatus.CANCELLED:
 			raise frappe.ValidationError(_("Cannot edit cancelled document"))
 
 	def set_parent_in_children(self):
@@ -1129,14 +1300,144 @@ class Document(BaseDocument):
 			)
 		)
 
+	def _prefetch_link_values(self):
+		"""Pre-fetch all link values including fetch_from fields for bulk validation.
+
+		This optimization collects all Link/Dynamic Link values from the doc tree,
+		then bulk-fetches them by doctype to eliminate N+1 queries.
+		"""
+		if self.flags.ignore_links or self._action == "cancel":
+			return
+
+		from collections import defaultdict
+
+		def _chunk(iterable, size):
+			"""Split iterable into chunks of given size."""
+			lst = list(iterable)
+			for i in range(0, len(lst), size):
+				yield lst[i : i + size]
+
+		self._link_value_cache = {}
+		docs_to_validate = [self, *self.get_all_children()]
+
+		# Collect: {doctype: {'names': set(), 'fields': set()}}
+		prefetch_map = defaultdict(lambda: {"names": set(), "fields": {"name"}})
+
+		for doc in docs_to_validate:
+			is_submittable = self.meta.is_submittable
+			link_fields = doc.meta.get_link_fields() + doc.meta.get(
+				"fields", {"fieldtype": ("=", "Dynamic Link")}
+			)
+
+			for df in link_fields:
+				docname = doc.get(df.fieldname)
+				if not docname:
+					continue
+
+				# Skip invalid docname types - let get_invalid_links handle the assertion
+				if not isinstance(docname, str | int):
+					continue
+
+				# Resolve target doctype
+				if df.fieldtype == "Link":
+					doctype = df.options
+					if not doctype:
+						continue
+				else:  # Dynamic Link
+					doctype = doc.get(df.options)
+					if not doctype:
+						continue
+
+				prefetch_map[doctype]["names"].add(docname)
+
+				# Collect fetch_from fields - fetch ALL, let base_document handle fetch_if_empty
+				for fetch_df in doc.meta.get_fields_to_fetch(df.fieldname):
+					if fetch_df.get("fetch_from"):
+						source_field = fetch_df.fetch_from.split(".")[-1]
+						prefetch_map[doctype]["fields"].add(source_field)
+
+				# Add docstatus if needed
+				target_meta = frappe.get_meta(doctype)
+				if is_submittable and target_meta.is_submittable:
+					prefetch_map[doctype]["fields"].add("docstatus")
+
+		# Bulk fetch with chunking
+		for doctype, data in prefetch_map.items():
+			meta = frappe.get_meta(doctype)
+			names = list(data["names"])
+			fields = sorted(data["fields"])  # Sorted for deterministic cache key matching
+
+			# Skip if no names to fetch for this doctype
+			if not names:
+				continue
+
+			if meta.get("is_virtual"):
+				# Virtual doctypes: fetch individually
+				for name in names:
+					try:
+						values = frappe.get_doc(doctype, name).as_dict()
+					except frappe.DoesNotExistError:
+						values = None
+					self._link_value_cache.setdefault(doctype, {})[name] = values
+
+			elif getattr(meta, "issingle", 0):
+				# Single doctypes
+				values = frappe.db.get_singles_dict(doctype)
+				values["name"] = doctype
+				for name in names:
+					self._link_value_cache.setdefault(doctype, {})[name] = frappe._dict(values)
+
+			else:
+				# Regular doctypes: bulk fetch with chunking
+				result_dict = {}
+				field_tuple = tuple(fields)
+
+				for name_chunk in _chunk(names, 1000):
+					results = frappe.db.get_all(
+						doctype,
+						filters={"name": ("in", name_chunk)},
+						fields=fields,
+					)
+					for row in results:
+						result_dict[row.name] = row
+						# Link fields may carry "123" (text) while autoincrement doctypes return 123 (int);
+						# adding str(name) avoids false cache misses that surface as invalid-link errors.
+						result_dict[str(row.name)] = row
+						# Case-insensitive key for MariaDB compatibility (strings only)
+						if frappe.db.db_type == "mariadb" and isinstance(row.name, str):
+							result_dict[row.name.casefold()] = row
+
+				# Store results in both caches
+				for name in names:
+					if frappe.db.db_type == "mariadb" and isinstance(name, str):
+						cached_value = (
+							result_dict.get(name)
+							or result_dict.get(str(name))
+							or result_dict.get(name.casefold())
+						)
+					else:
+						cached_value = result_dict.get(name) or result_dict.get(str(name))
+
+					# Store in local document cache
+					self._link_value_cache.setdefault(doctype, {})[name] = cached_value
+
+					# Also populate global db.value_cache for cross-document caching
+					# Only for string names (matching get_values behavior at line 632)
+					if cached_value is not None and isinstance(name, str):
+						frappe.db.value_cache[doctype][name][field_tuple] = [cached_value]
+
 	def _validate_links(self):
 		if self.flags.ignore_links or self._action == "cancel":
 			return
 
-		invalid_links, cancelled_links = self.get_invalid_links()
+		# Pre-fetch all link values in bulk
+		self._prefetch_link_values()
+		link_cache = getattr(self, "_link_value_cache", None)
+
+		invalid_links, cancelled_links = self.get_invalid_links(link_value_cache=link_cache)
 
 		for d in self.get_all_children():
-			result = d.get_invalid_links(is_submittable=self.meta.is_submittable)
+			result = d.get_invalid_links(is_submittable=self.meta.is_submittable, link_value_cache=link_cache)
 			invalid_links.extend(result[0])
 			cancelled_links.extend(result[1])
 
@@ -1294,7 +1595,7 @@ class Document(BaseDocument):
 		self.run_method("on_discard")
 
 	@frappe.whitelist()
-	def rename(self, name: str | int, merge=False, force=False, validate_rename=True):
+	def rename(self, name: str | int, merge: bool = False, force: bool = False, validate_rename: bool = True):
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
@@ -1626,7 +1927,7 @@ class Document(BaseDocument):
 				_("Table {0} cannot be empty").format(label), raise_exception or frappe.EmptyTableError
 			)
 
-	def round_floats_in(self, doc, fieldnames=None):
+	def round_floats_in(self, doc, fieldnames=None, do_not_round_fields=None):
 		"""Round floats for all `Currency`, `Float`, `Percent` fields for the given doc.
 
 		:param doc: Document whose numeric properties are to be rounded.
@@ -1640,6 +1941,9 @@ class Document(BaseDocument):
 		# PERF: flt internally has to resolve this if we don't specify it.
 		rounding_method = frappe.get_system_settings("rounding_method")
 		for fieldname in fieldnames:
+			if do_not_round_fields and fieldname in do_not_round_fields:
+				continue
+
 			doc.set(
 				fieldname,
 				flt(
@@ -1656,10 +1960,10 @@ class Document(BaseDocument):
 	@frappe.whitelist()
 	def add_comment(
 		self,
-		comment_type="Comment",
-		text=None,
-		comment_email=None,
-		comment_by=None,
+		comment_type: str = "Comment",
+		text: str | None = None,
+		comment_email: str | None = None,
+		comment_by: str | None = None,
 	):
 		"""Add a comment to this document.
 

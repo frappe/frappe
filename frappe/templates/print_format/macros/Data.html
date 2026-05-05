@@ -1,7 +1,7 @@
 {% if value %}
 <div class="field {{ df.section.field_orientation or '' }}" {{ field_attributes(df) }}>
 	{%- block label -%}
-	<div class="label">{{ df.label }}</div>
+	<div class="label">{{ _(df.label) }}</div>
 	{%- endblock -%}
 	{%- block value -%}
 	<div class="value">{{ doc.get_formatted(df.fieldname) }}</div>

@@ -9,8 +9,9 @@
 				</div>
 				{% for (let j=0; j < transactions[i].items.length; j++) { %}
 					{% let doctype = transactions[i].items[j]; %}
+					{% let fieldname = (transactions[i].fieldnames && transactions[i].fieldnames[doctype]) || transactions[i].fieldname; %}
 					<div class="document-link" data-doctype="{{ doctype }}">
-						<div class="document-link-badge" data-doctype="{{ doctype }}">
+						<div class="document-link-badge" data-doctype="{{ doctype }}" data-fieldname="{{ fieldname }}">
 							<a class="badge-link">{{ __(doctype) }}</a>
 							<span class="count hidden"></span>
 						</div>
@@ -19,7 +20,8 @@
 						</span>
 						{% if !internal_links[doctype] %}
 							<button class="btn btn-new btn-secondary btn-xs icon-btn hidden"
-								data-doctype="{{ doctype }}">
+								data-doctype="{{ doctype }}"
+								data-fieldname="{{ fieldname }}">
 								<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
 							</button>
 						{% endif %}

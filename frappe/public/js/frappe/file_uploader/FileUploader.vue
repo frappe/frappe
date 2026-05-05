@@ -513,25 +513,21 @@ function check_restrictions(file) {
 
 	return is_correct_type && valid_file_size;
 }
-function upload_files(dialog) {
+
+function upload_files() {
 	if (show_file_browser.value) {
-		return upload_via_file_browser();
-	}
-	if (show_web_link.value) {
-		return upload_via_web_link();
-	}
-	if (props.as_dataurl) {
-		return return_as_dataurl();
-	}
-	if (!files.value.length) {
+		promise = upload_via_file_browser();
+	} else if (show_web_link.value) {
+		promise = upload_via_web_link();
+	} else if (props.as_dataurl) {
+		promise = return_as_dataurl();
+	} else if (!files.value.length) {
 		frappe.msgprint(__("Please select a file first."));
-		return Promise.reject();
+		promise = Promise.reject();
+	} else {
+		promise = frappe.run_serially(files.value.map((file, i) => () => upload_file(file, i)));
 	}
-
-	dialog?.get_primary_btn().prop("disabled", true);
-	dialog?.get_secondary_btn().prop("disabled", true);
-
-	return frappe.run_serially(files.value.map((file, i) => () => upload_file(file, i)));
+	return promise;
 }
 function upload_via_file_browser() {
 	let selected_file = file_browser.value.selected_node;
@@ -548,12 +544,16 @@ function upload_via_file_browser() {
 function upload_via_web_link() {
 	let file_url = web_link.value.url;
 	if (!file_url) {
-		frappe.msgprint(__("Invalid URL"));
-		close_dialog.value = true;
+		web_link.value.invalid_input(__("Please enter a valid URL"));
 		return Promise.reject();
 	}
-	file_url = decodeURI(file_url);
-	close_dialog.value = true;
+	try {
+		file_url = decodeURI(file_url);
+	} catch (error) {
+		var error_message = error.message;
+		web_link.value.invalid_input(__(error_message));
+		return Promise.reject();
+	}
 	return upload_file({
 		file_url,
 	});
@@ -568,56 +568,69 @@ function return_as_dataurl() {
 	close_dialog.value = true;
 	return Promise.all(promises);
 }
-function upload_file(file, i) {
+async function upload_file(file, i) {
 	currently_uploading.value = i;
 
-	return new Promise((resolve, reject) => {
-		let xhr = new XMLHttpRequest();
-		xhr.upload.addEventListener("loadstart", (e) => {
-			file.uploading = true;
-		});
-		xhr.upload.addEventListener("progress", (e) => {
-			if (e.lengthComputable) {
-				file.progress = e.loaded;
-				file.total = e.total;
-			}
-		});
-		xhr.upload.addEventListener("load", (e) => {
-			file.uploading = false;
-			resolve();
-		});
-		xhr.addEventListener("error", (e) => {
-			file.failed = true;
-			reject();
-		});
-		xhr.onreadystatechange = () => {
-			if (xhr.readyState == XMLHttpRequest.DONE) {
+	const CHUNK_SIZE = frappe.boot.file_chunk_size || 25 * 1024 * 1024;
+
+	const use_chunks = file.file_obj && file.file_obj.size > CHUNK_SIZE;
+	const total_chunks = use_chunks ? Math.ceil(file.file_obj.size / CHUNK_SIZE) : 1;
+
+	const send_chunk = (chunk_blob, chunk_index, chunk_byte_offset) => {
+		return new Promise((resolve, reject) => {
+			let xhr = new XMLHttpRequest();
+
+			xhr.upload.addEventListener("loadstart", () => {
+				file.uploading = true;
+			});
+			xhr.upload.addEventListener("progress", (e) => {
+				if (e.lengthComputable) {
+					file.progress = chunk_byte_offset + e.loaded;
+					file.total = file.file_obj?.size || e.total;
+				}
+			});
+			xhr.upload.addEventListener("load", () => {
+				if (chunk_index === total_chunks - 1) {
+					file.uploading = false;
+				}
+			});
+			xhr.addEventListener("error", () => {
+				file.failed = true;
+				reject();
+			});
+			xhr.onreadystatechange = () => {
+				if (xhr.readyState !== XMLHttpRequest.DONE) return;
+
 				if (xhr.status === 200) {
-					file.request_succeeded = true;
-					let r = null;
-					let file_doc = null;
-					try {
-						r = JSON.parse(xhr.responseText);
-						if (r.message.doctype === "File") {
-							file_doc = r.message;
+					resolve();
+					// Only the last chunk returns a meaningful response
+					if (chunk_index === total_chunks - 1) {
+						file.request_succeeded = true;
+						let r = null;
+						let file_doc = null;
+						try {
+							r = JSON.parse(xhr.responseText);
+							if (r.message?.doctype === "File") {
+								file_doc = r.message;
+							}
+						} catch (e) {
+							r = xhr.responseText;
 						}
-					} catch (e) {
-						r = xhr.responseText;
-					}
 
-					file.doc = file_doc;
-
-					if (props.on_success) {
-						props.on_success(file_doc, r);
-					}
-
-					if (
-						i == files.value.length - 1 &&
-						files.value.every((file) => file.request_succeeded)
-					) {
-						close_dialog.value = true;
+						file.doc = file_doc;
+						if (props.on_success) {
+							props.on_success(file_doc, r);
+						}
+						if (
+							(i == files.value.length - 1 &&
+								files.value.every((f) => f.request_succeeded)) ||
+							(show_web_link.value && file.file_url)
+						) {
+							close_dialog.value = true;
+						}
 					}
 				} else if (xhr.status === 403) {
+					reject();
 					file.failed = true;
 					let response = parse_error_response(xhr.responseText);
 					file.error_message = __("Not permitted. {0}.", [response.error_message || ""]);
@@ -625,16 +638,29 @@ function upload_file(file, i) {
 						file.error_message += `\n${response.server_messages.join("\n")}`;
 					}
 				} else if (xhr.status === 413) {
+					reject();
 					file.failed = true;
 					file.error_message = __("Size exceeds the maximum allowed file size.");
 				} else if (xhr.status === 417) {
+					reject();
 					// regular frappe.throw() in backend
 					file.failed = true;
 					let response = parse_error_response(xhr.responseText);
 					file.error_message = response.server_messages.length
 						? response.server_messages.join("\n")
 						: __("File upload failed.");
+
+					if (show_web_link.value && web_link.value && file.file_url) {
+						web_link.value.invalid_input(__(file.error_message));
+					} else if (!files.value.includes(file)) {
+						frappe.msgprint({
+							title: __("Upload Failed"),
+							message: __(file.error_message),
+							indicator: "red",
+						});
+					}
 				} else {
+					reject();
 					file.failed = true;
 					let detail =
 						xhr.statusText ||
@@ -652,60 +678,57 @@ function upload_file(file, i) {
 					}
 					frappe.request.cleanup({}, error);
 				}
+			};
+
+			xhr.open("POST", "/api/method/upload_file", true);
+			xhr.setRequestHeader("Accept", "application/json");
+			xhr.setRequestHeader("X-Frappe-CSRF-Token", frappe.csrf_token);
+
+			let form_data = new FormData();
+			if (chunk_blob) {
+				form_data.append("file", chunk_blob, file.name);
 			}
-		};
-		xhr.open("POST", "/api/method/upload_file", true);
-		xhr.setRequestHeader("Accept", "application/json");
-		xhr.setRequestHeader("X-Frappe-CSRF-Token", frappe.csrf_token);
 
-		let form_data = new FormData();
-		if (file.file_obj) {
-			form_data.append("file", file.file_obj, file.name);
-		}
-		form_data.append("is_private", +file.private);
-		form_data.append("folder", props.folder);
+			form_data.append("is_private", +file.private);
+			form_data.append("folder", props.folder);
+			form_data.append("total_file_size", file.file_obj?.size ?? 0);
 
-		if (file.file_url) {
-			form_data.append("file_url", file.file_url);
-		}
-		if (file.file_size) {
-			form_data.append("file_size", file.file_size);
-		}
-		if (file.file_name) {
-			form_data.append("file_name", file.file_name);
-		}
-		if (file.library_file_name) {
-			form_data.append("library_file_name", file.library_file_name);
-		}
+			if (use_chunks) {
+				form_data.append("chunk_index", chunk_index);
+				form_data.append("total_chunk_count", total_chunks);
+				form_data.append("chunk_byte_offset", chunk_byte_offset);
+			}
 
-		if (props.doctype) {
-			form_data.append("doctype", props.doctype);
-		}
+			if (file.file_url) form_data.append("file_url", file.file_url);
+			if (file.file_size) form_data.append("file_size", file.file_size);
+			if (file.file_name) form_data.append("file_name", file.file_name);
+			if (file.library_file_name)
+				form_data.append("library_file_name", file.library_file_name);
+			if (props.doctype) form_data.append("doctype", props.doctype);
+			if (props.docname) form_data.append("docname", props.docname);
+			if (props.fieldname) form_data.append("fieldname", props.fieldname);
+			if (props.method) form_data.append("method", props.method);
+			if (file.optimize) form_data.append("optimize", true);
+			if (props.attach_doc_image) {
+				form_data.append("max_width", 200);
+				form_data.append("max_height", 200);
+			}
 
-		if (props.docname) {
-			form_data.append("docname", props.docname);
-		}
+			xhr.send(form_data);
+		});
+	};
 
-		if (props.fieldname) {
-			form_data.append("fieldname", props.fieldname);
-		}
-
-		if (props.method) {
-			form_data.append("method", props.method);
-		}
-
-		if (file.optimize) {
-			form_data.append("optimize", true);
-		}
-
-		if (props.attach_doc_image) {
-			form_data.append("max_width", 200);
-			form_data.append("max_height", 200);
-		}
-
-		xhr.send(form_data);
-	});
+	// Slice and send chunks sequentially
+	let chunk_byte_offset = 0;
+	for (let chunk_index = 0; chunk_index < total_chunks; chunk_index++) {
+		const chunk_blob = file.file_obj
+			? file.file_obj.slice(chunk_byte_offset, chunk_byte_offset + CHUNK_SIZE)
+			: null;
+		await send_chunk(chunk_blob, chunk_index, chunk_byte_offset);
+		chunk_byte_offset += CHUNK_SIZE;
+	}
 }
+
 function parse_error_response(response_text) {
 	let error_message = "";
 	let server_messages = [];

@@ -15,7 +15,7 @@ export class InfoCard {
 				"sm",
 				"",
 				"",
-				"cursor-pointer m-0"
+				"cursor-pointer m-0 info-trigger"
 			)}`
 		).appendTo($(this.label_span));
 		$(this.label_span).find("svg").attr("role", "button");
@@ -35,6 +35,7 @@ export class InfoCard {
 			trigger: $(this.label_span).find("svg").get(0),
 			close_button: true,
 			popper: true,
+			primary_button_width: "full",
 		};
 		if (this.df.documentation_url) {
 			card_args.primary_action_label = "Read More";
@@ -53,7 +54,7 @@ export class InfoCard {
 	setup_click() {
 		const me = this;
 		$(this.label_span)
-			.find("svg")
+			.find(".info-trigger")
 			.on("click", (event) => {
 				event.preventDefault();
 				me.card.toggle();

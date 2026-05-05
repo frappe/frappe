@@ -93,11 +93,6 @@ frappe.call = function (opts) {
 			prefix = `/api/${opts.api_version}/method/`;
 		}
 		url = prefix + args.cmd;
-		if (window.cordova) {
-			let host = frappe.request.url;
-			host = host.slice(0, host.length - 1);
-			url = host + url;
-		}
 		delete args.cmd;
 	}
 
@@ -150,7 +145,14 @@ frappe.request.call = function (opts) {
 			opts.error_callback && opts.error_callback();
 		},
 		403: function (xhr) {
-			if (frappe.session.user === "Guest" && frappe.session.logged_in_user !== "Guest") {
+			const user_id = document.cookie
+				.split(";")
+				.find((c) => c.trim().startsWith("user_id="))
+				?.split("=")[1];
+			if (
+				user_id === "Guest" ||
+				(frappe.session.user === "Guest" && frappe.session.logged_in_user !== "Guest")
+			) {
 				// session expired
 				frappe.app.handle_session_expired();
 			} else if (xhr.responseJSON && xhr.responseJSON._error_message) {

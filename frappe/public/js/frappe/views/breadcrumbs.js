@@ -233,7 +233,7 @@ frappe.breadcrumbs = {
 			is_new_doc = true;
 		} else {
 			let title = frappe.model.get_doc_title(doc);
-			docname_title = title || doc.name;
+			docname_title = __(title) || __(doc.name);
 			if (frappe.utils.is_html(docname_title)) {
 				docname_title = strip_html(docname_title);
 			}
@@ -275,7 +275,7 @@ frappe.breadcrumbs = {
 
 	clear() {
 		this.$breadcrumbs = $(".navbar-breadcrumbs").empty();
-		this.append_breadcrumb_element("/desk", frappe.utils.icon("monitor"));
+		this.append_breadcrumb_element("/desk", frappe.utils.icon("home"));
 	},
 
 	toggle(show) {

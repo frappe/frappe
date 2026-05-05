@@ -26,6 +26,7 @@ import frappe.sessions
 import frappe.utils
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.core.doctype.file.utils import check_path_safety
 from frappe.utils import format_timedelta, orjson_dumps
 
 if TYPE_CHECKING:
@@ -280,6 +281,13 @@ def download_backup(path):
 			_("You need to be logged in and have System Manager Role to be able to access backups.")
 		)
 
+	filename = path.split("/backups/", 1)[1]
+	backup_path = frappe.get_site_path("private", "backups")
+	requested_path = frappe.get_site_path("private", "backups", filename)
+	is_safe = check_path_safety(base_path=backup_path, requested_path=requested_path)
+	if not is_safe:
+		frappe.throw(_("Invalid backup path"), frappe.PermissionError)
+
 	return send_private_file(path)
 
 
@@ -295,15 +303,15 @@ def download_private_file(path: str) -> Response:
 		raise Forbidden(_("You don't have permission to access this file"))
 
 	make_access_log(doctype="File", document=file.name, file_type=os.path.splitext(path)[-1][1:])
-	return send_private_file(path.split("/private", 1)[1])
+	return send_private_file(path.split("/private", 1)[1], filename=file.file_name)
 
 
 FORCE_DOWNLOAD_EXTENSIONS = (".svg", ".html", ".htm", ".xml")
 
 
-def send_private_file(path: str) -> Response:
+def send_private_file(path: str, filename: str | None = None) -> Response:
 	path = os.path.join(frappe.local.conf.get("private_path", "private"), path.strip("/"))
-	filename = os.path.basename(path)
+	filename = filename or os.path.basename(path)
 
 	extension = os.path.splitext(path)[1]
 	as_attachment = extension.lower() in FORCE_DOWNLOAD_EXTENSIONS
@@ -329,7 +337,7 @@ def send_private_file(path: str) -> Response:
 			environ=frappe.local.request.environ,
 			conditional=True,
 			as_attachment=as_attachment,
-			download_name=filename if as_attachment else None,
+			download_name=filename,
 		)
 
 	return response

@@ -42,7 +42,7 @@
 				</button>
 				<button class="btn btn-xs btn-icon" @click="df['remove'] = true">
 					<svg class="icon icon-sm">
-						<use href="#icon-close"></use>
+						<use href="#icon-x"></use>
 					</svg>
 				</button>
 			</div>

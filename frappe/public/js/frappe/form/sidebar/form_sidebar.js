@@ -26,6 +26,7 @@ frappe.ui.form.Sidebar = class {
 			.appendTo(this.page.sidebar.empty());
 
 		this.user_actions = this.sidebar.find(".user-actions");
+		this.user_actions_list = this.sidebar.find(".user-actions-list");
 		this.image_section = this.sidebar.find(".sidebar-image-section");
 		this.image_wrapper = this.image_section.find(".sidebar-image-wrapper");
 		this.make_assignments();
@@ -71,8 +72,10 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	setup_copy_event() {
+		let classes = [".form-name-copy", ".form-title-text"];
+
 		$(this.sidebar)
-			.find(".sidebar-meta-details .form-name-copy")
+			.find(".sidebar-meta-details " + classes.join(", "))
 			.tooltip()
 			.on("click", (e) => {
 				frappe.utils.copy_to_clipboard($(e.currentTarget).attr("data-copy"));
@@ -115,7 +118,6 @@ frappe.ui.form.Sidebar = class {
 	make_like() {
 		this.like_wrapper = this.sidebar.find(".liked-by");
 		this.like_icon = this.sidebar.find(".liked-by .like-icon");
-		this.like_count = this.sidebar.find(".liked-by .like-count");
 		frappe.ui.setup_like_popover(this.sidebar.find(".form-stats-likes"), ".like-icon");
 
 		this.like_icon.on("click", () => {
@@ -138,8 +140,6 @@ frappe.ui.form.Sidebar = class {
 			.toggleClass("liked", liked)
 			.attr("data-doctype", this.frm.doctype)
 			.attr("data-name", this.frm.doc.name);
-
-		this.like_count && this.like_count.text(JSON.parse(this.frm.doc._liked_by || "[]").length);
 	}
 
 	refresh_web_view_count() {
@@ -245,19 +245,23 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	add_user_action(label, click) {
-		return $("<a>")
-			.html(label)
-			.appendTo(
-				$('<div class="user-action-row"></div>').appendTo(
-					this.user_actions.removeClass("hidden")
-				)
+		const parent = this.user_actions_list.length ? this.user_actions_list : this.user_actions;
+		this.user_actions.removeClass("hidden");
+		const row = $('<div class="user-action-row"></div>').appendTo(parent);
+
+		return $('<a class="user-action-link"></a>')
+			.html(
+				`<span class="user-action-label">${label}</span>
+				<span class="user-action-external-icon">${frappe.utils.icon("external-link", "sm")}</span>`
 			)
+			.appendTo(row)
 			.on("click", click);
 	}
 
 	clear_user_actions() {
 		this.user_actions.addClass("hidden");
-		this.user_actions.find(".user-action-row").remove();
+		const parent = this.user_actions_list.length ? this.user_actions_list : this.user_actions;
+		parent.find(".user-action-row").remove();
 	}
 
 	refresh_image() {}

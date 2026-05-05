@@ -18,6 +18,7 @@ frappe.ui.Tree = class {
 		get_label,
 		on_render,
 		on_click,
+		on_node_render,
 	}) {
 		$.extend(this, arguments[0]);
 		if (root_value == null) {
@@ -164,11 +165,13 @@ frappe.ui.Tree = class {
 					() => this.get_all_nodes(value, is_root, node.label),
 					(data_list) => this.render_children_of_all_nodes(data_list),
 					() => this.set_selected_node(node),
+					() => this.on_node_render && this.on_node_render(node, deep),
 			  ])
 			: frappe.run_serially([
 					() => this.get_nodes(value, is_root),
 					(data_set) => this.render_node_children(node, data_set),
 					() => this.set_selected_node(node),
+					() => this.on_node_render && this.on_node_render(node, deep),
 			  ]);
 	}
 

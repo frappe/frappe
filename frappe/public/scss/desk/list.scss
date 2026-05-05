@@ -8,11 +8,6 @@
 					width: fit-content;
 					min-width: 100%;
 				}
-				.list-row-container:first-child {
-					position: sticky;
-					top: 0;
-					z-index: 2;
-				}
 				.list-row-container {
 					.level-left {
 						.list-row-col {
@@ -94,6 +89,9 @@
 
 	&:first-child {
 		padding: 0;
+		position: sticky;
+		top: 0;
+		z-index: 2;
 	}
 
 	&:hover {
@@ -346,7 +344,6 @@ input.list-header-checkbox {
 .modal-body {
 	.list-item--head {
 		position: sticky !important;
-		z-index: 500;
 		top: 0;
 	}
 
@@ -371,6 +368,27 @@ input.list-header-checkbox {
 .list-item-table {
 	border: 1px solid $border-color;
 	border-radius: 3px;
+
+	.list-row-head {
+		border-radius: unset;
+	}
+
+	.list-row-container {
+		border-bottom: 1px solid $border-color;
+		border-radius: unset;
+
+		&:last-child {
+			border-bottom: none;
+		}
+	}
+
+	.list-row-container:hover {
+		border-radius: unset;
+	}
+
+	.list-row-container .list-row {
+		border-bottom: none;
+	}
 }
 
 .list-item {
@@ -493,7 +511,9 @@ input.list-header-checkbox {
 
 	.filter-section {
 		display: flex;
-		padding: 0 var(--padding-xs);
+		padding: 0;
+		align-items: flex-start;
+		margin-top: 3px;
 	}
 
 	.filter-selector .btn-group {
@@ -525,8 +545,8 @@ input.list-header-checkbox {
 }
 
 .restricted-button {
-	margin-top: var(--margin-xs);
-	height: var(--margin-xl);
+	margin: var(--margin-xs) 0 0 var(--margin-sm);
+	height: 29px;
 
 	.icon {
 		width: 14px;
@@ -539,13 +559,6 @@ input.list-header-checkbox {
 	&.btn {
 		@include button-variant($background: $light-yellow, $border: darken($light-yellow, 5%));
 		box-shadow: none;
-	}
-}
-
-.frappe-rtl {
-	.restricted-button {
-		margin: auto auto auto 5px;
-		direction: ltr;
 	}
 }
 
@@ -581,6 +594,8 @@ input.list-header-checkbox {
 			overflow-x: auto;
 			.result {
 				overflow-y: hidden;
+				display: table;
+				width: 100%;
 			}
 		}
 	}
@@ -629,6 +644,7 @@ input.list-header-checkbox {
 	.layout-main-section .frappe-list .result-container {
 		.result {
 			overflow: hidden;
+			display: block;
 			input.list-row-checkbox,
 			input.list-header-checkbox {
 				width: 15px !important;
@@ -682,5 +698,16 @@ input.list-header-checkbox {
 				}
 			}
 		}
+	}
+	.page-indicator-pill {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 375px) {
+	.navbar-breadcrumbs li:last-child > a {
+		max-width: 105px;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 }

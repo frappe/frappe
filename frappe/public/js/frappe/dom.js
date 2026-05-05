@@ -324,8 +324,8 @@ frappe.get_data_pill = (
 	`);
 	if (remove_action) {
 		let remove_btn = $(`
-			<span class="remove-btn cursor-pointer">
-				${frappe.utils.icon("close", "sm", "es-icon")}
+			<span class="remove-btn cursor-pointer flex align-items-center">
+				${frappe.utils.icon("x", "sm")}
 			</span>
 		`);
 		if (typeof remove_action === "function") {

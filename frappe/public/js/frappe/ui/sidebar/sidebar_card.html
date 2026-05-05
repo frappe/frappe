@@ -10,15 +10,16 @@
     {% } else { %}
         <div class="card-title-container card-close-button">
             {%= frappe.utils.icon(card.icon, "sm", "", "", "card-icon") %}
-            <span class="flex flex-column">
+            <span class="flex flex-column w-100">
                 <div class="sidebar-card-title">{{ card.title }}</div>
                 <div class="sidebar-card-description">{{ card.message }}</div>
             </span>
-        {%= frappe.utils.icon("x","sm", "", "", "card-icon cursor-pointer") %}
+        {%= frappe.utils.icon("x","sm", "", "", "card-icon cursor-pointer close-button") %}
          </div>
     {% } %}
-    {% if(card.primary_action_label) { %}
-    <button class="sidebar-card-button btn">
+    <div class="sidebar-card-actions flex">
+            {% if(card.primary_action_label) { %}
+    <button class="sidebar-card-button btn {%= card.primary_button_width ? 'w-100' : '' %}">
         {% if (card.primary_action_icon) %}
             {{ frappe.utils.icon(card.primary_action_icon, "sm", "", "", "", true) }}
         {% } %}
@@ -28,4 +29,5 @@
         {% endif %}
     </button>
     {% } %}
+    </div>
 </div>

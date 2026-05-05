@@ -17,7 +17,11 @@ def validate_route_conflict(doctype, name):
 	all_names = []
 	for _doctype in ["Page", "Workspace", "DocType"]:
 		all_names.extend(
-			[slug(d) for d in frappe.get_all(_doctype, pluck="name") if (doctype != _doctype and d != name)]
+			[
+				slug(d)
+				for d in frappe.get_all(_doctype, pluck="name")
+				if not (doctype == _doctype and d == name)
+			]
 		)
 
 	if slug(name) in all_names:

@@ -20,6 +20,22 @@ class CommunicationEmailMixin:
 		parent_doc = get_parent_doc(self)
 		return parent_doc.owner if parent_doc else None
 
+	def get_notification_recipient(self):
+		"""Get notification recipient of the communication docs parent.
+
+		Calls `get_notification_email` on the parent if available; otherwise returns the owner.
+		This uses `run_method` so hooks can customize recipients per app/site.
+		"""
+		parent_doc = get_parent_doc(self)
+		if not parent_doc:
+			return None
+
+		notification_email = parent_doc.run_method("get_notification_email")
+		if notification_email:
+			return notification_email
+
+		return parent_doc.owner
+
 	def get_all_email_addresses(self, exclude_displayname=False):
 		"""Get all Email addresses mentioned in the doc along with display name."""
 		return (
@@ -60,7 +76,7 @@ class CommunicationEmailMixin:
 		"""Build cc list to send an email.
 
 		* if email copy is requested by sender, then add sender to CC.
-		* If this doc is created through inbound mail, then add doc owner to cc list
+		* If this doc is created through inbound mail, then add the notification recipient to CC
 		* remove all the thread_notify disabled users.
 		* Remove standard users from email list
 		"""
@@ -77,9 +93,9 @@ class CommunicationEmailMixin:
 			cc.append(sender)
 
 		if is_inbound_mail_communcation:
-			# inform parent document owner incase communication is created through inbound mail
-			if doc_owner := self.get_owner():
-				cc.append(doc_owner)
+			# inform the configured notification recipient in case communication is created inbound
+			if notification_recipient := self.get_notification_recipient():
+				cc.append(notification_recipient)
 			cc = set(cc) - {self.sender_mailid}
 			assignees = set(self.get_assignees()) - {self.sender_mailid}
 			# Check and remove If user disabled notifications for incoming emails on assigned document.

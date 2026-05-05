@@ -15,12 +15,12 @@ dependencies = [
     "filetype~=1.2.0",
     "GitPython~=3.1.45",
     "Jinja2~=3.1.6",
-    "Pillow~=12.0.0",
-    "PyJWT~=2.10.1",
+    "Pillow~=12.2.0",
+    "PyJWT~=2.12.1",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.6.2",
+    "pypdf==6.10.2",
     "PyPika @ git+https://github.com/frappe/pypika@2c50e6142b2d61d2d243e466fdd5dc03b3d918f2",
     "mysqlclient==2.2.7",
     "PyQRCode~=1.2.1",
@@ -28,7 +28,7 @@ dependencies = [
     "RestrictedPython~=8.1",
     "WeasyPrint==68.0",
     "pydyf==0.12.1",
-    "Werkzeug==3.1.5",
+    "Werkzeug==3.1.6",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.13.5",
     "bleach-allowlist~=1.0.3",
@@ -48,6 +48,7 @@ dependencies = [
     "num2words~=0.5.14",
     "oauthlib~=3.3.1",
     "openpyxl~=3.1.5",
+    "xlsxwriter~=3.2.9",
     "orjson~=3.11.5",
     "passlib~=1.7.4",
     "pdfkit~=1.0.0",
@@ -55,7 +56,7 @@ dependencies = [
     "premailer~=3.10.0",
     "psutil~=7.0.0",
     "psycopg2-binary~=2.9.11",
-    "pyOpenSSL~=25.3.0",
+    "pyOpenSSL~=26.0.0",
     "pydantic~=2.12.5",
     "pyotp~=2.9.0",
     "python-dateutil~=2.9.0.post0",
@@ -64,7 +65,7 @@ dependencies = [
     "redis~=7.1.0",
     "hiredis~=3.3.0",
     "requests-oauthlib~=2.0.0",
-    "requests~=2.32.5",
+    "requests~=2.33.0",
     # We depend on internal attributes of RQ.
     # Do NOT add loose requirements on RQ versions.
     # Audit the code changes w.r.t. background_jobs.py before updating.
@@ -92,8 +93,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://frappeframework.com/"
+Homepage = "https://frappe.io/framework"
 Repository = "https://github.com/frappe/frappe.git"
+Documentation = "https://docs.frappe.io/framework"
 "Bug Reports" = "https://github.com/frappe/frappe/issues"
 
 [project.optional-dependencies]
@@ -127,7 +129,7 @@ dev = [
 ]
 test = [
     "unittest-xml-reporting~=3.2.0",
-    "coverage~=7.10.0",
+    "coverage~=7.13.5",
     "hypothesis~=6.77.0",
     "freezegun~=1.5.1",
 ]
@@ -144,7 +146,7 @@ skip_namespaces = [
 ]
 
 [tool.bench.dev-dependencies]
-coverage = "~=7.10.0"
+coverage = "~=7.13.5"
 pyngrok = "~=7.5.0"
 unittest-xml-reporting = "~=3.2.0"
 watchdog = "~=6.0.0"

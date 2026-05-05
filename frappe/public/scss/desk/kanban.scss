@@ -186,9 +186,22 @@
 
 						.kanban-title-area {
 							margin-bottom: 12px;
-							max-width: 90%;
+							width: 100%;
+							max-width: 100%;
 							font-size: var(--text-md);
 							font-weight: 500;
+
+							.kanban-card-title,
+							.kanban-card-doc {
+								white-space: normal !important;
+								display: -webkit-box;
+								-webkit-box-orient: vertical;
+								-webkit-line-clamp: 2;
+								line-clamp: 2;
+								overflow: hidden;
+								text-overflow: ellipsis;
+								word-break: break-word;
+							}
 
 							.kanban-card-doc {
 								.text-muted div {
@@ -329,6 +342,62 @@
 	.kanban-empty-state {
 		width: 100%;
 		line-height: 400px;
+	}
+
+	.kanban-tags .more-tags {
+		cursor: pointer;
+
+		.hidden-tags {
+			position: absolute;
+
+			bottom: 70px;
+
+			left: 50%;
+			transform: translateX(-50%);
+
+			background: var(--card-bg);
+			border: 1px solid var(--border-color);
+			padding: 10px;
+			border-radius: var(--border-radius-md);
+			box-shadow: var(--shadow-lg);
+
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+
+			width: calc(100% - 24px);
+			max-width: 220px;
+
+			gap: 6px;
+			opacity: 0;
+			pointer-events: none;
+			z-index: 1000;
+
+			.tag-pill {
+				margin: 0 !important;
+				white-space: nowrap;
+			}
+		}
+
+		&:hover .hidden-tags {
+			opacity: 1;
+			transform: translateX(-50%) translateY(-5px);
+			pointer-events: auto;
+		}
+	}
+
+	.kanban-card-wrapper:hover {
+		z-index: 1001;
+	}
+
+	.kanban-card-wrapper:first-child {
+		.hidden-tags {
+			bottom: auto;
+		}
+
+		&:hover .hidden-tags {
+			transform: translateX(-50%) translateY(5px);
+		}
 	}
 }
 

@@ -114,6 +114,8 @@
   "enable_telemetry",
   "search_section",
   "link_field_results_limit",
+  "column_break_nebx",
+  "allow_clearing_link_fields",
   "api_logging_section",
   "log_api_requests"
  ],
@@ -248,7 +250,6 @@
   },
   {
    "default": "0",
-   "description": "Note: Multiple sessions will be allowed in case of mobile device",
    "fieldname": "deny_multiple_sessions",
    "fieldtype": "Check",
    "label": "Allow only one session per user"
@@ -784,13 +785,23 @@
    "fieldname": "only_allow_system_managers_to_upload_public_files",
    "fieldtype": "Check",
    "label": "Only allow System Managers to upload public files"
+  },
+  {
+   "fieldname": "column_break_nebx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Adds a clear (\u00d7) button to Link fields, allowing users to quickly remove the selected value.",
+   "fieldname": "allow_clearing_link_fields",
+   "fieldtype": "Check",
+   "label": "Allow Clearing Link Fields"
   }
  ],
- "hide_toolbar": 1,
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-01-02 18:13:45.430712",
+ "modified": "2026-04-14 16:26:19.634212",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

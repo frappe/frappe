@@ -192,7 +192,7 @@ def get_authentication_url(client_id=None, redirect_uri=None):
 
 
 @frappe.whitelist()
-def google_callback(code=None):
+def google_callback(code: str | None = None):
 	"""
 	Authorization code is sent to callback as per the API configuration
 	"""
@@ -352,21 +352,22 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 					"google_calendar_event_id": event.get("id"),
 				},
 			)
-			frappe.db.set_value(
-				"Event",
-				event_name,
-				"status",
-				"Closed",
-			)
-			frappe.get_doc(
-				{
-					"doctype": "Comment",
-					"comment_type": "Info",
-					"reference_doctype": "Event",
-					"reference_name": event_name,
-					"content": " - Event deleted from Google Calendar.",
-				}
-			).insert(ignore_permissions=True)
+			if event_name:
+				frappe.db.set_value(
+					"Event",
+					event_name,
+					"status",
+					"Closed",
+				)
+				frappe.get_doc(
+					{
+						"doctype": "Comment",
+						"comment_type": "Info",
+						"reference_doctype": "Event",
+						"reference_name": event_name,
+						"content": " - Event deleted from Google Calendar.",
+					}
+				).insert(ignore_permissions=True)
 
 	if not results:
 		return _("No Google Calendar Event to sync.")

@@ -1048,7 +1048,7 @@ class FilterArea {
 
 	apply_filter(fieldname, value) {
 		let operator = "=";
-		if (value === "") {
+		if (value === "" || (fieldname === "_user_tags" && value === __("No Tags"))) {
 			operator = "is";
 			value = "not set";
 		}
@@ -1318,7 +1318,10 @@ class FilterArea {
 					field.set_value(value.replace(/^%+|%+$/g, ""));
 				}
 
-				this.debounced_refresh_list_view();
+				// Only trigger refresh if field has a value
+				if (value) {
+					this.debounced_refresh_list_view();
+				}
 			});
 		}, 100);
 	}

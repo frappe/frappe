@@ -1,5 +1,6 @@
 import time
 from contextlib import suppress
+from typing import Any
 
 from orjson import JSONDecodeError
 
@@ -23,7 +24,15 @@ def is_enabled() -> bool:
 
 
 @frappe.whitelist()
-def capture(event_name, site=None, app=None, user=None, captured_at=None, properties=None, interval=None):
+def capture(
+	event_name: str,
+	site: str | None = None,
+	app: str | None = None,
+	user: str | None = None,
+	captured_at: str | None = None,
+	properties: dict[str, Any] | None = None,
+	interval: int | str | None = None,
+):
 	if not is_enabled():
 		return
 
@@ -45,7 +54,7 @@ def capture(event_name, site=None, app=None, user=None, captured_at=None, proper
 
 
 @frappe.whitelist()
-def bulk_capture(events):
+def bulk_capture(events: str | list[dict[str, Any]]):
 	if not is_enabled():
 		return
 
@@ -226,7 +235,9 @@ class EventQueue:
 
 
 @frappe.whitelist()
-def get_debug_info(fetch_events=None, fetch_rate_limited_events=None):
+def get_debug_info(
+	fetch_events: int | str | bool | None = None, fetch_rate_limited_events: int | str | bool | None = None
+):
 	frappe.only_for("System Manager")
 
 	info = frappe._dict()

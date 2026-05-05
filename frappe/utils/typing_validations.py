@@ -111,7 +111,9 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_t
 	func_params = frappe._get_cached_signature_params(func)[0]
 
 	if force_types:
-		for param_name, parameter in func_params.items():
+		for idx, (param_name, parameter) in enumerate(func_params.items()):
+			if idx == 0 and param_name in ("self", "cls"):
+				continue
 			if parameter.kind in (inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL):
 				continue
 			if param_name not in annotations:

@@ -60,12 +60,14 @@
 						class="btn btn-crop muted"
 						@click="emit('toggle_image_cropper')"
 						v-html="frappe.utils.icon('crop', 'md')"
+						:title="__('Crop')"
 					></button>
 					<button
 						v-if="!uploaded && !file.uploading && !file.failed"
 						class="btn muted"
 						@click="emit('remove')"
-						v-html="frappe.utils.icon('delete', 'md')"
+						v-html="frappe.utils.icon('x', 'md')"
+						:title="__('Remove')"
 					></button>
 				</div>
 			</div>

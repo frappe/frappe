@@ -26,7 +26,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 					</div>
 					<div class="control-input-wrapper">
 						<div class="control-input"></div>
-						<div class="control-value like-disabled-input" style="display: none;"></div>
+						<div class="control-value like-disabled-input hide"></div>
 						<div class="help-box small text-extra-muted hide"></div>
 					</div>
 				</div>
@@ -115,8 +115,8 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			let is_fetch_from_read_only = me.read_only_because_of_fetch_from();
 
 			if (me.can_write() && !is_fetch_from_read_only) {
-				me.disp_area && $(me.disp_area).toggle(false);
-				$(me.input_area).toggle(true);
+				me.disp_area && $(me.disp_area).addClass("hide");
+				$(me.input_area).removeClass("hide");
 				me.$input && me.$input.prop("disabled", false);
 				make_input();
 				update_input();
@@ -125,10 +125,10 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 					make_input();
 					update_input();
 				} else {
-					$(me.input_area).toggle(false);
+					$(me.input_area).addClass("hide");
 					if (me.disp_area) {
 						me.set_disp_area(me.value);
-						$(me.disp_area).toggle(true);
+						$(me.disp_area).removeClass("hide");
 					}
 				}
 				me.$input && me.$input.prop("disabled", true);
@@ -277,7 +277,12 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		// set has-error if dialog primary button is clicked
 		if (this.layout && this.layout.is_dialog && !this.layout.primary_action_fulfilled) return;
 
-		this.$wrapper.toggleClass("has-error", Boolean(this.df.reqd && is_null(value)));
+		const is_invalid = this.$wrapper.hasClass("has-error-invalid");
+		this.$wrapper.toggleClass("has-error-mandatory", Boolean(this.df.reqd && is_null(value)));
+		this.$wrapper.toggleClass(
+			"has-error",
+			is_invalid || Boolean(this.df.reqd && is_null(value))
+		);
 	}
 	set_invalid() {
 		let invalid = !!this.df.invalid;
@@ -286,7 +291,9 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			this.$input?.toggleClass("invalid", invalid);
 			this.grid_row.columns[this.df.fieldname].is_invalid = invalid;
 		} else {
-			this.$wrapper.toggleClass("has-error", invalid);
+			const is_mandatory_and_empty = this.$wrapper.hasClass("has-error-mandatory");
+			this.$wrapper.toggleClass("has-error-invalid", invalid);
+			this.$wrapper.toggleClass("has-error", is_mandatory_and_empty || invalid);
 		}
 	}
 	set_required() {

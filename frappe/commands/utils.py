@@ -108,6 +108,19 @@ def build(
 			print("Compiling translations for", app)
 			compile_translations(app, force=force)
 
+		run_after_build_hook(apps)
+
+
+def run_after_build_hook(apps):
+	from importlib import import_module
+
+	for app in apps:
+		for fn in frappe.get_hooks("after_build", app_name=app):
+			modulename = ".".join(fn.split(".")[:-1])
+			methodname = fn.split(".")[-1]
+			method = getattr(import_module(modulename), methodname)
+			method()
+
 
 @click.command("watch")
 @click.option("--apps", help="Watch assets for specific apps")

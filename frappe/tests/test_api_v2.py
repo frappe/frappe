@@ -161,10 +161,10 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		self.assertEqual(response.json["data"], "pong")
 
 	def test_get_user_info(self):
+		# server-to-server only
 		response = self.get(self.method("frappe.realtime.get_user_info"))
 		self.assertEqual(response.status_code, 200)
-		self.assertIsInstance(response.json, dict)
-		self.assertIn(response.json.get("data").get("user"), ("Administrator", "Guest"))
+		self.assertEqual(response.json.get("data"), {})
 
 	def test_auth_cycle(self):
 		global authorization_token
@@ -598,7 +598,7 @@ def generate_admin_keys():
 
 
 @whitelist_for_tests()
-def test(*, fail=False, handled=True, message="Failed"):
+def test(*, fail: int | bool = False, handled: int | bool = True, message: str = "Failed"):
 	if fail:
 		if handled:
 			frappe.throw(message)

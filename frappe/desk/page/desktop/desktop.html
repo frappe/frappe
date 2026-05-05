@@ -1,6 +1,6 @@
 <!-- jinja -->
 <div class="desktop-wrapper">
-    <header class="navbar navbar-expand navbar-container" role="navigation">
+    <header class="desktop-navbar navbar navbar-expand navbar-container" role="navigation">
         <div class="navbar-home">
             <img
                 id="brand-logo"
@@ -26,9 +26,9 @@
         <div class="flex" style="gap:16px; align-items: center;">
             <div class="desktop-notifications">
                 <div class="dropdown dropdown-notifications">
-                    <button class="btn-reset nav-link text-muted" data-toggle="dropdown" >
+                    <button class="btn-reset nav-link text-muted desktop-notification-icon" data-toggle="dropdown" aria-label="{{ _("Notifications") }}" aria-haspopup="true">
                         <svg
-                            class="icon icon-md"
+                            class="icon icon-md" aria-hidden="true"
                         >
                             <use href="#icon-bell"></use>
                         </svg>
@@ -50,8 +50,8 @@
                     </div>
                 </div>
             </div>
-            <div class="desktop-avatar">
-            </div>
+            <button class="desktop-avatar btn-reset" aria-label="{{ _('User Menu') }}">
+            </button>
             </div>
 
     </header>
@@ -65,5 +65,5 @@
                 {{ _("Save") }}
             </button>
     </div>
-    <div class="hidden" id="desktop-layout">{{ desktop_layout }}</pre>
+    <div class="hidden" id="desktop-layout">{{ desktop_layout | safe }}</div>
 </div>

@@ -125,19 +125,19 @@ class RedisWrapper(redis.Redis):
 
 		return ret
 
-	def get_keys(self, key):
+	def get_keys(self, key, user=None, shared=False):
 		"""Return keys starting with `key`."""
 		try:
-			key = self.make_key(key + "*")
+			key = self.make_key(key + "*", user=user, shared=shared)
 			return self.keys(key)
 
 		except redis.exceptions.ConnectionError:
 			regex = re.compile(cstr(key).replace("|", r"\|").replace("*", r"[\w]*"))
 			return [k for k in list(frappe.local.cache) if regex.match(cstr(k))]
 
-	def delete_keys(self, key):
+	def delete_keys(self, key, user=None, shared=False):
 		"""Delete keys with wildcard `*`."""
-		self.delete_value(self.get_keys(key), make_keys=False)
+		self.delete_value(self.get_keys(key, user=user, shared=shared), make_keys=False)
 
 	def delete_key(self, *args, **kwargs):
 		self.delete_value(*args, **kwargs)
@@ -162,17 +162,20 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			pass
 
-	def lpush(self, key, value):
-		return super().lpush(self.make_key(key), value)
+	def lpush(self, key, value, user=None, shared=False):
+		return super().lpush(self.make_key(key, user=user, shared=shared), value)
 
 	def rpush(self, key, value):
 		return super().rpush(self.make_key(key), value)
 
-	def lpop(self, key):
-		return super().lpop(self.make_key(key))
+	def lpop(self, key, user=None, shared=False):
+		return super().lpop(self.make_key(key, user=user, shared=shared))
 
 	def rpop(self, key):
 		return super().rpop(self.make_key(key))
+
+	def blpop(self, key, timeout=0, user=None, shared=False):
+		return super().blpop(self.make_key(key, user=user, shared=shared), timeout=timeout)
 
 	def llen(self, key):
 		return super().llen(self.make_key(key))

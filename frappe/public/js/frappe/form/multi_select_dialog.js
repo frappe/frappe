@@ -361,6 +361,20 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			});
 		});
 
+		const refresh_results = frappe.utils.debounce(() => {
+			frappe.flags.auto_scroll = false;
+			if (me.is_child_selection_enabled()) {
+				me.show_child_results();
+			} else {
+				me.empty_list();
+				me.get_results();
+			}
+		}, 300);
+
+		this.$parent
+			.find(".input-with-feedback")
+			.on("awesomplete-selectcomplete", refresh_results);
+
 		this.$parent.find(".input-with-feedback").on("change", () => {
 			frappe.flags.auto_scroll = false;
 			if (this.is_child_selection_enabled()) {
@@ -554,7 +568,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			}
 		} else {
 			Object.keys(this.setters).forEach(function (setter) {
-				var value = me.dialog.fields_dict[setter].get_value();
+				var value = me.dialog.fields_dict[setter].get_value() || me.setters[setter];
 				if (me.dialog.fields_dict[setter].df.fieldtype == "Data" && value) {
 					filters[setter] = ["like", "%" + value + "%"];
 				} else {

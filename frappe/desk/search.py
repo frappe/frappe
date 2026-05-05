@@ -72,7 +72,7 @@ def search_widget(
 	start: int = 0,
 	page_length: int = 10,
 	filters: str | None | dict | list = None,
-	filter_fields=None,
+	filter_fields: str | None = None,
 	as_dict: bool = False,
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
@@ -156,6 +156,7 @@ def search_widget(
 	# build from doctype
 	if txt:
 		field_types = {
+			"Autocomplete",
 			"Data",
 			"Text",
 			"Small Text",
@@ -167,7 +168,9 @@ def search_widget(
 		}
 		search_fields = ["name"]
 		if meta.title_field:
-			search_fields.append(meta.title_field)
+			is_virtual_field = getattr(meta.get_field(meta.title_field), "is_virtual", False)
+			if not is_virtual_field:
+				search_fields.append(meta.title_field)
 
 		if meta.search_fields:
 			search_fields.extend(meta.get_search_fields())
@@ -255,8 +258,16 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 		frappe.throw(message, title=_('Error validating "Ignore User Permissions"'))
 
 	meta = frappe.get_meta(form_doctype)
-	link_field = meta.get_field(link_fieldname)
 
+	# special early exit - link_fieldname is not being considered here
+	# to avoid cases like bulk edit which have link_fieldname as "value" from failing
+	if any(
+		(field.fieldtype == "Link" and field.options == link_doctype and field.ignore_user_permissions)
+		for field in meta.fields
+	):
+		return
+
+	link_field = meta.get_field(link_fieldname)
 	if not link_field:
 		_throw(
 			_("Field <code>{0}</code> not found in {1}").format(
@@ -266,9 +277,6 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 
 	ignore_user_permissions = link_field.ignore_user_permissions
 	found_doctype = None
-
-	if link_field.fieldtype == "Link":
-		found_doctype = link_field.options
 
 	if link_field.fieldtype == "Table MultiSelect":
 		child_meta = frappe.get_meta(link_field.options)
@@ -295,6 +303,11 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 
 	if link_field.fieldtype == "Dynamic Link":
 		return  # skip doctype check for Dynamic Link fields
+
+	# all cases of valid Link fields are already covered in the early exit above
+	# the following block only serves to show appropriate error message
+	if link_field.fieldtype == "Link":
+		found_doctype = link_field.options
 
 	if found_doctype != link_doctype:
 		_throw(
@@ -337,7 +350,12 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 		for item in res:
 			item = list(item)
 			if len(item) == 1:
-				item = [item[0], item[0]]
+				title_field = meta.title_field
+				docfield = meta.get_field(title_field)
+				if docfield and docfield.is_virtual:
+					doc = frappe.get_doc(meta.name, item[0])
+					title_value = doc.get_virtual_field_value(docfield)
+				item = [item[0], title_value or item[0]]
 			label = _(item[1]) if meta.translated_doctype else item[1]
 			item[1] = item[0]
 
@@ -372,7 +390,7 @@ def relevance_sorter(key, query, as_dict):
 
 
 @frappe.whitelist()
-def get_names_for_mentions(search_term):
+def get_names_for_mentions(search_term: str):
 	users_for_mentions = frappe.cache.get_value("users_for_mentions", get_users_for_mentions)
 	user_groups = frappe.cache.get_value("user_groups", get_user_groups)
 
@@ -382,7 +400,7 @@ def get_names_for_mentions(search_term):
 			continue
 
 		mention_data["link"] = frappe.utils.get_url_to_form(
-			"User Group" if mention_data.get("is_group") else "User Profile", mention_data["id"]
+			"User Group" if mention_data.get("is_group") else "User", mention_data["id"]
 		)
 
 		filtered_mentions.append(mention_data)
@@ -408,7 +426,7 @@ def get_user_groups():
 
 
 @frappe.whitelist()
-def get_link_title(doctype, docname):
+def get_link_title(doctype: str, docname: str | int):
 	meta = frappe.get_meta(doctype)
 
 	if meta.show_title_field_in_link:

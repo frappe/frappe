@@ -203,6 +203,13 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 						let messagetxt = __("{1} saved", [__(me.doctype), me.doc.name.bold()]);
 						me.dialog.animation_speed = "slow";
 						me.dialog.hide();
+						if (frappe.route_hooks.after_save) {
+							let route_callback = frappe.route_hooks.after_save;
+							delete frappe.route_hooks.after_save;
+
+							route_callback(me);
+						}
+
 						setTimeout(function () {
 							frappe.show_alert(
 								{

@@ -29,17 +29,10 @@ on:
       enable-coverage:
         required: false
         type: boolean
-        default: false
+        default: true
 
 
 jobs:
-  unit-test:
-    name: Unit
-    runs-on: ubuntu-latest
-    steps:
-      - id: placeholder
-        run: |
-          echo "Evolution towards a set of (fast) unit tests which run without a DB connection is being planned"
   gen-idx-integration:
     name: Gen Integration Test Matrix
     runs-on: ubuntu-latest
@@ -100,7 +93,6 @@ jobs:
           python-version: ${{ inputs.python-version }}
           node-version: ${{ inputs.node-version }}
           disable-socketio: true
-          enable-coverage: ${{ inputs.enable-coverage }}
           db-root-password: ${{ env.DB_ROOT_PASSWORD }}
           db: ${{ matrix.db }}
         env:
@@ -108,44 +100,22 @@ jobs:
 
       - name: Run Tests
         run: |
-          source ${GITHUB_WORKSPACE}/env/bin/activate
-          bench --site test_site \
-            run-parallel-tests \
-            --app "${{ github.event.repository.name }}" \
-            --total-builds ${{ inputs.parallel-runs }} \
-            --build-number ${{ matrix.index }} 2> >(tee -a stderr.log >&2)
+          cd sites && ../env/bin/python3 ../apps/frappe/.github/helper/ci.py
 
-          # Process warnings and create annotations
-          if [ -s stderr.log ] && [ "$DB" == "mariadb" ]; then
-            echo "Processing deprecation warnings..."
-            grep -E "DeprecationWarning" stderr.log | sort -u | while read -r warning; do
-              # Extract file path, line number, and warning type
-              file_info=$(echo "$warning" | grep -oP '^.*?:\d+:')
-              file_path=$(echo "$file_info" | cut -d':' -f1)
-              line_number=$(echo "$file_info" | cut -d':' -f2)
-              warning_type=$(echo "$warning" | grep -oP '\w+Warning')
-
-              # Extract the actual warning message
-              message=$(echo "$warning" | sed -E "s/^.*$warning_type: //")
-
-              # Create the annotation
-              echo "::warning file=${file_path},line=${line_number}::${warning_type}: ${message}"
-            done
-          else
-            echo "No deprecation warnings found."
-          fi
         env:
           DB: ${{ matrix.db }}
           # consumed by bench run-parallel-tests
           CAPTURE_COVERAGE: ${{ inputs.enable-coverage }}
+          BUILD_NUMBER: ${{ matrix.index }}
+          TOTAL_BUILDS: ${{ inputs.parallel-runs }}
           FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v6
-        if: inputs.enable-coverage
+        uses: actions/upload-artifact@v7
+        if: ${{ inputs.fake-success == false && inputs.enable-coverage }}
         with:
           name: coverage-${{ matrix.db }}-${{ matrix.index }}
-          path: ./sites/*-coverage*.xml
+          path: ./sites/*coverage*.xml
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -165,15 +135,14 @@ jobs:
   # TIP: Use these for checks, e.g. Server / Tests / Success
   success:
     name: Success
-    needs: [unit-test, integration-test]
+    needs: [integration-test]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Unit '${{ needs.unit-test.result }}' / Integration '${{ needs.integration-test.result }}'
+      - name: Integration '${{ needs.integration-test.result }}'
         shell: python
         run: |
           stati = [
-            '${{ needs.unit-test.result }}',
             '${{ needs.integration-test.result }}',
           ]
 

@@ -137,12 +137,7 @@ frappe.views.Workspace = class Workspace {
 	get_page_to_show() {
 		let default_page;
 
-		if (frappe.boot.user.default_workspace) {
-			default_page = {
-				name: frappe.boot.user.default_workspace.name,
-				public: frappe.boot.user.default_workspace.public,
-			};
-		} else if (
+		if (
 			localStorage.current_page &&
 			this.workspaces.filter((page) => page.name == localStorage.current_page).length != 0
 		) {
@@ -180,85 +175,48 @@ frappe.views.Workspace = class Workspace {
 			this._page = current_page;
 			const me = this;
 			let header_dropdown = `${__(this._page.name)}`;
-			let menu_items = [
-				{
-					label: "Edit",
-					icon: "edit",
-					onClick: async () => {
-						if (!this.editor || !this.editor.readOnly) return;
-						this.is_read_only = false;
-						await this.editor.readOnly.toggle();
-						this.editor.isReady.then(() => {
-							this.setup_customization_buttons(this._page);
-							this.make_blocks_sortable();
-						});
-					},
-					condition: () => {
-						return current_page.is_editable;
-					},
-				},
-				{
-					label: "New",
-					icon: "plus",
-					onClick: function () {
-						me.initialize_new_page(true);
-					},
-					condition: () => {
-						return me.has_create_access;
-					},
-				},
-			];
-			if (frappe.is_mobile()) {
-				frappe.breadcrumbs.add({
-					type: "Custom",
-					label: header_dropdown + `${frappe.utils.icon("chevron-down")}`,
-					route: "#",
-					menu_items: menu_items,
-				});
-			} else {
-				frappe.breadcrumbs.add({
-					type: "Custom",
-					label: header_dropdown,
-					route: "#",
-				});
-				if (!this.add_workspace_controls) {
-					let workspace_actions_button = this.page.add_action_icon("ellipsis");
-					$(workspace_actions_button).removeClass("btn-default");
-					frappe.ui.create_menu({
-						parent: $(workspace_actions_button),
-						open_on_left: true,
-						size: "fit-content",
-						menu_items: [
-							{
-								label: "Edit",
-								icon: "edit",
-								onClick: async () => {
-									if (!this.editor || !this.editor.readOnly) return;
-									this.is_read_only = false;
-									await this.editor.readOnly.toggle();
-									this.editor.isReady.then(() => {
-										this.setup_customization_buttons(this._page);
-										this.make_blocks_sortable();
-									});
-								},
-								condition: () => {
-									return current_page.is_editable;
-								},
+			frappe.breadcrumbs.add({
+				type: "Custom",
+				label: header_dropdown,
+				route: "#",
+			});
+			if (!this.add_workspace_controls) {
+				this.workspace_actions_button = this.page.add_action_icon("ellipsis", "", "");
+
+				$(this.workspace_actions_button).removeAttr("data-original-title");
+				$(this.workspace_actions_button).removeClass("btn-default");
+				frappe.ui.create_menu({
+					parent: $(this.workspace_actions_button),
+					open_on_left: true,
+					size: "fit-content",
+					menu_items: [
+						{
+							label: "Edit",
+							icon: "edit",
+							onClick: async () => {
+								if (!this.editor || !this.editor.readOnly) return;
+								this.is_read_only = false;
+								await this.editor.readOnly.toggle();
+								this.editor.isReady.then(() => {
+									this.setup_customization_buttons(this._page);
+									this.make_blocks_sortable();
+								});
 							},
-							{
-								label: "New",
-								icon: "plus",
-								onClick: function () {
-									me.initialize_new_page(true);
-								},
-								condition: () => {
-									return me.has_create_access;
-								},
+							condition: () => {
+								return current_page.is_editable;
 							},
-						],
-					});
-					this.add_workspace_controls = true;
-				}
+						},
+						{
+							label: "New",
+							icon: "add",
+							onClick: () => this.initialize_new_page(),
+							condition: () => {
+								return this.has_create_access;
+							},
+						},
+					],
+				});
+				this.add_workspace_controls = true;
 			}
 
 			this.wrapper.find(".workspace-header").hide();
@@ -425,6 +383,7 @@ frappe.views.Workspace = class Workspace {
 				frappe.set_route(`workspace/${page.name}`);
 			});
 		}
+		$(this.workspace_actions_button).remove();
 	}
 
 	make_blocks_sortable() {
@@ -537,6 +496,7 @@ frappe.views.Workspace = class Workspace {
 				let blocks = [
 					{
 						type: "header",
+
 						data: { text: values.title },
 					},
 				];
@@ -578,8 +538,9 @@ frappe.views.Workspace = class Workspace {
 							}
 
 							this.create_page(new_page).then(() => {
-								let pre_url = new_page.public ? "" : "private/";
-								let route = pre_url + frappe.router.slug(new_page.title);
+								let route = frappe.router.slug(
+									new_page.public ? new_page.name : "private/" + new_page.name
+								);
 								frappe.set_route(route);
 							});
 						});
@@ -710,7 +671,6 @@ frappe.views.Workspace = class Workspace {
 			spacer: this.blocks["spacer"],
 			HeaderSize: frappe.workspace_block.tunes["header_size"],
 		};
-
 		this.editor = new EditorJS({
 			data: {
 				blocks: blocks || [],
@@ -720,6 +680,26 @@ frappe.views.Workspace = class Workspace {
 			readOnly: true,
 			logLevel: "ERROR",
 		});
+		if (blocks.length == 0) {
+			let message = __("Welcome to the {0} workspace", [this.page.title]);
+			let default_block = [
+				{
+					type: "header",
+					data: { text: message },
+				},
+			];
+			if (this.has_access) {
+				default_block.push({
+					type: "paragraph",
+					data: {
+						text: __("Click on {0} to edit", [frappe.utils.icon("ellipsis")]),
+					},
+				});
+			}
+			this.editor.isReady.then(() => {
+				this.editor.render({ blocks: default_block });
+			});
+		}
 	}
 
 	save_page(page) {
@@ -779,9 +759,9 @@ frappe.views.Workspace = class Workspace {
 								indicator: "green",
 							});
 							if (page.public) {
-								frappe.set_route("desk", page.title.toLowerCase());
+								frappe.set_route("desk", frappe.router.slug(page.name));
 							} else {
-								frappe.set_route("desk", "private", page.title.toLowerCase());
+								frappe.set_route("desk", "private", frappe.router.slug(page.name));
 							}
 						}
 					},

@@ -261,7 +261,7 @@ frappe.views.Calendar = class Calendar {
 				minute: "2-digit",
 				hour12: true,
 			},
-			firstDay: 1,
+			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
 			eventDisplay: "block",
 			headerToolbar: {
 				left: "prev,title,next",
@@ -415,6 +415,10 @@ frappe.views.Calendar = class Calendar {
 
 			if (d.start && !frappe.datetime.validate(d.end)) {
 				d.end = frappe.datetime.add_days(d.start, 1);
+			}
+
+			if (d.allDay && d.end) {
+				d.end = frappe.datetime.add_days(d.end, 1);
 			}
 
 			me.prepare_colors(d);

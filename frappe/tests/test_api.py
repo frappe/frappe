@@ -170,7 +170,7 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	def test_unauthorized_call(self):
 		# test 1: fetch documents without auth
-		response = requests.get(self.resource(self.DOCTYPE))
+		response = requests.get(self.resource("User"))
 		self.assertEqual(response.status_code, 403)
 
 	def test_get_list(self):
@@ -305,11 +305,11 @@ class TestMethodAPI(FrappeAPITestCase):
 		self.assertEqual(response.json["message"], "pong")
 
 	def test_get_user_info(self):
-		# test 3: test for /api/method/frappe.realtime.get_user_info
+		# test 3: test for /api/method/frappe.realtime.get_user_info (server-to-server only)
 		response = self.get(self.method("frappe.realtime.get_user_info"))
 		self.assertEqual(response.status_code, 200)
-		self.assertIsInstance(response.json, dict)
-		self.assertIn(response.json.get("message").get("user"), ("Administrator", "Guest"))
+		message = response.json.get("message")
+		self.assertEqual(message, {})
 
 	def test_auth_cycle(self):
 		# test 4: Pass authorization token in request
@@ -526,7 +526,7 @@ def generate_admin_keys():
 
 
 @whitelist_for_tests()
-def test(*, fail=False, handled=True, message="Failed"):
+def test(*, fail: int | bool = False, handled: int | bool = True, message: str = "Failed"):
 	if fail:
 		if handled:
 			frappe.throw(message)
@@ -537,5 +537,5 @@ def test(*, fail=False, handled=True, message="Failed"):
 
 
 @whitelist_for_tests(allow_guest=True)
-def test_array(data):
+def test_array(data: typing.Any):
 	return data

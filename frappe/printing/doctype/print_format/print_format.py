@@ -82,7 +82,6 @@ class PrintFormat(Document):
 	def before_save(self):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
-			self.standard = "No"
 
 		if frappe.conf.developer_mode:
 			was_standard = (self.get_doc_before_save() or {}).get("standard")
