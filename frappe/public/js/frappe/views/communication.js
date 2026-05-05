@@ -179,8 +179,17 @@ frappe.views.CommunicationComposer = class {
 			},
 			{
 				label: __("Select Print Format"),
-				fieldtype: "Select",
+				fieldtype: "Link",
+				options: "Print Format",
 				fieldname: "select_print_format",
+				get_query: () => {
+					return {
+						filters: {
+							doc_type: me.frm.doctype,
+							disabled: 0,
+						},
+					};
+				},
 				onchange: function () {
 					me.guess_language();
 				},
@@ -605,18 +614,6 @@ frappe.views.CommunicationComposer = class {
 		);
 	}
 
-	get_print_format(format) {
-		if (!format) {
-			format = this.selected_format();
-		}
-
-		if (locals["Print Format"] && locals["Print Format"][format]) {
-			return locals["Print Format"][format];
-		} else {
-			return {};
-		}
-	}
-
 	setup_print() {
 		// print formats
 		const fields = this.dialog.fields_dict;
@@ -630,11 +627,7 @@ frappe.views.CommunicationComposer = class {
 		$(fields.select_print_format.wrapper).toggle(false);
 
 		if (this.frm) {
-			const print_formats = frappe.meta.get_print_formats(this.frm.meta.name);
-			$(fields.select_print_format.input)
-				.empty()
-				.add_options(print_formats)
-				.val(print_formats[0]);
+			fields.select_print_format.set_value(this.frm.meta.default_print_format || "");
 		} else {
 			$(fields.attach_document_print.wrapper).toggle(false);
 		}

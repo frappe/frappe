@@ -16,7 +16,6 @@ ASSET_KEYS = (
 	"__css",
 	"__list_js",
 	"__calendar_js",
-	"__print_formats",
 	"__workflow_docs",
 	"__form_grid_templates",
 	"__listview_template",
@@ -60,7 +59,6 @@ class FormMeta(Meta):
 		if not self.istable:
 			self.add_code()
 			self.add_custom_script()
-			self.load_print_formats()
 			self.load_workflows()
 			self.load_templates()
 			self.load_dashboard()
@@ -195,17 +193,6 @@ class FormMeta(Meta):
 			)
 
 		frappe.throw(msg, title=_("Missing DocType"))
-
-	def load_print_formats(self):
-		print_formats = frappe.db.sql(
-			"""select * FROM `tabPrint Format`
-			WHERE doc_type=%s AND docstatus<2 and disabled=0""",
-			(self.name,),
-			as_dict=1,
-			update={"doctype": "Print Format"},
-		)
-
-		self.set("__print_formats", print_formats)
 
 	def load_workflows(self):
 		# get active workflow

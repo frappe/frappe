@@ -55,11 +55,19 @@ export default class BulkOperations {
 					default: letterheads[0],
 				},
 				{
-					fieldtype: "Select",
+					fieldtype: "Link",
 					label: __("Print Format"),
 					fieldname: "print_sel",
-					options: frappe.meta.get_print_formats(this.doctype),
+					options: "Print Format",
 					default: frappe.get_meta(this.doctype).default_print_format,
+					get_query: () => {
+						return {
+							filters: {
+								doc_type: this.doctype,
+								disabled: 0,
+							},
+						};
+					},
 				},
 				{
 					fieldtype: "Select",

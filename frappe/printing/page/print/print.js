@@ -109,7 +109,7 @@ frappe.ui.form.PrintView = class {
 	setup_sidebar() {
 		this.sidebar = this.page.sidebar.addClass("print-preview-sidebar");
 
-		this.print_format_selector = this.add_sidebar_item({
+		this.print_format_field = this.add_sidebar_item({
 			fieldtype: "Link",
 			fieldname: "print_format",
 			options: "Print Format",
@@ -118,7 +118,7 @@ frappe.ui.form.PrintView = class {
 				return { filters: { doc_type: this.frm.doctype } };
 			},
 			change: () => this.refresh_print_format(),
-		}).$input;
+		});
 
 		this.language_selector = this.add_sidebar_item({
 			fieldtype: "Link",
@@ -248,8 +248,8 @@ frappe.ui.form.PrintView = class {
 		}
 	}
 
-	edit_print_format() {
-		let print_format = this.get_print_format();
+	async edit_print_format() {
+		let print_format = await this.get_print_format();
 		let is_custom_format =
 			print_format.name &&
 			(print_format.print_format_builder || print_format.print_format_builder_beta) &&
@@ -314,17 +314,28 @@ frappe.ui.form.PrintView = class {
 					beta: data.beta,
 				};
 				frappe.set_route("print-format-builder");
-				this.print_format_selector.val(data.print_format_name);
+				this.print_format_field.set_value(data.print_format_name);
 			},
 			__("New Custom Print Format"),
 			__("Start")
 		);
 	}
 
-	refresh_print_format() {
+	async refresh_print_format() {
+		await this.load_print_format();
 		this.set_default_print_language();
 		this.toggle_raw_printing();
 		this.preview();
+	}
+
+	async load_print_format(format) {
+		if (!format) {
+			format = this.selected_format();
+		}
+
+		if (format && format !== "Standard") {
+			frappe.model.with_doc("Print Format", format);
+		}
 	}
 
 	// bind_events () {
@@ -820,20 +831,17 @@ frappe.ui.form.PrintView = class {
 		}
 	}
 
-	set_default_print_format() {
-		if (
-			frappe.meta
-				.get_print_formats(this.frm.doctype)
-				.includes(this.print_format_selector.val())
-		)
+	async set_default_print_format() {
+		let print_format = this.print_format_field.get_value();
+		if (print_format && (await this.print_format_field.validate(print_format))) {
 			return;
+		}
 
-		this.print_format_selector.empty();
-		this.print_format_selector.val(this.frm.meta.default_print_format || "");
+		this.print_format_field.set_value(this.frm.meta.default_print_format || "");
 	}
 
 	selected_format() {
-		return this.print_format_selector.val() || "Standard";
+		return this.print_format_field.get_value() || "Standard";
 	}
 
 	is_raw_printing(format) {
@@ -885,13 +893,20 @@ frappe.ui.form.PrintView = class {
 						},
 						fields: [
 							{
-								fieldtype: "Select",
+								fieldtype: "Link",
 								fieldname: "print_format",
-								default: 0,
-								options: frappe.meta.get_print_formats(this.frm.doctype),
+								options: "Print Format",
 								read_only: 0,
 								in_list_view: 1,
 								label: __("Print Format"),
+								get_query: () => {
+									return {
+										filters: {
+											doc_type: this.frm.doctype,
+											disabled: 0,
+										},
+									};
+								},
 							},
 							{
 								fieldtype: "Select",
