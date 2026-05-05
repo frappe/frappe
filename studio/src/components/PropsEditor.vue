@@ -94,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, resolveComponent } from "vue"
+import { computed, ref } from "vue"
 import EmptyState from "@/components/EmptyState.vue"
 import Block from "@/utils/block"
 
@@ -113,6 +113,7 @@ import type { ComponentProps } from "@/types"
 import { ComponentInput } from "@/types/Studio/StudioComponent"
 import DynamicValueSelector from "@/components/DynamicValueSelector.vue"
 import useStudioStore from "@/stores/studioStore"
+import useComponentInstance from "@/utils/useComponentInstance"
 
 const props = defineProps<{
 	block?: Block
@@ -123,17 +124,7 @@ const getCompletions = useStudioCompletions()
 const canvasStore = useCanvasStore()
 const store = useStudioStore()
 
-const componentInstance = computed(() => {
-	if (!props.block?.componentName || props.block.isStudioComponent) return {}
-	const component = resolveComponent(props.block?.componentName)
-	if (typeof component === "string" || !component) {
-		return {}
-	} else if (typeof component === "object" && "__asyncResolved" in component) {
-		// resolved async component
-		return component.__asyncResolved
-	}
-	return component
-})
+const componentInstance = useComponentInstance(() => props.block)
 
 const componentProps = computed(() => {
 	if (!props.block || props.block.isRoot()) return {}
@@ -148,7 +139,7 @@ const componentProps = computed(() => {
 		if (componentDoc?.inputs) {
 			propConfig = getStudioComponentProps(componentDoc?.inputs)
 		}
-	} else {
+	} else if (componentInstance.value) {
 		propConfig = getComponentProps(props.block.componentName, componentInstance.value)
 	}
 	if (!propConfig) return {}
