@@ -5,6 +5,7 @@ import type { VueProp, VuePropType } from "@/types/vue"
 import * as jsonTypes from "@/json_types"
 import { isObjectEmpty } from "@/utils/helpers"
 import { ConcreteComponent } from "vue"
+import type { CustomVueComponentMeta } from "@/types/vue"
 
 interface ComponentTypes {
 	[componentName: string]: {
@@ -185,6 +186,14 @@ const studioModules: Record<string, string> = import.meta.glob("@/components/App
 
 const templateCache = new Map<string, string>()
 
+const customComponentFilePaths = new Map<string, string>()
+function setCustomComponentFilePaths(components: CustomVueComponentMeta[]) {
+	customComponentFilePaths.clear()
+	for (const comp of components) {
+		customComponentFilePaths.set(comp.component_name, comp.file_path)
+	}
+}
+
 function getComponentTemplate(componentName: string): string {
 	if (templateCache.has(componentName)) {
 		return templateCache.get(componentName) || ""
@@ -223,8 +232,29 @@ function getComponentTemplate(componentName: string): string {
 	return template
 }
 
-function getComponentSlots(componentName: string) {
-	const template = getComponentTemplate(componentName)
+async function fetchCustomComponentTemplate(componentName: string): Promise<string> {
+	if (templateCache.has(componentName)) {
+		return templateCache.get(componentName) || ""
+	}
+
+	const filePath = customComponentFilePaths.get(componentName)
+	if (!filePath) return ""
+
+	try {
+		// Use Vite's ?raw import to get unprocessed file content as a string
+		const module = await import(/* @vite-ignore */ `${filePath}?raw`)
+		const rawSource = module.default || ""
+		if (rawSource) {
+			templateCache.set(componentName, rawSource)
+		}
+		return rawSource
+	} catch (error) {
+		console.error(`Error fetching custom component template ${componentName}:`, error)
+		return ""
+	}
+}
+
+function parseSlotsFromTemplate(template: string) {
 	const slotRegex = /<slot\s*(?:name=["']([^"']*)?["'])?(?:\s*\/>|\s*>(.*?)<\/slot>)?/gi
 	const slots = []
 	let match
@@ -250,6 +280,11 @@ function getComponentSlots(componentName: string) {
 		}
 	}
 	return slots
+}
+
+async function getComponentSlots(componentName: string, isCustomVueComponent?: boolean) {
+	const template = isCustomVueComponent ? await fetchCustomComponentTemplate(componentName) : getComponentTemplate(componentName)
+	return parseSlotsFromTemplate(template)
 }
 
 function resolveProperty(
@@ -294,4 +329,4 @@ function resolveProperty(
 	return { type: type as string, inputType, options }
 }
 
-export { getComponentProps, getComponentTemplate, getComponentSlots }
+export { getComponentProps, getComponentTemplate, getComponentSlots, setCustomComponentFilePaths }

@@ -17,6 +17,7 @@ import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
 import { registerCustomVueComponents, unregisterCustomVueComponents } from "@/globals"
+import { setCustomComponentFilePaths } from "@/utils/components"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
@@ -53,28 +54,8 @@ const useStudioStore = defineStore("store", () => {
 		const appDoc = await fetchApp(appName)
 		activeApp.value = appDoc
 		await setAppPages(appName)
+		await setCustomComponents()
 		await loadCustomVueComponents()
-		setupCustomComponentListener()
-	}
-
-	async function loadCustomVueComponents() {
-		if (customVueComponents.value.length) {
-			unregisterCustomVueComponents(customVueComponents.value)
-			customVueComponents.value = []
-		}
-		const frappeApp = activeApp.value?.frappe_app
-		if (!frappeApp) return
-
-		customVueComponents.value = await registerCustomVueComponents(frappeApp)
-	}
-
-	function setupCustomComponentListener() {
-		if (activeApp.value?.is_standard && import.meta.hot) {
-			// Auto-refresh custom components when .vue files are added/removed/renamed in studio folders
-			import.meta.hot.on("studio:custom-components-changed", () => {
-				loadCustomVueComponents()
-			})
-		}
 	}
 
 	async function deleteApp(appName: string, appTitle: string) {
@@ -362,6 +343,33 @@ const useStudioStore = defineStore("store", () => {
 			setTimeout(() => {
 				targetWindow?.location.reload()
 			}, 50)
+		}
+	}
+
+	// custom components
+	async function setCustomComponents() {
+		await loadCustomVueComponents()
+		setupCustomComponentListener()
+		setCustomComponentFilePaths(customVueComponents.value)
+	}
+
+	async function loadCustomVueComponents() {
+		if (customVueComponents.value.length) {
+			unregisterCustomVueComponents(customVueComponents.value)
+			customVueComponents.value = []
+		}
+		const frappeApp = activeApp.value?.frappe_app
+		if (!frappeApp) return
+
+		customVueComponents.value = await registerCustomVueComponents(frappeApp)
+	}
+
+	function setupCustomComponentListener() {
+		if (activeApp.value?.is_standard && import.meta.hot) {
+			// Auto-refresh custom components when .vue files are added/removed/renamed in studio folders
+			import.meta.hot.on("studio:custom-components-changed", () => {
+				loadCustomVueComponents()
+			})
 		}
 	}
 
