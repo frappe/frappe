@@ -66,7 +66,40 @@ def get_layout():
 	try:
 		doc = frappe.get_doc("Desktop Layout", frappe.session.user)
 		if doc.layout:
-			return json.loads(doc.layout)
+			layout = json.loads(doc.layout)
+			latest_icons = frappe.get_all("Desktop Icon", fields="*")
+
+			def key(i):
+				return i.get("label") or None
+
+			latest_map = {key(i): i for i in latest_icons}
+
+			def merge_icon(item):
+				k = key(item)
+				latest = latest_map.get(k)
+				# preserve layout-specific fields
+				layout_idx = item.get("idx")
+				layout_parent = item.get("parent_icon", None)
+				layout_hidden = item.get("hidden", None)
+
+				if latest:
+					if item.get("icon_type") != latest.get("icon_type"):
+						if latest.get("icon_type") == "Folder":
+							latest["icon_image"] = None
+					item.update(latest)
+				# restore layout-specific values if present
+				if layout_idx is not None:
+					item["idx"] = layout_idx
+				if layout_hidden:
+					item["hidden"] = item.get("hidden")
+				item["parent_icon"] = layout_parent
+
+				if item.get("child_icons"):
+					item["child_icons"] = [merge_icon(c) for c in item["child_icons"]]
+				return item
+
+			layout = [merge_icon(i) for i in layout]
+		return layout
 	except frappe.DoesNotExistError:
 		frappe.clear_last_message()
 	return None
