@@ -4,6 +4,7 @@ import path from "path"
 import { defineConfig } from "vite"
 import { getViteDevServerPort } from "./vite/utils"
 import sharedDependencyResolver from "./vite/sharedDependencyResolver"
+import customComponentWatcher from "./vite/customComponentWatcher"
 
 const viteDevServerPort = getViteDevServerPort()
 
@@ -22,8 +23,8 @@ export default defineConfig({
 		// Allow cross-origin requests from the renderer running on webserver port to Vite dev server.
 		cors: true,
 		fs: {
-			// Allow serving files from other apps in the bench (for custom Vue components)
-			allow: [path.resolve(__dirname, ".."), path.resolve(__dirname, "../../../")],
+			// Allow serving files from any app in the bench apps folder (for custom Vue components)
+			allow: [path.resolve(__dirname, "../../")],
 		},
 		watch: {
 			// unplugin-vue-components generates this file which causes HMR while building other studio apps
@@ -39,6 +40,7 @@ export default defineConfig({
 		}),
 		vue(),
 		sharedDependencyResolver(path.resolve(__dirname, "..")),
+		customComponentWatcher(path.resolve(__dirname, "../../")),
 	],
 	resolve: {
 		alias: {

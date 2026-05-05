@@ -67,6 +67,13 @@ const useStudioStore = defineStore("store", () => {
 		customVueComponents.value = await registerCustomVueComponents(frappeApp)
 	}
 
+	// Auto-refresh custom components when .vue files are added/removed in studio folders
+	if (import.meta.hot) {
+		import.meta.hot.on("studio:custom-components-changed", () => {
+			loadCustomVueComponents()
+		})
+	}
+
 	async function deleteApp(appName: string, appTitle: string) {
 		if (!appName) return
 		const confirmed = await confirm(`Are you sure you want to delete the app <b>${appTitle}</b>?`)
