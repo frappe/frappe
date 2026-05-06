@@ -112,10 +112,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, useAttrs, inject, ComputedRef, onErrorCaptured } from "vue"
+import { computed, ref, watch, useAttrs, inject, ComputedRef, onErrorCaptured, h } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
 import ComponentEditor from "@/components/ComponentEditor.vue"
+import { customVueComponentsRegistry } from "@/globals"
 
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
@@ -125,6 +126,7 @@ import { isDynamicValue } from "@/utils/code"
 import type { CanvasProps } from "@/types/StudioCanvas"
 import type { RepeaterContext } from "@/types"
 import type HTML from "@/components/AppLayout/HTML.vue"
+import MissingComponent from "@/components/MissingComponent.vue"
 import useCodeStore from "@/stores/codeStore"
 
 const props = withDefaults(
@@ -169,9 +171,20 @@ const styles = computed(() => {
 
 const componentName = computed(() => {
 	if (props.block.isContainer()) return props.block.originalElement || "div"
-	if (canvasStore.editingMode === "page") return props.block.componentName
-	const proxyComponent = props.block.getProxyComponent()
-	return proxyComponent ? proxyComponent : props.block.componentName
+
+	let name
+	if (canvasStore.editingMode === "page") {
+		name = props.block.componentName
+	} else {
+		const proxyComponent = props.block.getProxyComponent()
+		name = proxyComponent ? proxyComponent : props.block.componentName
+	}
+
+	if (props.block.isCustomVueComponent) {
+		name = customVueComponentsRegistry.value[name]
+		if (!name) return h(MissingComponent, { componentName: props.block.componentName })
+	}
+	return name
 })
 
 const repeaterContext = inject<ComputedRef<RepeaterContext> | null>("repeaterContext", null)

@@ -7,6 +7,7 @@ import useComponentStore from "@/stores/componentStore"
 import LucideHash from "~icons/lucide/hash"
 import LucideAppWindow from "~icons/lucide/app-window"
 import LucideBox from "~icons/lucide/box"
+import LucideCode from "~icons/lucide/code"
 
 import { generateId, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 import { copyObject, getBlockCopy, getComponentBlock } from "@/utils/serializer"
@@ -38,6 +39,7 @@ class Block implements BlockOptions {
 	isStudioComponent?: boolean
 	isChildOfComponent?: string
 	extendedFromComponent?: Block // for the component root
+	isCustomVueComponent?: boolean // custom vue component from frappe app
 	// temporary properties
 	repeaterDataItem?: Record<string, any> | null
 	componentContext?: Record<string, any> | null
@@ -67,6 +69,9 @@ class Block implements BlockOptions {
 			this.isStudioComponent = options.isStudioComponent
 			const componentStore = useComponentStore()
 			componentStore.loadComponent(this.componentName)
+		}
+		if (options.isCustomVueComponent) {
+			this.isCustomVueComponent = options.isCustomVueComponent
 		}
 
 		// get component props
@@ -242,6 +247,8 @@ class Block implements BlockOptions {
 				return LucideAppWindow
 			case this.isStudioComponent:
 				return LucideBox
+			case this.isCustomVueComponent:
+				return LucideCode
 			default:
 				return Block.components?.[this.componentName]?.icon || LucideHash
 		}

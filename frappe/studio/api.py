@@ -1,8 +1,12 @@
+import os
+import re
 from typing import Literal
 
 import frappe
 from frappe import _
 from frappe.model import display_fieldtypes, no_value_fields, table_fields
+
+from studio.constants import STANDARD_COMPONENT_NAMES
 
 
 @frappe.whitelist()
@@ -100,3 +104,61 @@ def check_app_permission() -> bool:
 	):
 		return True
 	return False
+
+
+@frappe.whitelist()
+def get_custom_vue_components(frappe_app: str) -> list[dict]:
+	"""Discover custom Vue SFC components"""
+	components = []
+	seen_names = set()
+
+	studio_folder = frappe.get_app_source_path(frappe_app, "studio")
+	if not os.path.exists(studio_folder):
+		return []
+
+	def has_reserved_name(name: str) -> bool:
+		if name in STANDARD_COMPONENT_NAMES:
+			frappe.log_error(
+				title="Studio: Custom component name conflict",
+				message=f"Custom component '{component_name}' in {frappe_app}/{studio_app} "
+				f"conflicts with a standard component. Skipping.",
+			)
+			return True
+		return False
+
+	def has_conflicting_name(name: str) -> bool:
+		if name in seen_names:
+			frappe.log_error(
+				title="Studio: Duplicate custom component",
+				message=f"Custom component '{component_name}' in {frappe_app}/{studio_app} "
+				f"conflicts with another component. Skipping.",
+			)
+			return True
+		return False
+
+	for studio_app in os.listdir(studio_folder):
+		studio_app_dir = os.path.join(studio_folder, studio_app)
+		if not os.path.isdir(studio_app_dir):
+			continue
+
+		for dirpath, _dirnames, filenames in os.walk(studio_app_dir):
+			for filename in sorted(filenames):
+				if not filename.endswith(".vue"):
+					continue
+
+				component_name = filename[:-4]  # remove .vue
+				if has_reserved_name(component_name) or has_conflicting_name(component_name):
+					continue
+
+				seen_names.add(component_name)
+				file_path = os.path.join(dirpath, filename)
+
+				components.append(
+					{
+						"component_name": component_name,
+						"studio_app": studio_app,
+						"file_path": file_path,
+					}
+				)
+
+	return components

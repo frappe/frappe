@@ -17,13 +17,14 @@
 			window.app_name = "{{ app_name }}";
 			window.app_route = "{{ app_route }}";
 			window.app_title = "{{ app_title }}";
+			window.frappe_app = "{{ frappe_app }}";
 			window.app_pages = {{ app_pages|tojson }};
 			window.is_developer_mode = {{ is_developer_mode }};
 		</script>
 		{% if is_developer_mode %}
 			<!-- workaround for HMR in renderer during development -->
-			<script type="module" src="http://{{ site_name }}:8080/@vite/client"></script>
-			<script type="module" src="http://{{ site_name }}:8080/src/renderer.ts"></script>
+			<script type="module" src="http://{{ site_name }}:{{ vite_dev_server_port }}/@vite/client"></script>
+			<script type="module" src="http://{{ site_name }}:{{ vite_dev_server_port }}/src/renderer.ts"></script>
 		{% else %}
 			<script type="module" src="/src/renderer.ts"></script>
 		{% endif %}

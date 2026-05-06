@@ -7,6 +7,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { parseArgs } from "node:util"
 import frappeui from "frappe-ui/vite"
+import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
 
@@ -22,6 +23,7 @@ const { values: argv } = parseArgs({
 		components: { type: "string" },
 		"out-dir": { type: "string" },
 		base: { type: "string" },
+		"custom-components": { type: "string" },
 	},
 	strict: false,
 })
@@ -31,20 +33,21 @@ if (!argv.app) {
 	process.exit(1)
 }
 
-await generateAppBuild(argv.app, argv.components, argv["out-dir"], argv.base)
+await generateAppBuild(argv.app, argv.components, argv["out-dir"], argv.base, argv["custom-components"])
 
-export async function generateAppBuild(appName, components, outDir, base) {
+export async function generateAppBuild(appName, components, outDir, base, customComponentsJson) {
 	if (!appName) return
 
 	const componentList = components ? components.split(",") : []
-	const componentSources = findComponentSources(componentList)
+	const customComponents = customComponentsJson ? JSON.parse(customComponentsJson) : {}
+	const componentSources = findComponentSources(componentList, customComponents)
 	const rendererContent = getRendererContent(componentSources)
 	const tempRendererPath = writeRendererFile(appName, rendererContent)
 	await buildWithVite(appName, tempRendererPath, outDir, base)
 	deleteRendererFile(tempRendererPath)
 }
 
-function findComponentSources(appComponents) {
+function findComponentSources(appComponents, customComponents = {}) {
 	const frappeUIComponents = []
 	const frappeComponents = []
 	const studioComponents = []
@@ -59,14 +62,15 @@ function findComponentSources(appComponents) {
 		}
 	})
 	return {
-		frappeUIComponents: frappeUIComponents,
-		frappeComponents: frappeComponents,
-		studioComponents: studioComponents,
+		frappeUIComponents,
+		frappeComponents,
+		studioComponents,
+		customComponents,
 	}
 }
 
 function getRendererContent(componentSources) {
-	const { frappeUIComponents, frappeComponents, studioComponents } = componentSources
+	const { frappeUIComponents, frappeComponents, studioComponents, customComponents } = componentSources
 	const frappeUIImports =
 		frappeUIComponents.length > 0 ? `import { ${frappeUIComponents.join(",\n ")} } from "frappe-ui";` : ""
 	const frappeImports =
@@ -74,11 +78,16 @@ function getRendererContent(componentSources) {
 	const studioImports = studioComponents
 		.map((comp) => `import ${comp} from "@/components/AppLayout/${comp}.vue"`)
 		.join("\n")
+	const customComponentNames = Object.keys(customComponents)
+	const customImports = customComponentNames
+		.map((name) => `import ${name} from "${customComponents[name]}"`)
+		.join("\n")
 
 	const componentRegistrations = [
 		...frappeUIComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...frappeComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...studioComponents.map((comp) => `app.component("${comp}", ${comp})`),
+		...customComponentNames.map((comp) => `app.component("${comp}", ${comp})`),
 	].join("\n")
 
 	const rendererContent = `import "@/index.css"
@@ -94,6 +103,7 @@ import "@/utils/appUtils"
 ${frappeUIImports}
 ${frappeImports}
 ${studioImports}
+${customImports}
 
 const app = createApp(AppRenderer)
 const pinia = createPinia()
@@ -126,13 +136,6 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 	await build({
 		root: path.resolve(__dirname, "../"),
 		base: basePath,
-		server: {
-			// explicitly set origin of generated assets (images, fonts, etc) during development.
-			// Required for the app renderer running on webserver port
-			// https://vite.dev/guide/backend-integration
-			origin: "http://127.0.0.1:8080",
-			allowedHosts: true,
-		},
 		plugins: [
 			vue(),
 			frappeui({
@@ -141,16 +144,16 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 				buildConfig: false,
 				jinjaBootData: false,
 			}),
+			sharedDependencyResolver(path.resolve(__dirname, "../../")),
 		],
 		resolve: {
 			alias: {
-				vue: "vue/dist/vue.esm-bundler.js",
 				"@": path.resolve(__dirname, "../"),
 			},
 		},
 		build: {
 			manifest: true,
-			rollupOptions: {
+			rolldownOptions: {
 				input: {
 					studioRenderer: path.resolve(__dirname, entryFilePath),
 				},

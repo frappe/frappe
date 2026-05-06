@@ -50,5 +50,6 @@ studio_router.isReady().then(async () => {
 			}
 		})
 	}
+
 	studio.mount("#studio")
 })

@@ -11,7 +11,7 @@
 			<SectionContainer title="Slots" v-show="filteredSections.includes('slots')">
 				<template #actions>
 					<Autocomplete
-						:options="componentSlots"
+						:options="availableSlots"
 						@update:modelValue="(slot: SelectOption) => block?.addSlot(slot.value)"
 						class="!w-auto"
 					>
@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue"
+import { ref, computed, watchEffect } from "vue"
 import { Autocomplete } from "frappe-ui"
 import Block from "@/utils/block"
 
@@ -123,12 +123,17 @@ const studioStore = useStudioStore()
 const attributesEditor = ref<InstanceType<typeof ObjectEditor> | null>(null)
 const propsEditor = ref<InstanceType<typeof PropsEditor> | null>(null)
 
-const componentSlots = computed(() => {
-	if (!props.block || props.block.isRoot() || props.block.isContainer()) return []
-
-	const slots = getComponentSlots(props.block.componentName)
-	// filter out already added slots
-	return slots.filter((slot) => !(slot.name in (props.block?.componentSlots || []))).map((slot) => slot.name)
+const componentSlots = ref<string[]>([])
+const availableSlots = computed(() => {
+	return componentSlots.value?.filter((slot) => !(slot in (props.block?.componentSlots || {})))
+})
+watchEffect(async () => {
+	if (!props.block || props.block.isRoot() || props.block.isContainer()) {
+		componentSlots.value = []
+		return
+	}
+	const slots = await getComponentSlots(props.block.componentName, props.block.isCustomVueComponent)
+	componentSlots.value = slots.map((slot) => slot.name)
 })
 
 const getSlotContent = (slot: Slot) => {

@@ -30,6 +30,7 @@ export interface BlockOptions {
 	visibilityCondition?: string
 	isStudioComponent?: boolean
 	isChildOfComponent?: string
+	isCustomVueComponent?: boolean
 	extendedFromComponent?: Block
 	[key: string]: any
 }
@@ -94,6 +95,7 @@ export interface FrappeUIComponent {
 	hideProps?: Array<string> // to hide specific props from the properties panel
 	expandArrayProps?: boolean // whether to render array props optimally using ArrayInput instead of as Code
 	blockTemplate?: string // to specify a block template to be used instead of a vue component when this component is dragged into the canvas
+	isCustomVueComponent?: boolean // whether this is a dynamically registered custom Vue component
 }
 
 export interface FrappeUIComponents {

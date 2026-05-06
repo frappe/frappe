@@ -16,6 +16,9 @@ import { studioVariables } from "@/data/studioVariables"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
+import { registerCustomVueComponents, unregisterCustomVueComponents } from "@/globals"
+import { setCustomComponentFilePaths } from "@/utils/components"
+import type { CustomVueComponentMeta } from "@/types/vue"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
@@ -45,11 +48,14 @@ const useStudioStore = defineStore("store", () => {
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
 	const appPages = ref<Record<string, StudioPage>>({})
+	const customVueComponents = ref<CustomVueComponentMeta[]>([])
 
 	async function setApp(appName: string) {
 		const appDoc = await fetchApp(appName)
 		activeApp.value = appDoc
 		await setAppPages(appName)
+		await setCustomComponents()
+		await loadCustomVueComponents()
 	}
 
 	async function deleteApp(appName: string, appTitle: string) {
@@ -213,11 +219,6 @@ const useStudioStore = defineStore("store", () => {
 	async function publishPage() {
 		if (!selectedPage.value) return
 
-		try {
-			await generateAppBuild()
-		} catch (error) {
-			// continue to publish page even if app build generation fails
-		}
 		return studioPages.runDocMethod
 			.submit(
 				{
@@ -240,6 +241,7 @@ const useStudioStore = defineStore("store", () => {
 				}
 			)
 			.then(async () => {
+				await generateAppBuild()
 				activePage.value = await fetchPage(selectedPage.value!)
 				if (activeApp.value && activePage.value) {
 					openPageInBrowser(activeApp.value, activePage.value)
@@ -344,6 +346,33 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
+	// custom components
+	async function setCustomComponents() {
+		await loadCustomVueComponents()
+		setupCustomComponentListener()
+		setCustomComponentFilePaths(customVueComponents.value)
+	}
+
+	async function loadCustomVueComponents() {
+		if (customVueComponents.value.length) {
+			unregisterCustomVueComponents(customVueComponents.value)
+			customVueComponents.value = []
+		}
+		const frappeApp = activeApp.value?.frappe_app
+		if (!frappeApp) return
+
+		customVueComponents.value = await registerCustomVueComponents(frappeApp)
+	}
+
+	function setupCustomComponentListener() {
+		if (activeApp.value?.is_standard && import.meta.hot) {
+			// Auto-refresh custom components when .vue files are added/removed/renamed in studio folders
+			import.meta.hot.on("studio:custom-components-changed", () => {
+				loadCustomVueComponents()
+			})
+		}
+	}
+
 	// build
 	function generateAppBuild() {
 		if (!activeApp.value) return
@@ -442,6 +471,7 @@ const useStudioStore = defineStore("store", () => {
 		appPages,
 		setAppPages,
 		getAppPageRoute,
+		customVueComponents,
 		// studio pages
 		pageBlocks,
 		selectedPage,

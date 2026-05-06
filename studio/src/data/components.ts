@@ -985,3 +985,4 @@ export default {
 	isFrappeUIComponent,
 	get,
 }
+

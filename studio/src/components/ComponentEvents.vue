@@ -149,7 +149,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, resolveComponent } from "vue"
+import { ref, computed, watch } from "vue"
 import { FormControl, createResource, Dialog, TabButtons } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import Block from "@/utils/block"
@@ -168,6 +168,7 @@ import type { DocTypeField } from "@/types"
 import { toast } from "vue-sonner"
 import type { CompletionContext } from "@codemirror/autocomplete"
 import useCodeStore from "@/stores/codeStore"
+import useComponentInstance from "@/utils/useComponentInstance"
 
 const props = defineProps<{
 	block?: Block
@@ -214,13 +215,13 @@ const eventOptions = computed(() => {
 	]
 })
 
+const componentInstance = useComponentInstance(() => props.block)
+
 const componentEvents = computed(() => {
-	if (!props.block?.componentName) return []
-	const component = resolveComponent(props.block?.componentName)
-	if (typeof component === "string" || !component) {
+	if (!componentInstance.value || typeof componentInstance.value === "string") {
 		return []
 	}
-	return component?.emits || []
+	return componentInstance.value?.emits || []
 })
 
 const doctypeFields = ref<{ label: string; value: string }[]>([])
