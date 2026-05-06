@@ -293,7 +293,7 @@
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2026-03-26 16:27:02.559100",
+ "modified": "2026-05-06 02:26:54.457678",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
@@ -312,8 +312,8 @@
    "write": 1
   },
   {
-   "role": "Desk User",
-   "select": 1
+   "read": 1,
+   "role": "Desk User"
   }
  ],
  "row_format": "Dynamic",

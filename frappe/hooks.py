@@ -137,6 +137,7 @@ has_permission = {
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.has_permission",
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.has_permission",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
+	"Print Format": "frappe.printing.doctype.print_format.print_format.has_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}

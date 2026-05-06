@@ -176,3 +176,15 @@ def make_default(name: str):
 			frappe.bold(name), frappe.bold(print_format.doc_type)
 		)
 	)
+
+
+def has_permission(doc, ptype="read", user=None):
+	if ptype in ("read", "select"):
+		if doc.print_format_for == "DocType":
+			return frappe.has_permission(doc.doc_type, "print")
+		elif doc.print_format_for == "Report":
+			from frappe.boot import get_allowed_reports
+
+			return doc.report in get_allowed_reports(cache=True)
+
+	return True
