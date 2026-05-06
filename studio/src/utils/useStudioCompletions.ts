@@ -50,6 +50,15 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 			}
 		})
 
+		sources.push({
+			item: codeStore.routerObject,
+			completion: {
+				label: "router",
+				type: "variable",
+				detail: "Vue Router Object",
+			}
+		})
+
 		if (window.studio) {
 			Object.entries(window.studio).forEach(([funcName, func]) => {
 				if (isPrivateKey(funcName)) {

@@ -14,15 +14,21 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
 import type { ExpressionEvaluationContext } from "@/types"
+import type { Router } from "vue-router"
 
 const useCodeStore = defineStore("codeStore", () => {
 	const resources = ref<Record<string, Resource>>({})
 	const variables = ref<Record<string, any>>({})
 	const activeWatchers = ref<Record<string, WatchStopHandle>>({})
 	const routeObject = ref<ComputedRef>()
+	const routerObject = ref<Router>()
 
 	function setRouteObject(route: ComputedRef) {
 		routeObject.value = route
+	}
+
+	function setRouterObject(router: Router) {
+		routerObject.value = router
 	}
 
 	async function setPageResources(page: StudioPage, setResourceConfig: boolean = false) {
@@ -34,6 +40,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			const newResource = await getNewResource(resource, {
 				...variables.value,
 				route: unref(routeObject.value),
+				router: routerObject.value,
 			})
 			return {
 				resource_name: resource.resource_name,
@@ -121,6 +128,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			...resources.value,
 			...globalUtils,
 			route: unref(routeObject.value),
+			router: routerObject.value,
 		}
 	})
 
@@ -133,6 +141,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			...resources.value,
 			...globalUtils,
 			route: unref(routeObject.value),
+			router: routerObject.value,
 		}
 	})
 
@@ -479,7 +488,9 @@ const useCodeStore = defineStore("codeStore", () => {
 
 	return {
 		setRouteObject,
+		setRouterObject,
 		routeObject,
+		routerObject,
 		// resources
 		resources,
 		setPageResources,

@@ -12,6 +12,7 @@ const useAppStore = defineStore("appStore", () => {
 	const routeObject = computed(() => app_router.currentRoute.value)
 	const codeStore = useCodeStore()
 	codeStore.setRouteObject(routeObject)
+	codeStore.setRouterObject(app_router)
 
 	async function setPageData(page: StudioPage) {
 		activePage.value = page
