@@ -206,6 +206,8 @@ class User(Document):
 			role_profile = frappe.get_doc("Role Profile", self.role_profile_name)
 			self.set("roles", [])
 			self.append_roles(*[role.role for role in role_profile.roles])
+		elif self.has_value_changed("role_profile_name"):
+			self.set("roles", [])
 
 	@deprecated
 	def validate_roles(self):
