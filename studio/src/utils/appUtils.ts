@@ -1,7 +1,4 @@
-import app_router from "@/router/app_router"
 import { toast } from "vue-sonner"
-import type { RouteLocationRaw } from "vue-router"
-import { call } from "frappe-ui"
 
 declare global {
 	interface Window {
@@ -14,9 +11,6 @@ if (typeof window.studio === 'undefined') {
 }
 
 const utils = {
-	navigate: (to: RouteLocationRaw) => {
-		return app_router.push(to)
-	},
 	showToast: ({ title, message, type }: {
 		title?: string
 		message: string
@@ -38,7 +32,6 @@ const utils = {
 				return toast(toastMessage, { description })
 		}
 	},
-	call: call,
 }
 
 Object.assign(window.studio, utils)

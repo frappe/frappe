@@ -1,10 +1,12 @@
 <template>
 	<div class="h-full">
-		<router-view v-slot="{ Component }">
-			<keep-alive>
-				<component :is="Component" />
-			</keep-alive>
-		</router-view>
+		<FrappeUIProvider>
+			<router-view v-slot="{ Component }">
+				<keep-alive>
+					<component :is="Component" />
+				</keep-alive>
+			</router-view>
+		</FrappeUIProvider>
 
 		<Toaster :visible-toasts="2" position="bottom-right" richColors closeButton />
 		<Dialogs></Dialogs>
@@ -12,6 +14,6 @@
 </template>
 
 <script setup lang="ts">
-import { Dialogs } from "frappe-ui"
+import { Dialogs, FrappeUIProvider } from "frappe-ui"
 import { Toaster } from "vue-sonner"
 </script>

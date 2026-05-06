@@ -4,6 +4,7 @@ import type { CompletionSource } from "@/types"
 import { isPrivateKey } from "@/utils/helpers"
 import { getCompletions } from "./autocompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
+import * as globalUtils from "@/utils/globalUtils"
 
 export const useStudioCompletions = (canEditValues: boolean = false) => {
 	const codeStore = useCodeStore()
@@ -49,6 +50,15 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 			}
 		})
 
+		sources.push({
+			item: codeStore.routerObject,
+			completion: {
+				label: "router",
+				type: "variable",
+				detail: "Vue Router Object",
+			}
+		})
+
 		if (window.studio) {
 			Object.entries(window.studio).forEach(([funcName, func]) => {
 				if (isPrivateKey(funcName)) {
@@ -72,6 +82,30 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 				})
 			})
 		}
+
+		Object.entries(globalUtils).forEach(([funcName, func]) => {
+			if (isPrivateKey(funcName)) {
+				return
+			}
+
+			sources.push({
+				item: func,
+				completion: {
+					label: funcName,
+					type: "function",
+					detail: "Utility Function",
+					apply(view, completion, from, to) {
+						let insertText = typeof func === "function" ? `${completion.label}()` : `${completion.label}`
+						// Place cursor inside the parentheses if function
+						let cursorPos = typeof func === "function" ? from + insertText.length - 1 : from + insertText.length
+						view.dispatch({
+							changes: { from, to, insert: insertText },
+							selection: { anchor: cursorPos }
+						})
+					}
+				}
+			})
+		})
 
 		return sources
 	})
