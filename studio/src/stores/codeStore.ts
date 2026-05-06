@@ -21,13 +21,13 @@ const useCodeStore = defineStore("codeStore", () => {
 	const variables = ref<Record<string, any>>({})
 	const activeWatchers = ref<Record<string, WatchStopHandle>>({})
 	const routeObject = ref<ComputedRef>()
-	const routerObject = ref<Router>()
+	const routerObject = ref<Router | Readonly<Router>>()
 
 	function setRouteObject(route: ComputedRef) {
 		routeObject.value = route
 	}
 
-	function setRouterObject(router: Router) {
+	function setRouterObject(router: Router | Readonly<Router>) {
 		routerObject.value = router
 	}
 

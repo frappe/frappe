@@ -1,4 +1,4 @@
-import { ref, reactive, nextTick, computed, toRaw, unref } from "vue"
+import { ref, reactive, nextTick, computed, toRaw, readonly } from "vue"
 import router from "@/router/studio_router"
 import { defineStore } from "pinia"
 
@@ -383,7 +383,7 @@ const useStudioStore = defineStore("store", () => {
 
 	const codeStore = useCodeStore()
 	codeStore.setRouteObject(routeObject)
-	codeStore.setRouterObject(unref(router))
+	codeStore.setRouterObject(readonly(router))
 
 	async function setPageData(page: StudioPage) {
 		await codeStore.setPageVariables(page)
