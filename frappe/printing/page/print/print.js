@@ -208,6 +208,7 @@ frappe.ui.form.PrintView = class {
 
 		let tasks = [
 			this.set_default_print_format,
+			this.load_print_format,
 			this.set_default_print_language,
 			this.set_default_letterhead,
 			this.preview,
@@ -334,7 +335,7 @@ frappe.ui.form.PrintView = class {
 		}
 
 		if (format && format !== "Standard") {
-			frappe.model.with_doc("Print Format", format);
+			await frappe.model.with_doc("Print Format", format);
 		}
 	}
 
@@ -837,7 +838,7 @@ frappe.ui.form.PrintView = class {
 			return;
 		}
 
-		this.print_format_field.set_value(this.frm.meta.default_print_format || "");
+		return this.print_format_field.set_value(this.frm.meta.default_print_format || "");
 	}
 
 	selected_format() {
