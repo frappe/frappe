@@ -606,21 +606,25 @@ def add_preload_for_bundled_assets(response):
 	# Safe limit for Link header length (~7 KB is the default max in Nginx)
 	MAX_LINK_HEADER_BYTES = 7000
 	if links:
-		final_links = []
-		current_size = 0
+		trimmed = _fit_links_within_limit(links, MAX_LINK_HEADER_BYTES)
+		if trimmed:
+			response.headers["Link"] = ",".join(trimmed)
 
-		for link in links:
-			link_size = len(link.encode("utf-8"))
-			needed_size = link_size + (1 if final_links else 0)
 
-			if current_size + needed_size > MAX_LINK_HEADER_BYTES:
-				break
+def _fit_links_within_limit(links: list[str], byte_limit: int) -> list[str]:
+	result = []
+	total = 0
 
-			final_links.append(link)
-			current_size += needed_size
+	for link in links:
+		link_size = len(link.encode("utf-8"))
+		needed_size = link_size + (1 if result else 0)
 
-		if final_links:
-			response.headers["Link"] = ",".join(final_links)
+		if total + needed_size > byte_limit:
+			break
+
+		result.append(link)
+		total += needed_size
+	return result
 
 
 @lru_cache
