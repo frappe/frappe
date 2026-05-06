@@ -115,7 +115,7 @@ frappe.ui.form.PrintView = class {
 			options: "Print Format",
 			label: __("Print Format"),
 			get_query: () => {
-				return { filters: { doc_type: this.frm.doctype } };
+				return { filters: this.get_print_format_filters() };
 			},
 			change: () => this.refresh_print_format(),
 		});
@@ -337,6 +337,20 @@ frappe.ui.form.PrintView = class {
 		if (format && format !== "Standard") {
 			await frappe.model.with_doc("Print Format", format);
 		}
+	}
+
+	get_print_format_filters() {
+		let filters = {
+			doc_type: this.frm.doctype,
+			disabled: 0,
+			print_format_type: ["!=", "JS"],
+		};
+
+		if (!cint(this.print_settings.enable_raw_printing)) {
+			filters.raw_printing = 0;
+		}
+
+		return filters;
 	}
 
 	// bind_events () {
@@ -901,12 +915,7 @@ frappe.ui.form.PrintView = class {
 								in_list_view: 1,
 								label: __("Print Format"),
 								get_query: () => {
-									return {
-										filters: {
-											doc_type: this.frm.doctype,
-											disabled: 0,
-										},
-									};
+									return { filters: this.get_print_format_filters() };
 								},
 							},
 							{

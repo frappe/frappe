@@ -61,11 +61,18 @@ export default class BulkOperations {
 					options: "Print Format",
 					default: frappe.get_meta(this.doctype).default_print_format,
 					get_query: () => {
+						const filters = {
+							doc_type: this.doctype,
+							disabled: 0,
+							print_format_type: ["!=", "JS"],
+						};
+
+						if (!cint(print_settings.enable_raw_printing)) {
+							filters.raw_printing = 0;
+						}
+
 						return {
-							filters: {
-								doc_type: this.doctype,
-								disabled: 0,
-							},
+							filters: filters,
 						};
 					},
 				},

@@ -183,11 +183,22 @@ frappe.views.CommunicationComposer = class {
 				options: "Print Format",
 				fieldname: "select_print_format",
 				get_query: () => {
+					const print_settings = frappe.model.get_doc(
+						":Print Settings",
+						"Print Settings"
+					);
+					const filters = {
+						doc_type: me.frm.doctype,
+						disabled: 0,
+						print_format_type: ["!=", "JS"],
+					};
+
+					if (!cint(print_settings.enable_raw_printing)) {
+						filters.raw_printing = 0;
+					}
+
 					return {
-						filters: {
-							doc_type: me.frm.doctype,
-							disabled: 0,
-						},
+						filters: filters,
 					};
 				},
 				onchange: function () {
