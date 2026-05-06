@@ -1,7 +1,4 @@
-import studio_router from "@/router/studio_router"
 import { toast } from "vue-sonner"
-import type { RouteLocationRaw } from "vue-router"
-import { call } from "frappe-ui"
 
 declare global {
 	interface Window {
