@@ -103,7 +103,7 @@ $.extend(frappe.perm, {
 			// if owner
 			if (doc.owner !== user) {
 				for (const right of frappe.perm.rights) {
-					if (base_perm[right] && !base_perm.rights_without_if_owner.has(right)) {
+					if (base_perm[right] && !base_perm.rights_without_if_owner?.has(right)) {
 						base_perm[right] = 0;
 					}
 				}
