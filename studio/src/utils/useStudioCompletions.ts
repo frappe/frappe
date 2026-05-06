@@ -95,10 +95,12 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 					type: "function",
 					detail: "Utility Function",
 					apply(view, completion, from, to) {
-						let insertText = `${completion.label}()`
+						let insertText = typeof func === "function" ? `${completion.label}()` : `${completion.label}`
+						// Place cursor inside the parentheses if function
+						let cursorPos = typeof func === "function" ? from + insertText.length - 1 : from + insertText.length
 						view.dispatch({
 							changes: { from, to, insert: insertText },
-							selection: { anchor: from + insertText.length - 1 } // Place cursor inside the parentheses
+							selection: { anchor: cursorPos }
 						})
 					}
 				}
