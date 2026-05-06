@@ -829,8 +829,9 @@ frappe.ui.form.PrintView = class {
 		// returns a list of "print format: printer" mapping filtered by the current print format
 		let print_format_printer_map = this.get_print_format_printer_map();
 		if (print_format_printer_map[this.frm.doctype]) {
+			let selected_format = this.selected_format();
 			return print_format_printer_map[this.frm.doctype].filter(
-				(printer_map) => printer_map.print_format == this.selected_format()
+				(printer_map) => (printer_map.print_format || "Standard") == selected_format
 			);
 		} else {
 			return [];
@@ -887,7 +888,10 @@ frappe.ui.form.PrintView = class {
 	printer_setting_dialog() {
 		// dialog for the Printer Settings
 		this.print_format_printer_map = this.get_print_format_printer_map();
-		this.data = this.print_format_printer_map[this.frm.doctype] || [];
+		this.data = (this.print_format_printer_map[this.frm.doctype] || []).map((printer_map) => ({
+			...printer_map,
+			print_format: printer_map.print_format === "Standard" ? "" : printer_map.print_format,
+		}));
 		this.printer_list = [];
 		frappe.ui.form.qz_get_printer_list().then((data) => {
 			this.printer_list = data;
@@ -933,7 +937,9 @@ frappe.ui.form.PrintView = class {
 				primary_action: () => {
 					let printer_mapping = dialog.get_values()["printer_mapping"];
 					if (printer_mapping && printer_mapping.length) {
-						let print_format_list = printer_mapping.map((a) => a.print_format);
+						let print_format_list = printer_mapping.map(
+							(printer_map) => printer_map.print_format || "Standard"
+						);
 						let has_duplicate = print_format_list.some(
 							(item, idx) => print_format_list.indexOf(item) != idx
 						);
