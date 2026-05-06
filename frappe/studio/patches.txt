@@ -9,4 +9,4 @@ studio.studio.doctype.studio_app.patches.rename_studio_app_based_on_app_title
 studio.studio.doctype.studio_page.patches.migrate_studio_resource_to_studio_page_resource_child_table
 studio.studio.doctype.studio_page.patches.move_text_block_style_props_to_classes
 studio.studio.doctype.studio_page.patches.set_auto_to_true_in_studio_page_resources
-
+studio.studio.doctype.studio_page.patches.update_old_global_utility_usage
