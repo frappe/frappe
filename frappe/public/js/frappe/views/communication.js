@@ -201,8 +201,8 @@ frappe.views.CommunicationComposer = class {
 						filters: filters,
 					};
 				},
-				onchange: function () {
-					me.guess_language();
+				onchange: async function () {
+					await me.guess_language();
 				},
 			},
 			{
@@ -278,7 +278,7 @@ frappe.views.CommunicationComposer = class {
 		}
 	}
 
-	guess_language() {
+	async guess_language() {
 		// when attach print for print format changes try to guess language
 		// if print format has language then set that else boot lang.
 
@@ -289,18 +289,20 @@ frappe.views.CommunicationComposer = class {
 		// 4. system lang
 		// 3 and 4 are resolved already in boot
 		let document_lang = this.frm?.doc?.language;
-		let print_format = this.dialog.get_value("select_print_format");
+		let print_format = this.selected_format();
 
 		let print_format_lang;
 		if (print_format != "Standard") {
-			print_format_lang = frappe.get_doc(
-				"Print Format",
-				print_format
-			)?.default_print_language;
+			const print_format_doc = await frappe.model.with_doc("Print Format", print_format);
+			if (print_format !== this.selected_format()) {
+				return;
+			}
+
+			print_format_lang = print_format_doc.default_print_language;
 		}
 
 		let lang = document_lang || print_format_lang || frappe.boot.lang;
-		this.dialog.set_value("print_language", lang);
+		await this.dialog.set_value("print_language", lang);
 	}
 
 	async check_email_template_html(email_template) {
