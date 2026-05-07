@@ -42,11 +42,7 @@ if TYPE_CHECKING:
 DOCUMENT_LOCK_EXPIRY = 3 * 60 * 60  # All locks expire in 3 hours automatically
 DOCUMENT_LOCK_SOFT_EXPIRY = 30 * 60  # Let users force-unlock after 30 minutes
 _POSITIONAL_PARAM_KINDS = frozenset(
-	(
-		inspect.Parameter.POSITIONAL_ONLY,
-		inspect.Parameter.POSITIONAL_OR_KEYWORD,
-		inspect.Parameter.VAR_POSITIONAL,
-	)
+	(inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
 )
 
 
@@ -56,7 +52,10 @@ def _hook_handler_accepts_method(f: "Callable") -> bool:
 	params, _ = frappe._get_cached_signature_params(f)
 	count = 0
 	for p in params.values():
-		if p.kind in _POSITIONAL_PARAM_KINDS:
+		kind = p.kind
+		if kind == inspect.Parameter.VAR_POSITIONAL:
+			return True
+		if kind in _POSITIONAL_PARAM_KINDS:
 			count += 1
 			if count > 1:
 				return True
