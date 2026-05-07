@@ -290,7 +290,6 @@ def get_email_body_for_qr_code(kwargs_dict):
 	return frappe.render_template(body_template, kwargs_dict, restrict_globals=True)
 
 
-#  check this
 def get_link_for_qrcode(user, totp_uri, otp_secret=None):
 	"""Get link to temporary page showing QRCode."""
 	key = frappe.generate_hash(length=20)
@@ -375,7 +374,6 @@ def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, mess
 	return True
 
 
-# check this
 def get_qr_svg_code(totp_uri):
 	"""Get SVG code to display Qrcode for OTP."""
 	from pyqrcode import create as qrcreate
