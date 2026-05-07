@@ -160,8 +160,8 @@ frappe.ui.form.Sidebar = class {
 			.html(
 				get_user_message(
 					this.frm.doc.modified_by,
-					__("Last Edited by You", null),
-					__("Last Edited by {0}", [get_user_link(this.frm.doc.modified_by)])
+					__("Last Edited By You", null),
+					__("Last Edited By {0}", [get_user_link(this.frm.doc.modified_by)])
 				) +
 					" <br> " +
 					comment_when(this.frm.doc.modified)
