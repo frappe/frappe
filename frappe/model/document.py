@@ -6,9 +6,9 @@ import itertools
 import json
 import time
 import warnings
-from collections.abc import Generator, Iterable
+from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
-from functools import wraps
+from functools import lru_cache, wraps
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Literal, Optional, Self, TypeAlias, Union, overload, override
 
@@ -48,6 +48,19 @@ _POSITIONAL_PARAM_KINDS = frozenset(
 		inspect.Parameter.VAR_POSITIONAL,
 	)
 )
+
+
+@lru_cache
+def _hook_handler_accepts_method(f: "Callable") -> bool:
+	"""Return True if the hook handler expects the `method` argument."""
+	params, _ = frappe._get_cached_signature_params(f)
+	count = 0
+	for p in params.values():
+		if p.kind in _POSITIONAL_PARAM_KINDS:
+			count += 1
+			if count > 1:
+				return True
+	return False
 
 
 type _SingleDocument = "Document"
@@ -1860,24 +1873,17 @@ class Document(BaseDocument):
 			else:
 				self._return_value = new_return_value
 
-		def call_hook(f, self, method, *args, **kwargs):
-			# Allow hook handlers to be defined as `handler(doc)` or `handler(doc, method)`.
-			params, _ = frappe._get_cached_signature_params(f)
-			positional_count = 0
-			for p in params.values():
-				if p.kind in _POSITIONAL_PARAM_KINDS:
-					positional_count += 1
-					if positional_count > 1:
-						return f(self, method, *args, **kwargs)
-			return f(self, *args, **kwargs)
-
 		def compose(fn, *hooks):
 			def runner(self, method, *args, **kwargs):
 				add_to_return_value(self, fn(self, *args, **kwargs))
 				for f in hooks:
 					try:
 						frappe.db._disable_transaction_control += 1
-						add_to_return_value(self, call_hook(f, self, method, *args, **kwargs))
+						# Allow hook handlers to be defined as `handler(doc)` or `handler(doc, method)`.
+						if _hook_handler_accepts_method(f):
+							add_to_return_value(self, f(self, method, *args, **kwargs))
+						else:
+							add_to_return_value(self, f(self, *args, **kwargs))
 					finally:
 						frappe.db._disable_transaction_control -= 1
 
