@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import hashlib
+import inspect
 import itertools
 import json
 import time
@@ -40,6 +41,13 @@ if TYPE_CHECKING:
 
 DOCUMENT_LOCK_EXPIRY = 3 * 60 * 60  # All locks expire in 3 hours automatically
 DOCUMENT_LOCK_SOFT_EXPIRY = 30 * 60  # Let users force-unlock after 30 minutes
+_POSITIONAL_PARAM_KINDS = frozenset(
+	(
+		inspect.Parameter.POSITIONAL_ONLY,
+		inspect.Parameter.POSITIONAL_OR_KEYWORD,
+		inspect.Parameter.VAR_POSITIONAL,
+	)
+)
 
 
 type _SingleDocument = "Document"
@@ -1854,11 +1862,14 @@ class Document(BaseDocument):
 
 		def call_hook(f, self, method, *args, **kwargs):
 			# Allow hook handlers to be defined as `handler(doc)` or `handler(doc, method)`.
-			# Reuse frappe's cached signature inspection to check if `method` is accepted.
 			params, _ = frappe._get_cached_signature_params(f)
-			if "method" not in params:
-				return f(self, *args, **kwargs)
-			return f(self, method, *args, **kwargs)
+			positional_count = 0
+			for p in params.values():
+				if p.kind in _POSITIONAL_PARAM_KINDS:
+					positional_count += 1
+					if positional_count > 1:
+						return f(self, method, *args, **kwargs)
+			return f(self, *args, **kwargs)
 
 		def compose(fn, *hooks):
 			def runner(self, method, *args, **kwargs):
