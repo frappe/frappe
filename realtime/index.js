@@ -27,16 +27,16 @@ const authenticate = require("./middlewares/authenticate");
 realtime.use(authenticate);
 // =======================
 
-function on_connection(socket) {
-	socket.installed_apps.forEach((app) => {
-		let app_handler = get_app_handlers(app);
+async function on_connection(socket) {
+	for (const app of socket.installed_apps) {
 		try {
+			let app_handler = await get_app_handlers(app);
 			app_handler && app_handler(socket);
 		} catch (err) {
 			console.warn(`failed to setup event handlers from ${app}`);
 			console.warn(err);
 		}
-	});
+	}
 
 	// ESBUild "open in editor" on error
 	socket.on("open_in_editor", async (data) => {
@@ -46,7 +46,7 @@ function on_connection(socket) {
 }
 
 const _app_handlers = {};
-function get_app_handlers(app) {
+async function get_app_handlers(app) {
 	if (app in _app_handlers) {
 		return _app_handlers[app];
 	}
@@ -56,10 +56,16 @@ function get_app_handlers(app) {
 	let handler = null;
 	if (fs.existsSync(abs_path)) {
 		try {
-			handler = require(file);
+			// Try dynamic import first (for ES modules)
+			let file_url = `file://${abs_path}`;
+			handler = await import(file_url).then((m) => m.default);
 		} catch (err) {
-			console.warn(`failed to load event handlers from ${abs_path}`);
-			console.warn(err);
+			// Fall back to require (for CommonJS)
+			try {
+				handler = require(file);
+			} catch (requireErr) {
+				console.warn(err);
+			}
 		}
 	}
 	_app_handlers[app] = handler;
