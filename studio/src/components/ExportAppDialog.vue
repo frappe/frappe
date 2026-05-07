@@ -83,6 +83,7 @@ function exportApp() {
 		},
 		{
 			onSuccess: () => {
+				store.setApp(store.activeApp.name)
 				toast.success("App exported successfully")
 				showDialog.value = false
 			},
@@ -104,6 +105,7 @@ function disableAppExport() {
 		},
 		{
 			onSuccess: () => {
+				store.setApp(store.activeApp.name)
 				toast.success("App export disabled")
 				showDialog.value = false
 			},

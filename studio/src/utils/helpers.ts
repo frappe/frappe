@@ -251,9 +251,8 @@ async function fetchApp(appName: string) {
 	const appResource = createDocumentResource({
 		doctype: "Studio App",
 		name: appName,
-		auto: true,
 	})
-	await appResource.get.promise
+	await appResource.reload()
 	return appResource.doc
 }
 
@@ -267,8 +266,8 @@ async function fetchPage(pageName: string) {
 		doctype: "Studio Page",
 		name: pageName,
 	})
-	await pageResource?.get?.promise
-	return pageResource?.doc
+	await pageResource.reload()
+	return pageResource.doc
 }
 
 async function findPageWithRoute(appName: string, pageRoute: string) {

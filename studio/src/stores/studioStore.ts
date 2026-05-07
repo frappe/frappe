@@ -348,7 +348,7 @@ const useStudioStore = defineStore("store", () => {
 	// custom components
 	async function setCustomComponents() {
 		await loadCustomVueComponents()
-		setupCustomComponentListener()
+		setCustomComponentListener()
 		setCustomComponentFilePaths(customVueComponents.value)
 	}
 
@@ -357,13 +357,12 @@ const useStudioStore = defineStore("store", () => {
 			unregisterCustomVueComponents(customVueComponents.value)
 			customVueComponents.value = []
 		}
-		const frappeApp = activeApp.value?.frappe_app
-		if (!frappeApp) return
-
-		customVueComponents.value = await registerCustomVueComponents(frappeApp)
+		if (activeApp.value?.is_standard) {
+			customVueComponents.value = await registerCustomVueComponents(activeApp.value.frappe_app!)
+		}
 	}
 
-	function setupCustomComponentListener() {
+	function setCustomComponentListener() {
 		if (activeApp.value?.is_standard && import.meta.hot) {
 			// Auto-refresh custom components when .vue files are added/removed/renamed in studio folders
 			import.meta.hot.on("studio:custom-components-changed", () => {
@@ -472,6 +471,7 @@ const useStudioStore = defineStore("store", () => {
 		setAppPages,
 		getAppPageRoute,
 		// custom components
+		setCustomComponents,
 		customVueComponents,
 		// studio pages
 		pageBlocks,
