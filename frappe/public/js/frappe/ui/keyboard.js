@@ -222,11 +222,18 @@ frappe.ui.keys.add_shortcut({
 frappe.ui.keys.add_shortcut({
 	shortcut: "ctrl+g",
 	action: function (e) {
-		$("#navbar-modal-search").click();
+		const from_bar = ($("#navbar-search").val() || "").trim();
+		const dlg = frappe.searchdialog?.search;
+		if (dlg?.open_global_search_dialog) {
+			frappe.search.hide_navbar_search_modal?.();
+			dlg.open_global_search_dialog(from_bar);
+			e.preventDefault();
+			return false;
+		}
 		e.preventDefault();
 		return false;
 	},
-	description: __("Open Awesomebar"),
+	description: __("Open Global Search"),
 	ignore_inputs: true,
 });
 

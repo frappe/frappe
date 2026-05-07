@@ -13,6 +13,13 @@
 		.modal-actions {
 			z-index: 6;
 			top: 7px;
+			align-items: center;
+			gap: 2px;
+
+			.btn-open-global-search-settings {
+				/* Match minimize / close icon buttons */
+				flex-shrink: 0;
+			}
 		}
 
 		.search-input {
@@ -61,32 +68,6 @@
 			.global-search-doctype-filters {
 				flex-shrink: 0;
 				padding-bottom: var(--padding-lg);
-
-				.global-search-tip-with-settings {
-					@include flex(flex, space-between, center);
-					gap: var(--padding-sm);
-					width: 100%;
-					margin-bottom: var(--margin-xs);
-				}
-
-				.global-search-multi-term-tip {
-					font-size: var(--text-xs);
-					flex: 1 1 auto;
-					min-width: 0;
-					margin-bottom: 0;
-				}
-
-				button.btn-open-global-search-settings {
-					flex: 0 0 auto;
-					align-self: center;
-					width: auto;
-					height: var(--btn-height);
-					aspect-ratio: 1;
-					padding: 0;
-					display: inline-flex;
-					align-items: center;
-					justify-content: center;
-				}
 
 				.global-search-toolbar-row,
 				.global-search-filter-toolbar {
@@ -263,18 +244,47 @@
 			}
 
 			> .list-row-container:not(.global-search-list-header) {
+				display: flex;
+				flex-direction: column;
 				position: relative;
 				z-index: 0;
 				padding-inline: var(--padding-sm);
-				border-radius: var(--border-radius-md);
-				overflow: hidden;
-				border: 1px solid transparent;
+				border-radius: var(--border-radius);
+				overflow: visible;
 				background-color: transparent;
 				box-sizing: border-box;
 
+				/* Same as .list-row-container:hover in desk list.scss — background only, no outline */
 				&:hover {
-					border-color: var(--border-color);
 					background-color: var(--highlight-color);
+				}
+
+				/*
+				 * list.scss applies .list-row-container:focus .list-row { highlight }. tabindex made rows
+				 * focus on click so highlight stuck after mouse left. No tabindex on rows; this resets any
+				 * mouse-driven focus so highlight matches hover (keyboard still gets :focus-visible).
+				 */
+				&:focus:not(:focus-visible) {
+					outline: none;
+
+					> .level.list-row {
+						background-color: transparent;
+					}
+				}
+
+				> .level.list-row {
+					min-height: var(--list-row-height);
+					flex-shrink: 0;
+					padding: var(--padding-xs) 0;
+				}
+
+				/* Separator between rows only (like list rows); omit on single / last row */
+				&:not(:last-child) > .level.list-row {
+					border-bottom: 1px solid var(--border-color);
+				}
+
+				&:last-child > .level.list-row {
+					border-bottom: none;
 				}
 			}
 
@@ -287,6 +297,7 @@
 				border-radius: var(--border-radius-md);
 				overflow: hidden;
 				box-sizing: border-box;
+				margin-bottom: var(--margin-xs);
 
 				&:hover {
 					background-color: var(--highlight-color);
@@ -301,7 +312,7 @@
 			.global-search-level-left-multi.level-left {
 				flex: 1 1 auto !important;
 				min-width: 0 !important;
-				align-items: stretch;
+				align-items: flex-start;
 				flex-wrap: nowrap;
 				overflow: visible;
 				white-space: normal;
@@ -314,7 +325,8 @@
 				min-width: 0;
 				margin-right: var(--margin-sm);
 
-				> span {
+				/* Do not force .global-search-field-more-hint to block — it must stay inline with the 3rd value. */
+				> span:not(.global-search-field-more-hint) {
 					display: block;
 					min-width: 0;
 				}
@@ -332,6 +344,25 @@
 				a {
 					color: var(--primary);
 				}
+
+				&.global-search-field-col--multiline {
+					white-space: normal;
+					word-break: break-word;
+					overflow: visible;
+					text-overflow: clip;
+					line-height: 1.4;
+					align-self: flex-start;
+
+					br {
+						line-height: inherit;
+					}
+				}
+
+				.global-search-field-more-hint {
+					display: inline;
+					font-weight: var(--weight-regular);
+					font-style: italic;
+				}
 			}
 
 			.list-subject .level-item {
@@ -339,12 +370,6 @@
 				flex: 1 1 auto;
 				max-width: 100%;
 				overflow: hidden;
-			}
-
-			> .list-row-container:not(.global-search-list-header) .list-row {
-				min-height: var(--list-row-height);
-				flex-shrink: 0;
-				border-bottom: none;
 			}
 
 			a.global-search-name-link {
@@ -372,6 +397,15 @@
 				color: var(--text-color);
 				margin-top: var(--margin-lg);
 				font-size: var(--text-xl);
+			}
+
+			.global-search-empty-state-tip {
+				font-size: var(--text-xs);
+				margin-top: var(--margin-md);
+				max-width: 28rem;
+				margin-left: auto;
+				margin-right: auto;
+				line-height: 1.45;
 			}
 		}
 

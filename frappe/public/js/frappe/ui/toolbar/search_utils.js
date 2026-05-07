@@ -535,7 +535,8 @@ frappe.search.utils = {
 			const label = part.slice(0, idx).trim();
 			const value = part.slice(idx + sep.length).trim();
 			if (!label.length || /^name$/i.test(label)) continue;
-			fields[label] = fields[label] ? fields[label] + "," + value : value;
+			if (!fields[label]) fields[label] = [];
+			fields[label].push(value);
 		}
 		return fields;
 	},
@@ -577,93 +578,6 @@ frappe.search.utils = {
 		} catch (e) {
 			return frappe.utils.escape_html(s);
 		}
-	},
-
-	get_nav_results: function (keywords) {
-		function sort_uniques(array) {
-			var routes = [],
-				out = [];
-			array.forEach(function (d) {
-				if (d.route) {
-					if (d.route[0] === "List" && d.route[2]) {
-						d.route.splice(2);
-					}
-					var str_route = d.route.join("/");
-					if (routes.indexOf(str_route) === -1) {
-						routes.push(str_route);
-						out.push(d);
-					} else {
-						var old = routes.indexOf(str_route);
-						if (out[old].index > d.index) {
-							out[old] = d;
-						}
-					}
-				} else {
-					out.push(d);
-				}
-			});
-			return out.sort(function (a, b) {
-				return b.index - a.index;
-			});
-		}
-		var lists = [],
-			setup = [];
-		var all_doctypes = sort_uniques(this.get_doctypes(keywords));
-		all_doctypes.forEach(function (d) {
-			if (d.type === "") {
-				setup.push(d);
-			} else {
-				lists.push(d);
-			}
-		});
-		var in_keyword = keywords.split(" in ")[0];
-		return [
-			{
-				title: __("Recents"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_recent_pages(keywords)),
-			},
-			{
-				title: __("Create a new ..."),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_creatables(keywords)),
-			},
-			{
-				title: __("Lists"),
-				fetch_type: "Nav",
-				results: lists,
-			},
-			{
-				title: __("Reports"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_reports(keywords)),
-			},
-			{
-				title: __("Administration"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_pages(keywords)),
-			},
-			{
-				title: __("Desktop Icon"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_desktop_icons(keywords)),
-			},
-			{
-				title: __("Dashboard"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_dashboards(keywords)),
-			},
-			{
-				title: __("Setup"),
-				fetch_type: "Nav",
-				results: setup,
-			},
-			{
-				title: __("Find '{0}' in ...", [in_keyword]),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_search_in_list(keywords)),
-			},
-		];
 	},
 
 	fuzzy_search: function (keywords = "", _item = "", return_marked_string = false) {
