@@ -55,7 +55,6 @@ const useStudioStore = defineStore("store", () => {
 		activeApp.value = appDoc
 		await setAppPages(appName)
 		await setCustomComponents()
-		await loadCustomVueComponents()
 	}
 
 	async function deleteApp(appName: string, appTitle: string) {
@@ -472,6 +471,7 @@ const useStudioStore = defineStore("store", () => {
 		appPages,
 		setAppPages,
 		getAppPageRoute,
+		// custom components
 		customVueComponents,
 		// studio pages
 		pageBlocks,
