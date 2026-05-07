@@ -22,6 +22,74 @@
 	</div>
 	<div class='col-sm-6' style='padding-top: 15px;'>
 		<img src="data:image/svg+xml;base64,{{qrcode_svg}}">
+
+        {% if otp_secret %}
+        <div style='margin-top: 20px;'>
+            <p style='margin-bottom: 0px;'><strong>{{ _("Can't scan the code?") }}</strong></p>
+            <p style='font-size: 13px; color: #636e72; margin-bottom: 4px;'>{{ _("Enter this setup key manually:") }}</p>
+
+            <div style='display: flex; gap: 8px;'>
+                <input
+                    type='text'
+                    id='otp-secret-input'
+                    value='{{ otp_secret }}'
+                    readonly
+                    onclick='this.select()'
+                    class='form-control'
+                    style='flex: 1; max-width:40%; font-family: monospace; letter-spacing: 1px;padding: 10px 12px; font-size: 14px; width: 35%; height:100% '
+                />
+                <button
+                    id='copy-secret-btn'
+                    onclick='copySecret()'
+                    class='btn btn-default btn-sm'
+                    style='padding: 6px 12px; flex-shrink: 0;'
+                    title='{{ _("Copy to clipboard") }}'
+                >
+                    <svg id='copy-icon' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>
+                        <rect x='9' y='9' width='13' height='13' rx='2' ry='2'></rect>
+                        <path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'></path>
+                    </svg>
+                    <svg id='check-icon' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='#10b981' stroke-width='2.5' style='display: none;'>
+                        <polyline points='20 6 9 17 4 12'></polyline>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        {% endif %}
 	</div>
 </div>
+
+<script>
+function copySecret() {
+    const input = document.getElementById('otp-secret-input');
+    const copyIcon = document.getElementById('copy-icon');
+    const checkIcon = document.getElementById('check-icon');
+
+    input.select();
+    input.setSelectionRange(0, 99999);
+
+    try {
+        navigator.clipboard.writeText(input.value).then(function() {
+            copyIcon.style.display = 'none';
+            checkIcon.style.display = 'inline';
+            setTimeout(function() {
+                copyIcon.style.display = 'inline';
+                checkIcon.style.display = 'none';
+            }, 2000);
+        }).catch(function() {
+            document.execCommand('copy');
+            copyIcon.style.display = 'none';
+            checkIcon.style.display = 'inline';
+            setTimeout(function() {
+                copyIcon.style.display = 'inline';
+                checkIcon.style.display = 'none';
+            }, 2000);
+        });
+    } catch (err) {
+        console.error('Copy failed:', err);
+    }
+    input.blur();
+    window.getSelection().removeAllRanges();
+}
+</script>
 {% endblock %}
