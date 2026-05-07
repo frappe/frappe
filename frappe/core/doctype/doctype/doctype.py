@@ -554,9 +554,12 @@ class DocType(Document):
 		defer_doctype_export = request and hasattr(request, "after_response")
 		defer_module_methods = allow_doctype_export and defer_doctype_export
 
+		# Snapshot insert intent: flags.in_insert is cleared before request.after_response runs.
+		needs_after_doctype_insert = bool(self.flags.in_insert)
+
 		def run_doctype_module_methods():
 			self.run_module_method("on_doctype_update")
-			if self.flags.in_insert:
+			if needs_after_doctype_insert:
 				self.run_module_method("after_doctype_insert")
 
 		if allow_doctype_export:
