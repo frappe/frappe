@@ -680,10 +680,22 @@ class TestDocType(IntegrationTestCase):
 		frappe.local.request = frappe._dict(after_response=CallbackManager())
 		doctype = None
 		controller_folder = None
+		method_calls = []
+
+		original_run_module_method = DocType.run_module_method
+
+		def spy(self, method):
+			method_calls.append(method)
+			return original_run_module_method(self, method)
 
 		try:
-			doctype = new_doctype(custom=0).insert()
-			frappe.local.request.after_response.run()
+			with patch.object(DocType, "run_module_method", spy):
+				doctype = new_doctype(custom=0).insert()
+				# Module hooks must be deferred until after the controller file exists.
+				self.assertEqual(method_calls, [])
+
+				frappe.local.request.after_response.run()
+				self.assertEqual(method_calls, ["on_doctype_update", "after_doctype_insert"])
 
 			controller_folder = frappe.get_module_path(doctype.module, "doctype", frappe.scrub(doctype.name))
 			controller_path = frappe.get_module_path(
