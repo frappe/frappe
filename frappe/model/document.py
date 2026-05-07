@@ -1852,13 +1852,21 @@ class Document(BaseDocument):
 			else:
 				self._return_value = new_return_value
 
+		def call_hook(f, self, method, *args, **kwargs):
+			# Allow hook handlers to be defined as `handler(doc)` or `handler(doc, method)`.
+			# Reuse frappe's cached signature inspection to check if `method` is accepted.
+			params, _ = frappe._get_cached_signature_params(f)
+			if "method" not in params:
+				return f(self, *args, **kwargs)
+			return f(self, method, *args, **kwargs)
+
 		def compose(fn, *hooks):
 			def runner(self, method, *args, **kwargs):
 				add_to_return_value(self, fn(self, *args, **kwargs))
 				for f in hooks:
 					try:
 						frappe.db._disable_transaction_control += 1
-						add_to_return_value(self, f(self, method, *args, **kwargs))
+						add_to_return_value(self, call_hook(f, self, method, *args, **kwargs))
 					finally:
 						frappe.db._disable_transaction_control -= 1
 
