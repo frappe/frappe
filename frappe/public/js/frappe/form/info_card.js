@@ -29,7 +29,6 @@ export class InfoCard {
 	make_card() {
 		const me = this;
 		this.$info_card = $("<div class='info-card'></div>").appendTo(this.label_span);
-		this.$sidebar_card = this.$info_card.find(".sidebar-card");
 		let card_args = {
 			title: "",
 			message: this.df.show_description_on_click ? this.df.description || "" : "",
