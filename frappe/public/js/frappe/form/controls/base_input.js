@@ -203,8 +203,8 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 	show_description_on_click() {
 		const me = this;
-		if (this.df.show_description_on_click) {
-			let info_card = new InfoCard({
+		if (this.df.show_description_on_click && !this._doc_url_info_card) {
+			new InfoCard({
 				label_area: this.label_area,
 				label_span: this.label_span,
 				df: this.df,
@@ -223,16 +223,13 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		)
 			return;
 
-		let $help = this.$wrapper.find("span.help");
-		$help.empty();
-
-		$(`<a
-			href="${frappe.utils.escape_html(this.df.documentation_url)}"
-			target="_blank"
-			title="${frappe.utils.escape_html(__("Documentation"))}"
-		>
-			${frappe.utils.icon("help", "sm")}
-		</a>`).appendTo($help);
+		if (!this._doc_url_info_card) {
+			this._doc_url_info_card = new InfoCard({
+				label_area: this.label_area,
+				label_span: this.label_span,
+				df: this.df,
+			});
+		}
 	}
 
 	set_description(description) {

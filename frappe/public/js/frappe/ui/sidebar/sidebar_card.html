@@ -9,7 +9,9 @@
     </div>
     {% } else { %}
         <div class="card-title-container card-close-button">
-            {%= frappe.utils.icon(card.icon, "sm", "", "", "card-icon") %}
+            {% if !card.hide_icon %}
+                {%= frappe.utils.icon(card.icon, "sm", "", "", "card-icon") %}
+            {% endif %}
             <span class="flex flex-column w-100">
                 <div class="sidebar-card-title">{{ card.title }}</div>
                 <div class="sidebar-card-description">{{ card.message }}</div>

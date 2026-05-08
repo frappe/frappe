@@ -11,11 +11,11 @@ export class InfoCard {
 	make_toggle_button() {
 		$(
 			`${frappe.utils.icon(
-				"message-circle-question-mark",
-				"sm",
+				"info",
+				"xs",
 				"",
 				"",
-				"cursor-pointer m-0 info-trigger"
+				"cursor-pointer m-0 info-trigger card-icons"
 			)}`
 		).appendTo($(this.label_span));
 		$(this.label_span).find("svg").attr("role", "button");
@@ -30,24 +30,22 @@ export class InfoCard {
 		const me = this;
 		this.$info_card = $("<div class='info-card'></div>").appendTo(this.label_span);
 		let card_args = {
-			message: this.df.description,
+			title: "",
+			message: this.df.show_description_on_click ? this.df.description || "" : "",
 			parent: this.$info_card,
 			trigger: $(this.label_span).find("svg").get(0),
 			close_button: true,
 			popper: true,
-			primary_button_width: "full",
+			hide_icon: true,
+			custom_class: "py-1 px-1",
 		};
 		if (this.df.documentation_url) {
-			card_args.primary_action_label = "Read More";
-			card_args.primary_action_suffix_icon = "square-arrow-out-up-right";
-			card_args.primary_action = function () {
-				window.open(me.df.documentation_url);
-			};
-			card_args.styles = {
-				"sidebar-card-button-bg-color": "var(--surface-gray-2)",
-				"sidebar-card-button-color": "var(--ink-gray-7)",
-				"sidebar-card-button-outline": "var(--ink-gray-7)",
-			};
+			if (this.df.description && this.df.show_description_on_click) {
+				card_args.message += "<br>";
+			}
+			card_args.message += `<a style="display: inline-block; text-underline-offset: 2px;" class="py-1" href="${
+				this.df.documentation_url
+			}" target="_blank">${__("View Documentation")}</a>`;
 		}
 		this.card = new frappe.ui.SidebarCard(card_args);
 	}
