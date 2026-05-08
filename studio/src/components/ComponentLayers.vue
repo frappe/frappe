@@ -55,7 +55,7 @@
 							}"
 						/>
 						<span
-							class="min-h-[1em] min-w-[2em] max-w-64 truncate"
+							class="layer-label min-h-[1em] min-w-[2em] max-w-64 truncate"
 							:class="{
 								'text-purple-500 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
 									element.isStudioComponent,
@@ -82,7 +82,7 @@
 							<FeatherIcon
 								v-if="!element.isRoot() && !isParentHidden"
 								:name="element.isVisible() ? 'eye' : 'eye-off'"
-								class="mr-2 hidden h-3 w-3 cursor-pointer group-hover:block"
+								class="invisible mr-2 h-3 w-3 cursor-pointer group-hover:visible"
 								@click.stop="element.toggleVisibility()"
 							/>
 						</div>
