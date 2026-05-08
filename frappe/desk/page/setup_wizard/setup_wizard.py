@@ -183,7 +183,7 @@ def run_setup_success(args):  # nosemgrep
 	for hook in frappe.get_hooks("setup_wizard_success"):
 		frappe.get_attr(hook)(args)
 	install_fixtures.install()
-	if not frappe.conf.developer_mode:
+	if not frappe.conf.developer_mode and not frappe._dev_server:
 		login_as_first_user(args)
 
 
