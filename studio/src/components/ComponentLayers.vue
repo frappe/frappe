@@ -74,7 +74,7 @@
 							<div
 								v-if="element.hasVisibilityCondition()"
 								title="Toggle visibility condition"
-								class="hidden cursor-pointer group-hover:block"
+								class="invisible cursor-pointer group-hover:visible"
 								@click.stop="element.toggleVisibilityCondition()"
 							>
 								<FeatherIcon :name="element.visibilityCondition ? 'zap' : 'zap-off'" class="h-3 w-3" />
