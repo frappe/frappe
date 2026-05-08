@@ -177,7 +177,7 @@ const canShowChildLayer = (block: Block) => {
 }
 
 const isExpandable = (block: Block) => {
-	return block.hasChildren() || (block.hasComponentSlots() && !block.isRoot())
+	return (block.hasChildren() || block.hasComponentSlots()) && !block.isRoot()
 }
 
 // slots
