@@ -603,8 +603,7 @@ def add_preload_for_bundled_assets(response):
 		for svg in frappe.local.preload_assets["icons"]
 	)
 
-	# Safe limit for Link header length (~7 KB is the default max in Nginx)
-	MAX_LINK_HEADER_BYTES = 7000
+	MAX_LINK_HEADER_BYTES = 1000
 	if links:
 		trimmed = _fit_links_within_limit(links, MAX_LINK_HEADER_BYTES)
 		if trimmed:
