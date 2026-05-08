@@ -5,6 +5,8 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     branches:
       - develop
+      - version-15-hotfix
+      - version-16-hotfix
     paths:
       - "**/*.po"
 
