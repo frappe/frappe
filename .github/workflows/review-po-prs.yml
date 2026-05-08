@@ -5,6 +5,8 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     branches:
       - develop
+      - version-15-hotfix
+      - version-16-hotfix
     paths:
       - "**/*.po"
 
@@ -14,7 +16,6 @@ concurrency:
 
 jobs:
   review-po-pr:
-    if: ${{ github.event.pull_request.user.login == 'frappe-pr-bot' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
