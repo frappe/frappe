@@ -37,7 +37,7 @@
 						class="group my-[7px] flex items-center gap-1.5 pr-[2px] font-medium"
 						:style="{ paddingLeft: `${indent}px` }"
 						:class="{
-							'!opacity-50': !element.isVisible(),
+							'!opacity-50': !element.isVisible() || isParentHidden,
 						}"
 					>
 						<FeatherIcon
@@ -80,7 +80,7 @@
 								<FeatherIcon :name="element.visibilityCondition ? 'zap' : 'zap-off'" class="h-3 w-3" />
 							</div>
 							<FeatherIcon
-								v-if="!element.isRoot()"
+								v-if="!element.isRoot() && !isParentHidden"
 								:name="element.isVisible() ? 'eye' : 'eye-off'"
 								class="mr-2 hidden h-3 w-3 cursor-pointer group-hover:block"
 								@click.stop="element.toggleVisibility()"
@@ -91,7 +91,12 @@
 						</span>
 					</span>
 					<div v-show="canShowChildLayer(element)">
-						<ComponentLayers :blocks="element.children" :ref="childLayer" :indent="childIndent" />
+						<ComponentLayers
+							:blocks="element.children"
+							:is-parent-hidden="isParentHidden || !element.isVisible()"
+							:ref="childLayer"
+							:indent="childIndent"
+						/>
 					</div>
 
 					<div v-show="canShowSlotLayer(element)">
@@ -156,10 +161,12 @@ const props = withDefaults(
 	defineProps<{
 		blocks: Block[]
 		indent?: number
+		isParentHidden?: boolean
 	}>(),
 	{
 		blocks: () => [],
 		indent: 10,
+		isParentHidden: false,
 	},
 )
 
