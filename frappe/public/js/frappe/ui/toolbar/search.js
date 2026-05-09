@@ -889,7 +889,8 @@ frappe.search.SearchDialog = class {
 
 	add_section_to_summary(type, results, fetch_type) {
 		if (fetch_type === "Global") {
-			let title_row = __(type) + " (" + results.length + " " + __("results") + ")";
+			const results_word = results.length === 1 ? __("result") : __("results");
+			let title_row = __(type) + " (" + results.length + " " + results_word + ")";
 			let $result_section =
 				$(`<div class="col-sm-12 result-section global-summary" data-type="${type || ""}">
 				<div class="result-title">${title_row}</div>
@@ -1041,8 +1042,9 @@ frappe.search.SearchDialog = class {
 		if (set_entry.results.length < this.more_count) {
 			$trigger.hide();
 			let total_rows = Math.max(0, $list.children(".list-row-container").length - 1);
+			const status_word = total_rows === 1 ? __("result") : __("results");
 			$('<div class="results-status">')
-				.text(`${total_rows} ${__("results")}`)
+				.text(`${total_rows} ${status_word}`)
 				.insertAfter($trigger);
 		}
 	}
@@ -1060,8 +1062,9 @@ frappe.search.SearchDialog = class {
 			// hide more button and add a result count
 			this.$body.find(".list-more").hide();
 			let no_of_results = this.$body.find(".result").length;
-			let no_of_results_cue = $(
-				'<div class="results-status">' + no_of_results + " results found</div>"
+			const cue_word = no_of_results === 1 ? __("result") : __("results");
+			let no_of_results_cue = $('<div class="results-status">').text(
+				`${no_of_results} ${cue_word} ${__("found")}`
 			);
 			this.$body.find(".more-results:last").append(no_of_results_cue);
 		}
