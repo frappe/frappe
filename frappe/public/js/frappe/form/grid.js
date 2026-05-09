@@ -1113,6 +1113,10 @@ export default class Grid {
 		const field_options = Object.keys(field_mappings).sort((a, b) =>
 			__(cstr(field_mappings[a].label)).localeCompare(cstr(__(field_mappings[b].label)))
 		);
+		const field_autocomplete_options = field_options.map((key) => ({
+			label: __(cstr(field_mappings[key].label)),
+			value: key,
+		}));
 		const status_regex = /status/i;
 		const default_field =
 			field_options.find((value) => status_regex.test(value)) ||
@@ -1131,8 +1135,9 @@ export default class Grid {
 			}),
 			fields: [
 				{
-					fieldtype: "Select",
-					options: field_options,
+					fieldtype: "Autocomplete",
+					options: field_autocomplete_options,
+					max_items: Infinity,
 					default: default_field,
 					label: __("Field"),
 					fieldname: "field",
