@@ -69,14 +69,9 @@ jobs:
               per_page: 100
             });
 
-            const previous = existing.filter((comment) => comment.body.includes(marker));
-            for (const comment of previous) {
-              await github.rest.issues.deleteComment({
-                owner,
-                repo,
-                comment_id: comment.id
-              });
-            }
+            const previousIds = existing
+              .filter((comment) => comment.body.includes(marker))
+              .map((comment) => comment.id);
 
             for (const body of bodies) {
               await github.rest.issues.createComment({
@@ -84,5 +79,13 @@ jobs:
                 repo,
                 issue_number,
                 body
+              });
+            }
+
+            for (const comment_id of previousIds) {
+              await github.rest.issues.deleteComment({
+                owner,
+                repo,
+                comment_id
               });
             }
