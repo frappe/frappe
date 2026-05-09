@@ -70,7 +70,12 @@ jobs:
             });
 
             const previousIds = existing
-              .filter((comment) => comment.body.includes(marker))
+              .filter(
+                (comment) =>
+                  comment.user?.login === "github-actions[bot]" &&
+                  typeof comment.body === "string" &&
+                  comment.body.startsWith(marker)
+              )
               .map((comment) => comment.id);
 
             for (const body of bodies) {
