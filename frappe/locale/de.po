@@ -4528,11 +4528,11 @@ msgstr "Zeile kann nicht verschoben werden"
 
 #: frappe/utils/xlsxutils.py:150
 msgid "Cannot register an empty XLSX style"
-msgstr ""
+msgstr "Leerer XLSX-Stil kann nicht registriert werden"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1022
 msgid "Cannot remove ID field"
-msgstr "ID-Feld kann nicht entfernt werden"
+msgstr "ID-Feld kann nicht entfernt werden <div>custom HTML</div>"
 
 #: frappe/core/page/permission_manager/permission_manager.py:149
 msgid "Cannot set 'Report' permission if 'Only If Creator' permission is set"
