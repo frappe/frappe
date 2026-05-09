@@ -291,11 +291,18 @@ const resetDropIndicators = () => {
 	canvasStore.layerDraggingOverBlock = null
 }
 
+const collapseBlockElement = (draggedElementID: string) => {
+	if (draggedElementID && expandedLayers.value.has(draggedElementID)) {
+		expandedLayers.value.delete(draggedElementID)
+	}
+}
+
 const checkMove = () => false // Prevent automatic reordering
 
 const onDragStart = (event: any) => {
 	canvasStore.isDragging = true
 	resetDropIndicators()
+	collapseBlockElement(event.item.dataset.componentLayerId)
 	dragState.draggedElement = event.item
 	document.addEventListener("mousemove", onMouseMove)
 }
@@ -316,12 +323,13 @@ const updateDropIndicator = (layerItem: HTMLElement, relativeY: number, elementH
 }
 
 const onMouseMove = (event: MouseEvent) => {
-	if (!dragState.draggedElement) return
+	const draggedElement = dragState.draggedElement
+	if (!draggedElement) return
 
 	const target = document.elementFromPoint(event.clientX, event.clientY)
 	const layerItem = target?.closest(".component-layer-item") as HTMLElement | null
 
-	if (!layerItem || layerItem === dragState.draggedElement) {
+	if (!layerItem || layerItem === draggedElement) {
 		resetDropIndicators()
 		return
 	}
@@ -330,6 +338,13 @@ const onMouseMove = (event: MouseEvent) => {
 	const block = canvasStore.activeCanvas?.findBlock(componentId!)
 
 	if (!block) {
+		resetDropIndicators()
+		return
+	}
+
+	// Prevent dropping a block into its own descendants
+	const draggedBlock = canvasStore.activeCanvas?.findBlock(draggedElement.dataset.componentLayerId!)
+	if (draggedBlock && block.isDescendantOf(draggedBlock)) {
 		resetDropIndicators()
 		return
 	}
@@ -393,7 +408,12 @@ const onDragEnd = (e: DragEvent) => {
 	const draggedBlock = canvasStore.activeCanvas?.findBlock(draggedElement.dataset.componentLayerId!)
 	const targetBlock = canvasStore.activeCanvas?.findBlock(hoverTarget.dataset.componentLayerId!)
 
-	if (draggedBlock && targetBlock && draggedBlock !== targetBlock) {
+	if (
+		draggedBlock &&
+		targetBlock &&
+		draggedBlock !== targetBlock &&
+		!targetBlock.isDescendantOf(draggedBlock)
+	) {
 		if (hoverPosition === "inside") {
 			moveBlockInside(draggedBlock, targetBlock)
 		} else {
