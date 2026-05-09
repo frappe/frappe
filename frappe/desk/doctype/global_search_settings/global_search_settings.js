@@ -91,7 +91,7 @@ frappe.global_search_settings.show_configure_search_fields_dialog = function (do
 							} else {
 								dialog.hide();
 								frappe.show_alert({
-									message: __("Global Search Fields Updated."),
+									message: __("Search fields updated."),
 									indicator: "green",
 								});
 								if (frm) {
