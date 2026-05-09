@@ -291,18 +291,11 @@ const resetDropIndicators = () => {
 	canvasStore.layerDraggingOverBlock = null
 }
 
-const collapseBlockElement = (draggedElementID: string) => {
-	if (draggedElementID && expandedLayers.value.has(draggedElementID)) {
-		expandedLayers.value.delete(draggedElementID)
-	}
-}
-
 const checkMove = () => false // Prevent automatic reordering
 
 const onDragStart = (event: any) => {
 	canvasStore.isDragging = true
 	resetDropIndicators()
-	collapseBlockElement(event.item.dataset.componentLayerId)
 	dragState.draggedElement = event.item
 	document.addEventListener("mousemove", onMouseMove)
 }
