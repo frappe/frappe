@@ -551,12 +551,15 @@ def _section_fits_in_comment(
 	translation_change_count: int,
 	changed_languages_count: int,
 	max_body_chars: int,
+	total_parts_upper_bound: int,
 ) -> bool:
 	"""Return whether a language section can fit as a standalone comment body."""
 
+	# Size against the longest plausible summary/marker text (multi-part copy scales with total_parts).
+	t_parts = max(total_parts_upper_bound, 1)
 	body = _render_review_comment(
 		part_index=1,
-		total_parts=99,
+		total_parts=t_parts,
 		prefix_text=prefix_text,
 		section_bodies=[section],
 		suffix_text=suffix_text,
@@ -639,6 +642,7 @@ def build_comment_bodies(
 	reviewable: list[dict[str, Any]] = ctx["reviewable_language_reports"]
 
 	language_reports_with_changes = [report for report in reviewable if report["changes"]]
+	max_comment_segments = len(language_reports_with_changes)
 
 	if not language_reports_with_changes:
 		empty_body = (
@@ -669,6 +673,7 @@ def build_comment_bodies(
 			translation_change_count=translation_change_count,
 			changed_languages_count=changed_languages_count,
 			max_body_chars=max_body_chars,
+			total_parts_upper_bound=max_comment_segments,
 		):
 			section = build_oversized_language_section(report)
 		flat_sections.append(section)
@@ -680,7 +685,7 @@ def build_comment_bodies(
 		translation_change_count=translation_change_count,
 		changed_languages_count=changed_languages_count,
 		max_body_chars=max_body_chars,
-		total_parts_guess=99,
+		total_parts_guess=max(len(flat_sections), 1),
 	)
 	total_parts = len(groups)
 	bodies: list[str] = []
@@ -706,6 +711,20 @@ def build_comment_bodies(
 		bodies.append(body)
 
 	return bodies
+
+
+def _oversized_review_fallback_body(exc: RuntimeError) -> str:
+	"""Short marker comment when full review output cannot be packed under GitHub limits."""
+
+	detail = html.escape(str(exc))
+	max_detail = 800
+	if len(detail) > max_detail:
+		detail = f"{detail[:max_detail]}…"
+	return (
+		f"{COMMENT_MARKER}\n\n"
+		"The automated `.po` translation review could not be split to fit GitHub's comment size limit.\n\n"
+		f"**Reason:** {detail}\n"
+	)
 
 
 def build_comment(
@@ -777,7 +796,11 @@ def main() -> None:
 			parse_errors.append(error)
 
 	language_reports.sort(key=lambda report: (str(report["language"]).lower(), str(report["path"]).lower()))
-	bodies = build_comment_bodies(po_files, language_reports, cluster_similar_change_sizes(po_files), parse_errors)
+	try:
+		similar_groups = cluster_similar_change_sizes(po_files)
+		bodies = build_comment_bodies(po_files, language_reports, similar_groups, parse_errors)
+	except RuntimeError as exc:
+		bodies = [_oversized_review_fallback_body(exc)]
 	Path(args.output).write_text(json.dumps({"comments": bodies}, ensure_ascii=False), encoding="utf-8")
 
 
