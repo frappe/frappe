@@ -836,10 +836,8 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 
 		if web_form_request:
 			web_form_request.db_set(
-				{
-					"reference_docname": docname,
-					"used_on": web_form_request.used_on or now_datetime(),
-				},
+				"used_on",
+				web_form_request.used_on or now_datetime(),
 				update_modified=False,
 			)
 	else:
