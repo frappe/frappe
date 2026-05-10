@@ -160,7 +160,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		}
 		let values = frappe.utils.get_query_params();
 		delete values.new;
-		Object.assign(defaults, values);
+		delete values.web_form_request_key;
+		Object.assign(defaults, this.doc, values);
 		this.set_values(defaults);
 	}
 
@@ -202,6 +203,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				args: {
 					web_form_name: this.name,
 					docname: this.doc.name,
+					web_form_request_key: this.web_form_request_key,
 				},
 				callback: () => {
 					frappe.msgprint(__("Deleted!"));
@@ -407,6 +409,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			args: {
 				data: this.doc,
 				web_form: this.name,
+				web_form_request_key: this.web_form_request_key,
 				for_payment,
 			},
 			btn: $("btn-primary"),
@@ -464,9 +467,15 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	render_success_page(data) {
+		const request_query = this.web_form_request_key
+			? `?web_form_request_key=${encodeURIComponent(this.web_form_request_key)}`
+			: "";
+
 		if (this.allow_edit && data.name) {
 			$(".success-footer").append(`
-				<a href="/${this.route}/${data.name}/edit" class="edit-button btn btn-default btn-md">
+				<a href="/${this.route}/${
+				data.name
+			}/edit${request_query}" class="edit-button btn btn-default btn-md">
 					${__("Edit your response", null, "Button in web form")}
 				</a>
 			`);
@@ -474,7 +483,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		if (this.login_required && !this.allow_multiple && !this.show_list && data.name) {
 			$(".success-footer").append(`
-				<a href="/${this.route}/${data.name}" class="view-button btn btn-default btn-md">
+				<a href="/${this.route}/${data.name}${request_query}" class="view-button btn btn-default btn-md">
 					${__("View your response", null, "Button in web form")}
 				</a>
 			`);

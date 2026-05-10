@@ -53,6 +53,10 @@ frappe.ui.form.on("Web Form", {
 		render_list_settings_message(frm);
 	},
 
+	key_required: function (frm) {
+		render_list_settings_message(frm);
+	},
+
 	anonymous: function (frm) {
 		if (frm.doc.anonymous) {
 			frm.set_value("login_required", 0);
@@ -60,13 +64,14 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	validate: function (frm) {
-		if (!frm.doc.login_required) {
+		const has_controlled_access = frm.doc.login_required || frm.doc.key_required;
+		if (!has_controlled_access) {
 			frm.set_value("allow_multiple", 0);
 			frm.set_value("allow_edit", 0);
+			frm.set_value("allow_delete", 0);
 			frm.set_value("show_list", 0);
 		}
 
-		!frm.doc.allow_multiple && frm.set_value("allow_delete", 0);
 		frm.doc.allow_multiple && frm.set_value("show_list", 1);
 
 		if (!frm.doc.web_form_fields) {
@@ -485,20 +490,28 @@ function get_fields_for_doctype(doctype) {
 
 function render_list_settings_message(frm) {
 	// render list setting message
-	if (frm.fields_dict["list_setting_message"] && !frm.doc.login_required) {
-		const go_to_login_required_field = `
-			<code class="pointer" title="${__("Go to Login Required field")}">
-				${__("login_required")}
+	if (
+		frm.fields_dict["list_setting_message"] &&
+		!frm.doc.login_required &&
+		!frm.doc.key_required
+	) {
+		const go_to_access_fields = `
+			<code class="pointer" title="${__("Go to Access Control section")}">
+				${__("Login Required")}
+			</code>
+			${__("or")}
+			<code class="pointer" title="${__("Go to Access Control section")}">
+				${__("Key Required")}
 			</code>
 		`;
 		let message = __(
-			"Login is required to see web form list view. Enable {0} to see list settings",
-			[go_to_login_required_field]
+			"Login or a request key is required to see web form list view. Enable {0} to see list settings",
+			[go_to_access_fields]
 		);
 		$(frm.fields_dict["list_setting_message"].wrapper)
 			.html($(`<div class="form-message blue">${message}</div>`))
 			.find("code")
-			.click(() => frm.scroll_to_field("login_required"));
+			.click(() => frm.scroll_to_field("access_control_section"));
 	} else {
 		$(frm.fields_dict["list_setting_message"].wrapper).empty();
 	}
