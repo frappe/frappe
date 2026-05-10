@@ -819,10 +819,10 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 
 	owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
 	if not web_form.allow_delete:
-		raise frappe.PermissionError("Not Allowed")
+		frappe.throw(_("Not Allowed"), frappe.PermissionError)
 
 	if web_form.login_required and frappe.session.user == "Guest":
-		raise frappe.PermissionError("Not Allowed")
+		frappe.throw(_("Not Allowed"), frappe.PermissionError)
 
 	if web_form_request or frappe.session.user == owner:
 		if web_form_request:
