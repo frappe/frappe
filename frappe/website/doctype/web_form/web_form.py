@@ -223,6 +223,8 @@ def get_context(context):
 		if frappe.form_dict.is_read:
 			context.in_view_mode = True
 
+		context.allows_public_access = not (self.login_required or self.key_required)
+
 		if (
 			not frappe.form_dict.is_edit
 			and not frappe.form_dict.is_read

@@ -71,7 +71,7 @@
 	<!-- web form container -->
 	<div class="web-form-container">
 		<!-- breadcrumb -->
-		{% if not webform_banner_image and has_header and (login_required or key_required) and show_list %}
+		{% if not webform_banner_image and has_header and show_list and not allows_public_access %}
 			{% include "templates/includes/breadcrumbs.html" %}
 			{% else %}
 				<div style="height: 3rem"></div>
@@ -79,7 +79,7 @@
 
 		<!-- header -->
 		<div class="web-form-header">
-			{% if webform_banner_image and has_header and (login_required or key_required) and show_list %}
+			{% if webform_banner_image and has_header and show_list and not allows_public_access %}
 				{% include "templates/includes/breadcrumbs.html" %}
 			{% endif %}
 			<div class="web-form-head">
