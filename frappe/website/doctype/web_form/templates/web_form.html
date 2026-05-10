@@ -170,7 +170,7 @@
 				{% if show_list %}
 					<a href="/{{ route }}/list{{ request_query }}" class="show-list-button btn btn-default btn-md">{{ _("See previous responses", context="Button in web form") }}</a>
 				{% endif %}
-				{% if not login_required or allow_multiple %}
+				{% if allows_public_access or allow_multiple %}
 					<a href="/{{ route }}/new{{ request_query }}" class="new-btn btn btn-default btn-md">{{ _("Submit another response", context="Button in web form") }}</a>
 				{% endif %}
 			{% endif %}
