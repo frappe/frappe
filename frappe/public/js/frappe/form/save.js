@@ -220,10 +220,7 @@ frappe.ui.form.check_mandatory = function (frm) {
 
 			if (rows.length === te.total_rows) {
 				lines.push(
-					__("In {0}, {1} is required in every row.", [
-						te.label,
-						field_label.bold(),
-					])
+					__("In {0}, {1} is required in every row.", [te.label, field_label.bold()])
 				);
 			} else if (rows.length === 1) {
 				lines.push(
