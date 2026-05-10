@@ -22,7 +22,7 @@
 					:data-component-layer-id="element.componentId"
 					:data-indent="indent"
 					:title="element.componentId"
-					class="component-layer-item min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
+					class="component-layer-item relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
 					:class="{
 						'border-blue-500 !bg-blue-100 dark:!bg-blue-900':
 							canvasStore.layerDraggingOverBlock === element.componentId,
@@ -105,7 +105,7 @@
 							:key="slot.slotId"
 							:data-slot-layer-id="slot.slotId"
 							:title="slot.slotName"
-							class="min-w-24 cursor-pointer overflow-hidden rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
+							class="relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-white bg-opacity-50 text-base text-gray-700"
 							@click.stop="canvasStore.activeCanvas?.selectSlot(slot)"
 						>
 							<div
