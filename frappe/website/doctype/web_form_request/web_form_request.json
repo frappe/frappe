@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_bulk_edit": 1,
- "allow_rename": 1,
+ "autoname": "hash",
  "creation": "2026-05-10 14:27:44.747226",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -43,6 +43,7 @@
    "fieldname": "reference_docname",
    "fieldtype": "Dynamic Link",
    "label": "Reference Docname",
+   "no_copy": 1,
    "options": "reference_doctype",
    "read_only": 1
   },
@@ -67,6 +68,7 @@
    "fieldname": "used_on",
    "fieldtype": "Datetime",
    "label": "Used On",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -91,12 +93,12 @@
   }
  ],
  "grid_page_length": 50,
- "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-10 15:34:49.239725",
+ "modified": "2026-05-10 19:51:36.432065",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form Request",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -107,7 +109,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "System Manager",
+   "role": "Website Manager",
    "share": 1,
    "write": 1
   }
