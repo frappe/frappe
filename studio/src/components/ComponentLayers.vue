@@ -363,9 +363,8 @@ const onMouseMove = (event: MouseEvent) => {
 
 const removeFromParent = (block: Block) => {
 	const parent = block.getParentBlock()
-	if (parent?.children) {
-		const index = parent.children.indexOf(block)
-		if (index > -1) parent.children.splice(index, 1)
+	if (parent) {
+		parent.removeChild(block)
 	}
 }
 
@@ -374,17 +373,28 @@ const moveBlockInside = (draggedBlock: Block, targetBlock: Block) => {
 	if (!targetBlock.children) targetBlock.children = []
 	targetBlock.children.push(draggedBlock)
 	draggedBlock.parentBlock = targetBlock
+	delete draggedBlock.parentSlotName
 }
 
 const moveBlockAdjacent = (draggedBlock: Block, targetBlock: Block, position: "before" | "after") => {
 	const targetParent = targetBlock.getParentBlock()
-	if (!targetParent?.children) return
+	if (!targetParent) return
 
 	removeFromParent(draggedBlock)
-	const targetIndex = targetParent.children.indexOf(targetBlock)
+	const targetIndex = targetParent.getChildIndex(targetBlock)
 	const insertIndex = position === "before" ? targetIndex : targetIndex + 1
-	targetParent.children.splice(insertIndex, 0, draggedBlock)
+
 	draggedBlock.parentBlock = targetParent
+	if (targetBlock.isSlotBlock()) {
+		draggedBlock.parentSlotName = targetBlock.parentSlotName
+		let slotContent = targetParent.getSlotContent(targetBlock.parentSlotName!)
+		if (Array.isArray(slotContent)) {
+			slotContent.splice(insertIndex, 0, draggedBlock)
+		}
+	} else {
+		delete draggedBlock.parentSlotName
+		targetParent.children.splice(insertIndex, 0, draggedBlock)
+	}
 }
 
 const onDragEnd = (e: DragEvent) => {
