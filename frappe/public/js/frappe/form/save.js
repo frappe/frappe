@@ -123,6 +123,8 @@ frappe.ui.form.check_mandatory = function (frm) {
 
 	if (frm.doc.docstatus == 2) return true; // don't check for cancel
 
+	const ROW_LIMIT = 10;
+	const parent_errors = [];
 	const table_errors = {};
 
 	$.each(frappe.model.get_all_docs(frm.doc), function (i, doc) {
@@ -190,41 +192,79 @@ frappe.ui.form.check_mandatory = function (frm) {
 					table_errors[parentfield].fields[field_label].push(doc.idx);
 				});
 			} else {
-				const message =
-					__("Mandatory fields required in {0}", [__(doc.doctype)]) +
-					"<br><br><ul><li>" +
-					error_fields.join("</li><li>") +
-					"</ul>";
-				frappe.msgprint({
-					message: message,
-					indicator: "red",
-					title: __("Missing Fields"),
+				error_fields.forEach(function (field_label) {
+					parent_errors.push(__("{0} is required.", [field_label.bold()]));
 				});
-				frm.refresh();
 			}
 		}
 	});
 
+	const lines = [...parent_errors];
 	Object.values(table_errors).forEach(function (te) {
-		const lines = Object.entries(te.fields).map(function (entry) {
-			const rows = entry[1];
-			const display =
-				rows.length === te.total_rows
-					? __("all {0} rows", [te.total_rows])
-					: __("Row {0}", [rows.join(", ")]);
-			return entry[0] + ": " + display;
+		Object.entries(te.fields).forEach(function (entry) {
+			const field_label = entry[0];
+			const rows = entry[1].sort((a, b) => a - b);
+
+			const ranges = [];
+			let start = rows[0];
+			let prev = rows[0];
+			for (let i = 1; i < rows.length; i++) {
+				if (rows[i] === prev + 1) {
+					prev = rows[i];
+				} else {
+					ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
+					start = prev = rows[i];
+				}
+			}
+			ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
+
+			if (rows.length === te.total_rows) {
+				lines.push(
+					__("In {0}, {1} is required in every row.", [
+						te.label,
+						field_label.bold(),
+					])
+				);
+			} else if (rows.length === 1) {
+				lines.push(
+					__("In {0}, {1} is required in row {2}.", [
+						te.label,
+						field_label.bold(),
+						rows[0],
+					])
+				);
+			} else if (ranges.length <= ROW_LIMIT) {
+				lines.push(
+					__("In {0}, {1} is required in rows {2}.", [
+						te.label,
+						field_label.bold(),
+						frappe.utils.comma_and(ranges),
+					])
+				);
+			} else {
+				lines.push(
+					__("In {0}, {1} is required in {2} rows.", [
+						te.label,
+						field_label.bold(),
+						rows.length,
+					])
+				);
+			}
 		});
+	});
+
+	if (lines.length) {
 		frappe.msgprint({
 			message:
-				__("Mandatory fields required in table {0}", [te.label]) +
+				__("Please fill the following mandatory fields before saving:") +
 				"<br><br><ul><li>" +
 				lines.join("</li><li>") +
-				"</ul>",
+				"</li></ul>",
 			indicator: "red",
 			title: __("Missing Fields"),
 		});
 		frm.refresh();
-	});
+	}
 
 	return !has_errors;
 
