@@ -463,7 +463,12 @@ def get_context(context):
 			required=getattr(self, "key_required", False),
 			allow_used=allow_used,
 		)
-		if web_form_request and docname and web_form_request.reference_docname != str(docname):
+		if (
+			web_form_request
+			and docname
+			and web_form_request.reference_docname
+			and web_form_request.reference_docname != str(docname)
+		):
 			frappe.throw(_("Invalid Web Form Request"), frappe.PermissionError)
 		return web_form_request
 
