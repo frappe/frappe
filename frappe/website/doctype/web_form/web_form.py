@@ -693,6 +693,9 @@ def accept(web_form: str, data: str, web_form_request_key: str | None = None):
 		allow_used=bool(data.name) or bool(web_form.allow_multiple),
 	)
 
+	if web_form.login_required and frappe.session.user == "Guest":
+		frappe.throw(_("You must login to use this form"))
+
 	if web_form.anonymous and frappe.session.user != "Guest":
 		frappe.session.user = "Guest"
 
@@ -747,9 +750,6 @@ def accept(web_form: str, data: str, web_form_request_key: str | None = None):
 
 	else:
 		# insert
-		if web_form.login_required and frappe.session.user == "Guest":
-			frappe.throw(_("You must login to submit this form"))
-
 		ignore_mandatory = True if (files or web_form.allow_incomplete) else False
 
 		doc.insert(ignore_permissions=True, ignore_mandatory=ignore_mandatory)
