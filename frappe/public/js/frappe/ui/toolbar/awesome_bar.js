@@ -216,13 +216,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			if (e.key == "Escape") {
 				$input.trigger("blur");
 			}
-			if ((e.ctrlKey || e.metaKey) && String(e.key).toLowerCase() === "g") {
-				e.preventDefault();
-				const txt = ($input.val() || "").trim();
-				frappe.searchdialog?.search?.open_global_search_dialog(txt);
-				search_modal.modal("hide");
-				$input.val("");
-			}
 		});
 	}
 
@@ -472,4 +465,17 @@ frappe.search.hide_navbar_search_modal = function () {
 	const $modal = $("#navbar-search").closest(".modal");
 	if ($modal.length) $modal.modal("hide");
 	$("#navbar-search").val("");
+};
+
+frappe.search.open_global_search_from_navbar_shortcut = function (e) {
+	const from_bar = ($("#navbar-search").val() || "").trim();
+	const dlg = frappe.searchdialog?.search;
+	if (dlg?.open_global_search_dialog) {
+		frappe.search.hide_navbar_search_modal?.();
+		dlg.open_global_search_dialog(from_bar);
+	}
+	if (e) {
+		e.preventDefault();
+	}
+	return false;
 };

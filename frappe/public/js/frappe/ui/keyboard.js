@@ -222,16 +222,7 @@ frappe.ui.keys.add_shortcut({
 frappe.ui.keys.add_shortcut({
 	shortcut: "ctrl+g",
 	action: function (e) {
-		const from_bar = ($("#navbar-search").val() || "").trim();
-		const dlg = frappe.searchdialog?.search;
-		if (dlg?.open_global_search_dialog) {
-			frappe.search.hide_navbar_search_modal?.();
-			dlg.open_global_search_dialog(from_bar);
-			e.preventDefault();
-			return false;
-		}
-		e.preventDefault();
-		return false;
+		return frappe.search.open_global_search_from_navbar_shortcut?.(e);
 	},
 	description: __("Open Global Search"),
 	ignore_inputs: true,
