@@ -107,7 +107,7 @@ def clear_global_cache():
 	clear_doctype_cache()
 	clear_website_cache()
 	frappe.cache.delete_value(global_cache_keys)
-	frappe.cache.delete_value(bench_cache_keys)
+	frappe.cache.delete_value(bench_cache_keys, shared=True)
 	frappe.setup_module_map()
 
 

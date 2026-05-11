@@ -87,6 +87,14 @@ def new_site(
 
 	frappe.init(site=site, new_site=True)
 
+	if db_type == "postgres":
+		click.secho(
+			"\nNote: PostgreSQL support is limited to Frappe v16 and above. "
+			"Fixes for earlier versions will not be added.\n",
+			fg="yellow",
+			bold=True,
+		)
+
 	if site in frappe.get_all_apps():
 		click.secho(
 			f"Your bench has an app called {site}, please choose another name for the site.", fg="red"

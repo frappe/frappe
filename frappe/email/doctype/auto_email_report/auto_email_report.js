@@ -125,12 +125,10 @@ frappe.ui.form.on("Auto Email Report", {
 				report_filters = reference_report.filters;
 			}
 
-			if (report_filters && report_filters.length > 0) {
-				frm.set_value("filter_meta", JSON.stringify(report_filters));
-				if (frm.is_dirty()) {
-					frm.save();
-				}
-			}
+			frm.set_value(
+				"filter_meta",
+				report_filters && report_filters.length > 0 ? JSON.stringify(report_filters) : ""
+			);
 
 			var report_filters_list = [];
 			$.each(report_filters, function (key, val) {
@@ -171,9 +169,13 @@ frappe.ui.form.on("Auto Email Report", {
 					.appendTo(row);
 			});
 
+			// remove mandatory but hidden filters from dialog
+			const dialog_filter_fields = report_filters.filter(
+				(f) => !(f.hidden == 1 && f.reqd == 1)
+			);
 			table.on("click", function () {
 				dialog = new frappe.ui.Dialog({
-					fields: report_filters,
+					fields: dialog_filter_fields,
 					primary_action: function () {
 						var values = this.get_values();
 						if (values) {
@@ -184,6 +186,15 @@ frappe.ui.form.on("Auto Email Report", {
 					},
 				});
 				dialog.show();
+
+				// add filters defined in onload event of report
+				if (reference_report.onload) {
+					frappe.query_report = new frappe.views.QueryReport({
+						filters: dialog.fields_list,
+					});
+					reference_report.onload(frappe.query_report);
+				}
+
 				dialog.set_values(filters);
 			});
 
@@ -194,6 +205,8 @@ frappe.ui.form.on("Auto Email Report", {
 			frm.set_df_property("from_date_field", "options", date_fields);
 			frm.set_df_property("to_date_field", "options", date_fields);
 			frm.toggle_display("dynamic_report_filters_section", date_fields.length > 0);
+		} else {
+			frm.set_value("filter_meta", "");
 		}
 	},
 });

@@ -191,7 +191,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	get_child_datatable_columns() {
 		const parent = this.doctype;
 		return [parent, ...this.child_columns].map((d) => ({
-			name: frappe.unscrub(d),
+			name: __(frappe.unscrub(d)),
 			editable: false,
 		}));
 	}
@@ -554,7 +554,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			}
 		} else {
 			Object.keys(this.setters).forEach(function (setter) {
-				var value = me.dialog.fields_dict[setter].get_value();
+				var value = me.dialog.fields_dict[setter].get_value() || me.setters[setter];
 				if (me.dialog.fields_dict[setter].df.fieldtype == "Data" && value) {
 					filters[setter] = ["like", "%" + value + "%"];
 				} else {

@@ -145,6 +145,7 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"), with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public", "css"))
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public", "js"))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "patches"), with_init=True)
 
 	# add .gitkeep file so that public folder is committed to git
 	# this is needed because if public doesn't exist, bench build doesn't symlink the apps assets
@@ -347,6 +348,10 @@ build-backend = "flit_core.buildapi"
 # These dependencies are only installed when developer mode is enabled
 [tool.bench.dev-dependencies]
 # package_name = "~=1.1.0"
+
+# These apt dependencies will be installed from Ubuntu repositories when you host your app on Frappe Cloud
+[deploy.dependencies.apt]
+packages = []
 
 [tool.ruff]
 line-length = 110
@@ -628,6 +633,11 @@ app_license = "{app_license}"
 # default_log_clearing_doctypes = {{
 # 	"Logging DocType Name": 30  # days to retain logs
 # }}
+
+# Translation
+# ------------
+# List of apps whose translatable strings should be excluded from this app's translations.
+# ignore_translatable_strings_from = []
 
 """
 

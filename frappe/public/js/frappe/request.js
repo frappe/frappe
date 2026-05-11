@@ -36,8 +36,6 @@ frappe.call = function (opts) {
 			},
 			3
 		);
-		opts.always && opts.always();
-		return $.ajax();
 	}
 	if (typeof arguments[0] === "string") {
 		opts = {

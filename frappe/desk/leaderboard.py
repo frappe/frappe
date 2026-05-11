@@ -29,7 +29,7 @@ def get_energy_point_leaderboard(date_range, company=None, field=None, limit=Non
 	if date_range:
 		date_range = frappe.parse_json(date_range)
 		filters.append(["creation", "between", [date_range[0], date_range[1]]])
-	energy_point_users = frappe.get_all(
+	energy_point_users = frappe.get_list(
 		"Energy Point Log",
 		fields=["user as name", "sum(points) as value"],
 		filters=filters,
@@ -45,6 +45,8 @@ def get_energy_point_leaderboard(date_range, company=None, field=None, limit=Non
 	for user in energy_point_users:
 		user_id = user["name"]
 		user["name"] = get_fullname(user["name"])
-		user["formatted_name"] = f'<a href="/app/user-profile/{user_id}">{get_fullname(user_id)}</a>'
+		user["formatted_name"] = (
+			f'<a href="/app/user-profile/{user_id}">{frappe.utils.html_utils.escape_html(get_fullname(user_id))}</a>'
+		)
 
 	return energy_point_users

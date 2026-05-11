@@ -165,7 +165,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		let values = frappe.utils.get_query_params();
 		delete values.new;
 		Object.assign(defaults, values);
-		this.set_values(values);
+		this.set_values(defaults);
 	}
 
 	setup_primary_action() {
@@ -230,6 +230,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			field = this.fields_dict[fieldname];
 
 			if (field && field.get_value) {
+				if (field.df.hidden) continue;
+
 				let value = field.get_value();
 				if (
 					field.df.reqd &&

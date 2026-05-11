@@ -217,6 +217,7 @@ class DocType(Document):
 		self.validate_website()
 		self.validate_virtual_doctype_methods()
 		self.ensure_minimum_max_attachment_limit()
+		self.patch_old_naming_expressions()
 		validate_links_table_fieldnames(self)
 
 		if not self.is_new():
@@ -445,6 +446,18 @@ class DocType(Document):
 				alert=True,
 			)
 
+	def patch_old_naming_expressions(self):
+		if not self.autoname:
+			return
+
+		# We swapped naming_rule field old/new to discourage use of "format:"
+		if self.autoname and self.autoname.startswith("format:"):
+			self.naming_rule = "Expression (old style)"
+			frappe.msgprint(_("Warning: Usage of 'format:' is discouraged."), indicator="yellow", alert=True)
+
+		if self.naming_rule == "Expression (old style)" and not self.autoname.startswith("format:"):
+			self.naming_rule = "Expression"
+
 	def change_modified_of_parent(self):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
 		if frappe.flags.in_import:
@@ -657,7 +670,7 @@ class DocType(Document):
 				where doctype=%s and field='name' and value = %s""",
 				(new, new, old),
 			)
-		else:
+		elif not self.is_virtual:
 			frappe.db.rename_table(old, new)
 			frappe.db.commit()
 

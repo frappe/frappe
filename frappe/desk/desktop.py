@@ -38,11 +38,19 @@ class Workspace:
 		self.user = frappe.get_user()
 		self.allowed_modules = self.get_cached("user_allowed_modules", self.get_allowed_modules)
 
+		self.allowed_pages = get_allowed_pages(cache=True)
+		self.allowed_reports = get_allowed_reports(cache=True)
+		allowed_page_and_report_modules = set(
+			[d.get("module") for d in self.allowed_pages.values() if d.get("module")]
+			+ [d.get("module") for d in self.allowed_reports.values() if d.get("module")]
+		)
+
 		self.doc = frappe.get_cached_doc("Workspace", self.page_name)
 		if (
 			self.doc
 			and self.doc.module
 			and self.doc.module not in self.allowed_modules
+			and self.doc.module not in allowed_page_and_report_modules
 			and not self.workspace_manager
 		):
 			raise frappe.PermissionError

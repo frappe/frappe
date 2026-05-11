@@ -230,6 +230,7 @@ def setup_scheduler_events(script_name: str, frequency: str, cron_format: str | 
 	scheduled_script = frappe.db.get_value("Scheduled Job Type", {"method": method})
 
 	if not scheduled_script:
+		should_create_log = frequency not in ("All", "Cron")
 		frappe.get_doc(
 			{
 				"doctype": "Scheduled Job Type",
@@ -237,6 +238,7 @@ def setup_scheduler_events(script_name: str, frequency: str, cron_format: str | 
 				"frequency": frequency,
 				"server_script": script_name,
 				"cron_format": cron_format,
+				"create_log": should_create_log,
 			}
 		).insert()
 

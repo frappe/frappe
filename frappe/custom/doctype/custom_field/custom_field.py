@@ -424,3 +424,53 @@ def _update_fieldname_references(field: CustomField, old_fieldname: str, new_fie
 		"insert_after",
 		new_fieldname,
 	)
+
+
+def delete_custom_fields(custom_fields: dict, bypass_hooks: bool = False):
+	"""
+	Delete custom fields from doctypes.
+
+	:param custom_fields: Dict mapping doctype to field names.
+	:param bypass_hooks: If `True`, fast raw delete (skips hooks (doc events like on_trash)).
+
+	Example:
+
+	```
+	delete_custom_fields({"Address": ["custom_a", "custom_b"]})
+
+	delete_custom_fields({"ToDo": [{"fieldname": "cf_1"}]}, bypass_hooks=True)
+	````
+	"""
+	for doctype, fields in custom_fields.items():
+		fieldnames = []
+
+		if isinstance(fields, (list, tuple, set)):
+			for field in fields:
+				if isinstance(field, str):
+					fieldnames.append(field)
+				elif isinstance(field, dict) and field.get("fieldname"):
+					fieldnames.append(field["fieldname"])
+
+		if not fieldnames:
+			continue
+
+		fieldnames = tuple(set(fieldnames))
+
+		if bypass_hooks:
+			frappe.db.delete(
+				"Custom Field",
+				{
+					"fieldname": ("in", fieldnames),
+					"dt": doctype,
+				},
+			)
+			frappe.clear_cache(doctype=doctype)
+		else:
+			custom_field_names = frappe.get_all(
+				"Custom Field",
+				filters={"fieldname": ("in", fieldnames), "dt": doctype},
+				pluck="name",
+			)
+
+			for custom_field_name in custom_field_names:
+				frappe.get_doc("Custom Field", custom_field_name).delete(ignore_permissions=True, force=True)

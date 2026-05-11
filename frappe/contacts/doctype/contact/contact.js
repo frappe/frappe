@@ -114,6 +114,10 @@ frappe.ui.form.on("Contact", {
 		}
 	},
 	after_save: function (frm) {
+		if (frm.is_dirty()) {
+			return;
+		}
+
 		frappe.run_serially([
 			() => frappe.timeout(1),
 			() => {

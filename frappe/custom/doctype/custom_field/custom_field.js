@@ -112,32 +112,32 @@ frappe.ui.form.on("Custom Field", {
 		}
 	},
 	add_rename_field(frm) {
-		if (!frm.is_new()) {
-			frm.add_custom_button(__("Rename Fieldname"), () => {
-				frappe.prompt(
-					{
-						fieldtype: "Data",
-						label: __("Fieldname"),
-						fieldname: "fieldname",
-						reqd: 1,
-						default: frm.doc.fieldname,
-					},
-					function (data) {
-						frappe
-							.xcall(
-								"frappe.custom.doctype.custom_field.custom_field.rename_fieldname",
-								{
-									custom_field: frm.doc.name,
-									fieldname: data.fieldname,
-								}
-							)
-							.then(() => frm.reload());
-					},
-					__("Rename Fieldname"),
-					__("Rename")
-				);
-			});
-		}
+		if (frm.is_new() || frm.doc.is_system_generated) return;
+
+		frm.add_custom_button(__("Rename Fieldname"), () => {
+			frappe.prompt(
+				{
+					fieldtype: "Data",
+					label: __("Fieldname"),
+					fieldname: "fieldname",
+					reqd: 1,
+					default: frm.doc.fieldname,
+				},
+				function (data) {
+					frappe
+						.xcall(
+							"frappe.custom.doctype.custom_field.custom_field.rename_fieldname",
+							{
+								custom_field: frm.doc.name,
+								fieldname: data.fieldname,
+							}
+						)
+						.then(() => frm.reload());
+				},
+				__("Rename Fieldname"),
+				__("Rename")
+			);
+		});
 	},
 });
 

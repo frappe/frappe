@@ -215,7 +215,7 @@
   }
  ],
  "links": [],
- "modified": "2023-02-20 13:19:04.889081",
+ "modified": "2026-04-09 11:13:35.484376",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Custom DocPerm",
@@ -226,6 +226,7 @@
    "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,

@@ -87,6 +87,15 @@ frappe.views.CommunicationComposer = class {
 				fieldname: "send_after",
 			},
 			{
+				label: __("Use HTML"),
+				fieldtype: "Check",
+				fieldname: "use_html",
+				default: 0,
+				onchange: () => {
+					me.on_use_html_toggle();
+				},
+			},
+			{
 				fieldtype: "Section Break",
 				fieldname: "email_template_section_break",
 				hidden: 1,
@@ -114,6 +123,13 @@ frappe.views.CommunicationComposer = class {
 				label: __("Message"),
 				fieldtype: "Text Editor",
 				fieldname: "content",
+				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300),
+			},
+			{
+				label: __("Message"),
+				fieldtype: "HTML Editor",
+				fieldname: "content_html",
+				hidden: 1,
 				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300),
 			},
 			{
@@ -395,7 +411,7 @@ frappe.views.CommunicationComposer = class {
 			if (!email_template) return;
 
 			function prepend_reply(reply) {
-				const content_field = me.dialog.fields_dict.content;
+				const content_field = me.get_content_field();
 				const subject_field = me.dialog.fields_dict.subject;
 
 				let content = content_field.get_value() || "";
@@ -426,7 +442,7 @@ frappe.views.CommunicationComposer = class {
 				label: __("Clear & Add Template"),
 				description: __("Clear the email message and add the template"),
 				action: () => {
-					me.dialog.fields_dict.content.set_value("");
+					me.set_email_content("");
 					add_template();
 				},
 			},
@@ -501,7 +517,7 @@ frappe.views.CommunicationComposer = class {
 		if (this.message) return;
 
 		const last_edited = this.get_last_edited_communication();
-		if (!last_edited.content) return;
+		if (!last_edited.content && !last_edited.content_html) return;
 
 		// prevent re-triggering of email template
 		if (last_edited.email_template) {
@@ -724,18 +740,24 @@ frappe.views.CommunicationComposer = class {
 
 	save_as_draft() {
 		if (this.dialog && this.frm) {
-			let message = this.dialog.get_value("content");
+			let message = this.get_email_content();
 			message = message.split(separator_element)[0];
-			localforage.setItem(this.frm.doctype + this.frm.docname, message).catch((e) => {
-				if (e) {
-					// silently fail
-					console.log(e);
-					console.warn(
-						"[Communication] IndexedDB is full. Cannot save message as draft"
-					); // eslint-disable-line
-				}
-			});
+			this.save_item_in_local_forage(this.frm.doctype + this.frm.docname, message);
+			this.save_item_in_local_forage(
+				this.frm.doctype + this.frm.docname + "_use_html",
+				this.dialog.get_value("use_html")
+			);
 		}
+	}
+
+	save_item_in_local_forage(key, value) {
+		localforage.setItem(key, value).catch((e) => {
+			if (e) {
+				// silently fail
+				console.log(e);
+				console.warn("[Communication] IndexedDB is full. Cannot save communication draft"); // eslint-disable-line
+			}
+		});
 	}
 
 	clear_cache() {
@@ -761,8 +783,8 @@ frappe.views.CommunicationComposer = class {
 		const me = this;
 		this.dialog.hide();
 
-		if (!form_values.recipients) {
-			frappe.msgprint(__("Enter Email Recipient(s)"));
+		if (!form_values.recipients && !form_values.cc && !form_values.bcc) {
+			frappe.msgprint(__("Enter Email Recipient(s) in the To, CC, or BCC fields"));
 			return;
 		}
 
@@ -783,7 +805,7 @@ frappe.views.CommunicationComposer = class {
 				cc: form_values.cc,
 				bcc: form_values.bcc,
 				subject: form_values.subject,
-				content: form_values.content,
+				content: me.get_email_content(),
 				doctype: me.doc.doctype,
 				name: me.doc.name,
 				send_email: 1,
@@ -798,6 +820,7 @@ frappe.views.CommunicationComposer = class {
 				print_letterhead: me.is_print_letterhead_checked(),
 				send_after: form_values.send_after ? form_values.send_after : null,
 				print_language: form_values.print_language,
+				in_reply_to: (this.is_a_reply && this.last_email?.name) || null,
 			},
 			btn,
 			callback(r) {
@@ -863,6 +886,8 @@ frappe.views.CommunicationComposer = class {
 		if (!message && this.frm) {
 			const { doctype, docname } = this.frm;
 			message = (await localforage.getItem(doctype + docname)) || "";
+			const use_html = (await localforage.getItem(doctype + docname + "_use_html")) || 0;
+			await this.dialog.set_value("use_html", use_html);
 		}
 
 		if (message) {
@@ -878,7 +903,7 @@ frappe.views.CommunicationComposer = class {
 			message += this.get_earlier_reply();
 		}
 
-		await this.dialog.set_value("content", message);
+		await this.set_email_content(message);
 	}
 
 	async get_signature(sender_email) {
@@ -973,5 +998,28 @@ frappe.views.CommunicationComposer = class {
 
 		const text = frappe.utils.html2text(html);
 		return text.replace(/\n{3,}/g, "\n\n");
+	}
+
+	get_content_field() {
+		const use_html = this.dialog.get_value("use_html");
+		return use_html ? this.dialog.fields_dict.content_html : this.dialog.fields_dict.content;
+	}
+
+	get_email_content() {
+		return this.get_content_field().get_value() || "";
+	}
+
+	set_email_content(value) {
+		return this.get_content_field().set_value(value);
+	}
+
+	on_use_html_toggle() {
+		this.save_as_draft();
+		const use_html = this.dialog.get_value("use_html");
+
+		this.dialog.set_df_property("content", "hidden", use_html);
+		this.dialog.set_df_property("content_html", "hidden", !use_html);
+
+		this.dialog.set_value("email_template", "");
 	}
 };

@@ -67,8 +67,11 @@ frappe.ui.form.on("Assignment Rule", {
 			[{ label: "Owner", value: "owner" }]
 		);
 		if (doctype) {
-			frm.set_fields_as_options("due_date_based_on", doctype, (df) =>
-				["Date", "Datetime"].includes(df.fieldtype)
+			frm.set_fields_as_options(
+				"due_date_based_on",
+				doctype,
+				(df) => ["Date", "Datetime"].includes(df.fieldtype),
+				[{ value: " ", label: " " }]
 			).then((options) =>
 				frm.set_df_property("due_date_based_on", "hidden", !options.length)
 			);

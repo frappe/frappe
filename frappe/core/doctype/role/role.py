@@ -89,6 +89,12 @@ class Role(Document):
 
 def get_info_based_on_role(role, field="email", ignore_permissions=False):
 	"""Get information of all users that have been assigned this role"""
+	# Administrator is a superuser account, not a typical role with assigned users
+	# so we resolve it directly to the Administrator user
+	if role == "Administrator":
+		user = frappe.db.get_value("User", "Administrator", field)
+		return [user] if user else []
+
 	users = frappe.get_list(
 		"Has Role",
 		filters={"role": role, "parenttype": "User"},

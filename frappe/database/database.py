@@ -422,6 +422,9 @@ class Database:
 
 		if query.lstrip()[:6].lower() in ("update", "insert", "delete"):
 			self.transaction_writes += 1
+			if frappe.conf.get("max_writes_per_transaction"):
+				self.MAX_WRITES_PER_TRANSACTION = cint(frappe.conf.max_writes_per_transaction)
+
 			if self.transaction_writes > self.MAX_WRITES_PER_TRANSACTION:
 				if self.auto_commit_on_many_writes:
 					self.commit()
@@ -582,6 +585,9 @@ class Database:
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 		out = None
+		if isinstance(fieldname, list):
+			fieldname = tuple(fieldname)
+
 		if cache and isinstance(filters, str) and (doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
 
@@ -1078,22 +1084,22 @@ class Database:
 
 		Query will be built as:
 		```sql
-		UPDATE `tabItem`
+		UPDATE `tabTask`
 		SET `status` = CASE
-		    WHEN `name` = 'Item-1' THEN 'Close'
-		    WHEN `name` = 'Item-2' THEN 'Open'
-		    WHEN `name` = 'Item-3' THEN 'Close'
-		    WHEN `name` = 'Item-4' THEN 'Cancelled'
+		    WHEN `name` = 'TASK-0001' THEN 'Closed'
+		    WHEN `name` = 'TASK-0002' THEN 'Open'
+		    WHEN `name` = 'TASK-0003' THEN 'Closed'
+		    WHEN `name` = 'TASK-0004' THEN 'Cancelled'
 		    ELSE `status`
-		end,
+		END,
 		`description` = CASE
-		    WHEN `name` = 'Item-1' THEN 'This is the first task'
-		    WHEN `name` = 'Item-2' THEN 'This is the second task'
-		    WHEN `name` = 'Item-3' THEN 'This is the third task'
-		    WHEN `name` = 'Item-4' THEN 'This is the fourth task'
+		    WHEN `name` = 'TASK-0001' THEN 'This is the first task'
+		    WHEN `name` = 'TASK-0002' THEN 'This is the second task'
+		    WHEN `name` = 'TASK-0003' THEN 'This is the third task'
+		    WHEN `name` = 'TASK-0004' THEN 'This is the fourth task'
 		    ELSE `description`
-		end
-		WHERE  `name` IN ( 'Item-1', 'Item-2', 'Item-3', 'Item-4' )
+		END
+		WHERE `name` IN ('TASK-0001', 'TASK-0002', 'TASK-0003', 'TASK-0004');
 		```
 		"""
 		if not doc_updates:
@@ -1174,12 +1180,14 @@ class Database:
 		self.sql("commit")
 		self.begin()  # explicitly start a new transaction
 
+		self.value_cache.clear()
 		self.after_commit.run()
 
 	def rollback(self, *, save_point=None):
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
 		if save_point:
 			self.sql(f"rollback to savepoint {save_point}")
+			self.value_cache.clear()
 		else:
 			self.before_commit.reset()
 			self.after_commit.reset()
@@ -1189,6 +1197,7 @@ class Database:
 			self.sql("rollback")
 			self.begin()
 
+			self.value_cache.clear()
 			self.after_rollback.run()
 
 	def savepoint(self, save_point):

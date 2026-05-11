@@ -208,7 +208,18 @@ class EMail:
 
 		if has_inline_images:
 			# process inline images
-			message, _inline_images = replace_filename_with_cid(message)
+			provided_images = {}
+			if inline_images:
+				for img in inline_images:
+					if img.get("filename") and img.get("filecontent"):
+						# index by full path and basename for flexible matching
+						provided_images[img["filename"]] = img["filecontent"]
+						basename = img["filename"].rsplit("/", 1)[-1]
+						if basename not in provided_images:
+							provided_images[basename] = img["filecontent"]
+
+			# process inline images while preferring provided_images over disk reads
+			message, _inline_images = replace_filename_with_cid(message, provided_images)
 
 			# prepare parts
 			msg_related = MIMEMultipart("related", policy=policy.SMTP)
@@ -334,7 +345,8 @@ class EMail:
 			"To": ", ".join(self.recipients) if self.expose_recipients == "header" else "<!--recipient-->",
 			"Date": email.utils.formatdate(),
 			"Reply-To": self.reply_to if self.reply_to else None,
-			"CC": ", ".join(self.cc) if self.cc and self.expose_recipients == "header" else None,
+			# cc should always be visible - as that is the semantic meaning of cc, this should not be dependent on expose_recipients
+			"CC": ", ".join(self.cc) if self.cc else None,
 			"X-Frappe-Site": get_url(),
 		}
 
@@ -438,17 +450,20 @@ def inline_style_in_html(html):
 
 def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=None, inline=False):
 	"""Add attachment to parent which must an email object"""
+
 	import mimetypes
+	from email import encoders
 	from email.mime.audio import MIMEAudio
 	from email.mime.base import MIMEBase
 	from email.mime.image import MIMEImage
 	from email.mime.text import MIMEText
 
-	if not content_type:
-		content_type, _encoding = mimetypes.guess_type(fname)
-
 	if not parent:
 		return
+
+	# Guess content type if not provided
+	if not content_type:
+		content_type, _encoding = mimetypes.guess_type(fname)
 
 	if content_type is None:
 		# No guess could be made, or the file is encoded (compressed), so
@@ -456,27 +471,37 @@ def add_attachment(fname, fcontent, content_type=None, parent=None, content_id=N
 		content_type = "application/octet-stream"
 
 	maintype, subtype = content_type.split("/", 1)
+
 	if maintype == "text":
-		# Note: we should handle calculating the charset
+		if isinstance(fcontent, bytes):
+			# If bytes are provided, assume UTF-8
+			fcontent = fcontent.decode("utf-8")
+
+		part = MIMEText(fcontent, _subtype=subtype, _charset="utf-8")
+
+	elif maintype == "image":
 		if isinstance(fcontent, str):
 			fcontent = fcontent.encode("utf-8")
-		part = MIMEText(fcontent, _subtype=subtype, _charset="utf-8")
-	elif maintype == "image":
 		part = MIMEImage(fcontent, _subtype=subtype)
+
 	elif maintype == "audio":
+		if isinstance(fcontent, str):
+			fcontent = fcontent.encode("utf-8")
 		part = MIMEAudio(fcontent, _subtype=subtype)
+
 	else:
+		if isinstance(fcontent, str):
+			fcontent = fcontent.encode("utf-8")
+
 		part = MIMEBase(maintype, subtype)
 		part.set_payload(fcontent)
-		# Encode the payload using Base64
-		from email import encoders
-
 		encoders.encode_base64(part)
 
 	# Set the filename parameter
 	if fname:
 		attachment_type = "inline" if inline else "attachment"
-		part.add_header("Content-Disposition", attachment_type, filename=str(fname))
+		clean_filename = re.sub(r"[\r\n]", "", str(fname))
+		part.add_header("Content-Disposition", attachment_type, filename=clean_filename)
 	if content_id:
 		part.add_header("Content-ID", f"<{content_id}>")
 
@@ -517,11 +542,22 @@ def get_footer(email_account, footer=None):
 	return footer
 
 
-def replace_filename_with_cid(message):
+def replace_filename_with_cid(message, provided_images=None):
 	"""Replaces <img embed="assets/frappe/images/filename.jpg" ...> with
 	<img src="cid:content_id" ...> and return the modified message and
 	a list of inline_images with {filename, filecontent, content_id}
+
+	Args:
+		message: The HTML message to process
+		provided_images: A dictionary of images to use instead of reading from disk
+			Example:
+			{
+				"assets/frappe/images/filename.jpg": filecontent,
+				"filename.jpg": filecontent,
+			}
 	"""
+	if provided_images is None:
+		provided_images = {}
 
 	inline_images = []
 
@@ -536,7 +572,11 @@ def replace_filename_with_cid(message):
 		img_path_escaped = frappe.utils.html_utils.unescape_html(img_path)
 		filename = img_path_escaped.rsplit("/")[-1]
 
-		filecontent = get_filecontent_from_path(img_path_escaped)
+		# check if the image is provided in the provided_images(by checking full path and basename)
+		filecontent = provided_images.get(img_path_escaped) or provided_images.get(filename)
+		if not filecontent:
+			filecontent = get_filecontent_from_path(img_path_escaped)
+
 		if not filecontent:
 			message = re.sub(f"""embed=['"]{re.escape(img_path)}['"]""", "", message)
 			continue

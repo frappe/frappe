@@ -33,6 +33,11 @@
 		z-index: 4;
 		min-width: 250px;
 
+		&.awesomplete-align-right {
+			left: auto;
+			right: 0;
+		}
+
 		& > li,
 		& > [role="option"] {
 			cursor: pointer;

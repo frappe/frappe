@@ -222,7 +222,7 @@ def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=F
 @click.option("--quiet", is_flag=True, default=False, help="Hide Log Outputs")
 @click.option("--burst", is_flag=True, default=False, help="Run Worker in Burst mode.")
 def start_worker_pool(queue, quiet=False, num_workers=2, burst=False):
-	"""Start a backgrond worker"""
+	"""Start a pool of background workers"""
 	from frappe.utils.background_jobs import start_worker_pool
 
 	start_worker_pool(queue=queue, quiet=quiet, burst=burst, num_workers=num_workers)

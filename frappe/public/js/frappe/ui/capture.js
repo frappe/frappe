@@ -30,6 +30,7 @@ function get_file_input() {
 	input.setAttribute("type", "file");
 	input.setAttribute("accept", "image/*");
 	input.setAttribute("multiple", "");
+	input.setAttribute("capture", "");
 
 	return input;
 }

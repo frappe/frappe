@@ -56,7 +56,15 @@ class InstalledApplications(Document):
 				},
 			)
 
-		self.save()
+		try:
+			savepoint = "update_installed_apps"
+			frappe.db.savepoint(savepoint)
+			self.save()
+		except frappe.db.DataError:
+			frappe.db.rollback(save_point=savepoint)
+			# Tolerate primary key change on versions during migrate
+			self.save(ignore_version=True)
+
 		frappe.clear_cache(doctype="System Settings")
 		frappe.db.set_single_value("System Settings", "setup_complete", frappe.is_setup_complete())
 

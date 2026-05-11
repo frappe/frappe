@@ -13,6 +13,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.reportview import get_filters_cond
 from frappe.model.document import Document
+from frappe.model.utils.user_settings import get_user_settings, sync_user_settings, update_user_settings
 from frappe.utils import (
 	add_days,
 	add_months,
@@ -50,11 +51,13 @@ class Event(Document):
 
 	if TYPE_CHECKING:
 		from frappe.core.doctype.dynamic_link.dynamic_link import DynamicLink
+		from frappe.desk.doctype.event_notifications.event_notifications import EventNotifications
 		from frappe.desk.doctype.event_participants.event_participants import EventParticipants
 		from frappe.types import DF
 
 		add_video_conferencing: DF.Check
 		all_day: DF.Check
+		attending: DF.Literal["", "Yes", "No", "Maybe"]
 		color: DF.Color | None
 		description: DF.TextEditor | None
 		ends_on: DF.Datetime | None
@@ -65,9 +68,11 @@ class Event(Document):
 		google_calendar: DF.Link | None
 		google_calendar_event_id: DF.Data | None
 		google_calendar_id: DF.Data | None
-		google_meet_link: DF.Data | None
+		google_meet_link: DF.SmallText | None
 		links: DF.Table[DynamicLink]
+		location: DF.Data | None
 		monday: DF.Check
+		notifications: DF.Table[EventNotifications]
 		pulled_from_google_calendar: DF.Check
 		reference_docname: DF.DynamicLink | None
 		reference_doctype: DF.Link | None
@@ -120,6 +125,8 @@ class Event(Document):
 		)
 		for communication in communications:
 			frappe.delete_doc("Communication", communication, force=True)
+
+		self.remove_event_from_user_settings()
 
 	def sync_communication(self):
 		if not self.event_participants:
@@ -206,6 +213,46 @@ class Event(Document):
 				frappe.get_value("Contact", participant_contact, "email_id") if participant_contact else None
 			)
 
+	def remove_event_from_user_settings(self):
+		user_settings = get_user_settings("Event", for_update=True)
+		if user_settings:
+			user_settings = json.loads(user_settings)
+
+			if "notifications" in user_settings:
+				notifications = user_settings.get("notifications")
+				completedEvents = notifications.get("completedEvents", [])
+				if self.name in completedEvents:
+					completedEvents.remove(self.name)
+					notifications["completedEvents"] = completedEvents
+				updated_notifications = notifications
+				user_settings["notifications"] = updated_notifications
+
+			update_user_settings("Event", json.dumps(user_settings), for_update=True)
+			sync_user_settings()
+
+
+@frappe.whitelist()
+def update_attending_status(event_name, attendee, status):
+	event_doc = frappe.get_doc("Event", event_name)
+	caller = frappe.session.user
+
+	if attendee != caller:
+		if event_doc.owner != caller and not frappe.has_permission("Event", "write", event_name):
+			frappe.throw(
+				_("You are not allowed to update attendance for another user."), frappe.PermissionError
+			)
+
+	if event_doc.owner == caller:
+		frappe.db.set_value("Event", event_name, "attending", status)
+		return
+
+	for participant in event_doc.event_participants:
+		if participant.email == attendee:
+			frappe.db.set_value("Event Participants", participant.name, "attending", status)
+			return
+
+	frappe.throw(_("Attendee not found in this event."))
+
 
 @frappe.whitelist()
 def delete_communication(event, reference_doctype, reference_docname):
@@ -232,12 +279,23 @@ def delete_communication(event, reference_doctype, reference_docname):
 def get_permission_query_conditions(user):
 	if not user:
 		user = frappe.session.user
-	return f"""(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`={frappe.db.escape(user)})"""
+
+	query = f"""(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`={frappe.db.escape(user)})"""
+
+	query += f" or exists (select 'x' from `tabEvent Participants` ep where ep.parent=`tabEvent`.name and ep.email={frappe.db.escape(user)})"
+
+	return query
 
 
-def has_permission(doc, user):
+def has_permission(doc, ptype=None, user=None):
 	if doc.event_type == "Public" or doc.owner == user:
 		return True
+
+	for participant in doc.event_participants:
+		if participant.email == user:
+			if ptype in ["write", "create", "delete"]:
+				return False
+			return True
 
 	return False
 
@@ -277,7 +335,12 @@ def send_event_digest():
 def get_events(
 	start: date, end: date, user: str | None = None, for_reminder: bool = False, filters=None
 ) -> list[frappe._dict]:
-	user = user or frappe.session.user
+	caller = frappe.session.user
+	target_user = user or caller
+
+	if user and user != caller:
+		if not frappe.has_permission("Event", ptype="read"):
+			frappe.throw(_("You are not allowed to view events for another user."), frappe.PermissionError)
 	EventLikeDict: TypeAlias = Event | frappe._dict
 	resolved_events: list[EventLikeDict] = []
 
@@ -349,7 +412,7 @@ def get_events(
 		{
 			"start": start,
 			"end": end,
-			"user": user,
+			"user": target_user,
 		},
 		as_dict=True,
 	)

@@ -12,7 +12,7 @@ frappe.report_utils = {
 
 		let labels = get_column_values(x_field);
 		let datasets = y_fields.map((y_field) => ({
-			name: frappe.model.unscrub(y_field),
+			name: get_translated_column_label(y_field),
 			values: get_column_values(y_field).map((d) => Number(d)),
 		}));
 
@@ -46,6 +46,11 @@ frappe.report_utils = {
 			} else {
 				return rows.map((row) => row[column_name]);
 			}
+		}
+
+		function get_translated_column_label(fieldname) {
+			let column = columns.find((column) => column.fieldname === fieldname);
+			return column?.label ?? __(frappe.model.unscrub(fieldname));
 		}
 	},
 

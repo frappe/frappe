@@ -337,7 +337,6 @@ def start_worker_pool(
 
 	WARNING: This feature is considered "EXPERIMENTAL".
 	"""
-
 	_start_sentry()
 
 	# If gc.freeze is done then importing modules before forking allows us to share the memory

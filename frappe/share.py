@@ -40,12 +40,18 @@ def add_docshare(
 	if not user:
 		user = frappe.session.user
 
+	share_perms = {
+		# always add read, since you are adding!
+		"read": 1,
+		"write": cint(write),
+		"submit": cint(submit),
+		"share": cint(share),
+	}
+
 	if not (flags or {}).get("ignore_share_permission"):
-		check_share_permission(doctype, name)
+		check_share_permission(doctype, name, share_perms)
 
-	share_name = get_share_name(doctype, name, user, everyone)
-
-	if share_name:
+	if share_name := get_share_name(doctype, name, user, everyone):
 		doc = frappe.get_doc("DocShare", share_name)
 	else:
 		doc = frappe.new_doc("DocShare")
@@ -54,16 +60,7 @@ def add_docshare(
 	if flags:
 		doc.flags.update(flags)
 
-	doc.update(
-		{
-			# always add read, since you are adding!
-			"read": 1,
-			"write": cint(write),
-			"submit": cint(submit),
-			"share": cint(share),
-		}
-	)
-
+	doc.update(share_perms)
 	doc.save(ignore_permissions=True)
 	notify_assignment(user, doctype, name, everyone, notify=notify)
 
@@ -89,7 +86,8 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 def set_docshare_permission(doctype, name, user, permission_to, value=1, everyone=0, flags=None):
 	"""Set share permission."""
 	if not (flags or {}).get("ignore_share_permission"):
-		check_share_permission(doctype, name)
+		permissions = {permission_to: value} if cint(value) else None
+		check_share_permission(doctype, name, permissions)
 
 	share_name = get_share_name(doctype, name, user, everyone)
 	value = int(value)
@@ -213,12 +211,35 @@ def get_share_name(doctype, name, user, everyone):
 	return share_name
 
 
-def check_share_permission(doctype, name):
-	"""Check if the user can share with other users"""
+def check_share_permission(doctype, name, permissions=None):
+	"""Check if the user can share with other users and has the permissions they are trying to grant.
+
+	:param doctype: DocType being shared
+	:param name: Document name being shared
+	:param permissions: Permissions that the user wants to share
+	"""
 	if not frappe.has_permission(doctype, ptype="share", doc=name):
 		frappe.throw(
 			_("No permission to {0} {1} {2}").format("share", _(doctype), name), frappe.PermissionError
 		)
+
+	# If permissions specified, validate that the user has those permissions
+	if not permissions:
+		return
+
+	# Validate user has the permissions they're trying to grant
+	restricted_permissions = ["read", "write", "submit"]
+
+	doc = frappe.get_doc(doctype, name)
+
+	for ptype in restricted_permissions:
+		if cint(permissions.get(ptype)) and not frappe.has_permission(doctype, ptype, doc=doc):
+			frappe.throw(
+				_("You cannot share `{0}` on {1} `{2}` as you do not have `{0}` permission on `{1}`").format(
+					_(ptype), _(doctype), name
+				),
+				frappe.PermissionError,
+			)
 
 
 def notify_assignment(shared_by, doctype, doc_name, everyone, notify=0):
