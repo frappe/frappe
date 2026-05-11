@@ -121,9 +121,11 @@ context("Global Search Settings — configure search fields", () => {
 			expect(response.body.message?.success).to.eq(true);
 		});
 
-		cy.get("#alert-container .desk-alert .alert-message", { timeout: 15000 }).should(
+		// Success path closes the configure modal before showing the toast.
+		cy.get(".modal.show", { timeout: 15000 }).should("not.exist");
+		cy.get('[role="alert"].desk-alert .alert-message', { timeout: 15000 }).should(
 			"contain",
-			"Global Search Fields Updated"
+			"Search fields updated."
 		);
 	});
 });
