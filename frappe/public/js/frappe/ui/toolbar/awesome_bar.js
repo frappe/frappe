@@ -226,10 +226,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	show_help() {
 		const help_data = [
 			[__("Create a new record"), __("new type of document")],
-			[__("List a document type"), __("document type..., e.g. customer")],
-			[__("Search in a document type"), __("text in document type")],
-			[__("Tags"), __("tag name..., e.g. #tag")],
-			[__("Open a module or tool"), __("module name...")],
+			[__("List a document type"), __("document type — e.g. Customer")],
+			[__("Search in a document type"), __("text within a document type")],
+			[__("Tags"), __("tag name — e.g. #tag")],
+			[__("Open a module or tool"), __("module name")],
 			[__("Open in new tab"), frappe.utils.is_mac() ? "⌘ + Enter" : "Ctrl + Enter"],
 			[__("Calculate"), __("e.g. (55 + 434) / 4")],
 		];
