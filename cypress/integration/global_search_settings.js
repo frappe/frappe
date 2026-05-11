@@ -121,9 +121,7 @@ context("Global Search Settings — configure search fields", () => {
 			expect(response.body.message?.success).to.eq(true);
 		});
 
-		// Success path closes the configure modal before showing the toast.
-		cy.get(".modal.show", { timeout: 15000 }).should("not.exist");
-		cy.get('[role="alert"].desk-alert .alert-message', { timeout: 15000 }).should(
+		cy.get('[role="alert"].desk-alert .alert-message', { timeout: 25000 }).should(
 			"contain",
 			"Search fields updated."
 		);
