@@ -350,10 +350,6 @@ frappe.ui.Sidebar = class Sidebar {
 			this.toggle_width();
 		});
 
-		this.wrapper.find(".body-sidebar .about-sidebar-link").on("click", () => {
-			frappe.ui.toolbar.show_about();
-		});
-
 		this.wrapper.find(".overlay").on("click", () => {
 			this.close();
 		});
@@ -443,7 +439,6 @@ frappe.ui.Sidebar = class Sidebar {
 	make_sidebar() {
 		this.empty();
 		this.wrapper.find(".collapse-sidebar-link").removeClass("hidden");
-		this.wrapper.find(".about-sidebar-link").removeClass("hidden");
 		if (this.editor.edit_mode) {
 			this.create_sidebar(this.editor.new_sidebar_items);
 		} else {
@@ -472,7 +467,6 @@ frappe.ui.Sidebar = class Sidebar {
 			);
 			this.wrapper.find(".sidebar-items").append(no_items_message);
 			this.wrapper.find(".collapse-sidebar-link").addClass("hidden");
-			this.wrapper.find(".about-sidebar-link").addClass("hidden");
 		}
 		if (this.edit_mode) {
 			$(".edit-menu").removeClass("hidden");
@@ -582,7 +576,6 @@ frappe.ui.Sidebar = class Sidebar {
 			direction = is_rtl ? "left" : "right";
 			$('[data-toggle="tooltip"]').tooltip("dispose");
 			this.wrapper.find(".avatar-name-email").show();
-			this.wrapper.find(".about-sidebar-link").show();
 			this.wrapper.find(".onboarding-sidebar span").show();
 		} else {
 			this.wrapper.removeClass("expanded");
@@ -593,7 +586,6 @@ frappe.ui.Sidebar = class Sidebar {
 				trigger: "hover",
 			});
 			this.wrapper.find(".avatar-name-email").hide();
-			this.wrapper.find(".about-sidebar-link").hide();
 			this.wrapper.find(".onboarding-sidebar span").hide();
 		}
 

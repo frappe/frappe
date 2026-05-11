@@ -57,6 +57,12 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			let is_dark = frappe.ui.get_current_theme() === "dark";
 			this.dropdown_items.push(
 				{
+					name: "display",
+					label: "Display",
+					icon: "monitor",
+					items: this.get_display_siblings(is_dark),
+				},
+				{
 					label: "Session Defaults",
 					action: "frappe.ui.toolbar.setup_session_defaults()",
 					is_standard: 1,
@@ -70,18 +76,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 					action: "frappe.ui.toolbar.clear_cache()",
 					is_standard: 1,
 					icon: "rotate-ccw",
-				},
-				{
-					label: "Toggle Full Width",
-					action: "frappe.ui.toolbar.toggle_full_width()",
-					is_standard: 1,
-					icon: "maximize",
-				},
-				{
-					label: "Toggle Theme",
-					action: "new frappe.ui.ThemeSwitcher().show()",
-					is_standard: 1,
-					icon: is_dark ? "sun" : "moon",
 				},
 				{
 					name: "help",
@@ -230,6 +224,36 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		});
 
 		return help_dropdown_items;
+	}
+
+	get_display_siblings(is_dark) {
+		const sidebar = this.sidebar;
+		return [
+			{
+				name: "toggle-theme",
+				label: __("Toggle Theme"),
+				icon: is_dark ? "sun" : "moon",
+				onClick: function () {
+					new frappe.ui.ThemeSwitcher().show();
+				},
+			},
+			{
+				name: "toggle-full-width",
+				label: __("Toggle Full Width"),
+				icon: "maximize",
+				onClick: function () {
+					frappe.ui.toolbar.toggle_full_width();
+				},
+			},
+			{
+				name: "toggle-sidebar",
+				label: __("Toggle Sidebar"),
+				icon: "panel-right-open",
+				onClick: function () {
+					sidebar.toggle_width();
+				},
+			},
+		];
 	}
 
 	get_custom_help_links() {
