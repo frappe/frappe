@@ -6,7 +6,6 @@ from frappe import _
 from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
 from frappe.model import NO_VALUE_FIELDS
 from frappe.model.document import Document
-from frappe.utils import cint
 
 
 class GlobalSearchSettings(Document):
