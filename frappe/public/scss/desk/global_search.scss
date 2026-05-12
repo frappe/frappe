@@ -101,7 +101,6 @@
 						background-color: var(--subtle-fg);
 						color: var(--text-color);
 						border-color: var(--border-color);
-						box-shadow: none;
 						font-weight: var(--weight-medium);
 					}
 				}
@@ -188,20 +187,25 @@
 			min-width: 0;
 		}
 
-		.results-area .global-summary .result-title {
-			@include get_textstyle("md", "semibold");
-			margin-bottom: var(--margin-xs);
-		}
-
 		.global-search-table-panel {
 			width: 100%;
-			max-width: 100%;
 			border: none;
 			border-radius: 0;
 			overflow-x: auto;
 			overflow-y: visible;
 			background: transparent;
 			-webkit-overflow-scrolling: touch;
+		}
+
+		.list-item-table.global-search-results-list {
+			width: 100%;
+			min-width: 0;
+			border: none;
+			box-shadow: none;
+			border-radius: 0;
+			background-color: transparent;
+			display: flex;
+			flex-direction: column;
 
 			.global-search-name-cell-inner {
 				@include flex(flex, null, center, null);
@@ -212,18 +216,6 @@
 					flex-shrink: 0;
 				}
 			}
-		}
-
-		.list-item-table.global-search-results-list {
-			width: 100%;
-			max-width: 100%;
-			min-width: 0;
-			border: none;
-			box-shadow: none;
-			border-radius: 0;
-			background-color: transparent;
-			display: flex;
-			flex-direction: column;
 
 			> .list-row-container {
 				border-bottom: none;
@@ -281,10 +273,6 @@
 				/* Separator between rows only (like list rows); omit on single / last row */
 				&:not(:last-child) > .level.list-row {
 					border-bottom: 1px solid var(--border-color);
-				}
-
-				&:last-child > .level.list-row {
-					border-bottom: none;
 				}
 			}
 
@@ -427,6 +415,11 @@
 				}
 			}
 
+			.result-title {
+				color: var(--text-color);
+				@include get_textstyle("lg", "semibold");
+			}
+
 			.result-section.global-summary {
 				padding-left: 0;
 				padding-right: 0;
@@ -434,11 +427,12 @@
 				.global-search-summary-show-more {
 					padding-top: var(--padding-xs);
 				}
-			}
 
-			.result-title {
-				color: var(--text-color);
-				@include get_textstyle("lg", "semibold");
+				/* Narrower heading than other summary section titles (count lives in the same line). */
+				.result-title {
+					@include get_textstyle("md", "semibold");
+					margin-bottom: var(--margin-xs);
+				}
 			}
 
 			.result-body {

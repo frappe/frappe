@@ -154,7 +154,7 @@ frappe.search.SearchDialog = class {
 		this.update($shell);
 		this.sync_global_search_filter_bar();
 	}
-
+	/** Binds input event to the search input and debounces the search input. */
 	bind_input() {
 		const wait_ms = 300;
 		this._debounced_search_input = frappe.utils.debounce(() => {
@@ -174,8 +174,9 @@ frappe.search.SearchDialog = class {
 		});
 	}
 
+	/** Click handlers for search UI: sidebar sections, DocType filters/pins, “More” / pagination, and tag→global switch. */
 	bind_events() {
-		// Sidebar
+		/** Sidebar navigation: click a section link to show its results. */
 		this.$body.on("click", ".list-link", (e) => {
 			const $link = $(e.currentTarget);
 			this.$body.find(".search-sidebar").find(".list-link").removeClass("active selected");
@@ -185,7 +186,7 @@ frappe.search.SearchDialog = class {
 			this.$body.find(".module-section-link").first().focus();
 		});
 
-		// Summary more links
+		/** “Show more” links: global search or DocType-specific “More”. */
 		this.$body.on("click", ".section-more", (e) => {
 			e.preventDefault();
 			const type = $(e.currentTarget).attr("data-category");
@@ -196,6 +197,7 @@ frappe.search.SearchDialog = class {
 			this.$body.find(".search-sidebar").find(`*[data-category="${type}"]`).trigger("click");
 		});
 
+		/** DocType filter pills: apply DocType filter and show its results. */
 		this.$body.on("click", ".global-search-filter-pill", (e) => {
 			e.stopPropagation();
 			this.apply_global_doctype_filter($(e.currentTarget).attr("data-doctype") || "");
@@ -217,6 +219,7 @@ frappe.search.SearchDialog = class {
 
 		this.$body.on("click", ".global-search-more-dropdown", (e) => e.stopPropagation());
 
+		/** DocType selection from “More” dropdown: apply DocType filter and close dropdown. */
 		this.$body.on("click", ".global-search-dd-pick-doctype", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
@@ -224,6 +227,7 @@ frappe.search.SearchDialog = class {
 			this.apply_global_doctype_filter($(e.currentTarget).attr("data-doctype") || "");
 		});
 
+		/** DocType pin buttons: toggle DocType pin state and sync filter bar. */
 		this.$body.on("click", ".global-search-pin-btn", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
@@ -236,7 +240,7 @@ frappe.search.SearchDialog = class {
 			this.sync_global_search_filter_bar();
 		});
 
-		// Back-links (mobile-view)
+		/** Back-links (mobile-view): click to show all results. */
 		this.$body.on("click", ".all-results-link", () => {
 			this.$body
 				.find(".search-sidebar")
@@ -244,7 +248,7 @@ frappe.search.SearchDialog = class {
 				.trigger("click");
 		});
 
-		// Full list “More” buttons
+		/** Full list “More” buttons: fetch more results from the current DocType. */
 		this.$body.on("click", ".list-more", (e) => {
 			e.preventDefault();
 			const $trigger = $(e.currentTarget);
@@ -408,6 +412,7 @@ frappe.search.SearchDialog = class {
 		}
 	}
 
+	/** Syncs DocType filter bar: shows/hides based on current search mode (global vs. per-DocType). */
 	sync_global_search_filter_bar() {
 		if (this.search === this.searches["tags"]) {
 			const $pill_host = this.$body.find(".global-search-doctype-filters");
@@ -427,6 +432,7 @@ frappe.search.SearchDialog = class {
 		this.ensure_global_search_allowed_doctypes().then(redraw);
 	}
 
+	/** Toggles visibility of the DocType filter bar: shows/hides based on current search mode (global vs. per-DocType). */
 	toggle_global_search_filters($host, visible) {
 		if (visible) {
 			$host.removeClass("hide");
@@ -435,6 +441,7 @@ frappe.search.SearchDialog = class {
 		}
 	}
 
+	/** Applies a DocType filter: updates the global_doctype_filter and fetches results. */
 	apply_global_doctype_filter(dt) {
 		this.global_doctype_filter = dt || "";
 		this.get_results(this.current_keyword);
@@ -460,19 +467,23 @@ frappe.search.SearchDialog = class {
 		}
 	}
 
+	/** Closes the “More” dropdown menus: removes the `menu-open` class from the dropdown. */
 	close_global_search_more_menus() {
 		this.$wrapper.find(".global-search-more-dropdown").removeClass("menu-open");
 	}
 
+	/** Returns a set of allowed DocTypes for Global Search: based on Global Search Settings. */
 	_global_search_allowed_set() {
 		const allow = Object.create(null);
 		for (const d of this._cached_global_search_allowed || []) if (d) allow[d] = 1;
 		return allow;
 	}
 
+	/** Ensures the Global Search Settings are loaded and cached: fetches from the server if needed. */
 	ensure_global_search_allowed_doctypes() {
 		if (!this._global_search_settings_promise) {
 			this._global_search_settings_promise = new Promise((resolve) => {
+				/** Fetches the Global Search Settings from the server and caches the results. */
 				frappe.call({
 					method: "frappe.client.get",
 					args: {
@@ -480,6 +491,7 @@ frappe.search.SearchDialog = class {
 						name: "Global Search Settings",
 					},
 					callback: (res) => {
+						/** If the Global Search Settings are loaded successfully, cache the results. */
 						if (!res.exc && res.message && res.message.allowed_in_global_search) {
 							const rows = (res.message.allowed_in_global_search || []).slice();
 							rows.sort(
@@ -504,11 +516,11 @@ frappe.search.SearchDialog = class {
 	}
 
 	/**
-	 * explicit=false: missing key — baseline pins from first N settings rows.
-	 * explicit=true: user JSON (including []) is authoritative.
+	 * Reads the global search pin state from localStorage.
 	 */
 	read_global_search_pin_state() {
 		const key = GLOBAL_SEARCH_PIN_STORAGE_KEY;
+		/** Reads the global search pin state from localStorage. */
 		let raw = null;
 		try {
 			raw = localStorage.getItem(key);
@@ -539,6 +551,7 @@ frappe.search.SearchDialog = class {
 		}
 	}
 
+	/** Writes the global search pin state to localStorage. */
 	write_global_search_pins(pins) {
 		const uniq = [];
 		const seen = {};
@@ -554,13 +567,14 @@ frappe.search.SearchDialog = class {
 		}
 	}
 
-	/** First N doctypes from Global Search Settings (same order as backend). */
+	/** Returns the default pinned DocTypes: based on Global Search Settings. */
 	default_pinned_doctypes_from_settings() {
 		const allowed = this._cached_global_search_allowed || [];
 		const lim = GLOBAL_SEARCH_VISIBLE_DT_LIMIT;
 		return allowed.slice(0, Math.min(lim, allowed.length));
 	}
 
+	/** Returns the current effective list of pinned DocTypes: based on Global Search Settings and localStorage. */
 	current_effective_pins_list() {
 		const allow = this._global_search_allowed_set();
 		const st = this.read_global_search_pin_state();
@@ -568,6 +582,7 @@ frappe.search.SearchDialog = class {
 		return base.filter((d) => allow[d]);
 	}
 
+	/** Adds a DocType to the pinned list: updates localStorage. */
 	add_global_search_pin(dt) {
 		const allow = this._global_search_allowed_set();
 		if (!dt || !allow[dt]) return;
@@ -580,6 +595,7 @@ frappe.search.SearchDialog = class {
 		this.write_global_search_pins(next);
 	}
 
+	/** Removes a DocType from the pinned list: updates localStorage. */
 	remove_global_search_pin(dt) {
 		const allow = this._global_search_allowed_set();
 		const st = this.read_global_search_pin_state();
@@ -589,6 +605,7 @@ frappe.search.SearchDialog = class {
 		this.write_global_search_pins(next);
 	}
 
+	/** Builds the DOM for the “More” dropdown menu: shows pinned and unpinned DocTypes. */
 	build_global_search_more_menu_dom(pinned_ordered, unpinned_ordered) {
 		const pin_icon = frappe.utils.icon("pin", "xs");
 		const unpin_icon = frappe.utils.icon("pin-off", "xs");
@@ -640,6 +657,7 @@ frappe.search.SearchDialog = class {
 		return html;
 	}
 
+	/** Renders the DocType filter bar into the host element: shows pinned and unpinned DocTypes. */
 	render_doctype_filter_bar_into($host) {
 		const keep_more_dropdown_open =
 			$host.find(".global-search-more-dropdown.menu-open").length > 0;
@@ -705,6 +723,7 @@ frappe.search.SearchDialog = class {
 		$host.empty().append($toolbar_row);
 	}
 
+	/** Builds the DOM for the global search table panel: shows the results in a table. */
 	build_global_search_table_panel(doctype, results_slice, keywords, options = {}) {
 		const cols = frappe.search.utils.global_search_field_columns_for_results(results_slice);
 		const max_rows = options.max_rows == null ? results_slice.length : options.max_rows;
@@ -740,6 +759,7 @@ frappe.search.SearchDialog = class {
 		return $panel;
 	}
 
+	/** Appends a row to the global search table panel: shows the result in a table. */
 	append_global_result_list_row(result, columns, keywords, type, $list) {
 		const utils = frappe.search.utils;
 		const fields = utils.parse_global_search_fields(result._global_raw_content || "");
@@ -837,6 +857,7 @@ frappe.search.SearchDialog = class {
 		$list.append($container);
 	}
 
+	/** Renders the full list: shows the results in a table. */
 	render_full_list(type, results, fetch_type) {
 		let max_length = fetch_type === "Global" ? 100 : 20;
 
@@ -884,6 +905,7 @@ frappe.search.SearchDialog = class {
 		return $results_list;
 	}
 
+	/** Adds a section to the summary: shows the results in a table. */
 	add_section_to_summary(type, results, fetch_type) {
 		if (fetch_type === "Global") {
 			const results_word = results.length === 1 ? __("result") : __("results");
@@ -944,6 +966,7 @@ frappe.search.SearchDialog = class {
 			.prepend(results.slice(0, section_length).map(get_result_html));
 	}
 
+	/** Returns the link for a result: shows the result in a table. */
 	get_link(result) {
 		let link = "";
 		if (result.route) {
@@ -999,6 +1022,7 @@ frappe.search.SearchDialog = class {
 		});
 	}
 
+	/** Adds more rows to the global search table panel: shows the results in a table. */
 	add_more_global_table_rows(doctype, results_sets, $trigger, $list) {
 		const set_entry = results_sets[0];
 		if (
