@@ -280,6 +280,42 @@ class TestWebForm(IntegrationTestCase):
 		delete("manage-events", event.name, web_form_request_key=web_form_request.key)
 		self.assertFalse(frappe.db.exists("Event", event.name))
 
+	def test_guest_with_valid_key_can_render_bound_document_page(self):
+		"""A Guest holding a valid request key bound to a document must be able
+		to render the view/edit page instead of being redirected to /new."""
+		self.set_web_form_settings(
+			key_required=1,
+			login_required=0,
+			allow_edit=1,
+			allow_multiple=0,
+		)
+		event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Bound Render",
+				"starts_on": "2026-05-10",
+				"event_type": "Public",
+			}
+		).insert(ignore_permissions=True)
+		web_form_request = self.create_web_form_request(reference_docname=event.name)
+
+		self.addCleanup(lambda: setattr(frappe.local, "request", None))
+
+		frappe.set_user("Guest")
+		frappe.local.form_dict = frappe._dict(
+			web_form_request_key=web_form_request.key,
+			name=event.name,
+		)
+		set_request(
+			method="GET",
+			path=f"manage-events/{event.name}/edit",
+			query_string=f"web_form_request_key={web_form_request.key}",
+		)
+		content = get_response_content(f"manage-events/{event.name}/edit")
+
+		self.assertIn("_Test Bound Render", content)
+		self.assertIn(web_form_request.key, content)
+
 	def test_allow_multiple_request_rejects_docname_based_access(self):
 		"""A key for an `allow_multiple` web form has no bound document, so it
 		must not be usable to read, edit, or delete arbitrary records."""

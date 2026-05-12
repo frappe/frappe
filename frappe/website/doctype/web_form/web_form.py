@@ -252,8 +252,10 @@ def get_context(context):
 		# Show new form when
 		# - User is Guest
 		# - Login not required
+		# Key holders with a valid web_form_request are allowed to view, edit,
+		# or list their bound document(s); don't bounce them back to /new.
 		route_to_new = frappe.session.user == "Guest" or not self.login_required
-		if not frappe.form_dict.is_new and route_to_new:
+		if not frappe.form_dict.is_new and route_to_new and not web_form_request:
 			frappe.redirect(f"/{self.route}/new")
 
 		self.reset_field_parent()
