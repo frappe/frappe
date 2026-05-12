@@ -72,6 +72,9 @@ frappe.ui.form.on("Web Form", {
 			frm.set_value("show_list", 0);
 		}
 
+		// allow_delete is hidden (depends_on allow_multiple) and would otherwise
+		// retain a stale value while server-side checks read it directly.
+		!frm.doc.allow_multiple && frm.set_value("allow_delete", 0);
 		frm.doc.allow_multiple && frm.set_value("show_list", 1);
 
 		if (!frm.doc.web_form_fields) {
