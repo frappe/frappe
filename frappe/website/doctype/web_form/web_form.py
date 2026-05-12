@@ -840,7 +840,7 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 				update_modified=False,
 			)
 	else:
-		raise frappe.PermissionError("Not Allowed")
+		frappe.throw(_("Not Allowed"), frappe.PermissionError)
 
 
 @frappe.whitelist()
