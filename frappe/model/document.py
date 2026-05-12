@@ -923,8 +923,10 @@ class Document(BaseDocument):
 		if self.is_new() and not (
 			frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_migrate
 		):
-			self.creation = self.modified
-			self.owner = self.modified_by
+			if not self.creation:
+				self.creation = self.modified
+			if not self.owner:
+				self.owner = self.modified_by
 
 		for d in self.get_all_children():
 			d.modified = self.modified
