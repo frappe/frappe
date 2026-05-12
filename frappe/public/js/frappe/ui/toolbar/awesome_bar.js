@@ -345,23 +345,30 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	}
 
 	make_search_in_current(txt) {
-		const route_options = frappe.search.prepare_search_in_current_list_route_options(txt);
-		if (!route_options) return;
 		var route = frappe.get_route();
-		this.options.push({
-			label: __("Find {0} in {1}", [
-				frappe.utils.xss_sanitise(txt).bold(),
-				__(route[1]).bold(),
-			]),
-			value: __("Find {0} in {1}", [frappe.utils.xss_sanitise(txt), __(route[1])]),
-			route_options: route_options,
-			onclick: function () {
-				cur_list.show();
-			},
-			index: 90,
-			default: "Current",
-			match: txt,
-		});
+		if (route[0] === "List" && txt.indexOf(" in") === -1) {
+			// search in title field
+			const doctype = frappe.container.page?.list_view?.doctype;
+			if (!doctype) return;
+			var meta = frappe.get_meta(doctype);
+			var search_field = meta.title_field || "name";
+			var options = {};
+			options[search_field] = ["like", "%" + txt + "%"];
+			this.options.push({
+				label: __("Find {0} in {1}", [
+					frappe.utils.xss_sanitise(txt).bold(),
+					__(route[1]).bold(),
+				]),
+				value: __("Find {0} in {1}", [frappe.utils.xss_sanitise(txt), __(route[1])]),
+				route_options: options,
+				onclick: function () {
+					cur_list.show();
+				},
+				index: 90,
+				default: "Current",
+				match: txt,
+			});
+		}
 	}
 
 	make_calculator(txt) {
@@ -426,56 +433,4 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			});
 		}
 	}
-};
-
-frappe.search.prepare_search_in_current_list_route_options = function (txt) {
-	txt = (txt || "").trim();
-	if (!txt || txt.indexOf(" in") !== -1) return null;
-	var route = frappe.get_route();
-	if (route[0] !== "List") return null;
-	const doctype = frappe.container.page?.list_view?.doctype;
-	if (!doctype) return null;
-	var meta = frappe.get_meta(doctype);
-	var search_field = meta.title_field || "name";
-	var options = {};
-	options[search_field] = ["like", "%" + txt + "%"];
-	return options;
-};
-
-frappe.search.open_search_in_current_list = function (txt) {
-	const route_options = frappe.search.prepare_search_in_current_list_route_options(txt);
-	if (!route_options || !window.cur_list) return false;
-	frappe.route_options = route_options;
-	cur_list.show();
-	return true;
-};
-
-frappe.search.get_current_list_standard_search_text = function () {
-	if (!window.cur_list || frappe.get_route()[0] !== "List") return "";
-	const meta = frappe.get_meta(cur_list.doctype);
-	const fieldname = meta.title_field || "name";
-	const field = cur_list.page?.fields_dict?.[fieldname];
-	if (!field || typeof field.get_value !== "function") return "";
-	const v = field.get_value();
-	if (v === undefined || v === null || v === "") return "";
-	return String(v).trim();
-};
-
-frappe.search.hide_navbar_search_modal = function () {
-	const $modal = $("#navbar-search").closest(".modal");
-	if ($modal.length) $modal.modal("hide");
-	$("#navbar-search").val("");
-};
-
-frappe.search.open_global_search_from_navbar_shortcut = function (e) {
-	const from_bar = ($("#navbar-search").val() || "").trim();
-	const dlg = frappe.searchdialog?.search;
-	if (dlg?.open_global_search_dialog) {
-		frappe.search.hide_navbar_search_modal?.();
-		dlg.open_global_search_dialog(from_bar);
-	}
-	if (e) {
-		e.preventDefault();
-	}
-	return false;
 };

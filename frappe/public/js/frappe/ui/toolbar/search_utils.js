@@ -686,3 +686,32 @@ frappe.search.utils = {
 	},
 	searchable_functions: [],
 };
+
+/** Closes the navbar Awesome Bar modal and clears its input (#navbar-search). */
+function hide_navbar_search_modal() {
+	const $modal = $("#navbar-search").closest(".modal");
+	if ($modal.length) $modal.modal("hide");
+	$("#navbar-search").val("");
+}
+
+/**
+ * Navbar search: Ctrl/Cmd+G jumps from the Awesome Bar modal to the Global Search dialog
+ * with the same text pre-filled (`frappe/ui/keyboard.js` registers this shortcut).
+ *
+ * Registered on `frappe.search` intentionally — keyboard loads earlier in desk.bundle.js;
+ * the shortcut runs after full load, when this assignment is applied.
+ *
+ * @param {KeyboardEvent} [e] Optional DOM event so default browser behavior can be suppressed.
+ */
+frappe.search.open_global_search_from_navbar_shortcut = function (e) {
+	const from_bar = ($("#navbar-search").val() || "").trim();
+	const dlg = frappe.searchdialog?.search;
+	if (dlg?.open_global_search_dialog) {
+		hide_navbar_search_modal();
+		dlg.open_global_search_dialog(from_bar);
+	}
+	if (e) {
+		e.preventDefault();
+	}
+	return false;
+};
