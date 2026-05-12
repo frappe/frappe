@@ -3,6 +3,7 @@ import FileUploaderComponent from "./FileUploader.vue";
 import { watch } from "vue";
 
 class FileUploader {
+	static UploadOptions = [];
 	constructor({
 		wrapper,
 		method,
@@ -65,6 +66,17 @@ class FileUploader {
 			allow_toggle_private,
 			allow_toggle_optimize,
 			allow_google_drive,
+			additional_upload_handlers: this.constructor.UploadOptions.map((k) => ({
+				...k,
+				wrappedAction: () =>
+					k.action({
+						dialog: this.dialog,
+						uploader: this.uploader,
+						doctype,
+						docname,
+						fieldname,
+					}),
+			})),
 		});
 		SetVueGlobals(app);
 		this.uploader = app.mount(this.wrapper);

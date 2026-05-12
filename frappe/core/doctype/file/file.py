@@ -32,11 +32,7 @@ from .exceptions import (
 from .utils import *
 
 exclude_from_linked_with = True
-ImageFile.LOAD_TRUNCATED_IMAGES = True
-
 ImageFile.LOAD_TRUNCATED_IMAGES = True  # nosemgrep
-
-
 URL_PREFIXES = ("http://", "https://", "/api/method/")
 
 
@@ -249,8 +245,8 @@ class File(Document):
 		if self.is_remote_file or not self.file_url:
 			return
 
-		if not self.file_url.startswith(("/files/", "/private/files/")):
-			# Probably an invalid URL since it doesn't start with http either
+		if not self.file_url.startswith(("/files/", "/private/files/", "/api/method/")):
+			# Probably an invalid URL since it doesn't start with http and isn't an internal URL either
 			frappe.throw(
 				_("URL must start with http:// or https://"),
 				title=_("Invalid URL"),
@@ -878,7 +874,6 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 	if user == "Administrator":
 		return True
-
 	if ptype == "create":
 		return frappe.has_permission("File", "create", user=user, debug=debug)
 
