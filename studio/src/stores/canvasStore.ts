@@ -47,6 +47,7 @@ const useCanvasStore = defineStore("canvasStore", () => {
 
 	// drag & drop
 	const isDragging = ref(false)
+	const layerDraggingOverBlock = ref<string | null>(null)
 	const dropTarget = reactive({
 		x: null as number | null,
 		y: null as number | null,
@@ -185,6 +186,7 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		// drag & drop
 		dropTarget,
 		isDragging,
+		layerDraggingOverBlock,
 		handleDragStart,
 		handleDragEnd,
 		// fragment mode

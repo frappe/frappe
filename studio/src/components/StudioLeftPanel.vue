@@ -51,10 +51,10 @@
 
 				<PagesPanel v-show="activeTab === 'Pages'" class="mx-2 my-3" />
 				<ComponentPanel v-show="activeTab === 'Add Component'" class="mx-2 my-3" />
-				<div v-show="activeTab === 'Layers'" class="p-3">
+				<div v-show="activeTab === 'Layers'" class="p-3 pr-0">
 					<ComponentLayers
 						v-if="canvasStore.activeCanvas"
-						class="no-scrollbar overflow-auto"
+						class="w-fit min-w-full pr-3"
 						ref="pageLayers"
 						:blocks="[canvasStore.activeCanvas?.getRootBlock() as Block]"
 					/>
