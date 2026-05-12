@@ -97,9 +97,10 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 	elif df.get("fieldtype") == "Percent":
 		return f"{flt(value, 2)}%"
 
-	elif df.get("fieldtype") in ("Text", "Small Text"):
+	elif df.get("fieldtype") in ("Text", "Small Text", "Long Text"):
 		if not BLOCK_TAGS_PATTERN.search(value):
-			return frappe.safe_decode(value).replace("\n", "<br>")
+			escaped_value = frappe.utils.escape_html(frappe.safe_decode(value))
+			return escaped_value.replace("\n", "<br>")
 
 	elif df.get("fieldtype") == "Markdown Editor":
 		return frappe.utils.markdown(value)
