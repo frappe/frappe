@@ -280,6 +280,56 @@ class TestWebForm(IntegrationTestCase):
 		delete("manage-events", event.name, web_form_request_key=web_form_request.key)
 		self.assertFalse(frappe.db.exists("Event", event.name))
 
+	def test_allow_multiple_request_rejects_docname_based_access(self):
+		"""A key for an `allow_multiple` web form has no bound document, so it
+		must not be usable to read, edit, or delete arbitrary records."""
+		self.set_web_form_settings(
+			key_required=1,
+			login_required=0,
+			allow_multiple=1,
+			allow_edit=1,
+			allow_delete=1,
+		)
+		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})
+
+		existing_event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Existing Event",
+				"starts_on": "2026-05-10",
+				"event_type": "Private",
+			}
+		).insert(ignore_permissions=True)
+
+		frappe.set_user("Guest")
+
+		with self.assertRaises(frappe.PermissionError):
+			accept(
+				web_form="manage-events",
+				data=json.dumps(
+					{
+						"doctype": "Event",
+						"name": existing_event.name,
+						"subject": "_Test Hijacked Subject",
+						"starts_on": "2026-05-10",
+					}
+				),
+				web_form_request_key=web_form_request.key,
+			)
+
+		with self.assertRaises(frappe.PermissionError):
+			delete(
+				"manage-events",
+				existing_event.name,
+				web_form_request_key=web_form_request.key,
+			)
+
+		self.assertEqual(
+			frappe.db.get_value("Event", existing_event.name, "subject"),
+			"_Test Existing Event",
+		)
+		self.assertTrue(frappe.db.exists("Event", existing_event.name))
+
 	def test_web_form_request_expiry_is_enforced(self):
 		web_form_request = self.create_web_form_request(
 			expires_on=add_to_date(None, minutes=-1),
