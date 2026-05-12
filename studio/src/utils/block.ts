@@ -239,15 +239,6 @@ class Block implements BlockOptions {
 		return null;
 	}
 
-	isDescendantOf(ancestor: Block): boolean {
-		let current = this.getParentBlock();
-		while (current) {
-			if (current.componentId === ancestor.componentId) return true;
-			current = current.getParentBlock();
-		}
-		return false;
-	}
-
 	getIcon() {
 		switch(true) {
 			case this.isRoot():

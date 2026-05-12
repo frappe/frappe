@@ -322,7 +322,7 @@ const onMouseMove = (event: MouseEvent) => {
 	const target = document.elementFromPoint(event.clientX, event.clientY)
 	const layerItem = target?.closest(".component-layer-item") as HTMLElement | null
 
-	if (!layerItem || layerItem === draggedElement) {
+	if (!layerItem || layerItem === draggedElement || draggedElement.contains(layerItem)) {
 		resetDropIndicators()
 		return
 	}
@@ -331,13 +331,6 @@ const onMouseMove = (event: MouseEvent) => {
 	const block = canvasStore.activeCanvas?.findBlock(componentId!)
 
 	if (!block) {
-		resetDropIndicators()
-		return
-	}
-
-	// Prevent dropping a block into its own descendants
-	const draggedBlock = canvasStore.activeCanvas?.findBlock(draggedElement.dataset.componentLayerId!)
-	if (draggedBlock && block.isDescendantOf(draggedBlock)) {
 		resetDropIndicators()
 		return
 	}
@@ -403,7 +396,7 @@ const onDragEnd = (e: DragEvent) => {
 	document.removeEventListener("mousemove", onMouseMove)
 
 	const { draggedElement, hoverTarget, hoverPosition } = dragState
-	if (!draggedElement || !hoverTarget || !hoverPosition) {
+	if (!draggedElement || !hoverTarget || !hoverPosition || draggedElement.contains(hoverTarget)) {
 		Object.assign(dragState, { draggedElement: null, hoverTarget: null, hoverPosition: null })
 		return
 	}
@@ -411,12 +404,7 @@ const onDragEnd = (e: DragEvent) => {
 	const draggedBlock = canvasStore.activeCanvas?.findBlock(draggedElement.dataset.componentLayerId!)
 	const targetBlock = canvasStore.activeCanvas?.findBlock(hoverTarget.dataset.componentLayerId!)
 
-	if (
-		draggedBlock &&
-		targetBlock &&
-		draggedBlock !== targetBlock &&
-		!targetBlock.isDescendantOf(draggedBlock)
-	) {
+	if (draggedBlock && targetBlock && draggedBlock !== targetBlock) {
 		if (hoverPosition === "inside") {
 			moveBlockInside(draggedBlock, targetBlock)
 		} else {
