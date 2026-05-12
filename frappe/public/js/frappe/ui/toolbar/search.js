@@ -1,13 +1,13 @@
 frappe.provide("frappe.search");
 
 /** First N Global Search Settings rows used as implicit default pins. Toolbar shows every pinned DocType. */
-frappe.search.GLOBAL_SEARCH_VISIBLE_DT_LIMIT = 5;
-frappe.search.GLOBAL_SEARCH_PIN_STORAGE_KEY = "global-search-pinned-doctypes";
+const GLOBAL_SEARCH_VISIBLE_DT_LIMIT = 5;
+const GLOBAL_SEARCH_PIN_STORAGE_KEY = "global-search-pinned-doctypes";
 
 /** “All” summary: per-doctype “Show more” at or above this count when browsing all DocTypes. */
-frappe.search.GLOBAL_SEARCH_SUMMARY_SHOW_MORE_MIN = 5;
+const GLOBAL_SEARCH_SUMMARY_SHOW_MORE_MIN = 5;
 /** Extra field values beyond this show as “and n more”. */
-frappe.search.GLOBAL_SEARCH_FIELD_INLINE_PREVIEW_LIMIT = 3;
+const GLOBAL_SEARCH_FIELD_INLINE_PREVIEW_LIMIT = 3;
 
 frappe.search.SearchDialog = class {
 	constructor(opts) {
@@ -89,6 +89,7 @@ frappe.search.SearchDialog = class {
 	}
 
 	init_search_objects() {
+		const log_err = (err) => console.error(err);
 		this.searches = {
 			global_search: {
 				input_placeholder: __("Search"),
@@ -97,10 +98,7 @@ frappe.search.SearchDialog = class {
 				get_results: (keywords, callback) => {
 					frappe.search.utils
 						.get_global_results(keywords, 0, null, this.global_doctype_filter || "")
-						.then(
-							(global_results) => callback(global_results, keywords),
-							(err) => console.error(err)
-						);
+						.then((global_results) => callback(global_results, keywords), log_err);
 				},
 			},
 			tags: {
@@ -109,12 +107,9 @@ frappe.search.SearchDialog = class {
 				no_results_status: (keyword) =>
 					"<div>" + __("No documents found tagged with {0}", [keyword]) + "</div>",
 				get_results: (keywords, callback) => {
-					frappe.tags.utils.get_tag_results(keywords).then(
-						(global_results) => callback(global_results, keywords),
-						(err) => {
-							console.error(err);
-						}
-					);
+					frappe.tags.utils
+						.get_tag_results(keywords)
+						.then((global_results) => callback(global_results, keywords), log_err);
 				},
 			},
 		};
@@ -289,7 +284,7 @@ frappe.search.SearchDialog = class {
 			}
 		});
 
-		// Switch to global search link
+		// Switch to global search link (keeps existing DocType toolbar filter).
 		this.$body.on("click", ".switch-to-global-search", () => {
 			this.search = this.searches["global_search"];
 			this.$input.attr("placeholder", this.search.input_placeholder);
@@ -299,9 +294,7 @@ frappe.search.SearchDialog = class {
 	}
 
 	init_search(keywords, search_type) {
-		this.global_doctype_filter = "";
-		this.search = this.searches[search_type];
-		this.$input.attr("placeholder", this.search.input_placeholder);
+		this._reset_global_search_modal_mode(search_type);
 		this.put_placeholder(this.search.empty_state_text);
 		this.get_results(keywords);
 		this.search_dialog.show();
@@ -311,9 +304,7 @@ frappe.search.SearchDialog = class {
 	/** Keyboard shortcut: open full Global Search panel (not the Awesome Bar). */
 	open_global_search_dialog(keywords) {
 		keywords = (keywords || "").trim();
-		this.global_doctype_filter = "";
-		this.search = this.searches["global_search"];
-		this.$input.attr("placeholder", this.search.input_placeholder);
+		this._reset_global_search_modal_mode("global_search");
 		this.search_dialog.show();
 		this.$input.val(keywords);
 		if (keywords.length > 1) {
@@ -383,24 +374,20 @@ frappe.search.SearchDialog = class {
 			$sidebar.prepend($(__(sidebar_item_html, ["All Results", __("All Results")])));
 		}
 
-		nav_nonempty.forEach((set) => {
-			$sidebar.append($(__(sidebar_item_html, [set.title, __(set.title)])));
+		const register_sidebar_section = (set, with_sidebar_entry) => {
+			if (with_sidebar_entry) {
+				$sidebar.append($(__(sidebar_item_html, [set.title, __(set.title)])));
+			}
 			this.add_section_to_summary(set.title, set.results, set.fetch_type);
 			this.full_lists[set.title] = this.render_full_list(
 				set.title,
 				set.results,
 				set.fetch_type
 			);
-		});
+		};
 
-		global_nonempty.forEach((set) => {
-			this.add_section_to_summary(set.title, set.results, set.fetch_type);
-			this.full_lists[set.title] = this.render_full_list(
-				set.title,
-				set.results,
-				set.fetch_type
-			);
-		});
+		nav_nonempty.forEach((set) => register_sidebar_section(set, true));
+		global_nonempty.forEach((set) => register_sidebar_section(set, false));
 
 		const show_global_filters = this.search !== this.searches["tags"];
 
@@ -453,6 +440,26 @@ frappe.search.SearchDialog = class {
 		this.get_results(this.current_keyword);
 	}
 
+	/** Clears DocType filter and switches modal to `global_search` or `tags` mode. */
+	_reset_global_search_modal_mode(search_type) {
+		this.global_doctype_filter = "";
+		this.search = this.searches[search_type];
+		this.$input.attr("placeholder", this.search.input_placeholder);
+	}
+
+	/** Shared navigation for list/global rows and classic result tiles (route + stale-hash reroute). */
+	_open_search_result_route(result) {
+		if (!result.route) return;
+		if (result.route_options) {
+			frappe.route_options = result.route_options;
+		}
+		const previous_hash = window.location.hash;
+		frappe.set_route(result.route);
+		if (window.location.hash === previous_hash) {
+			frappe.router.route();
+		}
+	}
+
 	close_global_search_more_menus() {
 		this.$wrapper.find(".global-search-more-dropdown").removeClass("menu-open");
 	}
@@ -501,7 +508,7 @@ frappe.search.SearchDialog = class {
 	 * explicit=true: user JSON (including []) is authoritative.
 	 */
 	read_global_search_pin_state() {
-		const key = frappe.search.GLOBAL_SEARCH_PIN_STORAGE_KEY;
+		const key = GLOBAL_SEARCH_PIN_STORAGE_KEY;
 		let raw = null;
 		try {
 			raw = localStorage.getItem(key);
@@ -541,10 +548,7 @@ frappe.search.SearchDialog = class {
 			uniq.push(dt);
 		});
 		try {
-			localStorage.setItem(
-				frappe.search.GLOBAL_SEARCH_PIN_STORAGE_KEY,
-				JSON.stringify(uniq)
-			);
+			localStorage.setItem(GLOBAL_SEARCH_PIN_STORAGE_KEY, JSON.stringify(uniq));
 		} catch (e) {
 			/* quota or private mode */
 		}
@@ -553,7 +557,7 @@ frappe.search.SearchDialog = class {
 	/** First N doctypes from Global Search Settings (same order as backend). */
 	default_pinned_doctypes_from_settings() {
 		const allowed = this._cached_global_search_allowed || [];
-		const lim = frappe.search.GLOBAL_SEARCH_VISIBLE_DT_LIMIT;
+		const lim = GLOBAL_SEARCH_VISIBLE_DT_LIMIT;
 		return allowed.slice(0, Math.min(lim, allowed.length));
 	}
 
@@ -755,14 +759,7 @@ frappe.search.SearchDialog = class {
 		$name_link.on("click", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			if (result.route_options) {
-				frappe.route_options = result.route_options;
-			}
-			var previous_hash = window.location.hash;
-			frappe.set_route(result.route);
-			if (window.location.hash === previous_hash) {
-				frappe.router.route();
-			}
+			this._open_search_result_route(result);
 		});
 
 		let $name_inner = $('<div class="global-search-name-cell-inner">');
@@ -787,7 +784,7 @@ frappe.search.SearchDialog = class {
 			$subject
 		);
 		const row_title_bits = [result.label];
-		const previewLim = frappe.search.GLOBAL_SEARCH_FIELD_INLINE_PREVIEW_LIMIT;
+		const previewLim = GLOBAL_SEARCH_FIELD_INLINE_PREVIEW_LIMIT;
 		for (let i = 0; i < columns.length; i++) {
 			const parts = field_value_parts(fields[columns[i]]);
 			const total = parts.length;
@@ -906,7 +903,7 @@ frappe.search.SearchDialog = class {
 			);
 			$result_section.find(".result-body").append($panel);
 
-			const min_show = frappe.search.GLOBAL_SEARCH_SUMMARY_SHOW_MORE_MIN;
+			const min_show = GLOBAL_SEARCH_SUMMARY_SHOW_MORE_MIN;
 			if (!this.global_doctype_filter && results.length >= min_show) {
 				const dt_esc = frappe.utils.escape_html(type || "");
 				const $btn = $("<button>", {
@@ -952,7 +949,7 @@ frappe.search.SearchDialog = class {
 		if (result.route) {
 			link = `href="${frappe.router.make_url(result.route)}"`;
 		} else if (result.data_path) {
-			link = `data-path=${result.data_path}"`;
+			link = `data-path="${result.data_path}"`;
 		}
 		return link;
 	}
@@ -993,20 +990,11 @@ frappe.search.SearchDialog = class {
 	}
 
 	handle_result_click(result, $result) {
-		if (result.route_options) {
-			frappe.route_options = result.route_options;
-		}
 		$result.on("click", () => {
-			// this.toggle_minimize();
 			if (result.onclick) {
 				result.onclick(result.match);
 			} else {
-				var previous_hash = window.location.hash;
-				frappe.set_route(result.route);
-				// hashchange didn't fire!
-				if (window.location.hash == previous_hash) {
-					frappe.router.route();
-				}
+				this._open_search_result_route(result);
 			}
 		});
 	}
@@ -1059,7 +1047,6 @@ frappe.search.SearchDialog = class {
 		this.$body.find(".list-more").before(more_results);
 
 		if (results_set[0].results.length < this.more_count) {
-			// hide more button and add a result count
 			this.$body.find(".list-more").hide();
 			let no_of_results = this.$body.find(".result").length;
 			const cue_word = no_of_results === 1 ? __("result") : __("results");
@@ -1068,6 +1055,6 @@ frappe.search.SearchDialog = class {
 			);
 			this.$body.find(".more-results:last").append(no_of_results_cue);
 		}
-		this.$body.find(".more-results.last").slideDown(200, function () {});
+		this.$body.find(".more-results.last").slideDown(200);
 	}
 };
