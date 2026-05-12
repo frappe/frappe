@@ -824,13 +824,16 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 		frappe.throw(_("Not Allowed"), frappe.PermissionError)
 
 	if web_form_request or frappe.session.user == owner:
+		original_reference_docname = web_form_request.reference_docname if web_form_request else None
 		if web_form_request:
 			web_form_request.db_set("reference_docname", None, update_modified=False)
 		try:
 			frappe.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
 		except Exception:
 			if web_form_request:
-				web_form_request.db_set("reference_docname", docname, update_modified=False)
+				web_form_request.db_set(
+					"reference_docname", original_reference_docname, update_modified=False
+				)
 			raise
 
 		if web_form_request:
