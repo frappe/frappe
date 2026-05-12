@@ -228,7 +228,6 @@ def process_2fa_for_otp_app(user, otp_secret, otp_issuer):
 	return {"method": "OTP App", "setup": otp_setup_completed}
 
 
-# check this
 def process_2fa_for_email(user, token, otp_secret, otp_issuer, method="Email"):
 	"""Process Email method for 2fa."""
 	subject = None
