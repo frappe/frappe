@@ -519,6 +519,11 @@ frappe.search.utils = {
 		});
 	},
 
+	/**
+	 * Parses `__global_search` content into { field label - value list }.
+	 * Segments are separated by `|||`; each segment is `label : value` (or `label &&& value` as fallback).
+	 * Skips blank parts and the synthetic `name` field (the real name is shown in its own column).
+	 */
 	parse_global_search_fields: function (content) {
 		const fields = {};
 		if (!content) return fields;
@@ -541,6 +546,10 @@ frappe.search.utils = {
 		return fields;
 	},
 
+	/**
+	 * Picks table column names for Global Search hits: walks each hit’s snippet text,
+	 * finds every field label in that text, then returns each label once (first time we see it).
+	 */
 	global_search_field_columns_for_results: function (results) {
 		const cols = [];
 		const seen = Object.create(null);
@@ -556,6 +565,9 @@ frappe.search.utils = {
 		return cols;
 	},
 
+	/**
+	 * Highlights search terms in text: wraps each term in `<mark>` tags.
+	 */
 	highlight_global_search_terms: function (text, keywords) {
 		const s = text == null ? "" : String(text);
 		const terms = keywords
@@ -695,13 +707,7 @@ function hide_navbar_search_modal() {
 }
 
 /**
- * Navbar search: Ctrl/Cmd+G jumps from the Awesome Bar modal to the Global Search dialog
- * with the same text pre-filled (`frappe/ui/keyboard.js` registers this shortcut).
- *
- * Registered on `frappe.search` intentionally — keyboard loads earlier in desk.bundle.js;
- * the shortcut runs after full load, when this assignment is applied.
- *
- * @param {KeyboardEvent} [e] Optional DOM event so default browser behavior can be suppressed.
+ * Open the global search dialog from the navbar search modal if in results `Search for txt`
  */
 frappe.search.open_global_search_from_navbar_shortcut = function (e) {
 	const from_bar = ($("#navbar-search").val() || "").trim();
