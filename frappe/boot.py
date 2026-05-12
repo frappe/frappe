@@ -210,9 +210,9 @@ def get_user_pages_or_reports(parent, cache=False):
 	is_report = parent == "Report"
 
 	if is_report:
-		columns = (report.name.as_("title"), report.ref_doctype, report.report_type)
+		columns = (report.name.as_("title"), report.ref_doctype, report.report_type, report.module)
 	else:
-		columns = (page.title.as_("title"),)
+		columns = (page.title.as_("title"), page.module)
 
 	customRole = DocType("Custom Role")
 	hasRole = DocType("Has Role")
@@ -233,7 +233,12 @@ def get_user_pages_or_reports(parent, cache=False):
 	).run(as_dict=True)
 
 	for p in pages_with_custom_roles:
-		has_role[p.name] = {"modified": p.modified, "title": p.title, "ref_doctype": p.ref_doctype}
+		has_role[p.name] = {
+			"modified": p.modified,
+			"title": p.title,
+			"ref_doctype": p.ref_doctype,
+			"module": p.module,
+		}
 
 	subq = (
 		frappe.qb.from_(customRole)
@@ -258,7 +263,7 @@ def get_user_pages_or_reports(parent, cache=False):
 
 	for p in pages_with_standard_roles:
 		if p.name not in has_role:
-			has_role[p.name] = {"modified": p.modified, "title": p.title}
+			has_role[p.name] = {"modified": p.modified, "title": p.title, "module": p.module}
 			if parent == "Report":
 				has_role[p.name].update({"ref_doctype": p.ref_doctype})
 
@@ -275,7 +280,7 @@ def get_user_pages_or_reports(parent, cache=False):
 
 	for r in rows_with_no_roles:
 		if r.name not in has_role:
-			has_role[r.name] = {"modified": r.modified, "title": r.title}
+			has_role[r.name] = {"modified": r.modified, "title": r.title, "module": r.module}
 			if is_report:
 				has_role[r.name] |= {"ref_doctype": r.ref_doctype}
 

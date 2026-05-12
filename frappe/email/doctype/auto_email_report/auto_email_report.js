@@ -125,12 +125,10 @@ frappe.ui.form.on("Auto Email Report", {
 				report_filters = reference_report.filters;
 			}
 
-			if (report_filters && report_filters.length > 0) {
-				frm.set_value("filter_meta", JSON.stringify(report_filters));
-				if (frm.is_dirty()) {
-					frm.save();
-				}
-			}
+			frm.set_value(
+				"filter_meta",
+				report_filters && report_filters.length > 0 ? JSON.stringify(report_filters) : ""
+			);
 
 			var report_filters_list = [];
 			$.each(report_filters, function (key, val) {
@@ -207,6 +205,8 @@ frappe.ui.form.on("Auto Email Report", {
 			frm.set_df_property("from_date_field", "options", date_fields);
 			frm.set_df_property("to_date_field", "options", date_fields);
 			frm.toggle_display("dynamic_report_filters_section", date_fields.length > 0);
+		} else {
+			frm.set_value("filter_meta", "");
 		}
 	},
 });

@@ -124,7 +124,7 @@ class EmailQueue(Document):
 
 	def update_status(self, status, commit=False, **kwargs):
 		self.update_db(status=status, commit=commit, **kwargs)
-		if self.communication:
+		if self.communication and frappe.db.exists("Communication", self.communication):
 			communication_doc = frappe.get_doc("Communication", self.communication)
 			communication_doc.set_delivery_status(commit=commit)
 

@@ -215,7 +215,11 @@ def _download_multi_pdf(
 				}
 			)
 			_file.save()
-			frappe.publish_realtime(f"task_complete:{task_id}", message={"file_url": _file.unique_url})
+			frappe.publish_realtime(
+				f"task_complete:{task_id}",
+				message={"file_url": _file.unique_url},
+				user=frappe.session.user,
+			)
 		else:
 			frappe.local.response.filecontent = merged_pdf.getvalue()
 			frappe.local.response.type = "pdf"

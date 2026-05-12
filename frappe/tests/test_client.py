@@ -263,3 +263,12 @@ class TestClient(FrappeTestCase):
 		# cleanup
 		for doc in docs:
 			frappe.delete_doc("Note", doc)
+
+	def test_get_value_scientific_notation_docname(self):
+		from frappe.client import get_value
+
+		tag = frappe.get_doc({"doctype": "Tag", "name": "3E002"}).insert(ignore_if_duplicate=True)
+		try:
+			self.assertEqual(get_value("Tag", ["name"], "3E002"), {"name": "3E002"})
+		finally:
+			tag.delete()

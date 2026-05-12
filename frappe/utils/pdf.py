@@ -10,8 +10,10 @@ from urllib.parse import parse_qs, urlparse
 
 import cssutils
 import pdfkit
+import pdfkit.api
 from bs4 import BeautifulSoup
 from packaging.version import Version
+from pdfkit.pdfkit import PDFKit as OriginalPDFKit
 from pypdf import PdfReader, PdfWriter, errors
 
 import frappe
@@ -27,6 +29,23 @@ PDF_CONTENT_ERRORS = [
 	"UnknownContentError",
 	"RemoteHostClosedError",
 ]
+
+
+class FrappePDFKit(OriginalPDFKit):
+	def _find_options_in_meta(self, content):
+		"""Override to disable meta tag parsing.
+
+		Returns an empty dict to prevent any wkhtmltopdf options from being
+		extracted from HTML meta tags. Only options passed explicitly to the
+		function should be used.
+		"""
+		return {}
+
+
+# Replace PDFKit in all relevant modules
+pdfkit.PDFKit = FrappePDFKit
+pdfkit.pdfkit.PDFKit = FrappePDFKit
+pdfkit.api.PDFKit = FrappePDFKit
 
 
 def pdf_header_html(soup, head, content, styles, html_id, css, path=None):

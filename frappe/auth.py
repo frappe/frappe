@@ -702,9 +702,13 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 		raise frappe.AuthenticationError
 
 	doctype = frappe_authorization_source or "User"
-	docname = frappe.db.get_value(
-		doctype=doctype, filters={"api_key": api_key, "enabled": True}, fieldname=["name"]
-	)
+	try:
+		docname = frappe.db.get_value(
+			doctype=doctype, filters={"api_key": api_key, "enabled": True}, fieldname=["name"]
+		)
+	except Exception:
+		raise frappe.AuthenticationError
+
 	if not docname:
 		raise frappe.AuthenticationError
 	form_dict = frappe.local.form_dict

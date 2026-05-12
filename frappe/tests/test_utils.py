@@ -31,6 +31,7 @@ from frappe.utils import (
 	get_bench_path,
 	get_file_timestamp,
 	get_gravatar,
+	get_safe_filters,
 	get_site_info,
 	get_sites,
 	get_url,
@@ -330,6 +331,28 @@ class TestFilters(FrappeTestCase):
 		self.assertTrue(compare(None, "is", "NOT SET"))
 		self.assertTrue(compare(None, "is", "Not Set"))
 		self.assertTrue(compare(None, "is", "not set"))
+
+	def test_safe_filters_scientific_notation(self):
+		self.assertEqual(get_safe_filters("3E002"), "3E002")
+		self.assertEqual(get_safe_filters("1E5"), "1E5")
+		self.assertEqual(get_safe_filters("2e10"), "2e10")
+		self.assertEqual(get_safe_filters("1.5"), "1.5")
+		self.assertEqual(get_safe_filters("Infinity"), "Infinity")
+		self.assertEqual(get_safe_filters("NaN"), "NaN")
+
+	def test_safe_filters_json(self):
+		self.assertEqual(get_safe_filters('{"name": "ABC"}'), {"name": "ABC"})
+		self.assertEqual(get_safe_filters('[["name", "=", "ABC"]]'), [["name", "=", "ABC"]])
+		# FrappeClient encodes scalar filters via frappe.as_json — must still unwrap
+		self.assertEqual(get_safe_filters('"ABC"'), "ABC")
+		self.assertIsNone(get_safe_filters("null"))
+		self.assertIs(get_safe_filters("true"), True)
+		self.assertIs(get_safe_filters("false"), False)
+
+	def test_safe_filters_non_string(self):
+		self.assertEqual(get_safe_filters({"name": "ABC"}), {"name": "ABC"})
+		self.assertEqual(get_safe_filters([["name", "=", "ABC"]]), [["name", "=", "ABC"]])
+		self.assertIsNone(get_safe_filters(None))
 
 
 class TestMoney(FrappeTestCase):

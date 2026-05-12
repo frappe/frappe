@@ -100,6 +100,10 @@ def is_valid_http_method(method):
 	if frappe.flags.in_safe_exec:
 		return
 
+	# Skip HTTP method validation when running in a background job
+	if hasattr(frappe.local, "job"):
+		return
+
 	http_method = frappe.local.request.method
 
 	if http_method not in frappe.allowed_http_methods_for_whitelisted_func[method]:

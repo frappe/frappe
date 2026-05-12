@@ -72,8 +72,7 @@ class Report(Document):
 				frappe.throw(_("Cannot edit a standard report. Please duplicate and create a new report"))
 
 		if self.is_standard == "Yes":
-			if frappe.session.user != "Administrator":
-				frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
+			self.validate_standard_report()
 
 			# Letter Head is visible only for non-standard reports.
 			# It should not remain set when it's invisible.
@@ -386,6 +385,13 @@ class Report(Document):
 			data.append(_row)
 
 		return data
+
+	def validate_standard_report(self):
+		if frappe.session.user != "Administrator":
+			frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
+
+		if not cint(frappe.conf.developer_mode):
+			frappe.throw(_("Standard reports can only be created in developer mode."))
 
 	@frappe.whitelist()
 	def toggle_disable(self, disable: bool):

@@ -76,6 +76,7 @@ class FormTour(Document):
 
 @frappe.whitelist()
 def reset_tour(tour_name):
+	frappe.only_for("System Manager")
 	for user in frappe.get_all("User", pluck="name"):
 		onboarding_status = frappe.parse_json(frappe.db.get_value("User", user, "onboarding_status"))
 		onboarding_status.pop(tour_name, None)

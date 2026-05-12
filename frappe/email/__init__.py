@@ -55,7 +55,8 @@ def get_system_managers():
 
 
 @frappe.whitelist()
-def relink(name, reference_doctype=None, reference_name=None):
+def relink(name: str, reference_doctype: str | None = None, reference_name: str | None = None):
+	frappe.has_permission("Communication", "write", name, throw=True)
 	frappe.db.sql(
 		"""update
 			`tabCommunication`

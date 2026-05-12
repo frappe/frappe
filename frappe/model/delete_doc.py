@@ -13,6 +13,7 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import revert_series_if_last
 from frappe.model.utils import is_virtual_doctype
+from frappe.query_builder import DocType
 from frappe.utils.data import get_link_to_form
 from frappe.utils.file_manager import remove_all
 from frappe.utils.global_search import delete_for_document
@@ -261,9 +262,9 @@ def check_permission_and_not_submitted(doc):
 		)
 
 
-def check_if_doc_is_linked(doc, method="Delete"):
+def get_linked_docs(doc, method="Delete") -> list[dict]:
 	"""
-	Raises excption if the given doc(dt, dn) is linked in another record.
+	Return a list of documents that are statically linked to the given document.
 	"""
 	from frappe.model.rename_doc import get_link_fields
 
@@ -274,6 +275,8 @@ def check_if_doc_is_linked(doc, method="Delete"):
 		ignored_doctypes.update(doc_ignore_flags)
 	if method == "Delete":
 		ignored_doctypes.update(frappe.get_hooks("ignore_links_on_delete"))
+
+	linked_docs = []
 
 	for lf in link_fields:
 		link_dt, link_field, issingle = lf["parent"], lf["fieldname"], lf["issingle"]
@@ -290,7 +293,9 @@ def check_if_doc_is_linked(doc, method="Delete"):
 
 		if issingle:
 			if frappe.db.get_single_value(link_dt, link_field) == doc.name:
-				raise_link_exists_exception(doc, link_dt, link_dt)
+				linked_docs.append(
+					{"doc": doc.name, "reference_doctype": link_dt, "reference_docname": link_dt}
+				)
 			continue
 
 		fields = ["name", "docstatus"]
@@ -307,20 +312,41 @@ def check_if_doc_is_linked(doc, method="Delete"):
 				continue
 
 			if method != "Delete" and (method != "Cancel" or not DocStatus(item.docstatus).is_submitted()):
-				# don't raise exception if not
+				# don't add if not
 				# linked to a non-cancelled doc when deleting or to a submitted doc when cancelling
 				continue
 			elif link_dt == doc.doctype and (item_parent or item.name) == doc.name:
-				# don't raise exception if not
-				# linked to same item or doc having same name as the item
+				# don't add if linked to same item or doc having same name as the item
 				continue
 			else:
 				reference_docname = item_parent or item.name
-				raise_link_exists_exception(doc, linked_parent_doctype, reference_docname)
+				linked_docs.append(
+					{
+						"doc": doc.name,
+						"reference_doctype": linked_parent_doctype,
+						"reference_docname": reference_docname,
+					}
+				)
+
+	return linked_docs
 
 
-def check_if_doc_is_dynamically_linked(doc, method="Delete"):
-	"""Raise `frappe.LinkExistsError` if the document is dynamically linked"""
+def check_if_doc_is_linked(doc, method="Delete"):
+	"""
+	Raises exception if the given document is linked in another record.
+	"""
+	links = get_linked_docs(doc, method)
+	if links:
+		link = links[0]
+		raise_link_exists_exception(doc, link["reference_doctype"], link["reference_docname"])
+
+
+def get_dynamic_linked_docs(doc, method="Delete") -> list[dict]:
+	"""
+	Return a list of documents that are dynamically linked to the given document.
+	"""
+	linked_docs = []
+
 	for df in get_dynamic_link_map().get(doc.doctype, []):
 		ignore_linked_doctypes = doc.get("ignore_linked_doctypes") or []
 
@@ -344,16 +370,27 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 					or (method == "Cancel" and DocStatus(refdoc.docstatus).is_submitted())
 				)
 			):
-				raise_link_exists_exception(doc, df.parent, df.parent)
+				linked_docs.append(
+					{
+						"doc": doc.name,
+						"reference_doctype": df.parent,
+						"reference_docname": df.parent,
+						"at_position": "",
+					}
+				)
 		else:
 			# dynamic link in table
-			df["table"] = ", `parent`, `parenttype`, `idx`" if meta.istable else ""
-			for refdoc in frappe.db.sql(
-				"""select `name`, `docstatus` {table} from `tab{parent}` where
-				`{options}`=%s and `{fieldname}`=%s""".format(**df),
-				(doc.doctype, doc.name),
-				as_dict=True,
-			):
+			RefDoc = DocType(df.parent)
+			fields = [RefDoc.name, RefDoc.docstatus]
+			if meta.istable:
+				fields.extend([RefDoc.parent, RefDoc.parenttype, RefDoc.idx])
+			query = (
+				frappe.qb.from_(RefDoc)
+				.select(*fields)
+				.where(RefDoc[df.options] == doc.doctype)
+				.where(RefDoc[df.fieldname] == doc.name)
+			)
+			for refdoc in query.run(as_dict=True):
 				# linked to an non-cancelled doc when deleting
 				# or linked to a submitted doc when cancelling
 				if (method == "Delete" and not DocStatus(refdoc.docstatus).is_cancelled()) or (
@@ -370,7 +407,26 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 
 					at_position = f"at Row: {refdoc.idx}" if meta.istable else ""
 
-					raise_link_exists_exception(doc, reference_doctype, reference_docname, at_position)
+					linked_docs.append(
+						{
+							"doc": doc.name,
+							"reference_doctype": reference_doctype,
+							"reference_docname": reference_docname,
+							"at_position": at_position,
+						}
+					)
+
+	return linked_docs
+
+
+def check_if_doc_is_dynamically_linked(doc, method="Delete"):
+	"""Raise `frappe.LinkExistsError` if the document is dynamically linked"""
+	links = get_dynamic_linked_docs(doc, method)
+	if links:
+		link = links[0]
+		raise_link_exists_exception(
+			doc, link["reference_doctype"], link["reference_docname"], link["at_position"]
+		)
 
 
 def raise_link_exists_exception(doc, reference_doctype, reference_docname, row=""):

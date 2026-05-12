@@ -177,8 +177,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 			// update visible DOM elements and cell tooltip
 			document.querySelectorAll(`a[data-name="${key}"]`).forEach((el) => {
-				if (el.innerHTML === link_title) return;
-				el.innerHTML = link_title;
+				if (el.textContent === link_title) return;
+				el.textContent = link_title;
 
 				$(el).closest(".dt-cell__content").attr("title", link_title);
 			});

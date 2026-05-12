@@ -168,8 +168,8 @@ class User(Document):
 		frappe.cache.delete_key("enabled_users")
 
 	def validate(self):
-		# clear new password
-		self.__new_password = self.new_password
+		if self.new_password:
+			self.__new_password = self.new_password
 		self.new_password = ""
 
 		if not frappe.flags.in_test:
@@ -930,7 +930,10 @@ def has_email_account(email: str):
 
 
 @frappe.whitelist(allow_guest=False)
-def get_email_awaiting(user):
+def get_email_awaiting(user: str):
+	if user != frappe.session.user:
+		frappe.has_permission("User", "read", doc=user, throw=True)
+
 	return frappe.get_all(
 		"User Email",
 		fields=["email_account", "email_id"],
