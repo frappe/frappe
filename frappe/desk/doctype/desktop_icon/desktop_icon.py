@@ -47,6 +47,8 @@ class DesktopIcon(Document):
 
 	def on_trash(self):
 		clear_desktop_icons_cache()
+		if self.standard:
+			delete_user_icons_for_standard(self)
 		if frappe.conf.developer_mode and self.standard and self.app:
 			delete_desktop_icon_file(self.app, self.label)
 
@@ -59,6 +61,7 @@ class DesktopIcon(Document):
 		if self.standard:
 			frappe.cache.delete_key("desktop_icons")
 			frappe.cache.delete_key("bootinfo")
+			sync_user_icons_from_standard(self)
 		else:
 			clear_desktop_icons_cache(user=self.owner)
 
@@ -144,6 +147,8 @@ class DesktopIcon(Document):
 
 	def after_insert(self):
 		clear_desktop_icons_cache()
+		if self.standard:
+			sync_user_icons_from_standard(self)
 
 
 def delete_desktop_icon_file(app, label):
@@ -229,6 +234,130 @@ def get_desktop_icons(user=None, bootinfo=None):
 def clear_desktop_icons_cache(user=None):
 	frappe.cache.hdel("desktop_icons", user or frappe.session.user)
 	frappe.cache.hdel("bootinfo", user or frappe.session.user)
+
+
+def sync_user_icons_from_standard(standard_icon: "DesktopIcon"):
+	"""Update user layouts when a standard icon changes."""
+	data = standard_icon_payload(standard_icon)
+
+	layouts = frappe.get_all("Desktop Layout", fields=["name", "user", "layout"])
+	if not layouts:
+		return
+
+	for layout_doc in layouts:
+		updated = False
+		layout = load_desktop_layout(layout_doc.layout)
+		for entry in layout:
+			if (
+				entry.get("label") == standard_icon.label
+				and entry.get("icon_type") == standard_icon.icon_type
+			):
+				entry.update(data)
+				updated = True
+				break
+		if not updated:
+			layout.append(data.copy())
+			updated = True
+		if updated:
+			save_desktop_layout(layout_doc.name, layout)
+			clear_desktop_icons_cache(user=layout_doc.user)
+
+
+def delete_user_icons_for_standard(standard_icon: "DesktopIcon"):
+	"""Remove standard icon from user layouts when it is removed."""
+	layouts = frappe.get_all("Desktop Layout", fields=["name", "user", "layout"])
+	if not layouts:
+		return
+
+	for layout_doc in layouts:
+		layout = load_desktop_layout(layout_doc.layout)
+		new_layout = [
+			entry
+			for entry in layout
+			if not (
+				entry.get("label") == standard_icon.label
+				and entry.get("icon_type") == standard_icon.icon_type
+			)
+		]
+		if len(new_layout) != len(layout):
+			save_desktop_layout(layout_doc.name, new_layout)
+			clear_desktop_icons_cache(user=layout_doc.user)
+
+
+def sync_all_user_layouts():
+	"""Sync all user layouts with current standard icons."""
+	standard_icons = frappe.get_all(
+		"Desktop Icon",
+		filters={"standard": 1},
+		fields=standard_icon_fields(),
+	)
+	standard_map = {(icon.label, icon.icon_type): standard_icon_payload(icon) for icon in standard_icons}
+	standard_keys = set(standard_map.keys())
+
+	layouts = frappe.get_all("Desktop Layout", fields=["name", "user", "layout"])
+	for layout_doc in layouts:
+		layout = load_desktop_layout(layout_doc.layout)
+		updated = False
+		seen = set()
+		new_layout = []
+		for entry in layout:
+			key = (entry.get("label"), entry.get("icon_type"))
+			if entry.get("standard") == 1:
+				if key not in standard_keys:
+					updated = True
+					continue
+				entry.update(standard_map[key])
+				entry["standard"] = 1
+				updated = True
+				seen.add(key)
+			new_layout.append(entry)
+
+		missing_keys = standard_keys - seen
+		if missing_keys:
+			new_layout.extend(standard_map[key].copy() for key in missing_keys)
+			updated = True
+
+		if updated:
+			save_desktop_layout(layout_doc.name, new_layout)
+			clear_desktop_icons_cache(user=layout_doc.user)
+
+
+def load_desktop_layout(layout_json):
+	if not layout_json:
+		return []
+	try:
+		layout = json.loads(layout_json)
+	except Exception:
+		return []
+	return layout if isinstance(layout, list) else []
+
+
+def save_desktop_layout(layout_name, layout):
+	frappe.db.set_value("Desktop Layout", layout_name, "layout", json.dumps(layout), update_modified=False)
+
+
+def standard_icon_payload(standard_icon):
+	data = {field: standard_icon.get(field) for field in standard_icon_fields()}
+	return data
+
+
+def standard_icon_fields():
+	return [
+		"label",
+		"icon_type",
+		"icon",
+		"icon_image",
+		"logo_url",
+		"bg_color",
+		"link",
+		"link_type",
+		"link_to",
+		"app",
+		"parent_icon",
+		"hidden",
+		"idx",
+		"standard",
+	]
 
 
 def create_desktop_icons_from_workspace():
