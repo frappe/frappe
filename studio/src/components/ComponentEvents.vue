@@ -549,8 +549,8 @@ function getScriptDescription(eventName: string): string {
 		const componentSlug = props.block.componentName.toLowerCase()
 		docsLink = `https://ui.frappe.io/docs/components/${componentSlug}#emit-events`
 	}
-	let docs = `You can access event arguments using the ${getCodeBlock("eventArgs")} array: ${getCodeBlock(
-		"eventArgs[index]",
+	let docs = `You can access event arguments by writing an arrow function: ${getCodeBlock(
+		"(event, value) => { ... }",
 	)}<br><br>`
 
 	if (docsLink) {
@@ -559,7 +559,7 @@ function getScriptDescription(eventName: string): string {
 				"change",
 			)} event on DatePicker emits the selected date, which can be accessed as:<br>
 			${getCodeBlock(
-				"const date = eventArgs[0]",
+				"(date) => { myVar.value = date }",
 			)} <br><br>Refer to the <a class="underline" href="${docsLink}" target="_blank">${[
 				props.block?.componentName,
 			]} documentation</a> to see what arguments are emitted for ${eventName} event
@@ -567,7 +567,7 @@ function getScriptDescription(eventName: string): string {
 	} else {
 		docs += `
 			<b>Example:</b> For a ${getCodeBlock("click")} event, you can access the MouseEvent object as:<br>
-			${getCodeBlock("const mouseEvent = eventArgs[0]")}
+			${getCodeBlock("(mouseEvent) => { console.log(mouseEvent) }")}
 		`
 	}
 	return docs

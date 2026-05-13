@@ -253,13 +253,29 @@ const useCodeStore = defineStore("codeStore", () => {
 		try {
 			const context = { ...globalExecutionContext.value, ...repeaterContext, ...componentContext, eventArgs }
 
+			const isCodeFirstFunction = /^\s*(?:async\s+)?(?:function(?:\s+|\()|\([^)]*\)\s*=>|[a-zA-Z_$][a-zA-Z0-9_$]*\s*=>)/.test(script);
+			if (isCodeFirstFunction) {
+				try {
+					const fn = new Function("context", `
+						with (context) {
+							return (${script});
+						}
+					`)(context);
+					if (typeof fn === "function") {
+						return fn(...(eventArgs || []));
+					}
+				} catch (e) {
+					// Fall back to standard script execution
+				}
+			}
+
 			const scriptToExecute = `
 				with (context) {
 				${script}
 				}
 			`;
 			const scriptFunction = new Function("context", scriptToExecute);
-			scriptFunction(context, resources);
+			scriptFunction(context);
 		} catch (error) {
 			console.error(`Error executing the script: ${script}`, error)
 		}
@@ -280,6 +296,23 @@ const useCodeStore = defineStore("codeStore", () => {
 				eventArgs,
 				data,
 			}
+
+			const isCodeFirstFunction = /^\s*(?:async\s+)?(?:function(?:\s+|\()|\([^)]*\)\s*=>|[a-zA-Z_$][a-zA-Z0-9_$]*\s*=>)/.test(script);
+			if (isCodeFirstFunction) {
+				try {
+					const fn = new Function("ctx", `
+						with (ctx) {
+							return (${script});
+						}
+					`)(context);
+					if (typeof fn === "function") {
+						return fn(data, ...(eventArgs || []));
+					}
+				} catch (e) {
+					// Fall back to standard script execution
+				}
+			}
+
 			const successFn = new Function(
 				"ctx",
 				`with(ctx) {
@@ -308,6 +341,23 @@ const useCodeStore = defineStore("codeStore", () => {
 				eventArgs,
 				error,
 			}
+
+			const isCodeFirstFunction = /^\s*(?:async\s+)?(?:function(?:\s+|\()|\([^)]*\)\s*=>|[a-zA-Z_$][a-zA-Z0-9_$]*\s*=>)/.test(script);
+			if (isCodeFirstFunction) {
+				try {
+					const fn = new Function("ctx", `
+						with (ctx) {
+							return (${script});
+						}
+					`)(context);
+					if (typeof fn === "function") {
+						return fn(error, ...(eventArgs || []));
+					}
+				} catch (e) {
+					// Fall back to standard script execution
+				}
+			}
+
 			const errorFn = new Function(
 				"ctx",
 				`with(ctx) {
