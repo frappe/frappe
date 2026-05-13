@@ -8,7 +8,7 @@ import { studioWatchers } from "@/data/studioWatchers"
 import * as globalUtils from "@/utils/globalUtils"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
-import { FUNCTION_STRING_REGEX } from "@/utils/constants"
+import { isFunctionExpression, toOptionalChaining } from "@/utils/parseCode"
 import type { Filters, Resource, DocumentResource, DataResult } from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
@@ -194,7 +194,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			if (isDynamicValue(value)) {
 				return getDynamicValue(value, localContext)
 			}
-			if (FUNCTION_STRING_REGEX.test(value)) {
+			if (isFunctionExpression(value)) {
 				const func = stringToFunction(value, localContext)
 				if (typeof func === "function") {
 					return func
@@ -221,10 +221,8 @@ const useCodeStore = defineStore("codeStore", () => {
 	function evaluateExpression(expression: string, localContext: ExpressionEvaluationContext) {
 		try {
 			const context = { ...globalContext.value, ...localContext }
-			// Replace dot notation with optional chaining
-			const safeExpression = expression.replace(/(\w+)(?:\.(\w+))+/g, (match) => {
-				return match.split('.').join('?.')
-			})
+			// Replace dot notation with optional chaining via AST
+			const safeExpression = toOptionalChaining(expression)
 
 			// Create a function that takes the context as an argument
 			const func = new Function('context', `
@@ -253,8 +251,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		try {
 			const context = { ...globalExecutionContext.value, ...repeaterContext, ...componentContext, eventArgs }
 
-			const isCodeFirstFunction = /^\s*(?:async\s+)?(?:function(?:\s+|\()|\([^)]*\)\s*=>|[a-zA-Z_$][a-zA-Z0-9_$]*\s*=>)/.test(script);
-			if (isCodeFirstFunction) {
+			if (isFunctionExpression(script)) {
 				try {
 					const fn = new Function("context", `
 						with (context) {
@@ -297,8 +294,7 @@ const useCodeStore = defineStore("codeStore", () => {
 				data,
 			}
 
-			const isCodeFirstFunction = /^\s*(?:async\s+)?(?:function(?:\s+|\()|\([^)]*\)\s*=>|[a-zA-Z_$][a-zA-Z0-9_$]*\s*=>)/.test(script);
-			if (isCodeFirstFunction) {
+			if (isFunctionExpression(script)) {
 				try {
 					const fn = new Function("ctx", `
 						with (ctx) {
@@ -342,8 +338,7 @@ const useCodeStore = defineStore("codeStore", () => {
 				error,
 			}
 
-			const isCodeFirstFunction = /^\s*(?:async\s+)?(?:function(?:\s+|\()|\([^)]*\)\s*=>|[a-zA-Z_$][a-zA-Z0-9_$]*\s*=>)/.test(script);
-			if (isCodeFirstFunction) {
+			if (isFunctionExpression(script)) {
 				try {
 					const fn = new Function("ctx", `
 						with (ctx) {
