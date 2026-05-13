@@ -186,10 +186,7 @@ def get_notification_logs(limit: int = 20):
 def mark_all_as_read():
 	log = frappe.qb.DocType("Notification Log")
 	(
-		frappe.qb.update(log)
-		.set(log.read, 1)
-		.where(log.for_user == frappe.session.user)
-		.where(log.read == 0)
+		frappe.qb.update(log).set(log.read, 1).where(log.for_user == frappe.session.user).where(log.read == 0)
 	).run()
 
 	if frappe.db._cursor.rowcount:
