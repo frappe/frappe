@@ -218,33 +218,27 @@ def trigger_indicator_hide():
 
 
 def set_notifications_as_unseen(user):
-	try:
-		table = frappe.qb.DocType("Notification Settings")
-		(
-			frappe.qb.update(table)
-			.set(table.seen, 0)
-			.set(table.unread_count, table.unread_count + 1)
-			.where(table.name == user)
-		).run()
-		frappe.clear_document_cache("Notification Settings", user)
-	except frappe.DoesNotExistError:
-		return
+	table = frappe.qb.DocType("Notification Settings")
+	(
+		frappe.qb.update(table)
+		.set(table.seen, 0)
+		.set(table.unread_count, table.unread_count + 1)
+		.where(table.name == user)
+	).run()
+	frappe.clear_document_cache("Notification Settings", user)
 
 
 def _decrement_unread_count(user, by=1):
 	from frappe.query_builder import Case
 
-	try:
-		table = frappe.qb.DocType("Notification Settings")
-		(
-			frappe.qb.update(table)
-			.set(
-				table.unread_count,
-				Case().when(table.unread_count > by, table.unread_count - by).else_(0),
-			)
-			.where(table.name == user)
-			.where(table.unread_count > 0)
-		).run()
-		frappe.clear_document_cache("Notification Settings", user)
-	except frappe.DoesNotExistError:
-		return
+	table = frappe.qb.DocType("Notification Settings")
+	(
+		frappe.qb.update(table)
+		.set(
+			table.unread_count,
+			Case().when(table.unread_count > by, table.unread_count - by).else_(0),
+		)
+		.where(table.name == user)
+		.where(table.unread_count > 0)
+	).run()
+	frappe.clear_document_cache("Notification Settings", user)
