@@ -189,10 +189,9 @@ def mark_all_as_read():
 		frappe.qb.update(log).set(log.read, 1).where(log.for_user == frappe.session.user).where(log.read == 0)
 	).run()
 
-	if frappe.db._cursor.rowcount:
-		frappe.db.set_value(
-			"Notification Settings", frappe.session.user, "unread_count", 0, update_modified=False
-		)
+	affected = frappe.db._cursor.rowcount
+	if affected:
+		_decrement_unread_count(frappe.session.user, by=affected)
 
 
 @frappe.whitelist()
@@ -232,12 +231,17 @@ def set_notifications_as_unseen(user):
 		return
 
 
-def _decrement_unread_count(user):
+def _decrement_unread_count(user, by=1):
+	from frappe.query_builder import Case
+
 	try:
 		table = frappe.qb.DocType("Notification Settings")
 		(
 			frappe.qb.update(table)
-			.set(table.unread_count, table.unread_count - 1)
+			.set(
+				table.unread_count,
+				Case().when(table.unread_count > by, table.unread_count - by).else_(0),
+			)
 			.where(table.name == user)
 			.where(table.unread_count > 0)
 		).run()
