@@ -251,28 +251,16 @@ const useCodeStore = defineStore("codeStore", () => {
 		try {
 			const context = { ...globalExecutionContext.value, ...repeaterContext, ...componentContext, eventArgs }
 
-			if (isFunctionExpression(script)) {
-				try {
-					const fn = new Function("context", `
-						with (context) {
-							return (${script});
-						}
-					`)(context);
-					if (typeof fn === "function") {
-						return fn(...(eventArgs || []));
-					}
-				} catch (e) {
-					// Fall back to standard script execution
-				}
-			}
-
 			const scriptToExecute = `
 				with (context) {
 				${script}
+				if (typeof handleEvent === "function") {
+					return handleEvent(...(context.eventArgs || []));
+				}
 				}
 			`;
 			const scriptFunction = new Function("context", scriptToExecute);
-			scriptFunction(context);
+			return scriptFunction(context);
 		} catch (error) {
 			console.error(`Error executing the script: ${script}`, error)
 		}
@@ -292,21 +280,6 @@ const useCodeStore = defineStore("codeStore", () => {
 				...componentContext,
 				eventArgs,
 				data,
-			}
-
-			if (isFunctionExpression(script)) {
-				try {
-					const fn = new Function("ctx", `
-						with (ctx) {
-							return (${script});
-						}
-					`)(context);
-					if (typeof fn === "function") {
-						return fn(data, ...(eventArgs || []));
-					}
-				} catch (e) {
-					// Fall back to standard script execution
-				}
 			}
 
 			const successFn = new Function(
@@ -336,21 +309,6 @@ const useCodeStore = defineStore("codeStore", () => {
 				...componentContext,
 				eventArgs,
 				error,
-			}
-
-			if (isFunctionExpression(script)) {
-				try {
-					const fn = new Function("ctx", `
-						with (ctx) {
-							return (${script});
-						}
-					`)(context);
-					if (typeof fn === "function") {
-						return fn(error, ...(eventArgs || []));
-					}
-				} catch (e) {
-					// Fall back to standard script execution
-				}
 			}
 
 			const errorFn = new Function(
