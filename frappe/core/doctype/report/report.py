@@ -390,7 +390,12 @@ class Report(Document):
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
 
-		if not cint(frappe.conf.developer_mode):
+		if not cint(frappe.conf.developer_mode) and not (
+			frappe.flags.in_migrate
+			or frappe.flags.in_patch
+			or frappe.flags.in_install
+			or frappe.flags.in_import
+		):
 			frappe.throw(_("Standard reports can only be created in developer mode."))
 
 	@frappe.whitelist()
