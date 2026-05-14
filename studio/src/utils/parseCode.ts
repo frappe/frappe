@@ -1,6 +1,8 @@
 import { parse, parseExpressionAt } from "acorn"
 import type { Node } from "acorn"
+import { LRUCache } from "@/utils/cache"
 
+const fnCache = new LRUCache<boolean>(20)
 export function isFunctionExpression(code: string): boolean {
 	const trimmed = code.trimStart()
 	if (
@@ -12,29 +14,35 @@ export function isFunctionExpression(code: string): boolean {
 		return false
 	}
 
-	// Try parsing as a full program first
+	const cached = fnCache.get(code)
+	if (cached !== undefined) return cached
+
 	try {
 		const ast = parse(code, { ecmaVersion: "latest", sourceType: "module" })
 		if (ast.body.length === 1) {
 			const node = ast.body[0]
 			if (node.type === "ExpressionStatement") {
-				return (
+				const result =
 					node.expression.type === "ArrowFunctionExpression" ||
 					node.expression.type === "FunctionExpression"
-				)
+				fnCache.set(code, result)
+				return result
 			}
 		}
+		fnCache.set(code, false)
 		return false
 	} catch {
-		// bare `function(x) {}` doesn't parse as a program statement,
+		// anonymous `function(x) {}` doesn't parse as a program statement,
 		// try parsing as an expression
 		try {
 			const expr = parseExpressionAt(code, 0, { ecmaVersion: "latest" })
-			return (
+			const result =
 				expr.type === "ArrowFunctionExpression" ||
 				expr.type === "FunctionExpression"
-			)
+			fnCache.set(code, result)
+			return result
 		} catch {
+			fnCache.set(code, false)
 			return false
 		}
 	}
@@ -48,8 +56,12 @@ interface MemberExpressionNode extends Node {
 	optional: boolean
 }
 
+const optionalChainingCache = new LRUCache<string>(20)
 export function toOptionalChaining(expression: string): string {
 	if (!expression.includes(".")) return expression
+
+	const cached = optionalChainingCache.get(expression)
+	if (cached !== undefined) return cached
 
 	try {
 		const ast = parse(expression, { ecmaVersion: "latest", sourceType: "module" })
@@ -70,8 +82,6 @@ export function toOptionalChaining(expression: string): string {
 			}
 		})
 
-		if (dotPositions.length === 0) return expression
-
 		// Sort positions in reverse order to avoid index shifting during replacement
 		dotPositions.sort((a, b) => b - a)
 
@@ -79,9 +89,9 @@ export function toOptionalChaining(expression: string): string {
 		for (const pos of dotPositions) {
 			result = result.slice(0, pos) + "?." + result.slice(pos + 1)
 		}
+		optionalChainingCache.set(expression, result)
 		return result
 	} catch {
-		// If parsing fails, return expression as-is
 		return expression
 	}
 }
