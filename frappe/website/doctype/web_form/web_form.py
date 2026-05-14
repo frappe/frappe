@@ -3,7 +3,7 @@
 
 import json
 import os
-from typing import Any
+from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _, scrub
@@ -19,6 +19,9 @@ from frappe.utils.caching import redis_cache
 from frappe.website.doctype.web_form_request.web_form_request import get_web_form_request
 from frappe.website.utils import get_boot_data, get_comment_list, get_sidebar_items
 from frappe.website.website_generator import WebsiteGenerator
+
+if TYPE_CHECKING:
+	from frappe.website.doctype.web_form_request.web_form_request import WebFormRequest
 
 
 class WebForm(WebsiteGenerator):
@@ -274,6 +277,12 @@ def get_context(context):
 			dict_with_keys(context, ["is_list", "is_new", "in_edit_mode", "in_view_mode"])
 		)
 
+		if web_form_request:
+			context.is_web_form_request = True
+			context.web_form_request_key = web_form_request.key
+			context.web_form_doc.is_web_form_request = True
+			context.web_form_doc.web_form_request_key = web_form_request.key
+
 		if self.show_sidebar and self.website_sidebar:
 			context.sidebar_items = get_sidebar_items(self.website_sidebar)
 
@@ -457,7 +466,7 @@ def get_context(context):
 		docname: str | int | None = None,
 		for_update=False,
 		allow_used=False,
-	):
+	) -> "WebFormRequest | None":
 		web_form_request = get_web_form_request(
 			self.name,
 			key,
@@ -465,22 +474,17 @@ def get_context(context):
 			required=getattr(self, "key_required", False),
 			allow_used=allow_used,
 		)
-		if web_form_request and docname and web_form_request.reference_docname != str(docname):
-			# Reject docname-based access on unbound requests (e.g. allow_multiple, where
-			# reference_docname is intentionally empty). Otherwise a key holder could
-			# read, edit, or delete arbitrary documents of the Web Form's DocType by
-			# supplying any docname.
+		if web_form_request and docname and not web_form_request.has_reference(docname):
+			# Reject docname-based access for documents not bound to this request.
+			# For single-response forms the binding is pre-seeded or set on first
+			# submission; for multi-response forms a row is appended per submission.
+			# Without this check, a key holder could read, edit, or delete arbitrary
+			# documents of the Web Form's DocType by supplying any docname.
 			frappe.throw(_("Invalid Web Form Request"), frappe.PermissionError)
 		return web_form_request
 
 	def load_form_data(self, context, web_form_request=None):
 		"""Load document `doc` and `layout` properties for template"""
-		if web_form_request:
-			context.is_web_form_request = True
-			context.web_form_request_key = web_form_request.key
-			context.web_form_doc.is_web_form_request = True
-			context.web_form_doc.web_form_request_key = web_form_request.key
-
 		context.parents = []
 		if self.show_list:
 			context.parents.append(
@@ -759,14 +763,11 @@ def accept(web_form: str, data: str, web_form_request_key: str | None = None):
 		ignore_mandatory = True if (files or web_form.allow_incomplete) else False
 
 		doc.insert(ignore_permissions=True, ignore_mandatory=ignore_mandatory)
-		if web_form_request and not web_form.allow_multiple:
-			web_form_request.db_set(
-				{
-					"used_on": now_datetime(),
-					"reference_docname": doc.name,
-				},
-				update_modified=False,
-			)
+		if web_form_request:
+			web_form_request.append("references", {"link_doctype": doctype, "link_name": doc.name})
+			if not web_form_request.first_used_on:
+				web_form_request.first_used_on = now_datetime()
+			web_form_request.save(ignore_permissions=True)
 
 	# add files
 	if files:
@@ -810,8 +811,8 @@ def accept(web_form: str, data: str, web_form_request_key: str | None = None):
 
 @frappe.whitelist(allow_guest=True)
 def delete(web_form_name: str, docname: str | int, web_form_request_key: str | None = None):
-	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
-	web_form_request = web_form.get_web_form_request(
+	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
+	web_form_request: "WebFormRequest" = web_form.get_web_form_request(
 		web_form_request_key,
 		docname=docname,
 		for_update=True,
@@ -826,24 +827,16 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 		frappe.throw(_("Not Allowed"), frappe.PermissionError)
 
 	if web_form_request or frappe.session.user == owner:
-		original_reference_docname = web_form_request.reference_docname if web_form_request else None
 		if web_form_request:
-			web_form_request.db_set("reference_docname", None, update_modified=False)
-		try:
-			frappe.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
-		except Exception:
-			if web_form_request:
-				web_form_request.db_set(
-					"reference_docname", original_reference_docname, update_modified=False
-				)
-			raise
+			# Drop the matching reference row before deleting the bound document
+			# so Frappe's link-integrity check doesn't block the cascade. If
+			# delete_doc fails, the framework rolls back the transaction.
+			web_form_request.remove(web_form_request.find_reference(docname))
+			if not web_form_request.first_used_on:
+				web_form_request.first_used_on = now_datetime()
+			web_form_request.save(ignore_permissions=True)
 
-		if web_form_request:
-			web_form_request.db_set(
-				"used_on",
-				web_form_request.used_on or now_datetime(),
-				update_modified=False,
-			)
+		frappe.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
 	else:
 		frappe.throw(_("Not Allowed"), frappe.PermissionError)
 
@@ -886,6 +879,58 @@ def check_webform_perm(doctype, name):
 def get_web_form_filters(web_form_name: str):
 	web_form = frappe.get_doc("Web Form", web_form_name)
 	return [field for field in web_form.web_form_fields if field.show_in_filter]
+
+
+@frappe.whitelist(allow_guest=True)
+def get_web_form_list(
+	web_form: str,
+	web_form_request_key: str,
+	limit_start: int = 0,
+	limit: int = 20,
+	**kwargs,
+) -> list[dict]:
+	"""Return documents bound to a Web Form Request key for the list view.
+
+	The key authorises read access to exactly the documents recorded in its
+	``references`` child table — no more, no less.
+	"""
+	web_form_doc: WebForm = frappe.get_lazy_doc("Web Form", web_form)
+	if web_form_doc.login_required and frappe.session.user == "Guest":
+		frappe.throw(_("You must login to use this form"), frappe.PermissionError)
+
+	web_form_request: "WebFormRequest | None" = web_form_doc.get_web_form_request(
+		web_form_request_key,
+		allow_used=True,
+	)
+	if not web_form_request:
+		frappe.throw(_("Invalid Web Form Request"), frappe.PermissionError)
+
+	reference_names = [row.link_name for row in web_form_request.references]
+	if not reference_names:
+		return []
+
+	meta = frappe.get_meta(web_form_doc.doc_type)
+	filters = {}
+	for fieldname, raw_value in kwargs.items():
+		if not meta.has_field(fieldname):
+			continue
+		try:
+			filters[fieldname] = json.loads(raw_value)
+		except (TypeError, ValueError):
+			filters[fieldname] = raw_value
+
+	filters["name"] = ["in", reference_names]
+
+	return frappe.get_list(
+		web_form_doc.doc_type,
+		fields="*",
+		filters=filters,
+		limit_start=int(limit_start),
+		limit_page_length=int(limit),
+		ignore_permissions=True,
+		order_by="creation desc",
+		distinct=True,
+	)
 
 
 @frappe.whitelist(allow_guest=True)

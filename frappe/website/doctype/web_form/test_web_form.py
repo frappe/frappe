@@ -5,7 +5,7 @@ import json
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, set_request
-from frappe.website.doctype.web_form.web_form import accept, delete
+from frappe.website.doctype.web_form.web_form import accept, delete, get_web_form_list
 from frappe.website.serve import get_response_content
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Web Form"]
@@ -128,8 +128,8 @@ class TestWebForm(IntegrationTestCase):
 		self.assertEqual(event.description, "_Test Visible Description")
 
 		web_form_request.reload()
-		self.assertTrue(web_form_request.used_on)
-		self.assertEqual(web_form_request.reference_docname, event.name)
+		self.assertTrue(web_form_request.first_used_on)
+		self.assertEqual([row.link_name for row in web_form_request.references], [event.name])
 
 		with self.assertRaises(frappe.exceptions.LinkExpired):
 			accept(
@@ -252,7 +252,11 @@ class TestWebForm(IntegrationTestCase):
 
 		web_form_request.reload()
 		self.assertNotEqual(first_event.name, second_event.name)
-		self.assertFalse(web_form_request.used_on)
+		self.assertTrue(web_form_request.first_used_on)
+		self.assertEqual(
+			sorted(row.link_name for row in web_form_request.references),
+			sorted([first_event.name, second_event.name]),
+		)
 
 	def test_web_form_request_can_delete_existing_response(self):
 		self.set_web_form_settings(
@@ -315,6 +319,67 @@ class TestWebForm(IntegrationTestCase):
 
 		self.assertIn("_Test Bound Render", content)
 		self.assertIn(web_form_request.key, content)
+
+	def test_allow_multiple_request_supports_edit_and_delete_of_own_submissions(self):
+		"""A key for an `allow_multiple` form authorises the holder to edit and
+		delete every document submitted with it, even without login."""
+		self.set_web_form_settings(
+			key_required=1,
+			login_required=0,
+			allow_multiple=1,
+			allow_edit=1,
+			allow_delete=1,
+		)
+		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})
+
+		frappe.set_user("Guest")
+		first_event = accept(
+			web_form="manage-events",
+			data=json.dumps(
+				{
+					"doctype": "Event",
+					"subject": "_Test Multi Manage 1",
+					"starts_on": "2026-05-10",
+				}
+			),
+			web_form_request_key=web_form_request.key,
+		)
+		second_event = accept(
+			web_form="manage-events",
+			data=json.dumps(
+				{
+					"doctype": "Event",
+					"subject": "_Test Multi Manage 2",
+					"starts_on": "2026-05-10",
+				}
+			),
+			web_form_request_key=web_form_request.key,
+		)
+
+		accept(
+			web_form="manage-events",
+			data=json.dumps(
+				{
+					"doctype": "Event",
+					"name": first_event.name,
+					"subject": "_Test Multi Manage Edited",
+					"starts_on": "2026-05-10",
+				}
+			),
+			web_form_request_key=web_form_request.key,
+		)
+		self.assertEqual(
+			frappe.db.get_value("Event", first_event.name, "subject"),
+			"_Test Multi Manage Edited",
+		)
+
+		delete(
+			"manage-events",
+			second_event.name,
+			web_form_request_key=web_form_request.key,
+		)
+		self.assertFalse(frappe.db.exists("Event", second_event.name))
+		self.assertTrue(frappe.db.exists("Event", first_event.name))
 
 	def test_allow_multiple_request_rejects_docname_based_access(self):
 		"""A key for an `allow_multiple` web form has no bound document, so it
@@ -386,6 +451,65 @@ class TestWebForm(IntegrationTestCase):
 				web_form_request_key=web_form_request.key,
 			)
 
+	def test_get_web_form_list_returns_only_bound_documents(self):
+		"""The list endpoint returns documents in the request's references and
+		rejects documents that were not submitted with the key."""
+		self.set_web_form_settings(
+			key_required=1,
+			login_required=0,
+			allow_multiple=1,
+			show_list=1,
+		)
+		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})
+
+		frappe.set_user("Guest")
+		first_event = accept(
+			web_form="manage-events",
+			data=json.dumps({"doctype": "Event", "subject": "_Test List Bound 1", "starts_on": "2026-05-10"}),
+			web_form_request_key=web_form_request.key,
+		)
+		second_event = accept(
+			web_form="manage-events",
+			data=json.dumps({"doctype": "Event", "subject": "_Test List Bound 2", "starts_on": "2026-05-10"}),
+			web_form_request_key=web_form_request.key,
+		)
+
+		frappe.set_user("Administrator")
+		unrelated_event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test List Unrelated",
+				"starts_on": "2026-05-10",
+				"event_type": "Public",
+			}
+		).insert(ignore_permissions=True)
+
+		frappe.set_user("Guest")
+		rows = get_web_form_list(
+			web_form="manage-events",
+			web_form_request_key=web_form_request.key,
+		)
+		returned_names = {row["name"] for row in rows}
+		self.assertEqual(returned_names, {first_event.name, second_event.name})
+		self.assertNotIn(unrelated_event.name, returned_names)
+
+	def test_get_web_form_list_rejects_invalid_key(self):
+		self.set_web_form_settings(key_required=1, login_required=0, allow_multiple=1, show_list=1)
+
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			get_web_form_list(web_form="manage-events", web_form_request_key="not-a-real-key")
+
+	def test_get_web_form_list_requires_login_when_login_required(self):
+		"""A valid key alone is not enough when the Web Form requires login;
+		both conditions must be met."""
+		self.set_web_form_settings(key_required=1, login_required=1, allow_multiple=1, show_list=1)
+		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})
+
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			get_web_form_list(web_form="manage-events", web_form_request_key=web_form_request.key)
+
 	def test_guest_still_requires_login_without_web_form_request(self):
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.ValidationError):
@@ -403,11 +527,16 @@ class TestWebForm(IntegrationTestCase):
 	def create_web_form_request(
 		self, web_form_values=None, doc_values=None, expires_on=None, reference_docname=None
 	):
+		references = []
+		if reference_docname:
+			doctype = frappe.db.get_value("Web Form", "manage-events", "doc_type")
+			references = [{"link_doctype": doctype, "link_name": reference_docname}]
+
 		return frappe.get_doc(
 			{
 				"doctype": "Web Form Request",
 				"web_form": "manage-events",
-				"reference_docname": reference_docname,
+				"references": references,
 				"expires_on": expires_on,
 				"web_form_values": json.dumps(web_form_values or {}),
 				"doc_values": json.dumps(doc_values or {}),

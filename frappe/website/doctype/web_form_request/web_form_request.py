@@ -7,17 +7,13 @@ from secrets import token_urlsafe
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, get_datetime, now_datetime
+from frappe.utils import get_datetime, now_datetime
 
 
 class InvalidFieldsInValuesError(frappe.ValidationError):
 	def __init__(self, message: str, *, invalid_fields: tuple[str, ...]):
 		super().__init__(message)
 		self.invalid_fields = invalid_fields
-
-
-class IllegalReferenceDocnameForMultipleResponsesError(frappe.ValidationError):
-	pass
 
 
 class WebFormRequest(Document):
@@ -27,14 +23,14 @@ class WebFormRequest(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.dynamic_link.dynamic_link import DynamicLink
 		from frappe.types import DF
 
 		doc_values: DF.Code | None
 		expires_on: DF.Datetime | None
+		first_used_on: DF.Datetime | None
 		key: DF.Data | None
-		reference_docname: DF.DynamicLink | None
-		reference_doctype: DF.Link | None
-		used_on: DF.Datetime | None
+		references: DF.Table[DynamicLink]
 		web_form: DF.Link
 		web_form_values: DF.Code | None
 	# end: auto-generated types
@@ -47,22 +43,18 @@ class WebFormRequest(Document):
 			return
 
 		web_form = frappe.get_doc("Web Form", self.web_form)
-		self.reference_doctype = web_form.doc_type
 
-		if cint(web_form.allow_multiple) and self.reference_docname:
-			frappe.throw(
-				_("Reference Docname cannot be set when the Web Form allows multiple responses"),
-				IllegalReferenceDocnameForMultipleResponsesError,
-			)
+		for row in self.references:
+			row.link_doctype = web_form.doc_type
 
 		if self.web_form_values:
 			validate_web_form_values(web_form, parse_json_object(self.web_form_values))
 
 		if self.doc_values:
-			validate_doc_values(self.reference_doctype, parse_json_object(self.doc_values))
+			validate_doc_values(web_form.doc_type, parse_json_object(self.doc_values))
 
 	def validate_key(self, *, allow_used=False):
-		if self.used_on and not allow_used:
+		if self.first_used_on and not allow_used:
 			frappe.throw(_("This Web Form Request has already been used"), frappe.exceptions.LinkExpired)
 
 		if self.expires_on and get_datetime(self.expires_on) < now_datetime():
@@ -73,6 +65,12 @@ class WebFormRequest(Document):
 
 	def get_doc_values(self):
 		return parse_json_object(self.doc_values)
+
+	def has_reference(self, link_name: str | int) -> bool:
+		return any(row.link_name == str(link_name) for row in self.references)
+
+	def find_reference(self, link_name: str | int):
+		return next((row for row in self.references if row.link_name == str(link_name)), None)
 
 
 def parse_json_object(json_string: str | None):
@@ -117,7 +115,7 @@ def validate_value_fields(values: dict, valid_fields: set[str], label: str):
 
 def get_web_form_request(
 	web_form: str, key: str | None, *, for_update=False, required=False, allow_used=False
-):
+) -> WebFormRequest | None:
 	if not key:
 		if required:
 			frappe.throw(_("Web Form Request key is required"), frappe.PermissionError)
