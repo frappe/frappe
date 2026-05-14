@@ -1,15 +1,17 @@
 import { parse, parseExpressionAt } from "acorn"
 import type { Node } from "acorn"
 
-/**
- * Detect if a string is a function expression (arrow function, function expression, etc.)
- * Uses AST parsing instead of regex for reliability with edge cases like:
- * - destructured params: ({a, b}) => {}
- * - default values: (a = 1) => {}
- * - async functions: async function(e) {}
- * - named function expressions: function handler(e) {}
- */
 export function isFunctionExpression(code: string): boolean {
+	const trimmed = code.trimStart()
+	if (
+		!trimmed.startsWith("(") &&
+		!trimmed.startsWith("function") &&
+		!trimmed.startsWith("async") &&
+		!code.includes("=>")
+	) {
+		return false
+	}
+
 	// Try parsing as a full program first
 	try {
 		const ast = parse(code, { ecmaVersion: "latest", sourceType: "module" })
@@ -46,17 +48,9 @@ interface MemberExpressionNode extends Node {
 	optional: boolean
 }
 
-/**
- * Convert member expressions (a.b.c) to optional chaining (a?.b?.c)
- * via AST walking. Only targets non-computed, non-optional MemberExpression nodes.
- *
- * Unlike the regex approach, this correctly handles:
- * - Method calls: items.filter(i => i.active) — chains are handled, arrow is untouched
- * - Computed access: obj[key].name — skips the computed [key] part
- * - String literals — untouched
- * - Ternaries — each branch handled independently
- */
 export function toOptionalChaining(expression: string): string {
+	if (!expression.includes(".")) return expression
+
 	try {
 		const ast = parse(expression, { ecmaVersion: "latest", sourceType: "module" })
 		// Collect all dot positions that need to become ?.
@@ -92,9 +86,6 @@ export function toOptionalChaining(expression: string): string {
 	}
 }
 
-/**
- * Simple recursive AST walker
- */
 function walkAST(node: any, callback: (node: Node) => void) {
 	if (!node || typeof node !== "object") return
 
