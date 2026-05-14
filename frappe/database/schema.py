@@ -281,12 +281,15 @@ class DbColumn:
 			return cur_default != new_default
 
 	def default_changed_for_decimal(self, current_def):
+		cur_default = current_def["default"]
+		if cur_default == "NULL":
+			cur_default = None
 		try:
-			if current_def["default"] in ("", None) and self.default in ("", None):
+			if cur_default in ("", None) and self.default in ("", None):
 				# both none, empty
 				return False
 
-			elif current_def["default"] in ("", None):
+			elif cur_default in ("", None):
 				try:
 					# check if new default value is valid
 					float(self.default)
@@ -300,7 +303,7 @@ class DbColumn:
 
 			else:
 				# NOTE float() raise ValueError when "" or None is passed
-				return float(current_def["default"]) != float(self.default)
+				return float(cur_default) != float(self.default)
 		except TypeError:
 			return True
 
