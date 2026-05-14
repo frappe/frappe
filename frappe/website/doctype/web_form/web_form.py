@@ -395,7 +395,7 @@ def get_context(context):
 
 	def load_list_data(self, context):
 		if not self.list_columns:
-			self.list_columns = get_in_list_view_fields(self.doc_type)
+			self.list_columns = get_in_list_view_fields(self.doc_type, self.name)
 			context.web_form_doc.list_columns = self.list_columns
 
 	def load_form_data(self, context):
@@ -432,7 +432,7 @@ def get_context(context):
 		# For Table fields, server-side processing for meta
 		for field in context.web_form_doc.web_form_fields:
 			if field.fieldtype == "Table":
-				field.fields = get_in_list_view_fields(field.options)
+				field.fields = get_in_list_view_fields(field.options, self.name)
 
 			if field.fieldtype == "Link":
 				field.fieldtype = "Autocomplete"
@@ -771,7 +771,7 @@ def get_form_data(doctype: str, docname: str | None = None, web_form_name: str |
 	# For Table fields, server-side processing for meta
 	for field in out.web_form.web_form_fields:
 		if field.fieldtype == "Table":
-			field.fields = get_in_list_view_fields(field.options)
+			field.fields = get_in_list_view_fields(field.options, web_form_name)
 			out.update({field.fieldname: field.fields})
 
 		if field.fieldtype == "Link":
@@ -784,7 +784,7 @@ def get_form_data(doctype: str, docname: str | None = None, web_form_name: str |
 
 
 @frappe.whitelist()
-def get_in_list_view_fields(doctype):
+def get_in_list_view_fields(doctype, web_form_name=None):
 	meta = frappe.get_meta(doctype)
 	fields = []
 
@@ -801,9 +801,35 @@ def get_in_list_view_fields(doctype):
 	def get_field_df(fieldname):
 		if fieldname == "name":
 			return {"label": "Name", "fieldname": "name", "fieldtype": "Data"}
-		return meta.get_field(fieldname).as_dict()
+		df = meta.get_field(fieldname).as_dict()
+		if df.get("options") and df.get("fieldtype") == "Link":
+			df["fieldtype"] = "Autocomplete"
+			df["options"] = get_link_options(
+				web_form_name,
+				doctype=df.options,
+				allow_read_on_all_link_options=df.get("allow_read_on_all_link_options", False),
+			)
+		return df
 
 	return [get_field_df(f) for f in fields]
+
+
+def has_link_option(fields, doctype):
+	for f in fields:
+		if f.options == doctype:
+			return True
+		if f.fieldtype == "Table" and f.options:
+			child_doctype = f.options
+			if not isinstance(child_doctype, str) or not child_doctype.strip():
+				continue
+			try:
+				child_table_fields = frappe.get_meta(child_doctype).fields
+			except Exception:
+				continue
+			for child_field in child_table_fields:
+				if getattr(child_field, "options", None) == doctype:
+					return True
+	return False
 
 
 def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
@@ -812,10 +838,11 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
 
-	if not web_form.published or not any(f for f in web_form.web_form_fields if f.options == doctype):
-		frappe.throw(
-			_("You don't have permission to access the {0} DocType.").format(doctype), frappe.PermissionError
-		)
+		if not web_form.published or not has_link_option(web_form.web_form_fields, doctype):
+			frappe.throw(
+				_("You don't have permission to access the {0} DocType.").format(doctype),
+				frappe.PermissionError,
+			)
 
 	link_options, filters = [], {}
 	if web_form.login_required and not allow_read_on_all_link_options:
