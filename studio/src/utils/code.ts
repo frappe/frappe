@@ -1,8 +1,8 @@
 import {
-	FUNCTION_STRING_REGEX,
 	DYNAMIC_EXPRESSION_REGEX,
 	QUOTED_STRING_CONTENT_REGEX,
 } from "@/utils/constants"
+import { isFunctionExpression } from "@/utils/parseCode"
 
 export function isDynamicValue(value: string) {
 	// Check if the prop value is a string and contains a dynamic expression
@@ -28,7 +28,7 @@ export function normalizeCode(json5String: string) {
 export function unquoteFunctions(json5String: string) {
 	return json5String.replace(QUOTED_STRING_CONTENT_REGEX, (match, content) => {
 		const unescaped = unescape(content)
-		if (FUNCTION_STRING_REGEX.test(unescaped)) {
+		if (isFunctionExpression(unescaped)) {
 			return unescaped
 		}
 		return match
