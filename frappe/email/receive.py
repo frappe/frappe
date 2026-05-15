@@ -581,7 +581,9 @@ class Email:
 		if not fcontent:
 			return
 
-		attachment_limit = cint(self.email_account.attachment_limit)
+		attachment_limit = None
+		if hasattr(self, "email_account") and self.email_account:
+			attachment_limit = cint(self.email_account.attachment_limit)
 		if attachment_limit and len(fcontent) > attachment_limit * 1024 * 1024:
 			return  # skip attachments that are larger than the specified limit
 
