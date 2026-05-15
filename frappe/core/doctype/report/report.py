@@ -9,13 +9,13 @@ from frappe import _, scrub
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.core.doctype.page.page import delete_custom_role
 from frappe.desk.query_report import run
-from frappe.desk.reportview import append_totals_row
+from frappe.desk.reportview import DEFAULT_AGGREGATE_FIELDNAME, append_totals_row, get_aggregate_field_info
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
 from frappe.utils import cint, cstr
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
-from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder
+from frappe.utils.xlsxutils import XLSXMetadata
 
 
 class Report(Document):
@@ -321,7 +321,10 @@ class Report(Document):
 		# sort by is saved as DocType.fieldname, covert it to sql
 		return "`tab{}`.`{}`".format(*parts)
 
-	def get_standard_report_columns(self, params):
+	def get_standard_report_columns(self, params) -> list[tuple[str, str]]:
+		"""
+		Return [[fieldname, doctype], ...] for standard report based on the fields/columns.
+		"""
 		if params.get("fields"):
 			columns = params.get("fields")
 		elif params.get("columns"):
@@ -379,15 +382,12 @@ class Report(Document):
 		for fieldname, doctype in columns:
 			meta = frappe.get_meta(doctype)
 
-			if meta.get_field(fieldname):
-				field = meta.get_field(fieldname)
+			if df := meta.get_field(fieldname):
+				field = df.as_dict()
+			elif fieldname == "_aggregate_column":
+				field = frappe._dict(get_group_by_column_field(group_by_args, meta.name))
 			else:
-				if fieldname == "_aggregate_column":
-					label = get_group_by_column_label(group_by_args, meta)
-				else:
-					label = meta.get_label(fieldname)
-
-				field = frappe._dict(fieldname=fieldname, label=label)
+				field = frappe._dict(fieldname=fieldname, label=meta.get_label(fieldname))
 
 				# since name is the primary key for a document, it will always be a Link datatype
 				if fieldname == "name":
@@ -504,14 +504,13 @@ def get_group_by_field(args, doctype):
 	return group_by_field
 
 
-def get_group_by_column_label(args, meta):
-	if args["aggregate_function"] == "count":
-		label = "Count"
-	else:
-		sql_fn_map = {"avg": "Average", "sum": "Sum"}
-		aggregate_on_label = meta.get_label(args.aggregate_on)
-		label = _("{0} of {1}").format(_(sql_fn_map[args.aggregate_function]), _(aggregate_on_label))
-	return label
+def get_group_by_column_field(args: dict, parent_doctype: str) -> dict:
+	"""
+	Build full field info (fieldname, label, fieldtype, options) for the aggregate column.
+	"""
+	field = get_group_by_field(args, parent_doctype)
+
+	return get_aggregate_field_info(field, parent_doctype)
 
 
 def enable_prepared_report(report: str, site: str):
