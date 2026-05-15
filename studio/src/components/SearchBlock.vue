@@ -203,6 +203,19 @@ const propertyHandlers = [
 		},
 	},
 	{
+		key: "componentEvents",
+		name: "Events",
+		matches: (block: Block, term: string) => {
+			try {
+				const eventsJson = jsToJson(block.componentEvents)
+				return eventsJson.toLowerCase().includes(term)
+			} catch {
+				return false
+			}
+		},
+		replace: () => false,
+	},
+	{
 		key: "attributes",
 		name: "Attributes",
 		matches: (block: Block, term: string) => {
@@ -419,6 +432,14 @@ const searchWithFilters = (searchTerm: string): Block[] => {
 			searchResults.push(block)
 		}
 		block.children?.forEach((child) => searchInBlock(child))
+
+		if (block.componentSlots) {
+			Object.values(block.componentSlots).forEach((slot) => {
+				if (Array.isArray(slot.slotContent)) {
+					slot.slotContent.forEach((child) => searchInBlock(child))
+				}
+			})
+		}
 	}
 
 	const selectedBlocks = canvasStore.activeCanvas?.selectedBlocks
