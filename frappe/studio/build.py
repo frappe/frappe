@@ -198,17 +198,12 @@ class StudioAppBuilder:
 				break
 
 
-def build_standard_apps(app: str | None = None) -> None:
-	"""Scan all apps on the bench for studio/ folders and build each exported app.
+def build_standard_apps(apps: list[str] | None = None) -> None:
+	"""Scan passed apps on the bench for studio/ folders and build each exported app.
 
 	This function works without DB access — it reads component data from
 	exported JSON files on disk.
-
-	Args:
-	        app: Only build studio apps exported to this specific frappe app
 	"""
-	apps = [app] if app else frappe.get_all_apps()
-
 	for frappe_app in apps:
 		studio_folder = get_studio_folder(frappe_app)
 		if not os.path.exists(studio_folder):
@@ -272,7 +267,9 @@ def get_studio_folder(frappe_app: str) -> str | None:
 	return frappe.get_app_source_path(frappe_app, "studio")
 
 
-def after_build() -> None:
-	"""Hook called after `bench build`. Builds all standard studio apps"""
+def after_app_build(built_apps: list[str]) -> None:
+	"""Hook called after any app is built. Builds studio apps for the built apps."""
+	if not built_apps:
+		return
 	click.secho("\nBuilding Studio Apps...", fg="cyan")
-	build_standard_apps()
+	build_standard_apps(built_apps)
