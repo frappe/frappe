@@ -102,15 +102,23 @@ def build(
 		run_after_build_hook(apps)
 
 
-def run_after_build_hook(apps):
+def run_after_build_hook(built_apps):
 	from importlib import import_module
 
-	for app in apps:
+	def _get_method(fn):
+		modulename = ".".join(fn.split(".")[:-1])
+		methodname = fn.split(".")[-1]
+		return getattr(import_module(modulename), methodname)
+
+	# after_build: self-referential hook, runs only for built apps, no args
+	for app in built_apps:
 		for fn in frappe.get_hooks("after_build", app_name=app):
-			modulename = ".".join(fn.split(".")[:-1])
-			methodname = fn.split(".")[-1]
-			method = getattr(import_module(modulename), methodname)
-			method()
+			_get_method(fn)()
+
+	# after_app_build: cross-app hook, runs for ALL apps, receives the list of built apps
+	for app in frappe.get_all_apps():
+		for fn in frappe.get_hooks("after_app_build", app_name=app):
+			_get_method(fn)(built_apps)
 
 
 @click.command("watch")
