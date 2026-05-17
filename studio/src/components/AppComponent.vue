@@ -78,7 +78,7 @@ const props = defineProps<{
 const componentName = computed(() => {
 	if (props.block.isContainer()) return props.block.originalElement || "div"
 	let name = props.block.componentName
-	if (props.block.isCustomVueComponent) {
+	if (window.is_preview && props.block.isCustomVueComponent) {
 		name = customVueComponentsRegistry.value[name]
 		if (!name) return h(MissingComponent, { componentName: props.block.componentName })
 	}
