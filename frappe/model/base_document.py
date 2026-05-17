@@ -403,14 +403,10 @@ class BaseDocument:
 				elif df.fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
 
-<<<<<<< HEAD
-				elif (df.fieldtype in datetime_fields and value == "") or (
-=======
-				elif fieldtype == "Read Only" and not isinstance(value, str):
+				elif df.fieldtype == "Read Only" and not isinstance(value, str):
 					value = cstr(value)
 
-				elif (fieldtype in datetime_fields and value == "") or (
->>>>>>> 5153cbb3bd (fix: cast read-only field to string on update after submit)
+				elif (df.fieldtype in datetime_fields and value == "") or (
 					getattr(df, "unique", False) and cstr(value).strip() == ""
 				):
 					value = None
