@@ -1,6 +1,6 @@
 <template>
-	<Dialog v-model="showDialog" :options="{ title: 'Create Component', size: 'md' }" @after-leave="reset">
-		<template #body-content>
+	<Dialog v-model="showDialog" title="Create Component" size="md" @after-leave="reset">
+		<template #default>
 			<div class="flex flex-col space-y-4">
 				<FormControl label="Component Name" :required="true" v-model="componentName" autocomplete="off" />
 			</div>

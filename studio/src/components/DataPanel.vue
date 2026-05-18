@@ -64,9 +64,7 @@
 				<Button icon-left="plus" @click="showVariableDialog = true">Add Variable</Button>
 				<Dialog
 					v-model="showVariableDialog"
-					:options="{
-						title: variableRef?.name ? 'Edit Variable' : 'Add Variable',
-					}"
+					:title="variableRef?.name ? 'Edit Variable' : 'Add Variable'"
 					@after-leave="
 						() =>
 							(variableRef = {
@@ -77,7 +75,7 @@
 							})
 					"
 				>
-					<template #body-content>
+					<template #default>
 						<div class="flex flex-col space-y-4">
 							<FormControl
 								label="Variable Name"
@@ -247,13 +245,13 @@ const getResourceMenu = (resource: Resource, resource_name: string) => {
 	return [
 		{
 			label: "Delete",
-			icon: "trash",
+			icon: "lucide-trash",
 			theme: "red",
 			onClick: () => deleteResource(resource, resource_name),
 		},
 		{
 			label: "Copy Object",
-			icon: "copy",
+			icon: "lucide-copy",
 			onClick: () => {
 				copyToClipboard(resource)
 			},
@@ -370,7 +368,7 @@ const getVariableMenu = (variable_name: string, value: any) => {
 	return [
 		{
 			label: "Delete",
-			icon: "trash",
+			icon: "lucide-trash",
 			theme: "red",
 			onClick: () => {
 				const variableConfig = store.variableConfigs[variable_name]
@@ -379,14 +377,14 @@ const getVariableMenu = (variable_name: string, value: any) => {
 		},
 		{
 			label: "Copy Name",
-			icon: "copy",
+			icon: "lucide-copy",
 			onClick: () => {
 				copyToClipboard(variable_name)
 			},
 		},
 		{
 			label: "Copy Value",
-			icon: "copy",
+			icon: "lucide-copy",
 			onClick: () => {
 				copyToClipboard(value)
 			},

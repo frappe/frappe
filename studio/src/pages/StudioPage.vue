@@ -44,7 +44,7 @@
 							<Button
 								v-if="canvasStore.editingMode === 'component'"
 								variant="subtle"
-								icon="settings"
+								icon="lucide-settings"
 								@click.prevent="store.studioLayout.rightPanelActiveTab = 'Interface'"
 							></Button>
 							<Button variant="subtle" class="text-xs" @click="canvasStore.exitFragmentMode">
@@ -82,12 +82,10 @@
 		<Dialog
 			v-model="canvasStore.showHTMLDialog"
 			class="overscroll-none"
-			:options="{
-				title: `Edit HTML - ${canvasStore.editableBlock?.componentName}`,
-				size: '7xl',
-			}"
+			:title="`Edit HTML - ${canvasStore.editableBlock?.componentName}`"
+			size="7xl"
 		>
-			<template #body-content>
+			<template #default>
 				<Code
 					:modelValue="canvasStore.editableBlock?.getHTML()"
 					language="html"
@@ -114,12 +112,10 @@
 		<Dialog
 			v-model="canvasStore.showCodeDialog"
 			class="overscroll-none"
-			:options="{
-				title: `Edit ${canvasStore.editableBlock?.componentName} prop - ${canvasStore.editableCode.propName}`,
-				size: '7xl',
-			}"
+			:title="`Edit ${canvasStore.editableBlock?.componentName} prop - ${canvasStore.editableCode.propName}`"
+			size="7xl"
 		>
-			<template #body-content>
+			<template #default>
 				<Code
 					:modelValue="canvasStore.editableCode.code"
 					language="javascript"

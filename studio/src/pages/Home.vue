@@ -3,7 +3,7 @@
 		<div
 			class="toolbar sticky top-0 z-10 flex h-14 items-center justify-between bg-white px-3 py-2 shadow-sm"
 		>
-			<Dropdown :options="[{ label: 'Logout', icon: 'log-out', onClick: () => session.logout() }]">
+			<Dropdown :options="[{ label: 'Logout', icon: 'lucide-log-out', onClick: () => session.logout() }]">
 				<template v-slot="{ open }">
 					<div class="flex cursor-pointer items-center gap-2">
 						<StudioLogo class="h-7 w-7"></StudioLogo>
@@ -69,23 +69,23 @@
 												activeApp = app
 												showAppDialog = true
 											},
-											icon: 'edit',
+											icon: 'lucide-edit',
 										},
-										{ label: 'View in Desk', onClick: () => openInDesk(app), icon: 'arrow-up-right' },
+										{ label: 'View in Desk', onClick: () => openInDesk(app), icon: 'lucide-arrow-up-right' },
 										{
 											label: 'Delete',
 											onClick: () => store.deleteApp(app.name, app.app_title),
-											icon: 'trash-2',
+											icon: 'lucide-trash-2',
 											theme: 'red',
 										},
 									]"
 									:button="{
-										icon: 'more-horizontal',
+										icon: 'lucide-more-horizontal',
 										label: 'App Options',
 										variant: 'ghost',
 									}"
 									size="sm"
-									placement="right"
+									side="right"
 								/>
 							</div>
 						</div>

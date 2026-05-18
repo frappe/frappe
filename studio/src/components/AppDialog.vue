@@ -1,10 +1,8 @@
 <template>
 	<Dialog
 		v-model="showDialog"
-		:options="{
-			title: isEditing ? 'Edit App' : 'New App',
-			width: 'md',
-		}"
+		:title="isEditing ? 'Edit App' : 'New App'"
+		width="md"
 		@after-leave="
 			() => {
 				activeApp = { ...emptyAppState }
@@ -12,7 +10,7 @@
 			}
 		"
 	>
-		<template #body-content>
+		<template #default>
 			<div class="flex flex-col gap-3">
 				<FormControl
 					label="Title"

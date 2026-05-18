@@ -1,10 +1,8 @@
 <template>
 	<Dialog
 		v-model="showDialog"
-		:options="{
-			title: 'Add Fields from DocType',
-			size: '3xl',
-		}"
+		title="Add Fields from DocType"
+		size="3xl"
 		@after-leave="
 			() => {
 				formMeta.doctype = ''
@@ -13,7 +11,7 @@
 			}
 		"
 	>
-		<template #body-content>
+		<template #default>
 			<div class="flex flex-col space-y-4">
 				<Link label="Document Type" :required="true" doctype="DocType" v-model="formMeta.doctype" />
 				<FormControl

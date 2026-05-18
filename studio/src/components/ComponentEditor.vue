@@ -64,12 +64,10 @@
 		v-if="canvasStore.activeCanvas?.selectedSlot?.slotId"
 		v-model="store.showSlotEditorDialog"
 		class="overscroll-none"
-		:options="{
-			title: `Edit #${canvasStore.activeCanvas?.selectedSlot?.slotName} slot for ${block.componentName}`,
-			size: '3xl',
-		}"
+		:title="`Edit #${canvasStore.activeCanvas?.selectedSlot?.slotName} slot for ${block.componentName}`"
+		size="3xl"
 	>
-		<template #body-content>
+		<template #default>
 			<Code
 				:modelValue="block.getSlotContent(canvasStore.activeCanvas?.selectedSlot?.slotName) || ''"
 				language="html"

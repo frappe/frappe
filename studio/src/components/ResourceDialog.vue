@@ -1,13 +1,11 @@
 <template>
 	<Dialog
 		v-model="showDialog"
-		:options="{
-			title: resource?.resource_id ? 'Edit Data Source' : 'Add Data Source',
-			size: '2xl',
-		}"
+		:title="resource?.resource_id ? 'Edit Data Source' : 'Add Data Source'"
+		size="2xl"
 		@after-leave="reset"
 	>
-		<template #body-content>
+		<template #default>
 			<div class="flex flex-col space-y-4">
 				<FormControl
 					label="Data Source Name"

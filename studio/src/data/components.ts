@@ -386,17 +386,17 @@ export const COMPONENTS: FrappeUIComponents = {
 				{
 					label: "Edit Title",
 					onClick: () => {},
-					icon: "edit-2",
+					icon: "lucide-edit-2",
 				},
 				{
 					label: "Manage Members",
 					onClick: () => {},
-					icon: "users",
+					icon: "lucide-users",
 				},
 				{
 					label: "Delete this project",
 					onClick: () => {},
-					icon: "trash",
+					icon: "lucide-trash",
 				},
 			],
 			button: { label: "Actions" },

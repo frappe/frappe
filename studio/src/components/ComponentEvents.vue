@@ -17,21 +17,19 @@
 			<Button class="mt-2" icon-left="plus" @click="showAddEventDialog = true">Add Event</Button>
 			<Dialog
 				v-model="showAddEventDialog"
-				:options="{
-					title: (newEvent.isEditing ? 'Edit Event' : 'Add Event') + ' - ' + block.getBlockDescription(),
-					size: '3xl',
-					actions: [
-						{
-							label: newEvent.isEditing ? 'Update' : 'Add',
-							variant: 'solid',
-							onClick: () => saveEvent(newEvent),
-						},
-					],
-				}"
-				:disableOutsideClickToClose="true"
+				:title="(newEvent.isEditing ? 'Edit Event' : 'Add Event') + ' - ' + block.getBlockDescription()"
+				size="3xl"
+				:actions="[
+					{
+						label: newEvent.isEditing ? 'Update' : 'Add',
+						variant: 'solid',
+						onClick: () => saveEvent(newEvent),
+					},
+				]"
+				:dismissable="false"
 				@after-leave="newEvent = { ...emptyEvent, fields: [], isEditing: false }"
 			>
-				<template #body-content>
+				<template #default>
 					<div class="flex flex-col gap-3">
 						<FormControl
 							type="autocomplete"
@@ -536,7 +534,7 @@ const getEventMenu = (event: ComponentEvent) => {
 	return [
 		{
 			label: "Delete",
-			icon: "trash",
+			icon: "lucide-trash",
 			theme: "red",
 			onClick: () => deleteEvent(event),
 		},

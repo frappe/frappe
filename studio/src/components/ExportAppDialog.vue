@@ -1,12 +1,6 @@
 <template>
-	<Dialog
-		v-model="showDialog"
-		:options="{
-			title: 'Export Settings',
-			size: 'xl',
-		}"
-	>
-		<template #body-content>
+	<Dialog v-model="showDialog" title="Export Settings" size="xl">
+		<template #default>
 			<div class="flex flex-col space-y-4">
 				<SettingItem label="Enable App Export" description="Exports app changes to an existing Frappe App">
 					<Switch size="sm" v-model="enableExport" />
