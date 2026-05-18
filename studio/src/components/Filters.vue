@@ -49,7 +49,7 @@
 						</div>
 					</div>
 					<div class="flex-shrink-0">
-						<Button variant="ghost" icon="x" @click="removeFilter(i)" />
+						<Button variant="ghost" icon="lucide-x" @click="removeFilter(i)" />
 					</div>
 				</div>
 				<div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-gray-600">

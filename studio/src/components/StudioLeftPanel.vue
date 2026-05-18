@@ -37,7 +37,7 @@
 				>
 					{{ activeTab }}
 					<IconButton
-						icon="chevrons-left"
+						:icon="LucideChevronsLeft"
 						label="Collapse"
 						@click="store.studioLayout.showLeftPanel = false"
 					/>
@@ -80,6 +80,7 @@ import ComponentLayers from "@/components/ComponentLayers.vue"
 import DataPanel from "@/components/DataPanel.vue"
 import CodePanel from "@/components/CodePanel.vue"
 import IconButton from "@/components/IconButton.vue"
+import LucideChevronsLeft from "~icons/lucide/chevrons-left"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"

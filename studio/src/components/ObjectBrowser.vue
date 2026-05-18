@@ -31,7 +31,7 @@
 					</span>
 
 					<IconButton
-						icon="copy"
+						:icon="LucideCopy"
 						label="Copy object path"
 						class="invisible ml-auto px-2 hover:visible group-hover/key:visible"
 						size="sm"
@@ -53,6 +53,7 @@
 import { copyToClipboard } from "@/utils/helpers"
 import { ref, computed } from "vue"
 import IconButton from "@/components/IconButton.vue"
+import LucideCopy from "~icons/lucide/copy"
 
 const props = withDefaults(
 	defineProps<{

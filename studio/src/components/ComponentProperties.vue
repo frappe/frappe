@@ -16,7 +16,7 @@
 						class="!w-auto"
 					>
 						<template #target="{ togglePopover }">
-							<Button @click="togglePopover" size="sm" variant="ghost" icon="plus" />
+							<Button @click="togglePopover" size="sm" variant="ghost" icon="lucide-plus" />
 						</template>
 					</Autocomplete>
 				</template>
@@ -45,7 +45,7 @@
 									Component Tree
 								</Badge>
 							</div>
-							<Button variant="subtle" size="sm" icon="x" @click="block?.removeSlot(name)" />
+							<Button variant="subtle" size="sm" icon="lucide-x" @click="block?.removeSlot(name)" />
 						</div>
 					</div>
 				</div>

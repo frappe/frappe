@@ -4,8 +4,8 @@
 		label="Direction"
 		v-if="blockController.isFlex()"
 		:options="[
-			{ label: 'Horizontal', value: 'row', icon: 'arrow-right', hideLabel: true },
-			{ label: 'Vertical', value: 'column', icon: 'arrow-down', hideLabel: true },
+			{ label: 'Horizontal', value: 'row', icon: 'lucide-arrow-right', hideLabel: true },
+			{ label: 'Vertical', value: 'column', icon: 'lucide-arrow-down', hideLabel: true },
 		]"
 		:modelValue="blockController.getStyle('flexDirection')"
 		@update:modelValue="(val: string | number) => blockController.setStyle('flexDirection', val)"

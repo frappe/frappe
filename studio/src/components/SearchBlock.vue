@@ -28,7 +28,7 @@
 					<Button
 						@click="togglePopover"
 						variant="outline"
-						icon="filter"
+						icon="lucide-filter"
 						label="Filters"
 						:class="[
 							'flex items-center gap-2 text-sm',

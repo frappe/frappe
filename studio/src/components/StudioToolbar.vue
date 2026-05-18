@@ -9,18 +9,22 @@
 						items: [
 							{
 								label: 'Back to Dashboard',
-								icon: 'arrow-left',
+								icon: 'lucide-arrow-left',
 								onClick: () => $router.push({ name: 'Home' }),
 							},
-							{ label: 'View in Desk', onClick: () => openInDesk(store.activeApp!), icon: 'arrow-up-right' },
+							{
+								label: 'View in Desk',
+								onClick: () => openInDesk(store.activeApp!),
+								icon: 'lucide-arrow-up-right',
+							},
 							{
 								label: 'App Settings',
-								icon: 'settings',
+								icon: 'lucide-settings',
 								onClick: () => (showAppDialog = true),
 							},
 							{
 								label: 'Delete App',
-								icon: 'trash-2',
+								icon: 'lucide-trash-2',
 								theme: 'red',
 								onClick: () => store.deleteApp(store.activeApp?.app_name!, store.activeApp?.app_title!),
 							},
@@ -29,7 +33,7 @@
 					{
 						group: 'More',
 						hideLabel: true,
-						items: [{ label: 'Logout', icon: 'log-out', onClick: () => session.logout() }],
+						items: [{ label: 'Logout', icon: 'lucide-log-out', onClick: () => session.logout() }],
 					},
 				]"
 			>
@@ -46,8 +50,8 @@
 					:text="mode.description"
 					:hoverDelay="0.6"
 					v-for="mode in [
-						{ mode: 'select', icon: 'mouse-pointer', description: 'Select (v)' },
-						{ mode: 'container', icon: 'square', description: 'Container (c)' },
+						{ mode: 'select', icon: 'lucide-mouse-pointer', description: 'Select (v)' },
+						{ mode: 'container', icon: 'lucide-square', description: 'Container (c)' },
 					]"
 				>
 					<Button

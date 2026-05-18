@@ -177,12 +177,12 @@ function getComponentMenu(component: StudioComponent) {
 	return [
 		{
 			label: "Edit",
-			icon: "edit",
+			icon: "lucide-edit",
 			onClick: () => componentEditorStore.editComponent(component.component_id),
 		},
 		{
 			label: "Delete",
-			icon: "trash",
+			icon: "lucide-trash",
 			theme: "red",
 			onClick: () => componentEditorStore.deleteComponent(component),
 		},

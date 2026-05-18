@@ -19,7 +19,7 @@
 			/>
 			<IconButton
 				v-else
-				icon="plus-circle"
+				:icon="LucideCirclePlus"
 				label="Click to set dynamic value"
 				placement="bottom"
 				class="mr-1"
@@ -56,6 +56,7 @@ import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import { isObjectEmpty } from "@/utils/helpers"
 import useCodeStore from "@/stores/codeStore"
 import Link2 from "~icons/lucide/link-2"
+import LucideCirclePlus from "~icons/lucide/circle-plus"
 
 const props = defineProps<{ block?: Block; isVariableBound?: string | null }>()
 const emit = defineEmits<{

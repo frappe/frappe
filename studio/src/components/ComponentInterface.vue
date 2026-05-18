@@ -10,7 +10,7 @@
 						class="!w-auto"
 					>
 						<template #target="{ togglePopover }">
-							<Button @click="togglePopover" size="sm" variant="ghost" icon="plus" />
+							<Button @click="togglePopover" size="sm" variant="ghost" icon="lucide-plus" />
 						</template>
 					</Autocomplete>
 				</template>

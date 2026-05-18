@@ -26,7 +26,7 @@
 								:label="actionLabel"
 								variant="solid"
 							></Button>
-							<Button @click="togglePopup" icon="x" variant="subtle"></Button>
+							<Button @click="togglePopup" icon="lucide-x" variant="subtle"></Button>
 						</div>
 					</div>
 					<div class="flex-1 px-3 pb-3">
