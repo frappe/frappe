@@ -294,7 +294,7 @@ class Report(Document):
 		_result = frappe.get_list(
 			self.ref_doctype,
 			fields=[
-				get_group_by_field(group_by_args, doctype)
+				get_group_by_field(group_by_args)
 				if fieldname == "_aggregate_column" and group_by_args
 				else Report._format([doctype, fieldname])
 				for fieldname, doctype in columns
@@ -494,7 +494,10 @@ def get_report_module_dotted_path(module, report_name):
 	)
 
 
-def get_group_by_field(args, doctype):
+def get_group_by_field(args: dict) -> dict:
+	"""
+	Build the group by field based on the aggregate function and aggregate on field.
+	"""
 	if args["aggregate_function"] == "count":
 		group_by_field = {"COUNT": "*", "as": "_aggregate_column"}
 	else:
@@ -508,7 +511,7 @@ def get_group_by_column_field(args: dict, parent_doctype: str) -> dict:
 	"""
 	Build full field info (fieldname, label, fieldtype, options) for the aggregate column.
 	"""
-	field = get_group_by_field(args, parent_doctype)
+	field = get_group_by_field(args)
 
 	return get_aggregate_field_info(field, parent_doctype)
 
