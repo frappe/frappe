@@ -2,27 +2,42 @@ frappe.provide("frappe.contacts");
 
 $.extend(frappe.contacts, {
 	clear_address_and_contact: function (frm) {
-		$(frm.fields_dict["address_html"].wrapper).html("");
-		frm.fields_dict["contact_html"] && $(frm.fields_dict["contact_html"].wrapper).html("");
+		for (const field of ["address_html", "contact_html"]) {
+			$(frm.fields_dict[field]?.wrapper)?.html("");
+		}
 	},
 
 	render_address_and_contact: function (frm) {
-		// render address
-		if (frm.fields_dict["address_html"] && "addr_list" in frm.doc.__onload) {
-			$(frm.fields_dict["address_html"].wrapper)
-				.html(frappe.render_template("address_list", frm.doc.__onload))
-				.find(".btn-address")
-				.on("click", () => new_record("Address", frm));
-		}
+		const items = [
+			{
+				field: "address_html",
+				data: "addr_list",
+				template: "address_list",
+				btn: ".btn-address",
+				doctype: "Address",
+			},
+			{
+				field: "contact_html",
+				data: "contact_list",
+				template: "contact_list",
+				btn: ".btn-contact",
+				doctype: "Contact",
+			},
+		];
 
-		// render contact
-		if (frm.fields_dict["contact_html"] && "contact_list" in frm.doc.__onload) {
-			$(frm.fields_dict["contact_html"].wrapper)
-				.html(frappe.render_template("contact_list", frm.doc.__onload))
-				.find(".btn-contact")
-				.on("click", () => new_record("Contact", frm));
+		for (const item of items) {
+			// render address or contact
+			const field_wrapper = frm.fields_dict[item.field]?.wrapper;
+
+			if (field_wrapper && frm.doc.__onload && item.data in frm.doc.__onload) {
+				$(field_wrapper)
+					.html(frappe.render_template(item.template, frm.doc.__onload))
+					.find(item.btn)
+					.on("click", () => new_record(item.doctype, frm));
+			}
 		}
 	},
+
 	get_last_doc: function (frm) {
 		const reverse_routes = frappe.route_history.slice().reverse();
 		const last_route = reverse_routes.find((route) => {
@@ -38,6 +53,7 @@ $.extend(frappe.contacts, {
 			docname,
 		};
 	},
+
 	get_address_display: function (frm, address_field, display_field) {
 		if (frm.updating_party_details) {
 			return;

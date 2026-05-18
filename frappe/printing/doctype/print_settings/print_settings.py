@@ -24,6 +24,7 @@ class PrintSettings(Document):
 		enable_raw_printing: DF.Check
 		font: DF.Literal["Default", "Helvetica Neue", "Arial", "Helvetica", "Inter", "Verdana", "Monospace"]
 		font_size: DF.Float
+		pdf_generator: DF.Literal["wkhtmltopdf", "chrome"]
 		pdf_page_height: DF.Float
 		pdf_page_size: DF.Literal[
 			"A0",

@@ -320,9 +320,13 @@ body {
 }
 
 @media (max-width: 480px) {
+	.mobile-id-filter .form-group {
+		width: 120px;
+	}
+
 	body[data-route^="Form"] {
 		.navbar-breadcrumbs {
-			max-width: 165px;
+			max-width: 125px;
 		}
 		.page-title {
 			width: 100%;
@@ -331,8 +335,7 @@ body {
 					margin-left: 5px;
 				}
 				.mobile-no-divider li a {
-					font-size: 14px;
-					padding-bottom: 5px;
+					line-height: 20px;
 				}
 			}
 		}
@@ -342,6 +345,9 @@ body {
 					margin-left: 0;
 				}
 			}
+		}
+		.standard-items-section .search-bar {
+			margin-right: 10px;
 		}
 	}
 }

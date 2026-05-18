@@ -6,9 +6,10 @@
  "header_icon": "user-round",
  "idx": 0,
  "items": [],
- "modified": "2025-11-25 10:46:09.369233",
+ "modified": "2026-01-08 14:16:38.600691",
  "modified_by": "Administrator",
  "name": "My Workspaces",
  "owner": "Administrator",
+ "standard": 1,
  "title": "My Workspaces"
 }

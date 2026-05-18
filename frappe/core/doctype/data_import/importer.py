@@ -13,6 +13,7 @@ from frappe.core.doctype.version.version import get_diff
 from frappe.model import no_value_fields
 from frappe.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
 from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
+from frappe.utils.data import escape_html
 from frappe.utils.xlsxutils import (
 	read_xls_file_from_attached_file,
 	read_xlsx_file_from_attached_file,
@@ -93,15 +94,19 @@ class Importer:
 			return
 
 		# setup import log
-		import_log = (
-			frappe.get_all(
-				"Data Import Log",
-				fields=["row_indexes", "success", "log_index"],
-				filters={"data_import": self.data_import.name},
-				order_by="log_index",
+		# Only use import log for retry/resume when Data Import is persisted in DB.
+		# For bench data-import (CLI), the doc is never inserted, so we must not reuse logs
+		import_log = []
+		if self.data_import.name and frappe.db.exists("Data Import", self.data_import.name):
+			import_log = (
+				frappe.get_all(
+					"Data Import Log",
+					fields=["row_indexes", "success", "log_index"],
+					filters={"data_import": self.data_import.name},
+					order_by="log_index",
+				)
+				or []
 			)
-			or []
-		)
 
 		log_index = 0
 
@@ -723,7 +728,9 @@ class Row:
 		elif df.fieldtype == "Link":
 			exists = self.link_exists(value, df)
 			if not exists:
-				msg = _("Value {0} missing for {1}").format(frappe.bold(value), frappe.bold(df.options))
+				msg = _("Value {0} missing for {1}").format(
+					frappe.bold(escape_html(cstr(value))), frappe.bold(df.options)
+				)
 				self.warnings.append(
 					{
 						"row": self.row_number,
@@ -742,7 +749,8 @@ class Row:
 						"col": col.column_number,
 						"field": df_as_json(df),
 						"message": _("Value {0} must in {1} format").format(
-							frappe.bold(value), frappe.bold(get_user_format(col.date_format))
+							frappe.bold(escape_html(cstr(value))),
+							frappe.bold(get_user_format(col.date_format)),
 						),
 					}
 				)
@@ -757,7 +765,8 @@ class Row:
 						"col": col.column_number,
 						"field": df_as_json(df),
 						"message": _("Value {0} must in {1} format").format(
-							frappe.bold(value), frappe.bold(get_user_format(col.date_format))
+							frappe.bold(escape_html(cstr(value))),
+							frappe.bold(get_user_format(col.date_format)),
 						),
 					}
 				)
@@ -770,7 +779,7 @@ class Row:
 						"col": col.column_number,
 						"field": df_as_json(df),
 						"message": _("Value {0} must be in the valid duration format: d h m s").format(
-							frappe.bold(value)
+							frappe.bold(escape_html(cstr(value)))
 						),
 					}
 				)
@@ -1041,7 +1050,7 @@ class Column:
 			]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
-				missing_values = ", ".join(not_exists)
+				missing_values = ", ".join(escape_html(v) for v in not_exists)
 				message = _("The following values do not exist for {0}: {1}")
 				self.warnings.append(
 					{
@@ -1084,7 +1093,7 @@ class Column:
 				invalid = values - set(options)
 				if invalid:
 					valid_values = ", ".join(frappe.bold(o) for o in options)
-					invalid_values = ", ".join(frappe.bold(i) for i in invalid)
+					invalid_values = ", ".join(frappe.bold(escape_html(i)) for i in invalid)
 					message = _("The following values are invalid: {0}. Values must be one of {1}")
 					self.warnings.append(
 						{
@@ -1153,7 +1162,8 @@ def build_fields_dict_for_column_matching(parent_doctype):
 	doctypes = [(parent_doctype, None)] + [(df.options, df) for df in parent_meta.get_table_fields()]
 
 	for doctype, table_df in doctypes:
-		translated_table_label = _(table_df.label) if table_df else None
+		table_ref = (table_df.label or table_df.fieldname) if table_df else None
+		translated_table_label = _(table_ref) if table_ref else None
 
 		# name field
 		name_df = frappe._dict(
@@ -1175,7 +1185,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 		else:
 			name_headers = (
 				f"{table_df.fieldname}.name",  # fieldname
-				f"ID ({table_df.label})",  # label
+				f"ID ({table_ref})",  # label
 				"{} ({})".format(_("ID"), translated_table_label),  # translated label
 			)
 
@@ -1229,7 +1239,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 					# fieldname
 					f"{table_df.fieldname}.{df.fieldname}",
 					# label
-					f"{label} ({table_df.label})",
+					f"{label} ({table_ref})",
 					# translated label
 					f"{translated_label} ({translated_table_label})",
 				):

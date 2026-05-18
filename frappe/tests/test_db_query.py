@@ -271,6 +271,33 @@ class TestDBQuery(IntegrationTestCase):
 				result in DatabaseQuery("DocType").execute(filters={"name": ["not in", "DocType,DocField"]})
 			)
 
+	def test_in_filter_json_encoded_values(self):
+		# JSON-encoded list string should work the same as comma-separated
+		for result in [{"name": "DocType"}, {"name": "DocField"}]:
+			self.assertTrue(
+				result
+				in DatabaseQuery("DocType").execute(filters={"name": ["in", '["DocType", "DocField"]']})
+			)
+
+		# Values containing commas must not be split
+		todo = frappe.get_doc(
+			doctype="ToDo", description="Test, With Comma", allocated_to="Administrator"
+		).insert()
+		try:
+			results = DatabaseQuery("ToDo").execute(
+				filters={"description": ["in", '["Test, With Comma"]']},
+				fields=["description"],
+			)
+			self.assertIn({"description": "Test, With Comma"}, results)
+
+			results_split = DatabaseQuery("ToDo").execute(
+				filters={"description": ["in", "Test, With Comma"]},
+				fields=["description"],
+			)
+			self.assertNotIn({"description": "Test, With Comma"}, results_split)
+		finally:
+			frappe.delete_doc("ToDo", todo.name)
+
 	def test_string_as_field(self):
 		self.assertEqual(
 			frappe.get_all("DocType", as_list=True), frappe.get_all("DocType", fields="name", as_list=True)
@@ -990,11 +1017,14 @@ class TestDBQuery(IntegrationTestCase):
 		from frappe.desk.doctype.dashboard_settings.dashboard_settings import (
 			create_dashboard_settings,
 		)
+		from frappe.model.db_query import DatabaseQuery
 
 		self.doctype = "Dashboard Settings"
 		self.user = "test'5@example.com"
 
-		permission_query_conditions = DatabaseQuery.get_permission_query_conditions(self)
+		db_query = DatabaseQuery(self.doctype, user=self.user)
+
+		permission_query_conditions = db_query.get_permission_query_conditions()
 
 		create_dashboard_settings(self.user)
 
@@ -1050,15 +1080,21 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertNotIn("IF", frappe.get_all("User", {"first_name": ("in", ["a", "b"])}, run=0).get_sql())
 		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("in", ["a", None])}, run=0).get_sql())
 		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("in", ["a", ""])}, run=0).get_sql())
-		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("in", [])}, run=0).get_sql())
+		# Empty list with IN should return 1=0, not use IFNULL
+		self.assertIn("1=0", frappe.get_all("User", {"first_name": ("in", [])}, run=0).get_sql())
+		self.assertNotIn("IFNULL", frappe.get_all("User", {"first_name": ("in", [])}, run=0).get_sql())
 		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", ["a"])}, run=0).get_sql())
-		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", [])}, run=0).get_sql())
+		# Empty list with NOT IN should return 1=1, not use IFNULL
+		self.assertIn("1=1", frappe.get_all("User", {"first_name": ("not in", [])}, run=0).get_sql())
+		self.assertNotIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", [])}, run=0).get_sql())
 		self.assertIn("IFNULL", frappe.get_all("User", {"first_name": ("not in", [""])}, run=0).get_sql())
 
 		# primary key is never nullable
 		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ["a", None])}, run=0).get_sql())
 		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ["a", ""])}, run=0).get_sql())
 		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", (""))}, run=0).get_sql())
+		# Empty tuple with IN should return 1=0, not use IFNULL
+		self.assertIn("1=0", frappe.get_all("User", {"name": ("in", ())}, run=0).get_sql())
 		self.assertNotIn("IFNULL", frappe.get_all("User", {"name": ("in", ())}, run=0).get_sql())
 
 	def test_coalesce_with_datetime_ops(self):
@@ -1297,6 +1333,20 @@ class TestReportView(IntegrationTestCase):
 		# reset user roles
 		user.remove_roles("Blogger", "Website Manager")
 		user.add_roles(*user_roles)
+
+	def test_reportview_child_table_alias(self):
+		from frappe.desk import reportview
+
+		frappe.local.form_dict = frappe._dict(
+			{
+				"doctype": "DocType",
+				"fields": ["name", "`tabDocField`.`fieldname` as 'DocField:fieldname'"],
+				"limit": 1,
+			}
+		)
+		response = reportview.get()
+		self.assertIn("DocField:fieldname", response["keys"])
+		self.assertNotIn("'DocField:fieldname'", response["keys"])
 
 	def test_reportview_get_aggregation(self):
 		# test aggregation based on child table field

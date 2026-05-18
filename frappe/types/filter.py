@@ -1,3 +1,4 @@
+import json
 import textwrap
 from collections import defaultdict
 from collections.abc import Generator, Iterable, Mapping, Sequence
@@ -110,7 +111,11 @@ class FilterTuple(_FilterTuple):
 
 			# soundness
 			if operator in ("in", "not in") and isinstance(value, str):
-				value = value.split(",")
+				try:
+					parsed = json.loads(value)
+					value = parsed if isinstance(parsed, list) else value.split(",")  # type: ignore[assignment]
+				except ValueError:
+					value = value.split(",")
 
 			_value: Value
 			if isinstance(value, _InputValue):

@@ -34,8 +34,6 @@ def get_context(context):
 	# this needs commit
 	csrf_token = frappe.sessions.get_csrf_token()
 
-	frappe.db.commit()  # nosemgrep
-
 	hooks = frappe.get_hooks()
 	app_include_js = hooks.get("app_include_js", []) + frappe.conf.get("app_include_js", [])
 	app_include_css = hooks.get("app_include_css", []) + frappe.conf.get("app_include_css", [])

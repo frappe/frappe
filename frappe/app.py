@@ -40,7 +40,7 @@ import gettext
 
 import babel
 import babel.messages
-import bleach
+import nh3
 import num2words
 import pydantic
 
@@ -48,7 +48,7 @@ import frappe.boot
 import frappe.client
 import frappe.core.doctype.file.file
 import frappe.core.doctype.user.user
-import frappe.database.mariadb.database  # Load database related utils
+import frappe.database.mariadb.mysqlclient  # Load database related utils
 import frappe.database.query
 import frappe.desk.desktop  # workspace
 import frappe.desk.form.save
@@ -125,6 +125,12 @@ def application(request: Request):
 
 		elif request.path.startswith("/private/files/"):
 			response = frappe.utils.response.download_private_file(request.path)
+
+		elif request.path == "/.well-known/security.txt" and request.method == "GET":
+			if request.scheme != "https":
+				raise NotFound
+			security_settings = frappe.get_doc("Security Settings")
+			response = Response(security_settings.security_txt, content_type="text/plain")
 
 		elif request.path.startswith("/.well-known/") and request.method == "GET":
 			response = handle_wellknown(request.path)

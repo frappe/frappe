@@ -44,7 +44,15 @@ frappe.ui.Page = class Page {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
 		this.setup_scroll_handler();
-		this.setup_sidebar_toggle();
+		this.setup_main_sidebar_toggle();
+		this.setup_mobile_awesomebar();
+	}
+
+	setup_mobile_awesomebar() {
+		if (frappe.boot.desk_settings.search_bar && frappe.is_mobile()) {
+			let awesome_bar = new frappe.search.AwesomeBar();
+			awesome_bar.setup(".navbar-modal-search-mobile");
+		}
 	}
 
 	setup_scroll_handler() {
@@ -59,8 +67,6 @@ frappe.ui.Page = class Page {
 					(frappe.boot.read_only || frappe.boot.user.impersonated_by)
 				) {
 					$(".page-head").css("top", "-15px");
-				} else if (frappe.boot.read_only || frappe.boot.user.impersonated_by) {
-					$(".page-head").css("top", "var(--navbar-height)");
 				}
 				last_scroll = current_scroll;
 			}, 500)
@@ -137,7 +143,7 @@ frappe.ui.Page = class Page {
 		this.container = this.wrapper.find(".page-body");
 		this.sidebar = this.wrapper.find(".layout-side-section");
 		this.footer = this.wrapper.find(".layout-footer");
-		this.indicator = this.wrapper.find(".indicator-pill");
+		this.indicator = this.wrapper.find(".title-area .indicator-pill");
 
 		this.page_actions = this.wrapper.find(".page-actions");
 		this.filters = this.wrapper.find(".filters");
@@ -153,6 +159,7 @@ frappe.ui.Page = class Page {
 
 		this.standard_actions = this.page_actions.find(".standard-actions");
 		this.custom_actions = this.page_actions.find(".custom-actions");
+		this.custom_mobile_actions = this.page_actions.find(".custom-mobile-actions");
 
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
 		this.inner_toolbar = this.custom_actions;
@@ -195,68 +202,18 @@ frappe.ui.Page = class Page {
 			.appendTo(this.sidebar);
 	}
 
-	setup_sidebar_toggle() {
-		let sidebar_toggle = $(".page-head").find(".sidebar-toggle-btn");
-		let sidebar_wrapper = this.wrapper.find(".layout-side-section");
-		if (this.disable_sidebar_toggle || !sidebar_wrapper.length) {
-			sidebar_toggle.last().remove();
-			this.wrapper.addClass("no-list-sidebar");
-		} else {
-			if (!frappe.is_mobile()) {
-				sidebar_toggle.attr("title", __("Toggle Sidebar"));
-			}
-			sidebar_toggle.attr("aria-label", __("Toggle Sidebar"));
-			sidebar_toggle.tooltip({
-				delay: { show: 600, hide: 100 },
-				trigger: "hover",
-			});
-			sidebar_toggle.click(() => {
-				if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
-					this.setup_overlay_sidebar();
-				} else {
-					sidebar_wrapper.toggle();
-				}
-				$(document.body).trigger("toggleSidebar");
-				this.update_sidebar_icon();
-			});
-		}
-	}
-
-	setup_overlay_sidebar() {
-		this.sidebar.find(".close-sidebar").remove();
-		let overlay_sidebar = this.sidebar.find(".overlay-sidebar").addClass("opened");
-		$('<div class="close-sidebar">').hide().appendTo(this.sidebar).fadeIn();
-		let scroll_container = $("html").css("overflow-y", "hidden");
-
-		this.sidebar.find(".close-sidebar").on("click", (e) => this.close_sidebar(e));
-		this.sidebar.on("click", "button:not(.dropdown-toggle)", (e) => this.close_sidebar(e));
-
-		this.close_sidebar = () => {
-			scroll_container.css("overflow-y", "");
-			this.sidebar.find("div.close-sidebar").fadeOut(() => {
-				overlay_sidebar
-					.removeClass("opened")
-					.find(".dropdown-toggle")
-					.removeClass("text-muted");
-			});
-		};
-	}
-
-	update_sidebar_icon() {
-		let sidebar_toggle = $(".page-head").find(".sidebar-toggle-btn");
-		let sidebar_toggle_icon = sidebar_toggle.find(".sidebar-toggle-icon");
-		let sidebar_wrapper = this.wrapper.find(".layout-side-section");
-		let is_sidebar_visible = $(sidebar_wrapper).is(":visible");
-		sidebar_toggle_icon.html(
-			frappe.utils.icon(
-				is_sidebar_visible ? "es-line-sidebar-collapse" : "es-line-sidebar-expand",
-				"md"
-			)
-		);
-	}
-
 	set_indicator(label, color) {
-		this.clear_indicator().removeClass("hide").html(`<span>${label}</span>`).addClass(color);
+		let indicator_html = `<span>${label}</span>`;
+		const is_mobile = frappe.is_mobile();
+		if (is_mobile) {
+			indicator_html = `<span class="indicator-doc-html" style="background-color: var(--${color}-400)"></span>`;
+		}
+		this.clear_indicator().removeClass("hide").html(indicator_html).addClass(color);
+
+		if (is_mobile) {
+			this.indicator.attr("title", label);
+			this.indicator.tooltip();
+		}
 	}
 
 	add_action_icon(icon, click, css_class = "", tooltip_label) {
@@ -282,6 +239,14 @@ frappe.ui.Page = class Page {
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
 		return button;
+	}
+
+	setup_main_sidebar_toggle() {
+		this.wrapper.find(".sidebar-toggle-btn.navbar-brand").on("click", (event) => {
+			frappe.app.sidebar.set_height();
+			frappe.app.sidebar.toggle_width();
+			frappe.app.sidebar.prevent_scroll();
+		});
 	}
 
 	clear_indicator() {
@@ -626,10 +591,14 @@ frappe.ui.Page = class Page {
 	}
 
 	set_inner_btn_group_as_primary(label) {
-		this.get_or_add_inner_group_button(label)
-			.find("button")
-			.removeClass("btn-default")
-			.addClass("btn-primary");
+		const group = this.get_or_add_inner_group_button(label);
+		const dropdown_items = group.find(".dropdown-menu .dropdown-item");
+
+		if (dropdown_items.length > 0) {
+			group.find("button").removeClass("btn-default").addClass("btn-primary");
+		} else {
+			group.toggleClass("hide", true);
+		}
 	}
 
 	btn_disable_enable(btn, response) {
@@ -840,7 +809,8 @@ frappe.ui.Page = class Page {
 			</div>
 		`);
 
-		if (!parent) parent = this.custom_actions;
+		if (!parent)
+			parent = frappe.is_mobile() ? this.custom_mobile_actions : this.custom_actions;
 		parent.removeClass("hide").append(custom_btn_group);
 
 		return custom_btn_group.find(".dropdown-menu");

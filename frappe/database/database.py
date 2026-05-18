@@ -275,9 +275,11 @@ class Database:
 				frappe.log(f"Syntax error in query:\n{query} {values or ''}")
 
 			elif self.is_deadlocked(e):
+				self.db_type == "mariadb" and frappe.log_error("Query deadlocked", defer_insert=True)
 				raise frappe.QueryDeadlockError(e) from e
 
 			elif self.is_timedout(e):
+				self.db_type == "mariadb" and frappe.log_error("Query timed out", defer_insert=True)
 				raise frappe.QueryTimeoutError(e) from e
 
 			elif self.is_read_only_mode_error(e):
@@ -473,6 +475,9 @@ class Database:
 
 		if query_type in WRITE_QUERY_TYPES:
 			self.transaction_writes += 1
+			if frappe.conf.get("max_writes_per_transaction"):
+				self.MAX_WRITES_PER_TRANSACTION = cint(frappe.conf.max_writes_per_transaction)
+
 			if self.transaction_writes > self.MAX_WRITES_PER_TRANSACTION:
 				if self.auto_commit_on_many_writes:
 					self.commit()
@@ -628,7 +633,13 @@ class Database:
 		        # return last login of **User** `test@example.com`
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
+
+		from frappe.model.utils import is_single_doctype
+
 		out = None
+		if isinstance(fieldname, list):
+			fieldname = tuple(fieldname)
+
 		if cache and isinstance(filters, str) and fieldname in self.value_cache[doctype][filters]:
 			return self.value_cache[doctype][filters][fieldname]
 
@@ -677,25 +688,9 @@ class Database:
 						or str(e).startswith("Invalid DocType")
 					):
 						out = None
-					elif (not ignore) and frappe.db.is_table_missing(e):
-						# table not found, look in singles
-						fields = (
-							[fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
-						)
-						out = self.get_values_from_single(
-							fields,
-							filters,
-							doctype,
-							as_dict,
-							debug,
-							update,
-							run=run,
-							distinct=distinct,
-						)
-
 					else:
 						raise
-			else:
+			elif is_single_doctype(doctype):
 				fields = [fieldname] if (isinstance(fieldname, str) and fieldname != "*") else fieldname
 				out = self.get_values_from_single(
 					fields,
@@ -708,6 +703,8 @@ class Database:
 					pluck=pluck,
 					distinct=distinct,
 				)
+			else:
+				return None
 
 		if cache and isinstance(filters, str):
 			self.value_cache[doctype][filters][fieldname] = out
@@ -1413,8 +1410,11 @@ class Database:
 		return self.is_missing_column(e) or self.is_table_missing(e)
 
 	def multisql(self, sql_dict, values=(), **kwargs):
+		"""
+		Chooses which query to execute based on the current database type, falling back to a wildcard query.
+		"""
 		current_dialect = self.db_type or "mariadb"
-		query = sql_dict.get(current_dialect)
+		query = sql_dict.get(current_dialect) or sql_dict.get("*")
 		return self.sql(query, values, **kwargs)
 
 	def delete(self, doctype: str, filters: dict | list | None = None, debug=False, **kwargs):

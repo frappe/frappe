@@ -107,8 +107,31 @@ export const useStore = defineStore("form-builder-store", () => {
 			}
 		}
 
+		// Preserve the currently active tab index before regenerating layout
+		// This is more reliable than tracking by name since tab names can change after save
+		let previous_active_tab_index = null;
+		if (form.value.layout?.tabs && form.value.active_tab) {
+			previous_active_tab_index = form.value.layout.tabs.findIndex(
+				(tab) => tab.df.name === form.value.active_tab
+			);
+		}
+
 		form.value.layout = get_layout();
-		form.value.active_tab = form.value.layout.tabs[0].df.name;
+
+		// Try to restore the previously active tab by index if it still exists
+		if (
+			previous_active_tab_index !== null &&
+			previous_active_tab_index >= 0 &&
+			previous_active_tab_index < form.value.layout.tabs.length
+		) {
+			form.value.active_tab = form.value.layout.tabs[previous_active_tab_index].df.name;
+		} else if (form.value.layout.tabs.length > 0) {
+			// If previous tab doesn't exist or no previous tab, default to first tab
+			form.value.active_tab = form.value.layout.tabs[0].df.name;
+		} else {
+			form.value.active_tab = null;
+		}
+
 		form.value.selected_field = null;
 
 		nextTick(() => {

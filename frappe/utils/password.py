@@ -80,6 +80,24 @@ def remove_encrypted_password(doctype, name, fieldname="password"):
 	frappe.db.delete("__Auth", {"doctype": doctype, "name": name, "fieldname": fieldname})
 
 
+def is_password_reused(user, pwd, doctype="User", fieldname="password"):
+	"""Return True if pwd matches the stored password for user, else False."""
+	result = (
+		frappe.qb.from_(Auth)
+		.select(Auth.password)
+		.where(
+			(Auth.doctype == doctype)
+			& (Auth.name == user)
+			& (Auth.fieldname == fieldname)
+			& (Auth.encrypted == 0)
+		)
+		.limit(1)
+		.run(as_dict=True)
+	)
+
+	return bool(result and passlibctx.verify(pwd, result[0].password))
+
+
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
 	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
 

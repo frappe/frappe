@@ -6,7 +6,7 @@
 
 <div class="clearfix"></div>
 {% for (const contact of contact_list) { %}
-	<div class="address-box">
+	<div class="contact-box">
 		<a
 			href="{%= frappe.utils.get_form_link('Contact', contact.name) %}"
 			class="btn btn-xs btn-default edit-btn"

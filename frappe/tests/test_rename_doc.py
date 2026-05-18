@@ -249,7 +249,7 @@ class TestRenameDoc(IntegrationTestCase):
 		name = choice(self.available_documents)
 		new_name = f"{name}-{frappe.generate_hash(length=4)}"
 		doc = frappe.get_doc(self.test_doctype, name)
-		doc.rename(new_name, merge=frappe.db.exists(self.test_doctype, new_name))
+		doc.rename(new_name, merge=bool(frappe.db.exists(self.test_doctype, new_name)))
 		self.assertEqual(doc.name, new_name)
 		self.available_documents.append(new_name)
 		self.available_documents.remove(name)

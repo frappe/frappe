@@ -407,32 +407,31 @@ result = [
 		self.assertEqual(result[-1][1], 200)
 		self.assertEqual(result[-1][2], 150.50)
 
-	def test_cte_in_query_report(self):
-		cte_query = textwrap.dedent(
-			"""
-            with enabled_users as (
-                select name
-                from `tabUser`
-                where enabled = 1
-            )
-            select * from enabled_users;
-        """
-		)
+	def test_report_cache_invalidation(self):
+		import frappe.sessions
+		from frappe.utils import set_request
 
-		report = frappe.get_doc(
-			{
-				"doctype": "Report",
-				"ref_doctype": "User",
-				"report_name": "Enabled Users List",
-				"report_type": "Query Report",
-				"is_standard": "No",
-				"query": cte_query,
-			}
-		).insert()
+		frappe.set_user("test@example.com")
+		set_request(method="GET", path="/app")
 
-		if frappe.db.db_type == "mariadb":
-			col, rows = report.execute_query_report(filters={})
-			self.assertEqual(col[0], "name")
-			self.assertGreaterEqual(len(rows), 1)
-		elif frappe.db.db_type == "postgres":
-			self.assertRaises(frappe.PermissionError, report.execute_query_report, filters={})
+		try:
+			frappe.sessions.get()
+
+			report_name = _save_report(
+				"Test Cache Invalidation Report",
+				"User",
+				json.dumps([{"fieldname": "email", "fieldtype": "Data", "label": "Email"}]),
+			)
+
+			cached_bootinfo = frappe.sessions.get()
+			self.assertIn(report_name, cached_bootinfo["user"]["all_reports"])
+
+			doc = frappe.get_doc("Report", report_name)
+			delete_report(doc.name)
+
+			cached_bootinfo = frappe.sessions.get()
+			self.assertNotIn(report_name, cached_bootinfo["user"]["all_reports"])
+
+		finally:
+			frappe.local.request = None
+			frappe.set_user("Administrator")

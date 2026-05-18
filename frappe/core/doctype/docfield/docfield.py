@@ -14,6 +14,7 @@ class DocField(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		alignment: DF.Literal["", "Left", "Center", "Right"]
 		allow_bulk_edit: DF.Check
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
@@ -82,6 +83,7 @@ class DocField(Document):
 		ignore_xss_filter: DF.Check
 		in_filter: DF.Check
 		in_global_search: DF.Check
+		in_import_template: DF.Check
 		in_list_view: DF.Check
 		in_preview: DF.Check
 		in_standard_filter: DF.Check
@@ -116,6 +118,7 @@ class DocField(Document):
 		search_index: DF.Check
 		set_only_once: DF.Check
 		show_dashboard: DF.Check
+		show_description_on_click: DF.Check
 		show_on_timeline: DF.Check
 		sort_options: DF.Check
 		sticky: DF.Check
@@ -126,7 +129,6 @@ class DocField(Document):
 
 	def get_link_doctype(self):
 		"""Return the Link doctype for the `docfield` (if applicable).
-
 		* If fieldtype is Link: Return "options".
 		* If fieldtype is Table MultiSelect: Return "options" of the Link field in the Child Table.
 		"""

@@ -76,7 +76,10 @@ def get_context(context) -> PrintContext:
 		from frappe.utils.weasyprint import get_html
 
 		body = get_html(
-			doctype=frappe.form_dict.doctype, name=frappe.form_dict.name, print_format=print_format.name
+			doctype=frappe.form_dict.doctype,
+			name=frappe.form_dict.name,
+			print_format=print_format.name,
+			letterhead=letterhead,
 		)
 		body += trigger_print_script
 	else:
@@ -92,6 +95,7 @@ def get_context(context) -> PrintContext:
 
 	# Include selected print format name in access log
 	print_format_name = getattr(print_format, "name", "Standard")
+	pdf_generator = getattr(print_format, "pdf_generator", "wkhtmltopdf")
 
 	make_access_log(
 		doctype=frappe.form_dict.doctype,
@@ -114,7 +118,7 @@ def get_context(context) -> PrintContext:
 		"print_format": print_format_name,
 		"letterhead": letterhead,
 		"no_letterhead": frappe.form_dict.no_letterhead,
-		"pdf_generator": frappe.form_dict.get("pdf_generator", "wkhtmltopdf"),
+		"pdf_generator": frappe.form_dict.get("pdf_generator", pdf_generator),
 	}
 
 
@@ -226,6 +230,12 @@ def get_rendered_template(
 
 	if letter_head.content:
 		letter_head.content = frappe.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()})
+		if letter_head.custom_css:
+			letter_head.content += f"""
+			<style>
+				{letter_head.custom_css}
+			</style>
+			"""
 		if letter_head.header_script:
 			letter_head.content += f"""
 				<script>
@@ -423,7 +433,7 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 		return frappe.db.get_value(
 			"Letter Head",
 			letterhead_name,
-			["content", "footer", "header_script", "footer_script"],
+			["content", "footer", "header_script", "footer_script", "custom_css"],
 			as_dict=True,
 		)
 	else:
@@ -431,7 +441,7 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 			frappe.db.get_value(
 				"Letter Head",
 				{"is_default": 1},
-				["content", "footer", "header_script", "footer_script"],
+				["content", "footer", "header_script", "footer_script", "custom_css"],
 				as_dict=True,
 			)
 			or {}

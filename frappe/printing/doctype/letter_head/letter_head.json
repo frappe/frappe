@@ -2,31 +2,37 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:letter_head_name",
- "creation": "2012-11-22 17:45:46",
+ "creation": "2026-04-07 12:33:33.368499",
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
   "letter_head_name",
+  "letter_head_for",
   "source",
   "footer_source",
   "column_break_3",
+  "standard",
+  "module",
   "disabled",
   "is_default",
   "letter_head_image_section",
+  "align",
   "image",
+  "column_break_dpzk",
   "image_height",
   "image_width",
-  "align",
-  "header_section",
-  "content",
-  "footer_section",
-  "footer",
   "footer_image_section",
+  "footer_align",
   "footer_image",
+  "column_break_kfvf",
   "footer_image_height",
   "footer_image_width",
-  "footer_align",
+  "header_section",
+  "content",
+  "custom_css",
+  "footer_section",
+  "footer",
   "scripts_section",
   "header_script",
   "footer_script",
@@ -44,7 +50,6 @@
    "unique": 1
   },
   {
-   "depends_on": "letter_head_name",
    "fieldname": "source",
    "fieldtype": "Select",
    "label": "Letter Head Based On",
@@ -56,7 +61,6 @@
   },
   {
    "default": "0",
-   "depends_on": "letter_head_name",
    "fieldname": "disabled",
    "fieldtype": "Check",
    "in_list_view": 1,
@@ -66,7 +70,6 @@
   },
   {
    "default": "0",
-   "depends_on": "letter_head_name",
    "fieldname": "is_default",
    "fieldtype": "Check",
    "in_list_view": 1,
@@ -76,25 +79,24 @@
    "search_index": 1
   },
   {
-   "depends_on": "eval:doc.letter_head_name && doc.source === 'Image'",
+   "depends_on": "eval:doc.source === 'Image'",
    "fieldname": "letter_head_image_section",
    "fieldtype": "Section Break",
    "label": "Letter Head Image"
   },
   {
-   "depends_on": "eval:doc.letter_head_name && doc.source === 'Image'",
    "fieldname": "image",
    "fieldtype": "Attach Image",
    "label": "Image"
   },
   {
-   "depends_on": "eval:doc.source==='HTML' && doc.letter_head_name",
+   "depends_on": "eval:doc.source==='HTML'",
    "fieldname": "header_section",
    "fieldtype": "Section Break",
    "label": "Header"
   },
   {
-   "depends_on": "eval:!doc.__islocal && doc.source==='HTML'",
+   "depends_on": "eval:doc.source==='HTML'",
    "description": "Letter Head in HTML",
    "fieldname": "content",
    "fieldtype": "HTML Editor",
@@ -103,13 +105,13 @@
    "oldfieldtype": "Text Editor"
   },
   {
-   "depends_on": "eval:doc.footer_source==='HTML' && doc.letter_head_name",
+   "depends_on": "eval:doc.footer_source==='HTML'",
    "fieldname": "footer_section",
    "fieldtype": "Section Break",
    "label": "Footer"
   },
   {
-   "depends_on": "eval:!doc.__islocal",
+   "depends_on": "eval:doc.footer_source==='HTML'",
    "description": "Footer will display correctly only in PDF",
    "fieldname": "footer",
    "fieldtype": "HTML Editor",
@@ -125,15 +127,15 @@
   {
    "fieldname": "image_height",
    "fieldtype": "Float",
-   "label": "Image Height"
+   "label": "Image Height (px)"
   },
   {
    "fieldname": "image_width",
    "fieldtype": "Float",
-   "label": "Image Width"
+   "label": "Image Width (px)"
   },
   {
-   "depends_on": "eval:doc.footer_source==='Image' && doc.letter_head_name",
+   "depends_on": "eval:doc.footer_source==='Image'",
    "fieldname": "footer_image_section",
    "fieldtype": "Section Break",
    "label": "Footer Image"
@@ -146,12 +148,12 @@
   {
    "fieldname": "footer_image_height",
    "fieldtype": "Float",
-   "label": "Image Height"
+   "label": "Image Height (px)"
   },
   {
    "fieldname": "footer_image_width",
    "fieldtype": "Float",
-   "label": "Image Width"
+   "label": "Image Width (px)"
   },
   {
    "fieldname": "footer_align",
@@ -160,22 +162,20 @@
    "options": "Left\nRight\nCenter"
   },
   {
-   "default": "HTML",
-   "depends_on": "letter_head_name",
    "fieldname": "footer_source",
    "fieldtype": "Select",
    "label": "Footer Based On",
    "options": "Image\nHTML"
   },
   {
-   "depends_on": "eval:!doc.__islocal && doc.source==='HTML'",
+   "depends_on": "eval:doc.source==='HTML'",
    "fieldname": "header_script",
    "fieldtype": "Code",
    "label": "Header Script",
    "options": "Javascript"
   },
   {
-   "depends_on": "eval:!doc.__islocal && doc.footer_source==='HTML'",
+   "depends_on": "eval:doc.footer_source==='HTML'",
    "fieldname": "footer_script",
    "fieldtype": "Code",
    "label": "Footer Script",
@@ -183,7 +183,8 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval: doc.header_script || doc.footer_script",
+   "collapsible_depends_on": "eval:doc.header_script || doc.footer_script",
+   "depends_on": "eval:doc.source === 'HTML' || doc.footer_source === 'HTML'",
    "fieldname": "scripts_section",
    "fieldtype": "Section Break",
    "label": "Scripts"
@@ -193,6 +194,45 @@
    "fieldtype": "HTML",
    "label": "Instructions",
    "read_only": 1
+  },
+  {
+   "default": "No",
+   "fieldname": "standard",
+   "fieldtype": "Select",
+   "label": "Standard",
+   "options": "No\nYes",
+   "reqd": 1
+  },
+  {
+   "default": "DocType",
+   "fieldname": "letter_head_for",
+   "fieldtype": "Select",
+   "label": "Letter Head For",
+   "options": "DocType\nReport",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval: doc.standard == \"Yes\"",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "mandatory_depends_on": "eval: doc.standard == \"Yes\"",
+   "options": "Module Def"
+  },
+  {
+   "fieldname": "column_break_dpzk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_kfvf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.source === 'HTML'",
+   "fieldname": "custom_css",
+   "fieldtype": "Code",
+   "label": "Custom CSS",
+   "options": "CSS"
   }
  ],
  "icon": "fa fa-font",
@@ -200,7 +240,7 @@
  "links": [],
  "make_attachments_public": 1,
  "max_attachments": 3,
- "modified": "2024-04-12 10:30:25.793932",
+ "modified": "2026-05-02 10:37:15.370451",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
@@ -223,6 +263,7 @@
    "role": "Desk User"
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

@@ -1,7 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.core.doctype.data_import.importer import Importer
+from frappe.core.doctype.data_import.importer import Importer, build_fields_dict_for_column_matching
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import format_duration, getdate
@@ -145,6 +145,22 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(updated_doc.table_field_1[0].name, existing_doc.table_field_1[0].name)
 		self.assertEqual(updated_doc.table_field_1[0].child_description, "child description")
 		self.assertEqual(updated_doc.table_field_1_again[0].child_title, "child title again")
+
+	def test_data_import_without_label(self):
+		"""Test fallback to fieldname when label is not set for a table."""
+
+		meta = frappe.get_meta(doctype_name)
+		table_field = meta.get_field("table_field_1")
+		original_label = table_field.label
+		table_field.label = None
+		fields_dict = build_fields_dict_for_column_matching(doctype_name)
+		expected_key = "Child Title (table_field_1)"
+		self.assertIn(
+			expected_key, fields_dict, f"Fallback failed: '{expected_key}' not found in mapping dict"
+		)
+		expected_id_key = "ID (table_field_1)"
+		self.assertIn(expected_id_key, fields_dict, "ID fallback failed")
+		table_field.label = original_label  # maintain sanity in test env
 
 	def get_importer(self, doctype, import_file, update=False, use_sniffer=False):
 		data_import = frappe.new_doc("Data Import")

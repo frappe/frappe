@@ -4,6 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe.query_builder.utils import DocType
+from frappe.utils import has_common
 
 
 class CustomHTMLBlock(Document):
@@ -23,11 +24,18 @@ class CustomHTMLBlock(Document):
 		style: DF.Code | None
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		self.validate_private()
+
+	def validate_private(self):
+		if not has_common(frappe.get_roles(), ["Administrator", "System Manager", "Workspace Manager"]):
+			self.private = 1
 
 
 @frappe.whitelist()
-def get_custom_blocks_for_user(doctype, txt, searchfield, start, page_len, filters):
+def get_custom_blocks_for_user(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict | str | list
+):
 	# return logged in users private blocks and all public blocks
 	customHTMLBlock = DocType("Custom HTML Block")
 

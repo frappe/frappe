@@ -30,7 +30,14 @@ class FileUploader {
 	} = {}) {
 		frm && frm.attachments.max_reached(true);
 
-		this.can_toggle_private = frappe.utils.can_upload_public_files();
+		if (allow_toggle_private === undefined) {
+			allow_toggle_private = true;
+		}
+
+		allow_toggle_private = Boolean(
+			allow_toggle_private && frappe.utils.can_upload_public_files()
+		);
+		this.can_toggle_private = allow_toggle_private;
 
 		if (!wrapper) {
 			this.make_dialog(dialog_title);
@@ -144,6 +151,7 @@ class FileUploader {
 		const dialog_opts = {
 			title: title || __("Upload"),
 			primary_action_label: __("Upload"),
+			primary_action_loading_label: __("Uploading"),
 			primary_action: () => this.upload_files(),
 			on_page_show: () => {
 				this.uploader.wrapper_ready = true;

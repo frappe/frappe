@@ -39,6 +39,8 @@
   "condition_section",
   "condition_description",
   "condition_json",
+  "dynamic_filters_section",
+  "dynamic_filters_json",
   "section_break_3",
   "list_setting_message",
   "show_list",
@@ -424,12 +426,22 @@
   {
    "fieldname": "column_break_hhec",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dynamic_filters_json",
+   "fieldtype": "JSON",
+   "label": "Dynamic Filters JSON"
+  },
+  {
+   "fieldname": "dynamic_filters_section",
+   "fieldtype": "Section Break",
+   "label": "Dynamic Filters"
   }
  ],
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2025-12-12 16:29:35.806107",
+ "modified": "2026-02-13 19:59:19.807594",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

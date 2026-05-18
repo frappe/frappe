@@ -12,6 +12,7 @@ import frappe.utils
 from frappe import _
 from frappe.apps import get_default_path
 from frappe.utils.password import get_decrypted_password
+from frappe.website.utils import get_home_page
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.user.user import User
@@ -188,7 +189,7 @@ def get_info_via_oauth(provider: str, code: str, decoder: Callable | None = None
 			email_dict = next(filter(lambda x: x.get("primary"), emails))
 			info["email"] = email_dict.get("email")
 
-	if not (info.get("email_verified") or info.get("email")):
+	if not (info.get("email_verified") or get_email(info)):
 		frappe.throw(_("Email not verified with {0}").format(provider.title()))
 
 	return info
@@ -331,7 +332,7 @@ def update_oauth_user(user: str, data: dict, provider: str):
 
 
 def get_first_name(data: dict) -> str:
-	return data.get("first_name") or data.get("given_name") or data.get("name")
+	return data.get("first_name") or data.get("given_name") or data.get("name") or data.get("login")
 
 
 def get_last_name(data: dict) -> str:
@@ -347,6 +348,7 @@ def redirect_post_login(desk_user: bool, redirect_to: str | None = None, provide
 
 	if not redirect_to:
 		desk_uri = "/desk/workspace" if provider == "facebook" else get_default_path()
-		redirect_to = frappe.utils.get_url(desk_uri if desk_user else "/me")
+		website_uri = get_default_path() or get_home_page() or "/me"
+		redirect_to = frappe.utils.get_url(desk_uri if desk_user else website_uri)
 
 	frappe.local.response["location"] = redirect_to

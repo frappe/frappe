@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.utils import unique
@@ -33,7 +34,7 @@ def check_user_tags(dt):
 
 
 @frappe.whitelist()
-def add_tag(tag, dt, dn, color=None):
+def add_tag(tag: str, dt: str, dn: str, color: str | None = None):
 	"adds a new tag to a record, and creates the Tag master"
 	DocTags(dt).add(dn, tag)
 
@@ -41,8 +42,12 @@ def add_tag(tag, dt, dn, color=None):
 
 
 @frappe.whitelist()
-def add_tags(tags, dt, docs, color=None):
+def add_tags(tags: str | list[str], dt: str, docs: str | list[str], color: str | None = None):
 	"adds a new tag to a record, and creates the Tag master"
+
+	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)
+
 	tags = frappe.parse_json(tags)
 	docs = frappe.parse_json(docs)
 	for doc in docs:
@@ -51,20 +56,20 @@ def add_tags(tags, dt, docs, color=None):
 
 
 @frappe.whitelist()
-def remove_tag(tag, dt, dn):
+def remove_tag(tag: str, dt: str, dn: str):
 	"removes tag from the record"
 	DocTags(dt).remove(dn, tag)
 
 
 @frappe.whitelist()
-def get_tagged_docs(doctype, tag):
+def get_tagged_docs(doctype: str, tag: str):
 	frappe.has_permission(doctype, throw=True)
 	doctype = DocType(doctype)
 	return (frappe.qb.from_(doctype).where(doctype._user_tags.like(tag)).select(doctype.name)).run()
 
 
 @frappe.whitelist()
-def get_tags(doctype, txt):
+def get_tags(doctype: str, txt: str):
 	tag = frappe.get_list("Tag", filters=[["name", "like", f"%{txt}%"]])
 	tags = [t.name for t in tag]
 
@@ -176,7 +181,7 @@ def update_tags(doc, tags):
 
 
 @frappe.whitelist()
-def get_documents_for_tag(tag):
+def get_documents_for_tag(tag: str):
 	"""Search for given text in Tag Link.
 
 	:param tag: tag to be searched

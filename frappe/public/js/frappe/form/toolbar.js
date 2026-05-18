@@ -200,17 +200,27 @@ frappe.ui.form.Toolbar = class Toolbar {
 			}
 		});
 	}
+
 	setup_editable_title(element) {
 		let me = this;
 
-		if (me.is_title_editable()) {
-			$(element).tooltip({
-				delay: { show: 100, hide: 100 },
-				trigger: "hover",
-			});
-			$(element).addClass("pointer");
+		if (me.is_title_editable() || me.can_rename()) {
+			let edit_icon = this.page.add_action_icon(
+				"square-pen",
+				() => {
+					me.setup_editable_title_click_event(element);
+				},
+				"",
+				__("Edit")
+			);
+			edit_icon.css("background-color", "transparent");
+			edit_icon.addClass("p-0");
+			element.append(edit_icon);
 		}
+	}
 
+	setup_editable_title_click_event(element) {
+		let me = this;
 		element.on("click", () => {
 			let fields = [];
 			let docname = me.frm.doc.name;
@@ -292,6 +302,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			}
 		});
 	}
+
 	get_dropdown_menu(label) {
 		return this.page.add_dropdown(label);
 	}
@@ -330,7 +341,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		// Navigate
 		if (!this.frm.is_new() && !this.frm.meta.issingle) {
 			this.page.add_action_icon(
-				"es-line-left-chevron",
+				frappe.utils.is_rtl() ? "es-line-right-chevron" : "es-line-left-chevron",
 				() => {
 					this.frm.navigate_records(1);
 				},
@@ -338,7 +349,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Previous Document")
 			);
 			this.page.add_action_icon(
-				"es-line-right-chevron",
+				frappe.utils.is_rtl() ? "es-line-left-chevron" : "es-line-right-chevron",
 				() => {
 					this.frm.navigate_records(0);
 				},
@@ -351,7 +362,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	make_menu_items() {
 		// Print
 		this.add_discard();
-		this.add_print();
+		this.add_open_sidebar();
 		this.add_email();
 		this.add_rename();
 		this.add_reload();
@@ -384,37 +395,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 				},
 				true
 			);
-		}
-	}
-
-	add_print() {
-		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
-		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
-		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
-
-		if (
-			!frappe.model.is_submittable(this.frm.doc.doctype) ||
-			this.frm.doc.docstatus == 1 ||
-			(allow_print_for_cancelled && this.frm.doc.docstatus == 2) ||
-			(allow_print_for_draft && this.frm.doc.docstatus == 0)
-		) {
-			if (frappe.model.can_print(null, this.frm) && !this.frm.meta.issingle) {
-				this.page.add_menu_item(
-					__("Print"),
-					() => {
-						this.frm.print_doc();
-					},
-					true
-				);
-				this.print_icon = this.page.add_action_icon(
-					"printer",
-					() => {
-						this.frm.print_doc();
-					},
-					"",
-					__("Print")
-				);
-			}
 		}
 	}
 
@@ -482,6 +462,19 @@ frappe.ui.form.Toolbar = class Toolbar {
 				true
 			);
 		}
+	}
+
+	add_open_sidebar() {
+		if (this.page.hide_sidebar) {
+			return;
+		}
+		this.page.add_menu_item(
+			__("Toggle Sidebar"),
+			() => {
+				this.setup_sidebar_toggle(this.frm.sidebar.sidebar.parent());
+			},
+			true
+		);
 	}
 
 	add_reload() {
@@ -637,8 +630,9 @@ frappe.ui.form.Toolbar = class Toolbar {
 		) {
 			let doctype = is_doctype_form ? this.frm.docname : this.frm.doctype;
 			let is_doctype_custom = is_doctype_form ? this.frm.doc.custom : false;
+			let is_core_doctype = frappe.model.core_doctypes_list.includes(doctype);
 
-			if (doctype != "DocType" && !is_doctype_custom && this.frm.meta.issingle === 0) {
+			if (!is_core_doctype && !is_doctype_custom && this.frm.meta.issingle === 0) {
 				this.page.add_menu_item(
 					__("Customize"),
 					() => {
@@ -677,6 +671,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 	can_submit() {
 		return (
+			frappe.model.is_submittable(this.frm.doc.doctype) &&
 			this.get_docstatus() === 0 &&
 			!this.frm.doc.__islocal &&
 			!this.frm.doc.__unsaved &&
@@ -741,6 +736,12 @@ frappe.ui.form.Toolbar = class Toolbar {
 					.then((is_amended) => {
 						if (is_amended) {
 							this.page.clear_actions();
+							let btn = this.page.set_secondary_action(__("Amend"), () => {});
+							btn.prop("disabled", true)
+								.wrap('<span style="display:inline-block"></span>')
+								.parent()
+								.attr("title", __("Already amended as {0}", [is_amended]))
+								.tooltip({ delay: { show: 400, hide: 100 }, trigger: "hover" });
 							return;
 						}
 						this.set_page_actions(status);
@@ -894,6 +895,35 @@ frappe.ui.form.Toolbar = class Toolbar {
 		dialog.show();
 	}
 
+	setup_sidebar_toggle(sidebar_wrapper) {
+		if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
+			this.setup_overlay_sidebar(sidebar_wrapper);
+		} else {
+			sidebar_wrapper.toggle();
+		}
+		$(document.body).trigger("toggleSidebar");
+	}
+
+	setup_overlay_sidebar(sidebar_wrapper) {
+		sidebar_wrapper.find(".close-sidebar").remove();
+		let overlay_sidebar = sidebar_wrapper.find(".overlay-sidebar").addClass("opened");
+		$('<div class="close-sidebar">').hide().appendTo(sidebar_wrapper).fadeIn();
+		let scroll_container = $("html").css("overflow-y", "hidden");
+
+		sidebar_wrapper.find(".close-sidebar").on("click", (e) => this.close_sidebar(e));
+		sidebar_wrapper.on("click", "button:not(.dropdown-toggle)", (e) => this.close_sidebar(e));
+
+		this.close_sidebar = () => {
+			scroll_container.css("overflow-y", "");
+			sidebar_wrapper.find("div.close-sidebar").fadeOut(() => {
+				overlay_sidebar
+					.removeClass("opened")
+					.find(".dropdown-toggle")
+					.removeClass("text-muted");
+			});
+		};
+	}
+
 	follow() {
 		let is_followed = this.frm.get_docinfo().is_document_followed;
 		frappe
@@ -916,7 +946,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	get_follow_text(follow) {
-		if (follow === null) {
+		if (follow == null) {
 			follow = this.frm.get_docinfo().is_document_followed;
 		}
 		return follow ? __("Unfollow") : __("Follow");

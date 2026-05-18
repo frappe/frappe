@@ -32,6 +32,7 @@ from frappe.utils import (
 	get_file_timestamp,
 	get_gravatar,
 	get_link_to_report,
+	get_safe_filters,
 	get_site_info,
 	get_sites,
 	get_url,
@@ -352,6 +353,28 @@ class TestFilters(IntegrationTestCase):
 		link = get_link_to_report(name="ToDo", filters=filters)
 		self.assertIn('creation=["between",["2024-01-01","2024-12-31"]]', link)
 
+	def test_safe_filters_scientific_notation(self):
+		self.assertEqual(get_safe_filters("3E002"), "3E002")
+		self.assertEqual(get_safe_filters("1E5"), "1E5")
+		self.assertEqual(get_safe_filters("2e10"), "2e10")
+		self.assertEqual(get_safe_filters("1.5"), "1.5")
+		self.assertEqual(get_safe_filters("Infinity"), "Infinity")
+		self.assertEqual(get_safe_filters("NaN"), "NaN")
+
+	def test_safe_filters_json(self):
+		self.assertEqual(get_safe_filters('{"name": "ABC"}'), {"name": "ABC"})
+		self.assertEqual(get_safe_filters('[["name", "=", "ABC"]]'), [["name", "=", "ABC"]])
+		# FrappeClient encodes scalar filters via frappe.as_json — must still unwrap
+		self.assertEqual(get_safe_filters('"ABC"'), "ABC")
+		self.assertIsNone(get_safe_filters("null"))
+		self.assertIs(get_safe_filters("true"), True)
+		self.assertIs(get_safe_filters("false"), False)
+
+	def test_safe_filters_non_string(self):
+		self.assertEqual(get_safe_filters({"name": "ABC"}), {"name": "ABC"})
+		self.assertEqual(get_safe_filters([["name", "=", "ABC"]]), [["name", "=", "ABC"]])
+		self.assertIsNone(get_safe_filters(None))
+
 
 class TestMoney(IntegrationTestCase):
 	def test_money_in_words(self):
@@ -508,7 +531,7 @@ class TestHTMLUtils(IntegrationTestCase):
 		sample = """<h1>Hello</h1><p>Para</p><a href="http://test.com">text</a>"""
 		clean = clean_email_html(sample)
 		self.assertTrue("<h1>Hello</h1>" in clean)
-		self.assertTrue('<a href="http://test.com">text</a>' in clean)
+		self.assertTrue('<a href="http://test.com" rel="noopener noreferrer">text</a>' in clean)
 
 	def test_sanitize_html(self):
 		from frappe.utils.html_utils import sanitize_html
@@ -1309,6 +1332,30 @@ class TestTypingValidations(IntegrationTestCase):
 		report.toggle_disable(changed_value)
 		report.toggle_disable(current_value)
 
+	def test_forced_types(self):
+		def func(a, b=None, **kwargs):
+			pass
+
+		lax_types = frappe.whitelist(force_types=False)(func)
+		lax_types(1)  # should run without error
+
+		forced_types = frappe.whitelist(force_types=True)(func)
+		with self.assertRaises(frappe.FrappeTypeError):
+			forced_types(1)
+
+		@frappe.whitelist(force_types=True)
+		def func(a: int, b=None, **kwargs):
+			pass
+
+		with self.assertRaises(frappe.FrappeTypeError):
+			func(1)
+
+		@frappe.whitelist(force_types=True)
+		def func(a: int, b: int | None = None, **kwargs):
+			pass
+
+		func(1)  # should run without error
+
 
 class TestTBSanitization(IntegrationTestCase):
 	def test_traceback_sanitzation(self):
@@ -1655,3 +1702,19 @@ class TestDataUtils(UnitTestCase):
 
 		self.assertEqual(comma_or(["a", "b", "c"]), "'a', 'b' ou 'c'")
 		self.assertEqual(comma_or(["a", "b", "c"], add_quotes=False), "a, b ou c")
+
+
+class TestMsgPrint(UnitTestCase):
+	def tearDown(self) -> None:
+		super().tearDown()
+		frappe.clear_messages()
+
+	def test_msgprint(self):
+		frappe.msgprint("Validate: <script>alert('bounty')</script>")
+		message = frappe.get_message_log()[-1]
+
+		self.assertNotIn("script", message.message)
+
+		frappe.msgprint("<ul><li>abc<li></ul>")
+		message = frappe.get_message_log()[-1]
+		self.assertIn("<ul><li>", message.message)

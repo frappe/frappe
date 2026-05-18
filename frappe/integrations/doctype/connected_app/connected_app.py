@@ -88,7 +88,7 @@ class ConnectedApp(Document):
 		)
 
 	@frappe.whitelist()
-	def initiate_web_application_flow(self, user=None, success_uri=None):
+	def initiate_web_application_flow(self, user: str | None = None, success_uri: str | None = None):
 		"""Return an authorization URL for the user. Save state in Token Cache."""
 		user = user or frappe.session.user
 		oauth = self.get_oauth2_session(user, init=True)
@@ -184,7 +184,7 @@ class ConnectedApp(Document):
 
 
 @frappe.whitelist(methods=["GET"], allow_guest=True)
-def callback(code=None, state=None):
+def callback(code: str | None = None, state: str | None = None):
 	"""Handle client's code.
 
 	Called during the oauthorization flow by the remote oAuth2 server to
@@ -223,7 +223,7 @@ def callback(code=None, state=None):
 
 
 @frappe.whitelist()
-def has_token(connected_app, connected_user=None):
+def has_token(connected_app: str, connected_user: str | None = None):
 	app = frappe.get_doc("Connected App", connected_app)
 	token_cache = app.get_token_cache(connected_user or frappe.session.user)
 	return bool(token_cache and token_cache.get_password("access_token", False))

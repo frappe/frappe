@@ -159,10 +159,13 @@ frappe.ui.form.on("Communication", {
 		d.set_primary_action(__("Relink"), function () {
 			var values = d.get_values();
 			if (values) {
+				let message = values["reference_name"]
+					? __("Are you sure you want to relink this communication to {0}?", [
+							values["reference_name"],
+					  ])
+					: __("Are you sure you want to relink this communication?");
 				frappe.confirm(
-					__("Are you sure you want to relink this communication to {0}?", [
-						values["reference_name"],
-					]),
+					message,
 					function () {
 						d.hide();
 						frappe.call({
@@ -211,8 +214,7 @@ frappe.ui.form.on("Communication", {
 			],
 			primary_action_label: __("Move"),
 			primary_action(values) {
-				d.hide();
-				frappe.call({
+				return frappe.call({
 					method: "frappe.email.inbox.move_email",
 					args: {
 						communication: frm.doc.name,
@@ -220,6 +222,7 @@ frappe.ui.form.on("Communication", {
 					},
 					freeze: true,
 					callback: function () {
+						d.hide();
 						window.history.back();
 					},
 				});

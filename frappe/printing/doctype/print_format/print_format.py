@@ -63,7 +63,6 @@ class PrintFormat(Document):
 	def before_save(self):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
-			self.standard = "No"
 
 	def get_html(self, docname, letterhead=None):
 		return get_html(self.doc_type, docname, self.name, letterhead)
@@ -144,7 +143,7 @@ class PrintFormat(Document):
 	def export_doc(self):
 		from frappe.modules.utils import export_module_json
 
-		return export_module_json(self, self.standard == "Yes", self.module)
+		return export_module_json(self, self.standard == "Yes", self.module, create_init=False)
 
 	def on_trash(self):
 		if self.doc_type:

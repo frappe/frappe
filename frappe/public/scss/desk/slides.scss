@@ -10,14 +10,14 @@
 		height: 18px;
 		width: 18px;
 		border-radius: var(--border-radius-full);
-		border: 1px solid var(--gray-300);
+		border: 1px solid var(--ink-gray-3);
 		margin: 0 var(--margin-xs);
 		background-color: var(--card-bg);
 
 		.slide-step-indicator {
 			height: 6px;
 			width: 6px;
-			background-color: var(--gray-300);
+			background-color: var(--ink-gray-3);
 			border-radius: var(--border-radius-full);
 			// display: none;
 		}
@@ -33,11 +33,11 @@
 
 		&.active {
 			// background-color: var(--primary);
-			border: 1px solid var(--primary);
+			border: 1px solid var(--ink-gray-9);
 
 			.slide-step-indicator {
 				display: block;
-				background-color: var(--primary);
+				background-color: var(--ink-gray-9);
 			}
 		}
 
@@ -52,8 +52,8 @@
 		// }
 
 		&.step-success:not(.active) {
-			background-color: var(--primary);
-			border: 1px solid var(--primary);
+			background-color: var(--ink-gray-9);
+			border: 1px solid var(--ink-gray-9);
 
 			.slide-step-indicator {
 				display: none;
@@ -64,7 +64,7 @@
 
 				.icon use {
 					stroke-width: 2;
-					stroke: var(--white);
+					stroke: var(--ink-gray-1);
 				}
 			}
 		}
@@ -133,4 +133,10 @@
 	.success-state {
 		margin-bottom: var(--margin-lg);
 	}
+}
+
+.toggle-theme-btn {
+	position: absolute;
+	top: var(--margin-lg);
+	right: var(--margin-lg);
 }

@@ -60,12 +60,14 @@
 						class="btn btn-crop muted"
 						@click="emit('toggle_image_cropper')"
 						v-html="frappe.utils.icon('crop', 'md')"
+						:title="__('Crop')"
 					></button>
 					<button
 						v-if="!uploaded && !file.uploading && !file.failed"
 						class="btn muted"
 						@click="emit('remove')"
-						v-html="frappe.utils.icon('delete', 'md')"
+						v-html="frappe.utils.icon('x', 'md')"
+						:title="__('Remove')"
 					></button>
 				</div>
 			</div>
@@ -136,13 +138,6 @@ let allow_toggle_optimize = computed(() => {
 		!uploaded.value &&
 		!props.file.failed
 	);
-});
-
-let allow_toggle_private = computed(() => {
-	if (!frappe.utils.can_upload_public_files()) {
-		return false;
-	}
-	return props.allow_toggle_private;
 });
 
 let show_private_checkbox = computed(() => {

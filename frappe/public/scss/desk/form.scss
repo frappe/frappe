@@ -32,7 +32,7 @@
 	padding: 0 var(--padding-md);
 	.form-section-description {
 		max-width: var(--page-max-width);
-		margin: auto;
+		margin-left: 0;
 		margin-bottom: 10px;
 		@include get_textstyle("base", "regular");
 		color: var(--text-light);
@@ -78,12 +78,15 @@
 		}
 	}
 }
-.section-head,
-.section-body {
-	margin: auto !important;
 
-	body:not(.full-width) & {
-		max-width: var(--page-max-width);
+.std-form-layout {
+	.section-head,
+	.section-body {
+		margin: auto !important;
+
+		body:not(.full-width) & {
+			max-width: var(--page-max-width);
+		}
 	}
 }
 
@@ -172,6 +175,8 @@
 
 		.comment-title {
 			@extend .head-title;
+			font-size: 16px;
+			font-weight: 500;
 		}
 		.comment-count {
 			margin-left: 5px;
@@ -418,6 +423,7 @@
 	margin-top: 4px;
 	margin-bottom: 8px;
 	line-height: 1.6;
+	word-break: break-word;
 }
 
 .form-heatmap {
@@ -455,17 +461,43 @@
 	}
 	margin: auto;
 	padding: 0 15px;
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	gap: 15px;
 
 	h5 {
 		margin: 15px 0px;
 		font-weight: bold;
 	}
-	position: relative;
+
+	.after-save {
+		flex: 1;
+		min-width: 0;
+	}
+
 	.scroll-to-top {
 		position: absolute;
-		height: 28px;
 		right: 15px;
 		bottom: 15px;
+		height: 28px;
+		flex-shrink: 0;
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(10px);
+		transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+		pointer-events: none;
+
+		&.show {
+			position: fixed;
+			right: calc(var(--form-sidebar-width, 277px) + 20px);
+			bottom: 20px;
+			z-index: 1030;
+			opacity: 1;
+			visibility: visible;
+			transform: translateY(0);
+			pointer-events: auto;
+		}
 	}
 }
 
@@ -513,10 +545,10 @@
 	margin-top: var(--margin-sm);
 }
 .form-tabs-sticky-up {
-	top: calc(var(--navbar-height) - 1px);
+	top: calc(var(--navbar-height));
 }
 .form-tabs-sticky-down {
-	top: calc(var(--navbar-height) - 2px);
+	top: calc(var(--navbar-height));
 	&.show-navbar {
 		top: calc(var(--navbar-height) + var(--page-head-height) - 1px);
 	}
@@ -577,18 +609,6 @@
 @media (max-width: map-get($grid-breakpoints, "md")) {
 	.form-section .form-section-heading {
 		margin-top: 10px;
-	}
-}
-
-// mobile
-@media (max-width: map-get($grid-breakpoints, "sm")) {
-	// padding to form section on mobile
-
-	.form-column:not(:last-child) {
-		border-bottom: 1px solid var(--border-color);
-	}
-	.form-column:not(:first-child) {
-		padding-top: var(--padding-md);
 	}
 }
 

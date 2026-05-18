@@ -30,7 +30,7 @@ def get_context(context):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=1000, seconds=60 * 60)
-def send_message(sender, message, subject="Website Query"):
+def send_message(sender: str, message: str, subject: str = "Website Query"):
 	doc = frappe.get_doc("Contact Us Settings", "Contact Us Settings")
 	if doc.is_disabled:
 		return

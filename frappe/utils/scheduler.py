@@ -132,10 +132,9 @@ def enqueue_events_for_site(site: str) -> None:
 def enqueue_events() -> list[str] | None:
 	if schedule_jobs_based_on_activity():
 		enqueued_jobs = []
-		all_jobs = frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*")
+		all_jobs = frappe.get_docs("Scheduled Job Type", filters={"stopped": 0})
 		random.shuffle(all_jobs)
 		for job_type in all_jobs:
-			job_type = frappe.get_doc(doctype="Scheduled Job Type", **job_type)
 			try:
 				if job_type.enqueue():
 					enqueued_jobs.append(job_type.method)

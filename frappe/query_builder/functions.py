@@ -2,7 +2,7 @@ from datetime import time
 from enum import Enum
 
 from pypika.functions import *
-from pypika.terms import Arithmetic, ArithmeticExpression, CustomFunction, Function
+from pypika.terms import Arithmetic, ArithmeticExpression, CustomFunction, Function, Term
 
 import frappe
 from frappe.query_builder.custom import (
@@ -25,8 +25,21 @@ class Concat_ws(Function):
 
 
 class Locate(Function):
-	def __init__(self, *terms, **kwargs):
-		super().__init__("LOCATE", *terms, **kwargs)
+	def __init__(self, needle, haystack, **kwargs):
+		super().__init__("LOCATE", needle, haystack, **kwargs)
+
+
+class Strpos(Function):
+	def __init__(self, needle, haystack, **kwargs):
+		super().__init__("STRPOS", haystack, needle, **kwargs)
+
+
+class Instr(Function):
+	def __init__(self, needle, haystack, **kwargs):
+		super().__init__("INSTR", haystack, needle, **kwargs)
+
+
+Locate = ImportMapper({db_type_is.MARIADB: Locate, db_type_is.POSTGRES: Strpos, db_type_is.SQLITE: Instr})
 
 
 # for backward compatibility
@@ -101,6 +114,47 @@ UnixTimestamp = ImportMapper(
 	{
 		db_type_is.MARIADB: CustomFunction("unix_timestamp", ["date"]),
 		db_type_is.POSTGRES: _PostgresUnixTimestamp,
+	}
+)
+
+
+class _MariaDBJSONExtract(Function):
+	def __init__(self, field, path, **kwargs):
+		super().__init__("JSON_EXTRACT", field, path, **kwargs)
+
+
+class _MariaDBJSONValue(Function):
+	def __init__(self, field, path, **kwargs):
+		super().__init__("JSON_UNQUOTE", _MariaDBJSONExtract(field, path), **kwargs)
+
+
+class _MariaDBJSONContains(Function):
+	def __init__(self, target, candidate, **kwargs):
+		from pypika.terms import JSON
+
+		if not isinstance(candidate, Term):
+			candidate = JSON(candidate)
+		super().__init__("JSON_CONTAINS", target, candidate, **kwargs)
+
+
+JSONExtract = ImportMapper(
+	{
+		db_type_is.MARIADB: _MariaDBJSONExtract,
+		db_type_is.POSTGRES: lambda field, path, **kw: field.get_json_value(path),
+	}
+)
+
+JSONValue = ImportMapper(
+	{
+		db_type_is.MARIADB: _MariaDBJSONValue,
+		db_type_is.POSTGRES: lambda field, path, **kw: field.get_text_value(path),
+	}
+)
+
+JSONContains = ImportMapper(
+	{
+		db_type_is.MARIADB: _MariaDBJSONContains,
+		db_type_is.POSTGRES: lambda target, candidate, **kw: target.contains(candidate),
 	}
 )
 

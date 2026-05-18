@@ -105,6 +105,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 					.concat(this._options)
 					.uniqBy((opt) => opt.value);
 				this.set_selectable_items(this._options);
+				this.$filter_input.trigger("focus");
 			});
 		});
 

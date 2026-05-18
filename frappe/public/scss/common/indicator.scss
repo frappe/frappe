@@ -37,6 +37,7 @@
 	width: 6px;
 	border-radius: 50%;
 	margin-right: 6px;
+	flex-shrink: 0;
 }
 
 .indicator-pill.no-margin::before,

@@ -3,6 +3,7 @@ from typing import ClassVar
 from bs4 import BeautifulSoup
 
 import frappe
+from frappe.utils.data import cint
 from frappe.utils.pdf import get_host_url
 from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
@@ -10,6 +11,7 @@ from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 class Browser:
 	def __init__(self, generator, print_format, html, options):
 		self.is_print_designer = frappe.get_cached_value("Print Format", print_format, "print_designer")
+		self.debug_mode = frappe.conf.developer_mode and bool(frappe.form_dict.get("pdf_debug"))
 		self.browserID = frappe.utils.random_string(10)
 		generator.add_browser(self.browserID)
 		# sets soup from html
@@ -31,7 +33,8 @@ class Browser:
 		# now wait for page to load as we need DOM to generate pdf
 		self.body_page.wait_for_set_content()
 		self.body_pdf = self.body_page.generate_pdf(raw=not self.header_page and not self.footer_page)
-		self.body_page.close()
+		if not self.debug_mode:
+			self.body_page.close()
 		self.update_header_footer_page()
 
 		if self.header_page:
@@ -39,18 +42,23 @@ class Browser:
 				self.header_pdf = self.header_page.get_pdf_from_stream(self.header_page.get_pdf_stream_id())
 			else:
 				self.header_pdf = self.header_page.generate_pdf()
-			self.header_page.close()
+			if not self.debug_mode:
+				self.header_page.close()
 
 		if self.footer_page:
 			if not self.is_footer_dynamic:
 				self.footer_pdf = self.footer_page.get_pdf_from_stream(self.footer_page.get_pdf_stream_id())
 			else:
 				self.footer_pdf = self.footer_page.generate_pdf()
-			self.footer_page.close()
+			if not self.debug_mode:
+				self.footer_page.close()
 
-		self.close()
+		if not self.debug_mode:
+			self.close()
 
 		generator.remove_browser(self.browserID)
+		if self.debug_mode:
+			generator.detach_debug_browser()
 
 	def open(self, generator):
 		from frappe.utils.pdf_generator.cdp_connection import CDPSocketClient

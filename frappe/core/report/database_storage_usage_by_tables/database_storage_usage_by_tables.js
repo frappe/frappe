@@ -25,7 +25,7 @@ frappe.query_reports["Database Storage Usage By Tables"] = {
 					size: "small",
 					primary_action_label: "Optimize",
 					primary_action(values) {
-						frappe.call({
+						return frappe.call({
 							method: "frappe.core.report.database_storage_usage_by_tables.database_storage_usage_by_tables.optimize_doctype",
 							args: {
 								doctype_name: values.doctype_name,
@@ -38,9 +38,9 @@ frappe.query_reports["Database Storage Usage By Tables"] = {
 										)
 									);
 								}
+								d.hide();
 							},
 						});
-						d.hide();
 					},
 				});
 				d.show();

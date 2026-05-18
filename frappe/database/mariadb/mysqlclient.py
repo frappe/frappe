@@ -125,6 +125,8 @@ class MariaDBConnectionUtil:
 			"conv": self.CONVERSION_MAP,
 			"charset": "utf8mb4",
 			"use_unicode": True,
+			"local_infile": False,
+			"multi_statements": False,
 		}
 
 		if self.cur_db_name:
@@ -139,9 +141,6 @@ class MariaDBConnectionUtil:
 
 		if self.password:
 			conn_settings["password"] = self.password
-
-		if frappe.conf.local_infile:
-			conn_settings["local_infile"] = frappe.conf.local_infile
 
 		# Configure SSL settings
 		if frappe.conf.db_ssl_ca:
