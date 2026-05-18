@@ -5,6 +5,7 @@ import orjson
 
 import frappe
 from frappe import _
+from frappe.desk.form.load import getdoctype
 from frappe.model.document import Document
 from frappe.permissions import get_role_permissions, has_user_permission
 
@@ -128,8 +129,6 @@ def get_templates(
 		frappe.throw(_("Not permitted to create {0}").format(reference_doctype), frappe.PermissionError)
 
 	if with_meta:
-		from frappe.desk.form.load import getdoctype
-
 		getdoctype("Document Template")
 
 	all_templates = frappe.get_all(
@@ -172,12 +171,9 @@ def _has_user_permissions_on_template_data(template_data: str, reference_doctype
 	role permissions *and* user permissions (link-field restrictions) are both
 	evaluated, matching the same path taken for real documents.
 	"""
-	try:
-		data = orjson.loads(template_data)
-		temp_doc = frappe.get_doc({"doctype": reference_doctype, "__islocal": 1, **data})
-		return has_user_permission(temp_doc, user=user, strict=False)
-	except Exception:
-		return True
+	data = orjson.loads(template_data)
+	temp_doc = frappe.get_doc({"doctype": reference_doctype, "__islocal": 1, **data})
+	return has_user_permission(temp_doc, user=user, strict=False)
 
 
 def _is_system_manager(user: str) -> bool:
@@ -216,7 +212,7 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 
 	doctype_list = ", ".join(frappe.db.escape(dt) for dt in creatable)
 	condition = f"`tabDocument Template`.`reference_doctype` IN ({doctype_list})"
-	if "System Manager" not in frappe.get_roles(user):
+	if not _is_system_manager(user):
 		condition += f" AND (`tabDocument Template`.`private` = 0 OR `tabDocument Template`.`owner` = {frappe.db.escape(user)})"
 
 	return condition
@@ -241,13 +237,16 @@ def has_permission(doc, user=None, ptype=None) -> bool:
 	if not frappe.has_permission(doc.reference_doctype, ptype="create", user=user):
 		return False
 
-	if ptype == "create" or user == doc.owner:
+	if ptype == "create":
+		return True
+
+	if not _has_user_permissions_on_template_data(doc.data, doc.reference_doctype, user):
+		return False
+
+	if doc.owner == user:
 		return True
 
 	if doc.private and not _is_system_manager(user):
-		return False
-
-	if not _has_user_permissions_on_template_data(doc.data, doc.reference_doctype, user):
 		return False
 
 	return True
