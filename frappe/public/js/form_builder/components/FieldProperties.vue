@@ -10,6 +10,7 @@ let search_text = ref("");
 let args = ref({});
 
 let docfield_df = computed(() => {
+	let selected_fieldtype = store.form.selected_field?.fieldtype;
 	let fields = store.get_docfields.filter((df) => {
 		if (in_list(frappe.model.layout_fields, df.fieldtype) || df.hidden) {
 			return false;
@@ -21,19 +22,13 @@ let docfield_df = computed(() => {
 			return false;
 		}
 
+		// Centralized fieldtype-vs-property applicability check.
+		if (!frappe.model.is_property_applicable(df.fieldname, selected_fieldtype)) {
+			return false;
+		}
+
 		if (df.fieldname === "fetch_from") {
 			df.fieldtype = "Fetch From";
-		}
-
-		if (
-			["fetch_from", "fetch_if_empty"].includes(df.fieldname) &&
-			in_list(frappe.model.no_value_type, store.form.selected_field.fieldtype)
-		) {
-			return false;
-		}
-
-		if (df.fieldname === "reqd" && store.form.selected_field.fieldtype === "Check") {
-			return false;
 		}
 
 		if (df.fieldname === "options") {
@@ -69,11 +64,6 @@ let docfield_df = computed(() => {
 			};
 			const fieldtype = store.form.selected_field?.fieldtype;
 			df.description = FIELD_DESCRIPTIONS[fieldtype] || "";
-		}
-
-		// show link_filters docfield only when link field is selected
-		if (df.fieldname === "link_filters" && store.form.selected_field.fieldtype !== "Link") {
-			return false;
 		}
 
 		if (search_text.value) {

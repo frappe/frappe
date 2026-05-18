@@ -61,6 +61,30 @@ $.extend(frappe.model, {
 
 	layout_fields: ["Section Break", "Column Break", "Tab Break", "Fold"],
 
+	// no DB column, no value — display-only fieldtypes
+	display_fieldtypes: [
+		"Section Break",
+		"Column Break",
+		"Tab Break",
+		"Fold",
+		"HTML",
+		"Button",
+		"Image",
+		"Heading",
+	],
+
+	// TEXT/LONGTEXT columns — cannot be DB-indexed or made unique
+	long_text_fields: [
+		"Small Text",
+		"Text",
+		"Long Text",
+		"Text Editor",
+		"HTML Editor",
+		"Markdown Editor",
+		"Code",
+		"JSON",
+	],
+
 	std_fields_list: [
 		"name",
 		"owner",
@@ -852,6 +876,299 @@ $.extend(frappe.model, {
 		});
 	},
 });
+
+// Rules used by the form builder to hide properties that don't apply to a fieldtype.
+// Each entry uses `allow` (only these fieldtypes show the property) or `deny`
+// (these fieldtypes hide it). Existing depends_on gates in DocField are still
+// honoured — these rules are additive.
+(function () {
+	const display = frappe.model.display_fieldtypes; // no-value display
+	const no_value = frappe.model.no_value_type; // display + Table, Table MultiSelect
+	const layout = frappe.model.layout_fields;
+	const long_text = frappe.model.long_text_fields;
+	const table = frappe.model.table_fields;
+
+	// scalar fieldtypes that map to a real DB column suitable for indexing
+	const indexable = [
+		"Data",
+		"Link",
+		"Dynamic Link",
+		"Select",
+		"Autocomplete",
+		"Read Only",
+		"Int",
+		"Float",
+		"Currency",
+		"Percent",
+		"Check",
+		"Date",
+		"Datetime",
+		"Time",
+		"Duration",
+		"Rating",
+		"Phone",
+		"Color",
+		"Icon",
+		"Barcode",
+		"Password",
+	];
+
+	// fieldtypes that store text content (where escaping/XSS toggles matter)
+	const text_storing = [
+		"Data",
+		"Small Text",
+		"Text",
+		"Long Text",
+		"Text Editor",
+		"HTML Editor",
+		"Markdown Editor",
+		"Code",
+		"JSON",
+		"Read Only",
+	];
+
+	// fieldtypes whose controls render a placeholder
+	const placeholder_inputs = [
+		"Data",
+		"Small Text",
+		"Text",
+		"Long Text",
+		"Text Editor",
+		"Code",
+		"Markdown Editor",
+		"HTML Editor",
+		"Int",
+		"Float",
+		"Currency",
+		"Percent",
+		"Password",
+		"Phone",
+		"Select",
+		"Autocomplete",
+		"Link",
+		"Dynamic Link",
+		"Barcode",
+		"Duration",
+	];
+
+	// fieldtypes whose controls can grow vertically
+	const multiline_controls = [
+		"Small Text",
+		"Text",
+		"Long Text",
+		"Text Editor",
+		"HTML Editor",
+		"Markdown Editor",
+		"Code",
+		"JSON",
+		"Geolocation",
+		"Signature",
+		"HTML",
+	];
+
+	// fieldtypes whose values render meaningfully in an activity timeline
+	const timeline_capable = [
+		"Data",
+		"Small Text",
+		"Text",
+		"Link",
+		"Dynamic Link",
+		"Select",
+		"Autocomplete",
+		"Int",
+		"Float",
+		"Currency",
+		"Percent",
+		"Date",
+		"Datetime",
+		"Time",
+		"Duration",
+		"Check",
+		"Rating",
+		"Phone",
+		"Read Only",
+		"Barcode",
+	];
+
+	// fieldtypes that use `options` for something meaningful in the form builder
+	const options_consumers = [
+		"Select",
+		"Link",
+		"Dynamic Link",
+		"Table",
+		"Table MultiSelect",
+		"Autocomplete",
+		"Data",
+		"Currency",
+		"Code",
+		"HTML",
+		"Image",
+		"Attach",
+		"Attach Image",
+		"Button",
+		"Phone",
+		"Read Only",
+	];
+
+	frappe.model.field_property_rules = {
+		// indexing / constraints
+		search_index: { allow: indexable },
+		unique: { allow: indexable.filter((t) => !["Check", "Rating"].includes(t)) },
+		is_virtual: { deny: [...no_value, "Link"] },
+
+		// visibility / display toggles
+		bold: { deny: display },
+		in_list_view: { deny: [...no_value, "Attach Image"] },
+		in_standard_filter: {
+			deny: [...no_value, ...long_text, "Password", "Signature", "Geolocation"],
+		},
+		in_filter: {
+			deny: [...no_value, ...long_text, "Password", "Signature", "Geolocation"],
+		},
+		in_preview: { deny: [...display, ...table] },
+		sticky: { deny: [...display, ...table] },
+		in_global_search: {
+			allow: [
+				"Data",
+				"Select",
+				"Text",
+				"Small Text",
+				"Long Text",
+				"Text Editor",
+				"Link",
+				"Dynamic Link",
+				"Read Only",
+				"Heading",
+				"Table",
+			],
+		},
+		show_on_timeline: { allow: timeline_capable },
+
+		// data / behaviour
+		read_only: { deny: no_value },
+		read_only_depends_on: { deny: no_value },
+		mandatory_depends_on: { deny: [...no_value, "Check"] },
+		reqd: { deny: [...no_value, "Check"] },
+		no_copy: { deny: no_value },
+		set_only_once: { deny: no_value },
+		default: {
+			deny: [...no_value, "Signature", "Geolocation", "Attach", "Attach Image", "Password"],
+		},
+		fetch_from: { deny: no_value },
+		fetch_if_empty: { deny: no_value },
+		translatable: { allow: ["Data", "Select", "Text", "Small Text", "Text Editor"] },
+		ignore_xss_filter: { allow: text_storing },
+		ignore_user_permissions: { allow: ["Link", "Dynamic Link", "Table MultiSelect"] },
+		remember_last_selected_value: { allow: ["Link"] },
+		allow_bulk_edit: { allow: ["Table"] },
+		make_attachment_public: { allow: ["Attach", "Attach Image"] },
+		link_filters: { allow: ["Link"] },
+
+		// print / report / import
+		print_hide: { deny: no_value },
+		print_hide_if_no_value: {
+			allow: ["Int", "Float", "Currency", "Percent"],
+		},
+		report_hide: { deny: no_value },
+		in_import_template: { deny: no_value },
+		print_width: { deny: display },
+		width: { deny: display.filter((t) => t !== "Column Break") },
+
+		// permissions
+		permlevel: { deny: display },
+		allow_in_quick_entry: {
+			deny: [...display, ...table, "Signature", "Geolocation"],
+		},
+		allow_on_submit: { deny: no_value },
+
+		// layout-specific
+		collapsible: { allow: ["Section Break"] },
+		collapsible_depends_on: { allow: ["Section Break"] },
+		hide_border: { allow: ["Section Break"] },
+		show_dashboard: { allow: ["Tab Break"] },
+		button_color: { allow: ["Button"] },
+
+		// numeric
+		precision: { allow: ["Float", "Currency", "Percent"] },
+		non_negative: { allow: ["Int", "Float", "Currency", "Percent"] },
+		not_nullable: {
+			deny: [
+				...no_value,
+				"Check",
+				"Currency",
+				"Float",
+				"Int",
+				"Percent",
+				"Rating",
+				"Select",
+			],
+		},
+
+		// datetime
+		hide_days: { allow: ["Duration"] },
+		hide_seconds: { allow: ["Duration"] },
+
+		// data-storage scoped
+		length: {
+			allow: [
+				"Data",
+				"Link",
+				"Dynamic Link",
+				"Password",
+				"Select",
+				"Read Only",
+				"Attach",
+				"Attach Image",
+				"Int",
+				"Float",
+				"Currency",
+				"Percent",
+			],
+		},
+		mask: {
+			allow: [
+				"Data",
+				"Date",
+				"Datetime",
+				"Duration",
+				"Dynamic Link",
+				"Currency",
+				"Float",
+				"Int",
+				"Link",
+				"Password",
+				"Percent",
+				"Phone",
+				"Read Only",
+				"Select",
+			],
+		},
+		alignment: { allow: ["Data", "Int", "Float", "Currency", "Percent"] },
+		sort_options: { allow: ["Select"] },
+
+		// rendering
+		placeholder: { allow: placeholder_inputs },
+		max_height: { allow: multiline_controls },
+		columns: { deny: no_value },
+		description: { deny: ["Column Break", "Tab Break", "Fold", "Button", "Image"] },
+		show_description_on_click: { deny: no_value },
+		documentation_url: {
+			deny: ["Tab Break", "Section Break", "Column Break", "Button", "HTML"],
+		},
+		options: {
+			allow: options_consumers,
+		},
+	};
+})();
+
+frappe.model.is_property_applicable = function (property, fieldtype) {
+	if (!fieldtype) return true;
+	const rule = frappe.model.field_property_rules[property];
+	if (!rule) return true;
+	if (rule.allow) return rule.allow.includes(fieldtype);
+	if (rule.deny) return !rule.deny.includes(fieldtype);
+	return true;
+};
 
 // legacy
 frappe.get_doc = frappe.model.get_doc;
