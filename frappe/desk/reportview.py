@@ -672,7 +672,7 @@ def _aggregate_field_df(doctype: str, fieldname: str):
 def _aggregate_count_info(doctype: str, _fieldname: str) -> frappe._dict:
 	return frappe._dict(
 		{
-			"label": _("Count of {0}").format(_(doctype)),
+			"label": _("Count"),
 			"fieldtype": "Int",
 			"translatable": False,
 			"options": None,
