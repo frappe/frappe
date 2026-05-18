@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import functools
 import hashlib
 import inspect
 import itertools
@@ -8,7 +9,6 @@ import time
 import warnings
 from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
-from functools import lru_cache, wraps
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Literal, Optional, Self, TypeAlias, Union, overload, override
 
@@ -46,19 +46,17 @@ _POSITIONAL_PARAM_KINDS = frozenset(
 )
 
 
-@lru_cache
-def _hook_handler_accepts_method(f: "Callable") -> bool:
-	"""Return True if the hook handler expects the `method` argument."""
-	params, _ = frappe._get_cached_signature_params(f)
-	count = 0
-	for p in params.values():
-		kind = p.kind
-		if kind == inspect.Parameter.VAR_POSITIONAL:
-			return True
-		if kind in _POSITIONAL_PARAM_KINDS:
-			count += 1
-			if count > 1:
-				return True
+@functools.cache
+def _accepts_method_argument(f: Callable) -> bool:
+	"""Return True if the doc event handler expects the `method` argument."""
+	signature = inspect.signature(f)
+	kinds = [p.kind for p in signature.parameters.values()]
+	if any(kind == inspect.Parameter.VAR_POSITIONAL for kind in kinds):
+		return True
+
+	if sum(1 for kind in kinds if kind in _POSITIONAL_PARAM_KINDS) > 1:
+		return True
+
 	return False
 
 
@@ -1878,11 +1876,11 @@ class Document(BaseDocument):
 				for f in hooks:
 					try:
 						frappe.db._disable_transaction_control += 1
-						# Allow hook handlers to be defined as `handler(doc)` or `handler(doc, method)`.
-						if _hook_handler_accepts_method(f):
-							add_to_return_value(self, f(self, method, *args, **kwargs))
+						# Allow handlers to be defined without method arg, e.g. `handler(doc)`
+						if not args and not _accepts_method_argument(f):
+							add_to_return_value(self, f(self, **kwargs))
 						else:
-							add_to_return_value(self, f(self, *args, **kwargs))
+							add_to_return_value(self, f(self, method, *args, **kwargs))
 					finally:
 						frappe.db._disable_transaction_control -= 1
 
