@@ -6,7 +6,7 @@
  *
  * - For new (unsaved) documents a "Templates" button is added next to the
  *   primary action and opens the manage dialog.
- * - For saved documents "Templates" is appended to the three-dot (⋮) menu.
+ * - For saved documents "Templates" is appended to the three-dot menu.
  *
  * The manage dialog lists templates accessible to the user (server-side
  * filtered) and lets them save the current form values as a new template.
@@ -35,7 +35,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		this.$btn.toggleClass("hide", !this.frm.doc.__islocal);
 	}
 
-	add_template_menu_item() {
+	add_menu_item() {
 		if (this.frm.doc.__islocal) return;
 		this.page.add_menu_item(__("Templates"), () => this.show_manage_dialog(), true);
 	}
@@ -107,9 +107,10 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		if (!frappe.get_meta("Document Template")) {
 			args.with_meta = true;
 		}
-		return frappe
-			.xcall("frappe.desk.doctype.document_template.document_template.get_templates", args)
-			.then((data) => data || {});
+		return frappe.xcall(
+			"frappe.desk.doctype.document_template.document_template.get_templates",
+			args
+		);
 	}
 
 	_load_manage_page() {
@@ -408,11 +409,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		}
 
 		const $actions = $('<div class="dt-manage-row-actions"></div>');
-		const perm_doc = {
-			doctype: "Document Template",
-			name: template.name,
-			owner: template.owner,
-		};
+		const perm_doc = { doctype: "Document Template", ...template };
 		const can_write = frappe.perm.has_perm("Document Template", 0, "write", perm_doc);
 		const can_delete = frappe.perm.has_perm("Document Template", 0, "delete", perm_doc);
 
