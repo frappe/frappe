@@ -640,7 +640,7 @@ def parse_field(field: str | dict) -> tuple[str | None, str]:
 	return None, key.strip("`")
 
 
-def _parse_aggregate_field(field: str | dict) -> tuple[str, str]:
+def parse_aggregate_field(field: str | dict) -> tuple[str, str]:
 	"""
 	Extract an aggregate function name (uppercase) and target SQL expression from an aggregate field.
 
@@ -669,7 +669,8 @@ def _aggregate_field_df(doctype: str, fieldname: str):
 	return frappe.get_meta(doctype).get_field(fieldname)
 
 
-def _aggregate_count_info(doctype: str, _fieldname: str) -> frappe._dict:
+# NOTE: Parameter kept for handler signature consistency.
+def _aggregate_count_column_info(doctype: str, fieldname: str) -> dict:
 	return frappe._dict(
 		{
 			"label": _("Count"),
@@ -680,12 +681,13 @@ def _aggregate_count_info(doctype: str, _fieldname: str) -> frappe._dict:
 	)
 
 
-def _aggregate_sum_info(doctype: str, fieldname: str) -> frappe._dict:
+def _aggregate_sum_column_info(doctype: str, fieldname: str) -> dict:
 	df = _aggregate_field_df(doctype, fieldname)
 	label = _(df.label) if df and df.label else _(frappe.unscrub(fieldname))
+
 	return frappe._dict(
 		{
-			"label": _("Sum of {0}").format(label),
+			"label": _("{0} of {1}").format(_("Sum"), label),
 			"fieldtype": df.fieldtype if df else "Float",
 			"translatable": False,
 			"options": df.options if df else None,
@@ -693,14 +695,15 @@ def _aggregate_sum_info(doctype: str, fieldname: str) -> frappe._dict:
 	)
 
 
-def _aggregate_avg_info(doctype: str, fieldname: str) -> frappe._dict:
+def _aggregate_avg_column_info(doctype: str, fieldname: str) -> dict:
 	df = _aggregate_field_df(doctype, fieldname)
 	label = _(df.label) if df and df.label else _(frappe.unscrub(fieldname))
 	# average of Int can be a Float
 	fieldtype = "Float" if not df or df.fieldtype == "Int" else df.fieldtype
+
 	return frappe._dict(
 		{
-			"label": _("Average of {0}").format(label),
+			"label": _("{0} of {1}").format(_("Average"), label),
 			"fieldtype": fieldtype,
 			"translatable": False,
 			"options": df.options if df else None,
@@ -710,9 +713,9 @@ def _aggregate_avg_info(doctype: str, fieldname: str) -> frappe._dict:
 
 # Register new aggregate function handlers here.
 AGGREGATE_FIELD_INFO_HANDLERS = {
-	"COUNT": _aggregate_count_info,
-	"SUM": _aggregate_sum_info,
-	"AVG": _aggregate_avg_info,
+	"COUNT": _aggregate_count_column_info,
+	"SUM": _aggregate_sum_column_info,
+	"AVG": _aggregate_avg_column_info,
 }
 
 
@@ -735,14 +738,14 @@ def get_aggregate_field_info(field: str | dict, parent_doctype: str) -> dict:
 	}
 	```
 	"""
-	function, target = _parse_aggregate_field(field)
-	doctype, fieldname = parse_field(target)
+	function, aggregate_on = parse_aggregate_field(field)
+	doctype, fieldname = parse_field(aggregate_on)
 
 	doctype = doctype or parent_doctype
 
 	field_info = frappe._dict(
 		{
-			"label": function.capitalize(),
+			"label": _(function.capitalize()),
 			"fieldtype": "Data",
 			"translatable": False,
 			"options": None,
