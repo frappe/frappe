@@ -494,21 +494,21 @@ def get_report_module_dotted_path(module, report_name):
 	)
 
 
-def get_group_by_field(args: dict) -> dict:
+def get_group_by_field(group_by_args: dict) -> dict:
 	"""
 	Build the group by field based on the aggregate function and aggregate on field.
 	"""
-	func_name = args["aggregate_function"].upper()
-	aggregate_on = "*" if func_name == "COUNT" else args["aggregate_on"]
+	func_name = group_by_args["aggregate_function"].upper()
+	aggregate_on = "*" if func_name == "COUNT" else group_by_args["aggregate_on"]
 
 	return {func_name: aggregate_on, "as": DEFAULT_AGGREGATE_FIELDNAME}
 
 
-def get_group_by_column_field(args: dict, parent_doctype: str) -> dict:
+def get_group_by_column_field(group_by_args: dict, parent_doctype: str) -> dict:
 	"""
 	Build full field info (fieldname, label, fieldtype, options) for the aggregate column.
 	"""
-	field = get_group_by_field(args)
+	field = get_group_by_field(group_by_args)
 
 	return get_aggregate_field_info(field, parent_doctype)
 
