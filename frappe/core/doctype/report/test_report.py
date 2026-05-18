@@ -3,7 +3,6 @@
 
 import json
 import os
-import textwrap
 
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
