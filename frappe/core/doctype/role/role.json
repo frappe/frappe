@@ -14,7 +14,11 @@
   "disabled",
   "is_custom",
   "desk_access",
-  "two_factor_auth"
+  "two_factor_auth",
+  "users_tab",
+  "users_html",
+  "permissions_tab",
+  "permissions_html"
  ],
  "fields": [
   {
@@ -68,6 +72,26 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Is Custom"
+  },
+  {
+   "fieldname": "users_tab",
+   "fieldtype": "Tab Break",
+   "label": "Users"
+  },
+  {
+   "fieldname": "users_html",
+   "fieldtype": "HTML",
+   "label": "Users HTML"
+  },
+  {
+   "fieldname": "permissions_tab",
+   "fieldtype": "Tab Break",
+   "label": "Permissions"
+  },
+  {
+   "fieldname": "permissions_html",
+   "fieldtype": "HTML",
+   "label": "Permissions HTML"
   }
  ],
  "icon": "fa fa-bookmark",
