@@ -295,7 +295,7 @@ class Report(Document):
 			self.ref_doctype,
 			fields=[
 				get_group_by_field(group_by_args)
-				if fieldname == "_aggregate_column" and group_by_args
+				if fieldname == DEFAULT_AGGREGATE_FIELDNAME and group_by_args
 				else Report._format([doctype, fieldname])
 				for fieldname, doctype in columns
 			],
@@ -372,7 +372,7 @@ class Report(Document):
 		if params.get("group_by"):
 			group_by_args = frappe._dict(params["group_by"])
 			group_by = group_by_args["group_by"]
-			order_by = "_aggregate_column desc"
+			order_by = f"{DEFAULT_AGGREGATE_FIELDNAME} desc"
 
 		return order_by, group_by, group_by_args
 
@@ -384,7 +384,7 @@ class Report(Document):
 
 			if df := meta.get_field(fieldname):
 				field = df.as_dict()
-			elif fieldname == "_aggregate_column":
+			elif fieldname == DEFAULT_AGGREGATE_FIELDNAME:
 				field = frappe._dict(get_group_by_column_field(group_by_args, meta.name))
 			else:
 				field = frappe._dict(fieldname=fieldname, label=meta.get_label(fieldname))
@@ -499,10 +499,10 @@ def get_group_by_field(args: dict) -> dict:
 	Build the group by field based on the aggregate function and aggregate on field.
 	"""
 	if args["aggregate_function"] == "count":
-		group_by_field = {"COUNT": "*", "as": "_aggregate_column"}
+		group_by_field = {"COUNT": "*", "as": DEFAULT_AGGREGATE_FIELDNAME}
 	else:
 		func_name = args["aggregate_function"].upper()
-		group_by_field = {func_name: args["aggregate_on"], "as": "_aggregate_column"}
+		group_by_field = {func_name: args["aggregate_on"], "as": DEFAULT_AGGREGATE_FIELDNAME}
 
 	return group_by_field
 
