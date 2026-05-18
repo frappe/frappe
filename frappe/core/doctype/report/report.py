@@ -498,13 +498,10 @@ def get_group_by_field(args: dict) -> dict:
 	"""
 	Build the group by field based on the aggregate function and aggregate on field.
 	"""
-	if args["aggregate_function"] == "count":
-		group_by_field = {"COUNT": "*", "as": DEFAULT_AGGREGATE_FIELDNAME}
-	else:
-		func_name = args["aggregate_function"].upper()
-		group_by_field = {func_name: args["aggregate_on"], "as": DEFAULT_AGGREGATE_FIELDNAME}
+	function = args["aggregate_function"].upper()
+	aggregate_on = "*" if function == "COUNT" else args["aggregate_on"]
 
-	return group_by_field
+	return {function: aggregate_on, "as": DEFAULT_AGGREGATE_FIELDNAME}
 
 
 def get_group_by_column_field(args: dict, parent_doctype: str) -> dict:
