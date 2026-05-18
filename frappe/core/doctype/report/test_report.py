@@ -22,6 +22,30 @@ class TestReport(IntegrationTestCase):
 		cls.enterClassContext(cls.enable_safe_exec())
 		return super().setUpClass()
 
+	def test_aggregate_column_field_info(self):
+		"""Aggregate column gets proper label and fieldtype (regression for #39281)."""
+		from frappe.core.doctype.report.report import get_group_by_column_field
+
+		cases = [
+			({"aggregate_function": "count"}, "Count", "Int"),
+			(
+				{"aggregate_function": "sum", "aggregate_on": "`tabUser`.`simultaneous_sessions`"},
+				"Sum of Simultaneous Sessions",
+				"Int",
+			),
+			(
+				{"aggregate_function": "avg", "aggregate_on": "`tabUser`.`simultaneous_sessions`"},
+				"Average of Simultaneous Sessions",
+				"Float",
+			),
+		]
+
+		for args, expected_label, expected_fieldtype in cases:
+			with self.subTest(aggregate_function=args["aggregate_function"]):
+				info = get_group_by_column_field(args, "User")
+				self.assertEqual(info["label"], expected_label)
+				self.assertEqual(info["fieldtype"], expected_fieldtype)
+
 	def test_report_builder(self):
 		if frappe.db.exists("Report", "User Activity Report"):
 			frappe.delete_doc("Report", "User Activity Report")
