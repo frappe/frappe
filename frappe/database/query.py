@@ -934,7 +934,7 @@ class Engine:
 
 				if (
 					meta
-					and not doctype
+					and (not doctype or doctype == self.doctype)
 					and target_fieldname not in default_fields + optional_fields + child_table_fields
 					and not meta.has_field(target_fieldname)
 				):
