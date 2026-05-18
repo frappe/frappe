@@ -595,6 +595,14 @@ class DocType(Document):
 
 		clear_linked_doctype_cache()
 
+		# Notify open forms of this doctype so they can live-reload after meta changes.
+		frappe.publish_realtime(
+			"doctype_update",
+			{"doctype": self.name},
+			doctype=self.name,
+			after_commit=True,
+		)
+
 	@savepoint(catch=Exception)
 	def sync_doctype_layouts(self):
 		"""Sync Doctype Layout"""

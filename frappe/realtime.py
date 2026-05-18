@@ -52,6 +52,9 @@ def publish_realtime(
 	elif event == "list_update":
 		doctype = doctype or message.get("doctype")
 		room = get_doctype_room(doctype)
+	elif event == "doctype_update":
+		doctype = doctype or message.get("doctype")
+		room = get_doctype_room(doctype)
 	elif event == "docinfo_update":
 		room = get_doc_room(doctype, docname)
 
