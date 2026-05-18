@@ -838,11 +838,11 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
 
-		if not web_form.published or not has_link_option(web_form.web_form_fields, doctype):
-			frappe.throw(
-				_("You don't have permission to access the {0} DocType.").format(doctype),
-				frappe.PermissionError,
-			)
+	if not web_form.published or not has_link_option(web_form.web_form_fields, doctype):
+		frappe.throw(
+			_("You don't have permission to access the {0} DocType.").format(doctype),
+			frappe.PermissionError,
+		)
 
 	link_options, filters = [], {}
 	if web_form.login_required and not allow_read_on_all_link_options:
