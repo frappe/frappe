@@ -853,9 +853,9 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		let filters = this.parse_filters(JSON.parse(this.df.link_filters));
 		// take filters from the link field and add to the query
 
-		const existing_filters = this.get_query?.()?.filters || {};
-		if (existing_filters) {
-			filters = { ...filters, ...existing_filters };
+		const query_filters = this.get_query?.()?.filters || {};
+		if (query_filters) {
+			filters = { ...filters, ...query_filters };
 		}
 
 		this.get_query = function () {
