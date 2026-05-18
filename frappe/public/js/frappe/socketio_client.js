@@ -99,7 +99,6 @@ class RealTimeClient {
 				return;
 			}
 			me.doc_subscribe(frm.doctype, frm.docname);
-			me.doctype_subscribe(frm.doctype);
 		});
 
 		$(document).on("form-refresh", function (e, frm) {

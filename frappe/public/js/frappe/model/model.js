@@ -179,7 +179,6 @@ $.extend(frappe.model, {
 			}
 		});
 
-		// Reload open forms when their DocType meta is updated (via DocType form or Customize Form).
 		frappe.realtime.on("doctype_update", function (data) {
 			if (frappe.get_route()[0] !== "Form") return;
 			if (!cur_frm || cur_frm.doctype !== data.doctype) return;
@@ -190,11 +189,8 @@ $.extend(frappe.model, {
 				cur_frm.dashboard.set_headline_alert(
 					__(
 						"This DocType has been updated. Save or discard your changes, then reload the page to see the latest version."
-					) +
-						' <button class="btn btn-xs btn-primary pull-right" onclick="location.reload()">' +
-						__("Reload") +
-						"</button>",
-					"alert-warning"
+					),
+					"yellow"
 				);
 			} else {
 				frappe.show_alert(
