@@ -435,10 +435,7 @@ def get_context(context):
 				field.fields = get_in_list_view_fields(field.options, self.name)
 
 			if field.fieldtype == "Link":
-				field.fieldtype = "Autocomplete"
-				field.options = get_link_options(
-					self.name, field.options, field.allow_read_on_all_link_options
-				)
+				process_link_field(field, self.name)
 
 		context.reference_doc = {}
 
@@ -583,6 +580,14 @@ def get_context(context):
 				permitted_attachments.append(_add_attachment(attachment))
 
 		return permitted_attachments
+
+
+def process_link_field(field, web_form_name):
+	field.fieldtype = "Autocomplete"
+	field.options = get_link_options(
+		web_form_name, field.options, getattr(field, "allow_read_on_all_link_options", False)
+	)
+	return field
 
 
 def get_web_form_module(doc):
@@ -775,15 +780,11 @@ def get_form_data(doctype: str, docname: str | None = None, web_form_name: str |
 			out.update({field.fieldname: field.fields})
 
 		if field.fieldtype == "Link":
-			field.fieldtype = "Autocomplete"
-			field.options = get_link_options(
-				web_form_name, field.options, field.allow_read_on_all_link_options
-			)
+			process_link_field(field, web_form_name)
 
 	return out
 
 
-@frappe.whitelist()
 def get_in_list_view_fields(doctype, web_form_name=None):
 	meta = frappe.get_meta(doctype)
 	fields = []
@@ -801,14 +802,10 @@ def get_in_list_view_fields(doctype, web_form_name=None):
 	def get_field_df(fieldname):
 		if fieldname == "name":
 			return {"label": "Name", "fieldname": "name", "fieldtype": "Data"}
+
 		df = meta.get_field(fieldname).as_dict()
 		if df.get("options") and df.get("fieldtype") == "Link":
-			df["fieldtype"] = "Autocomplete"
-			df["options"] = get_link_options(
-				web_form_name,
-				doctype=df.options,
-				allow_read_on_all_link_options=df.get("allow_read_on_all_link_options", False),
-			)
+			process_link_field(df, web_form_name)
 		return df
 
 	return [get_field_df(f) for f in fields]
