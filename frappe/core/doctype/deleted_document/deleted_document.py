@@ -50,6 +50,10 @@ def restore(name: str | int, alert: bool = True):
 		frappe.throw(_("Document {0} Already Restored").format(name), exc=frappe.DocumentAlreadyRestored)
 
 	doc = frappe.get_doc(json.loads(deleted.data))
+	original_owner = doc.get("owner")
+	original_creation = doc.get("creation")
+	original_modified = doc.get("modified")
+	original_modified_by = doc.get("modified_by")
 	doc.flags.from_restore = True
 	try:
 		doc.insert()
@@ -62,6 +66,19 @@ def restore(name: str | int, alert: bool = True):
 			if doc.get(workflow_state_fieldname):
 				doc.set(workflow_state_fieldname, None)
 		doc.insert()
+
+	# retain original metadata
+	frappe.db.set_value(
+		doc.doctype,
+		doc.name,
+		{
+			"owner": original_owner,
+			"creation": original_creation,
+			"modified": original_modified,
+			"modified_by": original_modified_by,
+		},
+		update_modified=False,
+	)
 
 	doc.add_comment("Edit", _("restored {0} as {1}").format(deleted.deleted_name, doc.name))
 
