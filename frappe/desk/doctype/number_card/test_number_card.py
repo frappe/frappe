@@ -1,11 +1,15 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+<<<<<<< HEAD
 from frappe.desk.doctype.number_card.number_card import get_cards_for_user
+=======
+>>>>>>> 222da04792 (fix: pass user to allowed report/doctype permission helpers (#39388))
 from frappe.tests import IntegrationTestCase
 
 
 class TestNumberCard(IntegrationTestCase):
+<<<<<<< HEAD
 	def test_link_search_hides_cards_from_blocked_modules(self):
 		user = "test2@example.com"
 		blocked_module = "Contacts"
@@ -83,3 +87,56 @@ class TestNumberCard(IntegrationTestCase):
 
 		self.assertEqual([row[0] for row in blocked_results], [])
 		self.assertEqual([row[0] for row in allowed_results], [allowed_card_name])
+=======
+	def test_report_card_hidden_when_report_is_not_allowed(self):
+		user = "test2@example.com"
+		report_name = "Test Restricted Number Card Report"
+		card_name = "Test Restricted Report Number Card"
+		baseline_role = "Desk User"
+		exclusive_role = "System Manager"
+
+		frappe.set_user("Administrator")
+		frappe.delete_doc("Number Card", card_name, ignore_missing=True, force=True)
+		frappe.delete_doc("Report", report_name, ignore_missing=True, force=True)
+		self.addCleanup(lambda: frappe.delete_doc("Number Card", card_name, ignore_missing=True, force=True))
+		self.addCleanup(lambda: frappe.delete_doc("Report", report_name, ignore_missing=True, force=True))
+
+		user_doc = frappe.get_doc("User", user)
+		had_baseline_role = baseline_role in frappe.get_roles(user)
+		if not had_baseline_role:
+			user_doc.add_roles(baseline_role)
+			self.addCleanup(lambda: user_doc.remove_roles(baseline_role))
+
+		had_exclusive_role = exclusive_role in frappe.get_roles(user)
+		if had_exclusive_role:
+			user_doc.remove_roles(exclusive_role)
+			self.addCleanup(lambda: user_doc.add_roles(exclusive_role))
+
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": report_name,
+				"ref_doctype": "ToDo",
+				"report_type": "Report Builder",
+				"is_standard": "No",
+				"roles": [{"role": exclusive_role}],
+			}
+		).insert(ignore_permissions=True)
+
+		card = frappe.get_doc(
+			{
+				"doctype": "Number Card",
+				"label": card_name,
+				"type": "Report",
+				"report_name": report.name,
+				"function": "Count",
+				"report_field": "name",
+			}
+		).insert(ignore_permissions=True)
+
+		self.assertFalse(frappe.has_permission("Number Card", doc=card, user=user))
+		self.assertNotIn(
+			card.name,
+			frappe.get_list("Number Card", filters={"name": card.name}, pluck="name", user=user),
+		)
+>>>>>>> 222da04792 (fix: pass user to allowed report/doctype permission helpers (#39388))
