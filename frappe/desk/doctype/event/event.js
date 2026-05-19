@@ -32,8 +32,6 @@ frappe.ui.form.on("Event", {
 			});
 		}
 
-		frm.page.set_inner_btn_group_as_primary(__("Add Participants"));
-
 		frm.add_custom_button(
 			__("Add Contacts"),
 			function () {

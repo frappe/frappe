@@ -1102,6 +1102,8 @@ export default class Grid {
 			return;
 		}
 
+		const grid = this;
+
 		const field_mappings = {};
 		editable_fields.forEach((field_doc) => {
 			const field_key = `${field_doc.label}`;
@@ -1111,17 +1113,31 @@ export default class Grid {
 		const field_options = Object.keys(field_mappings).sort((a, b) =>
 			__(cstr(field_mappings[a].label)).localeCompare(cstr(__(field_mappings[b].label)))
 		);
+		const field_autocomplete_options = field_options.map((key) => ({
+			label: __(cstr(field_mappings[key].label)),
+			value: key,
+		}));
 		const status_regex = /status/i;
 		const default_field =
 			field_options.find((value) => status_regex.test(value)) ||
 			field_options.find((value) => field_mappings[value]?.fieldtype === "Select");
 
+		// One child row drives Link get_query(cb, doc, cdt, cdn) / locals lookups in bulk-edit dialog.
+		// Multiple rows selected may diverge — filters follow the first selected row only.
+		const bulk_edit_reference_row = selected_children[0];
+
 		const dialog = new frappe.ui.Dialog({
 			title: __("Bulk Edit"),
+			...(bulk_edit_reference_row && {
+				frm: this.frm,
+				doc: bulk_edit_reference_row,
+				doctype: bulk_edit_reference_row.doctype,
+			}),
 			fields: [
 				{
-					fieldtype: "Select",
-					options: field_options,
+					fieldtype: "Autocomplete",
+					options: field_autocomplete_options,
+					max_items: Infinity,
 					default: default_field,
 					label: __("Field"),
 					fieldname: "field",
@@ -1186,7 +1202,17 @@ export default class Grid {
 			new_df.label = __("Value");
 			new_df.onchange = show_help_text;
 			delete new_df.depends_on;
+
+			const grid_field = grid.get_field(new_df.fieldname);
+			if (grid_field?.get_query) {
+				new_df.get_query = grid_field.get_query;
+			}
+
 			dialogObj.replace_field("value", new_df);
+			// replace_field does not re-run attach_doc; Link needs docname + doctype for set_query third arg.
+			if (bulk_edit_reference_row) {
+				dialogObj.attach_doc_and_docfields(true);
+			}
 			show_help_text();
 		}
 

@@ -10,9 +10,9 @@ frappe.ui.form.ControlImage = class ControlImage extends frappe.ui.form.Control 
 
 		var doc = this.get_doc();
 		if (doc && this.df.options && doc[this.df.options]) {
-			this.$img = $(
-				"<img src='" + doc[this.df.options] + "' class='img-responsive'>"
-			).appendTo(this.$body);
+			this.$img = $("<img src='" + doc[this.df.options] + "' class='img-responsive'>")
+				.appendTo(this.$body)
+				.css({ "max-width": "100%" });
 		} else {
 			this.$buffer = $(
 				`<div class='missing-image'>${frappe.utils.icon("restriction", "md")}</div>`

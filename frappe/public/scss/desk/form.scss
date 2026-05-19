@@ -32,7 +32,7 @@
 	padding: 0 var(--padding-md);
 	.form-section-description {
 		max-width: var(--page-max-width);
-		margin: auto;
+		margin-left: 0;
 		margin-bottom: 10px;
 		@include get_textstyle("base", "regular");
 		color: var(--text-light);
@@ -545,10 +545,10 @@
 	margin-top: var(--margin-sm);
 }
 .form-tabs-sticky-up {
-	top: calc(var(--navbar-height) - 1px);
+	top: calc(var(--navbar-height));
 }
 .form-tabs-sticky-down {
-	top: calc(var(--navbar-height) - 2px);
+	top: calc(var(--navbar-height));
 	&.show-navbar {
 		top: calc(var(--navbar-height) + var(--page-head-height) - 1px);
 	}

@@ -29,8 +29,6 @@ frappe.ui.menu = class ContextMenu {
 			});
 		} else {
 			$(this.opts.parent).on("click", function (event) {
-				event.preventDefault();
-				event.stopPropagation();
 				if (!me.parent_menu) {
 					if (me.visible) {
 						me.hide();
@@ -303,12 +301,16 @@ frappe.ui.create_menu = function (opts) {
 
 	frappe.menu_map[context_menu.name] = context_menu;
 
-	$(document).on("click", function () {
-		if (frappe.menu_map[context_menu.name].visible) {
-			frappe.menu_map[context_menu.name].hide();
-			opts.onHide && opts.onHide(opts.parent);
-		}
-	});
+	document.addEventListener(
+		"click",
+		function () {
+			if (frappe.menu_map[context_menu.name].visible) {
+				frappe.menu_map[context_menu.name].hide();
+				opts.onHide && opts.onHide(opts.parent);
+			}
+		},
+		true
+	);
 
 	$(document).on("keydown", function (e) {
 		if (e.key === "Escape" && frappe.menu_map[context_menu.name].visible) {

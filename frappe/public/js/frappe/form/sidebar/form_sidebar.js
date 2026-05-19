@@ -160,11 +160,14 @@ frappe.ui.form.Sidebar = class {
 			.html(
 				get_user_message(
 					this.frm.doc.modified_by,
-					__("Last Edited by You", null),
-					__("Last Edited by {0}", [get_user_link(this.frm.doc.modified_by)])
+					__("Last Edited By You", null),
+					__("Last Edited By {0}", [get_user_link(this.frm.doc.modified_by)])
 				) +
 					" <br> " +
-					comment_when(this.frm.doc.modified)
+					(cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
+					cint(frappe.boot.sysdefaults.show_absolute_datetime_in_timeline)
+						? frappe.datetime.str_to_user(this.frm.doc.modified)
+						: comment_when(this.frm.doc.modified))
 			);
 		this.sidebar
 			.find(".created-by")
@@ -175,7 +178,10 @@ frappe.ui.form.Sidebar = class {
 					__("Created By {0}", [get_user_link(this.frm.doc.owner)])
 				) +
 					" <br> " +
-					comment_when(this.frm.doc.creation)
+					(cint(frappe.boot.user.show_absolute_datetime_in_timeline) ||
+					cint(frappe.boot.sysdefaults.show_absolute_datetime_in_timeline)
+						? frappe.datetime.str_to_user(this.frm.doc.creation)
+						: comment_when(this.frm.doc.creation))
 			);
 	}
 

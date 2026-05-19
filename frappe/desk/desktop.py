@@ -132,9 +132,6 @@ class Workspace:
 		return doc
 
 	def is_item_allowed(self, name, item_type):
-		if frappe.session.user == "Administrator":
-			return True
-
 		item_type = item_type.lower()
 
 		if item_type == "doctype":
@@ -142,7 +139,7 @@ class Workspace:
 		if item_type == "page":
 			return name in self.allowed_pages and name in self.restricted_pages
 		if item_type == "report":
-			return name in self.allowed_reports
+			return not frappe.db.get_value("Report", name, "disabled") and name in self.allowed_reports
 		if item_type == "help":
 			return True
 		if item_type == "dashboard":

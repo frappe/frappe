@@ -259,6 +259,8 @@ class CustomizeForm(Document):
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
 
+		frappe.publish_realtime("doctype_update", {"doctype": self.doc_type}, after_commit=True)
+
 		if self.flags.rebuild_doctype_for_global_search:
 			frappe.enqueue(
 				"frappe.utils.global_search.rebuild_for_doctype",

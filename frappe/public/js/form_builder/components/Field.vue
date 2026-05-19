@@ -214,12 +214,12 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						:empty_label="`${__('No Label')} (${field.df.fieldtype})`"
 						v-model="field.df.label"
 					/>
-					<div class="reqd-asterisk" v-if="field.df.reqd">*</div>
 					<div
 						class="help-icon"
 						v-if="field.df.documentation_url"
-						v-html="frappe.utils.icon('help', 'sm')"
+						v-html="frappe.utils.icon('info', 'xs')"
 					/>
+					<div class="reqd-asterisk" v-if="field.df.reqd">*</div>
 				</div>
 			</template>
 			<template #actions>
@@ -306,6 +306,13 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 				margin-left: 3px;
 				color: var(--text-muted);
 				cursor: pointer;
+				display: flex;
+				align-items: center;
+				height: 1em;
+				:deep(svg) {
+					width: 10px;
+					height: 10px;
+				}
 			}
 		}
 

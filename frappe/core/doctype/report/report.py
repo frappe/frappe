@@ -33,13 +33,13 @@ class Report(Document):
 		add_total_row: DF.Check
 		add_translate_data: DF.Check
 		columns: DF.Table[ReportColumn]
+		default_letter_head: DF.Link | None
 		default_print_format: DF.Link | None
 		disabled: DF.Check
 		filters: DF.Table[ReportFilter]
 		is_standard: DF.Literal["No", "Yes"]
 		javascript: DF.Code | None
 		json: DF.Code | None
-		letter_head: DF.Link | None
 		module: DF.Link | None
 		prepared_report: DF.Check
 		query: DF.Code | None
@@ -82,8 +82,8 @@ class Report(Document):
 		if self.default_print_format and self.has_value_changed("default_print_format"):
 			self.validate_default_print_format()
 
-		if self.letter_head and self.has_value_changed("letter_head"):
-			self.validate_letter_head()
+		if self.default_letter_head and self.has_value_changed("letter_head"):
+			self.validate_default_letter_head()
 
 	def before_insert(self):
 		self.set_doctype_roles()
@@ -435,13 +435,13 @@ class Report(Document):
 		):
 			frappe.throw(_("Selected Print Format is invalid for this Report."))
 
-	def validate_letter_head(self):
-		if not self.letter_head:
+	def validate_default_letter_head(self):
+		if not self.default_letter_head:
 			return
 
 		letter_head = frappe.db.get_value(
 			"Letter Head",
-			self.letter_head,
+			self.default_letter_head,
 			["letter_head_for", "standard", "disabled"],
 			as_dict=True,
 		)
@@ -454,7 +454,7 @@ class Report(Document):
 		):
 			frappe.throw(
 				_("Selected Letter Head '{0}' is invalid for '{1}' Report.").format(
-					self.letter_head, self.name
+					self.default_letter_head, self.name
 				)
 			)
 

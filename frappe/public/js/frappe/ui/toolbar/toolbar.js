@@ -290,7 +290,7 @@ frappe.ui.toolbar.fetch_session_defaults = function () {
 
 frappe.ui.toolbar.setup_session_defaults = function () {
 	let perms = frappe.perm.get_perm("Session Default Settings");
-	let fields = frappe.boot.session_defaults;
+	let fields = [...frappe.boot.session_defaults];
 	//add settings button only if user is a System Manager or has permission on 'Session Default Settings'
 	if (frappe.user_roles.includes("System Manager") || perms[0].read == 1) {
 		fields[fields.length] = {
