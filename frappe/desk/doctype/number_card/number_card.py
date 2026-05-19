@@ -82,16 +82,15 @@ class NumberCard(Document):
 
 
 def get_permission_query_conditions(user=None):
-	# The user param is ignored because `get_allowed_report_names` and `get_doctypes_with_read` don't support it.
-	if frappe.session.user == "Administrator":
+	if not user:
+		user = frappe.session.user
+
+	if user == "Administrator" or "System Manager" in frappe.get_roles(user):
 		return
 
-	if "System Manager" in frappe.get_roles():
-		return
-
-	allowed_reports = get_allowed_report_names()
-	allowed_doctypes = get_doctypes_with_read()
-	allowed_modules = [module.get("module_name") for module in get_modules_from_all_apps_for_user()]
+	allowed_reports = get_allowed_report_names(user=user)
+	allowed_doctypes = get_doctypes_with_read(user)
+	allowed_modules = [module.get("module_name") for module in get_modules_from_all_apps_for_user(user)]
 
 	nc = frappe.qb.DocType("Number Card")
 	conditions = (
@@ -104,20 +103,19 @@ def get_permission_query_conditions(user=None):
 
 
 def has_permission(doc, ptype, user):
-	# The user param is ignored because `get_allowed_report_names` and `get_doctypes_with_read` don't support it.
-	if frappe.session.user == "Administrator":
+	if not user:
+		user = frappe.session.user
+
+	if user == "Administrator" or "System Manager" in frappe.get_roles(user):
 		return True
 
-	if "System Manager" in frappe.get_roles():
+	if doc.type == "Report" and doc.report_name in get_allowed_report_names(user=user):
 		return True
 
-	if doc.type == "Report" and doc.report_name in get_allowed_report_names():
+	if doc.type == "Custom" and doc.document_type in get_doctypes_with_read(user):
 		return True
 
-	if doc.type == "Custom" and doc.document_type in get_doctypes_with_read():
-		return True
-
-	if doc.type == "Document Type" and doc.document_type in get_doctypes_with_read():
+	if doc.type == "Document Type" and doc.document_type in get_doctypes_with_read(user):
 		return True
 
 	return False
