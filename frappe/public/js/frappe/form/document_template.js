@@ -59,10 +59,11 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 
 		this._$manage_wrap = $('<div class="dt-template-list">').appendTo($body);
 
-		$('<div class="dt-section-break">')
-			.append($("<hr>"))
-			.append($('<div class="dt-section-heading">').text(__("Save as Template")))
-			.appendTo($body);
+		$body.append(
+			`<div class="dt-section-break"><hr><div class="dt-section-heading">${__(
+				"Save as Template"
+			)}</div></div>`
+		);
 
 		this._template_name_control = frappe.ui.form.make_control({
 			df: {
@@ -139,79 +140,76 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		this._save_btn_control.$input.on("click", () => this._save_new_template());
 	}
 
-	_on_row_click(e) {
-		if ($(e.target).closest(".dt-manage-row-actions").length) return;
+	async _on_row_click(e) {
+		if (e.target.closest(".dt-manage-row-actions")) return;
 
-		const frm = this.frm;
-		if (frm.doc.docstatus >= 1) {
+		const row = e.currentTarget;
+		const name = row.getAttribute("data-name");
+		const label = row.getAttribute("data-label") || "";
+
+		if (!this.frm.doc.__islocal) {
+			const confirmed = await new Promise((resolve) =>
+				frappe.confirm(
+					__("Apply template <b>{0}</b>? This will modify the current document.", [
+						label,
+					]),
+					() => resolve(true),
+					() => resolve(false)
+				)
+			);
+			if (!confirmed) return;
+		}
+
+		this._apply_template(name, label);
+		this._manage_dialog.hide();
+	}
+
+	async _on_update_click(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		const btn = e.currentTarget;
+		const name = btn.getAttribute("data-name");
+		const label = btn.getAttribute("data-label") || "";
+
+		const confirmed = await new Promise((resolve) =>
+			frappe.confirm(
+				__(
+					"Replace template <b>{0}</b> with the current form values? This cannot be undone.",
+					[label]
+				),
+				() => resolve(true),
+				() => resolve(false)
+			)
+		);
+		if (!confirmed) return;
+
+		const data = this._capture_template_data();
+		if (!data) {
 			frappe.show_alert({
-				message: __("Cannot apply template to a submitted document"),
+				message: __("No data to save. Change at least one field first."),
 				indicator: "orange",
 			});
 			return;
 		}
 
-		const $row = $(e.currentTarget);
-		const name = $row.attr("data-name");
-		const label = $row.attr("data-label") || "";
-
-		if (frm.doc.__islocal) {
-			this._apply_template(name, label);
-			this._manage_dialog.hide();
-		} else {
-			frappe.confirm(
-				__("Apply template {0}? This will modify the current document", [label]),
-				() => {
-					this._apply_template(name, label);
-					this._manage_dialog.hide();
-				}
-			);
+		try {
+			await frappe.db.set_value("Document Template", name, "data", JSON.stringify(data));
+			frappe.show_alert({
+				message: __("Template <b>{0}</b> updated", [label]),
+				indicator: "green",
+			});
+		} catch {
+			frappe.show_alert({
+				message: __("Failed to update template <b>{0}</b>", [label]),
+				indicator: "red",
+			});
 		}
-	}
-
-	_on_update_click(e) {
-		e.preventDefault();
-		e.stopPropagation();
-		const $btn = $(e.currentTarget);
-		const name = $btn.attr("data-name");
-		const label = $btn.attr("data-label") || "";
-
-		frappe.confirm(
-			__("Replace template {0} with the current form values? This cannot be undone", [
-				label,
-			]),
-			() => {
-				const data = this._capture_template_data();
-				if (!data) {
-					frappe.show_alert({
-						message: __("No data to save. Change at least one field first."),
-						indicator: "orange",
-					});
-					return;
-				}
-				frappe.db
-					.set_value("Document Template", name, "data", JSON.stringify(data))
-					.then(() => {
-						frappe.show_alert({
-							message: __("Template {0} updated", [label]),
-							indicator: "green",
-						});
-						this._load_manage_page();
-					})
-					.catch(() =>
-						frappe.show_alert({
-							message: __("Failed to update template {0}", [label]),
-							indicator: "red",
-						})
-					);
-			}
-		);
 	}
 
 	_on_edit_click(e) {
 		e.preventDefault();
 		e.stopPropagation();
-		const name = $(e.currentTarget).attr("data-name");
+		const name = e.currentTarget.getAttribute("data-name");
 		if (!name) return;
 		window.open(frappe.utils.get_form_link("Document Template", name), "_blank");
 	}
@@ -219,24 +217,24 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	_on_delete_click(e) {
 		e.preventDefault();
 		e.stopPropagation();
-		const $btn = $(e.currentTarget);
-		const name = $btn.attr("data-name");
-		const label = $btn.attr("data-label") || "";
+		const btn = e.currentTarget;
+		const name = btn.getAttribute("data-name");
+		const label = btn.getAttribute("data-label") || "";
 		if (!name) return;
 
-		frappe.confirm(__("Delete template {0}?", [label]), () => {
+		frappe.confirm(__("Delete template <b>{0}</b>?", [label]), () => {
 			frappe.db
 				.delete_doc("Document Template", name)
 				.then(() => {
 					frappe.show_alert({
-						message: __("Template {0} deleted", [label]),
+						message: __("Template <b>{0}</b> deleted", [label]),
 						indicator: "green",
 					});
 					this._load_manage_page();
 				})
 				.catch(() =>
 					frappe.show_alert({
-						message: __("Failed to delete template {0}", [label]),
+						message: __("Failed to delete template <b>{0}</b>", [label]),
 						indicator: "red",
 					})
 				);
@@ -290,7 +288,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			})
 			.then(() => {
 				frappe.show_alert({
-					message: __("Template {0} saved", [name_val]),
+					message: __("Template <b>{0}</b> saved", [name_val]),
 					indicator: "green",
 				});
 				this._template_name_control.set_value("");
@@ -342,14 +340,12 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 	}
 
 	_render_manage_list($wrap, templates, has_next_page) {
-		$wrap.empty();
+		let html = "";
 
 		if (!templates.length && this._manage_start === 0) {
-			$wrap.append(
-				$('<p class="text-muted text-center dt-no-saved-templates">').text(
-					__("No saved templates. Try saving the current form as a template.")
-				)
-			);
+			html += `<p class="text-muted text-center dt-no-saved-templates">${__(
+				"No saved templates. Try saving the current form as a template."
+			)}</p>`;
 		}
 
 		let showed_disabled_header = false;
@@ -358,123 +354,76 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 			if (t.disabled && !showed_disabled_header) {
 				showed_disabled_header = true;
 				if (has_active_templates) {
-					$wrap.append($('<hr class="dt-disabled-separator-hr">'));
+					html += '<hr class="dt-disabled-separator-hr">';
 				}
-				$wrap.append(
-					$('<div class="dt-disabled-separator text-muted text-small"></div>').text(
-						__("Disabled")
-					)
-				);
+				html += `<div class="dt-disabled-separator text-muted text-small">${__(
+					"Disabled"
+				)}</div>`;
 			}
 			if (!t.disabled) has_active_templates = true;
-			$wrap.append(this._build_row(t));
+			html += this._build_row(t);
 		}
 
 		if (this._manage_start > 0 || has_next_page) {
-			const $pager = $('<div class="dt-pagination">');
-
-			const $prev = $('<button class="btn btn-secondary btn-xs dt-page-prev">')
-				.html(frappe.utils.icon("left", "xs"))
-				.attr("title", __("Previous"))
-				.prop("disabled", this._manage_start <= 0);
-
-			const $next = $('<button class="btn btn-secondary btn-xs dt-page-next">')
-				.html(frappe.utils.icon("right", "xs"))
-				.attr("title", __("Next"))
-				.prop("disabled", !has_next_page);
-
 			const current_page = Math.floor(this._manage_start / DocumentTemplate.PAGE_LENGTH) + 1;
-			const $info = $('<span class="text-muted text-small dt-page-info">').text(
-				__("Page {0}", [current_page])
-			);
-
-			$pager.append($prev, $info, $next);
-			$wrap.append($pager);
+			const prevDisabled = this._manage_start <= 0 ? "disabled" : "";
+			const nextDisabled = !has_next_page ? "disabled" : "";
+			html += `<div class="dt-pagination">
+				<button class="btn btn-secondary btn-xs dt-page-prev" title="${__(
+					"Previous"
+				)}" ${prevDisabled}>${frappe.utils.icon("left", "xs")}</button>
+				<span class="text-muted text-small dt-page-info">${__("Page {0}", [current_page])}</span>
+				<button class="btn btn-secondary btn-xs dt-page-next" title="${__(
+					"Next"
+				)}" ${nextDisabled}>${frappe.utils.icon("right", "xs")}</button>
+			</div>`;
 		}
+
+		$wrap.html(html);
 	}
 
 	_build_row(template) {
-		let row_cls = "dt-manage-row";
-		if (!template.disabled) row_cls += " dt-row--active";
+		const isActive = !template.disabled && this.frm.doc.docstatus < 1;
+		const rowCls = `dt-manage-row${isActive ? " dt-row--active" : ""}`;
+		const labelCls = `dt-manage-row-label ellipsis${template.disabled ? " text-muted" : ""}`;
+		const lockHtml = template.private
+			? `<div class="dt-manage-row-lock text-muted">${frappe.utils.icon("lock", "xs")}</div>`
+			: "";
 
-		const $row = $(`<div class="${row_cls}"></div>`)
-			.attr("data-name", template.name)
-			.attr("data-label", template.template_name);
-
-		const $label = $('<div class="dt-manage-row-label ellipsis"></div>')
-			.attr("title", template.template_name)
-			.text(template.template_name);
-		if (template.disabled) $label.addClass("text-muted");
-
-		const $label_group = $('<div class="dt-manage-row-label-group"></div>').append($label);
-		if (template.private) {
-			$label_group.append(
-				$('<div class="dt-manage-row-lock text-muted"></div>').html(
-					frappe.utils.icon("lock", "xs")
-				)
-			);
-		}
-
-		const $actions = $('<div class="dt-manage-row-actions"></div>');
 		const perm_doc = { doctype: "Document Template", ...template };
 		const can_write = frappe.perm.has_perm("Document Template", 0, "write", perm_doc);
 		const can_delete = frappe.perm.has_perm("Document Template", 0, "delete", perm_doc);
 
+		const esc = frappe.utils.escape_html;
+		const name = esc(template.name);
+		const label = esc(template.template_name);
+
+		let actionsHtml = "";
 		if (can_write) {
-			this._add_update_btn($actions, template);
-			this._add_edit_btn($actions, template);
+			actionsHtml += `<button class="btn btn-default btn-xs dt-action-update" data-name="${name}" data-label="${label}" title="${esc(
+				__("Replace with current form values")
+			)}">${esc(__("Update"))}</button>`;
+			actionsHtml += `<button class="btn btn-default btn-xs dt-action-edit" data-name="${name}" title="${esc(
+				__("Open template")
+			)}" aria-label="${esc(__("Edit {0}", [template.template_name]))}">${frappe.utils.icon(
+				"edit",
+				"xs"
+			)}</button>`;
 		}
 		if (can_delete) {
-			this._add_delete_btn($actions, template);
+			actionsHtml += `<button class="btn btn-default btn-xs dt-action-delete" data-name="${name}" data-label="${label}" title="${esc(
+				__("Delete template")
+			)}" aria-label="${esc(
+				__("Delete {0}", [template.template_name])
+			)}">${frappe.utils.icon("trash", "xs")}</button>`;
 		}
 
-		$row.append($label_group).append($actions);
-		return $row;
-	}
-
-	_add_update_btn($actions, t) {
-		const ctrl = frappe.ui.form.make_control({
-			df: { fieldtype: "Button", fieldname: "dt_action_update", label: __("Update") },
-			parent: $("<div>"),
-			render_input: true,
-		});
-		ctrl.$input
-			.addClass("btn-xs dt-action-update")
-			.attr("data-name", t.name)
-			.attr("data-label", t.template_name)
-			.attr("title", __("Replace with current form values"))
-			.appendTo($actions);
-	}
-
-	_add_edit_btn($actions, t) {
-		const ctrl = frappe.ui.form.make_control({
-			df: { fieldtype: "Button", fieldname: "dt_action_edit", label: __("Edit") },
-			parent: $("<div>"),
-			render_input: true,
-		});
-		ctrl.$input
-			.addClass("btn-xs dt-action-edit")
-			.html(frappe.utils.icon("edit", "xs"))
-			.attr("data-name", t.name)
-			.attr("title", __("Open template"))
-			.attr("aria-label", __("Edit {0}", [t.template_name]))
-			.appendTo($actions);
-	}
-
-	_add_delete_btn($actions, t) {
-		const ctrl = frappe.ui.form.make_control({
-			df: { fieldtype: "Button", fieldname: "dt_action_delete", label: __("Delete") },
-			parent: $("<div>"),
-			render_input: true,
-		});
-		ctrl.$input
-			.addClass("btn-xs dt-action-delete")
-			.html(frappe.utils.icon("trash", "xs"))
-			.attr("data-name", t.name)
-			.attr("data-label", t.template_name)
-			.attr("title", __("Delete template"))
-			.attr("aria-label", __("Delete {0}", [t.template_name]))
-			.appendTo($actions);
+		return `<div class="${rowCls}" data-name="${name}" data-label="${label}">
+			<div class="dt-manage-row-label-group">
+				<div class="${labelCls}" title="${label}">${label}</div>${lockHtml}
+			</div>
+			<div class="dt-manage-row-actions">${actionsHtml}</div>
+		</div>`;
 	}
 
 	async _apply_template(name, label) {
@@ -511,7 +460,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		frm.refresh_fields();
 		frm.dirty();
 		frappe.show_alert({
-			message: label ? __("Template {0} applied", [label]) : __("Template applied"),
+			message: label ? __("Template <b>{0}</b> applied", [label]) : __("Template applied"),
 			indicator: "green",
 		});
 	}
