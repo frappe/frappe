@@ -4,23 +4,29 @@
 Measures on-disk sizes of bundles listed in `app_include_js` (see
 `frappe/hooks.py`), using hashed paths from `sites/assets/assets.json`.
 
-Local usage (run from the bench root):
+Only default Desk JS bundles are built
+(`--files`), not CSS, so a full `bench build` is not required:
+
+Local usage:
 
 ```bash
-cd apps/frappe
-node esbuild --production --apps frappe
+BENCH_ROOT="$PWD"
+FILES=$(
+	python "$BENCH_ROOT/apps/frappe/.github/helper/compare_default_js_bundle_size.py" \\
+		--bench-path "$BENCH_ROOT" --esbuild-files
+)
 
-cd ../..
-python apps/frappe/.github/helper/compare_default_js_bundle_size.py \
-	--write-json /tmp/base-default-js-bundle-size.json
+cd "$BENCH_ROOT/apps/frappe"
+node esbuild --production --apps frappe --files "$FILES"
+
+python "$BENCH_ROOT/apps/frappe/.github/helper/compare_default_js_bundle_size.py" \\
+	--bench-path "$BENCH_ROOT" --write-json /tmp/base-default-js-bundle-size.json
 
 # Rebuild after your changes, then compare:
-cd apps/frappe
-node esbuild --production --apps frappe
+node esbuild --production --apps frappe --files "$FILES"
 
-cd ../..
-python apps/frappe/.github/helper/compare_default_js_bundle_size.py \
-	--compare-to /tmp/base-default-js-bundle-size.json
+python "$BENCH_ROOT/apps/frappe/.github/helper/compare_default_js_bundle_size.py" \\
+	--bench-path "$BENCH_ROOT" --compare-to /tmp/base-default-js-bundle-size.json
 ```
 
 Optional env var `DEFAULT_JS_BUNDLE_SIZE_THRESHOLD` (default 0.01 = 1% over base).
@@ -120,13 +126,22 @@ def default_threshold() -> float:
 	return DEFAULT_THRESHOLD
 
 
+def get_esbuild_files(bench_path: Path) -> str:
+	return ",".join(f"frappe/{bundle}" for bundle in get_default_js_bundles(bench_path))
+
+
 def main() -> None:
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--bench-path", type=Path, default=Path.cwd())
 	parser.add_argument("--write-json", type=Path)
 	parser.add_argument("--compare-to", type=Path)
+	parser.add_argument("--esbuild-files", action="store_true")
 	parser.add_argument("--threshold", type=float, default=default_threshold())
 	args = parser.parse_args()
+
+	if args.esbuild_files:
+		print(get_esbuild_files(args.bench_path))
+		return
 
 	current = get_default_bundle_size(args.bench_path)
 

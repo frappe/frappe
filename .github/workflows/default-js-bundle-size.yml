@@ -80,9 +80,11 @@ jobs:
             git -C apps/frappe checkout --force "$ref"
             yarn --cwd apps/frappe install --frozen-lockfile
             rm -rf sites/assets/frappe sites/assets/assets.json apps/frappe/frappe/public/dist
+            files=$(python /tmp/compare_default_js_bundle_size.py \
+              --bench-path "$GITHUB_WORKSPACE" --esbuild-files)
             (
               cd apps/frappe
-              CI=Yes node esbuild --production --apps frappe
+              CI=Yes node esbuild --production --apps frappe --files "$files"
             )
           }
 
