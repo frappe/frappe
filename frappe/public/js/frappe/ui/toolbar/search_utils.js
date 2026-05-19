@@ -706,7 +706,7 @@ function hide_navbar_search_modal() {
 }
 
 /**
- * Open the global search dialog from the navbar search modal if in results `Search for txt`
+ * Open the global search dialog from the navbar Awesome Bar (Ctrl/Cmd+G).
  */
 frappe.search.open_global_search_from_navbar_shortcut = function (e) {
 	const from_bar = ($("#navbar-search").val() || "").trim();
@@ -715,6 +715,23 @@ frappe.search.open_global_search_from_navbar_shortcut = function (e) {
 		hide_navbar_search_modal();
 		dlg.open_global_search_dialog(from_bar);
 	}
+	if (e) {
+		e.preventDefault();
+	}
+	return false;
+};
+
+/**
+ * Open the navbar Awesome Bar from Global Search (Ctrl/Cmd+K).
+ */
+frappe.search.open_awesomebar_from_global_search_shortcut = function (e) {
+	const dlg = frappe.searchdialog?.search;
+	if (dlg?.search_dialog?.is_visible) {
+		const keywords = (dlg.$input?.val() || "").trim();
+		dlg.search_dialog.hide();
+		$("#navbar-search").val(keywords);
+	}
+	$("#navbar-modal-search").click();
 	if (e) {
 		e.preventDefault();
 	}
