@@ -11,6 +11,38 @@
         "description": {
           "type": "string"
         },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                },
+                "messages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "message",
+                "name"
+              ]
+            }
+          ]
+        },
         "type": {
           "type": "string",
           "enum": [
@@ -32,7 +64,10 @@
             "select",
             "checkbox",
             "autocomplete",
-            "combobox"
+            "combobox",
+            "multiselect",
+            "daterange",
+            "datetime"
           ]
         },
         "size": {

@@ -29,6 +29,9 @@
             "label": {
               "type": "string"
             },
+            "onClick": {
+              "$comment": "() => any"
+            },
             "handler": {
               "$comment": "() => any"
             },
@@ -37,8 +40,7 @@
             }
           },
           "required": [
-            "label",
-            "handler"
+            "label"
           ],
           "additionalProperties": false
         }

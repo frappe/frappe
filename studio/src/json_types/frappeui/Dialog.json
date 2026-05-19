@@ -5,7 +5,209 @@
     "DialogProps": {
       "type": "object",
       "properties": {
+        "open": {
+          "type": "boolean"
+        },
         "modelValue": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "theme": {
+                  "type": "string",
+                  "enum": [
+                    "yellow",
+                    "blue",
+                    "red",
+                    "green"
+                  ]
+                },
+                "appearance": {
+                  "type": "string",
+                  "enum": [
+                    "warning",
+                    "info",
+                    "danger",
+                    "success"
+                  ]
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xl",
+            "3xl",
+            "4xl",
+            "5xl",
+            "6xl",
+            "7xl"
+          ]
+        },
+        "position": {
+          "type": "string",
+          "enum": [
+            "center",
+            "top"
+          ]
+        },
+        "paddingTop": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "onClick": {
+                "$comment": "(context: DialogActionContext) => void | Promise<void>",
+                "type": "object",
+                "properties": {
+                  "namedArgs": {
+                    "type": "object",
+                    "properties": {
+                      "context": {
+                        "type": "object",
+                        "properties": {
+                          "close": {
+                            "$comment": "() => void"
+                          }
+                        },
+                        "required": [
+                          "close"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "context"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "gray",
+                  "blue",
+                  "green",
+                  "red"
+                ]
+              },
+              "size": {
+                "type": "string",
+                "enum": [
+                  "sm",
+                  "md",
+                  "lg",
+                  "xl",
+                  "2xl"
+                ]
+              },
+              "variant": {
+                "type": "string",
+                "enum": [
+                  "solid",
+                  "subtle",
+                  "outline",
+                  "ghost"
+                ]
+              },
+              "label": {
+                "type": "string"
+              },
+              "icon": {
+                "type": [
+                  "string"
+                ]
+              },
+              "iconLeft": {
+                "type": [
+                  "string"
+                ]
+              },
+              "iconRight": {
+                "type": [
+                  "string"
+                ]
+              },
+              "tooltip": {
+                "type": "string"
+              },
+              "loading": {
+                "type": "boolean"
+              },
+              "loadingText": {
+                "type": "string"
+              },
+              "disabled": {
+                "type": "boolean"
+              },
+              "route": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object"
+                  }
+                ]
+              },
+              "link": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "button",
+                  "submit",
+                  "reset"
+                ]
+              }
+            }
+          }
+        },
+        "dismissable": {
+          "type": "boolean"
+        },
+        "showCloseButton": {
+          "type": "boolean"
+        },
+        "bare": {
+          "type": "boolean"
+        },
+        "disableOutsideClickToClose": {
           "type": "boolean"
         },
         "options": {
@@ -36,10 +238,22 @@
             "icon": {
               "anyOf": [
                 {
+                  "type": "string"
+                },
+                {
                   "type": "object",
                   "properties": {
                     "name": {
                       "type": "string"
+                    },
+                    "theme": {
+                      "type": "string",
+                      "enum": [
+                        "yellow",
+                        "blue",
+                        "red",
+                        "green"
+                      ]
                     },
                     "appearance": {
                       "type": "string",
@@ -55,9 +269,6 @@
                     "name"
                   ],
                   "additionalProperties": false
-                },
-                {
-                  "type": "string"
                 }
               ]
             },
@@ -179,8 +390,8 @@
             "position": {
               "type": "string",
               "enum": [
-                "top",
-                "center"
+                "center",
+                "top"
               ]
             },
             "paddingTop": {
@@ -191,14 +402,8 @@
             }
           },
           "additionalProperties": false
-        },
-        "disableOutsideClickToClose": {
-          "type": "boolean"
         }
       },
-      "required": [
-        "modelValue"
-      ],
       "additionalProperties": false
     }
   }
