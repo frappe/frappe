@@ -1,35 +1,13 @@
 #!/usr/bin/env python3
-"""Compare the default Desk JS bundle size against a base build.
+"""Compare default Desk JS bundle size against a base build.
 
-Measures on-disk sizes of bundles listed in `app_include_js` (see
-`frappe/hooks.py`), using hashed paths from `sites/assets/assets.json`.
+The measured bundles come from `app_include_js` in `frappe/hooks.py` and are
+resolved through hashed paths in `sites/assets/assets.json`.
 
-Only default Desk JS bundles are built
-(`--files`), not CSS, so a full `bench build` is not required:
-
-Local usage:
-
-```bash
-BENCH_ROOT="$PWD"
-FILES=$(
-	python "$BENCH_ROOT/apps/frappe/.github/helper/compare_default_js_bundle_size.py" \\
-		--bench-path "$BENCH_ROOT" --esbuild-files
-)
-
-cd "$BENCH_ROOT/apps/frappe"
-node esbuild --production --apps frappe --files "$FILES"
-
-python "$BENCH_ROOT/apps/frappe/.github/helper/compare_default_js_bundle_size.py" \\
-	--bench-path "$BENCH_ROOT" --write-json /tmp/base-default-js-bundle-size.json
-
-# Rebuild after your changes, then compare:
-node esbuild --production --apps frappe --files "$FILES"
-
-python "$BENCH_ROOT/apps/frappe/.github/helper/compare_default_js_bundle_size.py" \\
-	--bench-path "$BENCH_ROOT" --compare-to /tmp/base-default-js-bundle-size.json
-```
-
-Optional env var `DEFAULT_JS_BUNDLE_SIZE_THRESHOLD` (default 0.01 = 1% over base).
+Use `--esbuild-files` to print the comma-separated bundle list for
+`node esbuild --files`, `--write-json` to record a base measurement, and
+`--compare-to` to fail when the current measurement exceeds the configured
+threshold.
 """
 
 from __future__ import annotations
