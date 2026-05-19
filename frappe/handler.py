@@ -101,6 +101,10 @@ def is_valid_http_method(method):
 	if frappe.flags.in_safe_exec:
 		return
 
+	# Skip HTTP method validation when running in a background job
+	if hasattr(frappe.local, "job"):
+		return
+
 	http_method = frappe.local.request.method
 
 	if http_method not in frappe.allowed_http_methods_for_whitelisted_func[method]:
@@ -165,7 +169,7 @@ def upload_file():
 		file = files["file"]
 		filename = file.filename
 
-		if frappe.form_dict.chunk_index:
+		if frappe.form_dict.get("chunk_index") is not None:
 			current_chunk = int(frappe.form_dict.chunk_index)
 			total_chunks = int(frappe.form_dict.total_chunk_count)
 			offset = int(frappe.form_dict.chunk_byte_offset)

@@ -591,10 +591,14 @@ frappe.ui.Page = class Page {
 	}
 
 	set_inner_btn_group_as_primary(label) {
-		this.get_or_add_inner_group_button(label)
-			.find("button")
-			.removeClass("btn-default")
-			.addClass("btn-primary");
+		const group = this.get_or_add_inner_group_button(label);
+		const dropdown_items = group.find(".dropdown-menu .dropdown-item");
+
+		if (dropdown_items.length > 0) {
+			group.find("button").removeClass("btn-default").addClass("btn-primary");
+		} else {
+			group.toggleClass("hide", true);
+		}
 	}
 
 	btn_disable_enable(btn, response) {

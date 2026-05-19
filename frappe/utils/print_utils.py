@@ -95,6 +95,15 @@ def get_print(
 			)
 			# if hook returns a value, assume it was the correct pdf_generator and return it
 			if pdf:
+				if output and isinstance(pdf, bytes):
+					from io import BytesIO
+
+					from pypdf import PdfReader
+
+					reader = PdfReader(BytesIO(pdf))
+					for page in reader.pages:
+						output.add_page(page)
+					return output
 				return pdf
 
 	for hook in frappe.get_hooks("on_print_pdf"):
@@ -122,7 +131,11 @@ def attach_print(
 
 	print_settings = frappe.db.get_singles_dict("Print Settings")
 	if print_letterhead and not letterhead:
-		letterhead = frappe.get_cached_value("Letter Head", {"is_default": 1}, "name")
+		if not doc:
+			doc = frappe.get_cached_doc(doctype, name)
+		letterhead = doc.get("letter_head") or frappe.get_cached_value(
+			"Letter Head", {"is_default": 1}, "name"
+		)
 	kwargs = dict(
 		print_format=print_format,
 		style=style,
@@ -137,11 +150,7 @@ def attach_print(
 	is_weasyprint_print_format = False
 	if print_format and print_format != "Standard":
 		print_format_doc = frappe.get_cached_doc("Print Format", print_format)
-		is_weasyprint_print_format = not (
-			print_format_doc.custom_format
-			or print_format_doc.get("print_format_builder")
-			or print_format_doc.get("print_designer_print_format")
-		)
+		is_weasyprint_print_format = print_format_doc.get("print_format_builder_beta")
 
 	with print_language(lang or frappe.local.lang):
 		content = ""

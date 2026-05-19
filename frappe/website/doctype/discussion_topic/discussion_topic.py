@@ -33,6 +33,8 @@ def submit_discussion(
 ):
 	if reply_name:
 		doc = frappe.get_doc("Discussion Reply", reply_name)
+		if doc.owner != frappe.session.user:
+			frappe.throw(frappe._("You can only edit your own replies."), frappe.PermissionError)
 		doc.reply = reply
 		doc.save(ignore_permissions=True)
 		return

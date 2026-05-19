@@ -240,7 +240,7 @@ def import_weasyprint():
 	except OSError:
 		message = "\n".join(
 			[
-				"WeasyPrint depdends on additional system dependencies.",
+				"WeasyPrint depends on additional system dependencies.",
 				"Follow instructions specific to your operating system:",
 				"https://doc.courtbouillon.org/weasyprint/stable/first_steps.html",
 			]

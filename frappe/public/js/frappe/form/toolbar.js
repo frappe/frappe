@@ -341,7 +341,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		// Navigate
 		if (!this.frm.is_new() && !this.frm.meta.issingle) {
 			this.page.add_action_icon(
-				"es-line-left-chevron",
+				frappe.utils.is_rtl() ? "es-line-right-chevron" : "es-line-left-chevron",
 				() => {
 					this.frm.navigate_records(1);
 				},
@@ -349,7 +349,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Previous Document")
 			);
 			this.page.add_action_icon(
-				"es-line-right-chevron",
+				frappe.utils.is_rtl() ? "es-line-left-chevron" : "es-line-right-chevron",
 				() => {
 					this.frm.navigate_records(0);
 				},
@@ -630,8 +630,9 @@ frappe.ui.form.Toolbar = class Toolbar {
 		) {
 			let doctype = is_doctype_form ? this.frm.docname : this.frm.doctype;
 			let is_doctype_custom = is_doctype_form ? this.frm.doc.custom : false;
+			let is_core_doctype = frappe.model.core_doctypes_list.includes(doctype);
 
-			if (doctype != "DocType" && !is_doctype_custom && this.frm.meta.issingle === 0) {
+			if (!is_core_doctype && !is_doctype_custom && this.frm.meta.issingle === 0) {
 				this.page.add_menu_item(
 					__("Customize"),
 					() => {
@@ -735,6 +736,12 @@ frappe.ui.form.Toolbar = class Toolbar {
 					.then((is_amended) => {
 						if (is_amended) {
 							this.page.clear_actions();
+							let btn = this.page.set_secondary_action(__("Amend"), () => {});
+							btn.prop("disabled", true)
+								.wrap('<span style="display:inline-block"></span>')
+								.parent()
+								.attr("title", __("Already amended as {0}", [is_amended]))
+								.tooltip({ delay: { show: 400, hide: 100 }, trigger: "hover" });
 							return;
 						}
 						this.set_page_actions(status);
@@ -939,7 +946,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	get_follow_text(follow) {
-		if (follow === null) {
+		if (follow == null) {
 			follow = this.frm.get_docinfo().is_document_followed;
 		}
 		return follow ? __("Unfollow") : __("Follow");

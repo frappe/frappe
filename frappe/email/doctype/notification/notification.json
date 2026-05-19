@@ -203,7 +203,7 @@
    "depends_on": "eval:doc.condition_type===\"Python\"",
    "fieldname": "html_7",
    "fieldtype": "HTML",
-   "options": "<p><strong>Condition Examples:</strong></p>\n<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n</code></pre>\n"
+   "options": "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n<pre><code class=\"language-python\">doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n</code></pre>\n"
   },
   {
    "collapsible": 1,
@@ -363,7 +363,7 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-02-19 18:07:15.888314",
+ "modified": "2026-04-22 15:37:19.355265",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

@@ -254,6 +254,66 @@ class TestSameContent(IntegrationTestCase):
 		limit_property.delete()
 		frappe.clear_cache(doctype="ToDo")
 
+	def test_create_attachment_copy(self):
+		doctype, docname = make_test_doc()
+		source_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"existing-file-{frappe.generate_hash(length=8)}.txt",
+				"content": "Existing attachment content",
+			}
+		).insert()
+		comment_count_before = frappe.db.count(
+			"Comment", {"reference_doctype": doctype, "reference_name": docname}
+		)
+
+		copied_file = source_file.create_attachment_copy(doctype, docname)
+		comment_count_after = frappe.db.count(
+			"Comment", {"reference_doctype": doctype, "reference_name": docname}
+		)
+
+		self.assertNotEqual(copied_file.name, source_file.name)
+		self.assertEqual(copied_file.file_url, source_file.file_url)
+		self.assertEqual(copied_file.attached_to_doctype, doctype)
+		self.assertEqual(copied_file.attached_to_name, docname)
+		self.assertEqual(
+			copied_file.folder,
+			frappe.db.get_value("File", {"is_attachments_folder": 1}),
+		)
+		self.assertEqual(comment_count_after, comment_count_before + 1)
+
+	def test_create_attachment_copy_respects_attachment_limit(self):
+		doctype, docname = make_test_doc()
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		limit_property = make_property_setter("ToDo", None, "max_attachments", 1, "int", for_doctype=True)
+		source_file_1 = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"existing-limit-file-{frappe.generate_hash(length=8)}.txt",
+				"content": "Existing attachment content 1",
+			}
+		).insert()
+		source_file_2 = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"existing-limit-file-{frappe.generate_hash(length=8)}.txt",
+				"content": "Existing attachment content 2",
+			}
+		).insert()
+
+		try:
+			source_file_1.create_attachment_copy(doctype, docname)
+			self.assertRaises(
+				frappe.exceptions.AttachmentLimitReached,
+				source_file_2.create_attachment_copy,
+				doctype,
+				docname,
+			)
+		finally:
+			limit_property.delete()
+			frappe.clear_cache(doctype="ToDo")
+
 	def test_utf8_bom_content_decoding(self):
 		utf8_bom_content = test_content1.encode("utf-8-sig")
 		_file: frappe.Document = frappe.get_doc(

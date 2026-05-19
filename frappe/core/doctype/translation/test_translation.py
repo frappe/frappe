@@ -16,16 +16,20 @@ class TestTranslation(IntegrationTestCase):
 		clear_cache()
 
 	def test_doctype(self):
-		translation_data = get_translation_data()
-		for lang, (source_string, new_translation) in translation_data.items():
+		doctype = "Translation"
+		meta = frappe.get_meta(doctype)
+		source_string = meta.get_label("translated_text")
+
+		for lang in ["de", "bs", "zh", "hr", "en", "sv"]:
 			frappe.local.lang = lang
-			original_translation = _(source_string)
+			original_translation = _(source_string, context=doctype)
+			new_translation = f"{original_translation} Customized"
 
-			docname = create_translation(lang, source_string, new_translation)
-			self.assertEqual(_(source_string), new_translation)
+			docname = create_translation(lang, source_string, new_translation, context=doctype)
+			self.assertEqual(_(source_string, context=doctype), new_translation)
 
-			frappe.delete_doc("Translation", docname)
-			self.assertEqual(_(source_string), original_translation)
+			frappe.delete_doc(doctype, docname)
+			self.assertEqual(_(source_string, context=doctype), original_translation)
 
 	def test_parent_language(self):
 		data = {
@@ -60,37 +64,54 @@ class TestTranslation(IntegrationTestCase):
 		source = "User"
 		self.assertNotEqual(_(source, lang="de"), _(source, lang="es"))
 
-	def test_html_content_data_translation(self):
-		# ruff: noqa: RUF001
+	def test_html_content_translation(self):
 		source = """
-			<span style="color: rgb(51, 51, 51); font-family: &quot;Amazon Ember&quot;, Arial, sans-serif; font-size:
-			small;">MacBook Air lasts up to an incredible 12 hours between charges. So from your morning coffee to
-			your evening commute, you can work unplugged. When it’s time to kick back and relax,
-			you can get up to 12 hours of iTunes movie playback. And with up to 30 days of standby time,
-			you can go away for weeks and pick up where you left off.Whatever the task,
-			fifth-generation Intel Core i5 and i7 processors with Intel HD Graphics 6000 are up to it.</span><br>
-		"""
-
+			To add dynamic subject, use jinja tags like
+			<div><pre><code>{{ doc.name }} Billed</code></pre></div>
+		""".strip()
 		target = """
-			MacBook Air dura hasta 12 horas increíbles entre cargas. Por lo tanto,
-			desde el café de la mañana hasta el viaje nocturno, puede trabajar desconectado.
-			Cuando es hora de descansar y relajarse, puede obtener hasta 12 horas de reproducción de películas de iTunes.
-			Y con hasta 30 días de tiempo de espera, puede irse por semanas y continuar donde lo dejó. Sea cual sea la tarea,
-			los procesadores Intel Core i5 e i7 de quinta generación con Intel HD Graphics 6000 son capaces de hacerlo.
-		"""
+			Um einen dynamischen Betreff hinzuzufügen, verwenden Sie Jinja-Tags wie
+			<div><pre><code>{{ doc.name }} Abgerechnet</code></pre></div>
+		""".strip()
 
-		create_translation("es", source, target)
+		frappe.local.lang = "de"
 
-		source = """
-			<span style="font-family: &quot;Amazon Ember&quot;, Arial, sans-serif; font-size:
-			small; color: rgb(51, 51, 51);">MacBook Air lasts up to an incredible 12 hours between charges. So from your morning coffee to
-			your evening commute, you can work unplugged. When it’s time to kick back and relax,
-			you can get up to 12 hours of iTunes movie playback. And with up to 30 days of standby time,
-			you can go away for weeks and pick up where you left off.Whatever the task,
-			fifth-generation Intel Core i5 and i7 processors with Intel HD Graphics 6000 are up to it.</span><br>
-		"""
+		self.assertEqual(_(source), source)
 
-		self.assertTrue(_(source), target)
+		create_translation("de", source, target)
+
+		self.assertEqual(_(source), target)
+
+	def test_translated_html_is_sanitized(self):
+		source = "Translation with HTML"
+		target = """
+			<span style="color:red" onclick="alert('xss')">Hallo</span>
+			<script>alert("xss")</script>
+			<iframe src="https://example.com"></iframe>
+			<div>Ok</div>
+		""".strip()
+
+		docname = create_translation("de", source, target)
+		translated_text = frappe.db.get_value("Translation", docname, "translated_text")
+
+		self.assertIn('<span style="color:red">Hallo</span>', translated_text)
+		self.assertIn("<div>Ok</div>", translated_text)
+		self.assertNotIn("onclick", translated_text)
+		self.assertNotIn("<script", translated_text)
+		self.assertNotIn('alert("xss")', translated_text)
+		self.assertNotIn("<iframe", translated_text)
+		self.assertNotIn("example.com", translated_text)
+
+		frappe.local.lang = "de"
+		self.assertEqual(_(source), translated_text)
+
+	def test_plain_text_translation_with_angle_brackets_is_unchanged(self):
+		source = "Comparison"
+		target = "1 < 2 and 3 > 2"
+
+		docname = create_translation("de", source, target)
+
+		self.assertEqual(frappe.db.get_value("Translation", docname, "translated_text"), target)
 
 	def test_html_message_translations(self):
 		"""Test fallback for messages w/ HTML Tags"""
@@ -100,27 +121,12 @@ class TestTranslation(IntegrationTestCase):
 		self.assertEqual(_(message, lang="zh"), translated_message)
 
 
-def get_translation_data():
-	html_source_data = """<font color="#848484" face="arial, tahoma, verdana, sans-serif">
-							<span style="font-size: 11px; line-height: 16.9px;">Test Data</span></font>"""
-	html_translated_data = """<font color="#848484" face="arial, tahoma, verdana, sans-serif">
-							<span style="font-size: 11px; line-height: 16.9px;"> testituloksia </span></font>"""
-
-	return {
-		"hr": ["Test data", "Testdaten"],
-		"ms": ["Test Data", "ujian Data"],
-		"et": ["Test Data", "testandmed"],
-		"es": ["Test Data", "datos de prueba"],
-		"en": ["Quotation", "Tax Invoice"],
-		"fi": [html_source_data, html_translated_data],
-	}
-
-
-def create_translation(lang, source_string, new_translation) -> str:
+def create_translation(lang, source_string, new_translation, context=None) -> str:
 	doc = frappe.new_doc("Translation")
 	doc.language = lang
 	doc.source_text = source_string
 	doc.translated_text = new_translation
+	doc.context = context
 	doc.save()
 
 	return doc.name

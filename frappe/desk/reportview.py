@@ -415,13 +415,14 @@ def run_report_view_export_job(user_email, form_params, csv_params):
 
 def _export_query(form_params, csv_params, populate_response=True):
 	from frappe.desk.utils import get_csv_bytes, provide_binary_file
-	from frappe.utils.xlsxutils import handle_html, make_xlsx
+	from frappe.utils.xlsxutils import get_default_xlsx_styles, handle_html, make_xlsx
 
 	doctype = form_params.pop("doctype")
+	owner_field = f"`tab{doctype}`.`owner`"
 	if isinstance(form_params["fields"], list):
-		form_params["fields"].append("owner")
+		form_params["fields"].append(owner_field)
 	elif isinstance(form_params["fields"], tuple):
-		form_params["fields"] = form_params["fields"] + ("owner",)
+		form_params["fields"] = form_params["fields"] + (owner_field,)
 	file_format_type = form_params.pop("file_format_type")
 	title = form_params.pop("title", doctype)
 	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
@@ -456,7 +457,8 @@ def _export_query(form_params, csv_params, populate_response=True):
 	fields_info = get_field_info(db_query.fields, doctype)
 
 	labels = [info["label"] for info in fields_info]
-	data = [[_("Sr"), *labels]]
+	sr_label = _("Sr")
+	data = [[sr_label, *labels]]
 	processed_data = []
 
 	if frappe.local.lang == "en" or not translate_values:
@@ -481,7 +483,21 @@ def _export_query(form_params, csv_params, populate_response=True):
 		)
 	elif file_format_type == "Excel":
 		file_extension = "xlsx"
-		content = make_xlsx(data, doctype).getvalue()
+
+		styles = get_default_xlsx_styles(
+			columns=[
+				{
+					"fieldname": "sr",
+					"label": sr_label,
+					"fieldtype": "Int",
+				},
+				*fields_info,
+			],
+			data=data[1:],  # exclude header row
+			has_total_row=bool(add_totals_row),
+		)
+
+		content = make_xlsx(data, doctype, styles=styles).getvalue()
 
 	if not populate_response:
 		return title, file_extension, content
@@ -509,66 +525,91 @@ def append_totals_row(data):
 	return data
 
 
-def get_field_info(fields, doctype):
-	"""Get column names, labels, field types, and translatable properties based on column names."""
+def get_field_info(fields, parent_doctype):
+	"""
+	Get field's
+		- fieldname
+		- label
+		- fieldtype
+		- translatable
+		- options (if any)
+
+	:param fields: List of field names (can include child table fields and aggregate functions).
+	:param parent_doctype: The main doctype from which the report is generated.
+	"""
+	from frappe.model.meta import get_default_df
 
 	field_info = []
-	for key in fields:
+
+	for field in fields:
 		df = None
+		doctype = None
 		try:
-			parenttype, fieldname = parse_field(key)
+			doctype, fieldname = parse_field(field)
 		except ValueError:
 			# handles aggregate functions
-			parenttype = doctype
-			fieldname = key.split("(", 1)[0]
-			fieldname = fieldname[0].upper() + fieldname[1:]
+			if isinstance(field, dict):
+				# Eg: {"COUNT": "name", "as": "count_name"} -> "COUNT"
+				fieldname = next(f for f in field if f != "as")
+			else:
+				# Eg: "count(name)" -> "count"
+				fieldname = field.split("(", 1)[0]
+			fieldname = fieldname.capitalize()
 
-		parenttype = parenttype or doctype
+		doctype = doctype or parent_doctype
+		options = None
 
-		if parenttype == doctype and fieldname == "name":
-			name = fieldname
+		# Special-case the primary `name` column on the parent doctype
+		if doctype == parent_doctype and fieldname == "name":
 			label = _("ID", context="Label of name column in report")
 			fieldtype = "Data"
 			translatable = True
 		else:
-			df = frappe.get_meta(parenttype).get_field(fieldname)
-			if df and df.fieldtype in ("Data", "Select", "Small Text", "Text"):
-				name = df.name
-				label = _(df.label)
+			meta = frappe.get_meta(doctype)
+			meta_df = meta.get_field(fieldname)
+			df = meta_df or get_default_df(fieldname)
+
+			if df:
+				fieldname = df.fieldname
+				label = _(df.label or "") if meta_df else meta.get_label(fieldname)
 				fieldtype = df.fieldtype
-				translatable = getattr(df, "translatable", False)
-			elif df and df.fieldtype == "Link" and frappe.get_meta(df.options).translated_doctype:
-				name = df.name
-				label = _(df.label)
-				fieldtype = df.fieldtype
-				translatable = True
+				translatable = df.translatable or False
+				options = df.options
+
+				if df.fieldtype == "Link" and options and frappe.get_meta(options).translated_doctype:
+					translatable = True
 			else:
-				name = fieldname
-				label = _(df.label) if df else _(fieldname)
+				label = _(frappe.unscrub(fieldname))
 				fieldtype = "Data"
 				translatable = False
 
-			if parenttype != doctype:
+			if doctype != parent_doctype:
 				# If the column is from a child table, append the child doctype.
 				# For example, "Item Code (Sales Invoice Item)".
-				label += f" ({_(parenttype)})"
+				label += f" ({_(doctype)})"
 
 		field_info.append(
-			{"name": name, "label": label, "fieldtype": fieldtype, "translatable": translatable}
+			{
+				"fieldname": fieldname,
+				"label": label,
+				"fieldtype": fieldtype,
+				"translatable": translatable,
+				"options": options,
+			}
 		)
 
 	return field_info
 
 
-def handle_duration_fieldtype_values(doctype, data, fields):
+def handle_duration_fieldtype_values(parent_doctype, data, fields):
 	for field in fields:
 		try:
-			parenttype, fieldname = parse_field(field)
+			doctype, fieldname = parse_field(field)
 		except ValueError:
 			continue
 
-		parenttype = parenttype or doctype
-		df = frappe.get_meta(parenttype).get_field(fieldname)
+		doctype = doctype or parent_doctype
+		df = frappe.get_meta(doctype).get_field(fieldname)
 
 		if df and df.fieldtype == "Duration":
 			index = fields.index(field) + 1
@@ -580,8 +621,18 @@ def handle_duration_fieldtype_values(doctype, data, fields):
 	return data
 
 
-def parse_field(field: str) -> tuple[str | None, str]:
-	"""Parse a field into parenttype and fieldname."""
+def parse_field(field: str | dict) -> tuple[str | None, str]:
+	"""
+	Parse a field into doctype and fieldname.
+
+	:param field: The field string to parse.
+	:returns: A tuple of (doctype, fieldname). Doctype is None if not specified.
+
+	:raises ValueError: If the field contains aggregate functions.
+	"""
+	if isinstance(field, dict):  # for aggregates via qb
+		raise ValueError
+
 	key = field.split(" as ", 1)[0]
 
 	if key.startswith(("count(", "sum(", "avg(")):

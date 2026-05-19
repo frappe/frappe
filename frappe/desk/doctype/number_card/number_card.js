@@ -504,7 +504,7 @@ frappe.ui.form.on("Number Card", {
 					<td class="text-center">
 						<a class="remove-filter text-muted" style="cursor: pointer;">
 							<svg class="icon icon-sm">
-								<use href="#icon-close" class="close"></use>
+								<use href="#icon-x" class="close"></use>
 							</svg>
 						</a>
 					</td>

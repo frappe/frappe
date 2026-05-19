@@ -3,9 +3,11 @@
 
 import json
 import os
-import subprocess
+import re
+import tarfile
 
 import frappe
+from frappe.core.doctype.file.utils import check_path_safety
 from frappe.desk.form.load import get_attachments
 from frappe.model.document import Document
 from frappe.model.sync import get_doc_files
@@ -41,20 +43,28 @@ class PackageImport(Document):
 		attachment = attachment[0]
 
 		# get package_name from file (package_name-0.0.0.tar.gz)
-		package_name = attachment.file_name.split(".", 1)[0].rsplit("-", 1)[0]
+		raw_name = attachment.file_name.split(".", 1)[0].rsplit("-", 1)[0]
+		package_name = re.sub(r"[^a-zA-Z0-9_-]", "", raw_name)
+		if not package_name:
+			frappe.throw(frappe._("Invalid Package Name"))
+
 		if not os.path.exists(frappe.get_site_path("packages")):
 			os.makedirs(frappe.get_site_path("packages"))
 
 		# extract
-		subprocess.check_output(
-			[
-				"tar",
-				"xzf",
-				get_files_path(attachment.file_name, is_private=attachment.is_private),
-				"-C",
-				frappe.get_site_path("packages"),
-			]
-		)
+		extract_path = frappe.get_site_path("packages")
+		archive_path = get_files_path(attachment.file_name, is_private=attachment.is_private)
+		with tarfile.open(archive_path, "r:gz") as tar:
+			for member in tar.getmembers():
+				if member.issym() or member.islnk():
+					frappe.throw(frappe._(f"Package contains disallowed link entry: {member.name}"))
+
+				member_path = os.path.join(extract_path, member.name)
+				is_safe = check_path_safety(extract_path, member_path)
+				if not is_safe:
+					frappe.throw(frappe._("Package contains disallowed path entry"))
+
+			tar.extractall(path=extract_path, filter="data")
 
 		package_path = frappe.get_site_path("packages", package_name)
 

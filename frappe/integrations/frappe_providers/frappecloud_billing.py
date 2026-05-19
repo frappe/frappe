@@ -14,7 +14,7 @@ def get_base_url():
 
 
 def get_site_login_url():
-	return f"{get_base_url()}/dashboard/site-login"
+	return f"{get_base_url()}/dashboard/login"
 
 
 def get_site_name():

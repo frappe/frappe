@@ -1,5 +1,6 @@
 <div class="timeline-message-box" data-communication-type="{{ doc.communication_type }}">
 	{% is_mini = frappe.is_mobile() ? true : false %}
+	{% var show_absolute_datetime = cint(frappe.boot.user.show_absolute_datetime_in_timeline) || cint(frappe.boot.sysdefaults.show_absolute_datetime_in_timeline) %}
 	<span class="flex justify-between m-1 mb-3">
 		<span class="text-color flex">
 			{% if (doc.communication_type && doc.communication_type == "Automated Message") { %}
@@ -24,7 +25,7 @@
 					{% } %}
 
 					<div class="text-extra-muted">
-						{{ comment_when(doc.communication_date || doc.creation) }}
+						{{ show_absolute_datetime ? frappe.datetime.str_to_user(doc.communication_date || doc.creation) : comment_when(doc.communication_date || doc.creation) }}
 					</div>
 				</span>
 			{% } else if (doc.comment_type && doc.comment_type == "Comment") { %}
@@ -34,7 +35,7 @@
 						<span class="text-extra-muted">{{ __("commented") }}</span>
 						<span> · </span>
 						<span class="text-extra-muted">
-							{{ comment_when(doc.communication_date || doc.creation, is_mini) }}
+							{{ show_absolute_datetime ? frappe.datetime.str_to_user(doc.communication_date || doc.creation) : comment_when(doc.communication_date || doc.creation, is_mini) }}
 						</span>
 					{% if (doc.published) { %}
 						<span> · </span>
@@ -52,7 +53,7 @@
 						<span> . </span>
 
 						<span class="text-muted">
-							{{ comment_when(doc.communication_date || doc.creation, is_mini) }}
+							{{ show_absolute_datetime ? frappe.datetime.str_to_user(doc.communication_date || doc.creation) : comment_when(doc.communication_date || doc.creation, is_mini) }}
 						</span>
 						{% if (doc.subject) { %}
 							<div class="text-muted my-1">{{doc.subject}}</div>

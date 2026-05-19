@@ -232,6 +232,10 @@ scheduler_events = {
 		"0 */3 * * *": [
 			"frappe.search.sqlite_search.build_index_if_not_exists",
 		],
+		# Daily at 6:00 AM.
+		"0 6 * * *": [
+			"frappe.core.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
+		],
 	},
 	"all": [
 		"frappe.email.queue.flush",
@@ -526,6 +530,7 @@ persistent_cache_keys = [
 	"monitor-transactions",
 	"rate-limit-counter-*",
 	"rl:*",
+	"concurrency:*",
 ]
 
 user_invitation = {

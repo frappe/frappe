@@ -297,12 +297,31 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 				"add"
 			);
+			frappe.ui.keys.add_shortcut({
+				shortcut: "ctrl+b",
+				action: () => {
+					if (this.settings.primary_action) {
+						this.settings.primary_action();
+					} else {
+						this.make_new_doc();
+					}
+
+					return true;
+				},
+				description: __(
+					"Create a new document",
+					null,
+					"Description of a list view shortcut"
+				),
+				page: this.page,
+			});
 			if (frappe.is_mobile()) {
 				create_button.append(__("Add"));
 			} else {
 				this._trim_primary_action_if_overflow(create_button, add_button_label);
 			}
 		} else {
+			frappe.ui.keys.off("ctrl+b", this.page);
 			this.page.clear_primary_action();
 		}
 	}
@@ -698,6 +717,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		let me = this;
 		let $count = this.get_count_element();
+		$count.css("white-space", "nowrap");
+
 		this.get_count_str().then((count) => {
 			$count.html(`<span>${count}</span>`);
 			if (
@@ -712,7 +733,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				);
 				$count.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 				$count.css("cursor", "pointer");
-				$count.css("white-space", "nowrap");
 				$count.on("click", () => {
 					me.count_upper_bound = 0;
 					$count.off("click");
@@ -983,6 +1003,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				html = `<span class="ellipsis">
 					${_value}
 				</span>`;
+			} else if (df.fieldtype === "Percent") {
+				return `<div style="width: 100%;"
+					title="${__(label)}: ${frappe.utils.escape_html(_value)}">
+					${format()}
+				</div>`;
 			} else {
 				html = `<a class="${filterable} ellipsis"
 					data-filter="${fieldname},=,${frappe.utils.escape_html(value)}">
@@ -1083,11 +1108,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		// if no scroll then remove borders
 		let list_row = this.$result.find(".list-row-container .list-row").first();
-		let result_container_width = this.$result.width();
-		let left_width = list_row.find(".level-left").width();
-		let right_width = list_row.find(".level-right").width();
+		let frappe_list_width = this.$frappe_list.width();
+		let left_width = list_row.find(".level-left").first().width();
+		let right_width = list_row.find(".level-right").first().width();
 
-		if (result_container_width - right_width > left_width) {
+		// if listview is not scrollable then hide border
+		if (left_width < frappe_list_width - right_width) {
 			this.$result.find(".list-row-container .list-row .level-right").addClass("border-0");
 		}
 	}
@@ -1976,7 +2002,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (
 			frappe.model.can_create("Custom Field") &&
-			frappe.model.can_create("Property Setter")
+			frappe.model.can_create("Property Setter") &&
+			!frappe.model.core_doctypes_list.includes(doctype)
 		) {
 			items.push({
 				label: __("Customize", null, "Button in list view menu"),

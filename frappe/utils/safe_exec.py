@@ -477,6 +477,8 @@ def read_sql(query, *args, **kwargs):
 
 
 def check_safe_sql_query(query: str, throw: bool = True) -> bool:
+	import re
+
 	"""Check if SQL query is safe for running in restricted context.
 
 	Safe queries:
@@ -485,6 +487,15 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 
 	query = query.strip().lower()
 	whitelisted_statements = ("select", "explain")
+
+	if re.search(r"\binto\s+(outfile|dumpfile)\b", query):
+		if throw:
+			frappe.throw(
+				_("Read-Only queries are allowed"),
+				title=_("Unsafe SQL query"),
+				exc=frappe.PermissionError,
+			)
+		return False
 
 	if query.startswith(whitelisted_statements):
 		return True

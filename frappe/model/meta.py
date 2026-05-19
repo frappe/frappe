@@ -672,7 +672,7 @@ class Meta(Document):
 
 	@cached_property
 	def high_permlevel_fields(self):
-		return [df for df in self.fields if df.permlevel > 0]
+		return [df for df in self.fields if (df.permlevel or 0) > 0]
 
 	def get_permitted_fieldnames(
 		self,

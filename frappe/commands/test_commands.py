@@ -960,7 +960,7 @@ class TestAddNewUser(BaseTestCommands):
 
 class TestBenchBuild(IntegrationTestCase):
 	def test_build_assets_size_check(self):
-		CURRENT_SIZE = 3.4  # MB
+		CURRENT_SIZE = 3.41  # MB
 		JS_ASSET_THRESHOLD = 0.01
 
 		hooks = frappe.get_hooks()

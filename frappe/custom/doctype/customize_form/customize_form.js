@@ -107,13 +107,15 @@ frappe.ui.form.on("Customize Form", {
 					frm.page.set_title(__("Customize Form - {0}", [__(frm.doc.doc_type)]));
 					frappe.customize_form.set_primary_action(frm);
 
-					frm.add_custom_button(
-						__("Go to {0} List", [__(frm.doc.doc_type)]),
-						function () {
-							frappe.set_route("List", frm.doc.doc_type);
-						},
-						__("Actions")
-					);
+					if (!frappe.get_meta(frm.doc.doc_type).istable) {
+						frm.add_custom_button(
+							__("Go to {0} List", [__(frm.doc.doc_type)]),
+							() => {
+								frappe.set_route("List", frm.doc.doc_type);
+							},
+							__("Actions")
+						);
+					}
 
 					frm.add_custom_button(
 						__("Set Permissions"),

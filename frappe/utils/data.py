@@ -1556,7 +1556,7 @@ def money_in_words(
 	if main == "0" and fraction in ["0", "00", "000"]:
 		out = _(main_currency, context="Currency") + " " + _("Zero")
 	elif main == "0":
-		out = f"{fraction_in_words()} {fraction_currency}"
+		out = f"{fraction_in_words()} {_(fraction_currency, context='Currency')}"
 	else:
 		if main_currency == "DZD":
 			# Use Dinars for Algerian Compliance
@@ -1564,7 +1564,15 @@ def money_in_words(
 		else:
 			out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
 		if cint(fraction):
-			out = out + " " + _("and") + " " + fraction_in_words() + " " + fraction_currency
+			out = (
+				out
+				+ " "
+				+ _("and")
+				+ " "
+				+ fraction_in_words()
+				+ " "
+				+ _(fraction_currency, context="Currency")
+			)
 
 	if main_currency == "DZD":
 		return _("{0}.", context="Money in words").format(out)
@@ -1918,6 +1926,14 @@ def get_link_to_form(doctype: str, name: str | None = None, label: str | None = 
 		label = name or _(doctype)
 
 	return f"""<a href="{get_url_to_form(doctype, name)}">{label}</a>"""
+
+
+def get_url_to_workspace(workspace: str, is_public: bool):
+	url_prefix = "/desk/"
+	if not is_public:
+		workspace_url = "/desk/private/"
+	workspace_url = url_prefix + workspace.lower()
+	return workspace_url
 
 
 def get_link_to_report(
@@ -2468,6 +2484,10 @@ def guess_date_format(date_string: str) -> str:
 	DATE_FORMATS = [
 		r"%d/%b/%y",
 		r"%d/%b/%Y",
+		r"%d %b %Y",
+		r"%d %B %Y",
+		r"%d-%b-%Y",
+		r"%d-%b-%y",
 		r"%d-%m-%Y",
 		r"%m-%d-%Y",
 		r"%Y-%m-%d",
@@ -2487,9 +2507,6 @@ def guess_date_format(date_string: str) -> str:
 		r"%d.%m.%y",
 		r"%m.%d.%y",
 		r"%y.%m.%d",
-		r"%d %b %Y",
-		r"%d %B %Y",
-		r"%d-%b-%Y",
 	]
 
 	TIME_FORMATS = [

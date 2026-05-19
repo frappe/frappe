@@ -132,9 +132,6 @@ class Workspace:
 		return doc
 
 	def is_item_allowed(self, name, item_type):
-		if frappe.session.user == "Administrator":
-			return True
-
 		item_type = item_type.lower()
 
 		if item_type == "doctype":
@@ -142,7 +139,7 @@ class Workspace:
 		if item_type == "page":
 			return name in self.allowed_pages and name in self.restricted_pages
 		if item_type == "report":
-			return name in self.allowed_reports
+			return not frappe.db.get_value("Report", name, "disabled") and name in self.allowed_reports
 		if item_type == "help":
 			return True
 		if item_type == "dashboard":
@@ -661,6 +658,9 @@ def update_onboarding_step(name: str | int, field: str, value: int | str):
 	"""
 	from frappe.utils.telemetry import capture
 
+	allowed_fields = ["is_skipped", "is_complete"]
+	if field not in allowed_fields:
+		return
 	frappe.db.set_value("Onboarding Step", name, field, value)
 
 	capture(frappe.scrub(name), app="frappe_onboarding", properties={field: value})
@@ -682,6 +682,9 @@ def get_onboarding_data(module: str):
 	Return:
 	        dict: onboarding data
 	"""
+	if not frappe.get_system_settings("enable_onboarding"):
+		return []
+
 	onboardings = []
 	onboarding_doc = frappe.get_doc("Module Onboarding", module)
 	if onboarding_doc.is_complete:

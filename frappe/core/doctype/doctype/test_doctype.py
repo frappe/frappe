@@ -671,6 +671,51 @@ class TestDocType(IntegrationTestCase):
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
 	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_standard_doctype_insert_with_deferred_export(self):
+		import shutil
+
+		from frappe.utils import CallbackManager
+
+		previous_request = getattr(frappe.local, "request", None)
+		frappe.local.request = frappe._dict(after_response=CallbackManager())
+		doctype = None
+		controller_folder = None
+		method_calls = []
+
+		original_run_module_method = DocType.run_module_method
+
+		def spy(self, method):
+			method_calls.append(method)
+			return original_run_module_method(self, method)
+
+		try:
+			with patch.object(DocType, "run_module_method", spy):
+				doctype = new_doctype(custom=0).insert()
+				# Module hooks must be deferred until after the controller file exists.
+				self.assertEqual(method_calls, [])
+
+				frappe.local.request.after_response.run()
+				self.assertEqual(method_calls, ["on_doctype_update", "after_doctype_insert"])
+
+			controller_folder = frappe.get_module_path(doctype.module, "doctype", frappe.scrub(doctype.name))
+			controller_path = frappe.get_module_path(
+				doctype.module, "doctype", frappe.scrub(doctype.name), f"{frappe.scrub(doctype.name)}.py"
+			)
+			self.assertTrue(os.path.exists(controller_path))
+		finally:
+			try:
+				if doctype and frappe.db.exists("DocType", doctype.name):
+					doctype.delete()
+					frappe.db.commit()
+			finally:
+				if controller_folder:
+					shutil.rmtree(controller_folder, ignore_errors=True)
+				frappe.local.request = previous_request
+
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
+	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_export_types(self):
 		"""Export python types."""
 		import ast

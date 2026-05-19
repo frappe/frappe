@@ -101,6 +101,7 @@ class DocType(Document):
 
 		actions: DF.Table[DocTypeAction]
 		allow_auto_repeat: DF.Check
+		allow_bulk_edit: DF.Check
 		allow_copy: DF.Check
 		allow_events_in_timeline: DF.Check
 		allow_guest_to_view: DF.Check
@@ -549,17 +550,37 @@ class DocType(Document):
 			and not frappe.flags.in_import
 			and (frappe.conf.developer_mode or frappe.flags.allow_doctype_export)
 		)
+		request = getattr(frappe.local, "request", None)
+		defer_doctype_export = request and hasattr(request, "after_response")
+		defer_module_methods = allow_doctype_export and defer_doctype_export
+
+		# Snapshot insert intent: flags.in_insert is cleared before request.after_response runs.
+		needs_after_doctype_insert = bool(self.flags.in_insert)
+
+		def run_doctype_module_methods():
+			self.run_module_method("on_doctype_update")
+			if needs_after_doctype_insert:
+				self.run_module_method("after_doctype_insert")
+
 		if allow_doctype_export:
-			self.export_doc()
-			self.make_controller_template()
-			self.set_base_class_for_controller()
-			self.export_types_to_controller()
+
+			def export_doctype_files():
+				self.export_doc()
+				self.make_controller_template()
+				self.set_base_class_for_controller()
+				self.export_types_to_controller()
+				if defer_module_methods:
+					run_doctype_module_methods()
+
+			# Defer file writes until after the response so the client can sync the saved doc first.
+			if defer_doctype_export:
+				request.after_response.add(export_doctype_files)
+			else:
+				export_doctype_files()
 
 		# update index
-		if not self.custom:
-			self.run_module_method("on_doctype_update")
-			if self.flags.in_insert:
-				self.run_module_method("after_doctype_insert")
+		if not self.custom and not defer_module_methods:
+			run_doctype_module_methods()
 
 		self.sync_doctype_layouts()
 		delete_notification_count_for(doctype=self.name)
@@ -573,6 +594,8 @@ class DocType(Document):
 			self.sync_global_search()
 
 		clear_linked_doctype_cache()
+
+		frappe.publish_realtime("doctype_update", {"doctype": self.name}, after_commit=True)
 
 	@savepoint(catch=Exception)
 	def sync_doctype_layouts(self):

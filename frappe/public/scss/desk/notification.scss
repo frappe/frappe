@@ -44,6 +44,52 @@
 	display: none;
 }
 
+.sidebar-notification .sidebar-item-icon.indicator,
+.desktop-notification-icon.indicator {
+	position: relative;
+
+	&::before {
+		position: absolute;
+		left: auto;
+		height: 6px;
+		width: 6px;
+		margin: 0;
+		z-index: 1;
+	}
+}
+
+.desktop-notification-icon.indicator::before {
+	top: 0;
+	right: 0;
+}
+
+.sidebar-notification .sidebar-item-icon.indicator::before {
+	top: 5px;
+	right: 6px;
+	height: 5.5px;
+	width: 5.5px;
+	transition: opacity 0.2s ease-in-out;
+}
+
+.sidebar-notification:hover .sidebar-item-icon.indicator::before {
+	opacity: 0;
+}
+
+.sidebar-notification-count {
+	min-width: 20px;
+	padding: 1px 7px;
+	background-color: var(--bg-gray-100);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	line-height: 1.2;
+	text-align: center;
+	border-radius: 10px;
+}
+
+.sidebar-notification .standard-sidebar-item .item-anchor {
+	overflow: visible;
+}
+
 .mark-read {
 	display: none;
 	margin-left: 10px;

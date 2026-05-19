@@ -280,17 +280,22 @@ frappe.ui.form.update_calling_link = async (newdoc) => {
 		frappe.utils.add_link_title(newdoc.doctype, newdoc.name, newdoc[meta.title_field]);
 	}
 
-	// set value
-	if (doc && doc.parentfield) {
-		const row_exists = field_obj.frm.fields_dict[doc.parentfield].grid.grid_rows.find(
-			(row) => row.doc.name === doc.name
-		);
-		if (row_exists) field_obj.set_value(newdoc.name);
-	} else {
-		// parsing is needed for table multiselect to convert string to array
-		field_obj.parse_validate_and_set_in_model(newdoc.name);
-	}
+	// parsing is needed for table multiselect to convert string to array
+	await field_obj.parse_validate_and_set_in_model(newdoc.name);
 
-	// refresh field
 	field_obj.refresh();
+
+	// only quick entry form should proceed from here on
+	if (field_obj.frm || !(field_obj.layout instanceof frappe.ui.form.QuickEntryForm)) return;
+
+	const quick_entry = field_obj.layout;
+
+	// quick entry form is still open (nested case), no need to redirect
+	if (quick_entry.wrapper[0].offsetParent !== null) return;
+
+	// redirect to the original doc's form
+	const { doc: original_doc } = quick_entry;
+	if (original_doc && original_doc.doctype && original_doc.name) {
+		frappe.set_route("Form", original_doc.doctype, original_doc.name);
+	}
 };

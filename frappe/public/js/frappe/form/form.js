@@ -2270,7 +2270,7 @@ frappe.ui.form.Form = class FrappeForm {
 				this.meta.is_submittable &&
 				this.meta.queue_in_background &&
 				!this.doc.__islocal &&
-				this.doc.docstatus === 0
+				this.doc.docstatus <= 1
 			)
 		) {
 			wrapper.length && wrapper.remove();
@@ -2288,7 +2288,7 @@ frappe.ui.form.Form = class FrappeForm {
 				args: { doctype: this.doctype, docname: this.docname },
 			})
 			.then((r) => {
-				if (r.message?.latest_submission) {
+				if (r.message?.latest_submission && r.message.status !== "Finished") {
 					// if we are here that means some submission(s) were queued and are in queued/failed state
 					let submission_label = __("Previous Submission");
 					let secondary = "";

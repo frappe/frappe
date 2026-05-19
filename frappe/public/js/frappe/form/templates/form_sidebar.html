@@ -32,8 +32,8 @@
 	<div class="flex justify-between overflow-hidden">
 		<div class="ellipsis">
 			{% let title = frm.get_title(); %}
-			<div class="form-details flex justify-between">
-				<span class="bold ellipsis form-title-text mr-3 text-medium">{%= frappe.utils.escape_html(frappe.utils.html2text(title)) %}</span>
+			<div class="form-details flex justify-between form-title-text"  data-copy="{{title}}">
+				<span class="bold ellipsis mr-3 text-medium">{%= frappe.utils.escape_html(frappe.utils.html2text(title)) %}</span>
 			</div>
 			{% if frm.meta.beta %}
 			<div class="pt-1">

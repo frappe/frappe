@@ -28,6 +28,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	show() {
 		frappe.views.KanbanView.get_kanbans(this.doctype).then((kanbans) => {
+			frappe.route_options = {};
 			if (!kanbans.length) {
 				return frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
 			} else if (kanbans.length && frappe.get_route().length !== 4) {

@@ -218,6 +218,10 @@ def apply_workflow(doc: Document | str | dict, action: str):
 	elif doc.docstatus.is_submitted() and new_docstatus.is_submitted():
 		doc.save()
 	elif doc.docstatus.is_submitted() and new_docstatus.is_cancelled():
+		if doc.meta.queue_in_background and not is_scheduler_inactive():
+			queue_submission(doc, "Cancel")
+			return
+
 		doc.cancel()
 	else:
 		frappe.throw(_("Illegal Document Status for {0}").format(next_state.state))

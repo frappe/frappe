@@ -1,0 +1,20 @@
+<h3>{{_("Security.txt will expire soon!")}}</h3>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr>
+		<td><strong>{{_("Site")}}</strong></td>
+		<td>{{ site }}</td>
+	</tr>
+	<tr>
+		<td><strong>{{_("Expires")}}</strong></td>
+		<td>{{ expires.strftime('%B %-d, %Y %-I:%M %p') }}</td>
+	</tr>
+	<tr>
+		<td><strong>{{_("Days Remaining")}}</strong></td>
+		<td>{{ days_remaining }}</td>
+	</tr>
+</table>
+
+<p>
+	<em> {{_("Please update your security settings from desk.")}} </em>
+</p>

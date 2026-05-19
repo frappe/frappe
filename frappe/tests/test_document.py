@@ -815,3 +815,99 @@ class TestLazyDocument(IntegrationTestCase):
 	def test_for_update(self):
 		guest = frappe.get_lazy_doc("User", "Guest", for_update=True)
 		self.assertTrue(guest.flags.for_update)
+
+
+class TestGetDocs(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.child_dt = "Test Get Docs Child"
+		cls.parent_dt = "Test Get Docs Parent"
+
+		cls.child_dt = new_doctype(istable=1).insert().name
+		cls.parent_dt = (
+			new_doctype(
+				fields=[
+					{"fieldtype": "Data", "fieldname": "title", "label": "Title"},
+					{
+						"fieldtype": "Table",
+						"fieldname": "child_table",
+						"options": cls.child_dt,
+						"label": "Child Table",
+					},
+				],
+			)
+			.insert()
+			.name
+		)
+		for i in range(5):
+			frappe.get_doc(
+				{
+					"doctype": cls.parent_dt,
+					"title": f"Record {i}",
+					"child_table": [
+						{"some_fieldname": f"child_{i}_0"},
+						{"some_fieldname": f"child_{i}_1"},
+					],
+				}
+			).insert()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.delete(cls.child_dt)
+		frappe.db.delete(cls.parent_dt)
+		frappe.delete_doc("DocType", cls.parent_dt, force=True)
+		frappe.delete_doc("DocType", cls.child_dt, force=True)
+		super().tearDownClass()
+
+	def test_returns_document_instances(self):
+		docs = frappe.get_docs(self.parent_dt)
+		self.assertEqual(len(docs), 5)
+		self.assertIsInstance(docs[0], frappe.model.document.Document)
+		self.assertEqual(docs[0].doctype, self.parent_dt)
+
+	def test_child_tables_populated(self):
+		docs = frappe.get_docs(self.parent_dt)
+		for doc in docs:
+			self.assertEqual(len(doc.child_table), 2)
+			for child in doc.child_table:
+				self.assertIsInstance(child, frappe.model.document.Document)
+				self.assertEqual(child.doctype, self.child_dt)
+
+	def test_parity_with_get_doc(self):
+		docs = frappe.get_docs(self.parent_dt, limit=1)
+		doc_bulk = docs[0]
+		doc_single = frappe.get_doc(self.parent_dt, doc_bulk.name)
+
+		self.assertEqual(doc_bulk.as_dict(), doc_single.as_dict())
+
+	def test_filters(self):
+		docs = frappe.get_docs(self.parent_dt, filters={"title": "Record 0"})
+		self.assertEqual(len(docs), 1)
+		self.assertEqual(docs[0].title, "Record 0")
+
+	def test_limit(self):
+		docs = frappe.get_docs(self.parent_dt, limit=2)
+		self.assertEqual(len(docs), 2)
+
+	def test_limit_start(self):
+		all_docs = frappe.get_docs(self.parent_dt, order_by="creation asc")
+		offset_docs = frappe.get_docs(self.parent_dt, limit_start=2, limit=5, order_by="creation asc")
+		self.assertEqual(len(offset_docs), 3)
+		self.assertEqual(offset_docs[0].name, all_docs[2].name)
+
+	def test_order_by(self):
+		docs_asc = frappe.get_docs(self.parent_dt, order_by="creation asc")
+		docs_desc = frappe.get_docs(self.parent_dt, order_by="creation desc")
+		self.assertEqual(docs_asc[0].name, docs_desc[-1].name)
+
+	def test_generator_parity(self):
+		eager = frappe.get_docs(self.parent_dt, order_by="creation asc")
+		gen_docs = list(
+			frappe.get_docs(self.parent_dt, as_iterator=True, chunk_size=2, order_by="creation asc")
+		)
+		self.assertEqual([d.name for d in eager], [d.name for d in gen_docs])
+
+	def test_for_update_sets_flag(self):
+		docs = frappe.get_docs(self.parent_dt, limit=1, for_update=True)
+		self.assertTrue(docs[0].flags.for_update)

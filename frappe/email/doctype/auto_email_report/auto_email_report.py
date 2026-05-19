@@ -159,9 +159,9 @@ class AutoEmailReport(Document):
 		)
 
 		# add serial numbers
-		columns.insert(0, frappe._dict(fieldname="idx", label="", width="30px"))
+		columns.insert(0, frappe._dict(fieldname="sr", label=_("Sr"), fieldtype="Int", width="30px"))
 		for i in range(len(data)):
-			data[i]["idx"] = i + 1
+			data[i]["sr"] = i + 1
 
 		if len(data) == 0 and self.send_if_data:
 			return None
@@ -172,21 +172,23 @@ class AutoEmailReport(Document):
 			return self.get_html_table(columns, data)
 
 		elif self.format in ("XLSX", "CSV"):
-			report_data = frappe._dict()
-			report_data["columns"] = columns
-			report_data["result"] = data
+			report_data = frappe._dict(
+				{
+					"report_name": self.report,
+					"filters": self.filters,
+					"columns": columns,
+					"result": data,
+				}
+			)
+			is_excel = self.format == "XLSX"
 
-			xlsx_data, column_widths, header_index = build_xlsx_data(
-				report_data, [], 1, ignore_visible_idx=True
+			xlsx_data, column_widths, styles = build_xlsx_data(
+				report_data, [], 1, ignore_visible_idx=True, build_styles=is_excel
 			)
 
-			if self.format == "XLSX":
+			if is_excel:
 				xlsx_file = make_xlsx(
-					xlsx_data,
-					"Auto Email Report",
-					column_widths=column_widths,
-					header_index=header_index,
-					has_filters=bool(self.filters),
+					xlsx_data, "Auto Email Report", column_widths=column_widths, styles=styles
 				)
 
 				return xlsx_file.getvalue()
@@ -359,8 +361,8 @@ def process_auto_email_report(report):
 
 def send_monthly():
 	"""Check reports to be sent monthly"""
-	for report in frappe.get_all("Auto Email Report", {"enabled": 1, "frequency": "Monthly"}):
-		frappe.get_doc("Auto Email Report", report.name).send()
+	for report in frappe.get_docs("Auto Email Report", filters={"enabled": 1, "frequency": "Monthly"}):
+		report.send()
 
 
 def make_links(columns, data):

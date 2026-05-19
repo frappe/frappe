@@ -110,15 +110,21 @@ def search_widget(
 		filters = {}
 
 	if query:  # Query = custom search query i.e. python function
+		meta = frappe.get_meta(doctype)
+		# For translated doctypes, pass empty txt and a large page_length so the custom query
+		# returns all records without SQL-level text filtering; Python-level filtering against
+		# translated values is applied below.
+		query_txt = "" if meta.translated_doctype else txt
+		query_page_length = PAGE_LENGTH_FOR_LINK_VALIDATION if meta.translated_doctype else page_length
 		try:
 			is_whitelisted(frappe.get_attr(query))
-			return frappe.call(
+			values = frappe.call(
 				query,
 				doctype,
-				txt,
+				query_txt,
 				searchfield,
 				start,
-				page_length,
+				query_page_length,
 				filters,
 				as_dict=as_dict,
 				reference_doctype=reference_doctype,
@@ -136,6 +142,14 @@ def search_widget(
 					http_status_code=404,
 				)
 				return []
+
+		if not for_link_validation:
+			if meta.translated_doctype:
+				values = filter_translated(values, txt, as_dict)
+				values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+				values = values[:page_length]
+
+		return values
 
 	meta = frappe.get_meta(doctype)
 
@@ -168,7 +182,9 @@ def search_widget(
 		}
 		search_fields = ["name"]
 		if meta.title_field:
-			search_fields.append(meta.title_field)
+			is_virtual_field = getattr(meta.get_field(meta.title_field), "is_virtual", False)
+			if not is_virtual_field:
+				search_fields.append(meta.title_field)
 
 		if meta.search_fields:
 			search_fields.extend(meta.get_search_fields())
@@ -225,15 +241,7 @@ def search_widget(
 
 	if not for_link_validation:
 		if meta.translated_doctype:
-			# Filtering the values array so that query is included in very element
-			values = (
-				result
-				for result in values
-				if any(
-					re.search(f"{re.escape(txt)}.*", _(cstr(value)) or "", re.IGNORECASE)
-					for value in (result.values() if as_dict else result)
-				)
-			)
+			values = filter_translated(values, txt, as_dict)
 
 		# Sorting the values array so that relevant results always come first
 		# This will first bring elements on top in which query is a prefix of element
@@ -348,7 +356,12 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 		for item in res:
 			item = list(item)
 			if len(item) == 1:
-				item = [item[0], item[0]]
+				title_field = meta.title_field
+				docfield = meta.get_field(title_field)
+				if docfield and docfield.is_virtual:
+					doc = frappe.get_doc(meta.name, item[0])
+					title_value = doc.get_virtual_field_value(docfield)
+				item = [item[0], title_value or item[0]]
 			label = _(item[1]) if meta.translated_doctype else item[1]
 			item[1] = item[0]
 
@@ -382,6 +395,18 @@ def relevance_sorter(key, query, as_dict):
 	return (cstr(value).casefold().startswith(query.casefold()) is not True, value)
 
 
+def filter_translated(values, txt: str, as_dict: bool) -> list:
+	"""Return only those results where txt matches any translated field value."""
+	return [
+		result
+		for result in values
+		if any(
+			re.search(f"{re.escape(txt)}.*", _(cstr(value)) or "", re.IGNORECASE)
+			for value in (result.values() if as_dict else result)
+		)
+	]
+
+
 @frappe.whitelist()
 def get_names_for_mentions(search_term: str):
 	users_for_mentions = frappe.cache.get_value("users_for_mentions", get_users_for_mentions)
@@ -393,7 +418,7 @@ def get_names_for_mentions(search_term: str):
 			continue
 
 		mention_data["link"] = frappe.utils.get_url_to_form(
-			"User Group" if mention_data.get("is_group") else "User Profile", mention_data["id"]
+			"User Group" if mention_data.get("is_group") else "User", mention_data["id"]
 		)
 
 		filtered_mentions.append(mention_data)

@@ -45,6 +45,11 @@ def get_list_data(
 	if list_context.filters:
 		filters.update(list_context.filters)
 
+	if web_form_name:
+		dynamic_filters = get_dynamic_filters(web_form_name)
+		if dynamic_filters:
+			filters.update(dynamic_filters)
+
 	_get_list = list_context.get_list or get_list
 
 	kwargs = dict(
@@ -194,3 +199,37 @@ def get_list(
 		order_by=order_by,
 		distinct=distinct,
 	)
+
+
+def get_dynamic_filters(web_form_name):
+	"""Evaluate dynamic filter expressions from Web Form.
+	Uses same safe_eval + get_workflow_safe_globals pattern as Workflow."""
+	from frappe.model.workflow import get_workflow_safe_globals
+
+	web_form = frappe.get_cached_doc("Web Form", web_form_name)
+
+	if not web_form.dynamic_filters_json:
+		return None
+
+	dynamic_filters = json.loads(web_form.dynamic_filters_json)
+	if not dynamic_filters:
+		return None
+
+	safe_globals = get_workflow_safe_globals()
+	safe_globals["frappe"]["defaults"] = frappe._dict(
+		get_user_default=frappe.defaults.get_user_default,
+		get_global_default=frappe.defaults.get_global_default,
+	)
+
+	evaluated = {}
+	for f in dynamic_filters:
+		try:
+			value = frappe.safe_eval(f[3], safe_globals)
+			evaluated[f[1]] = [f[2], value]
+		except Exception as e:
+			frappe.throw(
+				_("Invalid expression in Web Form Dynamic Filter for {0}: {1}").format(f[1], e),
+				title=_("Dynamic Filter Error"),
+			)
+
+	return evaluated

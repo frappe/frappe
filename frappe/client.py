@@ -114,7 +114,7 @@ def get(
 	doc.check_permission()
 	doc.apply_fieldlevel_read_permissions()
 
-	return doc.as_dict()
+	return doc.as_dict(no_nulls=True)
 
 
 @frappe.whitelist()

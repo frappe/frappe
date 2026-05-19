@@ -84,7 +84,7 @@ def _apply_date_field_filter_conversion(value, operator: str, doctype: str, fiel
 		elif isinstance(value, datetime.datetime):
 			return value.date()
 
-	except AttributeError, TypeError, KeyError:
+	except (AttributeError, TypeError, KeyError):
 		pass
 
 	return value
@@ -136,11 +136,7 @@ WORDS_PATTERN = re.compile(r"\w+")
 COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 
 # Pattern for validating simple field names (alphanumeric + underscore)
-SIMPLE_FIELD_PATTERN = re.compile(r"^\w+$", flags=re.ASCII)
-
-# Pattern for validating SQL identifiers (aliases, field names in functions)
-# More restrictive: must start with letter or underscore
-IDENTIFIER_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$", flags=re.ASCII)
+SIMPLE_FIELD_PATTERN = re.compile(r"^\w+$")
 
 # Pattern for detecting SQL function calls: identifier followed by opening parenthesis
 FUNCTION_CALL_PATTERN = re.compile(r"^\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\(", flags=re.ASCII)
@@ -157,7 +153,7 @@ FUNCTION_CALL_PATTERN = re.compile(r"^\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\(", flags=re.
 #     - ... as 'Child:field'
 ALLOWED_FIELD_PATTERN = re.compile(
 	r"^(?:(`[\w\s-]+`|\w+)\.)?(`\w+`|\w+)(?:\s+as\s+(?:`[\w\s-]+`|'[\w\s:-]+'|\w+))?$",
-	flags=re.ASCII | re.IGNORECASE,
+	flags=re.IGNORECASE,
 )
 
 # Regex to parse field names:
@@ -175,6 +171,9 @@ BACKTICK_FIELD_PARSE_REGEX = re.compile(r"^`tab([\w\s-]+)`\.(`?)(\w+)\2$")
 # Group 2: Optional quote for fieldname
 # Group 3: Fieldname
 CHILD_TABLE_FIELD_PATTERN = re.compile(r'^[`"]?tab([\w\s]+)[`"]?\.([`"]?)(\w+)\2$')
+
+# Maximum value of an unsigned 64-bit integer
+MAX_LIMIT = 18446744073709551615
 
 # Direct mapping from uppercase function names to pypika function classes
 FUNCTION_MAPPING = {
@@ -303,6 +302,11 @@ class Engine:
 		if offset:
 			if not isinstance(offset, int) or offset < 0:
 				frappe.throw(_("Offset must be a non-negative integer"), TypeError)
+
+			# In MariaDB and SQLite, offset requires limit
+			if not self.is_postgres and not limit:
+				self.query = self.query.limit(MAX_LIMIT)
+
 			self.query = self.query.offset(offset)
 
 		if distinct:
@@ -676,7 +680,7 @@ class Engine:
 				else:
 					try:
 						fallback_value = int(fallback_sql)
-					except ValueError, TypeError:
+					except (ValueError, TypeError):
 						fallback_value = fallback_sql
 
 				return operator_fn(_field, ValueWrapper(fallback_value))
@@ -705,7 +709,7 @@ class Engine:
 				else:
 					try:
 						fallback_value = int(fallback_sql)
-					except ValueError, TypeError:
+					except (ValueError, TypeError):
 						fallback_value = fallback_sql
 
 				if fallback_value == _value:
@@ -1413,8 +1417,9 @@ class Engine:
 
 	def _raise_permission_error(self, doctype=None):
 		frappe.throw(
-			_("Insufficient Permission for {0}").format(frappe.bold(doctype or self.doctype)),
-			frappe.PermissionError,
+			title=_("Permission Error"),
+			msg=_("Insufficient Permission for {0}").format(frappe.bold(doctype or self.doctype)),
+			exc=frappe.PermissionError,
 		)
 
 	def apply_field_permissions(self):
@@ -2424,13 +2429,14 @@ class SQLFunctionParser:
 					).format(arg),
 					frappe.ValidationError,
 				)
-		elif self._is_valid_field_name(arg):
-			self._check_function_field_permission(arg)
-			return self.engine.table[arg]
 
 		# Check if it's a numeric string like "1" (for COUNT(1), etc.)
 		elif arg.isdigit():
 			return int(arg)
+
+		elif self._is_valid_field_name(arg):
+			self._check_function_field_permission(arg)
+			return self.engine.table[arg]
 
 		else:
 			frappe.throw(
@@ -2443,7 +2449,7 @@ class SQLFunctionParser:
 	def _is_valid_field_name(self, name: str) -> bool:
 		"""Check if a string is a valid field name."""
 		# Field names should only contain alphanumeric characters and underscores
-		return IDENTIFIER_PATTERN.match(name) is not None
+		return SIMPLE_FIELD_PATTERN.match(name) is not None
 
 	def _validate_alias(self, alias: str):
 		"""Validate alias name for SQL injection."""
@@ -2456,7 +2462,7 @@ class SQLFunctionParser:
 
 		# Alias should be a simple identifier
 		# Note: pypika wraps aliases in backticks, so anything without backticks is safe
-		if not IDENTIFIER_PATTERN.match(alias):
+		if not SIMPLE_FIELD_PATTERN.match(alias):
 			frappe.throw(
 				_("Invalid alias format: {0}. Alias must be a simple identifier.").format(alias),
 				frappe.ValidationError,

@@ -3,7 +3,7 @@ frappe.ui.form.on("User", {
 		frm.set_query("default_workspace", () => {
 			return {
 				filters: {
-					for_user: ["in", [null, frappe.session.user]],
+					for_user: ["in", ["", frappe.session.user]],
 					title: ["!=", "Welcome Workspace"],
 				},
 			};
@@ -69,6 +69,8 @@ frappe.ui.form.on("User", {
 			frm.roles_editor.reset();
 		}
 
+		frm.fields_dict.new_password?.$input?.attr("autocomplete", "new-password");
+
 		if (
 			frm.can_edit_roles &&
 			!frm.is_new() &&
@@ -103,7 +105,7 @@ frappe.ui.form.on("User", {
 
 		frappe.xcall("frappe.apps.get_apps").then((r) => {
 			let apps = r?.map((r) => r.name) || [];
-			frm.set_df_property("default_app", "options", [" ", ...apps]);
+			frm.set_df_property("default_app", "options", ["", ...apps]);
 		});
 
 		if (frm.is_new()) {

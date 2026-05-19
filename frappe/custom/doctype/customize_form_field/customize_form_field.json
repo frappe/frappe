@@ -22,6 +22,7 @@
   "in_preview",
   "bold",
   "no_copy",
+  "set_only_once",
   "allow_in_quick_entry",
   "translatable",
   "mask",
@@ -47,6 +48,7 @@
   "ignore_user_permissions",
   "allow_on_submit",
   "report_hide",
+  "in_import_template",
   "remember_last_selected_value",
   "hide_border",
   "ignore_xss_filter",
@@ -294,6 +296,13 @@
   },
   {
    "default": "0",
+   "description": "Enable this option to include the field in the data import template",
+   "fieldname": "in_import_template",
+   "fieldtype": "Check",
+   "label": "Include in Import Template"
+  },
+  {
+   "default": "0",
    "depends_on": "eval:(doc.fieldtype == 'Link')",
    "fieldname": "remember_last_selected_value",
    "fieldtype": "Check",
@@ -509,6 +518,12 @@
    "fieldname": "mask",
    "fieldtype": "Check",
    "label": "Mask"
+  },
+  {
+   "default": "0",
+   "fieldname": "set_only_once",
+   "fieldtype": "Check",
+   "label": "Set only once"
   }
  ],
  "grid_page_length": 50,
@@ -516,7 +531,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-12-23 14:17:10.458916",
+ "modified": "2026-04-27 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",

@@ -571,7 +571,7 @@ function return_as_dataurl() {
 async function upload_file(file, i) {
 	currently_uploading.value = i;
 
-	const CHUNK_SIZE = frappe.boot.file_chunk_size;
+	const CHUNK_SIZE = frappe.boot.file_chunk_size || 25 * 1024 * 1024;
 
 	const use_chunks = file.file_obj && file.file_obj.size > CHUNK_SIZE;
 	const total_chunks = use_chunks ? Math.ceil(file.file_obj.size / CHUNK_SIZE) : 1;
@@ -685,7 +685,6 @@ async function upload_file(file, i) {
 			xhr.setRequestHeader("X-Frappe-CSRF-Token", frappe.csrf_token);
 
 			let form_data = new FormData();
-
 			if (chunk_blob) {
 				form_data.append("file", chunk_blob, file.name);
 			}

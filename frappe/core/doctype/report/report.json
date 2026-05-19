@@ -13,7 +13,8 @@
   "module",
   "column_break_4",
   "report_type",
-  "letter_head",
+  "default_letter_head",
+  "default_print_format",
   "add_total_row",
   "disabled",
   "prepared_report",
@@ -94,13 +95,6 @@
    "fieldname": "disabled",
    "fieldtype": "Check",
    "label": "Disabled"
-  },
-  {
-   "depends_on": "eval: doc.is_standard == \"No\"",
-   "fieldname": "letter_head",
-   "fieldtype": "Link",
-   "label": "Letter Head",
-   "options": "Letter Head"
   },
   {
    "fieldname": "section_break_6",
@@ -202,12 +196,25 @@
    "fieldname": "add_translate_data",
    "fieldtype": "Check",
    "label": "Add Translate Data"
+  },
+  {
+   "fieldname": "default_print_format",
+   "fieldtype": "Link",
+   "label": "Default Print Format",
+   "options": "Print Format"
+  },
+  {
+   "fieldname": "default_letter_head",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "Default Letter Head",
+   "options": "Letter Head"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-28 18:28:32.510719",
+ "modified": "2026-05-14 15:19:19.569180",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

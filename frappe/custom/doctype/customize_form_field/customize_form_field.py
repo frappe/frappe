@@ -13,10 +13,10 @@ class CustomizeFormField(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		alignment: DF.Literal["", "Left", "Center", "Right"]
 		allow_bulk_edit: DF.Check
 		allow_in_quick_entry: DF.Check
 		allow_on_submit: DF.Check
-		alignment: DF.Literal["", "Left", "Center", "Right"]
 		bold: DF.Check
 		button_color: DF.Literal["", "Default", "Primary", "Info", "Success", "Warning", "Danger"]
 		collapsible: DF.Check
@@ -81,6 +81,7 @@ class CustomizeFormField(Document):
 		ignore_xss_filter: DF.Check
 		in_filter: DF.Check
 		in_global_search: DF.Check
+		in_import_template: DF.Check
 		in_list_view: DF.Check
 		in_preview: DF.Check
 		in_standard_filter: DF.Check
@@ -109,6 +110,7 @@ class CustomizeFormField(Document):
 		remember_last_selected_value: DF.Check
 		report_hide: DF.Check
 		reqd: DF.Check
+		set_only_once: DF.Check
 		show_dashboard: DF.Check
 		sort_options: DF.Check
 		translatable: DF.Check

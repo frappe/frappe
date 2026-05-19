@@ -129,7 +129,7 @@ def _accept_invitation(key: str, in_test: bool) -> None:
 	hashed_key = frappe.utils.sha256_hash(key)
 	invitation_name = frappe.db.get_value("User Invitation", filters={"key": hashed_key})
 	if not invitation_name:
-		frappe.throw(title=_("Error"), msg=_("Invalid key"))
+		frappe.throw(title=_("Error"), msg=_("Invalid or expired key"))
 	invitation = frappe.get_doc("User Invitation", invitation_name)
 
 	# accept invitation
@@ -143,7 +143,7 @@ def _accept_invitation(key: str, in_test: bool) -> None:
 	# set redirect_to
 	redirect_to = frappe.utils.get_url(invitation.get_redirect_to_path())
 	if should_update_password:
-		redirect_to = f"{user.reset_password()}&redirect_to=/{invitation.get_redirect_to_path()}"
+		redirect_to = f"{user._reset_password()}&redirect_to=/{invitation.get_redirect_to_path()}"
 
 	# GET requests do not cause an implicit commit
 	frappe.db.commit()  # nosemgrep

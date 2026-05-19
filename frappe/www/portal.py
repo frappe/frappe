@@ -6,6 +6,8 @@ from frappe.model.document import Document
 from frappe.utils.data import quoted
 from frappe.www.list import get_list_context, get_list_data
 
+no_cache = 1
+
 
 def get_context(context, **dict_params):
 	frappe.local.form_dict.update(dict_params)

@@ -3,8 +3,11 @@
 
 frappe.ui.form.on("DocType", {
 	onload: function (frm) {
-		if (frm.is_new() && !frm.doc?.fields) {
-			frappe.listview_settings["DocType"].new_doctype_dialog();
+		if (frm.is_new()) {
+			frm.set_value("allow_auto_repeat", 0);
+			if (!frm.doc?.fields) {
+				frappe.listview_settings["DocType"].new_doctype_dialog();
+			}
 		}
 		frm.call("check_pending_migration");
 	},

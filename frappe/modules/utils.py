@@ -25,7 +25,9 @@ if TYPE_CHECKING:
 doctype_python_modules = {}
 
 
-def export_module_json(doc: "Document", is_standard: bool, module: str) -> str | None:
+def export_module_json(
+	doc: "Document", is_standard: bool, module: str, *, create_init: bool | None = None
+) -> str | None:
 	"""Make a folder for the given doc and add its json file (make it a standard object that will be synced).
 
 	Return the absolute file_path without the extension.
@@ -35,8 +37,18 @@ def export_module_json(doc: "Document", is_standard: bool, module: str) -> str |
 	if not frappe.flags.in_import and is_standard and frappe.conf.developer_mode:
 		from frappe.modules.export_file import export_to_files
 
+		if create_init is None:
+			# fall back to old default behavior if new parameter is not provided
+			_create_init = is_standard
+		else:
+			_create_init = create_init
+
 		# json
-		export_to_files(record_list=[[doc.doctype, doc.name]], record_module=module, create_init=is_standard)
+		export_to_files(
+			record_list=[[doc.doctype, doc.name]],
+			record_module=module,
+			create_init=_create_init,
+		)
 
 		return os.path.join(
 			frappe.get_module_path(module), scrub(doc.doctype), scrub(doc.name), scrub(doc.name)
