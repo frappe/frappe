@@ -109,8 +109,9 @@ class XLSXStyleBuilder:
 		self.metadata = metadata
 
 		# column fieldname -> index mapping
+		# !NOTE: use .get() — columns may be DocField objects
 		self.field_index_map = {
-			col["fieldname"]: idx for idx, col in self.metadata.column_map.items() if col.get("fieldname")
+			col.get("fieldname"): idx for idx, col in self.metadata.column_map.items() if col.get("fieldname")
 		}
 
 		self.styles: list[dict] = []
