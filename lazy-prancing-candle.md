@@ -6,7 +6,7 @@ Frappe currently has no way to express "is this user reachable right now?". Apps
 
 Design decisions captured upfront (confirmed with user):
 - **Storage:** two fields directly on the `User` doctype — `user_status` and `user_status_expires_at`. Nothing else.
-- **Values:** translatable enum by default, allow custom statuses too.
+- **Values:** fixed translatable enum (Select field). Custom statuses are out of scope for v1.
 - **Conflict model:** none — last write wins. User and apps share the same setter.
 - **Expiry:** every status carries optional `user_status_expires_at`; scheduler clears expired statuses.
 - **Visibility:** any logged-in user can see any other user's status (broadcast via bootinfo, like `full_name` and avatar).
@@ -39,10 +39,10 @@ Design decisions captured upfront (confirmed with user):
 
 Add to `frappe/core/doctype/user/user.json` (new section, e.g. between `Email Settings` and `Sidebar`):
 
-| Fieldname                   | Type        | Options / Notes |
-|-----------------------------|-------------|-----------------|
-| `user_status`               | Select      | `\nAvailable\nAway\nBusy\nDo Not Disturb\nOut of Office\nInvisible`. Empty = unset (renders as no dot). |
-| `user_status_expires_at`    | Datetime    | When the status should auto-clear. Optional. Cron clears it. |
+| Fieldname                | Type     | Options / Notes                                                                                         |
+|--------------------------|----------|---------------------------------------------------------------------------------------------------------|
+| `user_status`            | Select   | `\nAvailable\nAway\nBusy\nDo Not Disturb\nOut of Office\nInvisible`. Empty = unset (renders as no dot). |
+| `user_status_expires_at` | Datetime | When the status should auto-clear. Optional. Cron clears it.                                            |
 
 Both fields are `read_only` on the standard User form (set via API/picker, not by editing the User doctype). `user_status` is `search_indexed` so list filters on it are cheap.
 
@@ -137,7 +137,7 @@ Follow the `get_users_for_mentions` pattern (`frappe/desk/search.py:411–421`):
 - `User.get_status` uses `frappe.cache.get_value(f"user_status:{self.name}", generator, expires_in_sec=300)`.
 - `User.set_status` calls `frappe.cache.delete_key(f"user_status:{self.name}")` after writing.
 - Add `"user_status:"` prefix to the per-user cache invalidation list in `frappe/cache_manager.py:user_cache_keys` so that any cache flush on a user (e.g., `frappe.clear_cache(user=...)`) wipes the status cache too.
-- Bootinfo (`frappe/boot.py:get_user_info`) reads the status fields directly from the existing User query (no extra round-trip) and adds `status`, `status_expires_at` to each entry of `frappe.boot.user_info`.
+- **User info surfacing**: bootinfo only ships current user (`boot.py:357` calls `add_user_info(frappe.session.user, ...)`); other users are loaded lazily through `frappe.utils.add_user_info` (`frappe/utils/__init__.py:1094`). Extend the `frappe.get_all("User", ...)` query there to also fetch `user_status` and `user_status_expires_at`, add them to the `_UserInfo` TypedDict, and include them in the `setdefault().update(...)` block. No change to `boot.py` needed.
 
 ---
 
@@ -301,7 +301,7 @@ Adding fields to a core doctype is handled by the regular `bench migrate` sync �
 - `frappe/core/doctype/user/user.json` — add 2 fields + put them in a collapsible section.
 - `frappe/core/doctype/user/user.py` — type hints; `before_save` expiry guard; new `User.set_status` / `User.get_status` methods; module-level `expire_user_statuses` for the scheduler; realtime broadcast + cache invalidation inside `set_status`.
 - `frappe/hooks.py` — `scheduler_events.cron`, new `user_status_change` list.
-- `frappe/boot.py` — extend `get_user_info` to include the 2 status fields per user.
+- `frappe/utils/__init__.py` — extend `add_user_info` (and the `_UserInfo` TypedDict) to surface the 2 status fields whenever a user is lazily loaded.
 - `frappe/cache_manager.py` — add `"user_status:"` to `user_cache_keys`.
 - `frappe/public/js/frappe/utils/common.js` — wrap `get_avatar` with status dot.
 - `frappe/public/js/frappe/utils/user.js` — surface `status` from `frappe.boot.user_info`.
@@ -344,7 +344,6 @@ Automated:
 
 ## Risks & Open Questions
 
-- **Bootinfo bloat.** Adding 2 fields × every user inflates `frappe.boot.user_info`. Sites with 10k+ users already hit issues here. Mitigation: only send status fields for users with a non-NULL `user_status` (filter in `get_user_info`).
 - **`Invisible` semantics.** "No dot" is indistinguishable from "no status set". Intentional — matches Slack. Document.
 - **No conflict resolution.** A user setting "Available" while on approved leave will be re-stomped by HRMS on the next leave-related save (or vice versa, depending on order). Document as expected behavior; if real users complain, revisit with a `manual_status_until` field in a follow-up.
 - **Bypass via direct field write.** Anyone with write access to `User` could change status by editing the User doc. Acceptable because System Manager already has full User access; mark fields `read_only` in UI to prevent accidental edits.
