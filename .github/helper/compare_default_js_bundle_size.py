@@ -64,7 +64,12 @@ def get_default_bundle_size(bench_path: Path) -> dict:
 
 	bundles = []
 	for bundle in get_default_js_bundles(bench_path):
-		asset_path = assets_json[bundle]
+		try:
+			asset_path = assets_json[bundle]
+		except KeyError:
+			raise RuntimeError(
+				f"Expected {bundle} from app_include_js, but it was not found in {assets_json_path}"
+			) from None
 		file_path = bench_path / "sites" / asset_path.lstrip("/")
 		size = file_path.stat().st_size
 		bundles.append({"bundle": bundle, "path": asset_path, "bytes": size})
