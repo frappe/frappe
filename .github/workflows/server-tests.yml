@@ -58,6 +58,7 @@ jobs:
   coverage:
     name: Coverage Wrap Up
     needs: [test, checkrun]
+    if: needs.checkrun.outputs.build == 'strawberry'
     runs-on: ubuntu-latest
     steps:
       - name: Clone
