@@ -356,18 +356,16 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideAppWindowMac,
 		initialState: {
 			modelValue: false,
-			options: {
-				title: "Confirm",
-				message: "Are you sure you want to confirm this action?",
-				size: "xl",
-				actions: [
-					{
-						label: "Confirm",
-						variant: "solid",
-						onClick: () => {},
-					},
-				],
-			},
+			title: "Confirm",
+			message: "Are you sure you want to confirm this action?",
+			size: "xl",
+			actions: [
+				{
+					label: "Confirm",
+					variant: "solid",
+					onClick: () => {},
+				},
+			],
 		},
 		editInFragmentMode: true,
 		proxyComponent: defineAsyncComponent(() => import("@/components/ProxyComponents/ProxyDialog.vue")),
