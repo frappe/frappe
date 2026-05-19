@@ -295,6 +295,8 @@
 		// which shifts Button controls up versus the Document Type column.
 		.grid-static-col[data-fieldtype="Button"] {
 			padding: var(--grid-padding) !important;
+			// editable-row sets --control-bg to neutral (white); keep btn-default gray like idle rows.
+			--control-bg: var(--btn-default-bg);
 		}
 
 		.frappe-control[data-fieldtype="Select"].form-group .select-icon {
@@ -357,10 +359,6 @@
 			margin-left: var(--margin-xs);
 			display: flex;
 			align-items: center;
-
-			button {
-				height: 24px;
-			}
 		}
 	}
 
