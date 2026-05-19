@@ -394,6 +394,14 @@
 				margin-left: auto;
 				margin-right: auto;
 				line-height: 1.45;
+
+				.global-search-shortcut-key {
+					background-color: var(--border-color);
+					padding: 2px 4px;
+					border-radius: 4px;
+					font-size: x-small;
+					display: inline-block;
+				}
 			}
 		}
 

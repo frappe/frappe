@@ -132,13 +132,18 @@ frappe.search.SearchDialog = class {
 		let $shell = $(frappe.render_template("search")).addClass("hide");
 		const tipLine =
 			__("Use ampersand to match multiple terms") + " (" + __("e.g.") + " Marie&John)";
+		const awesomebarShortcut = frappe.utils.is_mac() ? "⌘K" : "Ctrl+K";
+		const awesomebarTipLine = `<span class="global-search-shortcut-key">${frappe.utils.escape_html(
+			awesomebarShortcut
+		)}</span> ${frappe.utils.escape_html(__("to open Awesome Bar"))}`;
 		const show_ampersand_empty_tip =
 			status_text === __("Search for anything") &&
 			this.search === this.searches["global_search"];
 		const ampersandBlock = show_ampersand_empty_tip
 			? `<div class="global-search-empty-state-tip text-muted">${frappe.utils.escape_html(
 					tipLine
-			  )}</div>`
+			  )}</div>
+			  <div class="global-search-empty-state-tip text-muted">${awesomebarTipLine}</div>`
 			: "";
 		$shell.find(".results-area").html(
 			`<div class="empty-state">
