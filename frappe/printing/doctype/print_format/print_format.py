@@ -181,7 +181,7 @@ def make_default(name: str):
 def has_permission(doc, ptype="read", user=None):
 	if ptype in ("read", "select"):
 		if doc.print_format_for == "DocType":
-			return frappe.has_permission(doc.doc_type, "print")
+			return frappe.has_permission(doc.doc_type, "print", user=user)
 		elif doc.print_format_for == "Report":
 			from frappe.boot import get_allowed_reports
 
