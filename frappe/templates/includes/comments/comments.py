@@ -25,15 +25,11 @@ def get_limit():
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=get_limit, seconds=60 * 60)
-<<<<<<< HEAD
-def add_comment(comment, comment_email, comment_by, reference_doctype, reference_name, route):
-=======
 def add_comment(
 	comment: str, comment_email: str, comment_by: str, reference_doctype: str, reference_name: str, route: str
 ):
 	comment_email = frappe.session.user
 	comment_by = frappe.get_value("User", frappe.session.user, "full_name")
->>>>>>> 2d930e2d37 (fix(comments): override comment_by and comment_email)
 	if frappe.session.user == "Guest":
 		allowed_doctypes = ["Web Page"]
 		comments_permission_config = frappe.get_hooks("has_comment_permission")
