@@ -378,8 +378,8 @@ frappe.ui.form.on("User", {
 	},
 	setup_impersonation: function (frm) {
 		if (
-			frappe.session.user === "Administrator" &&
-			frm.doc.name != "Administrator" &&
+			(frappe.session.user === "Administrator" || frm.has_perm("impersonate")) &&
+			frm.doc.name !== frappe.session.user &&
 			!frm.is_new()
 		) {
 			frm.add_custom_button(__("Impersonate"), () => {
