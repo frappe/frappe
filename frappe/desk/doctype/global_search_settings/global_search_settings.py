@@ -3,6 +3,8 @@
 
 import frappe
 from frappe import _
+from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
+from frappe.model import NO_VALUE_FIELDS
 from frappe.model.document import Document
 
 
@@ -101,3 +103,109 @@ def show_message(progress, msg):
 		{"progress": progress, "total": 3, "msg": msg},
 		user=frappe.session.user,
 	)
+
+
+def _eligible_global_search_docfields(meta):
+	for df in sorted(meta.fields, key=lambda x: x.idx or 0):
+		if df.fieldtype in NO_VALUE_FIELDS:
+			continue
+		if getattr(df, "hidden", False):
+			continue
+		if getattr(df, "is_virtual", False):
+			continue
+		yield df
+
+
+@frappe.whitelist()
+def get_global_search_field_options(doctype: str | None = None):
+	"""
+	Get the global search field options which is list of fields with checked status if that field is in global search
+	and name is also included if show_name_in_global_search is set
+	"""
+	if not doctype:
+		frappe.throw(_("Document Type is required"))
+
+	frappe.only_for("System Manager")
+
+	meta = frappe.get_meta(doctype)
+
+	options = [
+		{
+			"label": _("Document Name (ID)"),
+			"value": "name",
+			"checked": bool(getattr(meta, "show_name_in_global_search", False)),
+		}
+	]
+
+	for df in _eligible_global_search_docfields(meta):
+		options.append(
+			{
+				"label": _(df.label, context=df.parent),
+				"value": df.fieldname,
+				"checked": bool(df.in_global_search),
+			}
+		)
+
+	return options
+
+
+def _customize_form_stub(doctype: str) -> CustomizeForm:
+	"""In-memory Customize Form — same PS helpers as desk Customize Form."""
+	cf = frappe.new_doc("Customize Form")
+	cf.doc_type = doctype
+	return cf
+
+
+def _set_global_search_property_setter(cf: CustomizeForm, fieldname: str, enabled: bool) -> None:
+	"""Toggle DocType / DocField flags via `CustomizeForm.make_property_setter` (same as Customize Form desk save)."""
+	val = 1 if enabled else 0
+	if fieldname == "name":
+		cf.make_property_setter("show_name_in_global_search", val, "Check")
+	else:
+		cf.make_property_setter("in_global_search", val, "Check", fieldname=fieldname)
+
+
+@frappe.whitelist()
+def update_global_search_fields(doctype: str, fields: str):
+	"""Apply global-search field selection via the same Property Setter path as Customize Form."""
+
+	frappe.only_for("System Manager")
+	if not doctype:
+		frappe.throw(_("Document Type is required"))
+	if frappe.get_meta(doctype).module == "Core":
+		frappe.throw(_("Cannot configure Core DocTypes for Global Search."))
+
+	fields = frappe.parse_json(fields)
+	meta = frappe.get_meta(doctype)
+
+	# Current set of global search fields which are in the database
+	current = {df.fieldname for df in _eligible_global_search_docfields(meta) if df.in_global_search}
+	if bool(getattr(meta, "show_name_in_global_search", False)):
+		current.add("name")
+
+	# Desired set of global search fields which are in the request
+	desired = set(fields)
+
+	# So basically we need to add the fields that are in the request and are not in the database
+	# and remove the fields that are in the database and are not in the request
+
+	# Create a Customize Form stub to apply property setters
+	cf = _customize_form_stub(doctype)
+
+	# Add the fields that are in the request and are not in the database
+	for fieldname in desired - current:
+		_set_global_search_property_setter(cf, fieldname, True)
+
+	# Remove the fields that are in the database and are not in the request
+	for fieldname in current - desired:
+		_set_global_search_property_setter(cf, fieldname, False)
+
+	# Clear the cache and enqueue the rebuild for the doctype
+	frappe.clear_cache(doctype=doctype)
+	frappe.enqueue(
+		"frappe.utils.global_search.rebuild_for_doctype",
+		doctype=doctype,
+		enqueue_after_commit=True,
+	)
+
+	return {"success": True}
