@@ -699,11 +699,10 @@ frappe.search.utils = {
 	searchable_functions: [],
 };
 
-/** Closes the navbar Awesome Bar modal and clears its input (#navbar-search). */
+/** Closes the navbar Awesome Bar modal. */
 function hide_navbar_search_modal() {
 	const $modal = $("#navbar-search").closest(".modal");
 	if ($modal.length) $modal.modal("hide");
-	$("#navbar-search").val("");
 }
 
 /**
