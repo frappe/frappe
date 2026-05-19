@@ -298,7 +298,7 @@ frappe.views.CommunicationComposer = class {
 				return;
 			}
 
-			print_format_lang = print_format_doc.default_print_language;
+			print_format_lang = print_format_doc?.default_print_language;
 		}
 
 		let lang = document_lang || print_format_lang || frappe.boot.lang;
