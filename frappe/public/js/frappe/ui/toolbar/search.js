@@ -217,10 +217,14 @@ frappe.search.SearchDialog = class {
 		this.$body.on("click", ".global-search-more-trigger", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			const $dd = $(e.currentTarget).siblings(".global-search-more-dropdown");
+			const $trigger = $(e.currentTarget);
+			const $dd = $trigger.siblings(".global-search-more-dropdown");
 			const opening = !$dd.hasClass("menu-open");
 			this.close_global_search_more_menus();
-			if (opening) $dd.addClass("menu-open");
+			if (opening) {
+				$dd.addClass("menu-open");
+				this.align_global_search_more_dropdown($dd, $trigger);
+			}
 		});
 
 		this.$body.on("click", ".global-search-more-dropdown", (e) => e.stopPropagation());
@@ -480,7 +484,31 @@ frappe.search.SearchDialog = class {
 
 	/** Closes the “More” dropdown menus: removes the `menu-open` class from the dropdown. */
 	close_global_search_more_menus() {
-		this.$wrapper.find(".global-search-more-dropdown").removeClass("menu-open");
+		this.$wrapper.find(".global-search-more-dropdown").removeClass("menu-open align-right");
+	}
+
+	align_global_search_more_dropdown($dropdown, $trigger) {
+		const apply = () => {
+			const b = $trigger[0].getBoundingClientRect();
+			const c = this.$wrapper[0].getBoundingClientRect();
+			const left_edge = Math.max(c.left, 8);
+			const right_edge = Math.min(c.right, window.innerWidth) - 8;
+			const w =
+				$dropdown.get(0).getBoundingClientRect().width ||
+				$dropdown.outerWidth() ||
+				Math.min(384, window.innerWidth * 0.92);
+			const fits_opening_right = b.left + w <= right_edge;
+			const fits_opening_left = b.right - w >= left_edge;
+			let align_right = false;
+			if (!fits_opening_right && fits_opening_left) {
+				align_right = true;
+			} else if (!fits_opening_right && !fits_opening_left) {
+				align_right = b.right - left_edge > right_edge - b.left;
+			}
+			$dropdown.toggleClass("align-right", align_right);
+		};
+		apply();
+		requestAnimationFrame(apply);
 	}
 
 	/** Returns a set of allowed DocTypes for Global Search: based on Global Search Settings. */
@@ -724,6 +752,7 @@ frappe.search.SearchDialog = class {
 			$strip.append($more_wrap);
 			if (keep_more_dropdown_open) {
 				$dropdown.addClass("menu-open");
+				this.align_global_search_more_dropdown($dropdown, $more_btn);
 			}
 		}
 
