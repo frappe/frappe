@@ -143,9 +143,7 @@ class User(Document):
 		unsubscribed: DF.Check
 		user_emails: DF.Table[UserEmail]
 		user_image: DF.AttachImage | None
-		user_status: DF.Literal[
-			"", "Available", "Away", "Busy", "Do Not Disturb", "Out of Office", "Invisible"
-		]
+		user_status: DF.Link | None
 		user_status_expires_at: DF.Datetime | None
 		user_type: DF.Link | None
 		username: DF.Data | None
@@ -913,23 +911,34 @@ class User(Document):
 		called over HTTP. Apps use it server-side:
 
 		    frappe.get_doc("User", "alice@x.com").set_status(
-		        "Out of Office", expires_at="2026-05-25 23:59:59"
+		        "On Leave", expires_at="2026-05-25 23:59:59"
 		    )
 
-		End users do not call this — the navbar picker goes through the
-		whitelisted ``set_status`` (module-level), which delegates here for
-		``frappe.session.user``.
+		``status`` is the name of a ``User Status Type`` (its label, since
+		the doctype autonames from the label). End users do not call this —
+		the navbar picker goes through the whitelisted ``set_status``
+		(module-level), which delegates here for ``frappe.session.user``.
 
 		- ``status`` of ``None`` / empty clears both fields.
-		- Last write wins: an app-set status will overwrite a user-set one and
+		- Unknown types raise ``frappe.DoesNotExistError`` (apps that pass an
+		  unknown label should fail loud, not silently store garbage).
+		- Disabled types are rejected with ``frappe.ValidationError``.
+		- Last write wins: an app-set status overwrites a user-set one and
 		  vice versa. If a user wants to override an app-set status, they
 		  re-set it.
 
-		Returns ``{status, expires_at}``.
+		Returns ``{status, master, expires_at}`` — the resolved master is
+		included so callers don't have to re-fetch it.
 		"""
 		old_status = self.user_status or None
 		new_status = status or None
 		new_expires_at = expires_at or None
+		master = None
+		if new_status:
+			type_doc = frappe.get_cached_doc("User Status Type", new_status)
+			if not type_doc.enabled:
+				frappe.throw(_("User Status Type {0} is disabled").format(new_status))
+			master = type_doc.master_status
 		self.db_set(
 			{
 				"user_status": new_status,
@@ -939,26 +948,33 @@ class User(Document):
 		)
 		frappe.cache.delete_key(f"user_status:{self.name}")
 		for fn in frappe.get_hooks("user_status_change"):
-			frappe.call(fn, user=self.name, old=old_status, new=new_status)
-		return {"status": new_status, "expires_at": new_expires_at}
+			frappe.call(fn, user=self.name, old=old_status, new=new_status, master=master)
+		return {"status": new_status, "master": master, "expires_at": new_expires_at}
 
 	def get_status(self) -> dict:
-		"""Return this user's status, cached for 5 minutes."""
+		"""Return this user's status (with master), cached for 5 minutes."""
 		key = f"user_status:{self.name}"
 		cached = frappe.cache.get_value(key)
 		if cached is not None:
 			return cached
+		StatusType = frappe.qb.DocType("User Status Type")
+		User = frappe.qb.DocType("User")
 		row = (
-			frappe.db.get_value(
-				"User",
-				self.name,
-				["user_status", "user_status_expires_at"],
-				as_dict=True,
+			frappe.qb.from_(User)
+			.left_join(StatusType)
+			.on(User.user_status == StatusType.name)
+			.select(
+				User.user_status,
+				User.user_status_expires_at,
+				StatusType.master_status.as_("master"),
 			)
-			or {}
+			.where(User.name == self.name)
+			.run(as_dict=True)
 		)
+		row = row[0] if row else {}
 		value = {
 			"status": row.get("user_status") or None,
+			"master": row.get("master") or None,
 			"expires_at": row.get("user_status_expires_at") or None,
 		}
 		frappe.cache.set_value(key, value, expires_in_sec=300)

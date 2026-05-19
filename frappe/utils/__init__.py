@@ -1090,6 +1090,7 @@ class _UserInfo(TypedDict):
 	email: str
 	time_zone: str
 	user_status: str | None
+	user_status_master: str | None
 	user_status_expires_at: str | None
 
 
@@ -1104,18 +1105,24 @@ def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserIn
 	if not missing_users:
 		return
 
-	missing_info = frappe.get_all(
-		"User",
-		{"name": ("in", missing_users)},
-		[
-			"full_name",
-			"user_image",
-			"name",
-			"email",
-			"time_zone",
-			"user_status",
-			"user_status_expires_at",
-		],
+	User = frappe.qb.DocType("User")
+	StatusType = frappe.qb.DocType("User Status Type")
+	missing_info = (
+		frappe.qb.from_(User)
+		.left_join(StatusType)
+		.on(User.user_status == StatusType.name)
+		.select(
+			User.full_name,
+			User.user_image,
+			User.name,
+			User.email,
+			User.time_zone,
+			User.user_status,
+			User.user_status_expires_at,
+			StatusType.master_status.as_("user_status_master"),
+		)
+		.where(User.name.isin(missing_users))
+		.run(as_dict=True)
 	)
 
 	for info in missing_info:
@@ -1126,6 +1133,7 @@ def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserIn
 			email=info.email,
 			time_zone=info.time_zone,
 			user_status=info.user_status or None,
+			user_status_master=info.user_status_master or None,
 			user_status_expires_at=info.user_status_expires_at or None,
 		)
 

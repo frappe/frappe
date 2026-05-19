@@ -1,0 +1,92 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:status_label",
+ "creation": "2026-05-19 12:00:00",
+ "description": "Master list of user-facing status labels. Each entry is mapped to one of six fixed master statuses, which control the avatar dot colour and visibility. Apps install their own types via after_install hooks (e.g. HRMS adds 'On Leave').",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "status_label",
+  "master_status",
+  "icon",
+  "column_break_4",
+  "enabled",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "status_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Status Label",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "master_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Master Status",
+   "options": "Available\nAway\nBusy\nDo Not Disturb\nOut of Office\nInvisible",
+   "reqd": 1
+  },
+  {
+   "description": "Optional Lucide icon name shown next to the label in the picker.",
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  }
+ ],
+ "icon": "fa fa-circle",
+ "idx": 1,
+ "links": [],
+ "modified": "2026-05-19 12:00:00",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "User Status Type",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "All"
+  }
+ ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "translated_doctype": 1
+}

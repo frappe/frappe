@@ -431,10 +431,10 @@
   },
   {
    "fieldname": "user_status",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "in_standard_filter": 1,
    "label": "User Status",
-   "options": "\nAvailable\nAway\nBusy\nDo Not Disturb\nOut of Office\nInvisible",
+   "options": "User Status Type",
    "read_only": 1,
    "search_index": 1
   },

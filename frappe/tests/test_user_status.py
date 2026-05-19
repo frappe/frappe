@@ -7,6 +7,10 @@ from unittest.mock import patch
 import frappe
 from frappe.core.doctype.user.user import expire_user_statuses
 from frappe.core.doctype.user.user import set_status as set_status_whitelisted
+from frappe.core.doctype.user_status_type.user_status_type import (
+	DEFAULT_USER_STATUS_TYPES,
+	ensure_user_status_type,
+)
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime
 
@@ -39,11 +43,16 @@ class TestUserStatus(IntegrationTestCase):
 	def test_set_status_persists(self):
 		result = self.user.set_status("Available")
 		self.assertEqual(result["status"], "Available")
+		self.assertEqual(result["master"], "Available")
 		self.assertIsNone(result["expires_at"])
 
 		status, expires_at = self._reload_status_fields()
 		self.assertEqual(status, "Available")
 		self.assertIsNone(expires_at)
+
+	def test_set_status_unknown_type_raises(self):
+		with self.assertRaises(frappe.DoesNotExistError):
+			self.user.set_status("Nope, not a real type")
 
 	def test_set_status_with_expiry(self):
 		future = add_to_date(now_datetime(), hours=1)
@@ -83,8 +92,8 @@ class TestUserStatus(IntegrationTestCase):
 	def test_user_status_change_hook_fires_with_string_args(self):
 		captured = []
 
-		def fake_handler(user, old, new):
-			captured.append({"user": user, "old": old, "new": new})
+		def fake_handler(user, old, new, master):
+			captured.append({"user": user, "old": old, "new": new, "master": master})
 
 		original_get_hooks = frappe.get_hooks
 
@@ -103,9 +112,11 @@ class TestUserStatus(IntegrationTestCase):
 		self.assertEqual(captured[0]["user"], self.TEST_USER)
 		self.assertIsNone(captured[0]["old"])
 		self.assertEqual(captured[0]["new"], "Away")
+		self.assertEqual(captured[0]["master"], "Away")
 		# second transition: Away -> Busy
 		self.assertEqual(captured[1]["old"], "Away")
 		self.assertEqual(captured[1]["new"], "Busy")
+		self.assertEqual(captured[1]["master"], "Busy")
 		# old/new are strings (or None), not dicts
 		for ev in captured:
 			self.assertNotIsInstance(ev["old"], dict)
@@ -166,4 +177,91 @@ class TestUserStatus(IntegrationTestCase):
 		add_user_info(self.TEST_USER, info)
 		row = info[self.TEST_USER]
 		self.assertEqual(row.get("user_status"), "Available")
+		self.assertEqual(row.get("user_status_master"), "Available")
 		self.assertIsNotNone(row.get("user_status_expires_at"))
+
+	def test_add_user_info_resolves_custom_type_master(self):
+		# Simulates the HRMS flow: an app installs its own User Status Type
+		# (master "Out of Office") and the join in add_user_info resolves
+		# it correctly without any framework code change.
+		from frappe.utils import add_user_info
+
+		ensure_user_status_type("On Leave (test)", master="Out of Office", description="test fixture")
+		try:
+			self.user.set_status("On Leave (test)")
+			info = {}
+			add_user_info(self.TEST_USER, info)
+			row = info[self.TEST_USER]
+			self.assertEqual(row.get("user_status"), "On Leave (test)")
+			self.assertEqual(row.get("user_status_master"), "Out of Office")
+		finally:
+			self.user.set_status(None)
+			frappe.delete_doc("User Status Type", "On Leave (test)", ignore_permissions=True)
+
+	def test_disabled_type_rejected_by_set_status(self):
+		ensure_user_status_type("Disabled Test Type", master="Available", enabled=False)
+		try:
+			with self.assertRaises(frappe.ValidationError):
+				self.user.set_status("Disabled Test Type")
+		finally:
+			frappe.delete_doc("User Status Type", "Disabled Test Type", ignore_permissions=True)
+
+
+class TestUserStatusType(IntegrationTestCase):
+	def test_default_types_seeded(self):
+		# every default label is present, and each one maps to the matching master
+		for label, master, *_ in DEFAULT_USER_STATUS_TYPES:
+			doc = frappe.get_doc("User Status Type", label)
+			self.assertEqual(doc.master_status, master)
+			self.assertTrue(doc.enabled)
+
+	def test_ensure_is_idempotent(self):
+		name = "Available"  # one of the defaults
+		ensure_user_status_type(name, master="Available")
+		ensure_user_status_type(name, master="Available")
+		# still exactly one row, master unchanged
+		self.assertEqual(frappe.db.count("User Status Type", {"status_label": name}), 1)
+
+	def test_ensure_updates_existing_master(self):
+		# an app that re-installs with a corrected master should converge
+		label = "Convergence Test Type"
+		ensure_user_status_type(label, master="Available")
+		try:
+			ensure_user_status_type(label, master="Busy")
+			self.assertEqual(frappe.db.get_value("User Status Type", label, "master_status"), "Busy")
+		finally:
+			frappe.delete_doc("User Status Type", label, ignore_permissions=True)
+
+	def test_invalid_master_rejected(self):
+		# unknown master should be caught at the helper before any DB write
+		with self.assertRaises(Exception):
+			ensure_user_status_type("Bad Master Type", master="Definitely Not A Master")
+
+	def test_delete_blocked_when_in_use(self):
+		# a Type that some User has set must not be silently deletable —
+		# would leave a dangling Link and a NULL master in add_user_info
+		label = "In Use Type"
+		ensure_user_status_type(label, master="Available")
+		user = frappe.get_doc("User", "test@example.com")
+		try:
+			user.set_status(label)
+			with self.assertRaises(frappe.ValidationError):
+				frappe.delete_doc("User Status Type", label, ignore_permissions=True)
+		finally:
+			user.set_status(None)
+			frappe.delete_doc("User Status Type", label, ignore_permissions=True)
+
+	def test_get_status_types_for_picker_hides_disabled(self):
+		from frappe.core.doctype.user_status_type.user_status_type import (
+			get_status_types_for_picker,
+		)
+
+		label = "Hidden In Picker"
+		ensure_user_status_type(label, master="Available", enabled=False)
+		try:
+			names = {t["name"] for t in get_status_types_for_picker()}
+			self.assertNotIn(label, names)
+			# and a sanity check that enabled defaults still show
+			self.assertIn("Available", names)
+		finally:
+			frappe.delete_doc("User Status Type", label, ignore_permissions=True)

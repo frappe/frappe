@@ -57,6 +57,13 @@ def after_install():
 	# default templates
 	install_notification_templates()
 
+	# seed the six default User Status Types
+	from frappe.core.doctype.user_status_type.user_status_type import (
+		seed_default_user_status_types,
+	)
+
+	seed_default_user_status_types()
+
 	frappe.db.commit()
 
 

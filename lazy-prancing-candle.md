@@ -5,14 +5,15 @@
 Frappe currently has no way to express "is this user reachable right now?". Apps that care — HRMS (leave, holidays, shift end), chat/inbox apps, assignment UIs — each invent their own ad-hoc presence. The goal is to add a single, first-class **User Status** primitive in the framework so apps can read it, set it, and react to it consistently. The Framework itself will also surface the status in places where users appear in the UI (navbar, avatars, assignment dialog, mentions, comments, timeline, sidebar viewers, list-view assignee chips).
 
 Design decisions captured upfront (confirmed with user):
-- **Storage:** two fields directly on the `User` doctype — `user_status` and `user_status_expires_at`. Nothing else.
-- **Values:** fixed translatable enum (Select field). Custom statuses are out of scope for v1.
+- **Storage:** `user_status` (Link → `User Status Type`) and `user_status_expires_at` (Datetime) on the `User` doctype.
+- **Status taxonomy:** a separate `User Status Type` doctype is the master list. Each row has a user-facing `status_label` (e.g. "On Leave", "Working from Home") and a fixed `master_status` enum (Available / Away / Busy / Do Not Disturb / Out of Office / Invisible). The master controls rendering (dot colour, "Invisible" hiding); the label is what users see and pick.
+- **Standard set:** six default User Status Types are seeded — one per master, named the same as its master. Apps extend the list with their own types (e.g. HRMS adds "On Leave" → master "Out of Office").
 - **Conflict model:** none — last write wins. User and apps share the same setter.
 - **Expiry:** every status carries optional `user_status_expires_at`; scheduler clears expired statuses.
 - **Visibility:** any logged-in user can see any other user's status (surfaced lazily through `add_user_info`, like `full_name` and avatar).
 - **Developer API:** `User.set_status` instance method on the User doc — **not** whitelisted. Apps call it via `frappe.get_doc("User", x).set_status(...)`. No permission check; trusted-caller.
 - **UI / HTTP API:** separate whitelisted module function `set_status` — takes no user argument, always operates on `frappe.session.user`. No way over HTTP to set another user's status.
-- **Invisible mode:** included as an enum value; renders as "no dot".
+- **Invisible mode:** a master-status value; any type whose master is `Invisible` renders as "no dot".
 
 ---
 
@@ -20,10 +21,11 @@ Design decisions captured upfront (confirmed with user):
 
 **Goals**
 - A clean, translatable, cacheable representation of user availability on `User`.
+- An extensible `User Status Type` master so apps can ship their own user-facing statuses without touching framework code.
 - Python + JS APIs to read/write status.
 - Status indicator dot on every avatar surface in core (12+ locations).
 - A status picker UX in the navbar user dropdown.
-- A stable extension point for apps (HRMS, chat) without framework knowing about them.
+- A stable extension point for apps (HRMS, chat) — both data-level (install their own Types) and event-level (subscribe to `user_status_change`).
 
 **Non-goals**
 - "Online / typing right now" presence. That stays with the existing socket viewers/typers; status is a *user-declared* or *app-declared* state, not real-time presence.
@@ -32,21 +34,44 @@ Design decisions captured upfront (confirmed with user):
 - Visibility/permission rules per status (status is broadcast to all logged-in users).
 - Conflict resolution between user-set and app-set status. Last write wins; apps that misbehave are an app-policy problem, not a framework problem.
 - Free-form status message (Slack-style "In a meeting until 4pm"). Can be added later as a 3rd field if demand emerges.
+- Custom master statuses. The six masters are fixed (they encode dot colours / visibility). Apps add new *labels* on top of those six, not new masters.
 
 ---
 
-## Data Model — fields on `User`
+## Data Model
 
-Add to `frappe/core/doctype/user/user.json` (new section, e.g. between `Email Settings` and `Sidebar`):
+### `User Status Type` (new doctype)
 
-| Fieldname                | Type     | Options / Notes                                                                                         |
-|--------------------------|----------|---------------------------------------------------------------------------------------------------------|
-| `user_status`            | Select   | `\nAvailable\nAway\nBusy\nDo Not Disturb\nOut of Office\nInvisible`. Empty = unset (renders as no dot). |
-| `user_status_expires_at` | Datetime | When the status should auto-clear. Optional. Cron clears it.                                            |
+Lives at `frappe/core/doctype/user_status_type/`. Master list of user-facing status labels.
 
-Both fields are `read_only` on the standard User form (set via API/picker, not by editing the User doctype). `user_status` is `search_indexed` so list filters on it are cheap.
+| Fieldname        | Type        | Options / Notes                                                                                                            |
+|------------------|-------------|----------------------------------------------------------------------------------------------------------------------------|
+| `status_label`   | Data        | Autoname (`field:status_label`). The user-facing string, e.g. "On Leave", "Working from Home". `reqd`, `unique`.            |
+| `master_status`  | Select      | `Available\nAway\nBusy\nDo Not Disturb\nOut of Office\nInvisible`. `reqd`. Drives the dot colour and visibility.            |
+| `enabled`        | Check       | Default `1`. Disabled types are hidden from the picker but still resolve for existing User rows (so we don't break tooltips).|
+| `description`    | Small Text  | Optional. Shown in the picker as helper text.                                                                              |
+| `icon`           | Data        | Optional Lucide icon name. Picker may render it next to the label.                                                         |
 
-Why on `User` and not a separate doctype: user picked this. Pros: one row read for boot info; trivial to add to `user_info`; no extra permission machinery. Cons: User doc is already wide and saving it triggers heavy hooks — mitigated by writing via `frappe.db.set_value` with `update_modified=False` (same trick `sessions.py:update_last_active` uses today, see `frappe/sessions.py`).
+- `allow_rename = 1` — labels are user-facing strings and may need correcting. Renames cascade via standard Frappe link-rename machinery (User rows are updated automatically because `user_status` is a Link field).
+- Translated doctype (`translated_doctype = 1`) so labels seeded by framework/apps participate in `__()` extraction.
+- Permissions: System Manager has full CRUD; everyone with desk access has read (so the picker can list types). No write for non-System-Manager — apps install their types via `after_install` hooks or fixtures, not through HTTP.
+
+### `User` (changes)
+
+Add to `frappe/core/doctype/user/user.json` (new "User Status" section, between `Email Settings` and the next section):
+
+| Fieldname                | Type     | Options / Notes                                                                                              |
+|--------------------------|----------|--------------------------------------------------------------------------------------------------------------|
+| `user_status`            | Link     | Options: `User Status Type`. Empty = unset (renders as no dot). `read_only` in UI. `search_indexed`. `in_standard_filter`.|
+| `user_status_expires_at` | Datetime | When the status should auto-clear. Optional. Cron clears it. `read_only`.                                    |
+
+Why a Link instead of a Select: extensibility. Apps add new types without patching the framework. Why on `User` and not a child table: one row read for `add_user_info`; one indexed column to filter on; trivial cache key.
+
+Saving the User doc is heavy (hooks, validators, role re-evaluation). All writes from `set_status` use `self.db_set(..., update_modified=False)`, skipping those — same trick `sessions.py:update_last_active` uses today.
+
+### Standard seed data
+
+Six default User Status Types are created on install (one per master, named the same as its master). These cover the "vanilla" Slack-style picker out of the box. Apps add more via `after_install` (see Hooks & Extensibility).
 
 ---
 
@@ -72,23 +97,32 @@ class User(Document):
         called over HTTP. Apps use it server-side:
 
             frappe.get_doc("User", "alice@x.com").set_status(
-                "Out of Office", expires_at="2026-05-25 23:59:59"
+                "On Leave", expires_at="2026-05-25 23:59:59"
             )
 
-        End users do not call this — the navbar picker goes through the
-        whitelisted `set_status` (below), which delegates here for
-        `frappe.session.user`.
+        `status` is the *name* of a `User Status Type` (i.e. its label, since
+        the doctype autonames from the label). End users do not call this —
+        the navbar picker goes through the whitelisted `set_status` (below),
+        which delegates here for `frappe.session.user`.
 
         - `status` of `None` / empty clears both fields.
+        - Unknown / disabled types raise `frappe.DoesNotExistError`.
+          (Disabled types are gated by the picker; if an app calls
+          `set_status` with a disabled type that's its bug.)
         - Last write wins.
 
-        Returns `{status, expires_at}`.
+        Returns `{status, master, expires_at}` — the resolved master is
+        included so callers don't have to re-fetch it.
         """
-        old_status = self.user_status
+        old_status = self.user_status or None
         new_status = status or None
-        # db_set with update_modified=False — skips the User `modified`
-        # timestamp bump (so user-doc caches don't churn on every status flip)
-        # and skips controller validation. Same trick as `sessions.py:update_last_active`.
+        master = None
+        if new_status:
+            # cached_doc keeps this cheap on repeated set_status calls
+            type_doc = frappe.get_cached_doc("User Status Type", new_status)
+            if not type_doc.enabled:
+                frappe.throw(_("User Status Type {0} is disabled").format(new_status))
+            master = type_doc.master_status
         self.db_set(
             {
                 "user_status": new_status,
@@ -98,8 +132,10 @@ class User(Document):
         )
         frappe.cache.delete_key(f"user_status:{self.name}")
         for fn in frappe.get_hooks("user_status_change"):
-            frappe.call(fn, user=self.name, old=old_status, new=new_status)
-        return {"status": new_status, "expires_at": expires_at or None}
+            frappe.call(
+                fn, user=self.name, old=old_status, new=new_status, master=master
+            )
+        return {"status": new_status, "master": master, "expires_at": expires_at or None}
 ```
 
 ### 2. `set_status` — whitelisted, UI / HTTP entry point
@@ -148,52 +184,66 @@ Consequence: long-lived desk tabs may show stale status for other users until so
 
 ## Caching
 
-Follow the `get_users_for_mentions` pattern (`frappe/desk/search.py:411–421`):
-
-- `User.get_status` uses `frappe.cache.get_value(f"user_status:{self.name}", generator, expires_in_sec=300)`.
-- `User.set_status` calls `frappe.cache.delete_key(f"user_status:{self.name}")` after the DB write (already shown in the Backend API snippet above).
-- Add `"user_status:"` prefix to the per-user cache invalidation list in `frappe/cache_manager.py:user_cache_keys` so that any cache flush on a user (e.g., `frappe.clear_cache(user=...)`) wipes the status cache too.
-- **User info surfacing**: bootinfo only ships current user (`boot.py:357` calls `add_user_info(frappe.session.user, ...)`); other users are loaded lazily through `frappe.utils.add_user_info` (`frappe/utils/__init__.py:1094`). Extend the `frappe.get_all("User", ...)` query there to also fetch `user_status` and `user_status_expires_at`, add them to the `_UserInfo` TypedDict, and include them in the `setdefault().update(...)` block. No change to `boot.py` needed.
+- `User.get_status` caches `{status, master, expires_at}` per user for 5 min (`frappe.cache.set_value(..., expires_in_sec=300)`).
+- `User.set_status` calls `frappe.cache.delete_key(f"user_status:{self.name}")` after the DB write.
+- `clear_user_cache(user=...)` in `frappe/cache_manager.py` explicitly deletes `user_status:{user}` so any cache flush on a user wipes status cache too.
+- **User info surfacing**: bootinfo only ships current user (`boot.py:357` calls `add_user_info(frappe.session.user, ...)`); other users are loaded lazily through `frappe.utils.add_user_info` (`frappe/utils/__init__.py:1094`). Extend it to also fetch `user_status` and `user_status_expires_at`, plus the resolved `user_status_master` via a LEFT JOIN to `User Status Type`. Add all three to the `_UserInfo` TypedDict and the `setdefault().update(...)` block. No change to `boot.py` needed.
+- **User Status Type cache**: when a Type's `master_status` or `enabled` flag changes, every cached per-user `user_status` payload is stale. On Type save, clear the `user_status:*` namespace (one `delete_keys("user_status:")` call); types change rarely, this is cheap.
 
 ---
 
 ## Hooks & Extensibility for Apps
 
-One new hook point in `frappe/hooks.py`:
+### Hook point
+
+One new hook in `frappe/hooks.py`:
 
 ```python
 # Fired by `User.set_status` AFTER the DB write and cache invalidation.
-# Signature: (user: str, old: str | None, new: str | None) -> None
-#   `old` / `new` are the status enum values (e.g. "Available", "Out of Office"),
-#   not dicts. `None` means "unset". `expires_at` is intentionally not exposed
-#   to the hook — consumers care about availability transitions, not deadlines.
+# Signature: (user: str, old: str | None, new: str | None, master: str | None) -> None
+#   `old` / `new` are User Status Type names (e.g. "On Leave"), not dicts.
+#   `master` is the master_status of the *new* type, or None if cleared.
+#   `expires_at` is intentionally not exposed — consumers care about
+#   availability transitions, not deadlines.
 # Expected framework consumers: cache clearers (e.g. notification badge counts
 # that depend on user availability). Apps that want to react to status changes
 # should use this hook rather than monkey-patching set_status.
 user_status_change = []
 ```
 
-App authors call `User.set_status` server-side from their own existing doc_events. Example for HRMS (not in this repo, doc'd for completeness):
+### Apps installing their own Status Types
+
+Apps ship their statuses via an `after_install` (and ideally also `after_app_install`) handler that idempotently creates User Status Type rows. The framework provides a small helper `frappe.core.doctype.user_status_type.user_status_type.ensure_user_status_type(label, master, **kw)` that does an "insert-if-missing, update master if present" so app installs/migrations are safe to re-run.
+
+Example for HRMS:
 
 ```python
+# in hrms/install.py
+def after_install():
+    from frappe.core.doctype.user_status_type.user_status_type import ensure_user_status_type
+    ensure_user_status_type("On Leave", master="Out of Office")
+    ensure_user_status_type("Working from Home", master="Available")
+    ensure_user_status_type("In a Meeting", master="Busy")
+
 # in hrms/hooks.py
+after_install = "hrms.install.after_install"
 doc_events = {
     "Leave Application": {
-        "on_submit": "hrms.leave.handlers.set_out_of_office_status",
-        "on_cancel": "hrms.leave.handlers.clear_out_of_office_status",
-    }
+        "on_submit": "hrms.leave.handlers.set_on_leave_status",
+        "on_cancel": "hrms.leave.handlers.clear_on_leave_status",
+    },
 }
 
 # in hrms/leave/handlers.py
-def set_out_of_office_status(doc, method):
+def set_on_leave_status(doc, method):
     if doc.status != "Approved":
         return
     frappe.get_doc("User", doc.employee_user).set_status(
-        "Out of Office",
+        "On Leave",
         expires_at=f"{doc.to_date} 23:59:59",
     )
 
-def clear_out_of_office_status(doc, method):
+def clear_on_leave_status(doc, method):
     frappe.get_doc("User", doc.employee_user).set_status(None)
 ```
 
@@ -319,29 +369,34 @@ Adding `user_status` as `in_standard_filter` on the User doctype gives list filt
 
 ## Migration / Patches
 
-Adding fields to a core doctype is handled by the regular `bench migrate` sync — no patch needed. The fields default to NULL, which renders as "unset" and is the correct initial state.
+- Adding the new `User Status Type` doctype and the new fields on `User` is handled by the regular `bench migrate` doctype sync.
+- A one-time patch `frappe/patches/v17_0/create_default_user_status_types.py` seeds the six standard types on already-installed sites. New installs get them through `after_install` (which calls the same helper). Both paths use the idempotent `ensure_user_status_type` so re-running is a no-op.
+- The User row's `user_status` defaults to NULL → renders as "unset". No data migration needed.
 
 ---
 
 ## Files to be Modified / Added
 
 **Modified**
-- `frappe/core/doctype/user/user.json` — add 2 fields + put them in a collapsible section.
-- `frappe/core/doctype/user/user.py` — type hints for the 2 new fields; `User.set_status` (instance method, dev API, contains all mechanics: `db_set` write + cache invalidation + hook fire); `User.get_status`; whitelisted module-level `set_status` (UI entry point, always targets `frappe.session.user`); module-level `expire_user_statuses` for the scheduler.
-- `frappe/hooks.py` — `scheduler_events.cron`, new `user_status_change` list.
-- `frappe/utils/__init__.py` — extend `add_user_info` (and the `_UserInfo` TypedDict) to surface the 2 status fields whenever a user is lazily loaded.
-- `frappe/cache_manager.py` — add `"user_status:"` to `user_cache_keys`.
-- `frappe/public/js/frappe/utils/common.js` — wrap `get_avatar` with status dot.
-- `frappe/public/js/frappe/utils/user.js` — surface `user_status` / `user_status_expires_at` from `frappe.boot.user_info`.
-- `frappe/public/js/frappe/ui/toolbar/toolbar.js` + `navbar.html` — picker entry.
-- `frappe/public/scss/desk/avatar.scss` — `.status-dot` styles.
-- `frappe/translations/*` — pick up the new enum labels via standard extraction.
+- `frappe/core/doctype/user/user.json` — add `user_status` (Link → User Status Type) + `user_status_expires_at` (Datetime) in a new collapsible section.
+- `frappe/core/doctype/user/user.py` — type hints; `User.set_status` (dev API: validates Type, resolves master, `db_set` + cache invalidation + hook fire); `User.get_status`; whitelisted module-level `set_status`; module-level `expire_user_statuses`; whitelisted `get_status_types` for the picker.
+- `frappe/hooks.py` — `scheduler_events.cron`, new `user_status_change` list, `after_install` chain.
+- `frappe/utils/__init__.py` — extend `add_user_info` (+ `_UserInfo` TypedDict) to surface `user_status`, `user_status_master` (LEFT JOIN to User Status Type), and `user_status_expires_at`.
+- `frappe/cache_manager.py` — explicit `delete_key("user_status:{user}")` in `clear_user_cache`.
+- `frappe/utils/install.py` — call `seed_default_user_status_types()` after the rest of install.
+- `frappe/public/js/frappe/utils/common.js` — `get_avatar` reads `user_status` (label, for tooltip) and `user_status_master` (drives dot colour). `Invisible` master suppresses the dot.
+- `frappe/public/js/frappe/utils/user.js` — surface status fields from `frappe.boot.user_info`.
+- `frappe/public/js/frappe/ui/sidebar/sidebar_header.js` — picker entry in the workspace dropdown.
+- `frappe/public/js/frappe/ui/toolbar/user_status_dialog.js` — picker fetches Types from `get_status_types`, groups by master.
+- `frappe/public/scss/desk/avatar.scss` — `.status-dot` styles (per master).
 
 **Added**
-- `frappe/public/js/frappe/ui/toolbar/user_status_dialog.js` — picker UI.
-- `frappe/tests/test_user_status.py` — unit tests (set, clear, expiry, cache invalidation, hook fire with string args, `set_status` self-targeting + Guest rejection, `User.set_status` not whitelisted).
+- `frappe/core/doctype/user_status_type/` — new doctype: JSON + controller + `ensure_user_status_type` helper + `seed_default_user_status_types` + `get_status_types_for_picker` whitelisted endpoint + tests.
+- `frappe/patches/v17_0/create_default_user_status_types.py` — one-time seed for existing sites.
+- `frappe/public/js/frappe/ui/toolbar/user_status_dialog.js` — picker UI (added in v1; updated in this revision).
+- `frappe/tests/test_user_status.py` — unit tests, updated to use Status Type names + assert master resolution + assert disabled types rejected.
 
-Estimated diff size: ~350 LOC including tests (no new Python module needed — everything fits on `User`).
+Estimated diff size: ~600 LOC including the new doctype and tests.
 
 ---
 

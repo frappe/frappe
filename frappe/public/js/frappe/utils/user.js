@@ -46,6 +46,9 @@ $.extend(frappe.user, {
 	status: function (uid) {
 		return frappe.user_info(uid).user_status || null;
 	},
+	status_master: function (uid) {
+		return frappe.user_info(uid).user_status_master || null;
+	},
 	status_expires_at: function (uid) {
 		return frappe.user_info(uid).user_status_expires_at || null;
 	},
