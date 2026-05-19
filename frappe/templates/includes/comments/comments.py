@@ -16,8 +16,17 @@ EMAIL_PATTERN = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
 
 
 @frappe.whitelist(allow_guest=True)
+<<<<<<< HEAD
 @rate_limit(key="reference_name", limit=get_comment_limit, seconds=60 * 60)
 def add_comment(comment, comment_email, comment_by, reference_doctype, reference_name, route):
+=======
+@rate_limit(limit=get_limit, seconds=60 * 60)
+def add_comment(
+	comment: str, comment_email: str, comment_by: str, reference_doctype: str, reference_name: str, route: str
+):
+	comment_email = frappe.session.user
+	comment_by = frappe.get_value("User", frappe.session.user, "full_name")
+>>>>>>> 2d930e2d37 (fix(comments): override comment_by and comment_email)
 	if frappe.session.user == "Guest":
 		if reference_doctype not in ("Blog Post", "Web Page"):
 			return
