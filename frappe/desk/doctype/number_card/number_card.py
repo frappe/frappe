@@ -97,7 +97,7 @@ def get_permission_query_conditions(user=None):
 		((nc.type == "Report") & nc.report_name.isin(allowed_reports))
 		| ((nc.type == "Custom") & nc.document_type.isin(allowed_doctypes))
 		| ((nc.type == "Document Type") & nc.document_type.isin(allowed_doctypes))
-	) & (nc.module.isin(allowed_modules) | nc.module.isnull() | nc.module == "")
+	) & (nc.module.isin(allowed_modules) | nc.module.isnull() | (nc.module == ""))
 
 	return conditions.get_sql(quote_char="`")
 
