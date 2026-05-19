@@ -377,27 +377,13 @@ class Report(Document):
 		for fieldname, doctype in columns:
 			meta = frappe.get_meta(doctype)
 
-			meta_df = meta.get_field(fieldname)
-			df = meta_df or get_default_df(fieldname)
+			if meta_df := meta.get_field(fieldname):
+				column = meta_df.as_dict()
+			elif default_df := get_default_df(fieldname):
+				column = default_df.copy()
 
-			if df:
-				column = frappe._dict(
-					{
-						"fieldname": df.fieldname,
-						"label": _(df.label or "") if meta_df else meta.get_label(df.fieldname),
-						"fieldtype": df.fieldtype,
-						"options": df.options,
-						"translatable": df.translatable or False,
-						"hidden": df.hidden or False,
-					}
-				)
-
-				if (
-					column.fieldtype == "Link"
-					and column.options
-					and frappe.get_meta(column.options).translated_doctype
-				):
-					column.translatable = True
+				if not column.get("label"):
+					column.label = meta.get_label(fieldname)
 			else:
 				label = (
 					get_group_by_column_label(group_by_args, meta)
@@ -411,8 +397,6 @@ class Report(Document):
 						"label": label,
 						"fieldtype": "Link" if fieldname == "name" else "Data",
 						"options": doctype if fieldname == "name" else None,
-						"translatable": False,
-						"hidden": False,
 					}
 				)
 
