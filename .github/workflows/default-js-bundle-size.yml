@@ -47,10 +47,6 @@ jobs:
           fetch-depth: 0
           path: apps/frappe
 
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.14'
-
       - uses: actions/setup-node@v6
         with:
           node-version: 24
@@ -80,8 +76,7 @@ jobs:
             git -C apps/frappe checkout --force "$ref"
             yarn --cwd apps/frappe install --frozen-lockfile
             rm -rf sites/assets/frappe sites/assets/assets.json apps/frappe/frappe/public/dist
-            files=$(python /tmp/compare_default_js_bundle_size.py \
-              --bench-path "$GITHUB_WORKSPACE" --esbuild-files)
+            files=$(python /tmp/compare_default_js_bundle_size.py --esbuild-files)
             (
               cd apps/frappe
               CI=Yes node esbuild --production --apps frappe --files "$files"
@@ -90,11 +85,8 @@ jobs:
 
           build_default_js_bundle "${{ github.event.pull_request.base.sha }}"
           python /tmp/compare_default_js_bundle_size.py \
-            --bench-path "$GITHUB_WORKSPACE" \
             --write-json /tmp/base-default-js-bundle-size.json
 
           build_default_js_bundle "${{ github.sha }}"
           python /tmp/compare_default_js_bundle_size.py \
-            --bench-path "$GITHUB_WORKSPACE" \
-            --compare-to /tmp/base-default-js-bundle-size.json \
-            --threshold "$DEFAULT_JS_BUNDLE_SIZE_THRESHOLD"
+            --compare-to /tmp/base-default-js-bundle-size.json
