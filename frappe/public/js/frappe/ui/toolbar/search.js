@@ -17,6 +17,7 @@ frappe.search.SearchDialog = class {
 
 	make() {
 		this.search_dialog = new frappe.ui.Dialog({
+			animate: false,
 			minimizable: true,
 			size: "extra-large",
 			on_page_show: () => this.focus_global_search_input(),
@@ -298,11 +299,16 @@ frappe.search.SearchDialog = class {
 	}
 
 	init_search(keywords, search_type) {
+		keywords = (keywords || "").trim();
 		this._reset_global_search_modal_mode(search_type);
-		this.put_placeholder(this.search.empty_state_text);
-		this.get_results(keywords);
 		this.search_dialog.show();
 		this.$input.val(keywords);
+		if (keywords.length > 1) {
+			this.get_results(keywords);
+		} else {
+			this.current_keyword = keywords;
+			this.put_placeholder(this.search.empty_state_text);
+		}
 	}
 
 	/** Keyboard shortcut: open full Global Search panel (not the Awesome Bar). */
