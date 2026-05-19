@@ -1936,7 +1936,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					let dialog = frappe.ui.get_print_settings(
 						false,
 						(print_settings) => this.print_report(print_settings),
-						this.report_doc.letter_head,
+						this.report_doc.default_letter_head,
 						this.get_visible_columns(),
 						true,
 						null,
@@ -2385,6 +2385,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$report.toggle(flag);
 		this.$chart.toggle(flag);
 		this.$summary.toggle(flag);
+		this.$report_message.toggle(flag);
 	}
 
 	toggle_print_buttons(show) {

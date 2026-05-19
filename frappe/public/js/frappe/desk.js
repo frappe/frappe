@@ -95,7 +95,7 @@ frappe.Application = class Application {
 	setup_theme() {
 		frappe.ui.keys.add_shortcut({
 			shortcut: "shift+ctrl+g",
-			description: __("Switch Theme"),
+			description: __("Switch theme"),
 			action: () => {
 				if (frappe.theme_switcher && frappe.theme_switcher.dialog.is_visible) {
 					frappe.theme_switcher.hide();

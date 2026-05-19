@@ -33,13 +33,13 @@ class Report(Document):
 		add_total_row: DF.Check
 		add_translate_data: DF.Check
 		columns: DF.Table[ReportColumn]
+		default_letter_head: DF.Link | None
 		default_print_format: DF.Link | None
 		disabled: DF.Check
 		filters: DF.Table[ReportFilter]
 		is_standard: DF.Literal["No", "Yes"]
 		javascript: DF.Code | None
 		json: DF.Code | None
-		letter_head: DF.Link | None
 		module: DF.Link | None
 		prepared_report: DF.Check
 		query: DF.Code | None
@@ -82,8 +82,8 @@ class Report(Document):
 		if self.default_print_format and self.has_value_changed("default_print_format"):
 			self.validate_default_print_format()
 
-		if self.letter_head and self.has_value_changed("letter_head"):
-			self.validate_letter_head()
+		if self.default_letter_head and self.has_value_changed("letter_head"):
+			self.validate_default_letter_head()
 
 	def before_insert(self):
 		self.set_doctype_roles()
@@ -377,25 +377,38 @@ class Report(Document):
 		return order_by, group_by, group_by_args
 
 	def build_standard_report_columns(self, columns, group_by_args):
-		_columns = []
+		from frappe.model.meta import get_default_df
+
+		report_columns = []
 
 		for fieldname, doctype in columns:
 			meta = frappe.get_meta(doctype)
 
-			if df := meta.get_field(fieldname):
-				field = df.as_dict()
-			elif fieldname == DEFAULT_AGGREGATE_FIELDNAME:
-				field = frappe._dict(get_group_by_column_field(group_by_args, meta.name))
-			else:
-				field = frappe._dict(fieldname=fieldname, label=meta.get_label(fieldname))
+			if meta_df := meta.get_field(fieldname):
+				column = meta_df.as_dict()
+			elif default_df := get_default_df(fieldname):
+				column = default_df.copy()
+
+				if not column.get("label"):
+					column.label = meta.get_label(fieldname)
 
 				# since name is the primary key for a document, it will always be a Link datatype
 				if fieldname == "name":
-					field.fieldtype = "Link"
-					field.options = doctype
+					column.fieldtype = "Link"
+					column.options = doctype
+			else:
+				if fieldname == DEFAULT_AGGREGATE_FIELDNAME:
+					column = get_group_by_column_field(group_by_args, doctype)
+				else:
+					column = frappe._dict(
+						fieldname=fieldname,
+						label=_(frappe.unscrub(fieldname)),
+						fieldtype="Data",
+					)
 
-			_columns.append(field)
-		return _columns
+			report_columns.append(column)
+
+		return report_columns
 
 	def build_data_dict(self, result, columns):
 		data = []
@@ -435,13 +448,13 @@ class Report(Document):
 		):
 			frappe.throw(_("Selected Print Format is invalid for this Report."))
 
-	def validate_letter_head(self):
-		if not self.letter_head:
+	def validate_default_letter_head(self):
+		if not self.default_letter_head:
 			return
 
 		letter_head = frappe.db.get_value(
 			"Letter Head",
-			self.letter_head,
+			self.default_letter_head,
 			["letter_head_for", "standard", "disabled"],
 			as_dict=True,
 		)
@@ -454,7 +467,7 @@ class Report(Document):
 		):
 			frappe.throw(
 				_("Selected Letter Head '{0}' is invalid for '{1}' Report.").format(
-					self.letter_head, self.name
+					self.default_letter_head, self.name
 				)
 			)
 

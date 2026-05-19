@@ -28,7 +28,8 @@ def get_preview_data(doctype: str, docname: str | int):
 	image_field = meta.image_field
 
 	preview_fields.append(title_field)
-	preview_fields.append(image_field)
+	if image_field:
+		preview_fields.append(image_field)
 	preview_fields.append("name")
 
 	preview_data = frappe.get_list(doctype, filters={"name": docname}, fields=preview_fields, limit=1)

@@ -174,7 +174,7 @@ def _generate_temporary_login_link(email: str, expiry: int):
 	key = frappe.generate_hash()
 	frappe.cache.set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
 
-	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
+	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}", allow_header_override=False)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])

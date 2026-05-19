@@ -13,7 +13,7 @@
   "module",
   "column_break_4",
   "report_type",
-  "letter_head",
+  "default_letter_head",
   "default_print_format",
   "add_total_row",
   "disabled",
@@ -95,12 +95,6 @@
    "fieldname": "disabled",
    "fieldtype": "Check",
    "label": "Disabled"
-  },
-  {
-   "fieldname": "letter_head",
-   "fieldtype": "Link",
-   "label": "Default Letter Head",
-   "options": "Letter Head"
   },
   {
    "fieldname": "section_break_6",
@@ -208,12 +202,19 @@
    "fieldtype": "Link",
    "label": "Default Print Format",
    "options": "Print Format"
+  },
+  {
+   "fieldname": "default_letter_head",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "Default Letter Head",
+   "options": "Letter Head"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-10 00:03:15.212213",
+ "modified": "2026-05-14 15:19:19.569180",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

@@ -595,6 +595,8 @@ class DocType(Document):
 
 		clear_linked_doctype_cache()
 
+		frappe.publish_realtime("doctype_update", {"doctype": self.name}, after_commit=True)
+
 	@savepoint(catch=Exception)
 	def sync_doctype_layouts(self):
 		"""Sync Doctype Layout"""

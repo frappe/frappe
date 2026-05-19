@@ -590,6 +590,9 @@ class BaseDocument:
 				elif fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
 
+				elif fieldtype == "Read Only" and not isinstance(value, str):
+					value = cstr(value)
+
 				elif (fieldtype in datetime_fields and value == "") or (
 					getattr(df, "unique", False) and cstr(value).strip() == ""
 				):

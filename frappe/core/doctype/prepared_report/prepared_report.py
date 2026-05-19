@@ -382,7 +382,10 @@ def convert_json_to_csv(prepared_report_name):
 	writer = csv.DictWriter(output, fieldnames=fieldnames)
 	writer.writeheader()
 	for row in result:
-		writer.writerow({key: row.get(key, "") for key in fieldnames})
+		if isinstance(row, dict):
+			writer.writerow({key: row.get(key, "") for key in fieldnames})
+		else:
+			writer.writerow({field: row[idx] for idx, field in enumerate(fieldnames)})
 
 	csv_content = output.getvalue().encode("utf-8")
 

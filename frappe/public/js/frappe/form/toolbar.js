@@ -630,8 +630,9 @@ frappe.ui.form.Toolbar = class Toolbar {
 		) {
 			let doctype = is_doctype_form ? this.frm.docname : this.frm.doctype;
 			let is_doctype_custom = is_doctype_form ? this.frm.doc.custom : false;
+			let is_core_doctype = frappe.model.core_doctypes_list.includes(doctype);
 
-			if (doctype != "DocType" && !is_doctype_custom && this.frm.meta.issingle === 0) {
+			if (!is_core_doctype && !is_doctype_custom && this.frm.meta.issingle === 0) {
 				this.page.add_menu_item(
 					__("Customize"),
 					() => {
