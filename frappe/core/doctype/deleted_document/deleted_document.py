@@ -51,8 +51,21 @@ def restore(name: str | int, alert: bool = True):
 
 	doc = frappe.get_doc(json.loads(deleted.data))
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
+=======
+
+	if not frappe.has_permission(doc.doctype, "create"):
+		frappe.throw(
+			_("You do not have permission to create or restore documents of type {0}.").format(doc.doctype),
+			frappe.PermissionError,
+		)
+
+	if not frappe.has_permission(doc.doctype, "read", doc=doc):
+		frappe.throw(_("You do not have permission to restore this document."), frappe.PermissionError)
+
+>>>>>>> a8bfd044e4 (fix: add perm. checks)
 	original_owner = doc.get("owner")
 	original_creation = doc.get("creation")
 	original_modified = doc.get("modified")
