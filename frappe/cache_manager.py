@@ -62,6 +62,7 @@ user_cache_keys = (
 	"has_role:Report",
 	"desk_sidebar_items",
 	"contacts",
+	"user_status:",
 )
 
 doctype_cache_keys = (
@@ -88,6 +89,7 @@ def clear_user_cache(user=None):
 	if user:
 		frappe.cache.hdel_names(user_cache_keys, user)
 		frappe.cache.delete_keys("user:" + user)
+		frappe.cache.delete_key(f"user_status:{user}")
 		clear_defaults_cache(user)
 	else:
 		frappe.cache.delete_key(user_cache_keys)

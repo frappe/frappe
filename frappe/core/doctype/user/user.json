@@ -84,6 +84,9 @@
   "send_me_a_copy",
   "allowed_in_mentions",
   "user_emails",
+  "user_status_section",
+  "user_status",
+  "user_status_expires_at",
   "workspace_section",
   "default_workspace",
   "app_section",
@@ -419,6 +422,27 @@
    "label": "User Emails",
    "options": "User Email",
    "permlevel": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "user_status_section",
+   "fieldtype": "Section Break",
+   "label": "User Status"
+  },
+  {
+   "fieldname": "user_status",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "User Status",
+   "options": "\nAvailable\nAway\nBusy\nDo Not Disturb\nOut of Office\nInvisible",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "user_status_expires_at",
+   "fieldtype": "Datetime",
+   "label": "User Status Expires At",
+   "read_only": 1
   },
   {
    "depends_on": "eval:in_list(['System User'], doc.user_type)",

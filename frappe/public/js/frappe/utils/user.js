@@ -43,6 +43,12 @@ $.extend(frappe.user, {
 	abbr: function (uid) {
 		return frappe.user_info(uid).abbr;
 	},
+	status: function (uid) {
+		return frappe.user_info(uid).user_status || null;
+	},
+	status_expires_at: function (uid) {
+		return frappe.user_info(uid).user_status_expires_at || null;
+	},
 	has_role: function (rl) {
 		if (typeof rl == "string") rl = [rl];
 		for (var i in rl) {

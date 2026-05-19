@@ -70,6 +70,51 @@
 	line-height: 1;
 }
 
+.avatar-with-status {
+	position: relative;
+}
+
+.status-dot {
+	position: absolute;
+	right: -2px;
+	bottom: -2px;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	border: 2px solid var(--card-bg);
+	pointer-events: auto;
+
+	&.status-available {
+		background: var(--green-500);
+	}
+	&.status-away {
+		background: var(--yellow-500);
+	}
+	&.status-busy {
+		background: var(--red-500);
+	}
+	&.status-do-not-disturb {
+		background: var(--red-700);
+	}
+	&.status-out-of-office {
+		background: var(--purple-500);
+	}
+	&.status-invisible {
+		display: none;
+	}
+}
+
+.avatar-xs .status-dot {
+	width: 6px;
+	height: 6px;
+}
+
+.avatar-small .status-dot,
+.avatar-smaller .status-dot {
+	width: 8px;
+	height: 8px;
+}
+
 .avatar-frame {
 	display: inline-block;
 	width: 100%;

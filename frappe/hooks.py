@@ -93,6 +93,13 @@ on_session_creation = [
 on_login = "frappe.desk.doctype.note.note._get_unseen_notes"
 on_logout = "frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
 
+# Fired by `User.set_status` AFTER the DB write and cache invalidation.
+# Signature: (user: str, old: str | None, new: str | None) -> None
+#   `old` / `new` are the status enum values (e.g. "Available", "Out of Office"),
+#   not dicts. `None` means "unset". `expires_at` is intentionally not exposed
+#   to the hook — consumers care about availability transitions, not deadlines.
+user_status_change = []
+
 # PDF
 pdf_header_html = "frappe.utils.pdf.pdf_header_html"
 pdf_body_html = "frappe.utils.pdf.pdf_body_html"
@@ -220,6 +227,7 @@ scheduler_events = {
 			"frappe.automation.doctype.reminder.reminder.send_reminders",
 			"frappe.model.utils.link_count.update_link_count",
 			"frappe.utils.telemetry.pulse.client.send_queued_events",
+			"frappe.core.doctype.user.user.expire_user_statuses",
 		],
 		# 10 minutes
 		"0/10 * * * *": [

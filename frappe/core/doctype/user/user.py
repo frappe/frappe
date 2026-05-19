@@ -3,7 +3,7 @@
 
 import re
 from collections.abc import Iterable
-from datetime import timedelta
+from datetime import datetime, timedelta
 from functools import cached_property, lru_cache
 from typing import Any
 
@@ -143,6 +143,10 @@ class User(Document):
 		unsubscribed: DF.Check
 		user_emails: DF.Table[UserEmail]
 		user_image: DF.AttachImage | None
+		user_status: DF.Literal[
+			"", "Available", "Away", "Busy", "Do Not Disturb", "Out of Office", "Invisible"
+		]
+		user_status_expires_at: DF.Datetime | None
 		user_type: DF.Link | None
 		username: DF.Data | None
 		view_switcher: DF.Check
@@ -897,6 +901,96 @@ class User(Document):
 
 	def validate_ip_addr(self):
 		self.restrict_ip = ",".join(self.get_restricted_ip_list())
+
+	def set_status(
+		self,
+		status: str | None = None,
+		expires_at: str | datetime | None = None,
+	) -> dict:
+		"""Developer API: set this user's status.
+
+		Trusted-caller; no permission check. Not whitelisted — cannot be
+		called over HTTP. Apps use it server-side:
+
+		    frappe.get_doc("User", "alice@x.com").set_status(
+		        "Out of Office", expires_at="2026-05-25 23:59:59"
+		    )
+
+		End users do not call this — the navbar picker goes through the
+		whitelisted ``set_status`` (module-level), which delegates here for
+		``frappe.session.user``.
+
+		- ``status`` of ``None`` / empty clears both fields.
+		- Last write wins: an app-set status will overwrite a user-set one and
+		  vice versa. If a user wants to override an app-set status, they
+		  re-set it.
+
+		Returns ``{status, expires_at}``.
+		"""
+		old_status = self.user_status or None
+		new_status = status or None
+		new_expires_at = expires_at or None
+		self.db_set(
+			{
+				"user_status": new_status,
+				"user_status_expires_at": new_expires_at,
+			},
+			update_modified=False,
+		)
+		frappe.cache.delete_key(f"user_status:{self.name}")
+		for fn in frappe.get_hooks("user_status_change"):
+			frappe.call(fn, user=self.name, old=old_status, new=new_status)
+		return {"status": new_status, "expires_at": new_expires_at}
+
+	def get_status(self) -> dict:
+		"""Return this user's status, cached for 5 minutes."""
+		key = f"user_status:{self.name}"
+		cached = frappe.cache.get_value(key)
+		if cached is not None:
+			return cached
+		row = (
+			frappe.db.get_value(
+				"User",
+				self.name,
+				["user_status", "user_status_expires_at"],
+				as_dict=True,
+			)
+			or {}
+		)
+		value = {
+			"status": row.get("user_status") or None,
+			"expires_at": row.get("user_status_expires_at") or None,
+		}
+		frappe.cache.set_value(key, value, expires_in_sec=300)
+		return value
+
+
+@frappe.whitelist()
+def set_status(
+	status: str | None = None,
+	expires_at: str | datetime | None = None,
+) -> dict:
+	"""Whitelisted: set the current session user's status.
+
+	Always targets ``frappe.session.user``. There is no user/doc-name
+	parameter — by construction, an HTTP caller cannot set another user's
+	status through this endpoint. Guests are rejected.
+	"""
+	user = frappe.session.user
+	if user == "Guest":
+		frappe.throw(_("Guests cannot set a status"), frappe.PermissionError)
+	return frappe.get_doc("User", user).set_status(status, expires_at)
+
+
+def expire_user_statuses():
+	"""Scheduled: clear statuses whose ``user_status_expires_at`` has passed."""
+	expired = frappe.db.get_all(
+		"User",
+		filters={"user_status_expires_at": ("<", now_datetime())},
+		pluck="name",
+	)
+	for user in expired:
+		frappe.get_doc("User", user).set_status(None)
 
 
 @frappe.whitelist()

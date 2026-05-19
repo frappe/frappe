@@ -39,11 +39,21 @@ frappe.avatar = function (
 		title,
 		image_url || user_info.image,
 		remove_color,
-		data_attr
+		data_attr,
+		user_info.user_status,
+		user_info.user_status_expires_at
 	);
 };
 
-frappe.get_avatar = function (css_class, title, image_url = null, remove_color, data_attributes) {
+frappe.get_avatar = function (
+	css_class,
+	title,
+	image_url = null,
+	remove_color,
+	data_attributes,
+	user_status,
+	user_status_expires_at
+) {
 	if (!css_class) {
 		css_class = "avatar-small";
 	}
@@ -76,6 +86,22 @@ frappe.get_avatar = function (css_class, title, image_url = null, remove_color, 
 
 	el.querySelector(".avatar").setAttribute("title", title);
 	el.querySelector(".avatar-frame").setAttribute("title", title);
+
+	if (user_status && user_status !== "Invisible") {
+		let status_slug = user_status.toLowerCase().replace(/ /g, "-");
+		let tooltip = user_status;
+		if (user_status_expires_at) {
+			tooltip += ` (${__("until")} ${frappe.datetime.str_to_user(user_status_expires_at)})`;
+		}
+		let avatar_span = el.querySelector(".avatar");
+		avatar_span.classList.add("avatar-with-status");
+		avatar_span.insertAdjacentHTML(
+			"beforeend",
+			`<span class="status-dot status-${status_slug}" title="${frappe.utils.escape_html(
+				tooltip
+			)}"></span>`
+		);
+	}
 
 	return el.innerHTML;
 };

@@ -63,6 +63,14 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 					items: this.get_display_siblings(is_dark),
 				},
 				{
+					name: "set-status",
+					label: __("Set a status"),
+					icon: "circle",
+					onClick: function () {
+						frappe.ui.toolbar.show_user_status_picker();
+					},
+				},
+				{
 					label: "Session Defaults",
 					action: "frappe.ui.toolbar.setup_session_defaults()",
 					is_standard: 1,
