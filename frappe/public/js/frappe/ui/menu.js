@@ -303,8 +303,11 @@ frappe.ui.create_menu = function (opts) {
 
 	document.addEventListener(
 		"click",
-		function () {
-			if (frappe.menu_map[context_menu.name].visible) {
+		function (e) {
+			if (
+				frappe.menu_map[context_menu.name].visible &&
+				!context_menu.template[0].contains(e.target)
+			) {
 				frappe.menu_map[context_menu.name].hide();
 				opts.onHide && opts.onHide(opts.parent);
 			}
