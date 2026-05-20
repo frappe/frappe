@@ -648,7 +648,7 @@ def new_backup(
 	return odb
 
 
-def delete_temp_backups(older_than=24):
+def delete_temp_backups(older_than=23):
 	"""
 	Cleans up the backup_link_path directory by deleting older files
 	"""
