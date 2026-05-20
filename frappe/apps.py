@@ -53,7 +53,6 @@ def get_apps():
 	return app_list
 
 
-<<<<<<< HEAD
 def get_route(app, allowed_workspaces=None):
 	if not allowed_workspaces:
 		return "/app"
@@ -76,14 +75,6 @@ def get_route(app, allowed_workspaces=None):
 		return f"/app/{slug(allowed_workspaces[0].get('name').lower())}"
 	else:
 		return route
-=======
-def get_route(app_name):
-	if app_name not in frappe.get_installed_apps():
-		return "/apps"  # Invalid defaults
-	apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
-	app = next((app for app in apps if app.get("name") == app_name), None)
-	return app.get("route") if app and app.get("route") else "/apps"
->>>>>>> d9f8b24853 (fix: Erase invalid default apps)
 
 
 def is_desk_apps(apps):
@@ -122,14 +113,10 @@ def get_default_path(apps=None):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
 def set_app_as_default(app_name):
-=======
-def set_app_as_default(app_name: str):
 	if app_name not in frappe.get_installed_apps():
 		frappe.throw(_("App {} is not installed").format(frappe.bold(app_name)))
 
->>>>>>> d9f8b24853 (fix: Erase invalid default apps)
 	if frappe.db.get_value("User", frappe.session.user, "default_app") == app_name:
 		frappe.db.set_value("User", frappe.session.user, "default_app", "")
 	else:

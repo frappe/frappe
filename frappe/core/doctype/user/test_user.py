@@ -466,9 +466,6 @@ class TestUser(FrappeTestCase):
 			sorted(m.get("module_name") for m in get_modules_from_all_apps()),
 		)
 
-<<<<<<< HEAD
-	@change_settings("System Settings", reset_password_link_expiry_duration=1)
-=======
 	def test_default_app(self):
 		from frappe.apps import get_default_path
 
@@ -484,8 +481,7 @@ class TestUser(FrappeTestCase):
 
 			get_default_path()  # defaults will also trigger hooks logic
 
-	@IntegrationTestCase.change_settings("System Settings", reset_password_link_expiry_duration=1)
->>>>>>> d9f8b24853 (fix: Erase invalid default apps)
+	@change_settings("System Settings", reset_password_link_expiry_duration=1)
 	def test_reset_password_link_expiry(self):
 		new_password = "new_password"
 		frappe.set_user("testpassword@example.com")
