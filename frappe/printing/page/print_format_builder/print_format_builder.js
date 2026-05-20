@@ -6,6 +6,7 @@ frappe.pages["print-format-builder"].on_page_load = function (wrapper) {
 frappe.pages["print-format-builder"].on_page_show = function (wrapper) {
 	var route = frappe.get_route();
 	if (route.length > 1) {
+		frappe.model.clear_doc("Print Format", route[1]);
 		frappe.model.with_doc("Print Format", route[1], function () {
 			frappe.print_format_builder.print_format = frappe.get_doc("Print Format", route[1]);
 			frappe.print_format_builder.refresh();
@@ -91,6 +92,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 		this.page.main.find(".btn-edit-print-format").on("click", function () {
 			var name = me.print_format_input.get_value();
 			if (!name) return;
+			frappe.model.clear_doc("Print Format", name);
 			frappe.model.with_doc("Print Format", name, function (doc) {
 				frappe.set_route("print-format-builder", name);
 			});
