@@ -621,7 +621,7 @@ class BaseDocument:
 		return valid_columns_cache[self.doctype]
 
 	def is_new(self) -> bool:
-		return self.get("__islocal")
+		return bool(self.get("__islocal"))
 
 	@property
 	def docstatus(self) -> DocStatus:
