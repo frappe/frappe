@@ -26,19 +26,19 @@ class MariaDBExceptionUtil:
 	@staticmethod
 	def is_deadlocked(e: pymysql.Error) -> bool:
 		# Snapshot isolation is also treated as deadlock from User POV
-		return e.args[0] in (ER.LOCK_DEADLOCK, ER.CHECKREAD)
+		return bool(e.args) and e.args[0] in (ER.LOCK_DEADLOCK, ER.CHECKREAD)
 
 	@staticmethod
 	def is_timedout(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.LOCK_WAIT_TIMEOUT
+		return bool(e.args) and e.args[0] == ER.LOCK_WAIT_TIMEOUT
 
 	@staticmethod
 	def is_read_only_mode_error(e: pymysql.Error) -> bool:
-		return e.args[0] == 1792
+		return bool(e.args) and e.args[0] == 1792
 
 	@staticmethod
 	def is_table_missing(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.NO_SUCH_TABLE
+		return bool(e.args) and e.args[0] == ER.NO_SUCH_TABLE
 
 	@staticmethod
 	def is_missing_table(e: pymysql.Error) -> bool:
@@ -46,39 +46,39 @@ class MariaDBExceptionUtil:
 
 	@staticmethod
 	def is_missing_column(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.BAD_FIELD_ERROR
+		return bool(e.args) and e.args[0] == ER.BAD_FIELD_ERROR
 
 	@staticmethod
 	def is_duplicate_fieldname(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DUP_FIELDNAME
+		return bool(e.args) and e.args[0] == ER.DUP_FIELDNAME
 
 	@staticmethod
 	def is_duplicate_entry(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DUP_ENTRY
+		return bool(e.args) and e.args[0] == ER.DUP_ENTRY
 
 	@staticmethod
 	def is_access_denied(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.ACCESS_DENIED_ERROR
+		return bool(e.args) and e.args[0] == ER.ACCESS_DENIED_ERROR
 
 	@staticmethod
 	def cant_drop_field_or_key(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
+		return bool(e.args) and e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
 
 	@staticmethod
 	def is_syntax_error(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.PARSE_ERROR
+		return bool(e.args) and e.args[0] == ER.PARSE_ERROR
 
 	@staticmethod
 	def is_statement_timeout(e: pymysql.Error) -> bool:
-		return e.args[0] == 1969
+		return bool(e.args) and e.args[0] == 1969
 
 	@staticmethod
 	def is_data_too_long(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DATA_TOO_LONG
+		return bool(e.args) and e.args[0] == ER.DATA_TOO_LONG
 
 	@staticmethod
 	def is_db_table_size_limit(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.TOO_BIG_ROWSIZE
+		return bool(e.args) and e.args[0] == ER.TOO_BIG_ROWSIZE
 
 	@staticmethod
 	def is_primary_key_violation(e: pymysql.Error) -> bool:
