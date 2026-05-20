@@ -72,7 +72,7 @@ dependencies = [
     "rq==2.6.1",
     "rsa~=4.9.1",
     "semantic-version~=2.10.0",
-    "sentry-sdk~=1.45.1",
+    "sentry-sdk~=2.20",
     "sqlparse~=0.5.5",
     "sql_metadata~=2.19.0",
     "tenacity~=9.1.2",
