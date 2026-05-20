@@ -15,12 +15,7 @@
 							{{ i == 0 ? "Where" : "And" }}
 						</div>
 						<div id="fieldname" class="!min-w-[120px] flex-1">
-							<Autocomplete
-								:modelValue="filter.fieldname"
-								:options="fields"
-								@update:modelValue="filter.fieldname = $event.value"
-								placeholder="Filter by..."
-							/>
+							<Combobox :options="fields" v-model="filter.fieldname" placeholder="Filter by..." />
 						</div>
 						<div id="operator" class="!min-w-[120px] flex-shrink-0">
 							<FormControl
@@ -56,20 +51,20 @@
 					Empty - Choose a field to filter by
 				</div>
 				<div class="flex items-center justify-between gap-2">
-					<Autocomplete
+					<Combobox
 						:modelValue="''"
 						:options="fields"
-						@update:modelValue="(field: DocTypeField) => addFilter(field.value)"
+						@update:modelValue="(value: string) => addFilter(value)"
 						placeholder="Filter by..."
 					>
-						<template #target="{ togglePopover }">
-							<Button class="!text-gray-600" variant="ghost" @click="togglePopover()" label="Add filter">
+						<template #trigger>
+							<Button class="!text-gray-600" variant="ghost" label="Add filter">
 								<template #prefix>
 									<FeatherIcon name="plus" class="h-4" />
 								</template>
 							</Button>
 						</template>
-					</Autocomplete>
+					</Combobox>
 					<Button
 						v-if="filters.length"
 						class="!text-gray-600"
@@ -84,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { Autocomplete, FeatherIcon, FormControl } from "frappe-ui"
+import { Combobox, FeatherIcon, FormControl } from "frappe-ui"
 import { computed, h, ref, watch } from "vue"
 import { Link } from "frappe-ui/frappe"
 

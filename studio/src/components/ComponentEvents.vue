@@ -31,19 +31,12 @@
 			>
 				<template #default>
 					<div class="flex flex-col gap-3">
+						<FormControl type="combobox" :options="eventOptions" label="Event" v-model="newEvent.event" />
 						<FormControl
-							type="autocomplete"
-							:options="eventOptions"
-							label="Event"
-							:modelValue="newEvent.event"
-							@update:modelValue="(val: SelectOption) => (newEvent.event = val.value)"
-						/>
-						<FormControl
-							type="autocomplete"
+							type="combobox"
 							:options="Object.keys(actions)"
 							label="Action"
-							:modelValue="newEvent.action"
-							@update:modelValue="(val: SelectOption) => (newEvent.action = val.value as Actions)"
+							v-model="newEvent.action"
 						/>
 						<component
 							v-for="control in actionControls"

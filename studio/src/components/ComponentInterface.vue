@@ -4,15 +4,15 @@
 			<!-- inputs -->
 			<SectionContainer title="Inputs">
 				<template #actions>
-					<Autocomplete
+					<Combobox
 						:options="fieldTypeOptions"
-						@update:modelValue="(option: SelectOption) => showAddInputPopover(option.value)"
+						@update:modelValue="(value: string) => showAddInputPopover(value)"
 						class="!w-auto"
 					>
-						<template #target="{ togglePopover }">
-							<Button @click="togglePopover" size="sm" variant="ghost" icon="lucide-plus" />
+						<template #trigger>
+							<Button size="sm" variant="ghost" icon="lucide-plus" />
 						</template>
-					</Autocomplete>
+					</Combobox>
 				</template>
 
 				<div class="flex flex-col gap-1" v-if="componentInputs.length > 0">
@@ -147,7 +147,7 @@
 
 <script setup lang="ts">
 import { ref, markRaw, computed } from "vue"
-import { Autocomplete, Popover, FormControl } from "frappe-ui"
+import { Combobox, Popover, FormControl } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import type { SelectOption } from "@/types"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"

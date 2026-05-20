@@ -14,10 +14,9 @@
 					)}`"
 				>
 					<FormControl
-						type="autocomplete"
+						type="combobox"
 						placeholder="Select App"
-						:modelValue="targetApp"
-						@update:modelValue="(v: SelectOption) => (targetApp = v.value || '')"
+						v-model="targetApp"
 						:options="targetAppOptions"
 					/>
 				</SettingItem>
