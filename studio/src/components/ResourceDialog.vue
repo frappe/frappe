@@ -60,17 +60,24 @@
 					<FormControl
 						label="Fields"
 						:required="true"
-						type="autocomplete"
+						type="multiselect"
 						:placeholder="`Select fields from ${newResource.document_type}`"
 						v-model="newResource.fields"
 						:options="doctypeFields.data"
 						:multiple="true"
-					/>
+					>
+						<template #summary="{ selectedOptions, summary }">
+							<template v-if="selectedOptions.length">
+								{{ selectedOptions.map((o: SelectOption) => o.label).join(", ") }}
+							</template>
+							<template v-else>{{ summary }}</template>
+						</template>
+					</FormControl>
 					<Filters label="Filters" v-model="newResource.filters" :docfields="filterFields" />
 					<div class="flex w-full flex-row gap-2">
 						<FormControl
 							label="Sort Field"
-							type="autocomplete"
+							type="combobox"
 							placeholder="Select sort field"
 							:modelValue="newResource.sort_field"
 							@update:modelValue="

@@ -59,16 +59,14 @@
 									:required="true"
 								/>
 								<FormControl
-									type="autocomplete"
+									type="combobox"
 									label="Type"
 									:options="fieldTypeOptions"
-									:modelValue="
-										editingInput ? fieldTypeOptions.find((opt) => opt.value === editingInput!.type) : null
-									"
+									:modelValue="editingInput ? editingInput.type : null"
 									@update:modelValue="
-										(option: SelectOption) => {
+										(val: string) => {
 											if (editingInput) {
-												editingInput.type = option.value
+												editingInput.type = val
 												setInputControl()
 											}
 										}
@@ -81,8 +79,8 @@
 											class="mr-1 h-3 w-3 text-gray-500"
 										/>
 									</template>
-									<template #item-prefix="{ option }">
-										<FeatherIcon :name="getFieldTypeIcon(option.value)" class="h-3 w-3 text-gray-500" />
+									<template #item-prefix="{ item }">
+										<FeatherIcon :name="getFieldTypeIcon(item.value)" class="h-3 w-3 text-gray-500" />
 									</template>
 								</FormControl>
 								<FormControl
