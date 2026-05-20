@@ -478,7 +478,6 @@ if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
 		auto_enabling_integrations=False,
 		default_integrations=False,
 		integrations=integrations,
-		include_local_variables=False,
 		_experiments=experiments,
 		**kwargs,
 	)

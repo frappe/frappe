@@ -788,7 +788,6 @@ def _start_sentry():
 		auto_enabling_integrations=False,
 		default_integrations=False,
 		integrations=integrations,
-		include_local_variables=False,
 		_experiments=experiments,
 		**kwargs,
 	)
