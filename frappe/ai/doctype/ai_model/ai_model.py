@@ -103,13 +103,9 @@ class AIModel(Document):
 				title=_("Missing Dependency"),
 			)
 
-		api_key = self.get_password("api_key")
-		if not api_key:
-			frappe.throw(_("API Key is not set."), title=_("Missing API Key"))
-
 		kwargs = {
 			"model": self.model_id,
-			"api_key": api_key,
+			"api_key": self.get_password("api_key", raise_exception=False) or "",
 			"messages": [{"role": "user", "content": "ping"}],
 			"max_tokens": 1,
 			"timeout": 15,

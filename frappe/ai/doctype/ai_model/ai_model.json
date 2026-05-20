@@ -45,11 +45,10 @@
    "reqd": 1
   },
   {
-   "description": "API key for the provider named in the Model ID (Anthropic, OpenAI, etc.)",
+   "description": "API key for the provider named in the Model ID. Leave empty for local servers (Ollama, LM Studio) that don't require authentication.",
    "fieldname": "api_key",
    "fieldtype": "Password",
-   "label": "API Key",
-   "reqd": 1
+   "label": "API Key"
   },
   {
    "description": "Optional. Override the provider's default endpoint, e.g. for a self-hosted Ollama (<code>http://localhost:11434</code>) or a proxy.",
