@@ -3,12 +3,8 @@
 
 import frappe
 from frappe.desk.form.linked_with import get_linked_docs, get_linked_doctypes
-<<<<<<< HEAD
-from frappe.tests.utils import FrappeTestCase
-=======
 from frappe.desk.form.utils import _sort_field_fallback, get_next
-from frappe.tests import IntegrationTestCase
->>>>>>> 73e5a9cd14 (test: cover null sort field handling in get_next)
+from frappe.tests.utils import FrappeTestCase
 
 
 class TestForm(FrappeTestCase):
