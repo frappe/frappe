@@ -166,7 +166,7 @@ def enqueue_webhook(doc, webhook) -> None:
 			r = requests.request(
 				method=webhook.request_method,
 				url=request_url,
-				data=json.dumps(data, default=str),
+				data=frappe.as_json(data),
 				headers=headers,
 				timeout=webhook.timeout or 5,
 			)
@@ -225,7 +225,7 @@ def get_webhook_headers(doc, webhook, data=None):
 		signature = base64.b64encode(
 			hmac.new(
 				webhook.get_password("webhook_secret").encode("utf8"),
-				json.dumps(data, default=str).encode("utf8"),
+				frappe.as_json(data).encode("utf8"),
 				hashlib.sha256,
 			).digest()
 		)
