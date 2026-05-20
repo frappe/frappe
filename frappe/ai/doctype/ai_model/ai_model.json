@@ -2,9 +2,8 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:title",
- "creation": "2026-05-20 00:00:00.000000",
+ "creation": "2026-05-20 00:00:00",
  "doctype": "DocType",
- "editable_grid": 0,
  "engine": "InnoDB",
  "field_order": [
   "title",
@@ -29,7 +28,6 @@
    "default": "1",
    "fieldname": "enabled",
    "fieldtype": "Check",
-   "in_list_view": 1,
    "label": "Enabled"
   },
   {
@@ -69,9 +67,8 @@
    "label": "Params"
   }
  ],
- "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-05-20 00:00:00.000000",
+ "modified": "2026-05-20 18:49:51.182512",
  "modified_by": "Administrator",
  "module": "AI",
  "name": "AI Model",

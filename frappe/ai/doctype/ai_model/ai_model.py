@@ -25,7 +25,7 @@ class AIModel(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		api_key: DF.Password
+		api_key: DF.Password | None
 		base_url: DF.Data | None
 		enabled: DF.Check
 		model_id: DF.Data
