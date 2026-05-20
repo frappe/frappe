@@ -468,8 +468,19 @@ frappe.ui.Sidebar = class Sidebar {
 	is_route_in_sidebar() {
 		let match = false;
 		const that = this;
+		let exact_match = null;
+		let path_match = null;
+
+		const route_params = Object.assign(
+			{},
+			Object.fromEntries(new URLSearchParams(window.location.search)),
+			frappe.route_options || {}
+		);
+
 		$(".item-anchor").each(function () {
-			let href = decodeURIComponent($(this).attr("href")?.split("?")[0].split("#")[0]);
+			const raw = $(this).attr("href") || "";
+			const [href_path, href_query] = raw.split("?");
+			const href = decodeURIComponent(href_path.split("#")[0]);
 
 			const path = decodeURIComponent(window.location.pathname);
 
@@ -478,13 +489,25 @@ frappe.ui.Sidebar = class Sidebar {
 			const clean_path = path.replace(/\/$/, "");
 
 			const isActive = clean_path === clean_href || clean_path.startsWith(clean_href + "/");
+			if (!href || !isActive) return;
 
-			if (href && isActive) {
-				match = true;
-				if (that.active_item) that.active_item.removeClass("active-sidebar");
-				that.active_item = $(this).parent();
+			if (href_query) {
+				let filter_match = true;
+				new URLSearchParams(href_query).forEach((value, key) => {
+					if (String(route_params[key]) !== String(value)) filter_match = false;
+				});
+				if (filter_match) exact_match = $(this).parent();
+			} else {
+				path_match = $(this).parent();
 			}
 		});
+
+		const best = exact_match || path_match;
+		if (best) {
+			match = true;
+			if (that.active_item) that.active_item.removeClass("active-sidebar");
+			that.active_item = best;
+		}
 		return match;
 	}
 
