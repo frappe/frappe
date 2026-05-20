@@ -1129,7 +1129,7 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 		allow = False
 
 	if not allow:
-		return 0, _("Cannot create a new user with this email address.")
+		return 0, _("We could not create an account with the provided details.")
 
 	max_signups_allowed_per_hour = cint(frappe.get_system_settings("max_signups_allowed_per_hour") or 300)
 	users_created_past_hour = frappe.db.get_creation_count("User", 60)
