@@ -153,8 +153,8 @@ def enqueue_webhook(doc, webhook) -> None:
 		request_url = webhook.request_url
 		if webhook.is_dynamic_url:
 			request_url = frappe.render_template(webhook.request_url, get_context(doc))
-		headers = get_webhook_headers(doc, webhook)
 		data = get_webhook_data(doc, webhook)
+		headers = get_webhook_headers(doc, webhook, data=data)
 
 	except Exception as e:
 		frappe.logger().debug({"enqueue_webhook_error": e})
@@ -216,15 +216,16 @@ def log_request(
 	request_log.save(ignore_permissions=True)
 
 
-def get_webhook_headers(doc, webhook):
+def get_webhook_headers(doc, webhook, data=None):
 	headers = {}
 
 	if webhook.enable_security:
-		data = get_webhook_data(doc, webhook)
+		if data is None:
+			data = get_webhook_data(doc, webhook)
 		signature = base64.b64encode(
 			hmac.new(
 				webhook.get_password("webhook_secret").encode("utf8"),
-				json.dumps(data).encode("utf8"),
+				json.dumps(data, default=str).encode("utf8"),
 				hashlib.sha256,
 			).digest()
 		)
