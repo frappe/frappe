@@ -72,6 +72,9 @@ frappe.defaults = {
 		if (!$.isArray(d)) d = [d];
 		return d;
 	},
+	is_enabled: function (key) {
+		return cint(this.get_user_default(key)) === 1;
+	},
 	set_user_default_local: function (key, value) {
 		frappe.boot.user.defaults[key] = value;
 	},
