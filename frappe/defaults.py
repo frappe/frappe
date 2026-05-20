@@ -259,8 +259,11 @@ def get_defaults_for(parent="__default"):
 					pass
 
 			if d.defkey in defaults:
+				if defaults[d.defkey] == d.defvalue:
+					continue
+
 				# listify
-				if not isinstance(defaults[d.defkey], list) and defaults[d.defkey] != d.defvalue:
+				if not isinstance(defaults[d.defkey], list):
 					defaults[d.defkey] = [defaults[d.defkey]]
 
 				if d.defvalue not in defaults[d.defkey]:
