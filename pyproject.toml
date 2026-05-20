@@ -212,6 +212,9 @@ nixpkgs-deps = [
     "python312",
 ]
 
+[tool.uv]
+exclude-newer = "7 days"
+
 [tool.mypy]
 strict = false
 pretty = true
