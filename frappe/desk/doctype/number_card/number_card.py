@@ -221,7 +221,7 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 		filters=filters,
 	)
 
-	allowed_modules = [module.get("module_name") for module in get_modules_from_all_apps_for_user()]
+	allowed_modules = {module.get("module_name") for module in get_modules_from_all_apps_for_user()}
 
 	return (
 		condition_query.select(numberCard.name, numberCard.label, numberCard.document_type)
