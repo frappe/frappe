@@ -291,8 +291,13 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 
 	if data:
 		return {
+<<<<<<< HEAD
 			"labels": [item.get("name", "Not Specified") for item in data],
 			"datasets": [{"name": chart.name, "values": [item["count"] for item in data]}],
+=======
+			"labels": [_(item.get("name", "Not Specified")) for item in data],
+			"datasets": [{"name": _(chart.name), "values": [item["count"] for item in data]}],
+>>>>>>> a79776edc7 (fix: translate group-by dashboard chart labels)
 		}
 	return None
 
