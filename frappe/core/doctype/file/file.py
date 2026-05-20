@@ -32,11 +32,7 @@ from .exceptions import (
 from .utils import *
 
 exclude_from_linked_with = True
-ImageFile.LOAD_TRUNCATED_IMAGES = True
-
 ImageFile.LOAD_TRUNCATED_IMAGES = True  # nosemgrep
-
-
 URL_PREFIXES = ("http://", "https://", "/api/method/")
 
 
@@ -878,7 +874,6 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 	if user == "Administrator":
 		return True
-
 	if ptype == "create":
 		return frappe.has_permission("File", "create", user=user, debug=debug)
 
