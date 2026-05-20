@@ -182,12 +182,11 @@ def enqueue_webhook(doc, webhook) -> None:
 		except Exception as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
 			log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data, r)
-			sleep(3 * i + 1)
-			if i != 2:
+			if i < 2:
+				sleep(3 * i + 1)
 				continue
-			else:
-				if webhook.webhook_docevent == "workflow_transition":
-					raise e
+			if webhook.webhook_docevent == "workflow_transition":
+				raise e
 
 
 def log_request(
