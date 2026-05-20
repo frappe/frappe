@@ -107,7 +107,7 @@ def include_script(path, preload=True):
 
 		frappe.local.preload_assets["script"].append(path)
 
-	return f'<script type="text/javascript" src="{path}"></script>'
+	return f'<script type="text/javascript" src="{path}" defer></script>'
 
 
 def include_icons(path, preload=True):
