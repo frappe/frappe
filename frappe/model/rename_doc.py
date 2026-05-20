@@ -86,7 +86,16 @@ def update_document_title(
 				save_point=True,
 			)
 
-			doc.queue_action("rename", name=transformed_name, merge=merge, queue=queue, timeout=36000)
+			# validate_rename above already ran before_rename + validations;
+			# skip them in the background job to avoid double-execution.
+			doc.queue_action(
+				"rename",
+				name=transformed_name,
+				merge=merge,
+				validate_rename=False,
+				queue=queue,
+				timeout=36000,
+			)
 		else:
 			doc.rename(updated_name, merge=merge)
 
