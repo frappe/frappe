@@ -827,7 +827,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					this.render_summary(data.report_summary);
 				}
 
-				if (data.message && !data.prepared_report) this.show_status(data.message);
+				if (data.message && !data.prepared_report) this.show_report_message(data.message);
 
 				this.toggle_message(false);
 				if (data.result && data.result.length) {
@@ -2240,7 +2240,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$status = $(`<div class="form-message text-muted small"></div>`)
 			.hide()
 			.insertAfter(page_form);
-
+		this.$report_message = $(`<div class="form-message text-muted small"></div>`)
+			.hide()
+			.insertAfter(this.$status);
 		this.$summary = $(`<div class="report-summary"></div>`).hide().appendTo(this.page.main);
 
 		this.$chart = $('<div class="chart-wrapper">').hide().appendTo(this.page.main);
@@ -2253,7 +2255,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	show_status(status_message) {
 		this.$status.html(status_message).show();
 	}
-
+	show_report_message(message) {
+		this.$report_message.html(message).show();
+	}
 	hide_status() {
 		this.$status.hide();
 	}
@@ -2376,6 +2380,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$report.toggle(flag);
 		this.$chart.toggle(flag);
 		this.$summary.toggle(flag);
+		this.$report_message.toggle(flag);
 	}
 
 	toggle_print_buttons(show) {
