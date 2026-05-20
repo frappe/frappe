@@ -22,6 +22,42 @@ class TestDefaults(IntegrationTestCase):
 		self.assertEqual(get_defaults()["key1"], ["value2", "value3"])
 		self.assertEqual(get_user_default_as_list("key1"), ["value2", "value3"])
 
+	def test_integer_default_values(self):
+		test_values = {
+			"test_int_default_zero": ("0", 0, int),
+			"test_int_default_one": ("1", 1, int),
+			"test_int_default_negative": ("-1", -1, int),
+			"test_int_default_time": ("06:00", "06:00", str),
+			"test_int_default_decimal": ("1.0", "1.0", str),
+			"test_int_default_leading_zero": ("001", "001", str),
+		}
+
+		for key, (value, _expected_value, _expected_type) in test_values.items():
+			clear_default(key, parent="__default")
+			set_global_default(key, value)
+
+		try:
+			defaults = get_defaults_for()
+
+			for key, (_value, expected_value, expected_type) in test_values.items():
+				self.assertEqual(defaults[key], expected_value)
+				self.assertIs(type(defaults[key]), expected_type)
+		finally:
+			for key in test_values:
+				clear_default(key, parent="__default")
+
+	def test_duplicate_integer_default_value(self):
+		key = "test_duplicate_integer_default"
+		clear_default(key, parent="__default")
+
+		try:
+			add_global_default(key, "1")
+			add_global_default(key, "1")
+
+			self.assertEqual(get_defaults_for()[key], 1)
+		finally:
+			clear_default(key, parent="__default")
+
 	def test_user(self):
 		set_user_default("key1", "2value1")
 		self.assertEqual(get_user_default_as_list("key1"), ["2value1"])
