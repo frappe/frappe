@@ -22,6 +22,13 @@ frappe.ui.keys.setup = function () {
 
 let standard_shortcuts = [];
 frappe.ui.keys.standard_shortcuts = standard_shortcuts;
+frappe.ui.keys.get_shortcut_label = function (shortcut) {
+	let label = shortcut.split("+").map(frappe.utils.to_title_case).join("+");
+	if (frappe.utils.is_mac()) {
+		label = label.replace("Ctrl", "⌘").replace("Alt", "⌥");
+	}
+	return label.replace("Shift", "⇧");
+};
 frappe.ui.keys.add_shortcut = ({
 	shortcut,
 	action,
@@ -107,11 +114,7 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 			.map((shortcut) => {
 				let shortcut_label = shortcut.keys
 					.map((k) => {
-						let label = k.split("+").map(frappe.utils.to_title_case).join("+");
-						if (frappe.utils.is_mac()) {
-							label = label.replace("Ctrl", "⌘").replace("Alt", "⌥");
-						}
-						label = label.replace("Shift", "⇧");
+						let label = frappe.ui.keys.get_shortcut_label(k);
 						return `<kbd>${label}</kbd>`;
 					})
 					.join(" / ");
