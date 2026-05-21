@@ -32,7 +32,7 @@
 	<div class="flex justify-between overflow-hidden">
 		<div class="ellipsis">
 			{% let title = frm.get_title(); %}
-			<div class="form-details flex justify-between form-title-text"  data-copy="{{title}}">
+			<div class="form-details flex justify-between form-title-text"  data-copy="{%= frappe.utils.escape_html(frappe.utils.html2text(title)) %}">
 				<span class="bold ellipsis mr-3 text-medium">{%= frappe.utils.escape_html(frappe.utils.html2text(title)) %}</span>
 			</div>
 			{% if frm.meta.beta %}
@@ -41,8 +41,8 @@
 			</div>
 			{% endif %}
 			{% if (title && title !== frm.doc.name) { %}
-			<div class="form-name-container mt-1 flex justify-between form-name-copy" data-copy="{{frm.doc.name}}" title="{{frm.doc.name}}" >
-				<span class="ellipsis mr-3">{%= frm.doc.name %}</span>
+			<div class="form-name-container mt-1 flex justify-between form-name-copy" data-copy="{%= frappe.utils.escape_html(frappe.utils.html2text(frm.doc.name)) %}" title="{%= frappe.utils.escape_html(frappe.utils.html2text(frm.doc.name)) %}" >
+				<span class="ellipsis mr-3">{%= frappe.utils.escape_html(frappe.utils.html2text(frm.doc.name)) %}</span>
 			</div>
 			{% } %}
 		</div>
