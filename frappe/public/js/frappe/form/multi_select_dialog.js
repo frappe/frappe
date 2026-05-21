@@ -562,7 +562,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		if ($.isArray(this.setters)) {
 			for (let df of this.setters) {
 				filters[df.fieldname] =
-					me.dialog.fields_dict[df.fieldname].get_value() || undefined;
+					me.dialog.fields_dict[df.fieldname].get_value() || df.default || undefined;
 				me.args[df.fieldname] = filters[df.fieldname];
 				filter_fields.push(df.fieldname);
 			}
