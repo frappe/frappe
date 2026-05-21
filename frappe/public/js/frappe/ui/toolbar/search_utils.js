@@ -241,17 +241,15 @@ frappe.search.utils = {
 						0.05
 					);
 					let sidebars = frappe.app.sidebar.get_workspace_sidebars(item);
-					if (sidebars.length > 1) {
-						sidebars.forEach((sidebar) => {
-							let sidebar_option = option(
-								isTree ? "Tree" : "List",
-								isTree ? ["Tree", item] : ["List", item],
-								0.05
-							);
-							sidebar_option.description = `${sidebar}`;
-							sidebar_option.type = "sidebar";
-							out.push(sidebar_option);
-						});
+					if (sidebars.length === 1) {
+						let sidebar_option = option(
+							isTree ? "Tree" : "List",
+							isTree ? ["Tree", item] : ["List", item],
+							0.05
+						);
+						sidebar_option.description = sidebars[0];
+						sidebar_option.type = "sidebar";
+						out.push(sidebar_option);
 					} else {
 						out.push(option_data);
 					}
