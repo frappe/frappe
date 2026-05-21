@@ -91,7 +91,7 @@ dependencies = [
     "pycountry~=24.6.1",
     "websockets~=15.0.1",
     # ai dependencies
-    "litellm>=1.85.0,<2",
+    "litellm>=1.83.0,<2",
 ]
 
 [project.urls]
