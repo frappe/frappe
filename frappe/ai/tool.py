@@ -30,9 +30,7 @@ class Tool:
 	func: Callable[..., Any]
 
 	def __post_init__(self) -> None:
-		self._validated = validate_call(
-			config=ConfigDict(arbitrary_types_allowed=True)
-		)(self.func)
+		self._validated = validate_call(config=ConfigDict(arbitrary_types_allowed=True))(self.func)
 
 	def __call__(self, **kwargs: Any) -> Any:
 		return self._validated(**kwargs)

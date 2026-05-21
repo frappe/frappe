@@ -171,9 +171,7 @@ class TestAgentToolLoop(UnitTestCase):
 			"""Add."""
 			return a + b
 
-		model = FakeModel(
-			[_tool_call("add", {"a": "not a number", "b": 3}), _final("recovered")]
-		)
+		model = FakeModel([_tool_call("add", {"a": "not a number", "b": 3}), _final("recovered")])
 		agent = Agent(model=model, tools=[add])
 
 		result = agent.run("hi")

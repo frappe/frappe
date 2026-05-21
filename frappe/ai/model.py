@@ -99,9 +99,7 @@ def _normalize(response: Any) -> ChatResponse:
 			raise ValueError(f"Tool call {name!r} returned invalid JSON arguments") from e
 		if not isinstance(arguments, dict):
 			raise ValueError(f"Tool call {name!r} arguments must be a JSON object")
-		tool_calls.append(
-			ToolCall(id=_attr(raw_call, "id", ""), name=name, arguments=arguments)
-		)
+		tool_calls.append(ToolCall(id=_attr(raw_call, "id", ""), name=name, arguments=arguments))
 
 	usage_obj = getattr(response, "usage", None)
 	usage = {
