@@ -4,16 +4,8 @@ frappe.ui.Notifications = class Notifications {
 	constructor(opts) {
 		this.tabs = {};
 		this.notification_settings = frappe.boot.notification_settings;
-<<<<<<< HEAD
 		this.full_height = opts?.full_height || true;
-		this.full_height = opts?.full_height || false;
-=======
-		if (!opts?.full_height) {
-			this.full_height = true;
-		}
-		this.full_height = opts?.full_height;
 
->>>>>>> ea3b6a04a3 (fix: close notifications correctly)
 		this.wrapper = opts?.wrapper || $(".standard-items-sections");
 		this.make();
 	}
