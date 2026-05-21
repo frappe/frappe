@@ -1,6 +1,36 @@
 // Copyright (c) 2019, Frappe Technologies and contributors
 // For license information, please see license.txt
 
+/**
+ * Deduplicate Data Import warnings before rendering in the form UI.
+ *
+ * @param {Object[]} warnings - Combined ``template_warnings`` and preview warnings from the server
+ * @returns {Object[]} Row warnings (deduped), then one column warning per ``col`` (longer message kept), then others
+ */
+function dedupe_import_warnings(warnings) {
+	const by_col = {};
+	const seen_rows = new Set();
+	const rows = [];
+	const others = [];
+
+	for (const w of warnings) {
+		if (w.row) {
+			const key = `${w.row}|${w.field?.fieldname}|${w.message}`;
+			if (seen_rows.has(key)) continue;
+			seen_rows.add(key);
+			rows.push(w);
+		} else if (w.col) {
+			const prev = by_col[w.col];
+			if (!prev || (w.message || "").length > (prev.message || "").length) {
+				by_col[w.col] = w;
+			}
+		} else {
+			others.push(w);
+		}
+	}
+	return [...rows, ...Object.values(by_col), ...others];
+}
+
 frappe.ui.form.on("Data Import", {
 	setup(frm) {
 		frappe.realtime.on("data_import_refresh", ({ data_import }) => {
@@ -352,9 +382,12 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	show_import_warnings(frm, preview_data) {
-		let columns = preview_data.columns;
-		let warnings = JSON.parse(frm.doc.template_warnings || "[]");
-		warnings = warnings.concat(preview_data.warnings || []);
+		preview_data = preview_data || frm.import_preview?.preview_data;
+		let columns = preview_data?.columns;
+
+		let template_warnings = JSON.parse(frm.doc.template_warnings || "[]");
+		let preview_warnings = preview_data?.warnings || [];
+		let warnings = dedupe_import_warnings(template_warnings.concat(preview_warnings));
 
 		frm.toggle_display("import_warnings_section", warnings.length > 0);
 		if (warnings.length === 0) {
