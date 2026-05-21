@@ -1,26 +1,36 @@
 <template>
-	<Combobox
+	<Autocomplete
 		size="sm"
 		:options="dynamicValueOptions"
 		class="!w-auto"
-		side="left"
-		align="start"
-		@update:modelValue="(value: string) => emit('update:modelValue', value, bindVariable)"
+		placement="left-start"
+		modelValue=""
+		@update:modelValue="(option: VariableOption) => emit('update:modelValue', option.value, bindVariable)"
 	>
-		<template #trigger="{ togglePopover }">
+		<template #target="{ togglePopover }">
 			<IconButton
-				:icon="bindVariable ? Link2 : LucideCirclePlus"
-				:label="bindVariable ? 'Synced with variable. Click to change.' : 'Click to set dynamic value'"
+				v-if="bindVariable"
+				:icon="Link2"
+				label="Synced with variable. Click to change."
 				placement="bottom"
 				class="mr-1"
-				:size="bindVariable ? 'md' : 'sm'"
+				:tabIndex="-1"
+				@click="togglePopover"
+			/>
+			<IconButton
+				v-else
+				:icon="LucideCirclePlus"
+				label="Click to set dynamic value"
+				placement="bottom"
+				class="mr-1"
+				size="sm"
 				:tabIndex="-1"
 				@click="togglePopover"
 			/>
 		</template>
 
-		<template #item-suffix="{ item }">
-			<span class="text-ink-gray-4">{{ item.datatype?.toLowerCase() }}</span>
+		<template #item-suffix="{ option }">
+			<span class="text-ink-gray-4">{{ option.type?.toLowerCase() }}</span>
 		</template>
 		<template #footer v-if="dynamicValueOptions.length > 0">
 			<div class="flex items-center gap-1 p-2" @mousedown.prevent>
@@ -30,12 +40,12 @@
 				<Switch v-model="bindVariable" label="Sync with variable" class="w-full hover:bg-transparent" />
 			</div>
 		</template>
-	</Combobox>
+	</Autocomplete>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { Combobox, Switch, Tooltip } from "frappe-ui"
+import { Autocomplete, Switch, Tooltip } from "frappe-ui"
 import IconButton from "@/components/IconButton.vue"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
@@ -77,12 +87,12 @@ const dynamicValueOptions = computed(() => {
 				componentContext.push({
 					value: `inputs.${input.input_name}`,
 					label: `inputs.${input.input_name}`,
-					datatype: input.type as string,
+					type: input.type,
 				})
 			})
 			groups.push({
 				group: "Component Inputs",
-				options: componentContext,
+				items: componentContext,
 			})
 		}
 	} else {
@@ -90,7 +100,7 @@ const dynamicValueOptions = computed(() => {
 		if (store.variableOptions.length > 0) {
 			groups.push({
 				group: "Variables",
-				options: store.variableOptions,
+				items: store.variableOptions,
 			})
 		}
 		// Data Sources group
@@ -102,13 +112,13 @@ const dynamicValueOptions = computed(() => {
 			return {
 				value: completion,
 				label: resourceName,
-				datatype: "array",
+				type: "array",
 			}
 		})
 		if (dataSourceOptions.length > 0) {
 			groups.push({
 				group: "Data Sources",
-				options: dataSourceOptions,
+				items: dataSourceOptions,
 			})
 		}
 	}
@@ -119,11 +129,11 @@ const dynamicValueOptions = computed(() => {
 		const repeaterOptions = Object.keys(repeaterContext!).map((key) => ({
 			value: `dataItem.${key}`,
 			label: `dataItem.${key}`,
-			datatype: typeof repeaterContext![key],
+			type: typeof repeaterContext![key],
 		}))
 		groups.push({
 			group: "Repeater",
-			options: repeaterOptions,
+			items: repeaterOptions,
 		})
 	}
 

@@ -7,4 +7,4 @@ export type Variable = {
 	initial_value: string | number | boolean | null | object
 }
 
-export type VariableOption = SelectOption & { datatype: string }
+export type VariableOption = SelectOption & { type: string }

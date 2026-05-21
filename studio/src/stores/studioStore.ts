@@ -438,7 +438,7 @@ const useStudioStore = defineStore("store", () => {
 				options.push({
 					value: currentPath,
 					label: currentPath,
-					datatype: variableType
+					type: variableType
 				})
 
 				if (typeof obj[key] === "object" && obj[key] !== null) {
