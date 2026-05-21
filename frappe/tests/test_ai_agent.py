@@ -306,3 +306,85 @@ class TestAgentLimits(UnitTestCase):
 
 		with self.assertRaises(ValueError):
 			Agent(model=FakeModel([]), tools=[a, b])
+
+
+class TestAgentPausesForUserInput(UnitTestCase):
+	def test_pausing_tool_halts_loop_after_execution(self):
+		@tool(pauses_for_user_input=True)
+		def ask_user(question: str) -> str:
+			"""Ask the user."""
+			return "[awaiting answer]"
+
+		model = FakeModel([_tool_call("ask_user", {"question": "Approve?"})])
+		agent = Agent(model=model, tools=[ask_user])
+
+		result = agent.run("hi")
+
+		self.assertTrue(result.paused)
+		self.assertEqual(result.iterations, 1)
+		self.assertEqual(len(model.calls), 1)
+		self.assertEqual(result.tool_calls[0].name, "ask_user")
+		tool_msg = next(m for m in result.messages if m["role"] == "tool")
+		self.assertEqual(tool_msg["content"], "[awaiting answer]")
+
+	def test_non_pausing_tools_still_loop(self):
+		@tool
+		def ping() -> str:
+			"""Ping."""
+			return "pong"
+
+		model = FakeModel([_tool_call("ping", {}), _final("done")])
+		agent = Agent(model=model, tools=[ping])
+
+		result = agent.run("hi")
+
+		self.assertFalse(result.paused)
+		self.assertEqual(result.iterations, 2)
+
+	def test_resume_works_when_history_includes_paused_run(self):
+		@tool(pauses_for_user_input=True)
+		def ask_user(question: str) -> str:
+			"""Ask the user."""
+			return "[awaiting answer]"
+
+		first_model = FakeModel([_tool_call("ask_user", {"question": "Approve?"})])
+		agent = Agent(model=first_model, tools=[ask_user])
+		first = agent.run("start")
+
+		resumed_history = first.messages + [{"role": "user", "content": "yes"}]
+		second_model = FakeModel([_final("got it")])
+		agent.model = second_model
+
+		result = agent.run(resumed_history)
+
+		self.assertFalse(result.paused)
+		self.assertEqual(result.output, "got it")
+
+	def test_subsequent_tool_calls_in_same_response_are_skipped(self):
+		@tool(pauses_for_user_input=True)
+		def ask_user(question: str) -> str:
+			"""Ask the user."""
+			return "[awaiting answer]"
+
+		@tool
+		def side_effect() -> str:
+			"""Should not run."""
+			raise AssertionError("side_effect should not have been called")
+
+		response = ChatResponse(
+			content=None,
+			tool_calls=[
+				ToolCall(id="c1", name="ask_user", arguments={"question": "ok?"}),
+				ToolCall(id="c2", name="side_effect", arguments={}),
+			],
+		)
+		model = FakeModel([response])
+		agent = Agent(model=model, tools=[ask_user, side_effect])
+
+		result = agent.run("hi")
+
+		self.assertTrue(result.paused)
+		self.assertEqual([c.name for c in result.tool_calls], ["ask_user"])
+		tool_msgs = [m for m in result.messages if m["role"] == "tool"]
+		self.assertEqual(tool_msgs[1]["tool_call_id"], "c2")
+		self.assertIn("paused", tool_msgs[1]["content"])

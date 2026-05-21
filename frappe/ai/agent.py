@@ -13,6 +13,7 @@ from frappe.ai.tool import Tool
 DEFAULT_MAX_ITERATIONS = 10
 ERROR_MESSAGE_LIMIT = 500
 VALID_ROLES = frozenset({"system", "user", "assistant", "tool"})
+SKIPPED_TOOL_PLACEHOLDER = "[skipped: agent paused for user input]"
 
 
 @dataclass
@@ -22,6 +23,7 @@ class RunResult:
 	tool_calls: list[ToolCall] = field(default_factory=list)
 	iterations: int = 0
 	usage: dict[str, int] = field(default_factory=dict)
+	paused: bool = False
 
 
 class Agent:
@@ -69,7 +71,18 @@ class Agent:
 					usage=usage_total,
 				)
 
+			paused = False
 			for call in response.tool_calls:
+				if paused:
+					messages.append(
+						{
+							"role": "tool",
+							"tool_call_id": call.id,
+							"content": SKIPPED_TOOL_PLACEHOLDER,
+						}
+					)
+					continue
+
 				executed_calls.append(call)
 				messages.append(
 					{
@@ -77,6 +90,20 @@ class Agent:
 						"tool_call_id": call.id,
 						"content": self._execute_tool(call),
 					}
+				)
+
+				tool = self._tools_by_name.get(call.name)
+				if tool is not None and tool.pauses_for_user_input:
+					paused = True
+
+			if paused:
+				return RunResult(
+					output=response.content,
+					messages=messages,
+					tool_calls=executed_calls,
+					iterations=iteration,
+					usage=usage_total,
+					paused=True,
 				)
 
 		raise RuntimeError(
