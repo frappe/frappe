@@ -33,7 +33,7 @@
 			<span class="text-ink-gray-4">{{ option.type?.toLowerCase() }}</span>
 		</template>
 		<template #footer v-if="dynamicValueOptions.length > 0">
-			<div class="flex items-center gap-1 p-2" @mousedown.prevent>
+			<div class="flex items-center gap-1 px-2" @mousedown.prevent>
 				<Tooltip text="Changing the selected variable value will change the prop value and vice versa">
 					<FeatherIcon name="info" class="size-3 text-ink-gray-5" />
 				</Tooltip>
