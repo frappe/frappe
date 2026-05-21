@@ -1,9 +1,22 @@
-import resolveConfig from "tailwindcss/resolveConfig"
-import tailwindConfig from "../../tailwind.config.js"
+import defaultTheme from "tailwindcss/defaultTheme"
 import { computed } from "vue"
 import { objToArray } from "@/utils/helpers.js"
+import { generateSemanticColors, borderRadius, boxShadow, fontSize } from "frappe-ui/tailwind/tokens.js"
 
-const designTokens = resolveConfig(tailwindConfig).theme
+const semanticColors = generateSemanticColors()
+
+const designTokens = {
+	backgroundColor: semanticColors.surface,
+	borderColor: semanticColors.outline,
+	textColor: semanticColors.ink,
+	boxShadow: boxShadow,
+	borderRadius: borderRadius,
+	fontSize: fontSize,
+	fontWeight: defaultTheme.fontWeight,
+	lineHeight: defaultTheme.lineHeight,
+	letterSpacing: defaultTheme.letterSpacing,
+}
+
 const tokens = computed(() => {
 	const fontSizes = Object.keys(designTokens?.fontSize || {}).map((key) => {
 		if (!key) return
@@ -14,9 +27,9 @@ const tokens = computed(() => {
 	})
 
 	return {
-		backgroundColor: objToArray(designTokens?.backgroundColor?.surface as Record<string, string> | undefined),
-		borderColor: objToArray(designTokens?.borderColor?.outline as Record<string, string> | undefined),
-		textColor: objToArray(designTokens?.textColor?.ink as Record<string, string> | undefined),
+		backgroundColor: objToArray(designTokens?.backgroundColor as Record<string, string> | undefined),
+		borderColor: objToArray(designTokens?.borderColor as Record<string, string> | undefined),
+		textColor: objToArray(designTokens?.textColor as Record<string, string> | undefined),
 		boxShadow: objToArray(designTokens?.boxShadow),
 		borderRadius: objToArray(designTokens?.borderRadius),
 		fontSize: fontSizes,
