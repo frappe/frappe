@@ -18,7 +18,9 @@ import json
 import os
 from pathlib import Path
 
-DEFAULT_THRESHOLD = 0.01
+# WARNING: DO NOT MODIFY THIS!
+# Analyze the default bundle and optimize something instead: https://esbuild.github.io/analyze/
+DEFAULT_THRESHOLD = 10.0 # KB
 THRESHOLD_ENV_VAR = "DEFAULT_JS_BUNDLE_SIZE_THRESHOLD"
 
 
@@ -65,13 +67,13 @@ def format_size(size: float) -> str:
 def compare_bundle_sizes(base: dict, current: dict, threshold: float) -> bool:
 	base_size = base["total_bytes"]
 	current_size = current["total_bytes"]
-	allowed_size = base_size * (1 + threshold)
+	allowed_size = base_size + (threshold * 1024)
 	increase = current_size - base_size
 	increase_percentage = (increase / base_size) if base_size else 0
 
 	print(f"Base default JS bundle size: {format_size(base_size)}")
 	print(f"Current default JS bundle size: {format_size(current_size)}")
-	print(f"Allowed default JS bundle size: {format_size(allowed_size)} ({threshold:.2%} over base)")
+	print(f"Allowed default JS bundle size: {format_size(allowed_size)} ({threshold} KBs more than base)")
 	print(f"Size change: {format_size(increase)} ({increase_percentage:.2%})")
 
 	if current_size <= allowed_size:
