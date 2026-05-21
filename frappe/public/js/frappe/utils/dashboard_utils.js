@@ -207,29 +207,42 @@ frappe.dashboard_utils = {
 			? JSON.parse(doc.dynamic_filters_json)
 			: null;
 
-		if (!dynamic_filters || !Object.keys(dynamic_filters).length) {
+		const has_dynamic_filters = Array.isArray(dynamic_filters)
+			? dynamic_filters.length
+			: dynamic_filters && Object.keys(dynamic_filters).length;
+
+		if (!has_dynamic_filters) {
 			return filters;
 		}
 
-		if (Array.isArray(dynamic_filters)) {
-			dynamic_filters.forEach((f) => {
+		if (!Array.isArray(dynamic_filters)) {
+			Object.keys(dynamic_filters).forEach((key) => {
 				try {
-					f[3] = eval(f[3]);
-				} catch (e) {
-					frappe.throw(__("Invalid expression set in filter {0} ({1})", [f[1], f[0]]));
-				}
-			});
-			filters = [...filters, ...dynamic_filters];
-		} else {
-			for (let key of Object.keys(dynamic_filters)) {
-				try {
-					const val = eval(dynamic_filters[key]);
-					dynamic_filters[key] = val;
+					dynamic_filters[key] = eval(dynamic_filters[key]);
 				} catch (e) {
 					frappe.throw(__("Invalid expression set in filter {0}", [key]));
 				}
+			});
+
+			return filters ? Object.assign(filters, dynamic_filters) : dynamic_filters;
+		}
+
+		dynamic_filters.forEach((f) => {
+			try {
+				f[3] = eval(f[3]);
+			} catch (e) {
+				frappe.throw(__("Invalid expression set in filter {0} ({1})", [f[1], f[0]]));
 			}
-			Object.assign(filters, dynamic_filters);
+		});
+
+		if (!filters) {
+			filters = dynamic_filters;
+		} else if (Array.isArray(filters)) {
+			filters = [...filters, ...dynamic_filters];
+		} else {
+			dynamic_filters.forEach((f) => {
+				filters[f[1]] = f[3];
+			});
 		}
 
 		return filters;
