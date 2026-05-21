@@ -1038,8 +1038,9 @@ def groupby_metric(iterable: dict[str, list], key: str):
 	"""
 	records = {}
 	for category, items in iterable.items():
-		for item in items:
-			records.setdefault(item[key], {}).setdefault(category, []).append(item)
+		if items:
+			for item in items:
+				records.setdefault(item[key], {}).setdefault(category, []).append(item)
 	return records
 
 
