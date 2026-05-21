@@ -85,6 +85,7 @@
   "delete_background_exported_reports_after",
   "column_break_uqma",
   "allowed_file_extensions",
+  "allowed_doctypes_for_guest_uploads",
   "app_tab",
   "default_app",
   "updates_tab",
@@ -742,12 +743,76 @@
    "fieldtype": "Int",
    "label": "Max signups allowed per hour",
    "non_negative": 1
+<<<<<<< HEAD
+=======
+  },
+  {
+   "default": "Never",
+   "fieldname": "show_external_link_warning",
+   "fieldtype": "Select",
+   "label": "Show External Link Warning",
+   "options": "Never\nAsk\nAlways"
+  },
+  {
+   "fieldname": "column_break_odhl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.enable_two_factor_auth==1 && doc.two_factor_method==\"SMS\"",
+   "description": "OTP placeholder should be defined as <code>{{ otp }}</code> ",
+   "fieldname": "otp_sms_template",
+   "fieldtype": "Small Text",
+   "label": "OTP SMS Template"
+  },
+  {
+   "fieldname": "column_break_bzfr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_product_suggestion",
+   "fieldtype": "Check",
+   "label": "Disable Product Suggestion"
+  },
+  {
+   "fieldname": "column_break_ewhs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "If enabled, only System Managers can upload public files. Other users can't see the checkbox <i>Is Private</i> in the upload dialog.",
+   "fieldname": "only_allow_system_managers_to_upload_public_files",
+   "fieldtype": "Check",
+   "label": "Only allow System Managers to upload public files"
+  },
+  {
+   "fieldname": "column_break_nebx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Adds a clear (\u00d7) button to Link fields, allowing users to quickly remove the selected value.",
+   "fieldname": "allow_clearing_link_fields",
+   "fieldtype": "Check",
+   "label": "Allow Clearing Link Fields"
+  },
+  {
+   "depends_on": "eval:doc.allow_guests_to_upload_files == 1",
+   "description": "Provide a list of allowed Doctypes for file uploads. Each line should contain one allowed Doctype. If unset, uploads to all doctypes are allowed. Example: <br>User<br>Item<br>Quotation",
+   "fieldname": "allowed_doctypes_for_guest_uploads",
+   "fieldtype": "Small Text",
+   "label": "Allowed Doctypes for Guest Uploads"
+>>>>>>> 1883475dee (feat: add whitelist for guest allowed uploads)
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2025-11-04 16:47:54.230874",
+=======
+ "modified": "2026-05-21 10:32:53.594355",
+>>>>>>> 1883475dee (feat: add whitelist for guest allowed uploads)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
