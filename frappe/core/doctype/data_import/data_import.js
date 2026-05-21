@@ -1,24 +1,20 @@
 // Copyright (c) 2019, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-/**
- * Deduplicate Data Import warnings before rendering in the form UI.
- *
- * @param {Object[]} warnings - Combined ``template_warnings`` and preview warnings from the server
- * @returns {Object[]} Row warnings (deduped), then one column warning per ``col`` (longer message kept), then others
- */
+/** Deduplicate template + preview warnings: one per column (longer message wins, often has row numbers). */
 function dedupe_import_warnings(warnings) {
 	const by_col = {};
-	const seen_rows = new Set();
 	const rows = [];
 	const others = [];
+	const seen_rows = new Set();
 
 	for (const w of warnings) {
 		if (w.row) {
 			const key = `${w.row}|${w.field?.fieldname}|${w.message}`;
-			if (seen_rows.has(key)) continue;
-			seen_rows.add(key);
-			rows.push(w);
+			if (!seen_rows.has(key)) {
+				seen_rows.add(key);
+				rows.push(w);
+			}
 		} else if (w.col) {
 			const prev = by_col[w.col];
 			if (!prev || (w.message || "").length > (prev.message || "").length) {
@@ -381,10 +377,12 @@ frappe.ui.form.on("Data Import", {
 		);
 	},
 
+	/** Render import warnings; dedupe when preview and ``template_warnings`` overlap. */
 	show_import_warnings(frm, preview_data) {
 		preview_data = preview_data || frm.import_preview?.preview_data;
 		let columns = preview_data?.columns;
 
+		// template_warnings: saved when Start Import is blocked; preview: from file parse on upload
 		let template_warnings = JSON.parse(frm.doc.template_warnings || "[]");
 		let preview_warnings = preview_data?.warnings || [];
 		let warnings = dedupe_import_warnings(template_warnings.concat(preview_warnings));

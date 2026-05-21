@@ -625,6 +625,31 @@ class ImportFile:
 		return data
 
 
+def get_value_row_map(column_values, value_row_numbers):
+	"""Map each distinct cell value to sorted 1-based sheet row numbers (first-seen order)."""
+	value_rows = {}
+	for value, row_number in zip(column_values, value_row_numbers, strict=False):
+		if value in INVALID_VALUES:
+			continue
+		key = cstr(value)
+		value_rows.setdefault(key, [])
+		if row_number not in value_rows[key]:
+			value_rows[key].append(row_number)
+	for rows in value_rows.values():
+		rows.sort()
+	return value_rows
+
+
+def format_invalid_values_with_rows(value_rows, keys, footer=None):
+	"""HTML lines per invalid value with row numbers; optional footer (e.g. valid Select options)."""
+	lines = [
+		f"{frappe.bold(escape_html(key))} ({_('rows')} {', '.join(map(str, value_rows[key]))})"
+		for key in keys
+	]
+	message = "<br>".join(lines)
+	return f"{message}<br>{footer}" if footer else message
+
+
 class Row:
 	def __init__(self, index, row, doctype, header, import_type):
 		self.index = index
@@ -864,10 +889,15 @@ class Header(Row):
 		self.seen = []
 		self.columns = []
 
+		# 1-based sheet row for each data row (row 1 = header); passed into Column validation
+		value_row_numbers = [self.index + data_idx + 2 for data_idx in range(len(raw_data))]
+
 		for j, header in enumerate(row):
 			column_values = [get_item_at_index(r, j) for r in raw_data]
 			map_to_field = column_to_field_map.get(str(j))
-			column = Column(j, header, self.doctype, column_values, map_to_field, self.seen)
+			column = Column(
+				j, header, self.doctype, column_values, map_to_field, self.seen, value_row_numbers
+			)
 			self.seen.append(header)
 			self.columns.append(column)
 
@@ -899,7 +929,9 @@ class Header(Row):
 
 
 class Column:
-	def __init__(self, index, header, doctype, column_values, map_to_field=None, seen=None):
+	def __init__(
+		self, index, header, doctype, column_values, map_to_field=None, seen=None, value_row_numbers=None
+	):
 		if seen is None:
 			seen = []
 		self.index = index
@@ -907,6 +939,7 @@ class Column:
 		self.doctype = doctype
 		self.header_title = header
 		self.column_values = column_values
+		self.value_row_numbers = value_row_numbers or list(range(2, len(column_values) + 2))
 		self.map_to_field = map_to_field
 		self.seen = seen
 
@@ -1032,6 +1065,7 @@ class Column:
 		return max_occurred_date_format
 
 	def validate_values(self):
+		"""Validate all values in the column; append column-level warnings with row numbers."""
 		if not self.df:
 			return
 
@@ -1042,21 +1076,22 @@ class Column:
 			return
 
 		if self.df.fieldtype == "Link":
-			# find all values that dont exist
+			value_rows = get_value_row_map(self.column_values, self.value_row_numbers)
+			# MariaDB link lookup is case-insensitive; messages still use sheet spelling
 			transform = (lambda v: cstr(v).lower()) if frappe.db.db_type == "mariadb" else cstr
-			original_values = {transform(v): cstr(v) for v in self.column_values if v}
-			values = list(original_values.keys())
-			exists = [
+			values = list({transform(k) for k in value_rows})
+			exists = {
 				transform(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})
-			]
-			not_exists = list(set(values) - set(exists))
-			if not_exists:
-				missing_values = ", ".join(escape_html(original_values[v]) for v in not_exists)
-				message = _("The following values do not exist for {0}: {1}")
+			}
+			invalid_keys = [k for k in value_rows if transform(k) not in exists]
+			if invalid_keys:
 				self.warnings.append(
 					{
 						"col": self.column_number,
-						"message": message.format(self.df.options, missing_values),
+						"message": _("The following values do not exist for {0}: {1}").format(
+							self.df.options,
+							format_invalid_values_with_rows(value_rows, invalid_keys),
+						),
 						"type": "warning",
 					}
 				)
@@ -1090,16 +1125,16 @@ class Column:
 		elif self.df.fieldtype == "Select":
 			options = get_select_options(self.df)
 			if options:
-				values = {cstr(v) for v in self.column_values if v}
-				invalid = values - set(options)
-				if invalid:
-					valid_values = ", ".join(frappe.bold(o) for o in options)
-					invalid_values = ", ".join(frappe.bold(escape_html(i)) for i in invalid)
-					message = _("The following values are invalid: {0}. Values must be one of {1}")
+				value_rows = get_value_row_map(self.column_values, self.value_row_numbers)
+				invalid_keys = [k for k in value_rows if k not in options]
+				if invalid_keys:
+					footer = _("Values must be one of {0}").format(", ".join(frappe.bold(o) for o in options))
 					self.warnings.append(
 						{
 							"col": self.column_number,
-							"message": message.format(invalid_values, valid_values),
+							"message": _("The following values are invalid: {0}").format(
+								format_invalid_values_with_rows(value_rows, invalid_keys, footer=footer)
+							),
 						}
 					)
 

@@ -1,7 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.core.doctype.data_import.importer import Importer, build_fields_dict_for_column_matching
+from frappe.core.doctype.data_import.importer import Column, Importer, build_fields_dict_for_column_matching
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import format_duration, getdate
@@ -145,6 +145,31 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(updated_doc.table_field_1[0].name, existing_doc.table_field_1[0].name)
 		self.assertEqual(updated_doc.table_field_1[0].child_description, "child description")
 		self.assertEqual(updated_doc.table_field_1_again[0].child_title, "child title again")
+
+	def test_link_and_select_warnings_include_row_numbers(self):
+		"""Column warnings for Link/Select list invalid values with 1-based sheet row numbers."""
+		if not frappe.db.exists("Salutation", "Mr"):
+			frappe.get_doc({"doctype": "Salutation", "salutation": "Mr"}).insert()
+		for name in ("Miss", "Ms"):
+			if frappe.db.exists("Salutation", name):
+				frappe.delete_doc("Salutation", name)
+
+		link_msg = Column(
+			0, "Salutation", "Contact", ["Mr.", "Mr.", "Miss"], value_row_numbers=[2, 3, 4]
+		).warnings[0]["message"]
+		self.assertIn("Mr.", link_msg)
+		self.assertIn("rows 2, 3", link_msg)
+		self.assertIn("Miss", link_msg)
+		self.assertIn("rows 4", link_msg)
+
+		select_msg = Column(
+			5, "Status", "Contact", ["Opn", "Pasiv", "Open"], value_row_numbers=[2, 3, 4]
+		).warnings[0]["message"]
+		self.assertIn("Opn", select_msg)
+		self.assertIn("rows 2", select_msg)
+		self.assertIn("Pasiv", select_msg)
+		self.assertIn("rows 3", select_msg)
+		self.assertNotIn("rows 4", select_msg)
 
 	def test_data_import_without_label(self):
 		"""Test fallback to fieldname when label is not set for a table."""
