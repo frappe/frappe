@@ -1,0 +1,137 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:slug",
+ "creation": "2026-05-22 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "slug",
+  "column_break_meta",
+  "kind",
+  "enabled",
+  "pauses_for_user_input",
+  "section_break_description",
+  "description",
+  "summary",
+  "section_break_definition",
+  "import_path",
+  "code"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "description": "Snake-cased name the LLM sees. Used as the unique identifier.",
+   "fieldname": "slug",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Slug",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_meta",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Module",
+   "description": "<code>Module</code> tools are imported from a Python module by path. <code>Script</code> tools store code in the database and run it in a <code>safe_exec</code> sandbox.",
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Kind",
+   "options": "Module\nScript",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "default": "0",
+   "description": "If checked, the agent loop halts after this tool runs and returns control to the caller for user input.",
+   "fieldname": "pauses_for_user_input",
+   "fieldtype": "Check",
+   "label": "Pauses for User Input"
+  },
+  {
+   "fieldname": "section_break_description",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  },
+  {
+   "description": "Shown to the LLM. Should state what the tool does and how to interpret the return value.",
+   "fieldname": "description",
+   "fieldtype": "Long Text",
+   "label": "Description (LLM-facing)",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.kind === 'Script'",
+   "description": "Optional plain-English summary for human reviewers.",
+   "fieldname": "summary",
+   "fieldtype": "Small Text",
+   "label": "Summary (human-facing)"
+  },
+  {
+   "fieldname": "section_break_definition",
+   "fieldtype": "Section Break",
+   "label": "Definition"
+  },
+  {
+   "depends_on": "eval:doc.kind === 'Module'",
+   "description": "Dotted Python path to the <code>Tool</code> object, e.g. <code>frappe.ai.tools.builtins.search_doctypes</code>.",
+   "fieldname": "import_path",
+   "fieldtype": "Data",
+   "label": "Import Path",
+   "mandatory_depends_on": "eval:doc.kind === 'Module'"
+  },
+  {
+   "depends_on": "eval:doc.kind === 'Script'",
+   "description": "Python source. Must define a top-level <code>main</code> function. Executed in a server-script sandbox.",
+   "fieldname": "code",
+   "fieldtype": "Code",
+   "label": "Code",
+   "mandatory_depends_on": "eval:doc.kind === 'Script'",
+   "options": "Python"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-22 00:00:00",
+ "modified_by": "Administrator",
+ "module": "AI",
+ "name": "AI Tool",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}
