@@ -5,13 +5,49 @@
     "ComboboxProps": {
       "type": "object",
       "properties": {
-        "variant": {
-          "type": "string",
-          "enum": [
-            "subtle",
-            "outline",
-            "ghost"
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                },
+                "messages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "message",
+                "name"
+              ]
+            }
           ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
         },
         "options": {
           "type": "array",
@@ -38,15 +74,36 @@
                       "string"
                     ]
                   },
+                  "description": {
+                    "type": "string"
+                  },
                   "disabled": {
                     "type": "boolean"
+                  },
+                  "slot": {
+                    "type": "string"
+                  },
+                  "slots": {
+                    "type": "object"
+                  },
+                  "slotName": {
+                    "type": "string"
+                  },
+                  "render": {
+                    "anyOf": [
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "object"
+                      }
+                    ]
                   }
                 },
                 "required": [
                   "label",
                   "value"
-                ],
-                "additionalProperties": false
+                ]
               },
               {
                 "type": "object",
@@ -55,10 +112,10 @@
                     "type": "string",
                     "const": "custom"
                   },
-                  "label": {
+                  "key": {
                     "type": "string"
                   },
-                  "key": {
+                  "label": {
                     "type": "string"
                   },
                   "icon": {
@@ -66,86 +123,62 @@
                       "string"
                     ]
                   },
+                  "description": {
+                    "type": "string"
+                  },
                   "disabled": {
                     "type": "boolean"
                   },
-                  "onClick": {
-                    "$comment": "(context: { searchTerm: string }) => void",
-                    "type": "object",
-                    "properties": {
-                      "namedArgs": {
-                        "type": "object",
-                        "properties": {
-                          "context": {
-                            "type": "object",
-                            "properties": {
-                              "searchTerm": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "searchTerm"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "required": [
-                          "context"
-                        ],
-                        "additionalProperties": false
-                      }
-                    }
+                  "slot": {
+                    "type": "string"
                   },
-                  "keepOpen": {
-                    "type": "boolean"
+                  "slots": {
+                    "type": "object"
                   },
                   "slotName": {
                     "type": "string"
                   },
-                  "render": {
-                    "$comment": "() => VNode"
+                  "onClick": {
+                    "type": "object"
+                  },
+                  "keepOpen": {
+                    "type": "boolean"
                   },
                   "condition": {
-                    "$comment": "(context: { searchTerm: string }) => boolean",
-                    "type": "object",
-                    "properties": {
-                      "namedArgs": {
-                        "type": "object",
-                        "properties": {
-                          "context": {
-                            "type": "object",
-                            "properties": {
-                              "searchTerm": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "searchTerm"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "required": [
-                          "context"
-                        ],
-                        "additionalProperties": false
+                    "type": "object"
+                  },
+                  "render": {
+                    "anyOf": [
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "object"
                       }
-                    }
+                    ]
                   }
                 },
                 "required": [
                   "type",
-                  "label",
                   "key",
+                  "label",
                   "onClick"
-                ],
-                "additionalProperties": false
+                ]
               },
               {
                 "type": "object",
                 "properties": {
+                  "key": {
+                    "type": [
+                      "string",
+                      "number"
+                    ]
+                  },
                   "group": {
                     "type": "string"
+                  },
+                  "hideLabel": {
+                    "type": "boolean"
                   },
                   "options": {
                     "type": "array",
@@ -172,15 +205,36 @@
                                 "string"
                               ]
                             },
+                            "description": {
+                              "type": "string"
+                            },
                             "disabled": {
                               "type": "boolean"
+                            },
+                            "slot": {
+                              "type": "string"
+                            },
+                            "slots": {
+                              "type": "object"
+                            },
+                            "slotName": {
+                              "type": "string"
+                            },
+                            "render": {
+                              "anyOf": [
+                                {
+                                  "type": "object"
+                                },
+                                {
+                                  "type": "object"
+                                }
+                              ]
                             }
                           },
                           "required": [
                             "label",
                             "value"
-                          ],
-                          "additionalProperties": false
+                          ]
                         },
                         {
                           "type": "object",
@@ -189,10 +243,10 @@
                               "type": "string",
                               "const": "custom"
                             },
-                            "label": {
+                            "key": {
                               "type": "string"
                             },
-                            "key": {
+                            "label": {
                               "type": "string"
                             },
                             "icon": {
@@ -200,80 +254,47 @@
                                 "string"
                               ]
                             },
+                            "description": {
+                              "type": "string"
+                            },
                             "disabled": {
                               "type": "boolean"
                             },
-                            "onClick": {
-                              "$comment": "(context: { searchTerm: string }) => void",
-                              "type": "object",
-                              "properties": {
-                                "namedArgs": {
-                                  "type": "object",
-                                  "properties": {
-                                    "context": {
-                                      "type": "object",
-                                      "properties": {
-                                        "searchTerm": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      "required": [
-                                        "searchTerm"
-                                      ],
-                                      "additionalProperties": false
-                                    }
-                                  },
-                                  "required": [
-                                    "context"
-                                  ],
-                                  "additionalProperties": false
-                                }
-                              }
+                            "slot": {
+                              "type": "string"
                             },
-                            "keepOpen": {
-                              "type": "boolean"
+                            "slots": {
+                              "type": "object"
                             },
                             "slotName": {
                               "type": "string"
                             },
-                            "render": {
-                              "$comment": "() => VNode"
+                            "onClick": {
+                              "type": "object"
+                            },
+                            "keepOpen": {
+                              "type": "boolean"
                             },
                             "condition": {
-                              "$comment": "(context: { searchTerm: string }) => boolean",
-                              "type": "object",
-                              "properties": {
-                                "namedArgs": {
-                                  "type": "object",
-                                  "properties": {
-                                    "context": {
-                                      "type": "object",
-                                      "properties": {
-                                        "searchTerm": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      "required": [
-                                        "searchTerm"
-                                      ],
-                                      "additionalProperties": false
-                                    }
-                                  },
-                                  "required": [
-                                    "context"
-                                  ],
-                                  "additionalProperties": false
+                              "type": "object"
+                            },
+                            "render": {
+                              "anyOf": [
+                                {
+                                  "type": "object"
+                                },
+                                {
+                                  "type": "object"
                                 }
-                              }
+                              ]
                             }
                           },
                           "required": [
                             "type",
-                            "label",
                             "key",
+                            "label",
                             "onClick"
-                          ],
-                          "additionalProperties": false
+                          ]
                         }
                       ]
                     }
@@ -288,10 +309,28 @@
             ]
           }
         },
-        "modelValue": {
-          "type": [
-            "string",
-            "null"
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "input",
+            "button"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "outline",
+            "ghost"
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg",
+            "xl"
           ]
         },
         "placeholder": {
@@ -300,11 +339,48 @@
         "disabled": {
           "type": "boolean"
         },
+        "open": {
+          "type": "boolean"
+        },
         "openOnFocus": {
           "type": "boolean"
         },
         "openOnClick": {
           "type": "boolean"
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ]
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end"
+          ]
+        },
+        "offset": {
+          "type": "number"
+        },
+        "portalTo": {
+          "type": [
+            "string"
+          ]
+        },
+        "allowCustomValue": {
+          "type": "boolean"
+        },
+        "loading": {
+          "type": "boolean"
+        },
+        "emptyText": {
+          "type": "string"
         },
         "placement": {
           "type": "string",
@@ -315,9 +391,6 @@
           ]
         }
       },
-      "required": [
-        "options"
-      ],
       "additionalProperties": false
     }
   }

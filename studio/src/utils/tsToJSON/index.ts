@@ -1,7 +1,7 @@
 import fs from "fs"
 import path from "path"
 import { CompletedConfig, createFormatter, createParser, createProgram, SchemaGenerator } from "ts-json-schema-generator"
-import { SVGElementParser, VueComponentParser, RouteLocationParser } from "./customParser.js"
+import { SVGElementParser, VueComponentParser, RouteLocationParser, HTMLElementParser, FunctionTypeParser, SlotsParser } from "./customParser.js"
 
 function tsToJSON(srcFolder: string, destFolder: string, skipFolders: string[] | null = null, tsconfig = "", isFrappeUI = false) {
 	// Get project root (where package.json is)
@@ -85,6 +85,9 @@ function generateSchema(config: CompletedConfig, componentName: string, outputDi
 		prs.addNodeParser(new SVGElementParser())
 		prs.addNodeParser(new VueComponentParser())
 		prs.addNodeParser(new RouteLocationParser())
+		prs.addNodeParser(new HTMLElementParser())
+		prs.addNodeParser(new FunctionTypeParser())
+		prs.addNodeParser(new SlotsParser())
 	})
 	const formatter = createFormatter(config)
 

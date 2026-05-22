@@ -90,31 +90,7 @@
             "additionalProperties": false,
             "properties": {
               "onClick": {
-                "$comment": "(context: DialogActionContext) => void | Promise<void>",
-                "type": "object",
-                "properties": {
-                  "namedArgs": {
-                    "type": "object",
-                    "properties": {
-                      "context": {
-                        "type": "object",
-                        "properties": {
-                          "close": {
-                            "$comment": "() => void"
-                          }
-                        },
-                        "required": [
-                          "close"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "required": [
-                      "context"
-                    ],
-                    "additionalProperties": false
-                  }
-                }
+                "type": "object"
               },
               "theme": {
                 "type": "string",
@@ -198,7 +174,7 @@
             }
           }
         },
-        "dismissable": {
+        "dismissible": {
           "type": "boolean"
         },
         "showCloseButton": {
@@ -279,31 +255,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "onClick": {
-                    "$comment": "(context: DialogActionContext) => void | Promise<void>",
-                    "type": "object",
-                    "properties": {
-                      "namedArgs": {
-                        "type": "object",
-                        "properties": {
-                          "context": {
-                            "type": "object",
-                            "properties": {
-                              "close": {
-                                "$comment": "() => void"
-                              }
-                            },
-                            "required": [
-                              "close"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "required": [
-                          "context"
-                        ],
-                        "additionalProperties": false
-                      }
-                    }
+                    "type": "object"
                   },
                   "theme": {
                     "type": "string",

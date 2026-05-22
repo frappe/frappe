@@ -139,23 +139,7 @@
           "type": "string"
         },
         "isDateUnavailable": {
-          "$comment": "(date: Dayjs) => boolean",
-          "type": "object",
-          "properties": {
-            "namedArgs": {
-              "type": "object",
-              "properties": {
-                "date": {
-                  "type": "object",
-                  "additionalProperties": false
-                }
-              },
-              "required": [
-                "date"
-              ],
-              "additionalProperties": false
-            }
-          }
+          "type": "object"
         },
         "allowCustom": {
           "type": "boolean"
