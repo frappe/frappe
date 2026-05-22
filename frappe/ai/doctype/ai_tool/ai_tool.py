@@ -42,6 +42,12 @@ class AITool(Document):
 		if self.kind == "Script":
 			self._validate_code()
 
+	def to_tool(self):
+		"""Resolve this row into a runtime Tool the Agent can call."""
+		from frappe.ai.resolver import resolve_tool
+
+		return resolve_tool(self)
+
 	def _normalize(self):
 		for field in ("title", "slug", "import_path"):
 			value = self.get(field)
