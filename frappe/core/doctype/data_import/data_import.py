@@ -56,6 +56,7 @@ class DataImport(Document):
 		):
 			self.template_options = ""
 			self.template_warnings = ""
+			self.value_mappings = []
 
 		self.set_delimiters_flag()
 		self.validate_doctype()
@@ -64,8 +65,15 @@ class DataImport(Document):
 		self.set_payload_count()
 
 	def set_delimiters_flag(self):
-		if self.import_file:
-			frappe.flags.delimiter_options = self.delimiter_options or ","
+		if not (self.import_file or self.google_sheets_url):
+			return
+
+		if self.custom_delimiters and self.delimiter_options:
+			frappe.flags.delimiter_options = self.delimiter_options
+		elif self.use_csv_sniffer:
+			frappe.flags.delimiter_options = self.delimiter_options or ",;\t|"
+		else:
+			frappe.flags.delimiter_options = None
 
 	def validate_doctype(self):
 		if self.reference_doctype in BLOCKED_DOCTYPES:
@@ -106,7 +114,6 @@ class DataImport(Document):
 	def get_preview_from_template(self, import_file: str | None = None, google_sheets_url: str | None = None):
 		if import_file:
 			self.import_file = import_file
-			self.set_delimiters_flag()
 
 		if google_sheets_url:
 			self.google_sheets_url = google_sheets_url
@@ -114,6 +121,7 @@ class DataImport(Document):
 		if not (self.import_file or self.google_sheets_url):
 			return
 
+		self.set_delimiters_flag()
 		i = self.get_importer()
 		return i.get_data_for_import_preview()
 

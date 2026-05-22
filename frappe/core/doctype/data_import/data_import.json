@@ -26,6 +26,8 @@
   "import_warnings_section",
   "template_warnings",
   "import_warnings",
+  "value_mappings_section",
+  "value_mappings",
   "section_import_preview",
   "import_preview",
   "import_log_section",
@@ -80,6 +82,19 @@
    "label": "Template Options",
    "options": "JSON",
    "read_only": 1
+  },
+  {
+   "fieldname": "value_mappings_section",
+   "fieldtype": "Section Break",
+   "label": "Value Mappings"
+  },
+  {
+   "depends_on": "eval:!doc.__islocal && doc.import_file",
+   "fieldname": "value_mappings",
+   "fieldtype": "Table",
+   "label": "",
+   "options": "Data Import Value Mapping",
+   "read_only_depends_on": "eval: ['Success', 'Partial Success'].includes(doc.status)"
   },
   {
    "fieldname": "import_log_section",

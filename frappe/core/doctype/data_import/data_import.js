@@ -95,6 +95,16 @@ frappe.ui.form.on("Data Import", {
 		frm.has_import_file = () => {
 			return frm.doc.import_file || frm.doc.google_sheets_url;
 		};
+
+		$(frm.wrapper).on("dirty", () => {
+			frm.trigger("update_primary_action");
+		});
+	},
+
+	onload(frm) {
+		if (!frm.has_import_file()) {
+			frm.events.reset_import_ui_state(frm);
+		}
 	},
 
 	refresh(frm) {
@@ -102,7 +112,6 @@ frappe.ui.form.on("Data Import", {
 		frm.trigger("update_indicators");
 		frm.trigger("import_file");
 		frm.trigger("show_import_log");
-		frm.trigger("show_import_warnings");
 		frm.trigger("toggle_submit_after_import");
 
 		if (frm.doc.status != "Pending") frm.trigger("show_import_status");
@@ -120,6 +129,9 @@ frappe.ui.form.on("Data Import", {
 				frappe.set_route("List", frm.doc.reference_doctype)
 			);
 		}
+
+		frm.events.setup_value_mappings_grid(frm);
+		frm.trigger("update_primary_action");
 	},
 
 	onload_post_render(frm) {
@@ -129,6 +141,13 @@ frappe.ui.form.on("Data Import", {
 	update_primary_action(frm) {
 		if (frm.is_dirty()) {
 			frm.enable_save();
+			frm.page.set_primary_action(__("Save"), () => {
+				frm.save().then(() => {
+					if (frm.has_import_file()) {
+						frm.trigger("import_file");
+					}
+				});
+			});
 			return;
 		}
 		frm.disable_save();
@@ -294,10 +313,120 @@ frappe.ui.form.on("Data Import", {
 		frm.trigger("import_file");
 	},
 
+	reset_import_ui_state(frm) {
+		frm.import_preview = null;
+		frm.events.toggle_import_issues_ui(frm, false, false);
+		frm.toggle_display("section_import_preview", false);
+		frm.get_field("import_preview")?.$wrapper.empty();
+		frm.get_field("import_warnings")?.$wrapper.html("");
+	},
+
+	toggle_import_issues_ui(frm, show_warnings, show_mappings) {
+		frm.toggle_display("import_warnings_section", show_warnings || show_mappings);
+		frm.toggle_display("value_mappings_section", show_mappings);
+		frm.toggle_display("value_mappings", show_mappings);
+		if (show_mappings) {
+			frm.events.setup_value_mappings_grid(frm);
+		}
+	},
+
+	setup_value_mappings_grid(frm) {
+		const grid = frm.fields_dict.value_mappings?.grid;
+		if (!grid) return;
+
+		if (!grid._value_mapping_hooks) {
+			grid._value_mapping_hooks = true;
+			frm.set_df_property("value_mappings", "cannot_add_rows", true);
+			grid.cannot_add_rows = true;
+			frm.events.setup_mapping_dropdown_portal(grid);
+			const refresh = grid.refresh.bind(grid);
+			grid.refresh = () => {
+				refresh();
+				frm.events.apply_mapping_target_fields(frm);
+				frm.events.disable_mapping_row_checks(grid);
+			};
+		}
+
+		grid.wrapper.find(".grid-buttons, .grid-add-row").hide();
+		frm.events.apply_mapping_target_fields(frm);
+		frm.events.disable_mapping_row_checks(grid);
+	},
+
+	setup_mapping_dropdown_portal(grid) {
+		const position_dropdown = (input) => {
+			const awesomplete = input.awesomplete;
+			if (!awesomplete?.ul) return;
+			const rect = input.getBoundingClientRect();
+			const $ul = $(awesomplete.ul);
+			if ($ul.parent()[0] !== document.body) {
+				$ul.appendTo(document.body);
+			}
+			$ul.css({
+				position: "fixed",
+				left: rect.left,
+				top: rect.bottom,
+				minWidth: rect.width,
+				zIndex: 1050,
+			});
+		};
+
+		grid.wrapper.on("awesomplete-open", ".form-grid input", function () {
+			position_dropdown(this);
+		});
+		grid.wrapper.on("input focus", ".form-grid .link-field input", function () {
+			if (this.awesomplete?.ul && !$(this.awesomplete.ul).is(":hidden")) {
+				position_dropdown(this);
+			}
+		});
+		$(window).on("scroll.data_import_value_mappings", () => {
+			grid.wrapper.find(".form-grid input:focus").each(function () {
+				if (this.awesomplete?.ul && $(this.awesomplete.ul).is(":visible")) {
+					position_dropdown(this);
+				}
+			});
+		});
+	},
+
+	disable_mapping_row_checks(grid) {
+		grid.wrapper.find(".grid-row-check input[type=checkbox]").prop("disabled", true);
+	},
+
+	apply_mapping_target_fields(frm) {
+		const grid = frm.fields_dict.value_mappings?.grid;
+		(grid?.grid_rows || []).forEach((grid_row) => {
+			frm.events.configure_mapping_target_field(grid_row);
+		});
+	},
+
+	configure_mapping_target_field(grid_row) {
+		const column = grid_row.columns?.target_value;
+		if (!column || !grid_row.doc) return;
+
+		const base_df = frappe.meta.get_docfield(
+			grid_row.doc.doctype,
+			"target_value",
+			grid_row.parent_doc?.name
+		);
+		column.df = { ...base_df };
+
+		const { fieldtype, link_doctype, select_options } = grid_row.doc;
+		if (fieldtype === "Link" && link_doctype) {
+			Object.assign(column.df, { fieldtype: "Link", options: link_doctype });
+		} else if (fieldtype === "Select" && select_options) {
+			Object.assign(column.df, { fieldtype: "Select", options: select_options });
+		}
+
+		if (column.field) {
+			column.field_area?.empty();
+			column.field = null;
+			grid_row.make_control(column);
+		}
+	},
+
 	import_file(frm) {
 		frm.toggle_display("section_import_preview", frm.has_import_file());
 		if (!frm.has_import_file()) {
-			frm.get_field("import_preview").$wrapper.empty();
+			frm.events.reset_import_ui_state(frm);
 			return;
 		} else {
 			frm.trigger("update_primary_action");
@@ -331,7 +460,12 @@ frappe.ui.form.on("Data Import", {
 	show_import_preview(frm, preview_data) {
 		let import_log = preview_data.import_log;
 
-		if (frm.import_preview && frm.import_preview.doctype === frm.doc.reference_doctype) {
+		if (
+			frm.doc.name &&
+			frm.import_preview &&
+			frm.import_preview.doctype === frm.doc.reference_doctype &&
+			frm.import_preview.data_import_name === frm.doc.name
+		) {
 			frm.import_preview.preview_data = preview_data;
 			frm.import_preview.import_log = import_log;
 			frm.import_preview.refresh();
@@ -356,6 +490,7 @@ frappe.ui.form.on("Data Import", {
 					},
 				},
 			});
+			frm.import_preview.data_import_name = frm.doc.name;
 		});
 	},
 
@@ -379,7 +514,14 @@ frappe.ui.form.on("Data Import", {
 
 	/** Render import warnings; dedupe when preview and ``template_warnings`` overlap. */
 	show_import_warnings(frm, preview_data) {
-		preview_data = preview_data || frm.import_preview?.preview_data;
+		if (!frm.has_import_file()) {
+			frm.events.reset_import_ui_state(frm);
+			return;
+		}
+
+		if (!preview_data && frm.import_preview?.data_import_name === frm.doc.name) {
+			preview_data = frm.import_preview.preview_data;
+		}
 		let columns = preview_data?.columns;
 
 		// template_warnings: saved when Start Import is blocked; preview: from file parse on upload
@@ -387,10 +529,14 @@ frappe.ui.form.on("Data Import", {
 		let preview_warnings = preview_data?.warnings || [];
 		let warnings = dedupe_import_warnings(template_warnings.concat(preview_warnings));
 
-		frm.toggle_display("import_warnings_section", warnings.length > 0);
-		if (warnings.length === 0) {
+		const has_mapping_hints = Object.keys(preview_data?.mapping_hints || {}).length > 0;
+		frm.events.toggle_import_issues_ui(frm, warnings.length > 0, has_mapping_hints);
+		if (!warnings.length && !has_mapping_hints) {
 			frm.get_field("import_warnings").$wrapper.html("");
 			return;
+		}
+		if (!warnings.length) {
+			frm.get_field("import_warnings").$wrapper.html("");
 		}
 
 		// group warnings by row
@@ -448,11 +594,81 @@ frappe.ui.form.on("Data Import", {
 				`;
 			})
 			.join("");
-		frm.get_field("import_warnings").$wrapper.html(`
-			<div class="row">
-				<div class="col-sm-10 warnings">${html}</div>
-			</div>
-		`);
+		if (warnings.length) {
+			frm.get_field("import_warnings").$wrapper.html(`
+				<div class="row">
+					<div class="col-sm-10 warnings">${html}</div>
+				</div>
+			`);
+		}
+		if (has_mapping_hints && !["Success", "Partial Success"].includes(frm.doc.status)) {
+			frm.events.sync_value_mappings_table(frm, preview_data, columns);
+		}
+	},
+
+	mapping_row_key(row) {
+		return `${row.column}|${row.fieldname}|${row.parent_field || ""}|${row.source_value}`;
+	},
+
+	rows_display(rows) {
+		if (!rows?.length) return "";
+		if (rows.length <= 6) return rows.join(", ");
+		return `${rows.slice(0, 6).join(", ")}, ... ${rows[rows.length - 1]}`;
+	},
+
+	child_row_from_hint(item, columns) {
+		return {
+			column: item.column,
+			column_label: columns?.[item.column]?.header_title || __("Column {0}", [item.column]),
+			fieldname: item.fieldname,
+			parent_field: item.parent_field || "",
+			fieldtype: item.fieldtype,
+			link_doctype: item.link_doctype,
+			select_options: (item.select_options || []).join("\n"),
+			source_value: item.source_value,
+			target_value: item.target_value || "",
+			row_numbers: JSON.stringify(item.rows || []),
+		};
+	},
+
+	sync_value_mappings_table(frm, preview_data, columns) {
+		const items = Object.values(preview_data?.mapping_hints || {}).flat();
+		if (!items.length) return;
+
+		const existing = Object.fromEntries(
+			(frm.doc.value_mappings || []).map((row) => [frm.events.mapping_row_key(row), row])
+		);
+		const seen = new Set();
+		let changed = false;
+
+		for (const item of items) {
+			const key = frm.events.mapping_row_key(item);
+			seen.add(key);
+			const data = {
+				...frm.events.child_row_from_hint(item, columns),
+				rows_display: frm.events.rows_display(item.rows),
+			};
+			if (existing[key]) {
+				Object.assign(existing[key], data);
+				continue;
+			}
+			frm.add_child("value_mappings", data);
+			changed = true;
+		}
+
+		for (const row of [...(frm.doc.value_mappings || [])]) {
+			if (!seen.has(frm.events.mapping_row_key(row))) {
+				frappe.model.clear_doc(row.doctype, row.name);
+				changed = true;
+			}
+		}
+
+		frm.refresh_field("value_mappings");
+		frm.events.setup_value_mappings_grid(frm);
+		if (changed) {
+			frm.dirty();
+			frm.trigger("update_primary_action");
+		}
 	},
 
 	show_failed_logs(frm) {
@@ -578,5 +794,17 @@ frappe.ui.form.on("Data Import", {
 				}
 			},
 		});
+	},
+});
+
+frappe.ui.form.on("Data Import Value Mapping", {
+	form_render(frm) {
+		if (frm.doc.fieldtype === "Link" && frm.doc.link_doctype) {
+			frm.set_df_property("target_value", "fieldtype", "Link");
+			frm.set_df_property("target_value", "options", frm.doc.link_doctype);
+		} else if (frm.doc.fieldtype === "Select" && frm.doc.select_options) {
+			frm.set_df_property("target_value", "fieldtype", "Select");
+			frm.set_df_property("target_value", "options", frm.doc.select_options);
+		}
 	},
 });

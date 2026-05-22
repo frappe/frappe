@@ -26,6 +26,13 @@ UPDATE = "Update Existing Records"
 DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
 
 
+def _get_fixed_csv_delimiter(custom_delimiters, delimiter_options) -> str | None:
+	if not cint(custom_delimiters) or not delimiter_options:
+		return None
+	options = delimiter_options.strip()
+	return options if len(options) == 1 else None
+
+
 class Importer:
 	def __init__(
 		self, doctype, data_import=None, file_path=None, import_type=None, console=False, use_sniffer=False
@@ -48,8 +55,12 @@ class Importer:
 			file_path or data_import.google_sheets_url or data_import.import_file,
 			self.template_options,
 			self.import_type,
+			data_import_name=self.data_import.name,
+			reference_doctype=doctype,
 			console=self.console,
 			use_sniffer=self.use_sniffer,
+			custom_delimiters=data_import.custom_delimiters,
+			delimiter_options=data_import.delimiter_options,
 		)
 
 	def get_data_for_import_preview(self):
@@ -83,8 +94,9 @@ class Importer:
 		payloads = self.import_file.get_payloads_for_import()
 
 		# dont import if there are non-ignorable warnings
-		warnings = self.import_file.get_warnings()
-		warnings = [w for w in warnings if w.get("type") != "info"]
+		from frappe.core.doctype.data_import.value_mapping import get_blocking_warnings
+
+		warnings = get_blocking_warnings(self.import_file.get_warnings(), self.import_file)
 
 		if warnings:
 			if self.console:
@@ -412,15 +424,32 @@ class Importer:
 
 class ImportFile:
 	def __init__(
-		self, doctype, file, template_options=None, import_type=None, *, console=False, use_sniffer=False
+		self,
+		doctype,
+		file,
+		template_options=None,
+		import_type=None,
+		*,
+		data_import_name=None,
+		reference_doctype=None,
+		console=False,
+		use_sniffer=False,
+		custom_delimiters=False,
+		delimiter_options=None,
 	):
 		self.doctype = doctype
+		self.reference_doctype = reference_doctype or doctype
 		self.template_options = template_options or frappe._dict(column_to_field_map=frappe._dict())
 		self.column_to_field_map = self.template_options.column_to_field_map
 		self.import_type = import_type
+		from frappe.core.doctype.data_import.value_mapping import build_lookup_for_data_import
+
+		self.value_lookup = build_lookup_for_data_import(data_import_name, self.reference_doctype)
 		self.warnings = []
 		self.console = console
 		self.use_sniffer = use_sniffer
+		self.custom_delimiters = custom_delimiters
+		self.delimiter_options = delimiter_options
 
 		self.file_doc = self.file_path = self.google_sheets_url = None
 		if isinstance(file, str):
@@ -473,7 +502,15 @@ class ImportFile:
 				continue
 
 			if not header:
-				header = Header(i, row, self.doctype, self.raw_data[1:], self.column_to_field_map)
+				header = Header(
+					i,
+					row,
+					self.doctype,
+					self.raw_data[1:],
+					self.column_to_field_map,
+					self.value_lookup,
+					self.reference_doctype,
+				)
 			else:
 				row_obj = Row(i, row, self.doctype, header, self.import_type)
 				data.append(row_obj)
@@ -521,6 +558,9 @@ class ImportFile:
 			out.max_rows_exceeded = True
 			out.max_rows_in_preview = MAX_ROWS_IN_PREVIEW
 			out.total_number_of_rows = total_number_of_rows
+		from frappe.core.doctype.data_import.value_mapping import get_mapping_hints
+
+		out.mapping_hints = get_mapping_hints(self, self.reference_doctype, self.value_lookup)
 		return out
 
 	def get_payloads_for_import(self):
@@ -617,7 +657,11 @@ class ImportFile:
 			frappe.throw(_("Import template should be of type .csv, .xlsx or .xls"), title=error_title)
 
 		if extension == "csv":
-			data = read_csv_content(content, use_sniffer=self.use_sniffer)
+			data = read_csv_content(
+				content,
+				use_sniffer=self.use_sniffer,
+				delimiter=_get_fixed_csv_delimiter(self.custom_delimiters, self.delimiter_options),
+			)
 		elif extension == "xlsx":
 			data = read_xlsx_file_from_attached_file(fcontent=content)
 		elif extension == "xls":
@@ -640,10 +684,17 @@ def get_value_row_map(column_values, value_row_numbers):
 	return value_rows
 
 
+def format_row_numbers_for_warning(rows: list, max_shown: int = 6) -> str:
+	"""Compact row list for warnings: first ``max_shown`` rows, then …, then the last row."""
+	if len(rows) <= max_shown:
+		return ", ".join(map(str, rows))
+	return f"{', '.join(map(str, rows[:max_shown]))}, ... {rows[-1]}"
+
+
 def format_invalid_values_with_rows(value_rows, keys, footer=None):
 	"""HTML lines per invalid value with row numbers; optional footer (e.g. valid Select options)."""
 	lines = [
-		f"{frappe.bold(escape_html(key))} ({_('rows')} {', '.join(map(str, value_rows[key]))})"
+		f"{frappe.bold(escape_html(key))} ({_('rows')} {format_row_numbers_for_warning(value_rows[key])})"
 		for key in keys
 	]
 	message = "<br>".join(lines)
@@ -735,6 +786,13 @@ class Row:
 		return doc
 
 	def validate_value(self, value, col):
+		# Apply stored mappings only during import, not while building preview warnings.
+		if frappe.flags.in_import:
+			from frappe.core.doctype.data_import.value_mapping import resolve_import_value
+
+			value = resolve_import_value(
+				value, col.df, self.header.reference_doctype, self.header.value_lookup
+			)
 		df = col.df
 		if df.fieldtype == "Select":
 			select_options = get_select_options(df)
@@ -879,11 +937,22 @@ class Row:
 
 
 class Header(Row):
-	def __init__(self, index, row, doctype, raw_data, column_to_field_map=None):
+	def __init__(
+		self,
+		index,
+		row,
+		doctype,
+		raw_data,
+		column_to_field_map=None,
+		value_lookup=None,
+		reference_doctype=None,
+	):
 		self.index = index
 		self.row_number = index + 1
 		self.data = row
 		self.doctype = doctype
+		self.reference_doctype = reference_doctype or doctype
+		self.value_lookup = value_lookup or {}
 		column_to_field_map = column_to_field_map or frappe._dict()
 
 		self.seen = []
@@ -896,7 +965,15 @@ class Header(Row):
 			column_values = [get_item_at_index(r, j) for r in raw_data]
 			map_to_field = column_to_field_map.get(str(j))
 			column = Column(
-				j, header, self.doctype, column_values, map_to_field, self.seen, value_row_numbers
+				j,
+				header,
+				self.doctype,
+				column_values,
+				map_to_field,
+				self.seen,
+				value_row_numbers,
+				self.value_lookup,
+				self.reference_doctype,
 			)
 			self.seen.append(header)
 			self.columns.append(column)
@@ -930,7 +1007,16 @@ class Header(Row):
 
 class Column:
 	def __init__(
-		self, index, header, doctype, column_values, map_to_field=None, seen=None, value_row_numbers=None
+		self,
+		index,
+		header,
+		doctype,
+		column_values,
+		map_to_field=None,
+		seen=None,
+		value_row_numbers=None,
+		value_lookup=None,
+		reference_doctype=None,
 	):
 		if seen is None:
 			seen = []
@@ -942,6 +1028,9 @@ class Column:
 		self.value_row_numbers = value_row_numbers or list(range(2, len(column_values) + 2))
 		self.map_to_field = map_to_field
 		self.seen = seen
+		self.value_lookup = value_lookup or {}
+		self.reference_doctype = reference_doctype or doctype
+		self.invalid_value_items = []
 
 		self.date_format = None
 		self.df = None
@@ -1075,26 +1164,10 @@ class Column:
 		if not any(self.column_values):
 			return
 
-		if self.df.fieldtype == "Link":
-			value_rows = get_value_row_map(self.column_values, self.value_row_numbers)
-			# MariaDB link lookup is case-insensitive; messages still use sheet spelling
-			transform = (lambda v: cstr(v).lower()) if frappe.db.db_type == "mariadb" else cstr
-			values = list({transform(k) for k in value_rows})
-			exists = {
-				transform(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})
-			}
-			invalid_keys = [k for k in value_rows if transform(k) not in exists]
-			if invalid_keys:
-				self.warnings.append(
-					{
-						"col": self.column_number,
-						"message": _("The following values do not exist for {0}: {1}").format(
-							self.df.options,
-							format_invalid_values_with_rows(value_rows, invalid_keys),
-						),
-						"type": "warning",
-					}
-				)
+		if self.df.fieldtype in ("Link", "Select"):
+			from frappe.core.doctype.data_import.value_mapping import warn_invalid_link_select_values
+
+			warn_invalid_link_select_values(self)
 		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
 			# guess date/time format
 			# TODO: add possibility for user, to define the date format explicitly in the Data Import UI
@@ -1122,21 +1195,6 @@ class Column:
 						"type": "info",
 					}
 				)
-		elif self.df.fieldtype == "Select":
-			options = get_select_options(self.df)
-			if options:
-				value_rows = get_value_row_map(self.column_values, self.value_row_numbers)
-				invalid_keys = [k for k in value_rows if k not in options]
-				if invalid_keys:
-					footer = _("Values must be one of {0}").format(", ".join(frappe.bold(o) for o in options))
-					self.warnings.append(
-						{
-							"col": self.column_number,
-							"message": _("The following values are invalid: {0}").format(
-								format_invalid_values_with_rows(value_rows, invalid_keys, footer=footer)
-							),
-						}
-					)
 
 	def as_dict(self):
 		d = frappe._dict()

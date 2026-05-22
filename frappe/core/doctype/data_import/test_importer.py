@@ -60,6 +60,18 @@ class TestImporter(IntegrationTestCase):
 		# Column count should be 14 (+1 ID)
 		self.assertEqual(len(doc[0]), 15)
 
+	def test_custom_delimiter_semicolon_without_sniffer(self):
+		import_file = get_import_file("general_08_semicolon_delimiter")
+		data_import = self.get_importer(doctype_name, import_file)
+		data_import.custom_delimiters = 1
+		data_import.delimiter_options = ";"
+		data_import.use_csv_sniffer = 0
+		data_import.save()
+
+		preview = data_import.get_preview_from_template()
+		self.assertGreater(len(preview.columns), 5)
+		self.assertEqual(preview.columns[1].header_title, "Title")
+
 	def test_data_validation_semicolon_failure(self):
 		import_file = get_import_file("sample_import_file_semicolon")
 
@@ -145,6 +157,48 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(updated_doc.table_field_1[0].name, existing_doc.table_field_1[0].name)
 		self.assertEqual(updated_doc.table_field_1[0].child_description, "child description")
 		self.assertEqual(updated_doc.table_field_1_again[0].child_title, "child title again")
+
+	def test_mapped_select_still_shows_warning_but_unmapped_blocks_import(self):
+		from frappe.core.doctype.data_import.value_mapping import (
+			build_lookup_from_mappings,
+			get_unmapped_invalid_values_for_column,
+		)
+
+		value_lookup = build_lookup_from_mappings(
+			[
+				{
+					"reference_doctype": "Contact",
+					"fieldname": "status",
+					"parent_field": "",
+					"source_value": "Pasiv",
+					"target_value": "Passive",
+				}
+			]
+		)
+		col = Column(
+			5,
+			"Status",
+			"Contact",
+			["Opn", "Pasiv", "Open"],
+			value_row_numbers=[2, 3, 4],
+			value_lookup=value_lookup,
+			reference_doctype="Contact",
+		)
+		self.assertEqual(col.warnings[0]["type"], "value_mapping")
+		self.assertIn("Opn", col.warnings[0]["message"])
+		self.assertIn("Pasiv", col.warnings[0]["message"])
+		unmapped = get_unmapped_invalid_values_for_column(col, value_lookup, "Contact")
+		self.assertEqual(len(unmapped), 1)
+		self.assertEqual(unmapped[0]["source"], "Opn")
+
+	def test_format_row_numbers_for_warning_truncates_long_lists(self):
+		from frappe.core.doctype.data_import.importer import format_row_numbers_for_warning
+
+		self.assertEqual(format_row_numbers_for_warning([2, 3, 4]), "2, 3, 4")
+		self.assertEqual(
+			format_row_numbers_for_warning([2, 3, 4, 5, 6, 7, 8, 9, 100]),
+			"2, 3, 4, 5, 6, 7, ... 100",
+		)
 
 	def test_link_and_select_warnings_include_row_numbers(self):
 		"""Column warnings for Link/Select list invalid values with 1-based sheet row numbers."""

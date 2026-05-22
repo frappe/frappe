@@ -1,3 +1,27 @@
 .warnings .warning {
 	margin-bottom: 40px;
 }
+
+/* Hide duplicate table label (section break already has the title). */
+[data-fieldname="value_mappings"] > .grid-field .control-label {
+	display: none;
+}
+
+/* Let Link / Select dropdowns escape the scrollable grid container. */
+[data-fieldname="value_mappings"] .form-grid-container,
+[data-fieldname="value_mappings"] .column-limit-reached,
+[data-fieldname="value_mappings"] .form-grid,
+[data-fieldname="value_mappings"] .grid-body {
+	overflow: visible !important;
+}
+
+[data-fieldname="value_mappings"] .awesomplete > ul {
+	z-index: 1050;
+	max-height: 240px;
+	overflow-y: auto;
+}
+
+[data-fieldname="value_mappings"] .grid-row-check input[type="checkbox"]:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
