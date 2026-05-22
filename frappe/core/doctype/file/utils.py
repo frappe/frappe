@@ -441,8 +441,6 @@ def find_file_by_url(path: str, name: str | None = None) -> Optional["File"]:
 		file: File = frappe.get_doc(doctype="File", **file_data)
 		if file.is_downloadable():
 			return file
-<<<<<<< HEAD
-=======
 
 
 def get_safe_file_name(file_name: str) -> str:
@@ -460,4 +458,3 @@ def check_path_safety(base_path: str, requested_path: str) -> bool:
 		)
 		return False
 	return True
->>>>>>> 7c9ce26469 (feat(utils): add util to ensure sandboxing)

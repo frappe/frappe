@@ -23,12 +23,8 @@ import frappe.sessions
 import frappe.utils
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
-<<<<<<< HEAD
-from frappe.utils import format_timedelta
-=======
 from frappe.core.doctype.file.utils import check_path_safety
-from frappe.utils import format_timedelta, orjson_dumps
->>>>>>> 0c660477ee (fix(response): harden download_backup)
+from frappe.utils import format_timedelta
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file.file import File
