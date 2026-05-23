@@ -31,11 +31,15 @@ _ARRAY_NAMES = frozenset(
 _OBJECT_NAMES = frozenset({"dict", "Dict", "Mapping"})
 
 
-def resolve_tool(doc: AITool) -> Tool:
-	"""Turn an AI Tool row into a runtime Tool the Agent can call."""
+def resolve_tool(doc: AITool, *, restrict_commit_rollback: bool = False) -> Tool:
+	"""Turn an AI Tool row into a runtime Tool the Agent can call.
+
+	`restrict_commit_rollback` removes commit/rollback from a Script tool's sandbox,
+	so it cannot escape a surrounding test transaction.
+	"""
 	if doc.kind == "Module":
 		return _resolve_module(doc)
-	return _resolve_script(doc)
+	return _resolve_script(doc, restrict_commit_rollback=restrict_commit_rollback)
 
 
 def _resolve_module(doc: AITool) -> Tool:
@@ -57,8 +61,9 @@ def _resolve_module(doc: AITool) -> Tool:
 	)
 
 
-def _resolve_script(doc: AITool) -> Tool:
-	return _build_tool(doc, schema_from_code(doc.code), _make_script_runner(doc.code, doc.slug))
+def _resolve_script(doc: AITool, *, restrict_commit_rollback: bool = False) -> Tool:
+	runner = _make_script_runner(doc.code, doc.slug, restrict_commit_rollback=restrict_commit_rollback)
+	return _build_tool(doc, schema_from_code(doc.code), runner)
 
 
 def _build_tool(doc: AITool, parameters: dict[str, Any], func: Any) -> Tool:
@@ -67,11 +72,10 @@ def _build_tool(doc: AITool, parameters: dict[str, Any], func: Any) -> Tool:
 		description=doc.description,
 		parameters=parameters,
 		func=func,
-		pauses_for_user_input=bool(doc.pauses_for_user_input),
 	)
 
 
-def _make_script_runner(code: str, slug: str):
+def _make_script_runner(code: str, slug: str, *, restrict_commit_rollback: bool = False):
 	"""Build a callable that runs a Script tool's `main` in the server-script sandbox."""
 
 	def run(**kwargs: Any) -> Any:
@@ -83,7 +87,9 @@ def _make_script_runner(code: str, slug: str):
 			call_parts.append(f"{name}={var}")
 
 		script = f"{code}\n{RESULT_VAR} = {MAIN_FUNCTION_NAME}({', '.join(call_parts)})\n"
-		exec_globals, _locals = safe_exec(script, injected, script_filename=slug)
+		exec_globals, _locals = safe_exec(
+			script, injected, script_filename=slug, restrict_commit_rollback=restrict_commit_rollback
+		)
 		return exec_globals.get(RESULT_VAR)
 
 	return run
