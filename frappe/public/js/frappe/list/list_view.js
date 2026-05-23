@@ -487,8 +487,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let fields_order = [];
 		let fields = JSON.parse(this.list_view_settings.fields);
 
-		// title field is fixed
-		fields_order.push(this.columns[0]);
+		// title field is fixed — but still honour any saved width from settings
+		const subjectCol = this.columns[0];
+		const subjectSettings = fields.find((f) => f.fieldname === subjectCol.df?.fieldname);
+		if (subjectSettings?.width) {
+			subjectCol.df.width = subjectSettings.width;
+		}
+		fields_order.push(subjectCol);
 		this.columns.splice(0, 1);
 
 		for (let fld in fields) {
