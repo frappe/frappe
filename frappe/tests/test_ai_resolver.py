@@ -5,7 +5,7 @@ from typing import Any
 from unittest.mock import patch
 
 import frappe
-from frappe.ai.resolver import resolve_tool, schema_from_code
+from frappe.ai.resolver import schema_from_code
 from frappe.ai.tool import Tool, tool
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
@@ -140,14 +140,13 @@ class TestResolveTool(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def test_module_tool_object_is_resolved(self):
-		doc = frappe.get_doc(_module_doc(pauses_for_user_input=1)).insert()
+		doc = frappe.get_doc(_module_doc()).insert()
 		with patch("frappe.get_attr", return_value=_sample_weather):
 			runtime = doc.to_tool()
 
 		self.assertIsInstance(runtime, Tool)
 		self.assertEqual(runtime.name, "weather")
 		self.assertEqual(runtime.description, "Look up the weather.")
-		self.assertTrue(runtime.pauses_for_user_input)
 		self.assertEqual(runtime.parameters, _sample_weather.parameters)
 		self.assertEqual(runtime(city="Paris"), "sunny in Paris")
 

@@ -13,7 +13,23 @@ from frappe.ai.tool import Tool
 DEFAULT_MAX_ITERATIONS = 10
 ERROR_MESSAGE_LIMIT = 500
 VALID_ROLES = frozenset({"system", "user", "assistant", "tool"})
-SKIPPED_TOOL_PLACEHOLDER = "[skipped: agent paused for user input]"
+
+
+@dataclass
+class Question:
+	"""An LLM-authored prompt shown to the user when a run pauses.
+
+	The same shape covers a free-text ask (empty `options`), a single- or
+	multi-select. When `allow_other` is true the picker always offers an "Other"
+	choice that opens a textbox for the user to reiterate or redirect.
+	`key` routes the answer back (e.g. the tool_call_id it belongs to).
+	"""
+
+	prompt: str
+	options: list[str] = field(default_factory=list)
+	multi_select: bool = False
+	allow_other: bool = True
+	key: str | None = None
 
 
 @dataclass
@@ -24,6 +40,7 @@ class RunResult:
 	iterations: int = 0
 	usage: dict[str, int] = field(default_factory=dict)
 	paused: bool = False
+	questions: list[Question] = field(default_factory=list)
 
 
 class Agent:
@@ -52,9 +69,32 @@ class Agent:
 			self._tools_by_name[tool.name] = tool
 
 	def run(self, input: str | list[dict[str, Any]]) -> RunResult:
-		messages = self._build_initial_messages(input)
+		return self._loop(self._build_initial_messages(input))
+
+	def resume(self, messages: list[dict[str, Any]], answers: dict[str, Any]) -> RunResult:
+		"""Continue a run that paused on a question.
+
+		`answers` maps each pending tool_call_id to the user's answer (a chosen option,
+		a list for multi-select, or free "Other" text). The answer becomes that call's
+		result, and the LLM decides what to do next.
+		"""
+		_validate_messages(messages)
+		messages = list(messages)
+		pending = self._pending_calls(messages)
+		if not pending:
+			raise ValueError("No questions awaiting an answer in the provided messages")
+
+		for call in pending:
+			content = _serialize_tool_result(answers.get(call.id))
+			messages.append({"role": "tool", "tool_call_id": call.id, "content": content})
+
+		return self._loop(messages)
+
+	def _loop(
+		self, messages: list[dict[str, Any]], executed_calls: list[ToolCall] | None = None
+	) -> RunResult:
 		tool_schemas = [t.to_dict() for t in self.tools] or None
-		executed_calls: list[ToolCall] = []
+		executed_calls = executed_calls if executed_calls is not None else []
 		usage_total = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
 
 		for iteration in range(1, self.max_iterations + 1):
@@ -71,16 +111,12 @@ class Agent:
 					usage=usage_total,
 				)
 
-			paused = False
+			questions: list[Question] = []
 			for call in response.tool_calls:
-				if paused:
-					messages.append(
-						{
-							"role": "tool",
-							"tool_call_id": call.id,
-							"content": SKIPPED_TOOL_PLACEHOLDER,
-						}
-					)
+				result = self._invoke(call)
+				if isinstance(result, Question):
+					result.key = call.id
+					questions.append(result)
 					continue
 
 				executed_calls.append(call)
@@ -88,15 +124,11 @@ class Agent:
 					{
 						"role": "tool",
 						"tool_call_id": call.id,
-						"content": self._execute_tool(call),
+						"content": _serialize_tool_result(result),
 					}
 				)
 
-				tool = self._tools_by_name.get(call.name)
-				if tool is not None and tool.pauses_for_user_input:
-					paused = True
-
-			if paused:
+			if questions:
 				return RunResult(
 					output=response.content,
 					messages=messages,
@@ -104,11 +136,25 @@ class Agent:
 					iterations=iteration,
 					usage=usage_total,
 					paused=True,
+					questions=questions,
 				)
 
-		raise RuntimeError(
-			f"Agent {self.name!r} exceeded max_iterations ({self.max_iterations})"
-		)
+		raise RuntimeError(f"Agent {self.name!r} exceeded max_iterations ({self.max_iterations})")
+
+	def _pending_calls(self, messages: list[dict[str, Any]]) -> list[ToolCall]:
+		"""Tool calls in the transcript that have no tool result yet (awaiting an answer)."""
+		answered = {m.get("tool_call_id") for m in messages if m.get("role") == "tool"}
+		pending: list[ToolCall] = []
+		for message in messages:
+			if message.get("role") != "assistant":
+				continue
+			for tc in message.get("tool_calls") or []:
+				if tc["id"] in answered:
+					continue
+				fn = tc["function"]
+				arguments = fn.get("arguments") or "{}"
+				pending.append(ToolCall(id=tc["id"], name=fn["name"], arguments=json.loads(arguments)))
+		return pending
 
 	def _build_initial_messages(self, input: str | list[dict[str, Any]]) -> list[dict[str, Any]]:
 		messages: list[dict[str, Any]] = []
@@ -121,15 +167,15 @@ class Agent:
 			messages.extend(input)
 		return messages
 
-	def _execute_tool(self, call: ToolCall) -> str:
+	def _invoke(self, call: ToolCall) -> Any:
+		"""Run a tool and return its raw result (a Question signals a pause)."""
 		tool = self._tools_by_name.get(call.name)
 		if tool is None:
 			return json.dumps({"error": f"Unknown tool: {call.name!r}"})
 		try:
-			result = tool(**call.arguments)
+			return tool(**call.arguments)
 		except Exception as e:
 			return json.dumps({"error": str(e)[:ERROR_MESSAGE_LIMIT]})
-		return _serialize_tool_result(result)
 
 
 def _validate_messages(messages: Any) -> None:
@@ -140,9 +186,7 @@ def _validate_messages(messages: Any) -> None:
 			raise TypeError(f"messages[{i}] must be a dict, got {type(message).__name__}")
 		role = message.get("role")
 		if role not in VALID_ROLES:
-			raise ValueError(
-				f"messages[{i}].role must be one of {sorted(VALID_ROLES)}, got {role!r}"
-			)
+			raise ValueError(f"messages[{i}].role must be one of {sorted(VALID_ROLES)}, got {role!r}")
 		if role == "tool" and not message.get("tool_call_id"):
 			raise ValueError(f"messages[{i}] is a tool message but has no tool_call_id")
 		if "content" not in message and "tool_calls" not in message:

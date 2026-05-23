@@ -4,7 +4,7 @@
 import json
 from typing import Any
 
-from frappe.ai.agent import Agent, RunResult
+from frappe.ai.agent import Agent, Question, RunResult
 from frappe.ai.model import ChatResponse, ToolCall
 from frappe.ai.tool import tool
 from frappe.tests import UnitTestCase
@@ -308,26 +308,31 @@ class TestAgentLimits(UnitTestCase):
 			Agent(model=FakeModel([]), tools=[a, b])
 
 
-class TestAgentPausesForUserInput(UnitTestCase):
-	def test_pausing_tool_halts_loop_after_execution(self):
-		@tool(pauses_for_user_input=True)
-		def ask_user(question: str) -> str:
-			"""Ask the user."""
-			return "[awaiting answer]"
+def _ask(prompt: str, options: list[str] | None = None, multi_select: bool = False) -> Question:
+	return Question(prompt=prompt, options=options or [], multi_select=multi_select)
 
-		model = FakeModel([_tool_call("ask_user", {"question": "Approve?"})])
+
+class TestAgentConsultation(UnitTestCase):
+	def test_question_returning_tool_pauses(self):
+		@tool
+		def ask_user(prompt: str) -> Question:
+			"""Ask the user."""
+			return _ask(prompt, options=["Customers", "Leads"])
+
+		model = FakeModel([_tool_call("ask_user", {"prompt": "Which list?"}, call_id="c1")])
 		agent = Agent(model=model, tools=[ask_user])
 
-		result = agent.run("hi")
+		result = agent.run("email the list")
 
 		self.assertTrue(result.paused)
-		self.assertEqual(result.iterations, 1)
-		self.assertEqual(len(model.calls), 1)
-		self.assertEqual(result.tool_calls[0].name, "ask_user")
-		tool_msg = next(m for m in result.messages if m["role"] == "tool")
-		self.assertEqual(tool_msg["content"], "[awaiting answer]")
+		self.assertEqual(len(result.questions), 1)
+		question = result.questions[0]
+		self.assertEqual(question.prompt, "Which list?")
+		self.assertEqual(question.options, ["Customers", "Leads"])
+		self.assertEqual(question.key, "c1")
+		self.assertFalse([m for m in result.messages if m["role"] == "tool"])
 
-	def test_non_pausing_tools_still_loop(self):
+	def test_non_question_tools_still_loop(self):
 		@tool
 		def ping() -> str:
 			"""Ping."""
@@ -341,50 +346,94 @@ class TestAgentPausesForUserInput(UnitTestCase):
 		self.assertFalse(result.paused)
 		self.assertEqual(result.iterations, 2)
 
-	def test_resume_works_when_history_includes_paused_run(self):
-		@tool(pauses_for_user_input=True)
-		def ask_user(question: str) -> str:
+	def test_resume_feeds_answer_back_as_result(self):
+		@tool
+		def ask_user(prompt: str) -> Question:
 			"""Ask the user."""
-			return "[awaiting answer]"
+			return _ask(prompt, options=["Customers", "Leads"])
 
-		first_model = FakeModel([_tool_call("ask_user", {"question": "Approve?"})])
-		agent = Agent(model=first_model, tools=[ask_user])
-		first = agent.run("start")
+		agent = Agent(
+			model=FakeModel([_tool_call("ask_user", {"prompt": "Which list?"}, call_id="c1")]),
+			tools=[ask_user],
+		)
+		paused = agent.run("email the list")
 
-		resumed_history = first.messages + [{"role": "user", "content": "yes"}]
-		second_model = FakeModel([_final("got it")])
-		agent.model = second_model
-
-		result = agent.run(resumed_history)
+		agent.model = FakeModel([_final("emailed the customers")])
+		result = agent.resume(paused.messages, {"c1": "Customers"})
 
 		self.assertFalse(result.paused)
-		self.assertEqual(result.output, "got it")
+		self.assertEqual(result.output, "emailed the customers")
+		tool_msg = next(m for m in result.messages if m["role"] == "tool")
+		self.assertEqual(tool_msg["tool_call_id"], "c1")
+		self.assertEqual(tool_msg["content"], "Customers")
 
-	def test_subsequent_tool_calls_in_same_response_are_skipped(self):
-		@tool(pauses_for_user_input=True)
-		def ask_user(question: str) -> str:
+	def test_resume_serializes_multiselect_answer(self):
+		@tool
+		def ask_user(prompt: str) -> Question:
 			"""Ask the user."""
-			return "[awaiting answer]"
+			return _ask(prompt, options=["A", "B", "C"], multi_select=True)
+
+		agent = Agent(
+			model=FakeModel([_tool_call("ask_user", {"prompt": "Which?"}, call_id="c1")]),
+			tools=[ask_user],
+		)
+		paused = agent.run("pick")
+
+		agent.model = FakeModel([_final("ok")])
+		result = agent.resume(paused.messages, {"c1": ["A", "C"]})
+
+		tool_msg = next(m for m in result.messages if m["role"] == "tool")
+		self.assertEqual(json.loads(tool_msg["content"]), ["A", "C"])
+
+	def test_other_tools_run_while_a_question_pauses(self):
+		@tool
+		def safe() -> str:
+			"""Safe."""
+			return "safe-result"
 
 		@tool
-		def side_effect() -> str:
-			"""Should not run."""
-			raise AssertionError("side_effect should not have been called")
+		def ask_user(prompt: str) -> Question:
+			"""Ask the user."""
+			return _ask(prompt)
 
 		response = ChatResponse(
 			content=None,
 			tool_calls=[
-				ToolCall(id="c1", name="ask_user", arguments={"question": "ok?"}),
-				ToolCall(id="c2", name="side_effect", arguments={}),
+				ToolCall(id="c1", name="safe", arguments={}),
+				ToolCall(id="c2", name="ask_user", arguments={"prompt": "ok?"}),
 			],
 		)
-		model = FakeModel([response])
-		agent = Agent(model=model, tools=[ask_user, side_effect])
+		agent = Agent(model=FakeModel([response]), tools=[safe, ask_user])
 
-		result = agent.run("hi")
+		result = agent.run("do both")
 
 		self.assertTrue(result.paused)
-		self.assertEqual([c.name for c in result.tool_calls], ["ask_user"])
+		self.assertEqual([c.name for c in result.tool_calls], ["safe"])
+		self.assertEqual([q.key for q in result.questions], ["c2"])
 		tool_msgs = [m for m in result.messages if m["role"] == "tool"]
-		self.assertEqual(tool_msgs[1]["tool_call_id"], "c2")
-		self.assertIn("paused", tool_msgs[1]["content"])
+		self.assertEqual(len(tool_msgs), 1)
+		self.assertEqual(tool_msgs[0]["content"], "safe-result")
+
+	def test_resume_without_pending_raises(self):
+		agent = Agent(model=FakeModel([]))
+		with self.assertRaises(ValueError):
+			agent.resume([{"role": "user", "content": "hi"}], {})
+
+
+class TestQuestion(UnitTestCase):
+	def test_defaults_are_open_text_with_other(self):
+		q = Question(prompt="What subject line?")
+		self.assertEqual(q.options, [])
+		self.assertFalse(q.multi_select)
+		self.assertTrue(q.allow_other)
+
+	def test_holds_llm_authored_options(self):
+		q = Question(
+			prompt="I'll delete 5 inactive customers.",
+			options=["Go ahead", "Only the 2 oldest"],
+			multi_select=False,
+			key="c1",
+		)
+		self.assertEqual(q.options, ["Go ahead", "Only the 2 oldest"])
+		self.assertTrue(q.allow_other)
+		self.assertEqual(q.key, "c1")

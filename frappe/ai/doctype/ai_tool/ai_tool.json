@@ -11,7 +11,6 @@
   "column_break_meta",
   "kind",
   "enabled",
-  "pauses_for_user_input",
   "section_break_description",
   "description",
   "summary",
@@ -57,13 +56,6 @@
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Enabled"
-  },
-  {
-   "default": "0",
-   "description": "If checked, the agent loop halts after this tool runs and returns control to the caller for user input.",
-   "fieldname": "pauses_for_user_input",
-   "fieldtype": "Check",
-   "label": "Pauses for User Input"
   },
   {
    "fieldname": "section_break_description",

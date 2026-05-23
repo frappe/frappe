@@ -29,7 +29,6 @@ class AITool(Document):
 		enabled: DF.Check
 		import_path: DF.Data | None
 		kind: DF.Literal["Module", "Script"]
-		pauses_for_user_input: DF.Check
 		slug: DF.Data
 		summary: DF.SmallText | None
 		title: DF.Data
