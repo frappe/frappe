@@ -30,10 +30,11 @@
   {
    "description": "Saved agent that produced this run. Empty for ephemeral (in-memory) agents.",
    "fieldname": "agent",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Agent"
+   "label": "Agent",
+   "options": "AI Agent"
   },
   {
    "default": "Manual",

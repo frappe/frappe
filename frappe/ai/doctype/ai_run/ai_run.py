@@ -26,7 +26,7 @@ class AIRun(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		agent: DF.Data | None
+		agent: DF.Link | None
 		config_snapshot: DF.JSON | None
 		error: DF.LongText | None
 		input: DF.LongText | None
