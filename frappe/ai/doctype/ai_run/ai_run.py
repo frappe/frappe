@@ -34,7 +34,7 @@ class AIRun(Document):
 		messages: DF.JSON | None
 		output: DF.LongText | None
 		questions: DF.JSON | None
-		source: DF.Literal["Manual", "Trigger", "Planner"]
+		source: DF.Literal["Manual", "Trigger"]
 		status: DF.Literal["Running", "Paused", "Completed", "Failed"]
 		tool_calls: DF.JSON | None
 		usage: DF.JSON | None

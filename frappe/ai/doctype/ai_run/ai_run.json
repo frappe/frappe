@@ -44,7 +44,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Source",
-   "options": "Manual\nTrigger\nPlanner",
+   "options": "Manual\nTrigger",
    "reqd": 1
   },
   {
