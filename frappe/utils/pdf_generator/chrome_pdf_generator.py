@@ -24,7 +24,8 @@ class ChromePDFGenerator:
 		self._browsers.append(browser)
 
 	def remove_browser(self, browser):
-		self._browsers.remove(browser)
+		if browser in self._browsers:
+			self._browsers.remove(browser)
 
 	def __new__(cls):
 		# Rebuild singleton when chromium subprocess is missing or has exited.
