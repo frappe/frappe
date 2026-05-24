@@ -156,6 +156,7 @@ standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
 
 doc_events = {
 	"*": {
+		"after_insert": "frappe.ai.triggers.dispatch",
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
@@ -165,17 +166,21 @@ doc_events = {
 			"frappe.core.doctype.user_type.user_type.apply_permissions_for_non_standard_user_type",
 			"frappe.core.doctype.permission_log.permission_log.make_perm_log",
 			"frappe.search.sqlite_search.update_doc_index",
+			"frappe.ai.triggers.dispatch",
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
+		"on_submit": "frappe.ai.triggers.dispatch",
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
+			"frappe.ai.triggers.dispatch",
 		],
 		"on_trash": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.search.sqlite_search.delete_doc_index",
+			"frappe.ai.triggers.dispatch",
 		],
 		"on_update_after_submit": [
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
@@ -207,6 +212,9 @@ doc_events = {
 
 scheduler_events = {
 	"cron": {
+		"* * * * *": [
+			"frappe.ai.triggers.dispatch_scheduled",
+		],
 		# 5 minutes
 		"0/5 * * * *": [
 			"frappe.email.doctype.notification.notification.trigger_offset_alerts",

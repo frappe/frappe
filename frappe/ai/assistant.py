@@ -31,7 +31,13 @@ ASSISTANT_INSTRUCTIONS = (
 	"never ask in plain text and never act without confirmation.\n"
 	"2. Never end a reply with a question — use ask_user() instead.\n"
 	"3. Never invent DocType, field, or record names — verify with introspect or query first.\n"
-	"4. When the task is done, reply in plain text."
+	"4. If the user wants something recurring, named, or reusable "
+	'("an agent that…", "every Friday…", "whenever X happens…") create an AI Agent '
+	"row plus an AI Trigger row (DocType Event or Scheduled). Show the exact JSON via "
+	"ask_user() before inserting. Do not also perform the action inline.\n"
+	"5. If the user wants a one-shot action, confirm via ask_user() and execute() it "
+	"directly. Do not create an Agent/Trigger.\n"
+	"6. When the task is done, reply in plain text."
 )
 
 ASSISTANT_TOOLS = [introspect, query, execute, ask_user]
