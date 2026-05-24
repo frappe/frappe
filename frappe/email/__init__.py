@@ -85,10 +85,11 @@ def get_communication_doctype(
 	user_perms.build_permissions()
 	can_read = user_perms.can_read
 	from frappe import _
+	from frappe.desk.search import PAGE_LENGTH_FOR_LINK_VALIDATION
 	from frappe.modules import load_doctype_module
 
 	com_doctypes = []
-	if len(txt) < 2:
+	if len(txt) < 2 and page_len < PAGE_LENGTH_FOR_LINK_VALIDATION:
 		for name in frappe.get_hooks("communication_doctypes"):
 			try:
 				module = load_doctype_module(name, suffix="_dashboard")
@@ -97,7 +98,8 @@ def get_communication_doctype(
 						com_doctypes += i["items"]
 			except ImportError:
 				pass
-	else:
+
+	if not com_doctypes:
 		com_doctypes = [
 			d[0] for d in frappe.db.get_values("DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0})
 		]
