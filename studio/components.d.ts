@@ -63,7 +63,6 @@ declare module 'vue' {
     Input: typeof import('./src/components/Input.vue')['default']
     InputLabel: typeof import('./src/components/InputLabel.vue')['default']
     ItemActions: typeof import('./src/components/ItemActions.vue')['default']
-    Link: typeof import('./src/components/Link/Link.vue')['default']
     ListBox: typeof import('./src/components/ListBox.vue')['default']
     MarginHandler: typeof import('./src/components/MarginHandler.vue')['default']
     MarkdownEditor: typeof import('./src/components/AppLayout/MarkdownEditor.vue')['default']
