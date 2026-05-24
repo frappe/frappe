@@ -156,8 +156,13 @@ def enqueue(
 	try:
 		q = get_queue(queue, is_async=is_async)
 	except ConnectionError:
-		if frappe.local.flags.in_migrate:
-			# If redis is not available during migration, execute the job directly
+		from frappe.utils.redis_wrapper import MemoryCacheWrapper
+
+		redis_unavailable = isinstance(frappe.cache, MemoryCacheWrapper)
+		if frappe.local.flags.in_migrate or redis_unavailable:
+			# If redis is not available during migration, or the cache has already
+			# auto-detected Redis is down and fallen back to in-memory mode,
+			# execute the job directly in the current process instead of failing.
 			print(f"Redis queue is unreachable: Executing {method} synchronously")
 			return frappe.call(method, **kwargs)
 

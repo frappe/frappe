@@ -1,5 +1,5 @@
 import time
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -75,7 +75,7 @@ class TestCachingUtils(IntegrationTestCase):
 
 		# ensure single call if key is hashable
 		for arg in hashable_values:
-			external_service.reset_mock()
+			external_service.call_count = 0
 			for _ in range(2):
 				request_specific_api(arg, 13)
 
@@ -83,7 +83,7 @@ class TestCachingUtils(IntegrationTestCase):
 
 		# multiple calls if key cannot be generated
 		for arg in unhashable_values:
-			external_service.reset_mock()
+			external_service.call_count = 0
 			for _ in range(2):
 				request_specific_api(arg, 13)
 
@@ -361,6 +361,54 @@ class TestRedisWrapper(FrappeAPITestCase):
 
 	def test_backward_compat_cache(self):
 		self.assertEqual(frappe.cache, frappe.cache())
+
+	def test_cache_fallback_on_redis_failure(self):
+		"""Test that cache falls back to memory cache when Redis connection fails"""
+		from frappe.utils.redis_wrapper import setup_cache, MemoryCacheWrapper
+		import redis
+
+		with patch('frappe.utils.redis_wrapper.RedisWrapper.from_url') as mock_from_url:
+			mock_from_url.side_effect = redis.exceptions.ConnectionError("Redis connection failed")
+
+			# Ensure memory cache config is not set
+			original_conf = frappe.conf
+			frappe.conf = type('conf', (), {
+				'get': lambda key, default=None: None,
+				'redis_cache_sentinel_enabled': False
+			})()
+
+			try:
+				cache = setup_cache()
+				self.assertIsInstance(cache, MemoryCacheWrapper,
+					"Should fall back to MemoryCacheWrapper when Redis fails")
+			finally:
+				frappe.conf = original_conf
+
+	def test_memory_cache_operations(self):
+		"""Test that MemoryCacheWrapper works for basic cache operations"""
+		from frappe.utils.redis_wrapper import MemoryCacheWrapper
+
+		cache = MemoryCacheWrapper()
+
+		# Test basic set/get
+		cache.set_value('test_key', 'test_value')
+		self.assertEqual(cache.get_value('test_key'), 'test_value')
+
+		# Test hash operations
+		cache.hset('hash_key', 'field1', 'value1')
+		cache.hset('hash_key', 'field2', 'value2')
+		self.assertEqual(cache.hget('hash_key', 'field1'), 'value1')
+		self.assertEqual(cache.hgetall('hash_key'), {'field1': 'value1', 'field2': 'value2'})
+
+		# Test list operations
+		cache.lpush('list_key', 'item1')
+		cache.lpush('list_key', 'item2')
+		self.assertEqual(cache.lrange('list_key', 0, -1), ['item2', 'item1'])
+		self.assertEqual(cache.lpop('list_key'), 'item2')
+
+		# Test delete operations
+		cache.delete_value('test_key')
+		self.assertIsNone(cache.get_value('test_key'))
 
 
 class TestHttpCache(FrappeAPITestCase):
