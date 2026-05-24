@@ -7,6 +7,7 @@
  "field_order": [
   "agent",
   "source",
+  "trigger",
   "column_break_meta",
   "status",
   "iterations",
@@ -46,6 +47,15 @@
    "label": "Source",
    "options": "Manual\nTrigger",
    "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.source === 'Trigger'",
+   "description": "AI Trigger that started this run, when source is Trigger.",
+   "fieldname": "trigger",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Trigger",
+   "options": "AI Trigger"
   },
   {
    "fieldname": "column_break_meta",

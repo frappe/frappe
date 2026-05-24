@@ -91,7 +91,7 @@ class AIAgent(Document):
 			resolved.append(tool_doc.to_tool())
 		return resolved
 
-	def run(self, input: str, *, source: str = "Manual") -> AIRun:
+	def run(self, input: str, *, source: str = "Manual", trigger: str | None = None) -> AIRun:
 		"""Assemble, run on `input`, and persist the result as an AI Run linked to this agent."""
 		from frappe.ai.doctype.ai_run.ai_run import create_run
 
@@ -100,6 +100,7 @@ class AIAgent(Document):
 			source=source,
 			input=input,
 			agent=self.name,
+			trigger=trigger,
 			config_snapshot=self._snapshot(),
 		)
 		try:

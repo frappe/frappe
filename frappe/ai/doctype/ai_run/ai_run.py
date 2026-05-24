@@ -37,6 +37,7 @@ class AIRun(Document):
 		source: DF.Literal["Manual", "Trigger"]
 		status: DF.Literal["Running", "Paused", "Completed", "Failed"]
 		tool_calls: DF.JSON | None
+		trigger: DF.Link | None
 		usage: DF.JSON | None
 	# end: auto-generated types
 
@@ -90,6 +91,7 @@ def create_run(
 	source: str,
 	input: str | None,
 	agent: str | None = None,
+	trigger: str | None = None,
 	config_snapshot: dict[str, Any] | None = None,
 ) -> AIRun:
 	"""Create a new AI Run row in the Running state."""
@@ -99,6 +101,7 @@ def create_run(
 			"source": source,
 			"input": input,
 			"agent": agent,
+			"trigger": trigger,
 			"config_snapshot": _dump_json(config_snapshot) if config_snapshot else None,
 			"status": "Running",
 		}
@@ -112,10 +115,13 @@ def persist_result(
 	source: str,
 	input: str | None,
 	agent: str | None = None,
+	trigger: str | None = None,
 	config_snapshot: dict[str, Any] | None = None,
 ) -> AIRun:
 	"""Convenience: create a row and immediately apply a finished RunResult."""
-	doc = create_run(source=source, input=input, agent=agent, config_snapshot=config_snapshot)
+	doc = create_run(
+		source=source, input=input, agent=agent, trigger=trigger, config_snapshot=config_snapshot
+	)
 	doc.apply_result(result)
 	return doc
 
