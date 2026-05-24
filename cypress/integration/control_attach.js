@@ -214,15 +214,18 @@ context("Attach Control with Failed Document Save", () => {
 		cy.intercept("POST", "/api/method/upload_file").as("upload_image");
 		cy.get(".modal-footer").findByRole("button", { name: "Upload" }).click({ delay: 500 });
 		cy.wait("@upload_image");
-		cy.get(".msgprint-dialog .modal-title").contains("Missing Fields").should("be.visible");
-		cy.hide_dialog();
-		cy.fill_field("text_field", "Random value", "Text Editor").wait(500);
-		cy.findByRole("button", { name: "Save" }).click().wait(500);
+
+		// After fix for #39480: uploading on a new doc should NOT trigger save/validation
+		cy.get(".msgprint-dialog").should("not.exist");
 
 		//Checking if the URL of the attached image is getting displayed in the field of the newly created doctype
 		cy.get(".attached-file > .ellipsis > .attached-file-link")
 			.should("have.attr", "href")
 			.and("equal", "https://wallpaperplay.com/walls/full/8/2/b/72402.jpg");
+
+		// Now fill mandatory field and save manually
+		cy.fill_field("text_field", "Random value", "Text Editor").wait(500);
+		cy.findByRole("button", { name: "Save" }).click().wait(500);
 
 		cy.get(".title-text-form").then(($value) => {
 			docname = $value.text();
