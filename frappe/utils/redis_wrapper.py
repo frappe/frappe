@@ -672,6 +672,10 @@ class MemoryCacheWrapper:
     def client_id(self):
         return 1
 
+    def execute_command(self, *args, **kwargs):
+        """Stub for Redis execute_command — returns empty dict for INFO commands."""
+        return {}
+
     def pubsub(self):
         """Mock pubsub for compatibility with ClientCache"""
         class MockPubSub:
