@@ -149,7 +149,7 @@ export type Filter = {
 	field: DocTypeField
 }
 
-export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code"
+export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code" | "AI"
 export type RightPanelOptions = "Properties" | "Styles" | "Events" | "Interface"
 export type leftPanelComponentTabOptions = "Standard" | "Custom"
 

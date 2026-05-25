@@ -63,8 +63,15 @@
 				<DataPanel v-show="activeTab === 'Data'" />
 
 				<div v-show="activeTab === 'Code'">
-					<CodePanel class="p-4" v-if="store.activePage" :page="store.activePage" :key="store.selectedPage" />
+					<CodePanel
+						class="p-4"
+						v-if="store.activePage"
+						:page="store.activePage"
+						:key="store.selectedPage ?? undefined"
+					/>
 				</div>
+
+				<AIPanel v-show="activeTab === 'AI'" />
 			</div>
 		</transition>
 	</div>
@@ -81,6 +88,7 @@ import ComponentLayers from "@/components/ComponentLayers.vue"
 import DataPanel from "@/components/DataPanel.vue"
 import CodePanel from "@/components/CodePanel.vue"
 import IconButton from "@/components/IconButton.vue"
+import AIPanel from "@/components/AIPanel.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
@@ -107,6 +115,10 @@ const sidebarMenu = [
 	{
 		label: "Code",
 		icon: "code",
+	},
+	{
+		label: "AI",
+		icon: "zap",
 	},
 ]
 const store = useStudioStore()

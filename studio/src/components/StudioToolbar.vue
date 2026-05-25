@@ -19,6 +19,11 @@
 								onClick: () => (showAppDialog = true),
 							},
 							{
+								label: 'Studio Settings',
+								icon: 'sliders',
+								onClick: () => (showStudioSettingsDialog = true),
+							},
+							{
 								label: 'Delete App',
 								icon: 'trash-2',
 								theme: 'red',
@@ -127,8 +132,9 @@
 		<AppDialog
 			v-model:showDialog="showAppDialog"
 			:app="store.activeApp"
-			@update="(app) => store.setApp(app.name)"
+			@update="(app: StudioApp) => store.setApp(app.name)"
 		/>
+		<StudioSettingsDialog v-model:showDialog="showStudioSettingsDialog" />
 	</div>
 </template>
 
@@ -142,11 +148,13 @@ import PageOptions from "@/components/PageOptions.vue"
 import StudioLogo from "@/components/Icons/StudioLogo.vue"
 import ExportAppDialog from "@/components/ExportAppDialog.vue"
 import PublishButton from "@/components/PublishButton.vue"
+import StudioSettingsDialog from "@/components/StudioSettingsDialog.vue"
 
 import type { StudioMode } from "@/types"
 import session from "@/utils/session"
 import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
 import { isObjectEmpty, openInDesk } from "@/utils/helpers"
+import { StudioApp } from "@/types/Studio/StudioApp"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
@@ -156,4 +164,5 @@ const showExportAppDialog = ref(false)
 const canExportApp = computed(() => window.is_developer_mode && !isObjectEmpty(store.activeApp))
 
 const showAppDialog = ref(false)
+const showStudioSettingsDialog = ref(false)
 </script>
