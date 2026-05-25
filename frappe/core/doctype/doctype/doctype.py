@@ -571,6 +571,8 @@ class DocType(Document):
 				self.make_controller_template()
 				self.set_base_class_for_controller()
 				self.export_types_to_controller()
+				if needs_after_doctype_insert:
+					self.regenerate_doctype_imports()
 				if defer_module_methods:
 					run_doctype_module_methods()
 
@@ -893,6 +895,17 @@ class DocType(Document):
 		from frappe.modules.export_file import export_to_files
 
 		export_to_files(record_list=[["DocType", self.name]], create_init=True)
+
+	def regenerate_doctype_imports(self):
+		"""Refresh `{app}/doctypes.py` so the new DocType is importable from it."""
+		from frappe.modules.utils import get_module_app
+		from frappe.utils.generate_doctype_imports import generate
+
+		try:
+			app = get_module_app(self.module)
+		except Exception:
+			return
+		generate(app)
 
 	def make_controller_template(self):
 		"""Make boilerplate controller template."""

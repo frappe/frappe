@@ -998,6 +998,19 @@ def setup_chrome():
 	setup_chromium()
 
 
+@click.command("generate-doctype-imports")
+@click.argument("apps", nargs=-1)
+def generate_doctype_imports(apps):
+	"""(Re)generate `doctypes.py` and `doctypes.pyi` for the given apps (default: all installed apps)."""
+	from frappe.utils.generate_doctype_imports import generate
+
+	frappe.init(site="")
+	apps = apps or frappe.get_all_apps(with_internal_apps=False, sites_path=os.getcwd())
+	for app in apps:
+		py, pyi = generate(app)
+		click.echo(f"{app}: wrote {py.relative_to(py.parents[1])}, {pyi.relative_to(pyi.parents[1])}")
+
+
 commands = [
 	build,
 	clear_cache,
@@ -1031,4 +1044,5 @@ commands = [
 	rebuild_global_search,
 	list_sites,
 	setup_chrome,
+	generate_doctype_imports,
 ]
