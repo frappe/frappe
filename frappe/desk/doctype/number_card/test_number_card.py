@@ -1,13 +1,5 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-<<<<<<< HEAD
-# import frappe
-from frappe.tests.utils import FrappeTestCase
-
-
-class TestNumberCard(FrappeTestCase):
-	pass
-=======
 import frappe
 from frappe.desk.doctype.number_card.number_card import get_cards_for_user
 from frappe.tests import IntegrationTestCase
@@ -143,4 +135,3 @@ class TestNumberCard(IntegrationTestCase):
 
 		self.assertEqual([row[0] for row in blocked_results], [])
 		self.assertEqual([row[0] for row in allowed_results], [allowed_card_name])
->>>>>>> 0744c9b960 (test: add test case)
