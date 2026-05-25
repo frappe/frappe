@@ -649,7 +649,10 @@ frappe.ui.form.on("Data Import", {
 				rows_display: frm.events.rows_display(item.rows),
 			};
 			if (existing[key]) {
+				const target_value = existing[key].target_value;
 				Object.assign(existing[key], data);
+				// Keep in-progress user edits; only fill target from saved lookup when empty.
+				existing[key].target_value = target_value || data.target_value;
 				continue;
 			}
 			frm.add_child("value_mappings", data);

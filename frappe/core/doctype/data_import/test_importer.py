@@ -181,8 +181,6 @@ class TestImporter(IntegrationTestCase):
 			"Contact",
 			["Opn", "Pasiv", "Open"],
 			value_row_numbers=[2, 3, 4],
-			value_lookup=value_lookup,
-			reference_doctype="Contact",
 		)
 		self.assertEqual(col.warnings[0]["type"], "value_mapping")
 		self.assertIn("Opn", col.warnings[0]["message"])
@@ -190,6 +188,25 @@ class TestImporter(IntegrationTestCase):
 		unmapped = get_unmapped_invalid_values_for_column(col, value_lookup, "Contact")
 		self.assertEqual(len(unmapped), 1)
 		self.assertEqual(unmapped[0]["source"], "Opn")
+
+	def test_source_value_strip_applied_during_import_resolve(self):
+		from frappe.core.doctype.data_import.value_mapping import (
+			build_lookup_from_mappings,
+			resolve_import_value,
+		)
+
+		lookup = build_lookup_from_mappings(
+			[
+				{
+					"reference_doctype": "Contact",
+					"fieldname": "status",
+					"source_value": "Pasiv",
+					"target_value": "Passive",
+				}
+			]
+		)
+		df = frappe._dict(fieldname="status", parent="Contact")
+		self.assertEqual(resolve_import_value(" Pasiv ", df, "Contact", lookup), "Passive")
 
 	def test_format_row_numbers_for_warning_truncates_long_lists(self):
 		from frappe.core.doctype.data_import.importer import format_row_numbers_for_warning

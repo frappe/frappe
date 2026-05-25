@@ -89,7 +89,7 @@
    "label": "Value Mappings"
   },
   {
-   "depends_on": "eval:!doc.__islocal && doc.import_file",
+   "depends_on": "eval:!doc.__islocal && (doc.import_file || doc.google_sheets_url)",
    "fieldname": "value_mappings",
    "fieldtype": "Table",
    "label": "",

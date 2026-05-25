@@ -972,8 +972,6 @@ class Header(Row):
 				map_to_field,
 				self.seen,
 				value_row_numbers,
-				self.value_lookup,
-				self.reference_doctype,
 			)
 			self.seen.append(header)
 			self.columns.append(column)
@@ -1015,8 +1013,6 @@ class Column:
 		map_to_field=None,
 		seen=None,
 		value_row_numbers=None,
-		value_lookup=None,
-		reference_doctype=None,
 	):
 		if seen is None:
 			seen = []
@@ -1028,9 +1024,7 @@ class Column:
 		self.value_row_numbers = value_row_numbers or list(range(2, len(column_values) + 2))
 		self.map_to_field = map_to_field
 		self.seen = seen
-		self.value_lookup = value_lookup or {}
-		self.reference_doctype = reference_doctype or doctype
-		self.invalid_value_items = []
+		self.invalid_value_items = None
 
 		self.date_format = None
 		self.df = None
