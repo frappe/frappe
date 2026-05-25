@@ -1,6 +1,7 @@
 import json
 
 import frappe
+import litellm
 
 COMPONENT_CATALOG = """
 LAYOUT:
@@ -129,14 +130,9 @@ EXAMPLE — "A login form with email, password and a submit button":
 
 @frappe.whitelist()
 def generate_page_from_prompt(prompt: str) -> str:
-	try:
-		import litellm
-	except ImportError:
-		frappe.throw("litellm is not installed. Run: pip install litellm")
-
 	settings = frappe.get_single("Studio Settings")
 	api_key = settings.get_password("openrouter_api_key") if settings.openrouter_api_key else None
-	model = settings.ai_model or "openrouter/anthropic/claude-3.5-sonnet"
+	model = settings.ai_model or "openrouter/google/gemini-3.1-pro-preview"
 
 	if not api_key:
 		frappe.throw("OpenRouter API key is not configured. Please set it in Studio Settings.")
