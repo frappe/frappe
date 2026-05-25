@@ -99,6 +99,39 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.oauth_client.delete(force=True)
 		frappe.db.rollback()
 
+	def get_authorization_code(self, **params):
+		update_client_for_auth_code_grant(self.client_id)
+		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
+		resp = self.get(
+			"/api/method/frappe.integrations.oauth2.authorize",
+			{
+				"client_id": self.client_id,
+				"scope": self.scope,
+				"response_type": "code",
+				"redirect_uri": self.redirect_uri,
+				**params,
+			},
+			follow_redirects=True,
+		)
+		query = parse_qs(resp.request.environ["QUERY_STRING"])
+		return query.get("code")[0]
+
+	def get_bearer_token(self, **params):
+		auth_code = self.get_authorization_code()
+		token_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			headers=self.form_header,
+			data={
+				"grant_type": "authorization_code",
+				"code": auth_code,
+				"redirect_uri": self.redirect_uri,
+				"client_id": self.client_id,
+				"scope": self.scope,
+				**params,
+			},
+		)
+		return token_response.json
+
 	def test_invalid_login(self):
 		with suppress_stdout():
 			self.assertFalse(check_valid_openid_response(client=self))
@@ -247,6 +280,84 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertFalse(
 			check_valid_openid_response(access_token=bearer_token.get("access_token"), client=self)
 		)
+
+	def test_refresh_token_grant(self):
+		"""The token endpoint should accept refresh_token grants with explicit request params."""
+		bearer_token = self.get_bearer_token()
+
+		refresh_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			headers=self.form_header,
+			data={
+				"grant_type": "refresh_token",
+				"refresh_token": bearer_token.get("refresh_token"),
+				"client_id": self.client_id,
+			},
+		)
+		refreshed_token = refresh_response.json
+
+		self.assertTrue(refreshed_token.get("access_token"))
+		self.assertTrue(refreshed_token.get("refresh_token"))
+		self.assertTrue(
+			check_valid_openid_response(access_token=refreshed_token.get("access_token"), client=self)
+		)
+
+	def test_revoke_refresh_token(self):
+		"""The revocation endpoint should revoke refresh tokens without changing request shape."""
+		bearer_token = self.get_bearer_token()
+
+		revoke_token_response = self.post(
+			"/api/method/frappe.integrations.oauth2.revoke_token",
+			headers=self.form_header,
+			data={
+				"token": bearer_token.get("refresh_token"),
+				"token_type_hint": "refresh_token",
+				"client_id": self.client_id,
+			},
+		)
+
+		self.assertEqual(revoke_token_response.status_code, 200)
+		refresh_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			headers=self.form_header,
+			data={
+				"grant_type": "refresh_token",
+				"refresh_token": bearer_token.get("refresh_token"),
+				"client_id": self.client_id,
+			},
+		)
+		self.assertNotEqual(refresh_response.status_code, 200)
+
+	def test_introspect_token(self):
+		"""The introspection endpoint should report active token metadata over POST."""
+		bearer_token = self.get_bearer_token()
+
+		introspection_response = self.post(
+			"/api/method/frappe.integrations.oauth2.introspect_token",
+			headers=self.form_header,
+			data={
+				"token": bearer_token.get("access_token"),
+				"token_type_hint": "access_token",
+			},
+		)
+		introspection = introspection_response.json
+
+		self.assertTrue(introspection.get("active"))
+		self.assertEqual(introspection.get("client_id"), self.client_id)
+		self.assertEqual(introspection.get("scope"), self.scope)
+
+	def test_openid_profile_post_body_token(self):
+		"""The UserInfo endpoint should continue accepting access tokens in POST bodies."""
+		bearer_token = self.get_bearer_token()
+
+		openid_response = self.post(
+			"/api/method/frappe.integrations.oauth2.openid_profile",
+			headers=self.form_header,
+			data={"access_token": bearer_token.get("access_token")},
+		)
+
+		self.assertEqual(openid_response.status_code, 200)
+		self.assertEqual(openid_response.json.get("email"), "test@example.com")
 
 	def test_resource_owner_password_credentials_grant(self):
 		client = frappe.get_doc("OAuth Client", self.client_id)
