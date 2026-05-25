@@ -203,7 +203,9 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			{
 				label: __("Show Warnings"),
 				handler: "show_warnings",
-				condition: this.preview_data.warnings.length > 0,
+				condition:
+					this.preview_data.warnings.length > 0 &&
+					!["Success", "Partial Success"].includes(this.frm.doc.status),
 			},
 		];
 

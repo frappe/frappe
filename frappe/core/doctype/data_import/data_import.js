@@ -519,6 +519,12 @@ frappe.ui.form.on("Data Import", {
 			return;
 		}
 
+		if (["Success", "Partial Success"].includes(frm.doc.status)) {
+			frm.events.toggle_import_issues_ui(frm, false, false);
+			frm.get_field("import_warnings")?.$wrapper.html("");
+			return;
+		}
+
 		if (!preview_data && frm.import_preview?.data_import_name === frm.doc.name) {
 			preview_data = frm.import_preview.preview_data;
 		}
