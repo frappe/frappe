@@ -150,16 +150,25 @@ def generate_page_from_prompt(prompt: str) -> str:
 	if not content:
 		frappe.throw("The AI model returned an empty response. Try a different model or prompt.")
 
-	# strip markdown code fences if the model wrapped the JSON
-	content = content.strip()
-	if content.startswith("```"):
-		content = content.split("\n", 1)[-1]
-		content = content.rsplit("```", 1)[0].strip()
-
-	parsed = json.loads(content)
+	content = strip_fences(content)
+	try:
+		parsed = json.loads(content)
+	except json.JSONDecodeError as e:
+		frappe.log_error(title="Studio AI: JSON parse error", message=f"{e}\ncontent:\n{content}")
+		frappe.throw(f"The AI model returned invalid JSON ({e}). Raw response has been logged.")
 
 	blocks = parsed.get("blocks", parsed) if isinstance(parsed, dict) else parsed
 	if not isinstance(blocks, list):
 		frappe.throw("AI returned an unexpected response format. Please try again.")
 
 	return json.dumps(blocks)
+
+
+def strip_fences(text: str) -> str:
+	text = text.strip()
+	if text.startswith("```"):
+		lines = text.splitlines()
+		# drop first line (```json or ```) and last line (```)
+		inner_lines = lines[1:-1] if lines[-1].strip() == "```" else lines[1:]
+		return "\n".join(inner_lines).strip()
+	return text
