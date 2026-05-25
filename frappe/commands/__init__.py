@@ -112,6 +112,7 @@ def get_commands():
 	from .testing import commands as testing_commands
 	from .translate import commands as translate_commands
 	from .utils import commands as utils_commands
+	from .wizard import commands as wizard_commands
 
 	clickable_link = "https://frappeframework.com/docs"
 	all_commands = (
@@ -122,6 +123,7 @@ def get_commands():
 		+ gettext_commands
 		+ utils_commands
 		+ redis_commands
+		+ wizard_commands
 	)
 
 	for command in all_commands:
