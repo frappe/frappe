@@ -42,13 +42,14 @@ def get_oauth_server():
 	return frappe.local.oauth_server
 
 
-def sanitize_kwargs(param_kwargs):
-	"""Remove 'data' and 'cmd' keys, if present."""
-	arguments = param_kwargs
-	arguments.pop("data", None)
-	arguments.pop("cmd", None)
+def get_oauth_params(params):
+	"""Return OAuth request params that were explicitly passed to the endpoint."""
+	return {key: value for key, value in params.items() if value is not None}
 
-	return arguments
+
+def get_oauth_request_url(params):
+	request_url = urlparse(frappe.request.url)
+	return request_url._replace(query=encode_params(params)).geturl()
 
 
 def encode_params(params):
@@ -63,18 +64,58 @@ def encode_params(params):
 
 
 @frappe.whitelist()
-def approve(*args, **kwargs):
+def approve(
+	response_type: str | None = None,
+	client_id: str | None = None,
+	redirect_uri: str | None = None,
+	scope: str | None = None,
+	state: str | None = None,
+	code_challenge: str | None = None,
+	code_challenge_method: str | None = None,
+	nonce: str | None = None,
+	response_mode: str | None = None,
+	prompt: str | None = None,
+	max_age: str | None = None,
+	ui_locales: str | None = None,
+	id_token_hint: str | None = None,
+	login_hint: str | None = None,
+	acr_values: str | None = None,
+	display: str | None = None,
+	claims: str | None = None,
+):
+	authorization_params = get_oauth_params(
+		{
+			"response_type": response_type,
+			"client_id": client_id,
+			"redirect_uri": redirect_uri,
+			"scope": scope,
+			"state": state,
+			"code_challenge": code_challenge,
+			"code_challenge_method": code_challenge_method,
+			"nonce": nonce,
+			"response_mode": response_mode,
+			"prompt": prompt,
+			"max_age": max_age,
+			"ui_locales": ui_locales,
+			"id_token_hint": id_token_hint,
+			"login_hint": login_hint,
+			"acr_values": acr_values,
+			"display": display,
+			"claims": claims,
+		}
+	)
+	request_url = get_oauth_request_url(authorization_params)
 	r = frappe.request
 
 	try:
 		(
 			scopes,
 			frappe.flags.oauth_credentials,
-		) = get_oauth_server().validate_authorization_request(r.url, r.method, r.get_data(), r.headers)
+		) = get_oauth_server().validate_authorization_request(request_url, r.method, None, r.headers)
 
 		headers, _body, _status = get_oauth_server().create_authorization_response(
 			uri=frappe.flags.oauth_credentials["redirect_uri"],
-			body=r.get_data(),
+			body=None,
 			headers=r.headers,
 			scopes=scopes,
 			credentials=frappe.flags.oauth_credentials,
@@ -90,21 +131,61 @@ def approve(*args, **kwargs):
 
 
 @frappe.whitelist(allow_guest=True)
-def authorize(**kwargs):
-	success_url = "/api/method/frappe.integrations.oauth2.approve?" + encode_params(sanitize_kwargs(kwargs))
-	failure_url = frappe.form_dict.get("redirect_uri", "") + "?error=access_denied"
+def authorize(
+	response_type: str | None = None,
+	client_id: str | None = None,
+	redirect_uri: str | None = None,
+	scope: str | None = None,
+	state: str | None = None,
+	code_challenge: str | None = None,
+	code_challenge_method: str | None = None,
+	nonce: str | None = None,
+	response_mode: str | None = None,
+	prompt: str | None = None,
+	max_age: str | None = None,
+	ui_locales: str | None = None,
+	id_token_hint: str | None = None,
+	login_hint: str | None = None,
+	acr_values: str | None = None,
+	display: str | None = None,
+	claims: str | None = None,
+):
+	authorization_params = get_oauth_params(
+		{
+			"response_type": response_type,
+			"client_id": client_id,
+			"redirect_uri": redirect_uri,
+			"scope": scope,
+			"state": state,
+			"code_challenge": code_challenge,
+			"code_challenge_method": code_challenge_method,
+			"nonce": nonce,
+			"response_mode": response_mode,
+			"prompt": prompt,
+			"max_age": max_age,
+			"ui_locales": ui_locales,
+			"id_token_hint": id_token_hint,
+			"login_hint": login_hint,
+			"acr_values": acr_values,
+			"display": display,
+			"claims": claims,
+		}
+	)
+	request_url = get_oauth_request_url(authorization_params)
+	success_url = "/api/method/frappe.integrations.oauth2.approve?" + encode_params(authorization_params)
+	failure_url = (redirect_uri or "") + "?error=access_denied"
 
 	if frappe.session.user == "Guest":
 		# Force login, redirect to preauth again.
 		frappe.local.response["type"] = "redirect"
-		frappe.local.response["location"] = "/login?" + encode_params({"redirect-to": frappe.request.url})
+		frappe.local.response["location"] = "/login?" + encode_params({"redirect-to": request_url})
 	else:
 		try:
 			r = frappe.request
 			(
 				scopes,
 				frappe.flags.oauth_credentials,
-			) = get_oauth_server().validate_authorization_request(r.url, r.method, r.get_data(), r.headers)
+			) = get_oauth_server().validate_authorization_request(request_url, r.method, None, r.headers)
 
 			skip_auth = frappe.db.get_value(
 				"OAuth Client",
@@ -126,7 +207,7 @@ def authorize(**kwargs):
 				# Show Allow/Deny screen.
 				response_html_params = frappe._dict(
 					{
-						"client_id": frappe.db.get_value("OAuth Client", kwargs["client_id"], "app_name"),
+						"client_id": frappe.db.get_value("OAuth Client", client_id, "app_name"),
 						"success_url": success_url,
 						"failure_url": failure_url,
 						"details": scopes,
@@ -141,11 +222,36 @@ def authorize(**kwargs):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_token(*args, **kwargs):
+def get_token(
+	grant_type: str | None = None,
+	code: str | None = None,
+	redirect_uri: str | None = None,
+	client_id: str | None = None,
+	client_secret: str | None = None,
+	scope: str | None = None,
+	code_verifier: str | None = None,
+	refresh_token: str | None = None,
+	username: str | None = None,
+	password: str | None = None,
+):
+	token_params = get_oauth_params(
+		{
+			"grant_type": grant_type,
+			"code": code,
+			"redirect_uri": redirect_uri,
+			"client_id": client_id,
+			"client_secret": client_secret,
+			"scope": scope,
+			"code_verifier": code_verifier,
+			"refresh_token": refresh_token,
+			"username": username,
+			"password": password,
+		}
+	)
 	try:
 		r = frappe.request
 		_headers, body, _status = get_oauth_server().create_token_response(
-			r.url, r.method, r.form, r.headers, frappe.flags.oauth_credentials
+			r.url, r.method, token_params, r.headers, frappe.flags.oauth_credentials
 		)
 		body = frappe._dict(json.loads(body))
 
@@ -162,13 +268,26 @@ def get_token(*args, **kwargs):
 
 
 @frappe.whitelist(allow_guest=True)
-def revoke_token(*args, **kwargs):
+def revoke_token(
+	token: str | None = None,
+	token_type_hint: str | None = None,
+	client_id: str | None = None,
+	client_secret: str | None = None,
+):
+	revocation_params = get_oauth_params(
+		{
+			"token": token,
+			"token_type_hint": token_type_hint,
+			"client_id": client_id,
+			"client_secret": client_secret,
+		}
+	)
 	try:
 		r = frappe.request
 		_headers, _body, status = get_oauth_server().create_revocation_response(
 			r.url,
 			headers=r.headers,
-			body=r.form,
+			body=revocation_params,
 			http_method=r.method,
 		)
 	except (FatalClientError, OAuth2Error):
@@ -181,13 +300,14 @@ def revoke_token(*args, **kwargs):
 
 
 @frappe.whitelist()
-def openid_profile(*args, **kwargs):
+def openid_profile(access_token: str | None = None):
+	userinfo_params = get_oauth_params({"access_token": access_token})
 	try:
 		r = frappe.request
 		_headers, body, _status = get_oauth_server().create_userinfo_response(
 			r.url,
 			headers=r.headers,
-			body=r.form,
+			body=userinfo_params if r.method == "POST" else None,
 		)
 		body = frappe._dict(json.loads(body))
 		frappe.local.response = body
