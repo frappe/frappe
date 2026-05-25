@@ -12,13 +12,12 @@
 	margin-bottom: {{ print_format.margin_bottom | int }}mm;
 	margin-left: {{ print_format.margin_left | int }}mm;
 	margin-right: {{ print_format.margin_right | int }}mm;
-	padding-top: {{ (header_height or 0) + 8 }}px;
-	padding-bottom: {{ (footer_height or 0) + 8 }}px;
-
-	/* page number */
+	{% if not for_chrome %}
+	/* page number via CSS margin boxes (WeasyPrint / browser print only) */
 	{% set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
 	{% if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}
 	{{ render_margin_text(page_number_position, _('{0} of {1}').format('counter(page) "', '" counter(pages)')) }}
+	{% endif %}
 	{% endif %}
 }
 
@@ -31,9 +30,7 @@ body {
 	max-width: {{ body_width | int }}mm !important;
 }
 
-/* CSS rules to fix bootstrap column rendering in PDF
-   https://github.com/Kozea/WeasyPrint/issues/697#issuecomment-542338732
-*/
+/* Fix bootstrap column rendering in PDF */
 @media print {
 	.col, *[class^="col-"] {
 		max-width: none !important;
@@ -99,12 +96,20 @@ body {
 	text-align: right;
 }
 
-.table-row {
-	page-break-inside: avoid;
-}
-
 .page-break {
 	page-break-after: always;
+}
+
+/* Override Bootstrap's tr { page-break-inside: avoid } so tall child-table rows
+   flow across pages; keep thead repeating on each new page. */
+@media print {
+	.child-table tr {
+		page-break-inside: auto;
+		break-inside: auto;
+	}
+	.child-table thead {
+		display: table-header-group;
+	}
 }
 
 .document-header {

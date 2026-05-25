@@ -1,3 +1,4 @@
+import faulthandler
 import logging
 from collections.abc import Callable
 from contextlib import contextmanager

@@ -191,7 +191,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		return `
 			<button class="data-pill btn tb-selected-value" data-value="${encoded_value}">
 				<span class="btn-link-to-form">${__(frappe.utils.escape_html(pill_name))}</span>
-				<span class="btn-remove">${frappe.utils.icon("close")}</span>
+				<span class="btn-remove">${frappe.utils.icon("x")}</span>
 			</button>
 		`;
 	}

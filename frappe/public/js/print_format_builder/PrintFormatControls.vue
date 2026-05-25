@@ -252,8 +252,7 @@ let page_number_positions = computed(() => {
 
 // mounted
 onMounted(() => {
-	let method =
-		"frappe.printing.page.print_format_builder_beta.print_format_builder_beta.get_google_fonts";
+	let method = "frappe.printing.page.print_format_builder.print_format_builder.get_google_fonts";
 	frappe.call(method).then((r) => {
 		google_fonts.value = r.message || [];
 		if (!google_fonts.value.includes(print_format.value.font)) {

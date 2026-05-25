@@ -35,17 +35,17 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 
 		this.toggle_password = $(`
 			<div class="toggle-password hidden">
-				${frappe.utils.icon("unhide", "sm")}
+				${frappe.utils.icon("eye", "sm")}
 			</div>
 		`).insertAfter(this.$input);
 
 		this.toggle_password.on("click", () => {
 			if (this.$input.attr("type") === "password") {
 				this.$input.attr("type", "text");
-				this.toggle_password.html(frappe.utils.icon("hide", "sm"));
+				this.toggle_password.html(frappe.utils.icon("eye-off", "sm"));
 			} else {
 				this.$input.attr("type", "password");
-				this.toggle_password.html(frappe.utils.icon("unhide", "sm"));
+				this.toggle_password.html(frappe.utils.icon("eye", "sm"));
 			}
 		});
 

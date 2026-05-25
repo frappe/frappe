@@ -480,3 +480,16 @@ def find_file_by_url(path: str, name: str | None = None) -> "File" | None:
 
 def get_safe_file_name(file_name: str) -> str:
 	return re.sub(r"[/\\%?#]", "_", file_name)
+
+
+def check_path_safety(base_path: str, requested_path: str) -> bool:
+	"""Util to check path safety by ensuring sandboxing and logging unsuccessful attempts"""
+	base_path = os.path.realpath(base_path)
+	requested_path = os.path.realpath(requested_path)
+	if os.path.commonpath([base_path, requested_path]) != base_path:
+		frappe.log_error(
+			title="Attempted Unauthorized File Access",
+			message=f"Blocked access to: {requested_path}",
+		)
+		return False
+	return True

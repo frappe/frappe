@@ -88,9 +88,10 @@
 	overflow: auto;
 	padding-left: 15px;
 	padding-right: 15px;
+	padding-bottom: 15px;
 
 	.datatable {
-		border-radius: var(--border-radius);
+		border-radius: var(--border-radius) var(--border-radius) 0 0;
 	}
 }
 
@@ -166,7 +167,7 @@
 	}
 
 	.datatable .dt-row-filter .dt-filter.dt-input {
-		padding-inline-end: 1.5rem;
+		padding-inline-end: 0.5rem;
 	}
 
 	.datatable .dt-row-filter .comparison-help-icon {

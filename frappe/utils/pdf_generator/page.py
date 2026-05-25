@@ -116,7 +116,14 @@ class Page:
 
 	def intercept_request_for_local_resources(self, url_pattern="*"):
 		"""Starts intercepting network requests for the given target_id and URL pattern."""
+		import os
+
 		data = {}
+
+		bench_sites = os.path.abspath(os.path.join(frappe.utils.get_bench_path(), "sites"))
+		asset_path = os.path.abspath(os.path.join(bench_sites, "assets"))
+		site_public_root = os.path.realpath(frappe.utils.get_site_path("public"))
+		files_path = os.path.realpath(frappe.utils.get_site_path("public", "files"))
 
 		def on_request_paused_event(future, response):
 			"""Callback for when a request is paused (intercepted)."""
@@ -127,11 +134,17 @@ class Page:
 
 				if url.startswith(get_host_url()):
 					path = url.replace(get_host_url(), "").split("?v", 1)[0]
-					if path.startswith("assets/") or path.startswith("files/"):
-						path = urllib.parse.unquote(path)
-						if path.startswith("files/"):
-							path = frappe.utils.get_site_path("public", path)
-						content = frappe.read_file(path, as_base64=True)
+					clean_path = urllib.parse.unquote(path)
+
+					if clean_path.startswith("assets/"):
+						final_system_path = os.path.abspath(os.path.join(bench_sites, clean_path))
+						is_safe = os.path.commonpath([final_system_path, asset_path]) == asset_path
+					else:
+						final_system_path = os.path.realpath(os.path.join(site_public_root, clean_path))
+						is_safe = os.path.commonpath([final_system_path, files_path]) == files_path
+
+					if is_safe:
+						content = frappe.read_file(final_system_path, as_base64=True)
 						response_headers = []
 						# write logic to handle all file types as required
 						if path.endswith(".svg"):
@@ -148,6 +161,17 @@ class Page:
 								return_future=True,
 							)
 							return
+					elif path:
+						self.session.send(
+							"Fetch.failRequest",
+							{"requestId": data["request_id"], "errorReason": "AccessDenied"},
+							return_future=True,
+						)
+						frappe.log_error(
+							title="Attempted Unauthorized File Access in PDF Generator",
+							message=f"Blocked access to: {path} \nResolved Path to: {final_system_path}",
+						)
+						return
 				self.session.send(
 					"Fetch.continueRequest",
 					{"requestId": data["request_id"]},

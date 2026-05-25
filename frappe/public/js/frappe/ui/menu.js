@@ -29,8 +29,6 @@ frappe.ui.menu = class ContextMenu {
 			});
 		} else {
 			$(this.opts.parent).on("click", function (event) {
-				event.preventDefault();
-				event.stopPropagation();
 				if (!me.parent_menu) {
 					if (me.visible) {
 						me.hide();
@@ -110,6 +108,13 @@ frappe.ui.menu = class ContextMenu {
 					</div>
 					<span class="menu-item-title">${__(item.label)}</span>
 					${
+						item.shortcut
+							? `<span class="menu-item-shortcut">${frappe.ui.keys.get_shortcut_label(
+									item.shortcut
+							  )}</span>`
+							: ""
+					}
+					${
 						item.items && item.items.length
 							? `<div class="menu-item-icon" style="margin-left:auto">
 						${frappe.utils.icon(`chevron-${chevron_direction}`)}
@@ -175,7 +180,22 @@ frappe.ui.menu = class ContextMenu {
 		if (item.items) {
 			let nested_menu = this.handle_nested_menu(item_wrapper, item);
 			this.nested_menus.push(nested_menu);
+			me.handle_submenu_hover(item_wrapper);
 		}
+	}
+	handle_submenu_hover(item_wrapper) {
+		const me = this;
+
+		$(item_wrapper).on("mouseenter", function (event) {
+			me.nested_menus.forEach((menu) => {
+				if (menu.parent.get(0) === this) {
+					me.current_menu = menu;
+					menu.show(event);
+				} else {
+					menu.hide();
+				}
+			});
+		});
 	}
 
 	handle_nested_menu(item_wrapper, item) {
@@ -242,6 +262,11 @@ frappe.ui.menu = class ContextMenu {
 	hide() {
 		this.template.css("display", "none");
 		this.visible = false;
+		if (this.nested_menus && this.nested_menus.length) {
+			this.nested_menus.forEach((menu) => {
+				menu.hide();
+			});
+		}
 	}
 	mouseX(evt) {
 		if (evt.pageX) {
@@ -283,12 +308,19 @@ frappe.ui.create_menu = function (opts) {
 
 	frappe.menu_map[context_menu.name] = context_menu;
 
-	$(document).on("click", function () {
-		if (frappe.menu_map[context_menu.name].visible) {
-			frappe.menu_map[context_menu.name].hide();
-			opts.onHide && opts.onHide(opts.parent);
-		}
-	});
+	document.addEventListener(
+		"click",
+		function (e) {
+			if (
+				frappe.menu_map[context_menu.name].visible &&
+				!context_menu.template[0].contains(e.target)
+			) {
+				frappe.menu_map[context_menu.name].hide();
+				opts.onHide && opts.onHide(opts.parent);
+			}
+		},
+		true
+	);
 
 	$(document).on("keydown", function (e) {
 		if (e.key === "Escape" && frappe.menu_map[context_menu.name].visible) {

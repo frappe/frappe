@@ -95,7 +95,7 @@ frappe.Application = class Application {
 	setup_theme() {
 		frappe.ui.keys.add_shortcut({
 			shortcut: "shift+ctrl+g",
-			description: __("Switch Theme"),
+			description: __("Switch theme"),
 			action: () => {
 				if (frappe.theme_switcher && frappe.theme_switcher.dialog.is_visible) {
 					frappe.theme_switcher.hide();
@@ -285,7 +285,6 @@ frappe.Application = class Application {
 
 			frappe.boot.setup_complete = frappe.boot.sysdefaults["setup_complete"];
 			frappe.user.name = frappe.boot.user.name;
-			frappe.router.setup();
 		} else {
 			this.set_as_guest();
 		}
@@ -530,7 +529,6 @@ frappe.Application = class Application {
 							newdoc.idx = null;
 							newdoc.__run_link_triggers = false;
 							newdoc.on_paste_event = true;
-							newdoc = JSON.parse(JSON.stringify(newdoc));
 							frappe.set_route("Form", newdoc.doctype, newdoc.name);
 							frappe.dom.unfreeze();
 						});

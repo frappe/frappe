@@ -11,6 +11,7 @@ from frappe.boot import get_allowed_report_names
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
+from frappe.permissions import get_doctypes_with_read
 from frappe.utils import cint, flt, get_datetime, getdate, has_common, now_datetime, nowdate
 from frappe.utils.dashboard import cache_source
 from frappe.utils.data import format_date
@@ -38,10 +39,10 @@ def get_permission_query_conditions(user):
 	report_condition = False
 	module_condition = False
 
-	allowed_doctypes = [frappe.db.escape(doctype) for doctype in frappe.permissions.get_doctypes_with_read()]
-	allowed_reports = [frappe.db.escape(report) for report in get_allowed_report_names()]
+	allowed_doctypes = [frappe.db.escape(doctype) for doctype in get_doctypes_with_read(user)]
+	allowed_reports = [frappe.db.escape(report) for report in get_allowed_report_names(user=user)]
 	allowed_modules = [
-		frappe.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user()
+		frappe.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user(user)
 	]
 
 	if allowed_doctypes:
@@ -77,10 +78,10 @@ def has_permission(doc, ptype, user):
 		if has_common(roles, allowed):
 			return True
 	elif doc.chart_type == "Report":
-		if doc.report_name in get_allowed_report_names():
+		if doc.report_name in get_allowed_report_names(user=user):
 			return True
 	else:
-		allowed_doctypes = frappe.permissions.get_doctypes_with_read()
+		allowed_doctypes = get_doctypes_with_read(user)
 		if doc.document_type in allowed_doctypes:
 			return True
 
@@ -285,14 +286,16 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 	)  # get info about @group_by_field
 
 	if data and group_by_field_field.fieldtype == "Link":  # if @group_by_field is link
-		title_field = frappe.get_meta(group_by_field_field.options)  # get title field
-		if title_field.title_field:  # if has title_field
-			for item in data:  # replace chart labels from name to title value
-				item.name = frappe.get_value(group_by_field_field.options, item.name, title_field.title_field)
+		meta = frappe.get_meta(group_by_field_field.options)  # get title field
+		for item in data:  # replace chart labels from name to title value
+			if meta.title_field:
+				item.name = frappe.get_value(group_by_field_field.options, item.name, meta.title_field)
+			elif meta.translated_doctype:
+				item.name = _(item.get("name", "Not Specified"))
 
 	if data:
 		return {
-			"labels": [item.get("name", "Not Specified") for item in data],
+			"labels": [item.name for item in data],
 			"datasets": [{"name": _(chart.name), "values": [item["count"] for item in data]}],
 		}
 	return None

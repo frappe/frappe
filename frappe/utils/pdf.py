@@ -10,6 +10,8 @@ from urllib.parse import parse_qs, urlparse
 
 import cssutils
 import pdfkit
+import pdfkit.api
+from pdfkit.pdfkit import PDFKit as OriginalPDFKit
 
 pdfkit.source.unicode = str  # NOTE: upstream bug; PYTHONOPTIMIZE=1 optimized this away
 from bs4 import BeautifulSoup
@@ -32,6 +34,23 @@ PDF_CONTENT_ERRORS = [
 	"UnknownContentError",
 	"RemoteHostClosedError",
 ]
+
+
+class FrappePDFKit(OriginalPDFKit):
+	def _find_options_in_meta(self, content):
+		"""Override to disable meta tag parsing.
+
+		Returns an empty dict to prevent any wkhtmltopdf options from being
+		extracted from HTML meta tags. Only options passed explicitly to the
+		function should be used.
+		"""
+		return {}
+
+
+# Replace PDFKit in all relevant modules
+pdfkit.PDFKit = FrappePDFKit
+pdfkit.pdfkit.PDFKit = FrappePDFKit
+pdfkit.api.PDFKit = FrappePDFKit
 
 
 def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
@@ -157,10 +176,15 @@ def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 	# scrubbing url to expand url is not required as we have set url.
 	# also, planning to remove network requests anyway 🤞
 	generator = ChromePDFGenerator()
-	browser = Browser(generator, print_format, html, options)
-	transformer = PDFTransformer(browser)
-	# transforms and merges header, footer into body pdf and returns merged pdf
-	return transformer.transform_pdf(output=output)
+	browser = None
+	try:
+		browser = Browser(generator, print_format, html, options)
+		transformer = PDFTransformer(browser)
+		# transforms and merges header, footer into body pdf and returns merged pdf
+		return transformer.transform_pdf(output=output)
+	finally:
+		if browser is not None:
+			generator.remove_browser(browser.browserID)
 
 
 def get_file_data_from_writer(writer_obj):

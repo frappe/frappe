@@ -1,5 +1,9 @@
 {% extends "templates/web.html" %}
-
+{% block navbar %}
+{% if show_language_picker %}
+    {{ super() }}
+{% endif %}
+{% endblock %}
 {% macro email_login_body() -%}
 {% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
 <div class="page-card-body">
@@ -66,6 +70,7 @@
 {% endmacro %}
 
 {% block page_content %}
+
 <!-- {{ for_test }} -->
 <div>
 	<noscript>

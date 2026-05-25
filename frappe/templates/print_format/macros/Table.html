@@ -19,7 +19,16 @@
 			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}">
 				{% for column in columns %}
 				<td class="column-value" width="{{ column.width }}%" {{ field_attributes(column) }}>
-					{{ row.get_formatted(column.fieldname) }}
+					{# Image cells: validated URL + server-side thumbnail + escaped src. #}
+					{%- set _src = (row.get(column.options) if column.fieldtype == "Image" else row.get(column.fieldname)) or "" -%}
+					{%- set _src = _src|string|trim -%}
+					{%- set _is_image = column.fieldtype in ("Attach Image", "Image") or (column.fieldtype == "Attach" and frappe.utils.is_image(_src)) -%}
+					{%- set _safe = _src.startswith("/") or _src.startswith("http://") or _src.startswith("https://") -%}
+					{%- if _is_image and _safe -%}
+						<img src="{{ frappe.utils.get_image_thumbnail_uri(_src)|e }}" alt="{{ _(column.label or '')|e }}" style="max-width: 100%; max-height: 100px;" />
+					{%- else -%}
+						{{ row.get_formatted(column.fieldname) }}
+					{%- endif -%}
 				</td>
 				{% endfor %}
 			</tr>

@@ -126,6 +126,12 @@ def application(request: Request):
 		elif request.path.startswith("/private/files/"):
 			response = frappe.utils.response.download_private_file(request.path)
 
+		elif request.path == "/.well-known/security.txt" and request.method == "GET":
+			if request.scheme != "https":
+				raise NotFound
+			security_settings = frappe.get_doc("Security Settings")
+			response = Response(security_settings.security_txt, content_type="text/plain")
+
 		elif request.path.startswith("/.well-known/") and request.method == "GET":
 			response = handle_wellknown(request.path)
 
@@ -450,12 +456,10 @@ if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
 		ArgvIntegration(),
 	]
 
-	experiments = {}
 	kwargs = {}
 
 	if os.getenv("ENABLE_SENTRY_DB_MONITORING"):
 		integrations.append(FrappeIntegration())
-		experiments["record_sql_params"] = True
 
 	if tracing_sample_rate := os.getenv("SENTRY_TRACING_SAMPLE_RATE"):
 		kwargs["traces_sample_rate"] = float(tracing_sample_rate)
@@ -472,7 +476,6 @@ if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
 		auto_enabling_integrations=False,
 		default_integrations=False,
 		integrations=integrations,
-		_experiments=experiments,
 		**kwargs,
 	)
 

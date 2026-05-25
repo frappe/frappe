@@ -65,6 +65,9 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 						args.doc_view = "List";
 						args.route_options = filters_json;
 					}
+				} else if (this.item.route_options && this.item.link_type == "DocType") {
+					args.doc_view = "List";
+					args.route_options = JSON.parse(this.item.route_options);
 				}
 				path = frappe.utils.generate_route(args);
 			}
@@ -108,10 +111,8 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		}
 	}
 	get_shortcut_html(shortcut) {
-		if (frappe.utils.is_mac()) {
-			shortcut = shortcut.replace("Ctrl+", "⌘");
-		}
-		return `<span class="sidebar-item-suffix keyboard-shortcut">${shortcut}</span>`;
+		shortcut = frappe.ui.keys.get_shortcut_label(shortcut);
+		return `<span class="keyboard-shortcut">${shortcut}</span>`;
 	}
 	setup_editing_controls() {
 		this.menu_items = this.get_menu_items();

@@ -73,7 +73,7 @@ def get_context(context) -> PrintContext:
 	print_format = get_print_format_doc(None, meta=meta)
 
 	if print_format and print_format.get("print_format_builder_beta"):
-		from frappe.utils.weasyprint import get_html
+		from frappe.utils.print_format_generator import get_html
 
 		body = get_html(
 			doctype=frappe.form_dict.doctype,
@@ -230,6 +230,12 @@ def get_rendered_template(
 
 	if letter_head.content:
 		letter_head.content = frappe.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()})
+		if letter_head.custom_css:
+			letter_head.content += f"""
+			<style>
+				{letter_head.custom_css}
+			</style>
+			"""
 		if letter_head.header_script:
 			letter_head.content += f"""
 				<script>
@@ -427,7 +433,7 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 		return frappe.db.get_value(
 			"Letter Head",
 			letterhead_name,
-			["content", "footer", "header_script", "footer_script"],
+			["content", "footer", "header_script", "footer_script", "custom_css"],
 			as_dict=True,
 		)
 	else:
@@ -435,7 +441,7 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 			frappe.db.get_value(
 				"Letter Head",
 				{"is_default": 1},
-				["content", "footer", "header_script", "footer_script"],
+				["content", "footer", "header_script", "footer_script", "custom_css"],
 				as_dict=True,
 			)
 			or {}

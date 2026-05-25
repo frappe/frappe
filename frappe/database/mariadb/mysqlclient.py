@@ -29,19 +29,19 @@ class MariaDBExceptionUtil:
 	@staticmethod
 	def is_deadlocked(e: MySQLdb.Error) -> bool:
 		# Snapshot isolation is also treated as deadlock from User POV
-		return e.args[0] in (ER.LOCK_DEADLOCK, ER.CHECKREAD)
+		return e.args and e.args[0] in (ER.LOCK_DEADLOCK, ER.CHECKREAD)
 
 	@staticmethod
 	def is_timedout(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ER.LOCK_WAIT_TIMEOUT
+		return e.args and e.args[0] == ER.LOCK_WAIT_TIMEOUT
 
 	@staticmethod
 	def is_read_only_mode_error(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ER.CANT_EXECUTE_IN_READ_ONLY_TRANSACTION
+		return e.args and e.args[0] == ER.CANT_EXECUTE_IN_READ_ONLY_TRANSACTION
 
 	@staticmethod
 	def is_table_missing(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ER.NO_SUCH_TABLE
+		return e.args and e.args[0] == ER.NO_SUCH_TABLE
 
 	@staticmethod
 	def is_missing_table(e: MySQLdb.Error) -> bool:
@@ -49,39 +49,39 @@ class MariaDBExceptionUtil:
 
 	@staticmethod
 	def is_missing_column(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ER.BAD_FIELD_ERROR
+		return e.args and e.args[0] == ER.BAD_FIELD_ERROR
 
 	@staticmethod
 	def is_duplicate_fieldname(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ER.DUP_FIELDNAME
+		return e.args and e.args[0] == ER.DUP_FIELDNAME
 
 	@staticmethod
 	def is_duplicate_entry(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ER.DUP_ENTRY
+		return e.args and e.args[0] == ER.DUP_ENTRY
 
 	@staticmethod
 	def is_access_denied(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ER.ACCESS_DENIED_ERROR
+		return e.args and e.args[0] == ER.ACCESS_DENIED_ERROR
 
 	@staticmethod
 	def cant_drop_field_or_key(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
+		return e.args and e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
 
 	@staticmethod
 	def is_syntax_error(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ER.PARSE_ERROR
+		return e.args and e.args[0] == ER.PARSE_ERROR
 
 	@staticmethod
 	def is_statement_timeout(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ER_STATEMENT_TIMEOUT
+		return e.args and e.args[0] == ER_STATEMENT_TIMEOUT
 
 	@staticmethod
 	def is_data_too_long(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ER.DATA_TOO_LONG
+		return e.args and e.args[0] == ER.DATA_TOO_LONG
 
 	@staticmethod
 	def is_db_table_size_limit(e: MySQLdb.Error) -> bool:
-		return e.args[0] == ER.TOO_BIG_ROWSIZE
+		return e.args and e.args[0] == ER.TOO_BIG_ROWSIZE
 
 	@staticmethod
 	def is_primary_key_violation(e: MySQLdb.Error) -> bool:

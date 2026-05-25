@@ -7,28 +7,31 @@
 		{%- endfor %}
 
 		<style>
+			/* No body / wrapper padding: paperHeight is calculated from the wrapper's
+			   measured height, so any extra vertical space pushes content off the page. */
 			body {
 				margin: 0 !important;
 				border: 0 !important;
-				padding-top: 1mm !important;
+				padding: 0 !important;
 			}
-			.letter-head,
-			.letter-head-footer {
-				margin-top: -12mm !important;
-			}
-			/* Dont show explicit links for <a> tags */
 			@media print {
-				/* padding is added to simulate old wkhtmltopdf format prints */
 				.wrapper {
 					box-sizing: border-box;
-					padding: 1mm 0 1mm !important;
-					page-break-after: always !important;
+					padding: 0 !important;
+					margin: 0 !important;
 				}
 				[document-status] {
 					margin-bottom: 0 !important;
 				}
 				a[href]:after {
 					content: none;
+				}
+				/* Block child elements from forcing a page break inside a wrapper clone. */
+				.wrapper * {
+					page-break-after: auto !important;
+					break-after: auto !important;
+					page-break-before: auto !important;
+					break-before: auto !important;
 				}
 			}
 		</style>

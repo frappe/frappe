@@ -14,7 +14,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		$(`<div class="link-field ui-front" style="position: relative;">
 			<input type="text" class="input-with-feedback form-control">
 			<span class="link-btn">
-				<a class="btn-open" tabIndex='-1' style="display: inline-flex;" title="${__("Open Link")}">
+				<a class="btn-clear" style="display: inline-flex;" title="${__("Clear Link")}">
+					${frappe.utils.icon("close", "xs", "es-icon")}
+				</a>
+				<a class="btn-open" style="display: inline-flex;" title="${__("Open Link")}">
 					${frappe.utils.icon("arrow-right", "xs")}
 				</a>
 			</span>
@@ -22,8 +25,15 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find("input");
 		this.$link = this.$input_area.find(".link-btn");
+		this.$link_clear = this.$input_area.find(".btn-clear");
 		this.$link_open = this.$link.find(".btn-open");
 		this.set_input_attributes();
+
+		this.$link_clear.on("click", function () {
+			me.$link.toggle(false);
+			me.$input.val("").focus();
+		});
+
 		this.$input.on("focus", function () {
 			if (!me.$input.val()) {
 				me.$input.val("");
@@ -67,11 +77,17 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			const name = this.get_input_value();
 			this.$link.toggle(true);
 			this.$link_open.attr("href", frappe.utils.get_form_link(doctype, name));
+			this.$link_clear.toggle(this.is_clear_button_enabled());
 		}
+	}
+
+	is_clear_button_enabled() {
+		return Boolean(cint(frappe.boot?.sysdefaults?.allow_clearing_link_fields));
 	}
 
 	hide_link_and_clear_buttons() {
 		this.$link.toggle(false);
+		this.$link_clear.toggle(false);
 	}
 
 	get_options() {
@@ -834,9 +850,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 
 	apply_link_field_filters() {
-		let link_filters = JSON.parse(this.df.link_filters);
-		let filters = this.parse_filters(link_filters);
+		let filters = this.parse_filters(JSON.parse(this.df.link_filters));
 		// take filters from the link field and add to the query
+
+		const query_filters = this.get_query?.()?.filters || {};
+		if (query_filters) {
+			filters = { ...filters, ...query_filters };
+		}
+
 		this.get_query = function () {
 			return {
 				filters,
@@ -1051,9 +1072,17 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 };
 
 if (Awesomplete) {
+	Awesomplete.prototype._itemCursor = 0;
 	Awesomplete.prototype.get_item = function (value) {
-		return this._list.find(function (item) {
+		var matches = this._list.filter(function (item) {
 			return item.value === value;
 		});
+
+		if (matches.length === 0) return null;
+
+		var item = matches[this._itemCursor % matches.length];
+		this._itemCursor++;
+
+		return item;
 	};
 }

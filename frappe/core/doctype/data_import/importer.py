@@ -1044,13 +1044,14 @@ class Column:
 		if self.df.fieldtype == "Link":
 			# find all values that dont exist
 			transform = (lambda v: cstr(v).lower()) if frappe.db.db_type == "mariadb" else cstr
-			values = list({transform(v) for v in self.column_values if v})
+			original_values = {transform(v): cstr(v) for v in self.column_values if v}
+			values = list(original_values.keys())
 			exists = [
 				transform(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})
 			]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
-				missing_values = ", ".join(escape_html(v) for v in not_exists)
+				missing_values = ", ".join(escape_html(original_values[v]) for v in not_exists)
 				message = _("The following values do not exist for {0}: {1}")
 				self.warnings.append(
 					{

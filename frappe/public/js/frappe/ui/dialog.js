@@ -131,12 +131,28 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			})
 			.on("keydown", function (e) {
 				if (e.key === "Escape" || e.keyCode === 27) {
-					// when dialog is open and contains an awesomplete dropdown - do not close the dialog on escape key press
-					if (me.display && me.$wrapper.find(".awesomplete").length) {
+					// _awesomplete_was_open is set in the capture-phase listener below, before
+					// Awesomplete's own keydown handler closes the dropdown and clears aria-expanded.
+					if (me._awesomplete_was_open) {
+						me._awesomplete_was_open = false;
 						e.stopImmediatePropagation();
 					}
 				}
 			});
+
+		// Runs in capture phase, before Awesomplete's bubble-phase keydown handler on the input,
+		// so aria-expanded is still "true" when the dropdown is open.
+		me.$wrapper[0].addEventListener(
+			"keydown",
+			function (e) {
+				if (e.key === "Escape" || e.keyCode === 27) {
+					me._awesomplete_was_open =
+						me.display &&
+						!!me.$wrapper.find(".awesomplete input[aria-expanded='true']").length;
+				}
+			},
+			true // capture phase
+		);
 	}
 
 	set_modal_size() {

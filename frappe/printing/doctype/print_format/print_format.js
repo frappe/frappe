@@ -32,9 +32,9 @@ frappe.ui.form.on("Print Format", {
 						return;
 					}
 					if (frm.doc.print_format_builder_beta) {
-						frappe.set_route("print-format-builder-beta", frm.doc.name);
-					} else {
 						frappe.set_route("print-format-builder", frm.doc.name);
+					} else {
+						frappe.set_route("print-format-builder-classic", frm.doc.name);
 					}
 				});
 			}

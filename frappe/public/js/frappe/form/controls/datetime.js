@@ -20,6 +20,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 			const date_obj = frappe.datetime.str_to_obj(raw_value);
 			this.datepicker.selectedDates = [date_obj];
 			this.datepicker.viewDate = date_obj;
+			this.datepicker.lastSelectedDate = date_obj;
 		}
 	}
 

@@ -53,6 +53,8 @@ def get_apps():
 
 
 def get_route(app_name):
+	if app_name not in frappe.get_installed_apps():
+		return "/apps"  # Invalid defaults
 	apps = frappe.get_hooks("add_to_apps_screen", app_name=app_name)
 	app = next((app for app in apps if app.get("name") == app_name), None)
 	return app.get("route") if app and app.get("route") else "/apps"
@@ -89,6 +91,9 @@ def get_default_path():
 
 @frappe.whitelist()
 def set_app_as_default(app_name: str):
+	if app_name not in frappe.get_installed_apps():
+		frappe.throw(_("App {} is not installed").format(frappe.bold(app_name)))
+
 	if frappe.db.get_value("User", frappe.session.user, "default_app") == app_name:
 		frappe.db.set_value("User", frappe.session.user, "default_app", "")
 	else:

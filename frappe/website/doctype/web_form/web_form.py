@@ -8,6 +8,7 @@ from typing import Any
 import frappe
 from frappe import _, scrub
 from frappe.core.api.file import get_max_file_size
+from frappe.core.doctype.doctype.doctype import HiddenAndMandatoryWithoutDefaultError
 from frappe.core.doctype.file.utils import remove_file_by_url
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
@@ -15,6 +16,7 @@ from frappe.permissions import check_doctype_permission
 from frappe.rate_limiter import rate_limit
 from frappe.utils import dict_with_keys, strip_html
 from frappe.utils.caching import redis_cache
+from frappe.utils.data import escape_html
 from frappe.website.utils import get_boot_data, get_comment_list, get_sidebar_items
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -96,6 +98,8 @@ class WebForm(WebsiteGenerator):
 		if not frappe.flags.in_import:
 			self.validate_fields()
 
+		self.validate_hidden_and_mandatory()
+
 	def validate_fields(self):
 		"""Validate all fields are present"""
 		from frappe.model import no_value_fields
@@ -109,6 +113,18 @@ class WebForm(WebsiteGenerator):
 
 		if missing:
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
+
+	def validate_hidden_and_mandatory(self):
+		if self.allow_incomplete:
+			return
+		for d in self.web_form_fields:
+			if (d.hidden and d.reqd) and not (d.default or frappe.flags.in_migrate):
+				frappe.throw(
+					_("{0}: Field {1} in row {2} cannot be hidden and mandatory without default").format(
+						self.name, d.label, d.idx
+					),
+					HiddenAndMandatoryWithoutDefaultError,
+				)
 
 	def reset_field_parent(self):
 		"""Convert link fields to select with names as options."""
@@ -445,9 +461,7 @@ def get_context(context):
 		)
 
 		if context.success_message:
-			context.success_message = frappe.db.escape(context.success_message.replace("\n", "<br>")).strip(
-				"'"
-			)
+			context.success_message = escape_html(context.success_message).replace("\n", "<br>")
 
 		if not context.max_attachment_size:
 			context.max_attachment_size = get_max_file_size() / 1024 / 1024

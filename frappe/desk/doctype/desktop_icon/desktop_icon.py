@@ -63,8 +63,9 @@ class DesktopIcon(Document):
 			clear_desktop_icons_cache(user=self.owner)
 
 	def after_rename(self, old, new, merge):
-		delete_desktop_icon_file(self.app, old)
-		self.export_desktop_icon()
+		if self.standard and self.app:
+			delete_desktop_icon_file(self.app, old)
+			self.export_desktop_icon()
 
 	def export_desktop_icon(self):
 		allow_export = (
@@ -324,15 +325,23 @@ def create_user_icons(user, data):
 
 @frappe.whitelist()
 def add_workspace_to_desktop(workspace: str):
-	sidebar = frappe.new_doc("Workspace Sidebar")
-	sidebar_item = frappe.new_doc("Workspace Sidebar Item")
-	sidebar_item.label = workspace
-	sidebar_item.type = "Link"
-	sidebar_item.link_to = workspace
-	sidebar_item.link_type = "Workspace"
-	sidebar.title = workspace
-	sidebar.append("items", sidebar_item)
-	sidebar.save()
+	if frappe.db.exists("Workspace Sidebar", workspace):
+		sidebar = frappe.get_doc("Workspace Sidebar", workspace)
+	else:
+		sidebar = frappe.new_doc("Workspace Sidebar")
+		sidebar.title = workspace
+
+	if not any(item.link_to == workspace for item in sidebar.get("items", [])):
+		sidebar_item = frappe.new_doc("Workspace Sidebar Item")
+		sidebar_item.label = workspace
+		sidebar_item.type = "Link"
+		sidebar_item.link_to = workspace
+		sidebar_item.link_type = "Workspace"
+		sidebar.append("items", sidebar_item)
+		sidebar.save()
+
+	if frappe.db.exists("Desktop Icon", workspace):
+		return {"icon": frappe.get_doc("Desktop Icon", workspace).as_dict()}
 
 	new_icon = frappe.new_doc("Desktop Icon")
 	new_icon.label = workspace

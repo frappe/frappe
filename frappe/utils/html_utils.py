@@ -170,7 +170,10 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 
 	# Allow caller to explicitly disallow some tags
 	if disallowed_tags:
-		tags.difference_update(disallowed_tags)
+		if disallowed_tags == "*":
+			tags = set()
+		else:
+			tags.difference_update(disallowed_tags)
 
 	attributes = {"*": acceptable_attributes, "svg": svg_attributes}
 

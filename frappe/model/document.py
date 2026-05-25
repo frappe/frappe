@@ -156,6 +156,164 @@ def get_lazy_doc(
 	raise ImportError(doctype)
 
 
+def get_docs(
+	doctype: str,
+	filters: dict | None = None,
+	*,
+	chunk_size: int = 1000,
+	limit: int | None = None,
+	limit_start: int = 0,
+	order_by: str = "creation asc",
+	as_iterator: bool = False,
+	for_update: bool = False,
+	distinct: bool = False,
+) -> list["Document"] | Generator["Document"]:
+	"""Fetch fully instantiated Document objects from the database.
+
+	Returns a list of Documents by default. Pass `as_iterator=True` to get
+	a chunked generator that yields a list of Documents per chunk to reduce memory usage.
+
+	:param doctype: DocType of the records to fetch.
+	:param filters: Dict or list of filters to apply.
+	:param chunk_size: Number of records to fetch in each chunk if using `as_iterator`.
+	:param limit: Maximum total number of records to fetch.
+	:param limit_start: Start results at record #. Default 0.
+	:param order_by: Order By string, e.g. `creation desc`.
+	:param as_iterator: If True, returns a iterator yielding Documents.
+	:param for_update: If True, locks the fetched rows for update.
+	:param distinct: If True, return distinct rows.
+
+
+	Note: Chunk size controls memory usage vs # of queries tradeoff. Using chunk size larger than
+	10,000 is not advisable.
+	"""
+	if is_virtual_doctype(doctype):
+		frappe.throw(_("Virtual DocType {0} cannot be fetched in bulk.").format(doctype))
+
+	meta = frappe.get_meta(doctype)
+
+	if meta.issingle:
+		frappe.throw(_("Single DocType {0} cannot be fetched in bulk.").format(doctype))
+
+	if limit_start and limit is None:
+		frappe.throw(_("limit cannot be None when limit_start is used"))
+
+	if not order_by:
+		# Sort order is mandatory for iterator logic
+		order_by = "name asc"
+
+	child_tables = [
+		(df.fieldname, df.options) for df in meta.get_table_fields() if not is_virtual_doctype(df.options)
+	]
+	controller = get_controller(doctype)
+	for_update = for_update and frappe.db.db_type != "sqlite"
+
+	iterator = _get_docs_generator(
+		doctype,
+		controller,
+		child_tables,
+		filters=filters,
+		chunk_size=chunk_size,
+		limit_start=limit_start,
+		order_by=order_by,
+		for_update=for_update,
+		distinct=distinct,
+	)
+
+	iterator = itertools.islice(iterator, limit)
+
+	if as_iterator:
+		return iterator
+	return list(iterator)
+
+
+def _get_docs_generator(
+	doctype,
+	controller,
+	child_tables,
+	*,
+	filters,
+	chunk_size,
+	limit_start,
+	order_by,
+	for_update,
+	distinct,
+) -> Generator["Document"]:
+	offset = limit_start
+
+	while True:
+		chunk_data = _fetch_rows(
+			doctype,
+			filters=filters,
+			order_by=order_by,
+			limit=chunk_size,
+			offset=offset,
+			for_update=for_update,
+			child_tables=child_tables,
+			distinct=distinct,
+		)
+		if not chunk_data:
+			break
+		yield from _build_document_objects(controller, chunk_data, for_update)
+		offset += chunk_size
+
+
+def _fetch_rows(doctype, *, filters, order_by, limit, offset, for_update, child_tables, distinct=False):
+	kwargs = {}
+	if limit is not None:
+		kwargs["limit"] = limit
+	if offset:
+		kwargs["offset"] = offset
+
+	data = frappe.qb.get_query(
+		table=doctype,
+		filters=filters or {},
+		fields=["*"],
+		order_by=order_by,
+		for_update=for_update,
+		distinct=distinct,
+		**kwargs,
+	).run(as_dict=True)
+
+	if not data:
+		return []
+
+	for row in data:
+		row["doctype"] = doctype
+
+	fetched_docs_by_name = {row.name: row for row in data}
+	parent_names = list(fetched_docs_by_name.keys())
+
+	for fieldname, child_doctype in child_tables:
+		child_table_data = frappe.qb.get_query(
+			table=child_doctype,
+			filters={"parent": ("in", parent_names), "parenttype": doctype, "parentfield": fieldname},
+			fields=["*"],
+			order_by="idx asc",
+			for_update=for_update,
+		).run(as_dict=True)
+
+		for child in child_table_data:
+			child["doctype"] = child_doctype
+
+		for parent_doc in fetched_docs_by_name.values():
+			parent_doc[fieldname] = []
+
+		for child in child_table_data:
+			if child.parent in fetched_docs_by_name:
+				fetched_docs_by_name[child.parent][fieldname].append(child)
+
+	return list(fetched_docs_by_name.values())
+
+
+def _build_document_objects(controller, data: list, for_update: bool):
+	for row in data:
+		doc = controller(row)
+		if for_update:
+			doc.flags.for_update = True
+		yield doc
+
+
 def get_doc_permission_check(doc: "Document", check_permission: str | bool | None = None) -> "Document":
 	"""
 	Checks permissions for the given document, if specified.
@@ -740,6 +898,9 @@ class Document(BaseDocument):
 
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
+		if self.meta.is_virtual:
+			return
+
 		frappe.db.delete("Singles", {"doctype": self.doctype})
 		for field, value in d.items():
 			if field != "doctype":

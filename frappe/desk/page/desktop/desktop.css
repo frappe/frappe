@@ -56,9 +56,8 @@
 #brand-logo{
     width: auto;
 }
-.desktop-search-icon > .icon {
-    stroke-width: 1px;
-    margin-bottom: 2px;
+.desktop-search-icon > svg {
+    stroke: var(--text-light);
 }
 
 .desktop-container{

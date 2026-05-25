@@ -115,7 +115,7 @@ export function get_table_columns(df) {
 }
 
 function get_field_template(print_format, fieldname) {
-	let templates = print_format.__onload.print_templates || {};
+	let templates = print_format?.__onload?.print_templates || [];
 	for (let template of templates) {
 		if (template.field === fieldname) {
 			return template;

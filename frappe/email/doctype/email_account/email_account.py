@@ -1135,6 +1135,7 @@ def remove_user_email_inbox(email_account):
 
 @frappe.whitelist()
 def set_email_password(email_account: str, password: str):
+	frappe.has_permission("Email Account", "write", email_account, throw=True)
 	account = frappe.get_doc("Email Account", email_account)
 	if account.awaiting_password and account.auth_method != "OAuth":
 		account.awaiting_password = 0

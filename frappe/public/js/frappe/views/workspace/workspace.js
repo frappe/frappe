@@ -137,12 +137,7 @@ frappe.views.Workspace = class Workspace {
 	get_page_to_show() {
 		let default_page;
 
-		if (frappe.boot.user.default_workspace) {
-			default_page = {
-				name: frappe.boot.user.default_workspace.name,
-				public: frappe.boot.user.default_workspace.public,
-			};
-		} else if (
+		if (
 			localStorage.current_page &&
 			this.workspaces.filter((page) => page.name == localStorage.current_page).length != 0
 		) {
@@ -543,8 +538,9 @@ frappe.views.Workspace = class Workspace {
 							}
 
 							this.create_page(new_page).then(() => {
-								let pre_url = new_page.public ? "" : "private/";
-								let route = pre_url + frappe.router.slug(new_page.title);
+								let route = frappe.router.slug(
+									new_page.public ? new_page.name : "private/" + new_page.name
+								);
 								frappe.set_route(route);
 							});
 						});
@@ -763,9 +759,9 @@ frappe.views.Workspace = class Workspace {
 								indicator: "green",
 							});
 							if (page.public) {
-								frappe.set_route("desk", page.title.toLowerCase());
+								frappe.set_route("desk", frappe.router.slug(page.name));
 							} else {
-								frappe.set_route("desk", "private", page.title.toLowerCase());
+								frappe.set_route("desk", "private", frappe.router.slug(page.name));
 							}
 						}
 					},
