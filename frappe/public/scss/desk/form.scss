@@ -32,7 +32,7 @@
 	padding: 0 var(--padding-md);
 	.form-section-description {
 		max-width: var(--page-max-width);
-		margin-left: 0;
+		margin: auto;
 		margin-bottom: 10px;
 		@include get_textstyle("base", "regular");
 		color: var(--text-light);
@@ -76,6 +76,12 @@
 		&:first-child {
 			margin-top: 1rem;
 		}
+	}
+}
+
+body.full-width {
+	.form-section-description {
+		margin-left: 0;
 	}
 }
 
