@@ -2,16 +2,16 @@
 	<!--
     frappe-ui POC island.
 
-    Renders a frappe-ui Button that opens a frappe-ui Dialog.
-    All components are imported from the pre-compiled desk entry so they
-    go through the normal esbuild pipeline without needing Vite virtual
-    module resolution.
+    Mount/portal/router/theme plumbing lives in `mountVueIsland`
+    (frappe/public/js/frappe/ui/vue_island.js). The mount root carries
+    `data-frappe-ui` + `data-theme="light"`, so this component just
+    starts with its own padding/layout wrapper.
 
-    The island is wrapped in a <div data-theme="light"> so the frappe-ui
-    CSS custom-property tokens (which are emitted under :root) are always
-    resolved, even when Desk itself might set a dark theme.
+    All frappe-ui components are imported from the main `frappe-ui`
+    entry; esbuild compiles them from source via the lucide-icons +
+    Vue plugins in `esbuild/esbuild.js`.
   -->
-	<div data-theme="light" data-frappe-ui class="frappe-ui-poc-island p-6">
+	<div class="frappe-ui-poc-island p-6">
 		<div class="mb-6">
 			<h2 class="text-2xl font-semibold text-ink-gray-9 mb-1">
 				frappe-ui Components in Desk
@@ -100,7 +100,7 @@
 			:options="{
 				title: 'Confirm Action',
 				message: 'Are you sure you want to proceed? This action cannot be undone.',
-				icon: { name: 'alert-triangle', appearance: 'warning' },
+				icon: { name: 'alert-triangle', theme: 'yellow' },
 				actions: [
 					{
 						label: 'Confirm',
@@ -122,6 +122,8 @@
 			}"
 		/>
 
+		<Combobox v-model="value" :options="repos" placeholder="Pick a repo" open-on-focus />
+
 		<div
 			v-if="lastSubmit || confirmResult"
 			class="mt-6 p-3 bg-surface-gray-1 rounded-lg border border-outline-gray-1"
@@ -137,12 +139,35 @@
 </template>
 
 <script setup lang="ts">
+// Deep-path imports rather than the `frappe-ui` barrel.
+// Why: the barrel `export *`s every component, which forces esbuild's Vue
+// plugin to parse the entire library — including Calendar (uses Vue 3.4+
+// `:close` shorthand) and TextEditor (uses TS-only syntax in templates)
+// that the pinned `@vue/compiler-sfc@^3.2.26` cannot parse.
+// Deep-path imports are also smaller: the POC bundle only carries the
+// components it actually uses.
+import { Button } from "frappe-ui/src/components/Button";
+import { Dialog } from "frappe-ui/src/components/Dialog";
+import { FormControl } from "frappe-ui/src/components/FormControl";
+import { Combobox } from "frappe-ui/src/components/Combobox";
 import { ref } from "vue";
-import { Button, Dialog, FormControl } from "frappe-ui/desk";
 
 const basicDialogOpen = ref(false);
 const formDialogOpen = ref(false);
 const confirmDialogOpen = ref(false);
+
+const value = ref("frappe-ui");
+
+const repos = [
+	"gameplan",
+	"frappe-ui",
+	"frappe",
+	"erpnext",
+	"helpdesk",
+	"crm",
+	"wiki",
+	"insights",
+];
 
 const formData = ref({ name: "", description: "" });
 const lastSubmit = ref("");

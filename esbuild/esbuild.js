@@ -3,6 +3,54 @@ const fs = require("fs");
 const glob = require("fast-glob");
 const esbuild = require("esbuild");
 const vue = require("esbuild-plugin-vue3");
+// Patch the Vue plugin's internal compileScript so it gets an `fs` option.
+//
+// Why: @vue/compiler-sfc 3.3+ needs filesystem access to resolve TypeScript
+// types referenced in `defineProps<T>()` / `defineEmits<T>()` macros — many
+// frappe-ui components use that form (Button, Dialog, FormControl, …) and
+// import the type from a sibling `./types.ts`. Without `fs`, compileScript
+// throws "No fs option provided to compileScript in non-Node environment"
+// and the build fails.
+//
+// `esbuild-plugin-vue3` 0.3.2 passes only `{ id }` to compileScript. It
+// imports its own nested copy of @vue/compiler-sfc, so we patch THAT
+// instance (the top-level one wouldn't reach the plugin).
+(function patchVueCompileScript() {
+	// Resolve from the Vue plugin's location so we patch whichever
+	// @vue/compiler-sfc the plugin actually imports — older plugin versions
+	// nested their own copy; 0.5.x uses the top-level install.
+	const pluginDir = path.dirname(require.resolve("esbuild-plugin-vue3"));
+	let sfc;
+	try {
+		sfc = require(require.resolve("@vue/compiler-sfc", { paths: [pluginDir] }));
+	} catch (e) {
+		return; // plugin or compiler-sfc not installed (e.g. CI dependency prune)
+	}
+	if (sfc._frappePatched) return;
+	const orig = sfc.compileScript;
+	sfc.compileScript = function (descriptor, options) {
+		return orig.call(this, descriptor, {
+			fs: {
+				fileExists: (file) => {
+					try {
+						return fs.statSync(file).isFile();
+					} catch (_) {
+						return false;
+					}
+				},
+				readFile: (file) => {
+					try {
+						return fs.readFileSync(file, "utf-8");
+					} catch (_) {
+						return undefined;
+					}
+				},
+			},
+			...options,
+		});
+	};
+	sfc._frappePatched = true;
+})();
 const yargs = require("yargs");
 const cliui = require("cliui")();
 const chalk = require("chalk");
@@ -21,6 +69,9 @@ const DESK_ISLANDS_TAILWIND_CONFIG = path.resolve(
 	"../tailwind.config.desk-islands.mjs"
 );
 const frappeUIImportant = require("./postcss-frappe-ui-important");
+// Resolves `~icons/lucide/*` virtual imports used by frappe-ui sources that
+// haven't migrated to the class-based lucide-* form yet.
+const lucideIconsPlugin = require("./lucide-icons");
 
 const {
 	app_list,
@@ -299,7 +350,25 @@ function get_files_to_build(files) {
 }
 
 function build_files({ files, outdir }) {
-	let build_plugins = [vue(), html_plugin, build_cleanup_plugin, vue_style_plugin];
+	// lucideIconsPlugin must run before vue() so `~icons/lucide/*` imports
+	// inside .vue <script> blocks are resolved before Vue tries to.
+	//
+	// `compilerOptions.expressionPlugins: ['typescript']` enables TS syntax
+	// inside <template> expressions (non-null assertions `foo!.bar`, type
+	// casts, etc.) which several frappe-ui components use — notably
+	// Combobox/MultiSelect/Popover. Without it, the Babel-based template
+	// expression parser inside @vue/compiler-sfc throws on tokens like `!]`.
+	let build_plugins = [
+		lucideIconsPlugin,
+		vue({
+			compilerOptions: {
+				expressionPlugins: ["typescript"],
+			},
+		}),
+		html_plugin,
+		build_cleanup_plugin,
+		vue_style_plugin,
+	];
 	return esbuild.build(get_build_options(files, outdir, build_plugins));
 }
 
@@ -367,9 +436,20 @@ function dedup_vue_plugin(frappe_node_modules) {
 }
 
 /**
- * Resolve `frappe-ui` and `frappe-ui/*` imports to the real (symlink-resolved)
- * source directory so that esbuild 0.14.x doesn't misinterpret relative symlink
- * targets and fall back to the wrong path.
+ * Resolve `frappe-ui` and `frappe-ui/*` imports through the symlink-resolved
+ * `realpath` of the linked submodule, then walk the package's `exports` map
+ * manually.
+ *
+ * Why this is still needed even though esbuild 0.14+ understands `exports`:
+ * with `"frappe-ui": "link:./frappe-ui"`, yarn places a relative symlink at
+ * `node_modules/frappe-ui` whose target esbuild sometimes resolves against
+ * the wrong cwd, picking up a stale ../node_modules/frappe-ui/index.js
+ * fallback instead of the real `src/index.ts` entry. Realpath-ing first
+ * sidesteps that.
+ *
+ * The `frappe-ui/desk` subpath that this used to be scoped around is gone
+ * (we now compile from `frappe-ui` source). The plugin stays because the
+ * `link:` symlink edge case applies to the bare `frappe-ui` entry too.
  */
 function frappe_ui_plugin(frappe_node_modules) {
 	let frappe_ui_dir = null;
@@ -400,15 +480,48 @@ function frappe_ui_plugin(frappe_node_modules) {
 			build.onResolve({ filter: /^frappe-ui(\/|$)/ }, (args) => {
 				const sub =
 					args.path === "frappe-ui" ? "." : "./" + args.path.slice("frappe-ui/".length);
+
+				// 1. Try the package's exports map first.
 				const entry = exports_map[sub];
 				if (entry) {
 					const rel = resolve_export(entry);
 					if (rel) return { path: path.resolve(frappe_ui_dir, rel) };
 				}
-				// Bare import fallback
+
+				// 2. Bare import → `main`/`module` field.
 				if (args.path === "frappe-ui") {
 					const main = pkg_json.module || pkg_json.main || "index.js";
 					return { path: path.resolve(frappe_ui_dir, main) };
+				}
+
+				// 3. Fall through to direct file resolution. The package's
+				// `exports` map intentionally hides `./src/*` subpaths from
+				// external consumers, but Desk islands deliberately deep-import
+				// from `frappe-ui/src/components/<X>` so the barrel doesn't drag
+				// in components (Calendar, TextEditor) that use Vue-3.4 / TS
+				// syntax our pinned `@vue/compiler-sfc@^3.2.26` can't parse.
+				// Try the requested path with common file/index resolutions.
+				const sub_rel = args.path.slice("frappe-ui/".length); // e.g. src/components/Button
+				const candidates = [
+					sub_rel + ".ts",
+					sub_rel + ".js",
+					sub_rel + ".vue",
+					path.join(sub_rel, "index.ts"),
+					path.join(sub_rel, "index.js"),
+					path.join(sub_rel, "index.vue"),
+					// Bare file (only if the requested path itself names a file,
+					// not a directory).
+					sub_rel,
+				];
+				const fs = require("fs");
+				for (const c of candidates) {
+					const abs = path.resolve(frappe_ui_dir, c);
+					try {
+						const st = fs.statSync(abs);
+						if (st.isFile()) return { path: abs };
+					} catch (_) {
+						// ENOENT — try next candidate
+					}
 				}
 				return null;
 			});
@@ -416,8 +529,31 @@ function frappe_ui_plugin(frappe_node_modules) {
 	};
 }
 
+// Resolve postcss-import via tailwindcss (it's a transitive dep we already
+// have on disk; saves adding a direct dep). Required by esbuild 0.15+ which
+// natively bundles CSS @import directives — without inlining them at the
+// PostCSS stage first, esbuild's resolver would try to follow them relative
+// to the temp dir the postcss plugin stages files in and ENOENT.
+const postcssImport = require(require.resolve("postcss-import", {
+	paths: [require.resolve("tailwindcss")],
+}));
+
 function build_style_files({ files, outdir, rtl_style = false }) {
-	let plugins = [];
+	// postcss-import must run FIRST in the postcss chain so it consumes
+	// `@import` directives (including ones using sass-importer-style bare
+	// specifiers like `frappe/public/...`) before tailwindcss or anything
+	// else runs. We point its `path` resolver at the same directories sass
+	// uses, so bundle CSS files that did `@import "frappe/public/..."` keep
+	// working unchanged on the newer esbuild.
+	let plugins = [
+		postcssImport({
+			path: sass_options.includePaths,
+			// CSS @imports inside .scss files are out of scope for postcss-import
+			// (sass handles those). Limit to .css files.
+			filter: (id) =>
+				!id.endsWith(".scss") && !id.endsWith(".sass") && !id.endsWith(".less"),
+		}),
+	];
 	if (rtl_style) {
 		plugins.push(rtlcss);
 	}
@@ -456,6 +592,29 @@ function get_build_options(files, outdir, plugins) {
 			"process.env.NODE_ENV": JSON.stringify(PRODUCTION ? "production" : "development"),
 			__VUE_OPTIONS_API__: JSON.stringify(true),
 			__VUE_PROD_DEVTOOLS__: JSON.stringify(false),
+			// Substitute `import.meta.env.*` reads at build time so Vite-style
+			// dev/prod gates inside frappe-ui (e.g.
+			//   `if (import.meta.env.DEV) console.warn(...)`) keep working
+			// under esbuild's es2017 target — where `import.meta` itself is
+			// substituted with an empty object and `import.meta.env.DEV` would
+			// otherwise crash at runtime.
+			//
+			// Per esbuild's `define` semantics these key paths replace the
+			// whole expression, so `import.meta.env.DEV` becomes the literal
+			// value below — no `import.meta` reference survives.
+			"import.meta.env.DEV": JSON.stringify(!PRODUCTION),
+			"import.meta.env.PROD": JSON.stringify(PRODUCTION),
+			"import.meta.env.MODE": JSON.stringify(PRODUCTION ? "production" : "development"),
+			"import.meta.env.SSR": JSON.stringify(false),
+			// Fallback for code that destructures `import.meta.env` as a whole
+			// or reads keys we haven't enumerated above. Anything missing
+			// resolves to `undefined`, matching Vite's runtime shape.
+			"import.meta.env": JSON.stringify({
+				DEV: !PRODUCTION,
+				PROD: PRODUCTION,
+				MODE: PRODUCTION ? "production" : "development",
+				SSR: false,
+			}),
 		},
 		plugins: [
 			dedup_vue_plugin(frappe_node_modules),
