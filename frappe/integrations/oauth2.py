@@ -42,7 +42,7 @@ def get_oauth_server():
 	return frappe.local.oauth_server
 
 
-def get_oauth_params(params):
+def strip_none_values(params):
 	"""Return OAuth request params that were explicitly passed to the endpoint."""
 	return {key: value for key, value in params.items() if value is not None}
 
@@ -83,7 +83,7 @@ def approve(
 	display: str | None = None,
 	claims: str | None = None,
 ):
-	authorization_params = get_oauth_params(
+	authorization_params = strip_none_values(
 		{
 			"response_type": response_type,
 			"client_id": client_id,
@@ -150,7 +150,7 @@ def authorize(
 	display: str | None = None,
 	claims: str | None = None,
 ):
-	authorization_params = get_oauth_params(
+	authorization_params = strip_none_values(
 		{
 			"response_type": response_type,
 			"client_id": client_id,
@@ -234,7 +234,7 @@ def get_token(
 	username: str | None = None,
 	password: str | None = None,
 ):
-	token_params = get_oauth_params(
+	token_params = strip_none_values(
 		{
 			"grant_type": grant_type,
 			"code": code,
@@ -274,7 +274,7 @@ def revoke_token(
 	client_id: str | None = None,
 	client_secret: str | None = None,
 ):
-	revocation_params = get_oauth_params(
+	revocation_params = strip_none_values(
 		{
 			"token": token,
 			"token_type_hint": token_type_hint,
@@ -301,7 +301,7 @@ def revoke_token(
 
 @frappe.whitelist(methods=["GET", "POST"])
 def openid_profile(access_token: str | None = None):
-	userinfo_params = get_oauth_params({"access_token": access_token})
+	userinfo_params = strip_none_values({"access_token": access_token})
 	try:
 		r = frappe.request
 		_headers, body, _status = get_oauth_server().create_userinfo_response(
