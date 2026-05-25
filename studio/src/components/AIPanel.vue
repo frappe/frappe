@@ -42,7 +42,11 @@ const prompt = ref("")
 const loading = ref(false)
 const error = ref("")
 
-const selectedBlock = computed(() => canvasStore.activeCanvas?.selectedBlocks?.[0] ?? null)
+const selectedBlock = computed(() => {
+	const block = canvasStore.activeCanvas?.selectedBlocks?.[0] ?? null
+	if (block?.isRoot()) return null
+	return block
+})
 
 const contextHint = computed(() =>
 	selectedBlock.value
