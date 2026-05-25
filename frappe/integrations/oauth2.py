@@ -63,7 +63,7 @@ def encode_params(params):
 	return urlencode(params, quote_via=quote)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def approve(
 	response_type: str | None = None,
 	client_id: str | None = None,
@@ -130,7 +130,7 @@ def approve(
 		return generate_json_error_response(e)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 def authorize(
 	response_type: str | None = None,
 	client_id: str | None = None,
@@ -221,7 +221,7 @@ def authorize(
 			return generate_json_error_response(e)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def get_token(
 	grant_type: str | None = None,
 	code: str | None = None,
@@ -267,7 +267,7 @@ def get_token(
 		return generate_json_error_response(e)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def revoke_token(
 	token: str | None = None,
 	token_type_hint: str | None = None,
@@ -299,7 +299,7 @@ def revoke_token(
 	return
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET", "POST"])
 def openid_profile(access_token: str | None = None):
 	userinfo_params = get_oauth_params({"access_token": access_token})
 	try:
@@ -344,7 +344,7 @@ def get_openid_configuration():
 	return response
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def introspect_token(token: str, token_type_hint: str | None = None):
 	if token_type_hint not in ["access_token", "refresh_token"]:
 		token_type_hint = "access_token"
