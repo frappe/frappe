@@ -1,8 +1,8 @@
 <template>
 	<div class="flex flex-col gap-4 p-4">
 		<div class="flex flex-col gap-1">
-			<p class="text-sm font-medium text-gray-700">Describe your page</p>
-			<p class="text-xs text-gray-500">
+			<p class="text-sm font-medium text-ink-gray-7">Describe your page</p>
+			<p class="text-xs text-ink-gray-5">
 				{{ contextHint }}
 			</p>
 		</div>

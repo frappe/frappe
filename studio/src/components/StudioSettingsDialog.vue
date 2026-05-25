@@ -31,7 +31,7 @@
 
 <script lang="ts" setup>
 import { ref, watch } from "vue"
-import { Dialog, FormControl, ErrorMessage, call } from "frappe-ui"
+import { Dialog, FormControl, ErrorMessage, createDocumentResource } from "frappe-ui"
 import { toast } from "vue-sonner"
 
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
@@ -41,19 +41,21 @@ const aiModel = ref("")
 const error = ref("")
 const saving = ref(false)
 
+const settings = createDocumentResource({
+	doctype: "Studio Settings",
+	name: "Studio Settings",
+	onSuccess(doc: any) {
+		apiKey.value = doc.openrouter_api_key || ""
+		aiModel.value = doc.ai_model
+	},
+})
+
 watch(
 	() => showDialog.value,
-	async (open) => {
+	(open) => {
 		if (!open) return
+		settings.reload()
 		error.value = ""
-		try {
-			const result = await call("frappe.client.get", { doctype: "Studio Settings", name: "Studio Settings" })
-			const doc = result
-			apiKey.value = doc.openrouter_api_key || ""
-			aiModel.value = doc.ai_model || "openrouter/anthropic/claude-3.5-sonnet"
-		} catch {
-			aiModel.value = "openrouter/anthropic/claude-3.5-sonnet"
-		}
 	},
 	{ immediate: true },
 )
@@ -64,24 +66,23 @@ function reset() {
 	error.value = ""
 }
 
-async function save() {
+function save() {
 	saving.value = true
 	error.value = ""
-	try {
-		await call("frappe.client.set_value", {
-			doctype: "Studio Settings",
-			name: "Studio Settings",
-			fieldname: {
-				openrouter_api_key: apiKey.value,
-				ai_model: aiModel.value,
-			},
+	settings.setValue
+		.submit({
+			openrouter_api_key: apiKey.value,
+			ai_model: aiModel.value,
 		})
-		showDialog.value = false
-		toast.success("Studio Settings saved")
-	} catch (e: any) {
-		error.value = e?.message || "Failed to save settings"
-	} finally {
-		saving.value = false
-	}
+		.then(() => {
+			showDialog.value = false
+			toast.success("Studio Settings saved")
+		})
+		.catch((e: any) => {
+			error.value = e?.message || "Failed to save settings"
+		})
+		.finally(() => {
+			saving.value = false
+		})
 }
 </script>
