@@ -224,7 +224,7 @@ export default class Grid {
 
 			// toggle "Add row" button
 			this.wrapper
-				.find(".grid-add-row")
+				.find(".grid-add-row, .grid-add-multiple-rows")
 				.toggleClass(
 					"hidden",
 					num_selected_rows > 0 ||
