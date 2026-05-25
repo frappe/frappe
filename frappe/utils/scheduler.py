@@ -39,6 +39,23 @@ def start_scheduler() -> NoReturn:
 	"""Run enqueue_events_for_all_sites based on scheduler tick.
 	Specify scheduler_tick_interval in seconds in common_site_config.json"""
 
+	# In Redis-less / memory-cache mode the scheduler must not run.
+	# Scheduled jobs are enqueued to RQ; without Redis they would fall back to
+	# synchronous in-process execution inside the scheduler's open DB connection,
+	# causing InnoDB lock-wait timeouts for concurrent web requests.
+	from frappe.utils.redis_wrapper import MemoryCacheWrapper
+
+	if isinstance(frappe.cache, MemoryCacheWrapper):
+		frappe.logger("scheduler").info(
+			"Scheduler disabled: running in Redis-less (memory cache) mode. "
+			"Background jobs submitted via the web process will run synchronously."
+		)
+		# Block forever so the process manager doesn't restart us in a tight loop
+		import time
+
+		while True:
+			time.sleep(3600)
+
 	tick = get_scheduler_tick()
 	set_niceness()
 

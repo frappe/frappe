@@ -160,10 +160,18 @@ def enqueue(
 
 		redis_unavailable = isinstance(frappe.cache, MemoryCacheWrapper)
 		if frappe.local.flags.in_migrate or redis_unavailable:
-			# If redis is not available during migration, or the cache has already
-			# auto-detected Redis is down and fallen back to in-memory mode,
-			# execute the job directly in the current process instead of failing.
-			print(f"Redis queue is unreachable: Executing {method} synchronously")
+			# Redis is intentionally absent (memory-cache mode) or unavailable during
+			# migration — run the job in-process instead of failing.
+			# IMPORTANT: honour enqueue_after_commit so jobs that must not run inside
+			# an open transaction (e.g. delete_dynamic_links) still run after commit,
+			# otherwise we get InnoDB lock-wait timeouts.
+			def _run_sync():
+				frappe.call(method, **kwargs)
+
+			if enqueue_after_commit:
+				frappe.db.after_commit.add(_run_sync)
+				return
+
 			return frappe.call(method, **kwargs)
 
 		raise
@@ -609,10 +617,13 @@ def get_redis_conn(username=None, password=None):
 		)
 		raise
 	except Exception as e:
-		log(
-			f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}. Redis reported error: {e!s}",
-			colour="red",
-		)
+		# Suppress the noisy warning when Redis is intentionally absent (use_memory_cache mode).
+		# The enqueue() fallback handles this gracefully; no action needed from the operator.
+		if not frappe.conf.get("use_memory_cache"):
+			log(
+				f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}. Redis reported error: {e!s}",
+				colour="red",
+			)
 		raise
 
 
