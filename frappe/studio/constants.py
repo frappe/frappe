@@ -11,7 +11,6 @@ STANDARD_COMPONENT_NAMES = {
 	"Badge",
 	"Button",
 	"Breadcrumbs",
-	"Card",
 	"Checkbox",
 	"Calendar",
 	"Combobox",
