@@ -394,11 +394,15 @@ def setup_cache() -> RedisWrapper:
 	import logging
 
 	logger = logging.getLogger(__name__)
-	from frappe.utils.memory_cache import MemoryCacheWrapper
+
+	def new_memory_cache():
+		from frappe.utils.memory_cache import MemoryCacheWrapper
+
+		return MemoryCacheWrapper()
 
 	if frappe.conf.get("use_memory_cache") or frappe.conf.get("cache_backend") == "memory":
 		logger.info("Using MemoryCacheWrapper (configured via site_config)")
-		return MemoryCacheWrapper()
+		return new_memory_cache()
 
 	try:
 		if frappe.conf.redis_cache_sentinel_enabled:
@@ -422,7 +426,7 @@ def setup_cache() -> RedisWrapper:
 				logger.warning(
 					"Redis Sentinel configured but connection failed, falling back to MemoryCacheWrapper"
 				)
-				return MemoryCacheWrapper()
+				return new_memory_cache()
 		else:
 			redis_cache = RedisWrapper.from_url(frappe.conf.get("redis_cache"))
 			# Test the connection immediately
@@ -431,13 +435,13 @@ def setup_cache() -> RedisWrapper:
 				return redis_cache
 			else:
 				logger.warning("Redis connection test failed, falling back to MemoryCacheWrapper")
-				return MemoryCacheWrapper()
+				return new_memory_cache()
 	except redis.exceptions.ConnectionError as e:
 		logger.warning(f"Redis connection failed ({e}), falling back to MemoryCacheWrapper")
-		return MemoryCacheWrapper()
+		return new_memory_cache()
 	except Exception as e:
 		logger.error(f"Unexpected error setting up cache ({e}), falling back to MemoryCacheWrapper")
-		return MemoryCacheWrapper()
+		return new_memory_cache()
 
 
 def get_sentinel_connection(
