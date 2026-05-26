@@ -125,19 +125,19 @@ class RedisWrapper(redis.Redis):
 
 		return ret
 
-	def get_keys(self, key):
+	def get_keys(self, key, user=None, shared=False):
 		"""Return keys starting with `key`."""
 		try:
-			key = self.make_key(key + "*")
+			key = self.make_key(key + "*", user=user, shared=shared)
 			return self.keys(key)
 
 		except redis.exceptions.ConnectionError:
 			regex = re.compile(cstr(key).replace("|", r"\|").replace("*", r"[\w]*"))
 			return [k for k in list(frappe.local.cache) if regex.match(cstr(k))]
 
-	def delete_keys(self, key):
+	def delete_keys(self, key, user=None, shared=False):
 		"""Delete keys with wildcard `*`."""
-		self.delete_value(self.get_keys(key), make_keys=False)
+		self.delete_value(self.get_keys(key, user=user, shared=shared), make_keys=False)
 
 	def delete_key(self, *args, **kwargs):
 		self.delete_value(*args, **kwargs)
@@ -162,14 +162,17 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			pass
 
-	def lpush(self, key, value):
-		return super().lpush(self.make_key(key), value)
+	def lpush(self, key, value, user=None, shared=False):
+		return super().lpush(self.make_key(key, user=user, shared=shared), value)
 
 	def rpush(self, key, value):
 		return super().rpush(self.make_key(key), value)
 
-	def lpop(self, key):
-		return super().lpop(self.make_key(key))
+	def lpop(self, key, user=None, shared=False):
+		return super().lpop(self.make_key(key, user=user, shared=shared))
+
+	def blpop(self, key, timeout=0, user=None, shared=False):
+		return super().blpop(self.make_key(key, user=user, shared=shared), timeout=timeout)
 
 	def rpop(self, key):
 		return super().rpop(self.make_key(key))
@@ -466,13 +469,13 @@ class MemoryCacheWrapper:
 
 		return ret
 
-	def get_keys(self, key):
-		key = self.make_key(key + "*")
+	def get_keys(self, key, user=None, shared=False):
+		key = self.make_key(key + "*", user=user, shared=shared)
 		pattern = str(key).replace("|", r"\|").replace("*", ".*")
 		return [k for k in self.cache.keys() if re.match(pattern, str(k))]
 
-	def delete_keys(self, key):
-		self.delete_value(self.get_keys(key), make_keys=False)
+	def delete_keys(self, key, user=None, shared=False):
+		self.delete_value(self.get_keys(key, user=user, shared=shared), make_keys=False)
 
 	def delete_key(self, *args, **kwargs):
 		self.delete_value(*args, **kwargs)
@@ -495,19 +498,27 @@ class MemoryCacheWrapper:
 				self.cache.pop(key, None)
 				self.expiries.pop(key, None)
 
-	def lpush(self, key, value):
-		key = self.make_key(key)
+	def lpush(self, key, value, user=None, shared=False):
+		key = self.make_key(key, user=user, shared=shared)
 		self.cache.setdefault(key, []).insert(0, value)
 
 	def rpush(self, key, value):
 		key = self.make_key(key)
 		self.cache.setdefault(key, []).append(value)
 
-	def lpop(self, key):
-		key = self.make_key(key)
+	def lpop(self, key, user=None, shared=False):
+		key = self.make_key(key, user=user, shared=shared)
 		lst = self.cache.get(key)
 		if lst:
 			return lst.pop(0)
+
+	def blpop(self, key, timeout=0, user=None, shared=False):
+		if value := self.lpop(key, user=user, shared=shared):
+			return value
+
+		if timeout:
+			time.sleep(timeout)
+			return self.lpop(key, user=user, shared=shared)
 
 	def rpop(self, key):
 		key = self.make_key(key)

@@ -285,6 +285,23 @@ class TestRedisWrapper(FrappeAPITestCase):
 		frappe.cache.delete_keys(prefix)
 		self.assertEqual(len(frappe.cache.get_keys(prefix)), 0)
 
+	def test_delete_keys_with_user_and_shared_args(self):
+		user_prefix = "test_user_del_"
+		shared_prefix = "test_shared_del_"
+
+		for i in range(3):
+			frappe.cache.set_value(f"{user_prefix}{i}", 1, user="Administrator")
+			frappe.cache.set_value(f"{shared_prefix}{i}", 1, shared=True)
+
+		self.assertEqual(len(frappe.cache.get_keys(user_prefix, user="Administrator")), 3)
+		self.assertEqual(len(frappe.cache.get_keys(shared_prefix, shared=True)), 3)
+
+		frappe.cache.delete_keys(user_prefix, user="Administrator")
+		frappe.cache.delete_keys(shared_prefix, shared=True)
+
+		self.assertEqual(len(frappe.cache.get_keys(user_prefix, user="Administrator")), 0)
+		self.assertEqual(len(frappe.cache.get_keys(shared_prefix, shared=True)), 0)
+
 	def test_hash(self):
 		key = "test_hash"
 
