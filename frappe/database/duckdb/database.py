@@ -43,15 +43,27 @@ def get_type_map():
 	}
 
 
+@frappe.whitelist()
 def sync_to_duckdb():
-	res = frappe.get_all("DocType", {"sync_to_duckdb": 1}, pluck="name")
-	for dt in res:
-		_dt = qb.DocType(dt)
+	# TODO: permissions
+	from frappe.database.schema import DBTable
 
-		res = qb.from_(_dt).select(_dt.star).run(as_list=True)
+	# create non-existent tables
+	doctypes = frappe.db.get_all("DuckDB Sync Item", fields=["doc_type"], pluck="doc_type")
+	table_names = set()
+	for x in doctypes:
+		table_names.add(DBTable(x).table_name)
+	print("Table names:", table_names)
+	print("DuckDB:", frappe.duckdb)
+	res = frappe.duckdb.sql("show tables").fetchall()
+	res = set([x[0] for x in res])
+	to_create = table_names - res
+	print(to_create)
 
 
+@frappe.whitelist()
 def drop_all_tables():
+	# TODO: permissions
 	res = frappe.duckdb.sql("show tables").fetchall()
 	for x in res:
 		frappe.duckdb.sql(f'drop table "{x[0]}";')
