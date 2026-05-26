@@ -218,11 +218,7 @@ export default class Grid {
 				this.last_checked_docname = docname;
 			}
 			this.refresh_remove_rows_button();
-<<<<<<< HEAD
-=======
-			this.refresh_duplicate_rows_button();
-			this.update_selection_banner(num_selected_rows);
->>>>>>> 8e83af2626 (feat(grid): show banner for selected rows)
+			this.update_selection_banner(this.get_selected().length);
 		});
 	}
 
