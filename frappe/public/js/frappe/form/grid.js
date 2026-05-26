@@ -243,7 +243,24 @@ export default class Grid {
 
 			this.refresh_remove_rows_button();
 			this.refresh_duplicate_rows_button();
+			this.update_selection_banner(num_selected_rows);
 		});
+	}
+
+	update_selection_banner(count) {
+		let $container = this.wrapper.find(".form-grid-container");
+		let $toast = this.wrapper.find("> .grid-selection-toast");
+		if (count > 0) {
+			if (!$toast.length) {
+				$toast = $(
+					`<div class="grid-selection-toast"><span class="grid-selection-toast__message"></span></div>`
+				).insertAfter($container);
+			}
+			$toast.find(".grid-selection-toast__message").text(__("{0} rows selected", [count]));
+			$toast.show();
+		} else if ($toast.length) {
+			$toast.hide();
+		}
 	}
 
 	/**
@@ -390,13 +407,7 @@ export default class Grid {
 	);
 
 	get_selected() {
-		return (this.grid_rows || [])
-			.map((row) => {
-				return row.doc.__checked ? row.doc.name : null;
-			})
-			.filter((d) => {
-				return d;
-			});
+		return (this.data || []).filter((doc) => doc.__checked).map((doc) => doc.name);
 	}
 
 	get_selected_children() {
