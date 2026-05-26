@@ -457,6 +457,90 @@ class TestRedisWrapper(FrappeAPITestCase):
 			cache = setup_cache()
 			self.assertIsInstance(cache, MemoryCacheWrapper)
 
+	def test_setup_cache_uses_sentinel_when_available(self):
+		from frappe.utils.redis_wrapper import setup_cache
+
+		redis_cache = MagicMock()
+		redis_cache.connected.return_value = True
+		sentinel = MagicMock()
+		sentinel.master_for.return_value = redis_cache
+
+		with (
+			patch("frappe.utils.redis_wrapper.get_sentinel_connection", return_value=sentinel),
+			patch.object(
+				frappe.local,
+				"conf",
+				type(
+					"conf",
+					(),
+					{
+						"get": lambda key, default=None: {
+							"redis_cache_sentinels": ["localhost:26379"],
+							"redis_cache_master_service": "mymaster",
+						}.get(key, default),
+						"redis_cache_sentinel_enabled": True,
+					},
+				)(),
+			),
+		):
+			cache = setup_cache()
+
+		self.assertIs(cache, redis_cache)
+		sentinel.master_for.assert_called_once()
+
+	def test_setup_cache_sentinel_falls_back_on_failed_connection_test(self):
+		from frappe.utils.memory_cache import MemoryCacheWrapper
+		from frappe.utils.redis_wrapper import setup_cache
+
+		redis_cache = MagicMock()
+		redis_cache.connected.return_value = False
+		sentinel = MagicMock()
+		sentinel.master_for.return_value = redis_cache
+
+		with (
+			patch("frappe.utils.redis_wrapper.get_sentinel_connection", return_value=sentinel),
+			patch.object(
+				frappe.local,
+				"conf",
+				type(
+					"conf",
+					(),
+					{
+						"get": lambda key, default=None: {
+							"redis_cache_sentinels": ["localhost:26379"],
+							"redis_cache_master_service": "mymaster",
+						}.get(key, default),
+						"redis_cache_sentinel_enabled": True,
+					},
+				)(),
+			),
+		):
+			cache = setup_cache()
+
+		self.assertIsInstance(cache, MemoryCacheWrapper)
+
+	def test_cache_fallback_on_unexpected_redis_setup_error(self):
+		from frappe.utils.memory_cache import MemoryCacheWrapper
+		from frappe.utils.redis_wrapper import setup_cache
+
+		with patch("frappe.utils.redis_wrapper.RedisWrapper.from_url") as mock_from_url:
+			mock_from_url.side_effect = RuntimeError("unexpected failure")
+
+			with patch.object(
+				frappe.local,
+				"conf",
+				type(
+					"conf",
+					(),
+					{
+						"get": lambda key, default=None: None,
+						"redis_cache_sentinel_enabled": False,
+					},
+				)(),
+			):
+				cache = setup_cache()
+				self.assertIsInstance(cache, MemoryCacheWrapper)
+
 	def test_memory_cache_key_and_expiry_operations(self):
 		from frappe.utils.memory_cache import MemoryCacheWrapper
 

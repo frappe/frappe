@@ -108,12 +108,49 @@ def pass_test_context(f):
 	return decorated_function
 
 
+def make_pass_test_context(context):
+	@wraps(pass_test_context)
+	def _pass_test_context(f):
+		@wraps(f)
+		def decorated_function(*args, **kwargs):
+			return f(context, *args, **kwargs)
+
+		return decorated_function
+
+	return _pass_test_context
+
+
 @contextmanager
 def cli(cmd: Command, args: list | None = None):
 	with maintain_locals():
 		global _result
 
 		patch_ctx = patch("frappe.commands.pass_context", pass_test_context)
+		_module = cmd.callback.__module__
+		_cmd = cmd.callback.__qualname__
+
+		__module = importlib.import_module(_module)
+		patch_ctx.start()
+		importlib.reload(__module)
+		click_cmd = getattr(__module, _cmd)
+
+		try:
+			_result = CliRunner().invoke(click_cmd, args=args)
+			_result.command = str(cmd)
+			yield _result
+		finally:
+			patch_ctx.stop()
+			__module = importlib.import_module(_module)
+			importlib.reload(__module)
+			importlib.invalidate_caches()
+
+
+@contextmanager
+def cli_with_context(cmd: Command, context, args: list | None = None):
+	with maintain_locals():
+		global _result
+
+		patch_ctx = patch("frappe.commands.pass_context", make_pass_test_context(context))
 		_module = cmd.callback.__module__
 		_cmd = cmd.callback.__qualname__
 
@@ -982,6 +1019,141 @@ class TestSchedulerUtils(BaseTestCommands):
 	def test_ready_for_migrate(self):
 		with cli(frappe.commands.scheduler.ready_for_migration) as result:
 			self.assertEqual(result.exit_code, 0)
+
+
+class TestSetupWizardCLI(BaseTestCommands):
+	def _setup_wizard_args(self, **kwargs) -> list[str]:
+		defaults = {
+			"country": "Australia",
+			"timezone": "Australia/Sydney",
+			"currency": "AUD",
+		}
+		defaults.update(kwargs)
+
+		args = []
+		for key, value in defaults.items():
+			flag = f"--{key.replace('_', '-')}"
+			if isinstance(value, bool):
+				if value:
+					args.append(flag)
+				continue
+			args.extend([flag, str(value)])
+		return args
+
+	def test_setup_wizard_success(self):
+		import frappe.commands.wizard
+
+		with (
+			patch("frappe.init") as init,
+			patch("frappe.connect"),
+			patch("frappe.destroy") as destroy,
+			patch("frappe.db.get_single_value", return_value=0),
+			patch(
+				"frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
+				return_value={"status": "ok"},
+			) as setup_complete,
+		):
+			with cli(
+				frappe.commands.wizard.setup_wizard,
+				args=self._setup_wizard_args(company_name="My Company", company_abbr="MC"),
+			) as result:
+				self.assertEqual(result.exit_code, 0)
+				self.assertIsNone(result.exception)
+				self.assertIn("running setup wizard", result.output)
+				self.assertIn("setup complete", result.output)
+
+		init.assert_called_once_with(site=TEST_SITE)
+		destroy.assert_called_once()
+		setup_args = setup_complete.call_args.args[0]
+		self.assertEqual(setup_args["company_name"], "My Company")
+		self.assertEqual(setup_args["company_abbr"], "MC")
+		self.assertEqual(setup_args["chart_of_accounts"], "Standard")
+
+	def test_setup_wizard_skips_completed_site(self):
+		import frappe.commands.wizard
+
+		with (
+			patch("frappe.init"),
+			patch("frappe.connect"),
+			patch("frappe.destroy") as destroy,
+			patch("frappe.db.get_single_value", return_value=1),
+			patch("frappe.desk.page.setup_wizard.setup_wizard.setup_complete") as setup_complete,
+		):
+			with cli(frappe.commands.wizard.setup_wizard, args=self._setup_wizard_args()) as result:
+				self.assertEqual(result.exit_code, 0)
+				self.assertIn("setup already complete", result.output)
+
+		setup_complete.assert_not_called()
+		destroy.assert_called_once()
+
+	def test_setup_wizard_failure_exits_nonzero(self):
+		import frappe.commands.wizard
+
+		with (
+			patch("frappe.init"),
+			patch("frappe.connect"),
+			patch("frappe.destroy") as destroy,
+			patch("frappe.db.get_single_value", return_value=0),
+			patch(
+				"frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
+				return_value={"status": "error"},
+			),
+		):
+			with cli(frappe.commands.wizard.setup_wizard, args=self._setup_wizard_args()) as result:
+				self.assertEqual(result.exit_code, 1)
+				self.assertIn("setup failed", result.output)
+
+		destroy.assert_called_once()
+
+	def test_setup_wizard_requires_site(self):
+		import frappe.commands.wizard
+
+		with cli_with_context(
+			frappe.commands.wizard.setup_wizard,
+			frappe._dict(sites=[]),
+			args=self._setup_wizard_args(),
+		) as result:
+			self.assertEqual(result.exit_code, 1)
+			self.assertIsInstance(result.exception, frappe.exceptions.SiteNotSpecifiedError)
+
+	def test_setup_wizard_background_parent_process(self):
+		import frappe.commands.wizard
+
+		with (
+			patch("os.fork", return_value=123),
+			patch("frappe.init") as init,
+		):
+			with cli(
+				frappe.commands.wizard.setup_wizard,
+				args=self._setup_wizard_args(background=True),
+			) as result:
+				self.assertEqual(result.exit_code, 0)
+				self.assertIn("forked to background", result.output)
+
+		init.assert_not_called()
+
+	def test_setup_wizard_background_child_exits(self):
+		import frappe.commands.wizard
+
+		with (
+			patch("os.fork", return_value=0),
+			patch("os._exit", side_effect=SystemExit(0)) as os_exit,
+			patch("frappe.init"),
+			patch("frappe.connect"),
+			patch("frappe.destroy"),
+			patch("frappe.db.get_single_value", return_value=0),
+			patch(
+				"frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
+				return_value={"status": "ok"},
+			),
+		):
+			with cli(
+				frappe.commands.wizard.setup_wizard,
+				args=self._setup_wizard_args(background=True),
+			) as result:
+				self.assertEqual(result.exit_code, 0)
+
+		os_exit.assert_called_once_with(0)
 
 
 class TestCommandUtils(IntegrationTestCase):
