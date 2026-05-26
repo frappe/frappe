@@ -176,11 +176,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2021-07-16 22:51:35.505575",
-=======
  "modified": "2026-03-03 13:08:12.561504",
->>>>>>> 115d3cead0 (feat(assignment_rule): add weighted distribution strategy (#37741))
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule",

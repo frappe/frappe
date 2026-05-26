@@ -30,23 +30,15 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2020-09-29 20:12:14.456785",
-=======
  "modified": "2026-03-03 12:30:01.394107",
->>>>>>> 115d3cead0 (feat(assignment_rule): add weighted distribution strategy (#37741))
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule User",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
-<<<<<<< HEAD
- "sort_field": "modified",
-=======
  "row_format": "Dynamic",
  "sort_field": "creation",
->>>>>>> 115d3cead0 (feat(assignment_rule): add weighted distribution strategy (#37741))
  "sort_order": "DESC",
  "track_changes": 1
 }

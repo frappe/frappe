@@ -37,11 +37,8 @@ class AssignmentRule(Document):
 		rule: DF.Literal["Round Robin", "Load Balancing", "Based on Field", "Weighted Distribution"]
 		unassign_condition: DF.Code | None
 		users: DF.TableMultiSelect[AssignmentRuleUser]
-<<<<<<< HEAD
-=======
 		weighted_users: DF.Table[AssignmentRuleUser]
 	# end: auto-generated types
->>>>>>> 115d3cead0 (feat(assignment_rule): add weighted distribution strategy (#37741))
 
 	# end: auto-generated types
 	def validate(self):
