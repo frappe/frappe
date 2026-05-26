@@ -1,7 +1,20 @@
 import json
+import logging
 
 import frappe
 import litellm
+from frappe import _
+
+from studio.ai_models import ModelRegistry
+
+litellm.drop_params = True
+logger = frappe.logger("studio.ai")
+logger.setLevel(logging.INFO)
+
+TASK_PARAMS = {
+	"simple": {"max_tokens": 1000, "temperature": 0.5},
+	"complex": {"max_tokens": 40000, "temperature": 0.7},
+}
 
 COMPONENT_CATALOG = """
 LAYOUT:
@@ -129,47 +142,81 @@ EXAMPLE — "A login form with email, password and a submit button":
 """
 
 
-@frappe.whitelist()
-def generate_page_from_prompt(prompt: str) -> str:
-	settings = frappe.get_single("Studio Settings")
-	api_key = settings.get_password("ai_api_key", raise_exception=False)
-	model = settings.ai_model or "openrouter/google/gemini-3.1-pro-preview"
+def call_llm(messages: list, model: str, task_tier: str, api_key: str) -> str:
+	params = TASK_PARAMS[task_tier]
+	response = litellm.completion(model=model, messages=messages, api_key=api_key, **params)
+	return response.choices[0].message.content or ""
 
-	if not api_key:
-		frappe.throw("OpenRouter API key is not configured. Please set it in Studio Settings.")
 
-	response = litellm.completion(
-		model=model,
-		messages=[
-			{"role": "system", "content": SYSTEM_PROMPT},
-			{"role": "user", "content": prompt},
-		],
-		api_key=api_key,
+def _emit(event_suffix: str, page_id: str, user: str, **kwargs):
+	frappe.publish_realtime(
+		f"ai_generation_{event_suffix}_{page_id}",
+		{"page_id": page_id, **kwargs},
+		user=user,
 	)
 
-	content = response.choices[0].message.content
-	if not content:
-		frappe.throw("The AI model returned an empty response. Try a different model or prompt.")
 
-	content = strip_fences(content)
+def run_generation_job(prompt: str, model: str, page_id: str, user: str):
+	settings = frappe.get_single("Studio Settings")
+	api_key = settings.get_password("ai_api_key", raise_exception=False)
+
+	_emit("progress", page_id, user, message=f"Generating with {ModelRegistry.get_label(model)}…")
+
 	try:
-		parsed = json.loads(content)
-	except json.JSONDecodeError as e:
-		frappe.log_error(title="Studio AI: JSON parse error", message=f"{e}\ncontent:\n{content}")
-		frappe.throw(f"The AI model returned invalid JSON ({e}). Raw response has been logged.")
+		messages = [
+			{"role": "system", "content": SYSTEM_PROMPT},
+			{"role": "user", "content": prompt},
+		]
+		content = call_llm(messages, model, "complex", api_key)
+		content = _strip_fences(content)
 
-	blocks = parsed.get("blocks", parsed) if isinstance(parsed, dict) else parsed
-	if not isinstance(blocks, list):
-		frappe.throw("AI returned an unexpected response format. Please try again.")
+		try:
+			parsed = json.loads(content)
+		except json.JSONDecodeError as e:
+			frappe.log_error(title="Studio AI: JSON parse error", message=f"{e}\n{content}")
+			raise ValueError(f"The AI model returned invalid JSON: {e}")
 
-	return json.dumps(blocks)
+		blocks = parsed.get("blocks", parsed) if isinstance(parsed, dict) else parsed
+		if not isinstance(blocks, list):
+			raise ValueError("AI returned an unexpected response format. Please try again.")
+
+		logger.info(f"run_generation_job complete | model={model} blocks={len(blocks)}")
+		_emit("complete", page_id, user, blocks=blocks)
+
+	except Exception as e:
+		logger.error(f"run_generation_job failed: {e}", exc_info=True)
+		frappe.log_error(title="Studio AI: generation error", message=str(e))
+		_emit("error", page_id, user, message=str(e))
 
 
-def strip_fences(text: str) -> str:
+@frappe.whitelist()
+def generate_page_from_prompt(prompt: str, model: str | None, page_id: str) -> dict:
+	if not frappe.has_permission("Studio Page", ptype="write"):
+		frappe.throw(_("You do not have permission to modify pages"))
+
+	settings = frappe.get_single("Studio Settings")
+	if not settings.get_password("ai_api_key", raise_exception=False):
+		frappe.throw(_("OpenRouter API key is not configured. Please set it in Studio Settings."))
+
+	resolved_model = model or ModelRegistry.get_default()
+
+	frappe.enqueue(
+		run_generation_job,
+		queue="long",
+		prompt=prompt,
+		model=resolved_model,
+		page_id=page_id,
+		user=frappe.session.user,
+	)
+
+	frappe.local.response.http_status_code = 202
+	return {"status": "accepted"}
+
+
+def _strip_fences(text: str) -> str:
 	text = text.strip()
 	if text.startswith("```"):
 		lines = text.splitlines()
-		# drop first line (```json or ```) and last line (```)
 		inner_lines = lines[1:-1] if lines[-1].strip() == "```" else lines[1:]
 		return "\n".join(inner_lines).strip()
 	return text

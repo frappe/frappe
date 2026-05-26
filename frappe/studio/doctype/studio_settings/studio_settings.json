@@ -5,21 +5,13 @@
  "engine": "InnoDB",
  "field_order": [
   "ai_section",
-  "ai_api_key",
-  "ai_model"
+  "ai_api_key"
  ],
  "fields": [
   {
    "fieldname": "ai_section",
    "fieldtype": "Section Break",
    "label": "AI Settings"
-  },
-  {
-   "default": "openrouter/anthropic/claude-3.5-sonnet",
-   "description": "litellm model string, e.g. openrouter/anthropic/claude-3.5-sonnet",
-   "fieldname": "ai_model",
-   "fieldtype": "Data",
-   "label": "AI Model"
   },
   {
    "description": "API key for the selected AI model provider",
@@ -30,7 +22,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-05-26 14:13:30.789351",
+ "modified": "2026-05-26 17:44:02.690418",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Settings",

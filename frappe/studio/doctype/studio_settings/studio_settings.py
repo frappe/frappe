@@ -15,7 +15,6 @@ class StudioSettings(Document):
 		from frappe.types import DF
 
 		ai_api_key: DF.Password | None
-		ai_model: DF.Data | None
 	# end: auto-generated types
 
 	pass

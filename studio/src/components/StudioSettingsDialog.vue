@@ -1,5 +1,5 @@
 <template>
-	<Dialog v-model="showDialog" :options="{ title: 'Studio Settings', size: '2xl' }" @after-leave="reset">
+	<Dialog v-model="showDialog" :options="{ title: 'Studio Settings', size: 'lg' }" @after-leave="reset">
 		<template #body-content>
 			<div class="flex flex-col gap-3">
 				<FormControl
@@ -10,7 +10,7 @@
 					placeholder="sk-or-..."
 				>
 					<template #description>
-						<p class="text-xs text-ink-gray-5">
+						<p class="text-xs leading-normal text-ink-gray-5">
 							Get API key from
 							<a
 								href="https://openrouter.ai/keys"
@@ -24,14 +24,6 @@
 						</p>
 					</template>
 				</FormControl>
-				<FormControl
-					label="AI Model"
-					type="text"
-					variant="outline"
-					v-model="aiModel"
-					placeholder="openrouter/google/gemini-3.1-pro-preview"
-					:description="'litellm model string passed to OpenRouter'"
-				/>
 			</div>
 		</template>
 
@@ -52,7 +44,6 @@ import { toast } from "vue-sonner"
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 
 const apiKey = ref("")
-const aiModel = ref("")
 const error = ref("")
 const saving = ref(false)
 
@@ -61,7 +52,6 @@ const settings = createDocumentResource({
 	name: "Studio Settings",
 	onSuccess(doc: any) {
 		apiKey.value = doc.ai_api_key || ""
-		aiModel.value = doc.ai_model
 	},
 })
 
@@ -77,7 +67,6 @@ watch(
 
 function reset() {
 	apiKey.value = ""
-	aiModel.value = ""
 	error.value = ""
 }
 
@@ -87,7 +76,6 @@ function save() {
 	settings.setValue
 		.submit({
 			ai_api_key: apiKey.value,
-			ai_model: aiModel.value,
 		})
 		.then(() => {
 			showDialog.value = false
