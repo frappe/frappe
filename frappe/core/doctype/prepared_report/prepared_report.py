@@ -86,22 +86,34 @@ class PreparedReport(Document):
 			at_front_when_starved=True,
 		)
 
-	def get_prepared_data(self, with_file_name=False):
+	def get_prepared_data(self, with_file_name=False, format="json"):
 		attachments = get_attachments(self.doctype, self.name)
 		if not attachments:
 			frappe.throw(_("No attachment found for the prepared report"), title=_("Attachment Not Found"))
 
 		attachment = None
+		is_format_json = format == "json"
+
+		def check_attachment_condition(f, is_format_json=is_format_json):
+			if is_format_json:
+				return f.file_name.endswith(".json.gz")
+			return f.file_name.startswith("csv_") and f.file_name.endswith(".csv")
+
 		for f in attachments or []:
-			if f.file_url.endswith(".gz"):
+			if check_attachment_condition(f, is_format_json):
 				attachment = f
 				break
 
 		attached_file = frappe.get_doc("File", attachment.name)
+		file_to_send = None
+		if is_format_json:
+			file_to_send = gzip.decompress(attached_file.get_content())
+		else:
+			file_to_send = attached_file.get_content()
 
 		if with_file_name:
-			return (gzip.decompress(attached_file.get_content()), attachment.file_name)
-		return gzip.decompress(attached_file.get_content())
+			return (file_to_send, attachment.file_name)
+		return file_to_send
 
 
 def generate_report(prepared_report):
@@ -125,7 +137,11 @@ def generate_report(prepared_report):
 					report.custom_columns = data["columns"]
 
 		result = generate_report_result(report=report, filters=instance.filters, user=instance.owner)
+
 		create_json_gz_file(result, instance.doctype, instance.name, instance.report_name)
+
+		if report.generate_csv:
+			enqueue_json_to_csv_conversion(prepared_report)
 
 		instance.status = "Completed"
 
@@ -134,7 +150,6 @@ def generate_report(prepared_report):
 				"doctype": "Notification Log",
 				"subject": f"{instance.report_name} report is ready.",
 				"for_user": frappe.session.user,
-				"type": "Alert",
 				"document_type": "Report",
 				"document_name": report.name,
 				"link": f"/desk/query-report/{report.name}?prepared_report_name={instance.name}",
@@ -303,12 +318,12 @@ def create_json_gz_file(data, dt, dn, report_name):
 
 
 @frappe.whitelist()
-def download_attachment(dn: str):
+def download_attachment(dn: str, format: str):
 	pr = frappe.get_doc("Prepared Report", dn)
 	if not pr.has_permission("read"):
 		frappe.throw(frappe._("Cannot Download Report due to insufficient permissions"))
 
-	data, file_name = pr.get_prepared_data(with_file_name=True)
+	data, file_name = pr.get_prepared_data(with_file_name=True, format=format)
 	frappe.local.response.filename = file_name[:-3]
 	frappe.local.response.filecontent = data
 	frappe.local.response.type = "binary"
@@ -407,7 +422,6 @@ def convert_json_to_csv(prepared_report_name):
 			"subject": "Your CSV file is ready for download",
 			"email_content": f'Click <a href="{_file.file_url}" target="_blank">here</a> to download the file.',
 			"for_user": frappe.session.user,
-			"type": "Alert",
 			"document_type": "File",
 			"document_name": _file.name,
 			"link": _file.file_url,

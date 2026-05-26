@@ -484,6 +484,8 @@ frappe.search.utils = {
 					value: d.name,
 					description: make_description(d.content, d.name),
 					route: ["Form", d.doctype, d.name],
+					_global_raw_content: d.content,
+					_global_doctype: d.doctype,
 				};
 				if (d.image || d.image === null) {
 					result.image = d.image;
@@ -503,14 +505,21 @@ frappe.search.utils = {
 			return results_sets;
 		}
 		return new Promise(function (resolve, reject) {
+			var args = { text: keywords };
+			if (doctype) {
+				args.doctype = doctype;
+			}
+			var offset = parseInt(start, 10) || 0;
+			if (offset > 0) {
+				args.start = offset;
+				args.limit = parseInt(limit, 10);
+				if (!args.limit || args.limit < 1) {
+					args.limit = 20;
+				}
+			}
 			frappe.call({
 				method: "frappe.utils.global_search.search",
-				args: {
-					text: keywords,
-					start: start,
-					limit: limit,
-					doctype: doctype,
-				},
+				args: args,
 				callback: function (r) {
 					if (r.message) {
 						resolve(get_results_sets(r.message));
@@ -522,91 +531,77 @@ frappe.search.utils = {
 		});
 	},
 
-	get_nav_results: function (keywords) {
-		function sort_uniques(array) {
-			var routes = [],
-				out = [];
-			array.forEach(function (d) {
-				if (d.route) {
-					if (d.route[0] === "List" && d.route[2]) {
-						d.route.splice(2);
-					}
-					var str_route = d.route.join("/");
-					if (routes.indexOf(str_route) === -1) {
-						routes.push(str_route);
-						out.push(d);
-					} else {
-						var old = routes.indexOf(str_route);
-						if (out[old].index > d.index) {
-							out[old] = d;
-						}
-					}
-				} else {
-					out.push(d);
-				}
-			});
-			return out.sort(function (a, b) {
-				return b.index - a.index;
-			});
-		}
-		var lists = [],
-			setup = [];
-		var all_doctypes = sort_uniques(this.get_doctypes(keywords));
-		all_doctypes.forEach(function (d) {
-			if (d.type === "") {
-				setup.push(d);
-			} else {
-				lists.push(d);
+	/**
+	 * Parses `__global_search` content into { field label - value list }.
+	 * Segments are separated by `|||`; each segment is `label : value` (or `label &&& value` as fallback).
+	 * Skips blank parts and the synthetic `name` field (the real name is shown in its own column).
+	 */
+	parse_global_search_fields: function (content) {
+		const fields = {};
+		if (!content) return fields;
+		for (const raw of content.split("|||")) {
+			let part = (raw || "").trim();
+			if (!part.length) continue;
+			let sep = " : ";
+			let idx = part.indexOf(sep);
+			if (idx === -1) {
+				sep = " &&& ";
+				idx = part.indexOf(sep);
 			}
-		});
-		var in_keyword = keywords.split(" in ")[0];
-		return [
-			{
-				title: __("Recents"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_recent_pages(keywords)),
-			},
-			{
-				title: __("Create a new ..."),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_creatables(keywords)),
-			},
-			{
-				title: __("Lists"),
-				fetch_type: "Nav",
-				results: lists,
-			},
-			{
-				title: __("Reports"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_reports(keywords)),
-			},
-			{
-				title: __("Administration"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_pages(keywords)),
-			},
-			{
-				title: __("Desktop Icon"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_desktop_icons(keywords)),
-			},
-			{
-				title: __("Dashboard"),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_dashboards(keywords)),
-			},
-			{
-				title: __("Setup"),
-				fetch_type: "Nav",
-				results: setup,
-			},
-			{
-				title: __("Find '{0}' in ...", [in_keyword]),
-				fetch_type: "Nav",
-				results: sort_uniques(this.get_search_in_list(keywords)),
-			},
-		];
+			if (idx === -1) continue;
+			const label = part.slice(0, idx).trim();
+			const value = part.slice(idx + sep.length).trim();
+			if (!label.length || /^name$/i.test(label)) continue;
+			if (!fields[label]) fields[label] = [];
+			fields[label].push(value);
+		}
+		return fields;
+	},
+
+	/**
+	 * Picks table column names for Global Search hits: walks each hit’s snippet text,
+	 * finds every field label in that text, then returns each label once (first time we see it).
+	 */
+	global_search_field_columns_for_results: function (results) {
+		const cols = [];
+		const seen = Object.create(null);
+		for (const r of results || []) {
+			const fields = this.parse_global_search_fields(r._global_raw_content);
+			for (const col of Object.keys(fields)) {
+				if (!seen[col]) {
+					seen[col] = 1;
+					cols.push(col);
+				}
+			}
+		}
+		return cols;
+	},
+
+	/**
+	 * Highlights search terms in text: wraps each term in `<mark>` tags.
+	 */
+	highlight_global_search_terms: function (text, keywords) {
+		const s = text == null ? "" : String(text);
+		const terms = keywords
+			.split("&")
+			.map((p) => p.trim())
+			.filter(Boolean);
+		if (!terms.length) return frappe.utils.escape_html(s);
+		const escaped = terms.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+		try {
+			const re = new RegExp("(" + escaped.join("|") + ")", "gi");
+			return s
+				.split(re)
+				.map((part) => {
+					const isMatch =
+						part && terms.some((t) => part.toLowerCase() === t.toLowerCase());
+					const esc = frappe.utils.escape_html(part);
+					return isMatch ? "<mark>" + esc + "</mark>" : esc;
+				})
+				.join("");
+		} catch (e) {
+			return frappe.utils.escape_html(s);
+		}
 	},
 
 	fuzzy_search: function (keywords = "", _item = "", return_marked_string = false) {
@@ -714,4 +709,43 @@ frappe.search.utils = {
 		return out;
 	},
 	searchable_functions: [],
+};
+
+/** Closes the navbar Awesome Bar modal. */
+function hide_navbar_search_modal() {
+	const $modal = $("#navbar-search").closest(".modal");
+	if ($modal.length) $modal.modal("hide");
+}
+
+/**
+ * Open the global search dialog from the navbar Awesome Bar (Ctrl/Cmd+G).
+ */
+frappe.search.open_global_search_from_navbar_shortcut = function (e) {
+	const from_bar = ($("#navbar-search").val() || "").trim();
+	const dlg = frappe.searchdialog?.search;
+	if (dlg?.open_global_search_dialog) {
+		hide_navbar_search_modal();
+		dlg.open_global_search_dialog(from_bar);
+	}
+	if (e) {
+		e.preventDefault();
+	}
+	return false;
+};
+
+/**
+ * Open the navbar Awesome Bar from Global Search (Ctrl/Cmd+K).
+ */
+frappe.search.open_awesomebar_from_global_search_shortcut = function (e) {
+	const dlg = frappe.searchdialog?.search;
+	if (dlg?.search_dialog?.is_visible) {
+		const keywords = (dlg.$input?.val() || "").trim();
+		dlg.search_dialog.hide();
+		$("#navbar-search").val(keywords);
+	}
+	$("#navbar-modal-search").click();
+	if (e) {
+		e.preventDefault();
+	}
+	return false;
 };

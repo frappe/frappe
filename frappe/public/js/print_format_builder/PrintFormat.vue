@@ -8,21 +8,27 @@
 			@change="layout.header = $event"
 			:button-label="__('Edit Header')"
 		/>
+
 		<draggable
-			class="mb-4"
+			class="sections-container"
 			v-model="layout.sections"
 			group="sections"
-			filter=".section-columns, .column, .field"
 			:animation="200"
 			item-key="id"
+			handle=".section-drag-handle"
+			filter=".section-columns, .column, .field"
 		>
-			<template #item="{ element }">
-				<PrintFormatSection
-					:section="element"
-					@add_section_above="add_section_above(element)"
-				/>
+			<template #item="{ element, index }">
+				<div class="section-with-insert">
+					<SectionInsert @insert="add_section_at(index)" />
+					<PrintFormatSection :section="element" />
+				</div>
+			</template>
+			<template #footer>
+				<SectionInsert @insert="add_section_at(layout.sections.length)" />
 			</template>
 		</draggable>
+
 		<HTMLEditor
 			:value="layout.footer"
 			@change="layout.footer = $event"
@@ -42,34 +48,24 @@ import draggable from "vuedraggable";
 import HTMLEditor from "./HTMLEditor.vue";
 import LetterHeadEditor from "./LetterHeadEditor.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
+import SectionInsert from "./SectionInsert.vue";
 import { useStore } from "./store";
 import { computed, inject, watch } from "vue";
 
-// mixins
 let { layout, letterhead, print_format } = useStore();
 let store = inject("$store");
-// methods
-function add_section_above(section) {
-	let sections = [];
-	for (let _section of layout.value.sections) {
-		if (_section === section) {
-			sections.push({
-				label: "",
-				columns: [
-					{ label: "", fields: [] },
-					{ label: "", fields: [] },
-				],
-			});
-		}
-		sections.push(_section);
-	}
-	layout.value["sections"] = sections;
+
+function add_section_at(index) {
+	layout.value.sections.splice(index, 0, {
+		label: "",
+		columns: [{ label: "", fields: [] }],
+	});
 }
+
 function update_letterhead_footer(val) {
 	letterhead.value.footer = val;
 }
 
-// computed
 let rootStyles = computed(() => {
 	let {
 		margin_top = 0,
@@ -83,6 +79,7 @@ let rootStyles = computed(() => {
 		minHeight: "297mm",
 	};
 });
+
 let page_number_style = computed(() => {
 	let style = {
 		position: "absolute",
@@ -112,7 +109,6 @@ let page_number_style = computed(() => {
 	if (print_format.value.page_number.includes("Hide")) {
 		style.display = "none";
 	}
-
 	return style;
 });
 
@@ -127,5 +123,14 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	margin-left: auto;
 	background-color: white;
 	box-shadow: var(--shadow-lg);
+}
+
+.sections-container {
+	margin-bottom: 1rem;
+}
+
+.section-with-insert {
+	display: flex;
+	flex-direction: column;
 }
 </style>

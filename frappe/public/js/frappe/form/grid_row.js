@@ -594,7 +594,7 @@ export default class GridRow {
 								<input class='form-control column-width my-1 input-xs text-right'
 								style='height: 24px; max-width: 80px; background: var(--bg-color);'
 									value='${cint(d.columns) || docfield.columns}'
-									data-fieldname='${docfield.fieldname}' style='background-color: var(--modal-bg); display: inline'>
+									data-fieldname='${docfield.fieldname}'>
 							</div>
 							<div class='col-2 sticky-col-container' title='${__("Sticky")}' >
 								<input type='checkbox' class='form-control sticky-column'
@@ -790,6 +790,30 @@ export default class GridRow {
 			// last empty column
 			$(`<div class="col grid-static-col search"></div>`).appendTo(this.row);
 		}
+
+		// Button has no stored value; static_area stays empty while field_area is hidden until the row
+		// becomes "editable". Keep the control visible for Button columns in editable grids.
+		this.columns_list.forEach((column) => {
+			if (this.should_show_button_in_idle_grid_cell(column)) {
+				this.make_control(column);
+				column.static_area.toggle(false);
+				column.field_area.toggle(true);
+			}
+		});
+	}
+
+	/**
+	 * Button fields only: show the real control even when this row is not the active editable row.
+	 * Scope is intentionally narrow to avoid changing behaviour of value fields.
+	 */
+	should_show_button_in_idle_grid_cell(column) {
+		return (
+			column.df.fieldtype === "Button" &&
+			this.grid.allow_on_grid_editing() &&
+			this.grid.is_editable() &&
+			this.doc &&
+			!column.df.hidden
+		);
 	}
 
 	set_dependant_property(df) {
@@ -1165,11 +1189,17 @@ export default class GridRow {
 					this.refresh_field(df.fieldname, txt);
 				}
 
-				if (!column.df.hidden) {
-					column.static_area.toggle(true);
-				}
+				if (this.should_show_button_in_idle_grid_cell(column)) {
+					this.make_control(column);
+					column.static_area.toggle(false);
+					column.field_area.toggle(true);
+				} else {
+					if (!column.df.hidden) {
+						column.static_area.toggle(true);
+					}
 
-				column.field_area && column.field_area.toggle(false);
+					column.field_area && column.field_area.toggle(false);
+				}
 			});
 			frappe.ui.form.editable_row = null;
 		}

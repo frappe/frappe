@@ -659,7 +659,7 @@ class BaseDocument:
 		return valid_columns_cache[self.doctype]
 
 	def is_new(self) -> bool:
-		return self.get("__islocal")
+		return bool(self.get("__islocal"))
 
 	@property
 	def docstatus(self) -> DocStatus:
@@ -1643,7 +1643,9 @@ def _filter(data, filters, limit=None):
 	return out
 
 
-CACHED_PROPERTIES = (prop for prop, value in vars(BaseDocument).items() if isinstance(value, cached_property))
+CACHED_PROPERTIES = tuple(
+	prop for prop, value in vars(BaseDocument).items() if isinstance(value, cached_property)
+)
 
 UNPICKLABLE_KEYS = frozenset(
 	(

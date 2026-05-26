@@ -124,14 +124,14 @@ class Exporter:
 				raise frappe.PermissionError(
 					_("You are not allowed to export {} doctype").format(self.doctype)
 				)
-
 		for doc in data:
 			rows = []
 			rows = self.add_data_row(self.doctype, None, doc, rows, 0)
 			if table_fields:
 				# add child table data
 				for f in table_fields:
-					for i, child_row in enumerate(doc.get(f, [])):
+					table_data = doc.get(f, []) or []
+					for i, child_row in enumerate(table_data):
 						table_df = self.meta.get_field(f)
 						child_doctype = table_df.options
 						rows = self.add_data_row(child_doctype, child_row.parentfield, child_row, rows, i)

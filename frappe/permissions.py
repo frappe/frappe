@@ -498,8 +498,8 @@ def has_controller_permissions(doc, ptype, user=None, debug=False) -> bool:
 	return True
 
 
-def get_doctypes_with_read():
-	return list({cstr(p.parent) for p in get_valid_perms() if p.parent and p.read})
+def get_doctypes_with_read(user: str | None = None):
+	return list({cstr(p.parent) for p in get_valid_perms(user=user) if p.parent and p.read})
 
 
 def get_valid_perms(doctype=None, user=None):

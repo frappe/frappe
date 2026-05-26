@@ -1,5 +1,5 @@
 <template>
-	<div v-if="shouldRender" style="display: flex; width: 100%">
+	<div v-if="shouldRender" class="builder-root">
 		<div style="padding: var(--padding-md)">
 			<PrintFormatControls />
 		</div>
@@ -58,6 +58,11 @@ defineExpose({ toggle_preview, $store });
 </script>
 
 <style scoped>
+.builder-root {
+	display: flex;
+	width: 100%;
+}
+
 .print-format-container {
 	height: calc(100vh - 95px);
 	width: 100%;

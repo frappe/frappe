@@ -2,8 +2,9 @@
 
 This helper runs in GitHub Actions for bot-authored `.po` pull requests.
 It compares the trusted base checkout against the PR head translation files,
-groups similarly sized file diffs, and renders a markdown comment with the
-high-signal translation changes that are hard to inspect in GitHub's UI.
+groups similarly sized file diffs, and posts one or more markdown comments with
+the high-signal translation changes that are hard to inspect in GitHub's UI
+(split when content would exceed GitHub's comment size limit).
 """
 
 import argparse
@@ -23,6 +24,8 @@ from urllib.error import HTTPError
 from babel.messages.pofile import read_po
 
 COMMENT_MARKER = "<!-- po-translation-review -->"
+MAX_COMMENT_BODY_CHARS = 60_000 # GitHub caps issue comments at 65536 characters
+TOO_MANY_CHANGES_MESSAGE = "Too many changes to fit into a comment."
 SIMILARITY_TOLERANCE = 0.02
 REVIEW_HIDDEN_PO_FILES = {"eo.po"}
 
@@ -43,12 +46,12 @@ class TranslationEntry:
 
 def parse_args() -> argparse.Namespace:
 	parser = argparse.ArgumentParser(
-		description="Build a PR review comment for .po file changes in a GitHub pull request."
+		description="Build PR review comment(s) for .po file changes; write JSON with a `comments` array."
 	)
 	parser.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY"))
 	parser.add_argument("--pr", type=int, default=os.environ.get("PR_NUMBER"))
 	parser.add_argument("--head-sha", default=os.environ.get("PR_HEAD_SHA"))
-	parser.add_argument("--output", default="po-pr-review-comment.md")
+	parser.add_argument("--output", default="po-pr-review-comments.json")
 	return parser.parse_args()
 
 
@@ -362,27 +365,30 @@ def build_language_section(report: dict[str, Any]) -> list[str]:
 	return lines
 
 
-def build_comment(
+def build_oversized_language_section(report: dict[str, Any]) -> str:
+	"""Render a compact placeholder for language sections that exceed comment limits."""
+
+	return "\n".join(
+		[
+			f"### `{report['language']}` (`{report['path']}`)",
+			"",
+			f"_{TOO_MANY_CHANGES_MESSAGE}_",
+		]
+	)
+
+
+def _review_context(
 	po_files: list[dict[str, Any]],
 	language_reports: list[dict[str, Any]],
 	similar_groups: list[dict[str, Any]],
 	parse_errors: list[dict[str, str]],
-) -> str:
-	"""Build the final PR comment with stats, grouped diffs, and translation tables.
-
-	The result is intentionally compact at the top and expandable below so large
-	translation PRs stay reviewable even when GitHub cannot render the raw diff.
-	"""
+) -> dict[str, Any]:
+	"""Shared stats and report slices used to build one or more PR comments."""
 
 	status_counts = Counter(change.get("status", "modified") for change in po_files)
-	total_files = len(po_files)
-	added_files = status_counts["added"]
-	removed_files = status_counts["removed"]
 	reviewable_language_reports = [
 		report for report in language_reports if not should_hide_report_from_review(report)
 	]
-
-	grouped_files_count = sum(len(group["files"]) for group in similar_groups)
 	translation_change_count = sum(
 		len(report["changes"]) for report in reviewable_language_reports if report["changes"]
 	)
@@ -394,13 +400,36 @@ def build_comment(
 		if not report["changes"] and report["status"] != "removed"
 	]
 
+	return {
+		"status_counts": status_counts,
+		"total_files": len(po_files),
+		"reviewable_language_reports": reviewable_language_reports,
+		"grouped_files_count": sum(len(group["files"]) for group in similar_groups),
+		"translation_change_count": translation_change_count,
+		"changed_languages_count": changed_languages_count,
+		"removed_reports": removed_reports,
+		"metadata_only_reports": metadata_only_reports,
+		"similar_groups": similar_groups,
+		"parse_errors": parse_errors,
+	}
+
+
+def _build_prefix_lines(ctx: dict[str, Any]) -> list[str]:
+	status_counts = ctx["status_counts"]
+	total_files = ctx["total_files"]
+	grouped_files_count = ctx["grouped_files_count"]
+	translation_change_count = ctx["translation_change_count"]
+	changed_languages_count = ctx["changed_languages_count"]
+	parse_errors: list[dict[str, str]] = ctx["parse_errors"]
+	similar_groups: list[dict[str, Any]] = ctx["similar_groups"]
+
 	lines = [
 		COMMENT_MARKER,
 		"Here is a summary of the `.po` file changes:",
 		"",
 		f"- Changed files: `{total_files}`",
-		f"- Added files: `{added_files}`",
-		f"- Removed files: `{removed_files}`",
+		f"- Added files: `{status_counts['added']}`",
+		f"- Removed files: `{status_counts['removed']}`",
 		f"- Files in similar change-size groups within 2% tolerance: `{grouped_files_count}`",
 		f"- Added or changed translations detected: `{translation_change_count}` across `{changed_languages_count}` file(s)",
 	]
@@ -414,7 +443,7 @@ def build_comment(
 		for group in similar_groups:
 			representative_additions = round(group["avg_additions"])
 			representative_deletions = round(group["avg_deletions"])
-			file_names = ", ".join(f"`{Path(file['filename']).name}`" for file in group["files"])
+			file_names = ", ".join(f"`{Path(change['filename']).name}`" for change in group["files"])
 			lines.append(
 				f"- Around `+{representative_additions} / -{representative_deletions}` lines: "
 				f"`{len(group['files'])}` files ({file_names})"
@@ -422,27 +451,15 @@ def build_comment(
 	else:
 		lines.append("- No repeated change-size groups were found within the 2% tolerance.")
 
-	lines.extend(
-		[
-			"",
-			"<details>",
-			f"<summary>Added or changed translations by language ({translation_change_count} entries across {changed_languages_count} file(s))</summary>",
-			"",
-		]
-	)
+	return lines
 
-	if translation_change_count:
-		for report in reviewable_language_reports:
-			if not report["changes"]:
-				continue
-			lines.extend(build_language_section(report))
-	else:
-		lines.extend(
-			[
-				"No added or changed translations were detected. The `.po` changes appear to be metadata, comment, or source reference updates only.",
-				"",
-			]
-		)
+
+def _build_suffix_lines(ctx: dict[str, Any]) -> list[str]:
+	metadata_only_reports: list[dict[str, Any]] = ctx["metadata_only_reports"]
+	removed_reports: list[dict[str, Any]] = ctx["removed_reports"]
+	parse_errors: list[dict[str, str]] = ctx["parse_errors"]
+
+	lines: list[str] = []
 
 	if metadata_only_reports:
 		lines.extend(["### Metadata-Only File Changes", ""])
@@ -462,10 +479,263 @@ def build_comment(
 			lines.append(f"- `{error['path']}`: {html.escape(error['error'])}")
 		lines.append("")
 
-	lines.append("</details>")
-	lines.append("")
+	return lines
 
-	return "\n".join(lines)
+
+def _continuation_marker(part_index: int, total_parts: int) -> str:
+	"""Marker for follow-up comments; part_index and total_parts are 1-based."""
+
+	return f"<!-- po-translation-review part {part_index}/{total_parts} -->"
+
+
+def _details_summary(
+	*,
+	part_index: int,
+	total_parts: int,
+	translation_change_count: int,
+	changed_languages_count: int,
+) -> str:
+	if total_parts == 1:
+		return (
+			f"Added or changed translations by language ({translation_change_count} entries across "
+			f"{changed_languages_count} file(s))"
+		)
+	return (
+		f"Added or changed translations by language (part {part_index} of {total_parts}, "
+		f"{translation_change_count} entries across {changed_languages_count} file(s))"
+	)
+
+
+def _render_review_comment(
+	*,
+	part_index: int,
+	total_parts: int,
+	prefix_text: str,
+	section_bodies: list[str],
+	suffix_text: str,
+	translation_change_count: int,
+	changed_languages_count: int,
+	empty_translation_body: str | None,
+) -> str:
+	"""Assemble one GitHub issue comment body (single <details> block)."""
+
+	head = prefix_text if part_index == 1 else f"{_continuation_marker(part_index, total_parts)}\n\n"
+	summary = _details_summary(
+		part_index=part_index,
+		total_parts=total_parts,
+		translation_change_count=translation_change_count,
+		changed_languages_count=changed_languages_count,
+	)
+	if section_bodies:
+		inner = "\n\n".join(section_bodies)
+	else:
+		inner = empty_translation_body or ""
+
+	if inner and suffix_text:
+		full_inner = f"{inner}\n{suffix_text}"
+	elif suffix_text:
+		full_inner = suffix_text
+	else:
+		full_inner = inner
+
+	return (
+		f"{head}<details>\n<summary>{summary}</summary>\n\n{full_inner}\n</details>\n"
+	)
+
+
+def _section_fits_in_comment(
+	section: str,
+	*,
+	prefix_text: str,
+	suffix_text: str,
+	translation_change_count: int,
+	changed_languages_count: int,
+	max_body_chars: int,
+	total_parts_upper_bound: int,
+) -> bool:
+	"""Return whether a language section can fit as a standalone comment body."""
+
+	# Size against the longest plausible summary/marker text (multi-part copy scales with total_parts).
+	t_parts = max(total_parts_upper_bound, 1)
+	body = _render_review_comment(
+		part_index=1,
+		total_parts=t_parts,
+		prefix_text=prefix_text,
+		section_bodies=[section],
+		suffix_text=suffix_text,
+		translation_change_count=translation_change_count,
+		changed_languages_count=changed_languages_count,
+		empty_translation_body=None,
+	)
+	return len(body) <= max_body_chars
+
+
+def _pack_sections_into_comments(
+	flat_sections: list[str],
+	*,
+	prefix_text: str,
+	suffix_text: str,
+	translation_change_count: int,
+	changed_languages_count: int,
+	max_body_chars: int,
+	total_parts_guess: int,
+) -> list[list[str]]:
+	"""Group section bodies into chunks that each fit GitHub comment limits."""
+
+	groups: list[list[str]] = []
+	cur: list[str] = []
+	index = 0
+	n = len(flat_sections)
+
+	while index < n:
+		sec = flat_sections[index]
+		more_after = index < n - 1
+		trial = [*cur, sec]
+		part_no = len(groups) + 1
+		is_last_segment = not more_after
+		body_try = _render_review_comment(
+			part_index=part_no,
+			total_parts=total_parts_guess,
+			prefix_text=prefix_text,
+			section_bodies=trial,
+			suffix_text=suffix_text if is_last_segment else "",
+			translation_change_count=translation_change_count,
+			changed_languages_count=changed_languages_count,
+			empty_translation_body=None,
+		)
+		if len(body_try) <= max_body_chars:
+			cur = trial
+			index += 1
+			continue
+
+		if cur:
+			groups.append(cur)
+			cur = []
+			continue
+
+		raise RuntimeError(
+			f"A single translation section does not fit in one comment ({len(body_try)} chars). "
+			"Improve splitting or raise MAX_COMMENT_BODY_CHARS."
+		)
+
+	if cur:
+		groups.append(cur)
+
+	return groups
+
+
+def build_comment_bodies(
+	po_files: list[dict[str, Any]],
+	language_reports: list[dict[str, Any]],
+	similar_groups: list[dict[str, Any]],
+	parse_errors: list[dict[str, str]],
+	max_body_chars: int = MAX_COMMENT_BODY_CHARS,
+) -> list[str]:
+	"""Build one or more PR comment bodies, each under GitHub's size limit."""
+
+	ctx = _review_context(po_files, language_reports, similar_groups, parse_errors)
+	prefix_text = "\n".join(_build_prefix_lines(ctx)) + "\n\n"
+	suffix_lines = _build_suffix_lines(ctx)
+	suffix_text = "\n".join(suffix_lines) if suffix_lines else ""
+	translation_change_count = ctx["translation_change_count"]
+	changed_languages_count = ctx["changed_languages_count"]
+	reviewable: list[dict[str, Any]] = ctx["reviewable_language_reports"]
+
+	language_reports_with_changes = [report for report in reviewable if report["changes"]]
+	max_comment_segments = len(language_reports_with_changes)
+
+	if not language_reports_with_changes:
+		empty_body = (
+			"No added or changed translations were detected. The `.po` changes appear to be metadata, "
+			"comment, or source reference updates only.\n"
+		)
+		body = _render_review_comment(
+			part_index=1,
+			total_parts=1,
+			prefix_text=prefix_text,
+			section_bodies=[],
+			suffix_text=suffix_text,
+			translation_change_count=translation_change_count,
+			changed_languages_count=changed_languages_count,
+			empty_translation_body=empty_body,
+		)
+		if len(body) > max_body_chars:
+			raise RuntimeError("Single metadata-only review comment exceeds max_body_chars; shorten prefix or raise limit.")
+		return [body]
+
+	flat_sections: list[str] = []
+	for report in language_reports_with_changes:
+		section = "\n".join(build_language_section(report)).rstrip()
+		if not _section_fits_in_comment(
+			section,
+			prefix_text=prefix_text,
+			suffix_text=suffix_text,
+			translation_change_count=translation_change_count,
+			changed_languages_count=changed_languages_count,
+			max_body_chars=max_body_chars,
+			total_parts_upper_bound=max_comment_segments,
+		):
+			section = build_oversized_language_section(report)
+		flat_sections.append(section)
+
+	groups = _pack_sections_into_comments(
+		flat_sections,
+		prefix_text=prefix_text,
+		suffix_text=suffix_text,
+		translation_change_count=translation_change_count,
+		changed_languages_count=changed_languages_count,
+		max_body_chars=max_body_chars,
+		total_parts_guess=max(len(flat_sections), 1),
+	)
+	total_parts = len(groups)
+	bodies: list[str] = []
+
+	for idx, sections_in_group in enumerate(groups):
+		part_no = idx + 1
+		is_last = part_no == total_parts
+		body = _render_review_comment(
+			part_index=part_no,
+			total_parts=total_parts,
+			prefix_text=prefix_text,
+			section_bodies=sections_in_group,
+			suffix_text=suffix_text if is_last else "",
+			translation_change_count=translation_change_count,
+			changed_languages_count=changed_languages_count,
+			empty_translation_body=None,
+		)
+		if len(body) > max_body_chars:
+			raise RuntimeError(
+				f"PO review comment part {part_no}/{total_parts} is {len(body)} characters; "
+				"raise MAX_COMMENT_BODY_CHARS or improve packing."
+			)
+		bodies.append(body)
+
+	return bodies
+
+
+def _oversized_review_fallback_body(exc: RuntimeError) -> str:
+	"""Short marker comment when full review output cannot be packed under GitHub limits."""
+
+	detail = html.escape(str(exc))
+	max_detail = 800
+	if len(detail) > max_detail:
+		detail = f"{detail[:max_detail]}…"
+	return (
+		f"{COMMENT_MARKER}\n\n"
+		"The automated `.po` translation review could not be split to fit GitHub's comment size limit.\n\n"
+		f"**Reason:** {detail}\n"
+	)
+
+
+def build_comment(
+	po_files: list[dict[str, Any]],
+	language_reports: list[dict[str, Any]],
+	similar_groups: list[dict[str, Any]],
+	parse_errors: list[dict[str, str]],
+) -> str:
+	"""Build the first PR comment body (for tests and ad-hoc use)."""
+
+	return build_comment_bodies(po_files, language_reports, similar_groups, parse_errors)[0]
 
 
 def build_language_report(
@@ -507,7 +777,7 @@ def build_language_report(
 
 
 def main() -> None:
-	"""Generate the comment body for the current PR and write it to disk."""
+	"""Generate PO review comment bodies for the current PR and write them as JSON."""
 
 	args = parse_args()
 	if not args.repo or not args.pr or not args.head_sha:
@@ -526,8 +796,12 @@ def main() -> None:
 			parse_errors.append(error)
 
 	language_reports.sort(key=lambda report: (str(report["language"]).lower(), str(report["path"]).lower()))
-	comment = build_comment(po_files, language_reports, cluster_similar_change_sizes(po_files), parse_errors)
-	Path(args.output).write_text(comment, encoding="utf-8")
+	try:
+		similar_groups = cluster_similar_change_sizes(po_files)
+		bodies = build_comment_bodies(po_files, language_reports, similar_groups, parse_errors)
+	except RuntimeError as exc:
+		bodies = [_oversized_review_fallback_body(exc)]
+	Path(args.output).write_text(json.dumps({"comments": bodies}, ensure_ascii=False), encoding="utf-8")
 
 
 if __name__ == "__main__":

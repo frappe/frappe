@@ -524,16 +524,6 @@ class DesktopPage {
 			awesome_bar.setup(".desktop-search-wrapper #desktop-navbar-modal-search");
 
 			frappe.ui.keys.add_shortcut({
-				shortcut: "ctrl+g",
-				action: function (e) {
-					$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
-					e.preventDefault();
-					return false;
-				},
-				description: __("Open Awesomebar"),
-				ignore_inputs: true,
-			});
-			frappe.ui.keys.add_shortcut({
 				shortcut: "ctrl+k",
 				action: function (e) {
 					$(".desktop-search-wrapper #desktop-navbar-modal-search").click();

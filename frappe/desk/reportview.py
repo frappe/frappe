@@ -334,6 +334,13 @@ def save_report(name: str | int, doctype: str, report_settings: str):
 		if report.owner != frappe.session.user and not report.has_permission("write"):
 			frappe.throw(_("Insufficient Permissions for editing Report"), frappe.PermissionError)
 	else:
+		if not frappe.has_permission("Report", "create"):
+			frappe.throw(_("You don't have permission to create Report records."), frappe.PermissionError)
+		if not frappe.has_permission(doctype, "read"):
+			frappe.throw(
+				_("You don't have permission to create report for {0}").format(_(doctype)),
+				frappe.PermissionError,
+			)
 		report = frappe.new_doc("Report")
 		report.report_name = name
 		report.ref_doctype = doctype

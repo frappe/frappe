@@ -24,11 +24,18 @@ class ChromePDFGenerator:
 		self._browsers.append(browser)
 
 	def remove_browser(self, browser):
-		self._browsers.remove(browser)
+		if browser in self._browsers:
+			self._browsers.remove(browser)
 
 	def __new__(cls):
-		# if instance or _chromium_process is not available create object else return current instance stored in cls._instance
-		if cls._instance is None or not cls._instance._chromium_process:
+		# Rebuild singleton when chromium subprocess is missing or has exited.
+		# subprocess.Popen stays truthy after the underlying process dies, so
+		# `not cls._instance._chromium_process` never trips — use poll() instead.
+		if (
+			cls._instance is None
+			or cls._instance._chromium_process is None
+			or cls._instance._chromium_process.poll() is not None
+		):
 			cls._instance = super().__new__(cls)
 		return cls._instance
 

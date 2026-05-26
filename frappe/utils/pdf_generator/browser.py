@@ -14,49 +14,54 @@ class Browser:
 		self.debug_mode = frappe.conf.developer_mode and bool(frappe.form_dict.get("pdf_debug"))
 		self.browserID = frappe.utils.random_string(10)
 		generator.add_browser(self.browserID)
-		# sets soup from html
-		self.set_html(html)
-		# sets wkhtmltopdf options
-		self.set_options(options)
-		# start cdp connection and create browser context ( kind of like new window / incognito mode)
-		self.open(generator)
-		# opens header and footer pages and sets content ( not waiting for it to load)
-		self.prepare_header_footer()
-		# opens body page and sets content and waits for it to finshing load
-		self.setup_body_page()
-		# prepare options as per chrome for pdf
-		self.prepare_options_for_pdf()
-		# generate header and footer pages if they are not dynamic ( first, odd, even, last)
-		self.update_header_footer_page_pd()
-		# if header and footer are not dynamic start generating pdf for them (non-blocking)
-		self.try_async_header_footer_pdf()
-		# now wait for page to load as we need DOM to generate pdf
-		self.body_page.wait_for_set_content()
-		self.body_pdf = self.body_page.generate_pdf(raw=not self.header_page and not self.footer_page)
-		if not self.debug_mode:
-			self.body_page.close()
-		self.update_header_footer_page()
-
-		if self.header_page:
-			if not self.is_header_dynamic:
-				self.header_pdf = self.header_page.get_pdf_from_stream(self.header_page.get_pdf_stream_id())
-			else:
-				self.header_pdf = self.header_page.generate_pdf()
+		try:
+			# sets soup from html
+			self.set_html(html)
+			# sets wkhtmltopdf options
+			self.set_options(options)
+			# start cdp connection and create browser context ( kind of like new window / incognito mode)
+			self.open(generator)
+			# opens header and footer pages and sets content ( not waiting for it to load)
+			self.prepare_header_footer()
+			# opens body page and sets content and waits for it to finshing load
+			self.setup_body_page()
+			# prepare options as per chrome for pdf
+			self.prepare_options_for_pdf()
+			# generate header and footer pages if they are not dynamic ( first, odd, even, last)
+			self.update_header_footer_page_pd()
+			# if header and footer are not dynamic start generating pdf for them (non-blocking)
+			self.try_async_header_footer_pdf()
+			# now wait for page to load as we need DOM to generate pdf
+			self.body_page.wait_for_set_content()
+			self.body_pdf = self.body_page.generate_pdf(raw=not self.header_page and not self.footer_page)
 			if not self.debug_mode:
-				self.header_page.close()
+				self.body_page.close()
+			self.update_header_footer_page()
 
-		if self.footer_page:
-			if not self.is_footer_dynamic:
-				self.footer_pdf = self.footer_page.get_pdf_from_stream(self.footer_page.get_pdf_stream_id())
-			else:
-				self.footer_pdf = self.footer_page.generate_pdf()
+			if self.header_page:
+				if not self.is_header_dynamic:
+					self.header_pdf = self.header_page.get_pdf_from_stream(
+						self.header_page.get_pdf_stream_id()
+					)
+				else:
+					self.header_pdf = self.header_page.generate_pdf()
+				if not self.debug_mode:
+					self.header_page.close()
+
+			if self.footer_page:
+				if not self.is_footer_dynamic:
+					self.footer_pdf = self.footer_page.get_pdf_from_stream(
+						self.footer_page.get_pdf_stream_id()
+					)
+				else:
+					self.footer_pdf = self.footer_page.generate_pdf()
+				if not self.debug_mode:
+					self.footer_page.close()
+
 			if not self.debug_mode:
-				self.footer_page.close()
-
-		if not self.debug_mode:
-			self.close()
-
-		generator.remove_browser(self.browserID)
+				self.close()
+		finally:
+			generator.remove_browser(self.browserID)
 		if self.debug_mode:
 			generator.detach_debug_browser()
 
@@ -137,21 +142,29 @@ class Browser:
 		# open header and footer pages
 		self._open_header_footer_pages()
 
+		# Inject clone_and_update into <head> so it's available in the header /
+		# footer page contexts that the template renders via {% for tag in head %}.
+		self._inject_page_no_script(soup)
+
 		# get tags to pass to header template.
 		head = soup.find("head").contents
 		styles = soup.find_all("style")
 
-		# set header and footer content ( not waiting for it to load yet).
+		# Wait for networkIdle so get_element_height() measures the wrapper *after*
+		# any letterhead <img> has loaded — otherwise paperHeight is set too small.
+		header_footer_wait = ["load", "DOMContentLoaded", "networkIdle"]
 		if self.header_page:
 			self.header_page.wait_for_navigate()
 			self.header_page.set_content(
-				self.get_rendered_header_footer(self.header_content, "header", head, styles, css=[])
+				self.get_rendered_header_footer(self.header_content, "header", head, styles, css=[]),
+				wait_for=header_footer_wait,
 			)
 
 		if self.footer_page:
 			self.footer_page.wait_for_navigate()
 			self.footer_page.set_content(
-				self.get_rendered_header_footer(self.footer_content, "footer", head, styles, css=[])
+				self.get_rendered_header_footer(self.footer_content, "footer", head, styles, css=[]),
+				wait_for=header_footer_wait,
 			)
 		if self.header_page:
 			self.header_page.wait_for_set_content()
@@ -159,8 +172,10 @@ class Browser:
 			self.is_header_dynamic = self.is_page_no_used(self.header_content)
 			del self.header_content
 		else:
-			# bad implicit setting of margin #backwards-compatibility
-			options["margin-top"] = "15mm"
+			# Fallback only when the caller did not explicitly pass margin-top.
+			# If margin-top is already set (e.g. from PrintFormatGenerator), keep it.
+			if "margin-top" not in options:
+				options["margin-top"] = "15mm"
 
 		if self.footer_page:
 			self.footer_page.wait_for_set_content()
@@ -168,13 +183,23 @@ class Browser:
 			self.is_footer_dynamic = self.is_page_no_used(self.footer_content)
 			del self.footer_content
 		else:
-			# bad implicit setting of margin #backwards-compatibility
-			options["margin-bottom"] = "15mm"
+			# Fallback only when the caller did not explicitly pass margin-bottom.
+			if "margin-bottom" not in options:
+				options["margin-bottom"] = "15mm"
 
 		# Remove instances of them from main content for render_template
 		for html_id in ["header-html", "footer-html"]:
 			for tag in soup.find_all(id=html_id):
 				tag.extract()
+
+	def _inject_page_no_script(self, soup):
+		"""Inject update_page_no.js into <head> so clone_and_update() is available
+		to the body page and to the header/footer pages (which pick up <head>
+		contents via the chrome_pdf_header_footer template)."""
+		path = frappe.get_app_path("frappe", "utils", "pdf_generator", "update_page_no.js")
+		tag = soup.new_tag("script")
+		tag.append(soup.new_string(frappe.read_file(path)))
+		soup.head.append(tag)
 
 	def try_async_header_footer_pdf(self):
 		if self.header_page and not self.is_header_dynamic:
@@ -317,10 +342,15 @@ class Browser:
 
 		if self.footer_page:
 			footer_height = self.footer_height
+			# Mirror header: paperHeight must include the margin so Chrome has room
+			# to render content above the marginBottom gap. Without this, marginBottom
+			# clips content because the page isn't tall enough to hold both.
+			footer_with_bottom_margin = footer_height + margin_bottom
 			self.footer_page.options["paperHeight"] = (
-				convert_uom(footer_height, "px", "in", only_number=True) if footer_height else 0
+				convert_uom(footer_with_bottom_margin, "px", "in", only_number=True)
+				if footer_with_bottom_margin
+				else 0
 			)
-			footer_with_bottom_margin = self.footer_height + margin_bottom
 
 		margin_bottom = convert_uom(margin_bottom, "px", "in", only_number=True)
 
@@ -363,18 +393,32 @@ class Browser:
 		if not self.header_page and not self.footer_page:
 			return
 		total_pages = len(self.body_pdf.pages)
-		# function is added to html from update_page_no.js
-		if self.header_page:
-			if self.is_header_dynamic:
+
+		if self.header_page and self.is_header_dynamic:
+			if self.is_print_designer:
 				self.header_page.evaluate(
-					f"clone_and_update('{'#header-render-container' if self.is_print_designer else '.wrapper'}', {total_pages}, {1 if self.is_print_designer else 0}, 'Header', 1);",
+					f"clone_and_update('#header-render-container', {total_pages}, 1, 'Header', 1);",
+					await_promise=True,
+				)
+			else:
+				# Use the same JS clone_and_update approach as print_designer.
+				# The script was injected into <head> in prepare_header_footer so
+				# clone_and_update is already available in the header page context.
+				# This avoids page-break-after:always artifacts from Python cloning.
+				self.header_page.evaluate(
+					f"clone_and_update('.wrapper', {total_pages}, 0, 'Header', 1);",
 					await_promise=True,
 				)
 
-		if self.footer_page:
-			if self.is_footer_dynamic:
+		if self.footer_page and self.is_footer_dynamic:
+			if self.is_print_designer:
 				self.footer_page.evaluate(
-					f"clone_and_update('{'#footer-render-container' if self.is_print_designer else '.wrapper'}', {total_pages}, {1 if self.is_print_designer else 0}, 'Footer', 1);",
+					f"clone_and_update('#footer-render-container', {total_pages}, 1, 'Footer', 1);",
+					await_promise=True,
+				)
+			else:
+				self.footer_page.evaluate(
+					f"clone_and_update('.wrapper', {total_pages}, 0, 'Footer', 1);",
 					await_promise=True,
 				)
 

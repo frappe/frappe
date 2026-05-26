@@ -69,6 +69,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 					action: "frappe.ui.toolbar.clear_cache()",
 					is_standard: 1,
 					icon: "rotate-ccw",
+					shortcut: "Shift+Ctrl+R",
 				},
 				{
 					name: "help",
@@ -195,6 +196,9 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				name: element.name,
 				label: element.item_label,
 			};
+			if (element.action?.includes("frappe.ui.toolbar.show_shortcuts")) {
+				dropdown_children.shortcut = "Shift+/";
+			}
 			if (element.item_type === "Route") {
 				dropdown_children.url = element.route;
 			}
@@ -309,6 +313,13 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 					}
 				</div>
 				<span class="menu-item-title">${item.label}</span>
+				${
+					item.shortcut
+						? `<span class="menu-item-shortcut">${frappe.ui.keys.get_shortcut_label(
+								item.shortcut
+						  )}</span>`
+						: ""
+				}
 			</a>
 		</div>`).appendTo(this.dropdown_menu);
 	}

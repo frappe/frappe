@@ -22,9 +22,20 @@ export function getStore(print_format_name) {
 					meta.value = frappe.get_meta(_print_format.doc_type);
 					print_format.value = _print_format;
 					layout.value = get_layout();
-					nextTick(() => (dirty.value = false));
 					edit_letterhead.value = false;
-					resolve();
+
+					// load the letter head stored in format_data, if any
+					const lh_name = layout.value?.letter_head;
+					const load_lh = lh_name
+						? frappe.db
+								.get_doc("Letter Head", lh_name)
+								.then((doc) => (letterhead.value = doc))
+						: Promise.resolve((letterhead.value = null));
+
+					load_lh.then(() => {
+						nextTick(() => (dirty.value = false));
+						resolve();
+					});
 				});
 			});
 		});
@@ -85,6 +96,9 @@ export function getStore(print_format_name) {
 				}
 			})
 			.then(() => fetch())
+			.then(() => {
+				frappe.show_alert({ message: __("Saved"), indicator: "green" });
+			})
 			.always(() => {
 				frappe.dom.unfreeze();
 			});
@@ -107,6 +121,11 @@ export function getStore(print_format_name) {
 	function change_letterhead(_letterhead) {
 		return frappe.db.get_doc("Letter Head", _letterhead).then((doc) => {
 			letterhead.value = doc;
+			// persist the letter head name inside format_data (layout) so it
+			// survives save → reload without needing a separate doctype field
+			if (layout.value) {
+				layout.value.letter_head = _letterhead;
+			}
 		});
 	}
 

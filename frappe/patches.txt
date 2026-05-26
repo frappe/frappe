@@ -261,3 +261,4 @@ execute:frappe.db.set_value("Email Account", {}, "add_x_original_from", 1)
 frappe.patches.v16_0.fix_myanmar_language_name
 execute:frappe.db.set_value("Email Account", {}, "add_reply_to_header", 1)
 frappe.patches.v16_0.set_reply_to_header
+frappe.patches.v16_0.rename_print_format_builder_beta_route
