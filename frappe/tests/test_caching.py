@@ -431,6 +431,155 @@ class TestRedisWrapper(FrappeAPITestCase):
 		cache.delete_value("test_key")
 		self.assertIsNone(cache.get_value("test_key"))
 
+	def test_memory_cache_exports_and_configured_backend(self):
+		from frappe.utils import redis_wrapper
+		from frappe.utils.memory_cache import MemoryCacheWrapper, MemoryPipeline
+		from frappe.utils.redis_wrapper import setup_cache
+
+		self.assertIs(redis_wrapper.MemoryCacheWrapper, MemoryCacheWrapper)
+		self.assertIs(redis_wrapper.MemoryPipeline, MemoryPipeline)
+
+		with self.assertRaises(AttributeError):
+			redis_wrapper.__getattr__("UnknownCache")
+
+		with patch.object(
+			frappe.local,
+			"conf",
+			type(
+				"conf",
+				(),
+				{
+					"get": lambda key, default=None: {"use_memory_cache": True}.get(key, default),
+					"redis_cache_sentinel_enabled": False,
+				},
+			)(),
+		):
+			cache = setup_cache()
+			self.assertIsInstance(cache, MemoryCacheWrapper)
+
+	def test_memory_cache_key_and_expiry_operations(self):
+		from frappe.utils.memory_cache import MemoryCacheWrapper
+
+		cache = MemoryCacheWrapper()
+		frappe.local.cache.clear()
+
+		self.assertIs(cache(), cache)
+		self.assertTrue(cache.ping())
+		self.assertTrue(cache.connected())
+		self.assertEqual(cache.client_id(), 1)
+		self.assertEqual(cache.execute_command("INFO"), {})
+
+		cache.set_value("plain", "value")
+		self.assertEqual(cache.get_value("plain"), "value")
+		self.assertEqual(cache.exists("plain"), 1)
+
+		generator_calls = 0
+
+		def generate_value():
+			nonlocal generator_calls
+			generator_calls += 1
+			return "generated"
+
+		self.assertEqual(cache.get_value("generated", generator=generate_value), "generated")
+		self.assertEqual(cache.get_value("generated", generator=generate_value), "generated")
+		self.assertEqual(generator_calls, 1)
+
+		cache.set_value("user-key", "user-value", user="Administrator")
+		cache.set_value("shared-key", "shared-value", shared=True)
+		self.assertEqual(cache.get_value("user-key", user="Administrator"), "user-value")
+		self.assertEqual(cache.get_value("shared-key", shared=True), "shared-value")
+		self.assertEqual(cache.exists("user-key", user="Administrator"), 1)
+		self.assertEqual(cache.exists("shared-key", shared=True), 1)
+		self.assertEqual(len(cache.get_keys("user-", user="Administrator")), 1)
+		self.assertEqual(len(cache.get_keys("shared-", shared=True)), 1)
+
+		cache.delete_keys("user-", user="Administrator")
+		cache.delete_keys("shared-", shared=True)
+		self.assertEqual(cache.exists("user-key", user="Administrator"), 0)
+		self.assertEqual(cache.exists("shared-key", shared=True), 0)
+
+		with patch("frappe.utils.memory_cache.time.time", side_effect=[100, 100, 102]):
+			cache.set_value("expiring", "soon-gone", expires_in_sec=1)
+			frappe.local.cache.pop(cache.make_key("expiring"), None)
+			self.assertEqual(cache.get_value("expiring", use_local_cache=False), "soon-gone")
+			frappe.local.cache.pop(cache.make_key("expiring"), None)
+			self.assertIsNone(cache.get_value("expiring", use_local_cache=False))
+
+		cache.set_value("delete-me", "gone")
+		cache.delete_key("delete-me")
+		self.assertEqual(cache.exists("delete-me"), 0)
+
+		self.assertTrue(cache.expire_key("plain", 10))
+		self.assertIn(cache.make_key("plain"), cache.expiries)
+
+	def test_memory_cache_collection_operations(self):
+		from frappe.utils.memory_cache import MemoryCacheWrapper
+
+		cache = MemoryCacheWrapper()
+		frappe.local.cache.clear()
+
+		cache.lpush("queue", "first")
+		cache.rpush("queue", "second")
+		cache.lpush("queue", "zero")
+		self.assertEqual(cache.llen("queue"), 3)
+		self.assertEqual(cache.lrange("queue", 0, -1), ["zero", "first", "second"])
+		self.assertEqual(cache.blpop("queue"), "zero")
+		self.assertEqual(cache.rpop("queue"), "second")
+		cache.rpush("queue", "third")
+		cache.ltrim("queue", 1, -1)
+		self.assertEqual(cache.lrange("queue", 0, -1), ["third"])
+		with patch("frappe.utils.memory_cache.time.sleep") as sleep:
+			self.assertIsNone(cache.blpop("missing", timeout=1))
+			sleep.assert_called_once_with(1)
+
+		cache.hset("hash", "field1", "value1")
+		self.assertEqual(cache.hget("hash", "field1"), "value1")
+		self.assertEqual(cache.hget("hash", "field2", generator=lambda: "value2"), "value2")
+		self.assertEqual(set(cache.hkeys("hash")), {"field1", "field2"})
+		self.assertEqual(cache.hgetall("hash"), {"field1": "value1", "field2": "value2"})
+		self.assertTrue(cache.hexists("hash", "field1"))
+		self.assertFalse(cache.hexists("hash", None))
+		cache.hdel("hash", "field1")
+		self.assertFalse(cache.hexists("hash", "field1"))
+
+		cache.hset("prefix:first", "shared-field", "one")
+		cache.hset("prefix:second", "shared-field", "two")
+		cache.hdel_keys("prefix:", "shared-field")
+		self.assertFalse(cache.hexists("prefix:first", "shared-field"))
+		self.assertFalse(cache.hexists("prefix:second", "shared-field"))
+
+		cache.hset("hash-one", "name", "one")
+		cache.hset("hash-two", "name", "two")
+		cache.hdel_names(["hash-one", "hash-two"], "name")
+		self.assertFalse(cache.hexists("hash-one", "name"))
+		self.assertFalse(cache.hexists("hash-two", "name"))
+
+		cache.sadd("letters", "a", "b", "c")
+		self.assertTrue(cache.sismember("letters", "a"))
+		self.assertEqual(cache.smembers("letters"), {"a", "b", "c"})
+		self.assertIn(cache.srandmember("letters"), {"a", "b", "c"})
+		self.assertEqual(len(cache.srandmember("letters", 2)), 2)
+		popped = cache.spop("letters")
+		self.assertNotIn(popped, cache.smembers("letters"))
+		cache.srem("letters", "b")
+		self.assertFalse(cache.sismember("letters", "b"))
+
+		results = (
+			cache.pipeline().set_value("pipe-key", "pipe").hset("pipe-hash", "k", "v").missing().execute()
+		)
+		self.assertEqual(results, [None, None])
+		self.assertEqual(cache.get_value("pipe-key"), "pipe")
+		self.assertEqual(cache.hget("pipe-hash", "k"), "v")
+
+		self.assertEqual(cache.incrby("counter"), 1)
+		self.assertEqual(cache.incrby("counter", 3), 4)
+		self.assertTrue(cache.expire("counter", 5))
+		self.assertIn("counter", cache.expiries)
+
+		pubsub = cache.pubsub()
+		self.assertIsNone(pubsub.subscribe(channel="updates"))
+		self.assertTrue(pubsub.run_in_thread().is_alive())
+
 
 class TestHttpCache(FrappeAPITestCase):
 	def test_http_headers(self):
