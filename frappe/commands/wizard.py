@@ -5,7 +5,7 @@ import click
 import frappe
 from frappe.commands import pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.commands import CliCtxObj
+from frappe.utils.bench_helper import CliCtxObj
 
 
 @click.command("setup-wizard")
@@ -18,7 +18,9 @@ from frappe.commands import CliCtxObj
 @click.option("--password", default="admin", show_default=True, help="Administrator password")
 @click.option("--company-name", default=None, help="Company name (ERPNext)")
 @click.option("--company-abbr", default=None, help="Company abbreviation (ERPNext)")
-@click.option("--chart-of-accounts", default="Standard", show_default=True, help="Chart of accounts template (ERPNext)")
+@click.option(
+	"--chart-of-accounts", default="Standard", show_default=True, help="Chart of accounts template (ERPNext)"
+)
 @click.option(
 	"--background",
 	is_flag=True,
