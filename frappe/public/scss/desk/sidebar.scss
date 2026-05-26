@@ -281,6 +281,41 @@
 	display: none;
 }
 
+.sidebar-toggle-btn {
+	position: absolute;
+	right: -12px;
+	bottom: 80px;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	border: 1px solid var(--sidebar-border-color);
+	background: var(--surface-menu-bar);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	padding: 0;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.15s ease, visibility 0.15s ease;
+	z-index: 1023;
+
+	svg {
+		width: 12px;
+		height: 12px;
+	}
+
+	&:hover {
+		background: var(--sidebar-hover-color);
+	}
+}
+
+.body-sidebar:hover .sidebar-toggle-btn {
+	opacity: 1;
+	visibility: visible;
+}
+
 .sidebar-resize-handle {
 	position: absolute;
 	top: 0;
