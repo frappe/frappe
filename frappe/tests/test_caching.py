@@ -419,7 +419,7 @@ class TestRedisWrapper(FrappeAPITestCase):
 		cache.hset("hash_key", "field1", "value1")
 		cache.hset("hash_key", "field2", "value2")
 		self.assertEqual(cache.hget("hash_key", "field1"), "value1")
-		self.assertEqual(cache.hgetall("hash_key"), {"field1": "value1", "field2": "value2"})
+		self.assertEqual(cache.hgetall("hash_key"), {b"field1": "value1", b"field2": "value2"})
 
 		# Test list operations
 		cache.lpush("list_key", "item1")
@@ -619,8 +619,8 @@ class TestRedisWrapper(FrappeAPITestCase):
 		cache.hset("hash", "field1", "value1")
 		self.assertEqual(cache.hget("hash", "field1"), "value1")
 		self.assertEqual(cache.hget("hash", "field2", generator=lambda: "value2"), "value2")
-		self.assertEqual(set(cache.hkeys("hash")), {"field1", "field2"})
-		self.assertEqual(cache.hgetall("hash"), {"field1": "value1", "field2": "value2"})
+		self.assertEqual(set(cache.hkeys("hash")), {b"field1", b"field2"})
+		self.assertEqual(cache.hgetall("hash"), {b"field1": "value1", b"field2": "value2"})
 		self.assertTrue(cache.hexists("hash", "field1"))
 		self.assertFalse(cache.hexists("hash", None))
 		cache.hdel("hash", "field1")

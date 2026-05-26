@@ -212,11 +212,14 @@ class MemoryCacheWrapper:
 
 	def hgetall(self, name):
 		_name = self.make_key(name)
-		return self.cache.get(_name, {}).copy()
+		return {
+			(key.encode() if isinstance(key, str) else key): value
+			for key, value in self.cache.get(_name, {}).items()
+		}
 
 	def hkeys(self, name):
 		_name = self.make_key(name)
-		return list(self.cache.get(_name, {}).keys())
+		return [key.encode() if isinstance(key, str) else key for key in self.cache.get(_name, {}).keys()]
 
 	def hdel(self, name, keys, shared=False, pipeline=None):
 		_name = self.make_key(name, shared=shared)
