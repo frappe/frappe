@@ -1,5 +1,5 @@
 <template>
-	<Dialog v-model="showDialog" :options="{ title: 'Studio Settings', width: 'md' }" @after-leave="reset">
+	<Dialog v-model="showDialog" :options="{ title: 'Studio Settings', size: '2xl' }" @after-leave="reset">
 		<template #body-content>
 			<div class="flex flex-col gap-3">
 				<FormControl
@@ -8,7 +8,22 @@
 					variant="outline"
 					v-model="apiKey"
 					placeholder="sk-or-..."
-				/>
+				>
+					<template #description>
+						<p class="text-xs text-ink-gray-5">
+							Get API key from
+							<a
+								href="https://openrouter.ai/keys"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="underline"
+							>
+								openrouter.ai/keys
+							</a>
+							— supports Claude, Gemini, GPT and more under one key.
+						</p>
+					</template>
+				</FormControl>
 				<FormControl
 					label="AI Model"
 					type="text"
@@ -45,7 +60,7 @@ const settings = createDocumentResource({
 	doctype: "Studio Settings",
 	name: "Studio Settings",
 	onSuccess(doc: any) {
-		apiKey.value = doc.openrouter_api_key || ""
+		apiKey.value = doc.ai_api_key || ""
 		aiModel.value = doc.ai_model
 	},
 })
@@ -71,7 +86,7 @@ function save() {
 	error.value = ""
 	settings.setValue
 		.submit({
-			openrouter_api_key: apiKey.value,
+			ai_api_key: apiKey.value,
 			ai_model: aiModel.value,
 		})
 		.then(() => {

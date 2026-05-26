@@ -132,7 +132,7 @@ EXAMPLE — "A login form with email, password and a submit button":
 @frappe.whitelist()
 def generate_page_from_prompt(prompt: str) -> str:
 	settings = frappe.get_single("Studio Settings")
-	api_key = settings.get_password("openrouter_api_key") if settings.openrouter_api_key else None
+	api_key = settings.get_password("ai_api_key", raise_exception=False)
 	model = settings.ai_model or "openrouter/google/gemini-3.1-pro-preview"
 
 	if not api_key:

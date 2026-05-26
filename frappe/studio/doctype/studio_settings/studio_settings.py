@@ -14,7 +14,8 @@ class StudioSettings(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		ai_api_key: DF.Password | None
 		ai_model: DF.Data | None
-		openrouter_api_key: DF.Password | None
 	# end: auto-generated types
+
 	pass
