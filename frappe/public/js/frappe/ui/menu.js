@@ -7,6 +7,7 @@ frappe.ui.menu = class ContextMenu {
 		this.menu_items = opts.menu_items;
 		this.name = frappe.utils.get_random(5);
 		this.open_on_left = opts.open_on_left;
+		this.open_on_top = opts.open_on_top;
 		this.size = opts.size;
 		this.opts = opts;
 		Object.assign(this, opts);
@@ -237,7 +238,11 @@ frappe.ui.menu = class ContextMenu {
 				left = parent_menu_rect.right + this.gap;
 			}
 		} else {
-			top = parent_rect.bottom + this.gap;
+			if (this.open_on_top) {
+				top = parent_rect.top - this.template.outerHeight() - this.gap;
+			} else {
+				top = parent_rect.bottom + this.gap;
+			}
 			left = parent_rect.left;
 			if (this.open_on_left || frappe.utils.is_rtl()) {
 				left = parent_rect.right - this.template.outerWidth();
