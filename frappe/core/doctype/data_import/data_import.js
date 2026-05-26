@@ -406,7 +406,9 @@ frappe.ui.form.on("Data Import", {
 					let column_number = `<span class="text-uppercase">${__("Column {0}", [
 						warning.col,
 					])}</span>`;
-					let column_header = columns[warning.col].header_title;
+					let column_header = frappe.utils.escape_html(
+						columns[warning.col].header_title
+					);
 					header = `${column_number} (${column_header})`;
 				}
 				return `
