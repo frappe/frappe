@@ -198,6 +198,10 @@
 
 			.sidebar-user-button {
 				border-radius: var(--border-radius-sm);
+
+				&.user-menu-active {
+					@include hover-mixin();
+				}
 			}
 		}
 	}

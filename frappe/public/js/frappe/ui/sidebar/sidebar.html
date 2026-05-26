@@ -47,11 +47,10 @@
 						 <span> {%= __("Getting Started") %} </span>
 					</a>
 				</p>
-				<div class="nav-item dropdown dropdown-navbar-user dropdown-mobile mt-3">
+				<div class="nav-item dropdown-navbar-user dropdown-mobile mt-3">
 					<a
 						class="align-center btn-reset flex nav-link sidebar-user-button"
 						style="width: 100%; min-height: 40px;"
-						onclick="return frappe.ui.toolbar.route_to_user()"
 						aria-label="{{ __("User Menu") }}"
 					>
 						<div> {{ avatar }} </div>
@@ -63,7 +62,6 @@
 								{{ frappe.session.user_email }}
 							</span>
 						</div>
-
 					</a>
 				</div>
 			</div>

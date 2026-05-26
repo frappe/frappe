@@ -353,6 +353,69 @@ frappe.ui.Sidebar = class Sidebar {
 		this.wrapper.find(".overlay").on("click", () => {
 			this.close();
 		});
+		this.setup_user_menu();
+	}
+
+	setup_user_menu() {
+		const me = this;
+		const $btn = this.wrapper.find(".sidebar-user-button");
+
+		frappe.ui.create_menu({
+			parent: $btn,
+			open_on_top: true,
+			menu_items: [
+				{
+					name: "my-profile",
+					label: __("My Profile"),
+					icon: "user",
+					onClick: function () {
+						frappe.ui.toolbar.route_to_user();
+					},
+				},
+				{
+					name: "toggle-theme",
+					label: __("Toggle Theme"),
+					icon: frappe.ui.get_current_theme() === "dark" ? "sun" : "moon",
+					onClick: function () {
+						new frappe.ui.ThemeSwitcher().show();
+					},
+				},
+				{
+					name: "toggle-full-width",
+					label: __("Toggle Full Width"),
+					icon: "maximize",
+					onClick: function () {
+						frappe.ui.toolbar.toggle_full_width();
+					},
+				},
+				{
+					name: "toggle-sidebar",
+					label: __("Toggle Sidebar"),
+					icon: "panel-right-open",
+					onClick: function () {
+						me.toggle_width();
+					},
+				},
+				{ is_divider: true },
+				{
+					name: "logout",
+					label: __("Logout"),
+					icon: "logout",
+					onClick: function () {
+						frappe.app.logout();
+					},
+				},
+			],
+			onShow: function () {
+				$btn.addClass("user-menu-active");
+			},
+			onHide: function () {
+				$btn.removeClass("user-menu-active");
+			},
+			onItemClick: function () {
+				$btn.removeClass("user-menu-active");
+			},
+		});
 	}
 
 	set_active_workspace_item() {

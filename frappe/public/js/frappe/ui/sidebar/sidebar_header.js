@@ -54,14 +54,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			},
 		];
 		if (frappe.boot.desk_settings.notifications) {
-			let is_dark = frappe.ui.get_current_theme() === "dark";
 			this.dropdown_items.push(
-				{
-					name: "display",
-					label: "Display",
-					icon: "monitor",
-					items: this.get_display_siblings(is_dark),
-				},
 				{
 					label: "Session Defaults",
 					action: "frappe.ui.toolbar.setup_session_defaults()",
@@ -82,17 +75,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 					label: "Help",
 					icon: "info",
 					items: this.get_help_siblings(),
-				},
-				{
-					is_divider: true,
-				},
-				{
-					name: "logout",
-					label: "Logout",
-					icon: "logout",
-					onClick: function () {
-						return frappe.app.logout();
-					},
 				}
 			);
 		}
@@ -225,36 +207,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		});
 
 		return help_dropdown_items;
-	}
-
-	get_display_siblings(is_dark) {
-		const sidebar = this.sidebar;
-		return [
-			{
-				name: "toggle-theme",
-				label: __("Toggle Theme"),
-				icon: is_dark ? "sun" : "moon",
-				onClick: function () {
-					new frappe.ui.ThemeSwitcher().show();
-				},
-			},
-			{
-				name: "toggle-full-width",
-				label: __("Toggle Full Width"),
-				icon: "maximize",
-				onClick: function () {
-					frappe.ui.toolbar.toggle_full_width();
-				},
-			},
-			{
-				name: "toggle-sidebar",
-				label: __("Toggle Sidebar"),
-				icon: "panel-right-open",
-				onClick: function () {
-					sidebar.toggle_width();
-				},
-			},
-		];
 	}
 
 	get_custom_help_links() {
