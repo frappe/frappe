@@ -28,6 +28,8 @@
   "import_warnings",
   "value_mappings_section",
   "value_mappings",
+  "skipped_rows_section",
+  "skipped_rows",
   "section_import_preview",
   "import_preview",
   "import_log_section",
@@ -94,6 +96,22 @@
    "fieldtype": "Table",
    "label": "",
    "options": "Data Import Value Mapping",
+   "read_only_depends_on": "eval: ['Success', 'Partial Success'].includes(doc.status)"
+  },
+  {
+   "depends_on": "eval:!doc.__islocal && (doc.import_file || doc.google_sheets_url)",
+   "fieldname": "skipped_rows_section",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Skipped Rows"
+  },
+  {
+   "depends_on": "eval:!doc.__islocal && (doc.import_file || doc.google_sheets_url)",
+   "fieldname": "skipped_rows",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "",
+   "options": "Data Import Skipped Row",
    "read_only_depends_on": "eval: ['Success', 'Partial Success'].includes(doc.status)"
   },
   {

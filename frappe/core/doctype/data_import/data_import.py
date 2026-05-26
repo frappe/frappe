@@ -57,6 +57,7 @@ class DataImport(Document):
 			self.template_options = ""
 			self.template_warnings = ""
 			self.value_mappings = []
+			self.skipped_rows = []
 
 		self.set_delimiters_flag()
 		self.validate_doctype()
@@ -150,6 +151,9 @@ class DataImport(Document):
 
 	def export_errored_rows(self):
 		return self.get_importer().export_errored_rows()
+
+	def export_skipped_rows(self):
+		return self.get_importer().export_skipped_rows()
 
 	def download_import_log(self):
 		return self.get_importer().export_import_log()
@@ -255,6 +259,13 @@ def download_errored_template(data_import_name: str):
 	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
 	data_import.check_permission("read")
 	data_import.export_errored_rows()
+
+
+@frappe.whitelist()
+def download_skipped_rows(data_import_name: str):
+	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
+	data_import.check_permission("read")
+	data_import.export_skipped_rows()
 
 
 @frappe.whitelist()

@@ -50,6 +50,23 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(doc3.another_number, 5)
 		self.assertEqual(format_duration(doc3.duration), "5d 5h 45m")
 
+	def test_skip_rows_during_import(self):
+		for name in ("Test", "Test 2", "Test 3"):
+			frappe.delete_doc_if_exists(doctype_name, name)
+		frappe.db.commit()
+
+		import_file = get_import_file("sample_import_file")
+		data_import = self.get_importer(doctype_name, import_file)
+		data_import.append("skipped_rows", {"row_number": 2, "row_data": "[]"})
+		data_import.save()
+		data_import.start_import()
+		data_import.reload()
+
+		self.assertFalse(frappe.db.exists(doctype_name, "Test"))
+		self.assertTrue(frappe.db.exists(doctype_name, "Test 2"))
+		self.assertTrue(frappe.db.exists(doctype_name, "Test 3"))
+		self.assertEqual(data_import.status, "Success")
+
 	def test_data_validation_semicolon_success(self):
 		import_file = get_import_file("sample_import_file_semicolon")
 		data_import = self.get_importer(doctype_name, import_file, update=True, use_sniffer=True)

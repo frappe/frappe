@@ -2,6 +2,22 @@
 	margin-bottom: 40px;
 }
 
+.warnings .warning.skipped .body {
+	opacity: 0.6;
+}
+
+.warnings .warning-row-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.warnings .skip-row-btn {
+	text-transform: none;
+	font-weight: normal;
+	letter-spacing: normal;
+}
+
 /* Hide duplicate table label (section break already has the title). */
 [data-fieldname="value_mappings"] > .grid-field .control-label {
 	display: none;

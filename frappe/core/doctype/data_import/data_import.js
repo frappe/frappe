@@ -27,6 +27,11 @@ function dedupe_import_warnings(warnings) {
 	return [...rows, ...Object.values(by_col), ...others];
 }
 
+/** 1-based sheet row numbers marked to skip on the Data Import form. */
+function get_skipped_row_set(frm) {
+	return new Set((frm.doc.skipped_rows || []).map((row) => cint(row.row_number)));
+}
+
 frappe.ui.form.on("Data Import", {
 	setup(frm) {
 		frappe.realtime.on("data_import_refresh", ({ data_import }) => {
@@ -99,6 +104,8 @@ frappe.ui.form.on("Data Import", {
 		$(frm.wrapper).on("dirty", () => {
 			frm.trigger("update_primary_action");
 		});
+
+		frm.events.setup_skip_row_handlers(frm);
 	},
 
 	onload(frm) {
@@ -123,6 +130,8 @@ frappe.ui.form.on("Data Import", {
 				frm.trigger("export_errored_rows")
 			);
 		}
+
+		frm.trigger("show_download_skipped_rows_button");
 
 		if (frm.doc.status.includes("Success")) {
 			frm.add_custom_button(__("Go to {0} List", [__(frm.doc.reference_doctype)]), () =>
@@ -208,6 +217,14 @@ frappe.ui.form.on("Data Import", {
 						"<br/>" +
 						__(
 							"Please click on 'Export Errored Rows', fix the errors and import again."
+						);
+				}
+
+				if ((frm.doc.skipped_rows || []).length) {
+					message +=
+						"<br/>" +
+						__(
+							"Please click on 'Download Skipped Rows' to export rows that were skipped during import."
 						);
 				}
 
@@ -503,6 +520,25 @@ frappe.ui.form.on("Data Import", {
 		);
 	},
 
+	download_skipped_rows(frm) {
+		open_url_post(
+			"/api/method/frappe.core.doctype.data_import.data_import.download_skipped_rows",
+			{
+				data_import_name: frm.doc.name,
+			}
+		);
+	},
+
+	show_download_skipped_rows_button(frm) {
+		const completed = ["Success", "Partial Success"].includes(frm.doc.status);
+		if (!completed || !(frm.doc.skipped_rows || []).length) {
+			return;
+		}
+		frm.add_custom_button(__("Download Skipped Rows"), () =>
+			frm.trigger("download_skipped_rows")
+		);
+	},
+
 	export_import_log(frm) {
 		open_url_post(
 			"/api/method/frappe.core.doctype.data_import.data_import.download_import_log",
@@ -558,6 +594,7 @@ frappe.ui.form.on("Data Import", {
 		}
 
 		let html = "";
+		const skipped_rows = get_skipped_row_set(frm);
 		html += Object.keys(warnings_by_row)
 			.map((row_number) => {
 				let message = warnings_by_row[row_number]
@@ -573,9 +610,16 @@ frappe.ui.form.on("Data Import", {
 						return `<li>${w.message}</li>`;
 					})
 					.join("");
+				let is_skipped = skipped_rows.has(cint(row_number));
+				let skip_btn = `<button type="button" class="btn btn-xs btn-default skip-row-btn" data-row="${row_number}">
+					${is_skipped ? __("Undo Skip") : __("Skip Row")}
+				</button>`;
 				return `
-				<div class="warning" data-row="${row_number}">
-					<h5 class="text-uppercase">${__("Row {0}", [row_number])}</h5>
+				<div class="warning${is_skipped ? " skipped" : ""}" data-row="${row_number}">
+					<h5 class="text-uppercase warning-row-header">
+						<span>${__("Row {0}", [row_number])}</span>
+						${skip_btn}
+					</h5>
 					<div class="body"><ul>${message}</ul></div>
 				</div>
 			`;
@@ -678,6 +722,38 @@ frappe.ui.form.on("Data Import", {
 			frm.dirty();
 			frm.trigger("update_primary_action");
 		}
+	},
+
+	setup_skip_row_handlers(frm) {
+		if (frm._skip_row_handlers) return;
+		frm._skip_row_handlers = true;
+		frm.get_field("import_warnings").$wrapper.on("click", ".skip-row-btn", (e) => {
+			e.preventDefault();
+			frm.events.toggle_skip_row(frm, $(e.currentTarget).data("row"));
+		});
+	},
+
+	toggle_skip_row(frm, row_number) {
+		row_number = cint(row_number);
+		const skipped = (frm.doc.skipped_rows || []).find(
+			(row) => cint(row.row_number) === row_number
+		);
+
+		if (skipped) {
+			frappe.model.clear_doc(skipped.doctype, skipped.name);
+		} else {
+			const preview_row = frm.import_preview?.preview_data?.data?.find(
+				(row) => cint(row[0]) === row_number
+			);
+			frm.add_child("skipped_rows", {
+				row_number,
+				row_data: JSON.stringify(preview_row ? preview_row.slice(1) : []),
+			});
+		}
+
+		frm.dirty();
+		frm.trigger("update_primary_action");
+		frm.events.show_import_warnings(frm);
 	},
 
 	show_failed_logs(frm) {

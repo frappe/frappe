@@ -94,9 +94,12 @@ class Importer:
 		payloads = self.import_file.get_payloads_for_import()
 
 		# dont import if there are non-ignorable warnings
-		from frappe.core.doctype.data_import.value_mapping import get_blocking_warnings
+		from frappe.core.doctype.data_import.value_mapping import (
+			get_blocking_warnings,
+			get_skipped_row_numbers,
+		)
 
-		warnings = get_blocking_warnings(self.import_file.get_warnings(), self.import_file)
+		warnings = get_blocking_warnings(self.import_file.get_warnings(), self.import_file, self.data_import)
 
 		if warnings:
 			if self.console:
@@ -132,16 +135,18 @@ class Importer:
 			frappe.db.delete("Data Import Log", {"success": 0, "data_import": self.data_import.name})
 
 		# get successfully imported rows
-		imported_rows = []
+		imported_rows = set()
 		for log in import_log:
 			log = frappe._dict(log)
 			if log.success or len(import_log) < self.data_import.payload_count:
-				imported_rows += json.loads(log.row_indexes)
+				imported_rows.update(json.loads(log.row_indexes))
 
 			log_index = log.log_index
 
 		# start import
 		total_payload_count = len(payloads)
+		skipped_rows = get_skipped_row_numbers(self.data_import)
+		skipped_payload_count = 0
 		batch_size = frappe.conf.data_import_batch_size or 1000
 
 		for batch_index, batched_payloads in enumerate(frappe.utils.create_batch(payloads, batch_size)):
@@ -149,20 +154,16 @@ class Importer:
 				doc = payload.doc
 				row_indexes = [row.row_number for row in payload.rows]
 				current_index = (i + 1) + (batch_index * batch_size)
+				row_set = set(row_indexes)
 
-				if set(row_indexes).intersection(set(imported_rows)):
+				if row_set.intersection(skipped_rows):
+					skipped_payload_count += 1
+					self._publish_skip_progress(current_index, total_payload_count)
+					continue
+
+				if row_set.intersection(imported_rows):
 					print("Skipping imported rows", row_indexes)
-					if total_payload_count > 5:
-						frappe.publish_realtime(
-							"data_import_progress",
-							{
-								"current": current_index,
-								"total": total_payload_count,
-								"skipping": True,
-								"data_import": self.data_import.name,
-							},
-							user=frappe.session.user,
-						)
+					self._publish_skip_progress(current_index, total_payload_count)
 					continue
 
 				try:
@@ -245,12 +246,13 @@ class Importer:
 				successes.append(log)
 			else:
 				failures.append(log)
-		if len(failures) >= total_payload_count and len(successes) == 0:
+		attempted_payload_count = total_payload_count - skipped_payload_count
+		if attempted_payload_count == 0 or len(successes) == attempted_payload_count:
+			status = "Success"
+		elif len(failures) >= attempted_payload_count and len(successes) == 0:
 			status = "Error"
 		elif len(failures) > 0 and len(successes) > 0:
 			status = "Partial Success"
-		elif len(successes) == total_payload_count:
-			status = "Success"
 		else:
 			status = "Pending"
 
@@ -266,6 +268,19 @@ class Importer:
 	def after_import(self):
 		frappe.flags.in_import = False
 		frappe.flags.mute_emails = False
+
+	def _publish_skip_progress(self, current_index, total_payload_count):
+		if total_payload_count > 5:
+			frappe.publish_realtime(
+				"data_import_progress",
+				{
+					"current": current_index,
+					"total": total_payload_count,
+					"skipping": True,
+					"data_import": self.data_import.name,
+				},
+				user=frappe.session.user,
+			)
 
 	def process_doc(self, doc):
 		if self.import_type == INSERT:
@@ -350,6 +365,19 @@ class Importer:
 		header_row = [col.header_title for col in self.import_file.columns]
 		rows = [header_row]
 		rows += [row.data for row in self.import_file.data if row.row_number in row_indexes]
+
+		build_csv_response(rows, _(self.doctype))
+
+	def export_skipped_rows(self):
+		from frappe.utils.csvutils import build_csv_response
+
+		if not self.data_import or not self.data_import.skipped_rows:
+			return
+
+		header_row = [col.header_title for col in self.import_file.columns]
+		rows = [header_row]
+		for skipped in sorted(self.data_import.skipped_rows, key=lambda r: r.row_number):
+			rows.append(json.loads(skipped.row_data))
 
 		build_csv_response(rows, _(self.doctype))
 
@@ -927,7 +955,7 @@ class Row:
 		return value
 
 	def get_values(self, indexes):
-		return [self.data[i] for i in indexes]
+		return [get_item_at_index(self.data, i) for i in indexes]
 
 	def get(self, index):
 		return self.data[index]

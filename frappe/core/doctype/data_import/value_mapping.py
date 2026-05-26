@@ -70,6 +70,22 @@ def build_lookup_for_data_import(
 	return build_lookup_from_mappings(rows, reference_doctype)
 
 
+def get_skipped_row_numbers(data_import) -> set[int]:
+	"""Return 1-based sheet row numbers marked to skip on the Data Import form."""
+	if not data_import or not getattr(data_import, "name", None):
+		return set()
+
+	skipped_rows = getattr(data_import, "skipped_rows", None)
+	if skipped_rows is None:
+		skipped_rows = frappe.get_all(
+			"Data Import Skipped Row",
+			filters={"parent": data_import.name},
+			fields=["row_number"],
+		)
+
+	return {cint(row.row_number) for row in skipped_rows}
+
+
 def get_field_map(col, lookup: dict | None, reference_doctype: str) -> dict[str, str]:
 	"""Source → target map for one column's field, or empty dict when none exist."""
 	return (lookup or {}).get(get_field_key_from_df(col.df, reference_doctype), {})
@@ -125,32 +141,40 @@ def get_invalid_link_select_items(col) -> list[dict]:
 	return [{"source": k, "rows": value_rows[k]} for k in invalid_keys]
 
 
-def get_unmapped_invalid_values_for_column(col, lookup: dict | None, reference_doctype: str) -> list[dict]:
+def get_unmapped_invalid_values_for_column(
+	col, lookup: dict | None, reference_doctype: str, skipped_rows: set[int] | None = None
+) -> list[dict]:
 	"""Invalid values in a column that still have no user-provided mapping — these block import."""
 	field_map = get_field_map(col, lookup, reference_doctype)
-	return [
+	unmapped = [
 		item
 		for item in get_column_invalid_items(col)
 		if normalize_source_value(item["source"]) not in field_map
 	]
+	if not skipped_rows:
+		return unmapped
+	return [item for item in unmapped if any(cint(row) not in skipped_rows for row in item["rows"])]
 
 
-def get_blocking_warnings(warnings: list, import_file) -> list:
+def get_blocking_warnings(warnings: list, import_file, data_import=None) -> list:
 	"""Filter template warnings to those that should prevent import from starting.
 
 	Info warnings are ignored. ``value_mapping`` warnings stay only while unmapped invalid values
 	remain; fully mapped columns keep their warning for display but no longer block import.
+	Row warnings for user-skipped rows are ignored.
 	"""
 	cols = {c.column_number: c for c in import_file.header.columns}
+	skipped_rows = get_skipped_row_numbers(data_import)
 	blocking = []
 	for warning in warnings:
 		if warning.get("type") == "info":
 			continue
+		if skipped_rows and warning.get("row") and cint(warning.get("row")) in skipped_rows:
+			continue
 		if warning.get("type") == "value_mapping":
 			col = cols.get(cint(warning.get("col")))
-			# Block only when this column still has invalid values without a mapping.
 			if col and get_unmapped_invalid_values_for_column(
-				col, import_file.value_lookup, import_file.reference_doctype
+				col, import_file.value_lookup, import_file.reference_doctype, skipped_rows
 			):
 				blocking.append(warning)
 			continue
