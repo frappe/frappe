@@ -1,11 +1,13 @@
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from typing import TYPE_CHECKING
+
 import click
 
-import frappe
 from frappe.commands import pass_context
-from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils.bench_helper import CliCtxObj
+
+if TYPE_CHECKING:
+	from frappe.utils.bench_helper import CliCtxObj
 
 
 @click.command("setup-wizard")
@@ -29,7 +31,7 @@ from frappe.utils.bench_helper import CliCtxObj
 )
 @pass_context
 def setup_wizard(
-	context: CliCtxObj,
+	context: "CliCtxObj",
 	language,
 	country,
 	timezone,
@@ -45,7 +47,9 @@ def setup_wizard(
 	"Run the setup wizard for a site from the command line (no browser required)"
 	import os
 
+	import frappe
 	from frappe.desk.page.setup_wizard.setup_wizard import setup_complete
+	from frappe.exceptions import SiteNotSpecifiedError
 
 	args = {
 		"language": language,
