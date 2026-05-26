@@ -15,6 +15,28 @@ def _fake_response(content=None, tool_calls=None, finish_reason="stop", usage=No
 	return SimpleNamespace(choices=[choice], usage=SimpleNamespace(**usage))
 
 
+def _stream_chunk(content=None, tool_calls=None, finish_reason=None, usage=None):
+	delta = SimpleNamespace(content=content, tool_calls=tool_calls)
+	choice = SimpleNamespace(delta=delta, finish_reason=finish_reason)
+	usage_obj = SimpleNamespace(**usage) if usage else None
+	return SimpleNamespace(choices=[choice], usage=usage_obj)
+
+
+def _tc_delta(index=0, id=None, name=None, arguments=None):
+	function = SimpleNamespace(name=name, arguments=arguments)
+	return SimpleNamespace(index=index, id=id, function=function)
+
+
+def _drain(stream):
+	"""Iterate a generator, returning (yielded_values, generator_return_value)."""
+	yielded = []
+	while True:
+		try:
+			yielded.append(next(stream))
+		except StopIteration as e:
+			return yielded, e.value
+
+
 class TestModel(UnitTestCase):
 	def test_init_requires_model_id(self):
 		with self.assertRaises(ValueError):
@@ -113,6 +135,78 @@ class TestModel(UnitTestCase):
 		m = Model(model_id="openai/gpt-4.1", api_key="sk-test")
 		with self.assertRaises(ValueError):
 			m.chat([{"role": "user", "content": "hi"}])
+
+	@patch("litellm.completion")
+	def test_chat_stream_yields_text_deltas_and_assembles_response(self, mock_completion):
+		mock_completion.return_value = iter(
+			[
+				_stream_chunk(content="hello "),
+				_stream_chunk(content="world"),
+				_stream_chunk(
+					finish_reason="stop",
+					usage={"prompt_tokens": 5, "completion_tokens": 2, "total_tokens": 7},
+				),
+			]
+		)
+
+		m = Model(model_id="openai/gpt-4.1", api_key="sk-test")
+		yielded, response = _drain(m.chat([{"role": "user", "content": "hi"}], stream=True))
+
+		self.assertEqual(yielded, ["hello ", "world"])
+		self.assertIsInstance(response, ChatResponse)
+		self.assertEqual(response.content, "hello world")
+		self.assertEqual(response.finish_reason, "stop")
+		self.assertEqual(response.usage["total_tokens"], 7)
+		self.assertEqual(response.tool_calls, [])
+
+	@patch("litellm.completion")
+	def test_chat_stream_assembles_tool_calls_across_chunks(self, mock_completion):
+		mock_completion.return_value = iter(
+			[
+				_stream_chunk(tool_calls=[_tc_delta(id="call_a", name="add", arguments='{"a":1')]),
+				_stream_chunk(tool_calls=[_tc_delta(arguments=',"b":2}')]),
+				_stream_chunk(
+					finish_reason="tool_calls",
+					usage={"prompt_tokens": 5, "completion_tokens": 2, "total_tokens": 7},
+				),
+			]
+		)
+
+		m = Model(model_id="openai/gpt-4.1", api_key="sk-test")
+		yielded, response = _drain(m.chat([{"role": "user", "content": "hi"}], stream=True))
+
+		self.assertEqual(yielded, [])
+		self.assertEqual(len(response.tool_calls), 1)
+		call = response.tool_calls[0]
+		self.assertIsInstance(call, ToolCall)
+		self.assertEqual(call.id, "call_a")
+		self.assertEqual(call.name, "add")
+		self.assertEqual(call.arguments, {"a": 1, "b": 2})
+		self.assertEqual(response.finish_reason, "tool_calls")
+
+	@patch("litellm.completion")
+	def test_chat_stream_passes_stream_options_for_usage(self, mock_completion):
+		mock_completion.return_value = iter([_stream_chunk(content="hi", finish_reason="stop")])
+
+		m = Model(model_id="openai/gpt-4.1", api_key="sk-test")
+		_drain(m.chat([{"role": "user", "content": "hi"}], stream=True))
+
+		kwargs = mock_completion.call_args.kwargs
+		self.assertTrue(kwargs["stream"])
+		self.assertEqual(kwargs["stream_options"], {"include_usage": True})
+
+	@patch("litellm.completion")
+	def test_chat_stream_rejects_invalid_tool_arguments(self, mock_completion):
+		mock_completion.return_value = iter(
+			[
+				_stream_chunk(tool_calls=[_tc_delta(id="c1", name="boom", arguments="{not json")]),
+				_stream_chunk(finish_reason="tool_calls"),
+			]
+		)
+
+		m = Model(model_id="openai/gpt-4.1", api_key="sk-test")
+		with self.assertRaises(ValueError):
+			_drain(m.chat([{"role": "user", "content": "hi"}], stream=True))
 
 	@patch("litellm.completion")
 	def test_chat_forwards_params_tools_and_base_url(self, mock_completion):

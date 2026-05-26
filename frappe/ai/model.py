@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -62,7 +63,11 @@ class Model:
 		self,
 		messages: str | list[dict[str, Any]],
 		tools: list[dict[str, Any]] | None = None,
-	) -> ChatResponse:
+		*,
+		stream: bool = False,
+	) -> ChatResponse | Generator[str, None, ChatResponse]:
+		"""Call the model. When `stream=True`, returns a generator that yields text deltas
+		and returns the assembled `ChatResponse` via PEP 380 (`StopIteration.value`)."""
 		import litellm
 
 		if isinstance(messages, str):
@@ -80,8 +85,84 @@ class Model:
 		if tools:
 			kwargs["tools"] = tools
 
-		response = litellm.completion(**kwargs)
-		return _normalize(response)
+		if stream:
+			kwargs["stream"] = True
+			kwargs["stream_options"] = {"include_usage": True}
+			return _consume_stream(litellm.completion(**kwargs))
+
+		return _normalize(litellm.completion(**kwargs))
+
+
+def _consume_stream(chunks: Any) -> Generator[str, None, ChatResponse]:
+	"""Yield text deltas from a litellm stream; return the assembled ChatResponse at the end."""
+	content_parts: list[str] = []
+	tool_calls_acc: dict[int, dict[str, str]] = {}
+	usage: dict[str, int] = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+	finish_reason: str | None = None
+
+	for chunk in chunks:
+		choices = getattr(chunk, "choices", None) or []
+		if choices:
+			choice = choices[0]
+			delta = getattr(choice, "delta", None)
+			if delta is not None:
+				text = _attr(delta, "content")
+				if text:
+					content_parts.append(text)
+					yield text
+				for tc_delta in _attr(delta, "tool_calls") or []:
+					_accumulate_tool_call(tool_calls_acc, tc_delta)
+			reason = _attr(choice, "finish_reason")
+			if reason:
+				finish_reason = reason
+
+		usage_obj = getattr(chunk, "usage", None)
+		if usage_obj is not None:
+			usage = {
+				"prompt_tokens": _attr(usage_obj, "prompt_tokens", 0) or 0,
+				"completion_tokens": _attr(usage_obj, "completion_tokens", 0) or 0,
+				"total_tokens": _attr(usage_obj, "total_tokens", 0) or 0,
+			}
+
+	return ChatResponse(
+		content="".join(content_parts) or None,
+		tool_calls=_finalize_tool_calls(tool_calls_acc),
+		finish_reason=finish_reason,
+		usage=usage,
+	)
+
+
+def _accumulate_tool_call(acc: dict[int, dict[str, str]], delta: Any) -> None:
+	index = _attr(delta, "index", 0) or 0
+	slot = acc.setdefault(index, {"id": "", "name": "", "arguments": ""})
+	call_id = _attr(delta, "id")
+	if call_id:
+		slot["id"] = call_id
+	function = _attr(delta, "function")
+	if function is not None:
+		name = _attr(function, "name")
+		if name:
+			slot["name"] = name
+		args = _attr(function, "arguments")
+		if args:
+			slot["arguments"] += args
+
+
+def _finalize_tool_calls(acc: dict[int, dict[str, str]]) -> list[ToolCall]:
+	calls: list[ToolCall] = []
+	for index in sorted(acc):
+		slot = acc[index]
+		if not slot["id"] and not slot["name"]:
+			continue
+		raw_args = slot["arguments"] or ""
+		try:
+			arguments = json.loads(raw_args) if raw_args else {}
+		except (TypeError, ValueError) as e:
+			raise ValueError(f"Tool call {slot['name']!r} returned invalid JSON arguments") from e
+		if not isinstance(arguments, dict):
+			raise ValueError(f"Tool call {slot['name']!r} arguments must be a JSON object")
+		calls.append(ToolCall(id=slot["id"], name=slot["name"], arguments=arguments))
+	return calls
 
 
 def _normalize(response: Any) -> ChatResponse:
