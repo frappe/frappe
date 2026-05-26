@@ -395,7 +395,7 @@ class TestRedisWrapper(FrappeAPITestCase):
 					"conf",
 					(),
 					{
-						"get": lambda key, default=None: None,
+						"get": lambda self, key, default=None: None,
 						"redis_cache_sentinel_enabled": False,
 					},
 				)(),
@@ -449,7 +449,7 @@ class TestRedisWrapper(FrappeAPITestCase):
 				"conf",
 				(),
 				{
-					"get": lambda key, default=None: {"use_memory_cache": True}.get(key, default),
+					"get": lambda self, key, default=None: {"use_memory_cache": True}.get(key, default),
 					"redis_cache_sentinel_enabled": False,
 				},
 			)(),
@@ -474,7 +474,7 @@ class TestRedisWrapper(FrappeAPITestCase):
 					"conf",
 					(),
 					{
-						"get": lambda key, default=None: {
+						"get": lambda self, key, default=None: {
 							"redis_cache_sentinels": ["localhost:26379"],
 							"redis_cache_master_service": "mymaster",
 						}.get(key, default),
@@ -506,7 +506,7 @@ class TestRedisWrapper(FrappeAPITestCase):
 					"conf",
 					(),
 					{
-						"get": lambda key, default=None: {
+						"get": lambda self, key, default=None: {
 							"redis_cache_sentinels": ["localhost:26379"],
 							"redis_cache_master_service": "mymaster",
 						}.get(key, default),
@@ -533,7 +533,7 @@ class TestRedisWrapper(FrappeAPITestCase):
 					"conf",
 					(),
 					{
-						"get": lambda key, default=None: None,
+						"get": lambda self, key, default=None: None,
 						"redis_cache_sentinel_enabled": False,
 					},
 				)(),
