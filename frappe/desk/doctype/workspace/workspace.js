@@ -20,6 +20,16 @@ frappe.ui.form.on("Workspace", {
 			.attr("target", "_blank");
 
 		frm.layout.message.empty();
+		if (frm.doc.app && frm.doc.module && !frappe.boot.developer_mode) {
+			frm.trigger("disable_form");
+			frm.layout.show_message(
+				__(
+					"This is a standard workspace and cannot be edited. Please duplicate it to make changes."
+				)
+			);
+			return;
+		}
+
 		let message = __("Please click Edit on the Workspace for best results");
 
 		if (

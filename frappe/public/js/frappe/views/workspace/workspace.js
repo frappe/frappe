@@ -203,7 +203,18 @@ frappe.views.Workspace = class Workspace {
 								});
 							},
 							condition: () => {
-								return current_page.is_editable;
+								const is_standard = !!(this._page?.app && this._page?.module);
+								return is_standard
+									? frappe.boot.developer_mode
+									: this._page?.is_editable;
+							},
+						},
+						{
+							label: "Duplicate",
+							icon: "copy",
+							onClick: () => this.duplicate_page(),
+							condition: () => {
+								return !!(this._page?.app && this._page?.module);
 							},
 						},
 						{
@@ -548,6 +559,58 @@ frappe.views.Workspace = class Workspace {
 							});
 						});
 				}
+			},
+		});
+		d.show();
+	}
+
+	duplicate_page() {
+		const page = this._page;
+		const d = new frappe.ui.Dialog({
+			title: __("Duplicate Workspace"),
+			fields: [
+				{
+					label: __("Title"),
+					fieldtype: "Data",
+					fieldname: "title",
+					reqd: 1,
+					default: __("Copy of {0}", [page.title]),
+				},
+			],
+			primary_action_label: __("Duplicate"),
+			primary_action: (values) => {
+				values.title = strip_html(values.title);
+				d.hide();
+
+				frappe.call({
+					method: "frappe.desk.doctype.workspace.workspace.duplicate_page",
+					args: {
+						source_name: page.name,
+						title: values.title,
+						public: page.public || 0,
+					},
+					callback: (r) => {
+						if (!r.message) return;
+						frappe.boot.workspaces = r.message.workspace_pages;
+						this.workspaces = frappe.boot.workspaces.pages;
+						this.setup_pages(frappe.boot.workspaces.pages);
+						frappe.boot.workspace_sidebar_item = r.message.sidebar_items;
+
+						if (!page.public) {
+							frappe.app.sidebar.setup("private");
+						}
+
+						let route = frappe.router.slug(
+							page.public ? r.message.name : "private/" + r.message.name
+						);
+						frappe.set_route(route);
+
+						frappe.show_alert({
+							message: __("Workspace {0} duplicated", [values.title.bold()]),
+							indicator: "green",
+						});
+					},
+				});
 			},
 		});
 		d.show();

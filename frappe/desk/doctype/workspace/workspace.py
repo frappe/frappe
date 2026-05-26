@@ -338,6 +338,57 @@ def new_page(new_page: str):
 
 
 @frappe.whitelist()
+def duplicate_page(source_name: str, title: str, public: str | int):
+	public = frappe.parse_json(public)
+
+	if public and not is_workspace_manager():
+		frappe.throw(_("Only Workspace Manager can create public workspaces"), frappe.PermissionError)
+
+	if not frappe.has_permission(doctype="Workspace", ptype="create"):
+		frappe.flags.error_message = _("User {0} does not have the permission to create a Workspace.").format(
+			frappe.bold(frappe.session.user)
+		)
+		raise frappe.PermissionError
+
+	source = frappe.get_doc("Workspace", source_name)
+	doc = frappe.copy_doc(source)
+	doc.title = title
+	doc.label = title if public else f"{title}-{frappe.session.user}"
+	doc.parent_page = ""
+	doc.for_user = "" if public else frappe.session.user
+	doc.public = public
+	doc.app = None
+	doc.module = None
+	doc.sequence_id = last_sequence_id(doc) + 1
+	doc.save(ignore_permissions=True)
+
+	if not doc.public:
+		add_to_my_workspace(doc)
+	else:
+		create_sidebar_for_duplicate(doc)
+
+	workspaces = get_workspace_sidebar_items()
+	return {"workspace_pages": workspaces, "sidebar_items": get_sidebar_items(workspaces), "name": doc.name}
+
+
+def create_sidebar_for_duplicate(workspace):
+	sidebar = frappe.new_doc("Workspace Sidebar")
+	sidebar.title = workspace.title
+	sidebar.header_icon = workspace.icon
+	sidebar.append(
+		"items",
+		{
+			"label": workspace.title,
+			"type": "Link",
+			"link_to": workspace.name,
+			"link_type": "Workspace",
+			"idx": 1,
+		},
+	)
+	sidebar.insert(ignore_permissions=True)
+
+
+@frappe.whitelist()
 def save_page(name: str, public: str | int, new_widgets: str, blocks: str):
 	public = frappe.parse_json(public)
 
