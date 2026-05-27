@@ -18,7 +18,7 @@ TASK_PARAMS = {
 	"complex": {"max_tokens": 40000, "temperature": 0.7},
 }
 
-COMPONENT_CATALOG = """
+COMPONENT_CATALOG = """AVAILABLE COMPONENTS:
 LAYOUT:
 - container: layout wrapper (renders as a div). No componentProps. Use baseStyles: display, flexDirection, gap, padding, width, height, flexWrap, alignItems, justifyContent, flexShrink, flex, etc.
 
@@ -76,6 +76,25 @@ AUTOCOMPLETE:
 - Combobox: {placeholder: "string", options: [{group: "string", options: [{label, value}]}]}
 """
 
+STYLING_RULES = """COMPONENT STYLING RULES:
+- Always use CSS variables. Avoid raw hex colors/values.
+	- backgroundColor:  var(--surface-white) | var(--surface-gray-1..7) | var(--surface-cards) | var(--surface-red-1) | var(--surface-green-1) | var(--surface-amber-1) | var(--surface-blue-1)
+	- color (text): var(--ink-white) | var(--ink-gray-1..9)
+	- borderColor: var(--outline-white) | var(--outline-gray-1..5) | var(--outline-red-1..3) | var(--outline-green-1..2) | var(--outline-amber-1..2) | var(--outline-blue-1) | var(--outline-orange-1)
+	- borderWidth: e.g. 1px, 2px — borderStyle: solid | dashed | dotted
+	- NEVER use the `border` shorthand — always set borderColor, borderWidth, borderStyle as separate keys
+	- boxShadow: "sm" | "DEFAULT" | "md" | "lg" | "xl" | "2xl" | "none" (keywords only, not raw values)
+	- borderRadius: "none" (0px) | "sm" (0.25rem) | "DEFAULT" (0.5rem) | "md" (0.625rem) | "lg" (0.75rem) | "xl" (1rem) | "2xl" (1.25rem) | "full" (9999px)
+- Button: use size prop ("sm"|"md"|"lg"|"xl"|"2xl") for sizing — DO NOT set height in style. Keep `theme` gray or default unless prompted. Only use colored themes (blue, red, green) when semantically meaningful: destructive actions → red, success/confirmed → green.
+- Avoid applying visual style (color, backgroundColor, borderColor, fontSize) to frappe-ui components — their props handle this. Only use style on components for layout (width, flex, margin, etc.).
+- TextBlock: use tag prop for semantics (h1/h2/h3 for headings, p for body). Set fontSize/fontWeight/color on TextBlock style."""
+
+YAML_QUOTING_RULES = """YAML STRING QUOTING (critical — unquoted special characters break parsing):
+- Always double-quote strings that contain any of: apostrophe/single-quote, `?`, `#`, `&`, `:`, `[`, `]`, `{`, `}`
+- URLs must always be double-quoted: `image: "https://example.com/img?id=1"` NOT `image: https://example.com/img?id=1`
+- Text with apostrophes must use double quotes: `text: "I'm a designer"` NOT `text: 'I'm a designer'`
+- Long text values (bio, description, body copy) must use block scalar style instead of inline: `text: |` on its own line, then the text indented — never inline in a flow mapping"""
+
 SYSTEM_PROMPT = f"""You are an expert UI builder for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a compact YAML block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component or native html element (div) or a Studio Vue component or a Frappe UI Vue component.
 
 OUTPUT FORMAT:
@@ -118,28 +137,11 @@ c:
 - flexDirection: row for horizontal layouts, column for vertical
 - Use gap, padding for spacing. width: 100% for full-width sections. flex: 1 to fill space.
 
-COMPONENT STYLING RULES:
-- Always use CSS variables. Avoid raw hex colors/values.
-	- backgroundColor:  var(--surface-white) | var(--surface-gray-1..7) | var(--surface-cards) | var(--surface-red-1) | var(--surface-green-1) | var(--surface-amber-1) | var(--surface-blue-1)
-	- color (text): var(--ink-white) | var(--ink-gray-1..9)
-	- borderColor: var(--outline-white) | var(--outline-gray-1..5) | var(--outline-red-1..3) | var(--outline-green-1..2) | var(--outline-amber-1..2) | var(--outline-blue-1) | var(--outline-orange-1)
-	- borderWidth
-	- borderStyle: solid | dashed | dotted
-	- NEVER use the `border` shorthand — always set borderColor, borderWidth, borderStyle as separate keys
-	- boxShadow: "sm" | "DEFAULT" | "md" | "lg" | "xl" | "2xl" | "none" (keywords only, not raw values)
-	- borderRadius: "none" (0px) | "sm" (0.25rem) | "DEFAULT" (0.5rem) | "md" (0.625rem) | "lg" (0.75rem) | "xl" (1rem) | "2xl" (1.25rem) | "full" (9999px)
-- Button: use size prop ("sm"|"md"|"lg"|"xl"|"2xl") for sizing — DO NOT set height in style. Keep `theme` gray or default unless prompted. Only use colored themes (blue, red, green) when semantically meaningful: destructive actions → red, success/confirmed → green.
-- Avoid applying visual style (color, backgroundColor, borderColor, fontSize) to frappe-ui components (eg: height on Button component) — their props handle this. Only use style on components for layout (width, flex, margin, etc.).
-- TextBlock: use tag prop for semantics (h1/h2/h3 for headings, p for body). Set fontSize/fontWeight/color on TextBlock style.
+{STYLING_RULES}
 
-AVAILABLE COMPONENTS:
 {COMPONENT_CATALOG}
 
-YAML STRING QUOTING (critical — unquoted special characters break parsing):
-- Always double-quote strings that contain any of: apostrophe/single-quote, `?`, `#`, `&`, `:`, `[`, `]`, `{{`, `}}`
-- URLs must always be double-quoted: `image: "https://example.com/img?id=1"` NOT `image: https://example.com/img?id=1`
-- Text with apostrophes must use double quotes: `text: "I'm a designer"` NOT `text: 'I'm a designer'`
-- Long text values (bio, description, body copy) must use block scalar style instead of inline: `text: |` on its own line, then the text indented — never inline in a flow mapping
+{YAML_QUOTING_RULES}
 
 RULES:
 - name must exactly match a component from the catalog above (or "div" for root, "container" for inner wrappers)
@@ -179,20 +181,19 @@ c:
 
 MODIFY_SYSTEM_PROMPT = f"""You are an expert UI editor for Frappe Studio. You will receive the YAML of a selected block and a user request. Return a modified version of that block.
 
-RULES:
+OUTPUT FORMAT:
+Return ONLY valid compact YAML. No markdown fences, no explanations, no JSON.
+
+MODIFICATION RULES:
 - Preserve ALL id (componentId) values exactly as given — never change or omit them
 - Change ONLY what the user explicitly requests; leave everything else untouched
 - Return the COMPLETE block structure starting from the provided root node
-- Same YAML format, component catalog, and styling rules as generation apply
-- Same YAML STRING QUOTING rules apply — double-quote URLs and strings with apostrophes
 
 {COMPONENT_CATALOG}
 
-COMPONENT STYLING RULES (same as generation):
-- Always use CSS variables for colors (var(--ink-gray-9), var(--surface-white), etc.)
-- borderColor / borderWidth / borderStyle separately — never the `border` shorthand
-- boxShadow keywords only: sm | DEFAULT | md | lg | xl | 2xl | none
-- borderRadius: "none" (0px) | "sm" (0.25rem) | "DEFAULT" (0.5rem) | "md" (0.625rem) | "lg" (0.75rem) | "xl" (1rem) | "2xl" (1.25rem) | "full" (9999px)
+{STYLING_RULES}
+
+{YAML_QUOTING_RULES}
 """
 
 
