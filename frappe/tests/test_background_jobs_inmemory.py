@@ -16,7 +16,7 @@ class TestBackgroundJobsInMemory(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.local.flags.in_migrate = self.original_in_migrate
-		frappe.db.after_commit.clear()
+		frappe.db.after_commit.reset()
 		super().tearDown()
 
 	def mock_job_method(self):
