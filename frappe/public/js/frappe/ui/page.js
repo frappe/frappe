@@ -45,13 +45,23 @@ frappe.ui.Page = class Page {
 		this.add_main_section();
 		this.setup_scroll_handler();
 		this.setup_main_sidebar_toggle();
-		this.setup_mobile_awesomebar();
+		this.setup_awesomebar();
 	}
 
-	setup_mobile_awesomebar() {
-		if (frappe.boot.desk_settings.search_bar && frappe.is_mobile()) {
+	setup_awesomebar() {
+		if (frappe.boot.desk_settings.search_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
 			awesome_bar.setup(".navbar-modal-search-mobile");
+			frappe.app.awesome_bar = awesome_bar;
+			frappe.search.utils.make_function_searchable(
+				frappe.utils.generate_tracking_url,
+				__("Generate Tracking URL")
+			);
+			if (frappe.model.can_read("RQ Job")) {
+				frappe.search.utils.make_function_searchable(function () {
+					frappe.set_route("List", "RQ Job");
+				}, __("Background Jobs"));
+			}
 		}
 	}
 

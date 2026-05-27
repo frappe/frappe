@@ -5,7 +5,7 @@ frappe.provide("frappe.tags");
 
 frappe.search.AwesomeBar = class AwesomeBar {
 	setup(element) {
-		$(".search-bar, .navbar-search-bar").removeClass("hidden");
+		$(".navbar-search-bar").removeClass("hidden");
 
 		this.options = [];
 		this.global_results = [];
@@ -13,6 +13,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.setup_search_modal(element);
 
 		frappe.search.utils.setup_recent();
+		this.setup_page_change_event();
 	}
 
 	setup_search_modal(element) {
@@ -83,6 +84,13 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 			this.setup_event_listeners(search_modal);
 		});
+	}
+
+	open(search_modal) {
+		const modal = search_modal || this.search_modal;
+		if (!modal) return;
+		modal.modal("show");
+		this.setup_event_listeners(modal);
 	}
 
 	setup_event_listeners(search_modal) {
@@ -475,6 +483,34 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				},
 			});
 		}
+	}
+
+	setup_correct_button(wrapper) {
+		let small_button = $(wrapper).find("#small-search-button");
+		let full_button = $(wrapper).find("#full-search-button");
+		let route = frappe.get_route();
+		if (frappe.is_mobile()) {
+			small_button.removeClass("hidden");
+			full_button.addClass("hidden");
+			return;
+		}
+		if (route[0] == "Workspaces" || frappe.is_mobile()) {
+			small_button.addClass("hidden");
+			full_button.removeClass("hidden");
+		} else {
+			full_button.addClass("hidden");
+			small_button.removeClass("hidden");
+		}
+	}
+	setup_page_change_event() {
+		const me = this;
+		$(document).on("page-change", function (event, data) {
+			me.setup_correct_button(data);
+		});
+
+		$(document).on("form-refresh", function (event, data) {
+			me.setup_correct_button(data.wrapper);
+		});
 	}
 };
 

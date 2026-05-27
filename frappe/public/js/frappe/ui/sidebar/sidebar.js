@@ -586,19 +586,6 @@ frappe.ui.Sidebar = class Sidebar {
 	add_standard_items(items) {
 		if (this.standard_items_setup) return;
 		this.standard_items = [];
-		if (!frappe.is_mobile()) {
-			this.standard_items.push({
-				label: __("Search"),
-				icon: "search",
-				standard: true,
-				type: "Button",
-				id: "navbar-modal-search",
-				suffix: {
-					keyboard_shortcut: "Ctrl+K",
-				},
-				class: "navbar-search-bar hidden",
-			});
-		}
 		this.standard_items.push({
 			label: __("Notification"),
 			icon: "bell",
@@ -620,25 +607,8 @@ frappe.ui.Sidebar = class Sidebar {
 		this.standard_items.forEach((w) => {
 			this.add_item(this.$standard_items_sections, w);
 		});
-		this.setup_awesomebar();
 		this.setup_notifications();
 		this.standard_items_setup = true;
-	}
-	setup_awesomebar() {
-		if (frappe.boot.desk_settings.search_bar) {
-			let awesome_bar = new frappe.search.AwesomeBar();
-			awesome_bar.setup("#navbar-modal-search");
-
-			frappe.search.utils.make_function_searchable(
-				frappe.utils.generate_tracking_url,
-				__("Generate Tracking URL")
-			);
-			if (frappe.model.can_read("RQ Job")) {
-				frappe.search.utils.make_function_searchable(function () {
-					frappe.set_route("List", "RQ Job");
-				}, __("Background Jobs"));
-			}
-		}
 	}
 	setup_notifications() {
 		if (frappe.boot.desk_settings.notifications && frappe.session.user !== "Guest") {

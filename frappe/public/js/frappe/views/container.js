@@ -75,8 +75,7 @@ frappe.views.Container = class Container {
 			$(this.page).show();
 		}
 
-		$(document).trigger("page-change");
-
+		$(document).trigger("page-change", this.page);
 		this.page._route = frappe.router.get_sub_path();
 		$(this.page).trigger("show");
 		!this.page.disable_scroll_to_top && frappe.utils.scroll_to(0);

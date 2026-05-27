@@ -12,7 +12,7 @@ context("Awesome Bar", () => {
 	beforeEach(() => {
 		cy.get("body").type("{esc}");
 		cy.wait(300);
-		cy.get("#navbar-modal-search").as("awesome_bar_search");
+		cy.get("#full-search-button").as("awesome_bar_search");
 		cy.get("@awesome_bar_search").click();
 		cy.get("#navbar-search").as("awesome_bar");
 		cy.get("#navbar-search").type("{selectall}");
