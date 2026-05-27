@@ -50,6 +50,9 @@ def follow_document(doctype, doc_name, user):
 	if user != frappe.session.user and not frappe.has_permission("Document Follow", "write"):
 		frappe.throw(_("You can only follow documents for yourself."), frappe.PermissionError)
 
+	if not frappe.has_permission(doctype, "read", doc=doc_name, user=user):
+		frappe.throw(_("You do not have permission to access this document."), frappe.PermissionError)
+
 	if not frappe.db.get_value("User", user, "document_follow_notify", ignore=True, cache=True):
 		return
 
