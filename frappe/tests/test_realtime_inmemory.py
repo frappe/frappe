@@ -56,8 +56,9 @@ class TestRealtimeInMemory(IntegrationTestCase):
 		self.assertEqual(args[0], "http://localhost:9999/_internal/publish_event")
 		self.assertEqual(kwargs.get("timeout"), 1)
 
-		payload = kwargs.get("json")
-		self.assertIsNotNone(payload)
+		payload_str = kwargs.get("data")
+		self.assertIsNotNone(payload_str)
+		payload = frappe.parse_json(payload_str)
 		self.assertEqual(payload["event"], "test_event")
 		self.assertEqual(payload["message"], {"data": "test"})
 		self.assertEqual(payload["room"], "test_room")
