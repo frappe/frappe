@@ -1,5 +1,7 @@
 import frappe
 
+from studio.utils import has_page_write_perm
+
 
 class ModelRegistry:
 	AVAILABLE = [
@@ -38,5 +40,6 @@ class ModelRegistry:
 
 
 @frappe.whitelist()
+@has_page_write_perm()
 def get_ai_models() -> list:
 	return ModelRegistry.list_all()

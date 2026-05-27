@@ -6,6 +6,7 @@ from frappe import _
 
 from studio.ai.block_codec import BlockCodec
 from studio.ai.models import ModelRegistry
+from studio.utils import has_page_write_perm
 
 litellm.drop_params = True
 logger = frappe.logger("studio.ai")
@@ -224,6 +225,7 @@ def run_generation_job(prompt: str, model: str, page_id: str, user: str):
 
 
 @frappe.whitelist()
+@has_page_write_perm()
 def generate_page_from_prompt(prompt: str, model: str | None, page_id: str) -> dict:
 	if not frappe.has_permission("Studio Page", ptype="write"):
 		frappe.throw(_("You do not have permission to modify pages"))
