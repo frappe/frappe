@@ -555,6 +555,21 @@ const styleSectionProperties = [
 		component: ColorInput,
 		getProps: () => {
 			return {
+				label: "Text Color",
+				modelValue: blockController.getStyle("color"),
+				property: "textColor",
+			}
+		},
+		events: {
+			"update:modelValue": (val: StyleValue) => blockController.setStyle("color", val),
+		},
+		allowDynamicValue: true,
+		searchKeyWords: "Text, Color, TextColor, Text Color",
+	},
+	{
+		component: ColorInput,
+		getProps: () => {
+			return {
 				label: "Border Color",
 				modelValue: blockController.getStyle("borderColor"),
 				property: "borderColor",
@@ -579,21 +594,6 @@ const styleSectionProperties = [
 		getValue: () => {
 			return blockController.getStyle("borderColor")
 		},
-	},
-	{
-		component: ColorInput,
-		getProps: () => {
-			return {
-				label: "Text Color",
-				modelValue: blockController.getStyle("color"),
-				property: "textColor",
-			}
-		},
-		events: {
-			"update:modelValue": (val: StyleValue) => blockController.setStyle("color", val),
-		},
-		allowDynamicValue: true,
-		searchKeyWords: "Text, Color, TextColor, Text Color",
 	},
 	{
 		component: InlineInput,
