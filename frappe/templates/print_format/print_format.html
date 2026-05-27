@@ -18,13 +18,41 @@
 </head>
 <body>
 	{{ header or '' }}
+	{#- Chrome PDF: layout.header rendered once as a body element (page 1 only, reliable height) -#}
+	{{ chrome_layout_header or '' }}
+	{#- HTML preview: render layout.header once at the top of the body -#}
+	{%- if not for_chrome and layout.header -%}
+	<div class="document-header-content">{{ frappe.render_template(layout.header, {'doc': doc}) }}</div>
+	{%- endif -%}
 	{% for section in layout.sections %}
+	{#- Skip labelled sections where every data field is empty -#}
+	{%- set ns = namespace(has_content=false) -%}
+	{%- for column in section.columns -%}
+		{%- for df in column.fields -%}
+			{%- if df.fieldtype in ('HTML', 'Divider', 'Spacer') -%}
+				{%- set ns.has_content = true -%}
+			{%- elif doc.get(df.fieldname) -%}
+				{%- set ns.has_content = true -%}
+			{%- endif -%}
+		{%- endfor -%}
+	{%- endfor -%}
+	{%- if not section.label or ns.has_content -%}
 	<div class="section {{ resolve_class({'page-break': section.page_break}) }}">
 		{% if section.label %}
 		<div class="section-label">{{ _(section.label) }}</div>
 		{% endif %}
 
-		<div class="section-columns row">
+		{#- Detect right-aligned columns to pick the right row layout class -#}
+		{%- set ns2 = namespace(has_right=false) -%}
+		{%- for col in section.columns -%}{%- if col.align == 'right' -%}{%- set ns2.has_right = true -%}{%- endif -%}{%- endfor -%}
+		{%- if ns2.has_right and section.columns | length == 1 -%}
+			{%- set row_layout = 'row-col-right-end' -%}
+		{%- elif ns2.has_right -%}
+			{%- set row_layout = 'row-col-space-between' -%}
+		{%- else -%}
+			{%- set row_layout = '' -%}
+		{%- endif -%}
+		<div class="section-columns row {{ row_layout }}">
 			{% for column in section.columns %}
 			<div class="column col">
 				{% for df in column.fields %}
@@ -34,7 +62,14 @@
 			{% endfor %}
 		</div>
 	</div>
+	{%- endif -%}
 	{% endfor %}
+	{#- Chrome PDF: layout.footer rendered once at the end of body -#}
+	{{ chrome_layout_footer or '' }}
+	{#- HTML preview: render layout.footer once at the bottom of the body -#}
+	{%- if not for_chrome and layout.footer -%}
+	<div class="document-footer-content">{{ frappe.render_template(layout.footer, {'doc': doc}) }}</div>
+	{%- endif -%}
 	{{ footer or '' }}
 </body>
 </html>

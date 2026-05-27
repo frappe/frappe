@@ -164,14 +164,29 @@ body[data-route^="Form"] {
 
 .menu-btn-group,
 .custom-btn-group,
+.actions-btn-group,
 .page-icon-group {
 	display: flex;
 	.dropdown-menu {
 		width: max-content;
 	}
+	.dropdown-item {
+		display: flex;
+		align-items: center;
+	}
 
 	.menu-item-label {
 		margin-right: var(--margin-md);
+	}
+
+	.menu-item-shortcut {
+		margin-left: auto;
+		color: var(--ink-gray-4, #999999);
+		font-size: var(--text-sm);
+		font-weight: 420;
+		line-height: 1.15;
+		letter-spacing: 0.02em;
+		white-space: nowrap;
 	}
 
 	.menu-item-icon {

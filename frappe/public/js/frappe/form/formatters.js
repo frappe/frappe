@@ -404,6 +404,11 @@ frappe.form.formatters = {
 	Icon: (value) => {
 		if (!value) return "";
 		let escaped_value = frappe.utils.escape_html(value);
+		if (frappe.utils.is_emoji(value)) {
+			return `<div class='flex' style='gap: 8px;'>
+				<span class="icon-value">${escaped_value}</span>
+			</div>`;
+		}
 		return `<div class='flex' style='gap: 8px;'>
 			<div class="selected-icon">${frappe.utils.icon(escaped_value, "md")}</div>
 			<span class="icon-value">${escaped_value}</span>

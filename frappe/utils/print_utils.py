@@ -147,10 +147,10 @@ def attach_print(
 
 	frappe.local.flags.ignore_print_permissions = True
 
-	is_weasyprint_print_format = False
+	is_beta_print_format = False
 	if print_format and print_format != "Standard":
 		print_format_doc = frappe.get_cached_doc("Print Format", print_format)
-		is_weasyprint_print_format = print_format_doc.get("print_format_builder_beta")
+		is_beta_print_format = print_format_doc.get("print_format_builder_beta")
 
 	with print_language(lang or frappe.local.lang):
 		content = ""
@@ -158,8 +158,8 @@ def attach_print(
 			ext = ".pdf"
 			if html:
 				content = get_pdf(html, options={"password": password} if password else None)
-			elif is_weasyprint_print_format:
-				from frappe.utils.weasyprint import PrintFormatGenerator
+			elif is_beta_print_format:
+				from frappe.utils.print_format_generator import PrintFormatGenerator
 
 				doc_obj = doc or frappe.get_cached_doc(doctype, name)
 				letterhead_name = letterhead if print_letterhead else None

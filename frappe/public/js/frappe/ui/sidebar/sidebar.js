@@ -160,8 +160,8 @@ frappe.ui.Sidebar = class Sidebar {
 
 		this.promotional_banners.forEach((banner) => {
 			let banner_html = $(`
-				<a href="${banner.link}" class="promotional-banner" target="_blank" title="${banner.message}">
-					<span>${banner.title}</span>
+				<a href="${banner.link}" class="promotional-banner px-2" target="_blank" title="${banner.message}">
+					<span class="promotional-banner-title">${banner.title}</span>
 				</a>
 			`);
 
@@ -575,6 +575,7 @@ frappe.ui.Sidebar = class Sidebar {
 			$('[data-toggle="tooltip"]').tooltip("dispose");
 			this.wrapper.find(".avatar-name-email").show();
 			this.wrapper.find(".onboarding-sidebar span").show();
+			this.wrapper.find(".promotional-banner-title").show();
 		} else {
 			this.wrapper.removeClass("expanded");
 			direction = is_rtl ? "right" : "left";
@@ -585,6 +586,7 @@ frappe.ui.Sidebar = class Sidebar {
 			});
 			this.wrapper.find(".avatar-name-email").hide();
 			this.wrapper.find(".onboarding-sidebar span").hide();
+			this.wrapper.find(".promotional-banner-title").hide();
 		}
 
 		localStorage.setItem("sidebar-expanded", this.sidebar_expanded);
