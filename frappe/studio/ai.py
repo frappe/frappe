@@ -121,10 +121,13 @@ COMPONENT STYLING RULES:
 	- backgroundColor:  var(--surface-white) | var(--surface-gray-1..7) | var(--surface-cards) | var(--surface-red-1) | var(--surface-green-1) | var(--surface-amber-1) | var(--surface-blue-1)
 	- color (text): var(--ink-white) | var(--ink-gray-1..9)
 	- borderColor: var(--outline-white) | var(--outline-gray-1..5) | var(--outline-red-1..3) | var(--outline-green-1..2) | var(--outline-amber-1..2) | var(--outline-blue-1) | var(--outline-orange-1)
+	- borderWidth
+	- borderStyle: solid | dashed | dotted
+	- NEVER use the `border` shorthand — always set borderColor, borderWidth, borderStyle as separate keys
 	- boxShadow: "sm" | "DEFAULT" | "md" | "lg" | "xl" | "2xl" | "none" (keywords only, not raw values)
 	- borderRadius: "none" (0px) | "sm" (0.25rem) | "DEFAULT" (0.5rem) | "md" (0.625rem) | "lg" (0.75rem) | "xl" (1rem) | "2xl" (1.25rem) | "full" (9999px)
 - Button: use size prop ("sm"|"md"|"lg"|"xl"|"2xl") for sizing — DO NOT set height in style. Keep `theme` gray or default unless prompted. Only use colored themes (blue, red, green) when semantically meaningful: destructive actions → red, success/confirmed → green.
-- Avoid applying visual style (color, backgroundColor, border, fontSize) to frappe-ui components (eg: height on Button component) — their props handle this. Only use style on components for layout (width, flex, margin, etc.).
+- Avoid applying visual style (color, backgroundColor, borderColor, fontSize) to frappe-ui components (eg: height on Button component) — their props handle this. Only use style on components for layout (width, flex, margin, etc.).
 - TextBlock: use tag prop for semantics (h1/h2/h3 for headings, p for body). Set fontSize/fontWeight/color on TextBlock style.
 
 AVAILABLE COMPONENTS:
