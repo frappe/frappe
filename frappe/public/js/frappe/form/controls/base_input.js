@@ -61,7 +61,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		$(this.input_area).on("keydown", function (event) {
 			if (event.originalEvent.ctrlKey || event.originalEvent.metaKey) {
 				if (event.originalEvent.key === "k" || event.originalEvent.key === "K") {
-					$("#navbar-modal-search").click();
+					frappe.app.awesome_bar?.open();
 					event.preventDefault();
 					return false;
 				}

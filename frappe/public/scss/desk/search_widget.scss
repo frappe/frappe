@@ -1,0 +1,34 @@
+.search-widget-wrapper {
+	flex: 1;
+	position: relative;
+}
+
+.search-widget-button {
+	background-color: var(--control-bg);
+	border-radius: var(--border-radius-sm);
+	height: 32px;
+	padding: 0 10px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	margin-right: 0;
+
+	span {
+		color: var(--text-light);
+	}
+
+	.search-widget-icon {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+
+		> svg {
+			stroke: var(--text-light);
+		}
+	}
+
+	&:hover {
+		outline: 1px solid var(--surface-gray-3);
+	}
+}
