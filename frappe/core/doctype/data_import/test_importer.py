@@ -206,6 +206,72 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(len(unmapped), 1)
 		self.assertEqual(unmapped[0]["source"], "Opn")
 
+	def test_sync_value_mappings_preserves_user_targets(self):
+		from frappe.core.doctype.data_import.value_mapping import mapping_row_key, sync_value_mappings
+
+		col = Column(
+			5,
+			"Status",
+			"Contact",
+			["Opn", "Pasiv", "Open"],
+			value_row_numbers=[2, 3, 4],
+		)
+		import_file = frappe._dict(header=frappe._dict(columns=[col]))
+
+		doc = frappe.get_doc(
+			{
+				"doctype": "Data Import",
+				"reference_doctype": "Contact",
+				"import_type": "Insert New Records",
+				"value_mappings": [
+					{
+						"column": 5,
+						"column_label": "Status",
+						"fieldname": "status",
+						"parent_field": "",
+						"fieldtype": "Select",
+						"select_options": "Open\nPassive",
+						"source_value": "Pasiv",
+						"target_value": "Passive",
+						"row_numbers": "[3]",
+						"rows_display": "3",
+					}
+				],
+			}
+		)
+		# Child rows are Document objects after load — sync must accept them, not only dicts.
+		self.assertTrue(hasattr(doc.value_mappings[0], "get"))
+
+		self.assertTrue(sync_value_mappings(doc, import_file))
+		rows = {mapping_row_key(row): row for row in doc.value_mappings}
+		self.assertEqual(rows["5|status||Pasiv"].target_value, "Passive")
+		self.assertIn("5|status||Opn", rows)
+		self.assertEqual(rows["5|status||Opn"].target_value, "")
+
+	def test_data_import_validate_populates_value_mappings(self):
+		csv_content = "First Name,Status\nTest,Opn\n"
+		import_file = frappe.get_doc(
+			doctype="File",
+			content=csv_content,
+			file_name="data_import_invalid_status.csv",
+			is_private=1,
+		)
+		import_file.save(ignore_permissions=True)
+
+		data_import = frappe.get_doc(
+			{
+				"doctype": "Data Import",
+				"reference_doctype": "Contact",
+				"import_type": "Insert New Records",
+				"import_file": import_file.file_url,
+			}
+		)
+		data_import.insert()
+
+		self.assertEqual(len(data_import.value_mappings), 1)
+		self.assertEqual(data_import.value_mappings[0].fieldname, "status")
+		self.assertEqual(data_import.value_mappings[0].source_value, "Opn")
+
 	def test_source_value_strip_applied_during_import_resolve(self):
 		from frappe.core.doctype.data_import.value_mapping import (
 			build_lookup_from_mappings,

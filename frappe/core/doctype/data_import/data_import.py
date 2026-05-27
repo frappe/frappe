@@ -61,9 +61,29 @@ class DataImport(Document):
 
 		self.set_delimiters_flag()
 		self.validate_doctype()
-		self.validate_import_file()
 		self.validate_google_sheets_url()
-		self.set_payload_count()
+		importer = self.get_importer_for_validation()
+		if importer:
+			self.set_payload_count(importer)
+			self.sync_value_mappings_from_import(importer)
+		else:
+			self.set_payload_count()
+
+	def get_importer_for_validation(self) -> Importer | None:
+		if self.import_file or self.google_sheets_url:
+			return self.get_importer()
+		return None
+
+	def sync_value_mappings_from_import(self, importer: Importer | None = None) -> bool:
+		"""Parse the import file and populate invalid Link/Select values in the child table."""
+		if not (self.import_file or self.google_sheets_url):
+			return False
+
+		from frappe.core.doctype.data_import.value_mapping import sync_value_mappings
+
+		if importer is None:
+			importer = self.get_importer()
+		return sync_value_mappings(self, importer.import_file)
 
 	def set_delimiters_flag(self):
 		if not (self.import_file or self.google_sheets_url):
@@ -93,11 +113,6 @@ class DataImport(Document):
 				_("You do not have import permission for {0}").format(self.reference_doctype),
 				frappe.PermissionError,
 			)
-
-	def validate_import_file(self):
-		if self.import_file:
-			# validate template
-			self.get_importer()
 
 	def validate_google_sheets_url(self):
 		if not self.google_sheets_url:

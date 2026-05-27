@@ -570,7 +570,12 @@ frappe.ui.form.on("Data Import", {
 		let warnings = dedupe_import_warnings(template_warnings.concat(preview_warnings));
 
 		const has_mapping_hints = Object.keys(preview_data?.mapping_hints || {}).length > 0;
-		frm.events.toggle_import_issues_ui(frm, warnings.length > 0, has_mapping_hints);
+		const has_saved_mappings = (frm.doc.value_mappings || []).length > 0;
+		frm.events.toggle_import_issues_ui(
+			frm,
+			warnings.length > 0,
+			has_mapping_hints && has_saved_mappings
+		);
 		if (!warnings.length && !has_mapping_hints) {
 			frm.get_field("import_warnings").$wrapper.html("");
 			return;
@@ -649,76 +654,8 @@ frappe.ui.form.on("Data Import", {
 				</div>
 			`);
 		}
-		if (has_mapping_hints && !["Success", "Partial Success"].includes(frm.doc.status)) {
-			frm.events.sync_value_mappings_table(frm, preview_data, columns);
-		}
-	},
-
-	mapping_row_key(row) {
-		return `${row.column}|${row.fieldname}|${row.parent_field || ""}|${row.source_value}`;
-	},
-
-	rows_display(rows) {
-		if (!rows?.length) return "";
-		if (rows.length <= 6) return rows.join(", ");
-		return `${rows.slice(0, 6).join(", ")}, ... ${rows[rows.length - 1]}`;
-	},
-
-	child_row_from_hint(item, columns) {
-		return {
-			column: item.column,
-			column_label: columns?.[item.column]?.header_title || __("Column {0}", [item.column]),
-			fieldname: item.fieldname,
-			parent_field: item.parent_field || "",
-			fieldtype: item.fieldtype,
-			link_doctype: item.link_doctype,
-			select_options: (item.select_options || []).join("\n"),
-			source_value: item.source_value,
-			target_value: item.target_value || "",
-			row_numbers: JSON.stringify(item.rows || []),
-		};
-	},
-
-	sync_value_mappings_table(frm, preview_data, columns) {
-		const items = Object.values(preview_data?.mapping_hints || {}).flat();
-		if (!items.length) return;
-
-		const existing = Object.fromEntries(
-			(frm.doc.value_mappings || []).map((row) => [frm.events.mapping_row_key(row), row])
-		);
-		const seen = new Set();
-		let changed = false;
-
-		for (const item of items) {
-			const key = frm.events.mapping_row_key(item);
-			seen.add(key);
-			const data = {
-				...frm.events.child_row_from_hint(item, columns),
-				rows_display: frm.events.rows_display(item.rows),
-			};
-			if (existing[key]) {
-				const target_value = existing[key].target_value;
-				Object.assign(existing[key], data);
-				// Keep in-progress user edits; only fill target from saved lookup when empty.
-				existing[key].target_value = target_value || data.target_value;
-				continue;
-			}
-			frm.add_child("value_mappings", data);
-			changed = true;
-		}
-
-		for (const row of [...(frm.doc.value_mappings || [])]) {
-			if (!seen.has(frm.events.mapping_row_key(row))) {
-				frappe.model.clear_doc(row.doctype, row.name);
-				changed = true;
-			}
-		}
-
-		frm.refresh_field("value_mappings");
-		frm.events.setup_value_mappings_grid(frm);
-		if (changed) {
-			frm.dirty();
-			frm.trigger("update_primary_action");
+		if (has_mapping_hints && has_saved_mappings) {
+			frm.events.setup_value_mappings_grid(frm);
 		}
 	},
 

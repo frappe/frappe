@@ -3,6 +3,8 @@
 
 """Value mapping for Data Import: child-table storage and O(1) lookup during import."""
 
+import json
+
 import frappe
 from frappe import _
 from frappe.utils import cint, cstr
@@ -244,3 +246,93 @@ def warn_invalid_link_select_values(col) -> None:
 		message = _("{0}:<br>{1}{2}").format(field_label, formatted_values, footer)
 
 	col.warnings.append({"col": col.column_number, "message": message, "type": "value_mapping"})
+
+
+def mapping_row_key(row) -> str:
+	"""Stable key for a value-mapping row or preview hint."""
+	return f"{row.get('column')}|{row.get('fieldname')}|{row.get('parent_field') or ''}|{row.get('source_value')}"
+
+
+def rows_display(rows: list) -> str:
+	"""Compact row list for the Value Mappings grid."""
+	from frappe.core.doctype.data_import.importer import format_row_numbers_for_warning
+
+	if not rows:
+		return ""
+	return format_row_numbers_for_warning(rows)
+
+
+def child_row_from_hint(item: dict, columns: dict) -> dict:
+	"""Build a Value Mappings child-table row from a preview mapping hint."""
+	item = frappe._dict(item)
+	column_number = item.column
+	col = columns.get(column_number)
+	column_label = (col.header_title if col else None) or _("Column {0}").format(column_number)
+	rows = item.rows or []
+	select_options = item.select_options or []
+
+	return {
+		"column": column_number,
+		"column_label": column_label,
+		"fieldname": item.fieldname,
+		"parent_field": item.parent_field or "",
+		"fieldtype": item.fieldtype,
+		"link_doctype": item.link_doctype,
+		"select_options": "\n".join(select_options) if select_options else "",
+		"source_value": item.source_value,
+		"target_value": item.target_value or "",
+		"row_numbers": json.dumps(rows),
+		"rows_display": rows_display(rows),
+	}
+
+
+def sync_value_mappings(doc, import_file, lookup: dict | None = None) -> bool:
+	"""Populate the Value Mappings child table from invalid Link/Select values in the import file.
+
+	Preserves user-provided ``target_value`` entries for rows that still appear in the file.
+	"""
+	mapping_hints = get_mapping_hints(import_file, doc.reference_doctype, lookup or {})
+	items = [item for hints in mapping_hints.values() for item in hints]
+	columns = {col.column_number: col for col in import_file.header.columns}
+
+	if not items:
+		if doc.get("value_mappings"):
+			doc.set("value_mappings", [])
+			return True
+		return False
+
+	existing_targets = {
+		mapping_row_key(row): (row.target_value or "").strip() for row in (doc.get("value_mappings") or [])
+	}
+	new_rows = []
+	for item in items:
+		key = mapping_row_key(item)
+		data = child_row_from_hint(item, columns)
+		target_value = existing_targets.get(key) or (item.get("target_value") or "")
+		data["target_value"] = target_value
+		new_rows.append(data)
+
+	current_rows = [
+		{
+			"column": row.column,
+			"fieldname": row.fieldname,
+			"parent_field": row.parent_field or "",
+			"source_value": row.source_value,
+			"column_label": row.column_label,
+			"fieldtype": row.fieldtype,
+			"link_doctype": row.link_doctype,
+			"select_options": row.select_options,
+			"target_value": row.target_value or "",
+			"row_numbers": row.row_numbers,
+			"rows_display": row.rows_display,
+		}
+		for row in (doc.get("value_mappings") or [])
+	]
+
+	if new_rows == current_rows:
+		return False
+
+	doc.set("value_mappings", [])
+	for row in new_rows:
+		doc.append("value_mappings", row)
+	return True
