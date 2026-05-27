@@ -1,20 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-<<<<<<< HEAD
+import frappe
+from frappe.core.doctype.deleted_document.deleted_document import restore
 from frappe.tests.utils import FrappeTestCase
-
-# test_records = frappe.get_test_records('Deleted Document')
 
 
 class TestDeletedDocument(FrappeTestCase):
-	pass
-=======
-import frappe
-from frappe.core.doctype.deleted_document.deleted_document import restore
-from frappe.tests import IntegrationTestCase
-
-
-class TestDeletedDocument(IntegrationTestCase):
 	def test_metadata_retention(self):
 		frappe.set_user("Administrator")
 		doc = frappe.get_doc({"doctype": "Note", "title": "Test Note", "content": "Test Content"}).insert()
@@ -37,4 +28,3 @@ class TestDeletedDocument(IntegrationTestCase):
 		self.assertEqual(str(restored_doc.creation), str(orig_creation))
 		self.assertEqual(str(restored_doc.modified), str(orig_modified))
 		self.assertEqual(restored_doc.modified_by, orig_modified_by)
->>>>>>> 62be07a161 (test: add test for metadata retention)

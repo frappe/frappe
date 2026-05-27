@@ -38,23 +38,14 @@ class DeletedDocument(Document):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def restore(name, alert=True):
-=======
 def restore(name: str | int, alert: bool = True):
 	frappe.only_for("System Manager")
->>>>>>> f723c23f96 (fix(deleted_document): restrict restoration of docs. to sys. man.)
 	deleted = frappe.get_doc("Deleted Document", name)
 
 	if deleted.restored:
 		frappe.throw(_("Document {0} Already Restored").format(name), exc=frappe.DocumentAlreadyRestored)
 
 	doc = frappe.get_doc(json.loads(deleted.data))
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
-=======
 
 	if not frappe.has_permission(doc.doctype, "create"):
 		frappe.throw(
@@ -65,13 +56,11 @@ def restore(name: str | int, alert: bool = True):
 	if not frappe.has_permission(doc.doctype, "read", doc=doc):
 		frappe.throw(_("You do not have permission to restore this document."), frappe.PermissionError)
 
->>>>>>> a8bfd044e4 (fix: add perm. checks)
 	original_owner = doc.get("owner")
 	original_creation = doc.get("creation")
 	original_modified = doc.get("modified")
 	original_modified_by = doc.get("modified_by")
 	doc.flags.from_restore = True
->>>>>>> 1867022ac3 (fix(deleted_document): retain original metadata on restore)
 	try:
 		doc.insert()
 	except frappe.DocstatusTransitionError:
@@ -108,12 +97,8 @@ def restore(name: str | int, alert: bool = True):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def bulk_restore(docnames):
-=======
 def bulk_restore(docnames: str | list[str]):
 	frappe.only_for("System Manager")
->>>>>>> f723c23f96 (fix(deleted_document): restrict restoration of docs. to sys. man.)
 	docnames = frappe.parse_json(docnames)
 	message = _("Restoring Deleted Document")
 	restored, invalid, failed = [], [], []
