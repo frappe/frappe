@@ -568,6 +568,29 @@
 	margin-bottom: 4px;
 }
 
+.form-grid-container {
+	position: relative;
+}
+
+.grid-selection-toast {
+	position: sticky;
+	bottom: var(--padding-md);
+	width: fit-content;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: calc(var(--padding-xl) * -1);
+	z-index: 2;
+	display: none;
+
+	&__message {
+		display: inline-block;
+		background-color: rgba(0, 0, 0, 0.8);
+		color: var(--bg-color);
+		border-radius: var(--border-radius-sm);
+		padding: var(--padding-xs) var(--padding-md);
+	}
+}
+
 @media (max-width: map-get($grid-breakpoints, "md")) {
 	.form-grid-container {
 		overflow-x: clip;
