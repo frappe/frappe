@@ -12,7 +12,7 @@ class TestBackgroundJobsInMemory(IntegrationTestCase):
 		super().setUp()
 		self.original_in_migrate = frappe.local.flags.in_migrate
 		frappe.local.flags.in_migrate = False
-		frappe.db.after_commit.clear()
+		frappe.db.after_commit.reset()
 
 	def tearDown(self):
 		frappe.local.flags.in_migrate = self.original_in_migrate
@@ -76,7 +76,7 @@ class TestBackgroundJobsInMemory(IntegrationTestCase):
 			mock_pool.submit.assert_not_called()
 
 			# Should be appended to after_commit hook
-			self.assertEqual(len(frappe.db.after_commit), 1)
+			self.assertEqual(len(frappe.db.after_commit._functions), 1)
 
 			# Simulate commit which fires hooks
 			frappe.db.commit()  # nosemgrep
