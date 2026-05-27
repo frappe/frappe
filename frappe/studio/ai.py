@@ -1,10 +1,10 @@
-import json
 import logging
 
 import frappe
 import litellm
 from frappe import _
 
+from studio.ai_block_codec import BlockCodec
 from studio.ai_models import ModelRegistry
 
 litellm.drop_params = True
@@ -74,28 +74,47 @@ AUTOCOMPLETE:
 - Combobox: {placeholder: "string", options: [{group: "string", options: [{label, value}]}]}
 """
 
-SYSTEM_PROMPT = f"""You are an expert UI builder for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a JSON block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component or native html element (div) or a Studio Vue component or a Frappe UI Vue component.
+SYSTEM_PROMPT = f"""You are an expert UI builder for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a compact YAML block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component or native html element (div) or a Studio Vue component or a Frappe UI Vue component.
 
 OUTPUT FORMAT:
-Return ONLY a JSON object with a single key "blocks" containing an array with one root block.
+Return ONLY valid compact YAML. No markdown fences, no explanations, no JSON.
 
-BLOCK STRUCTURE:
-{{
-  "componentName": "string (required)",
-  "componentProps": {{}},      // component-specific props
-  "baseStyles": {{}},          // CSS-in-JS camelCase properties
-  "children": [],              // nested blocks (for container blocks)
-  "componentSlots": {{}}       // for frappe-ui components that hold child content
-}}
+BLOCK SCHEMA:
+name: componentName          # required — must match catalog exactly
+originalElement: div|body    # required for container and root blocks
+label: descriptive name
+props:                        # component-specific props (flow style preferred)
+  key: value
+style:                        # CSS-in-JS camelCase (flow style preferred)
+  key: value
+mstyle:                       # mobile style overrides
+  key: value
+tstyle:                       # tablet style overrides
+  key: value
+slots:                        # componentSlots for frappe-ui components that hold child content
+  slotName: ...
+c:                            # children list
+- name: ...
 
 ROOT BLOCK:
-Always start with: {{"componentName": "div", "originalElement": "body", "blockName": "body", "baseStyles": {{"display": "flex", "flexDirection": "column", "flexShrink": 0, "width": "inherit", "overflowX": "hidden", "height": "100%"}}}}
+Always start with:
+name: div
+originalElement: body
+label: body
+style: {{display: flex, flexDirection: column, flexShrink: 0, width: inherit, overflowX: hidden, height: 100%}}
+c:
+- ...
 
 LAYOUT CONTAINERS (CRITICAL — originalElement is required or children won't render):
-{{"componentName": "container", "originalElement": "div", "blockName": "container", "baseStyles": {{}}, "children": [...]}}
-- Use container for all inner layout wrappers — never use "div" as componentName for inner blocks
-- flexDirection: "row" for horizontal layouts, "column" for vertical
-- Use gap, padding for spacing. width: "100%" for full-width sections. flex: 1 to fill space.
+name: container
+originalElement: div
+label: container
+style: {{display: flex, flexDirection: row|column, gap: ..., padding: ...}}
+c:
+- ...
+- Use container for all inner layout wrappers — never use "div" as name for inner blocks
+- flexDirection: row for horizontal layouts, column for vertical
+- Use gap, padding for spacing. width: 100% for full-width sections. flex: 1 to fill space.
 
 COMPONENT STYLING RULES:
 - Always use CSS variables. Avoid raw hex colors/values.
@@ -104,48 +123,52 @@ COMPONENT STYLING RULES:
 	- borderColor: var(--outline-white) | var(--outline-gray-1..5) | var(--outline-red-1..3) | var(--outline-green-1..2) | var(--outline-amber-1..2) | var(--outline-blue-1) | var(--outline-orange-1)
 	- boxShadow: "sm" | "DEFAULT" | "md" | "lg" | "xl" | "2xl" | "none" (keywords only, not raw values)
 	- borderRadius: "none" (0px) | "sm" (0.25rem) | "DEFAULT" (0.5rem) | "md" (0.625rem) | "lg" (0.75rem) | "xl" (1rem) | "2xl" (1.25rem) | "full" (9999px)
-- Button: use size prop ("sm"|"md"|"lg"|"xl"|"2xl") for sizing — DO NOT set height in baseStyles. Keep `theme` gray or default unless prompted. Only use colored themes (blue, red, green) when semantically meaningful: destructive actions → red, success/confirmed → green.
-- Avoid applying visual baseStyles (color, backgroundColor, border, fontSize) to frappe-ui components (eg: height on Button component) — their props handle this. Only use baseStyles on components for layout (width, flex, margin, etc.).
-- TextBlock: use tag prop for semantics (h1/h2/h3 for headings, p for body). Set fontSize/fontWeight/color on TextBlock baseStyles.
+- Button: use size prop ("sm"|"md"|"lg"|"xl"|"2xl") for sizing — DO NOT set height in style. Keep `theme` gray or default unless prompted. Only use colored themes (blue, red, green) when semantically meaningful: destructive actions → red, success/confirmed → green.
+- Avoid applying visual style (color, backgroundColor, border, fontSize) to frappe-ui components (eg: height on Button component) — their props handle this. Only use style on components for layout (width, flex, margin, etc.).
+- TextBlock: use tag prop for semantics (h1/h2/h3 for headings, p for body). Set fontSize/fontWeight/color on TextBlock style.
 
 AVAILABLE COMPONENTS:
 {COMPONENT_CATALOG}
 
 RULES:
-- componentName must exactly match a name from the catalog above
-- baseStyles keys must be camelCase CSS (backgroundColor, borderRadius, fontSize, etc.)
-- Do NOT include componentId (auto-generated)
+- name must exactly match a component from the catalog above (or "div" for root, "container" for inner wrappers)
+- style keys must be camelCase CSS (backgroundColor, borderRadius, fontSize, etc.)
+- Do NOT include id (componentId is auto-generated by Studio)
 - Do NOT include parentBlock
-- Keep componentProps to only what's relevant to the description
+- Omit keys whose value is null, empty string, empty dict, or empty list
+- Keep props to only what's relevant to the description
 
 EXAMPLE — "A login form with email, password and a submit button":
-{{
-  "blocks": [{{
-    "componentName": "div", "originalElement": "body", "blockName": "body",
-    "baseStyles": {{"display": "flex", "flexDirection": "column", "flexShrink": 0, "width": "inherit", "overflowX": "hidden", "height": "100%"}},
-    "children": [{{
-      "componentName": "container", "originalElement": "div", "blockName": "container",
-      "baseStyles": {{"display": "flex", "flexDirection": "column", "alignItems": "center", "justifyContent": "center", "flex": 1, "padding": "24px"}},
-      "children": [{{
-        "componentName": "container", "originalElement": "div", "blockName": "container",
-        "baseStyles": {{"display": "flex", "flexDirection": "column", "gap": "16px", "width": "100%", "maxWidth": "400px", "padding": "32px", "backgroundColor": "var(--surface-white)", "borderRadius": "0.75rem", "boxShadow": "md"}},
-        "children": [
-          {{"componentName": "TextBlock", "componentProps": {{"text": "Sign In", "tag": "h2"}}, "baseStyles": {{"fontSize": "20px", "fontWeight": "600", "color": "var(--ink-gray-9)"}}, "children": []}},
-          {{"componentName": "TextInput", "componentProps": {{"placeholder": "Email address"}}, "children": []}},
-          {{"componentName": "FormControl", "componentProps": {{"type": "password", "label": "Password", "placeholder": "Enter password"}}, "children": []}},
-          {{"componentName": "Button", "componentProps": {{"label": "Sign In", "variant": "solid"}}, "children": []}}
-        ]
-      }}]
-    }}]
-  }}]
-}}
+name: div
+originalElement: body
+label: body
+style: {{display: flex, flexDirection: column, flexShrink: 0, width: inherit, overflowX: hidden, height: 100%}}
+c:
+- name: container
+  originalElement: div
+  label: page
+  style: {{display: flex, flexDirection: column, alignItems: center, justifyContent: center, flex: 1, padding: 24px}}
+  c:
+  - name: container
+    originalElement: div
+    label: card
+    style: {{display: flex, flexDirection: column, gap: 16px, width: 100%, maxWidth: 400px, padding: 32px, backgroundColor: 'var(--surface-white)', borderRadius: '0.75rem', boxShadow: md}}
+    c:
+    - name: TextBlock
+      props: {{text: Sign In, tag: h2}}
+      style: {{fontSize: 20px, fontWeight: '600', color: 'var(--ink-gray-9)'}}
+    - name: TextInput
+      props: {{placeholder: Email address}}
+    - name: FormControl
+      props: {{type: password, label: Password, placeholder: Enter password}}
+    - name: Button
+      props: {{label: Sign In, variant: solid}}
 """
 
 
-def call_llm(messages: list, model: str, task_tier: str, api_key: str) -> str:
+def call_llm(messages: list, model: str, task_tier: str, api_key: str, stream: bool = False):
 	params = TASK_PARAMS[task_tier]
-	response = litellm.completion(model=model, messages=messages, api_key=api_key, **params)
-	return response.choices[0].message.content or ""
+	return litellm.completion(model=model, messages=messages, api_key=api_key, stream=stream, **params)
 
 
 def _emit(event_suffix: str, page_id: str, user: str, **kwargs):
@@ -156,32 +179,40 @@ def _emit(event_suffix: str, page_id: str, user: str, **kwargs):
 	)
 
 
+def _progress_stage(content: str) -> str | None:
+	"""Extract a human-readable stage from the tail of a partial YAML stream."""
+	lookback = content[-400:]
+	for section_type in ("section", "nav", "header", "footer"):
+		if lookback.rfind(f"label: {section_type}") != -1 or lookback.rfind(f"name: {section_type}") != -1:
+			return f"Building {section_type}…"
+	return None
+
+
 def run_generation_job(prompt: str, model: str, page_id: str, user: str):
 	settings = frappe.get_single("Studio Settings")
 	api_key = settings.get_password("ai_api_key", raise_exception=False)
 
 	_emit("progress", page_id, user, message=f"Generating with {ModelRegistry.get_label(model)}…")
 
+	content = ""
 	try:
 		messages = [
 			{"role": "system", "content": SYSTEM_PROMPT},
-			{"role": "user", "content": prompt},
+			{"role": "user", "content": f"Create a page for: {prompt}"},
 		]
-		content = call_llm(messages, model, "complex", api_key)
-		content = _strip_fences(content)
+		for chunk in call_llm(messages, model, "complex", api_key, stream=True):
+			delta = chunk.choices[0].delta.content
+			if not delta:
+				continue
+			content += delta
+			_emit("stream", page_id, user, chunk=delta)
+			stage = _progress_stage(content)
+			if stage:
+				_emit("progress", page_id, user, message=stage)
 
-		try:
-			parsed = json.loads(content)
-		except json.JSONDecodeError as e:
-			frappe.log_error(title="Studio AI: JSON parse error", message=f"{e}\n{content}")
-			raise ValueError(f"The AI model returned invalid JSON: {e}")
-
-		blocks = parsed.get("blocks", parsed) if isinstance(parsed, dict) else parsed
-		if not isinstance(blocks, list):
-			raise ValueError("AI returned an unexpected response format. Please try again.")
-
-		logger.info(f"run_generation_job complete | model={model} blocks={len(blocks)}")
-		_emit("complete", page_id, user, blocks=blocks)
+		logger.info(f"run_generation_job stream done | model={model} length={len(content)}")
+		block = BlockCodec.parse_blocks(content)
+		_emit("complete", page_id, user, block=block)
 
 	except Exception as e:
 		logger.error(f"run_generation_job failed: {e}", exc_info=True)
@@ -211,12 +242,3 @@ def generate_page_from_prompt(prompt: str, model: str | None, page_id: str) -> d
 
 	frappe.local.response.http_status_code = 202
 	return {"status": "accepted"}
-
-
-def _strip_fences(text: str) -> str:
-	text = text.strip()
-	if text.startswith("```"):
-		lines = text.splitlines()
-		inner_lines = lines[1:-1] if lines[-1].strip() == "```" else lines[1:]
-		return "\n".join(inner_lines).strip()
-	return text

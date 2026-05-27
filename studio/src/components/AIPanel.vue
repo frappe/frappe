@@ -41,6 +41,7 @@ import { toast } from "vue-sonner"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { getBlockInstance } from "@/utils/serializer"
+import { tryParseYamlBlock } from "@/utils/blockCodec"
 import type Block from "@/utils/block"
 
 const store = useStudioStore()
@@ -52,6 +53,8 @@ const loading = ref(false)
 const error = ref("")
 const statusMessage = ref("")
 const selectedModel = ref("")
+let streamBuffer = ""
+let streamFrameId: number | null = null
 
 const pageId = computed(() => store.activePage?.name ?? "")
 
@@ -80,27 +83,41 @@ const aiModels = createResource({
 const modelOptions = computed(() => (aiModels.data ?? []).map((m: any) => ({ label: m.label, value: m.id })))
 
 function onProgress(data: any) {
-	console.log("Progress update:", data)
 	statusMessage.value = data.message || "Generating…"
+}
+
+function onStream(data: any) {
+	streamBuffer += data.chunk || ""
+	if (streamFrameId !== null) return
+	streamFrameId = requestAnimationFrame(() => {
+		streamFrameId = null
+		const block = tryParseYamlBlock(streamBuffer)
+		if (block) {
+			const rootBlock = getBlockInstance(block as any)
+			canvasStore.activeCanvas?.setRootBlock(rootBlock)
+			store.pageBlocks = [rootBlock]
+		}
+	})
 }
 
 async function onComplete(data: any) {
 	loading.value = false
 	statusMessage.value = ""
+	streamBuffer = ""
+	if (streamFrameId !== null) {
+		cancelAnimationFrame(streamFrameId)
+		streamFrameId = null
+	}
 
-	const blocks: Block[] = data.blocks ?? []
-	if (!blocks.length) {
-		error.value = "No blocks were generated. Try a more descriptive prompt."
+	const block: Block = data.block
+	if (!block) {
+		error.value = "No block was generated. Try a more descriptive prompt."
 		return
 	}
 
-	if (selectedBlock.value) {
-		selectedBlock.value.children = blocks.map((b: Block) => getBlockInstance(b))
-	} else {
-		const rootBlock = getBlockInstance(blocks[0])
-		canvasStore.activeCanvas?.setRootBlock(rootBlock)
-		store.pageBlocks = [rootBlock]
-	}
+	const rootBlock = getBlockInstance(block)
+	canvasStore.activeCanvas?.setRootBlock(rootBlock)
+	store.pageBlocks = [rootBlock]
 
 	await store.savePage()
 	toast.success("Page generated successfully")
@@ -110,6 +127,11 @@ async function onComplete(data: any) {
 function onError(data: any) {
 	loading.value = false
 	statusMessage.value = ""
+	streamBuffer = ""
+	if (streamFrameId !== null) {
+		cancelAnimationFrame(streamFrameId)
+		streamFrameId = null
+	}
 	error.value = data.message || "Generation failed. Please check your Studio Settings and try again."
 }
 
@@ -117,6 +139,7 @@ function setupListeners() {
 	const id = pageId.value
 	if (!socket || !id) return
 	socket.on(`ai_generation_progress_${id}`, onProgress)
+	socket.on(`ai_generation_stream_${id}`, onStream)
 	socket.on(`ai_generation_complete_${id}`, onComplete)
 	socket.on(`ai_generation_error_${id}`, onError)
 }
@@ -125,6 +148,7 @@ function teardownListeners() {
 	const id = pageId.value
 	if (!socket || !id) return
 	socket.off(`ai_generation_progress_${id}`, onProgress)
+	socket.off(`ai_generation_stream_${id}`, onStream)
 	socket.off(`ai_generation_complete_${id}`, onComplete)
 	socket.off(`ai_generation_error_${id}`, onError)
 }
