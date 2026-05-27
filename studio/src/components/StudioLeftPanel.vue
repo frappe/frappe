@@ -71,7 +71,7 @@
 					/>
 				</div>
 
-				<AIPanel v-show="activeTab === 'AI'" />
+				<AIChatPanel v-show="activeTab === 'AI Assistant'" />
 			</div>
 		</transition>
 	</div>
@@ -88,7 +88,7 @@ import ComponentLayers from "@/components/ComponentLayers.vue"
 import DataPanel from "@/components/DataPanel.vue"
 import CodePanel from "@/components/CodePanel.vue"
 import IconButton from "@/components/IconButton.vue"
-import AIPanel from "@/components/AIPanel.vue"
+import AIChatPanel from "@/components/AIChatPanel.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
@@ -117,7 +117,7 @@ const sidebarMenu = [
 		icon: "code",
 	},
 	{
-		label: "AI",
+		label: "AI Assistant",
 		icon: "zap",
 	},
 ]

@@ -6,6 +6,7 @@ from frappe import _
 
 from studio.ai.block_codec import BlockCodec
 from studio.ai.models import ModelRegistry
+from studio.ai.session import AISession
 from studio.utils import has_page_write_perm
 
 litellm.drop_params = True
@@ -134,6 +135,11 @@ COMPONENT STYLING RULES:
 AVAILABLE COMPONENTS:
 {COMPONENT_CATALOG}
 
+YAML STRING QUOTING:
+- Use double-quoted strings for any text that may contain apostrophes or single quotes: `text: "I'm a designer"` NOT `text: 'I'm a designer'`
+- Flow-style mappings like `{{text: "Hello world"}}` must use double quotes when the value contains an apostrophe
+- Long text values (bio, description, body copy) must use block style: `text: |` followed by the text on the next line — never inline
+
 RULES:
 - name must exactly match a component from the catalog above (or "div" for root, "container" for inner wrappers)
 - style keys must be camelCase CSS (backgroundColor, borderRadius, fontSize, etc.)
@@ -196,15 +202,20 @@ def run_generation_job(prompt: str, model: str, page_id: str, user: str):
 	settings = frappe.get_single("Studio Settings")
 	api_key = settings.get_password("ai_api_key", raise_exception=False)
 
+	session = AISession.get_or_create(page_id, model)
+	context = session.build_context_string()
+	session.add_message("user", prompt, task_type="generate")
+
 	_emit("progress", page_id, user, message=f"Generating with {ModelRegistry.get_label(model)}…")
 
+	system = SYSTEM_PROMPT + (f"\n\n{context}" if context else "")
 	content = ""
 	try:
-		messages = [
-			{"role": "system", "content": SYSTEM_PROMPT},
+		llm_messages = [
+			{"role": "system", "content": system},
 			{"role": "user", "content": f"Create a page for: {prompt}"},
 		]
-		for chunk in call_llm(messages, model, "complex", api_key, stream=True):
+		for chunk in call_llm(llm_messages, model, "complex", api_key, stream=True):
 			delta = chunk.choices[0].delta.content
 			if not delta:
 				continue
@@ -216,6 +227,7 @@ def run_generation_job(prompt: str, model: str, page_id: str, user: str):
 
 		logger.info(f"run_generation_job stream done | model={model} length={len(content)}")
 		block = BlockCodec.parse_blocks(content)
+		session.add_message("assistant", "Page generated successfully.", task_type="generate")
 		_emit("complete", page_id, user, block=block)
 
 	except Exception as e:
@@ -247,3 +259,19 @@ def generate_page_from_prompt(prompt: str, model: str | None, page_id: str) -> d
 
 	frappe.local.response.http_status_code = 202
 	return {"status": "accepted"}
+
+
+@frappe.whitelist()
+def get_ai_session(page_id: str, model: str | None = None) -> dict:
+	session = AISession.get_or_create(page_id, model)
+	return {
+		"messages": session.get_messages(),
+		"selected_model": session._doc.selected_model or "",
+	}
+
+
+@frappe.whitelist()
+def clear_ai_session(page_id: str) -> dict:
+	session = AISession.get_or_create(page_id)
+	session.clear()
+	return {"status": "ok"}
