@@ -113,8 +113,6 @@ To setup the repository locally follow the steps mentioned below:
 
 3. Open the URL `http://frappe.localhost:8000/app` in your browser, you should see the app running
 
-> **Redis-less development:** If you don't have Redis available locally, Frappe will automatically fall back to an in-memory cache. Background jobs will run synchronously in the same process. This is suitable for development and evaluation — Redis is still recommended for production.
-
 ## Learning and community
 
 1. [Frappe School](https://frappe.school) - Learn Frappe Framework and ERPNext from the various courses by the maintainers or from the community.

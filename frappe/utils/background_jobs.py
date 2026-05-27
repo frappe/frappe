@@ -48,6 +48,7 @@ QUEUE_STARVATION_THRESHOLD = 16
 
 
 _redis_queue_conn = None
+_in_memory_pool = None
 
 
 @lru_cache
@@ -159,12 +160,9 @@ def enqueue(
 		from frappe.utils.redis_wrapper import MemoryCacheWrapper
 
 		redis_unavailable = isinstance(frappe.cache, MemoryCacheWrapper)
-		if frappe.local.flags.in_migrate or redis_unavailable:
-			# Redis is intentionally absent (memory-cache mode) or unavailable during
-			# migration — run the job in-process instead of failing.
-			# IMPORTANT: honour enqueue_after_commit so jobs that must not run inside
-			# an open transaction (e.g. delete_dynamic_links) still run after commit,
-			# otherwise we get InnoDB lock-wait timeouts.
+		
+		if frappe.local.flags.in_migrate:
+			# During migrations, we must run jobs synchronously to avoid race conditions.
 			def _run_sync():
 				frappe.call(method, **kwargs)
 
@@ -173,6 +171,42 @@ def enqueue(
 				return
 
 			return frappe.call(method, **kwargs)
+
+		elif redis_unavailable:
+			# Redis is intentionally absent (use_memory_cache mode).
+			# Run the job asynchronously via a ThreadPool to keep the web thread responsive.
+			def _run_in_memory():
+				global _in_memory_pool
+				if _in_memory_pool is None:
+					from concurrent.futures import ThreadPoolExecutor
+					workers = frappe.conf.get("in_memory_workers", 2)
+					_in_memory_pool = ThreadPoolExecutor(
+						max_workers=workers, thread_name_prefix="FrappeInMemoryWorker"
+					)
+
+				# Extract actual method name for job tracking
+				if isinstance(method, Callable):
+					m_name = f"{method.__module__}.{method.__qualname__}"
+				else:
+					m_name = method
+
+				_in_memory_pool.submit(
+					execute_job,
+					site=frappe.local.site,
+					method=method,
+					event=event,
+					job_name=job_name or m_name,
+					kwargs=kwargs,
+					user=frappe.session.user,
+					is_async=True
+				)
+
+			if enqueue_after_commit:
+				frappe.db.after_commit.add(_run_in_memory)
+				return
+
+			_run_in_memory()
+			return
 
 		raise
 

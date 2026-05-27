@@ -80,14 +80,14 @@ def publish_realtime(
 		if params not in frappe.local._realtime_log:
 			frappe.local._realtime_log.append(params)
 	else:
-		emit_via_redis(event, message, room)
+		dispatch_realtime_event(event, message, room)
 
 
 def flush_realtime_log():
 	if not hasattr(frappe.local, "_realtime_log"):
 		return
 	for args in frappe.local._realtime_log:
-		frappe.realtime.emit_via_redis(*args)
+		dispatch_realtime_event(*args)
 
 	clear_realtime_log()
 
@@ -95,6 +95,30 @@ def flush_realtime_log():
 def clear_realtime_log():
 	if hasattr(frappe.local, "_realtime_log"):
 		del frappe.local._realtime_log
+
+
+def dispatch_realtime_event(event, message, room):
+	if frappe.conf.get("in_memory"):
+		emit_via_webhook(event, message, room)
+	else:
+		emit_via_redis(event, message, room)
+
+
+def emit_via_webhook(event, message, room):
+	"""Publish real-time updates via HTTP Webhook"""
+	import requests
+	
+	payload = {"event": event, "message": message, "room": room, "namespace": frappe.local.site}
+	socketio_port = frappe.conf.get("socketio_port", 9000)
+	try:
+		requests.post(
+			f"http://localhost:{socketio_port}/_internal/publish_event", 
+			data=frappe.as_json(payload),
+			headers={"Content-Type": "application/json"},
+			timeout=1
+		)
+	except requests.exceptions.RequestException:
+		pass
 
 
 def emit_via_redis(event, message, room):
@@ -141,11 +165,12 @@ def get_socketio_secret():
 
 @frappe.whitelist(allow_guest=True)
 def get_user_info():
-	user_type = frappe.session.data.user_type
-	trusted_secret = get_socketio_secret()
-	provided_secret = frappe.get_request_header("X-Frappe-Socket-Secret")
-	if trusted_secret != provided_secret:
-		return {}
+	user_type = frappe.session.data.get("user_type")
+	if not frappe.conf.get("in_memory"):
+		trusted_secret = get_socketio_secret()
+		provided_secret = frappe.get_request_header("X-Frappe-Socket-Secret")
+		if trusted_secret != provided_secret:
+			return {}
 	# For requests with Bearer tokens, user_type is not set in the session data
 	if not user_type:
 		user_type = frappe.get_cached_value("User", frappe.session.user, "user_type")

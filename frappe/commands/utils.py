@@ -1006,10 +1006,10 @@ def setup_chrome():
 @click.option("--full-name", default="Administrator", show_default=True, help="Administrator full name")
 @click.option("--email", default="admin@example.com", show_default=True, help="Administrator email")
 @click.option("--password", default="admin", show_default=True, help="Administrator password")
-@click.option("--company-name", default=None, help="Company name (ERPNext)")
-@click.option("--company-abbr", default=None, help="Company abbreviation (ERPNext)")
+@click.option("--company-name", default=None, help="Company name")
+@click.option("--company-abbr", default=None, help="Company abbreviation")
 @click.option(
-	"--chart-of-accounts", default="Standard", show_default=True, help="Chart of accounts template (ERPNext)"
+	"--chart-of-accounts", default="Standard", show_default=True, help="Chart of accounts template"
 )
 @click.option(
 	"--background",
