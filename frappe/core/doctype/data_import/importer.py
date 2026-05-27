@@ -926,7 +926,8 @@ class Column:
 				self.warnings.append(
 					{
 						"message": _("Mapping column {0} to field {1}").format(
-							frappe.bold(header_title or "<i>Untitled Column</i>"), frappe.bold(df.label)
+							frappe.bold(escape_html(header_title) or "<i>Untitled Column</i>"),
+							frappe.bold(df.label),
 						),
 						"type": "info",
 					}
@@ -953,7 +954,9 @@ class Column:
 			self.warnings.append(
 				{
 					"col": column_number,
-					"message": _("Skipping Duplicate Column {0}").format(frappe.bold(header_title)),
+					"message": _("Skipping Duplicate Column {0}").format(
+						frappe.bold(escape_html(header_title))
+					),
 					"type": "info",
 				}
 			)
@@ -964,7 +967,7 @@ class Column:
 			self.warnings.append(
 				{
 					"col": column_number,
-					"message": _("Skipping column {0}").format(frappe.bold(header_title)),
+					"message": _("Skipping column {0}").format(frappe.bold(escape_html(header_title))),
 					"type": "info",
 				}
 			)
@@ -972,7 +975,9 @@ class Column:
 			self.warnings.append(
 				{
 					"col": column_number,
-					"message": _("Cannot match column {0} with any field").format(frappe.bold(header_title)),
+					"message": _("Cannot match column {0} with any field").format(
+						frappe.bold(escape_html(header_title))
+					),
 					"type": "info",
 				}
 			)
@@ -1017,7 +1022,7 @@ class Column:
 				{
 					"col": self.column_number,
 					"message": message.format(
-						frappe.bold(self.header_title),
+						frappe.bold(escape_html(self.header_title)),
 						len(unique_date_formats),
 						frappe.bold(user_date_format),
 					),
