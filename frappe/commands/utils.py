@@ -1008,9 +1008,7 @@ def setup_chrome():
 @click.option("--password", default="admin", show_default=True, help="Administrator password")
 @click.option("--company-name", default=None, help="Company name")
 @click.option("--company-abbr", default=None, help="Company abbreviation")
-@click.option(
-	"--chart-of-accounts", default="Standard", show_default=True, help="Chart of accounts template"
-)
+@click.option("--chart-of-accounts", default="Standard", show_default=True, help="Chart of accounts template")
 @click.option(
 	"--background",
 	is_flag=True,
