@@ -106,6 +106,11 @@ class Importer:
 				self.print_grouped_warnings(warnings)
 			else:
 				self.data_import.db_set("template_warnings", json.dumps(warnings))
+				frappe.publish_realtime(
+					"data_import_blocked",
+					{"data_import": self.data_import.name},
+					user=frappe.session.user,
+				)
 			return
 
 		# setup import log

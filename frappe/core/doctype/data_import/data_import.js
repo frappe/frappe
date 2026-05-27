@@ -42,6 +42,16 @@ frappe.ui.form.on("Data Import", {
 				frm.refresh();
 			});
 		});
+		frappe.realtime.on("data_import_blocked", ({ data_import }) => {
+			if (data_import !== frm.doc.name) return;
+			frappe.show_alert({
+				message: __(
+					"Import could not start. Please resolve the errors in the import file."
+				),
+				indicator: "red",
+			});
+			frm.scroll_to_field("import_warnings_section");
+		});
 		frappe.realtime.on("data_import_progress", (data) => {
 			frm.import_in_progress = true;
 			if (data.data_import !== frm.doc.name) {
@@ -124,14 +134,6 @@ frappe.ui.form.on("Data Import", {
 		if (frm.doc.status != "Pending") frm.trigger("show_import_status");
 
 		frm.trigger("show_report_error_button");
-
-		if (frm.doc.status === "Partial Success") {
-			frm.add_custom_button(__("Export Errored Rows"), () =>
-				frm.trigger("export_errored_rows")
-			);
-		}
-
-		frm.trigger("show_download_skipped_rows_button");
 
 		if (frm.doc.status.includes("Success")) {
 			frm.add_custom_button(__("Go to {0} List", [__(frm.doc.reference_doctype)]), () =>
@@ -218,6 +220,9 @@ frappe.ui.form.on("Data Import", {
 						__(
 							"Please click on 'Export Errored Rows', fix the errors and import again."
 						);
+					frm.add_custom_button(__("Export Errored Rows"), () =>
+						frm.trigger("export_errored_rows")
+					);
 				}
 
 				if ((frm.doc.skipped_rows || []).length) {
@@ -226,6 +231,9 @@ frappe.ui.form.on("Data Import", {
 						__(
 							"Please click on 'Download Skipped Rows' to export rows that were skipped during import."
 						);
+					frm.add_custom_button(__("Download Skipped Rows"), () =>
+						frm.trigger("download_skipped_rows")
+					);
 				}
 
 				// If the job timed out, display an extra hint
@@ -526,16 +534,6 @@ frappe.ui.form.on("Data Import", {
 			{
 				data_import_name: frm.doc.name,
 			}
-		);
-	},
-
-	show_download_skipped_rows_button(frm) {
-		const completed = ["Success", "Partial Success"].includes(frm.doc.status);
-		if (!completed || !(frm.doc.skipped_rows || []).length) {
-			return;
-		}
-		frm.add_custom_button(__("Download Skipped Rows"), () =>
-			frm.trigger("download_skipped_rows")
 		);
 	},
 
