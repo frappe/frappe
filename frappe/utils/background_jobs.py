@@ -160,7 +160,7 @@ def enqueue(
 		from frappe.utils.redis_wrapper import MemoryCacheWrapper
 
 		redis_unavailable = isinstance(frappe.cache, MemoryCacheWrapper)
-		
+
 		if frappe.local.flags.in_migrate:
 			# During migrations, we must run jobs synchronously to avoid race conditions.
 			def _run_sync():
@@ -179,6 +179,7 @@ def enqueue(
 				global _in_memory_pool
 				if _in_memory_pool is None:
 					from concurrent.futures import ThreadPoolExecutor
+
 					workers = frappe.conf.get("in_memory_workers", 2)
 					_in_memory_pool = ThreadPoolExecutor(
 						max_workers=workers, thread_name_prefix="FrappeInMemoryWorker"
@@ -198,7 +199,7 @@ def enqueue(
 					job_name=job_name or m_name,
 					kwargs=kwargs,
 					user=frappe.session.user,
-					is_async=True
+					is_async=True,
 				)
 
 			if enqueue_after_commit:
