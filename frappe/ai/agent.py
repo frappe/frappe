@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -43,6 +44,41 @@ class RunResult:
 	questions: list[Question] = field(default_factory=list)
 
 
+@dataclass
+class TextChunk:
+	"""A token delta from the model. Emitted as the LLM streams its reply."""
+
+	text: str
+
+
+@dataclass
+class ToolStarted:
+	"""A tool call is about to execute. Lets the UI render a 'thinking' indicator."""
+
+	id: str
+	name: str
+	arguments: dict[str, Any]
+
+
+@dataclass
+class ToolEnded:
+	"""A tool call finished. `result` is the JSON-serialized return value."""
+
+	id: str
+	name: str
+	result: str
+
+
+@dataclass
+class Done:
+	"""Terminal event: the run finished (Completed or Paused)."""
+
+	result: RunResult
+
+
+Event = TextChunk | ToolStarted | ToolEnded | Done
+
+
 class Agent:
 	def __init__(
 		self,
@@ -68,16 +104,35 @@ class Agent:
 				raise ValueError(f"Duplicate tool name: {tool.name!r}")
 			self._tools_by_name[tool.name] = tool
 
-	def run(self, input: str | list[dict[str, Any]]) -> RunResult:
-		return self._loop(self._build_initial_messages(input))
+	def run(self, input: str | list[dict[str, Any]], *, stream: bool = False) -> RunResult | Generator[Event]:
+		"""Run the agent on `input`. With `stream=True`, returns a generator of `Event`s
+		(text deltas, tool start/end markers, and a final `Done` carrying the `RunResult`)."""
+		messages = self._build_initial_messages(input)
+		if stream:
+			return self._loop_stream(messages)
+		return self._loop(messages)
 
-	def resume(self, messages: list[dict[str, Any]], answers: dict[str, Any]) -> RunResult:
+	def resume(
+		self,
+		messages: list[dict[str, Any]],
+		answers: dict[str, Any],
+		*,
+		stream: bool = False,
+	) -> RunResult | Generator[Event]:
 		"""Continue a run that paused on a question.
 
 		`answers` maps each pending tool_call_id to the user's answer (a chosen option,
 		a list for multi-select, or free "Other" text). The answer becomes that call's
 		result, and the LLM decides what to do next.
 		"""
+		messages = self._prepare_resume(messages, answers)
+		if stream:
+			return self._loop_stream(messages)
+		return self._loop(messages)
+
+	def _prepare_resume(
+		self, messages: list[dict[str, Any]], answers: dict[str, Any]
+	) -> list[dict[str, Any]]:
 		_validate_messages(messages)
 		messages = list(messages)
 		pending = self._pending_calls(messages)
@@ -87,8 +142,7 @@ class Agent:
 		for call in pending:
 			content = _serialize_tool_result(answers.get(call.id))
 			messages.append({"role": "tool", "tool_call_id": call.id, "content": content})
-
-		return self._loop(messages)
+		return messages
 
 	def _loop(
 		self, messages: list[dict[str, Any]], executed_calls: list[ToolCall] | None = None
@@ -141,6 +195,64 @@ class Agent:
 
 		raise RuntimeError(f"Agent {self.name!r} exceeded max_iterations ({self.max_iterations})")
 
+	def _loop_stream(self, messages: list[dict[str, Any]]) -> Generator[Event]:
+		tool_schemas = [t.to_dict() for t in self.tools] or None
+		executed_calls: list[ToolCall] = []
+		usage_total = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+
+		for iteration in range(1, self.max_iterations + 1):
+			chunks = self.model.chat(messages, tools=tool_schemas, stream=True)
+			try:
+				while True:
+					yield TextChunk(text=next(chunks))
+			except StopIteration as e:
+				response = e.value
+			_accumulate_usage(usage_total, response.usage)
+			messages.append(_assistant_message(response))
+
+			if not response.tool_calls:
+				yield Done(
+					result=RunResult(
+						output=response.content,
+						messages=messages,
+						tool_calls=executed_calls,
+						iterations=iteration,
+						usage=usage_total,
+					)
+				)
+				return
+
+			questions: list[Question] = []
+			for call in response.tool_calls:
+				yield ToolStarted(id=call.id, name=call.name, arguments=call.arguments)
+				result = self._invoke(call)
+				if isinstance(result, Question):
+					result.key = call.id
+					questions.append(result)
+					yield ToolEnded(id=call.id, name=call.name, result="")
+					continue
+
+				executed_calls.append(call)
+				serialized = _serialize_tool_result(result)
+				messages.append({"role": "tool", "tool_call_id": call.id, "content": serialized})
+				yield ToolEnded(id=call.id, name=call.name, result=serialized)
+
+			if questions:
+				yield Done(
+					result=RunResult(
+						output=response.content,
+						messages=messages,
+						tool_calls=executed_calls,
+						iterations=iteration,
+						usage=usage_total,
+						paused=True,
+						questions=questions,
+					)
+				)
+				return
+
+		raise RuntimeError(f"Agent {self.name!r} exceeded max_iterations ({self.max_iterations})")
+
 	def _pending_calls(self, messages: list[dict[str, Any]]) -> list[ToolCall]:
 		"""Tool calls in the transcript that have no tool result yet (awaiting an answer)."""
 		answered = {m.get("tool_call_id") for m in messages if m.get("role") == "tool"}
@@ -157,15 +269,16 @@ class Agent:
 		return pending
 
 	def _build_initial_messages(self, input: str | list[dict[str, Any]]) -> list[dict[str, Any]]:
-		messages: list[dict[str, Any]] = []
-		if self.instructions:
-			messages.append({"role": "system", "content": self.instructions})
+		"""For a string, build [system?, user]. For a list, trust the caller and use it as-is —
+		the caller owns the system message and any history."""
 		if isinstance(input, str):
+			messages: list[dict[str, Any]] = []
+			if self.instructions:
+				messages.append({"role": "system", "content": self.instructions})
 			messages.append({"role": "user", "content": input})
-		else:
-			_validate_messages(input)
-			messages.extend(input)
-		return messages
+			return messages
+		_validate_messages(input)
+		return list(input)
 
 	def _invoke(self, call: ToolCall) -> Any:
 		"""Run a tool and return its raw result (a Question signals a pause)."""

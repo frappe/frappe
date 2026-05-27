@@ -4,22 +4,44 @@
 import json
 from typing import Any
 
-from frappe.ai.agent import Agent, Question, RunResult
+from frappe.ai.agent import (
+	Agent,
+	Done,
+	Question,
+	RunResult,
+	TextChunk,
+	ToolEnded,
+	ToolStarted,
+)
 from frappe.ai.model import ChatResponse, ToolCall
 from frappe.ai.tool import tool
 from frappe.tests import UnitTestCase
 
 
 class FakeModel:
-	def __init__(self, responses: list[ChatResponse]):
+	def __init__(self, responses: list[ChatResponse], streams: list[list[str]] | None = None):
+		"""`responses` are returned by chat(); `streams` (optional) are the text-delta
+		sequences yielded when stream=True, one list per call, indexed alongside responses."""
 		self._responses = list(responses)
+		self._streams = list(streams) if streams is not None else [[r.content or ""] for r in responses]
 		self.calls: list[dict[str, Any]] = []
 
-	def chat(self, messages, tools=None):
-		self.calls.append({"messages": list(messages), "tools": tools})
+	def chat(self, messages, tools=None, *, stream=False):
+		self.calls.append({"messages": list(messages), "tools": tools, "stream": stream})
 		if not self._responses:
 			raise AssertionError("FakeModel ran out of scripted responses")
-		return self._responses.pop(0)
+		response = self._responses.pop(0)
+		text_parts = self._streams.pop(0) if self._streams else [response.content or ""]
+		if stream:
+			return _scripted_stream(text_parts, response)
+		return response
+
+
+def _scripted_stream(text_parts: list[str], response: ChatResponse):
+	for part in text_parts:
+		if part:
+			yield part
+	return response
 
 
 def _final(text: str, usage: dict[str, int] | None = None) -> ChatResponse:
@@ -418,6 +440,119 @@ class TestAgentConsultation(UnitTestCase):
 		agent = Agent(model=FakeModel([]))
 		with self.assertRaises(ValueError):
 			agent.resume([{"role": "user", "content": "hi"}], {})
+
+
+class TestAgentStreaming(UnitTestCase):
+	def test_run_stream_yields_text_chunks_then_done(self):
+		model = FakeModel([_final("hello world")], streams=[["hello ", "world"]])
+		agent = Agent(model=model)
+
+		events = list(agent.run("hi", stream=True))
+
+		texts = [e.text for e in events if isinstance(e, TextChunk)]
+		self.assertEqual(texts, ["hello ", "world"])
+
+		done = events[-1]
+		self.assertIsInstance(done, Done)
+		self.assertIsInstance(done.result, RunResult)
+		self.assertEqual(done.result.output, "hello world")
+		self.assertEqual(done.result.iterations, 1)
+		self.assertFalse(done.result.paused)
+
+	def test_run_stream_passes_stream_flag_to_model(self):
+		model = FakeModel([_final("ok")])
+		agent = Agent(model=model)
+
+		list(agent.run("hi", stream=True))
+
+		self.assertTrue(model.calls[0]["stream"])
+
+	def test_run_stream_emits_tool_started_and_ended_around_invocation(self):
+		@tool
+		def add(a: int, b: int) -> int:
+			"""Add."""
+			return a + b
+
+		model = FakeModel(
+			[_tool_call("add", {"a": 2, "b": 3}), _final("five")],
+			streams=[[""], ["five"]],
+		)
+		agent = Agent(model=model, tools=[add])
+
+		events = list(agent.run("add 2 and 3", stream=True))
+
+		started = [e for e in events if isinstance(e, ToolStarted)]
+		ended = [e for e in events if isinstance(e, ToolEnded)]
+		self.assertEqual(len(started), 1)
+		self.assertEqual(started[0].name, "add")
+		self.assertEqual(started[0].arguments, {"a": 2, "b": 3})
+		self.assertEqual(ended[0].result, "5")
+
+		done = events[-1]
+		self.assertIsInstance(done, Done)
+		self.assertEqual(done.result.output, "five")
+		self.assertEqual(done.result.iterations, 2)
+
+	def test_run_stream_paused_ends_with_done_paused(self):
+		@tool
+		def ask_user(prompt: str) -> Question:
+			"""Ask."""
+			return Question(prompt=prompt, options=["A", "B"])
+
+		model = FakeModel([_tool_call("ask_user", {"prompt": "Which?"}, call_id="c1")])
+		agent = Agent(model=model, tools=[ask_user])
+
+		events = list(agent.run("pick", stream=True))
+
+		done = events[-1]
+		self.assertIsInstance(done, Done)
+		self.assertTrue(done.result.paused)
+		self.assertEqual(done.result.questions[0].key, "c1")
+
+	def test_run_stream_accumulates_usage_across_iterations(self):
+		@tool
+		def ping() -> str:
+			"""Ping."""
+			return "pong"
+
+		model = FakeModel(
+			[
+				ChatResponse(
+					content=None,
+					tool_calls=[ToolCall(id="c1", name="ping", arguments={})],
+					usage={"prompt_tokens": 5, "completion_tokens": 2, "total_tokens": 7},
+				),
+				_final("done", usage={"prompt_tokens": 3, "completion_tokens": 1, "total_tokens": 4}),
+			]
+		)
+		agent = Agent(model=model, tools=[ping])
+
+		events = list(agent.run("hi", stream=True))
+
+		done = events[-1]
+		self.assertEqual(done.result.usage, {"prompt_tokens": 8, "completion_tokens": 3, "total_tokens": 11})
+
+	def test_run_stream_resume_continues_with_answer(self):
+		@tool
+		def ask_user(prompt: str) -> Question:
+			"""Ask."""
+			return Question(prompt=prompt, options=["A", "B"])
+
+		agent = Agent(
+			model=FakeModel([_tool_call("ask_user", {"prompt": "Which?"}, call_id="c1")]),
+			tools=[ask_user],
+		)
+		paused_events = list(agent.run("pick", stream=True))
+		paused = paused_events[-1].result
+
+		agent.model = FakeModel([_final("picked A")], streams=[["picked A"]])
+		resumed_events = list(agent.resume(paused.messages, {"c1": "A"}, stream=True))
+
+		texts = [e.text for e in resumed_events if isinstance(e, TextChunk)]
+		self.assertEqual("".join(texts), "picked A")
+		done = resumed_events[-1]
+		self.assertIsInstance(done, Done)
+		self.assertEqual(done.result.output, "picked A")
 
 
 class TestQuestion(UnitTestCase):
