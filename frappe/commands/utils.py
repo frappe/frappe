@@ -1006,9 +1006,6 @@ def setup_chrome():
 @click.option("--full-name", default="Administrator", show_default=True, help="Administrator full name")
 @click.option("--email", default="admin@example.com", show_default=True, help="Administrator email")
 @click.option("--password", default="admin", show_default=True, help="Administrator password")
-@click.option("--company-name", default=None, help="Company name")
-@click.option("--company-abbr", default=None, help="Company abbreviation")
-@click.option("--chart-of-accounts", default="Standard", show_default=True, help="Chart of accounts template")
 @click.option(
 	"--background",
 	is_flag=True,
@@ -1025,9 +1022,6 @@ def setup_wizard(
 	full_name,
 	email,
 	password,
-	company_name,
-	company_abbr,
-	chart_of_accounts,
 	background,
 ):
 	"Run the setup wizard for a site from the command line (no browser required)"
@@ -1042,12 +1036,6 @@ def setup_wizard(
 		"email": email,
 		"password": password,
 	}
-	if company_name:
-		args["company_name"] = company_name
-	if company_abbr:
-		args["company_abbr"] = company_abbr
-	if chart_of_accounts:
-		args["chart_of_accounts"] = chart_of_accounts
 
 	for site in context.sites:
 		if background:
