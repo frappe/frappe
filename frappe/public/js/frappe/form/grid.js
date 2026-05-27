@@ -218,7 +218,28 @@ export default class Grid {
 				this.last_checked_docname = docname;
 			}
 			this.refresh_remove_rows_button();
+			this.update_selection_banner();
 		});
+	}
+
+	update_selection_banner() {
+		const num_selected_rows = this.get_selected_children().length;
+
+		let $container = this.wrapper.find(".form-grid-container");
+		let $toast = this.wrapper.find("> .grid-selection-toast");
+		if (num_selected_rows > 0) {
+			if (!$toast.length) {
+				$toast = $(
+					`<div class="grid-selection-toast"><span class="grid-selection-toast__message"></span></div>`
+				).insertAfter($container);
+			}
+			$toast
+				.find(".grid-selection-toast__message")
+				.text(__("{0} row(s) selected", [num_selected_rows]));
+			$toast.show();
+		} else if ($toast.length) {
+			$toast.hide();
+		}
 	}
 
 	/**
@@ -327,13 +348,7 @@ export default class Grid {
 	}
 
 	get_selected() {
-		return (this.grid_rows || [])
-			.map((row) => {
-				return row.doc.__checked ? row.doc.name : null;
-			})
-			.filter((d) => {
-				return d;
-			});
+		return (this.data || []).filter((doc) => doc.__checked).map((doc) => doc.name);
 	}
 
 	get_selected_children() {
@@ -468,6 +483,7 @@ export default class Grid {
 		this.refresh_remove_rows_button();
 
 		this.wrapper.trigger("change");
+		this.update_selection_banner();
 	}
 
 	render_result_rows($rows) {
