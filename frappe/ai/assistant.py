@@ -3,16 +3,18 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
 from frappe.ai.agent import Agent
-from frappe.ai.doctype.ai_run.ai_run import create_run
+from frappe.ai.doctype.ai_run.ai_run import create_run, stream_with_persistence
 from frappe.ai.model import Model
 from frappe.ai.tools.builtins import ask_user, execute, introspect, query
 
 if TYPE_CHECKING:
+	from frappe.ai.agent import Event
 	from frappe.ai.doctype.ai_run.ai_run import AIRun
 
 ASSISTANT_NAME = "assistant"
@@ -56,11 +58,24 @@ def build_assistant(*, model: Model | str | None = None) -> Agent:
 
 
 def run_assistant(
-	input: str, *, model: Model | str | None = None, source: str = "Manual"
-) -> AIRun:
-	"""Run the assistant on `input`, persist the transcript as an AI Run, and return it."""
+	input: str,
+	*,
+	model: Model | str | None = None,
+	source: str = "Manual",
+	stream: bool = False,
+) -> AIRun | Generator[Event]:
+	"""Run the assistant on `input`, persist the transcript as an AI Run, and return it.
+
+	With `stream=True`, returns a generator of agent Events instead of the AIRun row;
+	the run is still created up-front (first event is `RunStarted` with its name) and
+	persisted when the stream completes.
+	"""
 	agent = build_assistant(model=model)
-	run = create_run(source=source, input=input, config_snapshot=_snapshot(agent))
+	session = _new_session(input)
+	run = create_run(source=source, input=input, session=session, config_snapshot=_snapshot(agent))
+	if stream:
+		return stream_with_persistence(lambda: agent.run(input, stream=True), run)
+
 	try:
 		result = agent.run(input)
 	except Exception as e:
@@ -68,6 +83,19 @@ def run_assistant(
 		raise
 	run.apply_result(result)
 	return run
+
+
+def _new_session(input_text: str, agent: str | None = None) -> str:
+	from frappe.ai.doctype.ai_session.ai_session import derive_title
+
+	session = frappe.get_doc(
+		{
+			"doctype": "AI Session",
+			"agent": agent,
+			"title": derive_title(input_text),
+		}
+	).insert(ignore_permissions=True)
+	return session.name
 
 
 def _default_model_name() -> str:

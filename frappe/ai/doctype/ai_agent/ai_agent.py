@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from typing import TYPE_CHECKING, Any
 
 import frappe
@@ -10,7 +11,7 @@ from frappe import _
 from frappe.model.document import Document
 
 if TYPE_CHECKING:
-	from frappe.ai.agent import Agent
+	from frappe.ai.agent import Agent, Event
 	from frappe.ai.doctype.ai_run.ai_run import AIRun
 	from frappe.ai.tool import Tool
 
@@ -25,9 +26,8 @@ class AIAgent(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-
 		from frappe.ai.doctype.ai_agent_tool.ai_agent_tool import AIAgentTool
+		from frappe.types import DF
 
 		enabled: DF.Check
 		instructions: DF.LongText
@@ -70,9 +70,7 @@ class AIAgent(Document):
 			frappe.throw(_("AI Agent {0} is disabled.").format(self.name), title=_("Disabled Agent"))
 
 		if not frappe.db.get_value("AI Model", self.model, "enabled"):
-			frappe.throw(
-				_("AI Model {0} is disabled.").format(self.model), title=_("Disabled Model")
-			)
+			frappe.throw(_("AI Model {0} is disabled.").format(self.model), title=_("Disabled Model"))
 
 		return Agent(
 			model=Model(self.model),
@@ -91,18 +89,41 @@ class AIAgent(Document):
 			resolved.append(tool_doc.to_tool())
 		return resolved
 
-	def run(self, input: str, *, source: str = "Manual", trigger: str | None = None) -> AIRun:
-		"""Assemble, run on `input`, and persist the result as an AI Run linked to this agent."""
-		from frappe.ai.doctype.ai_run.ai_run import create_run
+	def run(
+		self,
+		input: str,
+		*,
+		source: str = "Manual",
+		trigger: str | None = None,
+		stream: bool = False,
+	) -> AIRun | Generator[Event]:
+		"""Assemble, run on `input`, and persist the result as an AI Run linked to this agent.
+
+		With `stream=True`, returns a generator of agent Events instead of the AIRun row;
+		the run is still created up-front (first event is `RunStarted` with its name) and
+		persisted when the stream completes.
+		"""
+		from frappe.ai.doctype.ai_run.ai_run import create_run, stream_with_persistence
+		from frappe.ai.doctype.ai_session.ai_session import derive_title
 
 		agent = self.assemble()
+		session = frappe.get_doc(
+			{
+				"doctype": "AI Session",
+				"agent": self.name,
+				"title": derive_title(input),
+			}
+		).insert(ignore_permissions=True)
 		run = create_run(
 			source=source,
 			input=input,
-			agent=self.name,
+			session=session.name,
 			trigger=trigger,
 			config_snapshot=self._snapshot(),
 		)
+		if stream:
+			return stream_with_persistence(lambda: agent.run(input, stream=True), run)
+
 		try:
 			result = agent.run(input)
 		except Exception as e:

@@ -5,12 +5,14 @@ import json
 from typing import Any
 
 import frappe
+from frappe.ai.agent import Done, TextChunk
 from frappe.ai.assistant import (
 	ASSISTANT_INSTRUCTIONS,
 	ASSISTANT_TOOLS,
 	build_assistant,
 	run_assistant,
 )
+from frappe.ai.doctype.ai_run.ai_run import Error, RunStarted
 from frappe.ai.model import ChatResponse, ToolCall
 from frappe.tests import IntegrationTestCase
 
@@ -18,15 +20,27 @@ from frappe.tests import IntegrationTestCase
 class FakeModel:
 	model_id = "fake/assistant"
 
-	def __init__(self, responses: list[ChatResponse]):
+	def __init__(self, responses: list[ChatResponse], streams: list[list[str]] | None = None):
 		self._responses = list(responses)
+		self._streams = list(streams) if streams is not None else [[r.content or ""] for r in responses]
 		self.calls: list[dict[str, Any]] = []
 
-	def chat(self, messages, tools=None):
-		self.calls.append({"messages": list(messages), "tools": tools})
+	def chat(self, messages, tools=None, *, stream=False):
+		self.calls.append({"messages": list(messages), "tools": tools, "stream": stream})
 		if not self._responses:
 			raise AssertionError("FakeModel ran out of scripted responses")
-		return self._responses.pop(0)
+		response = self._responses.pop(0)
+		text_parts = self._streams.pop(0) if self._streams else [response.content or ""]
+		if stream:
+			return _scripted_stream(text_parts, response)
+		return response
+
+
+def _scripted_stream(text_parts: list[str], response: ChatResponse):
+	for part in text_parts:
+		if part:
+			yield part
+	return response
 
 
 def _final(text: str) -> ChatResponse:
@@ -82,7 +96,8 @@ class TestRunAssistant(IntegrationTestCase):
 
 		self.assertEqual(run.status, "Completed")
 		self.assertEqual(run.source, "Manual")
-		self.assertFalse(run.agent)
+		session = frappe.get_doc("AI Session", run.session)
+		self.assertFalse(session.agent)
 		self.assertEqual(run.output, "done")
 		self.assertEqual(run.input, "hi")
 
@@ -136,3 +151,51 @@ class TestRunAssistant(IntegrationTestCase):
 		self.assertEqual(run.status, "Paused")
 		questions = json.loads(run.questions)
 		self.assertEqual(questions[0]["prompt"], "Which list?")
+
+
+class TestRunAssistantStreaming(IntegrationTestCase):
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_stream_emits_run_started_text_chunks_and_done(self):
+		model = FakeModel([_final("hello world")], streams=[["hello ", "world"]])
+
+		events = list(run_assistant("hi", model=model, stream=True))
+
+		self.assertIsInstance(events[0], RunStarted)
+		self.assertTrue(events[0].name.startswith("AI-RUN-") or events[0].name)
+		texts = [e.text for e in events if isinstance(e, TextChunk)]
+		self.assertEqual(texts, ["hello ", "world"])
+		self.assertIsInstance(events[-1], Done)
+		self.assertEqual(events[-1].result.output, "hello world")
+
+	def test_stream_persists_completed_run(self):
+		model = FakeModel([_final("done")])
+
+		events = list(run_assistant("hi", model=model, stream=True))
+		run_started = events[0]
+
+		run = frappe.get_doc("AI Run", run_started.name)
+		self.assertEqual(run.status, "Completed")
+		self.assertEqual(run.output, "done")
+
+	def test_stream_persists_paused_run(self):
+		model = FakeModel([_tool_call("ask_user", {"prompt": "Which?", "options": ["A", "B"]})])
+
+		events = list(run_assistant("pick", model=model, stream=True))
+		run_started = events[0]
+
+		run = frappe.get_doc("AI Run", run_started.name)
+		self.assertEqual(run.status, "Paused")
+		self.assertEqual(json.loads(run.questions)[0]["prompt"], "Which?")
+
+	def test_stream_failure_marks_failed_and_emits_error(self):
+		model = FakeModel([])  # exhausts on first chat call
+
+		events = list(run_assistant("hi", model=model, stream=True))
+
+		self.assertIsInstance(events[0], RunStarted)
+		self.assertIsInstance(events[-1], Error)
+		run = frappe.get_doc("AI Run", events[0].name)
+		self.assertEqual(run.status, "Failed")
+		self.assertTrue(run.error)

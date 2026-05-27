@@ -8,7 +8,7 @@ from unittest.mock import patch
 import frappe
 from frappe.ai.model import ChatResponse, Model
 from frappe.ai.tools.builtins import sync_builtin_tools
-from frappe.ai.triggers import dispatch, fire, dispatch_scheduled
+from frappe.ai.triggers import dispatch, dispatch_scheduled, fire
 from frappe.tests import IntegrationTestCase
 
 
@@ -128,7 +128,9 @@ class TestDispatch(IntegrationTestCase):
 		self.trigger.condition = "doc.status == 'Closed'"
 		self.trigger.save()
 		open_doc = frappe.get_doc({"doctype": "ToDo", "description": "open one"}).insert()
-		closed_doc = frappe.get_doc({"doctype": "ToDo", "description": "closed one", "status": "Closed"}).insert()
+		closed_doc = frappe.get_doc(
+			{"doctype": "ToDo", "description": "closed one", "status": "Closed"}
+		).insert()
 
 		with patch("frappe.enqueue") as enqueue:
 			dispatch(open_doc, "after_insert")
@@ -235,7 +237,8 @@ class TestFire(IntegrationTestCase):
 		run = frappe.get_doc("AI Run", run_name)
 		self.assertEqual(run.source, "Trigger")
 		self.assertEqual(run.trigger, self.trigger.name)
-		self.assertEqual(run.agent, self.agent.name)
+		session = frappe.get_doc("AI Session", run.session)
+		self.assertEqual(session.agent, self.agent.name)
 		self.assertEqual(run.status, "Completed")
 		self.assertIn(todo.name, run.input)
 

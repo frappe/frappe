@@ -31,7 +31,9 @@ def _tooled_result() -> RunResult:
 			{
 				"role": "assistant",
 				"content": None,
-				"tool_calls": [{"id": "c1", "type": "function", "function": {"name": "query", "arguments": "{}"}}],
+				"tool_calls": [
+					{"id": "c1", "type": "function", "function": {"name": "query", "arguments": "{}"}}
+				],
 			},
 			{"role": "tool", "tool_call_id": "c1", "content": "[]"},
 			{"role": "assistant", "content": "emailed two customers"},
@@ -51,7 +53,9 @@ def _paused_result() -> RunResult:
 			{
 				"role": "assistant",
 				"content": None,
-				"tool_calls": [{"id": "c1", "type": "function", "function": {"name": "ask_user", "arguments": "{}"}}],
+				"tool_calls": [
+					{"id": "c1", "type": "function", "function": {"name": "ask_user", "arguments": "{}"}}
+				],
 			},
 		],
 		tool_calls=[],
@@ -62,32 +66,59 @@ def _paused_result() -> RunResult:
 	)
 
 
+def _new_session(agent: str | None = None) -> str:
+	return (
+		frappe.get_doc({"doctype": "AI Session", "agent": agent, "title": "test"})
+		.insert(ignore_permissions=True)
+		.name
+	)
+
+
 class TestAIRunPersistence(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_persist_completed_run_writes_transcript(self):
-		doc = persist_result(_completed_result(), source="Manual", input="hi")
+	def test_persist_completed_run_writes_transcript_to_session(self):
+		session = _new_session()
+		doc = persist_result(_completed_result(), source="Manual", input="hi", session=session)
 
 		self.assertEqual(doc.status, "Completed")
 		self.assertEqual(doc.iterations, 1)
 		self.assertEqual(doc.output, "all done")
-		messages = json.loads(doc.messages)
-		self.assertEqual(messages[0], {"role": "user", "content": "hi"})
+
+		session_doc = frappe.get_doc("AI Session", session)
+		self.assertEqual(len(session_doc.messages), 2)
+		self.assertEqual(session_doc.messages[0].role, "user")
+		self.assertEqual(session_doc.messages[0].content, "hi")
+		self.assertEqual(session_doc.messages[1].role, "assistant")
+		self.assertEqual(session_doc.messages[1].run, doc.name)
 
 	def test_persist_serializes_tool_calls_as_dicts(self):
-		doc = persist_result(_tooled_result(), source="Manual", input="email customers")
+		session = _new_session()
+		doc = persist_result(_tooled_result(), source="Manual", input="email customers", session=session)
 
 		tool_calls = json.loads(doc.tool_calls)
 		self.assertEqual(tool_calls, [{"id": "c1", "name": "query", "arguments": {"doctype": "Customer"}}])
 
-	def test_persist_ephemeral_run_has_empty_agent(self):
-		doc = persist_result(_completed_result(), source="Manual", input="hi")
+	def test_persist_tooled_run_writes_all_messages_to_session(self):
+		session = _new_session()
+		doc = persist_result(_tooled_result(), source="Manual", input="email customers", session=session)
 
-		self.assertFalse(doc.agent)
+		session_doc = frappe.get_doc("AI Session", session)
+		roles = [row.role for row in session_doc.messages]
+		self.assertEqual(roles, ["user", "assistant", "tool", "assistant"])
+		# Tool result row records which assistant call it answers.
+		tool_row = session_doc.messages[2]
+		self.assertEqual(tool_row.tool_call_id, "c1")
+		# Assistant row with tool calls stores them as JSON.
+		assistant_row = session_doc.messages[1]
+		self.assertEqual(json.loads(assistant_row.tool_calls)[0]["function"]["name"], "query")
+		# All rows tagged with the producing run.
+		self.assertTrue(all(row.run == doc.name for row in session_doc.messages))
 
 	def test_persist_paused_run_stores_questions(self):
-		doc = persist_result(_paused_result(), source="Manual", input="email the list")
+		session = _new_session()
+		doc = persist_result(_paused_result(), source="Manual", input="email the list", session=session)
 
 		self.assertEqual(doc.status, "Paused")
 		self.assertIsNone(doc.output)
@@ -98,7 +129,8 @@ class TestAIRunPersistence(IntegrationTestCase):
 		self.assertEqual(questions[0]["key"], "c1")
 
 	def test_apply_result_clears_questions_when_resumed(self):
-		doc = persist_result(_paused_result(), source="Manual", input="email the list")
+		session = _new_session()
+		doc = persist_result(_paused_result(), source="Manual", input="email the list", session=session)
 		self.assertTrue(doc.questions)
 
 		doc.apply_result(_completed_result("emailed"))
@@ -108,19 +140,24 @@ class TestAIRunPersistence(IntegrationTestCase):
 		self.assertEqual(doc.output, "emailed")
 
 	def test_persist_records_usage(self):
-		doc = persist_result(_tooled_result(), source="Manual", input="x")
+		session = _new_session()
+		doc = persist_result(_tooled_result(), source="Manual", input="x", session=session)
 
-		self.assertEqual(json.loads(doc.usage), {"prompt_tokens": 10, "completion_tokens": 4, "total_tokens": 14})
+		self.assertEqual(
+			json.loads(doc.usage), {"prompt_tokens": 10, "completion_tokens": 4, "total_tokens": 14}
+		)
 
 	def test_create_run_with_config_snapshot(self):
+		session = _new_session()
 		snapshot = {"instructions": "be terse", "tool_slugs": ["query", "execute"]}
-		doc = create_run(source="Manual", input="hi", config_snapshot=snapshot)
+		doc = create_run(source="Manual", input="hi", session=session, config_snapshot=snapshot)
 
 		self.assertEqual(json.loads(doc.config_snapshot), snapshot)
 		self.assertEqual(doc.status, "Running")
 
 	def test_mark_failed_sets_status_and_error(self):
-		doc = create_run(source="Manual", input="hi")
+		session = _new_session()
+		doc = create_run(source="Manual", input="hi", session=session)
 
 		doc.mark_failed("something broke")
 
@@ -128,7 +165,8 @@ class TestAIRunPersistence(IntegrationTestCase):
 		self.assertEqual(doc.error, "something broke")
 
 	def test_mark_failed_truncates_long_error(self):
-		doc = create_run(source="Manual", input="hi")
+		session = _new_session()
+		doc = create_run(source="Manual", input="hi", session=session)
 
 		doc.mark_failed("x" * 10000)
 
@@ -139,30 +177,45 @@ class TestAIRunValidation(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
+	def test_session_is_required(self):
+		doc = frappe.get_doc({"doctype": "AI Run", "source": "Manual", "status": "Running"})
+		with self.assertRaises(frappe.MandatoryError):
+			doc.insert(ignore_permissions=True)
+
 	def test_paused_without_questions_rejected(self):
-		doc = frappe.get_doc({"doctype": "AI Run", "source": "Manual", "status": "Paused"})
+		session = _new_session()
+		doc = frappe.get_doc(
+			{"doctype": "AI Run", "source": "Manual", "status": "Paused", "session": session}
+		)
 		with self.assertRaisesRegex(frappe.ValidationError, "Paused"):
 			doc.insert(ignore_permissions=True)
 
 	def test_failed_without_error_rejected(self):
-		doc = frappe.get_doc({"doctype": "AI Run", "source": "Manual", "status": "Failed"})
+		session = _new_session()
+		doc = frappe.get_doc(
+			{"doctype": "AI Run", "source": "Manual", "status": "Failed", "session": session}
+		)
 		with self.assertRaisesRegex(frappe.ValidationError, "Failed"):
 			doc.insert(ignore_permissions=True)
 
 	def test_invalid_source_rejected(self):
-		doc = frappe.get_doc({"doctype": "AI Run", "source": "Bogus", "status": "Running"})
+		session = _new_session()
+		doc = frappe.get_doc(
+			{"doctype": "AI Run", "source": "Bogus", "status": "Running", "session": session}
+		)
 		with self.assertRaises(frappe.ValidationError):
 			doc.insert(ignore_permissions=True)
 
 	def test_invalid_json_field_rejected(self):
+		session = _new_session()
 		doc = frappe.get_doc(
 			{
 				"doctype": "AI Run",
 				"source": "Manual",
 				"status": "Running",
-				"messages": "{not valid json",
+				"session": session,
+				"tool_calls": "{not valid json",
 			}
 		)
 		with self.assertRaisesRegex(frappe.ValidationError, "JSON"):
 			doc.insert(ignore_permissions=True)
-

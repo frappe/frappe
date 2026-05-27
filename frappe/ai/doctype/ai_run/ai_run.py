@@ -4,7 +4,8 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict
+from collections.abc import Callable, Generator
+from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING, Any
 
 import frappe
@@ -12,9 +13,23 @@ from frappe import _
 from frappe.model.document import Document
 
 if TYPE_CHECKING:
-	from frappe.ai.agent import RunResult
+	from frappe.ai.agent import Event, RunResult
 
-JSON_FIELDS = ("messages", "tool_calls", "questions", "usage", "config_snapshot")
+JSON_FIELDS = ("tool_calls", "questions", "usage", "config_snapshot")
+
+
+@dataclass
+class RunStarted:
+	"""Streaming event: announces this run's persistent name as the first frame."""
+
+	name: str
+
+
+@dataclass
+class Error:
+	"""Streaming event: an exception ended the stream; the message has been persisted as the run error."""
+
+	message: str
 
 
 class AIRun(Document):
@@ -26,14 +41,13 @@ class AIRun(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		agent: DF.Link | None
 		config_snapshot: DF.JSON | None
 		error: DF.LongText | None
 		input: DF.LongText | None
 		iterations: DF.Int
-		messages: DF.JSON | None
 		output: DF.LongText | None
 		questions: DF.JSON | None
+		session: DF.Link
 		source: DF.Literal["Manual", "Trigger"]
 		status: DF.Literal["Running", "Paused", "Completed", "Failed"]
 		tool_calls: DF.JSON | None
@@ -67,17 +81,22 @@ class AIRun(Document):
 			frappe.throw(_("Failed runs must include an error message."))
 
 	def apply_result(self, result: RunResult) -> None:
-		"""Update this row to reflect a (re-)executed Agent run."""
+		"""Update this row to reflect a (re-)executed Agent run. The new messages produced
+		by this run are appended to the parent Session's transcript."""
 		self.status = _status_from_result(result)
 		self.iterations = result.iterations
 		self.output = result.output
-		self.messages = _dump_json(result.messages)
 		self.tool_calls = _dump_json([asdict(call) for call in result.tool_calls])
 		self.questions = _dump_json([asdict(q) for q in result.questions]) if result.paused else None
 		self.usage = _dump_json(result.usage)
 		if self.status != "Failed":
 			self.error = None
 		self.save(ignore_permissions=True)
+
+		new_messages = _new_messages_for_session(self.session, result.messages)
+		if new_messages:
+			session = frappe.get_doc("AI Session", self.session)
+			session.append_run_messages(new_messages, run=self.name)
 
 	def mark_failed(self, error: str) -> None:
 		"""Mark a run as failed with the given error message."""
@@ -90,18 +109,19 @@ def create_run(
 	*,
 	source: str,
 	input: str | None,
-	agent: str | None = None,
+	session: str,
 	trigger: str | None = None,
 	config_snapshot: dict[str, Any] | None = None,
 ) -> AIRun:
-	"""Create a new AI Run row in the Running state."""
+	"""Create a new AI Run row in the Running state. `session` is required — every run
+	belongs to an AI Session (which carries the transcript and agent linkage)."""
 	doc = frappe.get_doc(
 		{
 			"doctype": "AI Run",
 			"source": source,
 			"input": input,
-			"agent": agent,
 			"trigger": trigger,
+			"session": session,
 			"config_snapshot": _dump_json(config_snapshot) if config_snapshot else None,
 			"status": "Running",
 		}
@@ -114,22 +134,78 @@ def persist_result(
 	*,
 	source: str,
 	input: str | None,
-	agent: str | None = None,
+	session: str,
 	trigger: str | None = None,
 	config_snapshot: dict[str, Any] | None = None,
 ) -> AIRun:
 	"""Convenience: create a row and immediately apply a finished RunResult."""
 	doc = create_run(
-		source=source, input=input, agent=agent, trigger=trigger, config_snapshot=config_snapshot
+		source=source,
+		input=input,
+		session=session,
+		trigger=trigger,
+		config_snapshot=config_snapshot,
 	)
 	doc.apply_result(result)
 	return doc
+
+
+def stream_with_persistence(
+	make_events: Callable[[], Generator[Event]],
+	run: AIRun,
+) -> Generator[Event | RunStarted | Error]:
+	"""Wrap an agent event stream with run lifecycle: announce RunStarted, persist on
+	Done, mark Failed + emit Error if the stream raises.
+
+	Commits explicitly: streamed responses are iterated by WSGI *after* the request
+	handler returns, so the framework's end-of-request commit has already fired by
+	the time persistence happens here.
+	"""
+	from frappe.ai.agent import Done
+
+	yield RunStarted(name=run.name)
+
+	final_result: RunResult | None = None
+	persisted = False
+	try:
+		for event in make_events():
+			if isinstance(event, Done):
+				final_result = event.result
+			yield event
+
+		if final_result is not None:
+			run.apply_result(final_result)
+			persisted = True
+			if not frappe.flags.in_test:
+				frappe.db.commit()
+	except Exception as e:
+		persisted = True
+		run.mark_failed(str(e))
+		if not frappe.flags.in_test:
+			frappe.db.commit()
+		yield Error(message=str(e))
+	finally:
+		# Stream cut short (e.g. client disconnect raises GeneratorExit) before
+		# we persisted — record the run as failed so it doesn't sit in "Running".
+		if not persisted:
+			try:
+				run.mark_failed("Stream interrupted")
+				if not frappe.flags.in_test:
+					frappe.db.commit()
+			except Exception:
+				pass
 
 
 def _status_from_result(result: RunResult) -> str:
 	if result.paused:
 		return "Paused"
 	return "Completed"
+
+
+def _new_messages_for_session(session: str, full_transcript: list[dict[str, Any]]) -> list[dict[str, Any]]:
+	"""Return new messages produced by this run, excluding the session's prior history."""
+	existing = frappe.db.count("AI Session Message", {"parent": session})
+	return list(full_transcript[existing:])
 
 
 def _dump_json(value: Any) -> str | None:

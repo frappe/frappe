@@ -5,7 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "agent",
+  "session",
   "source",
   "trigger",
   "column_break_meta",
@@ -14,8 +14,6 @@
   "section_break_io",
   "input",
   "output",
-  "section_break_transcript",
-  "messages",
   "section_break_calls",
   "tool_calls",
   "section_break_pause",
@@ -29,13 +27,14 @@
  ],
  "fields": [
   {
-   "description": "Saved agent that produced this run. Empty for ephemeral (in-memory) agents.",
-   "fieldname": "agent",
+   "description": "Conversation this run belongs to.",
+   "fieldname": "session",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Agent",
-   "options": "AI Agent"
+   "label": "Session",
+   "options": "AI Session",
+   "reqd": 1
   },
   {
    "default": "Manual",
@@ -94,19 +93,6 @@
    "fieldname": "output",
    "fieldtype": "Long Text",
    "label": "Output",
-   "read_only": 1
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "section_break_transcript",
-   "fieldtype": "Section Break",
-   "label": "Transcript"
-  },
-  {
-   "description": "Full chat transcript (system, user, assistant, tool messages).",
-   "fieldname": "messages",
-   "fieldtype": "JSON",
-   "label": "Messages",
    "read_only": 1
   },
   {

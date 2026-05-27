@@ -58,14 +58,10 @@ class TestAIAgentDefaults(IntegrationTestCase):
 	def test_default_tools_populated_on_insert(self):
 		doc = frappe.get_doc(_agent(self.model_doc.name)).insert()
 
-		self.assertEqual(
-			[row.tool for row in doc.tools], ["introspect", "query", "execute", "ask_user"]
-		)
+		self.assertEqual([row.tool for row in doc.tools], ["introspect", "query", "execute", "ask_user"])
 
 	def test_explicit_tools_override_defaults(self):
-		doc = frappe.get_doc(
-			_agent(self.model_doc.name, tools=[{"tool": "ask_user"}])
-		).insert()
+		doc = frappe.get_doc(_agent(self.model_doc.name, tools=[{"tool": "ask_user"}])).insert()
 
 		self.assertEqual([row.tool for row in doc.tools], ["ask_user"])
 
@@ -154,11 +150,12 @@ class TestAIAgentRun(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_run_produces_ai_run_linked_to_agent(self):
+	def test_run_produces_ai_run_linked_to_session_with_agent(self):
 		with patch.object(Model, "chat", return_value=_final_response()):
 			ai_run = self.agent_doc.run("hi")
 
-		self.assertEqual(ai_run.agent, self.agent_doc.name)
+		session = frappe.get_doc("AI Session", ai_run.session)
+		self.assertEqual(session.agent, self.agent_doc.name)
 		self.assertEqual(ai_run.status, "Completed")
 		self.assertEqual(ai_run.source, "Manual")
 		self.assertEqual(ai_run.output, "done")
@@ -187,6 +184,5 @@ class TestAIAgentRun(IntegrationTestCase):
 			with self.assertRaises(RuntimeError):
 				self.agent_doc.run("hi")
 
-		failed = frappe.get_last_doc("AI Run", filters={"agent": self.agent_doc.name})
-		self.assertEqual(failed.status, "Failed")
+		failed = frappe.get_last_doc("AI Run", filters={"status": "Failed"})
 		self.assertIn("boom", failed.error)

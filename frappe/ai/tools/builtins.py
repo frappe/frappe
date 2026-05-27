@@ -69,9 +69,14 @@ def query(
 def execute(code: str) -> Any:
 	"""Run Python in the Frappe sandbox to read or change data.
 
-	`frappe` and `frappe.utils` are available; imports and file access are not. Assign
-	the value you want returned to a variable named `result`. Writes run as the current
-	user and enforce permissions. Confirm with the user via ask_user before changing data.
+	DO NOT use `import` statements — `frappe` and `frappe.utils` are already in scope.
+	Assign the value you want returned to a variable named `result`.
+
+	Example:
+	    result = frappe.db.count("ToDo", {"status": "Open"})
+
+	Writes run as the current user and enforce permissions. Confirm with the user
+	via ask_user before changing data.
 	"""
 	exec_globals, _locals = safe_exec(code, script_filename="ai_execute")
 	return exec_globals.get("result")
