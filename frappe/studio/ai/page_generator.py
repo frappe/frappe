@@ -177,14 +177,33 @@ c:
 """
 
 
+MODIFY_SYSTEM_PROMPT = f"""You are an expert UI editor for Frappe Studio. You will receive the YAML of a selected block and a user request. Return a modified version of that block.
+
+RULES:
+- Preserve ALL id (componentId) values exactly as given — never change or omit them
+- Change ONLY what the user explicitly requests; leave everything else untouched
+- Return the COMPLETE block structure starting from the provided root node
+- Same YAML format, component catalog, and styling rules as generation apply
+- Same YAML STRING QUOTING rules apply — double-quote URLs and strings with apostrophes
+
+{COMPONENT_CATALOG}
+
+COMPONENT STYLING RULES (same as generation):
+- Always use CSS variables for colors (var(--ink-gray-9), var(--surface-white), etc.)
+- borderColor / borderWidth / borderStyle separately — never the `border` shorthand
+- boxShadow keywords only: sm | DEFAULT | md | lg | xl | 2xl | none
+- borderRadius: "none" (0px) | "sm" (0.25rem) | "DEFAULT" (0.5rem) | "md" (0.625rem) | "lg" (0.75rem) | "xl" (1rem) | "2xl" (1.25rem) | "full" (9999px)
+"""
+
+
 def call_llm(messages: list, model: str, task_tier: str, api_key: str, stream: bool = False):
 	params = TASK_PARAMS[task_tier]
 	return litellm.completion(model=model, messages=messages, api_key=api_key, stream=stream, **params)
 
 
-def _emit(event_suffix: str, page_id: str, user: str, **kwargs):
+def _emit(event_suffix: str, page_id: str, user: str, prefix: str = "ai_generation", **kwargs):
 	frappe.publish_realtime(
-		f"ai_generation_{event_suffix}_{page_id}",
+		f"{prefix}_{event_suffix}_{page_id}",
 		{"page_id": page_id, **kwargs},
 		user=user,
 	)
@@ -276,3 +295,66 @@ def clear_ai_session(page_id: str) -> dict:
 	session = AISession.get_or_create(page_id)
 	session.clear()
 	return {"status": "ok"}
+
+
+def run_modify_job(prompt: str, block_context: str, model: str, page_id: str, user: str, component_id: str):
+	settings = frappe.get_single("Studio Settings")
+	api_key = settings.get_password("ai_api_key", raise_exception=False)
+
+	session = AISession.get_or_create(page_id, model)
+	context = session.build_context_string()
+	session.add_message("user", prompt, task_type="modify", component_id=component_id)
+
+	_emit("progress", page_id, user, prefix="ai_modify", message="Updating block…")
+
+	compressed = BlockCodec.strip_context(block_context)
+	system = MODIFY_SYSTEM_PROMPT + (f"\n\nConversation history:\n{context}" if context else "")
+
+	content = ""
+	try:
+		llm_messages = [
+			{"role": "system", "content": system},
+			{"role": "user", "content": f"Current block:\n{compressed}\n\nRequest: {prompt}"},
+		]
+		for chunk in call_llm(llm_messages, model, "complex", api_key, stream=True):
+			delta = chunk.choices[0].delta.content
+			if not delta:
+				continue
+			content += delta
+			_emit("stream", page_id, user, prefix="ai_modify", chunk=delta, component_id=component_id)
+
+		logger.info(f"run_modify_job stream done | model={model} length={len(content)}")
+		block = BlockCodec.parse_blocks(content)
+		session.add_message("assistant", "Block updated.", task_type="modify", component_id=component_id)
+		_emit("complete", page_id, user, prefix="ai_modify", block=block, component_id=component_id)
+
+	except Exception as e:
+		logger.error(f"run_modify_job failed: {e}", exc_info=True)
+		frappe.log_error(title="Studio AI: modify error", message=str(e))
+		_emit("error", page_id, user, prefix="ai_modify", message=str(e))
+
+
+@frappe.whitelist()
+@has_page_write_perm()
+def modify_block_from_prompt(
+	prompt: str, block_context: str, model: str | None, page_id: str, component_id: str
+) -> dict:
+	settings = frappe.get_single("Studio Settings")
+	if not settings.get_password("ai_api_key", raise_exception=False):
+		frappe.throw(_("OpenRouter API key is not configured. Please set it in Studio Settings."))
+
+	resolved_model = model or ModelRegistry.get_default()
+
+	frappe.enqueue(
+		run_modify_job,
+		queue="long",
+		prompt=prompt,
+		block_context=block_context,
+		model=resolved_model,
+		page_id=page_id,
+		user=frappe.session.user,
+		component_id=component_id,
+	)
+
+	frappe.local.response.http_status_code = 202
+	return {"status": "accepted"}

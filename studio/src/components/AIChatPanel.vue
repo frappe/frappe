@@ -41,12 +41,21 @@
 		<div class="border-t border-outline-gray-1 p-4">
 			<ErrorMessage v-if="error" :message="error" class="mb-2" />
 
+			<div v-if="isModifyMode" class="mb-2 flex items-center gap-1.5 rounded bg-surface-gray-2 px-2 py-1">
+				<FeatherIcon name="edit-2" class="h-3 w-3 shrink-0 text-ink-gray-5" />
+				<span class="truncate text-xs text-ink-gray-6">
+					Editing: {{ selectedBlock?.blockName || selectedBlock?.componentName }}
+				</span>
+			</div>
+
 			<div class="relative">
 				<textarea
 					v-model="prompt"
 					rows="4"
 					class="w-full resize-none rounded border border-[--surface-gray-2] bg-surface-gray-2 px-2 py-1.5 text-sm text-ink-gray-8 placeholder-ink-gray-4 transition-colors hover:border-[--outline-gray-modals] hover:bg-surface-gray-3 focus:border-outline-gray-4 focus:bg-surface-white focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 disabled:cursor-not-allowed disabled:bg-surface-gray-1 disabled:text-ink-gray-5"
-					placeholder="Ask to create or edit this page..."
+					:placeholder="
+						isModifyMode ? 'Describe what to change in this block...' : 'Ask to create or edit this page...'
+					"
 					:disabled="loading"
 					@keydown.meta.enter="generate"
 					@keydown.ctrl.enter="generate"
@@ -86,7 +95,7 @@
 
 				<Button
 					variant="solid"
-					label="Generate"
+					:label="isModifyMode ? 'Edit' : 'Generate'"
 					icon="arrow-up"
 					:loading="loading"
 					:disabled="!prompt.trim()"
@@ -103,7 +112,7 @@ import { ErrorMessage, Button, FeatherIcon, call, createResource, Popover } from
 import { toast } from "vue-sonner"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import { getBlockInstance } from "@/utils/serializer"
+import { getBlockInstance, getBlockString } from "@/utils/serializer"
 import { tryParseYamlBlock } from "@/utils/blockCodec"
 import type Block from "@/utils/block"
 
@@ -117,10 +126,19 @@ const error = ref("")
 const statusMessage = ref("")
 const selectedModel = ref("")
 const streamBuffer = ref("")
+const modifyStreamBuffer = ref("")
 const messages = ref<any[]>([])
 const messagesEl = ref<HTMLElement | null>(null)
 
 const pageId = computed(() => store.activePage?.name ?? "")
+
+const selectedBlock = computed(() => {
+	const block = canvasStore.activeCanvas?.selectedBlocks?.[0] ?? null
+	if (!block || block.isRoot()) return null
+	return block
+})
+
+const isModifyMode = computed(() => !!selectedBlock.value)
 
 const aiModels = createResource({
 	url: "studio.ai.models.get_ai_models",
@@ -172,9 +190,9 @@ function onStream(data: any) {
 	streamBuffer.value += data.chunk || ""
 	const block = tryParseYamlBlock(streamBuffer.value)
 	if (block) {
-		const rootBlock = getBlockInstance(block as any)
-		canvasStore.activeCanvas?.setRootBlock(rootBlock, false)
+		const rootBlock = getBlockInstance(block)
 		store.pageBlocks = [rootBlock]
+		canvasStore.activeCanvas?.setRootBlock(rootBlock, false)
 	}
 }
 
@@ -190,10 +208,9 @@ async function onComplete(data: any) {
 	}
 
 	const rootBlock = getBlockInstance(block)
-	canvasStore.activeCanvas?.setRootBlock(rootBlock, false)
 	store.pageBlocks = [rootBlock]
+	canvasStore.activeCanvas?.setRootBlock(rootBlock, false)
 
-	await store.savePage()
 	toast.success("Page generated successfully")
 	prompt.value = ""
 	reloadSession()
@@ -206,20 +223,76 @@ function onError(data: any) {
 	error.value = data.message || "Generation failed. Please check your Studio Settings and try again."
 }
 
+function onModifyProgress(data: any) {
+	statusMessage.value = data.message || "Updating…"
+}
+
+function onModifyStream(data: any) {
+	modifyStreamBuffer.value += data.chunk || ""
+	const block = tryParseYamlBlock(modifyStreamBuffer.value)
+	if (block) {
+		replaceBlockInTree(data.component_id, getBlockInstance(block))
+	}
+}
+
+async function onModifyComplete(data: any) {
+	loading.value = false
+	statusMessage.value = ""
+	modifyStreamBuffer.value = ""
+
+	const block: Block = data.block
+	if (!block) {
+		error.value = "No block was returned. Try a more specific request."
+		return
+	}
+
+	replaceBlockInTree(data.component_id, getBlockInstance(block))
+	toast.success("Block updated")
+	prompt.value = ""
+	reloadSession()
+}
+
+function onModifyError(data: any) {
+	loading.value = false
+	statusMessage.value = ""
+	modifyStreamBuffer.value = ""
+	error.value = data.message || "Update failed. Please try again."
+}
+
+function replaceBlockInTree(componentId: string, newBlock: Block) {
+	const canvas = canvasStore.activeCanvas
+	if (!canvas) return
+	const oldBlock = canvas.findBlock(componentId)
+	if (!oldBlock) return
+	const parent = oldBlock.getParentBlock()
+	if (!parent) return
+	parent.replaceChild(oldBlock, newBlock)
+}
+
 function setupListeners() {
 	if (!socket || !pageId.value) return
-	socket.on(`ai_generation_progress_${pageId.value}`, onProgress)
-	socket.on(`ai_generation_stream_${pageId.value}`, onStream)
-	socket.on(`ai_generation_complete_${pageId.value}`, onComplete)
-	socket.on(`ai_generation_error_${pageId.value}`, onError)
+	const id = pageId.value
+	socket.on(`ai_generation_progress_${id}`, onProgress)
+	socket.on(`ai_generation_stream_${id}`, onStream)
+	socket.on(`ai_generation_complete_${id}`, onComplete)
+	socket.on(`ai_generation_error_${id}`, onError)
+	socket.on(`ai_modify_progress_${id}`, onModifyProgress)
+	socket.on(`ai_modify_stream_${id}`, onModifyStream)
+	socket.on(`ai_modify_complete_${id}`, onModifyComplete)
+	socket.on(`ai_modify_error_${id}`, onModifyError)
 }
 
 function detachListeners() {
 	if (!socket || !pageId.value) return
-	socket.off(`ai_generation_progress_${pageId.value}`, onProgress)
-	socket.off(`ai_generation_stream_${pageId.value}`, onStream)
-	socket.off(`ai_generation_complete_${pageId.value}`, onComplete)
-	socket.off(`ai_generation_error_${pageId.value}`, onError)
+	const id = pageId.value
+	socket.off(`ai_generation_progress_${id}`, onProgress)
+	socket.off(`ai_generation_stream_${id}`, onStream)
+	socket.off(`ai_generation_complete_${id}`, onComplete)
+	socket.off(`ai_generation_error_${id}`, onError)
+	socket.off(`ai_modify_progress_${id}`, onModifyProgress)
+	socket.off(`ai_modify_stream_${id}`, onModifyStream)
+	socket.off(`ai_modify_complete_${id}`, onModifyComplete)
+	socket.off(`ai_modify_error_${id}`, onModifyError)
 }
 
 watch(
@@ -244,15 +317,25 @@ async function generate() {
 	scrollToBottom()
 
 	try {
-		await call("studio.ai.page_generator.generate_page_from_prompt", {
-			prompt: prompt.value,
-			model: selectedModel.value,
-			page_id: pageId.value,
-		})
+		if (isModifyMode.value && selectedBlock.value) {
+			await call("studio.ai.page_generator.modify_block_from_prompt", {
+				prompt: prompt.value,
+				block_context: getBlockString(selectedBlock.value),
+				model: selectedModel.value,
+				page_id: pageId.value,
+				component_id: selectedBlock.value.componentId,
+			})
+		} else {
+			await call("studio.ai.page_generator.generate_page_from_prompt", {
+				prompt: prompt.value,
+				model: selectedModel.value,
+				page_id: pageId.value,
+			})
+		}
 	} catch (e: any) {
 		loading.value = false
 		statusMessage.value = ""
-		error.value = e?.message || "Failed to start generation. Please try again."
+		error.value = e?.message || "Failed to start. Please try again."
 	}
 }
 
