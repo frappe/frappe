@@ -80,7 +80,7 @@ $.extend(frappe.perm, {
 			return admin_perm;
 		}
 
-		let perm = [{ read: 0, permlevel: 0 }];
+		let perm = [{ read: 0, permlevel: 0, rights_without_if_owner: new Set() }];
 
 		if (!meta) {
 			if (frappe.boot.user.can_read.includes(doctype)) {
@@ -147,15 +147,12 @@ $.extend(frappe.perm, {
 		}
 		*/
 
-		let perm = [{ read: 0, permlevel: 0 }];
+		let perm = [{ read: 0, permlevel: 0, rights_without_if_owner: new Set() }];
 
 		(meta.permissions || []).forEach((p) => {
 			const permlevel = cint(p.permlevel);
 			const current_perm = (perm[permlevel] ??= { permlevel });
 
-			if (permlevel === 0) {
-				current_perm.rights_without_if_owner ??= new Set();
-			}
 
 			// if user has this role
 			if (frappe.user_roles.includes(p.role)) {
