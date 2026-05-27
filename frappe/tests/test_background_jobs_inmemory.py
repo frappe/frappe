@@ -79,7 +79,7 @@ class TestBackgroundJobsInMemory(IntegrationTestCase):
 			self.assertEqual(len(frappe.db.after_commit._functions), 1)
 
 			# Simulate commit which fires hooks
-			frappe.db.commit()  # nosemgrep
+			frappe.db.after_commit.run()
 
 			# NOW it should be submitted
 			mock_pool.submit.assert_called_once()
