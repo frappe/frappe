@@ -449,7 +449,9 @@ frappe.ui.Page = class Page {
 		let $icon = ``;
 
 		if (icon) {
-			$icon = `<span class="menu-item-icon">${frappe.utils.icon(icon)}</span>`;
+			$icon = `<span class="menu-item-icon flex align-items-center justify-items-center">${frappe.utils.icon(
+				icon
+			)}</span>`;
 		}
 
 		if (shortcut) {
