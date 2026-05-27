@@ -23,7 +23,7 @@ export interface BlockOptions {
 	rawStyles?: BlockStyleMap
 	mobileStyles?: BlockStyleMap
 	tabletStyles?: BlockStyleMap
-	blockName?: string
+	blockName?: string // optional user-friendly name for the block
 	parentBlock?: Block | null
 	classes?: string[]
 	parentSlotName?: string // for top-level blocks inside a slot

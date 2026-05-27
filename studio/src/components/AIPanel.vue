@@ -35,7 +35,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, inject, onMounted, onUnmounted } from "vue"
+import { ref, computed, inject, watch } from "vue"
 import { ErrorMessage, Button, Textarea, Select, call, createResource } from "frappe-ui"
 import { toast } from "vue-sonner"
 import useStudioStore from "@/stores/studioStore"
@@ -123,25 +123,32 @@ function onError(data: any) {
 }
 
 function setupListeners() {
-	const id = pageId.value
-	if (!socket || !id) return
-	socket.on(`ai_generation_progress_${id}`, onProgress)
-	socket.on(`ai_generation_stream_${id}`, onStream)
-	socket.on(`ai_generation_complete_${id}`, onComplete)
-	socket.on(`ai_generation_error_${id}`, onError)
+	if (!socket || !pageId.value) return
+	socket.on(`ai_generation_progress_${pageId.value}`, onProgress)
+	socket.on(`ai_generation_stream_${pageId.value}`, onStream)
+	socket.on(`ai_generation_complete_${pageId.value}`, onComplete)
+	socket.on(`ai_generation_error_${pageId.value}`, onError)
 }
 
-function teardownListeners() {
-	const id = pageId.value
-	if (!socket || !id) return
-	socket.off(`ai_generation_progress_${id}`, onProgress)
-	socket.off(`ai_generation_stream_${id}`, onStream)
-	socket.off(`ai_generation_complete_${id}`, onComplete)
-	socket.off(`ai_generation_error_${id}`, onError)
+function detachListeners() {
+	if (!socket || !pageId.value) return
+	socket.off(`ai_generation_progress_${pageId.value}`, onProgress)
+	socket.off(`ai_generation_stream_${pageId.value}`, onStream)
+	socket.off(`ai_generation_complete_${pageId.value}`, onComplete)
+	socket.off(`ai_generation_error_${pageId.value}`, onError)
 }
 
-onMounted(setupListeners)
-onUnmounted(teardownListeners)
+watch(
+	() => pageId.value,
+	(newId, oldId) => {
+		if (oldId) {
+			detachListeners()
+		}
+		if (newId) {
+			setupListeners()
+		}
+	},
+)
 
 async function generate() {
 	if (!prompt.value.trim()) return
