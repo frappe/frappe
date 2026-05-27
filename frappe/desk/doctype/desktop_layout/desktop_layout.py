@@ -65,41 +65,82 @@ def get_layout():
 	"""Return the current user's saved desktop layout. Used on desk load to avoid stale cached HTML."""
 	try:
 		doc = frappe.get_doc("Desktop Layout", frappe.session.user)
-		if doc.layout:
-			layout = json.loads(doc.layout)
-			latest_icons = frappe.get_all("Desktop Icon", fields="*")
+		if not doc.layout:
+			return None
 
-			def key(i):
-				return i.get("label") or None
+		layout = json.loads(doc.layout)
+		latest_icons = frappe.get_all("Desktop Icon", fields="*")
 
-			latest_map = {key(i): i for i in latest_icons}
+		def key(i):
+			return i.get("label") or None
 
-			def merge_icon(item):
+		latest_map = {key(i): i for i in latest_icons}
+
+		name_map = {i.get("name"): i for i in latest_icons if i.get("name")}
+
+		def merge_icon(item):
+			k = key(item)
+			latest = latest_map.get(k) or name_map.get(item.get("name"))
+			# preserve layout-specific fields
+			layout_idx = item.get("idx")
+			layout_parent = item.get("parent_icon", None)
+			layout_hidden = item.get("hidden", None)
+
+			if latest:
+				if item.get("icon_type") != latest.get("icon_type"):
+					if latest.get("icon_type") == "Folder":
+						latest["icon_image"] = None
+				item.update(latest)
+			# restore layout-specific values if present
+			if layout_idx is not None:
+				item["idx"] = layout_idx
+			if layout_hidden is not None:
+				item["hidden"] = layout_hidden
+			item["parent_icon"] = layout_parent
+
+			if item.get("child_icons"):
+				item["child_icons"] = [merge_icon(c) for c in item["child_icons"]]
+			return item
+
+		layout = [merge_icon(i) for i in layout]
+
+		def collect_labels(items):
+			labels = set()
+			for item in items:
 				k = key(item)
-				latest = latest_map.get(k)
-				# preserve layout-specific fields
-				layout_idx = item.get("idx")
-				layout_parent = item.get("parent_icon", None)
-				layout_hidden = item.get("hidden", None)
-
-				if latest:
-					if item.get("icon_type") != latest.get("icon_type"):
-						if latest.get("icon_type") == "Folder":
-							latest["icon_image"] = None
-					item.update(latest)
-				# restore layout-specific values if present
-				if layout_idx is not None:
-					item["idx"] = layout_idx
-				if layout_hidden:
-					item["hidden"] = item.get("hidden")
-				item["parent_icon"] = layout_parent
-
+				if k:
+					labels.add(k)
 				if item.get("child_icons"):
-					item["child_icons"] = [merge_icon(c) for c in item["child_icons"]]
-				return item
+					labels.update(collect_labels(item["child_icons"]))
+			return labels
 
-			layout = [merge_icon(i) for i in layout]
-		return layout
+		_icon_fields = [
+			"label",
+			"bg_color",
+			"link",
+			"link_type",
+			"app",
+			"icon_type",
+			"parent_icon",
+			"icon",
+			"link_to",
+			"idx",
+			"standard",
+			"logo_url",
+			"hidden",
+			"name",
+			"restrict_removal",
+			"icon_image",
+		]
+
+		saved_labels = collect_labels(layout)
+		new_icons = [
+			{f: i.get(f) for f in _icon_fields}
+			for k, i in latest_map.items()
+			if k and k not in saved_labels and not i.get("parent_icon")
+		]
+
+		return layout + new_icons
 	except frappe.DoesNotExistError:
 		frappe.clear_last_message()
 	return None
