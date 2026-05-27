@@ -63,10 +63,6 @@ frappe.ui.menu = class ContextMenu {
 			}
 		});
 
-		// if (!$.contains(document.body, this.template[0])) {
-		// 	$(document.body).append(this.template);
-		// }
-
 		// only append if there are items to show
 		if (this.menu_items_to_show.length > 0) {
 			$(document.body).append(this.template);
@@ -84,9 +80,7 @@ frappe.ui.menu = class ContextMenu {
 	add_menu_item(item) {
 		const me = this;
 		item.nested_menus = [];
-		let item_wrapper = $(
-			`<div class="dropdown-menu-item"><div class="dropdown-divider documentation-links"></div></div>`
-		);
+		let item_wrapper;
 		if (item?.is_divider) {
 			item_wrapper = $(
 				`<div class="dropdown-menu-item"><div class="dropdown-divider documentation-links"></div></div>`

@@ -56,15 +56,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		if (frappe.boot.desk_settings.notifications) {
 			this.dropdown_items.push(
 				{
-					label: "Session Defaults",
-					action: "frappe.ui.toolbar.setup_session_defaults()",
-					is_standard: 1,
-					condition: function () {
-						return frappe.boot.session_defaults.length != 0;
-					},
-					icon: "sliders-horizontal",
-				},
-				{
 					label: "Reload",
 					action: "frappe.ui.toolbar.clear_cache()",
 					is_standard: 1,
@@ -191,14 +182,12 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 
 		navbar_settings.help_dropdown.forEach((element) => {
 			if (element.hidden) return;
+			if (element.action?.includes("frappe.ui.toolbar.show_shortcuts")) return;
 			if (element.condition && !frappe.utils.eval(element.condition)) return;
 			let dropdown_children = {
 				name: element.name,
 				label: element.item_label,
 			};
-			if (element.action?.includes("frappe.ui.toolbar.show_shortcuts")) {
-				dropdown_children.shortcut = "Shift+/";
-			}
 			if (element.item_type === "Route") {
 				dropdown_children.url = element.route;
 			}
