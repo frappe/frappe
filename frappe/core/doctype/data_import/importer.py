@@ -726,10 +726,12 @@ def format_row_numbers_for_warning(rows: list, max_shown: int = 6) -> str:
 
 def format_invalid_values_with_rows(value_rows, keys, footer=None):
 	"""HTML lines per invalid value with row numbers; optional footer (e.g. valid Select options)."""
-	lines = [
-		f"{frappe.bold(escape_html(key))} ({_('rows')} {format_row_numbers_for_warning(value_rows[key])})"
-		for key in keys
-	]
+	lines = []
+	for key in keys:
+		rows = value_rows[key]
+		rows_str = format_row_numbers_for_warning(rows)
+		row_label = _("row {0}").format(rows_str) if len(rows) == 1 else _("rows {0}").format(rows_str)
+		lines.append(f"{frappe.bold(escape_html(key))} — {row_label}")
 	message = "<br>".join(lines)
 	return f"{message}<br>{footer}" if footer else message
 
@@ -749,9 +751,9 @@ class Row:
 		if len_row != len_columns:
 			less_than_columns = len_row < len_columns
 			message = (
-				"Row has less values than columns"
+				_("This row has fewer cells than the header — check for missing commas or columns")
 				if less_than_columns
-				else "Row has more values than columns"
+				else _("This row has more cells than the header — check for extra commas or columns")
 			)
 			self.warnings.append(
 				{
@@ -830,8 +832,10 @@ class Row:
 		if df.fieldtype == "Select":
 			select_options = get_select_options(df)
 			if select_options and cstr(value) not in select_options:
-				options_string = ", ".join(frappe.bold(d) for d in select_options)
-				msg = _("Value must be one of {0}").format(options_string)
+				options_string = ", ".join(select_options)
+				msg = _('"{0}" is not valid. Allowed: {1}').format(
+					frappe.bold(escape_html(cstr(value))), frappe.bold(options_string)
+				)
 				self.warnings.append(
 					{
 						"row": self.row_number,
@@ -844,8 +848,8 @@ class Row:
 		elif df.fieldtype == "Link":
 			exists = self.link_exists(value, df)
 			if not exists:
-				msg = _("Value {0} missing for {1}").format(
-					frappe.bold(escape_html(cstr(value))), frappe.bold(df.options)
+				msg = _('"{0}" is not a valid {1}').format(
+					frappe.bold(escape_html(cstr(value))), frappe.bold(df.label)
 				)
 				self.warnings.append(
 					{
@@ -864,7 +868,7 @@ class Row:
 						"row": self.row_number,
 						"col": col.column_number,
 						"field": df_as_json(df),
-						"message": _("Value {0} must in {1} format").format(
+						"message": _('"{0}" is not a valid date. Use {1}').format(
 							frappe.bold(escape_html(cstr(value))),
 							frappe.bold(get_user_format(col.date_format)),
 						),
@@ -880,7 +884,7 @@ class Row:
 						"row": self.row_number,
 						"col": col.column_number,
 						"field": df_as_json(df),
-						"message": _("Value {0} must in {1} format").format(
+						"message": _('"{0}" is not a valid datetime. Use {1}').format(
 							frappe.bold(escape_html(cstr(value))),
 							frappe.bold(get_user_format(col.date_format)),
 						),
@@ -894,7 +898,7 @@ class Row:
 						"row": self.row_number,
 						"col": col.column_number,
 						"field": df_as_json(df),
-						"message": _("Value {0} must be in the valid duration format: d h m s").format(
+						"message": _('"{0}" is not valid. Use duration format: d h m s').format(
 							frappe.bold(escape_html(cstr(value)))
 						),
 					}
@@ -1125,7 +1129,9 @@ class Column:
 			self.warnings.append(
 				{
 					"col": column_number,
-					"message": _("Cannot match column {0} with any field").format(frappe.bold(header_title)),
+					"message": _('"{0}" does not match any field — map it in the preview').format(
+						frappe.bold(header_title)
+					),
 					"type": "info",
 				}
 			)

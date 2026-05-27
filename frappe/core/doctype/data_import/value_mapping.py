@@ -235,16 +235,12 @@ def warn_invalid_link_select_values(col) -> None:
 
 	value_rows = {item["source"]: item["rows"] for item in items}
 	invalid_keys = list(value_rows)
+	field_label = frappe.bold(col.df.label)
+	formatted_values = format_invalid_values_with_rows(value_rows, invalid_keys)
 	if col.df.fieldtype == "Link":
-		message = _("The following values do not exist for {0}: {1}").format(
-			col.df.options, format_invalid_values_with_rows(value_rows, invalid_keys)
-		)
+		message = _("{0} — not found in {1}:<br>{2}").format(field_label, col.df.options, formatted_values)
 	else:
-		footer = _("Values must be one of {0}").format(
-			", ".join(frappe.bold(o) for o in get_select_options(col.df))
-		)
-		message = _("The following values are invalid: {0}").format(
-			format_invalid_values_with_rows(value_rows, invalid_keys, footer=footer)
-		)
+		footer = _("Allowed: {0}").format(", ".join(frappe.bold(o) for o in get_select_options(col.df)))
+		message = _("{0}:<br>{1}{2}").format(field_label, formatted_values, footer)
 
 	col.warnings.append({"col": col.column_number, "message": message, "type": "value_mapping"})

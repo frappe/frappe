@@ -248,15 +248,15 @@ class TestImporter(IntegrationTestCase):
 		self.assertIn("Mr.", link_msg)
 		self.assertIn("rows 2, 3", link_msg)
 		self.assertIn("Miss", link_msg)
-		self.assertIn("rows 4", link_msg)
+		self.assertIn("row 4", link_msg)
 
 		select_msg = Column(
 			5, "Status", "Contact", ["Opn", "Pasiv", "Open"], value_row_numbers=[2, 3, 4]
 		).warnings[0]["message"]
 		self.assertIn("Opn", select_msg)
-		self.assertIn("rows 2", select_msg)
+		self.assertIn("row 2", select_msg)
 		self.assertIn("Pasiv", select_msg)
-		self.assertIn("rows 3", select_msg)
+		self.assertIn("row 3", select_msg)
 		self.assertNotIn("rows 4", select_msg)
 
 	def test_data_import_without_label(self):
