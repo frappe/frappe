@@ -1,9 +1,9 @@
 import Quill from "quill";
-import ImageResize from "frappe-quill-image-resize";
 import MagicUrl from "quill-magic-url";
 
-Quill.register("modules/imageResize", ImageResize);
 Quill.register("modules/magicUrl", MagicUrl);
+
+let imageResizeRegistered = false;
 const CodeBlockContainer = Quill.import("formats/code-block-container");
 CodeBlockContainer.tagName = "PRE";
 Quill.register(CodeBlockContainer, true);
@@ -143,8 +143,13 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 		this.make_quill_editor();
 	}
 
-	make_quill_editor() {
+	async make_quill_editor() {
 		if (this.quill) return;
+		if (!imageResizeRegistered) {
+			const { default: ImageResize } = await import("frappe-quill-image-resize");
+			Quill.register("modules/imageResize", ImageResize);
+			imageResizeRegistered = true;
+		}
 		this.quill_container = $("<div>").appendTo(this.input_area);
 		if (this.df.max_height) {
 			$(this.quill_container).css({ "max-height": this.df.max_height, overflow: "auto" });
