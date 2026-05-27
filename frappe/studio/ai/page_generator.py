@@ -4,8 +4,8 @@ import frappe
 import litellm
 from frappe import _
 
-from studio.ai_block_codec import BlockCodec
-from studio.ai_models import ModelRegistry
+from studio.ai.block_codec import BlockCodec
+from studio.ai.models import ModelRegistry
 
 litellm.drop_params = True
 logger = frappe.logger("studio.ai")

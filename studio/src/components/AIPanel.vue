@@ -70,7 +70,7 @@ const contextHint = computed(() =>
 )
 
 const aiModels = createResource({
-	url: "studio.ai_models.get_ai_models",
+	url: "studio.ai.models.get_ai_models",
 	auto: true,
 	onSuccess(data: any[]) {
 		if (data?.length && !selectedModel.value) {
@@ -157,7 +157,7 @@ async function generate() {
 	statusMessage.value = ""
 
 	try {
-		await call("studio.ai.generate_page_from_prompt", {
+		await call("studio.ai.page_generator.generate_page_from_prompt", {
 			prompt: prompt.value,
 			model: selectedModel.value,
 			page_id: pageId.value,
