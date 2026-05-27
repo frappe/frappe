@@ -53,8 +53,7 @@ const loading = ref(false)
 const error = ref("")
 const statusMessage = ref("")
 const selectedModel = ref("")
-let streamBuffer = ""
-let streamFrameId: number | null = null
+const streamBuffer = ref("")
 
 const pageId = computed(() => store.activePage?.name ?? "")
 
@@ -87,27 +86,19 @@ function onProgress(data: any) {
 }
 
 function onStream(data: any) {
-	streamBuffer += data.chunk || ""
-	if (streamFrameId !== null) return
-	streamFrameId = requestAnimationFrame(() => {
-		streamFrameId = null
-		const block = tryParseYamlBlock(streamBuffer)
-		if (block) {
-			const rootBlock = getBlockInstance(block as any)
-			canvasStore.activeCanvas?.setRootBlock(rootBlock)
-			store.pageBlocks = [rootBlock]
-		}
-	})
+	streamBuffer.value += data.chunk || ""
+	const block = tryParseYamlBlock(streamBuffer.value)
+	if (block) {
+		const rootBlock = getBlockInstance(block as any)
+		canvasStore.activeCanvas?.setRootBlock(rootBlock, false)
+		store.pageBlocks = [rootBlock]
+	}
 }
 
 async function onComplete(data: any) {
 	loading.value = false
 	statusMessage.value = ""
-	streamBuffer = ""
-	if (streamFrameId !== null) {
-		cancelAnimationFrame(streamFrameId)
-		streamFrameId = null
-	}
+	streamBuffer.value = ""
 
 	const block: Block = data.block
 	if (!block) {
@@ -116,7 +107,7 @@ async function onComplete(data: any) {
 	}
 
 	const rootBlock = getBlockInstance(block)
-	canvasStore.activeCanvas?.setRootBlock(rootBlock)
+	canvasStore.activeCanvas?.setRootBlock(rootBlock, false)
 	store.pageBlocks = [rootBlock]
 
 	await store.savePage()
@@ -127,11 +118,7 @@ async function onComplete(data: any) {
 function onError(data: any) {
 	loading.value = false
 	statusMessage.value = ""
-	streamBuffer = ""
-	if (streamFrameId !== null) {
-		cancelAnimationFrame(streamFrameId)
-		streamFrameId = null
-	}
+	streamBuffer.value = ""
 	error.value = data.message || "Generation failed. Please check your Studio Settings and try again."
 }
 
