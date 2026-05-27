@@ -44,12 +44,8 @@ def _final_response() -> ChatResponse:
 
 
 class TestAIAgentDefaults(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		sync_builtin_tools()
-
 	def setUp(self):
+		sync_builtin_tools()
 		self.model_doc = frappe.get_doc(_model()).insert()
 
 	def tearDown(self):
@@ -84,12 +80,8 @@ class TestAIAgentDefaults(IntegrationTestCase):
 
 
 class TestAIAgentAssemble(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		sync_builtin_tools()
-
 	def setUp(self):
+		sync_builtin_tools()
 		self.model_doc = frappe.get_doc(_model()).insert()
 		self.agent_doc = frappe.get_doc(_agent(self.model_doc.name)).insert()
 
@@ -138,12 +130,8 @@ class TestAIAgentAssemble(IntegrationTestCase):
 
 
 class TestAIAgentRun(IntegrationTestCase):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		sync_builtin_tools()
-
 	def setUp(self):
+		sync_builtin_tools()
 		self.model_doc = frappe.get_doc(_model()).insert()
 		self.agent_doc = frappe.get_doc(_agent(self.model_doc.name)).insert()
 
