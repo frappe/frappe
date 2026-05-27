@@ -499,12 +499,6 @@ standard_help_items = [
 		"is_standard": 1,
 	},
 	{
-		"item_label": "Keyboard Shortcuts",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.show_shortcuts(event)",
-		"is_standard": 1,
-	},
-	{
 		"item_label": "System Health",
 		"item_type": "Route",
 		"route": "/desk/system-health-report",
