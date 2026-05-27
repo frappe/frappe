@@ -135,10 +135,11 @@ COMPONENT STYLING RULES:
 AVAILABLE COMPONENTS:
 {COMPONENT_CATALOG}
 
-YAML STRING QUOTING:
-- Use double-quoted strings for any text that may contain apostrophes or single quotes: `text: "I'm a designer"` NOT `text: 'I'm a designer'`
-- Flow-style mappings like `{{text: "Hello world"}}` must use double quotes when the value contains an apostrophe
-- Long text values (bio, description, body copy) must use block style: `text: |` followed by the text on the next line — never inline
+YAML STRING QUOTING (critical — unquoted special characters break parsing):
+- Always double-quote strings that contain any of: apostrophe/single-quote, `?`, `#`, `&`, `:`, `[`, `]`, `{{`, `}}`
+- URLs must always be double-quoted: `image: "https://example.com/img?id=1"` NOT `image: https://example.com/img?id=1`
+- Text with apostrophes must use double quotes: `text: "I'm a designer"` NOT `text: 'I'm a designer'`
+- Long text values (bio, description, body copy) must use block scalar style instead of inline: `text: |` on its own line, then the text indented — never inline in a flow mapping
 
 RULES:
 - name must exactly match a component from the catalog above (or "div" for root, "container" for inner wrappers)
