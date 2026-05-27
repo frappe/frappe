@@ -99,6 +99,17 @@ context("Rounding behaviour", () => {
 				expect(flt(-1.15, 1, null, rounding_method)).eq(-1.2);
 				expect(flt(-2.25, 1, null, rounding_method)).eq(-2.2);
 				expect(flt(-3.35, 1, null, rounding_method)).eq(-3.4);
+
+				// Sign-symmetry regression
+				for (const [value, expected] of [
+					[647.325, 647.32],
+					[647.315, 647.32],
+					[0.125, 0.12],
+					[0.135, 0.14],
+				]) {
+					expect(flt(value, 2, null, rounding_method)).eq(expected);
+					expect(flt(-value, 2, null, rounding_method)).eq(-expected);
+				}
 			});
 	});
 });
