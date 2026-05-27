@@ -14,49 +14,54 @@ class Browser:
 		self.debug_mode = frappe.conf.developer_mode and bool(frappe.form_dict.get("pdf_debug"))
 		self.browserID = frappe.utils.random_string(10)
 		generator.add_browser(self.browserID)
-		# sets soup from html
-		self.set_html(html)
-		# sets wkhtmltopdf options
-		self.set_options(options)
-		# start cdp connection and create browser context ( kind of like new window / incognito mode)
-		self.open(generator)
-		# opens header and footer pages and sets content ( not waiting for it to load)
-		self.prepare_header_footer()
-		# opens body page and sets content and waits for it to finshing load
-		self.setup_body_page()
-		# prepare options as per chrome for pdf
-		self.prepare_options_for_pdf()
-		# generate header and footer pages if they are not dynamic ( first, odd, even, last)
-		self.update_header_footer_page_pd()
-		# if header and footer are not dynamic start generating pdf for them (non-blocking)
-		self.try_async_header_footer_pdf()
-		# now wait for page to load as we need DOM to generate pdf
-		self.body_page.wait_for_set_content()
-		self.body_pdf = self.body_page.generate_pdf(raw=not self.header_page and not self.footer_page)
-		if not self.debug_mode:
-			self.body_page.close()
-		self.update_header_footer_page()
-
-		if self.header_page:
-			if not self.is_header_dynamic:
-				self.header_pdf = self.header_page.get_pdf_from_stream(self.header_page.get_pdf_stream_id())
-			else:
-				self.header_pdf = self.header_page.generate_pdf()
+		try:
+			# sets soup from html
+			self.set_html(html)
+			# sets wkhtmltopdf options
+			self.set_options(options)
+			# start cdp connection and create browser context ( kind of like new window / incognito mode)
+			self.open(generator)
+			# opens header and footer pages and sets content ( not waiting for it to load)
+			self.prepare_header_footer()
+			# opens body page and sets content and waits for it to finshing load
+			self.setup_body_page()
+			# prepare options as per chrome for pdf
+			self.prepare_options_for_pdf()
+			# generate header and footer pages if they are not dynamic ( first, odd, even, last)
+			self.update_header_footer_page_pd()
+			# if header and footer are not dynamic start generating pdf for them (non-blocking)
+			self.try_async_header_footer_pdf()
+			# now wait for page to load as we need DOM to generate pdf
+			self.body_page.wait_for_set_content()
+			self.body_pdf = self.body_page.generate_pdf(raw=not self.header_page and not self.footer_page)
 			if not self.debug_mode:
-				self.header_page.close()
+				self.body_page.close()
+			self.update_header_footer_page()
 
-		if self.footer_page:
-			if not self.is_footer_dynamic:
-				self.footer_pdf = self.footer_page.get_pdf_from_stream(self.footer_page.get_pdf_stream_id())
-			else:
-				self.footer_pdf = self.footer_page.generate_pdf()
+			if self.header_page:
+				if not self.is_header_dynamic:
+					self.header_pdf = self.header_page.get_pdf_from_stream(
+						self.header_page.get_pdf_stream_id()
+					)
+				else:
+					self.header_pdf = self.header_page.generate_pdf()
+				if not self.debug_mode:
+					self.header_page.close()
+
+			if self.footer_page:
+				if not self.is_footer_dynamic:
+					self.footer_pdf = self.footer_page.get_pdf_from_stream(
+						self.footer_page.get_pdf_stream_id()
+					)
+				else:
+					self.footer_pdf = self.footer_page.generate_pdf()
+				if not self.debug_mode:
+					self.footer_page.close()
+
 			if not self.debug_mode:
-				self.footer_page.close()
-
-		if not self.debug_mode:
-			self.close()
-
-		generator.remove_browser(self.browserID)
+				self.close()
+		finally:
+			generator.remove_browser(self.browserID)
 		if self.debug_mode:
 			generator.detach_debug_browser()
 

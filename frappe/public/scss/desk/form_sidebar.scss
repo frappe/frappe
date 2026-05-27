@@ -172,6 +172,7 @@
 			position: relative;
 			width: fit-content;
 			height: fit-content;
+			cursor: pointer;
 		}
 
 		.sidebar-image,
@@ -194,12 +195,42 @@
 		.sidebar-image-actions {
 			display: none;
 			position: absolute;
-			top: 50%;
-			right: 0;
-			left: 0;
-			transform: translateY(-50%);
-			text-align: center;
+			inset: 0;
 			z-index: 1;
+
+			.sidebar-image-upload-hint {
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				height: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: color-mix(in srgb, var(--gray-900) 15%, transparent);
+				border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+				color: var(--text-color);
+				line-height: 0;
+				pointer-events: none;
+			}
+
+			.sidebar-image-remove {
+				position: absolute;
+				top: 0;
+				right: 0;
+				transform: translate(50%, -50%);
+				background: var(--bg-color);
+				border-radius: var(--border-radius-full);
+				padding: 2px;
+				line-height: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+
+				&:hover {
+					background: var(--subtle-fg);
+				}
+			}
 		}
 		// TODO: find better fix
 		.sidebar-standard-image {
@@ -207,11 +238,6 @@
 				height: 0;
 				padding: 50% 0;
 			}
-		}
-
-		.form-details {
-			display: flex;
-			align-items: center;
 		}
 	}
 	.sidebar-meta-details {

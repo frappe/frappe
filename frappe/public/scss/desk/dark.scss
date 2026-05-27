@@ -49,15 +49,15 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	--border-primary: var(--gray-200);
 
 	// Background Text Color Pairs
-	--bg-blue: var(--blue-600);
-	--bg-light-blue: var(--blue-600);
+	--bg-blue: var(--surface-blue-1);
+	--bg-light-blue: var(--surface-blue-1);
 	--bg-dark-blue: var(--blue-900);
-	--bg-green: var(--green-900);
+	--bg-green: var(--surface-green-1);
 	--bg-yellow: var(--yellow-700);
-	--bg-orange: var(--orange-700);
-	--bg-red: var(--red-600);
-	--bg-gray: var(--gray-600);
-	--bg-grey: var(--gray-600);
+	--bg-orange: var(--surface-amber-1);
+	--bg-red: var(--surface-red-1);
+	--bg-gray: var(--surface-gray-1);
+	--bg-grey: var(--surface-gray-1);
 	--bg-darkgrey: var(--gray-600);
 	--bg-dark-gray: var(--gray-500);
 	--bg-light-gray: var(--gray-800);
@@ -65,15 +65,15 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	--bg-pink: var(--pink-700);
 	--bg-cyan: var(--cyan-800);
 
-	--text-on-blue: var(--blue-50);
-	--text-on-light-blue: var(--blue-50);
+	--text-on-blue: var(--ink-blue-3);
+	--text-on-light-blue: var(--ink-blue-3);
 	--text-on-dark-blue: var(--blue-300);
-	--text-on-green: var(--green-100);
+	--text-on-green: var(--ink-green-3);
 	--text-on-yellow: var(--yellow-50);
-	--text-on-orange: var(--orange-100);
-	--text-on-red: var(--red-50);
-	--text-on-gray: var(--gray-50);
-	--text-on-grey: var(--gray-50);
+	--text-on-orange: var(--ink-amber-3);
+	--text-on-red: var(--ink-red-4);
+	--text-on-gray: var(--ink-gray-7);
+	--text-on-grey: var(--ink-gray-7);
 	--text-on-darkgrey: var(--gray-200);
 	--text-on-dark-gray: var(--gray-200);
 	--text-on-light-gray: var(--gray-100);

@@ -160,8 +160,8 @@ frappe.ui.Sidebar = class Sidebar {
 
 		this.promotional_banners.forEach((banner) => {
 			let banner_html = $(`
-				<a href="${banner.link}" class="promotional-banner" target="_blank" title="${banner.message}">
-					<span>${banner.title}</span>
+				<a href="${banner.link}" class="promotional-banner px-2" target="_blank" title="${banner.message}">
+					<span class="promotional-banner-title">${banner.title}</span>
 				</a>
 			`);
 
@@ -276,6 +276,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 			this.setup_onboarding();
 		});
+		this.store_last_show_sidebar_for_item();
 	}
 	add_card(card) {
 		if (this.cards && this.cards.find((i) => i.title === card.title)) return;
@@ -298,6 +299,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	setup_events() {
 		const me = this;
+		this.setup_reload();
 		frappe.router.on("change", function (router) {
 			if (frappe.route_options.sidebar) {
 				frappe.app.sidebar.setup(frappe.route_options.sidebar);
@@ -568,6 +570,7 @@ frappe.ui.Sidebar = class Sidebar {
 			$('[data-toggle="tooltip"]').tooltip("dispose");
 			this.wrapper.find(".avatar-name-email").show();
 			this.wrapper.find(".onboarding-sidebar span").show();
+			this.wrapper.find(".promotional-banner-title").show();
 		} else {
 			this.wrapper.removeClass("expanded");
 			direction = is_rtl ? "right" : "left";
@@ -578,6 +581,7 @@ frappe.ui.Sidebar = class Sidebar {
 			});
 			this.wrapper.find(".avatar-name-email").hide();
 			this.wrapper.find(".onboarding-sidebar span").hide();
+			this.wrapper.find(".promotional-banner-title").hide();
 		}
 
 		localStorage.setItem("sidebar-expanded", this.sidebar_expanded);
@@ -632,6 +636,7 @@ frappe.ui.Sidebar = class Sidebar {
 		try {
 			let route = frappe.get_route();
 			let view, entity_name;
+			let sidebar_item_map = JSON.parse(localStorage.getItem("sidebar_item_map"));
 			switch (route.length) {
 				case 1:
 					view = "Page";
@@ -663,6 +668,14 @@ frappe.ui.Sidebar = class Sidebar {
 				this.set_active_workspace_item();
 				return;
 			}
+			if (sidebar_item_map[entity_name]) {
+				this.setup(sidebar_item_map[entity_name][0]);
+				return;
+			}
+			if (this.sidebar_title && sidebars.includes(this.sidebar_title)) {
+				this.set_active_workspace_item();
+				return;
+			}
 			if (module) {
 				sidebars = this.filter_sidebars_from_app(
 					sidebars,
@@ -675,6 +688,8 @@ frappe.ui.Sidebar = class Sidebar {
 				let sidebar = this.get_workspace_for_module(module);
 				if (sidebars.includes(this.get_workspace_for_module(module))) {
 					frappe.app.sidebar.setup(sidebar);
+				} else {
+					frappe.app.sidebar.setup(module);
 				}
 			} else if (module) {
 				this.show_sidebar_for_module(module);
@@ -751,5 +766,23 @@ frappe.ui.Sidebar = class Sidebar {
 			});
 		});
 		return sidebars;
+	}
+	setup_reload() {
+		const me = this;
+		this.item_sidebar_map = {};
+		$(window).on("beforeunload", function () {
+			me.store_last_show_sidebar_for_item();
+		});
+	}
+	store_last_show_sidebar_for_item() {
+		const me = this;
+		if (frappe.app.sidebar.active_item) {
+			let active_item = frappe.app.sidebar.active_item.parent().data("id");
+			if (!me.item_sidebar_map[active_item]) {
+				me.item_sidebar_map[active_item] = [];
+			}
+			me.item_sidebar_map[active_item].push(me.sidebar_title);
+			localStorage.setItem("sidebar_item_map", JSON.stringify(me.item_sidebar_map));
+		}
 	}
 };
