@@ -25,11 +25,22 @@ class AISession(Document):
 
 		agent: DF.Link | None
 		messages: DF.Table[AISessionMessage]
+		model: DF.Link | None
 		title: DF.Data | None
 	# end: auto-generated types
 
 	def validate(self):
 		self._validate_agent_unchanged()
+		self._validate_model_enabled()
+
+	def _validate_model_enabled(self):
+		if not self.model:
+			return
+		if not frappe.db.get_value("AI Model", self.model, "enabled"):
+			frappe.throw(
+				_("AI Model {0} is disabled.").format(self.model),
+				title=_("Disabled Model"),
+			)
 
 	def _validate_agent_unchanged(self):
 		"""The agent that drives a session is fixed at creation. Subsequent turns must use the same agent."""

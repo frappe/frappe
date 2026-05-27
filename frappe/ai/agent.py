@@ -11,7 +11,7 @@ from typing import Any
 from frappe.ai.model import ChatResponse, Model, ToolCall
 from frappe.ai.tool import Tool
 
-DEFAULT_MAX_ITERATIONS = 10
+DEFAULT_MAX_ITERATIONS = 20
 ERROR_MESSAGE_LIMIT = 500
 VALID_ROLES = frozenset({"system", "user", "assistant", "tool"})
 

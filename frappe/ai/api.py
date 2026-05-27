@@ -24,14 +24,15 @@ def start_run(
 	input: str,
 	agent: str | None = None,
 	session: str | None = None,
+	model: str | None = None,
 	stream: bool | str = False,
 ) -> dict[str, Any] | Response:
 	"""Start a new turn. Creates a session if none is given. With `stream=True`, returns SSE."""
 	if not isinstance(input, str) or not input.strip():
 		frappe.throw(_("Input is required."), title=_("Invalid Input"))
 
-	session_doc = _resolve_session(session, agent, input)
-	agent_runtime, snapshot = _build_runtime(session_doc.agent)
+	session_doc = _resolve_session(session, agent, model, input)
+	agent_runtime, snapshot = _build_runtime(session_doc)
 	run_input = _build_run_input(session_doc, input)
 
 	from frappe.ai.doctype.ai_run.ai_run import create_run, stream_with_persistence
@@ -93,8 +94,14 @@ def resume_run(
 	return _summarize(run)
 
 
-def _resolve_session(session_name: str | None, agent_param: str | None, input_text: str) -> AISession:
-	"""Load an existing session (checking ownership + agent match) or create a new one."""
+def _resolve_session(
+	session_name: str | None,
+	agent_param: str | None,
+	model_param: str | None,
+	input_text: str,
+) -> AISession:
+	"""Load an existing session (with ownership + agent match) or create a new one. A model
+	override given on an existing session is persisted as the new override."""
 	from frappe.ai.doctype.ai_session.ai_session import derive_title
 
 	if session_name:
@@ -107,6 +114,9 @@ def _resolve_session(session_name: str | None, agent_param: str | None, input_te
 				),
 				title=_("Agent Mismatch"),
 			)
+		if model_param and model_param != session_doc.model:
+			session_doc.model = model_param
+			session_doc.save(ignore_permissions=True)
 		return session_doc
 
 	if agent_param:
@@ -118,20 +128,22 @@ def _resolve_session(session_name: str | None, agent_param: str | None, input_te
 		{
 			"doctype": "AI Session",
 			"agent": agent_param,
+			"model": model_param,
 			"title": derive_title(input_text),
 		}
 	).insert(ignore_permissions=True)
 
 
-def _build_runtime(agent_link: str | None) -> tuple[Agent, dict[str, Any]]:
-	"""Return (agent_runtime, config_snapshot) from a saved agent or the default assistant."""
-	if agent_link:
-		agent_doc = frappe.get_doc("AI Agent", agent_link)
-		return agent_doc.assemble(), agent_doc._snapshot()
+def _build_runtime(session_doc: AISession) -> tuple[Agent, dict[str, Any]]:
+	"""Return (agent_runtime, config_snapshot) honoring the session's model override."""
+	model = session_doc.model
+	if session_doc.agent:
+		agent_doc = frappe.get_doc("AI Agent", session_doc.agent)
+		return agent_doc.assemble(model=model), agent_doc._snapshot(model=model)
 
 	from frappe.ai.assistant import _snapshot, build_assistant
 
-	runtime = build_assistant()
+	runtime = build_assistant(model=model or None)
 	return runtime, _snapshot(runtime)
 
 
@@ -241,11 +253,12 @@ def _is_truthy(value: Any) -> bool:
 
 
 def _rebuild_agent(session_doc: AISession) -> Agent:
+	model = session_doc.model
 	if session_doc.agent:
-		return frappe.get_doc("AI Agent", session_doc.agent).assemble()
+		return frappe.get_doc("AI Agent", session_doc.agent).assemble(model=model)
 	from frappe.ai.assistant import build_assistant
 
-	return build_assistant()
+	return build_assistant(model=model or None)
 
 
 def _parse_answers(answers: Any) -> dict[str, Any]:

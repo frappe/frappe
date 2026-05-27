@@ -7,6 +7,7 @@
  "field_order": [
   "title",
   "agent",
+  "model",
   "section_break_transcript",
   "messages"
  ],
@@ -27,6 +28,14 @@
    "in_standard_filter": 1,
    "label": "Agent",
    "options": "AI Agent"
+  },
+  {
+   "description": "Override the agent's default model for this conversation. Empty falls back to the agent's model.",
+   "fieldname": "model",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Model",
+   "options": "AI Model"
   },
   {
    "collapsible": 1,

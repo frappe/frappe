@@ -61,19 +61,20 @@ class AIAgent(Document):
 			unique.append(row)
 		self.tools = unique
 
-	def assemble(self) -> Agent:
-		"""Resolve this row into a runtime Agent."""
+	def assemble(self, *, model: str | None = None) -> Agent:
+		"""Resolve this row into a runtime Agent. `model` overrides the saved agent's model for this build."""
 		from frappe.ai.agent import Agent
 		from frappe.ai.model import Model
 
 		if not self.enabled:
 			frappe.throw(_("AI Agent {0} is disabled.").format(self.name), title=_("Disabled Agent"))
 
-		if not frappe.db.get_value("AI Model", self.model, "enabled"):
-			frappe.throw(_("AI Model {0} is disabled.").format(self.model), title=_("Disabled Model"))
+		model_name = model or self.model
+		if not frappe.db.get_value("AI Model", model_name, "enabled"):
+			frappe.throw(_("AI Model {0} is disabled.").format(model_name), title=_("Disabled Model"))
 
 		return Agent(
-			model=Model(self.model),
+			model=Model(model_name),
 			name=self.name,
 			instructions=self.instructions,
 			tools=self._resolve_tools(),
@@ -132,10 +133,10 @@ class AIAgent(Document):
 		run.apply_result(result)
 		return run
 
-	def _snapshot(self) -> dict[str, Any]:
+	def _snapshot(self, *, model: str | None = None) -> dict[str, Any]:
 		return {
 			"title": self.title,
-			"model": self.model,
+			"model": model or self.model,
 			"instructions": self.instructions,
 			"tools": [row.tool for row in self.tools],
 			"max_iterations": self.max_iterations or DEFAULT_MAX_ITERATIONS,
