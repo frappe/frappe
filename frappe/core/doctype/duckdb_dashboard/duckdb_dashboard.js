@@ -8,6 +8,11 @@ frappe.ui.form.on("DuckDB Dashboard", {
 				method: "frappe.database.duckdb.database.sync_to_duckdb",
 			});
 		});
+		frm.add_custom_button(__("Drop tables"), () => {
+			frm.call({
+				method: "frappe.database.duckdb.database.drop_tables",
+			});
+		});
 		frm.add_custom_button(__("Drop all tables"), () => {
 			frm.call({
 				method: "frappe.database.duckdb.database.drop_all_tables",

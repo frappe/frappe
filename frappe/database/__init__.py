@@ -94,14 +94,18 @@ def get_db(socket=None, host=None, user=None, password=None, port=None, cur_db_n
 		)
 
 
-def get_duckdb(db_name=None):
+def get_duckdb(read_only=True):
 	import duckdb
 
-	duckdb_conn = duckdb.connect(f"{db_name}.duckdb", read_only=True)
+	import frappe
+
+	db_name = frappe.conf.db_name
+	duckdb_conn = duckdb.connect(f"{db_name}.duckdb", read_only=read_only)
 
 	# Initialize
 	databases = [x[0] for x in duckdb_conn.sql("show databases;").fetchall()]
 	if db_name not in databases:
+		print("Creating DB")
 		duckdb_conn.sql(f"create database {db_name}")
 	duckdb_conn.sql(f"use {db_name}")
 	return duckdb_conn

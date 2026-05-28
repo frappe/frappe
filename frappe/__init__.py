@@ -375,7 +375,7 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 	:param db_name: (Deprecated) Optional. Will use from `site_config.json`.
 	:param set_admin_as_user: Set Administrator as current user.
 	"""
-	from frappe.database import get_db, get_duckdb
+	from frappe.database import get_db
 
 	if site:
 		from frappe.deprecation_dumpster import deprecation_warning
@@ -417,8 +417,7 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 		password=db_password,
 		cur_db_name=db_name_,
 	)
-
-	local.duckdb = get_duckdb(conf.db_name)
+	local.duckdb = None
 
 	if set_admin_as_user:
 		set_user("Administrator")
