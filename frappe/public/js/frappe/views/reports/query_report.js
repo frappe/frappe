@@ -531,6 +531,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.clear_filters();
 		const { filters = [] } = this.report_settings;
 
+		this.filters = [];
 		let filter_area = this.page.page_form;
 		this.filters = filters
 			.map((df) => {
@@ -584,7 +585,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	set_filters(filters) {
 		this.filters.map((f) => {
-			if (f.fieldtype == "MultiSelectList") {
+			if (["MultiSelectList", "MultiSelectLink"].includes(f.fieldtype)) {
 				f.set_value(filters[f.fieldname]);
 			} else {
 				f.set_input(filters[f.fieldname]);

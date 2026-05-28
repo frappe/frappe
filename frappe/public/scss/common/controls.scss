@@ -96,13 +96,14 @@ select.form-control {
 
 /* multiselect list */
 .multiselect-list {
-	.status-text {
-		position: absolute;
-		top: 4px;
+	> input {
+		position: relative;
+		z-index: 1;
 	}
 
 	.dropdown-menu {
 		width: 100%;
+		margin-top: 0;
 	}
 
 	ul {

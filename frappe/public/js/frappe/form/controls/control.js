@@ -32,6 +32,7 @@ import "./autocomplete";
 import "./barcode";
 import "./geolocation";
 import "./multiselect";
+import "./multiselect_link";
 import "./multicheck";
 import "./table_multiselect";
 import "./multiselect_pills";

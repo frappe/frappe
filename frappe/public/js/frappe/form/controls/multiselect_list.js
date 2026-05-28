@@ -1,3 +1,5 @@
+import Awesomplete from "awesomplete";
+
 frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 	frappe.ui.form.ControlData
 ) {
@@ -5,13 +7,8 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 	make_input() {
 		let template = `
 			<div class="multiselect-list dropdown">
-				<div class="form-control cursor-pointer input-xs" data-toggle="dropdown" tabindex=0>
-					<div class="status-text ellipsis"></div>
-				</div>
+				<input type="text" class="form-control input-xs" autocomplete="off">
 				<ul class="dropdown-menu">
-					<li class="dropdown-input-wrapper">
-						<input type="text" class="form-control input-xs">
-					</li>
 					<div class="selectable-items">
 					</div>
 					<li class="d-flex justify-content-end">
@@ -27,78 +24,92 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		`;
 
 		this.$list_wrapper = $(template);
-		this.$input = $("<input>");
+		this.$input = this.$list_wrapper.find("> input");
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		this.$list_wrapper.prependTo(this.input_area);
-		this.$filter_input = this.$list_wrapper.find("input");
+
 		this.$list_wrapper.on("click", ".dropdown-menu", (e) => {
 			e.stopPropagation();
 		});
-		this.$list_wrapper.on("click", ".clear-selections", (e) => {
+		this.$list_wrapper.on("click", ".clear-selections", () => {
 			this.clear_all_selections();
 		});
-		this.$list_wrapper.on("click", ".select-all-options", (e) => {
+		this.$list_wrapper.on("click", ".select-all-options", () => {
 			this.select_all_options();
 		});
 		this.$list_wrapper.on("click", ".selectable-item", (e) => {
 			let $target = $(e.currentTarget);
 			this.toggle_select_item($target);
 		});
-		this.$list_wrapper.on(
-			"input",
-			"input",
-			frappe.utils.debounce((e) => {
-				this.set_options().then(() => {
-					let txt = e.target.value;
-					let filtered_options = this._options.filter((opt) => {
-						let match = false;
-						if (this.values.includes(opt.value)) {
-							return true;
-						}
-						match =
-							Awesomplete.FILTER_CONTAINS(opt.label, txt) ||
-							Awesomplete.FILTER_CONTAINS(opt.value, txt) ||
-							Awesomplete.FILTER_CONTAINS(opt.description, txt);
 
-						return match;
-					});
-					let options = this._selected_values
-						.concat(filtered_options)
-						.uniqBy((opt) => opt.value);
-					this.set_selectable_items(options);
+		this.$input.on(
+			"input",
+			frappe.utils.debounce(() => {
+				this.set_options().then(() => {
+					let txt = this.$input.val() || "";
+					if (txt) {
+						let filtered = this._options.filter((opt) => {
+							return (
+								Awesomplete.FILTER_CONTAINS(opt.label, txt) ||
+								Awesomplete.FILTER_CONTAINS(opt.value, txt) ||
+								Awesomplete.FILTER_CONTAINS(opt.description, txt)
+							);
+						});
+						this.set_selectable_items(this.merge_selected(filtered));
+					} else {
+						this.set_selectable_items(this.merge_selected(this._options));
+					}
 				});
 			}, 300)
 		);
-		this.$list_wrapper.on("keydown", "input", (e) => {
+
+		this.$input.on("keydown", (e) => {
 			if (e.key === "ArrowDown") {
+				e.preventDefault();
 				this.highlight_item(1);
 			} else if (e.key === "ArrowUp") {
+				e.preventDefault();
 				this.highlight_item(-1);
-			} else if (e.key === "Enter") {
+			} else if (e.key === "Enter" || e.key === "Tab") {
 				if (this._$last_highlighted) {
+					e.preventDefault();
 					this.toggle_select_item(this._$last_highlighted);
 					return false;
+				}
+			} else if (e.key === "Backspace" && !this.$input.val()) {
+				// remove last selected value
+				if (this.values.length) {
+					let removed = this.values[this.values.length - 1];
+					this.values = this.values.slice(0, -1);
+					this._selected_values = (this._selected_values || []).filter(
+						(opt) => opt.value !== removed
+					);
+					this.parse_validate_and_set_in_model("");
+					this.refresh_selectable_items();
 				}
 			}
 		});
 
-		this.$list_wrapper.on("keydown", (e) => {
-			if ($(e.target).is("input")) {
-				return;
-			}
-			if (e.key === "Backspace") {
-				this.set_value([]);
-			}
+		this.$input.on("focus", () => {
+			this._focused = true;
+			this.$input.val("");
+			this.$input.attr("placeholder", this.df.placeholder || __("Type to search..."));
+			this.open_dropdown();
 		});
 
-		this.$list_wrapper.on("show.bs.dropdown", () => {
-			this.set_options().then(() => {
-				this.set_selectable_items(this._options);
-			});
-			this.adjust_dropdown_right_position();
+		this.$input.on("blur", () => {
+			this._focused = false;
+			// delay to allow click events on dropdown items
+			setTimeout(() => {
+				if (!this._focused) {
+					this.close_dropdown();
+					this.show_summary();
+				}
+			}, 200);
 		});
 
+		this.setup_paste_handler();
 		this.set_input_attributes();
 		this.values = [];
 		this._options = [];
@@ -106,12 +117,119 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		this.highlighted = -1;
 	}
 
+	set_formatted_input() {
+		// Prevent parent ControlData from overwriting our summary display
+		if (!this._focused) {
+			this.show_summary();
+		}
+	}
+
+	set_input(value) {
+		// When called from report filter restore (set_filters/set_route_filters),
+		// value may be an array - restore it into this.values
+		if (Array.isArray(value)) {
+			this.values = value;
+			this.values.forEach((v) => this.update_selected_values(v));
+		}
+		this.show_summary();
+	}
+
+	merge_selected(options) {
+		// Ensure selected values always appear in dropdown even if
+		// the server/get_data didn't return them
+		let option_values = new Set(options.map((o) => o.value));
+		let merged = options.slice();
+		for (let sel of this._selected_values || []) {
+			if (this.values.includes(sel.value) && !option_values.has(sel.value)) {
+				merged.push(sel);
+			}
+		}
+		return merged;
+	}
+
+	setup_paste_handler() {
+		this.$input.on("paste", (e) => {
+			const clipboard_data = (e.originalEvent || e).clipboardData;
+			if (!clipboard_data) return;
+
+			const pasted = clipboard_data.getData("text");
+			if (!pasted) return;
+
+			// Handle Excel paste (newline/tab separated values)
+			if (!pasted.includes("\n") && !pasted.includes("\t")) return;
+
+			e.preventDefault();
+
+			const new_values = pasted
+				.split(/[\n\t\r]+/)
+				.map((v) => v.trim())
+				.filter(Boolean);
+
+			for (const v of new_values) {
+				if (!this.values.includes(v)) {
+					this.values.push(v);
+				}
+			}
+
+			this.parse_validate_and_set_in_model("");
+			this.refresh_selectable_items();
+		});
+	}
+
+	open_dropdown() {
+		this.$list_wrapper.addClass("show");
+		this.$list_wrapper.find(".dropdown-menu").addClass("show");
+		this.set_options().then(() => {
+			this.set_selectable_items(this.merge_selected(this._options));
+		});
+		this.adjust_dropdown_right_position();
+	}
+
+	close_dropdown() {
+		this.$list_wrapper.removeClass("show");
+		this.$list_wrapper.find(".dropdown-menu").removeClass("show");
+	}
+
+	show_summary() {
+		let text;
+		if (!this.values || this.values.length === 0) {
+			text = "";
+		} else if (this.values.length === 1) {
+			let val = this.values[0];
+			let option = (this._options || []).find((opt) => opt.value === val);
+			text = option ? option.label : val;
+		} else {
+			text = __("{0} values selected", [this.values.length]);
+		}
+		this.$input.val(text);
+		this.$input.attr("placeholder", this.df.placeholder || "");
+	}
+
+	refresh_selectable_items() {
+		if (this.$list_wrapper.hasClass("show")) {
+			let txt = this.$input.val() || "";
+			if (txt) {
+				let filtered = this._options.filter((opt) => {
+					return (
+						Awesomplete.FILTER_CONTAINS(opt.label, txt) ||
+						Awesomplete.FILTER_CONTAINS(opt.value, txt) ||
+						Awesomplete.FILTER_CONTAINS(opt.description, txt)
+					);
+				});
+				this.set_selectable_items(this.merge_selected(filtered));
+			} else {
+				this.set_selectable_items(this.merge_selected(this._options));
+			}
+		}
+		this.update_status();
+	}
+
 	set_input_attributes() {
 		this.$list_wrapper
 			.attr("data-fieldtype", this.df.fieldtype)
 			.attr("data-fieldname", this.df.fieldname);
 
-		this.set_status(this.get_placeholder_text());
+		this.show_summary();
 
 		if (this.doctype) {
 			this.$list_wrapper.attr("data-doctype", this.doctype);
@@ -127,17 +245,15 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 	clear_all_selections() {
 		this.values = [];
 		this._selected_values = [];
-		this.update_status();
-		this.set_selectable_items(this._options);
 		this.parse_validate_and_set_in_model("");
+		this.refresh_selectable_items();
 	}
 
 	select_all_options() {
 		this.values = this._options.map((opt) => opt.value);
 		this._selected_values = this._options.slice();
-		this.update_status();
-		this.set_selectable_items(this._options);
 		this.parse_validate_and_set_in_model("");
+		this.refresh_selectable_items();
 	}
 
 	toggle_select_item($selectable_item) {
@@ -152,7 +268,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		}
 		this.update_selected_values(value);
 		this.parse_validate_and_set_in_model("");
-		this.update_status();
+		this.refresh_selectable_items();
 	}
 
 	set_value(value) {
@@ -165,7 +281,9 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			this.update_selected_values(value);
 		});
 		this.parse_validate_and_set_in_model("");
-		this.update_status();
+		if (!this._focused) {
+			this.show_summary();
+		}
 		return Promise.resolve();
 	}
 
@@ -182,25 +300,9 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 	}
 
 	update_status() {
-		let text;
-		if (this.values.length === 0) {
-			text = this.get_placeholder_text();
-		} else if (this.values.length === 1) {
-			let val = this.values[0];
-			let option = this._options.find((opt) => opt.value === val);
-			text = option ? option.label : val;
-		} else {
-			text = __("{0} values selected", [this.values.length]);
+		if (!this._focused) {
+			this.show_summary();
 		}
-		this.set_status(text);
-	}
-
-	get_placeholder_text() {
-		return `<span class="text-extra-muted">${this.df.placeholder || ""}</span>`;
-	}
-
-	set_status(text) {
-		this.$list_wrapper.find(".status-text").html(text);
 	}
 
 	set_options() {
@@ -222,7 +324,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		}
 
 		if (this.df.get_data) {
-			let txt = this.$filter_input.val();
+			let txt = this.$input.val() || "";
 			let value = this.df.get_data(txt);
 			if (!value) {
 				this._options = [];
@@ -234,12 +336,19 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 				this._options = process_options(value);
 			}
 		} else {
-			this._options = process_options(this.df.options);
+			this._options = process_options(this.df.options || []);
 		}
 		return promise;
 	}
 
 	set_selectable_items(options) {
+		// Sort: selected values on top
+		options = options.slice().sort((a, b) => {
+			let a_sel = this.values.includes(a.value) ? 0 : 1;
+			let b_sel = this.values.includes(b.value) ? 0 : 1;
+			return a_sel - b_sel;
+		});
+
 		let html = options
 			.map((option) => {
 				let encoded_value = encodeURIComponent(option.value);
@@ -258,7 +367,15 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		}
 		this.$list_wrapper.find(".selectable-items").html(html);
 
+		// auto-highlight first unselected item
 		this.highlighted = -1;
+		this._$last_highlighted = null;
+		let $first_unselected = this.$list_wrapper.find(".selectable-item:not(.selected)").first();
+		if ($first_unselected.length) {
+			let $items = this.$list_wrapper.find(".selectable-item");
+			this.highlighted = $items.index($first_unselected);
+			this._$last_highlighted = $first_unselected.addClass("highlighted");
+		}
 	}
 
 	adjust_dropdown_right_position() {
