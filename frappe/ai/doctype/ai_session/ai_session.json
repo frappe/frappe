@@ -21,13 +21,14 @@
    "length": 200
   },
   {
-   "description": "Saved AI Agent driving this conversation. Empty means the built-in assistant.",
+   "description": "Saved AI Agent driving this conversation.",
    "fieldname": "agent",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Agent",
-   "options": "AI Agent"
+   "options": "AI Agent",
+   "reqd": 1
   },
   {
    "description": "Override the agent's default model for this conversation. Empty falls back to the agent's model.",

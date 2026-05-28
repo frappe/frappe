@@ -109,9 +109,7 @@ def _resolve_session(
 		_assert_session_owner(session_doc)
 		if agent_param and agent_param != session_doc.agent:
 			frappe.throw(
-				_("This session is bound to agent {0} and cannot be switched.").format(
-					session_doc.agent or _("(assistant)")
-				),
+				_("This session is bound to agent {0} and cannot be switched.").format(session_doc.agent),
 				title=_("Agent Mismatch"),
 			)
 		if model_param and model_param != session_doc.model:
@@ -123,28 +121,38 @@ def _resolve_session(
 		if not frappe.db.exists("AI Agent", agent_param):
 			frappe.throw(_("AI Agent {0} not found.").format(agent_param), frappe.DoesNotExistError)
 		frappe.has_permission("AI Agent", "read", agent_param, throw=True)
+		agent_name = agent_param
+	else:
+		agent_name = _default_agent_name()
 
 	return frappe.get_doc(
 		{
 			"doctype": "AI Session",
-			"agent": agent_param,
+			"agent": agent_name,
 			"model": model_param,
 			"title": derive_title(input_text),
 		}
 	).insert(ignore_permissions=True)
 
 
+def _default_agent_name() -> str:
+	from frappe.ai.assistant import ASSISTANT_AGENT_TITLE
+
+	if not frappe.db.exists("AI Agent", ASSISTANT_AGENT_TITLE):
+		frappe.throw(
+			_("The {0} agent is missing. Create an AI Model first to auto-provision it.").format(
+				ASSISTANT_AGENT_TITLE
+			),
+			title=_("Missing Default Agent"),
+		)
+	return ASSISTANT_AGENT_TITLE
+
+
 def _build_runtime(session_doc: AISession) -> tuple[Agent, dict[str, Any]]:
 	"""Return (agent_runtime, config_snapshot) honoring the session's model override."""
 	model = session_doc.model
-	if session_doc.agent:
-		agent_doc = frappe.get_doc("AI Agent", session_doc.agent)
-		return agent_doc.assemble(model=model), agent_doc._snapshot(model=model)
-
-	from frappe.ai.assistant import _snapshot, build_assistant
-
-	runtime = build_assistant(model=model or None)
-	return runtime, _snapshot(runtime)
+	agent_doc = frappe.get_doc("AI Agent", session_doc.agent)
+	return agent_doc.assemble(model=model), agent_doc._snapshot(model=model)
 
 
 def _build_run_input(session_doc: AISession, new_input: str) -> str | list[dict[str, Any]]:
@@ -253,12 +261,7 @@ def _is_truthy(value: Any) -> bool:
 
 
 def _rebuild_agent(session_doc: AISession) -> Agent:
-	model = session_doc.model
-	if session_doc.agent:
-		return frappe.get_doc("AI Agent", session_doc.agent).assemble(model=model)
-	from frappe.ai.assistant import build_assistant
-
-	return build_assistant(model=model or None)
+	return frappe.get_doc("AI Agent", session_doc.agent).assemble(model=session_doc.model)
 
 
 def _parse_answers(answers: Any) -> dict[str, Any]:

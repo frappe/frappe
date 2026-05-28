@@ -7,51 +7,56 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestAISession(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
-	def test_session_can_be_created_without_agent(self):
-		doc = frappe.get_doc({"doctype": "AI Session", "title": "chat 1"}).insert(ignore_permissions=True)
-
-		self.assertIsNone(doc.agent)
-		self.assertEqual(doc.title, "chat 1")
-
-	def test_session_can_be_created_without_title(self):
-		doc = frappe.get_doc({"doctype": "AI Session"}).insert(ignore_permissions=True)
-
-		self.assertIsNone(doc.title)
-
-	def test_session_agent_is_locked_after_creation(self):
-		model = frappe.get_doc(
+	def setUp(self):
+		self.model = frappe.get_doc(
 			{
 				"doctype": "AI Model",
-				"title": "Lock Test Model",
+				"title": "Session Test Model",
 				"model_id": "openai/gpt-4o-mini",
 				"enabled": 1,
 			}
 		).insert()
-		agent_a = frappe.get_doc(
+		self.agent = frappe.get_doc(
 			{
 				"doctype": "AI Agent",
-				"title": "Agent A",
-				"model": model.name,
-				"instructions": "x",
-				"enabled": 1,
-			}
-		).insert()
-		agent_b = frappe.get_doc(
-			{
-				"doctype": "AI Agent",
-				"title": "Agent B",
-				"model": model.name,
+				"title": "Session Test Agent",
+				"model": self.model.name,
 				"instructions": "x",
 				"enabled": 1,
 			}
 		).insert()
 
-		doc = frappe.get_doc({"doctype": "AI Session", "agent": agent_a.name}).insert(ignore_permissions=True)
+	def tearDown(self):
+		frappe.db.rollback()
 
-		doc.agent = agent_b.name
+	def test_session_requires_agent(self):
+		doc = frappe.get_doc({"doctype": "AI Session", "title": "chat 1"})
+
+		with self.assertRaises(frappe.MandatoryError):
+			doc.insert(ignore_permissions=True)
+
+	def test_session_can_be_created_without_title(self):
+		doc = frappe.get_doc({"doctype": "AI Session", "agent": self.agent.name}).insert(
+			ignore_permissions=True
+		)
+
+		self.assertIsNone(doc.title)
+
+	def test_session_agent_is_locked_after_creation(self):
+		other_agent = frappe.get_doc(
+			{
+				"doctype": "AI Agent",
+				"title": "Other Session Agent",
+				"model": self.model.name,
+				"instructions": "x",
+				"enabled": 1,
+			}
+		).insert()
+		doc = frappe.get_doc({"doctype": "AI Session", "agent": self.agent.name}).insert(
+			ignore_permissions=True
+		)
+
+		doc.agent = other_agent.name
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change the agent"):
 			doc.save(ignore_permissions=True)
 

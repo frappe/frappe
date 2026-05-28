@@ -40,6 +40,13 @@ class AIModel(Document):
 		self._validate_params()
 		self._validate_provider_known()
 
+	def after_insert(self):
+		if not self.enabled:
+			return
+		from frappe.ai.assistant import sync_builtin_assistant
+
+		sync_builtin_assistant(model=self.name)
+
 	def _normalize(self):
 		for field in ("title", "model_id", "base_url"):
 			value = self.get(field)
@@ -51,7 +58,9 @@ class AIModel(Document):
 	def _validate_model_id(self):
 		if not MODEL_ID_PATTERN.match(self.model_id or ""):
 			frappe.throw(
-				_("Model ID must be in <code>provider/model</code> form (e.g. <code>anthropic/claude-sonnet-4-6</code>). Only lowercase provider names and alphanumerics, dashes, dots, colons or slashes in the model part are allowed."),
+				_(
+					"Model ID must be in <code>provider/model</code> form (e.g. <code>anthropic/claude-sonnet-4-6</code>). Only lowercase provider names and alphanumerics, dashes, dots, colons or slashes in the model part are allowed."
+				),
 				title=_("Invalid Model ID"),
 			)
 

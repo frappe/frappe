@@ -85,7 +85,10 @@ class TestStartRunSessions(IntegrationTestCase):
 		self.assertTrue(any(m.get("content") == "reply 1" for m in assistant_msgs))
 
 	def test_explicit_session_id_reuses_it(self):
-		session = frappe.get_doc({"doctype": "AI Session", "title": "carried"}).insert(
+		from frappe.ai.assistant import sync_builtin_assistant
+
+		sync_builtin_assistant(model=self.model_doc.name)
+		session = frappe.get_doc({"doctype": "AI Session", "agent": "Assistant", "title": "carried"}).insert(
 			ignore_permissions=True
 		)
 

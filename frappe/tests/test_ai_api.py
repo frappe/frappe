@@ -101,14 +101,16 @@ class TestStartRun(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_start_run_without_agent_runs_assistant(self):
+	def test_start_run_without_agent_uses_default_assistant(self):
+		from frappe.ai.assistant import ASSISTANT_AGENT_TITLE
+
 		with patch.object(Model, "chat", return_value=_final("hello")):
 			payload = start_run("hi")
 
 		self.assertEqual(payload["status"], "Completed")
 		self.assertEqual(payload["output"], "hello")
 		session = frappe.get_doc("AI Session", payload["session"])
-		self.assertFalse(session.agent)
+		self.assertEqual(session.agent, ASSISTANT_AGENT_TITLE)
 
 	def test_start_run_with_named_agent_links_to_agent(self):
 		with patch.object(Model, "chat", return_value=_final()):
@@ -160,7 +162,9 @@ class TestStartRun(IntegrationTestCase):
 		self.assertEqual(run.status, "Completed")
 		self.assertEqual(run.output, "hello world")
 
-	def test_start_run_stream_without_agent_uses_assistant(self):
+	def test_start_run_stream_without_agent_uses_default_assistant(self):
+		from frappe.ai.assistant import ASSISTANT_AGENT_TITLE
+
 		with patch.object(Model, "chat", new=_stream_chat(["hi"], _final("hi"))):
 			response = start_run("hello", stream=True)
 			events = _sse_events(response)
@@ -168,7 +172,7 @@ class TestStartRun(IntegrationTestCase):
 		self.assertEqual(events[0]["type"], "run_started")
 		run = frappe.get_doc("AI Run", events[0]["name"])
 		session = frappe.get_doc("AI Session", run.session)
-		self.assertFalse(session.agent)
+		self.assertEqual(session.agent, ASSISTANT_AGENT_TITLE)
 
 	def test_start_run_stream_accepts_truthy_string(self):
 		with patch.object(Model, "chat", new=_stream_chat(["ok"], _final("ok"))):

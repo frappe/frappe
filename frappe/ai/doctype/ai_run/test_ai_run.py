@@ -66,7 +66,31 @@ def _paused_result() -> RunResult:
 	)
 
 
-def _new_session(agent: str | None = None) -> str:
+def _make_agent() -> str:
+	model = frappe.get_doc(
+		{
+			"doctype": "AI Model",
+			"title": "Run Test Model",
+			"model_id": "openai/gpt-4o-mini",
+			"enabled": 1,
+		}
+	).insert()
+	return (
+		frappe.get_doc(
+			{
+				"doctype": "AI Agent",
+				"title": "Run Test Agent",
+				"model": model.name,
+				"instructions": "x",
+				"enabled": 1,
+			}
+		)
+		.insert()
+		.name
+	)
+
+
+def _new_session(agent: str) -> str:
 	return (
 		frappe.get_doc({"doctype": "AI Session", "agent": agent, "title": "test"})
 		.insert(ignore_permissions=True)
@@ -75,11 +99,14 @@ def _new_session(agent: str | None = None) -> str:
 
 
 class TestAIRunPersistence(IntegrationTestCase):
+	def setUp(self):
+		self.agent = _make_agent()
+
 	def tearDown(self):
 		frappe.db.rollback()
 
 	def test_persist_completed_run_writes_transcript_to_session(self):
-		session = _new_session()
+		session = _new_session(self.agent)
 		doc = persist_result(_completed_result(), source="Manual", input="hi", session=session)
 
 		self.assertEqual(doc.status, "Completed")
@@ -94,14 +121,14 @@ class TestAIRunPersistence(IntegrationTestCase):
 		self.assertEqual(session_doc.messages[1].run, doc.name)
 
 	def test_persist_serializes_tool_calls_as_dicts(self):
-		session = _new_session()
+		session = _new_session(self.agent)
 		doc = persist_result(_tooled_result(), source="Manual", input="email customers", session=session)
 
 		tool_calls = json.loads(doc.tool_calls)
 		self.assertEqual(tool_calls, [{"id": "c1", "name": "query", "arguments": {"doctype": "Customer"}}])
 
 	def test_persist_tooled_run_writes_all_messages_to_session(self):
-		session = _new_session()
+		session = _new_session(self.agent)
 		doc = persist_result(_tooled_result(), source="Manual", input="email customers", session=session)
 
 		session_doc = frappe.get_doc("AI Session", session)
@@ -117,7 +144,7 @@ class TestAIRunPersistence(IntegrationTestCase):
 		self.assertTrue(all(row.run == doc.name for row in session_doc.messages))
 
 	def test_persist_paused_run_stores_questions(self):
-		session = _new_session()
+		session = _new_session(self.agent)
 		doc = persist_result(_paused_result(), source="Manual", input="email the list", session=session)
 
 		self.assertEqual(doc.status, "Paused")
@@ -129,7 +156,7 @@ class TestAIRunPersistence(IntegrationTestCase):
 		self.assertEqual(questions[0]["key"], "c1")
 
 	def test_apply_result_clears_questions_when_resumed(self):
-		session = _new_session()
+		session = _new_session(self.agent)
 		doc = persist_result(_paused_result(), source="Manual", input="email the list", session=session)
 		self.assertTrue(doc.questions)
 
@@ -140,7 +167,7 @@ class TestAIRunPersistence(IntegrationTestCase):
 		self.assertEqual(doc.output, "emailed")
 
 	def test_persist_records_usage(self):
-		session = _new_session()
+		session = _new_session(self.agent)
 		doc = persist_result(_tooled_result(), source="Manual", input="x", session=session)
 
 		self.assertEqual(
@@ -148,7 +175,7 @@ class TestAIRunPersistence(IntegrationTestCase):
 		)
 
 	def test_create_run_with_config_snapshot(self):
-		session = _new_session()
+		session = _new_session(self.agent)
 		snapshot = {"instructions": "be terse", "tool_slugs": ["query", "execute"]}
 		doc = create_run(source="Manual", input="hi", session=session, config_snapshot=snapshot)
 
@@ -156,7 +183,7 @@ class TestAIRunPersistence(IntegrationTestCase):
 		self.assertEqual(doc.status, "Running")
 
 	def test_mark_failed_sets_status_and_error(self):
-		session = _new_session()
+		session = _new_session(self.agent)
 		doc = create_run(source="Manual", input="hi", session=session)
 
 		doc.mark_failed("something broke")
@@ -165,7 +192,7 @@ class TestAIRunPersistence(IntegrationTestCase):
 		self.assertEqual(doc.error, "something broke")
 
 	def test_mark_failed_truncates_long_error(self):
-		session = _new_session()
+		session = _new_session(self.agent)
 		doc = create_run(source="Manual", input="hi", session=session)
 
 		doc.mark_failed("x" * 10000)
@@ -174,6 +201,9 @@ class TestAIRunPersistence(IntegrationTestCase):
 
 
 class TestAIRunValidation(IntegrationTestCase):
+	def setUp(self):
+		self.agent = _make_agent()
+
 	def tearDown(self):
 		frappe.db.rollback()
 
@@ -183,7 +213,7 @@ class TestAIRunValidation(IntegrationTestCase):
 			doc.insert(ignore_permissions=True)
 
 	def test_paused_without_questions_rejected(self):
-		session = _new_session()
+		session = _new_session(self.agent)
 		doc = frappe.get_doc(
 			{"doctype": "AI Run", "source": "Manual", "status": "Paused", "session": session}
 		)
@@ -191,7 +221,7 @@ class TestAIRunValidation(IntegrationTestCase):
 			doc.insert(ignore_permissions=True)
 
 	def test_failed_without_error_rejected(self):
-		session = _new_session()
+		session = _new_session(self.agent)
 		doc = frappe.get_doc(
 			{"doctype": "AI Run", "source": "Manual", "status": "Failed", "session": session}
 		)
@@ -199,7 +229,7 @@ class TestAIRunValidation(IntegrationTestCase):
 			doc.insert(ignore_permissions=True)
 
 	def test_invalid_source_rejected(self):
-		session = _new_session()
+		session = _new_session(self.agent)
 		doc = frappe.get_doc(
 			{"doctype": "AI Run", "source": "Bogus", "status": "Running", "session": session}
 		)
@@ -207,7 +237,7 @@ class TestAIRunValidation(IntegrationTestCase):
 			doc.insert(ignore_permissions=True)
 
 	def test_invalid_json_field_rejected(self):
-		session = _new_session()
+		session = _new_session(self.agent)
 		doc = frappe.get_doc(
 			{
 				"doctype": "AI Run",
