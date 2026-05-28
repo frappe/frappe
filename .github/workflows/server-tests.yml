@@ -65,8 +65,8 @@ jobs:
   coverage:
     name: Coverage Wrap Up
     needs: [test, checkrun]
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' }}
     steps:
       - name: Clone
         uses: actions/checkout@v6
