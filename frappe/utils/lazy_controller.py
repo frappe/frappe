@@ -28,7 +28,7 @@ class _LazyControllerMeta(type):
 	def __subclasscheck__(cls, sub):
 		return issubclass(sub, cls._resolve())
 
-	def __mro_entries__(cls, bases):  # noqa: ARG003 — required signature
+	def __mro_entries__(cls, bases):
 		# Subclassing: `class Sub(LazyToDo): ...` — substitute the real class.
 		return (cls._resolve(),)
 

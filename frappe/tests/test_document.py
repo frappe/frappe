@@ -992,3 +992,56 @@ class TestDocsCollection(IntegrationTestCase):
 		todo = ToDo.docs.new(description="docs instance access")
 		with self.assertRaises(AttributeError):
 			todo.docs
+
+
+class TestDoctypeImports(IntegrationTestCase):
+	"""Tests for `frappe.doctypes` lazy controller imports."""
+
+	def test_import_from_frappe_doctypes(self):
+		from frappe.doctypes import ToDo as LazyToDo
+
+		self.assertEqual(LazyToDo.__name__, "ToDo")
+		self.assertEqual(LazyToDo.__module__, "frappe.doctypes")
+
+	def test_unknown_doctype_raises(self):
+		import frappe.doctypes as doctypes_module
+
+		with self.assertRaises(AttributeError):
+			doctypes_module.ThisDoctypeDoesNotExist
+
+	def test_dir_lists_all_doctypes(self):
+		import frappe.doctypes as doctypes_module
+
+		names = dir(doctypes_module)
+		self.assertIn("ToDo", names)
+		self.assertIn("User", names)
+		self.assertIn("Note", names)
+
+	def test_instantiation_resolves_to_real_controller(self):
+		from frappe.doctypes import ToDo as LazyToDo
+
+		todo = LazyToDo(doctype="ToDo", description="lazy ctor test")
+		self.assertIsInstance(todo, ToDo)
+		# After use the proxy should now cache the resolved class.
+		self.assertIs(LazyToDo.__dict__.get("_resolved"), ToDo)
+
+	def test_isinstance_and_issubclass(self):
+		from frappe.doctypes import ToDo as LazyToDo
+
+		todo = frappe.new_doc("ToDo")
+		self.assertIsInstance(todo, LazyToDo)
+		self.assertTrue(issubclass(ToDo, LazyToDo))
+
+	def test_lazy_proxy_is_subclass_of_document(self):
+		"""Lazy proxies should be recognized as Document subclasses without
+		forcing an import. See `_DocumentMeta.__subclasscheck__`."""
+		from frappe.doctypes import ToDo as LazyToDo
+
+		self.assertTrue(issubclass(LazyToDo, Document))
+
+	def test_repeat_access_returns_same_object(self):
+		import frappe.doctypes as doctypes_module
+
+		first = doctypes_module.ToDo
+		second = doctypes_module.ToDo
+		self.assertIs(first, second)
