@@ -555,6 +555,101 @@ class TestAgentStreaming(UnitTestCase):
 		self.assertEqual(done.result.output, "picked A")
 
 
+class TestAgentConfirmation(UnitTestCase):
+	def _danger_tool(self):
+		calls: list[dict[str, Any]] = []
+
+		@tool(requires_confirmation=True)
+		def write_file(path: str, body: str) -> str:
+			"""Write text to a file."""
+			calls.append({"path": path, "body": body})
+			return f"wrote {len(body)} bytes to {path}"
+
+		return write_file, calls
+
+	def test_confirmation_required_tool_pauses_run_without_executing(self):
+		write_file, calls = self._danger_tool()
+		model = FakeModel([_tool_call("write_file", {"path": "/tmp/x", "body": "hi"}, call_id="c1")])
+		agent = Agent(model=model, tools=[write_file])
+
+		result = agent.run("write hi to /tmp/x")
+
+		self.assertTrue(result.paused)
+		self.assertEqual(len(result.questions), 1)
+		self.assertEqual(result.questions[0].options, ["Approve", "Deny"])
+		self.assertFalse(result.questions[0].allow_other)
+		self.assertIn("write_file", result.questions[0].prompt)
+		self.assertEqual(calls, [])  # tool never ran
+
+	def test_approve_invokes_tool_and_feeds_real_result_to_llm(self):
+		write_file, calls = self._danger_tool()
+		pause_response = _tool_call("write_file", {"path": "/tmp/x", "body": "hi"}, call_id="c1")
+		final_response = _final("done")
+		model = FakeModel([pause_response, final_response])
+		agent = Agent(model=model, tools=[write_file])
+
+		paused = agent.run("write hi to /tmp/x")
+		resumed = agent.resume(paused.messages, {"c1": "Approve"})
+
+		self.assertEqual(calls, [{"path": "/tmp/x", "body": "hi"}])
+		tool_message = next(m for m in resumed.messages if m["role"] == "tool")
+		self.assertEqual(tool_message["content"], "wrote 2 bytes to /tmp/x")
+		self.assertEqual(resumed.output, "done")
+
+	def test_deny_skips_tool_and_returns_denial_to_llm(self):
+		write_file, calls = self._danger_tool()
+		model = FakeModel(
+			[
+				_tool_call("write_file", {"path": "/tmp/x", "body": "hi"}, call_id="c1"),
+				_final("understood"),
+			]
+		)
+		agent = Agent(model=model, tools=[write_file])
+
+		paused = agent.run("write hi to /tmp/x")
+		resumed = agent.resume(paused.messages, {"c1": "Deny"})
+
+		self.assertEqual(calls, [])  # tool never ran
+		tool_message = next(m for m in resumed.messages if m["role"] == "tool")
+		self.assertEqual(json.loads(tool_message["content"]), {"error": "User denied this tool call."})
+
+	def test_confirm_prompt_renders_plain_english_body(self):
+		@tool(
+			requires_confirmation=True,
+			confirm_prompt=lambda args: f"Send email to {args['to']}",
+		)
+		def send_email(to: str, body: str) -> str:
+			"""Send an email."""
+			return "sent"
+
+		model = FakeModel([_tool_call("send_email", {"to": "alice@example.com", "body": "hi"}, call_id="c1")])
+		agent = Agent(model=model, tools=[send_email])
+
+		result = agent.run("email alice")
+
+		self.assertIn("Send email to alice@example.com", result.questions[0].prompt)
+		self.assertNotIn("body", result.questions[0].prompt)  # raw JSON shape isn't leaking through
+
+	def test_free_text_answer_treated_as_denial_with_note(self):
+		write_file, calls = self._danger_tool()
+		model = FakeModel(
+			[
+				_tool_call("write_file", {"path": "/tmp/x", "body": "hi"}, call_id="c1"),
+				_final("ok"),
+			]
+		)
+		agent = Agent(model=model, tools=[write_file])
+
+		paused = agent.run("write hi")
+		resumed = agent.resume(paused.messages, {"c1": "use /tmp/y instead"})
+
+		self.assertEqual(calls, [])
+		tool_message = next(m for m in resumed.messages if m["role"] == "tool")
+		payload = json.loads(tool_message["content"])
+		self.assertIn("denied", payload["error"])
+		self.assertIn("use /tmp/y instead", payload["error"])
+
+
 class TestQuestion(UnitTestCase):
 	def test_defaults_are_open_text_with_other(self):
 		q = Question(prompt="What subject line?")

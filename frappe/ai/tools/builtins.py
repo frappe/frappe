@@ -65,7 +65,10 @@ def query(
 	)
 
 
-@tool
+@tool(
+	requires_confirmation=True,
+	confirm_prompt=lambda args: f"Run this Python:\n\n{args.get('code', '')}",
+)
 def execute(code: str) -> Any:
 	"""Run Python in the Frappe sandbox to read or change data.
 
@@ -99,8 +102,18 @@ def sync_builtin_tools() -> None:
 	"""Register the builtin tools as AI Tool rows so agents can reference them."""
 	for builtin in BUILTIN_TOOLS:
 		if frappe.db.exists("AI Tool", builtin.name):
-			if not frappe.db.get_value("AI Tool", builtin.name, "is_system_generated"):
+			current = frappe.db.get_value(
+				"AI Tool",
+				builtin.name,
+				["is_system_generated", "requires_confirmation"],
+				as_dict=True,
+			)
+			if not current.is_system_generated:
 				frappe.db.set_value("AI Tool", builtin.name, "is_system_generated", 1)
+			if bool(current.requires_confirmation) != builtin.requires_confirmation:
+				frappe.db.set_value(
+					"AI Tool", builtin.name, "requires_confirmation", int(builtin.requires_confirmation)
+				)
 			continue
 		frappe.get_doc(
 			{
@@ -111,5 +124,6 @@ def sync_builtin_tools() -> None:
 				"import_path": f"frappe.ai.tools.builtins.{builtin.name}",
 				"description": builtin.description,
 				"is_system_generated": 1,
+				"requires_confirmation": int(builtin.requires_confirmation),
 			}
 		).insert()

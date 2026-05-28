@@ -72,6 +72,7 @@ def _build_tool(doc: AITool, parameters: dict[str, Any], func: Any) -> Tool:
 		description=doc.description,
 		parameters=parameters,
 		func=func,
+		requires_confirmation=bool(doc.requires_confirmation),
 	)
 
 

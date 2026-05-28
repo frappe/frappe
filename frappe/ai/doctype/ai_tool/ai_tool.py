@@ -30,6 +30,7 @@ class AITool(Document):
 		import_path: DF.Data | None
 		is_system_generated: DF.Check
 		kind: DF.Literal["Module", "Script"]
+		requires_confirmation: DF.Check
 		slug: DF.Data
 		summary: DF.SmallText | None
 		title: DF.Data

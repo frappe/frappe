@@ -28,6 +28,8 @@ class Tool:
 	description: str
 	parameters: dict[str, Any]
 	func: Callable[..., Any]
+	requires_confirmation: bool = False
+	confirm_prompt: Callable[[dict[str, Any]], str] | None = None
 
 	def __post_init__(self) -> None:
 		self._validated = validate_call(config=ConfigDict(arbitrary_types_allowed=True))(self.func)
@@ -51,6 +53,8 @@ def tool(
 	*,
 	name: str | None = None,
 	description: str | None = None,
+	requires_confirmation: bool = False,
+	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
 ) -> Tool | Callable[[Callable[..., Any]], Tool]:
 	def wrap(f: Callable[..., Any]) -> Tool:
 		if not callable(f):
@@ -60,6 +64,8 @@ def tool(
 			description=description or (inspect.getdoc(f) or "").strip(),
 			parameters=build_schema(f),
 			func=f,
+			requires_confirmation=requires_confirmation,
+			confirm_prompt=confirm_prompt,
 		)
 
 	return wrap(func) if func is not None else wrap

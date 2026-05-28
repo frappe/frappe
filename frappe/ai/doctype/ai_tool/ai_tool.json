@@ -11,6 +11,7 @@
   "column_break_meta",
   "kind",
   "enabled",
+  "requires_confirmation",
   "is_system_generated",
   "section_break_description",
   "description",
@@ -57,6 +58,12 @@
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Enabled"
+  },
+  {
+   "description": "Pause the run and ask the user to approve each call before this tool executes.",
+   "fieldname": "requires_confirmation",
+   "fieldtype": "Check",
+   "label": "Requires Confirmation"
   },
   {
    "description": "Tools created by Frappe and protected from deletion.",

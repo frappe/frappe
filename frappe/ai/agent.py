@@ -140,9 +140,23 @@ class Agent:
 			raise ValueError("No questions awaiting an answer in the provided messages")
 
 		for call in pending:
-			content = _serialize_tool_result(answers.get(call.id))
+			answer = answers.get(call.id)
+			tool = self._tools_by_name.get(call.name)
+			if tool is not None and tool.requires_confirmation:
+				content = self._resolve_confirmation(call, answer)
+			else:
+				content = _serialize_tool_result(answer)
 			messages.append({"role": "tool", "tool_call_id": call.id, "content": content})
 		return messages
+
+	def _resolve_confirmation(self, call: ToolCall, answer: Any) -> str:
+		"""Run the tool if the user approved; otherwise return a denial message for the LLM."""
+		if answer == "Approve":
+			result = self._run_tool(call)
+			return _serialize_tool_result(result)
+		if answer == "Deny":
+			return json.dumps({"error": "User denied this tool call."})
+		return json.dumps({"error": f"User denied this tool call. Note: {answer!r}"})
 
 	def _loop(
 		self, messages: list[dict[str, Any]], executed_calls: list[ToolCall] | None = None
@@ -281,10 +295,18 @@ class Agent:
 		return list(input)
 
 	def _invoke(self, call: ToolCall) -> Any:
-		"""Run a tool and return its raw result (a Question signals a pause)."""
+		"""Run a tool and return its raw result. A Question (returned or synthesized for
+		`requires_confirmation` tools) signals a pause."""
 		tool = self._tools_by_name.get(call.name)
 		if tool is None:
 			return json.dumps({"error": f"Unknown tool: {call.name!r}"})
+		if tool.requires_confirmation:
+			return _confirmation_question(call, tool)
+		return self._run_tool(call)
+
+	def _run_tool(self, call: ToolCall) -> Any:
+		"""Invoke the tool, returning its result or a serialized error message."""
+		tool = self._tools_by_name[call.name]
 		try:
 			return tool(**call.arguments)
 		except Exception as e:
@@ -321,6 +343,20 @@ def _assistant_message(response: ChatResponse) -> dict[str, Any]:
 			for call in response.tool_calls
 		]
 	return message
+
+
+def _confirmation_question(call: ToolCall, tool: Tool) -> Question:
+	"""Build the approval prompt shown to the user for a `requires_confirmation` tool call.
+	Uses the tool's `confirm_prompt` for a plain-English summary, falling back to a JSON dump."""
+	if tool.confirm_prompt:
+		body = tool.confirm_prompt(call.arguments)
+	else:
+		body = json.dumps(call.arguments, indent=2, default=str)
+	return Question(
+		prompt=f"Approve `{call.name}`?\n\n{body}",
+		options=["Approve", "Deny"],
+		allow_other=False,
+	)
 
 
 def _serialize_tool_result(result: Any) -> str:
