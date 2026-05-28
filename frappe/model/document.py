@@ -420,7 +420,18 @@ class DocsCollection[T]:
 		return new_doc(self._doctype, **kwargs)
 
 
-class Document(BaseDocument):
+class _DocumentMeta(type):
+	def __subclasscheck__(cls, sub):
+		# Resolve lazy controller proxies (see frappe.utils.lazy_controller) so
+		# `issubclass(LazyToDo, Document)` returns True without forcing an import
+		# of every controller at module load time.
+		resolve = getattr(type(sub), "_resolve", None)
+		if resolve is not None:
+			sub = resolve(sub)
+		return super().__subclasscheck__(sub)
+
+
+class Document(BaseDocument, metaclass=_DocumentMeta):
 	"""All controllers inherit from `Document`."""
 
 	_DOCTYPE_NAME: ClassVar[str | None] = None
