@@ -58,8 +58,8 @@ NAVIGATION:
 - Breadcrumbs: {items: [{label: "string", route: "string"}]}
 - Tabs: {tabs: [{label: "string"}]}
 - TabButtons: {buttons: [{label: "string", value: "string"}]}
-- Sidebar: {header: {title: "string", subtitle: "string"}, sections: [{label: "string", items: [{label: "string", icon: "string", to: "string"}]}]}
-
+- Sidebar: {header: {title: "string", subtitle: "string"}, sections: [{label: "string", items: [{label: "string", icon: "{{ getIcon('icon-name') }}", to: "string"}]}]}
+  # icon-name must be a valid kebab-case lucide icon from https://lucide.dev/icons
 DATA DISPLAY:
 - ListView: {columns: [{label: "string", key: "string", width: number}], rows: [{key: value}], rowKey: "string"}
 - NumberChart: {config: {title: "string", value: number, prefix: "string", delta: number}}

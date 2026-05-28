@@ -10,6 +10,7 @@ class ModelRegistry:
 			"label": "Claude Sonnet 4.6",
 			"vision_capable": True,
 		},
+		{"id": "openrouter/anthropic/claude-opus-4.6", "label": "Claude Opus 4.6", "vision_capable": True},
 		{"id": "openrouter/anthropic/claude-haiku-4-6", "label": "Claude Haiku 4.6", "vision_capable": True},
 		{"id": "openrouter/google/gemini-3.1-pro-preview", "label": "Gemini 3.1 Pro", "vision_capable": True},
 		{"id": "openrouter/google/gemini-3-flash-preview", "label": "Gemini 3 Flash", "vision_capable": True},
