@@ -13,7 +13,7 @@
 			</button>
 		</div>
 
-		<div ref="messagesEl" class="no-scrollbar my-2 flex-1 space-y-4 overflow-y-auto px-4 py-4">
+		<div ref="messagesEl" class="no-scrollbar flex-1 space-y-4 overflow-y-auto px-4 py-4">
 			<div
 				v-if="!messages.length"
 				class="flex h-full flex-col items-center justify-center gap-2 pb-8 text-center"
@@ -24,7 +24,9 @@
 
 			<template v-for="msg in messages" :key="msg.id">
 				<div v-if="msg.role === 'user'" class="flex flex-col items-end">
-					<div class="w-fit max-w-[88%] rounded-md border px-3 py-2 text-sm text-ink-gray-8">
+					<div
+						class="w-fit max-w-[88%] rounded-md border bg-surface-gray-1 px-3 py-2 text-sm text-ink-gray-8"
+					>
 						<div class="whitespace-pre-wrap break-words">{{ msg.content }}</div>
 					</div>
 				</div>
