@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import frappe
@@ -85,6 +86,72 @@ def execute(code: str) -> Any:
 	return exec_globals.get("result")
 
 
+@tool(
+	requires_confirmation=True,
+	confirm_prompt=lambda args: (
+		f"Create new {args.get('doctype', '?')}:\n\n"
+		f"{json.dumps(args.get('values') or {}, indent=2, default=str)}"
+	),
+)
+def create(doctype: str, values: dict[str, Any]) -> dict[str, Any]:
+	"""Create a new record of `doctype` with the given field values.
+
+	Use introspect() first to discover required fields. Returns the new record's
+	name. Respects the user's create permission and the doctype's validation.
+	"""
+	if not frappe.has_permission(doctype, "create"):
+		frappe.throw(
+			_("You do not have permission to create {0}.").format(doctype), frappe.PermissionError
+		)
+	doc = frappe.new_doc(doctype)
+	doc.update(values or {})
+	doc.insert()
+	return {"name": doc.name, "doctype": doctype}
+
+
+@tool(
+	requires_confirmation=True,
+	confirm_prompt=lambda args: (
+		f"Update {args.get('doctype', '?')} {args.get('name', '?')}:\n\n"
+		f"{json.dumps(args.get('values') or {}, indent=2, default=str)}"
+	),
+)
+def update(doctype: str, name: str, values: dict[str, Any]) -> dict[str, Any]:
+	"""Update fields on an existing record.
+
+	`values` is a dict of fieldname → new value. Runs the doctype's full validation.
+	Respects the user's write permission on the specific record.
+	"""
+	if not frappe.has_permission(doctype, "write", name):
+		frappe.throw(
+			_("You do not have permission to update {0} {1}.").format(doctype, name),
+			frappe.PermissionError,
+		)
+	doc = frappe.get_doc(doctype, name)
+	doc.update(values or {})
+	doc.save()
+	return {"name": doc.name, "doctype": doctype}
+
+
+@tool(
+	requires_confirmation=True,
+	confirm_prompt=lambda args: f"Delete {args.get('doctype', '?')} {args.get('name', '?')}",
+)
+def delete(doctype: str, name: str) -> dict[str, Any]:
+	"""Delete a record.
+
+	Respects the user's delete permission on the specific record. Fails if any other
+	record links to this one (Frappe's link integrity check).
+	"""
+	if not frappe.has_permission(doctype, "delete", name):
+		frappe.throw(
+			_("You do not have permission to delete {0} {1}.").format(doctype, name),
+			frappe.PermissionError,
+		)
+	frappe.delete_doc(doctype, name, ignore_missing=False)
+	return {"deleted": True, "doctype": doctype, "name": name}
+
+
 @tool
 def ask_user(prompt: str, options: list[str] | None = None, multi_select: bool = False) -> Question:
 	"""Ask the user a question and pause until they answer.
@@ -95,7 +162,7 @@ def ask_user(prompt: str, options: list[str] | None = None, multi_select: bool =
 	return Question(prompt=prompt, options=options or [], multi_select=multi_select)
 
 
-BUILTIN_TOOLS: list[Tool] = [introspect, query, execute, ask_user]
+BUILTIN_TOOLS: list[Tool] = [introspect, query, create, update, delete, execute, ask_user]
 
 
 def sync_builtin_tools() -> None:

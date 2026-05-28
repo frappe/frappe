@@ -6,10 +6,13 @@ from frappe.ai.agent import Question
 from frappe.ai.tools.builtins import (
 	BUILTIN_TOOLS,
 	ask_user,
+	create,
+	delete,
 	execute,
 	introspect,
 	query,
 	sync_builtin_tools,
+	update,
 )
 from frappe.tests import IntegrationTestCase
 
@@ -81,6 +84,90 @@ class TestExecute(IntegrationTestCase):
 	def test_imports_are_blocked(self):
 		with self.assertRaises(Exception):
 			execute(code="import os\nresult = os.getcwd()")
+
+
+class TestCreate(IntegrationTestCase):
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_requires_confirmation(self):
+		self.assertTrue(create.requires_confirmation)
+
+	def test_creates_doc_with_values(self):
+		result = create(doctype="ToDo", values={"description": "ai create probe"})
+
+		self.assertEqual(result["doctype"], "ToDo")
+		self.assertTrue(frappe.db.exists("ToDo", result["name"]))
+		self.assertEqual(frappe.db.get_value("ToDo", result["name"], "description"), "ai create probe")
+
+	def test_permission_denied_raises(self):
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			create(doctype="User", values={"email": "x@example.com"})
+
+	def test_missing_required_field_raises(self):
+		# ToDo.description is mandatory; the doctype's own validation should fire.
+		with self.assertRaises(frappe.MandatoryError):
+			create(doctype="ToDo", values={})
+
+
+class TestUpdate(IntegrationTestCase):
+	def setUp(self):
+		self.todo = frappe.get_doc({"doctype": "ToDo", "description": "ai update probe"}).insert()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_requires_confirmation(self):
+		self.assertTrue(update.requires_confirmation)
+
+	def test_modifies_doc_fields(self):
+		update(doctype="ToDo", name=self.todo.name, values={"status": "Closed"})
+
+		self.assertEqual(frappe.db.get_value("ToDo", self.todo.name, "status"), "Closed")
+
+	def test_runs_doctype_validation(self):
+		# Status is a Select field with a fixed set; an invalid value should error.
+		with self.assertRaises(frappe.ValidationError):
+			update(doctype="ToDo", name=self.todo.name, values={"status": "Not A Real Status"})
+
+	def test_missing_record_raises(self):
+		with self.assertRaises(frappe.DoesNotExistError):
+			update(doctype="ToDo", name="does-not-exist", values={"status": "Closed"})
+
+	def test_permission_denied_raises(self):
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			update(doctype="ToDo", name=self.todo.name, values={"status": "Closed"})
+
+
+class TestDelete(IntegrationTestCase):
+	def setUp(self):
+		self.todo = frappe.get_doc({"doctype": "ToDo", "description": "ai delete probe"}).insert()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_requires_confirmation(self):
+		self.assertTrue(delete.requires_confirmation)
+
+	def test_removes_doc(self):
+		result = delete(doctype="ToDo", name=self.todo.name)
+
+		self.assertTrue(result["deleted"])
+		self.assertFalse(frappe.db.exists("ToDo", self.todo.name))
+
+	def test_missing_record_raises(self):
+		with self.assertRaises(frappe.DoesNotExistError):
+			delete(doctype="ToDo", name="does-not-exist")
+
+	def test_permission_denied_raises(self):
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			delete(doctype="ToDo", name=self.todo.name)
 
 
 class TestAskUser(IntegrationTestCase):
