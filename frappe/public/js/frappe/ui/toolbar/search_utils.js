@@ -743,7 +743,7 @@ frappe.search.open_awesomebar_from_global_search_shortcut = function (e) {
 		dlg.search_dialog.hide();
 		$("#navbar-search").val(keywords);
 	}
-	$("#navbar-modal-search").click();
+	frappe.app.awesome_bar.open();
 	if (e) {
 		e.preventDefault();
 	}

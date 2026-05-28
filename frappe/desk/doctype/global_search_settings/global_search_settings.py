@@ -9,6 +9,8 @@ from frappe.model.document import Document
 
 
 class GlobalSearchSettings(Document):
+	_DOCTYPE_NAME = "Global Search Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

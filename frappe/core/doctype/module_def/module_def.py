@@ -12,6 +12,8 @@ from frappe.modules.export_file import delete_folder
 
 
 class ModuleDef(Document):
+	_DOCTYPE_NAME = "Module Def"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

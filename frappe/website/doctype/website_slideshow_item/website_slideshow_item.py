@@ -8,6 +8,8 @@ from frappe.model.document import Document
 
 
 class WebsiteSlideshowItem(Document):
+	_DOCTYPE_NAME = "Website Slideshow Item"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

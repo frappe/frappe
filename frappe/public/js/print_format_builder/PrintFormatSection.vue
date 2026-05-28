@@ -215,7 +215,7 @@ function set_column_align(column, value) {
 }
 
 .print-format-section {
-	background-color: white;
+	background-color: var(--fg-color);
 	border: 1px solid var(--dark-border-color);
 	border-radius: var(--border-radius);
 	overflow: hidden;
@@ -276,7 +276,7 @@ function set_column_align(column, value) {
 .input-section-label:focus {
 	border-color: var(--gray-400);
 	outline: none;
-	background-color: white;
+	background-color: var(--fg-color);
 }
 
 .input-section-label::placeholder {
@@ -325,10 +325,10 @@ function set_column_align(column, value) {
 }
 
 .column-btn.active {
-	background: white;
+	background: var(--fg-color);
 	color: var(--text-color);
 	font-weight: 600;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--shadow-xs);
 }
 
 .toolbar-btn {
@@ -406,9 +406,9 @@ function set_column_align(column, value) {
 }
 
 .col-align-btn.active {
-	background: white;
+	background: var(--fg-color);
 	color: var(--text-color);
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--shadow-xs);
 }
 
 .column-divider {

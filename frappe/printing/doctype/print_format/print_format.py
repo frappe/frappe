@@ -12,6 +12,8 @@ from frappe.utils.print_format_generator import download_pdf, get_html
 
 
 class PrintFormat(Document):
+	_DOCTYPE_NAME = "Print Format"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

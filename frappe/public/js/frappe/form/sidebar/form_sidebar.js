@@ -83,7 +83,6 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	setup_editable_title() {
-		// setup editable title
 		let form_sidebar_text = $(this.sidebar).find(".form-stats-likes .form-title-text");
 		this.toolbar.setup_editable_title(form_sidebar_text);
 	}

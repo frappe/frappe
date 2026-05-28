@@ -28,6 +28,8 @@ from frappe.utils import cint
 
 
 class CustomizeForm(Document):
+	_DOCTYPE_NAME = "Customize Form"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

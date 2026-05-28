@@ -48,6 +48,8 @@ if TYPE_CHECKING:
 
 
 class Event(Document):
+	_DOCTYPE_NAME = "Event"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

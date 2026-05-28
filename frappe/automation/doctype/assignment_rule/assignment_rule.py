@@ -13,6 +13,8 @@ from frappe.utils.data import comma_and
 
 
 class AssignmentRule(Document):
+	_DOCTYPE_NAME = "Assignment Rule"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

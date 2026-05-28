@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class DocTypeState(Document):
+	_DOCTYPE_NAME = "DocType State"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

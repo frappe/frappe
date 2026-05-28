@@ -12,6 +12,8 @@ from frappe.utils.caching import http_cache
 
 
 class NotificationLog(Document):
+	_DOCTYPE_NAME = "Notification Log"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

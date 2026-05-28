@@ -13,6 +13,8 @@ from frappe.utils import cstr, has_gravatar
 
 
 class Contact(Document):
+	_DOCTYPE_NAME = "Contact"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

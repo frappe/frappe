@@ -34,30 +34,8 @@
     z-index: 1030;
 }
 
-.desktop-search-wrapper{
-    flex: 1;
-    position: relative;
-}
-
-.desktop-search-wrapper span {
-    color: var(--text-light);
-}
-
-.desktop-navbar-modal-search {
-    background-color: var(--control-bg);
-    border-radius: var(--border-radius-sm);
-    height: 32px;
-    padding: 0px 10px;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    margin-right: 0px;
-}
 #brand-logo{
     width: auto;
-}
-.desktop-search-icon > svg {
-    stroke: var(--text-light);
 }
 
 .desktop-container{
@@ -482,9 +460,6 @@
 [data-theme="dark"] .desktop-edit:hover{
 	opacity: 0.8;
 	transition: opacity 0.3s;
-}
-.desktop-navbar-modal-search:hover{
-    outline: 1px solid var(--surface-gray-3);
 }
 .desktop-pane{
     position: absolute;

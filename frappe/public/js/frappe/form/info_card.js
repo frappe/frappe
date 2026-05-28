@@ -58,7 +58,8 @@ export class InfoCard {
 				me.card.toggle();
 			});
 		$(document).on("click", function (e) {
-			if (!e.originalEvent.composedPath().includes(me.label_area)) {
+			const path = e.originalEvent?.composedPath();
+			if (!path || !path.includes(me.label_area)) {
 				me.card.hide();
 			}
 		});

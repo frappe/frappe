@@ -26,6 +26,8 @@ REPORT_TIMEOUT = 25 * 60
 
 
 class PreparedReport(Document):
+	_DOCTYPE_NAME = "Prepared Report"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

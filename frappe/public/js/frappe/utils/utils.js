@@ -1467,9 +1467,24 @@ Object.assign(frappe.utils, {
 		return `<img loading="lazy" src="https://flagcdn.com/${country_code}.svg" width="20" height="15">`;
 	},
 
-	is_emoji(emoji_name) {
-		let emojiList = gemoji.map((emoji) => emoji.emoji);
-		return emojiList.includes(emoji_name);
+	is_emoji(str) {
+		return /^\p{Extended_Pictographic}(‍\p{Extended_Pictographic}|️|⃣)*$/u.test(str);
+	},
+
+	get_emojis() {
+		const ranges = [
+			[0x1f600, 0x1f64f], // Emoticons
+			[0x1f300, 0x1f5ff], // Misc Symbols and Pictographs
+			[0x1f680, 0x1f6ff], // Transport and Map
+			[0x1f900, 0x1f9ff], // Supplemental Symbols and Pictographs
+			[0x1fa00, 0x1fa6f], // Chess Symbols
+			[0x1fa70, 0x1faff], // Symbols and Pictographs Extended-A
+			[0x2600, 0x26ff], // Misc Symbols
+			[0x2700, 0x27bf], // Dingbats
+		];
+		return ranges.flatMap(([start, end]) =>
+			Array.from({ length: end - start + 1 }, (_, i) => String.fromCodePoint(start + i))
+		);
 	},
 
 	get_desktop_icon(icon_name, variant) {

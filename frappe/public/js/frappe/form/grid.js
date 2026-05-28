@@ -247,7 +247,7 @@ export default class Grid {
 
 			// toggle "Add row" button
 			this.wrapper
-				.find(".grid-add-row")
+				.find(".grid-add-row, .grid-add-multiple-rows")
 				.toggleClass(
 					"hidden",
 					num_selected_rows > 0 ||
@@ -269,20 +269,24 @@ export default class Grid {
 			this.refresh_remove_rows_button();
 			this.refresh_edit_rows_button();
 			this.refresh_duplicate_rows_button();
-			this.update_selection_banner(num_selected_rows);
+			this.update_selection_banner();
 		});
 	}
 
-	update_selection_banner(count) {
+	update_selection_banner() {
+		const num_selected_rows = this.get_selected_children().length;
+
 		let $container = this.wrapper.find(".form-grid-container");
 		let $toast = this.wrapper.find("> .grid-selection-toast");
-		if (count > 0) {
+		if (num_selected_rows > 0) {
 			if (!$toast.length) {
 				$toast = $(
 					`<div class="grid-selection-toast"><span class="grid-selection-toast__message"></span></div>`
 				).insertAfter($container);
 			}
-			$toast.find(".grid-selection-toast__message").text(__("{0} rows selected", [count]));
+			$toast
+				.find(".grid-selection-toast__message")
+				.text(__("{0} row(s) selected", [num_selected_rows]));
 			$toast.show();
 		} else if ($toast.length) {
 			$toast.hide();
@@ -315,6 +319,7 @@ export default class Grid {
 			this.add_new_row(null, null, false, doc, false);
 			this.check_range(doc.name, doc.name, false);
 		});
+		this.update_selection_banner();
 	}
 
 	delete_rows() {
@@ -582,6 +587,7 @@ export default class Grid {
 		this.refresh_duplicate_rows_button();
 
 		this.wrapper.trigger("change");
+		this.update_selection_banner();
 	}
 
 	render_result_rows($rows) {
@@ -1369,7 +1375,9 @@ export default class Grid {
 		if (user_settings && user_settings[this.doctype] && user_settings[this.doctype].length) {
 			this.user_defined_columns = user_settings[this.doctype]
 				.map((row) => {
-					let column = frappe.meta.get_docfield(this.doctype, row.fieldname);
+					let column =
+						this.docfields?.find((d) => d.fieldname === row.fieldname) ||
+						frappe.meta.get_docfield(this.doctype, row.fieldname);
 
 					if (column) {
 						column.in_list_view = 1;

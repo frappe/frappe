@@ -9,6 +9,8 @@ from frappe.utils import cint
 
 
 class Workflow(Document):
+	_DOCTYPE_NAME = "Workflow"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

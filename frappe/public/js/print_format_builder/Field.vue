@@ -65,8 +65,7 @@
 				</span>
 				<span
 					v-if="!df.table_columns || !df.table_columns.length"
-					class="text-muted"
-					style="font-size: var(--text-xs)"
+					class="text-muted no-columns-hint"
 				>
 					{{ __("No columns configured") }}
 				</span>
@@ -291,7 +290,7 @@ watch(
 }
 
 .field-actions .btn-icon:hover {
-	background-color: white;
+	background-color: var(--fg-color);
 }
 
 .custom-html {
@@ -327,7 +326,7 @@ watch(
 
 .table-col-chip {
 	display: inline-block;
-	background: white;
+	background: var(--fg-color);
 	border: 1px solid var(--gray-300);
 	border-radius: var(--border-radius-sm);
 	padding: 1px 6px;
@@ -354,7 +353,7 @@ watch(
 	font-size: var(--text-xs);
 	font-weight: 500;
 	color: var(--text-muted);
-	background: var(--gray-50, #f8f8f8);
+	background: var(--gray-50);
 	border: 1px solid var(--gray-200);
 	border-radius: var(--border-radius);
 	padding: 3px 8px;
@@ -373,5 +372,9 @@ watch(
 .configure-columns-btn:focus {
 	outline: none;
 	box-shadow: none;
+}
+
+.no-columns-hint {
+	font-size: var(--text-xs);
 }
 </style>
