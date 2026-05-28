@@ -560,12 +560,19 @@ export default class ChartWidget extends Widget {
 		return frappe.xcall(method, args, undefined, {
 			silent: true,
 			error: (err) => {
-				const message = JSON.parse(JSON.parse(err._server_messages)[0])?.message;
+				let message;
+				try {
+					message = JSON.parse(JSON.parse(err._server_messages)[0])?.message;
+				} catch (_) {
+					// 500 or malformed response
+				}
 				this.chart_wrapper.hide();
 				this.loading.hide();
 				this.$summary && this.$summary.hide();
 				this.empty.hide();
-				this.error_state.text(message);
+				this.error_state.text(
+					message || __("Unable to generate chart data. Check Error Log for details.")
+				);
 				this.error_state.show();
 			},
 		});

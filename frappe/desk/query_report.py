@@ -232,9 +232,8 @@ def run_for_chart(
 	except frappe.ValidationError:
 		raise
 	except Exception:
-		frappe.throw(
-			_("Unable to generate chart data for this report. Please check the filters or try again.")
-		)
+		frappe.log_error(frappe.get_traceback(), f"Dashboard Chart Error: {report_name}")
+		frappe.throw(_("Unable to generate chart data. Check Error Log for details."))
 
 
 @frappe.whitelist()
