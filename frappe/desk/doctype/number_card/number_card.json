@@ -229,7 +229,11 @@
   }
  ],
  "links": [],
+<<<<<<< HEAD
  "modified": "2025-09-17 21:00:11.351605",
+=======
+ "modified": "2026-05-28 23:42:59.319809",
+>>>>>>> 56ceb84858 (fix: aggregate_function_based_on mandatory_depends_on missing type check)
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
