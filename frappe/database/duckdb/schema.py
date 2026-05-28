@@ -90,6 +90,8 @@ class DuckDBTable(DBTable):
 			if self.meta.get("track_seen"):
 				fields.append({"fieldname": "_seen", "fieldtype": "Text"})
 
+		# amended_from
+		fields.append({"fieldname": "amended_from", "fieldtype": "Data"})
 		for field in fields:
 			if field.get("is_virtual"):
 				continue
@@ -112,6 +114,7 @@ class DuckDBTable(DBTable):
 
 		ret = []
 
+		# maintain field order from mariadb
 		column_order_in_db = frappe.db.sql(
 			f"select column_name from information_schema.columns where table_schema = '{frappe.conf.db_name}' and table_name ='{self.table_name}' order by ordinal_position;",
 			pluck="column_name",

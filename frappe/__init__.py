@@ -288,7 +288,7 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 	:param db_name: Optional. Will use from `site_config.json`.
 	:param set_admin_as_user: Set Administrator as current user.
 	"""
-	from frappe.database import get_db, get_duckdb
+	from frappe.database import get_db
 
 	if site:
 		init(site)
@@ -305,9 +305,13 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 		cur_db_name=local.conf.db_name or db_name,
 	)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 	local.duckdb = get_duckdb(conf.db_name)
+=======
+	local.duckdb = None
+>>>>>>> ce0663b8a2 (refactor: only open connection when needed)
 
 >>>>>>> 7794ae2db4 (refactor: connection and table creation)
 	if set_admin_as_user:
