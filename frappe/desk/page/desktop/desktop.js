@@ -801,28 +801,35 @@ class DesktopIconGrid {
 				},
 				onEnd: function (evt) {
 					if (frappe.desktop_utils.in_folder_creation) return;
-					if (evt.oldIndex !== evt.newIndex) {
-						if (evt.to.parentElement == evt.from.parentElement) {
+					const is_same_container = evt.to.parentElement == evt.from.parentElement;
+					if (is_same_container) {
+						if (evt.oldIndex !== evt.newIndex) {
 							let reordered_icons = me.sortable.toArray();
 							let filters = {
 								parent_icon: me.parent_icon?.icon_data.label || "" || null,
 							};
 							me.reorder_icons(reordered_icons, filters);
 							me.parent_icon?.render_folder_thumbnail();
-						} else {
-							let from = $(evt.from.parentElement);
-							let to = $(evt.to.parentElement);
-							let title = $(evt.item).find(".icon-title").text();
-							let selected_icon = get_desktop_icon_by_label(title);
-							if ($(to.get(0).parentElement)) {
-								me.reorder_icons(me.sortable.toArray());
-								me.reorder_icons(
-									frappe.pages[
-										"desktop"
-									].desktop_page.icon_grid.sortable.toArray()
-								);
-								selected_icon.idx = evt.newIndex;
-								selected_icon.parent_icon = null;
+						}
+					} else {
+						let title = $(evt.item).find(".icon-title").text();
+						let selected_icon = get_desktop_icon_by_label(title);
+						let to = $(evt.to.parentElement);
+						if ($(to.get(0).parentElement)) {
+							me.reorder_icons(me.sortable.toArray());
+							me.reorder_icons(
+								frappe.pages["desktop"].desktop_page.icon_grid.sortable.toArray()
+							);
+							selected_icon.idx = evt.newIndex;
+							selected_icon.parent_icon = null;
+
+							if (me.parent_icon) {
+								me.parent_icon.icon_data.child_icons =
+									me.parent_icon.icon_data.child_icons.filter(
+										(c) => c.label !== title
+									);
+								me.parent_icon.child_icons = me.parent_icon.get_child_icons_data();
+								me.parent_icon.render_folder_thumbnail();
 							}
 						}
 					}
@@ -1072,20 +1079,16 @@ class DesktopIcon {
 	}
 
 	render_folder_thumbnail() {
-		if (this.icon_type == "Folder") {
-			if (!this.folder_wrapper) this.folder_wrapper = this.icon.find(".icon-container");
-			this.folder_wrapper.html("");
-			this.folder_grid = new DesktopIconGrid({
-				wrapper: this.folder_wrapper,
-				icons_data: this.child_icons,
-				in_folder: true,
-				in_modal: false,
-				no_dragging: true,
-			});
-			if (this.icon_type == "App") {
-				this.folder_wrapper.addClass("folder-icon");
-			}
-		}
+		if (this.icon_type != "Folder") return;
+		if (!this.folder_wrapper) this.folder_wrapper = this.icon.find(".icon-container");
+		this.folder_wrapper.html("");
+		this.folder_grid = new DesktopIconGrid({
+			wrapper: this.folder_wrapper,
+			icons_data: this.child_icons.slice(0, 4),
+			row_size: 2,
+			in_folder: true,
+			no_dragging: true,
+		});
 	}
 
 	setup_dragging() {

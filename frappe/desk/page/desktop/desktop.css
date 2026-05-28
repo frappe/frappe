@@ -273,6 +273,8 @@
     & .icons{
         gap: 2.1px;
         margin-top: 0px;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
         & .desktop-icon {
             width: fit-content;
             height: fit-content;
