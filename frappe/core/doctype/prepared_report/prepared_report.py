@@ -140,10 +140,20 @@ def generate_report(prepared_report):
 
 		create_json_gz_file(result, instance.doctype, instance.name, instance.report_name)
 
-		if report.generate_csv:
-			enqueue_json_to_csv_conversion(prepared_report)
+		peak_mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+		report_end = frappe.utils.now()
+		instance.db_set(
+			{
+				"status": "Completed",
+				"report_end_time": report_end,
+				"peak_memory_usage": peak_mem,
+			},
+			update_modified=False,
+			commit=True,
+		)
 
-		instance.status = "Completed"
+		if report.get("generate_csv"):
+			enqueue_json_to_csv_conversion(prepared_report)
 
 		frappe.get_doc(
 			{
@@ -161,12 +171,7 @@ def generate_report(prepared_report):
 		_save_error(instance, error=frappe.get_traceback(with_context=True))
 		return
 
-	instance.reload()
-	instance.status = "Completed"
-	instance.report_end_time = frappe.utils.now()
-	instance.peak_memory_usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-	add_data_to_monitor(peak_memory_usage=instance.peak_memory_usage)
-	instance.save(ignore_permissions=True)
+	add_data_to_monitor(peak_memory_usage=peak_mem)
 
 	frappe.publish_realtime(
 		"report_generated",

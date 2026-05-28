@@ -187,6 +187,7 @@ class TestRQJob(IntegrationTestCase):
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
 	def test_clear_failed_jobs(self):
+		remove_failed_jobs()  # sanitize prior to test
 		limit = 10
 		update_site_config("rq_failed_jobs_limit", limit)
 
