@@ -55,7 +55,7 @@
    "options": "Count\nSum\nAverage\nMinimum\nMaximum"
   },
   {
-   "depends_on": "eval: doc.type === 'Document Type' && doc.function !== 'Count'",
+   "depends_on": "eval: doc.type === 'Document Type' &&  doc.function !== 'Count'",
    "fieldname": "aggregate_function_based_on",
    "fieldtype": "Select",
    "label": "Aggregate Function Based On",
@@ -229,7 +229,7 @@
   }
  ],
  "links": [],
- "modified": "2026-05-28 23:42:59.319809",
+ "modified": "2026-05-29 02:13:20.933689",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
