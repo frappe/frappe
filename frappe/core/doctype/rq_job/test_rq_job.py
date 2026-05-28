@@ -8,7 +8,12 @@ from rq import exceptions as rq_exc
 from rq.job import Job
 
 import frappe
-from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
+from frappe.core.doctype.rq_job.rq_job import (
+	RQJob,
+	get_all_queued_jobs,
+	remove_failed_jobs,
+	stop_job,
+)
 from frappe.installer import update_site_config
 from frappe.tests import IntegrationTestCase, timeout
 from frappe.utils import cstr, execute_in_shell
@@ -28,8 +33,8 @@ class TestRQJob(IntegrationTestCase):
 
 	def setUp(self) -> None:
 		# Cleanup all pending jobs
-		for job in frappe.get_all("RQ Job", {"status": "queued"}):
-			frappe.get_doc("RQ Job", job.name).cancel()
+		for job in get_all_queued_jobs():
+			job.cancel()
 		return super().setUp()
 
 	def check_status(self, job: Job, status, wait=True):
@@ -193,6 +198,21 @@ class TestRQJob(IntegrationTestCase):
 		jobs = [frappe.enqueue(method=self.BG_JOB, queue="short", fail=True) for _ in range(limit * 2)]
 		self.check_status(jobs[-1], "failed")
 		self.assertLessEqual(RQJob.get_count(filters=[["RQ Job", "status", "=", "failed"]]), limit * 1.2)
+
+	def test_get_list_filtering_by_name_and_job_name(self):
+		# Creating multiple test jobs
+		job1 = frappe.enqueue(method=self.BG_JOB, queue="short", job_id="test_filter_1")
+		job2 = frappe.enqueue(method="frappe.utils.ping", queue="short", job_id="test_filter_2")
+
+		# filtering by name (ID)
+		jobs = frappe.get_list("RQ Job", filters={"name": job1.id})
+		self.assertEqual(len(jobs), 1)
+		self.assertEqual(jobs[0].name, job1.id)
+
+		# filtering by job_name
+		jobs = frappe.get_list("RQ Job", filters={"job_name": "frappe.utils.ping"})
+		self.assertTrue(any(j.name == job2.id for j in jobs))
+		self.assertTrue(all(j.job_name == "frappe.utils.ping" for j in jobs))
 
 
 def test_func(fail=False, sleep=0):

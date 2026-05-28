@@ -79,18 +79,64 @@ class RQJob(Document):
 
 	@staticmethod
 	def get_list(filters=None, start=0, page_length=20, order_by="creation desc"):
-		matched_job_ids = RQJob.get_matching_job_ids(filters=filters)[start : start + page_length]
-
-		conn = get_redis_conn()
-		jobs = [serialize_job(job) for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn) if job]
+		jobs = RQJob._get_all_jobs(filters)
 
 		order_desc = "desc" in order_by
-		return sorted(jobs, key=lambda j: j.creation, reverse=order_desc)
+		jobs.sort(key=lambda j: j.created_at, reverse=order_desc)
+
+		return [serialize_job(job) for job in jobs[start : start + page_length]]
+
+	@staticmethod
+	def get_count(filters=None) -> int:
+		return len(RQJob._get_all_jobs(filters))
+
+	@staticmethod
+	def _get_all_jobs(filters=None) -> list[Job]:
+		filters = make_filter_dict(filters or [])
+
+		# Optimization: direct ID lookup
+		if name_filter := filters.get("name"):
+			operator, operand = name_filter
+			if operator == "=":
+				try:
+					job = Job.fetch(operand, connection=get_redis_conn())
+					return [job] if for_current_site(job) else []
+				except NoSuchJobError:
+					return []
+
+		matched_job_ids = RQJob.get_matching_job_ids(filters)
+
+		conn = get_redis_conn()
+		jobs = [job for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn) if job]
+
+		exclude_filters = ("queue", "status", "name")
+		remaining_filters = {k: v for k, v in filters.items() if k not in exclude_filters}
+
+		if remaining_filters:
+			jobs = [job for job in jobs if RQJob.matches_filters(job, remaining_filters)]
+
+		return jobs
+
+	@staticmethod
+	def matches_filters(job: Job, filters: dict) -> bool:
+		for fieldname, filter_data in filters.items():
+			operator, operand = filter_data
+			val = None
+
+			if fieldname == "job_name":
+				job_kwargs = job.kwargs.get("kwargs", {})
+				val = job_kwargs.get("job_type") or str(job.kwargs.get("job_name"))
+			elif fieldname == "name":
+				val = job.id
+			else:
+				val = getattr(job, fieldname, job.kwargs.get(fieldname))
+
+			if not compare(val, operator, operand):
+				return False
+		return True
 
 	@staticmethod
 	def get_matching_job_ids(filters) -> list[str]:
-		filters = make_filter_dict(filters or [])
-
 		queues = _eval_filters(filters.get("queue"), QUEUES + get_custom_queues())
 		statuses = _eval_filters(filters.get("status"), JOB_STATUSES)
 
@@ -123,10 +169,6 @@ class RQJob(Document):
 				_("Job is in {0} state and can't be cancelled").format(self.status),
 				title=_("Invalid Operation"),
 			)
-
-	@staticmethod
-	def get_count(filters=None) -> int:
-		return len(RQJob.get_matching_job_ids(filters))
 
 	# None of these methods apply to virtual job doctype, overriden for sanity.
 	@staticmethod
