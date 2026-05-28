@@ -30,7 +30,7 @@
 			<div
 				v-show="store.studioLayout.showLeftPanel"
 				:style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }"
-				class="overflow-auto border-r-[1px] pb-5 hide-scrollbar"
+				class="flex flex-col overflow-auto border-r-[1px] hide-scrollbar"
 			>
 				<PanelResizer
 					:dimension="store.studioLayout.leftPanelWidth"
@@ -39,7 +39,7 @@
 					@resize="(width) => (store.studioLayout.leftPanelWidth = width)"
 				/>
 				<div
-					class="sticky top-0 z-[12] flex justify-between border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
+					class="sticky top-0 z-[12] flex shrink-0 justify-between border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
 				>
 					{{ activeTab }}
 					<IconButton

@@ -1,6 +1,8 @@
 <template>
-	<div class="flex h-full min-h-full flex-col bg-surface-white">
-		<div class="flex items-center justify-between border-b border-outline-gray-1 px-3 py-2.5">
+	<div class="flex flex-1 flex-col overflow-hidden bg-surface-white">
+		<div
+			class="flex shrink-0 items-center justify-between border-b border-outline-gray-1 bg-surface-white px-3 py-2.5"
+		>
 			<div class="text-[11px] leading-4 text-ink-gray-5">Session persists for this page</div>
 			<button
 				v-if="messages.length"
@@ -11,7 +13,7 @@
 			</button>
 		</div>
 
-		<div ref="messagesEl" class="no-scrollbar flex-1 space-y-4 overflow-y-auto px-4 py-4">
+		<div ref="messagesEl" class="no-scrollbar my-2 flex-1 space-y-4 overflow-y-auto px-4 py-4">
 			<div
 				v-if="!messages.length"
 				class="flex h-full flex-col items-center justify-center gap-2 pb-8 text-center"
@@ -38,14 +40,14 @@
 			</p>
 		</div>
 
-		<div class="border-t border-outline-gray-1 p-4">
+		<div class="shrink-0 border-t border-outline-gray-1 bg-surface-white p-4">
 			<ErrorMessage v-if="error" :message="error" class="mb-2" />
 
-			<div v-if="isModifyMode" class="mb-2 flex items-center gap-1.5 rounded bg-surface-gray-2 px-2 py-1">
-				<FeatherIcon name="edit-2" class="h-3 w-3 shrink-0 text-ink-gray-5" />
-				<span class="truncate text-xs text-ink-gray-6">
-					Editing: {{ selectedBlock?.blockName || selectedBlock?.componentName }}
-				</span>
+			<div v-if="isModifyMode" class="mb-2 flex items-center gap-1.5 rounded py-1">
+				<span class="truncate text-xs text-ink-gray-5">Editing:</span>
+				<Badge variant="subtle" size="sm">
+					{{ selectedBlock?.blockName || selectedBlock?.componentName }}
+				</Badge>
 			</div>
 
 			<div class="relative">
@@ -108,7 +110,7 @@
 
 <script lang="ts" setup>
 import { ref, computed, inject, watch, nextTick } from "vue"
-import { ErrorMessage, Button, FeatherIcon, call, createResource, Popover } from "frappe-ui"
+import { ErrorMessage, Button, Badge, FeatherIcon, call, createResource, Popover } from "frappe-ui"
 import { toast } from "vue-sonner"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
@@ -171,7 +173,10 @@ const sessionResource = createResource({
 function scrollToBottom() {
 	nextTick(() => {
 		if (messagesEl.value) {
-			messagesEl.value.scrollIntoView({ block: "end", behavior: "smooth" })
+			messagesEl.value.scrollTo({
+				top: messagesEl.value.scrollHeight,
+				behavior: "smooth",
+			})
 		}
 	})
 }
