@@ -28,6 +28,7 @@ class AITool(Document):
 		description: DF.LongText
 		enabled: DF.Check
 		import_path: DF.Data | None
+		is_system_generated: DF.Check
 		kind: DF.Literal["Module", "Script"]
 		slug: DF.Data
 		summary: DF.SmallText | None
@@ -40,6 +41,38 @@ class AITool(Document):
 		self._validate_kind_fields()
 		if self.kind == "Script":
 			self._validate_code()
+		self._validate_system_generated_immutable()
+
+	def _validate_system_generated_immutable(self):
+		if not self.is_system_generated or self.is_new():
+			return
+		before = frappe.db.get_value("AI Tool", self.name, ["import_path", "kind"], as_dict=True)
+		if before is None:
+			return
+		if before.import_path != self.import_path:
+			frappe.throw(
+				_("Cannot change import path of system-generated tool {0}.").format(self.name),
+				title=_("Protected"),
+			)
+		if before.kind != self.kind:
+			frappe.throw(
+				_("Cannot change kind of system-generated tool {0}.").format(self.name),
+				title=_("Protected"),
+			)
+
+	def on_trash(self):
+		if self.is_system_generated:
+			frappe.throw(
+				_("Cannot delete system-generated tool {0}.").format(self.name),
+				title=_("Protected"),
+			)
+
+	def before_rename(self, old: str, _new: str, _merge: bool = False) -> None:
+		if self.is_system_generated:
+			frappe.throw(
+				_("Cannot rename system-generated tool {0}.").format(old),
+				title=_("Protected"),
+			)
 
 	def to_tool(self):
 		"""Resolve this row into a runtime Tool the Agent can call."""

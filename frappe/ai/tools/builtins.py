@@ -99,6 +99,8 @@ def sync_builtin_tools() -> None:
 	"""Register the builtin tools as AI Tool rows so agents can reference them."""
 	for builtin in BUILTIN_TOOLS:
 		if frappe.db.exists("AI Tool", builtin.name):
+			if not frappe.db.get_value("AI Tool", builtin.name, "is_system_generated"):
+				frappe.db.set_value("AI Tool", builtin.name, "is_system_generated", 1)
 			continue
 		frappe.get_doc(
 			{
@@ -108,5 +110,6 @@ def sync_builtin_tools() -> None:
 				"kind": "Module",
 				"import_path": f"frappe.ai.tools.builtins.{builtin.name}",
 				"description": builtin.description,
+				"is_system_generated": 1,
 			}
 		).insert()

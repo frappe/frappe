@@ -8,6 +8,7 @@
  "field_order": [
   "title",
   "enabled",
+  "is_system_generated",
   "column_break_meta",
   "model",
   "max_iterations",
@@ -32,6 +33,13 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Enabled"
+  },
+  {
+   "description": "Agents created by Frappe and protected from deletion.",
+   "fieldname": "is_system_generated",
+   "fieldtype": "Check",
+   "label": "System Generated",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_meta",

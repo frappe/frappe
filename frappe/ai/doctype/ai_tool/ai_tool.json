@@ -11,6 +11,7 @@
   "column_break_meta",
   "kind",
   "enabled",
+  "is_system_generated",
   "section_break_description",
   "description",
   "summary",
@@ -56,6 +57,13 @@
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Enabled"
+  },
+  {
+   "description": "Tools created by Frappe and protected from deletion.",
+   "fieldname": "is_system_generated",
+   "fieldtype": "Check",
+   "label": "System Generated",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_description",

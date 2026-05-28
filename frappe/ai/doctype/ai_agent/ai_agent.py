@@ -31,11 +31,26 @@ class AIAgent(Document):
 
 		enabled: DF.Check
 		instructions: DF.LongText
+		is_system_generated: DF.Check
 		max_iterations: DF.Int
 		model: DF.Link
 		title: DF.Data
 		tools: DF.TableMultiSelect[AIAgentTool]
 	# end: auto-generated types
+
+	def on_trash(self):
+		if self.is_system_generated:
+			frappe.throw(
+				_("Cannot delete system-generated agent {0}.").format(self.name),
+				title=_("Protected"),
+			)
+
+	def before_rename(self, old: str, _new: str, _merge: bool = False) -> None:
+		if self.is_system_generated:
+			frappe.throw(
+				_("Cannot rename system-generated agent {0}.").format(old),
+				title=_("Protected"),
+			)
 
 	def before_insert(self):
 		if not self.tools:
