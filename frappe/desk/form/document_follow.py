@@ -143,6 +143,18 @@ def get_message_for_user(frequency, user):
 	valid_document_follows = []
 
 	for document_follow in latest_document_follows:
+		if not frappe.has_permission(
+			document_follow.ref_doctype, "read", doc=document_follow.ref_docname, user=user
+		):
+			frappe.db.delete(
+				"Document Follow",
+				{
+					"ref_doctype": document_follow.ref_doctype,
+					"ref_docname": document_follow.ref_docname,
+					"user": user,
+				},
+			)
+			continue
 		content = get_message(document_follow.ref_docname, document_follow.ref_doctype, frequency, user)
 		if content:
 			message = message + content
