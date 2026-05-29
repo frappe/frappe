@@ -152,8 +152,6 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          # Only the interpreters used by migrate-env below: 3.13 (v15) and
-          # 3.14 (v16 / latest). 3.14 stays last so it remains the default.
           python-version: |
             3.13
             3.14
