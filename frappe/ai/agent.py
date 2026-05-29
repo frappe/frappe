@@ -121,9 +121,9 @@ class Agent:
 	) -> RunResult | Generator[Event]:
 		"""Continue a run that paused on a question.
 
-		`answers` maps each pending tool_call_id to the user's answer (a chosen option,
-		a list for multi-select, or free "Other" text). The answer becomes that call's
-		result, and the LLM decides what to do next.
+		`answers` maps each pending tool_call_id to the user's answer: "Approve" runs
+		the tool, "Deny" blocks it, and any other free text is returned to the LLM as
+		redirect feedback so it can adjust and retry.
 		"""
 		messages = self._prepare_resume(messages, answers)
 		if stream:
@@ -150,13 +150,19 @@ class Agent:
 		return messages
 
 	def _resolve_confirmation(self, call: ToolCall, answer: Any) -> str:
-		"""Run the tool if the user approved; otherwise return a denial message for the LLM."""
+		"""Run the tool if approved; deny if rejected; redirect with user feedback otherwise."""
 		if answer == "Approve":
 			result = self._run_tool(call)
 			return _serialize_tool_result(result)
 		if answer == "Deny":
-			return json.dumps({"error": "User denied this tool call."})
-		return json.dumps({"error": f"User denied this tool call. Note: {answer!r}"})
+			return json.dumps({"status": "denied", "message": "User denied this tool call."})
+		# Free-text "Other"
+		return json.dumps({
+			"status": "redirect",
+			"message": "Tool not executed.",
+			"user_feedback": answer,
+			"instruction": "The user wants changes before this proceeds. Read their feedback carefully, adjust your approach, and try again.",
+		})
 
 	def _loop(
 		self, messages: list[dict[str, Any]], executed_calls: list[ToolCall] | None = None
@@ -355,7 +361,7 @@ def _confirmation_question(call: ToolCall, tool: Tool) -> Question:
 	return Question(
 		prompt=f"Approve `{call.name}`?\n\n{body}",
 		options=["Approve", "Deny"],
-		allow_other=False,
+		allow_other=True,
 	)
 
 
