@@ -106,6 +106,7 @@ def generate_page_from_prompt(prompt: str, model: str | None, page_id: str) -> d
 
 
 @frappe.whitelist()
+@has_page_write_perm()
 def get_ai_session(page_id: str, model: str | None = None) -> dict:
 	session = AISession.get_or_create(page_id, model)
 	return {
@@ -115,6 +116,7 @@ def get_ai_session(page_id: str, model: str | None = None) -> dict:
 
 
 @frappe.whitelist()
+@has_page_write_perm()
 def clear_ai_session(page_id: str) -> dict:
 	session = AISession.get_or_create(page_id)
 	session.clear()

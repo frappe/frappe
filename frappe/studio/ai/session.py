@@ -39,10 +39,6 @@ class AISession:
 		doc.insert(ignore_permissions=True)
 		return cls(doc)
 
-	@property
-	def name(self):
-		return self._doc.name
-
 	def get_messages(self) -> list[dict]:
 		try:
 			messages = json.loads(self._doc.messages_json or "[]")
@@ -83,14 +79,6 @@ class AISession:
 		)
 		self._save_messages(messages, task_type=task_type)
 
-	def update_message_metadata(self, message_id: str, extra_metadata: dict):
-		messages = self.get_messages()
-		for msg in messages:
-			if msg.get("id") == message_id:
-				msg.setdefault("metadata", {}).update(extra_metadata)
-				break
-		self._save_messages(messages)
-
 	def build_context_string(self) -> str:
 		history_lines = []
 		for message in self.get_messages()[-10:]:
@@ -104,20 +92,6 @@ class AISession:
 		if not history_lines:
 			return ""
 		return "Conversation history for this page:\n" + "\n".join(history_lines)
-
-	def set_running(self):
-		frappe.db.set_value(self.DOCTYPE, self._doc.name, "is_running", 1, update_modified=False)
-		frappe.db.commit()
-
-	def clear_running(self):
-		frappe.db.set_value(self.DOCTYPE, self._doc.name, "is_running", 0, update_modified=False)
-		frappe.db.commit()
-
-	@classmethod
-	def is_session_running(cls, session_id: str) -> bool:
-		if not session_id or not frappe.db.exists(cls.DOCTYPE, session_id):
-			return False
-		return bool(frappe.db.get_value(cls.DOCTYPE, session_id, "is_running"))
 
 	def clear(self):
 		self._doc.messages_json = "[]"
