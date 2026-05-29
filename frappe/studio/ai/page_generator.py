@@ -77,16 +77,31 @@ AUTOCOMPLETE:
 """
 
 STYLING_RULES = """COMPONENT STYLING RULES:
+STYLE PROPERTY ROUTING — use the correct key:
+- `style:` (panel-editable) — use ONLY these properties:
+  Layout: display, flexDirection, justifyContent, alignItems, alignContent, alignSelf, flexWrap, flex, flexGrow, flexShrink, flexBasis, gap, rowGap, columnGap, overflowX, overflowY
+  Grid: gridTemplateColumns, gridTemplateRows, gridColumn, gridRow
+  Dimension: width, minWidth, maxWidth, height, minHeight, maxHeight
+  Position: position, top, right, bottom, left, zIndex
+  Spacing: margin, padding (and per-side: marginTop, marginRight, marginBottom, marginLeft, paddingTop, paddingRight, paddingBottom, paddingLeft)
+  Typography: fontWeight, fontSize, lineHeight, color, letterSpacing, textTransform, textAlign
+  Visual: backgroundColor, borderColor, borderWidth, borderStyle, borderRadius, boxShadow, cursor
+- `rstyle:` (raw styles) — for ALL other CSS properties not listed above: opacity, objectFit, objectPosition, whiteSpace, textOverflow, textDecoration, fontStyle, fontFamily, transform, transition, animation, wordBreak, overflowWrap, etc. Keep rstyle minimal — only include when genuinely needed.
+- `mstyle:` (mobile styles) and `tstyle:` (tablet styles) — same properties as `style`, but for mobile and tablet breakpoints. Only include properties that need to change on mobile/tablet — do not duplicate the entire style object.
+- Use %, rem for responsive widths. Top-level sections MUST be 100% width
+
+CSS VARIABLE RULES:
 - Always use CSS variables. Avoid raw hex colors/values.
-	- backgroundColor:  var(--surface-white) | var(--surface-gray-1..7) | var(--surface-cards) | var(--surface-red-1) | var(--surface-green-1) | var(--surface-amber-1) | var(--surface-blue-1)
-	- color (text): var(--ink-white) | var(--ink-gray-1..9)
-	- borderColor: var(--outline-white) | var(--outline-gray-1..5) | var(--outline-red-1..3) | var(--outline-green-1..2) | var(--outline-amber-1..2) | var(--outline-blue-1) | var(--outline-orange-1)
-	- borderWidth: e.g. 1px, 2px — borderStyle: solid | dashed | dotted
-	- NEVER use the `border` shorthand — always set borderColor, borderWidth, borderStyle as separate keys
-	- boxShadow: "sm" | "DEFAULT" | "md" | "lg" | "xl" | "2xl" | "none" (keywords only, not raw values)
-	- borderRadius: "none" (0px) | "sm" (0.25rem) | "DEFAULT" (0.5rem) | "md" (0.625rem) | "lg" (0.75rem) | "xl" (1rem) | "2xl" (1.25rem) | "full" (9999px)
+  - backgroundColor: var(--surface-white) | var(--surface-gray-1..7) | var(--surface-cards) | var(--surface-red-1) | var(--surface-green-1) | var(--surface-amber-1) | var(--surface-blue-1)
+  - color (text): var(--ink-white) | var(--ink-gray-1..9)
+  - boxShadow: "sm" | "DEFAULT" | "md" | "lg" | "xl" | "2xl" | "none" (keywords only, not raw values)
+  - borderColor: var(--outline-white) | var(--outline-gray-1..5) | var(--outline-red-1..3) | var(--outline-green-1..2) | var(--outline-amber-1..2) | var(--outline-blue-1) | var(--outline-orange-1)
+  - borderRadius: "none" (0px) | "sm" (0.25rem) | "DEFAULT" (0.5rem) | "md" (0.625rem) | "lg" (0.75rem) | "xl" (1rem) | "2xl" (1.25rem) | "full" (9999px)
+- NEVER use the `border` shorthand property or per-side border properties: borderTopColor, borderTopWidth, borderTopStyle, borderLeftColor, borderLeftWidth, borderLeftStyle, borderRightColor, borderRightWidth, borderRightStyle, borderBottomColor, borderBottomWidth, borderBottomStyle — these are NOT in the style panel
+- For full borders: borderColor, borderWidth (e.g. "1px"), borderStyle — always set all three together
+- For one-sided borders: use CSS shorthand values — e.g. top-only: borderWidth: "4px 0px 0px 0px", borderColor: "var(--outline-blue-1)", borderStyle: "solid"
 - Button: use size prop ("sm"|"md"|"lg"|"xl"|"2xl") for sizing — DO NOT set height in style. Keep `theme` gray or default unless prompted. Only use colored themes (blue, red, green) when semantically meaningful: destructive actions → red, success/confirmed → green.
-- Avoid applying visual style (color, backgroundColor, borderColor, fontSize) to frappe-ui components — their props handle this. Only use style on components for layout (width, flex, margin, etc.).
+- Avoid applying visual style (color, backgroundColor, borderColor, fontSize) to frappe-ui components — their props handle this. Only use style on `container` components for layout (width, flex, margin, etc.).
 - TextBlock: use tag prop for semantics (h1/h2/h3 for headings, p for body). Set fontSize/fontWeight/color on TextBlock style."""
 
 YAML_QUOTING_RULES = """YAML STRING QUOTING (critical — unquoted special characters break parsing):
@@ -95,7 +110,7 @@ YAML_QUOTING_RULES = """YAML STRING QUOTING (critical — unquoted special chara
 - Text with apostrophes must use double quotes: `text: "I'm a designer"` NOT `text: 'I'm a designer'`
 - Long text values (bio, description, body copy) must use block scalar style instead of inline: `text: |` on its own line, then the text indented — never inline in a flow mapping"""
 
-SYSTEM_PROMPT = f"""You are an expert UI builder for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a compact YAML block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component or native html element (div) or a Studio Vue component or a Frappe UI Vue component.
+SYSTEM_PROMPT = f"""You are an expert UI developer specializing in creating responsive app pages for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a compact YAML block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component (from frappe-ui or Studio) or native html element (div).
 
 OUTPUT FORMAT:
 Return ONLY valid compact YAML. No markdown fences, no explanations, no JSON.
@@ -106,7 +121,9 @@ originalElement: div|body    # required for container and root blocks
 label: descriptive name
 props:                        # component-specific props (flow style preferred)
   key: value
-style:                        # CSS-in-JS camelCase (flow style preferred)
+style:                        # panel-editable CSS (see STYLE PROPERTY ROUTING below)
+  key: value
+rstyle:                       # raw CSS for properties not in the style panel
   key: value
 mstyle:                       # mobile style overrides
   key: value
