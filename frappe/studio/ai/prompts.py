@@ -46,7 +46,7 @@ NAVIGATION:
 DATA DISPLAY:
 - ListView: {columns: [{label: "string", key: "string", width: number}], rows: [{key: value}], rowKey: "string"}
 - NumberChart: {config: {title: "string", value: number, prefix: "string", delta: number}}
-- AxisChart: {config: {data: [{xKey: val, yKey: val}], xAxis: {key: "string", type: "time|category"}, yAxis: {title: "string"}, series: [{name: "string", type: "bar|line"}]}}
+- AxisChart: {config: {data: [{xKey: val, yKey: val}], xAxis: {key: "dataFieldName", type: "category|time"}, yAxis: {title: "string"}, series: [{name: "dataFieldName" (should match data field key, not label), type: "bar|line"}]}}
 - DonutChart: {config: {data: [{cat: val, val: number}], categoryColumn: "string", valueColumn: "string"}}
 - Filter: {doctype: "string", filters: {}}
 - Link: {doctype: "string"}
