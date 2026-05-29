@@ -60,6 +60,7 @@ NAVIGATION:
 - TabButtons: {buttons: [{label: "string", value: "string"}]}
 - Sidebar: {header: {title: "string", subtitle: "string"}, sections: [{label: "string", items: [{label: "string", icon: "{{ getIcon('icon-name') }}", to: "string"}]}]}
   # icon-name must be a valid kebab-case lucide icon from https://lucide.dev/icons
+
 DATA DISPLAY:
 - ListView: {columns: [{label: "string", key: "string", width: number}], rows: [{key: value}], rowKey: "string"}
 - NumberChart: {config: {title: "string", value: number, prefix: "string", delta: number}}
@@ -94,9 +95,9 @@ CSS VARIABLE RULES:
 - Always use CSS variables. Avoid raw hex colors/values.
   - backgroundColor: var(--surface-white) | var(--surface-gray-1..7) | var(--surface-cards) | var(--surface-red-1) | var(--surface-green-1) | var(--surface-amber-1) | var(--surface-blue-1)
   - color (text): var(--ink-white) | var(--ink-gray-1..9)
-  - boxShadow: "sm" | "DEFAULT" | "md" | "lg" | "xl" | "2xl" | "none" (keywords only, not raw values)
   - borderColor: var(--outline-white) | var(--outline-gray-1..5) | var(--outline-red-1..3) | var(--outline-green-1..2) | var(--outline-amber-1..2) | var(--outline-blue-1) | var(--outline-orange-1)
-  - borderRadius: "none" (0px) | "sm" (0.25rem) | "DEFAULT" (0.5rem) | "md" (0.625rem) | "lg" (0.75rem) | "xl" (1rem) | "2xl" (1.25rem) | "full" (9999px)
+  - borderRadius: "0px" (none) | "0.25rem" (sm) | "0.5rem" (DEFAULT) | "0.625rem" (md) | "0.75rem" (lg) | "1rem" (xl) | "1.25rem" (2xl) | "9999px" (full)
+- borderRadius — apply borderRadius (0.5rem by default) on cards, panels, containers by default, but NOT on full-width sections that span the entire viewport width.
 - NEVER use the `border` shorthand property or per-side border properties: borderTopColor, borderTopWidth, borderTopStyle, borderLeftColor, borderLeftWidth, borderLeftStyle, borderRightColor, borderRightWidth, borderRightStyle, borderBottomColor, borderBottomWidth, borderBottomStyle — these are NOT in the style panel
 - For full borders: borderColor, borderWidth (e.g. "1px"), borderStyle — always set all three together
 - For one-sided borders: use CSS shorthand values — e.g. top-only: borderWidth: "4px 0px 0px 0px", borderColor: "var(--outline-blue-1)", borderStyle: "solid"
@@ -104,16 +105,14 @@ CSS VARIABLE RULES:
 - Avoid applying visual style (color, backgroundColor, borderColor, fontSize) to frappe-ui components — their props handle this. Only use style on `container` components for layout (width, flex, margin, etc.).
 - TextBlock: use tag prop for semantics (h1/h2/h3 for headings, p for body). Set fontSize/fontWeight/color on TextBlock style."""
 
-YAML_QUOTING_RULES = """YAML STRING QUOTING (critical — unquoted special characters break parsing):
+OUTPUT_FORMAT_RULES = """YAML STRING QUOTING (critical — unquoted special characters break parsing):
+- Critical: Return ONLY a valid and compact YAML object. No markdown, no explanations.
 - Always double-quote strings that contain any of: apostrophe/single-quote, `?`, `#`, `&`, `:`, `[`, `]`, `{`, `}`
 - URLs must always be double-quoted: `image: "https://example.com/img?id=1"` NOT `image: https://example.com/img?id=1`
 - Text with apostrophes must use double quotes: `text: "I'm a designer"` NOT `text: 'I'm a designer'`
 - Long text values (bio, description, body copy) must use block scalar style instead of inline: `text: |` on its own line, then the text indented — never inline in a flow mapping"""
 
 SYSTEM_PROMPT = f"""You are an expert UI developer specializing in creating responsive app pages for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a compact YAML block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component (from frappe-ui or Studio) or native html element (div).
-
-OUTPUT FORMAT:
-Return ONLY valid compact YAML. No markdown fences, no explanations, no JSON.
 
 BLOCK SCHEMA:
 name: componentName          # required — must match catalog exactly
@@ -158,7 +157,7 @@ c:
 
 {COMPONENT_CATALOG}
 
-{YAML_QUOTING_RULES}
+{OUTPUT_FORMAT_RULES}
 
 RULES:
 - name must exactly match a component from the catalog above (or "div" for root, "container" for inner wrappers)
@@ -182,7 +181,7 @@ c:
   - name: container
     originalElement: div
     label: card
-    style: {{display: flex, flexDirection: column, gap: 16px, width: 100%, maxWidth: 400px, padding: 32px, backgroundColor: 'var(--surface-white)', borderRadius: '0.75rem', boxShadow: md}}
+    style: {{display: flex, flexDirection: column, gap: 16px, width: 100%, maxWidth: 400px, padding: 32px, backgroundColor: 'var(--surface-white)', borderRadius: '0.75rem'}}
     c:
     - name: TextBlock
       props: {{text: Sign In, tag: h2}}
@@ -198,9 +197,6 @@ c:
 
 MODIFY_SYSTEM_PROMPT = f"""You are an expert UI editor for Frappe Studio. You will receive the YAML of a selected block and a user request. Return a modified version of that block.
 
-OUTPUT FORMAT:
-Return ONLY valid compact YAML. No markdown fences, no explanations, no JSON.
-
 MODIFICATION RULES:
 - Preserve ALL id (componentId) values exactly as given — never change or omit them
 - Change ONLY what the user explicitly requests; leave everything else untouched
@@ -210,7 +206,7 @@ MODIFICATION RULES:
 
 {STYLING_RULES}
 
-{YAML_QUOTING_RULES}
+{OUTPUT_FORMAT_RULES}
 """
 
 
@@ -348,6 +344,7 @@ def run_modify_job(prompt: str, block_context: str, model: str, page_id: str, us
 
 	except Exception as e:
 		logger.error(f"run_modify_job failed: {e}", exc_info=True)
+		logger.info(f"Raw LLM Output for Modify: \n{content}\n" + "=" * 40)
 		frappe.log_error(title="Studio AI: modify error", message=str(e))
 		_emit("error", page_id, user, prefix="ai_modify", message=str(e))
 
