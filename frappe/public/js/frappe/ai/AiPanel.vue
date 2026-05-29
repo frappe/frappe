@@ -145,9 +145,35 @@ async function switchSession(name) {
 			}
 		}
 		scrollToBottom();
+		await _restorePausedRun(name);
 	} catch (e) {
 		frappe.msgprint("Failed to load session");
 	}
+}
+
+async function _restorePausedRun(session) {
+	try {
+		const runs = await frappe.xcall("frappe.client.get_list", {
+			doctype: "AI Run",
+			filters: { session, status: "Paused" },
+			fields: ["name", "questions"],
+			order_by: "creation desc",
+			limit: 1,
+		});
+		if (!runs.length || !runs[0].questions) return;
+
+		const questions = JSON.parse(runs[0].questions);
+		if (!questions.length) return;
+
+		// attach to the last assistant message that has an unanswered tool call
+		const last = [...messages.value].reverse().find((m) => m.role === "assistant");
+		if (!last) return;
+
+		last.questions = _prepareQuestions(questions);
+		last.runName = runs[0].name;
+		runName.value = runs[0].name;
+		scrollToBottom();
+	} catch (_) {}
 }
 
 // ── send message ──────────────────────────────────────────────────────────
@@ -240,14 +266,18 @@ function handleEvent(event, assistantMsg) {
 			});
 			scrollToBottom();
 			break;
-		case "tool_ended":
+		case "tool_ended": {
 			const tc = assistantMsg.parts.find((p) => p.type === "tool" && p.id === event.id);
-			if (tc) tc.result = event.result;
+			if (tc) {
+				tc.result = event.result;
+				scrollToBottom();
+			}
 			break;
+		}
 		case "done":
 			assistantMsg.pending = false;
 			if (event.status === "Paused") {
-				assistantMsg.questions = event.questions || [];
+				assistantMsg.questions = _prepareQuestions(event.questions);
 				assistantMsg.runName = runName.value;
 			}
 			loadHistory(); // refresh recent sessions
@@ -292,9 +322,14 @@ async function resume(answers) {
 	}
 }
 
+function _prepareQuestions(questions) {
+	return (questions || []).map((q) => ({ ...q, _showOther: false, _otherText: "" }));
+}
+
 function answerQuestion(question, answer) {
+	if (!answer || !answer.trim()) return;
 	const answers = {};
-	answers[question.key] = answer;
+	answers[question.key] = answer.trim();
 	resume(answers);
 }
 
@@ -355,9 +390,14 @@ function fmtArgs(args) {
 	if (!args) return "";
 	try {
 		const obj = typeof args === "string" ? JSON.parse(args) : args;
-		return JSON.stringify(obj, null, 2);
+		// unescape JSON string escapes so code/text values render human-readable in <pre>
+		return JSON.stringify(obj, null, 2)
+			.replace(/\\n/g, "\n")
+			.replace(/\\t/g, "\t")
+			.replace(/\\"/g, '"')
+			.replace(/\\\//g, "/");
 	} catch (_) {
-		return String(args);
+		return typeof args === "string" ? args : String(args);
 	}
 }
 
@@ -473,7 +513,9 @@ function timeAgo(ds) {
 											<div class="confirm-title">{{ q.prompt }}</div>
 										</div>
 									</div>
-									<div class="confirm-actions">
+
+									<!-- option buttons row -->
+									<div v-if="!q._showOther" class="confirm-actions">
 										<button
 											v-for="opt in q.options"
 											:key="opt"
@@ -483,13 +525,33 @@ function timeAgo(ds) {
 										>
 											{{ opt === "Approve" ? __("Approve & run") : opt }}
 										</button>
+										<button
+											v-if="q.allow_other !== false"
+											class="fui-btn ghost sm"
+											:title="__('Type a custom response')"
+											@click="q._showOther = true"
+										>{{ __("Other…") }}</button>
 									</div>
-									<div v-if="q.allow_other !== false" class="confirm-other">
-										<input
-											type="text"
-											:placeholder="__('Or type a response…')"
-											@keydown.enter.prevent="answerQuestion(q, $event.target.value)"
+
+									<!-- other input row -->
+									<div v-else class="confirm-other-row">
+										<textarea
+											:ref="'other_' + q.key"
+											v-model="q._otherText"
+											class="confirm-other-input"
+											:placeholder="__('Describe what you want instead…')"
+											rows="2"
+											@keydown.enter.exact.prevent="answerQuestion(q, q._otherText)"
+											@keydown.escape="q._showOther = false; q._otherText = ''"
 										/>
+										<div class="confirm-other-actions">
+											<button class="fui-btn ghost sm" @click="q._showOther = false; q._otherText = ''">{{ __("Cancel") }}</button>
+											<button
+												class="fui-btn sm confirm-approve"
+												:disabled="!q._otherText.trim()"
+												@click="answerQuestion(q, q._otherText)"
+											>{{ __("Send") }}</button>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -668,7 +730,7 @@ function timeAgo(ds) {
 	flex: 1 1 auto;
 	min-height: 0;
 	overflow-y: auto;
-	padding: 20px 16px 16px 16px;
+	padding: 20px 20px 16px 20px;
 	display: flex;
 	flex-direction: column;
 	gap: 22px;
@@ -931,21 +993,32 @@ function timeAgo(ds) {
 .confirm-approve:hover {
 	background: var(--surface-gray-1);
 }
-.confirm-other input {
+.confirm-other-row {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.confirm-other-input {
 	width: 100%;
-	height: 28px;
 	font-family: inherit;
-	font-size: var(--text-xs);
+	font-size: var(--text-sm);
 	color: var(--ink-gray-9);
 	background: var(--surface-white);
 	border: 1px solid var(--outline-gray-2);
 	border-radius: 6px;
-	padding: 0 8px;
+	padding: 6px 8px;
 	outline: none;
+	resize: none;
+	line-height: 1.45;
 }
-.confirm-other input:focus {
+.confirm-other-input:focus {
 	border-color: var(--gray-400);
 	box-shadow: 0 0 0 2px var(--outline-gray-2);
+}
+.confirm-other-actions {
+	display: flex;
+	gap: 6px;
+	justify-content: flex-end;
 }
 
 /* Markdown */
@@ -1090,7 +1163,7 @@ function timeAgo(ds) {
 /* Composer */
 .composer-wrap {
 	flex: 0 0 auto;
-	padding: 10px 12px 12px;
+	padding: 10px 16px 14px;
 	border-top: 1px solid var(--outline-gray-1);
 	background: var(--surface-white);
 }
