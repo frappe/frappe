@@ -36,7 +36,7 @@ dependencies = [
     "cssutils~=2.11.1",
     "email-reply-parser~=0.5.12",
     "Faker~=18.10.1",
-    "gunicorn @ git+https://github.com/frappe/gunicorn@bb554053bb87218120d76ab6676af7015680e8b6",
+    "gunicorn @ git+https://github.com/frappe/gunicorn@54b59ca884c79dcf04d4882658a32bbaf17e999f",
     "html5lib~=1.1",
     "ipython~=8.37.0",
     "ldap3~=2.9.1",
