@@ -2,24 +2,22 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.ai.agent import Question
 from frappe.ai.tools.builtins import (
 	BUILTIN_TOOLS,
-	ask_user,
 	create,
 	delete,
+	describe,
 	execute,
-	introspect,
-	query,
+	read,
 	sync_builtin_tools,
 	update,
 )
 from frappe.tests import IntegrationTestCase
 
 
-class TestIntrospect(IntegrationTestCase):
+class TestDescribe(IntegrationTestCase):
 	def test_returns_fields_and_permissions(self):
-		result = introspect(doctype="ToDo")
+		result = describe(doctype="ToDo")
 
 		self.assertEqual(result["doctype"], "ToDo")
 		fieldnames = {f["fieldname"] for f in result["fields"]}
@@ -27,7 +25,7 @@ class TestIntrospect(IntegrationTestCase):
 		self.assertEqual(set(result["permissions"]), {"read", "write", "create", "delete"})
 
 	def test_excludes_layout_fields(self):
-		result = introspect(doctype="ToDo")
+		result = describe(doctype="ToDo")
 		types = {f["type"] for f in result["fields"]}
 		self.assertNotIn("Section Break", types)
 		self.assertNotIn("Column Break", types)
@@ -36,29 +34,29 @@ class TestIntrospect(IntegrationTestCase):
 		frappe.set_user("Guest")
 		try:
 			with self.assertRaises(frappe.PermissionError):
-				introspect(doctype="User")
+				describe(doctype="User")
 		finally:
 			frappe.set_user("Administrator")
 
 
-class TestQuery(IntegrationTestCase):
+class TestRead(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
 	def test_reads_matching_records(self):
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "ai builtin query probe"}).insert()
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "ai builtin read probe"}).insert()
 
-		rows = query(doctype="ToDo", filters={"description": "ai builtin query probe"})
+		rows = read(doctype="ToDo", filters={"description": "ai builtin read probe"})
 
 		self.assertEqual([r["name"] for r in rows], [todo.name])
 
 	def test_limit_is_capped(self):
-		rows = query(doctype="DocType", limit=10_000)
+		rows = read(doctype="DocType", limit=10_000)
 		self.assertLessEqual(len(rows), 200)
 
 	def test_returns_requested_fields(self):
 		frappe.get_doc({"doctype": "ToDo", "description": "fields probe"}).insert()
-		rows = query(doctype="ToDo", filters={"description": "fields probe"}, fields=["name", "description"])
+		rows = read(doctype="ToDo", filters={"description": "fields probe"}, fields=["name", "description"])
 		self.assertEqual(rows[0]["description"], "fields probe")
 
 
@@ -170,16 +168,6 @@ class TestDelete(IntegrationTestCase):
 			delete(doctype="ToDo", name=self.todo.name)
 
 
-class TestAskUser(IntegrationTestCase):
-	def test_returns_question(self):
-		q = ask_user(prompt="Which list?", options=["Customers", "Leads"])
-		self.assertIsInstance(q, Question)
-		self.assertEqual(q.prompt, "Which list?")
-		self.assertEqual(q.options, ["Customers", "Leads"])
-		self.assertFalse(q.multi_select)
-		self.assertTrue(q.allow_other)
-
-
 class TestSyncBuiltinTools(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
@@ -191,13 +179,13 @@ class TestSyncBuiltinTools(IntegrationTestCase):
 
 	def test_resolves_back_to_runtime_tool(self):
 		sync_builtin_tools()
-		doc = frappe.get_doc("AI Tool", "introspect")
+		doc = frappe.get_doc("AI Tool", "describe")
 		runtime = doc.to_tool()
-		self.assertEqual(runtime.name, "introspect")
+		self.assertEqual(runtime.name, "describe")
 		self.assertIn("doctype", runtime.parameters["properties"])
 
 	def test_is_idempotent(self):
 		sync_builtin_tools()
 		sync_builtin_tools()
-		count = frappe.db.count("AI Tool", {"slug": "query"})
+		count = frappe.db.count("AI Tool", {"slug": "read"})
 		self.assertEqual(count, 1)

@@ -8,17 +8,16 @@ from typing import Any
 
 import frappe
 from frappe import _
-from frappe.ai.agent import Question
 from frappe.ai.tool import Tool, tool
 from frappe.utils.safe_exec import safe_exec
 
-MAX_QUERY_LIMIT = 200
+MAX_READ_LIMIT = 200
 LAYOUT_FIELDTYPES = frozenset({"Section Break", "Column Break", "Tab Break", "HTML", "Heading"})
 
 
 @tool
-def introspect(doctype: str) -> dict[str, Any]:
-	"""Inspect a DocType's schema before reading or acting on it.
+def describe(doctype: str) -> dict[str, Any]:
+	"""Describe a DocType's schema before reading or acting on it.
 
 	Returns its fields (fieldname, label, type, options for Link/Select/Table, required)
 	and the current user's permissions on it. Use this to learn what data exists and
@@ -44,7 +43,7 @@ def introspect(doctype: str) -> dict[str, Any]:
 
 
 @tool
-def query(
+def read(
 	doctype: str,
 	filters: dict | None = None,
 	fields: list[str] | None = None,
@@ -56,7 +55,7 @@ def query(
 	`filters` is a dict like {"status": "Open"} or {"qty": [">", 5]}. `fields` defaults
 	to the record name. Returns a list of matching records (capped at 200).
 	"""
-	limit = min(max(int(limit), 1), MAX_QUERY_LIMIT)
+	limit = min(max(int(limit), 1), MAX_READ_LIMIT)
 	return frappe.get_list(
 		doctype,
 		filters=filters,
@@ -79,8 +78,8 @@ def execute(code: str) -> Any:
 	Example:
 	    result = frappe.db.count("ToDo", {"status": "Open"})
 
-	Writes run as the current user and enforce permissions. Confirm with the user
-	via ask_user before changing data.
+	Writes run as the current user and enforce permissions. The user is asked to
+	approve each call before it runs.
 	"""
 	exec_globals, _locals = safe_exec(code, script_filename="ai_execute")
 	return exec_globals.get("result")
@@ -96,7 +95,7 @@ def execute(code: str) -> Any:
 def create(doctype: str, values: dict[str, Any]) -> dict[str, Any]:
 	"""Create a new record of `doctype` with the given field values.
 
-	Use introspect() first to discover required fields. Returns the new record's
+	Use describe() first to discover required fields. Returns the new record's
 	name. Respects the user's create permission and the doctype's validation.
 	"""
 	if not frappe.has_permission(doctype, "create"):
@@ -152,17 +151,7 @@ def delete(doctype: str, name: str) -> dict[str, Any]:
 	return {"deleted": True, "doctype": doctype, "name": name}
 
 
-@tool
-def ask_user(prompt: str, options: list[str] | None = None, multi_select: bool = False) -> Question:
-	"""Ask the user a question and pause until they answer.
-
-	Provide `options` for a single- or multi-select (an "Other" free-text choice is always
-	offered). Use this to gather a decision or missing detail, or to confirm before acting.
-	"""
-	return Question(prompt=prompt, options=options or [], multi_select=multi_select)
-
-
-BUILTIN_TOOLS: list[Tool] = [introspect, query, create, update, delete, execute, ask_user]
+BUILTIN_TOOLS: list[Tool] = [describe, read, create, update, delete, execute]
 
 
 def sync_builtin_tools() -> None:

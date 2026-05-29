@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 	from frappe.ai.doctype.ai_run.ai_run import AIRun
 	from frappe.ai.tool import Tool
 
-DEFAULT_TOOL_SLUGS = ("introspect", "query", "execute", "ask_user")
+DEFAULT_TOOL_SLUGS = ("describe", "read", "execute")
 DEFAULT_MAX_ITERATIONS = 10
 
 

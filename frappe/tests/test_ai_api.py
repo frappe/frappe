@@ -77,12 +77,11 @@ def _final(text: str = "done") -> ChatResponse:
 	)
 
 
-def _ask_user(prompt: str, *, options: list[str] | None = None, call_id: str = "q1") -> ChatResponse:
+def _confirm_call(call_id: str = "c1") -> ChatResponse:
+	"""A response that calls the `execute` tool, which requires confirmation and so pauses the run."""
 	return ChatResponse(
 		content=None,
-		tool_calls=[
-			ToolCall(id=call_id, name="ask_user", arguments={"prompt": prompt, "options": options or []})
-		],
+		tool_calls=[ToolCall(id=call_id, name="execute", arguments={"code": "result = 1"})],
 		finish_reason="tool_calls",
 		usage={"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
 	)
@@ -121,13 +120,13 @@ class TestStartRun(IntegrationTestCase):
 		self.assertEqual(payload["status"], "Completed")
 
 	def test_start_run_paused_returns_questions(self):
-		with patch.object(Model, "chat", return_value=_ask_user("Which list?", options=["A", "B"])):
-			payload = start_run("email the list", agent=self.agent.name)
+		with patch.object(Model, "chat", return_value=_confirm_call()):
+			payload = start_run("delete the records", agent=self.agent.name)
 
 		self.assertEqual(payload["status"], "Paused")
 		self.assertEqual(len(payload["questions"]), 1)
-		self.assertEqual(payload["questions"][0]["prompt"], "Which list?")
-		self.assertEqual(payload["questions"][0]["key"], "q1")
+		self.assertEqual(payload["questions"][0]["options"], ["Approve", "Deny"])
+		self.assertEqual(payload["questions"][0]["key"], "c1")
 
 	def test_start_run_rejects_empty_input(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "Input"):
@@ -210,7 +209,7 @@ class TestResumeRun(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def _pause(self, agent: str | None = None) -> str:
-		with patch.object(Model, "chat", return_value=_ask_user("Confirm?")):
+		with patch.object(Model, "chat", return_value=_confirm_call()):
 			payload = start_run("do it", agent=agent)
 		self.assertEqual(payload["status"], "Paused")
 		return payload["name"]
@@ -219,7 +218,7 @@ class TestResumeRun(IntegrationTestCase):
 		run_name = self._pause(agent=self.agent.name)
 
 		with patch.object(Model, "chat", return_value=_final("ok")):
-			payload = resume_run(run_name, {"q1": "yes"})
+			payload = resume_run(run_name, {"c1": "Deny"})
 
 		self.assertEqual(payload["status"], "Completed")
 		self.assertEqual(payload["output"], "ok")
@@ -228,7 +227,7 @@ class TestResumeRun(IntegrationTestCase):
 		run_name = self._pause(agent=None)
 
 		with patch.object(Model, "chat", return_value=_final("ok")):
-			payload = resume_run(run_name, {"q1": "yes"})
+			payload = resume_run(run_name, {"c1": "Deny"})
 
 		self.assertEqual(payload["status"], "Completed")
 
@@ -236,18 +235,18 @@ class TestResumeRun(IntegrationTestCase):
 		run_name = self._pause(agent=self.agent.name)
 
 		with patch.object(Model, "chat", return_value=_final("ok")):
-			payload = resume_run(run_name, json.dumps({"q1": "yes"}))
+			payload = resume_run(run_name, json.dumps({"c1": "Deny"}))
 
 		self.assertEqual(payload["status"], "Completed")
 
 	def test_resume_can_pause_again_with_new_questions(self):
 		run_name = self._pause(agent=self.agent.name)
 
-		with patch.object(Model, "chat", return_value=_ask_user("Are you sure?", call_id="q2")):
-			payload = resume_run(run_name, {"q1": "yes"})
+		with patch.object(Model, "chat", return_value=_confirm_call(call_id="c2")):
+			payload = resume_run(run_name, {"c1": "Deny"})
 
 		self.assertEqual(payload["status"], "Paused")
-		self.assertEqual(payload["questions"][0]["key"], "q2")
+		self.assertEqual(payload["questions"][0]["key"], "c2")
 
 	def test_resume_rejects_non_paused_run(self):
 		with patch.object(Model, "chat", return_value=_final()):
@@ -268,12 +267,12 @@ class TestResumeRun(IntegrationTestCase):
 
 	def test_resume_stream_returns_sse_response(self):
 		# pause first via non-streaming start
-		with patch.object(Model, "chat", return_value=_ask_user("Confirm?")):
+		with patch.object(Model, "chat", return_value=_confirm_call()):
 			payload = start_run("do it", agent=self.agent.name)
 		run_name = payload["name"]
 
 		with patch.object(Model, "chat", new=_stream_chat(["ok"], _final("ok"))):
-			response = resume_run(run_name, {"q1": "yes"}, stream=True)
+			response = resume_run(run_name, {"c1": "Deny"}, stream=True)
 			self.assertIsInstance(response, Response)
 			events = _sse_events(response)
 
@@ -290,7 +289,7 @@ class TestResumeRun(IntegrationTestCase):
 
 		with patch.object(Model, "chat", side_effect=RuntimeError("boom")):
 			with self.assertRaises(RuntimeError):
-				resume_run(run_name, {"q1": "yes"})
+				resume_run(run_name, {"c1": "Deny"})
 
 		failed = frappe.get_doc("AI Run", run_name)
 		self.assertEqual(failed.status, "Failed")

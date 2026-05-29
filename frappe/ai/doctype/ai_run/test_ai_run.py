@@ -32,29 +32,29 @@ def _tooled_result() -> RunResult:
 				"role": "assistant",
 				"content": None,
 				"tool_calls": [
-					{"id": "c1", "type": "function", "function": {"name": "query", "arguments": "{}"}}
+					{"id": "c1", "type": "function", "function": {"name": "read", "arguments": "{}"}}
 				],
 			},
 			{"role": "tool", "tool_call_id": "c1", "content": "[]"},
 			{"role": "assistant", "content": "emailed two customers"},
 		],
-		tool_calls=[ToolCall(id="c1", name="query", arguments={"doctype": "Customer"})],
+		tool_calls=[ToolCall(id="c1", name="read", arguments={"doctype": "Customer"})],
 		iterations=2,
 		usage={"prompt_tokens": 10, "completion_tokens": 4, "total_tokens": 14},
 	)
 
 
 def _paused_result() -> RunResult:
-	question = Question(prompt="Which list?", options=["Customers", "Leads"], key="c1")
+	question = Question(prompt="Approve `execute`?", options=["Approve", "Deny"], key="c1")
 	return RunResult(
 		output=None,
 		messages=[
-			{"role": "user", "content": "email the list"},
+			{"role": "user", "content": "delete the records"},
 			{
 				"role": "assistant",
 				"content": None,
 				"tool_calls": [
-					{"id": "c1", "type": "function", "function": {"name": "ask_user", "arguments": "{}"}}
+					{"id": "c1", "type": "function", "function": {"name": "execute", "arguments": "{}"}}
 				],
 			},
 		],
@@ -125,7 +125,7 @@ class TestAIRunPersistence(IntegrationTestCase):
 		doc = persist_result(_tooled_result(), source="Manual", input="email customers", session=session)
 
 		tool_calls = json.loads(doc.tool_calls)
-		self.assertEqual(tool_calls, [{"id": "c1", "name": "query", "arguments": {"doctype": "Customer"}}])
+		self.assertEqual(tool_calls, [{"id": "c1", "name": "read", "arguments": {"doctype": "Customer"}}])
 
 	def test_persist_tooled_run_writes_all_messages_to_session(self):
 		session = _new_session(self.agent)
@@ -139,7 +139,7 @@ class TestAIRunPersistence(IntegrationTestCase):
 		self.assertEqual(tool_row.tool_call_id, "c1")
 		# Assistant row with tool calls stores them as JSON.
 		assistant_row = session_doc.messages[1]
-		self.assertEqual(json.loads(assistant_row.tool_calls)[0]["function"]["name"], "query")
+		self.assertEqual(json.loads(assistant_row.tool_calls)[0]["function"]["name"], "read")
 		# All rows tagged with the producing run.
 		self.assertTrue(all(row.run == doc.name for row in session_doc.messages))
 
@@ -151,8 +151,8 @@ class TestAIRunPersistence(IntegrationTestCase):
 		self.assertIsNone(doc.output)
 		questions = json.loads(doc.questions)
 		self.assertEqual(len(questions), 1)
-		self.assertEqual(questions[0]["prompt"], "Which list?")
-		self.assertEqual(questions[0]["options"], ["Customers", "Leads"])
+		self.assertEqual(questions[0]["prompt"], "Approve `execute`?")
+		self.assertEqual(questions[0]["options"], ["Approve", "Deny"])
 		self.assertEqual(questions[0]["key"], "c1")
 
 	def test_apply_result_clears_questions_when_resumed(self):
@@ -176,7 +176,7 @@ class TestAIRunPersistence(IntegrationTestCase):
 
 	def test_create_run_with_config_snapshot(self):
 		session = _new_session(self.agent)
-		snapshot = {"instructions": "be terse", "tool_slugs": ["query", "execute"]}
+		snapshot = {"instructions": "be terse", "tool_slugs": ["read", "execute"]}
 		doc = create_run(source="Manual", input="hi", session=session, config_snapshot=snapshot)
 
 		self.assertEqual(json.loads(doc.config_snapshot), snapshot)

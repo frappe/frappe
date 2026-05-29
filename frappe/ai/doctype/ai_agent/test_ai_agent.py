@@ -54,19 +54,19 @@ class TestAIAgentDefaults(IntegrationTestCase):
 	def test_default_tools_populated_on_insert(self):
 		doc = frappe.get_doc(_agent(self.model_doc.name)).insert()
 
-		self.assertEqual([row.tool for row in doc.tools], ["introspect", "query", "execute", "ask_user"])
+		self.assertEqual([row.tool for row in doc.tools], ["describe", "read", "execute"])
 
 	def test_explicit_tools_override_defaults(self):
-		doc = frappe.get_doc(_agent(self.model_doc.name, tools=[{"tool": "ask_user"}])).insert()
+		doc = frappe.get_doc(_agent(self.model_doc.name, tools=[{"tool": "read"}])).insert()
 
-		self.assertEqual([row.tool for row in doc.tools], ["ask_user"])
+		self.assertEqual([row.tool for row in doc.tools], ["read"])
 
 	def test_duplicate_tools_are_deduped(self):
 		doc = frappe.get_doc(
-			_agent(self.model_doc.name, tools=[{"tool": "query"}, {"tool": "query"}, {"tool": "execute"}])
+			_agent(self.model_doc.name, tools=[{"tool": "read"}, {"tool": "read"}, {"tool": "execute"}])
 		).insert()
 
-		self.assertEqual([row.tool for row in doc.tools], ["query", "execute"])
+		self.assertEqual([row.tool for row in doc.tools], ["read", "execute"])
 
 	def test_zero_max_iterations_rejected(self):
 		doc = frappe.get_doc(_agent(self.model_doc.name, max_iterations=0))
@@ -94,9 +94,7 @@ class TestAIAgentAssemble(IntegrationTestCase):
 		self.assertIsInstance(runtime, Agent)
 		self.assertEqual(runtime.name, self.agent_doc.name)
 		self.assertEqual(runtime.instructions, "Be terse.")
-		self.assertEqual(
-			sorted(t.name for t in runtime.tools), ["ask_user", "execute", "introspect", "query"]
-		)
+		self.assertEqual(sorted(t.name for t in runtime.tools), ["describe", "execute", "read"])
 		self.assertEqual(runtime.max_iterations, 5)
 
 	def test_assemble_uses_default_iterations_when_unset(self):
@@ -122,11 +120,11 @@ class TestAIAgentAssemble(IntegrationTestCase):
 			self.agent_doc.assemble()
 
 	def test_assemble_skips_disabled_tools(self):
-		frappe.db.set_value("AI Tool", "query", "enabled", 0)
+		frappe.db.set_value("AI Tool", "read", "enabled", 0)
 
 		runtime = self.agent_doc.assemble()
 
-		self.assertEqual(sorted(t.name for t in runtime.tools), ["ask_user", "execute", "introspect"])
+		self.assertEqual(sorted(t.name for t in runtime.tools), ["describe", "execute"])
 
 
 class TestAIAgentRun(IntegrationTestCase):
@@ -158,7 +156,7 @@ class TestAIAgentRun(IntegrationTestCase):
 		snapshot = json.loads(ai_run.config_snapshot)
 		self.assertEqual(snapshot["title"], "Test Agent")
 		self.assertEqual(snapshot["model"], self.model_doc.name)
-		self.assertEqual(sorted(snapshot["tools"]), ["ask_user", "execute", "introspect", "query"])
+		self.assertEqual(sorted(snapshot["tools"]), ["describe", "execute", "read"])
 		self.assertEqual(snapshot["max_iterations"], 5)
 
 	def test_run_accepts_source_param(self):

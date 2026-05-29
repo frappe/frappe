@@ -20,10 +20,11 @@ def _ok(content: str = "done") -> ChatResponse:
 	)
 
 
-def _ask_user_call() -> ChatResponse:
+def _confirm_call() -> ChatResponse:
+	"""A response that calls the `execute` tool, which requires confirmation and so pauses the run."""
 	return ChatResponse(
 		content=None,
-		tool_calls=[ToolCall(id="c1", name="ask_user", arguments={"prompt": "Confirm?"})],
+		tool_calls=[ToolCall(id="c1", name="execute", arguments={"code": "result = 1"})],
 		finish_reason="tool_calls",
 		usage={"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
 	)
@@ -128,7 +129,7 @@ class TestStartRunSessions(IntegrationTestCase):
 			start_run("hi", session=session.name, agent=agent_b.name)
 
 	def test_paused_session_blocks_new_turn(self):
-		with patch.object(Model, "chat", return_value=_ask_user_call()):
+		with patch.object(Model, "chat", return_value=_confirm_call()):
 			first = start_run("delete everything")
 
 		self.assertEqual(first["status"], "Paused")
