@@ -165,7 +165,7 @@ def get_app_last_commit_ref(app):
 
 
 def check_for_update():
-	if frappe.get_system_settings("disable_system_update_notification"):
+	if frappe.get_system_settings("disable_system_update_notification") or not frappe.is_setup_complete():
 		return
 
 	updates = frappe._dict(major=[], minor=[], patch=[])
