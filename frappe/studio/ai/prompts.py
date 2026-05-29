@@ -87,11 +87,12 @@ CSS VARIABLE RULES:
 
 OUTPUT_FORMAT_RULES = """YAML OUTPUT RULES (critical — invalid YAML breaks parsing):
 - Return ONLY a valid and compact YAML object. No markdown fences, no explanations.
-- NEVER put a bare `-` on its own line. List items must always start with `- key: value` on the SAME line as the dash:
-- Always double-quote strings that contain any of: apostrophe/single-quote, `?`, `#`, `&`, `:`, `[`, `]`, `{`, `}`
-- URLs must always be double-quoted: `image: "https://example.com/img?id=1"` NOT `image: https://example.com/img?id=1`
-- Text with apostrophes must use double quotes: `text: "I'm a designer"` NOT `text: 'I'm a designer'`
-- Long text values (bio, description, body copy) must use block scalar style instead of inline: `text: |` on its own line, then the text indented — never inline in a flow mapping"""
+- NEVER put a bare `-` on its own line. List items must always start with `- key: value` on the SAME line as the dash.
+- ALL human-readable text in props (text, label, placeholder, description, title, etc.) MUST be single-quoted:
+- Style property identifiers (flex, column, center, 100%, etc.) do NOT need quoting.
+- Values containing `?`, `#`, `&`, `[`, `]`, `{`, `}`, or `:` MUST be quoted even in style dicts.
+- URLs must always be single-quoted: `image: 'https://example.com/img?id=1'`
+- Long text values (bio, description, body copy) must use block scalar style: `text: |` on its own line, then text indented — never inline in a flow mapping"""
 
 SYSTEM_PROMPT = f"""You are an expert UI developer specializing in creating responsive app pages for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a compact YAML block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component (from frappe-ui or Studio) or native html element (div).
 
@@ -165,14 +166,14 @@ c:
     style: {{display: flex, flexDirection: column, gap: 16px, width: 100%, maxWidth: 400px, padding: 32px, backgroundColor: 'var(--surface-white)', borderRadius: '0.75rem'}}
     c:
     - name: TextBlock
-      props: {{text: Sign In, tag: h2, fontSize: text-2xl}}
+      props: {{text: 'Sign In', tag: h2, fontSize: text-2xl}}
       style: {{fontWeight: '600', color: 'var(--ink-gray-9)'}}
     - name: TextInput
-      props: {{placeholder: Email address}}
+      props: {{placeholder: 'Email address'}}
     - name: FormControl
-      props: {{type: password, label: Password, placeholder: Enter password}}
+      props: {{type: password, label: 'Password', placeholder: 'Enter password'}}
     - name: Button
-      props: {{label: Sign In, variant: solid}}
+      props: {{label: 'Sign In', variant: solid}}
 """
 
 
