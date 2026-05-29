@@ -129,38 +129,19 @@ class BlockCodec:
 		parsed = yaml.safe_load(cleaned)
 
 		if isinstance(parsed, list):
-			node = parsed[0] if parsed else {}
+			block = parsed[0] if parsed else {}
 		elif isinstance(parsed, dict):
-			node = parsed
+			block = parsed
 		else:
 			raise ValueError("LLM response is not a valid block object")
 
-		if not node:
+		if not block:
 			raise ValueError("LLM response produced an empty block")
 
-		return BlockCodec.expand(node)
+		if isinstance(block, dict) and not block.get("id"):
+			block["id"] = "root"
 
-	@staticmethod
-	def parse_partial(content: str) -> dict | None:
-		"""Best-effort parse of a partial YAML stream. Returns None on failure."""
-		if not content or not content.strip():
-			return None
-		try:
-			cleaned = _strip_fences(content)
-			parsed = yaml.safe_load(cleaned)
-			if isinstance(parsed, list):
-				node = parsed[0] if parsed else None
-			elif isinstance(parsed, dict):
-				node = parsed
-			else:
-				return None
-			if not node or not isinstance(node, dict):
-				return None
-			if "name" not in node:
-				return None
-			return BlockCodec.expand(node)
-		except yaml.YAMLError:
-			return None
+		return BlockCodec.expand(block)
 
 	@staticmethod
 	def strip_context(block_json: str, task_type: str = "full") -> str:
