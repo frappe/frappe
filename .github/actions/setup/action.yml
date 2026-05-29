@@ -78,32 +78,48 @@ runs:
 
   - shell: bash -e {0}
     run: |
-      # Install System Dependencies
+      # Install System Dependencies (apt) in the background while installing the
+      # frappe-bench tool via uv — the two share no inputs.
       start_time=$(date +%s)
-      curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | sudo bash -s -- --mariadb-server-version="mariadb-11.8.5" --skip-maxscale
 
-      sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-      wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+      install_system_deps() {
+        curl -LsS https://r.mariadb.com/downloads/mariadb_repo_setup | sudo bash -s -- --mariadb-server-version="mariadb-11.8.5" --skip-maxscale
 
-      sudo apt -qq update
-      sudo apt -qq remove mysql-server mysql-client
-      sudo apt -qq remove -y postgresql-client postgresql-client-16 postgresql-client-common
-      sudo apt -qq install libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev
-      echo "/usr/lib/postgresql/18/bin" >> $GITHUB_PATH
+        sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+        wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 
-      if [ ! -f /tmp/wkhtmltox.deb ]; then
-        wget -q -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+        sudo apt -qq update
+        sudo apt -qq remove mysql-server mysql-client
+        sudo apt -qq remove -y postgresql-client postgresql-client-16 postgresql-client-common
+        sudo apt -qq install libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev
+        echo "/usr/lib/postgresql/18/bin" >> $GITHUB_PATH
+
+        if [ ! -f /tmp/wkhtmltox.deb ]; then
+          wget -q -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+        fi
+        sudo apt install /tmp/wkhtmltox.deb
+      }
+
+      install_system_deps &> ${GITHUB_WORKSPACE}/system_deps.log &
+      sys_pid=$!
+
+      # frappe-bench install via uv is independent of apt; do it while apt runs
+      uv tool install frappe-bench
+
+      if ! wait "$sys_pid"; then
+        echo "System dependency install failed:"
+        cat ${GITHUB_WORKSPACE}/system_deps.log
+        exit 1
       fi
-      sudo apt install /tmp/wkhtmltox.deb
+      cat ${GITHUB_WORKSPACE}/system_deps.log
 
       end_time=$(date +%s)
-      echo -e "\033[33mInstall System Dependencies: $((end_time - start_time)) seconds\033[0m"
+      echo -e "\033[33mInstall System Dependencies + bench tool: $((end_time - start_time)) seconds\033[0m"
 
   - shell: bash -e {0}
     run: |
       # Init Bench
       start_time=$(date +%s)
-      uv tool install frappe-bench
       bench init ${GITHUB_WORKSPACE} \
         --ignore-exist \
         --frappe-path "${GITHUB_WORKSPACE}/frappe-src" \
