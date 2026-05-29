@@ -60,21 +60,10 @@ class AIAgent(Document):
 
 	def validate(self):
 		self._validate_max_iterations()
-		self._deduplicate_tools()
 
 	def _validate_max_iterations(self):
 		if self.max_iterations is not None and self.max_iterations < 1:
 			frappe.throw(_("Max Iterations must be at least 1."), title=_("Invalid Max Iterations"))
-
-	def _deduplicate_tools(self):
-		seen: set[str] = set()
-		unique = []
-		for row in self.tools:
-			if row.tool in seen:
-				continue
-			seen.add(row.tool)
-			unique.append(row)
-		self.tools = unique
 
 	def assemble(self, *, model: str | None = None) -> Agent:
 		"""Resolve this row into a runtime Agent. `model` overrides the saved agent's model for this build."""
