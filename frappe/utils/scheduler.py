@@ -18,6 +18,7 @@ from croniter import CroniterBadCronError
 from filelock import FileLock, Timeout
 
 import frappe
+from frappe.doctypes import ScheduledJobType
 from frappe.utils import cint, get_bench_path, get_datetime, get_sites, now_datetime
 from frappe.utils.background_jobs import set_niceness
 from frappe.utils.caching import redis_cache
@@ -132,7 +133,7 @@ def enqueue_events_for_site(site: str) -> None:
 def enqueue_events() -> list[str] | None:
 	if schedule_jobs_based_on_activity():
 		enqueued_jobs = []
-		all_jobs = frappe.get_docs("Scheduled Job Type", filters={"stopped": 0})
+		all_jobs = ScheduledJobType.docs.filter({"stopped": 0})
 		random.shuffle(all_jobs)
 		for job_type in all_jobs:
 			try:

@@ -42,11 +42,6 @@ communication_mapping = {
 	"Other": "Other",
 }
 
-from typing import TYPE_CHECKING, TypeAlias
-
-if TYPE_CHECKING:
-	from frappe.core.doctype.communication.communication import Communication
-
 
 class Event(Document):
 	_DOCTYPE_NAME = "Event"
@@ -140,8 +135,7 @@ class Event(Document):
 			return
 
 		for participant in self.event_participants:
-			if communications := frappe.get_docs(
-				"Communication",
+			if communications := Communication.docs.filter(
 				filters=[
 					["Communication", "reference_doctype", "=", self.doctype],
 					["Communication", "reference_name", "=", self.name],

@@ -20,7 +20,16 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 	toggle_notifications,
 )
 from frappe.desk.notifications import clear_notifications
-from frappe.doctypes import Contact, Language, ModuleProfile, NotificationLog, RoleProfile, UserType
+from frappe.doctypes import (
+	Contact,
+	Language,
+	ModuleProfile,
+	Note,
+	NotificationLog,
+	RoleProfile,
+	UserInvitation,
+	UserType,
+)
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.rate_limiter import rate_limit
@@ -660,7 +669,7 @@ class User(Document):
 		frappe.db.delete("List Filter", {"for_user": self.name})
 
 		# Remove user from Note's Seen By table
-		seen_notes = frappe.get_docs("Note", filters=[["Note Seen By", "user", "=", self.name]])
+		seen_notes = Note.docs.filter([["Note Seen By", "user", "=", self.name]])
 		for note in seen_notes:
 			for row in note.seen_by:
 				if row.user == self.name:
@@ -668,7 +677,7 @@ class User(Document):
 			note.save(ignore_permissions=True)
 
 		# Unlink user from all of its invitation docs
-		invites = frappe.get_docs("User Invitation", filters={"email": self.name})
+		invites = UserInvitation.docs.filter({"email": self.name})
 		for invite_doc in invites:
 			invite_doc.user = None
 			invite_doc.save(ignore_permissions=True)
