@@ -18,7 +18,6 @@
 
 		<div
 			class="fixed flex gap-40"
-			:class="canvasStore.editingMode === 'page' ? 'h-full' : ''"
 			ref="canvas"
 			:style="{
 				transformOrigin: 'top center',
