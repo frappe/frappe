@@ -194,6 +194,7 @@ function onProgress(data: any) {
 }
 
 function onStream(data: any) {
+	canvasStore.isAIStreaming = true
 	streamBuffer.value += data.chunk || ""
 	const block = tryParseYamlBlock(streamBuffer.value)
 	if (block) {
@@ -204,6 +205,7 @@ function onStream(data: any) {
 }
 
 async function onComplete(data: any) {
+	canvasStore.isAIStreaming = false
 	loading.value = false
 	statusMessage.value = ""
 	streamBuffer.value = ""
@@ -224,6 +226,7 @@ async function onComplete(data: any) {
 }
 
 function onError(data: any) {
+	canvasStore.isAIStreaming = false
 	loading.value = false
 	statusMessage.value = ""
 	streamBuffer.value = ""
@@ -235,6 +238,7 @@ function onModifyProgress(data: any) {
 }
 
 function onModifyStream(data: any) {
+	canvasStore.isAIStreaming = true
 	modifyStreamBuffer.value += data.chunk || ""
 	const block = tryParseYamlBlock(modifyStreamBuffer.value)
 	if (block) {
@@ -243,6 +247,7 @@ function onModifyStream(data: any) {
 }
 
 async function onModifyComplete(data: any) {
+	canvasStore.isAIStreaming = false
 	loading.value = false
 	statusMessage.value = ""
 	modifyStreamBuffer.value = ""
@@ -260,6 +265,7 @@ async function onModifyComplete(data: any) {
 }
 
 function onModifyError(data: any) {
+	canvasStore.isAIStreaming = false
 	loading.value = false
 	statusMessage.value = ""
 	modifyStreamBuffer.value = ""
