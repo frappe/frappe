@@ -59,7 +59,7 @@
    "fieldname": "aggregate_function_based_on",
    "fieldtype": "Select",
    "label": "Aggregate Function Based On",
-   "mandatory_depends_on": "eval: doc.function !== 'Count'"
+   "mandatory_depends_on": "eval: doc.type === 'Document Type' && doc.function !== 'Count'"
   },
   {
    "fieldname": "filters_json",
@@ -229,7 +229,7 @@
   }
  ],
  "links": [],
- "modified": "2026-05-29 02:13:20.933689",
+ "modified": "2026-05-29 19:20:37.543999",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
