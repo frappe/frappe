@@ -19,7 +19,7 @@ TEXT & DISPLAY:
 INPUTS:
 - TextInput: {placeholder: "string"}
 - Textarea: {placeholder: "string"}
-- FormControl: {type: "text|email|number|select|date|autocomplete|password", label: "string", placeholder: "string"}
+- FormControl: {type: "text|email|number|textarea|select|date|autocomplete|password|tel|url|range", label: "string", placeholder: "string", required: "boolean", options: [{label: "string", value: "string"}] (for select and autocomplete)}
 - Select: {placeholder: "string", options: [{label: "string", value: "string"}]}
 - Checkbox: {label: "string", checked: true|false}
 - Switch: {label: "string", description: "string", modelValue: true|false}
@@ -30,6 +30,7 @@ INPUTS:
 - Rating: {label: "string"}
 - FileUploader: {label: "string", fileTypes: "['image/*']"}
 - TextEditor: {modelValue: "string", editable: true, fixedMenu: true}
+- FormLabel: {label: "string"} (for inputs that don't have a built-in label prop, e.g. Textarea, TextEditor, etc.)
 
 ACTIONS:
 - Button: {label: "string", variant: "solid|subtle|outline|ghost", size: "sm|md|lg|xl|2xl", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required)"}

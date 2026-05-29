@@ -65,7 +65,7 @@
 					rows="4"
 					class="w-full resize-none rounded border border-[--surface-gray-2] bg-surface-gray-2 px-2 py-1.5 text-p-sm text-ink-gray-8 placeholder-ink-gray-4 transition-colors hover:border-[--outline-gray-modals] hover:bg-surface-gray-3 focus:border-outline-gray-4 focus:bg-surface-white focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 disabled:cursor-not-allowed disabled:bg-surface-gray-1 disabled:text-ink-gray-5"
 					:placeholder="
-						isModifyMode ? 'Describe what to change in this block...' : 'Ask to create or edit this page...'
+						isModifyMode ? 'Describe what to change in this block...' : 'Chat to create or edit this page...'
 					"
 					:disabled="loading"
 					@keydown.meta.enter="generate"
