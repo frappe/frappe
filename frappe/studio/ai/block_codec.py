@@ -22,7 +22,9 @@ class CompactDumper(yaml.Dumper):
 
 
 def _str_representer(dumper, data):
-	unsafe = (":", "{", "}", "[", "]", "#", "&", "*", "!", "|", ">", "'", '"', "\n")
+	"""Use plain scalars where safe; single-quote only when the value contains
+	characters that would confuse the YAML parser."""
+	unsafe = (":", "{", "}", "[", "]", "#", "&", "*", "!", "|", ">", "'", '"', "?", "\n")
 	if any(c in data for c in unsafe):
 		return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="'")
 	return dumper.represent_scalar("tag:yaml.org,2002:str", data)
@@ -75,6 +77,10 @@ class BlockCodec:
 		if style:
 			out["style"] = style
 
+		raw = block.get("rawStyles") or {}
+		if raw:
+			out["rstyle"] = raw
+
 		mob = block.get("mobileStyles") or {}
 		if mob:
 			out["mstyle"] = mob
@@ -103,6 +109,7 @@ class BlockCodec:
 		block: dict = {
 			"componentName": node.get("name", "container"),
 			"baseStyles": node.get("style") or {},
+			"rawStyles": node.get("rstyle") or {},
 			"componentProps": node.get("props") or {},
 			"componentSlots": node.get("slots") or {},
 			"mobileStyles": node.get("mstyle") or {},

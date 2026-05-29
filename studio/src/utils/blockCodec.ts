@@ -10,6 +10,7 @@ export function expandBlock(node: Record<string, any>): BlockOptions {
 	const block: BlockOptions = {
 		componentName: node.name ?? "container",
 		baseStyles: node.style ?? {},
+		rawStyles: node.rstyle ?? {},
 		componentProps: node.props ?? {},
 		componentSlots: node.slots ?? {},
 		mobileStyles: node.mstyle ?? {},
