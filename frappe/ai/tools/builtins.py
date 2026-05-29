@@ -13,6 +13,20 @@ from frappe.utils.safe_exec import safe_exec
 
 MAX_READ_LIMIT = 200
 LAYOUT_FIELDTYPES = frozenset({"Section Break", "Column Break", "Tab Break", "HTML", "Heading"})
+_CONFIRM_STR_LIMIT = 120
+
+
+def _summarize_values(values: dict) -> str:
+	"""Truncate long values for confirm prompts — keeps the display scannable."""
+	display = {}
+	for k, v in (values or {}).items():
+		if isinstance(v, str) and len(v) > _CONFIRM_STR_LIMIT:
+			display[k] = v[:_CONFIRM_STR_LIMIT] + f"… ({len(v)} chars)"
+		elif isinstance(v, list) and len(v) > 6:
+			display[k] = v[:6] + [f"… +{len(v) - 6} more"]
+		else:
+			display[k] = v
+	return json.dumps(display, indent=2, default=str, ensure_ascii=False)
 
 
 @tool
@@ -114,8 +128,7 @@ def execute(code: str) -> Any:
 @tool(
 	requires_confirmation=True,
 	confirm_prompt=lambda args: (
-		f"Create new {args.get('doctype', '?')}:\n\n"
-		f"{json.dumps(args.get('values') or {}, indent=2, default=str)}"
+		f"Create new {args.get('doctype', '?')}:\n\n{_summarize_values(args.get('values'))}"
 	),
 )
 def create(doctype: str, values: dict[str, Any]) -> dict[str, Any]:
@@ -137,8 +150,7 @@ def create(doctype: str, values: dict[str, Any]) -> dict[str, Any]:
 @tool(
 	requires_confirmation=True,
 	confirm_prompt=lambda args: (
-		f"Update {args.get('doctype', '?')} {args.get('name', '?')}:\n\n"
-		f"{json.dumps(args.get('values') or {}, indent=2, default=str)}"
+		f"Update {args.get('doctype', '?')} {args.get('name', '?')}:\n\n{_summarize_values(args.get('values'))}"
 	),
 )
 def update(doctype: str, name: str, values: dict[str, Any]) -> dict[str, Any]:
