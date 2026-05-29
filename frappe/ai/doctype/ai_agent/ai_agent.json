@@ -81,7 +81,7 @@
    "label": "Tools"
   },
   {
-   "description": "AI Tools this agent can call. Defaults to the three primitives (introspect, query, execute) on creation.",
+   "description": "AI Tools this agent can call. Defaults to the three primitives (describe, read, execute) on creation.",
    "fieldname": "tools",
    "fieldtype": "Table MultiSelect",
    "label": "Tools",

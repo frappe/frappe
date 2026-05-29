@@ -40,12 +40,12 @@ class TestAIAgentToolChildTable(IntegrationTestCase):
 		return doc
 
 	def test_child_rows_persist_through_parent(self):
-		doc = frappe.get_doc(self._agent(tools=[{"tool": "query"}, {"tool": "execute"}])).insert()
+		doc = frappe.get_doc(self._agent(tools=[{"tool": "read"}, {"tool": "execute"}])).insert()
 
-		self.assertEqual([row.tool for row in doc.tools], ["query", "execute"])
+		self.assertEqual([row.tool for row in doc.tools], ["read", "execute"])
 		# Round-trip from DB to confirm the rows landed.
 		reloaded = frappe.get_doc("AI Agent", doc.name)
-		self.assertEqual([row.tool for row in reloaded.tools], ["query", "execute"])
+		self.assertEqual([row.tool for row in reloaded.tools], ["read", "execute"])
 
 	def test_unknown_tool_link_rejected(self):
 		doc = frappe.get_doc(self._agent(tools=[{"tool": "ghost_tool_does_not_exist"}]))
