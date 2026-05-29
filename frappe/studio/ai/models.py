@@ -15,6 +15,8 @@ class ModelRegistry:
 		{"id": "openrouter/google/gemini-3.1-pro-preview", "label": "Gemini 3.1 Pro", "vision_capable": True},
 		{"id": "openrouter/google/gemini-3-flash-preview", "label": "Gemini 3 Flash", "vision_capable": True},
 		{"id": "openrouter/openai/gpt-5-mini", "label": "GPT-5 Mini", "vision_capable": True},
+		{"id": "openrouter/qwen/qwen3.7-max", "label": "Qwen 3.7 Max", "vision_capable": False},
+		{"id": "openrouter/moonshotai/kimi-k2.6:free", "label": "Kimi K2.6 (free)", "vision_capable": True},
 	]
 
 	DEFAULT = "openrouter/anthropic/claude-sonnet-4-6"
