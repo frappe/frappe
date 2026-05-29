@@ -44,6 +44,7 @@ const useStudioStore = defineStore("store", () => {
 	// dialogs
 	const showSlotEditorDialog = ref(false)
 	const showSearchBlock = ref(false)
+	const showStudioSettingsDialog = ref(false)
 
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
@@ -460,6 +461,7 @@ const useStudioStore = defineStore("store", () => {
 		// dialogs
 		showSlotEditorDialog,
 		showSearchBlock,
+		showStudioSettingsDialog,
 		// studio app
 		activeApp,
 		setApp,

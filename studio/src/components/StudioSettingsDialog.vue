@@ -38,8 +38,9 @@
 
 <script lang="ts" setup>
 import { ref, watch } from "vue"
-import { Dialog, FormControl, ErrorMessage, createDocumentResource } from "frappe-ui"
+import { Dialog, FormControl, ErrorMessage } from "frappe-ui"
 import { toast } from "vue-sonner"
+import { studioSettings } from "@/data/studioSettings"
 
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })
 
@@ -47,19 +48,14 @@ const apiKey = ref("")
 const error = ref("")
 const saving = ref(false)
 
-const settings = createDocumentResource({
-	doctype: "Studio Settings",
-	name: "Studio Settings",
-	onSuccess(doc: any) {
-		apiKey.value = doc.ai_api_key || ""
-	},
-})
-
 watch(
 	() => showDialog.value,
-	(open) => {
+	async (open) => {
 		if (!open) return
-		settings.reload()
+		if (!studioSettings.doc) {
+			await studioSettings.reload()
+		}
+		apiKey.value = studioSettings.doc?.ai_api_key || ""
 		error.value = ""
 	},
 	{ immediate: true },
@@ -73,7 +69,7 @@ function reset() {
 function save() {
 	saving.value = true
 	error.value = ""
-	settings.setValue
+	studioSettings.setValue
 		.submit({
 			ai_api_key: apiKey.value,
 		})

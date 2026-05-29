@@ -13,7 +13,14 @@
 			</button>
 		</div>
 
-		<div ref="messagesEl" class="no-scrollbar flex-1 space-y-4 overflow-y-auto px-4 py-4">
+		<div v-if="!isAIEnabled" class="flex flex-1 flex-col items-start gap-3 p-4">
+			<p class="text-p-xs text-ink-gray-6">
+				Configure an AI API key in Studio Settings to use the AI assistant.
+			</p>
+			<Button variant="subtle" label="Open Settings" @click="store.showStudioSettingsDialog = true" />
+		</div>
+
+		<div v-else ref="messagesEl" class="no-scrollbar flex-1 space-y-4 overflow-y-auto px-4 py-4">
 			<div
 				v-if="!messages.length"
 				class="flex h-full flex-col items-center justify-center gap-2 pb-8 text-center"
@@ -42,7 +49,7 @@
 			</p>
 		</div>
 
-		<div class="shrink-0 border-t border-outline-gray-1 bg-surface-white p-4">
+		<div v-if="isAIEnabled" class="shrink-0 border-t border-outline-gray-1 bg-surface-white p-4">
 			<ErrorMessage v-if="error" :message="error" class="mb-2" />
 
 			<div v-if="isModifyMode" class="mb-2 flex items-center gap-1.5 rounded py-1">
@@ -119,10 +126,13 @@ import useCanvasStore from "@/stores/canvasStore"
 import { getBlockInstance, getBlockString } from "@/utils/serializer"
 import { tryParseYamlBlock } from "@/utils/blockCodec"
 import type Block from "@/utils/block"
+import { studioSettings } from "@/data/studioSettings"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const socket = inject<any>("socket")
+
+const isAIEnabled = computed(() => !!studioSettings.doc?.ai_api_key)
 
 const prompt = ref("")
 const loading = ref(false)

@@ -21,7 +21,7 @@
 							{
 								label: 'Studio Settings',
 								icon: 'sliders',
-								onClick: () => (showStudioSettingsDialog = true),
+								onClick: () => (store.showStudioSettingsDialog = true),
 							},
 							{
 								label: 'Delete App',
@@ -134,7 +134,7 @@
 			:app="store.activeApp"
 			@update="(app: StudioApp) => store.setApp(app.name)"
 		/>
-		<StudioSettingsDialog v-model:showDialog="showStudioSettingsDialog" />
+		<StudioSettingsDialog v-model:showDialog="store.showStudioSettingsDialog" />
 	</div>
 </template>
 
@@ -164,5 +164,4 @@ const showExportAppDialog = ref(false)
 const canExportApp = computed(() => window.is_developer_mode && !isObjectEmpty(store.activeApp))
 
 const showAppDialog = ref(false)
-const showStudioSettingsDialog = ref(false)
 </script>
