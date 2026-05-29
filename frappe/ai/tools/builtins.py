@@ -16,6 +16,25 @@ LAYOUT_FIELDTYPES = frozenset({"Section Break", "Column Break", "Tab Break", "HT
 
 
 @tool
+def find_doctypes(search: str | None = None, module: str | None = None, limit: int = 40) -> list[dict]:
+	"""Find exact DocType names before describe/read — never guess names.
+
+	Search by keyword (substring of the name) and/or filter by module. Returns a list
+	of {name, module} you can read. Child tables are excluded; single DocTypes are included.
+	"""
+	limit = min(max(int(limit), 1), MAX_READ_LIMIT)
+	filters: dict[str, Any] = {"istable": 0}
+	if module:
+		filters["module"] = module
+	if search:
+		filters["name"] = ["like", f"%{search}%"]
+	rows = frappe.get_all(
+		"DocType", filters=filters, fields=["name", "module"], order_by="name", limit=limit
+	)
+	return [r for r in rows if frappe.has_permission(r["name"], "read")]
+
+
+@tool
 def describe(doctype: str) -> dict[str, Any]:
 	"""Describe a DocType's schema before reading or acting on it.
 
@@ -70,16 +89,23 @@ def read(
 	confirm_prompt=lambda args: f"Run this Python:\n\n{args.get('code', '')}",
 )
 def execute(code: str) -> Any:
-	"""Run Python in the Frappe sandbox to read or change data.
+	"""Run Python in the Frappe sandbox (RestrictedPython) for computation, emails, or multi-record work.
 
-	DO NOT use `import` statements — `frappe` and `frappe.utils` are already in scope.
 	Assign the value you want returned to a variable named `result`.
-
 	Example:
 	    result = frappe.db.count("ToDo", {"status": "Open"})
 
-	Writes run as the current user and enforce permissions. The user is asked to
-	approve each call before it runs.
+	Sandbox limits — code using these FAILS:
+	- No `import`. `frappe` and `frappe.utils` are already in scope; nothing else can be imported.
+	- No names or attributes starting with `_` (no dunders, no `obj._private`).
+	- Unavailable builtins: open, eval, exec, compile, getattr, setattr, hasattr,
+	  globals, locals, vars, dir, type, input. Available: len, range, str, int, float,
+	  bool, sum, sorted, enumerate, zip, min, max, abs, dict, list, set, tuple.
+	- `str.format()` / `.format_map()` are blocked — use f-strings or `%` formatting.
+	- `frappe.db.sql` is read-only (SELECT/EXPLAIN only).
+	- `print()` output is logged, not returned — put what you want back into `result`.
+
+	Writes run as the current user and enforce permissions. The user approves each call before it runs.
 	"""
 	exec_globals, _locals = safe_exec(code, script_filename="ai_execute")
 	return exec_globals.get("result")
@@ -151,7 +177,7 @@ def delete(doctype: str, name: str) -> dict[str, Any]:
 	return {"deleted": True, "doctype": doctype, "name": name}
 
 
-BUILTIN_TOOLS: list[Tool] = [describe, read, create, update, delete, execute]
+BUILTIN_TOOLS: list[Tool] = [find_doctypes, describe, read, create, update, delete, execute]
 
 
 def sync_builtin_tools() -> None:
@@ -161,7 +187,7 @@ def sync_builtin_tools() -> None:
 			current = frappe.db.get_value(
 				"AI Tool",
 				builtin.name,
-				["is_system_generated", "requires_confirmation"],
+				["is_system_generated", "requires_confirmation", "description"],
 				as_dict=True,
 			)
 			if not current.is_system_generated:
@@ -170,6 +196,8 @@ def sync_builtin_tools() -> None:
 				frappe.db.set_value(
 					"AI Tool", builtin.name, "requires_confirmation", int(builtin.requires_confirmation)
 				)
+			if current.description != builtin.description:
+				frappe.db.set_value("AI Tool", builtin.name, "description", builtin.description)
 			continue
 		frappe.get_doc(
 			{

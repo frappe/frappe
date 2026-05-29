@@ -8,11 +8,40 @@ from frappe.ai.tools.builtins import (
 	delete,
 	describe,
 	execute,
+	find_doctypes,
 	read,
 	sync_builtin_tools,
 	update,
 )
 from frappe.tests import IntegrationTestCase
+
+
+class TestFindDoctypes(IntegrationTestCase):
+	def test_search_matches_by_keyword(self):
+		names = {r["name"] for r in find_doctypes(search="ToDo")}
+		self.assertIn("ToDo", names)
+
+	def test_filters_by_module(self):
+		rows = find_doctypes(module="Core", limit=200)
+		self.assertTrue(rows)
+		self.assertTrue(all(r["module"] == "Core" for r in rows))
+
+	def test_excludes_child_tables(self):
+		names = {r["name"] for r in find_doctypes(search="Role", limit=200)}
+		self.assertIn("Role", names)
+		self.assertNotIn("Has Role", names)  # a child table that also matches "Role"
+
+	def test_includes_single_doctypes(self):
+		names = {r["name"] for r in find_doctypes(search="System Settings", limit=200)}
+		self.assertIn("System Settings", names)  # a single DocType
+
+	def test_respects_read_permission(self):
+		frappe.set_user("Guest")
+		try:
+			names = {r["name"] for r in find_doctypes(search="User", limit=200)}
+			self.assertNotIn("User", names)
+		finally:
+			frappe.set_user("Administrator")
 
 
 class TestDescribe(IntegrationTestCase):
