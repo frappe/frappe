@@ -60,29 +60,21 @@ runs:
   - uses: actions/setup-node@v6
     with:
       node-version: ${{ inputs.node-version }}
-      check-latest: true
+      cache: yarn
+      cache-dependency-path: frappe-src/yarn.lock
 
   - uses: astral-sh/setup-uv@v6
+    with:
+      enable-cache: true
+      cache-dependency-glob: |
+        **/pyproject.toml
+        **/requirements*.txt
 
-  - name: Cache pip
+  - name: Cache wkhtmltopdf
     uses: actions/cache@v4
     with:
-      path: ~/.cache/pip
-      key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
-      restore-keys: |
-        ${{ runner.os }}-pip-
-        ${{ runner.os }}-
-
-  - id: yarn-cache-dir-path
-    shell: bash -e {0}
-    run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
-  - uses: actions/cache@v4
-    id: yarn-cache
-    with:
-      path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-      key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      restore-keys: |
-        ${{ runner.os }}-yarn-
+      path: /tmp/wkhtmltox.deb
+      key: wkhtmltox-0.12.6.1-2-jammy-amd64
 
   - shell: bash -e {0}
     run: |
@@ -99,7 +91,9 @@ runs:
       sudo apt -qq install libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev
       echo "/usr/lib/postgresql/18/bin" >> $GITHUB_PATH
 
-      wget -q -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+      if [ ! -f /tmp/wkhtmltox.deb ]; then
+        wget -q -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+      fi
       sudo apt install /tmp/wkhtmltox.deb
 
       end_time=$(date +%s)
