@@ -23,7 +23,8 @@ LAYOUT:
 - container: layout wrapper (renders as a div). No componentProps. Use baseStyles: display, flexDirection, gap, padding, width, height, flexWrap, alignItems, justifyContent, flexShrink, flex, etc.
 
 TEXT & DISPLAY:
-- TextBlock: {text: "string", tag: "p|h1|h2|h3|h4|h5|h6|span"}
+- TextBlock: {text: "string", tag: "p|h1|h2|h3|h4|h5|h6|span", fontSize: "text-2xs(11px)|text-xs(12px)|text-sm(13px)|text-base(14px)|text-lg(16px)|text-xl(18px)|text-2xl(20px)|text-3xl(24px)|text-p-2xs|text-p-xs|text-p-sm|text-p-base|text-p-lg|text-p-xl|text-p-2xl|text-p-3xl"}
+  # text-* = tight line-height (UI labels, headings); text-p-* = relaxed line-height (body copy, descriptions)
 - Badge: {variant: "subtle|solid|outline", theme: "green|red|orange|blue|gray", size: "sm|md|lg", label: "string"}
 - Avatar: {shape: "circle|square", size: "xs|sm|md|lg|xl|2xl|3xl", label: "initials", image: "url"}
 - Progress: {value: 0-100, size: "sm|md|lg", label: "string"}
@@ -85,7 +86,7 @@ STYLE PROPERTY ROUTING — use the correct key:
   Dimension: width, minWidth, maxWidth, height, minHeight, maxHeight
   Position: position, top, right, bottom, left, zIndex
   Spacing: margin, padding (and per-side: marginTop, marginRight, marginBottom, marginLeft, paddingTop, paddingRight, paddingBottom, paddingLeft)
-  Typography: fontWeight, fontSize, lineHeight, color, letterSpacing, textTransform, textAlign
+  Typography: fontWeight, lineHeight, color, letterSpacing, textTransform, textAlign
   Visual: backgroundColor, borderColor, borderWidth, borderStyle, borderRadius, boxShadow, cursor
 - `rstyle:` (raw styles) — for ALL other CSS properties not listed above: opacity, objectFit, objectPosition, whiteSpace, textOverflow, textDecoration, fontStyle, fontFamily, transform, transition, animation, wordBreak, overflowWrap, etc. Keep rstyle minimal — only include when genuinely needed.
 - `mstyle:` (mobile styles) and `tstyle:` (tablet styles) — same properties as `style`, but for mobile and tablet breakpoints. Only include properties that need to change on mobile/tablet — do not duplicate the entire style object.
@@ -102,8 +103,7 @@ CSS VARIABLE RULES:
 - For full borders: borderColor, borderWidth (e.g. "1px"), borderStyle — always set all three together
 - For one-sided borders: use CSS shorthand values — e.g. top-only: borderWidth: "4px 0px 0px 0px", borderColor: "var(--outline-blue-1)", borderStyle: "solid"
 - Button: use size prop ("sm"|"md"|"lg"|"xl"|"2xl") for sizing — DO NOT set height in style. Keep `theme` gray or default unless prompted. Only use colored themes (blue, red, green) when semantically meaningful: destructive actions → red, success/confirmed → green.
-- Avoid applying visual style (color, backgroundColor, borderColor, fontSize) to frappe-ui components — their props handle this. Only use style on `container` components for layout (width, flex, margin, etc.).
-- TextBlock: use tag prop for semantics (h1/h2/h3 for headings, p for body). Set fontSize/fontWeight/color on TextBlock style."""
+- Avoid applying visual style (color, backgroundColor, borderColor, fontSize) to frappe-ui components — their props handle this. Only use style on `container` components for layout (width, flex, margin, etc.)."""
 
 OUTPUT_FORMAT_RULES = """YAML STRING QUOTING (critical — unquoted special characters break parsing):
 - Critical: Return ONLY a valid and compact YAML object. No markdown, no explanations.
@@ -184,8 +184,8 @@ c:
     style: {{display: flex, flexDirection: column, gap: 16px, width: 100%, maxWidth: 400px, padding: 32px, backgroundColor: 'var(--surface-white)', borderRadius: '0.75rem'}}
     c:
     - name: TextBlock
-      props: {{text: Sign In, tag: h2}}
-      style: {{fontSize: 20px, fontWeight: '600', color: 'var(--ink-gray-9)'}}
+      props: {{text: Sign In, tag: h2, fontSize: text-2xl}}
+      style: {{fontWeight: '600', color: 'var(--ink-gray-9)'}}
     - name: TextInput
       props: {{placeholder: Email address}}
     - name: FormControl
