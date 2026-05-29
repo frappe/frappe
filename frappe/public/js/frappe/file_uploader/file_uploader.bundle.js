@@ -28,7 +28,7 @@ class FileUploader {
 		allow_toggle_optimize,
 		allow_google_drive,
 	} = {}) {
-		frm && frm.attachments.max_reached(true);
+		frm?.attachments?.max_reached?.(true);
 
 		if (allow_toggle_private === undefined) {
 			allow_toggle_private = true;
