@@ -1,5 +1,5 @@
 <template>
-	<div ref="canvasContainer">
+	<div ref="canvasContainer" @click="handleClick">
 		<slot name="header"></slot>
 		<div
 			class="overlay absolute"
@@ -242,6 +242,15 @@ function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = fa
 		selectedBlockIds.value.add(blockId)
 	} else {
 		selectedBlockIds.value = new Set([blockId])
+	}
+}
+
+const handleClick = (ev: MouseEvent) => {
+	const target = document.elementFromPoint(ev.clientX, ev.clientY)
+	// hack to ensure if click is on canvas-container
+	// TODO: Still clears selection if space handlers are dragged over canvas-container
+	if (target?.classList.contains("canvas-container")) {
+		clearSelection()
 	}
 }
 
