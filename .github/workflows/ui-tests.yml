@@ -56,7 +56,7 @@ jobs:
         image: mariadb:11.8
         ports:
           - 3306:3306
-        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3 --tmpfs=/var/lib/mysql:rw,noexec,nosuid,size=2g
         env:
           MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
     steps:

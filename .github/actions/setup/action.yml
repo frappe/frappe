@@ -191,6 +191,15 @@ runs:
         DB_ROOT_PWD="${{ inputs.db-root-password }}"
       fi
 
+      # Reduce durability for CI speed — the DB is ephemeral, so trading crash
+      # safety for fewer fsyncs is free. innodb_flush_log_at_trx_commit=0 flushes
+      # the redo log once per second instead of on every commit.
+      if [ "$DB" == "mariadb" ]; then
+        mariadb -h 127.0.0.1 -u "$DB_ROOT_USER" -p"$DB_ROOT_PWD" -e "
+          SET GLOBAL innodb_flush_log_at_trx_commit = 0;
+          SET GLOBAL sync_binlog = 0;"
+      fi
+
       bench set-config -g root_login "$DB_ROOT_USER"
       bench set-config -g root_password "$DB_ROOT_PWD"
       bench set-config -g admin_password admin
