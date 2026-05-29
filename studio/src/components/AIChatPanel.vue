@@ -125,6 +125,7 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { getBlockInstance, getBlockString } from "@/utils/serializer"
 import { tryParseYamlBlock } from "@/utils/blockCodec"
+import { throttle } from "@/utils/helpers"
 import type Block from "@/utils/block"
 import { studioSettings } from "@/data/studioSettings"
 
@@ -206,13 +207,17 @@ function onProgress(data: any) {
 function onStream(data: any) {
 	canvasStore.isAIStreaming = true
 	streamBuffer.value += data.chunk || ""
+	renderStreamedBlock()
+}
+
+const renderStreamedBlock = throttle(() => {
 	const block = tryParseYamlBlock(streamBuffer.value)
 	if (block) {
 		const rootBlock = getBlockInstance(block)
 		store.pageBlocks = [rootBlock]
 		canvasStore.activeCanvas?.setRootBlock(rootBlock, false)
 	}
-}
+}, 250)
 
 async function onComplete(data: any) {
 	canvasStore.isAIStreaming = false
