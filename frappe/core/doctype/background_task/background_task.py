@@ -11,6 +11,8 @@ PUBLISH_THROTTLE_SECONDS = 0.2
 
 
 class BackgroundTask(Document):
+	_DOCTYPE_NAME = "Background Task"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -192,16 +192,16 @@ def get_desktop_icons(user=None, bootinfo=None):
 
 		from frappe.query_builder import DocType
 
-		DesktopIcon = DocType("Desktop Icon")
+		DesktopIconTable = DocType("Desktop Icon")
 
 		user_icons = (
-			frappe.qb.from_(DesktopIcon)
+			frappe.qb.from_(DesktopIconTable)
 			.select(*fields)
 			.where(
-				(DesktopIcon.standard == 1)
+				(DesktopIconTable.standard == 1)
 				| (
-					(DesktopIcon.standard == 0)
-					& (DesktopIcon.owner.isin(["Administrator", frappe.session.user]))
+					(DesktopIconTable.standard == 0)
+					& (DesktopIconTable.owner.isin(["Administrator", frappe.session.user]))
 				)
 			)
 			.distinct()

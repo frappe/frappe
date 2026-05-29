@@ -293,7 +293,7 @@ class TestEmailAccount(IntegrationTestCase):
 			reference_name=event.name,
 		)
 
-		last_mail = EmailQueue.docs.get(dict(reference_name=event.name))
+		last_mail = EmailQueue.docs.last(dict(reference_name=event.name))
 
 		# get test mail with message-id as in-reply-to
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-4.raw")) as f:

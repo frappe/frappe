@@ -82,7 +82,7 @@ class TestScheduler(IntegrationTestCase):
 		# create a fake job executed 5 days from now
 		job = get_test_job(method="frappe.tests.test_scheduler.test_method", frequency="Daily")
 		job.execute()
-		job_log = ScheduledJobLog.docs.get(dict(scheduled_job_type=job.name))
+		job_log = ScheduledJobLog.docs.last(dict(scheduled_job_type=job.name))
 		job_log.db_set("creation", add_days(last_activity, 5), update_modified=False)
 		schedule_jobs_based_on_activity.clear_cache()
 		is_dormant.clear_cache()
@@ -118,7 +118,7 @@ def get_test_job(method="frappe.tests.test_scheduler.test_timeout_10", frequency
 			frequency=frequency,
 		).insert()
 	else:
-		job = ScheduledJobType.docs.get(dict(method=method))
+		job = ScheduledJobType.docs.last(dict(method=method))
 		job.db_set("last_execution", "2010-01-01 00:00:00")
 		job.db_set("frequency", frequency)
 	frappe.db.commit()

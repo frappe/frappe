@@ -45,14 +45,14 @@ class TestScheduledJobType(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def test_sync_jobs(self):
-		all_job = ScheduledJobType.docs.get(dict(method="frappe.email.queue.flush"))
+		all_job = ScheduledJobType.docs.last(dict(method="frappe.email.queue.flush"))
 		self.assertEqual(all_job.frequency, "All")
 
-		daily_job = ScheduledJobType.docs.get(dict(method="frappe.desk.notifications.clear_notifications"))
+		daily_job = ScheduledJobType.docs.last(dict(method="frappe.desk.notifications.clear_notifications"))
 		self.assertEqual(daily_job.frequency, "Daily Maintenance")
 
 		# check if cron jobs are synced
-		cron_job = ScheduledJobType.docs.get(dict(method="frappe.deferred_insert.save_to_db"))
+		cron_job = ScheduledJobType.docs.last(dict(method="frappe.deferred_insert.save_to_db"))
 		self.assertEqual(cron_job.frequency, "Cron")
 		self.assertEqual(cron_job.cron_format, "0/15 * * * *")
 
@@ -63,7 +63,7 @@ class TestScheduledJobType(IntegrationTestCase):
 		self.assertEqual(updated_scheduled_job.frequency, "Hourly")
 
 	def test_daily_job(self):
-		job = ScheduledJobType.docs.get(
+		job = ScheduledJobType.docs.last(
 			dict(method="frappe.email.doctype.notification.notification.trigger_daily_alerts")
 		)
 		job.db_set("last_execution", "2019-01-01 00:00:00")
@@ -72,14 +72,14 @@ class TestScheduledJobType(IntegrationTestCase):
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-01 23:59:59")))
 
 	def test_weekly_job(self):
-		job = ScheduledJobType.docs.get(dict(method="frappe.desk.form.document_follow.send_weekly_updates"))
+		job = ScheduledJobType.docs.last(dict(method="frappe.desk.form.document_follow.send_weekly_updates"))
 		job.db_set("last_execution", "2019-01-01 00:00:00")
 		self.assertTrue(job.is_event_due(get_datetime("2019-01-06 00:10:01")))  # +10 min because of jitter
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-02 00:00:06")))
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-05 23:59:59")))
 
 	def test_monthly_job(self):
-		job = ScheduledJobType.docs.get(
+		job = ScheduledJobType.docs.last(
 			dict(method="frappe.email.doctype.auto_email_report.auto_email_report.send_monthly")
 		)
 		job.db_set("last_execution", "2019-01-01 00:00:00")
@@ -89,7 +89,7 @@ class TestScheduledJobType(IntegrationTestCase):
 
 	def test_cron_job(self):
 		# runs every 10 mins
-		job = ScheduledJobType.docs.get(dict(method="frappe.email.doctype.email_account.email_account.pull"))
+		job = ScheduledJobType.docs.last(dict(method="frappe.email.doctype.email_account.email_account.pull"))
 		job.db_set("last_execution", "2019-01-01 00:00:00")
 		self.assertEqual(job.next_execution, get_datetime("2019-01-01 00:10:00"))
 		self.assertTrue(job.is_event_due(get_datetime("2019-01-01 00:10:01")))

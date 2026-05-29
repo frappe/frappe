@@ -28,7 +28,9 @@ def add_custom_fields() -> "CustomField":
 		print_hide=1,
 		read_only=1,
 	)
-	return create_custom_field("ToDo", df) or CustomField.docs.get(dict(fieldname=df["fieldname"], dt="ToDo"))
+	return create_custom_field("ToDo", df) or CustomField.docs.last(
+		dict(fieldname=df["fieldname"], dt="ToDo")
+	)
 
 
 class TestAutoRepeat(IntegrationTestCase):

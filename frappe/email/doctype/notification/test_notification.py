@@ -368,7 +368,7 @@ class TestNotification(IntegrationTestCase):
 		)
 
 		frappe.set_user("Administrator")
-		ScheduledJobType.docs.get(
+		ScheduledJobType.docs.last(
 			dict(method="frappe.email.doctype.notification.notification.trigger_daily_alerts")
 		).execute()
 
@@ -392,7 +392,7 @@ class TestNotification(IntegrationTestCase):
 			)
 		)
 
-		ScheduledJobType.docs.get(
+		ScheduledJobType.docs.last(
 			dict(method="frappe.email.doctype.notification.notification.trigger_daily_alerts")
 		).execute()
 

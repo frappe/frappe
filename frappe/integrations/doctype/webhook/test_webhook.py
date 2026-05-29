@@ -97,7 +97,7 @@ class TestWebhook(IntegrationTestCase):
 		}
 
 		if frappe.db.exists("Webhook", webhook_fields):
-			self.webhook = Webhook.docs.get(webhook_fields)
+			self.webhook = Webhook.docs.last(webhook_fields)
 		else:
 			self.webhook = Webhook.docs.new()
 			self.webhook.update(webhook_fields)

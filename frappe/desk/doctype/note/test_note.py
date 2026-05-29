@@ -20,7 +20,7 @@ class TestNote(IntegrationTestCase):
 		note.content = "1"
 		note.save(ignore_version=False)
 
-		version = Version.docs.get(dict(docname=note.name))
+		version = Version.docs.last(dict(docname=note.name))
 		data = version.get_data()
 
 		self.assertTrue(("title", "test note", "test note 1"), data["changed"])
@@ -33,7 +33,7 @@ class TestNote(IntegrationTestCase):
 		note.append("seen_by", {"user": "Administrator"})
 		note.save(ignore_version=False)
 
-		version = Version.docs.get(dict(docname=note.name))
+		version = Version.docs.last(dict(docname=note.name))
 		data = version.get_data()
 
 		self.assertEqual(len(data.get("added")), 1)
@@ -48,7 +48,7 @@ class TestNote(IntegrationTestCase):
 		note.seen_by[0].user = "Guest"
 		note.save(ignore_version=False)
 
-		version = Version.docs.get(dict(docname=note.name))
+		version = Version.docs.last(dict(docname=note.name))
 		data = version.get_data()
 
 		self.assertEqual(len(data.get("row_changed")), 1)
@@ -62,7 +62,7 @@ class TestNote(IntegrationTestCase):
 		note.seen_by = []
 		note.save(ignore_version=False)
 
-		version = Version.docs.get(dict(docname=note.name))
+		version = Version.docs.last(dict(docname=note.name))
 		data = version.get_data()
 
 		self.assertEqual(len(data.get("removed")), 1)

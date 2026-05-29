@@ -17,7 +17,7 @@ class TestToDo(IntegrationTestCase):
 		frappe.db.delete("Deleted Document")
 		todo.delete()
 
-		deleted = DeletedDocument.docs.get(dict(deleted_doctype=todo.doctype, deleted_name=todo.name))
+		deleted = DeletedDocument.docs.last(dict(deleted_doctype=todo.doctype, deleted_name=todo.name))
 		self.assertEqual(todo.as_json(), deleted.data)
 
 	def test_fetch(self):

@@ -46,17 +46,7 @@ class TestActivityLog(IntegrationTestCase):
 		frappe.local.form_dict = frappe._dict()
 
 	def get_auth_log(self, operation="Login"):
-		names = frappe.get_all(
-			"Activity Log",
-			filters={
-				"user": "Administrator",
-				"operation": operation,
-			},
-			order_by="creation DESC",
-		)
-
-		name = names[0]
-		return ActivityLog.docs.get(name)
+		return ActivityLog.docs.last({"user": "Administrator", "operation": operation})
 
 	def test_brute_security(self):
 		update_system_settings({"allow_consecutive_login_attempts": 3, "allow_login_after_fail": 5})
