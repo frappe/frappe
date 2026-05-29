@@ -5,6 +5,7 @@ import requests
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType, sync_jobs
 from frappe.core.doctype.server_script.server_script import ServerScript
+from frappe.doctypes import User
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.tests import IntegrationTestCase
 from frappe.utils import get_site_url
@@ -113,7 +114,7 @@ class TestServerScript(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		frappe.db.truncate("Server Script")
-		frappe.get_doc("User", "Administrator").add_roles("Script Manager")
+		User.docs.get("Administrator").add_roles("Script Manager")
 		for script in scripts:
 			script_doc = frappe.get_doc(doctype="Server Script")
 			script_doc.update(script)
@@ -154,7 +155,7 @@ class TestServerScript(IntegrationTestCase):
 		self.assertEqual("hello", response.json()["message"])
 
 	def test_api_return(self):
-		self.assertEqual(frappe.get_doc("Server Script", "test_return_value").execute_method(), "hello")
+		self.assertEqual(ServerScript.docs.get("test_return_value").execute_method(), "hello")
 
 	def test_permission_query(self):
 		sql = frappe.db.get_list("ToDo", run=False).get_sql()
@@ -178,7 +179,7 @@ class TestServerScript(IntegrationTestCase):
 		)
 
 	def test_commit_in_doctype_event(self):
-		server_script = frappe.get_doc("Server Script", "test_todo_commit")
+		server_script = ServerScript.docs.get("test_todo_commit")
 		server_script.disabled = 0
 		server_script.save()
 
@@ -188,7 +189,7 @@ class TestServerScript(IntegrationTestCase):
 		server_script.save()
 
 	def test_add_index_in_doctype_event(self):
-		server_script = frappe.get_doc("Server Script", "test_add_index")
+		server_script = ServerScript.docs.get("test_add_index")
 		server_script.disabled = 0
 		server_script.save()
 
@@ -331,7 +332,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		cron_job_name = frappe.db.get_value("Scheduled Job Type", {"server_script": cron_script.name})
 		self.assertTrue(cron_job_name)
 
-		cron_job = frappe.get_doc("Scheduled Job Type", cron_job_name)
+		cron_job = ScheduledJobType.docs.get(cron_job_name)
 		self.assertEqual(cron_job.next_execution.day, 1)
 		self.assertEqual(cron_job.next_execution.month, 1)
 
@@ -339,7 +340,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		cron_script.save()
 
 		updated_cron_job_name = frappe.db.get_value("Scheduled Job Type", {"server_script": cron_script.name})
-		updated_cron_job = frappe.get_doc("Scheduled Job Type", updated_cron_job_name)
+		updated_cron_job = ScheduledJobType.docs.get(updated_cron_job_name)
 		self.assertEqual(updated_cron_job.next_execution.day, 2)
 
 	def test_server_script_state_changes(self):

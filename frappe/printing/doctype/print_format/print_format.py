@@ -6,6 +6,7 @@ import json
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.doctypes import DocType
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
 from frappe.utils.print_format_generator import download_pdf, get_html
@@ -158,10 +159,10 @@ class PrintFormat(Document):
 @frappe.whitelist()
 def make_default(name: str):
 	"""Set print format as default"""
-	print_format = frappe.get_doc("Print Format", name)
+	print_format = PrintFormat.docs.get(name)
 	print_format.check_permission("write")
 
-	doctype = frappe.get_doc("DocType", print_format.doc_type)
+	doctype = DocType.docs.get(print_format.doc_type)
 	if doctype.custom:
 		doctype.default_print_format = name
 		doctype.save()

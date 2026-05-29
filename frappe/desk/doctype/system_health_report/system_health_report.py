@@ -23,6 +23,7 @@ from contextlib import contextmanager
 
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
+from frappe.doctypes import RQJob
 from frappe.model.document import Document
 from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
 from frappe.utils.caching import redis_cache
@@ -373,7 +374,7 @@ class SystemHealthReport(Document):
 def get_job_status(job_id: str | None = None):
 	frappe.only_for("System Manager")
 	try:
-		return frappe.get_doc("RQ Job", job_id).status
+		return RQJob.docs.get(job_id).status
 	except Exception:
 		frappe.clear_messages()
 

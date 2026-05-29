@@ -11,6 +11,7 @@ from frappe import _
 from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
 from frappe.core.doctype.sms_settings.sms_settings import send_sms
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
+from frappe.doctypes import Communication, PrintSettings
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
@@ -498,7 +499,7 @@ def get_context(context):
 				communication_type="Automated Message",
 			).get("name")
 			# set the outgoing email account because we did in fact send it via sendmail above
-			comm = frappe.get_lazy_doc("Communication", communication)
+			comm = Communication.docs.get(communication, lazy=True)
 			comm.get_outgoing_email_account()
 
 		# We expect at most one print format attachment, but we don't know where it is.
@@ -665,7 +666,7 @@ def get_context(context):
 	def get_print(self, doc):
 		"""check print settings and return dict with print info"""
 
-		print_settings = frappe.get_doc("Print Settings", "Print Settings")
+		print_settings = PrintSettings.docs.get("Print Settings")
 		if (doc.docstatus == 0 and not print_settings.allow_print_for_draft) or (
 			doc.docstatus == 2 and not print_settings.allow_print_for_cancelled
 		):
@@ -747,7 +748,7 @@ def clear_notification_cache():
 
 @frappe.whitelist()
 def get_documents_for_today(notification: str):
-	notification = frappe.get_doc("Notification", notification)
+	notification = Notification.docs.get(notification)
 	notification.check_permission("read")
 	return [d.name for d in notification.get_documents_for_today()]
 
@@ -770,7 +771,7 @@ def trigger_notifications(doc, method=None):
 			"Notification", filters={"event": ("in", ("Days Before", "Days After")), "enabled": 1}
 		)
 		for d in doc_list:
-			alert = frappe.get_doc("Notification", d.name)
+			alert = Notification.docs.get(d.name)
 
 			for doc in alert.get_documents_for_today():
 				evaluate_alert(doc, alert, alert.event)
@@ -782,7 +783,7 @@ def trigger_notifications(doc, method=None):
 			"Notification", filters={"event": ("in", ("Minutes Before", "Minutes After")), "enabled": 1}
 		)
 		for d in doc_list:
-			alert = frappe.get_doc("Notification", d.name)
+			alert = Notification.docs.get(d.name)
 
 			for doc in alert.get_documents_for_this_moment():
 				evaluate_alert(doc, alert, alert.event)
@@ -795,7 +796,7 @@ def evaluate_alert(doc: Document, alert, event=None):
 
 	try:
 		if isinstance(alert, str):
-			alert = frappe.get_doc("Notification", alert)
+			alert = Notification.docs.get(alert)
 
 		context = get_context(doc)
 
@@ -902,7 +903,7 @@ def create_notifications(notifications: list[dict], update: bool = False):
 			continue
 
 		if existing and update:
-			doc = frappe.get_doc("Notification", name)
+			doc = Notification.docs.get(name)
 			doc.update(notif_dict)
 			doc.flags.ignore_validate = True
 			doc.save(ignore_permissions=True)

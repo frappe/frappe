@@ -49,7 +49,7 @@ def get_slideshow(doc):
 	if not doc.slideshow:
 		return {}
 
-	slideshow = frappe.get_doc("Website Slideshow", doc.slideshow)
+	slideshow = WebsiteSlideshow.docs.get(doc.slideshow)
 
 	return {
 		"slides": slideshow.get({"doctype": "Website Slideshow Item"}),

@@ -14,6 +14,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 	is_email_notifications_enabled_for_type,
 )
 from frappe.desk.reportview import get_filters_cond
+from frappe.doctypes import Communication
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings, sync_user_settings, update_user_settings
 from frappe.utils import (
@@ -157,7 +158,7 @@ class Event(Document):
 					self.create_communication(participant)
 
 	def create_communication(self, participant: "EventParticipants"):
-		communication = frappe.new_doc("Communication")
+		communication = Communication.docs.new()
 		self.update_communication(participant, communication)
 		self.communication = communication.name
 
@@ -237,7 +238,7 @@ class Event(Document):
 
 @frappe.whitelist()
 def update_attending_status(event_name: str, attendee: str, status: str):
-	event_doc = frappe.get_doc("Event", event_name)
+	event_doc = Event.docs.get(event_name)
 	caller = frappe.session.user
 
 	if attendee != caller:

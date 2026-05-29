@@ -178,7 +178,7 @@ def queue_submission(doc: Document, action: str, alert: bool = True):
 		)
 		return
 
-	queue = frappe.new_doc("Submission Queue")
+	queue = SubmissionQueue.docs.new()
 	queue.ref_doctype = doc.doctype
 	queue.ref_docname = doc.name
 	queue.insert(doc, action)

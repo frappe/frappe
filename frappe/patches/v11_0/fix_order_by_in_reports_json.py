@@ -1,6 +1,7 @@
 import json
 
 import frappe
+from frappe.doctypes import Report
 
 
 def execute():
@@ -15,7 +16,7 @@ def execute():
 	)
 
 	for d in reports_data:
-		doc = frappe.get_doc("Report", d.get("name"))
+		doc = Report.docs.get(d.get("name"))
 
 		if not doc.get("json"):
 			continue

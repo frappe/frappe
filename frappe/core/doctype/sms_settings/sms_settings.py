@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _, msgprint, throw
+from frappe.doctypes import SMSLog
 from frappe.model.document import Document
 from frappe.utils import nowdate
 
@@ -91,7 +92,7 @@ def send_sms(receiver_list: str | list[str], msg: str, sender_name: str = "", su
 
 
 def send_via_gateway(arg):
-	ss = frappe.get_doc("SMS Settings", "SMS Settings")
+	ss = SMSSettings.docs.get("SMS Settings")
 	headers = get_headers(ss)
 	use_json = headers.get("Content-Type") == "application/json"
 
@@ -118,7 +119,7 @@ def send_via_gateway(arg):
 
 def get_headers(sms_settings=None):
 	if not sms_settings:
-		sms_settings = frappe.get_doc("SMS Settings", "SMS Settings")
+		sms_settings = SMSSettings.docs.get("SMS Settings")
 
 	headers = {"Accept": "text/plain, text/html, */*"}
 	for d in sms_settings.get("parameters"):
@@ -157,7 +158,7 @@ def create_sms_log(args, sent_to):
 	# (apps that still ship it will continue to log).
 	if not frappe.db.exists("DocType", "SMS Log"):
 		return
-	sl = frappe.new_doc("SMS Log")
+	sl = SMSLog.docs.new()
 	sl.sent_on = nowdate()
 	sl.message = args["message"].decode("utf-8")
 	sl.no_of_requested_sms = len(args["receiver_list"])

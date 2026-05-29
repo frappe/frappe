@@ -5,6 +5,7 @@ import unittest
 from unittest.mock import patch
 
 import frappe
+from frappe.doctypes import Page
 from frappe.tests import IntegrationTestCase
 
 
@@ -20,7 +21,7 @@ class TestPage(IntegrationTestCase):
 	)
 	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_trashing(self):
-		page = frappe.new_doc("Page", page_name=frappe.generate_hash(), module="Core").insert()
+		page = Page.docs.new(page_name=frappe.generate_hash(), module="Core").insert()
 
 		page.delete()
 		frappe.db.commit()

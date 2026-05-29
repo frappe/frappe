@@ -9,6 +9,7 @@ from requests_oauthlib import OAuth2Session
 
 import frappe
 from frappe import _
+from frappe.doctypes import TokenCache
 from frappe.integrations.utils import make_get_request
 from frappe.model.document import Document
 
@@ -99,7 +100,7 @@ class ConnectedApp(Document):
 		token_cache = self.get_token_cache(user)
 
 		if not token_cache:
-			token_cache = frappe.new_doc("Token Cache")
+			token_cache = TokenCache.docs.new()
 			token_cache.user = user
 			token_cache.connected_app = self.name
 
@@ -128,7 +129,7 @@ class ConnectedApp(Document):
 		token_cache_name = self.name + "-" + user
 
 		if frappe.db.exists("Token Cache", token_cache_name):
-			token_cache = frappe.get_doc("Token Cache", token_cache_name)
+			token_cache = TokenCache.docs.get(token_cache_name)
 
 		return token_cache
 
@@ -163,7 +164,7 @@ class ConnectedApp(Document):
 		# otherwise it will assign the logged in user.
 		token_cache = self.get_token_cache("")
 		if token_cache is None:
-			token_cache = frappe.new_doc("Token Cache")
+			token_cache = TokenCache.docs.new()
 			token_cache.connected_app = self.name
 		elif not token_cache.is_expired():
 			return token_cache
@@ -203,8 +204,8 @@ def callback(code: str | None = None, state: str | None = None):
 	if len(path) != 4 or not path[3]:
 		frappe.throw(_("Invalid Parameters."))
 
-	connected_app = frappe.get_doc("Connected App", path[3])
-	token_cache = frappe.get_doc("Token Cache", connected_app.name + "-" + frappe.session.user)
+	connected_app = ConnectedApp.docs.get(path[3])
+	token_cache = TokenCache.docs.get(connected_app.name + "-" + frappe.session.user)
 
 	if state != token_cache.state:
 		frappe.throw(_("Invalid token state! Check if the token has been created by the OAuth user."))
@@ -226,6 +227,6 @@ def callback(code: str | None = None, state: str | None = None):
 
 @frappe.whitelist()
 def has_token(connected_app: str, connected_user: str | None = None):
-	app = frappe.get_doc("Connected App", connected_app)
+	app = ConnectedApp.docs.get(connected_app)
 	token_cache = app.get_token_cache(connected_user or frappe.session.user)
 	return bool(token_cache and token_cache.get_password("access_token", False))

@@ -18,6 +18,7 @@ from ldap3.utils.hashed import hashed
 
 import frappe
 from frappe import _, safe_encode
+from frappe.doctypes import User
 from frappe.model.document import Document
 from frappe.twofactor import authenticate_for_2factor, confirm_otp_token, should_run_2fa
 
@@ -172,7 +173,7 @@ class LDAPSettings(Document):
 	def get_ldap_client_settings() -> dict:
 		# return the settings to be used on the client side.
 		result = {"enabled": False}
-		ldap = frappe.get_cached_doc("LDAP Settings")
+		ldap = LDAPSettings.docs.get(cached=True)
 		if ldap.enabled:
 			result["enabled"] = True
 			result["method"] = "frappe.integrations.doctype.ldap_settings.ldap_settings.login"
@@ -211,7 +212,7 @@ class LDAPSettings(Document):
 		role: str = None
 
 		if frappe.db.exists("User", user_data["email"]):
-			user = frappe.get_doc("User", user_data["email"])
+			user = User.docs.get(user_data["email"])
 			LDAPSettings.update_user_fields(user=user, user_data=user_data)
 		elif not self.do_not_create_new_user:
 			doc = user_data | {
@@ -407,7 +408,7 @@ class LDAPSettings(Document):
 def login():
 	# LDAP LOGIN LOGIC
 	args = frappe.form_dict
-	ldap: LDAPSettings = frappe.get_doc("LDAP Settings")
+	ldap: LDAPSettings = LDAPSettings.docs.get()
 
 	user = ldap.authenticate(frappe.as_unicode(args.usr), frappe.as_unicode(args.pwd))
 
@@ -428,7 +429,7 @@ def login():
 def reset_password(user: str, password: str, logout: int):
 	frappe.only_for("System Manager")
 
-	ldap: LDAPSettings = frappe.get_doc("LDAP Settings")
+	ldap: LDAPSettings = LDAPSettings.docs.get()
 	if not ldap.enabled:
 		frappe.throw(_("LDAP is not enabled."))
 	ldap.reset_password(user, password, logout_sessions=int(logout))

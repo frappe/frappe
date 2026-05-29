@@ -560,7 +560,7 @@ class TestDocType(IntegrationTestCase):
 		virtual_doc.is_virtual = 1
 		virtual_doc.insert(ignore_if_duplicate=True)
 		virtual_doc.reload()
-		doc = frappe.get_doc("DocType", "Test Virtual Doctype")
+		doc = DocType.docs.get("Test Virtual Doctype")
 
 		self.assertDictEqual(doc.as_dict(), virtual_doc.as_dict())
 		self.assertEqual(doc.is_virtual, 1)
@@ -576,7 +576,7 @@ class TestDocType(IntegrationTestCase):
 		virtual_doc.istable = 1
 		virtual_doc.insert(ignore_permissions=True)
 
-		doc = frappe.get_doc("DocType", "Test Virtual DocType as Child Table")
+		doc = DocType.docs.get("Test Virtual DocType as Child Table")
 
 		self.assertEqual(doc.is_virtual, 1)
 		self.assertEqual(doc.istable, 1)
@@ -645,7 +645,7 @@ class TestDocType(IntegrationTestCase):
 		)
 		json_doc.insert()
 		json_doc.save()
-		doc = frappe.get_doc("DocType", "Test Json Doctype")
+		doc = DocType.docs.get("Test Json Doctype")
 		for field in doc.fields:
 			if field.fieldname == "test_json_field":
 				self.assertEqual(field.fieldtype, "JSON")

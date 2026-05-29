@@ -3,6 +3,7 @@
 import json
 
 import frappe
+from frappe.doctypes import Event
 from frappe.tests import IntegrationTestCase
 
 
@@ -28,7 +29,7 @@ class TestSeen(IntegrationTestCase):
 		getdoc("Event", ev.name)
 
 		# reload the event
-		ev = frappe.get_doc("Event", ev.name)
+		ev = Event.docs.get(ev.name)
 
 		self.assertTrue("test@example.com" in json.loads(ev._seen))
 
@@ -39,13 +40,13 @@ class TestSeen(IntegrationTestCase):
 		getdoc("Event", ev.name)
 
 		# reload the event
-		ev = frappe.get_doc("Event", ev.name)
+		ev = Event.docs.get(ev.name)
 
 		self.assertTrue("test@example.com" in json.loads(ev._seen))
 		self.assertTrue("test1@example.com" in json.loads(ev._seen))
 
 		ev.save()
-		ev = frappe.get_doc("Event", ev.name)
+		ev = Event.docs.get(ev.name)
 
 		self.assertFalse("test@example.com" in json.loads(ev._seen))
 		self.assertTrue("test1@example.com" in json.loads(ev._seen))

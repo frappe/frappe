@@ -38,5 +38,5 @@ class AboutUsSettings(Document):
 
 
 def get_args():
-	obj = frappe.get_doc("About Us Settings")
+	obj = AboutUsSettings.docs.get()
 	return {"obj": obj}

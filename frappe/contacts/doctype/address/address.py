@@ -9,6 +9,7 @@ import frappe
 from frappe import _, throw
 from frappe.contacts.address_and_contact import set_link_title
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
+from frappe.doctypes import Contact
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
 from frappe.utils import cstr
@@ -85,7 +86,7 @@ class Address(Document):
 		if not self.links:
 			contact_name = frappe.db.get_value("Contact", {"email_id": self.owner})
 			if contact_name:
-				contact = frappe.get_cached_doc("Contact", contact_name)
+				contact = Contact.docs.get(contact_name, cached=True)
 				for link in contact.links:
 					self.append("links", dict(link_doctype=link.link_doctype, link_name=link.link_name))
 				return True
@@ -173,7 +174,7 @@ def render_address(address: dict | str | None, check_permissions=True) -> str | 
 		return
 
 	if not isinstance(address, dict):
-		address = frappe.get_cached_doc("Address", address)
+		address = Address.docs.get(address, cached=True)
 		if check_permissions:
 			address.check_permission()
 		address = address.as_dict()
@@ -192,7 +193,7 @@ def get_territory_from_address(address):
 		return
 
 	if isinstance(address, str):
-		address = frappe.get_cached_doc("Address", address)
+		address = Address.docs.get(address, cached=True)
 
 	territory = None
 	for fieldname in ("city", "state", "country"):
@@ -230,7 +231,7 @@ def has_website_permission(doc, ptype, user, verbose=False):
 	contact_name = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
 
 	if contact_name:
-		contact = frappe.get_doc("Contact", contact_name)
+		contact = Contact.docs.get(contact_name)
 		return contact.has_common_link(doc)
 
 	return False

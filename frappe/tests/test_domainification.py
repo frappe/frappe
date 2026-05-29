@@ -7,6 +7,7 @@ from frappe.desk.doctype.desktop_icon.desktop_icon import (
 	clear_desktop_icons_cache,
 	get_desktop_icons,
 )
+from frappe.doctypes import DomainSettings
 from frappe.tests import IntegrationTestCase
 
 
@@ -32,7 +33,7 @@ class TestDomainification(IntegrationTestCase):
 		if not domain:
 			return
 
-		domain_settings = frappe.get_doc("Domain Settings", "Domain Settings")
+		domain_settings = DomainSettings.docs.get("Domain Settings")
 		domain_settings.append("active_domains", {"domain": domain})
 		domain_settings.save()
 
@@ -41,7 +42,7 @@ class TestDomainification(IntegrationTestCase):
 		if not (domain or remove_all):
 			return
 
-		domain_settings = frappe.get_doc("Domain Settings", "Domain Settings")
+		domain_settings = DomainSettings.docs.get("Domain Settings")
 
 		if remove_all:
 			domain_settings.set("active_domains", [])

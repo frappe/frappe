@@ -11,6 +11,7 @@ import filetype
 
 import frappe
 from frappe import _, safe_decode
+from frappe.doctypes import File
 from frappe.utils import cint, cstr, encode, get_files_path, random_string, strip
 from frappe.utils.file_manager import safe_b64decode
 
@@ -40,7 +41,7 @@ def make_home_folder() -> None:
 
 
 def setup_folder_path(filename: str, new_parent: str) -> None:
-	file: File = frappe.get_doc("File", filename)
+	file: File = File.docs.get(filename)
 	file.folder = new_parent
 	file.save()
 

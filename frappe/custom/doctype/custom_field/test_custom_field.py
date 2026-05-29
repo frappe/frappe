@@ -9,6 +9,7 @@ from frappe.custom.doctype.custom_field.custom_field import (
 	rename_fieldname,
 )
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.doctypes import ToDo
 from frappe.tests import IntegrationTestCase
 
 
@@ -180,7 +181,7 @@ class TestCustomField(IntegrationTestCase):
 		field.reload()
 		self.assertEqual(field.fieldname, new)
 
-		doc = frappe.get_doc("ToDo", doc.name)  # doc.reload doesn't clear old fields.
+		doc = ToDo.docs.get(doc.name)  # doc.reload doesn't clear old fields.
 		self.assertEqual(doc.get(new), data)
 		self.assertFalse(doc.get(old))
 

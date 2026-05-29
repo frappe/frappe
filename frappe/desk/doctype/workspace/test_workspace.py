@@ -1,6 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.doctypes import Workspace
 from frappe.tests import IntegrationTestCase
 
 
@@ -41,7 +42,7 @@ class TestWorkspace(IntegrationTestCase):
 		"""Non-public workspace with roles should be visible to users with matching role."""
 		from frappe.desk.desktop import get_workspace_sidebar_items
 
-		workspace = frappe.new_doc("Workspace")
+		workspace = Workspace.docs.new()
 		workspace.label = "Role Test Workspace"
 		workspace.title = "Role Test Workspace"
 		workspace.category = "Modules"
@@ -66,7 +67,7 @@ def create_module(module_name):
 
 
 def create_workspace(**args):
-	workspace = frappe.new_doc("Workspace")
+	workspace = Workspace.docs.new()
 	args = frappe._dict(args)
 
 	workspace.name = args.name or "Test Workspace"

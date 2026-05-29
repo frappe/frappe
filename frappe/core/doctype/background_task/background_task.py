@@ -168,7 +168,7 @@ def stop_task(task_id: str):
 	if not task_name:
 		raise frappe.DoesNotExistError(frappe._("Background Task {0} not found").format(task_id))
 
-	task = frappe.get_doc("Background Task", task_name)
+	task = BackgroundTask.docs.get(task_name)
 
 	is_owner = task.user == frappe.session.user
 	is_system_manager = "System Manager" in frappe.get_roles(frappe.session.user)
@@ -212,7 +212,7 @@ def retry_task(task_id: str):
 	if not task_name:
 		raise frappe.DoesNotExistError(frappe._("Background Task {0} not found").format(task_id))
 
-	task = frappe.get_doc("Background Task", task_name)
+	task = BackgroundTask.docs.get(task_name)
 
 	is_owner = task.user == frappe.session.user
 	is_system_manager = "System Manager" in frappe.get_roles(frappe.session.user)

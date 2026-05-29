@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 
 import frappe
 from frappe import sbool
+from frappe.doctypes import PushNotificationSettings
 from frappe.utils.data import cstr
 from frappe.utils.response import Response
 
@@ -197,7 +198,7 @@ class PushNotification:
 
 		:return: tuple[str, str] The API key and secret.
 		"""
-		notification_settings = frappe.get_doc("Push Notification Settings")
+		notification_settings = PushNotificationSettings.docs.get()
 		if notification_settings.api_key and notification_settings.api_secret:
 			return notification_settings.api_key, notification_settings.get_password("api_secret")
 

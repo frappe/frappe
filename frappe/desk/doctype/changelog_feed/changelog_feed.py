@@ -57,7 +57,7 @@ def fetch_changelog_feed():
 					"posting_timestamp": feed_item["creation"],
 				}
 				if not frappe.db.exists("Changelog Feed", feed):
-					frappe.new_doc("Changelog Feed").update(feed).insert()
+					ChangelogFeed.docs.new().update(feed).insert()
 		except Exception:
 			frappe.log_error(f"Failed to fetch changelog from {fn}")
 			# don't retry if it's broken for 1 week

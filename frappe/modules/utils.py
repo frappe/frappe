@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Union
 
 import frappe
 from frappe import _, get_module_path, scrub
+from frappe.doctypes import CustomField, DocTypeLink
 from frappe.utils import cint, cstr, now_datetime
 from frappe.utils.caching import site_cache
 
@@ -184,7 +185,7 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 							d["owner"] = "Administrator"
 							_insert(d)
 						else:
-							custom_field = frappe.get_doc("Custom Field", field)
+							custom_field = CustomField.docs.get(field)
 							custom_field.flags.ignore_validate = True
 							custom_field.update(d)
 							custom_field.db_update()
@@ -202,7 +203,7 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 							d["owner"] = "Administrator"
 							_insert(d)
 						else:
-							doc_link = frappe.get_doc("DocType Link", link)
+							doc_link = DocTypeLink.docs.get(link)
 							doc_link.flags.ignore_validate = True
 							doc_link.update(d)
 							doc_link.db_update()

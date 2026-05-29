@@ -92,6 +92,6 @@ def sync_languages():
 		reader = DictReader(f)
 		for row in reader:
 			if not frappe.db.exists("Language", row["language_code"]):
-				doc = frappe.new_doc("Language")
+				doc = Language.docs.new()
 				doc.update(row)
 				doc.insert()

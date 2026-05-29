@@ -8,6 +8,7 @@ from typing import Any
 import frappe
 from frappe import _
 from frappe.boot import get_allowed_report_names
+from frappe.doctypes import Dashboard, DashboardChartLink
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
@@ -103,7 +104,7 @@ def get(
 	refresh: bool | int | None = None,
 ):
 	if chart_name:
-		chart: DashboardChart = frappe.get_doc("Dashboard Chart", chart_name)
+		chart: DashboardChart = DashboardChart.docs.get(chart_name)
 	else:
 		chart = frappe._dict(frappe.parse_json(chart))
 
@@ -143,7 +144,7 @@ def get(
 @frappe.whitelist()
 def create_dashboard_chart(args: str | dict[str, Any]):
 	args = frappe.parse_json(args)
-	doc = frappe.new_doc("Dashboard Chart")
+	doc = DashboardChart.docs.new()
 
 	doc.update(args)
 
@@ -170,12 +171,12 @@ def create_report_chart(args: str | dict[str, Any]):
 def add_chart_to_dashboard(args: str | dict[str, Any]):
 	args = frappe.parse_json(args)
 
-	dashboard = frappe.get_doc("Dashboard", args.dashboard)
-	dashboard_link = frappe.new_doc("Dashboard Chart Link")
+	dashboard = Dashboard.docs.get(args.dashboard)
+	dashboard_link = DashboardChartLink.docs.new()
 	dashboard_link.chart = args.chart_name or args.name
 
 	if args.set_standard and dashboard.is_standard:
-		chart = frappe.get_doc("Dashboard Chart", dashboard_link.chart)
+		chart = DashboardChart.docs.get(dashboard_link.chart)
 		chart.is_standard = 1
 		chart.module = dashboard.module
 		chart.save()

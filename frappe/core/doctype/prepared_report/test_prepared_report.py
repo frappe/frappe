@@ -6,6 +6,7 @@ from contextlib import contextmanager
 
 import frappe
 from frappe.desk.query_report import generate_report_result, get_report_doc
+from frappe.doctypes import PreparedReport, Report, RQJob
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.test_query_builder import run_only_if
@@ -49,7 +50,7 @@ class TestPreparedReport(IntegrationTestCase):
 
 		self.wait_for_status(doc, "Completed")
 
-		doc = frappe.get_last_doc("Prepared Report")
+		doc = PreparedReport.docs.last()
 		self.assertTrue(doc.job_id)
 		self.assertTrue(doc.report_end_time)
 
@@ -75,14 +76,14 @@ class TestPreparedReport(IntegrationTestCase):
 
 			doc.delete()
 			time.sleep(1)
-			job = frappe.get_doc("RQ Job", job_id)
+			job = RQJob.docs.get(job_id)
 			self.assertEqual(job.status, "stopped")
 
 
 @contextmanager
 def test_report(**args):
 	try:
-		report = frappe.new_doc("Report")
+		report = Report.docs.new()
 		report.update(args)
 		if not report.report_name:
 			report.report_name = frappe.generate_hash()

@@ -9,6 +9,7 @@ import pyotp
 import frappe
 import frappe.defaults
 from frappe import _
+from frappe.doctypes import File, SMSSettings, SystemSettings, User
 from frappe.permissions import ALL_USER_ROLE
 from frappe.utils import cint, get_datetime, get_url, time_diff_in_seconds
 from frappe.utils.background_jobs import enqueue
@@ -47,7 +48,7 @@ def two_factor_is_enabled(user=None):
 	if enabled:
 		bypass_two_factor_auth = cint(frappe.get_system_settings("bypass_2fa_for_retricted_ip_users"))
 		if bypass_two_factor_auth and user:
-			user_doc = frappe.get_doc("User", user)
+			user_doc = User.docs.get(user)
 			restrict_ip_list = (
 				user_doc.get_restricted_ip_list()
 			)  # can be None or one or more than one ip address
@@ -115,7 +116,7 @@ def two_factor_is_enabled_for_(user):
 		return False
 
 	if isinstance(user, str):
-		user = frappe.get_doc("User", user)
+		user = User.docs.get(user)
 	roles = [d.role for d in user.roles or []] + [ALL_USER_ROLE]
 
 	role_doctype = frappe.qb.DocType("Role")
@@ -315,7 +316,7 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 	if not phone_no:
 		return False
 
-	ss = frappe.get_doc("SMS Settings", "SMS Settings")
+	ss = SMSSettings.docs.get("SMS Settings")
 	if not ss.sms_gateway_url:
 		return False
 
@@ -406,7 +407,7 @@ def delete_qrimage(user, check_expiry=False):
 	for barcode in user_barcodes:
 		if check_expiry and not should_remove_barcode_image(barcode):
 			continue
-		barcode = frappe.get_doc("File", barcode.name)
+		barcode = File.docs.get(barcode.name)
 		frappe.delete_doc("File", barcode.name, ignore_permissions=True)
 
 
@@ -423,7 +424,7 @@ def delete_all_barcodes_for_users():
 def should_remove_barcode_image(barcode):
 	"""Check if it's time to delete barcode image from server."""
 	if isinstance(barcode, str):
-		barcode = frappe.get_doc("File", barcode)
+		barcode = File.docs.get(barcode)
 	lifespan = frappe.get_system_settings("lifespan_qrcode_image") or 240
 	if time_diff_in_seconds(get_datetime(), barcode.creation) > int(lifespan):
 		return True
@@ -439,7 +440,7 @@ def reset_otp_secret(user: str):
 	if frappe.session.user != user:
 		frappe.only_for("System Manager", message=True)
 
-	settings = frappe.get_cached_doc("System Settings")
+	settings = SystemSettings.docs.get(cached=True)
 
 	if not settings.enable_two_factor_auth:
 		frappe.throw(

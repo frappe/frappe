@@ -9,6 +9,7 @@ from typing import Any
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.search import build_for_autosuggest, get_names_for_mentions, search_link, search_widget
+from frappe.doctypes import DocType, Translation, User
 from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
@@ -48,7 +49,7 @@ class TestSearch(IntegrationTestCase):
 		email = "test_disabled_user_in_mentions@example.com"
 		frappe.delete_doc("User", email)
 		if not frappe.db.exists("User", email):
-			user = frappe.new_doc("User")
+			user = User.docs.new()
 			user.update(
 				{
 					"email": email,
@@ -497,7 +498,7 @@ def setup_test_link_field_order(TestCase):
 		TestCase.tree_doc.search_fields = "parent_test_tree_order"
 		TestCase.tree_doc.save()
 	else:
-		TestCase.tree_doc = frappe.get_doc("DocType", TestCase.tree_doctype_name)
+		TestCase.tree_doc = DocType.docs.get(TestCase.tree_doctype_name)
 
 	# Create root for the tree doctype
 	if not frappe.db.exists(TestCase.tree_doctype_name, {"random": TestCase.parent_doctype_name}):
@@ -519,7 +520,7 @@ def setup_test_link_field_order(TestCase):
 
 @contextmanager
 def custom_translation(language: str, source_text: str, translated_text: str):
-	doc = frappe.new_doc("Translation")
+	doc = Translation.docs.new()
 	doc.language = language
 	doc.source_text = source_text
 	doc.translated_text = translated_text

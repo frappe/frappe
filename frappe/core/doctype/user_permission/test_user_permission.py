@@ -6,6 +6,7 @@ from frappe.core.doctype.user_permission.user_permission import (
 	add_user_permissions,
 	remove_applicable,
 )
+from frappe.doctypes import User
 from frappe.permissions import add_permission, has_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
@@ -289,9 +290,9 @@ class TestUserPermission(IntegrationTestCase):
 def create_user(email, *roles):
 	"""create user with role system manager"""
 	if frappe.db.exists("User", email):
-		return frappe.get_doc("User", email)
+		return User.docs.get(email)
 
-	user = frappe.new_doc("User")
+	user = User.docs.new()
 	user.email = email
 	user.first_name = email.split("@", 1)[0]
 

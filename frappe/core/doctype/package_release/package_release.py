@@ -6,6 +6,7 @@ import subprocess
 from pathlib import Path
 
 import frappe
+from frappe.doctypes import ModuleDef, Package
 from frappe.model.document import Document
 from frappe.modules.export_file import export_doc
 from frappe.query_builder.functions import Max
@@ -68,7 +69,7 @@ class PackageRelease(Document):
 		)
 
 	def validate(self):
-		package = frappe.get_doc("Package", self.package)
+		package = Package.docs.get(self.package)
 		package_path = Path(frappe.get_site_path("packages", package.package_name))
 		if not package_path.resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
 			frappe.throw("Invalid package path: " + package_path.as_posix())
@@ -85,7 +86,7 @@ class PackageRelease(Document):
 
 	def export_modules(self):
 		for m in frappe.get_all("Module Def", dict(package=self.package)):
-			module = frappe.get_doc("Module Def", m.name)
+			module = ModuleDef.docs.get(m.name)
 			for l in module.meta.links:
 				if l.link_doctype == "Module Def":
 					continue

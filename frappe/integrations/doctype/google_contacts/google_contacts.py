@@ -56,7 +56,7 @@ def authorize_access(g_contact: str, reauthorize: int | bool = False, code: str 
 	If no Authorization code get it from Google and then request for Refresh Token.
 	Google Contact Name is set to flags to set_value after Authorization Code is obtained.
 	"""
-	contact = frappe.get_doc("Google Contacts", g_contact)
+	contact = GoogleContacts.docs.get(g_contact)
 	contact.check_permission("write")
 
 	oauth_code = code or contact.get_password("authorization_code", raise_exception=False)
@@ -78,7 +78,7 @@ def authorize_access(g_contact: str, reauthorize: int | bool = False, code: str 
 
 def get_google_contacts_object(g_contact):
 	"""Return an object of Google Calendar along with Google Calendar doc."""
-	account = frappe.get_doc("Google Contacts", g_contact)
+	account = GoogleContacts.docs.get(g_contact)
 	oauth_obj = GoogleOAuth("contacts")
 
 	google_contacts = oauth_obj.get_google_service_object(

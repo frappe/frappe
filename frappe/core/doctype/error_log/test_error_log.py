@@ -5,6 +5,7 @@ from unittest.mock import patch
 from ldap3.core.exceptions import LDAPException, LDAPInappropriateAuthenticationResult
 
 import frappe
+from frappe.doctypes import ErrorLog
 from frappe.tests import IntegrationTestCase
 from frappe.utils.error import _is_ldap_exception, guess_exception_source
 
@@ -12,7 +13,7 @@ from frappe.utils.error import _is_ldap_exception, guess_exception_source
 class TestErrorLog(IntegrationTestCase):
 	def test_error_log(self):
 		"""let's do an error log on error log?"""
-		doc = frappe.new_doc("Error Log")
+		doc = ErrorLog.docs.new()
 		error = doc.log_error("This is an error")
 		self.assertEqual(error.doctype, "Error Log")
 

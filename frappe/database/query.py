@@ -19,6 +19,7 @@ from frappe.database.utils import (
 	get_doctype_name,
 	get_doctype_sort_info,
 )
+from frappe.doctypes import ServerScript
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
@@ -84,7 +85,7 @@ def _apply_date_field_filter_conversion(value, operator: str, doctype: str, fiel
 		elif isinstance(value, datetime.datetime):
 			return value.date()
 
-	except (AttributeError, TypeError, KeyError):
+	except AttributeError, TypeError, KeyError:
 		pass
 
 	return value
@@ -682,7 +683,7 @@ class Engine:
 				else:
 					try:
 						fallback_value = int(fallback_sql)
-					except (ValueError, TypeError):
+					except ValueError, TypeError:
 						fallback_value = fallback_sql
 
 				return operator_fn(_field, ValueWrapper(fallback_value))
@@ -711,7 +712,7 @@ class Engine:
 				else:
 					try:
 						fallback_value = int(fallback_sql)
-					except (ValueError, TypeError):
+					except ValueError, TypeError:
 						fallback_value = fallback_sql
 
 				if fallback_value == _value:
@@ -1681,7 +1682,7 @@ class Engine:
 
 		# Get conditions from server scripts
 		if permission_script_name := get_server_script_map().get("permission_query", {}).get(doctype):
-			script = frappe.get_doc("Server Script", permission_script_name)
+			script = ServerScript.docs.get(permission_script_name)
 			if condition := script.get_permission_query_conditions(
 				self.user, active_child_tables=active_child_tables
 			):

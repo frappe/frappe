@@ -16,6 +16,7 @@ from frappe.desk.doctype.notification_log.notification_log import (
 	get_title_html,
 )
 from frappe.desk.form.document_follow import follow_document
+from frappe.doctypes import ToDo
 from frappe.utils.data import strip_html
 
 
@@ -223,7 +224,7 @@ def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled", ign
 				},
 			)
 		if todo:
-			todo = frappe.get_doc("ToDo", todo)
+			todo = ToDo.docs.get(todo)
 			todo.status = status
 			todo.save(ignore_permissions=True)
 

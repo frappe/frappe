@@ -144,7 +144,7 @@ def optimize(recorder_id: str):
 
 
 def _optimize(recorder_id):
-	record: Recorder = frappe.get_doc("Recorder", recorder_id)
+	record: Recorder = Recorder.docs.get(recorder_id)
 	total_duration = record.time_in_queries
 
 	# Any index with query time less than 5% of total time is not suggested

@@ -24,6 +24,8 @@ import typing
 import warnings
 from importlib.metadata import version
 
+from frappe.doctypes import SystemSettings
+
 
 def colorize(text, color_code):
 	if sys.stdout.isatty():
@@ -111,7 +113,7 @@ for warning_filter in pythonwarnings.split(","):
 			lineno = int(parts[4]) if len(parts) > 4 and parts[4].isdigit() else 0
 
 			warnings.filterwarnings(action, message, warning_class, module, lineno)
-		except (ImportError, AttributeError):
+		except ImportError, AttributeError:
 			print(f"Warning: Unable to import {parts[2]}")
 
 
@@ -486,7 +488,7 @@ def test_xmlrunner_wrapper(output):
 def tests_update_system_settings(args, commit=False):
 	import frappe
 
-	doc = frappe.get_doc("System Settings")
+	doc = SystemSettings.docs.get()
 	doc.update(args)
 	doc.flags.ignore_mandatory = 1
 	doc.save()

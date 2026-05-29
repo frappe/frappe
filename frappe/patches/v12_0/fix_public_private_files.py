@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import File
 
 
 def execute():
@@ -16,9 +17,9 @@ def execute():
 
 def generate_file(file_name):
 	try:
-		file_doc = frappe.get_doc("File", file_name)
+		file_doc = File.docs.get(file_name)
 		# private
-		new_doc = frappe.new_doc("File")
+		new_doc = File.docs.new()
 		new_doc.is_private = file_doc.is_private
 		new_doc.file_name = file_doc.file_name
 		# to create copy of file in right location

@@ -12,6 +12,7 @@ import frappe
 from frappe import _, are_emails_muted, safe_encode
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.desk.form import assign_to
+from frappe.doctypes import Communication, ConnectedApp, User
 from frappe.email.doctype.email_domain.email_domain import EMAIL_DOMAIN_FIELDS
 from frappe.email.frappemail import FrappeMail
 from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
@@ -359,7 +360,7 @@ class EmailAccount(Document):
 				if email_account.name == self.name:
 					continue
 
-				email_account = frappe.get_doc("Email Account", email_account.name)
+				email_account = EmailAccount.docs.get(email_account.name)
 				email_account.set(field, 0)
 				email_account.save()
 
@@ -886,7 +887,7 @@ class EmailAccount(Document):
 
 	def get_oauth_token(self):
 		if self.auth_method == "OAuth":
-			connected_app = frappe.get_doc("Connected App", self.connected_app)
+			connected_app = ConnectedApp.docs.get(self.connected_app)
 			if self.backend_app_flow:
 				token = connected_app.get_backend_app_token()
 			else:
@@ -931,7 +932,7 @@ def notify_unreplied():
 		"name",
 		filters={"enable_incoming": 1, "notify_if_unreplied": 1},
 	):
-		email_account = frappe.get_doc("Email Account", email_account.name)
+		email_account = EmailAccount.docs.get(email_account.name)
 
 		if email_account.use_imap:
 			append_to = [folder.get("append_to") for folder in email_account.imap_folder]
@@ -963,7 +964,7 @@ def notify_unreplied():
 					},
 				],
 			):
-				comm = frappe.get_doc("Communication", comm.name)
+				comm = Communication.docs.get(comm.name)
 
 				if frappe.db.get_value(comm.reference_doctype, comm.reference_name, "status") == "Open":
 					# if status is still open
@@ -1041,7 +1042,7 @@ def pull_emails(email_account: str) -> None:
 
 def pull_from_email_account(email_account):
 	"""Runs within a worker process"""
-	email_account = frappe.get_doc("Email Account", email_account)
+	email_account = EmailAccount.docs.get(email_account)
 	email_account.receive()
 
 
@@ -1066,7 +1067,7 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 	from frappe.core.doctype.user.user import ask_pass_update
 
 	def add_user_email(user):
-		user = frappe.get_doc("User", user)
+		user = User.docs.get(user)
 		row = user.append("user_emails", {})
 
 		row.email_id = email_id
@@ -1128,7 +1129,7 @@ def remove_user_email_inbox(email_account):
 	)
 
 	for user in users:
-		doc = frappe.get_doc("User", user.get("name"))
+		doc = User.docs.get(user.get("name"))
 		to_remove = [row for row in doc.user_emails if row.email_account == email_account]
 		[doc.remove(row) for row in to_remove]
 
@@ -1138,7 +1139,7 @@ def remove_user_email_inbox(email_account):
 @frappe.whitelist()
 def set_email_password(email_account: str, password: str):
 	frappe.has_permission("Email Account", "write", email_account, throw=True)
-	account = frappe.get_doc("Email Account", email_account)
+	account = EmailAccount.docs.get(email_account)
 	if account.awaiting_password and account.auth_method != "OAuth":
 		account.awaiting_password = 0
 		account.password = password

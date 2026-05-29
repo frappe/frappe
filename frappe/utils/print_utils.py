@@ -5,6 +5,7 @@ from typing import Literal
 import click
 
 import frappe
+from frappe.doctypes import PrintFormat
 from frappe.utils.data import cint, cstr
 
 EXECUTABLE_PATHS = {
@@ -149,7 +150,7 @@ def attach_print(
 
 	is_beta_print_format = False
 	if print_format and print_format != "Standard":
-		print_format_doc = frappe.get_cached_doc("Print Format", print_format)
+		print_format_doc = PrintFormat.docs.get(print_format, cached=True)
 		is_beta_print_format = print_format_doc.get("print_format_builder_beta")
 
 	with print_language(lang or frappe.local.lang):

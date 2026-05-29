@@ -1,6 +1,7 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.doctypes import RoleProfile
 from frappe.tests import IntegrationTestCase
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Role"]
@@ -111,7 +112,7 @@ class TestRoleProfile(IntegrationTestCase):
 		)
 
 	def test_update_role_profile(self):
-		role_profile = frappe.get_doc("Role Profile", "_Test Role Profile 1")
+		role_profile = RoleProfile.docs.get("_Test Role Profile 1")
 
 		user = frappe.get_doc(
 			{

@@ -9,6 +9,7 @@ from frappe.core.doctype.version.version import (
 	_should_generate_html_diff,
 	get_diff,
 )
+from frappe.doctypes import Event
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.utils import make_test_objects
 
@@ -137,7 +138,7 @@ class TestVersion(IntegrationTestCase):
 	def test_get_diff(self):
 		frappe.set_user("Administrator")
 		test_records = make_test_objects("Event", reset=True)
-		old_doc = frappe.get_doc("Event", test_records[0])
+		old_doc = Event.docs.get(test_records[0])
 		new_doc = copy.deepcopy(old_doc)
 
 		old_doc.color = None

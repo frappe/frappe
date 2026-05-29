@@ -4,6 +4,7 @@ from functools import partial
 
 import frappe
 from frappe.contacts.doctype.address.address import address_query, get_address_display
+from frappe.doctypes import Address
 from frappe.tests import IntegrationTestCase
 
 
@@ -28,7 +29,7 @@ class TestAddress(IntegrationTestCase):
 			).insert()
 
 		address = frappe.get_list("Address")[0].name
-		display = get_address_display(frappe.get_doc("Address", address).as_dict())
+		display = get_address_display(Address.docs.get(address).as_dict())
 		self.assertTrue(display)
 
 	def test_address_query(self):

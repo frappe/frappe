@@ -10,6 +10,7 @@ from frappe.core.page.permission_manager.permission_manager import add, reset, u
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.database.utils import DefaultOrderBy
 from frappe.desk.reportview import get_filters_cond
+from frappe.doctypes import User
 from frappe.handler import execute_cmd
 from frappe.model.db_query import DatabaseQuery, get_between_date_filter
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
@@ -24,7 +25,7 @@ EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 @contextmanager
 def setup_test_user(set_user=False):
-	test_user = frappe.get_doc("User", "test@example.com")
+	test_user = User.docs.get("test@example.com")
 	user_roles = frappe.get_roles()
 	test_user.remove_roles(*user_roles)
 	test_user.add_roles("Blogger")
@@ -196,7 +197,7 @@ class TestDBQuery(IntegrationTestCase):
 	def test_build_match_conditions(self):
 		clear_user_permissions_for_doctype("Test Blog Post", "test2@example.com")
 
-		test2user = frappe.get_doc("User", "test2@example.com")
+		test2user = User.docs.get("test2@example.com")
 		test2user.add_roles("Blogger")
 		frappe.set_user("test2@example.com")
 
@@ -1276,7 +1277,7 @@ class TestReportView(IntegrationTestCase):
 		self.assertLessEqual(count, limit)
 
 	def test_reportview_get(self):
-		user = frappe.get_doc("User", "test@example.com")
+		user = User.docs.get("test@example.com")
 		add_child_table_to_blog_post()
 
 		user_roles = frappe.get_roles()

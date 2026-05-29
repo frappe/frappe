@@ -9,6 +9,7 @@ import frappe.share
 from frappe import _dict
 from frappe.boot import get_allowed_reports
 from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
+from frappe.doctypes import User, Workspace
 from frappe.permissions import AUTOMATIC_ROLES, get_rights, get_roles, get_valid_perms
 from frappe.query_builder import DocType, Order
 from frappe.query_builder.functions import Concat_ws
@@ -51,7 +52,7 @@ class UserPermissions:
 		def get_user_doc():
 			user = None
 			try:
-				user = frappe.get_doc("User", self.name).as_dict()
+				user = User.docs.get(self.name).as_dict()
 			except frappe.DoesNotExistError:
 				pass
 			except Exception as e:
@@ -245,7 +246,7 @@ class UserPermissions:
 
 		if d.get("default_workspace"):
 			try:
-				workspace = frappe.get_cached_doc("Workspace", d.default_workspace)
+				workspace = Workspace.docs.get(d.default_workspace, cached=True)
 				d.default_workspace = {
 					"name": workspace.name,
 					"public": workspace.public,
@@ -345,7 +346,7 @@ def get_system_managers(only_name: bool = False) -> list[str]:
 
 
 def add_role(user: str, role: str) -> None:
-	frappe.get_doc("User", user).add_roles(role)
+	User.docs.get(user).add_roles(role)
 
 
 def add_system_manager(
@@ -356,7 +357,7 @@ def add_system_manager(
 	password: str | None = None,
 ) -> "User":
 	# add user
-	user = frappe.new_doc("User")
+	user = User.docs.new()
 	user.update(
 		{
 			"name": email,

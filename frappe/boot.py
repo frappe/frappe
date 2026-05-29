@@ -18,6 +18,7 @@ from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
+from frappe.doctypes import Country, NotificationSettings, WorkspaceSidebar
 from frappe.email.inbox import get_email_accounts
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
 from frappe.model.base_document import get_controller
@@ -381,7 +382,7 @@ def add_home_page(bootinfo, docs):
 		page = frappe.desk.desk_page.get(home_page)
 		docs.append(page)
 		bootinfo["home_page"] = page.name
-	except (frappe.DoesNotExistError, frappe.PermissionError):
+	except frappe.DoesNotExistError, frappe.PermissionError:
 		frappe.clear_last_message()
 		bootinfo["home_page"] = "desktop"
 
@@ -451,7 +452,7 @@ def get_desk_settings():
 
 
 def get_notification_settings():
-	return frappe.get_cached_doc("Notification Settings", frappe.session.user)
+	return NotificationSettings.docs.get(frappe.session.user, cached=True)
 
 
 def get_link_title_doctypes():
@@ -477,7 +478,7 @@ def load_country_doc(bootinfo):
 	if not country:
 		return
 	try:
-		bootinfo.docs.append(frappe.get_cached_doc("Country", country))
+		bootinfo.docs.append(Country.docs.get(country, cached=True))
 	except Exception:
 		pass
 
@@ -563,7 +564,7 @@ def get_sidebar_items(allowed_workspaces):
 		sidebar_title = sidebar.get("name")
 		sidebar_doc = None
 		if sidebar_title:
-			sidebar_doc = frappe.get_doc("Workspace Sidebar", sidebar_title)
+			sidebar_doc = WorkspaceSidebar.docs.get(sidebar_title)
 		else:
 			sidebar_title = sidebar.title
 			sidebar_doc = sidebar

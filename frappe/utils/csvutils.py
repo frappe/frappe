@@ -11,6 +11,7 @@ import requests
 import frappe
 from frappe import _, msgprint
 from frappe.core.doctype.file.file import FILE_ENCODING_OPTIONS
+from frappe.doctypes import File
 from frappe.utils import cint, comma_or, cstr, flt
 
 
@@ -30,7 +31,7 @@ def read_csv_content_from_attached_file(doc):
 		raise Exception
 
 	try:
-		_file = frappe.get_doc("File", fileid)
+		_file = File.docs.get(fileid)
 		fcontent = _file.get_content()
 		return read_csv_content(fcontent)
 	except Exception:

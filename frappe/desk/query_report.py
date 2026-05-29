@@ -13,6 +13,7 @@ from frappe import _
 from frappe.core.utils import ljust_list
 from frappe.desk.form.load import get_attachments
 from frappe.desk.reportview import clean_params, parse_json
+from frappe.doctypes import PreparedReport, Report
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
@@ -23,7 +24,7 @@ from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, handle_html, 
 
 
 def get_report_doc(report_name):
-	doc = frappe.get_doc("Report", report_name)
+	doc = Report.docs.get(report_name)
 	doc.custom_columns = []
 	doc.custom_filters = []
 
@@ -198,7 +199,7 @@ def get_script(report_name: str):
 def get_reference_report(report):
 	if report.report_type != "Custom Report":
 		return report
-	reference_report = frappe.get_doc("Report", report.reference_report)
+	reference_report = Report.docs.get(report.reference_report)
 	return get_reference_report(reference_report)
 
 
@@ -315,7 +316,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 			filters, user, report.get("custom_report") or report.get("report_name")
 		)
 
-	doc = frappe.get_doc("Prepared Report", dn) if dn else None
+	doc = PreparedReport.docs.get(dn) if dn else None
 	if doc:
 		try:
 			if data := json.loads(doc.get_prepared_data().decode("utf-8")):
@@ -676,7 +677,7 @@ def get_xlsx_styles(metadata: XLSXMetadata, report_name: str | None = None) -> d
 	"""
 	styles = None
 	if report_name:
-		report = frappe.get_doc("Report", report_name)
+		report = Report.docs.get(report_name)
 		styles = report.get_xlsx_styles_from_module(metadata)
 
 	if not styles:
@@ -821,7 +822,7 @@ def save_report(reference_report: str, report_name: str, columns: str, filters: 
 	)
 
 	if docname:
-		report = frappe.get_doc("Report", docname)
+		report = Report.docs.get(docname)
 		existing_jd = json.loads(report.json)
 		existing_jd["columns"] = json.loads(columns)
 		existing_jd["filters"] = json.loads(filters)
@@ -1097,7 +1098,7 @@ def validate_filters_permissions(report_name, filters=None, user=None, js_filter
 	if isinstance(filters, str):
 		filters = json.loads(filters)
 
-	report = frappe.get_doc("Report", report_name)
+	report = Report.docs.get(report_name)
 
 	for field in report.filters + js_filters:
 		if hasattr(field, "as_dict"):

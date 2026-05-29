@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 from frappe.cache_manager import clear_doctype_map, get_doctype_map
 from frappe.desk.form import assign_to
+from frappe.doctypes import ToDo
 from frappe.model import log_types
 from frappe.model.document import Document
 from frappe.utils.data import comma_and
@@ -261,7 +262,7 @@ def reopen_closed_assignment(doc):
 	)
 
 	for todo in todo_list:
-		todo_doc = frappe.get_doc("ToDo", todo)
+		todo_doc = ToDo.docs.get(todo)
 		todo_doc.status = "Open"
 		todo_doc.save(ignore_permissions=True)
 
@@ -293,7 +294,7 @@ def apply(doc=None, method=None, doctype=None, name=None):
 
 	# multiple auto assigns
 	assignment_rule_docs: list[AssignmentRule] = [
-		frappe.get_cached_doc("Assignment Rule", d.get("name")) for d in assignment_rules
+		AssignmentRule.docs.get(d.get("name"), cached=True) for d in assignment_rules
 	]
 
 	if not assignment_rule_docs:
@@ -352,7 +353,7 @@ def apply(doc=None, method=None, doctype=None, name=None):
 					)
 
 					for todo in todos_to_close:
-						_todo = frappe.get_doc("ToDo", todo)
+						_todo = ToDo.docs.get(todo)
 						_todo.status = "Closed"
 						_todo.save(ignore_permissions=True)
 					break
@@ -389,7 +390,7 @@ def update_due_date(doc, state=None):
 	)
 
 	for rule in assignment_rules:
-		rule_doc = frappe.get_cached_doc("Assignment Rule", rule.get("name"))
+		rule_doc = AssignmentRule.docs.get(rule.get("name"), cached=True)
 		due_date_field = rule_doc.due_date_based_on
 		field_updated = (
 			doc.meta.has_field(due_date_field) and doc.has_value_changed(due_date_field) and rule.get("name")
@@ -408,7 +409,7 @@ def update_due_date(doc, state=None):
 			)
 
 			for todo in assignment_todos:
-				todo_doc = frappe.get_doc("ToDo", todo)
+				todo_doc = ToDo.docs.get(todo)
 				todo_doc.date = doc.get(due_date_field)
 				todo_doc.flags.updater_reference = {
 					"doctype": "Assignment Rule",

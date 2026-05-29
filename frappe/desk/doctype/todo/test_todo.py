@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
+from frappe.doctypes import DeletedDocument, User
 from frappe.model.db_query import DatabaseQuery
 from frappe.permissions import add_permission, reset_perms
 from frappe.tests import IntegrationTestCase
@@ -16,9 +17,7 @@ class TestToDo(IntegrationTestCase):
 		frappe.db.delete("Deleted Document")
 		todo.delete()
 
-		deleted = frappe.get_doc(
-			"Deleted Document", dict(deleted_doctype=todo.doctype, deleted_name=todo.name)
-		)
+		deleted = DeletedDocument.docs.get(dict(deleted_doctype=todo.doctype, deleted_name=todo.name))
 		self.assertEqual(todo.as_json(), deleted.data)
 
 	def test_fetch(self):
@@ -70,7 +69,7 @@ class TestToDo(IntegrationTestCase):
 	def test_doc_read_access(self):
 		# owner and assigned_by is testperm
 		todo1 = create_new_todo("Test1", "testperm@example.com")
-		test_user = frappe.get_doc("User", "test4@example.com")
+		test_user = User.docs.get("test4@example.com")
 
 		# owner is testperm, but assigned_by is test4
 		todo2 = create_new_todo("Test2", "test4@example.com")

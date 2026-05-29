@@ -169,4 +169,4 @@ def _delete_property_setters(filters: dict):
 	property_setters = frappe.get_all("Property Setter", filters=filters, pluck="name")
 
 	for ps in property_setters:
-		frappe.get_doc("Property Setter", ps).delete(ignore_permissions=True, force=True)
+		PropertySetter.docs.get(ps).delete(ignore_permissions=True, force=True)

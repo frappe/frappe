@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
+from frappe.doctypes import ServerScript, Webhook, Workflow
 from frappe.model.docstatus import DocStatus
 from frappe.utils import cint
 
@@ -177,11 +178,11 @@ def apply_workflow(doc: Document | str | dict, action: str):
 			if workflow_transition.task in DEFAULT_WORKFLOW_TASKS:
 				match workflow_transition.task:
 					case "Webhook":
-						webhook = frappe.get_doc("Webhook", workflow_transition.link)
+						webhook = Webhook.docs.get(workflow_transition.link)
 						task_method = webhook.execute_for_doc
 
 					case "Server Script":
-						server_script = frappe.get_doc("Server Script", workflow_transition.link)
+						server_script = ServerScript.docs.get(workflow_transition.link)
 						task_method = server_script.execute_workflow_task
 
 			else:  # normal app-defined tasks
@@ -296,7 +297,7 @@ def validate_workflow(doc):
 
 
 def get_workflow(doctype) -> "Workflow":
-	return frappe.get_cached_doc("Workflow", get_workflow_name(doctype))
+	return Workflow.docs.get(get_workflow_name(doctype), cached=True)
 
 
 def has_approval_access(user, doc, transition):
@@ -442,7 +443,7 @@ def show_progress(docnames, message, i, description):
 
 
 def set_workflow_state_on_action(doc, workflow_name, action):
-	workflow = frappe.get_doc("Workflow", workflow_name)
+	workflow = Workflow.docs.get(workflow_name)
 	workflow_state_field = workflow.workflow_state_field
 
 	# If workflow state of doc is already correct, don't set workflow state

@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.doctypes import ToDo
 from frappe.tests import IntegrationTestCase
 from frappe.utils.data import add_to_date, today
 
@@ -8,7 +9,7 @@ from frappe.utils.data import add_to_date, today
 class TestDocumentLocks(IntegrationTestCase):
 	def test_locking(self):
 		todo = frappe.get_doc(doctype="ToDo", description="test").insert()
-		todo_1 = frappe.get_doc("ToDo", todo.name)
+		todo_1 = ToDo.docs.get(todo.name)
 
 		todo.lock()
 		self.assertRaises(frappe.DocumentLockedError, todo_1.lock)
@@ -27,7 +28,7 @@ class TestDocumentLocks(IntegrationTestCase):
 			todo.save()
 
 		# Checking for persistant locks across all instances.
-		doc = frappe.get_doc("ToDo", todo.name)
+		doc = ToDo.docs.get(todo.name)
 		self.assertEqual(doc.is_locked, True)
 
 		with self.assertRaises(frappe.DocumentLockedError):

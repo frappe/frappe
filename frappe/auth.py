@@ -13,6 +13,7 @@ import frappe.utils.user
 from frappe import _
 from frappe.apps import get_default_path
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
+from frappe.doctypes import SystemSettings, User
 from frappe.sessions import Session, clear_sessions, delete_session, get_expiry_in_seconds
 from frappe.translate import get_language
 from frappe.twofactor import (
@@ -137,7 +138,7 @@ class LoginManager:
 				self.make_session(resume=True)
 				self.get_user_info()
 				self.set_user_info(resume=True)
-			except (AttributeError, frappe.DoesNotExistError):
+			except AttributeError, frappe.DoesNotExistError:
 				self.user = "Guest"
 				self.get_user_info()
 				self.make_session()
@@ -154,7 +155,7 @@ class LoginManager:
 		user, pwd = get_cached_user_pass()
 		self.authenticate(user=user, pwd=pwd)
 		if self.force_user_to_reset_password():
-			doc = frappe.get_doc("User", self.user)
+			doc = User.docs.get(self.user)
 			frappe.local.response["redirect_to"] = doc._reset_password(
 				send_email=False, password_expired=True
 			)
@@ -480,7 +481,7 @@ def validate_ip_address(user):
 	):
 		return True
 
-	user_info = frappe.get_cached_doc("User", user)
+	user_info = User.docs.get(user, cached=True)
 	ip_list = user_info.get_restricted_ip_list()
 
 	if not ip_list:
@@ -514,7 +515,7 @@ def get_login_attempt_tracker(key: str, raise_locked_exception: bool = True):
 	:param user_name: Name of the loggedin user
 	:param raise_locked_exception: If set, raises an exception incase of user not allowed to login
 	"""
-	sys_settings = frappe.get_doc("System Settings")
+	sys_settings = SystemSettings.docs.get()
 	track_login_attempts = sys_settings.allow_consecutive_login_attempts > 0
 	tracker_kwargs = {}
 
@@ -716,7 +717,7 @@ def validate_auth_via_api_keys(authorization_header):
 			_("Failed to decode token, please provide a valid base64-encoded token."),
 			frappe.InvalidAuthorizationToken,
 		)
-	except (AttributeError, TypeError, ValueError):
+	except AttributeError, TypeError, ValueError:
 		pass
 
 

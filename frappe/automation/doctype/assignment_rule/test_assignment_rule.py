@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.doctypes import AssignmentRule, DocType, ToDo
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records
 
@@ -186,7 +187,7 @@ class TestAutoAssign(IntegrationTestCase):
 			"ToDo", dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"), limit=1
 		)[0]
 
-		todo = frappe.get_doc("ToDo", todo["name"])
+		todo = ToDo.docs.get(todo["name"])
 		self.assertEqual(todo.allocated_to, "test@example.com")
 
 		# test auto unassign
@@ -206,7 +207,7 @@ class TestAutoAssign(IntegrationTestCase):
 			"ToDo", dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"), limit=1
 		)[0]
 
-		todo = frappe.get_doc("ToDo", todo["name"])
+		todo = ToDo.docs.get(todo["name"])
 		self.assertEqual(todo.allocated_to, "test@example.com")
 
 		note.content = "Closed"
@@ -288,7 +289,7 @@ class TestAutoAssign(IntegrationTestCase):
 			"ToDo", filters=dict(reference_type=TEST_DOCTYPE, reference_name=note1.name, status="Open")
 		)[0]
 
-		note1_todo_doc = frappe.get_doc("ToDo", note1_todo.name)
+		note1_todo_doc = ToDo.docs.get(note1_todo.name)
 		self.assertEqual(frappe.utils.get_date_str(note1_todo_doc.date), expiry_date)
 
 		# due date should be updated if the reference doc's date is updated.
@@ -312,12 +313,12 @@ class TestAutoAssign(IntegrationTestCase):
 		# create a submittable doctype
 		submittable_doctype = "Assignment Test Submittable"
 		create_test_doctype(submittable_doctype)
-		dt = frappe.get_doc("DocType", submittable_doctype)
+		dt = DocType.docs.get(submittable_doctype)
 		dt.is_submittable = 1
 		dt.save()
 
 		# create a rule for the submittable doctype
-		assignment_rule = frappe.new_doc("Assignment Rule")
+		assignment_rule = AssignmentRule.docs.new()
 		assignment_rule.name = f"For {submittable_doctype}"
 		assignment_rule.document_type = submittable_doctype
 		assignment_rule.rule = "Round Robin"

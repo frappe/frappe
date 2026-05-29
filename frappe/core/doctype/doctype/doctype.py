@@ -18,6 +18,7 @@ from frappe.database import savepoint
 from frappe.database.schema import validate_column_length, validate_column_name
 from frappe.desk.notifications import delete_notification_count_for, get_filters_for
 from frappe.desk.utils import validate_route_conflict
+from frappe.doctypes import DocTypeLayout, Role
 from frappe.model import (
 	child_table_fields,
 	data_field_options,
@@ -224,7 +225,7 @@ class DocType(Document):
 		validate_links_table_fieldnames(self)
 
 		if not self.is_new():
-			self.before_update = frappe.get_doc("DocType", self.name)
+			self.before_update = DocType.docs.get(self.name)
 			self.setup_fields_to_fetch()
 			self.validate_field_name_conflicts()
 
@@ -347,7 +348,7 @@ class DocType(Document):
 	def setup_fields_to_fetch(self):
 		"""Setup query to update values for newly set fetch values"""
 		try:
-			old_meta = frappe.get_meta(frappe.get_doc("DocType", self.name), cached=False)
+			old_meta = frappe.get_meta(DocType.docs.get(self.name), cached=False)
 			old_fields_to_fetch = [df.fieldname for df in old_meta.get_fields_to_fetch()]
 		except frappe.DoesNotExistError:
 			old_fields_to_fetch = []
@@ -608,7 +609,7 @@ class DocType(Document):
 			"DocType Layout", filters={"document_type": self.name}, pluck="name", ignore_ddl=True
 		)
 		for layout in doctype_layouts:
-			layout_doc = frappe.get_doc("DocType Layout", layout)
+			layout_doc = DocTypeLayout.docs.get(layout)
 			layout_doc.sync_fields()
 			layout_doc.save()
 
@@ -759,11 +760,13 @@ class DocType(Document):
 						# replace in one go
 						file_content = re.sub(
 							rf"{old_scrub}|{old_no_space}|{old_no_space_no_hyphen}",
-							lambda x: new_scrub
-							if x.group() == old_scrub
-							else new_no_space_no_hyphen
-							if x.group() == old_no_space_no_hyphen
-							else new_no_space,
+							lambda x: (
+								new_scrub
+								if x.group() == old_scrub
+								else new_no_space_no_hyphen
+								if x.group() == old_no_space_no_hyphen
+								else new_no_space
+							),
 							code,
 						)
 
@@ -1837,7 +1840,7 @@ def get_fields_not_allowed_in_list_view(meta) -> list[str]:
 
 def validate_permissions_for_doctype(doctype, for_remove=False, alert=False):
 	"""Validates if permissions are set correctly."""
-	doctype = frappe.get_doc("DocType", doctype)
+	doctype = DocType.docs.get(doctype)
 	validate_permissions(doctype, for_remove, alert=alert)
 
 	# save permissions
@@ -2054,7 +2057,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 
 		for role in list(set(roles)):
 			if frappe.db.table_exists("Role", cached=False) and not frappe.db.exists("Role", role):
-				r = frappe.new_doc("Role")
+				r = Role.docs.new()
 				r.role_name = role
 				r.desk_access = 1
 				r.flags.ignore_mandatory = r.flags.ignore_permissions = True

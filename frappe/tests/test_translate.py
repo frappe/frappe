@@ -8,6 +8,7 @@ from unittest.mock import patch
 import frappe
 import frappe.translate
 from frappe import _, _lt
+from frappe.doctypes import Translation
 from frappe.gettext.extractors.javascript import extract_javascript
 from frappe.tests import IntegrationTestCase
 from frappe.translate import (
@@ -94,13 +95,13 @@ class TestTranslate(IntegrationTestCase):
 			self.assertEqual(_("Mobile No"), "Mobile No")
 
 	def test_translation_with_context(self):
-		t1 = frappe.new_doc("Translation")
+		t1 = Translation.docs.new()
 		t1.language = "fr"
 		t1.source_text = "Change"
 		t1.translated_text = "Changement"
 		t1.save()
 
-		t2 = frappe.new_doc("Translation")
+		t2 = Translation.docs.new()
 		t2.language = "fr"
 		t2.source_text = "Change"
 		t2.translated_text = "la monnaie"

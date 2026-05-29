@@ -4,6 +4,7 @@
 from collections import defaultdict
 
 import frappe
+from frappe.doctypes import User
 from frappe.model.document import Document
 
 
@@ -59,7 +60,7 @@ class ModuleProfile(Document):
 
 		for user_name, modules in user_modules.items():
 			if modules != module_profile_modules:
-				user = frappe.get_doc("User", user_name)
+				user = User.docs.get(user_name)
 				user.block_modules = []
 				for module in module_profile_modules:
 					user.append("block_modules", {"module": module})

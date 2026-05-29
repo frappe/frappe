@@ -17,6 +17,7 @@ from semantic_version import Version
 
 import frappe
 from frappe.defaults import _clear_cache
+from frappe.doctypes import ModuleDef, PortalSettings
 from frappe.utils import cint, is_git_url
 from frappe.utils.dashboard import sync_dashboards
 from frappe.utils.synchronization import filelock
@@ -324,7 +325,7 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 
 	add_to_installed_apps(name)
 
-	frappe.get_doc("Portal Settings", "Portal Settings").sync_menu()
+	PortalSettings.docs.get("Portal Settings").sync_menu()
 
 	if set_as_patched:
 		set_all_patches_as_completed(name)
@@ -556,7 +557,7 @@ def init_singles():
 			doc.flags.ignore_mandatory = True
 			doc.flags.ignore_validate = True
 			doc.save()
-		except (ImportError, frappe.DoesNotExistError):
+		except ImportError, frappe.DoesNotExistError:
 			# The doctype exists, but controller is deleted,
 			# no need to attempt to init such single, ref: #16917
 			continue
@@ -713,7 +714,7 @@ def make_site_dirs():
 def add_module_defs(app, ignore_if_duplicate=False):
 	modules = frappe.get_module_list(app)
 	for module in modules:
-		d = frappe.new_doc("Module Def")
+		d = ModuleDef.docs.new()
 		d.app_name = app
 		d.module_name = module
 		d.insert(ignore_permissions=True, ignore_if_duplicate=ignore_if_duplicate)

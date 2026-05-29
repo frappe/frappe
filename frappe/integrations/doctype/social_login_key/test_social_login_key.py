@@ -6,6 +6,7 @@ from rauth import OAuth2Service
 
 import frappe
 from frappe.auth import CookieManager, LoginManager
+from frappe.doctypes import SocialLoginKey, User
 from frappe.integrations.doctype.social_login_key.social_login_key import BaseUrlNotSetError
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
@@ -50,7 +51,7 @@ class TestSocialLoginKey(IntegrationTestCase):
 		github_social_login_setup()
 
 		if not frappe.db.exists("User", TEST_GITHUB_USER):
-			user = frappe.new_doc("User", email=TEST_GITHUB_USER, first_name="GitHub Login")
+			user = User.docs.new(email=TEST_GITHUB_USER, first_name="GitHub Login")
 			user.insert(ignore_permissions=True)
 
 		mock_session = MagicMock()
@@ -98,9 +99,9 @@ def make_social_login_key(**kwargs):
 def create_or_update_social_login_key():
 	# used in other tests (connected app, oauth20)
 	try:
-		social_login_key = frappe.get_doc("Social Login Key", "frappe")
+		social_login_key = SocialLoginKey.docs.get("frappe")
 	except frappe.DoesNotExistError:
-		social_login_key = frappe.new_doc("Social Login Key")
+		social_login_key = SocialLoginKey.docs.new()
 	social_login_key.get_social_login_provider("Frappe", initialize=True)
 	social_login_key.base_url = frappe.utils.get_url()
 	social_login_key.enable_social_login = 0
@@ -112,7 +113,7 @@ def create_or_update_social_login_key():
 
 def create_github_social_login_key():
 	if frappe.db.exists("Social Login Key", "github"):
-		return frappe.get_doc("Social Login Key", "github")
+		return SocialLoginKey.docs.get("github")
 	else:
 		provider_name = "GitHub"
 		social_login_key = make_social_login_key(social_login_provider=provider_name)

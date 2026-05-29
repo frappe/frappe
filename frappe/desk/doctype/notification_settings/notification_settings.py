@@ -68,14 +68,14 @@ def is_email_notifications_enabled_for_type(user, notification_type):
 
 def create_notification_settings(user):
 	if not frappe.db.exists("Notification Settings", user):
-		_doc = frappe.new_doc("Notification Settings")
+		_doc = NotificationSettings.docs.new()
 		_doc.name = user
 		_doc.insert(ignore_permissions=True)
 
 
 def toggle_notifications(user: str, enable: bool = False, ignore_permissions=False):
 	try:
-		settings = frappe.get_doc("Notification Settings", user)
+		settings = NotificationSettings.docs.get(user)
 	except frappe.DoesNotExistError:
 		frappe.clear_last_message()
 		return
@@ -92,7 +92,7 @@ def get_subscribed_documents():
 
 	try:
 		if frappe.db.exists("Notification Settings", frappe.session.user):
-			doc = frappe.get_doc("Notification Settings", frappe.session.user)
+			doc = NotificationSettings.docs.get(frappe.session.user)
 			return [item.document for item in doc.subscribed_documents]
 	# Notification Settings is fetched even before sync doctype is called
 	# but it will throw an ImportError, we can ignore it in migrate

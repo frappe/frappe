@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.doctypes import Domain
 from frappe.model.document import Document
 
 
@@ -36,7 +37,7 @@ class DomainSettings(Document):
 			# set the flag to update the the desktop icons of all domains
 			if i >= 1:
 				frappe.flags.keep_desktop_icons = True
-			domain = frappe.get_doc("Domain", d.domain)
+			domain = Domain.docs.get(d.domain)
 			domain.setup_domain()
 
 		self.restrict_roles_and_modules()
@@ -70,7 +71,7 @@ class DomainSettings(Document):
 
 			if "custom_fields" in data:
 				if domain not in active_domains:
-					inactive_domain = frappe.get_doc("Domain", domain)
+					inactive_domain = Domain.docs.get(domain)
 					inactive_domain.setup_data()
 					inactive_domain.remove_custom_field()
 

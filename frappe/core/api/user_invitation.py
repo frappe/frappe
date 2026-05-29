@@ -2,6 +2,7 @@ import frappe
 import frappe.utils
 from frappe import _
 from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
+from frappe.doctypes import User
 
 
 @frappe.whitelist(methods=["POST"])
@@ -89,7 +90,7 @@ def cancel_invitation(name: str, app_name: str):
 	if not frappe.db.exists("User Invitation", name):
 		frappe.throw(title=_("Error"), msg=_("Invitation not found"))
 
-	invitation = frappe.get_doc("User Invitation", name)
+	invitation = UserInvitation.docs.get(name)
 	if invitation.app_name != app_name:
 		# message is not specific enough for security
 		frappe.throw(title=_("Error"), msg=_("Invitation not found"))
@@ -130,12 +131,12 @@ def _accept_invitation(key: str, in_test: bool) -> None:
 	invitation_name = frappe.db.get_value("User Invitation", filters={"key": hashed_key})
 	if not invitation_name:
 		frappe.throw(title=_("Error"), msg=_("Invalid or expired key"))
-	invitation = frappe.get_doc("User Invitation", invitation_name)
+	invitation = UserInvitation.docs.get(invitation_name)
 
 	# accept invitation
 	invitation.accept(ignore_permissions=True)
 
-	user = frappe.get_doc("User", invitation.email)
+	user = User.docs.get(invitation.email)
 	should_update_password = not user.last_password_reset_date and not bool(
 		frappe.get_system_settings("disable_user_pass_login")
 	)

@@ -31,7 +31,7 @@ class DashboardSettings(Document):
 @frappe.whitelist()
 def create_dashboard_settings(user: str):
 	if not frappe.db.exists("Dashboard Settings", user):
-		doc = frappe.new_doc("Dashboard Settings")
+		doc = DashboardSettings.docs.new()
 		doc.name = user
 		doc.insert(ignore_permissions=True)
 		frappe.db.commit()
@@ -48,7 +48,7 @@ def get_permission_query_conditions(user):
 @frappe.whitelist()
 def save_chart_config(reset: int | str | bool, config: str | dict[str, Any], chart_name: str):
 	reset = frappe.parse_json(reset)
-	doc = frappe.get_doc("Dashboard Settings", frappe.session.user)
+	doc = DashboardSettings.docs.get(frappe.session.user)
 	chart_config = frappe.parse_json(doc.chart_config) or {}
 
 	if reset:

@@ -10,6 +10,7 @@ from unittest.mock import patch
 import frappe
 from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
+from frappe.doctypes import Communication, EmailAccount, EmailQueue, ToDo
 from frappe.email.doctype.email_account.email_account import notify_unreplied
 from frappe.email.email_body import get_message_id
 from frappe.email.receive import Email, InboundMail, SentEmailInInboxError
@@ -20,14 +21,14 @@ class TestEmailAccount(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		email_account.db_set("enable_incoming", 1)
 		email_account.db_set("enable_auto_reply", 1)
 		email_account.db_set("use_imap", 1)
 
 	@classmethod
 	def tearDownClass(cls):
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		email_account.db_set("enable_incoming", 0)
 
 	def setUp(self):
@@ -52,7 +53,7 @@ class TestEmailAccount(IntegrationTestCase):
 			}
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
@@ -61,10 +62,9 @@ class TestEmailAccount(IntegrationTestCase):
 		self.assertTrue(frappe.db.get_value(comm.reference_doctype, comm.reference_name, "name"))
 
 	def test_unread_notification(self):
-		todo = frappe.get_last_doc("ToDo")
+		todo = ToDo.docs.last()
 
-		comm = frappe.new_doc(
-			"Communication",
+		comm = Communication.docs.new(
 			sender="test_sender@example.com",
 			subject="test unread reminder",
 			sent_or_received="Received",
@@ -102,7 +102,7 @@ class TestEmailAccount(IntegrationTestCase):
 			}
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
@@ -128,7 +128,7 @@ class TestEmailAccount(IntegrationTestCase):
 			}
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
@@ -149,7 +149,7 @@ class TestEmailAccount(IntegrationTestCase):
 			}
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
@@ -221,11 +221,11 @@ class TestEmailAccount(IntegrationTestCase):
 			recipients="test_receiver@example.com",
 			sender="test@example.com",
 			doctype="ToDo",
-			name=frappe.get_last_doc("ToDo").name,
+			name=ToDo.docs.last().name,
 			send_email=True,
 		)["name"]
 
-		sent_mail = email.message_from_string(frappe.get_last_doc("Email Queue").message)
+		sent_mail = email.message_from_string(EmailQueue.docs.last().message)
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-1.raw")) as f:
 			raw = f.read()
@@ -237,10 +237,10 @@ class TestEmailAccount(IntegrationTestCase):
 			'"INBOX"': {"latest_messages": [raw], "seen_status": {2: "UNSEEN"}, "uid_list": [2]}
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
-		sent = frappe.get_doc("Communication", sent_name)
+		sent = Communication.docs.get(sent_name)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertEqual(comm.reference_doctype, sent.reference_doctype)
@@ -265,7 +265,7 @@ class TestEmailAccount(IntegrationTestCase):
 			}
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm_list = frappe.get_all(
@@ -293,7 +293,7 @@ class TestEmailAccount(IntegrationTestCase):
 			reference_name=event.name,
 		)
 
-		last_mail = frappe.get_doc("Email Queue", dict(reference_name=event.name))
+		last_mail = EmailQueue.docs.get(dict(reference_name=event.name))
 
 		# get test mail with message-id as in-reply-to
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-4.raw")) as f:
@@ -309,7 +309,7 @@ class TestEmailAccount(IntegrationTestCase):
 			}
 
 		# pull the mail
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm_list = frappe.get_all(
@@ -334,7 +334,7 @@ class TestEmailAccount(IntegrationTestCase):
 			}
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
@@ -349,7 +349,7 @@ class TestEmailAccount(IntegrationTestCase):
 		mail_content = self.get_test_mail(fname="incoming-1.raw")
 		message_id = Email(mail_content).mail.get("Message-ID")
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		email_account.handle_bad_emails(uid=-1, raw=mail_content, reason="Testing")
 		self.assertTrue(frappe.db.get_value("Unhandled Email", {"message_id": message_id}))
 
@@ -358,13 +358,13 @@ class TestEmailAccount(IntegrationTestCase):
 		uid = "test invalid encoding"
 		mail_content = b"\x80"  # invalid byte
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		email_account.handle_bad_emails(uid=uid, raw=mail_content, reason="Testing")
 		self.assertTrue(frappe.db.get_value("Unhandled Email", {"uid": uid}))
 
 	def test_imap_folder(self):
 		# assert tests if imap_folder >= 1 and imap is checked
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 
 		self.assertTrue(email_account.use_imap)
 		self.assertTrue(email_account.enable_incoming)
@@ -372,14 +372,14 @@ class TestEmailAccount(IntegrationTestCase):
 
 	def test_imap_folder_missing(self):
 		# Test the Exception in validate() that verifies the imap_folder list
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		email_account.imap_folder = []
 
 		with self.assertRaises(Exception):
 			email_account.validate()
 
 	def test_append_to(self):
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		mail_content = self.get_test_mail(fname="incoming-2.raw")
 
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1, "ToDo")
@@ -410,7 +410,7 @@ class TestEmailAccount(IntegrationTestCase):
 			},
 		}
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		mails = TestEmailAccount.mocked_get_inbound_mails(email_account, messages)
 		self.assertEqual(len(mails), 3)
 
@@ -472,12 +472,12 @@ class TestInboundMail(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		email_account.db_set("enable_incoming", 1)
 
 	@classmethod
 	def tearDownClass(cls):
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		email_account.db_set("enable_incoming", 0)
 
 	def setUp(self):
@@ -514,14 +514,14 @@ class TestInboundMail(IntegrationTestCase):
 	def test_self_sent_mail(self):
 		"""Check that we raise SentEmailInInboxError if the inbound mail is self sent mail."""
 		mail_content = self.get_test_mail(fname="incoming-self-sent.raw")
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 1, 1)
 		with self.assertRaises(SentEmailInInboxError):
 			inbound_mail.process()
 
 	def test_mail_exist_validation(self):
 		"""Do not create communication record if the mail is already downloaded into the system."""
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		mail_content = self.get_test_mail(fname="incoming-1.raw")
 		message_id = Email(mail_content).message_id
 		# Create new communication record in DB
@@ -545,7 +545,7 @@ class TestInboundMail(IntegrationTestCase):
 			"{{ message_id }}", queue_record.message_id
 		)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		parent_queue = inbound_mail.parent_email_queue()
 		self.assertEqual(queue_record.name, parent_queue.name)
@@ -565,7 +565,7 @@ class TestInboundMail(IntegrationTestCase):
 			"{{ message_id }}", queue_record.message_id
 		)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		parent_communication = inbound_mail.parent_communication()
 		self.assertEqual(parent_communication.name, communication.name)
@@ -578,7 +578,7 @@ class TestInboundMail(IntegrationTestCase):
 		message_id = "new-message-id"
 		mail_content = self.get_test_mail(fname="reply-4.raw").replace("{{ message_id }}", message_id)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		parent_communication = inbound_mail.parent_communication()
 		self.assertFalse(parent_communication)
@@ -595,7 +595,7 @@ class TestInboundMail(IntegrationTestCase):
 			"{{ message_id }}", f"<{communication.name}@{frappe.local.site}>"
 		)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		parent_communication = inbound_mail.parent_communication()
 		self.assertEqual(parent_communication.name, communication.name)
@@ -609,7 +609,7 @@ class TestInboundMail(IntegrationTestCase):
 			"{{ message_id }}", queue_record.message_id
 		)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
@@ -622,7 +622,7 @@ class TestInboundMail(IntegrationTestCase):
 			"{{ subject }}", f"RE: (#{todo.name})"
 		)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
@@ -634,7 +634,7 @@ class TestInboundMail(IntegrationTestCase):
 		mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
 			"{{ subject }}", f"RE: {subject}"
 		)
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
@@ -648,7 +648,7 @@ class TestInboundMail(IntegrationTestCase):
 			.replace("{{ subject }}", f"RE: {subject}")
 			.encode("utf-8")
 		)  # note: encode to bytes because that's what triggered the error
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
@@ -711,14 +711,14 @@ class TestInboundMail(IntegrationTestCase):
 			mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
 				"{{ subject }}", subject
 			)
-			email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+			email_account = EmailAccount.docs.get("_Test Email Account 1")
 			inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 			self.assertEqual(inbound_mail.subject, expected)
 
 	def test_create_communication_from_mail(self):
 		# Create email queue record
 		mail_content = self.get_test_mail(fname="incoming-2.raw")
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		communication = inbound_mail.process()
 		self.assertTrue(communication._attachments)

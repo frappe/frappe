@@ -55,7 +55,7 @@ def evaluate_milestone(doc, event):
 
 	# track milestones related to this doctype
 	for d in get_milestone_trackers(doc.doctype):
-		frappe.get_doc("Milestone Tracker", d.get("name")).apply(doc)
+		MilestoneTracker.docs.get(d.get("name")).apply(doc)
 
 
 def get_milestone_trackers(doctype):

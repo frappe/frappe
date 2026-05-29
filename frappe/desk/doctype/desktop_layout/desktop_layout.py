@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe.desk.doctype.desktop_icon.desktop_icon import add_workspace_to_desktop
+from frappe.doctypes import DesktopIcon, Workspace
 from frappe.model.document import Document
 
 
@@ -33,10 +34,10 @@ def save_layout(user: str, layout: str, new_icons: str | None = None):
 	layout = json.loads(layout)
 	desktop_layout = None
 	try:
-		desktop_layout = frappe.get_doc("Desktop Layout", frappe.session.user)
+		desktop_layout = DesktopLayout.docs.get(frappe.session.user)
 	except frappe.DoesNotExistError:
 		frappe.clear_last_message()
-		desktop_layout = frappe.new_doc("Desktop Layout")
+		desktop_layout = DesktopLayout.docs.new()
 		desktop_layout.user = frappe.session.user
 
 	if layout:
@@ -47,14 +48,14 @@ def save_layout(user: str, layout: str, new_icons: str | None = None):
 		for icon in new_icons:
 			workspace = icon.get("workspace")
 			if workspace:
-				new_workspace = frappe.new_doc("Workspace")
+				new_workspace = Workspace.docs.new()
 				new_workspace.update(workspace)
 				new_workspace.title = new_workspace.label
 				if not new_workspace.public:
 					new_workspace.for_user = frappe.session.user
 				new_workspace.save()
 				return add_workspace_to_desktop(new_workspace.name)
-			desktop_icon = frappe.new_doc("Desktop Icon")
+			desktop_icon = DesktopIcon.docs.new()
 			desktop_icon.update(icon)
 			desktop_icon.owner = frappe.session.user
 			desktop_icon.save()
@@ -66,7 +67,7 @@ def save_layout(user: str, layout: str, new_icons: str | None = None):
 def get_layout():
 	"""Return the current user's saved desktop layout. Used on desk load to avoid stale cached HTML."""
 	try:
-		doc = frappe.get_doc("Desktop Layout", frappe.session.user)
+		doc = DesktopLayout.docs.get(frappe.session.user)
 		if doc.layout:
 			return json.loads(doc.layout)
 	except frappe.DoesNotExistError:

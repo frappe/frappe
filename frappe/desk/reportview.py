@@ -13,6 +13,7 @@ import frappe
 import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.doctypes import Report
 from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
 from frappe.model.base_document import get_controller
 from frappe.model.qb_query import DatabaseQuery
@@ -324,7 +325,7 @@ def save_report(name: str | int, doctype: str, report_settings: str):
 	"""Save reports of type Report Builder from Report View"""
 
 	if frappe.db.exists("Report", name):
-		report = frappe.get_doc("Report", name)
+		report = Report.docs.get(name)
 		if report.is_standard == "Yes":
 			frappe.throw(_("Standard Reports cannot be edited"))
 
@@ -341,7 +342,7 @@ def save_report(name: str | int, doctype: str, report_settings: str):
 				_("You don't have permission to create report for {0}").format(_(doctype)),
 				frappe.PermissionError,
 			)
-		report = frappe.new_doc("Report")
+		report = Report.docs.new()
 		report.report_name = name
 		report.ref_doctype = doctype
 
@@ -360,7 +361,7 @@ def save_report(name: str | int, doctype: str, report_settings: str):
 def delete_report(name: str | int):
 	"""Delete reports of type Report Builder from Report View"""
 
-	report = frappe.get_doc("Report", name)
+	report = Report.docs.get(name)
 	if report.is_standard == "Yes":
 		frappe.throw(_("Standard Reports cannot be deleted"))
 
@@ -742,7 +743,7 @@ def get_stats(stats: str, doctype: str, filters: str | None = None):
 
 	try:
 		db_columns = frappe.db.get_table_columns(doctype)
-	except (frappe.db.InternalError, frappe.db.ProgrammingError):
+	except frappe.db.InternalError, frappe.db.ProgrammingError:
 		# raised when _user_tags column is added on the fly
 		# raised if its a virtual doctype
 		db_columns = []

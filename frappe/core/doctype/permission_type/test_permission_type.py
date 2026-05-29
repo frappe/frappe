@@ -2,6 +2,7 @@
 # See license.txt
 
 import frappe
+from frappe.doctypes import User
 from frappe.permissions import update_permission_property
 from frappe.tests import IntegrationTestCase
 
@@ -63,7 +64,7 @@ class IntegrationTestPermissionType(IntegrationTestCase):
 
 	def _create_test_user(self, email, role):
 		"""Create a test user with the specified role."""
-		user = frappe.new_doc("User")
+		user = User.docs.new()
 		user.email = email
 		user.first_name = email.split("@", 1)[0]
 		user.insert(ignore_if_duplicate=True)

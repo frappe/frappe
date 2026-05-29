@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import CustomField
 
 
 def execute():
@@ -8,6 +9,6 @@ def execute():
 		)
 
 		if fieldname:
-			custom_field = frappe.get_doc("Custom Field", fieldname)
+			custom_field = CustomField.docs.get(fieldname)
 			custom_field.no_copy = 1
 			custom_field.save()

@@ -1,5 +1,6 @@
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+from frappe.doctypes import AutoRepeat
 
 
 def execute():
@@ -9,7 +10,7 @@ def execute():
 	frappe.db.sql("update `tabAuto Repeat` set docstatus=0 where docstatus=1 or docstatus=2")
 
 	for entry in frappe.get_all("Auto Repeat"):
-		doc = frappe.get_doc("Auto Repeat", entry.name)
+		doc = AutoRepeat.docs.get(entry.name)
 
 		# create custom field for allow auto repeat
 		fields = frappe.get_meta(doc.reference_doctype).fields

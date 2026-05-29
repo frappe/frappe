@@ -21,6 +21,7 @@ import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSetHierarchy
+from frappe.doctypes import ServerScript
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
@@ -1180,7 +1181,7 @@ from {tables}
 					active_child_tables.append(clean_name)
 
 		if permission_script_name := get_server_script_map().get("permission_query", {}).get(self.doctype):
-			script = frappe.get_doc("Server Script", permission_script_name)
+			script = ServerScript.docs.get(permission_script_name)
 			if condition := script.get_permission_query_conditions(
 				self.user, active_child_tables=active_child_tables
 			):

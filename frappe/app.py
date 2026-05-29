@@ -22,6 +22,7 @@ import frappe.recorder
 import frappe.utils.response
 from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, check_request_ip, validate_auth
+from frappe.doctypes import SecuritySettings
 from frappe.integrations.oauth2 import get_resource_url, handle_wellknown, is_oauth_metadata_enabled
 from frappe.middlewares import StaticDataMiddleware
 from frappe.permissions import handle_does_not_exist_error
@@ -129,7 +130,7 @@ def application(request: Request):
 		elif request.path == "/.well-known/security.txt" and request.method == "GET":
 			if request.scheme != "https":
 				raise NotFound
-			security_settings = frappe.get_doc("Security Settings")
+			security_settings = SecuritySettings.docs.get()
 			response = Response(security_settings.security_txt, content_type="text/plain")
 
 		elif request.path.startswith("/.well-known/") and request.method == "GET":

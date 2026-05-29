@@ -151,7 +151,7 @@ def enqueue_webhook(doc, webhook) -> None:
 	request_url = headers = data = r = None
 	try:
 		if not isinstance(webhook, Document):
-			webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
+			webhook: Webhook = Webhook.docs.get(webhook.get("name"))
 		request_url = webhook.request_url
 		if webhook.is_dynamic_url:
 			request_url = frappe.render_template(webhook.request_url, get_context(doc))

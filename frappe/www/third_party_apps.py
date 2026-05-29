@@ -1,6 +1,7 @@
 import frappe
 import frappe.www.list
 from frappe import _
+from frappe.doctypes import OAuthClient
 
 no_cache = 1
 
@@ -30,7 +31,7 @@ def get_context(context):
 
 	app = None
 	if "app" in frappe.form_dict:
-		app = frappe.get_doc("OAuth Client", frappe.form_dict.app)
+		app = OAuthClient.docs.get(frappe.form_dict.app)
 		app = app.__dict__
 		app["client_secret"] = None
 

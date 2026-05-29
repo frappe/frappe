@@ -53,7 +53,7 @@ class SidebarItemGroup(Document):
 def get_reports(module_name: str | None = None):
 	reports_info = []
 	if module_name:
-		sidebar_group = frappe.get_doc("Sidebar Item Group", module_name)
+		sidebar_group = SidebarItemGroup.docs.get(module_name)
 		for report_links in sidebar_group.links:
 			if report_links.report in get_allowed_reports().keys():
 				reports_info.append(get_allowed_reports()[report_links.report])

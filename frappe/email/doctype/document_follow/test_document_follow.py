@@ -8,6 +8,7 @@ from frappe.desk.form.assign_to import add
 from frappe.desk.form.document_follow import get_document_followed_by_user
 from frappe.desk.form.utils import add_comment
 from frappe.desk.like import toggle_like
+from frappe.doctypes import User
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Cast_
 from frappe.share import add as share
@@ -200,7 +201,7 @@ def get_user(document_follow=None):
 	frappe.set_user("Administrator")
 	if frappe.db.exists("User", "test@docsub.com"):
 		doc = frappe.delete_doc("User", "test@docsub.com")
-	doc = frappe.new_doc("User")
+	doc = User.docs.new()
 	doc.email = "test@docsub.com"
 	doc.first_name = "Test"
 	doc.last_name = "User"

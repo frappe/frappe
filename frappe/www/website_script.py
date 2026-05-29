@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.doctypes import WebsiteScript
 from frappe.utils import strip
 from frappe.utils.data import add_to_date, get_datetime
 from frappe.website.doctype.website_theme.website_theme import get_active_theme
@@ -20,7 +21,7 @@ cache_headers = {"Cache-Control": "public,max-age=300,stale-while-revalidate=108
 def get_context(context):
 	should_cache = not_modified_recently(frappe.get_website_settings("modified"))
 
-	website_script = frappe.get_cached_doc("Website Script")
+	website_script = WebsiteScript.docs.get(cached=True)
 	context.javascript = website_script.javascript or ""
 	should_cache &= not_modified_recently(website_script.modified)
 

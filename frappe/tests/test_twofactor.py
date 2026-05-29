@@ -7,6 +7,7 @@ import pyotp
 
 import frappe
 from frappe.auth import HTTPRequest, get_login_attempt_tracker, validate_ip_address
+from frappe.doctypes import Role, SystemSettings, User
 from frappe.tests import IntegrationTestCase
 from frappe.twofactor import (
 	ExpiredLoginException,
@@ -76,20 +77,20 @@ class TestTwoFactor(IntegrationTestCase):
 
 		# Scenario 3
 		enable_2fa()
-		user = frappe.get_doc("User", self.user)
+		user = User.docs.get(self.user)
 		user.restrict_ip = frappe.local.request_ip
 		user.save()
 		self.assertTrue(should_run_2fa(self.user))
 
 		# Scenario 4
-		user = frappe.get_doc("User", self.user)
+		user = User.docs.get(self.user)
 		user.restrict_ip = ""
 		user.save()
 		enable_2fa(1)
 		self.assertTrue(should_run_2fa(self.user))
 
 		# Scenario 5
-		user = frappe.get_doc("User", self.user)
+		user = User.docs.get(self.user)
 		user.restrict_ip = frappe.local.request_ip
 		user.save()
 		enable_2fa(1)
@@ -149,7 +150,7 @@ class TestTwoFactor(IntegrationTestCase):
 		"""
 
 		# 1
-		user = frappe.get_doc("User", self.user)
+		user = User.docs.get(self.user)
 		user.restrict_ip = "192.168.255.254"  # Dummy IP
 		user.bypass_restrict_ip_check_if_2fa_enabled = 0
 		user.save()
@@ -162,7 +163,7 @@ class TestTwoFactor(IntegrationTestCase):
 		self.assertIsNone(validate_ip_address(self.user))
 
 		# 3
-		user = frappe.get_doc("User", self.user)
+		user = User.docs.get(self.user)
 		user.bypass_restrict_ip_check_if_2fa_enabled = 1
 		user.save()
 		enable_2fa()
@@ -208,7 +209,7 @@ def create_http_request():
 
 def enable_2fa(bypass_two_factor_auth=0, bypass_restrict_ip_check=0):
 	"""Enable Two factor in system settings."""
-	system_settings = frappe.get_doc("System Settings")
+	system_settings = SystemSettings.docs.get()
 	system_settings.enable_two_factor_auth = 1
 	system_settings.bypass_2fa_for_retricted_ip_users = cint(bypass_two_factor_auth)
 	system_settings.bypass_restrict_ip_check_if_2fa_enabled = cint(bypass_restrict_ip_check)
@@ -219,7 +220,7 @@ def enable_2fa(bypass_two_factor_auth=0, bypass_restrict_ip_check=0):
 
 
 def disable_2fa():
-	system_settings = frappe.get_doc("System Settings")
+	system_settings = SystemSettings.docs.get()
 	system_settings.enable_two_factor_auth = 0
 	system_settings.flags.ignore_mandatory = True
 	system_settings.save(ignore_permissions=True)
@@ -228,7 +229,7 @@ def disable_2fa():
 
 def toggle_2fa_all_role(state=None):
 	"""Enable or disable 2fa for 'all' role on the system."""
-	all_role = frappe.get_doc("Role", "All")
+	all_role = Role.docs.get("All")
 	state = state if state is not None else False
 	if not isinstance(state, bool):
 		return

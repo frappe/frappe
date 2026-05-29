@@ -2,6 +2,7 @@ import json
 
 import frappe
 from frappe.client import set_value
+from frappe.doctypes import Communication
 
 
 def get_email_accounts(user=None):
@@ -42,7 +43,7 @@ def create_email_flag_queue(names: str, action: str):
 	"""create email flag queue to mark email either as read or unread"""
 
 	def mark_as_seen_unseen(name, action):
-		doc = frappe.get_lazy_doc("Communication", name)
+		doc = Communication.docs.get(name, lazy=True)
 		if action == "Read":
 			doc.add_seen()
 		else:

@@ -11,6 +11,7 @@ from werkzeug.wrappers import Response
 
 import frappe
 from frappe.apps import get_apps, get_default_path, is_desk_apps
+from frappe.doctypes import PortalSettings
 from frappe.model.document import Document
 from frappe.utils import (
 	cint,
@@ -464,7 +465,7 @@ def get_portal_sidebar_items():
 	if sidebar_items is None:
 		sidebar_items = []
 		roles = frappe.get_roles()
-		portal_settings = frappe.get_doc("Portal Settings", "Portal Settings")
+		portal_settings = PortalSettings.docs.get("Portal Settings")
 
 		def add_items(sidebar_items, items):
 			for d in items:

@@ -16,6 +16,7 @@ from frappe.desk.doctype.notification_log.notification_log import (
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	get_subscribed_documents,
 )
+from frappe.doctypes import UserGroup
 from frappe.utils import get_fullname
 
 
@@ -427,7 +428,7 @@ def extract_mentions(txt):
 	for mention in soup.find_all(class_="mention"):
 		if mention.get("data-is-group") == "true":
 			try:
-				user_group = frappe.get_cached_doc("User Group", mention["data-id"])
+				user_group = UserGroup.docs.get(mention["data-id"], cached=True)
 				emails += [d.user for d in user_group.user_group_members]
 			except frappe.DoesNotExistError:
 				pass

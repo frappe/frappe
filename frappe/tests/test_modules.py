@@ -9,6 +9,7 @@ from frappe import scrub
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.doctypes import DocType, ModuleDef, Note
 from frappe.model.meta import trim_table
 from frappe.modules import export_customizations, export_module_json, get_module_path
 from frappe.modules.utils import export_doc, sync_customizations
@@ -43,14 +44,14 @@ class TestUtils(IntegrationTestCase):
 
 	def test_export_module_json_no_export(self):
 		frappe.local.flags.in_import = True
-		doc = frappe.get_last_doc("DocType")
+		doc = DocType.docs.last()
 		self.assertIsNone(export_module_json(doc=doc, is_standard=True, module=doc.module))
 
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
 	def test_export_module_json(self):
-		doc = frappe.get_last_doc("DocType", {"issingle": 0, "custom": 0})
+		doc = DocType.docs.last({"issingle": 0, "custom": 0})
 		export_doc_path = os.path.join(
 			get_module_path(doc.module),
 			scrub(doc.doctype),
@@ -94,7 +95,7 @@ class TestUtils(IntegrationTestCase):
 			property_setter.db_set("module", "Custom")
 
 			# create module def called OtherModule
-			other_module = frappe.new_doc("Module Def")
+			other_module = ModuleDef.docs.new()
 
 			other_module.update({"module_name": "OtherModule", "app_name": "frappe"})
 			other_module.save(ignore_permissions=True)
@@ -187,7 +188,7 @@ class TestUtils(IntegrationTestCase):
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
 	def test_export_doc(self):
-		note = frappe.new_doc("Note")
+		note = Note.docs.new()
 		note.title = frappe.generate_hash(length=10)
 		note.save()
 		export_doc(doctype="Note", name=note.name)

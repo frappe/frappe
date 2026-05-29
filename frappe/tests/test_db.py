@@ -12,6 +12,7 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.database import savepoint
 from frappe.database.database import get_query_execution_timeout
 from frappe.database.utils import FallBackDateTimeStr
+from frappe.doctypes import Note, SystemSettings, ToDo
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests import IntegrationTestCase, timeout
@@ -207,13 +208,13 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(date_format, frappe.db.get_single_value("System Settings", "date_format"))
 
 	def test_get_value_casts_singles(self):
-		doc = frappe.get_doc("System Settings")
+		doc = SystemSettings.docs.get()
 		results = frappe.db.get_value("System Settings", None, ["language", "date_format"], as_dict=True)
 		self.assertEqual(doc.language, results.language)
 		self.assertEqual(doc.date_format, results.date_format)
 
 		# Multiple fields as ordered result
-		doc = frappe.get_doc("System Settings")
+		doc = SystemSettings.docs.get()
 		[lang, date_format] = frappe.db.get_value("System Settings", None, ["language", "date_format"])
 		self.assertEqual(doc.language, lang)
 		self.assertEqual(doc.date_format, date_format)
@@ -482,7 +483,7 @@ class TestDB(IntegrationTestCase):
 		frappe.db.rollback()
 
 		frappe.db.MAX_WRITES_PER_TRANSACTION = 1
-		note = frappe.get_last_doc("ToDo")
+		note = ToDo.docs.last()
 		note.description = "changed"
 		with self.assertRaises(frappe.TooManyWritesError):
 			note.save()
@@ -514,7 +515,7 @@ class TestDB(IntegrationTestCase):
 		with self.patch_hooks(
 			{"doc_events": {"*": {"before_validate": hook_name, "on_update": nested_hook_name}}}
 		):
-			note = frappe.new_doc("Note", title=frappe.generate_hash())
+			note = Note.docs.new(title=frappe.generate_hash())
 			note.insert()
 		self.assertGreater(frappe.db.transaction_writes, 0)  # This would've reset for commit/rollback
 
@@ -1143,7 +1144,7 @@ class TestConcurrency(IntegrationTestCase):
 
 	@timeout(5, "Deletion stuck on lock timeout")
 	def test_delete_race_condition(self):
-		note = frappe.new_doc("Note")
+		note = Note.docs.new()
 		note.title = note.content = frappe.generate_hash()
 		note.insert()
 		frappe.db.commit()  # ensure that second connection can see the document
@@ -1157,7 +1158,7 @@ class TestConcurrency(IntegrationTestCase):
 
 	@timeout(5, "unexpected locking")
 	def test_value_cache_invalidation(self):
-		note = frappe.new_doc("Note")
+		note = Note.docs.new()
 		note.title = note.content = frappe.generate_hash()
 		note.insert()
 		frappe.db.commit()  # ensure that second connection can see the document

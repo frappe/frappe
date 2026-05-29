@@ -4,6 +4,7 @@ from random import choice
 import requests
 
 import frappe
+from frappe.doctypes import DocumentNamingSettings, Note, ToDo, User
 from frappe.installer import update_site_config
 from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, whitelist_for_tests
@@ -170,7 +171,7 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		global authorization_token
 
 		generate_admin_keys()
-		user = frappe.get_doc("User", "Administrator")
+		user = User.docs.get("Administrator")
 		api_key, api_secret = user.api_key, user.get_password("api_secret")
 		authorization_token = f"{api_key}:{api_secret}"
 		response = self.get(self.method("frappe.auth.get_logged_user"))
@@ -201,7 +202,7 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		self.assertFalse(response.request.cookies["sid"])
 
 	def test_run_doc_method_in_memory(self):
-		dns = frappe.get_doc("Document Naming Settings")
+		dns = DocumentNamingSettings.docs.get()
 
 		# Check that simple API can be called.
 		response = self.get(
@@ -432,8 +433,8 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 			self.assertEqual(data["failure_count"], 0)
 
 			# Verify updates
-			updated_todo = frappe.get_doc("ToDo", todo.name)
-			updated_note = frappe.get_doc("Note", note.name)
+			updated_todo = ToDo.docs.get(todo.name)
+			updated_note = Note.docs.get(note.name)
 			self.assertEqual(updated_todo.description, "Updated ToDo")
 			self.assertEqual(updated_note.title, "Updated Note")
 		finally:

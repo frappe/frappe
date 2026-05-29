@@ -14,6 +14,7 @@ import frappe.utils
 from frappe import _, is_whitelisted, ping
 from frappe.core.doctype.file.utils import find_file_by_url, get_safe_file_name
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
+from frappe.doctypes import ServerScript, User
 from frappe.monitor import add_data_to_monitor
 from frappe.permissions import check_doctype_permission
 from frappe.utils import cint, get_files_path
@@ -88,7 +89,7 @@ def execute_cmd(cmd, from_async=False):
 
 
 def run_server_script(server_script):
-	response = frappe.get_doc("Server Script", server_script).execute_method()
+	response = ServerScript.docs.get(server_script).execute_method()
 
 	# some server scripts return output using flags (empty dict by default),
 	# while others directly modify frappe.response
@@ -145,7 +146,7 @@ def upload_file():
 		else:
 			raise frappe.PermissionError
 	else:
-		user: User = frappe.get_lazy_doc("User", frappe.session.user)
+		user: User = User.docs.get(frappe.session.user, lazy=True)
 		ignore_permissions = False
 
 	files = frappe.request.files

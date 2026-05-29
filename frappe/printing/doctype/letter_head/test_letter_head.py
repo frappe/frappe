@@ -4,12 +4,13 @@ import os
 import shutil
 
 import frappe
+from frappe.doctypes import LetterHead
 from frappe.tests import IntegrationTestCase
 
 
 class TestLetterHead(IntegrationTestCase):
 	def test_auto_image(self):
-		doc = frappe.new_doc("Letter Head")
+		doc = LetterHead.docs.new()
 		doc.letter_head_for = "DocType"
 		doc.letter_head_name = "Test Letter Head"
 		doc.module = "Core"
@@ -22,7 +23,7 @@ class TestLetterHead(IntegrationTestCase):
 		self.assertTrue(doc.image in doc.content)
 
 	def test_export_letter_head(self):
-		doc = frappe.new_doc("Letter Head")
+		doc = LetterHead.docs.new()
 		doc.letter_head_for = "DocType"
 		doc.letter_head_name = "Test Letter Head Standard"
 		doc.module = "Core"

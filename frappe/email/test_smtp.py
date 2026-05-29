@@ -77,7 +77,7 @@ def create_email_account(email_id, password, enable_outgoing, default_outgoing=0
 		"use_imap": 0,
 	}
 
-	email_account = frappe.new_doc("Email Account")
+	email_account = EmailAccount.docs.new()
 	email_account.update(email_dict)
 	email_account.save()
 

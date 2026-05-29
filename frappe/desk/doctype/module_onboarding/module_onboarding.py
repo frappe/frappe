@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.doctypes import OnboardingStep
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 
@@ -35,7 +36,7 @@ class ModuleOnboarding(Document):
 				export_to_files(record_list=[["Onboarding Step", step.step]], record_module=self.module)
 
 	def get_steps(self):
-		return [frappe.get_doc("Onboarding Step", step.step) for step in self.steps]
+		return [OnboardingStep.docs.get(step.step) for step in self.steps]
 
 	def get_allowed_roles(self):
 		all_roles = [role.role for role in self.allow_roles]

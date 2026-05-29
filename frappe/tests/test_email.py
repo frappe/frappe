@@ -10,6 +10,7 @@ import requests
 import frappe
 from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
+from frappe.doctypes import Communication, EmailAccount, EmailQueue, File
 from frappe.email.doctype.email_account.test_email_account import TestEmailAccount
 from frappe.email.doctype.email_queue.email_queue import QueueBuilder
 from frappe.query_builder.utils import db_type_is
@@ -266,7 +267,7 @@ class TestEmail(IntegrationTestCase):
 				email_queue_sender = frappe.db.get_value("Email Queue", {"status": "Sent"}, "sender")
 				self.assertEqual(email_queue_sender, assertion)
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 		email_account.default_outgoing = 1
 
 		email_account.always_use_account_name_as_sender_name = 0
@@ -320,13 +321,13 @@ class TestEmail(IntegrationTestCase):
 		self.assertTrue("test1@example.com" in queue_recipients)
 		self.assertEqual(len(queue_recipients), 1)
 
-		frappe.get_doc("Email Queue", email_queue).send()
+		EmailQueue.docs.get(email_queue).send()
 		self.assertTrue("Unsubscribe" in frappe.safe_decode(frappe.flags.sent_mail))
 
 	def test_image_parsing(self):
 		import re
 
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account = EmailAccount.docs.get("_Test Email Account 1")
 
 		frappe.db.delete("Communication", {"sender": "sukh@yyy.com"})
 
@@ -335,7 +336,7 @@ class TestEmail(IntegrationTestCase):
 				'"INBOX"': {"latest_messages": [raw.read()], "seen_status": {2: "UNSEEN"}, "uid_list": [2]}
 			}
 
-			email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+			email_account = EmailAccount.docs.get("_Test Email Account 1")
 			changed_flag = False
 			if not email_account.enable_incoming:
 				email_account.enable_incoming = True
@@ -471,12 +472,12 @@ class TestEmailIntegrationTest(IntegrationTestCase):
 		).get("name")
 		frappe.db.commit()
 
-		communication = frappe.get_doc("Communication", name)
+		communication = Communication.docs.get(name)
 
 		attachments = get_attachments(communication.doctype, communication.name)
 		self.assertEqual(len(attachments), 1)
 
-		file = frappe.get_doc("File", attachments[0].name)
+		file = File.docs.get(attachments[0].name)
 		self.assertGreater(file.file_size, 1000)
 		self.assertIn("pdf", file.file_name.lower())
 		sent_mails = self.get_last_sent_emails()

@@ -11,6 +11,7 @@ from croniter import CroniterBadCronError, croniter
 
 import frappe
 from frappe import _
+from frappe.doctypes import ServerScript
 from frappe.model.document import Document
 from frappe.utils import get_datetime, now_datetime
 from frappe.utils.background_jobs import enqueue, is_job_enqueued
@@ -153,7 +154,7 @@ class ScheduledJobType(Document):
 			if self.server_script:
 				script_name = frappe.db.get_value("Server Script", self.server_script)
 				if script_name:
-					frappe.get_doc("Server Script", script_name).execute_scheduled_method()
+					ServerScript.docs.get(script_name).execute_scheduled_method()
 			else:
 				frappe.get_attr(self.method)()
 			frappe.db.commit()
@@ -197,7 +198,7 @@ class ScheduledJobType(Document):
 def execute_event(doc: str):
 	frappe.only_for("System Manager")
 	doc = json.loads(doc)
-	frappe.get_doc("Scheduled Job Type", doc.get("name")).enqueue(force=True)
+	ScheduledJobType.docs.get(doc.get("name")).enqueue(force=True)
 	return doc
 
 
@@ -205,7 +206,7 @@ def execute_event(doc: str):
 def skip_next_execution(doc: str):
 	frappe.only_for("System Manager")
 	doc = json.loads(doc)
-	doc: ScheduledJobType = frappe.get_doc("Scheduled Job Type", doc.get("name"))
+	doc: ScheduledJobType = ScheduledJobType.docs.get(doc.get("name"))
 	doc.last_execution = doc.next_execution
 	return doc.save()
 
@@ -215,7 +216,7 @@ def run_scheduled_job(scheduled_job_type: str, job_type: str | None = None):
 	if frappe.conf.maintenance_mode:
 		raise frappe.InReadOnlyMode("Scheduled jobs can't run in maintenance mode.")
 	try:
-		frappe.get_doc("Scheduled Job Type", scheduled_job_type).execute()
+		ScheduledJobType.docs.get(scheduled_job_type).execute()
 	except Exception:
 		print(frappe.get_traceback())
 
@@ -267,7 +268,7 @@ def insert_single_event(frequency: str, event: str, cron_format: str | None = ""
 	doc: ScheduledJobType
 
 	if job_name := frappe.db.exists("Scheduled Job Type", {"method": event}):
-		doc = frappe.get_doc("Scheduled Job Type", job_name)
+		doc = ScheduledJobType.docs.get(job_name)
 
 		# Update only frequency and cron_format fields if they are different
 		# Maintain existing values of other fields

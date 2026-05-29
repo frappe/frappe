@@ -3,24 +3,25 @@
 
 import frappe
 from frappe.core.doctype.role.role import get_info_based_on_role
+from frappe.doctypes import Role, User
 from frappe.tests import IntegrationTestCase
 
 
 class TestUser(IntegrationTestCase):
 	def test_disable_role(self):
-		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 3")
+		User.docs.get("test@example.com").add_roles("_Test Role 3")
 
-		role = frappe.get_doc("Role", "_Test Role 3")
+		role = Role.docs.get("_Test Role 3")
 		role.disabled = 1
 		role.save()
 
 		self.assertTrue("_Test Role 3" not in frappe.get_roles("test@example.com"))
 
-		role = frappe.get_doc("Role", "_Test Role 3")
+		role = Role.docs.get("_Test Role 3")
 		role.disabled = 0
 		role.save()
 
-		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 3")
+		User.docs.get("test@example.com").add_roles("_Test Role 3")
 		self.assertTrue("_Test Role 3" in frappe.get_roles("test@example.com"))
 
 	def test_change_desk_access(self):

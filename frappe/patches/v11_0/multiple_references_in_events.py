@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import Event
 
 
 def execute():
@@ -12,7 +13,7 @@ def execute():
 	for event in events:
 		if event.ref_type and event.ref_name:
 			try:
-				e = frappe.get_doc("Event", event.name)
+				e = Event.docs.get(event.name)
 				e.append(
 					"event_participants",
 					{"reference_doctype": event.ref_type, "reference_docname": event.ref_name},

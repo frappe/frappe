@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 import frappe
 from frappe.core.doctype.communication.communication import Communication, get_emails, parse_email
 from frappe.core.doctype.communication.email import add_attachments, make, undo_email_send
+from frappe.doctypes import File, User
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime
@@ -101,7 +102,7 @@ class TestCommunication(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		a = frappe.get_doc("Communication", a.name)
+		a = Communication.docs.get(a.name)
 		a.reference_doctype = "Communication"
 		a.reference_name = c.name
 
@@ -131,7 +132,7 @@ class TestCommunication(IntegrationTestCase):
 		comm.add_link(link_doctype="Note", link_name=note.name, autosave=True)
 		comm.add_link(link_doctype="Note", link_name=note.name, autosave=True)
 
-		comm = frappe.get_doc("Communication", comm.name)
+		comm = Communication.docs.get(comm.name)
 
 		self.assertNotEqual(2, len(comm.timeline_links))
 
@@ -174,7 +175,7 @@ class TestCommunication(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		comm = frappe.get_doc("Communication", comm.name)
+		comm = Communication.docs.get(comm.name)
 		contact_links = [x.link_name for x in comm.timeline_links]
 
 		self.assertIn(contact_sender.name, contact_links)
@@ -346,7 +347,7 @@ class TestCommunicationEmailMixin(IntegrationTestCase):
 
 	def new_user(self, email, **user_data):
 		user_data.setdefault("first_name", "first_name")
-		user = frappe.new_doc("User")
+		user = User.docs.new()
 		user.email = email
 		user.update(user_data)
 		user.insert(ignore_permissions=True, ignore_if_duplicate=True)
@@ -411,7 +412,7 @@ class TestCommunicationEmailMixin(IntegrationTestCase):
 		to_list = ["to <to@test.com>"]
 		comm = self.new_communication(recipients=to_list)
 
-		file = frappe.new_doc("File")
+		file = File.docs.new()
 		file.file_name = "test_add_attachments_by_filename.txt"
 		file.content = "test_add_attachments_by_filename"
 		file.insert(ignore_permissions=True)
@@ -436,7 +437,7 @@ class TestCommunicationEmailMixin(IntegrationTestCase):
 			"File",
 			{"attached_to_name": comm.name, "attached_to_doctype": comm.doctype},
 		)
-		attached_file = frappe.get_doc("File", attached_file_name)
+		attached_file = File.docs.get(attached_file_name)
 		self.assertEqual(attached_file.file_name, file_name)
 		self.assertEqual(attached_file.get_content(), file_content)
 

@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import Comment
 
 
 def execute():
@@ -9,7 +10,7 @@ def execute():
 
 	for feedback in frappe.get_all("Feedback", fields=["*"]):
 		if feedback.like:
-			new_comment = frappe.new_doc("Comment")
+			new_comment = Comment.docs.new()
 			new_comment.comment_type = "Like"
 			new_comment.comment_email = feedback.owner
 			new_comment.content = "Liked by: " + feedback.owner

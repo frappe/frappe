@@ -5,6 +5,7 @@ import contextlib
 
 import frappe
 from frappe import _
+from frappe.doctypes import EmailTemplate
 from frappe.model.document import Document
 from frappe.utils import parse_addr, validate_email_address
 
@@ -109,7 +110,7 @@ class EmailGroup(Document):
 
 @frappe.whitelist()
 def import_from(name: str | int, doctype: str):
-	nlist = frappe.get_doc("Email Group", name)
+	nlist = EmailGroup.docs.get(name)
 	if nlist.has_permission("write"):
 		return nlist.import_from(doctype)
 
@@ -120,7 +121,7 @@ def add_subscribers(name: str | int, email_list: str | list[str] | tuple[str, ..
 		email_list = email_list.replace(",", "\n").split("\n")
 
 	template = frappe.db.get_value("Email Group", name, "welcome_email_template")
-	welcome_email = frappe.get_doc("Email Template", template) if template else None
+	welcome_email = EmailTemplate.docs.get(template) if template else None
 
 	count = 0
 	for email in email_list:
@@ -143,7 +144,7 @@ def add_subscribers(name: str | int, email_list: str | list[str] | tuple[str, ..
 
 	frappe.msgprint(_("{0} subscribers added").format(count))
 
-	return frappe.get_doc("Email Group", name).update_total_subscribers()
+	return EmailGroup.docs.get(name).update_total_subscribers()
 
 
 def send_welcome_email(welcome_email, email, email_group):

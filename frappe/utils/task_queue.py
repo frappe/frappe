@@ -4,6 +4,7 @@ from uuid import uuid4
 
 import frappe
 from frappe import _
+from frappe.doctypes import BackgroundTask
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.background_task.background_task import BackgroundTask
@@ -53,7 +54,7 @@ def enqueue_task(
 	except Exception:
 		arguments_json = None
 
-	doc = frappe.new_doc("Background Task")
+	doc = BackgroundTask.docs.new()
 	doc.task_id = task_id
 	doc.job_id = job_id or task_id
 	doc.task_name = task_name

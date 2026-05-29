@@ -10,6 +10,7 @@ from frappe.boot import get_sidebar_items
 from frappe.desk.desktop import get_workspace_sidebar_items, save_new_widget
 from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import add_to_my_workspace
 from frappe.desk.utils import validate_route_conflict
+from frappe.doctypes import WorkspaceSidebar
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
 from frappe.modules.export_file import delete_folder, export_to_files
@@ -153,7 +154,7 @@ class Workspace(Document):
 			return
 
 		try:
-			my_workspaces = frappe.get_doc("Workspace Sidebar", f"My Workspaces-{frappe.session.user}")
+			my_workspaces = WorkspaceSidebar.docs.get(f"My Workspaces-{frappe.session.user}")
 		except frappe.DoesNotExistError:
 			frappe.clear_messages()
 			return
@@ -313,7 +314,7 @@ def new_page(new_page: str):
 		)
 		raise frappe.PermissionError
 
-	doc = frappe.new_doc("Workspace")
+	doc = Workspace.docs.new()
 	doc.title = page.get("title")
 	doc.icon = page.get("icon") or "grid"
 	doc.indicator_color = page.get("indicator_color")
@@ -341,7 +342,7 @@ def new_page(new_page: str):
 def save_page(name: str, public: str | int, new_widgets: str, blocks: str):
 	public = frappe.parse_json(public)
 
-	doc = frappe.get_doc("Workspace", name)
+	doc = Workspace.docs.get(name)
 	if not is_workspace_manager() or (not doc.public and doc.for_user != frappe.session.user):
 		return
 
@@ -358,7 +359,7 @@ def save_page(name: str, public: str | int, new_widgets: str, blocks: str):
 @frappe.whitelist()
 def update_page(name: str, title: str, icon: str, indicator_color: str, parent: str, public: str | int):
 	public = frappe.parse_json(public)
-	doc = frappe.get_doc("Workspace", name)
+	doc = Workspace.docs.get(name)
 
 	if doc.get("public") and not is_workspace_manager():
 		frappe.throw(_("Need Workspace Manager role to edit public workspaces."))
@@ -387,7 +388,7 @@ def update_page(name: str, title: str, icon: str, indicator_color: str, parent: 
 		# update new name and public in child pages
 		if child_docs:
 			for child in child_docs:
-				child_doc = frappe.get_doc("Workspace", child.name)
+				child_doc = Workspace.docs.get(child.name)
 				child_doc.parent_page = doc.title
 				if child_doc.public != public:
 					child_doc.public = public

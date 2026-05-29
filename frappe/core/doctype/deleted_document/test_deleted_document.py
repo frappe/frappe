@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.core.doctype.deleted_document.deleted_document import restore
+from frappe.doctypes import Note
 from frappe.tests import IntegrationTestCase
 
 
@@ -22,7 +23,7 @@ class TestDeletedDocument(IntegrationTestCase):
 
 		new_restored_name = frappe.db.get_value("Deleted Document", log_name, "new_name")
 
-		restored_doc = frappe.get_doc("Note", new_restored_name)
+		restored_doc = Note.docs.get(new_restored_name)
 
 		self.assertEqual(restored_doc.owner, orig_owner)
 		self.assertEqual(str(restored_doc.creation), str(orig_creation))

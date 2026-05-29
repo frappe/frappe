@@ -5,6 +5,7 @@ from typing import ClassVar
 
 import frappe
 from frappe import _
+from frappe.doctypes import LetterHead, PrintFormat, PrintSettings, PrintStyle
 
 
 @frappe.whitelist()
@@ -41,26 +42,24 @@ class PrintFormatGenerator:
 	}
 
 	def __init__(self, print_format, doc, letterhead=None):
-		self.print_format = frappe.get_doc("Print Format", print_format)
+		self.print_format = PrintFormat.docs.get(print_format)
 		self.doc = doc
 
 		if letterhead == _("No Letterhead"):
 			letterhead = None
-		self.letterhead = frappe.get_doc("Letter Head", letterhead) if letterhead else None
+		self.letterhead = LetterHead.docs.get(letterhead) if letterhead else None
 
 		self.build_context()
 		self.layout = self.get_layout(self.print_format)
 		self.context.layout = self.layout
 
 	def build_context(self):
-		self.print_settings = frappe.get_doc("Print Settings")
+		self.print_settings = PrintSettings.docs.get()
 		page_width_map = {"A4": 210, "Letter": 216}
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		print_style = (
-			frappe.get_doc("Print Style", self.print_settings.print_style)
-			if self.print_settings.print_style
-			else None
+			PrintStyle.docs.get(self.print_settings.print_style) if self.print_settings.print_style else None
 		)
 		self.context = frappe._dict(
 			{

@@ -1,6 +1,7 @@
 import click
 
 import frappe
+from frappe.doctypes import Workspace
 
 
 def execute():
@@ -13,7 +14,7 @@ def execute():
 	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import add_to_my_workspace
 
 	for space in all_workspaces:
-		workspace_doc = frappe.get_doc("Workspace", space)
+		workspace_doc = Workspace.docs.get(space)
 		add_to_my_workspace(workspace_doc)
 	# save the sidebar items
 	frappe.db.commit()  # nosemgrep

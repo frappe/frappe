@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.doctypes import WebTemplate
 
 
 def execute():
@@ -11,7 +12,7 @@ def execute():
 
 	standard_templates = frappe.get_list("Web Template", {"standard": 1})
 	for template in standard_templates:
-		doc = frappe.get_doc("Web Template", template.name)
+		doc = WebTemplate.docs.get(template.name)
 		if not doc.module:
 			doc.module = "Website"
 			doc.save()

@@ -300,7 +300,7 @@ def add_user_permissions(data: str | dict[str, Any]):
 def insert_user_perm(
 	user, doctype, docname, is_default=0, hide_descendants=0, apply_to_all=None, applicable=None
 ):
-	user_perm = frappe.new_doc("User Permission")
+	user_perm = UserPermission.docs.new()
 	user_perm.user = user
 	user_perm.allow = doctype
 	user_perm.for_value = docname

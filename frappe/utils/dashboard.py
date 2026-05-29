@@ -6,6 +6,7 @@ from os.path import join
 
 import frappe
 from frappe import _
+from frappe.doctypes import DashboardChart
 from frappe.modules.import_file import import_file_by_path
 from frappe.utils import cint, get_link_to_form
 
@@ -14,7 +15,7 @@ def cache_source(function):
 	@wraps(function)
 	def wrapper(*args, **kwargs):
 		if kwargs.get("chart_name"):
-			chart = frappe.get_doc("Dashboard Chart", kwargs.get("chart_name"))
+			chart = DashboardChart.docs.get(kwargs.get("chart_name"))
 		else:
 			chart = kwargs.get("chart")
 		no_cache = kwargs.get("no_cache")

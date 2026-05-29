@@ -5,6 +5,7 @@ import json
 import frappe
 from frappe.contacts.doctype.contact.contact import get_contact_name
 from frappe.core.doctype.user.user import create_contact
+from frappe.doctypes import PersonalDataDownloadRequest
 from frappe.tests import IntegrationTestCase
 from frappe.website.doctype.personal_data_download_request.personal_data_download_request import (
 	get_user_data,
@@ -60,7 +61,7 @@ class TestRequestPersonalData(IntegrationTestCase):
 		frappe.set_user("test_privacy@example.com")
 
 		with patch("frappe.sendmail"):
-			req = frappe.new_doc("Personal Data Download Request")
+			req = PersonalDataDownloadRequest.docs.new()
 			req.user = "test_privacy@example.com"
 			req.insert(ignore_permissions=True)
 

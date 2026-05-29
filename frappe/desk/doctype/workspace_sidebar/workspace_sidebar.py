@@ -9,6 +9,7 @@ import click
 import frappe
 from frappe import _
 from frappe.boot import get_allowed_pages, get_allowed_reports
+from frappe.doctypes import Workspace, WorkspaceSidebarItem
 from frappe.model.document import Document
 from frappe.modules.export_file import strip_default_fields
 from frappe.modules.utils import create_directory_on_app_path
@@ -168,8 +169,8 @@ def create_workspace_sidebar_for_workspaces():
 	existing_sidebars = frappe.get_all("Workspace Sidebar", pluck="title")
 	for workspace in all_workspaces:
 		if workspace not in existing_sidebars:
-			workspace_doc = frappe.get_doc("Workspace", workspace)
-			sidebar = frappe.new_doc("Workspace Sidebar")
+			workspace_doc = Workspace.docs.get(workspace)
+			sidebar = WorkspaceSidebar.docs.new()
 			sidebar.title = workspace
 			sidebar.header_icon = frappe.db.get_value("Workspace", workspace, "icon")
 			click.echo(f"Creating Sidebar Items for {workspace}")
@@ -178,14 +179,14 @@ def create_workspace_sidebar_for_workspaces():
 			items = []
 			idx = 1
 			# Adding the workspace itself as home
-			workspace_sidebar_item = frappe.new_doc("Workspace Sidebar Item")
+			workspace_sidebar_item = WorkspaceSidebarItem.docs.new()
 			workspace_sidebar_item.update(
 				{"label": "Home", "link_to": workspace, "link_type": "Workspace", "type": "Link", "idx": 0}
 			)
 			items.append(workspace_sidebar_item)
 			# Process Shortcuts
 			for s in shortcuts:
-				workspace_sidebar_item = frappe.new_doc("Workspace Sidebar Item")
+				workspace_sidebar_item = WorkspaceSidebarItem.docs.new()
 				workspace_sidebar_item.update(
 					{"label": s.label, "link_to": s.link_to, "link_type": s.type, "type": "Link", "idx": idx}
 				)
@@ -202,10 +203,10 @@ def create_workspace_sidebar_for_workspaces():
 def add_sidebar_items(sidebar_title: str, sidebar_items: str):
 	sidebar_items = loads(sidebar_items)
 	title = f"{sidebar_title}-{frappe.session.user}"
-	w = frappe.get_doc("Workspace Sidebar", sidebar_title)
+	w = WorkspaceSidebar.docs.get(sidebar_title)
 	if not frappe.conf.developer_mode:
 		try:
-			w = frappe.get_doc("Workspace Sidebar", title)
+			w = WorkspaceSidebar.docs.get(title)
 		except frappe.DoesNotExistError:
 			frappe.clear_messages()
 			w = frappe.copy_doc(w, ignore_no_copy=False)
@@ -214,7 +215,7 @@ def add_sidebar_items(sidebar_title: str, sidebar_items: str):
 	items = []
 	current_idx = 1
 	for item in sidebar_items:
-		si = frappe.new_doc("Workspace Sidebar Item")
+		si = WorkspaceSidebarItem.docs.new()
 		si.update(item)
 		si.idx = current_idx
 		items.append(si)
@@ -223,7 +224,7 @@ def add_sidebar_items(sidebar_title: str, sidebar_items: str):
 		nested_items = item.get("nested_items", [])
 		if nested_items:
 			for nested_item in nested_items:
-				new_nested_item = frappe.new_doc("Workspace Sidebar Item")
+				new_nested_item = WorkspaceSidebarItem.docs.new()
 				new_nested_item.update(nested_item)
 				new_nested_item.child = 1
 				new_nested_item.idx = current_idx
@@ -244,10 +245,10 @@ def add_to_my_workspace(workspace):
 		existing_sidebar = frappe.db.exists("Workspace Sidebar", sidebar_name)
 
 		if existing_sidebar:
-			private_sidebar = frappe.get_doc("Workspace Sidebar", existing_sidebar)
+			private_sidebar = WorkspaceSidebar.docs.get(existing_sidebar)
 		else:
 			# clone sidebar
-			base_sidebar = frappe.get_doc("Workspace Sidebar", "My Workspaces")
+			base_sidebar = WorkspaceSidebar.docs.get("My Workspaces")
 			private_sidebar = frappe.copy_doc(base_sidebar)
 			private_sidebar.title = sidebar_name
 			private_sidebar.for_user = workspace.for_user
@@ -284,7 +285,7 @@ def auto_generate_sidebar_from_module():
 		):
 			module_info = get_module_info(module)
 			sidebar_items = create_sidebar_items(module_info)
-			sidebar = frappe.new_doc("Workspace Sidebar")
+			sidebar = WorkspaceSidebar.docs.new()
 			sidebar.title = module
 			sidebar.items = sidebar_items
 			sidebar.module = module
@@ -393,7 +394,7 @@ def create_sidebar_items(module_info):
 			if section_break_added:
 				item_info["child"] = 1
 
-			sidebar_item = frappe.new_doc("Workspace Sidebar Item")
+			sidebar_item = WorkspaceSidebarItem.docs.new()
 			sidebar_item.update(item_info)
 			sidebar_items.append(sidebar_item)
 
@@ -403,6 +404,6 @@ def create_sidebar_items(module_info):
 
 
 def add_section_breaks(label, idx):
-	section_break = frappe.new_doc("Workspace Sidebar Item")
+	section_break = WorkspaceSidebarItem.docs.new()
 	section_break.update({"label": label, "type": "Section Break", "idx": idx})
 	return section_break

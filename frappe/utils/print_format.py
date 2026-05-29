@@ -11,6 +11,7 @@ from pypdf import PdfWriter
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.doctypes import NetworkPrinterSettings
 from frappe.model.document import Document
 from frappe.translate import print_language
 from frappe.utils.jinja import render_template
@@ -334,7 +335,7 @@ def print_by_server(
 	no_letterhead: bool | int = 0,
 	file_path: str | None = None,
 ):
-	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
+	print_settings = NetworkPrinterSettings.docs.get(printer_setting)
 	try:
 		import cups
 	except ImportError:

@@ -12,6 +12,7 @@ from frappe.desk.doctype.notification_log.notification_log import (
 	get_title_html,
 )
 from frappe.desk.form.document_follow import follow_document
+from frappe.doctypes import DocShare
 from frappe.utils import cint
 
 if TYPE_CHECKING:
@@ -70,9 +71,9 @@ def add_docshare(
 		check_share_permission(doctype, name, share_perms, custom_perms)
 
 	if share_name := get_share_name(doctype, name, user, everyone):
-		doc = frappe.get_doc("DocShare", share_name)
+		doc = DocShare.docs.get(share_name)
 	else:
-		doc = frappe.new_doc("DocShare")
+		doc = DocShare.docs.new()
 		doc.update({"user": user, "share_doctype": doctype, "share_name": name, "everyone": cint(everyone)})
 
 	if flags:
@@ -127,7 +128,7 @@ def set_docshare_permission(doctype, name, user, permission_to, value=1, everyon
 			share = None
 
 	else:
-		share = frappe.get_doc("DocShare", share_name)
+		share = DocShare.docs.get(share_name)
 		if flags:
 			share.flags.update(flags)
 		share.flags.ignore_permissions = True

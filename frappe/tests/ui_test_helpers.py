@@ -3,6 +3,7 @@ from typing import Any
 
 import frappe
 from frappe import _
+from frappe.doctypes import Contact, DocType, EmailAccount, User, WebForm, WorkspaceSidebar
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.tests.test_helpers import create_test_blog_category
 from frappe.tests.utils import whitelist_for_tests
@@ -94,7 +95,7 @@ def create_doctype_for_attachment():
 
 @whitelist_for_tests()
 def create_datetime_test_doctype():
-	dt = frappe.new_doc("DocType")
+	dt = DocType.docs.new()
 	dt.module = "Core"
 	dt.name = "Test Datetime Precision"
 	dt.custom = 1
@@ -141,7 +142,7 @@ def create_contact_phone_nos_records():
 	if frappe.get_all("Contact", {"first_name": "Test Contact"}):
 		return
 
-	doc = frappe.new_doc("Contact")
+	doc = Contact.docs.new()
 	doc.first_name = "Test Contact"
 	for index in range(1000):
 		doc.append("phone_nos", {"phone": f"123456{index}"})
@@ -319,7 +320,7 @@ def create_topic_and_reply(web_page):
 @whitelist_for_tests()
 def update_webform_to_multistep():
 	if not frappe.db.exists("Web Form", "update-profile-duplicate"):
-		doc = frappe.get_doc("Web Form", "edit-profile")
+		doc = WebForm.docs.get("edit-profile")
 		_doc = frappe.copy_doc(doc)
 		_doc.title = "update-profile-duplicate"
 		_doc.route = "update-profile-duplicate"
@@ -330,7 +331,7 @@ def update_webform_to_multistep():
 
 @whitelist_for_tests()
 def update_child_table(name: str | int):
-	doc = frappe.get_doc("DocType", name)
+	doc = DocType.docs.get(name)
 	if len(doc.fields) == 1:
 		doc.append(
 			"fields",
@@ -432,7 +433,7 @@ def create_test_user(username: str | None = None):
 	if frappe.db.exists("User", name):
 		return
 
-	user = frappe.new_doc("User")
+	user = User.docs.new()
 	user.email = name
 	user.first_name = "Frappe"
 	user.new_password = frappe.local.conf.admin_password
@@ -497,11 +498,11 @@ def setup_image_doctype():
 @whitelist_for_tests()
 def setup_inbox():
 	frappe.db.delete("User Email")
-	doc = frappe.new_doc("Email Account")
+	doc = EmailAccount.docs.new()
 	doc.email_id = "email_linking@example.com"
 	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 
-	user = frappe.get_doc("User", frappe.session.user)
+	user = User.docs.get(frappe.session.user)
 	user.append("user_emails", {"email_account": "Email Linking"})
 	user.save()
 
@@ -624,7 +625,7 @@ def create_admin_kanban():
 
 @whitelist_for_tests()
 def add_remove_role(action: str, user: str, role: str):
-	user_doc = frappe.get_doc("User", user)
+	user_doc = User.docs.get(user)
 	if action == "remove":
 		user_doc.remove_roles(role)
 	else:
@@ -672,6 +673,6 @@ def slow_task(duration, title, doctype, docname):
 
 @whitelist_for_tests()
 def empty_my_workspaces():
-	my_workspaces = frappe.get_doc("Workspace Sidebar", "My Workspaces")
+	my_workspaces = WorkspaceSidebar.docs.get("My Workspaces")
 	my_workspaces.items = []
 	my_workspaces.save()

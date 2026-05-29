@@ -5,6 +5,7 @@ import json
 import frappe
 from frappe.desk.listview import get_group_by_count, get_list_settings, set_list_settings
 from frappe.desk.reportview import get
+from frappe.doctypes import ListViewSettings
 from frappe.tests import IntegrationTestCase
 
 
@@ -38,7 +39,7 @@ class TestListView(IntegrationTestCase):
 
 	def test_set_list_settings_without_settings(self):
 		set_list_settings("DocType", json.dumps({}))
-		settings = frappe.get_doc("List View Settings", "DocType")
+		settings = ListViewSettings.docs.get("DocType")
 
 		self.assertEqual(settings.disable_auto_refresh, 0)
 		self.assertEqual(settings.disable_count, 0)
@@ -48,7 +49,7 @@ class TestListView(IntegrationTestCase):
 	def test_set_list_settings_with_existing_settings(self):
 		frappe.get_doc({"doctype": "List View Settings", "name": "DocType", "disable_count": 1}).insert()
 		set_list_settings("DocType", json.dumps({"disable_count": 0, "disable_auto_refresh": 1}))
-		settings = frappe.get_doc("List View Settings", "DocType")
+		settings = ListViewSettings.docs.get("DocType")
 
 		self.assertEqual(settings.disable_auto_refresh, 1)
 		self.assertEqual(settings.disable_count, 0)

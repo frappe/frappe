@@ -8,6 +8,7 @@ import requests
 from werkzeug.test import TestResponse
 
 import frappe
+from frappe.doctypes import OAuthClient, SocialLoginKey
 from frappe.integrations.oauth2 import encode_params
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
@@ -65,7 +66,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		cls.redirect_uri = "http://localhost"
 
 		# Set Frappe server URL reqired for id_token generation
-		frappe_login_key: SocialLoginKey = frappe.new_doc("Social Login Key")
+		frappe_login_key: SocialLoginKey = SocialLoginKey.docs.new()
 		frappe_login_key.get_social_login_provider("Frappe", initialize=True)
 		frappe_login_key.base_url = frappe.utils.get_url()
 		frappe_login_key.enable_social_login = 0
@@ -74,7 +75,7 @@ class TestOAuth20(FrappeRequestTestCase):
 
 	def setUp(self):
 		self.TEST_CLIENT = get_test_client()
-		self.oauth_client = frappe.new_doc("OAuth Client")
+		self.oauth_client = OAuthClient.docs.new()
 		self.oauth_client.update(
 			{
 				"app_name": "_Test OAuth Client",
@@ -196,7 +197,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertEqual(decoded_token["email"], "test@example.com")
 
 	def test_revoke_token(self):
-		client = frappe.get_doc("OAuth Client", self.client_id)
+		client = OAuthClient.docs.get(self.client_id)
 		client.grant_type = "Authorization Code"
 		client.response_type = "Code"
 		client.save()
@@ -249,7 +250,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		)
 
 	def test_resource_owner_password_credentials_grant(self):
-		client = frappe.get_doc("OAuth Client", self.client_id)
+		client = OAuthClient.docs.get(self.client_id)
 		client.grant_type = "Authorization Code"
 		client.response_type = "Code"
 		client.save()
@@ -277,7 +278,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		)
 
 	def test_login_using_implicit_token(self):
-		oauth_client = frappe.get_doc("OAuth Client", self.client_id)
+		oauth_client = OAuthClient.docs.get(self.client_id)
 		oauth_client.grant_type = "Implicit"
 		oauth_client.response_type = "Token"
 		oauth_client.save()
@@ -423,7 +424,7 @@ def get_full_url(endpoint):
 
 
 def update_client_for_auth_code_grant(client_id):
-	client = frappe.get_doc("OAuth Client", client_id)
+	client = OAuthClient.docs.get(client_id)
 	client.grant_type = "Authorization Code"
 	client.response_type = "Code"
 	client.save()

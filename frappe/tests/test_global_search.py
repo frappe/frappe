@@ -4,6 +4,7 @@
 import frappe
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
+from frappe.doctypes import Event
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_objects
 from frappe.utils import global_search, now_datetime
@@ -67,7 +68,7 @@ class TestGlobalSearch(IntegrationTestCase):
 	def test_update_doc(self):
 		self.insert_test_events()
 		test_subject = "testing global search"
-		event = frappe.get_doc("Event", frappe.get_all("Event")[0].name)
+		event = Event.docs.get(frappe.get_all("Event")[0].name)
 		event.subject = test_subject
 		event.save()
 		frappe.db.commit()
@@ -89,7 +90,7 @@ class TestGlobalSearch(IntegrationTestCase):
 	def test_delete_doc(self):
 		self.insert_test_events()
 		event_name = frappe.get_all("Event")[0].name
-		event = frappe.get_doc("Event", event_name)
+		event = Event.docs.get(event_name)
 		test_subject = event.subject
 		results = global_search.search(test_subject)
 		self.assertTrue(

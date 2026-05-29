@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import DocField
 from frappe.utils import cint
 
 # This patch aims to apply & delete all the customization
@@ -44,7 +45,7 @@ def execute():
 			if field:
 				field.update(cf)
 			else:
-				df = frappe.new_doc("DocField", parent_doc=meta, parentfield="fields")
+				df = DocField.docs.new(parent_doc=meta, parentfield="fields")
 				df.update(cf)
 				meta.fields.append(df)
 			frappe.db.delete("Custom Field", {"name": cf.name})

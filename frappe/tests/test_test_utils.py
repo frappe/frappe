@@ -2,6 +2,7 @@ import logging
 from datetime import timedelta
 
 import frappe
+from frappe.doctypes import Currency
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.generators import get_missing_records_doctypes, get_modules
 from frappe.utils.data import now_datetime
@@ -11,7 +12,7 @@ class TestTestUtils(IntegrationTestCase):
 	SHOW_TRANSACTION_COMMIT_WARNINGS = True
 
 	def test_document_assertions(self):
-		currency = frappe.new_doc("Currency")
+		currency = Currency.docs.new()
 		currency.currency_name = "STONKS"
 		currency.smallest_currency_fraction_value = 0.420_001
 		currency.save()

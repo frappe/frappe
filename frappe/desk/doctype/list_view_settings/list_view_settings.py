@@ -4,6 +4,7 @@
 from typing import Any
 
 import frappe
+from frappe.doctypes import PropertySetter
 from frappe.model.document import Document
 
 
@@ -40,11 +41,11 @@ def save_listview_settings(
 	removed_listview_fields = frappe.parse_json(removed_listview_fields)
 
 	if frappe.get_all("List View Settings", filters={"name": doctype}):
-		doc = frappe.get_doc("List View Settings", doctype)
+		doc = ListViewSettings.docs.get(doctype)
 		doc.update(listview_settings)
 		doc.save()
 	else:
-		doc = frappe.new_doc("List View Settings")
+		doc = ListViewSettings.docs.new()
 		doc.name = doctype
 		doc.update(listview_settings)
 		doc.insert()
@@ -75,7 +76,7 @@ def set_in_list_view_property(doctype, field, value):
 		{"doc_type": doctype, "field_name": field.fieldname, "property": "in_list_view"},
 	)
 	if property_setter:
-		doc = frappe.get_doc("Property Setter", property_setter)
+		doc = PropertySetter.docs.get(property_setter)
 		doc.value = value
 		doc.save()
 	else:

@@ -11,6 +11,7 @@ import frappe
 import frappe.utils
 from frappe import _
 from frappe.apps import get_default_path
+from frappe.doctypes import User
 from frappe.utils.password import get_decrypted_password
 from frappe.website.utils import get_home_page
 
@@ -260,12 +261,12 @@ def get_user_record(user: str, data: dict, provider: str) -> "User":
 	from frappe.integrations.doctype.social_login_key.social_login_key import provider_allows_signup
 
 	try:
-		return frappe.get_doc("User", user)
+		return User.docs.get(user)
 	except frappe.DoesNotExistError:
 		if not provider_allows_signup(provider):
 			raise SignupDisabledError
 
-	user: User = frappe.new_doc("User")
+	user: User = User.docs.new()
 
 	if gender := data.get("gender", "").title():
 		frappe.get_doc({"doctype": "Gender", "gender": gender}).insert(

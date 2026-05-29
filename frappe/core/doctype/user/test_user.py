@@ -73,7 +73,7 @@ class TestUser(IntegrationTestCase):
 		frappe.delete_doc("User", new_user.name)
 
 	def test_delete(self):
-		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
+		User.docs.get("test@example.com").add_roles("_Test Role 2")
 		self.assertRaises(frappe.LinkExistsError, delete_doc, "Role", "_Test Role 2")
 		frappe.db.delete("Has Role", {"role": "_Test Role 2"})
 		delete_doc("Role", "_Test Role 2")
@@ -125,12 +125,12 @@ class TestUser(IntegrationTestCase):
 		user = frappe.get_meta("User")
 		self.assertTrue("roles" in [d.fieldname for d in user.get_high_permlevel_fields()])
 
-		me = frappe.get_doc("User", "testperm@example.com")
+		me = User.docs.get("testperm@example.com")
 		me.remove_roles("System Manager")
 
 		frappe.set_user("testperm@example.com")
 
-		me = frappe.get_doc("User", "testperm@example.com")
+		me = User.docs.get("testperm@example.com")
 		me.add_roles("System Manager")
 
 		# system manager is not added (it is reset)
@@ -149,7 +149,7 @@ class TestUser(IntegrationTestCase):
 		# change user
 		frappe.set_user("Administrator")
 
-		me = frappe.get_doc("User", "testperm@example.com")
+		me = User.docs.get("testperm@example.com")
 		me.add_roles("System Manager")
 
 		# system manager now added by Administrator
@@ -209,7 +209,7 @@ class TestUser(IntegrationTestCase):
 			self.assertEqual(result["feedback"]["password_policy_validation_passed"], True)
 
 			# test password strength while saving user with new password
-			user = frappe.get_doc("User", "test@example.com")
+			user = User.docs.get("test@example.com")
 			toggle_test_mode(False)
 			try:
 				user.new_password = "password"
@@ -342,7 +342,7 @@ class TestUser(IntegrationTestCase):
 		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"), (0, "Already Registered"))
 
 		# disabled user
-		user = frappe.get_doc("User", random_user)
+		user = User.docs.get(random_user)
 		user.enabled = 0
 		user.save()
 
@@ -376,7 +376,7 @@ class TestUser(IntegrationTestCase):
 		frappe.local.request_ip = "127.0.0.69"
 
 		frappe.set_user("testpassword@example.com")
-		test_user = frappe.get_doc("User", "testpassword@example.com")
+		test_user = User.docs.get("testpassword@example.com")
 		key = self.reset_password(test_user)
 		self.assertEqual(update_password(new_password, key=key), "/desk")
 		self.assertEqual(
@@ -422,7 +422,7 @@ class TestUser(IntegrationTestCase):
 			mock_q.message = "Subject: Test\n\nDear User, here is your link"
 			sendmail.return_value = mock_q
 			frappe.clear_messages()
-			test_user = frappe.get_doc("User", "test2@example.com")
+			test_user = User.docs.get("test2@example.com")
 			self.assertEqual(reset_password(user="test2@example.com"), None)
 			test_user.reload()
 			link = sendmail.call_args_list[0].kwargs["args"]["link"]
@@ -485,7 +485,7 @@ class TestUser(IntegrationTestCase):
 	def test_reset_password_link_expiry(self):
 		new_password = "new_password"
 		frappe.set_user("testpassword@example.com")
-		test_user = frappe.get_doc("User", "testpassword@example.com")
+		test_user = User.docs.get("testpassword@example.com")
 		key = self.reset_password(test_user)
 		time.sleep(1)
 
@@ -513,13 +513,7 @@ def test_user(
 	try:
 		first_name = first_name or frappe.generate_hash()
 		email = email or (first_name + "@example.com")
-		user: User = frappe.new_doc(
-			"User",
-			send_welcome_email=0,
-			email=email,
-			first_name=first_name,
-			**kwargs,
-		)
+		user: User = User.docs.new(send_welcome_email=0, email=email, first_name=first_name, **kwargs)
 		user.append_roles(*roles)
 		user.insert()
 		yield user

@@ -8,6 +8,7 @@ import frappe
 from frappe import _
 from frappe.core.utils import find
 from frappe.desk.doctype.notification_settings.notification_settings import is_email_notifications_enabled
+from frappe.doctypes import User
 from frappe.model.document import Document
 from frappe.utils import get_datetime, get_fullname, time_diff_in_hours
 from frappe.utils.user import get_system_managers
@@ -83,7 +84,7 @@ class PersonalDataDeletionRequest(Document):
 		return url
 
 	def disable_user(self):
-		user = frappe.get_doc("User", self.email)
+		user = User.docs.get(self.email)
 		user.enabled = False
 		user.save()
 
@@ -363,7 +364,7 @@ def process_data_deletion_request():
 	)
 
 	for request in requests:
-		doc = frappe.get_doc("Personal Data Deletion Request", request)
+		doc = PersonalDataDeletionRequest.docs.get(request)
 		if time_diff_in_hours(get_datetime(), doc.creation) >= auto_account_deletion:
 			doc.add_comment(
 				"Comment",
@@ -388,7 +389,7 @@ def confirm_deletion(email: str, name: str, host_name: str):
 	if not verify_request():
 		return
 
-	doc = frappe.get_doc("Personal Data Deletion Request", name)
+	doc = PersonalDataDeletionRequest.docs.get(name)
 	host_name = frappe.utils.get_url()
 
 	if doc.status == "Pending Verification":

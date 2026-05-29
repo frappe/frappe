@@ -2,13 +2,14 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.doctypes import Page
 
 
 def get(name):
 	"""
 	Return the :term:`doclist` of the `Page` specified by `name`
 	"""
-	page = frappe.get_doc("Page", name)
+	page = Page.docs.get(name)
 	if page.is_permitted():
 		page.load_assets()
 		docs = frappe._dict(page.as_dict())

@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe import _
+from frappe.doctypes import ModuleDef, WebForm
 from frappe.model.document import get_controller
 from frappe.utils import cint
 from frappe.website.path_resolver import resolve_path
@@ -130,14 +131,14 @@ def get_list_context(context, doctype, web_form_name=None):
 	# get context for custom webform
 	if meta.custom and web_form_name:
 		webform_list_contexts = frappe.get_hooks("webform_list_context")
-		if webform_list_contexts and not frappe.get_doc("Module Def", meta.module).custom:
+		if webform_list_contexts and not ModuleDef.docs.get(meta.module).custom:
 			out = frappe._dict(frappe.get_attr(webform_list_contexts[0])(meta.module) or {})
 			if out:
 				list_context = out
 
 	# get context from web form module
 	if web_form_name:
-		web_form = frappe.get_lazy_doc("Web Form", web_form_name)
+		web_form = WebForm.docs.get(web_form_name, lazy=True)
 		list_context = update_context_from_module(get_web_form_module(web_form), list_context)
 
 	# get path from '/templates/' folder of the doctype
@@ -206,7 +207,7 @@ def get_dynamic_filters(web_form_name):
 	Uses same safe_eval + get_workflow_safe_globals pattern as Workflow."""
 	from frappe.model.workflow import get_workflow_safe_globals
 
-	web_form = frappe.get_cached_doc("Web Form", web_form_name)
+	web_form = WebForm.docs.get(web_form_name, cached=True)
 
 	if not web_form.dynamic_filters_json:
 		return None

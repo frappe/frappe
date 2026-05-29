@@ -7,6 +7,7 @@ import responses
 from responses.matchers import json_params_matcher
 
 import frappe
+from frappe.doctypes import Note, User, Webhook, WebhookRequestLog
 from frappe.integrations.doctype.webhook import flush_webhook_execution_queue
 from frappe.integrations.doctype.webhook.webhook import (
 	enqueue_webhook,
@@ -64,7 +65,7 @@ class TestWebhook(IntegrationTestCase):
 
 		cls.sample_webhooks = []
 		for wh_fields in samples_webhooks_data:
-			wh = frappe.new_doc("Webhook")
+			wh = Webhook.docs.new()
 			wh.update(wh_fields)
 			wh.insert()
 			cls.sample_webhooks.append(wh)
@@ -96,19 +97,19 @@ class TestWebhook(IntegrationTestCase):
 		}
 
 		if frappe.db.exists("Webhook", webhook_fields):
-			self.webhook = frappe.get_doc("Webhook", webhook_fields)
+			self.webhook = Webhook.docs.get(webhook_fields)
 		else:
-			self.webhook = frappe.new_doc("Webhook")
+			self.webhook = Webhook.docs.new()
 			self.webhook.update(webhook_fields)
 
 		# create a User document
-		self.user = frappe.new_doc("User")
+		self.user = User.docs.new()
 		self.user.first_name = frappe.mock("name")
 		self.user.email = frappe.mock("email")
 		self.user.save()
 
 		# Create another test user specific to this test
-		self.test_user = frappe.new_doc("User")
+		self.test_user = User.docs.new()
 		self.test_user.email = "user1@integration.webhooks.test.com"
 		self.test_user.first_name = "user1"
 		self.test_user.send_welcome_email = False
@@ -215,7 +216,7 @@ class TestWebhook(IntegrationTestCase):
 				{"doctype": "User", "email": "user2@integration.webhooks.test.com", "first_name": "user2"}
 			).insert()
 		else:
-			user = frappe.get_doc("User", "user2@integration.webhooks.test.com")
+			user = User.docs.get("user2@integration.webhooks.test.com")
 
 		webhook = frappe.get_doc("Webhook", {"webhook_doctype": "User"})
 		enqueue_webhook(user, webhook)
@@ -243,7 +244,7 @@ class TestWebhook(IntegrationTestCase):
 			],
 		}
 
-		doc = frappe.new_doc("Note")
+		doc = Note.docs.new()
 		doc.title = "Test Webhook Note"
 		final_title = frappe.generate_hash()
 
@@ -265,7 +266,7 @@ class TestWebhook(IntegrationTestCase):
 			doc.title = final_title
 			doc.save()
 			flush_webhook_execution_queue()
-			log = frappe.get_last_doc("Webhook Request Log")
+			log = WebhookRequestLog.docs.last()
 			self.assertEqual(len(json.loads(log.response)), 3)
 
 	@timeout(5, "Test webhooks should never wait, check mocked responses.")
@@ -296,7 +297,7 @@ class TestWebhook(IntegrationTestCase):
 		)
 
 		with get_test_webhook(wh_config) as wh:
-			doc = frappe.new_doc("Note")
+			doc = Note.docs.new()
 			doc.title = "Test Webhook Note"
 			enqueue_webhook(doc, wh)
 
@@ -328,6 +329,6 @@ class TestWebhook(IntegrationTestCase):
 		)
 
 		with get_test_webhook(wh_config) as wh:
-			doc = frappe.new_doc("Note")
+			doc = Note.docs.new()
 			doc.title = "Test Webhook Note"
 			enqueue_webhook(doc, wh)

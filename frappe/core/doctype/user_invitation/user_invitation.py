@@ -4,6 +4,7 @@
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.doctypes import User
 from frappe.model.document import Document
 from frappe.permissions import get_roles
 
@@ -70,7 +71,7 @@ class UserInvitation(Document):
 		self.status = "Expired"
 		self.save()
 		email_title = self._get_email_title()
-		invited_by_user = frappe.get_doc("User", self.invited_by)
+		invited_by_user = User.docs.get(self.invited_by)
 		frappe.sendmail(
 			recipients=invited_by_user.email,
 			subject=_("Invitation to join {0} expired").format(email_title),
@@ -135,9 +136,9 @@ class UserInvitation(Document):
 		user: Document | None = None
 		user_inserted = False
 		if frappe.db.exists("User", self.user):
-			user = frappe.get_doc("User", self.user)
+			user = User.docs.get(self.user)
 		else:
-			user = frappe.new_doc("User")
+			user = User.docs.new()
 			user.user_type = "System User"
 			user.email = self.email
 			user.first_name = self.email.split("@")[0].title()

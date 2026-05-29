@@ -112,7 +112,7 @@ class LogSettings(Document):
 
 
 def run_log_clean_up():
-	doc = frappe.get_doc("Log Settings")
+	doc = LogSettings.docs.get()
 	doc.remove_unsupported_doctypes()
 	doc.add_default_logtypes()
 	doc.save()

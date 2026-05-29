@@ -5,6 +5,7 @@ from urllib.parse import parse_qsl
 
 import frappe
 from frappe import _
+from frappe.doctypes import User
 from frappe.twofactor import get_qr_svg_code
 
 
@@ -35,6 +36,6 @@ def get_user_svg_from_cache():
 		frappe.throw(_("Page has expired!"), frappe.PermissionError)
 	if not frappe.db.exists("User", user):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
-	user = frappe.get_doc("User", user)
+	user = User.docs.get(user)
 	svg = get_qr_svg_code(totp_uri)
 	return (user, svg.decode())

@@ -8,6 +8,7 @@ from googleapiclient.errors import HttpError
 
 import frappe
 from frappe import _
+from frappe.doctypes import WebsiteSettings
 from frappe.integrations.google_oauth import GoogleOAuth
 
 
@@ -37,7 +38,7 @@ def authorize_access(reauthorize: bool = False, code: str | None = None):
 
 def get_google_indexing_object():
 	"""Return an object of Google Indexing object."""
-	account = frappe.get_doc("Website Settings")
+	account = WebsiteSettings.docs.get()
 	oauth_obj = GoogleOAuth("indexing")
 
 	return oauth_obj.get_google_service_object(

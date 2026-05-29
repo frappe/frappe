@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import ServerScript
 
 # this is a separate file since it is imported in frappe.model.document
 # to avoid circular imports
@@ -46,7 +47,7 @@ def run_server_script_for_doc_event(doc, event):
 	if scripts:
 		# run all scripts for this doctype + event
 		for script_name in scripts:
-			frappe.get_cached_doc("Server Script", script_name).execute_doc(doc)
+			ServerScript.docs.get(script_name, cached=True).execute_doc(doc)
 
 
 def get_server_script_map():

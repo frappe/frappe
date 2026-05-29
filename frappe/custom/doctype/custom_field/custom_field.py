@@ -6,6 +6,7 @@ import json
 import frappe
 from frappe import _
 from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
+from frappe.doctypes import DocTypeLayout
 from frappe.model import core_doctypes_list
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
@@ -234,7 +235,7 @@ class CustomField(Document):
 		doctype_layouts = frappe.get_all("DocType Layout", filters={"document_type": self.dt}, pluck="name")
 
 		for layout in doctype_layouts:
-			layout_doc = frappe.get_doc("DocType Layout", layout)
+			layout_doc = DocTypeLayout.docs.get(layout)
 			for field in layout_doc.fields:
 				if field.fieldname == self.fieldname:
 					layout_doc.remove(field)
@@ -402,7 +403,7 @@ def get_existing_custom_fields(custom_fields):
 def rename_fieldname(custom_field: str, fieldname: str):
 	frappe.only_for("System Manager")
 
-	field: CustomField = frappe.get_doc("Custom Field", custom_field)
+	field: CustomField = CustomField.docs.get(custom_field)
 	parent_doctype = field.dt
 	old_fieldname = field.fieldname
 	field.fieldname = fieldname
@@ -494,4 +495,4 @@ def delete_custom_fields(custom_fields: dict, bypass_hooks: bool = False):
 			)
 
 			for custom_field_name in custom_field_names:
-				frappe.get_doc("Custom Field", custom_field_name).delete(ignore_permissions=True, force=True)
+				CustomField.docs.get(custom_field_name).delete(ignore_permissions=True, force=True)

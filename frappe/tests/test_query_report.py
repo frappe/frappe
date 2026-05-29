@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.desk.query_report import build_xlsx_data, export_query, run
+from frappe.doctypes import Report
 from frappe.tests import IntegrationTestCase
 from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
 
@@ -99,7 +100,7 @@ class TestQueryReport(IntegrationTestCase):
 		REPORT_COLUMNS = ["name", "module", "issingle"]
 
 		if not frappe.db.exists("Report", REPORT_NAME):
-			report = frappe.new_doc("Report")
+			report = Report.docs.new()
 			report.report_name = REPORT_NAME
 			report.ref_doctype = "User"
 			report.report_type = "Query Report"
@@ -180,7 +181,7 @@ class TestQueryReport(IntegrationTestCase):
 					}
 				).insert(ignore_permissions=True)
 			else:
-				report = frappe.get_doc("Report", "Doc A Report")
+				report = Report.docs.get("Doc A Report")
 
 			report.report_script = """
 result = [["Ritvik","Sardana", "Doe1"],["Shariq","Ansari", "Doe2"]]
@@ -325,7 +326,7 @@ data = columns, result
 		REPORT_COLUMNS = ["name", "module", "issingle"]
 
 		if not frappe.db.exists("Report", REPORT_NAME):
-			report = frappe.new_doc("Report")
+			report = Report.docs.new()
 			report.report_name = REPORT_NAME
 			report.ref_doctype = "User"
 			report.report_type = "Query Report"

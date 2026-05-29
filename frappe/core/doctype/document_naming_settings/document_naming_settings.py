@@ -5,6 +5,7 @@
 import frappe
 from frappe import _
 from frappe.core.doctype.doctype.doctype import validate_series
+from frappe.doctypes import DocType, Version
 from frappe.model.document import Document
 from frappe.model.naming import NamingSeries
 from frappe.permissions import get_doctypes_with_read
@@ -164,7 +165,7 @@ class DocumentNamingSettings(Document):
 			for series in frappe.get_meta(doctype).get_naming_series_options():
 				existing_series[stripped_series(series)] = doctype
 
-		dt = frappe.get_doc("DocType", self.transaction_type)
+		dt = DocType.docs.get(self.transaction_type)
 
 		options = self.get_options_list(self.naming_series_options)
 		for series in options:
@@ -228,7 +229,7 @@ class DocumentNamingSettings(Document):
 		)
 
 	def create_version_log_for_change(self, series, old, new):
-		version = frappe.new_doc("Version")
+		version = Version.docs.new()
 		version.ref_doctype = "Series"
 		version.docname = series or ".#"
 		version.data = frappe.as_json({"changed": [["current", old, new]]})

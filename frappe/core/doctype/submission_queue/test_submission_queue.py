@@ -5,6 +5,7 @@ import time
 import typing
 
 import frappe
+from frappe.doctypes import RQJob, SubmissionQueue
 from frappe.tests import IntegrationTestCase, timeout
 from frappe.utils.background_jobs import get_queue
 
@@ -25,7 +26,7 @@ class TestSubmissionQueue(IntegrationTestCase):
 					time.sleep(0.2)
 				else:
 					break
-		self.assertEqual(frappe.get_doc("RQ Job", job.id).status, status)
+		self.assertEqual(RQJob.docs.get(job.id).status, status)
 
 	def test_queue_operation(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -45,7 +46,7 @@ class TestSubmissionQueue(IntegrationTestCase):
 
 		# Waiting for execution
 		time.sleep(4)
-		submission_queue = frappe.get_last_doc("Submission Queue")
+		submission_queue = SubmissionQueue.docs.last()
 
 		# Test queueing / starting
 		job = self.queue.fetch_job(submission_queue.job_id)
@@ -72,7 +73,7 @@ class TestSubmissionQueue(IntegrationTestCase):
 		frappe.db.commit()
 
 		time.sleep(4)
-		submission_queue = frappe.get_last_doc("Submission Queue")
+		submission_queue = SubmissionQueue.docs.last()
 
 		job = self.queue.fetch_job(submission_queue.job_id)
 		self.check_status(job, status="finished")

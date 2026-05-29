@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import WebsiteRouteMeta
 from frappe.utils.caching import site_cache
 
 METATAGS = ("title", "description", "image", "author", "published_on")
@@ -64,7 +65,7 @@ class MetaTags:
 		route_exists = route and not route.endswith((".js", ".css")) and has_meta_tags(route)
 
 		if route_exists:
-			website_route_meta = frappe.get_doc("Website Route Meta", route)
+			website_route_meta = WebsiteRouteMeta.docs.get(route)
 			for meta_tag in website_route_meta.meta_tags:
 				d = meta_tag.get_meta_dict()
 				self.tags.update(d)

@@ -20,6 +20,7 @@ from frappe.core.doctype.doctype.doctype import (
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
+from frappe.doctypes import CustomField, DocType
 from frappe.model import core_doctypes_list
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
@@ -482,7 +483,7 @@ class CustomizeForm(Document):
 		self.delete_custom_fields()
 
 	def add_custom_field(self, df, i):
-		d = frappe.new_doc("Custom Field")
+		d = CustomField.docs.new()
 
 		d.dt = self.doc_type
 
@@ -506,7 +507,7 @@ class CustomizeForm(Document):
 			# not a custom field
 			return
 
-		custom_field = frappe.get_doc("Custom Field", meta_df[0].name)
+		custom_field = CustomField.docs.get(meta_df[0].name)
 		changed = False
 		for prop in docfield_properties:
 			if df.get(prop) != custom_field.get(prop):
@@ -724,7 +725,7 @@ def get_link_filters_from_doc_without_customisations(doctype: str, fieldname: st
 	In backend the customisations are not applied.
 	Customisations are applied in the client side.
 	"""
-	doc = frappe.get_doc("DocType", doctype)
+	doc = DocType.docs.get(doctype)
 	field = list(filter(lambda x: x.fieldname == fieldname, doc.fields))
 	return field[0].link_filters
 

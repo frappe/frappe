@@ -6,6 +6,7 @@ import re
 import frappe
 import frappe.recorder
 from frappe.core.doctype.recorder.recorder import _optimize_query, serialize_request
+from frappe.doctypes import Recorder
 from frappe.query_builder.utils import db_type_is
 from frappe.recorder import get as get_recorder_data
 from frappe.tests import IntegrationTestCase
@@ -35,7 +36,7 @@ class TestRecorder(IntegrationTestCase):
 		self.stop_recorder()
 		requests = frappe.get_all("Recorder")
 		self.assertGreaterEqual(len(requests), 1)
-		request = frappe.get_doc("Recorder", requests[0].name)
+		request = Recorder.docs.get(requests[0].name)
 		self.assertGreaterEqual(len(request.sql_queries), 1)
 		queries = [sql_query.query for sql_query in request.sql_queries]
 		match_flag = 0

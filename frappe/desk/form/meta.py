@@ -5,6 +5,7 @@ import os
 import frappe
 from frappe import _
 from frappe.build import scrub_html_template
+from frappe.doctypes import Workflow, WorkflowState
 from frappe.model.meta import Meta
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, load_doctype_module, scrub
@@ -213,10 +214,10 @@ class FormMeta(Meta):
 		workflow_docs = []
 
 		if workflow_name and frappe.db.exists("Workflow", workflow_name):
-			workflow = frappe.get_doc("Workflow", workflow_name)
+			workflow = Workflow.docs.get(workflow_name)
 			workflow_docs.append(workflow)
 
-			workflow_docs.extend(frappe.get_doc("Workflow State", d.state) for d in workflow.get("states"))
+			workflow_docs.extend(WorkflowState.docs.get(d.state) for d in workflow.get("states"))
 		self.set("__workflow_docs", workflow_docs)
 
 	def load_templates(self):

@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.doctypes import User
 from frappe.tests import IntegrationTestCase
 from frappe.utils import get_site_url
 
@@ -195,7 +196,7 @@ class TestClient(IntegrationTestCase):
 
 		self.addCleanup(frappe.db.rollback)
 
-		user = frappe.get_doc("User", "Administrator")
+		user = User.docs.get("Administrator")
 		user.append("block_modules", {"module": "Setup"})
 		user.save()
 

@@ -645,7 +645,7 @@ def accept(web_form: str, data: str):
 	files = []
 	files_to_delete = []
 
-	web_form = frappe.get_lazy_doc("Web Form", web_form)
+	web_form = WebForm.docs.get(web_form, lazy=True)
 	doctype = web_form.doc_type
 	user = frappe.session.user
 
@@ -745,7 +745,7 @@ def accept(web_form: str, data: str):
 
 @frappe.whitelist()
 def delete(web_form_name: str, docname: str | int):
-	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
+	web_form = WebForm.docs.get(web_form_name, lazy=True)
 
 	owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
 	if frappe.session.user == owner and web_form.allow_delete:
@@ -756,7 +756,7 @@ def delete(web_form_name: str, docname: str | int):
 
 @frappe.whitelist()
 def delete_multiple(web_form_name: str, docnames: str):
-	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
+	web_form = WebForm.docs.get(web_form_name, lazy=True)
 
 	docnames = json.loads(docnames)
 
@@ -790,13 +790,13 @@ def check_webform_perm(doctype, name):
 
 @frappe.whitelist(allow_guest=True)
 def get_web_form_filters(web_form_name: str):
-	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form = WebForm.docs.get(web_form_name)
 	return [field for field in web_form.web_form_fields if field.show_in_filter]
 
 
 @frappe.whitelist(allow_guest=True)
 def get_form_data(doctype: str, docname: str | None = None, web_form_name: str | None = None):
-	web_form = frappe.get_doc("Web Form", web_form_name)
+	web_form = WebForm.docs.get(web_form_name)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
@@ -871,7 +871,7 @@ def has_link_option(fields, doctype):
 
 
 def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
-	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
+	web_form: WebForm = WebForm.docs.get(web_form_name, lazy=True)
 
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)

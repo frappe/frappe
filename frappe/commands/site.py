@@ -10,6 +10,7 @@ import click
 # imports - module imports
 import frappe
 from frappe.commands import get_site, pass_context
+from frappe.doctypes import User
 from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import CallbackManager
 from frappe.utils.bench_helper import CliCtxObj
@@ -698,7 +699,7 @@ def disable_user(context: CliCtxObj, email):
 	site = get_site(context)
 	with frappe.init_site(site):
 		frappe.connect()
-		user = frappe.get_doc("User", email)
+		user = User.docs.get(email)
 		user.enabled = 0
 		user.save(ignore_permissions=True)
 		frappe.db.commit()
@@ -1538,7 +1539,7 @@ def add_new_user(
 	password=None,
 	role=None,
 ):
-	user = frappe.new_doc("User")
+	user = User.docs.new()
 	user.update(
 		{
 			"name": email,

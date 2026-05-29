@@ -5,6 +5,7 @@ from urllib.parse import urljoin
 import requests
 
 import frappe
+from frappe.doctypes import OAuthAuthorizationCode, OAuthBearerToken, OAuthClient, User
 from frappe.integrations.doctype.social_login_key.test_social_login_key import (
 	create_or_update_social_login_key,
 )
@@ -12,7 +13,7 @@ from frappe.tests import IntegrationTestCase
 
 
 def get_user(usr, pwd):
-	user = frappe.new_doc("User")
+	user = User.docs.new()
 	user.email = usr
 	user.enabled = 1
 	user.first_name = "_Test"
@@ -36,7 +37,7 @@ def get_connected_app():
 
 
 def get_oauth_client():
-	oauth_client = frappe.new_doc("OAuth Client")
+	oauth_client = OAuthClient.docs.new()
 	oauth_client.app_name = "_Test Connected App"
 	oauth_client.redirect_uris = "to be replaced"
 	oauth_client.default_redirect_uri = "to be replaced"
@@ -136,12 +137,12 @@ class TestConnectedApp(IntegrationTestCase):
 		if getattr(self, "oauth_client", None):
 			tokens = frappe.get_all("OAuth Bearer Token", filters={"client": self.oauth_client.name})
 			for token in tokens:
-				doc = frappe.get_doc("OAuth Bearer Token", token.name)
+				doc = OAuthBearerToken.docs.get(token.name)
 				doc.delete()
 
 			codes = frappe.get_all("OAuth Authorization Code", filters={"client": self.oauth_client.name})
 			for code in codes:
-				doc = frappe.get_doc("OAuth Authorization Code", code.name)
+				doc = OAuthAuthorizationCode.docs.get(code.name)
 				doc.delete()
 
 		frappe.db.commit()

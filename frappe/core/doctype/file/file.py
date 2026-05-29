@@ -229,7 +229,7 @@ class File(Document):
 			if user == existing_file.owner or user == "Administrator":
 				return
 
-			existing_doc = frappe.get_doc("File", existing_file.name)
+			existing_doc = File.docs.get(existing_file.name)
 			if not has_permission(existing_doc, "read", user=user):
 				frappe.throw(
 					_("You do not have permission to access this file"),
@@ -500,7 +500,7 @@ class File(Document):
 			duplicate_file = frappe.db.get_value("File", filters, ["name", "file_url"], as_dict=1)
 
 			if duplicate_file:
-				duplicate_file_doc = frappe.get_cached_doc("File", duplicate_file.name)
+				duplicate_file_doc = File.docs.get(duplicate_file.name, cached=True)
 				if duplicate_file_doc.exists_on_disk():
 					# just use the url, to avoid uploading a duplicate
 					self.file_url = duplicate_file.file_url
@@ -545,7 +545,7 @@ class File(Document):
 				image, filename, extn = get_local_image(self.file_url)
 			else:
 				image, filename, extn = get_web_image(self.file_url)
-		except (HTTPError, SSLError, OSError, TypeError):
+		except HTTPError, SSLError, OSError, TypeError:
 			return
 
 		size = width, height
@@ -639,7 +639,7 @@ class File(Document):
 					# skip hidden files
 					continue
 
-				file_doc = frappe.new_doc("File")
+				file_doc = File.docs.new()
 				try:
 					file_doc.content = z.read(file.filename)
 				except zipfile.BadZipFile:
@@ -796,7 +796,7 @@ class File(Document):
 			)
 
 		if duplicate_file:
-			file_doc: File = frappe.get_cached_doc("File", duplicate_file.name)
+			file_doc: File = File.docs.get(duplicate_file.name, cached=True)
 			if file_doc.exists_on_disk():
 				if self.exists_on_disk():
 					if not self.file_url:
@@ -931,7 +931,7 @@ class File(Document):
 		zf = zipfile.ZipFile(zip_file, "w", zipfile.ZIP_DEFLATED)
 		for _file in files:
 			if isinstance(_file, str):
-				_file = frappe.get_doc("File", _file)
+				_file = File.docs.get(_file)
 			if not isinstance(_file, File):
 				continue
 			if _file.is_folder:
@@ -974,7 +974,7 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 
 		try:
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
-		except (ModuleNotFoundError, ImportError):
+		except ModuleNotFoundError, ImportError:
 			return False
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()

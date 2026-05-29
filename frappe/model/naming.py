@@ -11,6 +11,7 @@ from uuid import UUID, uuid7
 
 import frappe
 from frappe import _
+from frappe.doctypes import DocumentNamingRule
 from frappe.model import log_types
 from frappe.monitor import get_trace_id
 from frappe.query_builder import DocType
@@ -267,7 +268,7 @@ def set_naming_from_document_naming_rule(doc):
 	)
 
 	for d in document_naming_rules:
-		frappe.get_cached_doc("Document Naming Rule", d.name).apply(doc)
+		DocumentNamingRule.docs.get(d.name, cached=True).apply(doc)
 		if doc.name:
 			break
 

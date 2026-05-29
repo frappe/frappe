@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.doctypes import DocType
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import whitelist_for_tests
@@ -41,7 +42,7 @@ class TestCachingUtils(IntegrationTestCase):
 		retval = []
 		hashable_values = [
 			range(10),
-			frappe.get_last_doc("DocType"),
+			DocType.docs.last(),
 			True,
 			None,
 		]

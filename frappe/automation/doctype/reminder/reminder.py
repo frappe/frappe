@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.doctypes import NotificationLog
 from frappe.model.document import Document
 from frappe.utils import cint
 from frappe.utils.data import add_to_date, get_datetime, now_datetime
@@ -47,7 +48,7 @@ class Reminder(Document):
 		self.db_set("notified", 1, update_modified=False)
 
 		try:
-			notification = frappe.new_doc("Notification Log")
+			notification = NotificationLog.docs.new()
 			notification.for_user = self.user
 			notification.set("type", "Alert")
 			notification.document_type = self.reminder_doctype
@@ -65,7 +66,7 @@ def create_new_reminder(
 	reminder_doctype: str | None = None,
 	reminder_docname: str | None = None,
 ):
-	reminder = frappe.new_doc("Reminder")
+	reminder = Reminder.docs.new()
 
 	reminder.description = description
 	reminder.remind_at = remind_at
@@ -93,4 +94,4 @@ def send_reminders():
 	)
 
 	for reminder in pending_reminders:
-		frappe.get_doc("Reminder", reminder).send_reminder()
+		Reminder.docs.get(reminder).send_reminder()

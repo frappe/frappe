@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import SocialLoginKey
 from frappe.utils import cstr
 
 
@@ -14,7 +15,7 @@ def execute():
 
 	social_login_keys = frappe.get_doc("Social Login Keys", "Social Login Keys")
 	if social_login_keys.get("facebook_client_id") or social_login_keys.get("facebook_client_secret"):
-		facebook_login_key = frappe.new_doc("Social Login Key")
+		facebook_login_key = SocialLoginKey.docs.new()
 		facebook_login_key.get_social_login_provider("Facebook", initialize=True)
 		facebook_login_key.social_login_provider = "Facebook"
 		facebook_login_key.client_id = social_login_keys.get("facebook_client_id")
@@ -24,7 +25,7 @@ def execute():
 		facebook_login_key.save()
 
 	if social_login_keys.get("frappe_server_url"):
-		frappe_login_key = frappe.new_doc("Social Login Key")
+		frappe_login_key = SocialLoginKey.docs.new()
 		frappe_login_key.get_social_login_provider("Frappe", initialize=True)
 		frappe_login_key.social_login_provider = "Frappe"
 		frappe_login_key.base_url = social_login_keys.get("frappe_server_url")
@@ -35,7 +36,7 @@ def execute():
 		frappe_login_key.save()
 
 	if social_login_keys.get("github_client_id") or social_login_keys.get("github_client_secret"):
-		github_login_key = frappe.new_doc("Social Login Key")
+		github_login_key = SocialLoginKey.docs.new()
 		github_login_key.get_social_login_provider("GitHub", initialize=True)
 		github_login_key.social_login_provider = "GitHub"
 		github_login_key.client_id = social_login_keys.get("github_client_id")
@@ -45,7 +46,7 @@ def execute():
 		github_login_key.save()
 
 	if social_login_keys.get("google_client_id") or social_login_keys.get("google_client_secret"):
-		google_login_key = frappe.new_doc("Social Login Key")
+		google_login_key = SocialLoginKey.docs.new()
 		google_login_key.get_social_login_provider("Google", initialize=True)
 		google_login_key.social_login_provider = "Google"
 		google_login_key.client_id = social_login_keys.get("google_client_id")

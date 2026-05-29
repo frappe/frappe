@@ -10,6 +10,7 @@ from datetime import date, datetime, time
 import frappe
 from frappe import _
 from frappe.core.doctype.version.version import get_diff
+from frappe.doctypes import File
 from frappe.model import no_value_fields
 from frappe.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
 from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
@@ -606,7 +607,7 @@ class ImportFile:
 
 		file_name = frappe.db.get_value("File", {"file_url": file_path})
 		if file_name:
-			file = frappe.get_doc("File", file_name)
+			file = File.docs.get(file_name)
 			file_content = file.get_content()
 
 		return file_content, extn

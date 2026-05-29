@@ -9,7 +9,7 @@ from frappe.utils import cint, cstr
 @frappe.whitelist()
 def unzip_file(name: str):
 	"""Unzip the given file and make file records for each of the extracted files"""
-	file: File = frappe.get_doc("File", name)
+	file: File = File.docs.get(name)
 	return file.unzip()
 
 
@@ -97,7 +97,7 @@ def get_file_chunk_size() -> int:
 @frappe.whitelist()
 def create_new_folder(file_name: str, folder: str) -> File:
 	"""create new folder under current parent folder"""
-	file = frappe.new_doc("File")
+	file = File.docs.new()
 	file.file_name = file_name
 	file.is_folder = 1
 	file.folder = folder
@@ -115,8 +115,8 @@ def move_file(file_list: list[File | dict] | str, new_parent: str, old_parent: s
 		setup_folder_path(file_obj.get("name"), new_parent)
 
 	# recalculate sizes
-	frappe.get_doc("File", old_parent).save()
-	frappe.get_doc("File", new_parent).save()
+	File.docs.get(old_parent).save()
+	File.docs.get(new_parent).save()
 
 
 @frappe.whitelist()

@@ -3,6 +3,7 @@
 from bs4 import BeautifulSoup
 
 import frappe
+from frappe.doctypes import WebsiteTheme, WebTemplate
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response
@@ -10,7 +11,7 @@ from frappe.website.serve import get_response
 
 class TestWebTemplate(IntegrationTestCase):
 	def test_render_web_template_with_values(self):
-		doc = frappe.get_doc("Web Template", "Hero with Right Image")
+		doc = WebTemplate.docs.get("Hero with Right Image")
 		values = {
 			"title": "Test Hero",
 			"subtitle": "Test subtitle content",
@@ -65,7 +66,7 @@ class TestWebTemplate(IntegrationTestCase):
 
 		self.assertEqual(stylesheet.attrs["href"], theme.theme_url)
 
-		frappe.get_doc("Website Theme", "Standard").set_as_default()
+		WebsiteTheme.docs.get("Standard").set_as_default()
 
 	def create_web_page(self):
 		if not frappe.db.exists("Web Page", "test-web-template"):
@@ -111,5 +112,5 @@ class TestWebTemplate(IntegrationTestCase):
 		if not frappe.db.exists("Website Theme", "Custom"):
 			theme = frappe.get_doc({"doctype": "Website Theme", "theme": "Custom"}).insert()
 		else:
-			theme = frappe.get_doc("Website Theme", "Custom")
+			theme = WebsiteTheme.docs.get("Custom")
 		return theme

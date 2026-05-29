@@ -16,6 +16,7 @@ from googleapiclient.errors import HttpError
 
 import frappe
 from frappe import _, _lt
+from frappe.doctypes import GoogleSettings
 from frappe.integrations.google_oauth import GoogleOAuth
 from frappe.model.document import Document
 from frappe.utils import (
@@ -103,7 +104,7 @@ class GoogleCalendar(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		google_settings = frappe.get_cached_doc("Google Settings")
+		google_settings = GoogleSettings.docs.get(cached=True)
 		if not google_settings.enable:
 			frappe.throw(_("Enable Google API in Google Settings."))
 
@@ -146,10 +147,10 @@ def authorize_access(g_calendar: str, reauthorize: bool = False):
 	If no Authorization code get it from Google and then request for Refresh Token.
 	Google Calendar Name is set to flags to set_value after Authorization Code is obtained.
 	"""
-	google_calendar = frappe.get_doc("Google Calendar", g_calendar)
+	google_calendar = GoogleCalendar.docs.get(g_calendar)
 	google_calendar.check_permission("write")
 
-	google_settings = frappe.get_cached_doc("Google Settings")
+	google_settings = GoogleSettings.docs.get(cached=True)
 
 	redirect_uri = (
 		f"{get_request_site_address(full_address=True)}"
@@ -221,8 +222,8 @@ def sync(g_calendar: str | None = None):
 
 def get_google_calendar_object(g_calendar):
 	"""Return an object of Google Calendar along with Google Calendar doc."""
-	google_settings = frappe.get_cached_doc("Google Settings")
-	account: GoogleCalendar = frappe.get_doc("Google Calendar", g_calendar)
+	google_settings = GoogleSettings.docs.get(cached=True)
+	account: GoogleCalendar = GoogleCalendar.docs.get(g_calendar)
 
 	credentials = google.oauth2.credentials.Credentials(
 		token=account.get_access_token(),

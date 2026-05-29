@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from frappe.doctypes import Role, User
 from frappe.model.document import Document
 from frappe.utils import cint
 
@@ -51,7 +52,7 @@ class Domain(Document):
 		if self.data.restricted_roles:
 			for role_name in self.data.restricted_roles:
 				if frappe.db.exists("Role", role_name):
-					role = frappe.get_doc("Role", role_name)
+					role = Role.docs.get(role_name)
 					role.disabled = 1
 					role.save()
 
@@ -77,14 +78,14 @@ class Domain(Document):
 	def setup_roles(self):
 		"""Enable roles that are restricted to this domain"""
 		if self.data.restricted_roles:
-			user = frappe.get_doc("User", frappe.session.user)
+			user = User.docs.get(frappe.session.user)
 			for role_name in self.data.restricted_roles:
 				user.append("roles", {"role": role_name})
 				if not frappe.db.get_value("Role", role_name):
 					frappe.get_doc(doctype="Role", role_name=role_name).insert()
 					continue
 
-				role = frappe.get_doc("Role", role_name)
+				role = Role.docs.get(role_name)
 				role.disabled = 0
 				role.save()
 			user.save()

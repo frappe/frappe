@@ -80,7 +80,7 @@ def get_kanban_boards(doctype: str):
 @frappe.whitelist()
 def add_column(board_name: str, column_title: str):
 	"""Adds new column to Kanban Board"""
-	doc = frappe.get_doc("Kanban Board", board_name)
+	doc = KanbanBoard.docs.get(board_name)
 	for col in doc.columns:
 		if column_title == col.column_name:
 			frappe.throw(_("Column <b>{0}</b> already exist.").format(column_title))
@@ -93,7 +93,7 @@ def add_column(board_name: str, column_title: str):
 @frappe.whitelist()
 def archive_restore_column(board_name: str, column_title: str, status: str):
 	"""Set column's status to status"""
-	doc = frappe.get_doc("Kanban Board", board_name)
+	doc = KanbanBoard.docs.get(board_name)
 	for col in doc.columns:
 		if column_title == col.column_name:
 			col.status = status
@@ -105,7 +105,7 @@ def archive_restore_column(board_name: str, column_title: str, status: str):
 @frappe.whitelist()
 def update_order(board_name: str, order: str):
 	"""Save the order of cards in columns"""
-	board = frappe.get_doc("Kanban Board", board_name)
+	board = KanbanBoard.docs.get(board_name)
 	doctype = board.reference_doctype
 	updated_cards = []
 
@@ -140,7 +140,7 @@ def update_order_for_single_card(
 	new_index: str | int,
 ):
 	"""Save the order of cards in columns"""
-	board = frappe.get_doc("Kanban Board", board_name)
+	board = KanbanBoard.docs.get(board_name)
 	doctype = board.reference_doctype
 
 	frappe.has_permission(doctype, "write", throw=True)
@@ -181,7 +181,7 @@ def get_kanban_column_order_and_index(board, colname):
 
 @frappe.whitelist()
 def add_card(board_name: str, docname: str, colname: str):
-	board = frappe.get_doc("Kanban Board", board_name)
+	board = KanbanBoard.docs.get(board_name)
 
 	frappe.has_permission(board.reference_doctype, "write", throw=True)
 
@@ -197,7 +197,7 @@ def add_card(board_name: str, docname: str, colname: str):
 def quick_kanban_board(doctype: str, board_name: str, field_name: str, project: str | None = None):
 	"""Create new KanbanBoard quickly with default options"""
 
-	doc = frappe.new_doc("Kanban Board")
+	doc = KanbanBoard.docs.new()
 	meta = frappe.get_meta(doctype)
 
 	doc.kanban_board_name = board_name
@@ -239,7 +239,7 @@ def get_order_for_column(board, colname):
 @frappe.whitelist()
 def update_column_order(board_name: str, order: str):
 	"""Set the order of columns in Kanban Board"""
-	board = frappe.get_doc("Kanban Board", board_name)
+	board = KanbanBoard.docs.get(board_name)
 	order = json.loads(order)
 	old_columns = board.columns
 	new_columns = []
@@ -271,7 +271,7 @@ def update_column_order(board_name: str, order: str):
 @frappe.whitelist()
 def set_indicator(board_name: str, column_name: str, indicator: str):
 	"""Set the indicator color of column"""
-	board = frappe.get_doc("Kanban Board", board_name)
+	board = KanbanBoard.docs.get(board_name)
 
 	for column in board.columns:
 		if column.column_name == column_name:
@@ -284,7 +284,7 @@ def set_indicator(board_name: str, column_name: str, indicator: str):
 @frappe.whitelist()
 def save_settings(board_name: str, settings: str) -> Document:
 	settings = json.loads(settings)
-	doc = frappe.get_doc("Kanban Board", board_name)
+	doc = KanbanBoard.docs.get(board_name)
 
 	fields = settings["fields"]
 	if not isinstance(fields, str):

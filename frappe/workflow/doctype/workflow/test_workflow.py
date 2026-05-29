@@ -5,6 +5,7 @@ from unittest.mock import patch
 import responses
 
 import frappe
+from frappe.doctypes import Domain, Note, ServerScript, User, Webhook, Workflow, WorkflowTransitionTasks
 from frappe.model.workflow import (
 	WorkflowTransitionError,
 	apply_workflow,
@@ -92,7 +93,7 @@ class TestWorkflow(IntegrationTestCase):
 		self.assertListEqual(actions, ["Review"])
 
 	def test_if_workflow_actions_were_processed_using_role(self):
-		user = frappe.get_doc("User", "test2@example.com")
+		user = User.docs.get("test2@example.com")
 		user.add_roles("Test Approver", "System Manager")
 		frappe.set_user("test2@example.com")
 
@@ -200,7 +201,7 @@ class TestWorkflow(IntegrationTestCase):
 			json={},
 		)
 
-		domain = frappe.new_doc("Domain")
+		domain = Domain.docs.new()
 		domain.domain = random_string(length=10)
 		domain.save()
 
@@ -241,9 +242,9 @@ def create_todo_workflow():
 	if not frappe.db.exists("Role", TEST_ROLE):
 		frappe.get_doc(doctype="Role", role_name=TEST_ROLE).insert(ignore_if_duplicate=True)
 		if frappe.db.exists("User", UI_TEST_USER):
-			frappe.get_doc("User", UI_TEST_USER).add_roles(TEST_ROLE)
+			User.docs.get(UI_TEST_USER).add_roles(TEST_ROLE)
 
-	workflow = frappe.new_doc("Workflow")
+	workflow = Workflow.docs.new()
 	workflow.workflow_name = "Test ToDo"
 	workflow.document_type = "ToDo"
 	workflow.workflow_state_field = "workflow_state"
@@ -295,12 +296,12 @@ def create_domain_workflow():
 	if not frappe.db.exists("Role", TEST_ROLE):
 		frappe.get_doc(doctype="Role", role_name=TEST_ROLE).insert(ignore_if_duplicate=True)
 		if frappe.db.exists("User", UI_TEST_USER):
-			frappe.get_doc("User", UI_TEST_USER).add_roles(TEST_ROLE)
+			User.docs.get(UI_TEST_USER).add_roles(TEST_ROLE)
 
 	server_script = create_new_server_script()
 	webhook = create_new_webhook()
 
-	pending_to_approved_transition = frappe.new_doc("Workflow Transition Tasks")
+	pending_to_approved_transition = WorkflowTransitionTasks.docs.new()
 	pending_to_approved_transition.name = random_string(length=10)
 	pending_to_approved_transition.append("tasks", {"task": "Create Note"})
 	pending_to_approved_transition.append("tasks", {"task": "Server Script", "link": server_script.name})
@@ -308,7 +309,7 @@ def create_domain_workflow():
 
 	pending_to_approved_transition.save()
 
-	workflow = frappe.new_doc("Workflow")
+	workflow = Workflow.docs.new()
 	workflow.workflow_name = "Test Domain"
 	workflow.document_type = "Domain"
 	workflow.workflow_state_field = "workflow_state"
@@ -404,7 +405,7 @@ def create_submittable_workflow(doctype):
 
 
 def create_new_note(doc):
-	note = frappe.new_doc("Note")
+	note = Note.docs.new()
 	note.title = "workflow - " + doc.name
 	note.content = "workflow test"
 
@@ -412,7 +413,7 @@ def create_new_note(doc):
 
 
 def create_new_server_script():
-	server_script = frappe.new_doc("Server Script")
+	server_script = ServerScript.docs.new()
 	server_script.name = random_string(length=10)
 	server_script.script_type = "Workflow Task"
 	server_script.script = """
@@ -428,7 +429,7 @@ domain.save()
 
 
 def create_new_webhook():
-	webhook = frappe.new_doc("Webhook")
+	webhook = Webhook.docs.new()
 	webhook.__newname = random_string(10)
 	webhook.webhook_docevent = "workflow_transition"
 	webhook.webhook_doctype = "Domain"

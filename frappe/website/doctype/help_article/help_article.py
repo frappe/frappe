@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.doctypes import HelpCategory
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, is_markdown, markdown
 from frappe.website.utils import get_comment_list
@@ -51,7 +52,7 @@ class HelpArticle(WebsiteGenerator):
 
 	def update_category(self):
 		cnt = frappe.db.count("Help Article", filters={"category": self.category, "published": 1})
-		cat = frappe.get_doc("Help Category", self.category)
+		cat = HelpCategory.docs.get(self.category)
 		cat.help_articles = cnt
 		cat.save()
 
@@ -59,7 +60,7 @@ class HelpArticle(WebsiteGenerator):
 		if is_markdown(context.content):
 			context.content = markdown(context.content)
 		context.login_required = True
-		context.category = frappe.get_doc("Help Category", self.category)
+		context.category = HelpCategory.docs.get(self.category)
 		context.level_class = get_level_class(self.level)
 		context.comment_list = get_comment_list(self.doctype, self.name)
 		context.show_sidebar = True

@@ -23,6 +23,7 @@ import frappe.utils
 import frappe.utils.data
 from frappe import _
 from frappe.core.utils import html2text
+from frappe.doctypes import ServerScript
 from frappe.frappeclient import FrappeClient
 from frappe.handler import execute_cmd
 from frappe.locale import get_date_format, get_number_format, get_time_format
@@ -400,7 +401,7 @@ def call_whitelisted_function(function, **kwargs):
 def run_script(script, **kwargs):
 	"""run another server script"""
 
-	return call_with_form_dict(lambda: frappe.get_doc("Server Script", script).execute_method(), kwargs)
+	return call_with_form_dict(lambda: ServerScript.docs.get(script).execute_method(), kwargs)
 
 
 def call_with_form_dict(function, kwargs):

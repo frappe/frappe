@@ -9,6 +9,7 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import (
 	week_map,
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+from frappe.doctypes import AutoRepeat, CustomField, ToDo
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, add_months, getdate, today
 
@@ -27,9 +28,7 @@ def add_custom_fields() -> "CustomField":
 		print_hide=1,
 		read_only=1,
 	)
-	return create_custom_field("ToDo", df) or frappe.get_doc(
-		"Custom Field", dict(fieldname=df["fieldname"], dt="ToDo")
-	)
+	return create_custom_field("ToDo", df) or CustomField.docs.get(dict(fieldname=df["fieldname"], dt="ToDo"))
 
 
 class TestAutoRepeat(IntegrationTestCase):
@@ -55,7 +54,7 @@ class TestAutoRepeat(IntegrationTestCase):
 
 		new_todo = frappe.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
 
-		new_todo = frappe.get_doc("ToDo", new_todo)
+		new_todo = ToDo.docs.get(new_todo)
 
 		self.assertEqual(todo.get("description"), new_todo.get("description"))
 
@@ -81,7 +80,7 @@ class TestAutoRepeat(IntegrationTestCase):
 
 		new_todo = frappe.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
 
-		new_todo = frappe.get_doc("ToDo", new_todo)
+		new_todo = ToDo.docs.get(new_todo)
 
 		self.assertEqual(todo.get("description"), new_todo.get("description"))
 
@@ -107,7 +106,7 @@ class TestAutoRepeat(IntegrationTestCase):
 
 		new_todo = frappe.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
 
-		new_todo = frappe.get_doc("ToDo", new_todo)
+		new_todo = ToDo.docs.get(new_todo)
 
 		self.assertEqual(todo.get("description"), new_todo.get("description"))
 
@@ -173,7 +172,7 @@ class TestAutoRepeat(IntegrationTestCase):
 		docnames = frappe.get_all(doc.reference_doctype, {"auto_repeat": doc.name})
 		self.assertEqual(len(docnames), 1)
 
-		doc = frappe.get_doc("Auto Repeat", doc.name)
+		doc = AutoRepeat.docs.get(doc.name)
 		doc.db_set("disabled", 0)
 
 		months = get_months(getdate(start_date), getdate(today()))
@@ -272,7 +271,7 @@ class TestAutoRepeat(IntegrationTestCase):
 
 		new_todo = frappe.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
 
-		new_todo = frappe.get_doc("ToDo", new_todo)
+		new_todo = ToDo.docs.get(new_todo)
 		self.assertEqual(todo.get("description"), new_todo.get("description"))
 		self.assertListEqual(
 			sorted(list(new_todo.get_assigned_users())),

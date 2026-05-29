@@ -7,6 +7,7 @@ import os
 import frappe
 from frappe import safe_decode
 from frappe.core.doctype.communication.communication import Communication
+from frappe.doctypes import EmailQueue
 from frappe.email.doctype.email_queue.email_queue import QueueBuilder, SendMailContext
 from frappe.email.email_body import (
 	get_email,
@@ -63,7 +64,7 @@ This is the text version of this email
 			message=f"<h1>{uni_chr1}abcd{uni_chr2}</h1>",
 			text_content="whatever",
 		).process()
-		queue_doc = frappe.get_last_doc("Email Queue")
+		queue_doc = EmailQueue.docs.last()
 		mail_ctx = SendMailContext(queue_doc=queue_doc)
 		result = mail_ctx.build_message(recipient_email="test@test.com")
 		self.assertTrue(b"<h1>=EA=80=80abcd=DE=B4</h1>" in result)
@@ -76,7 +77,7 @@ This is the text version of this email
 			message="<h1>\n this is a test of newlines\n" + "</h1>",
 			text_content="whatever",
 		).process()
-		queue_doc = frappe.get_last_doc("Email Queue")
+		queue_doc = EmailQueue.docs.last()
 		mail_ctx = SendMailContext(queue_doc=queue_doc)
 		result = safe_decode(mail_ctx.build_message(recipient_email="test@test.com"))
 

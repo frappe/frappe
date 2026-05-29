@@ -44,6 +44,6 @@ class CustomDocPerm(Document):
 
 
 def update_custom_docperm(docperm, values):
-	custom_docperm = frappe.get_doc("Custom DocPerm", docperm)
+	custom_docperm = CustomDocPerm.docs.get(docperm)
 	custom_docperm.update(values)
 	custom_docperm.save(ignore_permissions=True)

@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe import get_hooks
+from frappe.doctypes import WebsiteSettings
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.website.page_renderers.static_page import StaticPage
@@ -171,7 +172,7 @@ class TestWebsite(IntegrationTestCase):
 			),
 		]
 
-		website_settings = frappe.get_doc("Website Settings")
+		website_settings = WebsiteSettings.docs.get()
 		website_settings.append(
 			"route_redirects",
 			{"source": "/testsource", "target": "/testtarget"},

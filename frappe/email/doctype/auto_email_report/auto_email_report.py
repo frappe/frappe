@@ -9,6 +9,7 @@ from email.utils import formataddr
 import frappe
 from frappe import _
 from frappe.desk.query_report import build_xlsx_data
+from frappe.doctypes import Report
 from frappe.email.email_body import get_formatted_html
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
@@ -141,7 +142,7 @@ class AutoEmailReport(Document):
 
 	def get_report_content(self):
 		"""Return file for the report in given format."""
-		report = frappe.get_doc("Report", self.report)
+		report = Report.docs.get(self.report)
 
 		self.filters = frappe.parse_json(self.filters) if self.filters else {}
 
@@ -305,7 +306,7 @@ class AutoEmailReport(Document):
 @frappe.whitelist()
 def download(name: str):
 	"""Download report locally"""
-	auto_email_report = frappe.get_doc("Auto Email Report", name)
+	auto_email_report = AutoEmailReport.docs.get(name)
 	auto_email_report.check_permission()
 	data = auto_email_report.get_report_content()
 
@@ -321,7 +322,7 @@ def download(name: str):
 @frappe.whitelist()
 def send_now(name: str):
 	"""Send Auto Email report now"""
-	auto_email_report = frappe.get_doc("Auto Email Report", name)
+	auto_email_report = AutoEmailReport.docs.get(name)
 	auto_email_report.check_permission()
 	auto_email_report.send()
 
@@ -346,7 +347,7 @@ def process_auto_email_report(report):
 
 	current_day = calendar.day_name[now_datetime().weekday()]
 
-	auto_email_report = frappe.get_doc("Auto Email Report", report.name)
+	auto_email_report = AutoEmailReport.docs.get(report.name)
 
 	# if not correct weekday, skip
 	if auto_email_report.frequency == "Weekdays":

@@ -11,6 +11,7 @@ from urllib.parse import unquote
 
 import frappe
 from frappe import _, conf
+from frappe.doctypes import File
 from frappe.query_builder.utils import DocType
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method
 
@@ -127,7 +128,7 @@ def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 	try:
 		f.insert()
 	except frappe.DuplicateEntryError:
-		return frappe.get_doc("File", f.duplicate_entry)
+		return File.docs.get(f.duplicate_entry)
 	return f
 
 
@@ -183,7 +184,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 	try:
 		f.insert()
 	except frappe.DuplicateEntryError:
-		return frappe.get_doc("File", f.duplicate_entry)
+		return File.docs.get(f.duplicate_entry)
 
 	return f
 
@@ -192,7 +193,7 @@ def get_file_data_from_hash(content_hash, is_private=0):
 	for name in frappe.get_all(
 		"File", {"content_hash": content_hash, "is_private": is_private}, pluck="name"
 	):
-		b = frappe.get_doc("File", name)
+		b = File.docs.get(name)
 		return {k: b.get(k) for k in frappe.get_hooks()["write_file_keys"]}
 	return False
 

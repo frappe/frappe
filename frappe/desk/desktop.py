@@ -14,6 +14,7 @@ from frappe.cache_manager import (
 	build_table_count_cache,
 )
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
+from frappe.doctypes import ModuleOnboarding, User
 
 
 def handle_not_exist(fn):
@@ -117,7 +118,7 @@ class Workspace:
 		if frappe.db.get_value("Module Onboarding", onboarding, "is_complete"):
 			return None
 
-		doc = frappe.get_doc("Module Onboarding", onboarding)
+		doc = ModuleOnboarding.docs.get(onboarding)
 
 		# Check if user is allowed
 		allowed_roles = set(doc.get_allowed_roles())
@@ -383,7 +384,7 @@ def get_workspace_sidebar_items():
 	has_access = "Workspace Manager" in frappe.get_roles()
 
 	# don't get domain restricted pages
-	blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
+	blocked_modules = User.docs.get(frappe.session.user, cached=True).get_blocked_modules()
 	blocked_modules.append("Dummy Module")
 
 	# adding None to allowed_domains to include pages without domain restriction
@@ -686,7 +687,7 @@ def get_onboarding_data(module: str):
 		return []
 
 	onboardings = []
-	onboarding_doc = frappe.get_doc("Module Onboarding", module)
+	onboarding_doc = ModuleOnboarding.docs.get(module)
 	if onboarding_doc.is_complete:
 		return []
 

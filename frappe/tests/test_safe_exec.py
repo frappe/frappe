@@ -1,6 +1,7 @@
 import types
 
 import frappe
+from frappe.doctypes import User
 from frappe.tests import IntegrationTestCase
 from frappe.utils.jinja import get_jenv
 from frappe.utils.safe_exec import ServerScriptNotEnabled, get_safe_globals, safe_exec
@@ -40,7 +41,7 @@ class TestSafeExec(IntegrationTestCase):
 		self.assertRaises(AttributeError, frappe.safe_eval, "frappe.utils.os.path", get_safe_globals())
 
 		# Doc/dict objects
-		user = frappe.new_doc("User")
+		user = User.docs.new()
 		user.user_type = "System User"
 		user.enabled = 1
 		self.assertTrue(frappe.safe_eval("user_type == 'System User'", eval_locals=user.as_dict()))

@@ -9,6 +9,7 @@ from frappe.automation.doctype.assignment_rule.test_assignment_rule import (
 )
 from frappe.desk.form.load import get_assignments
 from frappe.desk.listview import get_group_by_count
+from frappe.doctypes import ContactUsSettings
 from frappe.tests import IntegrationTestCase
 
 
@@ -37,7 +38,7 @@ class TestAssign(IntegrationTestCase):
 		self.assertEqual(len(assignments), 0)
 
 	def test_assign_single(self):
-		c = frappe.get_doc("Contact Us Settings")
+		c = ContactUsSettings.docs.get()
 		self._test_basic_assign_on_document(c)
 
 	def test_assignment_count(self):

@@ -4,6 +4,7 @@ import frappe
 from frappe.core.page.permission_manager.permission_manager import add, reset, update
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.form.load import get_docinfo, getdoc, getdoctype
+from frappe.doctypes import Contact, Note, User
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
 from frappe.utils.file_manager import save_file
@@ -37,7 +38,7 @@ class TestFormLoad(IntegrationTestCase):
 
 		blog.insert()
 
-		user = frappe.get_doc("User", "test@example.com")
+		user = User.docs.get("test@example.com")
 
 		user_roles = frappe.get_roles()
 		user.remove_roles(*user_roles)
@@ -105,12 +106,12 @@ class TestFormLoad(IntegrationTestCase):
 		frappe.delete_doc(blog_post_property_setter.doctype, blog_post_property_setter.name)
 
 	def test_fieldlevel_permissions_in_load_for_child_table(self):
-		contact = frappe.new_doc("Contact")
+		contact = Contact.docs.new()
 		contact.first_name = "_Test Contact 1"
 		contact.append("phone_nos", {"phone": "123456"})
 		contact.insert()
 
-		user = frappe.get_doc("User", "test@example.com")
+		user = User.docs.get("test@example.com")
 
 		user_roles = frappe.get_roles()
 		user.remove_roles(*user_roles)
@@ -123,7 +124,7 @@ class TestFormLoad(IntegrationTestCase):
 
 		frappe.set_user(user.name)
 
-		contact = frappe.get_doc("Contact", "_Test Contact 1")
+		contact = Contact.docs.get("_Test Contact 1")
 
 		contact.phone_nos[0].phone = "654321"
 		contact.save()
@@ -137,7 +138,7 @@ class TestFormLoad(IntegrationTestCase):
 		contact.phone_nos[0].phone = "654321"
 		contact.save()
 
-		contact = frappe.get_doc("Contact", "_Test Contact 1")
+		contact = Contact.docs.get("_Test Contact 1")
 		self.assertEqual(contact.phone_nos[0].phone, "654321")
 
 		frappe.set_user("Administrator")
@@ -149,7 +150,7 @@ class TestFormLoad(IntegrationTestCase):
 		contact.delete()
 
 	def test_get_doc_info(self):
-		note = frappe.new_doc("Note")
+		note = Note.docs.new()
 		note.content = "some content"
 		note.title = frappe.generate_hash(length=20)
 		note.insert()

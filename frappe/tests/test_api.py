@@ -14,6 +14,7 @@ from filetype import guess_mime
 from werkzeug.test import TestResponse
 
 import frappe
+from frappe.doctypes import User
 from frappe.installer import update_site_config
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
@@ -315,7 +316,7 @@ class TestMethodAPI(FrappeAPITestCase):
 		# test 4: Pass authorization token in request
 		global authorization_token
 		generate_admin_keys()
-		user = frappe.get_doc("User", "Administrator")
+		user = User.docs.get("Administrator")
 		api_key, api_secret = user.api_key, user.get_password("api_secret")
 		authorization_token = f"{api_key}:{api_secret}"
 		response = self.get(self.method("frappe.auth.get_logged_user"))

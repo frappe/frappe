@@ -12,6 +12,7 @@ import frappe
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.data_import.data_import import export_csv
 from frappe.core.doctype.user.user import generate_keys
+from frappe.doctypes import AccessLog
 
 # imports - standard imports
 from frappe.tests import IntegrationTestCase
@@ -127,7 +128,7 @@ class TestAccessLog(IntegrationTestCase):
 			filters=self.test_filters,
 		)
 
-		last_doc = frappe.get_last_doc("Access Log")
+		last_doc = AccessLog.docs.last()
 		self.assertEqual(last_doc.filters, cstr(self.test_filters))
 		self.assertEqual(self.test_doctype, last_doc.export_from)
 		self.assertEqual(self.test_document, last_doc.reference_document)
@@ -138,7 +139,7 @@ class TestAccessLog(IntegrationTestCase):
 		os.remove(self.file_name)
 
 		# test if the exported data is logged
-		last_doc = frappe.get_last_doc("Access Log")
+		last_doc = AccessLog.docs.last()
 		self.assertEqual(self.test_doctype, last_doc.export_from)
 
 	def test_private_file_download(self):
@@ -158,7 +159,7 @@ class TestAccessLog(IntegrationTestCase):
 
 		try:
 			request = requests.post(private_file_link, headers=self.header)
-			last_doc = frappe.get_last_doc("Access Log")
+			last_doc = AccessLog.docs.last()
 
 			if request.ok:
 				# check for the access log of downloaded file

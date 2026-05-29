@@ -7,6 +7,7 @@ from typing import Any
 import frappe
 from frappe import _
 from frappe.boot import get_allowed_report_names
+from frappe.doctypes import Dashboard, NumberCardLink
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
@@ -171,7 +172,7 @@ def get_percentage_difference(
 	doc = frappe.parse_json(doc)
 	result = frappe.parse_json(result)
 
-	doc = frappe.get_doc("Number Card", doc.name)
+	doc = NumberCard.docs.get(doc.name)
 
 	if not doc.get("show_percentage_stats"):
 		return
@@ -205,7 +206,7 @@ def calculate_previous_result(doc, filters):
 @frappe.whitelist()
 def create_number_card(args: str | dict[str, Any]):
 	args = frappe.parse_json(args)
-	doc = frappe.new_doc("Number Card")
+	doc = NumberCard.docs.new()
 
 	doc.update(args)
 	doc.insert(ignore_permissions=True)
@@ -257,12 +258,12 @@ def create_report_number_card(args: str | dict[str, Any]):
 def add_card_to_dashboard(args: str | dict[str, Any]):
 	args = frappe.parse_json(args)
 
-	dashboard = frappe.get_doc("Dashboard", args.dashboard)
-	dashboard_link = frappe.new_doc("Number Card Link")
+	dashboard = Dashboard.docs.get(args.dashboard)
+	dashboard_link = NumberCardLink.docs.new()
 	dashboard_link.card = args.name
 
 	if args.set_standard and dashboard.is_standard:
-		card = frappe.get_doc("Number Card", dashboard_link.card)
+		card = NumberCard.docs.get(dashboard_link.card)
 		card.is_standard = 1
 		card.module = dashboard.module
 		card.save()

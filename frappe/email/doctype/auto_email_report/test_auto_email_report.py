@@ -6,6 +6,7 @@ from io import BytesIO
 from pypdf import PdfReader
 
 import frappe
+from frappe.doctypes import AutoEmailReport
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, get_link_to_form, today
 from frappe.utils.data import is_html
@@ -63,6 +64,6 @@ def get_auto_email_report():
 			filters=json.dumps(dict(user="Administrator", doctype="DocType")),
 		).insert()
 	else:
-		auto_email_report = frappe.get_doc("Auto Email Report", "Permitted Documents For User")
+		auto_email_report = AutoEmailReport.docs.get("Permitted Documents For User")
 
 	return auto_email_report

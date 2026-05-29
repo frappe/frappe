@@ -18,6 +18,7 @@ from contextlib import contextmanager, suppress
 from csv import reader, writer
 
 import frappe
+from frappe.doctypes import Report, Translation
 from frappe.query_builder import DocType, Field
 from frappe.utils import cstr, get_bench_path, get_build_version, is_html, strip, strip_html_tags, unique
 from frappe.utils.caching import http_cache
@@ -496,7 +497,7 @@ def get_messages_from_report(name):
 	"""Return all translatable strings from a :class:`frappe.core.doctype.Report`."""
 	from frappe.gettext.extractors.utils import is_translatable
 
-	report = frappe.get_doc("Report", name)
+	report = Report.docs.get(name)
 	messages = _get_messages_from_page_or_report(
 		"Report", name, frappe.db.get_value("DocType", report.ref_doctype, "module")
 	)
@@ -925,7 +926,7 @@ def update_translations_for_source(source: str | None = None, translation_dict: 
 	)
 	for d in translation_records:
 		if translation_dict.get(d.language, None):
-			doc = frappe.get_doc("Translation", d.name)
+			doc = Translation.docs.get(d.name)
 			doc.translated_text = translation_dict.get(d.language)
 			doc.save()
 			# done with this lang value
@@ -935,7 +936,7 @@ def update_translations_for_source(source: str | None = None, translation_dict: 
 
 	# remaining values are to be inserted
 	for lang, translated_text in translation_dict.items():
-		doc = frappe.new_doc("Translation")
+		doc = Translation.docs.new()
 		doc.language = lang
 		doc.source_text = source
 		doc.translated_text = translated_text

@@ -1,12 +1,13 @@
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.doctypes import User
 from frappe.tests import IntegrationTestCase
 from frappe.www.printview import get_html_and_style
 
 
 class PrintViewTest(IntegrationTestCase):
 	def test_print_view_without_errors(self):
-		user = frappe.get_last_doc("User")
+		user = User.docs.last()
 
 		messages_before = frappe.get_message_log()
 		ret = get_html_and_style(doc=user.as_json(), print_format="Standard", no_letterhead=1)

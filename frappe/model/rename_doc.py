@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 import frappe
 import frappe.permissions
 from frappe import _, bold, scrub
+from frappe.doctypes import DocType
 from frappe.model.document import Document
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import is_autoincremented, validate_name
@@ -518,7 +519,7 @@ def update_options_for_fieldtype(fieldtype: str, old: str, new: str) -> None:
 			if name in (old, new):
 				continue
 
-			doctype = frappe.get_doc("DocType", name)
+			doctype = DocType.docs.get(name)
 			save = False
 			for f in doctype.fields:
 				if f.options == old:

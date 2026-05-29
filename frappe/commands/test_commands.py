@@ -32,6 +32,7 @@ import frappe.commands.scheduler
 import frappe.commands.site
 import frappe.commands.utils
 import frappe.recorder
+from frappe.doctypes import File, ModuleDef, User
 from frappe.installer import add_to_installed_apps, remove_app
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase, timeout
@@ -280,11 +281,11 @@ class TestCommands(BaseTestCommands):
 				self.execute(f"bench set-config {key} {value} -g")
 
 		with self.switch_site(TEST_SITE):
-			public_file = frappe.new_doc(
-				"File", file_name=f"test_{frappe.generate_hash()}", content=frappe.generate_hash()
+			public_file = File.docs.new(
+				file_name=f"test_{frappe.generate_hash()}", content=frappe.generate_hash()
 			).insert()
-			private_file = frappe.new_doc(
-				"File", file_name=f"test_{frappe.generate_hash()}", content=frappe.generate_hash()
+			private_file = File.docs.new(
+				file_name=f"test_{frappe.generate_hash()}", content=frappe.generate_hash()
 			).insert()
 
 		# test 1: bench restore from full backup
@@ -894,7 +895,7 @@ class TestRemoveApp(IntegrationTestCase):
 			_get_module_linked_doctype_field_map,
 		)
 
-		test_module = frappe.new_doc("Module Def")
+		test_module = ModuleDef.docs.new()
 
 		test_module.update({"module_name": "RemoveThis", "app_name": "frappe"})
 		test_module.save()
@@ -951,7 +952,7 @@ class TestAddNewUser(BaseTestCommands):
 			"bench --site {site} add-user test@gmail.com --first-name test --last-name test --password 123 --user-type 'System User' --add-role 'Accounts User' --add-role 'Sales User'"
 		)
 		self.assertEqual(self.returncode, 0)
-		user = frappe.get_doc("User", "test@gmail.com")
+		user = User.docs.get("test@gmail.com")
 		roles = {r.role for r in user.roles}
 		self.assertEqual({"Accounts User", "Sales User"}, roles)
 

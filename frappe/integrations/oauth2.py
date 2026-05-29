@@ -12,6 +12,7 @@ from werkzeug.exceptions import NotFound
 import frappe
 import frappe.utils
 from frappe import oauth
+from frappe.doctypes import OAuthClient, OAuthSettings, User
 from frappe.integrations.utils import (
 	OAuth2DynamicClientMetadata,
 	create_new_oauth_client,
@@ -171,7 +172,7 @@ def revoke_token(*args, **kwargs):
 			body=r.form,
 			http_method=r.method,
 		)
-	except (FatalClientError, OAuth2Error):
+	except FatalClientError, OAuth2Error:
 		pass
 
 	# status_code must be 200
@@ -235,7 +236,7 @@ def introspect_token(token: str, token_type_hint: str | None = None):
 		elif token_type_hint == "refresh_token":
 			bearer_token = frappe.get_doc("OAuth Bearer Token", {"refresh_token": token})
 
-		client = frappe.get_doc("OAuth Client", bearer_token.client)
+		client = OAuthClient.docs.get(bearer_token.client)
 
 		token_response = frappe._dict(
 			{
@@ -256,7 +257,7 @@ def introspect_token(token: str, token_type_hint: str | None = None):
 
 			if sub:
 				token_response.update({"sub": sub})
-				user = frappe.get_doc("User", bearer_token.user)
+				user = User.docs.get(bearer_token.user)
 				userinfo = get_userinfo(user)
 				token_response.update(userinfo)
 
@@ -424,9 +425,7 @@ def get_protected_resource_metadata():
 
 
 def _get_protected_resource_metadata():
-	from frappe.integrations.doctype.oauth_settings.oauth_settings import OAuthSettings
-
-	oauth_settings = cast(OAuthSettings, frappe.get_cached_doc("OAuth Settings", ignore_permissions=True))
+	oauth_settings = OAuthSettings.docs.get(cached=True)
 	resource = get_resource_url()
 	authorization_servers = [resource]
 

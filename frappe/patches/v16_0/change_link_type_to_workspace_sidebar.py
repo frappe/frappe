@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import DesktopIcon
 
 
 def execute():
@@ -11,7 +12,7 @@ def execute():
 	)
 
 	for icon in desktop_icons:
-		icon_doc = frappe.get_doc("Desktop Icon", icon.name)
+		icon_doc = DesktopIcon.docs.get(icon.name)
 		if frappe.db.exists("Workspace Sidebar", icon.name):
 			icon_doc.link_type = "Workspace Sidebar"
 			icon_doc.link_to = icon.name

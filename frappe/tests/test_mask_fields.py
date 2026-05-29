@@ -16,6 +16,7 @@ Covers:
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.doctypes import User
 from frappe.model.utils.mask import mask_field_value
 from frappe.permissions import add_user_permission, update_permission_property
 from frappe.tests import IntegrationTestCase
@@ -98,7 +99,7 @@ class TestMaskFieldsBehaviour(IntegrationTestCase):
 				}
 			).insert(ignore_permissions=True)
 		else:
-			user = frappe.get_doc("User", cls.TEST_USER)
+			user = User.docs.get(cls.TEST_USER)
 			user.add_roles(cls.TEST_ROLE)
 
 		# Create doctype with a masked Data field and a masked Link field (Company)
@@ -333,7 +334,7 @@ class TestMaskFieldsWithUserPermissions(IntegrationTestCase):
 				}
 			).insert(ignore_permissions=True)
 		else:
-			frappe.get_doc("User", cls.TEST_USER).add_roles(cls.TEST_ROLE)
+			User.docs.get(cls.TEST_USER).add_roles(cls.TEST_ROLE)
 
 		# Doctype with a masked Link field pointing to User
 		cls.doctype = new_doctype(

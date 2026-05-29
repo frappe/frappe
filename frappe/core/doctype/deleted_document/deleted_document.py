@@ -42,7 +42,7 @@ class DeletedDocument(Document):
 @frappe.whitelist()
 def restore(name: str | int, alert: bool = True):
 	frappe.only_for("System Manager")
-	deleted = frappe.get_doc("Deleted Document", name)
+	deleted = DeletedDocument.docs.get(name)
 
 	if deleted.restored:
 		frappe.throw(_("Document {0} Already Restored").format(name), exc=frappe.DocumentAlreadyRestored)

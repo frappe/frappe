@@ -5,6 +5,7 @@ from functools import wraps
 
 import frappe
 from frappe.build import html_to_js_template
+from frappe.doctypes import DocType
 from frappe.utils import cstr
 from frappe.utils.caching import site_cache
 
@@ -39,8 +40,7 @@ def set_default(doc, key):
 def set_field_property(filters, key, value):
 	"""utility set a property in all fields of a particular type"""
 	docs = [
-		frappe.get_doc("DocType", d.parent)
-		for d in frappe.get_all("DocField", fields=["parent"], filters=filters)
+		DocType.docs.get(d.parent) for d in frappe.get_all("DocField", fields=["parent"], filters=filters)
 	]
 
 	for d in docs:

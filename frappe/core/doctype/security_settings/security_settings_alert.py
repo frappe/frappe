@@ -2,12 +2,13 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe.doctypes import SecuritySettings
 from frappe.utils import get_datetime, now_datetime
 from frappe.utils.user import get_users_with_role
 
 
 def check_security_txt_expiry():
-	security_settings = frappe.get_doc("Security Settings")
+	security_settings = SecuritySettings.docs.get()
 	if not security_settings.public_expires:
 		return
 	expires = security_settings.public_expires

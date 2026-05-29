@@ -20,6 +20,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 	toggle_notifications,
 )
 from frappe.desk.notifications import clear_notifications
+from frappe.doctypes import Contact, Language, ModuleProfile, NotificationLog, RoleProfile, UserType
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.rate_limiter import rate_limit
@@ -273,7 +274,7 @@ class User(Document):
 
 		new_roles = set()
 		for role_profile in self.role_profiles:
-			role_profile = frappe.get_cached_doc("Role Profile", role_profile.role_profile)
+			role_profile = RoleProfile.docs.get(role_profile.role_profile, cached=True)
 			new_roles.update(role.role for role in role_profile.roles)
 
 		# Remove invalid roles and add new ones
@@ -312,7 +313,7 @@ class User(Document):
 
 	def validate_allowed_modules(self):
 		if self.module_profile:
-			module_profile = frappe.get_doc("Module Profile", self.module_profile)
+			module_profile = ModuleProfile.docs.get(self.module_profile)
 			self.set("block_modules", [])
 			for d in module_profile.get("block_modules"):
 				self.append("block_modules", {"module": d.module})
@@ -351,7 +352,7 @@ class User(Document):
 		if self.has_value_changed("language"):
 			locale_keys = ("date_format", "time_format", "number_format", "first_day_of_the_week")
 			if self.language:
-				language = frappe.get_doc("Language", self.language)
+				language = Language.docs.get(self.language)
 				for key in locale_keys:
 					value = language.get(key)
 					if value:
@@ -426,7 +427,7 @@ class User(Document):
 			clear_sessions(user=self.name, force=True)
 
 	def set_roles_and_modules_based_on_user_type(self):
-		user_type_doc = frappe.get_cached_doc("User Type", self.user_type)
+		user_type_doc = UserType.docs.get(self.user_type, cached=True)
 		if user_type_doc.role:
 			self.roles = []
 
@@ -1105,7 +1106,7 @@ def _get_user_for_update_password(key, old_password):
 
 
 def reset_user_data(user):
-	user_doc = frappe.get_doc("User", user)
+	user_doc = User.docs.get(user)
 	redirect_url = user_doc.redirect_url
 	user_doc.reset_password_key = ""
 	user_doc.redirect_url = ""
@@ -1180,7 +1181,7 @@ def reset_password(user: str) -> None:
 	# via different messages or HTTP status codes (CWE-204).
 
 	try:
-		user_doc: User = frappe.get_doc("User", user)
+		user_doc: User = User.docs.get(user)
 		if user_doc.name != "Administrator" and user_doc.enabled:
 			user_doc.validate_reset_password()
 			user_doc._reset_password(send_email=True)
@@ -1204,7 +1205,7 @@ def reset_password(user: str) -> None:
 
 @frappe.whitelist(methods=["POST"])
 def change_password(user: str, new_password: str, logout_all_sessions: int = 1) -> None:
-	user_doc: User = frappe.get_doc("User", user)
+	user_doc: User = User.docs.get(user)
 	user_doc.check_permission("write")
 	user_doc.new_password = new_password
 	user_doc.logout_all_sessions = logout_all_sessions
@@ -1428,7 +1429,7 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 			pass
 	else:
 		try:
-			contact = frappe.get_doc("Contact", contact_name)
+			contact = Contact.docs.get(contact_name)
 			contact.first_name = user.first_name
 			contact.last_name = user.last_name
 			contact.gender = user.gender
@@ -1475,7 +1476,7 @@ def generate_keys(user: str):
 	:param user: str
 	"""
 	frappe.only_for("System Manager")
-	user_details: User = frappe.get_doc("User", user)
+	user_details: User = User.docs.get(user)
 	api_secret = frappe.generate_hash(length=15)
 	# if api key is not set generate api key
 	if not user_details.api_key:
@@ -1516,8 +1517,7 @@ def impersonate(user: str, reason: str):
 		}
 	).insert(ignore_permissions=True, ignore_links=True)
 
-	notification = frappe.new_doc(
-		"Notification Log",
+	notification = NotificationLog.docs.new(
 		for_user=user,
 		from_user=frappe.session.user,
 		subject=_("{0} just impersonated as you. They gave this reason: {1}").format(impersonator, reason),

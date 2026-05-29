@@ -2,6 +2,7 @@
 # See license.txt
 
 import frappe
+from frappe.doctypes import AuditTrail
 from frappe.tests import IntegrationTestCase
 from frappe.utils import today
 
@@ -129,7 +130,7 @@ def amend_document(amend_from, changed_fields, rows_updated, submit=False):
 
 
 def create_comparator_doc(doctype_name, document):
-	comparator = frappe.new_doc("Audit Trail")
+	comparator = AuditTrail.docs.new()
 	args_dict = {
 		"doctype_name": doctype_name,
 		"document": document,

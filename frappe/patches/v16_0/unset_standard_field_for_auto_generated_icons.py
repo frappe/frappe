@@ -1,10 +1,11 @@
 import frappe
+from frappe.doctypes import DesktopIcon
 from frappe.model.sync import check_if_record_exists
 
 
 def execute():
 	for icon in frappe.get_all("Desktop Icon"):
-		icon_doc = frappe.get_doc("Desktop Icon", icon.name)
+		icon_doc = DesktopIcon.docs.get(icon.name)
 		try:
 			if (icon_doc.standard and icon_doc.app) and not check_if_record_exists(
 				"app",

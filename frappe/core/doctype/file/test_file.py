@@ -19,6 +19,7 @@ from frappe.core.api.file import (
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
 from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
 from frappe.desk.form.utils import add_comment
+from frappe.doctypes import File, ToDo
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase
 from frappe.utils import get_files_path, set_request
@@ -31,7 +32,7 @@ test_content2 = "Hello World"
 
 
 def make_test_doc(ignore_permissions=False):
-	d = frappe.new_doc("ToDo")
+	d = ToDo.docs.new()
 	d.description = "Test"
 	d.assigned_by = frappe.session.user
 	d.save(ignore_permissions)
@@ -53,7 +54,7 @@ def make_test_image_file(private=False):
 		}
 	).insert()
 	# remove those flags
-	_test_file: File = frappe.get_doc("File", test_file.name)
+	_test_file: File = File.docs.get(test_file.name)
 
 	try:
 		yield _test_file
@@ -86,7 +87,7 @@ class TestSimpleFile(IntegrationTestCase):
 class TestFSRollbacks(IntegrationTestCase):
 	def test_rollback_from_file_system(self):
 		file_name = content = frappe.generate_hash()
-		file = frappe.new_doc("File", file_name=file_name, content=content).insert()
+		file = File.docs.new(file_name=file_name, content=content).insert()
 		self.assertTrue(file.exists_on_disk())
 
 		frappe.db.rollback()
@@ -98,10 +99,10 @@ class TestExtensionValidations(IntegrationTestCase):
 	def test_allowed_extension(self):
 		set_request(method="POST", path="/")
 		file_name = content = frappe.generate_hash()
-		bad_file = frappe.new_doc("File", file_name=f"{file_name}.png", content=content)
+		bad_file = File.docs.new(file_name=f"{file_name}.png", content=content)
 		self.assertRaises(FileTypeNotAllowed, bad_file.insert)
 
-		bad_file = frappe.new_doc("File", file_name=f"{file_name}.csv", content=content).insert()
+		bad_file = File.docs.new(file_name=f"{file_name}.csv", content=content).insert()
 		frappe.db.rollback()
 		self.assertFalse(bad_file.exists_on_disk())
 
@@ -327,7 +328,7 @@ class TestSameContent(IntegrationTestCase):
 			}
 		)
 		_file.save()
-		saved_file = frappe.get_doc("File", _file.name)
+		saved_file = File.docs.get(_file.name)
 		file_content_decoded = saved_file.get_content(encodings=["utf-8"])
 		self.assertEqual(file_content_decoded[0], "\ufeff")
 		file_content_properly_decoded = saved_file.get_content(encodings=["utf-8-sig", "utf-8"])
@@ -431,7 +432,7 @@ class TestFile(IntegrationTestCase):
 		file = frappe.get_doc("File", {"file_name": "folder_copy.txt"})
 		file_copy_txt = frappe.get_value("File", {"file_name": "file_copy.txt"})
 		if file_copy_txt:
-			frappe.get_doc("File", file_copy_txt).delete()
+			File.docs.get(file_copy_txt).delete()
 
 		self.assertEqual(_("Home/Test Folder 1/Test Folder 3"), file.folder)
 
@@ -459,7 +460,7 @@ class TestFile(IntegrationTestCase):
 		)
 		_file.save()
 
-		folder = frappe.get_doc("File", "Home/Test Folder 1/Test Folder 3")
+		folder = File.docs.get("Home/Test Folder 1/Test Folder 3")
 		self.assertRaises(ValidationError, folder.delete)
 
 	def test_same_file_url_update(self):
@@ -495,7 +496,7 @@ class TestFile(IntegrationTestCase):
 		file1.is_private = 0
 		file1.save()
 
-		file2 = frappe.get_doc("File", file2.name)
+		file2 = File.docs.get(file2.name)
 
 		self.assertEqual(file1.is_private, file2.is_private, 0)
 		self.assertEqual(file1.file_url, file2.file_url)
@@ -520,7 +521,7 @@ class TestFile(IntegrationTestCase):
 		self.assertRaises(OSError, file1.save)
 
 	def test_file_url_validation(self):
-		test_file: File = frappe.new_doc("File")
+		test_file: File = File.docs.new()
 		test_file.update({"file_name": "logo", "file_url": "https://frappe.io/files/frappe.png"})
 
 		self.assertIsNone(test_file.validate())
@@ -884,8 +885,7 @@ class TestAttachmentsAccess(IntegrationTestCase):
 		frappe.set_user("test4@example.com")
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 
-		frappe.new_doc(
-			"File",
+		File.docs.new(
 			file_name="test_user_attachment.txt",
 			attached_to_doctype=self.attached_to_doctype,
 			attached_to_name=self.attached_to_docname,
@@ -893,17 +893,11 @@ class TestAttachmentsAccess(IntegrationTestCase):
 			is_private=1,
 		).insert()
 
-		frappe.new_doc(
-			"File",
-			file_name="test_user_standalone.txt",
-			content="User Home",
-			is_private=1,
-		).insert()
+		File.docs.new(file_name="test_user_standalone.txt", content="User Home", is_private=1).insert()
 
 		frappe.set_user("test@example.com")
 
-		frappe.new_doc(
-			"File",
+		File.docs.new(
 			file_name="test_sm_attachment.txt",
 			attached_to_doctype=self.attached_to_doctype,
 			attached_to_name=self.attached_to_docname,
@@ -911,11 +905,8 @@ class TestAttachmentsAccess(IntegrationTestCase):
 			is_private=1,
 		).insert()
 
-		frappe.new_doc(
-			"File",
-			file_name="test_sm_standalone.txt",
-			content="System Manager Home",
-			is_private=1,
+		File.docs.new(
+			file_name="test_sm_standalone.txt", content="System Manager Home", is_private=1
 		).insert()
 
 		system_manager_files = [file.file_name for file in get_files_in_folder("Home")["files"]]
@@ -961,7 +952,7 @@ class TestFileUtils(IntegrationTestCase):
 			description='Test <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">',
 		).insert()
 		filename = frappe.db.exists("File", {"attached_to_name": todo.name})
-		self.assertIn(f'<img src="{frappe.get_doc("File", filename).file_url}', todo.description)
+		self.assertIn(f'<img src="{File.docs.get(filename).file_url}', todo.description)
 
 	def test_extract_images_from_comment(self):
 		"""
@@ -1058,7 +1049,7 @@ class TestFileOptimization(IntegrationTestCase):
 		test_file.delete()
 
 	def test_optimize_folder(self):
-		test_folder = frappe.get_doc("File", "Home/Attachments")
+		test_folder = File.docs.get("Home/Attachments")
 		self.assertRaises(TypeError, test_folder.optimize_file)
 
 	def test_revert_optimized_file_on_rollback(self):
@@ -1100,11 +1091,8 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 
 	def test_attach_unattached_guest_file(self):
 		"""Ensure that unattached files are attached on doc update."""
-		f = frappe.new_doc(
-			"File",
-			file_name="test_private_guest_attachment.txt",
-			content="Guest Home",
-			is_private=1,
+		f = File.docs.new(
+			file_name="test_private_guest_attachment.txt", content="Guest Home", is_private=1
 		).insert(ignore_permissions=True)
 
 		d = frappe.new_doc("Test For Attachment")
@@ -1130,11 +1118,8 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		"""Ensure that guests are not able to read private standalone guest files."""
 		frappe.set_user("Guest")
 
-		file = frappe.new_doc(
-			"File",
-			file_name="test_private_guest_single_txt",
-			content="Private single File",
-			is_private=1,
+		file = File.docs.new(
+			file_name="test_private_guest_single_txt", content="Private single File", is_private=1
 		).insert(ignore_permissions=True)
 
 		self.assertFalse(file.is_downloadable())
@@ -1145,8 +1130,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc(ignore_permissions=True)
 
-		file = frappe.new_doc(
-			"File",
+		file = File.docs.new(
 			file_name="test_private_guest_attachment.txt",
 			attached_to_doctype=self.attached_to_doctype,
 			attached_to_name=self.attached_to_docname,
@@ -1160,12 +1144,12 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		file_name = "test" + frappe.generate_hash()
 		content = file_name.encode()
 
-		doc_pub: File = frappe.new_doc("File")  # type: ignore
+		doc_pub: File = File.docs.new()  # type: ignore
 		doc_pub.file_url = f"/files/{file_name}.txt"
 		doc_pub.content = content
 		doc_pub.save()
 
-		doc_pri: File = frappe.new_doc("File")  # type: ignore
+		doc_pri: File = File.docs.new()  # type: ignore
 		doc_pri.file_url = f"/private/files/{file_name}.txt"
 		doc_pri.is_private = False
 		doc_pri.content = content

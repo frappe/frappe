@@ -3,6 +3,7 @@
 import textwrap
 
 import frappe
+from frappe.doctypes import EmailQueue
 from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit
 from frappe.tests import IntegrationTestCase
 
@@ -44,7 +45,7 @@ class TestEmailQueue(IntegrationTestCase):
 
 	def test_failed_email_notification(self):
 		subject = frappe.generate_hash()
-		email_record = frappe.new_doc("Email Queue")
+		email_record = EmailQueue.docs.new()
 		email_record.sender = "Test <test@example.com>"
 		email_record.message = textwrap.dedent(
 			f"""\
@@ -82,14 +83,14 @@ class TestEmailQueue(IntegrationTestCase):
 	def test_perf_reusing_smtp_server(self):
 		"""Ensure that same smtpserver instance is being returned when retrieved multiple times."""
 
-		self.assertTrue(frappe.new_doc("Email Queue").get_email_account()._from_site_config)
+		self.assertTrue(EmailQueue.docs.new().get_email_account()._from_site_config)
 
 		def get_server(q):
 			return q.get_email_account().get_smtp_server()
 
-		self.assertIs(get_server(frappe.new_doc("Email Queue")), get_server(frappe.new_doc("Email Queue")))
+		self.assertIs(get_server(EmailQueue.docs.new()), get_server(EmailQueue.docs.new()))
 
-		q1 = frappe.new_doc("Email Queue", email_account="_Test Email Account 1")
-		q2 = frappe.new_doc("Email Queue", email_account="_Test Email Account 1")
-		self.assertIsNot(get_server(frappe.new_doc("Email Queue")), get_server(q1))
+		q1 = EmailQueue.docs.new(email_account="_Test Email Account 1")
+		q2 = EmailQueue.docs.new(email_account="_Test Email Account 1")
+		self.assertIsNot(get_server(EmailQueue.docs.new()), get_server(q1))
 		self.assertIs(get_server(q1), get_server(q2))

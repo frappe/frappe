@@ -4,6 +4,7 @@ from datetime import timedelta
 
 import frappe
 from frappe import _, msgprint
+from frappe.doctypes import EmailQueue
 from frappe.utils import cint, cstr, get_url, now_datetime
 from frappe.utils.data import add_to_date, getdate
 from frappe.utils.verified_command import get_signed_params, verify_request
@@ -147,10 +148,10 @@ def flush():
 	failed_email_queues = []
 	for row in email_queue_batch:
 		try:
-			email_queue: EmailQueue = frappe.get_doc("Email Queue", row.name, for_update=True)
+			email_queue: EmailQueue = EmailQueue.docs.get(row.name, for_update=True)
 			email_queue.send()
 		except Exception:
-			frappe.get_doc("Email Queue", row.name).log_error()
+			EmailQueue.docs.get(row.name).log_error()
 			failed_email_queues.append(row.name)
 
 			if (
@@ -191,7 +192,7 @@ def retry_sending_emails():
 	for e in emails_in_sending:
 		if now_datetime() - e["modified"] > timedelta(minutes=15):
 			update_fields = {}
-			email_queue = frappe.get_doc("Email Queue", e["name"])
+			email_queue = EmailQueue.docs.get(e["name"])
 			sent_to_atleast_one_recipient = any(
 				rec.recipient for rec in email_queue.recipients if rec.is_mail_sent()
 			)

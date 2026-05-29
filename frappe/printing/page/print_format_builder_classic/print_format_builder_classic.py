@@ -1,11 +1,12 @@
 import frappe
+from frappe.doctypes import PrintFormat
 
 
 @frappe.whitelist()
 def create_custom_format(
 	doctype: str, name: str | int, based_on: str = "Standard", beta: str | int | bool = False
 ):
-	doc = frappe.new_doc("Print Format")
+	doc = PrintFormat.docs.new()
 	doc.doc_type = doctype
 	doc.name = name
 	beta = frappe.parse_json(beta)

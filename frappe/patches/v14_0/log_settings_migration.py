@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import LogSettings
 
 
 def execute():
@@ -11,7 +12,7 @@ def execute():
 	frappe.reload_doc("core", "doctype", "Logs To Clear")
 	frappe.reload_doc("core", "doctype", "Log Settings")
 
-	log_settings = frappe.get_doc("Log Settings")
+	log_settings = LogSettings.docs.get()
 	log_settings.add_default_logtypes()
 
 	for doctype, retention in old_settings.items():

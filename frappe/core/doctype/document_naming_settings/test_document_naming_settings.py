@@ -33,7 +33,7 @@ class TestNamingSeries(IntegrationTestCase):
 		)
 
 	def setUp(self):
-		self.dns: DocumentNamingSettings = frappe.get_doc("Document Naming Settings")
+		self.dns: DocumentNamingSettings = DocumentNamingSettings.docs.get()
 
 	def tearDown(self):
 		frappe.db.rollback()

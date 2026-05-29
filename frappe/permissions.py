@@ -7,6 +7,7 @@ import frappe
 import frappe.share
 from frappe import _, msgprint
 from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
+from frappe.doctypes import CustomDocPerm
 from frappe.query_builder import DocType
 from frappe.utils import cint, cstr
 
@@ -729,7 +730,7 @@ def add_permission(doctype, role, permlevel=0, ptype=None):
 def copy_perms(parent):
 	"""Copy all DocPerm in to Custom DocPerm for the given document"""
 	for d in frappe.get_all("DocPerm", fields="*", filters=dict(parent=parent)):
-		custom_perm = frappe.new_doc("Custom DocPerm")
+		custom_perm = CustomDocPerm.docs.new()
 		custom_perm.update(d)
 		custom_perm.insert(ignore_permissions=True)
 

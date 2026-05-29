@@ -3,6 +3,7 @@
 import frappe
 from frappe.core.doctype.user.user import get_system_users
 from frappe.desk.form.assign_to import add as assign_task
+from frappe.doctypes import ToDo
 from frappe.tests import IntegrationTestCase
 
 
@@ -44,7 +45,7 @@ def get_todo():
 		return frappe.get_doc({"doctype": "ToDo", "description": "Test for Notification"}).insert()
 
 	res = frappe.get_all("ToDo", limit=1)
-	return frappe.get_cached_doc("ToDo", res[0].name)
+	return ToDo.docs.get(res[0].name, cached=True)
 
 
 def get_user():

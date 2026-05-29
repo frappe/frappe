@@ -159,14 +159,14 @@ class DataImport(Document):
 def get_preview_from_template(
 	data_import: str, import_file: str | None = None, google_sheets_url: str | None = None
 ):
-	di: DataImport = frappe.get_doc("Data Import", data_import)
+	di: DataImport = DataImport.docs.get(data_import)
 	di.check_permission("read")
 	return di.get_preview_from_template(import_file, google_sheets_url)
 
 
 @frappe.whitelist()
 def form_start_import(data_import: str):
-	di: DataImport = frappe.get_doc("Data Import", data_import)
+	di: DataImport = DataImport.docs.get(data_import)
 	di.check_permission("write")
 	return di.start_import()
 
@@ -174,7 +174,7 @@ def form_start_import(data_import: str):
 @frappe.whitelist()
 def stop_data_import(doc_name: str):
 	"""Stop a running Data Import job."""
-	data_import = frappe.get_doc("Data Import", doc_name)
+	data_import = DataImport.docs.get(doc_name)
 	data_import.check_permission("write")
 
 	rq_job_id = f"{frappe.local.site}||data_import||{doc_name}"
@@ -188,7 +188,7 @@ def stop_data_import(doc_name: str):
 
 def start_import(data_import):
 	"""This method runs in background job"""
-	data_import = frappe.get_doc("Data Import", data_import)
+	data_import = DataImport.docs.get(data_import)
 	# Apply same delimiter/sniffer settings as preview so CSV is parsed correctly (e.g. EU ";" delimiter)
 	data_import.set_delimiters_flag()
 	try:
@@ -246,21 +246,21 @@ def download_template(
 
 @frappe.whitelist()
 def download_errored_template(data_import_name: str):
-	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
+	data_import: DataImport = DataImport.docs.get(data_import_name)
 	data_import.check_permission("read")
 	data_import.export_errored_rows()
 
 
 @frappe.whitelist()
 def download_import_log(data_import_name: str):
-	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
+	data_import: DataImport = DataImport.docs.get(data_import_name)
 	data_import.check_permission("read")
 	data_import.download_import_log()
 
 
 @frappe.whitelist()
 def get_import_status(data_import_name: str):
-	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
+	data_import: DataImport = DataImport.docs.get(data_import_name)
 	data_import.check_permission("read")
 
 	import_status = {"status": data_import.status}
@@ -286,7 +286,7 @@ def get_import_status(data_import_name: str):
 
 @frappe.whitelist()
 def get_import_logs(data_import: str):
-	doc = frappe.get_doc("Data Import", data_import)
+	doc = DataImport.docs.get(data_import)
 	doc.check_permission("read")
 
 	return frappe.get_all(
@@ -309,7 +309,7 @@ def import_file(doctype, file_path, import_type, submit_after_import=False, cons
 	:param console: Set to true if this is to be used from command line. Will print errors or progress to stdout.
 	"""
 
-	data_import = frappe.new_doc("Data Import")
+	data_import = DataImport.docs.new()
 	data_import.reference_doctype = doctype
 	data_import.import_file = file_path
 	data_import.submit_after_import = submit_after_import

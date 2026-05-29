@@ -11,6 +11,7 @@ from frappe.custom.doctype.customize_form.customize_form import reset_customizat
 from frappe.desk.query_report import add_total_row, run, save_report
 from frappe.desk.reportview import delete_report
 from frappe.desk.reportview import save_report as _save_report
+from frappe.doctypes import Report
 from frappe.tests import IntegrationTestCase
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
@@ -29,14 +30,14 @@ class TestReport(IntegrationTestCase):
 		with open(os.path.join(os.path.dirname(__file__), "user_activity_report.json")) as f:
 			frappe.get_doc(json.loads(f.read())).insert()
 
-		report = frappe.get_doc("Report", "User Activity Report")
+		report = Report.docs.get("User Activity Report")
 		columns, data = report.get_data()
 		self.assertEqual(columns[0].get("label"), "ID")
 		self.assertEqual(columns[1].get("label"), "User Type")
 		self.assertTrue("Administrator" in [d[0] for d in data])
 
 	def test_query_report(self):
-		report = frappe.get_doc("Report", "Permitted Documents For User")
+		report = Report.docs.get("Permitted Documents For User")
 		columns, data = report.get_data(filters={"user": "Administrator", "doctype": "DocType"})
 		self.assertEqual(columns[0].get("label"), "Name")
 		self.assertEqual(columns[1].get("label"), "Module")
@@ -94,7 +95,7 @@ class TestReport(IntegrationTestCase):
 				),
 			)
 
-			doc = frappe.get_doc("Report", report_name)
+			doc = Report.docs.get(report_name)
 			delete_report(doc.name)
 
 		finally:
@@ -124,7 +125,7 @@ class TestReport(IntegrationTestCase):
 			),
 			json.dumps({"user": "Administrator", "doctype": "User"}),
 		)
-		custom_report = frappe.get_doc("Report", custom_report_name)
+		custom_report = Report.docs.get(custom_report_name)
 		columns, result = custom_report.run_query_report(user=frappe.session.user)
 
 		self.assertListEqual(["email"], [column.get("fieldname") for column in columns])
@@ -192,7 +193,7 @@ class TestReport(IntegrationTestCase):
 				}
 			).insert(ignore_permissions=True)
 		else:
-			report = frappe.get_doc("Report", "Test Report")
+			report = Report.docs.get("Test Report")
 
 		with self.set_user("test@example.com"):
 			# remove role "Test Has Role" from user if found
@@ -216,7 +217,7 @@ class TestReport(IntegrationTestCase):
 				}
 			).insert(ignore_permissions=True)
 		else:
-			report = frappe.get_doc("Report", "Test Custom Role Report")
+			report = Report.docs.get("Test Custom Role Report")
 
 		# check report is permitted without custom role created
 		with self.set_user("test@example.com"):
@@ -243,7 +244,7 @@ class TestReport(IntegrationTestCase):
 		with open(os.path.join(os.path.dirname(__file__), "user_activity_report_without_sort.json")) as f:
 			frappe.get_doc(json.loads(f.read())).insert()
 
-		report = frappe.get_doc("Report", "User Activity Report Without Sort")
+		report = Report.docs.get("User Activity Report Without Sort")
 		columns, data = report.get_data()
 
 		self.assertEqual(columns[0].get("label"), "ID")
@@ -264,7 +265,7 @@ class TestReport(IntegrationTestCase):
 				}
 			).insert(ignore_permissions=True)
 		else:
-			report = frappe.get_doc("Report", report_name)
+			report = Report.docs.get(report_name)
 
 		report.report_script = """
 totals = {}
@@ -338,7 +339,7 @@ result = [
 		# Assuming that there will be reports in the system.
 		reports = frappe.get_all(doctype="Report", limit=1)
 		report_name = reports[0]["name"]
-		doc = frappe.get_doc("Report", report_name)
+		doc = Report.docs.get(report_name)
 		status = doc.disabled
 
 		# User has write permission on reports and should pass through
@@ -349,7 +350,7 @@ result = [
 
 		# User has no write permission on reports, permission error is expected.
 		frappe.set_user("test1@example.com")
-		doc = frappe.get_doc("Report", report_name)
+		doc = Report.docs.get(report_name)
 		with self.assertRaises(frappe.exceptions.ValidationError):
 			doc.toggle_disable(1)
 
@@ -426,7 +427,7 @@ result = [
 			cached_bootinfo = frappe.sessions.get()
 			self.assertIn(report_name, cached_bootinfo["user"]["all_reports"])
 
-			doc = frappe.get_doc("Report", report_name)
+			doc = Report.docs.get(report_name)
 			delete_report(doc.name)
 
 			cached_bootinfo = frappe.sessions.get()

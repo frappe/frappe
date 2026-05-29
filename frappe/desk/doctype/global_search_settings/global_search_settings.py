@@ -153,7 +153,7 @@ def get_global_search_field_options(doctype: str | None = None):
 
 def _customize_form_stub(doctype: str) -> CustomizeForm:
 	"""In-memory Customize Form — same PS helpers as desk Customize Form."""
-	cf = frappe.new_doc("Customize Form")
+	cf = CustomizeForm.docs.new()
 	cf.doc_type = doctype
 	return cf
 

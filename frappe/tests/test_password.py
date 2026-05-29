@@ -3,6 +3,7 @@
 from cryptography.fernet import Fernet
 
 import frappe
+from frappe.doctypes import EmailAccount
 from frappe.tests import IntegrationTestCase
 from frappe.utils.password import check_password, decrypt, encrypt, passlibctx, update_password
 
@@ -49,7 +50,7 @@ class TestPassword(IntegrationTestCase):
 			).insert()
 
 		else:
-			return frappe.get_doc("Email Account", name)
+			return EmailAccount.docs.get(name)
 
 	def test_hashed_password(self, user="test@example.com"):
 		old_password = "Eastern_43A1W"

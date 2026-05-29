@@ -4,6 +4,7 @@ import time
 
 import frappe
 from frappe.auth import CookieManager, LoginManager
+from frappe.doctypes import ActivityLog, SystemSettings
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 
@@ -55,7 +56,7 @@ class TestActivityLog(IntegrationTestCase):
 		)
 
 		name = names[0]
-		return frappe.get_doc("Activity Log", name)
+		return ActivityLog.docs.get(name)
 
 	def test_brute_security(self):
 		update_system_settings({"allow_consecutive_login_attempts": 3, "allow_login_after_fail": 5})
@@ -94,7 +95,7 @@ class TestActivityLog(IntegrationTestCase):
 
 
 def update_system_settings(args):
-	doc = frappe.get_doc("System Settings")
+	doc = SystemSettings.docs.get()
 	doc.update(args)
 	doc.flags.ignore_mandatory = 1
 	doc.save()

@@ -6,6 +6,7 @@ import time
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.doctype.bulk_update.bulk_update import submit_cancel_or_update_docs
+from frappe.doctypes import DocType
 from frappe.tests import IntegrationTestCase, timeout
 
 
@@ -68,7 +69,7 @@ class TestBulkUpdate(IntegrationTestCase):
 		self.wait_for_assertion(lambda: check_field_values(docnames_bg, "_Test Background"))
 
 	def test_bulk_update_child_fields(self):
-		doctype_doc = frappe.get_doc("DocType", self.doctype)
+		doctype_doc = DocType.docs.get(self.doctype)
 		doctype_doc.append(
 			"fields", {"fieldname": "child_table", "fieldtype": "Table", "options": self.child_doctype}
 		)

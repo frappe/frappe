@@ -9,6 +9,7 @@ from typing import Optional
 
 import frappe
 from frappe import _
+from frappe.doctypes import WebsiteSettings
 from frappe.model.document import Document
 
 
@@ -87,7 +88,7 @@ class WebsiteTheme(Document):
 	def clear_cache_if_current_theme(self):
 		if frappe.flags.in_install == "frappe":
 			return
-		website_settings = frappe.get_doc("Website Settings", "Website Settings")
+		website_settings = WebsiteSettings.docs.get("Website Settings")
 		if getattr(website_settings, "website_theme", None) == self.name:
 			website_settings.clear_cache()
 
@@ -140,7 +141,7 @@ class WebsiteTheme(Document):
 	@frappe.whitelist()
 	def set_as_default(self):
 		self.save()
-		website_settings = frappe.get_doc("Website Settings")
+		website_settings = WebsiteSettings.docs.get()
 		website_settings.website_theme = self.name
 		website_settings.ignore_validate = True
 		website_settings.save()
@@ -208,5 +209,5 @@ def after_migrate():
 	if not website_theme or website_theme == "Standard":
 		return
 
-	doc = frappe.get_doc("Website Theme", website_theme)
+	doc = WebsiteTheme.docs.get(website_theme)
 	doc.save()  # Just re-saving re-generates the theme.

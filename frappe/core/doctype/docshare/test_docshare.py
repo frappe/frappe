@@ -4,6 +4,7 @@
 import frappe
 import frappe.share
 from frappe.automation.doctype.auto_repeat.test_auto_repeat import create_submittable_doctype
+from frappe.doctypes import Communication, ConsoleLog, WebPage
 from frappe.tests import IntegrationTestCase
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
@@ -62,7 +63,7 @@ class TestDocShare(IntegrationTestCase):
 			frappe.get_list("Web Page")
 
 		frappe.set_user("Administrator")
-		doc = frappe.new_doc("Web Page")
+		doc = WebPage.docs.new()
 		doc.update({"title": "test document for docshare permissions"})
 		doc.insert()
 		frappe.share.add("Web Page", doc.name, self.user)
@@ -154,7 +155,7 @@ class TestDocShare(IntegrationTestCase):
 		frappe.share.remove(doctype, submittable_doc.name, self.user)
 
 	def test_share_int_pk(self):
-		test_doc = frappe.new_doc("Console Log")
+		test_doc = ConsoleLog.docs.new()
 
 		test_doc.insert()
 		frappe.share.add("Console Log", test_doc.name, self.user)
@@ -228,7 +229,7 @@ class TestDocShare(IntegrationTestCase):
 	def test_cannot_share_without_permission(self):
 		"""Test that users cannot share permissions they don't have."""
 		# Users don't have write permission on Communication
-		doc = frappe.new_doc("Communication", subject="Hello World").save()
+		doc = Communication.docs.new(subject="Hello World").save()
 
 		try:
 			frappe.set_user(self.user)

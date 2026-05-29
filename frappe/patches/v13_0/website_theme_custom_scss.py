@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import WebsiteTheme
 
 
 def execute():
@@ -7,7 +8,7 @@ def execute():
 	frappe.reload_doc("website", "doctype", "website_theme", force=True)
 
 	for theme in frappe.get_all("Website Theme"):
-		doc = frappe.get_doc("Website Theme", theme.name)
+		doc = WebsiteTheme.docs.get(theme.name)
 		setup_color_record(doc)
 		if not doc.get("custom_scss") and doc.theme_scss:
 			# move old theme to new theme

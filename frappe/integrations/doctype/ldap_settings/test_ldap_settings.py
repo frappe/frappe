@@ -11,6 +11,7 @@ import ldap3
 from ldap3 import MOCK_SYNC, OFFLINE_AD_2012_R2, OFFLINE_SLAPD_2_4, Connection, Server
 
 import frappe
+from frappe.doctypes import User
 from frappe.exceptions import MandatoryError, ValidationError
 from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 
@@ -53,17 +54,17 @@ class LDAP_TestCase:
 
 	def clean_test_users():
 		with contextlib.suppress(Exception):
-			frappe.get_doc("User", "posix.user1@unit.testing").delete()
+			User.docs.get("posix.user1@unit.testing").delete()
 		with contextlib.suppress(Exception):
-			frappe.get_doc("User", "posix.user2@unit.testing").delete()
+			User.docs.get("posix.user2@unit.testing").delete()
 		with contextlib.suppress(Exception):
-			frappe.get_doc("User", "website_ldap_user@test.com").delete()
+			User.docs.get("website_ldap_user@test.com").delete()
 
 	@classmethod
 	def setUpClass(cls):
 		cls.clean_test_users()
 		# Save user data for restoration in tearDownClass()
-		cls.user_ldap_settings = frappe.get_doc("LDAP Settings")
+		cls.user_ldap_settings = LDAPSettings.docs.get()
 
 		# Create test user1
 		cls.user1doc = {
@@ -147,7 +148,7 @@ class LDAP_TestCase:
 	@classmethod
 	def tearDownClass(cls):
 		with contextlib.suppress(Exception):
-			frappe.get_doc("LDAP Settings").delete()
+			LDAPSettings.docs.get().delete()
 
 		# return doc back to user data
 		with contextlib.suppress(Exception):
@@ -337,9 +338,9 @@ class LDAP_TestCase:
 			"phone": "08 1234 5678",
 			"mobile_no": "0421 123 456",
 		}
-		test_user = frappe.get_doc("User", test_user_data["email"])
+		test_user = User.docs.get(test_user_data["email"])
 		self.test_class.update_user_fields(test_user, test_user_data)
-		updated_user = frappe.get_doc("User", test_user_data["email"])
+		updated_user = User.docs.get(test_user_data["email"])
 
 		self.assertTrue(updated_user.middle_name == test_user_data["middle_name"])
 		self.assertTrue(updated_user.last_name == test_user_data["last_name"])
@@ -358,7 +359,7 @@ class LDAP_TestCase:
 		}
 		self.test_class.default_user_type = "Website User"
 		self.test_class.create_or_update_user(user_data=new_test_user_data, groups=[])
-		new_user = frappe.get_doc("User", new_test_user_data["email"])
+		new_user = User.docs.get(new_test_user_data["email"])
 		self.assertEqual(new_user.user_type, "Website User")
 
 	@mock_ldap_connection
@@ -414,12 +415,12 @@ class LDAP_TestCase:
 		}
 
 		# re-create user1 to ensure clean
-		frappe.get_doc("User", "posix.user1@unit.testing").delete()
+		User.docs.get("posix.user1@unit.testing").delete()
 		user = frappe.get_doc(self.user1doc)
 		user.insert(ignore_permissions=True)
 
 		for test_user in test_user_data:
-			test_user_doc = frappe.get_doc("User", f"{test_user}@unit.testing")
+			test_user_doc = User.docs.get(f"{test_user}@unit.testing")
 			test_user_roles = frappe.get_roles(f"{test_user}@unit.testing")
 
 			self.assertTrue(
@@ -428,7 +429,7 @@ class LDAP_TestCase:
 
 			self.test_class.sync_roles(test_user_doc, test_user_data[test_user])  # update user roles
 
-			frappe.get_doc("User", f"{test_user}@unit.testing")
+			User.docs.get(f"{test_user}@unit.testing")
 			updated_user_roles = frappe.get_roles(f"{test_user}@unit.testing")
 
 			self.assertTrue(
@@ -455,12 +456,12 @@ class LDAP_TestCase:
 		}
 		test_user = "posix.user1"
 
-		frappe.get_doc("User", f"{test_user}@unit.testing").delete()
+		User.docs.get(f"{test_user}@unit.testing").delete()
 
 		with self.assertRaises(
 			frappe.exceptions.DoesNotExistError
 		):  # ensure user deleted so function can be tested
-			frappe.get_doc("User", f"{test_user}@unit.testing")
+			User.docs.get(f"{test_user}@unit.testing")
 
 		with mock.patch(
 			"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.update_user_fields"

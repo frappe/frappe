@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import File
 
 
 def execute():
@@ -14,7 +15,7 @@ def execute():
 		# For some reason Prepared Report doc might not exist, check if it exists first
 		if frappe.db.exists("Prepared Report", file_dict.attached_to_name):
 			try:
-				file_doc = frappe.get_doc("File", file_dict.name)
+				file_doc = File.docs.get(file_dict.name)
 				file_doc.is_private = 1
 				file_doc.save()
 			except Exception:

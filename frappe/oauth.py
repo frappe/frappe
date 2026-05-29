@@ -9,6 +9,7 @@ from oauthlib.openid import RequestValidator
 
 import frappe
 from frappe.auth import LoginManager
+from frappe.doctypes import OAuthAuthorizationCode, OAuthBearerToken, User
 from frappe.integrations.doctype.oauth_client.oauth_client import OAuthClient
 from frappe.utils.data import cstr, get_system_timezone, now_datetime
 
@@ -19,7 +20,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# Simple validity check, does client exist? Not banned?
 		cli_id = frappe.db.get_value("OAuth Client", {"name": client_id})
 		if cli_id:
-			client = frappe.get_doc("OAuth Client", client_id)
+			client = OAuthClient.docs.get(client_id)
 			if client.user_has_allowed_role():
 				request.client = client.as_dict()
 				return True
@@ -74,7 +75,7 @@ class OAuthWebRequestValidator(RequestValidator):
 	# Post-authorization
 
 	def save_authorization_code(self, client_id, code, request, *args, **kwargs):
-		oac = frappe.new_doc("OAuth Authorization Code")
+		oac = OAuthAuthorizationCode.docs.new()
 		oac.scopes = get_url_delimiter().join(request.scopes)
 		oac.redirect_uri_bound_to_authorization_code = request.redirect_uri
 		oac.client = client_id
@@ -110,7 +111,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 			client_name = frappe.db.get_value("OAuth Bearer Token", filters=token_filters, fieldname="client")
 
-		oc: OAuthClient = frappe.get_doc("OAuth Client", client_name)
+		oc: OAuthClient = OAuthClient.docs.get(client_name)
 		try:
 			request.client = request.client or oc.as_dict()
 		except Exception as e:
@@ -124,7 +125,7 @@ class OAuthWebRequestValidator(RequestValidator):
 			# Don't allow public (non-authenticated) clients
 			return False
 		else:
-			request["client"] = frappe.get_doc("OAuth Client", cli_id)
+			request["client"] = OAuthClient.docs.get(cli_id)
 			return True
 
 	def validate_code(self, client_id, code, client, request, *args, **kwargs):
@@ -191,7 +192,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# access_token and the refresh_token and set expiration for the
 		# access_token to now + expires_in seconds.
 
-		otoken = frappe.new_doc("OAuth Bearer Token")
+		otoken = OAuthBearerToken.docs.new()
 		otoken.client = request.client["name"]
 		try:
 			otoken.user = (
@@ -226,7 +227,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def validate_bearer_token(self, token, scopes, request):
 		# Remember to check expiration and scope membership
-		otoken = frappe.get_doc("OAuth Bearer Token", token)
+		otoken = OAuthBearerToken.docs.get(token)
 		is_token_valid = (now_datetime() < otoken.expiration_time) and otoken.status != "Revoked"
 		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, "scopes").split(
 			get_url_delimiter()
@@ -299,7 +300,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# Check whether frappe server URL is set
 		id_token_header = {"typ": "jwt", "alg": "HS256"}
 
-		user = frappe.get_doc("User", request.user)
+		user = User.docs.get(request.user)
 
 		if request.nonce:
 			id_token["nonce"] = request.nonce
@@ -349,12 +350,12 @@ class OAuthWebRequestValidator(RequestValidator):
 		return self.finalize_id_token(id_token, token, token_handler, request)
 
 	def get_userinfo_claims(self, request):
-		user = frappe.get_doc("User", frappe.session.user)
+		user = User.docs.get(frappe.session.user)
 		return get_userinfo(user)
 
 	def validate_id_token(self, token, scopes, request):
 		try:
-			id_token = frappe.get_doc("OAuth Bearer Token", token)
+			id_token = OAuthBearerToken.docs.get(token)
 			if id_token.status == "Active":
 				return True
 		except Exception:
@@ -364,7 +365,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def validate_jwt_bearer_token(self, token, scopes, request):
 		try:
-			jwt = frappe.get_doc("OAuth Bearer Token", token)
+			jwt = OAuthBearerToken.docs.get(token)
 			if jwt.status == "Active":
 				return True
 		except Exception:
@@ -456,7 +457,7 @@ class OAuthWebRequestValidator(RequestValidator):
 						{"userid": payload.get("sub"), "provider": "frappe"},
 						"parent",
 					)
-					user = frappe.get_doc("User", user)
+					user = User.docs.get(user)
 					verified_payload = jwt.decode(
 						id_token_hint,
 						key=client_secret,

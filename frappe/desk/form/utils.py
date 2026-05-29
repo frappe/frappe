@@ -10,6 +10,7 @@ import frappe.desk.form.meta
 from frappe import _
 from frappe.core.doctype.file.utils import extract_images_from_html
 from frappe.desk.form.document_follow import follow_document
+from frappe.doctypes import Comment
 from frappe.query_builder.functions import IfNull
 
 if TYPE_CHECKING:
@@ -30,7 +31,7 @@ def add_comment(
 	"""Allow logged user with permission to read document to add a comment"""
 	reference_doc = frappe.get_lazy_doc(reference_doctype, reference_name, check_permission=True)
 
-	comment = frappe.new_doc("Comment")
+	comment = Comment.docs.new()
 	comment.update(
 		{
 			"comment_type": "Comment",
@@ -52,7 +53,7 @@ def add_comment(
 @frappe.whitelist()
 def update_comment(name: str | int, content: str):
 	"""allow only owner to update comment"""
-	doc = frappe.get_doc("Comment", name)
+	doc = Comment.docs.get(name)
 
 	if frappe.session.user not in ["Administrator", doc.owner]:
 		frappe.throw(_("Comment can only be edited by the owner"), frappe.PermissionError)
@@ -69,7 +70,7 @@ def update_comment(name: str | int, content: str):
 
 @frappe.whitelist()
 def update_comment_publicity(name: str, publish: bool):
-	doc = frappe.get_doc("Comment", name)
+	doc = Comment.docs.get(name)
 	if frappe.session.user != doc.owner and "System Manager" not in frappe.get_roles():
 		frappe.throw(_("Comment publicity can only be updated by the original author or a System Manager."))
 

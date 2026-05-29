@@ -1,13 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.doctypes import EmailGroup
 from frappe.tests import IntegrationTestCase
 from frappe.utils import validate_url
 
 
 class TestEmailGroup(IntegrationTestCase):
 	def test_welcome_url(self):
-		email_group = frappe.new_doc("Email Group")
+		email_group = EmailGroup.docs.new()
 		email_group.title = "Test"
 		email_group.welcome_url = "http://example.com/welcome?hello=world"
 		email_group.add_query_parameters = 1

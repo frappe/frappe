@@ -21,6 +21,7 @@ import frappe.utils
 from frappe import _
 from frappe.apps import get_apps, get_default_path, is_desk_apps
 from frappe.cache_manager import clear_user_cache, reset_metadata_version
+from frappe.doctypes import User
 from frappe.query_builder import Order
 from frappe.utils import cint, cstr, get_assets_json
 from frappe.utils.change_log import has_app_update_notifications
@@ -282,7 +283,7 @@ class Session:
 			self.insert_session_record()
 
 			# update user
-			user = frappe.get_lazy_doc("User", self.data["user"])
+			user = User.docs.get(self.data["user"], lazy=True)
 			user_doctype = frappe.qb.DocType("User")
 			(
 				frappe.qb.update(user_doctype)

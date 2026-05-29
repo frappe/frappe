@@ -37,7 +37,7 @@ def get_custom_allowed_roles(field, name):
 	allowed_roles = []
 	custom_role = frappe.db.get_value("Custom Role", {field: name}, "name")
 	if custom_role:
-		custom_role_doc = frappe.get_doc("Custom Role", custom_role)
+		custom_role_doc = CustomRole.docs.get(custom_role)
 		allowed_roles = [d.role for d in custom_role_doc.roles]
 
 	return allowed_roles

@@ -103,7 +103,7 @@ def enqueue_create_notification(users: list[str] | str, doc: dict):
 
 def make_notification_logs(doc, users):
 	for user in _get_user_ids(users):
-		notification = frappe.new_doc("Notification Log")
+		notification = NotificationLog.docs.new()
 		notification.update(doc)
 		notification.for_user = user
 		if notification.for_user != notification.from_user or doc.type == "Alert":

@@ -1,9 +1,10 @@
 import frappe
+from frappe.doctypes import WebForm
 
 
 def execute():
 	for web_form_name in frappe.get_all("Web Form", pluck="name"):
-		web_form = frappe.get_doc("Web Form", web_form_name)
+		web_form = WebForm.docs.get(web_form_name)
 		doctype_layout = frappe.get_doc(
 			doctype="DocType Layout",
 			document_type=web_form.doc_type,

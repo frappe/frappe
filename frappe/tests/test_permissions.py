@@ -10,6 +10,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user_permission.user_permission import clear_user_permissions
 from frappe.core.page.permission_manager.permission_manager import add, remove, reset, update
 from frappe.desk.form.load import getdoc
+from frappe.doctypes import Contact, DocType, Role, SystemSettings, ToDo, User
 from frappe.installer import _delete_doctypes
 from frappe.permissions import (
 	ALL_USER_ROLE,
@@ -38,17 +39,17 @@ class TestPermissions(IntegrationTestCase):
 		super().setUpClass()
 		setup_for_tests()
 		frappe.clear_cache(doctype="Test Blog Post")
-		user = frappe.get_doc("User", "test1@example.com")
+		user = User.docs.get("test1@example.com")
 		user.add_roles("Website Manager")
 		user.add_roles("System Manager")
 
-		user = frappe.get_doc("User", "test2@example.com")
+		user = User.docs.get("test2@example.com")
 		user.add_roles("Blogger")
 
-		user = frappe.get_doc("User", "test3@example.com")
+		user = User.docs.get("test3@example.com")
 		user.add_roles("Sales User")
 
-		user = frappe.get_doc("User", "testperm@example.com")
+		user = User.docs.get("testperm@example.com")
 		user.add_roles("Website Manager")
 
 	def setUp(self):
@@ -71,7 +72,7 @@ class TestPermissions(IntegrationTestCase):
 
 	@staticmethod
 	def set_strict_user_permissions(ignore):
-		ss = frappe.get_doc("System Settings")
+		ss = SystemSettings.docs.get()
 		ss.apply_strict_user_permissions = ignore
 		ss.flags.ignore_mandatory = 1
 		ss.save()
@@ -246,7 +247,7 @@ class TestPermissions(IntegrationTestCase):
 		fake_creation = now_datetime() + timedelta(days=-7)
 		fake_owner = frappe.db.get_value("User", {"name": ("!=", frappe.session.user)})
 
-		d = frappe.new_doc("ToDo")
+		d = ToDo.docs.new()
 		d.description = "ToDo created via test_set_standard_fields_manually"
 		d.creation = fake_creation
 		d.owner = fake_owner
@@ -256,7 +257,7 @@ class TestPermissions(IntegrationTestCase):
 
 	def test_dont_change_standard_constants(self):
 		# check that Document.creation cannot be changed
-		user = frappe.get_doc("User", frappe.session.user)
+		user = User.docs.get(frappe.session.user)
 		user.creation = now_datetime()
 		self.assertRaises(frappe.CannotChangeConstantError, user.save)
 
@@ -277,7 +278,7 @@ class TestPermissions(IntegrationTestCase):
 	def test_set_only_once_child_table_rows(self):
 		doctype_meta = frappe.get_meta("DocType")
 		doctype_meta.get_field("fields").set_only_once = 1
-		doc = frappe.get_doc("DocType", "Test Blog Post")
+		doc = DocType.docs.get("Test Blog Post")
 
 		# remove last one
 		doc.fields = doc.fields[:-1]
@@ -287,7 +288,7 @@ class TestPermissions(IntegrationTestCase):
 	def test_set_only_once_child_table_row_value(self):
 		doctype_meta = frappe.get_meta("DocType")
 		doctype_meta.get_field("fields").set_only_once = 1
-		doc = frappe.get_doc("DocType", "Test Blog Post")
+		doc = DocType.docs.get("Test Blog Post")
 		# change one property from the child table
 		doc.fields[-3].fieldtype = "Check"
 		self.assertRaises(frappe.CannotChangeConstantError, doc.save)
@@ -296,7 +297,7 @@ class TestPermissions(IntegrationTestCase):
 	def test_set_only_once_child_table_okay(self):
 		doctype_meta = frappe.get_meta("DocType")
 		doctype_meta.get_field("fields").set_only_once = 1
-		doc = frappe.get_doc("DocType", "Test Blog Post")
+		doc = DocType.docs.get("Test Blog Post")
 
 		doc.load_doc_before_save()
 		self.assertFalse(doc.validate_set_only_once())
@@ -410,8 +411,8 @@ class TestPermissions(IntegrationTestCase):
 		add_user_permission("Salutation", "Mr", "test3@example.com")
 		self.set_strict_user_permissions(0)
 
-		allowed_contact = frappe.get_doc("Contact", "_Test Contact For _Test Customer")
-		other_contact = frappe.get_doc("Contact", "_Test Contact For _Test Supplier")
+		allowed_contact = Contact.docs.get("_Test Contact For _Test Customer")
+		other_contact = Contact.docs.get("_Test Contact For _Test Supplier")
 
 		frappe.set_user("test3@example.com")
 		self.assertTrue(allowed_contact.has_permission("read"))
@@ -443,7 +444,7 @@ class TestPermissions(IntegrationTestCase):
 		self.assertFalse(doc.has_permission("read"))
 
 		frappe.set_user("Administrator")
-		user = frappe.get_doc("User", "test3@example.com")
+		user = User.docs.get("test3@example.com")
 		user.add_roles("Blogger")
 		frappe.set_user("test3@example.com")
 		self.assertTrue(doc.has_permission("read"))
@@ -579,7 +580,7 @@ class TestPermissions(IntegrationTestCase):
 
 		update("Test Blog Post", "Blogger", 0, "if_owner", 1)
 		update("Test Blog Post", "Blogger", 0, "read", 1)
-		user = frappe.get_doc("User", "test2@example.com")
+		user = User.docs.get("test2@example.com")
 		user.add_roles("Website Manager")
 		frappe.clear_cache(doctype="Test Blog Post")
 
@@ -677,7 +678,7 @@ class TestPermissions(IntegrationTestCase):
 		)
 
 		# frappe.get_doc
-		user = frappe.get_doc("User", frappe.session.user)
+		user = User.docs.get(frappe.session.user)
 		doc = user.append("defaults")
 		doc.check_permission()
 
@@ -696,7 +697,7 @@ class TestPermissions(IntegrationTestCase):
 		self.assertRaises(frappe.PermissionError, doc.check_permission)
 
 		# false by user permission
-		user = frappe.get_doc("User", "Administrator")
+		user = User.docs.get("Administrator")
 		doc = user.append("defaults")
 		self.assertRaises(frappe.PermissionError, doc.check_permission)
 
@@ -763,7 +764,7 @@ class TestPermissions(IntegrationTestCase):
 	def test_overrides_work_as_expected(self):
 		"""custom docperms should completely override standard ones"""
 		standard_role = "Desk User"
-		custom_role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+		custom_role = Role.docs.new(role_name=frappe.generate_hash()).insert().name
 		with self.set_user("Administrator"):
 			doctype = new_doctype(permissions=[{"role": standard_role, "read": 1}]).insert().name
 

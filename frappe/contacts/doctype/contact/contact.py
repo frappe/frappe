@@ -7,6 +7,7 @@ from frappe import _
 from frappe.contacts.address_and_contact import set_link_title
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
+from frappe.doctypes import Address
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.utils import cstr, has_gravatar
@@ -228,7 +229,7 @@ class Contact(Document):
 @frappe.whitelist()
 def download_vcard(contact: str):
 	"""Download vCard for the contact"""
-	contact = frappe.get_doc("Contact", contact)
+	contact = Contact.docs.get(contact)
 	contact.check_permission()
 
 	vcard = contact.get_vcard()
@@ -250,7 +251,7 @@ def download_vcards(contacts: str):
 
 	vcards = []
 	for contact_id in contact_ids:
-		contact = frappe.get_doc("Contact", contact_id)
+		contact = Contact.docs.get(contact_id)
 		contact.check_permission()
 		vcard = contact.get_vcard()
 		vcards.append(vcard.serialize())
@@ -295,7 +296,7 @@ def get_default_contact(doctype, name):
 
 @frappe.whitelist()
 def invite_user(contact: str):
-	contact = frappe.get_doc("Contact", contact)
+	contact = Contact.docs.get(contact)
 	contact.check_permission()
 
 	if not contact.email_id:
@@ -317,7 +318,7 @@ def invite_user(contact: str):
 
 @frappe.whitelist()
 def get_contact_details(contact: str):
-	contact = frappe.get_doc("Contact", contact)
+	contact = Contact.docs.get(contact)
 	contact.check_permission()
 
 	return {
@@ -335,7 +336,7 @@ def update_contact(doc, method):
 	"""Update contact when user is updated, if contact is found. Called via hooks"""
 	contact_name = frappe.db.get_value("Contact", {"email_id": doc.name})
 	if contact_name:
-		contact = frappe.get_doc("Contact", contact_name)
+		contact = Contact.docs.get(contact_name)
 		for key in ("first_name", "last_name", "phone"):
 			if doc.get(key):
 				contact.set(key, doc.get(key))
@@ -514,7 +515,7 @@ def get_contact_display_list(doctype: str, name: str) -> list[dict]:
 		)
 
 		if contact.address and frappe.has_permission("Address", "read"):
-			address = frappe.get_doc("Address", contact.address)
+			address = Address.docs.get(contact.address)
 			contact["address"] = get_condensed_address(address)
 
 	return contact_list

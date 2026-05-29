@@ -7,6 +7,7 @@ from jinja2.exceptions import TemplateSyntaxError
 
 import frappe
 from frappe import _
+from frappe.doctypes import WebTemplate
 from frappe.utils import get_datetime, now, quoted, strip_html
 from frappe.utils.caching import redis_cache
 from frappe.utils.jinja import render_template
@@ -244,7 +245,7 @@ def get_web_blocks_html(blocks):
 	extracted_scripts = {}
 	extracted_styles = {}
 	for block in blocks:
-		web_template = frappe.get_cached_doc("Web Template", block.web_template)
+		web_template = WebTemplate.docs.get(block.web_template, cached=True)
 		rendered_html = frappe.render_template(
 			"templates/includes/web_block.html",
 			context={

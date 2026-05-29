@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.doctypes import WebsiteRouteMeta
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response
@@ -17,7 +18,7 @@ class TestWebsiteRouteMeta(IntegrationTestCase):
 		blog = blogs[0]
 
 		# create meta tags for this route
-		doc = frappe.new_doc("Website Route Meta")
+		doc = WebsiteRouteMeta.docs.new()
 		doc.append("meta_tags", {"key": "type", "value": "web_page"})
 		doc.append("meta_tags", {"key": "og:title", "value": "My Web Page"})
 		doc.name = blog.route

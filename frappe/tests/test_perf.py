@@ -27,6 +27,7 @@ import psutil
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 import frappe
+from frappe.doctypes import PreparedReport, User
 from frappe.frappeclient import FrappeClient
 from frappe.model.base_document import get_controller
 from frappe.query_builder.utils import db_type_is
@@ -65,7 +66,7 @@ class TestPerformance(IntegrationTestCase):
 	def test_permitted_fieldnames(self):
 		frappe.clear_cache()
 
-		doc = frappe.new_doc("Prepared Report")
+		doc = PreparedReport.docs.new()
 		# load permitted fieldnames once
 		doc.permitted_fieldnames
 
@@ -117,7 +118,7 @@ class TestPerformance(IntegrationTestCase):
 
 	def test_db_value_cache(self):
 		"""Link validation if repeated should just use db.value_cache, hence no extra queries"""
-		doc = frappe.get_last_doc("User")
+		doc = User.docs.last()
 		doc.get_invalid_links()
 
 		with self.assertQueryCount(0):
@@ -200,19 +201,19 @@ class TestPerformance(IntegrationTestCase):
 			self.assertFalse(gc.get_referrers(result))
 
 	def test_no_cyclic_references(self):
-		doc = frappe.get_doc("User", "Administrator")
+		doc = User.docs.get("Administrator")
 		expected_refcount = 1
 		self.assertEqual(sys.getrefcount(doc), expected_refcount)  # Note: This always returns +1
 
 	def test_get_doc_cache_calls(self):
-		frappe.get_doc("User", "Administrator")
+		User.docs.get("Administrator")
 		with self.assertRedisCallCounts(0):
-			frappe.get_doc("User", "Administrator")
+			User.docs.get("Administrator")
 
 	def test_local_caching(self):
-		frappe.get_cached_doc("User", "Administrator")
+		User.docs.get("Administrator", cached=True)
 		with self.assertRedisCallCounts(0):
-			frappe.get_cached_doc("User", "Administrator")
+			User.docs.get("Administrator", cached=True)
 
 	def test_redis_cache_calls(self):
 		redis_cached_func()  # warmup

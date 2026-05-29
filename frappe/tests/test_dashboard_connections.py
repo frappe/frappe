@@ -8,6 +8,7 @@ import frappe.utils
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.custom.doctype.customize_form.test_customize_form import TestCustomizeForm
 from frappe.desk.notifications import get_open_count
+from frappe.doctypes import DocType
 from frappe.tests import IntegrationTestCase
 
 
@@ -201,9 +202,7 @@ def create_test_child_table_with_link_to_doctype_b():
 
 
 def add_links_in_child_tables():
-	test_child_table_with_link_to_doctype_a = frappe.get_doc(
-		"DocType", "Test Child Table With Link To Doctype A"
-	)
+	test_child_table_with_link_to_doctype_a = DocType.docs.get("Test Child Table With Link To Doctype A")
 	if len(test_child_table_with_link_to_doctype_a.fields) == 1:
 		test_child_table_with_link_to_doctype_a.append(
 			"fields",
@@ -217,9 +216,7 @@ def add_links_in_child_tables():
 		)
 		test_child_table_with_link_to_doctype_a.save()
 
-	test_child_table_with_link_to_doctype_b = frappe.get_doc(
-		"DocType", "Test Child Table With Link To Doctype B"
-	)
+	test_child_table_with_link_to_doctype_b = DocType.docs.get("Test Child Table With Link To Doctype B")
 	if len(test_child_table_with_link_to_doctype_b.fields) == 1:
 		test_child_table_with_link_to_doctype_b.append(
 			"fields",

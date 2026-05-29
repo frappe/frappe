@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import Domain
 
 
 def execute():
@@ -9,6 +10,6 @@ def execute():
 
 	for d in all_domains:
 		if d.name not in active_domains:
-			inactive_domain = frappe.get_doc("Domain", d.name)
+			inactive_domain = Domain.docs.get(d.name)
 			inactive_domain.setup_data()
 			inactive_domain.remove_custom_field()

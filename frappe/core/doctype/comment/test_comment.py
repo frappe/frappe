@@ -3,6 +3,7 @@
 import json
 
 import frappe
+from frappe.doctypes import WebPage
 from frappe.templates.includes.comments.comments import add_comment
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
@@ -104,7 +105,7 @@ class TestComment(IntegrationTestCase):
 	def test_user_not_logged_in(self):
 		some_system_user = frappe.db.get_value("User", {"name": ("not in", frappe.STANDARD_USERS)})
 
-		test_blog = frappe.get_doc("Web Page", "test-web-page-1")
+		test_blog = WebPage.docs.get("test-web-page-1")
 		with set_user("Guest"):
 			self.assertRaises(
 				frappe.ValidationError,

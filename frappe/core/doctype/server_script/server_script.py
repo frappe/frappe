@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _
+from frappe.doctypes import ScheduledJobType
 from frappe.model.document import Document
 from frappe.rate_limiter import rate_limit
 from frappe.utils.caching import http_cache
@@ -102,7 +103,7 @@ class ServerScript(Document):
 		frappe.client_cache.delete_value("server_script_map")
 		if self.script_type == "Scheduler Event":
 			for job in self.scheduled_jobs:
-				scheduled_job_type: ScheduledJobType = frappe.get_doc("Scheduled Job Type", job.name)
+				scheduled_job_type: ScheduledJobType = ScheduledJobType.docs.get(job.name)
 				scheduled_job_type.stopped = True
 				scheduled_job_type.server_script = None
 				scheduled_job_type.save()
@@ -123,7 +124,7 @@ class ServerScript(Document):
 
 		def get_scheduled_job() -> "ScheduledJobType":
 			if scheduled_script := frappe.db.get_value("Scheduled Job Type", {"server_script": self.name}):
-				return frappe.get_doc("Scheduled Job Type", scheduled_script)
+				return ScheduledJobType.docs.get(scheduled_script)
 			else:
 				should_create_log = self.event_frequency not in ("All", "Cron")
 				return frappe.get_doc(

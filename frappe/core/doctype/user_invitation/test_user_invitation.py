@@ -12,6 +12,7 @@ from frappe.core.api.user_invitation import (
 	invite_by_email,
 )
 from frappe.core.doctype.user_invitation.user_invitation import mark_expired_invitations
+from frappe.doctypes import User
 from frappe.tests import IntegrationTestCase
 
 emails = [
@@ -32,7 +33,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		user = frappe.new_doc("User")
+		user = User.docs.new()
 		user.first_name = "Test"
 		user.last_name = "123"
 		user.email = emails[0]
@@ -167,12 +168,12 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertSequenceEqual(res["pending_invite_emails"], [pending_invite_email])
 		self.assertSequenceEqual(res["invited_emails"], [email_to_invite])
 		self.assertEqual(len(self.get_email_names(False)), 3)
-		user = frappe.get_doc("User", invitation.email)
+		user = User.docs.get(invitation.email)
 		IntegrationTestUserInvitation.delete_invitation(invitation.name)
 		frappe.delete_doc("User", user.name)
 
 	def test_invite_by_email_api_disabled_user(self):
-		user = frappe.new_doc("User")
+		user = User.docs.new()
 		user.first_name = "Random"
 		user.last_name = "User"
 		user.email = emails[5]
@@ -209,7 +210,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertEqual(res.type, "redirect")
 		pattern = f"^{re.escape(frappe.utils.get_url(''))}/update-password\\?key=.+&redirect_to=/abc$"
 		self.assertRegex(res.location, pattern)
-		user = frappe.get_doc("User", invitation.email)
+		user = User.docs.get(invitation.email)
 		IntegrationTestUserInvitation.delete_invitation(invitation.name)
 		frappe.delete_doc("User", user.name)
 
@@ -235,7 +236,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertEqual(res.type, "redirect")
 		pattern = f"^{re.escape(frappe.utils.get_url(''))}/abc$"
 		self.assertRegex(res.location, pattern)
-		user = frappe.get_doc("User", invitation.email)
+		user = User.docs.get(invitation.email)
 		IntegrationTestUserInvitation.delete_invitation(invitation.name)
 		frappe.delete_doc("User", user.name)
 

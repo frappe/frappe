@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import Report
 from frappe.model.sync import remove_orphan_entities
 from frappe.modules.export_file import delete_folder
 from frappe.tests import IntegrationTestCase
@@ -9,7 +10,7 @@ class TestRemovingOrphans(IntegrationTestCase):
 		_before = frappe.conf.developer_mode
 		frappe.conf.developer_mode = True
 		# Create a new report
-		report = frappe.new_doc("Report")
+		report = Report.docs.new()
 		args = {
 			"doctype": "Report",
 			"report_name": "Orphan Report",

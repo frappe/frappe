@@ -1,6 +1,7 @@
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.database.schema import DBTable
+from frappe.doctypes import DocType
 from frappe.tests import IntegrationTestCase
 
 
@@ -48,7 +49,7 @@ class TestNonNullableDocfield(IntegrationTestCase):
 			if column.name == "test_field":
 				self.assertFalse(column.not_nullable)
 
-		doctype_doc = frappe.get_doc("DocType", self.nullable_doctype_name)
+		doctype_doc = DocType.docs.get(self.nullable_doctype_name)
 		for field in doctype_doc.fields:
 			if field.fieldname == "test_field":
 				field.not_nullable = 1

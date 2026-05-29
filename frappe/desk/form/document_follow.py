@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.doctypes import DocumentFollow
 from frappe.model import log_types
 from frappe.query_builder import DocType
 from frappe.utils import get_url_to_form
@@ -69,7 +70,7 @@ def follow_document(doctype: str, doc_name: str, user: str) -> Document | bool:
 		return False
 
 	if not is_document_followed(doctype, doc_name, user):
-		doc = frappe.new_doc("Document Follow")
+		doc = DocumentFollow.docs.new()
 		doc.update({"ref_doctype": doctype, "ref_docname": doc_name, "user": user})
 		doc.save()
 		frappe.toast(_("Following document {0}").format(doc_name))

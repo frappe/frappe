@@ -7,6 +7,7 @@ from datetime import date
 import frappe
 from frappe.core.utils import find
 from frappe.desk.doctype.event.event import get_events
+from frappe.doctypes import Event
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_objects
 
@@ -22,19 +23,19 @@ class TestEvent(IntegrationTestCase):
 
 	def test_allowed_public(self):
 		frappe.set_user(self.test_user)
-		doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject": "_Test Event 1"}))
+		doc = Event.docs.get(frappe.db.get_value("Event", {"subject": "_Test Event 1"}))
 		self.assertTrue(frappe.has_permission("Event", doc=doc))
 
 	def test_not_allowed_private(self):
 		frappe.set_user(self.test_user)
-		doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject": "_Test Event 2"}))
+		doc = Event.docs.get(frappe.db.get_value("Event", {"subject": "_Test Event 2"}))
 		self.assertFalse(frappe.has_permission("Event", doc=doc))
 
 	def test_allowed_private_if_in_event_user(self):
 		name = frappe.db.get_value("Event", {"subject": "_Test Event 3"})
 		frappe.share.add("Event", name, self.test_user, "read")
 		frappe.set_user(self.test_user)
-		doc = frappe.get_doc("Event", name)
+		doc = Event.docs.get(name)
 		self.assertTrue(frappe.has_permission("Event", doc=doc))
 		frappe.set_user("Administrator")
 		frappe.share.remove("Event", name, self.test_user)
@@ -76,7 +77,7 @@ class TestEvent(IntegrationTestCase):
 			}
 		)
 
-		ev = frappe.get_doc("Event", ev.name)
+		ev = Event.docs.get(ev.name)
 
 		self.assertEqual(ev._assign, json.dumps(["test@example.com"]))
 
@@ -90,7 +91,7 @@ class TestEvent(IntegrationTestCase):
 			}
 		)
 
-		ev = frappe.get_doc("Event", ev.name)
+		ev = Event.docs.get(ev.name)
 
 		self.assertEqual(set(json.loads(ev._assign)), {"test@example.com", self.test_user})
 
@@ -102,7 +103,7 @@ class TestEvent(IntegrationTestCase):
 		todo.status = "Cancelled"
 		todo.save()
 
-		ev = frappe.get_doc("Event", ev.name)
+		ev = Event.docs.get(ev.name)
 		self.assertEqual(ev._assign, json.dumps(["test@example.com"]))
 
 		# cleanup

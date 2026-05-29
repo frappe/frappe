@@ -9,6 +9,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fu
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.doctypes import Country, DocType, DocumentNamingSettings, ToDo, Webhook
 from frappe.model.naming import (
 	InvalidNamingSeriesError,
 	InvalidUUIDValue,
@@ -50,7 +51,7 @@ class TestNaming(IntegrationTestCase):
 		self.assertEqual(append_number_if_name_exists(DOCTYPE, TITLE, "title", "_"), f"{TITLE}_1")
 
 	def test_field_autoname_name_sync(self):
-		country = frappe.get_last_doc("Country")
+		country = Country.docs.last()
 		original_name = country.name
 		country.country_name = "Not a country"
 		country.save()
@@ -127,7 +128,7 @@ class TestNaming(IntegrationTestCase):
 		"""
 		doctype = "ToDo"
 
-		todo_doctype = frappe.get_doc("DocType", doctype)
+		todo_doctype = DocType.docs.get(doctype)
 		todo_doctype.autoname = "format:TODO-{WW}-{##}"
 		todo_doctype.save()
 
@@ -383,7 +384,7 @@ class TestNaming(IntegrationTestCase):
 			self.assertEqual(prefix, NamingSeries(series).get_prefix())
 
 	def test_naming_series_validation(self):
-		dns = frappe.get_doc("Document Naming Settings")
+		dns = DocumentNamingSettings.docs.get()
 		existing_series = dns.get_transactions_and_prefixes()["prefixes"]
 		valid = ["SINV-", "SI-.{field}.", "SI-#.###", "", *existing_series]
 		invalid = ["$INV-", r"WINDOWS\NAMING"]
@@ -399,7 +400,7 @@ class TestNaming(IntegrationTestCase):
 			self.assertRaises(InvalidNamingSeriesError, NamingSeries(series).validate)
 
 	def test_naming_using_fields(self):
-		webhook = frappe.new_doc("Webhook")
+		webhook = Webhook.docs.new()
 		webhook.webhook_docevent = "on_update"
 		name = NamingSeries("KOOH-.{webhook_docevent}.").generate_next_name(webhook)
 		self.assertTrue(
@@ -409,7 +410,7 @@ class TestNaming(IntegrationTestCase):
 	def test_naming_with_empty_part(self):
 		# check naming with empty part (duplicate dots)
 
-		webhook = frappe.new_doc("Webhook")
+		webhook = Webhook.docs.new()
 		webhook.webhook_docevent = "on_update"
 
 		series = "KOOH-..{webhook_docevent}.-.####"
@@ -422,7 +423,7 @@ class TestNaming(IntegrationTestCase):
 	def test_naming_with_unsupported_part(self):
 		# check naming with empty part (duplicate dots)
 
-		webhook = frappe.new_doc("Webhook")
+		webhook = Webhook.docs.new()
 		webhook.webhook_docevent = {"dict": "not supported"}
 
 		series = "KOOH-..{webhook_docevent}.-.####"
@@ -433,7 +434,7 @@ class TestNaming(IntegrationTestCase):
 	def test_naming_with_empty_field(self):
 		# check naming with empty field value
 
-		webhook = frappe.new_doc("Webhook")
+		webhook = Webhook.docs.new()
 		series = "KOOH-.{request_structure}.-.request_structure.-.####"
 
 		name = parse_naming_series(series, doc=webhook)
@@ -449,7 +450,7 @@ class TestNaming(IntegrationTestCase):
 
 	def test_custom_parser(self):
 		# check naming with custom parser
-		todo = frappe.new_doc("ToDo")
+		todo = ToDo.docs.new()
 		series = "TODO-.PM.-.####"
 
 		frappe.clear_cache()

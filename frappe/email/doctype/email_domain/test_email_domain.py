@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.doctypes import EmailAccount, EmailDomain
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_objects
 
@@ -14,8 +15,8 @@ class TestDomain(IntegrationTestCase):
 		frappe.delete_doc("Email Domain", "test.com")
 
 	def test_on_update(self):
-		mail_domain = frappe.get_doc("Email Domain", "test.com")
-		mail_account = frappe.get_doc("Email Account", "Test")
+		mail_domain = EmailDomain.docs.get("test.com")
+		mail_account = EmailAccount.docs.get("Test")
 
 		# Ensure a different port
 		mail_account.incoming_port = int(mail_domain.incoming_port) + 5

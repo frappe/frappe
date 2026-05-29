@@ -3,6 +3,7 @@
 import frappe
 from frappe.cache_manager import clear_controller_cache
 from frappe.desk.doctype.todo.todo import ToDo
+from frappe.doctypes import Address, Note, User
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 
@@ -57,12 +58,12 @@ class TestHooks(IntegrationTestCase):
 
 		# Init User and Address
 		username = "test@example.com"
-		user = frappe.get_doc("User", username)
+		user = User.docs.get(username)
 		user.add_roles("System Manager")
-		address = frappe.new_doc("Address")
+		address = Address.docs.new()
 
 		# Create Note
-		note = frappe.new_doc("Note")
+		note = Note.docs.new()
 		note.public = 1
 
 		# Test!

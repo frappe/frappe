@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe import _
+from frappe.doctypes import Version
 from frappe.model.document import Document
 from frappe.utils.caching import redis_cache
 
@@ -139,7 +140,7 @@ def update_installed_apps_order(new_order: list[str] | str):
 
 
 def _create_version_log_for_change(old, new):
-	version = frappe.new_doc("Version")
+	version = Version.docs.new()
 	version.ref_doctype = "DefaultValue"
 	version.docname = "installed_apps"
 	version.data = frappe.as_json({"changed": [["current", json.dumps(old), json.dumps(new)]]})

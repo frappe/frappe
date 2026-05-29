@@ -4,6 +4,7 @@
 from collections import defaultdict
 
 import frappe
+from frappe.doctypes import User
 from frappe.model.document import Document
 
 
@@ -40,7 +41,7 @@ class RoleProfile(Document):
 		"""Changes in role_profile reflected across all its user"""
 		users = frappe.get_all("User Role Profile", filters={"role_profile": self.name}, pluck="parent")
 		for user in users:
-			user = frappe.get_doc("User", user)
+			user = User.docs.get(user)
 			user.save()  # resaving syncs roles
 
 	def get_permission_log_options(self, event=None):

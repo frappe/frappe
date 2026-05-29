@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe.doctypes import DiscussionReply
 from frappe.model.document import Document
 
 
@@ -34,7 +35,7 @@ def submit_discussion(
 	reply_name: str | None = None,
 ):
 	if reply_name:
-		doc = frappe.get_doc("Discussion Reply", reply_name)
+		doc = DiscussionReply.docs.get(reply_name)
 		if doc.owner != frappe.session.user:
 			frappe.throw(frappe._("You can only edit your own replies."), frappe.PermissionError)
 		doc.reply = reply

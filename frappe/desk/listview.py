@@ -4,6 +4,7 @@
 from typing import Any
 
 import frappe
+from frappe.doctypes import ListViewSettings
 from frappe.model import is_default_field
 from frappe.query_builder import Order
 from frappe.query_builder.functions import Count
@@ -14,7 +15,7 @@ from frappe.query_builder.utils import DocType
 @frappe.whitelist()
 def get_list_settings(doctype: str):
 	try:
-		return frappe.get_cached_doc("List View Settings", doctype)
+		return ListViewSettings.docs.get(doctype, cached=True)
 	except frappe.DoesNotExistError:
 		frappe.clear_messages()
 
@@ -22,9 +23,9 @@ def get_list_settings(doctype: str):
 @frappe.whitelist()
 def set_list_settings(doctype: str, values: str | dict[str, Any]):
 	try:
-		doc = frappe.get_doc("List View Settings", doctype)
+		doc = ListViewSettings.docs.get(doctype)
 	except frappe.DoesNotExistError:
-		doc = frappe.new_doc("List View Settings")
+		doc = ListViewSettings.docs.new()
 		doc.name = doctype
 		frappe.clear_messages()
 	doc.update(frappe.parse_json(values))

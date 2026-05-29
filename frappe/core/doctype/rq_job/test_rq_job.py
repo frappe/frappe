@@ -29,17 +29,17 @@ class TestRQJob(IntegrationTestCase):
 	def setUp(self) -> None:
 		# Cleanup all pending jobs
 		for job in frappe.get_all("RQ Job", {"status": "queued"}):
-			frappe.get_doc("RQ Job", job.name).cancel()
+			RQJob.docs.get(job.name).cancel()
 		return super().setUp()
 
 	def check_status(self, job: Job, status, wait=True):
 		if wait:
 			wait_for_completion(job)
-		self.assertEqual(frappe.get_doc("RQ Job", job.id).status, status)
+		self.assertEqual(RQJob.docs.get(job.id).status, status)
 
 	def test_serialization(self):
 		job = frappe.enqueue(method=self.BG_JOB, queue="short")
-		rq_job = frappe.get_doc("RQ Job", job.id)
+		rq_job = RQJob.docs.get(job.id)
 
 		self.assertEqual(job, rq_job.job)
 		self.assertDocumentEqual(
@@ -61,7 +61,7 @@ class TestRQJob(IntegrationTestCase):
 
 	def test_func_obj_serialization(self):
 		job = frappe.enqueue(method=test_func, queue="short")
-		rq_job = frappe.get_doc("RQ Job", job.id)
+		rq_job = RQJob.docs.get(job.id)
 		self.assertEqual(rq_job.job_name, "frappe.core.doctype.rq_job.test_rq_job.test_func")
 
 	@timeout
@@ -95,7 +95,7 @@ class TestRQJob(IntegrationTestCase):
 
 	def test_delete_doc(self):
 		job = frappe.enqueue(method=self.BG_JOB, queue="short")
-		frappe.get_doc("RQ Job", job.id).delete()
+		RQJob.docs.get(job.id).delete()
 
 		with self.assertRaises(rq_exc.NoSuchJobError):
 			job.refresh()

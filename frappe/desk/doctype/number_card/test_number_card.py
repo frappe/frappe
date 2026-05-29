@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.desk.doctype.number_card.number_card import get_cards_for_user
+from frappe.doctypes import User
 from frappe.tests import IntegrationTestCase
 
 
@@ -19,7 +20,7 @@ class TestNumberCard(IntegrationTestCase):
 		self.addCleanup(lambda: frappe.delete_doc("Number Card", card_name, ignore_missing=True, force=True))
 		self.addCleanup(lambda: frappe.delete_doc("Report", report_name, ignore_missing=True, force=True))
 
-		user_doc = frappe.get_doc("User", user)
+		user_doc = User.docs.get(user)
 		had_baseline_role = baseline_role in frappe.get_roles(user)
 		if not had_baseline_role:
 			user_doc.add_roles(baseline_role)
@@ -66,7 +67,7 @@ class TestNumberCard(IntegrationTestCase):
 
 		frappe.set_user("Administrator")
 
-		admin_blocked = frappe.get_cached_doc("User", "Administrator").get_blocked_modules()
+		admin_blocked = User.docs.get("Administrator", cached=True).get_blocked_modules()
 		self.assertNotIn(blocked_module, admin_blocked, f"{blocked_module} globally blocked — test invalid")
 
 		for card_name in (blocked_card_name, allowed_card_name):
@@ -75,14 +76,14 @@ class TestNumberCard(IntegrationTestCase):
 				lambda c=card_name: frappe.delete_doc("Number Card", c, ignore_missing=True, force=True)
 			)
 
-		user_doc = frappe.get_doc("User", user)
+		user_doc = User.docs.get(user)
 		if blocked_module not in {d.module for d in user_doc.block_modules}:
 			user_doc.append("block_modules", {"module": blocked_module})
 			user_doc.save(ignore_permissions=True)
 			frappe.clear_document_cache("User", user)
 
 		def restore_blocks():
-			doc = frappe.get_doc("User", user)
+			doc = User.docs.get(user)
 			doc.block_modules = {d for d in doc.block_modules if d.module != blocked_module}
 			doc.save(ignore_permissions=True)
 			frappe.clear_document_cache("User", user)

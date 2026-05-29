@@ -8,6 +8,7 @@ from functools import wraps
 
 import frappe
 from frappe import _
+from frappe.doctypes import EmailAccount
 from frappe.email.utils import get_port
 from frappe.model.document import Document
 from frappe.utils import cint
@@ -93,7 +94,7 @@ class EmailDomain(Document):
 		"""update all email accounts using this domain"""
 		for email_account in frappe.get_all("Email Account", filters={"domain": self.name}):
 			try:
-				email_account = frappe.get_doc("Email Account", email_account.name)
+				email_account = EmailAccount.docs.get(email_account.name)
 				for attr in EMAIL_DOMAIN_FIELDS:
 					email_account.set(attr, self.get(attr, default=0))
 				email_account.save()

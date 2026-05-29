@@ -12,6 +12,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user.user import User
 from frappe.desk.doctype.note.note import Note
 from frappe.desk.doctype.todo.todo import ToDo
+from frappe.doctypes import ContactUsSettings, DocType, WebPage, WebsiteSettings
 from frappe.model.document import Document, LazyChildTable
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
 from frappe.tests import IntegrationTestCase
@@ -36,7 +37,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(d.get("roles"), [])
 
 	def test_load(self):
-		d = frappe.get_doc("DocType", "User")
+		d = DocType.docs.get("User")
 		self.assertEqual(d.doctype, "DocType")
 		self.assertEqual(d.name, "User")
 		self.assertEqual(d.allow_rename, 1)
@@ -45,7 +46,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertTrue(filter(lambda d: d.fieldname == "email", d.fields))
 
 	def test_load_single(self):
-		d = frappe.get_doc("Website Settings", "Website Settings")
+		d = WebsiteSettings.docs.get("Website Settings")
 		self.assertEqual(d.name, "Website Settings")
 		self.assertEqual(d.doctype, "Website Settings")
 		self.assertTrue(d.disable_signup in (0, 1))
@@ -160,7 +161,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertFalse(d.has_value_changed("creation"))
 		self.assertFalse(d.has_value_changed("event_type"))
 
-		user = frappe.get_doc("User", "Administrator")
+		user = User.docs.get("Administrator")
 		user.load_doc_before_save()
 		role1 = user.roles[0]
 		role2 = user.roles[1]
@@ -199,10 +200,10 @@ class TestDocument(IntegrationTestCase):
 		self.assertRaises(frappe.TimestampMismatchError, d2.save)
 
 	def test_conflict_validation_single(self):
-		d1 = frappe.get_doc("Website Settings", "Website Settings")
+		d1 = WebsiteSettings.docs.get("Website Settings")
 		d1.home_page = "test-web-page-1"
 
-		d2 = frappe.get_doc("Website Settings", "Website Settings")
+		d2 = WebsiteSettings.docs.get("Website Settings")
 		d2.home_page = "test-web-page-1"
 
 		d1.save()
@@ -215,7 +216,7 @@ class TestDocument(IntegrationTestCase):
 
 	def test_permission_single(self):
 		frappe.set_user("Guest")
-		d = frappe.get_doc("Website Settings", "Website Settings")
+		d = WebsiteSettings.docs.get("Website Settings")
 		self.assertRaises(frappe.PermissionError, d.save)
 		frappe.set_user("Administrator")
 
@@ -250,13 +251,13 @@ class TestDocument(IntegrationTestCase):
 		self.assertRaises(frappe.ValidationError, d.save)
 
 	def test_db_set_no_query_on_new_docs(self):
-		user = frappe.new_doc("User")
+		user = User.docs.new()
 		user.db_set("user_type", "Magical Wizard")
 		with self.assertQueryCount(0):
 			user.db_set("user_type", "Magical Wizard")
 
 	def test_new_doc_with_fields(self):
-		user = frappe.new_doc("User", first_name="wizard")
+		user = User.docs.new(first_name="wizard")
 		self.assertEqual(user.first_name, "wizard")
 
 	def test_update_after_submit(self):
@@ -374,7 +375,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertIn("0", d.get_formatted("currency"))
 
 	def test_limit_for_get(self):
-		doc = frappe.get_doc("DocType", "DocType")
+		doc = DocType.docs.get("DocType")
 		# assuming DocType has more than 3 Data fields
 		self.assertEqual(len(doc.get("fields", limit=3)), 3)
 
@@ -384,7 +385,7 @@ class TestDocument(IntegrationTestCase):
 	def test_virtual_fields(self):
 		"""Virtual fields are accessible via API and Form views, whenever .as_dict is invoked"""
 		frappe.db.delete("Custom Field", {"dt": "Note", "fieldname": "age"})
-		note = frappe.new_doc("Note")
+		note = Note.docs.new()
 		note.content = "some content"
 		note.title = frappe.generate_hash(length=20)
 		note.insert()
@@ -420,14 +421,14 @@ class TestDocument(IntegrationTestCase):
 				frappe.db.commit()
 
 		with patch_note():
-			doc = frappe.get_last_doc("Note")
+			doc = Note.docs.last()
 			self.assertIsInstance(doc, CustomTestNote)
 			self.assertIsInstance(doc.age, timedelta)
 			self.assertIsNone(doc.as_dict().get("age"))
 			self.assertIsNone(doc.get_valid_dict().get("age"))
 
 		with customize_note(), patch_note():
-			doc = frappe.get_last_doc("Note")
+			doc = Note.docs.last()
 			self.assertIsInstance(doc, CustomTestNote)
 			self.assertIsInstance(doc.age, timedelta)
 			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
@@ -435,20 +436,20 @@ class TestDocument(IntegrationTestCase):
 
 		# has virtual field, but age method is not a property
 		with customize_note(), patch_note(class_=CustomNoteWithoutProperty):
-			doc = frappe.get_last_doc("Note")
+			doc = Note.docs.last()
 			self.assertIsInstance(doc, CustomNoteWithoutProperty)
 			self.assertNotIsInstance(type(doc).age, property)
 			self.assertIsNone(doc.as_dict().get("age"))
 			self.assertIsNone(doc.get_valid_dict().get("age"))
 
 		with customize_note(with_options=True):
-			doc = frappe.get_last_doc("Note")
+			doc = Note.docs.last()
 			self.assertIsInstance(doc, Note)
 			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
 			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
 
 	def test_run_method(self):
-		doc = frappe.get_last_doc("User")
+		doc = User.docs.last()
 
 		# Case 1: Override with a string
 		doc.as_dict = ""
@@ -466,7 +467,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(doc.run_method("as_dict"), "success")
 
 	def test_extend(self):
-		doc = frappe.get_last_doc("User")
+		doc = User.docs.last()
 		self.assertRaises(ValueError, doc.extend, "user_emails", None)
 
 		# allow calling doc.extend with iterable objects
@@ -475,7 +476,7 @@ class TestDocument(IntegrationTestCase):
 		doc.extend("user_emails", (x for x in ()))
 
 	def test_set(self):
-		doc = frappe.get_last_doc("User")
+		doc = User.docs.last()
 
 		# setting None should init a table field to empty list
 		doc.set("user_emails", None)
@@ -499,7 +500,7 @@ class TestDocument(IntegrationTestCase):
 						self.fail(f"Invalid doc hook: {doctype}:{hook}\n{e}")
 
 	def test_realtime_notify(self):
-		todo = frappe.new_doc("ToDo")
+		todo = ToDo.docs.new()
 		todo.description = "this will trigger realtime update"
 		todo.notify_update = Mock()
 		todo.insert()
@@ -525,7 +526,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertRaises(frappe.DoesNotExistError, doc.save)
 
 	def test_validate_from_to_dates(self):
-		doc = frappe.new_doc("Web Page")
+		doc = WebPage.docs.new()
 		doc.start_date = None
 		doc.end_date = None
 		doc.validate_from_to_dates("start_date", "end_date")
@@ -549,7 +550,7 @@ class TestDocument(IntegrationTestCase):
 		)
 
 	def test_db_set_singles(self):
-		c = frappe.get_doc("Contact Us Settings")
+		c = ContactUsSettings.docs.get()
 		key, val = "email_id", "admin1@example.com"
 		c.db_set(key, val)
 		changed_val = frappe.db.get_single_value(c.doctype, key)
@@ -710,12 +711,12 @@ class TestDocumentWebView(IntegrationTestCase):
 class TestLazyDocument(IntegrationTestCase):
 	def test_lazy_documents(self):
 		# Warmup meta etc
-		_ = frappe.get_lazy_doc("User", "Guest")
-		eager_guest: User = frappe.get_doc("User", "Guest")
+		_ = User.docs.get("Guest", lazy=True)
+		eager_guest: User = User.docs.get("Guest")
 
 		# Only one query for parent document
 		with self.assertQueryCount(1):
-			guest: User = frappe.get_lazy_doc("User", "Guest")
+			guest: User = User.docs.get("Guest", lazy=True)
 			self.assertEqual(guest.user_type, "Website User")
 
 		# Only one query for one table access
@@ -738,15 +739,15 @@ class TestLazyDocument(IntegrationTestCase):
 			self.assertIs(guest.roles, guest.get("roles"))
 
 		# things accessing __dict__ by default should be updated too
-		self.assertTrue(frappe.get_lazy_doc("User", "Guest").get("roles"))
+		self.assertTrue(User.docs.get("Guest", lazy=True).get("roles"))
 
 	def test_lazy_doc_efficient_saves(self):
 		# Only touched tables and self should be updated
-		guest = frappe.get_lazy_doc("User", "Guest")
+		guest = User.docs.get("Guest", lazy=True)
 		with self.assertQueryCount(1):
 			guest.db_update_all()
 
-		guest = frappe.get_lazy_doc("User", "Guest")
+		guest = User.docs.get("Guest", lazy=True)
 		_ = guest.roles
 		with self.assertQueryCount(1 + len(guest.roles)):
 			guest.db_update_all()
@@ -758,7 +759,7 @@ class TestLazyDocument(IntegrationTestCase):
 	def test_lazy_magic(self):
 		self.assertIsNone(getattr(LazyChildTable, "__set__", None))
 
-		guest = frappe.get_lazy_doc("User", "Guest")
+		guest = User.docs.get("Guest", lazy=True)
 		# table fields will be populated on first access
 		self.assertIsNone(guest.__dict__.get("roles"))
 		roles = guest.roles
@@ -773,13 +774,13 @@ class TestLazyDocument(IntegrationTestCase):
 			_ = guest.roles
 			self.assertFalse(getter.called)
 
-		guest = frappe.get_lazy_doc("User", "Guest")
+		guest = User.docs.get("Guest", lazy=True)
 		with patch(f"{LazyChildTable.__module__}.{LazyChildTable.__name__}.__get__") as getter:
 			_ = guest.roles
 			self.assertTrue(getter.called)
 
 		# Ensure same method signature
-		eager_guest: User = frappe.get_doc("User", "Guest")
+		eager_guest: User = User.docs.get("Guest")
 		original_class = eager_guest.__class__
 		lazy_class = guest.__class__
 
@@ -795,26 +796,26 @@ class TestLazyDocument(IntegrationTestCase):
 			compare_signatures(original_class, lazy_class, method)
 
 	def test_append_extend_update(self):
-		guest = frappe.get_lazy_doc("User", "Guest")
+		guest = User.docs.get("Guest", lazy=True)
 		_ = guest.append("roles")
 		self.assertEqual(len(guest.roles), 2)
 
-		guest = frappe.get_lazy_doc("User", "Guest")
+		guest = User.docs.get("Guest", lazy=True)
 		_ = guest.extend("roles", [{}])
 		self.assertEqual(len(guest.roles), 2)
 
-		guest = frappe.get_lazy_doc("User", "Guest")
+		guest = User.docs.get("Guest", lazy=True)
 		_ = guest.update({"roles": [{"role": "Administrator"}]})
 		self.assertEqual(len(guest.roles), 1)
 		self.assertEqual(guest.roles[0].role, "Administrator")
 
-		guest = frappe.get_lazy_doc("User", "Guest")
+		guest = User.docs.get("Guest", lazy=True)
 		_ = guest.set("roles", [{"role": "Administrator"}])
 		self.assertEqual(len(guest.roles), 1)
 		self.assertEqual(guest.roles[0].role, "Administrator")
 
 	def test_for_update(self):
-		guest = frappe.get_lazy_doc("User", "Guest", for_update=True)
+		guest = User.docs.get("Guest", for_update=True, lazy=True)
 		self.assertTrue(guest.flags.for_update)
 
 
@@ -1028,7 +1029,7 @@ class TestDoctypeImports(IntegrationTestCase):
 	def test_isinstance_and_issubclass(self):
 		from frappe.doctypes import ToDo as LazyToDo
 
-		todo = frappe.new_doc("ToDo")
+		todo = ToDo.docs.new()
 		self.assertIsInstance(todo, LazyToDo)
 		self.assertTrue(issubclass(ToDo, LazyToDo))
 

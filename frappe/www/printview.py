@@ -11,6 +11,7 @@ import frappe
 from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
+from frappe.doctypes import PrintFormat, PrintSettings
 from frappe.utils import cint, escape_html, strip_html
 from frappe.utils.jinja_globals import is_rtl
 
@@ -131,7 +132,7 @@ def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" 
 		return None
 	else:
 		try:
-			return frappe.get_doc("Print Format", print_format_name)
+			return PrintFormat.docs.get(print_format_name)
 		except frappe.DoesNotExistError:
 			# if old name, return standard!
 			return None
@@ -598,7 +599,7 @@ def has_value(df: "DocField", doc: "Document") -> bool:
 def get_print_style(
 	style: str | None = None, print_format: "PrintFormat" | None = None, for_legacy: bool = False
 ) -> str:
-	print_settings = frappe.get_doc("Print Settings")
+	print_settings = PrintSettings.docs.get()
 
 	if not style:
 		style = print_settings.print_style or ""

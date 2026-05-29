@@ -305,7 +305,7 @@ class AutoRepeat(Document):
 
 		self.set_auto_repeat_period(new_doc)
 
-		auto_repeat_doc = frappe.get_doc("Auto Repeat", self.name)
+		auto_repeat_doc = AutoRepeat.docs.get(self.name)
 
 		# for any action that needs to take place after the recurring document creation
 		# on recurring method of that doctype is triggered
@@ -526,7 +526,7 @@ def make_auto_repeat_entry():
 
 def create_repeated_entries(data):
 	for d in data:
-		doc = frappe.get_doc("Auto Repeat", d.name)
+		doc = AutoRepeat.docs.get(d.name)
 
 		current_date = getdate(today())
 		schedule_date = getdate(doc.next_schedule_date)
@@ -567,7 +567,7 @@ def make_auto_repeat(
 ):
 	if not start_date:
 		start_date = getdate(today())
-	doc = frappe.new_doc("Auto Repeat")
+	doc = AutoRepeat.docs.new()
 	doc.reference_doctype = doctype
 	doc.reference_document = docname
 	doc.frequency = frequency
@@ -609,7 +609,7 @@ def get_auto_repeat_doctypes(
 
 @frappe.whitelist()
 def update_reference(docname: str, reference: str):
-	doc = frappe.get_doc("Auto Repeat", str(docname))
+	doc = AutoRepeat.docs.get(str(docname))
 	doc.check_permission("write")
 	doc.db_set("reference_document", str(reference))
 	return "success"  # backward compatbility
@@ -618,7 +618,7 @@ def update_reference(docname: str, reference: str):
 @frappe.whitelist(methods=["POST"])
 def generate_message_preview(name: str):
 	frappe.has_permission("Auto Repeat", "write", throw=True)
-	auto_repeat = frappe.get_doc("Auto Repeat", str(name))
+	auto_repeat = AutoRepeat.docs.get(str(name))
 	doc = frappe.get_doc(auto_repeat.reference_doctype, auto_repeat.reference_document)
 	doc.check_permission()
 	subject_preview = _("Please add a subject to your email")

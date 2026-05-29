@@ -3,6 +3,7 @@
 import getpass
 
 import frappe
+from frappe.doctypes import PrintSettings, User
 from frappe.email.doctype.notification.notification import install_notification_templates
 from frappe.geo.doctype.country.country import import_country_and_currency
 from frappe.utils import cint
@@ -33,11 +34,11 @@ def after_install():
 	sync_languages()
 
 	# save default print setting
-	print_settings = frappe.get_doc("Print Settings")
+	print_settings = PrintSettings.docs.get()
 	print_settings.save()
 
 	# all roles to admin
-	frappe.get_doc("User", "Administrator").add_roles(*frappe.get_all("Role", pluck="name"))
+	User.docs.get("Administrator").add_roles(*frappe.get_all("Role", pluck="name"))
 
 	# update admin password
 	update_password("Administrator", get_admin_password())

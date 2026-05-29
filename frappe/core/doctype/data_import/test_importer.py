@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.core.doctype.data_import.importer import Importer, build_fields_dict_for_column_matching
+from frappe.doctypes import DataImport
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import format_duration, getdate
@@ -163,7 +164,7 @@ class TestImporter(IntegrationTestCase):
 		table_field.label = original_label  # maintain sanity in test env
 
 	def get_importer(self, doctype, import_file, update=False, use_sniffer=False):
-		data_import = frappe.new_doc("Data Import")
+		data_import = DataImport.docs.new()
 		data_import.import_type = "Insert New Records" if not update else "Update Existing Records"
 		data_import.reference_doctype = doctype
 		data_import.import_file = import_file.file_url
@@ -175,7 +176,7 @@ class TestImporter(IntegrationTestCase):
 		return data_import
 
 	def get_importer_semicolon(self, doctype, import_file, update=False, use_sniffer=False):
-		data_import = frappe.new_doc("Data Import")
+		data_import = DataImport.docs.new()
 		data_import.import_type = "Insert New Records" if not update else "Update Existing Records"
 		data_import.reference_doctype = doctype
 		data_import.import_file = import_file.file_url

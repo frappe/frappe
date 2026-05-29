@@ -10,6 +10,7 @@ from frappe.core.doctype.doctype.doctype import (
 	validate_permissions_for_doctype,
 )
 from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
+from frappe.doctypes import DocType
 from frappe.exceptions import DoesNotExistError
 from frappe.modules.import_file import get_file_path, read_doc_from_file
 from frappe.permissions import (
@@ -186,7 +187,7 @@ def reset(doctype: str):
 		reset_perms(doctype)
 		clear_permissions_cache(doctype)
 
-		doc = frappe.new_doc("DocType")
+		doc = DocType.docs.new()
 		doc.name = doctype
 		standard_perms = frappe.get_all("DocPerm", filters={"parent": doctype}, fields="*")
 		insert_perm_log(
@@ -220,7 +221,7 @@ def get_standard_permissions(doctype: str):
 	frappe.only_for("System Manager")
 	meta = frappe.get_meta(doctype)
 	if meta.custom:
-		doc = frappe.get_doc("DocType", doctype)
+		doc = DocType.docs.get(doctype)
 		return [p.as_dict() for p in doc.permissions]
 	else:
 		# also used to setup permissions via patch

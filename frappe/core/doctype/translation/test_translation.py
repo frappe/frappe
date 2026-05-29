@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe import _
+from frappe.doctypes import Translation
 from frappe.tests import IntegrationTestCase
 
 
@@ -122,7 +123,7 @@ class TestTranslation(IntegrationTestCase):
 
 
 def create_translation(lang, source_string, new_translation, context=None) -> str:
-	doc = frappe.new_doc("Translation")
+	doc = Translation.docs.new()
 	doc.language = lang
 	doc.source_text = source_string
 	doc.translated_text = new_translation

@@ -7,6 +7,7 @@ from typing import Any
 import frappe
 from frappe import _
 from frappe.core.doctype.installed_applications.installed_applications import get_setup_wizard_completed_apps
+from frappe.doctypes import SystemSettings, User
 from frappe.geo.country_info import get_country_info
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import send_translations, set_default_language
@@ -147,7 +148,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 
 def set_missing_values(task):
 	if task and task.get("args"):
-		doc = frappe.get_doc("System Settings")
+		doc = SystemSettings.docs.get()
 		task["args"].update(
 			{
 				"country": doc.country,
@@ -179,7 +180,7 @@ def run_post_setup_complete(args):  # nosemgrep
 	frappe.clear_cache()
 	# HACK: due to race condition sometimes old doc stays in cache.
 	# Remove this when we have reliable cache reset for docs
-	frappe.get_cached_doc("System Settings") and frappe.get_doc("System Settings")
+	SystemSettings.docs.get(cached=True) and SystemSettings.docs.get()
 
 
 def run_setup_success(args):  # nosemgrep
@@ -263,7 +264,7 @@ def update_system_settings(args):  # nosemgrep
 	elif number_format == "#,###":
 		number_format = "#,###.##"
 
-	system_settings = frappe.get_doc("System Settings", "System Settings")
+	system_settings = SystemSettings.docs.get("System Settings")
 	system_settings.update(
 		{
 			"country": args.get("country"),
@@ -307,7 +308,7 @@ def create_or_update_user(args):  # nosemgrep
 	else:
 		_mute_emails, frappe.flags.mute_emails = frappe.flags.mute_emails, True
 
-		user = frappe.new_doc("User")
+		user = User.docs.new()
 		user.update(
 			{
 				"email": email,
@@ -362,7 +363,7 @@ def sanitize_input(args):
 
 
 def add_all_roles_to(name):
-	user = frappe.get_doc("User", name)
+	user = User.docs.get(name)
 	user.append_roles(*_get_default_roles())
 	user.save()
 

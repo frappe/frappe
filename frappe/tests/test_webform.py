@@ -1,4 +1,5 @@
 import frappe
+from frappe.doctypes import WebForm
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response
@@ -7,7 +8,7 @@ from frappe.www.list import get_list_context
 
 class TestWebform(IntegrationTestCase):
 	def test_webform_publish_functionality(self):
-		request_data = frappe.get_doc("Web Form", "request-data")
+		request_data = WebForm.docs.get("request-data")
 		# publish webform
 		request_data.published = True
 		request_data.save()

@@ -10,6 +10,7 @@ import frappe
 import frappe.email.smtp
 from frappe import _
 from frappe.database.utils import commit_after_response
+from frappe.doctypes import Communication, File
 from frappe.email.email_body import get_message_id
 from frappe.utils import (
 	cint,
@@ -299,7 +300,7 @@ def add_attachments(name: str, attachments: Iterable[str | dict]) -> None:
 			}
 		)
 
-		_file = frappe.new_doc("File")
+		_file = File.docs.new()
 		_file.update(file_args)
 		_file.save(ignore_permissions=True)
 
@@ -335,7 +336,7 @@ def update_communication_as_read(name):
 
 @frappe.whitelist()
 def undo_email_send(communication_name: str):
-	communication = frappe.get_doc("Communication", communication_name)
+	communication = Communication.docs.get(communication_name)
 
 	if communication.owner != frappe.session.user:
 		frappe.throw(_("You are not authorized to undo this email"))

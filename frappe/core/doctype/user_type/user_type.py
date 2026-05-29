@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.core.doctype.custom_docperm.custom_docperm import update_custom_docperm
+from frappe.doctypes import User, UserPermission
 from frappe.model.document import Document
 from frappe.permissions import add_permission, add_user_permission
 from frappe.utils import get_link_to_form
@@ -89,7 +90,7 @@ class UserType(Document):
 
 	def update_users(self):
 		for row in frappe.get_all("User", filters={"user_type": self.name}):
-			user = frappe.get_cached_doc("User", row.name)
+			user = User.docs.get(row.name, cached=True)
 			self.update_roles_in_user(user)
 			self.update_modules_in_user(user)
 			user.update_children()
@@ -307,11 +308,11 @@ def apply_permissions_for_non_standard_user_type(doc, method=None):
 			)
 
 			if not perm_data:
-				user_doc = frappe.get_cached_doc("User", doc.get(data[1]))
+				user_doc = User.docs.get(doc.get(data[1]), cached=True)
 				user_doc.set_roles_and_modules_based_on_user_type()
 				user_doc.update_children()
 				add_user_permission(doc.doctype, doc.name, doc.get(data[1]))
 			else:
-				user_perm = frappe.get_doc("User Permission", perm_data[0])
+				user_perm = UserPermission.docs.get(perm_data[0])
 				user_perm.user = doc.get(data[1])
 				user_perm.save(ignore_permissions=True)

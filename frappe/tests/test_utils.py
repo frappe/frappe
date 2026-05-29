@@ -17,6 +17,7 @@ from hypothesis import strategies as st
 from PIL import Image
 
 import frappe
+from frappe.doctypes import DocType, Report, SystemSettings, UTMCampaign, UTMMedium, UTMSource
 from frappe.installer import parse_app_name
 from frappe.model.document import Document
 from frappe.tests import IntegrationTestCase, MockedRequestTestCase, UnitTestCase
@@ -993,7 +994,7 @@ class TestResponse(IntegrationTestCase):
 				Decimal("29.21"),
 			],
 			"doc": [
-				frappe.get_doc("System Settings"),
+				SystemSettings.docs.get(),
 			],
 			"iter": [
 				{1, 2, 3},
@@ -1321,7 +1322,7 @@ class TestTypingValidations(IntegrationTestCase):
 				fn(*args, **kwargs)
 
 	def test_validate_whitelisted_doc_method(self):
-		report = frappe.get_last_doc("Report")
+		report = Report.docs.last()
 
 		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
 			report.toggle_disable(["disable"])
@@ -1588,7 +1589,7 @@ class TestArgumentTypingValidations(IntegrationTestCase):
 		with self.assertRaises(FrappeTypeError):
 			test_sequence("a", [{"a": 1}], True)
 
-		doctype = frappe.get_last_doc("DocType")
+		doctype = DocType.docs.last()
 		self.assertEqual(test_doctypes(doctype), doctype)
 		self.assertEqual(test_doctypes(doctype.as_dict()), doctype.as_dict())
 		with self.assertRaises(FrappeTypeError):
@@ -1677,9 +1678,9 @@ class TestURLTrackers(IntegrationTestCase):
 		result = map_trackers(url_trackers, create=True)
 
 		expected = {
-			"utm_source": frappe.get_doc("UTM Source", "test_source"),
-			"utm_medium": frappe.get_doc("UTM Medium", "test_medium"),
-			"utm_campaign": frappe.get_doc("UTM Campaign", "test_campaign"),
+			"utm_source": UTMSource.docs.get("test_source"),
+			"utm_medium": UTMMedium.docs.get("test_medium"),
+			"utm_campaign": UTMCampaign.docs.get("test_campaign"),
 			"utm_content": "test_content",
 		}
 		self.assertDocumentEqual(result["utm_source"], expected["utm_source"])

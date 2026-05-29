@@ -6,6 +6,7 @@ import json
 import frappe
 from frappe.core.doctype.doctype.doctype import InvalidFieldNameError
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.doctypes import CustomizeForm, DocType
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records_for_doctype
 
@@ -42,7 +43,7 @@ class TestCustomizeForm(IntegrationTestCase):
 		frappe.clear_cache(doctype="Event")
 
 	def get_customize_form(self, doctype=None):
-		d = frappe.get_doc("Customize Form")
+		d = CustomizeForm.docs.get()
 		if doctype:
 			d.doc_type = doctype
 		d.run_method("fetch_to_customize")
@@ -60,7 +61,7 @@ class TestCustomizeForm(IntegrationTestCase):
 		d = self.get_customize_form("Event")
 		self.assertEqual(d.doc_type, "Event")
 
-		self.assertEqual(len(d.get("fields")), len(frappe.get_doc("DocType", d.doc_type).fields) + 1)
+		self.assertEqual(len(d.get("fields")), len(DocType.docs.get(d.doc_type).fields) + 1)
 		self.assertEqual(d.get("fields")[-1].fieldname, self.field.fieldname)
 		self.assertEqual(d.get("fields", {"fieldname": "event_type"})[0].in_list_view, 1)
 
@@ -178,7 +179,7 @@ class TestCustomizeForm(IntegrationTestCase):
 		make_test_records_for_doctype("Custom Field")
 
 	def test_reset_to_defaults(self):
-		d = frappe.get_doc("Customize Form")
+		d = CustomizeForm.docs.get()
 		d.doc_type = "Event"
 		d.run_method("reset_to_defaults")
 

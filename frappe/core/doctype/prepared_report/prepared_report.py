@@ -15,6 +15,7 @@ from frappe import _
 from frappe.database.utils import dangerously_reconnect_on_connection_abort
 from frappe.desk.form.load import get_attachments
 from frappe.desk.query_report import generate_report_result
+from frappe.doctypes import File, Report, RQJob
 from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import add_to_date, now
@@ -74,7 +75,7 @@ class PreparedReport(Document):
 			return
 
 		with suppress(Exception):
-			job = frappe.get_doc("RQ Job", self.job_id)
+			job = RQJob.docs.get(self.job_id)
 			job.stop_job() if self.status == "Started" else job.delete()
 
 	def after_insert(self):
@@ -106,7 +107,7 @@ class PreparedReport(Document):
 				attachment = f
 				break
 
-		attached_file = frappe.get_doc("File", attachment.name)
+		attached_file = File.docs.get(attachment.name)
 		file_to_send = None
 		if is_format_json:
 			file_to_send = gzip.decompress(attached_file.get_content())
@@ -121,8 +122,8 @@ class PreparedReport(Document):
 def generate_report(prepared_report):
 	update_job_id(prepared_report)
 
-	instance: PreparedReport = frappe.get_doc("Prepared Report", prepared_report)
-	report = frappe.get_doc("Report", instance.report_name)
+	instance: PreparedReport = PreparedReport.docs.get(prepared_report)
+	report = Report.docs.get(instance.report_name)
 
 	add_data_to_monitor(report=instance.report_name)
 
@@ -132,7 +133,7 @@ def generate_report(prepared_report):
 		if report.report_type == "Custom Report":
 			custom_report_doc = report
 			reference_report = custom_report_doc.reference_report
-			report = frappe.get_doc("Report", reference_report)
+			report = Report.docs.get(reference_report)
 			if custom_report_doc.json:
 				data = json.loads(custom_report_doc.json)
 				if data:
@@ -217,7 +218,7 @@ def make_prepared_report(report_name: str, filters: dict[str, Any] | str | list 
 @frappe.whitelist()
 def stop_prepared_report(report_name: str):
 	"""Stop a running Prepared Report job."""
-	prepared_report = frappe.get_doc("Prepared Report", report_name)
+	prepared_report = PreparedReport.docs.get(report_name)
 	prepared_report.check_permission("write")
 
 	job_id = prepared_report.job_id
@@ -291,7 +292,7 @@ def expire_stalled_report():
 def delete_prepared_reports(reports: str | list[dict[str, Any]]):
 	reports = frappe.parse_json(reports)
 	for report in reports:
-		prepared_report = frappe.get_doc("Prepared Report", report["name"])
+		prepared_report = PreparedReport.docs.get(report["name"])
 		if prepared_report.has_permission():
 			prepared_report.delete(ignore_permissions=True, delete_permanently=True)
 
@@ -321,7 +322,7 @@ def create_json_gz_file(data, dt, dn, report_name):
 
 @frappe.whitelist()
 def download_attachment(dn: str, format: str):
-	pr = frappe.get_doc("Prepared Report", dn)
+	pr = PreparedReport.docs.get(dn)
 	if not pr.has_permission("read"):
 		frappe.throw(frappe._("Cannot Download Report due to insufficient permissions"))
 
@@ -377,7 +378,7 @@ def convert_json_to_csv(prepared_report_name):
 	import csv
 	from io import StringIO
 
-	doc = frappe.get_doc("Prepared Report", prepared_report_name)
+	doc = PreparedReport.docs.get(prepared_report_name)
 	json_content, file_name = doc.get_prepared_data(with_file_name=True)
 
 	if not json_content:
