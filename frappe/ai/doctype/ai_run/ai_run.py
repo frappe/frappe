@@ -23,6 +23,7 @@ class RunStarted:
 	"""Streaming event: announces this run's persistent name as the first frame."""
 
 	name: str
+	session: str
 
 
 @dataclass
@@ -163,7 +164,7 @@ def stream_with_persistence(
 	"""
 	from frappe.ai.agent import Done
 
-	yield RunStarted(name=run.name)
+	yield RunStarted(name=run.name, session=run.session)
 
 	final_result: RunResult | None = None
 	persisted = False
