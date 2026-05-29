@@ -34,31 +34,202 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   test:
-    name: Tests
-    uses: ./.github/workflows/_base-server-tests.yml
-    with:
-      enable-postgres: ${{ needs.checkrun.outputs.run_postgres == 'true' }} # This enables PostgreSQL to run tests
-      enable-sqlite: false  # This will test against both MariaDB and SQLite if enabled
-      parallel-runs: 2
-      fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
+    name: Integration
     needs: checkrun
-    secrets: inherit
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NODE_ENV: "production"
+      # noisy 3rd party library warnings
+      PYTHONWARNINGS: "module,ignore:::babel.messages.extract"
+      DB_ROOT_PASSWORD: db_root
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Run against postgres too only when roulette decides it's needed
+        db: ${{ fromJson(needs.checkrun.outputs.run_postgres == 'true' && '["mariadb", "postgres"]' || '["mariadb"]') }}
+        index: [1, 2]
+    services:
+      postgres:
+        image: postgres:18.0
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: travis
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+      mariadb:
+        image: mariadb:11.8
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
+        env:
+          MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+      smtp_server:
+        image: rnwood/smtp4dev:3.7.1
+        ports:
+          - 2525:25
+          - 3000:80
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
+        name: Environment Setup
+        with:
+          python-version: '3.14'
+          node-version: 24
+          disable-socketio: true
+          db-root-password: ${{ env.DB_ROOT_PASSWORD }}
+          db: ${{ matrix.db }}
+        env:
+          PYTHONWARNINGS: "ignore:Unimplemented abstract methods {'locate_file'}:DeprecationWarning"
+
+      - name: Run Tests
+        run: |
+          cd sites && ../env/bin/python3 ../apps/frappe/.github/helper/ci.py
+        env:
+          DB: ${{ matrix.db }}
+          # consumed by bench run-parallel-tests
+          CAPTURE_COVERAGE: true
+          BUILD_NUMBER: ${{ matrix.index }}
+          TOTAL_BUILDS: 2
+          FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
+
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-${{ matrix.db }}-${{ matrix.index }}
+          path: ./sites/*coverage*.xml
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
+
+      - name: Show bench output
+        if: ${{ always() }}
+        run: |
+          cat bench_start.log || true
+          cd logs
+          for f in ${GITHUB_WORKSPACE}/*.log*; do
+            echo "Printing log: $f";
+            cat $f
+          done
 
   migrate:
     name: Migration
     needs: checkrun
-    uses: ./.github/workflows/_base-migration.yml
-    with:
-      db-artifact-url: https://frappe.io/files/v14-frappe.sql.gz
-      python-version: '3.14'
-      node-version: 24
-      fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PYTHONWARNINGS: "ignore"
+      DB_ROOT_PASSWORD: db_root
+    services:
+      mariadb:
+        image: mariadb:11.8
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
+        env:
+          MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
+        name: Environment Setup
+        with:
+          python-version: '3.14'
+          node-version: 24
+          disable-socketio: true
+          disable-web: true
+          db-root-password: ${{ env.DB_ROOT_PASSWORD }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: |
+            3.11
+            3.13
+            3.14
+
+      - name: Download database artifact
+        env:
+          DB_ARTIFACT_URL: https://frappe.io/files/v14-frappe.sql.gz
+        run: |
+          wget "$DB_ARTIFACT_URL"
+          bench --site test_site --force restore ${GITHUB_WORKSPACE}/$(basename "$DB_ARTIFACT_URL")
+
+          function update_to_version() {
+              version="$1"
+              python_version="${2:-3.14}"
+
+              if [ -z "$version" ]; then
+                  ref="${{ github.sha }}"
+              else
+                  ref="version-$version-hotfix"
+              fi
+
+              echo "Updating to $ref"
+
+              git -C apps/frappe fetch --depth 1 upstream "$ref":"$ref"
+              git -C apps/frappe checkout --quiet --force "$ref"
+
+              if pgrep honcho > /dev/null; then
+                  pgrep honcho | xargs kill
+                  sleep 10
+              fi
+
+              bench migrate-env "python$python_version"
+
+              bench setup requirements
+              bench start &>> ${GITHUB_WORKSPACE}/bench_start.log &
+              bench --site test_site migrate
+          }
+
+          declare -f update_to_version > "$RUNNER_TEMP/migrate"
+
+      - name: Update to v15
+        run: |
+          source $RUNNER_TEMP/migrate
+          update_to_version 15 3.13
+          exit $?
+
+      - name: Update to v16
+        run: |
+          source $RUNNER_TEMP/migrate
+          update_to_version 16
+          exit $?
+
+      - name: Update to last commit
+        run: |
+          source $RUNNER_TEMP/migrate
+          update_to_version
+          exit $?
+          bench --site test_site execute frappe.tests.utils.check_orpahned_doctypes
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
+
+      - name: Show bench output
+        if: ${{ always() }}
+        run: |
+          cat bench_start.log || true
+          cd logs
+          for f in ${GITHUB_WORKSPACE}/*.log*; do
+            echo "Printing log: $f";
+            cat $f
+          done
 
   coverage:
     name: Coverage Wrap Up
     needs: [test, checkrun]
-    if: needs.checkrun.outputs.build == 'strawberry'
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
     runs-on: ubuntu-latest
     steps:
       - name: Clone
@@ -73,3 +244,26 @@ jobs:
           fail_ci_if_error: true
           verbose: true
           flags: server
+
+  # TIP: Require this single check in branch protection, e.g. Server / Success
+  success:
+    name: Success
+    needs: [test, migrate]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tests '${{ needs.test.result }}' / Migration '${{ needs.migrate.result }}'
+        shell: python
+        run: |
+          stati = [
+            '${{ needs.test.result }}',
+            '${{ needs.migrate.result }}',
+          ]
+
+          nopass = ["failure", "cancelled"]
+          dopass = ["success", "skipped"]
+          if any(r in nopass for r in stati):
+            exit(1)
+          if all(r in dopass for r in stati):
+            exit(0)
+          exit(1)
