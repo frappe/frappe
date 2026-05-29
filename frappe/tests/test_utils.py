@@ -1384,10 +1384,6 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(flt(-2.25, 1, rounding_method=rounding_method), -2.2)
 		self.assertEqual(flt(-3.35, 1, rounding_method=rounding_method), -3.4)
 
-<<<<<<< HEAD
-	@change_settings("System Settings", {"rounding_method": "Banker's Rounding"})
-	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))
-=======
 		# Sign-symmetry regression.
 		for value, expected in [
 			(647.325, 647.32),
@@ -1398,12 +1394,8 @@ class TestRounding(FrappeTestCase):
 			self.assertEqual(flt(value, 2, rounding_method=rounding_method), expected)
 			self.assertEqual(flt(-value, 2, rounding_method=rounding_method), -expected)
 
-	@IntegrationTestCase.change_settings("System Settings", {"rounding_method": "Banker's Rounding"})
-	@given(
-		st.decimals(min_value=-1e8, max_value=1e8),
-		st.integers(min_value=-2, max_value=4),
-	)
->>>>>>> a775cf37db (fix(rounding): improve Banker's rounding implementation for negative numbers (#39562))
+	@change_settings("System Settings", {"rounding_method": "Banker's Rounding"})
+	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))
 	def test_bankers_rounding_property(self, number, precision):
 		self.assertEqual(Decimal(str(flt(float(number), precision))), round(number, precision))
 
