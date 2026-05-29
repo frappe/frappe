@@ -131,11 +131,22 @@ runs:
 
   - shell: bash -e {0}
     run: |
-      # Install dev/test dependencies
+      # Install dev/test dependencies (python and node deps are independent,
+      # so install them concurrently)
       start_time=$(date +%s)
-      bench setup requirements --dev
+
+      bench setup requirements --dev &
+      dev_pid=$!
+
+      node_pid=""
       if [ "${{ inputs.build-assets }}" == "true" ]; then
-        bench setup requirements --node
+        bench setup requirements --node &
+        node_pid=$!
+      fi
+
+      wait "$dev_pid"
+      if [ -n "$node_pid" ]; then
+        wait "$node_pid"
       fi
 
       end_time=$(date +%s)
