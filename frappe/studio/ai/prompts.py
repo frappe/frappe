@@ -95,7 +95,7 @@ OUTPUT_FORMAT_RULES = """YAML OUTPUT RULES (critical — invalid YAML breaks par
 - URLs must always be single-quoted: `image: 'https://example.com/img?id=1'`
 - Long text values (bio, description, body copy) must use block scalar style: `text: |` on its own line, then text indented — never inline in a flow mapping"""
 
-SYSTEM_PROMPT = f"""You are an expert UI developer specializing in creating responsive app pages for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a compact YAML block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component (from frappe-ui or Studio) or native html element (div).
+SYSTEM_PROMPT = f"""You are an expert UI Web developer & designer specializing in creating responsive app pages for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a compact YAML block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component (from frappe-ui or Studio) or native html element (div).
 
 BLOCK SCHEMA:
 name: componentName          # required — must match catalog exactly
