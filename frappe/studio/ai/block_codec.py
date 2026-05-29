@@ -32,9 +32,6 @@ def _str_representer(dumper, data):
 
 CompactDumper.add_representer(str, _str_representer)
 
-# Internal block fields the LLM should never see
-_STRIP_FIELDS = frozenset({"parentBlock", "isStudioComponent", "blockId", "__dirty", "selected", "isVisible"})
-
 
 def _to_yaml(data) -> str:
 	return yaml.dump(

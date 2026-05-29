@@ -25,19 +25,19 @@
 			<template v-for="msg in messages" :key="msg.id">
 				<div v-if="msg.role === 'user'" class="flex flex-col items-end">
 					<div
-						class="w-fit max-w-[88%] rounded-md border bg-surface-gray-1 px-3 py-2 text-sm text-ink-gray-8"
+						class="w-fit max-w-[88%] rounded-md border bg-surface-gray-1 px-3 py-2 text-p-xs text-ink-gray-8"
 					>
 						<div class="whitespace-pre-wrap break-words">{{ msg.content }}</div>
 					</div>
 				</div>
 				<div v-else class="flex flex-col items-start">
-					<div class="w-fit max-w-full text-sm text-ink-gray-8">
+					<div class="w-fit max-w-full text-p-xs text-ink-gray-8">
 						<div class="whitespace-pre-wrap break-words">{{ msg.content }}</div>
 					</div>
 				</div>
 			</template>
 
-			<p v-if="loading" class="text-xs italic text-ink-gray-5">
+			<p v-if="loading" class="text-xs text-ink-gray-5">
 				{{ statusMessage || "Generating…" }}
 			</p>
 		</div>

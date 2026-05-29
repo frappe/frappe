@@ -105,8 +105,9 @@ CSS VARIABLE RULES:
 - Button: use size prop ("sm"|"md"|"lg"|"xl"|"2xl") for sizing — DO NOT set height in style. Keep `theme` gray or default unless prompted. Only use colored themes (blue, red, green) when semantically meaningful: destructive actions → red, success/confirmed → green.
 - Avoid applying visual style (color, backgroundColor, borderColor, fontSize) to frappe-ui components — their props handle this. Only use style on `container` components for layout (width, flex, margin, etc.)."""
 
-OUTPUT_FORMAT_RULES = """YAML STRING QUOTING (critical — unquoted special characters break parsing):
-- Critical: Return ONLY a valid and compact YAML object. No markdown, no explanations.
+OUTPUT_FORMAT_RULES = """YAML OUTPUT RULES (critical — invalid YAML breaks parsing):
+- Return ONLY a valid and compact YAML object. No markdown fences, no explanations.
+- NEVER put a bare `-` on its own line. List items must always start with `- key: value` on the SAME line as the dash:
 - Always double-quote strings that contain any of: apostrophe/single-quote, `?`, `#`, `&`, `:`, `[`, `]`, `{`, `}`
 - URLs must always be double-quoted: `image: "https://example.com/img?id=1"` NOT `image: https://example.com/img?id=1`
 - Text with apostrophes must use double quotes: `text: "I'm a designer"` NOT `text: 'I'm a designer'`
