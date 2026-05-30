@@ -1,52 +1,5 @@
+import json
 import re
-
-import yaml
-
-
-class CompactDumper(yaml.Dumper):
-	"""Minimal-whitespace YAML dumper: indentless lists, flow style for flat dicts.
-	Two optimizations over the default Dumper:
-	1. indentless=True — removes the extra 2-space indent on list items inside
-	   mappings, which compounds in deeply nested block trees.
-	2. Flow style for flat dicts — turns multi-line style blocks into single-line
-	   {k: v, k: v} inline mappings, saving ~60% of style-dict tokens.
-	"""
-
-	def increase_indent(self, flow=False, indentless=False):
-		return super().increase_indent(flow=flow, indentless=True)
-
-	def represent_mapping(self, tag, mapping, flow_style=None):
-		if flow_style is None:
-			flow_style = all(not isinstance(v, (dict | list)) for v in mapping.values())
-		return super().represent_mapping(tag, mapping, flow_style=flow_style)
-
-
-def _str_representer(dumper, data):
-	"""Use plain scalars where safe; single-quote only when the value contains
-	characters that would confuse the YAML parser."""
-	unsafe = (":", "{", "}", "[", "]", "#", "&", "*", "!", "|", ">", "'", '"', "?", "\n")
-	if any(c in data for c in unsafe):
-		return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="'")
-	return dumper.represent_scalar("tag:yaml.org,2002:str", data)
-
-
-CompactDumper.add_representer(str, _str_representer)
-
-
-def _to_yaml(data) -> str:
-	return yaml.dump(
-		data,
-		Dumper=CompactDumper,
-		sort_keys=False,
-		default_flow_style=False,
-		allow_unicode=True,
-		width=1000,
-	)
-
-
-def _strip_fences(text: str) -> str:
-	text = re.sub(r"^```(?:yaml|json)?\s*\n?", "", text.strip())
-	return re.sub(r"\n?```\s*$", "", text).strip()
 
 
 class BlockCodec:
@@ -126,7 +79,7 @@ class BlockCodec:
 	@staticmethod
 	def parse_blocks(content: str) -> dict:
 		cleaned = _strip_fences(content)
-		parsed = yaml.safe_load(cleaned)
+		parsed = _loads_lenient(cleaned)
 
 		if isinstance(parsed, list):
 			block = parsed[0] if parsed else {}
@@ -144,10 +97,8 @@ class BlockCodec:
 		return BlockCodec.expand(block)
 
 	@staticmethod
-	def strip_context(block_json: str, task_type: str = "full") -> str:
-		"""Compress a block to YAML for LLM context, extracting relevant subset."""
-		import json
-
+	def strip_context(block_json: str) -> str:
+		"""Compress a block to compact JSON for LLM context, extracting relevant subset."""
 		try:
 			data = json.loads(block_json)
 		except (json.JSONDecodeError, TypeError):
@@ -158,16 +109,7 @@ class BlockCodec:
 		if not isinstance(data, dict):
 			return block_json
 
-		if task_type == "text_only":
-			texts = []
-			_collect_text(data, texts)
-			return "\n".join(texts)
-
-		if task_type == "image_attrs":
-			props = data.get("componentProps") or {}
-			return _to_yaml({"src": props.get("image", ""), "alt": props.get("alt", "")})
-
-		return _to_yaml([BlockCodec.compress(data)])
+		return _to_json(BlockCodec.compress(data))
 
 
 def _collect_text(block: dict, results: list):
@@ -182,3 +124,104 @@ def _collect_text(block: dict, results: list):
 				slot.get("slotContent", []) if isinstance(slot.get("slotContent"), list) else []
 			):
 				_collect_text(slot_child, results)
+
+
+def _to_json(data) -> str:
+	"""Compact, token-efficient JSON: no whitespace, unicode kept as-is."""
+	return json.dumps(data, separators=(",", ":"), ensure_ascii=False)
+
+
+def _strip_fences(text: str) -> str:
+	text = re.sub(r"^```(?:json|yaml)?\s*\n?", "", text.strip())
+	return re.sub(r"\n?```\s*$", "", text).strip()
+
+
+def _escape_inner_quotes(text: str) -> str:
+	"""Escape stray double-quotes inside string values. A `"` only legitimately
+	ends a string when the next non-space char is structural (`,` `}` `]` `:` or
+	EOF); otherwise it is unescaped content (e.g. He said "hi") and we escape it."""
+	out = []
+	i, n = 0, len(text)
+	in_string = False
+	while i < n:
+		ch = text[i]
+		if not in_string:
+			out.append(ch)
+			if ch == '"':
+				in_string = True
+			i += 1
+			continue
+		if ch == "\\":  # keep existing escape pair intact
+			out.append(ch)
+			if i + 1 < n:
+				out.append(text[i + 1])
+				i += 2
+			else:
+				i += 1
+			continue
+		if ch == '"':
+			j = i + 1
+			while j < n and text[j] in " \t\r\n":
+				j += 1
+			nxt = text[j] if j < n else ""
+			if nxt in (",", "}", "]", ":", ""):
+				out.append(ch)
+				in_string = False
+			else:
+				out.append('\\"')
+			i += 1
+			continue
+		out.append(ch)
+		i += 1
+	return "".join(out)
+
+
+def _close_open_structures(text: str) -> str:
+	"""Best-effort completion of a truncated JSON tail: close an unterminated
+	string, drop a dangling trailing comma or `"key":`, and close open brackets."""
+	closers = []
+	in_string = escaped = False
+	for ch in text:
+		if in_string:
+			if escaped:
+				escaped = False
+			elif ch == "\\":
+				escaped = True
+			elif ch == '"':
+				in_string = False
+			continue
+		if ch == '"':
+			in_string = True
+		elif ch == "{":
+			closers.append("}")
+		elif ch == "[":
+			closers.append("]")
+		elif ch in "}]" and closers:
+			closers.pop()
+
+	result = text + ('"' if in_string else "")
+	prev = None
+	while prev != result:
+		prev = result
+		result = result.rstrip()
+		if result.endswith(","):
+			result = result[:-1]
+		else:
+			result = re.sub(r',?\s*"(?:[^"\\]|\\.)*"\s*:$', "", result)
+	return result + "".join(reversed(closers))
+
+
+def _repair_json(text: str) -> str:
+	text = _escape_inner_quotes(text)
+	text = re.sub(r",\s*([}\]])", r"\1", text)  # trailing commas before } or ]
+	return _close_open_structures(text)
+
+
+def _loads_lenient(text: str):
+	"""Parse JSON, tolerating the common ways LLMs emit slightly-invalid JSON:
+	raw control chars (strict=False), unescaped inner quotes, trailing commas,
+	and truncation. Falls back to a repair pass only when strict parsing fails."""
+	try:
+		return json.loads(text, strict=False)
+	except json.JSONDecodeError:
+		return json.loads(_repair_json(text), strict=False)

@@ -34,10 +34,10 @@ def _emit(event_suffix: str, page_id: str, user: str, prefix: str = "ai_generati
 
 
 def _progress_stage(content: str) -> str | None:
-	"""Extract a human-readable stage from the tail of a partial YAML stream."""
-	lookback = content[-400:]
+	"""Extract a human-readable stage from the tail of a partial JSON stream."""
+	lookback = content[-400:].replace(" ", "")
 	for section_type in ("section", "nav", "header", "footer"):
-		if lookback.rfind(f"label: {section_type}") != -1 or lookback.rfind(f"name: {section_type}") != -1:
+		if f'"label":"{section_type}' in lookback or f'"name":"{section_type}' in lookback:
 			return f"Building {section_type}…"
 	return None
 

@@ -124,7 +124,7 @@ import { toast } from "vue-sonner"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { getBlockInstance, getBlockString } from "@/utils/serializer"
-import { tryParseYamlBlock } from "@/utils/blockCodec"
+import { tryParseJsonBlock } from "@/utils/blockCodec"
 import { throttle } from "@/utils/helpers"
 import type Block from "@/utils/block"
 import { studioSettings } from "@/data/studioSettings"
@@ -211,7 +211,7 @@ function onStream(data: any) {
 }
 
 const renderStreamedBlock = throttle(() => {
-	const block = tryParseYamlBlock(streamBuffer.value)
+	const block = tryParseJsonBlock(streamBuffer.value)
 	if (block) {
 		const rootBlock = getBlockInstance(block)
 		store.pageBlocks = [rootBlock]
@@ -255,7 +255,7 @@ function onModifyProgress(data: any) {
 function onModifyStream(data: any) {
 	canvasStore.isAIStreaming = true
 	modifyStreamBuffer.value += data.chunk || ""
-	const block = tryParseYamlBlock(modifyStreamBuffer.value)
+	const block = tryParseJsonBlock(modifyStreamBuffer.value)
 	if (block) {
 		replaceBlockInTree(data.component_id, getBlockInstance(block))
 	}

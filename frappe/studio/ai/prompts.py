@@ -86,55 +86,35 @@ CSS VARIABLE RULES:
 - Button: use size prop ("sm"|"md"|"lg"|"xl"|"2xl") for sizing — DO NOT set height in style. Keep `theme` gray or default unless prompted. Only use colored themes (blue, red, green) when semantically meaningful: destructive actions → red, success/confirmed → green.
 - Avoid applying visual style (color, backgroundColor, borderColor, fontSize) to frappe-ui components — their props handle this. Only use style on `container` components for layout (width, flex, margin, etc.)."""
 
-OUTPUT_FORMAT_RULES = """YAML OUTPUT RULES (critical — invalid YAML breaks parsing):
-- Return ONLY a valid and compact YAML object. No markdown fences, no explanations.
-- NEVER put a bare `-` on its own line. List items must always start with `- key: value` on the SAME line as the dash.
-- ALL human-readable text in props (text, label, placeholder, description, title, etc.) MUST be single-quoted:
-- Style property identifiers (flex, column, center, 100%, etc.) do NOT need quoting.
-- Values containing `?`, `#`, `&`, `[`, `]`, `{`, `}`, or `:` MUST be quoted even in style dicts.
-- URLs must always be single-quoted: `image: 'https://example.com/img?id=1'`
-- Long text values (bio, description, body copy) must use block scalar style: `text: |` on its own line, then text indented — never inline in a flow mapping"""
+OUTPUT_FORMAT_RULES = """JSON OUTPUT RULES (critical — invalid JSON breaks parsing):
+- Return ONLY a single valid, minified JSON object. No markdown fences, no comments, no explanations before or after.
+- Use double quotes for every key and every string value. Single quotes are NOT valid JSON.
+- No trailing commas. No bare/unquoted values except numbers, true, false, and null.
+- Omit keys whose value is null, empty string, empty object, or empty array.
+"""
 
-SYSTEM_PROMPT = f"""You are an expert UI Web developer & designer specializing in creating responsive app pages for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a compact YAML block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component (from frappe-ui or Studio) or native html element (div).
+SYSTEM_PROMPT = f"""You are an expert UI Web developer & designer specializing in creating responsive app pages for Frappe Studio, a Vue.js-based low-code app builder. Your task is to generate a compact JSON block tree that Studio will render as a live Vue application. Each block in the tree maps to a Vue component (from frappe-ui or Studio) or native html element (div).
 
-BLOCK SCHEMA:
-name: componentName          # required — must match catalog exactly
-originalElement: div|body    # required for container and root blocks
-label: descriptive name
-props:                        # component-specific props (flow style preferred)
-  key: value
-style:                        # panel-editable CSS (see STYLE PROPERTY ROUTING below)
-  key: value
-rstyle:                       # raw CSS for properties not in the style panel
-  key: value
-mstyle:                       # mobile style overrides
-  key: value
-tstyle:                       # tablet style overrides
-  key: value
-slots:                        # componentSlots for frappe-ui components that hold child content
-  slotName: ...
-c:                            # children list
-- name: ...
+BLOCK SCHEMA (each block is a JSON object with these optional keys):
+- "name": componentName        — required, must match the catalog exactly
+- "originalElement": "div"|"body" — required for container and root blocks
+- "label": descriptive name
+- "props": {{ }}                  — component-specific props
+- "style": {{ }}                  — panel-editable CSS (see STYLE PROPERTY ROUTING below)
+- "rstyle": {{ }}                 — raw CSS for properties not in the style panel
+- "mstyle": {{ }}                 — mobile style overrides
+- "tstyle": {{ }}                 — tablet style overrides
+- "slots": {{ }}                  — componentSlots for frappe-ui components that hold child content
+- "c": [ ]                       — children list (array of block objects)
 
-ROOT BLOCK:
-Always start with:
-name: div
-originalElement: body
-label: body
-style: {{display: flex, flexDirection: column, flexShrink: 0, width: inherit, overflowX: hidden, height: 100%}}
-c:
-- ...
+ROOT BLOCK — always start with:
+{{"name":"div","originalElement":"body","label":"body","style":{{"display":"flex","flexDirection":"column","flexShrink":0,"width":"inherit","overflowX":"hidden","height":"100%"}},"c":[ ... ]}}
 
 LAYOUT CONTAINERS (CRITICAL — originalElement is required or children won't render):
-name: container
-originalElement: div
-label: container
-style: {{display: flex, flexDirection: row|column, gap: ..., padding: ...}}
-c:
-- ...
+{{"name":"container","originalElement":"div","label":"container","style":{{"display":"flex","flexDirection":"row"|"column","gap":"...","padding":"..."}},"c":[ ... ]}}
 - Use container for all inner layout wrappers — never use "div" as name for inner blocks
-- flexDirection: row for horizontal layouts, column for vertical
-- Use gap, padding for spacing. width: 100% for full-width sections. flex: 1 to fill space.
+- flexDirection "row" for horizontal layouts, "column" for vertical
+- Use gap, padding for spacing. width "100%" for full-width sections. flex "1" to fill space.
 
 {STYLING_RULES}
 
@@ -147,38 +127,14 @@ RULES:
 - style keys must be camelCase CSS (backgroundColor, borderRadius, etc.)
 - Do NOT include id (componentId is auto-generated by Studio)
 - Do NOT include parentBlock
-- Omit keys whose value is null, empty string, empty dict, or empty list
 - Keep props to only what's relevant to the description
 
 EXAMPLE — "A login form with email, password and a submit button":
-name: div
-originalElement: body
-label: body
-style: {{display: flex, flexDirection: column, flexShrink: 0, width: inherit, overflowX: hidden, height: 100%}}
-c:
-- name: container
-  originalElement: div
-  label: page
-  style: {{display: flex, flexDirection: column, alignItems: center, justifyContent: center, flex: 1, padding: 24px}}
-  c:
-  - name: container
-    originalElement: div
-    label: card
-    style: {{display: flex, flexDirection: column, gap: 16px, width: 100%, maxWidth: 400px, padding: 32px, backgroundColor: 'var(--surface-white)', borderRadius: '0.75rem'}}
-    c:
-    - name: TextBlock
-      props: {{text: 'Sign In', tag: h2, fontSize: text-2xl}}
-      style: {{fontWeight: '600', color: 'var(--ink-gray-9)'}}
-    - name: TextInput
-      props: {{placeholder: 'Email address'}}
-    - name: FormControl
-      props: {{type: password, label: 'Password', placeholder: 'Enter password'}}
-    - name: Button
-      props: {{label: 'Sign In', variant: solid}}
+{{"name":"div","originalElement":"body","label":"body","style":{{"display":"flex","flexDirection":"column","flexShrink":0,"width":"inherit","overflowX":"hidden","height":"100%"}},"c":[{{"name":"container","originalElement":"div","label":"page","style":{{"display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center","flex":"1","padding":"24px"}},"c":[{{"name":"container","originalElement":"div","label":"card","style":{{"display":"flex","flexDirection":"column","gap":"16px","width":"100%","maxWidth":"400px","padding":"32px","backgroundColor":"var(--surface-white)","borderRadius":"0.75rem"}},"c":[{{"name":"TextBlock","props":{{"text":"Sign In","tag":"h2","fontSize":"text-2xl"}},"style":{{"fontWeight":"600","color":"var(--ink-gray-9)"}}}},{{"name":"TextInput","props":{{"placeholder":"Email address"}}}},{{"name":"FormControl","props":{{"type":"password","label":"Password","placeholder":"Enter password"}}}},{{"name":"Button","props":{{"label":"Sign In","variant":"solid"}}}}]}}]}}]}}
 """
 
 
-MODIFY_SYSTEM_PROMPT = f"""You are an expert UI editor for Frappe Studio. You will receive the YAML of a selected block and a user request. Return a modified version of that block.
+MODIFY_SYSTEM_PROMPT = f"""You modify app page sections for Frappe Studio as an expert designer & developer. You will receive the JSON of a selected block and a user request. Return a modified version of that block.
 
 MODIFICATION RULES:
 - Preserve ALL id (componentId) values exactly as given — never change or omit them
