@@ -348,8 +348,8 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 	if not frappe.get_meta(doctype).get_field(searchfield) and searchfield not in frappe.db.DEFAULT_COLUMNS:
 		return []
 
-	link_doctype = filters.pop("link_doctype")
-	link_name = filters.pop("link_name")
+	link_doctype = filters.pop("link_doctype", None)
+	link_name = filters.pop("link_name", None)
 
 	return frappe.db.sql(
 		f"""select
