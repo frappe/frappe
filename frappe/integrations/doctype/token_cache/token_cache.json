@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_bulk_edit": 1,
  "autoname": "format:{connected_app}-{user}",
  "creation": "2019-01-24 16:56:55.631096",
  "doctype": "DocType",

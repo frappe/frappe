@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_bulk_edit": 1,
  "autoname": "format:{reference_doctype} Import on {creation}",
  "creation": "2019-08-04 14:16:08.318714",
  "doctype": "DocType",
