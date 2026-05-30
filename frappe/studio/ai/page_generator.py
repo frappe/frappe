@@ -75,7 +75,8 @@ def run_generation_job(prompt: str, model: str, page_id: str, user: str):
 		_emit("complete", page_id, user, block=block)
 
 	except Exception as e:
-		logger.error(f"run_generation_job failed: {e}", exc_info=True)
+		logger.error(f"run_generation_job failed: {e}\n\n{content}", exc_info=True)
+		logger.info(f"Raw LLM Output for Generate: \n{content}\n")
 		frappe.log_error(title="Studio AI: generation error", message=str(e))
 		_emit("error", page_id, user, message=str(e))
 
@@ -156,7 +157,7 @@ def run_modify_job(prompt: str, block_context: str, model: str, page_id: str, us
 
 	except Exception as e:
 		logger.error(f"run_modify_job failed: {e}", exc_info=True)
-		logger.info(f"Raw LLM Output for Modify: \n{content}\n" + "=" * 40)
+		logger.info(f"Raw LLM Output for Modify: \n{content}\n")
 		frappe.log_error(title="Studio AI: modify error", message=str(e))
 		_emit("error", page_id, user, prefix="ai_modify", message=str(e))
 

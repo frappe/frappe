@@ -78,8 +78,8 @@ class BlockCodec:
 
 	@staticmethod
 	def parse_blocks(content: str) -> dict:
-		cleaned = _strip_fences(content)
-		parsed = _loads_lenient(cleaned)
+		cleaned = BlockCodec.strip_fences(content)
+		parsed = json.loads(cleaned, strict=False)
 
 		if isinstance(parsed, list):
 			block = parsed[0] if parsed else {}
@@ -109,119 +109,14 @@ class BlockCodec:
 		if not isinstance(data, dict):
 			return block_json
 
-		return _to_json(BlockCodec.compress(data))
+		return BlockCodec.to_json(BlockCodec.compress(data))
 
+	@staticmethod
+	def to_json(data) -> str:
+		"""Compact, token-efficient JSON: no whitespace, unicode kept as-is."""
+		return json.dumps(data, separators=(",", ":"), ensure_ascii=False)
 
-def _collect_text(block: dict, results: list):
-	props = block.get("componentProps") or {}
-	if text := props.get("text") or props.get("label") or props.get("placeholder"):
-		results.append(str(text))
-	for child in block.get("children", []):
-		_collect_text(child, results)
-	for slot in (block.get("componentSlots") or {}).values():
-		if isinstance(slot, dict):
-			for slot_child in (
-				slot.get("slotContent", []) if isinstance(slot.get("slotContent"), list) else []
-			):
-				_collect_text(slot_child, results)
-
-
-def _to_json(data) -> str:
-	"""Compact, token-efficient JSON: no whitespace, unicode kept as-is."""
-	return json.dumps(data, separators=(",", ":"), ensure_ascii=False)
-
-
-def _strip_fences(text: str) -> str:
-	text = re.sub(r"^```(?:json|yaml)?\s*\n?", "", text.strip())
-	return re.sub(r"\n?```\s*$", "", text).strip()
-
-
-def _escape_inner_quotes(text: str) -> str:
-	"""Escape stray double-quotes inside string values. A `"` only legitimately
-	ends a string when the next non-space char is structural (`,` `}` `]` `:` or
-	EOF); otherwise it is unescaped content (e.g. He said "hi") and we escape it."""
-	out = []
-	i, n = 0, len(text)
-	in_string = False
-	while i < n:
-		ch = text[i]
-		if not in_string:
-			out.append(ch)
-			if ch == '"':
-				in_string = True
-			i += 1
-			continue
-		if ch == "\\":  # keep existing escape pair intact
-			out.append(ch)
-			if i + 1 < n:
-				out.append(text[i + 1])
-				i += 2
-			else:
-				i += 1
-			continue
-		if ch == '"':
-			j = i + 1
-			while j < n and text[j] in " \t\r\n":
-				j += 1
-			nxt = text[j] if j < n else ""
-			if nxt in (",", "}", "]", ":", ""):
-				out.append(ch)
-				in_string = False
-			else:
-				out.append('\\"')
-			i += 1
-			continue
-		out.append(ch)
-		i += 1
-	return "".join(out)
-
-
-def _close_open_structures(text: str) -> str:
-	"""Best-effort completion of a truncated JSON tail: close an unterminated
-	string, drop a dangling trailing comma or `"key":`, and close open brackets."""
-	closers = []
-	in_string = escaped = False
-	for ch in text:
-		if in_string:
-			if escaped:
-				escaped = False
-			elif ch == "\\":
-				escaped = True
-			elif ch == '"':
-				in_string = False
-			continue
-		if ch == '"':
-			in_string = True
-		elif ch == "{":
-			closers.append("}")
-		elif ch == "[":
-			closers.append("]")
-		elif ch in "}]" and closers:
-			closers.pop()
-
-	result = text + ('"' if in_string else "")
-	prev = None
-	while prev != result:
-		prev = result
-		result = result.rstrip()
-		if result.endswith(","):
-			result = result[:-1]
-		else:
-			result = re.sub(r',?\s*"(?:[^"\\]|\\.)*"\s*:$', "", result)
-	return result + "".join(reversed(closers))
-
-
-def _repair_json(text: str) -> str:
-	text = _escape_inner_quotes(text)
-	text = re.sub(r",\s*([}\]])", r"\1", text)  # trailing commas before } or ]
-	return _close_open_structures(text)
-
-
-def _loads_lenient(text: str):
-	"""Parse JSON, tolerating the common ways LLMs emit slightly-invalid JSON:
-	raw control chars (strict=False), unescaped inner quotes, trailing commas,
-	and truncation. Falls back to a repair pass only when strict parsing fails."""
-	try:
-		return json.loads(text, strict=False)
-	except json.JSONDecodeError:
-		return json.loads(_repair_json(text), strict=False)
+	@staticmethod
+	def strip_fences(text: str) -> str:
+		text = re.sub(r"^```(?:json|yaml)?\s*\n?", "", text.strip())
+		return re.sub(r"\n?```\s*$", "", text).strip()
