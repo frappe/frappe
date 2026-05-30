@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class SessionDefault(Document):
+	_DOCTYPE_NAME = "Session Default"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

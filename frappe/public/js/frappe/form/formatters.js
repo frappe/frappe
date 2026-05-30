@@ -36,13 +36,14 @@ frappe.form.formatters = {
 	Data: function (value, df) {
 		if (df && df.options == "URL") {
 			if (!value) return "";
-			return `<a href="${value}" title="Open Link" target="_blank">${value}</a>`;
+			let escaped_url = frappe.utils.escape_html(value);
+			return `<a href="${escaped_url}" title="Open Link" target="_blank">${escaped_url}</a>`;
 		}
 		if (df && df.options == "IBAN") {
 			if (!value) return "";
 			return frappe.utils.get_formatted_iban(value);
 		}
-		value = value == null ? "" : value;
+		value = value == null ? "" : frappe.utils.escape_html(value);
 
 		return frappe.form.formatters._apply_custom_formatter(value, df);
 	},
@@ -259,23 +260,18 @@ frappe.form.formatters = {
 		}
 	},
 	Text: function (value, df) {
-		if (value) {
-			var tags = ["<p", "<div", "<br", "<table"];
-			var match = false;
-
-			for (var i = 0; i < tags.length; i++) {
-				if (value.match(tags[i])) {
-					match = true;
-					break;
-				}
-			}
-
-			if (!match) {
-				value = frappe.utils.replace_newlines(value);
-			}
+		if (!value) return "";
+		// Fields with ignore_xss_filter store intentional HTML sanitized by the backend;
+		// render it directly. All other Text/SmallText fields are plain text and must be escaped.
+		if (df && df.ignore_xss_filter) {
+			return frappe.form.formatters._apply_custom_formatter(value, df);
 		}
-
-		return frappe.form.formatters.Data(value, df);
+		// Escape first so <br> tags added by replace_newlines are not double-escaped
+		const escaped = frappe.utils.escape_html(value);
+		return frappe.form.formatters._apply_custom_formatter(
+			frappe.utils.replace_newlines(escaped),
+			df
+		);
 	},
 	Time: function (value) {
 		if (value) {
@@ -302,14 +298,16 @@ frappe.form.formatters = {
 	Tag: function (value) {
 		var html = "";
 		$.each((value || "").split(","), function (i, v) {
-			if (v)
+			if (v) {
+				let ev = frappe.utils.escape_html(v);
 				html += `
 				<span
 					class="data-pill btn-xs align-center ellipsis"
 					style="background-color: var(--control-bg); box-shadow: none; margin-right: 4px;"
-					data-field="_user_tags" data-label="${v}'">
-					${v}
+					data-field="_user_tags" data-label="${ev}">
+					${ev}
 				</span>`;
+			}
 		});
 		return html;
 	},
@@ -319,13 +317,10 @@ frappe.form.formatters = {
 	Assign: function (value) {
 		var html = "";
 		$.each(JSON.parse(value || "[]"), function (i, v) {
-			if (v)
-				html +=
-					'<span class="label label-warning" \
-				style="margin-right: 7px;"\
-				data-field="_assign">' +
-					v +
-					"</span>";
+			if (v) {
+				let ev = frappe.utils.escape_html(v);
+				html += `<span class="label label-warning" style="margin-right: 7px;" data-field="_assign">${ev}</span>`;
+			}
 		});
 		return html;
 	},
@@ -333,8 +328,10 @@ frappe.form.formatters = {
 		return frappe.form.formatters.Text(value);
 	},
 	TextEditor: function (value) {
-		let formatted_value = frappe.form.formatters.Text(value);
-		// to use ql-editor styles
+		if (!value) return "";
+		// value is backend-sanitized HTML; render it directly without chaining
+		// through the Data formatter, which would escape the HTML content
+		let formatted_value = value;
 		try {
 			if (
 				!$(formatted_value).find(".ql-editor").length &&
@@ -404,6 +401,11 @@ frappe.form.formatters = {
 	Icon: (value) => {
 		if (!value) return "";
 		let escaped_value = frappe.utils.escape_html(value);
+		if (frappe.utils.is_emoji(value)) {
+			return `<div class='flex' style='gap: 8px;'>
+				<span class="icon-value">${escaped_value}</span>
+			</div>`;
+		}
 		return `<div class='flex' style='gap: 8px;'>
 			<div class="selected-icon">${frappe.utils.icon(escaped_value, "md")}</div>
 			<span class="icon-value">${escaped_value}</span>

@@ -23,6 +23,8 @@ if TYPE_CHECKING:
 
 
 class ServerScript(Document):
+	_DOCTYPE_NAME = "Server Script"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

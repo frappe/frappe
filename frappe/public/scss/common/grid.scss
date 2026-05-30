@@ -781,14 +781,14 @@
 	width: fit-content;
 	margin-left: auto;
 	margin-right: auto;
-	margin-top: calc(var(--padding-xl) * -1);
+	margin-top: calc(var(--padding-md) * -1);
 	z-index: 2;
 	display: none;
 
 	&__message {
 		display: inline-block;
 		background-color: rgba(0, 0, 0, 0.8);
-		color: var(--bg-color);
+		color: var(--gray-50);
 		border-radius: var(--border-radius-sm);
 		padding: var(--padding-xs) var(--padding-md);
 	}

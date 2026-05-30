@@ -15,6 +15,8 @@ from frappe.utils import cstr
 
 
 class Address(Document):
+	_DOCTYPE_NAME = "Address"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

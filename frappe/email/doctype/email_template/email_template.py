@@ -10,6 +10,8 @@ from frappe.utils.jinja import validate_template
 
 
 class EmailTemplate(Document):
+	_DOCTYPE_NAME = "Email Template"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

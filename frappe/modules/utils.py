@@ -375,7 +375,7 @@ def make_boilerplate(template: str, doc: "Document" | "frappe._dict", opts: dict
 	app_publisher = get_app_publisher(doc.module)
 	base_class = "Document"
 	base_class_import = "from frappe.model.document import Document"
-	controller_body = "pass"
+	controller_body = f'_DOCTYPE_NAME = "{doc.name}"'
 
 	if doc.get("is_tree"):
 		base_class = "NestedSet"

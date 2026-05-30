@@ -8,6 +8,8 @@ from frappe.query_builder.functions import Now
 
 
 class ErrorLog(Document):
+	_DOCTYPE_NAME = "Error Log"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

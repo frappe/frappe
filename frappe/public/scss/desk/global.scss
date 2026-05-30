@@ -733,3 +733,11 @@ details > summary:focus {
 .desktop-alphabet {
 	stroke: none;
 }
+#full-search-button {
+	width: 200px;
+	display: flex;
+	align-items: center;
+	svg {
+		margin: 0px;
+	}
+}

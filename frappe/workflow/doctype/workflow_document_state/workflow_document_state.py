@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class WorkflowDocumentState(Document):
+	_DOCTYPE_NAME = "Workflow Document State"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
