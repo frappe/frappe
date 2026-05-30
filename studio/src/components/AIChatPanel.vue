@@ -158,11 +158,6 @@ const isModifyMode = computed(() => !!selectedBlock.value)
 const aiModels = createResource({
 	url: "studio.ai.models.get_ai_models",
 	auto: true,
-	onSuccess(data: any[]) {
-		if (data?.length && !selectedModel.value) {
-			selectedModel.value = data[0].id
-		}
-	},
 })
 
 const modelOptions = computed(() => (aiModels.data ?? []).map((m: any) => ({ label: m.label, value: m.id })))
@@ -176,8 +171,10 @@ const sessionResource = createResource({
 	url: "studio.ai.page_generator.get_ai_session",
 	onSuccess(data: any) {
 		messages.value = data.messages ?? []
-		if (data.selected_model && !selectedModel.value) {
+		if (data.selected_model) {
 			selectedModel.value = data.selected_model
+		} else if (modelOptions.value.length) {
+			selectedModel.value = modelOptions.value[0].value
 		}
 		scrollToBottom()
 	},

@@ -88,8 +88,8 @@ CSS VARIABLE RULES:
 
 OUTPUT_FORMAT_RULES = """JSON OUTPUT RULES (critical — invalid JSON breaks parsing):
 - Return ONLY a single valid, minified JSON object. No markdown fences, no comments, no explanations before or after.
-- Use double quotes for every key and every string value. Single quotes are NOT valid JSON.
-- No trailing commas. No bare/unquoted values except numbers, true, false, and null.
+- Use double quotes for every key and every string value. No bare/unquoted values except numbers, true, false, and null. Single quotes are NOT valid JSON.
+- No trailing commas.
 - Omit keys whose value is null, empty string, empty object, or empty array.
 """
 

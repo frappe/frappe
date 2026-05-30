@@ -47,6 +47,30 @@ function stripFences(text: string): string {
 		.trim()
 }
 
+function parsePartialJson(text: string): any {
+	try {
+		return JSON.parse(text)
+	} catch {
+		// fall through to repair
+	}
+
+	let working = escapeInnerQuotes(text)
+	for (let attempt = 0; attempt < 8; attempt++) {
+		const { candidate, trimmed } = repair(working)
+		if (candidate) {
+			try {
+				return JSON.parse(candidate)
+			} catch {
+				// candidate didn't parse; retry on the trimmed buffer
+			}
+		}
+		if (!trimmed || trimmed === working) return null
+		working = trimmed
+	}
+	return null
+}
+
+
 /**
  * Escape stray double-quotes inside string values. A `"` only legitimately ends a
  * string when the next non-space char is structural (`,` `}` `]` `:` or EOF);
@@ -82,29 +106,6 @@ function escapeInnerQuotes(text: string): string {
 		out += ch
 	}
 	return out
-}
-
-function parsePartialJson(text: string): any {
-	try {
-		return JSON.parse(text)
-	} catch {
-		// fall through to repair
-	}
-
-	let working = escapeInnerQuotes(text)
-	for (let attempt = 0; attempt < 8; attempt++) {
-		const { candidate, trimmed } = repair(working)
-		if (candidate) {
-			try {
-				return JSON.parse(candidate)
-			} catch {
-				// candidate didn't parse; retry on the trimmed buffer
-			}
-		}
-		if (!trimmed || trimmed === working) return null
-		working = trimmed
-	}
-	return null
 }
 
 interface Repair {
