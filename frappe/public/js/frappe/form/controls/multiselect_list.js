@@ -53,6 +53,13 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			$(this).dropdown("show");
 		});
 		this.$list_wrapper.on(
+			"mousedown",
+			".selectable-item, .select-all-options, .clear-selections",
+			(e) => {
+				e.preventDefault();
+			}
+		);
+		this.$list_wrapper.on(
 			"input",
 			"input",
 			frappe.utils.debounce((e) => {
