@@ -49,6 +49,9 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			let $target = $(e.currentTarget);
 			this.toggle_select_item($target);
 		});
+		this.$list_wrapper.find('[data-toggle="dropdown"]').on("focus", function () {
+			$(this).dropdown("show");
+		});
 		this.$list_wrapper.on(
 			"input",
 			"input",
