@@ -126,12 +126,12 @@ class Workflow(Document):
 
 	def set_active(self):
 		if cint(self.is_active):
-			# clear all other
-			frappe.db.sql(
-				"""UPDATE `tabWorkflow` SET `is_active`=0
-				WHERE `document_type`=%s""",
-				self.document_type,
-			)
+			Workflow = frappe.qb.DocType("Workflow")
+			(
+				frappe.qb.update(Workflow)
+				.set(Workflow.is_active, 0)
+				.where(Workflow.document_type == self.document_type)
+			).run()
 
 
 @frappe.whitelist()
