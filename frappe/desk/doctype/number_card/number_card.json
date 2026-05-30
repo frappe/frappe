@@ -229,11 +229,7 @@
   }
  ],
  "links": [],
-<<<<<<< HEAD
- "modified": "2025-05-21 17:33:04.908518",
-=======
  "modified": "2026-05-29 19:20:37.543999",
->>>>>>> 982dcd9a0c (fix: update mandatory dependency for aggregate function field in Number Card)
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
