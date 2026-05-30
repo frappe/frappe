@@ -68,17 +68,18 @@ class Workflow(Document):
 	def update_default_workflow_status(self):
 		docstatus_map = {}
 		states = self.get("states")
+
+		TargetDocType = frappe.qb.DocType(self.document_type)
+		state_field = getattr(TargetDocType, self.workflow_state_field)
+
 		for d in states:
 			if d.doc_status not in docstatus_map:
-				frappe.db.sql(
-					f"""
-					UPDATE `tab{self.document_type}`
-					SET `{self.workflow_state_field}` = %s
-					WHERE ifnull(`{self.workflow_state_field}`, '') = ''
-					AND `docstatus` = %s
-				""",
-					(d.state, d.doc_status),
-				)
+				(
+					frappe.qb.update(TargetDocType)
+					.set(state_field, d.state)
+					.where(state_field.isnull() | (state_field == ""))
+					.where(TargetDocType.docstatus == d.doc_status)
+				).run()
 
 				docstatus_map[d.doc_status] = d.state
 
