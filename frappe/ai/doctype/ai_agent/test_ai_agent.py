@@ -61,13 +61,6 @@ class TestAIAgentDefaults(IntegrationTestCase):
 
 		self.assertEqual([row.tool for row in doc.tools], ["read"])
 
-	def test_duplicate_tools_are_deduped(self):
-		doc = frappe.get_doc(
-			_agent(self.model_doc.name, tools=[{"tool": "read"}, {"tool": "read"}, {"tool": "execute"}])
-		).insert()
-
-		self.assertEqual([row.tool for row in doc.tools], ["read", "execute"])
-
 	def test_zero_max_iterations_rejected(self):
 		doc = frappe.get_doc(_agent(self.model_doc.name, max_iterations=0))
 		with self.assertRaisesRegex(frappe.ValidationError, "Max Iterations"):

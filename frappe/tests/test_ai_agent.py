@@ -577,7 +577,7 @@ class TestAgentConfirmation(UnitTestCase):
 		self.assertTrue(result.paused)
 		self.assertEqual(len(result.questions), 1)
 		self.assertEqual(result.questions[0].options, ["Approve", "Deny"])
-		self.assertFalse(result.questions[0].allow_other)
+		self.assertTrue(result.questions[0].allow_other)
 		self.assertIn("write_file", result.questions[0].prompt)
 		self.assertEqual(calls, [])  # tool never ran
 
@@ -611,7 +611,10 @@ class TestAgentConfirmation(UnitTestCase):
 
 		self.assertEqual(calls, [])  # tool never ran
 		tool_message = next(m for m in resumed.messages if m["role"] == "tool")
-		self.assertEqual(json.loads(tool_message["content"]), {"error": "User denied this tool call."})
+		self.assertEqual(
+			json.loads(tool_message["content"]),
+			{"status": "denied", "message": "User denied this tool call."},
+		)
 
 	def test_confirm_prompt_renders_plain_english_body(self):
 		@tool(
@@ -630,7 +633,7 @@ class TestAgentConfirmation(UnitTestCase):
 		self.assertIn("Send email to alice@example.com", result.questions[0].prompt)
 		self.assertNotIn("body", result.questions[0].prompt)  # raw JSON shape isn't leaking through
 
-	def test_free_text_answer_treated_as_denial_with_note(self):
+	def test_free_text_answer_redirects_to_llm_with_feedback(self):
 		write_file, calls = self._danger_tool()
 		model = FakeModel(
 			[
@@ -643,11 +646,11 @@ class TestAgentConfirmation(UnitTestCase):
 		paused = agent.run("write hi")
 		resumed = agent.resume(paused.messages, {"c1": "use /tmp/y instead"})
 
-		self.assertEqual(calls, [])
+		self.assertEqual(calls, [])  # tool never ran
 		tool_message = next(m for m in resumed.messages if m["role"] == "tool")
 		payload = json.loads(tool_message["content"])
-		self.assertIn("denied", payload["error"])
-		self.assertIn("use /tmp/y instead", payload["error"])
+		self.assertEqual(payload["status"], "redirect")
+		self.assertEqual(payload["user_feedback"], "use /tmp/y instead")
 
 
 class TestQuestion(UnitTestCase):
