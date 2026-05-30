@@ -98,44 +98,26 @@ class AIAgent(Document):
 		self,
 		input: str,
 		*,
+		session: str | None = None,
 		source: str = "Manual",
 		trigger: str | None = None,
 		stream: bool = False,
 	) -> AIRun | Generator[Event]:
-		"""Assemble, run on `input`, and persist the result as an AI Run linked to this agent.
+		"""Run `input` against this agent and persist the result as an AI Run.
 
-		With `stream=True`, returns a generator of agent Events instead of the AIRun row;
-		the run is still created up-front (first event is `RunStarted` with its name) and
-		persisted when the stream completes.
+		Pass `session` to continue an existing conversation; omit it to start a new one. With
+		`stream=True`, returns a generator of agent Events instead of the AIRun row.
 		"""
-		from frappe.ai.doctype.ai_run.ai_run import create_run, stream_with_persistence
-		from frappe.ai.doctype.ai_session.ai_session import derive_title
+		from frappe.ai import runner
 
-		agent = self.assemble()
-		session = frappe.get_doc(
-			{
-				"doctype": "AI Session",
-				"agent": self.name,
-				"title": derive_title(input),
-			}
-		).insert(ignore_permissions=True)
-		run = create_run(
-			source=source,
+		return runner.start(
 			input=input,
-			session=session.name,
+			agent=self.name,
+			session=session,
+			source=source,
 			trigger=trigger,
-			config_snapshot=self._snapshot(),
+			stream=stream,
 		)
-		if stream:
-			return stream_with_persistence(lambda: agent.run(input, stream=True), run)
-
-		try:
-			result = agent.run(input)
-		except Exception as e:
-			run.mark_failed(str(e))
-			raise
-		run.apply_result(result)
-		return run
 
 	def _snapshot(self, *, model: str | None = None) -> dict[str, Any]:
 		return {
