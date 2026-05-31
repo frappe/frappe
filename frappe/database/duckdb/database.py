@@ -58,6 +58,20 @@ def sync_to_duckdb():
 		if ddbt.table_name not in existing:
 			ddbt.sync()
 	frappe.duckdb.close()
+	sync_data()
+
+
+def sync_data():
+	frappe.duckdb = get_duckdb(read_only=False)
+	frappe.duckdb.sql(
+		f"attach 'user={frappe.conf.db_name} password={frappe.conf.db_password} host={frappe.conf.db_host} database={frappe.conf.db_name}' as mariadb (TYPE mysql);"
+	)
+	doctypes = frappe.db.get_all("DuckDB Sync Item", fields=["doc_type"], pluck="doc_type")
+	for x in doctypes:
+		ddbt = DuckDBTable(x)
+		frappe.duckdb.sql(f'insert into "{ddbt.table_name}" select * from mariadb."{ddbt.table_name}";')
+
+	frappe.duckdb.close()
 
 
 @frappe.whitelist()
@@ -78,3 +92,17 @@ def drop_all_tables():
 	for x in res:
 		frappe.duckdb.sql(f'drop table "{x[0]}";')
 	frappe.duckdb.close()
+
+
+@frappe.whitelist()
+def open_duckdb_connection():
+	# TODO: permissions
+	if not frappe.duckdb:
+		frappe.duckdb = get_duckdb()
+
+
+@frappe.whitelist()
+def close_connection():
+	# TODO: permissions
+	if frappe.duckdb:
+		frappe.duckdb.close()
