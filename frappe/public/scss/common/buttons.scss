@@ -22,7 +22,8 @@
 
 	&.icon-btn {
 		height: var(--btn-height);
-		padding: 0px;
+		width: var(--btn-height);
+		padding: 6px 6px !important;
 		@extend .center-content;
 		&.btn-default,
 		&.btn-secondary {
