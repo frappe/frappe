@@ -16,7 +16,7 @@ class DuckDBDashboard(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.duckdb.doctype.duckdb_sync_item.duckdb_sync_item import DuckDBSyncItem
+		from frappe.core.doctype.duckdb_sync_item.duckdb_sync_item import DuckDBSyncItem
 		from frappe.types import DF
 
 		doctype_to_sync: DF.Table[DuckDBSyncItem]

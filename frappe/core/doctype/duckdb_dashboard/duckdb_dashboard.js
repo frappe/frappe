@@ -2,21 +2,29 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("DuckDB Dashboard", {
-	refresh(frm) {
-		frm.add_custom_button(__("Force Sync"), () => {
-			frm.call({
-				method: "frappe.database.duckdb.database.sync_to_duckdb",
-			});
+	force_sync: function (frm) {
+		frm.call({
+			method: "frappe.database.duckdb.database.sync_to_duckdb",
 		});
-		frm.add_custom_button(__("Drop tables"), () => {
-			frm.call({
-				method: "frappe.database.duckdb.database.drop_tables",
-			});
+	},
+	connect: function (frm) {
+		frm.call({
+			method: "frappe.database.duckdb.database.open_duckdb_connection",
 		});
-		frm.add_custom_button(__("Drop all tables"), () => {
-			frm.call({
-				method: "frappe.database.duckdb.database.drop_all_tables",
-			});
+	},
+	close_connection: function (frm) {
+		frm.call({
+			method: "frappe.database.duckdb.database.close_connection",
+		});
+	},
+	drop_all_tables: function (frm) {
+		frm.call({
+			method: "frappe.database.duckdb.database.drop_all_tables",
+		});
+	},
+	drop_tables: function (frm) {
+		frm.call({
+			method: "frappe.database.duckdb.database.drop_tables",
 		});
 	},
 });
