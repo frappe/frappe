@@ -6,6 +6,14 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "db_connection_section",
+  "connect",
+  "force_sync",
+  "column_break_nopt",
+  "drop_tables",
+  "drop_all_tables",
+  "close_connection",
+  "section_break_eydd",
   "doctype_to_sync"
  ],
  "fields": [
@@ -14,13 +22,51 @@
    "fieldtype": "Table",
    "label": "DocType To Sync",
    "options": "DuckDB Sync Item"
+  },
+  {
+   "fieldname": "force_sync",
+   "fieldtype": "Button",
+   "label": "Force Sync"
+  },
+  {
+   "fieldname": "drop_tables",
+   "fieldtype": "Button",
+   "label": "Drop Tables"
+  },
+  {
+   "fieldname": "drop_all_tables",
+   "fieldtype": "Button",
+   "label": "Drop All Tables"
+  },
+  {
+   "fieldname": "section_break_eydd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "connect",
+   "fieldtype": "Button",
+   "label": "Connect"
+  },
+  {
+   "fieldname": "column_break_nopt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "db_connection_section",
+   "fieldtype": "Section Break",
+   "label": "DB Connection"
+  },
+  {
+   "fieldname": "close_connection",
+   "fieldtype": "Button",
+   "label": "Close Connection"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-05-27 15:52:42.932283",
+ "modified": "2026-06-02 11:54:18.136223",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DuckDB Dashboard",
