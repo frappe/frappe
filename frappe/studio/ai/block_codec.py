@@ -1,6 +1,8 @@
 import json
 import re
 
+from json_repair import repair_json
+
 
 class BlockCodec:
 	@staticmethod
@@ -79,7 +81,10 @@ class BlockCodec:
 	@staticmethod
 	def parse_blocks(content: str) -> dict:
 		cleaned = BlockCodec.strip_fences(content)
-		parsed = json.loads(cleaned, strict=False)
+		try:
+			parsed = json.loads(cleaned, strict=False)
+		except json.JSONDecodeError:
+			parsed = repair_json(cleaned, return_objects=True)
 
 		if isinstance(parsed, list):
 			block = parsed[0] if parsed else {}
