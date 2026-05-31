@@ -127,6 +127,7 @@ import { getBlockInstance, getBlockString } from "@/utils/serializer"
 import { tryParseJsonBlock } from "@/utils/blockCodec"
 import { throttle } from "@/utils/helpers"
 import type Block from "@/utils/block"
+import type { PauseId } from "@/utils/useCanvasHistory"
 import { studioSettings } from "@/data/studioSettings"
 
 const store = useStudioStore()
@@ -142,6 +143,7 @@ const statusMessage = ref("")
 const selectedModel = ref("")
 const streamBuffer = ref("")
 const modifyStreamBuffer = ref("")
+let historyPauseId: PauseId | undefined
 const messages = ref<any[]>([])
 const messagesEl = ref<HTMLElement | null>(null)
 
@@ -231,6 +233,7 @@ async function onComplete(data: any) {
 	const rootBlock = getBlockInstance(block)
 	store.pageBlocks = [rootBlock]
 	canvasStore.activeCanvas?.setRootBlock(rootBlock, false)
+	historyPauseId = undefined
 
 	toast.success("Page generated successfully")
 	prompt.value = ""
@@ -239,6 +242,8 @@ async function onComplete(data: any) {
 
 function onError(data: any) {
 	canvasStore.isAIStreaming = false
+	canvasStore.activeCanvas?.history?.resume(historyPauseId)
+	historyPauseId = undefined
 	loading.value = false
 	statusMessage.value = ""
 	streamBuffer.value = ""
@@ -271,6 +276,8 @@ async function onModifyComplete(data: any) {
 	}
 
 	replaceBlockInTree(data.component_id, getBlockInstance(block))
+	canvasStore.activeCanvas?.history?.resume(historyPauseId, true)
+	historyPauseId = undefined
 	toast.success("Block updated")
 	prompt.value = ""
 	reloadSession()
@@ -278,6 +285,8 @@ async function onModifyComplete(data: any) {
 
 function onModifyError(data: any) {
 	canvasStore.isAIStreaming = false
+	canvasStore.activeCanvas?.history?.resume(historyPauseId)
+	historyPauseId = undefined
 	loading.value = false
 	statusMessage.value = ""
 	modifyStreamBuffer.value = ""
@@ -341,6 +350,7 @@ async function generate() {
 	messages.value = [...messages.value, { id: Date.now(), role: "user", content: prompt.value }]
 	scrollToBottom()
 
+	historyPauseId = canvasStore.activeCanvas?.history?.pause()
 	try {
 		if (isModifyMode.value && selectedBlock.value) {
 			await call("studio.ai.page_generator.modify_block_from_prompt", {
@@ -358,6 +368,8 @@ async function generate() {
 			})
 		}
 	} catch (e: any) {
+		canvasStore.activeCanvas?.history?.resume(historyPauseId)
+		historyPauseId = undefined
 		loading.value = false
 		statusMessage.value = ""
 		error.value = e?.message || "Failed to start. Please try again."

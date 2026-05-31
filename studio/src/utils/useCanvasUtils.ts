@@ -2,7 +2,7 @@ import type { CanvasProps } from "@/types/StudioCanvas"
 import Block from "@/utils/block"
 
 import { nextTick, reactive, Ref } from "vue"
-import { useCanvasHistory } from "@/utils/useCanvasHistory"
+import { useCanvasHistory, type PauseId } from "@/utils/useCanvasHistory"
 import { useElementBounding } from "@vueuse/core"
 import { toast } from "vue-sonner"
 import useCanvasStore from "@/stores/canvasStore"
@@ -57,9 +57,9 @@ export function useCanvasUtils(
 		return rootComponent.value;
 	}
 
-	function setRootBlock(newBlock: Block, resetCanvas = false) {
+	function setRootBlock(newBlock: Block, resetCanvas = false, resetHistory = true) {
 		rootComponent.value = newBlock
-		if (canvasHistory.value) {
+		if (canvasHistory.value && resetHistory) {
 			canvasHistory.value.dispose();
 			setupHistory();
 		}

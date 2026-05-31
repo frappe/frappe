@@ -212,7 +212,8 @@ watch(
 			store.selectedPage &&
 			!pageCanvas.value?.canvasProps?.settingCanvas &&
 			!store.settingPage &&
-			!store.savingPage
+			!store.savingPage &&
+			!canvasStore.isAIStreaming
 		) {
 			store.savingPage = true
 			if (canvasStore.editingMode === "page") {

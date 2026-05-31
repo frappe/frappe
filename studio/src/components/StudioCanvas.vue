@@ -19,7 +19,6 @@
 		<div
 			class="fixed flex gap-40"
 			ref="canvas"
-			:class="canvasStore.editingMode === 'page' ? 'h-full' : ''"
 			:style="{
 				transformOrigin: 'top center',
 				transform: `scale(${canvasProps.scale}) translate(${canvasProps.translateX}px, ${canvasProps.translateY}px)`,

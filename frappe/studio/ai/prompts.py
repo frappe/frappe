@@ -6,7 +6,7 @@ TEXT & DISPLAY:
 - TextBlock: {text: "string", tag: "p|h1|h2|h3|h4|h5|h6|span", fontSize: "text-2xs(11px)|text-xs(12px)|text-sm(13px)|text-base(14px)|text-lg(16px)|text-xl(18px)|text-2xl(20px)|text-3xl(24px)|text-p-2xs|text-p-xs|text-p-sm|text-p-base|text-p-lg|text-p-xl|text-p-2xl|text-p-3xl"}
   # text-* = tight line-height (UI labels, headings); text-p-* = relaxed line-height (body copy, descriptions)
 - Badge: {variant: "subtle|solid|outline", theme: "green|red|orange|blue|gray", size: "sm|md|lg", label: "string"}
-- Avatar: {shape: "circle|square", size: "xs|sm|md|lg|xl|2xl|3xl", label: "initials", image: "url"}
+- Avatar: {shape: "circle|square", size: "xs|sm|md|lg|xl|2xl|3xl", label: "initials", image: "url" (publicly accessible)}
 - Progress: {value: 0-100, size: "sm|md|lg", label: "string"}
 - Alert: {title: "string", description: "string", theme: "yellow|red|green|blue"}
 - ErrorMessage: {message: "string"}
@@ -71,7 +71,7 @@ STYLE PROPERTY ROUTING — use the correct key:
   Visual: backgroundColor, borderColor, borderWidth, borderStyle, borderRadius, boxShadow, cursor
 - `rstyle:` (raw styles) — for ALL other CSS properties not listed above: opacity, objectFit, objectPosition, whiteSpace, textOverflow, textDecoration, fontStyle, fontFamily, transform, transition, animation, wordBreak, overflowWrap, etc. Keep rstyle minimal — only include when genuinely needed.
 - `mstyle:` (mobile styles) and `tstyle:` (tablet styles) — same properties as `style`, but for mobile and tablet breakpoints. Only include properties that need to change on mobile/tablet — do not duplicate the entire style object.
-- Use %, rem for responsive widths. Top-level sections MUST be 100% width
+- Make sure entire page is RESPONSIVE - Use %, rem for responsive widths. Top-level sections MUST be 100% width
 
 CSS VARIABLE RULES:
 - Always use CSS variables. Avoid raw hex colors/values.
@@ -83,7 +83,7 @@ CSS VARIABLE RULES:
 - NEVER use the `border` shorthand property or per-side border properties: borderTopColor, borderTopWidth, borderTopStyle, borderLeftColor, borderLeftWidth, borderLeftStyle, borderRightColor, borderRightWidth, borderRightStyle, borderBottomColor, borderBottomWidth, borderBottomStyle — these are NOT in the style panel
 - For full borders: borderColor, borderWidth (e.g. "1px"), borderStyle — always set all three together
 - For one-sided borders: use CSS shorthand values — e.g. top-only: borderWidth: "4px 0px 0px 0px", borderColor: "var(--outline-blue-1)", borderStyle: "solid"
-- Button: use size prop ("sm"|"md"|"lg"|"xl"|"2xl") for sizing — DO NOT set height in style. Keep `theme` gray or default unless prompted. Only use colored themes (blue, red, green) when semantically meaningful: destructive actions → red, success/confirmed → green.
+- Button: use size prop ("sm"|"md"|"lg"|"xl"|"2xl") for sizing — DO NOT set height in style. NEVER use any other `theme` except gray or default unless prompted. Only use colored themes (blue, red, green) when semantically meaningful: destructive actions → red, success/confirmed → green.
 - Avoid applying visual style (color, backgroundColor, borderColor, fontSize) to frappe-ui components — their props handle this. Only use style on `container` components for layout (width, flex, margin, etc.)."""
 
 OUTPUT_FORMAT_RULES = """JSON OUTPUT RULES (critical — invalid JSON breaks parsing):
