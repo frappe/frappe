@@ -1,9 +1,13 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import json
+from typing import ClassVar
+
 import frappe
 from frappe.desk.query_report import build_xlsx_data, export_query, run
 from frappe.tests import IntegrationTestCase
+from frappe.utils.print_format import build_report_pdf_html, download_report_pdf
 from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
 
 
@@ -352,6 +356,225 @@ data = columns, result
 
 		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
 		frappe.db.commit()
+
+
+class TestDownloadReportPDF(IntegrationTestCase):
+	REPORT_NAME = "Test PDF Report"
+	ESCAPE_REPORT_NAME = "Test PDF Escape Report"
+	TOTAL_REPORT_NAME = "Test PDF Total Report"
+	RICH_REPORT_NAME = "Test PDF Rich Report"
+	CHECK_REPORT_NAME = "Test PDF Check Report"
+	EDITOR_REPORT_NAME = "Test PDF Editor Report"
+
+	# report_name -> extra fields merged into the default Query Report definition
+	REPORTS: ClassVar[dict] = {
+		REPORT_NAME: {"query": "SELECT name, module, issingle FROM tabDocType LIMIT 10"},
+		ESCAPE_REPORT_NAME: {"query": "SELECT '<b>x</b>' AS label"},
+		TOTAL_REPORT_NAME: {
+			"add_total_row": 1,
+			"query": "SELECT 'A' AS item, 10 AS amount UNION SELECT 'B', 20",
+		},
+		# Code/Text columns (via the "Label:Fieldtype" hint) must be escaped, not trusted
+		RICH_REPORT_NAME: {
+			"query": (
+				"SELECT '<b>x</b>' AS \"Snippet:Code:200\", "
+				"CONCAT('a<i>y</i>', CHAR(10), 'z') AS \"Note:Text:200\""
+			),
+		},
+		CHECK_REPORT_NAME: {"query": 'SELECT 1 AS "Active:Check:80" UNION SELECT 0'},
+		# Text Editor holds backend-sanitized HTML and must render as-is
+		EDITOR_REPORT_NAME: {"query": "SELECT '<b>x</b>' AS \"Body:Text Editor:200\""},
+	}
+
+	@classmethod
+	def setUpClass(cls) -> None:
+		super().setUpClass()
+
+		for report_name, overrides in cls.REPORTS.items():
+			if not frappe.db.exists("Report", report_name):
+				frappe.get_doc(
+					{
+						"doctype": "Report",
+						"report_name": report_name,
+						"ref_doctype": "DocType",
+						"report_type": "Query Report",
+						"is_standard": "No",
+						"letter_head": "",
+						**overrides,
+					}
+				).insert(ignore_permissions=True)
+		# reports must be committed: run() opens a read-only transaction that both needs
+		# to see them and refuses to start while uncommitted writes are pending
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls) -> None:
+		for report_name in cls.REPORTS:
+			frappe.delete_doc("Report", report_name, delete_permanently=True)
+		# persist the fixture cleanup above
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def tearDown(self) -> None:
+		# download_report_pdf writes an access log (direct insert in test mode); drop it so
+		# the next test's read-only report run does not trip ImplicitCommitError
+		frappe.db.rollback()
+		super().tearDown()
+
+	def test_basic_pdf_generation(self):
+		download_report_pdf(report_name=self.REPORT_NAME)
+
+		self.assertEqual(frappe.local.response.type, "pdf")
+		self.assertTrue(frappe.local.response.filecontent)
+		self.assertIn(self.REPORT_NAME.replace(" ", "-"), frappe.local.response.filename)
+
+	def test_selected_columns(self):
+		download_report_pdf(
+			report_name=self.REPORT_NAME,
+			print_settings=json.dumps({"columns": ["name", "module"]}),
+		)
+
+		self.assertEqual(frappe.local.response.type, "pdf")
+		self.assertTrue(frappe.local.response.filecontent)
+
+	def test_selected_non_prefix_columns_keep_alignment(self):
+		"""Dropping a middle column must not leak its values under a kept later column."""
+		html, _ = build_report_pdf_html(
+			self.REPORT_NAME,
+			print_settings={"columns": ["name", "issingle"]},
+		)
+
+		self.assertIn("issingle", html)
+		self.assertNotIn(">Module<", html)
+		self.assertNotIn("Core", html)
+
+	def test_orientation_portrait(self):
+		download_report_pdf(report_name=self.REPORT_NAME, orientation="Portrait")
+
+		self.assertEqual(frappe.local.response.type, "pdf")
+		self.assertTrue(frappe.local.response.filecontent)
+
+	def test_with_letterhead(self):
+		letterhead_name = frappe.db.get_value("Letter Head", {"is_default": 1})
+		if not letterhead_name:
+			self.skipTest("No default Letter Head configured")
+
+		download_report_pdf(
+			report_name=self.REPORT_NAME,
+			print_settings=json.dumps(
+				{
+					"with_letter_head": 1,
+					"letter_head_name": letterhead_name,
+				}
+			),
+		)
+
+		self.assertEqual(frappe.local.response.type, "pdf")
+		self.assertTrue(frappe.local.response.filecontent)
+
+	def test_with_filters_in_filename(self):
+		download_report_pdf(
+			report_name=self.REPORT_NAME,
+			filters=json.dumps({"module": "Core"}),
+		)
+
+		self.assertEqual(frappe.local.response.type, "pdf")
+		self.assertIn("Core", frappe.local.response.filename)
+
+	def test_permission_denied_for_guest(self):
+		frappe.set_user("Guest")
+		try:
+			self.assertRaises(frappe.PermissionError, download_report_pdf, report_name=self.REPORT_NAME)
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_list_rows_converted_to_dict(self):
+		result = run(self.REPORT_NAME)
+		fieldnames = [c["fieldname"] for c in result["columns"]]
+		row = result["result"][0]
+		values = row if isinstance(row, list) else [row[f] for f in fieldnames]
+		name, module = values[0], values[1]
+
+		html, _ = build_report_pdf_html(self.REPORT_NAME)
+
+		self.assertIn(name, html)
+		self.assertIn(module, html)
+
+	def test_check_field_formatting(self):
+		download_report_pdf(report_name=self.REPORT_NAME)
+
+		content = frappe.local.response.filecontent
+		self.assertIsInstance(content, bytes)
+		self.assertTrue(len(content) > 0)
+
+	def test_are_default_filters_false(self):
+		download_report_pdf(
+			report_name=self.REPORT_NAME,
+			filters=json.dumps({}),
+			are_default_filters=False,
+		)
+
+		self.assertEqual(frappe.local.response.type, "pdf")
+		self.assertTrue(frappe.local.response.filecontent)
+
+	def test_js_filters_passed(self):
+		js_filters = [{"fieldname": "module", "fieldtype": "Link", "options": "Module Def"}]
+		download_report_pdf(
+			report_name=self.REPORT_NAME,
+			filters=json.dumps({"module": "Core"}),
+			js_filters=json.dumps(js_filters),
+		)
+
+		self.assertEqual(frappe.local.response.type, "pdf")
+		self.assertTrue(frappe.local.response.filecontent)
+
+	def test_html_in_cell_values_is_escaped(self):
+		html, _ = build_report_pdf_html(self.ESCAPE_REPORT_NAME)
+
+		self.assertIn("&lt;b&gt;x&lt;/b&gt;", html)
+		self.assertNotIn("<b>x</b>", html)
+
+	def test_code_field_value_is_escaped_in_pre(self):
+		html, _ = build_report_pdf_html(self.RICH_REPORT_NAME)
+
+		self.assertIn("<pre>&lt;b&gt;x&lt;/b&gt;</pre>", html)
+		self.assertNotIn("<b>x</b>", html)
+
+	def test_text_field_value_is_escaped_with_newlines(self):
+		html, _ = build_report_pdf_html(self.RICH_REPORT_NAME)
+
+		self.assertIn("a&lt;i&gt;y&lt;/i&gt;<br>z", html)
+		self.assertNotIn("<i>y</i>", html)
+
+	def test_check_field_rendering(self):
+		html, _ = build_report_pdf_html(self.CHECK_REPORT_NAME)
+
+		self.assertIn("✓", html)
+		self.assertIn("✗", html)
+
+	def test_text_editor_value_rendered_raw(self):
+		# Text Editor holds backend-sanitized HTML and is rendered without escaping
+		html, _ = build_report_pdf_html(self.EDITOR_REPORT_NAME)
+
+		self.assertIn("<b>x</b>", html)
+
+	def test_filters_rendered_and_escaped(self):
+		html, _ = build_report_pdf_html(
+			self.REPORT_NAME,
+			filters={"module": "<b>Core</b>"},
+			print_settings={"include_filters": 1},
+		)
+
+		self.assertIn("&lt;b&gt;Core&lt;/b&gt;", html)
+		self.assertNotIn("<b>Core</b>", html)
+
+	def test_total_row_is_bold(self):
+		self.assertTrue(run(self.TOTAL_REPORT_NAME).get("add_total_row"))
+
+		html, _ = build_report_pdf_html(self.TOTAL_REPORT_NAME)
+
+		self.assertIn("font-weight: bold", html)
+		self.assertIn("30", html)
 
 
 def create_mock_data():
