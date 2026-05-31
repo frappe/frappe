@@ -1,0 +1,46 @@
+{%- if title %}
+<h2 class="text-center">{{ title }}</h2>
+<hr>
+{%- endif %}
+
+{%- if subtitle %}
+{{ subtitle }}
+<hr>
+{%- endif %}
+
+<table class="table table-bordered">
+	<thead>
+		<tr>
+			<th>#</th>
+			{%- for col in columns %}
+			{%- if col.label and col.fieldname != "_check" %}
+			<th
+				{%- if col.width %} style="min-width: {{ col.width }}px"{% endif %}
+				{%- if col.fieldtype in numeric_fieldtypes %} class="text-right"{% endif %}
+			>{{ col.label }}</th>
+			{%- endif %}
+			{%- endfor %}
+		</tr>
+	</thead>
+	<tbody>
+		{%- for row in data %}
+		{%- set bold = row.bold == 1 or row.get("_is_total_row") %}
+		<tr style="height: 30px">
+			<td{% if bold %} style="font-weight: bold"{% endif %}>
+				{{ loop.index }}
+			</td>
+			{%- for col in columns %}
+			{%- if col.label and col.fieldname != "_check" %}
+			{%- set value = row.get(col.fieldname, "") %}
+			{%- set longest_word = (value | string).split(" ") | map("length") | max if value else 0 %}
+			<td{% if bold %} style="font-weight: bold"{% endif %}{% if longest_word > 45 %} class="overflow-wrap-anywhere"{% endif %}>
+				<span{%- if loop.index0 == 0 and row.indent %} style="padding-left: {{ (row.indent | int) * 2 }}em"{% endif %}>
+					{{ value }}
+				</span>
+			</td>
+			{%- endif %}
+			{%- endfor %}
+		</tr>
+		{%- endfor %}
+	</tbody>
+</table>

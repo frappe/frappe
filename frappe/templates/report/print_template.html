@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ layout_direction }}">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>{{ title }}</title>
+	<style>
+		{{ print_css }}
+	</style>
+</head>
+<body>
+	<div class="print-format-gutter">
+		<div class="print-format {% if landscape %}landscape{% endif %}"
+			{%- if columns | length > 20 and can_use_smaller_font %}
+				style="font-size: 4.0pt"
+			{%- endif %}
+		>
+			{%- if letter_head and letter_head.header %}
+			<div{% if repeat_header_footer %} id="header-html" class="hidden-pdf"{% endif %}>
+				<div class="letter-head">{{ letter_head.header }}</div>
+			</div>
+			{%- endif %}
+			{{ content }}
+			{%- if repeat_header_footer %}
+			<div id="footer-html" class="visible-pdf">
+				{%- if letter_head and letter_head.footer %}
+				<div class="letter-head-footer">
+					{{ letter_head.footer }}
+				</div>
+				{%- endif %}
+				<p class="text-center small page-number visible-pdf">
+					Page <span class="page"></span> of <span class="topage"></span>
+				</p>
+			</div>
+			{%- endif %}
+		</div>
+	</div>
+</body>
+</html>
