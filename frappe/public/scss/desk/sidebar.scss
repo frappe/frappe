@@ -116,8 +116,8 @@
 			align-items: center;
 			// padding: 3px 0px 3px 11px;
 			flex: 1;
-			height: 30px;
-			color: var(--ink-gray-8);
+			height: 28px;
+			color: var(--ink-gray-6);
 			text-decoration: none;
 			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 			.sidebar-item-icon {
