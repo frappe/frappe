@@ -1,4 +1,5 @@
 import logging
+import time
 
 import frappe
 import litellm
@@ -25,7 +26,7 @@ def call_llm(messages: list, model: str, task_tier: str, api_key: str, stream: b
 	return litellm.completion(model=model, messages=messages, api_key=api_key, stream=stream, **params)
 
 
-def _emit(event_suffix: str, page_id: str, user: str, prefix: str = "ai_generation", **kwargs):
+def emit(event_suffix: str, page_id: str, user: str, prefix: str = "ai_generation", **kwargs):
 	frappe.publish_realtime(
 		f"{prefix}_{event_suffix}_{page_id}",
 		{"page_id": page_id, **kwargs},
@@ -33,27 +34,50 @@ def _emit(event_suffix: str, page_id: str, user: str, prefix: str = "ai_generati
 	)
 
 
-def _progress_stage(content: str) -> str | None:
-	"""Extract a human-readable stage from the tail of a partial JSON stream."""
-	lookback = content[-400:].replace(" ", "")
-	for section_type in ("section", "nav", "header", "footer"):
-		if f'"label":"{section_type}' in lookback or f'"name":"{section_type}' in lookback:
-			return f"Building {section_type}…"
-	return None
+PROGRESS_THROTTLE_SECS = 1.5
+GENERIC_BLOCK_NAMES = {"body", "div", "container"}
+
+
+def get_progress_stage(content: str) -> str | None:
+	"""Report the block currently being built — the most recently emitted block"""
+
+	def get_last_label(content: str) -> tuple[int, str] | None:
+		"""Return (position, value) of the last complete `"label":"value"` in the partial
+		JSON stream, or None if the label is absent or its value is still streaming."""
+		marker = '"label":"'
+		idx = content.rfind(marker)
+		if idx == -1:
+			return None
+		start = idx + len(marker)
+		end = content.find('"', start)
+		if end == -1:  # value not finished streaming yet
+			return None
+		value = content[start:end].strip()
+		return (idx, value) if value else None
+
+	candidates = []
+	found = get_last_label(content)
+	if found and found[1] not in GENERIC_BLOCK_NAMES:
+		candidates.append(found)
+	if not candidates:
+		return None
+	# the candidate appearing latest in the stream is the block being built now
+	_, value = max(candidates)
+	return f"Building {value}…"
 
 
 def run_generation_job(prompt: str, model: str, page_id: str, user: str):
-	settings = frappe.get_single("Studio Settings")
-	api_key = settings.get_password("ai_api_key", raise_exception=False)
-
+	api_key = get_api_key()
 	session = AISession.get_or_create(page_id, model)
 	context = session.build_context_string()
 	session.add_message("user", prompt, task_type="generate")
 
-	_emit("progress", page_id, user, message=f"Generating with {ModelRegistry.get_label(model)}…")
+	emit("progress", page_id, user, message=f"Generating with {ModelRegistry.get_label(model)}…")
 
 	system = SYSTEM_PROMPT + (f"\n\n{context}" if context else "")
 	content = ""
+	last_stage = None
+	last_progress_at = 0.0
 	try:
 		llm_messages = [
 			{"role": "system", "content": system},
@@ -64,21 +88,25 @@ def run_generation_job(prompt: str, model: str, page_id: str, user: str):
 			if not delta:
 				continue
 			content += delta
-			_emit("stream", page_id, user, chunk=delta)
-			stage = _progress_stage(content)
-			if stage:
-				_emit("progress", page_id, user, message=stage)
+			emit("stream", page_id, user, chunk=delta)
+
+			now = time.monotonic()
+			if now - last_progress_at >= PROGRESS_THROTTLE_SECS:
+				stage = get_progress_stage(content)
+				if stage and stage != last_stage:
+					emit("progress", page_id, user, message=stage)
+					last_stage, last_progress_at = stage, now
 
 		logger.info(f"run_generation_job stream done | model={model} length={len(content)}")
 		block = BlockCodec.parse_blocks(content)
 		session.add_message("assistant", "Page generated successfully.", task_type="generate")
-		_emit("complete", page_id, user, block=block)
+		emit("complete", page_id, user, block=block)
 
 	except Exception as e:
 		logger.error(f"run_generation_job failed: {e}\n\n{content}", exc_info=True)
 		logger.info(f"Raw LLM Output for Generate: \n{content}\n")
 		frappe.log_error(title="Studio AI: generation error", message=str(e))
-		_emit("error", page_id, user, message=str(e))
+		emit("error", page_id, user, message=str(e))
 
 
 @frappe.whitelist()
@@ -87,10 +115,7 @@ def generate_page_from_prompt(prompt: str, model: str | None, page_id: str) -> d
 	if not frappe.has_permission("Studio Page", ptype="write"):
 		frappe.throw(_("You do not have permission to modify pages"))
 
-	settings = frappe.get_single("Studio Settings")
-	if not settings.get_password("ai_api_key", raise_exception=False):
-		frappe.throw(_("OpenRouter API key is not configured. Please set it in Studio Settings."))
-
+	validate_api_key()
 	resolved_model = model or ModelRegistry.get_default()
 
 	frappe.enqueue(
@@ -125,14 +150,13 @@ def clear_ai_session(page_id: str) -> dict:
 
 
 def run_modify_job(prompt: str, block_context: str, model: str, page_id: str, user: str, component_id: str):
-	settings = frappe.get_single("Studio Settings")
-	api_key = settings.get_password("ai_api_key", raise_exception=False)
+	api_key = get_api_key()
 
 	session = AISession.get_or_create(page_id, model)
 	context = session.build_context_string()
 	session.add_message("user", prompt, task_type="modify", component_id=component_id)
 
-	_emit("progress", page_id, user, prefix="ai_modify", message="Updating block…")
+	emit("progress", page_id, user, prefix="ai_modify", message="Updating block…")
 
 	compressed = BlockCodec.strip_context(block_context)
 	system = MODIFY_SYSTEM_PROMPT + (f"\n\nConversation history:\n{context}" if context else "")
@@ -148,18 +172,18 @@ def run_modify_job(prompt: str, block_context: str, model: str, page_id: str, us
 			if not delta:
 				continue
 			content += delta
-			_emit("stream", page_id, user, prefix="ai_modify", chunk=delta, component_id=component_id)
+			emit("stream", page_id, user, prefix="ai_modify", chunk=delta, component_id=component_id)
 
 		logger.info(f"run_modify_job stream done | model={model} length={len(content)}")
 		block = BlockCodec.parse_blocks(content)
 		session.add_message("assistant", "Block updated.", task_type="modify", component_id=component_id)
-		_emit("complete", page_id, user, prefix="ai_modify", block=block, component_id=component_id)
+		emit("complete", page_id, user, prefix="ai_modify", block=block, component_id=component_id)
 
 	except Exception as e:
 		logger.error(f"run_modify_job failed: {e}", exc_info=True)
 		logger.info(f"Raw LLM Output for Modify: \n{content}\n")
 		frappe.log_error(title="Studio AI: modify error", message=str(e))
-		_emit("error", page_id, user, prefix="ai_modify", message=str(e))
+		emit("error", page_id, user, prefix="ai_modify", message=str(e))
 
 
 @frappe.whitelist()
@@ -167,10 +191,7 @@ def run_modify_job(prompt: str, block_context: str, model: str, page_id: str, us
 def modify_block_from_prompt(
 	prompt: str, block_context: str, model: str | None, page_id: str, component_id: str
 ) -> dict:
-	settings = frappe.get_single("Studio Settings")
-	if not settings.get_password("ai_api_key", raise_exception=False):
-		frappe.throw(_("OpenRouter API key is not configured. Please set it in Studio Settings."))
-
+	validate_api_key()
 	resolved_model = model or ModelRegistry.get_default()
 
 	frappe.enqueue(
@@ -186,3 +207,13 @@ def modify_block_from_prompt(
 
 	frappe.local.response.http_status_code = 202
 	return {"status": "accepted"}
+
+
+def get_api_key():
+	settings = frappe.get_single("Studio Settings")
+	return settings.get_password("ai_api_key", raise_exception=False)
+
+
+def validate_api_key():
+	if not get_api_key():
+		frappe.throw(_("OpenRouter API key is not configured. Please set it in Studio Settings."))
