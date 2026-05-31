@@ -282,6 +282,195 @@ def report_to_pdf(html: str, orientation: str = "Landscape"):
 
 
 @frappe.whitelist()
+def download_report_pdf(
+	report_name: str,
+	filters: str | dict | None = None,
+	print_settings: str | dict | None = None,
+	orientation: str = "Landscape",
+	ignore_prepared_report: bool = False,
+	custom_columns: str | list | None = None,
+	is_tree: bool = False,
+	parent_field: str | None = None,
+	are_default_filters: bool = True,
+	js_filters: str | list | None = None,
+):
+	html, filename = build_report_pdf_html(
+		report_name,
+		filters=filters,
+		print_settings=print_settings,
+		orientation=orientation,
+		ignore_prepared_report=ignore_prepared_report,
+		custom_columns=custom_columns,
+		is_tree=is_tree,
+		parent_field=parent_field,
+		are_default_filters=are_default_filters,
+		js_filters=js_filters,
+	)
+
+	make_access_log(file_type="PDF", method="PDF", page=report_name)
+	frappe.local.response.filename = f"{filename}.pdf"
+	frappe.local.response.filecontent = get_pdf(
+		html,
+		{
+			"orientation": orientation,
+			"proxy": "http://0.0.0.0:0",
+			"bypass-proxy-for": urlparse(frappe.utils.get_url(allow_header_override=False)).hostname,
+			"load-error-handling": "ignore",
+		},
+	)
+	frappe.local.response.type = "pdf"
+
+
+def build_report_pdf_html(
+	report_name: str,
+	filters: str | dict | None = None,
+	print_settings: str | dict | None = None,
+	orientation: str = "Landscape",
+	ignore_prepared_report: bool = False,
+	custom_columns: str | list | None = None,
+	is_tree: bool = False,
+	parent_field: str | None = None,
+	are_default_filters: bool = True,
+	js_filters: str | list | None = None,
+) -> tuple[str, str]:
+	"""Re-run a report on the backend and render it to print HTML.
+
+	Returns the rendered HTML and the suggested download filename (without extension).
+	"""
+	from frappe.desk.query_report import run
+	from frappe.model import numeric_fieldtypes
+	from frappe.utils import cstr, escape_html
+	from frappe.utils.formatters import format_value
+	from frappe.utils.jinja_globals import is_rtl
+	from frappe.www.printview import get_print_style
+
+	if isinstance(filters, str):
+		filters = json.loads(filters)
+
+	if isinstance(print_settings, str):
+		print_settings = json.loads(print_settings)
+
+	if isinstance(js_filters, str):
+		js_filters = json.loads(js_filters)
+
+	if isinstance(custom_columns, str):
+		custom_columns = json.loads(custom_columns)
+
+	print_settings = frappe._dict(print_settings or {})
+
+	result = run(
+		report_name,
+		filters,
+		ignore_prepared_report=ignore_prepared_report,
+		custom_columns=custom_columns or None,
+		is_tree=is_tree,
+		parent_field=parent_field,
+		are_default_filters=are_default_filters,
+		js_filters=js_filters,
+	)
+	report = frappe.get_doc("Report", report_name)
+	columns = result.get("columns", [])
+	data = result.get("result", [])
+
+	# map against the full column list before any column filtering, else values
+	# zip against the wrong fieldnames
+	all_fieldnames = [col["fieldname"] for col in columns]
+	for i, row in enumerate(data):
+		if isinstance(row, list):
+			data[i] = dict(zip(all_fieldnames, row, strict=False))
+
+	# flag the appended total row so the template can bold it, like the client grid
+	if result.get("add_total_row") and data:
+		data[-1]["_is_total_row"] = True
+
+	if print_settings.get("columns"):
+		columns = [col for col in columns if col["fieldname"] in print_settings.columns]
+
+	# Jinja autoescape is off here: escape every value except these intentionally-HTML
+	# fieldtypes. Text/Small Text and Code mirror the client grid formatters below.
+	html_fieldtypes = ("Text Editor", "Markdown Editor", "HTML")
+
+	for row in data:
+		for col in columns:
+			fieldname = col["fieldname"]
+			value = row.get(fieldname)
+			fieldtype = col.get("fieldtype")
+			if value is None or value == "":
+				row[fieldname] = ""
+			elif fieldtype == "Check":
+				row[fieldname] = "✓" if value == 1 else "✗"
+			elif fieldtype == "Code":
+				row[fieldname] = f"<pre>{escape_html(cstr(value))}</pre>"
+			elif fieldtype in ("Text", "Small Text"):
+				if col.get("ignore_xss_filter"):
+					row[fieldname] = format_value(value, col, row)
+				else:
+					row[fieldname] = escape_html(cstr(value)).replace("\n", "<br>")
+			else:
+				formatted = format_value(value, col, row)
+				if fieldtype not in html_fieldtypes:
+					formatted = escape_html(formatted)
+				row[fieldname] = formatted
+
+	letter_head = None
+	if print_settings.get("with_letter_head") and print_settings.get("letter_head_name"):
+		letter_head = render_letterhead_for_print(print_settings.letter_head_name)
+
+	filters_html = ""
+	if print_settings.get("include_filters") and isinstance(filters, dict):
+		filter_fields = {f.fieldname: f for f in (report.filters or [])}
+		for fieldname, value in filters.items():
+			if not value:
+				continue
+			df = filter_fields.get(fieldname)
+			label = escape_html(_(df.label) if df else fieldname)
+			filters_html += (
+				f'<div class="filter-row"><strong>{label}:</strong> {escape_html(cstr(value))}</div>'
+			)
+
+	content = frappe.get_template("templates/report/print_grid.html").render(
+		{
+			"title": _(report_name),
+			"subtitle": filters_html or None,
+			"columns": columns,
+			"data": data,
+			"numeric_fieldtypes": numeric_fieldtypes,
+		}
+	)
+
+	print_css = get_print_style()
+
+	html = frappe.get_template("templates/report/print_template.html").render(
+		{
+			"title": _(report_name),
+			"content": content,
+			"print_css": print_css,
+			"landscape": orientation == "Landscape",
+			"columns": columns,
+			"lang": frappe.local.lang,
+			"layout_direction": "rtl" if is_rtl() else "ltr",
+			"can_use_smaller_font": report.is_standard == "Yes",
+			"letter_head": letter_head,
+			"repeat_header_footer": print_settings.get("repeat_header_footer"),
+		}
+	)
+
+	filename = report_name.replace(" ", "-").replace("/", "-")
+	if isinstance(filters, dict):
+		parts = []
+		length = 0
+		for value in filters.values():
+			length += len(str(value))
+			if length > 200:
+				break
+			parts.append(str(value))
+		if parts:
+			filename += "_" + "_".join(parts)
+
+	return html, filename
+
+
+@frappe.whitelist()
 def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str | None = None) -> dict:
 	"""Render letterhead HTML (header/footer) with Jinja for report printing."""
 
