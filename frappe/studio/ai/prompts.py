@@ -10,24 +10,24 @@ TEXT & DISPLAY:
 - Progress: {value: 0-100, size: "sm|md|lg", label: "string"}
 - Alert: {title: "string", description: "string", theme: "yellow|red|green|blue"}
 - ErrorMessage: {message: "string"}
-- FeatherIcon: {name: "feather-icon-name", class: "h-5 w-5"}
+- FeatherIcon: {name: "feather-icon-name", class: "h-5 w-5"} # (icons from https://feathericons.com/)
 - ImageView: {image: "url", size: "xs|sm|md|lg|xl"}
 - Divider: (no props)
 - Tooltip: {text: "string"}
 - HTML: {html: "<p>raw html</p>"}
 
 INPUTS:
-- TextInput: {placeholder: "string"}
-- Textarea: {placeholder: "string"}
-- FormControl: {type: "text|email|number|textarea|select|date|autocomplete|password|tel|url|range", label: "string", placeholder: "string", required: "boolean", options: [{label: "string", value: "string"}] (for select and autocomplete)}
-- Select: {placeholder: "string", options: [{label: "string", value: "string"}]}
+- TextInput: {modelValue: "string", placeholder: "string"}
+- Textarea: {modelValue: "string", placeholder: "string"}
+- FormControl: {modelValue: "string", type: "text|email|number|textarea|select|date|autocomplete|password|tel|url|range", label: "string", placeholder: "string", required: "boolean", options: [{label: "string", value: "string"}] (for select and autocomplete)}
+- Select: {modelValue: "string", placeholder: "string", options: [{label: "string", value: "string"}]}
 - Checkbox: {label: "string", checked: true|false}
 - Switch: {label: "string", description: "string", modelValue: true|false}
-- DatePicker: {placeholder: "string"}
-- TimePicker: {placeholder: "string"}
-- DateTimePicker: {placeholder: "string"}
-- MultiSelect: {placeholder: "string", options: [{label: "string", value: "string"}]}
-- Rating: {label: "string"}
+- DatePicker: {modelValue: "string", placeholder: "string"}
+- TimePicker: {modelValue: "string", placeholder: "string"}
+- DateTimePicker: {modelValue: "string", placeholder: "string"}
+- MultiSelect: {modelValue: [], placeholder: "string", options: [{label: "string", value: "string"}]}
+- Rating: {modelValue: 0, label: "string"}
 - FileUploader: {label: "string", fileTypes: "['image/*']"}
 - TextEditor: {modelValue: "string", editable: true, fixedMenu: true}
 - FormLabel: {label: "string"} (for inputs that don't have a built-in label prop, e.g. Textarea, TextEditor, etc.)
@@ -39,7 +39,7 @@ ACTIONS:
 NAVIGATION:
 - Breadcrumbs: {items: [{label: "string", route: "string"}]}
 - Tabs: {tabs: [{label: "string"}]}
-- TabButtons: {buttons: [{label: "string", value: "string"}]}
+- TabButtons: {buttons: [{label: "string", value: "string"}], modelValue: "string"}
 - Sidebar: {header: {title: "string", subtitle: "string"}, sections: [{label: "string", items: [{label: "string", icon: "{{ getIcon('icon-name') }}", to: "string"}]}]}
   # icon-name must be a valid kebab-case lucide icon from https://lucide.dev/icons
 
@@ -55,8 +55,8 @@ DATA DISPLAY:
 - Calendar: {config: {defaultMode: "Month"}, events: []}
 
 AUTOCOMPLETE:
-- Autocomplete: {placeholder: "string", options: [{label: "string", value: "string"}]}
-- Combobox: {placeholder: "string", options: [{group: "string", options: [{label, value}]}]}
+- Autocomplete: {modelValue: "string", placeholder: "string", options: [{label: "string", value: "string"}]}
+- Combobox: {modelValue: "string", placeholder: "string", options: [{group: "string", options: [{label, value}]}]}
 """
 
 STYLING_RULES = """COMPONENT STYLING RULES:
