@@ -1592,13 +1592,52 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	async pdf_report(print_settings) {
+		const custom_format = await this.get_custom_format(print_settings);
+
+		if (custom_format) {
+			await this.render_report_letterhead(print_settings);
+			return this.render_pdf_client_side(print_settings, custom_format);
+		}
+
+		const filters = this.get_filter_values();
+		if (this.prepared_report_name) {
+			filters.prepared_report_name = this.prepared_report_name;
+		}
+
+		const selected_columns = print_settings.columns?.length
+			? this.get_visible_columns()
+					.filter((col) => print_settings.columns.includes(col.fieldname))
+					.map((col) => col.fieldname)
+			: null;
+
+		const js_filters = (this.filters || [])
+			.filter((filter) => filter.fieldtype === "Link" && filters[filter.fieldname] !== "")
+			.map(({ fieldname, fieldtype, options }) => ({ fieldname, fieldtype, options }));
+
+		open_url_post("/api/method/frappe.utils.print_format.download_report_pdf", {
+			report_name: this.report_name,
+			filters: JSON.stringify(filters),
+			print_settings: JSON.stringify({
+				columns: selected_columns,
+				with_letter_head: print_settings.with_letter_head || 0,
+				letter_head_name: print_settings.letter_head_name || "",
+				include_filters: print_settings.include_filters || 0,
+				repeat_header_footer: print_settings.repeat_header_footer || 0,
+			}),
+			orientation: print_settings.orientation || "Landscape",
+			ignore_prepared_report: this.ignore_prepared_report || 0,
+			is_tree: this.report_settings.tree || 0,
+			parent_field: this.report_settings.parent_field || "",
+			are_default_filters: 0,
+			js_filters: JSON.stringify(js_filters),
+			custom_columns: JSON.stringify(this.custom_columns?.length ? this.custom_columns : []),
+		});
+	}
+
+	render_pdf_client_side(print_settings, custom_format) {
 		const base_url = frappe.urllib.get_base_url();
 		const print_css = frappe.boot.print_css;
 		const landscape = print_settings.orientation == "Landscape";
-
-		const custom_format = await this.get_custom_format(print_settings);
-
-		await this.render_report_letterhead(print_settings);
 
 		const columns = this.get_columns_for_print(print_settings, custom_format);
 		const data = this.get_data_for_print();
@@ -1616,7 +1655,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			print_settings: print_settings,
 		});
 
-		// Render Report in HTML
 		const html = frappe.render_template("print_template", {
 			title: __(this.report_name),
 			content: content,
@@ -1630,10 +1668,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			can_use_smaller_font: this.report_doc.is_standard === "Yes" && custom_format ? 0 : 1,
 		});
 
-		let filter_values = [],
-			name_len = 0;
-		for (var key of Object.keys(applied_filters)) {
-			name_len = name_len + applied_filters[key].toString().length;
+		let filter_values = [];
+		let name_len = 0;
+		for (let key of Object.keys(applied_filters)) {
+			name_len += applied_filters[key].toString().length;
 			if (name_len > 200) break;
 			filter_values.push(applied_filters[key]);
 		}
