@@ -102,6 +102,14 @@ frappe.views.CommunicationComposer = class {
 				fieldtype: "Link",
 				options: "Email Template",
 				fieldname: "email_template",
+				get_query: function () {
+					if (me.frm?.doctype) {
+						return {
+							query: "frappe.email.doctype.email_template.email_template.get_email_templates",
+							filters: { reference_doctype: me.frm.doctype },
+						};
+					}
+				},
 				onchange: async function () {
 					const email_template = this.value;
 					if (!email_template) {
