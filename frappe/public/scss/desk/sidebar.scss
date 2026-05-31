@@ -270,7 +270,7 @@
 
 .active-sidebar {
 	background: var(--sidebar-active-color);
-	box-shadow: var(--shadow-sm);
+	box-shadow: 0 0 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.14);
 	border-radius: 8px;
 	:hover {
 		text-decoration: none;
