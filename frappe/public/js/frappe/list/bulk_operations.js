@@ -308,21 +308,30 @@ export default class BulkOperations {
 	}
 
 	edit(docnames, field_mappings, done) {
-		let field_options = Object.keys(field_mappings).sort(function (a, b) {
+		const field_options = Object.keys(field_mappings).sort(function (a, b) {
 			return __(cstr(field_mappings[a].label)).localeCompare(
 				cstr(__(field_mappings[b].label))
 			);
 		});
+		// Same strings as legacy Select (`options`: sorted mapping keys)—parent `Label (Doctype)`,
+		// child `Child Label (Table column)`, so labels stay distinguishable after Autocomplete swap.
+		const field_autocomplete_options = field_options.map((key) => ({
+			label: __(cstr(key)),
+			value: key,
+		}));
 		const status_regex = /status/i;
 
-		const default_field = field_options.find((value) => status_regex.test(value));
+		const default_field =
+			field_options.find((value) => status_regex.test(value)) ||
+			field_options.find((value) => field_mappings[value]?.fieldtype === "Select");
 
 		const dialog = new frappe.ui.Dialog({
 			title: __("Bulk Edit"),
 			fields: [
 				{
-					fieldtype: "Select",
-					options: field_options,
+					fieldtype: "Autocomplete",
+					options: field_autocomplete_options,
+					max_items: Infinity,
 					default: default_field,
 					label: __("Field"),
 					fieldname: "field",
