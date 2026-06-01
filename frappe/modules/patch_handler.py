@@ -17,10 +17,8 @@ patches by using INI like file format:
 	app.module.patch1
 	app.module.patch2
 
-
 	[post_model_sync]
 	app.module.patch3
-
 
 	[post_fixture_sync]
 	app.module.patch4
