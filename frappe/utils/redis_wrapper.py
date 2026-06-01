@@ -408,7 +408,7 @@ def get_sentinel_connection(
 	)
 
 
-class _TrackedConnection(redis.Connection):
+class _ClientTrackingMixin:
 	def __init__(self, *args, **kwargs):
 		self._invalidator_id = kwargs.pop("_invalidator_id")
 		super().__init__(*args, **kwargs)
@@ -428,6 +428,14 @@ class _TrackedConnection(redis.Connection):
 				raise Exception("Redis version is not supported, upgrade to Redis 6.0 or higher.")
 			else:
 				raise
+
+
+class _TrackedConnection(_ClientTrackingMixin, redis.Connection):
+	pass
+
+
+class _TrackedUnixDomainSocketConnection(_ClientTrackingMixin, redis.UnixDomainSocketConnection):
+	pass
 
 
 CachedValue = namedtuple("CachedValue", ["value", "expiry"])
@@ -495,9 +503,13 @@ class ClientCache:
 		if not self.invalidator_id:
 			return
 
+		redis_url = frappe.conf.get("redis_cache") or ""
+		connection_class = (
+			_TrackedUnixDomainSocketConnection if redis_url.startswith("unix://") else _TrackedConnection
+		)
 		self.redis: RedisWrapper = RedisWrapper.from_url(
-			frappe.conf.get("redis_cache"),
-			connection_class=_TrackedConnection,
+			redis_url,
+			connection_class=connection_class,
 			_invalidator_id=self.invalidator_id,
 			protocol=2,
 		)
