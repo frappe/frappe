@@ -156,7 +156,7 @@ def safer_exec(
 	if script_filename:
 		filename += f": {frappe.scrub(script_filename)}"
 
-	with safe_exec_flags(), patched_qb():
+	with safe_exec_flags():
 		exec(_compile_code(script, filename=filename), exec_globals, _locals)
 
 	return exec_globals, _locals
