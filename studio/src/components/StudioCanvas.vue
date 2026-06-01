@@ -43,7 +43,8 @@
 				</div>
 			</div>
 			<div
-				class="canvas relative flex h-full bg-surface-white shadow-2xl contain-layout"
+				class="canvas relative flex bg-surface-white shadow-2xl contain-layout"
+				:class="canvasStore.editingMode === 'page' ? 'min-h-[100dvh]' : ''"
 				:style="{
 					...canvasStyles,
 					background: canvasProps.background,
