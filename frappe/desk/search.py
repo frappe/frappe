@@ -12,7 +12,7 @@ from frappe import _, bold, is_whitelisted, validate_and_sanitize_search_inputs
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
-from frappe.utils import cint, cstr, escape_html, unique
+from frappe.utils import cint, cstr, escape_html, sbool, unique
 from frappe.utils.caching import http_cache
 from frappe.utils.data import make_filter_tuple
 
@@ -59,8 +59,24 @@ def search_link(
 		reference_doctype=reference_doctype,
 		ignore_user_permissions=ignore_user_permissions,
 		link_fieldname=link_fieldname,
+		query_filters_as_dict=False,
 	)
 	return build_for_autosuggest(results, doctype=doctype)
+
+
+def make_dict_from_filter_list(filters: list) -> dict:
+	"""Reverse of `make_filter_tuple`: convert
+	[[doctype, fieldname, operator, value], ..] back to {fieldname: value} for equality
+	filters and {fieldname: [operator, value]} otherwise.
+	"""
+	_filters = {}
+	for f in filters:
+		fieldname, operator, value = f[1], f[2], f[3]
+		if operator == "=":
+			_filters[fieldname] = value
+		else:
+			_filters[fieldname] = [operator, value]
+	return _filters
 
 
 # this is called by the search box
@@ -80,6 +96,7 @@ def search_widget(
 	*,
 	link_fieldname: str | None = None,
 	for_link_validation: bool = False,
+	query_filters_as_dict: bool = True,
 ):
 	if ignore_user_permissions:
 		if reference_doctype and link_fieldname:
@@ -92,6 +109,7 @@ def search_widget(
 			ignore_user_permissions = False
 
 	start = cint(start)
+	query_filters_as_dict = sbool(query_filters_as_dict)
 
 	if isinstance(filters, str):
 		filters = json.loads(filters)
@@ -109,6 +127,9 @@ def search_widget(
 
 	if filters is None:
 		filters = {}
+
+	if query and query_filters_as_dict and isinstance(filters, list):
+		filters = make_dict_from_filter_list(filters)
 
 	if query:  # Query = custom search query i.e. python function
 		meta = frappe.get_meta(doctype)

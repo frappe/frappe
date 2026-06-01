@@ -248,6 +248,7 @@ frappe.link_search = function (doctype, args, callback, btn) {
 	if (!args.searchfield) {
 		args.searchfield = "name";
 	}
+	args.query_filters_as_dict = false;
 
 	frappe.call({
 		method: "frappe.desk.search.search_widget",

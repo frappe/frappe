@@ -454,6 +454,7 @@ def validate_link_and_fetch(
 		# for non-custom queries, docname is always matched exactly so we don't translate it
 		txt=_(docname) if (query and meta.translated_doctype) else docname,
 		for_link_validation=True,
+		query_filters_as_dict=False,
 	)
 
 	search_result = frappe.call(

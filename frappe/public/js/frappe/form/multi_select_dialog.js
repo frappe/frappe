@@ -590,24 +590,26 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	get_args_for_search() {
 		let [filters, filter_fields] = this.get_filters_from_setters();
 
-		let filter_list = Object.entries(filters).map(([key, value]) => {
-			if (Array.isArray(value)) {
-				return [this.doctype, key, value[0], value[1]];
-			}
-			return [this.doctype, key, "=", value];
-		});
+		let filters_list = Object.entries(filters)
+			.filter(([, value]) => value != null)
+			.map(([key, value]) => {
+				if (Array.isArray(value)) {
+					return [this.doctype, key, value[0], value[1]];
+				}
+				return [this.doctype, key, "=", value];
+			});
 
 		if (this.add_filters_group && this.filter_group) {
-			filter_list.push(...this.filter_group.get_filters());
+			filters_list.push(...this.filter_group.get_filters());
 		}
-
 		return {
 			doctype: this.doctype,
 			txt: this.dialog.fields_dict["search_term"].get_value(),
-			filters: filter_list,
+			filters: filters_list,
 			filter_fields: filter_fields,
 			page_length: this.page_length + 5,
 			query: this.get_query ? this.get_query().query : "",
+			query_filters_as_dict: this.query_filters_as_dict ?? true,
 			as_dict: 1,
 		};
 	}
