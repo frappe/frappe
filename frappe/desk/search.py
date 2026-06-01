@@ -71,11 +71,24 @@ def make_dict_from_filter_list(filters: list) -> dict:
 	"""
 	_filters = {}
 	for f in filters:
+		if not isinstance(f, (list, tuple)) or len(f) != 4:
+			frappe.throw(
+				frappe._("Invalid filter format: {0}").format(f),
+				title=frappe._("Filter Error"),
+			)
 		fieldname, operator, value = f[1], f[2], f[3]
-		if operator == "=":
-			_filters[fieldname] = value
-		else:
-			_filters[fieldname] = [operator, value]
+
+		if not isinstance(fieldname, str) or not fieldname:
+			frappe.throw(frappe._("Filter fieldname must be a non-empty string"))
+
+		if fieldname in _filters:
+			frappe.log_error(
+				title="Duplicate filter fieldname",
+				message=f"Field '{fieldname}' appears more than once; last value used.",
+			)
+
+		_filters[fieldname] = value if operator == "=" else [operator, value]
+
 	return _filters
 
 
