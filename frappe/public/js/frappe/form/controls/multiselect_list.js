@@ -49,8 +49,18 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			let $target = $(e.currentTarget);
 			this.toggle_select_item($target);
 		});
-		this.$list_wrapper.find('[data-toggle="dropdown"]').on("focus", function () {
-			$(this).dropdown("show");
+		// Prevent focus triggered by a mouse click from reopening the dropdown.
+		const $toggle = this.$list_wrapper.find('[data-toggle="dropdown"]');
+		let focus_triggered_by_mouse = false;
+		$toggle.on("mousedown", () => {
+			focus_triggered_by_mouse = true;
+		});
+		$toggle.on("focus", () => {
+			if (focus_triggered_by_mouse) {
+				focus_triggered_by_mouse = false;
+				return;
+			}
+			$toggle.dropdown("show");
 		});
 		this.$list_wrapper.on(
 			"mousedown",
