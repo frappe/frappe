@@ -1,0 +1,97 @@
+{
+ "actions": [],
+ "creation": "2026-05-26 12:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "page",
+  "user",
+  "selected_model",
+  "last_task_type",
+  "is_running",
+  "last_interaction_on",
+  "messages_json"
+ ],
+ "fields": [
+  {
+   "fieldname": "page",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Page",
+   "options": "Studio Page",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "selected_model",
+   "fieldtype": "Data",
+   "label": "Selected Model"
+  },
+  {
+   "fieldname": "last_task_type",
+   "fieldtype": "Data",
+   "label": "Last Task Type"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_running",
+   "fieldtype": "Check",
+   "label": "Is Running"
+  },
+  {
+   "fieldname": "last_interaction_on",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Last Interaction On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "messages_json",
+   "fieldtype": "Long Text",
+   "label": "Messages JSON"
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-26 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Studio",
+ "name": "Studio AI Session",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Studio User",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "page"
+}

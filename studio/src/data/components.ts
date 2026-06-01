@@ -9,7 +9,6 @@ import LucideUser from "~icons/lucide/user"
 import LucideChevronsRight from "~icons/lucide/chevrons-right"
 import LucideBadgeCheck from "~icons/lucide/badge-check"
 import LucideRectangleHorizontal from "~icons/lucide/rectangle-horizontal"
-import LucideIdCard from "~icons/lucide/id-card"
 import LucideCircleCheck from "~icons/lucide/circle-check"
 import LucideCalendar from "~icons/lucide/calendar"
 import LucideClock from "~icons/lucide/clock"
@@ -156,15 +155,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		initialState: {
 			label: "Submit",
 			variant: "solid",
-		},
-	},
-	Card: {
-		name: "Card",
-		title: "Card",
-		icon: LucideIdCard,
-		initialState: {
-			title: "John Doe",
-			subtitle: "Engineering Lead",
 		},
 	},
 	Checkbox: {

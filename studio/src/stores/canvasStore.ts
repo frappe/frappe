@@ -45,6 +45,8 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		})
 	}
 
+	const isAIStreaming = ref(false)
+
 	// drag & drop
 	const isDragging = ref(false)
 	const layerDraggingOverBlock = ref<string | null>(null)
@@ -183,6 +185,8 @@ const useCanvasStore = defineStore("canvasStore", () => {
 		showCodeDialog,
 		editCode,
 		editableCode,
+		// ai streaming
+		isAIStreaming,
 		// drag & drop
 		dropTarget,
 		isDragging,

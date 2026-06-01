@@ -5,7 +5,6 @@ export const FRAPPE_UI_COMPONENTS = [
 	"Badge",
 	"Button",
 	"Breadcrumbs",
-	"Card",
 	"Checkbox",
 	"Calendar",
 	"Combobox",

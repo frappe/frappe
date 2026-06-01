@@ -23,7 +23,7 @@ export interface BlockOptions {
 	rawStyles?: BlockStyleMap
 	mobileStyles?: BlockStyleMap
 	tabletStyles?: BlockStyleMap
-	blockName?: string
+	blockName?: string // optional user-friendly name for the block
 	parentBlock?: Block | null
 	classes?: string[]
 	parentSlotName?: string // for top-level blocks inside a slot
@@ -149,7 +149,7 @@ export type Filter = {
 	field: DocTypeField
 }
 
-export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code"
+export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code" | "AI Assistant"
 export type RightPanelOptions = "Properties" | "Styles" | "Events" | "Interface"
 export type leftPanelComponentTabOptions = "Standard" | "Custom"
 

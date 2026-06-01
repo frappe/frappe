@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AIChatPanel: typeof import('./src/components/AIChatPanel.vue')['default']
     AppComponent: typeof import('./src/components/AppComponent.vue')['default']
     AppDialog: typeof import('./src/components/AppDialog.vue')['default']
     AppHeader: typeof import('./src/components/AppLayout/AppHeader.vue')['default']
@@ -98,6 +99,7 @@ declare module 'vue' {
     StudioLeftPanel: typeof import('./src/components/StudioLeftPanel.vue')['default']
     StudioLogo: typeof import('./src/components/Icons/StudioLogo.vue')['default']
     StudioRightPanel: typeof import('./src/components/StudioRightPanel.vue')['default']
+    StudioSettingsDialog: typeof import('./src/components/StudioSettingsDialog.vue')['default']
     StudioToolbar: typeof import('./src/components/StudioToolbar.vue')['default']
     TextBlock: typeof import('./src/components/AppLayout/TextBlock.vue')['default']
   }

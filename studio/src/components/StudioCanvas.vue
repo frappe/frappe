@@ -1,5 +1,5 @@
 <template>
-	<div ref="canvasContainer">
+	<div ref="canvasContainer" @click="handleClick">
 		<slot name="header"></slot>
 		<div
 			class="overlay absolute"
@@ -18,7 +18,6 @@
 
 		<div
 			class="fixed flex gap-40"
-			:class="canvasStore.editingMode === 'page' ? 'h-full' : ''"
 			ref="canvas"
 			:style="{
 				transformOrigin: 'top center',
@@ -44,7 +43,8 @@
 				</div>
 			</div>
 			<div
-				class="canvas relative flex h-full bg-surface-white shadow-2xl contain-layout"
+				class="canvas relative flex bg-surface-white shadow-2xl contain-layout"
+				:class="canvasStore.editingMode === 'page' ? 'min-h-[100dvh]' : ''"
 				:style="{
 					...canvasStyles,
 					background: canvasProps.background,
@@ -225,10 +225,6 @@ function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false, se
 		setActiveBreakpoint(breakpoint)
 	}
 
-	if (block.isContainer()) {
-		store.studioLayout.leftPanelActiveTab = "Layers"
-	}
-
 	if (block.isText() || block.isContainer()) {
 		// combined props and styles
 		store.studioLayout.rightPanelActiveTab = "Styles"
@@ -242,6 +238,15 @@ function selectBlockById(blockId: string, e: MouseEvent | null, multiSelect = fa
 		selectedBlockIds.value.add(blockId)
 	} else {
 		selectedBlockIds.value = new Set([blockId])
+	}
+}
+
+const handleClick = (ev: MouseEvent) => {
+	const target = document.elementFromPoint(ev.clientX, ev.clientY)
+	// hack to ensure if click is on canvas-container
+	// TODO: Still clears selection if space handlers are dragged over canvas-container
+	if (target?.classList.contains("canvas-container")) {
+		clearSelection()
 	}
 }
 
