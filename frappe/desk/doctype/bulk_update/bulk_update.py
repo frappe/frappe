@@ -12,6 +12,8 @@ from frappe.utils.scheduler import is_scheduler_inactive
 
 
 class BulkUpdate(Document):
+	_DOCTYPE_NAME = "Bulk Update"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

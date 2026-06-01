@@ -54,45 +54,19 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			},
 		];
 		if (frappe.boot.desk_settings.notifications) {
-			let is_dark = frappe.ui.get_current_theme() === "dark";
 			this.dropdown_items.push(
-				{
-					name: "display",
-					label: "Display",
-					icon: "monitor",
-					items: this.get_display_siblings(is_dark),
-				},
-				{
-					label: "Session Defaults",
-					action: "frappe.ui.toolbar.setup_session_defaults()",
-					is_standard: 1,
-					condition: function () {
-						return frappe.boot.session_defaults.length != 0;
-					},
-					icon: "sliders-horizontal",
-				},
 				{
 					label: "Reload",
 					action: "frappe.ui.toolbar.clear_cache()",
 					is_standard: 1,
 					icon: "rotate-ccw",
+					shortcut: "Shift+Ctrl+R",
 				},
 				{
 					name: "help",
 					label: "Help",
 					icon: "info",
 					items: this.get_help_siblings(),
-				},
-				{
-					is_divider: true,
-				},
-				{
-					name: "logout",
-					label: "Logout",
-					icon: "logout",
-					onClick: function () {
-						return frappe.app.logout();
-					},
 				}
 			);
 		}
@@ -208,6 +182,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 
 		navbar_settings.help_dropdown.forEach((element) => {
 			if (element.hidden) return;
+			if (element.action?.includes("frappe.ui.toolbar.show_shortcuts")) return;
 			if (element.condition && !frappe.utils.eval(element.condition)) return;
 			let dropdown_children = {
 				name: element.name,
@@ -225,36 +200,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		});
 
 		return help_dropdown_items;
-	}
-
-	get_display_siblings(is_dark) {
-		const sidebar = this.sidebar;
-		return [
-			{
-				name: "toggle-theme",
-				label: __("Toggle Theme"),
-				icon: is_dark ? "sun" : "moon",
-				onClick: function () {
-					new frappe.ui.ThemeSwitcher().show();
-				},
-			},
-			{
-				name: "toggle-full-width",
-				label: __("Toggle Full Width"),
-				icon: "maximize",
-				onClick: function () {
-					frappe.ui.toolbar.toggle_full_width();
-				},
-			},
-			{
-				name: "toggle-sidebar",
-				label: __("Toggle Sidebar"),
-				icon: "panel-right-open",
-				onClick: function () {
-					sidebar.toggle_width();
-				},
-			},
-		];
 	}
 
 	get_custom_help_links() {
@@ -357,6 +302,13 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 					}
 				</div>
 				<span class="menu-item-title">${item.label}</span>
+				${
+					item.shortcut
+						? `<span class="menu-item-shortcut">${frappe.ui.keys.get_shortcut_label(
+								item.shortcut
+						  )}</span>`
+						: ""
+				}
 			</a>
 		</div>`).appendTo(this.dropdown_menu);
 	}

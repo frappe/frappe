@@ -20,6 +20,8 @@ os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
 
 class ConnectedApp(Document):
+	_DOCTYPE_NAME = "Connected App"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

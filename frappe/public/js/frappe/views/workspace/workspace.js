@@ -346,6 +346,7 @@ frappe.views.Workspace = class Workspace {
 		this.body.addClass("edit-mode");
 		this.initialize_editorjs_undo();
 		this.clear_page_actions();
+		$("#full-search-button").addClass("hidden");
 
 		// switch headers
 		this.wrapper.find(".page-head").removeClass("hidden");
@@ -357,6 +358,7 @@ frappe.views.Workspace = class Workspace {
 				() => {
 					this.clear_page_actions();
 					this.body.removeClass("edit-mode");
+					$("#full-search-button").removeClass("hidden");
 					this.save_page(page).then((saved) => {
 						if (!saved) return;
 						this.undo.readOnly = true;
@@ -371,6 +373,7 @@ frappe.views.Workspace = class Workspace {
 		this.page.set_secondary_action(__("Discard"), async () => {
 			this.body.removeClass("edit-mode");
 			this.clear_page_actions();
+			$("#full-search-button").removeClass("hidden");
 			await this.editor.readOnly.toggle();
 			this.is_read_only = true;
 			frappe.boot.workspaces = this.cached_pages;

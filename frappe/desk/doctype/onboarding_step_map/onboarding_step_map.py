@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class OnboardingStepMap(Document):
+	_DOCTYPE_NAME = "Onboarding Step Map"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -9,6 +9,8 @@ from frappe.permissions import get_roles
 
 
 class UserInvitation(Document):
+	_DOCTYPE_NAME = "User Invitation"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

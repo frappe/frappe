@@ -45,13 +45,23 @@ frappe.ui.Page = class Page {
 		this.add_main_section();
 		this.setup_scroll_handler();
 		this.setup_main_sidebar_toggle();
-		this.setup_mobile_awesomebar();
+		this.setup_awesomebar();
 	}
 
-	setup_mobile_awesomebar() {
-		if (frappe.boot.desk_settings.search_bar && frappe.is_mobile()) {
+	setup_awesomebar() {
+		if (frappe.boot.desk_settings.search_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
 			awesome_bar.setup(".navbar-modal-search-mobile");
+			frappe.app.awesome_bar = awesome_bar;
+			frappe.search.utils.make_function_searchable(
+				frappe.utils.generate_tracking_url,
+				__("Generate Tracking URL")
+			);
+			if (frappe.model.can_read("RQ Job")) {
+				frappe.search.utils.make_function_searchable(function () {
+					frappe.set_route("List", "RQ Job");
+				}, __("Background Jobs"));
+			}
 		}
 	}
 
@@ -449,7 +459,9 @@ frappe.ui.Page = class Page {
 		let $icon = ``;
 
 		if (icon) {
-			$icon = `<span class="menu-item-icon">${frappe.utils.icon(icon)}</span>`;
+			$icon = `<span class="menu-item-icon flex align-items-center justify-items-center">${frappe.utils.icon(
+				icon
+			)}</span>`;
 		}
 
 		if (shortcut) {
@@ -459,9 +471,7 @@ frappe.ui.Page = class Page {
 					<a class="grey-link dropdown-item" href="#" onClick="return false;">
 						${$icon}
 						<span class="menu-item-label">${label}</span>
-						<kbd class="pull-right">
-							<span>${shortcut_obj.shortcut_label}</span>
-						</kbd>
+						<span class="menu-item-shortcut">${shortcut_obj.shortcut_label}</span>
 					</a>
 				</li>
 			`);
@@ -514,16 +524,7 @@ frappe.ui.Page = class Page {
 		} else {
 			shortcut_obj = shortcut;
 		}
-		// label
-		if (frappe.utils.is_mac()) {
-			shortcut_obj.shortcut_label = shortcut_obj.shortcut
-				.replace("Ctrl", "⌘")
-				.replace("Alt", "⌥");
-		} else {
-			shortcut_obj.shortcut_label = shortcut_obj.shortcut;
-		}
-
-		shortcut_obj.shortcut_label = shortcut_obj.shortcut_label.replace("Shift", "⇧");
+		shortcut_obj.shortcut_label = frappe.ui.keys.get_shortcut_label(shortcut_obj.shortcut);
 
 		// actual shortcut string
 		shortcut_obj.shortcut = shortcut_obj.shortcut.toLowerCase();

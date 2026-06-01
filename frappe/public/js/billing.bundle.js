@@ -1,12 +1,12 @@
 let frappeCloudBaseEndpoint = "https://frappecloud.com";
-let isFCUser = false;
+let isFCUser = true;
 
 $(document).ready(function () {
 	const site_info = frappe.boot.site_info;
 	if (site_info) {
 		const trial_end_date = new Date(site_info.trial_end_date);
 		frappeCloudBaseEndpoint = site_info.base_url;
-		isFCUser = site_info.is_fc_user;
+		// isFCUser = site_info.is_fc_user;
 
 		const today = new Date();
 		const diffTime = trial_end_date - today;
@@ -33,7 +33,8 @@ $(document).ready(function () {
 			!frappe.is_mobile() &&
 			frappe.user.has_role("System Manager");
 		if (visiblity_condition && isFCUser) {
-			if (site_info.trial_end_date && trial_end_date > new Date()) {
+			let chat_bubble_visiblity = false;
+			if (chat_bubble_visiblity && site_info.trial_end_date && trial_end_date > new Date()) {
 				addChatBubble();
 				toggleChatBubble(true);
 			}

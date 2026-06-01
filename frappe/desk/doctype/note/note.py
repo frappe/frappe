@@ -8,6 +8,8 @@ UNSEEN_NOTES_KEY = "unseen_notes::"
 
 
 class Note(Document):
+	_DOCTYPE_NAME = "Note"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

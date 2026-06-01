@@ -5,6 +5,8 @@ from frappe.model.document import Document
 
 
 class ListFilter(Document):
+	_DOCTYPE_NAME = "List Filter"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

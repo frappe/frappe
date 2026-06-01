@@ -9,6 +9,8 @@ from frappe.utils import flt, is_image
 
 
 class LetterHead(Document):
+	_DOCTYPE_NAME = "Letter Head"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -176,10 +176,16 @@ def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 	# scrubbing url to expand url is not required as we have set url.
 	# also, planning to remove network requests anyway 🤞
 	generator = ChromePDFGenerator()
-	browser = Browser(generator, print_format, html, options)
-	transformer = PDFTransformer(browser)
-	# transforms and merges header, footer into body pdf and returns merged pdf
-	return transformer.transform_pdf(output=output)
+	try:
+		browser = Browser(generator, print_format, html, options)
+		transformer = PDFTransformer(browser)
+		# transforms and merges header, footer into body pdf and returns merged pdf
+		return transformer.transform_pdf(output=output)
+	except Exception:
+		# Chrome timeout / crash: reset singleton so the next request gets a fresh
+		# Chrome instance. _browsers cleanup is handled by Browser.__init__'s finally.
+		generator._close_browser()
+		raise
 
 
 def get_file_data_from_writer(writer_obj):

@@ -9,6 +9,8 @@ from frappe.model.document import Document
 
 
 class DesktopLayout(Document):
+	_DOCTYPE_NAME = "Desktop Layout"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

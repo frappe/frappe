@@ -271,6 +271,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	toggle_section() {
 		if (!this.is_multi_step_form) return;
 
+		// close any open child table row form before switching pages
+		frappe.ui.form?.close_grid_form && frappe.ui.form.close_grid_form();
+
 		this.render_progress_dots();
 		this.toggle_previous_button();
 		this.hide_form_pages();

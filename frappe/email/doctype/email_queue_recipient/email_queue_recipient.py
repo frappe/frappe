@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class EmailQueueRecipient(Document):
+	_DOCTYPE_NAME = "Email Queue Recipient"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

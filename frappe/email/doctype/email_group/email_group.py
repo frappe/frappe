@@ -10,6 +10,8 @@ from frappe.utils import parse_addr, validate_email_address
 
 
 class EmailGroup(Document):
+	_DOCTYPE_NAME = "Email Group"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -805,6 +805,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				if (data.prepared_report) {
 					this.prepared_report = true;
 					this.prepared_report_document = data.doc;
+					if (data.attachments.length) {
+						data.doc.attachments = data.attachments;
+					}
 					// If query_string contains prepared_report_name then set filters
 					// to match the mentioned prepared report doc and disable editing
 					if (this.prepared_report_name) {
@@ -885,21 +888,27 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	add_prepared_report_buttons(doc) {
 		if (doc) {
+			let is_csv =
+				doc.attachments &&
+				doc.attachments.some((attachment) => attachment.file_name.endsWith(".csv"));
+			let label = is_csv ? __("Download Report as CSV") : __("Download Report");
+			let format = is_csv ? "csv" : "json";
 			this.page.add_inner_button(
-				__("Download Report"),
+				label,
 				function () {
 					window.open(
 						frappe.urllib.get_full_url(
 							"/api/method/frappe.core.doctype.prepared_report.prepared_report.download_attachment?" +
 								"dn=" +
-								encodeURIComponent(doc.name)
+								encodeURIComponent(doc.name) +
+								"&format=" +
+								encodeURIComponent(format)
 						)
 					);
 				},
 				__("Actions")
 			);
 		}
-
 		// Three cases
 		// 1. First time with given filters, no data.
 		// 2. Showing data from specific report
@@ -1050,11 +1059,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				const data = r.message;
 				// Rememeber the name of Prepared Report doc
 				this.prepared_report_doc_name = data.name;
-				let alert_message =
-					`<a href='/desk/prepared-report/${data.name}'>` +
-					__("Report initiated, click to view status") +
-					`</a>`;
-				frappe.show_alert({ message: alert_message, indicator: "orange" }, 10);
 				this.toggle_nothing_to_show(true);
 			});
 		}

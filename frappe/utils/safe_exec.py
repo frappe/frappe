@@ -679,6 +679,7 @@ VALID_UTILS = (
 	"is_html",
 	"is_image",
 	"get_thumbnail_base64_for_image",
+	"get_image_thumbnail_uri",
 	"image_to_base64",
 	"pdf_to_base64",
 	"strip_html",

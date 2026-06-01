@@ -73,7 +73,7 @@ def get_context(context) -> PrintContext:
 	print_format = get_print_format_doc(None, meta=meta)
 
 	if print_format and print_format.get("print_format_builder_beta"):
-		from frappe.utils.weasyprint import get_html
+		from frappe.utils.print_format_generator import get_html
 
 		body = get_html(
 			doctype=frappe.form_dict.doctype,
