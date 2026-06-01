@@ -100,7 +100,7 @@
 	}
 }
 
-.btn.btn-default {
+.btn.btn-default:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info) {
 	background-color: var(--control-bg);
 	color: var(--text-color);
 	&:hover,
