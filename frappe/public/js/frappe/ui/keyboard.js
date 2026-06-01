@@ -211,9 +211,7 @@ frappe.ui.keys.add_shortcut({
 frappe.ui.keys.add_shortcut({
 	shortcut: "ctrl+k",
 	action: function (e) {
-		$("#navbar-modal-search").click();
-		e.preventDefault();
-		return false;
+		return frappe.search.open_awesomebar_from_global_search_shortcut?.(e);
 	},
 	description: __("Open Awesomebar"),
 	ignore_inputs: true,
@@ -222,11 +220,9 @@ frappe.ui.keys.add_shortcut({
 frappe.ui.keys.add_shortcut({
 	shortcut: "ctrl+g",
 	action: function (e) {
-		$("#navbar-modal-search").click();
-		e.preventDefault();
-		return false;
+		return frappe.search.open_global_search_from_navbar_shortcut?.(e);
 	},
-	description: __("Open Awesomebar"),
+	description: __("Open Global Search"),
 	ignore_inputs: true,
 });
 
