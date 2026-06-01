@@ -562,18 +562,15 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	expand_sidebar() {
-		let direction;
 		const is_rtl = frappe.utils.is_rtl();
 		if (this.sidebar_expanded) {
 			this.wrapper.addClass("expanded");
-			direction = is_rtl ? "left" : "right";
 			$('[data-toggle="tooltip"]').tooltip("dispose");
 			this.wrapper.find(".avatar-name-email").show();
 			this.wrapper.find(".onboarding-sidebar span").show();
 			this.wrapper.find(".promotional-banner-title").show();
 		} else {
 			this.wrapper.removeClass("expanded");
-			direction = is_rtl ? "right" : "left";
 			$('[data-toggle="tooltip"]').tooltip({
 				boundary: "window",
 				container: "body",
@@ -585,10 +582,17 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		localStorage.setItem("sidebar-expanded", this.sidebar_expanded);
+		const chevron_icon = this.sidebar_expanded
+			? is_rtl
+				? "chevron-right"
+				: "chevron-left"
+			: is_rtl
+			? "chevron-left"
+			: "chevron-right";
 		this.wrapper
 			.find(".body-sidebar .collapse-sidebar-link")
 			.find("use")
-			.attr("href", `#icon-panel-${direction}-open`);
+			.attr("href", `#icon-${chevron_icon}`);
 		this.sidebar_header.toggle_width(this.sidebar_expanded);
 		$(document).trigger("sidebar-expand", {
 			sidebar_expand: this.sidebar_expanded,

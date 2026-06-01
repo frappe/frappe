@@ -67,6 +67,13 @@
 					</a>
 				</div>
 			</div>
+			<button
+				class="collapse-sidebar-link sidebar-toggle-btn"
+				aria-label="{%= __('Toggle Sidebar') %}"
+				data-placement="right"
+			>
+				{%= frappe.utils.icon(expanded ? "chevron-left" : "chevron-right", "sm", "", "", "", true) %}
+			</button>
 			<div class="sidebar-resize-handle"></div>
 		</div>
 		<div class="overlay" style="z-index: 1021;"></div>
