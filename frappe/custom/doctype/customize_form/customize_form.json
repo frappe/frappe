@@ -24,6 +24,7 @@
   "track_views",
   "allow_auto_repeat",
   "allow_import",
+  "allow_bulk_edit",
   "queue_in_background",
   "naming_section",
   "naming_rule",
@@ -221,6 +222,14 @@
    "fieldname": "allow_import",
    "fieldtype": "Check",
    "label": "Allow Import (via Data Import Tool)"
+  },
+  {
+   "default": "1",
+   "depends_on": "istable",
+   "description": "Enable bulk edit for child table fields in Form view.",
+   "fieldname": "allow_bulk_edit",
+   "fieldtype": "Check",
+   "label": "Allow Bulk Edit"
   },
   {
    "depends_on": "email_append_to",

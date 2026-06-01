@@ -42,6 +42,7 @@ class CustomizeForm(Document):
 
 		actions: DF.Table[DocTypeAction]
 		allow_auto_repeat: DF.Check
+		allow_bulk_edit: DF.Check
 		allow_copy: DF.Check
 		allow_import: DF.Check
 		autoname: DF.Data | None
@@ -744,6 +745,7 @@ doctype_properties = {
 	"track_views": "Check",
 	"allow_auto_repeat": "Check",
 	"allow_import": "Check",
+	"allow_bulk_edit": "Check",
 	"show_name_in_global_search": "Check",
 	"show_preview_popup": "Check",
 	"default_email_template": "Data",
