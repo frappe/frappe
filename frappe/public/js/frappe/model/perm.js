@@ -153,7 +153,6 @@ $.extend(frappe.perm, {
 			const permlevel = cint(p.permlevel);
 			const current_perm = (perm[permlevel] ??= { permlevel });
 
-
 			// if user has this role
 			if (frappe.user_roles.includes(p.role)) {
 				frappe.perm.rights.forEach((right) => {
