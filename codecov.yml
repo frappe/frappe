@@ -20,9 +20,8 @@ coverage:
           - server
 
 comment:
-  layout: "diff, flags"
-  require_changes: true
-  show_critical_paths: true
+  layout: "condensed_header, condensed_files"
+  hide_project_coverage: true
 
 flags:
   server:
