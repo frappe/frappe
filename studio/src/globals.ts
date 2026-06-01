@@ -6,7 +6,6 @@ import {
 	Badge,
 	Breadcrumbs,
 	Button,
-	Card,
 	Checkbox,
 	Combobox,
 	DatePicker,
@@ -75,7 +74,6 @@ export function registerGlobalComponents(app: App) {
 	app.component("Badge", Badge)
 	app.component("Breadcrumbs", Breadcrumbs)
 	app.component("Button", Button)
-	app.component("Card", Card)
 	app.component("Checkbox", Checkbox)
 	app.component("Combobox", Combobox)
 	app.component("DatePicker", DatePicker)

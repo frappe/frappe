@@ -1,6 +1,6 @@
 <template>
-	<div class="flex h-full flex-col">
-		<div class="flex flex-col space-y-1">
+	<div class="flex h-full flex-col overflow-hidden">
+		<div class="flex flex-col space-y-1 overflow-y-auto hide-scrollbar">
 			<div class="w-full" v-for="page in store.appPages" :key="page.name">
 				<div
 					@click="openPage(page)"
@@ -43,12 +43,14 @@
 			</div>
 		</div>
 
-		<router-link
-			v-if="store.activeApp"
-			:to="{ name: 'StudioPage', params: { appID: store.activeApp?.name, pageID: 'new' } }"
-		>
-			<Button icon-left="plus" class="mt-5 w-full">New Page</Button>
-		</router-link>
+		<div class="mt-4 flex-shrink-0">
+			<router-link
+				v-if="store.activeApp"
+				:to="{ name: 'StudioPage', params: { appID: store.activeApp?.name, pageID: 'new' } }"
+			>
+				<Button icon-left="plus" class="w-full">New Page</Button>
+			</router-link>
+		</div>
 	</div>
 </template>
 

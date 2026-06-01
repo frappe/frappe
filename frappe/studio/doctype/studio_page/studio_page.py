@@ -145,9 +145,14 @@ class StudioPage(Document):
 		return False
 
 	def on_trash(self):
+		self.delete_ai_sessions()
 		if can_export(self):
 			path = self.get_folder_path(with_filename=True)
 			delete_file(path)
+
+	def delete_ai_sessions(self):
+		for session in frappe.get_all("Studio AI Session", filters={"page": self.name}, pluck="name"):
+			frappe.delete_doc("Studio AI Session", session, ignore_missing=True)
 
 	def validate_variables(self):
 		# check for duplicate variable names and show the duplicate variable name

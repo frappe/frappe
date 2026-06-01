@@ -30,7 +30,7 @@
 			<div
 				v-show="store.studioLayout.showLeftPanel"
 				:style="{ width: `${store.studioLayout.leftPanelWidth - 48}px` }"
-				class="overflow-auto border-r-[1px] pb-5 hide-scrollbar"
+				class="flex flex-col overflow-auto border-r-[1px] hide-scrollbar"
 			>
 				<PanelResizer
 					:dimension="store.studioLayout.leftPanelWidth"
@@ -39,7 +39,7 @@
 					@resize="(width) => (store.studioLayout.leftPanelWidth = width)"
 				/>
 				<div
-					class="sticky top-0 z-[12] flex justify-between border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
+					class="sticky left-0 top-0 z-[12] flex w-full shrink-0 justify-between border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
 				>
 					{{ activeTab }}
 					<IconButton
@@ -63,8 +63,15 @@
 				<DataPanel v-show="activeTab === 'Data'" />
 
 				<div v-show="activeTab === 'Code'">
-					<CodePanel class="p-4" v-if="store.activePage" :page="store.activePage" :key="store.selectedPage" />
+					<CodePanel
+						class="p-4"
+						v-if="store.activePage"
+						:page="store.activePage"
+						:key="store.selectedPage ?? undefined"
+					/>
 				</div>
+
+				<AIChatPanel v-show="activeTab === 'AI Assistant'" />
 			</div>
 		</transition>
 	</div>
@@ -81,6 +88,7 @@ import ComponentLayers from "@/components/ComponentLayers.vue"
 import DataPanel from "@/components/DataPanel.vue"
 import CodePanel from "@/components/CodePanel.vue"
 import IconButton from "@/components/IconButton.vue"
+import AIChatPanel from "@/components/AIChatPanel.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"
@@ -107,6 +115,10 @@ const sidebarMenu = [
 	{
 		label: "Code",
 		icon: "code",
+	},
+	{
+		label: "AI Assistant",
+		icon: "zap",
 	},
 ]
 const store = useStudioStore()

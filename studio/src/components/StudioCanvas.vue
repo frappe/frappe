@@ -18,7 +18,6 @@
 
 		<div
 			class="fixed flex gap-40"
-			:class="canvasStore.editingMode === 'page' ? 'h-full' : ''"
 			ref="canvas"
 			:style="{
 				transformOrigin: 'top center',
@@ -44,7 +43,8 @@
 				</div>
 			</div>
 			<div
-				class="canvas relative flex h-full bg-surface-white shadow-2xl contain-layout"
+				class="canvas relative flex bg-surface-white shadow-2xl contain-layout"
+				:class="canvasStore.editingMode === 'page' ? 'min-h-[100dvh]' : ''"
 				:style="{
 					...canvasStyles,
 					background: canvasProps.background,
@@ -223,10 +223,6 @@ function selectBlock(block: Block, e: MouseEvent | null, multiSelect = false, se
 	if (setBreakpoint && e) {
 		const { breakpoint } = getBlockInfo(e)
 		setActiveBreakpoint(breakpoint)
-	}
-
-	if (block.isContainer()) {
-		store.studioLayout.leftPanelActiveTab = "Layers"
 	}
 
 	if (block.isText() || block.isContainer()) {
