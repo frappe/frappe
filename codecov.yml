@@ -22,6 +22,7 @@ coverage:
 comment:
   layout: "condensed_header, condensed_files"
   hide_project_coverage: true
+  require_changes: "coverage_drop OR uncovered_patch"
 
 flags:
   server:
