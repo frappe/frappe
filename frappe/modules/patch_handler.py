@@ -20,15 +20,24 @@ patches by using INI like file format:
 
 	[post_model_sync]
 	app.module.patch3
+
+
+	[post_fixture_sync]
+	app.module.patch4
 	```
 
 	When different sections are specified patches are executed in this order:
 		1. Run pre_model_sync patches
 		2. Reload/resync all doctype schema
 		3. Run post_model_sync patches
+		4. Sync fixtures and customizations
+		5. Run post_fixture_sync patches
 
 	Hence any patch that just needs to modify data but doesn't depend on
 	old schema should be added to post_model_sync section of file.
+
+	If the patch depends on fields added via fixtures or customizations,
+	it should be added to the post_fixture_sync section.
 
 3. simple python commands can be added by starting line with `execute:`
 `execute:` example: `execute:print("hello world")`
@@ -49,6 +58,7 @@ class PatchError(Exception):
 class PatchType(Enum):
 	pre_model_sync = "pre_model_sync"
 	post_model_sync = "post_model_sync"
+	post_fixture_sync = "post_fixture_sync"
 
 
 def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> None:
@@ -126,14 +136,16 @@ def parse_as_configfile(patches_file: str, patch_type: PatchType | None = None) 
 		return []
 
 	if not patch_type:
-		return [patch for patch in parser[PatchType.pre_model_sync.value]] + [
-			patch for patch in parser[PatchType.post_model_sync.value]
-		]
+		patches = []
+		for pt in PatchType:
+			if pt.value in parser.sections():
+				patches.extend(patch for patch in parser[pt.value])
+		return patches
 
 	if patch_type.value in parser.sections():
 		return [patch for patch in parser[patch_type.value]]
-	else:
-		frappe.throw(frappe._("Patch type {} not found in patches.txt").format(patch_type))
+
+	return []
 
 
 def reload_doc(args):

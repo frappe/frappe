@@ -173,6 +173,11 @@ class SiteMigration:
 		print("Syncing customizations...")
 		sync_customizations()
 
+		print("Running post fixture sync patches...")
+		frappe.modules.patch_handler.run_all(
+			skip_failing=self.skip_failing, patch_type=PatchType.post_fixture_sync
+		)
+
 		print("Syncing languages...")
 		sync_languages()
 
