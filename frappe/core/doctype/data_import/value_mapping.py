@@ -8,6 +8,7 @@ import json
 import frappe
 from frappe import _
 from frappe.utils import cint, cstr
+from frappe.utils.data import escape_html
 
 INVALID_VALUES = ("", None)
 
@@ -222,29 +223,41 @@ def get_mapping_hints(import_file, reference_doctype: str, lookup: dict) -> dict
 
 
 def warn_invalid_link_select_values(col) -> None:
-	"""Append a column-level ``value_mapping`` warning and cache invalid items on the column.
-
-	Called during template validation. The warning lists every invalid value (including mapped ones)
-	so the user can see the full picture; import blocking is decided separately via
-	``get_unmapped_invalid_values_for_column``.
-	"""
-	from frappe.core.doctype.data_import.importer import format_invalid_values_with_rows, get_select_options
+	"""Append a column-level ``value_mapping`` warning listing invalid Link/Select values with row numbers."""
+	from frappe.core.doctype.data_import.importer import format_row_numbers_for_warning, get_select_options
 
 	items = get_invalid_link_select_items(col)
 	col.invalid_value_items = items
 	if not items:
 		return
 
-	value_rows = {item["source"]: item["rows"] for item in items}
-	invalid_keys = list(value_rows)
-	field_label = frappe.bold(col.df.label)
-	formatted_values = format_invalid_values_with_rows(value_rows, invalid_keys)
-	if col.df.fieldtype == "Link":
-		message = _("{0} — not found in {1}:<br>{2}").format(field_label, col.df.options, formatted_values)
-	else:
-		footer = _("Allowed: {0}").format(", ".join(frappe.bold(o) for o in get_select_options(col.df)))
-		message = _("{0}:<br>{1}{2}").format(field_label, formatted_values, footer)
+	lines = []
+	options_string = None
+	if col.df.fieldtype == "Select":
+		select_options = get_select_options(col.df)
+		if select_options:
+			options_string = ", ".join(select_options)
 
+	for item in items:
+		source = escape_html(item["source"])
+		rows_str = format_row_numbers_for_warning(item["rows"])
+		row_label = (
+			_("row {0}").format(rows_str) if len(item["rows"]) == 1 else _("rows {0}").format(rows_str)
+		)
+
+		if col.df.fieldtype == "Link":
+			line = _('"{0}" is not a valid {1} — {2}').format(
+				frappe.bold(source), frappe.bold(col.df.label), row_label
+			)
+		else:
+			line = _('"{0}" is not valid — {1}').format(frappe.bold(source), row_label)
+		lines.append(line)
+
+	if col.df.fieldtype == "Select" and options_string and lines:
+		allowed = _("Allowed: {0}").format(frappe.bold(options_string))
+		lines[-1] = f"{lines[-1]} · {allowed}"
+
+	message = "<br>".join(lines)
 	col.warnings.append({"col": col.column_number, "message": message, "type": "value_mapping"})
 
 

@@ -584,7 +584,6 @@ frappe.ui.form.on("Data Import", {
 			frm.get_field("import_warnings").$wrapper.html("");
 		}
 
-		// group warnings by row
 		let warnings_by_row = {};
 		let other_warnings = [];
 		for (let warning of warnings) {
@@ -599,6 +598,7 @@ frappe.ui.form.on("Data Import", {
 		let html = "";
 		const skipped_rows = get_skipped_row_set(frm);
 		html += Object.keys(warnings_by_row)
+			.sort((a, b) => cint(a) - cint(b))
 			.map((row_number) => {
 				let message = warnings_by_row[row_number]
 					.map((w) => {
@@ -647,6 +647,7 @@ frappe.ui.form.on("Data Import", {
 				`;
 			})
 			.join("");
+
 		if (warnings.length) {
 			frm.get_field("import_warnings").$wrapper.html(`
 				<div class="row">

@@ -202,6 +202,8 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(col.warnings[0]["type"], "value_mapping")
 		self.assertIn("Opn", col.warnings[0]["message"])
 		self.assertIn("Pasiv", col.warnings[0]["message"])
+		self.assertIn("is not valid", col.warnings[0]["message"])
+		self.assertIn("row 3 · Allowed:", col.warnings[0]["message"])
 		unmapped = get_unmapped_invalid_values_for_column(col, value_lookup, "Contact")
 		self.assertEqual(len(unmapped), 1)
 		self.assertEqual(unmapped[0]["source"], "Opn")
@@ -312,6 +314,7 @@ class TestImporter(IntegrationTestCase):
 			0, "Salutation", "Contact", ["Mr.", "Mr.", "Miss"], value_row_numbers=[2, 3, 4]
 		).warnings[0]["message"]
 		self.assertIn("Mr.", link_msg)
+		self.assertIn("is not a valid", link_msg)
 		self.assertIn("rows 2, 3", link_msg)
 		self.assertIn("Miss", link_msg)
 		self.assertIn("row 4", link_msg)
@@ -320,10 +323,11 @@ class TestImporter(IntegrationTestCase):
 			5, "Status", "Contact", ["Opn", "Pasiv", "Open"], value_row_numbers=[2, 3, 4]
 		).warnings[0]["message"]
 		self.assertIn("Opn", select_msg)
+		self.assertIn("is not valid", select_msg)
 		self.assertIn("row 2", select_msg)
 		self.assertIn("Pasiv", select_msg)
 		self.assertIn("row 3", select_msg)
-		self.assertNotIn("rows 4", select_msg)
+		self.assertIn("Allowed:", select_msg)
 
 	def test_data_import_without_label(self):
 		"""Test fallback to fieldname when label is not set for a table."""

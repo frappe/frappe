@@ -724,18 +724,6 @@ def format_row_numbers_for_warning(rows: list, max_shown: int = 6) -> str:
 	return f"{', '.join(map(str, rows[:max_shown]))}, ... {rows[-1]}"
 
 
-def format_invalid_values_with_rows(value_rows, keys, footer=None):
-	"""HTML lines per invalid value with row numbers; optional footer (e.g. valid Select options)."""
-	lines = []
-	for key in keys:
-		rows = value_rows[key]
-		rows_str = format_row_numbers_for_warning(rows)
-		row_label = _("row {0}").format(rows_str) if len(rows) == 1 else _("rows {0}").format(rows_str)
-		lines.append(f"{frappe.bold(escape_html(key))} — {row_label}")
-	message = "<br>".join(lines)
-	return f"{message}<br>{footer}" if footer else message
-
-
 class Row:
 	def __init__(self, index, row, doctype, header, import_type):
 		self.index = index
