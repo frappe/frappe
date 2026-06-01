@@ -112,68 +112,6 @@ context("Grid", () => {
 			});
 	});
 
-<<<<<<< HEAD
-	it("hides add-row and add-multiple-rows buttons when rows are selected", () => {
-		cy.visit("/desk/contact/Test Contact");
-		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-
-		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
-
-		cy.get("@table").find(".grid-add-row").should("have.class", "hidden");
-		cy.get("@table").find(".grid-add-multiple-rows").should("have.class", "hidden");
-
-		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
-
-		cy.get("@table").find(".grid-add-row").should("not.have.class", "hidden");
-	});
-
-	it("keeps selection count unchanged after duplicate_rows", () => {
-		cy.visit("/desk/contact/Test Contact");
-		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-
-		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
-		cy.get("@table").find('.grid-row[data-idx="2"] .grid-row-check').click({ force: true });
-		cy.get("@table").find('.grid-row[data-idx="3"] .grid-row-check').click({ force: true });
-		cy.get("@table").find(".grid-selection-toast").should("be.visible");
-		cy.get("@table")
-			.find(".grid-selection-toast__message")
-			.should("contain", "3 row(s) selected");
-
-		// duplicate_rows unchecks the original row — banner should show 1 row(s) selected.
-		cy.window()
-			.its("cur_frm")
-			.then((frm) => {
-				frm.get_field("phone_nos").grid.duplicate_rows();
-			});
-
-		cy.get("@table")
-			.find(".grid-selection-toast__message")
-			.should("contain", "3 row(s) selected");
-	});
-
-	it("hides selection banner after deleting selected rows", () => {
-		cy.visit("/desk/contact/Test Contact");
-		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-
-		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
-		cy.get("@table").find(".grid-selection-toast").should("be.visible");
-
-		// Click the delete button in the UI so Cypress waits for DOM changes
-		cy.get("@table").find(".grid-remove-rows").click({ force: true });
-
-		cy.get("@table").find(".grid-selection-toast").should("not.be.visible");
-	});
-
-	it("shows and hides selection banner on selecting and unselecting a row", () => {
-		cy.visit("/desk/contact/Test Contact");
-		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-
-		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
-		cy.get("@table").find(".grid-selection-toast").should("be.visible");
-
-		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
-		cy.get("@table").find(".grid-selection-toast").should("not.be.visible");
-=======
 	it("shows edit button only when child table allow_bulk_edit is enabled", () => {
 		cy.visit("/desk/contact/Test Contact");
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
@@ -244,6 +182,67 @@ context("Grid", () => {
 					expect(frm.doc.phone_nos[1].phone || "").to.equal(secondRowPhoneBefore);
 				});
 			});
->>>>>>> 25c19683db (feat(grid): add tests for bulk edit functionality in child tables)
+	});
+
+	it("hides add-row and add-multiple-rows buttons when rows are selected", () => {
+		cy.visit("/desk/contact/Test Contact");
+		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+
+		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
+
+		cy.get("@table").find(".grid-add-row").should("have.class", "hidden");
+		cy.get("@table").find(".grid-add-multiple-rows").should("have.class", "hidden");
+
+		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
+
+		cy.get("@table").find(".grid-add-row").should("not.have.class", "hidden");
+	});
+
+	it("keeps selection count unchanged after duplicate_rows", () => {
+		cy.visit("/desk/contact/Test Contact");
+		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+
+		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
+		cy.get("@table").find('.grid-row[data-idx="2"] .grid-row-check').click({ force: true });
+		cy.get("@table").find('.grid-row[data-idx="3"] .grid-row-check').click({ force: true });
+		cy.get("@table").find(".grid-selection-toast").should("be.visible");
+		cy.get("@table")
+			.find(".grid-selection-toast__message")
+			.should("contain", "3 row(s) selected");
+
+		// duplicate_rows unchecks the original row — banner should show 1 row(s) selected.
+		cy.window()
+			.its("cur_frm")
+			.then((frm) => {
+				frm.get_field("phone_nos").grid.duplicate_rows();
+			});
+
+		cy.get("@table")
+			.find(".grid-selection-toast__message")
+			.should("contain", "3 row(s) selected");
+	});
+
+	it("hides selection banner after deleting selected rows", () => {
+		cy.visit("/desk/contact/Test Contact");
+		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+
+		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
+		cy.get("@table").find(".grid-selection-toast").should("be.visible");
+
+		// Click the delete button in the UI so Cypress waits for DOM changes
+		cy.get("@table").find(".grid-remove-rows").click({ force: true });
+
+		cy.get("@table").find(".grid-selection-toast").should("not.be.visible");
+	});
+
+	it("shows and hides selection banner on selecting and unselecting a row", () => {
+		cy.visit("/desk/contact/Test Contact");
+		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+
+		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
+		cy.get("@table").find(".grid-selection-toast").should("be.visible");
+
+		cy.get("@table").find('.grid-row[data-idx="1"] .grid-row-check').click({ force: true });
+		cy.get("@table").find(".grid-selection-toast").should("not.be.visible");
 	});
 });

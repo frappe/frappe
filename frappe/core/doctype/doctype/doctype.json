@@ -803,11 +803,7 @@
    "link_fieldname": "document_type"
   }
  ],
-<<<<<<< HEAD
  "modified": "2026-04-20 16:06:57.212832",
-=======
- "modified": "2026-04-13 21:50:34.942938",
->>>>>>> 35c25ceae3 (feat: Add allow_bulk_edit field to DocType configuration and model)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
