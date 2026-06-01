@@ -39,7 +39,7 @@
 					@resize="(width) => (store.studioLayout.leftPanelWidth = width)"
 				/>
 				<div
-					class="sticky top-0 z-[12] flex shrink-0 justify-between border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
+					class="sticky left-0 top-0 z-[12] flex w-full shrink-0 justify-between border-b-[1px] border-gray-200 bg-white p-3 text-base font-semibold text-gray-800"
 				>
 					{{ activeTab }}
 					<IconButton
