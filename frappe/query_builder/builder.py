@@ -18,7 +18,7 @@ TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
 def _flatten(module):
 	import inspect
 
-	from frappe.types import _dict
+	from frappe.types.frappedict import _dict
 
 	new_mod = _dict()
 	for name, obj in inspect.getmembers(module, lambda x: not inspect.ismodule(x)):
