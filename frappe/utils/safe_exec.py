@@ -648,6 +648,52 @@ def render_safe_globals():
 	return out
 
 
+def exec_safe_globals():
+	"""Safer subset of globals for read+write ops."""
+	out = render_safe_globals()
+	out.frappe.update(
+		NamespaceDict(
+			call=call_whitelisted_function,
+			get_meta=frappe.get_meta,
+			copy_doc=frappe.copy_doc,
+			new_doc=frappe.new_doc,
+			get_doc=frappe.get_doc,
+			get_mapped_doc=get_mapped_doc,
+			rename_doc=rename_doc,
+			delete_doc=delete_doc,
+			sendmail=frappe.sendmail,
+			get_print=frappe.get_print,
+			attach_print=frappe.attach_print,
+			make_post_request=frappe.integrations.utils.make_post_request,
+			make_put_request=frappe.integrations.utils.make_put_request,
+			make_patch_request=frappe.integrations.utils.make_patch_request,
+			make_delete_request=frappe.integrations.utils.make_delete_request,
+			get_hooks=get_hooks,
+			log_error=frappe.log_error,
+			get_list=frappe.get_list,
+			get_all=frappe.get_all,
+			get_cached_doc=frappe.get_cached_doc,
+			get_last_doc=frappe.get_last_doc,
+		)
+	)
+	out.frappe.db.update(
+		NamespaceDict(
+			get_list=frappe.get_list,
+			get_all=frappe.get_all,
+			get_value=frappe.db.get_value,
+			set_value=frappe.db.set_value,
+			get_single_value=frappe.db.get_single_value,
+			commit=frappe.db.commit,
+			rollback=frappe.db.rollback,
+			after_commit=frappe.db.after_commit,
+			before_commit=frappe.db.before_commit,
+			after_rollback=frappe.db.after_rollback,
+			before_rollback=frappe.db.before_rollback,
+		)
+	)
+	return out
+
+
 def get_safer_globals():
 	"""Safer subset of globals"""
 	out = get_safe_globals()
