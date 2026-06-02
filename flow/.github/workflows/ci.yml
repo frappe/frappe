@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-flow-${{ github.event.number }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Server Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      mariadb:
+        image: mariadb:11.8
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=2s
+          --health-retries=3
+        env:
+          MARIADB_ROOT_PASSWORD: root
+
+    steps:
+      - name: Checkout flow
+        uses: actions/checkout@v4
+        with:
+          path: apps/flow
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install bench
+        run: uv tool install frappe-bench
+
+      - name: Init bench with frappe
+        run: |
+          bench init frappe-bench \
+            --frappe-branch develop \
+            --python python3.14 \
+            --no-procfile \
+            --no-backups \
+            --skip-redis-config-generation \
+            --verbose
+        env:
+          CI: true
+
+      - name: Copy flow into bench
+        run: |
+          cp -r apps/flow frappe-bench/apps/flow
+          cd frappe-bench
+          env/bin/pip install -e apps/flow
+
+      - name: Setup test site
+        working-directory: frappe-bench
+        run: |
+          bench new-site test.localhost \
+            --db-root-password root \
+            --admin-password admin \
+            --no-mariadb-socket
+          bench --site test.localhost install-app flow
+
+      - name: Run tests
+        working-directory: frappe-bench
+        run: |
+          bench --site test.localhost run-tests --app flow --coverage
+        env:
+          CI: true
+
+      - name: Upload coverage
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: frappe-bench/sites/coverage.xml
+          flags: server
+          fail_ci_if_error: false
