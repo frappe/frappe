@@ -1,0 +1,60 @@
+name: Build and Upload Assets
+
+on:
+  push:
+    branches:
+      - develop
+      - 'version-*'
+
+concurrency:
+  group: build-assets-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-assets:
+    name: Build JS/CSS and upload to release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: apps/frappe
+
+      - name: Create bench structure
+        run: |
+          mkdir -p sites
+          echo "frappe" > sites/apps.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+          cache-dependency-path: apps/frappe/yarn.lock
+
+      - name: Install JS dependencies
+        working-directory: apps/frappe
+        run: yarn install --frozen-lockfile
+
+      - name: Link node_modules into public/
+        working-directory: apps/frappe
+        run: ln -s "$PWD/node_modules" frappe/public/node_modules
+
+      - name: Build assets (production)
+        working-directory: apps/frappe
+        run: yarn run production
+
+      - name: Package assets
+        working-directory: apps/frappe
+        run: tar czf frappe-assets.tar.gz -C ../../sites/assets/frappe dist
+
+      - name: Upload to rolling release
+        working-directory: apps/frappe
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="assets-${GITHUB_REF_NAME//\//-}"
+          gh release create "$TAG" --prerelease --title "Assets: $GITHUB_REF_NAME" --notes "" 2>/dev/null || true
+          gh release upload "$TAG" frappe-assets.tar.gz --clobber
