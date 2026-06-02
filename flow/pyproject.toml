@@ -8,8 +8,6 @@ requires-python = ">=3.14,<3.15"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
-    # frappe (and litellm) are installed and managed by bench; keep litellm in
-    # frappe develop's supported range so the shared env resolves cleanly.
     "litellm<2,>=1.83.0",
 ]
 
