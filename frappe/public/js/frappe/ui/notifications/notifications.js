@@ -28,6 +28,7 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	setup_headers() {
+<<<<<<< HEAD
 		// Add header actions
 		$(`<span class="notification-settings" data-action="go_to_settings">
 			${frappe.utils.icon("setting-gear")}
@@ -35,6 +36,13 @@ frappe.ui.Notifications = class Notifications {
 			.on("click", (e) => {
 				e.stopImmediatePropagation();
 				console.log("what");
+=======
+		$(`<span class="notification-settings" data-action="go_to_settings">
+			${frappe.utils.icon("settings")}
+		</span>`)
+			.on("click", (e) => {
+				e.stopImmediatePropagation();
+>>>>>>> aa6cfc87d5 (fix: add more header actions back)
 				frappe.set_route("Form", "Notification Settings", frappe.session.user);
 			})
 			.appendTo(this.header_actions)
@@ -42,14 +50,22 @@ frappe.ui.Notifications = class Notifications {
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
 		$(`<span class="mark-all-read" data-action="mark_all_as_read">
+<<<<<<< HEAD
 			${frappe.utils.icon("mark-as-read")}
+=======
+			${frappe.utils.icon("check-check")}
+>>>>>>> aa6cfc87d5 (fix: add more header actions back)
 		</span>`)
 			.on("click", (e) => this.mark_all_as_read(e))
 			.appendTo(this.header_actions)
 			.attr("title", __("Mark all as read"))
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
+<<<<<<< HEAD
 		$(`<span class="close-notification-dialogue pull-right">
+=======
+		$(`<span class="close-notification-dialogue">
+>>>>>>> aa6cfc87d5 (fix: add more header actions back)
 			${frappe.utils.icon("x")}
 		</span>`)
 			.on("click", (e) => {
