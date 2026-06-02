@@ -18,6 +18,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		this.make();
 
 		this.selected_fields = new Set();
+		this.selected_items = {};
 	}
 
 	get_fields() {
@@ -343,8 +344,11 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			let name = $(this).attr("data-item-name").trim();
 			if ($(this).find(":checkbox").is(":checked")) {
 				me.selected_fields.add(name);
+				const item = me.results.find((r) => r.name === name);
+				if (item) me.selected_items[name] = item;
 			} else {
 				me.selected_fields.delete(name);
+				delete me.selected_items[name];
 			}
 		});
 
@@ -355,8 +359,11 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				const name = $(this).closest(".list-item-container").attr("data-item-name").trim();
 				if (checked) {
 					me.selected_fields.add(name);
+					const item = me.results.find((r) => r.name === name);
+					if (item) me.selected_items[name] = item;
 				} else {
 					me.selected_fields.delete(name);
+					delete me.selected_items[name];
 				}
 			});
 		});
@@ -539,13 +546,11 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	empty_list() {
-		// Store all checked items
-		let checked = this.results
-			.filter((result) => this.selected_fields.has(result.name))
-			.map((item) => ({
-				...item,
-				checked: true,
-			}));
+		// Store all checked items using selected_items map (persists across searches)
+		let checked = [...this.selected_fields].map((name) => ({
+			...(this.selected_items[name] || { name }),
+			checked: true,
+		}));
 
 		// Remove **all** items
 		this.$results.find(".list-item-container").remove();

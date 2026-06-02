@@ -70,8 +70,8 @@ class PDFTransformer:
 					p.merge_page(header.pages[0])
 
 			if footer:
-				if self.is_footer_dynamic:
-					p.merge_page(footer.pages[p.page_number])
+				if self.is_footer_dynamic and len(footer.pages) > 1:
+					p.merge_page(footer.pages[min(p.page_number, len(footer.pages) - 1)])
 				elif self.is_print_designer:
 					if p.page_number == 0:
 						p.merge_page(footer.pages[0])

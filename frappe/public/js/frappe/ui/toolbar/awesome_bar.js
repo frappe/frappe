@@ -52,6 +52,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					<span class="help-item help-item-escape">${frappe.utils.is_mac() ? "⌘K" : "Ctrl+K"}</span>
 					<span>${__("to close")}</span>
 				</span>
+				<span class="help-item-navigate">
+					<span class="help-item help-item-escape">${frappe.utils.is_mac() ? "⌘G" : "Ctrl+G"}</span>
+					<span>${__("to open Global Search")}</span>
+				</span>
 			</div>
 		</div>`;
 
