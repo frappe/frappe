@@ -445,14 +445,6 @@ frappe.ui.Sidebar = class Sidebar {
 						frappe.ui.toolbar.toggle_full_width();
 					},
 				},
-				{
-					name: "Notifications Settings",
-					label: __("Notifications Settings"),
-					icon: "bell",
-					onClick: function () {
-						frappe.set_route("Form", "Notification Settings", frappe.session.user);
-					},
-				},
 				{ is_divider: true },
 				{
 					name: "logout",
