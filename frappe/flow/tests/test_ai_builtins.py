@@ -63,7 +63,7 @@ class TestDescribe(IntegrationTestCase):
 	def test_permission_denied_raises(self):
 		frappe.set_user("Guest")
 		try:
-			with self.assertRaises(frappe.PermissionError):
+			with self.assertRaises(PermissionError):
 				describe(doctype="User")
 		finally:
 			frappe.set_user("Administrator")
@@ -123,21 +123,26 @@ class TestCreate(IntegrationTestCase):
 		self.assertTrue(create.requires_confirmation)
 
 	def test_creates_doc_with_values(self):
-		result = create(doctype="ToDo", values={"description": "ai create probe"})
+		result = create(doctype="ToDo", records=[{"description": "ai create probe"}])
 
 		self.assertEqual(result["doctype"], "ToDo")
-		self.assertTrue(frappe.db.exists("ToDo", result["name"]))
-		self.assertEqual(frappe.db.get_value("ToDo", result["name"], "description"), "ai create probe")
+		self.assertEqual(len(result["created"]), 1)
+		name = result["created"][0]
+		self.assertTrue(frappe.db.exists("ToDo", name))
+		self.assertEqual(frappe.db.get_value("ToDo", name, "description"), "ai create probe")
 
 	def test_permission_denied_raises(self):
 		frappe.set_user("Guest")
-		with self.assertRaises(frappe.PermissionError):
-			create(doctype="User", values={"email": "x@example.com"})
+		with self.assertRaises(PermissionError):
+			create(doctype="User", records=[{"email": "x@example.com"}])
 
-	def test_missing_required_field_raises(self):
-		# ToDo.description is mandatory; the doctype's own validation should fire.
-		with self.assertRaises(frappe.MandatoryError):
-			create(doctype="ToDo", values={})
+	def test_missing_required_field_reported_as_failure(self):
+		# ToDo.description is mandatory; the row fails validation and is reported, not raised.
+		result = create(doctype="ToDo", records=[{}])
+
+		self.assertEqual(result["created"], [])
+		self.assertEqual(len(result["failures"]), 1)
+		self.assertEqual(result["failures"][0]["row"], 0)
 
 
 class TestUpdate(IntegrationTestCase):
@@ -152,23 +157,30 @@ class TestUpdate(IntegrationTestCase):
 		self.assertTrue(update.requires_confirmation)
 
 	def test_modifies_doc_fields(self):
-		update(doctype="ToDo", name=self.todo.name, values={"status": "Closed"})
+		result = update(doctype="ToDo", names=[self.todo.name], values={"status": "Closed"})
 
+		self.assertEqual(result["updated"], [self.todo.name])
 		self.assertEqual(frappe.db.get_value("ToDo", self.todo.name, "status"), "Closed")
 
-	def test_runs_doctype_validation(self):
-		# Status is a Select field with a fixed set; an invalid value should error.
-		with self.assertRaises(frappe.ValidationError):
-			update(doctype="ToDo", name=self.todo.name, values={"status": "Not A Real Status"})
+	def test_invalid_value_reported_as_failure(self):
+		# Status is a Select field with a fixed set; an invalid value fails that row.
+		result = update(doctype="ToDo", names=[self.todo.name], values={"status": "Not A Real Status"})
 
-	def test_missing_record_raises(self):
-		with self.assertRaises(frappe.DoesNotExistError):
-			update(doctype="ToDo", name="does-not-exist", values={"status": "Closed"})
+		self.assertEqual(result["updated"], [])
+		self.assertEqual(len(result["failures"]), 1)
 
-	def test_permission_denied_raises(self):
+	def test_missing_record_reported_as_failure(self):
+		result = update(doctype="ToDo", names=["does-not-exist"], values={"status": "Closed"})
+
+		self.assertEqual(result["updated"], [])
+		self.assertEqual(result["failures"][0]["name"], "does-not-exist")
+
+	def test_permission_denied_reported_as_failure(self):
 		frappe.set_user("Guest")
-		with self.assertRaises(frappe.PermissionError):
-			update(doctype="ToDo", name=self.todo.name, values={"status": "Closed"})
+		result = update(doctype="ToDo", names=[self.todo.name], values={"status": "Closed"})
+
+		self.assertEqual(result["updated"], [])
+		self.assertEqual(len(result["failures"]), 1)
 
 
 class TestDelete(IntegrationTestCase):
@@ -183,19 +195,23 @@ class TestDelete(IntegrationTestCase):
 		self.assertTrue(delete.requires_confirmation)
 
 	def test_removes_doc(self):
-		result = delete(doctype="ToDo", name=self.todo.name)
+		result = delete(doctype="ToDo", names=[self.todo.name])
 
-		self.assertTrue(result["deleted"])
+		self.assertEqual(result["deleted"], [self.todo.name])
 		self.assertFalse(frappe.db.exists("ToDo", self.todo.name))
 
-	def test_missing_record_raises(self):
-		with self.assertRaises(frappe.DoesNotExistError):
-			delete(doctype="ToDo", name="does-not-exist")
+	def test_missing_record_reported_as_failure(self):
+		result = delete(doctype="ToDo", names=["does-not-exist"])
 
-	def test_permission_denied_raises(self):
+		self.assertEqual(result["deleted"], [])
+		self.assertEqual(result["failures"][0]["name"], "does-not-exist")
+
+	def test_permission_denied_reported_as_failure(self):
 		frappe.set_user("Guest")
-		with self.assertRaises(frappe.PermissionError):
-			delete(doctype="ToDo", name=self.todo.name)
+		result = delete(doctype="ToDo", names=[self.todo.name])
+
+		self.assertEqual(result["deleted"], [])
+		self.assertEqual(len(result["failures"]), 1)
 
 
 class TestSyncBuiltinTools(IntegrationTestCase):
