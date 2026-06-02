@@ -1,7 +1,7 @@
 [project]
 name = "flow"
 authors = [
-    { name = "Shrihari Mahabal", email = "shriharimahabal2@gmail.com"}
+    { name = "Shrihari Mahabal", email = "shriharimahabal08@gmail.com"}
 ]
 description = "Frappe Flow — native AI agents, tools, and triggers for Frappe"
 requires-python = ">=3.14,<3.15"
