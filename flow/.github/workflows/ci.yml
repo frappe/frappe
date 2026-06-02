@@ -31,12 +31,21 @@ jobs:
           --health-retries=3
         env:
           MARIADB_ROOT_PASSWORD: root
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
 
     steps:
       - name: Checkout flow
         uses: actions/checkout@v4
         with:
-          path: apps/flow
+          path: flow
 
       - uses: actions/setup-python@v5
         with:
@@ -55,33 +64,36 @@ jobs:
         run: |
           bench init frappe-bench \
             --frappe-branch develop \
-            --python python3.14 \
-            --no-procfile \
-            --no-backups \
+            --python python3 \
             --skip-redis-config-generation \
             --verbose
-        env:
-          CI: true
 
-      - name: Copy flow into bench
+      - name: Point bench at the Redis service
+        working-directory: frappe-bench
         run: |
-          cp -r apps/flow frappe-bench/apps/flow
-          cd frappe-bench
-          env/bin/pip install -e apps/flow
+          bench set-config -g redis_cache redis://localhost:6379
+          bench set-config -g redis_queue redis://localhost:6379
+          bench set-config -g redis_socketio redis://localhost:6379
 
-      - name: Setup test site
+      - name: Install flow into the bench
+        working-directory: frappe-bench
+        run: |
+          cp -r "$GITHUB_WORKSPACE/flow" apps/flow
+          env/bin/pip install -e apps/flow
+          echo "flow" >> sites/apps.txt
+
+      - name: Create test site and install flow
         working-directory: frappe-bench
         run: |
           bench new-site test.localhost \
             --db-root-password root \
             --admin-password admin \
-            --no-mariadb-socket
+            --mariadb-user-host-login-scope='%'
           bench --site test.localhost install-app flow
 
       - name: Run tests
         working-directory: frappe-bench
-        run: |
-          bench --site test.localhost run-tests --app flow --coverage
+        run: bench --site test.localhost run-tests --app flow --coverage
         env:
           CI: true
 
