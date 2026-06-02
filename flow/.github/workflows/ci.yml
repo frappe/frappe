@@ -80,7 +80,7 @@ jobs:
         run: |
           cp -r "$GITHUB_WORKSPACE/flow" apps/flow
           env/bin/pip install -e apps/flow
-          echo "flow" >> sites/apps.txt
+          printf 'frappe\nflow\n' > sites/apps.txt
 
       - name: Create test site and install flow
         working-directory: frappe-bench
