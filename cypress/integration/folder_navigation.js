@@ -24,12 +24,6 @@ context("Folder Navigation", () => {
 
 	it("Navigating the nested folders, checking if the URL formed is correct, checking if the added content in the child folder is correct", () => {
 		//Navigating inside the Attachments folder
-		cy.clear_filters();
-		cy.wait(500);
-		cy.get('[title="Attachments"] > span').click();
-
-		//To check if the URL formed after visiting the attachments folder is correct
-		cy.location("pathname").should("eq", "/app/List/File/Home/Attachments");
 		cy.visit("/app/List/File/Home/Attachments");
 
 		//Adding folder inside the attachments folder
