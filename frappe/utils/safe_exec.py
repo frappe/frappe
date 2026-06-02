@@ -355,6 +355,18 @@ def safe_get_single_value(*args, **kwargs):
 	return frappe.db.get_single_value(*args, **kwargs)
 
 
+def make_safe_get_request(url, **kwargs):
+	import socket
+	from urllib.parse import urlparse
+
+	parsed = urlparse(url)
+	parsed_ip = socket.gethostbyname(parsed.hostname)
+	if parsed_ip.startswith(("127", "10", "192", "172")):
+		return
+
+	return frappe.integrations.utils.make_get_request(url, **kwargs)
+
+
 def get_safe_globals():
 	datautils = frappe._dict()
 
@@ -579,7 +591,7 @@ def render_safe_globals():
 				if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 				else "",
 			),
-			make_get_request=frappe.integrations.utils.make_get_request,
+			make_get_request=make_safe_get_request,
 			socketio_port=frappe.conf.socketio_port,
 			enqueue=safe_enqueue,
 			sanitize_html=frappe.utils.sanitize_html,
@@ -664,6 +676,7 @@ def exec_safe_globals():
 			sendmail=frappe.sendmail,
 			get_print=frappe.get_print,
 			attach_print=frappe.attach_print,
+			make_get_request=frappe.integrations.utils.make_get_request,
 			make_post_request=frappe.integrations.utils.make_post_request,
 			make_put_request=frappe.integrations.utils.make_put_request,
 			make_patch_request=frappe.integrations.utils.make_patch_request,
