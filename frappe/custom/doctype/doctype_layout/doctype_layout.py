@@ -12,6 +12,8 @@ if TYPE_CHECKING:
 
 
 class DocTypeLayout(Document):
+	_DOCTYPE_NAME = "DocType Layout"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

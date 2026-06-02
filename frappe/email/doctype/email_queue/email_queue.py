@@ -42,6 +42,8 @@ if TYPE_CHECKING:
 
 
 class EmailQueue(Document):
+	_DOCTYPE_NAME = "Email Queue"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

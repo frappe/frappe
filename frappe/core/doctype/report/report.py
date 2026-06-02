@@ -19,6 +19,8 @@ from frappe.utils.xlsxutils import XLSXMetadata
 
 
 class Report(Document):
+	_DOCTYPE_NAME = "Report"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -37,6 +39,7 @@ class Report(Document):
 		default_print_format: DF.Link | None
 		disabled: DF.Check
 		filters: DF.Table[ReportFilter]
+		generate_csv: DF.Check
 		is_standard: DF.Literal["No", "Yes"]
 		javascript: DF.Code | None
 		json: DF.Code | None

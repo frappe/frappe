@@ -16,6 +16,8 @@ from frappe.utils.caching import redis_cache
 
 
 class Recorder(Document):
+	_DOCTYPE_NAME = "Recorder"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

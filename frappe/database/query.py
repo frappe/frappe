@@ -636,15 +636,17 @@ class Engine:
 			# If _field is from a dynamic field, its name might be just the target fieldname.
 			# We need the original string ('link.target') or the fieldname from the main doctype.
 			original_field_name = field if isinstance(field, str) else _field.name
-			# Check if the original field name exists in the *main* doctype meta
-			main_meta = frappe.get_meta(self.doctype)
-			if main_meta.has_field(original_field_name):
-				_df = main_meta.get_field(original_field_name)
-				ref_doctype = _df.options if _df else self.doctype
+			# When the filter targets a child table, resolve the field against
+			# the child doctype rather than the parent.
+			lookup_doctype = doctype or self.doctype
+			lookup_meta = frappe.get_meta(lookup_doctype)
+			if lookup_meta.has_field(original_field_name):
+				_df = lookup_meta.get_field(original_field_name)
+				ref_doctype = _df.options if _df else lookup_doctype
 			else:
-				# If not in main doctype, assume it's a standard field like 'name' or refers to the main doctype itself
+				# If not in lookup doctype, assume it's a standard field like 'name' or refers to the lookup doctype itself
 				# This part might need refinement if nested set operators are used with dynamic fields.
-				ref_doctype = self.doctype
+				ref_doctype = lookup_doctype
 
 			nodes = get_nested_set_hierarchy_result(ref_doctype, docname, hierarchy)
 			operator_fn = (

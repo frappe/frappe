@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { useStore } from "./store";
+import { useStore } from "../stores";
 import { ref, computed, onMounted } from "vue";
 
 // mixin
@@ -78,7 +78,9 @@ let url = computed(() => {
 		params.append("letterhead", store.value.letterhead.name);
 	}
 	let _url =
-		type.value == "PDF" ? `/api/method/frappe.utils.weasyprint.download_pdf` : "/printpreview";
+		type.value == "PDF"
+			? `/api/method/frappe.utils.print_format_generator.download_pdf`
+			: "/printpreview";
 	return `${_url}?${params.toString()}`;
 });
 

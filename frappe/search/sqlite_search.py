@@ -705,14 +705,14 @@ class SQLiteSearch(ABC):
 					doctype, filters=config.get("filters", {}), fields=[{"COUNT": "name", "as": "count"}]
 				).run(as_dict=True)[0]["count"]
 
-				cursor.execute(
-					"""
-					INSERT INTO search_index_progress
-					(doctype, total_docs, indexed_docs, batch_size, is_complete, started_at, updated_at, vocabulary_built, last_indexed_modified)
-					VALUES (?, ?, 0, 1000, 0, datetime('now'), datetime('now'), 0, 0)
-				""",
-					(doctype, total_count),
-				)
+			cursor.execute(
+				"""
+				INSERT INTO search_index_progress
+				(doctype, total_docs, indexed_docs, batch_size, is_complete, started_at, updated_at, vocabulary_built, last_indexed_modified)
+				VALUES (?, ?, 0, 1000, 0, datetime('now'), datetime('now'), 0, ?)
+			""",
+				(doctype, total_count, "1970-01-01 00:00:00"),
+			)
 
 		self._with_connection(init_progress)
 

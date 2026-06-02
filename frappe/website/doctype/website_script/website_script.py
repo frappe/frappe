@@ -8,6 +8,8 @@ from frappe.model.document import Document
 
 
 class WebsiteScript(Document):
+	_DOCTYPE_NAME = "Website Script"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

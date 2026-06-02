@@ -110,7 +110,7 @@ def add(args: dict[str, Any] | None = None, *, ignore_permissions: bool | int = 
 					)
 					frappe.throw(msg, title=_("Missing Permission"))
 				else:
-					frappe.share.add(doc.doctype, doc.name, assign_to)
+					frappe.share.add(doc.doctype, str(doc.name), assign_to)
 					shared_with_users.append(assign_to)
 
 			# make this document followed by assigned user

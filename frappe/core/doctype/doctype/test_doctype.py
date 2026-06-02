@@ -827,10 +827,9 @@ class TestDocType(IntegrationTestCase):
 		doctype = new_doctype(
 			fields=[
 				{
-					"fieldname": "cover_image",
-					"fieldtype": "Attach Image",
-					"label": "Cover Image",
-					"reqd": 1,  # mandatory
+					"fieldname": "btn",
+					"fieldtype": "Button",
+					"label": "Btn",
 				},
 				{
 					"fieldname": "book_name",

@@ -827,6 +827,82 @@ class TestQuery(IntegrationTestCase):
 		frappe.db.sql("delete from `tabDocType` where `name` = 'Test Tree DocType'")
 		frappe.db.sql_ddl("drop table if exists `tabTest Tree DocType`")
 
+	def test_nestedset_on_child_table_field(self):
+		"""Nested-set operator on a child-table link field should resolve the field
+		against the child doctype, not the parent (issue #38776)."""
+		tree_dt = child_dt = parent_dt = None
+		try:
+			tree_dt = new_doctype(is_tree=True, autoname="field:some_fieldname").insert()
+			parent_field = "parent_" + tree_dt.name.lower().replace(" ", "_")
+
+			for record in [
+				{"some_fieldname": "Root Node", parent_field: None, "is_group": 1},
+				{"some_fieldname": "Parent 1", parent_field: "Root Node", "is_group": 1},
+				{"some_fieldname": "Parent 2", parent_field: "Root Node", "is_group": 1},
+				{"some_fieldname": "Child 1", parent_field: "Parent 1", "is_group": 0},
+				{"some_fieldname": "Child 2", parent_field: "Parent 1", "is_group": 0},
+				{"some_fieldname": "Child 3", parent_field: "Parent 2", "is_group": 0},
+			]:
+				d = frappe.new_doc(tree_dt.name)
+				d.update(record)
+				d.insert()
+
+			child_dt = new_doctype(
+				istable=1,
+				fields=[
+					{
+						"fieldname": "tree_link",
+						"fieldtype": "Link",
+						"options": tree_dt.name,
+						"label": "Tree Link",
+					}
+				],
+			).insert()
+			parent_dt = new_doctype(
+				fields=[
+					{
+						"fieldname": "rows",
+						"fieldtype": "Table",
+						"options": child_dt.name,
+						"label": "Rows",
+					}
+				],
+			).insert()
+
+			p1 = frappe.get_doc(
+				doctype=parent_dt.name,
+				rows=[{"tree_link": "Child 1"}, {"tree_link": "Child 2"}],
+			).insert()
+			p2 = frappe.get_doc(
+				doctype=parent_dt.name,
+				rows=[{"tree_link": "Child 3"}],
+			).insert()
+
+			# Before the fix, the field was looked up on the parent doctype meta
+			# and ref_doctype fell back to the parent — producing
+			# "Unknown column 'lft'" against the parent table.
+			result = frappe.get_all(
+				parent_dt.name,
+				filters=[[child_dt.name, "tree_link", "descendants of", "Parent 1"]],
+				pluck="name",
+			)
+			self.assertIn(p1.name, result)
+			self.assertNotIn(p2.name, result)
+
+			# Also exercise the qb path directly.
+			rows = frappe.qb.get_query(
+				parent_dt.name,
+				fields=["name"],
+				filters=[[child_dt.name, "tree_link", "descendants of", "Parent 1"]],
+			).run(as_dict=1)
+			names = {r.name for r in rows}
+			self.assertIn(p1.name, names)
+			self.assertNotIn(p2.name, names)
+		finally:
+			for dt in filter(None, [parent_dt, child_dt, tree_dt]):
+				frappe.db.sql("delete from `tabDocType` where `name` = %s", dt.name)
+				frappe.db.sql_ddl(f"drop table if exists `tab{dt.name}`")
+
 	def test_child_field_syntax(self):
 		note1 = frappe.get_doc(doctype="Note", title="Note 1", seen_by=[{"user": "Administrator"}]).insert()
 		note2 = frappe.get_doc(

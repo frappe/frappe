@@ -115,7 +115,7 @@ def safe_exec(
 	if script_filename:
 		filename += f": {frappe.scrub(script_filename)}"
 
-	with safe_exec_flags(), patched_qb():
+	with safe_exec_flags():
 		# execute script compiled by RestrictedPython
 		exec(_compile_code(script, filename=filename), exec_globals, _locals)
 
@@ -415,19 +415,6 @@ def call_with_form_dict(function, kwargs):
 		frappe.local.form_dict = form_dict
 
 
-@contextmanager
-def patched_qb():
-	require_patching = isinstance(frappe.qb.terms, types.ModuleType)
-	try:
-		if require_patching:
-			_terms = frappe.qb.terms
-			frappe.qb.terms = _flatten(frappe.qb.terms)
-		yield
-	finally:
-		if require_patching:
-			frappe.qb.terms = _terms
-
-
 @lru_cache
 def _flatten(module):
 	new_mod = NamespaceDict()
@@ -679,6 +666,7 @@ VALID_UTILS = (
 	"is_html",
 	"is_image",
 	"get_thumbnail_base64_for_image",
+	"get_image_thumbnail_uri",
 	"image_to_base64",
 	"pdf_to_base64",
 	"strip_html",

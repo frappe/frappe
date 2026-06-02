@@ -86,6 +86,8 @@ form_grid_templates = {"fields": "templates/form_grid/fields.html"}
 
 
 class DocType(Document):
+	_DOCTYPE_NAME = "DocType"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -1814,7 +1816,6 @@ def validate_fields(meta: Meta):
 
 def get_fields_not_allowed_in_list_view(meta) -> list[str]:
 	not_allowed_in_list_view = list(copy.copy(no_value_fields))
-	not_allowed_in_list_view.append("Attach Image")
 	if meta.istable:
 		not_allowed_in_list_view.remove("Button")
 		not_allowed_in_list_view.remove("HTML")
@@ -2057,7 +2058,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 def check_fieldname_conflicts(docfield):
 	"""Checks if fieldname conflicts with methods or properties"""
 	doc = frappe.get_doc({"doctype": docfield.dt})
-	available_objects = [x for x in dir(doc) if isinstance(x, str)]
+	available_objects = [x for x in dir(doc) if isinstance(x, str) and x != "docs"]
 	property_list = [x for x in available_objects if is_a_property(getattr(type(doc), x, None))]
 	method_list = [x for x in available_objects if x not in property_list and callable(getattr(doc, x))]
 	msg = _("Fieldname {0} conflicting with meta object").format(docfield.fieldname)

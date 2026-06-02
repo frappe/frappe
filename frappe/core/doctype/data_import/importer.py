@@ -930,7 +930,8 @@ class Column:
 				self.warnings.append(
 					{
 						"message": _("Mapping column {0} to field {1}").format(
-							frappe.bold(header_title or "<i>Untitled Column</i>"), frappe.bold(df.label)
+							frappe.bold(escape_html(header_title) or "<i>Untitled Column</i>"),
+							frappe.bold(df.label),
 						),
 						"type": "info",
 					}
@@ -957,7 +958,9 @@ class Column:
 			self.warnings.append(
 				{
 					"col": column_number,
-					"message": _("Skipping Duplicate Column {0}").format(frappe.bold(header_title)),
+					"message": _("Skipping Duplicate Column {0}").format(
+						frappe.bold(escape_html(header_title))
+					),
 					"type": "info",
 				}
 			)
@@ -968,7 +971,7 @@ class Column:
 			self.warnings.append(
 				{
 					"col": column_number,
-					"message": _("Skipping column {0}").format(frappe.bold(header_title)),
+					"message": _("Skipping column {0}").format(frappe.bold(escape_html(header_title))),
 					"type": "info",
 				}
 			)
@@ -976,7 +979,9 @@ class Column:
 			self.warnings.append(
 				{
 					"col": column_number,
-					"message": _("Cannot match column {0} with any field").format(frappe.bold(header_title)),
+					"message": _("Cannot match column {0} with any field").format(
+						frappe.bold(escape_html(header_title))
+					),
 					"type": "info",
 				}
 			)
@@ -1021,7 +1026,7 @@ class Column:
 				{
 					"col": self.column_number,
 					"message": message.format(
-						frappe.bold(self.header_title),
+						frappe.bold(escape_html(self.header_title)),
 						len(unique_date_formats),
 						frappe.bold(user_date_format),
 					),
@@ -1044,13 +1049,14 @@ class Column:
 		if self.df.fieldtype == "Link":
 			# find all values that dont exist
 			transform = (lambda v: cstr(v).lower()) if frappe.db.db_type == "mariadb" else cstr
-			values = list({transform(v) for v in self.column_values if v})
+			original_values = {transform(v): cstr(v) for v in self.column_values if v}
+			values = list(original_values.keys())
 			exists = [
 				transform(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})
 			]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
-				missing_values = ", ".join(escape_html(v) for v in not_exists)
+				missing_values = ", ".join(escape_html(original_values[v]) for v in not_exists)
 				message = _("The following values do not exist for {0}: {1}")
 				self.warnings.append(
 					{

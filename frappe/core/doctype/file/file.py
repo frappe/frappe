@@ -47,6 +47,8 @@ FILE_ENCODING_OPTIONS = ("utf-8-sig", "utf-8", "windows-1250", "windows-1252")
 
 
 class File(Document):
+	_DOCTYPE_NAME = "File"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

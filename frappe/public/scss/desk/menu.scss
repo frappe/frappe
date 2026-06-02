@@ -27,8 +27,9 @@
 		text-decoration: none;
 		display: flex;
 		align-items: center;
+		overflow: hidden;
 		gap: var(--margin-sm);
-		.menu-item-icon {
+		.frappe-menu-item-icon {
 			line-height: 0px;
 			.app-logo,
 			img {
@@ -38,17 +39,29 @@
 		}
 	}
 	.dropdown-divider {
-		margin-right: calc(var(--margin-xs) + 3px);
-		margin-left: calc(var(--margin-xs) + 3px);
+		margin-right: 0;
+		margin-left: 0;
 	}
 	.menu-item-title {
 		text-overflow: ellipsis;
 		text-wrap: nowrap;
+		white-space: nowrap;
 		overflow: hidden;
+		flex: 1;
+		min-width: 0;
+	}
+	.menu-item-shortcut {
+		margin-left: var(--margin-xxs);
+		color: var(--ink-gray-4, #999999);
+		font-size: var(--text-sm);
+		font-weight: 420;
+		line-height: 1.15;
+		letter-spacing: 0.02em;
+		white-space: nowrap;
 	}
 }
 
-.menu-item-icon {
+.frappe-menu-item-icon {
 	width: var(--menu-icon-size);
 	height: var(--menu-icon-size);
 	& .icon-container {

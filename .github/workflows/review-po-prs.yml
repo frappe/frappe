@@ -39,43 +39,58 @@ jobs:
       - name: Install helper dependencies
         run: python -m pip install babel
 
-      - name: Build PO review comment
+      - name: Build PO review comments
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: python .github/helper/po_pr_review.py --output po-pr-review-comment.md
+        run: python .github/helper/po_pr_review.py
 
-      - name: Create or update PR comment
+      - name: Post PO review comments
         uses: actions/github-script@v8
         with:
           script: |
             const fs = require("fs");
-            const marker = "<!-- po-translation-review -->";
-            const body = fs.readFileSync("po-pr-review-comment.md", "utf8");
+            const marker = "<!-- po-translation-review";
             const { owner, repo } = context.repo;
             const issue_number = context.issue.number;
-            const comments = await github.paginate(github.rest.issues.listComments, {
+            const commentsFile = "po-pr-review-comments.json";
+            const payload = JSON.parse(fs.readFileSync(commentsFile, "utf8"));
+            const bodies = payload.comments;
+            if (!Array.isArray(bodies) || bodies.length === 0) {
+              core.setFailed(`${commentsFile} must contain a non-empty "comments" array`);
+              return;
+            }
+
+            const existing = await github.paginate(github.rest.issues.listComments, {
               owner,
               repo,
               issue_number,
               per_page: 100
             });
 
-            const existingComment = comments.find((comment) => comment.body.includes(marker));
+            const previousIds = existing
+              .filter(
+                (comment) =>
+                  comment.user?.login === "github-actions[bot]" &&
+                  typeof comment.body === "string" &&
+                  comment.body.startsWith(marker)
+              )
+              .map((comment) => comment.id);
 
-            if (existingComment) {
-              await github.rest.issues.updateComment({
-                owner,
-                repo,
-                comment_id: existingComment.id,
-                body
-              });
-            } else {
+            for (const body of bodies) {
               await github.rest.issues.createComment({
                 owner,
                 repo,
                 issue_number,
                 body
+              });
+            }
+
+            for (const comment_id of previousIds) {
+              await github.rest.issues.deleteComment({
+                owner,
+                repo,
+                comment_id
               });
             }

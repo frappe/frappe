@@ -256,10 +256,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					// because it will not visible otherwise
 					(me.is_title_link() || d.value !== d.description)
 				) {
-					html +=
-						'<br><span class="small">' +
-						__(frappe.utils.html2text(frappe.utils.escape_html(d.description))) +
-						"</span>";
+					// description_html: true signals that the caller deliberately put HTML in
+					// the description (e.g. a custom query that highlights matches). Render it
+					// directly. Otherwise treat it as plain text and escape it.
+					const desc = d.description_html
+						? __(frappe.utils.html2text(frappe.utils.escape_html(d.description)))
+						: __(frappe.utils.escape_html(d.description));
+					html += '<br><span class="small">' + desc + "</span>";
 				}
 				return $(`<div role="option">`)
 					.on("click", (event) => {

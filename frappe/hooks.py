@@ -484,12 +484,6 @@ standard_help_items = [
 		"is_standard": 1,
 	},
 	{
-		"item_label": "Keyboard Shortcuts",
-		"item_type": "Action",
-		"action": "frappe.ui.toolbar.show_shortcuts(event)",
-		"is_standard": 1,
-	},
-	{
 		"item_label": "System Health",
 		"item_type": "Route",
 		"route": "/desk/system-health-report",
@@ -509,6 +503,7 @@ default_log_clearing_doctypes = {
 	"Email Queue": 30,
 	"Scheduled Job Log": 7,
 	"Submission Queue": 7,
+	"Background Task": 7,
 	"Prepared Report": 14,
 	"Webhook Request Log": 30,
 	"Unhandled Email": 30,

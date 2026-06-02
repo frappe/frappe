@@ -14,6 +14,8 @@ from frappe.utils import cstr, random_string
 
 
 class CustomField(Document):
+	_DOCTYPE_NAME = "Custom Field"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

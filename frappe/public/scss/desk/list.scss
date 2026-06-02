@@ -4,6 +4,7 @@
 			.result {
 				min-width: 100%;
 				width: auto;
+				display: table;
 				.list-row-container {
 					width: fit-content;
 					min-width: 100%;
@@ -11,7 +12,7 @@
 				.list-row-container {
 					.level-left {
 						.list-row-col {
-							min-width: 150px;
+							min-width: 50px;
 							max-width: 400px;
 						}
 					}
@@ -218,6 +219,54 @@
 	cursor: default;
 }
 
+.list-col-resize-handle {
+	position: absolute;
+	right: -8px;
+	top: 0;
+	bottom: 0;
+	width: 16px;
+	cursor: col-resize;
+	user-select: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	&::before {
+		content: "";
+		width: 2px;
+		height: 14px; // fixed px — same on every column regardless of column height
+		border-radius: 2px;
+		background-color: var(--gray-500);
+		// Always show a faint resting separator so users can discover resize
+		opacity: 0.25;
+		transition: opacity 0.15s, background-color 0.15s, width 0.15s, height 0.15s;
+	}
+
+	&:hover::before {
+		background-color: var(--primary);
+		width: 3px;
+		height: 20px;
+		opacity: 1 !important;
+	}
+}
+
+// Darken & grow all separators when cursor enters the header row
+.list-row-head:hover .list-col-resize-handle::before {
+	background-color: var(--gray-600);
+	width: 3px;
+	height: 18px;
+	opacity: 0.7;
+}
+
+body.list-col-resizing {
+	cursor: col-resize !important;
+	user-select: none;
+
+	* {
+		cursor: col-resize !important;
+	}
+}
+
 .list-row-head {
 	@extend .list-row;
 	cursor: default;
@@ -225,6 +274,16 @@
 	border-radius: var(--border-radius);
 	height: var(--list-row-height);
 	padding-inline: var(--padding-sm);
+
+	.list-row-col {
+		position: relative;
+	}
+
+	// Right-aligned columns have text flush against the right edge where the
+	// resize handle sits — add breathing room so they don't look glued together
+	.list-row-col.text-right > span {
+		padding-right: 14px;
+	}
 
 	.list-subject {
 		font-weight: normal;
@@ -267,7 +326,6 @@
 $level-margin-right: 8px;
 
 .list-subject {
-	flex: 2;
 	justify-content: start;
 
 	a {
