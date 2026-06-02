@@ -387,6 +387,7 @@ frappe.views.Workspace = class Workspace {
 			});
 		}
 		$(this.workspace_actions_button).remove();
+		this.add_workspace_controls = false;
 	}
 
 	make_blocks_sortable() {
