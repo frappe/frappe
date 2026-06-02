@@ -411,6 +411,11 @@ frappe.views.Workspace = class Workspace {
 				frappe.set_route(`workspace/${page.name}`);
 			});
 		}
+<<<<<<< HEAD
+=======
+		$(this.workspace_actions_button).remove();
+		this.add_workspace_controls = false;
+>>>>>>> 9b4baf4416 (fix(ux): show workspace ellipsis menu after discarding customization)
 	}
 
 	make_blocks_sortable() {
