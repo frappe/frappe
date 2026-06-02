@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-flow-${{ github.event.number }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Server Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      mariadb:
+        image: mariadb:11.8
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=2s
+          --health-retries=3
+        env:
+          MARIADB_ROOT_PASSWORD: root
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - name: Checkout flow
+        uses: actions/checkout@v4
+        with:
+          path: flow
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install bench
+        run: uv tool install frappe-bench
+
+      - name: Init bench with frappe
+        run: |
+          bench init frappe-bench \
+            --frappe-branch develop \
+            --python python3 \
+            --skip-redis-config-generation \
+            --verbose
+
+      - name: Point bench at the Redis service
+        working-directory: frappe-bench
+        run: |
+          bench set-config -g redis_cache redis://localhost:6379
+          bench set-config -g redis_queue redis://localhost:6379
+          bench set-config -g redis_socketio redis://localhost:6379
+
+      - name: Install flow into the bench
+        working-directory: frappe-bench
+        run: |
+          cp -r "$GITHUB_WORKSPACE/flow" apps/flow
+          env/bin/pip install -e apps/flow
+          printf 'frappe\nflow\n' > sites/apps.txt
+
+      - name: Create test site and install flow
+        working-directory: frappe-bench
+        run: |
+          bench new-site test.localhost \
+            --db-root-password root \
+            --admin-password admin \
+            --mariadb-user-host-login-scope='%'
+          bench --site test.localhost install-app flow
+
+      - name: Run tests
+        working-directory: frappe-bench
+        run: bench --site test.localhost run-tests --app flow
+        env:
+          CI: true
