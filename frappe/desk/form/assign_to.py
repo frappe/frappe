@@ -40,7 +40,11 @@ def get(args=None):
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def add(args=None, *, ignore_permissions=False):
+=======
+def add(args: dict[str, Any] | None = None):
+>>>>>>> ae26cc682a (fix: assignment permission bypass)
 	"""add in someone's to do list
 	args = {
 	        "assign_to": [],
@@ -51,6 +55,10 @@ def add(args=None, *, ignore_permissions=False):
 	}
 
 	"""
+	return _add(args, ignore_permissions=False)
+
+
+def _add(args: dict[str, Any] | None = None, *, ignore_permissions: bool | int = False):
 	if not args:
 		args = frappe.local.form_dict
 
@@ -174,12 +182,27 @@ def close_all_assignments(doctype, name, ignore_permissions=False):
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def remove(doctype, name, assign_to, ignore_permissions=False):
+=======
+def remove(doctype: str, name: str | int, assign_to: str):
+	return _remove(doctype, name, assign_to, ignore_permissions=False)
+
+
+def _remove(doctype: str, name: str | int, assign_to: str, ignore_permissions: bool | int = False):
+>>>>>>> ae26cc682a (fix: assignment permission bypass)
 	return set_status(doctype, name, "", assign_to, status="Cancelled", ignore_permissions=ignore_permissions)
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def remove_multiple(doctype, names, ignore_permissions=False):
+=======
+def remove_multiple(doctype: str, names: str):
+	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
+		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)
+
+>>>>>>> ae26cc682a (fix: assignment permission bypass)
 	docname_list = json.loads(names)
 
 	for name in docname_list:
@@ -189,15 +212,19 @@ def remove_multiple(doctype, names, ignore_permissions=False):
 			continue
 
 		for assignment in assignments:
-			remove(doctype, name, assignment.get("owner"), ignore_permissions)
+			remove(doctype, name, assignment.get("owner"))
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def close(doctype: str, name: str, assign_to: str, ignore_permissions=False):
+=======
+def close(doctype: str, name: str, assign_to: str):
+>>>>>>> ae26cc682a (fix: assignment permission bypass)
 	if assign_to != frappe.session.user:
 		frappe.throw(_("Only the assignee can complete this to-do."))
 
-	return set_status(doctype, name, "", assign_to, status="Closed", ignore_permissions=ignore_permissions)
+	return set_status(doctype, name, "", assign_to, status="Closed", ignore_permissions=False)
 
 
 def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled", ignore_permissions=False):
