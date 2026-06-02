@@ -1,0 +1,170 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:title",
+ "creation": "2026-05-24 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "enabled",
+  "column_break_meta",
+  "agent",
+  "event",
+  "section_break_when",
+  "target_doctype",
+  "doc_event",
+  "column_break_when",
+  "cron_expression",
+  "last_fired_at",
+  "section_break_filter",
+  "condition",
+  "section_break_prompt",
+  "prompt_template"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "column_break_meta",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "AI Agent to run when this trigger fires.",
+   "fieldname": "agent",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Agent",
+   "options": "AI Agent",
+   "reqd": 1
+  },
+  {
+   "default": "DocType Event",
+   "description": "What kind of event fires this trigger.",
+   "fieldname": "event",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Event",
+   "options": "DocType Event\nScheduled",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_when",
+   "fieldtype": "Section Break",
+   "label": "When"
+  },
+  {
+   "depends_on": "eval:doc.event === 'DocType Event'",
+   "description": "DocType whose events fire this trigger.",
+   "fieldname": "target_doctype",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Target DocType",
+   "mandatory_depends_on": "eval:doc.event === 'DocType Event'",
+   "options": "DocType"
+  },
+  {
+   "depends_on": "eval:doc.event === 'DocType Event'",
+   "description": "Which lifecycle event of the target DocType fires this trigger.",
+   "fieldname": "doc_event",
+   "fieldtype": "Select",
+   "label": "Doc Event",
+   "mandatory_depends_on": "eval:doc.event === 'DocType Event'",
+   "options": "\nafter_insert\non_update\non_submit\non_cancel\non_trash"
+  },
+  {
+   "fieldname": "column_break_when",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.event === 'Scheduled'",
+   "description": "Standard 5-field cron, e.g. '0 9 * * 5' for every Friday 09:00.",
+   "fieldname": "cron_expression",
+   "fieldtype": "Data",
+   "label": "Cron Expression",
+   "mandatory_depends_on": "eval:doc.event === 'Scheduled'"
+  },
+  {
+   "depends_on": "eval:doc.event === 'Scheduled'",
+   "description": "Last time this scheduled trigger fired. Set by the system.",
+   "fieldname": "last_fired_at",
+   "fieldtype": "Datetime",
+   "label": "Last Fired At",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_filter",
+   "fieldtype": "Section Break",
+   "label": "Condition"
+  },
+  {
+   "description": "Optional Python expression. For DocType events, `doc` is in scope. Trigger only fires if expression is truthy.",
+   "fieldname": "condition",
+   "fieldtype": "Code",
+   "label": "Condition",
+   "options": "Python"
+  },
+  {
+   "fieldname": "section_break_prompt",
+   "fieldtype": "Section Break",
+   "label": "Prompt"
+  },
+  {
+   "description": "Jinja template rendered into the agent input. `doc` and `now` are in scope.",
+   "fieldname": "prompt_template",
+   "fieldtype": "Code",
+   "label": "Prompt Template",
+   "options": "Jinja",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "AI Run",
+   "link_fieldname": "trigger"
+  }
+ ],
+ "modified": "2026-05-24 00:00:00",
+ "modified_by": "Administrator",
+ "module": "AI",
+ "name": "AI Trigger",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}
