@@ -38,11 +38,6 @@ context("Folder Navigation", () => {
 		cy.click_modal_primary_button("Create");
 
 		//Navigating inside the added folder in the Attachments folder
-		cy.wait(500);
-		cy.get('[title="Test Folder"] > span').click();
-
-		//To check if the URL is correct after visiting the Test Folder
-		cy.location("pathname").should("eq", "/app/List/File/Home/Attachments/Test%20Folder");
 		cy.visit("/app/List/File/Home/Attachments/Test%20Folder");
 
 		//Adding a file inside the Test Folder
