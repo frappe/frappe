@@ -351,6 +351,16 @@ def safer_attach_print(*args, **kwargs):
 	return None
 
 
+def safe_get_value(*args, **kwargs):
+	kwargs["run"] = True
+	return frappe.db.get_value(*args, **kwargs)
+
+
+def safe_get_single_value(*args, **kwargs):
+	kwargs["run"] = True
+	return frappe.db.get_single_value(*args, **kwargs)
+
+
 def get_safe_globals():
 	datautils = frappe._dict()
 
@@ -472,6 +482,143 @@ def get_safe_globals():
 	add_module_properties(
 		frappe.exceptions, out.frappe, lambda obj: inspect.isclass(obj) and issubclass(obj, Exception)
 	)
+
+	if frappe.response:
+		out.frappe.response = frappe.response
+
+	out.update(safe_globals)
+
+	# default writer allows write access
+	out._write_ = _write
+	out._getitem_ = _getitem
+	out._getattr_ = _getattr_for_safe_exec
+
+	# Allow using `print()` calls with `safe_exec()`
+	out._print_ = FrappePrintCollector
+
+	# allow iterators and list comprehension
+	out._getiter_ = iter
+	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
+	out._inplacevar_ = protected_inplacevar
+
+	# add common python builtins
+	out.update(get_python_builtins())
+
+	return out
+
+
+def render_safe_globals():
+	"""Safer subset of globals for rendering ops."""
+	datautils = frappe._dict()
+
+	if frappe.db:
+		date_format = get_date_format()
+		time_format = get_time_format()
+		number_format = get_number_format()
+	else:
+		date_format = "yyyy-mm-dd"
+		time_format = "HH:mm:ss"
+		number_format = NumberFormat.from_string("#,###.##")
+
+	datautils.update(SAFE_DATA_UTILS)
+
+	form_dict = getattr(frappe.local, "form_dict", frappe._dict())
+
+	if "_" in form_dict:
+		del frappe.local.form_dict["_"]
+
+	user = (getattr(frappe.local, "session", None) and frappe.local.session.user) or "Guest"
+
+	out = NamespaceDict(
+		# make available limited methods of frappe
+		json=NamespaceDict(loads=json.loads, dumps=json.dumps),
+		orjson=SAFE_ORJSON,
+		as_json=frappe.as_json,
+		dict=dict,
+		log=frappe.log,
+		_dict=frappe._dict,
+		args=form_dict,
+		frappe=NamespaceDict(
+			flags=frappe._dict(),
+			format=frappe.format_value,
+			format_value=frappe.format_value,
+			date_format=date_format,
+			time_format=time_format,
+			number_format=number_format,
+			format_date=frappe.utils.data.global_date_format,
+			form_dict=form_dict,
+			bold=frappe.bold,
+			errprint=frappe.errprint,
+			qb=frappe.qb,
+			get_meta=safer_get_meta,
+			get_doc=get_doc_as_dict,
+			get_last_doc=safer_get_last_doc,
+			get_cached_doc=safer_get_cached_doc,
+			get_list=safe_get_list,
+			get_all=safe_get_all,
+			get_system_settings=frappe.get_system_settings,
+			utils=datautils,
+			get_url=frappe.utils.get_url,
+			render_template=frappe.render_template,
+			msgprint=frappe.msgprint,
+			throw=frappe.throw,
+			user=user,
+			get_fullname=frappe.utils.get_fullname,
+			get_gravatar=frappe.utils.get_gravatar_url,
+			full_name=frappe.local.session.data.full_name
+			if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
+			else "Guest",
+			request=getattr(frappe.local, "request", {}),
+			session=frappe._dict(
+				user=user,
+				csrf_token=frappe.local.session.data.csrf_token
+				if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
+				else "",
+			),
+			make_get_request=frappe.integrations.utils.make_get_request,
+			socketio_port=frappe.conf.socketio_port,
+			enqueue=safe_enqueue,
+			sanitize_html=frappe.utils.sanitize_html,
+			log_error=safer_log_error,
+			log=frappe.log,
+			db=NamespaceDict(
+				get_list=safe_get_list,
+				get_all=safe_get_all,
+				get_value=safe_get_value,
+				set_value=frappe.db.set_value,
+				get_single_value=safe_get_single_value,
+				get_default=frappe.db.get_default,
+				exists=frappe.db.exists,
+				count=frappe.db.count,
+				escape=frappe.db.escape,
+				sql=read_sql,
+				add_index=frappe.db.add_index,
+			),
+			website=NamespaceDict(
+				abs_url=frappe.website.utils.abs_url,
+				extract_title=frappe.website.utils.extract_title,
+				get_boot_data=frappe.website.utils.get_boot_data,
+				get_home_page=frappe.website.utils.get_home_page,
+				get_html_content_based_on_type=frappe.website.utils.get_html_content_based_on_type,
+			),
+			lang=getattr(frappe.local, "lang", "en"),
+			json_handler=json_handler,
+		),
+		FrappeClient=FrappeClient,
+		style=frappe._dict(border_color="#d1d8dd"),
+		get_toc=get_toc,
+		get_next_link=get_next_link,
+		_=frappe._,
+		scrub=scrub,
+		guess_mimetype=mimetypes.guess_type,
+		html2text=html2text,
+		dev_server=frappe._dev_server,
+		run_script=run_script,
+		is_job_queued=is_job_queued,
+		get_visible_columns=get_visible_columns,
+	)
+
+	out.frappe.update(SAFE_EXCEPTIONS)
 
 	if frappe.response:
 		out.frappe.response = frappe.response
