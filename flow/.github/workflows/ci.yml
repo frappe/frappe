@@ -93,14 +93,6 @@ jobs:
 
       - name: Run tests
         working-directory: frappe-bench
-        run: bench --site test.localhost run-tests --app flow --coverage
+        run: bench --site test.localhost run-tests --app flow
         env:
           CI: true
-
-      - name: Upload coverage
-        if: always()
-        uses: codecov/codecov-action@v4
-        with:
-          files: frappe-bench/sites/coverage.xml
-          flags: server
-          fail_ci_if_error: false
