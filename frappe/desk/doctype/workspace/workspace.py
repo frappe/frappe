@@ -387,6 +387,22 @@ def create_sidebar_for_duplicate(workspace):
 	)
 	sidebar.insert(ignore_permissions=True)
 
+	create_desktop_icon_for_duplicate(workspace, sidebar)
+
+
+def create_desktop_icon_for_duplicate(workspace, sidebar):
+	if frappe.db.exists("Desktop Icon", workspace.title):
+		return
+
+	icon = frappe.new_doc("Desktop Icon")
+	icon.label = workspace.title
+	icon.icon_type = "Link"
+	icon.link_type = "Workspace Sidebar"
+	icon.link_to = workspace.name
+	icon.icon = workspace.icon
+	icon.sidebar = sidebar.name
+	icon.insert(ignore_permissions=True)
+
 
 @frappe.whitelist()
 def save_page(name: str, public: str | int, new_widgets: str, blocks: str):
