@@ -597,14 +597,12 @@ def render_safe_globals():
 				get_list=safe_get_list,
 				get_all=safe_get_all,
 				get_value=safe_get_value,
-				set_value=frappe.db.set_value,
 				get_single_value=safe_get_single_value,
 				get_default=frappe.db.get_default,
 				exists=frappe.db.exists,
 				count=frappe.db.count,
 				escape=frappe.db.escape,
 				sql=read_sql,
-				add_index=frappe.db.add_index,
 			),
 			website=NamespaceDict(
 				abs_url=frappe.website.utils.abs_url,
@@ -616,7 +614,6 @@ def render_safe_globals():
 			lang=getattr(frappe.local, "lang", "en"),
 			json_handler=json_handler,
 		),
-		FrappeClient=FrappeClient,
 		style=frappe._dict(border_color="#d1d8dd"),
 		get_toc=get_toc,
 		get_next_link=get_next_link,
@@ -625,7 +622,6 @@ def render_safe_globals():
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,
 		dev_server=frappe._dev_server,
-		run_script=run_script,
 		is_job_queued=is_job_queued,
 		get_visible_columns=get_visible_columns,
 	)
@@ -657,7 +653,7 @@ def render_safe_globals():
 
 
 def exec_safe_globals():
-	"""Safer subset of globals for read+write ops."""
+	"""Safer subset of globals for exec. ops."""
 	out = render_safe_globals()
 	out.frappe.update(
 		NamespaceDict(
@@ -692,12 +688,19 @@ def exec_safe_globals():
 			get_value=frappe.db.get_value,
 			set_value=frappe.db.set_value,
 			get_single_value=frappe.db.get_single_value,
+			add_index=frappe.db.add_index,
 			commit=frappe.db.commit,
 			rollback=frappe.db.rollback,
 			after_commit=frappe.db.after_commit,
 			before_commit=frappe.db.before_commit,
 			after_rollback=frappe.db.after_rollback,
 			before_rollback=frappe.db.before_rollback,
+		)
+	)
+	out.update(
+		NamespaceDict(
+			run_script=run_script,
+			FrappeClient=FrappeClient,
 		)
 	)
 	return out
