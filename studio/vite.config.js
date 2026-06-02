@@ -49,6 +49,10 @@ export default defineConfig({
 	},
 	build: {
 		rolldownOptions: {
+			onwarn(warning, warn) {
+				if (warning.code === "INVALID_ANNOTATION") return
+				warn(warning)
+			},
 			input: {
 				studio: path.resolve(__dirname, "index.html"),
 				renderer: path.resolve(__dirname, "renderer.html"),
@@ -69,10 +73,5 @@ export default defineConfig({
 			"interactjs",
 			"debug",
 		],
-		// rolldown 1.0.3 (bundled with vite 8) mis-generates the pre-bundle for
-		// @headlessui/vue: it calls init_runtime_dom_esm_bundler() without importing
-		// the symbol, throwing "init_runtime_dom_esm_bundler is not defined" at runtime.
-		// Excluding it from dep optimization serves it as native ESM and avoids the bug.
-		exclude: ["@headlessui/vue"],
 	},
 })
