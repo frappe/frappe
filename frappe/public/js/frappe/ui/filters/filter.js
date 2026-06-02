@@ -38,26 +38,6 @@ frappe.ui.Filter = class {
 
 		this.conditions.push(...this.nested_set_conditions);
 
-		this.invalid_condition_map = {
-			Date: ["like", "not like"],
-			Datetime: ["like", "not like", "in", "not in", "=", "!="],
-			Data: ["Between", "Timespan"],
-			Time: ["Between", "Timespan"],
-			Select: ["like", "not like", "Between", "Timespan"],
-			Link: ["Between", "Timespan", ">", "<", ">=", "<="],
-			Currency: ["Between", "Timespan"],
-			Color: ["Between", "Timespan"],
-			Check: this.conditions.map((c) => c[0]).filter((c) => c !== "="),
-			Code: ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
-			"HTML Editor": ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
-			"Markdown Editor": ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
-			Password: ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
-			Rating: ["like", "not like", "Between", "in", "not in", "Timespan"],
-			Int: ["like", "not like", "Between", "in", "not in", "Timespan"],
-			Float: ["like", "not like", "Between", "in", "not in", "Timespan"],
-			Percent: ["like", "not like", "Between", "in", "not in", "Timespan"],
-		};
-
 		this.special_condition_labels = {
 			Date: {
 				"<": __("Before"),
@@ -71,6 +51,66 @@ frappe.ui.Filter = class {
 				"<=": __("On or Before"),
 				">=": __("On or After"),
 			},
+		};
+
+		this.set_invalid_conditions_map();
+	}
+
+	set_invalid_conditions_map() {
+		const range_conditions = ["Between", "Timespan"];
+		const comparison_conditions = [">", "<", ">=", "<="];
+		const like_conditions = ["like", "not like"];
+		const in_conditions = ["in", "not in"];
+		const equality_conditions = ["=", "!="];
+
+		const text_fields = [
+			"Code",
+			"HTML Editor",
+			"Markdown Editor",
+			"Text Editor",
+			"Small Text",
+			"Long Text",
+			"Text",
+			"Password",
+		];
+
+		const numeric_fields = ["Rating", "Int", "Float", "Percent"];
+
+		const text_invalid_conditions = [
+			...range_conditions,
+			...comparison_conditions,
+			...in_conditions,
+		];
+
+		const numeric_invalid_conditions = [
+			...like_conditions,
+			...range_conditions,
+			...in_conditions,
+		];
+
+		this.invalid_condition_map = {
+			Date: like_conditions,
+			Time: range_conditions,
+			Data: range_conditions,
+			Currency: range_conditions,
+
+			Link: [...range_conditions, ...comparison_conditions],
+			Color: [...range_conditions, ...comparison_conditions],
+
+			Datetime: [...like_conditions, ...in_conditions, ...equality_conditions],
+			Select: [...like_conditions, ...range_conditions, ...comparison_conditions],
+
+			Check: this.conditions
+				.map(([condition]) => condition)
+				.filter((condition) => condition !== "="),
+
+			...Object.fromEntries(
+				text_fields.map((field) => [field, [...text_invalid_conditions]])
+			),
+
+			...Object.fromEntries(
+				numeric_fields.map((field) => [field, [...numeric_invalid_conditions]])
+			),
 		};
 	}
 
