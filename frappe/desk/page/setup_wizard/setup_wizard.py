@@ -59,13 +59,7 @@ def setup_complete(args: str | dict[str, Any]):
 
 	kwargs = parse_args(sanitize_input(args))
 	stages = get_setup_stages(kwargs)
-	is_background_task = frappe.conf.get("trigger_site_setup_in_background")
-
-	if is_background_task:
-		process_setup_stages.enqueue(stages=stages, user_input=kwargs, is_background_task=True, at_front=True)
-		return {"status": "registered"}
-	else:
-		return process_setup_stages(stages, kwargs)
+	return process_setup_stages(stages, kwargs)
 
 
 @frappe.whitelist()
@@ -92,7 +86,6 @@ def initialize_system_settings_and_user(
 	create_or_update_user(user_data)
 
 
-@frappe.task()
 def process_setup_stages(stages, user_input, is_background_task=False):
 	from frappe.utils.telemetry import capture
 
