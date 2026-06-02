@@ -12,7 +12,7 @@ repos:
         files: "flow.*"
         exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
       - id: no-commit-to-branch
-        args: ['--branch', 'main']
+        args: ['--branch', 'develop']
       - id: check-merge-conflict
       - id: check-ast
       - id: check-json
