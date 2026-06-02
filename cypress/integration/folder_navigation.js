@@ -29,8 +29,8 @@ context("Folder Navigation", () => {
 		cy.get('[title="Attachments"] > span').click();
 
 		//To check if the URL formed after visiting the attachments folder is correct
-		cy.location("pathname").should("eq", "/app/file/view/home/Attachments");
-		cy.visit("/app/file/view/home/Attachments");
+		cy.location("pathname").should("eq", "/app/List/File/Home/Attachments");
+		cy.visit("/app/List/File/Home/Attachments");
 
 		//Adding folder inside the attachments folder
 		cy.click_menu_button("New Folder");
@@ -42,8 +42,8 @@ context("Folder Navigation", () => {
 		cy.get('[title="Test Folder"] > span').click();
 
 		//To check if the URL is correct after visiting the Test Folder
-		cy.location("pathname").should("eq", "/app/file/view/home/Attachments/Test%20Folder");
-		cy.visit("/app/file/view/home/Attachments/Test%20Folder");
+		cy.location("pathname").should("eq", "/app/List/File/Home/Attachments/Test%20Folder");
+		cy.visit("/app/List/File/Home/Attachments/Test%20Folder");
 
 		//Adding a file inside the Test Folder
 		cy.findByRole("button", { name: "Add File" }).eq(0).click({ force: true });
@@ -58,10 +58,10 @@ context("Folder Navigation", () => {
 		cy.click_modal_primary_button("Upload");
 
 		//To check if the added file is present in the Test Folder
-		cy.visit("/app/file/view/home/Attachments");
+		cy.visit("/app/List/File/Home/Attachments");
 		cy.wait(500);
 		cy.get("span.level-item > a > span").should("contain", "Test Folder");
-		cy.visit("/app/file/view/home/Attachments/Test%20Folder");
+		cy.visit("/app/List/File/Home/Attachments/Test%20Folder");
 
 		cy.wait(500);
 		cy.get(".list-row-container").eq(0).should("contain.text", "72402.jpg");
@@ -78,7 +78,7 @@ context("Folder Navigation", () => {
 		cy.wait("@file_deleted");
 
 		//Deleting the Test Folder
-		cy.visit("/app/file/view/home/Attachments");
+		cy.visit("/app/List/File/Home/Attachments");
 		cy.get(".list-row-checkbox").eq(0).click();
 		cy.click_action_button("Delete");
 		cy.click_modal_primary_button("Yes");
@@ -87,7 +87,7 @@ context("Folder Navigation", () => {
 
 	it("Deleting Test Folder from the home", () => {
 		//Deleting the Test Folder added in the home directory
-		cy.visit("/app/file/view/home");
+		cy.visit("/app/List/File/Home");
 		cy.get(".level-left > .list-subject > .file-select >.list-row-checkbox")
 			.eq(0)
 			.click({ force: true, delay: 500 });
