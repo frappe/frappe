@@ -2,7 +2,7 @@ app_name = "flow"
 app_title = "Flow"
 app_publisher = "Shrihari Mahabal"
 app_description = "Frappe Flow — native AI agents, tools, and triggers for Frappe"
-app_email = "shriharimahabal2@gmail.com"
+app_email = "shriharimahabal08@gmail.com"
 app_license = "mit"
 
 export_python_type_annotations = True
