@@ -355,7 +355,7 @@ class NotificationsView extends BaseNotificationsView {
 						<img src="/assets/frappe/images/ui-states/notification-empty-state.svg" alt="Generic Empty State" class="null-state">
 						<div class="title">${__("No New notifications")}</div>
 						<div class="subtitle">
-							${__("Looks like you haven’t received any notifications.")}
+							${__("Looks like you haven't received any notifications.")}
 					</div></div></div>`)
 				);
 			}
@@ -530,7 +530,7 @@ class ChangelogFeedView extends BaseNotificationsView {
 			html = `<div class="notification-null-state">
 						<div class="text-center">
 							<img src="/assets/frappe/images/ui-states/notification-empty-state.svg" alt="Generic Empty State" class="null-state">
-							<div class="title">${__("Nothing New")}</div>
+							<div class="title">${__("Nothing new")}</div>
 							<div class="subtitle">
 								${__("There is nothing new to show you right now.")}
 							</div>
