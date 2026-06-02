@@ -1,6 +1,5 @@
 {
  "actions": [],
- "beta": 1,
  "creation": "2019-01-24 15:51:06.362222",
  "doctype": "DocType",
  "document_type": "Document",
@@ -133,13 +132,14 @@
    "options": "Query Parameters"
   }
  ],
+ "grid_page_length": 50,
  "links": [
   {
    "link_doctype": "Token Cache",
    "link_fieldname": "connected_app"
   }
  ],
- "modified": "2022-01-07 05:28:45.073041",
+ "modified": "2026-05-30 20:53:27.952198",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Connected App",
@@ -162,8 +162,11 @@
    "role": "All"
   }
  ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "provider_name",
  "track_changes": 1
 }

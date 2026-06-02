@@ -25,6 +25,7 @@ class SystemSettings(Document):
 		allow_login_using_mobile_number: DF.Check
 		allow_login_using_user_name: DF.Check
 		allow_older_web_view_links: DF.Check
+		allowed_doctypes_for_guest_uploads: DF.SmallText | None
 		allowed_file_extensions: DF.SmallText | None
 		app_name: DF.Data | None
 		apply_strict_user_permissions: DF.Check
@@ -66,14 +67,15 @@ class SystemSettings(Document):
 		language: DF.Link
 		lifespan_qrcode_image: DF.Int
 		link_field_results_limit: DF.Int
+		log_api_requests: DF.Check
 		login_with_email_link: DF.Check
 		login_with_email_link_expiry: DF.Int
 		logout_on_password_reset: DF.Check
 		max_auto_email_report_per_user: DF.Int
 		max_file_size: DF.Int
-		minimum_password_score: DF.Literal["2", "3", "4"]
 		max_report_rows: DF.Int
 		max_signups_allowed_per_hour: DF.Int
+		minimum_password_score: DF.Literal["2", "3", "4"]
 		number_format: DF.Literal[
 			"#,###.##",
 			"#.###,##",
@@ -95,6 +97,7 @@ class SystemSettings(Document):
 		rounding_method: DF.Literal["Banker's Rounding (legacy)", "Banker's Rounding", "Commercial Rounding"]
 		session_expiry: DF.Data | None
 		setup_complete: DF.Check
+		show_absolute_datetime_in_timeline: DF.Check
 		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
