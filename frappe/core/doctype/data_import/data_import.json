@@ -206,7 +206,7 @@
   },
   {
    "default": ",;\\t|",
-   "depends_on": "custom_delimiters",
+   "depends_on": "eval:doc.custom_delimiters && (doc.google_sheets_url || (doc.import_file && doc.import_file.split('.').pop().toLowerCase() === 'csv'))",
    "description": "If your CSV uses a different delimiter, add that character here, ensuring no spaces or additional characters are included.",
    "fieldname": "delimiter_options",
    "fieldtype": "Data",
@@ -214,12 +214,14 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.google_sheets_url || (doc.import_file && doc.import_file.split('.').pop().toLowerCase() === 'csv')",
    "fieldname": "custom_delimiters",
    "fieldtype": "Check",
    "label": "Custom Delimiters"
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.google_sheets_url || (doc.import_file && doc.import_file.split('.').pop().toLowerCase() === 'csv')",
    "description": "Use if the default settings don't seem to detect your data correctly",
    "fieldname": "use_csv_sniffer",
    "fieldtype": "Check",
