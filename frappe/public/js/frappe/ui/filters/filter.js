@@ -185,6 +185,10 @@ frappe.ui.Filter = class {
 			}
 
 			this.set_field(this.field.df.parent, this.field.df.fieldname, fieldtype, condition);
+
+			// Sibling Dynamic Link filters depend on this filter's condition — re-evaluate them
+			const filter_group = this.filter_list?.filter_area?.filter_list || this.filter_list;
+			filter_group?.refresh_dynamic_link_filters?.();
 		});
 	}
 
@@ -282,6 +286,33 @@ frappe.ui.Filter = class {
 
 		this.utils.set_fieldtype(df, fieldtype, this.get_condition());
 
+		// Dynamic Link: upgrade to Link picker if a sibling filter resolves the target doctype.
+		// Otherwise fall through to the default Data input — no disable, no hint.
+		if (df.original_type === "Dynamic Link") {
+			const link_conditions = ["="];
+			if (link_conditions.includes(this.get_condition())) {
+				// this.filter_list is FilterGroup in standalone use, but the parent ListView
+				// in list views — drill through to the actual FilterGroup either way.
+				const filter_group =
+					this.filter_list?.filter_area?.filter_list || this.filter_list;
+				const peer = filter_group?.get_filter?.(original_docfield.options);
+				const peer_value = peer?.get_selected_value?.();
+				const description_el = this.filter_edit_area.find(".filter-description");
+				if (peer && peer.get_condition() === "=" && peer_value) {
+					df.fieldtype = "Link";
+					df.options = peer_value;
+					description_el.empty();
+				} else {
+					const peer_label =
+						frappe.meta.get_docfield(
+							original_docfield.parent,
+							original_docfield.options
+						)?.label || original_docfield.options;
+					description_el.html(__("Set {0} = ? to autocomplete", [__(peer_label)]));
+				}
+			}
+		}
+
 		// called when condition is changed,
 		// don't change if all is well
 		if (
@@ -344,7 +375,9 @@ frappe.ui.Filter = class {
 		f.refresh();
 
 		this.field = f;
-		if (old_text && f.fieldtype === old_fieldtype) {
+		// Carry the typed value across Dynamic Link Link↔Data transitions so the
+		// user's input survives when the peer's value or condition changes.
+		if (old_text && (f.fieldtype === old_fieldtype || df.original_type === "Dynamic Link")) {
 			this.field.set_value(old_text);
 		}
 
