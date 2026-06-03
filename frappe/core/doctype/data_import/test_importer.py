@@ -1,7 +1,12 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.core.doctype.data_import.importer import Column, Importer, build_fields_dict_for_column_matching
+from frappe.core.doctype.data_import.importer import (
+	INSERT,
+	Column,
+	Importer,
+	build_fields_dict_for_column_matching,
+)
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import format_duration, getdate
@@ -301,6 +306,35 @@ class TestImporter(IntegrationTestCase):
 			format_row_numbers_for_warning([2, 3, 4, 5, 6, 7, 8, 9, 100]),
 			"2, 3, 4, 5, 6, 7, ... 100",
 		)
+
+	def test_link_validation_ignores_header_row_when_not_on_first_line(self):
+		"""Leading blank rows must not treat the header line as data (e.g. Gender → row 3)."""
+		from frappe.core.doctype.data_import.importer import ImportFile
+		from frappe.core.doctype.data_import.value_mapping import get_column_invalid_items
+
+		for gender in ("Male", "Female"):
+			if not frappe.db.exists("Gender", gender):
+				frappe.get_doc({"doctype": "Gender", "gender": gender}).insert()
+
+		csv_content = (
+			"\n"
+			"First Name,Last Name,Status,Salutation,Gender\n"
+			"Alice,Smith,Opn,Mr.,Female\n"
+			"Bob,Jones,Pasiv,Mrs,Male\n"
+		)
+		import_file = frappe.get_doc(
+			doctype="File",
+			content=csv_content,
+			file_name="data_import_leading_blank_row.csv",
+			is_private=1,
+		)
+		import_file.save(ignore_permissions=True)
+
+		imp = ImportFile("Contact", import_file.file_url, import_type=INSERT)
+		gender_col = next(c for c in imp.columns if c.df and c.df.fieldname == "gender")
+		invalid_sources = {item["source"] for item in get_column_invalid_items(gender_col)}
+
+		self.assertNotIn("Gender", invalid_sources)
 
 	def test_link_and_select_warnings_include_row_numbers(self):
 		"""Column warnings for Link/Select list invalid values with 1-based sheet row numbers."""

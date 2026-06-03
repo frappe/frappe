@@ -539,7 +539,7 @@ class ImportFile:
 					i,
 					row,
 					self.doctype,
-					self.raw_data[1:],
+					self.raw_data[i + 1 :],
 					self.column_to_field_map,
 					self.value_lookup,
 					self.reference_doctype,
