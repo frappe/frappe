@@ -88,6 +88,10 @@ def is_safe_exec_enabled() -> bool:
 	return bool(frappe.get_common_site_config(cached=True).get(SAFE_EXEC_CONFIG_KEY))
 
 
+def is_render_exec_enabled() -> bool:
+	return bool(frappe.get_common_site_config(cached=True).get(RENDER_EXEC_CONFIG_KEY))
+
+
 def safe_exec(
 	script: str,
 	_globals: dict | None = None,
