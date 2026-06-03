@@ -440,8 +440,19 @@ def get_additional_filters_from_hooks():
 
 
 def add_layouts(bootinfo):
-	# add routes for readable doctypes
-	bootinfo.doctype_layouts = frappe.get_all("DocType Layout", ["name", "route", "document_type"])
+	bootinfo.doctype_layouts = frappe.get_all(
+		"DocType Layout",
+		fields=[
+			"name",
+			"title",
+			"document_type",
+			"based_on",
+			"is_standard",
+			"default_print_format",
+			"default_email_template",
+			"condition",
+		],
+	)
 
 
 def get_desk_settings():

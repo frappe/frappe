@@ -1,13 +1,10 @@
-# Copyright (c) 2020, Frappe Technologies and contributors
+# Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-# import frappe
 from frappe.model.document import Document
 
 
-class DocTypeLayoutField(Document):
-	_DOCTYPE_NAME = "DocType Layout Field"
-
+class DocTypeLayoutChildTable(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -16,11 +13,11 @@ class DocTypeLayoutField(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		fieldname: DF.Literal[None]
-		label: DF.Data | None
+		child_layout: DF.Link
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		table_fieldname: DF.Data
 	# end: auto-generated types
 
 	pass

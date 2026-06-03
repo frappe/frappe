@@ -38,7 +38,14 @@ frappe.ui.form.Form = class FrappeForm {
 		this.events = {};
 		this.fetch_dict = {};
 		this.parent = parent;
-		this.doctype_layout = frappe.get_meta(doctype_layout_name);
+		// frappe.get_doc (not frappe.get_meta) because the layout doc is loaded via
+		// frappe.model.with_doc; also guards against a stale name from a prior navigation.
+		this.doctype_layout = (() => {
+			if (!doctype_layout_name) return null;
+			const layout = frappe.get_doc("DocType Layout", doctype_layout_name);
+			if (layout && layout.document_type === doctype) return layout;
+			return null;
+		})();
 		this.undo_manager = new UndoManager({ frm: this });
 		this.setup_meta(doctype);
 		this.debounced_reload_doc = frappe.utils.debounce(this.reload_doc.bind(this), 1000);
@@ -617,17 +624,13 @@ frappe.ui.form.Form = class FrappeForm {
 			this.layout.show_message();
 
 			frappe.run_serially([
-				// header must be refreshed before client methods
-				// because add_custom_button
+				// resolve layout before toolbar and fields render
+				() => this._resolve_layout(),
 				() => this.refresh_header(switched),
-				// trigger global trigger
-				// to use this
 				() => $(document).trigger("form-refresh", [this]),
-				// fields
 				() => this.refresh_fields(),
-				// call trigger
 				() => this.script_manager.trigger("refresh"),
-				// call onload post render for callbacks to be fired
+				() => this.apply_layout_defaults(),
 				() => {
 					if (this.cscript.is_onload) {
 						this.onload_post_render();
@@ -651,6 +654,116 @@ frappe.ui.form.Form = class FrappeForm {
 				this.scroll_to_element();
 			});
 		});
+	}
+
+	/**
+	 * Evaluate layout conditions against the current doc.
+	 * Finds the first layout whose condition is truthy, reflects it in the
+	 * `layout` URL param, rebuilds the layout DOM if it changed, then the
+	 * existing refresh chain picks up the new layout.
+	 * Returns a Promise so frappe.run_serially awaits it.
+	 */
+	_resolve_layout() {
+		// Guard against re-entrancy (model.set_value can trigger another refresh)
+		if (this._resolving_layout) return;
+
+		const layouts = (frappe.boot.doctype_layouts || []).filter(
+			(l) => l.document_type === this.doctype && l.condition
+		);
+		if (!layouts.length) return;
+
+		let matched = null;
+		for (const l of layouts) {
+			try {
+				// eslint-disable-next-line no-new-func
+				const result = new Function("doc", `return !!(${l.condition})`)(this.doc);
+				if (result) {
+					matched = l;
+					break;
+				}
+			} catch (e) {
+				console.warn(`DocType Layout condition error (${l.name}):`, e);
+			}
+		}
+		const matched_name = matched ? matched.name : null;
+		const rendered_name = this.doctype_layout?.name || null;
+
+		const _url = new URL(window.location.href);
+		if (matched_name) {
+			_url.searchParams.set("layout", matched_name);
+		} else {
+			_url.searchParams.delete("layout");
+		}
+		history.replaceState(history.state, "", _url.toString());
+
+		if (matched_name === rendered_name) return;
+
+		const apply = (layout_doc) => {
+			this.doctype_layout = layout_doc || null;
+			this._rebuild_layout();
+		};
+
+		if (!matched_name) {
+			apply(null);
+			return;
+		}
+
+		return new Promise((resolve) => {
+			this._resolving_layout = true;
+			frappe.model.with_doc("DocType Layout", matched_name, () => {
+				apply(frappe.get_doc("DocType Layout", matched_name));
+				this._resolving_layout = false;
+				resolve();
+			});
+		});
+	}
+
+	_rebuild_layout() {
+		const old_wrapper = this.layout.wrapper;
+		this.grids = [];
+		const $dashboard = $(this.dashboard?.parent).detach();
+		this.layout = new frappe.ui.form.Layout({
+			parent: this.body,
+			doctype: this.doctype,
+			doctype_layout: this.doctype_layout,
+			frm: this,
+			with_dashboard: true,
+			card_layout: true,
+		});
+		this.layout.make();
+
+		let dashboard_added = false;
+		if (this.layout.tabs.length) {
+			this.layout.tabs.every((tab) => {
+				if (tab.df.show_dashboard) {
+					tab.wrapper.prepend($dashboard);
+					dashboard_added = true;
+					return false;
+				}
+				return true;
+			});
+			if (!dashboard_added) {
+				this.layout.tabs[0].wrapper.prepend($dashboard);
+			}
+		} else {
+			this.layout.wrapper.find(".form-page").prepend($dashboard);
+		}
+
+		old_wrapper.remove();
+
+		if (this.active_tab_map) delete this.active_tab_map[this.docname];
+
+		this.layout.doc = this.doc;
+		this.layout.attach_doc_and_docfields();
+		this.layout.set_tab_as_active();
+		this.fields_dict = this.layout.fields_dict;
+		this.fields = this.layout.fields_list;
+	}
+
+	apply_layout_defaults() {
+		const layout = this.doctype_layout;
+		this._layout_print_format = layout?.default_print_format || null;
+		this._layout_email_template = layout?.default_email_template || null;
 	}
 
 	onload_post_render() {
@@ -778,13 +891,32 @@ frappe.ui.form.Form = class FrappeForm {
 		this.viewers.refresh();
 
 		this.dashboard.refresh();
+		const _route_key = frappe.breadcrumbs.current_page();
+		const _crumb = frappe.breadcrumbs.all[_route_key];
+		if (_crumb) {
+			_crumb.layout_name = this.doctype_layout?.name || null;
+		}
 		frappe.breadcrumbs.update();
 
+		this._update_layout_indicator();
 		this.show_submit_message();
 		this.clear_custom_buttons();
 		this.show_web_link();
 		this.show_report_bug_link();
 		this.show_workflow_read_only_banner();
+	}
+
+	_update_layout_indicator() {
+		this.page.wrapper.find(".layout-indicator").remove();
+		if (this.doctype_layout?.title) {
+			this.page.wrapper
+				.find(".title-area")
+				.append(
+					`<span class="layout-indicator indicator-pill ms-2">${frappe.utils.escape_html(
+						__(this.doctype_layout.title)
+					)}</span>`
+				);
+		}
 	}
 
 	// SAVE
@@ -1377,6 +1509,10 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.route_options = {
 			frm: this,
 		};
+		// Use layout default print format if one is set
+		if (this._layout_print_format) {
+			frappe.route_options.print_format = this._layout_print_format;
+		}
 		frappe.set_route("print", this.doctype, this.doc.name);
 	}
 
@@ -1431,6 +1567,8 @@ frappe.ui.form.Form = class FrappeForm {
 			recipients: this.doc.email || this.doc.email_id || this.doc.contact_email,
 			attach_document_print: true,
 			message: message,
+			// Use layout default email template if one is set
+			email_template: this._layout_email_template || undefined,
 		});
 	}
 
