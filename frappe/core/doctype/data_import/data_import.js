@@ -55,6 +55,24 @@ function get_preview_row_count(preview_data) {
 	return preview_data.total_number_of_rows ?? preview_data.data?.length ?? 0;
 }
 
+/** Docfield for Map To: Link/Select per mapping row (child meta defaults to Data). */
+function get_mapping_target_df(grid_row) {
+	const doc = grid_row.doc;
+	const base_df = frappe.meta.get_docfield(
+		doc.doctype,
+		"target_value",
+		grid_row.parent_doc?.name
+	);
+	const df = { ...base_df };
+	const { fieldtype, link_doctype, select_options } = doc;
+	if (fieldtype === "Link" && link_doctype) {
+		Object.assign(df, { fieldtype: "Link", options: link_doctype });
+	} else if (fieldtype === "Select" && select_options) {
+		Object.assign(df, { fieldtype: "Select", options: select_options });
+	}
+	return df;
+}
+
 frappe.ui.form.on("Data Import", {
 	setup(frm) {
 		frappe.realtime.on("data_import_refresh", ({ data_import }) => {
@@ -459,28 +477,54 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	configure_mapping_target_field(grid_row) {
+		if (!grid_row?.doc) return;
+
+		const target_df = get_mapping_target_df(grid_row);
+
 		const column = grid_row.columns?.target_value;
-		if (!column || !grid_row.doc) return;
-
-		const base_df = frappe.meta.get_docfield(
-			grid_row.doc.doctype,
-			"target_value",
-			grid_row.parent_doc?.name
-		);
-		column.df = { ...base_df };
-
-		const { fieldtype, link_doctype, select_options } = grid_row.doc;
-		if (fieldtype === "Link" && link_doctype) {
-			Object.assign(column.df, { fieldtype: "Link", options: link_doctype });
-		} else if (fieldtype === "Select" && select_options) {
-			Object.assign(column.df, { fieldtype: "Select", options: select_options });
+		if (column) {
+			column.df = target_df;
+			if (column.field) {
+				column.field_area?.empty();
+				column.field = null;
+				grid_row.make_control(column);
+			}
 		}
 
-		if (column.field) {
-			column.field_area?.empty();
-			column.field = null;
-			grid_row.make_control(column);
+		const form_field = grid_row.grid_form?.fields_dict?.target_value;
+		if (!form_field) return;
+
+		const fieldtype_changed = form_field.df.fieldtype !== target_df.fieldtype;
+		const options_changed = form_field.df.options !== target_df.options;
+		if (!fieldtype_changed && !options_changed) {
+			form_field.df = target_df;
+			form_field.refresh();
+			return;
 		}
+
+		const parent = form_field.$wrapper.parent();
+		form_field.$wrapper.remove();
+		const field = frappe.ui.form.make_control({
+			df: target_df,
+			parent,
+			doc: grid_row.doc,
+			doctype: grid_row.doc.doctype,
+			docname: grid_row.doc.name,
+			frm: grid_row.frm,
+			grid: grid_row.grid,
+			grid_row,
+			grid_row_form: grid_row.grid_form,
+			layout: grid_row.grid_form.layout,
+		});
+		grid_row.grid_form.fields_dict.target_value = field;
+		const field_idx = grid_row.grid_form.fields.indexOf(form_field);
+		if (field_idx >= 0) {
+			grid_row.grid_form.fields[field_idx] = field;
+		}
+		if (grid_row.grid_form.layout?.fields_dict) {
+			grid_row.grid_form.layout.fields_dict.target_value = field;
+		}
+		field.refresh();
 	},
 
 	import_file(frm) {
@@ -896,13 +940,10 @@ frappe.ui.form.on("Data Import", {
 });
 
 frappe.ui.form.on("Data Import Value Mapping", {
-	form_render(frm) {
-		if (frm.doc.fieldtype === "Link" && frm.doc.link_doctype) {
-			frm.set_df_property("target_value", "fieldtype", "Link");
-			frm.set_df_property("target_value", "options", frm.doc.link_doctype);
-		} else if (frm.doc.fieldtype === "Select" && frm.doc.select_options) {
-			frm.set_df_property("target_value", "fieldtype", "Select");
-			frm.set_df_property("target_value", "options", frm.doc.select_options);
+	form_render(frm, cdt, cdn) {
+		const grid_row = frm.fields_dict.value_mappings?.grid?.grid_rows_by_docname?.[cdn];
+		if (grid_row) {
+			frm.events.configure_mapping_target_field(grid_row);
 		}
 	},
 });

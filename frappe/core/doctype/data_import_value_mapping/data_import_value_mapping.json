@@ -49,6 +49,7 @@
   {
    "fieldname": "column",
    "fieldtype": "Int",
+   "hidden": 1,
    "label": "Column",
    "read_only": 1,
    "reqd": 1
@@ -56,6 +57,7 @@
   {
    "fieldname": "fieldname",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Fieldname",
    "read_only": 1,
    "reqd": 1
@@ -63,12 +65,14 @@
   {
    "fieldname": "parent_field",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Parent Field",
    "read_only": 1
   },
   {
    "fieldname": "fieldtype",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Fieldtype",
    "options": "Select\nLink",
    "read_only": 1,

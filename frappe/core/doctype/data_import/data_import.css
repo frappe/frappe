@@ -67,7 +67,7 @@
 	display: none;
 }
 
-[data-fieldname="value_mappings"] > .grid-field .control-label {
+[data-fieldname="value_mappings"] > .grid-field > .control-label {
 	display: none;
 }
 
