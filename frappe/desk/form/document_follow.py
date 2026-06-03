@@ -103,7 +103,7 @@ def send_email_alert(receiver, docinfo, timeline):
 def send_document_follow_mails(frequency):
 	"""
 	param:
-	frequency for sanding mails
+	frequency for sending mails
 
 	task:
 	set receiver according to frequency
