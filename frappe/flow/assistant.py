@@ -6,16 +6,6 @@ from __future__ import annotations
 import frappe
 
 ASSISTANT_AGENT_TITLE = "Assistant"
-ASSISTANT_TOOL_SLUGS = (
-	"find_doctypes",
-	"describe",
-	"read",
-	"create",
-	"update",
-	"delete",
-	"run_action",
-	"execute",
-)
 
 ASSISTANT_INSTRUCTIONS = (
 	"You are a Frappe assistant working inside a Frappe site.\n\n"
@@ -63,25 +53,38 @@ ASSISTANT_INSTRUCTIONS = (
 
 
 def sync_builtin_assistant(model: str | None = None) -> None:
-	"""Create the system Assistant agent if missing. `model` defaults to the first enabled AI Model."""
-	from flow.tools.builtins import sync_builtin_tools
+	"""Ensure the system Assistant agent exists and is up-to-date. Called from after_migrate and AIModel.after_insert."""
+	from flow.tools.builtins import BUILTIN_TOOLS, sync_builtin_tools
 
-	if frappe.db.exists("AI Agent", ASSISTANT_AGENT_TITLE):
-		return
+	sync_builtin_tools()
 
 	model_name = model or frappe.db.get_value("AI Model", {"enabled": 1}, "name")
 	if not model_name:
 		return
 
-	sync_builtin_tools()
-	frappe.get_doc(
-		{
-			"doctype": "AI Agent",
-			"title": ASSISTANT_AGENT_TITLE,
-			"model": model_name,
-			"instructions": ASSISTANT_INSTRUCTIONS,
-			"tools": [{"tool": slug} for slug in ASSISTANT_TOOL_SLUGS],
-			"enabled": 1,
-			"is_system_generated": 1,
-		}
-	).insert(ignore_permissions=True)
+	tool_slugs = [t.name for t in BUILTIN_TOOLS]
+
+	if not frappe.db.exists("AI Agent", ASSISTANT_AGENT_TITLE):
+		frappe.get_doc(
+			{
+				"doctype": "AI Agent",
+				"title": ASSISTANT_AGENT_TITLE,
+				"model": model_name,
+				"instructions": ASSISTANT_INSTRUCTIONS,
+				"tools": [{"tool": slug} for slug in tool_slugs],
+				"enabled": 1,
+				"is_system_generated": 1,
+			}
+		).insert(ignore_permissions=True)
+		return
+
+	doc = frappe.get_doc("AI Agent", ASSISTANT_AGENT_TITLE)
+	if not doc.is_system_generated:
+		return
+
+	doc.instructions = ASSISTANT_INSTRUCTIONS
+	existing = {row.tool for row in doc.tools}
+	for slug in tool_slugs:
+		if slug not in existing:
+			doc.append("tools", {"tool": slug})
+	doc.save(ignore_permissions=True)

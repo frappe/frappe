@@ -89,7 +89,11 @@ class AIAgent(Document):
 	def _resolve_tools(self) -> list[Tool]:
 		resolved: list[Tool] = []
 		for row in self.tools:
-			tool_doc = frappe.get_doc("AI Tool", row.tool)
+			try:
+				tool_doc = frappe.get_doc("AI Tool", row.tool)
+			except frappe.DoesNotExistError:
+				frappe.log_error(title=f"AI Agent {self.name!r}: tool {row.tool!r} not found, skipping")
+				continue
 			if not tool_doc.enabled:
 				continue
 			resolved.append(tool_doc.to_tool())

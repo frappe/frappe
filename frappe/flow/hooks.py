@@ -27,4 +27,4 @@ scheduler_events = {
 	},
 }
 
-after_migrate = ["flow.tools.builtins.sync_builtin_tools"]
+after_migrate = ["flow.assistant.sync_builtin_assistant"]
