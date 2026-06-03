@@ -32,6 +32,12 @@ class Report(Document):
 		add_total_row: DF.Check
 		add_translate_data: DF.Check
 		columns: DF.Table[ReportColumn]
+<<<<<<< HEAD
+=======
+		default_letter_head: DF.Link | None
+		default_print_format: DF.Link | None
+		disable_prepared_report_automation: DF.Check
+>>>>>>> d7b2f3cc05 (feat: add option to disable prepared report automation (#39742))
 		disabled: DF.Check
 		filters: DF.Table[ReportFilter]
 		is_standard: DF.Literal["No", "Yes"]
@@ -164,7 +170,7 @@ class Report(Document):
 
 		start_time = datetime.datetime.now()
 		prepared_report_watcher = None
-		if not self.prepared_report:
+		if not self.prepared_report and not self.disable_prepared_report_automation:
 			prepared_report_watcher = threading.Timer(
 				interval=threshold,
 				function=enable_prepared_report,
