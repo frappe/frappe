@@ -623,7 +623,7 @@ def make_site_config(
 
 				site_config["db_user"] = db_user or db_name
 
-		with open(site_file, "w") as f:
+		with open(site_file, "w") as f:  # nosemgrep
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
 
 

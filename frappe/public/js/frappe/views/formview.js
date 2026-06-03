@@ -24,8 +24,28 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	make_and_show(doctype, route) {
 		if (frappe.router.doctype_layout) {
 			frappe.model.with_doc("DocType Layout", frappe.router.doctype_layout, () => {
-				this.make_form(doctype);
-				this.show_doc(route);
+				// Also pre-load any child layouts linked in child_tables so grids can
+				// apply them synchronously when they render.
+				const layout = frappe.get_doc("DocType Layout", frappe.router.doctype_layout);
+				const child_layout_names = (layout?.child_tables || [])
+					.map((r) => r.child_layout)
+					.filter(Boolean);
+
+				if (child_layout_names.length) {
+					const promises = child_layout_names.map(
+						(name) =>
+							new Promise((resolve) =>
+								frappe.model.with_doc("DocType Layout", name, resolve)
+							)
+					);
+					Promise.all(promises).then(() => {
+						this.make_form(doctype);
+						this.show_doc(route);
+					});
+				} else {
+					this.make_form(doctype);
+					this.show_doc(route);
+				}
 			});
 		} else {
 			this.make_form(doctype);

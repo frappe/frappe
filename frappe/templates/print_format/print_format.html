@@ -22,7 +22,24 @@
 	{{ chrome_layout_header or '' }}
 	{#- HTML preview: render layout.header once at the top of the body -#}
 	{%- if not for_chrome and layout.header -%}
+	{%- if layout.header is string -%}
 	<div class="document-header-content">{{ frappe.render_template(layout.header, {'doc': doc}) }}</div>
+	{%- elif layout.header.columns -%}
+	{%- set ns_h = namespace(has_fields=false) -%}
+	{%- for col in layout.header.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns_h.has_fields = true -%}{%- endfor -%}{%- endfor -%}
+	{%- if ns_h.has_fields -%}
+	{%- set col_gap = (layout.header.gap if layout.header.gap is defined and layout.header.gap != None else 20)|string + 'px' -%}
+	<div class="section document-header-content {{ 'label-uppercase' if layout.header.label_case == 'uppercase' else '' }}">
+	<div class="section-columns row" style="gap:{{ col_gap }}">
+	{%- for column in layout.header.columns %}
+	<div class="column col">
+	{%- for df in column.fields %}{{ macros.render_field(df, doc) }}{%- endfor %}
+	</div>
+	{%- endfor %}
+	</div>
+	</div>
+	{%- endif -%}
+	{%- endif -%}
 	{%- endif -%}
 	{% for section in layout.sections %}
 	{#- Skip labelled sections where every data field is empty -#}
@@ -37,8 +54,17 @@
 		{%- endfor -%}
 	{%- endfor -%}
 	{%- if not section.label or ns.has_content -%}
-	<div class="section {{ resolve_class({'page-break': section.page_break}) }}">
-		{% if section.label %}
+	{#- Build inline style for section background + padding -#}
+	{%- set ns3 = namespace(section_style='') -%}
+	{%- if section.background -%}
+		{%- set ns3.section_style = ns3.section_style + 'background:' + section.background + ';' -%}
+	{%- endif -%}
+	{%- if section.padding -%}
+		{%- set p = section.padding -%}
+		{%- set ns3.section_style = ns3.section_style + 'padding:' + (p.top or 0)|string + 'px ' + (p.right or 0)|string + 'px ' + (p.bottom or 0)|string + 'px ' + (p.left or 0)|string + 'px;' -%}
+	{%- endif -%}
+	<div class="section {{ resolve_class({'page-break': section.page_break}) }} {{ 'label-uppercase' if section.label_case == 'uppercase' else '' }}"{% if ns3.section_style %} style="{{ ns3.section_style }}"{% endif %}>
+		{% if section.label and section.show_label != 'hide' %}
 		<div class="section-label">{{ _(section.label) }}</div>
 		{% endif %}
 
@@ -52,7 +78,8 @@
 		{%- else -%}
 			{%- set row_layout = '' -%}
 		{%- endif -%}
-		<div class="section-columns row {{ row_layout }}">
+		{%- set col_gap = (section.gap if section.gap is defined and section.gap != None else 20)|string + 'px' -%}
+		<div class="section-columns row {{ row_layout }}" style="gap:{{ col_gap }}">
 			{% for column in section.columns %}
 			<div class="column col">
 				{% for df in column.fields %}
@@ -68,7 +95,24 @@
 	{{ chrome_layout_footer or '' }}
 	{#- HTML preview: render layout.footer once at the bottom of the body -#}
 	{%- if not for_chrome and layout.footer -%}
+	{%- if layout.footer is string -%}
 	<div class="document-footer-content">{{ frappe.render_template(layout.footer, {'doc': doc}) }}</div>
+	{%- elif layout.footer.columns -%}
+	{%- set ns_f = namespace(has_fields=false) -%}
+	{%- for col in layout.footer.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns_f.has_fields = true -%}{%- endfor -%}{%- endfor -%}
+	{%- if ns_f.has_fields -%}
+	{%- set col_gap_f = (layout.footer.gap if layout.footer.gap is defined and layout.footer.gap != None else 20)|string + 'px' -%}
+	<div class="section document-footer-content {{ 'label-uppercase' if layout.footer.label_case == 'uppercase' else '' }}">
+	<div class="section-columns row" style="gap:{{ col_gap_f }}">
+	{%- for column in layout.footer.columns %}
+	<div class="column col">
+	{%- for df in column.fields %}{{ macros.render_field(df, doc) }}{%- endfor %}
+	</div>
+	{%- endfor %}
+	</div>
+	</div>
+	{%- endif -%}
+	{%- endif -%}
 	{%- endif -%}
 	{{ footer or '' }}
 </body>

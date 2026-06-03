@@ -292,7 +292,8 @@ function get_files_to_build(files) {
 
 function build_files({ files, outdir }) {
 	let build_plugins = [vue(), html_plugin, build_cleanup_plugin, vue_style_plugin];
-	return esbuild.build(get_build_options(files, outdir, build_plugins));
+	if (WATCH_MODE) build_plugins.push(watch_plugin);
+	return build_or_watch(get_build_options(files, outdir, build_plugins));
 }
 
 function build_style_files({ files, outdir, rtl_style = false }) {
@@ -311,7 +312,23 @@ function build_style_files({ files, outdir, rtl_style = false }) {
 	];
 
 	plugins.push(require("autoprefixer"));
-	return esbuild.build(get_build_options(files, outdir, build_plugins));
+	if (WATCH_MODE) build_plugins.push(watch_plugin);
+	return build_or_watch(get_build_options(files, outdir, build_plugins));
+}
+
+// As of esbuild 0.17 the `watch`/`incremental` build options and the
+// `onRebuild` callback were removed in favour of the context API. In watch
+// mode we create a context, run the initial build via rebuild() (so callers
+// still get a result with a metafile), and then start watching. Rebuilds are
+// handled by `watch_plugin` via the onEnd hook.
+async function build_or_watch(options) {
+	if (!WATCH_MODE) {
+		return esbuild.build(options);
+	}
+	let context = await esbuild.context(options);
+	let result = await context.rebuild();
+	await context.watch();
+	return result;
 }
 
 function get_build_options(files, outdir, plugins) {
@@ -331,44 +348,55 @@ function get_build_options(files, outdir, plugins) {
 			__VUE_PROD_DEVTOOLS__: JSON.stringify(false),
 		},
 		plugins: plugins,
-		watch: get_watch_config(),
 	};
 }
 
-function get_watch_config() {
-	if (WATCH_MODE) {
-		return {
-			async onRebuild(error, result) {
-				if (error) {
-					log_error("There was an error during rebuilding changes.");
-					log();
-					log(chalk.dim(error.stack));
-					notify_redis({ error });
-				} else {
-					let { new_assets_json, prev_assets_json } = await write_assets_json(
-						result.metafile
-					);
+// Replaces the old `onRebuild` watch callback (removed in esbuild 0.17). The
+// onEnd hook fires after every build, so the first invocation (the initial
+// build, whose assets.json is written by execute()) is skipped; subsequent
+// rebuilds update assets.json and notify the browser.
+const watch_plugin = {
+	name: "frappe-watch",
+	setup(build) {
+		let first_build = true;
+		build.onEnd(async (result) => {
+			if (first_build) {
+				first_build = false;
+				return;
+			}
 
-					let changed_files;
-					if (prev_assets_json) {
-						changed_files = get_rebuilt_assets(prev_assets_json, new_assets_json);
+			if (result.errors.length) {
+				log_error("There was an error during rebuilding changes.");
+				log();
+				let error = {
+					errors: result.errors,
+					stack: result.errors.map((e) => e.text).join("\n"),
+				};
+				log(chalk.dim(error.stack));
+				notify_redis({ error });
+			} else {
+				let { new_assets_json, prev_assets_json } = await write_assets_json(
+					result.metafile
+				);
 
-						let timestamp = new Date().toLocaleTimeString();
-						let message = `${timestamp}: Compiled ${changed_files.length} files...`;
-						log(chalk.yellow(message));
-						for (let filepath of changed_files) {
-							let filename = path.basename(filepath);
-							log("    " + filename);
-						}
-						log();
+				let changed_files;
+				if (prev_assets_json) {
+					changed_files = get_rebuilt_assets(prev_assets_json, new_assets_json);
+
+					let timestamp = new Date().toLocaleTimeString();
+					let message = `${timestamp}: Compiled ${changed_files.length} files...`;
+					log(chalk.yellow(message));
+					for (let filepath of changed_files) {
+						let filename = path.basename(filepath);
+						log("    " + filename);
 					}
-					notify_redis({ success: true, changed_files });
+					log();
 				}
-			},
-		};
-	}
-	return null;
-}
+				notify_redis({ success: true, changed_files });
+			}
+		});
+	},
+};
 
 function log_built_assets(results) {
 	let outputs = {};

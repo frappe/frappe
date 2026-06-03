@@ -16,6 +16,8 @@ from frappe.utils.caching import site_cache
 
 
 class WorkspaceSidebar(Document):
+	_DOCTYPE_NAME = "Workspace Sidebar"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -75,8 +77,9 @@ class WorkspaceSidebar(Document):
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
 
 	def after_rename(self, old, new, merge):
-		delete_file(self.app, old)
-		self.export_sidebar()
+		if self.standard:
+			delete_file(self.app, old)
+			self.export_sidebar()
 
 	def is_item_allowed(self, name, item_type, allowed_workspaces):
 		if frappe.session.user == "Administrator":

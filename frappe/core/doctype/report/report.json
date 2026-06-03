@@ -11,6 +11,7 @@
   "reference_report",
   "is_standard",
   "module",
+  "documentation_url",
   "column_break_4",
   "report_type",
   "default_letter_head",
@@ -72,6 +73,12 @@
    "fieldtype": "Link",
    "label": "Module",
    "options": "Module Def"
+  },
+  {
+   "fieldname": "documentation_url",
+   "fieldtype": "Data",
+   "label": "Documentation URL",
+   "options": "URL"
   },
   {
    "default": "0",
@@ -222,7 +229,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-23 14:53:54.321496",
+ "modified": "2026-05-27 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

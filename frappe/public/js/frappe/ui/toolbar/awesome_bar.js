@@ -5,7 +5,7 @@ frappe.provide("frappe.tags");
 
 frappe.search.AwesomeBar = class AwesomeBar {
 	setup(element) {
-		$(".search-bar, .navbar-search-bar").removeClass("hidden");
+		$(".navbar-search-bar").removeClass("hidden");
 
 		this.options = [];
 		this.global_results = [];
@@ -13,14 +13,14 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.setup_search_modal(element);
 
 		frappe.search.utils.setup_recent();
+		this.setup_page_change_event();
 	}
 
 	setup_search_modal(element) {
-		let is_event_listeners_added = false;
 		let $search_element = $(element);
 
 		let search_modal = new frappe.get_modal("Search", "");
-
+		this.search_modal = search_modal;
 		search_modal.removeClass("fade");
 		search_modal.on("shown.bs.modal", () => {
 			const input = search_modal.find("#navbar-search").get(0);
@@ -68,20 +68,36 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			.html(search_modal_footer);
 
 		$search_element.on("click", () => {
-			if ($(search_modal).hasClass("show")) {
-				search_modal.modal("hide");
+			if (this.is_open()) {
+				this.close();
 				return;
 			}
 			search_modal.modal("show");
-
-			if (is_event_listeners_added) return;
-			is_event_listeners_added = true;
-
 			this.setup_event_listeners(search_modal);
 		});
 	}
 
+	open(search_modal) {
+		const modal = search_modal || this.search_modal;
+		if (!modal) return;
+		modal.modal("show");
+		this.setup_event_listeners(modal);
+	}
+
+	close() {
+		if (!this.is_open()) return;
+		this.search_modal.modal("hide");
+	}
+
+	is_open() {
+		return Boolean(this.search_modal?.hasClass("show"));
+	}
+
 	setup_event_listeners(search_modal) {
+		// Listeners and the Awesomplete dropdown only need to be set up once.
+		// Re-running this on every open creates duplicate dropdowns and shows results twice.
+		if (this.awesomplete) return;
+
 		var me = this;
 		let $input = search_modal.find("#navbar-search");
 		let input = $input.get(0);
@@ -446,5 +462,33 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				},
 			});
 		}
+	}
+
+	setup_correct_button(wrapper) {
+		let small_button = $(wrapper).find("#small-search-button");
+		let full_button = $(wrapper).find("#full-search-button");
+		let route = frappe.get_route();
+		if (frappe.is_mobile()) {
+			small_button.removeClass("hidden");
+			full_button.addClass("hidden");
+			return;
+		}
+		if (route[0] == "Workspaces" || frappe.is_mobile()) {
+			small_button.addClass("hidden");
+			full_button.removeClass("hidden");
+		} else {
+			full_button.addClass("hidden");
+			small_button.removeClass("hidden");
+		}
+	}
+	setup_page_change_event() {
+		const me = this;
+		$(document).on("page-change", function (event, data) {
+			me.setup_correct_button(data);
+		});
+
+		$(document).on("form-refresh", function (event, data) {
+			me.setup_correct_button(data.wrapper);
+		});
 	}
 };

@@ -34,7 +34,11 @@
 						v-html="frappe.utils.icon(collapsed ? 'down' : 'up-line', 'sm')"
 					></div>
 				</div>
-				<Dropdown v-if="!store.read_only" :options="options" @click.stop />
+				<Dropdown
+					v-if="!store.read_only && !store.is_layout_form"
+					:options="options"
+					@click.stop
+				/>
 			</div>
 			<div v-if="section.df.description" class="section-description">
 				{{ section.df.description }}
@@ -90,7 +94,7 @@ const store = useStore();
 // delete/backspace to delete the field
 const { Backspace } = useMagicKeys();
 whenever(Backspace, (value) => {
-	if (value && selected.value && store.not_using_input) {
+	if (value && selected.value && store.not_using_input && !store.is_layout_form) {
 		remove_section();
 	}
 });

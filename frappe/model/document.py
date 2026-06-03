@@ -7,9 +7,9 @@ import time
 import warnings
 from collections.abc import Generator, Iterable
 from contextlib import contextmanager
-from functools import wraps
+from functools import cached_property, wraps
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Literal, Optional, Self, TypeAlias, Union, overload, override
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, Optional, Self, TypeAlias, Union, overload, override
 
 from werkzeug.exceptions import NotFound
 
@@ -330,8 +330,101 @@ def get_doc_permission_check(doc: "Document", check_permission: str | bool | Non
 	return doc
 
 
+class DocsCollection[T]:
+	"""APIs to manage collections of documents."""
+
+	__slots__ = ("_owner_cls",)
+
+	def __set_name__(self, owner: type, name: str) -> None:
+		self._owner_cls = owner
+
+	def __get__(self, instance, owner: type | None = None) -> "DocsCollection[T]":
+		if instance is not None:
+			raise AttributeError(
+				f"`docs` isn't accessible via {type(instance).__name__} instances; use the class instead."
+			)
+		# Bind the actual accessing class so subclasses report their own doctype.
+		bound = DocsCollection.__new__(DocsCollection)
+		bound._owner_cls = owner or self._owner_cls
+		return bound
+
+	@property
+	def _doctype(self) -> str:
+		doctype = getattr(self._owner_cls, "_DOCTYPE_NAME", None)
+		if not doctype:
+			raise AttributeError(
+				f"{self._owner_cls.__name__} does not define `_DOCTYPE_NAME`; "
+				"controller class must declare its DocType name to use `docs`."
+			)
+		return doctype
+
+	def get(
+		self,
+		name: str | int | None = None,
+		*,
+		cached: bool = False,
+		lazy: bool = False,
+		for_update: bool = False,
+		check_permission: str | bool | None = None,  # TODO: Default to true?
+	) -> T:
+		"""Fetch a single document of this DocType by name (or filter dict)."""
+		if cached and lazy:
+			raise ValueError("`cached` and `lazy` are mutually exclusive")
+
+		if not isinstance(name, str | int | None):
+			raise ValueError("`name` has to be a string or integer or None.")
+
+		if lazy:
+			return get_lazy_doc(self._doctype, name, for_update=for_update, check_permission=check_permission)
+		if cached:
+			return get_cached_doc(self._doctype, name)
+		return get_doc(self._doctype, name, for_update=for_update, check_permission=check_permission)
+
+	def last(
+		self,
+		filters: FilterSignature | None = None,
+		order_by: str = "creation desc",
+		*,
+		for_update: bool = False,
+	) -> T:
+		"""Return the most recently created document, optionally filtered."""
+		return get_last_doc(self._doctype, filters=filters, order_by=order_by, for_update=for_update)
+
+	def filter(
+		self,
+		filters: dict | None = None,
+		*,
+		chunk_size: int = 1000,
+		limit: int | None = None,
+		limit_start: int = 0,
+		order_by: str = "creation asc",
+		as_iterator: bool = False,
+		for_update: bool = False,
+		distinct: bool = False,
+	) -> list[T] | Generator[T]:
+		"""Return all documents matching `filters`."""
+		return get_docs(
+			self._doctype,
+			filters=filters,
+			chunk_size=chunk_size,
+			limit=limit,
+			limit_start=limit_start,
+			order_by=order_by,
+			as_iterator=as_iterator,
+			for_update=for_update,
+			distinct=distinct,
+		)
+
+	def new(self, **kwargs) -> T:
+		"""Create a new (unsaved) document with the given field values."""
+		return new_doc(self._doctype, **kwargs)
+
+
 class Document(BaseDocument):
 	"""All controllers inherit from `Document`."""
+
+	_DOCTYPE_NAME: ClassVar[str | None] = None
+	docs: "DocsCollection[Self]" = DocsCollection()
 
 	doctype: DF.Data
 	name: DF.Data | None

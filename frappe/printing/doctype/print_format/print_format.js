@@ -4,6 +4,12 @@
 frappe.ui.form.on("Print Format", "onload", function (frm) {
 	frm.add_fetch("doc_type", "module", "module");
 	frm.add_fetch("report", "module", "module");
+
+	// For new non-custom formats: default to Print Format Builder Beta + Chrome PDF
+	if (frm.is_new() && !frm.doc.custom_format) {
+		frm.set_value("print_format_builder_beta", 1);
+		frm.set_value("pdf_generator", "chrome");
+	}
 });
 
 frappe.ui.form.on("Print Format", {
@@ -66,6 +72,10 @@ frappe.ui.form.on("Print Format", {
 		frm.set_value("align_labels_right", value);
 		frm.set_value("show_section_headings", value);
 		frm.set_value("line_breaks", value);
+		// Custom HTML formats can't use the builder — clear the flag
+		if (frm.doc.custom_format) {
+			frm.set_value("print_format_builder_beta", 0);
+		}
 		frm.trigger("render_buttons");
 		frm.trigger("set_chrome_for_builder");
 	},

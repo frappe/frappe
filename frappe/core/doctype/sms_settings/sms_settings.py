@@ -8,6 +8,8 @@ from frappe.utils import nowdate
 
 
 class SMSSettings(Document):
+	_DOCTYPE_NAME = "SMS Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

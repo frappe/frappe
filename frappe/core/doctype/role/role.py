@@ -11,6 +11,8 @@ STANDARD_ROLES = ("Administrator", "System Manager", "Script Manager", "All", "G
 
 
 class Role(Document):
+	_DOCTYPE_NAME = "Role"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

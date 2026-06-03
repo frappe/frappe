@@ -353,6 +353,89 @@ frappe.ui.Sidebar = class Sidebar {
 		this.wrapper.find(".overlay").on("click", () => {
 			this.close();
 		});
+		this.setup_user_menu();
+	}
+
+	setup_user_menu() {
+		const me = this;
+		const $btn = this.wrapper.find(".sidebar-user-button");
+		const $container = this.wrapper.find(".dropdown-navbar-user");
+
+		const theme_item = {
+			name: "toggle-theme",
+			label: __("Theme"),
+			icon: frappe.ui.get_current_theme() === "dark" ? "sun" : "moon",
+			shortcut: "Shift+Ctrl+G",
+			onClick: function () {
+				new frappe.ui.ThemeSwitcher().show();
+			},
+		};
+
+		$container.on("click", function () {
+			theme_item.icon = frappe.ui.get_current_theme() === "dark" ? "sun" : "moon";
+		});
+
+		frappe.ui.create_menu({
+			parent: $container,
+			open_on_top: true,
+			menu_items: [
+				{
+					name: "my-profile",
+					label: __("My Profile"),
+					icon: "user",
+					onClick: function () {
+						frappe.ui.toolbar.route_to_user();
+					},
+				},
+				{
+					name: "session-defaults",
+					label: __("Session Defaults"),
+					icon: "sliders-horizontal",
+					condition: function () {
+						return frappe.boot.session_defaults.length != 0;
+					},
+					onClick: function () {
+						frappe.ui.toolbar.setup_session_defaults();
+					},
+				},
+				{
+					name: "keyboard-shortcuts",
+					label: __("Keyboard Shortcuts"),
+					icon: "keyboard",
+					shortcut: "Shift+/",
+					onClick: function () {
+						frappe.ui.keys.show_keyboard_shortcut_dialog();
+					},
+				},
+				theme_item,
+				{
+					name: "toggle-full-width",
+					label: __("Toggle Full Width"),
+					icon: "maximize",
+					onClick: function () {
+						frappe.ui.toolbar.toggle_full_width();
+					},
+				},
+				{ is_divider: true },
+				{
+					name: "logout",
+					label: __("Logout"),
+					icon: "logout",
+					onClick: function () {
+						frappe.app.logout();
+					},
+				},
+			],
+			onShow: function () {
+				$btn.addClass("user-menu-active");
+			},
+			onHide: function () {
+				$btn.removeClass("user-menu-active");
+			},
+			onItemClick: function () {
+				$btn.removeClass("user-menu-active");
+			},
+		});
 	}
 
 	set_active_workspace_item() {
@@ -474,19 +557,6 @@ frappe.ui.Sidebar = class Sidebar {
 	add_standard_items(items) {
 		if (this.standard_items_setup) return;
 		this.standard_items = [];
-		if (!frappe.is_mobile()) {
-			this.standard_items.push({
-				label: __("Search"),
-				icon: "search",
-				standard: true,
-				type: "Button",
-				id: "navbar-modal-search",
-				suffix: {
-					keyboard_shortcut: "Ctrl+K",
-				},
-				class: "navbar-search-bar hidden",
-			});
-		}
 		this.standard_items.push({
 			label: __("Notification"),
 			icon: "bell",
@@ -500,6 +570,21 @@ frappe.ui.Sidebar = class Sidebar {
 				if (!$dropdown.hasClass("hidden")) {
 					$dropdown.trigger("show.bs.dropdown");
 				}
+				this.wrapper.find(".dropdown-background-tasks").addClass("hidden");
+				if (frappe.is_mobile()) {
+					this.wrapper.removeClass("expanded");
+				}
+			},
+		});
+		this.standard_items.push({
+			label: __("Background Tasks"),
+			icon: "server",
+			standard: true,
+			type: "Button",
+			class: "sidebar-background-tasks hidden",
+			onClick: () => {
+				this.wrapper.find(".dropdown-notifications").addClass("hidden");
+				this.wrapper.find(".dropdown-background-tasks").toggleClass("hidden");
 				if (frappe.is_mobile()) {
 					this.wrapper.removeClass("expanded");
 				}
@@ -508,8 +593,8 @@ frappe.ui.Sidebar = class Sidebar {
 		this.standard_items.forEach((w) => {
 			this.add_item(this.$standard_items_sections, w);
 		});
-		this.setup_awesomebar();
 		this.setup_notifications();
+		this.setup_background_tasks();
 		this.standard_items_setup = true;
 	}
 	get_workspace_for_module(module) {
@@ -520,25 +605,14 @@ frappe.ui.Sidebar = class Sidebar {
 			}
 		}
 	}
-	setup_awesomebar() {
-		if (frappe.boot.desk_settings.search_bar) {
-			let awesome_bar = new frappe.search.AwesomeBar();
-			awesome_bar.setup("#navbar-modal-search");
-
-			frappe.search.utils.make_function_searchable(
-				frappe.utils.generate_tracking_url,
-				__("Generate Tracking URL")
-			);
-			if (frappe.model.can_read("RQ Job")) {
-				frappe.search.utils.make_function_searchable(function () {
-					frappe.set_route("List", "RQ Job");
-				}, __("Background Jobs"));
-			}
-		}
-	}
 	setup_notifications() {
 		if (frappe.boot.desk_settings.notifications && frappe.session.user !== "Guest") {
 			this.notifications = new frappe.ui.Notifications({ full_height: true });
+		}
+	}
+	setup_background_tasks() {
+		if (frappe.session.user !== "Guest") {
+			this.background_tasks = new frappe.ui.BackgroundTasks({ full_height: true });
 		}
 	}
 	add_item(container, item) {
@@ -567,18 +641,15 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	expand_sidebar() {
-		let direction;
 		const is_rtl = frappe.utils.is_rtl();
 		if (this.sidebar_expanded) {
 			this.wrapper.addClass("expanded");
-			direction = is_rtl ? "left" : "right";
 			$('[data-toggle="tooltip"]').tooltip("dispose");
 			this.wrapper.find(".avatar-name-email").show();
 			this.wrapper.find(".onboarding-sidebar span").show();
 			this.wrapper.find(".promotional-banner-title").show();
 		} else {
 			this.wrapper.removeClass("expanded");
-			direction = is_rtl ? "right" : "left";
 			$('[data-toggle="tooltip"]').tooltip({
 				boundary: "window",
 				container: "body",
@@ -590,10 +661,17 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		localStorage.setItem("sidebar-expanded", this.sidebar_expanded);
+		const chevron_icon = this.sidebar_expanded
+			? is_rtl
+				? "chevron-right"
+				: "chevron-left"
+			: is_rtl
+			? "chevron-left"
+			: "chevron-right";
 		this.wrapper
 			.find(".body-sidebar .collapse-sidebar-link")
 			.find("use")
-			.attr("href", `#icon-panel-${direction}-open`);
+			.attr("href", `#icon-${chevron_icon}`);
 		this.sidebar_header.toggle_width(this.sidebar_expanded);
 		$(document).trigger("sidebar-expand", {
 			sidebar_expand: this.sidebar_expanded,

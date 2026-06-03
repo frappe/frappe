@@ -12,6 +12,7 @@ from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import send_translations, set_default_language
 from frappe.utils import cint, now, strip
 from frappe.utils.password import update_password
+from frappe.utils.synchronization import LockTimeoutError, filelock
 
 from . import install_fixtures
 
@@ -54,18 +55,17 @@ def setup_complete(args: str | dict[str, Any]):
 	and clears cache. If wizard breaks, calls `setup_wizard_exception` hook"""
 
 	# Setup complete: do not throw an exception, let the user continue to desk
-	if frappe.is_setup_complete():
+	try:
+		with filelock("setup_wizard", timeout=0.5):
+			if frappe.is_setup_complete():
+				return {"status": "ok"}
+
+			kwargs = parse_args(sanitize_input(args))
+			stages = get_setup_stages(kwargs)
+			return process_setup_stages(stages, kwargs)
+	except LockTimeoutError:
+		# Duplicate request
 		return {"status": "ok"}
-
-	kwargs = parse_args(sanitize_input(args))
-	stages = get_setup_stages(kwargs)
-	is_background_task = frappe.conf.get("trigger_site_setup_in_background")
-
-	if is_background_task:
-		process_setup_stages.enqueue(stages=stages, user_input=kwargs, is_background_task=True, at_front=True)
-		return {"status": "registered"}
-	else:
-		return process_setup_stages(stages, kwargs)
 
 
 @frappe.whitelist()
@@ -92,7 +92,6 @@ def initialize_system_settings_and_user(
 	create_or_update_user(user_data)
 
 
-@frappe.task()
 def process_setup_stages(stages, user_input, is_background_task=False):
 	from frappe.utils.telemetry import capture
 

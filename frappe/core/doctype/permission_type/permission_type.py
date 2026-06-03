@@ -14,6 +14,8 @@ CUSTOM_FIELD_TARGET = ["Custom DocPerm", "DocPerm", "DocShare"]
 
 
 class PermissionType(Document):
+	_DOCTYPE_NAME = "Permission Type"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

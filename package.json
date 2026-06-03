@@ -47,12 +47,12 @@
     "cssnano": "^5.0.0",
     "driver.js": "^0.9.8",
     "editorjs-undo": "0.1.6",
-    "esbuild": "^0.14.29",
+    "esbuild": "^0.28.0",
     "esbuild-plugin-vue3": "^0.3.0",
     "fast-deep-equal": "^2.0.1",
     "fast-glob": "^3.2.5",
     "frappe-charts": "2.0.0-rc27",
-    "frappe-datatable": "1.20.3",
+    "frappe-datatable": "1.20.4",
     "frappe-gantt": "^1.2.1",
     "frappe-quill-image-resize": "^3.0.9",
     "highlight.js": "^10.4.1",
@@ -92,5 +92,8 @@
   "optionalDependencies": {
     "bufferutil": "^4.0.8",
     "utf-8-validate": "^6.0.3"
+  },
+  "resolutions": {
+    "esbuild-plugin-vue3/esbuild": "^0.28.0"
   }
 }

@@ -340,6 +340,8 @@ def get_charts_for_user(
 
 
 class DashboardChart(Document):
+	_DOCTYPE_NAME = "Dashboard Chart"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

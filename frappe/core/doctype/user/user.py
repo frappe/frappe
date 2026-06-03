@@ -57,6 +57,8 @@ desk_properties = (
 
 
 class User(Document):
+	_DOCTYPE_NAME = "User"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

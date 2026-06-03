@@ -51,6 +51,8 @@ def cache_email_account(cache_name):
 
 
 class EmailAccount(Document):
+	_DOCTYPE_NAME = "Email Account"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
