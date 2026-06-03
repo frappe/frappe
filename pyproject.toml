@@ -16,7 +16,7 @@ dependencies = [
     "GitPython~=3.1.45",
     "Jinja2~=3.1.6",
     "Pillow~=12.2.0",
-    "PyJWT~=2.12.1",
+    "PyJWT~=2.13.0",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
