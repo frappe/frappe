@@ -150,13 +150,13 @@ frappe.ui.FieldSelect = class FieldSelect {
 
 					// show fields where user has read access and if report hide flag is not set
 					if (frappe.perm.has_perm(doctype, df.permlevel, "read"))
-						me.add_field_option(df);
+						me.add_field_option(df, table_df);
 				});
 			}
 		});
 	}
 
-	add_field_option(df) {
+	add_field_option(df, table_df) {
 		let me = this;
 
 		if (df.fieldname == "docstatus" && !frappe.model.is_submittable(me.doctype)) return;
@@ -173,7 +173,8 @@ frappe.ui.FieldSelect = class FieldSelect {
 			label = __(df.label, null, df.parent);
 			table = me.doctype;
 		} else {
-			label = __(df.label, null, df.parent) + " (" + __(df.parent) + ")";
+			const suffix = table_df && table_df.label ? __(table_df.label) : __(df.parent);
+			label = __(df.label, null, df.parent) + " (" + suffix + ")";
 			table = df.parent;
 		}
 
