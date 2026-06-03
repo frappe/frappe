@@ -58,7 +58,8 @@
 <script setup lang="ts">
 import { computed, ref, useSlots, watch } from "vue";
 import { Combobox, createResource, frappeRequest, debounce } from "frappe-ui";
-import type { LinkEmits, LinkExposed, LinkOption, LinkProps } from "./types";
+import type { ComboboxOption, ComboboxCustomOption } from "frappe-ui";
+import type { LinkExposed, LinkOption, LinkProps, LinkEmits } from "./types";
 
 const props = withDefaults(defineProps<LinkProps>(), {
 	filters: () => ({}),
@@ -105,7 +106,7 @@ const createNewOption: ComboboxCustomOption = {
 	label: "Create New",
 	slot: "create",
 	condition: ({ query }: { query: string }) => Boolean(query.trim()),
-	onClick: ({ query }) => emit("create", query),
+	onClick: ({ query }: { query: string }) => emit("create", query),
 };
 
 const linkOptions = computed<ComboboxOption[]>(() => {

@@ -11,11 +11,10 @@ export interface LinkProps extends InputLabelingProps {
   creatable?: boolean
   disabled?: boolean
   placeholder?: string
+  id?: string
 }
 
-export interface LinkEmits {
-  'update:modelValue': [value: string | null]
-  'update:open': [value: boolean]
+export type LinkEmits = {
   create: [query: string]
 }
 
