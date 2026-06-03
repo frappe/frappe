@@ -17,11 +17,7 @@
   "add_total_row",
   "disabled",
   "prepared_report",
-<<<<<<< HEAD
-=======
   "disable_prepared_report_automation",
-  "generate_csv",
->>>>>>> d7b2f3cc05 (feat: add option to disable prepared report automation (#39742))
   "add_translate_data",
   "timeout",
   "filters_section",
@@ -202,21 +198,6 @@
    "fieldname": "add_translate_data",
    "fieldtype": "Check",
    "label": "Add Translate Data"
-<<<<<<< HEAD
-=======
-  },
-  {
-   "fieldname": "default_print_format",
-   "fieldtype": "Link",
-   "label": "Default Print Format",
-   "options": "Print Format"
-  },
-  {
-   "fieldname": "default_letter_head",
-   "fieldtype": "Link",
-   "ignore_user_permissions": 1,
-   "label": "Default Letter Head",
-   "options": "Letter Head"
   },
   {
    "default": "0",
@@ -225,17 +206,12 @@
    "fieldname": "disable_prepared_report_automation",
    "fieldtype": "Check",
    "label": "Disable Prepared Report Automation"
->>>>>>> d7b2f3cc05 (feat: add option to disable prepared report automation (#39742))
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2025-08-28 18:28:32.510719",
-=======
  "modified": "2026-06-04 03:43:50.279111",
->>>>>>> d7b2f3cc05 (feat: add option to disable prepared report automation (#39742))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",
