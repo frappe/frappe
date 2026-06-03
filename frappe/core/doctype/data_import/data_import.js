@@ -32,6 +32,29 @@ function get_skipped_row_set(frm) {
 	return new Set((frm.doc.skipped_rows || []).map((row) => cint(row.row_number)));
 }
 
+/** Show a muted (count) badge on a collapsible section header, before the chevron. */
+function update_section_count(frm, section_fieldname, count, count_class) {
+	const section = frm.layout?.sections_dict?.[section_fieldname];
+	if (!section?.head) return;
+
+	let $count = section.head.find(`.${count_class}`);
+	if (!count) {
+		$count.remove();
+		return;
+	}
+
+	if (!$count.length) {
+		$count = $(`<span class="text-muted ${count_class}"></span>`);
+		section.head.find(".collapse-indicator").before($count);
+	}
+	$count.text(`(${count})`);
+}
+
+function get_preview_row_count(preview_data) {
+	if (!preview_data) return 0;
+	return preview_data.total_number_of_rows ?? preview_data.data?.length ?? 0;
+}
+
 frappe.ui.form.on("Data Import", {
 	setup(frm) {
 		frappe.realtime.on("data_import_refresh", ({ data_import }) => {
@@ -142,6 +165,7 @@ frappe.ui.form.on("Data Import", {
 		}
 
 		frm.events.setup_value_mappings_grid(frm);
+		frm.events.setup_preview_section_collapse_handler(frm);
 		frm.trigger("update_primary_action");
 	},
 
@@ -341,9 +365,20 @@ frappe.ui.form.on("Data Import", {
 	reset_import_ui_state(frm) {
 		frm.import_preview = null;
 		frm.events.toggle_import_issues_ui(frm, false, false);
+		frm.events.toggle_import_log_ui(frm, false);
 		frm.toggle_display("section_import_preview", false);
 		frm.get_field("import_preview")?.$wrapper.empty();
 		frm.get_field("import_warnings")?.$wrapper.html("");
+		frm.get_field("import_log_preview")?.$wrapper.empty();
+		update_section_count(frm, "import_warnings_section", 0, "import-warnings-count");
+		update_section_count(frm, "value_mappings_section", 0, "value-mappings-count");
+		update_section_count(frm, "section_import_preview", 0, "import-preview-count");
+	},
+
+	toggle_import_log_ui(frm, show) {
+		for (const fieldname of ["import_log_heading", "show_failed_logs", "import_log_preview"]) {
+			frm.toggle_display(fieldname, show);
+		}
 	},
 
 	toggle_import_issues_ui(frm, show_warnings, show_mappings) {
@@ -484,6 +519,13 @@ frappe.ui.form.on("Data Import", {
 
 	show_import_preview(frm, preview_data) {
 		let import_log = preview_data.import_log;
+		frm.layout?.sections_dict?.section_import_preview?.collapse(false);
+		update_section_count(
+			frm,
+			"section_import_preview",
+			get_preview_row_count(preview_data),
+			"import-preview-count"
+		);
 
 		if (
 			frm.doc.name &&
@@ -556,6 +598,8 @@ frappe.ui.form.on("Data Import", {
 		if (["Success", "Partial Success"].includes(frm.doc.status)) {
 			frm.events.toggle_import_issues_ui(frm, false, false);
 			frm.get_field("import_warnings")?.$wrapper.html("");
+			update_section_count(frm, "import_warnings_section", 0, "import-warnings-count");
+			update_section_count(frm, "value_mappings_section", 0, "value-mappings-count");
 			return;
 		}
 
@@ -571,17 +615,22 @@ frappe.ui.form.on("Data Import", {
 
 		const has_mapping_hints = Object.keys(preview_data?.mapping_hints || {}).length > 0;
 		const has_saved_mappings = (frm.doc.value_mappings || []).length > 0;
-		frm.events.toggle_import_issues_ui(
+		const show_mappings = has_mapping_hints && has_saved_mappings;
+		frm.events.toggle_import_issues_ui(frm, warnings.length > 0, show_mappings);
+		update_section_count(
 			frm,
-			warnings.length > 0,
-			has_mapping_hints && has_saved_mappings
+			"value_mappings_section",
+			show_mappings ? (frm.doc.value_mappings || []).length : 0,
+			"value-mappings-count"
 		);
 		if (!warnings.length && !has_mapping_hints) {
 			frm.get_field("import_warnings").$wrapper.html("");
+			update_section_count(frm, "import_warnings_section", 0, "import-warnings-count");
 			return;
 		}
 		if (!warnings.length) {
 			frm.get_field("import_warnings").$wrapper.html("");
+			update_section_count(frm, "import_warnings_section", 0, "import-warnings-count");
 		}
 
 		let warnings_by_row = {};
@@ -654,6 +703,12 @@ frappe.ui.form.on("Data Import", {
 					<div class="col-sm-10 warnings">${html}</div>
 				</div>
 			`);
+			update_section_count(
+				frm,
+				"import_warnings_section",
+				warnings.length,
+				"import-warnings-count"
+			);
 		}
 		if (has_mapping_hints && has_saved_mappings) {
 			frm.events.setup_value_mappings_grid(frm);
@@ -667,6 +722,26 @@ frappe.ui.form.on("Data Import", {
 			e.preventDefault();
 			frm.events.toggle_skip_row(frm, $(e.currentTarget).data("row"));
 		});
+	},
+
+	/** Re-render datatable when the preview section is expanded after collapse. */
+	setup_preview_section_collapse_handler(frm) {
+		const section = frm.layout?.sections_dict?.section_import_preview;
+		if (!section || section._preview_collapse_hook) return;
+		section._preview_collapse_hook = true;
+
+		const collapse = section.collapse.bind(section);
+		section.collapse = (hide) => {
+			const was_collapsed = section.is_collapsed();
+			collapse(hide);
+			const preview = frm.import_preview;
+			if (was_collapsed && !section.is_collapsed() && preview?.datatable) {
+				requestAnimationFrame(() => {
+					preview.render_datatable();
+					preview.setup_styles();
+				});
+			}
+		};
 	},
 
 	toggle_skip_row(frm, row_number) {
@@ -707,7 +782,7 @@ frappe.ui.form.on("Data Import", {
 
 				if (logs.length === 0) return;
 
-				frm.toggle_display("import_log_section", true);
+				frm.events.toggle_import_log_ui(frm, true);
 
 				let rows = logs
 					.map((log) => {
@@ -789,7 +864,7 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	show_import_log(frm) {
-		frm.toggle_display("import_log_section", false);
+		frm.events.toggle_import_log_ui(frm, false);
 
 		if (frm.is_new() || frm.import_in_progress) {
 			return;
@@ -808,7 +883,7 @@ frappe.ui.form.on("Data Import", {
 				if (count < 5000) {
 					frm.trigger("render_import_log");
 				} else {
-					frm.toggle_display("import_log_section", false);
+					frm.events.toggle_import_log_ui(frm, false);
 					frm.add_custom_button(__("Export Import Log"), () =>
 						frm.trigger("export_import_log")
 					);

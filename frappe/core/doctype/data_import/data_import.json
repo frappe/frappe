@@ -32,7 +32,7 @@
   "skipped_rows",
   "section_import_preview",
   "import_preview",
-  "import_log_section",
+  "import_log_heading",
   "show_failed_logs",
   "import_log_preview"
  ],
@@ -66,11 +66,16 @@
   {
    "fieldname": "import_preview",
    "fieldtype": "HTML",
+   "hide_label": 1,
    "label": "Import Preview"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.import_file || doc.google_sheets_url",
+   "css_class": "data-import-preview-section",
    "fieldname": "section_import_preview",
    "fieldtype": "Section Break",
+   "hide_border": 1,
    "label": "Preview"
   },
   {
@@ -86,6 +91,8 @@
    "read_only": 1
   },
   {
+   "collapsible": 1,
+   "css_class": "data-import-value-mappings-section",
    "fieldname": "value_mappings_section",
    "fieldtype": "Section Break",
    "label": "Value Mappings"
@@ -115,13 +122,16 @@
    "read_only_depends_on": "eval: ['Success', 'Partial Success'].includes(doc.status)"
   },
   {
-   "fieldname": "import_log_section",
-   "fieldtype": "Section Break",
-   "label": "Import Log"
+   "fieldname": "import_log_heading",
+   "fieldtype": "HTML",
+   "hide_label": 1,
+   "label": "Import Log",
+   "options": "<div class=\"section-head import-log-title\">Import Log</div>"
   },
   {
    "fieldname": "import_log_preview",
    "fieldtype": "HTML",
+   "hide_label": 1,
    "label": "Import Log Preview"
   },
   {
@@ -149,6 +159,8 @@
    "set_only_once": 1
   },
   {
+   "collapsible": 1,
+   "css_class": "data-import-warnings-section",
    "fieldname": "import_warnings_section",
    "fieldtype": "Section Break",
    "label": "Import File Errors and Warnings"
@@ -156,6 +168,7 @@
   {
    "fieldname": "import_warnings",
    "fieldtype": "HTML",
+   "hide_label": 1,
    "label": "Import Warnings"
   },
   {

@@ -586,11 +586,11 @@ class ImportFile:
 		out.columns = columns
 		out.warnings = warnings
 		total_number_of_rows = len(out.data)
+		out.total_number_of_rows = total_number_of_rows
 		if total_number_of_rows > MAX_ROWS_IN_PREVIEW:
 			out.data = out.data[:MAX_ROWS_IN_PREVIEW]
 			out.max_rows_exceeded = True
 			out.max_rows_in_preview = MAX_ROWS_IN_PREVIEW
-			out.total_number_of_rows = total_number_of_rows
 		from frappe.core.doctype.data_import.value_mapping import get_mapping_hints
 
 		out.mapping_hints = get_mapping_hints(self, self.reference_doctype, self.value_lookup)
