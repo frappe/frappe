@@ -720,8 +720,8 @@ def get_value_row_map(column_values, value_row_numbers):
 def format_row_numbers_for_warning(rows: list, max_shown: int = 6) -> str:
 	"""Compact row list for warnings: first ``max_shown`` rows, then …, then the last row."""
 	if len(rows) <= max_shown:
-		return ", ".join(map(str, rows))
-	return f"{', '.join(map(str, rows[:max_shown]))}, ... {rows[-1]}"
+		return ", ".join(str(r) for r in rows)
+	return f"{', '.join(str(r) for r in rows[:max_shown])}, ... {rows[-1]}"
 
 
 class Row:
