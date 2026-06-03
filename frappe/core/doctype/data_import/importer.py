@@ -1067,16 +1067,7 @@ class Column:
 
 		if self.map_to_field and self.map_to_field != "Don't Import":
 			df = get_df_for_column_header(self.doctype, self.map_to_field)
-			if df:
-				self.warnings.append(
-					{
-						"message": _("Mapping column {0} to field {1}").format(
-							frappe.bold(header_title or "<i>Untitled Column</i>"), frappe.bold(df.label)
-						),
-						"type": "info",
-					}
-				)
-			else:
+			if not df:
 				self.warnings.append(
 					{
 						"message": _("Could not map column {0} to field {1}").format(

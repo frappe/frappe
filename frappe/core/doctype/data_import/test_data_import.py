@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.core.doctype.data_import.importer import Column
 from frappe.tests import UnitTestCase
 
 # Keep in sync with depends_on on use_csv_sniffer / custom_delimiters in data_import.json
@@ -34,6 +35,15 @@ class TestDataImport(UnitTestCase):
 				google_sheets_url="https://docs.google.com/spreadsheets/d/abc/edit",
 			)
 		)
+
+	def test_explicit_column_mapping_does_not_emit_mapping_info_warning(self):
+		col = Column(0, "Col Header", "User", ["test@example.com"], map_to_field="Email")
+		self.assertTrue(col.df)
+		self.assertFalse(any("Mapping column" in w.get("message", "") for w in col.warnings))
+
+	def test_invalid_column_mapping_still_warns(self):
+		col = Column(0, "Col Header", "User", ["test@example.com"], map_to_field="Nonexistent Field")
+		self.assertTrue(any("Could not map column" in w.get("message", "") for w in col.warnings))
 
 	def test_csv_delimiter_fields_depends_on(self):
 		frappe.reload_doc("core", "doctype", "data_import")
