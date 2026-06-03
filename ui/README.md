@@ -1,4 +1,4 @@
-# framework-ui
+# @framework/ui
 
 Shared Vue components and utilities for Frappe apps that depend on the backend. This is an extension of frappe-ui for framework specific components that all apps need. Lives at `frappe/ui` in framework and is consumed by other apps (studio, builder, hrms, …) as a local package - **never published to npm**.
 
@@ -17,7 +17,7 @@ consuming frontend:
 ```jsonc
 {
   "dependencies": {
-    "framework-ui": "link:../../frappe/ui"
+    "@framework/ui": "link:../../frappe/ui"
   }
 }
 ```
@@ -26,7 +26,7 @@ The path is relative to the file's own directory. From `studio/frontend` that is
 `../../frappe/ui`; adjust the `../` depth for your app. Then:
 
 ```bash
-yarn install   # creates node_modules/framework-ui -> ../../frappe/ui
+yarn install   # creates node_modules/framework/ui -> ../../frappe/ui
 ```
 
 ### 2. Keep a single Vue / router / frappe-ui — `vite.config.js`
@@ -47,12 +47,12 @@ to source (relative to `baseUrl`):
 
 ```jsonc
 "paths": {
-  "framework-ui": ["../../frappe/ui/src/index.ts"],
-  "framework-ui/*": ["../../frappe/ui/src/*"]
+  "@framework/ui": ["../../frappe/ui/src/index.ts"],
+  "@framework/ui/*": ["../../frappe/ui/src/*"]
 }
 ```
 
-The `paths` key must match the package name `framework-ui` (also the key under
+The `paths` key must match the package name `@framework/ui` (also the key under
 `dependencies`) so the specifier resolves the same way in TypeScript and the bundler.
 
 The host app must already provide the peers (`vue`, `vue-router`, `frappe-ui`) — every
@@ -62,7 +62,7 @@ Frappe frontend does.
 
 ```vue
 <script setup lang="ts">
-import { Link } from 'framework-ui'
+import { Link } from '@framework/ui'
 </script>
 
 <template>
@@ -70,7 +70,7 @@ import { Link } from 'framework-ui'
 </template>
 ```
 
-Subpaths work too (via the `./*` export), e.g. `import { Link } from 'framework-ui/components/Link'`.
+Subpaths work too (via the `./*` export), e.g. `import { Link } from '@framework/ui'`.
 
 ## Adding to the package
 
@@ -79,9 +79,9 @@ Subpaths work too (via the `./*` export), e.g. `import { Link } from 'framework-
 
 ## Notes & troubleshooting
 
-- **"Failed to resolve import 'framework-ui'"** after a rename or fresh link: re-run
+- **"Failed to resolve import '@framework/ui'"** after a rename or fresh link: re-run
   `yarn install` and restart the dev server so the new symlink enters Vite's module graph.
-  Also confirm the import specifier matches the package name `framework-ui`.
+  Also confirm the import specifier matches the package name `@framework/ui`.
 - **`vue`/`vue-router`/`frappe-ui` imports inside this package** are resolved by the host
   app (peers + `resolve.dedupe`), so the package cannot be built or type-checked in
   isolation — work on it from within a consuming app.

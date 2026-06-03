@@ -1,5 +1,5 @@
 {
-  "name": "framework-ui",
+  "name": "@framework/ui",
   "version": "0.0.0",
   "description": "Shared client components and utilities for Frappe apps",
   "type": "module",
