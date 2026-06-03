@@ -7,9 +7,9 @@ from frappe.tests import IntegrationTestCase
 from flow.assistant import (
 	ASSISTANT_AGENT_TITLE,
 	ASSISTANT_INSTRUCTIONS,
-	ASSISTANT_TOOL_SLUGS,
 	sync_builtin_assistant,
 )
+from flow.tools.builtins import BUILTIN_TOOLS
 
 
 class TestSyncBuiltinAssistant(IntegrationTestCase):
@@ -38,17 +38,29 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		self.assertEqual(doc.instructions, ASSISTANT_INSTRUCTIONS)
 		self.assertTrue(doc.is_system_generated)
 		self.assertTrue(doc.enabled)
-		self.assertEqual(sorted(row.tool for row in doc.tools), sorted(ASSISTANT_TOOL_SLUGS))
+		expected_slugs = sorted(t.name for t in BUILTIN_TOOLS)
+		self.assertEqual(sorted(row.tool for row in doc.tools), expected_slugs)
 
-	def test_sync_is_noop_when_assistant_exists(self):
+	def test_sync_updates_instructions_on_existing_system_agent(self):
+		# sync_builtin_assistant should overwrite instructions on a system-generated agent.
 		original = frappe.get_doc("AI Agent", ASSISTANT_AGENT_TITLE)
-		original.instructions = "custom tweak"
+		original.instructions = "stale instructions"
 		original.save(ignore_permissions=True)
 
 		sync_builtin_assistant(model=self.model.name)
 
 		doc = frappe.get_doc("AI Agent", ASSISTANT_AGENT_TITLE)
-		self.assertEqual(doc.instructions, "custom tweak")
+		self.assertEqual(doc.instructions, ASSISTANT_INSTRUCTIONS)
+
+	def test_sync_is_noop_for_user_owned_agent(self):
+		# If is_system_generated was cleared (user took ownership), sync must not touch it.
+		frappe.db.set_value("AI Agent", ASSISTANT_AGENT_TITLE, "is_system_generated", 0)
+		frappe.db.set_value("AI Agent", ASSISTANT_AGENT_TITLE, "instructions", "user customised")
+
+		sync_builtin_assistant(model=self.model.name)
+
+		doc = frappe.get_doc("AI Agent", ASSISTANT_AGENT_TITLE)
+		self.assertEqual(doc.instructions, "user customised")
 
 	def test_assistant_cannot_be_deleted(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "system-generated"):
