@@ -43,7 +43,7 @@ ARGUMENT_NOT_SET = object()
 SAFE_EXEC_CONFIG_KEY = "server_script_enabled"
 SERVER_SCRIPT_FILE_PREFIX = "<serverscript>"
 
-SAFER_EXEC_CONFIG_KEY = "safer_server_script_enabled"
+RENDER_EXEC_CONFIG_KEY = "render_exec_enabled"
 
 
 class NamespaceDict(frappe._dict):
@@ -83,11 +83,6 @@ def is_safe_exec_enabled() -> bool:
 	return bool(frappe.get_common_site_config().get(SAFE_EXEC_CONFIG_KEY))
 
 
-def is_safer_exec_enabled() -> bool:
-	# safer execution of server scripts can only be enabled via common_site_config.json
-	return bool(frappe.get_common_site_config(cached=True).get(SAFER_EXEC_CONFIG_KEY))
-
-
 def safe_exec(
 	script: str,
 	_globals: dict | None = None,
@@ -101,9 +96,6 @@ def safe_exec(
 		docs_cta = _("Read the documentation to know more")
 		msg += f"<br><a href='https://frappeframework.com/docs/user/en/desk/scripting/server-script'>{docs_cta}</a>"
 		frappe.throw(msg, ServerScriptNotEnabled, title="Server Scripts Disabled")
-
-	if is_safer_exec_enabled():
-		return safer_exec(script, None, _locals, script_filename=script_filename)
 
 	# build globals
 	exec_globals = get_safe_globals()
@@ -131,6 +123,7 @@ def safe_exec(
 	return exec_globals, _locals
 
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 def safer_exec(
@@ -162,6 +155,8 @@ def safer_exec(
 	return exec_globals, _locals
 
 
+=======
+>>>>>>> 54e0480a1e (refactor: remove unwanted code)
 @site_cache(maxsize=32)
 def _compile_code(script: str, filename: str, mode: str = "exec"):
 	return compile_restricted(script, filename=filename, policy=FrappeTransformer, mode=mode)
@@ -724,37 +719,6 @@ def exec_safe_globals():
 			run_script=run_script,
 			FrappeClient=FrappeClient,
 		)
-	)
-	return out
-
-
-def get_safer_globals():
-	"""Safer subset of globals"""
-	out = get_safe_globals()
-
-	out.frappe.pop("qb", None)
-	out.frappe.pop("delete_doc", None)
-	out.frappe.pop("render_template", None)
-	out.pop("FrappeClient", None)
-	out.frappe.pop("db", None)
-	out.frappe.update(
-		{
-			"copy_doc": safer_copy_doc,
-			"get_meta": safer_get_meta,
-			"new_doc": safer_new_doc,
-			"get_doc": get_doc_as_dict,
-			"get_mapped_doc": safer_get_mapped_doc,
-			"get_last_doc": safer_get_last_doc,
-			"get_cached_doc": safer_get_cached_doc,
-			"get_list": safe_get_list,
-			"get_all": safe_get_all,
-			"sendmail": safer_sendmail,
-			"get_print": safer_get_print,
-			"attach_print": safer_attach_print,
-			"enqueue": safer_enqueue,
-			"log_error": safer_log_error,
-			"get_visible_columns": safer_get_visible_columns,
-		}
 	)
 	return out
 
