@@ -345,33 +345,31 @@ BUILTIN_TOOLS: list[Tool] = [find_doctypes, describe, read, create, update, dele
 
 
 def sync_builtin_tools() -> None:
-	"""Register the builtin tools as AI Tool rows so agents can reference them."""
+	"""Upsert builtin tools as AI Tool rows. Uses db.set_value to bypass the immutability
+	guard in AITool.validate (which protects user edits, not system migration)."""
 	for builtin in BUILTIN_TOOLS:
+		import_path = f"flow.tools.builtins.{builtin.name}"
 		if frappe.db.exists("AI Tool", builtin.name):
-			current = frappe.db.get_value(
+			frappe.db.set_value(
 				"AI Tool",
 				builtin.name,
-				["is_system_generated", "requires_confirmation", "description"],
-				as_dict=True,
+				{
+					"import_path": import_path,
+					"description": builtin.description,
+					"requires_confirmation": int(builtin.requires_confirmation),
+					"is_system_generated": 1,
+				},
 			)
-			if not current.is_system_generated:
-				frappe.db.set_value("AI Tool", builtin.name, "is_system_generated", 1)
-			if bool(current.requires_confirmation) != builtin.requires_confirmation:
-				frappe.db.set_value(
-					"AI Tool", builtin.name, "requires_confirmation", int(builtin.requires_confirmation)
-				)
-			if current.description != builtin.description:
-				frappe.db.set_value("AI Tool", builtin.name, "description", builtin.description)
-			continue
-		frappe.get_doc(
-			{
-				"doctype": "AI Tool",
-				"slug": builtin.name,
-				"title": builtin.name.replace("_", " ").title(),
-				"kind": "Module",
-				"import_path": f"flow.tools.builtins.{builtin.name}",
-				"description": builtin.description,
-				"is_system_generated": 1,
-				"requires_confirmation": int(builtin.requires_confirmation),
-			}
-		).insert()
+		else:
+			frappe.get_doc(
+				{
+					"doctype": "AI Tool",
+					"slug": builtin.name,
+					"title": builtin.name.replace("_", " ").title(),
+					"kind": "Module",
+					"import_path": import_path,
+					"description": builtin.description,
+					"is_system_generated": 1,
+					"requires_confirmation": int(builtin.requires_confirmation),
+				}
+			).insert(ignore_permissions=True)
