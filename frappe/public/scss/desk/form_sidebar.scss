@@ -283,6 +283,32 @@ body[data-route^="Form"] {
 		@media (max-width: 991px) {
 			position: relative;
 		}
+
+		.attachment-preview {
+			height: 100%;
+		}
+	}
+
+	.attachment-preview-open {
+		.layout-main-section-wrapper {
+			flex: 1 1 calc(100% - var(--attachment-preview-width));
+			width: calc(100% - var(--attachment-preview-width));
+			min-width: 0;
+		}
+
+		.layout-side-section {
+			flex: 0 0 var(--attachment-preview-width);
+			width: var(--attachment-preview-width);
+			min-width: var(--attachment-preview-width);
+		}
+
+		.form-sidebar {
+			display: none !important;
+		}
+	}
+
+	.attachment-preview-resizing {
+		cursor: col-resize;
 	}
 }
 
@@ -523,6 +549,85 @@ body[data-route^="Form"] {
 	// without affecting empty state
 	.attachments-actions + .attachment-row {
 		margin-top: 8px;
+	}
+}
+
+body[data-route^="Form"] .attachment-preview {
+	overflow: hidden;
+	position: relative;
+	background-color: var(--fg-color);
+
+	.attachment-preview-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		padding: 6px 8px;
+		border-bottom: 1px solid var(--border-color);
+	}
+
+	.attachment-preview-body {
+		position: relative;
+		height: calc(100% - 41px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: var(--bg-color);
+
+		iframe,
+		img {
+			width: 100%;
+			height: 100%;
+			border: 0;
+		}
+
+		img {
+			object-fit: contain;
+		}
+	}
+
+	.attachment-preview-unavailable {
+		padding: var(--padding-md);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--margin-sm);
+		text-align: center;
+	}
+
+	&.attachment-preview-resizing-pdf {
+		iframe {
+			visibility: hidden;
+		}
+
+		.attachment-preview-body::after {
+			content: "Resizing preview...";
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			color: var(--text-muted);
+			background-color: var(--bg-color);
+			padding: var(--padding-sm) var(--padding-md);
+			border: 1px solid var(--border-color);
+			border-radius: var(--border-radius);
+		}
+	}
+
+	.attachment-preview-resize-handle {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 3px;
+		height: 100%;
+		cursor: col-resize;
+		z-index: 1;
+		background-color: var(--border-color);
+		transition: background-color 120ms ease;
+
+		&:hover {
+			background-color: var(--primary-color);
+		}
 	}
 }
 
