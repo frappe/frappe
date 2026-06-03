@@ -29,18 +29,7 @@ The path is relative to the file's own directory. From `studio/frontend` that is
 yarn install   # creates node_modules/framework/ui -> ../../frappe/ui
 ```
 
-### 2. Keep a single Vue / router / frappe-ui — `vite.config.js`
-
-Through a symlink the package's bare `import 'vue'` would otherwise resolve to a second
-copy. Dedupe the singletons to the host app's copy (standard Vite, no custom plugin):
-
-```js
-resolve: {
-  dedupe: ["vue", "vue-router", "frappe-ui"],
-}
-```
-
-### 3. Resolve the import for TypeScript — `tsconfig.json`
+### 2. Resolve the import for TypeScript — `tsconfig.json`
 
 `moduleResolution: node` does not read the package `exports` map, so map the specifier
 to source (relative to `baseUrl`):
