@@ -190,6 +190,10 @@ frappe.ui.form.Attachments = class Attachments {
 			preview_html = `<iframe src="${escaped_file_url}" title="${escaped_file_name}"></iframe>`;
 		} else if (preview_type === "image") {
 			preview_html = `<img src="${escaped_file_url}" alt="${escaped_file_name}" loading="lazy">`;
+		} else if (preview_type === "csv") {
+			preview_html = `<div class="text-muted attachment-preview-loading">${__(
+				"Loading preview..."
+			)}</div>`;
 		} else {
 			preview_html = `<div class="attachment-preview-unavailable">
 				<div class="text-muted">${__("Preview not available for this file type.")}</div>
@@ -201,13 +205,23 @@ frappe.ui.form.Attachments = class Attachments {
 		}
 
 		this.current_attachment_preview_type = preview_type;
+		this.attachment_preview_request_id = (this.attachment_preview_request_id || 0) + 1;
+		let preview_request_id = this.attachment_preview_request_id;
 		this.set_preview_width(this.attachment_preview_width);
 		this.frm.page.wrapper.addClass("attachment-preview-open");
 
 		this.attachment_preview.removeClass("hidden").html(
 			`<div class="attachment-preview-resize-handle"></div>
 				<div class="attachment-preview-header">
-					<div class="ellipsis" title="${escaped_file_name}">${escaped_file_name}</div>
+					<div class="attachment-preview-title">
+						<div class="ellipsis" title="${escaped_file_name}">${escaped_file_name}</div>
+						<a class="btn btn-link icon-btn attachment-preview-open"
+							href="${escaped_file_url}" target="_blank" rel="noopener noreferrer"
+							title="${__("Open in new tab")}"
+						>
+							${frappe.utils.icon("es-line-arrow-up-right", "sm")}
+						</a>
+					</div>
 					<button class="btn btn-link icon-btn attachment-preview-close" type="button" title="${__(
 						"Close"
 					)}">
@@ -232,6 +246,10 @@ frappe.ui.form.Attachments = class Attachments {
 
 				this.start_preview_resize(event);
 			});
+
+		if (preview_type === "csv") {
+			this.render_csv_preview(file_url, escaped_file_url, preview_request_id);
+		}
 	}
 
 	get_preview_type(attachment, file_url) {
@@ -242,6 +260,10 @@ frappe.ui.form.Attachments = class Attachments {
 
 		if (file_type.includes("pdf") || extension === "pdf") {
 			return "pdf";
+		}
+
+		if (extension === "csv") {
+			return "csv";
 		}
 
 		if (
@@ -255,9 +277,186 @@ frappe.ui.form.Attachments = class Attachments {
 		return "unsupported";
 	}
 
+	get_unsupported_preview_html(file_url) {
+		return `<div class="attachment-preview-unavailable">
+			<div class="text-muted">${__("Preview not available for this file type.")}</div>
+			<a class="btn btn-default btn-sm" href="${file_url}" target="_blank" rel="noopener noreferrer">
+				<span>${__("Open file")}</span>
+				${frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-1")}
+			</a>
+		</div>`;
+	}
+
+	async render_csv_preview(file_url, escaped_file_url, preview_request_id) {
+		try {
+			let response = await fetch(file_url);
+			if (!response.ok) {
+				throw new Error("Unable to fetch CSV");
+			}
+
+			let csv_text = await response.text();
+			let rows = this.parse_csv(csv_text);
+			if (!rows.length) {
+				throw new Error("Empty CSV");
+			}
+
+			if (
+				preview_request_id !== this.attachment_preview_request_id ||
+				this.current_attachment_preview_type !== "csv"
+			) {
+				return;
+			}
+
+			this.attachment_preview
+				.find(".attachment-preview-body")
+				.html(this.get_csv_preview_html(rows));
+		} catch (error) {
+			if (
+				preview_request_id !== this.attachment_preview_request_id ||
+				this.current_attachment_preview_type !== "csv"
+			) {
+				return;
+			}
+
+			this.attachment_preview
+				.find(".attachment-preview-body")
+				.html(this.get_unsupported_preview_html(escaped_file_url));
+		}
+	}
+
+	parse_csv(csv_text) {
+		let rows = [];
+		let row = [];
+		let value = "";
+		let in_quotes = false;
+
+		let push_value = () => {
+			row.push(value);
+			value = "";
+		};
+
+		let push_row = () => {
+			push_value();
+			rows.push(row);
+			row = [];
+		};
+
+		for (let i = 0; i < csv_text.length; i++) {
+			let character = csv_text[i];
+
+			if (in_quotes) {
+				if (character === '"') {
+					if (csv_text[i + 1] === '"') {
+						value += '"';
+						i++;
+					} else {
+						in_quotes = false;
+					}
+				} else {
+					value += character;
+				}
+				continue;
+			}
+
+			if (character === '"') {
+				in_quotes = true;
+			} else if (character === ",") {
+				push_value();
+			} else if (character === "\n") {
+				push_row();
+			} else if (character === "\r") {
+				if (csv_text[i + 1] === "\n") {
+					i++;
+				}
+				push_row();
+			} else {
+				value += character;
+			}
+		}
+
+		if (in_quotes) {
+			throw new Error("Unclosed quoted field");
+		}
+
+		if (value.length || row.length) {
+			push_row();
+		}
+
+		return rows;
+	}
+
+	get_csv_preview_html(rows) {
+		let max_rows = 100;
+		let max_columns = 20;
+		let visible_rows = rows.slice(0, max_rows);
+		let total_rows = rows.length;
+		let total_columns = rows.reduce((max, row) => Math.max(max, row.length), 0);
+		let visible_column_count = Math.min(total_columns, max_columns);
+		let visible_row_count = visible_rows.length;
+		let is_row_truncated = total_rows > max_rows;
+		let is_column_truncated = total_columns > max_columns;
+
+		let get_cell_html = (value = "") => {
+			let cell_value = String(value);
+			let max_cell_length = 200;
+			let max_title_length = 1000;
+			let is_cell_truncated = cell_value.length > max_cell_length;
+			let display_value = is_cell_truncated
+				? cell_value.slice(0, max_cell_length) + "…"
+				: cell_value;
+			let title =
+				cell_value.length && cell_value.length <= max_title_length
+					? ` title="${frappe.utils.escape_html(cell_value)}"`
+					: "";
+
+			return `<td${title}>${frappe.utils.escape_html(display_value)}</td>`;
+		};
+
+		let table_rows = visible_rows
+			.map((row) => {
+				let cells = [];
+				for (let i = 0; i < visible_column_count; i++) {
+					cells.push(get_cell_html(row[i] || ""));
+				}
+				return `<tr>${cells.join("")}</tr>`;
+			})
+			.join("");
+
+		let format_count = (count) => format_number(count, null, 0);
+		let note = "";
+		if (is_row_truncated && is_column_truncated) {
+			note = __("Showing {0} of {1} rows and {2} of {3} columns.", [
+				format_count(visible_row_count),
+				format_count(total_rows),
+				format_count(visible_column_count),
+				format_count(total_columns),
+			]);
+		} else if (is_row_truncated) {
+			note = __("Showing {0} of {1} rows.", [
+				format_count(visible_row_count),
+				format_count(total_rows),
+			]);
+		} else if (is_column_truncated) {
+			note = __("Showing {0} of {1} columns.", [
+				format_count(visible_column_count),
+				format_count(total_columns),
+			]);
+		}
+
+		return `<div class="attachment-preview-csv">
+			<div class="attachment-preview-csv-table">
+				<table class="table table-bordered">
+					<tbody>${table_rows}</tbody>
+				</table>
+			</div>
+			${note ? `<div class="text-muted attachment-preview-note">${note}</div>` : ""}
+		</div>`;
+	}
+
 	hide_attachment_preview() {
 		this.attachment_preview?.addClass("hidden").empty();
 		this.frm.page.wrapper.removeClass("attachment-preview-open");
+		this.attachment_preview_request_id = (this.attachment_preview_request_id || 0) + 1;
 	}
 
 	start_preview_resize(event) {

@@ -566,6 +566,13 @@ body[data-route^="Form"] .attachment-preview {
 		border-bottom: 1px solid var(--border-color);
 	}
 
+	.attachment-preview-title {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		min-width: 0;
+	}
+
 	.attachment-preview-body {
 		position: relative;
 		height: calc(100% - 41px);
@@ -584,6 +591,36 @@ body[data-route^="Form"] .attachment-preview {
 		img {
 			object-fit: contain;
 		}
+	}
+
+	.attachment-preview-loading {
+		padding: var(--padding-md);
+	}
+
+	.attachment-preview-csv {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.attachment-preview-csv-table {
+		flex: 1;
+		overflow: auto;
+
+		table {
+			margin: 0;
+			background-color: var(--fg-color);
+		}
+
+		td {
+			white-space: nowrap;
+		}
+	}
+
+	.attachment-preview-note {
+		padding: var(--padding-sm) var(--padding-md);
+		border-top: 1px solid var(--border-color);
 	}
 
 	.attachment-preview-unavailable {
