@@ -78,7 +78,7 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(len(doc[0]), 15)
 
 	def test_custom_delimiter_semicolon_without_sniffer(self):
-		import_file = get_import_file("general_08_semicolon_delimiter")
+		import_file = get_import_file("sample_import_file_semicolon")
 		data_import = self.get_importer(doctype_name, import_file)
 		data_import.custom_delimiters = 1
 		data_import.delimiter_options = ";"
@@ -227,7 +227,7 @@ class TestImporter(IntegrationTestCase):
 				"import_type": "Insert New Records",
 				"value_mappings": [
 					{
-						"column": 5,
+						"column": 6,
 						"column_label": "Status",
 						"fieldname": "status",
 						"parent_field": "",
@@ -246,9 +246,9 @@ class TestImporter(IntegrationTestCase):
 
 		self.assertTrue(sync_value_mappings(doc, import_file))
 		rows = {mapping_row_key(row): row for row in doc.value_mappings}
-		self.assertEqual(rows["5|status||Pasiv"].target_value, "Passive")
-		self.assertIn("5|status||Opn", rows)
-		self.assertEqual(rows["5|status||Opn"].target_value, "")
+		self.assertEqual(rows["6|status||Pasiv"].target_value, "Passive")
+		self.assertIn("6|status||Opn", rows)
+		self.assertEqual(rows["6|status||Opn"].target_value, "")
 
 	def test_data_import_validate_populates_value_mappings(self):
 		csv_content = "First Name,Status\nTest,Opn\n"
@@ -473,7 +473,10 @@ def get_import_file(csv_file_name, force=False):
 	else:
 		full_path = get_csv_file_path(file_name)
 		f = frappe.get_doc(
-			doctype="File", content=frappe.read_file(full_path), file_name=file_name, is_private=1
+			doctype="File",
+			content=frappe.read_file(full_path, raise_not_found=True),
+			file_name=file_name,
+			is_private=1,
 		)
 		f.save(ignore_permissions=True)
 
