@@ -69,18 +69,20 @@ def validate_template(html):
 		frappe.throw(f"Syntax error in template as line {e.lineno}: {e.message}")
 
 
-def render_template(template, context=None, is_path=None, safe_render=True):
+def render_template(template, context=None, is_path=None, safe_render=True, restrict_globals=None):
 	"""Render a template using Jinja
 
 	:param template: path or HTML containing the jinja template
 	:param context: dict of properties to pass to the template
 	:param is_path: (optional) assert that the `template` parameter is a path
 	:param safe_render: (optional) prevent server side scripting via jinja templating
+	:param restrict_globals: (optional) restrict globals in template rendering to render only globals.
 	"""
 
 	from jinja2 import TemplateError
 
 	from frappe import _, get_traceback, throw
+	from frappe.utils.safe_exec import is_render_exec_enabled, render_safe_globals
 
 	if not template:
 		return ""
@@ -88,6 +90,7 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 	if context is None:
 		context = {}
 
+<<<<<<< HEAD
 	if is_path or guess_is_path(template):
 		return get_jenv().get_template(template).render(context)
 	else:
@@ -100,6 +103,48 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 				title="Jinja Template Error",
 				msg=f"<pre>{template}</pre><pre>{get_traceback()}</pre>",
 			)
+=======
+	if restrict_globals is None:
+		restrict_globals = is_render_exec_enabled()
+
+	try:
+		if is_path or guess_is_path(template):
+			is_path = True
+			compiled_template = get_template(template)
+		else:
+			jenv: SandboxedEnvironment = get_jenv()
+			if safe_render and ".__" in template:
+				throw(_("Illegal template"))
+			if restrict_globals:
+				compiled_template = jenv.from_string(template, globals=render_safe_globals())
+			else:
+				compiled_template = jenv.from_string(template)
+	except TemplateError:
+		import html
+
+		throw(
+			title="Jinja Template Error",
+			msg=f"<pre>{template}</pre><pre>{html.escape(get_traceback())}</pre>",
+		)
+
+	import time
+
+	from frappe.utils.logger import get_logger
+
+	logger = get_logger("render-template")
+	try:
+		start_time = time.monotonic()
+		return compiled_template.render(context)
+	except Exception as e:
+		import html
+
+		throw(title="Context Error", msg=f"<pre>{html.escape(get_traceback())}</pre>", exc=e)
+	finally:
+		if is_path:
+			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds ({template})")
+		else:
+			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds")
+>>>>>>> 3970ec54ce (fix: read flag or parsed arg to decide whether to override globals)
 
 
 def guess_is_path(template):
