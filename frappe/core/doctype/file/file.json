@@ -90,7 +90,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.is_drive_file || !doc.is_folder",
+   "depends_on": "eval:!doc.is_folder",
    "fieldname": "file_url",
    "fieldtype": "Code",
    "label": "File URL",
@@ -103,9 +103,9 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval:doc.is_drive_file",
    "fieldname": "folder",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Folder",
    "length": 255,
    "options": "File",
@@ -190,7 +190,7 @@
  "icon": "fa fa-file",
  "idx": 1,
  "links": [],
- "modified": "2026-03-05 17:51:45.483467",
+ "modified": "2025-01-15 11:46:42.917146",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "File",
@@ -217,7 +217,6 @@
    "write": 1
   }
  ],
- "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

@@ -5,18 +5,6 @@
 				{{ __("← Back to upload files") }}
 			</a>
 		</div>
-		<div v-if="is_drive_installed"  class="flex my-3" style="gap: 10px; align-items: center">
-    <select @change="updateRoot($event.target.value)">
-      <option value="Home" selected >Library</option>
-      <option
-        v-for="details of teams"
-        :value="details.file"
-        :selected="team === details.name"
-      >
-        {{ details.personal ? 'Your Drive' : details.title }}
-      </option>
-    </select>
-  </div>
 		<div class="file-browser-list">
 			<div class="file-filter">
 				<input
@@ -39,7 +27,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 import TreeNode from "./TreeNode.vue";
 
 // emits
@@ -174,33 +162,7 @@ onMounted(() => {
 	toggle_node(node.value);
 });
 
-watch(() => node.value.fetched, () => {
-	toggle_node(node.value);
-})
-
 defineExpose({ selected_node });
-
-const teams = ref({})
-const is_drive_installed = frappe.utils.get_installed_apps().includes('drive')
-
-let updateRoot;
-if (is_drive_installed) {
-	frappe
-	.call('drive.api.permissions.get_teams', { details: 1, exclude_personal: 0 })
-	.then((k) => (teams.value = k.message))
-
-	updateRoot = (root) => {
-		node.value.value = root
-		if (root === 'Home') {
-			node.value.label = __('Home')
-		} else {
-			const team = Object.values(teams.value).find(k => k.file === root)
-			node.value.label = team.personal ? 'Your Drive' : team.title
-		}
-		node.value.fetched = false
-		node.value.open = false
-	}
-}
 </script>
 
 <style scoped>
@@ -220,46 +182,5 @@ if (is_drive_installed) {
 	padding-left: 0;
 	padding-right: 0;
 	padding-bottom: 4rem;
-}
-
-input,
-select {
-  font-size: 14px;
-  line-height: 1.15;
-  letter-spacing: 0.02em;
-  font-weight: 420;
-  padding: 0 0.5rem;
-  border-radius: 0.5rem;
-  border: none;
-  height: 1.75rem;
-  width: 100%;
-  background: #f3f3f3;
-}
-
-select {
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="%237C7C7C" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" aria-hidden="true" viewBox="0 0 24 24" ><path d="m6 9 6 6 6-6" /></svg>');
-  background-size: 1.13em;
-  background-position: right 0.44rem center;
-  background-repeat: no-repeat;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-input:focus,
-select:focus {
-  height: 1.75rem;
-  border: rgb(153, 153, 153) solid 1px;
-  border-width: 1px;
-
-  box-shadow:
-    rgb(255, 255, 255) 0px 0px 0px 0px,
-    rgb(199, 199, 199) 0px 0px 0px 2px,
-    rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
-  outline: none;
-}
-
-input:focus {
-  background-color: var(--surface-white, #ffffff);
 }
 </style>
