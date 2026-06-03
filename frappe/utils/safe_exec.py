@@ -361,14 +361,36 @@ def safe_get_single_value(*args, **kwargs):
 	return frappe.db.get_single_value(*args, **kwargs)
 
 
-def make_safe_get_request(url, **kwargs):
+ALLOWED_SCHEMES = frozenset({"http", "https"})
+
+
+def make_safe_get_request(url: str, **kwargs):
+	import ipaddress
 	import socket
 	from urllib.parse import urlparse
 
 	parsed = urlparse(url)
-	parsed_ip = socket.gethostbyname(parsed.hostname)
-	if parsed_ip.startswith(("127", "10", "192", "172")):
-		return
+
+	if parsed.scheme not in ALLOWED_SCHEMES:
+		frappe.throw(f"URL scheme '{parsed.scheme}' is not permitted")
+
+	hostname = parsed.hostname
+	if not hostname:
+		frappe.throw("Invalid URL: no hostname")
+
+	try:
+		addr_info = socket.getaddrinfo(hostname, None)
+	except socket.gaierror:
+		frappe.throw(f"Could not resolve host: {hostname}")
+
+	for record in addr_info:
+		try:
+			addr = ipaddress.ip_address(record[4][0])
+		except (ValueError, IndexError):
+			continue
+
+		if not addr.is_global:
+			frappe.throw("Requests to internal network addresses are not permitted")
 
 	return frappe.integrations.utils.make_get_request(url, **kwargs)
 
