@@ -413,22 +413,23 @@ frappe.ui.form.on("Data Import", {
 		const grid = frm.fields_dict.value_mappings?.grid;
 		if (!grid) return;
 
+		frm.set_df_property("value_mappings", "cannot_add_rows", true);
+		frm.set_df_property("value_mappings", "cannot_delete_rows", true);
+		grid.cannot_add_rows = true;
+
 		if (!grid._value_mapping_hooks) {
 			grid._value_mapping_hooks = true;
-			frm.set_df_property("value_mappings", "cannot_add_rows", true);
-			grid.cannot_add_rows = true;
 			frm.events.setup_mapping_dropdown_portal(grid);
 			const refresh = grid.refresh.bind(grid);
 			grid.refresh = () => {
 				refresh();
 				frm.events.apply_mapping_target_fields(frm);
-				frm.events.disable_mapping_row_checks(grid);
 			};
 		}
 
-		grid.wrapper.find(".grid-buttons, .grid-add-row").hide();
+		grid.setup_toolbar?.();
+		grid.refresh_remove_rows_button?.();
 		frm.events.apply_mapping_target_fields(frm);
-		frm.events.disable_mapping_row_checks(grid);
 	},
 
 	setup_mapping_dropdown_portal(grid) {
@@ -464,10 +465,6 @@ frappe.ui.form.on("Data Import", {
 				}
 			});
 		});
-	},
-
-	disable_mapping_row_checks(grid) {
-		grid.wrapper.find(".grid-row-check input[type=checkbox]").prop("disabled", true);
 	},
 
 	apply_mapping_target_fields(frm) {
