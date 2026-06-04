@@ -187,8 +187,7 @@ frappe.ui.Filter = class {
 			this.set_field(this.field.df.parent, this.field.df.fieldname, fieldtype, condition);
 
 			// Sibling Dynamic Link filters depend on this filter's condition — re-evaluate them
-			const filter_group = this.filter_list?.filter_area?.filter_list || this.filter_list;
-			filter_group?.refresh_dynamic_link_filters?.();
+			this.get_filter_group()?.refresh_dynamic_link_filters?.();
 		});
 	}
 
@@ -291,11 +290,7 @@ frappe.ui.Filter = class {
 		if (df.original_type === "Dynamic Link") {
 			const link_conditions = ["="];
 			if (link_conditions.includes(this.get_condition())) {
-				// this.filter_list is FilterGroup in standalone use, but the parent ListView
-				// in list views — drill through to the actual FilterGroup either way.
-				const filter_group =
-					this.filter_list?.filter_area?.filter_list || this.filter_list;
-				const peer = filter_group?.get_filter?.(original_docfield.options);
+				const peer = this.get_filter_group()?.get_filter?.(original_docfield.options);
 				const peer_value = peer?.get_selected_value?.();
 				const description_el = this.filter_edit_area.find(".filter-description");
 				if (peer && peer.get_condition() === "=" && peer_value) {
@@ -427,6 +422,12 @@ frappe.ui.Filter = class {
 		let $condition_field = this.filter_edit_area.find(".condition");
 		$condition_field.val(condition);
 		if (trigger_change) $condition_field.change();
+	}
+
+	get_filter_group() {
+		// `this.filter_list` is the FilterGroup in standalone use (dialogs, dashboards),
+		// but the parent ListView in list views — drill through to the actual FilterGroup.
+		return this.filter_list?.filter_area?.filter_list || this.filter_list;
 	}
 
 	add_condition_help(condition) {
