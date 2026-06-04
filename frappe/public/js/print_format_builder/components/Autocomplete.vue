@@ -1,6 +1,6 @@
 <template>
-	<div class="pfb-autocomplete" ref="wrap">
-		<div class="pfb-autocomplete-input-wrap" :class="{ focused: open }">
+	<div class="pfb-autocomplete">
+		<div class="pfb-autocomplete-input-wrap" :class="{ focused }">
 			<span class="pfb-autocomplete-icon" v-html="frappe.utils.icon('search', 'xs')"></span>
 			<input
 				ref="input_el"
@@ -8,16 +8,15 @@
 				type="text"
 				:placeholder="placeholder || __('Search...')"
 				v-model="query"
-				@focus="open = true"
-				@input="open = true"
-				@blur="on_blur"
-				@keydown.escape="open = false"
+				@focus="focused = true"
+				@blur="setTimeout(() => (focused = false), 100)"
+				@keydown.escape="input_el.blur()"
 				@keydown.enter.prevent="confirm_highlight"
 				@keydown.down.prevent="highlight = Math.min(highlight + 1, filtered.length - 1)"
 				@keydown.up.prevent="highlight = Math.max(highlight - 1, 0)"
 			/>
 		</div>
-		<div v-if="open" class="pfb-autocomplete-dropdown">
+		<div v-if="focused" class="pfb-autocomplete-dropdown">
 			<template v-if="filtered.length">
 				<button
 					v-for="(opt, i) in filtered"
@@ -47,10 +46,9 @@ const props = defineProps({
 
 const emit = defineEmits(["select"]);
 
-const wrap = ref(null);
 const input_el = ref(null);
 const query = ref("");
-const open = ref(false);
+const focused = ref(false);
 const highlight = ref(0);
 
 const filtered = computed(() => {
@@ -68,14 +66,9 @@ watch(filtered, () => {
 	highlight.value = 0;
 });
 
-function on_blur() {
-	setTimeout(() => (open.value = false), 100);
-}
-
 function select(opt) {
 	emit("select", opt);
 	query.value = "";
-	open.value = false;
 	highlight.value = 0;
 }
 
