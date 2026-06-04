@@ -70,14 +70,11 @@ class TestPatches(IntegrationTestCase):
 	def test_get_patch_list(self):
 		pre = patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.pre_model_sync)
 		post = patch_handler.get_patches_from_app("frappe", patch_handler.PatchType.post_model_sync)
-		post_fixture = patch_handler.get_patches_from_app(
-			"frappe", patch_handler.PatchType.post_fixture_sync
-		)
 		all_patches = patch_handler.get_patches_from_app("frappe")
 		self.assertGreater(len(pre), 0)
 		self.assertGreater(len(post), 0)
 
-		self.assertEqual(len(all_patches), len(pre) + len(post) + len(post_fixture))
+		self.assertEqual(len(all_patches), len(pre) + len(post))
 
 	def test_all_patches_are_marked_completed(self):
 		all_patches = patch_handler.get_patches_from_app("frappe")
@@ -114,9 +111,7 @@ class TestPatchReader(IntegrationTestCase):
 	@patch("builtins.open", new_callable=mock_open, read_data=FILLED_SECTIONS)
 	def test_new_style(self, _file):
 		all, pre, post, post_fixture = self.get_patches()
-		self.assertEqual(
-			all, ["app.module.patch1", "app.module.patch2", "app.module.patch3", "app.module.patch4"]
-		)
+		self.assertEqual(all, ["app.module.patch1", "app.module.patch2", "app.module.patch3"])
 		self.assertEqual(pre, ["app.module.patch1", "app.module.patch2"])
 		self.assertEqual(
 			post,
@@ -168,7 +163,11 @@ def check_patch_files(app):
 
 	patch_dir = Path(frappe.get_app_path(app)) / "patches"
 
-	app_patches = [p.split(maxsplit=1)[0] for p in patch_handler.get_patches_from_app(app)]
+	app_patches = [
+		p.split(maxsplit=1)[0]
+		for pt in patch_handler.PatchType
+		for p in patch_handler.get_patches_from_app(app, pt)
+	]
 
 	missing_patches = []
 

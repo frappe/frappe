@@ -134,11 +134,9 @@ def parse_as_configfile(patches_file: str, patch_type: PatchType | None = None) 
 		return []
 
 	if not patch_type:
-		patches = []
-		for pt in PatchType:
-			if pt.value in parser.sections():
-				patches.extend(patch for patch in parser[pt.value])
-		return patches
+		return [patch for patch in parser[PatchType.pre_model_sync.value]] + [
+			patch for patch in parser[PatchType.post_model_sync.value]
+		]
 
 	if patch_type.value in parser.sections():
 		return [patch for patch in parser[patch_type.value]]
