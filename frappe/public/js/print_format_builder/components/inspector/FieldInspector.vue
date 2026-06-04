@@ -1067,6 +1067,8 @@ function set_padding(side, value) {
 	border-radius: var(--border-radius);
 	background: var(--gray-50);
 	gap: 6px;
+	min-width: 0;
+	overflow: hidden;
 }
 
 .pfb-source-name {
@@ -1074,6 +1076,7 @@ function set_padding(side, value) {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	min-width: 0;
 }
 
 .pfb-type-badge {
