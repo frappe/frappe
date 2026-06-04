@@ -9,6 +9,7 @@
 				:placeholder="placeholder || __('Search...')"
 				v-model="query"
 				@focus="open = true"
+				@input="open = true"
 				@blur="on_blur"
 				@keydown.escape="open = false"
 				@keydown.enter.prevent="confirm_highlight"
