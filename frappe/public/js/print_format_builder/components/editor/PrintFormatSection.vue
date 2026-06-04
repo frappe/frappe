@@ -409,7 +409,7 @@ function set_column_align(column, value) {
 	display: none; /* hidden by default; shown via .pfb-clean-preview :deep() override */
 	position: absolute;
 	top: 4px;
-	right: 4px;
+	left: 4px;
 	z-index: 2;
 	padding: 3px 4px;
 	background: var(--fg-color);

@@ -233,11 +233,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	display: none !important;
 }
 
-/* In clean-preview: keep the drag handle but hide only the remove button */
-.pfb-clean-preview :deep(.field-remove-btn) {
-	display: none !important;
-}
-
 /* Section hover/selected states in clean-preview */
 .pfb-clean-preview :deep(.print-format-section) {
 	border: 1px solid transparent;

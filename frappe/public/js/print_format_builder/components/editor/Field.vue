@@ -98,12 +98,13 @@
 					</div>
 				</div>
 			</div>
-			<!-- Drag + remove — top-right corner on hover; remove button hidden in clean-preview -->
+			<!-- Left-edge drag handle — appears on hover -->
+			<div
+				class="drag-handle field-drag-handle field-drag-left"
+				v-html="frappe.utils.icon('drag', 'xs')"
+			></div>
+			<!-- Right actions: remove only -->
 			<div class="field-preview-actions">
-				<div
-					class="drag-handle field-drag-handle"
-					v-html="frappe.utils.icon('drag', 'xs')"
-				></div>
 				<button
 					class="btn btn-xs btn-icon field-remove-btn"
 					@click.stop="df['remove'] = true"
@@ -668,7 +669,29 @@ watch(
 	margin: 4px 0;
 }
 
-/* Preview actions — drag + remove — hidden until hover/selected */
+/* Left-edge drag handle — hidden until hover/selected */
+.field-drag-left {
+	display: none;
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	color: var(--gray-400);
+	cursor: grab;
+	z-index: 2;
+	padding: 1px 2px;
+	background: var(--fg-color);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-sm);
+	box-shadow: var(--shadow-xs);
+}
+
+.field--preview:hover .field-drag-left,
+.field--preview.field--selected .field-drag-left {
+	display: flex;
+	align-items: center;
+}
+
+/* Right actions — remove only, hidden until hover/selected */
 .field-preview-actions {
 	display: none;
 	position: absolute;
