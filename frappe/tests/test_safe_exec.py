@@ -142,3 +142,16 @@ class TestJinjaGlobals(IntegrationTestCase):
 		self.assertIsNot(first.filters, second.filters)
 		self.assertIsNot(first.globals["frappe"], second.globals["frappe"])
 		self.assertIsNot(first.globals["frappe"]["form_dict"], second.globals["frappe"]["form_dict"])
+
+	def test_globals_override(self):
+		"""Test that when restrict_globals is parsed, the correct globals are injected."""
+		from frappe.utils.safe_exec import FrappeClient, safe_get_all
+
+		jenv_restricted = get_jenv(restrict_globals=True)
+		self.assertIs(jenv_restricted.globals["frappe"]["get_all"], safe_get_all)
+		with self.assertRaises(KeyError):
+			jenv_restricted.globals["FrappeClient"]
+
+		jenv_unrestricted = get_jenv(restrict_globals=False)
+		self.assertIs(jenv_unrestricted.globals["frappe"]["get_all"], frappe.get_all)
+		self.assertIs(jenv_unrestricted.globals["FrappeClient"], FrappeClient)  # test exclusivity
