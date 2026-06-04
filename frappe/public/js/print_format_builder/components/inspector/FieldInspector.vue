@@ -401,27 +401,11 @@
 					</button>
 				</div>
 			</div>
-
-			<div v-else class="pfb-insp-body pfb-insp-placeholder">
-				<p class="text-muted">{{ __("Coming soon.") }}</p>
-			</div>
 		</template>
 
 		<!-- ── Section inspector ───────────────────────────────── -->
 		<template v-else-if="selected_section">
-			<div class="pfb-insp-tabs">
-				<button
-					v-for="tab in section_tabs"
-					:key="tab.id"
-					class="pfb-insp-tab"
-					:class="{ active: active_tab === tab.id }"
-					@click="active_tab = tab.id"
-				>
-					{{ tab.label }}
-				</button>
-			</div>
-
-			<div v-if="active_tab === 'properties'" class="pfb-insp-body">
+			<div class="pfb-insp-body">
 				<!-- SECTION properties -->
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('s_section')">
@@ -541,40 +525,7 @@
 					</div>
 				</div>
 
-				<!-- VISIBILITY -->
-				<div class="pfb-insp-section">
-					<div class="pfb-insp-section-head" @click="toggle('s_visibility')">
-						<span class="pfb-insp-section-label">{{ __("Visibility") }}</span>
-						<span
-							class="pfb-insp-chevron"
-							:class="{ collapsed: !open.s_visibility }"
-							v-html="frappe.utils.icon('chevron-down', 'xs')"
-						></span>
-					</div>
-					<div v-show="open.s_visibility" class="pfb-insp-section-body">
-						<p class="pfb-insp-hint text-muted">
-							{{ __("Conditional visibility coming soon.") }}
-						</p>
-					</div>
-				</div>
-
-				<div class="pfb-insp-actions">
-					<button
-						class="btn btn-xs btn-danger-subtle"
-						@click="
-							selected_section.remove = true;
-							store.selected_section.value = null;
-						"
-					>
-						<span v-html="frappe.utils.icon('x', 'xs')"></span>
-						{{ __("Remove section") }}
-					</button>
-				</div>
-			</div>
-
-			<!-- ── Style tab ───────────────────────────────────────── -->
-			<div v-else-if="active_tab === 'style'" class="pfb-insp-body">
-				<!-- Background -->
+				<!-- BACKGROUND -->
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('s_bg')">
 						<span class="pfb-insp-section-label">{{ __("Background") }}</span>
@@ -599,7 +550,7 @@
 					</div>
 				</div>
 
-				<!-- Padding -->
+				<!-- PADDING -->
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('s_padding')">
 						<span class="pfb-insp-section-label">{{ __("Padding") }}</span>
@@ -636,10 +587,36 @@
 						</div>
 					</div>
 				</div>
-			</div>
 
-			<div v-else class="pfb-insp-body pfb-insp-placeholder">
-				<p class="text-muted">{{ __("Coming soon.") }}</p>
+				<!-- VISIBILITY -->
+				<div class="pfb-insp-section">
+					<div class="pfb-insp-section-head" @click="toggle('s_visibility')">
+						<span class="pfb-insp-section-label">{{ __("Visibility") }}</span>
+						<span
+							class="pfb-insp-chevron"
+							:class="{ collapsed: !open.s_visibility }"
+							v-html="frappe.utils.icon('chevron-down', 'xs')"
+						></span>
+					</div>
+					<div v-show="open.s_visibility" class="pfb-insp-section-body">
+						<p class="pfb-insp-hint text-muted">
+							{{ __("Conditional visibility coming soon.") }}
+						</p>
+					</div>
+				</div>
+
+				<div class="pfb-insp-actions">
+					<button
+						class="btn btn-xs btn-danger-subtle"
+						@click="
+							selected_section.remove = true;
+							store.selected_section.value = null;
+						"
+					>
+						<span v-html="frappe.utils.icon('x', 'xs')"></span>
+						{{ __("Remove section") }}
+					</button>
+				</div>
 			</div>
 		</template>
 	</div>
@@ -664,12 +641,6 @@ let active_tab = ref("properties");
 const field_tabs = [
 	{ id: "properties", label: __("Properties") },
 	{ id: "style", label: __("Style") },
-	{ id: "logic", label: __("Logic") },
-];
-const section_tabs = [
-	{ id: "properties", label: __("Properties") },
-	{ id: "style", label: __("Style") },
-	{ id: "logic", label: __("Logic") },
 ];
 
 const open = ref({
