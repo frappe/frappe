@@ -3,54 +3,6 @@ const fs = require("fs");
 const glob = require("fast-glob");
 const esbuild = require("esbuild");
 const vue = require("esbuild-plugin-vue3");
-// Patch the Vue plugin's internal compileScript so it gets an `fs` option.
-//
-// Why: @vue/compiler-sfc 3.3+ needs filesystem access to resolve TypeScript
-// types referenced in `defineProps<T>()` / `defineEmits<T>()` macros — many
-// frappe-ui components use that form (Button, Dialog, FormControl, …) and
-// import the type from a sibling `./types.ts`. Without `fs`, compileScript
-// throws "No fs option provided to compileScript in non-Node environment"
-// and the build fails.
-//
-// `esbuild-plugin-vue3` 0.3.2 passes only `{ id }` to compileScript. It
-// imports its own nested copy of @vue/compiler-sfc, so we patch THAT
-// instance (the top-level one wouldn't reach the plugin).
-(function patchVueCompileScript() {
-	// Resolve from the Vue plugin's location so we patch whichever
-	// @vue/compiler-sfc the plugin actually imports — older plugin versions
-	// nested their own copy; 0.5.x uses the top-level install.
-	const pluginDir = path.dirname(require.resolve("esbuild-plugin-vue3"));
-	let sfc;
-	try {
-		sfc = require(require.resolve("@vue/compiler-sfc", { paths: [pluginDir] }));
-	} catch (e) {
-		return; // plugin or compiler-sfc not installed (e.g. CI dependency prune)
-	}
-	if (sfc._frappePatched) return;
-	const orig = sfc.compileScript;
-	sfc.compileScript = function (descriptor, options) {
-		return orig.call(this, descriptor, {
-			fs: {
-				fileExists: (file) => {
-					try {
-						return fs.statSync(file).isFile();
-					} catch (_) {
-						return false;
-					}
-				},
-				readFile: (file) => {
-					try {
-						return fs.readFileSync(file, "utf-8");
-					} catch (_) {
-						return undefined;
-					}
-				},
-			},
-			...options,
-		});
-	};
-	sfc._frappePatched = true;
-})();
 const yargs = require("yargs");
 const cliui = require("cliui")();
 const chalk = require("chalk");
@@ -344,20 +296,7 @@ function get_files_to_build(files) {
 }
 
 function build_files({ files, outdir }) {
-	// `compilerOptions.expressionPlugins: ['typescript']` enables TS syntax
-	// inside <template> expressions (non-null assertions `foo!.bar`, type casts,
-	// etc.). Without it the Babel-based template expression parser inside
-	// @vue/compiler-sfc throws on tokens like `!]`.
-	let build_plugins = [
-		vue({
-			compilerOptions: {
-				expressionPlugins: ["typescript"],
-			},
-		}),
-		html_plugin,
-		build_cleanup_plugin,
-		vue_style_plugin,
-	];
+	let build_plugins = [vue(), html_plugin, build_cleanup_plugin, vue_style_plugin];
 	if (WATCH_MODE) build_plugins.push(watch_plugin);
 	return build_or_watch(get_build_options(files, outdir, build_plugins));
 }
@@ -435,29 +374,6 @@ function get_build_options(files, outdir, plugins) {
 			"process.env.NODE_ENV": JSON.stringify(PRODUCTION ? "production" : "development"),
 			__VUE_OPTIONS_API__: JSON.stringify(true),
 			__VUE_PROD_DEVTOOLS__: JSON.stringify(false),
-			// Substitute `import.meta.env.*` reads at build time so Vite-style
-			// dev/prod gates inside frappe-ui (e.g.
-			//   `if (import.meta.env.DEV) console.warn(...)`) keep working
-			// under esbuild's es2017 target — where `import.meta` itself is
-			// substituted with an empty object and `import.meta.env.DEV` would
-			// otherwise crash at runtime.
-			//
-			// Per esbuild's `define` semantics these key paths replace the
-			// whole expression, so `import.meta.env.DEV` becomes the literal
-			// value below — no `import.meta` reference survives.
-			"import.meta.env.DEV": JSON.stringify(!PRODUCTION),
-			"import.meta.env.PROD": JSON.stringify(PRODUCTION),
-			"import.meta.env.MODE": JSON.stringify(PRODUCTION ? "production" : "development"),
-			"import.meta.env.SSR": JSON.stringify(false),
-			// Fallback for code that destructures `import.meta.env` as a whole
-			// or reads keys we haven't enumerated above. Anything missing
-			// resolves to `undefined`, matching Vite's runtime shape.
-			"import.meta.env": JSON.stringify({
-				DEV: !PRODUCTION,
-				PROD: PRODUCTION,
-				MODE: PRODUCTION ? "production" : "development",
-				SSR: false,
-			}),
 		},
 		plugins: [...plugins],
 	};

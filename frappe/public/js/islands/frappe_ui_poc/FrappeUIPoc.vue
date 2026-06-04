@@ -6,9 +6,8 @@
     (frappe/public/js/frappe/ui/vue_island.js). The island mounts inside a
     shadow root, so this component just starts with its own padding wrapper.
 
-    frappe-ui components are deep-imported from `frappe-ui/src/components/*`
-    and compiled from source by the Vite islands pipeline
-    (esbuild/build-islands.mjs).
+    frappe-ui components are imported from the `frappe-ui` barrel and compiled
+    from source by the Vite islands pipeline (esbuild/build-islands.mjs).
   -->
 	<div class="frappe-ui-poc-island p-6">
 		<div class="mb-6">
@@ -162,19 +161,7 @@
 </template>
 
 <script setup lang="ts">
-// Deep-path imports rather than the `frappe-ui` barrel.
-// Why: the barrel `export *`s every component, so importing it would force the
-// build to resolve the whole library — including TextEditor and Charts, whose
-// heavy deps (tiptap, echarts) are not installed for the linked frappe-ui
-// clone. Deep-path imports keep the island to the components it actually uses.
-// (The Vite islands pipeline aliases `frappe-ui/src/*` past the package's
-// `exports` map so these subpaths resolve.)
-import { Button } from "frappe-ui/src/components/Button";
-import { Dialog } from "frappe-ui/src/components/Dialog";
-import { FormControl } from "frappe-ui/src/components/FormControl";
-import { Combobox } from "frappe-ui/src/components/Combobox";
-import { Popover } from "frappe-ui/src/components/Popover";
-import { Select } from "frappe-ui/src/components/Select";
+import { Button, Dialog, FormControl, Combobox, Popover, Select } from "frappe-ui";
 import { ref } from "vue";
 
 const basicDialogOpen = ref(false);

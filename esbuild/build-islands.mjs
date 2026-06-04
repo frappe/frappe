@@ -22,9 +22,11 @@
  * Both pipelines write hashed output into `sites/assets/<app>/dist` and share
  * one `assets.json` (merge + Redis invalidation live in ./island-assets.js).
  *
- * The CSS-war (Tailwind-vs-Bootstrap isolation) stays framework-owned: the
- * PostCSS chain below runs the desk-islands Tailwind config + the
- * `!important`-stamping plugin, both in this repo — NOT in frappe-ui.
+ * Isolation: islands mount in a Shadow DOM (see frappe.ui.mount_vue_island), so
+ * there is NO CSS-war — frappe-ui ships its normal full Tailwind + preflight and
+ * the shadow boundary contains it both ways. The only Desk adaptation is the
+ * PostCSS `postcss-root-to-host` plugin, which rewrites `:root` design tokens to
+ * `:host` so they apply inside the shadow tree.
  *
  * Usage (see package.json):
  *   node esbuild/build-islands.mjs --mode production
@@ -32,10 +34,10 @@
  */
 import { build } from "vite";
 import vue from "@vitejs/plugin-vue";
+import { lucideIconsPlugin } from "frappe-ui/vite/lucideIconsPlugin";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import * as LucideIcons from "lucide-static";
 
 const require = createRequire(import.meta.url);
 const fg = require("fast-glob");
@@ -48,6 +50,26 @@ const {
   notify_island_error,
   sites_path,
 } = require("./island-assets.js");
+
+// Let @vue/compiler-sfc resolve cross-package types in `defineProps<T>()`.
+//
+// frappe-ui components compiled from source use the type-macro form, e.g.
+// TextEditor's `defineProps<NodeViewProps>()` importing the type from
+// `@tiptap/vue-3`. compiler-sfc can only resolve such imported types through
+// the TypeScript compiler API, and the consumer (here, this island build) must
+// hand it TypeScript via `registerTS` — @vitejs/plugin-vue 5.2.x does not.
+//
+// It must be TS >= 5: the types live behind modern `exports` maps that only
+// `moduleResolution: bundler` (TS 5) can follow. The repo's hoisted typescript
+// is 4.x (pulled by esbuild-plugin-vue3), so frappe declares its own
+// `typescript@^5` devDep, which `require("typescript")` resolves here.
+//
+// Without this, importing the `frappe-ui` barrel fails to compile (one heavy
+// component's type kills the whole graph), forcing islands into deep
+// `frappe-ui/src/components/*` imports. With it, islands use the idiomatic
+// `import { Button } from "frappe-ui"` and unused components tree-shake away.
+const { registerTS } = require("vue/compiler-sfc");
+registerTS(() => require("typescript"));
 
 const REPO_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -137,18 +159,11 @@ function islandConfig({ name, entryAbs }) {
         "@vue/shared",
       ],
       alias: [
-        // frappe-ui's `exports` map only exposes the `.` barrel, but islands
-        // deep-import `frappe-ui/src/components/<X>` so the barrel doesn't drag
-        // in components (TextEditor, Charts) whose heavy deps (tiptap, echarts)
-        // aren't installed for the linked clone. Alias bypasses exports
-        // enforcement for the `src/` subtree.
-        {
-          find: /^frappe-ui\/src\//,
-          replacement: path.join(REPO_ROOT, "frappe-ui/src/"),
-        },
         // Island bundles import the mount helper as
         // `frappe/public/js/frappe/ui/vue_island.js` (the same specifier the
         // esbuild pipeline resolves via nodePaths). Map it to the app dir.
+        // (frappe-ui itself resolves through its package `exports` — islands
+        // import the `frappe-ui` barrel, no deep-path alias needed.)
         {
           find: /^frappe\/public\//,
           replacement: path.join(REPO_ROOT, "frappe/public/"),
@@ -164,7 +179,14 @@ function islandConfig({ name, entryAbs }) {
         plugins: [tailwindcss(TAILWIND_CONFIG), autoprefixer, rootToHost],
       },
     },
-    plugins: [vue(), lucideIconsPlugin(), islandRegisterPlugin(name)],
+    plugins: [
+      vue(),
+      // frappe-ui's bare `~icons/lucide/<name>` virtual-module resolver (shared
+      // with frappe-ui's own build; see frappe-ui/vite/lucideIconsPlugin.js).
+      // `enforce: "pre"` so it claims the virtual id before other resolvers.
+      { ...lucideIconsPlugin(), enforce: "pre" },
+      islandRegisterPlugin(name),
+    ],
     build: {
       outDir: DIST_DIR,
       // CRITICAL: the esbuild pipeline writes here too — never wipe it.
@@ -237,98 +259,4 @@ function islandRegisterPlugin(name) {
 function arg(flag) {
   const i = process.argv.indexOf(flag);
   return i !== -1 && process.argv[i + 1] ? process.argv[i + 1] : null;
-}
-
-/**
- * Resolve `~icons/lucide/<name>` virtual imports used by frappe-ui source.
- *
- * Framework-side and dependency-free (no unplugin-auto-import /
- * unplugin-vue-components, unneeded for islands' explicit imports and which
- * would write *.d.ts litter). Behaviour matches frappe-ui/vite/lucideIcons.js:
- * read SVGs from lucide-static, normalize
- * stroke-width 2 → 1.5, map camelCase keys to kebab variants, render a tiny Vue
- * component per icon (placeholder for icons removed in lucide v1).
- */
-function lucideIconsPlugin() {
-  const VIRTUAL_PREFIX = "~icons/lucide/";
-  const RESOLVED_PREFIX = "\0frappe-ui-lucide/";
-  const FALLBACK_INNER_HTML =
-    '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>';
-  const warned = new Set();
-  const icons = buildIconMap();
-
-  return {
-    name: "frappe-island-lucide-icons",
-    enforce: "pre",
-    resolveId(id) {
-      if (id.startsWith(VIRTUAL_PREFIX)) {
-        return RESOLVED_PREFIX + id.slice(VIRTUAL_PREFIX.length);
-      }
-    },
-    load(id) {
-      const normalized = id.split("?", 1)[0];
-      if (!normalized.startsWith(RESOLVED_PREFIX)) return;
-      const name = normalized.slice(RESOLVED_PREFIX.length);
-      const svg = icons[name];
-      if (!svg) {
-        if (!warned.has(name)) {
-          warned.add(name);
-          this.warn(
-            `[frappe-island-lucide-icons] icon "${name}" not found in lucide-static; ` +
-              `rendering a placeholder. Replace ~icons/lucide/${name} with a valid icon.`
-          );
-        }
-        return iconModule(FALLBACK_INNER_HTML, name);
-      }
-      const inner = svg.match(/<svg[^>]*>([\s\S]*)<\/svg>/);
-      const innerHTML = inner ? inner[1].replace(/>\s+</g, "><").trim() : "";
-      return iconModule(innerHTML);
-    },
-  };
-
-  function iconModule(innerHTML, missing) {
-    const missingAttr = missing
-      ? `'data-lucide-missing': ${JSON.stringify(missing)},`
-      : "";
-    return `
-import { h } from 'vue'
-export default {
-  inheritAttrs: false,
-  render() {
-    return h('svg', {
-      xmlns: 'http://www.w3.org/2000/svg',
-      width: '24', height: '24', viewBox: '0 0 24 24',
-      fill: 'none', stroke: 'currentColor', 'stroke-width': '1.5',
-      'stroke-linecap': 'round', 'stroke-linejoin': 'round',
-      ${missingAttr}
-      ...this.$attrs,
-      innerHTML: ${JSON.stringify(innerHTML)},
-    })
-  }
-}`;
-  }
-
-  function buildIconMap() {
-    const out = {};
-    for (const key in LucideIcons) {
-      if (key === "default") continue;
-      let svg = LucideIcons[key];
-      if (typeof svg === "string" && svg.includes("stroke-width")) {
-        svg = svg.replace(/stroke-width="2"/g, 'stroke-width="1.5"');
-      }
-      out[key] = svg;
-      for (const dash of camelToDash(key)) if (dash !== key) out[dash] = svg;
-    }
-    return out;
-  }
-
-  function camelToDash(key) {
-    let withNumber = key.replace(/[A-Z0-9]/g, (m) => "-" + m.toLowerCase());
-    if (withNumber.startsWith("-")) withNumber = withNumber.slice(1);
-    let withoutNumber = key.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());
-    if (withoutNumber.startsWith("-")) withoutNumber = withoutNumber.slice(1);
-    return withNumber !== withoutNumber
-      ? [withNumber, withoutNumber]
-      : [withNumber];
-  }
 }
