@@ -420,26 +420,33 @@ frappe.ui.Filter = class {
 		return this.filter_list?.filter_area?.filter_list || this.filter_list;
 	}
 
-	resolve_dynamic_link(df, original_docfield) {
+	resolve_dynamic_link(df, original_df) {
 		if (df.original_type !== "Dynamic Link") return;
 
 		if (!this.link_friendly_conditions.has(this.get_condition())) return;
 
 		// get the filter whose value this Dynamic Link filter depends on, if any
-		const peer = this.get_filter_group()?.get_filter?.(original_docfield.options);
+		const peer = this.get_filter_group()?.get_filter?.(original_df.options);
 		const peer_value = peer?.get_selected_value?.();
-		const description_el = this.filter_edit_area.find(".filter-description");
+		const desc_element = this.get_description_element();
 
 		if (peer && peer.get_condition() === "=" && peer_value) {
 			df.fieldtype = "Link";
 			df.options = peer_value;
-			description_el.empty();
-		} else {
-			const peer_label =
-				frappe.meta.get_docfield(original_docfield.parent, original_docfield.options)
-					?.label || original_docfield.options;
-			description_el.html(__("Set {0} = ? to autocomplete", [__(peer_label)]));
+			desc_element.empty();
+			return;
 		}
+
+		const peer_label = this.get_dynamic_link_peer_label(original_df);
+
+		desc_element.html(
+			__("Set <strong>{0}</strong> = <em>?</em> to auto complete", [__(peer_label)])
+		);
+	}
+
+	get_dynamic_link_peer_label(df) {
+		const peer_df = frappe.meta.get_docfield(df.parent, df.options);
+		return peer_df ? peer_df.label : df.options;
 	}
 
 	add_condition_help(condition) {
@@ -447,7 +454,11 @@ frappe.ui.Filter = class {
 			? __("values separated by commas")
 			: __("use % as wildcard");
 
-		this.filter_edit_area.find(".filter-description").html(description);
+		this.get_description_element().html(description);
+	}
+
+	get_description_element() {
+		return this.filter_edit_area.find(".filter-description");
 	}
 
 	make_tag() {
