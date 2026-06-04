@@ -1,22 +1,53 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+<<<<<<< HEAD
 def get_jenv():
 	import frappe
 
 	if not getattr(frappe.local, "jenv", None):
 		from jinja2 import DebugUndefined
 		from jinja2.sandbox import SandboxedEnvironment
+=======
+import frappe
+from frappe.utils.caching import site_cache
+
+
+def get_jenv(restrict_globals=None):
+	import frappe
+	from frappe.utils.safe_exec import get_safe_globals, is_render_exec_enabled, render_safe_globals
+
+	if restrict_globals is None:
+		restrict_globals = is_render_exec_enabled()
+
+	local_key = "jenv_restricted" if restrict_globals else "jenv_unrestricted"
+	if jenv := getattr(frappe.local, local_key, None):
+		return jenv
+>>>>>>> b85bc79439 (fix: decide globals in get_jenv)
 
 		from frappe.utils.safe_exec import UNSAFE_ATTRIBUTES, get_safe_globals
 
 		UNSAFE_ATTRIBUTES = UNSAFE_ATTRIBUTES - {"format", "format_map"}
 
+<<<<<<< HEAD
 		class FrappeSandboxedEnvironment(SandboxedEnvironment):
 			def is_safe_attribute(self, obj, attr, *args, **kwargs):
 				if attr in UNSAFE_ATTRIBUTES:
 					return False
 
 				return super().is_safe_attribute(obj, attr, *args, **kwargs)
+=======
+	if restrict_globals:
+		jenv.globals.update(render_safe_globals())
+	else:
+		jenv.globals.update(get_safe_globals())
+
+	if not restrict_globals:
+		methods, filters = get_jinja_hooks()
+		jenv.globals.update(methods or {})
+		jenv.filters.update(filters or {})
+
+	setattr(frappe.local, local_key, jenv)
+>>>>>>> b85bc79439 (fix: decide globals in get_jenv)
 
 		# frappe will be loaded last, so app templates will get precedence
 		jenv = FrappeSandboxedEnvironment(loader=get_jloader(), undefined=DebugUndefined)
@@ -54,7 +85,7 @@ def get_email_from_template(name, args):
 	return (message, text_content)
 
 
-def validate_template(html):
+def validate_template(html, restrict_globals=None):
 	"""Throws exception if there is a syntax error in the Jinja Template"""
 	from jinja2 import TemplateSyntaxError
 
@@ -62,7 +93,7 @@ def validate_template(html):
 
 	if not html:
 		return
-	jenv = get_jenv()
+	jenv = get_jenv(restrict_globals)
 	try:
 		jenv.from_string(html)
 	except TemplateSyntaxError as e:
@@ -82,7 +113,6 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 	from jinja2 import TemplateError
 
 	from frappe import _, get_traceback, throw
-	from frappe.utils.safe_exec import is_render_exec_enabled, render_safe_globals
 
 	if not template:
 		return ""
@@ -90,6 +120,7 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 	if context is None:
 		context = {}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	if is_path or guess_is_path(template):
 		return get_jenv().get_template(template).render(context)
@@ -107,18 +138,17 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 	if restrict_globals is None:
 		restrict_globals = is_render_exec_enabled()
 
+=======
+>>>>>>> b85bc79439 (fix: decide globals in get_jenv)
 	try:
 		if is_path or guess_is_path(template):
 			is_path = True
 			compiled_template = get_template(template)
 		else:
-			jenv: SandboxedEnvironment = get_jenv()
+			jenv: SandboxedEnvironment = get_jenv(restrict_globals)
 			if safe_render and ".__" in template:
 				throw(_("Illegal template"))
-			if restrict_globals:
-				compiled_template = jenv.from_string(template, globals=render_safe_globals())
-			else:
-				compiled_template = jenv.from_string(template)
+			compiled_template = jenv.from_string(template)
 	except TemplateError:
 		import html
 
