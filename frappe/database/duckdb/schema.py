@@ -61,19 +61,30 @@ class DuckDBColumn(DbColumn):
 
 
 class DuckDBTable(DBTable):
-	def is_new(self):
-		tables = [x[0] for x in frappe.duckdb.sql("show tables").fetchall()]
+	def is_new(self, conn):
+		tables = [x[0] for x in conn.sql("show tables").fetchall()]
 		return self.table_name not in tables
 
-	def sync(self):
+	def sync(self, conn):
 		if self.meta.get("is_virtual"):
 			# no schema to sync for virtual doctypes
 			return
-		if self.is_new():
-			self.create()
+		if self.is_new(conn):
+			self.create(conn)
 		else:
 			frappe.client_cache.delete_value(f"table_columns::{self.table_name}")
 			self.alter()
+
+	def get_column_definitions(self):
+		column_list = [*frappe.db.DEFAULT_COLUMNS]
+		ret = []
+		for k in list(self.columns):
+			if k not in column_list:
+				d = self.columns[k].get_definition()
+				if d:
+					ret.append('"' + k + '" ' + d)
+					column_list.append(k)
+		return ret
 
 	def get_columns_from_docfields(self):
 		"""
@@ -109,26 +120,7 @@ class DuckDBTable(DBTable):
 				not_nullable=field.get("not_nullable"),
 			)
 
-	def get_column_definitions(self):
-		column_list = [*frappe.db.DEFAULT_COLUMNS]
-
-		ret = []
-
-		# maintain field order from mariadb
-		column_order_in_db = frappe.db.sql(
-			f"select column_name from information_schema.columns where table_schema = '{frappe.conf.db_name}' and table_name ='{self.table_name}' order by ordinal_position;",
-			pluck="column_name",
-		)[7:]
-
-		for k in column_order_in_db:
-			if k not in column_list:
-				d = self.columns[k].get_definition()
-				if d:
-					ret.append(k + " " + d)
-					column_list.append(k)
-		return ret
-
-	def create(self):
+	def create(self, conn):
 		additional_definitions = []
 		varchar_len = frappe.db.VARCHAR_LEN
 		name_column = f"name varchar({varchar_len}) primary key"
@@ -144,7 +136,6 @@ class DuckDBTable(DBTable):
 				f"parent varchar({varchar_len})",
 				f"parentfield varchar({varchar_len})",
 				f"parenttype varchar({varchar_len})",
-				"index parent(parent)",
 			]
 		additional_definitions = ",\n".join(additional_definitions)
 
@@ -160,4 +151,4 @@ class DuckDBTable(DBTable):
 			{additional_definitions})
 			"""
 
-		frappe.duckdb.sql(query)
+		conn.sql(query)
