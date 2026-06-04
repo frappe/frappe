@@ -57,3 +57,15 @@ class DuckDBDashboard(Document):
 	def validate(self):
 		self.validate_invalid_selection()
 		self.validate_duplicate()
+		self.generate_sync_log()
+
+	def generate_sync_log(self):
+		existing = frappe.db.get_all("DuckDB Sync Log", fields=["doc_type"], pluck="doc_type")
+		for x in [dt.doc_type for dt in self.doctype_to_sync]:
+			if x not in existing:
+				frappe.get_doc(
+					{
+						"doctype": "DuckDB Sync Log",
+						"doc_type": x,
+					}
+				).insert()
