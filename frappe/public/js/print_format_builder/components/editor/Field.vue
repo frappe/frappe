@@ -98,13 +98,12 @@
 					</div>
 				</div>
 			</div>
-			<!-- Left-edge drag handle — appears on hover -->
-			<div
-				class="drag-handle field-drag-handle field-drag-left"
-				v-html="frappe.utils.icon('drag', 'xs')"
-			></div>
-			<!-- Right actions: remove only -->
+			<!-- Top-right actions pill: drag + remove -->
 			<div class="field-preview-actions">
+				<div
+					class="drag-handle field-drag-handle"
+					v-html="frappe.utils.icon('drag', 'xs')"
+				></div>
 				<button
 					class="btn btn-xs btn-icon field-remove-btn"
 					@click.stop="df['remove'] = true"
@@ -669,34 +668,13 @@ watch(
 	margin: 4px 0;
 }
 
-/* Left-edge drag handle — hidden until hover/selected */
-.field-drag-left {
-	display: none;
-	position: absolute;
-	top: 2px;
-	left: 2px;
-	color: var(--gray-400);
-	cursor: grab;
-	z-index: 2;
-	padding: 1px 2px;
-	background: var(--fg-color);
-	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius-sm);
-	box-shadow: var(--shadow-xs);
-}
-
-.field--preview:hover .field-drag-left,
-.field--preview.field--selected .field-drag-left {
-	display: flex;
-	align-items: center;
-}
-
-/* Right actions — remove only, hidden until hover/selected */
+/* Top-right actions pill: drag + remove — hidden until hover/selected */
 .field-preview-actions {
 	display: none;
 	position: absolute;
 	top: 2px;
 	right: 2px;
+	z-index: 2;
 	gap: 2px;
 	background: var(--fg-color);
 	border: 1px solid var(--border-color);
@@ -714,6 +692,18 @@ watch(
 .field-preview-actions .btn-icon {
 	box-shadow: none;
 	padding: 2px;
+}
+
+.field-preview-actions .field-drag-handle {
+	cursor: grab;
+	color: var(--gray-400);
+	display: flex;
+	align-items: center;
+	padding: 2px;
+}
+
+.field-preview-actions .field-drag-handle:hover {
+	color: var(--gray-600);
 }
 
 /* Preview table — exact PDF print_format.css child-table style */

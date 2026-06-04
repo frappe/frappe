@@ -284,14 +284,14 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 /* Section drag handle in clean-preview: show on hover */
-.pfb-clean-preview :deep(.section-preview-drag) {
+.pfb-clean-preview :deep(.section-preview-actions) {
 	display: flex;
 }
 
-.pfb-clean-preview :deep(.print-format-section-container:hover .section-preview-drag),
-.pfb-clean-preview :deep(.print-format-section.section--selected ~ .section-preview-drag),
+.pfb-clean-preview :deep(.print-format-section-container:hover .section-preview-actions),
+.pfb-clean-preview :deep(.print-format-section.section--selected ~ .section-preview-actions),
 .pfb-clean-preview
-	:deep(.print-format-section-container:has(.section--selected) .section-preview-drag) {
+	:deep(.print-format-section-container:has(.section--selected) .section-preview-actions) {
 	opacity: 1;
 }
 
