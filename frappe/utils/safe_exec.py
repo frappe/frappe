@@ -172,13 +172,6 @@ def safe_exec_flags():
 		frappe.flags.in_safe_exec -= 1
 
 
-def safer_copy_doc(doc, ignore_no_copy=True):
-	assert isinstance(doc, dict)
-	assert isinstance(ignore_no_copy, bool)
-	copied_obj = frappe.copy_doc(doc, ignore_no_copy=ignore_no_copy)
-	return copied_obj.as_dict()
-
-
 def get_doc_as_dict(doctype, name):
 	assert isinstance(doctype, str)
 	assert isinstance(name, (str, int))
@@ -229,51 +222,6 @@ def safer_get_meta(doctype, cached=True):
 	return doc.as_dict() if doc else None
 
 
-def safer_get_mapped_doc(
-	from_doctype,
-	from_docname,
-	table_maps,
-	target_doc=None,
-	postprocess=None,
-	ignore_permissions=False,
-	ignore_child_tables=False,
-	cached=False,
-):
-	assert isinstance(from_doctype, str)
-	assert isinstance(from_docname, (str, int))
-	assert isinstance(table_maps, dict)
-	assert isinstance(target_doc, (str, type(None)))
-	assert isinstance(ignore_permissions, bool)
-	assert isinstance(ignore_child_tables, bool)
-	assert isinstance(cached, bool)
-
-	doc = get_mapped_doc(
-		from_doctype,
-		from_docname,
-		table_maps,
-		target_doc=target_doc,
-		postprocess=postprocess,
-		ignore_permissions=ignore_permissions,
-		ignore_child_tables=ignore_child_tables,
-		cached=cached,
-	)
-	return doc.as_dict() if doc else None
-
-
-def safer_new_doc(*args, **kwargs):
-	return frappe.new_doc(*args, **kwargs).as_dict()
-
-
-def safer_sendmail(*args, **kwargs):
-	q = frappe.sendmail(*args, **kwargs)
-	return q.name if q else None
-
-
-def safer_enqueue(function, **kwargs):
-	job = safe_enqueue(function, **kwargs)
-	return job.id if hasattr(job, "id") else None
-
-
 def safer_log_error(
 	title=None, message=None, reference_doctype=None, reference_name=None, *, defer_insert=False
 ):
@@ -296,20 +244,6 @@ def safer_log_error(
 def safer_get_visible_columns(*args, **kwargs):
 	cols = get_visible_columns(*args, **kwargs)
 	return [c.as_dict() for c in cols] if cols is not None else None
-
-
-def safer_get_print(*args, **kwargs):
-	print_obj = frappe.get_print(*args, **kwargs)
-	return print_obj if isinstance(print_obj, (str, bytes)) else None
-
-
-def safer_attach_print(*args, **kwargs):
-	print_obj = frappe.attach_print(*args, **kwargs)
-	fname = print_obj.get("fname")
-	fcontent = print_obj.get("fcontent")
-	if isinstance(fname, str) and isinstance(fcontent, (str, bytes)):
-		return print_obj
-	return None
 
 
 def safe_get_value(*args, **kwargs):
@@ -616,7 +550,7 @@ def render_safe_globals():
 		html2text=html2text,
 		dev_server=frappe._dev_server,
 		is_job_queued=is_job_queued,
-		get_visible_columns=get_visible_columns,
+		get_visible_columns=safer_get_visible_columns,
 	)
 
 	out.frappe.update(SAFE_EXCEPTIONS)
@@ -694,6 +628,7 @@ def exec_safe_globals():
 		NamespaceDict(
 			run_script=run_script,
 			FrappeClient=FrappeClient,
+			get_visible_columns=get_visible_columns,
 		)
 	)
 	return out
