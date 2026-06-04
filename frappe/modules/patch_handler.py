@@ -141,7 +141,11 @@ def parse_as_configfile(patches_file: str, patch_type: PatchType | None = None) 
 	if patch_type.value in parser.sections():
 		return [patch for patch in parser[patch_type.value]]
 
-	return []
+	if patch_type == PatchType.post_fixture_sync:
+		# post_fixture_sync is optional; apps may not have it yet
+		return []
+
+	frappe.throw(frappe._("Patch type {} not found in patches.txt").format(patch_type))
 
 
 def reload_doc(args):
