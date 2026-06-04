@@ -2,37 +2,45 @@
  * frappe.ui.mount_vue_island — convenience helper for mounting a Vue 3
  * component as a Desk island that uses frappe-ui.
  *
- * What this collapses
- * ───────────────────
- * Without this helper, every new frappe-ui-based Desk page has to repeat:
- *   • Create an inner mount element with `data-frappe-ui` + `data-theme`.
- *   • Create a body-level portal element with the same attrs (so Dialog
- *     overlays and reka-ui popovers teleport inside the styled scope).
+ * Isolation: Shadow DOM
+ * ─────────────────────
+ * Each island mounts inside a shadow root. The shadow boundary encapsulates CSS
+ * both ways, so frappe-ui ships its normal full Tailwind + preflight and nothing
+ * leaks in or out of Bootstrap-owned Desk DOM — no `[data-frappe-ui]` scoping,
+ * no `!important` stamping, no scoped preflight.
+ *
+ * What this helper collapses
+ * ──────────────────────────
+ * Without it, every new frappe-ui-based Desk page would repeat:
+ *   • Create a host element, `attachShadow`, and a mount root inside it.
+ *   • Inject the island's stylesheet INTO the shadow root (a head <link>
+ *     wouldn't reach it).
+ *   • Create a teleport target inside the shadow and `app.provide(
+ *     'frappe-ui:portal-target', el)` so reka-ui overlays (Dialog, Popover,
+ *     Combobox, …) render inside the styled, encapsulated tree, not at <body>.
  *   • `createApp(component)` + `SetVueGlobals(app)`.
- *   • Install a memory-history vue-router so `useRouter()` calls don't
- *     throw (frappe-ui's Button etc. call it unconditionally).
- *   • `app.provide('frappe-ui:portal-target', ...)` so frappe-ui's Dialog
- *     teleports into the styled portal instead of bare <body>.
+ *   • Install a memory-history vue-router so `useRouter()` calls don't throw
+ *     (frappe-ui's Button etc. call it unconditionally).
  *   • Tear all of that down on page leave AND on hot reload.
  *
- * The helper does all of it. A frappe-ui-based island bundle becomes:
+ * A frappe-ui-based island bundle becomes:
  *
  *     import MyComponent from "./MyComponent.vue";
  *     import { mountVueIsland } from "frappe/public/js/frappe/ui/vue_island.js";
  *
  *     frappe.provide("frappe.ui");
  *     frappe.ui.mount_my_island = (opts) =>
- *         mountVueIsland({ ...opts, component: MyComponent });
+ *         mountVueIsland({ ...opts, component: MyComponent,
+ *                          styleBundles: ["my_island.bundle.css"] });
  *
  * Hot reload
  * ──────────
- * The helper keeps a WeakMap of wrapper-element → mounted-app. If you call
- * it again with the same wrapper, the previous app is `.unmount()`ed and
- * its portal element removed before the new one is created. That makes
+ * The helper keeps a WeakMap of wrapper-element → mounted-app. Re-calling it
+ * with the same wrapper unmounts the previous app and removes its host (and
+ * with it the shadow root, styles, and portal). That makes
  * `frappe.hot_update`-driven soft reloads safe: re-running the bundle's
- * `frappe.require(...)` chain (which is what `build_events` already does
- * after a successful esbuild rebuild) cleanly swaps the live app in
- * place, with no leaked Vue instances or piled-up <script> tags.
+ * `frappe.require(...)` chain cleanly swaps the live app in place, with no
+ * leaked Vue instances or piled-up shadow hosts.
  */
 
 import { createApp } from "vue";
@@ -51,6 +59,9 @@ const _mounted = new WeakMap();
  * @property {string} [title]               Page title.
  * @property {Object} [props]               Props for the root component.
  * @property {Object} [provide]             Extra app-level provides.
+ * @property {string[]} [styleBundles]      Logical assets.json names of CSS
+ *                                          bundles (e.g. "foo.bundle.css") to
+ *                                          inject into the island's shadow root.
  * @property {Array}  [routes]              Optional vue-router routes;
  *                                          default = [] (memory history).
  * @property {string} [bundleName]          If passed, the helper registers a
@@ -76,6 +87,7 @@ export function mountVueIsland(opts) {
 		provide: extra_provide,
 		routes,
 		bundleName,
+		styleBundles,
 	} = opts;
 
 	const $wrapper = wrapper && wrapper.jquery ? wrapper : $(wrapper);
@@ -96,34 +108,44 @@ export function mountVueIsland(opts) {
 	// Reset the wrapper so we always mount into a clean slate.
 	$wrapper.empty();
 
-	// Inner mount root — Tailwind's `important: '[data-frappe-ui]'` makes
-	// every utility rule fire only inside this attribute, so the island's
-	// styles cannot leak outward into Bootstrap-owned Desk DOM.
+	// SHADOW DOM ISOLATION
+	// --------------------
+	// The island lives inside a shadow root, which encapsulates CSS both ways:
+	// frappe-ui's full Tailwind + preflight can't leak out into Bootstrap-owned
+	// Desk DOM, and Bootstrap can't bleed in. This removes the entire CSS-war
+	// (no `[data-frappe-ui]` scoping, no scoped-preflight, no !important stamp).
+	const host = document.createElement("div");
+	host.className = "frappe-ui-island-host";
+	wrapperEl.appendChild(host);
+	const shadow = host.attachShadow({ mode: "open" });
+
+	// Inject the island's stylesheet(s) INTO the shadow root (a head <link>
+	// wouldn't reach the shadow tree). styleBundles are logical assets.json
+	// names (e.g. "foo.bundle.css") resolved to hashed URLs.
+	for (const bundle of styleBundles || []) {
+		const href = frappe.assets.bundled_asset(bundle);
+		const link = document.createElement("link");
+		link.rel = "stylesheet";
+		link.href = href;
+		shadow.appendChild(link);
+	}
+
+	// Mount root inside the shadow. `data-theme` drives the design-token theme.
 	const mountEl = document.createElement("div");
-	mountEl.setAttribute("data-frappe-ui", "");
 	mountEl.setAttribute("data-theme", "light");
 	mountEl.className = "frappe-ui-island";
-	wrapperEl.appendChild(mountEl);
+	shadow.appendChild(mountEl);
 
-	// Body-level portal for Dialog overlays + reka-ui popovers.
-	//
-	// Overlay components (Dialog, Popover, Combobox, Select, MultiSelect,
-	// Dropdown, Tooltip, TimePicker, date pickers) teleport their content out
-	// of the normal DOM tree via reka-ui `<*Portal>`. Without a styled portal
-	// it lands at bare <body> — outside any `[data-frappe-ui]` ancestor — so
-	// our scoped utility classes don't apply and Bootstrap CSS bleeds in.
-	//
-	// Every such component resolves its teleport target as
-	//   explicit prop → usePortalTarget() inject → reka-ui default (<body>)
-	// via frappe-ui's `usePortalTarget()` composable, whose injection key is the
-	// plain string `frappe-ui:portal-target`. Providing that key below routes
-	// all overlays into this styled portal element.
-	const portalId = `frappe-ui-portal-${Math.random().toString(36).slice(2, 9)}`;
+	// Teleport target ALSO inside the shadow root, so reka-ui `<*Portal>`
+	// overlays (Dialog, Popover, Combobox, Select, …) render inside the styled,
+	// encapsulated tree instead of at bare <body>. Every overlay resolves its
+	// target as explicit prop → usePortalTarget() inject → reka default; we
+	// provide the inject below. reka-ui's `:to` accepts an element, which (unlike
+	// a `#id` selector) resolves correctly across the shadow boundary.
 	const portalEl = document.createElement("div");
-	portalEl.id = portalId;
-	portalEl.setAttribute("data-frappe-ui", "");
 	portalEl.setAttribute("data-theme", "light");
-	document.body.appendChild(portalEl);
+	portalEl.className = "frappe-ui-island-portal";
+	shadow.appendChild(portalEl);
 
 	const app = createApp(component, props || {});
 
@@ -142,10 +164,10 @@ export function mountVueIsland(opts) {
 	});
 	app.use(router);
 
-	// Portal target consumed by frappe-ui's usePortalTarget() (string key, no
-	// Symbol). reka-ui's `:to` accepts a CSS selector, so `#<portalId>` resolves
-	// to the styled portal element appended above.
-	app.provide("frappe-ui:portal-target", `#${portalId}`);
+	// Portal target consumed by frappe-ui's usePortalTarget(). We provide the
+	// actual element (not a selector) because it lives inside the shadow root,
+	// where a document-level `querySelector('#id')` would never find it.
+	app.provide("frappe-ui:portal-target", portalEl);
 
 	if (extra_provide) {
 		for (const key of Object.keys(extra_provide)) {
@@ -187,8 +209,9 @@ export function mountVueIsland(opts) {
 			// Swallow — unmount errors shouldn't block a clean rebuild.
 			console.error("mountVueIsland: error during unmount", e);
 		}
-		if (portalEl.parentNode) portalEl.parentNode.removeChild(portalEl);
-		if (mountEl.parentNode) mountEl.parentNode.removeChild(mountEl);
+		// Removing the host drops the shadow root and everything in it (mount
+		// root, portal, injected stylesheets).
+		if (host.parentNode) host.parentNode.removeChild(host);
 		if (hotUpdateCallback) _unregisterHotUpdate(hotUpdateCallback);
 		_mounted.delete(wrapperEl);
 	}

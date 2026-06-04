@@ -61,17 +61,6 @@ const postCssPlugin = require("@frappe/esbuild-plugin-postcss2").default;
 const ignore_assets = require("./ignore-assets");
 const sass_options = require("./sass_options");
 const build_cleanup_plugin = require("./build-cleanup");
-// Desk-island Tailwind support: processes `@tailwind utilities;` directives in
-// bundle CSS files, scoping all generated utilities to `[data-frappe-ui]`.
-const tailwindcss = require("tailwindcss");
-const DESK_ISLANDS_TAILWIND_CONFIG = path.resolve(
-	__dirname,
-	"../tailwind.config.desk-islands.mjs"
-);
-const frappeUIImportant = require("./postcss-frappe-ui-important");
-// Resolves `~icons/lucide/*` virtual imports used by frappe-ui sources that
-// haven't migrated to the class-based lucide-* form yet.
-const lucideIconsPlugin = require("./lucide-icons");
 
 const {
 	app_list,
@@ -355,16 +344,11 @@ function get_files_to_build(files) {
 }
 
 function build_files({ files, outdir }) {
-	// lucideIconsPlugin must run before vue() so `~icons/lucide/*` imports
-	// inside .vue <script> blocks are resolved before Vue tries to.
-	//
 	// `compilerOptions.expressionPlugins: ['typescript']` enables TS syntax
-	// inside <template> expressions (non-null assertions `foo!.bar`, type
-	// casts, etc.) which several frappe-ui components use — notably
-	// Combobox/MultiSelect/Popover. Without it, the Babel-based template
-	// expression parser inside @vue/compiler-sfc throws on tokens like `!]`.
+	// inside <template> expressions (non-null assertions `foo!.bar`, type casts,
+	// etc.). Without it the Babel-based template expression parser inside
+	// @vue/compiler-sfc throws on tokens like `!]`.
 	let build_plugins = [
-		lucideIconsPlugin,
 		vue({
 			compilerOptions: {
 				expressionPlugins: ["typescript"],
@@ -376,163 +360,6 @@ function build_files({ files, outdir }) {
 	];
 	if (WATCH_MODE) build_plugins.push(watch_plugin);
 	return build_or_watch(get_build_options(files, outdir, build_plugins));
-}
-
-/**
- * esbuild plugin that deduplicates Vue ecosystem packages.
- * When frappe-ui is installed as a local file: dep, its own node_modules may
- * contain different versions of vue/vue-router that would be bundled as
- * separate module instances, breaking cross-bundle Symbol injection.
- * This plugin forces all such imports to resolve through frappe's node_modules,
- * explicitly targeting the ESM bundler entry so esbuild gets the right file.
- */
-function dedup_vue_plugin(frappe_node_modules) {
-	const pkgs = [
-		"vue",
-		"vue-router",
-		"@vue/runtime-core",
-		"@vue/runtime-dom",
-		"@vue/reactivity",
-		"@vue/shared",
-	];
-	const filter = new RegExp(`^(${pkgs.map((p) => p.replace("/", "\\/")).join("|")})$`);
-
-	// Resolve the best ESM bundler entry from a package.json exports field value.
-	// Handles both string values and nested condition objects.
-	function resolve_export(value, priority = ["default", "import", "browser", "require"]) {
-		if (typeof value === "string") return value;
-		if (typeof value === "object" && value !== null) {
-			for (const cond of priority) {
-				if (value[cond] !== undefined) {
-					return resolve_export(value[cond], priority);
-				}
-			}
-		}
-		return null;
-	}
-
-	const resolved_cache = {};
-	return {
-		name: "dedup-vue",
-		setup(build) {
-			build.onResolve({ filter }, (args) => {
-				if (!resolved_cache[args.path]) {
-					try {
-						const pkg_dir = path.resolve(frappe_node_modules, args.path);
-						const pkg_json = JSON.parse(
-							require("fs").readFileSync(path.join(pkg_dir, "package.json"), "utf-8")
-						);
-						// Prefer exports['.']['import'] → module → main
-						const export_entry =
-							pkg_json.exports && pkg_json.exports["."]
-								? resolve_export(
-										pkg_json.exports["."]["import"] || pkg_json.exports["."]
-								  )
-								: null;
-						const rel = export_entry || pkg_json.module || pkg_json.main || "index.js";
-						resolved_cache[args.path] = path.resolve(pkg_dir, rel);
-					} catch (e) {
-						return null; // Let esbuild handle it normally if package not found
-					}
-				}
-				return { path: resolved_cache[args.path] };
-			});
-		},
-	};
-}
-
-/**
- * Resolve `frappe-ui` and `frappe-ui/*` imports through the symlink-resolved
- * `realpath` of the linked submodule, then walk the package's `exports` map
- * manually.
- *
- * Why this is still needed even though esbuild 0.14+ understands `exports`:
- * with `"frappe-ui": "link:./frappe-ui"`, yarn places a relative symlink at
- * `node_modules/frappe-ui` whose target esbuild sometimes resolves against
- * the wrong cwd, picking up a stale ../node_modules/frappe-ui/index.js
- * fallback instead of the real `src/index.ts` entry. Realpath-ing first
- * sidesteps that.
- *
- * The `frappe-ui/desk` subpath that this used to be scoped around is gone
- * (we now compile from `frappe-ui` source). The plugin stays because the
- * `link:` symlink edge case applies to the bare `frappe-ui` entry too.
- */
-function frappe_ui_plugin(frappe_node_modules) {
-	let frappe_ui_dir = null;
-	try {
-		frappe_ui_dir = require("fs").realpathSync(path.resolve(frappe_node_modules, "frappe-ui"));
-	} catch (e) {
-		return { name: "frappe-ui-resolve", setup() {} }; // package not present
-	}
-
-	const pkg_json = JSON.parse(
-		require("fs").readFileSync(path.join(frappe_ui_dir, "package.json"), "utf-8")
-	);
-	const exports_map = pkg_json.exports || {};
-
-	function resolve_export(value, priority = ["import", "module", "default", "require"]) {
-		if (typeof value === "string") return value;
-		if (value && typeof value === "object") {
-			for (const cond of priority) {
-				if (value[cond] !== undefined) return resolve_export(value[cond], priority);
-			}
-		}
-		return null;
-	}
-
-	return {
-		name: "frappe-ui-resolve",
-		setup(build) {
-			build.onResolve({ filter: /^frappe-ui(\/|$)/ }, (args) => {
-				const sub =
-					args.path === "frappe-ui" ? "." : "./" + args.path.slice("frappe-ui/".length);
-
-				// 1. Try the package's exports map first.
-				const entry = exports_map[sub];
-				if (entry) {
-					const rel = resolve_export(entry);
-					if (rel) return { path: path.resolve(frappe_ui_dir, rel) };
-				}
-
-				// 2. Bare import → `main`/`module` field.
-				if (args.path === "frappe-ui") {
-					const main = pkg_json.module || pkg_json.main || "index.js";
-					return { path: path.resolve(frappe_ui_dir, main) };
-				}
-
-				// 3. Fall through to direct file resolution. The package's
-				// `exports` map intentionally hides `./src/*` subpaths from
-				// external consumers, but Desk islands deliberately deep-import
-				// from `frappe-ui/src/components/<X>` so the barrel doesn't drag
-				// in components (Calendar, TextEditor) that use Vue-3.4 / TS
-				// syntax our pinned `@vue/compiler-sfc@^3.2.26` can't parse.
-				// Try the requested path with common file/index resolutions.
-				const sub_rel = args.path.slice("frappe-ui/".length); // e.g. src/components/Button
-				const candidates = [
-					sub_rel + ".ts",
-					sub_rel + ".js",
-					sub_rel + ".vue",
-					path.join(sub_rel, "index.ts"),
-					path.join(sub_rel, "index.js"),
-					path.join(sub_rel, "index.vue"),
-					// Bare file (only if the requested path itself names a file,
-					// not a directory).
-					sub_rel,
-				];
-				const fs = require("fs");
-				for (const c of candidates) {
-					const abs = path.resolve(frappe_ui_dir, c);
-					try {
-						const st = fs.statSync(abs);
-						if (st.isFile()) return { path: abs };
-					} catch (_) {
-						// ENOENT — try next candidate
-					}
-				}
-				return null;
-			});
-		},
-	};
 }
 
 // Resolve postcss-import via tailwindcss (it's a transitive dep we already
@@ -573,12 +400,7 @@ function build_style_files({ files, outdir, rtl_style = false }) {
 		}),
 	];
 
-	// Process `@tailwind utilities;` in desk-island CSS bundles.
-	// tailwindcss must run before autoprefixer; frappeUIImportant must run last
-	// so it stamps !important on the freshly generated scoped utilities.
-	plugins.push(tailwindcss(DESK_ISLANDS_TAILWIND_CONFIG));
 	plugins.push(require("autoprefixer"));
-	plugins.push(frappeUIImportant);
 	if (WATCH_MODE) build_plugins.push(watch_plugin);
 	return build_or_watch(get_build_options(files, outdir, build_plugins));
 }
@@ -599,7 +421,6 @@ async function build_or_watch(options) {
 }
 
 function get_build_options(files, outdir, plugins) {
-	const frappe_node_modules = path.resolve(__dirname, "../node_modules");
 	return {
 		entryPoints: files,
 		entryNames: "[dir]/[name].[hash]",
@@ -638,11 +459,7 @@ function get_build_options(files, outdir, plugins) {
 				SSR: false,
 			}),
 		},
-		plugins: [
-			dedup_vue_plugin(frappe_node_modules),
-			frappe_ui_plugin(frappe_node_modules),
-			...plugins,
-		],
+		plugins: [...plugins],
 	};
 }
 

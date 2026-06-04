@@ -30,5 +30,7 @@ frappe.ui.FrappeUIPoc = function ({ wrapper, page }) {
 		component: FrappeUIPocComponent,
 		title: __("frappe-ui POC"),
 		bundleName: "frappe_ui_poc.bundle.js",
+		// Injected into the island's shadow root (not the document <head>).
+		styleBundles: ["frappe_ui_poc.bundle.css"],
 	});
 };

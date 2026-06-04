@@ -42,24 +42,32 @@ The proof-of-concept works, but three things make it heavier than it needs to be
   Desk-isolation CSS still sitting in `frappe-ui/src/desk/*` is stale code to be
   removed upstream — the framework owns isolation.
 
-### The one structural truth this plan accepts
+### The one structural truth — and how we resolved it
 
 The Tailwind-vs-Bootstrap CSS-war (scoped preflight + `[data-frappe-ui]`
-scoping + `!important` stamping) is a **cascade** problem. It is intrinsic for
-as long as frappe-ui renders into the same document as Bootstrap. Neither a
-bundler change (Vite) nor dependency upgrades (Vue, vue-router) eliminate it —
-they only change build ergonomics and runtime behavior. So this plan does **not**
-try to delete the CSS-war. It keeps it, owns it cleanly in the framework, and
-removes the *incidental* complexity around it.
+scoping + `!important` stamping) is a **cascade** problem: intrinsic for as long
+as frappe-ui renders into the *same cascade* as Bootstrap. A bundler change
+(Vite) or dependency upgrades don't touch it. Only two things eliminate it — a
+separate cascade (**Shadow DOM** / iframe) or removing Bootstrap.
+
+**Decision (validated by spike): mount each island in a Shadow DOM.** The shadow
+boundary isolates CSS both ways, so frappe-ui ships its **normal full Tailwind +
+preflight** and the entire CSS-war is **deleted** — no `[data-frappe-ui]`
+scoping, no scoped-preflight, no `!important` stamp. The spike confirmed the
+hard risks are fine in practice: **focus trapping, keyboard nav, floating-ui
+positioning, click-outside dismiss, body scroll-lock, and full-viewport
+Dialogs all work** — because WS2 gave every overlay a configurable teleport
+target, which we point at a node *inside* the shadow root. This supersedes the
+earlier "keep the CSS-war, own it in the framework" framing in WS3.
 
 ## Goal & non-goals
 
 **Goal:** make the island approach production-shaped by (1) building islands
-with Vite, (2) standardizing one teleport contract upstream, and (3) keeping the
-CSS-war as a clean, single-sourced, framework-owned layer.
+with Vite, (2) standardizing one teleport contract upstream, and (3) **isolating
+each island with Shadow DOM so the CSS-war is deleted, not maintained.**
 
-**Non-goals:** replacing the esbuild pipeline for legacy bundles; Shadow DOM;
-a new Desk shell SPA; removing Bootstrap; deleting the CSS-war.
+**Non-goals:** replacing the esbuild pipeline for legacy bundles; a new Desk
+shell SPA; removing Bootstrap.
 
 ## Architecture: two parallel build pipelines
 
@@ -241,47 +249,59 @@ Verified every reka-ui `<*Portal>` in `src/components` now carries a `:to`.
 
 ---
 
-## Workstream 3 — CSS-war owned cleanly in the framework
+## Workstream 3 — Shadow DOM isolation (supersedes "own the CSS-war")
 
-Keep the cascade-arbitration code, but make it single-sourced and
-framework-owned. Remove duplication and any stale copies upstream.
+**The CSS-war is deleted, not maintained.** Each island mounts in a shadow root;
+the boundary isolates CSS both ways, so frappe-ui ships its normal full Tailwind
++ preflight and nothing leaks either direction.
 
-### Deliverables
+### Done
 
-- **Single source for the scoped preflight.** Keep
-  [frappe/public/css/frappe-ui-scoped-preflight.css](frappe/public/css/frappe-ui-scoped-preflight.css)
-  as the one canonical file. Stop inlining it into every island bundle: under
-  Vite, `@import` resolves natively, so each island's CSS entry imports it once.
-- **Framework-owned PostCSS chain**, consumed by the Vite config (WS1):
-  - [tailwind.config.desk-islands.mjs](tailwind.config.desk-islands.mjs)
-    (`important: '[data-frappe-ui]'`, `preflight:false`, `container:false`).
-  - [esbuild/postcss-frappe-ui-important.js](esbuild/postcss-frappe-ui-important.js)
-    — move/rename out of `esbuild/` (it's no longer esbuild-specific) to e.g.
-    `frappe/public/postcss/frappe-ui-important.js`.
-- **Remove stale upstream isolation CSS.** Delete `frappe-ui/src/desk/style.css`
-  (and any sibling Desk-isolation CSS) upstream — the framework owns this now.
-  The scoped preflight's "ported verbatim from frappe-ui/src/desk/style.css"
-  note becomes "framework-owned; no upstream counterpart."
+- ✅ [vue_island.js](frappe/public/js/frappe/ui/vue_island.js) — `attachShadow`;
+  the island's stylesheet is injected **into the shadow root** (a head `<link>`
+  wouldn't reach it); mount root + teleport target live inside the shadow; the
+  portal target is provided as the **element** (a `#id` selector can't cross the
+  shadow boundary). Teardown removes the host (drops shadow + styles + portal).
+- ✅ [tailwind.config.desk-islands.mjs](tailwind.config.desk-islands.mjs) —
+  dropped `important: '[data-frappe-ui]'`, `preflight:false`, `container:false`.
+  Now full standard Tailwind + frappe-ui preset.
+- ✅ [postcss-root-to-host.js](esbuild/postcss-root-to-host.js) — rewrites
+  `:root` → `:host` so frappe-ui's design tokens land on the shadow host and
+  inherit into the tree (`:root` never matches inside a shadow).
+- ✅ [build-islands.mjs](esbuild/build-islands.mjs) — PostCSS chain dropped the
+  `!important`-stamp, added `root-to-host`.
+- ✅ Island CSS entry + page controller — preflight from `@tailwind base`; CSS
+  loaded via `styleBundles` into the shadow, not the document `<head>`.
+- ✅ Deleted dead `frappe/public/css/frappe-ui-scoped-preflight.css`.
 
-### Tasks
+Result: the **1042 `[data-frappe-ui]`-scoped, `!important`-stamped rules → 0**.
 
-1. Relocate the important-stamp plugin and tailwind desk config into the Vite
-   PostCSS chain; confirm `tailwindcss` runs before `autoprefixer` before the
-   important-stamp.
-2. Convert island CSS entries to `@import` the canonical scoped preflight
-   instead of inlining it.
-3. Delete the stale `frappe-ui/src/desk/*` isolation CSS upstream; update the
-   header comments in the preflight + tailwind config to say framework-owned.
-4. Add a short `frappe/public/css/README` (or doc section) explaining the
-   three-part isolation so future contributors don't reintroduce a global
-   preflight.
+### Remaining cleanup
 
-### Exit criteria
+- ✅ **Font.** A `:root { font-family: InterVariable, … }` rule in the island CSS
+  (rewritten to `:host` by `root-to-host`) gives the shadow host frappe-ui's font.
+- ✅ **Removed dead esbuild island workarounds.** Deleted the frappe-ui-only
+  esbuild plugins (`lucide-icons`, `dedup_vue_plugin`, `frappe_ui_plugin`) and
+  the `@tailwind` + `!important`-stamp CSS wiring; deleted
+  `esbuild/lucide-icons.js` + `esbuild/postcss-frappe-ui-important.js`. Kept the
+  build-wide options that any bundle could use (`patchVueCompileScript`,
+  `import.meta` defines, `postcss-import`, `expressionPlugins`, `autoprefixer`).
+  Verified: a full `node esbuild --apps frappe` build passes (Vue bundles
+  form_builder/workflow_builder + all CSS) and `desk.bundle.js` still resolves.
+- ☐ **Dark mode.** Only `data-theme="light"` is wired on the host. For dark,
+  set `data-theme` on the host and confirm the `:host[data-theme="dark"]` tokens
+  (post `:root→:host`) resolve.
 
-- One scoped-preflight file, imported (not duplicated) per island.
-- The important-stamp + tailwind desk config live in the framework, run inside
-  Vite, and produce identical CSS output to today (diff the emitted bundle CSS).
-- No Desk-isolation CSS remains in frappe-ui.
+### Shadow DOM tradeoffs (for the record)
+
+- The teleport target lives inside the shadow host (inside `.layout-main-section`),
+  yet **full-viewport Dialogs still cover the navbar/sidebar** — verified in the
+  spike. If a future container introduces a clipping/stacking context that breaks
+  this, the fallback is a body-level shadow container for overlays.
+- Per-root style cost: each island ships its own copy of the frappe-ui CSS into
+  its shadow. Fine for a handful of islands; if many islands mount at once,
+  switch the `<link>` injection to a shared `adoptedStyleSheets` (constructable
+  stylesheet) to dedupe.
 
 ---
 

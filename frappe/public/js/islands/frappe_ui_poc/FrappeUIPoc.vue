@@ -2,14 +2,13 @@
 	<!--
     frappe-ui POC island.
 
-    Mount/portal/router/theme plumbing lives in `mountVueIsland`
-    (frappe/public/js/frappe/ui/vue_island.js). The mount root carries
-    `data-frappe-ui` + `data-theme="light"`, so this component just
-    starts with its own padding/layout wrapper.
+    Shadow-DOM/mount/portal/router/theme plumbing lives in `mountVueIsland`
+    (frappe/public/js/frappe/ui/vue_island.js). The island mounts inside a
+    shadow root, so this component just starts with its own padding wrapper.
 
-    All frappe-ui components are imported from the main `frappe-ui`
-    entry; esbuild compiles them from source via the lucide-icons +
-    Vue plugins in `esbuild/esbuild.js`.
+    frappe-ui components are deep-imported from `frappe-ui/src/components/*`
+    and compiled from source by the Vite islands pipeline
+    (esbuild/build-islands.mjs).
   -->
 	<div class="frappe-ui-poc-island p-6">
 		<div class="mb-6">
@@ -125,7 +124,7 @@
 		<Combobox v-model="value" :options="repos" placeholder="Pick a repo" open-on-focus />
 
 		<!-- Overlays wired onto the usePortalTarget contract (WS2). Each teleports
-		     its content into the island's styled portal, not bare <body>. -->
+		     its content into the island's in-shadow portal target. -->
 		<div class="flex gap-3 flex-wrap items-center">
 			<Select v-model="fruit" :options="fruits" placeholder="Pick a fruit" />
 
@@ -135,11 +134,13 @@
 				</template>
 				<template #body-main>
 					<div class="p-4 w-64">
-						<p class="text-p-base text-ink-gray-8 font-medium mb-1">Portaled popover</p>
+						<p class="text-p-base text-ink-gray-8 font-medium mb-1">
+							Portaled popover
+						</p>
 						<p class="text-p-sm text-ink-gray-6">
-							This content is teleported via reka-ui's <code>PopoverPortal</code> into
-							the island's <code>[data-frappe-ui]</code> portal — so it stays styled
-							inside Desk.
+							This content is teleported via reka-ui's
+							<code>PopoverPortal</code> into the island's shadow root — so it stays
+							styled and isolated from Desk.
 						</p>
 					</div>
 				</template>

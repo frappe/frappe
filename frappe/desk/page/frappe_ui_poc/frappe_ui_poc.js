@@ -15,7 +15,9 @@ frappe.pages["frappe-ui-poc"].on_page_load = function (wrapper) {
 
 frappe.pages["frappe-ui-poc"].on_page_show = function (wrapper) {
 	const $parent = $(wrapper).find(".layout-main-section");
-	frappe.require(["frappe_ui_poc.bundle.js", "frappe_ui_poc.bundle.css"]).then(() => {
+	// Only the JS is loaded here. The island's CSS is injected into its shadow
+	// root by mountVueIsland (styleBundles), not into the document <head>.
+	frappe.require(["frappe_ui_poc.bundle.js"]).then(() => {
 		frappe.ui.FrappeUIPoc({
 			wrapper: $parent,
 			page: wrapper.page,
