@@ -32,7 +32,7 @@
 		"reka-ui": "^2.7.0",
 		"thememirror": "^2.0.1",
 		"typescript": "^5.8.3",
-		"vite": "^8.0.8",
+		"vite": "8.0.13",
 		"vue": "^3.5.14",
 		"vue-codemirror": "^6.1.1",
 		"vue-router": "^4.2.2",

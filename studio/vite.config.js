@@ -32,13 +32,13 @@ export default defineConfig({
 		},
 	},
 	plugins: [
+		vue(),
 		frappeui({
 			frappeProxy: true,
 			lucideIcons: true,
 			buildConfig: false,
 			jinjaBootData: false,
 		}),
-		vue(),
 		sharedDependencyResolver(path.resolve(__dirname, "..")),
 		customComponentWatcher(path.resolve(__dirname, "../../")),
 	],
