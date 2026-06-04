@@ -408,7 +408,7 @@ function validate_table_columns() {
 }
 
 watch(editing, (value) => {
-	if (value) nextTick(() => label_input.value.focus());
+	if (value) nextTick(() => label_input.value?.focus());
 });
 watch(
 	() => props.df.table_columns,
