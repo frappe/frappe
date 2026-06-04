@@ -2,7 +2,6 @@
 	<div class="pfb-inspector" @click.stop>
 		<!-- Header -->
 		<div class="pfb-inspector-head">
-			<div class="pfb-inspector-eyebrow">{{ __("Inspector") }}</div>
 			<div class="pfb-inspector-title">
 				<span class="pfb-inspector-kind">{{ inspector_kind }}</span>
 				<span
@@ -16,6 +15,7 @@
 				>
 					{{ inspector_subtitle }}
 				</span>
+				<span v-else class="pfb-inspector-eyebrow-inline">{{ __("Inspector") }}</span>
 			</div>
 		</div>
 
@@ -896,37 +896,46 @@ function set_padding(side, value) {
 
 /* ── Header ─────────────────────────────────────────────── */
 .pfb-inspector-head {
-	padding: 12px 14px 10px;
+	padding: 8px 12px;
 	border-bottom: 1px solid var(--border-color);
 	flex-shrink: 0;
-}
-
-.pfb-inspector-eyebrow {
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-semibold);
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	color: var(--text-muted);
-	margin-bottom: 3px;
+	min-height: 0;
 }
 
 .pfb-inspector-title {
 	display: flex;
-	align-items: baseline;
+	align-items: center;
 	gap: 6px;
+	min-width: 0;
 }
 
 .pfb-inspector-kind {
-	font-size: var(--text-lg);
-	font-weight: var(--weight-bold);
+	font-size: var(--text-sm);
+	font-weight: var(--weight-semibold);
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
 .pfb-inspector-name {
-	font-size: var(--text-base);
+	font-size: var(--text-sm);
 	color: var(--text-muted);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	flex: 1;
+	min-width: 0;
+}
+
+.pfb-inspector-name::before {
+	content: "·";
+	margin-right: 6px;
+	opacity: 0.4;
+}
+
+.pfb-inspector-eyebrow-inline {
+	font-size: var(--text-sm);
+	font-weight: var(--weight-medium);
+	color: var(--text-muted);
 }
 
 /* ── Breadcrumb ──────────────────────────────────────────── */
