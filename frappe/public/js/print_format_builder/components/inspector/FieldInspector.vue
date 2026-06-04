@@ -556,7 +556,7 @@ import { computed, inject, ref } from "vue";
 import draggable from "vuedraggable";
 import { useStore } from "../../stores";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
-import Autocomplete from "../../../../vue-components/Autocomplete.vue";
+import Autocomplete from "../../../vue-components/Autocomplete.vue";
 
 let store = inject("$store");
 let { letterhead, layout } = useStore();
