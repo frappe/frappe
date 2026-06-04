@@ -668,7 +668,6 @@ let current_align = computed(() => selected_field.value?.align ?? "left");
 const show_label_opts = [
 	{ value: "show", label: __("Show") },
 	{ value: "hide", label: __("Hide") },
-	{ value: "inline", label: __("Inline") },
 ];
 
 const align_icons = {
