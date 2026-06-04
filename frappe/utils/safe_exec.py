@@ -231,14 +231,14 @@ def safer_log_error(
 	assert isinstance(reference_name, (str, int, type(None)))
 	assert isinstance(defer_insert, bool)
 
-	log_doc = frappe.log_error(
+	frappe.log_error(
 		title=title,
 		message=message,
 		reference_doctype=reference_doctype,
 		reference_name=reference_name,
 		defer_insert=defer_insert,
 	)
-	return log_doc.as_dict() if log_doc else None
+	return {}
 
 
 def safer_get_visible_columns(*args, **kwargs):
@@ -286,7 +286,7 @@ def make_safe_get_request(url: str, **kwargs):
 	for record in addr_info:
 		try:
 			addr = ipaddress.ip_address(record[4][0])
-		except ValueError, IndexError:
+		except (ValueError, IndexError):
 			continue
 
 		if not addr.is_global:
