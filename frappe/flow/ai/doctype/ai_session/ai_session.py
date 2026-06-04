@@ -48,7 +48,7 @@ class AISession(Document):
 		if self.is_new():
 			return
 		db_agent = frappe.db.get_value("AI Session", self.name, "agent")
-		if db_agent != self.agent:
+		if (db_agent or None) != (self.agent or None):
 			frappe.throw(
 				_("Cannot change the agent on an existing session."),
 				title=_("Agent Locked"),
