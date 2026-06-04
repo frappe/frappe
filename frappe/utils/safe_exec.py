@@ -43,7 +43,7 @@ ARGUMENT_NOT_SET = object()
 SAFE_EXEC_CONFIG_KEY = "server_script_enabled"
 SERVER_SCRIPT_FILE_PREFIX = "<serverscript>"
 
-RENDER_EXEC_CONFIG_KEY = "render_exec_enabled"
+RENDER_EXEC_CONFIG_KEY = "disable_render_safe_exec"
 
 
 class NamespaceDict(frappe._dict):
@@ -84,7 +84,7 @@ def is_safe_exec_enabled() -> bool:
 
 
 def is_render_exec_enabled() -> bool:
-	return bool(frappe.get_common_site_config(cached=True).get(RENDER_EXEC_CONFIG_KEY))
+	return not bool(frappe.get_common_site_config(cached=True).get(RENDER_EXEC_CONFIG_KEY, 0))
 
 
 def safe_exec(
@@ -319,7 +319,7 @@ def make_safe_get_request(url: str, **kwargs):
 	for record in addr_info:
 		try:
 			addr = ipaddress.ip_address(record[4][0])
-		except (ValueError, IndexError):
+		except ValueError, IndexError:
 			continue
 
 		if not addr.is_global:
