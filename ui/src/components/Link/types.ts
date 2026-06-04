@@ -11,7 +11,6 @@ export interface LinkProps extends InputLabelingProps {
   creatable?: boolean
   disabled?: boolean
   placeholder?: string
-  id?: string
 }
 
 export type LinkEmits = {
