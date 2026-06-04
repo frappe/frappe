@@ -551,12 +551,29 @@ class ImportFile:
 		self.header = header
 		self.columns = self.header.columns
 		self.data = data
+		self.header.import_ids = _build_import_id_set(self)
+		self._refresh_self_referential_link_validation()
 
 		if len(data) < 1:
 			frappe.throw(
 				_("Import template should contain a Header and atleast one row."),
 				title=_("Template Error"),
 			)
+
+	def _refresh_self_referential_link_validation(self):
+		"""Re-validate parent Link columns after IDs from the file are known."""
+		from frappe.core.doctype.data_import.value_mapping import warn_invalid_link_select_values
+
+		for col in self.header.columns:
+			if not col.df or col.skip_import or col.df.fieldtype != "Link":
+				continue
+			if col.df.options != self.doctype:
+				continue
+
+			col.import_ids = self.header.import_ids
+			col.invalid_value_items = None
+			col.warnings = [w for w in col.warnings if w.get("type") != "value_mapping"]
+			warn_invalid_link_select_values(col)
 
 	def get_data_for_import_preview(self):
 		"""Adds a serial number column as the first column"""
@@ -594,6 +611,12 @@ class ImportFile:
 		from frappe.core.doctype.data_import.value_mapping import get_mapping_hints
 
 		out.mapping_hints = get_mapping_hints(self, self.reference_doctype, self.value_lookup)
+
+		tree_preview = build_tree_preview(self)
+		if tree_preview:
+			out.tree_preview = tree_preview
+			out.warnings += tree_preview.tree_warnings
+
 		return out
 
 	def get_payloads_for_import(self):
@@ -603,7 +626,7 @@ class ImportFile:
 		while data:
 			doc, rows, data = self.parse_next_row_for_import(data)
 			payloads.append(frappe._dict(doc=doc, rows=rows))
-		return payloads
+		return sort_tree_payloads(payloads, self.doctype, self.import_type)
 
 	def parse_next_row_for_import(self, data):
 		"""
@@ -724,6 +747,253 @@ def format_row_numbers_for_warning(rows: list, max_shown: int = 6) -> str:
 	return f"{', '.join(str(r) for r in rows[:max_shown])}, ... {rows[-1]}"
 
 
+def _build_import_id_set(import_file: "ImportFile") -> set[str]:
+	"""IDs present in the template (used to validate self-referential tree parent links)."""
+	id_field = get_id_field(import_file.doctype)
+	id_column = next(
+		(
+			col
+			for col in import_file.header.columns
+			if col.df and col.df.fieldname == id_field.fieldname and not col.skip_import
+		),
+		None,
+	)
+	if not id_column:
+		return set()
+
+	ids = set()
+	for row in import_file.data:
+		value = row.get(id_column.index)
+		if value not in INVALID_VALUES:
+			ids.add(cstr(value).strip())
+	return ids
+
+
+def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
+	"""Build a flat, depth-ordered node list for tree DocType import preview."""
+	meta = frappe.get_meta(import_file.doctype)
+	if not meta.is_nested_set():
+		return None
+
+	parent_field = meta.nsm_parent_field or f"parent_{frappe.scrub(import_file.doctype)}"
+	id_field = get_id_field(import_file.doctype)
+	id_fieldname = id_field.fieldname
+	label_fieldname = meta.title_field or id_fieldname
+	is_group_field = "is_group" if meta.has_field("is_group") else None
+	parent_column = next(
+		(
+			col
+			for col in import_file.header.columns
+			if col.df and col.df.fieldname == parent_field and not col.skip_import
+		),
+		None,
+	)
+
+	nodes = []
+	id_to_rows: dict[str, list[int]] = {}
+
+	for row in import_file.data:
+		doc = row.parse_doc(import_file.doctype)
+		if not doc:
+			continue
+
+		node_id = doc.get(id_fieldname)
+		if node_id in INVALID_VALUES:
+			continue
+
+		node_id = cstr(node_id).strip()
+		parent = _get_tree_parent_value(row, parent_column, doc, parent_field)
+
+		label = doc.get(label_fieldname) or node_id
+		label = cstr(label).strip() if label not in INVALID_VALUES else node_id
+
+		is_group = cint(doc.get(is_group_field)) if is_group_field else 0
+
+		id_to_rows.setdefault(node_id, []).append(row.row_number)
+		nodes.append(
+			frappe._dict(
+				id=node_id,
+				label=label,
+				parent=parent,
+				row_number=row.row_number,
+				is_group=is_group,
+				warnings=[],
+			)
+		)
+
+	tree_warnings = []
+	nodes_by_id = {node.id: node for node in nodes}
+
+	for node_id, row_numbers in id_to_rows.items():
+		if len(row_numbers) > 1:
+			message = _("Duplicate ID {0} in rows {1}").format(
+				frappe.bold(node_id), format_row_numbers_for_warning(row_numbers)
+			)
+			tree_warnings.append({"message": message})
+			for node in nodes:
+				if node.id == node_id:
+					node.warnings.append(message)
+
+	for node in nodes:
+		parent_id = node.parent
+		if not parent_id:
+			continue
+
+		if parent_id in nodes_by_id:
+			if _has_parent_cycle(node.id, nodes_by_id):
+				message = _("Circular parent reference for {0}").format(frappe.bold(node.id))
+				node.warnings.append(message)
+				if not any(w.get("message") == message for w in tree_warnings):
+					tree_warnings.append({"row": node.row_number, "message": message})
+			continue
+
+		parent_exists = frappe.db.exists(import_file.doctype, parent_id)
+		if import_file.import_type == UPDATE or parent_exists:
+			continue
+
+		message = _("Parent {0} not found in file").format(frappe.bold(parent_id))
+		node.warnings.append(message)
+		tree_warnings.append({"row": node.row_number, "message": message})
+
+	display_nodes = _order_tree_preview_nodes(nodes)
+
+	return frappe._dict(
+		nodes=display_nodes,
+		tree_warnings=tree_warnings,
+		total_nodes=len(nodes),
+	)
+
+
+def _get_tree_parent_value(row: "Row", parent_column, doc: frappe._dict, parent_field: str):
+	"""Parent link values are often unset in preview because targets are not in DB yet."""
+	if parent_column:
+		value = row.get(parent_column.index)
+		if value not in INVALID_VALUES:
+			return cstr(value).strip()
+
+	value = doc.get(parent_field)
+	return cstr(value).strip() if value not in INVALID_VALUES else None
+
+
+def _has_parent_cycle(node_id: str, nodes_by_id: dict) -> bool:
+	seen = set()
+	current = node_id
+	while current:
+		if current in seen:
+			return True
+		seen.add(current)
+		node = nodes_by_id.get(current)
+		if not node or not node.parent or node.parent not in nodes_by_id:
+			return False
+		current = node.parent
+	return False
+
+
+def sort_tree_payloads(payloads: list, doctype: str, import_type: str | None) -> list:
+	"""Return payloads in parent-before-child order for nested-set inserts."""
+	meta = frappe.get_meta(doctype)
+	if import_type != INSERT or not meta.is_nested_set() or not payloads:
+		return payloads
+
+	parent_field = meta.nsm_parent_field or f"parent_{frappe.scrub(doctype)}"
+	id_fieldname = get_id_field(doctype).fieldname
+
+	def get_payload_id(payload):
+		value = payload.doc.get(id_fieldname)
+		if value in INVALID_VALUES:
+			return None
+		return cstr(value).strip()
+
+	def get_payload_parent(payload):
+		value = payload.doc.get(parent_field)
+		if value in INVALID_VALUES:
+			return None
+		return cstr(value).strip()
+
+	payload_by_id = {node_id: payload for payload in payloads if (node_id := get_payload_id(payload))}
+
+	children_by_parent: dict[str, list] = {}
+	roots = []
+
+	for payload in payloads:
+		node_id = get_payload_id(payload)
+		if not node_id:
+			continue
+		parent = get_payload_parent(payload)
+		if parent and parent in payload_by_id:
+			children_by_parent.setdefault(parent, []).append(payload)
+		else:
+			roots.append(payload)
+
+	for children in children_by_parent.values():
+		children.sort(key=lambda payload: payload.rows[0].row_number)
+	roots.sort(key=lambda payload: payload.rows[0].row_number)
+
+	ordered = []
+	seen = set()
+
+	def walk(parent_id):
+		for child in children_by_parent.get(parent_id, []):
+			node_id = get_payload_id(child)
+			if not node_id or node_id in seen:
+				continue
+			seen.add(node_id)
+			ordered.append(child)
+			walk(node_id)
+
+	for root in roots:
+		node_id = get_payload_id(root)
+		if not node_id or node_id in seen:
+			continue
+		seen.add(node_id)
+		ordered.append(root)
+		walk(node_id)
+
+	for payload in payloads:
+		node_id = get_payload_id(payload)
+		if node_id:
+			if node_id not in seen:
+				ordered.append(payload)
+		else:
+			ordered.append(payload)
+
+	return ordered
+
+
+def _order_tree_preview_nodes(nodes: list) -> list:
+	children_by_parent: dict[str | None, list] = {}
+	nodes_by_id = {}
+
+	for node in nodes:
+		nodes_by_id[node.id] = node
+		children_by_parent.setdefault(node.parent or None, []).append(node)
+
+	for children in children_by_parent.values():
+		children.sort(key=lambda n: n.row_number)
+
+	ordered = []
+	seen = set()
+
+	def walk(parent_id, depth):
+		for child in children_by_parent.get(parent_id, []):
+			if child.id in seen:
+				continue
+			seen.add(child.id)
+			child.depth = depth
+			ordered.append(child)
+			walk(child.id, depth + 1)
+
+	walk(None, 0)
+
+	for node in nodes:
+		if node.id not in seen:
+			node.depth = 0
+			node.orphan = True
+			ordered.append(node)
+
+	return ordered
+
+
 class Row:
 	def __init__(self, index, row, doctype, header, import_type):
 		self.index = index
@@ -834,6 +1104,13 @@ class Row:
 				return
 
 		elif df.fieldtype == "Link":
+			if (
+				df.options == self.doctype
+				and getattr(self.header, "import_ids", None)
+				and cstr(value).strip() in self.header.import_ids
+			):
+				return value
+
 			exists = self.link_exists(value, df)
 			if not exists:
 				msg = _('"{0}" is not a valid {1}').format(

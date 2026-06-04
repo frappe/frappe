@@ -34,3 +34,52 @@
 		background-color: unset;
 	}
 }
+
+.import-tree-preview-panel {
+	.import-tree-container {
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius);
+		background-color: var(--card-bg);
+		overflow: hidden;
+	}
+
+	.import-tree-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--margin-md);
+		padding: var(--padding-sm) var(--padding-md);
+		border-bottom: 1px solid var(--border-color);
+	}
+
+	.import-tree-title {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--margin-sm);
+		min-width: 0;
+	}
+
+	.import-tree-doctype-label {
+		font-size: var(--text-lg);
+		font-weight: 600;
+		color: var(--text-color);
+		line-height: 1.4;
+	}
+
+	.import-tree-body {
+		max-height: 380px;
+		overflow: auto;
+
+		.tree {
+			padding: var(--padding-sm);
+		}
+	}
+
+	.import-tree-row-number {
+		font-weight: normal;
+	}
+
+	.import-tree-node-orphan > .tree-link .tree-label {
+		color: var(--orange-600);
+	}
+}

@@ -519,3 +519,92 @@ def get_import_file(csv_file_name, force=False):
 
 def get_csv_file_path(file_name):
 	return frappe.get_app_path("frappe", "core", "doctype", "data_import", "fixtures", file_name)
+
+
+class TestTreeDataImport(IntegrationTestCase):
+	doctype_name = "Test Tree Data Import"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls._ensure_tree_doctype()
+
+	@classmethod
+	def _ensure_tree_doctype(cls):
+		if frappe.db.exists("DocType", cls.doctype_name):
+			return
+
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		dt = new_doctype(
+			cls.doctype_name,
+			is_tree=True,
+			autoname="field:node_name",
+			fields=[{"label": "Node Name", "fieldname": "node_name", "fieldtype": "Data", "reqd": 1}],
+		)
+		dt.allow_import = 1
+		dt.insert()
+
+	def _parent_label(self):
+		meta = frappe.get_meta(self.doctype_name)
+		parent_field = meta.nsm_parent_field
+		return meta.get_field(parent_field).label
+
+	def _make_csv_file(self, rows):
+		parent_label = self._parent_label()
+		lines = [f"Node Name,Is Group,{parent_label}"] + [",".join(row) for row in rows]
+		file_doc = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"{frappe.generate_hash(length=10)}.csv",
+				"content": "\n".join(lines),
+				"is_private": 1,
+			}
+		)
+		file_doc.save(ignore_permissions=True)
+		return file_doc
+
+	def _get_importer(self, file_doc):
+		data_import = frappe.new_doc("Data Import")
+		data_import.import_type = "Insert New Records"
+		data_import.reference_doctype = self.doctype_name
+		data_import.import_file = file_doc.file_url
+		data_import.insert()
+		frappe.db.commit()
+		return data_import
+
+	def test_tree_preview_and_payload_order(self):
+		rows = [
+			("Leaf", "0", "Division"),
+			("Division", "1", "Root"),
+			("Root", "1", ""),
+		]
+		data_import = self._get_importer(self._make_csv_file(rows))
+		preview = data_import.get_preview_from_template()
+
+		self.assertIsNotNone(preview.tree_preview)
+		self.assertEqual(preview.tree_preview.total_nodes, 3)
+		node_ids = [node.id for node in preview.tree_preview.nodes]
+		self.assertEqual(node_ids, ["Root", "Division", "Leaf"])
+
+		imp = Importer(self.doctype_name, data_import=data_import)
+		payload_ids = [p.doc.node_name for p in imp.import_file.get_payloads_for_import()]
+		self.assertEqual(payload_ids, ["Root", "Division", "Leaf"])
+
+	def test_tree_import(self):
+		meta = frappe.get_meta(self.doctype_name)
+		parent_field = meta.nsm_parent_field
+
+		for name in ("Root", "Division", "Leaf"):
+			frappe.delete_doc_if_exists(self.doctype_name, name)
+		frappe.db.commit()
+
+		rows = [
+			("Root", "1", ""),
+			("Division", "1", "Root"),
+			("Leaf", "0", "Division"),
+		]
+		data_import = self._get_importer(self._make_csv_file(rows))
+		Importer(self.doctype_name, data_import=data_import).import_data()
+
+		self.assertEqual(frappe.db.get_value(self.doctype_name, "Leaf", parent_field), "Division")

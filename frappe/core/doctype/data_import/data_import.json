@@ -30,6 +30,8 @@
   "value_mappings",
   "skipped_rows_section",
   "skipped_rows",
+  "section_import_tree_preview",
+  "import_tree_preview",
   "section_import_preview",
   "import_preview",
   "import_log_heading",
@@ -62,6 +64,20 @@
    "in_list_view": 1,
    "label": "Import File",
    "read_only_depends_on": "eval: ['Success', 'Partial Success'].includes(doc.status)"
+  },
+  {
+   "collapsible": 1,
+   "css_class": "data-import-tree-preview-section",
+   "fieldname": "section_import_tree_preview",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Tree Preview"
+  },
+  {
+   "fieldname": "import_tree_preview",
+   "fieldtype": "HTML",
+   "hide_label": 1,
+   "label": "Tree Preview"
   },
   {
    "fieldname": "import_preview",
