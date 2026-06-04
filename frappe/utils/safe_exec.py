@@ -294,6 +294,11 @@ def safe_get_single_value(*args, **kwargs):
 	return frappe.db.get_single_value(*args, **kwargs)
 
 
+def safe_render_template(*args, **kwargs):
+	kwargs.pop("restrict_globals", None)
+	return frappe.render_template(*args, restrict_globals=True, **kwargs)
+
+
 ALLOWED_SCHEMES = frozenset({"http", "https"})
 
 
@@ -529,7 +534,7 @@ def render_safe_globals():
 			get_system_settings=frappe.get_system_settings,
 			utils=datautils,
 			get_url=frappe.utils.get_url,
-			render_template=frappe.render_template,
+			render_template=safe_render_template,
 			msgprint=frappe.msgprint,
 			throw=frappe.throw,
 			user=user,
@@ -637,6 +642,7 @@ def exec_safe_globals():
 			get_all=frappe.get_all,
 			get_cached_doc=frappe.get_cached_doc,
 			get_last_doc=frappe.get_last_doc,
+			render_template=frappe.render_template,
 		)
 	)
 	out.frappe.db.update(
