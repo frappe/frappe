@@ -36,8 +36,8 @@
 				:placeholder="placeholder || __('Search...')"
 				v-model="query"
 				@focus="focused = true"
-				@blur="setTimeout(() => (focused = false), 100)"
-				@keydown.escape="input_el.blur()"
+				@blur="on_blur"
+				@keydown.escape="on_escape"
 				@keydown.enter.prevent="confirm_highlight"
 				@keydown.down.prevent="highlight = Math.min(highlight + 1, filtered.length - 1)"
 				@keydown.up.prevent="highlight = Math.max(highlight - 1, 0)"
@@ -92,6 +92,14 @@ const filtered = computed(() => {
 watch(filtered, () => {
 	highlight.value = 0;
 });
+
+function on_blur() {
+	setTimeout(() => (focused.value = false), 100);
+}
+
+function on_escape() {
+	input_el.value?.blur();
+}
 
 function select(opt) {
 	emit("select", opt);
