@@ -57,11 +57,11 @@ frappe.ui.Filter = class {
 	}
 
 	set_invalid_conditions_map() {
-		const range_conditions = ["Between", "Timespan"];
-		const comparison_conditions = [">", "<", ">=", "<="];
-		const like_conditions = ["like", "not like"];
-		const in_conditions = ["in", "not in"];
-		const equality_conditions = ["=", "!="];
+		this.range_conditions = ["Between", "Timespan"];
+		this.comparison_conditions = [">", "<", ">=", "<="];
+		this.like_conditions = ["like", "not like"];
+		this.in_conditions = ["in", "not in"];
+		this.equality_conditions = ["=", "!="];
 
 		const text_fields = [
 			"Code",
@@ -77,28 +77,36 @@ frappe.ui.Filter = class {
 		const numeric_fields = ["Rating", "Int", "Float", "Percent"];
 
 		const text_invalid_conditions = [
-			...range_conditions,
-			...comparison_conditions,
-			...in_conditions,
+			...this.range_conditions,
+			...this.comparison_conditions,
+			...this.in_conditions,
 		];
 
 		const numeric_invalid_conditions = [
-			...like_conditions,
-			...range_conditions,
-			...in_conditions,
+			...this.like_conditions,
+			...this.range_conditions,
+			...this.in_conditions,
 		];
 
 		this.invalid_condition_map = {
-			Date: like_conditions,
-			Time: range_conditions,
-			Data: range_conditions,
-			Currency: range_conditions,
+			Date: this.like_conditions,
+			Time: this.range_conditions,
+			Data: this.range_conditions,
+			Currency: this.range_conditions,
 
-			Link: [...range_conditions, ...comparison_conditions],
-			Color: [...range_conditions, ...comparison_conditions],
+			Link: [...this.range_conditions, ...this.comparison_conditions],
+			Color: [...this.range_conditions, ...this.comparison_conditions],
 
-			Datetime: [...like_conditions, ...in_conditions, ...equality_conditions],
-			Select: [...like_conditions, ...range_conditions, ...comparison_conditions],
+			Datetime: [
+				...this.like_conditions,
+				...this.in_conditions,
+				...this.equality_conditions,
+			],
+			Select: [
+				...this.like_conditions,
+				...this.range_conditions,
+				...this.comparison_conditions,
+			],
 
 			Check: this.conditions
 				.map(([condition]) => condition)
@@ -112,6 +120,12 @@ frappe.ui.Filter = class {
 				numeric_fields.map((field) => [field, [...numeric_invalid_conditions]])
 			),
 		};
+
+		// conditions where a Dynamic Link can resolve to a real Link picker
+		this.link_friendly_conditions = new Set([
+			...this.equality_conditions,
+			...this.nested_set_conditions.map(([cond]) => cond),
+		]);
 	}
 
 	set_conditions_from_config() {
@@ -407,7 +421,9 @@ frappe.ui.Filter = class {
 	}
 
 	resolve_dynamic_link(df, original_docfield) {
-		if (df.original_type !== "Dynamic Link" || this.get_condition() !== "=") return;
+		if (df.original_type !== "Dynamic Link") return;
+
+		if (!this.link_friendly_conditions.has(this.get_condition())) return;
 
 		// get the filter whose value this Dynamic Link filter depends on, if any
 		const peer = this.get_filter_group()?.get_filter?.(original_docfield.options);
