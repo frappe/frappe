@@ -1,10 +1,37 @@
+<!--
+  Autocomplete — searchable combobox for add-more workflows (no headlessui required)
+
+  Props:
+    options     Array<{ label, value, badge? }>   List of options to search through
+    placeholder string                            Input placeholder (default: "Search...")
+
+  Events:
+    @select(opt)   Fired when user picks an option. `opt` is the full option object.
+                   Input clears automatically; dropdown stays open for the next pick.
+
+  Exposes:
+    focus()   Programmatically focus the input
+
+  Usage:
+    <Autocomplete
+      :options="[{ label: 'Item Name', value: 'item_name', badge: 'Data' }]"
+      placeholder="Add column..."
+      @select="(opt) => add_column(opt.value)"
+    />
+
+  Import:
+    import Autocomplete from "../../../vue-components/Autocomplete.vue";
+-->
 <template>
-	<div class="pfb-autocomplete">
-		<div class="pfb-autocomplete-input-wrap" :class="{ focused }">
-			<span class="pfb-autocomplete-icon" v-html="frappe.utils.icon('search', 'xs')"></span>
+	<div class="frappe-autocomplete">
+		<div class="frappe-autocomplete-input-wrap" :class="{ focused }">
+			<span
+				class="frappe-autocomplete-icon"
+				v-html="frappe.utils.icon('search', 'xs')"
+			></span>
 			<input
 				ref="input_el"
-				class="pfb-autocomplete-input"
+				class="frappe-autocomplete-input"
 				type="text"
 				:placeholder="placeholder || __('Search...')"
 				v-model="query"
@@ -16,22 +43,22 @@
 				@keydown.up.prevent="highlight = Math.max(highlight - 1, 0)"
 			/>
 		</div>
-		<div v-if="focused" class="pfb-autocomplete-dropdown">
+		<div v-if="focused" class="frappe-autocomplete-dropdown">
 			<template v-if="filtered.length">
 				<button
 					v-for="(opt, i) in filtered"
 					:key="opt.value"
-					class="pfb-autocomplete-option"
+					class="frappe-autocomplete-option"
 					:class="{ highlighted: highlight === i }"
 					@mousedown.prevent="select(opt)"
 				>
-					<span class="pfb-autocomplete-option-label">{{ opt.label }}</span>
-					<span v-if="opt.badge" class="pfb-autocomplete-option-badge">{{
+					<span class="frappe-autocomplete-option-label">{{ opt.label }}</span>
+					<span v-if="opt.badge" class="frappe-autocomplete-option-badge">{{
 						opt.badge
 					}}</span>
 				</button>
 			</template>
-			<div v-else class="pfb-autocomplete-empty">{{ __("No results") }}</div>
+			<div v-else class="frappe-autocomplete-empty">{{ __("No results") }}</div>
 		</div>
 	</div>
 </template>
@@ -81,11 +108,11 @@ defineExpose({ focus: () => input_el.value?.focus() });
 </script>
 
 <style scoped>
-.pfb-autocomplete {
+.frappe-autocomplete {
 	position: relative;
 }
 
-.pfb-autocomplete-input-wrap {
+.frappe-autocomplete-input-wrap {
 	display: flex;
 	align-items: center;
 	gap: 6px;
@@ -96,19 +123,19 @@ defineExpose({ focus: () => input_el.value?.focus() });
 	transition: border-color 0.1s, background 0.1s;
 }
 
-.pfb-autocomplete-input-wrap.focused {
+.frappe-autocomplete-input-wrap.focused {
 	border-color: var(--gray-500);
 	background: var(--fg-color);
 }
 
-.pfb-autocomplete-icon {
+.frappe-autocomplete-icon {
 	display: flex;
 	align-items: center;
 	color: var(--gray-400);
 	flex-shrink: 0;
 }
 
-.pfb-autocomplete-input {
+.frappe-autocomplete-input {
 	flex: 1;
 	border: none;
 	background: transparent;
@@ -118,11 +145,11 @@ defineExpose({ focus: () => input_el.value?.focus() });
 	min-width: 0;
 }
 
-.pfb-autocomplete-input::placeholder {
+.frappe-autocomplete-input::placeholder {
 	color: var(--gray-400);
 }
 
-.pfb-autocomplete-dropdown {
+.frappe-autocomplete-dropdown {
 	position: absolute;
 	top: calc(100% + 3px);
 	left: 0;
@@ -136,7 +163,7 @@ defineExpose({ focus: () => input_el.value?.focus() });
 	overflow-y: auto;
 }
 
-.pfb-autocomplete-option {
+.frappe-autocomplete-option {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -150,19 +177,19 @@ defineExpose({ focus: () => input_el.value?.focus() });
 	font-size: var(--text-sm);
 }
 
-.pfb-autocomplete-option:hover,
-.pfb-autocomplete-option.highlighted {
+.frappe-autocomplete-option:hover,
+.frappe-autocomplete-option.highlighted {
 	background: var(--gray-100);
 }
 
-.pfb-autocomplete-option-label {
+.frappe-autocomplete-option-label {
 	flex: 1;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.pfb-autocomplete-option-badge {
+.frappe-autocomplete-option-badge {
 	font-size: var(--text-tiny);
 	color: var(--gray-500);
 	background: var(--gray-100);
@@ -173,7 +200,7 @@ defineExpose({ focus: () => input_el.value?.focus() });
 	flex-shrink: 0;
 }
 
-.pfb-autocomplete-empty {
+.frappe-autocomplete-empty {
 	padding: 10px 12px;
 	font-size: var(--text-sm);
 	color: var(--text-muted);
