@@ -382,7 +382,7 @@ class Importer:
 		header_row = [col.header_title for col in self.import_file.columns]
 		rows = [header_row]
 		for skipped in sorted(self.data_import.skipped_rows, key=lambda r: r.row_number):
-			rows.append(json.loads(skipped.row_data))
+			rows.append(frappe.parse_json(skipped.row_data))
 
 		build_csv_response(rows, _(self.doctype))
 

@@ -80,11 +80,12 @@ def get_skipped_row_numbers(data_import) -> set[int]:
 
 	skipped_rows = getattr(data_import, "skipped_rows", None)
 	if skipped_rows is None:
-		skipped_rows = frappe.get_all(
+		rows = frappe.get_all(
 			"Data Import Skipped Row",
 			filters={"parent": data_import.name},
-			fields=["row_number"],
+			pluck="row_number",
 		)
+		return {cint(r) for r in rows}
 
 	return {cint(row.row_number) for row in skipped_rows}
 

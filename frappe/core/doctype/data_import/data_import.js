@@ -381,6 +381,7 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	reset_import_ui_state(frm) {
+		$(window).off("scroll.data_import_value_mappings");
 		frm.import_preview = null;
 		frm.events.toggle_import_issues_ui(frm, false, false);
 		frm.events.toggle_import_log_ui(frm, false);
