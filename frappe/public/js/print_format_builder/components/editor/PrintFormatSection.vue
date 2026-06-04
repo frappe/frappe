@@ -1,11 +1,18 @@
 <template>
 	<div class="print-format-section-container" v-if="!section.remove" data-pfb-section>
-		<!-- Section drag handle shown on hover in clean-preview (toolbar is hidden) -->
-		<div
-			v-if="!is_header"
-			class="drag-handle section-drag-handle section-preview-drag"
-			v-html="frappe.utils.icon('drag', 'sm')"
-		></div>
+		<!-- Top-left actions pill shown on hover in clean-preview (toolbar is hidden) -->
+		<div v-if="!is_header" class="section-preview-actions">
+			<div
+				class="drag-handle section-drag-handle"
+				v-html="frappe.utils.icon('drag', 'xs')"
+			></div>
+			<button
+				class="btn btn-xs btn-icon"
+				:title="__('Remove section')"
+				@click.stop="section['remove'] = true"
+				v-html="frappe.utils.icon('x', 'xs')"
+			></button>
+		</div>
 		<div
 			class="print-format-section"
 			:class="{
@@ -204,7 +211,7 @@ function set_column_align(column, value) {
 	justify-content: space-between;
 	align-items: center;
 	padding: 0.4rem 0.6rem;
-	background: var(--gray-50);
+	background: var(--subtle-accent);
 	border-bottom: 1px solid var(--border-color);
 	gap: 0.5rem;
 }
@@ -237,8 +244,8 @@ function set_column_align(column, value) {
 }
 
 .zone-badge {
-	font-size: 10px;
-	font-weight: 700;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
 	text-transform: uppercase;
 	letter-spacing: 0.07em;
 	color: var(--text-muted);
@@ -254,7 +261,7 @@ function set_column_align(column, value) {
 	border: 1px solid transparent;
 	border-radius: var(--border-radius);
 	font-size: var(--text-sm);
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	background: transparent;
 	padding: 2px 4px;
 	flex: 1;
@@ -303,7 +310,7 @@ function set_column_align(column, value) {
 .section-title-display {
 	display: none;
 	font-size: var(--text-sm);
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	color: var(--text-muted);
 	padding: 0;
 }
@@ -404,22 +411,45 @@ function set_column_align(column, value) {
 	color: var(--red-500);
 }
 
-/* ── Section preview drag handle (only visible in clean-preview, hidden in edit) ── */
-.section-preview-drag {
-	display: none; /* hidden by default; shown via .pfb-clean-preview :deep() override */
+/* ── Section preview actions pill (only visible in clean-preview, hidden in edit) ── */
+.section-preview-actions {
+	display: none; /* shown via .pfb-clean-preview :deep() override */
 	position: absolute;
 	top: 4px;
-	right: 4px;
+	left: 4px;
 	z-index: 2;
-	padding: 3px 4px;
+	gap: 2px;
+	padding: 1px 2px;
 	background: var(--fg-color);
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius-sm);
 	box-shadow: var(--shadow-xs);
-	color: var(--gray-400);
-	cursor: grab;
+	align-items: center;
 	opacity: 0;
 	transition: opacity 0.12s;
+}
+
+.section-preview-actions .section-drag-handle {
+	cursor: grab;
+	color: var(--gray-400);
+	display: flex;
+	align-items: center;
+	padding: 2px;
+}
+
+.section-preview-actions .section-drag-handle:hover {
+	color: var(--gray-600);
+}
+
+.section-preview-actions .btn-icon {
+	box-shadow: none;
+	padding: 2px;
+	color: var(--text-muted);
+}
+
+.section-preview-actions .btn-icon:hover {
+	background: var(--red-50);
+	color: var(--red-500);
 }
 
 /* ── Label case: uppercase (mirrors print_format.css rules for builder canvas) */

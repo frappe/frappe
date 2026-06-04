@@ -98,7 +98,7 @@
 					</div>
 				</div>
 			</div>
-			<!-- Drag + remove — top-right corner on hover; remove button hidden in clean-preview -->
+			<!-- Top-right actions pill: drag + remove -->
 			<div class="field-preview-actions">
 				<div
 					class="drag-handle field-drag-handle"
@@ -408,7 +408,7 @@ function validate_table_columns() {
 }
 
 watch(editing, (value) => {
-	if (value) nextTick(() => label_input.value.focus());
+	if (value) nextTick(() => label_input.value?.focus());
 });
 watch(
 	() => props.df.table_columns,
@@ -488,9 +488,9 @@ watch(
 }
 
 .fieldtype-badge {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	color: var(--text-muted);
-	background: var(--gray-100);
+	background: var(--control-bg);
 	border: 1px solid var(--gray-300);
 	border-radius: var(--border-radius-sm);
 	padding: 1px 4px;
@@ -628,8 +628,8 @@ watch(
 }
 
 .field-preview-label {
-	font-size: 0.72em;
-	font-weight: 600;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-semibold);
 	color: var(--gray-500);
 	margin-bottom: 1px;
 }
@@ -668,12 +668,13 @@ watch(
 	margin: 4px 0;
 }
 
-/* Preview actions — drag + remove — hidden until hover/selected */
+/* Top-right actions pill: drag + remove — hidden until hover/selected */
 .field-preview-actions {
 	display: none;
 	position: absolute;
 	top: 2px;
 	right: 2px;
+	z-index: 2;
 	gap: 2px;
 	background: var(--fg-color);
 	border: 1px solid var(--border-color);
@@ -693,6 +694,18 @@ watch(
 	padding: 2px;
 }
 
+.field-preview-actions .field-drag-handle {
+	cursor: grab;
+	color: var(--gray-400);
+	display: flex;
+	align-items: center;
+	padding: 2px;
+}
+
+.field-preview-actions .field-drag-handle:hover {
+	color: var(--gray-600);
+}
+
 /* Preview table — exact PDF print_format.css child-table style */
 .field-preview-table {
 	width: 100%;
@@ -701,7 +714,7 @@ watch(
 
 .field-preview-table > .field-preview-label {
 	font-size: 0.8em;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	color: var(--text-muted);
 	margin-bottom: 0.4rem;
 }
@@ -709,15 +722,15 @@ watch(
 .preview-table {
 	width: 100%;
 	border-collapse: collapse;
-	font-size: 0.9em;
+	font-size: var(--text-sm);
 }
 
 /* ── Default: bordered + styled header (matches PDF) ─── */
 .preview-table th {
 	background-color: var(--gray-100);
 	color: var(--text-color);
-	font-weight: 600;
-	font-size: 0.85em;
+	font-weight: var(--weight-semibold);
+	font-size: var(--text-tiny);
 	padding: 0.45rem 0.6rem;
 	border: 1px solid var(--gray-200);
 	text-align: left;
