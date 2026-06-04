@@ -301,31 +301,8 @@ function build_files({ files, outdir }) {
 	return build_or_watch(get_build_options(files, outdir, build_plugins));
 }
 
-// Resolve postcss-import via tailwindcss (it's a transitive dep we already
-// have on disk; saves adding a direct dep). Required by esbuild 0.15+ which
-// natively bundles CSS @import directives — without inlining them at the
-// PostCSS stage first, esbuild's resolver would try to follow them relative
-// to the temp dir the postcss plugin stages files in and ENOENT.
-const postcssImport = require(require.resolve("postcss-import", {
-	paths: [require.resolve("tailwindcss")],
-}));
-
 function build_style_files({ files, outdir, rtl_style = false }) {
-	// postcss-import must run FIRST in the postcss chain so it consumes
-	// `@import` directives (including ones using sass-importer-style bare
-	// specifiers like `frappe/public/...`) before tailwindcss or anything
-	// else runs. We point its `path` resolver at the same directories sass
-	// uses, so bundle CSS files that did `@import "frappe/public/..."` keep
-	// working unchanged on the newer esbuild.
-	let plugins = [
-		postcssImport({
-			path: sass_options.includePaths,
-			// CSS @imports inside .scss files are out of scope for postcss-import
-			// (sass handles those). Limit to .css files.
-			filter: (id) =>
-				!id.endsWith(".scss") && !id.endsWith(".sass") && !id.endsWith(".less"),
-		}),
-	];
+	let plugins = [];
 	if (rtl_style) {
 		plugins.push(rtlcss);
 	}
