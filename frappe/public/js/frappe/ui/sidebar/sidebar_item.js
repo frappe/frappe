@@ -111,9 +111,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		}
 	}
 	get_shortcut_html(shortcut) {
-		if (frappe.utils.is_mac()) {
-			shortcut = shortcut.replace("Ctrl+", "⌘");
-		}
+		shortcut = frappe.ui.keys.get_shortcut_label(shortcut);
 		return `<span class="keyboard-shortcut">${shortcut}</span>`;
 	}
 	setup_editing_controls() {
