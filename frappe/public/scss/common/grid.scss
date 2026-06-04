@@ -637,6 +637,11 @@
 			&.show.active {
 				display: block;
 			}
+
+			// Tab Break creates a hidden empty section first; don't border the next section.
+			.empty-section + .form-section {
+				border-top: none;
+			}
 		}
 	}
 }
