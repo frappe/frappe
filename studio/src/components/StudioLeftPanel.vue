@@ -113,7 +113,7 @@ const sidebarMenu = [
 	},
 	{
 		label: "AI Assistant",
-		icon: "zap",
+		icon: "lucide-sparkle",
 	},
 ]
 const store = useStudioStore()
