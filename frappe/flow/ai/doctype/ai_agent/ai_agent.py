@@ -95,6 +95,12 @@ class AIAgent(Document):
 			resolved.append(tool_doc.to_tool())
 		return resolved
 
+	def new_session(self, *, model: str | None = None, title: str | None = None):
+		"""Start a conversation driven by this agent. Returns a `flow.session.Session`."""
+		from flow.session import new_session
+
+		return new_session(self, model=model, title=title)
+
 	def run(
 		self,
 		input: str,
@@ -104,21 +110,12 @@ class AIAgent(Document):
 		trigger: str | None = None,
 		stream: bool = False,
 	) -> AIRun | Generator[Event]:
-		"""Run `input` against this agent and persist the result as an AI Run.
+		"""Run `input` and persist as an AI Run. Convenience wrapper over the session API:
+		starts a conversation (or continues `session`) and calls `chat()`."""
+		from flow.session import load_session, new_session
 
-		Pass `session` to continue an existing conversation; omit it to start a new one. With
-		`stream=True`, returns a generator of agent Events instead of the AIRun row.
-		"""
-		from flow import runner
-
-		return runner.start(
-			input=input,
-			agent=self.name,
-			session=session,
-			source=source,
-			trigger=trigger,
-			stream=stream,
-		)
+		convo = load_session(session, agent=self.name) if session else new_session(self)
+		return convo.chat(input, source=source, trigger=trigger, stream=stream)
 
 	def _snapshot(self, *, model: str | None = None) -> dict[str, Any]:
 		return {

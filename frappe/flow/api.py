@@ -29,10 +29,11 @@ def start_run(
 	if not isinstance(input, str) or not input.strip():
 		frappe.throw(_("Input is required."), title=_("Invalid Input"))
 
-	from flow import runner
+	from flow.session import load_session, new_session
 
 	stream = _is_truthy(stream)
-	out = runner.start(input=input, agent=agent, session=session, model=model, stream=stream)
+	convo = load_session(session, agent=agent, model=model) if session else new_session(agent, model=model)
+	out = convo.chat(input, stream=stream)
 	return _sse_response(out) if stream else _summarize(out)
 
 
@@ -41,11 +42,20 @@ def resume_run(
 	run_name: str, answers: dict[str, Any] | str, stream: bool | str = False
 ) -> dict[str, Any] | Response:
 	"""Resume a Paused run. `answers` maps each question.key to the user's answer. With `stream=True`, returns SSE."""
-	from flow import runner
+	from flow.session import assert_run_owner, load_session
 
 	parsed_answers = _parse_answers(answers)
 	stream = _is_truthy(stream)
-	out = runner.resume(run_name=run_name, answers=parsed_answers, stream=stream)
+
+	run = frappe.get_doc("AI Run", run_name)
+	assert_run_owner(run)
+	if run.status != "Paused":
+		frappe.throw(
+			_("Only Paused runs can be resumed (this run is {0}).").format(run.status),
+			title=_("Cannot Resume"),
+		)
+
+	out = load_session(run.session).resume(parsed_answers, stream=stream)
 	return _sse_response(out) if stream else _summarize(out)
 
 
