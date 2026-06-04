@@ -4,11 +4,15 @@ import frappe
 from frappe.utils.caching import site_cache
 
 
-def get_jenv():
+def get_jenv(restrict_globals=None):
 	import frappe
-	from frappe.utils.safe_exec import get_safe_globals
+	from frappe.utils.safe_exec import get_safe_globals, is_render_exec_enabled, render_safe_globals
 
-	if jenv := getattr(frappe.local, "jenv", None):
+	if restrict_globals is None:
+		restrict_globals = is_render_exec_enabled()
+
+	local_key = "jenv_restricted" if restrict_globals else "jenv_unrestricted"
+	if jenv := getattr(frappe.local, local_key, None):
 		return jenv
 
 	default_jenv = _get_jenv()
@@ -22,12 +26,17 @@ def get_jenv():
 	jenv.globals = default_jenv.globals.copy()
 	jenv.filters = default_jenv.filters.copy()
 
-	jenv.globals.update(get_safe_globals())
-	methods, filters = get_jinja_hooks()
-	jenv.globals.update(methods or {})
-	jenv.filters.update(filters or {})
+	if restrict_globals:
+		jenv.globals.update(render_safe_globals())
+	else:
+		jenv.globals.update(get_safe_globals())
 
-	frappe.local.jenv = jenv
+	if not restrict_globals:
+		methods, filters = get_jinja_hooks()
+		jenv.globals.update(methods or {})
+		jenv.filters.update(filters or {})
+
+	setattr(frappe.local, local_key, jenv)
 
 	return jenv
 
@@ -83,7 +92,7 @@ def get_email_from_template(name, args):
 	return (message, text_content)
 
 
-def validate_template(html):
+def validate_template(html, restrict_globals=None):
 	"""Throws exception if there is a syntax error in the Jinja Template"""
 	from jinja2 import TemplateSyntaxError
 
@@ -91,7 +100,7 @@ def validate_template(html):
 
 	if not html:
 		return
-	jenv = get_jenv()
+	jenv = get_jenv(restrict_globals)
 	try:
 		jenv.from_string(html)
 	except TemplateSyntaxError as e:
@@ -114,26 +123,19 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 	from jinja2.sandbox import SandboxedEnvironment
 
 	from frappe import _, get_traceback, throw
-	from frappe.utils.safe_exec import is_render_exec_enabled, render_safe_globals
 
 	if context is None:
 		context = {}
-
-	if restrict_globals is None:
-		restrict_globals = is_render_exec_enabled()
 
 	try:
 		if is_path or guess_is_path(template):
 			is_path = True
 			compiled_template = get_template(template)
 		else:
-			jenv: SandboxedEnvironment = get_jenv()
+			jenv: SandboxedEnvironment = get_jenv(restrict_globals)
 			if safe_render and ".__" in template:
 				throw(_("Illegal template"))
-			if restrict_globals:
-				compiled_template = jenv.from_string(template, globals=render_safe_globals())
-			else:
-				compiled_template = jenv.from_string(template)
+			compiled_template = jenv.from_string(template)
 	except TemplateError:
 		import html
 
