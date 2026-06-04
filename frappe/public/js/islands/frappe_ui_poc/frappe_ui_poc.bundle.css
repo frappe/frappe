@@ -1,34 +1,46 @@
 /**
  * frappe-ui POC — Desk island stylesheet (Vite entry).
  *
+ * This is frappe-ui's canonical entry (frappe-ui/src/style.css, the one crm and
+ * every other frappe-ui app import) MINUS its Inter `@font-face` block — see the
+ * font note below. The `@tailwind` directives are identical, so islands still
+ * inherit the exact same base layer, design tokens, and component styles.
+ *
  * Built by the Vite islands pipeline (esbuild/build-islands.mjs) and injected
  * into the island's SHADOW ROOT (see frappe.ui.mount_vue_island). The shadow
  * boundary isolates these styles from Bootstrap both ways, so this is plain,
- * full frappe-ui Tailwind — no `[data-frappe-ui]` scoping, no `!important`
- * stamping, no scoped preflight.
- *
- * PostCSS chain: tailwindcss(tailwind.config.desk-islands.mjs) → autoprefixer →
- * postcss-root-to-host (rewrites `:root` design tokens to `:host` so they apply
- * inside the shadow tree).
- *
- *   • `@tailwind base`       — full preflight reset + frappe-ui design tokens.
- *   • `@tailwind components` — frappe-ui component-layer rules.
- *   • `@tailwind utilities`  — utility classes.
- *
- * Imported by frappe_ui_poc.bundle.js so Vite emits it as the island's
- * companion stylesheet.
+ * full frappe-ui Tailwind + preflight — no `[data-frappe-ui]` scoping, no
+ * `!important` stamping, no disabled preflight. The PostCSS `postcss-root-to-host`
+ * plugin rewrites the preset's `:root` design tokens to `:host` so they apply
+ * inside the shadow tree.
  */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ============================================================
+ * Font
+ * ============================================================
+ * Unlike a standalone frappe-ui app, Desk already loads the Inter variable font
+ * document-wide (as "InterVariable"), and `@font-face` crosses the shadow
+ * boundary — so we reuse it instead of `@import "frappe-ui/style.css"`, which
+ * would bundle frappe-ui's own InterVar woff2 (~550 KB) for a redundant download.
+ *
+ * frappe-ui applies its base font via an `html { font-family: InterVar }` rule
+ * (tailwind/plugin.js) that never matches inside the shadow tree (there's no
+ * <html> there). So set it on :host — shadow content inherits — pointing at
+ * Desk's already-loaded InterVariable. `font-optical-sizing` mirrors plugin.js;
+ * the `opsz`/`cv11` variation settings come from frappe-ui's own
+ * `html, body, button, p, span, div` rule, which DOES match in the shadow tree. */
+:host {
+	font-family: InterVariable, ui-sans-serif, system-ui, -apple-system,
+		BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	font-optical-sizing: auto;
+}
+
+/* ============================================================
  * Island-local overrides
  * ============================================================ */
-
- :root {
-	font-family: InterVariable, Inter, -apple-system, BlinkMacSystemFont, sans-serif;
- }
 
 /* z-index boost for Dialog overlays + reka-ui popover content. Inside the shadow
  * root these layer the overlays above the island's own content. */
