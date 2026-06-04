@@ -254,12 +254,11 @@ frappe.ui.FilterGroup = class {
 	}
 
 	refresh_dynamic_link_filters() {
-		// Re-run set_field on every Dynamic Link filter so it tracks its peer's state.
-		// set_field's early-return on unchanged df makes this idempotent.
 		if (!this.filters) return;
+
 		this.filters.forEach((f) => {
-			if (!f.field) return;
-			if (f.field.df.original_type !== "Dynamic Link") return;
+			if (!f.field || f.field.df.original_type !== "Dynamic Link") return;
+
 			f.set_field(f.field.df.parent, f.field.df.fieldname, null, f.get_condition());
 		});
 	}
