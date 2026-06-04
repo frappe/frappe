@@ -9,7 +9,7 @@
       :tabs="visibleTabs"
       :class="[
         !hasTabs ? `[&_[role='tablist']]:hidden` : '',
-        `[&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tab']]:shrink-0 [&_[role='tabpanel']]:overflow-visible !overflow-visible`,
+        `[&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tab']]:shrink-0 [&_[role='tabpanel']]:overflow-visible overflow-visible!`,
       ]"
     >
       <template #tab-panel="{ tab }">
@@ -28,6 +28,7 @@ import { Tabs } from 'frappe-ui'
 import { computed, provide, ref } from 'vue'
 import FormLayoutSection from './FormLayoutSection.vue'
 import { useFieldTypes } from './useFieldTypes'
+import { resolveLayout } from './resolveLayout'
 import { ChangeKey, DocKey, HasTabsKey, ResolveFieldKey } from './types'
 import type { FormLayoutSchema } from './types'
 
@@ -38,8 +39,13 @@ const emit = defineEmits<{ change: [fieldname: string, value: any] }>()
 
 const tabIndex = ref(0)
 
+// Bake conditional visibility/mandatory/read-only against the live doc. Reading
+// `doc.value` makes this re-resolve as the user edits, so dependent fields show,
+// hide, or flip required/read-only reactively.
+const resolvedLayout = computed(() => resolveLayout(props.layout, doc.value))
+
 const visibleTabs = computed(() =>
-  props.layout
+  resolvedLayout.value
     .filter((tab) => !tab.hidden)
     .map((tab) => ({
       ...tab,

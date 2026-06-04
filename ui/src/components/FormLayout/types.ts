@@ -17,12 +17,14 @@ export interface FieldMeta {
   reqd?: boolean
   description?: string
   placeholder?: string
-  /** Static visibility; conditional `depends_on` is out of scope (see PLAN). */
+  /** Static visibility; `resolveLayout` may flip this from `dependsOn`. */
   hidden?: boolean
+  /** Static read-only; `resolveLayout` may flip this from `readOnlyDependsOn`. */
+  readOnly?: boolean
   /**
    * Raw Frappe conditional expressions, carried through verbatim from meta.
-   * Phase 2 does **not** evaluate these — `FormLayout` stays render-only and
-   * Phase 4 will bake resolved visibility into the schema.
+   * `buildLayoutFromMeta` does **not** evaluate these — `resolveLayout` bakes
+   * them into `hidden` / `reqd` / `readOnly` against the live doc (Phase 4).
    */
   dependsOn?: string
   mandatoryDependsOn?: string
@@ -40,6 +42,7 @@ export interface RawMetaField {
   options?: string
   reqd?: boolean | 0 | 1
   hidden?: boolean | 0 | 1
+  read_only?: boolean | 0 | 1
   description?: string
   hide_border?: boolean | 0 | 1
   collapsible?: boolean | 0 | 1
@@ -65,6 +68,8 @@ export interface Section {
   opened?: boolean
   collapsible?: boolean
   hidden?: boolean
+  /** Conditional visibility; `resolveLayout` bakes it into `hidden`. */
+  dependsOn?: string
   columns: Column[]
 }
 
@@ -72,6 +77,8 @@ export interface Tab {
   name?: string
   label?: string
   hidden?: boolean
+  /** Conditional visibility; `resolveLayout` bakes it into `hidden`. */
+  dependsOn?: string
   sections: Section[]
 }
 

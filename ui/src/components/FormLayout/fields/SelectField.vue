@@ -6,6 +6,7 @@
     :description="field.description"
     :placeholder="field.placeholder"
     :required="field.reqd"
+    :disabled="field.readOnly"
   />
 </template>
 

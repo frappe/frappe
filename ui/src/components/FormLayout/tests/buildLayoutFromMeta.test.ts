@@ -125,4 +125,37 @@ describe('buildLayoutFromMeta', () => {
     expect(f.mandatoryDependsOn).toBe('eval:doc.priority == "High"')
     expect(f.readOnlyDependsOn).toBe('eval:doc.locked')
   })
+
+  it('carries depends_on onto sections and tabs', () => {
+    const layout = buildLayoutFromMeta([
+      field({
+        fieldname: 't2',
+        fieldtype: 'Tab Break',
+        label: 'Tab 2',
+        depends_on: 'eval:doc.show_tab',
+      }),
+      field({
+        fieldname: 's',
+        fieldtype: 'Section Break',
+        label: 'S',
+        depends_on: 'eval:doc.show_section',
+      }),
+      field({ fieldname: 'a' }),
+    ])
+
+    expect(layout[0].dependsOn).toBe('eval:doc.show_tab')
+    expect(layout[0].sections[0].dependsOn).toBe('eval:doc.show_section')
+  })
+
+  it('maps static read_only to readOnly', () => {
+    const layout = buildLayoutFromMeta([field({ fieldname: 'a', read_only: 1 })])
+    expect(layout[0].sections[0].columns[0].fields[0].readOnly).toBe(true)
+  })
+
+  it('treats the Read Only fieldtype as readOnly', () => {
+    const layout = buildLayoutFromMeta([
+      field({ fieldname: 'ro', fieldtype: 'Read Only' }),
+    ])
+    expect(layout[0].sections[0].columns[0].fields[0].readOnly).toBe(true)
+  })
 })

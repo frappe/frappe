@@ -35,11 +35,15 @@ function newSection(field?: RawMetaField): Section {
     hideBorder: !!field.hide_border,
     collapsible,
     // No `opened` flag exists in meta; collapsible sections start collapsed
-    // (Frappe desk behaviour). Phase 4 may refine this from `*_depends_on`.
+    // (Frappe desk behaviour). Refining this from `*_depends_on` is out of
+    // scope for Phase 4.
     opened: !collapsible,
+    dependsOn: field.depends_on,
     columns: [],
   }
 }
+
+const READ_ONLY = 'Read Only'
 
 function mapField(field: RawMetaField): FieldMeta {
   return {
@@ -51,6 +55,9 @@ function mapField(field: RawMetaField): FieldMeta {
     reqd: !!field.reqd,
     description: field.description,
     hidden: !!field.hidden,
+    // The `Read Only` fieldtype is permanently read-only; static `read_only`
+    // covers every other type. Conditional read-only is baked in `resolveLayout`.
+    readOnly: !!field.read_only || field.fieldtype === READ_ONLY,
     dependsOn: field.depends_on,
     mandatoryDependsOn: field.mandatory_depends_on,
     readOnlyDependsOn: field.read_only_depends_on,
@@ -82,7 +89,12 @@ export function buildLayoutFromMeta(fields: RawMetaField[]): FormLayoutSchema {
 
   for (const field of fields) {
     if (field.fieldtype === TAB_BREAK) {
-      tabs.push({ name: field.fieldname, label: field.label, sections: [] })
+      tabs.push({
+        name: field.fieldname,
+        label: field.label,
+        dependsOn: field.depends_on,
+        sections: [],
+      })
     } else if (field.fieldtype === SECTION_BREAK) {
       ensureTab().sections.push(newSection(field))
     } else if (field.fieldtype === COLUMN_BREAK) {

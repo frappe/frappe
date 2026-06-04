@@ -10,7 +10,7 @@ import { reactive } from 'vue'
 import FormLayout from '../FormLayout.vue'
 import type { FormLayoutSchema } from '../types'
 
-const doc = reactive<Record<string, any>>({})
+const doc = reactive<Record<string, any>>({ reference_id: 'REF-0001' })
 
 const layout: FormLayoutSchema = [
   {
@@ -31,6 +31,33 @@ const layout: FormLayoutSchema = [
             name: 'col2',
             fields: [
               { fieldname: 'title', fieldtype: 'Data', label: 'Title', placeholder: 'Enter a title' },
+            ],
+          },
+        ],
+      },
+      {
+        name: 'conditional',
+        label: 'Conditional',
+        columns: [
+          {
+            name: 'cond-col',
+            fields: [
+              { fieldname: 'has_owner', fieldtype: 'Check', label: 'Assign an owner' },
+              {
+                fieldname: 'assigned_to',
+                fieldtype: 'Link',
+                label: 'Assigned To',
+                options: 'User',
+                // Shown only when the controlling check is ticked, and required then.
+                dependsOn: 'eval:doc.has_owner',
+                mandatoryDependsOn: 'eval:doc.has_owner',
+              },
+              {
+                fieldname: 'reference_id',
+                fieldtype: 'Data',
+                label: 'Reference ID (read-only)',
+                readOnly: true,
+              },
             ],
           },
         ],

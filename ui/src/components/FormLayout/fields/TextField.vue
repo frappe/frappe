@@ -5,6 +5,7 @@
     :description="field.description"
     :placeholder="field.placeholder"
     :required="field.reqd"
+    :disabled="field.readOnly"
     @update:modelValue="(value: any) => emit('update:modelValue', value)"
   />
 </template>

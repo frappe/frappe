@@ -4,6 +4,7 @@
     :label="field.label"
     :description="field.description"
     :required="field.reqd"
+    :disabled="field.readOnly"
   />
 </template>
 

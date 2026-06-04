@@ -42,4 +42,8 @@ for (const t of ['Small Text', 'Text', 'Long Text', 'Code']) {
 
 registerFieldType('Password', PasswordField)
 
+// `Read Only` renders as a disabled text box (buildLayoutFromMeta marks it
+// `readOnly: true`, which TextField honours via `:disabled`).
+registerFieldType('Read Only', TextField)
+
 registerFieldType(FALLBACK, TextField)
