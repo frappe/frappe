@@ -14,8 +14,7 @@
 					</div>
 				</template>
 			</Dropdown>
-
-			<Button variant="solid" icon-left="plus" @click="showAppDialog = true">New App</Button>
+			<Button variant="solid" icon-left="lucide-plus" @click="showAppDialog = true">New App</Button>
 		</div>
 
 		<div class="flex h-full flex-col items-center px-20 py-10">

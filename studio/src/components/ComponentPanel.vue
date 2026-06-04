@@ -104,11 +104,7 @@
 						</div>
 					</div>
 				</div>
-				<Button icon-left="plus" class="mt-3" @click="showNewComponentDialog = true">Create Component</Button>
-				<NewComponentDialog
-					v-model:showDialog="showNewComponentDialog"
-					@created="(component) => componentEditorStore.editComponent(component.component_id)"
-				/>
+				<Button icon-left="plus" class="mt-3" @click="createComponent">Create Component</Button>
 			</CollapsibleSection>
 		</template>
 	</div>
@@ -121,7 +117,6 @@ import { Dropdown, FeatherIcon } from "frappe-ui"
 import OptionToggle from "@/components/OptionToggle.vue"
 import Input from "@/components/Input.vue"
 import EmptyState from "@/components/EmptyState.vue"
-import NewComponentDialog from "@/components/NewComponentDialog.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 
 import components from "@/data/components"
@@ -171,7 +166,11 @@ const customVueComponents = computed(() => {
 
 const activeTab = computed(() => store.studioLayout.leftPanelComponentTab)
 
-const showNewComponentDialog = ref(false)
+function createComponent() {
+	componentEditorStore.promptNewComponent({
+		onCreated: (component) => componentEditorStore.editComponent(component.component_id),
+	})
+}
 
 function getComponentMenu(component: StudioComponent) {
 	return [

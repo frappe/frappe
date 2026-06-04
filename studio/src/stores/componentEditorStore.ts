@@ -1,5 +1,6 @@
 import { defineStore } from "pinia"
 import { ref } from "vue"
+import { dialog } from "frappe-ui"
 import { studioComponents } from "@/data/studioComponents"
 import { confirm } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
@@ -37,6 +38,21 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 				toast.error("Failed to create component", {
 					description: error?.messages?.join(", "),
 				})
+			},
+		})
+	}
+
+	function promptNewComponent(options: {
+		block?: Block | null
+		onCreated: (component: StudioComponent) => void
+	}) {
+		dialog.prompt({
+			title: "Create Component",
+			confirmLabel: "Create",
+			fields: [{ name: "componentName", label: "Component Name", required: true }],
+			onConfirm: async ({ values }: { values: Record<string, any> }) => {
+				const component = await createComponent(values.componentName, options.block)
+				if (component) options.onCreated(component)
 			},
 		})
 	}
@@ -181,6 +197,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		studioComponentBlock,
 		componentInputs,
 		createComponent,
+		promptNewComponent,
 		editComponent,
 		deleteComponent,
 		// inputs
