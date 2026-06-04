@@ -130,6 +130,22 @@ class Agent:
 			return self._loop_stream(messages)
 		return self._loop(messages)
 
+	def new_session(self, *, title: str | None = None) -> Any:
+		"""Start a persisted conversation driven by this code agent (session's agent link is left empty)."""
+		from flow.session import new_session
+
+		return new_session(self, title=title)
+
+	def snapshot(self) -> dict[str, Any]:
+		"""Config record stored on each AI Run for traceability."""
+		return {
+			"title": self.name,
+			"model": self.model.model_id,
+			"instructions": self.instructions,
+			"tools": [t.name for t in self.tools],
+			"max_iterations": self.max_iterations,
+		}
+
 	def _prepare_resume(
 		self, messages: list[dict[str, Any]], answers: dict[str, Any]
 	) -> list[dict[str, Any]]:
