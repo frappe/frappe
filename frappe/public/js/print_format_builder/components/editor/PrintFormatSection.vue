@@ -211,7 +211,7 @@ function set_column_align(column, value) {
 	justify-content: space-between;
 	align-items: center;
 	padding: 0.4rem 0.6rem;
-	background: var(--gray-50);
+	background: var(--subtle-accent);
 	border-bottom: 1px solid var(--border-color);
 	gap: 0.5rem;
 }
@@ -244,8 +244,8 @@ function set_column_align(column, value) {
 }
 
 .zone-badge {
-	font-size: 10px;
-	font-weight: 700;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
 	text-transform: uppercase;
 	letter-spacing: 0.07em;
 	color: var(--text-muted);
@@ -261,7 +261,7 @@ function set_column_align(column, value) {
 	border: 1px solid transparent;
 	border-radius: var(--border-radius);
 	font-size: var(--text-sm);
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	background: transparent;
 	padding: 2px 4px;
 	flex: 1;
@@ -310,7 +310,7 @@ function set_column_align(column, value) {
 .section-title-display {
 	display: none;
 	font-size: var(--text-sm);
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	color: var(--text-muted);
 	padding: 0;
 }

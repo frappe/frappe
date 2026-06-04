@@ -192,8 +192,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .zone-divider-label {
-	font-size: 10px;
-	font-weight: 700;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
 	white-space: nowrap;
@@ -301,8 +301,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	padding: 0 0 0.3rem;
 	margin-bottom: 0.4rem;
 	border-bottom: 1.5px solid var(--border-color);
-	font-size: 1rem;
-	font-weight: 700;
+	font-size: var(--text-lg);
+	font-weight: var(--weight-bold);
 	color: var(--text-color);
 }
 </style>

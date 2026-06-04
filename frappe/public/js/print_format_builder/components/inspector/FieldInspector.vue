@@ -902,8 +902,8 @@ function set_padding(side, value) {
 }
 
 .pfb-inspector-eyebrow {
-	font-size: 10px;
-	font-weight: 600;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-semibold);
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
 	color: var(--text-muted);
@@ -918,7 +918,7 @@ function set_padding(side, value) {
 
 .pfb-inspector-kind {
 	font-size: var(--text-lg);
-	font-weight: 700;
+	font-weight: var(--weight-bold);
 }
 
 .pfb-inspector-name {
@@ -1009,12 +1009,12 @@ function set_padding(side, value) {
 }
 
 .pfb-insp-section-head:hover {
-	background: var(--gray-50);
+	background: var(--subtle-accent);
 }
 
 .pfb-insp-section-label {
-	font-size: 10px;
-	font-weight: 700;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
 	color: var(--text-muted);
@@ -1064,7 +1064,7 @@ function set_padding(side, value) {
 	padding: 5px 8px;
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius);
-	background: var(--gray-50);
+	background: var(--control-bg);
 	gap: 6px;
 	min-width: 0;
 	overflow: hidden;
@@ -1079,7 +1079,7 @@ function set_padding(side, value) {
 }
 
 .pfb-type-badge {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	color: var(--text-muted);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-300);
@@ -1109,7 +1109,7 @@ function set_padding(side, value) {
 /* ── Segmented control ───────────────────────────────────── */
 .pfb-seg {
 	display: inline-flex;
-	background: var(--gray-100);
+	background: var(--control-bg);
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius);
 	overflow: hidden;
@@ -1119,8 +1119,8 @@ function set_padding(side, value) {
 .pfb-seg button {
 	flex: 1;
 	padding: 5px 6px;
-	font-size: 11px;
-	font-weight: 500;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-medium);
 	border: none;
 	border-radius: 0;
 	background: transparent;
@@ -1154,7 +1154,7 @@ function set_padding(side, value) {
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius);
 	overflow: hidden;
-	background: var(--gray-50);
+	background: var(--subtle-accent);
 	width: 100%;
 }
 
@@ -1211,7 +1211,7 @@ function set_padding(side, value) {
 }
 
 .pfb-stepper-unit {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	color: var(--text-muted);
 	padding: 0 6px 0 2px;
 }
@@ -1260,7 +1260,7 @@ function set_padding(side, value) {
 }
 
 .pfb-padding-label {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	color: var(--text-muted);
 	text-align: center;
 }
@@ -1336,7 +1336,7 @@ function set_padding(side, value) {
 .pfb-col-width-input {
 	width: 40px;
 	padding: 2px 4px;
-	font-size: 11px;
+	font-size: var(--text-tiny);
 	text-align: right;
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius-sm);
@@ -1356,7 +1356,7 @@ function set_padding(side, value) {
 }
 
 .pfb-col-width-unit {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	color: var(--text-muted);
 	flex-shrink: 0;
 }
@@ -1428,7 +1428,7 @@ function set_padding(side, value) {
 }
 
 .pfb-insp-col-count {
-	font-size: 11px;
+	font-size: var(--text-tiny);
 }
 
 /* ── Letter Head inspector ───────────────────────────────── */
@@ -1436,8 +1436,8 @@ function set_padding(side, value) {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	font-size: 11px;
-	font-weight: 600;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-semibold);
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
 	color: var(--blue-500);
@@ -1480,10 +1480,10 @@ function set_padding(side, value) {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	font-size: 11px;
-	color: var(--yellow-800, #854d0e);
-	background: var(--yellow-50, #fefce8);
-	border-bottom: 1px solid var(--yellow-200, #fde68a);
+	font-size: var(--text-tiny);
+	color: var(--yellow-800);
+	background: var(--yellow-50);
+	border-bottom: 1px solid var(--yellow-200);
 	padding: 7px 14px;
 	flex-shrink: 0;
 	line-height: 1.4;
@@ -1528,8 +1528,8 @@ function set_padding(side, value) {
 }
 
 .pfb-html-split-label {
-	font-size: 10px;
-	font-weight: 700;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
 	color: var(--text-muted);

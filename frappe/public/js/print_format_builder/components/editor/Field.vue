@@ -488,9 +488,9 @@ watch(
 }
 
 .fieldtype-badge {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	color: var(--text-muted);
-	background: var(--gray-100);
+	background: var(--control-bg);
 	border: 1px solid var(--gray-300);
 	border-radius: var(--border-radius-sm);
 	padding: 1px 4px;
@@ -628,8 +628,8 @@ watch(
 }
 
 .field-preview-label {
-	font-size: 0.72em;
-	font-weight: 600;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-semibold);
 	color: var(--gray-500);
 	margin-bottom: 1px;
 }
@@ -714,7 +714,7 @@ watch(
 
 .field-preview-table > .field-preview-label {
 	font-size: 0.8em;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	color: var(--text-muted);
 	margin-bottom: 0.4rem;
 }
@@ -722,15 +722,15 @@ watch(
 .preview-table {
 	width: 100%;
 	border-collapse: collapse;
-	font-size: 0.9em;
+	font-size: var(--text-sm);
 }
 
 /* ── Default: bordered + styled header (matches PDF) ─── */
 .preview-table th {
 	background-color: var(--gray-100);
 	color: var(--text-color);
-	font-weight: 600;
-	font-size: 0.85em;
+	font-weight: var(--weight-semibold);
+	font-size: var(--text-tiny);
 	padding: 0.45rem 0.6rem;
 	border: 1px solid var(--gray-200);
 	text-align: left;

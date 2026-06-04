@@ -378,8 +378,8 @@ function lh_create_letterhead() {
 }
 
 .pfb-insp-section-label {
-	font-size: 10px;
-	font-weight: 700;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
 	color: var(--text-muted);
@@ -432,8 +432,8 @@ function lh_create_letterhead() {
 .pfb-seg button {
 	flex: 1;
 	padding: 5px 6px;
-	font-size: 11px;
-	font-weight: 500;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-medium);
 	border: none;
 	border-radius: 0;
 	background: transparent;
@@ -469,8 +469,8 @@ function lh_create_letterhead() {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	font-size: 11px;
-	font-weight: 600;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-semibold);
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
 	color: var(--blue-500);
