@@ -6,7 +6,32 @@ const path = require("path");
 const { get_conf, get_redis_subscriber } = require("../node_utils");
 const conf = get_conf();
 
-const server = http.createServer();
+const server = http.createServer((req, res) => {
+	if (conf.in_memory && req.method === "POST" && req.url === "/_internal/publish_event") {
+		let body = "";
+		req.on("data", (chunk) => {
+			body += chunk.toString();
+		});
+		req.on("end", () => {
+			try {
+				let message = JSON.parse(body);
+				let namespace = "/" + message.namespace;
+				if (message.room) {
+					io.of(namespace).to(message.room).emit(message.event, message.message);
+				} else {
+					realtime.emit(message.event, message.message);
+				}
+				res.writeHead(200);
+				res.end("OK");
+			} catch (e) {
+				console.error("Webhook parse error", e);
+				res.writeHead(400);
+				res.end("Bad Request");
+			}
+		});
+		return;
+	}
+});
 
 let io = new Server(server, {
 	cors: {
@@ -40,6 +65,7 @@ function on_connection(socket) {
 
 	// ESBUild "open in editor" on error
 	socket.on("open_in_editor", async (data) => {
+		if (conf.in_memory) return;
 		await subscriber.connect();
 		subscriber.publish("open_in_editor", JSON.stringify(data));
 	});
@@ -70,21 +96,26 @@ realtime.on("connection", on_connection);
 // =======================
 
 // Consume events sent from python via redis pub-sub channel.
-const subscriber = get_redis_subscriber();
+let subscriber;
+if (!conf.in_memory) {
+	subscriber = get_redis_subscriber();
 
-(async () => {
-	await subscriber.connect();
-	subscriber.subscribe("events", (message) => {
-		message = JSON.parse(message);
-		let namespace = "/" + message.namespace;
-		if (message.room) {
-			io.of(namespace).to(message.room).emit(message.event, message.message);
-		} else {
-			// publish to ALL sites only used for things like build event.
-			realtime.emit(message.event, message.message);
-		}
-	});
-})();
+	(async () => {
+		await subscriber.connect();
+		subscriber.subscribe("events", (message) => {
+			message = JSON.parse(message);
+			let namespace = "/" + message.namespace;
+			if (message.room) {
+				io.of(namespace).to(message.room).emit(message.event, message.message);
+			} else {
+				// publish to ALL sites only used for things like build event.
+				realtime.emit(message.event, message.message);
+			}
+		});
+	})();
+} else {
+	console.log("Realtime service running in in_memory mode (HTTP Webhook)");
+}
 // =======================
 
 let uds = conf.socketio_uds;

@@ -1,0 +1,187 @@
+name: Redis-less Smoke Base
+
+on:
+  workflow_call:
+    inputs:
+      fake-success:
+        required: false
+        type: boolean
+        default: false
+      python-version:
+        required: false
+        type: string
+        default: '3.14'
+      node-version:
+        required: false
+        type: number
+        default: 24
+
+
+jobs:
+  smoke:
+    name: Smoke
+    runs-on: ubuntu-latest
+    if: ${{ inputs.fake-success == false }}
+    timeout-minutes: 30
+    env:
+      NODE_ENV: "production"
+      PYTHONWARNINGS: "ignore"
+      DB_ROOT_PASSWORD: db_root
+
+    services:
+      mariadb:
+        image: mariadb:11.8
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
+        env:
+          MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+      smtp_server:
+        image: rnwood/smtp4dev:3.7.1
+        ports:
+          - 2525:25
+          - 3000:80
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup
+        name: Environment Setup
+        with:
+          python-version: ${{ inputs.python-version }}
+          node-version: ${{ inputs.node-version }}
+          build-assets: true
+          disable-socketio: false
+          start-bench: false
+          db-root-password: ${{ env.DB_ROOT_PASSWORD }}
+          db: mariadb
+
+      - name: Cache cypress binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress
+
+      - name: Configure Redis-less bench
+        run: |
+          bench --site test_site set-config use_memory_cache 1 --parse
+          bench --site test_site set-config in_memory 1 --parse
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("sites/common_site_config.json")
+          config = json.loads(path.read_text())
+          for key in ("redis_cache", "redis_queue", "redis_socketio"):
+              config.pop(key, None)
+          path.write_text(json.dumps(config, indent=2) + "\n")
+          PY
+
+          sed -i '/^worker:/d' Procfile
+          sed -i '/^schedule:/d' Procfile
+          sed -i '/^redis/d' Procfile
+          sed -i 's|^web: bench serve|web: bench serve --nothreading|' Procfile
+
+      - name: Prepare site
+        run: |
+          bench --site test_site execute frappe.utils.install.complete_setup_wizard
+          bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
+          bench --site test_site clear-cache
+
+      - name: Start Redis-less bench
+        run: |
+          bench start &> ${GITHUB_WORKSPACE}/bench_start.log &
+
+      - name: Wait for web server
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf --max-time 2 http://test_site:8000/api/method/ping >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "Redis-less bench did not start in time" >&2
+          exit 1
+
+      - name: Run Redis-less server smoke tests
+        run: |
+          bench --site test_site run-tests --app frappe --module frappe.tests.test_caching
+          bench --site test_site run-tests --app frappe --module frappe.tests.test_realtime_inmemory
+          bench --site test_site run-tests --app frappe --module frappe.tests.test_background_jobs_inmemory
+
+      - uses: browser-actions/setup-chrome@latest
+
+      - name: Set browser path
+        run: |
+          echo "BROWSER_PATH=$(which chrome)" >> $GITHUB_ENV
+
+      - name: Run Redis-less UI smoke tests
+        id: ui-tests
+        run: |
+          bench --site test_site run-ui-tests frappe \
+            --headless \
+            --browser ${{ env.BROWSER_PATH }} \
+            --spec cypress/integration/login.js
+
+      - name: Compress Cypress Videos
+        if: always() && steps.ui-tests.outcome == 'failure'
+        run: |
+          if find ./cypressVideos -mindepth 1 | read; then
+            zip -r cypress_recordings.zip ./cypressVideos
+          fi
+
+      - name: Upload Cypress Videos
+        if: always() && steps.ui-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: redisless-cypress-recordings
+          path: ./cypress_recordings.zip
+          if-no-files-found: ignore
+
+      - name: Upload Redis-less logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: redisless-smoke-logs
+          path: |
+            ./bench_start.log
+            ./logs
+          if-no-files-found: ignore
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
+
+      - name: Show bench output
+        if: ${{ always() }}
+        run: |
+          cat bench_start.log || true
+          cd logs
+          for f in *.log*; do
+            [ -e "$f" ] || continue
+            echo "Printing log: $f";
+            cat "$f"
+          done
+
+  success:
+    name: Success
+    needs: [smoke]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Redis-less smoke '${{ needs.smoke.result }}'
+        shell: python
+        run: |
+          stati = [
+            '${{ needs.smoke.result }}',
+          ]
+
+          nopass = ["failure", "cancelled"]
+          dopass = ["success", "skipped"]
+          if any(r in nopass for r in stati):
+            exit(1)
+          if all(r in dopass for r in stati):
+            exit(0)
+          exit(1)

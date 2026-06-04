@@ -225,6 +225,15 @@ jobs:
             cat $f
           done
 
+  redisless-smoke:
+    name: Redis-less Smoke
+    needs: [checkrun, test, migrate]
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' && needs.test.result == 'success' && needs.migrate.result == 'success' }}
+    uses: ./.github/workflows/_base-redisless-smoke.yml
+    with:
+      fake-success: false
+    secrets: inherit
+
   coverage:
     name: Coverage Wrap Up
     needs: [test, checkrun]

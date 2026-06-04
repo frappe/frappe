@@ -48,6 +48,7 @@ QUEUE_STARVATION_THRESHOLD = 16
 
 
 _redis_queue_conn = None
+_in_memory_pool = None
 
 
 @lru_cache
@@ -157,10 +158,57 @@ def enqueue(
 	try:
 		q = get_queue(queue, is_async=is_async)
 	except ConnectionError:
+		from frappe.utils.redis_wrapper import MemoryCacheWrapper
+
+		redis_unavailable = isinstance(frappe.cache, MemoryCacheWrapper)
+
 		if frappe.local.flags.in_migrate:
-			# If redis is not available during migration, execute the job directly
-			print(f"Redis queue is unreachable: Executing {method} synchronously")
+			# During migrations, we must run jobs synchronously to avoid race conditions.
+			def _run_sync():
+				frappe.call(method, **kwargs)
+
+			if enqueue_after_commit:
+				frappe.db.after_commit.add(_run_sync)
+				return
+
 			return frappe.call(method, **kwargs)
+
+		elif redis_unavailable:
+			# Redis is intentionally absent (use_memory_cache mode).
+			# Run the job asynchronously via a ThreadPool to keep the web thread responsive.
+			def _run_in_memory():
+				global _in_memory_pool
+				if _in_memory_pool is None:
+					from concurrent.futures import ThreadPoolExecutor
+
+					workers = frappe.conf.get("in_memory_workers", 2)
+					_in_memory_pool = ThreadPoolExecutor(
+						max_workers=workers, thread_name_prefix="FrappeInMemoryWorker"
+					)
+
+				# Extract actual method name for job tracking
+				if isinstance(method, Callable):
+					m_name = f"{method.__module__}.{method.__qualname__}"
+				else:
+					m_name = method
+
+				_in_memory_pool.submit(
+					execute_job,
+					site=frappe.local.site,
+					method=method,
+					event=event,
+					job_name=job_name or m_name,
+					kwargs=kwargs,
+					user=frappe.session.user,
+					is_async=True,
+				)
+
+			if enqueue_after_commit:
+				frappe.db.after_commit.add(_run_in_memory)
+				return
+
+			_run_in_memory()
+			return
 
 		raise
 
@@ -606,10 +654,13 @@ def get_redis_conn(username=None, password=None):
 		)
 		raise
 	except Exception as e:
-		log(
-			f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}. Redis reported error: {e!s}",
-			colour="red",
-		)
+		# Suppress the noisy warning when Redis is intentionally absent (use_memory_cache mode).
+		# The enqueue() fallback handles this gracefully; no action needed from the operator.
+		if not frappe.conf.get("use_memory_cache"):
+			log(
+				f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}. Redis reported error: {e!s}",
+				colour="red",
+			)
 		raise
 
 

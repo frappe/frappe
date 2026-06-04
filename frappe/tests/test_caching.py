@@ -1,5 +1,5 @@
 import time
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -285,6 +285,23 @@ class TestRedisWrapper(FrappeAPITestCase):
 		frappe.cache.delete_keys(prefix)
 		self.assertEqual(len(frappe.cache.get_keys(prefix)), 0)
 
+	def test_delete_keys_with_user_and_shared_args(self):
+		user_prefix = "test_user_del_"
+		shared_prefix = "test_shared_del_"
+
+		for i in range(3):
+			frappe.cache.set_value(f"{user_prefix}{i}", 1, user="Administrator")
+			frappe.cache.set_value(f"{shared_prefix}{i}", 1, shared=True)
+
+		self.assertEqual(len(frappe.cache.get_keys(user_prefix, user="Administrator")), 3)
+		self.assertEqual(len(frappe.cache.get_keys(shared_prefix, shared=True)), 3)
+
+		frappe.cache.delete_keys(user_prefix, user="Administrator")
+		frappe.cache.delete_keys(shared_prefix, shared=True)
+
+		self.assertEqual(len(frappe.cache.get_keys(user_prefix, user="Administrator")), 0)
+		self.assertEqual(len(frappe.cache.get_keys(shared_prefix, shared=True)), 0)
+
 	def test_hash(self):
 		key = "test_hash"
 
@@ -361,6 +378,291 @@ class TestRedisWrapper(FrappeAPITestCase):
 
 	def test_backward_compat_cache(self):
 		self.assertEqual(frappe.cache, frappe.cache())
+
+	def test_cache_fallback_on_redis_failure(self):
+		"""Test that cache falls back to memory cache when Redis connection fails"""
+		import redis
+
+		from frappe.utils.redis_wrapper import MemoryCacheWrapper, setup_cache
+
+		with patch("frappe.utils.redis_wrapper.RedisWrapper.from_url") as mock_from_url:
+			mock_from_url.side_effect = redis.exceptions.ConnectionError("Redis connection failed")
+
+			with patch.object(
+				frappe.local,
+				"conf",
+				type(
+					"conf",
+					(),
+					{
+						"get": lambda self, key, default=None: None,
+						"redis_cache_sentinel_enabled": False,
+					},
+				)(),
+			):
+				cache = setup_cache()
+				self.assertIsInstance(
+					cache, MemoryCacheWrapper, "Should fall back to MemoryCacheWrapper when Redis fails"
+				)
+
+	def test_memory_cache_operations(self):
+		"""Test that MemoryCacheWrapper works for basic cache operations"""
+		from frappe.utils.redis_wrapper import MemoryCacheWrapper
+
+		cache = MemoryCacheWrapper()
+
+		# Test basic set/get
+		cache.set_value("test_key", "test_value")
+		self.assertEqual(cache.get_value("test_key"), "test_value")
+
+		# Test hash operations
+		cache.hset("hash_key", "field1", "value1")
+		cache.hset("hash_key", "field2", "value2")
+		self.assertEqual(cache.hget("hash_key", "field1"), "value1")
+		self.assertEqual(cache.hgetall("hash_key"), {b"field1": "value1", b"field2": "value2"})
+
+		# Test list operations
+		cache.lpush("list_key", "item1")
+		cache.lpush("list_key", "item2")
+		self.assertEqual(cache.lrange("list_key", 0, -1), ["item2", "item1"])
+		self.assertEqual(cache.lpop("list_key"), "item2")
+
+		# Test delete operations
+		cache.delete_value("test_key")
+		self.assertIsNone(cache.get_value("test_key"))
+
+	def test_memory_cache_exports_and_configured_backend(self):
+		from frappe.utils import redis_wrapper
+		from frappe.utils.memory_cache import MemoryCacheWrapper, MemoryPipeline
+		from frappe.utils.redis_wrapper import setup_cache
+
+		self.assertIs(redis_wrapper.MemoryCacheWrapper, MemoryCacheWrapper)
+		self.assertIs(redis_wrapper.MemoryPipeline, MemoryPipeline)
+
+		with self.assertRaises(AttributeError):
+			redis_wrapper.__getattr__("UnknownCache")
+
+		with patch.object(
+			frappe.local,
+			"conf",
+			type(
+				"conf",
+				(),
+				{
+					"get": lambda self, key, default=None: {"use_memory_cache": True}.get(key, default),
+					"redis_cache_sentinel_enabled": False,
+				},
+			)(),
+		):
+			cache = setup_cache()
+			self.assertIsInstance(cache, MemoryCacheWrapper)
+
+	def test_setup_cache_uses_sentinel_when_available(self):
+		from frappe.utils.redis_wrapper import setup_cache
+
+		redis_cache = MagicMock()
+		redis_cache.connected.return_value = True
+		sentinel = MagicMock()
+		sentinel.master_for.return_value = redis_cache
+
+		with (
+			patch("frappe.utils.redis_wrapper.get_sentinel_connection", return_value=sentinel),
+			patch.object(
+				frappe.local,
+				"conf",
+				type(
+					"conf",
+					(),
+					{
+						"get": lambda self, key, default=None: {
+							"redis_cache_sentinels": ["localhost:26379"],
+							"redis_cache_master_service": "mymaster",
+						}.get(key, default),
+						"redis_cache_sentinel_enabled": True,
+					},
+				)(),
+			),
+		):
+			cache = setup_cache()
+
+		self.assertIs(cache, redis_cache)
+		sentinel.master_for.assert_called_once()
+
+	def test_setup_cache_sentinel_falls_back_on_failed_connection_test(self):
+		from frappe.utils.memory_cache import MemoryCacheWrapper
+		from frappe.utils.redis_wrapper import setup_cache
+
+		redis_cache = MagicMock()
+		redis_cache.connected.return_value = False
+		sentinel = MagicMock()
+		sentinel.master_for.return_value = redis_cache
+
+		with (
+			patch("frappe.utils.redis_wrapper.get_sentinel_connection", return_value=sentinel),
+			patch.object(
+				frappe.local,
+				"conf",
+				type(
+					"conf",
+					(),
+					{
+						"get": lambda self, key, default=None: {
+							"redis_cache_sentinels": ["localhost:26379"],
+							"redis_cache_master_service": "mymaster",
+						}.get(key, default),
+						"redis_cache_sentinel_enabled": True,
+					},
+				)(),
+			),
+		):
+			cache = setup_cache()
+
+		self.assertIsInstance(cache, MemoryCacheWrapper)
+
+	def test_cache_fallback_on_unexpected_redis_setup_error(self):
+		from frappe.utils.memory_cache import MemoryCacheWrapper
+		from frappe.utils.redis_wrapper import setup_cache
+
+		with patch("frappe.utils.redis_wrapper.RedisWrapper.from_url") as mock_from_url:
+			mock_from_url.side_effect = RuntimeError("unexpected failure")
+
+			with patch.object(
+				frappe.local,
+				"conf",
+				type(
+					"conf",
+					(),
+					{
+						"get": lambda self, key, default=None: None,
+						"redis_cache_sentinel_enabled": False,
+					},
+				)(),
+			):
+				cache = setup_cache()
+				self.assertIsInstance(cache, MemoryCacheWrapper)
+
+	def test_memory_cache_key_and_expiry_operations(self):
+		from frappe.utils.memory_cache import MemoryCacheWrapper
+
+		cache = MemoryCacheWrapper()
+		frappe.local.cache.clear()
+
+		self.assertIs(cache(), cache)
+		self.assertTrue(cache.ping())
+		self.assertTrue(cache.connected())
+		self.assertEqual(cache.client_id(), 1)
+		self.assertEqual(cache.execute_command("INFO"), {})
+
+		cache.set_value("plain", "value")
+		self.assertEqual(cache.get_value("plain"), "value")
+		self.assertEqual(cache.exists("plain"), 1)
+
+		generator_calls = 0
+
+		def generate_value():
+			nonlocal generator_calls
+			generator_calls += 1
+			return "generated"
+
+		self.assertEqual(cache.get_value("generated", generator=generate_value), "generated")
+		self.assertEqual(cache.get_value("generated", generator=generate_value), "generated")
+		self.assertEqual(generator_calls, 1)
+
+		cache.set_value("user-key", "user-value", user="Administrator")
+		cache.set_value("shared-key", "shared-value", shared=True)
+		self.assertEqual(cache.get_value("user-key", user="Administrator"), "user-value")
+		self.assertEqual(cache.get_value("shared-key", shared=True), "shared-value")
+		self.assertEqual(cache.exists("user-key", user="Administrator"), 1)
+		self.assertEqual(cache.exists("shared-key", shared=True), 1)
+		self.assertEqual(len(cache.get_keys("user-", user="Administrator")), 1)
+		self.assertEqual(len(cache.get_keys("shared-", shared=True)), 1)
+
+		cache.delete_keys("user-", user="Administrator")
+		cache.delete_keys("shared-", shared=True)
+		self.assertEqual(cache.exists("user-key", user="Administrator"), 0)
+		self.assertEqual(cache.exists("shared-key", shared=True), 0)
+
+		with patch("frappe.utils.memory_cache.time.time", side_effect=[100, 100, 102]):
+			cache.set_value("expiring", "soon-gone", expires_in_sec=1)
+			frappe.local.cache.pop(cache.make_key("expiring"), None)
+			self.assertEqual(cache.get_value("expiring", use_local_cache=False), "soon-gone")
+			frappe.local.cache.pop(cache.make_key("expiring"), None)
+			self.assertIsNone(cache.get_value("expiring", use_local_cache=False))
+
+		cache.set_value("delete-me", "gone")
+		cache.delete_key("delete-me")
+		self.assertEqual(cache.exists("delete-me"), 0)
+
+		self.assertTrue(cache.expire_key("plain", 10))
+		self.assertIn(cache.make_key("plain"), cache.expiries)
+
+	def test_memory_cache_collection_operations(self):
+		from frappe.utils.memory_cache import MemoryCacheWrapper
+
+		cache = MemoryCacheWrapper()
+		frappe.local.cache.clear()
+
+		cache.lpush("queue", "first")
+		cache.rpush("queue", "second")
+		cache.lpush("queue", "zero")
+		self.assertEqual(cache.llen("queue"), 3)
+		self.assertEqual(cache.lrange("queue", 0, -1), ["zero", "first", "second"])
+		self.assertEqual(cache.blpop("queue"), "zero")
+		self.assertEqual(cache.rpop("queue"), "second")
+		cache.rpush("queue", "third")
+		cache.ltrim("queue", 1, -1)
+		self.assertEqual(cache.lrange("queue", 0, -1), ["third"])
+		with patch("frappe.utils.memory_cache.time.sleep") as sleep:
+			self.assertIsNone(cache.blpop("missing", timeout=1))
+			sleep.assert_called_once_with(1)
+
+		cache.hset("hash", "field1", "value1")
+		self.assertEqual(cache.hget("hash", "field1"), "value1")
+		self.assertEqual(cache.hget("hash", "field2", generator=lambda: "value2"), "value2")
+		self.assertEqual(set(cache.hkeys("hash")), {b"field1", b"field2"})
+		self.assertEqual(cache.hgetall("hash"), {b"field1": "value1", b"field2": "value2"})
+		self.assertTrue(cache.hexists("hash", "field1"))
+		self.assertFalse(cache.hexists("hash", None))
+		cache.hdel("hash", "field1")
+		self.assertFalse(cache.hexists("hash", "field1"))
+
+		cache.hset("prefix:first", "shared-field", "one")
+		cache.hset("prefix:second", "shared-field", "two")
+		cache.hdel_keys("prefix:", "shared-field")
+		self.assertFalse(cache.hexists("prefix:first", "shared-field"))
+		self.assertFalse(cache.hexists("prefix:second", "shared-field"))
+
+		cache.hset("hash-one", "name", "one")
+		cache.hset("hash-two", "name", "two")
+		cache.hdel_names(["hash-one", "hash-two"], "name")
+		self.assertFalse(cache.hexists("hash-one", "name"))
+		self.assertFalse(cache.hexists("hash-two", "name"))
+
+		cache.sadd("letters", "a", "b", "c")
+		self.assertTrue(cache.sismember("letters", "a"))
+		self.assertEqual(cache.smembers("letters"), {"a", "b", "c"})
+		self.assertIn(cache.srandmember("letters"), {"a", "b", "c"})
+		self.assertEqual(len(cache.srandmember("letters", 2)), 2)
+		popped = cache.spop("letters")
+		self.assertNotIn(popped, cache.smembers("letters"))
+		cache.srem("letters", "b")
+		self.assertFalse(cache.sismember("letters", "b"))
+
+		results = (
+			cache.pipeline().set_value("pipe-key", "pipe").hset("pipe-hash", "k", "v").missing().execute()
+		)
+		self.assertEqual(results, [None, None])
+		self.assertEqual(cache.get_value("pipe-key"), "pipe")
+		self.assertEqual(cache.hget("pipe-hash", "k"), "v")
+
+		self.assertEqual(cache.incrby("counter"), 1)
+		self.assertEqual(cache.incrby("counter", 3), 4)
+		self.assertTrue(cache.expire("counter", 5))
+		self.assertIn("counter", cache.expiries)
+
+		pubsub = cache.pubsub()
+		self.assertIsNone(pubsub.subscribe(channel="updates"))
+		self.assertTrue(pubsub.run_in_thread().is_alive())
 
 
 class TestHttpCache(FrappeAPITestCase):

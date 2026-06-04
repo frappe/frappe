@@ -171,11 +171,11 @@ class RedisWrapper(redis.Redis):
 	def lpop(self, key, user=None, shared=False):
 		return super().lpop(self.make_key(key, user=user, shared=shared))
 
-	def rpop(self, key):
-		return super().rpop(self.make_key(key))
-
 	def blpop(self, key, timeout=0, user=None, shared=False):
 		return super().blpop(self.make_key(key, user=user, shared=shared), timeout=timeout)
+
+	def rpop(self, key):
+		return super().rpop(self.make_key(key))
 
 	def llen(self, key):
 		return super().llen(self.make_key(key))
@@ -366,22 +366,82 @@ class RedisWrapper(redis.Redis):
 		return RedisearchWrapper(client=self, index_name=self.make_key(index_name))
 
 
-def setup_cache() -> RedisWrapper:
-	if frappe.conf.redis_cache_sentinel_enabled:
-		sentinels = [tuple(node.split(":")) for node in frappe.conf.get("redis_cache_sentinels", [])]
-		sentinel = get_sentinel_connection(
-			sentinels=sentinels,
-			sentinel_username=frappe.conf.get("redis_cache_sentinel_username"),
-			sentinel_password=frappe.conf.get("redis_cache_sentinel_password"),
-			master_username=frappe.conf.get("redis_cache_master_username"),
-			master_password=frappe.conf.get("redis_cache_master_password"),
-		)
-		return sentinel.master_for(
-			frappe.conf.get("redis_cache_master_service"),
-			redis_class=RedisWrapper,
-		)
+def __getattr__(name):
+	if name in {"MemoryCacheWrapper", "MemoryPipeline"}:
+		from frappe.utils.memory_cache import MemoryCacheWrapper, MemoryPipeline
 
-	return RedisWrapper.from_url(frappe.conf.get("redis_cache"))
+		return {"MemoryCacheWrapper": MemoryCacheWrapper, "MemoryPipeline": MemoryPipeline}[name]
+	raise AttributeError(name)
+
+
+def setup_cache() -> RedisWrapper:
+	"""
+	Setup the cache backend for Frappe.
+
+	This function attempts to connect to Redis for caching. If Redis is not available
+	(e.g., in local development environments), it automatically falls back to an
+	in-memory cache implementation.
+
+	Configuration options:
+	- Set "use_memory_cache": true or "cache_backend": "memory" in site_config.json
+	  to force the use of in-memory cache
+	- Otherwise, Redis is used by default with automatic fallback to memory cache
+	  when Redis connection fails
+
+	Returns:
+	    RedisWrapper or MemoryCacheWrapper instance
+	"""
+	import logging
+
+	logger = logging.getLogger(__name__)
+
+	def new_memory_cache():
+		from frappe.utils.memory_cache import MemoryCacheWrapper
+
+		return MemoryCacheWrapper()
+
+	if frappe.conf.get("use_memory_cache") or frappe.conf.get("cache_backend") == "memory":
+		logger.info("Using MemoryCacheWrapper (configured via site_config)")
+		return new_memory_cache()
+
+	try:
+		if frappe.conf.redis_cache_sentinel_enabled:
+			sentinels = [tuple(node.split(":")) for node in frappe.conf.get("redis_cache_sentinels", [])]
+			sentinel = get_sentinel_connection(
+				sentinels=sentinels,
+				sentinel_username=frappe.conf.get("redis_cache_sentinel_username"),
+				sentinel_password=frappe.conf.get("redis_cache_sentinel_password"),
+				master_username=frappe.conf.get("redis_cache_master_username"),
+				master_password=frappe.conf.get("redis_cache_master_password"),
+			)
+			redis_cache = sentinel.master_for(
+				frappe.conf.get("redis_cache_master_service"),
+				redis_class=RedisWrapper,
+			)
+			# Test the connection immediately
+			if redis_cache.connected():
+				logger.info("Successfully connected to Redis via Sentinel")
+				return redis_cache
+			else:
+				logger.warning(
+					"Redis Sentinel configured but connection failed, falling back to MemoryCacheWrapper"
+				)
+				return new_memory_cache()
+		else:
+			redis_cache = RedisWrapper.from_url(frappe.conf.get("redis_cache"))
+			# Test the connection immediately
+			if redis_cache.connected():
+				logger.info("Successfully connected to Redis")
+				return redis_cache
+			else:
+				logger.warning("Redis connection test failed, falling back to MemoryCacheWrapper")
+				return new_memory_cache()
+	except redis.exceptions.ConnectionError as e:
+		logger.warning(f"Redis connection failed ({e}), falling back to MemoryCacheWrapper")
+		return new_memory_cache()
+	except Exception as e:
+		logger.error(f"Unexpected error setting up cache ({e}), falling back to MemoryCacheWrapper")
+		return new_memory_cache()
 
 
 def get_sentinel_connection(
@@ -408,7 +468,7 @@ def get_sentinel_connection(
 	)
 
 
-class _ClientTrackingMixin:
+class _TrackedConnection(redis.Connection):
 	def __init__(self, *args, **kwargs):
 		self._invalidator_id = kwargs.pop("_invalidator_id")
 		super().__init__(*args, **kwargs)
@@ -430,14 +490,6 @@ class _ClientTrackingMixin:
 				raise
 
 
-class _TrackedConnection(_ClientTrackingMixin, redis.Connection):
-	pass
-
-
-class _TrackedUnixDomainSocketConnection(_ClientTrackingMixin, redis.UnixDomainSocketConnection):
-	pass
-
-
 CachedValue = namedtuple("CachedValue", ["value", "expiry"])
 CacheStatistics = namedtuple(
 	"CacheStatistics", ["hits", "misses", "capacity", "used", "utilization", "hit_ratio", "healthy"]
@@ -453,26 +505,26 @@ class ClientCache:
 	There aren't many use cases for such aggressive caching outside of core Framework.
 
 	This is an implementation of Redis' "client side caching" concept:
-		- https://redis.io/docs/latest/develop/reference/client-side-caching/
+	    - https://redis.io/docs/latest/develop/reference/client-side-caching/
 
 	Usage/Notes:
-		- Cache keys that do not change often: Think hours-days, not minutes.
-		- Cache keys that are read frequently, e.g. every request or at least >10% of the requests.
-		- Cache values are not huge, consider avg size of ~4kb per value. You can deviate here and
-		  there but not go crazy with caching large values in this cache.
-		- We have hardcoded 10 minutes "local" ttl and max 1024 keys.
-			You're not supposed to work with these numbers, not change them.
-		- Same keys can be accessed with `frappe.cache` too, but that won't implement invalidation.
-		- Invalidate things as usual using `delete_value`. Local invalidation should be instant.
-		  Do not expect sub-second invalidation guarantees across processes.
-		  If you need that kind of guarantees, don't use this cache.
-		- When redis connection isn't available or any unknown exceptions are encountered, this
-		  cache automatically turns itself off and falls back to behaviour that is equivalent to
-		  default Redis cache behaviour.
-		- Never use `frappe.cache`'s request local cache along with client-side cache. Two
-		  different copies of same key are a big source of data races.
-		- This cache uses simple FIFO eviction policy. Make sure your access patterns don't cause
-		  the worst case behaviour for this policy. E.g. looping over `maxsize` items repeatedly.
+	    - Cache keys that do not change often: Think hours-days, not minutes.
+	    - Cache keys that are read frequently, e.g. every request or at least >10% of the requests.
+	    - Cache values are not huge, consider avg size of ~4kb per value. You can deviate here and
+	      there but not go crazy with caching large values in this cache.
+	    - We have hardcoded 10 minutes "local" ttl and max 1024 keys.
+	        You're not supposed to work with these numbers, not change them.
+	    - Same keys can be accessed with `frappe.cache` too, but that won't implement invalidation.
+	    - Invalidate things as usual using `delete_value`. Local invalidation should be instant.
+	      Do not expect sub-second invalidation guarantees across processes.
+	      If you need that kind of guarantees, don't use this cache.
+	    - When redis connection isn't available or any unknown exceptions are encountered, this
+	      cache automatically turns itself off and falls back to behaviour that is equivalent to
+	      default Redis cache behaviour.
+	    - Never use `frappe.cache`'s request local cache along with client-side cache. Two
+	      different copies of same key are a big source of data races.
+	    - This cache uses simple FIFO eviction policy. Make sure your access patterns don't cause
+	      the worst case behaviour for this policy. E.g. looping over `maxsize` items repeatedly.
 	"""
 
 	def __init__(self, maxsize: int = 1024, ttl=10 * 60, monitor: RedisWrapper | None = None) -> None:
@@ -503,13 +555,9 @@ class ClientCache:
 		if not self.invalidator_id:
 			return
 
-		redis_url = frappe.conf.get("redis_cache") or ""
-		connection_class = (
-			_TrackedUnixDomainSocketConnection if redis_url.startswith("unix://") else _TrackedConnection
-		)
 		self.redis: RedisWrapper = RedisWrapper.from_url(
-			redis_url,
-			connection_class=connection_class,
+			frappe.conf.get("redis_cache"),
+			connection_class=_TrackedConnection,
 			_invalidator_id=self.invalidator_id,
 			protocol=2,
 		)

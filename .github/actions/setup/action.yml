@@ -22,6 +22,9 @@ inputs:
   disable-socketio:
     required: false
     default: false
+  start-bench:
+    required: false
+    default: true
   db:
     required: false
     default: mariadb
@@ -238,6 +241,7 @@ runs:
       echo -e "\033[33mCreate Site + Build Assets: $((end_time - start_time)) seconds\033[0m"
 
   - shell: bash -e {0}
+    if: ${{ inputs.start-bench == 'true' }}
     run: |
       # Start Bench
       bench start &> ${GITHUB_WORKSPACE}/bench_start.log &

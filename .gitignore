@@ -198,3 +198,6 @@ cypress/videos
 .helix/
 # Aider AI Chat
 .aider*
+
+# Redis-less Docker test
+docker-test/

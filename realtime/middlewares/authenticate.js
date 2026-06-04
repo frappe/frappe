@@ -5,6 +5,7 @@ const conf = get_conf();
 const redisClient = get_redis_subscriber("redis_queue");
 
 async function getSecretFromRedis() {
+	if (conf.in_memory) return null;
 	if (!redisClient.isOpen) await redisClient.connect();
 	const val = await redisClient.get("socketio_auth_secret");
 	return val;
