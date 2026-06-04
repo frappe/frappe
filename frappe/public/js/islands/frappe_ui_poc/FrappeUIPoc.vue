@@ -124,6 +124,28 @@
 
 		<Combobox v-model="value" :options="repos" placeholder="Pick a repo" open-on-focus />
 
+		<!-- Overlays wired onto the usePortalTarget contract (WS2). Each teleports
+		     its content into the island's styled portal, not bare <body>. -->
+		<div class="flex gap-3 flex-wrap items-center">
+			<Select v-model="fruit" :options="fruits" placeholder="Pick a fruit" />
+
+			<Popover>
+				<template #target="{ togglePopover }">
+					<Button variant="outline" @click="togglePopover()"> Open Popover </Button>
+				</template>
+				<template #body-main>
+					<div class="p-4 w-64">
+						<p class="text-p-base text-ink-gray-8 font-medium mb-1">Portaled popover</p>
+						<p class="text-p-sm text-ink-gray-6">
+							This content is teleported via reka-ui's <code>PopoverPortal</code> into
+							the island's <code>[data-frappe-ui]</code> portal — so it stays styled
+							inside Desk.
+						</p>
+					</div>
+				</template>
+			</Popover>
+		</div>
+
 		<div
 			v-if="lastSubmit || confirmResult"
 			class="mt-6 p-3 bg-surface-gray-1 rounded-lg border border-outline-gray-1"
@@ -140,16 +162,18 @@
 
 <script setup lang="ts">
 // Deep-path imports rather than the `frappe-ui` barrel.
-// Why: the barrel `export *`s every component, which forces esbuild's Vue
-// plugin to parse the entire library — including Calendar (uses Vue 3.4+
-// `:close` shorthand) and TextEditor (uses TS-only syntax in templates)
-// that the pinned `@vue/compiler-sfc@^3.2.26` cannot parse.
-// Deep-path imports are also smaller: the POC bundle only carries the
-// components it actually uses.
+// Why: the barrel `export *`s every component, so importing it would force the
+// build to resolve the whole library — including TextEditor and Charts, whose
+// heavy deps (tiptap, echarts) are not installed for the linked frappe-ui
+// clone. Deep-path imports keep the island to the components it actually uses.
+// (The Vite islands pipeline aliases `frappe-ui/src/*` past the package's
+// `exports` map so these subpaths resolve.)
 import { Button } from "frappe-ui/src/components/Button";
 import { Dialog } from "frappe-ui/src/components/Dialog";
 import { FormControl } from "frappe-ui/src/components/FormControl";
 import { Combobox } from "frappe-ui/src/components/Combobox";
+import { Popover } from "frappe-ui/src/components/Popover";
+import { Select } from "frappe-ui/src/components/Select";
 import { ref } from "vue";
 
 const basicDialogOpen = ref(false);
@@ -157,6 +181,13 @@ const formDialogOpen = ref(false);
 const confirmDialogOpen = ref(false);
 
 const value = ref("frappe-ui");
+
+const fruit = ref("");
+const fruits = [
+	{ label: "Apple", value: "apple" },
+	{ label: "Banana", value: "banana" },
+	{ label: "Cherry", value: "cherry" },
+];
 
 const repos = [
 	"gameplan",

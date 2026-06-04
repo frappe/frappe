@@ -1,9 +1,10 @@
 {
   "name": "frappe-framework",
   "scripts": {
-    "build": "node esbuild",
-    "production": "node esbuild --production",
-    "watch": "node esbuild --watch",
+    "build": "node esbuild && yarn build:islands",
+    "build:islands": "node esbuild/build-islands.mjs --mode development",
+    "production": "node esbuild --production && node esbuild/build-islands.mjs --mode production",
+    "watch": "node esbuild --watch & node esbuild/build-islands.mjs --mode development --watch",
     "coverage:report": "npx nyc report --reporter=clover"
   },
   "repository": {
@@ -55,7 +56,7 @@
     "frappe-datatable": "1.20.4",
     "frappe-gantt": "^1.2.1",
     "frappe-quill-image-resize": "^3.0.9",
-    "frappe-ui": "github:nextchamp-saqib/frappe-ui#87f64e14da6a31f1f5266a0655c000c9763ed1f0",
+    "frappe-ui": "link:./frappe-ui",
     "gemoji": "^8.1.0",
     "highlight.js": "^10.4.1",
     "html5-qrcode": "^2.3.8",
@@ -96,7 +97,9 @@
     "utf-8-validate": "^6.0.3"
   },
   "devDependencies": {
-    "tailwindcss": "3"
+    "@vitejs/plugin-vue": "^5.2.4",
+    "tailwindcss": "3",
+    "vite": "^5.4.21"
   },
   "resolutions": {
     "esbuild-plugin-vue3/esbuild": "^0.28.0"

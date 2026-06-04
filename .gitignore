@@ -198,3 +198,7 @@ cypress/videos
 .helix/
 # Aider AI Chat
 .aider*
+
+# Local frappe-ui clone (linked via package.json "link:./frappe-ui").
+# Edited in place; pushed to the frappe-ui repo separately, not committed here.
+/frappe-ui/

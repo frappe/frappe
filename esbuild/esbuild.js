@@ -318,7 +318,10 @@ function get_all_files_to_build(apps) {
 		);
 		ignore_patterns.push(
 			path.resolve(public_path, "node_modules"),
-			path.resolve(public_path, "dist")
+			path.resolve(public_path, "dist"),
+			// frappe-ui Desk islands: `*.bundle.{js,ts}` under `js/islands/` are
+			// built by the Vite pipeline (esbuild/build-islands.mjs), not esbuild.
+			path.resolve(public_path, "js", "islands")
 		);
 	}
 
@@ -339,7 +342,9 @@ function get_files_to_build(files) {
 		include_patterns.push(path.resolve(public_path, "**", bundle));
 		ignore_patterns.push(
 			path.resolve(public_path, "node_modules"),
-			path.resolve(public_path, "dist")
+			path.resolve(public_path, "dist"),
+			// See get_all_files_to_build: islands build via Vite, not esbuild.
+			path.resolve(public_path, "js", "islands")
 		);
 	}
 

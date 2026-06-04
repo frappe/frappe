@@ -107,16 +107,17 @@ export function mountVueIsland(opts) {
 
 	// Body-level portal for Dialog overlays + reka-ui popovers.
 	//
-	// Dialog uses `<DialogPortal>` (and the reka-ui popovers use the same
-	// primitive under the hood) which teleports content out of the normal
-	// DOM tree. Without a styled portal it lands at bare <body> — outside
-	// any `[data-frappe-ui]` ancestor — so our scoped utility classes
-	// don't apply and Bootstrap CSS bleeds in.
+	// Overlay components (Dialog, Popover, Combobox, Select, MultiSelect,
+	// Dropdown, Tooltip, TimePicker, date pickers) teleport their content out
+	// of the normal DOM tree via reka-ui `<*Portal>`. Without a styled portal
+	// it lands at bare <body> — outside any `[data-frappe-ui]` ancestor — so
+	// our scoped utility classes don't apply and Bootstrap CSS bleeds in.
 	//
-	// frappe-ui's Dialog injects `frappe-ui:portal-target` to pick this up
-	// (the inject was removed in upstream Dialog v1; restoring it is W2
-	// of frappe-ui/PLAN-DESK-INTEGRATION.md). Until that lands, providing
-	// it here is a no-op but harmless.
+	// Every such component resolves its teleport target as
+	//   explicit prop → usePortalTarget() inject → reka-ui default (<body>)
+	// via frappe-ui's `usePortalTarget()` composable, whose injection key is the
+	// plain string `frappe-ui:portal-target`. Providing that key below routes
+	// all overlays into this styled portal element.
 	const portalId = `frappe-ui-portal-${Math.random().toString(36).slice(2, 9)}`;
 	const portalEl = document.createElement("div");
 	portalEl.id = portalId;
@@ -141,10 +142,10 @@ export function mountVueIsland(opts) {
 	});
 	app.use(router);
 
-	// Portal target — keyed both as a string and as a Symbol (frappe-ui's
-	// composables sometimes use Symbol.for() to avoid string-key clashes).
+	// Portal target consumed by frappe-ui's usePortalTarget() (string key, no
+	// Symbol). reka-ui's `:to` accepts a CSS selector, so `#<portalId>` resolves
+	// to the styled portal element appended above.
 	app.provide("frappe-ui:portal-target", `#${portalId}`);
-	app.provide(Symbol.for("frappe-ui:portal-target"), `#${portalId}`);
 
 	if (extra_provide) {
 		for (const key of Object.keys(extra_provide)) {

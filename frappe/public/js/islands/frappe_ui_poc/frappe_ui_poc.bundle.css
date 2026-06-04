@@ -1,0 +1,45 @@
+/**
+ * frappe-ui POC — Desk island stylesheet (Vite entry).
+ *
+ * Built by the Vite islands pipeline (esbuild/build-islands.mjs), whose
+ * PostCSS chain runs the framework-owned CSS-war layer:
+ *   tailwindcss(tailwind.config.desk-islands.mjs) → autoprefixer →
+ *   postcss-frappe-ui-important.
+ *
+ * Build order (top to bottom):
+ *   1. The canonical `[data-frappe-ui]`-scoped preflight, imported ONCE from
+ *      its single source (no per-island inlining — Vite resolves `@import`
+ *      natively). This is the framework's hand-rolled equivalent of Tailwind's
+ *      global reset; the desk-islands Tailwind config sets `preflight: false`.
+ *   2. `@tailwind base` — design tokens (CSS custom properties) via the
+ *      frappe-ui Tailwind plugin's addBase(). The browser-reset preflight is
+ *      NOT emitted here (preflight:false).
+ *   3. `@tailwind components` / `@tailwind utilities` — scoped to
+ *      `[data-frappe-ui]` by the `important` config; the frappe-ui-important
+ *      PostCSS plugin then stamps `!important` so Bootstrap's `!important`
+ *      utilities lose.
+ *
+ * This file is imported by frappe_ui_poc.bundle.js so Vite emits it as the
+ * island's companion stylesheet.
+ */
+
+@import "../../../css/frappe-ui-scoped-preflight.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+ * Island-local overrides
+ * ============================================================ */
+
+/* z-index boost for Dialog overlays + reka-ui popover content so they layer
+ * above Bootstrap modals/dropdowns (which use 1040–1050).
+ */
+.dialog-overlay {
+	z-index: 100000 !important;
+}
+
+[data-reka-popper-content-wrapper] {
+	z-index: 100000 !important;
+}

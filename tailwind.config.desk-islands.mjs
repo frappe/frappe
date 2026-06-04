@@ -50,7 +50,10 @@ export default {
   content: [
     // App-local Vue/JS islands.
     path.join(__dirname, "frappe/public/js/**/*.{vue,js,ts,tsx}"),
-    path.join(__dirname, "node_modules/frappe-ui/src/**/*.{vue,js,ts,tsx}"),
+    // frappe-ui source. Scanned directly from the linked clone (./frappe-ui)
+    // rather than node_modules/frappe-ui — the latter is a symlink and Tailwind
+    // content globs are more reliable against the real path.
+    path.join(__dirname, "frappe-ui/src/**/*.{vue,js,ts,tsx}"),
   ],
   theme: {
     extend: {},
