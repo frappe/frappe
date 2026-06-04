@@ -65,19 +65,7 @@
 
 		<!-- ── Table field inspector ───────────────────────────────── -->
 		<template v-else-if="selected_field && is_table_field">
-			<div class="pfb-insp-tabs">
-				<button
-					v-for="tab in field_tabs"
-					:key="tab.id"
-					class="pfb-insp-tab"
-					:class="{ active: active_tab === tab.id }"
-					@click="active_tab = tab.id"
-				>
-					{{ tab.label }}
-				</button>
-			</div>
-
-			<div v-if="active_tab === 'properties'" class="pfb-insp-body">
+			<div class="pfb-insp-body">
 				<!-- TABLE section -->
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('t_table')">
@@ -243,21 +231,6 @@
 					</div>
 				</div>
 
-				<!-- BEHAVIOR section -->
-				<div class="pfb-insp-section">
-					<div class="pfb-insp-section-head" @click="toggle('t_behavior')">
-						<span class="pfb-insp-section-label">{{ __("Behavior") }}</span>
-						<span
-							class="pfb-insp-chevron"
-							:class="{ collapsed: !open.t_behavior }"
-							v-html="frappe.utils.icon('chevron-down', 'xs')"
-						></span>
-					</div>
-					<div v-show="open.t_behavior" class="pfb-insp-section-body">
-						<p class="pfb-insp-hint text-muted">{{ __("Coming soon.") }}</p>
-					</div>
-				</div>
-
 				<div class="pfb-insp-actions">
 					<button class="btn btn-xs btn-danger-subtle" @click="remove_field">
 						<span v-html="frappe.utils.icon('x', 'xs')"></span>
@@ -265,27 +238,11 @@
 					</button>
 				</div>
 			</div>
-
-			<div v-else class="pfb-insp-body pfb-insp-placeholder">
-				<p class="text-muted">{{ __("Coming soon.") }}</p>
-			</div>
 		</template>
 
 		<!-- ── Field inspector ─────────────────────────────────── -->
 		<template v-else-if="selected_field">
-			<div class="pfb-insp-tabs">
-				<button
-					v-for="tab in field_tabs"
-					:key="tab.id"
-					class="pfb-insp-tab"
-					:class="{ active: active_tab === tab.id }"
-					@click="active_tab = tab.id"
-				>
-					{{ tab.label }}
-				</button>
-			</div>
-
-			<div v-if="active_tab === 'properties'" class="pfb-insp-body">
+			<div class="pfb-insp-body">
 				<div class="pfb-insp-section">
 					<div class="pfb-insp-section-head" @click="toggle('f_field')">
 						<span class="pfb-insp-section-label">{{ __("Field") }}</span>
@@ -359,22 +316,6 @@
 								</div>
 							</div>
 						</template>
-					</div>
-				</div>
-
-				<div class="pfb-insp-section">
-					<div class="pfb-insp-section-head" @click="toggle('f_format')">
-						<span class="pfb-insp-section-label">{{ __("Format") }}</span>
-						<span
-							class="pfb-insp-chevron"
-							:class="{ collapsed: !open.f_format }"
-							v-html="frappe.utils.icon('chevron-down', 'xs')"
-						></span>
-					</div>
-					<div v-show="open.f_format" class="pfb-insp-section-body">
-						<p class="pfb-insp-hint text-muted">
-							{{ __("Additional formatting options coming soon.") }}
-						</p>
 					</div>
 				</div>
 
@@ -636,16 +577,8 @@ let selected_section = computed(() => store.selected_section.value);
 let selected_letterhead = computed(() => store.selected_letterhead.value);
 let selected_lh_footer = computed(() => store.selected_lh_footer.value);
 
-let active_tab = ref("properties");
-
-const field_tabs = [
-	{ id: "properties", label: __("Properties") },
-	{ id: "style", label: __("Style") },
-];
-
 const open = ref({
 	f_field: true,
-	f_format: false,
 	f_visibility: false,
 	s_section: true,
 	s_bg: true,
@@ -653,7 +586,6 @@ const open = ref({
 	s_visibility: false,
 	t_table: true,
 	t_columns: true,
-	t_behavior: false,
 });
 
 function toggle(key) {
@@ -1002,7 +934,7 @@ function set_padding(side, value) {
 .pfb-breadcrumb {
 	padding: 4px 10px;
 	border-bottom: 1px solid var(--border-color);
-	background: var(--gray-50);
+	background: var(--fg-color);
 }
 
 .pfb-breadcrumb-btn {
@@ -1046,50 +978,6 @@ function set_padding(side, value) {
 	padding: 24px;
 	text-align: center;
 	font-size: var(--text-sm);
-}
-
-/* ── Tabs ────────────────────────────────────────────────── */
-.pfb-insp-tabs {
-	display: flex;
-	padding: 8px 10px 0;
-	gap: 2px;
-	border-bottom: 1px solid var(--border-color);
-	flex-shrink: 0;
-	background: var(--gray-50);
-}
-
-.pfb-insp-tab {
-	flex: 1;
-	padding: 6px 4px 8px;
-	font-size: var(--text-sm);
-	font-weight: 500;
-	border: none;
-	background: transparent;
-	color: var(--text-muted);
-	cursor: pointer;
-	border-radius: var(--border-radius) var(--border-radius) 0 0;
-	position: relative;
-	transition: color 0.12s;
-}
-
-.pfb-insp-tab:hover {
-	color: var(--text-color);
-}
-
-.pfb-insp-tab.active {
-	color: var(--text-color);
-	font-weight: 600;
-}
-
-.pfb-insp-tab.active::after {
-	content: "";
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	height: 2px;
-	background: var(--gray-700);
-	border-radius: 2px 2px 0 0;
 }
 
 /* ── Body ────────────────────────────────────────────────── */
