@@ -203,22 +203,60 @@
 						</draggable>
 						<!-- Add column picker -->
 						<div class="pfb-col-add-row" v-if="available_columns.length">
-							<select class="pfb-col-add-select" v-model="add_col_select">
-								<option value="" disabled>{{ __("+ Add column...") }}</option>
-								<option
-									v-for="col in available_columns"
-									:key="col.fieldname"
-									:value="col.fieldname"
+							<div class="pfb-col-add-combobox">
+								<div class="pfb-col-add-input-wrap">
+									<span
+										class="pfb-col-add-icon"
+										v-html="frappe.utils.icon('search', 'xs')"
+									></span>
+									<input
+										class="pfb-col-add-input"
+										type="text"
+										:placeholder="__('Add column...')"
+										v-model="col_search"
+										@focus="col_open = true"
+										@blur="setTimeout(() => (col_open = false), 100)"
+										@keydown.escape="col_open = false"
+										@keydown.enter.prevent="add_filtered_column"
+										@keydown.down.prevent="
+											col_highlight = Math.min(
+												col_highlight + 1,
+												filtered_add_columns.length - 1
+											)
+										"
+										@keydown.up.prevent="
+											col_highlight = Math.max(col_highlight - 1, 0)
+										"
+									/>
+								</div>
+								<div
+									v-if="col_open && filtered_add_columns.length"
+									class="pfb-col-add-dropdown"
 								>
-									{{ col.label || col.fieldname }}
-								</option>
-							</select>
-							<button
-								class="pfb-col-add-btn"
-								@click="add_table_column"
-								:disabled="!add_col_select"
-								v-html="frappe.utils.icon('plus', 'xs')"
-							></button>
+									<button
+										v-for="(col, i) in filtered_add_columns"
+										:key="col.fieldname"
+										class="pfb-col-add-option"
+										:class="{ highlighted: col_highlight === i }"
+										@mousedown.prevent="pick_column(col)"
+									>
+										<span class="pfb-col-add-option-label">{{
+											col.label || col.fieldname
+										}}</span>
+										<span class="pfb-col-add-option-type">{{
+											col.fieldtype
+										}}</span>
+									</button>
+								</div>
+								<div
+									v-if="col_open && !filtered_add_columns.length"
+									class="pfb-col-add-dropdown"
+								>
+									<div class="pfb-col-add-empty">
+										{{ __("No matching columns") }}
+									</div>
+								</div>
+							</div>
 						</div>
 						<div
 							v-else
@@ -789,19 +827,30 @@ let available_columns = computed(() => {
 		.filter((f) => !existing.has(f.fieldname));
 });
 
-let add_col_select = ref("");
+let col_search = ref("");
+let col_open = ref(false);
+let col_highlight = ref(0);
 
-function add_table_column() {
-	if (!add_col_select.value) return;
-	const fieldname = add_col_select.value;
+let filtered_add_columns = computed(() => {
+	const q = col_search.value.toLowerCase();
+	if (!q) return available_columns.value;
+	return available_columns.value.filter(
+		(c) =>
+			(c.label || "").toLowerCase().includes(q) ||
+			c.fieldname.toLowerCase().includes(q) ||
+			(c.fieldtype || "").toLowerCase().includes(q)
+	);
+});
+
+function pick_column(col) {
 	const meta = frappe.get_meta(selected_field.value.options);
-	let col;
-	if (fieldname === "idx") {
-		col = { label: __("Sr No."), fieldname: "idx", fieldtype: "Data", width: 10 };
+	let entry;
+	if (col.fieldname === "idx") {
+		entry = { label: __("Sr No."), fieldname: "idx", fieldtype: "Data", width: 10 };
 	} else {
-		const df = meta?.fields.find((f) => f.fieldname === fieldname);
+		const df = meta?.fields.find((f) => f.fieldname === col.fieldname);
 		if (!df) return;
-		col = {
+		entry = {
 			label: df.label,
 			fieldname: df.fieldname,
 			fieldtype: df.fieldtype,
@@ -810,10 +859,20 @@ function add_table_column() {
 		};
 	}
 	if (!selected_field.value.table_columns) selected_field.value.table_columns = [];
-	selected_field.value.table_columns.push(col);
-	add_col_select.value = "";
-	// trigger reactivity
-	selected_field.value.table_columns = [...selected_field.value.table_columns];
+	selected_field.value.table_columns = [...selected_field.value.table_columns, entry];
+	col_search.value = "";
+	col_open.value = false;
+	col_highlight.value = 0;
+}
+
+function add_filtered_column() {
+	const cols = filtered_add_columns.value;
+	if (!cols.length) return;
+	pick_column(cols[col_highlight.value] || cols[0]);
+}
+
+function add_table_column() {
+	add_filtered_column();
 }
 
 function remove_table_column(idx) {
@@ -1387,52 +1446,107 @@ function set_padding(side, value) {
 }
 
 .pfb-col-add-row {
-	display: flex;
-	align-items: center;
-	gap: 6px;
 	padding: 6px 14px 10px;
 	border-top: 1px solid var(--gray-100);
 }
 
-.pfb-col-add-select {
-	flex: 1;
-	font-size: var(--text-sm);
-	padding: 4px 6px;
-	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
-	background: var(--fg-color);
-	color: var(--text-color);
-	outline: none;
-	min-width: 0;
+.pfb-col-add-combobox {
+	position: relative;
 }
 
-.pfb-col-add-select:focus {
-	border-color: var(--gray-500);
-}
-
-.pfb-col-add-btn {
+.pfb-col-add-input-wrap {
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	width: 26px;
-	height: 26px;
+	gap: 6px;
+	padding: 5px 8px;
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius);
-	background: var(--gray-50);
-	cursor: pointer;
-	color: var(--text-muted);
+	background: var(--control-bg);
+	transition: border-color 0.1s;
+}
+
+.pfb-col-add-input-wrap:focus-within {
+	border-color: var(--gray-500);
+	background: var(--fg-color);
+}
+
+.pfb-col-add-icon {
+	display: flex;
+	align-items: center;
+	color: var(--gray-400);
 	flex-shrink: 0;
 }
 
-.pfb-col-add-btn:hover:not(:disabled) {
-	background: var(--gray-100);
+.pfb-col-add-input {
+	flex: 1;
+	border: none;
+	background: transparent;
+	outline: none;
+	font-size: var(--text-sm);
 	color: var(--text-color);
-	border-color: var(--gray-400);
+	min-width: 0;
 }
 
-.pfb-col-add-btn:disabled {
-	opacity: 0.4;
-	cursor: not-allowed;
+.pfb-col-add-input::placeholder {
+	color: var(--gray-400);
+}
+
+.pfb-col-add-dropdown {
+	position: absolute;
+	top: calc(100% + 3px);
+	left: 0;
+	right: 0;
+	background: var(--fg-color);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
+	box-shadow: var(--shadow-sm);
+	z-index: 100;
+	max-height: 200px;
+	overflow-y: auto;
+}
+
+.pfb-col-add-option {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	padding: 6px 10px;
+	border: none;
+	background: transparent;
+	text-align: left;
+	cursor: pointer;
+	gap: 8px;
+	font-size: var(--text-sm);
+}
+
+.pfb-col-add-option:hover,
+.pfb-col-add-option.highlighted {
+	background: var(--gray-100);
+}
+
+.pfb-col-add-option-label {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pfb-col-add-option-type {
+	font-size: var(--text-tiny);
+	color: var(--gray-500);
+	background: var(--gray-100);
+	border: 1px solid var(--gray-200);
+	border-radius: var(--border-radius-sm);
+	padding: 1px 5px;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.pfb-col-add-empty {
+	padding: 10px 12px;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+	text-align: center;
 }
 
 .pfb-insp-col-count {
