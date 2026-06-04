@@ -191,7 +191,6 @@ frappe.patches.v14_0.setup_likes_from_feedback
 frappe.patches.v14_0.update_webforms
 frappe.patches.v14_0.delete_payment_gateways
 frappe.patches.v15_0.remove_event_streaming
-frappe.patches.v15_0.copy_disable_prepared_report_to_prepared_report
 execute:frappe.reload_doc("desk", "doctype", "Form Tour")
 execute:frappe.delete_doc('Page', 'recorder', ignore_missing=True, force=True)
 frappe.patches.v14_0.modify_value_column_size_for_singles
@@ -224,6 +223,7 @@ execute:frappe.delete_doc("Page", "activity", force=1)
 frappe.patches.v14_0.disable_email_accounts_with_oauth
 execute:frappe.delete_doc("Page", "translation-tool", force=1)
 frappe.patches.v15_0.remove_prepared_report_settings_from_system_settings
+frappe.patches.v15_0.copy_disable_prepared_report_to_prepared_report
 frappe.patches.v14_0.remove_manage_subscriptions_from_navbar
 frappe.patches.v15_0.remove_background_jobs_from_dropdown
 frappe.desk.doctype.form_tour.patches.introduce_ui_tours
