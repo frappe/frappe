@@ -30,11 +30,11 @@ class TestAISession(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_session_requires_agent(self):
-		doc = frappe.get_doc({"doctype": "AI Session", "title": "chat 1"})
+	def test_session_can_be_created_without_agent(self):
+		# Code-defined agents drive sessions without a doctype agent link.
+		doc = frappe.get_doc({"doctype": "AI Session", "title": "chat 1"}).insert(ignore_permissions=True)
 
-		with self.assertRaises(frappe.MandatoryError):
-			doc.insert(ignore_permissions=True)
+		self.assertIsNone(doc.agent)
 
 	def test_session_can_be_created_without_title(self):
 		doc = frappe.get_doc({"doctype": "AI Session", "agent": self.agent.name}).insert(

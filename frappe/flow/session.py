@@ -90,9 +90,7 @@ class Session:
 			frappe.throw(_("This session has no transcript to resume from."))
 
 		if stream:
-			return stream_with_persistence(
-				lambda: self._runtime.resume(messages, answers, stream=True), run
-			)
+			return stream_with_persistence(lambda: self._runtime.resume(messages, answers, stream=True), run)
 
 		try:
 			result = self._runtime.resume(messages, answers)
