@@ -7,7 +7,8 @@
  "engine": "InnoDB",
  "field_order": [
   "doc_type",
-  "db_tables"
+  "db_tables",
+  "amended_from"
  ],
  "fields": [
   {
@@ -22,12 +23,23 @@
    "label": "Doctype",
    "options": "DocType",
    "unique": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "DuckDB Sync Log",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2026-06-04 12:43:28.804338",
+ "modified": "2026-06-04 13:39:17.446980",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DuckDB Sync Log",
