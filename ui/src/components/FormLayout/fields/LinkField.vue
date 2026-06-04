@@ -1,0 +1,25 @@
+<template>
+  <Link
+    v-model="value"
+    :doctype="field.options ?? ''"
+    :filters="field.filters"
+    :label="field.label"
+    :description="field.description"
+    :placeholder="field.placeholder"
+    :required="field.reqd"
+  />
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import { Link } from '../../Link'
+import type { FieldComponentEmits, FieldComponentProps } from '../types'
+
+const props = defineProps<FieldComponentProps>()
+const emit = defineEmits<FieldComponentEmits>()
+
+const value = computed<string | null>({
+  get: () => props.modelValue ?? null,
+  set: (v) => emit('update:modelValue', v),
+})
+</script>
