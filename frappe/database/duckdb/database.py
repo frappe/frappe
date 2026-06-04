@@ -58,7 +58,14 @@ def sync_to_duckdb():
 		if ddbt.table_name not in existing:
 			ddbt.sync()
 	frappe.duckdb.close()
-	sync_data()
+
+	frappe.enqueue(
+		method="frappe.database.duckdb.database.sync_data",
+		timeout="300",
+		is_async=True,
+		enqueue_after_commit=True,
+	)
+	frappe.toast("Data sync started")
 
 
 def sync_data():
