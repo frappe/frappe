@@ -328,6 +328,7 @@ def make_safe_get_request(url: str, **kwargs):
 	return frappe.integrations.utils.make_get_request(url, **kwargs)
 
 
+<<<<<<< HEAD
 def get_safe_globals():
 	datautils = frappe._dict()
 
@@ -474,6 +475,8 @@ def get_safe_globals():
 	return out
 
 
+=======
+>>>>>>> 52d3e1cd35 (refactor: Split get_safe_globals to render/exec safe stuff)
 def render_safe_globals():
 	"""Safer subset of globals for rendering ops."""
 	datautils = frappe._dict()
@@ -601,7 +604,7 @@ def render_safe_globals():
 	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
 	out._inplacevar_ = protected_inplacevar
 
-	# add common python builtins
+	# add common python builtins, also remove standard builtins
 	out.update(get_python_builtins())
 
 	return out
@@ -1064,3 +1067,18 @@ WHITELISTED_SAFE_EVAL_GLOBALS = {
 	"_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
 	"_inplacevar_": protected_inplacevar,
 }
+<<<<<<< HEAD
+=======
+
+SAFE_ORJSON = NamespaceDict(loads=orjson.loads, dumps=orjson.dumps)
+for key, val in vars(orjson).items():
+	if key.startswith("OPT_"):
+		SAFE_ORJSON[key] = val
+
+SAFE_EXCEPTIONS = get_module_properties(
+	frappe.exceptions, lambda obj: inspect.isclass(obj) and issubclass(obj, Exception)
+)
+
+
+get_safe_globals = exec_safe_globals
+>>>>>>> 52d3e1cd35 (refactor: Split get_safe_globals to render/exec safe stuff)
