@@ -14,13 +14,13 @@
 					<div class="pfb-seg">
 						<button
 							:class="{ active: zone_source === 'Image' }"
-							@click="letterhead && (letterhead[source_field] = 'Image')"
+							@click="set_source('Image')"
 						>
 							{{ __("Image") }}
 						</button>
 						<button
 							:class="{ active: zone_source === 'HTML' }"
-							@click="letterhead && (letterhead[source_field] = 'HTML')"
+							@click="set_source('HTML')"
 						>
 							{{ __("HTML") }}
 						</button>
@@ -101,7 +101,7 @@
 								v-for="dir in ['Left', 'Center', 'Right']"
 								:key="dir"
 								:class="{ active: zone_align === dir }"
-								@click="letterhead[align_field] = dir"
+								@click="set_align(dir)"
 							>
 								{{ __(dir) }}
 							</button>
@@ -190,6 +190,18 @@ const zone_size_max = computed(() => {
 	return rf === width_field.value ? 700 : 500;
 });
 
+function set_source(val) {
+	if (!letterhead.value) return;
+	letterhead.value[source_field.value] = val;
+	letterhead.value._dirty = true;
+}
+
+function set_align(val) {
+	if (!letterhead.value) return;
+	letterhead.value[align_field.value] = val;
+	letterhead.value._dirty = true;
+}
+
 function set_size(val) {
 	if (!letterhead.value || !range_field.value) return;
 	const v = parseFloat(val);
@@ -199,6 +211,7 @@ function set_size(val) {
 		const other = is_width ? height_field.value : width_field.value;
 		letterhead.value[other] = is_width ? v / aspect_ratio.value : aspect_ratio.value * v;
 	}
+	letterhead.value._dirty = true;
 }
 
 function upload_image() {
@@ -220,8 +233,8 @@ function upload_image() {
 				letterhead.value[height_field.value] = new_height;
 				if (props.zone === "footer") {
 					letterhead.value[source_field.value] = "Image";
-					letterhead.value._dirty = true;
 				}
+				letterhead.value._dirty = true;
 			});
 		},
 	});
