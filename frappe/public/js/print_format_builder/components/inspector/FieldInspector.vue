@@ -36,7 +36,6 @@
 
 		<!-- Letter Head notice — shown whenever the letterhead is selected -->
 		<div v-if="selected_letterhead || selected_lh_footer" class="pfb-lh-notice">
-			<span v-html="frappe.utils.icon('alert-circle', 'xs')"></span>
 			{{ __("Edits here update the Letter Head document directly.") }}
 		</div>
 
