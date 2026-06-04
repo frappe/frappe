@@ -16,6 +16,7 @@ class DuckDBSyncLog(Document):
 		from frappe.core.doctype.duckdb_sync_log_item.duckdb_sync_log_item import DuckDBSyncLogItem
 		from frappe.types import DF
 
+		amended_from: DF.Link | None
 		db_tables: DF.Table[DuckDBSyncLogItem]
 		doc_type: DF.Link | None
 	# end: auto-generated types
