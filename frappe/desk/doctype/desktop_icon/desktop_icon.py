@@ -14,6 +14,8 @@ from frappe.modules.utils import create_directory_on_app_path, get_app_level_dir
 
 
 class DesktopIcon(Document):
+	_DOCTYPE_NAME = "Desktop Icon"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -15,6 +15,13 @@ class PrintFormatBuilder {
 		this.page.set_primary_action(__("Save"), () => {
 			this.$component.$store.save_changes();
 		});
+
+		frappe.ui.keys.add_shortcut({
+			shortcut: "ctrl+s",
+			action: () => this.$component.$store.save_changes(),
+			description: __("Save Print Format"),
+			page: this.page,
+		});
 		let $toggle_preview_btn = this.page.add_button(__("Show Preview"), () => {
 			this.$component.toggle_preview();
 		});

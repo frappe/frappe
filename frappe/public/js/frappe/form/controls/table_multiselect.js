@@ -31,24 +31,35 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		});
 
 		this.$input_area.on("click", ".btn-remove", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+
 			const $target = $(e.currentTarget);
 			const $value = $target.closest(".tb-selected-value");
 
 			const value = decodeURIComponent($value.data().value);
 			const link_field = this.get_link_field();
-			const rows = this._get_rows().filter((row) => {
-				if (row[link_field.fieldname] !== value) return row;
+			const current_rows = this._get_rows() || [];
+			const removed_row = current_rows.find((row) => row[link_field.fieldname] === value);
+			const rows = current_rows.filter((row) => row[link_field.fieldname] !== value);
 
+			if (!this.frm) {
+				this._update_rows(rows);
+				this.set_model_value(rows);
+				return;
+			}
+
+			if (removed_row) {
 				frappe.run_serially([
 					() => {
 						return this.frm?.script_manager.trigger(
 							`before_${this.df.fieldname}_remove`,
 							this.df.options,
-							row.name
+							removed_row.name
 						);
 					},
 					() => {
-						frappe.model.clear_doc(this.df.options, row.name);
+						frappe.model.clear_doc(this.df.options, removed_row.name);
 
 						this.frm?.dirty();
 						this.refresh();
@@ -56,11 +67,11 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 						return this.frm?.script_manager.trigger(
 							`${this.df.fieldname}_remove`,
 							this.df.options,
-							row.name
+							removed_row.name
 						);
 					},
 				]);
-			});
+			}
 			this._update_rows(rows);
 		});
 		this.$input_area.on("click", ".btn-link-to-form", (e) => {
@@ -189,7 +200,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		const pill_name = frappe.utils.get_link_title(link_field.options, value) || value;
 
 		return `
-			<button class="data-pill btn tb-selected-value" data-value="${encoded_value}">
+			<button type="button" class="data-pill btn tb-selected-value" data-value="${encoded_value}">
 				<span class="btn-link-to-form">${__(frappe.utils.escape_html(pill_name))}</span>
 				<span class="btn-remove">${frappe.utils.icon("x")}</span>
 			</button>

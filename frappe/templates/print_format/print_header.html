@@ -17,8 +17,4 @@
 	{%- if letterhead -%}
 	{{ frappe.render_template(letterhead.content, {'doc': doc}) }}
 	{%- endif -%}
-
-	{%- if layout.header -%}
-	{{ frappe.render_template(layout.header, {'doc': doc}) }}
-	{%- endif -%}
 </header>

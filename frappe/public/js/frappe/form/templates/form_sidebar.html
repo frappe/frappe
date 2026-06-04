@@ -6,13 +6,12 @@
 		</div>
 		{% if can_write %}
 		<div class="sidebar-image-actions">
-			<div class="dropdown">
-				<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ __("Change") }}</a>
-				<div class="dropdown-menu" role="menu">
-					<a class="dropdown-item sidebar-image-change">{{ __("Upload") }}</a>
-					<a class="dropdown-item sidebar-image-remove">{{ __("Remove") }}</a>
-				</div>
+			<div class="sidebar-image-upload-hint">
+				<svg class="es-icon icon-sm"><use href="#es-line-camera"></use></svg>
 			</div>
+			<a class="sidebar-image-remove">
+				<svg class="icon icon-sm"><use href="#icon-x"></use></svg>
+			</a>
 		</div>
 		{% endif %}
 	</div>

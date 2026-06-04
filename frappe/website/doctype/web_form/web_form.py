@@ -22,6 +22,8 @@ from frappe.website.website_generator import WebsiteGenerator
 
 
 class WebForm(WebsiteGenerator):
+	_DOCTYPE_NAME = "Web Form"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

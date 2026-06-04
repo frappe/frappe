@@ -14,11 +14,35 @@
 				border: 0 !important;
 				padding: 0 !important;
 			}
+			/* Contain floated letterhead children (logo left / company name right)
+			   so height measurement includes them.
+			   display:flow-root = modern BFC; overflow:hidden = legacy BFC fallback;
+			   ::after clearfix = last-resort fallback for unusual letterhead CSS. */
+			.wrapper {
+				display: flow-root;
+				overflow: hidden;
+			}
+			.wrapper::after {
+				content: "";
+				display: table;
+				clear: both;
+			}
 			@media print {
 				.wrapper {
 					box-sizing: border-box;
 					padding: 0 !important;
 					margin: 0 !important;
+					/* Keep each wrapper clone on its own page; don't let Chrome
+					   split a single clone across two pages. */
+					page-break-inside: avoid;
+					break-inside: avoid;
+				}
+				/* Force a page break before every clone after the first, so each
+				   wrapper (= one header copy per body page) occupies exactly one
+				   page in the header PDF. */
+				.wrapper + .wrapper {
+					page-break-before: always;
+					break-before: always;
 				}
 				[document-status] {
 					margin-bottom: 0 !important;

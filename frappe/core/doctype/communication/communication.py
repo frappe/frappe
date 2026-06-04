@@ -32,6 +32,8 @@ exclude_from_linked_with = True
 
 
 class Communication(Document, CommunicationEmailMixin):
+	_DOCTYPE_NAME = "Communication"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

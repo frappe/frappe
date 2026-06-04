@@ -26,6 +26,8 @@ REPORT_TIMEOUT = 25 * 60
 
 
 class PreparedReport(Document):
+	_DOCTYPE_NAME = "Prepared Report"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -96,7 +98,7 @@ class PreparedReport(Document):
 
 		def check_attachment_condition(f, is_format_json=is_format_json):
 			if is_format_json:
-				return f.file_name.endswith(".json.gz")
+				return f.file_name.endswith(".gz")
 			return f.file_name.startswith("csv_") and f.file_name.endswith(".csv")
 
 		for f in attachments or []:

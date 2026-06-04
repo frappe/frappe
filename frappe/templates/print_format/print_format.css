@@ -64,35 +64,190 @@ body {
 }
 
 .section:not(:first-child) {
-	margin-top: 1rem;
+	margin-top: 1.5rem;
 }
 
 .section-label {
-	font-size: 1.2rem;
-	font-weight: 600;
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: #1a1a1a;
+	padding-bottom: 0.35rem;
+	margin-bottom: 0.75rem;
+	border-bottom: 1.5px solid #e2e2e2;
+	/* Don't let the section heading sit alone at the bottom of a page */
+	break-after: avoid;
+	page-break-after: avoid;
 }
 
 .field + .field {
 	margin-top: 0.5rem;
 }
 
-.field .label {
-	font-weight: bold;
+/* Keep field label and value on the same page */
+.field {
+	break-inside: avoid;
+	page-break-inside: avoid;
 }
 
-.field.left-right {
+/* Stacked (default): muted label above value */
+.field .label {
+	font-size: 0.75em;
+	font-weight: 600;
+	color: #6b7280;
+	margin-bottom: 0.1rem;
+}
+
+.field .value {
+	color: #111827;
+}
+
+/* Left-right (section-level): label takes 40%, value takes 60% */
+.field.left-right,
+.field.field-inline {
 	display: flex;
+	align-items: baseline;
+	gap: 0.5rem;
+}
+
+.field.left-right .label,
+.field.field-inline .label {
+	flex-shrink: 0;
+	font-size: 0.8em;
+	font-weight: 600;
+	color: #374151;
+	text-transform: none;
+	letter-spacing: 0;
+	padding-top: 0.05rem;
 }
 
 .field.left-right .label {
-	width: 50%;
+	width: 40%;
+}
+
+.field.field-inline .label {
+	width: auto;
+}
+
+.field.field-inline .label::after {
+	content: ":";
 }
 
 .field.left-right .value {
-	width: 50%;
+	width: 60%;
+	flex: 1;
 }
 
-.child-table [data-fieldtype="Currency"] {
+.field.field-inline .value {
+	flex: 1;
+}
+
+/* Field-level alignment */
+.field.field-align-center {
+	text-align: center;
+}
+
+.field.field-align-center .value {
+	text-align: center;
+}
+
+.field.field-align-right {
+	text-align: right;
+}
+
+.field.field-align-right .value {
+	text-align: right;
+}
+
+/* In left-right orientation, alignment applies to the whole flex row */
+.field.left-right.field-align-right {
+	justify-content: flex-end;
+}
+
+.field.left-right.field-align-center {
+	justify-content: center;
+}
+
+/* Child table */
+.child-table {
+	margin-top: 0.5rem;
+}
+
+.child-table > .label {
+	font-size: 0.8em;
+	font-weight: 600;
+	color: #6b7280;
+	margin-bottom: 0.4rem;
+}
+
+.child-table .table {
+	font-size: 0.9em;
+	border-collapse: collapse;
+	width: 100%;
+}
+
+.child-table .table th {
+	background-color: #f3f4f6 !important;
+	color: #374151;
+	font-weight: 600;
+	font-size: 0.85em;
+	padding: 0.45rem 0.6rem;
+	border: 1px solid #e5e7eb !important;
+}
+
+.child-table .table td {
+	padding: 0.45rem 0.6rem;
+	border: 1px solid #e5e7eb !important;
+	vertical-align: top;
+}
+
+/* lined (default): no row alternation — target td directly to beat Bootstrap @media print */
+.child-table--lined .table .odd td,
+.child-table--lined .table .even td {
+	background-color: #ffffff !important;
+}
+
+/* striped: alternating rows */
+.child-table--striped .table .odd td {
+	background-color: #ffffff !important;
+}
+
+.child-table--striped .table .even td {
+	background-color: #f9fafb !important;
+}
+
+/* plain: no borders, bottom dividers only */
+.child-table--plain .table th,
+.child-table--plain .table td {
+	border: none !important;
+	border-bottom: 1px solid #e5e7eb !important;
+}
+
+.child-table--plain .table th {
+	background-color: transparent !important;
+	border-bottom: 2px solid #d1d5db !important;
+}
+
+.child-table--plain .table .odd td,
+.child-table--plain .table .even td {
+	background-color: #ffffff !important;
+}
+
+/* borderless variant */
+.child-table--borderless .table th,
+.child-table--borderless .table td {
+	border: none !important;
+	border-bottom: 1px solid #e5e7eb !important;
+}
+
+/* plain header variant */
+.child-table--plain-header .table th {
+	background-color: transparent !important;
+	border-bottom: 2px solid #d1d5db !important;
+}
+
+.child-table [data-fieldtype="Currency"],
+.child-table [data-fieldtype="Float"],
+.child-table [data-fieldtype="Int"] {
 	text-align: right;
 }
 
@@ -112,10 +267,39 @@ body {
 	}
 }
 
+/*
+ * Column right-align layout modes
+ *
+ * row-col-space-between (2+ cols, at least one right-aligned):
+ *   Columns sit at natural content width. justify-content:space-between
+ *   pushes the leftmost to the left edge and rightmost to the right edge.
+ *   No empty-box spacer needed.
+ *
+ * row-col-right-end (1 col, right-aligned):
+ *   Single column is pushed to the right edge with justify-content:flex-end.
+ */
+.row-col-space-between {
+	justify-content: space-between !important;
+}
+
+.row-col-space-between .col {
+	flex: none !important;
+	max-width: 48% !important;
+}
+
+.row-col-right-end {
+	justify-content: flex-end !important;
+}
+
+.row-col-right-end .col {
+	flex: none !important;
+	max-width: 50% !important;
+}
+
 .document-header {
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
-	border-bottom-color: var(--gray-300);
+	border-bottom-color: #e5e7eb;
 }
 
 .field[data-fieldtype="Rating"] .rating-star {
@@ -140,4 +324,25 @@ body {
 
 .field[data-fieldtype="Check"] #icon-tick {
 	width: 1rem;
+}
+
+/* ── Label case: uppercase (opt-in per section) ──────────── */
+.label-uppercase .section-label {
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.label-uppercase .field .label {
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+.label-uppercase .child-table > .label {
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+.label-uppercase .child-table .table th {
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
 }

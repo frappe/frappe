@@ -19,6 +19,8 @@ from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder
 
 
 class Report(Document):
+	_DOCTYPE_NAME = "Report"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -35,6 +37,7 @@ class Report(Document):
 		columns: DF.Table[ReportColumn]
 		default_letter_head: DF.Link | None
 		default_print_format: DF.Link | None
+		disable_prepared_report_automation: DF.Check
 		disabled: DF.Check
 		filters: DF.Table[ReportFilter]
 		generate_csv: DF.Check
@@ -189,7 +192,7 @@ class Report(Document):
 
 		start_time = datetime.datetime.now()
 		prepared_report_watcher = None
-		if not self.prepared_report:
+		if not self.prepared_report and not self.disable_prepared_report_automation:
 			prepared_report_watcher = threading.Timer(
 				interval=threshold,
 				function=enable_prepared_report,

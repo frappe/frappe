@@ -14,10 +14,6 @@
 	}
 </style>
 <footer>
-	{%- if layout.footer -%}
-	{{ frappe.render_template(layout.footer, {'doc': doc}) }}
-	{%- endif -%}
-
 	{%- if letterhead -%}
 	{{ frappe.render_template(letterhead.footer, {'doc': doc}) }}
 	{%- endif -%}

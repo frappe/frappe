@@ -39,6 +39,8 @@ def check_permissions(method):
 
 
 class RQJob(Document):
+	_DOCTYPE_NAME = "RQ Job"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

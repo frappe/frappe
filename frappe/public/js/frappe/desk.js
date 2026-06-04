@@ -460,7 +460,7 @@ frappe.Application = class Application {
 	}
 
 	show_update_available() {
-		if (!frappe.boot.has_app_updates) return;
+		if (!frappe.boot.has_app_updates || !frappe.boot.setup_complete) return;
 		frappe.xcall("frappe.utils.change_log.show_update_popup");
 	}
 

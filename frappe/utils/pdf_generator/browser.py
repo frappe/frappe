@@ -172,8 +172,10 @@ class Browser:
 			self.is_header_dynamic = self.is_page_no_used(self.header_content)
 			del self.header_content
 		else:
-			# bad implicit setting of margin #backwards-compatibility
-			options["margin-top"] = "15mm"
+			# Fallback only when the caller did not explicitly pass margin-top.
+			# If margin-top is already set (e.g. from PrintFormatGenerator), keep it.
+			if "margin-top" not in options:
+				options["margin-top"] = "15mm"
 
 		if self.footer_page:
 			self.footer_page.wait_for_set_content()
@@ -181,8 +183,9 @@ class Browser:
 			self.is_footer_dynamic = self.is_page_no_used(self.footer_content)
 			del self.footer_content
 		else:
-			# bad implicit setting of margin #backwards-compatibility
-			options["margin-bottom"] = "15mm"
+			# Fallback only when the caller did not explicitly pass margin-bottom.
+			if "margin-bottom" not in options:
+				options["margin-bottom"] = "15mm"
 
 		# Remove instances of them from main content for render_template
 		for html_id in ["header-html", "footer-html"]:
@@ -339,10 +342,15 @@ class Browser:
 
 		if self.footer_page:
 			footer_height = self.footer_height
+			# Mirror header: paperHeight must include the margin so Chrome has room
+			# to render content above the marginBottom gap. Without this, marginBottom
+			# clips content because the page isn't tall enough to hold both.
+			footer_with_bottom_margin = footer_height + margin_bottom
 			self.footer_page.options["paperHeight"] = (
-				convert_uom(footer_height, "px", "in", only_number=True) if footer_height else 0
+				convert_uom(footer_with_bottom_margin, "px", "in", only_number=True)
+				if footer_with_bottom_margin
+				else 0
 			)
-			footer_with_bottom_margin = self.footer_height + margin_bottom
 
 		margin_bottom = convert_uom(margin_bottom, "px", "in", only_number=True)
 

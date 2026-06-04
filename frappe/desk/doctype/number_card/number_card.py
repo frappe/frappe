@@ -18,6 +18,8 @@ from frappe.utils.modules import get_modules_from_all_apps_for_user
 
 
 class NumberCard(Document):
+	_DOCTYPE_NAME = "Number Card"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

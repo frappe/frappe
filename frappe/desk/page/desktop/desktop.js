@@ -511,9 +511,9 @@ class DesktopPage {
 
 	setup_awesomebar() {
 		if (!frappe.is_mobile()) {
-			$(".desktop-keyboard-shortcut").html("Ctrl+K");
+			$(".search-widget-shortcut").html("Ctrl+K");
 			if (frappe.utils.is_mac()) {
-				$(".desktop-keyboard-shortcut").html("⌘K");
+				$(".search-widget-shortcut").html("⌘K");
 			}
 		}
 		if (this.awesomebar_setup) return;
@@ -521,12 +521,12 @@ class DesktopPage {
 
 		if (frappe.boot.desk_settings.search_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
-			awesome_bar.setup(".desktop-search-wrapper #desktop-navbar-modal-search");
+			awesome_bar.setup(".search-widget-wrapper #search-widget-button");
 
 			frappe.ui.keys.add_shortcut({
 				shortcut: "ctrl+k",
 				action: function (e) {
-					$(".desktop-search-wrapper #desktop-navbar-modal-search").click();
+					$(".search-widget-wrapper #search-widget-button").click();
 					e.preventDefault();
 					return false;
 				},

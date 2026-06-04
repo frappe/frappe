@@ -47,12 +47,12 @@
     "cssnano": "^5.0.0",
     "driver.js": "^0.9.8",
     "editorjs-undo": "0.1.6",
-    "esbuild": "^0.16.17",
     "esbuild-plugin-vue3": "^0.5.1",
+    "esbuild": "^0.28.0",
     "fast-deep-equal": "^2.0.1",
     "fast-glob": "^3.2.5",
     "frappe-charts": "2.0.0-rc27",
-    "frappe-datatable": "1.20.3",
+    "frappe-datatable": "1.20.4",
     "frappe-gantt": "^1.2.1",
     "frappe-quill-image-resize": "^3.0.9",
     "frappe-ui": "github:nextchamp-saqib/frappe-ui#87f64e14da6a31f1f5266a0655c000c9763ed1f0",
@@ -62,7 +62,7 @@
     "jquery": "3.7.0",
     "js-sha256": "^0.9.0",
     "jsbarcode": "^3.11.0",
-    "launch-editor": "^2.2.1",
+    "launch-editor": "^2.9.0",
     "localforage": "^1.10.0",
     "md5": "^2.3.0",
     "moment": "^2.29.4",
@@ -97,5 +97,8 @@
   },
   "devDependencies": {
     "tailwindcss": "3"
+  },
+  "resolutions": {
+    "esbuild-plugin-vue3/esbuild": "^0.28.0"
   }
 }

@@ -8,6 +8,18 @@ from frappe import _
 
 
 @frappe.whitelist()
+def render_jinja_template(template: str, doctype: str, docname: str) -> str:
+	"""Render a raw Jinja2 template string with doc context (used by the print format builder preview)."""
+	doc = frappe.get_doc(doctype, docname)
+	doc.check_permission("print")
+	# template is rendered inside frappe's SandboxedEnvironment (Jinja2 sandbox).
+	# The caller must hold the "print" permission on the document before reaching this line.
+	return frappe.render_template(
+		template, {"doc": doc}
+	)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+
+
+@frappe.whitelist()
 def download_pdf(doctype: str, name: str | int, print_format: str, letterhead: str | None = None):
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("print")
@@ -88,9 +100,8 @@ class PrintFormatGenerator:
 
 	def get_header_footer_html(self):
 		header_html = footer_html = None
-		if self.letterhead or self.layout.get("header"):
+		if self.letterhead:
 			header_html = frappe.render_template("templates/print_format/print_header.html", self.context)
-		if self.letterhead or self.layout.get("footer"):
 			footer_html = frappe.render_template("templates/print_format/print_footer.html", self.context)
 		return header_html, footer_html
 
@@ -116,55 +127,135 @@ class PrintFormatGenerator:
 		)
 
 	def _build_html_for_chrome(self):
-		"""Build the body HTML with header/footer wrapped in ``#header-html`` /
-		``#footer-html`` so the Chrome PDF pipeline extracts them as overlays
-		that repeat on every page.
+		"""Build the body HTML for the Chrome PDF pipeline.
+
+		When ``repeat_header_footer`` is enabled (default), letterhead and
+		layout header/footer are placed in ``#header-html`` / ``#footer-html``
+		overlay divs so they repeat on every PDF page.
+
+		When ``repeat_header_footer`` is disabled:
+		  - Letterhead + layout header/footer → rendered inline in the body
+		    (appear on page 1 / last page only via ``chrome_layout_header/footer``).
+		  - Page numbers → still placed in a minimal ``#header-html`` / ``#footer-html``
+		    overlay so they continue to repeat on every page if the user enabled them.
 		"""
 		self.context.for_chrome = True
 		self.context.header_height = 0
 		self.context.footer_height = 0
 
-		header = self._render_overlay("header")
-		footer = self._render_overlay("footer")
-		self.context.header = f'<div id="header-html">{header}</div>' if header else ""
-		self.context.footer = f'<div id="footer-html">{footer}</div>' if footer else ""
+		repeat = self.print_settings.repeat_header_footer
+
+		if repeat:
+			header = self._render_overlay("header")
+			footer = self._render_overlay("footer")
+			self.context.header = f'<div id="header-html">{header}</div>' if header else ""
+			self.context.footer = f'<div id="footer-html">{footer}</div>' if footer else ""
+			self.context.chrome_layout_header = ""
+			self.context.chrome_layout_footer = ""
+		else:
+			# Letterhead + layout content → inline (once only, no repeat).
+			self.context.chrome_layout_header = self._render_overlay("header", with_page_no=False) or ""
+			self.context.chrome_layout_footer = self._render_overlay("footer", with_page_no=False) or ""
+			# Page numbers → minimal overlay so they still repeat on every page.
+			page_no_header = self._render_page_no_overlay("header")
+			page_no_footer = self._render_page_no_overlay("footer")
+			self.context.header = f'<div id="header-html">{page_no_header}</div>' if page_no_header else ""
+			self.context.footer = f'<div id="footer-html">{page_no_footer}</div>' if page_no_footer else ""
+
 		return self.get_main_html()
 
-	def _render_overlay(self, kind: str) -> str | None:
-		"""Render the header or footer content for the Chrome overlay.
+	def _render_page_no_overlay(self, kind: str) -> str | None:
+		"""Return only the page-number HTML for kind ('header'/'footer'), or None."""
+		is_header = kind == "header"
+		page_pos = (self.print_format.page_number or "").lower().replace(" ", "_")
+		valid_positions = self._TOP_POSITIONS if is_header else self._BOTTOM_POSITIONS
+		if page_pos not in valid_positions:
+			return None
+		return self._page_number_html(page_pos)
 
-		``kind`` is ``"header"`` or ``"footer"``. Page-number HTML is inserted
-		at the top for header positions and at the bottom for footer positions
-		so ``Top *`` / ``Bottom *`` actually appear where the name suggests.
+	def _render_overlay(self, kind: str, with_page_no: bool = True) -> str | None:
+		"""Render letterhead, layout.header/footer, and page number for the Chrome overlay.
+
+		All three are included so they repeat on every PDF page.  Height measurement
+		is reliable because ``chrome_pdf_header_footer.html`` applies ``overflow: hidden``
+		to ``.wrapper``, creating a BFC that contains floated letterhead children.
 		"""
 		is_header = kind == "header"
 		page_pos = (self.print_format.page_number or "").lower().replace(" ", "_")
 		valid_positions = self._TOP_POSITIONS if is_header else self._BOTTOM_POSITIONS
-		wants_page_no = page_pos in valid_positions
+		wants_page_no = with_page_no and page_pos in valid_positions
 
 		if is_header:
 			letterhead_html = self.letterhead and self.letterhead.content
+			layout_template = self.layout.get("header") if self.layout else None
 		else:
 			letterhead_html = self.letterhead and self.letterhead.footer
-		layout_html = self.layout.get(kind)
+			layout_template = self.layout.get("footer") if self.layout else None
 
-		if not (letterhead_html or layout_html or wants_page_no):
+		if not (letterhead_html or wants_page_no or layout_template):
 			return None
 
 		page_no_html = self._page_number_html(page_pos) if wants_page_no else None
 		ctx = {"doc": self.context.doc}
 
-		# For headers the page number goes ABOVE the letterhead, for footers BELOW.
 		parts = []
 		if is_header and page_no_html:
 			parts.append(page_no_html)
 		if letterhead_html:
 			parts.append(frappe.render_template(letterhead_html, ctx))
-		if layout_html:
-			parts.append(frappe.render_template(layout_html, ctx))
+		if layout_template:
+			if isinstance(layout_template, str):
+				# layout_template is persisted header/footer HTML from the stored Print Format document.
+				zone_html = frappe.render_template(
+					layout_template, ctx
+				)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+			else:
+				# Section object — render using the same logic as print_format.html
+				zone_html = self._render_zone_section(layout_template, ctx["doc"])
+			if zone_html:
+				parts.append('<div class="document-header-content">' + zone_html + "</div>")
 		if not is_header and page_no_html:
 			parts.append(page_no_html)
 		return "\n".join(parts) or None
+
+	_ZONE_SECTION_TEMPLATE = """\
+{%- set ns = namespace(has_fields=false) -%}
+{%- for col in section.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns.has_fields = true -%}{%- endfor -%}{%- endfor -%}
+{%- if ns.has_fields -%}
+{%- set col_gap = (section.gap if section.gap is defined and section.gap is not none else 20)|string + 'px' -%}
+{%- set _lc = 'label-uppercase' if section.get('label_case') == 'uppercase' else '' -%}
+<div class="section {{ _lc }} section-columns row" style="gap:{{ col_gap }}">
+{%- for column in section.columns %}
+<div class="column col">
+{%- for df in column.get('fields', []) -%}
+{%- if df.fieldtype == 'HTML' and df.html -%}
+<div class="custom-html">{{ frappe.render_template(df.html, {'doc': doc}) }}</div>
+{%- elif df.fieldtype == 'Spacer' -%}
+<div style="height:12px"></div>
+{%- elif df.fieldtype == 'Divider' -%}
+<hr style="border-top:1px solid #e5e7eb;margin:4px 0"/>
+{%- else -%}
+{%- set _raw = doc.get(df.fieldname) -%}
+{%- if _raw is not none and _raw != '' -%}
+<div class="field-render">
+{%- if df.show_label != 'hide' %}<div class="label">{{ _(df.label or df.fieldname) }}</div>{%- endif -%}
+<div class="value">{{ doc.get_formatted(df.fieldname) }}</div>
+</div>
+{%- endif -%}
+{%- endif -%}
+{%- endfor -%}
+</div>
+{%- endfor %}
+</div>
+{%- endif -%}
+"""
+
+	def _render_zone_section(self, section: dict, doc) -> str:
+		"""Render a header/footer zone section dict to HTML for the Chrome overlay."""
+		# _ZONE_SECTION_TEMPLATE is a hardcoded class-level string constant, not user input.
+		return frappe.render_template(
+			self._ZONE_SECTION_TEMPLATE, {"section": section, "doc": doc}
+		)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 
 	def _page_number_html(self, position: str) -> str:
 		align = self._ALIGN_MAP.get(position, "center")
@@ -192,6 +283,17 @@ class PrintFormatGenerator:
 					fieldtype = df["fieldtype"]
 					df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 					df["section"] = section
+
+		# Also process header/footer zones if they are section objects
+		for zone_key in ("header", "footer"):
+			zone = layout.get(zone_key)
+			if isinstance(zone, dict) and "columns" in zone:
+				for column in zone.get("columns", []):
+					for df in column.get("fields", []):
+						fieldtype = df.get("fieldtype", "Data")
+						df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
+						df["section"] = zone
+
 		return layout
 
 	def process_margin_texts(self, layout):

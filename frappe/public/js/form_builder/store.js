@@ -22,10 +22,30 @@ export const useStore = defineStore("form-builder-store", () => {
 	let dirty = ref(false);
 	let read_only = ref(false);
 	let is_customize_form = ref(false);
+	let is_layout_form = ref(false);
+	let source_doctype_fields = ref([]);
 	let preview = ref(false);
 	let drag = ref(false);
 	let get_animation = "cubic-bezier(0.34, 1.56, 0.64, 1)";
 	let ref_history = ref(null);
+
+	// Properties that DocType Layout can override per-field
+	const LAYOUT_OVERRIDE_PROPS = [
+		"label",
+		"hidden",
+		"reqd",
+		"read_only",
+		"default",
+		"description",
+		"depends_on",
+		"mandatory_depends_on",
+		"read_only_depends_on",
+		"bold",
+		"allow_in_quick_entry",
+		"in_list_view",
+		"in_standard_filter",
+		"translatable",
+	];
 
 	// Getters
 	let get_docfields = computed(() => {
@@ -83,7 +103,92 @@ export const useStore = defineStore("form-builder-store", () => {
 		return cint(field.df.is_custom_field && !field.df.is_system_generated);
 	}
 
+	async function fetch_for_layout() {
+		// Populate DocField meta for the properties panel
+		if (!docfields.value.length) {
+			if (!frappe.get_meta("DocField")) {
+				await load_doctype_model("DocField");
+			}
+			docfields.value = frappe.get_meta("DocField").fields;
+		}
+
+		// Load source DocType meta
+		let source_dt = doctype.value;
+		if (!frappe.get_meta(source_dt)) {
+			await load_doctype_model(source_dt);
+		}
+		source_doctype_fields.value = frappe.get_meta(source_dt).fields;
+
+		// Build merged field list: layout row order + overrides merged onto source field defs
+		let layout_rows = frm.value.doc.fields || [];
+		let merged_fields;
+		if (layout_rows.length > 0) {
+			merged_fields = layout_rows
+				.map((row) => {
+					let sf = source_doctype_fields.value.find(
+						(f) => f.fieldname === row.fieldname
+					);
+					if (!sf) return null;
+					let copy = JSON.parse(JSON.stringify(sf));
+					for (let prop of LAYOUT_OVERRIDE_PROPS) {
+						let val = row[prop];
+						if (val !== undefined && val !== null && val !== "") {
+							copy[prop] = val;
+						}
+					}
+					return copy;
+				})
+				.filter(Boolean);
+		} else {
+			merged_fields = JSON.parse(JSON.stringify(source_doctype_fields.value));
+		}
+
+		// Preserve active tab index
+		let previous_active_tab_index = null;
+		if (form.value.layout?.tabs && form.value.active_tab) {
+			previous_active_tab_index = form.value.layout.tabs.findIndex(
+				(tab) => tab.df.name === form.value.active_tab
+			);
+		}
+
+		doc.value = { fields: merged_fields, custom: 1, istable: 0 };
+		form.value.layout = get_layout();
+
+		if (
+			previous_active_tab_index !== null &&
+			previous_active_tab_index >= 0 &&
+			previous_active_tab_index < form.value.layout.tabs.length
+		) {
+			form.value.active_tab = form.value.layout.tabs[previous_active_tab_index].df.name;
+		} else if (form.value.layout.tabs.length > 0) {
+			form.value.active_tab = form.value.layout.tabs[0].df.name;
+		} else {
+			form.value.active_tab = null;
+		}
+
+		form.value.selected_field = null;
+
+		// Capture dirty state before nextTick so a concurrent frm.dirty() call
+		// (e.g. from sync_fields) is not erased by the post-fetch cleanup.
+		const was_frm_dirty = !!frm.value.doc.__unsaved;
+		nextTick(() => {
+			dirty.value = false;
+			if (!was_frm_dirty) {
+				frm.value.doc.__unsaved = 0;
+				frm.value.page.clear_indicator();
+			}
+			read_only.value = false;
+			preview.value = false;
+		});
+
+		setup_undo_redo();
+	}
+
 	async function fetch() {
+		if (is_layout_form.value) {
+			return fetch_for_layout();
+		}
+
 		doc.value = frm.value.doc;
 		if (doctype.value.startsWith("new-doctype-") && !doc.value.fields?.length) {
 			frappe.model.with_doctype("DocType").then(() => {
@@ -250,7 +355,39 @@ export const useStore = defineStore("form-builder-store", () => {
 		return error_message;
 	}
 
+	function update_layout_fields() {
+		if (!dirty.value && !frm.value.is_new()) return;
+
+		frappe.dom.freeze(__("Saving..."));
+
+		try {
+			let form_builder_fields = get_updated_fields();
+			// Convert to DocType Layout Field rows (fieldname + overrideable props only)
+			let layout_rows = form_builder_fields
+				.map((field) => {
+					if (!field.fieldname) return null;
+					let row = { fieldname: field.fieldname };
+					for (let prop of LAYOUT_OVERRIDE_PROPS) {
+						row[prop] = field[prop] !== undefined ? field[prop] : null;
+					}
+					return row;
+				})
+				.filter(Boolean);
+
+			frm.value.set_value("fields", layout_rows);
+			return layout_rows;
+		} catch (e) {
+			console.error(e);
+		} finally {
+			frappe.dom.unfreeze();
+		}
+	}
+
 	function update_fields() {
+		if (is_layout_form.value) {
+			return update_layout_fields();
+		}
+
 		if (!dirty.value && !frm.value.is_new()) return;
 
 		frappe.dom.freeze(__("Saving..."));
@@ -388,6 +525,8 @@ export const useStore = defineStore("form-builder-store", () => {
 		dirty,
 		read_only,
 		is_customize_form,
+		is_layout_form,
+		source_doctype_fields,
 		preview,
 		drag,
 		get_animation,

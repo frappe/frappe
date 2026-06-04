@@ -153,14 +153,19 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			// so refresh report again
 			this.refresh_report(route_options);
 		} else {
-			// same report
-			// don't do anything to preserve state
-			// like filters and datatable column widths
+			// same report — preserve filters/column widths but refresh
+			// report_doc so menu items (e.g. Documentation link) stay in sync
+			this.get_report_doc().then(() => {
+				this.page.clear_menu();
+				this.menu_items = this.get_menu_items();
+				this.set_menu_items();
+			});
 		}
 	}
 
 	load_report(route_options) {
 		this.page.clear_inner_toolbar();
+		this.page.clear_menu();
 		this.route = frappe.get_route();
 		this.page_name = frappe.get_route_str();
 		this.report_name = this.route[1];
@@ -805,7 +810,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				if (data.prepared_report) {
 					this.prepared_report = true;
 					this.prepared_report_document = data.doc;
-					if (data.attachments) {
+					if (data.attachments.length) {
 						data.doc.attachments = data.attachments;
 					}
 					// If query_string contains prepared_report_name then set filters
@@ -887,12 +892,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-		let is_csv =
-			doc.attachments &&
-			doc.attachments.some((attachment) => attachment.file_name.endsWith(".csv"));
-		let label = is_csv ? __("Download Report as CSV") : __("Download Report");
-		let format = is_csv ? "csv" : "json";
 		if (doc) {
+			let is_csv =
+				doc.attachments &&
+				doc.attachments.some((attachment) => attachment.file_name.endsWith(".csv"));
+			let label = is_csv ? __("Download Report as CSV") : __("Download Report");
+			let format = is_csv ? "csv" : "json";
 			this.page.add_inner_button(
 				label,
 				function () {
@@ -1059,11 +1064,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				const data = r.message;
 				// Rememeber the name of Prepared Report doc
 				this.prepared_report_doc_name = data.name;
-				let alert_message =
-					`<a href='/desk/prepared-report/${data.name}'>` +
-					__("Report initiated, click to view status") +
-					`</a>`;
-				frappe.show_alert({ message: alert_message, indicator: "orange" }, 10);
 				this.toggle_nothing_to_show(true);
 			});
 		}
@@ -1934,6 +1934,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				label: __("Edit"),
 				action: () => frappe.set_route("Form", "Report", this.report_name),
 				condition: () => frappe.user.is_report_manager(),
+				standard: true,
+			},
+			{
+				label: __("Documentation"),
+				action: () => window.open(this.report_doc.documentation_url),
+				condition: () => !!this.report_doc?.documentation_url,
 				standard: true,
 			},
 			{
