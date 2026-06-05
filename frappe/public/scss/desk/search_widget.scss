@@ -4,31 +4,31 @@
 }
 
 .search-widget-button {
-	background-color: var(--control-bg);
-	border-radius: var(--border-radius-sm);
-	height: 32px;
-	padding: 0 10px;
-	display: flex;
+	display: inline-flex;
 	align-items: center;
 	justify-content: space-between;
-	width: 100%;
-	margin-right: 0;
-
-	span {
-		color: var(--text-light);
-	}
+	gap: 8px;
 
 	.search-widget-icon {
 		display: flex;
 		align-items: center;
 		gap: 6px;
+		color: var(--text-light);
 
 		> svg {
 			stroke: var(--text-light);
+			flex-shrink: 0;
 		}
 	}
 
-	&:hover {
-		outline: 1px solid var(--surface-gray-3);
+	.search-widget-shortcut {
+		background-color: var(--control-bg);
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius-tiny);
+		padding: 1px 5px;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+		white-space: nowrap;
+		line-height: 1.4;
 	}
 }
