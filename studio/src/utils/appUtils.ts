@@ -1,4 +1,4 @@
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 
 declare global {
 	interface Window {

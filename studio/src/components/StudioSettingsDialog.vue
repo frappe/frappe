@@ -39,7 +39,7 @@
 <script lang="ts" setup>
 import { ref, watch } from "vue"
 import { Dialog, FormControl, ErrorMessage } from "frappe-ui"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import { studioSettings } from "@/data/studioSettings"
 
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })

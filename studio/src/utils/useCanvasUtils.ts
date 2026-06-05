@@ -4,7 +4,7 @@ import Block from "@/utils/block"
 import { nextTick, reactive, Ref } from "vue"
 import { useCanvasHistory, type PauseId } from "@/utils/useCanvasHistory"
 import { useElementBounding } from "@vueuse/core"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import useCanvasStore from "@/stores/canvasStore"
 import type { StudioMode } from "@/types"
 

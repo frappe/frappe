@@ -1,6 +1,6 @@
 import { Ref } from "vue"
 import { createDocumentResource, createResource, dialog } from "frappe-ui"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 
 import type { ObjectLiteral, StyleValue, SelectOption, HashString, RGBString } from "@/types"
 import type { Variable } from "@/types/Studio/StudioPageVariable"

@@ -120,7 +120,7 @@
 <script lang="ts" setup>
 import { ref, computed, inject, watch, nextTick } from "vue"
 import { ErrorMessage, Button, Badge, FeatherIcon, call, createResource, Popover } from "frappe-ui"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { getBlockInstance, getBlockString } from "@/utils/serializer"

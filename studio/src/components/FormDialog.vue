@@ -84,7 +84,7 @@ import type { DocTypeField, SelectOption } from "@/types"
 import components from "@/data/components"
 import { Link } from "frappe-ui/frappe"
 import Grid from "@/components/Grid.vue"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 
 const props = defineProps<{
 	block?: Block | null

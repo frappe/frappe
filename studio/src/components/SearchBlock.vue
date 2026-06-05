@@ -162,7 +162,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import { watchDebounced } from "@vueuse/core"
 import { FeatherIcon, Popover, Input, Button } from "frappe-ui"
 import { computed, nextTick, onMounted, Ref, ref } from "vue"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import OptionToggle from "@/components/OptionToggle.vue"
 import { jsToJson } from "@/utils/serializer"
 

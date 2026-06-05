@@ -25,7 +25,7 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { LeftPanelOptions, RightPanelOptions, leftPanelComponentTabOptions, StudioMode } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import { createResource } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {

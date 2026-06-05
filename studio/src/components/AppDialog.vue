@@ -52,7 +52,7 @@ import { useRouter } from "vue-router"
 import { studioApps } from "@/data/studioApps"
 import { Dialog, FormControl } from "frappe-ui"
 import type { StudioApp } from "@/types/Studio/StudioApp"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 
 const props = defineProps<{ app?: StudioApp | null }>()
 const showDialog = defineModel("showDialog", { type: Boolean, required: true })

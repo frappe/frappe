@@ -163,7 +163,7 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
 import { getRootBlock } from "@/utils/serializer"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 
 const route = useRoute()
 const router = useRouter()

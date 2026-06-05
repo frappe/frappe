@@ -33,7 +33,7 @@
 import { ref, watch } from "vue"
 import { FormControl, Button, call, Switch } from "frappe-ui"
 import type { SelectOption } from "@/types"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import { studioApps } from "@/data/studioApps"
 import { scrub } from "@/utils/helpers"

@@ -148,7 +148,7 @@ import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { Resource } from "@/types/Studio/StudioResource"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 
 /**
  * Insert resource into DB

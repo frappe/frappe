@@ -25,7 +25,7 @@ import { isObjectEmpty } from "@/utils/helpers"
 import { getBlockCopy, getComponentBlock } from "@/utils/serializer"
 import getBlockTemplate from "@/utils/blockTemplate"
 import FormDialog from "@/components/FormDialog.vue"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
