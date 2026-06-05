@@ -42,14 +42,14 @@ class DuckDBSyncLog(Document):
 				self.append("db_tables", {"table": tb[0]})
 
 	def on_submit(self):
-		self.sync()
+		self.sync_schema()
+		self.sync_data()
 
 	def get_duckdb_conn(self):
 		return get_duckdb(False, frappe.conf.db_name, self.filename)
 
-	def sync(self):
+	def sync_schema(self):
 		duck_conn = self.get_duckdb_conn()
-		# create non-existent tables
 		existing = set([x[0] for x in duck_conn.sql("show tables").fetchall()])
 
 		for x in self.db_tables:
@@ -57,10 +57,54 @@ class DuckDBSyncLog(Document):
 			if ddbt.table_name not in existing:
 				ddbt.sync(duck_conn)
 		duck_conn.close()
-		# frappe.enqueue(
-		# 	method="frappe.database.duckdb.database.sync_data",
-		# 	timeout="300",
-		# 	is_async=True,
-		# 	enqueue_after_commit=True,
-		# )
-		# frappe.toast("Data sync started")
+
+	@frappe.whitelist()
+	def sync_data(self):
+		frappe.enqueue(
+			method="frappe.core.doctype.duckdb_sync_log.duckdb_sync_log.start_data_sync",
+			queue="long",
+			is_async=True,
+			enqueue_after_commit=True,
+			docname=self.name,
+		)
+
+
+def start_data_sync(docname: str):
+	sync_dt = qb.DocType("DuckDB Sync Log Item")
+	if (
+		unsynced := qb.from_(sync_dt)
+		.select(sync_dt.name, sync_dt.table)
+		.where(sync_dt.parent.eq(docname) & sync_dt.synced.eq(False))
+		.orderby(sync_dt.idx)
+		.limit(1)
+		.for_update(skip_locked=True)
+		.run(as_dict=True)
+	):
+		dt = unsynced[0]["table"]
+		name = unsynced[0]["name"]
+		duck_tb = DuckDBTable(dt)
+
+		# connect to mariadb
+		doc = frappe.get_doc("DuckDB Sync Log", docname)
+		conn = doc.get_duckdb_conn()
+		conn.sql(
+			f"attach 'user={frappe.conf.db_name} password={frappe.conf.db_password} host={frappe.conf.db_host} database={frappe.conf.db_name}' as mariadb_db (TYPE mysql);"
+		)
+		columns = frappe.get_meta(dt).get_valid_columns()
+		# quotted fields
+		columns_sql = ", ".join([f'"{x}"' for x in columns])
+		query = f'insert into "{duck_tb.table_name}" ({columns_sql}) select {columns_sql} from mariadb_db."{duck_tb.table_name}";'
+		conn.sql(query)
+		conn.close()
+
+		# update flag
+		frappe.db.set_value("DuckDB Sync Log Item", name, "synced", True)
+
+		# schedule next
+		frappe.enqueue(
+			method="frappe.core.doctype.duckdb_sync_log.duckdb_sync_log.start_data_sync",
+			queue="long",
+			is_async=True,
+			enqueue_after_commit=True,
+			docname=docname,
+		)

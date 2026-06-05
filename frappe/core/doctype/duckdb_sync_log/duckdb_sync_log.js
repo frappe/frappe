@@ -1,8 +1,11 @@
 // Copyright (c) 2026, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-// frappe.ui.form.on("DuckDB Sync Log", {
-// 	refresh(frm) {
-
-// 	},
-// });
+frappe.ui.form.on("DuckDB Sync Log", {
+	sync_data: function (frm) {
+		frm.call({
+			doc: frm.doc,
+			method: "sync_data",
+		});
+	},
+});

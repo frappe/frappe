@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "doc_type",
+  "sync_data",
   "column_break_mylv",
   "filename",
   "section_break_ohzq",
@@ -49,13 +50,18 @@
   {
    "fieldname": "section_break_ohzq",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "sync_data",
+   "fieldtype": "Button",
+   "label": "Sync Data"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-06-04 15:58:58.280726",
+ "modified": "2026-06-05 12:12:12.970057",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DuckDB Sync Log",

@@ -7,7 +7,9 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "table"
+  "table",
+  "column_break_kodk",
+  "synced"
  ],
  "fields": [
   {
@@ -15,13 +17,24 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Table"
+  },
+  {
+   "fieldname": "column_break_kodk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "synced",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Synced"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-06-04 12:21:24.422989",
+ "modified": "2026-06-05 18:20:24.623447",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DuckDB Sync Log Item",
