@@ -258,6 +258,7 @@ frappe.ui.FilterGroup = class {
 
 		this.filters.forEach((f) => {
 			if (!f.field || f.field.df.original_type !== "Dynamic Link") return;
+			if (!f.link_friendly_conditions.has(f.get_condition())) return;
 
 			f.set_field(f.field.df.parent, f.field.df.fieldname, null, f.get_condition());
 		});
