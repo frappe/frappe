@@ -6,6 +6,7 @@
     :placeholder="field.placeholder"
     :required="field.reqd"
     :disabled="field.readOnly"
+    @change="(e: Event) => emit('change', (e.target as HTMLTextAreaElement).value)"
   />
 </template>
 

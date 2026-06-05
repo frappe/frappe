@@ -19,6 +19,10 @@ const emit = defineEmits<FieldComponentEmits>()
 
 const value = computed<string | null>({
   get: () => props.modelValue ?? null,
-  set: (v) => emit('update:modelValue', v),
+  // A selection is a commit for a picker: sync the value and fire the trigger.
+  set: (v) => {
+    emit('update:modelValue', v)
+    emit('change', v)
+  },
 })
 </script>

@@ -22,8 +22,31 @@
 		<template v-if="slots.suffix" #suffix="suffixProps">
 			<slot name="suffix" v-bind="suffixProps" />
 		</template>
-		<template v-else-if="showClear" #suffix>
+		<template v-else-if="showRedirect || showEdit || showClear" #suffix>
 			<button
+				v-if="showRedirect"
+				type="button"
+				aria-label="Open linked record"
+				data-slot="redirect"
+				class="grid size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+				@click="emit('redirect', model!)"
+				@pointerdown.stop
+			>
+				<span class="lucide-arrow-up-right size-3.5" />
+			</button>
+			<button
+				v-if="showEdit"
+				type="button"
+				aria-label="Edit linked record"
+				data-slot="edit"
+				class="grid size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+				@click="emit('edit', model!)"
+				@pointerdown.stop
+			>
+				<span class="lucide-pencil size-3.5" />
+			</button>
+			<button
+				v-if="showClear"
 				type="button"
 				aria-label="Clear"
 				data-slot="clear"
@@ -60,6 +83,8 @@ import type { LinkExposed, LinkOption, LinkProps, LinkEmits } from "./types";
 const props = withDefaults(defineProps<LinkProps>(), {
 	filters: () => ({}),
 	creatable: false,
+	redirectable: false,
+	editable: false,
 	disabled: false,
 });
 
@@ -112,6 +137,8 @@ const linkOptions = computed<ComboboxOption[]>(() => {
 });
 
 const showClear = computed(() => !props.disabled && !!model.value);
+const showRedirect = computed(() => props.redirectable && !!model.value);
+const showEdit = computed(() => props.editable && !!model.value);
 
 const loadOptions = (txt: string = "") => {
 	options.update({

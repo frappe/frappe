@@ -4,20 +4,22 @@
       :is="resolved"
       :field="field"
       :modelValue="doc[field.fieldname]"
-      @update:modelValue="(value: any) => change(field.fieldname, value)"
+      @update:modelValue="(value: any) => update(field.fieldname, value)"
+      @change="(value: any) => commit(field.fieldname, value)"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, inject } from 'vue'
-import { ChangeKey, DocKey, ResolveFieldKey } from './types'
+import { CommitKey, DocKey, ResolveFieldKey, UpdateKey } from './types'
 import type { FieldMeta } from './types'
 
 const props = defineProps<{ field: FieldMeta }>()
 
 const doc = inject(DocKey)!
-const change = inject(ChangeKey)!
+const update = inject(UpdateKey)!
+const commit = inject(CommitKey)!
 const resolveField = inject(ResolveFieldKey)!
 
 const resolved = computed(() => resolveField(props.field.fieldtype))

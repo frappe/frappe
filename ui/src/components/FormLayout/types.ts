@@ -94,15 +94,37 @@ export interface FieldComponentProps {
 }
 
 export type FieldComponentEmits = {
+  /** Live value, on every change — keeps `doc` in sync so bindings and
+   *  conditional visibility (`depends_on`) stay reactive while editing. */
   'update:modelValue': [value: any]
+  /** Commit — the user finished editing this field: **blur** for typed inputs,
+   *  **selection** for pickers. Only the field knows which event means "commit".
+   *  This is the funnel the field-change scripting layer will hook; today it
+   *  surfaces as `FormLayout`'s `@change`. */
+  change: [value: any]
 }
 
 /** The doc object fields read/write, provided from the root. */
 export const DocKey: InjectionKey<Ref<Record<string, any>>> = Symbol('FormLayoutDoc')
 
-/** Called by a field when its value changes: `(fieldname, value)`. */
-export const ChangeKey: InjectionKey<(fieldname: string, value: any) => void> =
-  Symbol('FormLayoutChange')
+/**
+ * Writes a field's live value into the doc: `(fieldname, value)`. Fires on every
+ * value change so bindings and conditional visibility stay reactive. Pure state
+ * sync — no side-effects, no scripts.
+ */
+export const UpdateKey: InjectionKey<(fieldname: string, value: any) => void> =
+  Symbol('FormLayoutUpdate')
+
+/**
+ * Called when a field is **committed** (typed input blurred, picker selected):
+ * `(fieldname, value)`. This is the intentful "the user changed this field"
+ * signal — the entry point for the future field-change scripting layer (Frappe
+ * `frm.trigger`-style on-change scripts), and what `FormLayout` surfaces as its
+ * `@change` event. Distinct from value-sync because a script needs to know
+ * *which* field the user committed, run only on commit, and may mutate siblings.
+ */
+export const CommitKey: InjectionKey<(fieldname: string, value: any) => void> =
+  Symbol('FormLayoutCommit')
 
 /** Resolves a fieldtype to its component (falls back to the text component). */
 export const ResolveFieldKey: InjectionKey<(fieldtype: string) => Component> =

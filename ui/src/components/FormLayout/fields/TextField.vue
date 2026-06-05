@@ -7,6 +7,7 @@
     :required="field.reqd"
     :disabled="field.readOnly"
     @update:modelValue="(value: any) => emit('update:modelValue', value)"
+    @change="(e: Event) => emit('change', (e.target as HTMLInputElement).value)"
   />
 </template>
 

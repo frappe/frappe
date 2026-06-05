@@ -29,7 +29,7 @@ import { computed, provide, ref } from 'vue'
 import FormLayoutSection from './FormLayoutSection.vue'
 import { useFieldTypes } from './useFieldTypes'
 import { resolveLayout } from './resolveLayout'
-import { ChangeKey, DocKey, HasTabsKey, ResolveFieldKey } from './types'
+import { CommitKey, DocKey, HasTabsKey, ResolveFieldKey, UpdateKey } from './types'
 import type { FormLayoutSchema } from './types'
 
 const props = defineProps<{ layout: FormLayoutSchema }>()
@@ -60,15 +60,23 @@ const hasTabs = computed(
     (visibleTabs.value.length === 1 && Boolean(visibleTabs.value[0].label)),
 )
 
-function change(fieldname: string, value: any) {
+// Live value sync — runs on every keystroke/selection. Keeps `doc` (and the
+// conditional visibility computed above) reactive while the user edits.
+function update(fieldname: string, value: any) {
   doc.value[fieldname] = value
+}
+
+// Commit — runs when a field is finished editing (blur / selection). The seam
+// the field-change scripting layer will hook; for now it just surfaces `@change`.
+function commit(fieldname: string, value: any) {
   emit('change', fieldname, value)
 }
 
 const { resolve } = useFieldTypes()
 
 provide(DocKey, doc)
-provide(ChangeKey, change)
+provide(UpdateKey, update)
+provide(CommitKey, commit)
 provide(ResolveFieldKey, resolve)
 provide(HasTabsKey, hasTabs)
 </script>

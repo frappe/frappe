@@ -19,6 +19,10 @@ const emit = defineEmits<FieldComponentEmits>()
 // Backends send `0 | 1`; adapt at the edge and emit a clean boolean.
 const value = computed<boolean>({
   get: () => Boolean(props.modelValue),
-  set: (v) => emit('update:modelValue', v),
+  // Toggling a checkbox is a commit: sync the value and fire the trigger.
+  set: (v) => {
+    emit('update:modelValue', v)
+    emit('change', v)
+  },
 })
 </script>

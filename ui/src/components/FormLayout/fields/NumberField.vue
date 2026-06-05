@@ -8,6 +8,7 @@
     :required="field.reqd"
     :disabled="field.readOnly"
     @update:modelValue="onInput"
+    @change="onCommit"
   />
 </template>
 
@@ -22,7 +23,13 @@ const emit = defineEmits<FieldComponentEmits>()
 // No locale/precision formatting yet (deferred to Phase 6); round-trip a Number.
 const value = computed<number | null>(() => props.modelValue ?? null)
 
+// Live value while typing (keeps doc reactive); commit fires on blur.
 function onInput(v: string) {
   emit('update:modelValue', v === '' ? null : Number(v))
+}
+
+function onCommit(e: Event) {
+  const v = (e.target as HTMLInputElement).value
+  emit('change', v === '' ? null : Number(v))
 }
 </script>

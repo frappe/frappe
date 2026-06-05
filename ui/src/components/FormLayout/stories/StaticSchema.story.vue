@@ -8,7 +8,13 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
 import FormLayout from '../FormLayout.vue'
+import { registerFieldType } from '../fieldTypes'
+import DemoLinkField from './DemoLinkField.vue'
 import type { FormLayoutSchema } from '../types'
+
+// Host-side override: swap the lib's select-only Link for one that wires
+// create / redirect / edit. This is the whole integration — no FormLayout prop.
+registerFieldType('Link', DemoLinkField)
 
 const doc = reactive<Record<string, any>>({ reference_id: 'REF-0001' })
 
