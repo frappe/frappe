@@ -346,6 +346,7 @@ def render_safe_globals():
 			get_cached_doc=safer_get_cached_doc,
 			get_list=safe_get_list,
 			get_all=safe_get_all,
+			get_hooks=get_hooks,
 			get_system_settings=frappe.get_system_settings,
 			utils=datautils,
 			get_url=frappe.utils.get_url,
@@ -367,7 +368,6 @@ def render_safe_globals():
 			),
 			make_get_request=make_safe_get_request,
 			socketio_port=frappe.conf.socketio_port,
-			enqueue=safe_enqueue,
 			sanitize_html=frappe.utils.sanitize_html,
 			log_error=safer_log_error,
 			log=frappe.log,
@@ -400,7 +400,6 @@ def render_safe_globals():
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,
 		dev_server=frappe._dev_server,
-		is_job_queued=is_job_queued,
 		get_visible_columns=safer_get_visible_columns,
 	)
 
@@ -451,13 +450,14 @@ def exec_safe_globals():
 			make_put_request=frappe.integrations.utils.make_put_request,
 			make_patch_request=frappe.integrations.utils.make_patch_request,
 			make_delete_request=frappe.integrations.utils.make_delete_request,
-			get_hooks=get_hooks,
 			log_error=frappe.log_error,
 			get_list=frappe.get_list,
 			get_all=frappe.get_all,
 			get_cached_doc=frappe.get_cached_doc,
 			get_last_doc=frappe.get_last_doc,
 			render_template=frappe.render_template,
+			enqueue=safe_enqueue,
+			is_job_queued=is_job_queued,
 		)
 	)
 	out.frappe.db.update(
