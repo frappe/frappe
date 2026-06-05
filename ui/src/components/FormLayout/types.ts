@@ -15,6 +15,8 @@ export interface FieldMeta {
   filters?: Record<string, unknown>
   /** Whether the field is mandatory. */
   reqd?: boolean
+  /** Decimal places for numeric fields (Float/Currency/Percent); from meta. */
+  precision?: number
   description?: string
   placeholder?: string
   /** Static visibility; `resolveLayout` may flip this from `dependsOn`. */
@@ -41,6 +43,8 @@ export interface RawMetaField {
   label?: string
   options?: string
   reqd?: boolean | 0 | 1
+  /** Decimal places; arrives as a number or numeric string from the backend. */
+  precision?: number | string
   hidden?: boolean | 0 | 1
   read_only?: boolean | 0 | 1
   description?: string

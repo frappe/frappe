@@ -45,6 +45,13 @@ function newSection(field?: RawMetaField): Section {
 
 const READ_ONLY = 'Read Only'
 
+/** Meta `precision` may be a number, a numeric string, or blank → `undefined`. */
+function coercePrecision(precision: number | string | undefined): number | undefined {
+  if (precision == null || precision === '') return undefined
+  const n = Number(precision)
+  return Number.isFinite(n) ? n : undefined
+}
+
 function mapField(field: RawMetaField): FieldMeta {
   return {
     fieldname: field.fieldname,
@@ -53,6 +60,7 @@ function mapField(field: RawMetaField): FieldMeta {
     options: field.options,
     filters: field.filters,
     reqd: !!field.reqd,
+    precision: coercePrecision(field.precision),
     description: field.description,
     hidden: !!field.hidden,
     // The `Read Only` fieldtype is permanently read-only; static `read_only`
