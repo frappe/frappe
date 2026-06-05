@@ -1,4 +1,5 @@
 import type { Component } from 'vue'
+import { setScoped } from './scopedRegistry'
 import CheckField from './fields/CheckField.vue'
 import DateField from './fields/DateField.vue'
 import DatetimeField from './fields/DatetimeField.vue'
@@ -15,7 +16,40 @@ const registry = new Map<string, Component>()
 
 const FALLBACK = '__fallback__'
 
-export function registerFieldType(fieldtype: string, component: Component): void {
+export interface RegisterFieldTypeOptions {
+  /**
+   * `true` (default): register **globally** for the process — the registration
+   * persists until overwritten. This is how apps install their fields once at
+   * startup.
+   *
+   * `false`: register **scoped** to the current Vue effect scope (a component's
+   * `setup`). The previous mapping is snapshotted and **automatically restored**
+   * when that scope is disposed (the component unmounts). Use this for an override
+   * that must not leak to the rest of the app — e.g. a story/demo, or a screen
+   * that swaps a field only while it is open. Must be called synchronously in
+   * `setup` (so it is in place before child fields render); if there is no active
+   * scope to tie cleanup to, it falls back to a global registration and warns.
+   */
+  global?: boolean
+}
+
+export function registerFieldType(
+  fieldtype: string,
+  component: Component,
+  options: RegisterFieldTypeOptions = {},
+): void {
+  const { global = true } = options
+
+  // Scoped: snapshot + auto-restore on the current component's unmount.
+  if (!global && setScoped(registry, fieldtype, component)) return
+
+  if (!global) {
+    console.warn(
+      `[FormLayout] registerFieldType('${fieldtype}', …, { global: false }) was ` +
+        `called outside a Vue effect scope (component setup), so there is nothing ` +
+        `to auto-revert on. Registered globally instead.`,
+    )
+  }
   registry.set(fieldtype, component)
 }
 
@@ -30,7 +64,9 @@ registerFieldType('Date', DateField)
 registerFieldType('Datetime', DatetimeField)
 registerFieldType('Time', TimeField)
 
-// One numeric control for all number types (no formatting yet — see Phase 6).
+// One numeric control for all number types; it formats per fieldtype (locale
+// grouping, precision, currency symbol, percent) with lib defaults. Apps wanting
+// site-accurate settings register their own field (see formatNumber.ts).
 for (const t of ['Int', 'Float', 'Currency', 'Percent']) {
   registerFieldType(t, NumberField)
 }
