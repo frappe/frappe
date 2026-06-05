@@ -17,6 +17,7 @@ class DuckDBSyncLogItem(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		synced: DF.Check
 		table: DF.Data | None
 	# end: auto-generated types
 
