@@ -212,7 +212,6 @@ runs:
         --verbose
       bench --site test_site set-config allow_tests 1 --parse
       bench --site test_site set-config server_script_enabled 1 --parse
-      bench set-config -g disable_render_safe_exec 1 --parse
       bench --site test_site set-config host_name "http://test_site:8000"
       bench --site test_site set-config auto_email_id "test@example.com"
       bench --site test_site set-config mail_server localhost

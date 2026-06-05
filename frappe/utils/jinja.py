@@ -31,10 +31,9 @@ def get_jenv(restrict_globals=None):
 	else:
 		jenv.globals.update(get_safe_globals())
 
-	if not restrict_globals:
-		methods, filters = get_jinja_hooks()
-		jenv.globals.update(methods or {})
-		jenv.filters.update(filters or {})
+	methods, filters = get_jinja_hooks()
+	jenv.globals.update(methods or {})
+	jenv.filters.update(filters or {})
 
 	setattr(frappe.local, local_key, jenv)
 
