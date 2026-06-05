@@ -35,21 +35,17 @@
 	}
 }
 
-.import-tree-preview-panel {
-	.import-tree-container {
-		border: 1px solid var(--border-color);
-		border-radius: var(--border-radius);
-		background-color: var(--card-bg);
-		overflow: hidden;
-	}
+.import-tree-status-alert {
+	margin-bottom: var(--margin-sm);
+}
 
+.import-tree-preview-panel {
 	.import-tree-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--margin-md);
-		padding: var(--padding-sm) var(--padding-md);
-		border-bottom: 1px solid var(--border-color);
+		margin-bottom: var(--margin-xs);
 	}
 
 	.import-tree-title {

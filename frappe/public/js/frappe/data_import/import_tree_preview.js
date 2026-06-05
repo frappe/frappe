@@ -17,15 +17,21 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 
 	refresh() {
 		const tree_preview = this.preview_data?.tree_preview;
-		if (!tree_preview?.nodes?.length) {
+		if (!tree_preview) {
 			this.wrapper.empty();
 			return;
 		}
 
-		const { roots, children_by_parent } = this._build_tree(tree_preview.nodes);
-		const total_nodes = tree_preview.total_nodes || tree_preview.nodes.length;
+		const nodes = tree_preview.nodes || [];
+		if (!nodes.length) {
+			this.wrapper.html(this.get_status_banner_html(tree_preview));
+			return;
+		}
+
+		const total_nodes = tree_preview.total_nodes ?? nodes.length;
 		const footer =
 			total_nodes === 1 ? __("1 node") : __("Tree preview of {0} nodes", [total_nodes]);
+		const { roots, children_by_parent } = this._build_tree(nodes);
 		const root_label = __("{0} Tree", [__(this.doctype)]);
 		const root_icon = roots.length
 			? `<span class="node-parent">${this.icon_set.open}</span>`
@@ -33,23 +39,22 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 
 		this.wrapper.html(`
 			<div class="import-tree-preview-panel">
-				<div class="import-tree-container">
-					<div class="import-tree-header">
-						<div class="import-tree-title">
-							${root_icon}
-							<span class="import-tree-doctype-label">${frappe.utils.escape_html(root_label)}</span>
-						</div>
-						<div class="btn-group import-tree-preview-toolbar">
-							<button type="button" class="btn btn-default btn-xs" data-action="expand_all">
-								${__("Expand All")}
-							</button>
-							<button type="button" class="btn btn-default btn-xs" data-action="collapse_all">
-								${__("Collapse All")}
-							</button>
-						</div>
+				${this.get_status_banner_html(tree_preview)}
+				<div class="import-tree-header">
+					<div class="import-tree-title">
+						${root_icon}
+						<span class="import-tree-doctype-label">${frappe.utils.escape_html(root_label)}</span>
 					</div>
-					<div class="import-tree-body"></div>
+					<div class="btn-group">
+						<button type="button" class="btn btn-default btn-xs" data-action="expand_all">
+							${__("Expand All")}
+						</button>
+						<button type="button" class="btn btn-default btn-xs" data-action="collapse_all">
+							${__("Collapse All")}
+						</button>
+					</div>
 				</div>
+				<div class="import-tree-body"></div>
 				<div class="text-muted margin-top text-medium">${footer}</div>
 			</div>
 		`);
@@ -61,6 +66,39 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		roots.forEach((node) => this.render_node(node, $root_children, children_by_parent));
 
 		frappe.utils.bind_actions_with_object(this.wrapper, this);
+	}
+
+	/** Issue banner only (empty nodes or tree structure warnings). */
+	get_status_banner_html(tree_preview) {
+		const nodes = tree_preview.nodes || [];
+		const warning_count = tree_preview.tree_warnings?.length || 0;
+
+		if (!nodes.length) {
+			return this.get_form_message_html(
+				__("No valid tree nodes found in the import file."),
+				"yellow"
+			);
+		}
+
+		if (!warning_count) {
+			return "";
+		}
+
+		const warning_label =
+			warning_count === 1
+				? __("1 tree structure warning found.")
+				: __("{0} tree structure warnings found.", [warning_count]);
+
+		return this.get_form_message_html(
+			`${warning_label}<br/>${__(
+				"See warning icons on nodes below or check the Warnings section."
+			)}`,
+			"yellow"
+		);
+	}
+
+	get_form_message_html(message, color) {
+		return `<div class="form-message ${color} import-tree-status-alert"><div>${message}</div></div>`;
 	}
 
 	_build_tree(nodes) {
@@ -165,6 +203,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		$tree.find(".tree-node, .tree").addClass("opened");
 		$tree.find(".tree-children").show();
 		$tree.find(".node-parent").html(this.icon_set.open);
+		this._set_header_folder_icon(true);
 	}
 
 	collapse_all() {
@@ -173,6 +212,13 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		$tree.find(".tree-children").hide();
 		$tree.find(".node-parent").html(this.icon_set.closed);
 		$tree.children(".tree-children").show();
-		this.wrapper.find(".import-tree-header .node-parent").html(this.icon_set.closed);
+		this._set_header_folder_icon(false);
+	}
+
+	_set_header_folder_icon(open) {
+		const $icon = this.wrapper.find(".import-tree-header .node-parent");
+		if ($icon.length) {
+			$icon.html(open ? this.icon_set.open : this.icon_set.closed);
+		}
 	}
 };

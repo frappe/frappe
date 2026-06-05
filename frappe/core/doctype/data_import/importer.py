@@ -823,6 +823,7 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 
 	tree_warnings = []
 	nodes_by_id = {node.id: node for node in nodes}
+	import_ids = getattr(import_file.header, "import_ids", None) or set()
 
 	for node_id, row_numbers in id_to_rows.items():
 		if len(row_numbers) > 1:
@@ -845,6 +846,9 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 				node.warnings.append(message)
 				if not any(w.get("message") == message for w in tree_warnings):
 					tree_warnings.append({"row": node.row_number, "message": message})
+			continue
+
+		if parent_id in import_ids:
 			continue
 
 		parent_exists = frappe.db.exists(import_file.doctype, parent_id)
@@ -962,10 +966,8 @@ def sort_tree_payloads(payloads: list, doctype: str, import_type: str | None) ->
 
 def _order_tree_preview_nodes(nodes: list) -> list:
 	children_by_parent: dict[str | None, list] = {}
-	nodes_by_id = {}
 
 	for node in nodes:
-		nodes_by_id[node.id] = node
 		children_by_parent.setdefault(node.parent or None, []).append(node)
 
 	for children in children_by_parent.values():
