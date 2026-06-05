@@ -7,6 +7,7 @@ import LinkField from './fields/LinkField.vue'
 import NumberField from './fields/NumberField.vue'
 import PasswordField from './fields/PasswordField.vue'
 import SelectField from './fields/SelectField.vue'
+import TableField from './fields/TableField.vue'
 import TextField from './fields/TextField.vue'
 import TextareaField from './fields/TextareaField.vue'
 import TimeField from './fields/TimeField.vue'
@@ -77,6 +78,11 @@ for (const t of ['Small Text', 'Text', 'Long Text', 'Code']) {
 }
 
 registerFieldType('Password', PasswordField)
+
+// Child table → inline-editable grid. Columns come from the schema
+// (`field.childFields`, resolved by buildLayoutFromMeta); each cell reuses this
+// same registry, so app field overrides apply inside the grid too.
+registerFieldType('Table', TableField)
 
 // `Read Only` renders as a disabled text box (buildLayoutFromMeta marks it
 // `readOnly: true`, which TextField honours via `:disabled`).

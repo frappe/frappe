@@ -158,4 +158,57 @@ describe('buildLayoutFromMeta', () => {
     ])
     expect(layout[0].sections[0].columns[0].fields[0].readOnly).toBe(true)
   })
+
+  describe('Table child columns', () => {
+    const tableField = (over: Partial<RawMetaField> = {}) =>
+      field({ fieldname: 'items', fieldtype: 'Table', options: 'Order Item', ...over })
+
+    const tableFieldOf = (layout: ReturnType<typeof buildLayoutFromMeta>) =>
+      layout[0].sections[0].columns[0].fields[0]
+
+    it('resolves child columns from in_list_view fields of the child meta', () => {
+      const layout = buildLayoutFromMeta([tableField()], {
+        childMetas: {
+          'Order Item': [
+            field({ fieldname: 'item', fieldtype: 'Link', options: 'Item', in_list_view: 1 }),
+            field({ fieldname: 'note', fieldtype: 'Data' }), // not in_list_view → excluded
+            field({ fieldname: 'qty', fieldtype: 'Int', in_list_view: 1 }),
+          ],
+        },
+      })
+
+      const f = tableFieldOf(layout)
+      expect(f.childFields?.map((c) => c.fieldname)).toEqual(['item', 'qty'])
+      // columns are mapped through the same FieldMeta shape
+      expect(f.childFields?.[0].options).toBe('Item')
+    })
+
+    it('falls back to all visible data fields when none are flagged in_list_view', () => {
+      const layout = buildLayoutFromMeta([tableField()], {
+        childMetas: {
+          'Order Item': [
+            field({ fieldname: 'sec', fieldtype: 'Section Break' }), // layout break → excluded
+            field({ fieldname: 'item', fieldtype: 'Data' }),
+            field({ fieldname: 'secret', fieldtype: 'Data', hidden: 1 }), // hidden → excluded
+            field({ fieldname: 'qty', fieldtype: 'Int' }),
+          ],
+        },
+      })
+
+      expect(tableFieldOf(layout).childFields?.map((c) => c.fieldname)).toEqual([
+        'item',
+        'qty',
+      ])
+    })
+
+    it('leaves childFields undefined when the child meta is absent', () => {
+      const layout = buildLayoutFromMeta([tableField()], { childMetas: {} })
+      expect(tableFieldOf(layout).childFields).toBeUndefined()
+    })
+
+    it('does not attach childFields to non-Table fields', () => {
+      const layout = buildLayoutFromMeta([field({ fieldname: 'a', fieldtype: 'Data' })])
+      expect(tableFieldOf(layout).childFields).toBeUndefined()
+    })
+  })
 })

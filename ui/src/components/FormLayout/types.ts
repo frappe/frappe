@@ -9,10 +9,18 @@ export interface FieldMeta {
   fieldname: string
   fieldtype: string
   label?: string
-  /** Target doctype for `Link` fields (Frappe `options`). */
+  /** Target doctype for `Link` fields, or child doctype for `Table` (Frappe `options`). */
   options?: string
   /** Link search filters. */
   filters?: Record<string, unknown>
+  /**
+   * Resolved child-table columns for `Table` fields: the child doctype's
+   * `in_list_view` fields, mapped through the same `FieldMeta` shape. Populated by
+   * `buildLayoutFromMeta` from the child meta (`options` names the child doctype).
+   * `FormLayout` stays render-only — the grid reuses the fieldtype registry per
+   * cell, so it never fetches child meta itself.
+   */
+  childFields?: FieldMeta[]
   /** Whether the field is mandatory. */
   reqd?: boolean
   /** Decimal places for numeric fields (Float/Currency/Percent); from meta. */
@@ -47,6 +55,8 @@ export interface RawMetaField {
   precision?: number | string
   hidden?: boolean | 0 | 1
   read_only?: boolean | 0 | 1
+  /** Whether a child-table field shows as a grid column. */
+  in_list_view?: boolean | 0 | 1
   description?: string
   hide_border?: boolean | 0 | 1
   collapsible?: boolean | 0 | 1

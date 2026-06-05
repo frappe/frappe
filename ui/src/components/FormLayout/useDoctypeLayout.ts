@@ -1,18 +1,8 @@
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import type { Ref } from 'vue'
-import { createResource, frappeRequest } from 'frappe-ui'
 import { buildLayoutFromMeta } from './buildLayoutFromMeta'
+import { useDoctypeMeta } from './useDoctypeMeta'
 import type { FormLayoutSchema, RawMetaField } from './types'
-
-interface DoctypeMeta {
-  name: string
-  fields?: RawMetaField[]
-}
-
-interface GetDoctypeResponse {
-  docs?: DoctypeMeta[]
-  user_settings?: string
-}
 
 export interface UseDoctypeLayout {
   /** Render-ready schema; empty until meta loads (or if the doctype is absent). */
@@ -24,66 +14,35 @@ export interface UseDoctypeLayout {
 }
 
 /**
- * Memoised per doctype: a given doctype's meta is fetched and its layout built
- * once per session, then shared by every caller. `reload()` refreshes in place.
+ * Memoised per doctype so every caller shares one layout instance.
  */
 const cache = new Map<string, UseDoctypeLayout>()
 
 /**
- * Fetch a doctype's meta via standard Frappe (`frappe.desk.form.load.getdoctype`)
- * and produce a `FormLayoutSchema` for `FormLayout`.
+ * Produce a `FormLayoutSchema` for `FormLayout` from a doctype's meta.
  *
- * Layout-only: returns the schema + load state. It does **not** fetch or manage
- * the doc — pairing the layout with a doc (`useDoc`, a fresh `reactive({})`, …)
- * is the consumer's job.
+ * Layout-only: it derives the schema from `useDoctypeMeta` (which owns the
+ * fetch) and returns it + load state. It does **not** fetch or manage the doc —
+ * pairing the layout with a doc (`useDoc`, a fresh `reactive({})`, …) is the
+ * consumer's job. Child-table (`Table`) columns are resolved from the sibling
+ * child metas the same `getdoctype` call already returned.
  */
 export function useDoctypeLayout(doctype: string): UseDoctypeLayout {
   const cached = cache.get(doctype)
   if (cached) return cached
 
-  const layout = ref<FormLayoutSchema>([])
-  const error = ref<unknown>(null)
+  const { meta, metas, loading, error, reload } = useDoctypeMeta(doctype)
 
-  const resource = createResource({
-    url: 'frappe.desk.form.load.getdoctype',
-    params: { doctype, with_parent: 1, cached_timestamp: null },
-    cache: ['Meta', doctype],
-    resourceFetcher: frappeRequest,
-    onError: (err: unknown) => {
-      layout.value = []
-      error.value = err
-    },
+  const layout = computed<FormLayoutSchema>(() => {
+    if (!meta.value) return []
+    const childMetas: Record<string, RawMetaField[]> = {}
+    for (const [name, m] of Object.entries(metas.value)) {
+      if (m.fields) childMetas[name] = m.fields
+    }
+    return buildLayoutFromMeta(meta.value.fields ?? [], { childMetas })
   })
 
-  // Rebuild whenever meta data lands. Driven off `resource.data` (not
-  // `onSuccess`) so it also works when `createResource` hands back a resource
-  // already cached/shared by another part of the app on the same `['Meta', …]`
-  // key — its data is present immediately and `onSuccess` would not re-fire.
-  watch(
-    () => resource.data as GetDoctypeResponse | null,
-    (res) => {
-      if (!res) return
-      const meta = res.docs?.find((d) => d.name === doctype)
-      if (!meta) {
-        layout.value = []
-        error.value = new Error(`Doctype meta not found for "${doctype}".`)
-        return
-      }
-      error.value = null
-      layout.value = buildLayoutFromMeta(meta.fields ?? [])
-    },
-    { immediate: true },
-  )
-
-  // Only hit the network if nothing has fetched this meta yet.
-  if (!resource.fetched && !resource.loading) resource.fetch()
-
-  const result: UseDoctypeLayout = {
-    layout,
-    loading: computed(() => resource.loading),
-    error,
-    reload: () => resource.reload(),
-  }
+  const result: UseDoctypeLayout = { layout, loading, error, reload }
   cache.set(doctype, result)
   return result
 }

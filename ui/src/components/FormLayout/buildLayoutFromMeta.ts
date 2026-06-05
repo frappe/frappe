@@ -21,6 +21,16 @@ import type {
 const TAB_BREAK = 'Tab Break'
 const SECTION_BREAK = 'Section Break'
 const COLUMN_BREAK = 'Column Break'
+const TABLE = 'Table'
+
+/** Layout-break fieldtypes never render as a value/grid column. */
+const LAYOUT_BREAKS = new Set([TAB_BREAK, SECTION_BREAK, COLUMN_BREAK])
+
+/** Lookup of child doctype name → its flat meta `fields`, for resolving
+ *  `Table` columns. Supplied by the meta-fetch seam (`useDoctypeLayout`). */
+export interface BuildLayoutOptions {
+  childMetas?: Record<string, RawMetaField[]>
+}
 
 function newColumn(field?: RawMetaField): Column {
   return { name: field?.fieldname, label: field?.label, fields: [] }
@@ -52,7 +62,31 @@ function coercePrecision(precision: number | string | undefined): number | undef
   return Number.isFinite(n) ? n : undefined
 }
 
-function mapField(field: RawMetaField): FieldMeta {
+/**
+ * Resolve a `Table` field's grid columns from the child doctype's meta. Uses the
+ * child's `in_list_view` fields (the desk grid convention); if none are flagged,
+ * falls back to every visible data field so the grid is never empty. Returns
+ * `undefined` when the child meta is absent — the grid then renders no columns.
+ */
+function resolveChildFields(
+  field: RawMetaField,
+  childMetas: Record<string, RawMetaField[]>,
+): FieldMeta[] | undefined {
+  const childFields = field.options ? childMetas[field.options] : undefined
+  if (!childFields) return undefined
+
+  const dataFields = childFields.filter(
+    (f) => !LAYOUT_BREAKS.has(f.fieldtype) && !f.hidden,
+  )
+  const inListView = dataFields.filter((f) => f.in_list_view)
+  const columns = inListView.length ? inListView : dataFields
+  return columns.map((f) => mapField(f, childMetas))
+}
+
+function mapField(
+  field: RawMetaField,
+  childMetas: Record<string, RawMetaField[]>,
+): FieldMeta {
   return {
     fieldname: field.fieldname,
     fieldtype: field.fieldtype,
@@ -69,10 +103,20 @@ function mapField(field: RawMetaField): FieldMeta {
     dependsOn: field.depends_on,
     mandatoryDependsOn: field.mandatory_depends_on,
     readOnlyDependsOn: field.read_only_depends_on,
+    // Child-table columns. Nested grids aren't supported, so a `Table` inside a
+    // child meta resolves with no further recursion (its own childMetas lookup
+    // simply won't contain a deeper level).
+    ...(field.fieldtype === TABLE
+      ? { childFields: resolveChildFields(field, childMetas) }
+      : {}),
   }
 }
 
-export function buildLayoutFromMeta(fields: RawMetaField[]): FormLayoutSchema {
+export function buildLayoutFromMeta(
+  fields: RawMetaField[],
+  options: BuildLayoutOptions = {},
+): FormLayoutSchema {
+  const { childMetas = {} } = options
   if (!fields.length) return []
 
   const tabs: Tab[] = []
@@ -109,7 +153,7 @@ export function buildLayoutFromMeta(fields: RawMetaField[]): FormLayoutSchema {
       ensureSection().columns.push(newColumn(field))
     } else {
       if (field.hidden) continue // drop statically hidden fields
-      ensureColumn().fields.push(mapField(field))
+      ensureColumn().fields.push(mapField(field, childMetas))
     }
   }
 

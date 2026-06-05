@@ -3,7 +3,9 @@ export { useFieldTypes } from './useFieldTypes'
 export { registerFieldType, getFieldComponent } from './fieldTypes'
 export type { RegisterFieldTypeOptions } from './fieldTypes'
 export { useDoctypeLayout } from './useDoctypeLayout'
+export { useDoctypeMeta } from './useDoctypeMeta'
 export { buildLayoutFromMeta } from './buildLayoutFromMeta'
+export type { BuildLayoutOptions } from './buildLayoutFromMeta'
 export { resolveLayout } from './resolveLayout'
 export { evaluateDependsOn } from './dependsOn'
 export {
@@ -32,6 +34,7 @@ export type {
   FieldComponentEmits,
 } from './types'
 export type { UseDoctypeLayout } from './useDoctypeLayout'
+export type { UseDoctypeMeta, DoctypeMeta } from './useDoctypeMeta'
 export type {
   FltOptions,
   FormatNumberOptions,
