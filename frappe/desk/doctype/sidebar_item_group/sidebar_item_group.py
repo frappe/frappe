@@ -4,7 +4,7 @@
 import os
 
 import frappe
-from frappe.boot import get_allowed_pages, get_allowed_reports
+from frappe.desk.desk_entity import DeskEntity
 from frappe.model.document import Document
 from frappe.modules.utils import create_directory_on_app_path, get_app_level_directory_path
 
@@ -53,6 +53,7 @@ def get_reports(module_name=None):
 	if module_name:
 		sidebar_group = frappe.get_doc("Sidebar Item Group", module_name)
 		for report_links in sidebar_group.links:
-			if report_links.report in get_allowed_reports().keys():
-				reports_info.append(get_allowed_reports()[report_links.report])
+			allowed_reports = DeskEntity.get_allowed_reports()
+			if report_links.report in allowed_reports:
+				reports_info.append(allowed_reports[report_links.report])
 		return reports_info

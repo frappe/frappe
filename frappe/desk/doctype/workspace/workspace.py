@@ -7,7 +7,7 @@ from json import loads
 import frappe
 from frappe import _
 from frappe.boot import get_sidebar_items
-from frappe.desk.desktop import get_workspace_sidebar_items, save_new_widget
+from frappe.desk.desktop import get_workspaces, save_new_widget
 from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import add_to_my_workspace
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
@@ -331,7 +331,7 @@ def new_page(new_page):
 	# add to workspace sidebar items
 	if not doc.public:
 		add_to_my_workspace(doc)
-	workspaces = get_workspace_sidebar_items()
+	workspaces = get_workspaces()
 	return {"workspace_pages": workspaces, "sidebar_items": get_sidebar_items(workspaces)}
 
 

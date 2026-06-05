@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.boot import get_allowed_report_names
+from frappe.desk.desk_entity import DeskEntity
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
@@ -83,12 +83,18 @@ def get_permission_query_conditions(user=None):
 	if frappe.session.user == "Administrator":
 		return
 
+<<<<<<< HEAD
 	if "System Manager" in frappe.get_roles():
 		return
 
 	allowed_reports = get_allowed_report_names()
 	allowed_doctypes = get_doctypes_with_read()
 	allowed_modules = [module.get("module_name") for module in get_modules_from_all_apps_for_user()]
+=======
+	allowed_reports = DeskEntity.get_allowed_report_names(user=user)
+	allowed_doctypes = get_doctypes_with_read(user)
+	allowed_modules = [module.get("module_name") for module in get_modules_from_all_apps_for_user(user)]
+>>>>>>> 12b0614a54 (refactor: introduce desk entity class)
 
 	nc = frappe.qb.DocType("Number Card")
 	conditions = (
@@ -105,7 +111,11 @@ def has_permission(doc, ptype, user):
 	if frappe.session.user == "Administrator":
 		return True
 
+<<<<<<< HEAD
 	if "System Manager" in frappe.get_roles():
+=======
+	if doc.type == "Report" and doc.report_name in DeskEntity.get_allowed_report_names(user=user):
+>>>>>>> 12b0614a54 (refactor: introduce desk entity class)
 		return True
 
 	if doc.type == "Report" and doc.report_name in get_allowed_report_names():

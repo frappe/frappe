@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 import frappe
 import frappe.share
 from frappe import _dict
-from frappe.boot import get_allowed_reports
 from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
+from frappe.desk.desk_entity import DeskEntity
 from frappe.permissions import AUTOMATIC_ROLES, get_rights, get_roles, get_valid_perms
 from frappe.query_builder import DocType, Order
 from frappe.query_builder.functions import Concat_ws
@@ -282,7 +282,7 @@ class UserPermissions:
 		return d
 
 	def get_all_reports(self):
-		return get_allowed_reports()
+		return DeskEntity.get_allowed_reports()
 
 
 def get_user_fullname(user: str) -> str:

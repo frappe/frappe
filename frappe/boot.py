@@ -13,6 +13,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 )
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
+from frappe.desk.desk_entity import DeskEntity
 from frappe.desk.doctype.changelog_feed.changelog_feed import get_changelog_feed_items
 from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
@@ -21,11 +22,7 @@ from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
 from frappe.model.base_document import get_controller
-from frappe.permissions import has_permission
-from frappe.query_builder import DocType
-from frappe.query_builder.functions import Count
-from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
-from frappe.utils import add_user_info, cstr, get_system_timezone
+from frappe.utils import add_user_info, get_system_timezone
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
 from frappe.utils.frappecloud import on_frappecloud
@@ -57,6 +54,9 @@ def get_bootinfo():
 
 	bootinfo.modules = {}
 	bootinfo.module_list = []
+	desk_entity = DeskEntity()
+	desk_entity.build_entities()
+	desk_entity.add_to_boot(bootinfo)
 	load_desktop_data(bootinfo)
 	bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
@@ -69,7 +69,6 @@ def get_bootinfo():
 	bootinfo.nested_set_doctypes = frappe.get_all("DocField", {"fieldname": "lft"}, pluck="parent")
 	bootinfo.tree_view_doctypes = get_tree_view_doctypes()
 	add_home_page(bootinfo, doclist)
-	bootinfo.page_info = get_allowed_pages()
 	load_translations(bootinfo)
 	add_timezone_info(bootinfo)
 	load_conf_settings(bootinfo)
@@ -160,13 +159,9 @@ def load_conf_settings(bootinfo):
 
 
 def load_desktop_data(bootinfo):
-	from frappe.desk.desktop import get_workspace_sidebar_items
-
-	bootinfo.workspaces = get_workspace_sidebar_items()
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
 	bootinfo.workspace_sidebar_item = get_sidebar_items(allowed_pages)
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
-	bootinfo.dashboards = frappe.get_all("Dashboard")
 	bootinfo.app_data = []
 
 	Workspace = frappe.qb.DocType("Workspace")
@@ -222,6 +217,7 @@ def load_desktop_data(bootinfo):
 		)
 
 
+<<<<<<< HEAD
 def get_allowed_pages(cache=False):
 	return get_user_pages_or_reports("Page", cache=cache)
 
@@ -340,6 +336,8 @@ def get_user_pages_or_reports(parent, cache=False):
 	return has_role
 
 
+=======
+>>>>>>> 12b0614a54 (refactor: introduce desk entity class)
 def load_translations(bootinfo):
 	from frappe.translate import get_messages_for_boot
 
