@@ -13,6 +13,7 @@
 	border-radius: var(--border-radius-full);
 	cursor: pointer;
 	transition: background-color 0.15s ease;
+	white-space: nowrap;
 
 	&:hover {
 		background-color: var(--control-bg-on-gray);
@@ -29,23 +30,12 @@
 	}
 
 	.search-widget-label {
-		@include get_textstyle("base", "regular");
+		@include get_textstyle("sm", "regular");
 		color: var(--text-light);
-		white-space: nowrap;
 	}
 
 	.search-widget-shortcut {
-		display: flex;
-		align-items: center;
-		gap: 3px;
-		margin-left: 4px;
-		font-size: var(--text-xs);
+		@include get_textstyle("sm", "regular");
 		color: var(--text-muted);
-		white-space: nowrap;
-
-		svg {
-			stroke: var(--text-muted);
-			flex-shrink: 0;
-		}
 	}
 }
