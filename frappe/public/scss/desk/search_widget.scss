@@ -22,13 +22,9 @@
 	}
 
 	.search-widget-shortcut {
-		background-color: var(--control-bg);
-		border: 1px solid var(--border-color);
-		border-radius: var(--border-radius-tiny);
-		padding: 1px 5px;
 		font-size: var(--text-xs);
 		color: var(--text-muted);
 		white-space: nowrap;
-		line-height: 1.4;
+		letter-spacing: 0.02em;
 	}
 }
