@@ -241,7 +241,7 @@ class TestImporter(IntegrationTestCase):
 						"source_value": "Pasiv",
 						"target_value": "Passive",
 						"row_numbers": "[3]",
-						"rows_display": "3",
+						"no_of_rows": "1",
 					}
 				],
 			}
@@ -297,6 +297,13 @@ class TestImporter(IntegrationTestCase):
 		)
 		df = frappe._dict(fieldname="status", parent="Contact")
 		self.assertEqual(resolve_import_value(" Pasiv ", df, "Contact", lookup), "Passive")
+
+	def test_no_of_rows_count_returns_row_count(self):
+		from frappe.core.doctype.data_import.value_mapping import no_of_rows_count
+
+		self.assertEqual(no_of_rows_count([]), "")
+		self.assertEqual(no_of_rows_count([3]), "1")
+		self.assertEqual(no_of_rows_count([2, 3, 4]), "3")
 
 	def test_format_row_numbers_for_warning_truncates_long_lists(self):
 		from frappe.core.doctype.data_import.importer import format_row_numbers_for_warning
