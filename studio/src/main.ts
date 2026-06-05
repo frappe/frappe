@@ -12,7 +12,6 @@ import { registerGlobalComponents } from "./globals"
 
 import { COMPONENTS } from "@/data/components"
 import Block from "@/utils/block"
-import "@/utils/appUtilsRenderer"
 import { initSocket } from "@/socket"
 
 Block.setComponents(COMPONENTS)
