@@ -946,10 +946,15 @@ class DesktopIcon {
 		if (this.icon_type == "Folder") {
 			if (this.icon_data.child_icons.length == 0) return false;
 		}
-		if (!this.is_configured() && !frappe.boot.developer_mode) {
+		if (!this.is_configured() && !this.can_see_misconfigured_icons()) {
 			return false;
 		}
 		return true;
+	}
+	can_see_misconfigured_icons() {
+		return (
+			frappe.boot.developer_mode || frappe.user.has_role(["System Manager", "Administrator"])
+		);
 	}
 	is_configured() {
 		if (this.child_icons?.length && (this.icon_type == "App" || this.icon_type == "Folder")) {
