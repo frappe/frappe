@@ -7,35 +7,31 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	padding: 5px 12px;
+	height: 28px;
+	padding: 0 10px;
 	background-color: var(--control-bg);
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius-full);
 	cursor: pointer;
-	transition: background-color 0.15s ease;
 	white-space: nowrap;
+	transition: background-color 0.1s ease;
 
 	&:hover {
 		background-color: var(--control-bg-on-gray);
 	}
 
-	.search-widget-icon {
-		display: flex;
-		align-items: center;
-		flex-shrink: 0;
-
-		> svg {
-			stroke: var(--text-light);
-		}
+	.search-widget-icon svg {
+		stroke: var(--text-muted);
 	}
 
 	.search-widget-label {
-		@include get_textstyle("sm", "regular");
-		color: var(--text-light);
+		font-size: var(--text-sm);
+		color: var(--text-muted);
 	}
 
 	.search-widget-shortcut {
-		@include get_textstyle("sm", "regular");
-		color: var(--text-muted);
+		font-size: var(--text-xs);
+		color: var(--text-light);
+		letter-spacing: 0.01em;
 	}
 }
