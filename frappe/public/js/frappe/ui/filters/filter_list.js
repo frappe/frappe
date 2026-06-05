@@ -100,6 +100,8 @@ frappe.ui.FilterGroup = class {
 			}
 			this.toggle_empty_filters(false);
 			!hide_empty_filters && this.add_filter(this.doctype, "name");
+
+			this.filters[0]?.fieldselect?.$input?.focus();
 		});
 
 		this.filter_button.on("hidden.bs.popover", () => {
@@ -150,6 +152,8 @@ frappe.ui.FilterGroup = class {
 		this.wrapper.find(".add-filter").on("click", () => {
 			this.toggle_empty_filters(false);
 			this.add_filter(this.doctype, "name");
+
+			this.filters.at(-1)?.fieldselect?.$input?.focus();
 		});
 
 		this.wrapper.find(".clear-filters").on("click", () => {
