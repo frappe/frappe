@@ -267,13 +267,11 @@ def mapping_row_key(row) -> str:
 	return f"{row.get('column')}|{row.get('fieldname')}|{row.get('parent_field') or ''}|{row.get('source_value')}"
 
 
-def rows_display(rows: list) -> str:
-	"""Compact row list for the Value Mappings grid."""
-	from frappe.core.doctype.data_import.importer import format_row_numbers_for_warning
-
+def no_of_rows_count(rows: list) -> str:
+	"""Row count for the Value Mappings grid (actual row numbers live in ``row_numbers``)."""
 	if not rows:
 		return ""
-	return format_row_numbers_for_warning(rows)
+	return cstr(len(rows))
 
 
 def child_row_from_hint(item: dict, columns: dict) -> dict:
@@ -296,7 +294,7 @@ def child_row_from_hint(item: dict, columns: dict) -> dict:
 		"source_value": item.source_value,
 		"target_value": item.target_value or "",
 		"row_numbers": json.dumps(rows),
-		"rows_display": rows_display(rows),
+		"no_of_rows": no_of_rows_count(rows),
 	}
 
 
@@ -338,7 +336,7 @@ def sync_value_mappings(doc, import_file, lookup: dict | None = None) -> bool:
 			"select_options": row.select_options,
 			"target_value": row.target_value or "",
 			"row_numbers": row.row_numbers,
-			"rows_display": row.rows_display,
+			"no_of_rows": row.no_of_rows,
 		}
 		for row in (doc.get("value_mappings") or [])
 	]

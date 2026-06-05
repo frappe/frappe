@@ -7,15 +7,15 @@
  "field_order": [
   "column_label",
   "source_value",
-  "rows_display",
+  "no_of_rows",
+  "row_numbers",
   "target_value",
   "column",
   "fieldname",
   "parent_field",
   "fieldtype",
   "link_doctype",
-  "select_options",
-  "row_numbers"
+  "select_options"
  ],
  "fields": [
   {
@@ -34,10 +34,17 @@
    "reqd": 1
   },
   {
-   "fieldname": "rows_display",
+   "fieldname": "no_of_rows",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Rows",
+   "label": "No. of Rows",
+   "read_only": 1
+  },
+  {
+   "fieldname": "row_numbers",
+   "fieldtype": "Code",
+   "label": "Row Numbers",
+   "options": "JSON",
    "read_only": 1
   },
   {
@@ -91,12 +98,6 @@
    "fieldtype": "Small Text",
    "hidden": 1,
    "label": "Select Options"
-  },
-  {
-   "fieldname": "row_numbers",
-   "fieldtype": "Small Text",
-   "hidden": 1,
-   "label": "Row Numbers"
   }
  ],
  "istable": 1,
