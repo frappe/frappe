@@ -561,43 +561,46 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	get_filters_from_setters() {
 		let me = this;
-		let filters = (this.get_query ? this.get_query().filters : {}) || {};
+		let query_filters = (this.get_query ? this.get_query().filters : {}) || {};
+		let filters_list = Object.entries(query_filters).map(([key, value]) => {
+			if (Array.isArray(value)) {
+				return [me.doctype, key, value[0], value[1]];
+			}
+			return [me.doctype, key, "=", value];
+		});
 		let filter_fields = [];
 
 		if ($.isArray(this.setters)) {
 			for (let df of this.setters) {
-				filters[df.fieldname] =
+				let value =
 					me.dialog.fields_dict[df.fieldname].get_value() || df.default || undefined;
-				me.args[df.fieldname] = filters[df.fieldname];
+				me.args[df.fieldname] = value;
 				filter_fields.push(df.fieldname);
+				if (value != null) {
+					filters_list.push([me.doctype, df.fieldname, "=", value]);
+				}
 			}
 		} else {
 			Object.keys(this.setters).forEach(function (setter) {
-				var value = me.dialog.fields_dict[setter].get_value() || me.setters[setter];
+				let value = me.dialog.fields_dict[setter].get_value() || me.setters[setter];
 				if (me.dialog.fields_dict[setter].df.fieldtype == "Data" && value) {
-					filters[setter] = ["like", "%" + value + "%"];
+					filters_list.push([me.doctype, setter, "like", "%" + value + "%"]);
 				} else {
-					filters[setter] = value || undefined;
-					me.args[setter] = filters[setter];
+					value = value || undefined;
+					me.args[setter] = value;
 					filter_fields.push(setter);
+					if (value != null) {
+						filters_list.push([me.doctype, setter, "=", value]);
+					}
 				}
 			});
 		}
 
-		return [filters, filter_fields];
+		return [filters_list, filter_fields];
 	}
 
 	get_args_for_search() {
-		let [filters, filter_fields] = this.get_filters_from_setters();
-
-		let filters_list = Object.entries(filters)
-			.filter(([, value]) => value != null)
-			.map(([key, value]) => {
-				if (Array.isArray(value)) {
-					return [this.doctype, key, value[0], value[1]];
-				}
-				return [this.doctype, key, "=", value];
-			});
+		let [filters_list, filter_fields] = this.get_filters_from_setters();
 
 		if (this.add_filters_group && this.filter_group) {
 			filters_list.push(...this.filter_group.get_filters());
@@ -609,7 +612,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			filter_fields: filter_fields,
 			page_length: this.page_length + 5,
 			query: this.get_query ? this.get_query().query : "",
-			query_filters_as_dict: this.query_filters_as_dict ?? true,
+			query_filters_as_dict: true,
 			as_dict: 1,
 		};
 	}
