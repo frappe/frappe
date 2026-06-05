@@ -7,13 +7,13 @@ from json import JSONDecodeError, dumps, loads
 
 import frappe
 from frappe import DoesNotExistError, ValidationError, _, _dict
-from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.cache_manager import (
 	build_domain_restricted_doctype_cache,
 	build_domain_restricted_page_cache,
 	build_table_count_cache,
 )
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
+from frappe.desk.desk_entity import DeskEntity
 
 
 def handle_not_exist(fn):
@@ -49,8 +49,8 @@ class Workspace:
 
 		self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
 
-		self.allowed_pages = get_allowed_pages(cache=True)
-		self.allowed_reports = get_allowed_reports(cache=True)
+		self.allowed_pages = DeskEntity.get_allowed_pages(cache=True)
+		self.allowed_reports = DeskEntity.get_allowed_reports(cache=True)
 
 		if not minimal:
 			if self.doc.content:
@@ -375,7 +375,7 @@ def get_desktop_page(page: str):
 
 
 @frappe.whitelist()
-def get_workspace_sidebar_items():
+def get_workspaces():
 	"""Get list of sidebar items for desk"""
 
 	from frappe.modules.utils import get_module_app
