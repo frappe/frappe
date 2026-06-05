@@ -1,7 +1,12 @@
 import types
 
 import frappe
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.utils.jinja import get_jenv, render_template
+>>>>>>> 4656f68270 (fix: block QB writes in render)
 from frappe.utils.safe_exec import ServerScriptNotEnabled, get_safe_globals, safe_exec
 
 
@@ -73,6 +78,16 @@ class TestSafeExec(FrappeTestCase):
 
 	def test_safe_query_builder(self):
 		self.assertRaises(frappe.PermissionError, safe_exec, """frappe.qb.from_("User").delete().run()""")
+
+	def test_safe_query_builder_in_render(self):
+		self.assertRaises(
+			frappe.PermissionError,
+			render_template,
+			""" {{ frappe.qb.from_("User").delete().run() }} """,
+		)
+
+		# Allowed read query
+		frappe.render_template(""" {{ frappe.qb.from_("User").select("*").run() }} """)
 
 	def test_call(self):
 		# call non whitelisted method

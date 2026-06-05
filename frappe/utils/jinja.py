@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 <<<<<<< HEAD
+<<<<<<< HEAD
 def get_jenv():
 	import frappe
 
@@ -8,6 +9,10 @@ def get_jenv():
 		from jinja2 import DebugUndefined
 		from jinja2.sandbox import SandboxedEnvironment
 =======
+=======
+from contextlib import contextmanager
+
+>>>>>>> 4656f68270 (fix: block QB writes in render)
 import frappe
 from frappe.utils.caching import site_cache
 
@@ -163,7 +168,8 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 	logger = get_logger("render-template")
 	try:
 		start_time = time.monotonic()
-		return compiled_template.render(context)
+		with safe_render_flags():
+			return compiled_template.render(context)
 	except Exception as e:
 		import html
 
@@ -263,3 +269,17 @@ def get_jinja_hooks():
 	filter_dict = get_obj_dict_from_paths(filters)
 
 	return method_dict, filter_dict
+
+
+@contextmanager
+def safe_render_flags():
+	if frappe.flags.in_render_safe_exec is None:
+		frappe.flags.in_render_safe_exec = 0
+
+	frappe.flags.in_render_safe_exec += 1
+
+	try:
+		yield
+	finally:
+		# Always ensure that the flag is decremented
+		frappe.flags.in_render_safe_exec -= 1
