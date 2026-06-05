@@ -262,24 +262,49 @@ class Page:
 		return start_wait
 
 	def get_element_height(self, selector="body"):
+		if not self.is_print_designer:
+			selector = ".wrapper"
+
+		# Primary: use the wrapper's own getBoundingClientRect().height.
+		# With display:flow-root on .wrapper (chrome_pdf_header_footer.html) the BFC
+		# guarantees floated children are included in the layout height, so this is
+		# the correct rendered height.
+		#
+		# Fallback (height==0, e.g. unusual letterhead that defeats display:flow-root):
+		# walk in-flow descendants and return the farthest bottom edge.
+		# Absolutely/fixed-positioned descendants are skipped so they can't
+		# inflate the measurement beyond the actual visual content.
+		js = f"""(function() {{
+			var wrapper = document.querySelector('{selector}');
+			if (!wrapper) return 0;
+			var h = wrapper.getBoundingClientRect().height;
+			if (h > 0) return Math.ceil(h);
+			var top = wrapper.getBoundingClientRect().top;
+			var maxBottom = top;
+			var nodes = wrapper.querySelectorAll('*');
+			for (var i = 0; i < nodes.length; i++) {{
+				var pos = window.getComputedStyle(nodes[i]).position;
+				if (pos === 'absolute' || pos === 'fixed') continue;
+				var b = nodes[i].getBoundingClientRect().bottom;
+				if (b > maxBottom) maxBottom = b;
+			}}
+			return Math.ceil(maxBottom - top);
+		}})()"""
 		try:
-			if not self.is_print_designer:
-				selector = ".wrapper"
-			self.send("DOM.enable")
-			doc_result, doc_error = self.send("DOM.getDocument")
-			if doc_error:
-				raise RuntimeError(f"Error getting document node: {doc_error}")
-			doc_node_id = doc_result["root"]["nodeId"]
-			result, error = self.send("DOM.querySelector", {"nodeId": doc_node_id, "selector": selector})
-			if error:
-				raise RuntimeError(f"Error querying selector: {error}")
-			node_id = result["nodeId"]
-			result, error = self.send("DOM.getBoxModel", {"nodeId": node_id})
-			if error:
-				raise RuntimeError(f"Error getting computed style: {error}")
-			height = result["model"]["height"]
-		finally:
-			self.send("DOM.disable")
+			result = self.evaluate(js)
+			height = result.get("result", {}).get("value", 0) or 0
+		except Exception:
+			# Fallback to DOM.getBoxModel if JS evaluation fails entirely
+			try:
+				self.send("DOM.enable")
+				doc_result, _err = self.send("DOM.getDocument")
+				doc_node_id = doc_result["root"]["nodeId"]
+				result, _err = self.send("DOM.querySelector", {"nodeId": doc_node_id, "selector": selector})
+				node_id = result["nodeId"]
+				result, _err = self.send("DOM.getBoxModel", {"nodeId": node_id})
+				height = result["model"]["height"]
+			finally:
+				self.send("DOM.disable")
 		return height
 
 	def add_page_size_css(self):

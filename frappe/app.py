@@ -456,12 +456,10 @@ if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
 		ArgvIntegration(),
 	]
 
-	experiments = {}
 	kwargs = {}
 
 	if os.getenv("ENABLE_SENTRY_DB_MONITORING"):
 		integrations.append(FrappeIntegration())
-		experiments["record_sql_params"] = True
 
 	if tracing_sample_rate := os.getenv("SENTRY_TRACING_SAMPLE_RATE"):
 		kwargs["traces_sample_rate"] = float(tracing_sample_rate)
@@ -478,7 +476,6 @@ if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
 		auto_enabling_integrations=False,
 		default_integrations=False,
 		integrations=integrations,
-		_experiments=experiments,
 		**kwargs,
 	)
 

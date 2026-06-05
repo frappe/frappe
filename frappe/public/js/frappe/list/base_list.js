@@ -1333,7 +1333,7 @@ class FilterArea {
 			let field = fields_dict[key];
 			let value = field.get_value();
 			if (value) {
-				let match_type = field.df.match_type || "=";
+				let match_type = field.df.match_type || field.df.condition || "=";
 				let condition;
 
 				if (match_type === "like") {

@@ -57,6 +57,8 @@ desk_properties = (
 
 
 class User(Document):
+	_DOCTYPE_NAME = "User"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -1198,6 +1200,15 @@ def reset_password(user: str) -> None:
 		),
 		title=_("Password Reset"),
 	)
+
+
+@frappe.whitelist(methods=["POST"])
+def change_password(user: str, new_password: str, logout_all_sessions: int = 1) -> None:
+	user_doc: User = frappe.get_doc("User", user)
+	user_doc.check_permission("write")
+	user_doc.new_password = new_password
+	user_doc.logout_all_sessions = logout_all_sessions
+	user_doc.save()
 
 
 @frappe.whitelist()

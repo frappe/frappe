@@ -13,6 +13,8 @@ from frappe.model.document import Document
 
 
 class GoogleContacts(Document):
+	_DOCTYPE_NAME = "Google Contacts"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

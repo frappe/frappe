@@ -28,6 +28,7 @@
 	background-color: var(--surface-modal);
 	box-shadow: var(--shadow-sm);
 	border-radius: 12px;
+	padding: 16px;
 }
 .sidebar-card-description {
 	@include get_textstyle("sm", "regular");

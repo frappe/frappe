@@ -461,18 +461,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.columns = this.reorder_listview_fields();
 		}
 
-		// limit max to 8 columns if no total_fields is set in List View Settings
-		// Screen with low density no of columns 4
-		// Screen with medium density no of columns 6
-		// Screen with high density no of columns 8
-		let total_fields = 6;
-
-		if (window.innerWidth <= 1366) {
-			total_fields = 4;
-		} else if (window.innerWidth >= 1920) {
-			total_fields = 10;
-		}
-
 		this.columns = this.columns.slice(0, this.max_number_of_fields);
 
 		// 2nd column: tag - normally hidden doesn't count towards total_fields
@@ -499,8 +487,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let fields_order = [];
 		let fields = JSON.parse(this.list_view_settings.fields);
 
-		// title field is fixed
-		fields_order.push(this.columns[0]);
+		// title field is fixed — but still honour any saved width from settings
+		const subjectCol = this.columns[0];
+		const subjectSettings = fields.find((f) => f.fieldname === subjectCol.df?.fieldname);
+		if (subjectSettings?.width) {
+			subjectCol.df.width = subjectSettings.width;
+		}
+		fields_order.push(subjectCol);
 		this.columns.splice(0, 1);
 
 		for (let fld in fields) {
@@ -509,9 +502,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				let column = this.columns[col];
 
 				if (column.type == "Status" && field.fieldname == "status_field") {
+					if (field.width) {
+						column.df = column.df || { fieldname: "status_field" };
+						column.df.width = field.width;
+					}
 					fields_order.push(column);
 					break;
 				} else if (column.type == "Field" && field.fieldname === column.df.fieldname) {
+					if (field.width) column.df.width = field.width;
 					fields_order.push(column);
 					break;
 				}
@@ -593,6 +591,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	before_refresh() {
 		if (frappe.route_options && this.filter_area) {
+			if (frappe.route_options.reset_filters) {
+				frappe.route_options = null;
+				const url = new URL(window.location.href);
+				url.searchParams.delete("reset_filters");
+				history.replaceState(history.state, "", url.toString());
+				this._set_breadcrumb_layout(null);
+				return this.filter_area.clear();
+			}
+
+			const layout_name = frappe.route_options._layout || null;
+			this._set_breadcrumb_layout(layout_name);
+
 			this.filters = this.parse_filters_from_route_options();
 			frappe.route_options = null;
 
@@ -604,6 +614,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		return Promise.resolve();
+	}
+
+	_set_breadcrumb_layout(layout_name) {
+		const route_key = frappe.breadcrumbs.current_page();
+		const crumb = frappe.breadcrumbs.all[route_key];
+		if (crumb && (crumb.layout_name || null) !== layout_name) {
+			crumb.layout_name = layout_name;
+			frappe.breadcrumbs.update();
+		}
 	}
 
 	parse_filters_from_settings() {
@@ -645,6 +664,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.$result.find(".list-liked-by-me").addClass("liked");
 			}
 		}
+		this.setup_column_resize();
 	}
 
 	render_skeleton() {
@@ -652,6 +672,96 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			'<div><input type="checkbox" class="render-list-checkbox"/></div>'
 		);
 		this.$result.append($row);
+	}
+
+	setup_column_resize() {
+		if (frappe.is_mobile()) return;
+
+		// Clean up any previous listeners to avoid duplicates on re-render
+		this.$result.off("mousedown.list-col-resize");
+		$(document).off("mousemove.list-col-resize mouseup.list-col-resize");
+
+		let isDragging = false;
+		let fieldname = null;
+		let startX = 0;
+		let startWidth = 0;
+
+		this.$result.on(
+			"mousedown.list-col-resize",
+			".list-row-head .list-col-resize-handle",
+			(e) => {
+				e.preventDefault();
+				const $col = $(e.target).closest(".list-row-col");
+				fieldname = $col.attr("data-fieldname");
+				if (!fieldname || fieldname === "undefined") return;
+
+				isDragging = true;
+				startX = e.pageX;
+				startWidth = $col.outerWidth();
+				$("body").addClass("list-col-resizing");
+			}
+		);
+
+		$(document).on("mousemove.list-col-resize", (e) => {
+			if (!isDragging || !fieldname) return;
+			const newWidth = Math.max(50, Math.min(400, startWidth + (e.pageX - startX)));
+			this.$result.find(`.list-row-col[data-fieldname="${fieldname}"]`).css({
+				width: newWidth,
+				flex: `0 0 ${newWidth}px`,
+			});
+		});
+
+		$(document).on("mouseup.list-col-resize", (e) => {
+			if (!isDragging) return;
+			isDragging = false;
+			$("body").removeClass("list-col-resizing");
+
+			if (fieldname) {
+				const newWidth = Math.max(50, Math.min(400, startWidth + (e.pageX - startX)));
+				this.column_max_widths[fieldname] = newWidth;
+				this.save_column_width(fieldname, newWidth);
+			}
+			fieldname = null;
+		});
+	}
+
+	save_column_width(fieldname, width) {
+		let fields;
+
+		if (this.list_view_settings?.fields) {
+			fields = JSON.parse(this.list_view_settings.fields);
+		} else {
+			// No saved field order yet — build it from current columns
+			fields = this.columns
+				.filter((col) => col.type !== "Tag")
+				.map((col) => {
+					if (col.type === "Status") {
+						return { fieldname: "status_field", label: __("Status") };
+					}
+					return { fieldname: col.df?.fieldname, label: col.df?.label || "" };
+				})
+				.filter((f) => f.fieldname);
+		}
+
+		const field = fields.find((f) => f.fieldname === fieldname);
+		if (field) {
+			field.width = width;
+		}
+
+		frappe.call({
+			method: "frappe.desk.doctype.list_view_settings.list_view_settings.save_listview_settings",
+			args: {
+				doctype: this.doctype,
+				listview_settings: {
+					...(this.list_view_settings || {}),
+					fields: JSON.stringify(fields),
+				},
+				removed_listview_fields: [],
+			},
+			callback: (r) => {
+				this.list_view_settings = r.message.listview_settings;
+			},
+		});
 	}
 
 	before_render() {
@@ -771,7 +881,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					col.type == "Subject" ? "list-subject level" : "hidden-xs",
 					col.type == "Tag" ? `tag-col ${!this.tags_shown ? "hide" : ""} ` : "",
 					frappe.model.is_numeric_field(col.df) ? "text-right" : "",
-					col.df?.fieldname,
 				].join(" ");
 
 				let html = "";
@@ -785,7 +894,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					html = `<span ${attrs}>${label}</span>`;
 				}
 
-				return `<div class="${classes}">${html}</div>
+				const headerFieldname = col.type === "Status" ? "status_field" : col.df?.fieldname;
+				const resizeHandle =
+					headerFieldname && col.type !== "Tag"
+						? `<div class="list-col-resize-handle"></div>`
+						: "";
+				return `<div class="${classes}" data-fieldname="${headerFieldname}">${html}${resizeHandle}</div>
 			`;
 			})
 			.join("");
@@ -905,9 +1019,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_column_html(col, doc, show_in_mobile) {
 		if (col.type === "Status" || col.df?.options == "Workflow State") {
+			const fieldname = col.type === "Status" ? "status_field" : col.df?.fieldname;
+			if (!frappe.is_mobile() && cint(col.df?.width)) {
+				this.column_max_widths[fieldname] = cint(col.df.width);
+			}
 			let show_workflow_state = col.df?.options == "Workflow State";
 			return `
-				<div class="list-row-col hidden-xs ellipsis">
+				<div class="list-row-col hidden-xs ellipsis" data-fieldname="${fieldname}">
 					${this.get_indicator_html(doc, show_workflow_state)}
 				</div>
 			`;
@@ -1029,15 +1147,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			"list-row-col ellipsis",
 			class_map[col.type],
 			frappe.model.is_numeric_field(df) ? "text-right" : "",
-			fieldname,
 		].join(" ");
 
 		let column_html;
-		if (
-			this.settings.formatters &&
-			this.settings.formatters[fieldname] &&
-			col.type !== "Subject"
-		) {
+		const formatter = this.settings.formatters?.[fieldname];
+		if (formatter && col.type !== "Subject") {
 			column_html = this.settings.formatters[fieldname](value, df, doc);
 		} else {
 			column_html = {
@@ -1050,27 +1164,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			css_class += " bold";
 		}
 
-		/**
-		 * Calculates the width of a text element based on its length.
-		 * If the length of the text is not available, it defaults to a length of 22.5.
-		 */
-		let textLength = $(column_html).text()?.trim()?.length || 22.5;
-		let calculatedWidth = (textLength * 10) / 1.3 + (col.type == "Subject" ? 30 : 0);
-
-		/**
-		 * Updates the `column_max_widths` object by setting the maximum width for a specific column (fieldname).
-		 * If no width is set for the column, or the newly calculated width exceeds the current width, the width is updated.
-		 */
-		if (
-			(!this.column_max_widths[fieldname] ||
-				calculatedWidth > this.column_max_widths[fieldname]) &&
-			!frappe.is_mobile()
-		) {
-			this.column_max_widths[fieldname] = calculatedWidth;
+		if (!frappe.is_mobile() && cint(col.df?.width)) {
+			this.column_max_widths[fieldname] = cint(col.df.width);
 		}
 
 		return `
-			<div class="${css_class}">
+			<div class="${css_class}" data-fieldname="${fieldname}">
 				${column_html}
 			</div>
 		`;
@@ -1083,10 +1182,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	 */
 	apply_column_widths() {
 		if (this.list_view_settings?.disable_scrolling) return;
+		const MIN_WIDTH = 50;
+		const MAX_WIDTH = 400;
 		Object.entries(this.column_max_widths).forEach(([fieldname, width]) => {
-			$(`.list-view .frappe-list .result .level-left .list-row-col.${fieldname}`).css({
-				width: width,
-				flex: `1 0 ${width}px`,
+			const clamped = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, width));
+			$(
+				`.list-view .frappe-list .result .level-left .list-row-col[data-fieldname="${fieldname}"]`
+			).css({
+				width: clamped,
+				flex: `0 0 ${clamped}px`,
 			});
 		});
 	}
@@ -2002,7 +2106,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (
 			frappe.model.can_create("Custom Field") &&
-			frappe.model.can_create("Property Setter")
+			frappe.model.can_create("Property Setter") &&
+			!frappe.model.core_doctypes_list.includes(doctype)
 		) {
 			items.push({
 				label: __("Customize", null, "Button in list view menu"),
@@ -2246,21 +2351,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return {
 				label: __("Clear Assignment", null, "Button in list view actions menu"),
 				action: () => {
-					frappe.confirm(
-						__("Are you sure you want to clear the assignments?"),
-						() => {
-							this.disable_list_update = true;
-							bulk_operations.clear_assignment(this.get_checked_items(true), () => {
-								this.disable_list_update = false;
-								this.clear_checked_items();
-								this.refresh();
-							});
-						},
-						() => {
+					frappe.confirm(__("Are you sure you want to clear the assignments?"), () => {
+						this.disable_list_update = true;
+						bulk_operations.clear_assignment(this.get_checked_items(true), () => {
+							this.disable_list_update = false;
 							this.clear_checked_items();
 							this.refresh();
-						}
-					);
+						});
+					});
 				},
 				standard: true,
 			};

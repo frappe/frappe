@@ -5,7 +5,7 @@ frappe.provide("frappe.tags");
 
 frappe.search.AwesomeBar = class AwesomeBar {
 	setup(element) {
-		$(".search-bar, .navbar-search-bar").removeClass("hidden");
+		$(".navbar-search-bar").removeClass("hidden");
 
 		this.options = [];
 		this.global_results = [];
@@ -13,14 +13,14 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.setup_search_modal(element);
 
 		frappe.search.utils.setup_recent();
+		this.setup_page_change_event();
 	}
 
 	setup_search_modal(element) {
-		let is_event_listeners_added = false;
 		let $search_element = $(element);
 
 		let search_modal = new frappe.get_modal("Search", "");
-
+		this.search_modal = search_modal;
 		search_modal.removeClass("fade");
 		search_modal.on("shown.bs.modal", () => {
 			const input = search_modal.find("#navbar-search").get(0);
@@ -52,8 +52,11 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					<span class="help-item help-item-escape">${frappe.utils.is_mac() ? "⌘K" : "Ctrl+K"}</span>
 					<span>${__("to close")}</span>
 				</span>
+				<span class="help-item-navigate">
+					<span class="help-item help-item-escape">${frappe.utils.is_mac() ? "⌘G" : "Ctrl+G"}</span>
+					<span>${__("to open Global Search")}</span>
+				</span>
 			</div>
-			<div class="pointer">${frappe.utils.icon("circle-question-mark")}</div>
 		</div>`;
 
 		search_modal.find(".modal-body").css("padding", "0").html(search_modal_body);
@@ -63,25 +66,38 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			.removeClass("hide")
 			.addClass("cool-awesomebar-modal-footer")
 			.html(search_modal_footer);
-		search_modal.find(".pointer").on("click", () => {
-			this.show_help();
-		});
 
 		$search_element.on("click", () => {
-			if ($(search_modal).hasClass("show")) {
-				search_modal.modal("hide");
+			if (this.is_open()) {
+				this.close();
 				return;
 			}
 			search_modal.modal("show");
-
-			if (is_event_listeners_added) return;
-			is_event_listeners_added = true;
-
 			this.setup_event_listeners(search_modal);
 		});
 	}
 
+	open(search_modal) {
+		const modal = search_modal || this.search_modal;
+		if (!modal) return;
+		modal.modal("show");
+		this.setup_event_listeners(modal);
+	}
+
+	close() {
+		if (!this.is_open()) return;
+		this.search_modal.modal("hide");
+	}
+
+	is_open() {
+		return Boolean(this.search_modal?.hasClass("show"));
+	}
+
 	setup_event_listeners(search_modal) {
+		// Listeners and the Awesomplete dropdown only need to be set up once.
+		// Re-running this on every open creates duplicate dropdowns and shows results twice.
+		if (this.awesomplete) return;
+
 		var me = this;
 		let $input = search_modal.find("#navbar-search");
 		let input = $input.get(0);
@@ -111,6 +127,11 @@ frappe.search.AwesomeBar = class AwesomeBar {
 							)
 						)
 					);
+				}
+				if (d.type == "sidebar") {
+					d.route_options = {
+						sidebar: d.description,
+					};
 				}
 				if (d.type == "Desktop Icon") {
 					target = frappe.utils.get_route_for_icon(d.icon_data);
@@ -164,8 +185,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					);
 					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
 				}
-
-				awesomplete.list = me.deduplicate(me.options);
+				let options = me.deduplicate(me.options);
+				awesomplete.options_with_desc = me.create_options_with_descriptions(options);
+				Awesomplete.prototype._itemCursor = 0;
+				awesomplete.list = options;
 			}, 50)
 		);
 
@@ -222,22 +245,17 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			}
 		});
 	}
-
-	show_help() {
-		const help_data = [
-			[__("Create a new record"), __("new type of document")],
-			[__("List a document type"), __("document type..., e.g. customer")],
-			[__("Search in a document type"), __("text in document type")],
-			[__("Tags"), __("tag name..., e.g. #tag")],
-			[__("Open a module or tool"), __("module name...")],
-			[__("Open in new tab"), frappe.utils.is_mac() ? "⌘ + Enter" : "Ctrl + Enter"],
-			[__("Calculate"), __("e.g. (55 + 434) / 4")],
-		];
-		frappe.msgprint({
-			message: help_data,
-			title: __("Search Help"),
-			as_table: true,
+	create_options_with_descriptions(options) {
+		let options_with_desc = {};
+		options.forEach((opt) => {
+			if (opt.description) {
+				if (!options_with_desc[opt.value]) {
+					options_with_desc[opt.value] = [];
+				}
+				options_with_desc[opt.value].push(opt);
+			}
 		});
+		return options_with_desc;
 	}
 
 	set_specifics(txt, end_txt) {
@@ -295,7 +313,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 				var str_route =
 					typeof option.route === "string" ? option.route : option.route.join("/");
-				if (routes.indexOf(str_route) === -1) {
+				if (option.description || routes.indexOf(str_route) === -1) {
 					out.push(option);
 					routes.push(str_route);
 				} else {
@@ -444,5 +462,33 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				},
 			});
 		}
+	}
+
+	setup_correct_button(wrapper) {
+		let small_button = $(wrapper).find("#small-search-button");
+		let full_button = $(wrapper).find("#full-search-button");
+		let route = frappe.get_route();
+		if (frappe.is_mobile()) {
+			small_button.removeClass("hidden");
+			full_button.addClass("hidden");
+			return;
+		}
+		if (route[0] == "Workspaces" || frappe.is_mobile()) {
+			small_button.addClass("hidden");
+			full_button.removeClass("hidden");
+		} else {
+			full_button.addClass("hidden");
+			small_button.removeClass("hidden");
+		}
+	}
+	setup_page_change_event() {
+		const me = this;
+		$(document).on("page-change", function (event, data) {
+			me.setup_correct_button(data);
+		});
+
+		$(document).on("form-refresh", function (event, data) {
+			me.setup_correct_button(data.wrapper);
+		});
 	}
 };

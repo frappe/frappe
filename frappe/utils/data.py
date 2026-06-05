@@ -1303,22 +1303,26 @@ def _round_away_from_zero(num, precision):
 
 
 def _bankers_rounding(num, precision):
+	if num == 0:
+		return 0.0
+
+	sign = -1 if num < 0 else 1
 	multiplier = 10**precision
-	num = round(num * multiplier, 12)
+	num = round(abs(num) * multiplier, 12)
 
 	if num == 0:
 		return 0.0
 
-	floor_num = math.floor(num) if num > 0 else math.ceil(num)
+	floor_num = math.floor(num)
 	decimal_part = num - floor_num
 
-	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+	epsilon = 2.0 ** (math.log(num, 2) - 52.0)
 	if abs(decimal_part - 0.5) < epsilon:
-		num = floor_num if (floor_num % 2 == 0) else floor_num + 1 if num > 0 else floor_num - 1
+		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
 	else:
 		num = round(num)
 
-	return num / multiplier
+	return sign * num / multiplier
 
 
 def remainder(numerator: NumericType, denominator: NumericType, precision: int = 2) -> NumericType:
@@ -1611,6 +1615,80 @@ def is_image(filepath: str) -> bool:
 	# filepath can be https://example.com/bed.jpg?v=129
 	filepath = (filepath or "").split("?", 1)[0]
 	return (guess_type(filepath)[0] or "").startswith("image/")
+
+
+def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> str:
+	"""Return a base64 data: URI thumbnail of `url`, or the original `url` on
+	any error. Used by print templates to keep generated PDFs small: Chrome's
+	`Page.printToPDF` embeds images at their natural resolution regardless of
+	the CSS display size, so a 5000x5000 stock photo bloats the PDF by several
+	MB even when the image is rendered at 100px.
+
+	Only http://, https:// and /-rooted URLs are processed; anything else is
+	returned unchanged so the caller's URL-scheme validation is preserved.
+	"""
+	import base64
+	import io
+	import os
+
+	if not url or not isinstance(url, str):
+		return url
+	if not (url.startswith("http://") or url.startswith("https://") or url.startswith("/")):
+		return url
+
+	# Per-request cache so repeated rows that share an image only resize once.
+	cache = getattr(frappe.local, "_print_thumbnail_cache", None)
+	if cache is None:
+		cache = frappe.local._print_thumbnail_cache = {}
+	key = (url, max_dim, quality)
+	if key in cache:
+		return cache[key]
+
+	try:
+		if url.startswith("/"):
+			path = None
+			for prefix in ("public", "private"):
+				candidate = frappe.get_site_path(prefix, url.lstrip("/"))
+				if os.path.exists(candidate):
+					path = candidate
+					break
+			if not path:
+				return url
+			with open(path, "rb") as f:
+				content = f.read()
+		else:
+			import requests
+
+			r = requests.get(url, timeout=5, stream=True)
+			r.raise_for_status()
+			chunks, total = [], 0
+			for chunk in r.iter_content(8192):
+				chunks.append(chunk)
+				total += len(chunk)
+				if total > 20 * 1024 * 1024:
+					return url
+			content = b"".join(chunks)
+
+		from PIL import Image
+
+		img = Image.open(io.BytesIO(content))
+		img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+		fmt = "PNG" if img.mode in ("RGBA", "LA", "P") else "JPEG"
+		if fmt == "JPEG" and img.mode != "RGB":
+			img = img.convert("RGB")
+		buf = io.BytesIO()
+		save_kwargs = {"format": fmt, "optimize": True}
+		if fmt == "JPEG":
+			save_kwargs["quality"] = quality
+		img.save(buf, **save_kwargs)
+		encoded = base64.b64encode(buf.getvalue()).decode("ascii")
+		data_uri = f"data:image/{fmt.lower()};base64,{encoded}"
+		cache[key] = data_uri
+		return data_uri
+	except Exception:
+		# Network/decode failures fall back to the original URL so the cell
+		# still renders something. No per-row log to avoid error log spam.
+		return url
 
 
 def get_thumbnail_base64_for_image(src: str) -> dict[str, str] | None:

@@ -21,6 +21,14 @@ module.exports = defineConfig({
 		// We've imported your old cypress plugins here.
 		// You may want to clean this up later by importing these.
 		setupNodeEvents(on, config) {
+			on("before:browser:launch", (browser, launchOptions) => {
+				if (browser.family === "chromium") {
+					launchOptions.args.push("--disable-dev-shm-usage");
+					launchOptions.args.push("--disable-gpu");
+					launchOptions.args.push("--no-sandbox");
+				}
+				return launchOptions;
+			});
 			// Splitting tests only works when Cypress Cloud is not orchestrating parallel runs.
 			if (process.env.CYPRESS_CLOUD_PARALLEL !== "1") {
 				cypressSplit(on, config);

@@ -65,8 +65,25 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 						args.doc_view = "List";
 						args.route_options = filters_json;
 					}
+				} else if (this.item.route_options && this.item.link_type == "DocType") {
+					args.doc_view = "List";
+					args.route_options = JSON.parse(this.item.route_options);
 				}
 				path = frappe.utils.generate_route(args);
+
+				// If a DocType Layout is specified on this link, append ?layout=<route>
+				// so the form/list opens under that layout context.
+				if (this.item.link_type === "DocType" && this.item.doctype_layout) {
+					const layout_info = (frappe.boot.doctype_layouts || []).find(
+						(l) => l.name === this.item.doctype_layout
+					);
+					if (layout_info) {
+						const doctype_slug = frappe.router.slug(this.item.link_to);
+						path = `/app/${doctype_slug}?layout=${encodeURIComponent(
+							layout_info.name
+						)}`;
+					}
+				}
 			}
 		}
 		return path;
@@ -108,9 +125,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		}
 	}
 	get_shortcut_html(shortcut) {
-		if (frappe.utils.is_mac()) {
-			shortcut = shortcut.replace("Ctrl+", "⌘");
-		}
+		shortcut = frappe.ui.keys.get_shortcut_label(shortcut);
 		return `<span class="keyboard-shortcut">${shortcut}</span>`;
 	}
 	setup_editing_controls() {

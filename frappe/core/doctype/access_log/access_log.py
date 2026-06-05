@@ -10,6 +10,8 @@ from frappe.utils import cstr
 
 
 class AccessLog(Document):
+	_DOCTYPE_NAME = "Access Log"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

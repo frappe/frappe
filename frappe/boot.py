@@ -226,25 +226,28 @@ def load_desktop_data(bootinfo):
 		)
 
 
-def get_allowed_pages(cache=False):
-	return get_user_pages_or_reports("Page", cache=cache)
+def get_allowed_pages(cache=False, user: str | None = None):
+	return get_user_pages_or_reports("Page", cache=cache, user=user)
 
 
-def get_allowed_reports(cache=False):
-	return get_user_pages_or_reports("Report", cache=cache)
+def get_allowed_reports(cache=False, user: str | None = None):
+	return get_user_pages_or_reports("Report", cache=cache, user=user)
 
 
-def get_allowed_report_names(cache=False) -> set[str]:
-	return {cstr(report) for report in get_allowed_reports(cache).keys() if report}
+def get_allowed_report_names(cache=False, user: str | None = None) -> set[str]:
+	return {cstr(report) for report in get_allowed_reports(cache=cache, user=user).keys() if report}
 
 
-def get_user_pages_or_reports(parent, cache=False):
+def get_user_pages_or_reports(parent, cache=False, user: str | None = None):
+	if user is None:
+		user = frappe.session.user
+
 	if cache:
-		has_role = frappe.cache.get_value("has_role:" + parent, user=frappe.session.user)
+		has_role = frappe.cache.get_value("has_role:" + parent, user=user)
 		if has_role:
 			return has_role
 
-	roles = frappe.get_roles()
+	roles = frappe.get_roles(user)
 	has_role = {}
 
 	page = DocType("Page")
@@ -323,7 +326,7 @@ def get_user_pages_or_reports(parent, cache=False):
 				has_role[r.name] |= {"ref_doctype": r.ref_doctype}
 
 	if is_report:
-		if not has_permission("Report", print_logs=False):
+		if not has_permission("Report", user=user, print_logs=False):
 			return {}
 
 		reports = frappe.get_list(
@@ -331,6 +334,7 @@ def get_user_pages_or_reports(parent, cache=False):
 			fields=["name", "report_type"],
 			filters={"name": ("in", has_role.keys())},
 			ignore_ifnull=True,
+			user=user,
 		)
 		for report in reports:
 			has_role[report.name]["report_type"] = report.report_type
@@ -340,7 +344,7 @@ def get_user_pages_or_reports(parent, cache=False):
 			has_role.pop(r, None)
 
 	# Expire every six hours
-	frappe.cache.set_value("has_role:" + parent, has_role, frappe.session.user, 21600)
+	frappe.cache.set_value("has_role:" + parent, has_role, user, 21600)
 	return has_role
 
 
@@ -436,8 +440,19 @@ def get_additional_filters_from_hooks():
 
 
 def add_layouts(bootinfo):
-	# add routes for readable doctypes
-	bootinfo.doctype_layouts = frappe.get_all("DocType Layout", ["name", "route", "document_type"])
+	bootinfo.doctype_layouts = frappe.get_all(
+		"DocType Layout",
+		fields=[
+			"name",
+			"title",
+			"document_type",
+			"based_on",
+			"is_standard",
+			"default_print_format",
+			"default_email_template",
+			"condition",
+		],
+	)
 
 
 def get_desk_settings():
@@ -588,7 +603,6 @@ def get_sidebar_items(allowed_workspaces):
 					"collapsible": item.collapsible,
 					"indent": item.indent,
 					"keep_closed": item.keep_closed,
-					"display_depends_on": item.display_depends_on,
 					"url": item.url,
 					"show_arrow": item.show_arrow,
 					"filters": item.filters,

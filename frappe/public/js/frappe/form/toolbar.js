@@ -66,7 +66,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 			title = this.frm.docname;
 		}
 
-		var me = this;
 		title = __(title);
 		this.page.set_title(title);
 		if (this.frm.meta.title_field) {
@@ -126,8 +125,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 		if (input_name) {
 			const warning = __("This cannot be undone");
 			const message = __("Are you sure you want to merge {0} with {1}?", [
-				docname.bold(),
-				input_name.bold(),
+				frappe.utils.bold(docname),
+				frappe.utils.bold(input_name),
 			]);
 			confirm_message = `${message}<br><b>${warning}<b>`;
 		}
@@ -161,8 +160,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 								reload_form(input_name);
 								frappe.show_alert({
 									message: __("Document renamed from {0} to {1}", [
-										docname.bold(),
-										input_name.bold(),
+										frappe.utils.bold(docname),
+										frappe.utils.bold(input_name),
 									]),
 									indicator: "success",
 								});
@@ -170,8 +169,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 						});
 						frappe.show_alert(
 							__("Document renaming from {0} to {1} has been queued", [
-								docname.bold(),
-								input_name.bold(),
+								frappe.utils.bold(docname),
+								frappe.utils.bold(input_name),
 							])
 						);
 					}
@@ -630,8 +629,9 @@ frappe.ui.form.Toolbar = class Toolbar {
 		) {
 			let doctype = is_doctype_form ? this.frm.docname : this.frm.doctype;
 			let is_doctype_custom = is_doctype_form ? this.frm.doc.custom : false;
+			let is_core_doctype = frappe.model.core_doctypes_list.includes(doctype);
 
-			if (doctype != "DocType" && !is_doctype_custom && this.frm.meta.issingle === 0) {
+			if (!is_core_doctype && !is_doctype_custom && this.frm.meta.issingle === 0) {
 				this.page.add_menu_item(
 					__("Customize"),
 					() => {
@@ -945,7 +945,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	get_follow_text(follow) {
-		if (follow === null) {
+		if (follow == null) {
 			follow = this.frm.get_docinfo().is_document_followed;
 		}
 		return follow ? __("Unfollow") : __("Follow");

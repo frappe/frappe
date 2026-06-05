@@ -89,6 +89,7 @@ def enqueue(
 	job_id: str | None = None,
 	deduplicate=False,
 	at_front_when_starved=False,
+	retry=None,
 	**kwargs,
 ) -> Job | Any:
 	"""
@@ -200,6 +201,7 @@ def enqueue(
 			failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 			result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 			job_id=job_id,
+			retry=retry,
 		)
 
 	if enqueue_after_commit:
@@ -767,12 +769,10 @@ def _start_sentry():
 		ArgvIntegration(),
 	]
 
-	experiments = {}
 	kwargs = {}
 
 	if os.getenv("ENABLE_SENTRY_DB_MONITORING"):
 		integrations.append(FrappeIntegration())
-		experiments["record_sql_params"] = True
 
 	if tracing_sample_rate := os.getenv("SENTRY_TRACING_SAMPLE_RATE"):
 		kwargs["traces_sample_rate"] = float(tracing_sample_rate)
@@ -788,6 +788,5 @@ def _start_sentry():
 		auto_enabling_integrations=False,
 		default_integrations=False,
 		integrations=integrations,
-		_experiments=experiments,
 		**kwargs,
 	)

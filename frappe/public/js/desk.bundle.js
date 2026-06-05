@@ -7,6 +7,7 @@ import "./frappe/format.js";
 import "./frappe/form/formatters.js";
 import "./frappe/dom.js";
 import "./frappe/ui/messages.js";
+import "./frappe/ui/background_tasks/background_tasks.js";
 import "./frappe/ui/keyboard.js";
 import "./frappe/ui/colors.js";
 import "./frappe/ui/sidebar/sidebar_header.js";

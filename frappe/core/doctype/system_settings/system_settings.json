@@ -89,6 +89,7 @@
   "delete_background_exported_reports_after",
   "column_break_uqma",
   "allowed_file_extensions",
+  "allowed_doctypes_for_guest_uploads",
   "app_tab",
   "default_app",
   "updates_tab",
@@ -796,12 +797,19 @@
    "fieldname": "allow_clearing_link_fields",
    "fieldtype": "Check",
    "label": "Allow Clearing Link Fields"
+  },
+  {
+   "depends_on": "eval:doc.allow_guests_to_upload_files == 1",
+   "description": "Provide a list of allowed Doctypes for file uploads. Each line should contain one allowed Doctype. If unset, uploads to all doctypes are allowed. Example: <br>User<br>Item<br>Quotation",
+   "fieldname": "allowed_doctypes_for_guest_uploads",
+   "fieldtype": "Small Text",
+   "label": "Allowed Doctypes for Guest Uploads"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-04-14 16:26:19.634212",
+ "modified": "2026-05-21 10:32:53.594355",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

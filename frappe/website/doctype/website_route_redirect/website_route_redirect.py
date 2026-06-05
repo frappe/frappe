@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class WebsiteRouteRedirect(Document):
+	_DOCTYPE_NAME = "Website Route Redirect"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

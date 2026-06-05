@@ -12,6 +12,8 @@ from frappe.utils.modules import get_modules_from_all_apps_for_user
 
 
 class Dashboard(Document):
+	_DOCTYPE_NAME = "Dashboard"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

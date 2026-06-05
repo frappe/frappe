@@ -115,7 +115,7 @@ def safe_exec(
 	if script_filename:
 		filename += f": {frappe.scrub(script_filename)}"
 
-	with safe_exec_flags(), patched_qb():
+	with safe_exec_flags():
 		# execute script compiled by RestrictedPython
 		exec(_compile_code(script, filename=filename), exec_globals, _locals)
 
@@ -415,19 +415,6 @@ def call_with_form_dict(function, kwargs):
 		frappe.local.form_dict = form_dict
 
 
-@contextmanager
-def patched_qb():
-	require_patching = isinstance(frappe.qb.terms, types.ModuleType)
-	try:
-		if require_patching:
-			_terms = frappe.qb.terms
-			frappe.qb.terms = _flatten(frappe.qb.terms)
-		yield
-	finally:
-		if require_patching:
-			frappe.qb.terms = _terms
-
-
 @lru_cache
 def _flatten(module):
 	new_mod = NamespaceDict()
@@ -477,6 +464,8 @@ def read_sql(query, *args, **kwargs):
 
 
 def check_safe_sql_query(query: str, throw: bool = True) -> bool:
+	import re
+
 	"""Check if SQL query is safe for running in restricted context.
 
 	Safe queries:
@@ -485,6 +474,15 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 
 	query = query.strip().lower()
 	whitelisted_statements = ("select", "explain")
+
+	if re.search(r"\binto\s+(outfile|dumpfile)\b", query):
+		if throw:
+			frappe.throw(
+				_("Read-Only queries are allowed"),
+				title=_("Unsafe SQL query"),
+				exc=frappe.PermissionError,
+			)
+		return False
 
 	if query.startswith(whitelisted_statements):
 		return True
@@ -668,6 +666,7 @@ VALID_UTILS = (
 	"is_html",
 	"is_image",
 	"get_thumbnail_base64_for_image",
+	"get_image_thumbnail_uri",
 	"image_to_base64",
 	"pdf_to_base64",
 	"strip_html",

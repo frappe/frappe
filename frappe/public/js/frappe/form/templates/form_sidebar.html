@@ -6,13 +6,12 @@
 		</div>
 		{% if can_write %}
 		<div class="sidebar-image-actions">
-			<div class="dropdown">
-				<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ __("Change") }}</a>
-				<div class="dropdown-menu" role="menu">
-					<a class="dropdown-item sidebar-image-change">{{ __("Upload") }}</a>
-					<a class="dropdown-item sidebar-image-remove">{{ __("Remove") }}</a>
-				</div>
+			<div class="sidebar-image-upload-hint">
+				<svg class="es-icon icon-sm"><use href="#es-line-camera"></use></svg>
 			</div>
+			<a class="sidebar-image-remove">
+				<svg class="icon icon-sm"><use href="#icon-x"></use></svg>
+			</a>
 		</div>
 		{% endif %}
 	</div>
@@ -32,7 +31,7 @@
 	<div class="flex justify-between overflow-hidden">
 		<div class="ellipsis">
 			{% let title = frm.get_title(); %}
-			<div class="form-details flex justify-between form-title-text"  data-copy="{{title}}">
+			<div class="form-details flex justify-between form-title-text"  data-copy="{%= frappe.utils.escape_html(frappe.utils.html2text(title)) %}">
 				<span class="bold ellipsis mr-3 text-medium">{%= frappe.utils.escape_html(frappe.utils.html2text(title)) %}</span>
 			</div>
 			{% if frm.meta.beta %}
@@ -41,8 +40,8 @@
 			</div>
 			{% endif %}
 			{% if (title && title !== frm.doc.name) { %}
-			<div class="form-name-container mt-1 flex justify-between form-name-copy" data-copy="{{frm.doc.name}}" title="{{frm.doc.name}}" >
-				<span class="ellipsis mr-3">{%= frm.doc.name %}</span>
+			<div class="form-name-container mt-1 flex justify-between form-name-copy" data-copy="{%= frappe.utils.escape_html(frappe.utils.html2text(frm.doc.name)) %}" title="{%= frappe.utils.escape_html(frappe.utils.html2text(frm.doc.name)) %}" >
+				<span class="ellipsis mr-3">{%= frappe.utils.escape_html(frappe.utils.html2text(frm.doc.name)) %}</span>
 			</div>
 			{% } %}
 		</div>

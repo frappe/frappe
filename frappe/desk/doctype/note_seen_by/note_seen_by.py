@@ -5,6 +5,8 @@ from frappe.model.document import Document
 
 
 class NoteSeenBy(Document):
+	_DOCTYPE_NAME = "Note Seen By"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

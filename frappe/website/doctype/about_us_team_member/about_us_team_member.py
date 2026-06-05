@@ -8,6 +8,8 @@ from frappe.model.document import Document
 
 
 class AboutUsTeamMember(Document):
+	_DOCTYPE_NAME = "About Us Team Member"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

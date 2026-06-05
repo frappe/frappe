@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class SecuritySettingsContact(Document):
+	_DOCTYPE_NAME = "Security Settings Contact"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
