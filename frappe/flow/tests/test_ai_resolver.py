@@ -7,8 +7,8 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
-from flow.resolver import schema_from_code
-from flow.tool import Tool, tool
+from flow.lib.resolver import schema_from_code
+from flow.lib.tool import Tool, tool
 
 
 class TestSchemaFromCode(UnitTestCase):

@@ -112,7 +112,7 @@ class AIModel(Document):
 				title=_("Missing Dependency"),
 			)
 
-		from flow.model import resolve_provider_credentials
+		from flow.lib.model import resolve_provider_credentials
 
 		provider_creds = resolve_provider_credentials(self.model_id)
 		api_key = self.get_password("api_key", raise_exception=False) or provider_creds.get("api_key") or ""

@@ -6,9 +6,9 @@ import json
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.agent import Question, RunResult
 from flow.ai.doctype.ai_run.ai_run import create_run, persist_result
-from flow.model import ToolCall
+from flow.lib.agent import Question, RunResult
+from flow.lib.model import ToolCall
 
 
 def _completed_result(output: str = "all done") -> RunResult:

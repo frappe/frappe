@@ -10,7 +10,7 @@ import frappe
 from frappe import _
 from frappe.utils.safe_exec import safe_exec
 
-from flow.tool import Tool, build_schema
+from flow.lib.tool import Tool, build_schema
 
 if TYPE_CHECKING:
 	from flow.ai.doctype.ai_tool.ai_tool import AITool

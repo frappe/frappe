@@ -11,9 +11,9 @@ from frappe import _
 if TYPE_CHECKING:
 	from collections.abc import Generator
 
-	from flow.agent import Agent, Event
 	from flow.ai.doctype.ai_run.ai_run import AIRun
 	from flow.ai.doctype.ai_session.ai_session import AISession
+	from flow.lib.agent import Agent, Event
 
 
 class Session:
@@ -165,7 +165,7 @@ def load_session(name: str, *, agent: Any = None, model: str | None = None) -> S
 
 def _resolve_new_agent(agent: Any, model: str | None) -> tuple[Agent, str | None, str | None, dict[str, Any]]:
 	"""Return (runtime, agent_link, session_model, snapshot) for a brand-new session."""
-	from flow.agent import Agent
+	from flow.lib.agent import Agent
 
 	if isinstance(agent, Agent):
 		return agent, None, None, agent.snapshot()
@@ -181,7 +181,7 @@ def _resolve_new_agent(agent: Any, model: str | None) -> tuple[Agent, str | None
 
 def _resolve_existing_agent(doc: AISession, agent: Any) -> tuple[Agent, dict[str, Any]]:
 	"""Return (runtime, snapshot) for an existing session."""
-	from flow.agent import Agent
+	from flow.lib.agent import Agent
 
 	if isinstance(agent, Agent):
 		return agent, agent.snapshot()

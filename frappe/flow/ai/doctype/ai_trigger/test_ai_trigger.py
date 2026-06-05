@@ -8,7 +8,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from flow import triggers
-from flow.model import ChatResponse, Model
+from flow.lib.model import ChatResponse, Model
 from flow.tools.builtins import sync_builtin_tools
 
 

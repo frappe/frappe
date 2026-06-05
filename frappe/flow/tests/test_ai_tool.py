@@ -7,7 +7,7 @@ from typing import Annotated, Literal
 from frappe.tests import UnitTestCase
 from pydantic import BaseModel, Field, ValidationError
 
-from flow.tool import Tool, build_schema, tool
+from flow.lib.tool import Tool, build_schema, tool
 
 
 class TestToolDecorator(UnitTestCase):

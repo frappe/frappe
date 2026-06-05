@@ -77,7 +77,7 @@ class AITool(Document):
 
 	def to_tool(self):
 		"""Resolve this row into a runtime Tool the Agent can call."""
-		from flow.resolver import resolve_tool
+		from flow.lib.resolver import resolve_tool
 
 		return resolve_tool(self)
 

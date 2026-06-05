@@ -6,7 +6,7 @@ from typing import Any
 
 from frappe.tests import UnitTestCase
 
-from flow.agent import (
+from flow.lib.agent import (
 	Agent,
 	Done,
 	Question,
@@ -15,8 +15,8 @@ from flow.agent import (
 	ToolEnded,
 	ToolStarted,
 )
-from flow.model import ChatResponse, ToolCall
-from flow.tool import tool
+from flow.lib.model import ChatResponse, ToolCall
+from flow.lib.tool import tool
 
 
 class FakeModel:

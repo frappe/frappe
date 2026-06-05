@@ -10,7 +10,7 @@ import frappe
 from frappe import _
 from frappe.utils.safe_exec import safe_exec
 
-from flow.tool import Tool, tool
+from flow.lib.tool import Tool, tool
 
 MAX_READ_LIMIT = 200
 LAYOUT_FIELDTYPES = frozenset({"Section Break", "Column Break", "Tab Break", "HTML", "Heading"})

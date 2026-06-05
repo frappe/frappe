@@ -13,7 +13,7 @@ from frappe import _
 from frappe.model.document import Document
 
 if TYPE_CHECKING:
-	from flow.agent import Event, RunResult
+	from flow.lib.agent import Event, RunResult
 
 JSON_FIELDS = ("tool_calls", "questions", "usage", "config_snapshot")
 
@@ -162,7 +162,7 @@ def stream_with_persistence(
 	handler returns, so the framework's end-of-request commit has already fired by
 	the time persistence happens here.
 	"""
-	from flow.agent import Done
+	from flow.lib.agent import Done
 
 	yield RunStarted(name=run.name, session=run.session)
 
