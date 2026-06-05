@@ -40,9 +40,17 @@ const inputRef = ref<{ el?: HTMLInputElement } | null>(null)
 // the field renders fine standalone (no doc provided).
 const doc = inject(DocKey, null)
 
+// A numeric field has no "empty" rendered state — Frappe shows `0` (formatted
+// per fieldtype) when the value is null/blank. Coerce here, not in the pure
+// `formatField` util, whose `'' for empty` contract other callers may rely on.
 const display = computed(() =>
-  focused.value ? draft.value : formatted(props.modelValue),
+  focused.value ? draft.value : formatted(numericValue(props.modelValue)),
 )
+
+/** Treat a null/blank model value as `0` (a number field's default). */
+function numericValue(value: any): any {
+  return value == null || value === '' ? 0 : value
+}
 
 /**
  * Currency code for a Currency field. Precedence: the field's `options` (a
@@ -93,8 +101,9 @@ function formatted(value: any): string {
   })
 }
 
-function parse(s: string): number | null {
-  if (s === '') return null
+function parse(s: string): number {
+  // A number field has no null state — an empty input commits `0`, matching the
+  // displayed default (see `numericValue`). `flt('')` already returns 0.
   const defaults = getFormatDefaults()
   return flt(s, {
     numberFormat: defaults.number_format,
@@ -106,7 +115,7 @@ function parse(s: string): number | null {
 // and select it all so a fresh entry overwrites — matches Frappe's FormattedInput.
 function onFocus() {
   focused.value = true
-  draft.value = props.modelValue == null ? '' : String(props.modelValue)
+  draft.value = String(numericValue(props.modelValue))
   nextTick(() => inputRef.value?.el?.select())
 }
 
