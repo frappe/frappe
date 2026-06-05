@@ -192,8 +192,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .zone-divider-label {
-	font-size: 10px;
-	font-weight: 700;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-bold);
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
 	white-space: nowrap;
@@ -230,11 +230,6 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-clean-preview :deep(.section-toolbar),
 .pfb-clean-preview :deep(.section-insert),
 .pfb-clean-preview :deep(.configure-columns-btn) {
-	display: none !important;
-}
-
-/* In clean-preview: keep the drag handle but hide only the remove button */
-.pfb-clean-preview :deep(.field-remove-btn) {
 	display: none !important;
 }
 
@@ -289,14 +284,14 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 /* Section drag handle in clean-preview: show on hover */
-.pfb-clean-preview :deep(.section-preview-drag) {
+.pfb-clean-preview :deep(.section-preview-actions) {
 	display: flex;
 }
 
-.pfb-clean-preview :deep(.print-format-section-container:hover .section-preview-drag),
-.pfb-clean-preview :deep(.print-format-section.section--selected ~ .section-preview-drag),
+.pfb-clean-preview :deep(.print-format-section-container:hover .section-preview-actions),
+.pfb-clean-preview :deep(.print-format-section.section--selected ~ .section-preview-actions),
 .pfb-clean-preview
-	:deep(.print-format-section-container:has(.section--selected) .section-preview-drag) {
+	:deep(.print-format-section-container:has(.section--selected) .section-preview-actions) {
 	opacity: 1;
 }
 
@@ -306,8 +301,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	padding: 0 0 0.3rem;
 	margin-bottom: 0.4rem;
 	border-bottom: 1.5px solid var(--border-color);
-	font-size: 1rem;
-	font-weight: 700;
+	font-size: var(--text-lg);
+	font-weight: var(--weight-bold);
 	color: var(--text-color);
 }
 </style>

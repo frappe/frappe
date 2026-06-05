@@ -31,6 +31,10 @@ export default class Grid {
 			this.meta = frappe.get_meta(this.doctype);
 		}
 		this.fields_map = {};
+		// per-grid column visibility overrides set via `set_column_disp`. Kept
+		// grid-local (rather than mutating the shared meta docfield) so two grids
+		// of the same child doctype on the same form don't affect each other.
+		this.column_disp_overrides = {};
 		this.template = null;
 		this.multiple_set = false;
 		if (
@@ -720,9 +724,24 @@ export default class Grid {
 		}
 
 		this._apply_layout_child_overrides();
+		this._apply_column_disp_overrides();
 
 		this.docfields.forEach((df) => {
 			this.fields_map[df.fieldname] = df;
+		});
+	}
+
+	_apply_column_disp_overrides() {
+		const fieldnames = Object.keys(this.column_disp_overrides || {});
+		if (!fieldnames.length) return;
+
+		// Replace overridden fields with a shallow copy carrying the grid-local
+		// `hidden` value. The base docfield comes from `frappe.meta` and is shared
+		// across every grid of the same child doctype on this form, so it must not
+		// be mutated in place.
+		this.docfields = this.docfields.map((df) => {
+			if (!(df.fieldname in this.column_disp_overrides)) return df;
+			return Object.assign({}, df, { hidden: this.column_disp_overrides[df.fieldname] });
 		});
 	}
 
@@ -903,6 +922,31 @@ export default class Grid {
 			this.get_docfield(fieldname).hidden = show ? 0 : 1;
 			this.set_editable_grid_column_disp(fieldname, show);
 		}
+
+		this.debounced_refresh();
+	}
+
+	set_column_disp_in_list_view(fieldname, show) {
+		// Show/hide a column in this grid's list view (the static, read-only row
+		// rendering). Unlike `set_column_disp`, the change is kept as a grid-local
+		// override and never mutates the shared meta docfield, so other grids of
+		// the same child doctype on the same form are unaffected. The override is
+		// applied to a grid-local docfield copy in `_apply_column_disp_overrides`
+		// (called from `setup_fields`).
+		const fieldnames = Array.isArray(fieldname) ? fieldname : [fieldname];
+		for (let field of fieldnames) {
+			this.column_disp_overrides[field] = show ? 0 : 1;
+		}
+
+		// Tear down the cached column layout and the rendered rows so the new
+		// column set is rebuilt with consistent widths. Just clearing
+		// `visible_columns` is not enough: the header is rebuilt with redistributed
+		// `col-N` widths while already-rendered rows keep their old widths, leaving
+		// the grid misaligned. This mirrors `reset_grid()` (also used by the
+		// Configure Columns dialog).
+		this.visible_columns = [];
+		this.grid_rows = [];
+		$(this.parent).find(".grid-body .grid-row").remove();
 
 		this.debounced_refresh();
 	}

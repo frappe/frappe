@@ -19,6 +19,7 @@
   "add_total_row",
   "disabled",
   "prepared_report",
+  "disable_prepared_report_automation",
   "generate_csv",
   "add_translate_data",
   "timeout",
@@ -224,12 +225,20 @@
    "ignore_user_permissions": 1,
    "label": "Default Letter Head",
    "options": "Letter Head"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.report_type === \"Script Report\"",
+   "description": "If checked, <i>Prepared Report</i> will not be enabled automatically on slow runs.",
+   "fieldname": "disable_prepared_report_automation",
+   "fieldtype": "Check",
+   "label": "Disable Prepared Report Automation"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-27 00:00:00.000000",
+ "modified": "2026-06-04 03:43:50.279111",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

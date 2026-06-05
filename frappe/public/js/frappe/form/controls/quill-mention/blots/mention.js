@@ -9,8 +9,12 @@ class MentionBlot extends Embed {
 		denotationChar.className = "ql-mention-denotation-char";
 		denotationChar.innerHTML = data.denotationChar;
 		node.appendChild(denotationChar);
-		node.innerHTML += data.value;
-		node.innerHTML += `${data.isGroup === "true" ? frappe.utils.icon("users") : ""}`;
+		const valueSpan = document.createElement("span");
+		valueSpan.textContent = data.value;
+		node.appendChild(valueSpan);
+		if (data.isGroup === "true") {
+			node.innerHTML += frappe.utils.icon("users");
+		}
 		node.dataset.id = data.id;
 		node.dataset.value = data.value;
 		node.dataset.denotationChar = data.denotationChar;

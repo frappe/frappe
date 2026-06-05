@@ -375,6 +375,8 @@ function select_section(section) {
 	store.scroll_to_section.value = section;
 	store.selected_section.value = section;
 	store.selected_field.value = null;
+	store.selected_letterhead.value = false;
+	store.selected_lh_footer.value = false;
 }
 
 function clone_as_section() {
@@ -546,8 +548,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 	color: var(--text-muted);
 	cursor: pointer;
 	transition: color 0.12s, background 0.12s;
-	font-size: 10px;
-	font-weight: 500;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-medium);
 	position: relative;
 }
 
@@ -625,7 +627,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 .pfb-search-kbd {
 	flex-shrink: 0;
 	font-family: inherit;
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	color: var(--gray-400);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-300);
@@ -644,8 +646,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-fields-header-title {
-	font-size: 10px;
-	font-weight: 600;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-semibold);
 	letter-spacing: 0.06em;
 	color: var(--text-muted);
 }
@@ -657,8 +659,8 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 
 /* ── Group label ─────────────────────────────────────────── */
 .pfb-group-label {
-	font-size: 10px;
-	font-weight: 600;
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-semibold);
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
 	color: var(--text-muted);
@@ -709,7 +711,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-field-type {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	color: var(--gray-500);
 	background: var(--gray-100);
 	border: 1px solid var(--gray-200);
@@ -772,7 +774,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-block-desc {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	margin-top: 1px;
 }
 
@@ -819,7 +821,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-template-field {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	margin-top: 1px;
 }
 
@@ -831,13 +833,13 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-templates-hint {
-	font-size: 11px;
+	font-size: var(--text-tiny);
 	line-height: 1.5;
 	margin-top: 6px;
 }
 
 .pfb-manage-link {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	font-weight: 400;
 	text-transform: none;
 	letter-spacing: 0;
@@ -866,7 +868,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-outline-idx {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 	font-variant-numeric: tabular-nums;
 	min-width: 18px;
 	text-align: right;
@@ -894,7 +896,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 }
 
 .pfb-margin-label {
-	font-size: 10px;
+	font-size: var(--text-tiny);
 }
 
 /* ── Empty state ─────────────────────────────────────────── */
