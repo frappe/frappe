@@ -12,6 +12,9 @@ from frappe.utils.data import cstr
 class DeskEntity:
 	"""Builds the desk entities (workspaces, dashboards, pages and reports) for the boot payload."""
 
+	# allowed-entity caches refresh every six hours
+	CACHE_EXPIRY = 6 * 60 * 60
+
 	def __init__(self):
 		self.pages = {}
 		self.reports = {}
@@ -24,7 +27,7 @@ class DeskEntity:
 		self.pages = self.get_allowed_pages()
 		self.reports = self.get_allowed_reports()
 		self.workspaces = get_workspaces()
-		self.dashboards = frappe.get_all("Dashboard")
+		self.dashboards = self.get_allowed_dashboards(cache=True)
 		return self
 
 	def add_to_boot(self, bootinfo):
@@ -46,15 +49,53 @@ class DeskEntity:
 		return {cstr(report) for report in cls.get_allowed_reports(cache=cache, user=user).keys() if report}
 
 	@classmethod
+	def get_allowed_dashboards(cls, cache=False):
+		"""Return dashboards the user is allowed to see.
+
+		A dashboard is permitted when the user can access at least one of its charts or cards.
+		Evaluated for the current session user and cached like pages and reports.
+		"""
+		from frappe.desk.doctype.dashboard.dashboard import get_permitted_cards, get_permitted_charts
+
+		def build():
+			return [
+				{"name": name}
+				for name in frappe.get_all("Dashboard", pluck="name")
+				if get_permitted_charts(name) or get_permitted_cards(name)
+			]
+
+		return cls._allowed_entity_cache("allowed_dashboards", frappe.session.user, build, cache=cache)
+
+	@classmethod
+	def _allowed_entity_cache(cls, key, user, builder, cache=False):
+		"""Return the user's allowed entities for `key`, rebuilding and re-caching on a miss.
+
+		Pass `cache=True` to return a previously cached value instead of rebuilding. The result
+		is stored per-user and expires after `CACHE_EXPIRY` seconds.
+		"""
+		if cache:
+			cached = frappe.cache.get_value(key, user=user)
+			if cached:
+				return cached
+
+		value = builder()
+		frappe.cache.set_value(key, value, user, cls.CACHE_EXPIRY)
+		return value
+
+	@classmethod
 	def get_user_pages_or_reports(cls, parent, cache=False, user: str | None = None):
 		if user is None:
 			user = frappe.session.user
 
-		if cache:
-			has_role = frappe.cache.get_value("has_role:" + parent, user=user)
-			if has_role:
-				return has_role
+		return cls._allowed_entity_cache(
+			"has_role:" + parent,
+			user,
+			lambda: cls._build_user_pages_or_reports(parent, user),
+			cache=cache,
+		)
 
+	@classmethod
+	def _build_user_pages_or_reports(cls, parent, user):
 		roles = frappe.get_roles(user)
 		has_role = {}
 
@@ -155,6 +196,4 @@ class DeskEntity:
 			for r in non_permitted_reports:
 				has_role.pop(r, None)
 
-		# Expire every six hours
-		frappe.cache.set_value("has_role:" + parent, has_role, user, 21600)
 		return has_role
