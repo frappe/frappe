@@ -281,7 +281,9 @@ def safer_log_error(
 
 def safer_get_visible_columns(*args, **kwargs):
 	cols = get_visible_columns(*args, **kwargs)
-	return [c.as_dict() for c in cols] if cols is not None else None
+	if cols is None:
+		return None
+	return [c if isinstance(c, dict) else c.as_dict() for c in cols]
 
 
 def safe_get_value(*args, **kwargs):
@@ -324,7 +326,7 @@ def make_safe_get_request(url: str, **kwargs):
 	for record in addr_info:
 		try:
 			addr = ipaddress.ip_address(record[4][0])
-		except (ValueError, IndexError):
+		except ValueError, IndexError:
 			continue
 
 		if not addr.is_global:
