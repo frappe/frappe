@@ -6,7 +6,7 @@ import frappe
 from frappe.utils.caching import site_cache
 
 
-def get_jenv(restrict_globals=None):
+def get_jenv(*, restrict_globals=None):
 	import frappe
 	from frappe.utils.safe_exec import get_safe_globals, is_render_exec_enabled, render_safe_globals
 
@@ -101,7 +101,7 @@ def validate_template(html, restrict_globals=None):
 
 	if not html:
 		return
-	jenv = get_jenv(restrict_globals)
+	jenv = get_jenv(restrict_globals=restrict_globals)
 	try:
 		jenv.from_string(html)
 	except TemplateSyntaxError as e:
@@ -133,7 +133,7 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 			is_path = True
 			compiled_template = get_template(template)
 		else:
-			jenv: SandboxedEnvironment = get_jenv(restrict_globals)
+			jenv: SandboxedEnvironment = get_jenv(restrict_globals=restrict_globals)
 			if safe_render and ".__" in template:
 				throw(_("Illegal template"))
 			compiled_template = jenv.from_string(template)
