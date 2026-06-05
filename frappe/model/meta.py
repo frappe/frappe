@@ -1031,7 +1031,7 @@ CACHE_PROPERTIES = frozenset(prop for prop, value in vars(Meta).items() if isins
 
 
 def _serialize(doc, no_nulls=False, *, is_child=False):
-	out = {}
+	out = frappe._dict()
 	for key, value in doc.__dict__.items():
 		if not is_child:
 			if key in CACHE_PROPERTIES:
