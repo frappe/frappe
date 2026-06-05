@@ -60,6 +60,27 @@ function get_tree_preview_node_count(preview_data) {
 	return preview_data.tree_preview.total_nodes ?? preview_data.tree_preview.nodes?.length ?? 0;
 }
 
+/** Hide tree structure warnings after a finished import; keep the tree for reference. */
+function strip_tree_preview_warnings(preview_data) {
+	if (!preview_data?.tree_preview) {
+		return preview_data;
+	}
+
+	const nodes = (preview_data.tree_preview.nodes || []).map((node) => ({
+		...node,
+		warnings: [],
+	}));
+
+	return {
+		...preview_data,
+		tree_preview: {
+			...preview_data.tree_preview,
+			tree_warnings: [],
+			nodes,
+		},
+	};
+}
+
 /** Keep Tree Preview collapsed by default (unlike Preview, which expands when a file is attached). */
 function collapse_import_tree_section(frm, hide = true) {
 	const section = frm.layout?.sections_dict?.section_import_tree_preview;
@@ -578,6 +599,10 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	show_import_tree_preview(frm, preview_data) {
+		if (["Success", "Partial Success"].includes(frm.doc.status)) {
+			preview_data = strip_tree_preview_warnings(preview_data);
+		}
+
 		const show_tree = Boolean(preview_data?.tree_preview);
 		frm.toggle_display("section_import_tree_preview", show_tree);
 		frm.toggle_display("import_tree_preview", show_tree);

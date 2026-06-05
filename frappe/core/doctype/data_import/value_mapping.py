@@ -133,13 +133,14 @@ def get_invalid_link_select_items(col) -> list[dict]:
 				col.df.options, filters={"name": ("in", list({transform(k) for k in value_rows}))}
 			)
 		}
-		import_ids = getattr(col, "import_ids", None) or set()
-		allow_same_file_parents = col.df.options == col.doctype and import_ids
+		import_refs = getattr(col, "import_refs", None)
+		allow_same_file_parents = col.df.options == col.doctype and import_refs
 		invalid_keys = []
 		for key in value_rows:
 			if transform(key) in exists:
 				continue
-			if allow_same_file_parents and normalize_source_value(key) in import_ids:
+			normalized_key = normalize_source_value(key)
+			if allow_same_file_parents and normalized_key in import_refs:
 				continue
 			invalid_keys.append(key)
 	elif col.df.fieldtype == "Select":
