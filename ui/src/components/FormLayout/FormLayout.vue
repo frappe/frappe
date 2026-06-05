@@ -9,7 +9,7 @@
       :tabs="visibleTabs"
       :class="[
         !hasTabs ? `[&_[role='tablist']]:hidden` : '',
-        `[&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tab']]:shrink-0 [&_[role='tabpanel']]:overflow-visible overflow-visible!`,
+        `[&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tab']]:shrink-0 [&_[role='tabpanel']]:overflow-visible !overflow-visible`,
       ]"
     >
       <template #tab-panel="{ tab }">
