@@ -946,7 +946,37 @@ class DesktopIcon {
 		if (this.icon_type == "Folder") {
 			if (this.icon_data.child_icons.length == 0) return false;
 		}
+		if (!this.is_configured() && !frappe.boot.developer_mode) {
+			return false;
+		}
 		return true;
+	}
+	is_configured() {
+		if (this.child_icons?.length && (this.icon_type == "App" || this.icon_type == "Folder")) {
+			return true;
+		}
+		return Boolean(this.icon_route);
+	}
+	get_config_issue() {
+		const icon = this.icon_data;
+		if (icon.link_type == "External") {
+			return __("This icon is an External link, but no URL is set.");
+		}
+		if (icon.link_type == "Workspace Sidebar") {
+			let sidebar = frappe.boot.workspace_sidebar_item[icon.label.toLowerCase()];
+			if (!sidebar) {
+				return __("No workspace sidebar named '{0}' was found.", [icon.label]);
+			}
+			let first_link = sidebar.items.find((i) => i.type == "Link");
+			if (!first_link) {
+				return __("The '{0}' workspace sidebar has no links to open.", [icon.label]);
+			}
+			return __(
+				"The first link in the '{0}' sidebar points to {1} '{2}', which could not be found.",
+				[icon.label, first_link.link_type, first_link.link_to]
+			);
+		}
+		return __("This icon has no link type configured.");
 	}
 	get_child_icons_data() {
 		return this.icon_data.child_icons.sort((a, b) => a.idx - b.idx);
@@ -1061,11 +1091,12 @@ class DesktopIcon {
 				this.icon.attr("href", this.icon_route);
 			} else {
 				this.icon.on("click", function (event) {
-					frappe.msgprint(
-						__(
-							"Icon is not correctly configured please check the workspace sidebar to it"
-						)
-					);
+					event.preventDefault();
+					frappe.msgprint({
+						title: __("Icon Not Configured"),
+						message: me.get_config_issue(),
+						indicator: "orange",
+					});
 				});
 			}
 		}
