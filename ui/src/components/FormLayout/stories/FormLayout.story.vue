@@ -16,7 +16,7 @@ import StaticSchema from './StaticSchema.story.vue'
 import DoctypeLayout from './DoctypeLayout.story.vue'
 import { useDoctypeLayout } from '../useDoctypeLayout'
 
-const doctype = 'CRM Lead'
+const doctype = 'CRM Deal'
 
 // Warm the memo cache up-front so the meta resolves while the default tab is
 // active. When DoctypeLayout later mounts it reads the cached layout — no async
