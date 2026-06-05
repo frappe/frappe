@@ -10,7 +10,7 @@ from frappe.tests import IntegrationTestCase
 from werkzeug.wrappers import Response
 
 from flow.api import resume_run, start_run
-from flow.model import ChatResponse, Model, ToolCall
+from flow.lib.model import ChatResponse, Model, ToolCall
 from flow.tools.builtins import sync_builtin_tools
 
 

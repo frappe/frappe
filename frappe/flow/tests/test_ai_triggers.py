@@ -8,7 +8,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.model import ChatResponse, Model
+from flow.lib.model import ChatResponse, Model
 from flow.tools.builtins import sync_builtin_tools
 from flow.triggers import dispatch, dispatch_scheduled, fire
 

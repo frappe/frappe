@@ -11,9 +11,9 @@ from frappe import _
 from frappe.model.document import Document
 
 if TYPE_CHECKING:
-	from flow.agent import Agent, Event
 	from flow.ai.doctype.ai_run.ai_run import AIRun
-	from flow.tool import Tool
+	from flow.lib.agent import Agent, Event
+	from flow.lib.tool import Tool
 
 DEFAULT_TOOL_SLUGS = ("describe", "read", "execute")
 DEFAULT_MAX_ITERATIONS = 10
@@ -68,8 +68,8 @@ class AIAgent(Document):
 
 	def assemble(self, *, model: str | None = None) -> Agent:
 		"""Resolve this row into a runtime Agent. `model` overrides the saved agent's model for this build."""
-		from flow.agent import Agent
-		from flow.model import Model
+		from flow.lib.agent import Agent
+		from flow.lib.model import Model
 
 		if not self.enabled:
 			frappe.throw(_("AI Agent {0} is disabled.").format(self.name), title=_("Disabled Agent"))
@@ -101,7 +101,7 @@ class AIAgent(Document):
 
 	def new_session(self, *, model: str | None = None, title: str | None = None):
 		"""Start a conversation driven by this agent. Returns a `flow.session.Session`."""
-		from flow.session import new_session
+		from flow.lib.session import new_session
 
 		return new_session(self, model=model, title=title)
 
@@ -116,7 +116,7 @@ class AIAgent(Document):
 	) -> AIRun | Generator[Event]:
 		"""Run `input` and persist as an AI Run. Convenience wrapper over the session API:
 		starts a conversation (or continues `session`) and calls `chat()`."""
-		from flow.session import load_session, new_session
+		from flow.lib.session import load_session, new_session
 
 		convo = load_session(session, agent=self.name) if session else new_session(self)
 		return convo.chat(input, source=source, trigger=trigger, stream=stream)

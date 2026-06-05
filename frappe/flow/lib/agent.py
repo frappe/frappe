@@ -8,8 +8,8 @@ from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import Any
 
-from flow.model import ChatResponse, Model, ToolCall
-from flow.tool import Tool
+from flow.lib.model import ChatResponse, Model, ToolCall
+from flow.lib.tool import Tool
 
 DEFAULT_MAX_ITERATIONS = 20
 ERROR_MESSAGE_LIMIT = 500
@@ -132,7 +132,7 @@ class Agent:
 
 	def new_session(self, *, title: str | None = None) -> Any:
 		"""Start a persisted conversation driven by this code agent (session's agent link is left empty)."""
-		from flow.session import new_session
+		from flow.lib.session import new_session
 
 		return new_session(self, title=title)
 

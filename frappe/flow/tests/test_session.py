@@ -8,9 +8,9 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.agent import Agent
-from flow.model import ChatResponse, Model
-from flow.session import load_session, new_session
+from flow.lib.agent import Agent
+from flow.lib.model import ChatResponse, Model
+from flow.lib.session import load_session, new_session
 from flow.tools.builtins import sync_builtin_tools
 
 

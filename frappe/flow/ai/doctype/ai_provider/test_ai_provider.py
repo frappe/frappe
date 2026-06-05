@@ -6,7 +6,7 @@ from typing import Any
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.model import Model
+from flow.lib.model import Model
 
 
 def _provider(**overrides: Any) -> dict:

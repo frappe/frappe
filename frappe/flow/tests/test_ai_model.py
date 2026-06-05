@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from frappe.tests import UnitTestCase
 
-from flow.model import ChatResponse, Model, ToolCall
+from flow.lib.model import ChatResponse, Model, ToolCall
 
 
 def _fake_response(content=None, tool_calls=None, finish_reason="stop", usage=None):

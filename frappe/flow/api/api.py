@@ -13,8 +13,8 @@ from frappe import _
 from werkzeug.wrappers import Response
 
 if TYPE_CHECKING:
-	from flow.agent import Event
 	from flow.ai.doctype.ai_run.ai_run import AIRun
+	from flow.lib.agent import Event
 
 
 @frappe.whitelist()
@@ -29,7 +29,7 @@ def start_run(
 	if not isinstance(input, str) or not input.strip():
 		frappe.throw(_("Input is required."), title=_("Invalid Input"))
 
-	from flow.session import load_session, new_session
+	from flow.lib.session import load_session, new_session
 
 	stream = _is_truthy(stream)
 	convo = load_session(session, agent=agent, model=model) if session else new_session(agent, model=model)
@@ -42,7 +42,7 @@ def resume_run(
 	run_name: str, answers: dict[str, Any] | str, stream: bool | str = False
 ) -> dict[str, Any] | Response:
 	"""Resume a Paused run. `answers` maps each question.key to the user's answer. With `stream=True`, returns SSE."""
-	from flow.session import assert_run_owner, load_session
+	from flow.lib.session import assert_run_owner, load_session
 
 	parsed_answers = _parse_answers(answers)
 	stream = _is_truthy(stream)
@@ -79,8 +79,8 @@ def _format_sse(event: Event) -> bytes:
 
 
 def _event_to_dict(event: Event) -> dict[str, Any]:
-	from flow.agent import Done, TextChunk, ToolEnded, ToolStarted
 	from flow.ai.doctype.ai_run.ai_run import Error, RunStarted
+	from flow.lib.agent import Done, TextChunk, ToolEnded, ToolStarted
 
 	if isinstance(event, TextChunk):
 		return {"type": "text", "delta": event.text}
