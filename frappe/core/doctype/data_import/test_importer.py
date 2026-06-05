@@ -1,7 +1,12 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.core.doctype.data_import.importer import Importer, build_fields_dict_for_column_matching
+from frappe.core.doctype.data_import.importer import (
+	INSERT,
+	Column,
+	Importer,
+	build_fields_dict_for_column_matching,
+)
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import format_duration, getdate
@@ -50,6 +55,23 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(doc3.another_number, 5)
 		self.assertEqual(format_duration(doc3.duration), "5d 5h 45m")
 
+	def test_skip_rows_during_import(self):
+		for name in ("Test", "Test 2", "Test 3"):
+			frappe.delete_doc_if_exists(doctype_name, name)
+		frappe.db.commit()
+
+		import_file = get_import_file("sample_import_file")
+		data_import = self.get_importer(doctype_name, import_file)
+		data_import.append("skipped_rows", {"row_number": 2, "row_data": "[]"})
+		data_import.save()
+		data_import.start_import()
+		data_import.reload()
+
+		self.assertFalse(frappe.db.exists(doctype_name, "Test"))
+		self.assertTrue(frappe.db.exists(doctype_name, "Test 2"))
+		self.assertTrue(frappe.db.exists(doctype_name, "Test 3"))
+		self.assertEqual(data_import.status, "Success")
+
 	def test_data_validation_semicolon_success(self):
 		import_file = get_import_file("sample_import_file_semicolon")
 		data_import = self.get_importer(doctype_name, import_file, update=True, use_sniffer=True)
@@ -59,6 +81,18 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(doc[0][7], "child description with ,comma and")
 		# Column count should be 14 (+1 ID)
 		self.assertEqual(len(doc[0]), 15)
+
+	def test_custom_delimiter_semicolon_without_sniffer(self):
+		import_file = get_import_file("sample_import_file_semicolon")
+		data_import = self.get_importer(doctype_name, import_file)
+		data_import.custom_delimiters = 1
+		data_import.delimiter_options = ";"
+		data_import.use_csv_sniffer = 0
+		data_import.save()
+
+		preview = data_import.get_preview_from_template()
+		self.assertGreater(len(preview.columns), 5)
+		self.assertEqual(preview.columns[1].header_title, "Title")
 
 	def test_data_validation_semicolon_failure(self):
 		import_file = get_import_file("sample_import_file_semicolon")
@@ -145,6 +179,189 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(updated_doc.table_field_1[0].name, existing_doc.table_field_1[0].name)
 		self.assertEqual(updated_doc.table_field_1[0].child_description, "child description")
 		self.assertEqual(updated_doc.table_field_1_again[0].child_title, "child title again")
+
+	def test_mapped_select_still_shows_warning_but_unmapped_blocks_import(self):
+		from frappe.core.doctype.data_import.value_mapping import (
+			build_lookup_from_mappings,
+			get_unmapped_invalid_values_for_column,
+		)
+
+		value_lookup = build_lookup_from_mappings(
+			[
+				{
+					"reference_doctype": "Contact",
+					"fieldname": "status",
+					"parent_field": "",
+					"source_value": "Pasiv",
+					"target_value": "Passive",
+				}
+			]
+		)
+		col = Column(
+			5,
+			"Status",
+			"Contact",
+			["Opn", "Pasiv", "Open"],
+			value_row_numbers=[2, 3, 4],
+		)
+		self.assertEqual(col.warnings[0]["type"], "value_mapping")
+		self.assertIn("Opn", col.warnings[0]["message"])
+		self.assertIn("Pasiv", col.warnings[0]["message"])
+		self.assertIn("is not valid", col.warnings[0]["message"])
+		self.assertIn("row 3 · Allowed:", col.warnings[0]["message"])
+		unmapped = get_unmapped_invalid_values_for_column(col, value_lookup, "Contact")
+		self.assertEqual(len(unmapped), 1)
+		self.assertEqual(unmapped[0]["source"], "Opn")
+
+	def test_sync_value_mappings_preserves_user_targets(self):
+		from frappe.core.doctype.data_import.value_mapping import mapping_row_key, sync_value_mappings
+
+		col = Column(
+			5,
+			"Status",
+			"Contact",
+			["Opn", "Pasiv", "Open"],
+			value_row_numbers=[2, 3, 4],
+		)
+		import_file = frappe._dict(header=frappe._dict(columns=[col]))
+
+		doc = frappe.get_doc(
+			{
+				"doctype": "Data Import",
+				"reference_doctype": "Contact",
+				"import_type": "Insert New Records",
+				"value_mappings": [
+					{
+						"column": 6,
+						"column_label": "Status",
+						"fieldname": "status",
+						"parent_field": "",
+						"fieldtype": "Select",
+						"select_options": "Open\nPassive",
+						"source_value": "Pasiv",
+						"target_value": "Passive",
+						"row_numbers": "[3]",
+						"rows_display": "3",
+					}
+				],
+			}
+		)
+		# Child rows are Document objects after load — sync must accept them, not only dicts.
+		self.assertTrue(hasattr(doc.value_mappings[0], "get"))
+
+		self.assertTrue(sync_value_mappings(doc, import_file))
+		rows = {mapping_row_key(row): row for row in doc.value_mappings}
+		self.assertEqual(rows["6|status||Pasiv"].target_value, "Passive")
+		self.assertIn("6|status||Opn", rows)
+		self.assertEqual(rows["6|status||Opn"].target_value, "")
+
+	def test_data_import_validate_populates_value_mappings(self):
+		csv_content = "First Name,Status\nTest,Opn\n"
+		import_file = frappe.get_doc(
+			doctype="File",
+			content=csv_content,
+			file_name="data_import_invalid_status.csv",
+			is_private=1,
+		)
+		import_file.save(ignore_permissions=True)
+
+		data_import = frappe.get_doc(
+			{
+				"doctype": "Data Import",
+				"reference_doctype": "Contact",
+				"import_type": "Insert New Records",
+				"import_file": import_file.file_url,
+			}
+		)
+		data_import.insert()
+
+		self.assertEqual(len(data_import.value_mappings), 1)
+		self.assertEqual(data_import.value_mappings[0].fieldname, "status")
+		self.assertEqual(data_import.value_mappings[0].source_value, "Opn")
+
+	def test_source_value_strip_applied_during_import_resolve(self):
+		from frappe.core.doctype.data_import.value_mapping import (
+			build_lookup_from_mappings,
+			resolve_import_value,
+		)
+
+		lookup = build_lookup_from_mappings(
+			[
+				{
+					"reference_doctype": "Contact",
+					"fieldname": "status",
+					"source_value": "Pasiv",
+					"target_value": "Passive",
+				}
+			]
+		)
+		df = frappe._dict(fieldname="status", parent="Contact")
+		self.assertEqual(resolve_import_value(" Pasiv ", df, "Contact", lookup), "Passive")
+
+	def test_format_row_numbers_for_warning_truncates_long_lists(self):
+		from frappe.core.doctype.data_import.importer import format_row_numbers_for_warning
+
+		self.assertEqual(format_row_numbers_for_warning([2, 3, 4]), "2, 3, 4")
+		self.assertEqual(
+			format_row_numbers_for_warning([2, 3, 4, 5, 6, 7, 8, 9, 100]),
+			"2, 3, 4, 5, 6, 7, ... 100",
+		)
+
+	def test_link_validation_ignores_header_row_when_not_on_first_line(self):
+		"""Leading blank rows must not treat the header line as data (e.g. Gender → row 3)."""
+		from frappe.core.doctype.data_import.importer import ImportFile
+		from frappe.core.doctype.data_import.value_mapping import get_column_invalid_items
+
+		for gender in ("Male", "Female"):
+			if not frappe.db.exists("Gender", gender):
+				frappe.get_doc({"doctype": "Gender", "gender": gender}).insert()
+
+		csv_content = (
+			"\n"
+			"First Name,Last Name,Status,Salutation,Gender\n"
+			"Alice,Smith,Opn,Mr.,Female\n"
+			"Bob,Jones,Pasiv,Mrs,Male\n"
+		)
+		import_file = frappe.get_doc(
+			doctype="File",
+			content=csv_content,
+			file_name="data_import_leading_blank_row.csv",
+			is_private=1,
+		)
+		import_file.save(ignore_permissions=True)
+
+		imp = ImportFile("Contact", import_file.file_url, import_type=INSERT)
+		gender_col = next(c for c in imp.columns if c.df and c.df.fieldname == "gender")
+		invalid_sources = {item["source"] for item in get_column_invalid_items(gender_col)}
+
+		self.assertNotIn("Gender", invalid_sources)
+
+	def test_link_and_select_warnings_include_row_numbers(self):
+		"""Column warnings for Link/Select list invalid values with 1-based sheet row numbers."""
+		if not frappe.db.exists("Salutation", "Mr"):
+			frappe.get_doc({"doctype": "Salutation", "salutation": "Mr"}).insert()
+		for name in ("Miss", "Ms"):
+			if frappe.db.exists("Salutation", name):
+				frappe.delete_doc("Salutation", name)
+
+		link_msg = Column(
+			0, "Salutation", "Contact", ["Mr.", "Mr.", "Miss"], value_row_numbers=[2, 3, 4]
+		).warnings[0]["message"]
+		self.assertIn("Mr.", link_msg)
+		self.assertIn("is not a valid", link_msg)
+		self.assertIn("rows 2, 3", link_msg)
+		self.assertIn("Miss", link_msg)
+		self.assertIn("row 4", link_msg)
+
+		select_msg = Column(
+			5, "Status", "Contact", ["Opn", "Pasiv", "Open"], value_row_numbers=[2, 3, 4]
+		).warnings[0]["message"]
+		self.assertIn("Opn", select_msg)
+		self.assertIn("is not valid", select_msg)
+		self.assertIn("row 2", select_msg)
+		self.assertIn("Pasiv", select_msg)
+		self.assertIn("row 3", select_msg)
+		self.assertIn("Allowed:", select_msg)
 
 	def test_data_import_without_label(self):
 		"""Test fallback to fieldname when label is not set for a table."""
@@ -290,7 +507,10 @@ def get_import_file(csv_file_name, force=False):
 	else:
 		full_path = get_csv_file_path(file_name)
 		f = frappe.get_doc(
-			doctype="File", content=frappe.read_file(full_path), file_name=file_name, is_private=1
+			doctype="File",
+			content=frappe.read_file(full_path, raise_not_found=True),
+			file_name=file_name,
+			is_private=1,
 		)
 		f.save(ignore_permissions=True)
 

@@ -26,6 +26,13 @@ UPDATE = "Update Existing Records"
 DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
 
 
+def _get_fixed_csv_delimiter(custom_delimiters, delimiter_options) -> str | None:
+	if not cint(custom_delimiters) or not delimiter_options:
+		return None
+	options = delimiter_options.strip()
+	return options if len(options) == 1 else None
+
+
 class Importer:
 	def __init__(
 		self, doctype, data_import=None, file_path=None, import_type=None, console=False, use_sniffer=False
@@ -48,8 +55,12 @@ class Importer:
 			file_path or data_import.google_sheets_url or data_import.import_file,
 			self.template_options,
 			self.import_type,
+			data_import_name=self.data_import.name,
+			reference_doctype=doctype,
 			console=self.console,
 			use_sniffer=self.use_sniffer,
+			custom_delimiters=data_import.custom_delimiters,
+			delimiter_options=data_import.delimiter_options,
 		)
 
 	def get_data_for_import_preview(self):
@@ -83,14 +94,23 @@ class Importer:
 		payloads = self.import_file.get_payloads_for_import()
 
 		# dont import if there are non-ignorable warnings
-		warnings = self.import_file.get_warnings()
-		warnings = [w for w in warnings if w.get("type") != "info"]
+		from frappe.core.doctype.data_import.value_mapping import (
+			get_blocking_warnings,
+			get_skipped_row_numbers,
+		)
+
+		warnings = get_blocking_warnings(self.import_file.get_warnings(), self.import_file, self.data_import)
 
 		if warnings:
 			if self.console:
 				self.print_grouped_warnings(warnings)
 			else:
 				self.data_import.db_set("template_warnings", json.dumps(warnings))
+				frappe.publish_realtime(
+					"data_import_blocked",
+					{"data_import": self.data_import.name},
+					user=frappe.session.user,
+				)
 			return
 
 		# setup import log
@@ -120,16 +140,18 @@ class Importer:
 			frappe.db.delete("Data Import Log", {"success": 0, "data_import": self.data_import.name})
 
 		# get successfully imported rows
-		imported_rows = []
+		imported_rows = set()
 		for log in import_log:
 			log = frappe._dict(log)
 			if log.success or len(import_log) < self.data_import.payload_count:
-				imported_rows += json.loads(log.row_indexes)
+				imported_rows.update(json.loads(log.row_indexes))
 
 			log_index = log.log_index
 
 		# start import
 		total_payload_count = len(payloads)
+		skipped_rows = get_skipped_row_numbers(self.data_import)
+		skipped_payload_count = 0
 		batch_size = frappe.conf.data_import_batch_size or 1000
 
 		for batch_index, batched_payloads in enumerate(frappe.utils.create_batch(payloads, batch_size)):
@@ -137,20 +159,16 @@ class Importer:
 				doc = payload.doc
 				row_indexes = [row.row_number for row in payload.rows]
 				current_index = (i + 1) + (batch_index * batch_size)
+				row_set = set(row_indexes)
 
-				if set(row_indexes).intersection(set(imported_rows)):
+				if row_set.intersection(skipped_rows):
+					skipped_payload_count += 1
+					self._publish_skip_progress(current_index, total_payload_count)
+					continue
+
+				if row_set.intersection(imported_rows):
 					print("Skipping imported rows", row_indexes)
-					if total_payload_count > 5:
-						frappe.publish_realtime(
-							"data_import_progress",
-							{
-								"current": current_index,
-								"total": total_payload_count,
-								"skipping": True,
-								"data_import": self.data_import.name,
-							},
-							user=frappe.session.user,
-						)
+					self._publish_skip_progress(current_index, total_payload_count)
 					continue
 
 				try:
@@ -233,12 +251,13 @@ class Importer:
 				successes.append(log)
 			else:
 				failures.append(log)
-		if len(failures) >= total_payload_count and len(successes) == 0:
+		attempted_payload_count = total_payload_count - skipped_payload_count
+		if attempted_payload_count == 0 or len(successes) == attempted_payload_count:
+			status = "Success"
+		elif len(failures) >= attempted_payload_count and len(successes) == 0:
 			status = "Error"
 		elif len(failures) > 0 and len(successes) > 0:
 			status = "Partial Success"
-		elif len(successes) == total_payload_count:
-			status = "Success"
 		else:
 			status = "Pending"
 
@@ -254,6 +273,19 @@ class Importer:
 	def after_import(self):
 		frappe.flags.in_import = False
 		frappe.flags.mute_emails = False
+
+	def _publish_skip_progress(self, current_index, total_payload_count):
+		if total_payload_count > 5:
+			frappe.publish_realtime(
+				"data_import_progress",
+				{
+					"current": current_index,
+					"total": total_payload_count,
+					"skipping": True,
+					"data_import": self.data_import.name,
+				},
+				user=frappe.session.user,
+			)
 
 	def process_doc(self, doc):
 		if self.import_type == INSERT:
@@ -341,6 +373,19 @@ class Importer:
 
 		build_csv_response(rows, _(self.doctype))
 
+	def export_skipped_rows(self):
+		from frappe.utils.csvutils import build_csv_response
+
+		if not self.data_import or not self.data_import.skipped_rows:
+			return
+
+		header_row = [col.header_title for col in self.import_file.columns]
+		rows = [header_row]
+		for skipped in sorted(self.data_import.skipped_rows, key=lambda r: r.row_number):
+			rows.append(frappe.parse_json(skipped.row_data))
+
+		build_csv_response(rows, _(self.doctype))
+
 	def export_import_log(self):
 		from frappe.utils.csvutils import build_csv_response
 
@@ -412,15 +457,32 @@ class Importer:
 
 class ImportFile:
 	def __init__(
-		self, doctype, file, template_options=None, import_type=None, *, console=False, use_sniffer=False
+		self,
+		doctype,
+		file,
+		template_options=None,
+		import_type=None,
+		*,
+		data_import_name=None,
+		reference_doctype=None,
+		console=False,
+		use_sniffer=False,
+		custom_delimiters=False,
+		delimiter_options=None,
 	):
 		self.doctype = doctype
+		self.reference_doctype = reference_doctype or doctype
 		self.template_options = template_options or frappe._dict(column_to_field_map=frappe._dict())
 		self.column_to_field_map = self.template_options.column_to_field_map
 		self.import_type = import_type
+		from frappe.core.doctype.data_import.value_mapping import build_lookup_for_data_import
+
+		self.value_lookup = build_lookup_for_data_import(data_import_name, self.reference_doctype)
 		self.warnings = []
 		self.console = console
 		self.use_sniffer = use_sniffer
+		self.custom_delimiters = custom_delimiters
+		self.delimiter_options = delimiter_options
 
 		self.file_doc = self.file_path = self.google_sheets_url = None
 		if isinstance(file, str):
@@ -473,7 +535,15 @@ class ImportFile:
 				continue
 
 			if not header:
-				header = Header(i, row, self.doctype, self.raw_data[1:], self.column_to_field_map)
+				header = Header(
+					i,
+					row,
+					self.doctype,
+					self.raw_data[i + 1 :],
+					self.column_to_field_map,
+					self.value_lookup,
+					self.reference_doctype,
+				)
 			else:
 				row_obj = Row(i, row, self.doctype, header, self.import_type)
 				data.append(row_obj)
@@ -516,11 +586,14 @@ class ImportFile:
 		out.columns = columns
 		out.warnings = warnings
 		total_number_of_rows = len(out.data)
+		out.total_number_of_rows = total_number_of_rows
 		if total_number_of_rows > MAX_ROWS_IN_PREVIEW:
 			out.data = out.data[:MAX_ROWS_IN_PREVIEW]
 			out.max_rows_exceeded = True
 			out.max_rows_in_preview = MAX_ROWS_IN_PREVIEW
-			out.total_number_of_rows = total_number_of_rows
+		from frappe.core.doctype.data_import.value_mapping import get_mapping_hints
+
+		out.mapping_hints = get_mapping_hints(self, self.reference_doctype, self.value_lookup)
 		return out
 
 	def get_payloads_for_import(self):
@@ -617,12 +690,38 @@ class ImportFile:
 			frappe.throw(_("Import template should be of type .csv, .xlsx or .xls"), title=error_title)
 
 		if extension == "csv":
-			data = read_csv_content(content, use_sniffer=self.use_sniffer)
+			data = read_csv_content(
+				content,
+				use_sniffer=self.use_sniffer,
+				delimiter=_get_fixed_csv_delimiter(self.custom_delimiters, self.delimiter_options),
+			)
 		elif extension == "xlsx":
 			data = read_xlsx_file_from_attached_file(fcontent=content)
 		elif extension == "xls":
 			data = read_xls_file_from_attached_file(content)
 		return data
+
+
+def get_value_row_map(column_values, value_row_numbers):
+	"""Map each distinct cell value to sorted 1-based sheet row numbers (first-seen order)."""
+	value_rows = {}
+	for value, row_number in zip(column_values, value_row_numbers, strict=False):
+		if value in INVALID_VALUES:
+			continue
+		key = cstr(value)
+		value_rows.setdefault(key, [])
+		if row_number not in value_rows[key]:
+			value_rows[key].append(row_number)
+	for rows in value_rows.values():
+		rows.sort()
+	return value_rows
+
+
+def format_row_numbers_for_warning(rows: list, max_shown: int = 6) -> str:
+	"""Compact row list for warnings: first ``max_shown`` rows, then …, then the last row."""
+	if len(rows) <= max_shown:
+		return ", ".join(str(r) for r in rows)
+	return f"{', '.join(str(r) for r in rows[:max_shown])}, ... {rows[-1]}"
 
 
 class Row:
@@ -640,9 +739,9 @@ class Row:
 		if len_row != len_columns:
 			less_than_columns = len_row < len_columns
 			message = (
-				"Row has less values than columns"
+				_("This row has fewer cells than the header — check for missing commas or columns")
 				if less_than_columns
-				else "Row has more values than columns"
+				else _("This row has more cells than the header — check for extra commas or columns")
 			)
 			self.warnings.append(
 				{
@@ -710,12 +809,21 @@ class Row:
 		return doc
 
 	def validate_value(self, value, col):
+		# Apply stored mappings only during import, not while building preview warnings.
+		if frappe.flags.in_import:
+			from frappe.core.doctype.data_import.value_mapping import resolve_import_value
+
+			value = resolve_import_value(
+				value, col.df, self.header.reference_doctype, self.header.value_lookup
+			)
 		df = col.df
 		if df.fieldtype == "Select":
 			select_options = get_select_options(df)
 			if select_options and cstr(value) not in select_options:
-				options_string = ", ".join(frappe.bold(d) for d in select_options)
-				msg = _("Value must be one of {0}").format(options_string)
+				options_string = ", ".join(select_options)
+				msg = _('"{0}" is not valid. Allowed: {1}').format(
+					frappe.bold(escape_html(cstr(value))), frappe.bold(options_string)
+				)
 				self.warnings.append(
 					{
 						"row": self.row_number,
@@ -728,8 +836,8 @@ class Row:
 		elif df.fieldtype == "Link":
 			exists = self.link_exists(value, df)
 			if not exists:
-				msg = _("Value {0} missing for {1}").format(
-					frappe.bold(escape_html(cstr(value))), frappe.bold(df.options)
+				msg = _('"{0}" is not a valid {1}').format(
+					frappe.bold(escape_html(cstr(value))), frappe.bold(df.label)
 				)
 				self.warnings.append(
 					{
@@ -748,7 +856,7 @@ class Row:
 						"row": self.row_number,
 						"col": col.column_number,
 						"field": df_as_json(df),
-						"message": _("Value {0} must in {1} format").format(
+						"message": _('"{0}" is not a valid date. Use {1}').format(
 							frappe.bold(escape_html(cstr(value))),
 							frappe.bold(get_user_format(col.date_format)),
 						),
@@ -764,7 +872,7 @@ class Row:
 						"row": self.row_number,
 						"col": col.column_number,
 						"field": df_as_json(df),
-						"message": _("Value {0} must in {1} format").format(
+						"message": _('"{0}" is not a valid datetime. Use {1}').format(
 							frappe.bold(escape_html(cstr(value))),
 							frappe.bold(get_user_format(col.date_format)),
 						),
@@ -778,7 +886,7 @@ class Row:
 						"row": self.row_number,
 						"col": col.column_number,
 						"field": df_as_json(df),
-						"message": _("Value {0} must be in the valid duration format: d h m s").format(
+						"message": _('"{0}" is not valid. Use duration format: d h m s').format(
 							frappe.bold(escape_html(cstr(value)))
 						),
 					}
@@ -844,7 +952,7 @@ class Row:
 		return value
 
 	def get_values(self, indexes):
-		return [self.data[i] for i in indexes]
+		return [get_item_at_index(self.data, i) for i in indexes]
 
 	def get(self, index):
 		return self.data[index]
@@ -854,20 +962,42 @@ class Row:
 
 
 class Header(Row):
-	def __init__(self, index, row, doctype, raw_data, column_to_field_map=None):
+	def __init__(
+		self,
+		index,
+		row,
+		doctype,
+		raw_data,
+		column_to_field_map=None,
+		value_lookup=None,
+		reference_doctype=None,
+	):
 		self.index = index
 		self.row_number = index + 1
 		self.data = row
 		self.doctype = doctype
+		self.reference_doctype = reference_doctype or doctype
+		self.value_lookup = value_lookup or {}
 		column_to_field_map = column_to_field_map or frappe._dict()
 
 		self.seen = []
 		self.columns = []
 
+		# 1-based sheet row for each data row (row 1 = header); passed into Column validation
+		value_row_numbers = [self.index + data_idx + 2 for data_idx in range(len(raw_data))]
+
 		for j, header in enumerate(row):
 			column_values = [get_item_at_index(r, j) for r in raw_data]
 			map_to_field = column_to_field_map.get(str(j))
-			column = Column(j, header, self.doctype, column_values, map_to_field, self.seen)
+			column = Column(
+				j,
+				header,
+				self.doctype,
+				column_values,
+				map_to_field,
+				self.seen,
+				value_row_numbers,
+			)
 			self.seen.append(header)
 			self.columns.append(column)
 
@@ -899,7 +1029,16 @@ class Header(Row):
 
 
 class Column:
-	def __init__(self, index, header, doctype, column_values, map_to_field=None, seen=None):
+	def __init__(
+		self,
+		index,
+		header,
+		doctype,
+		column_values,
+		map_to_field=None,
+		seen=None,
+		value_row_numbers=None,
+	):
 		if seen is None:
 			seen = []
 		self.index = index
@@ -907,8 +1046,10 @@ class Column:
 		self.doctype = doctype
 		self.header_title = header
 		self.column_values = column_values
+		self.value_row_numbers = value_row_numbers or list(range(2, len(column_values) + 2))
 		self.map_to_field = map_to_field
 		self.seen = seen
+		self.invalid_value_items = None
 
 		self.date_format = None
 		self.df = None
@@ -926,17 +1067,7 @@ class Column:
 
 		if self.map_to_field and self.map_to_field != "Don't Import":
 			df = get_df_for_column_header(self.doctype, self.map_to_field)
-			if df:
-				self.warnings.append(
-					{
-						"message": _("Mapping column {0} to field {1}").format(
-							frappe.bold(escape_html(header_title) or "<i>Untitled Column</i>"),
-							frappe.bold(df.label),
-						),
-						"type": "info",
-					}
-				)
-			else:
+			if not df:
 				self.warnings.append(
 					{
 						"message": _("Could not map column {0} to field {1}").format(
@@ -979,8 +1110,8 @@ class Column:
 			self.warnings.append(
 				{
 					"col": column_number,
-					"message": _("Cannot match column {0} with any field").format(
-						frappe.bold(escape_html(header_title))
+					"message": _('"{0}" does not match any field — map it in the preview').format(
+						frappe.bold(header_title)
 					),
 					"type": "info",
 				}
@@ -1037,6 +1168,7 @@ class Column:
 		return max_occurred_date_format
 
 	def validate_values(self):
+		"""Validate all values in the column; append column-level warnings with row numbers."""
 		if not self.df:
 			return
 
@@ -1046,25 +1178,10 @@ class Column:
 		if not any(self.column_values):
 			return
 
-		if self.df.fieldtype == "Link":
-			# find all values that dont exist
-			transform = (lambda v: cstr(v).lower()) if frappe.db.db_type == "mariadb" else cstr
-			original_values = {transform(v): cstr(v) for v in self.column_values if v}
-			values = list(original_values.keys())
-			exists = [
-				transform(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})
-			]
-			not_exists = list(set(values) - set(exists))
-			if not_exists:
-				missing_values = ", ".join(escape_html(original_values[v]) for v in not_exists)
-				message = _("The following values do not exist for {0}: {1}")
-				self.warnings.append(
-					{
-						"col": self.column_number,
-						"message": message.format(self.df.options, missing_values),
-						"type": "warning",
-					}
-				)
+		if self.df.fieldtype in ("Link", "Select"):
+			from frappe.core.doctype.data_import.value_mapping import warn_invalid_link_select_values
+
+			warn_invalid_link_select_values(self)
 		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
 			# guess date/time format
 			# TODO: add possibility for user, to define the date format explicitly in the Data Import UI
@@ -1092,21 +1209,6 @@ class Column:
 						"type": "info",
 					}
 				)
-		elif self.df.fieldtype == "Select":
-			options = get_select_options(self.df)
-			if options:
-				values = {cstr(v) for v in self.column_values if v}
-				invalid = values - set(options)
-				if invalid:
-					valid_values = ", ".join(frappe.bold(o) for o in options)
-					invalid_values = ", ".join(frappe.bold(escape_html(i)) for i in invalid)
-					message = _("The following values are invalid: {0}. Values must be one of {1}")
-					self.warnings.append(
-						{
-							"col": self.column_number,
-							"message": message.format(invalid_values, valid_values),
-						}
-					)
 
 	def as_dict(self):
 		d = frappe._dict()
