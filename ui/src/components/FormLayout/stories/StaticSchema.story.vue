@@ -10,13 +10,26 @@ import { reactive } from 'vue'
 import FormLayout from '../FormLayout.vue'
 import { registerFieldType } from '../fieldTypes'
 import DemoLinkField from './DemoLinkField.vue'
+import DemoCurrencyField from './DemoCurrencyField.vue'
 import type { FormLayoutSchema } from '../types'
 
-// Host-side override: swap the lib's select-only Link for one that wires
-// create / redirect / edit. This is the whole integration — no FormLayout prop.
-registerFieldType('Link', DemoLinkField)
+// Override two fieldtypes for this story only. `{ global: false }` scopes the
+// registration to this component's lifetime and auto-restores the previous
+// mapping on unmount — so it doesn't leak into other stories (a global register
+// here would also change the DoctypeLayout story). Called synchronously in setup
+// so it's in place before the child fields render.
+//   - Link: a behaviour-wired field (create/redirect/edit).
+//   - Currency: a *fully custom* field — shows the registry override still wins.
+registerFieldType('Link', DemoLinkField, { global: false })
+registerFieldType('Currency', DemoCurrencyField, { global: false })
 
-const doc = reactive<Record<string, any>>({ reference_id: 'REF-0001' })
+const doc = reactive<Record<string, any>>({
+  reference_id: 'REF-0001',
+  quantity: 1234,
+  amount: 1234567.5,
+  progress: 42.5,
+  currency: 'USD',
+})
 
 const layout: FormLayoutSchema = [
   {
@@ -86,8 +99,10 @@ const layout: FormLayoutSchema = [
             name: 'col-b',
             fields: [
               { fieldname: 'quantity', fieldtype: 'Int', label: 'Quantity' },
-              { fieldname: 'amount', fieldtype: 'Currency', label: 'Amount' },
-              { fieldname: 'progress', fieldtype: 'Percent', label: 'Progress' },
+              // `options` names the sibling field holding this row's currency code.
+              { fieldname: 'currency', fieldtype: 'Select', label: 'Currency', options: 'USD\nEUR\nINR' },
+              { fieldname: 'amount', fieldtype: 'Currency', label: 'Amount', options: 'currency', precision: 2 },
+              { fieldname: 'progress', fieldtype: 'Percent', label: 'Progress', precision: 1 },
               { fieldname: 'notes', fieldtype: 'Text', label: 'Notes', placeholder: 'Add notes' },
               { fieldname: 'secret', fieldtype: 'Password', label: 'Secret' },
             ],
