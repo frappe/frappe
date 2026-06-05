@@ -40,9 +40,9 @@
 					</span>
 					<span class="search-widget-shortcut">
 					{% if(frappe.utils.is_mac()) { %}
-						⌘K
+						{%= frappe.utils.icon("command", "xs") %}K
 					{% } else { %}
-						Ctrl+K
+						Ctrl K
 					{% } %}
 					</span>
 				</button>

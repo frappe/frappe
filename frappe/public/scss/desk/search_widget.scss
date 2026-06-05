@@ -8,6 +8,7 @@
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
+	padding: var(--padding-xs) 10px;
 
 	.search-widget-icon {
 		display: flex;
@@ -22,9 +23,16 @@
 	}
 
 	.search-widget-shortcut {
+		display: flex;
+		align-items: center;
+		gap: 4px;
 		font-size: var(--text-xs);
 		color: var(--text-muted);
 		white-space: nowrap;
-		letter-spacing: 0.02em;
+
+		svg {
+			stroke: var(--text-muted);
+			flex-shrink: 0;
+		}
 	}
 }
