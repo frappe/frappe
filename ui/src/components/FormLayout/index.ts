@@ -3,10 +3,13 @@ export { useFieldTypes } from './useFieldTypes'
 export { registerFieldType, getFieldComponent } from './fieldTypes'
 export type { RegisterFieldTypeOptions } from './fieldTypes'
 export { useDoctypeLayout } from './useDoctypeLayout'
+export { useScriptedLayout } from './useScriptedLayout'
 export { useDoctypeMeta } from './useDoctypeMeta'
 export { buildLayoutFromMeta } from './buildLayoutFromMeta'
 export type { BuildLayoutOptions } from './buildLayoutFromMeta'
 export { resolveLayout } from './resolveLayout'
+export { applyMetaScript } from './applyMetaScript'
+export type { MetaOp } from './applyMetaScript'
 export { evaluateDependsOn } from './dependsOn'
 export {
   flt,
