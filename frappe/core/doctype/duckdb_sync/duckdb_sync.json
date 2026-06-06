@@ -64,7 +64,7 @@
  "modified": "2026-06-06 13:07:21.337878",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "DuckDB Sync Log",
+ "name": "DuckDB Sync",
  "owner": "Administrator",
  "permissions": [
   {
