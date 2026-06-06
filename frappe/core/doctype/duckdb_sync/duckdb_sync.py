@@ -8,7 +8,7 @@ from frappe.database.duckdb.schema import DuckDBTable
 from frappe.model.document import Document
 
 
-class DuckDBSyncLog(Document):
+class DuckDBSync(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -24,7 +24,7 @@ class DuckDBSyncLog(Document):
 		filename: DF.Data | None
 	# end: auto-generated types
 
-	_DOCTYPE_NAME = "DuckDB Sync Log"
+	_DOCTYPE_NAME = "DuckDB Sync"
 
 	def before_save(self):
 		filename = self.doc_type.lower().replace(" ", "_")
@@ -61,7 +61,7 @@ class DuckDBSyncLog(Document):
 	@frappe.whitelist()
 	def sync_data(self):
 		frappe.enqueue(
-			method="frappe.core.doctype.duckdb_sync_log.duckdb_sync_log.start_data_sync",
+			method="frappe.core.doctype.duckdb_sync.duckdb_sync.start_data_sync",
 			queue="long",
 			is_async=True,
 			enqueue_after_commit=True,
@@ -85,7 +85,7 @@ def start_data_sync(docname: str):
 		duck_tb = DuckDBTable(dt)
 
 		# connect to mariadb
-		doc = frappe.get_doc("DuckDB Sync Log", docname)
+		doc = frappe.get_doc("DuckDB Sync", docname)
 		conn = doc.get_duckdb_conn()
 		conn.sql(
 			f"attach 'user={frappe.conf.db_name} password={frappe.conf.db_password} host={frappe.conf.db_host} database={frappe.conf.db_name}' as mariadb_db (TYPE mysql);"
@@ -102,7 +102,7 @@ def start_data_sync(docname: str):
 
 		# schedule next
 		frappe.enqueue(
-			method="frappe.core.doctype.duckdb_sync_log.duckdb_sync_log.start_data_sync",
+			method="frappe.core.doctype.duckdb_sync.duckdb_sync.start_data_sync",
 			queue="long",
 			is_async=True,
 			enqueue_after_commit=True,
