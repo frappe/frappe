@@ -12,17 +12,9 @@
   "column_break_nopt",
   "drop_tables",
   "drop_all_tables",
-  "close_connection",
-  "section_break_eydd",
-  "doctype_to_sync"
+  "close_connection"
  ],
  "fields": [
-  {
-   "fieldname": "doctype_to_sync",
-   "fieldtype": "Table",
-   "label": "DocType To Sync",
-   "options": "DuckDB Sync Item"
-  },
   {
    "fieldname": "force_sync",
    "fieldtype": "Button",
@@ -37,10 +29,6 @@
    "fieldname": "drop_all_tables",
    "fieldtype": "Button",
    "label": "Drop All Tables"
-  },
-  {
-   "fieldname": "section_break_eydd",
-   "fieldtype": "Section Break"
   },
   {
    "fieldname": "connect",
@@ -66,7 +54,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-06-04 12:16:10.814924",
+ "modified": "2026-06-06 13:01:33.706737",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DuckDB Dashboard",
