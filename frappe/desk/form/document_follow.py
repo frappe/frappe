@@ -212,11 +212,11 @@ def get_version(doctype, doc_name, frequency, user):
 			time = frappe.utils.format_datetime(v.modified, "hh:mm a")
 			timeline_items = []
 			if change.changed:
-				timeline_items = get_field_changed(change.changed, time, doctype, doc_name, v)
+				timeline_items = get_field_changed(change.changed, time, doctype, doc_name, v, user)
 			if change.row_changed:
-				timeline_items = get_row_changed(change.row_changed, time, doctype, doc_name, v)
+				timeline_items = get_row_changed(change.row_changed, time, doctype, doc_name, v, user)
 			if change.added:
-				timeline_items = get_added_row(change.added, time, doctype, doc_name, v)
+				timeline_items = get_added_row(change.added, time, doctype, doc_name, v, user)
 
 			timeline = timeline + timeline_items
 
@@ -270,14 +270,17 @@ def get_follow_users(doctype, doc_name):
 	)
 
 
-def get_row_changed(row_changed, time, doctype, doc_name, v):
+def get_row_changed(row_changed, time, doctype, doc_name, v, user):
 	from frappe.core.utils import html2text
 
 	items = []
 	for d in row_changed:
-		d[2] = d[2] if d[2] else " "
-		d[0] = d[0] if d[0] else " "
-		d[3][0][1] = d[3][0][1] if d[3][0][1] else " "
+		# d[0] = fieldname of child table in parent doctype, d[3][0][0] = fieldname in child table
+		if not _can_read_child_table_field(doctype, d[0], d[3][0][0], user):
+			continue
+
+		d[0] = d[0] if d[0] else " "  # fieldname of child table in parent doctype
+		d[3][0][1] = d[3][0][1] if d[3][0][1] else " "  # old value of the field in the child document
 		items.append(
 			{
 				"time": v.modified,
@@ -298,28 +301,32 @@ def get_row_changed(row_changed, time, doctype, doc_name, v):
 	return items
 
 
-def get_added_row(added, time, doctype, doc_name, v):
+def get_added_row(added, time, doctype, doc_name, v, user):
 	return [
 		{
 			"time": v.modified,
-			"data": {"to": d[0], "time": time},
+			"data": {"to": d[0], "time": time},  # d[0] = fieldname
 			"doctype": doctype,
 			"doc_name": doc_name,
 			"type": "row added",
 			"by": v.modified_by,
 		}
 		for d in added
+		if d[0] in frappe.get_meta(doctype).get_permitted_fieldnames(permission_type="read", user=user)
 	]
 
 
-def get_field_changed(changed, time, doctype, doc_name, v):
+def get_field_changed(changed, time, doctype, doc_name, v, user):
 	from frappe.core.utils import html2text
 
 	items = []
 	for d in changed:
-		d[1] = d[1] if d[1] else " "
-		d[2] = d[2] if d[2] else " "
-		d[0] = d[0] if d[0] else " "
+		if d[0] not in frappe.get_meta(doctype).get_permitted_fieldnames(permission_type="read", user=user):
+			continue
+
+		d[1] = d[1] if d[1] else " "  # old value
+		d[2] = d[2] if d[2] else " "  # new value
+		d[0] = d[0] if d[0] else " "  # fieldname
 		items.append(
 			{
 				"time": v.modified,
@@ -374,3 +381,38 @@ def _get_filters(frequency, user):
 		]
 
 	return filters
+
+
+def _can_read_child_table_field(doctype: str, table_field: str, child_field: str, user: str) -> bool:
+	"""Check whether a user may read a child table field change.
+
+	Parameters
+	----------
+	doctype : str
+		Parent DocType that owns the child table field.
+	table_field : str
+		Table fieldname on the parent DocType.
+	child_field : str
+		Fieldname on the child DocType row that changed.
+	user : str
+		User whose roles and permlevels are used for the check.
+
+	Returns
+	-------
+	bool
+		True if the user can read both the parent table field and the
+		child field, otherwise False.
+	"""
+
+	# check if the user can read the table field in the parent document
+	if table_field not in frappe.get_meta(doctype).get_permitted_fieldnames(
+		permission_type="read", user=user
+	):
+		return False
+
+	child_doctype = frappe.get_meta(doctype).get_field(table_field).options  # get the child doctype name
+	return child_field in frappe.get_meta(
+		child_doctype
+	).get_permitted_fieldnames(  # check if the user can read the field in the child document
+		permission_type="read", parenttype=doctype, user=user
+	)
