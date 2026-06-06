@@ -15,11 +15,11 @@ class DuckDBSyncLog(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.duckdb_sync_log_item.duckdb_sync_log_item import DuckDBSyncLogItem
+		from frappe.core.doctype.duckdb_sync_item.duckdb_sync_item import DuckDBSyncItem
 		from frappe.types import DF
 
 		amended_from: DF.Link | None
-		db_tables: DF.Table[DuckDBSyncLogItem]
+		db_tables: DF.Table[DuckDBSyncItem]
 		doc_type: DF.Link | None
 		filename: DF.Data | None
 	# end: auto-generated types
@@ -70,7 +70,7 @@ class DuckDBSyncLog(Document):
 
 
 def start_data_sync(docname: str):
-	sync_dt = qb.DocType("DuckDB Sync Log Item")
+	sync_dt = qb.DocType("DuckDB Sync Item")
 	if (
 		unsynced := qb.from_(sync_dt)
 		.select(sync_dt.name, sync_dt.table)
@@ -98,7 +98,7 @@ def start_data_sync(docname: str):
 		conn.close()
 
 		# update flag
-		frappe.db.set_value("DuckDB Sync Log Item", name, "synced", True)
+		frappe.db.set_value("DuckDB Sync Item", name, "synced", True)
 
 		# schedule next
 		frappe.enqueue(
