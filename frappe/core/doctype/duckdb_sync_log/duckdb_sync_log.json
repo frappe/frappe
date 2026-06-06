@@ -19,7 +19,7 @@
    "fieldname": "db_tables",
    "fieldtype": "Table",
    "label": "DB Tables",
-   "options": "DuckDB Sync Log Item"
+   "options": "DuckDB Sync Item"
   },
   {
    "fieldname": "doc_type",
@@ -61,7 +61,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-06-05 12:12:12.970057",
+ "modified": "2026-06-06 13:07:21.337878",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DuckDB Sync Log",
