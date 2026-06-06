@@ -184,6 +184,9 @@ frappe.ui.form.Attachments = class Attachments {
 		let preview_type = this.get_preview_type(attachment, file_url);
 		let escaped_file_name = frappe.utils.escape_html(file_name);
 		let escaped_file_url = frappe.utils.escape_html(file_url);
+		let escaped_absolute_file_url = frappe.utils.escape_html(
+			this.get_absolute_file_url(file_url)
+		);
 		let preview_html = "";
 
 		if (preview_type === "pdf") {
@@ -217,10 +220,19 @@ frappe.ui.form.Attachments = class Attachments {
 						<div class="ellipsis" title="${escaped_file_name}">${escaped_file_name}</div>
 						<a class="btn btn-link icon-btn attachment-preview-open-link"
 							href="${escaped_file_url}" target="_blank" rel="noopener noreferrer"
-							title="${__("Open in new tab")}"
+							title="${__("Open file in new tab")}"
 						>
 							${frappe.utils.icon("es-line-arrow-up-right", "sm")}
 						</a>
+						<span class="attachment-preview-title-divider"></span>
+						<button class="btn btn-link icon-btn attachment-preview-copy-link"
+							type="button"
+							data-file-url="${escaped_absolute_file_url}"
+							title="${__("Copy file URL to clipboard")}"
+							aria-label="${__("Copy file URL to clipboard")}"
+						>
+							${frappe.utils.icon("es-line-copy", "sm")}
+						</button>
 					</div>
 					<button class="btn btn-link icon-btn attachment-preview-close" type="button" title="${__(
 						"Close"
@@ -235,6 +247,10 @@ frappe.ui.form.Attachments = class Attachments {
 
 		this.attachment_preview.find(".attachment-preview-close").on("click", () => {
 			this.hide_attachment_preview();
+		});
+
+		this.attachment_preview.find(".attachment-preview-copy-link").on("click", (event) => {
+			frappe.utils.copy_to_clipboard(event.currentTarget.dataset.fileUrl);
 		});
 
 		$(document)
@@ -638,6 +654,15 @@ frappe.ui.form.Attachments = class Attachments {
 
 		return file_url;
 	}
+
+	get_absolute_file_url(file_url) {
+		try {
+			return new URL(file_url, window.location.origin).href;
+		} catch {
+			return file_url;
+		}
+	}
+
 	get_file_id_from_file_url(file_url) {
 		var fid;
 		$.each(this.get_attachments(), function (i, attachment) {

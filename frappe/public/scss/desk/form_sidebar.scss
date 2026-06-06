@@ -573,6 +573,12 @@ body[data-route^="Form"] .attachment-preview {
 		min-width: 0;
 	}
 
+	.attachment-preview-title-divider {
+		width: 1px;
+		height: 16px;
+		background-color: var(--border-color);
+	}
+
 	.attachment-preview-body {
 		position: relative;
 		height: calc(100% - 41px);
