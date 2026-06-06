@@ -256,7 +256,7 @@ frappe.ui.form.Attachments = class Attachments {
 			});
 
 		if (preview_type === "csv") {
-			this.render_csv_preview(file_url, escaped_file_url, preview_request_id);
+			this.render_csv_preview(attachment, file_url, escaped_file_url, preview_request_id);
 		}
 	}
 
@@ -298,8 +298,13 @@ frappe.ui.form.Attachments = class Attachments {
 		</div>`;
 	}
 
-	async render_csv_preview(file_url, escaped_file_url, preview_request_id) {
+	async render_csv_preview(attachment, file_url, escaped_file_url, preview_request_id) {
 		try {
+			let file_size = Number(attachment.file_size);
+			if (file_size && file_size > this.max_csv_preview_size) {
+				throw this.get_csv_size_error();
+			}
+
 			let response = await fetch(file_url);
 			if (!response.ok) {
 				throw new Error("Unable to fetch CSV");
@@ -335,7 +340,9 @@ frappe.ui.form.Attachments = class Attachments {
 					this.get_unsupported_preview_html(
 						escaped_file_url,
 						error.code === "CSV_PREVIEW_TOO_LARGE"
-							? __("File is too large to preview.")
+							? __("Only files up to {0} MB are supported for preview.", [
+									this.max_csv_preview_size / (1024 * 1024),
+							  ])
 							: __("Preview not available for this file type.")
 					)
 				);
@@ -343,22 +350,12 @@ frappe.ui.form.Attachments = class Attachments {
 	}
 
 	async get_csv_response_text(response) {
-		let content_length = Number(response.headers.get("content-length"));
-		if (content_length && content_length > this.max_csv_preview_size) {
-			throw this.get_csv_size_error();
-		}
-
 		if (!response.body?.getReader) {
-			let csv_text = await response.text();
-			if (new TextEncoder().encode(csv_text).length > this.max_csv_preview_size) {
-				throw this.get_csv_size_error();
-			}
-			return csv_text;
+			return await response.text();
 		}
 
 		let reader = response.body.getReader();
 		let decoder = new TextDecoder();
-		let received_length = 0;
 		let csv_text = "";
 		let is_done = false;
 
@@ -369,11 +366,6 @@ frappe.ui.form.Attachments = class Attachments {
 				break;
 			}
 
-			received_length += value.length;
-			if (received_length > this.max_csv_preview_size) {
-				await reader.cancel();
-				throw this.get_csv_size_error();
-			}
 			csv_text += decoder.decode(value, { stream: true });
 		}
 
