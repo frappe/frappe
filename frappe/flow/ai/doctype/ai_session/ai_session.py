@@ -4,13 +4,21 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
 
+if TYPE_CHECKING:
+	from collections.abc import Generator
+
+	from flow.ai.doctype.ai_run.ai_run import AIRun
+	from flow.lib.agent import Event
+
 TITLE_MAX_LENGTH = 80
+# A "Running" run older than this is treated as abandoned and no longer blocks the session.
+RUNNING_STALE_SECONDS = 300
 
 
 class AISession(Document):
@@ -89,6 +97,107 @@ class AISession(Document):
 				},
 			)
 		self.save(ignore_permissions=True)
+
+	def chat(
+		self,
+		input: str,
+		*,
+		source: str = "Manual",
+		trigger: str | None = None,
+		stream: bool = False,
+	) -> AIRun | Generator[Event]:
+		"""Run one turn and persist it as an AI Run. With `stream=True`, returns an event generator."""
+		from flow.ai.doctype.ai_run.ai_run import create_run, stream_with_persistence
+
+		self.reload()
+		self._assert_not_blocked()
+		if not self.title:
+			self.db_set("title", derive_title(input))
+
+		run_input = self._build_input(input)
+		run = create_run(
+			source=source,
+			input=input,
+			session=self.name,
+			trigger=trigger,
+			config_snapshot=self._snapshot,
+		)
+
+		if stream:
+			return stream_with_persistence(lambda: self._runtime.run(run_input, stream=True), run)
+
+		try:
+			result = self._runtime.run(run_input)
+		except Exception as e:
+			run.mark_failed(str(e))
+			raise
+		run.apply_result(result)
+		return run
+
+	def resume(self, answers: dict[str, Any], *, stream: bool = False) -> AIRun | Generator[Event]:
+		"""Resume this session's paused run with the user's answers."""
+		from flow.ai.doctype.ai_run.ai_run import stream_with_persistence
+
+		run_name = frappe.db.get_value(
+			"AI Run",
+			{"session": self.name, "status": "Paused"},
+			"name",
+			order_by="creation desc",
+		)
+		if not run_name:
+			frappe.throw(_("This session has no paused run to resume."), title=_("Nothing to Resume"))
+		run = frappe.get_doc("AI Run", run_name)
+
+		self.reload()
+		messages = self.transcript()
+		if not messages:
+			frappe.throw(_("This session has no transcript to resume from."))
+
+		if stream:
+			return stream_with_persistence(lambda: self._runtime.resume(messages, answers, stream=True), run)
+
+		try:
+			result = self._runtime.resume(messages, answers)
+		except Exception as e:
+			run.mark_failed(str(e))
+			raise
+		run.apply_result(result)
+		return run
+
+	def _build_input(self, new_input: str) -> str | list[dict[str, Any]]:
+		transcript = self.transcript()
+		if not transcript:
+			return new_input
+		transcript.append({"role": "user", "content": new_input})
+		return transcript
+
+	def _assert_not_blocked(self) -> None:
+		blocking = frappe.db.get_value(
+			"AI Run",
+			{"session": self.name, "status": ("in", ["Paused", "Running"])},
+			["name", "status", "creation"],
+			order_by="creation desc",
+			as_dict=True,
+		)
+		if not blocking:
+			return
+		if blocking.status == "Paused":
+			frappe.throw(
+				_("This session has a paused run. Resume it before starting a new turn."),
+				title=_("Run Paused"),
+			)
+		age = frappe.utils.time_diff_in_seconds(frappe.utils.now_datetime(), blocking.creation)
+		if age > RUNNING_STALE_SECONDS:
+			frappe.db.set_value(
+				"AI Run",
+				blocking.name,
+				{"status": "Failed", "error": "Run abandoned: stream ended without completing."},
+			)
+			return
+		frappe.throw(
+			_("This session already has a run in progress."),
+			title=_("Run In Progress"),
+		)
 
 
 def derive_title(text: str) -> str:
