@@ -9,8 +9,8 @@ from frappe.query_builder.terms import SubQuery
 from frappe.utils.data import cstr
 
 
-class DeskEntity:
-	"""Builds the desk entities (workspaces, dashboards, pages and reports) for the boot payload."""
+class DeskViews:
+	"""Builds the desk views (workspaces, dashboards, pages and reports) for the boot payload."""
 
 	# allowed-entity caches refresh every six hours
 	CACHE_EXPIRY = 6 * 60 * 60
