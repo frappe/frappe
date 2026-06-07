@@ -8,10 +8,15 @@ from datetime import date
 import frappe
 from frappe.core.utils import find
 from frappe.desk.doctype.event.event import get_events
+<<<<<<< HEAD
 from frappe.test_runner import make_test_objects
 from frappe.tests.utils import FrappeTestCase
 
 test_records = frappe.get_test_records("Event")
+=======
+from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import make_test_objects, toggle_test_mode
+>>>>>>> 2876419137 (fix: show calendar events for users in a different timezone than the system)
 
 
 class TestEvent(FrappeTestCase):
@@ -54,6 +59,26 @@ class TestEvent(FrappeTestCase):
 		self.assertTrue("_Test Event 1" in subjects)
 		self.assertFalse("_Test Event 3" in subjects)
 		self.assertFalse("_Test Event 2" in subjects)
+
+	def test_get_events_for_different_timezone(self):
+		frappe.set_user("Administrator")
+		frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Event Different Timezone",
+				"event_type": "Public",
+				"starts_on": "2025-05-10 10:00:00",
+			}
+		).insert()
+
+		original_in_test = frappe.in_test
+		toggle_test_mode(True)
+		try:
+			events = get_events(start="2025-04-30 23:00:00", end="2025-06-10 23:00:00", user="Administrator")
+		finally:
+			toggle_test_mode(original_in_test)
+
+		self.assertIn("_Test Event Different Timezone", [event.subject for event in events])
 
 	def test_revert_logic(self):
 		ev = frappe.get_doc(self.test_records[0]).insert()
