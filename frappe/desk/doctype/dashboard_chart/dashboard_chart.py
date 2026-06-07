@@ -7,7 +7,7 @@ from typing import Any
 
 import frappe
 from frappe import _
-from frappe.desk.desk_entity import DeskEntity
+from frappe.desk.desk_views import DeskViews
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
@@ -40,7 +40,7 @@ def get_permission_query_conditions(user):
 	module_condition = False
 
 	allowed_doctypes = [frappe.db.escape(doctype) for doctype in get_doctypes_with_read(user)]
-	allowed_reports = [frappe.db.escape(report) for report in DeskEntity.get_allowed_report_names(user=user)]
+	allowed_reports = [frappe.db.escape(report) for report in DeskViews.get_allowed_report_names(user=user)]
 	allowed_modules = [
 		frappe.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user(user)
 	]
@@ -78,7 +78,7 @@ def has_permission(doc, ptype, user):
 		if has_common(roles, allowed):
 			return True
 	elif doc.chart_type == "Report":
-		if doc.report_name in DeskEntity.get_allowed_report_names(user=user):
+		if doc.report_name in DeskViews.get_allowed_report_names(user=user):
 			return True
 	else:
 		allowed_doctypes = get_doctypes_with_read(user)

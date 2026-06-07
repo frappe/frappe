@@ -13,7 +13,7 @@ from frappe.cache_manager import (
 	build_table_count_cache,
 )
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
-from frappe.desk.desk_entity import DeskEntity
+from frappe.desk.desk_views import DeskViews
 
 
 def handle_not_exist(fn):
@@ -49,8 +49,8 @@ class Workspace:
 
 		self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
 
-		self.allowed_pages = DeskEntity.get_allowed_pages(cache=True)
-		self.allowed_reports = DeskEntity.get_allowed_reports(cache=True)
+		self.allowed_pages = DeskViews.get_allowed_pages(cache=True)
+		self.allowed_reports = DeskViews.get_allowed_reports(cache=True)
 
 		if not minimal:
 			if self.doc.content:

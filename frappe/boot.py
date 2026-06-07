@@ -13,7 +13,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 )
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
-from frappe.desk.desk_entity import DeskEntity
+from frappe.desk.desk_views import DeskViews
 from frappe.desk.doctype.changelog_feed.changelog_feed import get_changelog_feed_items
 from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
@@ -54,9 +54,9 @@ def get_bootinfo():
 
 	bootinfo.modules = {}
 	bootinfo.module_list = []
-	desk_entity = DeskEntity()
-	desk_entity.build_entities()
-	desk_entity.add_to_boot(bootinfo)
+	desk_views = DeskViews()
+	desk_views.build_entities()
+	desk_views.add_to_boot(bootinfo)
 	load_desktop_data(bootinfo)
 	bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
