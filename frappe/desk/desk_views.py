@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from functools import cached_property
+
 import frappe
 from frappe.permissions import has_permission
 from frappe.query_builder import DocType
@@ -35,6 +37,63 @@ class DeskViews:
 		bootinfo.allowed_reports = self.reports
 		bootinfo.workspaces = self.workspaces
 		bootinfo.dashboards = self.dashboards
+
+	# The properties below are the per-user view-permission data read by `is_item_allowed`.
+	# They load lazily and cache on the instance, so consumers don't need to populate them.
+
+	@cached_property
+	def allowed_pages(self):
+		return self.get_allowed_pages(cache=True)
+
+	@cached_property
+	def allowed_reports(self):
+		return self.get_allowed_reports(cache=True)
+
+	@cached_property
+	def allowed_dashboards(self):
+		return {d["name"] for d in self.get_allowed_dashboards(cache=True)}
+
+	@cached_property
+	def restricted_doctypes(self):
+		from frappe.cache_manager import build_domain_restricted_doctype_cache
+
+		return frappe.cache.get_value("domain_restricted_doctypes") or build_domain_restricted_doctype_cache()
+
+	@cached_property
+	def restricted_pages(self):
+		from frappe.cache_manager import build_domain_restricted_page_cache
+
+		return frappe.cache.get_value("domain_restricted_pages") or build_domain_restricted_page_cache()
+
+	def is_item_allowed(self, name, item_type, allowed_workspaces=None):
+		"""Return whether the user may see a sidebar/workspace item.
+
+		Relies on the consumer setting `can_read`, `allowed_pages`, `allowed_reports`,
+		`allowed_dashboards`, `restricted_doctypes` and `restricted_pages` on the instance.
+		"""
+		if frappe.session.user == "Administrator":
+			return True
+
+		item_type = item_type.lower()
+
+		if item_type == "doctype":
+			return (
+				name in (self.can_read or [])
+				and name in (self.restricted_doctypes or [])
+				and frappe.has_permission(name)
+			)
+		if item_type == "page":
+			return name in self.allowed_pages and name in self.restricted_pages
+		if item_type == "report":
+			return not frappe.db.get_value("Report", name, "disabled") and name in self.allowed_reports
+		if item_type == "dashboard":
+			return name in (self.allowed_dashboards or [])
+		if item_type in ("help", "url"):
+			return True
+		if item_type == "workspace":
+			return name in (allowed_workspaces or [])
+
+		return False
 
 	@classmethod
 	def get_allowed_pages(cls, cache=False, user: str | None = None):
@@ -195,5 +254,16 @@ class DeskViews:
 			non_permitted_reports = set(has_role.keys()) - {r.name for r in reports}
 			for r in non_permitted_reports:
 				has_role.pop(r, None)
+
+			# a report is accessible only if the user can read its reference doctype
+			ref_doctype_access = {}
+			for name, report in list(has_role.items()):
+				ref_doctype = report.get("ref_doctype")
+				if not ref_doctype:
+					continue
+				if ref_doctype not in ref_doctype_access:
+					ref_doctype_access[ref_doctype] = has_permission(ref_doctype, user=user, print_logs=False)
+				if not ref_doctype_access[ref_doctype]:
+					has_role.pop(name, None)
 
 		return has_role
