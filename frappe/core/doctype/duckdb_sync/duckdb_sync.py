@@ -43,7 +43,7 @@ class DuckDBSync(Document):
 
 	def on_submit(self):
 		self.sync_schema()
-		self.sync_data()
+		start_data_sync(self.name)
 
 	def get_duckdb_conn(self):
 		return get_duckdb(False, frappe.conf.db_name, self.filename)
@@ -58,18 +58,21 @@ class DuckDBSync(Document):
 				ddbt.sync(duck_conn)
 		duck_conn.close()
 
-	@frappe.whitelist()
-	def sync_data(self):
-		frappe.enqueue(
-			method="frappe.core.doctype.duckdb_sync.duckdb_sync.start_data_sync",
-			queue="long",
-			is_async=True,
-			enqueue_after_commit=True,
-			docname=self.name,
-		)
 
-
+@frappe.whitelist()
 def start_data_sync(docname: str):
+	# TODO: permissions
+	frappe.enqueue(
+		method="frappe.core.doctype.duckdb_sync.duckdb_sync.sync_data_to_duckdb",
+		queue="long",
+		is_async=True,
+		enqueue_after_commit=True,
+		docname=docname,
+	)
+
+
+def sync_data_to_duckdb(docname: str):
+	# TODO: permissions
 	sync_dt = qb.DocType("DuckDB Sync Item")
 	if (
 		unsynced := qb.from_(sync_dt)
@@ -102,7 +105,7 @@ def start_data_sync(docname: str):
 
 		# schedule next
 		frappe.enqueue(
-			method="frappe.core.doctype.duckdb_sync.duckdb_sync.start_data_sync",
+			method="frappe.core.doctype.duckdb_sync.duckdb_sync.sync_data_to_duckdb",
 			queue="long",
 			is_async=True,
 			enqueue_after_commit=True,
