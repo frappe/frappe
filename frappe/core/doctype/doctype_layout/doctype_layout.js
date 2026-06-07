@@ -18,10 +18,6 @@ frappe.ui.form.on("DocType Layout", {
 		}
 	},
 
-	onload_post_render(frm) {
-		frm.events.render_builder(frm);
-	},
-
 	tab_break_form(frm) {
 		frm.events.render_builder(frm);
 	},
@@ -51,6 +47,7 @@ frappe.ui.form.on("DocType Layout", {
 			frm.disable_save();
 		}
 		frm.events.add_buttons(frm);
+		frm.events.render_builder(frm);
 	},
 
 	async document_type(frm) {
@@ -107,23 +104,39 @@ frappe.ui.form.on("DocType Layout", {
 		if (!frm.doc.document_type) return;
 
 		const wrapper = $(frm.fields_dict["form_builder"].wrapper).closest(".tab-pane");
+		const builder = frappe.layout_builder;
 
-		if (frappe.layout_builder?.store && frappe.layout_builder.frm === frm) {
-			frappe.layout_builder.setup_page_actions();
-			frappe.layout_builder.store.fetch();
+		if (builder?.store && builder.frm === frm) {
+			// frm (and the mounted Vue app) is reused across records of this DocType.
+			// Re-fetch only when the record or its target doctype changed, so plain
+			// refreshes don't wipe in-progress edits in the builder.
+			if (builder.docname === frm.doc.name && builder.doctype === frm.doc.document_type) {
+				return;
+			}
+			builder.docname = frm.doc.name;
+			builder.doctype = frm.doc.document_type;
+			builder.update_store();
+			builder.setup_page_actions();
+			builder.store.fetch();
 			return;
 		}
 
-		if (frappe.layout_builder) {
-			frappe.layout_builder.$wrapper = wrapper;
-			frappe.layout_builder.frm = frm;
-			frappe.layout_builder.page = frm.page;
-			frappe.layout_builder.doctype = frm.doc.document_type;
-			frappe.layout_builder.is_layout = true;
-			frappe.layout_builder.init(true);
-			frappe.layout_builder.store.fetch();
+		if (builder) {
+			builder.$wrapper = wrapper;
+			builder.frm = frm;
+			builder.page = frm.page;
+			builder.docname = frm.doc.name;
+			builder.doctype = frm.doc.document_type;
+			builder.is_layout = true;
+			builder.init(true);
+			builder.store.fetch();
 			return;
 		}
+
+		// `refresh` can fire more than once before the bundle loads — guard so
+		// only one FormBuilder instance is ever mounted.
+		if (frm._layout_builder_loading) return;
+		frm._layout_builder_loading = true;
 
 		frappe.require("form_builder.bundle.js").then(() => {
 			frappe.layout_builder = new frappe.ui.FormBuilder({
@@ -133,6 +146,8 @@ frappe.ui.form.on("DocType Layout", {
 				customize: false,
 				is_layout: true,
 			});
+			frappe.layout_builder.docname = frm.doc.name;
+			frm._layout_builder_loading = false;
 
 			// tab.refresh() is invoked by refresh_tabs() on every layout.refresh() and
 			// frm.refresh_field() call. It hides the tab when all its sections appear
