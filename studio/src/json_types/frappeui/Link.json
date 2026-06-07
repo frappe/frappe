@@ -5,52 +5,65 @@
     "LinkProps": {
       "type": "object",
       "properties": {
-        "doctype": {
-          "type": "string"
-        },
-        "variant": {
-          "type": "string",
-          "enum": [
-            "subtle",
-            "outline",
-            "ghost"
-          ]
-        },
         "label": {
           "type": "string"
         },
-        "placeholder": {
+        "description": {
           "type": "string"
         },
-        "filters": {
-          "type": "object",
-          "additionalProperties": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "array",
-                "items": {
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
                   "type": "string"
                 },
-                "minItems": 2,
-                "maxItems": 2
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                },
+                "messages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
               },
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "number"
-              }
-            ]
-          }
+              "additionalProperties": false,
+              "required": [
+                "message",
+                "name"
+              ]
+            }
+          ]
         },
         "required": {
           "type": "boolean"
         },
-        "allowCreate": {
+        "id": {
+          "type": "string"
+        },
+        "doctype": {
+          "type": "string"
+        },
+        "filters": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "creatable": {
           "type": "boolean"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "placeholder": {
+          "type": "string"
         }
       },
       "required": [

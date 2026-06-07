@@ -55,11 +55,26 @@
         "max": {
           "type": "number"
         },
+        "step": {
+          "type": "number",
+          "enum": [
+            1,
+            0.5
+          ]
+        },
         "rating_from": {
           "type": "number"
         },
+        "disabled": {
+          "type": "boolean"
+        },
         "readonly": {
           "type": "boolean"
+        },
+        "icon": {
+          "type": [
+            "string"
+          ]
         },
         "size": {
           "type": "string",
