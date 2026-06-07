@@ -15,7 +15,13 @@ from frappe.modules.utils import create_directory_on_app_path
 from frappe.utils.caching import site_cache
 
 
+<<<<<<< HEAD
 class WorkspaceSidebar(Document):
+=======
+class WorkspaceSidebar(Document, DeskViews):
+	_DOCTYPE_NAME = "Workspace Sidebar"
+
+>>>>>>> a25a51601d (refactor: use Desk Views class)
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -39,12 +45,15 @@ class WorkspaceSidebar(Document):
 		if not frappe.flags.in_migrate:
 			self.user = frappe.get_user()
 			self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
+<<<<<<< HEAD
 			self.allowed_modules = self.get_cached("user_allowed_modules", self.get_allowed_modules)
 
 		self.allowed_pages = get_allowed_pages(cache=True)
 		self.allowed_reports = get_allowed_reports(cache=True)
 		self.restricted_doctypes = frappe.cache.get_value("domain_restricted_doctypes")
 		self.restricted_pages = frappe.cache.get_value("domain_restricted_pages")
+=======
+>>>>>>> a25a51601d (refactor: use Desk Views class)
 
 	def get_can_read_items(self):
 		if not self.user.can_read:
@@ -79,31 +88,6 @@ class WorkspaceSidebar(Document):
 			delete_file(self.app, old)
 			self.export_sidebar()
 
-	def is_item_allowed(self, name, item_type, allowed_workspaces):
-		if frappe.session.user == "Administrator":
-			return True
-
-		item_type = item_type.lower()
-
-		if item_type == "doctype":
-			return (
-				name in (self.can_read or [])
-				and name in (self.restricted_doctypes or [])
-				and frappe.has_permission(name)
-			)
-		if item_type == "page":
-			return name in self.allowed_pages and name in self.restricted_pages
-		if item_type == "report":
-			return name in self.allowed_reports
-		if item_type == "help":
-			return True
-		if item_type == "dashboard":
-			return True
-		if item_type == "url":
-			return True
-		if item_type == "workspace":
-			return name in allowed_workspaces
-
 	def get_cached(self, cache_key, fallback_fn):
 		value = frappe.cache.get_value(cache_key, user=frappe.session.user)
 		if value is not None:
@@ -133,12 +117,6 @@ class WorkspaceSidebar(Document):
 		counts = Counter(all_modules_in_sidebars)
 		if counts and counts.most_common(1)[0]:
 			return counts.most_common(1)[0][0]
-
-	def get_allowed_modules(self):
-		if not self.user.allow_modules:
-			self.user.build_permissions()
-
-		return self.user.allow_modules
 
 
 def delete_file(app, title):
