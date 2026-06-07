@@ -12,11 +12,15 @@ frappe.ui.form.on("DuckDB Sync", {
 				},
 			};
 		});
-	},
-	sync_data: function (frm) {
-		frm.call({
-			doc: frm.doc,
-			method: "sync_data",
-		});
+		if (frm.doc.docstatus == 1) {
+			frm.add_custom_button(__("Sync Data"), function () {
+				frappe.call({
+					method: "frappe.core.doctype.duckdb_sync.duckdb_sync.start_data_sync",
+					args: {
+						docname: frm.doc.name,
+					},
+				});
+			});
+		}
 	},
 });
