@@ -53,7 +53,7 @@ def _resolve_module(doc: AITool) -> Tool:
 		)
 
 	if isinstance(obj, Tool):
-		return _build_tool(doc, obj.parameters, obj.func)
+		return _build_tool(doc, obj.parameters, obj.func, confirm_prompt=obj.confirm_prompt)
 	if callable(obj):
 		return _build_tool(doc, build_schema(obj), obj)
 	frappe.throw(
@@ -67,13 +67,14 @@ def _resolve_script(doc: AITool, *, restrict_commit_rollback: bool = False) -> T
 	return _build_tool(doc, schema_from_code(doc.code), runner)
 
 
-def _build_tool(doc: AITool, parameters: dict[str, Any], func: Any) -> Tool:
+def _build_tool(doc: AITool, parameters: dict[str, Any], func: Any, *, confirm_prompt: Any = None) -> Tool:
 	return Tool(
 		name=doc.slug,
 		description=doc.description,
 		parameters=parameters,
 		func=func,
 		requires_confirmation=bool(doc.requires_confirmation),
+		confirm_prompt=confirm_prompt,
 	)
 
 

@@ -15,6 +15,10 @@ if TYPE_CHECKING:
 	from flow.ai.doctype.ai_session.ai_session import AISession
 	from flow.lib.agent import Agent, Event
 
+# A "Running" run older than this is treated as abandoned (its stream died without
+# persisting a terminal state), so it no longer blocks new turns in the session.
+RUNNING_STALE_SECONDS = 300
+
 
 class Session:
 	"""Runtime handle over an AI Session: the persisted conversation plus the runtime that
@@ -113,19 +117,32 @@ class Session:
 		blocking = frappe.db.get_value(
 			"AI Run",
 			{"session": self._doc.name, "status": ("in", ["Paused", "Running"])},
-			"status",
+			["name", "status", "creation"],
 			order_by="creation desc",
+			as_dict=True,
 		)
-		if blocking == "Paused":
+		if not blocking:
+			return
+		if blocking.status == "Paused":
 			frappe.throw(
 				_("This session has a paused run. Resume it before starting a new turn."),
 				title=_("Run Paused"),
 			)
-		if blocking == "Running":
-			frappe.throw(
-				_("This session already has a run in progress."),
-				title=_("Run In Progress"),
+		# A "Running" run whose stream died without persisting (client disconnect, restart)
+		# would block the session forever. Recover it once it's clearly stale; otherwise a
+		# genuinely in-progress turn still blocks concurrent sends.
+		age = frappe.utils.time_diff_in_seconds(frappe.utils.now_datetime(), blocking.creation)
+		if age > RUNNING_STALE_SECONDS:
+			frappe.db.set_value(
+				"AI Run",
+				blocking.name,
+				{"status": "Failed", "error": "Run abandoned: stream ended without completing."},
 			)
+			return
+		frappe.throw(
+			_("This session already has a run in progress."),
+			title=_("Run In Progress"),
+		)
 
 
 def new_session(agent: Any = None, *, model: str | None = None, title: str | None = None) -> Session:
