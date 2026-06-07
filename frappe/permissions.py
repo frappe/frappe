@@ -938,3 +938,10 @@ def _get_parent_and_ancestors(doctype, parent):
 	from frappe.utils.nestedset import get_ancestors_of
 
 	yield from get_ancestors_of(doctype, parent)
+
+
+def check_app_permission():
+	is_system_manager = "System Manager" in frappe.get_roles(frappe.session.user)
+	if is_system_user() and is_system_manager:
+		return True
+	return False
