@@ -145,6 +145,41 @@ const layout: FormLayoutSchema = [
 								placeholder: "Add notes",
 							},
 							{ fieldname: "secret", fieldtype: "Password", label: "Secret" },
+							{
+								fieldname: "phone",
+								fieldtype: "Phone",
+								label: "Phone",
+								placeholder: "+1 555 123 4567",
+							},
+							{
+								fieldname: "config",
+								fieldtype: "JSON",
+								label: "Config (JSON)",
+								placeholder: '{ "key": "value" }',
+							},
+						],
+					},
+				],
+			},
+			{
+				name: "display",
+				label: "Display-only",
+				columns: [
+					{
+						name: "display-col",
+						fields: [
+							{
+								fieldname: "section_heading",
+								fieldtype: "Heading",
+								label: "Contact details",
+							},
+							{
+								fieldname: "help_html",
+								fieldtype: "HTML",
+								label: "Help",
+								options:
+									"<p>Fill in the fields above. <strong>Phone</strong> is optional.</p>",
+							},
 						],
 					},
 				],

@@ -3,9 +3,12 @@ import { setScoped } from './scopedRegistry'
 import CheckField from './fields/CheckField.vue'
 import DateField from './fields/DateField.vue'
 import DatetimeField from './fields/DatetimeField.vue'
+import HeadingField from './fields/HeadingField.vue'
+import HtmlField from './fields/HtmlField.vue'
 import LinkField from './fields/LinkField.vue'
 import NumberField from './fields/NumberField.vue'
 import PasswordField from './fields/PasswordField.vue'
+import PhoneField from './fields/PhoneField.vue'
 import SelectField from './fields/SelectField.vue'
 import TableField from './fields/TableField.vue'
 import TextField from './fields/TextField.vue'
@@ -72,10 +75,28 @@ for (const t of ['Int', 'Float', 'Currency', 'Percent']) {
   registerFieldType(t, NumberField)
 }
 
-// One textarea for the multi-line text types.
-for (const t of ['Small Text', 'Text', 'Long Text', 'Code']) {
+// One textarea for the multi-line text types. `JSON`, `Markdown Editor`, and
+// `HTML Editor` ride along here for now: frappe-ui ships no code-editor primitive,
+// so all of these (plus `Code`) stay on a plain textarea until the shared
+// `CodeEditorField` (Ace, mode from `field.options`) is built — see
+// plans/fieldtypes-remaining.md.
+for (const t of [
+  'Small Text',
+  'Text',
+  'Long Text',
+  'Code',
+  'JSON',
+  'Markdown Editor',
+  'HTML Editor',
+]) {
   registerFieldType(t, TextareaField)
 }
+
+// `Phone` → minimal `type=tel` input (raw-string value; ISD picker is a later
+// upgrade). `Heading`/`HTML` are display-only (no value, no emit).
+registerFieldType('Phone', PhoneField)
+registerFieldType('Heading', HeadingField)
+registerFieldType('HTML', HtmlField)
 
 registerFieldType('Password', PasswordField)
 

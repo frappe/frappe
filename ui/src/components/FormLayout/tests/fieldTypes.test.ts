@@ -4,9 +4,12 @@ import { getFieldComponent, registerFieldType } from '../fieldTypes'
 import CheckField from '../fields/CheckField.vue'
 import DateField from '../fields/DateField.vue'
 import DatetimeField from '../fields/DatetimeField.vue'
+import HeadingField from '../fields/HeadingField.vue'
+import HtmlField from '../fields/HtmlField.vue'
 import LinkField from '../fields/LinkField.vue'
 import NumberField from '../fields/NumberField.vue'
 import PasswordField from '../fields/PasswordField.vue'
+import PhoneField from '../fields/PhoneField.vue'
 import SelectField from '../fields/SelectField.vue'
 import TextField from '../fields/TextField.vue'
 import TextareaField from '../fields/TextareaField.vue'
@@ -33,9 +36,25 @@ describe('fieldTypes registry', () => {
   })
 
   it('resolves all multi-line text fieldtypes to TextareaField', () => {
-    for (const t of ['Small Text', 'Text', 'Long Text', 'Code']) {
+    // Includes the code-family types that ride on the textarea until a real
+    // CodeEditorField exists (JSON / Markdown Editor / HTML Editor / Code).
+    for (const t of [
+      'Small Text',
+      'Text',
+      'Long Text',
+      'Code',
+      'JSON',
+      'Markdown Editor',
+      'HTML Editor',
+    ]) {
       expect(getFieldComponent(t)).toBe(TextareaField)
     }
+  })
+
+  it('resolves Phone, Heading, and HTML to their components', () => {
+    expect(getFieldComponent('Phone')).toBe(PhoneField)
+    expect(getFieldComponent('Heading')).toBe(HeadingField)
+    expect(getFieldComponent('HTML')).toBe(HtmlField)
   })
 
   it('falls back to the text component for an unknown fieldtype', () => {
