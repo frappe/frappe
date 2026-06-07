@@ -10,3 +10,4 @@ studio.studio.doctype.studio_page.patches.migrate_studio_resource_to_studio_page
 studio.studio.doctype.studio_page.patches.move_text_block_style_props_to_classes
 studio.studio.doctype.studio_page.patches.set_auto_to_true_in_studio_page_resources
 studio.studio.doctype.studio_page.patches.update_old_global_utility_usage
+studio.studio.doctype.studio_page.patches.migrate_dialog_to_frappe_ui_v1
