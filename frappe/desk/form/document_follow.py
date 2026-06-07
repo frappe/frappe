@@ -299,7 +299,7 @@ def get_added_row(added, time, doctype, doc_name, v, user):
 			"by": v.modified_by,
 		}
 		for d in added
-		if d[0] in frappe.get_meta(doctype).get_permitted_fieldnames(permission_type="read", user=user)
+		if _can_read_table_field(doctype, d[0], user)
 	]
 
 
@@ -391,10 +391,7 @@ def _can_read_child_table_field(doctype: str, table_field: str, child_field: str
 		child field, otherwise False.
 	"""
 
-	# check if the user can read the table field in the parent document
-	if table_field not in frappe.get_meta(doctype).get_permitted_fieldnames(
-		permission_type="read", user=user
-	):
+	if not _can_read_table_field(doctype, table_field, user):
 		return False
 
 	child_doctype = frappe.get_meta(doctype).get_field(table_field).options  # get the child doctype name
@@ -403,3 +400,18 @@ def _can_read_child_table_field(doctype: str, table_field: str, child_field: str
 	).get_permitted_fieldnames(  # check if the user can read the field in the child document
 		permission_type="read", parenttype=doctype, user=user
 	)
+
+
+# frappe.get_meta(doctype).get_permitted_fieldnames(permission_type="read", user=user) skips child table fields so need to check with a separate function
+def _can_read_table_field(doctype: str, table_field: str, user: str) -> bool:
+	meta = frappe.get_meta(doctype)
+	table_df = meta.get_field(table_field)
+
+	if not table_df:
+		return False
+
+	permlevel = table_df.permlevel  # the perm level of the table field in the parent doctype
+	if permlevel > 0:
+		return permlevel in meta.get_permlevel_access(permission_type="read", user=user)
+
+	return True
