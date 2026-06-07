@@ -19,7 +19,7 @@ TEXT & DISPLAY:
 INPUTS:
 - TextInput: {modelValue: "string", placeholder: "string"}
 - Textarea: {modelValue: "string", placeholder: "string"}
-- FormControl: {modelValue: "string", type: "text|email|number|textarea|select|date|autocomplete|password|tel|url|range", label: "string", placeholder: "string", required: "boolean", options: [{label: "string", value: "string"}] (for select and autocomplete)}
+- FormControl: {modelValue: "string", type: "text|email|number|textarea|select|date|combobox|multiselect|password|tel|url|range", label: "string", placeholder: "string", required: "boolean", options: [{label: "string", value: "string"}] (for select and autocomplete)}
 - Select: {modelValue: "string", placeholder: "string", options: [{label: "string", value: "string"}]}
 - Checkbox: {label: "string", checked: true|false}
 - Switch: {label: "string", description: "string", modelValue: true|false}
@@ -55,7 +55,6 @@ DATA DISPLAY:
 - Calendar: {config: {defaultMode: "Month"}, events: []}
 
 AUTOCOMPLETE:
-- Autocomplete: {modelValue: "string", placeholder: "string", options: [{label: "string", value: "string"}]}
 - Combobox: {modelValue: "string", placeholder: "string", options: [{group: "string", options: [{label, value}]}]}
 """
 
