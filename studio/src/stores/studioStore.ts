@@ -60,7 +60,7 @@ const useStudioStore = defineStore("store", () => {
 
 	async function deleteApp(appName: string, appTitle: string) {
 		if (!appName) return
-		const confirmed = await confirm(`Are you sure you want to delete the app <b>${appTitle}</b>?`)
+		const confirmed = await confirm(`Are you sure you want to delete the app "${appTitle}"?`)
 		if (confirmed) {
 			studioApps.delete.submit(appName, {
 				onSuccess() {
