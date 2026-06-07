@@ -318,7 +318,9 @@ def get_added_row(added, time, doctype, doc_name, v, user):
 			"by": v.modified_by,
 		}
 		for d in added
-		if _can_read_table_field(doctype, d[0], user)
+		if _can_read_table_field(
+			doctype, d[0], user
+		)  # the check is loose here since the data returned is just fieldname
 	]
 
 
@@ -423,6 +425,22 @@ def _can_read_child_table_field(doctype: str, table_field: str, child_field: str
 
 # frappe.get_meta(doctype).get_permitted_fieldnames(permission_type="read", user=user) skips child table fields so need to check with a separate function
 def _can_read_table_field(doctype: str, table_field: str, user: str) -> bool:
+	"""Check whether a user may read a parent Table field.
+
+	Parameters
+	----------
+	doctype : str
+		Parent DocType that contains the child table field.
+	table_field : str
+		Table fieldname on the parent DocType.
+	user : str
+		User whose roles and permlevels are used for the check.
+
+	Returns
+	-------
+	bool
+		True if the table field exists and the user has read access to it, otherwise False.
+	"""
 	meta = frappe.get_meta(doctype)
 	table_df = meta.get_field(table_field)
 
