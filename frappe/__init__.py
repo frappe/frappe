@@ -52,68 +52,68 @@ from .utils.jinja import (
 # Lazy imports — loaded on first attribute access, then cached in globals()
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 	# frappe.utils.messages
-	"clear_last_message":     ("frappe.utils.messages", "clear_last_message"),
-	"clear_messages":         ("frappe.utils.messages", "clear_messages"),
-	"get_message_log":        ("frappe.utils.messages", "get_message_log"),
-	"msgprint":               ("frappe.utils.messages", "msgprint"),
-	"throw":                  ("frappe.utils.messages", "throw"),
+	"clear_last_message": ("frappe.utils.messages", "clear_last_message"),
+	"clear_messages": ("frappe.utils.messages", "clear_messages"),
+	"get_message_log": ("frappe.utils.messages", "get_message_log"),
+	"msgprint": ("frappe.utils.messages", "msgprint"),
+	"throw": ("frappe.utils.messages", "throw"),
 	"throw_permission_error": ("frappe.utils.messages", "throw_permission_error"),
-	"toast":                  ("frappe.utils.messages", "toast"),
+	"toast": ("frappe.utils.messages", "toast"),
 	# frappe.cache_manager
-	"clear_cache":            ("frappe.cache_manager", "clear_cache"),
+	"clear_cache": ("frappe.cache_manager", "clear_cache"),
 	"reset_metadata_version": ("frappe.cache_manager", "reset_metadata_version"),
 	# frappe.config
 	"get_common_site_config": ("frappe.config", "get_common_site_config"),
-	"get_conf":               ("frappe.config", "get_conf"),
-	"get_site_config":        ("frappe.config", "get_site_config"),
+	"get_conf": ("frappe.config", "get_conf"),
+	"get_site_config": ("frappe.config", "get_site_config"),
 	# frappe.core.doctype.system_settings.system_settings
-	"get_system_settings":    ("frappe.core.doctype.system_settings.system_settings", "get_system_settings"),
+	"get_system_settings": ("frappe.core.doctype.system_settings.system_settings", "get_system_settings"),
 	# frappe.model.document
-	"get_doc":                ("frappe.model.document", "get_doc"),
-	"get_docs":               ("frappe.model.document", "get_docs"),
-	"get_lazy_doc":           ("frappe.model.document", "get_lazy_doc"),
-	"copy_doc":               ("frappe.model.document", "copy_doc"),
-	"new_doc":                ("frappe.model.document", "new_doc"),
-	"get_cached_doc":         ("frappe.model.document", "get_cached_doc"),
-	"can_cache_doc":          ("frappe.model.document", "can_cache_doc"),
+	"get_doc": ("frappe.model.document", "get_doc"),
+	"get_docs": ("frappe.model.document", "get_docs"),
+	"get_lazy_doc": ("frappe.model.document", "get_lazy_doc"),
+	"copy_doc": ("frappe.model.document", "copy_doc"),
+	"new_doc": ("frappe.model.document", "new_doc"),
+	"get_cached_doc": ("frappe.model.document", "get_cached_doc"),
+	"can_cache_doc": ("frappe.model.document", "can_cache_doc"),
 	"get_document_cache_key": ("frappe.model.document", "get_document_cache_key"),
-	"clear_document_cache":   ("frappe.model.document", "clear_document_cache"),
-	"get_cached_value":       ("frappe.model.document", "get_cached_value"),
-	"get_single_value":       ("frappe.model.document", "get_single_value"),
-	"get_last_doc":           ("frappe.model.document", "get_last_doc"),
-	"get_single":             ("frappe.model.document", "get_single"),
+	"clear_document_cache": ("frappe.model.document", "clear_document_cache"),
+	"get_cached_value": ("frappe.model.document", "get_cached_value"),
+	"get_single_value": ("frappe.model.document", "get_single_value"),
+	"get_last_doc": ("frappe.model.document", "get_last_doc"),
+	"get_single": ("frappe.model.document", "get_single"),
 	"_set_document_in_cache": ("frappe.model.document", "_set_document_in_cache"),
 	# frappe.model.meta
-	"get_meta":               ("frappe.model.meta", "get_meta"),
+	"get_meta": ("frappe.model.meta", "get_meta"),
 	# frappe.realtime
-	"publish_progress":       ("frappe.realtime", "publish_progress"),
-	"publish_realtime":       ("frappe.realtime", "publish_realtime"),
+	"publish_progress": ("frappe.realtime", "publish_progress"),
+	"publish_realtime": ("frappe.realtime", "publish_realtime"),
 	# frappe.utils
-	"get_traceback":          ("frappe.utils", "get_traceback"),
-	"mock":                   ("frappe.utils", "mock"),
-	"parse_json":             ("frappe.utils", "parse_json"),
-	"safe_eval":              ("frappe.utils", "safe_eval"),
-	"create_folder":          ("frappe.utils", "create_folder"),
+	"get_traceback": ("frappe.utils", "get_traceback"),
+	"mock": ("frappe.utils", "mock"),
+	"parse_json": ("frappe.utils", "parse_json"),
+	"safe_eval": ("frappe.utils", "safe_eval"),
+	"create_folder": ("frappe.utils", "create_folder"),
 	# frappe.utils.background_jobs
-	"enqueue":                ("frappe.utils.background_jobs", "enqueue"),
-	"enqueue_doc":            ("frappe.utils.background_jobs", "enqueue_doc"),
+	"enqueue": ("frappe.utils.background_jobs", "enqueue"),
+	"enqueue_doc": ("frappe.utils.background_jobs", "enqueue_doc"),
 	# frappe.utils.task_queue
-	"enqueue_task":           ("frappe.utils.task_queue", "enqueue_task"),
-	"get_current_task":       ("frappe.utils.task_queue", "get_current_task"),
+	"enqueue_task": ("frappe.utils.task_queue", "enqueue_task"),
+	"get_current_task": ("frappe.utils.task_queue", "get_current_task"),
 	# frappe.utils.error
-	"log_error":              ("frappe.utils.error", "log_error"),
+	"log_error": ("frappe.utils.error", "log_error"),
 	# frappe.utils.formatters
-	"format_value":           ("frappe.utils.formatters", "format_value"),
-	"format":                 ("frappe.utils.formatters", "format_value"),
+	"format_value": ("frappe.utils.formatters", "format_value"),
+	"format": ("frappe.utils.formatters", "format_value"),
 	# frappe.utils.print_utils
-	"get_print":              ("frappe.utils.print_utils", "get_print"),
-	"attach_print":           ("frappe.utils.print_utils", "attach_print"),
+	"get_print": ("frappe.utils.print_utils", "get_print"),
+	"attach_print": ("frappe.utils.print_utils", "attach_print"),
 	# frappe.email
-	"sendmail":               ("frappe.email", "sendmail"),
+	"sendmail": ("frappe.email", "sendmail"),
 	# frappe.concurrency_limiter
-	"concurrent_limit":       ("frappe.concurrency_limiter", "concurrent_limit"),
+	"concurrent_limit": ("frappe.concurrency_limiter", "concurrent_limit"),
 	# frappe.deprecation_dumpster
-	"get_test_records":       ("frappe.deprecation_dumpster", "frappe_get_test_records"),
+	"get_test_records": ("frappe.deprecation_dumpster", "frappe_get_test_records"),
 }
 
 
