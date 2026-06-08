@@ -128,7 +128,7 @@ class Agent:
 		if stream:
 			return self._resume_stream(messages, answers)
 		messages, _ = self._prepare_resume(messages, answers)
-		return self._loop(messages)
+		return self._loop(messages, self._answered_calls(messages))
 
 	def _resume_stream(self, messages: list[dict[str, Any]], answers: dict[str, Any]) -> Generator[Event]:
 		"""Stream a resume: first replay the just-resolved tool results so the UI can fill in
@@ -136,7 +136,7 @@ class Agent:
 		messages, resolved = self._prepare_resume(messages, answers)
 		for call, content in resolved:
 			yield ToolEnded(id=call.id, name=call.name, result=content)
-		yield from self._loop_stream(messages)
+		yield from self._loop_stream(messages, self._answered_calls(messages))
 
 	def new_session(self, *, title: str | None = None) -> Any:
 		"""Start a persisted conversation driven by this code agent (session's agent link is left empty)."""
@@ -245,9 +245,11 @@ class Agent:
 
 		raise RuntimeError(f"Agent {self.name!r} exceeded max_iterations ({self.max_iterations})")
 
-	def _loop_stream(self, messages: list[dict[str, Any]]) -> Generator[Event]:
+	def _loop_stream(
+		self, messages: list[dict[str, Any]], executed_calls: list[ToolCall] | None = None
+	) -> Generator[Event]:
 		tool_schemas = [t.to_dict() for t in self.tools] or None
-		executed_calls: list[ToolCall] = []
+		executed_calls = executed_calls if executed_calls is not None else []
 		usage_total = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
 
 		for iteration in range(1, self.max_iterations + 1):
@@ -305,18 +307,25 @@ class Agent:
 
 	def _pending_calls(self, messages: list[dict[str, Any]]) -> list[ToolCall]:
 		"""Tool calls in the transcript that have no tool result yet (awaiting an answer)."""
-		answered = {m.get("tool_call_id") for m in messages if m.get("role") == "tool"}
-		pending: list[ToolCall] = []
+		return self._transcript_calls(messages, answered=False)
+
+	def _answered_calls(self, messages: list[dict[str, Any]]) -> list[ToolCall]:
+		"""Tool calls in the transcript that already have a tool result (executed)."""
+		return self._transcript_calls(messages, answered=True)
+
+	def _transcript_calls(self, messages: list[dict[str, Any]], *, answered: bool) -> list[ToolCall]:
+		has_result = {m.get("tool_call_id") for m in messages if m.get("role") == "tool"}
+		calls: list[ToolCall] = []
 		for message in messages:
 			if message.get("role") != "assistant":
 				continue
 			for tc in message.get("tool_calls") or []:
-				if tc["id"] in answered:
+				if (tc["id"] in has_result) != answered:
 					continue
 				fn = tc["function"]
 				arguments = fn.get("arguments") or "{}"
-				pending.append(ToolCall(id=tc["id"], name=fn["name"], arguments=json.loads(arguments)))
-		return pending
+				calls.append(ToolCall(id=tc["id"], name=fn["name"], arguments=json.loads(arguments)))
+		return calls
 
 	def _build_initial_messages(self, input: str | list[dict[str, Any]]) -> list[dict[str, Any]]:
 		"""For a string, build [system?, user]. For a list, trust the caller and use it as-is —
