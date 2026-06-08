@@ -29,7 +29,7 @@
 				height="250px"
 				class="overflow-hidden"
 				:actionButton="{
-					icon: 'maximize',
+					icon: 'lucide-maximize',
 					label: 'Expand',
 					handler: () => {
 						if (!props.block) return
@@ -45,7 +45,7 @@
 						variant="ghost"
 						size="sm"
 						@click="toggleArrayInputs(propName)"
-						:icon="arrayInputs[propName] === 'code' ? 'table' : 'code'"
+						:icon="arrayInputs[propName] === 'code' ? 'lucide-table' : 'lucide-code'"
 						class="absolute right-0 top-0 z-10 hover:bg-transparent"
 						:tooltip="arrayInputs[propName] === 'code' ? 'Switch to table editor' : 'Switch to code editor'"
 					></Button>
@@ -60,7 +60,7 @@
 						:showLineNumbers="false"
 						class="overflow-hidden"
 						:actionButton="{
-							icon: 'maximize',
+							icon: 'lucide-maximize',
 							label: 'Expand',
 							handler: () => {
 								if (!props.block) return

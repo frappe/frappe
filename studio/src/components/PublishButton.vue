@@ -58,7 +58,7 @@
 					variant="solid"
 					@click="open"
 					:disabled="disabled || publishingPage || publishingApp"
-					icon="chevron-down"
+					icon="lucide-chevron-down"
 					class="!w-6 justify-start rounded-bl-none rounded-tl-none border-0 pr-0 text-xs"
 				/>
 			</template>

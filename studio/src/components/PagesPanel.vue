@@ -75,7 +75,7 @@ const getPageMenu = (page: StudioPage) => {
 	return [
 		{
 			label: "Set as App Home",
-			icon: "home",
+			icon: "lucide-home",
 			condition: () => !isAppHome(page),
 			onClick: () => {
 				store.updateActiveApp("app_home", page.name)
@@ -83,12 +83,12 @@ const getPageMenu = (page: StudioPage) => {
 		},
 		{
 			label: "Duplicate",
-			icon: "copy",
+			icon: "lucide-copy",
 			onClick: () => store.duplicateAppPage(app.name, page),
 		},
 		{
 			label: "Delete",
-			icon: "trash",
+			icon: "lucide-trash",
 			theme: "red",
 			condition: () => !isAppHome(page),
 			onClick: async () => {

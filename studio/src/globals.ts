@@ -1,7 +1,6 @@
 import { App, defineAsyncComponent, shallowRef } from "vue"
 import {
 	Alert,
-	Autocomplete,
 	Avatar,
 	Badge,
 	Breadcrumbs,
@@ -69,7 +68,6 @@ import { CustomVueComponentMeta } from "@/types/vue"
 
 export function registerGlobalComponents(app: App) {
 	app.component("Alert", Alert)
-	app.component("Autocomplete", Autocomplete)
 	app.component("Avatar", Avatar)
 	app.component("Badge", Badge)
 	app.component("Breadcrumbs", Breadcrumbs)

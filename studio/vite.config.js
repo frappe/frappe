@@ -32,13 +32,13 @@ export default defineConfig({
 		},
 	},
 	plugins: [
+		vue(),
 		frappeui({
 			frappeProxy: true,
 			lucideIcons: true,
 			buildConfig: false,
 			jinjaBootData: false,
 		}),
-		vue(),
 		sharedDependencyResolver(path.resolve(__dirname, "..")),
 		customComponentWatcher(path.resolve(__dirname, "../../")),
 	],
@@ -49,6 +49,10 @@ export default defineConfig({
 	},
 	build: {
 		rolldownOptions: {
+			onwarn(warning, warn) {
+				if (warning.code === "INVALID_ANNOTATION") return
+				warn(warning)
+			},
 			input: {
 				studio: path.resolve(__dirname, "index.html"),
 				renderer: path.resolve(__dirname, "renderer.html"),

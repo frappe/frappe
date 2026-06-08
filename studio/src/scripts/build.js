@@ -98,7 +98,6 @@ import app_router from "@/router/app_router"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 import { spritePlugin } from "frappe-ui/icons"
-import "@/utils/appUtils"
 
 ${frappeUIImports}
 ${frappeImports}

@@ -1,24 +1,18 @@
 <template>
 	<div class="flex flex-row overflow-auto shadow-lg">
 		<!-- Primary Menu -->
-		<div class="relative flex h-full w-12 flex-col space-y-2 border-r border-gray-200 bg-white p-3">
-			<div
-				class="flex items-center"
-				v-for="tab in sidebarMenu"
-				:key="tab.label"
-				@click="setActiveTab(tab.label as LeftPanelOptions)"
-			>
-				<Tooltip placement="right" :text="tab.label" :hover-delay="0.1">
-					<div
-						class="flex cursor-pointer items-center justify-center gap-2 truncate rounded px-3 py-1 transition duration-300 ease-in-out"
-						:class="
-							activeTab === tab.label ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:text-gray-700'
-						"
-					>
-						<FeatherIcon :name="tab.icon" class="h-5 w-5" />
-					</div>
-				</Tooltip>
-			</div>
+		<div class="flex h-full w-12 flex-col items-center space-y-2 border-r border-gray-200 bg-white p-3">
+			<Tooltip v-for="tab in sidebarMenu" :key="tab.label" placement="right" :text="tab.label">
+				<Button
+					:icon="tab.icon"
+					size="md"
+					:variant="store.studioLayout.leftPanelActiveTab === tab.label ? 'subtle' : 'ghost'"
+					:class="{
+						'!text-ink-gray-6': store.studioLayout.leftPanelActiveTab !== tab.label,
+					}"
+					@click.stop="setActiveTab(tab.label as LeftPanelOptions)"
+				/>
+			</Tooltip>
 		</div>
 
 		<!-- Secondary Menu -->
@@ -43,7 +37,7 @@
 				>
 					{{ activeTab }}
 					<IconButton
-						icon="chevrons-left"
+						:icon="LucideChevronsLeft"
 						label="Collapse"
 						@click="store.studioLayout.showLeftPanel = false"
 					/>
@@ -79,7 +73,7 @@
 
 <script setup lang="ts">
 import { watch, computed, nextTick } from "vue"
-import { Tooltip, FeatherIcon } from "frappe-ui"
+import { Tooltip, Button } from "frappe-ui"
 
 import PagesPanel from "@/components/PagesPanel.vue"
 import PanelResizer from "@/components/PanelResizer.vue"
@@ -88,6 +82,7 @@ import ComponentLayers from "@/components/ComponentLayers.vue"
 import DataPanel from "@/components/DataPanel.vue"
 import CodePanel from "@/components/CodePanel.vue"
 import IconButton from "@/components/IconButton.vue"
+import LucideChevronsLeft from "~icons/lucide/chevrons-left"
 import AIChatPanel from "@/components/AIChatPanel.vue"
 
 import Block from "@/utils/block"
@@ -98,27 +93,27 @@ import type { LeftPanelOptions } from "@/types"
 const sidebarMenu = [
 	{
 		label: "Pages",
-		icon: "book",
+		icon: "lucide-book",
 	},
 	{
 		label: "Add Component",
-		icon: "plus-circle",
+		icon: "lucide-plus-circle",
 	},
 	{
 		label: "Layers",
-		icon: "layers",
+		icon: "lucide-layers",
 	},
 	{
 		label: "Data",
-		icon: "database",
+		icon: "lucide-database",
 	},
 	{
 		label: "Code",
-		icon: "code",
+		icon: "lucide-code",
 	},
 	{
 		label: "AI Assistant",
-		icon: "zap",
+		icon: "lucide-sparkle",
 	},
 ]
 const store = useStudioStore()

@@ -1,13 +1,11 @@
 <template>
 	<Dialog
 		v-model="showDialog"
-		:options="{
-			title: resource?.resource_id ? 'Edit Data Source' : 'Add Data Source',
-			size: '2xl',
-		}"
+		:title="resource?.resource_id ? 'Edit Data Source' : 'Add Data Source'"
+		size="2xl"
 		@after-leave="reset"
 	>
-		<template #body-content>
+		<template #default>
 			<div class="flex flex-col space-y-4">
 				<FormControl
 					label="Data Source Name"
@@ -62,17 +60,24 @@
 					<FormControl
 						label="Fields"
 						:required="true"
-						type="autocomplete"
+						type="multiselect"
 						:placeholder="`Select fields from ${newResource.document_type}`"
 						v-model="newResource.fields"
 						:options="doctypeFields.data"
 						:multiple="true"
-					/>
+					>
+						<template #summary="{ selectedOptions, summary }">
+							<template v-if="selectedOptions.length">
+								{{ selectedOptions.map((o: SelectOption) => o.label).join(", ") }}
+							</template>
+							<template v-else>{{ summary }}</template>
+						</template>
+					</FormControl>
 					<Filters label="Filters" v-model="newResource.filters" :docfields="filterFields" />
 					<div class="flex w-full flex-row gap-2">
 						<FormControl
 							label="Sort Field"
-							type="autocomplete"
+							type="combobox"
 							placeholder="Select sort field"
 							:modelValue="newResource.sort_field"
 							@update:modelValue="
@@ -116,9 +121,12 @@
 						v-model="newResource.document_name"
 					/>
 
-					<div class="flex w-full flex-row items-center gap-1.5">
-						<FormControl size="sm" type="checkbox" v-model="newResource.fetch_document_using_filters" />
-						<InputLabel class="max-w-full">Dynamically fetch document using filters</InputLabel>
+					<div class="mt-5">
+						<Checkbox
+							size="sm"
+							v-model="newResource.fetch_document_using_filters"
+							label="Dynamically fetch document using filters"
+						/>
 					</div>
 
 					<Filters
@@ -136,9 +144,8 @@
 					/>
 				</template>
 
-				<div class="flex w-full flex-row items-center gap-1.5">
-					<FormControl size="sm" type="checkbox" v-model="newResource.auto" />
-					<InputLabel class="max-w-full">Auto fetch data on load</InputLabel>
+				<div class="mt-5">
+					<Checkbox size="sm" label="Auto fetch data on load" v-model="newResource.auto" />
 				</div>
 
 				<!-- Transform Results for any Resource Type -->
@@ -194,7 +201,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { createResource, Dialog, FormControl } from "frappe-ui"
+import { createResource, Dialog, FormControl, Checkbox } from "frappe-ui"
 import { Link } from "frappe-ui/frappe"
 import ScriptSection from "@/components/ScriptSection.vue"
 import InputLabel from "@/components/InputLabel.vue"

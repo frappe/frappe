@@ -19,10 +19,8 @@
 			<Button icon-left="plus" @click="showWatcherDialog = true">Add Watcher</Button>
 			<Dialog
 				v-model="showWatcherDialog"
-				:options="{
-					title: pageWatcher.name ? 'Edit Watcher' : 'Add Watcher',
-					size: '3xl',
-				}"
+				:title="pageWatcher.name ? 'Edit Watcher' : 'Add Watcher'"
+				size="3xl"
 				@after-leave="
 					() => {
 						pageWatcher = {
@@ -35,9 +33,9 @@
 						}
 					}
 				"
-				:disableOutsideClickToClose="true"
+				:dismissible="false"
 			>
-				<template #body-content>
+				<template #default>
 					<div class="flex flex-col space-y-4">
 						<FormControl
 							type="combobox"
@@ -102,7 +100,7 @@ import Code from "@/components/Code.vue"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
 import useStudioStore from "@/stores/studioStore"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import { confirm } from "@/utils/helpers"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import ItemActions from "@/components/ItemActions.vue"
@@ -147,7 +145,7 @@ const getWatcherMenu = (watcher: StudioPageWatcher) => {
 	return [
 		{
 			label: "Delete",
-			icon: "trash",
+			icon: "lucide-trash",
 			theme: "red",
 			onClick: () => deletePageWatcher(watcher),
 		},

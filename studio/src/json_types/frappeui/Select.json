@@ -5,12 +5,57 @@
     "SelectProps": {
       "type": "object",
       "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                },
+                "messages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "message",
+                "name"
+              ]
+            }
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
         "size": {
           "type": "string",
           "enum": [
             "sm",
             "md",
-            "lg"
+            "lg",
+            "xl"
           ]
         },
         "variant": {
@@ -27,14 +72,21 @@
         "disabled": {
           "type": "boolean"
         },
-        "id": {
-          "type": "string"
-        },
         "modelValue": {
-          "type": [
-            "string",
-            "number"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "object"
+            }
           ]
+        },
+        "open": {
+          "type": "boolean"
         },
         "options": {
           "type": "array",
@@ -50,20 +102,43 @@
                     "type": "string"
                   },
                   "value": {
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "object"
+                      }
+                    ]
                   },
                   "disabled": {
                     "type": "boolean"
+                  },
+                  "icon": {
+                    "type": [
+                      "string"
+                    ]
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "slot": {
+                    "type": "string"
                   }
                 },
                 "required": [
                   "label",
                   "value"
-                ],
-                "additionalProperties": false
+                ]
               }
             ]
           }
+        },
+        "emptyText": {
+          "type": "string"
         }
       },
       "additionalProperties": false

@@ -19,7 +19,7 @@
 	  "baseUrl": ".",
 	  "types": ["node", "vite/client"],
 	  "allowJs": true,
-	  "paths": {"@/*": ["src/*"]},
+	  "paths": { "@/*": ["src/*"] },
 	  "lib": [
 		"esnext",
 		"dom",

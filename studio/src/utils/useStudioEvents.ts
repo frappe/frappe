@@ -6,7 +6,7 @@ import { isCtrlOrCmd, isTargetEditable, setClipboardData, numberToPx, isHTML } f
 import { getBlockCopy, getBlockCopyWithoutParent, getComponentBlock, isJSONString } from "@/utils/serializer"
 import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

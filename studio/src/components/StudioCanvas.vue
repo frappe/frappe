@@ -102,7 +102,7 @@
 
 <script setup lang="ts">
 import { Ref, ref, watch, reactive, computed, onMounted, provide } from "vue"
-import { LoadingIndicator } from "frappe-ui"
+import { LoadingIndicator, FeatherIcon } from "frappe-ui"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
 import DraggablePopup from "@/components/DraggablePopup.vue"

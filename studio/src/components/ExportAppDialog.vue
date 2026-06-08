@@ -1,12 +1,6 @@
 <template>
-	<Dialog
-		v-model="showDialog"
-		:options="{
-			title: 'Export Settings',
-			size: 'xl',
-		}"
-	>
-		<template #body-content>
+	<Dialog v-model="showDialog" title="Export Settings" size="xl">
+		<template #default>
 			<div class="flex flex-col space-y-4">
 				<SettingItem label="Enable App Export" description="Exports app changes to an existing Frappe App">
 					<Switch size="sm" v-model="enableExport" />
@@ -20,10 +14,9 @@
 					)}`"
 				>
 					<FormControl
-						type="autocomplete"
+						type="combobox"
 						placeholder="Select App"
-						:modelValue="targetApp"
-						@update:modelValue="(v: SelectOption) => (targetApp = v.value || '')"
+						v-model="targetApp"
 						:options="targetAppOptions"
 					/>
 				</SettingItem>
@@ -40,7 +33,7 @@
 import { ref, watch } from "vue"
 import { FormControl, Button, call, Switch } from "frappe-ui"
 import type { SelectOption } from "@/types"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import { studioApps } from "@/data/studioApps"
 import { scrub } from "@/utils/helpers"

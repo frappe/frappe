@@ -4,7 +4,6 @@ import { FRAPPE_UI_COMPONENTS } from "@/utils/constants"
 import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
 
 import LucideCircleAlert from "~icons/lucide/circle-alert"
-import LucideTextSearch from "~icons/lucide/text-search"
 import LucideUser from "~icons/lucide/user"
 import LucideChevronsRight from "~icons/lucide/chevrons-right"
 import LucideBadgeCheck from "~icons/lucide/badge-check"
@@ -67,46 +66,6 @@ export const COMPONENTS: FrappeUIComponents = {
 			title: "This user is inactive",
 			description: "Please enable the user to allow login access.",
 			theme: "yellow",
-		},
-	},
-	Autocomplete: {
-		name: "Autocomplete",
-		title: "Autocomplete",
-		icon: LucideTextSearch,
-		initialState: {
-			placeholder: "Select Person",
-			options: [
-				{
-					label: "John Doe",
-					value: "john-doe",
-					image: "https://randomuser.me/api/portraits/men/59.jpg",
-				},
-				{
-					label: "Jane Doe",
-					value: "jane-doe",
-					image: "https://randomuser.me/api/portraits/women/58.jpg",
-				},
-				{
-					label: "John Smith",
-					value: "john-smith",
-					image: "https://randomuser.me/api/portraits/men/59.jpg",
-				},
-				{
-					label: "Jane Smith",
-					value: "jane-smith",
-					image: "https://randomuser.me/api/portraits/women/59.jpg",
-				},
-				{
-					label: "John Wayne",
-					value: "john-wayne",
-					image: "https://randomuser.me/api/portraits/men/57.jpg",
-				},
-				{
-					label: "Jane Wayne",
-					value: "jane-wayne",
-					image: "https://randomuser.me/api/portraits/women/51.jpg",
-				},
-			],
 		},
 	},
 	Avatar: {
@@ -346,18 +305,16 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideAppWindowMac,
 		initialState: {
 			modelValue: false,
-			options: {
-				title: "Confirm",
-				message: "Are you sure you want to confirm this action?",
-				size: "xl",
-				actions: [
-					{
-						label: "Confirm",
-						variant: "solid",
-						onClick: () => {},
-					},
-				],
-			},
+			title: "Confirm",
+			message: "Are you sure you want to confirm this action?",
+			size: "xl",
+			actions: [
+				{
+					label: "Confirm",
+					variant: "solid",
+					onClick: () => {},
+				},
+			],
 		},
 		editInFragmentMode: true,
 		proxyComponent: defineAsyncComponent(() => import("@/components/ProxyComponents/ProxyDialog.vue")),
@@ -376,17 +333,17 @@ export const COMPONENTS: FrappeUIComponents = {
 				{
 					label: "Edit Title",
 					onClick: () => {},
-					icon: "edit-2",
+					icon: "lucide-edit-2",
 				},
 				{
 					label: "Manage Members",
 					onClick: () => {},
-					icon: "users",
+					icon: "lucide-users",
 				},
 				{
 					label: "Delete this project",
 					onClick: () => {},
-					icon: "trash",
+					icon: "lucide-trash",
 				},
 			],
 			button: { label: "Actions" },

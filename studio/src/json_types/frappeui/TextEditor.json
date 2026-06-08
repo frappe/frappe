@@ -17,7 +17,7 @@
               "type": "string"
             },
             {
-              "$comment": "() => string"
+              "type": "object"
             }
           ]
         },
@@ -44,21 +44,46 @@
           "type": "boolean"
         },
         "bubbleMenu": {
-          "type": "boolean"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "array",
+              "items": {}
+            }
+          ]
         },
         "bubbleMenuOptions": {
           "type": "object"
         },
         "fixedMenu": {
-          "type": "boolean"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "array",
+              "items": {}
+            }
+          ]
         },
         "floatingMenu": {
-          "type": "boolean"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "array",
+              "items": {}
+            }
+          ]
         },
         "extensions": {
           "type": "array",
           "items": {}
         },
+        "starterkitOptions": {},
         "mentions": {
           "anyOf": [
             {
@@ -156,47 +181,7 @@
           ]
         },
         "uploadFunction": {
-          "$comment": "(file: File) => Promise<UploadedFile>",
-          "type": "object",
-          "properties": {
-            "namedArgs": {
-              "type": "object",
-              "properties": {
-                "file": {
-                  "type": "object",
-                  "properties": {
-                    "size": {
-                      "type": "number"
-                    },
-                    "type": {
-                      "type": "string"
-                    },
-                    "lastModified": {
-                      "type": "number"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "webkitRelativePath": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "lastModified",
-                    "name",
-                    "size",
-                    "type",
-                    "webkitRelativePath"
-                  ],
-                  "additionalProperties": false
-                }
-              },
-              "required": [
-                "file"
-              ],
-              "additionalProperties": false
-            }
-          }
+          "type": "object"
         },
         "uploadArgs": {
           "type": "object"

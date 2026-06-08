@@ -22,6 +22,13 @@
             "type": "string"
           }
         },
+        "dir": {
+          "type": "string",
+          "enum": [
+            "rtl",
+            "ltr"
+          ]
+        },
         "xAxis": {
           "type": "object",
           "properties": {

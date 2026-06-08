@@ -10,15 +10,15 @@
 			<!-- slots -->
 			<SectionContainer title="Slots" v-show="filteredSections.includes('slots')">
 				<template #actions>
-					<Autocomplete
+					<Combobox
 						:options="availableSlots"
-						@update:modelValue="(slot: SelectOption) => block?.addSlot(slot.value)"
-						class="!w-auto"
+						@update:modelValue="(slot: string) => block?.addSlot(slot)"
+						align="end"
 					>
-						<template #target="{ togglePopover }">
-							<Button @click="togglePopover" size="sm" variant="ghost" icon="plus" />
+						<template #trigger="{ togglePopover }">
+							<Button @click="togglePopover" size="sm" variant="ghost" icon="lucide-plus" />
 						</template>
-					</Autocomplete>
+					</Combobox>
 				</template>
 
 				<div class="flex flex-col gap-3" v-if="!isObjectEmpty(block?.componentSlots)">
@@ -45,7 +45,7 @@
 									Component Tree
 								</Badge>
 							</div>
-							<Button variant="subtle" size="sm" icon="x" @click="block?.removeSlot(name)" />
+							<Button variant="subtle" size="sm" icon="lucide-x" @click="block?.removeSlot(name)" />
 						</div>
 					</div>
 				</div>
@@ -98,7 +98,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watchEffect } from "vue"
-import { Autocomplete } from "frappe-ui"
+import { Combobox } from "frappe-ui"
 import Block from "@/utils/block"
 
 import { getComponentSlots } from "@/utils/components"
@@ -106,7 +106,7 @@ import PropsEditor from "@/components/PropsEditor.vue"
 import ObjectEditor from "@/components/ObjectEditor.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
-import type { SelectOption, Slot } from "@/types"
+import type { Slot } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 import Code from "@/components/Code.vue"
 import blockController from "@/utils/blockController"

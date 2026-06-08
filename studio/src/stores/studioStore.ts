@@ -25,7 +25,7 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { LeftPanelOptions, RightPanelOptions, leftPanelComponentTabOptions, StudioMode } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import { createResource } from "frappe-ui"
 
 const useStudioStore = defineStore("store", () => {
@@ -60,7 +60,7 @@ const useStudioStore = defineStore("store", () => {
 
 	async function deleteApp(appName: string, appTitle: string) {
 		if (!appName) return
-		const confirmed = await confirm(`Are you sure you want to delete the app <b>${appTitle}</b>?`)
+		const confirmed = await confirm(`Are you sure you want to delete the app "${appTitle}"?`)
 		if (confirmed) {
 			studioApps.delete.submit(appName, {
 				onSuccess() {
@@ -107,7 +107,7 @@ const useStudioStore = defineStore("store", () => {
 			return
 		}
 
-		const confirmed = await confirm(`Are you sure you want to delete the page <b>${page.page_title}</b>?`)
+		const confirmed = await confirm(`Are you sure you want to delete the page "${page.page_title}"?`)
 		if (confirmed) {
 			try {
 				await studioPages.delete.submit(page.name)

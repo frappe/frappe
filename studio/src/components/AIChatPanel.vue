@@ -25,7 +25,7 @@
 				v-if="!messages.length"
 				class="flex h-full flex-col items-center justify-center gap-2 pb-8 text-center"
 			>
-				<FeatherIcon name="zap" class="h-8 w-8 text-ink-gray-3" />
+				<LucideSparkle class="h-8 w-8 text-ink-gray-3" />
 				<p class="text-xs text-ink-gray-4">Chat to create or edit this page</p>
 			</div>
 
@@ -120,7 +120,7 @@
 <script lang="ts" setup>
 import { ref, computed, inject, watch, nextTick } from "vue"
 import { ErrorMessage, Button, Badge, FeatherIcon, call, createResource, Popover } from "frappe-ui"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { getBlockInstance, getBlockString } from "@/utils/serializer"
@@ -129,6 +129,7 @@ import { throttle } from "@/utils/helpers"
 import type Block from "@/utils/block"
 import type { PauseId } from "@/utils/useCanvasHistory"
 import { studioSettings } from "@/data/studioSettings"
+import LucideSparkle from "~icons/lucide/sparkle"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

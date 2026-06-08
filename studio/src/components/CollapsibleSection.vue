@@ -7,7 +7,7 @@
 			</h3>
 			<Button
 				class="text-ink-gray-6 hover:bg-surface-gray-2"
-				:icon="collapsed ? 'chevron-right' : 'chevron-down'"
+				:icon="collapsed ? 'lucide-chevron-right' : 'lucide-chevron-down'"
 				:variant="'ghost'"
 				size="sm"
 				@click="toggleCollapsed"

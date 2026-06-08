@@ -24,7 +24,7 @@
                 ]
               },
               "onClick": {
-                "$comment": "() => void"
+                "type": "object"
               }
             },
             "required": [

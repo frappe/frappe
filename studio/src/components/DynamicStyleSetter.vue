@@ -11,7 +11,7 @@
 	>
 		<IconButton
 			ref="dropdownTrigger"
-			icon="plus-circle"
+			:icon="LucideCirclePlus"
 			placement="bottom"
 			class="mr-1"
 			size="sm"
@@ -52,6 +52,7 @@ import Block from "@/utils/block"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 import type { BlockProperty } from "@/components/ComponentStyles.vue"
+import LucideCirclePlus from "~icons/lucide/circle-plus"
 
 const props = defineProps<{ block?: Block; property: BlockProperty }>()
 const emit = defineEmits<{

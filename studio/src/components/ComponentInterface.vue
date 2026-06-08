@@ -4,15 +4,15 @@
 			<!-- inputs -->
 			<SectionContainer title="Inputs">
 				<template #actions>
-					<Autocomplete
+					<Combobox
 						:options="fieldTypeOptions"
-						@update:modelValue="(option: SelectOption) => showAddInputPopover(option.value)"
+						@update:modelValue="(value: string) => showAddInputPopover(value)"
 						class="!w-auto"
 					>
-						<template #target="{ togglePopover }">
-							<Button @click="togglePopover" size="sm" variant="ghost" icon="plus" />
+						<template #trigger>
+							<Button size="sm" variant="ghost" icon="lucide-plus" />
 						</template>
-					</Autocomplete>
+					</Combobox>
 				</template>
 
 				<div class="flex flex-col gap-1" v-if="componentInputs.length > 0">
@@ -59,16 +59,14 @@
 									:required="true"
 								/>
 								<FormControl
-									type="autocomplete"
+									type="combobox"
 									label="Type"
 									:options="fieldTypeOptions"
-									:modelValue="
-										editingInput ? fieldTypeOptions.find((opt) => opt.value === editingInput!.type) : null
-									"
+									:modelValue="editingInput ? editingInput.type : null"
 									@update:modelValue="
-										(option: SelectOption) => {
+										(val: string) => {
 											if (editingInput) {
-												editingInput.type = option.value
+												editingInput.type = val
 												setInputControl()
 											}
 										}
@@ -81,8 +79,8 @@
 											class="mr-1 h-3 w-3 text-gray-500"
 										/>
 									</template>
-									<template #item-prefix="{ option }">
-										<FeatherIcon :name="getFieldTypeIcon(option.value)" class="h-3 w-3 text-gray-500" />
+									<template #item-prefix="{ item }">
+										<FeatherIcon :name="getFieldTypeIcon(item.value)" class="h-3 w-3 text-gray-500" />
 									</template>
 								</FormControl>
 								<FormControl
@@ -147,7 +145,7 @@
 
 <script setup lang="ts">
 import { ref, markRaw, computed } from "vue"
-import { Autocomplete, Popover, FormControl } from "frappe-ui"
+import { Combobox, Popover, FormControl } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import type { SelectOption } from "@/types"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"

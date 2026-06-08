@@ -9,16 +9,6 @@
 			@select="handleContextMenuSelect"
 		/>
 		<FormDialog v-if="block" v-model:showDialog="showFormDialog" :block="block" />
-		<NewComponentDialog
-			v-if="block"
-			:block="block"
-			v-model:showDialog="showNewComponentDialog"
-			@created="
-				(component: StudioComponent) => {
-					block.extendFromComponent(component.component_id)
-				}
-			"
-		/>
 	</div>
 </template>
 
@@ -35,9 +25,7 @@ import { isObjectEmpty } from "@/utils/helpers"
 import { getBlockCopy, getComponentBlock } from "@/utils/serializer"
 import getBlockTemplate from "@/utils/blockTemplate"
 import FormDialog from "@/components/FormDialog.vue"
-import NewComponentDialog from "@/components/NewComponentDialog.vue"
-import { toast } from "vue-sonner"
-import type { StudioComponent } from "@/types/Studio/StudioComponent"
+import { toast } from "frappe-ui"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
@@ -48,7 +36,6 @@ const posY = ref(0)
 
 const block = ref(null) as unknown as Ref<Block>
 const showFormDialog = ref(false)
-const showNewComponentDialog = ref(false)
 const showContextMenu = (e: MouseEvent, refBlock: Block) => {
 	block.value = refBlock
 	if (block.value.isRoot()) return
@@ -154,7 +141,10 @@ const contextMenuOptions: ContextMenuOption[] = [
 	{
 		label: "Save as Component",
 		action: () => {
-			showNewComponentDialog.value = true
+			useComponentEditorStore().promptNewComponent({
+				block: block.value,
+				onCreated: (component) => block.value.extendFromComponent(component.component_id),
+			})
 		},
 		condition: () => !block.value.isStudioComponent,
 	},

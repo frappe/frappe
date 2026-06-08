@@ -1,6 +1,6 @@
 import { Ref } from "vue"
-import { createDocumentResource, createResource, confirmDialog } from "frappe-ui"
-import { toast } from "vue-sonner"
+import { createDocumentResource, createResource, dialog } from "frappe-ui"
+import { toast } from "frappe-ui"
 
 import type { ObjectLiteral, StyleValue, SelectOption, HashString, RGBString } from "@/types"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
@@ -328,13 +328,11 @@ const getInitialVariableValue = (variable: Variable) => {
 // dialogs
 async function confirm(message: string, title: string = "Confirm"): Promise<boolean> {
 	return new Promise((resolve) => {
-		confirmDialog({
+		dialog.confirm({
 			title: title,
 			message: message,
-			onConfirm: ({ hideDialog }: { hideDialog: Function }) => {
-				resolve(true);
-				hideDialog();
-			},
+			onConfirm: () => resolve(true),
+			onCancel: () => resolve(false),
 		});
 	});
 }

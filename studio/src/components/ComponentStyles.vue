@@ -503,19 +503,19 @@ const typographySectionProperties = [
 					{
 						label: "Left",
 						value: "left",
-						icon: "align-left",
+						icon: "lucide-align-left",
 						hideLabel: true,
 					},
 					{
 						label: "Center",
 						value: "center",
-						icon: "align-center",
+						icon: "lucide-align-center",
 						hideLabel: true,
 					},
 					{
 						label: "Right",
 						value: "right",
-						icon: "align-right",
+						icon: "lucide-align-right",
 						hideLabel: true,
 					},
 				],

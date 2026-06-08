@@ -1,10 +1,8 @@
 <template>
 	<Dialog
 		v-model="showDialog"
-		:options="{
-			title: 'Add Fields from DocType',
-			size: '3xl',
-		}"
+		title="Add Fields from DocType"
+		size="3xl"
 		@after-leave="
 			() => {
 				formMeta.doctype = ''
@@ -13,18 +11,25 @@
 			}
 		"
 	>
-		<template #body-content>
+		<template #default>
 			<div class="flex flex-col space-y-4">
 				<Link label="Document Type" :required="true" doctype="DocType" v-model="formMeta.doctype" />
 				<FormControl
 					label="Fields"
 					:required="true"
-					type="autocomplete"
+					type="multiselect"
 					:placeholder="`Select fields from ${formMeta.doctype}`"
 					v-model="formMeta.fields"
 					:options="doctypeFields.data"
 					:multiple="true"
-				/>
+				>
+					<template #summary="{ selectedOptions, summary }">
+						<template v-if="selectedOptions.length">
+							{{ selectedOptions.map((o: SelectOption) => o.label).join(", ") }}
+						</template>
+						<template v-else>{{ summary }}</template>
+					</template>
+				</FormControl>
 				<Grid
 					label="Field to component mapping"
 					:columns="[
@@ -72,14 +77,14 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { createResource, Dialog } from "frappe-ui"
+import { createResource, Dialog, FormControl } from "frappe-ui"
 import Block from "@/utils/block"
 import { getComponentBlock } from "@/utils/serializer"
-import type { DocTypeField } from "@/types"
+import type { DocTypeField, SelectOption } from "@/types"
 import components from "@/data/components"
 import { Link } from "frappe-ui/frappe"
 import Grid from "@/components/Grid.vue"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 
 const props = defineProps<{
 	block?: Block | null

@@ -62,7 +62,7 @@ import { useScreenSize } from "@/utils/useScreenSize"
 import { isDynamicValue } from "@/utils/code"
 
 import useCodeStore from "@/stores/codeStore"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import type { RepeaterContext } from "@/types"
 import type { Field } from "@/types/ComponentEvent"
 import type { DataResult } from "@/types/Studio/StudioResource"

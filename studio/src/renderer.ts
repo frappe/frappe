@@ -8,7 +8,6 @@ import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 import { spritePlugin } from "frappe-ui/icons"
 import { registerGlobalComponents, registerCustomVueComponents } from "@/globals"
-import "@/utils/appUtils"
 
 // For rendering apps built by studio
 const app = createApp(AppRenderer)

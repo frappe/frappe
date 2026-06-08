@@ -79,6 +79,9 @@
         },
         "offset": {
           "type": "number"
+        },
+        "collisionPadding": {
+          "type": "number"
         }
       },
       "additionalProperties": false

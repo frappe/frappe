@@ -17,35 +17,26 @@
 			<Button class="mt-2" icon-left="plus" @click="showAddEventDialog = true">Add Event</Button>
 			<Dialog
 				v-model="showAddEventDialog"
-				:options="{
-					title: (newEvent.isEditing ? 'Edit Event' : 'Add Event') + ' - ' + block.getBlockDescription(),
-					size: '3xl',
-					actions: [
-						{
-							label: newEvent.isEditing ? 'Update' : 'Add',
-							variant: 'solid',
-							onClick: () => saveEvent(newEvent),
-						},
-					],
-				}"
-				:disableOutsideClickToClose="true"
+				:title="(newEvent.isEditing ? 'Edit Event' : 'Add Event') + ' - ' + block.getBlockDescription()"
+				size="3xl"
+				:actions="[
+					{
+						label: newEvent.isEditing ? 'Update' : 'Add',
+						variant: 'solid',
+						onClick: () => saveEvent(newEvent),
+					},
+				]"
+				:dismissible="false"
 				@after-leave="newEvent = { ...emptyEvent, fields: [], isEditing: false }"
 			>
-				<template #body-content>
+				<template #default>
 					<div class="flex flex-col gap-3">
+						<FormControl type="combobox" :options="eventOptions" label="Event" v-model="newEvent.event" />
 						<FormControl
-							type="autocomplete"
-							:options="eventOptions"
-							label="Event"
-							:modelValue="newEvent.event"
-							@update:modelValue="(val: SelectOption) => (newEvent.event = val.value)"
-						/>
-						<FormControl
-							type="autocomplete"
+							type="combobox"
 							:options="Object.keys(actions)"
 							label="Action"
-							:modelValue="newEvent.action"
-							@update:modelValue="(val: SelectOption) => (newEvent.action = val.value as Actions)"
+							v-model="newEvent.action"
 						/>
 						<component
 							v-for="control in actionControls"
@@ -165,7 +156,7 @@ import Grid from "@/components/Grid.vue"
 import Code from "@/components/Code.vue"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import type { DocTypeField } from "@/types"
-import { toast } from "vue-sonner"
+import { toast } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"
 import useCodeStore from "@/stores/codeStore"
 import useComponentInstance from "@/utils/useComponentInstance"
@@ -536,7 +527,7 @@ const getEventMenu = (event: ComponentEvent) => {
 	return [
 		{
 			label: "Delete",
-			icon: "trash",
+			icon: "lucide-trash",
 			theme: "red",
 			onClick: () => deleteEvent(event),
 		},

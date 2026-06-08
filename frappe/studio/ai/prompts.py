@@ -17,24 +17,31 @@ TEXT & DISPLAY:
 - HTML: {html: "<p>raw html</p>"}
 
 INPUTS:
-- TextInput: {modelValue: "string", placeholder: "string"}
-- Textarea: {modelValue: "string", placeholder: "string"}
-- FormControl: {modelValue: "string", type: "text|email|number|textarea|select|date|autocomplete|password|tel|url|range", label: "string", placeholder: "string", required: "boolean", options: [{label: "string", value: "string"}] (for select and autocomplete)}
-- Select: {modelValue: "string", placeholder: "string", options: [{label: "string", value: "string"}]}
-- Checkbox: {label: "string", checked: true|false}
+- TextInput: {modelValue: "string", label: "string", placeholder: "string"}
+- Textarea: {modelValue: "string", label: "string", placeholder: "string"}
+- FormControl: {modelValue: "string", type: "text|email|number|textarea|select|date|combobox|multiselect|password|tel|url|range", label: "string", placeholder: "string", required: "boolean", options: [{label: "string", value: "string"}] (for select and combobox)}
+- Select: {modelValue: "string", label: "string", placeholder: "string", options: [{label: "string", value: "string"}]}
+- Checkbox: {label: "string", modelValue: true|false}
 - Switch: {label: "string", description: "string", modelValue: true|false}
-- DatePicker: {modelValue: "string", placeholder: "string"}
-- TimePicker: {modelValue: "string", placeholder: "string"}
-- DateTimePicker: {modelValue: "string", placeholder: "string"}
-- MultiSelect: {modelValue: [], placeholder: "string", options: [{label: "string", value: "string"}]}
-- Rating: {modelValue: 0, label: "string"}
+- DatePicker: {modelValue: "string", label: "string", placeholder: "string"}
+- TimePicker: {modelValue: "string", label: "string", placeholder: "string"}
+- DateTimePicker: {modelValue: "string", label: "string", placeholder: "string"}
+- MultiSelect: {modelValue: [], label: "string", placeholder: "string", options: [{label: "string", value: "string"}]}
+- Rating: {modelValue: 0, max: 5, label: "string", disabled: false}
 - FileUploader: {label: "string", fileTypes: "['image/*']"}
 - TextEditor: {modelValue: "string", editable: true, fixedMenu: true}
-- FormLabel: {label: "string"} (for inputs that don't have a built-in label prop, e.g. Textarea, TextEditor, etc.)
+- FormLabel: {label: "string"} (only for inputs that lack a built-in label prop, e.g. TextEditor; most inputs above already take label directly — prefer that)
 
 ACTIONS:
-- Button: {label: "string", variant: "solid|subtle|outline|ghost", size: "sm|md|lg|xl|2xl", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required)"}
-- Dropdown: {options: [{label: "string", icon: "feather-icon"}], button: {label: "string"}}
+- Button: {label: "string", variant: "solid|subtle|outline|ghost", size: "sm|md|lg|xl|2xl", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required)", icon: "lucide-icon-name", iconLeft: "lucide-icon-name", iconRight: "lucide-icon-name"}
+- Dropdown: {options: [{label: "string", icon: "lucide-icon-name", onClick: "..."}] OR grouped [{group: "string", options: [{label, icon}]}], button: {label: "string"}}
+# For buttons and dropdowns, icons must be lucide-* strings from https://lucide.dev/icons (e.g. lucide-plus, lucide-edit, etc.)
+
+OVERLAYS:
+- Dialog: {modelValue: false, title: "string", message: "string", size: "xs|sm|md|lg(DEFAULT)|xl|2xl|3xl|4xl|5xl|6xl|7xl", icon: "lucide-icon-name", position: "center(DEFAULT)|top", dismissible: true, showCloseButton: true, bare: false, actions: [{label: "string", variant: "solid|subtle|outline|ghost", theme: "gray|blue|green|red"}]}
+  # modelValue is the open/visibility state (v-model) — keep it false so the dialog starts hidden; it is opened via interaction wired separately.
+  # Dialog body content goes in the block's default slot, NOT in a prop. title/message/icon/actions render the built-in header + footer chrome around those children.
+  # Use bare:true to drop all chrome (no padded card, header, or auto-actions) and render only your children.
 
 NAVIGATION:
 - Breadcrumbs: {items: [{label: "string", route: "string"}]}
@@ -55,8 +62,7 @@ DATA DISPLAY:
 - Calendar: {config: {defaultMode: "Month"}, events: []}
 
 AUTOCOMPLETE:
-- Autocomplete: {modelValue: "string", placeholder: "string", options: [{label: "string", value: "string"}]}
-- Combobox: {modelValue: "string", placeholder: "string", options: [{group: "string", options: [{label, value}]}]}
+- Combobox: {label: "string", modelValue: "string", placeholder: "string", options: [{group: "string", options: [{label, value}]}]}
 """
 
 STYLING_RULES = """COMPONENT STYLING RULES:
@@ -123,7 +129,7 @@ LAYOUT CONTAINERS (CRITICAL — originalElement is required or children won't re
 {OUTPUT_FORMAT_RULES}
 
 RULES:
-- name must exactly match a component from the catalog above (or "div" for root, "container" for inner wrappers)
+- ALWAYS USE frappe-ui components from the AVAILABLE COMPONENTS (Sidebar, Button, Badge, Alert, FormControl, ListView, Tabs, Dialog, etc.) before hand-building the same thing from scratch using container/div/TextBlock + styles.
 - style keys must be camelCase CSS (backgroundColor, borderRadius, etc.)
 - Do NOT include id (componentId is auto-generated by Studio)
 - Do NOT include parentBlock

@@ -5,10 +5,10 @@
     "TimePickerProps": {
       "type": "object",
       "properties": {
-        "value": {
+        "modelValue": {
           "type": "string"
         },
-        "modelValue": {
+        "value": {
           "type": "string"
         },
         "interval": {
@@ -31,6 +31,26 @@
             ],
             "additionalProperties": false
           }
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ]
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end"
+          ]
+        },
+        "offset": {
+          "type": "number"
         },
         "placement": {
           "type": "string",
@@ -55,7 +75,16 @@
             "subtle"
           ]
         },
+        "typeable": {
+          "type": "boolean"
+        },
+        "readonly": {
+          "type": "boolean"
+        },
         "allowCustom": {
+          "type": "boolean"
+        },
+        "keepOpen": {
           "type": "boolean"
         },
         "autoClose": {
@@ -67,6 +96,27 @@
         "disabled": {
           "type": "boolean"
         },
+        "open": {
+          "type": "boolean"
+        },
+        "openOnFocus": {
+          "type": "boolean"
+        },
+        "openOnClick": {
+          "type": "boolean"
+        },
+        "min": {
+          "type": "string"
+        },
+        "max": {
+          "type": "string"
+        },
+        "minTime": {
+          "type": "string"
+        },
+        "maxTime": {
+          "type": "string"
+        },
         "scrollMode": {
           "type": "string",
           "enum": [
@@ -74,12 +124,6 @@
             "start",
             "nearest"
           ]
-        },
-        "minTime": {
-          "type": "string"
-        },
-        "maxTime": {
-          "type": "string"
         }
       },
       "additionalProperties": false
