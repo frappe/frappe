@@ -1,28 +1,23 @@
-interface InputLabelingProps {
-  label?: string
-  description?: string
-  error?: string | Error
-  required?: boolean
-}
+import { InputLabelingProps } from "../types";
 
 export interface LinkProps extends InputLabelingProps {
-  doctype: string
-  filters?: Record<string, unknown>
-  creatable?: boolean
-  disabled?: boolean
-  placeholder?: string
+  doctype: string;
+  filters?: Record<string, unknown>;
+  creatable?: boolean;
+  disabled?: boolean;
+  placeholder?: string;
 }
 
 export type LinkEmits = {
-  create: [query: string]
-}
+  create: [query: string];
+};
 
 export interface LinkExposed {
-  reload: () => void
+  reload: () => void;
 }
 
 export type LinkOption = {
-  label: string
-  value: string
-  description?: string
-}
+  label: string;
+  value: string;
+  description?: string;
+};
