@@ -29,6 +29,9 @@ const doc = reactive<Record<string, any>>({
 	amount: 1234567.5,
 	progress: 42.5,
 	currency: "USD",
+	rating: 0.6,
+	duration: 5445,
+	ref_type: "User",
 });
 
 const layout: FormLayoutSchema = [
@@ -156,6 +159,49 @@ const layout: FormLayoutSchema = [
 								fieldtype: "JSON",
 								label: "Config (JSON)",
 								placeholder: '{ "key": "value" }',
+							},
+						],
+					},
+				],
+			},
+			{
+				name: "pickers",
+				label: "Pickers",
+				columns: [
+					{
+						name: "pick-col",
+						fields: [
+							{
+								fieldname: "tags",
+								fieldtype: "Autocomplete",
+								label: "Tag",
+								options: "Bug\nFeature\nChore",
+								placeholder: "Pick or type a tag",
+							},
+							{
+								fieldname: "rating",
+								fieldtype: "Rating",
+								label: "Rating",
+								// star count (Frappe stores the value as a 0..1 fraction)
+								options: "5",
+							},
+							{
+								fieldname: "duration",
+								fieldtype: "Duration",
+								label: "Time spent",
+							},
+							{
+								fieldname: "ref_type",
+								fieldtype: "Select",
+								label: "Reference Type",
+								options: "User\nContact",
+							},
+							{
+								// `options` names the sibling field holding the target doctype.
+								fieldname: "ref_name",
+								fieldtype: "Dynamic Link",
+								label: "Reference Name",
+								options: "ref_type",
 							},
 						],
 					},
