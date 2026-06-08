@@ -25,6 +25,7 @@
   "peerDependencies": {
     "frappe-ui": "*",
     "vue": ">=3.3.0",
-    "vue-router": "^4.1.5"
+    "vue-router": "^4.1.5",
+    "vuedraggable": "^4.1.0"
   }
 }
