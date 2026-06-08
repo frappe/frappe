@@ -2,7 +2,9 @@
 # License: MIT. See LICENSE
 
 import functools
+import importlib
 import io
+import json
 import os
 import shutil
 import sys
@@ -1201,3 +1203,64 @@ def get_app_version(app_name: str) -> str:
 		return frappe.get_attr(app_name + ".__version__")
 	except Exception:
 		return "0.0.1"
+
+
+def get_module(modulename: str):
+	"""Return a module object for given Python module name using `importlib.import_module`."""
+	return importlib.import_module(modulename)
+
+
+def read_file(path, raise_not_found=False, as_base64=False):
+	"""Open a file and return its content as Unicode or Base64 string."""
+	if isinstance(path, str):
+		path = path.encode("utf-8")
+
+	if os.path.exists(path):
+		if as_base64:
+			import base64
+
+			with open(path, "rb") as f:
+				return base64.b64encode(f.read()).decode("utf-8")
+		else:
+			with open(path) as f:
+				return as_unicode(f.read())
+	elif raise_not_found:
+		raise OSError(f"{path} Not Found")
+	else:
+		return None
+
+
+def get_file_json(path):
+	"""Read a file and return parsed JSON object."""
+	with open(path) as f:
+		return json.load(f)
+
+
+def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
+	"""Return items from text file as a list. Ignore empty lines."""
+	content = read_file(path, raise_not_found=raise_not_found)
+	if content:
+		content = strip(content)
+		return [
+			p.strip()
+			for p in content.splitlines()
+			if (not ignore_empty_lines) or (p.strip() and not p.startswith("#"))
+		]
+	return []
+
+
+def get_attr(method_string: str):
+	"""Get python method object from its name."""
+	import frappe
+
+	app_name = method_string.split(".", 1)[0]
+	if (
+		not frappe.local.flags.in_uninstall
+		and not frappe.local.flags.in_install
+		and app_name not in frappe.get_installed_apps()
+	):
+		frappe.throw(frappe._("App {0} is not installed").format(app_name), frappe.AppNotInstalledError)
+
+	modulename = ".".join(method_string.split(".")[:-1])
+	methodname = method_string.split(".")[-1]
+	return getattr(get_module(modulename), methodname)

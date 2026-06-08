@@ -24,7 +24,6 @@ from collections import defaultdict
 from collections.abc import Callable, Iterable
 from typing import TYPE_CHECKING, Any, Optional, TypeAlias, Union
 
-import orjson
 from werkzeug.datastructures import Headers
 
 import frappe
@@ -34,7 +33,7 @@ from frappe.query_builder.utils import (
 )
 from frappe.utils.caching import deprecated_local_cache as local_cache
 from frappe.utils.caching import request_cache, site_cache
-from frappe.utils.data import as_unicode, bold, cint, cstr, safe_decode, safe_encode, sbool
+from frappe.utils.data import as_unicode, bold, cint, cstr, safe_decode, safe_encode, sbool, scrub, unscrub
 from frappe.utils.local import Local, LocalProxy, release_local
 from frappe.utils.translations import _, _lt, set_user_lang
 
@@ -86,6 +85,11 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 	"parse_json": ("frappe.utils", "parse_json"),
 	"safe_eval": ("frappe.utils", "safe_eval"),
 	"create_folder": ("frappe.utils", "create_folder"),
+	"get_module": ("frappe.utils", "get_module"),
+	"read_file": ("frappe.utils", "read_file"),
+	"get_file_json": ("frappe.utils", "get_file_json"),
+	"get_file_items": ("frappe.utils", "get_file_items"),
+	"get_attr": ("frappe.utils", "get_attr"),
 	# frappe.utils.background_jobs
 	"enqueue": ("frappe.utils.background_jobs", "enqueue"),
 	"enqueue_doc": ("frappe.utils.background_jobs", "enqueue_doc"),
@@ -106,6 +110,22 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 	"concurrent_limit": ("frappe.concurrency_limiter", "concurrent_limit"),
 	# frappe.deprecation_dumpster
 	"get_test_records": ("frappe.deprecation_dumpster", "frappe_get_test_records"),
+	# frappe.utils.data
+	"scrub": ("frappe.utils.data", "scrub"),
+	"unscrub": ("frappe.utils.data", "unscrub"),
+	# frappe.modules.utils
+	"get_module_path": ("frappe.modules.utils", "get_module_path"),
+	"get_app_path": ("frappe.modules.utils", "get_app_path"),
+	"get_app_source_path": ("frappe.modules.utils", "get_app_source_path"),
+	"get_site_path": ("frappe.modules.utils", "get_site_path"),
+	"get_pymodule_path": ("frappe.modules.utils", "get_pymodule_path"),
+	"get_module_list": ("frappe.modules.utils", "get_module_list"),
+	# frappe.apps
+	"get_all_apps": ("frappe.apps", "get_all_apps"),
+	"get_installed_apps": ("frappe.apps", "get_installed_apps"),
+	# frappe.utils.response
+	"respond_as_web_page": ("frappe.utils.response", "respond_as_web_page"),
+	"redirect_to_message": ("frappe.utils.response", "redirect_to_message"),
 }
 
 
@@ -624,6 +644,8 @@ def only_for(roles: list[str] | tuple[str] | str, message=False):
 
 
 def get_domain_data(module):
+	from frappe.utils import get_attr
+
 	try:
 		domain_data = get_hooks("domains")
 		if module in domain_data:
@@ -886,116 +908,6 @@ def rename_doc(
 	)
 
 
-def get_module(modulename: str):
-	"""Return a module object for given Python module name using `importlib.import_module`."""
-	return importlib.import_module(modulename)
-
-
-def scrub(txt: str) -> str:
-	"""Return sluggified string. e.g. `Sales Order` becomes `sales_order`."""
-	return cstr(txt).replace(" ", "_").replace("-", "_").lower()
-
-
-def unscrub(txt: str) -> str:
-	"""Return titlified string. e.g. `sales_order` becomes `Sales Order`."""
-	return txt.replace("_", " ").replace("-", " ").title()
-
-
-def get_module_path(module, *joins):
-	"""Get the path of the given module name.
-
-	:param module: Module name.
-	:param *joins: Join additional path elements using `os.path.join`."""
-	from frappe.modules.utils import get_module_app
-
-	app = get_module_app(module)
-	return get_pymodule_path(app + "." + scrub(module), *joins)
-
-
-def get_app_path(app_name, *joins):
-	"""Return path of given app.
-
-	:param app: App name.
-	:param *joins: Join additional path elements using `os.path.join`."""
-	return get_pymodule_path(app_name, *joins)
-
-
-def get_app_source_path(app_name, *joins):
-	"""Return source path of given app.
-
-	:param app: App name.
-	:param *joins: Join additional path elements using `os.path.join`."""
-	return get_app_path(app_name, "..", *joins)
-
-
-def get_site_path(*joins):
-	"""Return path of current site.
-
-	:param *joins: Join additional path elements using `os.path.join`."""
-	from os.path import join
-
-	return join(local.site_path, *joins)
-
-
-def get_pymodule_path(modulename, *joins):
-	"""Return path of given Python module name.
-
-	:param modulename: Python module name.
-	:param *joins: Join additional path elements using `os.path.join`."""
-	from os.path import abspath, dirname, join
-
-	if "public" not in joins:
-		joins = [scrub(part) for part in joins]
-
-	return abspath(join(dirname(get_module(scrub(modulename)).__file__ or ""), *joins))
-
-
-def get_module_list(app_name):
-	"""Get list of modules for given all via `app/modules.txt`."""
-	return get_file_items(get_app_path(app_name, "modules.txt"))
-
-
-def get_all_apps(with_internal_apps=True, sites_path=None):
-	"""Get list of all apps via `sites/apps.txt`."""
-	if not sites_path:
-		sites_path = local.sites_path
-
-	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
-
-	if with_internal_apps:
-		for app in get_file_items(os.path.join(local.site_path, "apps.txt")):
-			if app not in apps:
-				apps.append(app)
-
-	if "frappe" in apps:
-		apps.remove("frappe")
-	apps.insert(0, "frappe")
-
-	return apps
-
-
-@request_cache
-def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
-	"""
-	Get list of installed apps in current site.
-
-	:param _ensure_on_bench: Only return apps that are present on bench.
-	"""
-	if getattr(flags, "in_install_db", True):
-		return []
-
-	if not db:
-		connect()
-
-	installed = orjson.loads(db.get_global("installed_apps") or "[]")
-
-	if _ensure_on_bench:
-		all_apps = cache.get_value("all_apps", get_all_apps)
-		installed = [app for app in installed if app in all_apps]
-
-	return installed
-
-
 def get_doc_hooks():
 	"""Return hooked methods for given doc. Expand the dict tuple if required."""
 	if not getattr(local, "doc_events_hooks", None):
@@ -1015,6 +927,9 @@ def get_doc_hooks():
 
 def _load_app_hooks(app_name: str | None = None):
 	import types
+
+	from frappe.apps import get_installed_apps
+	from frappe.utils import get_module
 
 	hooks = {}
 	apps = [app_name] if app_name else get_installed_apps(_ensure_on_bench=True)
@@ -1096,6 +1011,9 @@ def setup_module_map(include_all_apps: bool = True) -> None:
 	:param: include_all_apps: Include all apps on bench, or just apps installed on the site.
 	:return: Nothing
 	"""
+	from frappe.apps import get_all_apps, get_installed_apps
+	from frappe.modules.utils import get_module_list
+
 	if include_all_apps:
 		app_modules = cache.get_value("app_modules")
 	else:
@@ -1135,65 +1053,11 @@ def setup_module_map(include_all_apps: bool = True) -> None:
 	local.module_app = module_app
 
 
-def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
-	"""Return items from text file as a list. Ignore empty lines."""
-	import frappe.utils
-
-	content = read_file(path, raise_not_found=raise_not_found)
-	if content:
-		content = frappe.utils.strip(content)
-
-		return [
-			p.strip()
-			for p in content.splitlines()
-			if (not ignore_empty_lines) or (p.strip() and not p.startswith("#"))
-		]
-	else:
-		return []
-
-
-def get_file_json(path):
-	"""Read a file and return parsed JSON object."""
-	with open(path) as f:
-		return json.load(f)
-
-
-def read_file(path, raise_not_found=False, as_base64=False):
-	"""Open a file and return its content as Unicode or Base64 string."""
-	if isinstance(path, str):
-		path = path.encode("utf-8")
-
-	if os.path.exists(path):
-		if as_base64:
-			import base64
-
-			with open(path, "rb") as f:
-				content = f.read()
-				return base64.b64encode(content).decode("utf-8")
-		else:
-			with open(path) as f:
-				content = f.read()
-				return as_unicode(content)
-	elif raise_not_found:
-		raise OSError(f"{path} Not Found")
-	else:
-		return None
-
-
-def get_attr(method_string: str) -> Any:
-	"""Get python method object from its name."""
-	app_name = method_string.split(".", 1)[0]
-	if not local.flags.in_uninstall and not local.flags.in_install and app_name not in get_installed_apps():
-		throw(_("App {0} is not installed").format(app_name), AppNotInstalledError)
-
-	modulename = ".".join(method_string.split(".")[:-1])
-	methodname = method_string.split(".")[-1]
-	return getattr(get_module(modulename), methodname)
-
-
 def call(fn: str | Callable, *args, **kwargs):
 	"""Call a function and match arguments."""
 	if isinstance(fn, str):
+		from frappe.utils import get_attr
+
 		fn = get_attr(fn)
 
 	newargs = get_newargs(fn, kwargs)
@@ -1309,101 +1173,12 @@ def import_doc(path):
 	import_doc(path)
 
 
-def respond_as_web_page(
-	title,
-	html,
-	success=None,
-	http_status_code=None,
-	context=None,
-	indicator_color=None,
-	primary_action="/",
-	primary_label=None,
-	fullpage=False,
-	width=None,
-	template="message",
-):
-	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
-
-	:param title: Page title and heading.
-	:param message: Message to be shown.
-	:param success: Alert message.
-	:param http_status_code: HTTP status code
-	:param context: web template context
-	:param indicator_color: color of indicator in title
-	:param primary_action: route on primary button (default is `/`)
-	:param primary_label: label on primary button (default is "Home")
-	:param fullpage: hide header / footer
-	:param width: Width of message in pixels
-	:param template: Optionally pass view template
-	"""
-	local.message_title = title
-	local.message = html
-	local.response["type"] = "page"
-	local.response["route"] = template
-	local.no_cache = 1
-
-	if http_status_code:
-		local.response["http_status_code"] = http_status_code
-
-	if not context:
-		context = {}
-
-	if not indicator_color:
-		if success:
-			indicator_color = "green"
-		elif http_status_code and http_status_code > 300:
-			indicator_color = "red"
-		else:
-			indicator_color = "blue"
-
-	context["indicator_color"] = indicator_color
-	context["primary_label"] = primary_label
-	context["primary_action"] = primary_action
-	context["error_code"] = http_status_code
-	context["fullpage"] = fullpage
-	if width:
-		context["card_width"] = width
-
-	local.response["context"] = context
-
-
 def redirect(url):
 	"""Raise a 301 redirect to url"""
 	from frappe.exceptions import Redirect
 
 	flags.redirect_location = url
 	raise Redirect
-
-
-def redirect_to_message(title, html, http_status_code=None, context=None, indicator_color=None):
-	"""Redirects to /message?id=random
-	Similar to respond_as_web_page, but used to 'redirect' and show message pages like success, failure, etc. with a detailed message
-
-	:param title: Page title and heading.
-	:param message: Message to be shown.
-	:param http_status_code: HTTP status code.
-
-	Example Usage:
-	        frappe.redirect_to_message(_('Thank you'), "<div><p>You will receive an email at test@example.com</p></div>")
-
-	"""
-
-	message_id = generate_hash(length=8)
-	message = {"context": context or {}, "http_status_code": http_status_code or 200}
-	message["context"].update({"header": title, "title": title, "message": html})
-
-	if indicator_color:
-		message["context"].update({"indicator_color": indicator_color})
-
-	cache.set_value(f"message_id:{message_id}", message, expires_in_sec=60)
-	location = f"/message?id={message_id}"
-
-	if not getattr(local, "is_ajax", False):
-		local.response["type"] = "redirect"
-		local.response["location"] = location
-
-	else:
-		return location
 
 
 def build_match_conditions(doctype, as_condition=True):

@@ -3027,3 +3027,13 @@ def attach_expanded_links(doctype: str, docs: list, fields_to_expand: list):
 			val_title = doctype_title_maps.get(link_doctype, {}).get(val)
 			if val and val_title:
 				li[fieldname] = val_title
+
+
+def scrub(txt: str) -> str:
+	"""Return sluggified string. e.g. `Sales Order` becomes `sales_order`."""
+	return cstr(txt).replace(" ", "_").replace("-", "_").lower()
+
+
+def unscrub(txt: str) -> str:
+	"""Return titlified string. e.g. `sales_order` becomes `Sales Order`."""
+	return txt.replace("_", " ").replace("-", " ").title()
