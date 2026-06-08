@@ -14,8 +14,8 @@ from typing import TYPE_CHECKING, Union
 import frappe
 from frappe import _
 from frappe.utils import cint, cstr, get_file_items, get_module, now_datetime
-from frappe.utils.data import scrub
 from frappe.utils.caching import site_cache
+from frappe.utils.data import scrub
 
 if TYPE_CHECKING:
 	from types import ModuleType
@@ -51,9 +51,7 @@ def export_module_json(
 			create_init=_create_init,
 		)
 
-		return os.path.join(
-			get_module_path(module), scrub(doc.doctype), scrub(doc.name), scrub(doc.name)
-		)
+		return os.path.join(get_module_path(module), scrub(doc.doctype), scrub(doc.name), scrub(doc.name))
 
 
 def get_doc_module(module: str, doctype: str, name: str) -> "ModuleType":
