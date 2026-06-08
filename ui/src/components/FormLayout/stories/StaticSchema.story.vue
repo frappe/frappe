@@ -38,6 +38,10 @@ const doc = reactive<Record<string, any>>({
 	rating: 0.6,
 	duration: 5445,
 	ref_type: "User",
+	items: [
+		{ item: "Widget", qty: 2, rate: 19.99, in_stock: true },
+		{ item: "Gadget", qty: 5, rate: 4.5, in_stock: false },
+	],
 });
 
 const layout: FormLayoutSchema = [
@@ -224,6 +228,57 @@ const layout: FormLayoutSchema = [
 										fieldname: "user",
 										fieldtype: "Link",
 										options: "User",
+									},
+								],
+							},
+						],
+					},
+				],
+			},
+			{
+				name: "table-section",
+				label: "Items",
+				columns: [
+					{
+						name: "table-col",
+						fields: [
+							{
+								// `options` names the child doctype; `childFields`
+								// are its grid columns (in the doctype-driven flow
+								// they're resolved from the child meta — supplied
+								// inline here). The grid renders each cell via the
+								// fieldtype registry; the edit action opens the row
+								// as a form (FormLayout) in a dialog.
+								fieldname: "items",
+								fieldtype: "Table",
+								label: "Line Items",
+								options: "Item Detail",
+								childFields: [
+									{
+										fieldname: "item",
+										fieldtype: "Data",
+										label: "Item",
+										reqd: true,
+									},
+									{
+										fieldname: "qty",
+										fieldtype: "Int",
+										label: "Qty",
+									},
+									{
+										fieldname: "rate",
+										fieldtype: "Currency",
+										label: "Rate",
+									},
+									{
+										fieldname: "in_stock",
+										fieldtype: "Check",
+										label: "In Stock",
+									},
+									{
+										fieldname: "notes",
+										fieldtype: "Small Text",
+										label: "Notes",
 									},
 								],
 							},
