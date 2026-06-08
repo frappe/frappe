@@ -184,6 +184,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			() => this.refresh_report(route_options),
 			() => this.add_chart_buttons_to_toolbar(true),
 			() => this.add_card_button_to_toolbar(true),
+			() => this.add_duckdb_selector(),
 		]);
 	}
 
@@ -196,6 +197,30 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			},
 			__("Actions")
 		);
+	}
+
+	add_duckdb_selector() {
+		const me = this;
+		frappe.call({
+			method: "frappe.core.doctype.report.report.get_duckdb_instances",
+			args: {
+				report_name: this.report_name,
+			},
+			callback: function (r) {
+				if (r.message) {
+					r.message.map(function (x) {
+						let option_title = comment_when(x.creation);
+						me.page.add_inner_button(
+							__(option_title),
+							() => {
+								console.log("duckdb instances:", x);
+							},
+							__("DuckDB Sync")
+						);
+					});
+				}
+			},
+		});
 	}
 
 	add_chart_buttons_to_toolbar(show) {
