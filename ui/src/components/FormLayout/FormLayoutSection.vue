@@ -102,11 +102,6 @@ watch(opened, () => {
 .form-section-content {
 	overflow: hidden;
 }
-/*
-	Only clip while the height animation is in flight. Once the section is open
-	and resting, restore `overflow: visible` so a focused field's focus ring can
-	paint past the content box instead of being cut off at the section edge.
-*/
 .form-section-content[data-state="open"]:not(.animating) {
 	overflow: visible;
 }
