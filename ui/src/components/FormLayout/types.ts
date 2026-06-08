@@ -107,6 +107,7 @@ export type FormLayoutSchema = Tab[];
 export interface FieldComponentProps {
   field: FieldMeta;
   modelValue: any;
+  row?: Record<string, any>;
 }
 
 export type FieldComponentEmits = {

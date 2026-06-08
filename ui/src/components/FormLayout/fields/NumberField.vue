@@ -21,6 +21,7 @@ import { TextInput } from "frappe-ui";
 import { DocKey } from "../types";
 import type { FieldComponentEmits, FieldComponentProps } from "../types";
 import { flt, formatField } from "../formatNumber";
+import { resolveFieldCurrency } from "../resolveCurrency";
 import { getFormatDefaults } from "../formatDefaults";
 
 const props = defineProps<FieldComponentProps>();
@@ -53,19 +54,21 @@ function numericValue(value: any): any {
 }
 
 /**
- * Currency code for a Currency field. Precedence: the field's `options` (a
- * sibling field on the doc, else a literal code) → the site default currency
- * (`getFormatDefaults`, framework data). Per-field meta wins over the site default.
+ * Currency code for a Currency field, resolved like Frappe desk's
+ * `get_field_currency` (see `resolveFieldCurrency`): the field's `options` names
+ * a sibling field — the grid row's column when this is a child-table cell, else
+ * the parent doc — or a `Doctype:link_field:currency_field` cross-record form;
+ * an empty/absent value falls back to the site default (`getFormatDefaults`).
+ *
+ * The cross-record (`:`) form's record read is owned by `resolveCurrency`'s
+ * built-in (overridable) reader — no wiring needed here.
  */
 function resolveCurrency(): string | undefined {
-	const opt = props.field.options;
-	if (opt) {
-		const fromDoc = doc?.value?.[opt];
-		if (typeof fromDoc === "string" && fromDoc) return fromDoc;
-		if (!doc?.value?.[opt]) return opt; // literal code on the field
-	}
-	const sysCurrency = getFormatDefaults().currency;
-	return sysCurrency ?? undefined;
+	return resolveFieldCurrency(props.field.options, {
+		doc: doc?.value,
+		row: props.row,
+		defaultCurrency: getFormatDefaults().currency,
+	});
 }
 
 /**
