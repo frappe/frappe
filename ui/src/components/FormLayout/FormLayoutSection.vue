@@ -24,8 +24,9 @@
 
 			<CollapsibleContent
 				class="form-section-content"
-				:class="{ 'is-animated': animate }"
+				:class="{ 'is-animated': animate, animating }"
 				force-mount
+				@animationend.self="animating = false"
 			>
 				<div class="flex sm:flex-row flex-col gap-4" :class="{ 'px-3 sm:px-5': hasTabs }">
 					<FormLayoutColumn
@@ -64,7 +65,15 @@ const opened = ref(props.section.opened ?? true);
 // renders collapsed should rest at height 0 without playing a collapse
 // animation on first paint (reka-ui only skips the mount animation when open).
 const animate = ref(false);
-watch(opened, () => (animate.value = true));
+
+// `overflow: hidden` is only needed while the height animation plays. At rest
+// we let it return to visible so a focused field's focus ring isn't clipped at
+// the section edges. Cleared on `animationend`.
+const animating = ref(false);
+watch(opened, () => {
+	animate.value = true;
+	animating.value = true;
+});
 </script>
 
 <style scoped>
@@ -92,6 +101,14 @@ watch(opened, () => (animate.value = true));
 */
 .form-section-content {
 	overflow: hidden;
+}
+/*
+	Only clip while the height animation is in flight. Once the section is open
+	and resting, restore `overflow: visible` so a focused field's focus ring can
+	paint past the content box instead of being cut off at the section edge.
+*/
+.form-section-content[data-state="open"]:not(.animating) {
+	overflow: visible;
 }
 .form-section-content:not(.is-animated)[data-state="closed"] {
 	height: 0;
