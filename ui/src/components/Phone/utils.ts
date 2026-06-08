@@ -77,24 +77,6 @@ export function getCountryFromCode(code?: string | null): Country | null {
   return countries.find((c) => c.code === code.toLowerCase()) ?? null;
 }
 
-/**
- * Looks a country up by any developer-friendly identifier: ISO2 code
- * (`"in"`), ISD with or without the plus (`"+91"`, `"91"`), or country
- * name (`"India"`). Case-insensitive; the three formats can't collide.
- */
-export function getCountry(identifier?: string | null): Country | null {
-  if (!identifier) return null;
-  const query = identifier.trim().toLowerCase();
-
-  const matches = (country: Country) =>
-    country.code === query || // "in"
-    country.isd === query || // "+91"
-    country.isd === `+${query}` || // "91"
-    country.name.toLowerCase() === query; // "india"
-
-  return countries.find(matches) ?? null;
-}
-
 export function getFlagUrl(country: Country): string {
   return `https://flagcdn.com/${country.code}.svg`;
 }

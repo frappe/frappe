@@ -128,14 +128,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, reactive, ref, useAttrs, useSlots, watch } from "vue";
 import { Combobox, ItemListRow } from "frappe-ui";
 import { inputFontSizeClasses } from "frappe-ui/src/components/Combobox/utils";
 import { useInputLabeling } from "frappe-ui/src/composables/useInputLabeling";
+import { computed, nextTick, onMounted, reactive, ref, useAttrs, useSlots, watch } from "vue";
 import type { Country, PhoneInputProps, PhoneInputSlots } from "./types";
 import {
 	countries,
-	getCountry,
 	getCountryFromCode,
 	getFlagUrl,
 	guessCountryFromTimezone,
@@ -261,10 +260,6 @@ function setPhoneValue(value: string) {
 	}
 }
 
-function getDefaultCountry(): Country | null {
-	return getCountry(props.defaultCountry) ?? guessCountryFromTimezone();
-}
-
 // Values typed, pasted, or autofilled into the input carrying an ISD
 // ("+9198…") re-route through the parser before the model emits.
 watch(
@@ -286,7 +281,7 @@ watch(model, (value) => {
 
 onMounted(() => {
 	const parsed = splitPhoneDetails(model.value);
-	phoneDetails.country = parsed.country ?? (model.value ? null : getDefaultCountry());
+	phoneDetails.country = parsed.country ?? (model.value ? null : guessCountryFromTimezone());
 	phoneDetails.number = parsed.number;
 });
 
