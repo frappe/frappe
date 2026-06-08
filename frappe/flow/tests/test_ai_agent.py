@@ -555,6 +555,34 @@ class TestAgentStreaming(UnitTestCase):
 		self.assertIsInstance(done, Done)
 		self.assertEqual(done.result.output, "picked A")
 
+	def test_run_stream_resume_preserves_prior_tool_calls(self):
+		@tool
+		def lookup() -> str:
+			"""Lookup."""
+			return "result"
+
+		@tool
+		def ask_user(prompt: str) -> Question:
+			"""Ask."""
+			return Question(prompt=prompt, options=["A", "B"])
+
+		agent = Agent(
+			model=FakeModel(
+				[
+					_tool_call("lookup", {}, call_id="c1"),
+					_tool_call("ask_user", {"prompt": "Which?"}, call_id="c2"),
+				]
+			),
+			tools=[lookup, ask_user],
+		)
+		paused = list(agent.run("look then ask", stream=True))[-1].result
+		self.assertEqual([c.name for c in paused.tool_calls], ["lookup"])
+
+		agent.model = FakeModel([_final("done")], streams=[["done"]])
+		done = list(agent.resume(paused.messages, {"c2": "A"}, stream=True))[-1]
+
+		self.assertEqual([c.name for c in done.result.tool_calls], ["lookup", "ask_user"])
+
 
 class TestAgentConfirmation(UnitTestCase):
 	def _danger_tool(self):
@@ -652,6 +680,32 @@ class TestAgentConfirmation(UnitTestCase):
 		payload = json.loads(tool_message["content"])
 		self.assertEqual(payload["status"], "redirect")
 		self.assertEqual(payload["user_feedback"], "use /tmp/y instead")
+
+	def test_resume_preserves_tool_calls_from_before_the_pause(self):
+		write_file, calls = self._danger_tool()
+
+		@tool
+		def read_file(path: str) -> str:
+			"""Read a file."""
+			return "contents"
+
+		model = FakeModel(
+			[
+				_tool_call("read_file", {"path": "/tmp/a"}, call_id="c1"),
+				_tool_call("write_file", {"path": "/tmp/x", "body": "hi"}, call_id="c2"),
+			]
+		)
+		agent = Agent(model=model, tools=[read_file, write_file])
+
+		paused = agent.run("read then write")
+		self.assertEqual([c.name for c in paused.tool_calls], ["read_file"])
+
+		agent.model = FakeModel([_final("done")])
+		resumed = agent.resume(paused.messages, {"c2": "Approve"})
+
+		self.assertEqual(calls, [{"path": "/tmp/x", "body": "hi"}])  # confirmation ran
+		# Both the pre-pause call and the just-approved call survive on the resumed result.
+		self.assertEqual([c.name for c in resumed.tool_calls], ["read_file", "write_file"])
 
 
 class TestQuestion(UnitTestCase):

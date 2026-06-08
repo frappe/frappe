@@ -167,6 +167,20 @@ class TestAIRunPersistence(IntegrationTestCase):
 		self.assertIsNone(doc.questions)
 		self.assertEqual(doc.output, "emailed")
 
+	def test_resume_accumulates_iterations_and_usage(self):
+		session = _new_session(self.agent)
+		doc = persist_result(_paused_result(), source="Manual", input="delete the records", session=session)
+		self.assertEqual(doc.iterations, 1)
+		self.assertEqual(json.loads(doc.usage)["total_tokens"], 6)
+
+		doc.apply_result(_completed_result("emailed"))
+
+		# A resumed run continues the same row: counts span both segments.
+		self.assertEqual(doc.iterations, 2)
+		self.assertEqual(
+			json.loads(doc.usage), {"prompt_tokens": 7, "completion_tokens": 4, "total_tokens": 11}
+		)
+
 	def test_persist_records_usage(self):
 		session = _new_session(self.agent)
 		doc = persist_result(_tooled_result(), source="Manual", input="x", session=session)
