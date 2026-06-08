@@ -19,22 +19,23 @@ TEXT & DISPLAY:
 INPUTS:
 - TextInput: {modelValue: "string", placeholder: "string"}
 - Textarea: {modelValue: "string", placeholder: "string"}
-- FormControl: {modelValue: "string", type: "text|email|number|textarea|select|date|combobox|multiselect|password|tel|url|range", label: "string", placeholder: "string", required: "boolean", options: [{label: "string", value: "string"}] (for select and autocomplete)}
+- FormControl: {modelValue: "string", type: "text|email|number|textarea|select|date|combobox|multiselect|password|tel|url|range", label: "string", placeholder: "string", required: "boolean", options: [{label: "string", value: "string"}] (for select and combobox)}
 - Select: {modelValue: "string", placeholder: "string", options: [{label: "string", value: "string"}]}
-- Checkbox: {label: "string", checked: true|false}
+- Checkbox: {label: "string", modelValue: true|false}
 - Switch: {label: "string", description: "string", modelValue: true|false}
 - DatePicker: {modelValue: "string", placeholder: "string"}
 - TimePicker: {modelValue: "string", placeholder: "string"}
 - DateTimePicker: {modelValue: "string", placeholder: "string"}
 - MultiSelect: {modelValue: [], placeholder: "string", options: [{label: "string", value: "string"}]}
-- Rating: {modelValue: 0, label: "string"}
+- Rating: {modelValue: 0, max: 5, label: "string", disabled: false}
 - FileUploader: {label: "string", fileTypes: "['image/*']"}
 - TextEditor: {modelValue: "string", editable: true, fixedMenu: true}
 - FormLabel: {label: "string"} (for inputs that don't have a built-in label prop, e.g. Textarea, TextEditor, etc.)
 
 ACTIONS:
-- Button: {label: "string", variant: "solid|subtle|outline|ghost", size: "sm|md|lg|xl|2xl", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required)"}
-- Dropdown: {options: [{label: "string", icon: "feather-icon"}], button: {label: "string"}}
+- Button: {label: "string", variant: "solid|subtle|outline|ghost", size: "sm|md|lg|xl|2xl", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required)", icon: "lucide-icon-name", iconLeft: "lucide-icon-name", iconRight: "lucide-icon-name"}
+- Dropdown: {options: [{label: "string", icon: "lucide-icon-name", onClick: "..."}] OR grouped [{group: "string", options: [{label, icon}]}], button: {label: "string"}}
+# For buttons and dropdowns, icons must be lucide-* strings from https://lucide.dev/icons (e.g. lucide-plus, lucide-edit, etc.)
 
 NAVIGATION:
 - Breadcrumbs: {items: [{label: "string", route: "string"}]}
