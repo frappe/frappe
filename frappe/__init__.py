@@ -51,14 +51,6 @@ from .utils.jinja import (
 
 # Lazy imports — loaded on first attribute access, then cached in globals()
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
-	# frappe.utils.messages
-	"clear_last_message": ("frappe.utils.messages", "clear_last_message"),
-	"clear_messages": ("frappe.utils.messages", "clear_messages"),
-	"get_message_log": ("frappe.utils.messages", "get_message_log"),
-	"msgprint": ("frappe.utils.messages", "msgprint"),
-	"throw": ("frappe.utils.messages", "throw"),
-	"throw_permission_error": ("frappe.utils.messages", "throw_permission_error"),
-	"toast": ("frappe.utils.messages", "toast"),
 	# frappe.cache_manager
 	"clear_cache": ("frappe.cache_manager", "clear_cache"),
 	"reset_metadata_version": ("frappe.cache_manager", "reset_metadata_version"),
@@ -254,6 +246,8 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force: bool =
 	local.response = _dict({"docs": []})
 	local.response_headers = Headers()
 	local.task_id = None
+
+	from frappe.config import get_site_config
 
 	local.conf = get_site_config(sites_path=sites_path, site_path=site_path, cached=bool(frappe.request))
 	local.lang = local.conf.lang or "en"
@@ -717,6 +711,8 @@ def has_website_permission(doc=None, ptype="read", user=None, verbose=False, doc
 
 	if doc:
 		if isinstance(doc, str):
+			from frappe.model.document import get_lazy_doc
+
 			doc = get_lazy_doc(doctype, doc)
 
 		doctype = doc.doctype
@@ -757,7 +753,7 @@ def get_precision(
 	doctype: str, fieldname: str, currency: str | None = None, doc: "Document" | None = None
 ) -> int:
 	"""Get precision for a given field"""
-	from frappe.model.meta import get_field_precision
+	from frappe.model.meta import get_field_precision, get_meta
 
 	return get_field_precision(get_meta(doctype).get_field(fieldname), doc, currency)
 
@@ -1283,6 +1279,8 @@ def make_property_setter(
 				or "Data"
 			)
 
+		from frappe.model.document import get_doc
+
 		ps = get_doc(
 			{
 				"doctype": "Property Setter",
@@ -1513,7 +1511,7 @@ def are_emails_muted():
 
 def task(**task_kwargs):
 	def decorator_task(f):
-		f.enqueue = lambda **fun_kwargs: enqueue(f, **task_kwargs, **fun_kwargs)
+		f.enqueue = lambda **fun_kwargs: frappe.enqueue(f, **task_kwargs, **fun_kwargs)
 		return f
 
 	return decorator_task
@@ -1549,6 +1547,7 @@ def logger(
 
 def get_desk_link(doctype, name, show_title_with_name=False, open_in_new_tab=False):
 	from frappe.desk.utils import slug
+	from frappe.model.meta import get_meta
 	from frappe.utils.data import quoted
 
 	meta = get_meta(doctype)
@@ -1636,6 +1635,15 @@ def override_whitelisted_method(original_method: str) -> str:
 
 
 import frappe._optimizations
+from frappe.utils.messages import (
+	clear_last_message,
+	clear_messages,
+	get_message_log,
+	msgprint,
+	throw,
+	throw_permission_error,
+	toast,
+)
 
 delete_doc_if_exists = delete_doc
 
