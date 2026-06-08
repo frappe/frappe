@@ -7,11 +7,7 @@ from json import JSONDecodeError, dumps, loads
 
 import frappe
 from frappe import DoesNotExistError, ValidationError, _, _dict
-from frappe.cache_manager import (
-	build_domain_restricted_doctype_cache,
-	build_domain_restricted_page_cache,
-	build_table_count_cache,
-)
+from frappe.cache_manager import build_table_count_cache
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.desk_views import DeskViews
 
@@ -28,7 +24,7 @@ def handle_not_exist(fn):
 	return wrapper
 
 
-class Workspace:
+class Workspace(DeskViews):
 	def __init__(self, page, minimal=False):
 		self.page_name = page.get("name")
 		self.page_title = page.get("title")
@@ -49,9 +45,6 @@ class Workspace:
 
 		self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
 
-		self.allowed_pages = DeskViews.get_allowed_pages(cache=True)
-		self.allowed_reports = DeskViews.get_allowed_reports(cache=True)
-
 		if not minimal:
 			if self.doc.content:
 				self.onboarding_list = [
@@ -59,12 +52,6 @@ class Workspace:
 				]
 
 			self.table_counts = get_table_with_counts()
-		self.restricted_doctypes = (
-			frappe.cache.get_value("domain_restricted_doctypes") or build_domain_restricted_doctype_cache()
-		)
-		self.restricted_pages = (
-			frappe.cache.get_value("domain_restricted_pages") or build_domain_restricted_page_cache()
-		)
 
 	def is_permitted(self):
 		"""Return true if `Has Role` is not set or the user is allowed."""
@@ -130,24 +117,6 @@ class Workspace:
 			return None
 
 		return doc
-
-	def is_item_allowed(self, name, item_type):
-		item_type = item_type.lower()
-
-		if item_type == "doctype":
-			return name in (self.can_read or []) and name in (self.restricted_doctypes or [])
-		if item_type == "page":
-			return name in self.allowed_pages and name in self.restricted_pages
-		if item_type == "report":
-			return not frappe.db.get_value("Report", name, "disabled") and name in self.allowed_reports
-		if item_type == "help":
-			return True
-		if item_type == "dashboard":
-			return True
-		if item_type == "url":
-			return True
-
-		return False
 
 	def build_workspace(self):
 		self.cards = {"items": self.get_links()}
