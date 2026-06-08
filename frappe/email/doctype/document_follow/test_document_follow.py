@@ -1,7 +1,6 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 from dataclasses import dataclass
-from unittest.mock import patch
 
 import frappe
 import frappe.desk.form.document_follow as document_follow
