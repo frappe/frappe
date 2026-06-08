@@ -29,25 +29,25 @@ class AITool(Document):
 		enabled: DF.Check
 		import_path: DF.Data | None
 		is_system_generated: DF.Check
-		kind: DF.Literal["Module", "Script"]
 		requires_confirmation: DF.Check
 		slug: DF.Data
 		summary: DF.SmallText | None
 		title: DF.Data
+		type: DF.Literal["Imported", "Script"]
 	# end: auto-generated types
 
 	def validate(self):
 		self._normalize()
 		self._validate_slug()
-		self._validate_kind_fields()
-		if self.kind == "Script":
+		self._validate_type_fields()
+		if self.type == "Script":
 			self._validate_code()
 		self._validate_system_generated_immutable()
 
 	def _validate_system_generated_immutable(self):
 		if not self.is_system_generated or self.is_new():
 			return
-		before = frappe.db.get_value("AI Tool", self.name, ["import_path", "kind"], as_dict=True)
+		before = frappe.db.get_value("AI Tool", self.name, ["import_path", "type"], as_dict=True)
 		if before is None:
 			return
 		if before.import_path != self.import_path:
@@ -55,9 +55,9 @@ class AITool(Document):
 				_("Cannot change import path of system-generated tool {0}.").format(self.name),
 				title=_("Protected"),
 			)
-		if before.kind != self.kind:
+		if before.type != self.type:
 			frappe.throw(
-				_("Cannot change kind of system-generated tool {0}.").format(self.name),
+				_("Cannot change type of system-generated tool {0}.").format(self.name),
 				title=_("Protected"),
 			)
 
@@ -96,10 +96,10 @@ class AITool(Document):
 				title=_("Invalid Slug"),
 			)
 
-	def _validate_kind_fields(self):
-		if self.kind == "Module":
+	def _validate_type_fields(self):
+		if self.type == "Imported":
 			if not self.import_path:
-				frappe.throw(_("Import Path is required for Module tools."), title=_("Missing Import Path"))
+				frappe.throw(_("Import Path is required for Imported tools."), title=_("Missing Import Path"))
 			if not IMPORT_PATH_PATTERN.match(self.import_path):
 				frappe.throw(
 					_(
@@ -108,8 +108,8 @@ class AITool(Document):
 					title=_("Invalid Import Path"),
 				)
 			if self.code:
-				frappe.throw(_("Module tools must not define inline code."), title=_("Unexpected Code"))
-		elif self.kind == "Script":
+				frappe.throw(_("Imported tools must not define inline code."), title=_("Unexpected Code"))
+		elif self.type == "Script":
 			if not self.code:
 				frappe.throw(_("Code is required for Script tools."), title=_("Missing Code"))
 			if self.import_path:
@@ -118,7 +118,7 @@ class AITool(Document):
 					title=_("Unexpected Import Path"),
 				)
 		else:
-			frappe.throw(_("Kind must be Module or Script."), title=_("Invalid Kind"))
+			frappe.throw(_("Type must be Imported or Script."), title=_("Invalid Type"))
 
 	def _validate_code(self):
 		try:

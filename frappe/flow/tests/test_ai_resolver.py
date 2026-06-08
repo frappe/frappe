@@ -110,7 +110,7 @@ def _module_doc(**overrides: Any) -> dict:
 		"doctype": "AI Tool",
 		"title": "Weather",
 		"slug": "weather",
-		"kind": "Module",
+		"type": "Imported",
 		"description": "Look up the weather.",
 		"import_path": "flow.tools.builtins.weather",
 	}
@@ -123,7 +123,7 @@ def _script_doc(**overrides: Any) -> dict:
 		"doctype": "AI Tool",
 		"title": "Script Weather",
 		"slug": "script_weather",
-		"kind": "Script",
+		"type": "Script",
 		"description": "Look up the weather.",
 		"code": SCRIPT_CODE,
 	}

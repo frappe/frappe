@@ -17,7 +17,7 @@ def _module(**overrides: Any) -> dict:
 		"doctype": "AI Tool",
 		"title": "Get Weather",
 		"slug": "get_weather",
-		"kind": "Module",
+		"type": "Imported",
 		"description": "Returns weather for a city.",
 		"import_path": "flow.tools.builtins.get_weather",
 	}
@@ -29,7 +29,7 @@ def _script(**overrides: Any) -> dict:
 	doc = _module(
 		slug="script_weather",
 		title="Script Weather",
-		kind="Script",
+		type="Script",
 		import_path=None,
 		code=VALID_SCRIPT_CODE,
 	)
@@ -44,12 +44,12 @@ class IntegrationTestAITool(IntegrationTestCase):
 	def test_module_tool_creates_successfully(self):
 		doc = frappe.get_doc(_module()).insert()
 		self.assertEqual(doc.name, "get_weather")
-		self.assertEqual(doc.kind, "Module")
+		self.assertEqual(doc.type, "Imported")
 
 	def test_script_tool_creates_successfully(self):
 		doc = frappe.get_doc(_script()).insert()
 		self.assertEqual(doc.name, "script_weather")
-		self.assertEqual(doc.kind, "Script")
+		self.assertEqual(doc.type, "Script")
 
 	def test_slug_must_be_snake_case(self):
 		for bad in ("bad-slug", "1starts_with_digit", "bad slug", "has.dot", "HasCaps"):

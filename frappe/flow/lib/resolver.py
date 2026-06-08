@@ -38,7 +38,7 @@ def resolve_tool(doc: AITool, *, restrict_commit_rollback: bool = False) -> Tool
 	`restrict_commit_rollback` removes commit/rollback from a Script tool's sandbox,
 	so it cannot escape a surrounding test transaction.
 	"""
-	if doc.kind == "Module":
+	if doc.type == "Imported":
 		return _resolve_module(doc)
 	return _resolve_script(doc, restrict_commit_rollback=restrict_commit_rollback)
 
