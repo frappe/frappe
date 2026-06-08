@@ -262,12 +262,12 @@ def get_row_changed(row_changed, time, doctype, doc_name, v, user):
 
 	items = []
 	for d in row_changed:
-		# d[0] = fieldname of child table in parent doctype, d[3][0][0] = fieldname in child table
 		if not _can_read_child_table_field(doctype, d[0], d[3][0][0], user):
 			continue
 
-		d[0] = d[0] if d[0] else " "  # fieldname of child table in parent doctype
-		d[3][0][1] = d[3][0][1] if d[3][0][1] else " "  # old value of the field in the child document
+		d[0] = d[0] if d[0] else " "
+		d[3][0][1] = d[3][0][1] if d[3][0][1] else " "
+
 		items.append(
 			{
 				"time": v.modified,
@@ -292,16 +292,14 @@ def get_added_row(added, time, doctype, doc_name, v, user):
 	return [
 		{
 			"time": v.modified,
-			"data": {"to": d[0], "time": time},  # d[0] = fieldname
+			"data": {"to": d[0], "time": time},
 			"doctype": doctype,
 			"doc_name": doc_name,
 			"type": "row added",
 			"by": v.modified_by,
 		}
 		for d in added
-		if _can_read_table_field(
-			doctype, d[0], user
-		)  # the check is loose here since the data returned is just fieldname
+		if _can_read_table_field(doctype, d[0], user)
 	]
 
 
@@ -313,9 +311,9 @@ def get_field_changed(changed, time, doctype, doc_name, v, user):
 		if d[0] not in frappe.get_meta(doctype).get_permitted_fieldnames(permission_type="read", user=user):
 			continue
 
-		d[1] = d[1] if d[1] else " "  # old value
-		d[2] = d[2] if d[2] else " "  # new value
-		d[0] = d[0] if d[0] else " "  # fieldname
+		d[1] = d[1] if d[1] else " "
+		d[2] = d[2] if d[2] else " "
+		d[0] = d[0] if d[0] else " "
 		items.append(
 			{
 				"time": v.modified,
@@ -374,53 +372,28 @@ def _get_filters(frequency, user):
 
 def _can_read_child_table_field(doctype: str, table_field: str, child_field: str, user: str) -> bool:
 	"""Check whether a user may read a child table field change.
-
-	Parameters
-	----------
-	doctype : str
-		Parent DocType that owns the child table field.
-	table_field : str
-		Table fieldname on the parent DocType.
-	child_field : str
-		Fieldname on the child DocType row that changed.
-	user : str
-		User whose roles and permlevels are used for the check.
-
-	Returns
-	-------
-	bool
-		True if the user can read both the parent table field and the
-		child field, otherwise False.
+	Args:
+		doctype (str): Parent DocType that owns the child table field.
+		table_field (str): Table fieldname on the parent DocType.
+		child_field (str): Fieldname on the child DocType row that changed.
+		user (str): User whose roles and permlevels are used for the check.
 	"""
 
 	if not _can_read_table_field(doctype, table_field, user):
 		return False
 
-	child_doctype = frappe.get_meta(doctype).get_field(table_field).options  # get the child doctype name
-	return child_field in frappe.get_meta(
-		child_doctype
-	).get_permitted_fieldnames(  # check if the user can read the field in the child document
+	child_doctype = frappe.get_meta(doctype).get_field(table_field).options
+	return child_field in frappe.get_meta(child_doctype).get_permitted_fieldnames(
 		permission_type="read", parenttype=doctype, user=user
 	)
 
 
-# frappe.get_meta(doctype).get_permitted_fieldnames(permission_type="read", user=user) skips child table fields so need to check with a separate function
 def _can_read_table_field(doctype: str, table_field: str, user: str) -> bool:
 	"""Check whether a user may read a parent Table field.
-
-	Parameters
-	----------
-	doctype : str
-		Parent DocType that contains the child table field.
-	table_field : str
-		Table fieldname on the parent DocType.
-	user : str
-		User whose roles and permlevels are used for the check.
-
-	Returns
-	-------
-	bool
-		True if the table field exists and the user has read access to it, otherwise False.
+	Args:
+		doctype(str): Parent DocType that contains the child table field.
+		table_field(str): Table fieldname on the parent DocType.
+		user(str): User whose roles and permlevels are used for the check.
 	"""
 	meta = frappe.get_meta(doctype)
 	table_df = meta.get_field(table_field)
@@ -428,8 +401,5 @@ def _can_read_table_field(doctype: str, table_field: str, user: str) -> bool:
 	if not table_df:
 		return False
 
-	permlevel = table_df.permlevel  # the perm level of the table field in the parent doctype
-	if permlevel > 0:
-		return permlevel in meta.get_permlevel_access(permission_type="read", user=user)
-
-	return True
+	permlevel = table_df.permlevel
+	return permlevel in meta.get_permlevel_access(permission_type="read", user=user)
