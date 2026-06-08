@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 from dataclasses import dataclass
+from unittest.mock import patch
 
 import frappe
 import frappe.desk.form.document_follow as document_follow
@@ -163,6 +164,38 @@ class TestDocumentFollow(IntegrationTestCase):
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertFalse(documents_followed)
 
+	def test_cannot_follow_without_read_permission(self):
+		user = get_user()
+		event_doc = get_event()
+		frappe.share.remove("Event", event_doc.name, user.name)
+
+		frappe.set_user(user.name)
+		with self.assertRaises(frappe.PermissionError):
+			document_follow.follow_document("Event", event_doc.name, user.name)
+
+	def test_revoked_access_cleans_up_follow(self):
+		user = get_user()
+		event_doc = get_event()
+		document_follow.follow_document("Event", event_doc.name, user.name)
+
+		self.assertTrue(
+			frappe.db.exists(
+				"Document Follow", {"ref_doctype": "Event", "ref_docname": event_doc.name, "user": user.name}
+			)
+		)
+
+		frappe.share.remove("Event", event_doc.name, user.name)
+
+		message, valid_follows = document_follow.get_message_for_user("Hourly", user.name)
+
+		self.assertFalse(
+			frappe.db.exists(
+				"Document Follow", {"ref_doctype": "Event", "ref_docname": event_doc.name, "user": user.name}
+			)
+		)
+		self.assertEqual(message, [])
+		self.assertEqual(valid_follows, [])
+
 	def tearDown(self):
 		frappe.db.rollback()
 		frappe.db.delete("Email Queue")
@@ -193,6 +226,7 @@ def get_event():
 		}
 	)
 	doc.insert()
+	frappe.share.add("Event", doc.name, "test@docsub.com", read=1)
 	return doc
 
 
