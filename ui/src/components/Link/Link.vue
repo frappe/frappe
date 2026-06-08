@@ -141,6 +141,7 @@ const showRedirect = computed(() => props.redirectable && !!model.value);
 const showEdit = computed(() => props.editable && !!model.value);
 
 const loadOptions = (txt: string = "") => {
+	if (!props.doctype) return;
 	options.update({
 		params: {
 			txt,
