@@ -17,20 +17,20 @@ TEXT & DISPLAY:
 - HTML: {html: "<p>raw html</p>"}
 
 INPUTS:
-- TextInput: {modelValue: "string", placeholder: "string"}
-- Textarea: {modelValue: "string", placeholder: "string"}
+- TextInput: {modelValue: "string", label: "string", placeholder: "string"}
+- Textarea: {modelValue: "string", label: "string", placeholder: "string"}
 - FormControl: {modelValue: "string", type: "text|email|number|textarea|select|date|combobox|multiselect|password|tel|url|range", label: "string", placeholder: "string", required: "boolean", options: [{label: "string", value: "string"}] (for select and combobox)}
-- Select: {modelValue: "string", placeholder: "string", options: [{label: "string", value: "string"}]}
+- Select: {modelValue: "string", label: "string", placeholder: "string", options: [{label: "string", value: "string"}]}
 - Checkbox: {label: "string", modelValue: true|false}
 - Switch: {label: "string", description: "string", modelValue: true|false}
-- DatePicker: {modelValue: "string", placeholder: "string"}
-- TimePicker: {modelValue: "string", placeholder: "string"}
-- DateTimePicker: {modelValue: "string", placeholder: "string"}
-- MultiSelect: {modelValue: [], placeholder: "string", options: [{label: "string", value: "string"}]}
+- DatePicker: {modelValue: "string", label: "string", placeholder: "string"}
+- TimePicker: {modelValue: "string", label: "string", placeholder: "string"}
+- DateTimePicker: {modelValue: "string", label: "string", placeholder: "string"}
+- MultiSelect: {modelValue: [], label: "string", placeholder: "string", options: [{label: "string", value: "string"}]}
 - Rating: {modelValue: 0, max: 5, label: "string", disabled: false}
 - FileUploader: {label: "string", fileTypes: "['image/*']"}
 - TextEditor: {modelValue: "string", editable: true, fixedMenu: true}
-- FormLabel: {label: "string"} (for inputs that don't have a built-in label prop, e.g. Textarea, TextEditor, etc.)
+- FormLabel: {label: "string"} (only for inputs that lack a built-in label prop, e.g. TextEditor; most inputs above already take label directly — prefer that)
 
 ACTIONS:
 - Button: {label: "string", variant: "solid|subtle|outline|ghost", size: "sm|md|lg|xl|2xl", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required)", icon: "lucide-icon-name", iconLeft: "lucide-icon-name", iconRight: "lucide-icon-name"}
@@ -62,7 +62,7 @@ DATA DISPLAY:
 - Calendar: {config: {defaultMode: "Month"}, events: []}
 
 AUTOCOMPLETE:
-- Combobox: {modelValue: "string", placeholder: "string", options: [{group: "string", options: [{label, value}]}]}
+- Combobox: {label: "string", modelValue: "string", placeholder: "string", options: [{group: "string", options: [{label, value}]}]}
 """
 
 STYLING_RULES = """COMPONENT STYLING RULES:
