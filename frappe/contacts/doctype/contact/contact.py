@@ -9,6 +9,7 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
+from frappe.query_builder.functions import Coalesce
 from frappe.utils import cstr, has_gravatar
 
 
@@ -270,19 +271,22 @@ def download_vcards(contacts: str):
 
 def get_default_contact(doctype, name):
 	"""Return default contact for the given doctype, name."""
-	out = frappe.db.sql(
-		"""select parent,
-			IFNULL((select is_primary_contact from tabContact c where c.name = dl.parent), 0)
-				as is_primary_contact
-		from
-			`tabDynamic Link` dl
-		where
-			dl.link_doctype=%s and
-			dl.link_name=%s and
-			dl.parenttype = 'Contact' """,
-		(doctype, name),
-		as_dict=True,
+	Contact = frappe.qb.DocType("Contact")
+	DynamicLink = frappe.qb.DocType("Dynamic Link")
+
+	subquery = (
+		frappe.qb.from_(Contact).select(Contact.is_primary_contact).where(Contact.name == DynamicLink.parent)
 	)
+
+	query = (
+		frappe.qb.from_(DynamicLink)
+		.select(DynamicLink.parent, Coalesce(subquery, 0).as_("is_primary_contact"))
+		.where(DynamicLink.link_doctype == doctype)
+		.where(DynamicLink.link_name == name)
+		.where(DynamicLink.parenttype == "Contact")
+	)
+
+	out = query.run(as_dict=True)
 
 	if out:
 		for contact in out:
@@ -354,8 +358,8 @@ def contact_query(
 	if not frappe.get_meta(doctype).get_field(searchfield) and searchfield not in frappe.db.DEFAULT_COLUMNS:
 		return []
 
-	link_doctype = filters.pop("link_doctype")
-	link_name = filters.pop("link_name")
+	link_doctype = filters.pop("link_doctype", None)
+	link_name = filters.pop("link_name", None)
 
 	return frappe.db.sql(
 		f"""select

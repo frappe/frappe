@@ -8,6 +8,18 @@ from frappe import _
 
 
 @frappe.whitelist()
+def render_jinja_template(template: str, doctype: str, docname: str) -> str:
+	"""Render a raw Jinja2 template string with doc context (used by the print format builder preview)."""
+	doc = frappe.get_doc(doctype, docname)
+	doc.check_permission("print")
+	# template is rendered inside frappe's SandboxedEnvironment (Jinja2 sandbox).
+	# The caller must hold the "print" permission on the document before reaching this line.
+	return frappe.render_template(
+		template, {"doc": doc}
+	)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+
+
+@frappe.whitelist()
 def download_pdf(doctype: str, name: str | int, print_format: str, letterhead: str | None = None):
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("print")
@@ -90,7 +102,6 @@ class PrintFormatGenerator:
 		header_html = footer_html = None
 		if self.letterhead:
 			header_html = frappe.render_template("templates/print_format/print_header.html", self.context)
-		if self.letterhead:
 			footer_html = frappe.render_template("templates/print_format/print_footer.html", self.context)
 		return header_html, footer_html
 
@@ -193,14 +204,58 @@ class PrintFormatGenerator:
 		if letterhead_html:
 			parts.append(frappe.render_template(letterhead_html, ctx))
 		if layout_template:
-			parts.append(
-				'<div class="document-header-content">'
-				+ frappe.render_template(layout_template, ctx)
-				+ "</div>"
-			)
+			if isinstance(layout_template, str):
+				# layout_template is persisted header/footer HTML from the stored Print Format document.
+				zone_html = frappe.render_template(
+					layout_template, ctx
+				)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+			else:
+				# Section object — render using the same logic as print_format.html
+				zone_html = self._render_zone_section(layout_template, ctx["doc"])
+			if zone_html:
+				parts.append('<div class="document-header-content">' + zone_html + "</div>")
 		if not is_header and page_no_html:
 			parts.append(page_no_html)
 		return "\n".join(parts) or None
+
+	_ZONE_SECTION_TEMPLATE = """\
+{%- set ns = namespace(has_fields=false) -%}
+{%- for col in section.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns.has_fields = true -%}{%- endfor -%}{%- endfor -%}
+{%- if ns.has_fields -%}
+{%- set col_gap = (section.gap if section.gap is defined and section.gap is not none else 20)|string + 'px' -%}
+{%- set _lc = 'label-uppercase' if section.get('label_case') == 'uppercase' else '' -%}
+<div class="section {{ _lc }} section-columns row" style="gap:{{ col_gap }}">
+{%- for column in section.columns %}
+<div class="column col">
+{%- for df in column.get('fields', []) -%}
+{%- if df.fieldtype == 'HTML' and df.html -%}
+<div class="custom-html">{{ frappe.render_template(df.html, {'doc': doc}) }}</div>
+{%- elif df.fieldtype == 'Spacer' -%}
+<div style="height:12px"></div>
+{%- elif df.fieldtype == 'Divider' -%}
+<hr style="border-top:1px solid #e5e7eb;margin:4px 0"/>
+{%- else -%}
+{%- set _raw = doc.get(df.fieldname) -%}
+{%- if _raw is not none and _raw != '' -%}
+<div class="field-render">
+{%- if df.show_label != 'hide' %}<div class="label">{{ _(df.label or df.fieldname) }}</div>{%- endif -%}
+<div class="value">{{ doc.get_formatted(df.fieldname) }}</div>
+</div>
+{%- endif -%}
+{%- endif -%}
+{%- endfor -%}
+</div>
+{%- endfor %}
+</div>
+{%- endif -%}
+"""
+
+	def _render_zone_section(self, section: dict, doc) -> str:
+		"""Render a header/footer zone section dict to HTML for the Chrome overlay."""
+		# _ZONE_SECTION_TEMPLATE is a hardcoded class-level string constant, not user input.
+		return frappe.render_template(
+			self._ZONE_SECTION_TEMPLATE, {"section": section, "doc": doc}
+		)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 
 	def _page_number_html(self, position: str) -> str:
 		align = self._ALIGN_MAP.get(position, "center")
@@ -228,6 +283,17 @@ class PrintFormatGenerator:
 					fieldtype = df["fieldtype"]
 					df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
 					df["section"] = section
+
+		# Also process header/footer zones if they are section objects
+		for zone_key in ("header", "footer"):
+			zone = layout.get(zone_key)
+			if isinstance(zone, dict) and "columns" in zone:
+				for column in zone.get("columns", []):
+					for df in column.get("fields", []):
+						fieldtype = df.get("fieldtype", "Data")
+						df["renderer"] = renderers.get(fieldtype) or fieldtype.replace(" ", "")
+						df["section"] = zone
+
 		return layout
 
 	def process_margin_texts(self, layout):

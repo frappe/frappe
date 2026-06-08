@@ -31,7 +31,6 @@ class LinkSearchResults(TypedDict):
 	value: str
 	description: str
 	label: NotRequired[str]
-	description_html: NotRequired[bool]
 
 
 # this is called by the Link Field
@@ -355,9 +354,6 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 	meta = frappe.get_meta(doctype)
 	if meta.show_title_field_in_link:
 		for item in res:
-			if isinstance(item, dict):
-				results.append(item)
-				continue
 			item = list(item)
 			if len(item) == 1:
 				title_field = meta.title_field
@@ -380,9 +376,6 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 			results.append(autosuggest_row)
 	else:
 		for item in res:
-			if isinstance(item, dict):
-				results.append(item)
-				continue
 			label = _(item[0]) if meta.translated_doctype else item[0]
 			results.append({"value": item[0], "description": to_string(item[1:]), "label": label})
 

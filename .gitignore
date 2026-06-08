@@ -6,9 +6,9 @@
 *.swp
 *.egg-info
 dist/
+frappe/public/dist
 # build/
 frappe/docs/current
-frappe/public/dist
 .vscode
 .vs
 node_modules

@@ -6,7 +6,7 @@ from typing import Any
 
 import frappe
 from frappe import _
-from frappe.boot import get_allowed_report_names
+from frappe.desk.desk_views import DeskViews
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
@@ -90,7 +90,7 @@ def get_permission_query_conditions(user=None):
 	if user == "Administrator" or "System Manager" in frappe.get_roles(user):
 		return
 
-	allowed_reports = get_allowed_report_names(user=user)
+	allowed_reports = DeskViews.get_allowed_report_names(user=user)
 	allowed_doctypes = get_doctypes_with_read(user)
 	allowed_modules = [module.get("module_name") for module in get_modules_from_all_apps_for_user(user)]
 
@@ -111,7 +111,7 @@ def has_permission(doc, ptype, user):
 	if user == "Administrator" or "System Manager" in frappe.get_roles(user):
 		return True
 
-	if doc.type == "Report" and doc.report_name in get_allowed_report_names(user=user):
+	if doc.type == "Report" and doc.report_name in DeskViews.get_allowed_report_names(user=user):
 		return True
 
 	if doc.type == "Custom" and doc.document_type in get_doctypes_with_read(user):

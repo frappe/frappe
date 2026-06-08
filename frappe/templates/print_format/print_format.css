@@ -94,8 +94,6 @@ body {
 	font-size: 0.75em;
 	font-weight: 600;
 	color: #6b7280;
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
 	margin-bottom: 0.1rem;
 }
 
@@ -103,15 +101,16 @@ body {
 	color: #111827;
 }
 
-/* Left-right: label takes 40%, value takes 60% for better wrapping */
-.field.left-right {
+/* Left-right (section-level): label takes 40%, value takes 60% */
+.field.left-right,
+.field.field-inline {
 	display: flex;
 	align-items: baseline;
 	gap: 0.5rem;
 }
 
-.field.left-right .label {
-	width: 40%;
+.field.left-right .label,
+.field.field-inline .label {
 	flex-shrink: 0;
 	font-size: 0.8em;
 	font-weight: 600;
@@ -121,9 +120,51 @@ body {
 	padding-top: 0.05rem;
 }
 
+.field.left-right .label {
+	width: 40%;
+}
+
+.field.field-inline .label {
+	width: auto;
+}
+
+.field.field-inline .label::after {
+	content: ":";
+}
+
 .field.left-right .value {
 	width: 60%;
 	flex: 1;
+}
+
+.field.field-inline .value {
+	flex: 1;
+}
+
+/* Field-level alignment */
+.field.field-align-center {
+	text-align: center;
+}
+
+.field.field-align-center .value {
+	text-align: center;
+}
+
+.field.field-align-right {
+	text-align: right;
+}
+
+.field.field-align-right .value {
+	text-align: right;
+}
+
+/* In left-right orientation, alignment applies to the whole flex row */
+.field.left-right.field-align-right {
+	justify-content: flex-end;
+}
+
+.field.left-right.field-align-center {
+	justify-content: center;
 }
 
 /* Child table */
@@ -135,8 +176,6 @@ body {
 	font-size: 0.8em;
 	font-weight: 600;
 	color: #6b7280;
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
 	margin-bottom: 0.4rem;
 }
 
@@ -147,28 +186,63 @@ body {
 }
 
 .child-table .table th {
-	background-color: #f3f4f6;
+	background-color: #f3f4f6 !important;
 	color: #374151;
 	font-weight: 600;
 	font-size: 0.85em;
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
 	padding: 0.45rem 0.6rem;
-	border: 1px solid #e5e7eb;
+	border: 1px solid #e5e7eb !important;
 }
 
 .child-table .table td {
 	padding: 0.45rem 0.6rem;
-	border: 1px solid #e5e7eb;
+	border: 1px solid #e5e7eb !important;
 	vertical-align: top;
 }
 
-.child-table .table .odd {
-	background-color: #ffffff;
+/* lined (default): no row alternation — target td directly to beat Bootstrap @media print */
+.child-table--lined .table .odd td,
+.child-table--lined .table .even td {
+	background-color: #ffffff !important;
 }
 
-.child-table .table .even {
-	background-color: #f9fafb;
+/* striped: alternating rows */
+.child-table--striped .table .odd td {
+	background-color: #ffffff !important;
+}
+
+.child-table--striped .table .even td {
+	background-color: #f9fafb !important;
+}
+
+/* plain: no borders, bottom dividers only */
+.child-table--plain .table th,
+.child-table--plain .table td {
+	border: none !important;
+	border-bottom: 1px solid #e5e7eb !important;
+}
+
+.child-table--plain .table th {
+	background-color: transparent !important;
+	border-bottom: 2px solid #d1d5db !important;
+}
+
+.child-table--plain .table .odd td,
+.child-table--plain .table .even td {
+	background-color: #ffffff !important;
+}
+
+/* borderless variant */
+.child-table--borderless .table th,
+.child-table--borderless .table td {
+	border: none !important;
+	border-bottom: 1px solid #e5e7eb !important;
+}
+
+/* plain header variant */
+.child-table--plain-header .table th {
+	background-color: transparent !important;
+	border-bottom: 2px solid #d1d5db !important;
 }
 
 .child-table [data-fieldtype="Currency"],
@@ -250,4 +324,25 @@ body {
 
 .field[data-fieldtype="Check"] #icon-tick {
 	width: 1rem;
+}
+
+/* ── Label case: uppercase (opt-in per section) ──────────── */
+.label-uppercase .section-label {
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.label-uppercase .field .label {
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+.label-uppercase .child-table > .label {
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+.label-uppercase .child-table .table th {
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
 }

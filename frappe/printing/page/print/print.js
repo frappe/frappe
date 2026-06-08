@@ -849,15 +849,9 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_default_print_format() {
-		if (
-			frappe.meta
-				.get_print_formats(this.frm.doctype)
-				.includes(this.print_format_selector.val())
-		)
-			return;
-
-		this.print_format_selector.empty();
-		this.print_format_selector.val(this.frm.meta.default_print_format || "");
+		const default_format =
+			this.frm._layout_print_format || this.frm.meta.default_print_format || "";
+		this.print_format_selector.val(default_format);
 	}
 
 	selected_format() {

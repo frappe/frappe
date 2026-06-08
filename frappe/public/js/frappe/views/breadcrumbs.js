@@ -81,6 +81,18 @@ frappe.breadcrumbs = {
 				this.set_form_breadcrumb(breadcrumbs, view);
 			} else if (breadcrumbs.doctype && view === "list") {
 				this.set_list_breadcrumb(breadcrumbs);
+				if (breadcrumbs.layout_name) {
+					const layout_info = (frappe.boot.doctype_layouts || []).find(
+						(l) => l.name === breadcrumbs.layout_name
+					);
+					const display_title = layout_info?.title || breadcrumbs.layout_name;
+					const $li = this.$breadcrumbs.find("li").last();
+					$li.after(
+						`<li class="disabled"><a>${frappe.utils.escape_html(
+							__(display_title)
+						)}</a></li>`
+					);
+				}
 			} else if (breadcrumbs.doctype && view == "dashboard-view") {
 				this.set_list_breadcrumb(breadcrumbs);
 				this.set_dashboard_breadcrumb(breadcrumbs);
@@ -206,14 +218,15 @@ frappe.breadcrumbs = {
 			// no user listview for non-system managers and single doctypes
 		} else {
 			let route;
-			const doctype_route = frappe.router.slug(frappe.router.doctype_layout || doctype);
+			const doctype_route = frappe.router.slug(doctype);
 			if (doctype_meta?.is_tree) {
 				let view = frappe.model.user_settings[doctype].last_view || "Tree";
 				route = `${doctype_route}/view/${view}`;
 			} else {
 				route = doctype_route;
 			}
-			this.append_breadcrumb_element(`/desk/${route}`, __(doctype), "title-text");
+			const reset = breadcrumbs.layout_name ? "?reset_filters=1" : "";
+			this.append_breadcrumb_element(`/desk/${route}${reset}`, __(doctype), "title-text");
 		}
 
 		let list_crumb = this.$breadcrumbs.find("li a.title-text");
@@ -238,6 +251,20 @@ frappe.breadcrumbs = {
 				docname_title = strip_html(docname_title);
 			}
 		}
+
+		if (breadcrumbs.layout_name) {
+			const layout_info = (frappe.boot.doctype_layouts || []).find(
+				(l) => l.name === breadcrumbs.layout_name
+			);
+			const display_title = layout_info?.title || breadcrumbs.layout_name;
+			const doctype_slug = frappe.router.slug(doctype);
+			const filter_params = this._parse_condition_to_params(layout_info?.condition);
+			filter_params._layout = breadcrumbs.layout_name;
+			const query = new URLSearchParams(filter_params).toString();
+			const layout_route = `/desk/${doctype_slug}${query ? "?" + query : ""}`;
+			this.append_breadcrumb_element(layout_route, __(display_title));
+		}
+
 		this.append_breadcrumb_element(form_route, docname_title, "title-text-form");
 
 		if (view === "form") {
@@ -284,5 +311,37 @@ frappe.breadcrumbs = {
 		} else {
 			$("body").removeClass("no-breadcrumbs");
 		}
+	},
+
+	/**
+	 * Parse a layout condition string into URL query params for list filtering.
+	 * Handles AND-joined `doc.field OP value` comparisons.
+	 * Returns {} for conditions that contain || (OR) since those can't be expressed as simple filters.
+	 */
+	_parse_condition_to_params(condition) {
+		if (!condition || condition.includes("||")) return {};
+
+		const params = {};
+		// Match: doc.fieldname  ===|!==|>=|<=|>|<  "value" | 'value' | number
+		const re = /doc\.(\w+)\s*(===?|!==?|>=?|<=?)\s*(?:"([^"]*)"|'([^']*)'|(-?\d+(?:\.\d+)?))/g;
+		let match;
+
+		while ((match = re.exec(condition)) !== null) {
+			const fieldname = match[1];
+			const op = match[2];
+			const value = match[3] ?? match[4] ?? match[5];
+			if (value === undefined) continue;
+
+			const frappe_op =
+				op === "===" || op === "==" ? "=" : op === "!==" || op === "!=" ? "!=" : op;
+
+			if (frappe_op === "=") {
+				params[fieldname] = value;
+			} else {
+				params[fieldname] = JSON.stringify([frappe_op, value]);
+			}
+		}
+
+		return params;
 	},
 };

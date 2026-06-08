@@ -66,7 +66,7 @@ frappe.search.utils = {
 				const doctype = route[1];
 				if (route.length > 2 && doctype !== route[2]) {
 					const docname = route[2];
-					out.label = __(doctype) + " " + docname.bold();
+					out.label = __(doctype) + " " + frappe.utils.bold(docname);
 					out.value = __(doctype) + " " + docname;
 				} else {
 					out.label = __(doctype).bold();
@@ -737,15 +737,20 @@ frappe.search.open_global_search_from_navbar_shortcut = function (e) {
  * Open the navbar Awesome Bar from Global Search (Ctrl/Cmd+K).
  */
 frappe.search.open_awesomebar_from_global_search_shortcut = function (e) {
+	if (e) {
+		e.preventDefault();
+	}
+	const awesome_bar = frappe.app.awesome_bar;
+	if (awesome_bar?.is_open()) {
+		awesome_bar.close();
+		return false;
+	}
 	const dlg = frappe.searchdialog?.search;
 	if (dlg?.search_dialog?.is_visible) {
 		const keywords = (dlg.$input?.val() || "").trim();
 		dlg.search_dialog.hide();
 		$("#navbar-search").val(keywords);
 	}
-	frappe.app.awesome_bar.open();
-	if (e) {
-		e.preventDefault();
-	}
+	awesome_bar.open();
 	return false;
 };
