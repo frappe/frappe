@@ -1,6 +1,8 @@
 exclude: 'node_modules|.git'
 default_stages: [pre-commit]
 default_install_hook_types: [pre-commit, commit-msg]
+default_language_version:
+  python: python3.13
 fail_fast: false
 
 

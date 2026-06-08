@@ -147,13 +147,67 @@ if TYPE_CHECKING:  # pragma: no cover
 
 	from werkzeug.wrappers import Request
 
+	# Lazy-imported names — resolved at runtime via __getattr__; listed here for editors/type checkers
+	from frappe.apps import get_all_apps, get_installed_apps
+	from frappe.cache_manager import clear_cache, reset_metadata_version
+	from frappe.concurrency_limiter import concurrent_limit
+	from frappe.config import get_common_site_config, get_conf, get_site_config
+	from frappe.core.doctype.system_settings.system_settings import get_system_settings
 	from frappe.database.mariadb.database import MariaDBDatabase as PyMariaDBDatabase
 	from frappe.database.mariadb.mysqlclient import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
 	from frappe.database.sqlite.database import SQLiteDatabase
-	from frappe.model.document import Document
+	from frappe.deprecation_dumpster import frappe_get_test_records as get_test_records
+	from frappe.email import sendmail
+	from frappe.model.document import (
+		Document,
+		_set_document_in_cache,
+		can_cache_doc,
+		clear_document_cache,
+		copy_doc,
+		get_cached_doc,
+		get_cached_value,
+		get_doc,
+		get_docs,
+		get_document_cache_key,
+		get_last_doc,
+		get_lazy_doc,
+		get_single,
+		get_single_value,
+		new_doc,
+	)
+	from frappe.model.meta import get_meta
+	from frappe.modules.utils import (
+		get_app_path,
+		get_app_source_path,
+		get_module_list,
+		get_module_path,
+		get_pymodule_path,
+		get_site_path,
+	)
 	from frappe.query_builder.builder import MariaDB, Postgres, SQLite
+	from frappe.realtime import publish_progress, publish_realtime
+	from frappe.utils import (
+		create_folder,
+		get_attr,
+		get_file_items,
+		get_file_json,
+		get_module,
+		get_traceback,
+		mock,
+		parse_json,
+		read_file,
+		safe_eval,
+	)
+	from frappe.utils.background_jobs import enqueue, enqueue_doc
+	from frappe.utils.data import scrub, unscrub
+	from frappe.utils.error import log_error
+	from frappe.utils.formatters import format_value
+	from frappe.utils.formatters import format_value as format
+	from frappe.utils.print_utils import attach_print, get_print
 	from frappe.utils.redis_wrapper import ClientCache, RedisWrapper
+	from frappe.utils.response import redirect_to_message, respond_as_web_page
+	from frappe.utils.task_queue import enqueue_task, get_current_task
 
 controllers: dict[str, type] = {}
 lazy_controllers: dict[str, type] = {}
