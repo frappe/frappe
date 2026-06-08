@@ -366,7 +366,7 @@ def sync_builtin_tools() -> None:
 					"doctype": "AI Tool",
 					"slug": builtin.name,
 					"title": builtin.name.replace("_", " ").title(),
-					"kind": "Module",
+					"type": "Imported",
 					"import_path": import_path,
 					"description": builtin.description,
 					"is_system_generated": 1,
