@@ -16,18 +16,23 @@
 			:class="classes"
 		>
 			<!-- Dynamically render named slots -->
-			<template v-for="(slot, slotName) in block.componentSlots" :key="slotName" v-slot:[slotName]>
+			<template
+				v-for="(slot, slotName) in block.componentSlots"
+				:key="slotName"
+				v-slot:[slotName]="slotProps"
+			>
 				<template v-if="Array.isArray(slot.slotContent)">
 					<AppComponent
 						v-for="slotBlock in slot.slotContent"
 						:block="slotBlock"
 						:key="slotBlock.componentId"
+						v-bind="slotProps"
 					/>
 				</template>
 				<template v-else-if="isHTML(slot.slotContent)">
-					<component :is="{ template: slot.slotContent }" />
+					<component :is="{ template: slot.slotContent }" v-bind="slotProps" />
 				</template>
-				<template v-else>
+				<template v-else v-bind="slotProps">
 					{{ slot.slotContent }}
 				</template>
 			</template>

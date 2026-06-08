@@ -57,6 +57,7 @@
 						:data-slot-id="slot.slotId"
 						:data-slot-name="slotName"
 						:data-component-id="block.componentId"
+						v-bind="slotProps"
 					/>
 				</template>
 				<template v-else>
@@ -65,6 +66,7 @@
 						:data-slot-id="slot.slotId"
 						:data-slot-name="slotName"
 						:data-component-id="block.componentId"
+						v-bind="slotProps"
 					>
 						{{ slot.slotContent }}
 					</div>
