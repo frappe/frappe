@@ -5,7 +5,7 @@ import type {
   RawMetaField,
   Section,
   Tab,
-} from './types'
+} from "./types";
 
 /**
  * Build a render-ready `FormLayoutSchema` from a doctype's flat meta `fields`
@@ -18,27 +18,33 @@ import type {
  * through verbatim for Phase 4, not evaluated here.
  */
 
-const TAB_BREAK = 'Tab Break'
-const SECTION_BREAK = 'Section Break'
-const COLUMN_BREAK = 'Column Break'
-const TABLE = 'Table'
+const TAB_BREAK = "Tab Break";
+const SECTION_BREAK = "Section Break";
+const COLUMN_BREAK = "Column Break";
+const TABLE = "Table";
+const TABLE_MULTISELECT = "Table MultiSelect";
+
+/** Fieldtypes whose value lives in a child table — both resolve `childFields`
+ *  from the child doctype meta (the grid columns for `Table`, the single Link
+ *  field for `Table MultiSelect`). */
+const CHILD_TABLE_TYPES = new Set([TABLE, TABLE_MULTISELECT]);
 
 /** Layout-break fieldtypes never render as a value/grid column. */
-const LAYOUT_BREAKS = new Set([TAB_BREAK, SECTION_BREAK, COLUMN_BREAK])
+const LAYOUT_BREAKS = new Set([TAB_BREAK, SECTION_BREAK, COLUMN_BREAK]);
 
 /** Lookup of child doctype name → its flat meta `fields`, for resolving
  *  `Table` columns. Supplied by the meta-fetch seam (`useDoctypeLayout`). */
 export interface BuildLayoutOptions {
-  childMetas?: Record<string, RawMetaField[]>
+  childMetas?: Record<string, RawMetaField[]>;
 }
 
 function newColumn(field?: RawMetaField): Column {
-  return { name: field?.fieldname, label: field?.label, fields: [] }
+  return { name: field?.fieldname, label: field?.label, fields: [] };
 }
 
 function newSection(field?: RawMetaField): Section {
-  if (!field) return { columns: [] }
-  const collapsible = !!field.collapsible
+  if (!field) return { columns: [] };
+  const collapsible = !!field.collapsible;
   return {
     name: field.fieldname,
     label: field.label,
@@ -50,16 +56,18 @@ function newSection(field?: RawMetaField): Section {
     opened: !collapsible,
     dependsOn: field.depends_on,
     columns: [],
-  }
+  };
 }
 
-const READ_ONLY = 'Read Only'
+const READ_ONLY = "Read Only";
 
 /** Meta `precision` may be a number, a numeric string, or blank → `undefined`. */
-function coercePrecision(precision: number | string | undefined): number | undefined {
-  if (precision == null || precision === '') return undefined
-  const n = Number(precision)
-  return Number.isFinite(n) ? n : undefined
+function coercePrecision(
+  precision: number | string | undefined
+): number | undefined {
+  if (precision == null || precision === "") return undefined;
+  const n = Number(precision);
+  return Number.isFinite(n) ? n : undefined;
 }
 
 /**
@@ -70,22 +78,22 @@ function coercePrecision(precision: number | string | undefined): number | undef
  */
 function resolveChildFields(
   field: RawMetaField,
-  childMetas: Record<string, RawMetaField[]>,
+  childMetas: Record<string, RawMetaField[]>
 ): FieldMeta[] | undefined {
-  const childFields = field.options ? childMetas[field.options] : undefined
-  if (!childFields) return undefined
+  const childFields = field.options ? childMetas[field.options] : undefined;
+  if (!childFields) return undefined;
 
   const dataFields = childFields.filter(
-    (f) => !LAYOUT_BREAKS.has(f.fieldtype) && !f.hidden,
-  )
-  const inListView = dataFields.filter((f) => f.in_list_view)
-  const columns = inListView.length ? inListView : dataFields
-  return columns.map((f) => mapField(f, childMetas))
+    (f) => !LAYOUT_BREAKS.has(f.fieldtype) && !f.hidden
+  );
+  const inListView = dataFields.filter((f) => f.in_list_view);
+  const columns = inListView.length ? inListView : dataFields;
+  return columns.map((f) => mapField(f, childMetas));
 }
 
 function mapField(
   field: RawMetaField,
-  childMetas: Record<string, RawMetaField[]>,
+  childMetas: Record<string, RawMetaField[]>
 ): FieldMeta {
   return {
     fieldname: field.fieldname,
@@ -106,38 +114,38 @@ function mapField(
     // Child-table columns. Nested grids aren't supported, so a `Table` inside a
     // child meta resolves with no further recursion (its own childMetas lookup
     // simply won't contain a deeper level).
-    ...(field.fieldtype === TABLE
+    ...(CHILD_TABLE_TYPES.has(field.fieldtype)
       ? { childFields: resolveChildFields(field, childMetas) }
       : {}),
-  }
+  };
 }
 
 export function buildLayoutFromMeta(
   fields: RawMetaField[],
-  options: BuildLayoutOptions = {},
+  options: BuildLayoutOptions = {}
 ): FormLayoutSchema {
-  const { childMetas = {} } = options
-  if (!fields.length) return []
+  const { childMetas = {} } = options;
+  if (!fields.length) return [];
 
-  const tabs: Tab[] = []
+  const tabs: Tab[] = [];
 
   // Containers are seeded lazily so a field/column/section appearing before its
   // first break still lands somewhere, without producing empty leading
   // containers when a break comes first.
   const ensureTab = (): Tab => {
-    if (!tabs.length) tabs.push({ name: 'first_tab', sections: [] })
-    return tabs[tabs.length - 1]
-  }
+    if (!tabs.length) tabs.push({ name: "first_tab", sections: [] });
+    return tabs[tabs.length - 1];
+  };
   const ensureSection = (): Section => {
-    const tab = ensureTab()
-    if (!tab.sections.length) tab.sections.push(newSection())
-    return tab.sections[tab.sections.length - 1]
-  }
+    const tab = ensureTab();
+    if (!tab.sections.length) tab.sections.push(newSection());
+    return tab.sections[tab.sections.length - 1];
+  };
   const ensureColumn = (): Column => {
-    const section = ensureSection()
-    if (!section.columns.length) section.columns.push(newColumn())
-    return section.columns[section.columns.length - 1]
-  }
+    const section = ensureSection();
+    if (!section.columns.length) section.columns.push(newColumn());
+    return section.columns[section.columns.length - 1];
+  };
 
   for (const field of fields) {
     if (field.fieldtype === TAB_BREAK) {
@@ -146,16 +154,16 @@ export function buildLayoutFromMeta(
         label: field.label,
         dependsOn: field.depends_on,
         sections: [],
-      })
+      });
     } else if (field.fieldtype === SECTION_BREAK) {
-      ensureTab().sections.push(newSection(field))
+      ensureTab().sections.push(newSection(field));
     } else if (field.fieldtype === COLUMN_BREAK) {
-      ensureSection().columns.push(newColumn(field))
+      ensureSection().columns.push(newColumn(field));
     } else {
-      if (field.hidden) continue // drop statically hidden fields
-      ensureColumn().fields.push(mapField(field, childMetas))
+      if (field.hidden) continue; // drop statically hidden fields
+      ensureColumn().fields.push(mapField(field, childMetas));
     }
   }
 
-  return tabs
+  return tabs;
 }

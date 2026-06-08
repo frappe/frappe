@@ -15,6 +15,7 @@ import PasswordField from "../fields/PasswordField.vue";
 import PhoneField from "../fields/PhoneField.vue";
 import RatingField from "../fields/RatingField.vue";
 import SelectField from "../fields/SelectField.vue";
+import TableMultiSelectField from "../fields/TableMultiSelectField.vue";
 import TextField from "../fields/TextField.vue";
 import TextareaField from "../fields/TextareaField.vue";
 import TimeField from "../fields/TimeField.vue";
@@ -66,6 +67,7 @@ describe("fieldTypes registry", () => {
     expect(getFieldComponent("Rating")).toBe(RatingField);
     expect(getFieldComponent("Duration")).toBe(DurationField);
     expect(getFieldComponent("Dynamic Link")).toBe(DynamicLinkField);
+    expect(getFieldComponent("Table MultiSelect")).toBe(TableMultiSelectField);
   });
 
   it("falls back to the text component for an unknown fieldtype", () => {

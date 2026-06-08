@@ -11,6 +11,7 @@ import FormLayout from "../FormLayout.vue";
 import { registerFieldType } from "../fieldTypes";
 import DemoLinkField from "./DemoLinkField.vue";
 import DemoCurrencyField from "./DemoCurrencyField.vue";
+import DemoTableMultiSelectField from "./DemoTableMultiSelectField.vue";
 import type { FormLayoutSchema } from "../types";
 
 // Override two fieldtypes for this story only. `{ global: false }` scopes the
@@ -22,6 +23,11 @@ import type { FormLayoutSchema } from "../types";
 //   - Currency: a *fully custom* field — shows the registry override still wins.
 registerFieldType("Link", DemoLinkField, { global: false });
 registerFieldType("Currency", DemoCurrencyField, { global: false });
+// Table MultiSelect: override the lib's select-only field with one that turns on
+// `creatable` + wires `@create` — the app-owned create pattern (like DemoLinkField).
+registerFieldType("Table MultiSelect", DemoTableMultiSelectField, {
+	global: false,
+});
 
 const doc = reactive<Record<string, any>>({
 	reference_id: "REF-0001",
@@ -202,6 +208,24 @@ const layout: FormLayoutSchema = [
 								fieldtype: "Dynamic Link",
 								label: "Reference Name",
 								options: "ref_type",
+							},
+							{
+								// `options` names the child doctype; its single Link
+								// field (here `user`) names the real target doctype and
+								// the key each stored row holds the value under. In the
+								// doctype-driven flow `childFields` is resolved from the
+								// child meta — for this static schema we supply it inline.
+								fieldname: "assignees",
+								fieldtype: "Table MultiSelect",
+								label: "Assignees",
+								options: "Assignee Detail",
+								childFields: [
+									{
+										fieldname: "user",
+										fieldtype: "Link",
+										options: "User",
+									},
+								],
 							},
 						],
 					},

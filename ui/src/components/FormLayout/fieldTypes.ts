@@ -15,6 +15,7 @@ import PhoneField from "./fields/PhoneField.vue";
 import RatingField from "./fields/RatingField.vue";
 import SelectField from "./fields/SelectField.vue";
 import TableField from "./fields/TableField.vue";
+import TableMultiSelectField from "./fields/TableMultiSelectField.vue";
 import TextField from "./fields/TextField.vue";
 import TextareaField from "./fields/TextareaField.vue";
 import TimeField from "./fields/TimeField.vue";
@@ -120,6 +121,12 @@ registerFieldType("Dynamic Link", DynamicLinkField);
 // (`field.childFields`, resolved by buildLayoutFromMeta); each cell reuses this
 // same registry, so app field overrides apply inside the grid too.
 registerFieldType("Table", TableField);
+
+// `Table MultiSelect` → frappe-ui `MultiSelect`. The child table has a single
+// `Link` field naming the real target doctype; buildLayoutFromMeta resolves it
+// into `childFields` (same seam as `Table`). The value is the array of child
+// rows; the field bridges it to/from the picker's `string[]`.
+registerFieldType("Table MultiSelect", TableMultiSelectField);
 
 // `Read Only` renders as a disabled text box (buildLayoutFromMeta marks it
 // `readOnly: true`, which TextField honours via `:disabled`).
