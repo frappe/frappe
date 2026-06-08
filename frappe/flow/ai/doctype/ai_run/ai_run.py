@@ -83,13 +83,17 @@ class AIRun(Document):
 
 	def apply_result(self, result: RunResult) -> None:
 		"""Update this row to reflect a (re-)executed Agent run. The new messages produced
-		by this run are appended to the parent Session's transcript."""
+		by this run are appended to the parent Session's transcript.
+
+		Resume re-invokes this on the same run: tool_calls already carries the full set (the
+		agent seeds it from the transcript), while iterations and usage accumulate here.
+		"""
 		self.status = _status_from_result(result)
-		self.iterations = result.iterations
+		self.iterations = (self.iterations or 0) + result.iterations
 		self.output = result.output
 		self.tool_calls = _dump_json([asdict(call) for call in result.tool_calls])
 		self.questions = _dump_json([asdict(q) for q in result.questions]) if result.paused else None
-		self.usage = _dump_json(result.usage)
+		self.usage = _dump_json(_merge_usage(self.usage, result.usage))
 		if self.status != "Failed":
 			self.error = None
 		self.save(ignore_permissions=True)
@@ -213,6 +217,14 @@ def _dump_json(value: Any) -> str | None:
 	if value is None:
 		return None
 	return json.dumps(value, default=str)
+
+
+def _merge_usage(existing: str | None, new: dict[str, int]) -> dict[str, int]:
+	"""Add token counts from a (resumed) segment onto whatever the run already recorded."""
+	merged = json.loads(existing) if existing else {}
+	for key, value in new.items():
+		merged[key] = merged.get(key, 0) + value
+	return merged
 
 
 def _json_has_items(value: Any) -> bool:
