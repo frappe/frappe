@@ -100,7 +100,7 @@ class AIAgent(Document):
 		return resolved
 
 	def new_session(self, *, model: str | None = None, title: str | None = None):
-		"""Start a conversation driven by this agent. Returns a `flow.session.Session`."""
+		"""Start a conversation driven by this agent. Returns an AISession doc with runtime attached."""
 		from flow.lib.session import new_session
 
 		return new_session(self, model=model, title=title)

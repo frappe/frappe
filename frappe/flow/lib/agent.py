@@ -125,10 +125,18 @@ class Agent:
 		the tool, "Deny" blocks it, and any other free text is returned to the LLM as
 		redirect feedback so it can adjust and retry.
 		"""
-		messages = self._prepare_resume(messages, answers)
 		if stream:
-			return self._loop_stream(messages)
+			return self._resume_stream(messages, answers)
+		messages, _ = self._prepare_resume(messages, answers)
 		return self._loop(messages)
+
+	def _resume_stream(self, messages: list[dict[str, Any]], answers: dict[str, Any]) -> Generator[Event]:
+		"""Stream a resume: first replay the just-resolved tool results so the UI can fill in
+		the tool cards that were awaiting an answer, then continue the agent loop."""
+		messages, resolved = self._prepare_resume(messages, answers)
+		for call, content in resolved:
+			yield ToolEnded(id=call.id, name=call.name, result=content)
+		yield from self._loop_stream(messages)
 
 	def new_session(self, *, title: str | None = None) -> Any:
 		"""Start a persisted conversation driven by this code agent (session's agent link is left empty)."""
@@ -148,13 +156,16 @@ class Agent:
 
 	def _prepare_resume(
 		self, messages: list[dict[str, Any]], answers: dict[str, Any]
-	) -> list[dict[str, Any]]:
+	) -> tuple[list[dict[str, Any]], list[tuple[ToolCall, str]]]:
+		"""Append a tool result for each pending call. Returns the new messages plus the
+		(call, content) pairs resolved, so a streaming resume can replay them as events."""
 		_validate_messages(messages)
 		messages = list(messages)
 		pending = self._pending_calls(messages)
 		if not pending:
 			raise ValueError("No questions awaiting an answer in the provided messages")
 
+		resolved: list[tuple[ToolCall, str]] = []
 		for call in pending:
 			answer = answers.get(call.id)
 			tool = self._tools_by_name.get(call.name)
@@ -163,7 +174,8 @@ class Agent:
 			else:
 				content = _serialize_tool_result(answer)
 			messages.append({"role": "tool", "tool_call_id": call.id, "content": content})
-		return messages
+			resolved.append((call, content))
+		return messages, resolved
 
 	def _resolve_confirmation(self, call: ToolCall, answer: Any) -> str:
 		"""Run the tool if approved; deny if rejected; redirect with user feedback otherwise."""

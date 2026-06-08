@@ -116,7 +116,7 @@ class TestSessionModelOverride(IntegrationTestCase):
 
 	def test_new_session_applies_model_override(self):
 		convo = new_session(self.agent_doc, model=self.model_b.name)
-		self.assertEqual(convo.doc.model, self.model_b.name)
+		self.assertEqual(convo.model, self.model_b.name)
 
 		with patch.object(Model, "chat", return_value=_final()):
 			run = convo.chat("hi")
@@ -128,8 +128,8 @@ class TestSessionModelOverride(IntegrationTestCase):
 			first = convo.chat("hi")
 		self.assertEqual(json.loads(first.config_snapshot)["model"], self.model_a.name)
 
-		switched = load_session(convo.id, model=self.model_b.name)
-		self.assertEqual(switched.doc.model, self.model_b.name)
+		switched = load_session(convo.name, model=self.model_b.name)
+		self.assertEqual(switched.model, self.model_b.name)
 
 		with patch.object(Model, "chat", return_value=_final()):
 			second = switched.chat("again")

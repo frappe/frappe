@@ -9,126 +9,12 @@ import frappe
 from frappe import _
 
 if TYPE_CHECKING:
-	from collections.abc import Generator
-
 	from flow.ai.doctype.ai_run.ai_run import AIRun
 	from flow.ai.doctype.ai_session.ai_session import AISession
-	from flow.lib.agent import Agent, Event
+	from flow.lib.agent import Agent
 
 
-class Session:
-	"""Runtime handle over an AI Session: the persisted conversation plus the runtime that
-	drives it. Create one with `new_session()` / `agent.new_session()`, resume with
-	`load_session()`, and run turns with `chat()` / `resume()`."""
-
-	def __init__(self, doc: AISession, runtime: Agent, snapshot: dict[str, Any]):
-		self._doc = doc
-		self._runtime = runtime
-		self._snapshot = snapshot
-
-	@property
-	def id(self) -> str:
-		return self._doc.name
-
-	@property
-	def doc(self) -> AISession:
-		return self._doc
-
-	def chat(
-		self,
-		input: str,
-		*,
-		source: str = "Manual",
-		trigger: str | None = None,
-		stream: bool = False,
-	) -> AIRun | Generator[Event]:
-		"""Run one turn and persist it as an AI Run. With `stream=True`, returns an event generator."""
-		from flow.ai.doctype.ai_run.ai_run import create_run, stream_with_persistence
-
-		self._doc.reload()
-		self._assert_not_blocked()
-		if not self._doc.title:
-			self._doc.db_set("title", _derive_title(input))
-
-		run_input = self._build_input(input)
-		run = create_run(
-			source=source,
-			input=input,
-			session=self._doc.name,
-			trigger=trigger,
-			config_snapshot=self._snapshot,
-		)
-
-		if stream:
-			return stream_with_persistence(lambda: self._runtime.run(run_input, stream=True), run)
-
-		try:
-			result = self._runtime.run(run_input)
-		except Exception as e:
-			run.mark_failed(str(e))
-			raise
-		run.apply_result(result)
-		return run
-
-	def resume(self, answers: dict[str, Any], *, stream: bool = False) -> AIRun | Generator[Event]:
-		"""Resume this session's paused run with the user's answers."""
-		from flow.ai.doctype.ai_run.ai_run import stream_with_persistence
-
-		run_name = frappe.db.get_value(
-			"AI Run",
-			{"session": self._doc.name, "status": "Paused"},
-			"name",
-			order_by="creation desc",
-		)
-		if not run_name:
-			frappe.throw(_("This session has no paused run to resume."), title=_("Nothing to Resume"))
-		run = frappe.get_doc("AI Run", run_name)
-
-		self._doc.reload()
-		messages = self._doc.transcript()
-		if not messages:
-			frappe.throw(_("This session has no transcript to resume from."))
-
-		if stream:
-			return stream_with_persistence(lambda: self._runtime.resume(messages, answers, stream=True), run)
-
-		try:
-			result = self._runtime.resume(messages, answers)
-		except Exception as e:
-			run.mark_failed(str(e))
-			raise
-		run.apply_result(result)
-		return run
-
-	def _build_input(self, new_input: str) -> str | list[dict[str, Any]]:
-		"""First turn → the raw string (the agent prepends its system prompt). Later turns →
-		the transcript so far with the new user message appended."""
-		transcript = self._doc.transcript()
-		if not transcript:
-			return new_input
-		transcript.append({"role": "user", "content": new_input})
-		return transcript
-
-	def _assert_not_blocked(self) -> None:
-		blocking = frappe.db.get_value(
-			"AI Run",
-			{"session": self._doc.name, "status": ("in", ["Paused", "Running"])},
-			"status",
-			order_by="creation desc",
-		)
-		if blocking == "Paused":
-			frappe.throw(
-				_("This session has a paused run. Resume it before starting a new turn."),
-				title=_("Run Paused"),
-			)
-		if blocking == "Running":
-			frappe.throw(
-				_("This session already has a run in progress."),
-				title=_("Run In Progress"),
-			)
-
-
-def new_session(agent: Any = None, *, model: str | None = None, title: str | None = None) -> Session:
+def new_session(agent: Any = None, *, model: str | None = None, title: str | None = None) -> AISession:
 	"""Start a conversation. `agent` may be a code `Agent`, an AI Agent doc, an agent name,
 	or None for the default Assistant. Code agents leave the session's agent link empty."""
 	runtime, agent_name, session_model, snapshot = _resolve_new_agent(agent, model)
@@ -140,10 +26,12 @@ def new_session(agent: Any = None, *, model: str | None = None, title: str | Non
 			"title": title,
 		}
 	).insert(ignore_permissions=True)
-	return Session(doc, runtime, snapshot)
+	doc._runtime = runtime
+	doc._snapshot = snapshot
+	return doc
 
 
-def load_session(name: str, *, agent: Any = None, model: str | None = None) -> Session:
+def load_session(name: str, *, agent: Any = None, model: str | None = None) -> AISession:
 	"""Resume an existing conversation by id. Doctype-backed sessions rebuild their runtime
 	automatically; code-agent sessions require the same `Agent` to be passed again."""
 	doc = frappe.get_doc("AI Session", name)
@@ -159,8 +47,8 @@ def load_session(name: str, *, agent: Any = None, model: str | None = None) -> S
 		doc.model = model
 		doc.save(ignore_permissions=True)
 
-	runtime, snapshot = _resolve_existing_agent(doc, agent)
-	return Session(doc, runtime, snapshot)
+	doc._runtime, doc._snapshot = _resolve_existing_agent(doc, agent)
+	return doc
 
 
 def _resolve_new_agent(agent: Any, model: str | None) -> tuple[Agent, str | None, str | None, dict[str, Any]]:
@@ -205,12 +93,6 @@ def _default_agent_name() -> str:
 			title=_("Missing Default Agent"),
 		)
 	return ASSISTANT_AGENT_TITLE
-
-
-def _derive_title(text: str) -> str:
-	from flow.ai.doctype.ai_session.ai_session import derive_title
-
-	return derive_title(text)
 
 
 def _assert_session_owner(doc: AISession) -> None:
