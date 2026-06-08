@@ -1,71 +1,52 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-<<<<<<< HEAD
-<<<<<<< HEAD
-def get_jenv():
-	import frappe
-
-	if not getattr(frappe.local, "jenv", None):
-		from jinja2 import DebugUndefined
-		from jinja2.sandbox import SandboxedEnvironment
-=======
-=======
 from contextlib import contextmanager
 
->>>>>>> 4656f68270 (fix: block QB writes in render)
 import frappe
-from frappe.utils.caching import site_cache
 
 
 def get_jenv(*, restrict_globals=None):
-	import frappe
-	from frappe.utils.safe_exec import get_safe_globals, is_render_exec_enabled, render_safe_globals
+	from frappe.utils.safe_exec import (
+		UNSAFE_ATTRIBUTES,
+		get_safe_globals,
+		is_render_exec_enabled,
+		render_safe_globals,
+	)
 
 	if restrict_globals is None:
 		restrict_globals = is_render_exec_enabled()
 
 	local_key = "jenv_restricted" if restrict_globals else "jenv_unrestricted"
-	if jenv := getattr(frappe.local, local_key, None):
-		return jenv
->>>>>>> b85bc79439 (fix: decide globals in get_jenv)
 
-		from frappe.utils.safe_exec import UNSAFE_ATTRIBUTES, get_safe_globals
+	if not getattr(frappe.local, local_key, None):
+		from jinja2 import DebugUndefined
+		from jinja2.sandbox import SandboxedEnvironment
 
 		UNSAFE_ATTRIBUTES = UNSAFE_ATTRIBUTES - {"format", "format_map"}
 
-<<<<<<< HEAD
 		class FrappeSandboxedEnvironment(SandboxedEnvironment):
 			def is_safe_attribute(self, obj, attr, *args, **kwargs):
 				if attr in UNSAFE_ATTRIBUTES:
 					return False
 
 				return super().is_safe_attribute(obj, attr, *args, **kwargs)
-=======
-	if restrict_globals:
-		jenv.globals.update(render_safe_globals())
-	else:
-		jenv.globals.update(get_safe_globals())
-
-	methods, filters = get_jinja_hooks()
-	jenv.globals.update(methods or {})
-	jenv.filters.update(filters or {})
-
-	setattr(frappe.local, local_key, jenv)
->>>>>>> b85bc79439 (fix: decide globals in get_jenv)
 
 		# frappe will be loaded last, so app templates will get precedence
 		jenv = FrappeSandboxedEnvironment(loader=get_jloader(), undefined=DebugUndefined)
 		set_filters(jenv)
 
-		jenv.globals.update(get_safe_globals())
+		if restrict_globals:
+			jenv.globals.update(render_safe_globals())
+		else:
+			jenv.globals.update(get_safe_globals())
 
 		methods, filters = get_jinja_hooks()
 		jenv.globals.update(methods or {})
 		jenv.filters.update(filters or {})
 
-		frappe.local.jenv = jenv
+		setattr(frappe.local, local_key, jenv)
 
-	return frappe.local.jenv
+	return getattr(frappe.local, local_key, None)
 
 
 def get_template(path):
@@ -124,62 +105,19 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 	if context is None:
 		context = {}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	if is_path or guess_is_path(template):
 		return get_jenv().get_template(template).render(context)
 	else:
 		if safe_render and ".__" in template:
 			throw(_("Illegal template"))
 		try:
-			return get_jenv().from_string(template).render(context)
+			with safe_render_flags():
+				return get_jenv(restrict_globals=restrict_globals).from_string(template).render(context)
 		except TemplateError:
 			throw(
 				title="Jinja Template Error",
 				msg=f"<pre>{template}</pre><pre>{get_traceback()}</pre>",
 			)
-=======
-	if restrict_globals is None:
-		restrict_globals = is_render_exec_enabled()
-
-=======
->>>>>>> b85bc79439 (fix: decide globals in get_jenv)
-	try:
-		if is_path or guess_is_path(template):
-			is_path = True
-			compiled_template = get_template(template)
-		else:
-			jenv: SandboxedEnvironment = get_jenv(restrict_globals=restrict_globals)
-			if safe_render and ".__" in template:
-				throw(_("Illegal template"))
-			compiled_template = jenv.from_string(template)
-	except TemplateError:
-		import html
-
-		throw(
-			title="Jinja Template Error",
-			msg=f"<pre>{template}</pre><pre>{html.escape(get_traceback())}</pre>",
-		)
-
-	import time
-
-	from frappe.utils.logger import get_logger
-
-	logger = get_logger("render-template")
-	try:
-		start_time = time.monotonic()
-		with safe_render_flags():
-			return compiled_template.render(context)
-	except Exception as e:
-		import html
-
-		throw(title="Context Error", msg=f"<pre>{html.escape(get_traceback())}</pre>", exc=e)
-	finally:
-		if is_path:
-			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds ({template})")
-		else:
-			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds")
->>>>>>> 3970ec54ce (fix: read flag or parsed arg to decide whether to override globals)
 
 
 def guess_is_path(template):

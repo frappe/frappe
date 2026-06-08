@@ -29,7 +29,9 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.model.rename_doc import rename_doc
 from frappe.modules import scrub
 from frappe.utils.background_jobs import enqueue, get_jobs
+from frappe.utils.caching import site_cache
 from frappe.utils.inplacevar import protected_inplacevar
+from frappe.utils.response import json_handler
 from frappe.website.utils import get_next_link, get_toc
 from frappe.www.printview import get_visible_columns
 
@@ -84,7 +86,7 @@ def is_safe_exec_enabled() -> bool:
 
 
 def is_render_exec_enabled() -> bool:
-	return not bool(frappe.get_common_site_config(cached=True).get(RENDER_EXEC_CONFIG_KEY, 0))
+	return not bool(frappe.get_common_site_config().get(RENDER_EXEC_CONFIG_KEY, 0))
 
 
 def safe_exec(
@@ -127,46 +129,6 @@ def safe_exec(
 	return exec_globals, _locals
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-def safer_exec(
-	script: str,
-	_globals: dict | None = None,
-	_locals: dict | None = None,
-	*,
-	restrict_commit_rollback: bool = True,
-	script_filename: str | None = None,
-):
-	exec_globals = get_safer_globals()
-	if _globals:
-		exec_globals.update(_globals)
-
-	if restrict_commit_rollback:
-		# prevent user from using these in docevents
-		exec_globals.frappe.db.pop("commit", None)
-		exec_globals.frappe.db.pop("rollback", None)
-		exec_globals.frappe.db.pop("add_index", None)
-
-	filename = SERVER_SCRIPT_FILE_PREFIX
-
-	if script_filename:
-		filename += f": {frappe.scrub(script_filename)}"
-
-	with safe_exec_flags():
-		exec(_compile_code(script, filename=filename), exec_globals, _locals)
-
-	return exec_globals, _locals
-
-
-=======
->>>>>>> 54e0480a1e (refactor: remove unwanted code)
-@site_cache(maxsize=32)
-def _compile_code(script: str, filename: str, mode: str = "exec"):
-	return compile_restricted(script, filename=filename, policy=FrappeTransformer, mode=mode)
-
-
->>>>>>> 2d42ad63b1 (feat: add safer_exec)
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	import unicodedata
 
@@ -198,7 +160,7 @@ def _validate_safe_eval_syntax(code):
 
 @contextmanager
 def safe_exec_flags():
-	if not frappe.flags.in_safe_exec:
+	if frappe.flags.in_safe_exec is None:
 		frappe.flags.in_safe_exec = 0
 
 	frappe.flags.in_safe_exec += 1
@@ -292,7 +254,6 @@ def safe_get_value(*args, **kwargs):
 
 
 def safe_get_single_value(*args, **kwargs):
-	kwargs["run"] = True
 	return frappe.db.get_single_value(*args, **kwargs)
 
 
@@ -326,7 +287,7 @@ def make_safe_get_request(url: str, **kwargs):
 	for record in addr_info:
 		try:
 			addr = ipaddress.ip_address(record[4][0])
-		except ValueError, IndexError:
+		except (ValueError, IndexError):
 			continue
 
 		if not addr.is_global:
@@ -335,8 +296,8 @@ def make_safe_get_request(url: str, **kwargs):
 	return frappe.integrations.utils.make_get_request(url, **kwargs)
 
 
-<<<<<<< HEAD
-def get_safe_globals():
+def render_safe_globals():
+	"""Safer subset of globals for rendering ops."""
 	datautils = frappe._dict()
 
 	if frappe.db:
@@ -364,164 +325,11 @@ def get_safe_globals():
 		_dict=frappe._dict,
 		args=form_dict,
 		frappe=NamespaceDict(
-			call=call_whitelisted_function,
 			flags=frappe._dict(),
 			format=frappe.format_value,
 			format_value=frappe.format_value,
 			date_format=date_format,
 			time_format=time_format,
-			format_date=frappe.utils.data.global_date_format,
-			form_dict=form_dict,
-			bold=frappe.bold,
-			copy_doc=frappe.copy_doc,
-			errprint=frappe.errprint,
-			qb=frappe.qb,
-			get_meta=frappe.get_meta,
-			new_doc=frappe.new_doc,
-			get_doc=frappe.get_doc,
-			get_mapped_doc=get_mapped_doc,
-			get_last_doc=frappe.get_last_doc,
-			get_cached_doc=frappe.get_cached_doc,
-			get_list=frappe.get_list,
-			get_all=frappe.get_all,
-			get_system_settings=frappe.get_system_settings,
-			rename_doc=rename_doc,
-			delete_doc=delete_doc,
-			utils=datautils,
-			get_url=frappe.utils.get_url,
-			render_template=frappe.render_template,
-			msgprint=frappe.msgprint,
-			throw=frappe.throw,
-			sendmail=frappe.sendmail,
-			get_print=frappe.get_print,
-			attach_print=frappe.attach_print,
-			user=user,
-			get_fullname=frappe.utils.get_fullname,
-			get_gravatar=frappe.utils.get_gravatar_url,
-			full_name=frappe.local.session.data.full_name
-			if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
-			else "Guest",
-			request=getattr(frappe.local, "request", {}),
-			session=frappe._dict(
-				user=user,
-				csrf_token=frappe.local.session.data.csrf_token
-				if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
-				else "",
-			),
-			make_get_request=frappe.integrations.utils.make_get_request,
-			make_post_request=frappe.integrations.utils.make_post_request,
-			make_put_request=frappe.integrations.utils.make_put_request,
-			make_patch_request=frappe.integrations.utils.make_patch_request,
-			make_delete_request=frappe.integrations.utils.make_delete_request,
-			socketio_port=frappe.conf.socketio_port,
-			get_hooks=get_hooks,
-			enqueue=safe_enqueue,
-			sanitize_html=frappe.utils.sanitize_html,
-			log_error=frappe.log_error,
-			log=frappe.log,
-			db=NamespaceDict(
-				get_list=frappe.get_list,
-				get_all=frappe.get_all,
-				get_value=frappe.db.get_value,
-				set_value=frappe.db.set_value,
-				get_single_value=frappe.db.get_single_value,
-				get_default=frappe.db.get_default,
-				exists=frappe.db.exists,
-				count=frappe.db.count,
-				escape=frappe.db.escape,
-				sql=read_sql,
-				commit=frappe.db.commit,
-				rollback=frappe.db.rollback,
-				after_commit=frappe.db.after_commit,
-				before_commit=frappe.db.before_commit,
-				after_rollback=frappe.db.after_rollback,
-				before_rollback=frappe.db.before_rollback,
-				add_index=frappe.db.add_index,
-			),
-			lang=getattr(frappe.local, "lang", "en"),
-		),
-		FrappeClient=FrappeClient,
-		style=frappe._dict(border_color="#d1d8dd"),
-		get_toc=get_toc,
-		get_next_link=get_next_link,
-		_=frappe._,
-		scrub=scrub,
-		guess_mimetype=mimetypes.guess_type,
-		html2text=html2text,
-		dev_server=frappe.local.dev_server,
-		run_script=run_script,
-		is_job_queued=is_job_queued,
-		get_visible_columns=get_visible_columns,
-	)
-
-	add_module_properties(
-		frappe.exceptions, out.frappe, lambda obj: inspect.isclass(obj) and issubclass(obj, Exception)
-	)
-
-	if frappe.response:
-		out.frappe.response = frappe.response
-
-	out.update(safe_globals)
-
-	# default writer allows write access
-	out._write_ = _write
-	out._getitem_ = _getitem
-	out._getattr_ = _getattr_for_safe_exec
-
-	# Allow using `print()` calls with `safe_exec()`
-	out._print_ = FrappePrintCollector
-
-	# allow iterators and list comprehension
-	out._getiter_ = iter
-	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
-	out._inplacevar_ = protected_inplacevar
-
-	# add common python builtins
-	out.update(get_python_builtins())
-
-	return out
-
-
-=======
->>>>>>> 52d3e1cd35 (refactor: Split get_safe_globals to render/exec safe stuff)
-def render_safe_globals():
-	"""Safer subset of globals for rendering ops."""
-	datautils = frappe._dict()
-
-	if frappe.db:
-		date_format = get_date_format()
-		time_format = get_time_format()
-		number_format = get_number_format()
-	else:
-		date_format = "yyyy-mm-dd"
-		time_format = "HH:mm:ss"
-		number_format = NumberFormat.from_string("#,###.##")
-
-	datautils.update(SAFE_DATA_UTILS)
-
-	form_dict = getattr(frappe.local, "form_dict", frappe._dict())
-
-	if "_" in form_dict:
-		del frappe.local.form_dict["_"]
-
-	user = (getattr(frappe.local, "session", None) and frappe.local.session.user) or "Guest"
-
-	out = NamespaceDict(
-		# make available limited methods of frappe
-		json=NamespaceDict(loads=json.loads, dumps=json.dumps),
-		orjson=SAFE_ORJSON,
-		as_json=frappe.as_json,
-		dict=dict,
-		log=frappe.log,
-		_dict=frappe._dict,
-		args=form_dict,
-		frappe=NamespaceDict(
-			flags=frappe._dict(),
-			format=frappe.format_value,
-			format_value=frappe.format_value,
-			date_format=date_format,
-			time_format=time_format,
-			number_format=number_format,
 			format_date=frappe.utils.data.global_date_format,
 			form_dict=form_dict,
 			bold=frappe.bold,
@@ -586,11 +394,13 @@ def render_safe_globals():
 		scrub=scrub,
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,
-		dev_server=frappe._dev_server,
+		dev_server=frappe.local.dev_server,
 		get_visible_columns=safer_get_visible_columns,
 	)
 
-	out.frappe.update(SAFE_EXCEPTIONS)
+	add_module_properties(
+		frappe.exceptions, out.frappe, lambda obj: inspect.isclass(obj) and issubclass(obj, Exception)
+	)
 
 	if frappe.response:
 		out.frappe.response = frappe.response
@@ -796,7 +606,13 @@ def get_python_builtins():
 	}
 
 
-def get_hooks(hook=None, default=None, app_name=None):
+def get_hooks(hook: str | None = None, default=None, app_name: str | None = None) -> frappe._dict:
+	"""Get hooks via `app/hooks.py`
+
+	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
+	:param default: Default if no hook found.
+	:param app_name: Filter by app."""
+
 	hooks = frappe.get_hooks(hook=hook, default=default, app_name=app_name)
 	return copy.deepcopy(hooks)
 
@@ -815,7 +631,6 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 
 	Safe queries:
 	        1. Read only 'select' or 'explain' queries
-	        2. CTE on mariadb where writes are not allowed.
 	"""
 
 	query = query.strip().lower()
@@ -830,14 +645,12 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 			)
 		return False
 
-	if query.startswith(whitelisted_statements) or (
-		query.startswith("with") and frappe.db.db_type == "mariadb"
-	):
+	if query.startswith(whitelisted_statements):
 		return True
 
 	if throw:
 		frappe.throw(
-			_("Query must be of SELECT or read-only WITH type."),
+			_("Read-Only queries are allowed"),
 			title=_("Unsafe SQL query"),
 			exc=frappe.PermissionError,
 		)
@@ -1063,6 +876,9 @@ VALID_UTILS = (
 )
 
 
+SAFE_DATA_UTILS = {key: frappe.utils.data.__dict__[key] for key in VALID_UTILS}
+
+
 WHITELISTED_SAFE_EVAL_GLOBALS = {
 	"int": int,
 	"float": float,
@@ -1075,18 +891,5 @@ WHITELISTED_SAFE_EVAL_GLOBALS = {
 	"_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
 	"_inplacevar_": protected_inplacevar,
 }
-<<<<<<< HEAD
-=======
-
-SAFE_ORJSON = NamespaceDict(loads=orjson.loads, dumps=orjson.dumps)
-for key, val in vars(orjson).items():
-	if key.startswith("OPT_"):
-		SAFE_ORJSON[key] = val
-
-SAFE_EXCEPTIONS = get_module_properties(
-	frappe.exceptions, lambda obj: inspect.isclass(obj) and issubclass(obj, Exception)
-)
-
 
 get_safe_globals = exec_safe_globals
->>>>>>> 52d3e1cd35 (refactor: Split get_safe_globals to render/exec safe stuff)

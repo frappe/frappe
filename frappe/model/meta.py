@@ -153,7 +153,7 @@ class Meta(Document):
 
 	def as_dict(self, no_nulls=False):
 		def serialize(doc):
-			out = {}
+			out = frappe._dict()
 			for key, value in doc.__dict__.items():
 				if isinstance(value, list | tuple):
 					if not value or not isinstance(value[0], BaseDocument):
@@ -915,47 +915,3 @@ def _update_field_order_based_on_insert_after(field_order, insert_after_map):
 		# insert_after is an invalid fieldname, add these fields to the end
 		for fields in insert_after_map.values():
 			field_order.extend(fields)
-<<<<<<< HEAD
-=======
-
-
-CACHE_PROPERTIES = frozenset(prop for prop, value in vars(Meta).items() if isinstance(value, cached_property))
-
-
-def _serialize(doc, no_nulls=False, *, is_child=False):
-	out = frappe._dict()
-	for key, value in doc.__dict__.items():
-		if not is_child:
-			if key in CACHE_PROPERTIES:
-				continue
-
-			if isinstance(value, ListOrTuple):
-				if value and isinstance(value[0], BaseDocument):
-					out[key] = [_serialize(d, no_nulls=no_nulls, is_child=True) for d in value]
-
-				continue
-
-		if (not no_nulls and value is None) or isinstance(value, SerializableTypes):
-			out[key] = value
-
-	if not is_child:
-		# set empty lists for unset table fields
-		for fieldname in TABLE_DOCTYPES_FOR_DOCTYPE:
-			if out.get(fieldname) is None:
-				out[fieldname] = []
-
-	return out
-
-
-if typing.TYPE_CHECKING:
-	# This is DX hack to add all fields from DocType to meta for autocompletions.
-	# Meta is technically doctype + special fields on meta.
-	from frappe.core.doctype.doctype.doctype import DocType
-
-	class _Meta(Meta, DocType):
-		pass
-
-
-# backward compatibility
-is_single = is_single_doctype
->>>>>>> fb3d5cd58c (fix: return `_dict` as serialized meta)

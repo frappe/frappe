@@ -75,115 +75,6 @@ def Table(*args, **kwargs):
 	return frappe.qb.Table(*args, **kwargs)
 
 
-<<<<<<< HEAD
-=======
-def mask_fields(
-	doctype: str,
-	fields: list[Any],
-	result: list[dict] | list[tuple],
-	as_dict: bool = True,
-) -> list[dict] | list[tuple]:
-	"""Mask fields in the result based on the doctype's masked fields.
-
-	Args:
-		doctype: Name of the DocType being queried
-		fields: List of field objects from the query
-		result: Query results as list of dicts or tuples
-		as_dict: Whether results are dictionaries (True) or tuples (False)
-
-	Returns:
-		Result with masked field values applied based on user permissions
-	"""
-	from frappe.database.query import CORE_DOCTYPES
-	from frappe.model.utils.mask import mask_dict_results, mask_list_results
-
-	# We can't query meta for core doctypes here
-	if doctype in CORE_DOCTYPES:
-		return result
-
-	masked_fields = frappe.get_meta(doctype).get_masked_fields()
-
-	if not masked_fields:
-		return result
-
-	if not as_dict:
-		field_index_map = {}
-		for idx, field in enumerate(fields):
-			# Handle aliases (e.g. `tabSI`.`posting_date` as posting_date)
-			if alias := getattr(field, "alias", None):
-				field_index_map[alias] = idx
-			elif name := getattr(field, "name", None):
-				field_index_map[name] = idx
-
-		return mask_list_results(result, masked_fields, field_index_map)
-
-	# Handle as_dict format
-	return mask_dict_results(result, masked_fields)
-
-
-def execute_query(query, *args, **kwargs):
-	dt = query.__dict__.get("_doctype")
-	fields = query.__dict__.get("_fields_list", [])
-	child_queries = query._child_queries
-	query, params = prepare_query(query)
-	result = frappe.local.db.sql(query, params, *args, **kwargs)  # nosemgrep
-
-	if child_queries and isinstance(child_queries, list) and result:
-		execute_child_queries(child_queries, result)
-
-	if result and dt and fields:
-		as_dict = kwargs.get("as_dict", not kwargs.get("as_list", False))
-		result = mask_fields(dt, fields, result, as_dict=as_dict)
-
-	return result
-
-
-def execute_child_queries(queries, result):
-	if not isinstance(result[0], dict) or not result[0].name:
-		return
-	parent_names = [d.name for d in result]
-	for child_query in queries:
-		data = child_query.get_query(parent_names).run(as_dict=1)
-		for row in result:
-			row[child_query.fieldname] = []
-			for d in data:
-				if str(d.parent) == str(row.name) and d.parentfield == child_query.fieldname:
-					if "parent" not in child_query.fields:
-						del d["parent"]
-					if "parentfield" not in child_query.fields:
-						del d["parentfield"]
-					row[child_query.fieldname].append(d)
-
-
-def prepare_query(query):
-	from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
-
-	param_collector = NamedParameterWrapper()
-	query = query.get_sql(param_wrapper=param_collector)
-	if frappe.local.flags.get("in_safe_exec", False):
-		if not check_safe_sql_query(query, throw=False):
-			callstack = inspect.stack()
-
-			# This check is required because QB can execute from anywhere and we can not
-			# reliably provide a safe version for it in server scripts.
-
-			# since query objects are patched everywhere any query.run()
-			# will have callstack like this:
-			# frame0: this function prepare_query()
-			# frame1: execute_query()
-			# frame2: frame that called `query.run()`
-			#
-			# if frame2 is server script <serverscript> is set as the filename it shouldn't be allowed.
-			if len(callstack) >= 3 and SERVER_SCRIPT_FILE_PREFIX in callstack[2].filename:
-				raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
-
-	if frappe.local.flags.get("in_render_safe_exec", False):
-		check_safe_sql_query(query, throw=True)
-
-	return query, param_collector.parameters
-
-
->>>>>>> 4656f68270 (fix: block QB writes in render)
 def patch_query_execute():
 	"""Patch the Query Builder with helper execute method
 	This excludes the use of `frappe.db.sql` method while
@@ -216,11 +107,11 @@ def patch_query_execute():
 	def prepare_query(query):
 		import inspect
 
+		from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
+
 		param_collector = NamedParameterWrapper()
 		query = query.get_sql(param_wrapper=param_collector)
 		if frappe.flags.in_safe_exec:
-			from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
-
 			if not check_safe_sql_query(query, throw=False):
 				callstack = inspect.stack()
 
@@ -236,6 +127,9 @@ def patch_query_execute():
 				# if frame2 is server script <serverscript> is set as the filename it shouldn't be allowed.
 				if len(callstack) >= 3 and SERVER_SCRIPT_FILE_PREFIX in callstack[2].filename:
 					raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
+
+		if frappe.local.flags.get("in_render_safe_exec", False):
+			check_safe_sql_query(query, throw=True)
 
 		return query, param_collector.get_parameters()
 

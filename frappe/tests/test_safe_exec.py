@@ -1,12 +1,8 @@
 import types
 
 import frappe
-<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
-=======
-from frappe.tests import IntegrationTestCase
 from frappe.utils.jinja import get_jenv, render_template
->>>>>>> 4656f68270 (fix: block QB writes in render)
 from frappe.utils.safe_exec import ServerScriptNotEnabled, get_safe_globals, safe_exec
 
 
@@ -14,6 +10,7 @@ class TestSafeExec(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		cls.enable_safe_exec()
+		frappe.set_user("Administrator")
 		return super().setUpClass()
 
 	def test_import_fails(self):
@@ -142,11 +139,9 @@ class TestSafeExec(FrappeTestCase):
 class TestNoSafeExec(FrappeTestCase):
 	def test_safe_exec_disabled_by_default(self):
 		self.assertRaises(ServerScriptNotEnabled, safe_exec, "pass")
-<<<<<<< HEAD
-=======
 
 
-class TestJinjaGlobals(IntegrationTestCase):
+class TestJinjaGlobals(FrappeTestCase):
 	def test_jenv_thread_safety(self):
 		first = get_jenv()
 		# reinit to create a new local ctx, this "simulates" two request running in two diff
@@ -171,12 +166,8 @@ class TestJinjaGlobals(IntegrationTestCase):
 		jenv_unrestricted = get_jenv(restrict_globals=False)
 		self.assertIs(jenv_unrestricted.globals["frappe"]["get_all"], frappe.get_all)
 		self.assertIs(jenv_unrestricted.globals["FrappeClient"], FrappeClient)  # test exclusivity
-<<<<<<< HEAD
->>>>>>> 01bae0794a (test: add test for globals override)
-=======
 
 		self.assertIsNot(jenv_restricted, jenv_unrestricted)  # globals cache check
 		self.assertIsNot(jenv_restricted.globals, jenv_unrestricted.globals)
 		self.assertIs(get_jenv(restrict_globals=True), jenv_restricted)
 		self.assertIs(get_jenv(restrict_globals=False), jenv_unrestricted)
->>>>>>> a28b2dfa04 (test: extend test_globals_override to chk. globals cache)
