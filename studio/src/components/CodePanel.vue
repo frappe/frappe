@@ -33,7 +33,7 @@
 						}
 					}
 				"
-				:dismissable="false"
+				:dismissible="false"
 			>
 				<template #default>
 					<div class="flex flex-col space-y-4">

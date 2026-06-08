@@ -166,7 +166,7 @@ interface DialogProps {
 	paddingTop?: string
 	actions?: Array<DialogAction>
 	disableOutsideClickToClose?: boolean
-	dismissable?: boolean
+	dismissible?: boolean
 	showCloseButton?: boolean
 	bare?: boolean
 }
@@ -177,7 +177,7 @@ const props = withDefaults(defineProps<DialogProps>(), {
 	disableOutsideClickToClose: undefined,
 	size: undefined,
 	position: undefined,
-	dismissable: true,
+	dismissible: true,
 	showCloseButton: true,
 	bare: false,
 })
@@ -206,9 +206,9 @@ const resolved = computed(() => {
 	}
 })
 
-const isDismissable = computed(() => {
+const isDismissible = computed(() => {
 	if (props.disableOutsideClickToClose) return false
-	return props.dismissable !== false
+	return props.dismissible !== false
 })
 
 const sizeClass = computed(() => {

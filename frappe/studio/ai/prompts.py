@@ -37,6 +37,12 @@ ACTIONS:
 - Dropdown: {options: [{label: "string", icon: "lucide-icon-name", onClick: "..."}] OR grouped [{group: "string", options: [{label, icon}]}], button: {label: "string"}}
 # For buttons and dropdowns, icons must be lucide-* strings from https://lucide.dev/icons (e.g. lucide-plus, lucide-edit, etc.)
 
+OVERLAYS:
+- Dialog: {modelValue: false, title: "string", message: "string", size: "xs|sm|md|lg(DEFAULT)|xl|2xl|3xl|4xl|5xl|6xl|7xl", icon: "lucide-icon-name", position: "center(DEFAULT)|top", dismissible: true, showCloseButton: true, bare: false, actions: [{label: "string", variant: "solid|subtle|outline|ghost", theme: "gray|blue|green|red"}]}
+  # modelValue is the open/visibility state (v-model) — keep it false so the dialog starts hidden; it is opened via interaction wired separately.
+  # Dialog body content goes in the block's default slot, NOT in a prop. title/message/icon/actions render the built-in header + footer chrome around those children.
+  # Use bare:true to drop all chrome (no padded card, header, or auto-actions) and render only your children.
+
 NAVIGATION:
 - Breadcrumbs: {items: [{label: "string", route: "string"}]}
 - Tabs: {tabs: [{label: "string"}]}

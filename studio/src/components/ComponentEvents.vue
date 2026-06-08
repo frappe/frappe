@@ -26,7 +26,7 @@
 						onClick: () => saveEvent(newEvent),
 					},
 				]"
-				:dismissable="false"
+				:dismissible="false"
 				@after-leave="newEvent = { ...emptyEvent, fields: [], isEditing: false }"
 			>
 				<template #default>
