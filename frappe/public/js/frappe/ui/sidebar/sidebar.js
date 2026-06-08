@@ -21,8 +21,6 @@ frappe.ui.Sidebar = class Sidebar {
 		this.items = [];
 		this.cards = [];
 		this.setup_events();
-		this.sidebar_module_map = {};
-		this.build_sidebar_module_map();
 		this.standard_items_setup = false;
 		this.preferred_sidebars = [];
 	}
@@ -40,16 +38,6 @@ frappe.ui.Sidebar = class Sidebar {
 			this.find_nested_items();
 		} catch (e) {
 			console.log(e);
-		}
-	}
-	build_sidebar_module_map() {
-		for (const [key, value] of Object.entries(frappe.boot.workspace_sidebar_item)) {
-			if (value.module && !value.label.includes("My Workspaces")) {
-				if (!this.sidebar_module_map[value.module]) {
-					this.sidebar_module_map[value.module] = [];
-				}
-				this.sidebar_module_map[value.module].push(value.label);
-			}
 		}
 	}
 	choose_app_name() {
@@ -779,8 +767,7 @@ frappe.ui.Sidebar = class Sidebar {
 			if (candidates.length === 1) {
 				sidebar_name = candidates[0];
 			} else if (candidates.length > 1) {
-				const module_sidebars = this.sidebar_module_map[module] || [];
-				sidebar_name = candidates.find((c) => module_sidebars.includes(c)) || module;
+				sidebar_name = candidates.find((c) => c.toLowerCase() === module?.toLowerCase());
 			} else if (module) {
 				sidebar_name = this.resolve_module_sidebar(module);
 			}
@@ -811,13 +798,7 @@ frappe.ui.Sidebar = class Sidebar {
 		if (target) frappe.app.sidebar.setup(target);
 	}
 	resolve_module_sidebar(module) {
-		if (frappe.boot.workspace_sidebar_item[module.toLowerCase()]) {
-			return module;
-		}
-		const sidebars = this.sidebar_module_map[module]
-			?.slice()
-			.sort((a, b) => a.localeCompare(b));
-		return sidebars?.length ? sidebars[0] : null;
+		return frappe.boot.workspace_sidebar_item[module.toLowerCase()] ? module : null;
 	}
 
 	get_workspace_sidebars(link_to) {
