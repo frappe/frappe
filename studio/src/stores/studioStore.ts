@@ -107,7 +107,7 @@ const useStudioStore = defineStore("store", () => {
 			return
 		}
 
-		const confirmed = await confirm(`Are you sure you want to delete the page <b>${page.page_title}</b>?`)
+		const confirmed = await confirm(`Are you sure you want to delete the page "${page.page_title}"?`)
 		if (confirmed) {
 			try {
 				await studioPages.delete.submit(page.name)
