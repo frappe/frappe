@@ -65,6 +65,12 @@ class DuckDBSync(Document):
 
 
 @frappe.whitelist()
+def is_data_sync_pending(docname: str):
+	# TODO: permissions
+	return frappe.db.exists("DuckDB Sync Item", {"parent": docname, "synced": False})
+
+
+@frappe.whitelist()
 def start_data_sync(docname: str):
 	# TODO: permissions
 	frappe.enqueue(
