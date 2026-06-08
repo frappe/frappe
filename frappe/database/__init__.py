@@ -90,19 +90,29 @@ def get_db(socket=None, host=None, user=None, password=None, port=None, cur_db_n
 		)
 
 
-def get_duckdb(read_only=True, db_name=None, filename=None):
+def get_duckdb(read_only=True, filename=None):
 	import os
 
 	import duckdb
 
 	import frappe
 
-	if not filename or not db_name:
+	if not filename:
 		return
 
 	db_home = os.path.realpath(frappe.utils.get_files_path(is_private=True))
 	db_with_abs_path = os.path.join(db_home, filename)
 	return duckdb.connect(f"{db_with_abs_path}", read_only=read_only)
+
+
+def delete_duckdb_file(filename=None):
+	import os
+
+	import frappe
+
+	db_home = os.path.realpath(frappe.utils.get_files_path(is_private=True))
+	db_with_abs_path = os.path.join(db_home, filename)
+	os.remove(db_with_abs_path)
 
 
 def get_command(

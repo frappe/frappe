@@ -24,8 +24,7 @@
    "fieldname": "doc_type",
    "fieldtype": "Link",
    "label": "Doctype",
-   "options": "DocType",
-   "unique": 1
+   "options": "DocType"
   },
   {
    "fieldname": "amended_from",

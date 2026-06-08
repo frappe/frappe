@@ -27,8 +27,8 @@ class DuckDBSync(Document):
 	_DOCTYPE_NAME = "DuckDB Sync"
 
 	def before_save(self):
-		filename = self.doc_type.lower().replace(" ", "_")
-		self.filename = f"{frappe.conf.db_name}_{filename}.duckdb"
+		dt = self.doc_type.lower().replace(" ", "_")
+		self.filename = f"{dt}_{self.name}.duckdb"
 
 		self.append("db_tables", {"table": self.doc_type})
 		df = qb.DocType("DocField")
@@ -46,7 +46,7 @@ class DuckDBSync(Document):
 		start_data_sync(self.name)
 
 	def get_duckdb_conn(self):
-		return get_duckdb(False, frappe.conf.db_name, self.filename)
+		return get_duckdb(False, self.filename)
 
 	def sync_schema(self):
 		duck_conn = self.get_duckdb_conn()
@@ -58,6 +58,11 @@ class DuckDBSync(Document):
 				ddbt.sync(duck_conn)
 		duck_conn.close()
 
+	def on_trash(self):
+		from frappe.database import delete_duckdb_file
+
+		delete_duckdb_file(self.filename)
+
 
 @frappe.whitelist()
 def start_data_sync(docname: str):
@@ -65,7 +70,6 @@ def start_data_sync(docname: str):
 	frappe.enqueue(
 		method="frappe.core.doctype.duckdb_sync.duckdb_sync.sync_data_to_duckdb",
 		queue="long",
-		is_async=True,
 		enqueue_after_commit=True,
 		docname=docname,
 	)
@@ -88,8 +92,7 @@ def sync_data_to_duckdb(docname: str):
 		duck_tb = DuckDBTable(dt)
 
 		# connect to mariadb
-		doc = frappe.get_doc("DuckDB Sync", docname)
-		conn = doc.get_duckdb_conn()
+		conn = frappe.get_doc("DuckDB Sync", docname).get_duckdb_conn()
 		conn.sql(
 			f"attach 'user={frappe.conf.db_name} password={frappe.conf.db_password} host={frappe.conf.db_host} database={frappe.conf.db_name}' as mariadb_db (TYPE mysql);"
 		)
