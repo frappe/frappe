@@ -1,12 +1,6 @@
 """python-socketio replacement for apps/frappe/socketio.js.
 
-Run with::
-
-	python -m frappe.socketio_server
-
-Wire-compatible with the socket.io-client browser library: the JS frontend
-connects to `io(origin + "/" + site)` and that keeps working because we
-accept any namespace dynamically (see DynamicServer below).
+Run with: python -m frappe.socketio_server
 """
 
 import asyncio
@@ -23,14 +17,11 @@ logger = logging.getLogger("frappe.socketio")
 
 
 class DynamicServer(socketio.AsyncServer):
-	"""python-socketio has no native equivalent of socket.io's `io.of(/regex/)`
-	multitenant namespaces — auto-register handlers for a namespace the first
-	time a client tries to connect to it. authenticate() still rejects
-	namespaces that don't match a valid site."""
+	"""python-socketio has no equivalent of socket.io's `io.of(/regex/)`
+	namespaces, so register handlers on first connect to a namespace.
+	authenticate() still rejects namespaces that don't match a valid site."""
 
 	async def _handle_connect(self, eio_sid, namespace, data):
-		# python-socketio tracks function-style handlers in self.handlers and
-		# class-style ones in self.namespace_handlers. Check both.
 		known = namespace in self.handlers or namespace in self.namespace_handlers
 		if not known and namespace != "/":
 			register_frappe_handlers(self, namespace)
@@ -50,15 +41,14 @@ sio = DynamicServer(
 
 @sio.event
 async def connect(sid, environ, auth=None):
-	"""Default-namespace connect — used only for health checks; real traffic
-	lands on per-site namespaces handled by register_frappe_handlers."""
+	"""Default-namespace connect — only used for health checks."""
 	return True
 
 
 # --- Redis pub/sub fan-out ---------------------------------------------------
 async def consume_events():
-	"""Bridge Python publishers (frappe.realtime.emit_via_redis) into
-	socket.io. Reconnects with backoff if redis drops."""
+	"""Bridge frappe.realtime.emit_via_redis publishes into socket.io.
+	Reconnects with backoff if redis drops."""
 	delay = 1
 	while True:
 		try:
@@ -85,18 +75,15 @@ async def _dispatch(payload: dict):
 	if payload.get("room"):
 		await sio.emit(event, message, room=payload["room"], namespace="/" + payload["namespace"])
 	else:
-		# Site-less broadcast (e.g. esbuild "build" event in dev). The Node
-		# implementation emits on the catch-all namespace, which reaches every
-		# connected client — emit on every registered site namespace.
+		# site-less broadcast (e.g. esbuild build event) goes to every namespace
 		for namespace in sio.site_namespaces():
 			await sio.emit(event, message, namespace=namespace)
 
 
 # --- ASGI entrypoint ----------------------------------------------------------
 class CORSReflectMiddleware:
-	"""Reflect the request Origin header into Access-Control-Allow-Origin,
-	matching the Node socket.io `cors: { origin: true, credentials: true }`
-	behaviour. Required because browsers reject `*` with credentials."""
+	"""Reflect the request Origin into Access-Control-Allow-Origin —
+	browsers reject `*` with credentials."""
 
 	def __init__(self, app):
 		self.app = app

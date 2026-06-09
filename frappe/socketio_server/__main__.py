@@ -1,8 +1,6 @@
 """Entrypoint: python -m frappe.socketio_server
 
-Listens on socketio_uds (if set) or socketio_python_port (default 9001) from
-common_site_config.json. Environment overrides: FRAPPE_SOCKETIO_UDS,
-FRAPPE_SOCKETIO_PORT.
+Listens on socketio_uds (if set) or socketio_python_port (default 9001).
 """
 
 import uvicorn

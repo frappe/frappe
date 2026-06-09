@@ -1,14 +1,7 @@
-"""Connect-time authentication for the python-socketio realtime server.
+"""Connect-time authentication — port of realtime/middlewares/authenticate.js.
 
-Port of realtime/middlewares/authenticate.js. Session resolution works the
-same way as the Node implementation: an HTTP callback to the Frappe web
-server (`frappe.realtime.get_user_info`), authenticated by forwarding the
-client's `sid` cookie or Authorization header plus the shared
-`socketio_auth_secret` that web workers store in redis_queue.
-
-The callback is synchronous (requests) and runs in a worker thread via
-asyncio.to_thread — one call per connect, same cost profile as the Node
-implementation's fetch().
+Sessions are resolved from the redis session cache when possible, falling
+back to an HTTP callback to frappe.realtime.get_user_info (the Node way).
 """
 
 import asyncio
@@ -28,12 +21,8 @@ from frappe.socketio_server import bench_conf, find_bench_root, redis_url
 SOCKETIO_SECRET_KEY = "socketio_auth_secret"
 CALLBACK_TIMEOUT = 10
 
-# Session fast path: sessions whose remaining validity is smaller than this
-# slack fall back to the HTTP callback instead of being judged locally.
-# frappe.utils.now() writes last_updated in the *site's* timezone (a DB
-# setting this server can't read), so local freshness math can be off by up
-# to the largest possible tz offset — only trust it when the session would
-# be fresh under any timezone interpretation.
+# last_updated is written in the site's timezone (a DB setting we can't
+# read), so only trust sessions fresh under any timezone interpretation
 TZ_SLACK_SECONDS = 26 * 3600
 INSTALLED_APPS_TTL = 600
 
@@ -62,12 +51,8 @@ def _site_from_environ(environ: dict, conf: dict) -> str | None:
 
 
 def _base_url(environ: dict, conf: dict) -> str:
-	"""URL of the Frappe web server to make auth callbacks against.
-
-	Mirrors realtime/utils.js get_url: use the request origin; in
-	developer_mode rewrite the port to webserver_port because the browser
-	origin points at the dev asset server, not the gunicorn worker.
-	"""
+	"""Web server URL for auth callbacks. In developer_mode the browser origin
+	points at the dev asset server, so rewrite the port to webserver_port."""
 	origin = environ.get("HTTP_ORIGIN") or f"http://{environ.get('HTTP_HOST', 'localhost')}"
 	if conf.get("developer_mode") and conf.get("webserver_port"):
 		parts = urlsplit(origin)
@@ -76,20 +61,16 @@ def _base_url(environ: dict, conf: dict) -> str:
 
 
 # --- Session fast path --------------------------------------------------------
-# Resolve sid cookies straight from the redis session cache (the same hash
-# frappe.sessions.Session writes), skipping the HTTP callback. Strictly
-# conservative: any miss, parse failure, staleness ambiguity, or unknown
-# installed_apps falls back to the canonical HTTP path.
+# Read sid sessions straight from the redis session cache; anything uncertain
+# falls back to the HTTP callback.
 
 
 class _session_dict(dict):
-	"""Stand-in for frappe._dict when unpickling session data — a plain dict
-	subclass so pickle's BUILD opcode (which sets instance state) works."""
+	"""Stand-in for frappe._dict (a subclass, so pickle's BUILD opcode works)."""
 
 
 class _SessionUnpickler(pickle.Unpickler):
-	"""Unpickle frappe's cached session without importing the framework, and
-	refuse to construct anything beyond the types session data contains."""
+	"""Only constructs dicts and datetime values — never arbitrary classes."""
 
 	def find_class(self, module, name):
 		if module in ("frappe", "frappe.types.frappedict") and name == "_dict":
@@ -100,8 +81,7 @@ class _SessionUnpickler(pickle.Unpickler):
 
 
 def _site_db_name(site: str) -> str | None:
-	"""Sessions are cached under "{db_name}|session" — db_name comes from the
-	site's site_config.json (filesystem only, never changes for a site)."""
+	"""Sessions are cached under "{db_name}|session"; db_name never changes."""
 	if site not in _site_db_names:
 		db_name = None
 		config_path = find_bench_root() / "sites" / site / "site_config.json"
@@ -114,9 +94,7 @@ def _site_db_name(site: str) -> str | None:
 
 
 def _session_comfortably_fresh(session_data: dict) -> bool:
-	"""Would this session be unexpired under ANY timezone interpretation of
-	last_updated? Mirrors Session.get_session_data_from_cache validation,
-	minus the site-timezone knowledge we don't have (see TZ_SLACK_SECONDS)."""
+	"""Unexpired under any timezone interpretation of last_updated?"""
 	if session_data.get("session_end"):
 		# bounded sessions are rare — let the web server judge them
 		return False
@@ -146,13 +124,9 @@ def _remember_installed_apps(site: str, apps: list[str]):
 
 
 def _resolve_session_fast(site: str, sid: str) -> dict | None:
-	"""sid → user info straight from the redis session cache. Returns the
-	get_user_info shape, or None to fall back to the HTTP callback.
-
-	installed_apps lives only in the site DB, so the fast path requires a
-	cached value from an earlier HTTP callback — the first connect per site
-	(per process) always goes over HTTP and primes it.
-	"""
+	"""sid → user info from the redis session cache, or None to fall back."""
+	# installed_apps lives only in the site DB — the first connect per site
+	# goes over HTTP and primes it
 	apps = _cached_installed_apps(site)
 	if apps is None:
 		return None
@@ -187,8 +161,7 @@ def _resolve_session_fast(site: str, sid: str) -> dict | None:
 
 # --- HTTP callback path ---------------------------------------------------------
 def _get_socket_secret() -> str | None:
-	"""The shared secret get_user_info requires — generated and stored in
-	redis_queue by the web worker (frappe.realtime.get_socketio_secret)."""
+	"""Shared secret that get_user_info requires; web workers store it in redis."""
 	client = redis.Redis.from_url(redis_url())
 	try:
 		secret = client.get(SOCKETIO_SECRET_KEY)
@@ -205,9 +178,7 @@ def _frappe_request(
 	authorization_header: str | None = None,
 	params: dict | None = None,
 ) -> dict:
-	"""Synchronous HTTP callback to the Frappe web server (run via
-	asyncio.to_thread). Returns the decoded JSON body, or {} on any failure —
-	callers treat a missing "message" key as denial."""
+	"""HTTP callback to the Frappe web server. Returns {} on any failure."""
 	headers = {"Accept": "application/json"}
 	if authorization_header:
 		headers["Authorization"] = authorization_header
@@ -227,13 +198,8 @@ def _frappe_request(
 
 
 async def authenticate(environ: dict, namespace: str) -> tuple[bool, dict | str]:
-	"""Validate a connection attempt against the namespace's site.
-
-	Returns (True, ctx) on success where ctx becomes the socket session:
-	{"site", "user", "user_type", "installed_apps", "sid",
-	 "authorization_header", "base_url", "open_docs"},
-	or (False, error_message) on rejection.
-	"""
+	"""Validate a connection attempt. Returns (True, session ctx) or
+	(False, error message)."""
 	conf = bench_conf()
 	site = _site_from_environ(environ, conf)
 	ns_site = namespace.lstrip("/")
@@ -295,17 +261,14 @@ async def _get_user_info(base_url: str, sid: str | None, authorization_header: s
 		return response.get("message") or {}
 
 	message = await call()
-	# get_user_info returns {} until a web worker has generated the shared
-	# secret (the first call itself generates it) — retry once, like the
-	# Node implementation.
+	# the first call generates the shared secret — retry once, like Node
 	if not message.get("installed_apps"):
 		message = await call() or message
 	return message
 
 
 async def check_permission(ctx: dict, doctype: str, docname: str | None = None) -> bool:
-	"""frappe.realtime.has_permission HTTP callback using the connection's
-	stored credentials. Deny on any failure."""
+	"""Check frappe.realtime.has_permission with the connection's credentials."""
 	response = await asyncio.to_thread(
 		_frappe_request,
 		ctx["base_url"],

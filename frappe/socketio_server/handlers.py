@@ -1,8 +1,7 @@
-"""Per-namespace event handlers — port of apps/frappe/realtime/handlers.js.
+"""Event handlers — port of apps/frappe/realtime/handlers.js.
 
-python-socketio registers handlers per *namespace* (one per site), not per
-socket like the Node implementation, so per-connection state (user, open
-docs, credentials) lives in the socket session saved at connect time.
+Handlers are registered per namespace (one per site), not per socket like
+Node, so per-connection state lives in the socket session.
 """
 
 import importlib
@@ -47,10 +46,7 @@ def _task_room(task_id):
 
 
 def register_frappe_handlers(sio, namespace: str):
-	"""Attach all Frappe event handlers to a dynamically-created namespace.
-
-	Called once per site, the first time a client connects to /{site}.
-	"""
+	"""Attach all Frappe event handlers to a namespace (once per site)."""
 
 	@sio.on("connect", namespace=namespace)
 	async def _connect(sid, environ, auth=None):
@@ -127,23 +123,15 @@ def register_frappe_handlers(sio, namespace: str):
 
 	@sio.on("disconnect", namespace=namespace)
 	async def _disconnect(sid, reason=None):
-		# The socket is still in its rooms here (removed after this handler
-		# runs) — exclude it explicitly to mirror the Node implementation,
-		# where "disconnect" fires after rooms are left.
+		# the socket is still in its rooms here — exclude it explicitly
 		ctx = await sio.get_session(sid, namespace=namespace)
 		for doctype, docname in ctx.get("open_docs", []):
 			await _notify_viewers(sio, namespace, doctype, docname, current_user=ctx["user"], exclude_sid=sid)
 
 
 def _register_app_handlers(sio, namespace: str, installed_apps: list[str]):
-	"""Per-app realtime handlers, discovered by import instead of the Node
-	implementation's filesystem walk over apps/{app}/realtime/handlers.js.
-
-	An app opts in by shipping a `{app}.realtime_handlers` module with a
-	`register(sio, namespace)` callable. Unlike the Node version it is invoked
-	once per namespace (site), not once per socket — per-connection state
-	belongs in the socket session.
-	"""
+	"""Register handlers from apps that ship a `{app}.realtime_handlers`
+	module with a `register(sio, namespace)` callable — once per namespace."""
 	for app in installed_apps:
 		if app == "frappe" or (app, namespace) in _registered_apps:
 			continue
@@ -167,7 +155,7 @@ async def _publish_to_redis(channel: str, data):
 
 
 async def _notify_viewers(sio, namespace, doctype, docname, current_user, exclude_sid=None):
-	"""Tell everyone with this document open who is currently viewing it."""
+	"""Tell everyone with this document open who is viewing it."""
 	room = _open_doc_room(doctype, docname)
 	users = []
 	for member_sid, _ in sio.manager.get_participants(namespace, room):

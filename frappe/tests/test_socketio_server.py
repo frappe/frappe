@@ -2,10 +2,8 @@
 # License: MIT. See LICENSE
 """Tests for the python-socketio realtime server (frappe/socketio_server).
 
-The integration tests boot the actual ASGI server on a free port (uvicorn in
-a background thread) and talk to it with the python socket.io client over
-real TCP, with the HTTP auth callback to the Frappe web server mocked out.
-They need a reachable redis_queue and are skipped if there is none.
+Integration tests boot the real ASGI server and talk to it over TCP with
+the HTTP auth callback mocked; they skip without a reachable redis_queue.
 """
 
 import asyncio
@@ -182,8 +180,7 @@ class TestAuthenticate(UnitTestCase):
 
 
 class TestSessionFreshness(UnitTestCase):
-	"""_session_comfortably_fresh: only sessions valid under ANY timezone
-	interpretation may skip the canonical HTTP validation."""
+	"""Only sessions valid under any timezone interpretation skip HTTP."""
 
 	def _session(self, age_seconds=0, expiry="240:00:00", **extra):
 		last = datetime.datetime.now() - datetime.timedelta(seconds=age_seconds)
@@ -193,8 +190,7 @@ class TestSessionFreshness(UnitTestCase):
 		self.assertTrue(_session_comfortably_fresh(self._session()))
 
 	def test_session_inside_tz_slack_window_falls_back(self):
-		# 239h old with 240h expiry — valid locally, but not provably valid
-		# under every timezone interpretation
+		# 239h old with 240h expiry — valid locally but inside the slack window
 		self.assertFalse(_session_comfortably_fresh(self._session(age_seconds=239 * 3600)))
 
 	def test_clearly_expired_session_fails(self):
@@ -216,8 +212,7 @@ class TestSessionFreshness(UnitTestCase):
 
 @unittest.skipUnless(redis_available(), "redis_queue not reachable")
 class TestSessionCacheFastPath(IntegrationTestCase):
-	"""Fast path against the real redis session cache, in the exact format
-	frappe.sessions.Session writes (pickled frappe._dict via frappe.cache)."""
+	"""Fast path against the real redis session cache via frappe.cache."""
 
 	def setUp(self):
 		super().setUp()
@@ -281,8 +276,7 @@ class TestSessionCacheFastPath(IntegrationTestCase):
 		self.assertEqual(callback.call_count, 1)
 
 	def test_stale_session_falls_back_to_http(self):
-		# 20 days old with a 10-day expiry: expired everywhere — never
-		# rejected locally, always delegated to canonical validation
+		# expired sessions are delegated to the web server, never rejected locally
 		last = str(datetime.datetime.now() - datetime.timedelta(days=20))
 		self._put_session(last_updated=last)
 		sio_auth._remember_installed_apps(self.site, ["frappe"])
@@ -369,8 +363,7 @@ class TestSocketioServerIntegration(IntegrationTestCase):
 		return client
 
 	async def _publish_until(self, payload: dict, received: asyncio.Event, attempts=40):
-		"""Publish to the `events` channel until the client sees it — absorbs
-		subscriber startup latency in consume_events and the redis manager."""
+		"""Publish to the events channel until the client sees it."""
 		client = redis.Redis.from_url(redis_url())
 		try:
 			for _ in range(attempts):
