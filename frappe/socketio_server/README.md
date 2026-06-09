@@ -49,6 +49,33 @@ The resolved identity (`user`, `user_type`, `installed_apps`) is stored in
 the socket session. System Users join the `all` room; everyone joins
 `website` and their own `user:{name}` room.
 
+#### Session fast path
+
+Something the Node implementation could never do: for `sid`-cookie
+connections, the server first tries to resolve the session **directly from
+the redis session cache** (the `{db_name}|session` hash that
+`frappe.sessions.Session` maintains), skipping the HTTP callback entirely.
+The fast path is strictly conservative — it only answers when the answer is
+provably right, and falls back to the canonical HTTP path otherwise:
+
+- cache miss, unparseable entry, or missing user/user_type → HTTP
+- session freshness is validated locally against `last_updated` +
+  `session_expiry`, with a 26-hour slack: `last_updated` is written in the
+  *site's* timezone (a DB setting this server doesn't read), so only
+  sessions that would be valid under any timezone interpretation qualify.
+  Anything ambiguous — including all sites with short session expiries —
+  goes to the web server for canonical validation. The fast path never
+  rejects on its own.
+- `installed_apps` lives only in the site DB, so the first connect per site
+  (per process) always uses the HTTP callback and primes a per-site cache
+  (10 min TTL) that subsequent fast-path connects reuse.
+- cached sessions are unpickled with a restricted unpickler that only
+  constructs plain dicts and datetime values — the realtime server never
+  executes arbitrary pickle from the cache and never imports the framework.
+
+`Authorization`-header connections (API key/secret, OAuth bearer) always use
+the HTTP callback — token verification belongs to `frappe.auth`.
+
 ### Event handlers (handlers.py)
 
 Port of `realtime/handlers.js`: `ping`, `doctype_subscribe/unsubscribe`,
@@ -187,5 +214,10 @@ outside this repo.
   `cleanupEmptyChildNamespaces`). One namespace per site is negligible;
   revisit for very large multitenant benches.
 - Auth/permission callbacks run `requests` in a thread per call (mirroring
-  Node's per-connect fetch). If connect storms become a bottleneck, switch to
-  a shared aiohttp session.
+  Node's per-connect fetch). The session fast path removes the callback for
+  the common case (sid cookie, long expiry); if the remaining HTTP traffic
+  (token auth, permission checks) ever becomes a bottleneck, switch to a
+  shared aiohttp session.
+- The fast path reads each site's `db_name` from `site_config.json`, so the
+  realtime server needs filesystem access to the sites directory (it already
+  reads `common_site_config.json`). It never reads DB credentials.

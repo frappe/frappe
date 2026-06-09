@@ -9,6 +9,7 @@ They need a reachable redis_queue and are skipped if there is none.
 """
 
 import asyncio
+import datetime
 import json
 import os
 import socket
@@ -18,10 +19,13 @@ from unittest import mock
 
 import redis
 
+import frappe
+from frappe.socketio_server import auth as sio_auth
 from frappe.socketio_server import bench_conf, redis_url
 from frappe.socketio_server.auth import (
 	_base_url,
 	_hostname,
+	_session_comfortably_fresh,
 	_site_from_environ,
 	authenticate,
 	check_permission,
@@ -175,6 +179,129 @@ class TestAuthenticate(UnitTestCase):
 			self.assertTrue(asyncio.run(check_permission(ctx, "ToDo", "TODO-001")))
 		with mock.patch(AUTH_CALLBACK_PATH, return_value={}):
 			self.assertFalse(asyncio.run(check_permission(ctx, "ToDo", "TODO-001")))
+
+
+class TestSessionFreshness(UnitTestCase):
+	"""_session_comfortably_fresh: only sessions valid under ANY timezone
+	interpretation may skip the canonical HTTP validation."""
+
+	def _session(self, age_seconds=0, expiry="240:00:00", **extra):
+		last = datetime.datetime.now() - datetime.timedelta(seconds=age_seconds)
+		return {"last_updated": str(last), "session_expiry": expiry, **extra}
+
+	def test_fresh_session_passes(self):
+		self.assertTrue(_session_comfortably_fresh(self._session()))
+
+	def test_session_inside_tz_slack_window_falls_back(self):
+		# 239h old with 240h expiry — valid locally, but not provably valid
+		# under every timezone interpretation
+		self.assertFalse(_session_comfortably_fresh(self._session(age_seconds=239 * 3600)))
+
+	def test_clearly_expired_session_fails(self):
+		self.assertFalse(_session_comfortably_fresh(self._session(age_seconds=480 * 3600)))
+
+	def test_short_expiry_never_takes_fast_path(self):
+		self.assertFalse(_session_comfortably_fresh(self._session(expiry="06:00:00")))
+
+	def test_bounded_session_falls_back(self):
+		self.assertFalse(_session_comfortably_fresh(self._session(session_end="2030-01-01 00:00:00+00:00")))
+
+	def test_garbage_falls_back(self):
+		self.assertFalse(_session_comfortably_fresh({}))
+		self.assertFalse(_session_comfortably_fresh(self._session(expiry="soon")))
+		self.assertFalse(
+			_session_comfortably_fresh({"last_updated": "not a date", "session_expiry": "240:00:00"})
+		)
+
+
+@unittest.skipUnless(redis_available(), "redis_queue not reachable")
+class TestSessionCacheFastPath(IntegrationTestCase):
+	"""Fast path against the real redis session cache, in the exact format
+	frappe.sessions.Session writes (pickled frappe._dict via frappe.cache)."""
+
+	def setUp(self):
+		super().setUp()
+		self.site = frappe.local.site
+		self.sid = frappe.generate_hash(length=32)
+		sio_auth._installed_apps_cache.clear()
+		sio_auth._site_db_names.clear()
+
+	def tearDown(self):
+		frappe.cache.hdel("session", self.sid)
+		sio_auth._installed_apps_cache.clear()
+		sio_auth._site_db_names.clear()
+		super().tearDown()
+
+	def _put_session(self, last_updated=None, session_expiry="240:00:00", session_end=None):
+		data = frappe._dict(
+			{
+				"user": TEST_USER,
+				"sid": self.sid,
+				"data": frappe._dict(
+					{
+						"user": TEST_USER,
+						"user_type": "System User",
+						"full_name": "Socket Test",
+						"last_updated": last_updated or str(datetime.datetime.now()),
+						"session_expiry": session_expiry,
+					}
+				),
+			}
+		)
+		if session_end:
+			data["data"]["session_end"] = session_end
+		frappe.cache.hset("session", self.sid, data)
+
+	def _environ(self):
+		return {
+			"HTTP_HOST": f"{self.site}:8000",
+			"HTTP_ORIGIN": f"http://{self.site}:8000",
+			"HTTP_COOKIE": f"sid={self.sid}",
+		}
+
+	def _authenticate(self):
+		return asyncio.run(authenticate(self._environ(), f"/{self.site}"))
+
+	def test_fresh_session_resolves_without_http(self):
+		self._put_session()
+		sio_auth._remember_installed_apps(self.site, ["frappe"])
+		boom = mock.MagicMock(side_effect=AssertionError("HTTP callback must not be called"))
+		with mock.patch(AUTH_CALLBACK_PATH, new=boom):
+			ok, ctx = self._authenticate()
+		self.assertTrue(ok)
+		self.assertEqual(ctx["user"], TEST_USER)
+		self.assertEqual(ctx["user_type"], "System User")
+		self.assertEqual(ctx["installed_apps"], ["frappe"])
+
+	def test_cache_miss_falls_back_to_http(self):
+		sio_auth._remember_installed_apps(self.site, ["frappe"])
+		with mock.patch(AUTH_CALLBACK_PATH, return_value={"message": USER_INFO}) as callback:
+			ok, _ctx = self._authenticate()
+		self.assertTrue(ok)
+		self.assertEqual(callback.call_count, 1)
+
+	def test_stale_session_falls_back_to_http(self):
+		# 20 days old with a 10-day expiry: expired everywhere — never
+		# rejected locally, always delegated to canonical validation
+		last = str(datetime.datetime.now() - datetime.timedelta(days=20))
+		self._put_session(last_updated=last)
+		sio_auth._remember_installed_apps(self.site, ["frappe"])
+		with mock.patch(AUTH_CALLBACK_PATH, return_value={}) as callback:
+			ok, error = self._authenticate()
+		self.assertFalse(ok)
+		self.assertIn("Unauthorized", error)
+		self.assertGreaterEqual(callback.call_count, 1)
+
+	def test_http_resolution_primes_fast_path(self):
+		self._put_session()
+		with mock.patch(AUTH_CALLBACK_PATH, return_value={"message": USER_INFO}) as callback:
+			ok, _ = self._authenticate()  # installed_apps unknown -> HTTP, primes cache
+			self.assertTrue(ok)
+			self.assertEqual(callback.call_count, 1)
+			ok, ctx = self._authenticate()  # now served from redis only
+			self.assertTrue(ok)
+			self.assertEqual(callback.call_count, 1)
+		self.assertEqual(ctx["installed_apps"], USER_INFO["installed_apps"])
 
 
 @unittest.skipUnless(redis_available(), "redis_queue not reachable")
