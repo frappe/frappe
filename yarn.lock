@@ -1463,10 +1463,10 @@ frappe-charts@2.0.0-rc27:
   resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.0.0-rc27.tgz#a04737d36bcce5381b25ad48896c43b02eb62852"
   integrity sha512-J4WCrHYB6oR4Dfu28aaCxlUu64C/V+qJlNE1E0xpya2/yCeqDZ8LA6pS63SBMOdV2CTP8cJ6Isk5m+rZi9gElA==
 
-frappe-datatable@1.20.3:
-  version "1.20.3"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.20.3.tgz#d86d1cac56298fee805efe6cc14dd6df9299ef3b"
-  integrity sha512-IApAJ0AObOO48vXA2+QhFkSrrXPbVFGEZlmztJz9pDp6KfR/DpZSiHbbfdV1xbUiweYwcbteGpINSLuSVfYHoA==
+frappe-datatable@1.20.4:
+  version "1.20.4"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.20.4.tgz#d7112e9bd89e34585de5236d60ce520931a404c5"
+  integrity sha512-ocGHCAAWkWhFMvj+L9+GX7394dhG5pxWBtDH9fkmdvOWwbIVdruyZH7GL+UdR9HiIbheE4z/3McWU42OH7dJUw==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
@@ -1885,10 +1885,10 @@ kind-of@^3.0.2:
   dependencies:
     is-buffer "^1.1.5"
 
-launch-editor@^2.2.1:
-  version "2.6.1"
-  resolved "https://registry.yarnpkg.com/launch-editor/-/launch-editor-2.6.1.tgz#f259c9ef95cbc9425620bbbd14b468fcdb4ffe3c"
-  integrity sha512-eB/uXmFVpY4zezmGp5XtU21kwo7GBbKB+EQ+UZeWtGb9yAM5xt/Evk+lYH3eRNAtId+ej4u7TYPFZ07w4s7rRw==
+launch-editor@^2.9.0:
+  version "2.9.0"
+  resolved "https://registry.yarnpkg.com/launch-editor/-/launch-editor-2.9.0.tgz#cdb5b90af46c7375661f12c49354f2289fd10afb"
+  integrity sha512-2fC2VVHR6j4vPp+WAjGmZzuThaKxBe5kq1/zV1E6Cd993hwUj73TmHSHTbEZGDeUILG3s1xkjpHTTZoNnJQA3g==
   dependencies:
     picocolors "^1.0.0"
     shell-quote "^1.8.1"
@@ -3164,9 +3164,9 @@ svgo@^2.7.0:
     stable "^0.1.8"
 
 tmp@^0.2.1:
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.2.4.tgz#c6db987a2ccc97f812f17137b36af2b6521b0d13"
-  integrity sha512-UdiSoX6ypifLmrfQ/XfiawN6hkjSBpCjhKxxZcWlUUmoXLaCKQU0bx4HF/tdDK2uzRuchf1txGvrWBzYREssoQ==
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.2.7.tgz#26f4db11d1601ce8012dcb8a798ece1c06a99059"
+  integrity sha512-e0votIpp4Uo2AJYSzVHV6xCcawuiez3DzqDAbrTc3YxBkplN6e+dM13ZeIcZnDg/QpSuU2zfZ3rzwY8ukEnaXw==
 
 to-fast-properties@^2.0.0:
   version "2.0.0"

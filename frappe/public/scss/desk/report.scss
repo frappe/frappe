@@ -5,6 +5,9 @@
 	}
 
 	.page-form {
+		position: relative;
+		z-index: 5;
+
 		.form-group {
 			padding: 0px 16px 0px 0px;
 			margin: var(--margin-sm) 0px;

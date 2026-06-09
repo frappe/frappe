@@ -292,10 +292,12 @@ export default class GridRow {
 						delete this.grid.filter["row-index"];
 					}
 
-					this.grid.grid_sortable.option(
-						"disabled",
-						Object.keys(this.grid.filter).length !== 0
-					);
+					if (this.grid.grid_sortable) {
+						this.grid.grid_sortable.option(
+							"disabled",
+							Object.keys(this.grid.filter).length !== 0
+						);
+					}
 
 					this.grid.prevent_build = true;
 					me.grid.refresh();
@@ -742,7 +744,12 @@ export default class GridRow {
 
 			total_colsize += colsize;
 			let txt = this.doc
-				? frappe.format(this.doc[df.fieldname], df, null, this.doc)
+				? frappe.format(
+						this._escape_for_format(this.doc[df.fieldname], df),
+						df,
+						null,
+						this.doc
+				  )
 				: __(df.label, null, df.parent);
 
 			if (this.doc && df.fieldtype === "Select") {
@@ -1183,7 +1190,12 @@ export default class GridRow {
 					let df = this.grid.visible_columns[index][0];
 
 					let txt = this.doc
-						? frappe.format(this.doc[df.fieldname], df, null, this.doc)
+						? frappe.format(
+								this._escape_for_format(this.doc[df.fieldname], df),
+								df,
+								null,
+								this.doc
+						  )
 						: __(df.label, null, df.parent);
 
 					this.refresh_field(df.fieldname, txt);
@@ -1556,6 +1568,23 @@ export default class GridRow {
 			this.grid.grid_pagination.go_to_page(new_page);
 		}
 	}
+	// Escape plain-text field values before passing to frappe.format(), so the formatted
+	// output is safe to inject via .html(). Mirrors the same pre-escaping in base_input.js.
+	_escape_for_format(value, df) {
+		const PLAIN_TEXT_FIELDTYPES = [
+			"Data",
+			"Long Text",
+			"Small Text",
+			"Text",
+			"Password",
+			"MultiSelect",
+		];
+		if (df && PLAIN_TEXT_FIELDTYPES.includes(df.fieldtype)) {
+			return frappe.utils.escape_html(cstr(value));
+		}
+		return value;
+	}
+
 	refresh_field(fieldname, txt) {
 		let fields =
 			this.grid.user_defined_columns && this.grid.user_defined_columns.length > 0
@@ -1568,11 +1597,21 @@ export default class GridRow {
 
 		// format values if no frm
 		if (df && this.doc) {
-			txt = frappe.format(this.doc[fieldname], df, null, this.doc);
+			txt = frappe.format(
+				this._escape_for_format(this.doc[fieldname], df),
+				df,
+				null,
+				this.doc
+			);
 		}
 
 		if (!txt && this.frm) {
-			txt = frappe.format(this.doc[fieldname], df, null, this.frm.doc);
+			txt = frappe.format(
+				this._escape_for_format(this.doc[fieldname], df),
+				df,
+				null,
+				this.frm.doc
+			);
 		}
 
 		// reset static value

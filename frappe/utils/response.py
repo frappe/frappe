@@ -355,3 +355,67 @@ def handle_session_stopped():
 		primary_action=None,
 	)
 	return get_response("message", http_status_code=503)
+
+
+def respond_as_web_page(
+	title,
+	html,
+	success=None,
+	http_status_code=None,
+	context=None,
+	indicator_color=None,
+	primary_action="/",
+	primary_label=None,
+	fullpage=False,
+	width=None,
+	template="message",
+):
+	"""Send response as a web page with a message rather than JSON."""
+	frappe.local.message_title = title
+	frappe.local.message = html
+	frappe.local.response["type"] = "page"
+	frappe.local.response["route"] = template
+	frappe.local.no_cache = 1
+
+	if http_status_code:
+		frappe.local.response["http_status_code"] = http_status_code
+
+	if not context:
+		context = {}
+
+	if not indicator_color:
+		if success:
+			indicator_color = "green"
+		elif http_status_code and http_status_code > 300:
+			indicator_color = "red"
+		else:
+			indicator_color = "blue"
+
+	context["indicator_color"] = indicator_color
+	context["primary_label"] = primary_label
+	context["primary_action"] = primary_action
+	context["error_code"] = http_status_code
+	context["fullpage"] = fullpage
+	if width:
+		context["card_width"] = width
+
+	frappe.local.response["context"] = context
+
+
+def redirect_to_message(title, html, http_status_code=None, context=None, indicator_color=None):
+	"""Redirect to /message?id=random and show a message page."""
+	message_id = frappe.generate_hash(length=8)
+	message = {"context": context or {}, "http_status_code": http_status_code or 200}
+	message["context"].update({"header": title, "title": title, "message": html})
+
+	if indicator_color:
+		message["context"].update({"indicator_color": indicator_color})
+
+	frappe.cache.set_value(f"message_id:{message_id}", message, expires_in_sec=60)
+	location = f"/message?id={message_id}"
+
+	if not getattr(frappe.local, "is_ajax", False):
+		frappe.local.response["type"] = "redirect"
+		frappe.local.response["location"] = location
+	else:
+		return location

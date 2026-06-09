@@ -591,6 +591,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	before_refresh() {
 		if (frappe.route_options && this.filter_area) {
+			if (frappe.route_options.reset_filters) {
+				frappe.route_options = null;
+				const url = new URL(window.location.href);
+				url.searchParams.delete("reset_filters");
+				history.replaceState(history.state, "", url.toString());
+				this._set_breadcrumb_layout(null);
+				return this.filter_area.clear();
+			}
+
+			const layout_name = frappe.route_options._layout || null;
+			this._set_breadcrumb_layout(layout_name);
+
 			this.filters = this.parse_filters_from_route_options();
 			frappe.route_options = null;
 
@@ -602,6 +614,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		return Promise.resolve();
+	}
+
+	_set_breadcrumb_layout(layout_name) {
+		const route_key = frappe.breadcrumbs.current_page();
+		const crumb = frappe.breadcrumbs.all[route_key];
+		if (crumb && (crumb.layout_name || null) !== layout_name) {
+			crumb.layout_name = layout_name;
+			frappe.breadcrumbs.update();
+		}
 	}
 
 	parse_filters_from_settings() {

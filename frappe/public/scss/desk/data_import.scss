@@ -14,6 +14,13 @@
 
 .table-preview {
 	margin-top: 12px;
+	overflow-x: auto;
+	width: 100%;
+
+	.datatable {
+		width: max-content;
+		min-width: 100%;
+	}
 
 	.datatable .dt-scrollable .dt-row:last-child .dt-cell {
 		border-bottom: 1px solid var(--border-color);

@@ -28,7 +28,7 @@ export function getStore(print_format_name) {
 				frappe.model.with_doctype(_print_format.doc_type, () => {
 					meta.value = frappe.get_meta(_print_format.doc_type);
 					print_format.value = _print_format;
-					layout.value = get_layout();
+					layout.value = get_layout() || get_default_layout();
 					// Migrate legacy string header/footer to section objects
 					layout.value.header = migrate_to_section(layout.value.header);
 					layout.value.footer = migrate_to_section(layout.value.footer);
@@ -186,9 +186,13 @@ export function getStore(print_format_name) {
 		});
 	}
 	function get_layout() {
-		if (print_format.value) {
+		if (print_format.value && print_format.value.format_data) {
 			if (typeof print_format.value.format_data == "string") {
-				return JSON.parse(print_format.value.format_data);
+				try {
+					return JSON.parse(print_format.value.format_data);
+				} catch {
+					return null;
+				}
 			}
 			return print_format.value.format_data;
 		}

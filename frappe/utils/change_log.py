@@ -112,10 +112,22 @@ def get_versions():
 	versions = {}
 	for app in frappe.get_installed_apps(_ensure_on_bench=True):
 		app_hooks = frappe.get_hooks(app_name=app)
+		app_color = app_hooks.get("app_color")
+
+		# Prefer add_to_apps_screen logo, then app_logo_url — no frappe fallback
+		logo = None
+		apps_screen = app_hooks.get("add_to_apps_screen")
+		if apps_screen and apps_screen[0].get("logo"):
+			logo = apps_screen[0]["logo"]
+		elif app_hooks.get("app_logo_url"):
+			logo = app_hooks["app_logo_url"][0]
+
 		versions[app] = {
 			"title": app_hooks.get("app_title")[0],
 			"description": app_hooks.get("app_description")[0],
 			"branch": get_app_branch(app),
+			"color": app_color[0] if app_color else None,
+			"logo": logo,
 		}
 
 		if versions[app]["branch"] != "master":

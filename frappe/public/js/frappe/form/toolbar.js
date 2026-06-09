@@ -71,7 +71,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 			title = this.frm.docname;
 		}
 
-		var me = this;
 		title = __(title);
 		this.page.set_title(title);
 		if (this.frm.meta.title_field) {
@@ -131,8 +130,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 		if (input_name) {
 			const warning = __("This cannot be undone");
 			const message = __("Are you sure you want to merge {0} with {1}?", [
-				docname.bold(),
-				input_name.bold(),
+				frappe.utils.bold(docname),
+				frappe.utils.bold(input_name),
 			]);
 			confirm_message = `${message}<br><b>${warning}<b>`;
 		}
@@ -166,8 +165,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 								reload_form(input_name);
 								frappe.show_alert({
 									message: __("Document renamed from {0} to {1}", [
-										docname.bold(),
-										input_name.bold(),
+										frappe.utils.bold(docname),
+										frappe.utils.bold(input_name),
 									]),
 									indicator: "success",
 								});
@@ -175,8 +174,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 						});
 						frappe.show_alert(
 							__("Document renaming from {0} to {1} has been queued", [
-								docname.bold(),
-								input_name.bold(),
+								frappe.utils.bold(docname),
+								frappe.utils.bold(input_name),
 							])
 						);
 					}
