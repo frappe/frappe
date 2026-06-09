@@ -877,6 +877,67 @@ class TestDBQuery(IntegrationTestCase):
 		)
 		self.assertTrue(len(doctypes[0]) == 2)  # same for pg as well since we order_by None
 
+	def test_child_table_filter_with_group_by(self):
+		"""Filtering by a child-table field must not break on PostgreSQL.
+
+		When a child-table filter is applied, Frappe adds a LEFT JOIN and
+		GROUP BY `tabParent`.`name`.  On PostgreSQL every non-aggregated
+		SELECT column must appear in GROUP BY — prepare_args_for_postgres_group_by
+		handles this automatically.
+		"""
+		note = frappe.get_doc(
+			doctype="Note",
+			title=f"Test GROUP BY {frappe.utils.random_string(8)}",
+			content="test",
+			public=1,
+			seen_by=[{"user": "Administrator"}],
+		).insert()
+		self.addCleanup(note.delete)
+
+		results = frappe.get_all(
+			"Note",
+			filters=[["Note Seen By", "user", "=", "Administrator"]],
+			fields=["name", "title", "owner", "modified", "creation"],
+			limit=10,
+		)
+		self.assertTrue(any(r.name == note.name for r in results))
+
+	def test_split_fields_respects_parentheses(self):
+		"""_split_fields must not break on commas inside function calls."""
+		split = DatabaseQuery._split_fields
+
+		self.assertEqual(
+			split("`t`.`a`, `t`.`b`, `t`.`c`"),
+			["`t`.`a`", "`t`.`b`", "`t`.`c`"],
+		)
+		self.assertEqual(
+			split("COALESCE(`t`.`a`, ''), `t`.`b`"),
+			["COALESCE(`t`.`a`, '')", "`t`.`b`"],
+		)
+		self.assertEqual(
+			split("IFNULL(CONCAT(`a`, `b`), 'x'), `c`"),
+			["IFNULL(CONCAT(`a`, `b`), 'x')", "`c`"],
+		)
+		self.assertEqual(
+			split("(SELECT COUNT(*) FROM `tabComment` WHERE parent=`t`.`name`), `t`.`name`"),
+			["(SELECT COUNT(*) FROM `tabComment` WHERE parent=`t`.`name`)", "`t`.`name`"],
+		)
+
+	def test_strip_alias_respects_cast(self):
+		"""_strip_alias must not confuse CAST(… as …) with a column alias."""
+		strip = DatabaseQuery._strip_alias
+
+		self.assertEqual(strip("`tabNote`.`name` as note_name"), "`tabNote`.`name`")
+		self.assertEqual(
+			strip("cast(`tabNote`.`name` as varchar)"),
+			"cast(`tabNote`.`name` as varchar)",
+		)
+		self.assertEqual(
+			strip("cast(`tabNote`.`name` as varchar) as `tabNote`.`name`"),
+			"cast(`tabNote`.`name` as varchar)",
+		)
+		self.assertEqual(strip("`tabNote`.`title`"), "`tabNote`.`title`")
+
 	def test_field_comparison(self):
 		"""Test DatabaseQuery.execute to test field comparison"""
 		users_unedited = frappe.get_all(

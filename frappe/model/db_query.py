@@ -297,7 +297,7 @@ class DatabaseQuery:
 		# Postgres requires any field that appears in the select clause to also
 		# appear in the order by and group by clause
 		if frappe.db.db_type == "postgres" and args.order_by and args.group_by:
-			args = self.prepare_select_args(args)
+			args = self.prepare_args_for_postgres_group_by(args)
 
 		query = """select {fields}
 from {tables}
@@ -388,14 +388,103 @@ from {tables}
 
 		return args
 
-	def prepare_select_args(self, args):
-		order_field = ORDER_BY_PATTERN.sub("", args.order_by)
+	_AGGREGATE_RE = re.compile(
+		r"^\s*(COUNT|SUM|AVG|MIN|MAX|GROUP_CONCAT|STRING_AGG|ARRAY_AGG)\s*\(",
+		re.IGNORECASE,
+	)
 
-		if order_field not in args.fields:
+	@staticmethod
+	def _split_fields(fields_str: str) -> list[str]:
+		"""Split a comma-separated field list, respecting parentheses depth."""
+		result = []
+		current: list[str] = []
+		depth = 0
+		for char in fields_str:
+			if char == "(":
+				depth += 1
+			elif char == ")":
+				depth = max(depth - 1, 0)
+			elif char == "," and depth == 0:
+				token = "".join(current).strip()
+				if token:
+					result.append(token)
+				current = []
+				continue
+			current.append(char)
+		token = "".join(current).strip()
+		if token:
+			result.append(token)
+		return result
+
+	@staticmethod
+	def _strip_alias(field: str) -> str:
+		"""Return field expression without a trailing ``AS alias``, respecting parentheses.
+
+		Naive ``field.split(" as ")`` would incorrectly split
+		``CAST(x as varchar) as alias`` on the inner ``as``.
+		"""
+		lower = field.lower()
+		depth = 0
+		last_as = -1
+		for i, char in enumerate(lower):
+			if char == "(":
+				depth += 1
+			elif char == ")":
+				depth = max(depth - 1, 0)
+			elif depth == 0 and lower[i : i + 4] == " as ":
+				last_as = i
+		if last_as > 0:
+			return field[:last_as].strip()
+		return field
+
+	def prepare_args_for_postgres_group_by(self, args):
+		"""Expand GROUP BY to include every non-aggregated SELECT field.
+
+		PostgreSQL (unlike MySQL) enforces SQL standard GROUP BY semantics:
+		every column in SELECT must either appear in GROUP BY or be wrapped
+		in an aggregate function.  When Frappe adds ``GROUP BY parent.name``
+		(e.g. for child-table filters), the remaining SELECT columns must
+		be appended to the GROUP BY clause.
+
+		The ORDER BY column is wrapped in ``MAX()`` only when it does not
+		already appear in GROUP BY or in the SELECT list (to avoid creating
+		a reference to a non-existent column when the ORDER BY value is
+		actually an alias like ``count``).
+		"""
+		fields_str = args.fields
+		# DISTINCT prefix is not a column — strip it before parsing
+		if fields_str.lower().startswith("distinct "):
+			fields_str = fields_str[9:]
+
+		group_by_str = args.group_by.replace(" group by ", "").strip()
+		existing = {col.strip() for col in group_by_str.split(",") if col.strip()}
+
+		extra: list[str] = []
+		for field in self._split_fields(fields_str):
+			if field == "*":
+				continue
+			# Skip aggregate functions — they don't belong in GROUP BY
+			if self._AGGREGATE_RE.match(field):
+				continue
+			# Skip correlated sub-selects like (SELECT COUNT(*) FROM …)
+			stripped = field.lstrip()
+			if stripped.startswith("(") and stripped.lstrip("( ").lower().startswith("select"):
+				continue
+			col = self._strip_alias(field)
+			if col not in existing:
+				extra.append(col)
+				existing.add(col)
+
+		if extra:
+			args.group_by = args.group_by.rstrip() + ", " + ", ".join(extra)
+
+		# Wrap ORDER BY in MAX() only if not already covered by GROUP BY
+		# or present in SELECT (to avoid referencing aliases as column names)
+		order_field = ORDER_BY_PATTERN.sub("", args.order_by)
+		if order_field and order_field not in existing and order_field not in args.fields:
 			extracted_column = order_column = order_field.replace("`", "")
 			if "." in extracted_column:
 				extracted_column = extracted_column.split(".")[1]
-
 			args.fields += f", MAX({extracted_column}) as `{order_column}`"
 			args.order_by = args.order_by.replace(order_field, f"`{order_column}`")
 
