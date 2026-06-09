@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-22 13:14\n"
+"PO-Revision-Date: 2026-06-09 07:57\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1655,7 +1655,7 @@ msgstr "تنظیمات پیشرفته"
 #: frappe/public/js/frappe/ui/filters/filter.js:62
 #: frappe/public/js/frappe/ui/filters/filter.js:68
 msgid "After"
-msgstr "بعد از"
+msgstr "پس از"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -1675,7 +1675,7 @@ msgstr "پس از درج"
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
 msgid "After Rename"
-msgstr "بعد از تغییر نام"
+msgstr "پس از تغییر نام"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: frappe/core/doctype/server_script/server_script.json
@@ -5546,9 +5546,9 @@ msgstr "پیکربندی ستون‌ها برای {0}"
 msgid "Configure how amended documents will be named.<br>\n\n"
 "Default behaviour is to follow an amend counter which adds a number to the end of the original name indicating the amended version. <br>\n\n"
 "Default Naming will make the amended document to behave same as new documents."
-msgstr "نحوه نامگذاری اسناد اصلاح‌شده را پیکربندی کنید.<br>\n\n"
+msgstr "نحوه نام‌گذاری اسناد اصلاح‌شده را پیکربندی کنید.<br>\n\n"
 "رفتار پیش‌فرض، پیروی از یک شمارنده اصلاح است که عددی را به انتهای نام اصلی اضافه می‌کند که نشان‌دهنده نسخه اصلاح‌شده است. <br>\n\n"
-"نامگذاری پیش‌فرض باعث می‌شود سند اصلاح‌شده مانند اسناد جدید رفتار کند."
+"نام‌گذاری پیش‌فرض باعث می‌شود سند اصلاح‌شده مانند اسناد جدید رفتار کند."
 
 #. Description of a DocType
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
@@ -8417,7 +8417,7 @@ msgstr "فایل‌ها را به اینجا بکشید و رها کنید یا 
 
 #: frappe/public/js/print_format_builder/ConfigureColumns.vue:76
 msgid "Drag columns to set order. Column width is set in percentage. The total width should not be more than 100. Columns marked in red will be removed."
-msgstr "ستون‌ها را بکشید تا ترتیب را تنظیم کنید. عرض ستون به صورت درصد تنظیم می‌شود. عرض کل نباید بیشتر از 100 باشد. ستون‌های مشخص شده با رنگ قرمز حذف خواهند شد."
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
@@ -10241,11 +10241,11 @@ msgstr "نام فیلد"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:141
 msgid "Field Orientation (Left-Right)"
-msgstr "جهت فیلد (چپ-راست)"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:148
 msgid "Field Orientation (Top-Down)"
-msgstr "جهت فیلد (بالا-پایین)"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:233
 #: frappe/public/js/print_format_builder/utils.js:69
@@ -13208,7 +13208,7 @@ msgstr "درج در بالا"
 #: frappe/custom/doctype/custom_field/custom_field.json
 #: frappe/public/js/frappe/views/reports/query_report.js:1814
 msgid "Insert After"
-msgstr "درج بعد از"
+msgstr "درج پس از"
 
 #: frappe/custom/doctype/custom_field/custom_field.py:250
 msgid "Insert After cannot be set as {0}"
@@ -13216,7 +13216,7 @@ msgstr "Insert After را نمی‌توان به عنوان {0} تنظیم کر�
 
 #: frappe/custom/doctype/custom_field/custom_field.py:243
 msgid "Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist"
-msgstr "درج بعد از فیلد «{0}» ذکر شده در فیلد سفارشی «{1}»، با برچسب «{2}»، وجود ندارد"
+msgstr "درج پس از فیلد «{0}» ذکر شده در فیلد سفارشی «{1}»، با برچسب «{2}»، وجود ندارد"
 
 #: frappe/public/js/frappe/form/grid_row_form.js:42
 msgid "Insert Below"
@@ -15807,7 +15807,7 @@ msgstr "حداکثر {0} ردیف مجاز است"
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/doctype/event_participants/event_participants.json
 msgid "Maybe"
-msgstr ""
+msgstr "شاید"
 
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:221
 msgid "Me"
@@ -16444,7 +16444,7 @@ msgstr "انتقال بخش‌ها به زبانه جدید"
 
 #: frappe/public/js/form_builder/components/Field.vue:239
 msgid "Move the current field and the following fields to a new column"
-msgstr "انتقال فیلد فعلی و فیلدهای بعدی به یک ستون جدید"
+msgstr ""
 
 #: frappe/public/js/frappe/form/grid_row.js:169
 msgid "Move to Row Number"
@@ -18106,7 +18106,7 @@ msgstr "با علامت زدن این گزینه، URL مانند یک رشته 
 #: frappe/public/js/frappe/ui/filters/filter.js:64
 #: frappe/public/js/frappe/ui/filters/filter.js:70
 msgid "On or After"
-msgstr "در یا بعد از"
+msgstr "در یا پس از"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:63
 #: frappe/public/js/frappe/ui/filters/filter.js:69
@@ -18734,7 +18734,7 @@ msgstr "ارتفاع صفحه (بر حسب میلی‌متر)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:5
 msgid "Page Margins"
-msgstr "حاشیه های صفحه"
+msgstr ""
 
 #. Label of a Data field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
@@ -19158,7 +19158,7 @@ msgstr "{0} برای همیشه حذف شود؟"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:19
 msgid "Permission"
-msgstr ""
+msgstr "مجوز"
 
 #: frappe/core/doctype/user_type/user_type.py:83
 msgid "Permission Error"
@@ -23696,7 +23696,7 @@ msgstr "در صبح یک ایمیل یادآوری ارسال کنید"
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Send days before or after the reference date"
-msgstr "روزهای قبل یا بعد از تاریخ مرجع ارسال کنید"
+msgstr "روزهای قبل یا پس از تاریخ مرجع ارسال کنید"
 
 #. Description of the 'Send Email On State' (Check) field in DocType 'Workflow
 #. Document State'
@@ -24024,7 +24024,7 @@ msgstr "تنظیمات را تنظیم کنید"
 #. Label of a Select field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
 msgid "Set Property After Alert"
-msgstr "ویژگی بعد از هشدار را تنظیم کنید"
+msgstr "ویژگی پس از هشدار را تنظیم کنید"
 
 #: frappe/public/js/frappe/form/link_selector.js:207
 #: frappe/public/js/frappe/form/link_selector.js:208
@@ -24435,7 +24435,7 @@ msgstr "نمایش انتخابگر زبان"
 #. Label of a Check field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
 msgid "Show Line Breaks after Sections"
-msgstr "نمایش خطوط شکسته بعد از بخش ها"
+msgstr "نمایش خطوط شکسته پس از بخش ها"
 
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -26827,7 +26827,7 @@ msgstr "این سند به شما امکان ویرایش فیلدهای محد�
 
 #: frappe/model/delete_doc.py:113
 msgid "This document can not be deleted right now as it's being modified by another user. Please try again after some time."
-msgstr "این سند در حال حاضر قابل حذف نیست زیرا توسط کاربر دیگری در حال تغییر است. لطفا بعد از مدتی دوباره امتحان کنید."
+msgstr "این سند در حال حاضر قابل حذف نیست زیرا توسط کاربر دیگری در حال تغییر است. لطفا پس از مدتی دوباره امتحان کنید."
 
 #: frappe/social/doctype/energy_point_log/energy_point_log.py:90
 msgid "This document cannot be reverted"
@@ -26855,7 +26855,7 @@ msgstr "این سند قبلاً اصلاح شده است، شما نمی‌تو
 
 #: frappe/model/document.py:368
 msgid "This document is currently locked and queued for execution. Please try again after some time."
-msgstr "این سند در حال حاضر قفل شده و در صف اجرا قرار دارد. لطفا بعد از مدتی دوباره امتحان کنید."
+msgstr "این سند در حال حاضر قفل شده و در صف اجرا قرار دارد. لطفا پس از مدتی دوباره امتحان کنید."
 
 #: frappe/templates/emails/auto_repeat_fail.html:7
 msgid "This email is autogenerated"
@@ -27678,7 +27678,7 @@ msgstr "تعداد کل ایمیل هایی که در فرآیند همگام س
 
 #: frappe/public/js/print_format_builder/ConfigureColumns.vue:12
 msgid "Total:"
-msgstr "جمع:"
+msgstr ""
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1259
 msgid "Totals"
@@ -29818,7 +29818,7 @@ msgstr "فیلتر نویسه جانشین"
 #. Filter'
 #: frappe/core/doctype/report_filter/report_filter.json
 msgid "Will add \"%\" before and after the query"
-msgstr "\"%\" را قبل و بعد از پرسمان اضافه می‌کند"
+msgstr "\"%\" را قبل و پس از پرسمان اضافه می‌کند"
 
 #. Description of the 'Short Name' (Data) field in DocType 'Blogger'
 #: frappe/website/doctype/blogger/blogger.json
@@ -30269,7 +30269,7 @@ msgstr "شما مجاز به به‌روزرسانی این سند فرم وب �
 
 #: frappe/public/js/frappe/request.js:35
 msgid "You are not connected to Internet. Retry after sometime."
-msgstr "شما به اینترنت متصل نیستید. بعد از مدتی دوباره امتحان کنید"
+msgstr "شما به اینترنت متصل نیستید. پس از مدتی دوباره امتحان کنید"
 
 #: frappe/public/js/frappe/web_form/webform_script.js:22
 msgid "You are not permitted to access this page without login."
@@ -32761,7 +32761,7 @@ msgstr "{0} ماه پیش"
 
 #: frappe/model/document.py:1644
 msgid "{0} must be after {1}"
-msgstr "{0} باید بعد از {1} باشد"
+msgstr "{0} باید پس از {1} باشد"
 
 #: frappe/model/document.py:1405
 msgid "{0} must be beginning with '{1}'"
