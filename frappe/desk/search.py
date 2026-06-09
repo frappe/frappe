@@ -92,6 +92,7 @@ def search_widget(
 	*,
 	link_fieldname: str | None = None,
 	for_link_validation: bool = False,
+	# this param has been added temporarily for compatibility - may be removed later
 	query_filters_as_dict: bool = False,
 ):
 	if ignore_user_permissions:
@@ -105,7 +106,6 @@ def search_widget(
 			ignore_user_permissions = False
 
 	start = cint(start)
-	query_filters_as_dict = sbool(query_filters_as_dict)
 
 	if isinstance(filters, str):
 		filters = json.loads(filters)
@@ -124,9 +124,6 @@ def search_widget(
 	if filters is None:
 		filters = {}
 
-	if query and query_filters_as_dict and isinstance(filters, list):
-		filters = make_dict_from_filter_list(filters)
-
 	if query:  # Query = custom search query i.e. python function
 		meta = frappe.get_meta(doctype)
 		# For translated doctypes, pass empty txt and a large page_length so the custom query
@@ -134,6 +131,10 @@ def search_widget(
 		# translated values is applied below.
 		query_txt = "" if meta.translated_doctype else txt
 		query_page_length = PAGE_LENGTH_FOR_LINK_VALIDATION if meta.translated_doctype else page_length
+
+		if sbool(query_filters_as_dict) and isinstance(filters, list):
+			filters = make_dict_from_filter_list(filters)
+
 		try:
 			is_whitelisted(frappe.get_attr(query))
 			values = frappe.call(
