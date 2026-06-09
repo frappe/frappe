@@ -9,6 +9,10 @@
       "import": "./src/index.ts",
       "types": "./src/index.ts"
     },
+    "./FormLayout": {
+      "import": "./src/components/FormLayout/index.ts",
+      "types": "./src/components/FormLayout/index.ts"
+    },
     "./*": {
       "import": "./src/*"
     }
