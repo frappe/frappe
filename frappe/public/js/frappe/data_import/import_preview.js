@@ -63,7 +63,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 			if (col.skip_import) {
 				let show_warnings_button = `<button class="btn btn-xs" data-action="show_column_warning" data-col="${i}">
-					<i class="octicon octicon-stop"></i></button>`;
+					${frappe.utils.icon("circle-alert", "sm")}</button>`;
 				if (!col.df) {
 					// increase column width for unidentified columns
 					column_width += 50;
