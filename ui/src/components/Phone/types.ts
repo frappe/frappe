@@ -1,4 +1,4 @@
-import { InputLabelingProps, InputSize, InputVariant } from "../types";
+import type { InputLabelingProps, InputSize, InputVariant } from "../types";
 
 /** Variants supported by the control — a subset of the shared `InputVariant` scale. */
 export type PhoneInputVariant = Exclude<InputVariant, "ghost">;
