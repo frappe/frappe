@@ -57,6 +57,11 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		}
 
 		const link_field = this.get_link_field();
+<<<<<<< HEAD
+=======
+		value = cstr(value).trim();
+		if (!value) return rows;
+>>>>>>> 7b514810c8 (fix(Table MultiSelect): handle numeric docnames from autoincrement naming)
 
 		if (value) {
 			if (this.frm) {
