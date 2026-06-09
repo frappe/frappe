@@ -224,7 +224,7 @@ $.extend(frappe.ui.toolbar, {
 			true
 		)}" aria-haspopup="true" aria-expanded="true">
 				<div>
-					<i class="octicon ${icon}"></i>
+					${frappe.utils.icon(icon, "sm")}
 				</div>
 			</a>
 		</li>`).get(0);
