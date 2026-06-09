@@ -8,15 +8,10 @@ from datetime import date
 import frappe
 from frappe.core.utils import find
 from frappe.desk.doctype.event.event import get_events
-<<<<<<< HEAD
 from frappe.test_runner import make_test_objects
 from frappe.tests.utils import FrappeTestCase
 
 test_records = frappe.get_test_records("Event")
-=======
-from frappe.tests import IntegrationTestCase
-from frappe.tests.utils import make_test_objects, toggle_test_mode
->>>>>>> 2876419137 (fix: show calendar events for users in a different timezone than the system)
 
 
 class TestEvent(FrappeTestCase):
@@ -71,12 +66,12 @@ class TestEvent(FrappeTestCase):
 			}
 		).insert()
 
-		original_in_test = frappe.in_test
-		toggle_test_mode(True)
+		original_in_test = frappe.flags.in_test
+		frappe.flags.in_test = True
 		try:
 			events = get_events(start="2025-04-30 23:00:00", end="2025-06-10 23:00:00", user="Administrator")
 		finally:
-			toggle_test_mode(original_in_test)
+			frappe.flags.in_test = original_in_test
 
 		self.assertIn("_Test Event Different Timezone", [event.subject for event in events])
 
