@@ -91,6 +91,22 @@ function resolveChildFields(
   return columns.map((f) => mapField(f, childMetas));
 }
 
+/**
+ * Build the full layout of a `Table` field's child doctype — its own
+ * tabs/sections/columns, every field, not just the grid columns. Drives the
+ * row-edit dialog, which renders the whole child form (desk behaviour) rather
+ * than the `in_list_view` subset shown as grid columns. Returns `undefined`
+ * when the child meta is absent.
+ */
+function resolveChildLayout(
+  field: RawMetaField,
+  childMetas: Record<string, RawMetaField[]>
+): FormLayoutSchema | undefined {
+  const childMeta = field.options ? childMetas[field.options] : undefined;
+  if (!childMeta) return undefined;
+  return buildLayoutFromMeta(childMeta, { childMetas });
+}
+
 function mapField(
   field: RawMetaField,
   childMetas: Record<string, RawMetaField[]>
@@ -116,6 +132,11 @@ function mapField(
     // simply won't contain a deeper level).
     ...(CHILD_TABLE_TYPES.has(field.fieldtype)
       ? { childFields: resolveChildFields(field, childMetas) }
+      : {}),
+    // The row-edit dialog renders the full child form; `Table MultiSelect` has
+    // no row dialog, so only `Table` carries a `childLayout`.
+    ...(field.fieldtype === TABLE
+      ? { childLayout: resolveChildLayout(field, childMetas) }
       : {}),
   };
 }

@@ -84,6 +84,41 @@ describe("resolveFieldCurrency", () => {
     ).toBe("USD");
   });
 
+  // 3b. Row dialog: the row's own doc has no sibling, so the parent doc supplies
+  // it — keeps the dialog's currency in sync with the grid (where the parent doc
+  // is the injected `doc`).
+  it("falls back to the parent doc when the row/doc lack the currency", () => {
+    expect(
+      resolveFieldCurrency("currency", {
+        doc: { currency: "" },
+        parentDoc: { currency: "EUR" },
+        defaultCurrency: "USD",
+      })
+    ).toBe("EUR");
+  });
+
+  it("prefers a child-local sibling over the parent doc", () => {
+    expect(
+      resolveFieldCurrency("currency", {
+        doc: { currency: "INR" },
+        parentDoc: { currency: "EUR" },
+        defaultCurrency: "USD",
+      })
+    ).toBe("INR");
+  });
+
+  it("resolves the cross-record link docname from the parent doc as a last resort", () => {
+    const getDocValue = (_dt: string, name: string) =>
+      name === "ParentCo" ? "JPY" : "USD";
+    expect(
+      resolveFieldCurrency("Company:company:default_currency", {
+        doc: {},
+        parentDoc: { company: "ParentCo" },
+        getDocValue,
+      })
+    ).toBe("JPY");
+  });
+
   // 4. Cross-record "Doctype:link_field:currency_field" form.
   it("reads the currency off the linked record via an explicit getDocValue", () => {
     const getDocValue = (dt: string, name: string, field: string) =>

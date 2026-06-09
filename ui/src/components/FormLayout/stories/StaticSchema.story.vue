@@ -42,6 +42,40 @@ const doc = reactive<Record<string, any>>({
 		{ item: "Widget", qty: 2, rate: 19.99, in_stock: true },
 		{ item: "Gadget", qty: 5, rate: 4.5, in_stock: false },
 	],
+	// --- Grid edge-case data (second tab) -----------------------------------
+	// Per-row conditionals: the two rows differ only by `qty`, so each cell
+	// resolves its read-only/hidden/mandatory state against its OWN row — the
+	// first row is fully editable, the second (qty 0) shows the flipped states.
+	cond_items: [
+		{ qty: 3, rate: 19.99, discount: 10, reason: "" },
+		{ qty: 0, rate: 0, discount: 0, reason: "Backordered" },
+	],
+	// Parent-driven: every row's `rate` is read-only while this check is on,
+	// via `eval:parent.lock_rates` — toggling it re-resolves all rows live.
+	lock_rates: true,
+	priced_items: [
+		{ item: "Widget", rate: 19.99 },
+		{ item: "Gadget", rate: 4.5 },
+	],
+	// Whole-grid read-only (`readOnly: true` on the Table field → disabled grid).
+	locked_items: [
+		{ item: "Nail", sku: "SKU-1", qty: 10, rate: 5 },
+		{ item: "Hammer", sku: "SKU-2", qty: 3, rate: 12 },
+	],
+	// Empty grid → "No rows" placeholder.
+	empty_items: [],
+	// Many columns → horizontal scroll, scroll shadows, drag-to-resize.
+	wide_items: [
+		{
+			c1: "alpha",
+			c2: "bravo",
+			c3: "charlie",
+			c4: "delta",
+			c5: "echo",
+			c6: "foxtrot",
+			c7: "golf",
+		},
+	],
 });
 
 const layout: FormLayoutSchema = [
@@ -322,6 +356,204 @@ const layout: FormLayoutSchema = [
 								fieldname: "mystery",
 								fieldtype: "SomethingUnknown",
 								label: "Unknown fieldtype (falls back to text)",
+							},
+						],
+					},
+				],
+			},
+		],
+	},
+	{
+		name: "grid-edge",
+		label: "Grid edge cases",
+		sections: [
+			{
+				name: "per-row-cond",
+				label: "Per-row conditionals",
+				columns: [
+					{
+						name: "per-row-col",
+						fields: [
+							{
+								// Each cell resolves its conditionals against its own row, so
+								// the two rows below render differently from the same columns —
+								// matching what the row-edit dialog shows for that row.
+								fieldname: "cond_items",
+								fieldtype: "Table",
+								label: "Conditional Items (edit qty to flip the row)",
+								options: "Conditional Item",
+								childFields: [
+									{ fieldname: "qty", fieldtype: "Int", label: "Qty" },
+									{
+										// Read-only while qty is 0 (`!doc.qty`) — editable otherwise.
+										fieldname: "rate",
+										fieldtype: "Currency",
+										label: "Rate",
+										readOnlyDependsOn: "eval:!doc.qty",
+									},
+									{
+										// Hidden when qty is 0 → that row renders an empty cell.
+										fieldname: "discount",
+										fieldtype: "Percent",
+										label: "Discount %",
+										dependsOn: "eval:doc.qty > 0",
+									},
+									{
+										// Mandatory when qty is 0 (a reason is required for a
+										// zero-qty line). Per-row `reqd` drives validation and shows
+										// in the row-edit dialog; the grid header star stays static.
+										fieldname: "reason",
+										fieldtype: "Data",
+										label: "Reason",
+										mandatoryDependsOn: "eval:!doc.qty",
+									},
+								],
+							},
+						],
+					},
+				],
+			},
+			{
+				name: "parent-driven",
+				label: "Parent-driven (eval:parent.x)",
+				columns: [
+					{
+						name: "parent-col",
+						fields: [
+							{
+								// A doc-level control the child rows read via `parent`.
+								fieldname: "lock_rates",
+								fieldtype: "Check",
+								label: "Lock all rates",
+							},
+							{
+								fieldname: "priced_items",
+								fieldtype: "Table",
+								label: "Priced Items (toggle the check to lock every Rate)",
+								options: "Priced Item",
+								childFields: [
+									{ fieldname: "item", fieldtype: "Data", label: "Item" },
+									{
+										// `parent` is the doc the table lives on, so every row's
+										// rate follows the doc-level `lock_rates` — desk's
+										// `parent = this.frm.doc`. Re-resolves live on toggle.
+										fieldname: "rate",
+										fieldtype: "Currency",
+										label: "Rate",
+										readOnlyDependsOn: "eval:parent.lock_rates",
+									},
+								],
+							},
+						],
+					},
+				],
+			},
+			{
+				name: "grid-states",
+				label: "Read-only, empty & missing columns",
+				columns: [
+					{
+						name: "states-col",
+						fields: [
+							{
+								// `readOnly: true` disables structural actions (add/delete/
+								// reorder/select), renders every cell read-only, and makes a
+								// click anywhere on a row open the dialog as a read-only viewer.
+								fieldname: "locked_items",
+								fieldtype: "Table",
+								label: "Read-only grid (click a row to view)",
+								readOnly: true,
+								options: "Locked Item",
+								childFields: [
+									{ fieldname: "item", fieldtype: "Link", label: "CRM Product" },
+									{ fieldname: "sku", fieldtype: "Data", label: "SKU" },
+									{ fieldname: "qty", fieldtype: "Int", label: "Qty" },
+									{ fieldname: "rate", fieldtype: "Currency", label: "Rate" },
+								],
+							},
+							{
+								// No rows → the grid shows its "No rows" placeholder.
+								fieldname: "empty_items",
+								fieldtype: "Table",
+								label: "Empty grid",
+								options: "Empty Item",
+								childFields: [
+									{ fieldname: "item", fieldtype: "Data", label: "Item" },
+									{ fieldname: "qty", fieldtype: "Int", label: "Qty" },
+								],
+							},
+							{
+								// No `childFields` resolved → the grid shows "No columns to
+								// display" (e.g. when a child meta is absent).
+								fieldname: "no_columns",
+								fieldtype: "Table",
+								label: "Grid with no columns",
+								options: "Columnless Item",
+							},
+						],
+					},
+				],
+			},
+			{
+				name: "grid-wide",
+				label: "Wide grid (scroll + resize)",
+				columns: [
+					{
+						name: "wide-col",
+						fields: [
+							{
+								// Enough columns to overflow → horizontal scroll with the frozen
+								// `#`/edit columns, scroll shadows, and drag-to-resize handles.
+								// Each column declares a default `width` (px) from the layout;
+								// dragging a column's right edge still overrides it.
+								fieldname: "wide_items",
+								fieldtype: "Table",
+								label: "Wide Items",
+								options: "Wide Item",
+								childFields: [
+									{
+										fieldname: "c1",
+										fieldtype: "Data",
+										label: "Column One",
+										width: 200,
+									},
+									{
+										fieldname: "c2",
+										fieldtype: "Data",
+										label: "Column Two",
+										width: 200,
+									},
+									{
+										fieldname: "c3",
+										fieldtype: "Data",
+										label: "Column Three",
+										width: 200,
+									},
+									{
+										fieldname: "c4",
+										fieldtype: "Data",
+										label: "Column Four",
+										width: 200,
+									},
+									{
+										fieldname: "c5",
+										fieldtype: "Data",
+										label: "Column Five",
+										width: 200,
+									},
+									{
+										fieldname: "c6",
+										fieldtype: "Data",
+										label: "Column Six",
+										width: 200,
+									},
+									{
+										fieldname: "c7",
+										fieldtype: "Data",
+										label: "Column Seven",
+										width: 200,
+									},
+								],
 							},
 						],
 					},

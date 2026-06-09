@@ -9,33 +9,48 @@
 		@edit="openEdit"
 	>
 		<template #cell="{ row, column, value, update, commit }">
-			<!-- Compact controls (checkbox/rating) center at their natural size;
-			     everything else fills the cell. `row` is passed so a cell can
-			     resolve `options`-points-to-a-sibling-field conventions (e.g. a
-			     Currency code) against its own row, not the parent doc. -->
-			<div
-				v-if="isCentered(column.fieldname)"
-				class="flex w-full items-center justify-center"
-			>
+			<!-- Resolve the column's conditional read-only/mandatory/hidden against
+			     THIS row, so a per-row condition shows in the grid cell exactly as it
+			     does in the row-edit dialog (which evaluates the same expressions
+			     against the same row). A row whose `depends_on` is false renders an
+			     empty, non-editable cell — desk's per-row grid behaviour. -->
+			<template v-if="!cellField(column.fieldname, row).hidden">
+				<!-- Compact controls (checkbox/rating) center at their natural size;
+				     everything else fills the cell. `row` is passed so a cell can
+				     resolve `options`-points-to-a-sibling-field conventions (e.g. a
+				     Currency code) against its own row, not the parent doc. -->
+				<div
+					v-if="isCentered(column.fieldname)"
+					class="flex w-full items-center justify-center"
+				>
+					<component
+						:is="resolveField(cellField(column.fieldname, row).fieldtype)"
+						:field="cellField(column.fieldname, row)"
+						:modelValue="value"
+						:row="row"
+						@update:modelValue="update"
+						@change="commit"
+					/>
+				</div>
 				<component
-					:is="resolveField(cellField(column.fieldname).fieldtype)"
-					:field="cellField(column.fieldname)"
+					:is="resolveField(cellField(column.fieldname, row).fieldtype)"
+					v-else
+					class="w-full"
+					:field="cellField(column.fieldname, row)"
 					:modelValue="value"
 					:row="row"
 					@update:modelValue="update"
 					@change="commit"
 				/>
-			</div>
-			<component
-				:is="resolveField(cellField(column.fieldname).fieldtype)"
-				v-else
-				class="w-full"
-				:field="cellField(column.fieldname)"
-				:modelValue="value"
-				:row="row"
-				@update:modelValue="update"
-				@change="commit"
-			/>
+			</template>
+			<template v-else>
+				<!-- Hidden per-row: render an EMPTY placeholder, not nothing. A slot
+				     that renders only comments (a bare `v-if` with no else) makes Vue
+				     fall back to the Grid's default `#cell` content — which prints the
+				     raw value (`{{ row[fieldname] }}`). A real (empty) vnode suppresses
+				     that. -->
+				<span class="w-full" />
+			</template>
 		</template>
 	</Grid>
 
@@ -55,13 +70,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, inject, ref } from "vue";
+import { computed, defineAsyncComponent, inject, provide, ref } from "vue";
 import { Dialog } from "frappe-ui";
 import { Grid } from "../../Grid";
 import type { GridColumn } from "../../Grid";
 import { fieldsToLayout } from "../fieldsToLayout";
-import { ResolveFieldKey } from "../types";
-import type { FieldComponentEmits, FieldComponentProps, FieldMeta } from "../types";
+import { resolveFieldConditionals } from "../resolveLayout";
+import { DocKey, ParentDocKey, ResolveFieldKey } from "../types";
+import type {
+	FieldComponentEmits,
+	FieldComponentProps,
+	FieldMeta,
+	FormLayoutSchema,
+} from "../types";
 
 // Async to break the module cycle (fieldTypes → TableField → FormLayout →
 // fieldTypes); the row form is only needed once the dialog opens anyway.
@@ -74,6 +95,15 @@ const emit = defineEmits<FieldComponentEmits>();
 // (app-overridable) field component. This is FormLayout's concern, not the
 // generic Grid's — hence it lives here, in the `#cell` slot.
 const resolveField = inject(ResolveFieldKey)!;
+
+// Expose this table's own doc as the *parent* doc for its rows. A row's fields
+// (grid cells and the row-edit dialog alike) then resolve parent-scoped options
+// against it — e.g. a Currency `options` that names a parent field. Without
+// this, the dialog's nested FormLayout shadows `DocKey` with the row clone and
+// the row would lose sight of the parent, desyncing currency formatting from the
+// grid. Null at the top level (no parent doc to inject).
+const parentDoc = inject(DocKey, null);
+provide(ParentDocKey, parentDoc);
 
 // Per-fieldtype column alignment, applied to the header label *and* the cells so
 // they always agree (the Grid honours `align` on each column). Numeric columns
@@ -102,15 +132,28 @@ const cellFields = computed<Record<string, FieldMeta>>(() =>
 	)
 );
 
-function cellField(fieldname: string): FieldMeta {
-	return cellFields.value[fieldname];
+// The cell's field meta, with its conditional read-only/mandatory/hidden
+// expressions resolved against `row` (`doc`) and the table's own doc (`parent`,
+// so a `eval:parent.x` reaches the parent — desk's `parent = this.frm.doc`).
+// This mirrors the row-edit dialog, which resolves the same expressions against
+// the same row + parent, so a per-row condition reads identically in both. The
+// call is reactive: `evaluateDependsOn` reads the row's (and parent's) values,
+// so the cell re-resolves when an in-place edit changes a field it depends on.
+//
+// A read-only table forces every cell read-only too (desk: a read-only grid is a
+// viewer). Per-field/conditional read-only still applies on top via
+// `resolveFieldConditionals`; the table flag only ever adds read-only, never lifts it.
+function cellField(fieldname: string, row: Record<string, any>): FieldMeta {
+	const f = resolveFieldConditionals(cellFields.value[fieldname], row, parentDoc?.value ?? row);
+	return props.field.readOnly ? { ...f, readOnly: true } : f;
 }
 
 // Compact controls render at their natural size, centered in the cell (a
 // full-width checkbox/rating looks broken — see the stretched checkbox bug).
-// Everything else fills the cell width.
+// Everything else fills the cell width. Fieldtype is static, so this reads the
+// base column meta — no per-row resolution needed.
 function isCentered(fieldname: string): boolean {
-	return CENTERED_FIELDTYPES.has(cellField(fieldname).fieldtype);
+	return CENTERED_FIELDTYPES.has(cellFields.value[fieldname].fieldtype);
 }
 
 const rows = computed<Record<string, any>[]>({
@@ -136,9 +179,35 @@ const dialogTitle = computed(() =>
 	editIndex.value === null ? "" : `${props.field.label ?? "Row"} — Row ${editIndex.value + 1}`
 );
 
-// The dialog renders the *labelled* child fields (a real form), unlike the
-// label-less cell copies used inside the grid.
-const editLayout = computed(() => fieldsToLayout(columns.value));
+// The dialog renders the child doctype's *full* form — every field, in the
+// child's own tabs/sections (desk's grid-row behaviour) — not just the grid
+// columns. `childLayout` carries that full layout (built from the child meta);
+// fall back to a flat form of the visible columns when it's absent (e.g. the
+// static-schema flow that supplies `childFields` but no `childLayout`).
+//
+// A read-only table opens the dialog as a *viewer*: every field is forced
+// read-only so the row can be inspected but not edited (it would otherwise let a
+// user edit and commit back into a table the grid won't let them touch).
+const editLayout = computed(() => {
+	const base = props.field.childLayout ?? fieldsToLayout(columns.value);
+	return props.field.readOnly ? readOnlyLayout(base) : base;
+});
+
+// Force every field in a layout read-only, returning a fresh tree (never mutates
+// the shared child layout). Mirrors `resolveLayout`'s walk; used only for the
+// read-only table's row dialog.
+function readOnlyLayout(schema: FormLayoutSchema): FormLayoutSchema {
+	return schema.map((tab) => ({
+		...tab,
+		sections: tab.sections.map((section) => ({
+			...section,
+			columns: section.columns.map((column) => ({
+				...column,
+				fields: column.fields.map((f) => ({ ...f, readOnly: true })),
+			})),
+		})),
+	}));
+}
 
 function openEdit({ index }: { row: Record<string, any>; index: number }) {
 	editDoc.value = { ...rows.value[index] };

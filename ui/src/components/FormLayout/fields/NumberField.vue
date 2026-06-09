@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, ref } from "vue";
 import { TextInput } from "frappe-ui";
-import { DocKey } from "../types";
+import { DocKey, ParentDocKey } from "../types";
 import type { FieldComponentEmits, FieldComponentProps } from "../types";
 import { flt, formatField } from "../formatNumber";
 import { resolveFieldCurrency } from "../resolveCurrency";
@@ -40,6 +40,12 @@ const inputRef = ref<{ el?: HTMLInputElement } | null>(null);
 // field on the doc (Frappe's `options`-points-to-a-field convention). Optional:
 // the field renders fine standalone (no doc provided).
 const doc = inject(DocKey, null);
+
+// The parent doc, present only when this field belongs to a child-table row (the
+// grid cell or the row-edit dialog). Lets a row's Currency `options` resolve a
+// *parent* field — and keeps the dialog in sync with the grid, where the parent
+// doc is the injected `doc`. Null at the top level.
+const parentDoc = inject(ParentDocKey, null);
 
 // A numeric field has no "empty" rendered state — Frappe shows `0` (formatted
 // per fieldtype) when the value is null/blank. Coerce here, not in the pure
@@ -67,6 +73,7 @@ function resolveCurrency(): string | undefined {
 	return resolveFieldCurrency(props.field.options, {
 		doc: doc?.value,
 		row: props.row,
+		parentDoc: parentDoc?.value,
 		defaultCurrency: getFormatDefaults().currency,
 	});
 }

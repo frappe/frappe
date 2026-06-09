@@ -23,10 +23,25 @@ export interface FieldMeta {
    * fetches child meta itself.
    */
   childFields?: FieldMeta[];
+  /**
+   * Full render-ready layout of the child doctype (its own tabs → sections →
+   * columns → fields, honouring the child's layout breaks), built by
+   * `buildLayoutFromMeta` from the child meta. Used by the `Table` row-edit
+   * dialog to render **every** field of a row — not just the grid columns
+   * (`childFields`, the `in_list_view` subset). Mirrors desk's grid-row form,
+   * which shows the full child form rather than only the visible columns.
+   */
+  childLayout?: FormLayoutSchema;
   /** Whether the field is mandatory. */
   reqd?: boolean;
   /** Decimal places for numeric fields (Float/Currency/Percent); from meta. */
   precision?: number;
+  /**
+   * Initial grid-column width in px when this field is a child-table column
+   * (`childFields`). Flows through to the `Grid` column; omit for a flexible
+   * column. Drag-resizing overrides it at runtime.
+   */
+  width?: number;
   description?: string;
   placeholder?: string;
   /** Static visibility; `resolveLayout` may flip this from `dependsOn`. */
@@ -124,6 +139,17 @@ export type FieldComponentEmits = {
 /** The doc object fields read/write, provided from the root. */
 export const DocKey: InjectionKey<Ref<Record<string, any>>> =
   Symbol("FormLayoutDoc");
+
+/**
+ * The **parent** doc, provided by `TableField` into a child-table row's edit
+ * dialog so the row's fields can resolve against it. Inside the dialog the row's
+ * own nested `FormLayout` shadows `DocKey` with the row clone, which would
+ * otherwise cut the row off from the parent — breaking parent-scoped resolution
+ * like a `Currency` field whose `options` names a parent field. Absent at the
+ * top level (no parent), so injectors must treat it as optional.
+ */
+export const ParentDocKey: InjectionKey<Ref<Record<string, any>> | null> =
+  Symbol("FormLayoutParentDoc");
 
 /**
  * Writes a field's live value into the doc: `(fieldname, value)`. Fires on every

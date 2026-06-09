@@ -136,7 +136,7 @@
 								>
 									<Button
 										variant="ghost"
-										icon="lucide-pencil"
+										icon="lucide-square-pen"
 										:tooltip="'Edit Row'"
 										@click="emit('edit', { row, index: rowIndex })"
 									/>

@@ -230,6 +230,60 @@ describe("buildLayoutFromMeta", () => {
       expect(tableFieldOf(layout).childFields).toBeUndefined();
     });
 
+    it("attaches the full child layout (all fields + child breaks) as childLayout", () => {
+      const layout = buildLayoutFromMeta([tableField()], {
+        childMetas: {
+          "Order Item": [
+            field({
+              fieldname: "item",
+              fieldtype: "Link",
+              options: "Item",
+              in_list_view: 1,
+            }),
+            field({ fieldname: "details", fieldtype: "Section Break" }),
+            field({ fieldname: "note", fieldtype: "Data" }), // not a grid column…
+            field({ fieldname: "qty", fieldtype: "Int", in_list_view: 1 }),
+          ],
+        },
+      });
+
+      const f = tableFieldOf(layout);
+      // grid columns stay the in_list_view subset
+      expect(f.childFields?.map((c) => c.fieldname)).toEqual(["item", "qty"]);
+      // …but the dialog layout carries every field, in the child's own sections
+      const sections = f.childLayout?.[0].sections ?? [];
+      const allFields = sections.flatMap((s) =>
+        s.columns.flatMap((c) => c.fields.map((cf) => cf.fieldname))
+      );
+      expect(allFields).toEqual(["item", "note", "qty"]);
+      expect(sections.length).toBe(2); // split on the child's Section Break
+    });
+
+    it("leaves childLayout undefined when the child meta is absent", () => {
+      const layout = buildLayoutFromMeta([tableField()], { childMetas: {} });
+      expect(tableFieldOf(layout).childLayout).toBeUndefined();
+    });
+
+    it("does not attach childLayout to Table MultiSelect (it has no row dialog)", () => {
+      const layout = buildLayoutFromMeta(
+        [
+          field({
+            fieldname: "roles",
+            fieldtype: "Table MultiSelect",
+            options: "Has Role",
+          }),
+        ],
+        {
+          childMetas: {
+            "Has Role": [
+              field({ fieldname: "role", fieldtype: "Link", options: "Role" }),
+            ],
+          },
+        }
+      );
+      expect(tableFieldOf(layout).childLayout).toBeUndefined();
+    });
+
     it("resolves childFields for Table MultiSelect (its single Link field)", () => {
       const layout = buildLayoutFromMeta(
         [

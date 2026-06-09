@@ -28,11 +28,11 @@
 
 <script setup lang="ts">
 import { Tabs } from "frappe-ui";
-import { computed, provide, ref } from "vue";
+import { computed, inject, provide, ref } from "vue";
 import FormLayoutSection from "./FormLayoutSection.vue";
 import { useFieldTypes } from "./useFieldTypes";
 import { resolveLayout } from "./resolveLayout";
-import { CommitKey, DocKey, HasTabsKey, ResolveFieldKey, UpdateKey } from "./types";
+import { CommitKey, DocKey, HasTabsKey, ParentDocKey, ResolveFieldKey, UpdateKey } from "./types";
 import type { FormLayoutSchema } from "./types";
 
 const props = defineProps<{ layout: FormLayoutSchema }>();
@@ -42,10 +42,18 @@ const emit = defineEmits<{ change: [fieldname: string, value: any] }>();
 
 const tabIndex = ref(0);
 
+// The enclosing doc, when this form is a child-table row's edit dialog
+// (`TableField` provides it). It lets a child field's `eval:parent.x` reach the
+// parent doc, exactly as desk scopes `parent = this.frm.doc`. Absent at the top
+// level → `parent` falls back to `doc` (desk's `parent === doc`).
+const parentDoc = inject(ParentDocKey, null);
+
 // Bake conditional visibility/mandatory/read-only against the live doc. Reading
-// `doc.value` makes this re-resolve as the user edits, so dependent fields show,
-// hide, or flip required/read-only reactively.
-const resolvedLayout = computed(() => resolveLayout(props.layout, doc.value));
+// `doc.value` (and `parentDoc.value`) makes this re-resolve as the user edits,
+// so dependent fields show, hide, or flip required/read-only reactively.
+const resolvedLayout = computed(() =>
+	resolveLayout(props.layout, doc.value, parentDoc?.value ?? doc.value)
+);
 
 const visibleTabs = computed(() =>
 	resolvedLayout.value

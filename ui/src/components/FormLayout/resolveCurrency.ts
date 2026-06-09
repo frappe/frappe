@@ -19,6 +19,8 @@
  */
 import { shallowRef } from "vue";
 import { createResource, getCachedResource } from "frappe-ui";
+import { pickSiblingValue } from "./pickSiblingValue";
+import type { RecordContext } from "./pickSiblingValue";
 
 /** Reads a single field off another record. May return `undefined` synchronously
  *  (e.g. while the fetch is still in flight) — callers fall back. */
@@ -34,11 +36,7 @@ export type DocValueReader = (
  * defaults to the built-in runtime reader (override it in tests, or for an app
  * whose records live in its own store).
  */
-export interface CurrencyResolveContext {
-  /** The parent doc's values (sibling-field lookup for top-level fields). */
-  doc?: Record<string, any> | null;
-  /** The child-table row's values, when the field renders as a grid cell. */
-  row?: Record<string, any> | null;
+export interface CurrencyResolveContext extends RecordContext {
   /** Site default currency (`getFormatDefaults().currency`); the final fallback. */
   defaultCurrency?: string | null;
   /** Cross-record reader for the `Doctype:link_field:currency_field` options
@@ -103,21 +101,13 @@ export function getDocValueReader(): DocValueReader {
 
 // --- Resolution --------------------------------------------------------------
 
-/** Row wins over the parent doc; a blank (`undefined`/`null`/`''`) value defers. */
-function pickSiblingValue(ctx: CurrencyResolveContext, field: string): any {
-  const fromRow = ctx.row?.[field];
-  if (fromRow !== undefined && fromRow !== null && fromRow !== "")
-    return fromRow;
-  return ctx.doc?.[field];
-}
-
 /**
  * Resolve a Currency field's currency code from its `options`, mirroring Frappe
  * desk's `frappe.meta.get_field_currency`:
  *
  * 1. **No `options`** → the site default currency.
- * 2. **`options` = a sibling fieldname** → that field's value. In a grid cell the
- *    row's own column wins; otherwise (or when blank) the parent doc. Empty → default.
+ * 2. **`options` = a sibling fieldname** → that field's value. The row's own
+ *    column wins, then the field's own doc, then the parent doc. Empty → default.
  * 3. **`options` contains `:`** (`Doctype:link_field:currency_field`) → read the
  *    currency off the linked record. `link_field` (row, else doc) holds that
  *    record's name; `getDocValue` reads `currency_field` off it (built-in reader

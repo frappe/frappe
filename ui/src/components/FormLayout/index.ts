@@ -5,6 +5,7 @@ export type { RegisterFieldTypeOptions } from "./fieldTypes";
 export { useDoctypeLayout } from "./useDoctypeLayout";
 export { useScriptedLayout } from "./useScriptedLayout";
 export { useDoctypeMeta } from "./useDoctypeMeta";
+export { useChildRowModel } from "./useChildRowModel";
 export { buildLayoutFromMeta } from "./buildLayoutFromMeta";
 export type { BuildLayoutOptions } from "./buildLayoutFromMeta";
 export { fieldsToLayout } from "./fieldsToLayout";
