@@ -696,7 +696,7 @@ class ImportFile:
 				delimiter=_get_fixed_csv_delimiter(self.custom_delimiters, self.delimiter_options),
 			)
 		elif extension == "xlsx":
-			data = read_xlsx_file_from_attached_file(fcontent=content)
+			data = read_xlsx_file_from_attached_file(fcontent=content, read_only=True)
 		elif extension == "xls":
 			data = read_xls_file_from_attached_file(content)
 		return data
