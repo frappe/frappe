@@ -8,156 +8,171 @@
 		<div
 			v-if="columns.length"
 			class="relative overflow-hidden rounded border border-outline-gray-2"
+			:class="{ 'grid-disabled': disabled }"
 		>
-			<!-- Horizontal scroll once resized columns overflow the box; the header
+			<!-- Scroller + scroll shadows share a `relative` box so the shadows clamp to
+			     the header/rows height and don't bleed over the empty state below it. -->
+			<div class="relative">
+				<!-- Horizontal scroll once resized columns overflow the box; the header
 			     and every row share this scroller so they pan together. -->
-			<div
-				ref="scroller"
-				class="grid-scroller overflow-x-auto"
-				@scroll="updateScrollShadows"
-			>
-				<!-- Header -->
 				<div
-					class="grid items-stretch bg-surface-gray-2 text-sm text-ink-gray-5"
-					:style="{ gridTemplateColumns: templateColumns, minWidth: gridMinWidth }"
+					ref="scroller"
+					class="grid-scroller overflow-x-auto"
+					@scroll="updateScrollShadows"
 				>
+					<!-- Header -->
 					<div
-						v-if="!disabled"
-						class="sticky left-0 z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-gray-2"
-						:style="{ left: '0' }"
+						class="grid items-stretch bg-surface-gray-2 text-sm text-ink-gray-5"
+						:style="{ gridTemplateColumns: templateColumns, minWidth: gridMinWidth }"
 					>
-						<Checkbox :modelValue="allSelected" @update:modelValue="toggleAll" />
-					</div>
-					<div
-						class="sticky z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-gray-2 py-2"
-						:style="{ left: numberColLeft }"
-					>
-						#
-					</div>
-					<div
-						v-for="(col, i) in columns"
-						:key="col.fieldname"
-						class="relative truncate px-2 py-2"
-						:class="[
-							alignClass(col.align),
-							{ 'border-r border-outline-gray-2': i < columns.length - 1 },
-						]"
-						:title="col.label"
-					>
-						{{ col.label ?? col.fieldname }}
-						<span v-if="col.reqd" class="text-ink-red-2">*</span>
-						<!-- Drag the right edge to resize this column. Sits over the column
+						<div
+							v-if="!disabled"
+							class="sticky left-0 z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-gray-2"
+							:style="{ left: '0' }"
+						>
+							<Checkbox :modelValue="allSelected" @update:modelValue="toggleAll" />
+						</div>
+						<div
+							class="sticky z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-gray-2 py-2"
+							:style="{ left: numberColLeft }"
+						>
+							#
+						</div>
+						<div
+							v-for="(col, i) in columns"
+							:key="col.fieldname"
+							class="relative truncate px-2 py-2"
+							:class="[
+								alignClass(col.align),
+								{ 'border-r border-outline-gray-2': i < columns.length - 1 },
+							]"
+							:title="col.label"
+						>
+							{{ col.label ?? col.fieldname }}
+							<span v-if="col.reqd" class="text-ink-red-2">*</span>
+							<!-- Drag the right edge to resize this column. Sits over the column
 						     border; the header and every row follow because they share the
 						     same `templateColumns`. -->
-						<span
-							class="grid-col-resize"
-							:class="{ 'is-resizing': resizingIndex === i }"
-							@mousedown="startResize(i, $event)"
+							<span
+								class="grid-col-resize"
+								:class="{ 'is-resizing': resizingIndex === i }"
+								@mousedown="startResize(i, $event)"
+							/>
+						</div>
+						<div
+							class="sticky right-0 z-10 border-l border-outline-gray-2 bg-surface-gray-2"
+							:style="{ right: '0' }"
 						/>
 					</div>
-					<div
-						class="sticky right-0 z-10 border-l border-outline-gray-2 bg-surface-gray-2"
-						:style="{ right: '0' }"
-					/>
-				</div>
 
-				<!-- Rows -->
-				<Draggable
-					v-if="rows.length"
-					:modelValue="rows"
-					:item-key="keyOf"
-					:disabled="disabled"
-					handle=".grid-drag-handle"
-					tag="div"
-					@update:modelValue="reorder"
-				>
-					<template #item="{ element: row, index: rowIndex }">
-						<div
-							class="grid items-stretch border-t border-outline-gray-2 bg-surface-white"
-							:style="{
-								gridTemplateColumns: templateColumns,
-								minWidth: gridMinWidth,
-							}"
-						>
+					<!-- Rows -->
+					<Draggable
+						v-if="rows.length"
+						:modelValue="rows"
+						:item-key="keyOf"
+						:disabled="disabled"
+						handle=".grid-drag-handle"
+						tag="div"
+						@update:modelValue="reorder"
+					>
+						<template #item="{ element: row, index: rowIndex }">
 							<div
-								v-if="!disabled"
-								class="sticky left-0 z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-white"
-								:style="{ left: '0' }"
+								class="grid-row grid items-stretch border-t border-outline-gray-2 bg-surface-white"
+								:class="{ 'cursor-pointer': disabled }"
+								:style="{
+									gridTemplateColumns: templateColumns,
+									minWidth: gridMinWidth,
+								}"
+								@click="onRowClick(row, rowIndex)"
 							>
-								<Checkbox
-									:modelValue="isSelected(row)"
-									@update:modelValue="(checked: boolean) => setRow(row, checked)"
-								/>
-							</div>
-							<div
-								class="sticky z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-white py-2 text-sm text-ink-gray-7"
-								:class="{ 'grid-drag-handle cursor-grab': !disabled }"
-								:style="{ left: numberColLeft }"
-								:title="disabled ? undefined : 'Drag to reorder'"
-							>
-								{{ rowIndex + 1 }}
-							</div>
-							<div
-								v-for="(col, i) in columns"
-								:key="col.fieldname"
-								class="grid-cell flex min-w-0 items-stretch"
-								:class="[
-									alignClass(col.align),
-									{ 'border-r border-outline-gray-2': i < columns.length - 1 },
-								]"
-							>
-								<slot
-									name="cell"
-									:row="row"
-									:column="col"
-									:index="rowIndex"
-									:value="row[col.fieldname]"
-									:update="(v: any) => updateCell(rowIndex, col, v)"
-									:commit="(v: any) => commitCell(rowIndex, col, v)"
+								<div
+									v-if="!disabled"
+									class="sticky left-0 z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-white"
+									:style="{ left: '0' }"
 								>
-									<span class="truncate px-2 py-1 text-sm text-ink-gray-7">
-										{{ row[col.fieldname] }}
-									</span>
-								</slot>
+									<Checkbox
+										:modelValue="isSelected(row)"
+										@update:modelValue="(checked: boolean) => setRow(row, checked)"
+									/>
+								</div>
+								<div
+									class="sticky z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-white py-2 text-sm text-ink-gray-7"
+									:class="{ 'grid-drag-handle cursor-grab': !disabled }"
+									:style="{ left: numberColLeft }"
+									:title="disabled ? undefined : 'Drag to reorder'"
+								>
+									{{ rowIndex + 1 }}
+								</div>
+								<div
+									v-for="(col, i) in columns"
+									:key="col.fieldname"
+									class="grid-cell flex min-w-0 items-stretch"
+									:class="[
+										alignClass(col.align),
+										{
+											'border-r border-outline-gray-2':
+												i < columns.length - 1,
+										},
+										{ 'pointer-events-none': disabled },
+									]"
+								>
+									<slot
+										name="cell"
+										:row="row"
+										:column="col"
+										:index="rowIndex"
+										:value="row[col.fieldname]"
+										:update="(v: any) => updateCell(rowIndex, col, v)"
+										:commit="(v: any) => commitCell(rowIndex, col, v)"
+									>
+										<span class="truncate px-2 py-1 text-sm text-ink-gray-7">
+											{{ row[col.fieldname] }}
+										</span>
+									</slot>
+								</div>
+								<div
+									class="sticky right-0 z-10 flex items-center justify-center border-l border-outline-gray-2 bg-surface-white"
+									:style="{ right: '0' }"
+								>
+									<Button
+										variant="ghost"
+										icon="lucide-pencil"
+										:tooltip="'Edit Row'"
+										@click="emit('edit', { row, index: rowIndex })"
+									/>
+								</div>
 							</div>
-							<div
-								class="sticky right-0 z-10 flex items-center justify-center border-l border-outline-gray-2 bg-surface-white"
-								:style="{ right: '0' }"
-							>
-								<Button
-									variant="ghost"
-									icon="lucide-pencil"
-									:tooltip="'Edit Row'"
-									@click="emit('edit', { row, index: rowIndex })"
-								/>
-							</div>
-						</div>
-					</template>
-				</Draggable>
-
-				<div
-					v-else
-					class="border-t border-outline-gray-2 p-4 text-center text-sm text-ink-gray-4"
-				>
-					No rows
+						</template>
+					</Draggable>
 				</div>
-			</div>
 
-			<!-- Scroll affordance. Two full-height strips pinned just inside the frozen
+				<!-- Scroll affordance. Two full-height strips pinned just inside the frozen
 			     columns (so they fall over the scrolling content, not the frozen cells)
 			     and OUTSIDE the scroller, so they stay put while the grid pans. One
 			     continuous gradient per side — not a per-cell shadow, which segments at
 			     every row border. -->
+				<div
+					class="grid-scroll-shadow grid-scroll-shadow-left"
+					:class="{ 'is-visible': canScrollLeft }"
+					:style="{ left: leftShadowOffset }"
+				/>
+				<div
+					class="grid-scroll-shadow grid-scroll-shadow-right"
+					:class="{ 'is-visible': canScrollRight }"
+					:style="{ right: SIDE_COL_WIDTH }"
+				/>
+			</div>
+
+			<!-- Empty state sits OUTSIDE the scroller+shadows box so only the header pans
+			     when the columns overflow — "No rows" stays centred in view instead of
+			     scrolling off. A plain full-width strip: no column borders, just the
+			     top divider under the header. -->
 			<div
-				class="grid-scroll-shadow grid-scroll-shadow-left"
-				:class="{ 'is-visible': canScrollLeft }"
-				:style="{ left: leftShadowOffset }"
-			/>
-			<div
-				class="grid-scroll-shadow grid-scroll-shadow-right"
-				:class="{ 'is-visible': canScrollRight }"
-				:style="{ right: SIDE_COL_WIDTH }"
-			/>
+				v-if="!rows.length"
+				class="border-t border-outline-gray-2 p-4 text-center text-sm text-ink-gray-4"
+			>
+				No rows
+			</div>
 		</div>
 
 		<!-- No columns to render (e.g. child meta absent). -->
@@ -207,16 +222,21 @@ defineSlots<{
 }>();
 
 // Per-column track widths. `null` = flexible (shares leftover space as `1fr`); a
-// number = a fixed px width set by dragging the column's right edge. Kept in sync
-// with the column count by index — an unseen column starts flexible, a dropped one
-// falls off. The header and every row bind this same template, so a resize moves
-// both in lockstep.
+// number = a fixed px width — seeded from the column's `width` (layout/meta) and
+// overridden by dragging the column's right edge. Kept in sync with the column
+// count by index — an unseen column starts at its `width` (or flexible), a dropped
+// one falls off. A user's drag wins over the column's `width` so re-seeding on a
+// columns change doesn't snap a resized column back. The header and every row bind
+// this same template, so a resize moves both in lockstep.
 const MIN_COL_WIDTH = 48;
 const colWidths = ref<(number | null)[]>([]);
 watch(
-	() => props.columns.length,
-	(n) => {
-		colWidths.value = Array.from({ length: n }, (_, i) => colWidths.value[i] ?? null);
+	() => props.columns,
+	(cols) => {
+		colWidths.value = Array.from(
+			{ length: cols.length },
+			(_, i) => colWidths.value[i] ?? cols[i]?.width ?? null
+		);
 	},
 	{ immediate: true }
 );
@@ -421,6 +441,16 @@ function reorder(next: Record<string, any>[]) {
 	rows.value = next;
 	emit("change", next);
 }
+
+// In a read-only (disabled) grid the cells can't be edited inline, so a click
+// anywhere on the row opens the row dialog — same intent as the edit button. The
+// field cells are `pointer-events-none` while disabled, so their (read-only)
+// controls don't swallow the click before it reaches the row. An editable grid
+// keeps inline editing, so a stray cell click must NOT open the dialog there —
+// only the explicit edit button does.
+function onRowClick(row: Record<string, any>, index: number) {
+	if (props.disabled) emit("edit", { row, index });
+}
 </script>
 
 <style scoped>
@@ -481,11 +511,14 @@ function reorder(next: Record<string, any>[]) {
 	resize: none;
 }
 
-/* Kill the elastic rubber-band at the scroll boundaries (and any chaining to the
- * page) so panning the grid left/right stops cleanly instead of bouncing. Set
- * directly rather than via a utility class so it can't be dropped by the JIT. */
+/* Kill the elastic rubber-band when panning the grid left/right so it stops
+ * cleanly at its edges instead of bouncing. Scope this to the X axis only — the
+ * scroller has no vertical overflow, so a plain `overscroll-behavior: none` would
+ * also swallow vertical wheel scrolling and lock the PAGE from scrolling while the
+ * pointer sits over the grid. Set directly (not via a utility) so the JIT can't
+ * drop it. */
 .grid-scroller {
-	overscroll-behavior: none;
+	overscroll-behavior-x: none;
 }
 
 /* Scroll affordance. One continuous gradient strip per side, full height of the box,
@@ -576,5 +609,22 @@ function reorder(next: Record<string, any>[]) {
 .grid-cell :deep([data-slot="trigger"][data-state="open"]) {
 	box-shadow: none !important;
 	outline: none !important;
+}
+
+/* Read-only grid: cells are `pointer-events-none` so a row click opens the row
+ * dialog — but that also smothers a readonly Link's redirect/edit actions. They
+ * never receive hover (so `group-hover` can't reveal them) and can't be clicked.
+ * Restore both: pointer events on just those two buttons, and reveal them on ROW
+ * hover (the pointer falls through the dead cell to the row beneath, so the row —
+ * not the cell — gets the hover). The buttons `@click.stop`, so acting on one
+ * doesn't also trip the row's open-dialog handler. */
+.grid-disabled .grid-cell :deep([data-slot="redirect"]),
+.grid-disabled .grid-cell :deep([data-slot="edit"]) {
+	pointer-events: auto;
+}
+
+.grid-disabled .grid-row:hover :deep([data-slot="redirect"]),
+.grid-disabled .grid-row:hover :deep([data-slot="edit"]) {
+	display: grid;
 }
 </style>

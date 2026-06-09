@@ -15,6 +15,12 @@ export interface GridColumn {
    * Frappe desk right-aligns numbers in the grid.
    */
   align?: "left" | "right" | "center";
+  /**
+   * Initial track width in px, e.g. set from layout/meta. Omit for a flexible
+   * column that shares leftover space (`1fr`). Drag-resizing the column's right
+   * edge overrides this at runtime.
+   */
+  width?: number;
 }
 
 export type GridEmits = {
