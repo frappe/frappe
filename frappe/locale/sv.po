@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-11 10:20\n"
+"PO-Revision-Date: 2026-06-09 07:57\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -275,7 +275,7 @@ msgstr "<b>{0}</b> är inte giltig URL"
 #. Content of the 'Help' (HTML) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "<div class=\"alert\">Please don't update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>"
-msgstr "<div class=\"alert\">Vänligen uppdatera inte det eftersom det kan förstöra ditt formulär. Använd Anpassa Formulär och anpassa Fält och ange egenskaper!</div>"
+msgstr "<div class=\"alert\">Uppdatera inte eftersom det kan förstöra formulär. Använd Anpassa Formulär Vy och Anpassa Fält och ange egenskaper!</div>"
 
 #. Introduction text of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
@@ -766,7 +766,7 @@ msgstr "<span class=\"h4\"><b>Genvägar</b></span>"
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Components to build your app</b></span>"
-msgstr "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Komponenter för att skapa app</b></span>"
+msgstr "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Skapa App</b></span>"
 
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -4062,17 +4062,17 @@ msgstr "Efter skript"
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Bypass Restricted IP Address Check If Two Factor Auth Enabled"
-msgstr "Frångå begränsad IP Adress Kontroll om Två Faktor Autentisering är Aktiverad"
+msgstr "Ignorera begränsad IP Adress Kontroll om Två Faktor Autentisering är Aktiverad"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Bypass Two Factor Auth for users who login from restricted IP Address"
-msgstr "Frångå Två Faktor Autentisering för Användare som loggar in från begränsad IP Adress"
+msgstr "Ignorera Två Faktor Autentisering för Användare som loggar in från begränsad IP Adress"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Bypass restricted IP Address check If Two Factor Auth Enabled"
-msgstr "Frångå begränsad IP Adress kontroll om Två Faktor Autentisering är Aktiverad"
+msgstr "Ignorera begränsad IP Adress kontroll om Två Faktor Autentisering är Aktiverad"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -6542,7 +6542,7 @@ msgstr "Anpassa Översikt Panel"
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:356
 msgid "Customize Form"
-msgstr "Anpassa Formulär"
+msgstr "Anpassad Formulär"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:100
 msgid "Customize Form - {0}"
@@ -20829,7 +20829,7 @@ msgstr "RQ Jobb"
 #. Name of a DocType
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "RQ Worker"
-msgstr "RQ Worker"
+msgstr "RQ Tjänst"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -21911,7 +21911,7 @@ msgstr "Begärd Av"
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/website/web_form/request_data/request_data.json
 msgid "Request Data"
-msgstr "Begäran Data"
+msgstr "Begär Data"
 
 #. Label of a Data field in DocType 'Integration Request'
 #: frappe/integrations/doctype/integration_request/integration_request.json
@@ -22974,7 +22974,7 @@ msgstr "Schemaläggare"
 #: frappe/core/doctype/scheduler_event/scheduler_event.json
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Scheduler Event"
-msgstr "Schemaläggare Händelse"
+msgstr "Schemalagd Händelse"
 
 #: frappe/core/doctype/data_import/data_import.py:112
 msgid "Scheduler Inactive"
@@ -24250,7 +24250,7 @@ msgstr "Inställningar för att kontrollera blogg kategorier och interaktioner s
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:567
 #: frappe/website/workspace/website/website.json
 msgid "Setup"
-msgstr "Inställning"
+msgstr "Konfigurera"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:94
 msgid "Setup > Customize Form"
@@ -28153,12 +28153,12 @@ msgstr "Sluta Följa"
 #. Name of a DocType
 #: frappe/email/doctype/unhandled_email/unhandled_email.json
 msgid "Unhandled Email"
-msgstr "Ohanterad E-post"
+msgstr "E-post att Hantera"
 
 #. Label of a Int field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Unhandled Emails"
-msgstr "Ohanterad E-post "
+msgstr "E-post att Hantera"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:601
 msgid "Unhide Workspace"
@@ -31658,7 +31658,7 @@ msgstr "gammal_överordnad"
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "on_cancel"
-msgstr "on_cancel"
+msgstr "på_avbryt"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -31673,7 +31673,7 @@ msgstr "på_godkänn"
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "on_trash"
-msgstr "på_papperskorg"
+msgstr "på_förkasta"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
