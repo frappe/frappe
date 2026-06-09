@@ -32,7 +32,7 @@ class NotificationLog(Document):
 		link: DF.SmallText | None
 		read: DF.Check
 		subject: DF.Text | None
-		type: DF.Literal["", "Mention", "Assignment", "Share", "Alert"]
+		type: DF.Link | None
 	# end: auto-generated types
 
 	def after_insert(self):
@@ -73,11 +73,14 @@ def get_title_html(title):
 	return f'<b class="subject-title">{title}</b>'
 
 
-def enqueue_create_notification(users: list[str] | str, doc: dict):
+def enqueue_create_notification(users: list[str] | str, doc: dict, dedupe_on: list[str] | None = None):
 	"""Send notification to users.
 
 	users: list of user emails or string of users with comma separated emails
 	doc: contents of `Notification` doc
+	dedupe_on: optional list of field names; for each recipient, skip creation if a
+	        Notification Log already exists matching those field values (prevents
+	        duplicate rows — it does not re-surface an existing notification)
 	"""
 
 	# During installation of new site, enqueue_create_notification tries to connect to Redis.
@@ -87,6 +90,8 @@ def enqueue_create_notification(users: list[str] | str, doc: dict):
 		return
 
 	doc = frappe._dict(doc)
+	if dedupe_on:
+		doc.dedupe_on = dedupe_on
 
 	if isinstance(users, str):
 		users = [user.strip() for user in users.split(",") if user.strip()]
@@ -102,12 +107,30 @@ def enqueue_create_notification(users: list[str] | str, doc: dict):
 
 
 def make_notification_logs(doc, users):
+	dedupe_on = doc.pop("dedupe_on", None) if isinstance(doc, dict) else None
+
 	for user in _get_user_ids(users):
+		if dedupe_on and _notification_exists(doc, user, dedupe_on):
+			continue
+
 		notification = frappe.new_doc("Notification Log")
 		notification.update(doc)
 		notification.for_user = user
 		if notification.for_user != notification.from_user or doc.type == "Alert":
 			notification.insert(ignore_permissions=True)
+
+
+def _notification_exists(doc, user, dedupe_on) -> bool:
+	"""Return True if a notification matching the given fields already exists for the user.
+
+	`dedupe_on` is a list of field names; their values are taken from `doc`. This mirrors
+	the existence checks the app-specific notification doctypes used to do (e.g. CRM's
+	`frappe.db.exists(values)` and Press's `exists({document_name})`).
+	"""
+	filters = {"for_user": user}
+	for fieldname in dedupe_on:
+		filters[fieldname] = doc.get(fieldname)
+	return bool(frappe.db.exists("Notification Log", filters))
 
 
 def _get_user_ids(user_emails):
@@ -132,7 +155,9 @@ def send_notification_email(doc: NotificationLog):
 	}
 	if doc.link:
 		args["doc_link"] = doc.link
-	else:
+	elif doc.document_type and doc.document_name:
+		# A notification need not reference a document (e.g. a plain informational
+		# alert), so only build a form link when both are present.
 		args["document_type"] = doc.document_type
 		args["document_name"] = doc.document_name
 		args["doc_link"] = get_url_to_form(doc.document_type, doc.document_name)
@@ -156,7 +181,8 @@ def get_email_header(doc, language: str | None = None):
 		"Share": _("New Document Shared {0}", lang=language).format(docname),
 	}
 	if not doc.email_header:
-		doc.email_header = header_map[doc.type or "Default"]
+		# `type` is an extensible Link now, so fall back gracefully for custom types
+		doc.email_header = header_map.get(doc.type or "Default", header_map["Default"])
 	return doc.email_header
 
 

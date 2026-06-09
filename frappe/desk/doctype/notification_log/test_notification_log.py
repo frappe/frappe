@@ -2,6 +2,11 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.core.doctype.user.user import get_system_users
+from frappe.desk.doctype.notification_log.notification_log import (
+	enqueue_create_notification,
+	get_email_header,
+)
+from frappe.desk.doctype.notification_type.notification_type import install_notification_types
 from frappe.desk.form.assign_to import add as assign_task
 from frappe.tests import IntegrationTestCase
 
@@ -32,6 +37,97 @@ class TestNotificationLog(IntegrationTestCase):
 		email = get_last_email_queue()
 		content = f"Subject: {frappe.utils.get_fullname(frappe.session.user)} shared a document ToDo"
 		self.assertTrue(content in email.message)
+
+	def test_type_link_conversion_alert_still_self_notifies(self):
+		"""`type` is now a Link, but an `Alert` must still insert even for the sender."""
+		install_notification_types()
+		user = get_user()
+		enqueue_create_notification(
+			[user],
+			{"type": "Alert", "subject": "Self alert", "from_user": user, "link": "/app"},
+		)
+		self.assertTrue(frappe.db.exists("Notification Log", {"for_user": user, "subject": "Self alert"}))
+
+	def test_get_email_header_unknown_type_falls_back(self):
+		"""A custom type with no header_map entry must not KeyError."""
+		doc = frappe._dict(type="Some Custom Type", document_name="X", email_header=None)
+		self.assertEqual(get_email_header(doc), get_email_header(frappe._dict(type="", document_name="X")))
+
+	def test_enqueue_create_notification_fans_out(self):
+		install_notification_types()
+		recipient = make_recipient("notify_fanout@example.com")
+		enqueue_create_notification(
+			[recipient],
+			{"type": "Mention", "subject": "Hello there", "from_user": "Administrator", "link": "/app"},
+		)
+		self.assertTrue(
+			frappe.db.exists(
+				"Notification Log", {"for_user": recipient, "subject": "Hello there", "type": "Mention"}
+			)
+		)
+
+	def test_dedupe_on_prevents_duplicate_rows(self):
+		install_notification_types()
+		recipient = make_recipient("notify_dedupe@example.com")
+		for _ in range(2):
+			enqueue_create_notification(
+				[recipient],
+				{
+					"type": "Mention",
+					"subject": "Dup subject",
+					"document_type": "ToDo",
+					"document_name": "DEDUP-1",
+					"from_user": "Administrator",
+				},
+				dedupe_on=["type", "document_name"],
+			)
+		count = frappe.db.count(
+			"Notification Log", {"for_user": recipient, "document_name": "DEDUP-1", "type": "Mention"}
+		)
+		self.assertEqual(count, 1)
+
+	def test_custom_field_passthrough(self):
+		"""Unknown extra fields are ignored; a matching Custom Field receives the value."""
+		from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+
+		install_notification_types()
+		create_custom_field(
+			"Notification Log",
+			{"fieldname": "assistance_url", "label": "Assistance URL", "fieldtype": "Data"},
+		)
+		frappe.clear_cache(doctype="Notification Log")
+		recipient = make_recipient("notify_customfield@example.com")
+		enqueue_create_notification(
+			[recipient],
+			{
+				"type": "Mention",
+				"subject": "With custom field",
+				"from_user": "Administrator",
+				"link": "/app",
+				"assistance_url": "https://docs.example.com/fix",
+				"ignored_field": "this is silently dropped",
+			},
+		)
+		name = frappe.db.get_value(
+			"Notification Log", {"for_user": recipient, "subject": "With custom field"}
+		)
+		self.assertEqual(
+			frappe.db.get_value("Notification Log", name, "assistance_url"),
+			"https://docs.example.com/fix",
+		)
+
+
+def make_recipient(email: str) -> str:
+	if not frappe.db.exists("User", email):
+		frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": email.split("@")[0],
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_permissions=True)
+	return email
 
 
 def get_last_email_queue():

@@ -3,6 +3,7 @@
 import getpass
 
 import frappe
+from frappe.desk.doctype.notification_type.notification_type import install_notification_types
 from frappe.email.doctype.notification.notification import install_notification_templates
 from frappe.geo.doctype.country.country import import_country_and_currency
 from frappe.utils import cint
@@ -56,6 +57,9 @@ def after_install():
 
 	# default templates
 	install_notification_templates()
+
+	# standard notification types
+	install_notification_types()
 
 	frappe.db.commit()
 
