@@ -121,13 +121,32 @@ class RealTimeClient {
 		let host = window.location.origin;
 		if (window.dev_server) {
 			let parts = host.split(":");
-			port = frappe.boot.socketio_port || port.toString() || "9000";
+			const backend = localStorage.getItem("frappe_socketio_backend") || "node";
+			if (backend === "python") {
+				port = frappe.boot.socketio_python_port || "9001";
+			} else {
+				port = frappe.boot.socketio_port || port.toString() || "9000";
+			}
 			if (parts.length > 2) {
 				host = parts[0] + ":" + parts[1];
 			}
 			host = host + ":" + port;
 		}
 		return host + `/${frappe.boot.sitename}`;
+	}
+
+	set_backend(name) {
+		if (!["node", "python"].includes(name)) {
+			console.warn(`backend must be "node" or "python", got: ${name}`);
+			return;
+		}
+		localStorage.setItem("frappe_socketio_backend", name);
+		console.log(`socketio backend set to ${name} — reloading…`);
+		window.location.reload();
+	}
+
+	get_backend() {
+		return localStorage.getItem("frappe_socketio_backend") || "node";
 	}
 
 	subscribe(task_id, opts) {
@@ -224,3 +243,28 @@ frappe.realtime = new RealTimeClient();
 
 // backward compatibility
 frappe.socketio = frappe.realtime;
+
+// Dev-mode backend switcher (node ↔ python). Shows a small indicator in the
+// bottom-right corner; click to toggle and reload. No-op outside dev_server.
+$(document).on("toolbar_setup", function () {
+	if (!window.dev_server || !frappe.boot.developer_mode) return;
+	if (document.getElementById("socketio-backend-switcher")) return;
+
+	const backend = frappe.realtime.get_backend();
+	const $el = $(`
+		<div id="socketio-backend-switcher"
+		     style="position:fixed;bottom:8px;right:8px;z-index:9999;
+		            font:11px/1.4 var(--font-stack);padding:4px 8px;
+		            background:var(--bg-color);border:1px solid var(--border-color);
+		            border-radius:6px;cursor:pointer;user-select:none;
+		            box-shadow:var(--shadow-sm);opacity:0.85;"
+		     title="Click to switch socket.io backend">
+			socket.io: <b>${backend}</b>
+		</div>
+	`);
+	$el.on("click", () => {
+		const next = frappe.realtime.get_backend() === "node" ? "python" : "node";
+		frappe.realtime.set_backend(next);
+	});
+	$("body").append($el);
+});
