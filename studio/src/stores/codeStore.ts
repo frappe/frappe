@@ -5,10 +5,11 @@ import { createDocumentResource, createListResource, createResource, call } from
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
 import { studioWatchers } from "@/data/studioWatchers"
+import { studioPageClientScripts, studioClientScripts } from "@/data/studioClientScripts"
 import * as globalUtils from "@/utils/globalUtils"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
-import { isFunctionExpression, toOptionalChaining } from "@/utils/parseCode"
+import { isFunctionExpression, toOptionalChaining, getFunctionDeclarationNames } from "@/utils/parseCode"
 import type { Filters, Resource, DocumentResource, DataResult } from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
@@ -20,6 +21,10 @@ const useCodeStore = defineStore("codeStore", () => {
 	const resources = ref<Record<string, Resource>>({})
 	const variables = ref<Record<string, any>>({})
 	const activeWatchers = ref<Record<string, WatchStopHandle>>({})
+	// Functions declared in the page's client scripts, callable from expressions/scripts
+	const clientScriptFunctions = ref<Record<string, Function>>({})
+	// Names of those functions, surfaced to the completion provider
+	const clientScriptFunctionNames = ref<string[]>([])
 	const routeObject = ref<ComputedRef>()
 	const routerObject = ref<Router | Readonly<Router>>()
 
@@ -122,10 +127,56 @@ const useCodeStore = defineStore("codeStore", () => {
 		activeWatchers.value = {}
 	}
 
+	async function setPageClientScripts(page: StudioPage) {
+		clientScriptFunctions.value = {}
+		clientScriptFunctionNames.value = []
+
+		studioPageClientScripts.filters = { parent: page.name }
+		await studioPageClientScripts.reload()
+		const scriptNames = studioPageClientScripts.data
+			.map((row: { studio_script: string }) => row.studio_script)
+			.filter(Boolean)
+		if (!scriptNames.length) return
+
+		studioClientScripts.filters = { name: ["in", scriptNames] }
+		await studioClientScripts.reload()
+		const source = studioClientScripts.data
+			.map((doc: { script: string }) => doc.script)
+			.filter(Boolean)
+			.join("\n\n")
+		if (!source.trim()) return
+
+		const functionNames = getFunctionDeclarationNames(source)
+		clientScriptFunctionNames.value = functionNames
+		clientScriptFunctions.value = compileClientScripts(source, functionNames)
+	}
+
+	function compileClientScripts(source: string, functionNames: string[]) {
+		// Evaluate the combined client script source once and return its declared
+		// functions. They close over the execution context (variables as refs,
+		// resources, route/router), so they get ambient access like any other script.
+		if (!functionNames.length) return {}
+		try {
+			const context = globalExecutionContext.value
+			const factory = new Function(
+				"context",
+				`with (context) {
+					${source}
+					return { ${functionNames.join(", ")} };
+				}`,
+			)
+			return factory(context) || {}
+		} catch (error) {
+			console.error("Error compiling client scripts", error)
+			return {}
+		}
+	}
+
 	const globalContext = computed(() => {
 		return {
 			...variables.value,
 			...resources.value,
+			...clientScriptFunctions.value,
 			...globalUtils,
 			route: unref(routeObject.value),
 			router: routerObject.value,
@@ -139,6 +190,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		return {
 			...variablesRefs,
 			...resources.value,
+			...clientScriptFunctions.value,
 			...globalUtils,
 			route: unref(routeObject.value),
 			router: routerObject.value,
@@ -505,6 +557,9 @@ const useCodeStore = defineStore("codeStore", () => {
 		// watchers
 		setPageWatchers,
 		cleanupWatchers,
+		// client scripts
+		clientScriptFunctionNames,
+		setPageClientScripts,
 		// code execution
 		globalContext,
 		globalExecutionContext,

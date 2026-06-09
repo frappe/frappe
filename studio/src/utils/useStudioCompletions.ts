@@ -83,6 +83,24 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 			})
 		}
 
+		(codeStore.clientScriptFunctionNames || []).forEach((funcName: string) => {
+			sources.push({
+				item: null,
+				completion: {
+					label: funcName,
+					type: "function",
+					detail: "Client Script",
+					apply(view, completion, from, to) {
+						const insertText = `${completion.label}()`
+						view.dispatch({
+							changes: { from, to, insert: insertText },
+							selection: { anchor: from + insertText.length - 1 },
+						})
+					},
+				},
+			})
+		})
+
 		Object.entries(globalUtils).forEach(([funcName, func]) => {
 			if (isPrivateKey(funcName)) {
 				return

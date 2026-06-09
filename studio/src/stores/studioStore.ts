@@ -159,6 +159,7 @@ const useStudioStore = defineStore("store", () => {
 		const page = await fetchPage(pageName)
 		activePage.value = page
 		await setPageData(page)
+		await codeStore.setPageClientScripts(page)
 		await codeStore.setPageWatchers(page)
 
 		const blocks = JSON.parse(page.draft_blocks || page.blocks || "[]")

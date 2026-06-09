@@ -1,94 +1,103 @@
 <template>
-	<CollapsibleSection sectionName="Watchers">
-		<div class="flex flex-col gap-1">
-			<div
-				v-if="studioPageWatchers.data?.length"
-				v-for="watcher in studioPageWatchers.data"
-				:key="watcher.name"
-				class="group/item flex flex-row items-center justify-between"
-			>
-				<div class="flex flex-row justify-between">
-					<div class="font-mono text-xs font-semibold text-pink-700">{{ watcher.source }}</div>
-				</div>
-				<ItemActions :menuOptions="getWatcherMenu(watcher)" @edit="openWatcher(watcher)" />
-			</div>
-			<EmptyState v-else message="No watchers added" />
-		</div>
-
-		<div class="mt-2 flex flex-col">
-			<Button icon-left="plus" @click="showWatcherDialog = true">Add Watcher</Button>
-			<Dialog
-				v-model="showWatcherDialog"
-				:title="pageWatcher.name ? 'Edit Watcher' : 'Add Watcher'"
-				size="3xl"
-				@after-leave="
-					() => {
-						pageWatcher = {
-							source: '',
-							script: '',
-							immediate: false,
-							deep: false,
-							parent: '',
-							name: '',
-						}
-					}
-				"
-				:dismissible="false"
-			>
-				<template #default>
-					<div class="flex flex-col space-y-4">
-						<FormControl
-							type="combobox"
-							:options="store.variableOptions"
-							label="Source"
-							placeholder="Select variable"
-							:openOnFocus="true"
-							v-model="pageWatcher.source"
-						/>
-						<Code
-							label="Script"
-							language="javascript"
-							height="400px"
-							maxHeight="400px"
-							v-model="pageWatcher.script"
-							:emitOnChange="true"
-							:completions="getCompletions"
-							@save="editPageWatcher(pageWatcher)"
-						/>
-						<FormControl
-							type="number"
-							label="Debounce (ms)"
-							placeholder="300"
-							v-model="pageWatcher.debounce"
-							description="Delay the execution until the set time has passed since the last change"
-						/>
-						<div class="flex flex-col space-y-1">
-							<FormControl
-								type="checkbox"
-								label="Immediate: Run on page load"
-								v-model="pageWatcher.immediate"
-							/>
-							<FormDescription description="Trigger when the page loads, not just when the source changes" />
-						</div>
-						<div class="flex flex-col space-y-1">
-							<FormControl type="checkbox" label="Deep: Watch nested properties" v-model="pageWatcher.deep" />
-							<FormDescription
-								description="Trigger when nested properties within the source change, in addition to the source itself"
-							/>
-						</div>
+	<div class="flex flex-col gap-3">
+		<CollapsibleSection sectionName="Watchers">
+			<div class="flex flex-col gap-1">
+				<div
+					v-if="studioPageWatchers.data?.length"
+					v-for="watcher in studioPageWatchers.data"
+					:key="watcher.name"
+					class="group/item flex flex-row items-center justify-between"
+				>
+					<div class="flex flex-row justify-between">
+						<div class="font-mono text-xs font-semibold text-pink-700">{{ watcher.source }}</div>
 					</div>
-				</template>
-				<template #actions>
-					<Button
-						variant="solid"
-						:label="pageWatcher.name ? 'Update' : 'Add'"
-						@click="savePageWatcher(pageWatcher)"
-						class="w-full"
-					/>
-				</template>
-			</Dialog>
-		</div>
-	</CollapsibleSection>
+					<ItemActions :menuOptions="getWatcherMenu(watcher)" @edit="openWatcher(watcher)" />
+				</div>
+				<EmptyState v-else message="No watchers added" />
+			</div>
+
+			<div class="mt-2 flex flex-col">
+				<Button icon-left="plus" @click="showWatcherDialog = true">Add Watcher</Button>
+				<Dialog
+					v-model="showWatcherDialog"
+					:title="pageWatcher.name ? 'Edit Watcher' : 'Add Watcher'"
+					size="3xl"
+					@after-leave="
+						() => {
+							pageWatcher = {
+								source: '',
+								script: '',
+								immediate: false,
+								deep: false,
+								parent: '',
+								name: '',
+							}
+						}
+					"
+					:dismissible="false"
+				>
+					<template #default>
+						<div class="flex flex-col space-y-4">
+							<FormControl
+								type="combobox"
+								:options="store.variableOptions"
+								label="Source"
+								placeholder="Select variable"
+								:openOnFocus="true"
+								v-model="pageWatcher.source"
+							/>
+							<Code
+								label="Script"
+								language="javascript"
+								height="400px"
+								maxHeight="400px"
+								v-model="pageWatcher.script"
+								:emitOnChange="true"
+								:completions="getCompletions"
+								@save="editPageWatcher(pageWatcher)"
+							/>
+							<FormControl
+								type="number"
+								label="Debounce (ms)"
+								placeholder="300"
+								v-model="pageWatcher.debounce"
+								description="Delay the execution until the set time has passed since the last change"
+							/>
+							<div class="flex flex-col space-y-1">
+								<FormControl
+									type="checkbox"
+									label="Immediate: Run on page load"
+									v-model="pageWatcher.immediate"
+								/>
+								<FormDescription
+									description="Trigger when the page loads, not just when the source changes"
+								/>
+							</div>
+							<div class="flex flex-col space-y-1">
+								<FormControl
+									type="checkbox"
+									label="Deep: Watch nested properties"
+									v-model="pageWatcher.deep"
+								/>
+								<FormDescription
+									description="Trigger when nested properties within the source change, in addition to the source itself"
+								/>
+							</div>
+						</div>
+					</template>
+					<template #actions>
+						<Button
+							variant="solid"
+							:label="pageWatcher.name ? 'Update' : 'Add'"
+							@click="savePageWatcher(pageWatcher)"
+							class="w-full"
+						/>
+					</template>
+				</Dialog>
+			</div>
+		</CollapsibleSection>
+		<ScriptPanel :page="page" />
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -105,6 +114,7 @@ import { confirm } from "@/utils/helpers"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import ItemActions from "@/components/ItemActions.vue"
 import FormDescription from "@/components/FormDescription.vue"
+import ScriptPanel from "@/components/ScriptPanel.vue"
 
 const props = defineProps<{
 	page: StudioPage

@@ -42,6 +42,7 @@ watch(
 			if (!page.value) return
 			await codeStore.cleanupWatchers()
 			await store.setPageData(page.value)
+			await codeStore.setPageClientScripts(page.value)
 			await codeStore.setPageWatchers(page.value)
 
 			const blocks = window.is_preview

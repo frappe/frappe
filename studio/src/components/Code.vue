@@ -1,8 +1,11 @@
 <template>
 	<div class="group relative flex h-full w-full flex-col gap-1.5">
-		<InputLabel v-if="label" :class="[required ? `after:text-red-600 after:content-['_*']` : '']">
-			{{ label }}
-		</InputLabel>
+		<template v-if="label">
+			<FormInputLabel v-if="isFormInput">{{ label }}</FormInputLabel>
+			<InputLabel v-else :class="[required ? `after:text-red-600 after:content-['_*']` : '']">
+				{{ label }}
+			</InputLabel>
+		</template>
 		<div v-if="actionButton" class="absolute bottom-[3px] right-[3px] z-10 flex gap-1">
 			<Button
 				@click="actionButton?.handler"
@@ -40,7 +43,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
-import { Button } from "frappe-ui"
+import { Button, ErrorMessage } from "frappe-ui"
 import { Codemirror } from "vue-codemirror"
 import {
 	autocompletion,
@@ -60,6 +63,7 @@ import { normalizeCode } from "@/utils/code"
 import { jsonReplacer, parseObjectString } from "@/utils/serializer"
 
 import InputLabel from "@/components/InputLabel.vue"
+import FormInputLabel from "@/components/FormInputLabel.vue"
 
 const props = withDefaults(
 	defineProps<{
@@ -82,6 +86,7 @@ const props = withDefaults(
 			label: string
 			handler: () => void
 		}
+		isFormInput?: boolean
 	}>(),
 	{
 		language: "javascript",

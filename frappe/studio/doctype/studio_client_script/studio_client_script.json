@@ -1,14 +1,21 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "prompt",
+ "autoname": "hash",
  "creation": "2025-03-31 13:56:13.627801",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "script_name",
   "script"
  ],
  "fields": [
+  {
+   "fieldname": "script_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Script Name"
+  },
   {
    "fieldname": "script",
    "fieldtype": "Code",
@@ -24,7 +31,8 @@
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Client Script",
- "naming_rule": "Set by user",
+ "naming_rule": "Random",
+ "title_field": "script_name",
  "owner": "Administrator",
  "permissions": [
   {
