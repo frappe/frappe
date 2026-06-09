@@ -13,7 +13,7 @@
 			]"
 		>
 			<template #tab-panel="{ tab }">
-				<div class="sections" :class="{ 'my-4 sm:my-5': hasTabs }">
+				<div :ref="untabPanel" class="sections" :class="{ 'my-4 sm:my-5': hasTabs }">
 					<template
 						v-for="(section, index) in tab.sections"
 						:key="section.name ?? index"
@@ -29,6 +29,7 @@
 <script setup lang="ts">
 import { Tabs } from "frappe-ui";
 import { computed, inject, provide, ref } from "vue";
+import type { ComponentPublicInstance } from "vue";
 import FormLayoutSection from "./FormLayoutSection.vue";
 import { useFieldTypes } from "./useFieldTypes";
 import { resolveLayout } from "./resolveLayout";
@@ -70,6 +71,17 @@ const hasTabs = computed(
 		visibleTabs.value.length > 1 ||
 		(visibleTabs.value.length === 1 && Boolean(visibleTabs.value[0].label))
 );
+
+// reka-ui's TabsContent hard-codes `tabindex="0"` on the `[role="tabpanel"]`
+// element, so tabbing into the form lands on the panel wrapper (the whole form)
+// before any field — and it stays a tab stop even when no tabs are visible. Our
+// panels always hold focusable fields, so per the WAI-ARIA tabs pattern the panel
+// shouldn't be in the tab sequence. Drop it to `-1` so Tab flows to the first
+// field. The ref fires whenever reka mounts a fresh panel (e.g. on tab switch),
+// which is exactly when it re-applies `tabindex="0"`.
+function untabPanel(el: Element | ComponentPublicInstance | null) {
+	(el as Element | null)?.closest('[role="tabpanel"]')?.setAttribute("tabindex", "-1");
+}
 
 // Live value sync — runs on every keystroke/selection. Keeps `doc` (and the
 // conditional visibility computed above) reactive while the user edits.
