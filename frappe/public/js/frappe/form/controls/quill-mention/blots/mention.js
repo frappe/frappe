@@ -10,7 +10,7 @@ class MentionBlot extends Embed {
 		denotationChar.innerHTML = data.denotationChar;
 		node.appendChild(denotationChar);
 		const valueSpan = document.createElement("span");
-		valueSpan.textContent = data.value;
+		valueSpan.innerHTML = data.value;
 		node.appendChild(valueSpan);
 		if (data.isGroup === "true") {
 			node.innerHTML += frappe.utils.icon("users");
