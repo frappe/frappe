@@ -262,7 +262,13 @@ class DeskViews:
 				if not ref_doctype:
 					continue
 				if ref_doctype not in ref_doctype_access:
-					ref_doctype_access[ref_doctype] = has_permission(ref_doctype, user=user, print_logs=False)
+					try:
+						ref_doctype_access[ref_doctype] = has_permission(
+							ref_doctype, user=user, print_logs=False
+						)
+					except Exception:
+						# in case the doctype is somehow invalid or missing, we hide the report
+						ref_doctype_access[ref_doctype] = False
 				if not ref_doctype_access[ref_doctype]:
 					has_role.pop(name, None)
 
