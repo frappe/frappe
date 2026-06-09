@@ -119,11 +119,7 @@ def get_templates(
 	"""
 	user = frappe.session.user
 
-	if not frappe.has_permission("Document Template", ptype="read", user=user):
-		frappe.throw(
-			_("Not permitted to view document templates for {0}").format(reference_doctype),
-			frappe.PermissionError,
-		)
+	frappe.has_permission("Document Template", ptype="read", user=user, throw=True)
 
 	if not frappe.has_permission(reference_doctype, ptype="create", user=user):
 		frappe.throw(_("Not permitted to create {0}").format(reference_doctype), frappe.PermissionError)
@@ -137,7 +133,6 @@ def get_templates(
 		or_filters={"private": 0, "owner": user},
 		fields="*",
 		order_by="disabled asc, private desc, template_name asc",
-		ignore_permissions=True,
 	)
 
 	start = max(0, int(limit_start))
@@ -146,7 +141,7 @@ def get_templates(
 
 	visible: list[dict] = []
 	for template in all_templates:
-		if not _has_user_permissions_on_template_data(template.data, template.reference_doctype, user):
+		if not _has_user_permissions_on_template_data(template.pop("data"), template.reference_doctype, user):
 			continue
 
 		# only owner can see disabled templates
@@ -154,7 +149,7 @@ def get_templates(
 			continue
 
 		visible.append(template)
-		template.pop("data", None)
+
 		if len(visible) == end + 1:
 			break
 
