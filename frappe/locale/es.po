@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-22 13:14\n"
+"PO-Revision-Date: 2026-06-09 07:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -1505,7 +1505,7 @@ msgstr "Agregar script para tabla secundaria"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:111
 msgid "Add section above"
-msgstr "Añadir sección arriba"
+msgstr ""
 
 #: frappe/public/js/form_builder/components/Section.vue:265
 msgid "Add section below"
@@ -6350,7 +6350,7 @@ msgstr "Tipos de documentos personalizados (Seleccionar permiso)"
 
 #: frappe/core/doctype/user_type/user_type.py:104
 msgid "Custom Document Types Limit Exceeded"
-msgstr "Límite de tipos de documentos personalizados superado"
+msgstr ""
 
 #: frappe/desk/desktop.py:493
 msgid "Custom Documents"
@@ -8456,7 +8456,7 @@ msgstr "Arrastre y suelte los archivos aquí o súbelos desde"
 
 #: frappe/public/js/print_format_builder/ConfigureColumns.vue:76
 msgid "Drag columns to set order. Column width is set in percentage. The total width should not be more than 100. Columns marked in red will be removed."
-msgstr "Arrastre las columnas para establecer el orden. El ancho de las columnas se establece en porcentaje. El ancho total no debe ser mayor que 100. Las columnas marcadas en rojo se eliminarán."
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
@@ -10281,11 +10281,11 @@ msgstr "Nombre de Campo"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:141
 msgid "Field Orientation (Left-Right)"
-msgstr "Orientación del campo (izquierda-derecha)"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:148
 msgid "Field Orientation (Top-Down)"
-msgstr "Orientación del campo (de arriba abajo)"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:233
 #: frappe/public/js/print_format_builder/utils.js:69
@@ -16485,7 +16485,7 @@ msgstr "Mover secciones a una nueva pestaña"
 
 #: frappe/public/js/form_builder/components/Field.vue:239
 msgid "Move the current field and the following fields to a new column"
-msgstr "Mover el campo actual y los siguientes campos a una nueva columna"
+msgstr ""
 
 #: frappe/public/js/frappe/form/grid_row.js:169
 msgid "Move to Row Number"
@@ -18777,7 +18777,7 @@ msgstr "Altura de página (en mm)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:5
 msgid "Page Margins"
-msgstr "Márgenes de la página"
+msgstr ""
 
 #. Label of a Data field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
@@ -21605,7 +21605,7 @@ msgstr "Archivos renombrados y código reemplazado en los controladores, por fav
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:17
 msgid "Render labels to the left and values to the right in this section"
-msgstr "Renderice las etiquetas a la izquierda y los valores a la derecha en esta sección"
+msgstr ""
 
 #: frappe/core/doctype/communication/communication.js:43
 #: frappe/desk/doctype/todo/todo.js:36
@@ -26522,7 +26522,7 @@ msgstr "Los siguientes valores no existen para {0}: {1}"
 
 #: frappe/core/doctype/user_type/user_type.py:88
 msgid "The limit has not set for the user type {0} in the site config file."
-msgstr "No se ha establecido el límite para el tipo de usuario {0} en el archivo de configuración del sitio."
+msgstr ""
 
 #: frappe/templates/emails/login_with_email_link.html:21
 msgid "The link will expire in {0} minutes"
@@ -26614,7 +26614,7 @@ msgstr "El ancho total de la columna no puede ser mayor a 10."
 
 #: frappe/core/doctype/user_type/user_type.py:96
 msgid "The total number of user document types limit has been crossed."
-msgstr "Se ha superado el límite total de tipos de documentos de usuario."
+msgstr ""
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:43
 msgid "The user can create a new Item but cannot edit existing items."
@@ -27057,7 +27057,7 @@ msgstr "Este valor se obtiene del campo {1} de {0}"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "This value specifies the max number of rows that can be rendered in report view. "
-msgstr ""
+msgstr "Este valor especifica el número máximo de filas que se pueden mostrar en la vista de informe. "
 
 #: frappe/website/doctype/web_page/web_page.js:85
 msgid "This will be automatically generated when you publish the page, you can also enter a route yourself if you wish"
@@ -27722,7 +27722,7 @@ msgstr "Número total de mensajes de correo electrónico para sincronizar en el 
 
 #: frappe/public/js/print_format_builder/ConfigureColumns.vue:12
 msgid "Total:"
-msgstr "Monto:"
+msgstr ""
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1259
 msgid "Totals"
@@ -28708,7 +28708,7 @@ msgstr "Documento de tipo Usuario"
 
 #: frappe/core/doctype/user_type/user_type.py:97
 msgid "User Document Types Limit Exceeded"
-msgstr "Límite de tipos de documentos de usuario superado"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/core/doctype/user_email/user_email.json
@@ -28886,7 +28886,7 @@ msgstr "El usuario no existe."
 
 #: frappe/core/doctype/user_type/user_type.py:82
 msgid "User does not have permission to create the new {0}"
-msgstr "El usuario no tiene permiso para crear el nuevo {0}"
+msgstr ""
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:102
 msgid "User is disabled"
@@ -30398,7 +30398,7 @@ msgstr "Solo puedes imprimir hasta {0} documentos a la vez"
 
 #: frappe/core/doctype/user_type/user_type.py:103
 msgid "You can only set the 3 custom doctypes in the Document Types table."
-msgstr "Solo puede configurar los 3 tipos de documentos personalizados en la tabla Tipos de documentos."
+msgstr ""
 
 #: frappe/handler.py:230
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
