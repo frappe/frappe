@@ -4,6 +4,7 @@
 
 import json
 from datetime import date, datetime
+from typing import Any
 
 import frappe
 import frappe.share
@@ -338,8 +339,14 @@ def send_event_digest():
 @frappe.whitelist()
 @http_cache(max_age=5 * 60, stale_while_revalidate=60 * 60)
 def get_events(
-	start: date, end: date, user: str | None = None, for_reminder: bool = False, filters=None
+	start: str | date,
+	end: str | date,
+	user: str | None = None,
+	for_reminder: bool = False,
+	filters: str | list | dict[str, Any] | None = None,
 ) -> list[frappe._dict]:
+	start, end = getdate(start), getdate(end)
+
 	caller = frappe.session.user
 	target_user = user or caller
 
