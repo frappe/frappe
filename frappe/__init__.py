@@ -244,7 +244,8 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.valid_columns = {}
 	local.new_doc_templates = {}
 
-	local.jenv = None
+	local.jenv_restricted = None
+	local.jenv_unrestricted = None
 	local.jloader = None
 	local.cache = {}
 	local.form_dict = _dict()
@@ -646,7 +647,8 @@ def set_user(username: str):
 	local.session.sid = username
 	local.cache = {}
 	local.form_dict = _dict()
-	local.jenv = None
+	local.jenv_restricted = None
+	local.jenv_unrestricted = None
 	local.session.data = _dict()
 	local.role_permissions = {}
 	local.new_doc_templates = {}
