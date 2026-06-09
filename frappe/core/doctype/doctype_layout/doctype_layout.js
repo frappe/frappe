@@ -61,7 +61,8 @@ frappe.ui.form.on("DocType Layout", {
 	add_buttons(frm) {
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Go to {0} List", [frm.doc.title || frm.doc.name]), () => {
-				frappe.set_route(frappe.router.slug(frm.doc.name));
+				frappe.route_options = { layout: frm.doc.name };
+				frappe.set_route(frappe.router.slug(frm.doc.document_type));
 			});
 		}
 
