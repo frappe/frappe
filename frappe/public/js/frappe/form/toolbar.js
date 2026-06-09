@@ -2,11 +2,16 @@
 // MIT License. See license.txt
 import "./linked_with";
 import "./form_viewers";
+import "./template_manager";
 import { ReminderManager } from "./reminders";
 
 frappe.ui.form.Toolbar = class Toolbar {
 	constructor(opts) {
 		$.extend(this, opts);
+		this.template_manager = new frappe.ui.form.TemplateManager({
+			frm: this.frm,
+			page: this.page,
+		});
 		this.refresh();
 		this.add_update_button_on_dirty();
 	}
@@ -377,6 +382,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.add_follow();
 		this.add_undo_redo();
 		this.add_auto_repeat();
+		this.page.add_divider();
+		this.template_manager.add_menu_item();
 		this.page.add_divider();
 		this.make_customize_buttons();
 	}
@@ -836,6 +843,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			this.page.set_primary_action(__(status), click, icon);
 		}
 
+		this.template_manager.setup_buttons();
 		this.current_status = status;
 	}
 	add_update_button_on_dirty() {
