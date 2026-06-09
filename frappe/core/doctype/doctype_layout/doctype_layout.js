@@ -61,8 +61,6 @@ frappe.ui.form.on("DocType Layout", {
 	add_buttons(frm) {
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Go to {0} List", [frm.doc.title || frm.doc.name]), () => {
-				// A DocType Layout has no route of its own — it is applied to its base
-				// doctype's list via the `layout` route option (see router.js).
 				frappe.route_options = { layout: frm.doc.name };
 				frappe.set_route(frappe.router.slug(frm.doc.document_type));
 			});
