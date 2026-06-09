@@ -30,7 +30,7 @@
 					class="w-auto cursor-pointer p-2"
 					v-for="breakpoint in canvasProps.breakpoints"
 					:key="breakpoint.device"
-					@click.stop="breakpoint.visible = !breakpoint.visible"
+					@click.stop="selectBreakpoint(breakpoint)"
 				>
 					<FeatherIcon
 						:name="breakpoint.icon"
@@ -175,7 +175,7 @@ const canvasProps = reactive({
 provide("canvasProps", canvasProps)
 
 const visibleBreakpoints = computed(() => {
-	return canvasProps.breakpoints.filter((breakpoint) => breakpoint.visible || breakpoint.device === "desktop")
+	return canvasProps.breakpoints.filter((breakpoint) => breakpoint.visible)
 })
 watch(
 	() => canvasProps.breakpoints.map((b) => b.visible),
@@ -186,6 +186,12 @@ watch(
 		setScaleAndTranslate()
 	},
 )
+function selectBreakpoint(breakpoint: BreakpointConfig) {
+	breakpoint.visible = !breakpoint.visible
+	if (canvasProps.breakpoints.filter((bp) => bp.visible).length === 0) {
+		breakpoint.visible = true
+	}
+}
 
 // clone props.block into canvas data to avoid mutating them
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
