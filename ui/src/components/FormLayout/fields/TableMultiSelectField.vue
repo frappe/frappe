@@ -12,15 +12,9 @@
 </template>
 
 <script setup lang="ts">
-// `Table MultiSelect` → the reusable `TableMultiSelect` control. In Frappe this
-// fieldtype is backed by a child table whose single `Link` field names the real
-// target doctype; the stored value is an array of child rows. We resolve that
-// link field from `childFields` (populated by buildLayoutFromMeta) and bridge
-// the row array to the control's `string[]` via `useChildRowModel`.
-//
-// Select-only, like `LinkField`. An app wanting `creatable` (or any extra
-// behaviour) registers its own field that renders `<TableMultiSelect creatable
-// @create>` — see stories/DemoTableMultiSelectField.vue.
+// Frappe `Table MultiSelect`: a child table whose single Link field names the
+// target doctype; stored value is an array of child rows, bridged to the
+// control's `string[]` via `useChildRowModel`. Select-only, like `LinkField`.
 import { computed } from "vue";
 import { TableMultiSelect } from "../../TableMultiSelect";
 import { useChildRowModel } from "../useChildRowModel";
@@ -29,8 +23,7 @@ import type { FieldComponentEmits, FieldComponentProps } from "../types";
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
 
-// The child table's single Link field: its `options` is the target doctype to
-// search, its `fieldname` is the key each stored row holds the value under.
+// Link field's `options` is the target doctype; its `fieldname` is the key each row stores the value under.
 const linkField = computed(() => props.field.childFields?.find((f) => f.fieldtype === "Link"));
 const targetDoctype = computed(() => linkField.value?.options ?? "");
 

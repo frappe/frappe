@@ -12,15 +12,8 @@
 </template>
 
 <script setup lang="ts">
-// Like `LinkField`, but the target doctype is not a constant on the field — it
-// names a *sibling field* (`field.options`) whose value holds the doctype to
-// link into (Frappe's Dynamic Link convention; CRM resolves the same way via
-// `data[field.options]`). We resolve that sibling across the same records a
-// Currency field does — the row's own column, then the field's doc, then the
-// parent doc (`pickSiblingValue`) — so a Dynamic Link in a child row reads its
-// controlling field from the *row* and stays in sync between the grid cell and
-// the row dialog. Until that sibling has a value there's nothing to search, so
-// the control disables.
+// Dynamic Link: the target doctype is named by a sibling field (`field.options`),
+// resolved via `pickSiblingValue` (row → doc → parent). Disabled until it has a value.
 import { computed, inject } from "vue";
 import { Link } from "../../Link";
 import { DocKey, ParentDocKey } from "../types";

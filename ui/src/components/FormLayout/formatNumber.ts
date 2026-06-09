@@ -1,15 +1,9 @@
 /**
  * Pure, app-agnostic number/currency/percent formatting for `FormLayout`.
  *
- * Ported from Frappe/CRM's `numberFormat.js`, but deliberately **pure**: no
- * `window.sysdefaults` reads, no `__()` translation global. Everything that is
- * site-specific (the locale `numberFormat`, the `currency`, `precision`, the
- * rounding method) arrives as an **explicit argument** with a lib-level default.
- *
- * This is the reusable algorithm the lib exposes (root decision 4: standard,
- * app-agnostic data only). An app that wants *site-accurate* formatting reads its
- * own settings source (e.g. `window.sysdefaults`) and passes the values in — it
- * does not reach into this module for them.
+ * Ported from Frappe/CRM's `numberFormat.js` but deliberately pure: all
+ * site-specific inputs (numberFormat, currency, precision, rounding) arrive as
+ * explicit arguments with lib-level defaults rather than reading globals.
  */
 
 /** Locale grouping/decimal table, keyed by Frappe's number-format strings. */
@@ -98,10 +92,7 @@ function cint(v: unknown, def = 0): number {
   return isNaN(n) ? def : n;
 }
 
-/**
- * Derive separators + precision from a format string. Returns a **fresh** object
- * (the CRM original mutated the shared map — avoided here).
- */
+/** Derive separators + precision from a format string. Returns a fresh object (CRM original mutated the shared map). */
 export function getNumberFormatInfo(format: string): NumberFormatInfo {
   const base = NUMBER_FORMAT_INFO[format] ?? { decimalStr: ".", groupSep: "," };
   const decimalStr = base.decimalStr;
@@ -132,11 +123,7 @@ function stripNumberGroups(v: string, numberFormat: string): string {
   return v;
 }
 
-/**
- * Parse a value to a `Number`, tolerating a locale-formatted string (group
- * separators and a leading currency symbol) per `numberFormat`. Optionally rounds
- * to `precision`. Mirrors Frappe's `flt`.
- */
+/** Parse a value to a Number, tolerating a locale-formatted string. Optionally rounds. Mirrors Frappe's `flt`. */
 export function flt(value: unknown, options: FltOptions = {}): number {
   const {
     precision,
@@ -152,8 +139,8 @@ export function flt(value: unknown, options: FltOptions = {}): number {
   } else {
     let s = value + "";
 
-    // Strip a leading currency symbol ("$ 1,234.50"). A space can also be a
-    // group separator, so only drop the first token when it isn't numeric.
+    // Strip leading currency symbol, but only when the first token isn't numeric
+    // (a space can also be a group separator).
     if (s.indexOf(" ") !== -1) {
       const parts = s.split(" ");
       s = isNaN(parseFloat(parts[0]))
@@ -170,11 +157,7 @@ export function flt(value: unknown, options: FltOptions = {}): number {
   return v;
 }
 
-/**
- * Format a number with locale grouping and a fixed number of decimals. When
- * `precision` is omitted it is derived from `numberFormat`. Mirrors Frappe's
- * `format_number`.
- */
+/** Format a number with locale grouping and fixed decimals (derived from `numberFormat` if omitted). Mirrors `format_number`. */
 export function formatNumber(
   value: unknown,
   options: FormatNumberOptions = {}
@@ -220,11 +203,7 @@ export function formatNumber(
   return (isNegative ? "-" : "") + part[0] + part[1];
 }
 
-/**
- * Format a number with a currency symbol prefix. The symbol is looked up from the
- * platform `Intl`; when `currency` is absent or unresolvable, falls back to a
- * plain formatted number (no symbol). Mirrors Frappe's `format_currency`.
- */
+/** Format a number with a currency-symbol prefix (`Intl` lookup); falls back to a plain number. Mirrors `format_currency`. */
 export function formatCurrency(
   value: unknown,
   options: FormatCurrencyOptions = {}
@@ -250,11 +229,9 @@ export function formatCurrency(
 }
 
 /**
- * Format a value the way a Frappe numeric field renders, selecting the algorithm
- * by `fieldtype`: `Int` (no decimals), `Currency` (symbol prefix), `Percent`
- * (`%` suffix), `Float`/other (plain grouped number). Returns `''` for an empty
- * value. The currency code is **caller-resolved** (e.g. from a sibling field on
- * the doc) so this stays free of any doc/Vue coupling.
+ * Format a value the way a Frappe numeric field renders, by `fieldtype` (Int / Currency /
+ * Percent / Float). Returns `''` for empty. Currency code is caller-resolved to keep this
+ * free of doc/Vue coupling.
  */
 export function formatField(
   value: unknown,
@@ -265,9 +242,8 @@ export function formatField(
     options;
   switch (fieldtype) {
     case "Int":
-      // Frappe's Int formatter (`formatters.js`) returns `cint(value)` — a plain
-      // integer with NO locale grouping and NO decimals. Don't route it through
-      // `formatNumber` (which would group it, e.g. `1,234,567`).
+      // Frappe's Int formatter returns a plain integer, NO grouping — don't route
+      // through `formatNumber` (which would group it, e.g. `1,234,567`).
       return String(cint(value));
     case "Currency":
       return formatCurrency(value, {

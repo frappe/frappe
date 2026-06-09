@@ -8,14 +8,10 @@ import type {
 } from "./types";
 
 /**
- * Build a render-ready `FormLayoutSchema` from a doctype's flat meta `fields`
- * array. Walks the list and splits on layout breaks into the nested
- * tabs → sections → columns → fields tree, mapping snake_case meta to our
- * camelCase keys.
- *
- * Pure: no Vue, no backend — unit-testable in isolation. Visibility is static
- * only (drops `hidden` fields); `depends_on` family expressions are carried
- * through verbatim for Phase 4, not evaluated here.
+ * Build a render-ready `FormLayoutSchema` from a doctype's flat meta `fields`,
+ * splitting on layout breaks into the tabs → sections → columns → fields tree.
+ * Pure (no Vue/backend). Static visibility only — drops `hidden` fields and
+ * carries `depends_on` verbatim for Phase 4 rather than evaluating it.
  */
 
 const TAB_BREAK = "Tab Break";
@@ -24,16 +20,13 @@ const COLUMN_BREAK = "Column Break";
 const TABLE = "Table";
 const TABLE_MULTISELECT = "Table MultiSelect";
 
-/** Fieldtypes whose value lives in a child table — both resolve `childFields`
- *  from the child doctype meta (the grid columns for `Table`, the single Link
- *  field for `Table MultiSelect`). */
+/** Fieldtypes whose value lives in a child table; both resolve `childFields`. */
 const CHILD_TABLE_TYPES = new Set([TABLE, TABLE_MULTISELECT]);
 
 /** Layout-break fieldtypes never render as a value/grid column. */
 const LAYOUT_BREAKS = new Set([TAB_BREAK, SECTION_BREAK, COLUMN_BREAK]);
 
-/** Lookup of child doctype name → its flat meta `fields`, for resolving
- *  `Table` columns. Supplied by the meta-fetch seam (`useDoctypeLayout`). */
+/** Child doctype name → its flat meta `fields`, for resolving `Table` columns. */
 export interface BuildLayoutOptions {
   childMetas?: Record<string, RawMetaField[]>;
 }
@@ -50,9 +43,7 @@ function newSection(field?: RawMetaField): Section {
     label: field.label,
     hideBorder: !!field.hide_border,
     collapsible,
-    // No `opened` flag exists in meta; collapsible sections start collapsed
-    // (Frappe desk behaviour). Refining this from `*_depends_on` is out of
-    // scope for Phase 4.
+    // Collapsible sections start collapsed (Frappe desk behaviour).
     opened: !collapsible,
     dependsOn: field.depends_on,
     columns: [],
@@ -71,10 +62,9 @@ function coercePrecision(
 }
 
 /**
- * Resolve a `Table` field's grid columns from the child doctype's meta. Uses the
- * child's `in_list_view` fields (the desk grid convention); if none are flagged,
- * falls back to every visible data field so the grid is never empty. Returns
- * `undefined` when the child meta is absent — the grid then renders no columns.
+ * Resolve a `Table` field's grid columns from the child meta's `in_list_view`
+ * fields (desk convention), falling back to all visible data fields so the grid
+ * is never empty. `undefined` when the child meta is absent.
  */
 function resolveChildFields(
   field: RawMetaField,
@@ -92,11 +82,9 @@ function resolveChildFields(
 }
 
 /**
- * Build the full layout of a `Table` field's child doctype — its own
- * tabs/sections/columns, every field, not just the grid columns. Drives the
- * row-edit dialog, which renders the whole child form (desk behaviour) rather
- * than the `in_list_view` subset shown as grid columns. Returns `undefined`
- * when the child meta is absent.
+ * Build the full child-doctype layout (every field) for the `Table` row-edit
+ * dialog, which renders the whole child form (desk behaviour) rather than just
+ * grid columns. `undefined` when the child meta is absent.
  */
 function resolveChildLayout(
   field: RawMetaField,
@@ -121,15 +109,13 @@ function mapField(
     precision: coercePrecision(field.precision),
     description: field.description,
     hidden: !!field.hidden,
-    // The `Read Only` fieldtype is permanently read-only; static `read_only`
-    // covers every other type. Conditional read-only is baked in `resolveLayout`.
+    // The `Read Only` fieldtype is always read-only; conditional read-only is
+    // baked in `resolveLayout`.
     readOnly: !!field.read_only || field.fieldtype === READ_ONLY,
     dependsOn: field.depends_on,
     mandatoryDependsOn: field.mandatory_depends_on,
     readOnlyDependsOn: field.read_only_depends_on,
-    // Child-table columns. Nested grids aren't supported, so a `Table` inside a
-    // child meta resolves with no further recursion (its own childMetas lookup
-    // simply won't contain a deeper level).
+    // Child-table columns. Nested grids aren't supported (no deeper childMetas).
     ...(CHILD_TABLE_TYPES.has(field.fieldtype)
       ? { childFields: resolveChildFields(field, childMetas) }
       : {}),
@@ -150,9 +136,8 @@ export function buildLayoutFromMeta(
 
   const tabs: Tab[] = [];
 
-  // Containers are seeded lazily so a field/column/section appearing before its
-  // first break still lands somewhere, without producing empty leading
-  // containers when a break comes first.
+  // Lazy seeding: a field before its first break still lands somewhere, with no
+  // empty leading containers when a break comes first.
   const ensureTab = (): Tab => {
     if (!tabs.length) tabs.push({ name: "first_tab", sections: [] });
     return tabs[tabs.length - 1];

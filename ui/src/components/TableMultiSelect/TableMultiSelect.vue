@@ -11,8 +11,7 @@
 		@update:open="onOpen"
 		@update:query="onQuery"
 	>
-		<!-- Selected links shown as white chips inside the subtle-variant trigger,
-		     instead of MultiSelect's default "N selected" summary. -->
+		<!-- Selected links as white chips, replacing the default "N selected" summary. -->
 		<template #trigger="{ open, selectedOptions, toggleOpen }">
 			<button
 				type="button"
@@ -54,9 +53,7 @@
 			</button>
 		</template>
 
-		<!-- Footer: a "Create '{query}'" action (host-wired via `@create`) plus
-		     Clear All. Rendered only when there's something to show, so no stray
-		     bordered strip appears. -->
+		<!-- Footer: "Create '{query}'" (via `@create`) and Clear All; hidden when empty. -->
 		<template #footer="{ clearAll, selectedOptions, query }">
 			<div
 				v-if="(creatable && !!query.trim()) || selectedOptions.length"
@@ -88,11 +85,8 @@
 </template>
 
 <script setup lang="ts">
-// Reusable link-backed multiselect: the role frappe-ui's `Link` plays for the
-// single-value case, but for an array of link names. Owns the `search_link`
-// resource, the white-chip trigger, and the optional `creatable` footer
-// affordance — so field wrappers (lib's `TableMultiSelectField`, an app's
-// override) stay thin and just bridge their stored shape to this `string[]`.
+// Link-backed multiselect: `Link` for an array of link names. Owns the
+// `search_link` resource, the white-chip trigger, and the `creatable` footer.
 import { computed, watch } from "vue";
 import { MultiSelect, Button, createResource, frappeRequest, debounce } from "frappe-ui";
 import type {
@@ -138,9 +132,8 @@ function removeTag(v: string) {
 	model.value = model.value.filter((selected) => selected !== v);
 }
 
-// Keep already-selected values visible as options even when they're absent from
-// the current search results — otherwise MultiSelect can't resolve their chips
-// and the labels disappear from the trigger.
+// Keep selected values in the options even when absent from search results, so
+// MultiSelect can still resolve their chip labels.
 const options = computed<TableMultiSelectOption[]>(() => {
 	const found = search.data ?? [];
 	const present = new Set(found.map((o: TableMultiSelectOption) => o.value));

@@ -14,33 +14,22 @@ export interface FieldMeta {
   /** Link search filters. */
   filters?: Record<string, unknown>;
   /**
-   * Resolved child-table columns from the child doctype's `in_list_view` fields,
-   * mapped through the same `FieldMeta` shape. Populated by `buildLayoutFromMeta`
-   * from the child meta (`options` names the child doctype). Used by `Table`
+   * Child-table columns from the child's `in_list_view` fields. Used by `Table`
    * (grid columns) and `Table MultiSelect` (its single `Link` field gives the
-   * target doctype + the key each row stores its value under). `FormLayout` stays
-   * render-only — the grid reuses the fieldtype registry per cell, so it never
-   * fetches child meta itself.
+   * target doctype + per-row value key).
    */
   childFields?: FieldMeta[];
   /**
-   * Full render-ready layout of the child doctype (its own tabs → sections →
-   * columns → fields, honouring the child's layout breaks), built by
-   * `buildLayoutFromMeta` from the child meta. Used by the `Table` row-edit
-   * dialog to render **every** field of a row — not just the grid columns
-   * (`childFields`, the `in_list_view` subset). Mirrors desk's grid-row form,
-   * which shows the full child form rather than only the visible columns.
+   * Full render-ready layout of the child doctype, for the `Table` row-edit
+   * dialog which shows every field (desk grid-row form), not just the
+   * `in_list_view` columns in `childFields`.
    */
   childLayout?: FormLayoutSchema;
   /** Whether the field is mandatory. */
   reqd?: boolean;
   /** Decimal places for numeric fields (Float/Currency/Percent); from meta. */
   precision?: number;
-  /**
-   * Initial grid-column width in px when this field is a child-table column
-   * (`childFields`). Flows through to the `Grid` column; omit for a flexible
-   * column. Drag-resizing overrides it at runtime.
-   */
+  /** Initial grid-column width in px for a child-table column; omit for flexible. */
   width?: number;
   description?: string;
   placeholder?: string;
@@ -49,9 +38,8 @@ export interface FieldMeta {
   /** Static read-only; `resolveLayout` may flip this from `readOnlyDependsOn`. */
   readOnly?: boolean;
   /**
-   * Raw Frappe conditional expressions, carried through verbatim from meta.
-   * `buildLayoutFromMeta` does **not** evaluate these — `resolveLayout` bakes
-   * them into `hidden` / `reqd` / `readOnly` against the live doc (Phase 4).
+   * Raw Frappe conditional expressions, carried verbatim. Not evaluated here —
+   * `resolveLayout` bakes them into `hidden` / `reqd` / `readOnly` (Phase 4).
    */
   dependsOn?: string;
   mandatoryDependsOn?: string;
@@ -126,13 +114,10 @@ export interface FieldComponentProps {
 }
 
 export type FieldComponentEmits = {
-  /** Live value, on every change — keeps `doc` in sync so bindings and
-   *  conditional visibility (`depends_on`) stay reactive while editing. */
+  /** Live value on every change — keeps `doc` reactive while editing. */
   "update:modelValue": [value: any];
-  /** Commit — the user finished editing this field: **blur** for typed inputs,
-   *  **selection** for pickers. Only the field knows which event means "commit".
-   *  This is the funnel the field-change scripting layer will hook; today it
-   *  surfaces as `FormLayout`'s `@change`. */
+  /** Commit (blur for typed inputs, selection for pickers); only the field knows
+   *  which event means commit. Surfaces as `FormLayout`'s `@change`. */
   change: [value: any];
 };
 
@@ -141,31 +126,22 @@ export const DocKey: InjectionKey<Ref<Record<string, any>>> =
   Symbol("FormLayoutDoc");
 
 /**
- * The **parent** doc, provided by `TableField` into a child-table row's edit
- * dialog so the row's fields can resolve against it. Inside the dialog the row's
- * own nested `FormLayout` shadows `DocKey` with the row clone, which would
- * otherwise cut the row off from the parent — breaking parent-scoped resolution
- * like a `Currency` field whose `options` names a parent field. Absent at the
- * top level (no parent), so injectors must treat it as optional.
+ * Parent doc, provided by `TableField` into a row's edit dialog. The row's
+ * nested `FormLayout` shadows `DocKey` with the row clone, so parent-scoped
+ * resolution (e.g. a `Currency` `options` naming a parent field) needs this.
+ * Absent at the top level — injectors must treat it as optional.
  */
 export const ParentDocKey: InjectionKey<Ref<Record<string, any>> | null> =
   Symbol("FormLayoutParentDoc");
 
-/**
- * Writes a field's live value into the doc: `(fieldname, value)`. Fires on every
- * value change so bindings and conditional visibility stay reactive. Pure state
- * sync — no side-effects, no scripts.
- */
+/** Writes a field's live value into the doc on every change. Pure state sync. */
 export const UpdateKey: InjectionKey<(fieldname: string, value: any) => void> =
   Symbol("FormLayoutUpdate");
 
 /**
- * Called when a field is **committed** (typed input blurred, picker selected):
- * `(fieldname, value)`. This is the intentful "the user changed this field"
- * signal — the entry point for the future field-change scripting layer (Frappe
- * `frm.trigger`-style on-change scripts), and what `FormLayout` surfaces as its
- * `@change` event. Distinct from value-sync because a script needs to know
- * *which* field the user committed, run only on commit, and may mutate siblings.
+ * Called when a field is committed (blur / picker selection). Entry point for
+ * the future field-change scripting layer; surfaces as `FormLayout`'s `@change`.
+ * Distinct from value-sync: runs only on commit and identifies which field.
  */
 export const CommitKey: InjectionKey<(fieldname: string, value: any) => void> =
   Symbol("FormLayoutCommit");

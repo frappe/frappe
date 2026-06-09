@@ -12,11 +12,8 @@
 </template>
 
 <script setup lang="ts">
-// frappe-ui `Combobox` — the control CRM's `Field.vue` uses for `Autocomplete`.
-// Options come from `field.options` (newline-joined, exactly like `SelectField`).
-// `Combobox` emits only `update:modelValue` (`string | null`); a selection is a
-// commit for a picker, so we re-emit both `update:modelValue` and `change` (the
-// `LinkField` get/set shape).
+// frappe-ui `Combobox` over newline-joined `field.options`. Combobox emits only
+// `update:modelValue`; a selection is a commit, so we re-emit `change` too.
 import { computed } from "vue";
 import { Combobox } from "frappe-ui";
 import type { FieldComponentEmits, FieldComponentProps } from "../types";

@@ -43,15 +43,11 @@ const emit = defineEmits<{ change: [fieldname: string, value: any] }>();
 
 const tabIndex = ref(0);
 
-// The enclosing doc, when this form is a child-table row's edit dialog
-// (`TableField` provides it). It lets a child field's `eval:parent.x` reach the
-// parent doc, exactly as desk scopes `parent = this.frm.doc`. Absent at the top
-// level → `parent` falls back to `doc` (desk's `parent === doc`).
+// Enclosing doc when this form is a child-row dialog, so `eval:parent.x` resolves
+// against the parent. Absent at top level → `parent` falls back to `doc`.
 const parentDoc = inject(ParentDocKey, null);
 
-// Bake conditional visibility/mandatory/read-only against the live doc. Reading
-// `doc.value` (and `parentDoc.value`) makes this re-resolve as the user edits,
-// so dependent fields show, hide, or flip required/read-only reactively.
+// Re-resolves conditional visibility/mandatory/read-only as the user edits.
 const resolvedLayout = computed(() =>
 	resolveLayout(props.layout, doc.value, parentDoc?.value ?? doc.value)
 );
@@ -72,25 +68,18 @@ const hasTabs = computed(
 		(visibleTabs.value.length === 1 && Boolean(visibleTabs.value[0].label))
 );
 
-// reka-ui's TabsContent hard-codes `tabindex="0"` on the `[role="tabpanel"]`
-// element, so tabbing into the form lands on the panel wrapper (the whole form)
-// before any field — and it stays a tab stop even when no tabs are visible. Our
-// panels always hold focusable fields, so per the WAI-ARIA tabs pattern the panel
-// shouldn't be in the tab sequence. Drop it to `-1` so Tab flows to the first
-// field. The ref fires whenever reka mounts a fresh panel (e.g. on tab switch),
-// which is exactly when it re-applies `tabindex="0"`.
+// reka-ui hard-codes `tabindex="0"` on the tabpanel, making the whole panel a tab
+// stop before any field. Drop it to `-1` so Tab flows straight to the first field.
 function untabPanel(el: Element | ComponentPublicInstance | null) {
 	(el as Element | null)?.closest('[role="tabpanel"]')?.setAttribute("tabindex", "-1");
 }
 
-// Live value sync — runs on every keystroke/selection. Keeps `doc` (and the
-// conditional visibility computed above) reactive while the user edits.
+// Live sync on every keystroke/selection.
 function update(fieldname: string, value: any) {
 	doc.value[fieldname] = value;
 }
 
-// Commit — runs when a field is finished editing (blur / selection). The seam
-// the field-change scripting layer will hook; for now it just surfaces `@change`.
+// Commit on blur/selection — the seam for field-change scripting; surfaces `@change`.
 function commit(fieldname: string, value: any) {
 	emit("change", fieldname, value);
 }

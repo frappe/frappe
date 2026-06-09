@@ -10,11 +10,10 @@
 			class="relative overflow-hidden rounded border border-outline-gray-2"
 			:class="{ 'grid-disabled': disabled }"
 		>
-			<!-- Scroller + scroll shadows share a `relative` box so the shadows clamp to
-			     the header/rows height and don't bleed over the empty state below it. -->
+			<!-- Scroller + shadows share a `relative` box so the shadows clamp to the
+			     header/rows and don't bleed over the empty state below. -->
 			<div class="relative">
-				<!-- Horizontal scroll once resized columns overflow the box; the header
-			     and every row share this scroller so they pan together. -->
+				<!-- Header and rows share this scroller so they pan together. -->
 				<div
 					ref="scroller"
 					class="grid-scroller overflow-x-auto"
@@ -50,9 +49,7 @@
 						>
 							{{ col.label ?? col.fieldname }}
 							<span v-if="col.reqd" class="text-ink-red-2">*</span>
-							<!-- Drag the right edge to resize this column. Sits over the column
-						     border; the header and every row follow because they share the
-						     same `templateColumns`. -->
+							<!-- Drag the right edge to resize this column. -->
 							<span
 								class="grid-col-resize"
 								:class="{ 'is-resizing': resizingIndex === i }"
@@ -146,11 +143,8 @@
 					</Draggable>
 				</div>
 
-				<!-- Scroll affordance. Two full-height strips pinned just inside the frozen
-			     columns (so they fall over the scrolling content, not the frozen cells)
-			     and OUTSIDE the scroller, so they stay put while the grid pans. One
-			     continuous gradient per side — not a per-cell shadow, which segments at
-			     every row border. -->
+				<!-- Scroll shadows: full-height strips pinned just inside the frozen
+			     columns and outside the scroller, so they stay put while the grid pans. -->
 				<div
 					class="grid-scroll-shadow grid-scroll-shadow-left"
 					:class="{ 'is-visible': canScrollLeft }"
@@ -163,10 +157,8 @@
 				/>
 			</div>
 
-			<!-- Empty state sits OUTSIDE the scroller+shadows box so only the header pans
-			     when the columns overflow — "No rows" stays centred in view instead of
-			     scrolling off. A plain full-width strip: no column borders, just the
-			     top divider under the header. -->
+			<!-- Empty state sits outside the scroller so "No rows" stays centred in view
+			     instead of scrolling off when the columns overflow. -->
 			<div
 				v-if="!rows.length"
 				class="border-t border-outline-gray-2 p-4 text-center text-sm text-ink-gray-4"
@@ -175,7 +167,7 @@
 			</div>
 		</div>
 
-		<!-- No columns to render (e.g. child meta absent). -->
+		<!-- No columns (e.g. child meta absent). -->
 		<div v-else class="text-sm text-ink-gray-4">No columns to display</div>
 
 		<div v-if="!disabled && columns.length" class="flex gap-2">
@@ -212,8 +204,7 @@ const props = defineProps<{
 
 const emit = defineEmits<GridEmits>();
 
-// `v-model` for the rows array. The slot's `update` writes it (live sync);
-// `commit` additionally emits `change`.
+// Rows array. The slot's `update` writes it live; `commit` also emits `change`.
 const rows = defineModel<Record<string, any>[]>({ default: () => [] });
 
 defineSlots<{
@@ -221,13 +212,9 @@ defineSlots<{
 	cell(props: GridCellSlotProps<T>): any;
 }>();
 
-// Per-column track widths. `null` = flexible (shares leftover space as `1fr`); a
-// number = a fixed px width — seeded from the column's `width` (layout/meta) and
-// overridden by dragging the column's right edge. Kept in sync with the column
-// count by index — an unseen column starts at its `width` (or flexible), a dropped
-// one falls off. A user's drag wins over the column's `width` so re-seeding on a
-// columns change doesn't snap a resized column back. The header and every row bind
-// this same template, so a resize moves both in lockstep.
+// Per-column track widths: `null` = flexible (`1fr`), a number = fixed px. Seeded
+// from the column's `width`, overridden by a drag. Re-seeding on a columns change
+// keeps existing drags (the drag wins over `width`) and adds/drops by index.
 const MIN_COL_WIDTH = 48;
 const colWidths = ref<(number | null)[]>([]);
 watch(
@@ -241,14 +228,9 @@ watch(
 	{ immediate: true }
 );
 
-// The header and every row are a SINGLE css grid spanning all columns — the fixed
-// checkbox/`#`/edit tracks plus the field tracks — so every column is a contiguous
-// track with no flex seam that could open a gap before the (sticky) edit column.
-// A field track is `minmax(0, 1fr)` while flexible (shares leftover space so the
-// row always fills the box, no dead gap) and a *fixed* `${w}px` once resized. The
-// fixed width is deliberate: a resized column must stay exactly where the user drags
-// it, including narrower than its old flex size — `minmax(w, 1fr)` would spring it
-// back up to its `1fr` share whenever free space exists, making it un-shrinkable.
+// Header and rows are one css grid spanning every column, so there's no flex seam.
+// A field track is `minmax(0, 1fr)` while flexible and a fixed `${w}px` once resized
+// — fixed (not `minmax(w, 1fr)`) so a resized column stays put and can shrink.
 const FIXED_COL = "2.5rem"; // checkbox / `#` / edit — matches `w-10`
 const templateColumns = computed(() => {
 	const fields = colWidths.value.map((w) => (w == null ? "minmax(0, 1fr)" : `${w}px`));
@@ -256,40 +238,26 @@ const templateColumns = computed(() => {
 	return [...lead, ...fields, FIXED_COL].join(" "); // + edit
 });
 
-// Floor the grid box at the sum of every track's base size — the fixed
-// checkbox/`#`/edit tracks (2.5rem each) plus each resized field's px width
-// (flexible fields floor at 0). Block grids size their box to the *scroller's*
-// width, so without this the box (and its row/header backgrounds) would only cover
-// the viewport: scroll past it once the resized columns overflow and the uncovered
-// tail shows through as a white gap. With the floor, the box grows to span the full
-// content, so the backgrounds reach the end. When the columns fit, the floor is
-// below the container width and the `1fr` fields still fill it.
+// Floor the grid box at the sum of fixed tracks + resized field widths, so the
+// row/header backgrounds span the full content instead of stopping at the viewport
+// when resized columns overflow. When columns fit, the `1fr` fields still fill it.
 const gridMinWidth = computed(() => {
 	const fixedCount = (props.disabled ? 1 : 2) + 1; // lead tracks + edit
 	const fieldPx = colWidths.value.reduce<number>((sum, w) => sum + (w ?? 0), 0);
 	return `calc(${fixedCount * 2.5}rem + ${fieldPx}px)`;
 });
 
-// Sticky-offset for the `#` column: it sits flush after the checkbox column
-// (`w-10` = 2.5rem) when selection is enabled, else at the left edge. Set as an
-// inline style rather than a `left-*` utility so it can't be missed by Tailwind's
-// JIT — a sticky cell with no `left` silently stops sticking and scrolls away.
+// Sticky offset for the `#` column: after the checkbox column when selection is on,
+// else flush left. Inline style (not a `left-*` utility) so the JIT can't drop it.
 const SIDE_COL_WIDTH = "2.5rem";
 const numberColLeft = computed(() => (props.disabled ? "0" : SIDE_COL_WIDTH));
 
-// Width of the frozen-left region the left shadow sits flush against: the `#` column
-// alone (2.5rem) when selection is off, plus the checkbox column (another 2.5rem)
-// when it's on. The right shadow always sits against the lone edit column
-// (`SIDE_COL_WIDTH`).
+// Width of the frozen-left region the left shadow hugs: `#` alone, plus the
+// checkbox column when selection is on. (The right shadow hugs the edit column.)
 const leftShadowOffset = computed(() => (props.disabled ? "2.5rem" : "5rem"));
 
-// Scroll affordance: the frozen `#` column casts a shadow to its right while there's
-// content scrolled off to the left, and the frozen edit column casts one to its left
-// while more content sits off to the right — so it's clear the grid pans horizontally
-// and which way. Driven by the scroller's position: a tiny ceil() epsilon absorbs
-// sub-pixel rounding at the far right so the right shadow actually clears. Recomputed
-// on scroll, on container/column resize (ResizeObserver), and whenever the template
-// or row count changes the scrollable width.
+// Show each side's shadow while there's content scrolled off that way, so it's clear
+// the grid pans. The `ceil()` epsilon absorbs sub-pixel rounding at the far right.
 const scroller = ref<HTMLElement | null>(null);
 const canScrollLeft = ref(false);
 const canScrollRight = ref(false);
@@ -308,14 +276,12 @@ onMounted(() => {
 });
 onBeforeUnmount(() => resizeObserver?.disconnect());
 
-// Layout changes (resize, add/remove rows) alter scrollWidth after the DOM updates,
-// so recompute on the next tick.
+// scrollWidth changes after the DOM updates, so recompute on the next tick.
 watch([templateColumns, () => rows.value.length], () => nextTick(updateScrollShadows));
 
-// Drag-to-resize: grab a header cell's right edge and track the pointer. We seed
-// `startWidth` from the cell's *rendered* px width so the first drag off a flexible
-// (`1fr`) column doesn't jump. Listeners live on `window` so the drag survives the
-// pointer leaving the thin handle.
+// Drag-to-resize: seed `startWidth` from the cell's rendered px width so the first
+// drag off a flexible column doesn't jump. Listeners on `window` so the drag
+// survives the pointer leaving the thin handle.
 const resizingIndex = ref<number | null>(null);
 let startX = 0;
 let startWidth = 0;
@@ -328,8 +294,7 @@ function startResize(index: number, e: MouseEvent) {
 	startWidth = cell.offsetWidth;
 	window.addEventListener("mousemove", onResize);
 	window.addEventListener("mouseup", stopResize);
-	// Stop the handle's mousedown from starting a text selection during the drag.
-	e.preventDefault();
+	e.preventDefault(); // don't start a text selection during the drag
 }
 
 function onResize(e: MouseEvent) {
@@ -348,21 +313,17 @@ function stopResize() {
 
 onBeforeUnmount(stopResize);
 
-// One alignment value drives both a column's header label and its cells, so they
-// can't drift apart. `text-align` is inherited, so applying it to the cell wrapper
-// flows down to the embedded control's text (e.g. a right-aligned number input)
-// and to the plain-text fallback alike.
+// One alignment drives both the header label and the cells. `text-align` is
+// inherited, so it flows down to the embedded control's text and the plain fallback.
 function alignClass(align: GridColumn["align"]): string {
 	if (align === "right") return "text-right";
 	if (align === "center") return "text-center";
 	return "text-left";
 }
 
-// Stable identity for each row object: rows are plain data the parent owns (no
-// guaranteed `name`/id), so we mint a key per object in a WeakMap. Used for
-// `v-for`/Draggable keys *and* selection — both survive reorder/delete/edit
-// because the row objects are mutated in place, never replaced. Adding a row
-// mints a fresh key; nothing leaks once the row drops.
+// Stable identity per row object (rows have no guaranteed id), minted in a WeakMap.
+// Used for `v-for`/Draggable keys and selection, both surviving reorder/delete/edit
+// since row objects are mutated in place, never replaced.
 let uid = 0;
 const rowKeys = new WeakMap<object, string>();
 function keyOf(row: Record<string, any>): string {
@@ -389,12 +350,9 @@ const allSelected = computed(
 function isSelected(row: Record<string, any>): boolean {
 	return selected.value.has(keyOf(row));
 }
-// Drive selection from the checkbox's emitted state (add/remove), NOT a blind
-// toggle. frappe-ui's Checkbox emits `update:modelValue` TWICE per click (once
-// from its `defineModel` assignment, once from an explicit `emit`), so a toggle
-// would fire twice and cancel itself — the row would never stay selected. Setting
-// membership from `checked` is idempotent, so the double emit is harmless (same
-// reason `toggleAll` works).
+// Set membership from the emitted `checked`, NOT a blind toggle: frappe-ui's
+// Checkbox emits `update:modelValue` twice per click, which would cancel a toggle.
+// The idempotent set makes the double emit harmless (same for `toggleAll`).
 function setRow(row: Record<string, any>, checked: boolean) {
 	const key = keyOf(row);
 	const next = new Set(selected.value);
@@ -405,14 +363,10 @@ function toggleAll(checked: boolean) {
 	selected.value = checked ? new Set(rows.value.map(keyOf)) : new Set();
 }
 
-// Live cell edits mutate the row IN PLACE — the array and row-object identities
-// stay stable, so Draggable's bound list ref never changes and the focused input
-// is not re-rendered/remounted. (Reassigning a fresh array + row object on every
-// keystroke made vuedraggable reconcile the row DOM via Sortable, stealing focus
-// and firing a blur-triggered commit on each keypress.) The value is shared by
-// reference with the parent (e.g. FormLayout's doc), so the in-place write is
-// visible without a model reassignment. Structural ops below still build a new
-// array — there's no focused cell to disturb when adding/deleting/reordering.
+// Live edits mutate the row IN PLACE: keeping array/row identities stable stops
+// vuedraggable from reconciling the row DOM and stealing focus on each keystroke.
+// The row is shared by reference with the parent, so the write is visible without a
+// model reassignment. Structural ops below build a new array — no focused cell there.
 function updateCell(index: number, col: T, value: any) {
 	rows.value[index][col.fieldname] = value;
 }
@@ -436,32 +390,25 @@ function deleteSelected() {
 }
 
 // Draggable hands back the reordered array (same row objects, so keys/selection
-// survive). Forward it through the model and the intentful change signal.
+// survive). Forward it through the model and `change`.
 function reorder(next: Record<string, any>[]) {
 	rows.value = next;
 	emit("change", next);
 }
 
-// In a read-only (disabled) grid the cells can't be edited inline, so a click
-// anywhere on the row opens the row dialog — same intent as the edit button. The
-// field cells are `pointer-events-none` while disabled, so their (read-only)
-// controls don't swallow the click before it reaches the row. An editable grid
-// keeps inline editing, so a stray cell click must NOT open the dialog there —
-// only the explicit edit button does.
+// In a read-only grid a row click opens the dialog (cells are `pointer-events-none`,
+// so the click reaches the row). Editable grids keep inline editing — only the edit
+// button opens the dialog there.
 function onRowClick(row: Record<string, any>, index: number) {
 	if (props.disabled) emit("edit", { row, index });
 }
 </script>
 
 <style scoped>
-/* Cells own the full width with no padding; the embedded control stays
- * focusable. Strip each control's chrome (border, radius, background, shadow) so
- * a row reads as a flat table, not a stack of bordered inputs. The consumer
- * (e.g. TableField) decides which controls fill vs. center per fieldtype — we
- * only normalise chrome and the single-row height here. */
-/* `[data-slot="trigger"]` is frappe-ui's stable hook for the Combobox/Select/
- * Autocomplete/MultiSelect trigger — a `div` (not a `button`) in the editable
- * variant, with the gray `subtle` chrome — so it needs explicit targeting. */
+/* Strip each control's chrome (border, radius, background, shadow) so a row reads
+ * as a flat table, not a stack of bordered inputs.
+ * `[data-slot="trigger"]` is frappe-ui's stable hook for the Combobox/Select/
+ * Autocomplete/MultiSelect trigger (a `div`, not a `button`), so it needs targeting. */
 .grid-cell :deep(input:not([type="checkbox"])),
 .grid-cell :deep(textarea),
 .grid-cell :deep(select),
@@ -490,10 +437,8 @@ function onRowClick(row: Record<string, any>, index: number) {
 	display: flex;
 }
 
-/* Column alignment reaches the embedded control's text. `text-align` on the cell
- * wrapper aligns the plain-text fallback, but the controls reset their own
- * `text-align`, so the value text (e.g. a number input) needs an explicit rule to
- * follow the column's alignment. */
+/* Controls reset their own `text-align`, so the value text needs an explicit rule
+ * to follow the column's alignment. */
 .grid-cell.text-right :deep(input:not([type="checkbox"])),
 .grid-cell.text-right :deep(textarea) {
 	text-align: right;
@@ -511,21 +456,14 @@ function onRowClick(row: Record<string, any>, index: number) {
 	resize: none;
 }
 
-/* Kill the elastic rubber-band when panning the grid left/right so it stops
- * cleanly at its edges instead of bouncing. Scope this to the X axis only — the
- * scroller has no vertical overflow, so a plain `overscroll-behavior: none` would
- * also swallow vertical wheel scrolling and lock the PAGE from scrolling while the
- * pointer sits over the grid. Set directly (not via a utility) so the JIT can't
- * drop it. */
+/* Kill the rubber-band when panning the grid. X axis only, else it would also
+ * swallow vertical wheel scrolling and lock the page. Set directly so the JIT keeps it. */
 .grid-scroller {
 	overscroll-behavior-x: none;
 }
 
-/* Scroll affordance. One continuous gradient strip per side, full height of the box,
- * fading away from the frozen edge it hugs. Sits above the scrolling cells (`z-10`)
- * but is `pointer-events: none` so it never blocks them, and fades in/out with the
- * `is-visible` toggle. A single strip (vs. a per-cell box-shadow) means no seam at
- * the row borders. */
+/* One continuous gradient strip per side (vs. per-cell box-shadows, which seam at
+ * row borders). Above the cells but `pointer-events: none`; fades via `is-visible`. */
 .grid-scroll-shadow {
 	position: absolute;
 	top: 0;
@@ -549,9 +487,8 @@ function onRowClick(row: Record<string, any>, index: number) {
 	background: linear-gradient(to left, rgb(0 0 0 / 0.05), transparent);
 }
 
-/* Column resize handle: a thin hit-area pinned to the header cell's right edge
- * (just inside the border, so the cell's `overflow: hidden` doesn't clip it). The
- * 1px line shows on hover/drag to signal the grab target. */
+/* Resize handle: thin hit-area on the header cell's right edge; the line shows on
+ * hover/drag to signal the grab target. */
 .grid-col-resize {
 	position: absolute;
 	top: 0;
@@ -579,11 +516,8 @@ function onRowClick(row: Record<string, any>, index: number) {
 	opacity: 1;
 }
 
-/* The cell itself is the focus indicator for its primary control: a clear ring
- * highlighting all four borders when anything in it is focused. Drawn as an
- * overlay pseudo-element (not an inset box-shadow on the cell) because the
- * control fills the cell with its own background and would paint over an inset
- * shadow. `pointer-events: none` keeps the overlay click-through. */
+/* The cell is the focus ring for its control. Drawn as an overlay pseudo-element,
+ * not an inset shadow, which the control's own background would paint over. */
 .grid-cell {
 	position: relative;
 }
@@ -597,10 +531,8 @@ function onRowClick(row: Record<string, any>, index: number) {
 	box-shadow: inset 0 0 0 1px var(--outline-gray-3);
 }
 
-/* Suppress only the *primary* control's own ring (text input / textarea / select
- * / the Combobox trigger), so it doesn't stack with the cell ring into a doubled,
- * rounded outline. Sub-controls keep their native focus ring — notably Link's
- * clear/redirect/edit buttons, which the user tabs to individually. */
+/* Suppress only the primary control's own ring so it doesn't double up with the
+ * cell ring. Sub-controls (e.g. Link's clear/redirect/edit) keep their native ring. */
 .grid-cell :deep(input:not([type="checkbox"]):focus),
 .grid-cell :deep(textarea:focus),
 .grid-cell :deep(select:focus),
@@ -611,13 +543,9 @@ function onRowClick(row: Record<string, any>, index: number) {
 	outline: none !important;
 }
 
-/* Read-only grid: cells are `pointer-events-none` so a row click opens the row
- * dialog — but that also smothers a readonly Link's redirect/edit actions. They
- * never receive hover (so `group-hover` can't reveal them) and can't be clicked.
- * Restore both: pointer events on just those two buttons, and reveal them on ROW
- * hover (the pointer falls through the dead cell to the row beneath, so the row —
- * not the cell — gets the hover). The buttons `@click.stop`, so acting on one
- * doesn't also trip the row's open-dialog handler. */
+/* Read-only grid: cells are `pointer-events-none`, which also smothers a readonly
+ * Link's redirect/edit buttons. Restore pointer events on just those two and reveal
+ * them on ROW hover (the pointer falls through to the row). They `@click.stop`. */
 .grid-disabled .grid-cell :deep([data-slot="redirect"]),
 .grid-disabled .grid-cell :deep([data-slot="edit"]) {
 	pointer-events: auto;

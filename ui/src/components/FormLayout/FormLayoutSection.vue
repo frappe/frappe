@@ -52,23 +52,19 @@ const props = defineProps<{ section: Section }>();
 
 const hasTabs = inject(HasTabsKey);
 
-// Show the header (label + chevron) unless the section opts out.
 const showHeader = computed(() => !props.section.hideLabel && !!props.section.label);
 
 // A section can only collapse when it has a header to toggle from.
 const collapsible = computed(() => showHeader.value && (props.section.collapsible ?? true));
 
-// Seed open state from the layout; `disabled` keeps non-collapsible sections open.
 const opened = ref(props.section.opened ?? true);
 
-// Only animate once the section has actually been toggled — a section that
-// renders collapsed should rest at height 0 without playing a collapse
-// animation on first paint (reka-ui only skips the mount animation when open).
+// Gate animation until first toggle, so a section rendered collapsed rests at
+// height 0 without playing a collapse animation on first paint.
 const animate = ref(false);
 
-// `overflow: hidden` is only needed while the height animation plays. At rest
-// we let it return to visible so a focused field's focus ring isn't clipped at
-// the section edges. Cleared on `animationend`.
+// `overflow: hidden` only while animating; at rest visible so a focused field's
+// focus ring isn't clipped at the section edges. Cleared on `animationend`.
 const animating = ref(false);
 watch(opened, () => {
 	animate.value = true;
@@ -78,26 +74,16 @@ watch(opened, () => {
 
 <style scoped>
 /*
-	reka-ui exposes the measured content height as a CSS variable on
-	CollapsibleContent, letting us animate height with plain keyframes. Defined
-	here (not as Tailwind utilities) so it ships with the component regardless of
-	the host app's Tailwind `content` scan.
+	Plain keyframes off reka-ui's measured `--reka-collapsible-content-height`,
+	defined here (not Tailwind) so they ship regardless of the host's `content` scan.
 
-	We use `force-mount` so the fields stay in the DOM while collapsed — otherwise
-	the parent's `.section:not(:has(.field))` rule would hide the whole section
-	(header included).
+	`force-mount` keeps fields in the DOM while collapsed, else the parent's
+	`.section:not(:has(.field))` rule would hide the whole section.
 
-	Animation is gated behind `.is-animated`, which is only added after the first
-	toggle. Until then a collapsed section rests at a static `height: 0` with no
-	keyframes, so it doesn't flash a collapse animation on first paint.
-
-	Once animating, the collapsed resting state is held by
-	`animation-fill-mode: forwards` rather than a static `height: 0`. reka-ui
-	re-measures the content height on every open/close by neutralising only the
-	animation/transition before reading `getBoundingClientRect()` — a static
-	`height: 0` survives that, so the close measurement would read 0 and the
-	collapse keyframes would animate 0→0 (i.e. no animation). Letting the keyframes
-	own the height keeps the measurement honest.
+	The closed resting state is held by the keyframe's `animation-fill-mode:
+	forwards`, not a static `height: 0`: reka-ui re-measures height by neutralising
+	only animation/transition before `getBoundingClientRect()`, so a static 0 would
+	survive and make the close measurement read 0 (animating 0→0).
 */
 .form-section-content {
 	overflow: hidden;

@@ -1,11 +1,7 @@
 /**
  * Scoped mutation of a plain `Map` registry, tied to the current Vue effect
- * scope. Pure and app-agnostic: no `.vue`, no globals — just a Map + Vue's scope
- * lifecycle — so it unit-tests standalone (drive it with `effectScope()`).
- *
- * Used by the fieldtype registry to support `{ global: false }` registrations:
- * snapshot the prior entry, set the new one, and **restore** it when the calling
- * component's scope disposes (unmount) — so a per-component override doesn't leak
+ * scope. Backs the fieldtype registry's `{ global: false }` registrations:
+ * override an entry, then restore it on scope dispose so it doesn't leak
  * process-wide.
  */
 import { getCurrentScope, onScopeDispose } from "vue";
@@ -21,27 +17,19 @@ interface Record<V> {
   stack: Frame<V>[];
 }
 
-// Per-map bookkeeping. A plain snapshot-and-restore can't tell two *same-value*
-// overrides apart (e.g. an HMR reload, or the same overriding component mounted
-// twice, both registering the same field component): the first scope to dispose
-// would see its value still in the map and wrongly restore the base while the
-// second instance is still relying on the override. A stack keyed per entry frame
-// makes overlapping overrides — same value or not — restore in the right order.
+// A per-key stack (not a plain snapshot) so two *same-value* overlapping
+// overrides (HMR reload, same component mounted twice) restore in the right
+// order — a snapshot would let the first disposer wrongly restore the base.
 const registries = new WeakMap<
   Map<unknown, unknown>,
   Map<unknown, Record<unknown>>
 >();
 
 /**
- * Set `key` → `value` in `map`, scoped to the current Vue effect scope. The newest
- * override wins while active; on scope dispose the map falls back to the next-most-
- * recent still-active override, or to the entry that pre-existed all overrides
- * (restored or deleted). A foreign direct write to `map` supersedes the stack and
- * is never clobbered.
- *
- * Returns `true` if the scoped write happened, or `false` when there is **no**
- * active scope to tie cleanup to (nothing is written — the caller decides the
- * fallback, e.g. a global write + warning).
+ * Set `key` → `value` in `map`, scoped to the current Vue effect scope; restored
+ * on dispose. A foreign direct write to `map` supersedes the stack and is never
+ * clobbered. Returns `false` (writing nothing) when there's no active scope to
+ * tie cleanup to — the caller decides the fallback.
  */
 export function setScoped<K, V>(map: Map<K, V>, key: K, value: V): boolean {
   if (!getCurrentScope()) return false;
@@ -71,9 +59,8 @@ export function setScoped<K, V>(map: Map<K, V>, key: K, value: V): boolean {
     const wasTop = index === stack.length - 1;
     stack.splice(index, 1);
 
-    // Only touch the map if THIS frame was the effective override and no foreign
-    // write has since replaced it; otherwise a newer scope (or a direct write)
-    // owns the entry and we leave it alone.
+    // Only restore if THIS frame is still the effective override; otherwise a
+    // newer scope or a direct write owns the entry — leave it alone.
     if (wasTop && map.get(key) === frame.value) {
       const top = stack[stack.length - 1];
       if (top) map.set(key, top.value);

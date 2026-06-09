@@ -10,10 +10,8 @@
 </template>
 
 <script setup lang="ts">
-// frappe-ui `Duration` — the doc stores the value in seconds (`number | null`),
-// which is exactly this control's `v-model`; it owns the human-string parse/format
-// itself. `update:modelValue` fires on commit, so we re-emit both
-// `update:modelValue` and `change` (the `LinkField` get/set shape).
+// frappe-ui `Duration` — doc stores seconds (`number | null`), matching its
+// `v-model`. `update:modelValue` fires on commit, so we re-emit `change` too.
 import { computed } from "vue";
 import { Duration } from "frappe-ui";
 import type { FieldComponentEmits, FieldComponentProps } from "../types";

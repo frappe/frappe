@@ -13,10 +13,8 @@
 </template>
 
 <script setup lang="ts">
-// Minimal `type=tel` text box — matches CRM, which also falls through to a plain
-// input. Core's `controls/phone.js` adds an ISD country-code picker and stores a
-// composite `"ISD-number"` value; that's a documented later upgrade (see
-// plans/fieldtypes-remaining.md). The value here is the raw string, unchanged.
+// Minimal `type=tel` text box; value is the raw string. Core's `controls/phone.js`
+// adds an ISD picker and stores a composite `"ISD-number"` — a later upgrade.
 import { TextInput } from "frappe-ui";
 import type { FieldComponentEmits, FieldComponentProps } from "../types";
 
