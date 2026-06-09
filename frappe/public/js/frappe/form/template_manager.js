@@ -16,7 +16,7 @@
  * permissions on Document Template and the ``if_owner`` flag, mirroring the
  * server-side rules without hard-coding any role names.
  */
-frappe.ui.form.DocumentTemplate = class DocumentTemplate {
+frappe.ui.form.TemplateManager = class TemplateManager {
 	static PAGE_LENGTH = 10;
 
 	constructor({ frm, page }) {
@@ -109,7 +109,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		const args = {
 			reference_doctype: this.frm.doctype,
 			limit_start: this._manage_start,
-			limit_page_length: DocumentTemplate.PAGE_LENGTH,
+			limit_page_length: TemplateManager.PAGE_LENGTH,
 		};
 		// Only request meta if we don't already have it cached client-side.
 		if (!frappe.get_meta("Document Template")) {
@@ -233,13 +233,13 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 
 	_on_page_prev() {
 		if (this._manage_start > 0) {
-			this._manage_start = Math.max(0, this._manage_start - DocumentTemplate.PAGE_LENGTH);
+			this._manage_start = Math.max(0, this._manage_start - TemplateManager.PAGE_LENGTH);
 			this._load_manage_page();
 		}
 	}
 
 	_on_page_next() {
-		this._manage_start += DocumentTemplate.PAGE_LENGTH;
+		this._manage_start += TemplateManager.PAGE_LENGTH;
 		this._load_manage_page();
 	}
 
@@ -348,7 +348,7 @@ frappe.ui.form.DocumentTemplate = class DocumentTemplate {
 		}
 
 		if (this._manage_start > 0 || has_next_page) {
-			const current_page = Math.floor(this._manage_start / DocumentTemplate.PAGE_LENGTH) + 1;
+			const current_page = Math.floor(this._manage_start / TemplateManager.PAGE_LENGTH) + 1;
 			const prevDisabled = this._manage_start <= 0 ? "disabled" : "";
 			const nextDisabled = !has_next_page ? "disabled" : "";
 			html += `<div class="dt-pagination">
