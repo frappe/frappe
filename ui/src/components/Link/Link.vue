@@ -24,37 +24,37 @@
 		</template>
 		<template v-else-if="showRedirect || showEdit || showClear" #suffix>
 			<button
-				v-if="showRedirect"
+				v-if="showClear"
 				type="button"
-				aria-label="Open linked record"
-				data-slot="redirect"
-				class="grid size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-				@click="emit('redirect', model!)"
+				aria-label="Clear"
+				data-slot="clear"
+				class="group-hover:grid group-focus:grid group-focus-within:grid hidden size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+				@click.stop="clearValue"
 				@pointerdown.stop
 			>
-				<span class="lucide-arrow-up-right size-3.5" />
+				<span class="lucide-x size-3.5" />
 			</button>
 			<button
 				v-if="showEdit"
 				type="button"
 				aria-label="Edit linked record"
 				data-slot="edit"
-				class="grid size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-				@click="emit('edit', model!)"
+				class="group-hover:grid group-focus:grid group-focus-within:grid hidden size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+				@click.stop="emit('edit', model!)"
 				@pointerdown.stop
 			>
-				<span class="lucide-pencil size-3.5" />
+				<span class="lucide-square-pen size-3.5" />
 			</button>
 			<button
-				v-if="showClear"
+				v-if="showRedirect"
 				type="button"
-				aria-label="Clear"
-				data-slot="clear"
+				aria-label="Open linked record"
+				data-slot="redirect"
 				class="group-hover:grid group-focus:grid group-focus-within:grid hidden size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-				@click="clearValue"
+				@click.stop="emit('redirect', model!)"
 				@pointerdown.stop
 			>
-				<span class="lucide-x size-3.5" />
+				<span class="lucide-arrow-up-right size-3.5" />
 			</button>
 		</template>
 
