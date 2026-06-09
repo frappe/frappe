@@ -239,6 +239,78 @@ Reply-To: test2_@erpnext.com
 		)
 		self.assertIn("user@example.com", mail)
 
+<<<<<<< HEAD
+=======
+	def test_poorly_encoded_messages2(self):
+		mail = Email.decode_email(" =?UTF-8?B?X\xe0\xe0Y?=  <xy@example.com>")
+		self.assertIn("xy@example.com", mail)
+
+	def test_rejects_encoded_addr_spec_without_raw_at_sign(self):
+		email = Email.decode_email("=?utf-8?Q?admin=40example=2Ecom?=")
+		self.assertIsNone(email)
+
+		content_bytes = b"""MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+To: support@example.com
+From: =?utf-8?Q?admin=40example=2Ecom?=
+"""
+
+		mail = Email(content_bytes)
+		self.assertIsNone(mail.from_email)
+
+	def test_allows_encoded_display_name_with_valid_addr_spec(self):
+		email = Email.decode_email("=?utf-8?Q?Jane_Doe?= <jane@example.com>")
+		self.assertIn("jane@example.com", email)
+
+	def test_quotes_in_email_sender(self):
+		content_bytes = rb"""MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+To: "\"fail@example.com\" via ABC"  <success@example.com>
+From: "\"fail@example.com\" via DEF"  <success@example.com>
+Reply-To: "\"fail@example.com\" via GHI"  <success@example.com>
+CC: "\"fail@example.com\" via JKL"  <success@example.com>
+"""
+
+		mail = Email(content_bytes)
+		self.assertEqual(mail.from_email, "success@example.com")
+
+		self.assertEqual(mail.from_real_name, "failexamplecom via DEF")
+		# https://github.com/frappe/frappe/pull/3371
+		# self.assertEqual(mail.from_real_name, '"fail@example.com" via DEF')
+
+		email_account = frappe._dict({"email_id": "receive@example.com"})
+		mail = InboundMail(content_bytes, email_account)
+		communication: Communication = mail.process()  # type: ignore
+		self.assertEqual(communication.sender_full_name, "failexamplecom via DEF")
+
+	def test_quotes_in_email_recipients(self):
+		content_bytes = rb"""MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+From: "=?utf-8?Q?=F0=9F=98=83?="
+	=?utf-8?Q?=3Ctest=40ex?= =?utf-8?Q?ample=2Eco?= =?utf-8?Q?m=3E?=
+To: =?iso-8859-1?Q?X=E9Y=40example=2Ecom?= <xy@example.com>, "fail@example.com" <success@example.com>
+"""
+
+		# https://ldu2.github.io/rfc2047/
+		email_account = frappe._dict({"email_id": "receive@example.com"})
+		mail = InboundMail(content_bytes, email_account)
+		communication: Communication = mail.process()  # type: ignore
+		self.assertEqual(communication.sender_mailid, "test@example.com")
+		# self.assertEqual(communication.sender_full_name, "😃")
+		# # TODO: Fix get_name_from_email_string to accept non-ASCII chars
+		self.assertEqual(
+			communication.recipients,
+			'XéY@example.com <xy@example.com>, "fail@example.com" <success@example.com>',
+		)
+		frappe.db.rollback()
+
+>>>>>>> 8a466f17bd (fix: reject malformed address headers (#39842))
 
 def fixed_column_width(string, chunk_size):
 	parts = [string[0 + i : chunk_size + i] for i in range(0, len(string), chunk_size)]
