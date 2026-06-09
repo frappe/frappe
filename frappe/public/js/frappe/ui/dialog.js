@@ -21,7 +21,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				size: null,
 				auto_make: true,
 				centered: false,
-				hide_open_grid_form_on_hide: true,
+				keep_grid_form_open: false,
 			},
 			opts
 		);
@@ -104,7 +104,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				me.display = false;
 				me.is_minimized = false;
 				me.hide_scrollbar(false);
-				if (me.hide_open_grid_form_on_hide) {
+				if (!me.keep_grid_form_open) {
 					// hide any grid row form if open
 					frappe.ui.form.get_open_grid_form?.()?.hide_form();
 				}
