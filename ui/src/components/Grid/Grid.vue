@@ -7,7 +7,7 @@
 
 		<div
 			v-if="columns.length"
-			class="relative overflow-hidden rounded border border-outline-gray-2"
+			class="relative isolate overflow-hidden rounded border border-outline-gray-2"
 			:class="{ 'grid-disabled': disabled }"
 		>
 			<!-- Scroller + shadows share a `relative` box so the shadows clamp to the
@@ -29,7 +29,12 @@
 							class="sticky left-0 z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-gray-2"
 							:style="{ left: '0' }"
 						>
-							<Checkbox :modelValue="allSelected" @update:modelValue="toggleAll" />
+							<Checkbox
+								:modelValue="allSelected"
+								@update:modelValue="
+									(checked: unknown) => toggleAll(checked as boolean)
+								"
+							/>
 						</div>
 						<div
 							class="sticky z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-gray-2 py-2"
@@ -89,7 +94,9 @@
 								>
 									<Checkbox
 										:modelValue="isSelected(row)"
-										@update:modelValue="(checked: boolean) => setRow(row, checked)"
+										@update:modelValue="
+											(checked: unknown) => setRow(row, checked as boolean)
+										"
 									/>
 								</div>
 								<div
