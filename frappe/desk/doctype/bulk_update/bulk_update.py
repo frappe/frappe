@@ -118,23 +118,12 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 						if table_fieldname and hasattr(doc, table_fieldname):
 							child_meta = frappe.get_meta(child_doctype)
 							child_docs = getattr(doc, table_fieldname)
-if not child_docs:
-    child_docs = [doc.append(table_fieldname, {})]
-
-for child_doc in child_docs:
-    for fieldname, value in field_updates.items():
-        if child_meta.has_field(fieldname):
-            setattr(child_doc, fieldname, value)
-								# No existing rows — append a new child row
-								new_row = doc.append(table_fieldname, {})
+							if not child_docs:
+								child_docs = [doc.append(table_fieldname, {})]
+							for child_doc in child_docs:
 								for fieldname, value in field_updates.items():
 									if child_meta.has_field(fieldname):
-										setattr(new_row, fieldname, value)
-							else:
-								for child_doc in child_docs:
-									for fieldname, value in field_updates.items():
-										if child_meta.has_field(fieldname):
-											setattr(child_doc, fieldname, value)
+										setattr(child_doc, fieldname, value)
 
 				# Handle regular field updates
 				if data:
