@@ -101,7 +101,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		}
 
 		const link_field = this.get_link_field();
-		value = value?.trim();
+		value = cstr(value).trim();
 		if (!value) return rows;
 
 		// clear input to prevent multiple additions
