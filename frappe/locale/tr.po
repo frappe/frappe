@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-22 13:14\n"
+"PO-Revision-Date: 2026-06-09 07:57\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1503,7 +1503,7 @@ msgstr "Alt Tablo için Script Ekle"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:111
 msgid "Add section above"
-msgstr "Yukarıya bölüm ekle"
+msgstr ""
 
 #: frappe/public/js/form_builder/components/Section.vue:265
 msgid "Add section below"
@@ -6082,7 +6082,7 @@ msgstr "Bir Hatırlatıcı Oluştur"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:537
 msgid "Create a new ..."
-msgstr "Yeni Oluştur ..."
+msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:156
 msgid "Create a new record"
@@ -6348,7 +6348,7 @@ msgstr "Özel Belge Türleri (İzin Seçin)"
 
 #: frappe/core/doctype/user_type/user_type.py:104
 msgid "Custom Document Types Limit Exceeded"
-msgstr "Özel Belge Türleri Sınırı Aşıldı"
+msgstr ""
 
 #: frappe/desk/desktop.py:493
 msgid "Custom Documents"
@@ -8454,7 +8454,7 @@ msgstr "Dosyaları buraya sürükleyip bırakın veya şuradan yükleyin"
 
 #: frappe/public/js/print_format_builder/ConfigureColumns.vue:76
 msgid "Drag columns to set order. Column width is set in percentage. The total width should not be more than 100. Columns marked in red will be removed."
-msgstr "Sırayı ayarlamak için sütunları sürükleyin. Sütun genişliği yüzde olarak ayarlanır. Toplam genişlik 100'den fazla olmamalıdır. Kırmızıyla işaretlenen sütunlar kaldırılacaktır."
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
@@ -10684,7 +10684,7 @@ msgstr "Filtreler:"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:572
 msgid "Find '{0}' in ..."
-msgstr "... içinde '{0}' öğesini bulun."
+msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:329
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:331
@@ -15161,7 +15161,7 @@ msgstr "Liste Görünümü Ayarları"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:161
 msgid "List a document type"
-msgstr "DocType Listesi"
+msgstr ""
 
 #. Description of the 'Breadcrumbs' (Code) field in DocType 'Web Form'
 #. Description of the 'Breadcrumbs' (Code) field in DocType 'Web Page'
@@ -15624,11 +15624,11 @@ msgstr "Zorunlu alan: {0}"
 
 #: frappe/public/js/frappe/form/save.js:181
 msgid "Mandatory fields required in table {0}, Row {1}"
-msgstr "Satır#{1} - {0} tablosundaki alanlar zorunlu"
+msgstr ""
 
 #: frappe/public/js/frappe/form/save.js:186
 msgid "Mandatory fields required in {0}"
-msgstr "{0} Eklerken Aşağıdaki Alanlar Zorunludur"
+msgstr ""
 
 #: frappe/public/js/frappe/web_form/web_form.js:258
 msgctxt "Error message in web form"
@@ -16483,7 +16483,7 @@ msgstr "Bölümleri yeni sekmeye taşı"
 
 #: frappe/public/js/form_builder/components/Field.vue:239
 msgid "Move the current field and the following fields to a new column"
-msgstr "Mevcut alanı ve sonraki alanları yeni bir sütuna taşı"
+msgstr ""
 
 #: frappe/public/js/frappe/form/grid_row.js:169
 msgid "Move to Row Number"
@@ -18353,7 +18353,7 @@ msgstr "Açık Dökümanlar"
 
 #: frappe/public/js/frappe/ui/keyboard.js:240
 msgid "Open Help"
-msgstr "Yardımı Aç"
+msgstr ""
 
 #. Label of a Button field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
@@ -18362,7 +18362,7 @@ msgstr "Açık Referans Belgesi"
 
 #: frappe/public/js/frappe/ui/keyboard.js:223
 msgid "Open Settings"
-msgstr "Ayarları Aç"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Open Source Applications for the Web"
@@ -18380,7 +18380,7 @@ msgstr "Temel alanların girilebildiği küçük bir pencere açarak hızlı ver
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:176
 msgid "Open a module or tool"
-msgstr "Modüle Git"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/Preview.vue:17
 msgid "Open in a new tab"
@@ -18775,7 +18775,7 @@ msgstr "Sayfa Yüksekliği (mm cinsinden)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:5
 msgid "Page Margins"
-msgstr "Sayfa Kenar Boşlukları"
+msgstr ""
 
 #. Label of a Data field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
@@ -23100,7 +23100,7 @@ msgstr "Alanları Arama"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:186
 msgid "Search Help"
-msgstr "Arama Yardımı"
+msgstr ""
 
 #. Label of a Table field in DocType 'Global Search Settings'
 #: frappe/desk/doctype/global_search_settings/global_search_settings.json
@@ -26520,7 +26520,7 @@ msgstr "{0} için aşağıdaki değerler mevcut değil: {1}"
 
 #: frappe/core/doctype/user_type/user_type.py:88
 msgid "The limit has not set for the user type {0} in the site config file."
-msgstr "Site yapılandırma dosyasında {0} kullanıcı türü için sınır ayarlanmamıştır."
+msgstr ""
 
 #: frappe/templates/emails/login_with_email_link.html:21
 msgid "The link will expire in {0} minutes"
@@ -27055,7 +27055,7 @@ msgstr "Bu değer {0} kaydının {1} alanından alınmaktadır"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "This value specifies the max number of rows that can be rendered in report view. "
-msgstr ""
+msgstr "Bu değer, rapor görünümünde görüntülenebilecek maksimum satır sayısını belirtir. "
 
 #: frappe/website/doctype/web_page/web_page.js:85
 msgid "This will be automatically generated when you publish the page, you can also enter a route yourself if you wish"
@@ -27721,7 +27721,7 @@ msgstr "İlk senkronizasyon işleminde senkronize edilecek toplam e-posta sayıs
 
 #: frappe/public/js/print_format_builder/ConfigureColumns.vue:12
 msgid "Total:"
-msgstr "Toplam:"
+msgstr ""
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1259
 msgid "Totals"
@@ -27906,7 +27906,7 @@ msgstr "Tetikleme Yöntemi"
 
 #: frappe/public/js/frappe/ui/keyboard.js:194
 msgid "Trigger Primary Action"
-msgstr "Kaydet"
+msgstr ""
 
 #: frappe/tests/test_translate.py:55
 msgid "Trigger caching"
@@ -30397,7 +30397,7 @@ msgstr "Aynı anda en fazla {0} belge yazdırabilirsiniz"
 
 #: frappe/core/doctype/user_type/user_type.py:103
 msgid "You can only set the 3 custom doctypes in the Document Types table."
-msgstr "Belge Türleri tablosunda yalnızca 3 özel belge türünü ayarlayabilirsiniz."
+msgstr ""
 
 #: frappe/handler.py:230
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
@@ -31598,7 +31598,7 @@ msgstr "modül"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:178
 msgid "module name..."
-msgstr "modül adı..."
+msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
