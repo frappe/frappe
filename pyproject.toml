@@ -82,6 +82,9 @@ dependencies = [
     "xlrd~=2.0.2",
     "zxcvbn~=4.5.0",
     "markdownify~=1.2.2",
+    # realtime (python socket.io server, frappe/socketio_server)
+    "python-socketio~=5.16.1",
+    "uvicorn~=0.47.0",
     # integration dependencies
     "google-api-python-client~=2.188.0",
     "google-auth-oauthlib~=1.2.4",
@@ -128,6 +131,8 @@ dev = [
     "pypika-stubs",  # contributed
 ]
 test = [
+    # async socket.io client for frappe/tests/test_socketio_server.py
+    "aiohttp~=3.13.4",
     "unittest-xml-reporting~=3.2.0",
     "coverage~=7.13.5",
     "hypothesis~=6.77.0",

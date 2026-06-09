@@ -1,30 +1,33 @@
-"""
-PROTOTYPE: python-socketio replacement for apps/frappe/socketio.js
+"""python-socketio replacement for apps/frappe/socketio.js.
 
-Run with:
-    uvicorn frappe.socketio_server.server:asgi_app --host 0.0.0.0 --port 9000
+Run with::
 
-Wire-compat with the existing socket.io-client browser library: the JS
-frontend connects to `io(origin + "/" + site)` and that keeps working
-because we accept any namespace dynamically (see DynamicServer below).
+	python -m frappe.socketio_server
+
+Wire-compatible with the socket.io-client browser library: the JS frontend
+connects to `io(origin + "/" + site)` and that keeps working because we
+accept any namespace dynamically (see DynamicServer below).
 """
 
 import asyncio
 import json
+import logging
 
 import redis.asyncio as aioredis
 import socketio
 
-from frappe.socketio_server import bench_conf
-from frappe.socketio_server.auth import authenticate
+from frappe.socketio_server import redis_url
 from frappe.socketio_server.handlers import register_frappe_handlers
 
+logger = logging.getLogger("frappe.socketio")
 
-# --- Dynamic namespace support ----------------------------------------------
-# python-socketio has no native equivalent of socket.io's `io.of(/regex/)`.
-# We subclass AsyncServer to auto-register a namespace the first time a
-# client tries to connect to it. Authentication still rejects unknown sites.
+
 class DynamicServer(socketio.AsyncServer):
+	"""python-socketio has no native equivalent of socket.io's `io.of(/regex/)`
+	multitenant namespaces — auto-register handlers for a namespace the first
+	time a client tries to connect to it. authenticate() still rejects
+	namespaces that don't match a valid site."""
+
 	async def _handle_connect(self, eio_sid, namespace, data):
 		# python-socketio tracks function-style handlers in self.handlers and
 		# class-style ones in self.namespace_handlers. Check both.
@@ -33,70 +36,63 @@ class DynamicServer(socketio.AsyncServer):
 			register_frappe_handlers(self, namespace)
 		return await super()._handle_connect(eio_sid, namespace, data)
 
+	def site_namespaces(self) -> set[str]:
+		return (set(self.handlers) | set(self.namespace_handlers)) - {"/"}
 
-# --- Server setup -----------------------------------------------------------
-conf = bench_conf()
-redis_url = conf.get("redis_queue") or "redis://127.0.0.1:11311"
 
 sio = DynamicServer(
 	async_mode="asgi",
 	cors_allowed_origins="*",  # mirrored to request origin by CORSReflectMiddleware below
 	cors_credentials=True,
-	client_manager=socketio.AsyncRedisManager(redis_url),
+	client_manager=socketio.AsyncRedisManager(redis_url()),
 )
 
 
 @sio.event
-async def connect(sid, environ, auth):
-	"""Default-namespace connect — used only for health checks; real
-	traffic lands on per-site namespaces handled by register_frappe_handlers."""
+async def connect(sid, environ, auth=None):
+	"""Default-namespace connect — used only for health checks; real traffic
+	lands on per-site namespaces handled by register_frappe_handlers."""
 	return True
 
 
-# Register an on_connect for *every* dynamically-attached namespace.
-# This is what DynamicServer wires up on first connect to a site.
-async def on_site_connect(sid, environ, auth, namespace):
-	ok, ctx = await authenticate(environ, namespace)
-	if not ok:
-		raise socketio.exceptions.ConnectionRefusedError(ctx)  # ctx is err msg
-
-	await sio.save_session(sid, ctx, namespace=namespace)
-	# Per-app handler discovery via hooks instead of filesystem walk.
-	# Each app declares `realtime_handlers = "myapp.realtime.handlers.setup"`
-	# in its hooks.py; we call them with (sio, sid, namespace, session).
-	# Per-app handler discovery via hooks (frappe.get_hooks) — disabled
-	# in this prototype because it requires a full frappe.init() per
-	# connect. The base frappe handlers in handlers.py cover the common
-	# rooms. Real impl: cache hook lookups at server startup keyed by site.
-
-
-# --- Redis pub/sub fan-out --------------------------------------------------
+# --- Redis pub/sub fan-out ---------------------------------------------------
 async def consume_events():
-	"""Bridge Python publishers (frappe.realtime.emit_via_redis) into socket.io."""
-	r = aioredis.from_url(redis_url, decode_responses=True)
-	pubsub = r.pubsub()
-	await pubsub.subscribe("events")
-	async for msg in pubsub.listen():
-		if msg["type"] != "message":
-			continue
+	"""Bridge Python publishers (frappe.realtime.emit_via_redis) into
+	socket.io. Reconnects with backoff if redis drops."""
+	delay = 1
+	while True:
 		try:
-			payload = json.loads(msg["data"])
-		except json.JSONDecodeError:
-			continue
-		namespace = "/" + payload["namespace"]
-		if payload.get("room"):
-			await sio.emit(
-				payload["event"],
-				payload["message"],
-				room=payload["room"],
-				namespace=namespace,
-			)
-		else:
-			# Site-less broadcast (e.g. esbuild "build" event).
-			await sio.emit(payload["event"], payload["message"])
+			client = aioredis.from_url(redis_url(), decode_responses=True)
+			pubsub = client.pubsub()
+			await pubsub.subscribe("events")
+			delay = 1
+			async for msg in pubsub.listen():
+				if msg["type"] != "message":
+					continue
+				try:
+					payload = json.loads(msg["data"])
+					await _dispatch(payload)
+				except Exception:
+					logger.warning("failed to dispatch realtime event: %r", msg["data"], exc_info=True)
+		except (aioredis.RedisError, OSError):
+			logger.warning("events subscriber lost redis, retrying in %ss", delay, exc_info=True)
+			await asyncio.sleep(delay)
+			delay = min(delay * 2, 30)
 
 
-# --- ASGI entrypoint --------------------------------------------------------
+async def _dispatch(payload: dict):
+	event, message = payload["event"], payload.get("message")
+	if payload.get("room"):
+		await sio.emit(event, message, room=payload["room"], namespace="/" + payload["namespace"])
+	else:
+		# Site-less broadcast (e.g. esbuild "build" event in dev). The Node
+		# implementation emits on the catch-all namespace, which reaches every
+		# connected client — emit on every registered site namespace.
+		for namespace in sio.site_namespaces():
+			await sio.emit(event, message, namespace=namespace)
+
+
+# --- ASGI entrypoint ----------------------------------------------------------
 class CORSReflectMiddleware:
 	"""Reflect the request Origin header into Access-Control-Allow-Origin,
 	matching the Node socket.io `cors: { origin: true, credentials: true }`
@@ -130,6 +126,12 @@ class CORSReflectMiddleware:
 		await self.app(scope, receive, send_wrapper)
 
 
-asgi_app = CORSReflectMiddleware(
-	socketio.ASGIApp(sio, on_startup=lambda: asyncio.create_task(consume_events()))
-)
+_consumer_task = None
+
+
+async def _start_event_consumer():
+	global _consumer_task
+	_consumer_task = asyncio.create_task(consume_events())
+
+
+asgi_app = CORSReflectMiddleware(socketio.ASGIApp(sio, on_startup=_start_event_consumer))
