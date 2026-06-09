@@ -134,7 +134,6 @@ frappe.show_not_permitted = function (page_name) {
 		page_name: page_name,
 		message: __("Sorry! You are not permitted to view this page."),
 		img: "/assets/frappe/images/ui/bubble-tea-sorry.svg",
-		// icon: "octicon octicon-circle-slash"
 	});
 };
 
