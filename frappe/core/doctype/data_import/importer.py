@@ -86,6 +86,13 @@ class Importer:
 		frappe.flags.mute_emails = self.data_import.mute_emails
 
 		self.data_import.db_set("template_warnings", "")
+		self._inserted_name_map = {}
+		meta = frappe.get_meta(self.doctype)
+		self._tree_parent_field = meta.nsm_parent_field if meta.is_nested_set() else None
+		header = getattr(self.import_file, "header", None)
+		self._tree_alias_field = getattr(header, "tree_alias_field", None)
+		self._id_fieldname = getattr(header, "id_fieldname", None) or get_id_field(self.doctype).fieldname
+		self._uses_tree_aliases = bool(self._tree_alias_field)
 
 	def import_data(self):
 		self.before_import()
@@ -99,7 +106,9 @@ class Importer:
 			get_skipped_row_numbers,
 		)
 
-		warnings = get_blocking_warnings(self.import_file.get_warnings(), self.import_file, self.data_import)
+		warnings = get_blocking_warnings(
+			self.import_file.get_all_warnings(), self.import_file, self.data_import
+		)
 
 		if warnings:
 			if self.console:
@@ -302,6 +311,11 @@ class Importer:
 			# name can only be set directly if autoname is prompt
 			new_doc.set("name", None)
 
+		if self._uses_tree_aliases and self._tree_parent_field:
+			self._resolve_tree_parent_link(doc)
+
+		new_doc.update(doc)
+
 		new_doc.flags.updater_reference = {
 			"doctype": self.data_import.doctype,
 			"docname": self.data_import.name,
@@ -309,9 +323,33 @@ class Importer:
 		}
 
 		new_doc.insert()
+		if self._uses_tree_aliases:
+			self._register_inserted_name(doc, new_doc)
 		if meta.is_submittable and self.data_import.submit_after_import:
 			new_doc.submit()
 		return new_doc
+
+	def _resolve_tree_parent_link(self, doc):
+		"""Swap parent link aliases from the file with inserted document names."""
+		parent = doc.get(self._tree_parent_field)
+		if parent in INVALID_VALUES:
+			return
+
+		parent = cstr(parent).strip()
+		resolved = self._inserted_name_map.get(parent)
+		if resolved:
+			doc[self._tree_parent_field] = resolved
+
+	def _register_inserted_name(self, doc, new_doc):
+		"""Track alias/id values from the file against the generated document name."""
+		if self._tree_alias_field:
+			alias = new_doc.get(self._tree_alias_field) or doc.get(self._tree_alias_field)
+			if alias not in INVALID_VALUES:
+				self._inserted_name_map[cstr(alias).strip()] = new_doc.name
+
+		id_value = doc.get(self._id_fieldname)
+		if id_value not in INVALID_VALUES:
+			self._inserted_name_map[cstr(id_value).strip()] = new_doc.name
 
 	def update_record(self, doc):
 		id_field = get_id_field(self.doctype)
@@ -551,12 +589,35 @@ class ImportFile:
 		self.header = header
 		self.columns = self.header.columns
 		self.data = data
+		meta = frappe.get_meta(self.doctype)
+		self.header.id_fieldname = _get_id_fieldname_from_meta(meta)
+		self.header.tree_alias_field = _get_tree_alias_field_from_meta(meta)
+		self.header.import_ids, self.header.import_aliases = _build_import_reference_sets(
+			self, self.header.id_fieldname, self.header.tree_alias_field
+		)
+		self.header.import_refs = self.header.import_ids | self.header.import_aliases
+		self._refresh_self_referential_link_validation()
 
 		if len(data) < 1:
 			frappe.throw(
 				_("Import template should contain a Header and atleast one row."),
 				title=_("Template Error"),
 			)
+
+	def _refresh_self_referential_link_validation(self):
+		"""Re-validate parent Link columns after IDs from the file are known."""
+		from frappe.core.doctype.data_import.value_mapping import warn_invalid_link_select_values
+
+		for col in self.header.columns:
+			if not col.df or col.skip_import or col.df.fieldtype != "Link":
+				continue
+			if col.df.options != self.doctype:
+				continue
+
+			col.import_refs = self.header.import_refs
+			col.invalid_value_items = None
+			col.warnings = [w for w in col.warnings if w.get("type") != "value_mapping"]
+			warn_invalid_link_select_values(col)
 
 	def get_data_for_import_preview(self):
 		"""Adds a serial number column as the first column"""
@@ -579,12 +640,15 @@ class ImportFile:
 
 		data = [[row.row_number, *row.as_list()] for row in self.data]
 
-		warnings = self.get_warnings()
+		tree_preview = build_tree_preview(self)
 
 		out = frappe._dict()
 		out.data = data
 		out.columns = columns
-		out.warnings = warnings
+		out.warnings = self.get_warnings()
+		if tree_preview:
+			out.tree_preview = tree_preview
+			out.warnings += tree_preview.tree_warnings
 		total_number_of_rows = len(out.data)
 		out.total_number_of_rows = total_number_of_rows
 		if total_number_of_rows > MAX_ROWS_IN_PREVIEW:
@@ -594,6 +658,7 @@ class ImportFile:
 		from frappe.core.doctype.data_import.value_mapping import get_mapping_hints
 
 		out.mapping_hints = get_mapping_hints(self, self.reference_doctype, self.value_lookup)
+
 		return out
 
 	def get_payloads_for_import(self):
@@ -603,7 +668,7 @@ class ImportFile:
 		while data:
 			doc, rows, data = self.parse_next_row_for_import(data)
 			payloads.append(frappe._dict(doc=doc, rows=rows))
-		return payloads
+		return sort_tree_payloads(payloads, self.doctype, self.import_type)
 
 	def parse_next_row_for_import(self, data):
 		"""
@@ -666,6 +731,14 @@ class ImportFile:
 
 		return warnings
 
+	def get_all_warnings(self):
+		"""Row/column warnings plus tree-structure warnings used to block import."""
+		warnings = self.get_warnings()
+		tree_preview = build_tree_preview(self)
+		if tree_preview:
+			warnings += tree_preview.tree_warnings
+		return warnings
+
 	######
 
 	def read_file(self, file_path: str):
@@ -722,6 +795,337 @@ def format_row_numbers_for_warning(rows: list, max_shown: int = 6) -> str:
 	if len(rows) <= max_shown:
 		return ", ".join(str(r) for r in rows)
 	return f"{', '.join(str(r) for r in rows[:max_shown])}, ... {rows[-1]}"
+
+
+def _get_id_fieldname_from_meta(meta) -> str:
+	if meta.autoname and meta.autoname.startswith("field:"):
+		return meta.autoname[6:]
+	return "name"
+
+
+def _get_tree_alias_field_from_meta(meta) -> str | None:
+	"""Title field for parent-by-alias tree imports; None when names come from a ``field:`` autoname."""
+	if (
+		not meta.is_nested_set()
+		or (meta.autoname and meta.autoname.startswith("field:"))
+		or not meta.title_field
+	):
+		return None
+
+	if meta.title_field == _get_id_fieldname_from_meta(meta):
+		return None
+
+	return meta.title_field
+
+
+def get_tree_alias_fieldname(doctype):
+	"""Title field for parent-by-alias tree imports; None when names come from a ``field:`` autoname."""
+	return _get_tree_alias_field_from_meta(frappe.get_meta(doctype))
+
+
+def uses_tree_alias_references(doctype):
+	"""Whether tree parent links may use title-field values instead of generated names."""
+	return bool(get_tree_alias_fieldname(doctype))
+
+
+def _get_tree_node_key(doc, id_fieldname, alias_field=None):
+	"""Stable row identity for tree sorting/preview: explicit id, else title-field alias."""
+	node_id = doc.get(id_fieldname)
+	if node_id not in INVALID_VALUES:
+		return cstr(node_id).strip()
+
+	if alias_field:
+		alias = doc.get(alias_field)
+		if alias not in INVALID_VALUES:
+			return cstr(alias).strip()
+
+	return None
+
+
+def _is_same_file_tree_reference(value, header) -> bool:
+	"""Whether a self-referential link value exists elsewhere in the import file."""
+	import_refs = getattr(header, "import_refs", None)
+	return bool(import_refs and cstr(value).strip() in import_refs)
+
+
+def _get_import_column_index(columns, fieldname):
+	column = next(
+		(col for col in columns if col.df and col.df.fieldname == fieldname and not col.skip_import),
+		None,
+	)
+	return column.index if column else None
+
+
+def _build_import_reference_sets(
+	import_file: "ImportFile", id_fieldname: str, alias_field: str | None
+) -> tuple[set[str], set[str]]:
+	"""Collect id and alias values from the template in a single pass."""
+	columns = import_file.header.columns
+	id_index = _get_import_column_index(columns, id_fieldname)
+	alias_index = _get_import_column_index(columns, alias_field) if alias_field else None
+
+	if id_index is None and alias_index is None:
+		return set(), set()
+
+	ids = set()
+	aliases = set()
+	for row in import_file.data:
+		if id_index is not None:
+			value = row.get(id_index)
+			if value not in INVALID_VALUES:
+				ids.add(cstr(value).strip())
+		if alias_index is not None:
+			value = row.get(alias_index)
+			if value not in INVALID_VALUES:
+				aliases.add(cstr(value).strip())
+
+	return ids, aliases
+
+
+def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
+	"""Build a flat, depth-ordered node list for tree DocType import preview."""
+	meta = frappe.get_meta(import_file.doctype)
+	if not meta.is_nested_set():
+		return None
+
+	parent_field = meta.nsm_parent_field or f"parent_{frappe.scrub(import_file.doctype)}"
+	id_fieldname = getattr(import_file.header, "id_fieldname", None) or _get_id_fieldname_from_meta(meta)
+	alias_field = getattr(import_file.header, "tree_alias_field", None)
+	label_fieldname = meta.title_field or id_fieldname
+	is_group_field = "is_group" if meta.has_field("is_group") else None
+	parent_column = next(
+		(
+			col
+			for col in import_file.header.columns
+			if col.df and col.df.fieldname == parent_field and not col.skip_import
+		),
+		None,
+	)
+
+	nodes = []
+	id_to_rows: dict[str, list[int]] = {}
+
+	for row in import_file.data:
+		doc = row.parse_doc(import_file.doctype)
+		if not doc:
+			continue
+
+		node_id = _get_tree_node_key(doc, id_fieldname, alias_field)
+		if not node_id:
+			continue
+
+		parent = _get_tree_parent_value(row, parent_column, doc, parent_field)
+
+		label = doc.get(label_fieldname) or node_id
+		label = cstr(label).strip() if label not in INVALID_VALUES else node_id
+
+		is_group = cint(doc.get(is_group_field)) if is_group_field else 0
+
+		id_to_rows.setdefault(node_id, []).append(row.row_number)
+		nodes.append(
+			frappe._dict(
+				id=node_id,
+				label=label,
+				parent=parent,
+				row_number=row.row_number,
+				is_group=is_group,
+				warnings=[],
+			)
+		)
+
+	tree_warnings = []
+	nodes_by_id = {node.id: node for node in nodes}
+	duplicate_messages = {}
+
+	for node_id, row_numbers in id_to_rows.items():
+		if len(row_numbers) > 1:
+			message = _("Duplicate ID {0} in rows {1}").format(
+				frappe.bold(node_id), format_row_numbers_for_warning(row_numbers)
+			)
+			tree_warnings.append({"message": message})
+			duplicate_messages[node_id] = message
+
+	for node in nodes:
+		if message := duplicate_messages.get(node.id):
+			node.warnings.append(message)
+
+	for node in nodes:
+		parent_id = node.parent
+		if not parent_id:
+			continue
+
+		if parent_id in nodes_by_id:
+			if _has_parent_cycle(node.id, nodes_by_id):
+				message = _("Circular parent reference for {0}").format(frappe.bold(node.id))
+				node.warnings.append(message)
+				if not any(w.get("message") == message for w in tree_warnings):
+					tree_warnings.append({"row": node.row_number, "message": message})
+			continue
+
+		if _is_same_file_tree_reference(parent_id, import_file.header):
+			continue
+
+		parent_exists = frappe.db.exists(import_file.doctype, parent_id)
+		if import_file.import_type == UPDATE or parent_exists:
+			continue
+
+		message = _("Parent {0} not found in file").format(frappe.bold(parent_id))
+		node.warnings.append(message)
+		tree_warnings.append({"row": node.row_number, "message": message})
+
+	if is_group_field:
+		_append_non_group_parent_warnings(nodes, nodes_by_id, tree_warnings, is_group_field)
+
+	display_nodes = _order_tree_preview_nodes(nodes)
+
+	return frappe._dict(
+		nodes=display_nodes,
+		tree_warnings=tree_warnings,
+		total_nodes=len(nodes),
+	)
+
+
+def _append_non_group_parent_warnings(
+	nodes: list, nodes_by_id: dict, tree_warnings: list, is_group_field: str
+):
+	"""Warn when a node is used as a parent in the file but Is Group is unchecked."""
+	children_by_parent: dict[str, list] = {}
+	for node in nodes:
+		if node.parent and node.parent in nodes_by_id:
+			children_by_parent.setdefault(node.parent, []).append(node)
+
+	for parent_id, _children in children_by_parent.items():
+		parent = nodes_by_id.get(parent_id)
+		if not parent or parent.is_group:
+			continue
+
+		display_name = parent.label or parent.id
+		message = _("{0} has children but Is Group is 0 — parent must be a group node").format(
+			frappe.bold(display_name)
+		)
+		if message not in parent.warnings:
+			parent.warnings.append(message)
+		if not any(w.get("message") == message for w in tree_warnings):
+			tree_warnings.append({"row": parent.row_number, "message": message})
+
+
+def _get_tree_parent_value(row: "Row", parent_column, doc: frappe._dict, parent_field: str):
+	"""Parent link values are often unset in preview because targets are not in DB yet."""
+	if parent_column:
+		value = row.get(parent_column.index)
+		if value not in INVALID_VALUES:
+			return cstr(value).strip()
+
+	value = doc.get(parent_field)
+	return cstr(value).strip() if value not in INVALID_VALUES else None
+
+
+def _has_parent_cycle(node_id: str, nodes_by_id: dict) -> bool:
+	seen = set()
+	current = node_id
+	while current:
+		if current in seen:
+			return True
+		seen.add(current)
+		node = nodes_by_id.get(current)
+		if not node or not node.parent or node.parent not in nodes_by_id:
+			return False
+		current = node.parent
+	return False
+
+
+def sort_tree_payloads(payloads: list, doctype: str, import_type: str | None) -> list:
+	"""Return payloads in parent-before-child order for nested-set inserts."""
+	meta = frappe.get_meta(doctype)
+	if import_type != INSERT or not meta.is_nested_set() or not payloads:
+		return payloads
+
+	parent_field = meta.nsm_parent_field or f"parent_{frappe.scrub(doctype)}"
+	id_fieldname = _get_id_fieldname_from_meta(meta)
+	alias_field = _get_tree_alias_field_from_meta(meta)
+
+	payload_keys = []
+	for payload in payloads:
+		node_id = _get_tree_node_key(payload.doc, id_fieldname, alias_field)
+		parent = payload.doc.get(parent_field)
+		parent = cstr(parent).strip() if parent not in INVALID_VALUES else None
+		payload_keys.append((payload, node_id, parent))
+
+	payload_by_id = {node_id: payload for payload, node_id, _parent in payload_keys if node_id}
+
+	children_by_parent: dict[str, list] = {}
+	roots = []
+
+	for payload, node_id, parent in payload_keys:
+		if not node_id:
+			continue
+		if parent and parent in payload_by_id:
+			children_by_parent.setdefault(parent, []).append(payload)
+		else:
+			roots.append(payload)
+
+	for children in children_by_parent.values():
+		children.sort(key=lambda payload: payload.rows[0].row_number)
+	roots.sort(key=lambda payload: payload.rows[0].row_number)
+
+	ordered = []
+	seen = set()
+	payload_id_by_payload = {id(payload): node_id for payload, node_id, _parent in payload_keys}
+
+	def walk(parent_id):
+		for child in children_by_parent.get(parent_id, []):
+			node_id = payload_id_by_payload[id(child)]
+			if not node_id or node_id in seen:
+				continue
+			seen.add(node_id)
+			ordered.append(child)
+			walk(node_id)
+
+	for root in roots:
+		node_id = payload_id_by_payload[id(root)]
+		if not node_id or node_id in seen:
+			continue
+		seen.add(node_id)
+		ordered.append(root)
+		walk(node_id)
+
+	for payload, node_id, _parent in payload_keys:
+		if not node_id or node_id not in seen:
+			ordered.append(payload)
+
+	return ordered
+
+
+def _order_tree_preview_nodes(nodes: list) -> list:
+	children_by_parent: dict[str | None, list] = {}
+
+	for node in nodes:
+		children_by_parent.setdefault(node.parent or None, []).append(node)
+
+	for children in children_by_parent.values():
+		children.sort(key=lambda n: n.row_number)
+
+	ordered = []
+	seen = set()
+
+	def walk(parent_id, depth):
+		for child in children_by_parent.get(parent_id, []):
+			if child.id in seen:
+				continue
+			seen.add(child.id)
+			child.depth = depth
+			ordered.append(child)
+			walk(child.id, depth + 1)
+
+	walk(None, 0)
+
+	for node in nodes:
+		if node.id not in seen:
+			node.depth = 0
+			node.orphan = True
+			ordered.append(node)
+
+	return ordered
 
 
 class Row:
@@ -834,6 +1238,9 @@ class Row:
 				return
 
 		elif df.fieldtype == "Link":
+			if df.options == self.doctype and _is_same_file_tree_reference(value, self.header):
+				return value
+
 			exists = self.link_exists(value, df)
 			if not exists:
 				msg = _('"{0}" is not a valid {1}').format(
