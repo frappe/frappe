@@ -895,7 +895,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 					reqd: 1,
 				},
 			],
-			hide_open_grid_form_on_hide: !grid_form,
+			keep_grid_form_open: !!grid_form,
 			primary_action_label: __("Go"),
 			primary_action: ({ fieldname }) => {
 				dialog.hide();
