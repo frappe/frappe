@@ -27,11 +27,6 @@ class RealtimeConfig:
 	uds: str | None = None
 	default_site: str | None = None
 
-	@property
-	def bind(self) -> str | int:
-		"""UDS path if set, else the TCP port — what the WSGIServer listens on."""
-		return self.uds or self.port
-
 
 def get_config(sites_path: str | None = None) -> RealtimeConfig:
 	"""Build the realtime config from common_site_config.json."""
