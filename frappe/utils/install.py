@@ -55,11 +55,12 @@ def after_install():
 
 	add_standard_navbar_items()
 
+	# standard notification types (must precede templates: the Notification
+	# `notification_type` field defaults to "Alert", so templates link to it)
+	install_notification_types()
+
 	# default templates
 	install_notification_templates()
-
-	# standard notification types
-	install_notification_types()
 
 	frappe.db.commit()
 
