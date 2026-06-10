@@ -103,9 +103,9 @@ registerFieldType("Dynamic Link", DynamicLinkField);
 
 registerFieldType("Geolocation", GeolocationField);
 
-// `Button` carries no value: its click surfaces through `FormLayout`'s `@change`
-// seam (see ButtonField). The host dispatches on `fieldname` like CRM's
-// `triggerButton`; apps can register a richer override.
+// `Button` carries no value: its click rides the node's `ui.on.click` (schema- or
+// decorate-supplied — see ButtonField). An undecorated Button is inert; apps can
+// also register a richer override for the fieldtype.
 registerFieldType("Button", ButtonField);
 
 // Grid cells reuse this same registry, so app field overrides apply inside too.

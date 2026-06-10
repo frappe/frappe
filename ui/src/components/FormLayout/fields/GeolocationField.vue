@@ -436,8 +436,9 @@ function fitMap() {
 
 // ─── Actions ─────────────────────────────────────────────────────────────────
 
-// A save/clear is a commit (like the picker fields): sync the value AND fire
-// the change trigger so FormLayout's `@change` runs.
+// A save/clear is a commit (like the picker fields): sync the value AND emit the
+// field's `change`, which the node's `ui.on.change` catches (and the grid `commit`
+// in a cell). `FormLayout` itself emits nothing.
 function saveLocation() {
 	if (!editableLayers) {
 		showModal.value = false;

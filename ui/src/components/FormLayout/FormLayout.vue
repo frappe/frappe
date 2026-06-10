@@ -33,13 +33,15 @@ import type { ComponentPublicInstance } from "vue";
 import FormLayoutSection from "./FormLayoutSection.vue";
 import { useFieldTypes } from "./useFieldTypes";
 import { resolveLayout } from "./resolveLayout";
-import { CommitKey, DocKey, HasTabsKey, ParentDocKey, ResolveFieldKey, UpdateKey } from "./types";
+import { DocKey, HasTabsKey, ParentDocKey, ResolveFieldKey, UpdateKey } from "./types";
 import type { FormLayoutSchema } from "./types";
 
 const props = defineProps<{ layout: FormLayoutSchema }>();
 
+// `FormLayout` is render-only and emits nothing: its sole outward channel is
+// `v-model:doc`. A consumer that wants "react to any change" uses `watch(doc, …)`;
+// per-field actions/side-effects are baked into the layout via `field.ui.on`.
 const doc = defineModel<Record<string, any>>("doc", { required: true });
-const emit = defineEmits<{ change: [fieldname: string, value: any] }>();
 
 const tabIndex = ref(0);
 
@@ -79,16 +81,10 @@ function update(fieldname: string, value: any) {
 	doc.value[fieldname] = value;
 }
 
-// Commit on blur/selection — the seam for field-change scripting; surfaces `@change`.
-function commit(fieldname: string, value: any) {
-	emit("change", fieldname, value);
-}
-
 const { resolve } = useFieldTypes();
 
 provide(DocKey, doc);
 provide(UpdateKey, update);
-provide(CommitKey, commit);
 provide(ResolveFieldKey, resolve);
 provide(HasTabsKey, hasTabs);
 </script>

@@ -17,16 +17,24 @@
 					class="flex w-full items-center justify-center"
 				>
 					<component
-						:is="resolveField(cellField(column.fieldname, row).fieldtype)"
+						:is="
+							cellField(column.fieldname, row).ui?.component ??
+							resolveField(cellField(column.fieldname, row).fieldtype)
+						"
 						:field="cellField(column.fieldname, row)"
 						:modelValue="value"
 						:row="row"
 						@update:modelValue="update"
 						@change="commit"
+						v-bind="cellField(column.fieldname, row).ui?.props"
+						v-on="cellListeners(cellField(column.fieldname, row), row)"
 					/>
 				</div>
 				<component
-					:is="resolveField(cellField(column.fieldname, row).fieldtype)"
+					:is="
+						cellField(column.fieldname, row).ui?.component ??
+						resolveField(cellField(column.fieldname, row).fieldtype)
+					"
 					v-else
 					class="w-full"
 					:field="cellField(column.fieldname, row)"
@@ -34,6 +42,8 @@
 					:row="row"
 					@update:modelValue="update"
 					@change="commit"
+					v-bind="cellField(column.fieldname, row).ui?.props"
+					v-on="cellListeners(cellField(column.fieldname, row), row)"
 				/>
 			</template>
 			<template v-else>
@@ -47,18 +57,13 @@
 	<!-- Row-edit: render the full row as a FormLayout form (Grid only emits `edit`). -->
 	<Dialog v-model="showEdit" :options="{ title: dialogTitle, size: '3xl' }">
 		<template #body-content>
-			<FormLayout
-				v-if="editIndex !== null"
-				v-model:doc="editDoc"
-				:layout="editLayout"
-				@change="commitEdit"
-			/>
+			<FormLayout v-if="editIndex !== null" v-model:doc="editDoc" :layout="editLayout" />
 		</template>
 	</Dialog>
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, inject, provide, ref } from "vue";
+import { computed, defineAsyncComponent, inject, provide, ref, watch } from "vue";
 import { Dialog } from "frappe-ui";
 import { Grid } from "../../Grid";
 import type { GridColumn } from "../../Grid";
@@ -68,7 +73,7 @@ import { DocKey, ParentDocKey, ResolveFieldKey } from "../types";
 import type {
 	FieldComponentEmits,
 	FieldComponentProps,
-	FieldMeta,
+	FieldNode,
 	FormLayoutSchema,
 } from "../types";
 
@@ -98,14 +103,14 @@ function alignFor(fieldtype: string): GridColumn["align"] {
 	return undefined;
 }
 
-const columns = computed<(FieldMeta & Pick<GridColumn, "align">)[]>(() =>
+const columns = computed<(FieldNode & Pick<GridColumn, "align">)[]>(() =>
 	(props.field.childFields ?? []).map((c) => ({ ...c, align: alignFor(c.fieldtype) }))
 );
 
 // Label-less copies keyed by fieldname: the header already shows the label, so cells
 // drop it (else every control repeats the heading). Keyed because the Grid slot hands
 // back a minimal column shape, not the full FieldMeta.
-const cellFields = computed<Record<string, FieldMeta>>(() =>
+const cellFields = computed<Record<string, FieldNode>>(() =>
 	Object.fromEntries(
 		columns.value.map((c) => [c.fieldname, { ...c, label: undefined, description: undefined }])
 	)
@@ -114,9 +119,28 @@ const cellFields = computed<Record<string, FieldMeta>>(() =>
 // Resolve the cell's conditionals against `row` (doc) and the table's doc (parent, so
 // `eval:parent.x` reaches it). Reactive, so the cell re-resolves on in-place edits.
 // A read-only table forces every cell read-only (only ever adds, never lifts it).
-function cellField(fieldname: string, row: Record<string, any>): FieldMeta {
+function cellField(fieldname: string, row: Record<string, any>): FieldNode {
 	const f = resolveFieldConditionals(cellFields.value[fieldname], row, parentDoc?.value ?? row);
 	return props.field.readOnly ? { ...f, readOnly: true } : f;
+}
+
+// Bind the node's `ui.on` handlers onto the cell, injecting the row as a trailing
+// arg (`on.click(event, row)` / `on.change(value, row)`) — top-level fields get no
+// row, so the convention is back-compatible. Composed handler arrays all fire.
+// Returned alongside the grid's own `@change`/`@update:modelValue`; Vue merges
+// same-event listeners so both the row-write and any `ui.on.change` run.
+function cellListeners(
+	field: FieldNode,
+	row: Record<string, any>
+): Record<string, (...args: any[]) => void> {
+	const on = field.ui?.on;
+	if (!on) return {};
+	const bound: Record<string, (...args: any[]) => void> = {};
+	for (const [event, handler] of Object.entries(on)) {
+		const handlers = Array.isArray(handler) ? handler : [handler];
+		bound[event] = (...args: any[]) => handlers.forEach((h) => h(...args, row));
+	}
+	return bound;
 }
 
 // Center compact controls at natural size (a full-width checkbox/rating looks broken).
@@ -169,16 +193,32 @@ function readOnlyLayout(schema: FormLayoutSchema): FormLayoutSchema {
 }
 
 function openEdit({ index }: { row: Record<string, any>; index: number }) {
+	// Seeding the clone reassigns `editDoc`, which would trip the write-back watch
+	// (a no-op echo of the unedited row that needlessly churns the row's identity
+	// and emits a phantom change). Suppress that one open-time fire.
+	skipWriteBack = true;
 	editDoc.value = { ...rows.value[index] };
 	editIndex.value = index;
 }
 
-// On field commit, write the working copy back into the row.
-function commitEdit() {
-	if (editIndex.value === null) return;
-	const next = rows.value.slice();
-	next[editIndex.value] = { ...editDoc.value };
-	emit("update:modelValue", next);
-	emit("change", next);
-}
+// Write the working copy back into the row. `FormLayout` emits nothing now, so we
+// watch the dialog's reactive doc (deep) instead of an `@change` event; the doc
+// syncs live, so this writes back as the user edits (vs. the old commit-only
+// `@change`), flowing through the same `update:modelValue`/`change` the grid expects.
+let skipWriteBack = false;
+watch(
+	editDoc,
+	() => {
+		if (editIndex.value === null) return;
+		if (skipWriteBack) {
+			skipWriteBack = false;
+			return;
+		}
+		const next = rows.value.slice();
+		next[editIndex.value] = { ...editDoc.value };
+		emit("update:modelValue", next);
+		emit("change", next);
+	},
+	{ deep: true }
+);
 </script>
