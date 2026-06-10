@@ -429,7 +429,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				this.show_jump_to_field_dialog();
 			},
 			true,
-			"Ctrl+J"
+			{ shortcut: "Ctrl+J", ignore_inputs: true }
 		);
 	}
 
@@ -876,7 +876,11 @@ frappe.ui.form.Toolbar = class Toolbar {
 			!f.df.hidden &&
 			f.disp_status !== "None";
 
-		let fields = this.frm.fields
+		// if a child table row is open in the detail editor, search its fields instead
+		let grid_row = this.frm.open_grid_row();
+		let grid_form = grid_row?.grid_form;
+
+		let fields = (grid_form ? grid_form.layout.fields_list : this.frm.fields)
 			.filter(visible_fields_filter)
 			.map((f) => ({ label: __(f.df.label), value: f.df.fieldname }));
 
@@ -891,15 +895,64 @@ frappe.ui.form.Toolbar = class Toolbar {
 					reqd: 1,
 				},
 			],
+			keep_grid_form_open: !!grid_form,
 			primary_action_label: __("Go"),
 			primary_action: ({ fieldname }) => {
 				dialog.hide();
-				this.frm.scroll_to_field(fieldname);
+				if (grid_form) {
+					this.scroll_to_grid_field(grid_form, fieldname);
+				} else {
+					this.frm.scroll_to_field(fieldname);
+				}
 			},
 			animate: false,
 		});
 
 		dialog.show();
+	}
+
+	scroll_to_grid_field(grid_form, fieldname, focus = true) {
+		let field = grid_form.fields_dict[fieldname];
+		if (!field) return false;
+
+		let $el = field.$wrapper;
+		if (!$el || !$el.length) return false;
+
+		// set tab as active
+		if (field.tab && !field.tab.is_active()) {
+			field.tab.set_active();
+		}
+
+		// uncollapse section
+		if (field.section?.is_collapsed()) {
+			field.section.collapse(false);
+		}
+
+		// scroll to input
+		let scroll_container = grid_form.wrapper.find(".grid-form-body");
+		frappe.utils.scroll_to(
+			$el,
+			true,
+			15,
+			scroll_container.length ? scroll_container : $(".main-section")
+		);
+
+		// focus if text field
+		if (focus) {
+			setTimeout(() => {
+				$el.find("input, select, textarea").focus();
+			}, 500);
+		}
+
+		// highlight control inside field
+		let control_element = $el.closest(".frappe-control");
+		if (control_element.length) {
+			control_element.addClass("highlight");
+			setTimeout(() => {
+				control_element.removeClass("highlight");
+			}, 2000);
+		}
+		return true;
 	}
 
 	setup_sidebar_toggle(sidebar_wrapper) {
