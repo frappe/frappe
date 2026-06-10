@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-10 09:54\n"
+"PO-Revision-Date: 2026-06-09 07:57\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -2297,7 +2297,7 @@ msgstr "E-pošta za potvrdu vašeg zahtjeva poslana je na vašu adresu e-pošte.
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:312
 msgid "An error occurred while setting Session Defaults"
-msgstr "Došlo je do greške prilikom postavljanja zadanih postavki sesije"
+msgstr "Došlo je do greške prilikom postavljanja Postavki Sesije"
 
 #. Description of the 'FavIcon' (Attach) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -3525,12 +3525,12 @@ msgstr "Neispravan Cron izraz"
 #. Option for the 'Rounding Method' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Banker's Rounding"
-msgstr "Bankarsko zaokruživanje"
+msgstr "Bankovno Zaokruživanje"
 
 #. Option for the 'Rounding Method' (Select) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Banker's Rounding (legacy)"
-msgstr "Bankarsko zaokruživanje (zastarjelo)"
+msgstr "Bankovno Zaokruživanje (zastarjelo)"
 
 #. Label of a Section Break field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -23959,7 +23959,7 @@ msgstr "Sesija zadano"
 #. Name of a DocType
 #: frappe/core/doctype/session_default_settings/session_default_settings.json
 msgid "Session Default Settings"
-msgstr "Zadane postavke sesije"
+msgstr "Standard Postavke Sesije"
 
 #. Label of a standard navbar item
 #. Type: Action
@@ -23967,11 +23967,11 @@ msgstr "Zadane postavke sesije"
 #: frappe/core/doctype/session_default_settings/session_default_settings.json
 #: frappe/hooks.py frappe/public/js/frappe/ui/toolbar/toolbar.js:321
 msgid "Session Defaults"
-msgstr "Sesije zadano"
+msgstr "Postavke Sesije"
 
 #: frappe/public/js/frappe/ui/toolbar/toolbar.js:306
 msgid "Session Defaults Saved"
-msgstr "Zadane postavke sesije su spremljene"
+msgstr "Postavke Sesije Spremljene"
 
 #: frappe/app.py:352
 msgid "Session Expired"
@@ -30760,7 +30760,7 @@ msgstr "Vaš PDF je spreman za preuzimanje"
 
 #: frappe/patches/v14_0/update_workspace2.py:34
 msgid "Your Shortcuts"
-msgstr "Vaše prečice"
+msgstr "Prečice"
 
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:141
 #: frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:147

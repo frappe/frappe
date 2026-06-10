@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-22 13:13\n"
+"PO-Revision-Date: 2026-06-09 07:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -1012,17 +1012,17 @@ msgstr "Il reste environ {0} secondes"
 
 #: frappe/templates/emails/user_invitation.html:16
 msgid "Accept Invitation"
-msgstr ""
+msgstr "Accepter l'invitation"
 
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted"
-msgstr ""
+msgstr "Accepté"
 
 #. Label of a Datetime field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Accepted At"
-msgstr ""
+msgstr "Accepté le"
 
 #. Label of a Section Break field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json
@@ -1501,7 +1501,7 @@ msgstr "Ajouter un script pour la table enfant"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:111
 msgid "Add section above"
-msgstr "Ajouter une section au-dessus"
+msgstr ""
 
 #: frappe/public/js/form_builder/components/Section.vue:265
 msgid "Add section below"
@@ -6856,7 +6856,7 @@ msgstr "Version de la base de données"
 #: frappe/public/js/frappe/views/interaction.js:80
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Date"
-msgstr ""
+msgstr "Date"
 
 #. Label of a Select field in DocType 'System Settings'
 #. Label of a Data field in DocType 'Country'
@@ -9680,7 +9680,7 @@ msgstr "Fréquence de l'événement"
 #. Name of a DocType
 #: frappe/desk/doctype/event_notifications/event_notifications.json
 msgid "Event Notifications"
-msgstr ""
+msgstr "Notifications d'événement"
 
 #. Label of a Table field in DocType 'Event'
 #. Name of a DocType
@@ -13763,7 +13763,7 @@ msgstr "Inviter en tant qu'Utilisateur"
 #. Label of a Link field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
 msgid "Invited By"
-msgstr ""
+msgstr "Invité par"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:22
 msgid "Is"
@@ -13844,7 +13844,7 @@ msgstr "Est Global"
 
 #: frappe/public/js/frappe/views/treeview.js:384
 msgid "Is Group"
-msgstr ""
+msgstr "Est un groupe"
 
 #. Label of a Check field in DocType 'Workspace'
 #: frappe/desk/doctype/workspace/workspace.json
@@ -14498,7 +14498,7 @@ msgstr "30 derniers jours"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:650
 msgid "Last 6 Months"
-msgstr ""
+msgstr "6 derniers mois"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:622
 msgid "Last 7 Days"
@@ -15841,7 +15841,7 @@ msgstr "Maximum {0} lignes autorisés"
 #: frappe/desk/doctype/event/event.json
 #: frappe/desk/doctype/event_participants/event_participants.json
 msgid "Maybe"
-msgstr ""
+msgstr "Peut-être"
 
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:221
 msgid "Me"
@@ -16195,7 +16195,7 @@ msgstr "N° Mobile"
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/web_form/edit_profile/edit_profile.json
 msgid "Mobile Number"
-msgstr ""
+msgstr "Numéro de mobile"
 
 #. Label of a Check field in DocType 'Form Tour Step'
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json
@@ -17007,7 +17007,7 @@ msgstr "30 prochains jours"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:702
 msgid "Next 6 Months"
-msgstr ""
+msgstr "6 prochains mois"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:678
 msgid "Next 7 Days"
@@ -17039,11 +17039,11 @@ msgstr "Visite du formulaire suivante"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:694
 msgid "Next Month"
-msgstr ""
+msgstr "Mois prochain"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:698
 msgid "Next Quarter"
-msgstr ""
+msgstr "Prochain trimestre"
 
 #. Label of a Date field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -17073,11 +17073,11 @@ msgstr "Jeton de synchronisation suivant"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:690
 msgid "Next Week"
-msgstr ""
+msgstr "Semaine prochaine"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:706
 msgid "Next Year"
-msgstr ""
+msgstr "Année prochaine"
 
 #: frappe/public/js/frappe/form/workflow.js:45
 msgid "Next actions"
@@ -21205,7 +21205,7 @@ msgstr "Date de référence"
 #. Label of a Dynamic Link field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json
 msgid "Reference Doc"
-msgstr ""
+msgstr "Document de référence"
 
 #. Label of a Data field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json
@@ -24715,7 +24715,7 @@ msgstr "Inscriptions"
 #: frappe/email/doctype/email_account/email_account.json
 #: frappe/website/doctype/web_form_field/web_form_field.json
 msgid "Signature"
-msgstr ""
+msgstr "Signature"
 
 #: frappe/www/login.html:167
 msgid "Signup Disabled"
@@ -26801,7 +26801,7 @@ msgstr "Ce Tableau Kanban sera privé"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:664
 msgid "This Month"
-msgstr ""
+msgstr "Ce mois-ci"
 
 #: frappe/core/doctype/file/file.py:382
 msgid "This PDF cannot be uploaded as it contains unsafe content."
@@ -26809,15 +26809,15 @@ msgstr "Ce PDF ne peut pas être téléversé car il contient du contenu non sé
 
 #: frappe/public/js/frappe/ui/filters/filter.js:668
 msgid "This Quarter"
-msgstr ""
+msgstr "Ce trimestre"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:660
 msgid "This Week"
-msgstr ""
+msgstr "Cette semaine"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:672
 msgid "This Year"
-msgstr ""
+msgstr "Cette année"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:220
 msgid "This action is irreversible. Do you wish to continue?"
@@ -27559,7 +27559,7 @@ msgstr "Le Jeton est manquant"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:737
 msgid "Tomorrow"
-msgstr ""
+msgstr "Demain"
 
 #: frappe/desk/doctype/bulk_update/bulk_update.py:70
 #: frappe/model/workflow.py:253
@@ -27657,7 +27657,7 @@ msgstr "Sujet"
 #: frappe/public/js/frappe/views/reports/query_report.js:1258
 #: frappe/public/js/frappe/views/reports/report_view.js:1554
 msgid "Total"
-msgstr ""
+msgstr "Total"
 
 #. Label of a Int field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -30224,7 +30224,7 @@ msgstr "Oui"
 
 #: frappe/public/js/frappe/ui/filters/filter.js:725
 msgid "Yesterday"
-msgstr ""
+msgstr "Hier"
 
 #: frappe/public/js/frappe/utils/user.js:33
 msgctxt "Name of the current user. For example: You edited this 5 hours ago."
