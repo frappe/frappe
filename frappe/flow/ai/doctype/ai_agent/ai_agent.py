@@ -112,6 +112,8 @@ class AIAgent(Document):
 		session: str | None = None,
 		source: str = "Manual",
 		trigger: str | None = None,
+		reference_doctype: str | None = None,
+		reference_name: str | None = None,
 		stream: bool = False,
 	) -> AIRun | Generator[Event]:
 		"""Run `input` and persist as an AI Run. Convenience wrapper over the session API:
@@ -119,7 +121,14 @@ class AIAgent(Document):
 		from flow.lib.session import load_session, new_session
 
 		convo = load_session(session, agent=self.name) if session else new_session(self)
-		return convo.chat(input, source=source, trigger=trigger, stream=stream)
+		return convo.chat(
+			input,
+			source=source,
+			trigger=trigger,
+			reference_doctype=reference_doctype,
+			reference_name=reference_name,
+			stream=stream,
+		)
 
 	def _snapshot(self, *, model: str | None = None) -> dict[str, Any]:
 		return {

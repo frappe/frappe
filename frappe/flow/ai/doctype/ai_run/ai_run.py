@@ -48,6 +48,8 @@ class AIRun(Document):
 		iterations: DF.Int
 		output: DF.LongText | None
 		questions: DF.JSON | None
+		reference_doctype: DF.Link | None
+		reference_name: DF.DynamicLink | None
 		session: DF.Link
 		source: DF.Literal["Manual", "Trigger"]
 		status: DF.Literal["Running", "Paused", "Completed", "Failed"]
@@ -112,6 +114,8 @@ def create_run(
 	input: str | None,
 	session: str,
 	trigger: str | None = None,
+	reference_doctype: str | None = None,
+	reference_name: str | None = None,
 	config_snapshot: dict[str, Any] | None = None,
 ) -> AIRun:
 	"""Create a new AI Run row in the Running state. `session` is required — every run
@@ -122,6 +126,8 @@ def create_run(
 			"source": source,
 			"input": input,
 			"trigger": trigger,
+			"reference_doctype": reference_doctype,
+			"reference_name": reference_name,
 			"session": session,
 			"config_snapshot": _dump_json(config_snapshot) if config_snapshot else None,
 			"status": "Running",
@@ -137,6 +143,8 @@ def persist_result(
 	input: str | None,
 	session: str,
 	trigger: str | None = None,
+	reference_doctype: str | None = None,
+	reference_name: str | None = None,
 	config_snapshot: dict[str, Any] | None = None,
 ) -> AIRun:
 	"""Convenience: create a row and immediately apply a finished RunResult."""
@@ -145,6 +153,8 @@ def persist_result(
 		input=input,
 		session=session,
 		trigger=trigger,
+		reference_doctype=reference_doctype,
+		reference_name=reference_name,
 		config_snapshot=config_snapshot,
 	)
 	doc.apply_result(result)

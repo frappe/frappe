@@ -104,6 +104,8 @@ class AISession(Document):
 		*,
 		source: str = "Manual",
 		trigger: str | None = None,
+		reference_doctype: str | None = None,
+		reference_name: str | None = None,
 		stream: bool = False,
 	) -> AIRun | Generator[Event]:
 		"""Run one turn and persist it as an AI Run. With `stream=True`, returns an event generator."""
@@ -120,6 +122,8 @@ class AISession(Document):
 			input=input,
 			session=self.name,
 			trigger=trigger,
+			reference_doctype=reference_doctype,
+			reference_name=reference_name,
 			config_snapshot=self._snapshot,
 		)
 
