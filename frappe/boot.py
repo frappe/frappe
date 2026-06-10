@@ -456,24 +456,6 @@ def get_sidebar_items(allowed_workspaces):
 				"tab": item.navigate_to_tab,
 				"open_in_new_tab": item.open_in_new_tab,
 			}
-<<<<<<< HEAD
-			for item in sidebar_doc.items:
-				workspace_sidebar = {
-					"label": _(item.label),
-					"link_to": item.link_to,
-					"link_type": item.link_type,
-					"type": item.type,
-					"icon": item.icon,
-					"child": item.child,
-					"collapsible": item.collapsible,
-					"indent": item.indent,
-					"keep_closed": item.keep_closed,
-					"url": item.url,
-					"show_arrow": item.show_arrow,
-					"filters": item.filters,
-					"route_options": item.route_options,
-					"tab": item.navigate_to_tab,
-=======
 			if (
 				item.link_type == "Report"
 				and item.link_to
@@ -486,7 +468,6 @@ def get_sidebar_items(allowed_workspaces):
 				workspace_sidebar["report"] = {
 					"report_type": report_type,
 					"ref_doctype": ref_doctype,
->>>>>>> 2b82c03960 (fix: remove module check for workspace sidebars)
 				}
 			if (
 				is_my_workspaces
