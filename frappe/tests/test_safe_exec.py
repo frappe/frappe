@@ -2,7 +2,7 @@ import types
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils.jinja import get_jenv
+from frappe.utils.jinja import get_jenv, render_template
 from frappe.utils.safe_exec import ServerScriptNotEnabled, get_safe_globals, safe_exec
 
 
@@ -75,6 +75,16 @@ class TestSafeExec(IntegrationTestCase):
 	def test_safe_query_builder(self):
 		self.assertRaises(frappe.PermissionError, safe_exec, """frappe.qb.from_("User").delete().run()""")
 
+	def test_safe_query_builder_in_render(self):
+		self.assertRaises(
+			frappe.PermissionError,
+			render_template,
+			""" {{ frappe.qb.from_("User").delete().run() }} """,
+		)
+
+		# Allowed read query
+		frappe.render_template(""" {{ frappe.qb.from_("User").select("*").run() }} """)
+
 	def test_call(self):
 		# call non whitelisted method
 		self.assertRaises(frappe.PermissionError, safe_exec, """frappe.call("frappe.get_user")""")
@@ -142,3 +152,21 @@ class TestJinjaGlobals(IntegrationTestCase):
 		self.assertIsNot(first.filters, second.filters)
 		self.assertIsNot(first.globals["frappe"], second.globals["frappe"])
 		self.assertIsNot(first.globals["frappe"]["form_dict"], second.globals["frappe"]["form_dict"])
+
+	def test_globals_override(self):
+		"""Test that when restrict_globals is parsed, the correct globals are injected."""
+		from frappe.utils.safe_exec import FrappeClient, safe_get_all
+
+		jenv_restricted = get_jenv(restrict_globals=True)
+		self.assertIs(jenv_restricted.globals["frappe"]["get_all"], safe_get_all)
+		with self.assertRaises(KeyError):
+			jenv_restricted.globals["FrappeClient"]
+
+		jenv_unrestricted = get_jenv(restrict_globals=False)
+		self.assertIs(jenv_unrestricted.globals["frappe"]["get_all"], frappe.get_all)
+		self.assertIs(jenv_unrestricted.globals["FrappeClient"], FrappeClient)  # test exclusivity
+
+		self.assertIsNot(jenv_restricted, jenv_unrestricted)  # globals cache check
+		self.assertIsNot(jenv_restricted.globals, jenv_unrestricted.globals)
+		self.assertIs(get_jenv(restrict_globals=True), jenv_restricted)
+		self.assertIs(get_jenv(restrict_globals=False), jenv_unrestricted)

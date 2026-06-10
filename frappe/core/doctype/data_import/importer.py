@@ -615,7 +615,7 @@ class ImportFile:
 		if extension == "csv":
 			data = read_csv_content(content, use_sniffer=self.use_sniffer)
 		elif extension == "xlsx":
-			data = read_xlsx_file_from_attached_file(fcontent=content)
+			data = read_xlsx_file_from_attached_file(fcontent=content, read_only=True)
 		elif extension == "xls":
 			data = read_xls_file_from_attached_file(content)
 		return data
