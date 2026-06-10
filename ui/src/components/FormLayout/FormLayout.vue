@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import { Tabs } from "frappe-ui";
-import { computed, inject, provide, ref } from "vue";
+import { computed, inject, provide, ref, watch } from "vue";
 import type { ComponentPublicInstance } from "vue";
 import FormLayoutSection from "./FormLayoutSection.vue";
 import { useFieldTypes } from "./useFieldTypes";
@@ -63,6 +63,13 @@ const visibleTabs = computed(() =>
 			sections: tab.sections.filter((section) => !section.hidden),
 		}))
 );
+
+// A `depends_on` tab can disappear while the user is on it, leaving `tabIndex`
+// pointing past the end so `Tabs` renders nothing (blank form). Clamp it back
+// into range when the visible set shrinks.
+watch(visibleTabs, (tabs) => {
+	if (tabIndex.value >= tabs.length) tabIndex.value = Math.max(0, tabs.length - 1);
+});
 
 const hasTabs = computed(
 	() =>
