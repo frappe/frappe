@@ -76,13 +76,9 @@ login.bind_events = function () {
 
 	$(".toggle-password").click(function () {
 		var input = $($(this).attr("toggle"));
-		if (input.attr("type") == "password") {
-			input.attr("type", "text");
-			$(this).text({{ _("Hide") | tojson }})
-		} else {
-			input.attr("type", "password");
-			$(this).text({{ _("Show") | tojson }})
-		}
+		var isPassword = input.attr("type") == "password";
+		input.attr("type", isPassword ? "text" : "password");
+		$(this).find("use").attr("href", isPassword ? "#es-line-hide" : "#es-line-preview");
 	});
 
 	{% if ldap_settings and ldap_settings.enabled %}
