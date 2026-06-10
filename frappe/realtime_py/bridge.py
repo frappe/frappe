@@ -76,6 +76,9 @@ class RedisBridge:
 			return
 
 		if room:
+			if not ns:
+				logger.warning("Redis bridge skipping room message with no namespace: %r", raw)
+				return
 			self.sio.emit(event, message, room=room, namespace="/" + ns)
 		else:
 			# No room -> broadcast to every connected site namespace (build events).

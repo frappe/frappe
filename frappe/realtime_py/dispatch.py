@@ -84,7 +84,9 @@ def wire(sio: SocketIOServer, config: RealtimeConfig) -> None:
 		sio.save_session(sid, session, namespace=namespace)
 		_run_handlers(sio, "connect", namespace, sid, ())
 
-	def disconnect(namespace: str, sid: str) -> None:
+	def disconnect(namespace: str, sid: str, reason: object | None = None) -> None:
+		# socketio 5.11+ passes a disconnect reason; accept and ignore it so the
+		# handler binds directly instead of relying on the library's TypeError retry.
 		_run_handlers(sio, "disconnect", namespace, sid, ())
 
 	sio.on("connect", connect, namespace="*")
