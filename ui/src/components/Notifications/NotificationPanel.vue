@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { Badge, Button } from 'frappe-ui'
+import { Button, TabButtons } from 'frappe-ui'
+import LucideCheckCheck from '~icons/lucide/check-check'
+import LucideX from '~icons/lucide/x'
 import NotificationItem from './NotificationItem.vue'
 import { useNotifications } from './useNotifications'
 import type { NotificationLog, NotificationPanelProps } from './types'
@@ -19,7 +21,7 @@ const emit = defineEmits<{
   'update:unread-count': [count: number]
 }>()
 
-const activeTab = ref(0)
+const activeTab = ref<string | undefined>(props.tabs?.[0]?.label)
 
 const {
   notifications,
@@ -37,7 +39,9 @@ const {
   socket: props.socket,
 })
 
-const currentTab = computed(() => props.tabs?.[activeTab.value])
+const currentTab = computed(() =>
+  props.tabs?.find((t) => t.label === activeTab.value),
+)
 
 // rows to render: client-side predicate if the active tab defines one
 const visibleNotifications = computed<NotificationLog[]>(() => {
@@ -50,6 +54,18 @@ function tabCount(tab: NonNullable<NotificationPanelProps['tabs']>[number]) {
   if (typeof tab.count === 'function') return tab.count(notifications.value)
   return undefined
 }
+
+// buttons for the frappe-ui TabButtons segmented control. TabButtons has no
+// per-button badge slot, so a non-zero count is surfaced inline in the label.
+const tabButtons = computed(() =>
+  (props.tabs ?? []).map((tab) => {
+    const count = tabCount(tab)
+    return {
+      label: count ? `${tab.label} (${count})` : tab.label,
+      value: tab.label,
+    }
+  }),
+)
 
 // switch server-side filters when the tab changes (the app scope, if any, is preserved)
 watch(activeTab, () => {
@@ -81,7 +97,8 @@ function onMarkAll() {
         <Button
           v-if="showMarkAllRead"
           variant="ghost"
-          label="Mark all as read"
+          tooltip="Mark all as read"
+          :icon="LucideCheckCheck"
           size="sm"
           @click="onMarkAll"
         />
@@ -89,25 +106,20 @@ function onMarkAll() {
           v-if="showClose"
           variant="ghost"
           size="sm"
-          label="Close"
+          tooltip="Close"
+          :icon="LucideX"
           @click="emit('close')"
         />
       </div>
     </slot>
 
     <!-- tabs -->
-    <div v-if="tabs?.length" class="flex items-center gap-1 px-2 border-b">
-      <button
-        v-for="(tab, i) in tabs"
-        :key="tab.label"
-        class="flex items-center gap-2 px-3 py-2 text-sm text-ink-gray-5 border-b-2 border-transparent aria-selected:text-ink-gray-9 aria-selected:border-outline-gray-3"
-        :aria-selected="activeTab === i"
-        @click="activeTab = i"
-      >
-        {{ tab.label }}
-        <Badge v-if="tabCount(tab) !== undefined" :label="String(tabCount(tab))" />
-      </button>
-    </div>
+    <TabButtons
+      v-if="tabs?.length"
+      v-model="activeTab"
+      :buttons="tabButtons"
+      class="px-4 py-2 [&_button]:w-full [&_div]:w-full"
+    />
 
     <!-- body -->
     <div class="flex-1 overflow-y-auto">
