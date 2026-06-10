@@ -166,9 +166,12 @@ def get_custom_vue_components(frappe_app: str) -> list[dict]:
 
 @frappe.whitelist()
 def get_studio_modules(frappe_app: str) -> list[dict]:
-	"""Discover custom JS/TS modules (composables, stores, utilities) under <app>/studio/"""
+	"""Discover custom JS/TS modules (composables, stores, utilities) under <app>/studio/.
+
+	A module's identity is its `module_path` (relative to the app's studio folder) so that
+	same-named files in different folders stay distinct. `module_name` is only a label.
+	"""
 	modules = []
-	seen_names = set()
 
 	studio_folder = frappe.get_app_source_path(frappe_app, "studio")
 	if not os.path.exists(studio_folder):
@@ -177,7 +180,7 @@ def get_studio_modules(frappe_app: str) -> list[dict]:
 	module_extensions = (".js", ".ts")
 	skip_extensions = (".d.ts", ".test.js", ".test.ts", ".spec.js", ".spec.ts")
 
-	for studio_app in os.listdir(studio_folder):
+	for studio_app in sorted(os.listdir(studio_folder)):
 		studio_app_dir = os.path.join(studio_folder, studio_app)
 		if not os.path.isdir(studio_app_dir):
 			continue
@@ -187,22 +190,14 @@ def get_studio_modules(frappe_app: str) -> list[dict]:
 				if not filename.endswith(module_extensions) or filename.endswith(skip_extensions):
 					continue
 
-				module_name = os.path.splitext(filename)[0]
-				if module_name in seen_names:
-					frappe.log_error(
-						title="Studio: Duplicate module",
-						message=f"Module '{module_name}' in {frappe_app}/{studio_app} "
-						f"conflicts with another module. Skipping.",
-					)
-					continue
-
-				seen_names.add(module_name)
+				file_path = os.path.join(dirpath, filename)
 				modules.append(
 					{
-						"module_name": module_name,
+						"module_name": os.path.splitext(filename)[0],
+						"module_path": os.path.relpath(file_path, studio_folder),
 						"frappe_app": frappe_app,
 						"studio_app": studio_app,
-						"file_path": os.path.join(dirpath, filename),
+						"file_path": file_path,
 					}
 				)
 

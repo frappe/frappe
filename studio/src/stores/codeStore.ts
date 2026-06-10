@@ -26,6 +26,9 @@ const useCodeStore = defineStore("codeStore", () => {
 	const clientScriptFunctions = ref<Record<string, Function>>({})
 	// Names of those functions, surfaced to the completion provider
 	const clientScriptFunctionNames = ref<string[]>([])
+	// Module paths imported at the app level (always exposed) and by the active page.
+	const appModulePaths = ref<string[]>([])
+	const pageModulePaths = ref<string[]>([])
 	const routeObject = ref<ComputedRef>()
 	const routerObject = ref<Router | Readonly<Router>>()
 
@@ -186,14 +189,25 @@ const useCodeStore = defineStore("codeStore", () => {
 		}
 	}
 
-	// Studio modules (composables/stores/utilities) exposed by name. Dev/editor uses the
-	// reactive registry; production reads the per-app build's window.__APP_MODULES__.
+	// Studio modules (composables/stores/utilities) exposed by name, strictly scoped to what
+	// the app and the active page import. The registry is grouped by module_path
+	// ({ module_path: { bindingName: value } }) and populated by loadModules() — the same
+	// single source in dev and production.
 	const studioModules = computed(() => {
-		return {
-			...((window as any).__APP_MODULES__ || {}),
-			...studioModulesRegistry.value,
+		const exposed: Record<string, any> = {}
+		for (const path of new Set([...appModulePaths.value, ...pageModulePaths.value])) {
+			Object.assign(exposed, studioModulesRegistry.value[path] || {})
 		}
+		return exposed
 	})
+
+	function setAppModulePaths(paths: string[]) {
+		appModulePaths.value = paths || []
+	}
+
+	function setPageModulePaths(paths: string[]) {
+		pageModulePaths.value = paths || []
+	}
 
 	const globalContext = computed(() => {
 		return {
@@ -587,6 +601,8 @@ const useCodeStore = defineStore("codeStore", () => {
 		setPageClientScripts,
 		// modules
 		studioModules,
+		setAppModulePaths,
+		setPageModulePaths,
 		// code execution
 		globalContext,
 		globalExecutionContext,

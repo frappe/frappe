@@ -17,8 +17,8 @@ import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
 import { registerCustomVueComponents, unregisterCustomVueComponents } from "@/globals"
-import { registerStudioModules, unregisterStudioModules } from "@/data/studioModules"
-import type { StudioModuleMeta } from "@/types/StudioModule"
+import { registerStudioModules, unregisterStudioModules, loadModules } from "@/data/studioModules"
+import type { StudioModuleMeta, StudioModuleImport } from "@/types/StudioModule"
 import { setCustomComponentFilePaths } from "@/utils/components"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
@@ -60,6 +60,9 @@ const useStudioStore = defineStore("store", () => {
 		await setAppPages(appName)
 		await setCustomComponents()
 		await setStudioModules()
+		const appModulePaths = (appDoc.modules || []).map((m: StudioModuleImport) => m.module_path)
+		codeStore.setAppModulePaths(appModulePaths)
+		await loadModules(appModulePaths)
 	}
 
 	async function deleteApp(appName: string, appTitle: string) {
@@ -162,6 +165,9 @@ const useStudioStore = defineStore("store", () => {
 		settingPage.value = true
 		const page = await fetchPage(pageName)
 		activePage.value = page
+		const pageModulePaths = (page.modules || []).map((m: StudioModuleImport) => m.module_path)
+		codeStore.setPageModulePaths(pageModulePaths)
+		await loadModules(pageModulePaths)
 		await setPageData(page)
 		await codeStore.setPageClientScripts(page)
 		await codeStore.setPageWatchers(page)

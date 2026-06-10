@@ -68,11 +68,14 @@ class StudioApp(WebsiteGenerator):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from studio.studio.doctype.studio_module_import.studio_module_import import StudioModuleImport
+
 		app_home: DF.Link | None
 		app_name: DF.Data | None
 		app_title: DF.Data
 		frappe_app: DF.Literal[None]
 		is_standard: DF.Check
+		modules: DF.Table[StudioModuleImport]
 		published: DF.Check
 		route: DF.Data | None
 	# end: auto-generated types

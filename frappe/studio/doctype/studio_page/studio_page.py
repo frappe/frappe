@@ -18,6 +18,7 @@ class StudioPage(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from studio.studio.doctype.studio_module_import.studio_module_import import StudioModuleImport
 		from studio.studio.doctype.studio_page_client_script.studio_page_client_script import (
 			StudioPageClientScript,
 		)
@@ -30,6 +31,7 @@ class StudioPage(Document):
 		draft_blocks: DF.LongText | None
 		frappe_app: DF.Literal[None]
 		is_standard: DF.Check
+		modules: DF.Table[StudioModuleImport]
 		page_name: DF.Data | None
 		page_title: DF.Data | None
 		published: DF.Check

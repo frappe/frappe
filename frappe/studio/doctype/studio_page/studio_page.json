@@ -22,6 +22,7 @@
   "watchers",
   "section_break_fmxt",
   "client_scripts",
+  "modules",
   "export_tab",
   "is_standard",
   "frappe_app"
@@ -109,6 +110,12 @@
    "fieldtype": "Table MultiSelect",
    "label": "Client Scripts",
    "options": "Studio Page Client Script"
+  },
+  {
+   "fieldname": "modules",
+   "fieldtype": "Table",
+   "label": "Modules",
+   "options": "Studio Module Import"
   },
   {
    "fieldname": "watchers",

@@ -97,6 +97,25 @@
 			</div>
 		</CollapsibleSection>
 		<ScriptPanel :page="page" />
+		<template v-if="store.activeApp?.frappe_app">
+			<ModulesPanel
+				v-if="store.activePage"
+				class="p-4 pt-0"
+				scope="page"
+				parentDoctype="Studio Page"
+				:parentName="store.activePage.name"
+				:frappeApp="store.activeApp.frappe_app"
+				:key="`page-modules-${store.selectedPage ?? ''}`"
+			/>
+			<ModulesPanel
+				class="p-4 pt-0"
+				scope="app"
+				parentDoctype="Studio App"
+				:parentName="store.activeApp.name"
+				:frappeApp="store.activeApp.frappe_app"
+				:key="`app-modules-${store.activeApp.name}`"
+			/>
+		</template>
 	</div>
 </template>
 

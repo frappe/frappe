@@ -11,6 +11,7 @@
   "route",
   "column_break_aroi",
   "app_home",
+  "modules",
   "export_section",
   "is_standard",
   "frappe_app"
@@ -32,6 +33,12 @@
    "fieldtype": "Link",
    "label": "App Home",
    "options": "Studio Page"
+  },
+  {
+   "fieldname": "modules",
+   "fieldtype": "Table",
+   "label": "Modules",
+   "options": "Studio Module Import"
   },
   {
    "fieldname": "app_name",

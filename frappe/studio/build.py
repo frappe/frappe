@@ -21,7 +21,7 @@ class StudioAppBuilder:
 		self.components = set(DEFAULT_COMPONENTS)
 		self.studio_component_blocks = {}
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
-		self.studio_modules: dict[str, str] = {}  # {module_name: absolute_path}
+		self.studio_modules: list[dict] = []  # [{module_path, module_name, file_path}]
 
 		if self.is_standard:
 			"""Build a standard (exported) studio app.
@@ -43,33 +43,81 @@ class StudioAppBuilder:
 			self.get_app_components_from_files()
 		else:
 			self.get_app_components()
-		self.get_studio_modules_from_files()
+		self.get_studio_modules()
 		self._run_vite_build()
 
-	def get_studio_modules_from_files(self):
-		"""Discover custom JS/TS modules (composables/stores/utilities) to bundle into the build."""
+	def get_studio_modules(self):
+		"""Collect only the modules attached to this app (app-scope) or its published pages
+		(page-scope), so the build bundles just what's imported. Prefer the DB (authoritative)
+		and fall back to exported JSON files when there's no DB access (e.g. `bench build`).
+		"""
 		if not self.frappe_app:
 			return
 
+		if frappe.db and frappe.db.exists("Studio App", self.app_name):
+			module_paths = self._attached_module_paths_from_db()
+		else:
+			module_paths = self._attached_module_paths_from_files()
+
+		for module_path in sorted(module_paths):
+			resolved = self._resolve_module(module_path)
+			if resolved:
+				self.studio_modules.append(resolved)
+
+	def _attached_module_paths_from_db(self) -> set[str]:
+		paths = set()
+		app = frappe.get_doc("Studio App", self.app_name)
+		paths.update(row.module_path for row in (app.modules or []))
+
+		pages = frappe.get_all(
+			"Studio Page", filters={"studio_app": self.app_name, "published": 1}, pluck="name"
+		)
+		if pages:
+			paths.update(
+				frappe.get_all(
+					"Studio Module Import",
+					filters={"parenttype": "Studio Page", "parent": ["in", pages]},
+					pluck="module_path",
+				)
+			)
+		return {p for p in paths if p}
+
+	def _attached_module_paths_from_files(self) -> set[str]:
 		studio_folder = get_studio_folder(self.frappe_app)
-		if not studio_folder or not os.path.exists(studio_folder):
-			return
+		if not studio_folder:
+			return set()
 
-		module_extensions = (".js", ".ts")
-		skip_extensions = (".d.ts", ".test.js", ".test.ts", ".spec.js", ".spec.ts")
-		for studio_app in os.listdir(studio_folder):
-			app_dir = os.path.join(studio_folder, studio_app)
-			if not os.path.isdir(app_dir):
-				continue
+		app_folder = os.path.join(studio_folder, self.app_name)
+		paths = self._module_paths_from_json(os.path.join(app_folder, f"{self.app_name}.json"))
 
-			for dirpath, _dirnames, filenames in os.walk(app_dir):
-				for filename in sorted(filenames):
-					if not filename.endswith(module_extensions) or filename.endswith(skip_extensions):
-						continue
-					module_name = os.path.splitext(filename)[0]
-					if module_name in self.studio_modules:
-						continue
-					self.studio_modules[module_name] = os.path.join(dirpath, filename)
+		page_folder = os.path.join(app_folder, "studio_page")
+		if os.path.isdir(page_folder):
+			for page_file in os.listdir(page_folder):
+				if page_file.endswith(".json"):
+					paths |= self._module_paths_from_json(os.path.join(page_folder, page_file))
+		return paths
+
+	def _module_paths_from_json(self, json_path: str) -> set[str]:
+		try:
+			with open(json_path) as f:
+				data = json.load(f)
+		except (OSError, json.JSONDecodeError):
+			return set()
+		return {m.get("module_path") for m in (data.get("modules") or []) if m.get("module_path")}
+
+	def _resolve_module(self, module_path: str) -> dict | None:
+		"""Relative module_path -> {module_path, module_name, file_path} on this machine."""
+		studio_folder = get_studio_folder(self.frappe_app)
+		if not studio_folder:
+			return None
+		file_path = os.path.join(studio_folder, module_path)
+		if not os.path.exists(file_path):
+			return None
+		return {
+			"module_path": module_path,
+			"module_name": os.path.splitext(os.path.basename(module_path))[0],
+			"file_path": file_path,
+		}
 
 	def _run_vite_build(self) -> None:
 		"""Execute the yarn build-studio-app command with the given parameters."""
