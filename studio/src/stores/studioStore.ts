@@ -371,7 +371,7 @@ const useStudioStore = defineStore("store", () => {
 	// studio modules (composables/stores/utilities)
 	async function setStudioModules() {
 		if (studioModules.value.length) {
-			unregisterStudioModules(studioModules.value)
+			unregisterStudioModules()
 			studioModules.value = []
 		}
 		if (activeApp.value?.is_standard) {

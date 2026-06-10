@@ -24,13 +24,15 @@ export async function registerStudioModules(frappeApp: string): Promise<StudioMo
 	if (!frappeApp) return []
 	try {
 		const modules: StudioModuleMeta[] = await studioModulesResource.reload({ frappe_app: frappeApp })
-
-		const registry = { ...studioModulesRegistry.value }
+		const registry: Record<string, any> = {}
 		await Promise.all(
 			modules.map(async (mod) => {
 				try {
 					const imported = await import(/* @vite-ignore */ mod.file_path)
-					registry[mod.module_name] = imported.default ?? imported
+					for (const [exportName, value] of Object.entries(imported)) {
+						const bindingName = exportName === "default" ? mod.module_name : exportName
+						registry[bindingName] = value
+					}
 				} catch (err) {
 					console.error(`Failed to load studio module ${mod.module_name}:`, err)
 				}
@@ -44,10 +46,6 @@ export async function registerStudioModules(frappeApp: string): Promise<StudioMo
 	}
 }
 
-export function unregisterStudioModules(modules: StudioModuleMeta[]) {
-	const registry = { ...studioModulesRegistry.value }
-	for (const mod of modules) {
-		delete registry[mod.module_name]
-	}
-	studioModulesRegistry.value = registry
+export function unregisterStudioModules() {
+	studioModulesRegistry.value = {}
 }
