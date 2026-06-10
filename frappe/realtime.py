@@ -178,3 +178,50 @@ def get_task_progress_room(task_id):
 
 def get_website_room():
 	return "website"
+
+
+# Named publisher helpers — sugar over publish_realtime. No new wire behavior:
+# each maps to the same room publish_realtime already produces. publish_realtime
+# itself is unchanged.
+
+
+def publish_to_user(user: str, event: str, message: dict | None = None, *, after_commit: bool = False):
+	"""Publish to a specific user's room (user:{user})."""
+	publish_realtime(event, message, user=user, after_commit=after_commit)
+
+
+def publish_to_doc(
+	doctype: str, docname: str, event: str, message: dict | None = None, *, after_commit: bool = False
+):
+	"""Publish to a document's room (doc:{doctype}/{docname})."""
+	publish_realtime(event, message, doctype=doctype, docname=docname, after_commit=after_commit)
+
+
+def publish_to_doctype(
+	doctype: str, event: str, message: dict | None = None, *, after_commit: bool = False
+):
+	"""Publish to a doctype's room (doctype:{doctype})."""
+	publish_realtime(event, message, room=get_doctype_room(doctype), after_commit=after_commit)
+
+
+def publish_task_progress(task_id: str, message: dict | None = None, *, after_commit: bool = False):
+	"""Publish task progress to task_progress:{task_id}."""
+	publish_realtime(message=message, task_id=task_id, after_commit=after_commit)
+
+
+def publish_to_website(event: str, message: dict | None = None, *, after_commit: bool = False):
+	"""Publish to the website room."""
+	publish_realtime(event, message, room=get_website_room(), after_commit=after_commit)
+
+
+def publish_to_all(event: str, message: dict | None = None, *, after_commit: bool = False):
+	"""Publish to the site "all" room (System Users of THIS site).
+
+	NOTE: this is the site-scoped room, NOT the cross-site no-room broadcast that
+	build events use."""
+	publish_realtime(event, message, room=get_site_room(), after_commit=after_commit)
+
+
+def publish_to_room(room: str, event: str, message: dict | None = None, *, after_commit: bool = False):
+	"""Publish to an arbitrary room."""
+	publish_realtime(event, message, room=room, after_commit=after_commit)
