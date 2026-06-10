@@ -454,7 +454,6 @@ def get_sidebar_items(allowed_workspaces):
 				"filters": item.filters,
 				"route_options": item.route_options,
 				"tab": item.navigate_to_tab,
-				"open_in_new_tab": item.open_in_new_tab,
 			}
 			if (
 				item.link_type == "Report"
