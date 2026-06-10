@@ -1,10 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
-<<<<<<< HEAD
 from frappe.desk.doctype.number_card.number_card import get_cards_for_user
-=======
->>>>>>> 222da04792 (fix: pass user to allowed report/doctype permission helpers (#39388))
 from frappe.tests import IntegrationTestCase
 
 
