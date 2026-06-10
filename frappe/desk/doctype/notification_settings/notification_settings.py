@@ -71,11 +71,11 @@ def is_email_notifications_enabled_for_type(user, notification_type):
 		frappe.clear_last_message()
 		return True
 
-	# Per-type email preference is a roles-style allow-list. An empty table means the user
-	# was never seeded (legacy) — default to enabled to preserve historic behaviour.
-	if not settings.email_notification_types:
-		return True
-
+	# Per-type email preference is an explicit allow-list: a type is emailed only if the user
+	# has selected it. An empty table therefore means "email me for nothing" — the user opted
+	# out of every type. New users are seeded with the default types at creation, and the v16
+	# backfill seeds existing users, so an empty table is always a deliberate choice and never
+	# a missing migration.
 	return any(row.notification_type == notification_type for row in settings.email_notification_types)
 
 
