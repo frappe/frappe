@@ -110,9 +110,12 @@ def serve(config: RealtimeConfig | None = None) -> None:
 	assert_no_mysqlclient()
 	config = config or get_config()
 
-	# Import core handlers so their @realtime.on registrations run before wire().
-	# Per-app handler discovery is added in a later task, also before wire().
+	# Import core handlers, then discover per-app handlers, so every @realtime.on
+	# registration runs before wire() binds events.
 	import frappe.realtime_py.handlers
+	from frappe.realtime_py.registry import discover_app_handlers
+
+	discover_app_handlers()
 
 	wire(sio, config)
 

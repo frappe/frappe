@@ -17,9 +17,12 @@ taken from importing_app(), which the per-app discovery step wraps each import i
 core handlers default to "frappe".
 """
 
+import logging
 from collections.abc import Callable, Iterable
 from contextlib import contextmanager
 from dataclasses import dataclass
+
+logger = logging.getLogger("frappe.realtime")
 
 CORE_APP = "frappe"
 
@@ -72,3 +75,31 @@ class Registry:
 
 
 realtime = Registry()
+
+
+def discover_app_handlers(sites_path: str | None = None) -> None:
+	"""Import ``<app>/realtime/handlers.py`` for every installed app, tagged by app.
+
+	Missing handler modules are ignored. An import error inside an existing handler
+	module is NOT swallowed — it surfaces loudly at startup (matches the design).
+	Core handlers (frappe.realtime_py.handlers) are imported separately, so the
+	frappe app is skipped here."""
+	import importlib
+	import importlib.util
+
+	import frappe
+
+	sites_path = sites_path or getattr(frappe.local, "sites_path", None) or "sites"
+	for app in frappe.get_all_apps(with_internal_apps=False, sites_path=sites_path):
+		if app == CORE_APP:
+			continue
+		module = f"{app}.realtime.handlers"
+		try:
+			spec = importlib.util.find_spec(module)
+		except ModuleNotFoundError:
+			spec = None
+		if spec is None:
+			continue
+		with realtime.importing_app(app):
+			importlib.import_module(module)
+		logger.info("loaded realtime handlers from %s", module)
