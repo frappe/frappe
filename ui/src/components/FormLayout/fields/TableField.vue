@@ -9,47 +9,47 @@
 		@edit="openEdit"
 	>
 		<template #cell="{ row, column, value, update, commit }">
-			<!-- Resolve conditionals against THIS row so per-row conditions match the row-edit dialog. -->
-			<template v-if="!cellField(column.fieldname, row).hidden">
-				<!-- `row` is passed so a cell resolves `options`-to-sibling-field (e.g. Currency code) against its own row. -->
-				<div
-					v-if="isCentered(column.fieldname)"
-					class="flex w-full items-center justify-center"
-				>
+			<!-- Resolve conditionals against THIS row (so per-row conditions match the
+			     row-edit dialog, and `row` lets a cell resolve `options`-to-sibling-field
+			     like a Currency code against its own row). The single-item `v-for` binds
+			     the resolved field to `f` once per cell: `cellField` re-runs
+			     `resolveFieldConditionals` (potentially an `eval:` `new Function`), so
+			     binding once avoids repeating that work for every `f.` reference below. -->
+			<template v-for="f in [cellField(column.fieldname, row)]" :key="column.fieldname">
+				<template v-if="!f.hidden">
+					<div
+						v-if="isCentered(column.fieldname)"
+						class="flex w-full items-center justify-center"
+					>
+						<component
+							:is="f.ui?.component ?? resolveField(f.fieldtype)"
+							:field="f"
+							:modelValue="value"
+							:row="row"
+							@update:modelValue="update"
+							@change="commit"
+							v-bind="f.ui?.props"
+							v-on="cellListeners(f, row)"
+						/>
+					</div>
 					<component
-						:is="
-							cellField(column.fieldname, row).ui?.component ??
-							resolveField(cellField(column.fieldname, row).fieldtype)
-						"
-						:field="cellField(column.fieldname, row)"
+						:is="f.ui?.component ?? resolveField(f.fieldtype)"
+						v-else
+						class="w-full"
+						:field="f"
 						:modelValue="value"
 						:row="row"
 						@update:modelValue="update"
 						@change="commit"
-						v-bind="cellField(column.fieldname, row).ui?.props"
-						v-on="cellListeners(cellField(column.fieldname, row), row)"
+						v-bind="f.ui?.props"
+						v-on="cellListeners(f, row)"
 					/>
-				</div>
-				<component
-					:is="
-						cellField(column.fieldname, row).ui?.component ??
-						resolveField(cellField(column.fieldname, row).fieldtype)
-					"
-					v-else
-					class="w-full"
-					:field="cellField(column.fieldname, row)"
-					:modelValue="value"
-					:row="row"
-					@update:modelValue="update"
-					@change="commit"
-					v-bind="cellField(column.fieldname, row).ui?.props"
-					v-on="cellListeners(cellField(column.fieldname, row), row)"
-				/>
-			</template>
-			<template v-else>
-				<!-- Empty vnode, not nothing: a comments-only slot makes Vue fall back to
-				     Grid's default `#cell`, which prints the raw value. -->
-				<span class="w-full" />
+				</template>
+				<template v-else>
+					<!-- Empty vnode, not nothing: a comments-only slot makes Vue fall back to
+					     Grid's default `#cell`, which prints the raw value. -->
+					<span class="w-full" />
+				</template>
 			</template>
 		</template>
 	</Grid>
