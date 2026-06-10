@@ -61,7 +61,7 @@ class TestImporter(IntegrationTestCase):
 	def test_skip_rows_during_import(self):
 		for name in ("Test", "Test 2", "Test 3"):
 			frappe.delete_doc_if_exists(doctype_name, name)
-		frappe.db.commit()
+		frappe.db.commit()  # ensure deletions are flushed to DB before import; # nosemgrep
 
 		import_file = get_import_file("sample_import_file")
 		data_import = self.get_importer(doctype_name, import_file)
@@ -157,7 +157,7 @@ class TestImporter(IntegrationTestCase):
 			table_field_1=[{"child_title": "child title to update"}],
 		)
 		existing_doc.save()
-		frappe.db.commit()
+		frappe.db.commit()  # ensure saved document is visible to other DB connections; # nosemgrep
 
 		import_file = get_import_file("sample_import_file_for_update")
 		data_import = self.get_importer(doctype_name, import_file, update=True)
@@ -396,8 +396,7 @@ class TestImporter(IntegrationTestCase):
 		data_import.import_file = import_file.file_url
 		data_import.use_csv_sniffer = use_sniffer
 		data_import.insert()
-		# Commit so that the first import failure does not rollback the Data Import insert.
-		frappe.db.commit()
+		frappe.db.commit()  # Commit so that the first import failure does not rollback the Data Import insert.  # nosemgrep
 
 		return data_import
 
@@ -580,7 +579,7 @@ class TestTreeDataImport(IntegrationTestCase):
 		data_import.reference_doctype = self.doctype_name
 		data_import.import_file = file_doc.file_url
 		data_import.insert()
-		frappe.db.commit()
+		frappe.db.commit()  # Ensure Data Import insert is persisted before subsequent operations; # nosemgrep
 		return data_import
 
 	def test_tree_preview_and_payload_order(self):
@@ -607,7 +606,7 @@ class TestTreeDataImport(IntegrationTestCase):
 
 		for name in ("Root", "Division", "Leaf"):
 			frappe.delete_doc_if_exists(self.doctype_name, name)
-		frappe.db.commit()
+		frappe.db.commit()  # ensure deletions are flushed to DB before import; # nosemgrep
 
 		rows = [
 			("Root", "1", ""),
@@ -687,7 +686,7 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		data_import.reference_doctype = self.doctype_name
 		data_import.import_file = file_doc.file_url
 		data_import.insert()
-		frappe.db.commit()
+		frappe.db.commit()  # Ensure Data Import insert is persisted before subsequent operations; # nosemgrep
 		return data_import
 
 	def _cleanup_docs(self, labels):
@@ -695,7 +694,7 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 			name = frappe.db.get_value(self.doctype_name, {"node_label": label})
 			if name:
 				frappe.delete_doc(self.doctype_name, name, force=1)
-		frappe.db.commit()
+		frappe.db.commit()  # Ensure deletions are flushed to DB before continuing; # nosemgrep
 
 	def test_series_autoname_tree_uses_alias_mode(self):
 		self.assertTrue(uses_tree_alias_references(self.doctype_name))
