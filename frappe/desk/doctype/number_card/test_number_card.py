@@ -9,7 +9,6 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestNumberCard(IntegrationTestCase):
-<<<<<<< HEAD
 	def test_link_search_hides_cards_from_blocked_modules(self):
 		user = "test2@example.com"
 		blocked_module = "Contacts"
@@ -87,7 +86,7 @@ class TestNumberCard(IntegrationTestCase):
 
 		self.assertEqual([row[0] for row in blocked_results], [])
 		self.assertEqual([row[0] for row in allowed_results], [allowed_card_name])
-=======
+
 	def test_report_card_hidden_when_report_is_not_allowed(self):
 		user = "test2@example.com"
 		report_name = "Test Restricted Number Card Report"
@@ -139,4 +138,3 @@ class TestNumberCard(IntegrationTestCase):
 			card.name,
 			frappe.get_list("Number Card", filters={"name": card.name}, pluck="name", user=user),
 		)
->>>>>>> 222da04792 (fix: pass user to allowed report/doctype permission helpers (#39388))
