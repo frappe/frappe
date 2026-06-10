@@ -98,15 +98,17 @@ describe("buildLayoutFromMeta", () => {
     expect(section.opened).toBe(false);
   });
 
-  it("drops statically hidden fields", () => {
+  it("keeps statically hidden fields in the schema, marked hidden", () => {
+    // Hidden data fields stay in the schema (filtered out at render time) so
+    // meta-script ops can target them; only layout breaks are dropped.
     const layout = buildLayoutFromMeta([
       field({ fieldname: "visible" }),
       field({ fieldname: "secret", hidden: 1 }),
     ]);
 
-    expect(
-      layout[0].sections[0].columns[0].fields.map((f) => f.fieldname)
-    ).toEqual(["visible"]);
+    const fields = layout[0].sections[0].columns[0].fields;
+    expect(fields.map((f) => f.fieldname)).toEqual(["visible", "secret"]);
+    expect(fields.find((f) => f.fieldname === "secret")!.hidden).toBe(true);
   });
 
   it("maps snake_case meta to camelCase and carries depends_on through as a string", () => {

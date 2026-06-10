@@ -15,7 +15,7 @@ import type {
  * field with no expressions passes through unchanged.
  *
  * Resolution rules:
- * - `hidden` = `depends_on` false (else its static `hidden`);
+ * - `hidden` = static `hidden` OR `depends_on` false;
  * - `reqd` = static `reqd` OR `mandatory_depends_on` true;
  * - `readOnly` = static `readOnly` OR `read_only_depends_on` true.
  *
@@ -39,8 +39,11 @@ export function resolveFieldConditionals<T extends FieldMeta>(
   // spread (it does at runtime — `ui` is just another own-key) and stays typed.
   return {
     ...f,
+    // Static `hidden` is a hard floor: a meta-hidden field stays hidden even
+    // when its `depends_on` evaluates true (matches desk; these fields are now
+    // kept in the schema, so `depends_on` must not silently un-hide them).
     hidden: f.dependsOn
-      ? !evaluateDependsOn(f.dependsOn, doc, parent)
+      ? f.hidden || !evaluateDependsOn(f.dependsOn, doc, parent)
       : f.hidden,
     reqd:
       f.reqd ||

@@ -12,8 +12,10 @@ import type {
 /**
  * Build a render-ready `FormLayoutSchema` from a doctype's flat meta `fields`,
  * splitting on layout breaks into the tabs → sections → columns → fields tree.
- * Pure (no Vue/backend). Static visibility only — drops `hidden` fields and
- * carries `depends_on` verbatim for Phase 4 rather than evaluating it.
+ * Pure (no Vue/backend). Static visibility only — carries `depends_on` verbatim
+ * for Phase 4 rather than evaluating it. Statically-`hidden` data fields are kept
+ * in the schema (filtered out at render time) so meta-script ops can target them;
+ * layout-break fields are still dropped.
  */
 
 const TAB_BREAK = "Tab Break";
@@ -215,7 +217,11 @@ export function buildLayoutFromMeta(
     } else if (field.fieldtype === COLUMN_BREAK) {
       ensureSection().columns.push(newColumn(field));
     } else {
-      if (field.hidden) continue; // drop statically hidden fields
+      // Keep statically-hidden data fields in the schema (`mapField` marks them
+      // `hidden`, and `FormLayoutColumn` filters them out at render time) rather
+      // than dropping them here — so `applyMetaScript` ops (`showField`, or
+      // `addField` with `after:` a hidden field) can still target them instead
+      // of silently no-op'ing on a field that was never in the schema.
       ensureColumn().fields.push(mapField(field, childMetas, decorate));
     }
   }
