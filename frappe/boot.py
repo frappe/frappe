@@ -436,56 +436,60 @@ def get_sidebar_items(allowed_workspaces):
 		else:
 			sidebar_title = sidebar.title
 			sidebar_doc = sidebar
-		if (
-			frappe.session.user == "Administrator"
-			or sidebar_title == "My Workspaces"
-			or not sidebar_doc.module
-			or sidebar_doc.module in sidebar_doc.user.allow_modules
-		):
-			sidebar_items[sidebar_title.lower()] = {
-				"label": sidebar_title,
-				"items": [],
-				"header_icon": sidebar.get("header_icon"),
-				"module_onboarding": sidebar.get("module_onboarding"),
-				"module": sidebar_doc.module,
-				"app": sidebar_doc.app,
+		is_my_workspaces = "My Workspaces" in sidebar_title
+		items = []
+		for item in sidebar_doc.items:
+			workspace_sidebar = {
+				"label": _(item.label),
+				"link_to": item.link_to,
+				"link_type": item.link_type,
+				"type": item.type,
+				"icon": item.icon,
+				"child": item.child,
+				"collapsible": item.collapsible,
+				"indent": item.indent,
+				"keep_closed": item.keep_closed,
+				"url": item.url,
+				"show_arrow": item.show_arrow,
+				"filters": item.filters,
+				"route_options": item.route_options,
+				"tab": item.navigate_to_tab,
 			}
-			for item in sidebar_doc.items:
-				workspace_sidebar = {
-					"label": _(item.label),
-					"link_to": item.link_to,
-					"link_type": item.link_type,
-					"type": item.type,
-					"icon": item.icon,
-					"child": item.child,
-					"collapsible": item.collapsible,
-					"indent": item.indent,
-					"keep_closed": item.keep_closed,
-					"url": item.url,
-					"show_arrow": item.show_arrow,
-					"filters": item.filters,
-					"route_options": item.route_options,
-					"tab": item.navigate_to_tab,
+			if (
+				item.link_type == "Report"
+				and item.link_to
+				and frappe.db.exists("Report", item.link_to)
+				and not frappe.db.get_value("Report", item.link_to, "disabled")
+			):
+				report_type, ref_doctype = frappe.db.get_value(
+					"Report", item.link_to, ["report_type", "ref_doctype"]
+				)
+				workspace_sidebar["report"] = {
+					"report_type": report_type,
+					"ref_doctype": ref_doctype,
 				}
-				if (
-					item.link_type == "Report"
-					and item.link_to
-					and frappe.db.exists("Report", item.link_to)
-					and not frappe.db.get_value("Report", item.link_to, "disabled")
-				):
-					report_type, ref_doctype = frappe.db.get_value(
-						"Report", item.link_to, ["report_type", "ref_doctype"]
-					)
-					workspace_sidebar["report"] = {
-						"report_type": report_type,
-						"ref_doctype": ref_doctype,
-					}
-				if (
-					"My Workspaces" in sidebar_title
-					or item.type == "Section Break"
-					or sidebar_doc.is_item_allowed(item.link_to, item.link_type, allowed_workspaces)
-				):
-					sidebar_items[sidebar_title.lower()]["items"].append(workspace_sidebar)
+			if (
+				is_my_workspaces
+				or item.type == "Section Break"
+				or sidebar_doc.is_item_allowed(item.link_to, item.link_type, allowed_workspaces)
+			):
+				items.append(workspace_sidebar)
+
+		# A sidebar (and its desktop icon) is shown only if the user can see at least one
+		# real item in it, i.e. a non-Section-Break item survived the per-item filter above.
+		# This is the single source of truth for sidebar permissions and mirrors
+		# Desktop Icon.is_permitted. "My Workspaces" is always shown.
+		if not is_my_workspaces and not any(item["type"] != "Section Break" for item in items):
+			continue
+
+		sidebar_items[sidebar_title.lower()] = {
+			"label": sidebar_title,
+			"items": items,
+			"header_icon": sidebar.get("header_icon"),
+			"module_onboarding": sidebar.get("module_onboarding"),
+			"module": sidebar_doc.module,
+			"app": sidebar_doc.app,
+		}
 	add_user_specific_sidebar(sidebar_items)
 	return sidebar_items
 
