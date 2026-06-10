@@ -255,6 +255,7 @@ class DeskViews:
 			for r in non_permitted_reports:
 				has_role.pop(r, None)
 
+<<<<<<< HEAD
 			# a report is accessible only if the user can read its reference doctype
 			ref_doctype_access = {}
 			for name, report in list(has_role.items()):
@@ -266,4 +267,6 @@ class DeskViews:
 				if not ref_doctype_access[ref_doctype]:
 					has_role.pop(name, None)
 
+=======
+>>>>>>> 154f5a8f4c (fix: remove ref doctype check for computing allowed reports)
 		return has_role
