@@ -28,11 +28,13 @@ class AIAgent(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from flow.ai.doctype.ai_agent_knowledge_base.ai_agent_knowledge_base import AIAgentKnowledgeBase
 		from flow.ai.doctype.ai_agent_tool.ai_agent_tool import AIAgentTool
 
 		enabled: DF.Check
 		instructions: DF.LongText
 		is_system_generated: DF.Check
+		knowledge_bases: DF.TableMultiSelect[AIAgentKnowledgeBase]
 		max_iterations: DF.Int
 		model: DF.Link
 		title: DF.Data
