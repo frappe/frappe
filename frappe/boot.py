@@ -208,6 +208,8 @@ def load_desktop_data(bootinfo):
 
 		bootinfo.app_data.append(
 			dict(
+				# whether the app opts into the apps screen via the add_to_apps_screen hook
+				on_apps_screen=bool(apps),
 				app_name=app_info.get("name") or app_name,
 				app_title=app_info.get("title")
 				or (
@@ -218,7 +220,8 @@ def load_desktop_data(bootinfo):
 					or ""
 				)
 				or app_name,
-				app_route=(
+				app_route=app_info.get("route")
+				or (
 					frappe.get_hooks("app_home", app_name=app_name)
 					and frappe.get_hooks("app_home", app_name=app_name)[0]
 				)
