@@ -77,6 +77,15 @@ write_file_keys = ["file_url", "file_name"]
 
 notification_config = "frappe.core.notifications.get_notification_config"
 
+# Notification Types whose in-app Notification Log should NOT additionally send its own
+# email (e.g. "Alert" — the Notification rule already owns email delivery via its channel).
+notification_skip_email_types = ["Alert"]
+
+# Notification Types that are delivered even when the recipient is also the actor
+# (for_user == from_user). Other types suppress self-notifications.
+# TODO: This should not be hardcoded and a configurable option in future.
+notification_self_notify_types = ["Alert"]
+
 before_tests = "frappe.utils.install.before_tests"
 
 email_append_to = ["Event", "ToDo", "Communication"]
@@ -91,7 +100,9 @@ on_session_creation = [
 ]
 
 on_login = "frappe.desk.doctype.note.note._get_unseen_notes"
-on_logout = "frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
+on_logout = (
+	"frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
+)
 
 # PDF
 pdf_header_html = "frappe.utils.pdf.pdf_header_html"
@@ -139,7 +150,9 @@ has_permission = {
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
 }
 
-has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
+has_website_permission = {
+	"Address": "frappe.contacts.doctype.address.address.has_website_permission"
+}
 
 jinja = {
 	"methods": "frappe.utils.jinja_globals",

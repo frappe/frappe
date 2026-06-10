@@ -37,7 +37,7 @@ class TestNotificationType(IntegrationTestCase):
 		frappe.delete_doc("Notification Type", "Temp Custom Type")
 		self.assertFalse(frappe.db.exists("Notification Type", "Temp Custom Type"))
 
-	def test_get_notification_types_returns_metadata(self):
+	def test_get_notification_types_returns_enabled_types(self):
 		install_notification_types()
 		types = {
 			t["name"]: t
@@ -46,4 +46,5 @@ class TestNotificationType(IntegrationTestCase):
 			)
 		}
 		self.assertIn("Mention", types)
-		self.assertEqual(types["Mention"]["icon"], "at-sign")
+		self.assertEqual(types["Mention"]["type_name"], "Mention")
+		self.assertTrue(types["Mention"]["enabled"])

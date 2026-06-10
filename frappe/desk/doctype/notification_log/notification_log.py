@@ -23,6 +23,7 @@ class NotificationLog(Document):
 		from frappe.types import DF
 
 		attached_file: DF.Code | None
+		description: DF.TextEditor | None
 		document_name: DF.Data | None
 		document_type: DF.Link | None
 		email_content: DF.TextEditor | None
@@ -32,8 +33,23 @@ class NotificationLog(Document):
 		link: DF.SmallText | None
 		read: DF.Check
 		subject: DF.Text | None
+		title: DF.SmallText | None
 		type: DF.Link | None
 	# end: auto-generated types
+
+	def before_insert(self):
+		# Title/Description are the canonical in-app fields; Subject/Email Content are the
+		# email representation read by send_notification_email(). Mirror between the two pairs
+		# so a producer that sets either pair gets the other populated automatically (set them
+		# explicitly to make the email differ from the in-app text).
+		if not self.title and self.subject:
+			self.title = self.subject
+		if not self.subject and self.title:
+			self.subject = self.title
+		if not self.description and self.email_content:
+			self.description = self.email_content
+		if not self.email_content and self.description:
+			self.email_content = self.description
 
 	def after_insert(self):
 		frappe.publish_realtime("notification", after_commit=True, user=self.for_user)
@@ -51,6 +67,16 @@ class NotificationLog(Document):
 
 		table = frappe.qb.DocType("Notification Log")
 		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
+
+
+def get_skip_email_types() -> set[str]:
+	"""Notification Types whose log should not additionally send its own email."""
+	return set(frappe.get_hooks("notification_skip_email_types") or [])
+
+
+def get_self_notify_types() -> set[str]:
+	"""Notification Types delivered even when the recipient is also the actor."""
+	return set(frappe.get_hooks("notification_self_notify_types") or [])
 
 
 def get_permission_query_conditions(for_user):
@@ -108,6 +134,7 @@ def enqueue_create_notification(users: list[str] | str, doc: dict, dedupe_on: li
 
 def make_notification_logs(doc, users):
 	dedupe_on = doc.pop("dedupe_on", None) if isinstance(doc, dict) else None
+	self_notify_types = get_self_notify_types()
 
 	for user in _get_user_ids(users):
 		if dedupe_on and _notification_exists(doc, user, dedupe_on):
@@ -116,7 +143,7 @@ def make_notification_logs(doc, users):
 		notification = frappe.new_doc("Notification Log")
 		notification.update(doc)
 		notification.for_user = user
-		if notification.for_user != notification.from_user or doc.type == "Alert":
+		if notification.for_user != notification.from_user or doc.type in self_notify_types:
 			notification.insert(ignore_permissions=True)
 
 
@@ -208,6 +235,19 @@ def get_notification_logs(limit: int = 20):
 		frappe.utils.add_user_info(user, user_info)
 
 	return {"notification_logs": notification_logs, "user_info": user_info}
+
+
+@frappe.whitelist()
+@http_cache(max_age=300, stale_while_revalidate=60 * 60)
+def get_app_doctypes(app: str) -> list[str]:
+	"""Doctypes owned by `app` — used to scope the notification panel to a single app.
+
+	A panel passes its `appName`; the feed is then filtered to notifications whose
+	`document_type` is one of these.
+	"""
+	from frappe.modules.utils import get_doctype_app_map
+
+	return [doctype for doctype, owner in get_doctype_app_map().items() if owner == app]
 
 
 @frappe.whitelist()

@@ -4,6 +4,7 @@ import frappe
 from frappe.core.doctype.user.user import get_system_users
 from frappe.desk.doctype.notification_log.notification_log import (
 	enqueue_create_notification,
+	get_app_doctypes,
 	get_email_header,
 )
 from frappe.desk.doctype.notification_type.notification_type import install_notification_types
@@ -95,6 +96,15 @@ class TestNotificationLog(IntegrationTestCase):
 			"Notification Log",
 			{"fieldname": "assistance_url", "label": "Assistance URL", "fieldtype": "Data"},
 		)
+
+		def _remove_custom_field():
+			frappe.delete_doc(
+				"Custom Field", "Notification Log-assistance_url", ignore_missing=True, force=True
+			)
+			frappe.clear_cache(doctype="Notification Log")
+
+		# remove the throwaway field once the test finishes (even if an assertion fails)
+		self.addCleanup(_remove_custom_field)
 		frappe.clear_cache(doctype="Notification Log")
 		recipient = make_recipient("notify_customfield@example.com")
 		enqueue_create_notification(
@@ -115,6 +125,13 @@ class TestNotificationLog(IntegrationTestCase):
 			frappe.db.get_value("Notification Log", name, "assistance_url"),
 			"https://docs.example.com/fix",
 		)
+
+
+	def test_get_app_doctypes(self):
+		frappe_doctypes = get_app_doctypes("frappe")
+		self.assertIn("Notification Log", frappe_doctypes)
+		self.assertIn("Notification Type", frappe_doctypes)
+		self.assertEqual(get_app_doctypes("this-app-does-not-exist"), [])
 
 
 def make_recipient(email: str) -> str:
