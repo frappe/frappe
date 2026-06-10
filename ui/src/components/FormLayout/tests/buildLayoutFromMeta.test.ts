@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildLayoutFromMeta } from "../buildLayoutFromMeta";
+import { buildLayoutFromMeta, compose } from "../buildLayoutFromMeta";
 import type { RawMetaField } from "../types";
 
 const field = (over: Partial<RawMetaField>): RawMetaField => ({
@@ -311,6 +311,107 @@ describe("buildLayoutFromMeta", () => {
       expect(f.childFields?.map((c) => c.fieldname)).toEqual(["role"]);
       // the link field's target doctype is what the picker searches against
       expect(f.childFields?.[0].options).toBe("Role");
+    });
+  });
+
+  describe("decorate hook", () => {
+    const onClick = () => {};
+
+    it("overlays the returned ui on the matching node and leaves others plain", () => {
+      const layout = buildLayoutFromMeta(
+        [
+          field({ fieldname: "send", fieldtype: "Button" }),
+          field({ fieldname: "a" }),
+        ],
+        {
+          decorate: (f) =>
+            f.fieldname === "send"
+              ? { props: { variant: "solid" }, on: { click: onClick } }
+              : undefined,
+        }
+      );
+
+      const [send, a] = layout[0].sections[0].columns[0].fields;
+      expect(send.ui).toEqual({
+        props: { variant: "solid" },
+        on: { click: onClick },
+      });
+      // a node the hook ignores stays a plain FieldMeta with no `ui` key.
+      expect(a.ui).toBeUndefined();
+      expect("ui" in a).toBe(false);
+    });
+
+    it("receives the resolved meta and can key off fieldtype", () => {
+      const seen: string[] = [];
+      buildLayoutFromMeta([field({ fieldname: "x", fieldtype: "Int" })], {
+        decorate: (f) => {
+          seen.push(`${f.fieldname}:${f.fieldtype}`);
+        },
+      });
+      expect(seen).toEqual(["x:Int"]);
+    });
+
+    it("runs for grid columns too (childFields carry ui)", () => {
+      const layout = buildLayoutFromMeta(
+        [
+          field({
+            fieldname: "items",
+            fieldtype: "Table",
+            options: "Order Item",
+          }),
+        ],
+        {
+          childMetas: {
+            "Order Item": [
+              field({ fieldname: "qty", fieldtype: "Int", in_list_view: 1 }),
+              field({
+                fieldname: "remove",
+                fieldtype: "Button",
+                in_list_view: 1,
+              }),
+            ],
+          },
+          decorate: (f) =>
+            f.fieldname === "remove" ? { props: { theme: "red" } } : undefined,
+        }
+      );
+
+      const cols = layout[0].sections[0].columns[0].fields[0].childFields ?? [];
+      expect(cols.find((c) => c.fieldname === "remove")?.ui).toEqual({
+        props: { theme: "red" },
+      });
+      expect(cols.find((c) => c.fieldname === "qty")?.ui).toBeUndefined();
+    });
+  });
+
+  describe("compose", () => {
+    it("merges props (shallow) and last-wins component, concatenating on handlers", () => {
+      const style = () => ({ props: { variant: "solid" } });
+      const click = () => {};
+      const scriptChange = () => {};
+      const styleChange = () => {};
+      const behaviour = () => ({
+        props: { theme: "blue" },
+        on: { change: scriptChange, click },
+      });
+      const more = () => ({ on: { change: styleChange } });
+
+      const decorate = compose(style, behaviour, more);
+      const ui = decorate(field({ fieldname: "f" }) as any);
+
+      expect(ui?.props).toEqual({ variant: "solid", theme: "blue" });
+      // two `change` contributors → array of both, so every handler fires.
+      expect(ui?.on?.change).toEqual([scriptChange, styleChange]);
+      // a single contributor stays a bare function (not wrapped in an array).
+      expect(ui?.on?.click).toBe(click);
+    });
+
+    it("returns undefined when every decorator opts out", () => {
+      const decorate = compose(
+        () => undefined,
+        () => {}
+      );
+      expect(decorate(field({ fieldname: "f" }))).toBeUndefined();
     });
   });
 });
