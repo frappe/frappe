@@ -106,20 +106,40 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     { immediate: true },
   )
 
-  const unreadCount = computed(
-    () => notifications.value.filter((n) => !n.read).length,
-  )
+  // Unread count comes from the server (a COUNT over all of the user's matching rows),
+  // not from the fetched page — counting `notifications.value` would cap at `pageLength`.
+  // It is adjusted optimistically on mark-read for instant UI, then reconciled against the
+  // server on reload / realtime / filter change.
+  const unreadResource = createResource({
+    url: 'frappe.client.get_count',
+    makeParams: () => ({
+      doctype: 'Notification Log',
+      filters: { ...effectiveFilters(), read: 0 },
+    }),
+    auto: !appName, // when scoped to an app, defer until its doctypes resolve
+  })
+  function refreshUnreadCount() {
+    unreadResource.reload()
+  }
+  const unreadCount = computed<number>(() => (unreadResource.data as number) ?? 0)
   const hasNextPage = computed(() => Boolean(list.hasNextPage))
 
   async function markAsRead(name: string) {
     const n = (list.data as NotificationLog[])?.find((x) => x.name === name)
-    if (n && !n.read) n.read = 1 // optimistic
+    if (n && !n.read) {
+      n.read = 1 // optimistic
+      const current = unreadResource.data as number
+      if (typeof current === 'number' && current > 0) unreadResource.data = current - 1
+    }
     await call(`${METHOD}.mark_as_read`, { docname: name })
+    refreshUnreadCount()
   }
 
   async function markAllAsRead() {
     ;(list.data as NotificationLog[])?.forEach((n) => (n.read = 1)) // optimistic
+    unreadResource.data = 0
     await call(`${METHOD}.mark_all_as_read`)
+    refreshUnreadCount()
   }
 
   /** tell the backend the bell indicator was seen (clears the unseen dot) */
@@ -134,6 +154,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   function applyFilters() {
     list.update({ filters: effectiveFilters() })
     list.reload()
+    refreshUnreadCount()
   }
 
   /** set the active tab's server-side filters; the app scope (if any) is always preserved */
@@ -143,7 +164,10 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     if (!appName || appDoctypes.value !== null) applyFilters()
   }
 
-  const onRealtime = () => reload()
+  const onRealtime = () => {
+    reload()
+    refreshUnreadCount()
+  }
   onMounted(() => {
     options.socket?.on('notification', onRealtime)
   })
