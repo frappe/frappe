@@ -54,20 +54,6 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     auto: !appName, // when scoped to an app, defer until its doctypes resolve
   })
 
-  // resolve the app's doctypes, then apply the scope and load
-  if (appName) {
-    createResource({
-      url: `${METHOD}.get_app_doctypes`,
-      params: { app: appName },
-      auto: true,
-      cache: ['notification_app_doctypes', appName],
-      onSuccess(doctypes: string[]) {
-        appDoctypes.value = doctypes || []
-        applyFilters()
-      },
-    })
-  }
-
   // sender photos for the default avatar, keyed by user id; resolved lazily as rows load
   const userImages = ref<Record<string, string>>({})
   async function resolveUserImages(rows: NotificationLog[]) {
@@ -162,6 +148,29 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     serverFilters.value = filters || {}
     // wait for the app scope to resolve before the first query
     if (!appName || appDoctypes.value !== null) applyFilters()
+  }
+
+  // resolve the app's doctypes, then apply the scope and load. Watching the
+  // resource's data (not just onSuccess) means a *cached* result — which skips
+  // onSuccess on later mounts — still kicks off the initial load. Declared here,
+  // after the resources/functions above, so the immediate watch can safely call
+  // applyFilters() during setup without hitting an uninitialized binding.
+  if (appName) {
+    const appDoctypesResource = createResource({
+      url: `${METHOD}.get_app_doctypes`,
+      params: { app: appName },
+      auto: true,
+      cache: ['notification_app_doctypes', appName],
+    })
+    watch(
+      () => appDoctypesResource.data as string[] | undefined,
+      (doctypes) => {
+        if (!doctypes) return
+        appDoctypes.value = doctypes
+        applyFilters()
+      },
+      { immediate: true },
+    )
   }
 
   const onRealtime = () => {
