@@ -7,6 +7,12 @@
 {% macro email_login_body() -%}
 {% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
 <div class="page-card-body">
+	<div class="login-error-banner">
+		<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<use href="#es-line-alert-triangle"></use>
+		</svg>
+		<span></span>
+	</div>
 	<div class="form-group">
 		<label class="form-label" for="login_email">{{ login_label or _("Email")}}</label>
 		<div class="email-field">
@@ -19,6 +25,7 @@
 				<use class="es-lock" href="#es-line-email"></use>
 			</svg>
 		</div>
+		<p class="field-error"></p>
 	</div>
 
 	<div class="form-group">
@@ -35,6 +42,7 @@
 					<use href="#es-line-preview"></use>
 				</svg>
 		</div>
+		<p class="field-error"></p>
 		{% if not disable_user_pass_login %}
 		<p class="forgot-password-message">
 			<a href="#forgot">{{ _("Forgot password?") }}</a>
@@ -125,7 +133,7 @@
 	<section class='for-login'>
 		<div class="login-content page-card">
 			{{ logo_section(_('Sign In'), _('Welcome! Please sign in to continue.')) }}
-			<form class="form-signin form-login" role="form">
+			<form class="form-signin form-login" role="form" novalidate>
 				{{ email_login_body() }}
 			</form>
 			{%- if not disable_signup and not disable_user_pass_login -%}
@@ -141,7 +149,7 @@
 	<section class='for-email-login'>
 		<div class="login-content page-card">
 			{{ logo_section(_('Sign In'), _('Welcome! Please sign in to continue.')) }}
-			<form class="form-signin form-login" role="form">
+			<form class="form-signin form-login" role="form" novalidate>
 			{{ email_login_body() }}
 			</form>
 			{%- if not disable_signup and not disable_user_pass_login -%}

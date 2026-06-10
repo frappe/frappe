@@ -179,7 +179,42 @@ body {
 				input[type="text"],
 				input[type="email"],
 				input[type="password"] {
-					border: 1px solid var(--red-500);
+					border: 1px solid var(--outline-red-2);
+				}
+			}
+
+			.login-error-banner {
+				display: none;
+				padding: 6px 8px;
+				align-items: center;
+				gap: 8px;
+				align-self: stretch;
+				background-color: var(--red-50);
+				border-radius: var(--border-radius-sm);
+				@include get_textstyle("base", "regular");
+				color: var(--ink-red-4);
+
+				svg {
+					fill: var(--ink-red-4);
+					flex-shrink: 0;
+				}
+			}
+
+			.field-error {
+				display: none;
+				@include get_textstyle("base", "regular");
+				color: var(--ink-red-4);
+				margin-bottom: 0;
+			}
+
+			.form-group.invalid {
+				input[type="text"],
+				input[type="email"],
+				input[type="password"] {
+					border: 1px solid var(--outline-red-2);
+				}
+				.field-error {
+					display: block;
 				}
 			}
 
