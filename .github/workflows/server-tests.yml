@@ -246,7 +246,7 @@ jobs:
 
   # TIP: Require this single check in branch protection, e.g. Server / Success
   success:
-    name: Success
+    name: Server Success
     needs: [test, migrate]
     if: always()
     runs-on: ubuntu-latest
