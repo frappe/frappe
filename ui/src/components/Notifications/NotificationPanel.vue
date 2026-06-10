@@ -25,15 +25,15 @@ const {
   notifications,
   unreadCount,
   hasNextPage,
-  typeMeta,
   markAsRead,
   markAllAsRead,
   markSeen,
-  setFilters,
+  setServerFilters,
   loadMore,
 } = useNotifications({
   fields: props.fields,
   pageLength: props.pageLength,
+  appName: props.appName,
   socket: props.socket,
 })
 
@@ -51,10 +51,9 @@ function tabCount(tab: NonNullable<NotificationPanelProps['tabs']>[number]) {
   return undefined
 }
 
-// switch server-side filters when a tab defines them
+// switch server-side filters when the tab changes (the app scope, if any, is preserved)
 watch(activeTab, () => {
-  const filters = currentTab.value?.filters
-  if (filters) setFilters(filters)
+  setServerFilters(currentTab.value?.filters ?? {})
 })
 
 watch(unreadCount, (c) => emit('update:unread-count', c), { immediate: true })
@@ -116,20 +115,15 @@ function onMarkAll() {
         <template v-for="n in visibleNotifications" :key="n.name">
           <!-- fully custom row -->
           <div v-if="$slots.item" @click="onItemClick(n)">
-            <slot name="item" :notification="n" :type-meta="typeMeta(n.type)" />
+            <slot name="item" :notification="n" />
           </div>
           <!-- default row -->
           <NotificationItem
             v-else
             :notification="n"
-            :type-meta="typeMeta(n.type)"
-            :item-style="itemStyle"
+            :icon="icon?.(n)"
             @click="onItemClick"
-          >
-            <template v-if="$slots.leading" #leading="slotProps">
-              <slot name="leading" v-bind="slotProps" />
-            </template>
-          </NotificationItem>
+          />
         </template>
 
         <div v-if="hasNextPage" class="p-3 text-center">

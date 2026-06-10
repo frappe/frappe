@@ -1,48 +1,33 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Avatar, dayjs } from 'frappe-ui'
-import type { NotificationItemStyle, NotificationLog, NotificationType } from './types'
+import type { Component } from 'vue'
+import { Avatar, FeatherIcon, dayjs } from 'frappe-ui'
+import type { NotificationIcon, NotificationLog } from './types'
 
 const props = defineProps<{
   notification: NotificationLog
-  typeMeta?: NotificationType
-  itemStyle?: (n: NotificationLog) => NotificationItemStyle
+  /** lucide/feather icon name (string) or a Component; omitted => sender avatar */
+  icon?: NotificationIcon
 }>()
 
 const emit = defineEmits<{
   click: [n: NotificationLog]
 }>()
 
-// color token -> tint classes applied to the Avatar; falls back to gray
-const COLOR_CLASS: Record<string, string> = {
-  blue: '!bg-surface-blue-1 text-ink-blue-2',
-  green: '!bg-surface-green-1 text-ink-green-2',
-  red: '!bg-surface-red-1 text-ink-red-4',
-  orange: '!bg-surface-amber-1 text-ink-amber-3',
-  yellow: '!bg-surface-amber-1 text-ink-amber-3',
-  gray: '!bg-surface-gray-3 text-ink-gray-6',
-}
-
-const style = computed<NotificationItemStyle>(() => {
-  const custom = props.itemStyle?.(props.notification)
-  return {
-    icon: custom?.icon ?? props.typeMeta?.icon,
-    color: custom?.color ?? props.typeMeta?.color ?? 'gray',
-    image: custom?.image,
-    label: custom?.label,
-  }
-})
-
-const colorClass = computed(() => COLOR_CLASS[style.value.color ?? 'gray'] || COLOR_CLASS.gray)
-
-// fallback initials for the Avatar when there is no image/icon
-const avatarLabel = computed(
-  () => style.value.label ?? (props.notification.type || props.notification.from_user || '?').charAt(0),
+// string => render via frappe-ui's icon component; Component => render directly;
+// undefined => fall back to the sender's Avatar (the common case).
+const iconName = computed(() => (typeof props.icon === 'string' ? props.icon : undefined))
+const iconComponent = computed(() =>
+  props.icon && typeof props.icon !== 'string' ? (props.icon as Component) : undefined,
 )
 
-// best-effort lucide class; for guaranteed icon rendering hosts can use the #leading slot.
-// (frappe-ui renders lucide via `lucide-<name>` utility classes.)
-const iconClass = computed(() => (style.value.icon ? `lucide-${style.value.icon} size-4` : ''))
+// fallback initials for the Avatar when there is no sender image
+const avatarLabel = computed(
+  () => (props.notification.from_user || props.notification.type || '?').charAt(0),
+)
+
+const title = computed(() => props.notification.title ?? props.notification.subject ?? '')
+const description = computed(() => props.notification.description ?? '')
 
 const isUnread = computed(() => !props.notification.read)
 const timeAgo = computed(() => dayjs(props.notification.creation as string).fromNow())
@@ -54,28 +39,41 @@ const timeAgo = computed(() => dayjs(props.notification.creation as string).from
     :class="{ 'bg-surface-gray-1/40': isUnread }"
     @click="emit('click', notification)"
   >
-    <!-- leading visual: a frappe-ui Avatar by default; fully overridable via #leading -->
-    <slot name="leading" :notification="notification" :style="style" :is-unread="isUnread">
+    <!-- leading visual: sender avatar by default; icon string/Component overrides it -->
+    <div class="relative mt-0.5 flex-shrink-0">
+      <component
+        :is="iconComponent"
+        v-if="iconComponent"
+        :notification="notification"
+      />
+      <div
+        v-else-if="iconName"
+        class="flex size-8 items-center justify-center rounded-full bg-surface-gray-3 text-ink-gray-7"
+      >
+        <FeatherIcon :name="iconName" class="size-4" />
+      </div>
       <Avatar
-        :image="style.image"
+        v-else
+        :image="notification.from_user_image"
         :label="avatarLabel"
         size="lg"
-        :class="['mt-0.5 flex-shrink-0', colorClass]"
-      >
-        <template v-if="style.icon && !style.image" #default>
-          <span :class="iconClass" />
-        </template>
-        <template v-if="isUnread" #indicator>
-          <span class="size-2 rounded-full bg-surface-blue-3 ring-2 ring-surface-white" />
-        </template>
-      </Avatar>
-    </slot>
+      />
+      <span
+        v-if="isUnread"
+        class="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-surface-blue-3 ring-2 ring-surface-white"
+      />
+    </div>
 
     <!-- body -->
     <div class="min-w-0 flex-1">
       <div
         class="text-base leading-snug text-ink-gray-8 [&_b]:font-semibold"
-        v-html="notification.subject"
+        v-html="title"
+      />
+      <div
+        v-if="description"
+        class="mt-0.5 text-sm leading-snug text-ink-gray-6 line-clamp-2"
+        v-html="description"
       />
       <div class="mt-1 text-xs text-ink-gray-5">{{ timeAgo }}</div>
     </div>

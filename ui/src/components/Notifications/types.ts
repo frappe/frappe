@@ -1,9 +1,18 @@
+import type { Component } from 'vue'
+
 export interface NotificationLog {
   name: string
+  /** canonical headline shown in the panel */
+  title?: string
+  /** canonical body shown under the title */
+  description?: string
+  /** email representation of the title (read when the notification is emailed) */
   subject?: string
   type?: string
   read: number | boolean
   from_user?: string
+  /** sender's photo, when resolved — used for the default avatar */
+  from_user_image?: string
   document_type?: string
   document_name?: string
   link?: string
@@ -12,24 +21,18 @@ export interface NotificationLog {
   [key: string]: unknown
 }
 
+/** Notification Type is purely categorical — used for tabs/filters, not presentation. */
 export interface NotificationType {
   name: string
   type_name?: string
-  icon?: string
-  color?: string
+  enabled?: number | boolean
 }
 
-/** Controls the leading visual (a frappe-ui Avatar) of a notification row. */
-export interface NotificationItemStyle {
-  /** lucide icon name rendered inside the avatar (e.g. "at-sign") */
-  icon?: string
-  /** semantic color token (blue/green/red/orange/yellow/gray) */
-  color?: string
-  /** image URL — when set, the avatar shows this image */
-  image?: string
-  /** fallback initials/label for the avatar */
-  label?: string
-}
+/**
+ * Leading visual for a row. A lucide icon name (rendered via frappe-ui) or a Component.
+ * When omitted, the row renders the sender's Avatar by default.
+ */
+export type NotificationIcon = string | Component
 
 export interface NotificationTab {
   label: string
@@ -42,6 +45,8 @@ export interface NotificationTab {
 }
 
 export interface NotificationPanelProps {
+  /** scope the feed to a single app — only notifications about that app's documents are shown */
+  appName?: string
   /** Notification Log fields to fetch; defaults include the generic set. Append custom fields here. */
   fields?: string[]
   tabs?: NotificationTab[]
@@ -51,8 +56,11 @@ export interface NotificationPanelProps {
   title?: string
   /** host routing hook; called (in addition to @item-click) when a row is clicked */
   onItemClick?: (n: NotificationLog) => void
-  /** derive the leading visual per row, e.g. from a custom `severity` field or the sender's avatar; falls back to Notification Type metadata */
-  itemStyle?: (n: NotificationLog) => NotificationItemStyle
+  /**
+   * Resolve the leading visual per row: return a lucide icon name (string) or a Component.
+   * Return undefined to fall back to the sender's avatar (the default for most rows).
+   */
+  icon?: (n: NotificationLog) => NotificationIcon | undefined
   /** a frappe-ui / socket.io socket; if provided, the panel live-reloads on the `notification` event */
   socket?: {
     on: (event: string, cb: (...args: unknown[]) => void) => void

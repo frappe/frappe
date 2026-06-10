@@ -3,7 +3,7 @@ export { default as NotificationItem } from './NotificationItem.vue'
 export { useNotifications, DEFAULT_FIELDS } from './useNotifications'
 export type { UseNotifications, UseNotificationsOptions } from './useNotifications'
 export type {
-  NotificationItemStyle,
+  NotificationIcon,
   NotificationLog,
   NotificationPanelProps,
   NotificationTab,

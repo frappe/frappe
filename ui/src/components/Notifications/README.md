@@ -17,11 +17,17 @@ import { socket } from '@/socket' // optional
 </template>
 ```
 
+Scoped to a single app:
+
+```vue
+<NotificationPanel app-name="crm" />
+```
+
 With tabs and custom fields:
 
 ```vue
 <NotificationPanel
-  :fields="['name', 'subject', 'type', 'read', 'creation', 'severity']"
+  :fields="['name', 'title', 'description', 'type', 'read', 'creation', 'severity']"
   :tabs="[
     { label: 'All' },
     { label: 'Unread', filterFn: (n) => !n.read, count: 'unread' },
@@ -31,18 +37,27 @@ With tabs and custom fields:
 />
 ```
 
+### App scoping
+
+`appName` filters the feed to notifications whose `document_type` belongs to that app (resolved server-side from the doctype→app map). Notes:
+
+- A notification with **no** `document_type` cannot be scoped and is excluded when `appName` is set.
+- Apps with many doctypes produce a large `document_type IN (...)` query; fine for per-user notification volumes.
+- Omitting `appName` shows all of the user's notifications (unchanged behavior).
+
 ## Props
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `fields` | `string[]` | generic set | Notification Log fields to fetch. Add custom fields here so they reach `itemStyle` / slots. |
+| `appName` | `string` | — | Scope the feed to one app. Only notifications whose `document_type` belongs to that app are shown. Tabs filter *within* this scope. |
+| `fields` | `string[]` | generic set | Notification Log fields to fetch. Add custom fields here so they reach the `icon` resolver / slots. |
 | `tabs` | `NotificationTab[]` | — | Tabs. Without it, a flat list is shown. |
 | `showMarkAllRead` | `boolean` | `true` | Show the "Mark all as read" header button. |
 | `showClose` | `boolean` | `true` | Show the "Close" header button (emits `close`). |
 | `pageLength` | `number` | `20` | Page size; "Load more" appears when more exist. |
 | `title` | `string` | `'Notifications'` | Header title. |
 | `onItemClick` | `(n) => void` | — | Called when a row is clicked (in addition to the `item-click` event). |
-| `itemStyle` | `(n) => NotificationItemStyle` | — | Resolve the leading visual per row (e.g. from a custom field). Falls back to the Notification Type's icon/color. |
+| `icon` | `(n) => string \| Component \| undefined` | — | Resolve a row's leading visual: return a lucide/feather icon **name** (string) or a **Component**. Return `undefined` (the default) to show the sender's avatar. |
 | `socket` | `{ on, off? }` | — | A socket.io socket. When provided, the panel reloads on the `notification` event. |
 
 A tab is `{ label, filters?, filterFn?, count? }`:
@@ -64,27 +79,26 @@ A tab is `{ label, filters?, filterFn?, count? }`:
 | Slot | Props | Description |
 |---|---|---|
 | `header` | `{ unreadCount }` | Replace the whole header. |
-| `leading` | `{ notification, style, isUnread }` | Replace a row's left visual (avatar/icon). |
-| `item` | `{ notification, typeMeta }` | Replace the entire row. |
+| `item` | `{ notification }` | Replace the entire row. |
 | `empty` | — | Replace the empty state. |
 
 ## Leading visual
 
-Each row's leading visual is a frappe-ui `Avatar`, resolved as: `image` → `icon` (lucide) → `label`/initials, tinted by `color`. Drive it with `itemStyle`:
+By default each row shows the **sender's avatar** (`from_user`'s photo, falling back to
+initials). Override per row with the `icon` resolver — return a string (rendered via
+frappe-ui's icon component) or your own Component:
 
 ```ts
-:item-style="(n) => ({ icon: 'alert-circle', color: 'red' })"
-// or an image: { image: n.sender_avatar }
+// a named icon for system notifications, sender avatar for everything else
+:icon="(n) => (n.type === 'Alert' ? 'alert-circle' : undefined)"
+
+// or a fully custom component (receives the row as a `notification` prop)
+:icon="(n) => MyIcon"
 ```
 
-Color tokens: `blue`, `green`, `red`, `orange`, `yellow`, `gray`.
-
-> The default icon render uses frappe-ui's `lucide-<name>` class. Because Tailwind cannot detect dynamically-built classes, an arbitrary icon name may not render in every host build. For guaranteed icons, use the `#leading` slot and render your own icon component:
-> ```vue
-> <template #leading="{ notification, style }">
->   <LucideAtSign v-if="style.icon === 'at-sign'" class="size-4" />
-> </template>
-> ```
+`Notification Type` carries no icon/color — presentation lives entirely in the host UI, so
+string-icon names must exist in the host's icon set. For guaranteed rendering, return a
+Component instead of a string.
 
 ## `useNotifications`
 
@@ -92,24 +106,23 @@ The composable behind the panel, for building a custom UI:
 
 ```ts
 const {
-  notifications,   // Ref<NotificationLog[]>
+  notifications,   // Ref<NotificationLog[]> (each row carries a resolved from_user_image)
   unreadCount,     // Ref<number>
   hasNextPage,
-  typeMeta,        // (type) => NotificationType | undefined
   markAsRead,      // (name) => Promise
   markAllAsRead,   // () => Promise
   markSeen,        // clears the unseen indicator
   reload,
-  setFilters,      // (filters) => void
+  setServerFilters,// (filters) => void — merged with the app scope
   loadMore,
-} = useNotifications({ fields, pageLength, filters, socket })
+} = useNotifications({ fields, pageLength, appName, filters, socket })
 ```
 
 ## Types
 
-- `NotificationLog` — a Notification Log row (custom fields included).
-- `NotificationType` — `{ name, type_name?, icon?, color? }`.
-- `NotificationItemStyle` — `{ icon?, color?, image?, label? }`.
+- `NotificationLog` — a Notification Log row (`title`/`description` + custom fields included).
+- `NotificationType` — `{ name, type_name?, enabled? }` (categorical only).
+- `NotificationIcon` — `string | Component`.
 - `NotificationTab`, `NotificationPanelProps`.
 
 ## Backend
@@ -118,6 +131,7 @@ Requires Frappe with the `Notification Type` doctype. The component reads the `N
 
 - `notification_log.mark_as_read`, `notification_log.mark_all_as_read`
 - `notification_log.trigger_indicator_hide`
-- `notification_type.get_notification_types` (icon/color metadata)
+- `notification_log.get_app_doctypes` (when `appName` is set)
+- `frappe.client.get_list` on `User` (to resolve sender avatar images)
 
 Realtime updates listen on the `notification` event.

@@ -1,13 +1,13 @@
-import { computed, onBeforeUnmount, onMounted } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { call, createListResource, createResource } from 'frappe-ui'
-import type { NotificationLog, NotificationType } from './types'
+import type { NotificationLog } from './types'
 
 const METHOD = 'frappe.desk.doctype.notification_log.notification_log'
-const TYPE_METHOD =
-  'frappe.desk.doctype.notification_type.notification_type.get_notification_types'
 
 export const DEFAULT_FIELDS = [
   'name',
+  'title',
+  'description',
   'subject',
   'type',
   'read',
@@ -21,6 +21,8 @@ export const DEFAULT_FIELDS = [
 export interface UseNotificationsOptions {
   fields?: string[]
   pageLength?: number
+  /** scope the feed to a single app — only notifications about that app's documents are shown */
+  appName?: string
   filters?: Record<string, unknown>
   socket?: {
     on: (event: string, cb: (...args: unknown[]) => void) => void
@@ -31,49 +33,92 @@ export interface UseNotificationsOptions {
 export function useNotifications(options: UseNotificationsOptions = {}) {
   const fields = options.fields?.length ? options.fields : DEFAULT_FIELDS
   const pageLength = options.pageLength ?? 20
+  const appName = options.appName
+
+  // tab/server filters (set by the panel) kept separate from the app scope so they merge
+  const serverFilters = ref<Record<string, unknown>>(options.filters ?? {})
+  // null until resolved (used to gate the first load when appName is set)
+  const appDoctypes = ref<string[] | null>(appName ? null : [])
+
+  function effectiveFilters(): Record<string, unknown> {
+    if (!appName) return serverFilters.value
+    return { ...serverFilters.value, document_type: ['in', appDoctypes.value ?? []] }
+  }
 
   const list = createListResource({
     doctype: 'Notification Log',
     fields,
-    filters: options.filters ?? {},
+    filters: appName ? {} : (options.filters ?? {}),
     orderBy: 'creation desc',
     pageLength,
-    auto: true,
+    auto: !appName, // when scoped to an app, defer until its doctypes resolve
   })
 
-  // type metadata (icon / color) keyed by Notification Type name
-  const types = createResource({
-    url: TYPE_METHOD,
-    auto: true,
-    cache: 'notification_types',
-    transform(rows: NotificationType[]) {
-      const map: Record<string, NotificationType> = {}
-      for (const row of rows || []) map[row.name] = row
-      return map
-    },
-  })
+  // resolve the app's doctypes, then apply the scope and load
+  if (appName) {
+    createResource({
+      url: `${METHOD}.get_app_doctypes`,
+      params: { app: appName },
+      auto: true,
+      cache: ['notification_app_doctypes', appName],
+      onSuccess(doctypes: string[]) {
+        appDoctypes.value = doctypes || []
+        applyFilters()
+      },
+    })
+  }
 
-  const notifications = computed<NotificationLog[]>(
-    () => (list.data as NotificationLog[]) || [],
+  // sender photos for the default avatar, keyed by user id; resolved lazily as rows load
+  const userImages = ref<Record<string, string>>({})
+  async function resolveUserImages(rows: NotificationLog[]) {
+    const missing = [
+      ...new Set(
+        rows
+          .map((n) => n.from_user)
+          .filter((u): u is string => Boolean(u) && !(u in userImages.value)),
+      ),
+    ]
+    if (!missing.length) return
+    // mark as attempted so we don't refetch users without an image
+    missing.forEach((u) => (userImages.value[u] = userImages.value[u] ?? ''))
+    try {
+      const users = (await call('frappe.client.get_list', {
+        doctype: 'User',
+        filters: { name: ['in', missing] },
+        fields: ['name', 'user_image'],
+        limit_page_length: 0,
+      })) as Array<{ name: string; user_image?: string }>
+      for (const u of users) if (u.user_image) userImages.value[u.name] = u.user_image
+    } catch {
+      /* avatars degrade to initials */
+    }
+  }
+
+  const notifications = computed<NotificationLog[]>(() =>
+    ((list.data as NotificationLog[]) || []).map((n) => ({
+      ...n,
+      from_user_image: n.from_user ? userImages.value[n.from_user] || undefined : undefined,
+    })),
   )
+  watch(
+    () => list.data,
+    (rows) => resolveUserImages((rows as NotificationLog[]) || []),
+    { immediate: true },
+  )
+
   const unreadCount = computed(
     () => notifications.value.filter((n) => !n.read).length,
   )
   const hasNextPage = computed(() => Boolean(list.hasNextPage))
 
-  function typeMeta(type?: string): NotificationType | undefined {
-    if (!type || !types.data) return undefined
-    return (types.data as Record<string, NotificationType>)[type]
-  }
-
   async function markAsRead(name: string) {
-    const n = notifications.value.find((x) => x.name === name)
+    const n = (list.data as NotificationLog[])?.find((x) => x.name === name)
     if (n && !n.read) n.read = 1 // optimistic
     await call(`${METHOD}.mark_as_read`, { docname: name })
   }
 
   async function markAllAsRead() {
-    notifications.value.forEach((n) => (n.read = 1)) // optimistic
+    ;(list.data as NotificationLog[])?.forEach((n) => (n.read = 1)) // optimistic
     await call(`${METHOD}.mark_all_as_read`)
   }
 
@@ -86,9 +131,16 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     list.reload()
   }
 
-  function setFilters(filters: Record<string, unknown>) {
-    list.update({ filters })
+  function applyFilters() {
+    list.update({ filters: effectiveFilters() })
     list.reload()
+  }
+
+  /** set the active tab's server-side filters; the app scope (if any) is always preserved */
+  function setServerFilters(filters: Record<string, unknown>) {
+    serverFilters.value = filters || {}
+    // wait for the app scope to resolve before the first query
+    if (!appName || appDoctypes.value !== null) applyFilters()
   }
 
   const onRealtime = () => reload()
@@ -101,16 +153,14 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
 
   return {
     list,
-    types,
     notifications,
     unreadCount,
     hasNextPage,
-    typeMeta,
     markAsRead,
     markAllAsRead,
     markSeen,
     reload,
-    setFilters,
+    setServerFilters,
     loadMore: () => list.next?.(),
   }
 }
