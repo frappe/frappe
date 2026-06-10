@@ -101,6 +101,26 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 			})
 		})
 
+		Object.entries(codeStore.studioModules || {}).forEach(([moduleName, binding]) => {
+			const isFunction = typeof binding === "function"
+			sources.push({
+				item: binding,
+				completion: {
+					label: moduleName,
+					type: isFunction ? "function" : "namespace",
+					detail: "Studio Module",
+					apply(view, completion, from, to) {
+						const insertText = isFunction ? `${completion.label}()` : `${completion.label}`
+						const cursorPos = isFunction ? from + insertText.length - 1 : from + insertText.length
+						view.dispatch({
+							changes: { from, to, insert: insertText },
+							selection: { anchor: cursorPos },
+						})
+					},
+				},
+			})
+		})
+
 		Object.entries(globalUtils).forEach(([funcName, func]) => {
 			if (isPrivateKey(funcName)) {
 				return

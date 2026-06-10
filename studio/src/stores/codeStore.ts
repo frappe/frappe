@@ -6,6 +6,7 @@ import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
 import { studioWatchers } from "@/data/studioWatchers"
 import { studioPageClientScripts, studioClientScripts } from "@/data/studioClientScripts"
+import { studioModulesRegistry } from "@/data/studioModules"
 import * as globalUtils from "@/utils/globalUtils"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
@@ -153,11 +154,24 @@ const useCodeStore = defineStore("codeStore", () => {
 
 	function compileClientScripts(source: string, functionNames: string[]) {
 		// Evaluate the combined client script source once and return its declared
-		// functions. They close over the execution context (variables as refs,
-		// resources, route/router), so they get ambient access like any other script.
+		// functions. They resolve identifiers through a proxy over the LIVE execution
+		// context, so they see variables/resources/modules registered after compilation
+		// (e.g. modules that finish importing a tick later) and stay current as state changes.
 		if (!functionNames.length) return {}
+		const liveContext = new Proxy(
+			{},
+			{
+				has(_target, key) {
+					// let globals (console, Function, …) fall through to the outer scope
+					if (key === Symbol.unscopables) return false
+					return key in globalExecutionContext.value
+				},
+				get(_target, key) {
+					return (globalExecutionContext.value as Record<string | symbol, any>)[key]
+				},
+			},
+		)
 		try {
-			const context = globalExecutionContext.value
 			const factory = new Function(
 				"context",
 				`with (context) {
@@ -165,17 +179,27 @@ const useCodeStore = defineStore("codeStore", () => {
 					return { ${functionNames.join(", ")} };
 				}`,
 			)
-			return factory(context) || {}
+			return factory(liveContext) || {}
 		} catch (error) {
 			console.error("Error compiling client scripts", error)
 			return {}
 		}
 	}
 
+	// Studio modules (composables/stores/utilities) exposed by name. Dev/editor uses the
+	// reactive registry; production reads the per-app build's window.__APP_MODULES__.
+	const studioModules = computed(() => {
+		return {
+			...((window as any).__APP_MODULES__ || {}),
+			...studioModulesRegistry.value,
+		}
+	})
+
 	const globalContext = computed(() => {
 		return {
 			...variables.value,
 			...resources.value,
+			...studioModules.value,
 			...clientScriptFunctions.value,
 			...globalUtils,
 			route: unref(routeObject.value),
@@ -190,6 +214,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		return {
 			...variablesRefs,
 			...resources.value,
+			...studioModules.value,
 			...clientScriptFunctions.value,
 			...globalUtils,
 			route: unref(routeObject.value),
@@ -560,6 +585,8 @@ const useCodeStore = defineStore("codeStore", () => {
 		// client scripts
 		clientScriptFunctionNames,
 		setPageClientScripts,
+		// modules
+		studioModules,
 		// code execution
 		globalContext,
 		globalExecutionContext,

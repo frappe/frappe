@@ -17,6 +17,8 @@ import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
 import { registerCustomVueComponents, unregisterCustomVueComponents } from "@/globals"
+import { registerStudioModules, unregisterStudioModules } from "@/data/studioModules"
+import type { StudioModuleMeta } from "@/types/StudioModule"
 import { setCustomComponentFilePaths } from "@/utils/components"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
@@ -50,12 +52,14 @@ const useStudioStore = defineStore("store", () => {
 	const activeApp = ref<StudioApp | null>(null)
 	const appPages = ref<Record<string, StudioPage>>({})
 	const customVueComponents = ref<CustomVueComponentMeta[]>([])
+	const studioModules = ref<StudioModuleMeta[]>([])
 
 	async function setApp(appName: string) {
 		const appDoc = await fetchApp(appName)
 		activeApp.value = appDoc
 		await setAppPages(appName)
 		await setCustomComponents()
+		await setStudioModules()
 	}
 
 	async function deleteApp(appName: string, appTitle: string) {
@@ -364,6 +368,17 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
+	// studio modules (composables/stores/utilities)
+	async function setStudioModules() {
+		if (studioModules.value.length) {
+			unregisterStudioModules(studioModules.value)
+			studioModules.value = []
+		}
+		if (activeApp.value?.is_standard) {
+			studioModules.value = await registerStudioModules(activeApp.value.frappe_app!)
+		}
+	}
+
 	function setCustomComponentListener() {
 		if (activeApp.value?.is_standard && import.meta.hot) {
 			// Auto-refresh custom components when .vue files are added/removed/renamed in studio folders
@@ -476,6 +491,8 @@ const useStudioStore = defineStore("store", () => {
 		// custom components
 		setCustomComponents,
 		customVueComponents,
+		setStudioModules,
+		studioModules,
 		// studio pages
 		pageBlocks,
 		selectedPage,
