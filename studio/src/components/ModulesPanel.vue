@@ -46,7 +46,7 @@ import { computed, watch } from "vue"
 import { createListResource, Autocomplete, Button, toast } from "frappe-ui"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import EmptyState from "@/components/EmptyState.vue"
-import { studioModulesResource } from "@/data/studioModules"
+import { studioModulesResource, loadModules } from "@/data/studioModules"
 import useCodeStore from "@/stores/codeStore"
 import type { StudioModuleMeta } from "@/types/StudioModule"
 
@@ -97,10 +97,11 @@ const availableOptions = computed(() => {
 		}))
 })
 
-function syncExposure() {
+async function syncExposure() {
 	const paths = (attached.data || []).map((r: { module_path: string }) => r.module_path)
 	if (props.scope === "app") codeStore.setAppModulePaths(paths)
 	else codeStore.setPageModulePaths(paths)
+	await loadModules(paths)
 }
 
 async function addModule(option: { value: string; module_name: string } | null) {
@@ -114,7 +115,7 @@ async function addModule(option: { value: string; module_name: string } | null) 
 			module_name: option.module_name,
 		})
 		await attached.reload()
-		syncExposure()
+		await syncExposure()
 	} catch (error: any) {
 		toast.error("Failed to import module", { description: error?.messages?.join(", ") })
 	}
@@ -124,7 +125,7 @@ async function removeModule(row: { name: string }) {
 	try {
 		await attached.delete.submit(row.name)
 		await attached.reload()
-		syncExposure()
+		await syncExposure()
 	} catch {
 		toast.error("Failed to remove module")
 	}

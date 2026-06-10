@@ -32,6 +32,7 @@ async function loadAppModulePaths() {
 	appModulesLoaded = true
 	try {
 		const app = await fetchApp(window.app_name)
+		if (!app) return
 		const appModulePaths = (app.modules || []).map((m: { module_path: string }) => m.module_path)
 		codeStore.setAppModulePaths(appModulePaths)
 		await loadModules(appModulePaths)

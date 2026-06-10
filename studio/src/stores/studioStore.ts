@@ -56,6 +56,7 @@ const useStudioStore = defineStore("store", () => {
 
 	async function setApp(appName: string) {
 		const appDoc = await fetchApp(appName)
+		if (!appDoc) return
 		activeApp.value = appDoc
 		await setAppPages(appName)
 		await setCustomComponents()
@@ -164,6 +165,10 @@ const useStudioStore = defineStore("store", () => {
 	async function setPage(pageName: string) {
 		settingPage.value = true
 		const page = await fetchPage(pageName)
+		if (!page) {
+			settingPage.value = false
+			return
+		}
 		activePage.value = page
 		const pageModulePaths = (page.modules || []).map((m: StudioModuleImport) => m.module_path)
 		codeStore.setPageModulePaths(pageModulePaths)
