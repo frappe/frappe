@@ -339,6 +339,13 @@ const layout: FormLayoutSchema = [
 								options:
 									"<p>Fill in the fields above. <strong>Phone</strong> is optional.</p>",
 							},
+							{
+								// No value: clicking fires `@change` (see onChange log) —
+								// the host's dispatch seam, like CRM's `triggerButton`.
+								fieldname: "send_invite",
+								fieldtype: "Button",
+								label: "Send invite",
+							},
 						],
 					},
 				],

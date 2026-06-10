@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { defineComponent } from "vue";
 import { getFieldComponent, registerFieldType } from "../fieldTypes";
 import AutocompleteField from "../fields/AutocompleteField.vue";
+import ButtonField from "../fields/ButtonField.vue";
 import CheckField from "../fields/CheckField.vue";
 import DateField from "../fields/DateField.vue";
 import DatetimeField from "../fields/DatetimeField.vue";
@@ -73,6 +74,10 @@ describe("fieldTypes registry", () => {
 
   it("resolves Geolocation to its component", () => {
     expect(getFieldComponent("Geolocation")).toBe(GeolocationField);
+  });
+
+  it("resolves Button to its component", () => {
+    expect(getFieldComponent("Button")).toBe(ButtonField);
   });
 
   it("falls back to the text component for an unknown fieldtype", () => {

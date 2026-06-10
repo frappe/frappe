@@ -1,6 +1,7 @@
 import type { Component } from "vue";
 import { setScoped } from "./scopedRegistry";
 import AutocompleteField from "./fields/AutocompleteField.vue";
+import ButtonField from "./fields/ButtonField.vue";
 import CheckField from "./fields/CheckField.vue";
 import DateField from "./fields/DateField.vue";
 import DatetimeField from "./fields/DatetimeField.vue";
@@ -101,6 +102,11 @@ registerFieldType("Duration", DurationField);
 registerFieldType("Dynamic Link", DynamicLinkField);
 
 registerFieldType("Geolocation", GeolocationField);
+
+// `Button` carries no value: its click surfaces through `FormLayout`'s `@change`
+// seam (see ButtonField). The host dispatches on `fieldname` like CRM's
+// `triggerButton`; apps can register a richer override.
+registerFieldType("Button", ButtonField);
 
 // Grid cells reuse this same registry, so app field overrides apply inside too.
 registerFieldType("Table", TableField);
