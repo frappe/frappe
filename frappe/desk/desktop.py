@@ -47,7 +47,7 @@ class Workspace(DeskViews):
 
 		self.allowed_pages = DeskViews.get_allowed_pages(cache=True)
 		self.allowed_reports = DeskViews.get_allowed_reports(cache=True)
-    
+
 		if not minimal:
 			if self.doc.content:
 				self.onboarding_list = [
