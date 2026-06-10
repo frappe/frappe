@@ -16,6 +16,7 @@ in an integration run.
 import sys
 import types
 import unittest
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
@@ -37,6 +38,7 @@ from frappe.realtime_py import auth as auth_mod
 from frappe.realtime_py import bridge as bridge_mod
 from frappe.realtime_py import dispatch as dispatch_mod
 from frappe.realtime_py import handlers as handlers_mod
+from frappe.realtime_py.auth import Session
 from frappe.realtime_py.config import RealtimeConfig
 from frappe.realtime_py.registry import Registry
 from frappe.realtime_py.socket import Socket
@@ -44,46 +46,76 @@ from frappe.realtime_py.socket import Socket
 ConnectionRefusedError = auth_mod.ConnectionRefusedError
 
 
+def make_session(
+	request: Callable[..., dict] | None = None,
+	data: dict | None = None,
+	**identity: object,
+) -> Session:
+	base = {"site": "s1", "user": "a@b.com", "user_type": "System User", "installed_apps": ["frappe"]}
+	base.update(identity)
+	return Session(
+		site=base["site"],
+		user=base["user"],
+		user_type=base["user_type"],
+		installed_apps=base["installed_apps"],
+		request=request or (lambda path, method="GET", params=None, body=None: {"message": 1}),
+		data=data if data is not None else {},
+	)
+
+
 class FakeSio:
 	"""In-memory stand-in for the python-socketio Server (single namespace)."""
 
-	def __init__(self):
-		self.rooms: dict[str, set] = {}
-		self.sessions: dict[str, dict] = {}
+	def __init__(self) -> None:
+		self.rooms: dict[str, set[str]] = {}
+		self.sessions: dict[str, Session] = {}
 		self.emits: list[dict] = []
 		self.manager = self
 
-	def enter_room(self, sid, room, namespace=None):
+	def enter_room(self, sid: str, room: str, namespace: str | None = None) -> None:
 		self.rooms.setdefault(sid, set()).add(room)
 
-	def leave_room(self, sid, room, namespace=None):
+	def leave_room(self, sid: str, room: str, namespace: str | None = None) -> None:
 		self.rooms.setdefault(sid, set()).discard(room)
 
-	def emit(self, event, data=None, to=None, room=None, namespace=None):
+	def emit(
+		self,
+		event: str,
+		data: object | None = None,
+		to: str | None = None,
+		room: str | None = None,
+		namespace: str | None = None,
+	) -> None:
 		self.emits.append({"event": event, "data": data, "to": to or room, "namespace": namespace})
 
-	def save_session(self, sid, session, namespace=None):
+	def save_session(self, sid: str, session: Session, namespace: str | None = None) -> None:
 		self.sessions[sid] = session
 
-	def get_session(self, sid, namespace=None):
+	def get_session(self, sid: str, namespace: str | None = None) -> Session:
 		return self.sessions[sid]
 
-	def get_participants(self, namespace, room):
+	def get_participants(self, namespace: str, room: str) -> Iterator[tuple[str, str]]:
 		for sid, rooms in self.rooms.items():
 			if room in rooms:
 				yield (sid, sid)
 
-	def rooms_of(self, sid):
+	def rooms_of(self, sid: str) -> set[str]:
 		return self.rooms.get(sid, set())
 
 
-def make_config(**overrides):
+def make_config(**overrides: object) -> RealtimeConfig:
 	base = dict(port=9000, redis_queue="redis://127.0.0.1:11311", default_site=None, developer_mode=False)
 	base.update(overrides)
 	return RealtimeConfig(**base)
 
 
-def make_environ(host="s1", origin="http://s1", cookie="sid=abc", site_header=None, authorization=None):
+def make_environ(
+	host: str | None = "s1",
+	origin: str | None = "http://s1",
+	cookie: str | None = "sid=abc",
+	site_header: str | None = None,
+	authorization: str | None = None,
+) -> dict[str, str]:
 	env = {}
 	if host:
 		env["HTTP_HOST"] = host
@@ -99,13 +131,13 @@ def make_environ(host="s1", origin="http://s1", cookie="sid=abc", site_header=No
 
 
 class FakeResponse:
-	def __init__(self, payload):
+	def __init__(self, payload: dict):
 		self._payload = payload
 
-	def raise_for_status(self):
+	def raise_for_status(self) -> None:
 		pass
 
-	def json(self):
+	def json(self) -> dict:
 		return self._payload
 
 
@@ -166,20 +198,19 @@ class TestAuthenticate(unittest.TestCase):
 
 	def test_empty_user_info_rejected(self):
 		env = make_environ(site_header="s1")
-		with patch.object(auth_mod.requests, "get", return_value=FakeResponse({"message": {}})):
+		with patch.object(auth_mod.requests, "request", return_value=FakeResponse({"message": {}})):
 			with self.assertRaises(ConnectionRefusedError):
 				auth_mod.authenticate(env, "/s1", make_config())
 
 	def test_success_returns_session(self):
 		env = make_environ(site_header="s1")
-		with patch.object(auth_mod.requests, "get", return_value=self._ok_response()):
+		with patch.object(auth_mod.requests, "request", return_value=self._ok_response()):
 			session = auth_mod.authenticate(env, "/s1", make_config())
-		self.assertEqual(session["site"], "s1")
-		self.assertEqual(session["user"], "a@b.com")
-		self.assertEqual(session["user_type"], "System User")
-		self.assertEqual(session["installed_apps"], ["frappe"])
-		self.assertEqual(session["sid"], "abc")
-		self.assertTrue(callable(session["_frappe_request"]))
+		self.assertEqual(session.site, "s1")
+		self.assertEqual(session.user, "a@b.com")
+		self.assertEqual(session.user_type, "System User")
+		self.assertEqual(session.installed_apps, ["frappe"])
+		self.assertTrue(callable(session.request))
 
 
 class TestRegistry(unittest.TestCase):
@@ -187,7 +218,7 @@ class TestRegistry(unittest.TestCase):
 		reg = Registry()
 
 		@reg.on("evt", frappe_context=True, allow_guest=True)
-		def handler(socket):
+		def handler(socket: Socket) -> None:
 			pass
 
 		handlers = reg.handlers_for("evt")
@@ -202,7 +233,7 @@ class TestRegistry(unittest.TestCase):
 		with reg.importing_app("myapp"):
 
 			@reg.on("evt")
-			def handler(socket):
+			def handler(socket: Socket) -> None:
 				pass
 
 		self.assertEqual(reg.handlers_for("evt")[0].app, "myapp")
@@ -215,12 +246,17 @@ class TestRegistry(unittest.TestCase):
 
 
 class TestSocket(unittest.TestCase):
-	def _socket(self, sio=None, frappe_request=None, **session):
+	def _socket(
+		self,
+		sio: FakeSio | None = None,
+		request: Callable[..., dict] | None = None,
+		data: dict | None = None,
+		**identity: object,
+	) -> Socket:
 		sio = sio or FakeSio()
-		base = {"site": "s1", "user": "a@b.com", "user_type": "System User", "installed_apps": ["frappe"]}
-		base.update(session)
-		sio.sessions["sid1"] = base
-		return Socket(sio, "sid1", "/s1", base, frappe_request)
+		session = make_session(request=request, data=data, **identity)
+		sio.sessions["sid1"] = session
+		return Socket(sio, "sid1", "/s1", session)
 
 	def test_session_fields(self):
 		s = self._socket()
@@ -244,12 +280,12 @@ class TestSocket(unittest.TestCase):
 		s = self._socket(sio=sio)
 		self.assertEqual(s.get("missing", []), [])
 		s.set("subscribed_documents", [["DT", "n1"]])
-		self.assertEqual(sio.sessions["sid1"]["subscribed_documents"], [["DT", "n1"]])
+		self.assertEqual(sio.sessions["sid1"].data["subscribed_documents"], [["DT", "n1"]])
 
 	def test_has_permission_http(self):
-		s = self._socket(frappe_request=lambda path, args: {"message": 1})
+		s = self._socket(request=lambda path, method="GET", params=None, body=None: {"message": 1})
 		self.assertTrue(s.has_permission("DT", "n1"))
-		s = self._socket(frappe_request=lambda path, args: {"message": 0})
+		s = self._socket(request=lambda path, method="GET", params=None, body=None: {"message": 0})
 		self.assertFalse(s.has_permission("DT", "n1"))
 
 
@@ -261,14 +297,8 @@ class TestDispatch(unittest.TestCase):
 		self.addCleanup(patcher.stop)
 		self.sio = FakeSio()
 
-	def _session(self, user="a@b.com", installed_apps=("frappe",)):
-		session = {
-			"site": "s1",
-			"user": user,
-			"user_type": "System User",
-			"installed_apps": list(installed_apps),
-			"_frappe_request": lambda path, args=None: {"message": 1},
-		}
+	def _session(self, user: str = "a@b.com", installed_apps: tuple[str, ...] = ("frappe",)) -> Session:
+		session = make_session(user=user, installed_apps=list(installed_apps))
 		self.sio.sessions["sid1"] = session
 		return session
 
@@ -306,7 +336,7 @@ class TestDispatch(unittest.TestCase):
 		entered = []
 
 		@contextmanager
-		def fake_ctx(site, user):
+		def fake_ctx(site: str, user: str) -> Iterator[None]:
 			entered.append((site, user))
 			yield
 
@@ -319,7 +349,7 @@ class TestDispatch(unittest.TestCase):
 	def test_handler_error_swallowed(self):
 		ran = []
 
-		def boom(s):
+		def boom(s: Socket) -> None:
 			raise ValueError("boom")
 
 		self.reg.on("evt")(boom)
@@ -360,11 +390,16 @@ class TestBridge(unittest.TestCase):
 
 
 class TestCoreHandlers(unittest.TestCase):
-	def _socket(self, sio, frappe_request=None, **session):
-		base = {"site": "s1", "user": "a@b.com", "user_type": "System User", "installed_apps": ["frappe"]}
-		base.update(session)
-		sio.sessions["sid1"] = base
-		return Socket(sio, "sid1", "/s1", base, frappe_request)
+	def _socket(
+		self,
+		sio: FakeSio,
+		request: Callable[..., dict] | None = None,
+		data: dict | None = None,
+		**identity: object,
+	) -> Socket:
+		session = make_session(request=request, data=data, **identity)
+		sio.sessions["sid1"] = session
+		return Socket(sio, "sid1", "/s1", session)
 
 	def test_ping_pong(self):
 		sio = FakeSio()
@@ -389,30 +424,31 @@ class TestCoreHandlers(unittest.TestCase):
 
 	def test_doctype_subscribe_permission_gated(self):
 		sio = FakeSio()
-		allow = self._socket(sio, frappe_request=lambda p, a: {"message": 1})
+		allow = self._socket(sio, request=lambda path, method="GET", params=None, body=None: {"message": 1})
 		handlers_mod.doctype_subscribe(allow, "ToDo")
 		self.assertIn("doctype:ToDo", sio.rooms_of("sid1"))
 
 		sio2 = FakeSio()
-		deny = self._socket(sio2, frappe_request=lambda p, a: {"message": 0})
+		deny = self._socket(sio2, request=lambda path, method="GET", params=None, body=None: {"message": 0})
 		handlers_mod.doctype_subscribe(deny, "ToDo")
 		self.assertNotIn("doctype:ToDo", sio2.rooms_of("sid1"))
 
 	def test_doc_close_removes_tracked_pair(self):
 		# Regression for the Node bug: the pair must actually be dropped.
 		sio = FakeSio()
-		s = self._socket(sio, subscribed_documents=[["ToDo", "n1"], ["ToDo", "n2"]])
+		s = self._socket(sio, data={"subscribed_documents": [["ToDo", "n1"], ["ToDo", "n2"]]})
 		handlers_mod.doc_close(s, "ToDo", "n1")
-		self.assertEqual(sio.sessions["sid1"]["subscribed_documents"], [["ToDo", "n2"]])
+		self.assertEqual(sio.sessions["sid1"].data["subscribed_documents"], [["ToDo", "n2"]])
 
 	def test_doc_viewers_emitted_for_multiple_users(self):
 		sio = FakeSio()
-		sio.sessions["sid1"] = {"user": "a@b.com"}
-		sio.sessions["sid2"] = {"user": "b@b.com"}
+		session_a = make_session(user="a@b.com")
+		sio.sessions["sid1"] = session_a
+		sio.sessions["sid2"] = make_session(user="b@b.com")
 		room = handlers_mod.open_doc_room("ToDo", "n1")
 		sio.enter_room("sid1", room)
 		sio.enter_room("sid2", room)
-		s = Socket(sio, "sid1", "/s1", sio.sessions["sid1"])
+		s = Socket(sio, "sid1", "/s1", session_a)
 		handlers_mod.notify_doc_viewers(s, "ToDo", "n1")
 		emit = sio.emits[-1]
 		self.assertEqual(emit["event"], "doc_viewers")
@@ -420,10 +456,11 @@ class TestCoreHandlers(unittest.TestCase):
 
 	def test_doc_viewers_silent_for_lone_self(self):
 		sio = FakeSio()
-		sio.sessions["sid1"] = {"user": "a@b.com"}
+		session_a = make_session(user="a@b.com")
+		sio.sessions["sid1"] = session_a
 		room = handlers_mod.open_doc_room("ToDo", "n1")
 		sio.enter_room("sid1", room)
-		s = Socket(sio, "sid1", "/s1", sio.sessions["sid1"])
+		s = Socket(sio, "sid1", "/s1", session_a)
 		handlers_mod.notify_doc_viewers(s, "ToDo", "n1")
 		self.assertEqual(sio.emits, [])
 

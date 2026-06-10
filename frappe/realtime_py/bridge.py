@@ -1,25 +1,18 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
-"""Redis -> Socket.IO bridge.
 
-Subscribes to the no-auth queue redis ``events`` channel — the same channel
-frappe.realtime.emit_via_redis publishes to — and re-emits each message to the
-connected sockets. The message shape is the frozen external contract::
-
-    {"namespace": "site", "room": "room", "event": "event", "message": {}}
-
-- with ``room``: emit to that room in namespace ``/{namespace}``
-- without ``room``: broadcast to every connected site namespace (build events)
-
-Runs in its own greenlet; reconnects on redis failure and skips malformed
-messages without crashing.
-"""
+from __future__ import annotations
 
 import json
 import logging
+from typing import TYPE_CHECKING, NoReturn
 
 import gevent
 import redis
+
+if TYPE_CHECKING:
+	from gevent.greenlet import Greenlet
+	from socketio.server import Server as SocketIOServer
 
 logger = logging.getLogger("frappe.realtime")
 
@@ -28,17 +21,32 @@ RECONNECT_DELAY = 1.0  # seconds between redis reconnect attempts
 
 
 class RedisBridge:
-	def __init__(self, sio, redis_url: str):
-		self.sio = sio
-		self.redis_url = redis_url
-		self._greenlet = None
+	"""Redis -> Socket.IO bridge.
 
-	def start(self):
+	Subscribes to the queue redis ``events`` channel — the same channel
+	frappe.realtime.emit_via_redis publishes to — and re-emits each message to the
+	connected sockets. The message shape is the frozen external contract:
+
+	    {"namespace": "site", "room": "room", "event": "event", "message": {}}
+
+	- with ``room``: emit to that room in namespace ``/{namespace}``
+	- without ``room``: broadcast to every connected site namespace (build events)
+
+	Runs in its own greenlet; reconnects on redis failure and skips malformed
+	messages without crashing.
+	"""
+
+	def __init__(self, sio: SocketIOServer, redis_url: str):
+		self.sio: SocketIOServer = sio
+		self.redis_url = redis_url
+		self._greenlet: Greenlet | None = None
+
+	def start(self) -> Greenlet:
 		"""Spawn the subscriber greenlet. Returns the greenlet."""
 		self._greenlet = gevent.spawn(self._run)
 		return self._greenlet
 
-	def _run(self):
+	def _run(self) -> NoReturn:
 		while True:
 			try:
 				client = redis.from_url(self.redis_url)
@@ -56,7 +64,7 @@ class RedisBridge:
 				logger.exception("Redis bridge crashed; reconnecting in %ss", RECONNECT_DELAY)
 				gevent.sleep(RECONNECT_DELAY)
 
-	def _handle(self, raw):
+	def _handle(self, raw: str | bytes | bytearray | None) -> None:
 		try:
 			data = json.loads(raw)
 			namespace = "/" + data["namespace"]
@@ -75,7 +83,7 @@ class RedisBridge:
 				self.sio.emit(event, message, namespace=ns)
 
 
-def start_bridge(sio, redis_url: str) -> RedisBridge:
+def start_bridge(sio: SocketIOServer, redis_url: str) -> RedisBridge:
 	bridge = RedisBridge(sio, redis_url)
 	bridge.start()
 	return bridge

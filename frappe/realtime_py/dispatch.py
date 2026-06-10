@@ -16,19 +16,33 @@ Concrete events are bound (rather than a combined catch-all) to avoid ambiguity 
 python-socketio's argument order; the namespace is always prepended for namespace="*".
 """
 
+from __future__ import annotations
+
 import logging
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from frappe.realtime_py.auth import authenticate
+from frappe.realtime_py.config import RealtimeConfig
 from frappe.realtime_py.context import frappe_context
 from frappe.realtime_py.registry import realtime
 from frappe.realtime_py.socket import Socket
+
+if TYPE_CHECKING:
+	from socketio.server import Server as SocketIOServer
 
 logger = logging.getLogger("frappe.realtime")
 
 RESERVED_EVENTS = ("connect", "disconnect")
 
 
-def _run_handlers(sio, event: str, namespace: str, sid: str, args: tuple) -> None:
+def _run_handlers(
+	sio: SocketIOServer,
+	event: str,
+	namespace: str,
+	sid: str,
+	args: tuple[object, ...],
+) -> None:
 	handlers = realtime.handlers_for(event)
 	if not handlers:
 		return
@@ -38,7 +52,7 @@ def _run_handlers(sio, event: str, namespace: str, sid: str, args: tuple) -> Non
 	except KeyError:
 		return
 
-	socket = Socket(sio, sid, namespace, session, session.get("_frappe_request"))
+	socket = Socket(sio, sid, namespace, session)
 
 	for handler in handlers:
 		if handler.app not in socket.installed_apps:
@@ -55,22 +69,22 @@ def _run_handlers(sio, event: str, namespace: str, sid: str, args: tuple) -> Non
 			logger.exception("handler error: event=%s app=%s", event, handler.app)
 
 
-def _make_dispatcher(sio, event: str):
-	def dispatcher(namespace, sid, *args):
+def _make_dispatcher(sio: SocketIOServer, event: str) -> Callable[..., None]:
+	def dispatcher(namespace: str, sid: str, *args: object) -> None:
 		_run_handlers(sio, event, namespace, sid, args)
 
 	return dispatcher
 
 
-def wire(sio, config) -> None:
+def wire(sio: SocketIOServer, config: RealtimeConfig) -> None:
 	"""Bind connect / disconnect and every registered event onto namespace '*'."""
 
-	def connect(namespace, sid, environ, auth=None):
+	def connect(namespace: str, sid: str, environ: dict, auth: object | None = None) -> None:
 		session = authenticate(environ, namespace, config)
 		sio.save_session(sid, session, namespace=namespace)
 		_run_handlers(sio, "connect", namespace, sid, ())
 
-	def disconnect(namespace, sid):
+	def disconnect(namespace: str, sid: str) -> None:
 		_run_handlers(sio, "disconnect", namespace, sid, ())
 
 	sio.on("connect", connect, namespace="*")
