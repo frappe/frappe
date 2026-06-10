@@ -10,6 +10,7 @@ from frappe.desk.desk_views import DeskViews
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
+from frappe.permissions import get_doctypes_with_read
 from frappe.utils import cint, flt, get_datetime, getdate, has_common, now_datetime, nowdate
 from frappe.utils.dashboard import cache_source
 from frappe.utils.data import format_date
@@ -37,19 +38,10 @@ def get_permission_query_conditions(user):
 	report_condition = False
 	module_condition = False
 
-<<<<<<< HEAD
 	allowed_doctypes = [frappe.db.escape(doctype) for doctype in frappe.permissions.get_doctypes_with_read()]
-	allowed_reports = [frappe.db.escape(report) for report in get_allowed_report_names()]
-=======
-	allowed_doctypes = [frappe.db.escape(doctype) for doctype in get_doctypes_with_read(user)]
-<<<<<<< HEAD
-	allowed_reports = [frappe.db.escape(report) for report in DeskEntity.get_allowed_report_names(user=user)]
->>>>>>> 12b0614a54 (refactor: introduce desk entity class)
-=======
 	allowed_reports = [frappe.db.escape(report) for report in DeskViews.get_allowed_report_names(user=user)]
->>>>>>> 8412adb358 (chore: rename to desk views)
 	allowed_modules = [
-		frappe.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user()
+		frappe.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user(user)
 	]
 
 	if allowed_doctypes:
@@ -85,18 +77,10 @@ def has_permission(doc, ptype, user):
 		if has_common(roles, allowed):
 			return True
 	elif doc.chart_type == "Report":
-<<<<<<< HEAD
-<<<<<<< HEAD
-		if doc.report_name in get_allowed_report_names():
-=======
-		if doc.report_name in DeskEntity.get_allowed_report_names(user=user):
->>>>>>> 12b0614a54 (refactor: introduce desk entity class)
-=======
 		if doc.report_name in DeskViews.get_allowed_report_names(user=user):
->>>>>>> 8412adb358 (chore: rename to desk views)
 			return True
 	else:
-		allowed_doctypes = frappe.permissions.get_doctypes_with_read()
+		allowed_doctypes = get_doctypes_with_read(user)
 		if doc.document_type in allowed_doctypes:
 			return True
 
