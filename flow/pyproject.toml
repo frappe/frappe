@@ -9,6 +9,7 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     "litellm<2,>=1.83.0",
+    "lancedb<1,>=0.33",
 ]
 
 [build-system]
