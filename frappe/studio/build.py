@@ -21,6 +21,7 @@ class StudioAppBuilder:
 		self.components = set(DEFAULT_COMPONENTS)
 		self.studio_component_blocks = {}
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
+		self.studio_modules: dict[str, str] = {}  # {module_name: absolute_path}
 
 		if self.is_standard:
 			"""Build a standard (exported) studio app.
@@ -42,7 +43,33 @@ class StudioAppBuilder:
 			self.get_app_components_from_files()
 		else:
 			self.get_app_components()
+		self.get_studio_modules_from_files()
 		self._run_vite_build()
+
+	def get_studio_modules_from_files(self):
+		"""Discover custom JS/TS modules (composables/stores/utilities) to bundle into the build."""
+		if not self.frappe_app:
+			return
+
+		studio_folder = get_studio_folder(self.frappe_app)
+		if not studio_folder or not os.path.exists(studio_folder):
+			return
+
+		module_extensions = (".js", ".ts")
+		skip_extensions = (".d.ts", ".test.js", ".test.ts", ".spec.js", ".spec.ts")
+		for studio_app in os.listdir(studio_folder):
+			app_dir = os.path.join(studio_folder, studio_app)
+			if not os.path.isdir(app_dir):
+				continue
+
+			for dirpath, _dirnames, filenames in os.walk(app_dir):
+				for filename in sorted(filenames):
+					if not filename.endswith(module_extensions) or filename.endswith(skip_extensions):
+						continue
+					module_name = os.path.splitext(filename)[0]
+					if module_name in self.studio_modules:
+						continue
+					self.studio_modules[module_name] = os.path.join(dirpath, filename)
 
 	def _run_vite_build(self) -> None:
 		"""Execute the yarn build-studio-app command with the given parameters."""
@@ -64,6 +91,10 @@ class StudioAppBuilder:
 		if self.custom_vue_components:
 			custom_json = json.dumps(self.custom_vue_components)
 			command += f" --custom-components '{custom_json}'"
+
+		if self.studio_modules:
+			modules_json = json.dumps(self.studio_modules)
+			command += f" --studio-modules '{modules_json}'"
 
 		studio_app_path = frappe.get_app_source_path("studio")
 		popen(command, cwd=studio_app_path, env=get_node_env(), raise_err=True)

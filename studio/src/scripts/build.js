@@ -24,6 +24,7 @@ const { values: argv } = parseArgs({
 		"out-dir": { type: "string" },
 		base: { type: "string" },
 		"custom-components": { type: "string" },
+		"studio-modules": { type: "string" },
 	},
 	strict: false,
 })
@@ -33,15 +34,30 @@ if (!argv.app) {
 	process.exit(1)
 }
 
-await generateAppBuild(argv.app, argv.components, argv["out-dir"], argv.base, argv["custom-components"])
+await generateAppBuild(
+	argv.app,
+	argv.components,
+	argv["out-dir"],
+	argv.base,
+	argv["custom-components"],
+	argv["studio-modules"],
+)
 
-export async function generateAppBuild(appName, components, outDir, base, customComponentsJson) {
+export async function generateAppBuild(
+	appName,
+	components,
+	outDir,
+	base,
+	customComponentsJson,
+	studioModulesJson,
+) {
 	if (!appName) return
 
 	const componentList = components ? components.split(",") : []
 	const customComponents = customComponentsJson ? JSON.parse(customComponentsJson) : {}
+	const studioModules = studioModulesJson ? JSON.parse(studioModulesJson) : {}
 	const componentSources = findComponentSources(componentList, customComponents)
-	const rendererContent = getRendererContent(componentSources)
+	const rendererContent = getRendererContent(componentSources, studioModules)
 	const tempRendererPath = writeRendererFile(appName, rendererContent)
 	await buildWithVite(appName, tempRendererPath, outDir, base)
 	deleteRendererFile(tempRendererPath)
@@ -69,7 +85,7 @@ function findComponentSources(appComponents, customComponents = {}) {
 	}
 }
 
-function getRendererContent(componentSources) {
+function getRendererContent(componentSources, studioModules = {}) {
 	const { frappeUIComponents, frappeComponents, studioComponents, customComponents } = componentSources
 	const frappeUIImports =
 		frappeUIComponents.length > 0 ? `import { ${frappeUIComponents.join(",\n ")} } from "frappe-ui";` : ""
@@ -89,6 +105,28 @@ function getRendererContent(componentSources) {
 		...studioComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...customComponentNames.map((comp) => `app.component("${comp}", ${comp})`),
 	].join("\n")
+
+	// Modules are dynamically imported (after pinia is installed) so stores can
+	// instantiate at module load, then flattened into window.__APP_MODULES__ with the
+	// same rule as the dev registry: named exports by name, default export by file name.
+	const moduleNames = Object.keys(studioModules)
+	const moduleSetup = moduleNames.length
+		? `window.__APP_MODULES__ = {}
+function __registerStudioModule(moduleName, ns) {
+	Object.keys(ns).forEach((key) => {
+		window.__APP_MODULES__[key === "default" ? moduleName : key] = ns[key]
+	})
+}
+
+Promise.all([
+${moduleNames
+	.map(
+		(name) =>
+			`	import(${JSON.stringify(studioModules[name])}).then((ns) => __registerStudioModule(${JSON.stringify(name)}, ns)),`,
+	)
+	.join("\n")}
+]).then(() => app.mount("#app"))`
+		: `app.mount("#app")`
 
 	const rendererContent = `import "@/index.css"
 import { createApp } from "vue"
@@ -115,7 +153,7 @@ app.use(spritePlugin)
 ${componentRegistrations}
 window.__APP_COMPONENTS__ = app._context.components
 
-app.mount("#app")`
+${moduleSetup}`
 	return rendererContent
 }
 
@@ -149,6 +187,9 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 			alias: {
 				"@": path.resolve(__dirname, "../"),
 			},
+			// keep vue/pinia/etc as single instances so studio modules (composables/stores)
+			// share the app's runtime — Pinia breaks with duplicate copies
+			dedupe: ["vue", "vue-router", "pinia", "frappe-ui"],
 		},
 		build: {
 			manifest: true,
