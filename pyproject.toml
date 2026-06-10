@@ -88,6 +88,15 @@ dependencies = [
     "vobject~=0.9.9",
     "pycountry~=24.6.1",
     "websockets~=15.0.1",
+    # realtime (Python Socket.IO server) — speaks Socket.IO v5 / Engine.IO v4,
+    # wire-compatible with the browser's socket.io-client ^4.7.1.
+    # Pin exact versions after a manual handshake check (polling + websocket upgrade).
+    "python-socketio~=5.13.0",
+    "python-engineio~=4.12.0",
+    "gevent~=25.9.1",
+    # gevent-websocket is effectively unmaintained but is the documented websocket
+    # path for python-socketio's gevent WSGIServer. Pinned deliberately.
+    "gevent-websocket~=0.10.1",
 ]
 
 [project.urls]
