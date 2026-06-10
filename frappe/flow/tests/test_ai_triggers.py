@@ -242,6 +242,8 @@ class TestFire(IntegrationTestCase):
 		self.assertEqual(session.agent, self.agent.name)
 		self.assertEqual(run.status, "Completed")
 		self.assertIn(todo.name, run.input)
+		self.assertEqual(run.reference_doctype, "ToDo")
+		self.assertEqual(run.reference_name, todo.name)
 
 	def test_fire_skips_disabled_trigger(self):
 		self.trigger.enabled = 0
@@ -291,3 +293,5 @@ class TestFire(IntegrationTestCase):
 		run = frappe.get_doc("AI Run", run_name)
 		self.assertEqual(run.status, "Completed")
 		self.assertEqual(run.trigger, scheduled.name)
+		self.assertIsNone(run.reference_doctype)
+		self.assertIsNone(run.reference_name)

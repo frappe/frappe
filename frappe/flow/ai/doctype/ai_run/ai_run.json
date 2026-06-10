@@ -8,6 +8,8 @@
   "session",
   "source",
   "trigger",
+  "reference_doctype",
+  "reference_name",
   "column_break_meta",
   "status",
   "iterations",
@@ -55,6 +57,23 @@
    "in_standard_filter": 1,
    "label": "Trigger",
    "options": "AI Trigger"
+  },
+  {
+   "depends_on": "eval:doc.source === 'Trigger'",
+   "description": "DocType of the document that fired the trigger.",
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference DocType",
+   "options": "DocType"
+  },
+  {
+   "depends_on": "eval:doc.source === 'Trigger'",
+   "description": "Document that fired the trigger.",
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "in_standard_filter": 1,
+   "label": "Reference Name",
+   "options": "reference_doctype"
   },
   {
    "fieldname": "column_break_meta",

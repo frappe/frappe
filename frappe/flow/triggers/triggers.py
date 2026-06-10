@@ -81,7 +81,13 @@ def fire(
 
 	prompt = frappe.render_template(t.prompt_template, {"doc": doc, "now": frappe.utils.now_datetime()})
 	agent_doc = frappe.get_doc("AI Agent", t.agent)
-	run = agent_doc.run(prompt, source="Trigger", trigger=t.name)
+	run = agent_doc.run(
+		prompt,
+		source="Trigger",
+		trigger=t.name,
+		reference_doctype=target_doctype if doc else None,
+		reference_name=target_name if doc else None,
+	)
 	return run.name
 
 
