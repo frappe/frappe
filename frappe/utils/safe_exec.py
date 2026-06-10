@@ -288,7 +288,7 @@ def make_safe_get_request(url: str, **kwargs):
 	for record in addr_info:
 		try:
 			addr = ipaddress.ip_address(record[4][0])
-		except ValueError, IndexError:
+		except (ValueError, IndexError):
 			continue
 
 		if not addr.is_global:
@@ -634,7 +634,6 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 
 	Safe queries:
 	        1. Read only 'select' or 'explain' queries
-	        2. CTE on mariadb where writes are not allowed.
 	"""
 
 	query = query.strip().lower()
@@ -649,14 +648,12 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 			)
 		return False
 
-	if query.startswith(whitelisted_statements) or (
-		query.startswith("with") and frappe.db.db_type == "mariadb"
-	):
+	if query.startswith(whitelisted_statements):
 		return True
 
 	if throw:
 		frappe.throw(
-			_("Query must be of SELECT or read-only WITH type."),
+			_("Read-Only queries are allowed"),
 			title=_("Unsafe SQL query"),
 			exc=frappe.PermissionError,
 		)
