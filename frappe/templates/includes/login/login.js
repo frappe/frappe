@@ -18,13 +18,23 @@ login.bind_events = function () {
 		var args = {};
 		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
-		if (!args.usr || !args.pwd) {
-			{# striptags is used to remove newlines, e is used for escaping #}
-			frappe.msgprint("{{ _('Both login and password required') | striptags | e }}");
-			return false;
+		var hasError = false;
+		if (!args.usr) {
+			login.show_field_error("login_email", {{ _("Email is required.") | tojson }});
+			hasError = true;
 		}
+		if (!args.pwd) {
+			login.show_field_error("login_password", {{ _("Password is required.") | tojson }});
+			hasError = true;
+		}
+		if (hasError) return false;
 		login.call(args, null, "/api/method/login");
 		return false;
+	});
+
+	$(".page-card-body input").on("input", function () {
+		$(this).closest(".form-group").removeClass("invalid").find(".field-error").text("");
+		$(this).closest(".page-card-body").removeClass("invalid").find(".login-error-banner").hide();
 	});
 
 	$(".form-signup").on("submit", function (event) {
@@ -181,12 +191,22 @@ login.set_status = function (message, color) {
 	}
 }
 
+login.show_field_error = function (input_id, message) {
+	var $formGroup = $("#" + input_id).closest(".form-group");
+	$formGroup.addClass("invalid").find(".field-error").text(message);
+};
+
+login.show_error_banner = function (message) {
+	$("section:visible .login-error-banner").css("display", "flex").find("span").text(message);
+};
+
 login.set_invalid = function (message) {
 	$(".login-content.page-card").addClass('invalid-login');
 	setTimeout(() => {
 		$(".login-content.page-card").removeClass('invalid-login');
 	}, 500)
 	login.set_status(message, 'red');
+	login.show_error_banner(message);
 	$("#login_password").focus();
 }
 
@@ -209,7 +229,7 @@ login.login_handlers = (function () {
 				}) || []).join('<br>') || default_message;
 			}
 
-			login.set_invalid(default_message);
+			login.set_invalid(message);
 			if (message !== default_message) {
 				login.reset_sections(false);
 			}
@@ -271,7 +291,7 @@ login.login_handlers = (function () {
 				}
 			}
 		},
-		401: get_error_handler({{ _("Invalid Login. Try again.") | tojson }}),
+		401: get_error_handler({{ _("Invalid credentials, try again.") | tojson }}),
 		417: get_error_handler({{ _("Oops! Something went wrong.") | tojson }}),
 		429: get_error_handler({{ _("Too many requests. Please try again later.") | tojson }}),
 		500: get_error_handler({{ _("Something went wrong.") | tojson }}),
