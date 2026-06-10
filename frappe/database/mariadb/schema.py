@@ -1,5 +1,3 @@
-from pymysql.constants.ER import DUP_ENTRY
-
 import frappe
 from frappe import _
 from frappe.database.schema import DbColumn, DBTable
@@ -166,7 +164,7 @@ class MariaDBTable(DBTable):
 			if query := locals().get("query"):  # this weirdness is to avoid potentially unbounded vars
 				print(f"Failed to alter schema using query: {query}")
 
-			if e.args[0] == DUP_ENTRY:
+			if frappe.db.is_duplicate_entry(e):
 				fieldname = str(e).split("'")[-2]
 				frappe.throw(
 					_(
