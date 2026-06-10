@@ -26,6 +26,8 @@ class RealtimeConfig:
 	redis_queue: str
 	uds: str | None = None
 	default_site: str | None = None
+	developer_mode: bool = False
+	webserver_port: int | None = None
 
 
 def get_config(sites_path: str | None = None) -> RealtimeConfig:
@@ -35,9 +37,12 @@ def get_config(sites_path: str | None = None) -> RealtimeConfig:
 	sites_path = sites_path or getattr(frappe.local, "sites_path", None) or "sites"
 	conf = frappe.get_common_site_config(sites_path=sites_path)
 
+	webserver_port = conf.get("webserver_port")
 	return RealtimeConfig(
 		port=int(conf.get("socketio_port") or DEFAULT_SOCKETIO_PORT),
 		redis_queue=conf.get("redis_queue") or DEFAULT_REDIS_QUEUE,
 		uds=conf.get("socketio_uds") or None,
 		default_site=conf.get("default_site") or None,
+		developer_mode=bool(conf.get("developer_mode")),
+		webserver_port=int(webserver_port) if webserver_port else None,
 	)
