@@ -76,6 +76,7 @@ def create_sio() -> socketio.Server:
 		async_mode="gevent",
 		cors_allowed_origins="*",
 		cors_credentials=True,
+		namespaces="*",
 		logger=logger,
 		engineio_logger=logger,
 	)
@@ -133,7 +134,7 @@ def serve(config: RealtimeConfig | None = None) -> None:
 
 
 def main() -> None:
-	logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+	logging.basicConfig(level=logging.WARNING, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 	serve()
 
 

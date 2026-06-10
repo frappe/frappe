@@ -67,16 +67,16 @@ class RedisBridge:
 	def _handle(self, raw: str | bytes | bytearray | None) -> None:
 		try:
 			data = json.loads(raw)
-			namespace = "/" + data["namespace"]
 			event = data["event"]
 			message = data.get("message")
 			room = data.get("room")
+			ns = data.get("namespace")
 		except (ValueError, TypeError, KeyError) as e:
 			logger.warning("Redis bridge skipping malformed message (%s): %r", e, raw)
 			return
 
 		if room:
-			self.sio.emit(event, message, room=room, namespace=namespace)
+			self.sio.emit(event, message, room=room, namespace="/" + ns)
 		else:
 			# No room -> broadcast to every connected site namespace (build events).
 			for ns in list(self.sio.manager.rooms.keys()):
