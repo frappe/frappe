@@ -142,7 +142,7 @@ jobs:
 
   # TIP: Require this single check in branch protection, e.g. UI / Success
   success:
-    name: Success
+    name: UI Success
     needs: [test]
     if: always()
     runs-on: ubuntu-latest
