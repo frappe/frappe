@@ -7,10 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "type_name",
-  "enabled",
-  "appearance_section",
-  "icon",
-  "color"
+  "enabled"
  ],
  "fields": [
   {
@@ -27,23 +24,6 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Enabled"
-  },
-  {
-   "fieldname": "appearance_section",
-   "fieldtype": "Section Break",
-   "label": "Appearance"
-  },
-  {
-   "description": "Default icon (e.g. a lucide icon name) used by the notification panel for this type.",
-   "fieldname": "icon",
-   "fieldtype": "Data",
-   "label": "Icon"
-  },
-  {
-   "description": "Default color / semantic variant token used by the notification panel for this type.",
-   "fieldname": "color",
-   "fieldtype": "Data",
-   "label": "Color"
   }
  ],
  "links": [],
