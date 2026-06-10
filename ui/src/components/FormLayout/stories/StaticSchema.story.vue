@@ -1,6 +1,8 @@
 <template>
 	<div class="p-6 max-w-3xl">
-		<FormLayout v-model:doc="doc" :layout="layout" @change="onChange" />
+		<!-- No `@change`: `FormLayout` emits nothing. Per-field actions/side-effects
+		     ride the node's `ui.on`; "react to all" would be `watch(doc, …)`. -->
+		<FormLayout v-model:doc="doc" :layout="layout" />
 		<pre class="mt-6 text-xs text-ink-gray-6">doc = {{ doc }}</pre>
 	</div>
 </template>
@@ -164,7 +166,17 @@ const layout: FormLayoutSchema = [
 					{
 						name: "col-b",
 						fields: [
-							{ fieldname: "quantity", fieldtype: "Int", label: "Quantity" },
+							{
+								// A *value* field's commit-time side-effect rides `ui.on.change`
+								// (the home the removed `@change` used to serve) — here it
+								// derives `amount` from the committed quantity, writing a sibling
+								// on the reactive `doc`. This is exactly where field-change
+								// scripting would attach.
+								fieldname: "quantity",
+								fieldtype: "Int",
+								label: "Quantity",
+								ui: { on: { change: (value) => onQuantityCommit(value) } },
+							},
 							// `options` names the sibling field holding this row's currency code.
 							{
 								fieldname: "currency",
@@ -340,11 +352,16 @@ const layout: FormLayoutSchema = [
 									"<p>Fill in the fields above. <strong>Phone</strong> is optional.</p>",
 							},
 							{
-								// No value: clicking fires `@change` (see onChange log) —
-								// the host's dispatch seam, like CRM's `triggerButton`.
+								// Self-describing: presentation + action live on the node's
+								// `ui` overlay. The click rides `ui.on.click` (no `@change`
+								// hack, no host fieldname dispatch); `props` style the Button.
 								fieldname: "send_invite",
 								fieldtype: "Button",
 								label: "Send invite",
+								ui: {
+									props: { variant: "solid", theme: "blue", size: "md" },
+									on: { click: () => sendInvite() },
+								},
 							},
 						],
 					},
@@ -570,7 +587,14 @@ const layout: FormLayoutSchema = [
 	},
 ];
 
-function onChange(fieldname: string, value: any) {
-	console.log("change", fieldname, value);
+// Button action, wired on the node via `ui.on.click`.
+function sendInvite() {
+	console.log("invite sent");
+}
+
+// Value-field commit side-effect, wired via `ui.on.change`. Derives `amount`
+// (unit price 100) from the committed quantity — observe it in the doc dump.
+function onQuantityCommit(value: any) {
+	doc.amount = Number(value) * 100;
 }
 </script>

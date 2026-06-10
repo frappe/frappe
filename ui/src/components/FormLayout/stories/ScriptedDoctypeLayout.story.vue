@@ -12,13 +12,17 @@
     is High" / "hide Date when status is Closed" re-evaluate as the user edits.
     Operates on **meta** (label/hidden/…) via `applyMetaScript`.
 
-  • BEHAVIOUR scripting (flavour A) — `@change(fieldname, value)` is the **commit
-    funnel** (`CommitKey`). On commit it runs a per-field trigger that mutates the
-    **doc** (sets sibling values), Frappe `frm.trigger`-style. The parent owns `doc`
-    via `v-model:doc`, so trigger writes flow straight back and stay reactive.
+  • BEHAVIOUR scripting (flavour A) — a per-field commit trigger is attached as
+    that field node's **`ui.on.change`** (the schema-driven overlay). On commit it
+    mutates the **doc** (sets sibling values), Frappe `frm.trigger`-style. The
+    parent owns `doc` via `v-model:doc`, so trigger writes flow straight back and
+    stay reactive. `FormLayout` emits nothing; the handler is baked into the layout.
 
-  Both reach a deeply-rendered field with **no** new prop/provide/event on
-  `FormLayout` — meta via the schema seam, behaviour via the existing `@change`.
+  Both reach a deeply-rendered field with **no** prop/provide/event on
+  `FormLayout` — meta via the schema seam, behaviour via the field's `ui.on`. In
+  the real product this overlay is produced by a `scriptDecorator` at build time
+  (`buildLayoutFromMeta`'s `decorate` hook); here we overlay it onto the built tree
+  since `useScriptedLayout` doesn't expose that seam.
 -->
 <template>
 	<div class="p-6 max-w-3xl">
@@ -29,7 +33,7 @@
 
 		<div v-if="loading" class="text-ink-gray-6">Loading meta…</div>
 		<div v-else-if="error" class="text-ink-red-4">{{ errorMessage }}</div>
-		<FormLayout v-else v-model:doc="doc" :layout="layout" @change="onChange" />
+		<FormLayout v-else v-model:doc="doc" :layout="layout" />
 
 		<div class="mt-6 grid grid-cols-2 gap-6 text-xs text-ink-gray-6">
 			<div>
@@ -37,7 +41,7 @@
 				<pre>{{ ops.length ? ops : "(none)" }}</pre>
 			</div>
 			<div>
-				<p class="font-medium mb-1">doc (mutated by @change triggers):</p>
+				<p class="font-medium mb-1">doc (mutated by ui.on.change triggers):</p>
 				<pre>{{ doc }}</pre>
 			</div>
 		</div>
@@ -49,6 +53,7 @@ import { computed, reactive, ref } from "vue";
 import FormLayout from "../FormLayout.vue";
 import { useScriptedLayout } from "../useScriptedLayout";
 import type { MetaOp } from "../applyMetaScript";
+import type { FormLayoutSchema } from "../types";
 
 const props = withDefaults(defineProps<{ doctype?: string }>(), {
 	doctype: "ToDo",
@@ -86,9 +91,48 @@ function evaluate(d: Record<string, any>): MetaOp[] {
 
 const ops = computed<MetaOp[]>(() => (scriptEnabled.value ? evaluate(doc) : []));
 
-const { layout, loading, error } = useScriptedLayout(props.doctype, ops);
+const { layout: metaLayout, loading, error } = useScriptedLayout(props.doctype, ops);
 const errorMessage = computed(() =>
 	error.value instanceof Error ? error.value.message : String(error.value)
+);
+
+// Overlay behaviour triggers as `ui.on.change` on each scripted field. Stand-in
+// for the build-time `scriptDecorator`: maps the layout tree, merging a commit
+// handler onto fields named in `triggers` (existing `ui.on.change` handlers are
+// preserved so overlays compose). Gated by the same `scriptEnabled` toggle.
+function withBehaviour(schema: FormLayoutSchema): FormLayoutSchema {
+	return schema.map((tab) => ({
+		...tab,
+		sections: tab.sections.map((section) => ({
+			...section,
+			columns: section.columns.map((column) => ({
+				...column,
+				fields: column.fields.map((f) => {
+					const trigger = triggers[f.fieldname];
+					if (!trigger) return f;
+					const prev = f.ui?.on?.change;
+					return {
+						...f,
+						ui: {
+							...f.ui,
+							on: {
+								...f.ui?.on,
+								change: prev
+									? ([] as ((...a: any[]) => void)[])
+											.concat(prev)
+											.concat((value: any) => trigger(doc, value))
+									: (value: any) => trigger(doc, value),
+							},
+						},
+					};
+				}),
+			})),
+		})),
+	}));
+}
+
+const layout = computed<FormLayoutSchema>(() =>
+	scriptEnabled.value ? withBehaviour(metaLayout.value) : metaLayout.value
 );
 
 /**
@@ -109,9 +153,4 @@ const triggers: Record<string, (d: Record<string, any>, value: any) => void> = {
 		if (value === "High") d.color = "#ef4444";
 	},
 };
-
-function onChange(fieldname: string, value: any) {
-	if (!scriptEnabled.value) return;
-	triggers[fieldname]?.(doc, value);
-}
 </script>
