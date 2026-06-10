@@ -500,15 +500,6 @@ frappe.ui.Sidebar = class Sidebar {
 		this.setup_notifications();
 		this.standard_items_setup = true;
 	}
-<<<<<<< HEAD
-	get_workspace_for_module(module) {
-		for (let i = 0; i < frappe.boot.workspaces.pages.length; i++) {
-			const workspace = frappe.boot.workspaces.pages[i];
-			if (workspace.module == module && !workspace.parent_page) {
-				return workspace.name;
-			}
-		}
-	}
 	setup_awesomebar() {
 		if (frappe.boot.desk_settings.search_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
@@ -525,8 +516,6 @@ frappe.ui.Sidebar = class Sidebar {
 			}
 		}
 	}
-=======
->>>>>>> 8da635d7fc (fix: rework sidebar setting algorithm)
 	setup_notifications() {
 		if (frappe.boot.desk_settings.notifications && frappe.session.user !== "Guest") {
 			this.notifications = new frappe.ui.Notifications({ full_height: true });
@@ -645,46 +634,11 @@ frappe.ui.Sidebar = class Sidebar {
 				const module = router?.meta?.module;
 				target = this.resolve_sidebar(entity, module);
 			}
-<<<<<<< HEAD
-			let sidebars = this.get_workspace_sidebars(entity_name);
-			this.preferred_sidebars = sidebars;
-			let module = router?.meta?.module;
-			if (this.sidebar_title && sidebars.includes(this.sidebar_title)) {
-				this.set_active_workspace_item();
-				return;
-			}
-			if (sidebar_item_map[entity_name]) {
-				this.setup(sidebar_item_map[entity_name][0]);
-				return;
-			}
-			if (this.sidebar_title && sidebars.includes(this.sidebar_title)) {
-				this.set_active_workspace_item();
-				return;
-			}
-			if (module) {
-				sidebars = this.filter_sidebars_from_app(
-					sidebars,
-					frappe.boot.module_app[module.toLowerCase().replace(/[ -]/g, "_")]
-				);
-			}
-			if (sidebars.length == 1) {
-				frappe.app.sidebar.setup(sidebars[0]);
-			} else if (sidebars.length > 1) {
-				let sidebar = this.get_workspace_for_module(module);
-				if (sidebars.includes(this.get_workspace_for_module(module))) {
-					frappe.app.sidebar.setup(sidebar);
-				} else {
-					frappe.app.sidebar.setup(module);
-				}
-			} else if (module) {
-				this.show_sidebar_for_module(module);
-=======
 
 			// only rebuild when the target differs from the current sidebar, so
 			// this stays a cheap no-op when re-run by page-change / form-refresh
 			if (target && target !== this.sidebar_title) {
 				frappe.app.sidebar.setup(target);
->>>>>>> 8da635d7fc (fix: rework sidebar setting algorithm)
 			}
 		} catch (e) {
 			console.error(e);
