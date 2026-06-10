@@ -5,3 +5,8 @@
 Replaces the Node.js Socket.IO process. Runs as a separate gevent process;
 see ``frappe/realtime_py/server.py`` for the entrypoint.
 """
+
+from frappe.realtime_py.registry import realtime
+from frappe.realtime_py.socket import Socket
+
+__all__ = ["Socket", "realtime"]
