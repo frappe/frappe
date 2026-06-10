@@ -29,6 +29,7 @@ import socketio
 from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
 
+from frappe.realtime_py.bridge import start_bridge
 from frappe.realtime_py.config import RealtimeConfig, get_config
 
 logger = logging.getLogger("frappe.realtime")
@@ -107,6 +108,8 @@ def _make_listener(config: RealtimeConfig):
 def serve(config: RealtimeConfig | None = None) -> None:
 	assert_no_mysqlclient()
 	config = config or get_config()
+
+	start_bridge(sio, config.redis_queue)
 
 	listener = _make_listener(config)
 	server = WSGIServer(listener, app, handler_class=WebSocketHandler, log=logger, error_log=logger)
