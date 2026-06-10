@@ -15,13 +15,8 @@ from frappe.modules.utils import create_directory_on_app_path
 from frappe.utils.caching import site_cache
 
 
-<<<<<<< HEAD
-class WorkspaceSidebar(Document):
-=======
-class WorkspaceSidebar(Document, DeskViews):
-	_DOCTYPE_NAME = "Workspace Sidebar"
 
->>>>>>> a25a51601d (refactor: use Desk Views class)
+class WorkspaceSidebar(Document, DeskViews):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -45,15 +40,6 @@ class WorkspaceSidebar(Document, DeskViews):
 		if not frappe.flags.in_migrate:
 			self.user = frappe.get_user()
 			self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
-<<<<<<< HEAD
-			self.allowed_modules = self.get_cached("user_allowed_modules", self.get_allowed_modules)
-
-		self.allowed_pages = DeskViews.get_allowed_pages(cache=True)
-		self.allowed_reports = DeskViews.get_allowed_reports(cache=True)
-		self.restricted_doctypes = frappe.cache.get_value("domain_restricted_doctypes")
-		self.restricted_pages = frappe.cache.get_value("domain_restricted_pages")
-=======
->>>>>>> a25a51601d (refactor: use Desk Views class)
 
 	def get_can_read_items(self):
 		if not self.user.can_read:
