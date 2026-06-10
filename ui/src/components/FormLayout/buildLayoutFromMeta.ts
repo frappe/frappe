@@ -1,6 +1,8 @@
 import type {
   Column,
   FieldMeta,
+  FieldNode,
+  FieldUI,
   FormLayoutSchema,
   RawMetaField,
   Section,
@@ -26,9 +28,50 @@ const CHILD_TABLE_TYPES = new Set([TABLE, TABLE_MULTISELECT]);
 /** Layout-break fieldtypes never render as a value/grid column. */
 const LAYOUT_BREAKS = new Set([TAB_BREAK, SECTION_BREAK, COLUMN_BREAK]);
 
-/** Child doctype name → its flat meta `fields`, for resolving `Table` columns. */
+/**
+ * App hook to attach per-field presentation/behavior during the build. Called
+ * once per data field (and per grid column) with the field's resolved meta;
+ * returns a `FieldUI` to overlay onto that node, or nothing to leave it plain.
+ */
+export type Decorator = (field: FieldMeta) => FieldUI | void;
+
 export interface BuildLayoutOptions {
+  /** Child doctype name → its flat meta `fields`, for resolving `Table` columns. */
   childMetas?: Record<string, RawMetaField[]>;
+  /** Per-field UI overlay hook (see `Decorator`); inherited by nested grids. */
+  decorate?: Decorator;
+}
+
+/**
+ * Compose several decorators into one. Each is run against the field meta and
+ * their returned overlays are merged: `component` is last-wins, `props` shallow-
+ * merge, and `on` handlers **concat per event into an array so every handler
+ * fires** (Vue's `v-on` accepts a handler array) — styling and scripting can
+ * both contribute a `change`/`click` without one clobbering the other.
+ */
+export function compose(...decorators: Decorator[]): Decorator {
+  return (field) => {
+    let merged: FieldUI | undefined;
+    for (const decorate of decorators) {
+      const ui = decorate(field);
+      if (!ui) continue;
+      merged ??= {};
+      if (ui.component) merged.component = ui.component;
+      if (ui.props) merged.props = { ...merged.props, ...ui.props };
+      if (ui.on) {
+        const on = (merged.on ??= {});
+        for (const [event, handler] of Object.entries(ui.on)) {
+          const existing = on[event];
+          on[event] = existing
+            ? ([] as ((...a: any[]) => void)[])
+                .concat(existing as any)
+                .concat(handler as any)
+            : handler;
+        }
+      }
+    }
+    return merged;
+  };
 }
 
 function newColumn(field?: RawMetaField): Column {
@@ -68,8 +111,9 @@ function coercePrecision(
  */
 function resolveChildFields(
   field: RawMetaField,
-  childMetas: Record<string, RawMetaField[]>
-): FieldMeta[] | undefined {
+  childMetas: Record<string, RawMetaField[]>,
+  decorate?: Decorator
+): FieldNode[] | undefined {
   const childFields = field.options ? childMetas[field.options] : undefined;
   if (!childFields) return undefined;
 
@@ -78,7 +122,7 @@ function resolveChildFields(
   );
   const inListView = dataFields.filter((f) => f.in_list_view);
   const columns = inListView.length ? inListView : dataFields;
-  return columns.map((f) => mapField(f, childMetas));
+  return columns.map((f) => mapField(f, childMetas, decorate));
 }
 
 /**
@@ -88,18 +132,20 @@ function resolveChildFields(
  */
 function resolveChildLayout(
   field: RawMetaField,
-  childMetas: Record<string, RawMetaField[]>
+  childMetas: Record<string, RawMetaField[]>,
+  decorate?: Decorator
 ): FormLayoutSchema | undefined {
   const childMeta = field.options ? childMetas[field.options] : undefined;
   if (!childMeta) return undefined;
-  return buildLayoutFromMeta(childMeta, { childMetas });
+  return buildLayoutFromMeta(childMeta, { childMetas, decorate });
 }
 
 function mapField(
   field: RawMetaField,
-  childMetas: Record<string, RawMetaField[]>
-): FieldMeta {
-  return {
+  childMetas: Record<string, RawMetaField[]>,
+  decorate?: Decorator
+): FieldNode {
+  const meta: FieldMeta = {
     fieldname: field.fieldname,
     fieldtype: field.fieldtype,
     label: field.label,
@@ -117,21 +163,24 @@ function mapField(
     readOnlyDependsOn: field.read_only_depends_on,
     // Child-table columns. Nested grids aren't supported (no deeper childMetas).
     ...(CHILD_TABLE_TYPES.has(field.fieldtype)
-      ? { childFields: resolveChildFields(field, childMetas) }
+      ? { childFields: resolveChildFields(field, childMetas, decorate) }
       : {}),
     // The row-edit dialog renders the full child form; `Table MultiSelect` has
     // no row dialog, so only `Table` carries a `childLayout`.
     ...(field.fieldtype === TABLE
-      ? { childLayout: resolveChildLayout(field, childMetas) }
+      ? { childLayout: resolveChildLayout(field, childMetas, decorate) }
       : {}),
   };
+  // Attach the app's per-field overlay (presentation/behavior); plain when absent.
+  const ui = decorate?.(meta);
+  return ui ? { ...meta, ui } : meta;
 }
 
 export function buildLayoutFromMeta(
   fields: RawMetaField[],
   options: BuildLayoutOptions = {}
 ): FormLayoutSchema {
-  const { childMetas = {} } = options;
+  const { childMetas = {}, decorate } = options;
   if (!fields.length) return [];
 
   const tabs: Tab[] = [];
@@ -167,7 +216,7 @@ export function buildLayoutFromMeta(
       ensureSection().columns.push(newColumn(field));
     } else {
       if (field.hidden) continue; // drop statically hidden fields
-      ensureColumn().fields.push(mapField(field, childMetas));
+      ensureColumn().fields.push(mapField(field, childMetas, decorate));
     }
   }
 

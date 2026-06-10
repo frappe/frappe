@@ -2,6 +2,7 @@ import { evaluateDependsOn } from "./dependsOn";
 import type {
   Column,
   FieldMeta,
+  FieldNode,
   FormLayoutSchema,
   Section,
   Tab,
@@ -29,11 +30,13 @@ import type {
  * can reach a parent field via `parent.x` (see `evaluateDependsOn`). Defaults to
  * `doc` to mirror desk's top-level `parent === doc`.
  */
-export function resolveFieldConditionals(
-  f: FieldMeta,
+export function resolveFieldConditionals<T extends FieldMeta>(
+  f: T,
   doc: Record<string, any>,
   parent: Record<string, any> = doc
-): FieldMeta {
+): T {
+  // Generic in the node type so a `FieldNode`'s `ui` overlay rides through the
+  // spread (it does at runtime — `ui` is just another own-key) and stays typed.
   return {
     ...f,
     hidden: f.dependsOn
@@ -71,7 +74,7 @@ export function resolveLayout(
   doc: Record<string, any>,
   parent: Record<string, any> = doc
 ): FormLayoutSchema {
-  const resolveField = (f: FieldMeta): FieldMeta =>
+  const resolveField = (f: FieldNode): FieldNode =>
     resolveFieldConditionals(f, doc, parent);
 
   const resolveColumn = (c: Column): Column => ({

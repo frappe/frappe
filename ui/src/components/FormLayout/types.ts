@@ -16,9 +16,10 @@ export interface FieldMeta {
   /**
    * Child-table columns from the child's `in_list_view` fields. Used by `Table`
    * (grid columns) and `Table MultiSelect` (its single `Link` field gives the
-   * target doctype + per-row value key).
+   * target doctype + per-row value key). Typed `FieldNode[]` so grid columns
+   * carry a `ui` overlay too — back-compatible since `FieldNode extends FieldMeta`.
    */
-  childFields?: FieldMeta[];
+  childFields?: FieldNode[];
   /**
    * Full render-ready layout of the child doctype, for the `Table` row-edit
    * dialog which shows every field (desk grid-row form), not just the
@@ -45,6 +46,38 @@ export interface FieldMeta {
   mandatoryDependsOn?: string;
   readOnlyDependsOn?: string;
 }
+
+/**
+ * App-supplied presentation/behavior for one field's *layout node* — not part of
+ * the portable `FieldMeta`. Filled by the build step (inline on a static schema,
+ * or via `buildLayoutFromMeta`'s `decorate` hook); consumed by `FormLayoutField`,
+ * which v-binds `props` and v-on's `on` onto the resolved field component (or
+ * swaps the component entirely via `component`). Frappe meta never carries this.
+ */
+export interface FieldUI {
+  /** Structural swap for THIS node only (e.g. a themed Button). */
+  component?: Component;
+  /** Presentation props v-bound onto the control (variant / theme / size …). */
+  props?: Record<string, unknown>;
+  /**
+   * Event listeners v-on'd onto the control (`click`, `change`, …). A value
+   * passed as a handler array fires every handler — `decorate` composition
+   * concats per-event handlers so styling + scripting both run (see `compose`).
+   * In a grid cell the row is injected as a trailing arg: `on.click(event, row)`.
+   */
+  on?: Record<
+    string,
+    ((...args: any[]) => void) | ((...args: any[]) => void)[]
+  >;
+}
+
+/**
+ * A field as it sits in the layout tree: its portable meta plus an optional,
+ * app-supplied UI overlay. Extends `FieldMeta`, so every existing read
+ * (`f.hidden`, `f.fieldname`) and every `{ ...f }` spread keeps working and the
+ * `ui` key rides along untouched.
+ */
+export type FieldNode = FieldMeta & { ui?: FieldUI };
 
 /**
  * The subset of a Frappe DocField (as returned by `getdoctype`) that
@@ -76,7 +109,7 @@ export interface Column {
   name?: string;
   label?: string;
   hideLabel?: boolean;
-  fields: FieldMeta[];
+  fields: FieldNode[];
 }
 
 export interface Section {
@@ -117,7 +150,9 @@ export type FieldComponentEmits = {
   /** Live value on every change — keeps `doc` reactive while editing. */
   "update:modelValue": [value: any];
   /** Commit (blur for typed inputs, selection for pickers); only the field knows
-   *  which event means commit. Surfaces as `FormLayout`'s `@change`. */
+   *  which event means commit. Caught by the node's `ui.on.change` when one is
+   *  attached, otherwise a harmless no-op (the value is already synced into `doc`
+   *  via `update:modelValue`). `FormLayout` itself emits nothing. */
   change: [value: any];
 };
 
@@ -137,14 +172,6 @@ export const ParentDocKey: InjectionKey<Ref<Record<string, any>> | null> =
 /** Writes a field's live value into the doc on every change. Pure state sync. */
 export const UpdateKey: InjectionKey<(fieldname: string, value: any) => void> =
   Symbol("FormLayoutUpdate");
-
-/**
- * Called when a field is committed (blur / picker selection). Entry point for
- * the future field-change scripting layer; surfaces as `FormLayout`'s `@change`.
- * Distinct from value-sync: runs only on commit and identifies which field.
- */
-export const CommitKey: InjectionKey<(fieldname: string, value: any) => void> =
-  Symbol("FormLayoutCommit");
 
 /** Resolves a fieldtype to its component (falls back to the text component). */
 export const ResolveFieldKey: InjectionKey<(fieldtype: string) => Component> =

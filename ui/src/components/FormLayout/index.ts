@@ -6,8 +6,8 @@ export { useDoctypeLayout } from "./useDoctypeLayout";
 export { useScriptedLayout } from "./useScriptedLayout";
 export { useDoctypeMeta } from "./useDoctypeMeta";
 export { useChildRowModel } from "./useChildRowModel";
-export { buildLayoutFromMeta } from "./buildLayoutFromMeta";
-export type { BuildLayoutOptions } from "./buildLayoutFromMeta";
+export { buildLayoutFromMeta, compose } from "./buildLayoutFromMeta";
+export type { BuildLayoutOptions, Decorator } from "./buildLayoutFromMeta";
 export { fieldsToLayout } from "./fieldsToLayout";
 export { resolveLayout } from "./resolveLayout";
 export { applyMetaScript } from "./applyMetaScript";
@@ -34,6 +34,8 @@ export type {
   Section,
   Column,
   FieldMeta,
+  FieldNode,
+  FieldUI,
   RawMetaField,
   FieldComponentProps,
   FieldComponentEmits,
