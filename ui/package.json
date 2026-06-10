@@ -13,12 +13,16 @@
       "import": "./src/components/FormLayout/index.ts",
       "types": "./src/components/FormLayout/index.ts"
     },
+    "./vite": {
+      "import": "./vite/index.js"
+    },
     "./*": {
       "import": "./src/*"
     }
   },
   "files": [
-    "src"
+    "src",
+    "vite"
   ],
   "repository": {
     "type": "git",
@@ -29,12 +33,12 @@
   "dependencies": {
     "leaflet": "^1.9.4",
     "leaflet-draw": "^1.0.4",
-    "leaflet.locatecontrol": "^0.89.0"
+    "leaflet.locatecontrol": "^0.89.0",
+    "vuedraggable": "^4.1.0"
   },
   "peerDependencies": {
     "frappe-ui": "*",
     "vue": ">=3.3.0",
-    "vue-router": "^4.1.5",
-    "vuedraggable": "^4.1.0"
+    "vue-router": "^4.1.5"
   }
 }
