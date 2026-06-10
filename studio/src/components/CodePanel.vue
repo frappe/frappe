@@ -100,7 +100,6 @@
 		<template v-if="store.activeApp?.frappe_app">
 			<ModulesPanel
 				v-if="store.activePage"
-				class="p-4 pt-0"
 				scope="page"
 				parentDoctype="Studio Page"
 				:parentName="store.activePage.name"
@@ -108,7 +107,6 @@
 				:key="`page-modules-${store.selectedPage ?? ''}`"
 			/>
 			<ModulesPanel
-				class="p-4 pt-0"
 				scope="app"
 				parentDoctype="Studio App"
 				:parentName="store.activeApp.name"

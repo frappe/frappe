@@ -7,8 +7,8 @@
 				:key="row.name"
 				class="group/item flex flex-row items-center justify-between gap-2"
 			>
-				<div class="flex min-w-0 flex-col">
-					<span class="truncate font-mono text-xs font-semibold text-purple-700">
+				<div class="flex min-w-0 flex-col gap-1">
+					<span class="truncate font-mono text-xs font-semibold text-pink-700">
 						{{ row.module_name || row.module_path }}
 					</span>
 					<span class="truncate text-2xs text-ink-gray-5">{{ row.module_path }}</span>
