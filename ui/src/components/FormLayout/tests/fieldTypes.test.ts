@@ -7,6 +7,7 @@ import DateField from "../fields/DateField.vue";
 import DatetimeField from "../fields/DatetimeField.vue";
 import DurationField from "../fields/DurationField.vue";
 import DynamicLinkField from "../fields/DynamicLinkField.vue";
+import GeolocationField from "../fields/GeolocationField.vue";
 import HeadingField from "../fields/HeadingField.vue";
 import HtmlField from "../fields/HtmlField.vue";
 import LinkField from "../fields/LinkField.vue";
@@ -68,6 +69,10 @@ describe("fieldTypes registry", () => {
     expect(getFieldComponent("Duration")).toBe(DurationField);
     expect(getFieldComponent("Dynamic Link")).toBe(DynamicLinkField);
     expect(getFieldComponent("Table MultiSelect")).toBe(TableMultiSelectField);
+  });
+
+  it("resolves Geolocation to its component", () => {
+    expect(getFieldComponent("Geolocation")).toBe(GeolocationField);
   });
 
   it("falls back to the text component for an unknown fieldtype", () => {

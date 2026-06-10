@@ -26,6 +26,11 @@
   },
   "author": "Frappe Technologies Pvt. Ltd.",
   "license": "MIT",
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "leaflet-draw": "^1.0.4",
+    "leaflet.locatecontrol": "^0.89.0"
+  },
   "peerDependencies": {
     "frappe-ui": "*",
     "vue": ">=3.3.0",

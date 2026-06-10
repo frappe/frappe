@@ -6,6 +6,7 @@ import DateField from "./fields/DateField.vue";
 import DatetimeField from "./fields/DatetimeField.vue";
 import DurationField from "./fields/DurationField.vue";
 import DynamicLinkField from "./fields/DynamicLinkField.vue";
+import GeolocationField from "./fields/GeolocationField.vue";
 import HeadingField from "./fields/HeadingField.vue";
 import HtmlField from "./fields/HtmlField.vue";
 import LinkField from "./fields/LinkField.vue";
@@ -98,6 +99,8 @@ registerFieldType("Autocomplete", AutocompleteField);
 registerFieldType("Rating", RatingField);
 registerFieldType("Duration", DurationField);
 registerFieldType("Dynamic Link", DynamicLinkField);
+
+registerFieldType("Geolocation", GeolocationField);
 
 // Grid cells reuse this same registry, so app field overrides apply inside too.
 registerFieldType("Table", TableField);
