@@ -37,6 +37,7 @@ class TestWorkspace(IntegrationTestCase):
 	# 	else:
 	# 		self.assertEqual(len(cards), 1)
 
+
 def create_module(module_name):
 	module = frappe.get_doc({"doctype": "Module Def", "module_name": module_name, "app_name": "frappe"})
 	module.insert(ignore_if_duplicate=True)

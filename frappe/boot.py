@@ -216,6 +216,7 @@ def load_desktop_data(bootinfo):
 			)
 		)
 
+
 def load_translations(bootinfo):
 	from frappe.translate import get_messages_for_boot
 

@@ -48,7 +48,7 @@ class SidebarItemGroup(Document):
 
 
 @frappe.whitelist()
-def get_reports(module_name=None):
+def get_reports(module_name: str | None = None):
 	reports_info = []
 	if module_name:
 		sidebar_group = frappe.get_doc("Sidebar Item Group", module_name)

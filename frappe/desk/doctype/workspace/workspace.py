@@ -292,7 +292,7 @@ def get_report_type(report):
 
 
 @frappe.whitelist()
-def new_page(new_page):
+def new_page(new_page: str):
 	if not loads(new_page):
 		return
 
