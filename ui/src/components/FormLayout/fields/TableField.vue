@@ -215,7 +215,10 @@ watch(
 			return;
 		}
 		const next = rows.value.slice();
-		next[editIndex.value] = { ...editDoc.value };
+		// Mutate the row in place (vs. replacing it) so its object reference is
+		// preserved — the Grid keys rows by identity via a WeakMap, so a fresh
+		// object would re-key and re-mount the row, dropping its selection state.
+		Object.assign(next[editIndex.value], editDoc.value);
 		emit("update:modelValue", next);
 		emit("change", next);
 	},
