@@ -31,6 +31,7 @@ from geventwebsocket.handler import WebSocketHandler
 
 from frappe.realtime_py.bridge import start_bridge
 from frappe.realtime_py.config import RealtimeConfig, get_config
+from frappe.realtime_py.dispatch import wire
 
 logger = logging.getLogger("frappe.realtime")
 
@@ -108,6 +109,10 @@ def _make_listener(config: RealtimeConfig):
 def serve(config: RealtimeConfig | None = None) -> None:
 	assert_no_mysqlclient()
 	config = config or get_config()
+
+	# Handler modules (core + per-app discovery) are imported here in later tasks,
+	# before wire(), so the registry is populated when wire() binds events.
+	wire(sio, config)
 
 	start_bridge(sio, config.redis_queue)
 
