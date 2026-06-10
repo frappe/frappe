@@ -13,6 +13,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 )
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
+from frappe.desk.desk_views import DeskViews
 from frappe.desk.doctype.changelog_feed.changelog_feed import get_changelog_feed_items
 from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
@@ -21,11 +22,7 @@ from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
 from frappe.model.base_document import get_controller
-from frappe.permissions import has_permission
-from frappe.query_builder import DocType
-from frappe.query_builder.functions import Count
-from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
-from frappe.utils import add_user_info, cstr, get_system_timezone
+from frappe.utils import add_user_info, get_system_timezone
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
 from frappe.utils.frappecloud import on_frappecloud
@@ -57,6 +54,9 @@ def get_bootinfo():
 
 	bootinfo.modules = {}
 	bootinfo.module_list = []
+	desk_views = DeskViews()
+	desk_views.build_entities()
+	desk_views.add_to_boot(bootinfo)
 	load_desktop_data(bootinfo)
 	bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
@@ -69,7 +69,6 @@ def get_bootinfo():
 	bootinfo.nested_set_doctypes = frappe.get_all("DocField", {"fieldname": "lft"}, pluck="parent")
 	bootinfo.tree_view_doctypes = get_tree_view_doctypes()
 	add_home_page(bootinfo, doclist)
-	bootinfo.page_info = get_allowed_pages()
 	load_translations(bootinfo)
 	add_timezone_info(bootinfo)
 	load_conf_settings(bootinfo)
@@ -160,13 +159,9 @@ def load_conf_settings(bootinfo):
 
 
 def load_desktop_data(bootinfo):
-	from frappe.desk.desktop import get_workspace_sidebar_items
-
-	bootinfo.workspaces = get_workspace_sidebar_items()
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
 	bootinfo.workspace_sidebar_item = get_sidebar_items(allowed_pages)
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
-	bootinfo.dashboards = frappe.get_all("Dashboard")
 	bootinfo.app_data = []
 
 	Workspace = frappe.qb.DocType("Workspace")
@@ -220,124 +215,6 @@ def load_desktop_data(bootinfo):
 				workspaces=workspaces,
 			)
 		)
-
-
-def get_allowed_pages(cache=False):
-	return get_user_pages_or_reports("Page", cache=cache)
-
-
-def get_allowed_reports(cache=False):
-	return get_user_pages_or_reports("Report", cache=cache)
-
-
-def get_allowed_report_names(cache=False) -> set[str]:
-	return {cstr(report) for report in get_allowed_reports(cache).keys() if report}
-
-
-def get_user_pages_or_reports(parent, cache=False):
-	if cache:
-		has_role = frappe.cache.get_value("has_role:" + parent, user=frappe.session.user)
-		if has_role:
-			return has_role
-
-	roles = frappe.get_roles()
-	has_role = {}
-
-	page = DocType("Page")
-	report = DocType("Report")
-
-	is_report = parent == "Report"
-
-	if is_report:
-		columns = (report.name.as_("title"), report.ref_doctype, report.report_type)
-	else:
-		columns = (page.title.as_("title"),)
-
-	customRole = DocType("Custom Role")
-	hasRole = DocType("Has Role")
-	parentTable = DocType(parent)
-
-	# get pages or reports set on custom role
-	pages_with_custom_roles = (
-		frappe.qb.from_(customRole)
-		.from_(hasRole)
-		.from_(parentTable)
-		.select(customRole[parent.lower()].as_("name"), customRole.modified, customRole.ref_doctype, *columns)
-		.where(
-			(hasRole.parent == customRole.name)
-			& (parentTable.name == customRole[parent.lower()])
-			& (customRole[parent.lower()].isnotnull())
-			& (hasRole.role.isin(roles))
-		)
-	).run(as_dict=True)
-
-	for p in pages_with_custom_roles:
-		has_role[p.name] = {"modified": p.modified, "title": p.title, "ref_doctype": p.ref_doctype}
-
-	subq = (
-		frappe.qb.from_(customRole)
-		.select(customRole[parent.lower()])
-		.where(customRole[parent.lower()].isnotnull())
-	)
-
-	pages_with_standard_roles = (
-		frappe.qb.from_(hasRole)
-		.from_(parentTable)
-		.select(parentTable.name.as_("name"), parentTable.modified, *columns)
-		.where(
-			(hasRole.role.isin(roles)) & (hasRole.parent == parentTable.name) & (parentTable.name.notin(subq))
-		)
-		.distinct()
-	)
-
-	if is_report:
-		pages_with_standard_roles = pages_with_standard_roles.where(report.disabled == 0)
-
-	pages_with_standard_roles = pages_with_standard_roles.run(as_dict=True)
-
-	for p in pages_with_standard_roles:
-		if p.name not in has_role:
-			has_role[p.name] = {"modified": p.modified, "title": p.title}
-			if parent == "Report":
-				has_role[p.name].update({"ref_doctype": p.ref_doctype})
-
-	no_of_roles = SubQuery(
-		frappe.qb.from_(hasRole).select(Count("*")).where(hasRole.parent == parentTable.name)
-	)
-
-	# pages and reports with no role are allowed
-	rows_with_no_roles = (
-		frappe.qb.from_(parentTable)
-		.select(parentTable.name, parentTable.modified, *columns)
-		.where(no_of_roles == 0)
-	).run(as_dict=True)
-
-	for r in rows_with_no_roles:
-		if r.name not in has_role:
-			has_role[r.name] = {"modified": r.modified, "title": r.title}
-			if is_report:
-				has_role[r.name] |= {"ref_doctype": r.ref_doctype}
-
-	if is_report:
-		if not has_permission("Report", print_logs=False):
-			return {}
-
-		reports = frappe.get_list(
-			"Report",
-			fields=["name", "report_type"],
-			filters={"name": ("in", has_role.keys())},
-			ignore_ifnull=True,
-		)
-		for report in reports:
-			has_role[report.name]["report_type"] = report.report_type
-
-		non_permitted_reports = set(has_role.keys()) - {r.name for r in reports}
-		for r in non_permitted_reports:
-			has_role.pop(r, None)
-
-	# Expire every six hours
-	frappe.cache.set_value("has_role:" + parent, has_role, frappe.session.user, 21600)
-	return has_role
 
 
 def load_translations(bootinfo):

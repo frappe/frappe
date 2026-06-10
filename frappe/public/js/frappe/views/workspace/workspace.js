@@ -76,8 +76,8 @@ frappe.views.Workspace = class Workspace {
 		this.$page = $(`<div class="editor-js-container"></div>`).appendTo(this.body);
 	}
 
-	get_pages() {
-		return frappe.xcall("frappe.desk.desktop.get_workspace_sidebar_items", null, "GET");
+	get_workspaces() {
+		return frappe.xcall("frappe.desk.desktop.get_workspaces", null, "GET");
 	}
 
 	show() {
@@ -804,7 +804,7 @@ frappe.views.Workspace = class Workspace {
 	reload() {
 		delete this.pages[this._page.name];
 		this._page = null;
-		return this.get_pages().then((r) => {
+		return this.get_workspaces().then((r) => {
 			frappe.boot.workspaces = r;
 			this.setup_pages(frappe.boot.workspaces.pages);
 			this.show();
