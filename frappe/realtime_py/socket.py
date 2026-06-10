@@ -56,6 +56,29 @@ class Socket:
 		"""Emit to a room, or to this client (default)."""
 		self._sio.emit(event, data, to=room or self.sid, namespace=self.namespace)
 
+	def get(self, key: str, default: object = None) -> object:
+		"""Read a value from this socket's session."""
+		return self._session.get(key, default)
+
+	def set(self, key: str, value: object) -> None:
+		"""Persist a value onto this socket's session."""
+		self._session[key] = value
+		self._sio.save_session(self.sid, self._session, namespace=self.namespace)
+
+	def participants(self, room: str) -> list[str]:
+		"""sids currently in ``room`` of this namespace."""
+		sids = []
+		for item in self._sio.manager.get_participants(self.namespace, room):
+			sids.append(item[0] if isinstance(item, tuple) else item)
+		return sids
+
+	def user_of(self, sid: str) -> str | None:
+		"""User stored on another socket's session, or None if it has none."""
+		try:
+			return self._sio.get_session(sid, namespace=self.namespace).get("user")
+		except KeyError:
+			return None
+
 	def has_permission(self, doctype: str, name: str | None = None) -> bool:
 		"""HTTP permission check against the web process (frappe.realtime.has_permission).
 

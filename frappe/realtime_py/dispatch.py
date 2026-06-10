@@ -68,6 +68,7 @@ def wire(sio, config) -> None:
 	def connect(namespace, sid, environ, auth=None):
 		session = authenticate(environ, namespace, config)
 		sio.save_session(sid, session, namespace=namespace)
+		_run_handlers(sio, "connect", namespace, sid, ())
 
 	def disconnect(namespace, sid):
 		_run_handlers(sio, "disconnect", namespace, sid, ())

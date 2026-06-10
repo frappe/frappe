@@ -110,8 +110,10 @@ def serve(config: RealtimeConfig | None = None) -> None:
 	assert_no_mysqlclient()
 	config = config or get_config()
 
-	# Handler modules (core + per-app discovery) are imported here in later tasks,
-	# before wire(), so the registry is populated when wire() binds events.
+	# Import core handlers so their @realtime.on registrations run before wire().
+	# Per-app handler discovery is added in a later task, also before wire().
+	import frappe.realtime_py.handlers
+
 	wire(sio, config)
 
 	start_bridge(sio, config.redis_queue)
