@@ -4,7 +4,7 @@ from _typeshed import ReadableBuffer
 import io
 import os
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ExifTags
 
 import frappe
 
@@ -79,7 +79,7 @@ def resize_images(path, maxdim=700):
 					print(f"resized {os.path.join(basepath, fname)}")
 
 
-def strip_exif_data(content, content_type) -> bytes:
+def strip_exif_data(content:bytes, content_type) -> bytes:
 	"""Strip EXIF from image files which support it.
 
 	Works by creating a new Image object which ignores exif by
@@ -89,16 +89,33 @@ def strip_exif_data(content, content_type) -> bytes:
 	"""
 
 	original_image = Image.open(io.BytesIO(content))
-	# Apply EXIF orientation to pixels before stripping the tag.
-	original_image = ImageOps.exif_transpose(original_image)
-	output = io.BytesIO()
-	# ref: https://stackoverflow.com/a/48248432
-	if content_type == "image/jpeg" and original_image.mode in ("RGBA", "P"):
-		original_image = original_image.convert("RGB")
+	exif = original_image.getexif()
+	if exif.get(ExifTags.Base.Orientation):
+		# Apply EXIF orientation to pixels before stripping the tag.
+		# Even if there is no orientation data i.e nothing to , without in-place, it will create a copy!! (See imageOps/exif_orientation.py)
+		# `in_place` will remove the `orientation` data from the content, except from that all assumptions about content should remain true if user further after call to this routine.
+		# Actual `transpose` could occur only on `image` matrix, so `content` would be immune from this operation!
+		ImageOps.exif_transpose(original_image, in_place= True)
+		if content_type == "image/jpeg" and original_image.mode in ("RGBA", "P"):
+			# ref: https://stackoverflow.com/a/48248432,
+			# Costly OP but required, due to choice of layout by PILLOW i think!
+			original_image = original_image.convert("RGB")
 
-	original_image.save(output, format=content_type.split("/")[1], exif=b"")
-	return output.getvalue()
+		# Save.
+		output = io.BytesIO()		## Its possible that depending on internal `encoding` parameters, may end up with larger ouput so better to use growable buffer
+		format = content_type.split("/")[1].strip().lower()
+		if format == "png":
+			# Pass compress level for PNGs.  https://github.com/python-pillow/Pillow/issues/1211
+			original_image.save(output, format = content_type.split("/")[1], compress_level = 1, exif=b"")
+		else:
+			original_image.save(output, format = content_type.split("/")[1], exif=b"")
 
+		encoded_data =  output.getvalue()
+		del output, original_image
+		return encoded_data
+	else:
+		del original_image, exif
+		return content
 
 def optimize_image(content, content_type, max_width=1024, max_height=768, optimize=True, quality=85):
 	if content_type == "image/svg+xml":
