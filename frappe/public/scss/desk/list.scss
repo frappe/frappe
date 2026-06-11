@@ -593,6 +593,11 @@ input.list-header-checkbox {
 	.frappe-list {
 		.result-container {
 			overflow-x: auto;
+<<<<<<< HEAD
+=======
+			scrollbar-gutter: stable;
+
+>>>>>>> 857f7bb2a9 (fix(ListView): reserve scrollbar gutter to prevent horizontal scroll)
 			.result {
 				overflow-y: hidden;
 			}
