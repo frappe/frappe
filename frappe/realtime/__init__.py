@@ -3,11 +3,16 @@
 
 
 from contextlib import suppress
+from typing import TYPE_CHECKING
 
 import redis
 
 import frappe
 from frappe.utils.data import cstr
+
+if TYPE_CHECKING:
+	from frappe.realtime.registry import realtime as realtime
+	from frappe.realtime.socket import Socket as Socket
 
 
 def publish_progress(percent, title=None, doctype=None, docname=None, description=None, task_id=None):
@@ -230,7 +235,7 @@ def publish_to_room(room: str, event: str, message: dict | None = None, *, after
 # import-light. ``Socket`` pulls in the server stack (socketio, via auth); resolving
 # it only on access keeps ``from frappe.realtime import publish_realtime`` (web
 # process) from importing socketio/gevent.
-def __getattr__(name: str):
+def __getattr__(name: str) -> object:
 	if name == "realtime":
 		from frappe.realtime.registry import realtime
 

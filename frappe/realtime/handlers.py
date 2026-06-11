@@ -1,12 +1,5 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
-"""Core realtime handlers.
-
-1:1 port of realtime/handlers.js — same event names, same rooms. Permission
-checks use the HTTP path (Socket.has_permission) so behavior matches the Node
-server, with no DB in the realtime process. allow_guest is True throughout
-because the Node server bound these handlers for every connected socket.
-"""
 
 import json
 
@@ -92,9 +85,12 @@ def doc_open(socket: Socket, doctype: str, docname: str) -> None:
 	if not socket.has_permission(doctype, docname):
 		return
 	socket.join(open_doc_room(doctype, docname))
+
 	tracked = socket.get("subscribed_documents", [])
-	tracked.append([doctype, docname])
-	socket.set("subscribed_documents", tracked)
+	pair = [doctype, docname]
+	if pair not in tracked:
+		tracked.append(pair)
+		socket.set("subscribed_documents", tracked)
 	notify_doc_viewers(socket, doctype, docname)
 
 
@@ -131,7 +127,7 @@ def notify_doc_viewers(socket: Socket, doctype: str, docname: str) -> None:
 	)
 
 
-@realtime.on("open_in_editor", allow_guest=True)
+@realtime.on("open_in_editor")
 def open_in_editor(socket: Socket, data: object) -> None:
 	"""Dev-only: forward esbuild "open in editor" to the redis open_in_editor channel."""
 	config = get_config()

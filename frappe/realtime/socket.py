@@ -42,7 +42,21 @@ class Socket:
 	def installed_apps(self) -> list[str]:
 		return self._session.installed_apps
 
+	def _connected(self) -> bool:
+		"""Is this sid still attached to its namespace?
+
+		Events dispatch in their own greenlet (async_handlers), and a handler can
+		yield the gevent hub mid-body (e.g. has_permission does an HTTP call). The
+		client may disconnect in that window, after which the namespace is gone from
+		the manager — enter_room then raises "sid is not connected to requested
+		namespace" and save_session raises KeyError (eio_sid resolves to None).
+		Re-check before any sio call that would raise; mutating a gone socket is a
+		no-op. Safe against TOCTOU because the guarded call does not yield the hub."""
+		return self._sio.manager.is_connected(self.sid, self.namespace)
+
 	def join(self, room: str) -> None:
+		if not self._connected():
+			return
 		self._sio.enter_room(self.sid, room, namespace=self.namespace)
 
 	def leave(self, room: str) -> None:
@@ -59,6 +73,8 @@ class Socket:
 	def set(self, key: str, value: object) -> None:
 		"""Persist transient per-socket state onto the session."""
 		self._session.data[key] = value
+		if not self._connected():
+			return
 		self._sio.save_session(self.sid, self._session, namespace=self.namespace)
 
 	def participants(self, room: str) -> list[str]:
