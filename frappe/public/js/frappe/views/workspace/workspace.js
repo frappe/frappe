@@ -411,7 +411,6 @@ frappe.views.Workspace = class Workspace {
 				frappe.set_route(`workspace/${page.name}`);
 			});
 		}
-		$(this.workspace_actions_button).remove();
 		this.add_workspace_controls = false;
 	}
 
