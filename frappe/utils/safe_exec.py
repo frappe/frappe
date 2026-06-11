@@ -172,10 +172,8 @@ def safe_exec_flags():
 		frappe.flags.in_safe_exec -= 1
 
 
-def get_doc_as_dict(doctype, name):
-	assert isinstance(doctype, str)
-	assert isinstance(name, (str, int))
-	return frappe.get_doc(doctype, name).as_dict()
+def get_doc_as_dict(*args, **kwargs):
+	return frappe.get_doc(*args, **kwargs).as_dict()
 
 
 def safer_get_last_doc(*args, **kwargs):
@@ -288,7 +286,7 @@ def make_safe_get_request(url: str, **kwargs):
 	for record in addr_info:
 		try:
 			addr = ipaddress.ip_address(record[4][0])
-		except ValueError, IndexError:
+		except (ValueError, IndexError):
 			continue
 
 		if not addr.is_global:
