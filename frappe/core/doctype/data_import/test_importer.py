@@ -864,9 +864,12 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		file_doc.save(ignore_permissions=True)  # test fixture — user context is not relevant here
 		return file_doc
 
-	def _get_importer(self, file_doc, update=False):
+	def _get_importer(self, file_doc, update=False, import_type=None):
 		data_import = frappe.new_doc("Data Import")
-		data_import.import_type = "Update Existing Records" if update else "Insert New Records"
+		if import_type:
+			data_import.import_type = import_type
+		else:
+			data_import.import_type = "Update Existing Records" if update else "Insert New Records"
 		data_import.reference_doctype = self.doctype_name
 		data_import.import_file = file_doc.file_url
 		data_import.insert()
@@ -881,6 +884,31 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 			if name:
 				frappe.delete_doc(self.doctype_name, name, force=1)
 		frappe.db.commit()  # Ensure deletions are flushed to DB before continuing; # nosemgrep
+
+	def test_tree_alias_upsert_registers_updated_parent_for_children(self):
+		"""UPSERT update path must register aliases so later rows resolve parent links."""
+		meta = frappe.get_meta(self.doctype_name)
+		parent_field = meta.nsm_parent_field
+		labels = ("Root Node", "Child Node")
+		self._cleanup_docs(labels)
+
+		root = frappe.get_doc(
+			{"doctype": self.doctype_name, "node_label": "Root Node", "is_group": 1}
+		).insert()
+		frappe.db.commit()  # nosemgrep
+
+		rows = [
+			(root.name, "Root Node", "1", ""),
+			("", "Child Node", "0", "Root Node"),
+		]
+		data_import = self._get_importer(self._make_csv_file(rows, include_id=True), import_type=UPSERT)
+		Importer(self.doctype_name, data_import=data_import).import_data()
+
+		child_name = frappe.db.get_value(self.doctype_name, {"node_label": "Child Node"})
+		self.assertTrue(child_name)
+		self.assertEqual(frappe.db.get_value(self.doctype_name, child_name, parent_field), root.name)
+
+		self._cleanup_docs(labels)
 
 	def test_series_autoname_tree_uses_alias_mode(self):
 		self.assertTrue(uses_tree_alias_references(self.doctype_name))

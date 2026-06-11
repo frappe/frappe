@@ -332,6 +332,10 @@ def get_import_status(data_import_name: str):
 		import_status.setdefault("inserted", 0)
 		import_status.setdefault("updated", 0)
 
+	logged_total = import_status.get("success", 0) + import_status.get("failed", 0)
+	if logged_total:
+		import_status["total_records"] = logged_total
+
 	return import_status
 
 

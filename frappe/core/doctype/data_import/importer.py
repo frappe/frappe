@@ -133,6 +133,8 @@ class Importer:
 
 		# parse docs from rows
 		payloads = self.import_file.get_payloads_for_import()
+		if self.data_import.name:
+			self.data_import.db_set("payload_count", len(payloads))
 
 		# dont import if there are non-ignorable warnings
 		from frappe.core.doctype.data_import.value_mapping import (
@@ -216,7 +218,7 @@ class Importer:
 
 				try:
 					start = timeit.default_timer()
-					doc = self.process_doc(doc)
+					doc, import_action = self.process_doc(doc)
 					processing_time = timeit.default_timer() - start
 					eta = self.get_eta(current_index, total_payload_count, processing_time)
 
@@ -247,7 +249,7 @@ class Importer:
 						"row_indexes": row_indexes,
 					}
 					if self.import_type == UPSERT:
-						log_details["import_action"] = doc.flags.import_action
+						log_details["import_action"] = import_action
 
 					create_import_log(self.data_import.name, log_index, log_details)
 
@@ -335,12 +337,12 @@ class Importer:
 			)
 
 	def process_doc(self, doc):
+		"""Process one import payload; returns ``(document, import_action)``."""
 		if self.import_type == INSERT:
-			return self.insert_record(doc)
-		elif self.import_type == UPDATE:
-			return self.update_record(doc)
-		elif self.import_type == UPSERT:
-			return self.upsert_record(doc)
+			return self.insert_record(doc), None
+		if self.import_type == UPDATE:
+			return self.update_record(doc), None
+		return self.upsert_record(doc)
 
 	def upsert_record(self, doc):
 		"""Update the record when it exists, otherwise insert it."""
@@ -348,11 +350,10 @@ class Importer:
 		id_value = doc.get(id_field.fieldname)
 		if id_value and frappe.db.exists(self.doctype, id_value):
 			result = self.update_record(doc, raise_if_no_changes=False)
-			result.flags.import_action = ACTION_UPDATE
-		else:
-			result = self.insert_record(doc)
-			result.flags.import_action = ACTION_INSERT
-		return result
+			if self._uses_tree_aliases:
+				self._register_inserted_name(doc, result)
+			return result, ACTION_UPDATE
+		return self.insert_record(doc), ACTION_INSERT
 
 	def insert_record(self, doc):
 		meta = frappe.get_meta(self.doctype)
