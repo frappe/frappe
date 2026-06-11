@@ -30,7 +30,7 @@ def get_preview_from_url(
 
 def get_image_format(format: str) -> str:
 	if format not in SUPPORTED_FORMATS:
-		frappe.throw(f"Invalid format. Supported formats are {', '.join(SUPPORTED_FORMATS)}")
+		frappe.throw(_("Invalid format. Supported formats are {0}").format(", ".join(SUPPORTED_FORMATS)))
 	return "jpeg" if format == "jpg" else format  # Chrome captures jpeg/webp natively
 
 
