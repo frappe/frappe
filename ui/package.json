@@ -13,6 +13,10 @@
       "import": "./src/components/FormLayout/index.ts",
       "types": "./src/components/FormLayout/index.ts"
     },
+    "./FileUpload": {
+      "import": "./src/components/FileUpload/index.ts",
+      "types": "./src/components/FileUpload/index.ts"
+    },
     "./vite": {
       "import": "./vite/index.js"
     },
@@ -31,6 +35,7 @@
   "author": "Frappe Technologies Pvt. Ltd.",
   "license": "MIT",
   "dependencies": {
+    "cropperjs": "^2.1.1",
     "leaflet": "^1.9.4",
     "leaflet-draw": "^1.0.4",
     "leaflet.locatecontrol": "^0.89.0",

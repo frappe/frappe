@@ -6,6 +6,7 @@
 				<DoctypeLayout v-else-if="tab.key === 'doctype'" :doctype="doctype" />
 				<MetaScript v-else-if="tab.key === 'metascript'" />
 				<ScriptedDoctypeLayout v-else-if="tab.key === 'scripteddoctype'" doctype="ToDo" />
+				<FileUpload v-else-if="tab.key === 'fileupload'" />
 			</template>
 		</Tabs>
 	</div>
@@ -18,6 +19,7 @@ import StaticSchema from "./StaticSchema.story.vue";
 import DoctypeLayout from "./DoctypeLayout.story.vue";
 import MetaScript from "./MetaScript.story.vue";
 import ScriptedDoctypeLayout from "./ScriptedDoctypeLayout.story.vue";
+import FileUpload from "./FileUpload.story.vue";
 import { useDoctypeLayout } from "../useDoctypeLayout";
 
 const doctype = "CRM Deal";
@@ -33,6 +35,7 @@ const tabs = [
 	{ key: "doctype", label: `useDoctypeLayout('${doctype}')` },
 	{ key: "metascript", label: "Meta script" },
 	{ key: "scripteddoctype", label: `useScriptedLayout('ToDo')` },
+	{ key: "fileupload", label: "File upload" },
 ];
 const activeTab = ref(0);
 </script>
