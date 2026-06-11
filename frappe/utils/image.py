@@ -34,7 +34,17 @@ class PreAllocatedRawIO(io.RawIOBase):
 		return data
 
 	def write(self, data:bytes) -> int:
-		assert (self._pos + len(data)) < self._size, "Since this Class expects that user know maximum possibly memory requirements, we don't handle any `grow` like calls, TODO: "
+		# assert (self._pos + len(data)) < self._size, "Since this Class expects that user know maximum possibly memory requirements, we don't handle any `grow` like calls, TODO: "
+		if (self._pos + len(data)) >= self._size:
+			# Re-grow. (as current capacity wouldn't be enough)
+			# Don't go on sharing it across threads without any locking across write specifically!
+			temp_buffer = bytearray(self._size * 2)
+			memoryview(temp_buffer)[:self._pos] = memoryview(self._buffer)[:self._pos]
+			del self._buffer
+			self._buffer = temp_buffer
+			self._size = len(temp_buffer)
+			del temp_buffer
+
 		if self._pos  >= self._size:
 			return 0
 		chunk_size = len(data)
