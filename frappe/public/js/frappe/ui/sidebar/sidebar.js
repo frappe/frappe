@@ -22,7 +22,6 @@ frappe.ui.Sidebar = class Sidebar {
 		this.cards = [];
 		this.setup_events();
 		this.standard_items_setup = false;
-		this.preferred_sidebars = [];
 	}
 
 	prepare() {
@@ -300,7 +299,6 @@ frappe.ui.Sidebar = class Sidebar {
 
 			this.setup_onboarding();
 		});
-		this.store_last_show_sidebar_for_item();
 	}
 	add_card(card) {
 		if (this.cards && this.cards.find((i) => i.title === card.title)) return;
@@ -323,13 +321,12 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	setup_events() {
 		const me = this;
-		this.setup_reload();
-		frappe.router.on("change", function (router) {
+		frappe.router.on("change", function () {
 			if (frappe.route_options && frappe.route_options.sidebar) {
-				frappe.app.sidebar.setup(frappe.route_options.sidebar);
+				frappe.app.sidebar.select_sidebar(frappe.route_options.sidebar);
 				frappe.route_options = null;
 			} else {
-				frappe.app.sidebar.set_workspace_sidebar(router);
+				frappe.app.sidebar.set_workspace_sidebar();
 			}
 		});
 
@@ -783,30 +780,66 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
-	set_workspace_sidebar(router) {
+	// The sidebar is selection-driven: it's chosen via the header switcher (or a direct
+	// workspace route) and then stays put as you navigate. We only resolve it once at cold
+	// entry; thereafter only an explicit workspace route changes it. The active-item
+	// highlight stays route-aware via set_active_workspace_item().
+	set_workspace_sidebar() {
 		try {
 			const route = frappe.get_route();
-			let target;
 
-			if (route.length === 2 && frappe.boot.workspace_sidebar_item[route[1].toLowerCase()]) {
-				// route points directly at a workspace, e.g. List/<Workspace>
-				target = route[1];
-			} else {
-				const entity = this.entity_from_route(route);
-				const module = router?.meta?.module;
-				target = this.resolve_sidebar(entity, module);
-			}
-
-			// only rebuild when the target differs from the current sidebar, so
-			// this stays a cheap no-op when re-run by page-change / form-refresh
-			if (target && target !== this.sidebar_title) {
-				frappe.app.sidebar.setup(target);
+			if (route[0] === "Workspaces" && route.length >= 2) {
+				// explicit workspace route -> user picked this workspace; make it the sticky selection
+				const name = route[route.length - 1];
+				if (frappe.boot.workspace_sidebar_item[name.toLowerCase()]) {
+					this.select_sidebar(name);
+				}
+			} else if (!this.sidebar_title) {
+				// cold entry / deep link -> resolve the initial sidebar once, then it's sticky
+				const target = this.initial_sidebar(route);
+				if (target) frappe.app.sidebar.setup(target);
 			}
 		} catch (e) {
 			console.error(e);
 		}
 
 		this.set_active_workspace_item();
+	}
+
+	// Switch to a workspace's sidebar and remember it so the choice survives navigation/reload.
+	select_sidebar(name) {
+		if (name && name !== this.sidebar_title) {
+			frappe.app.sidebar.setup(name);
+		}
+		if (name) localStorage.setItem("selected_sidebar", name);
+	}
+
+	// Pick the sidebar to show on cold entry. Precedence:
+	//   1. the last selected sidebar — kept across reloads as long as it's still relevant to
+	//      the route (the routed entity is in it, or the route doesn't belong to any sidebar)
+	//   2. User.default_workspace
+	//   3. a sidebar derived from the routed entity (lands deep links in a relevant sidebar)
+	//   4. the first available sidebar
+	initial_sidebar(route) {
+		const all = frappe.boot.workspace_sidebar_item || {};
+		const exists = (name) => (name && all[name.toLowerCase()] ? name : null);
+
+		const candidates = this.get_workspace_sidebars(this.entity_from_route(route));
+
+		const persisted = exists(localStorage.getItem("selected_sidebar"));
+		const persisted_is_relevant =
+			persisted &&
+			(!candidates.length ||
+				candidates.some((c) => c.toLowerCase() === persisted.toLowerCase()));
+		if (persisted_is_relevant) return persisted;
+
+		const default_workspace = frappe.boot.user?.default_workspace;
+		if (default_workspace && exists(default_workspace.title)) return default_workspace.title;
+
+		if (candidates.length) return candidates[0];
+
+		const first = Object.values(all)[0];
+		return first && first.label;
 	}
 
 	entity_from_route(route) {
@@ -824,70 +857,6 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
-	// Pick which workspace sidebar to show for the current route.
-	// Returns a workspace title (or null). Rules are ordered by priority:
-	// the first one that yields a sidebar wins.
-	resolve_sidebar(entity, module) {
-		let candidates = this.get_workspace_sidebars(entity);
-		this.preferred_sidebars = candidates;
-
-		const remembered = JSON.parse(localStorage.getItem("sidebar_item_map") || "{}");
-
-		let sidebar_name = null;
-
-		if (this.sidebar_title && candidates.includes(this.sidebar_title)) {
-			// 1. current sidebar already links to this entity -> keep it
-			sidebar_name = this.sidebar_title;
-		} else if (remembered[entity]?.length) {
-			// 2. previously remembered choice for this entity
-			sidebar_name = remembered[entity][0];
-		} else {
-			// 3. narrow candidates to the active app
-			if (module) {
-				candidates = this.filter_sidebars_from_app(
-					candidates,
-					frappe.boot.module_app[module.toLowerCase().replace(/[ -]/g, "_")]
-				);
-			}
-
-			// 4. resolve by what is left
-			if (candidates.length === 1) {
-				sidebar_name = candidates[0];
-			} else if (candidates.length > 1) {
-				sidebar_name = candidates.find((c) => c.toLowerCase() === module?.toLowerCase());
-			} else if (module) {
-				sidebar_name = this.resolve_module_sidebar(module);
-			}
-		}
-		if (!sidebar_name && candidates.length > 0) {
-			sidebar_name = candidates[0];
-		}
-		return sidebar_name;
-	}
-	filter_sidebars_from_app(sidebars, app) {
-		let filter_sidebars = [];
-		sidebars.forEach((sidebar) => {
-			const config = frappe.boot.workspace_sidebar_item[sidebar.toLowerCase()];
-			if (config && config.app === app && !filter_sidebars.includes(sidebar)) {
-				filter_sidebars.push(sidebar);
-			}
-		});
-		return filter_sidebars;
-	}
-	// Public entry point used by page/report views to switch the sidebar
-	// to the one for a module. Resolution itself lives in resolve_module_sidebar.
-	show_sidebar_for_module(module) {
-		if (this.sidebar_title && this.preferred_sidebars.includes(this.sidebar_title)) {
-			this.set_active_workspace_item();
-			return;
-		}
-		const target = this.resolve_module_sidebar(module);
-		if (target) frappe.app.sidebar.setup(target);
-	}
-	resolve_module_sidebar(module) {
-		return frappe.boot.workspace_sidebar_item[module.toLowerCase()] ? module : null;
-	}
-
 	get_workspace_sidebars(link_to) {
 		let sidebars = [];
 		Object.entries(this.all_sidebar_items).forEach(([name, sidebar]) => {
@@ -899,23 +868,5 @@ frappe.ui.Sidebar = class Sidebar {
 			});
 		});
 		return sidebars;
-	}
-	setup_reload() {
-		const me = this;
-		this.item_sidebar_map = {};
-		$(window).on("beforeunload", function () {
-			me.store_last_show_sidebar_for_item();
-		});
-	}
-	store_last_show_sidebar_for_item() {
-		const me = this;
-		if (frappe.app.sidebar.active_item) {
-			let active_item = frappe.app.sidebar.active_item.parent().data("id");
-			if (!me.item_sidebar_map[active_item]) {
-				me.item_sidebar_map[active_item] = [];
-			}
-			me.item_sidebar_map[active_item].push(me.sidebar_title);
-			localStorage.setItem("sidebar_item_map", JSON.stringify(me.item_sidebar_map));
-		}
 	}
 };

@@ -161,75 +161,78 @@ def create_workspace_sidebar_for_workspaces():
 
 
 @frappe.whitelist()
-def add_sidebar_items(sidebar_title: str, sidebar_items: str | list):
-	sidebar_items = frappe.parse_json(sidebar_items)
-	title = f"{sidebar_title}-{frappe.session.user}"
-	w = frappe.get_doc("Workspace Sidebar", sidebar_title)
-	if not frappe.conf.developer_mode:
-		try:
-			w = frappe.get_doc("Workspace Sidebar", title)
-		except frappe.DoesNotExistError:
-			frappe.clear_messages()
-			w = frappe.copy_doc(w, ignore_no_copy=False)
-			w.title = title
-			w.for_user = frappe.session.user
-	items = []
+def add_sidebar_items(sidebar_title: str, sidebar_items: str):
+	"""Persist edited sidebar items onto the workspace's `sidebar_items` table.
+
+	In developer mode the shared/standard workspace is edited directly. Otherwise the edit is
+	kept as a private per-user copy of the workspace so the shared one is untouched.
+	"""
+	sidebar_items = loads(sidebar_items)
+	workspace = frappe.get_doc("Workspace", sidebar_title)
+
+	if not frappe.conf.developer_mode and workspace.public:
+		private_name = f"{workspace.title}-{frappe.session.user}"
+		if frappe.db.exists("Workspace", private_name):
+			workspace = frappe.get_doc("Workspace", private_name)
+		else:
+			workspace = frappe.copy_doc(workspace)
+			workspace.public = 0
+			workspace.standard = 0
+			workspace.for_user = frappe.session.user
+			workspace.label = private_name
+
+	workspace.set("sidebar_items", [])
 	current_idx = 1
 	for item in sidebar_items:
-		si = frappe.new_doc("Workspace Sidebar Item")
-		si.update(item)
-		si.idx = current_idx
-		items.append(si)
+		nested_items = item.pop("nested_items", None) or []
+		item.pop("parent", None)
+		row = workspace.append("sidebar_items", item)
+		row.idx = current_idx
 		current_idx += 1
 
-		nested_items = item.get("nested_items", [])
-		if nested_items:
-			for nested_item in nested_items:
-				new_nested_item = frappe.new_doc("Workspace Sidebar Item")
-				new_nested_item.update(nested_item)
-				new_nested_item.child = 1
-				new_nested_item.idx = current_idx
-				items.append(new_nested_item)
-				current_idx += 1
+		for nested_item in nested_items:
+			nested_item.pop("parent", None)
+			nested_row = workspace.append("sidebar_items", nested_item)
+			nested_row.child = 1
+			nested_row.idx = current_idx
+			current_idx += 1
 
-	w.items = items
-	w.save()
-	return w
+	workspace.save(ignore_permissions=True)
+	return workspace
 
 
 def add_to_my_workspace(workspace):
+	"""Add a private workspace as an item in the user's "My Workspaces" sidebar."""
 	try:
 		if not workspace.for_user:
 			return
 
-		sidebar_name = f"My Workspaces-{workspace.for_user}"
-		existing_sidebar = frappe.db.exists("Workspace Sidebar", sidebar_name)
+		host_name = f"My Workspaces-{workspace.for_user}"
+		existing = frappe.db.exists("Workspace", host_name)
 
-		if existing_sidebar:
-			private_sidebar = frappe.get_doc("Workspace Sidebar", existing_sidebar)
+		if existing:
+			host = frappe.get_doc("Workspace", host_name)
 		else:
-			# clone sidebar
-			base_sidebar = frappe.get_doc("Workspace Sidebar", "My Workspaces")
-			private_sidebar = frappe.copy_doc(base_sidebar)
-			private_sidebar.title = sidebar_name
-			private_sidebar.for_user = workspace.for_user
-			private_sidebar.owner = workspace.for_user
-			private_sidebar.items = []
+			# clone the base "My Workspaces" workspace for this user
+			host = frappe.copy_doc(frappe.get_doc("Workspace", "My Workspaces"))
+			host.title = host.label = host_name
+			host.public = 0
+			host.for_user = workspace.for_user
+			host.owner = workspace.for_user
+			host.set("sidebar_items", [])
 
-		sidebar_item = {
-			"label": workspace.title,
-			"type": "Link",
-			"link_to": f"{workspace.title}-{workspace.for_user}",
-			"link_type": "Workspace",
-			"icon": workspace.icon,
-		}
+		host.append(
+			"sidebar_items",
+			{
+				"label": workspace.title,
+				"type": "Link",
+				"link_to": workspace.name,
+				"link_type": "Workspace",
+				"icon": workspace.icon,
+			},
+		)
 
-		private_sidebar.append("items", sidebar_item)
-
-		if existing_sidebar:
-			private_sidebar.save()
-		else:
-			private_sidebar.insert()
+		host.save(ignore_permissions=True) if existing else host.insert(ignore_permissions=True)
 
 	except Exception as e:
 		frappe.log_error(title="Error in Adding Private Workspaces", message=e)

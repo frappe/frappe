@@ -1,4 +1,88 @@
 frappe.provide("frappe.ui.sidebar_item");
+
+// Resolve a sidebar item (from `bootinfo.workspace_sidebar_item`) to a navigable route.
+// Shared by the rendered sidebar links and the header workspace switcher.
+frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
+	let path;
+	if (item.type !== "Link") return path;
+
+	if (item.link_type === "Report") {
+		let args = {
+			type: item.link_type,
+			name: item.link_to,
+		};
+		if (!edit_mode) {
+			if (item.report) {
+				args.is_query_report =
+					item.report.report_type === "Query Report" ||
+					item.report.report_type == "Script Report";
+				args.report_ref_doctype = item.report.ref_doctype;
+			} else {
+				return;
+			}
+		}
+
+		path = frappe.utils.generate_route(args);
+	} else if (item.link_type == "Workspace") {
+		let workspaces = frappe.workspaces[frappe.router.slug(item.link_to)];
+		if (workspaces && workspaces.public) {
+			path = "/desk/" + frappe.router.slug(item.link_to);
+		} else {
+			path = "/desk/private/" + frappe.router.slug(item.link_to);
+		}
+
+		if (item.route) {
+			path = item.route;
+		}
+	} else if (item.link_type === "URL") {
+		path = item.url;
+	} else if (item.link_type == "Page" && item.route_options) {
+		path = frappe.utils.generate_route({
+			type: item.link_type,
+			name: item.link_to,
+			route_options: JSON.parse(item.route_options),
+		});
+	} else {
+		let args = {
+			type: item.link_type,
+			name: item.link_to,
+			tab: item.tab,
+		};
+		if (item.filters) {
+			let filters_json = JSON.parse(
+				frappe.utils.get_filter_as_json(JSON.parse(item.filters))
+			);
+			for (const [key, value] of Object.entries(filters_json)) {
+				if (Array.isArray(value)) {
+					filters_json[key] = value[1];
+				}
+			}
+			if (item.link_type == "DocType") {
+				args.doc_view = "List";
+				args.route_options = filters_json;
+			}
+		} else if (item.route_options && item.link_type == "DocType") {
+			args.doc_view = "List";
+			args.route_options = JSON.parse(item.route_options);
+		}
+		path = frappe.utils.generate_route(args);
+
+		// If a DocType Layout is specified on this link, append ?layout=<route>
+		// so the form/list opens under that layout context.
+		if (item.link_type === "DocType" && item.doctype_layout) {
+			const layout_info = (frappe.boot.doctype_layouts || []).find(
+				(l) => l.name === item.doctype_layout
+			);
+			if (layout_info) {
+				const doctype_slug = frappe.router.slug(item.link_to);
+				path = `/app/${doctype_slug}?layout=${encodeURIComponent(layout_info.name)}`;
+			}
+		}
+	}
+
+	return path;
+};
+
 frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 	constructor(opts) {
 		this.item = opts.item;
@@ -12,89 +96,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		this.make();
 	}
 	get_path() {
-		let path;
-		if (this.item.type === "Link") {
-			if (this.item.link_type === "Report") {
-				let args = {
-					type: this.item.link_type,
-					name: this.item.link_to,
-				};
-				if (!frappe.app.sidebar.editor.edit_mode) {
-					if (this.item.report) {
-						args.is_query_report =
-							this.item.report.report_type === "Query Report" ||
-							this.item.report.report_type == "Script Report";
-						args.report_ref_doctype = this.item.report.ref_doctype;
-					} else {
-						return;
-					}
-				}
-
-				path = frappe.utils.generate_route(args);
-			} else if (this.item.link_type == "Workspace") {
-				let workspaces = frappe.workspaces[frappe.router.slug(this.item.link_to)];
-				if (workspaces && workspaces.public) {
-					path = "/desk/" + frappe.router.slug(this.item.link_to);
-				} else {
-					path = "/desk/private/" + frappe.router.slug(this.item.link_to);
-				}
-
-				if (this.item.route) {
-					path = this.item.route;
-				}
-			} else if (this.item.link_type === "URL") {
-				path = this.item.url;
-			} else if (this.item.link_type == "Page" && this.item.route_options) {
-				path = frappe.utils.generate_route({
-					type: this.item.link_type,
-					name: this.item.link_to,
-					route_options: JSON.parse(this.item.route_options),
-				});
-			} else {
-				let args = {
-					type: this.item.link_type,
-					name: this.item.link_to,
-					tab: this.item.tab,
-				};
-				if (this.item.filters) {
-					let filters_json = JSON.parse(
-						frappe.utils.get_filter_as_json(JSON.parse(this.item.filters))
-					);
-					filters_json = this.transform_filters(filters_json);
-					if (this.item.link_type == "DocType") {
-						args.doc_view = "List";
-						args.route_options = filters_json;
-					}
-				} else if (this.item.route_options && this.item.link_type == "DocType") {
-					args.doc_view = "List";
-					args.route_options = JSON.parse(this.item.route_options);
-				}
-				path = frappe.utils.generate_route(args);
-
-				// If a DocType Layout is specified on this link, append ?layout=<route>
-				// so the form/list opens under that layout context.
-				if (this.item.link_type === "DocType" && this.item.doctype_layout) {
-					const layout_info = (frappe.boot.doctype_layouts || []).find(
-						(l) => l.name === this.item.doctype_layout
-					);
-					if (layout_info) {
-						const doctype_slug = frappe.router.slug(this.item.link_to);
-						path = `/app/${doctype_slug}?layout=${encodeURIComponent(
-							layout_info.name
-						)}`;
-					}
-				}
-			}
-		}
-		return path;
-	}
-	transform_filters(filters_json) {
-		for (const [key, value] of Object.entries(filters_json)) {
-			if (Array.isArray(value)) {
-				filters_json[key] = value[1];
-			}
-		}
-		return filters_json;
+		return frappe.ui.sidebar_item.get_route(this.item, frappe.app.sidebar.editor.edit_mode);
 	}
 
 	prepare() {}

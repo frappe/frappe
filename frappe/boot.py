@@ -422,81 +422,140 @@ def get_sentry_dsn():
 
 
 def get_sidebar_items(allowed_workspaces):
-	from frappe import _
+	"""Build the per-workspace sidebar payload (`bootinfo.workspace_sidebar_item`).
+
+	The authored `Workspace.sidebar_items` table is the source of truth. Modules without an
+	authored workspace sidebar fall back to one generated on the fly. The legacy
+	`Workspace Sidebar` doctype is no longer read here.
+	"""
 	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import auto_generate_sidebar_from_module
 
-	workspace_sidebars = frappe.get_all(
-		"Workspace Sidebar", fields=["name", "header_icon", "module_onboarding"]
-	)
-	module_sidebars = auto_generate_sidebar_from_module()
-	workspace_sidebars.extend(module_sidebars)
+	# `is_item_allowed` needs the per-user `can_read`/allowed-entity caches that `DeskViews`
+	# sets up. `Workspace` doesn't extend `DeskViews`, so borrow one throwaway `Workspace
+	# Sidebar` instance as a shared permission context for filtering every item.
+	perm_ctx = frappe.new_doc("Workspace Sidebar")
 	sidebar_items = {}
 
-	for sidebar in workspace_sidebars:
-		sidebar_title = sidebar.get("name")
-		sidebar_doc = None
-		if sidebar_title:
-			sidebar_doc = frappe.get_doc("Workspace Sidebar", sidebar_title)
-		else:
-			sidebar_title = sidebar.title
-			sidebar_doc = sidebar
-		is_my_workspaces = "My Workspaces" in sidebar_title
-		items = []
-		for item in sidebar_doc.items:
-			workspace_sidebar = {
-				"label": _(item.label),
-				"link_to": item.link_to,
-				"link_type": item.link_type,
-				"type": item.type,
-				"icon": item.icon,
-				"child": item.child,
-				"collapsible": item.collapsible,
-				"indent": item.indent,
-				"keep_closed": item.keep_closed,
-				"url": item.url,
-				"show_arrow": item.show_arrow,
-				"filters": item.filters,
-				"route_options": item.route_options,
-				"tab": item.navigate_to_tab,
-				"open_in_new_tab": item.open_in_new_tab,
-			}
-			if (
-				item.link_type == "Report"
-				and item.link_to
-				and frappe.db.exists("Report", item.link_to)
-				and not frappe.db.get_value("Report", item.link_to, "disabled")
-			):
-				report_type, ref_doctype = frappe.db.get_value(
-					"Report", item.link_to, ["report_type", "ref_doctype"]
-				)
-				workspace_sidebar["report"] = {
-					"report_type": report_type,
-					"ref_doctype": ref_doctype,
-				}
-			if (
-				is_my_workspaces
-				or item.type == "Section Break"
-				or sidebar_doc.is_item_allowed(item.link_to, item.link_type, allowed_workspaces)
-			):
-				items.append(workspace_sidebar)
+	# Primary source: authored `Workspace.sidebar_items` (the post-merge model).
+	for workspace in get_workspaces_with_sidebar():
+		add_sidebar_entry(
+			sidebar_items,
+			title=workspace.name,
+			items=workspace.sidebar_items,
+			module=workspace.module,
+			app=workspace.app,
+			header_icon=workspace.icon,
+			module_onboarding=workspace.module_onboarding,
+			perm_ctx=perm_ctx,
+			allowed_workspaces=allowed_workspaces,
+		)
 
-		# A sidebar (and its desktop icon) is shown only if the user can see at least one
-		# real item in it, i.e. a non-Section-Break item survived the per-item filter above.
-		# This is the single source of truth for sidebar permissions and mirrors
-		# Desktop Icon.is_permitted. "My Workspaces" is always shown.
-		if not is_my_workspaces and not any(item["type"] != "Section Break" for item in items):
+	# Fallback: modules without an authored workspace sidebar are generated each boot.
+	for sidebar in auto_generate_sidebar_from_module():
+		if sidebar.title.lower() in sidebar_items:
 			continue
+		add_sidebar_entry(
+			sidebar_items,
+			title=sidebar.title,
+			items=sidebar.items,
+			module=sidebar.module,
+			app=sidebar.get("app"),
+			header_icon=sidebar.get("header_icon"),
+			module_onboarding=sidebar.get("module_onboarding"),
+			perm_ctx=perm_ctx,
+			allowed_workspaces=allowed_workspaces,
+		)
 
-		sidebar_items[sidebar_title.lower()] = {
-			"label": sidebar_title,
-			"items": items,
-			"header_icon": sidebar.get("header_icon"),
-			"module_onboarding": sidebar.get("module_onboarding"),
-			"module": sidebar_doc.module,
-			"app": sidebar_doc.app,
-		}
 	add_user_specific_sidebar(sidebar_items)
 	return sidebar_items
+
+
+def get_workspaces_with_sidebar():
+	"""Workspaces the user may see (public + own private) that carry authored sidebar items."""
+	names = frappe.get_all(
+		"Workspace",
+		or_filters={"public": 1, "for_user": frappe.session.user},
+		pluck="name",
+		order_by="sequence_id asc",
+	)
+	workspaces = []
+	for name in names:
+		workspace = frappe.get_cached_doc("Workspace", name)
+		if workspace.sidebar_items:
+			workspaces.append(workspace)
+	return workspaces
+
+
+def add_sidebar_entry(
+	sidebar_items,
+	*,
+	title,
+	items,
+	module,
+	app,
+	header_icon,
+	module_onboarding,
+	perm_ctx,
+	allowed_workspaces,
+):
+	"""Add one workspace's permission-filtered sidebar to `sidebar_items`, keyed by title."""
+	from frappe import _
+
+	is_my_workspaces = "My Workspaces" in title
+	filtered_items = []
+	for item in items:
+		entry = {
+			"label": _(item.label),
+			"link_to": item.link_to,
+			"link_type": item.link_type,
+			"type": item.type,
+			"icon": item.icon,
+			"child": item.child,
+			"collapsible": item.collapsible,
+			"indent": item.indent,
+			"keep_closed": item.keep_closed,
+			"url": item.url,
+			"show_arrow": item.show_arrow,
+			"filters": item.filters,
+			"route_options": item.route_options,
+			"tab": item.navigate_to_tab,
+			"open_in_new_tab": item.open_in_new_tab,
+		}
+		if (
+			item.link_type == "Report"
+			and item.link_to
+			and frappe.db.exists("Report", item.link_to)
+			and not frappe.db.get_value("Report", item.link_to, "disabled")
+		):
+			report_type, ref_doctype = frappe.db.get_value(
+				"Report", item.link_to, ["report_type", "ref_doctype"]
+			)
+			entry["report"] = {
+				"report_type": report_type,
+				"ref_doctype": ref_doctype,
+			}
+		if (
+			is_my_workspaces
+			or item.type == "Section Break"
+			or perm_ctx.is_item_allowed(item.link_to, item.link_type, allowed_workspaces)
+		):
+			filtered_items.append(entry)
+
+	# A sidebar (and its desktop icon) is shown only if the user can see at least one
+	# real item in it, i.e. a non-Section-Break item survived the per-item filter above.
+	# This is the single source of truth for sidebar permissions and mirrors
+	# Desktop Icon.is_permitted. "My Workspaces" is always shown.
+	if not is_my_workspaces and not any(i["type"] != "Section Break" for i in filtered_items):
+		return
+
+	sidebar_items[title.lower()] = {
+		"label": title,
+		"items": filtered_items,
+		"header_icon": header_icon,
+		"module_onboarding": module_onboarding,
+		"module": module,
+		"app": app,
+	}
 
 
 def get_desktop_icon_urls():

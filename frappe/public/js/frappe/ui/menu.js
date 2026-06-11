@@ -163,6 +163,7 @@ frappe.ui.menu = class ContextMenu {
 					});
 					me.hide();
 					me.opts.onHide && me.opts.onHide(me);
+					item.onClick && item.onClick();
 					if (item.url.startsWith("/desk")) {
 						frappe.set_route(item.url);
 					} else if (item.url.startsWith("/")) {

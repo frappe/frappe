@@ -161,15 +161,15 @@ class Workspace(Document):
 		if self.public:
 			return
 
-		try:
-			my_workspaces = frappe.get_doc("Workspace Sidebar", f"My Workspaces-{frappe.session.user}")
-		except frappe.DoesNotExistError:
-			frappe.clear_messages()
+		host_name = f"My Workspaces-{frappe.session.user}"
+		if not frappe.db.exists("Workspace", host_name):
 			return
 
-		for w in my_workspaces.items:
-			if self.name == w.link_to:
-				frappe.delete_doc("Workspace Sidebar Item", w.name)
+		host = frappe.get_doc("Workspace", host_name)
+		remaining = [item for item in host.sidebar_items if item.link_to != self.name]
+		if len(remaining) != len(host.sidebar_items):
+			host.set("sidebar_items", remaining)
+			host.save(ignore_permissions=True)
 
 	def after_delete(self):
 		if disable_saving_as_public():

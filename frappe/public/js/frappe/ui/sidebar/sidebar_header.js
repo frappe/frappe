@@ -52,12 +52,31 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	workspace_to_item(workspace) {
 		if (!workspace) return null;
 		let label = workspace.title || workspace.label;
+		let sidebar_name = workspace.name || label;
 		return {
 			name: label.toLowerCase(),
 			label: label,
-			url: frappe.utils.generate_route(workspace),
+			// land on the workspace's first sidebar link, falling back to the workspace page
+			url: this.get_first_link_route(workspace) || frappe.utils.generate_route(workspace),
 			icon: workspace.icon,
+			// switch the sidebar to this workspace (and remember it) alongside navigating
+			onClick: () => {
+				if (frappe.boot.workspace_sidebar_item[sidebar_name.toLowerCase()]) {
+					frappe.app.sidebar.select_sidebar(sidebar_name);
+				}
+			},
 		};
+	}
+	get_first_link_route(workspace) {
+		let key = (workspace.name || workspace.title || "").toLowerCase();
+		let sidebar = frappe.boot.workspace_sidebar_item[key];
+		if (!sidebar) return null;
+
+		for (let item of sidebar.items || []) {
+			let route = frappe.ui.sidebar_item.get_route(item);
+			if (route) return route;
+		}
+		return null;
 	}
 	fetch_apps() {
 		let apps = (frappe.boot.app_data || []).filter((app) => app.on_apps_screen);
