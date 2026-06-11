@@ -148,7 +148,7 @@ def optimize_image(content, content_type, max_width=1024, max_height=768, optimi
 			image.save(
 				output_pre,
 				format=image_format,
-				optimize=optimize,
+				compress_level = 1 if image_format == "png" else 6,     # PNG `compression` can go out of hands,  https://github.com/python-pillow/Pillow/issues/1211
 				quality=quality,
 				save_all=True if image_format == "gif" else None,
 				exif=exif,
