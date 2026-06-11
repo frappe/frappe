@@ -563,7 +563,7 @@ class TestTreeDataImport(IntegrationTestCase):
 				"is_private": 1,
 			}
 		)
-		file_doc.save(ignore_permissions=True)
+		file_doc.save(ignore_permissions=True)  # test fixture — user context is not relevant here
 		return file_doc
 
 	def _get_importer(self, file_doc):
@@ -670,7 +670,7 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 				"is_private": 1,
 			}
 		)
-		file_doc.save(ignore_permissions=True)
+		file_doc.save(ignore_permissions=True)  # test fixture — user context is not relevant here
 		return file_doc
 
 	def _get_importer(self, file_doc):
@@ -738,6 +738,31 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		self.assertTrue(frappe.db.get_value(self.doctype_name, {"node_label": "New Child"}))
 
 		self._cleanup_docs((existing_label, "New Child"))
+
+	def test_tree_preview_nests_subtree_with_external_db_parent(self):
+		"""In-file subtree under a DB-only parent is nested in preview, not shown as orphans."""
+		existing_label = "Existing Root"
+		labels = (existing_label, "Branch A", "Branch B", "Branch C")
+		self._cleanup_docs(labels)
+		frappe.get_doc({"doctype": self.doctype_name, "node_label": existing_label, "is_group": 1}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		rows = [
+			("Branch C", "0", "Branch B"),
+			("Branch B", "0", "Branch A"),
+			("Branch A", "0", existing_label),
+		]
+		data_import = self._get_importer(self._make_csv_file(rows))
+		preview = data_import.get_preview_from_template()
+
+		nodes_by_id = {node.id: node for node in preview.tree_preview.nodes}
+		for node_id in ("Branch A", "Branch B", "Branch C"):
+			self.assertFalse(getattr(nodes_by_id[node_id], "orphan", False))
+		self.assertEqual(nodes_by_id["Branch A"].depth, 0)
+		self.assertEqual(nodes_by_id["Branch B"].depth, 1)
+		self.assertEqual(nodes_by_id["Branch C"].depth, 2)
+
+		self._cleanup_docs(labels)
 
 	def test_tree_alias_import(self):
 		meta = frappe.get_meta(self.doctype_name)

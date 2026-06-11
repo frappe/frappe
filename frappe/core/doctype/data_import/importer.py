@@ -1212,10 +1212,12 @@ def sort_tree_payloads(payloads: list, doctype: str, import_type: str | None) ->
 
 
 def _order_tree_preview_nodes(nodes: list) -> list:
+	in_file_ids = {node.id for node in nodes}
 	children_by_parent: dict[str | None, list] = {}
 
 	for node in nodes:
-		children_by_parent.setdefault(node.parent or None, []).append(node)
+		parent_key = node.parent if node.parent in in_file_ids else None
+		children_by_parent.setdefault(parent_key, []).append(node)
 
 	for children in children_by_parent.values():
 		children.sort(key=lambda n: n.row_number)
