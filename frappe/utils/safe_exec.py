@@ -86,7 +86,7 @@ def is_safe_exec_enabled() -> bool:
 
 
 def is_render_exec_enabled() -> bool:
-	return not bool(frappe.get_common_site_config().get(RENDER_EXEC_CONFIG_KEY, 0))
+	return not bool(frappe.get_common_site_config().get(RENDER_EXEC_CONFIG_KEY, 1))
 
 
 def safe_exec(
