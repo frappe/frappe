@@ -335,8 +335,6 @@ class EmailServer:
 		with suppress(Exception):
 			if not cint(self.settings.use_imap):
 				self.pop.dele(msg_num)
-			elif self.settings.email_sync_rule == "UNSEEN":
-				self.imap.uid("STORE", uid, "+FLAGS", "(\\SEEN)")
 
 	def is_temporary_system_problem(self, e):
 		messages = (
