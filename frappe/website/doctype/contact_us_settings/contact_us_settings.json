@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "creation": "2013-02-21 20:12:42",
  "description": "Settings for Contact Us Page",
  "doctype": "DocType",
@@ -118,7 +119,7 @@
    "label": "Skype"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "is_disabled",
    "fieldtype": "Check",
    "label": "Disabled"
@@ -128,7 +129,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-08-22 12:59:39.463182",
+ "modified": "2026-06-11 12:21:07.918283",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Contact Us Settings",
