@@ -112,16 +112,16 @@ def strip_exif_data(content:bytes, content_type) -> bytes:
 			original_image = original_image.convert("RGB")
 
 		# Save.
-		output = io.BytesIO()		## Its possible that depending on internal `encoding` parameters, may end up with larger ouput so better to use growable buffer
+		output_pre = PreAllocatedRawIO(size = len(content) * 2)
 		format = content_type.split("/")[1].strip().lower()
 		if format == "png":
 			# Pass compress level for PNGs.  https://github.com/python-pillow/Pillow/issues/1211
-			original_image.save(output, format = content_type.split("/")[1], compress_level = 1, exif=b"")
+			original_image.save(output_pre, format = content_type.split("/")[1], compress_level = 1, exif=b"")
 		else:
-			original_image.save(output, format = content_type.split("/")[1], exif=b"")
+			original_image.save(output_pre, format = content_type.split("/")[1], exif=b"")
 
-		encoded_data =  output.getvalue()
-		del output, original_image
+		encoded_data =  output_pre.getvalue()
+		del output_pre, original_image
 		return encoded_data
 	else:
 		del original_image, exif
@@ -144,16 +144,17 @@ def optimize_image(content, content_type, max_width=1024, max_height=768, optimi
 			size = max_width, max_height
 			image.thumbnail(size, Image.Resampling.LANCZOS)
 
-			output = io.BytesIO()
+			output_pre = PreAllocatedRawIO(size = len(content) * 2)
 			image.save(
-				output,
+				output_pre,
 				format=image_format,
 				optimize=optimize,
 				quality=quality,
 				save_all=True if image_format == "gif" else None,
 				exif=exif,
 			)
-			optimized_content = output.getvalue()
+			optimized_content = output_pre.getvalue()
+			del output_pre
 			return optimized_content
 	except Exception as e:
 		frappe.msgprint(frappe._("Failed to optimize image: {0}").format(str(e)))
