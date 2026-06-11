@@ -10,6 +10,15 @@ run it on changed files before committing to avoid the indentation/lint diff:
 npx prettier --write $(git diff --name-only)
 ```
 
+## Build stories with frappe-ui components, not raw HTML
+
+Stories are showcases for the library — their own controls and chrome should use
+frappe-ui components, not bare HTML elements. Reach for the frappe-ui equivalent
+first: `Select` (not `<select>`), `Button` (not `<button>`), `TextInput`,
+`Checkbox`, `Switch`, etc. `Select` takes `v-model` + an `options` array (plain
+strings auto-normalize to `{ label, value }`). This keeps stories visually
+consistent with the components they demonstrate and dogfoods the library.
+
 ## FormLayout fieldtypes — also update the CRM story
 
 When adding or changing a `FormLayout` fieldtype, mirror the change in the CRM
