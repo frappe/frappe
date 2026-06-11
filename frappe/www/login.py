@@ -157,7 +157,7 @@ def send_login_link(email: str):
 			now=True,
 		)
 	except frappe.DoesNotExistError:
-		frappe.clear_messages()
+		raise
 	except frappe.OutgoingEmailError:
 		frappe.clear_messages()
 		frappe.log_error(title="Login link email could not be sent", message=frappe.get_traceback())

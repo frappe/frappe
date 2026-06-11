@@ -68,7 +68,7 @@ login.bind_events = function () {
 			login.set_status({{ _("Login link sent to your email") | tojson }}, 'blue');
 			$("#login_with_email_link_email").val("");
 		}).catch(() => {
-			login.set_status({{ _("Send login link") | tojson }}, 'blue');
+			login.set_invalid({{ _("Invalid user") | tojson }});
 		});
 
 		return false;
