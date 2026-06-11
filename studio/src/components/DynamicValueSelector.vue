@@ -44,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, isRef, unref } from "vue"
+import { computed, ref, watch, unref } from "vue"
 import { Autocomplete, Switch, Tooltip } from "frappe-ui"
 import IconButton from "@/components/IconButton.vue"
 import useStudioStore from "@/stores/studioStore"
@@ -54,6 +54,7 @@ import Block from "@/utils/block"
 import type { VariableOption } from "@/types/Studio/StudioPageVariable"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import { isObjectEmpty } from "@/utils/helpers"
+import { getBindingType } from "@/utils/parseCode"
 import useCodeStore from "@/stores/codeStore"
 import Link2 from "~icons/lucide/link-2"
 import LucideCirclePlus from "~icons/lucide/circle-plus"
@@ -122,13 +123,12 @@ const dynamicValueOptions = computed(() => {
 			})
 		}
 		// Client Script bindings group (refs/reactive/computed — functions are wired to events, not props)
-		const isComputed = (binding: any) => isRef(binding) && Boolean(binding.effect)
 		const clientScriptOptions = Object.entries(codeStore.clientScriptBindings)
 			.filter(([, binding]) => typeof unref(binding) !== "function")
 			.map(([name, binding]) => ({
 				value: name,
 				label: name,
-				type: isComputed(binding) ? "computed" : isRef(binding) ? "ref" : typeof unref(binding),
+				type: getBindingType(binding),
 			}))
 		if (clientScriptOptions.length > 0) {
 			groups.push({

@@ -1,6 +1,7 @@
 import { parse, parseExpressionAt } from "acorn"
 import type { Node } from "acorn"
 import { LRUCache } from "@/utils/cache"
+import { isRef, unref } from "vue"
 
 const fnCache = new LRUCache<boolean>(20)
 export function isFunctionExpression(code: string): boolean {
@@ -175,6 +176,15 @@ export function getTopLevelBindings(code: string): string[] {
 		bindingNamesCache.set(code, [])
 		return []
 	}
+}
+
+// Describe a reactive binding's kind for display ("function" | "computed" | "ref" | typeof).
+// A computed is a ref too, so isRef alone can't tell them apart; its internal `.effect` does.
+export function getBindingType(binding: unknown): string {
+	const unwrapped = unref(binding)
+	if (typeof unwrapped === "function") return "function"
+	if (isRef(binding)) return (binding as { effect?: unknown }).effect ? "computed" : "ref"
+	return typeof unwrapped
 }
 
 export interface ScriptSyntaxError {
