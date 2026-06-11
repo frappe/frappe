@@ -1400,9 +1400,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return this.settings.get_form_link(doc);
 		}
 
-		return `/desk/${encodeURIComponent(
-			frappe.router.slug(frappe.router.doctype_layout || this.doctype)
+		let link = `/desk/${encodeURIComponent(
+			frappe.router.slug(this.doctype)
 		)}/${encodeURIComponent(cstr(doc.name))}`;
+
+		if (frappe.router.doctype_layout) {
+			link += `?layout=${encodeURIComponent(frappe.router.doctype_layout)}`;
+		}
+
+		return link;
 	}
 
 	get_seen_class(doc) {
