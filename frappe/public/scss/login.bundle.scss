@@ -350,7 +350,13 @@ body {
 		line-height: 150%;
 		a {
 			color: var(--ink-gray-6);
-			font-weight: var(--weight-semibold);
+			font-weight: var(--weight-regular);
+			letter-spacing: 0.195px;
+			text-decoration-line: underline;
+			text-decoration-style: solid;
+			text-decoration-skip-ink: none;
+			text-decoration-thickness: 1px;
+			text-underline-position: from-font;
 		}
 	}
 
@@ -405,13 +411,16 @@ body {
 		font-size: var(--text-2xl);
 		font-weight: var(--weight-bold);
 		letter-spacing: 0.01em;
+		line-height: 115%;
 		color: var(--text-color);
 	}
 
 	.page-card-subtitle {
 		margin: 0;
-		font-size: var(--text-base);
-		color: var(--ink-gray-6);
+		font-size: var(--text-sm);
 		font-weight: var(--weight-regular);
+		line-height: 150%;
+		letter-spacing: 0.28px;
+		color: var(--ink-gray-6);
 	}
 }

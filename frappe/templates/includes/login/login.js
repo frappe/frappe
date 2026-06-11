@@ -61,12 +61,16 @@ login.bind_events = function () {
 		var args = {};
 		args.cmd = "frappe.core.doctype.user.user.reset_password";
 		args.user = ($("#forgot_email").val() || "").trim();
-		if (!args.user) {
-			login.set_status({{ _("Valid Login id required.") | tojson }}, 'red');
+		if (!args.user || !validate_email(args.user)) {
+			login.show_field_error("forgot_email", {{ _("Invalid Email.") | tojson }});
 			return false;
 		}
 		login.call(args);
 		return false;
+	});
+
+	$("#forgot_email").on("input", function () {
+		$(".btn-forgot").prop("disabled", !$(this).val().trim());
 	});
 
 	$(".form-login-with-email-link").on("submit", function (event) {
@@ -137,6 +141,16 @@ login.reset_sections = function (hide) {
 		$("section.for-forgot").toggle(false);
 		$("section.for-login-with-email-link").toggle(false);
 		$("section.for-signup").toggle(false);
+		var $forms = $(".form-forgot, .form-signup, .form-login-with-email-link");
+		$forms.find("input:not([type='submit'])").val("");
+		$forms.find(".page-card-body").removeClass("invalid");
+		$forms.find(".form-group").removeClass("invalid").find(".field-error").text("");
+		$forms.find(".login-error-banner").hide();
+		$(".btn-forgot").prop("disabled", true).text({{ _("Send Link") | tojson }});
+		$(".btn-signup").prop("disabled", true).text({{ _("Create Account") | tojson }});
+		$(".btn-login-with-email-link").prop("disabled", false).text({{ _("Send login link") | tojson }});
+		$("section.for-login-with-email-link .login-success-banner").hide();
+		$("section.for-login-with-email-link .resend-link").hide();
 	}
 	$('section:not(.signup-disabled) .indicator').each(function () {
 		$(this).removeClass().addClass('indicator').addClass('blue')
@@ -165,6 +179,7 @@ login.forgot = function () {
 	login.reset_sections();
 	if ($("#login_email").val()) {
 		$("#forgot_email").val($("#login_email").val());
+		$(".btn-forgot").prop("disabled", false);
 	}
 	$(".for-forgot").toggle(true);
 	$("#forgot_email").focus();
@@ -281,7 +296,7 @@ login.login_handlers = (function () {
 			} else if (window.location.hash === '#forgot') {
 				// Always show the same message regardless of whether the account
 				// exists or not, to prevent username enumeration (CWE-204).
-				login.set_status({{ _("Instructions Emailed") | tojson }}, 'green');
+				login.set_status({{ _("Sent") | tojson }}, 'green');
 			} else if (window.location.hash === '#signup') {
 				if (cint(data.message[0]) == 0) {
 					login.set_status(data.message[1], 'red');
