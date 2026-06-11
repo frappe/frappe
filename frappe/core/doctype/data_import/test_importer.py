@@ -954,6 +954,17 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		]
 		self.assertEqual(payload_keys, ["Root Node", "Child Node"])
 
+	def test_upsert_tree_preview_warns_missing_db_parent(self):
+		rows = [("New Child", "0", "Missing Parent")]
+		data_import = self._get_importer(self._make_csv_file(rows), import_type=UPSERT)
+		preview = data_import.get_preview_from_template()
+
+		child = next(node for node in preview.tree_preview.nodes if node.id == "New Child")
+		self.assertTrue(
+			any("Parent" in w and "not found in file" in w for w in child.warnings),
+			"UPSERT should warn when an out-of-file parent is missing from the database",
+		)
+
 	def test_tree_alias_existing_db_parent_is_not_a_blocking_warning(self):
 		"""Parent column aliases must resolve against DB title field, not document name."""
 		from frappe.core.doctype.data_import.value_mapping import get_blocking_warnings

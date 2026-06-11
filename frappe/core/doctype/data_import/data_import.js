@@ -959,50 +959,37 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	render_import_log(frm) {
-		frappe.call({
-			method: "frappe.core.doctype.data_import.data_import.get_import_logs",
-			args: {
-				data_import: frm.doc.name,
-			},
-			callback: function (r) {
-				let logs = r.message;
+		const is_upsert = is_upsert_import_type(frm.doc.import_type);
 
-				if (logs.length === 0) return;
+		const render_logs = (logs, inserted_count = 0, updated_count = 0) => {
+			if (logs.length === 0) return;
 
-				frm.events.toggle_import_log_ui(frm, true);
+			frm.events.toggle_import_log_ui(frm, true);
 
-				const is_upsert = is_upsert_import_type(frm.doc.import_type);
-				let inserted_count = 0;
-				let updated_count = 0;
-
-				let rows = logs
-					.map((log) => {
-						let html = "";
-						if (log.success) {
-							if (is_upsert) {
-								if (log.import_action === IMPORT_ACTION_UPDATE) updated_count++;
-								else inserted_count++;
-							}
-							const doc_link = `<span class="underline">${frappe.utils.get_form_link(
-								frm.doc.reference_doctype,
-								log.docname,
-								true
-							)}<span>`;
-							html = get_import_log_html(
-								frm.doc.import_type,
-								log.import_action,
-								doc_link
-							);
-						} else {
-							let messages = JSON.parse(log.messages || "[]")
-								.map((m) => {
-									let title = m.title ? `<strong>${m.title}</strong>` : "";
-									let message = m.message ? `<div>${m.message}</div>` : "";
-									return title + message;
-								})
-								.join("");
-							let id = frappe.dom.get_unique_id();
-							html = `${messages}
+			let rows = logs
+				.map((log) => {
+					let html = "";
+					if (log.success) {
+						const doc_link = `<span class="underline">${frappe.utils.get_form_link(
+							frm.doc.reference_doctype,
+							log.docname,
+							true
+						)}<span>`;
+						html = get_import_log_html(
+							frm.doc.import_type,
+							log.import_action,
+							doc_link
+						);
+					} else {
+						let messages = JSON.parse(log.messages || "[]")
+							.map((m) => {
+								let title = m.title ? `<strong>${m.title}</strong>` : "";
+								let message = m.message ? `<div>${m.message}</div>` : "";
+								return title + message;
+							})
+							.join("");
+						let id = frappe.dom.get_unique_id();
+						html = `${messages}
 								<button class="btn btn-default btn-xs" type="button" data-toggle="collapse" data-target="#${id}" aria-expanded="false" aria-controls="${id}" style="margin-top: 15px;">
 									${__("Show Traceback")}
 								</button>
@@ -1011,15 +998,15 @@ frappe.ui.form.on("Data Import", {
 										<pre>${log.exception}</pre>
 									</div>
 								</div>`;
-						}
-						let indicator_color = log.success ? "green" : "red";
-						let title = log.success ? __("Success") : __("Failure");
+					}
+					let indicator_color = log.success ? "green" : "red";
+					let title = log.success ? __("Success") : __("Failure");
 
-						if (frm.doc.show_failed_logs && log.success) {
-							return "";
-						}
+					if (frm.doc.show_failed_logs && log.success) {
+						return "";
+					}
 
-						return `<tr>
+					return `<tr>
 							<td>${JSON.parse(log.row_indexes).join(", ")}</td>
 							<td>
 								<div class="indicator ${indicator_color}">${title}</div>
@@ -1028,24 +1015,24 @@ frappe.ui.form.on("Data Import", {
 								${html}
 							</td>
 						</tr>`;
-					})
-					.join("");
+				})
+				.join("");
 
-				if (!rows && frm.doc.show_failed_logs) {
-					rows = `<tr><td class="text-center text-muted" colspan=3>
+			if (!rows && frm.doc.show_failed_logs) {
+				rows = `<tr><td class="text-center text-muted" colspan=3>
 						${__("No failed logs")}
 					</td></tr>`;
-				}
+			}
 
-				let upsert_summary = "";
-				if (is_upsert) {
-					upsert_summary = `<div class="text-muted small mb-2">${__(
-						"Inserted {0}, Updated {1}",
-						[inserted_count, updated_count]
-					)}</div>`;
-				}
+			let upsert_summary = "";
+			if (is_upsert) {
+				upsert_summary = `<div class="text-muted small mb-2">${__(
+					"Inserted {0}, Updated {1}",
+					[inserted_count, updated_count]
+				)}</div>`;
+			}
 
-				frm.get_field("import_log_preview").$wrapper.html(`
+			frm.get_field("import_log_preview").$wrapper.html(`
 					${upsert_summary}
 					<table class="table table-bordered">
 						<tr class="text-muted">
@@ -1056,8 +1043,33 @@ frappe.ui.form.on("Data Import", {
 						${rows}
 					</table>
 				`);
-			},
-		});
+		};
+
+		const fetch_logs = (inserted_count = 0, updated_count = 0) => {
+			frappe.call({
+				method: "frappe.core.doctype.data_import.data_import.get_import_logs",
+				args: {
+					data_import: frm.doc.name,
+				},
+				callback: function (r) {
+					render_logs(r.message, inserted_count, updated_count);
+				},
+			});
+		};
+
+		if (is_upsert) {
+			frappe.call({
+				method: "frappe.core.doctype.data_import.data_import.get_import_status",
+				args: {
+					data_import_name: frm.doc.name,
+				},
+				callback: function (r) {
+					fetch_logs(cint(r.message.inserted), cint(r.message.updated));
+				},
+			});
+		} else {
+			fetch_logs();
+		}
 	},
 
 	show_import_log(frm) {

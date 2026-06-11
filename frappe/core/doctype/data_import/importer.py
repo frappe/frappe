@@ -1105,14 +1105,14 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 		import_file.doctype, parents_needing_db_check, alias_field
 	)
 
-	allow_existing_parent = import_file.import_type in (UPDATE, UPSERT)
+	allow_any_existing_parent = import_file.import_type == UPDATE
 	for node in nodes:
 		parent_id = node.parent
 		if not parent_id or parent_id in nodes_by_id:
 			continue
 		if _is_same_file_tree_reference(parent_id, import_file.header):
 			continue
-		if allow_existing_parent or parent_id in existing_parents_in_db:
+		if allow_any_existing_parent or parent_id in existing_parents_in_db:
 			continue
 
 		message = _("Parent {0} not found in file").format(frappe.bold(parent_id))
