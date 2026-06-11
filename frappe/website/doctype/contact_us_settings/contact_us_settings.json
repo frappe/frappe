@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "creation": "2013-02-21 20:12:42",
  "description": "Settings for Contact Us Page",
  "doctype": "DocType",
@@ -115,13 +116,26 @@
    "fieldname": "skype",
    "fieldtype": "Data",
    "label": "Skype"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "default": "1",
+   "fieldname": "is_disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+>>>>>>> 051bdf35fd (fix: contact us page and settings)
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2025-05-15 07:19:31.401053",
+=======
+ "modified": "2026-06-11 12:21:07.918283",
+>>>>>>> 051bdf35fd (fix: contact us page and settings)
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Contact Us Settings",
@@ -139,5 +153,12 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+<<<<<<< HEAD
  "track_changes": 1
 }
+=======
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
+}
+>>>>>>> 051bdf35fd (fix: contact us page and settings)

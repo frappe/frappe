@@ -19,8 +19,9 @@ def get_context(context):
 	else:
 		query_options = ["Sales", "Support", "General"]
 
-	out = {"query_options": query_options, "parents": [{"name": _("Home"), "route": "/"}]}
+	out = {}
 	out.update(doc.as_dict())
+	out.update({"query_options": query_options, "parents": [{"name": _("Home"), "route": "/"}]})
 
 	return out
 
