@@ -32,6 +32,7 @@ class Workspace(Document):
 		from frappe.desk.doctype.workspace_number_card.workspace_number_card import WorkspaceNumberCard
 		from frappe.desk.doctype.workspace_quick_list.workspace_quick_list import WorkspaceQuickList
 		from frappe.desk.doctype.workspace_shortcut.workspace_shortcut import WorkspaceShortcut
+		from frappe.desk.doctype.workspace_sidebar_item.workspace_sidebar_item import WorkspaceSidebarItem
 		from frappe.types import DF
 
 		app: DF.Data | None
@@ -61,6 +62,7 @@ class Workspace(Document):
 		link_type: DF.Literal["DocType", "Page", "Report"]
 		links: DF.Table[WorkspaceLink]
 		module: DF.Link | None
+		module_onboarding: DF.Link | None
 		number_cards: DF.Table[WorkspaceNumberCard]
 		parent_page: DF.Link | None
 		public: DF.Check
@@ -69,6 +71,8 @@ class Workspace(Document):
 		roles: DF.Table[HasRole]
 		sequence_id: DF.Float
 		shortcuts: DF.Table[WorkspaceShortcut]
+		sidebar_items: DF.Table[WorkspaceSidebarItem]
+		standard: DF.Check
 		title: DF.Data
 		type: DF.Literal["Workspace", "Link", "URL"]
 	# end: auto-generated types
@@ -122,13 +126,18 @@ class Workspace(Document):
 			return
 
 		if frappe.conf.developer_mode and self.public:
-			if self.module:
-				export_to_files(record_list=[["Workspace", self.name]], record_module=self.module)
+			self.export_workspace()
 
 			if self.has_value_changed("title") or self.has_value_changed("module"):
 				previous = self.get_doc_before_save()
 				if previous and previous.get("module") and previous.get("title"):
 					delete_folder(previous.get("module"), "Workspace", previous.get("title"))
+
+	def export_workspace(self):
+		"""Export a standard workspace to its module's files (developer mode only)."""
+		print("Exporting Workspace...", self.name, "in", self.module)
+		if frappe.conf.developer_mode and self.standard:
+			export_to_files(record_list=[["Workspace", self.name]], record_module=self.module)
 
 	def before_export(self, doc):
 		if doc.title != doc.label and doc.label == doc.name:
