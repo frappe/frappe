@@ -1,6 +1,54 @@
 // Copyright (c) 2019, Frappe Technologies and contributors
 // For license information, please see license.txt
 
+const UPSERT_IMPORT_TYPE = "Insert or Update Records";
+const UPDATE_IMPORT_TYPE = "Update Existing Records";
+const IMPORT_ACTION_UPDATE = "Update";
+
+function is_upsert_import_type(import_type) {
+	return import_type === UPSERT_IMPORT_TYPE;
+}
+
+/** Progress headline shown while an import job is running. */
+function get_import_progress_message(import_type, current, total, eta_message) {
+	const args = [current, total, eta_message];
+	if (import_type === UPDATE_IMPORT_TYPE) {
+		return __("Updating {0} of {1}, {2}", args);
+	}
+	if (is_upsert_import_type(import_type)) {
+		return __("Importing or updating {0} of {1}, {2}", args);
+	}
+	return __("Importing {0} of {1}, {2}", args);
+}
+
+/** Summary headline after import completes. */
+function get_import_status_message(import_type, inserted, updated, total) {
+	if (import_type === UPDATE_IMPORT_TYPE) {
+		return __("Successfully updated {0} out of {1} records.", [inserted, total]);
+	}
+	if (is_upsert_import_type(import_type)) {
+		return __("Successfully inserted {0} and updated {1} out of {2} records.", [
+			inserted,
+			updated,
+			total,
+		]);
+	}
+	return __("Successfully imported {0} out of {1} records.", [inserted, total]);
+}
+
+/** Success message for a single import log row. */
+function get_import_log_html(import_type, import_action, doc_link) {
+	if (is_upsert_import_type(import_type)) {
+		return import_action === IMPORT_ACTION_UPDATE
+			? __("Successfully updated {0}", [doc_link])
+			: __("Successfully inserted {0}", [doc_link]);
+	}
+	if (import_type === UPDATE_IMPORT_TYPE) {
+		return __("Successfully updated {0}", [doc_link]);
+	}
+	return __("Successfully imported {0}", [doc_link]);
+}
+
 /** Deduplicate template + preview warnings: one per column (longer message wins, often has row numbers). */
 function dedupe_import_warnings(warnings) {
 	const by_col = {};
@@ -145,11 +193,12 @@ frappe.ui.form.on("Data Import", {
 
 			let message;
 			if (data.success) {
-				let message_args = [data.current, data.total, eta_message];
-				message =
-					frm.doc.import_type === "Insert New Records"
-						? __("Importing {0} of {1}, {2}", message_args)
-						: __("Updating {0} of {1}, {2}", message_args);
+				message = get_import_progress_message(
+					frm.doc.import_type,
+					data.current,
+					data.total,
+					eta_message
+				);
 			}
 			if (data.skipping) {
 				message = __("Skipping {0} of {1}, {2}", [data.current, data.total, eta_message]);
@@ -277,18 +326,13 @@ frappe.ui.form.on("Data Import", {
 					return;
 				}
 
-				let message;
-				if (frm.doc.import_type === "Insert New Records") {
-					message = __("Successfully imported {0} out of {1} records.", [
-						successful_records,
-						total_records,
-					]);
-				} else {
-					message = __("Successfully updated {0} out of {1} records.", [
-						successful_records,
-						total_records,
-					]);
-				}
+				const is_upsert = is_upsert_import_type(frm.doc.import_type);
+				let message = get_import_status_message(
+					frm.doc.import_type,
+					is_upsert ? cint(r.message.inserted) : successful_records,
+					is_upsert ? cint(r.message.updated) : 0,
+					total_records
+				);
 
 				if (failed_records > 0) {
 					message +=
@@ -927,27 +971,28 @@ frappe.ui.form.on("Data Import", {
 
 				frm.events.toggle_import_log_ui(frm, true);
 
+				const is_upsert = is_upsert_import_type(frm.doc.import_type);
+				let inserted_count = 0;
+				let updated_count = 0;
+
 				let rows = logs
 					.map((log) => {
 						let html = "";
 						if (log.success) {
-							if (frm.doc.import_type === "Insert New Records") {
-								html = __("Successfully imported {0}", [
-									`<span class="underline">${frappe.utils.get_form_link(
-										frm.doc.reference_doctype,
-										log.docname,
-										true
-									)}<span>`,
-								]);
-							} else {
-								html = __("Successfully updated {0}", [
-									`<span class="underline">${frappe.utils.get_form_link(
-										frm.doc.reference_doctype,
-										log.docname,
-										true
-									)}<span>`,
-								]);
+							if (is_upsert) {
+								if (log.import_action === IMPORT_ACTION_UPDATE) updated_count++;
+								else inserted_count++;
 							}
+							const doc_link = `<span class="underline">${frappe.utils.get_form_link(
+								frm.doc.reference_doctype,
+								log.docname,
+								true
+							)}<span>`;
+							html = get_import_log_html(
+								frm.doc.import_type,
+								log.import_action,
+								doc_link
+							);
 						} else {
 							let messages = JSON.parse(log.messages || "[]")
 								.map((m) => {
@@ -992,7 +1037,16 @@ frappe.ui.form.on("Data Import", {
 					</td></tr>`;
 				}
 
+				let upsert_summary = "";
+				if (is_upsert) {
+					upsert_summary = `<div class="text-muted small mb-2">${__(
+						"Inserted {0}, Updated {1}",
+						[inserted_count, updated_count]
+					)}</div>`;
+				}
+
 				frm.get_field("import_log_preview").$wrapper.html(`
+					${upsert_summary}
 					<table class="table table-bordered">
 						<tr class="text-muted">
 							<th width="10%">${__("Row Number")}</th>

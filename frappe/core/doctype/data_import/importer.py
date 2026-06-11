@@ -23,6 +23,9 @@ INVALID_VALUES = ("", None)
 MAX_ROWS_IN_PREVIEW = 10
 INSERT = "Insert New Records"
 UPDATE = "Update Existing Records"
+UPSERT = "Insert or Update Records"
+ACTION_INSERT = "Insert"
+ACTION_UPDATE = "Update"
 DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
 
 
@@ -207,11 +210,15 @@ class Importer:
 							user=frappe.session.user,
 						)
 
-					create_import_log(
-						self.data_import.name,
-						log_index,
-						{"success": True, "docname": doc.name, "row_indexes": row_indexes},
-					)
+					log_details = {
+						"success": True,
+						"docname": doc.name,
+						"row_indexes": row_indexes,
+					}
+					if self.import_type == UPSERT:
+						log_details["import_action"] = doc.flags.import_action
+
+					create_import_log(self.data_import.name, log_index, log_details)
 
 					log_index += 1
 
@@ -301,6 +308,20 @@ class Importer:
 			return self.insert_record(doc)
 		elif self.import_type == UPDATE:
 			return self.update_record(doc)
+		elif self.import_type == UPSERT:
+			return self.upsert_record(doc)
+
+	def upsert_record(self, doc):
+		"""Update the record when it exists, otherwise insert it."""
+		id_field = get_id_field(self.doctype)
+		id_value = doc.get(id_field.fieldname)
+		if id_value and frappe.db.exists(self.doctype, id_value):
+			result = self.update_record(doc, raise_if_no_changes=False)
+			result.flags.import_action = ACTION_UPDATE
+		else:
+			result = self.insert_record(doc)
+			result.flags.import_action = ACTION_INSERT
+		return result
 
 	def insert_record(self, doc):
 		meta = frappe.get_meta(self.doctype)
@@ -351,7 +372,7 @@ class Importer:
 		if id_value not in INVALID_VALUES:
 			self._inserted_name_map[cstr(id_value).strip()] = new_doc.name
 
-	def update_record(self, doc):
+	def update_record(self, doc, raise_if_no_changes=True):
 		id_field = get_id_field(self.doctype)
 		existing_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
 
@@ -368,9 +389,10 @@ class Importer:
 			}
 			updated_doc.save()
 			return updated_doc
-		else:
-			# throw if no changes
+
+		if raise_if_no_changes:
 			frappe.throw(_("No changes to update"))
+		return updated_doc
 
 	def get_eta(self, current, total, processing_time):
 		self.last_eta = getattr(self, "last_eta", 0)
@@ -966,7 +988,7 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 			continue
 
 		parent_exists = frappe.db.exists(import_file.doctype, parent_id)
-		if import_file.import_type == UPDATE or parent_exists:
+		if import_file.import_type in (UPDATE, UPSERT) or parent_exists:
 			continue
 
 		message = _("Parent {0} not found in file").format(frappe.bold(parent_id))
@@ -1037,7 +1059,7 @@ def _has_parent_cycle(node_id: str, nodes_by_id: dict) -> bool:
 def sort_tree_payloads(payloads: list, doctype: str, import_type: str | None) -> list:
 	"""Return payloads in parent-before-child order for nested-set inserts."""
 	meta = frappe.get_meta(doctype)
-	if import_type != INSERT or not meta.is_nested_set() or not payloads:
+	if import_type not in (INSERT, UPSERT) or not meta.is_nested_set() or not payloads:
 		return payloads
 
 	parent_field = meta.nsm_parent_field or f"parent_{frappe.scrub(doctype)}"
@@ -1167,7 +1189,7 @@ class Row:
 
 	def _parse_doc(self, doctype, columns, values, parent_doc=None, table_df=None):
 		doc = frappe._dict()
-		if self.import_type == INSERT:
+		if self.import_type in (INSERT, UPSERT):
 			# new_doc returns a dict with default values set
 			doc = frappe.new_doc(
 				doctype,
@@ -1192,7 +1214,7 @@ class Row:
 				doc[df.fieldname] = self.parse_value(value, col)
 
 		is_table = frappe.get_meta(doctype).istable
-		is_update = self.import_type == UPDATE
+		is_update = self.import_type in (UPDATE, UPSERT)
 		if is_table and is_update:
 			# check if the row already exists
 			# if yes, fetch the original doc so that it is not updated
@@ -1840,6 +1862,7 @@ def create_import_log(data_import, log_index, log_details):
 			"data_import": data_import,
 			"row_indexes": json.dumps(log_details.get("row_indexes")),
 			"docname": log_details.get("docname"),
+			"import_action": log_details.get("import_action"),
 			"messages": json.dumps(log_details.get("messages", "[]")),
 			"exception": log_details.get("exception"),
 		}
