@@ -122,12 +122,13 @@ const dynamicValueOptions = computed(() => {
 			})
 		}
 		// Client Script bindings group (refs/reactive/computed — functions are wired to events, not props)
+		const isComputed = (binding: any) => isRef(binding) && Boolean(binding.effect)
 		const clientScriptOptions = Object.entries(codeStore.clientScriptBindings)
 			.filter(([, binding]) => typeof unref(binding) !== "function")
 			.map(([name, binding]) => ({
 				value: name,
 				label: name,
-				type: isRef(binding) ? "ref" : typeof unref(binding),
+				type: isComputed(binding) ? "computed" : isRef(binding) ? "ref" : typeof unref(binding),
 			}))
 		if (clientScriptOptions.length > 0) {
 			groups.push({
