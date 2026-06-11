@@ -55,6 +55,34 @@ def mask_dict_results(result, masked_fields):
 	return result
 
 
+def mask_pluck_results(result, masked_fields, fields):
+	"""Mask plucked (scalar) results.
+
+	With ``pluck``, the database layer has already reduced each row to the
+	scalar value of the first selected field, so ``result`` is a flat list of
+	values rather than a list of tuples/dicts. Mask each value only when the
+	plucked field is itself a masked field; otherwise return it untouched.
+
+	Args:
+		result: Flat list of scalar values (one per row)
+		masked_fields: List of DocField objects with masking configuration
+		fields: List of field objects from the query (the plucked field is first)
+
+	Returns:
+		List of scalar values, with the plucked field masked when applicable
+	"""
+	if not fields:
+		return result
+
+	field = fields[0]
+	field_name = getattr(field, "alias", None) or getattr(field, "name", None)
+	masked_field = next((f for f in masked_fields if f.fieldname == field_name), None)
+	if not masked_field:
+		return result
+
+	return [mask_field_value(masked_field, val) for val in result]
+
+
 def mask_list_results(result, masked_fields, field_index_map):
 	"""Mask fields in list/tuple results.
 
