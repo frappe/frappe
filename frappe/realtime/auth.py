@@ -11,8 +11,8 @@ import redis
 import requests
 from socketio.exceptions import ConnectionRefusedError
 
-from frappe.realtime_py.config import RealtimeConfig
-from frappe.realtime_py.util import get_hostname, get_url, read_header, resolve_site_name
+from frappe.realtime.config import RealtimeConfig
+from frappe.realtime.util import get_hostname, get_url, read_header, resolve_site_name
 
 logger = logging.getLogger("frappe.realtime")
 

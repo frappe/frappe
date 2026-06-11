@@ -1,6 +1,6 @@
 # Realtime handlers for custom apps
 
-This is the Python Socket.IO realtime server (`python -m frappe.realtime_py.server`).
+This is the Python Socket.IO realtime server (`python -m frappe.realtime.server`).
 It runs as a **separate gevent process** from the web/gunicorn process.
 
 This guide is for app authors who want to add their own realtime events. You do not need to touch this folder — you register handlers from inside your own app.
@@ -19,7 +19,7 @@ The server imports `<app>.realtime.handlers` for every app installed on the site
 
 ```python
 import frappe
-from frappe.realtime_py import Socket, realtime
+from frappe.realtime import Socket, realtime
 
 
 @realtime.on("project_subscribe")

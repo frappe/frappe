@@ -1,6 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
-"""Unit tests for the Python realtime server (frappe.realtime_py).
+"""Unit tests for the Python realtime server (frappe.realtime).
 
 These exercise the contract-critical logic in isolation: auth gates, site
 resolution, the handler registry + install/guest scoping, the typed Socket, the
@@ -34,14 +34,14 @@ if "socketio" not in sys.modules:
 	sys.modules["socketio"] = _sio_mod
 	sys.modules["socketio.exceptions"] = _exc_mod
 
-from frappe.realtime_py import auth as auth_mod
-from frappe.realtime_py import bridge as bridge_mod
-from frappe.realtime_py import dispatch as dispatch_mod
-from frappe.realtime_py import handlers as handlers_mod
-from frappe.realtime_py.auth import Session
-from frappe.realtime_py.config import RealtimeConfig
-from frappe.realtime_py.registry import Registry
-from frappe.realtime_py.socket import Socket
+from frappe.realtime import auth as auth_mod
+from frappe.realtime import bridge as bridge_mod
+from frappe.realtime import dispatch as dispatch_mod
+from frappe.realtime import handlers as handlers_mod
+from frappe.realtime.auth import Session
+from frappe.realtime.config import RealtimeConfig
+from frappe.realtime.registry import Registry
+from frappe.realtime.socket import Socket
 
 ConnectionRefusedError = auth_mod.ConnectionRefusedError
 

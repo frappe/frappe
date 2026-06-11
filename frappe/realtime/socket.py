@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from frappe.realtime_py.auth import Session
+from frappe.realtime.auth import Session
 
 if TYPE_CHECKING:
 	from socketio.server import Server as SocketIOServer

@@ -4,7 +4,7 @@
 
 Run with::
 
-    python -m frappe.realtime_py.server
+    python -m frappe.realtime.server
 
 This process is fully separate from the web/gunicorn process. It runs on gevent
 and forces the pure-python PyMySQL driver — the mysqlclient C extension has a
@@ -29,9 +29,9 @@ import socketio
 from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
 
-from frappe.realtime_py.bridge import start_bridge
-from frappe.realtime_py.config import RealtimeConfig, get_config
-from frappe.realtime_py.dispatch import wire
+from frappe.realtime.bridge import start_bridge
+from frappe.realtime.config import RealtimeConfig, get_config
+from frappe.realtime.dispatch import wire
 
 logger = logging.getLogger("frappe.realtime")
 
@@ -113,8 +113,8 @@ def serve(config: RealtimeConfig | None = None) -> None:
 
 	# Import core handlers, then discover per-app handlers, so every @realtime.on
 	# registration runs before wire() binds events.
-	import frappe.realtime_py.handlers
-	from frappe.realtime_py.registry import discover_app_handlers
+	import frappe.realtime.handlers
+	from frappe.realtime.registry import discover_app_handlers
 
 	discover_app_handlers()
 

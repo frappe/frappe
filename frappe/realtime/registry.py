@@ -4,7 +4,7 @@
 
 App authors register handlers declaratively::
 
-    from frappe.realtime_py import Socket, realtime
+    from frappe.realtime import Socket, realtime
 
     @realtime.on("doc_subscribe", frappe_context=True)
     def doc_subscribe(socket: Socket, doctype: str, docname: str) -> None:
@@ -82,7 +82,7 @@ def discover_app_handlers(sites_path: str | None = None) -> None:
 
 	Missing handler modules are ignored. An import error inside an existing handler
 	module is NOT swallowed — it surfaces loudly at startup (matches the design).
-	Core handlers (frappe.realtime_py.handlers) are imported separately, so the
+	Core handlers (frappe.realtime.handlers) are imported separately, so the
 	frappe app is skipped here."""
 	import importlib
 	import importlib.util

@@ -22,11 +22,11 @@ import logging
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from frappe.realtime_py.auth import authenticate
-from frappe.realtime_py.config import RealtimeConfig
-from frappe.realtime_py.context import frappe_context
-from frappe.realtime_py.registry import realtime
-from frappe.realtime_py.socket import Socket
+from frappe.realtime.auth import authenticate
+from frappe.realtime.config import RealtimeConfig
+from frappe.realtime.context import frappe_context
+from frappe.realtime.registry import realtime
+from frappe.realtime.socket import Socket
 
 if TYPE_CHECKING:
 	from socketio.server import Server as SocketIOServer

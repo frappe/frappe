@@ -21,7 +21,7 @@ def frappe_context(site: str, user: str):
 	server.force_pymysql) — the mysqlclient C extension would stall the gevent hub.
 	"""
 	import frappe
-	from frappe.realtime_py.server import force_pymysql
+	from frappe.realtime.server import force_pymysql
 
 	frappe.init(site)
 	force_pymysql(frappe.local.conf)

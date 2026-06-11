@@ -3,7 +3,7 @@
 """Small helpers for the realtime connect path: header reads, hostnames, URLs,
 and site resolution. Kept separate so auth.py stays focused on the pipeline."""
 
-from frappe.realtime_py.config import RealtimeConfig
+from frappe.realtime.config import RealtimeConfig
 
 
 def read_header(environ: dict, name: str) -> str | None:

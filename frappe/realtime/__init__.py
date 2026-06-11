@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+
 from contextlib import suppress
 
 import redis
@@ -223,3 +224,19 @@ def publish_to_all(event: str, message: dict | None = None, *, after_commit: boo
 def publish_to_room(room: str, event: str, message: dict | None = None, *, after_commit: bool = False):
 	"""Publish to an arbitrary room."""
 	publish_realtime(event, message, room=room, after_commit=after_commit)
+
+
+# Handler-authoring surface, exposed lazily so the publish helpers above stay
+# import-light. ``Socket`` pulls in the server stack (socketio, via auth); resolving
+# it only on access keeps ``from frappe.realtime import publish_realtime`` (web
+# process) from importing socketio/gevent.
+def __getattr__(name: str):
+	if name == "realtime":
+		from frappe.realtime.registry import realtime
+
+		return realtime
+	if name == "Socket":
+		from frappe.realtime.socket import Socket
+
+		return Socket
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

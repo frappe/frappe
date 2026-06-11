@@ -10,8 +10,8 @@ because the Node server bound these handlers for every connected socket.
 
 import json
 
-from frappe.realtime_py import Socket, realtime
-from frappe.realtime_py.config import get_config
+from frappe.realtime import Socket, realtime
+from frappe.realtime.config import get_config
 
 WEBSITE_ROOM = "website"
 SITE_ROOM = "all"
