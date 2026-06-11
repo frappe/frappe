@@ -313,8 +313,7 @@ class Importer:
 
 		if self._uses_tree_aliases and self._tree_parent_field:
 			self._resolve_tree_parent_link(doc)
-
-		new_doc.update(doc)
+			new_doc.set(self._tree_parent_field, doc.get(self._tree_parent_field))
 
 		new_doc.flags.updater_reference = {
 			"doctype": self.data_import.doctype,
@@ -951,22 +950,39 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 
 	for node in nodes:
 		parent_id = node.parent
-		if not parent_id:
+		if not parent_id or parent_id not in nodes_by_id:
 			continue
+		if _has_parent_cycle(node.id, nodes_by_id):
+			message = _("Circular parent reference for {0}").format(frappe.bold(node.id))
+			node.warnings.append(message)
+			if not any(w.get("message") == message for w in tree_warnings):
+				tree_warnings.append({"row": node.row_number, "message": message})
 
-		if parent_id in nodes_by_id:
-			if _has_parent_cycle(node.id, nodes_by_id):
-				message = _("Circular parent reference for {0}").format(frappe.bold(node.id))
-				node.warnings.append(message)
-				if not any(w.get("message") == message for w in tree_warnings):
-					tree_warnings.append({"row": node.row_number, "message": message})
+	parents_needing_db_check = {
+		node.parent
+		for node in nodes
+		if node.parent
+		and node.parent not in nodes_by_id
+		and not _is_same_file_tree_reference(node.parent, import_file.header)
+	}
+	existing_parents_in_db = set()
+	if parents_needing_db_check:
+		existing_parents_in_db = set(
+			frappe.get_all(
+				import_file.doctype,
+				filters={"name": ("in", list(parents_needing_db_check))},
+				pluck="name",
+			)
+		)
+
+	allow_existing_parent = import_file.import_type == UPDATE
+	for node in nodes:
+		parent_id = node.parent
+		if not parent_id or parent_id in nodes_by_id:
 			continue
-
 		if _is_same_file_tree_reference(parent_id, import_file.header):
 			continue
-
-		parent_exists = frappe.db.exists(import_file.doctype, parent_id)
-		if import_file.import_type == UPDATE or parent_exists:
+		if allow_existing_parent or parent_id in existing_parents_in_db:
 			continue
 
 		message = _("Parent {0} not found in file").format(frappe.bold(parent_id))
@@ -1072,22 +1088,15 @@ def sort_tree_payloads(payloads: list, doctype: str, import_type: str | None) ->
 	seen = set()
 	payload_id_by_payload = {id(payload): node_id for payload, node_id, _parent in payload_keys}
 
-	def walk(parent_id):
-		for child in children_by_parent.get(parent_id, []):
-			node_id = payload_id_by_payload[id(child)]
-			if not node_id or node_id in seen:
-				continue
-			seen.add(node_id)
-			ordered.append(child)
-			walk(node_id)
-
-	for root in roots:
-		node_id = payload_id_by_payload[id(root)]
+	stack = list(reversed(roots))
+	while stack:
+		payload = stack.pop()
+		node_id = payload_id_by_payload[id(payload)]
 		if not node_id or node_id in seen:
 			continue
 		seen.add(node_id)
-		ordered.append(root)
-		walk(node_id)
+		ordered.append(payload)
+		stack.extend(reversed(children_by_parent.get(node_id, [])))
 
 	for payload, node_id, _parent in payload_keys:
 		if not node_id or node_id not in seen:
@@ -1108,16 +1117,15 @@ def _order_tree_preview_nodes(nodes: list) -> list:
 	ordered = []
 	seen = set()
 
-	def walk(parent_id, depth):
-		for child in children_by_parent.get(parent_id, []):
-			if child.id in seen:
-				continue
-			seen.add(child.id)
-			child.depth = depth
-			ordered.append(child)
-			walk(child.id, depth + 1)
-
-	walk(None, 0)
+	stack = [(node, 0) for node in reversed(children_by_parent.get(None, []))]
+	while stack:
+		node, depth = stack.pop()
+		if node.id in seen:
+			continue
+		seen.add(node.id)
+		node.depth = depth
+		ordered.append(node)
+		stack.extend((child, depth + 1) for child in reversed(children_by_parent.get(node.id, [])))
 
 	for node in nodes:
 		if node.id not in seen:
