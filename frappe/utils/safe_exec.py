@@ -172,10 +172,8 @@ def safe_exec_flags():
 		frappe.flags.in_safe_exec -= 1
 
 
-def get_doc_as_dict(doctype, name):
-	assert isinstance(doctype, str)
-	assert isinstance(name, (str, int))
-	return frappe.get_doc(doctype, name).as_dict()
+def get_doc_as_dict(*args, **kwargs):
+	return frappe.get_doc(*args, **kwargs).as_dict()
 
 
 def safer_get_last_doc(*args, **kwargs):
