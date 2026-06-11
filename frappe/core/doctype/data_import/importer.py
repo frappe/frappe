@@ -329,13 +329,17 @@ class Importer:
 		return new_doc
 
 	def _resolve_tree_parent_link(self, doc):
-		"""Swap parent link aliases from the file with inserted document names."""
+		"""Swap parent link aliases from the file with document names (in-file or DB)."""
 		parent = doc.get(self._tree_parent_field)
 		if parent in INVALID_VALUES:
 			return
 
 		parent = cstr(parent).strip()
 		resolved = self._inserted_name_map.get(parent)
+		if not resolved and frappe.db.exists(self.doctype, parent):
+			resolved = parent
+		elif not resolved and self._tree_alias_field:
+			resolved = frappe.db.get_value(self.doctype, {self._tree_alias_field: parent}, "name")
 		if resolved:
 			doc[self._tree_parent_field] = resolved
 
@@ -606,6 +610,22 @@ class ImportFile:
 	def _refresh_self_referential_link_validation(self):
 		"""Re-validate parent Link columns after IDs from the file are known."""
 		from frappe.core.doctype.data_import.value_mapping import warn_invalid_link_select_values
+
+		alias_field = self.header.tree_alias_field
+		if alias_field:
+			link_values = set()
+			for col in self.header.columns:
+				if not col.df or col.skip_import or col.df.fieldtype != "Link":
+					continue
+				if col.df.options != self.doctype:
+					continue
+				for value in col.column_values:
+					if value not in INVALID_VALUES:
+						link_values.add(cstr(value).strip())
+			if link_values:
+				self.header.import_refs |= _get_existing_tree_parent_refs(
+					self.doctype, link_values, alias_field
+				)
 
 		for col in self.header.columns:
 			if not col.df or col.skip_import or col.df.fieldtype != "Link":

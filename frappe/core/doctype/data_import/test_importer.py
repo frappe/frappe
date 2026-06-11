@@ -683,7 +683,7 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		return data_import
 
 	def _cleanup_docs(self, labels):
-		for label in labels:
+		for label in reversed(labels):
 			name = frappe.db.get_value(self.doctype_name, {"node_label": label})
 			if name:
 				frappe.delete_doc(self.doctype_name, name, force=1)
@@ -716,6 +716,8 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 
 	def test_tree_alias_existing_db_parent_is_not_a_blocking_warning(self):
 		"""Parent column aliases must resolve against DB title field, not document name."""
+		from frappe.core.doctype.data_import.value_mapping import get_blocking_warnings
+
 		existing_label = "Existing Root"
 		self._cleanup_docs((existing_label, "New Child"))
 		frappe.get_doc({"doctype": self.doctype_name, "node_label": existing_label, "is_group": 1}).insert()
@@ -727,6 +729,13 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 
 		child = next(node for node in preview.tree_preview.nodes if node.id == "New Child")
 		self.assertFalse(any("Parent" in w and "not found in file" in w for w in child.warnings))
+
+		imp = Importer(self.doctype_name, data_import=data_import)
+		self.assertEqual(
+			get_blocking_warnings(imp.import_file.get_all_warnings(), imp.import_file, data_import), []
+		)
+		imp.import_data()
+		self.assertTrue(frappe.db.get_value(self.doctype_name, {"node_label": "New Child"}))
 
 		self._cleanup_docs((existing_label, "New Child"))
 
