@@ -5,123 +5,54 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.drop_down_expanded = false;
 		this.title = this.sidebar.sidebar_title;
 		const me = this;
-		this.sibling_workspaces = this.fetch_related_icons();
-		this.dropdown_items = [
-			{
-				name: "desktop",
-				label: __("Desktop"),
-				icon: "home",
-				onClick: function (el) {
-					frappe.set_route("/desk");
-				},
-			},
-			{
-				name: "workspaces",
-				label: "Workspaces",
-				icon: "wallpaper",
-				condition: function () {
-					return me.sibling_workspaces && me.sibling_workspaces.length > 0;
-				},
-				items: this.sibling_workspaces,
-			},
-			{
-				name: "website",
-				label: __("Website"),
-				icon: "web",
-				onClick: function () {
-					window.open(window.location.origin);
-				},
-			},
-			{
-				is_divider: true,
-			},
-			{
-				name: "edit-sidebar",
-				label: __("Edit Sidebar"),
-				icon: "edit",
-				condition: function () {
-					return frappe.boot.developer_mode;
-				},
-				onClick: function () {
-					me.sidebar.editor.toggle();
-				},
-			},
-			{
-				is_divider: true,
-				condition: function () {
-					return frappe.boot.developer_mode;
-				},
-			},
-		];
-		if (frappe.boot.desk_settings.notifications) {
-			this.dropdown_items.push(
-				{
-					label: "Reload",
-					action: "frappe.ui.toolbar.clear_cache()",
-					is_standard: 1,
-					icon: "rotate-ccw",
-					shortcut: "Shift+Ctrl+R",
-				},
-				{
-					name: "help",
-					label: "Help",
-					icon: "info",
-					items: this.get_help_siblings(),
-				}
-			);
+		this.sibling_workspaces = this.fetch_workspaces_for_apps();
+		this.dropdown_items = [...(this.sibling_workspaces || [])];
+		const apps_section = this.fetch_apps();
+		if (apps_section) {
+			this.dropdown_items.push(apps_section);
 		}
-		this.add_navbar_items();
 		this.make();
 		this.setup_app_switcher();
 		this.populate_dropdown_menu();
 		this.setup_select_options();
 	}
-	add_navbar_items() {
-		frappe.boot.navbar_settings.settings_dropdown.forEach((item) => {
-			item.label = item.item_label;
-			this.dropdown_items.push(item);
-		});
-	}
-	fetch_related_icons() {
+	fetch_workspaces_for_apps() {
 		let sibling_workspaces = [];
 		let workspaces_not_to_show = ["My Workspaces"];
 		if (frappe.current_app) {
-			let desktop_icons = [...frappe.boot.desktop_icons];
-			desktop_icons.splice(
-				desktop_icons.indexOf(frappe.utils.get_desktop_icon_by_label(this.title)),
-				1
-			);
-			let { folder_map, sibling_icons } = this.build_folder_map(desktop_icons);
-			sibling_icons.forEach((icon) => {
-				if (folder_map[icon.parent_icon]) return;
-				if (!workspaces_not_to_show.includes(icon.label)) {
+			let app_workspaces = frappe.current_app.workspaces || [];
+
+			app_workspaces.forEach((name) => {
+				if (!workspaces_not_to_show.includes(name)) {
+					let workspace = frappe.workspaces[frappe.router.slug(name)];
 					let item = {
-						name: icon.label.toLowerCase(),
-						label: icon.label,
-						url: frappe.utils.get_route_for_icon(icon),
+						name: workspace.label.toLowerCase(),
+						label: workspace.label,
+						url: frappe.utils.generate_route(workspace),
+						icon: workspace.icon,
 					};
-					if (icon.icon_type == "Folder") {
-						let nested_items = folder_map[item.label];
-						nested_items.forEach((item) => {
-							this.get_icon_for_menu_item(item, item);
-						});
-						item.items = nested_items;
-					}
-					if (
-						frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style)
-					) {
-						item.icon_url = frappe.utils.get_desktop_icon(
-							icon.label,
-							frappe.boot.desktop_icon_style
-						);
-					} else {
-						item.icon_html = frappe.utils.desktop_icon(icon.label, "gray", "sm");
-					}
 					sibling_workspaces.push(item);
 				}
 			});
 			return sibling_workspaces;
 		}
+	}
+	fetch_apps() {
+		let apps = (frappe.boot.app_data || []).filter((app) => app.on_apps_screen);
+		if (!apps.length) return null;
+
+		return {
+			name: "apps",
+			label: __("Apps"),
+			icon: "grid",
+			grid: true,
+			items: apps.map((app) => ({
+				name: app.app_name,
+				label: app.app_title,
+				url: app.app_route,
+				icon_url: Array.isArray(app.app_logo_url) ? app.app_logo_url[0] : app.app_logo_url,
+			})),
+		};
 	}
 	get_icon_for_menu_item(icon, item) {
 		if (frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style)) {

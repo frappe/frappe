@@ -76,6 +76,8 @@ frappe.ui.menu = class ContextMenu {
 				width: this.size,
 			});
 		}
+		// `grid` renders the items as a grid of icon-over-label cells instead of a list.
+		this.template.toggleClass("grid-menu", !!this.grid);
 	}
 	add_menu_item(item) {
 		const me = this;
@@ -198,6 +200,7 @@ frappe.ui.menu = class ContextMenu {
 			parent: item_wrapper,
 			menu_items: item.items,
 			nested: true,
+			grid: item.grid,
 			parent_data: item,
 			parent_menu: this.name,
 		});
@@ -246,7 +249,7 @@ frappe.ui.menu = class ContextMenu {
 		if (left < 0) left = 10;
 
 		this.template.css({
-			display: "block",
+			display: this.grid ? "grid" : "block",
 			position: "fixed",
 			top: top + "px",
 			left: left + "px",

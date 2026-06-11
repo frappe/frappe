@@ -447,6 +447,30 @@ frappe.ui.Sidebar = class Sidebar {
 				},
 				{ is_divider: true },
 				{
+					name: "desktop",
+					label: __("Desktop"),
+					icon: "home",
+					onClick: function () {
+						frappe.set_route("/desk");
+					},
+				},
+				{
+					name: "edit-sidebar",
+					label: __("Edit Sidebar"),
+					icon: "edit",
+					condition: function () {
+						return frappe.boot.developer_mode;
+					},
+					onClick: function () {
+						me.editor.toggle();
+					},
+				},
+				...frappe.boot.navbar_settings.settings_dropdown.map((item) => ({
+					...item,
+					label: item.item_label,
+				})),
+				{ is_divider: true },
+				{
 					name: "logout",
 					label: __("Logout"),
 					icon: "logout",
