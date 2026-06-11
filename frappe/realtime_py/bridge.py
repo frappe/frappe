@@ -5,7 +5,8 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import TYPE_CHECKING, NoReturn
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, NoReturn
 
 import gevent
 import redis
@@ -18,6 +19,26 @@ logger = logging.getLogger("frappe.realtime")
 
 EVENTS_CHANNEL = "events"
 RECONNECT_DELAY = 1.0  # seconds between redis reconnect attempts
+
+
+@dataclass(slots=True)
+class RealtimeEvent:
+	"""Parsed ``events`` channel message"""
+
+	event: str
+	message: Any = None
+	room: str | None = None
+	namespace: str | None = None
+
+	@classmethod
+	def from_raw(cls, raw: str | bytes | bytearray | None) -> RealtimeEvent:
+		data = json.loads(raw)
+		return cls(
+			event=data["event"],
+			message=data.get("message"),
+			room=data.get("room"),
+			namespace=data.get("namespace"),
+		)
 
 
 class RedisBridge:
@@ -66,24 +87,20 @@ class RedisBridge:
 
 	def _handle(self, raw: str | bytes | bytearray | None) -> None:
 		try:
-			data = json.loads(raw)
-			event = data["event"]
-			message = data.get("message")
-			room = data.get("room")
-			ns = data.get("namespace")
+			evt = RealtimeEvent.from_raw(raw)
 		except (ValueError, TypeError, KeyError) as e:
 			logger.warning("Redis bridge skipping malformed message (%s): %r", e, raw)
 			return
 
-		if room:
-			if not ns:
+		if evt.room:
+			if not evt.namespace:
 				logger.warning("Redis bridge skipping room message with no namespace: %r", raw)
 				return
-			self.sio.emit(event, message, room=room, namespace="/" + ns)
+			self.sio.emit(evt.event, evt.message, room=evt.room, namespace="/" + evt.namespace)
 		else:
 			# No room -> broadcast to every connected site namespace (build events).
 			for ns in list(self.sio.manager.rooms.keys()):
-				self.sio.emit(event, message, namespace=ns)
+				self.sio.emit(evt.event, evt.message, namespace=ns)
 
 
 def start_bridge(sio: SocketIOServer, redis_url: str) -> RedisBridge:
