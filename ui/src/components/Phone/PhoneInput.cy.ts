@@ -1,4 +1,4 @@
-import PhoneInput from './PhoneInput.vue'
+import PhoneInput from './Phone.vue'
 
 function stubTimezone(timeZone: string) {
   cy.stub(Intl.DateTimeFormat.prototype, 'resolvedOptions').returns({
@@ -8,9 +8,9 @@ function stubTimezone(timeZone: string) {
 
 describe('PhoneInput', () => {
   it('typing emits the joined "<isd>-<number>" format, empty number emits ""', () => {
+    stubTimezone('Asia/Kolkata')
     cy.mount(PhoneInput, {
       props: {
-        defaultCountry: 'in',
         'onUpdate:modelValue': cy.spy().as('onUpdate'),
       },
     })
@@ -23,9 +23,9 @@ describe('PhoneInput', () => {
   })
 
   it('values carrying an ISD re-route through the parser', () => {
+    stubTimezone('Asia/Kolkata')
     cy.mount(PhoneInput, {
       props: {
-        defaultCountry: 'in',
         'onUpdate:modelValue': cy.spy().as('onUpdate'),
       },
     })
@@ -82,9 +82,9 @@ describe('PhoneInput', () => {
   })
 
   it('picking a country from the dropdown re-emits and focuses the number input', () => {
+    stubTimezone('Asia/Kolkata')
     cy.mount(PhoneInput, {
       props: {
-        defaultCountry: 'in',
         'onUpdate:modelValue': cy.spy().as('onUpdate'),
       },
     })
@@ -103,32 +103,7 @@ describe('PhoneInput', () => {
     cy.get('input[type=tel]').should('have.focus')
   })
 
-  it('defaultCountry accepts ISO2, dial code (with or without +), or name', () => {
-    const cases: [string, string][] = [
-      ['us', 'United States'],
-      ['+91', 'India'],
-      ['91', 'India'],
-      ['Japan', 'Japan'],
-    ]
-    for (const [identifier, name] of cases) {
-      cy.mount(PhoneInput, { props: { defaultCountry: identifier } })
-      cy.get('[data-slot="country"]').should(
-        'have.attr',
-        'aria-label',
-        `Country: ${name}`,
-      )
-    }
-
-    // Unresolvable prop + unknown timezone → no country, globe placeholder.
-    stubTimezone('Etc/UTC')
-    cy.mount(PhoneInput, { props: { defaultCountry: 'zz' } })
-    cy.get('[data-slot="country"]')
-      .should('have.attr', 'aria-label', 'Select country')
-      .find('.lucide-globe')
-      .should('exist')
-  })
-
-  it('guesses the country from the system timezone when defaultCountry is absent', () => {
+  it('guesses the country from the system timezone', () => {
     stubTimezone('Asia/Tokyo')
     cy.mount(PhoneInput)
     cy.get('[data-slot="country"]').should(
@@ -138,8 +113,18 @@ describe('PhoneInput', () => {
     )
   })
 
+  it('renders no country and the globe placeholder for an unknown timezone', () => {
+    stubTimezone('Etc/UTC')
+    cy.mount(PhoneInput)
+    cy.get('[data-slot="country"]')
+      .should('have.attr', 'aria-label', 'Select country')
+      .find('.lucide-globe')
+      .should('exist')
+  })
+
   it('backspace on an empty number clears the country', () => {
-    cy.mount(PhoneInput, { props: { defaultCountry: 'in' } })
+    stubTimezone('Asia/Kolkata')
+    cy.mount(PhoneInput)
     cy.get('input[type=tel]').type('{backspace}')
     cy.get('[data-slot="country"]')
       .should('have.attr', 'aria-label', 'Select country')
@@ -164,7 +149,8 @@ describe('PhoneInput', () => {
   })
 
   it('selects a country by keyboard and closes on Escape', () => {
-    cy.mount(PhoneInput, { props: { defaultCountry: 'in' } })
+    stubTimezone('Asia/Kolkata')
+    cy.mount(PhoneInput)
 
     // Filter to one match, then Enter commits the highlighted row.
     cy.get('[data-slot="country"]').click()
@@ -190,7 +176,8 @@ describe('PhoneInput', () => {
   })
 
   it('filters by dial code and renders the empty state', () => {
-    cy.mount(PhoneInput, { props: { defaultCountry: 'in' } })
+    stubTimezone('Asia/Kolkata')
+    cy.mount(PhoneInput)
     cy.get('[data-slot="country"]').click()
 
     // The ISD is embedded in each option label, so a dial-code query matches.
