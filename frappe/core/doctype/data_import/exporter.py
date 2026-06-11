@@ -142,7 +142,9 @@ class Exporter:
 		if len(rows) < row_idx + 1:
 			rows.append([""] * len(self.fields))
 
+		assert row_idx < len(rows), "row at row_idx must exist after padding rows"
 		row = rows[row_idx]
+		assert len(row) == len(self.fields), "each export row must have one cell per exportable field"
 
 		for i, df in enumerate(self.fields):
 			if df.parent == doctype:

@@ -120,6 +120,9 @@ def safe_exec(
 	filename = SERVER_SCRIPT_FILE_PREFIX
 	if script_filename:
 		filename += f": {frappe.scrub(script_filename)}"
+	assert filename.startswith(SERVER_SCRIPT_FILE_PREFIX), (
+		"server script filename must carry the identifying prefix"
+	)
 
 	with safe_exec_flags():
 		# execute script compiled by RestrictedPython
@@ -881,6 +884,9 @@ VALID_UTILS = (
 
 
 SAFE_DATA_UTILS = {key: frappe.utils.data.__dict__[key] for key in VALID_UTILS}
+assert SAFE_DATA_UTILS.keys() == set(VALID_UTILS), (
+	"every whitelisted util name must resolve to a frappe.utils.data attribute"
+)
 
 
 WHITELISTED_SAFE_EVAL_GLOBALS = {

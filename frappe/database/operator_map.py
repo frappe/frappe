@@ -105,6 +105,7 @@ def func_between(key: Field, value: list | tuple) -> frappe.qb:
 	Return:
 	        frappe.qb: `frappe.qb` object with `BETWEEN`
 	"""
+	assert isinstance(value, list | tuple) and len(value) == 2, "between requires exactly two bounds"
 	return key[slice(*value)]
 
 

@@ -930,7 +930,9 @@ def create_batch(iterable: Iterable, size: int) -> Generator[Iterable]:
 	"""
 	total_count = len(iterable)
 	for i in range(0, total_count, size):
-		yield iterable[i : min(i + size, total_count)]
+		batch = iterable[i : min(i + size, total_count)]
+		assert len(batch) <= size, "each batch must not exceed the requested size"
+		yield batch
 
 
 def set_request(**kwargs):
@@ -1048,6 +1050,9 @@ def groupby_metric(iterable: dict[str, list], key: str):
 
 def get_table_name(table_name: str, wrap_in_backticks: bool = False) -> str:
 	name = f"tab{table_name}" if not table_name.startswith("__") else table_name
+	assert name.startswith(("tab", "__")), (
+		"DB table name must be a 'tab'-prefixed doctype table or a '__' system table"
+	)
 
 	if wrap_in_backticks:
 		return f"`{name}`"

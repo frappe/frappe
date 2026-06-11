@@ -415,6 +415,8 @@ class BaseDocument:
 			self.__dict__[key] = table = []
 
 		d = self._init_child(value, key)
+		assert isinstance(table, list), "child table storage must be a list"
+		assert d.parentfield == key, "appended child's parentfield must match the table key"
 
 		if position == -1:
 			table.append(d)
@@ -486,6 +488,8 @@ class BaseDocument:
 			child._non_computed_table_fieldnames = TABLE_DOCTYPES_FOR_CHILD_TABLES
 			child.__init__(value)
 
+		assert isinstance(child, BaseDocument), "initialized child must be a BaseDocument"
+
 		__dict = child.__dict__
 		__dict["parent"] = self.name
 		__dict["parenttype"] = self.doctype
@@ -498,6 +502,7 @@ class BaseDocument:
 			__dict["__islocal"] = 1
 			__dict["__temporary_name"] = frappe.generate_hash(length=10)
 
+		assert __dict["parenttype"] == self.doctype, "child parenttype must reference its parent's doctype"
 		return child
 
 	@cached_property
@@ -766,6 +771,8 @@ class BaseDocument:
 		if not self.name:
 			# name will be set by document class in most cases
 			set_new_name(self)
+
+		assert self.name, "document name must be set before db_insert"
 
 		conflict_handler = ""
 		returning = ""

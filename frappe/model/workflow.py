@@ -142,6 +142,7 @@ def apply_workflow(doc: Document | str | dict, action: str):
 
 	# find settings for the next state
 	next_state = next(d for d in workflow.states if d.state == transition.next_state)
+	assert next_state.state == transition.next_state, "selected next state must match the transition target"
 
 	# update any additional field
 	if next_state.update_field:
@@ -272,6 +273,7 @@ def validate_workflow(doc):
 			)
 		)
 	state_row = state_row[0]
+	assert state_row.state == current_state, "resolved state row must correspond to the current state"
 
 	# if transitioning, check if user is allowed to transition
 	if current_state != next_state:
@@ -451,6 +453,7 @@ def set_workflow_state_on_action(doc, workflow_name, action):
 			return
 
 	action_map = {"update_after_submit": "1", "submit": "1", "cancel": "2"}
+	assert action in action_map, "set_workflow_state_on_action called with an unsupported action"
 	docstatus = action_map[action]
 	for state in workflow.states:
 		if state.doc_status == docstatus:

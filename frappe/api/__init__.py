@@ -60,6 +60,7 @@ def handle(request: Request):
 	except NotFound:  # Wrap 404 - backward compatiblity
 		raise frappe.DoesNotExistError
 
+	assert callable(endpoint), "URL map must resolve to a callable endpoint"
 	data = endpoint(**arguments)
 	if isinstance(data, Response):
 		return data
@@ -104,6 +105,9 @@ def get_api_version() -> ApiVersion | None:
 	if not frappe.request:
 		return
 
+	assert ApiVersion.V1.value == "v1" and ApiVersion.V2.value == "v2", (
+		"API version enum values must match route definitions"
+	)
 	if frappe.request.path.startswith(f"/api/{ApiVersion.V2.value}"):
 		return ApiVersion.V2
 	return ApiVersion.V1

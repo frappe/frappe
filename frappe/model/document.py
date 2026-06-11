@@ -551,6 +551,8 @@ class Document(BaseDocument):
 			super().__init__(d)
 		self.flags.pop("ignore_children", None)
 
+		assert self.name, "document must have a name after loading from db"
+
 		self.load_children_from_db()
 
 		# sometimes __setup__ can depend on child values, hence calling again at the end
@@ -981,6 +983,7 @@ class Document(BaseDocument):
 				set_new_name(d)
 
 		self.flags.name_set = True
+		assert self.name, "document name must be set after set_new_name"
 
 	def get_title(self):
 		"""Get the document title based on title_field or `title` or `name`"""
@@ -1340,6 +1343,12 @@ class Document(BaseDocument):
 		- Submit (1) > Cancel (2)
 
 		"""
+		assert from_docstatus in (
+			DocStatus.DRAFT,
+			DocStatus.SUBMITTED,
+			DocStatus.CANCELLED,
+		), "from_docstatus must be a valid docstatus (0, 1, or 2)"
+
 		if self.flags.skip_docstatus_validation:
 			return
 
@@ -1677,11 +1686,13 @@ class Document(BaseDocument):
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		self.docstatus = DocStatus.SUBMITTED
+		assert self.docstatus.is_submitted(), "docstatus must be Submitted before submit save"
 		return self.save()
 
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		self.docstatus = DocStatus.CANCELLED
+		assert self.docstatus.is_cancelled(), "docstatus must be Cancelled before cancel save"
 		return self.save()
 
 	def _rename(

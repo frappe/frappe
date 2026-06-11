@@ -298,6 +298,7 @@ class DocType(Document):
 				if d.reqd and not d.hidden and d.fieldtype not in not_allowed_in_list_view:
 					d.in_list_view = 1
 					cnt += 1
+					assert cnt <= 4, "at most 4 fields should be auto-set as in_list_view"
 					if cnt == 4:
 						break
 
@@ -1687,7 +1688,9 @@ def validate_fields(meta: Meta):
 
 		if "." not in field.fetch_from:
 			return
-		source_field, _target_field = field.fetch_from.split(".", maxsplit=1)
+		parts = field.fetch_from.split(".", maxsplit=1)
+		assert len(parts) == 2, "fetch_from contains '.', so split(maxsplit=1) must yield exactly 2 parts"
+		source_field, _target_field = parts
 
 		if source_field == field.fieldname:
 			msg = _(

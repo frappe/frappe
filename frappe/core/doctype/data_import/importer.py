@@ -288,6 +288,7 @@ class Importer:
 			)
 
 	def process_doc(self, doc):
+		assert self.import_type in (INSERT, UPDATE), "import_type must be either Insert or Update"
 		if self.import_type == INSERT:
 			return self.insert_record(doc)
 		elif self.import_type == UPDATE:
@@ -549,6 +550,9 @@ class ImportFile:
 				data.append(row_obj)
 
 		self.header = header
+		assert not data or header is not None, (
+			"if any data rows were parsed, the header must have been set first"
+		)
 		self.columns = self.header.columns
 		self.data = data
 
@@ -601,7 +605,9 @@ class ImportFile:
 		# make a copy
 		data = list(self.data)
 		while data:
+			prev_len = len(data)
 			doc, rows, data = self.parse_next_row_for_import(data)
+			assert len(data) < prev_len, "each iteration must consume at least one row to terminate"
 			payloads.append(frappe._dict(doc=doc, rows=rows))
 		return payloads
 
@@ -610,6 +616,7 @@ class ImportFile:
 		Parse rows that make up a doc. A doc maybe built from a single row or multiple rows.
 		Return the doc, rows, and data without the rows.
 		"""
+		assert data, "parse_next_row_for_import requires at least one remaining data row"
 		doctypes = self.header.doctypes
 
 		# first row is included by default

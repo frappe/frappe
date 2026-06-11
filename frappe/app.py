@@ -338,6 +338,9 @@ def make_form_dict(request: Request):
 
 	if isinstance(args, dict):
 		frappe.local.form_dict = frappe._dict(args)
+		assert isinstance(frappe.local.form_dict, frappe._dict), (
+			"form_dict must be a frappe._dict after construction"
+		)
 		# _ is passed by $.ajax so that the request is not cached by the browser. So, remove _ from form_dict
 		frappe.local.form_dict.pop("_", None)
 	elif isinstance(args, list):

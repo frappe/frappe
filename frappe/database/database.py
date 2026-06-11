@@ -230,6 +230,7 @@ class Database:
 
 		debug = debug or getattr(self, "debug", False)
 		query = str(query)
+		assert isinstance(query, str), "query must be a string after coercion"
 
 		if not run:
 			return query
@@ -262,6 +263,10 @@ class Database:
 			values = None
 		elif not isinstance(values, ALLOWED_TYPES_FOR_VALUES):
 			values = (values,)
+
+		assert values is None or isinstance(values, ALLOWED_TYPES_FOR_VALUES), (
+			"values must be None or an allowed query-values type after normalization"
+		)
 
 		query, values = self._transform_query(query, values)
 
@@ -840,6 +845,7 @@ class Database:
 			modified_by = modified_by or frappe.session.user
 			update_dict.update({"modified": modified, "modified_by": modified_by})
 
+		assert isinstance(update_dict, dict), "update dict must be a dict"
 		return update_dict
 
 	def set_single_value(
@@ -1115,6 +1121,7 @@ class Database:
 
 		conditions = {}
 		docnames = list(doc_updates.keys())
+		assert docnames, "doc_updates must be non-empty here (empty case returns early)"
 
 		for docname, row in doc_updates.items():
 			for field, value in row.items():
