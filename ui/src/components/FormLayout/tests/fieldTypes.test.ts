@@ -8,6 +8,8 @@ import DateField from "../fields/DateField.vue";
 import DatetimeField from "../fields/DatetimeField.vue";
 import DurationField from "../fields/DurationField.vue";
 import DynamicLinkField from "../fields/DynamicLinkField.vue";
+import AttachField from "../fields/AttachField.vue";
+import ImageField from "../fields/ImageField.vue";
 import GeolocationField from "../fields/GeolocationField.vue";
 import HeadingField from "../fields/HeadingField.vue";
 import HtmlField from "../fields/HtmlField.vue";
@@ -74,6 +76,15 @@ describe("fieldTypes registry", () => {
 
   it("resolves Geolocation to its component", () => {
     expect(getFieldComponent("Geolocation")).toBe(GeolocationField);
+  });
+
+  it("resolves Attach and Attach Image to the shared AttachField", () => {
+    expect(getFieldComponent("Attach")).toBe(AttachField);
+    expect(getFieldComponent("Attach Image")).toBe(AttachField);
+  });
+
+  it("resolves Image to the display-only ImageField", () => {
+    expect(getFieldComponent("Image")).toBe(ImageField);
   });
 
   it("resolves Button to its component", () => {

@@ -15,6 +15,32 @@ import DemoLinkField from "./DemoLinkField.vue";
 import DemoCurrencyField from "./DemoCurrencyField.vue";
 import DemoTableMultiSelectField from "./DemoTableMultiSelectField.vue";
 import type { FormLayoutSchema } from "../types";
+import type { UploadTransport } from "../../FileUpload/types";
+
+// Fake transport for the stories: no backend, just a placeholder URL and a
+// simulated progress ramp (honoring the abort signal). The Attach/Attach Image
+// fields receive it via their `ui.props` overlay.
+const fakeTransport: UploadTransport = (file, _args, ctx) =>
+	new Promise((resolve, reject) => {
+		const total = file.size || 1000;
+		let loaded = 0;
+		const onAbort = () => reject(new DOMException("Cancelled", "AbortError"));
+		ctx.signal.addEventListener("abort", onAbort, { once: true });
+		const tick = () => {
+			if (ctx.signal.aborted) return;
+			loaded = Math.min(total, loaded + Math.ceil(total / 4));
+			ctx.onProgress(loaded, total);
+			if (loaded < total) {
+				setTimeout(tick, 250);
+			} else {
+				ctx.signal.removeEventListener("abort", onAbort);
+				resolve({
+					file_url: `https://placehold.co/600x400?text=${encodeURIComponent(file.name)}`,
+				});
+			}
+		};
+		setTimeout(tick, 250);
+	});
 
 // Override two fieldtypes for this story only. `{ global: false }` scopes the
 // registration to this component's lifetime and auto-restores the previous
@@ -40,6 +66,12 @@ const doc = reactive<Record<string, any>>({
 	rating: 0.6,
 	duration: 5445,
 	ref_type: "User",
+	// Attach fields hold a single `file_url` string (or null); Image mirrors one.
+	// Pre-seeded so preview / hover-zoom / Replace are exercisable without first
+	// uploading: a non-image file (paperclip + open-original) and an image
+	// (thumbnail + hover-zoom).
+	attachment: "https://frappe.io/files/sample-report.pdf",
+	photo: "https://placehold.co/600x400?text=Photo",
 	items: [
 		{ item: "Widget", qty: 2, rate: 19.99, in_stock: true },
 		{ item: "Gadget", qty: 5, rate: 4.5, in_stock: false },
@@ -362,6 +394,39 @@ const layout: FormLayoutSchema = [
 									props: { variant: "solid", theme: "blue", size: "md" },
 									on: { click: () => sendInvite() },
 								},
+							},
+						],
+					},
+				],
+			},
+			{
+				name: "attachments",
+				label: "Attachments",
+				columns: [
+					{
+						name: "attach-col",
+						fields: [
+							{
+								// Single `file_url` string. The fake transport is supplied via
+								// the `ui.props` overlay — not part of FieldMeta.
+								fieldname: "attachment",
+								fieldtype: "Attach",
+								label: "Attachment",
+								ui: { props: { transport: fakeTransport } },
+							},
+							{
+								// Attach Image: same component, image-only + crop enabled.
+								fieldname: "photo",
+								fieldtype: "Attach Image",
+								label: "Photo",
+								ui: { props: { transport: fakeTransport } },
+							},
+							{
+								// Display-only: mirrors the URL held by the `photo` field above.
+								fieldname: "photo_preview",
+								fieldtype: "Image",
+								label: "Photo preview",
+								options: "photo",
 							},
 						],
 					},

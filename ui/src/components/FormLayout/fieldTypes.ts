@@ -7,6 +7,8 @@ import DateField from "./fields/DateField.vue";
 import DatetimeField from "./fields/DatetimeField.vue";
 import DurationField from "./fields/DurationField.vue";
 import DynamicLinkField from "./fields/DynamicLinkField.vue";
+import AttachField from "./fields/AttachField.vue";
+import ImageField from "./fields/ImageField.vue";
 import GeolocationField from "./fields/GeolocationField.vue";
 import HeadingField from "./fields/HeadingField.vue";
 import HtmlField from "./fields/HtmlField.vue";
@@ -100,6 +102,14 @@ registerFieldType("Autocomplete", AutocompleteField);
 registerFieldType("Rating", RatingField);
 registerFieldType("Duration", DurationField);
 registerFieldType("Dynamic Link", DynamicLinkField);
+
+// `Attach` + `Attach Image` share one single-value field (value = `file_url`
+// string); `imageOnly` is derived from the fieldtype inside AttachField. `Image`
+// is display-only, mirroring the URL of the sibling field named in `options`.
+// Multi-file lives in the AttachmentsList consumer, never as a fieldtype.
+registerFieldType("Attach", AttachField);
+registerFieldType("Attach Image", AttachField);
+registerFieldType("Image", ImageField);
 
 registerFieldType("Geolocation", GeolocationField);
 

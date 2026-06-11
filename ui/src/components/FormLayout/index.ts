@@ -2,6 +2,9 @@ export { default as FormLayout } from "./FormLayout.vue";
 export { useFieldTypes } from "./useFieldTypes";
 export { registerFieldType, getFieldComponent } from "./fieldTypes";
 export type { RegisterFieldTypeOptions } from "./fieldTypes";
+
+// The file-upload primitive now lives in its own module — import upload
+// consumers, the headless engine, and the source seam from "@framework/ui/FileUpload".
 export { useDoctypeLayout } from "./useDoctypeLayout";
 export { useScriptedLayout } from "./useScriptedLayout";
 export { useDoctypeMeta } from "./useDoctypeMeta";
