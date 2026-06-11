@@ -278,11 +278,11 @@ $.extend(frappe, {
 	},
 
 	trigger_ready: function () {
-		frappe.ready_events.forEach(function (fn) {
+		frappe.ready_events.forEach(function (fn, i) {
 			try {
 				fn();
 			} catch (e) {
-				console.error(e);
+				console.error(`frappe.ready handler #${i} failed:`, fn, e);
 			}
 		});
 	},
