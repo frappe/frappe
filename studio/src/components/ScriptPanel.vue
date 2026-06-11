@@ -147,7 +147,7 @@ watch(
 
 const openNewScript = () => {
 	scriptError.value = null
-	currentScript.value = { name: "", script_name: "", script: "function handleEvent() {\n\t\n}" }
+	currentScript.value = { name: "", script_name: "", script: "" }
 	showScriptDialog.value = true
 }
 
