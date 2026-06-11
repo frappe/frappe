@@ -44,7 +44,11 @@ login.bind_events = function () {
 		args.email = ($("#signup_email").val() || "").trim();
 		args.redirect_to = frappe.utils.sanitise_redirect(frappe.utils.get_url_arg("redirect-to"));
 		args.full_name = frappe.utils.xss_sanitise(($("#signup_fullname").val() || "").trim());
-		if (!args.email || !validate_email(args.email) || !args.full_name) {
+		if (!args.email || !validate_email(args.email)) {
+			login.show_field_error("signup_email", {{ _("Invalid Email.") | tojson }});
+			return false;
+		}
+		if (!args.full_name) {
 			login.set_status({{ _("Valid email and name required") | tojson }}, 'red');
 			return false;
 		}
@@ -70,18 +74,30 @@ login.bind_events = function () {
 		var args = {};
 		args.cmd = "frappe.www.login.send_login_link";
 		args.email = ($("#login_with_email_link_email").val() || "").trim();
-		if (!args.email) {
-			login.set_status({{ _("Valid Login id required.") | tojson }}, 'red');
+		if (!args.email || !validate_email(args.email)) {
+			login.show_field_error("login_with_email_link_email", {{ _("Invalid Email.") | tojson }});
 			return false;
 		}
 		login.call(args).then(() => {
-			login.set_status({{ _("Login link sent to your email") | tojson }}, 'blue');
-			$("#login_with_email_link_email").val("");
+			$("section:visible .login-success-banner").css("display", "flex");
+			$("section:visible .resend-link").css("display", "flex");
+			$("section:visible .btn-login-with-email-link").text({{ _("Sent") | tojson }}).prop("disabled", true);
 		}).catch(() => {
 			login.set_status({{ _("Send login link") | tojson }}, 'blue');
 		});
 
 		return false;
+	});
+
+	$("#signup_fullname, #signup_email").on("input", function () {
+		var name = $("#signup_fullname").val().trim();
+		var email = $("#signup_email").val().trim();
+		$(".btn-signup").prop("disabled", !(name && email));
+	});
+
+	$(".btn-resend-link").on("click", function (e) {
+		e.preventDefault();
+		$(".form-login-with-email-link").trigger("submit");
 	});
 
 	$(".toggle-password").click(function () {

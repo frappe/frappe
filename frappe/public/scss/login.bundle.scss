@@ -94,6 +94,44 @@ body {
 					border: none;
 					box-shadow: none;
 				}
+
+				&:disabled {
+					background: var(--gray-900);
+					color: white;
+					opacity: 1;
+					pointer-events: none;
+				}
+			}
+
+			.btn-signup {
+				@include get_textstyle("base", "regular");
+				line-height: 115%;
+				background: var(--surface-gray-2);
+				color: var(--ink-gray-4);
+				border: none;
+				box-shadow: none;
+				padding: 6px 8px;
+				border-radius: var(--border-radius-sm);
+				width: 100%;
+
+				&:not(:disabled) {
+					background: var(--surface-gray-7);
+					color: white;
+
+					&:hover,
+					&:focus,
+					&:active {
+						background: var(--gray-800);
+						color: white;
+						border: none;
+						box-shadow: none;
+					}
+				}
+
+				&:disabled {
+					opacity: 1;
+					pointer-events: none;
+				}
 			}
 
 			.btn-login-option {
@@ -148,6 +186,21 @@ body {
 				}
 			}
 
+			.resend-link {
+				display: none;
+				align-items: center;
+				gap: 8px;
+				align-self: stretch;
+				@include get_textstyle("base", "regular");
+				color: var(--ink-gray-6);
+				margin-bottom: 0;
+
+				a {
+					color: var(--ink-gray-6);
+					text-decoration: underline;
+				}
+			}
+
 			.login-divider {
 				margin: var(--margin-md) 0;
 			}
@@ -182,6 +235,24 @@ body {
 				input[type="email"],
 				input[type="password"] {
 					border: 1px solid var(--outline-red-2);
+				}
+			}
+
+			.login-success-banner {
+				display: none;
+				padding: 6px 8px;
+				align-items: center;
+				gap: 8px;
+				align-self: stretch;
+				background-color: var(--surface-green-1);
+				border-radius: var(--border-radius-sm);
+				@include get_textstyle("base", "regular");
+				line-height: 115%;
+				color: var(--ink-green-3);
+
+				svg {
+					fill: var(--ink-green-3);
+					flex-shrink: 0;
 				}
 			}
 
@@ -339,7 +410,7 @@ body {
 
 	.page-card-subtitle {
 		margin: 0;
-		font-size: var(--text-sm);
+		font-size: var(--text-base);
 		color: var(--ink-gray-6);
 		font-weight: var(--weight-regular);
 	}
