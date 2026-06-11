@@ -11,6 +11,7 @@ whitelisted, since rendering arbitrary HTML/URLs server-side is an SSRF surface.
 import time
 
 import frappe
+from frappe import _
 from frappe.utils.data import cint
 
 SUPPORTED_FORMATS = ("jpg", "jpeg", "webp")
