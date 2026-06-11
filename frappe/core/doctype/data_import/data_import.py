@@ -11,7 +11,7 @@ from rq.timeouts import JobTimeoutException
 import frappe
 from frappe import _
 from frappe.core.doctype.data_import.exporter import Exporter
-from frappe.core.doctype.data_import.importer import Importer
+from frappe.core.doctype.data_import.importer import UPSERT, Importer
 from frappe.model import CORE_DOCTYPES
 from frappe.model.document import Document
 from frappe.modules.import_file import import_file_by_path
@@ -37,7 +37,9 @@ class DataImport(Document):
 		delimiter_options: DF.Data | None
 		google_sheets_url: DF.Data | None
 		import_file: DF.Attach | None
-		import_type: DF.Literal["", "Insert New Records", "Update Existing Records"]
+		import_type: DF.Literal[
+			"", "Insert New Records", "Update Existing Records", "Insert or Update Records"
+		]
 		mute_emails: DF.Check
 		payload_count: DF.Int
 		reference_doctype: DF.Link
@@ -294,26 +296,41 @@ def download_import_log(data_import_name: str):
 
 @frappe.whitelist()
 def get_import_status(data_import_name: str):
+	from frappe.core.doctype.data_import.importer import ACTION_INSERT, ACTION_UPDATE
+
 	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
 	data_import.check_permission("read")
 
-	import_status = {"status": data_import.status}
-	logs = frappe.get_all(
+	import_status = {
+		"status": data_import.status,
+		"total_records": data_import.payload_count,
+	}
+	is_upsert = data_import.import_type == UPSERT
+	group_by = "success, import_action" if is_upsert else "success"
+	log_fields = [{"COUNT": "*", "as": "count"}, "success"]
+	if is_upsert:
+		log_fields.append("import_action")
+
+	for log in frappe.get_all(
 		"Data Import Log",
-		fields=[{"COUNT": "*", "as": "count"}, "success"],
+		fields=log_fields,
 		filters={"data_import": data_import_name},
-		group_by="success",
-	)
-
-	total_payload_count = data_import.payload_count
-
-	for log in logs:
+		group_by=group_by,
+	):
+		count = log.get("count")
 		if log.get("success"):
-			import_status["success"] = log.get("count")
+			import_status["success"] = import_status.get("success", 0) + count
+			if is_upsert:
+				if log.get("import_action") == ACTION_INSERT:
+					import_status["inserted"] = count
+				elif log.get("import_action") == ACTION_UPDATE:
+					import_status["updated"] = count
 		else:
-			import_status["failed"] = log.get("count")
+			import_status["failed"] = count
 
-	import_status["total_records"] = total_payload_count
+	if is_upsert:
+		import_status.setdefault("inserted", 0)
+		import_status.setdefault("updated", 0)
 
 	return import_status
 
@@ -325,7 +342,7 @@ def get_import_logs(data_import: str):
 
 	return frappe.get_all(
 		"Data Import Log",
-		fields=["success", "docname", "messages", "exception", "row_indexes"],
+		fields=["success", "docname", "messages", "exception", "row_indexes", "import_action"],
 		filters={"data_import": data_import},
 		limit_page_length=5000,
 		order_by="log_index",
@@ -338,7 +355,7 @@ def import_file(doctype, file_path, import_type, submit_after_import=False, cons
 
 	:param doctype: DocType to import
 	:param file_path: Path to .csv, .xls, or .xlsx file to import
-	:param import_type: One of "Insert" or "Update"
+	:param import_type: One of "Insert", "Update", or "Upsert"
 	:param submit_after_import: Whether to submit documents after import
 	:param console: Set to true if this is to be used from command line. Will print errors or progress to stdout.
 	"""
@@ -347,9 +364,13 @@ def import_file(doctype, file_path, import_type, submit_after_import=False, cons
 	data_import.reference_doctype = doctype
 	data_import.import_file = file_path
 	data_import.submit_after_import = submit_after_import
-	data_import.import_type = (
-		"Insert New Records" if import_type.lower() == "insert" else "Update Existing Records"
-	)
+	import_type_lower = import_type.lower()
+	if import_type_lower == "insert":
+		data_import.import_type = "Insert New Records"
+	elif import_type_lower == "upsert":
+		data_import.import_type = UPSERT
+	else:
+		data_import.import_type = "Update Existing Records"
 
 	i = Importer(doctype=doctype, file_path=file_path, data_import=data_import, console=console)
 	data_import.set_payload_count(i)
