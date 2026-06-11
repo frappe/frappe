@@ -19,6 +19,8 @@
 .header-logo {
 	width: 32px;
 	height: 32px;
+	display: flex;
+	align-items: center;
 
 	& .icon-container {
 		padding: 4px;
