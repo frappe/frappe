@@ -93,6 +93,33 @@ class Importer:
 		self._tree_alias_field = getattr(header, "tree_alias_field", None)
 		self._id_fieldname = getattr(header, "id_fieldname", None) or get_id_field(self.doctype).fieldname
 		self._uses_tree_aliases = bool(self._tree_alias_field)
+		self._prime_inserted_name_map_from_db()
+
+	def _prime_inserted_name_map_from_db(self):
+		"""Pre-fetch DB name mappings for parent links not defined as rows in this file."""
+		if not self._tree_parent_field:
+			return
+
+		parent_column = next(
+			(
+				col
+				for col in self.import_file.header.columns
+				if col.df and col.df.fieldname == self._tree_parent_field and not col.skip_import
+			),
+			None,
+		)
+		if not parent_column:
+			return
+
+		parent_values = {cstr(v).strip() for v in parent_column.column_values if v not in INVALID_VALUES}
+		import_refs = self.import_file.header.import_refs or set()
+		external_parents = parent_values - import_refs
+		if not external_parents:
+			return
+
+		self._inserted_name_map.update(
+			_build_db_tree_parent_name_map(self.doctype, external_parents, self._tree_alias_field)
+		)
 
 	def import_data(self):
 		self.before_import()
@@ -336,10 +363,6 @@ class Importer:
 
 		parent = cstr(parent).strip()
 		resolved = self._inserted_name_map.get(parent)
-		if not resolved and frappe.db.exists(self.doctype, parent):
-			resolved = parent
-		elif not resolved and self._tree_alias_field:
-			resolved = frappe.db.get_value(self.doctype, {self._tree_alias_field: parent}, "name")
 		if resolved:
 			doc[self._tree_parent_field] = resolved
 
@@ -600,6 +623,7 @@ class ImportFile:
 		)
 		self.header.import_refs = self.header.import_ids | self.header.import_aliases
 		self._refresh_self_referential_link_validation()
+		self.__dict__.pop("_tree_preview_cache", None)
 
 		if len(data) < 1:
 			frappe.throw(
@@ -659,7 +683,7 @@ class ImportFile:
 
 		data = [[row.row_number, *row.as_list()] for row in self.data]
 
-		tree_preview = build_tree_preview(self)
+		tree_preview = self.get_tree_preview()
 
 		out = frappe._dict()
 		out.data = data
@@ -753,10 +777,16 @@ class ImportFile:
 	def get_all_warnings(self):
 		"""Row/column warnings plus tree-structure warnings used to block import."""
 		warnings = self.get_warnings()
-		tree_preview = build_tree_preview(self)
+		tree_preview = self.get_tree_preview()
 		if tree_preview:
 			warnings += tree_preview.tree_warnings
 		return warnings
+
+	def get_tree_preview(self):
+		"""Cached tree preview; invalidated when parse_data_from_template re-parses the file."""
+		if "_tree_preview_cache" not in self.__dict__:
+			self._tree_preview_cache = build_tree_preview(self)
+		return self._tree_preview_cache
 
 	######
 
@@ -926,6 +956,34 @@ def _get_existing_tree_parent_refs(doctype: str, parent_refs: set, alias_field: 
 			)
 		)
 	return existing
+
+
+def _build_db_tree_parent_name_map(doctype: str, parent_refs: set, alias_field: str | None) -> dict:
+	"""Map parent link values from the file to existing document names."""
+	parent_list = list(parent_refs)
+	if not parent_list:
+		return {}
+
+	name_map = {}
+	limit = len(parent_list)
+	for name in frappe.get_all(
+		doctype,
+		filters={"name": ("in", parent_list)},
+		pluck="name",
+		limit=limit,
+	):
+		name_map[name] = name
+
+	if alias_field:
+		for row in frappe.get_all(
+			doctype,
+			filters={alias_field: ("in", parent_list)},
+			fields=["name", alias_field],
+			limit=limit,
+		):
+			name_map[cstr(row[alias_field]).strip()] = row.name
+
+	return name_map
 
 
 def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
