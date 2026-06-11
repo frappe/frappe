@@ -77,6 +77,7 @@ body {
 			.btn-login,
 			.btn-ldap-login {
 				@include get_textstyle("base", "regular");
+				line-height: 115%;
 				color: white;
 				background: var(--gray-900);
 				border: none;
@@ -97,6 +98,7 @@ body {
 
 			.btn-login-option {
 				@include get_textstyle("base", "medium");
+				line-height: 115%;
 				color: var(--gray-800);
 				background: var(--gray-100);
 				box-shadow: none;
