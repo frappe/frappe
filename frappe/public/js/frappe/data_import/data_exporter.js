@@ -1,5 +1,13 @@
 frappe.provide("frappe.data_import");
 
+function is_insert_import_type(import_type) {
+	return import_type === "Insert New Records";
+}
+
+function is_update_import_type(import_type) {
+	return import_type === "Update Existing Records" || import_type === "Insert or Update Records";
+}
+
 frappe.data_import.DataExporter = class DataExporter {
 	constructor(doctype, exporting_for, filetype = "CSV", hide_blank_template = false) {
 		this.doctype = doctype;
@@ -49,7 +57,7 @@ frappe.data_import.DataExporter = class DataExporter {
 							  ]
 					),
 					default:
-						this.exporting_for === "Insert New Records" && !this.hide_blank_template
+						is_insert_import_type(this.exporting_for) && !this.hide_blank_template
 							? "blank_template"
 							: "all",
 					change: () => {
@@ -151,7 +159,7 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	make_select_all_buttons() {
-		let for_insert = this.exporting_for === "Insert New Records";
+		let for_insert = is_insert_import_type(this.exporting_for);
 		let section_title = for_insert
 			? __("Select Fields To Insert")
 			: __("Select Fields To Update");
@@ -207,8 +215,7 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	unselect_all() {
-		let update_existing_records =
-			this.dialog.get_value("exporting_for") == "Update Existing Records";
+		let update_existing_records = is_update_import_type(this.exporting_for);
 		this.dialog.$wrapper
 			.find(`:checkbox${update_existing_records ? ":not([data-unit=name])" : ""}`)
 			.prop("checked", false)
@@ -283,14 +290,14 @@ frappe.data_import.DataExporter = class DataExporter {
 			autoname_field = frappe.meta.get_field(doctype, fieldname);
 		}
 		const hide_name_for_autoname =
-			this.exporting_for === "Insert New Records" &&
+			is_insert_import_type(this.exporting_for) &&
 			!this.hide_blank_template &&
 			!["Prompt", "prompt"].includes(meta.autoname);
 
 		let fields = child_fieldname ? this.column_map[child_fieldname] : this.column_map[doctype];
 
 		let is_field_mandatory = (df) => {
-			if (df.reqd && this.exporting_for == "Insert New Records") {
+			if (df.reqd && is_insert_import_type(this.exporting_for)) {
 				return true;
 			}
 			if (autoname_field && df.fieldname == autoname_field.fieldname) {
@@ -303,7 +310,7 @@ frappe.data_import.DataExporter = class DataExporter {
 		};
 
 		let is_field_depends_on = (df) => {
-			if (df.depends_on && this.exporting_for == "Insert New Records") {
+			if (df.depends_on && is_insert_import_type(this.exporting_for)) {
 				return true;
 			}
 			if (autoname_field && df.fieldname == autoname_field.fieldname) {
@@ -324,7 +331,7 @@ frappe.data_import.DataExporter = class DataExporter {
 		return fields
 			.filter((df) => {
 				if (
-					this.exporting_for === "Insert New Records" &&
+					is_insert_import_type(this.exporting_for) &&
 					(autoname_field || hide_name_for_autoname) &&
 					df.fieldname === "name"
 				) {

@@ -34,6 +34,7 @@ frappe.listview_settings["Data Import"] = {
 			return {
 				"Insert New Records": __("Insert"),
 				"Update Existing Records": __("Update"),
+				"Insert or Update Records": __("Insert or Update"),
 			}[value];
 		},
 	},

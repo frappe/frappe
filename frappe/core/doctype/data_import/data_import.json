@@ -53,7 +53,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Import Type",
-   "options": "\nInsert New Records\nUpdate Existing Records",
+   "options": "\nInsert New Records\nUpdate Existing Records\nInsert or Update Records",
    "reqd": 1,
    "set_only_once": 1
   },
