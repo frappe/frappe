@@ -37,8 +37,9 @@
 							:completions="getCompletions"
 							@save="saveScript"
 						/>
+						<ErrorMessage v-if="scriptError" :message="scriptError" />
 						<FormDescription
-							description="Declare functions to reuse across this page's events and bindings. They can read the page's variables and resources directly, e.g. function parseRows() { return contacts.data }"
+							description="Write page logic like a Vue <script setup>: reactive state (ref, reactive), computed values, watchers, and functions — all exposed to this page's events and bindings. Read variables, resources and attached modules directly, e.g. const activeContacts = computed(() => contacts.data.filter(c => c.active))"
 						/>
 					</div>
 				</template>
@@ -56,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue"
+import { ref, computed, onMounted, watch } from "vue"
 import { createListResource, Dialog, FormControl, toast } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import CollapsibleSection from "@/components/CollapsibleSection.vue"
@@ -134,13 +135,24 @@ const defaultScriptName = (script: string) => {
 
 const showScriptDialog = ref(false)
 const currentScript = ref<PageScript>({ name: "", script_name: "", script: "" })
+const scriptError = ref<string | null>(null)
+
+// Clear the inline error as soon as the user edits the script.
+watch(
+	() => currentScript.value.script,
+	() => {
+		scriptError.value = null
+	},
+)
 
 const openNewScript = () => {
+	scriptError.value = null
 	currentScript.value = { name: "", script_name: "", script: "function handleEvent() {\n\t\n}" }
 	showScriptDialog.value = true
 }
 
 const openScript = (script: PageScript) => {
+	scriptError.value = null
 	currentScript.value = { ...script }
 	showScriptDialog.value = true
 }
@@ -163,11 +175,13 @@ const saveScript = async () => {
 	}
 	const syntaxError = getScriptError(currentScript.value.script)
 	if (syntaxError) {
-		toast.error("Syntax error in client script", {
-			description: `${syntaxError.message}`,
-		})
+		const hint = currentScript.value.script.includes("{{")
+			? " Client scripts are plain JavaScript — use expressions directly, not {{ }} interpolation."
+			: ""
+		scriptError.value = `${syntaxError.message}.${hint}`
 		return
 	}
+	scriptError.value = null
 	try {
 		const scriptName =
 			currentScript.value.script_name?.trim() || defaultScriptName(currentScript.value.script)
