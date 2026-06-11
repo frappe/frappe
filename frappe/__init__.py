@@ -55,7 +55,7 @@ from .utils.jinja import (
 	render_template,
 )
 
-__version__ = "16.21.0"
+__version__ = "16.21.1"
 __title__ = "Frappe Framework"
 
 if TYPE_CHECKING:  # pragma: no cover
