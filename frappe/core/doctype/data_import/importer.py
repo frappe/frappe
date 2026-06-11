@@ -113,12 +113,15 @@ class Importer:
 
 		parent_values = {cstr(v).strip() for v in parent_column.column_values if v not in INVALID_VALUES}
 		import_refs = self.import_file.header.import_refs or set()
-		external_parents = parent_values - import_refs
-		if not external_parents:
+		if self.import_type == UPDATE:
+			refs_to_fetch = parent_values
+		else:
+			refs_to_fetch = parent_values - import_refs
+		if not refs_to_fetch:
 			return
 
 		self._inserted_name_map.update(
-			_build_db_tree_parent_name_map(self.doctype, external_parents, self._tree_alias_field)
+			_build_db_tree_parent_name_map(self.doctype, refs_to_fetch, self._tree_alias_field)
 		)
 
 	def import_data(self):
@@ -384,6 +387,10 @@ class Importer:
 		updated_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
 
 		updated_doc.update(doc)
+
+		if self._uses_tree_aliases and self._tree_parent_field:
+			self._resolve_tree_parent_link(doc)
+			updated_doc.set(self._tree_parent_field, doc.get(self._tree_parent_field))
 
 		if get_diff(existing_doc, updated_doc):
 			# update doc if there are changes

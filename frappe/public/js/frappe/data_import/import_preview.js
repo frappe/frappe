@@ -168,6 +168,14 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		if (row_index < 0 || !this.datatable) {
 			return;
 		}
+
+		if (this._highlighted_row_index != null && this._highlighted_row_index !== row_index) {
+			this.datatable.style.setStyle(`.dt-row-${this._highlighted_row_index} .dt-cell`, {
+				backgroundColor: "",
+			});
+		}
+
+		this._highlighted_row_index = row_index;
 		this.datatable.style.setStyle(`.dt-row-${row_index} .dt-cell`, {
 			backgroundColor: frappe.ui.color.get_color_shade("yellow", "extra-light"),
 		});

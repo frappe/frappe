@@ -757,3 +757,33 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		self.assertTrue(root_name)
 		self.assertTrue(child_name)
 		self.assertEqual(frappe.db.get_value(self.doctype_name, child_name, parent_field), root_name)
+
+	def test_tree_alias_update_resolves_parent_link(self):
+		"""UPDATE imports must resolve parent aliases to document names, like INSERT."""
+		meta = frappe.get_meta(self.doctype_name)
+		parent_field = meta.nsm_parent_field
+		labels = ("Root Node", "Child Node")
+		self._cleanup_docs(labels)
+
+		root = frappe.get_doc(
+			{"doctype": self.doctype_name, "node_label": "Root Node", "is_group": 1}
+		).insert()
+		child = frappe.get_doc(
+			{
+				"doctype": self.doctype_name,
+				"node_label": "Child Node",
+				"is_group": 0,
+				parent_field: root.name,
+			}
+		).insert()
+		frappe.db.commit()  # nosemgrep
+
+		rows = [("Child Node", "0", "Root Node")]
+		data_import = self._get_importer(self._make_csv_file(rows))
+		data_import.import_type = "Update Existing Records"
+		data_import.save()
+		Importer(self.doctype_name, data_import=data_import).import_data()
+
+		self.assertEqual(frappe.db.get_value(self.doctype_name, child.name, parent_field), root.name)
+
+		self._cleanup_docs(labels)
