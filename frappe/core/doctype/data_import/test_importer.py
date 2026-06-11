@@ -885,6 +885,25 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 				frappe.delete_doc(self.doctype_name, name, force=1)
 		frappe.db.commit()  # Ensure deletions are flushed to DB before continuing; # nosemgrep
 
+	def test_upsert_update_does_not_reset_omitted_defaults(self):
+		"""UPSERT update must not overwrite fields omitted from the template with DocType defaults."""
+		labels = ("Root Node",)
+		self._cleanup_docs(labels)
+
+		root = frappe.get_doc(
+			{"doctype": self.doctype_name, "node_label": "Root Node", "is_group": 1}
+		).insert()
+		frappe.db.commit()  # nosemgrep
+
+		rows = [(root.name, "Root Node Updated", "", "")]
+		data_import = self._get_importer(self._make_csv_file(rows, include_id=True), import_type=UPSERT)
+		Importer(self.doctype_name, data_import=data_import).import_data()
+
+		self.assertEqual(frappe.db.get_value(self.doctype_name, root.name, "node_label"), "Root Node Updated")
+		self.assertEqual(cint(frappe.db.get_value(self.doctype_name, root.name, "is_group")), 1)
+
+		self._cleanup_docs(labels)
+
 	def test_tree_alias_upsert_registers_updated_parent_for_children(self):
 		"""UPSERT update path must register aliases so later rows resolve parent links."""
 		meta = frappe.get_meta(self.doctype_name)

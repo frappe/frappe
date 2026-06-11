@@ -1307,7 +1307,7 @@ class Row:
 
 	def _parse_doc(self, doctype, columns, values, parent_doc=None, table_df=None):
 		doc = frappe._dict()
-		if self.import_type in (INSERT, UPSERT):
+		if self.import_type == INSERT:
 			# new_doc returns a dict with default values set
 			doc = frappe.new_doc(
 				doctype,
