@@ -661,6 +661,7 @@ input.list-header-checkbox {
 	.frappe-list {
 		.result-container {
 			overflow-x: auto;
+			scrollbar-gutter: stable;
 
 			.result {
 				overflow-y: hidden;
