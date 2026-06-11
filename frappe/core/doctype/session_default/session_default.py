@@ -17,6 +17,6 @@ class SessionDefault(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		ref_doctype: DF.Link | None
+		ref_doctype: DF.Link
 	# end: auto-generated types
 	pass

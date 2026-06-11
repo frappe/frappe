@@ -12,18 +12,29 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Document Type",
-   "options": "DocType"
+   "options": "DocType",
+   "reqd": 1
   }
  ],
  "istable": 1,
+<<<<<<< HEAD
  "modified": "2019-07-21 13:22:25.752553",
+=======
+ "links": [],
+ "modified": "2026-06-12 00:07:01.418734",
+>>>>>>> 66d2a89a1b (fix(session_default): prevent saving empty rows in session default settings)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Session Default",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
+<<<<<<< HEAD
  "sort_field": "modified",
+=======
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+>>>>>>> 66d2a89a1b (fix(session_default): prevent saving empty rows in session default settings)
  "sort_order": "DESC",
  "track_changes": 1
 }
