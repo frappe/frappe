@@ -281,6 +281,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			.concat(
 				frappe.search.utils.get_search_in_list(txt),
 				frappe.search.utils.get_doctypes(txt),
+				frappe.search.utils.get_doctype_layouts(txt),
 				frappe.search.utils.get_reports(txt),
 				frappe.search.utils.get_pages(txt),
 				frappe.search.utils.get_desktop_icons(txt),
