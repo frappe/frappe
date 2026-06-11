@@ -175,7 +175,9 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 	get_node_label_html(node) {
 		let label = frappe.utils.escape_html(node.label);
 		if (node.warnings?.length) {
-			const title = frappe.utils.escape_html(node.warnings.join(" "));
+			const title = frappe.utils.escape_html(
+				node.warnings.map((warning) => strip_html(warning)).join(" ")
+			);
 			label += ` <span class="text-warning" title="${title}">${frappe.utils.icon(
 				"warning-sign",
 				"sm"

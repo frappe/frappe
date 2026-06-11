@@ -881,6 +881,33 @@ def _build_import_reference_sets(
 	return ids, aliases
 
 
+def _get_existing_tree_parent_refs(doctype: str, parent_refs: set, alias_field: str | None) -> set:
+	"""Return parent values from the file that already exist in the DB (by name or alias)."""
+	parent_list = list(parent_refs)
+	if not parent_list:
+		return set()
+
+	limit = len(parent_list)
+	existing = set(
+		frappe.get_all(
+			doctype,
+			filters={"name": ("in", parent_list)},
+			pluck="name",
+			limit=limit,
+		)
+	)
+	if alias_field:
+		existing |= set(
+			frappe.get_all(
+				doctype,
+				filters={alias_field: ("in", parent_list)},
+				pluck=alias_field,
+				limit=limit,
+			)
+		)
+	return existing
+
+
 def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 	"""Build a flat, depth-ordered node list for tree DocType import preview."""
 	meta = frappe.get_meta(import_file.doctype)
@@ -965,15 +992,9 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 		and node.parent not in nodes_by_id
 		and not _is_same_file_tree_reference(node.parent, import_file.header)
 	}
-	existing_parents_in_db = set()
-	if parents_needing_db_check:
-		existing_parents_in_db = set(
-			frappe.get_all(
-				import_file.doctype,
-				filters={"name": ("in", list(parents_needing_db_check))},
-				pluck="name",
-			)
-		)
+	existing_parents_in_db = _get_existing_tree_parent_refs(
+		import_file.doctype, parents_needing_db_check, alias_field
+	)
 
 	allow_existing_parent = import_file.import_type == UPDATE
 	for node in nodes:

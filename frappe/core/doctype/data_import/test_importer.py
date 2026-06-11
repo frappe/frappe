@@ -714,6 +714,22 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		]
 		self.assertEqual(payload_keys, ["Root Node", "Child Node"])
 
+	def test_tree_alias_existing_db_parent_is_not_a_blocking_warning(self):
+		"""Parent column aliases must resolve against DB title field, not document name."""
+		existing_label = "Existing Root"
+		self._cleanup_docs((existing_label, "New Child"))
+		frappe.get_doc({"doctype": self.doctype_name, "node_label": existing_label, "is_group": 1}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		rows = [("New Child", "0", existing_label)]
+		data_import = self._get_importer(self._make_csv_file(rows))
+		preview = data_import.get_preview_from_template()
+
+		child = next(node for node in preview.tree_preview.nodes if node.id == "New Child")
+		self.assertFalse(any("Parent" in w and "not found in file" in w for w in child.warnings))
+
+		self._cleanup_docs((existing_label, "New Child"))
+
 	def test_tree_alias_import(self):
 		meta = frappe.get_meta(self.doctype_name)
 		parent_field = meta.nsm_parent_field
