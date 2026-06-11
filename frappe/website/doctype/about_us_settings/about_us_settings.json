@@ -75,6 +75,15 @@
    "fieldname": "team_members_subtitle",
    "fieldtype": "Small Text",
    "label": "Team Members Subtitle"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "default": "1",
+   "fieldname": "is_disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+>>>>>>> 626feda5a1 (fix: disable about us page by default)
   }
  ],
  "icon": "fa fa-group",
@@ -82,7 +91,11 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2020-10-12 13:26:20.277859",
+=======
+ "modified": "2026-06-11 12:50:48.801831",
+>>>>>>> 626feda5a1 (fix: disable about us page by default)
  "modified_by": "Administrator",
  "module": "Website",
  "name": "About Us Settings",
