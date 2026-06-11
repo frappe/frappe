@@ -13,6 +13,14 @@ frappe.ui.form.on("DocType Layout", {
 					width: 100% !important;
 					max-width: 100% !important;
 				}
+				/* The form builder mounts on the tab pane, which lacks the section +
+				   column padding that .form-builder-container's negative margins offset.
+				   Restore it (15px section + 15px column) so the layout and right
+				   sidebar get the same padding as in Customize Form. */
+				.doctype-layout-full-width #doctype-layout-tab_break_form {
+					padding-left: 30px;
+					padding-right: 30px;
+				}
 			`;
 			document.head.appendChild(style);
 		}
