@@ -67,6 +67,19 @@ def health_app(environ, start_response):
 	return [b"not found"]
 
 
+class TolerantManager(socketio.manager.Manager):
+	"""Re-ack a duplicate namespace connect instead of rejecting it.
+
+	Default connect() returns None when the eio session is already on the namespace,
+	which makes the server send CONNECT_ERROR ("Unable to connect") and poisons the
+	live socket. Clients do reconnect redundantly (transport blips, StrictMode); the
+	old Node server tolerated it. Reuse the existing sid so the connect is idempotent.
+	"""
+
+	def connect(self, eio_sid: str, namespace: str) -> str | None:
+		return super().connect(eio_sid, namespace) or self.sid_from_eio_sid(eio_sid, namespace)
+
+
 def create_sio() -> socketio.Server:
 	"""Build the gevent-mode Socket.IO server.
 
@@ -77,6 +90,7 @@ def create_sio() -> socketio.Server:
 		cors_allowed_origins="*",
 		cors_credentials=True,
 		namespaces="*",
+		client_manager=TolerantManager(),
 		logger=logger,
 		engineio_logger=logger,
 	)
