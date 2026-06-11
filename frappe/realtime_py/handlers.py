@@ -10,8 +10,6 @@ because the Node server bound these handlers for every connected socket.
 
 import json
 
-import redis
-
 from frappe.realtime_py import Socket, realtime
 from frappe.realtime_py.config import get_config
 
@@ -133,17 +131,17 @@ def notify_doc_viewers(socket: Socket, doctype: str, docname: str) -> None:
 	)
 
 
-_redis_client = None
-
-
-def _redis():
-	global _redis_client
-	if _redis_client is None:
-		_redis_client = redis.from_url(get_config().redis_queue)
-	return _redis_client
-
-
 @realtime.on("open_in_editor", allow_guest=True)
 def open_in_editor(socket: Socket, data: object) -> None:
 	"""Dev-only: forward esbuild "open in editor" to the redis open_in_editor channel."""
-	_redis().publish("open_in_editor", json.dumps(data))
+	config = get_config()
+	if not config.developer_mode:
+		return
+
+	import redis
+
+	client = redis.from_url(config.redis_queue)
+	try:
+		client.publish("open_in_editor", json.dumps(data))
+	finally:
+		client.close()
