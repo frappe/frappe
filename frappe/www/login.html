@@ -163,7 +163,7 @@
 	{%- endif -%}
 	<section class='for-signup {{ "signup-disabled" if disable_signup else "" }}'>
 		<div class="login-content page-card">
-			{{ logo_section(_('Sign Up')) }}
+			{{ logo_section(_('Sign Up'), _("Let's setup your account.")) }}
 			{%- if not disable_signup -%}
 			{{ signup_form_template }}
 			{%- else -%}
@@ -203,26 +203,44 @@
 
 	<section class='for-login-with-email-link'>
 		<div class="login-content page-card">
-			{{ logo_section(_('Login with Email Link')) }}
-			<form class="form-signin form-login-with-email-link hide" role="form">
+			{{ logo_section(_('Sign In'), _('Welcome! Please sign in to continue.')) }}
+			<form class="form-signin form-login-with-email-link hide" role="form" novalidate>
 				<div class="page-card-body">
-					<div class="email-field">
-						<input type="email" id="login_with_email_link_email" class="form-control"
-							placeholder="{{ _('Email Address') }}" required autofocus autocomplete="username">
-						<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
-							xmlns="http://www.w3.org/2000/svg">
-							<use class="es-lock" href="#es-line-email"></use>
+					<div class="login-success-banner">
+						<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<use href="#es-line-alert-circle"></use>
 						</svg>
+						<span>{{ _("Please check your email.") }}</span>
+					</div>
+					<div class="form-group">
+						<label class="form-label" for="login_with_email_link_email">{{ _("Email") }}</label>
+						<div class="email-field">
+							<input type="email" id="login_with_email_link_email" class="form-control"
+								placeholder="{{ _('jane@example.com') }}" required autofocus autocomplete="username">
+							<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
+								xmlns="http://www.w3.org/2000/svg">
+								<use class="es-lock" href="#es-line-email"></use>
+							</svg>
+						</div>
+						<p class="field-error"></p>
 					</div>
 				</div>
 				<div class="page-card-actions">
-					<button class="btn btn-sm btn-primary btn-block btn-login-with-email-link"
-						type="submit">{{ _("Send login link") }}</button>
-					<p class="text-center sign-up-message">
-						<a href="#login">{{ _("Back to Login") }}</a>
+					<p class="resend-link">
+						{{ _("Didn't receive the link?") }} <a href="#" class="btn-resend-link">{{ _("Resend") }}</a>
 					</p>
+					<button class="btn btn-sm btn-primary btn-block btn-login btn-login-with-email-link"
+						type="submit">{{ _("Send login link") }}</button>
+					<a href="#login" class="btn btn-sm btn-default btn-block btn-login-option">
+						{{ _("Login with password") }}</a>
 				</div>
 			</form>
+			{%- if not disable_signup -%}
+			<div class="text-center sign-up-message">
+				{{ _("Don't have an account?") }}
+				<a href="#signup">{{ _("Sign up") }}</a>
+			</div>
+			{%- endif -%}
 		</div>
 	</section>
 </div>

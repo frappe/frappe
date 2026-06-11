@@ -1,4 +1,4 @@
-<form class="form-signin form-signup hide" role="form">
+<form class="form-signin form-signup hide" role="form" novalidate>
     <div class="page-card-body">
         <div class="form-group">
             <label class="form-label sr-only" for="signup_fullname">{{ _("Full Name") }}</label>
@@ -9,11 +9,12 @@
             <label class="form-label sr-only" for="signup_email">{{ _("Email") }}</label>
             <input type="email" id="signup_email" class="form-control"
                 placeholder="{{ _('jane@example.com') }}" required autocomplete="username">
+            <p class="field-error"></p>
         </div>
     </div>
     <div class="page-card-actions">
         <button class="btn btn-sm btn-primary btn-block btn-signup"
-            type="submit">{{ _("Sign up") }}</button>
+            type="submit" disabled>{{ _("Create Account") }}</button>
 
         <p class="text-center sign-up-message">
             <a href="#login" class="blue">{{ _("Have an account? Login") }}</a>
