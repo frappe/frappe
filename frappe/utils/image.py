@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from _typeshed import ReadableBuffer
 import io
 import os
 
@@ -7,6 +8,62 @@ from PIL import Image, ImageOps
 
 import frappe
 
+class PreAllocatedRawIO(io.RawIOBase):
+	"""Subclass to allow Pre-allocating a buffer to reduce `grow` calls during re-allocations!
+	   Even though for recent Python Versions `io.DEFAULT_BUFFER_SIZE` is pretty Big, but not enough for most of larger images!
+	   For PIL specific operations, as PIL expects such Class implements `file.read`, `file.seek` and `file.tell` methods only!
+	"""
+	def __init__(self, size:int):
+		self._buffer = bytearray(size) # backing  buffer.
+		self._pos = 0
+		self._readable_size:int = 0   # we track possible readable range using this variable
+		self._size = size
+
+	def readable(self): return True
+	def writable(self): return True
+	def seekable(self): return True
+
+	def read(self, size:int = -1) -> bytes:
+		assert self._readable_size >= self._pos
+		start = self._pos
+		end =  self._readable_size
+		if size >= 0:
+			end = min(self._pos + size, self._readable_size)
+		data = bytes(memoryview(self._buffer)[start:end])
+		self._pos += len(data)
+		return data
+
+	def write(self, data:bytes) -> int:
+		assert (self._pos + len(data)) < self._size, "Since this Class expects that user know maximum possibly memory requirements, we don't handle any `grow` like calls, TODO: "
+		if self._pos  >= self._size:
+			return 0
+		chunk_size = len(data)
+		self._buffer[self._pos: self._pos + chunk_size] = data
+		self._pos += chunk_size
+		self._readable_size = max(self._readable_size, self._pos)
+		return chunk_size
+
+	def readinto(self, b) -> int:
+		raise NotImplementedError
+
+	def seek(self, offset:int, whence = io.SEEK_SET) -> int:
+		assert offset >= 0, "For now Offset is expected to be positive !"
+		if whence == io.SEEK_SET:
+			self._pos = max(0, min(offset, self._size))
+		elif whence == io.SEEK_CUR:
+			self._pos = max(0, min(self._pos + offset, self._size))
+		elif whence == io.SEEK_END:
+			self._pos = max(0, min(self._size + offset, self._size))
+		return self._pos
+
+	def tell(self) -> int:
+		return self._pos
+
+	def getvalue(self) -> bytes:
+		return bytes(memoryview(self._buffer)[:self._pos])
+
+	def get_underlying_buffer(self):
+		return self._buffer
 
 def resize_images(path, maxdim=700):
 	size = (maxdim, maxdim)
