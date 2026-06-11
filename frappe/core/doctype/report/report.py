@@ -233,6 +233,14 @@ class Report(Document):
 		else:
 			return self.get_columns(), loc["result"]
 
+	def execute_duckdb(self, filters, duckdb_sync_name):
+		conn = frappe.get_doc("DuckDB Sync", duckdb_sync_name).get_duckdb_conn()
+		try:
+			execute_duckdb_method = self.get_module_method("execute_duckdb")
+		except AttributeError:
+			return [], []
+		return execute_duckdb_method(frappe._dict(filters), conn)
+
 	def get_data(
 		self,
 		filters=None,
