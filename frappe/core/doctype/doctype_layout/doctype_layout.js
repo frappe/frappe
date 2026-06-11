@@ -69,7 +69,7 @@ frappe.ui.form.on("DocType Layout", {
 	add_buttons(frm) {
 		if (!frm.is_new() && frm.doc.document_type) {
 			const label = frm.doc.title || frm.doc.name;
-			frm.add_custom_button(__("Go to {0} List", [__(label)]), () => {
+			frm.add_custom_button(__("Go to {0} List", [label]), () => {
 				frappe.route_options = {
 					...frappe.utils.parse_layout_condition_to_filters(frm.doc.condition),
 					_layout: frm.doc.name,

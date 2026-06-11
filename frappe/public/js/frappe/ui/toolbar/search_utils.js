@@ -289,8 +289,8 @@ frappe.search.utils = {
 			);
 			out.push({
 				type: "Layout",
-				label: __("{0} List", [search_result.marked_string || __(display)]),
-				value: __("{0} List", [__(display)]),
+				label: __("{0} List", [search_result.marked_string || display]),
+				value: __("{0} List", [display]),
 				description: __(layout.document_type),
 				index: search_result.score,
 				route: ["List", layout.document_type],
