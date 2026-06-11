@@ -1066,6 +1066,9 @@ frappe.ui.form.on("Data Import", {
 				callback: function (r) {
 					fetch_logs(cint(r.message.inserted), cint(r.message.updated));
 				},
+				error: function () {
+					fetch_logs();
+				},
 			});
 		} else {
 			fetch_logs();

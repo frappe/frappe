@@ -405,9 +405,8 @@ class Importer:
 
 	def update_record(self, doc, raise_if_no_changes=True):
 		id_field = get_id_field(self.doctype)
-		existing_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
-
 		updated_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
+		existing_doc = frappe.copy_doc(updated_doc)
 
 		updated_doc.update(doc)
 
