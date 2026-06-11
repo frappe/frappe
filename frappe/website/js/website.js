@@ -23,7 +23,7 @@ $.extend(frappe, {
 			if (path.endsWith(".css") && is_rtl) {
 				path = `rtl_${path}`;
 			}
-			path = frappe.boot.assets_json[path] || path;
+			path = frappe.boot?.assets_json?.[path] || path;
 			return path;
 		}
 		return path;
@@ -279,7 +279,11 @@ $.extend(frappe, {
 
 	trigger_ready: function () {
 		frappe.ready_events.forEach(function (fn) {
-			fn();
+			try {
+				fn();
+			} catch (e) {
+				console.error(e);
+			}
 		});
 	},
 
