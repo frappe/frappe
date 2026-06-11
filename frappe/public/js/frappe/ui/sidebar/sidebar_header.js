@@ -45,7 +45,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			name: "apps",
 			label: __("Apps"),
 			icon: "grid",
-			grid: true,
 			items: apps.map((app) => ({
 				name: app.app_name,
 				label: app.app_title,
