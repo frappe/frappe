@@ -56,10 +56,13 @@ def get_report_doc(report_name):
 	return doc
 
 
-def get_report_result(report, filters):
+def get_report_result(report, filters, duckdb_sync_name=None):
 	res = None
 
-	if report.report_type == "Query Report":
+	if duckdb_sync_name and report.report_type == "Script Report":
+		res = report.execute_duckdb(filters, duckdb_sync_name)
+
+	elif report.report_type == "Query Report":
 		res = report.execute_query_report(filters)
 
 	elif report.report_type == "Script Report":
@@ -74,7 +77,17 @@ def get_report_result(report, filters):
 
 @frappe.read_only()
 def generate_report_result(
+<<<<<<< HEAD
 	report, filters=None, user=None, custom_columns=None, is_tree=False, parent_field=None
+=======
+	report,
+	filters=None,
+	user=None,
+	custom_columns=None,
+	is_tree=False,
+	parent_field=None,
+	duckdb_sync_name=None,
+>>>>>>> 465addc5fd (refactor: trigger script report on duckdb sync selection)
 ):
 	user = user or frappe.session.user
 	filters = filters or []
@@ -82,7 +95,7 @@ def generate_report_result(
 	if filters and isinstance(filters, str):
 		filters = json.loads(filters)
 
-	res = get_report_result(report, filters) or []
+	res = get_report_result(report, filters, duckdb_sync_name) or []
 
 	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
 	columns = [get_column_as_dict(col) for col in (columns or [])]
@@ -214,6 +227,7 @@ def run(
 def _run(
 	*,
 	report_name: str,
+<<<<<<< HEAD
 	filters=None,
 	user=None,
 	ignore_prepared_report=False,
@@ -221,6 +235,17 @@ def _run(
 	is_tree=False,
 	parent_field=None,
 	are_default_filters=True,
+=======
+	filters: str | dict | None = None,
+	user: str | None = None,
+	ignore_prepared_report: bool = False,
+	custom_columns: str | list | None = None,
+	is_tree: bool = False,
+	parent_field: str | None = None,
+	are_default_filters: bool = True,
+	js_filters: str | list | None = None,
+	duckdb_sync_name: str | None = None,
+>>>>>>> 465addc5fd (refactor: trigger script report on duckdb sync selection)
 ) -> dict:
 	if not user:
 		user = frappe.session.user
@@ -248,7 +273,9 @@ def _run(
 				dn = ""
 			result = get_prepared_report_result(report, filters, dn, user)
 		else:
-			result = generate_report_result(report, filters, user, custom_columns, is_tree, parent_field)
+			result = generate_report_result(
+				report, filters, user, custom_columns, is_tree, parent_field, duckdb_sync_name
+			)
 			add_data_to_monitor(report=report.reference_report or report.name)
 	except Exception:
 		frappe.log_error("Report Error")

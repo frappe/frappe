@@ -208,7 +208,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						me.page.add_inner_button(
 							__(option_title),
 							() => {
-								console.log("duckdb instances:", x);
+								me.duckdb_sync_name = x.name;
+								me.refresh();
 							},
 							__("DuckDB Sync")
 						);
@@ -691,6 +692,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					is_tree: this.report_settings.tree,
 					parent_field: this.report_settings.parent_field,
 					are_default_filters: are_default_filters,
+<<<<<<< HEAD
+=======
+					js_filters: js_filters,
+					duckdb_sync_name: this.duckdb_sync_name || null,
+>>>>>>> 465addc5fd (refactor: trigger script report on duckdb sync selection)
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop("disabled", false),
