@@ -33,8 +33,8 @@
 		</template>
 
 		<template #actions>
-			<div class="space-y-1">
-				<ErrorMessage class="mb-2" :message="error" />
+			<div class="space-y-2">
+				<ErrorMessage :message="error" />
 				<Button
 					variant="solid"
 					:label="isEditing ? 'Update' : 'Create'"
@@ -50,7 +50,7 @@
 import { computed, ref, watch } from "vue"
 import { useRouter } from "vue-router"
 import { studioApps } from "@/data/studioApps"
-import { Dialog, FormControl } from "frappe-ui"
+import { Dialog, FormControl, ErrorMessage, Button } from "frappe-ui"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import { toast } from "frappe-ui"
 
@@ -110,8 +110,8 @@ const createStudioApp = () => {
 				error.value = ""
 				router.push({ name: "StudioApp", params: { appID: res.name } })
 			},
-			onError(error: any) {
-				error.value = error.messages.join(", ")
+			onError(reqError: any) {
+				error.value = reqError.messages.join(", ")
 			},
 		},
 	)
