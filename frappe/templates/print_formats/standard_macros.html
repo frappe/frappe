@@ -110,7 +110,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{%- if df.fieldtype in ("Text", "Code", "Long Text") %}<label>{{ _(df.label, context=df.parent) }}</label>{%- endif %}
 	{%- if df.fieldtype=="Code" %}
 		<pre class="value">{{ doc.get(df.fieldname)|e }}</pre>
-	{%- elif df.fieldtype in ("Text", "Long Text") -%}
+	{%- elif df.fieldtype=="Long Text" -%}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable)|e }}
 	{%- else -%}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
@@ -165,7 +165,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{% elif df.fieldtype=="Data" %}
 		{%- set parent = parent_doc or doc -%}
 		{{ doc.get_formatted(df.fieldname, parent, translated=df.translatable, absolute_value=parent.absolute_value) |e }}
-	{% elif df.fieldtype in ("Text", "Long Text") %}
+	{% elif df.fieldtype=="Long Text" %}
 		{%- set parent = parent_doc or doc -%}
 		{{ doc.get_formatted(df.fieldname, parent, translated=df.translatable, absolute_value=parent.absolute_value) |e }}
 	{% else %}
