@@ -55,6 +55,40 @@ function get_preview_row_count(preview_data) {
 	return preview_data.total_number_of_rows ?? preview_data.data?.length ?? 0;
 }
 
+function get_tree_preview_node_count(preview_data) {
+	if (!preview_data?.tree_preview) return 0;
+	return preview_data.tree_preview.total_nodes ?? preview_data.tree_preview.nodes?.length ?? 0;
+}
+
+/** Hide tree structure warnings after a finished import; keep the tree for reference. */
+function strip_tree_preview_warnings(preview_data) {
+	if (!preview_data?.tree_preview) {
+		return preview_data;
+	}
+
+	const nodes = (preview_data.tree_preview.nodes || []).map((node) => ({
+		...node,
+		warnings: [],
+	}));
+
+	return {
+		...preview_data,
+		tree_preview: {
+			...preview_data.tree_preview,
+			tree_warnings: [],
+			nodes,
+		},
+	};
+}
+
+/** Keep Tree Preview collapsed by default (unlike Preview, which expands when a file is attached). */
+function collapse_import_tree_section(frm, hide = true) {
+	const section = frm.layout?.sections_dict?.section_import_tree_preview;
+	if (section) {
+		section.collapse(hide);
+	}
+}
+
 /** Docfield for Map To: Link/Select per mapping row (child meta defaults to Data). */
 function get_mapping_target_df(grid_row) {
 	const doc = grid_row.doc;
@@ -383,14 +417,18 @@ frappe.ui.form.on("Data Import", {
 	reset_import_ui_state(frm) {
 		$(window).off("scroll.data_import_value_mappings");
 		frm.import_preview = null;
+		frm.import_tree_preview = null;
 		frm.events.toggle_import_issues_ui(frm, false, false);
 		frm.events.toggle_import_log_ui(frm, false);
+		frm.toggle_display("section_import_tree_preview", false);
 		frm.toggle_display("section_import_preview", false);
+		frm.get_field("import_tree_preview")?.$wrapper.empty();
 		frm.get_field("import_preview")?.$wrapper.empty();
 		frm.get_field("import_warnings")?.$wrapper.html("");
 		frm.get_field("import_log_preview")?.$wrapper.empty();
 		update_section_count(frm, "import_warnings_section", 0, "import-warnings-count");
 		update_section_count(frm, "value_mappings_section", 0, "value-mappings-count");
+		update_section_count(frm, "section_import_tree_preview", 0, "import-tree-preview-count");
 		update_section_count(frm, "section_import_preview", 0, "import-preview-count");
 	},
 
@@ -554,9 +592,70 @@ frappe.ui.form.on("Data Import", {
 			},
 		}).then((r) => {
 			let preview_data = r.message;
+			frm.events.show_import_tree_preview(frm, preview_data);
 			frm.events.show_import_preview(frm, preview_data);
 			frm.events.show_import_warnings(frm, preview_data);
 		});
+	},
+
+	show_import_tree_preview(frm, preview_data) {
+		if (["Success", "Partial Success"].includes(frm.doc.status)) {
+			preview_data = strip_tree_preview_warnings(preview_data);
+		}
+
+		const show_tree = Boolean(preview_data?.tree_preview);
+		frm.toggle_display("section_import_tree_preview", show_tree);
+		frm.toggle_display("import_tree_preview", show_tree);
+
+		if (!show_tree) {
+			frm.import_tree_preview = null;
+			frm.get_field("import_tree_preview")?.$wrapper.empty();
+			update_section_count(
+				frm,
+				"section_import_tree_preview",
+				0,
+				"import-tree-preview-count"
+			);
+			return;
+		}
+
+		update_section_count(
+			frm,
+			"section_import_tree_preview",
+			get_tree_preview_node_count(preview_data),
+			"import-tree-preview-count"
+		);
+
+		const render_tree_preview = () => {
+			const wrapper = frm.get_field("import_tree_preview").$wrapper;
+			const on_row_click = (row_number) => {
+				frm.layout?.sections_dict?.section_import_preview?.collapse(false);
+				frm.import_preview?.highlight_table_row(row_number);
+			};
+
+			if (
+				frm.doc.name &&
+				frm.import_tree_preview &&
+				frm.import_tree_preview.data_import_name === frm.doc.name
+			) {
+				frm.import_tree_preview.preview_data = preview_data;
+				frm.import_tree_preview.on_row_click = on_row_click;
+				frm.import_tree_preview.refresh();
+			} else {
+				frm.import_tree_preview = new frappe.data_import.ImportTreePreview({
+					wrapper,
+					doctype: frm.doc.reference_doctype,
+					preview_data,
+					on_row_click,
+				});
+				frm.import_tree_preview.data_import_name = frm.doc.name;
+			}
+
+			// After layout refresh_section_collapse (Preview uses depends_on to expand).
+			setTimeout(() => collapse_import_tree_section(frm, true), 0);
+		};
+
+		frappe.require("data_import_tools.bundle.js", render_tree_preview);
 	},
 
 	show_import_preview(frm, preview_data) {

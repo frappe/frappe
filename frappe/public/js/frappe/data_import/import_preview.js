@@ -162,6 +162,26 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		});
 	}
 
+	/** Scroll to and highlight a sheet row in the table preview. */
+	highlight_table_row(row_number) {
+		const row_index = this.data.findIndex((row) => cint(row[0]) === cint(row_number));
+		if (row_index < 0 || !this.datatable) {
+			return;
+		}
+
+		if (this._highlighted_row_index != null && this._highlighted_row_index !== row_index) {
+			this.datatable.style.setStyle(`.dt-row-${this._highlighted_row_index} .dt-cell`, {
+				backgroundColor: "",
+			});
+		}
+
+		this._highlighted_row_index = row_index;
+		this.datatable.style.setStyle(`.dt-row-${row_index} .dt-cell`, {
+			backgroundColor: frappe.ui.color.get_color_shade("yellow", "extra-light"),
+		});
+		frappe.utils.scroll_to(this.$table_preview.find(`.dt-row-${row_index}`), true, 30);
+	}
+
 	/** Row count below the preview table (always shown when data exists). */
 	render_table_message() {
 		const $message = this.wrapper.find(".table-message");
