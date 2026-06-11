@@ -116,6 +116,90 @@ export function getFunctionDeclarationNames(code: string): string[] {
 	}
 }
 
+// Collect every binding name a declaration pattern introduces, including
+// destructuring (object/array/rest/default patterns).
+function collectPatternNames(pattern: any, names: string[]) {
+	if (!pattern) return
+	switch (pattern.type) {
+		case "Identifier":
+			names.push(pattern.name)
+			break
+		case "ObjectPattern":
+			for (const property of pattern.properties) {
+				if (property.type === "RestElement") {
+					collectPatternNames(property.argument, names)
+				} else {
+					collectPatternNames(property.value, names)
+				}
+			}
+			break
+		case "ArrayPattern":
+			for (const element of pattern.elements) {
+				// holes (e.g. `[, b]`) are null
+				collectPatternNames(element, names)
+			}
+			break
+		case "RestElement":
+			collectPatternNames(pattern.argument, names)
+			break
+		case "AssignmentPattern":
+			collectPatternNames(pattern.left, names)
+			break
+	}
+}
+
+const bindingNamesCache = new LRUCache<string[]>(20)
+// All top-level bindings a script introduces: functions, classes, and variables
+// (incl. destructured ones). Used to expose a client script's state like a <script setup>.
+export function getTopLevelBindings(code: string): string[] {
+	if (!code?.trim()) return []
+
+	const cached = bindingNamesCache.get(code)
+	if (cached !== undefined) return cached
+
+	try {
+		const ast = parse(code, { ecmaVersion: "latest", sourceType: "module" })
+		const names: string[] = []
+		for (const node of ast.body) {
+			if (node.type === "FunctionDeclaration" || node.type === "ClassDeclaration") {
+				if ((node as any).id) names.push((node as any).id.name)
+			} else if (node.type === "VariableDeclaration") {
+				for (const declaration of (node as any).declarations) {
+					collectPatternNames(declaration.id, names)
+				}
+			}
+		}
+		bindingNamesCache.set(code, names)
+		return names
+	} catch {
+		bindingNamesCache.set(code, [])
+		return []
+	}
+}
+
+export interface ScriptSyntaxError {
+	message: string
+	line: number
+	column: number
+}
+
+// Validate a client script as a module and return the first syntax error (with position),
+// or null if it parses. Used to block saving a broken script before it nukes the page.
+export function getScriptError(code: string): ScriptSyntaxError | null {
+	if (!code?.trim()) return null
+
+	try {
+		parse(code, { ecmaVersion: "latest", sourceType: "module" })
+		return null
+	} catch (error: any) {
+		return {
+			message: error.message,
+			line: error.loc?.line ?? 0,
+			column: error.loc?.column ?? 0,
+		}
+	}
+}
+
 function walkAST(node: any, callback: (node: Node) => void) {
 	if (!node || typeof node !== "object") return
 

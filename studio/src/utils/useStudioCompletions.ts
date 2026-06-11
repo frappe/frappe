@@ -1,4 +1,4 @@
-import { computed } from "vue"
+import { computed, unref, isRef } from "vue"
 import useCodeStore from "@/stores/codeStore"
 import type { CompletionSource } from "@/types"
 import { isPrivateKey } from "@/utils/helpers"
@@ -83,18 +83,26 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 			})
 		}
 
-		(codeStore.clientScriptFunctionNames || []).forEach((funcName: string) => {
+		Object.entries(codeStore.clientScriptBindings || {}).forEach(([name, binding]) => {
+			const unwrapped = unref(binding)
+			const isFunction = typeof unwrapped === "function"
+			const refLike = isRef(binding)
+			// In script context, surface a ref as `{ value }` so `name.value` member completion works.
+			const item = canEditValues && refLike ? { value: unwrapped } : unwrapped
 			sources.push({
-				item: null,
+				item,
 				completion: {
-					label: funcName,
-					type: "function",
+					label: name,
+					type: isFunction ? "function" : "variable",
 					detail: "Client Script",
 					apply(view, completion, from, to) {
-						const insertText = `${completion.label}()`
+						let insertText = completion.label as string
+						if (isFunction) insertText = `${insertText}()`
+						else if (canEditValues && refLike) insertText = `${insertText}.value`
+						const cursorPos = isFunction ? from + insertText.length - 1 : from + insertText.length
 						view.dispatch({
 							changes: { from, to, insert: insertText },
-							selection: { anchor: from + insertText.length - 1 },
+							selection: { anchor: cursorPos },
 						})
 					},
 				},

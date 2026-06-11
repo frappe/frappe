@@ -1,5 +1,9 @@
 import { defineStore } from "pinia"
-import { ref, computed, watch, type WatchStopHandle, ComputedRef, toRefs, unref, h } from "vue"
+import {
+	ref, computed, watch, watchEffect, reactive, toRef, toRefs, unref,
+	isRef, isReactive, shallowRef, readonly, markRaw, nextTick, effectScope,
+	type WatchStopHandle, type ComputedRef, type EffectScope, h,
+} from "vue"
 import { watchDebounced } from "@vueuse/core"
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
 import { studioPageResources } from "@/data/studioResources"
@@ -10,7 +14,7 @@ import { studioModulesRegistry } from "@/data/studioModules"
 import * as globalUtils from "@/utils/globalUtils"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
-import { isFunctionExpression, toOptionalChaining, getFunctionDeclarationNames } from "@/utils/parseCode"
+import { isFunctionExpression, toOptionalChaining, getTopLevelBindings } from "@/utils/parseCode"
 import type { Filters, Resource, DocumentResource, DataResult } from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
@@ -18,14 +22,35 @@ import type { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
 import type { ExpressionEvaluationContext } from "@/types"
 import type { Router } from "vue-router"
 
+// Vue reactivity primitives injected into client/event scripts so users can write
+// `<script setup>`-style code (ref, computed, watch, …) without an import line.
+const vueReactivityApis = {
+	ref, reactive, computed, watch, watchEffect,
+	toRef, toRefs, unref, isRef, isReactive,
+	shallowRef, readonly, markRaw, nextTick,
+}
+
 const useCodeStore = defineStore("codeStore", () => {
 	const resources = ref<Record<string, Resource>>({})
 	const variables = ref<Record<string, any>>({})
 	const activeWatchers = ref<Record<string, WatchStopHandle>>({})
-	// Functions declared in the page's client scripts, callable from expressions/scripts
-	const clientScriptFunctions = ref<Record<string, Function>>({})
-	// Names of those functions, surfaced to the completion provider
-	const clientScriptFunctionNames = ref<string[]>([])
+	// Top-level bindings (refs, reactive state, computed, functions, classes) declared in the
+	// page's client scripts — exposed to expressions/scripts like a Vue `<script setup>`.
+	// shallowRef (not ref): a deep ref would wrap this in reactive() and auto-unwrap the nested
+	// refs, so scripts would see plain values and `count.value` would be undefined. shallowRef
+	// keeps `.value` a plain object, so refs stay refs and scripts can read/write `.value`.
+	const clientScriptBindings = shallowRef<Record<string, any>>({})
+	// Auto-unwrapped view for templates/prop bindings (refs unwrapped, like `<script setup>`).
+	const clientScriptTemplateBindings = computed(() => {
+		const unwrapped: Record<string, any> = {}
+		for (const key in clientScriptBindings.value) {
+			unwrapped[key] = unref(clientScriptBindings.value[key])
+		}
+		return unwrapped
+	})
+	// Effect scope owning the watch/watchEffect/computed a client script creates, so they
+	// are disposed when the page's scripts are recompiled or the page is left.
+	let clientScriptScope: EffectScope | null = null
 	// Module paths imported at the app level (always exposed) and by the active page.
 	const appModulePaths = ref<string[]>([])
 	const pageModulePaths = ref<string[]>([])
@@ -87,13 +112,22 @@ const useCodeStore = defineStore("codeStore", () => {
 	}
 
 	function setValueInVariable(variablePath: string, value: any, localContext?: ExpressionEvaluationContext) {
-		if (localContext) {
-			const pathParts = variablePath.split(".")
-			const rootKey = pathParts[0]
-			if (localContext[rootKey] !== undefined) {
-				setValueInObject(localContext, variablePath, value)
-				return
+		const pathParts = variablePath.split(".")
+		const rootKey = pathParts[0]
+		if (localContext && localContext[rootKey] !== undefined) {
+			setValueInObject(localContext, variablePath, value)
+			return
+		}
+		// Two-way binding into a client-script ref (e.g. a prop synced with `count`):
+		// write through the ref so `count.value` updates, mirroring the `{{ count }}` read.
+		const binding = clientScriptBindings.value[rootKey]
+		if (isRef(binding)) {
+			if (pathParts.length === 1) {
+				binding.value = value
+			} else {
+				setValueInObject(binding.value as Record<string, any>, pathParts.slice(1).join("."), value)
 			}
+			return
 		}
 		setValueInObject(variables.value, variablePath, value)
 	}
@@ -131,9 +165,15 @@ const useCodeStore = defineStore("codeStore", () => {
 		activeWatchers.value = {}
 	}
 
+	function disposeClientScriptScope() {
+		clientScriptScope?.stop()
+		clientScriptScope = null
+	}
+
 	async function setPageClientScripts(page: StudioPage) {
-		clientScriptFunctions.value = {}
-		clientScriptFunctionNames.value = []
+		// Tear down the previous page's script effects (watchers/computed) before recompiling.
+		disposeClientScriptScope()
+		clientScriptBindings.value = {}
 
 		studioPageClientScripts.filters = { parent: page.name }
 		await studioPageClientScripts.reload()
@@ -150,17 +190,18 @@ const useCodeStore = defineStore("codeStore", () => {
 			.join("\n\n")
 		if (!source.trim()) return
 
-		const functionNames = getFunctionDeclarationNames(source)
-		clientScriptFunctionNames.value = functionNames
-		clientScriptFunctions.value = compileClientScripts(source, functionNames)
+		const bindingNames = getTopLevelBindings(source)
+		clientScriptBindings.value = compileClientScripts(source, bindingNames)
 	}
 
-	function compileClientScripts(source: string, functionNames: string[]) {
-		// Evaluate the combined client script source once and return its declared
-		// functions. They resolve identifiers through a proxy over the LIVE execution
-		// context, so they see variables/resources/modules registered after compilation
-		// (e.g. modules that finish importing a tick later) and stay current as state changes.
-		if (!functionNames.length) return {}
+	function compileClientScripts(source: string, bindingNames: string[]) {
+		// Run the combined client-script source once, like a Vue `<script setup>`, and return
+		// every top-level binding (refs/reactive/computed/functions/classes). Free identifiers
+		// resolve through a proxy over the LIVE execution context, so the script sees the Vue
+		// reactivity APIs, variables/resources/modules — including ones registered a tick later.
+		// Reactive effects (watch/watchEffect/computed) are created inside an effectScope so
+		// they can be disposed on the next recompile / page leave. The source is always run
+		// (even with no named bindings) so watcher-only scripts still take effect.
 		const liveContext = new Proxy(
 			{},
 			{
@@ -174,19 +215,23 @@ const useCodeStore = defineStore("codeStore", () => {
 				},
 			},
 		)
-		try {
-			const factory = new Function(
-				"context",
-				`with (context) {
-					${source}
-					return { ${functionNames.join(", ")} };
-				}`,
-			)
-			return factory(liveContext) || {}
-		} catch (error) {
-			console.error("Error compiling client scripts", error)
-			return {}
-		}
+		clientScriptScope = effectScope(true)
+		let bindings: Record<string, any> = {}
+		clientScriptScope.run(() => {
+			try {
+				const factory = new Function(
+					"context",
+					`with (context) {
+						${source}
+						return { ${bindingNames.join(", ")} };
+					}`,
+				)
+				bindings = factory(liveContext) || {}
+			} catch (error) {
+				console.error("Error compiling client scripts", error)
+			}
+		})
+		return bindings
 	}
 
 	// Studio modules (composables/stores/utilities) exposed by name, strictly scoped to what
@@ -210,11 +255,12 @@ const useCodeStore = defineStore("codeStore", () => {
 	}
 
 	const globalContext = computed(() => {
+		// Template/prop binding context: refs auto-unwrapped (so `{{ count }}` shows the value).
 		return {
 			...variables.value,
 			...resources.value,
 			...studioModules.value,
-			...clientScriptFunctions.value,
+			...clientScriptTemplateBindings.value,
 			...globalUtils,
 			route: unref(routeObject.value),
 			router: routerObject.value,
@@ -222,14 +268,16 @@ const useCodeStore = defineStore("codeStore", () => {
 	})
 
 	const globalExecutionContext = computed(() => {
-		// Pass variable refs as context so that users can access variables without 'variable.' prefix
+		// Script context: variables and client-script bindings are passed as refs so scripts can
+		// read/write `.value`, and the Vue reactivity APIs are available for `<script setup>` code.
 		// eg: - {{ variable_name }} in templates or variable_name.value in scripts
 		const variablesRefs = toRefs(variables.value)
 		return {
+			...vueReactivityApis,
 			...variablesRefs,
 			...resources.value,
 			...studioModules.value,
-			...clientScriptFunctions.value,
+			...clientScriptBindings.value,
 			...globalUtils,
 			route: unref(routeObject.value),
 			router: routerObject.value,
@@ -597,7 +645,8 @@ const useCodeStore = defineStore("codeStore", () => {
 		setPageWatchers,
 		cleanupWatchers,
 		// client scripts
-		clientScriptFunctionNames,
+		clientScriptBindings,
+		clientScriptTemplateBindings,
 		setPageClientScripts,
 		// modules
 		studioModules,

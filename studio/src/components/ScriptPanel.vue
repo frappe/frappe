@@ -64,7 +64,7 @@ import Code from "@/components/Code.vue"
 import ItemActions from "@/components/ItemActions.vue"
 import FormDescription from "@/components/FormDescription.vue"
 import { confirm } from "@/utils/helpers"
-import { getFunctionDeclarationNames } from "@/utils/parseCode"
+import { getFunctionDeclarationNames, getScriptError } from "@/utils/parseCode"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import useCodeStore from "@/stores/codeStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
@@ -159,6 +159,13 @@ const getScriptMenu = (script: PageScript) => {
 const saveScript = async () => {
 	if (!currentScript.value.script?.trim()) {
 		toast.error("Script cannot be empty")
+		return
+	}
+	const syntaxError = getScriptError(currentScript.value.script)
+	if (syntaxError) {
+		toast.error("Syntax error in client script", {
+			description: `${syntaxError.message}`,
+		})
 		return
 	}
 	try {
