@@ -112,11 +112,12 @@ class Importer:
 			return
 
 		parent_values = {cstr(v).strip() for v in parent_column.column_values if v not in INVALID_VALUES}
-		import_refs = self.import_file.header.import_refs or set()
+		header = self.import_file.header
+		in_file_refs = (header.import_ids or set()) | (header.import_aliases or set())
 		if self.import_type == UPDATE:
 			refs_to_fetch = parent_values
 		else:
-			refs_to_fetch = parent_values - import_refs
+			refs_to_fetch = parent_values - in_file_refs
 		if not refs_to_fetch:
 			return
 

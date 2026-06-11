@@ -12,7 +12,7 @@ from frappe.core.doctype.data_import.importer import (
 )
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, unimplemented_for
-from frappe.utils import format_duration, getdate
+from frappe.utils import cint, format_duration, getdate
 
 doctype_name = "DocType for Import"
 
@@ -659,9 +659,13 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		parent_field = meta.nsm_parent_field
 		return meta.get_field(parent_field).label
 
-	def _make_csv_file(self, rows):
+	def _make_csv_file(self, rows, include_id=False):
 		parent_label = self._parent_label()
-		lines = [f"Node Label,Is Group,{parent_label}"] + [",".join(row) for row in rows]
+		if include_id:
+			header = f"ID,Node Label,Is Group,{parent_label}"
+		else:
+			header = f"Node Label,Is Group,{parent_label}"
+		lines = [header] + [",".join(row) for row in rows]
 		file_doc = frappe.get_doc(
 			{
 				"doctype": "File",
@@ -673,9 +677,9 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		file_doc.save(ignore_permissions=True)  # test fixture — user context is not relevant here
 		return file_doc
 
-	def _get_importer(self, file_doc):
+	def _get_importer(self, file_doc, update=False):
 		data_import = frappe.new_doc("Data Import")
-		data_import.import_type = "Insert New Records"
+		data_import.import_type = "Update Existing Records" if update else "Insert New Records"
 		data_import.reference_doctype = self.doctype_name
 		data_import.import_file = file_doc.file_url
 		data_import.insert()
@@ -803,12 +807,11 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		).insert()
 		frappe.db.commit()  # nosemgrep
 
-		rows = [("Child Node", "0", "Root Node")]
-		data_import = self._get_importer(self._make_csv_file(rows))
-		data_import.import_type = "Update Existing Records"
-		data_import.save()
+		rows = [(child.name, "Child Node", "1", "Root Node")]
+		data_import = self._get_importer(self._make_csv_file(rows, include_id=True), update=True)
 		Importer(self.doctype_name, data_import=data_import).import_data()
 
 		self.assertEqual(frappe.db.get_value(self.doctype_name, child.name, parent_field), root.name)
+		self.assertEqual(cint(frappe.db.get_value(self.doctype_name, child.name, "is_group")), 1)
 
 		self._cleanup_docs(labels)
