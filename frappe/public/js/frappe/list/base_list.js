@@ -31,6 +31,7 @@ frappe.views.BaseList = class BaseList {
 			this.setup_main_section,
 			this.setup_view,
 			this.setup_view_menu,
+			this.setup_resize_handler,
 		].map((fn) => fn.bind(this));
 
 		this.init_promise = frappe.run_serially(tasks);
@@ -427,6 +428,17 @@ frappe.views.BaseList = class BaseList {
 			this.page_length = this.selected_page_count;
 			this.refresh();
 		});
+	}
+
+	setup_resize_handler() {
+		$(window).on(
+			"resize",
+			frappe.utils.debounce(() => {
+				if (this.$result?.is(":visible")) {
+					this.set_result_height();
+				}
+			}, 300)
+		);
 	}
 
 	set_result_height() {
