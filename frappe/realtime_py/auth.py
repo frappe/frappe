@@ -78,12 +78,12 @@ class Session:
 		"""
 		return self.request(path, method=method, params=params, body=body)
 
-	def has_permission(self, doctype: str, name: str | None = None) -> bool:
+	def has_permission(self, doctype: str, name: str | None = None, ptype: str = "read") -> bool:
 		"""HTTP permission check against the web process (no DB in realtime)."""
 		try:
 			body = self.get(
 				"/api/method/frappe.realtime.has_permission",
-				params={"doctype": doctype, "name": name or ""},
+				params={"doctype": doctype, "name": name or "", "ptype": ptype},
 			)
 		except Exception:
 			return False

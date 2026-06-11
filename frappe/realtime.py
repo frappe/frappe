@@ -116,8 +116,8 @@ def emit_via_redis(event, message, room):
 
 
 @frappe.whitelist(allow_guest=True)
-def has_permission(doctype: str, name: str) -> bool:
-	frappe.has_permission(doctype, doc=name, throw=True)
+def has_permission(doctype: str, name: str, ptype: str = "read") -> bool:
+	frappe.has_permission(doctype, doc=name, ptype=ptype, throw=True)
 	return True
 
 
@@ -197,9 +197,7 @@ def publish_to_doc(
 	publish_realtime(event, message, doctype=doctype, docname=docname, after_commit=after_commit)
 
 
-def publish_to_doctype(
-	doctype: str, event: str, message: dict | None = None, *, after_commit: bool = False
-):
+def publish_to_doctype(doctype: str, event: str, message: dict | None = None, *, after_commit: bool = False):
 	"""Publish to a doctype's room (doctype:{doctype})."""
 	publish_realtime(event, message, room=get_doctype_room(doctype), after_commit=after_commit)
 
