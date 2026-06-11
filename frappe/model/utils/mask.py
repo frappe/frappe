@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from typing import Any
 
 
 def mask_field_value(field, val):
@@ -55,7 +56,11 @@ def mask_dict_results(result, masked_fields):
 	return result
 
 
-def mask_pluck_results(result, masked_fields, fields):
+def mask_pluck_results(
+	result: list[Any],
+	masked_fields: list[Any],
+	fields: list[Any],
+) -> list[Any]:
 	"""Mask plucked (scalar) results.
 
 	With ``pluck``, the database layer has already reduced each row to the
