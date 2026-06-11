@@ -933,6 +933,61 @@ class TestDBQuery(IntegrationTestCase):
 				limit=1,
 			)
 
+	def test_get_values_pluck_with_masked_fields(self):
+		"""Regression for #39898.
+
+		For a non-admin user, a doctype with a masked field used to corrupt
+		`frappe.db.get_values(..., pluck=True)`: `mask_list_results` ran
+		`list(row)` on each already-plucked scalar, so a string like "P-1156"
+		came back as the tuple ('P', '-', '1', '1', '5', '6') (and a non-string
+		value such as an int raised TypeError outright).
+		"""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		frappe.delete_doc_if_exists("DocType", "Test Masked Pluck")
+		new_doctype(
+			"Test Masked Pluck",
+			fields=[
+				{"label": "Secret", "fieldname": "secret", "fieldtype": "Data", "mask": 1},
+				{"label": "Amount", "fieldname": "amount", "fieldtype": "Int"},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "mask": 1},
+				{"role": "Blogger", "read": 1},
+			],
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc_if_exists, "DocType", "Test Masked Pluck")
+
+		record = frappe.get_doc(
+			{"doctype": "Test Masked Pluck", "secret": "P-1156", "amount": 42}
+		).insert(ignore_permissions=True)
+
+		# Sanity: Administrator is never masked and gets the raw values.
+		self.assertEqual(
+			frappe.db.get_values("Test Masked Pluck", record.name, "name", pluck=True), [record.name]
+		)
+
+		with setup_test_user(set_user=True):
+			# `secret` is masked for this user, so the doctype has masked fields.
+			self.assertTrue(frappe.get_meta("Test Masked Pluck").get_masked_fields())
+
+			# Plucking a non-masked string field must return the scalar, not a char tuple.
+			self.assertEqual(
+				frappe.db.get_values("Test Masked Pluck", record.name, "name", pluck=True),
+				[record.name],
+			)
+
+			# Plucking a non-masked int field must not raise (used to: list(int)).
+			self.assertEqual(
+				frappe.db.get_values("Test Masked Pluck", record.name, "amount", pluck=True), [42]
+			)
+
+			# Plucking the masked field itself returns the masked scalar value.
+			self.assertEqual(
+				frappe.db.get_values("Test Masked Pluck", record.name, "secret", pluck=True),
+				["XXXXXXXX"],
+			)
+
 	def test_cast_name(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
