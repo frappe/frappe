@@ -201,6 +201,7 @@ frappe.ui.menu = class ContextMenu {
 			menu_items: item.items,
 			nested: true,
 			grid: item.grid,
+			scroll_after: item.scroll_after,
 			parent_data: item,
 			parent_menu: this.name,
 		});

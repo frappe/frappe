@@ -5,37 +5,59 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.drop_down_expanded = false;
 		this.title = this.sidebar.sidebar_title;
 		const me = this;
-		this.sibling_workspaces = this.fetch_workspaces_for_apps();
-		this.dropdown_items = [...(this.sibling_workspaces || [])];
-		const apps_section = this.fetch_apps();
-		if (apps_section) {
-			this.dropdown_items.push(apps_section);
-		}
+		this.dropdown_items = [
+			this.fetch_workspaces_section(),
+			this.fetch_private_workspaces_section(),
+			this.fetch_apps(),
+		].filter(Boolean);
 		this.make();
 		this.setup_app_switcher();
 		this.populate_dropdown_menu();
 		this.setup_select_options();
 	}
-	fetch_workspaces_for_apps() {
-		let sibling_workspaces = [];
+	fetch_workspaces_section() {
 		let workspaces_not_to_show = ["My Workspaces"];
-		if (frappe.current_app) {
-			let app_workspaces = frappe.current_app.workspaces || [];
+		let app_workspaces = (frappe.current_app && frappe.current_app.workspaces) || [];
 
-			app_workspaces.forEach((name) => {
-				if (!workspaces_not_to_show.includes(name)) {
-					let workspace = frappe.workspaces[frappe.router.slug(name)];
-					let item = {
-						name: workspace.label.toLowerCase(),
-						label: workspace.label,
-						url: frappe.utils.generate_route(workspace),
-						icon: workspace.icon,
-					};
-					sibling_workspaces.push(item);
-				}
-			});
-			return sibling_workspaces;
-		}
+		let items = app_workspaces
+			.filter((name) => !workspaces_not_to_show.includes(name))
+			.map((name) => this.workspace_to_item(frappe.workspaces[frappe.router.slug(name)]))
+			.filter(Boolean);
+
+		if (!items.length) return null;
+
+		return {
+			name: "workspaces",
+			label: __("Workspaces"),
+			icon: "wallpaper",
+			scroll_after: 5,
+			items,
+		};
+	}
+	fetch_private_workspaces_section() {
+		let items = Object.values(frappe.workspaces || {})
+			.filter((workspace) => !workspace.public && workspace.for_user === frappe.session.user)
+			.map((workspace) => this.workspace_to_item(workspace));
+
+		if (!items.length) return null;
+
+		return {
+			name: "private-workspaces",
+			label: __("Private Workspaces"),
+			icon: "lock",
+			scroll_after: 5,
+			items,
+		};
+	}
+	workspace_to_item(workspace) {
+		if (!workspace) return null;
+		let label = workspace.title || workspace.label;
+		return {
+			name: label.toLowerCase(),
+			label: label,
+			url: frappe.utils.generate_route(workspace),
+			icon: workspace.icon,
+		};
 	}
 	fetch_apps() {
 		let apps = (frappe.boot.app_data || []).filter((app) => app.on_apps_screen);
