@@ -72,6 +72,9 @@ class FakeSio:
 		self.emits: list[dict] = []
 		self.manager = self
 
+	def is_connected(self, sid: str, namespace: str | None = None) -> bool:
+		return sid in self.sessions or sid in self.rooms
+
 	def enter_room(self, sid: str, room: str, namespace: str | None = None) -> None:
 		self.rooms.setdefault(sid, set()).add(room)
 
@@ -167,7 +170,9 @@ class TestAuthHelpers(unittest.TestCase):
 		cfg = make_config(developer_mode=True, webserver_port=8000)
 		self.assertEqual(auth_mod.get_url("http://x.local:9000", "/p", cfg), "http://x.local:8000/p")
 		# non-dev leaves origin untouched
-		self.assertEqual(auth_mod.get_url("http://x.local:9000", "/p", make_config()), "http://x.local:9000/p")
+		self.assertEqual(
+			auth_mod.get_url("http://x.local:9000", "/p", make_config()), "http://x.local:9000/p"
+		)
 
 
 class TestAuthenticate(unittest.TestCase):
