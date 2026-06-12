@@ -122,15 +122,20 @@ def _make_listener(config: RealtimeConfig):
 
 
 def serve(config: RealtimeConfig | None = None) -> None:
+	import os
+
 	assert_no_mysqlclient()
 	config = config or get_config()
+
+	if os.path.isdir("sites"):
+		os.chdir("sites")
 
 	# Import core handlers, then discover per-app handlers, so every @realtime.on
 	# registration runs before wire() binds events.
 	import frappe.realtime.handlers
 	from frappe.realtime.registry import discover_app_handlers
 
-	discover_app_handlers()
+	discover_app_handlers(sites_path=".")
 
 	wire(sio, config)
 
