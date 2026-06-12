@@ -97,4 +97,4 @@ def safe_execute(fn):
 		try:
 			fn()
 		except Exception:
-			pass
+			frappe.log_error("Preview cleanup failed")
