@@ -6,9 +6,9 @@ App authors register handlers declaratively::
 
     from frappe.realtime import Socket, realtime
 
+
     @realtime.on("doc_subscribe", frappe_context=True)
-    def doc_subscribe(socket: Socket, doctype: str, docname: str) -> None:
-        ...
+    def doc_subscribe(socket: Socket, doctype: str, docname: str) -> None: ...
 
 Each registration stores the callable, its frappe_context / allow_guest flags, and
 the owning app. Several apps may bind the same event; dispatch (task 9) runs each

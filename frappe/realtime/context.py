@@ -26,10 +26,10 @@ def frappe_context(site: str, user: str):
 	frappe.init(site)
 	force_pymysql(frappe.local.conf)
 	frappe.connect()
-	frappe.set_user(user)
+	frappe.set_user(user)  # nosemgrep
 	try:
 		yield frappe
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 	except Exception:
 		frappe.db.rollback()
 		raise

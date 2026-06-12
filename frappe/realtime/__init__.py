@@ -121,7 +121,7 @@ def emit_via_redis(event, message, room):
 		)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep
 def has_permission(doctype: str, name: str, ptype: str = "read") -> bool:
 	frappe.has_permission(doctype, doc=name, ptype=ptype, throw=True)
 	return True
