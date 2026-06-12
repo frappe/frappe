@@ -150,7 +150,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 
 def _validate_safe_eval_syntax(code):
-	BLOCKED_NODES = (ast.NamedExpr,)
+	BLOCKED_NODES = (ast.NamedExpr, ast.Lambda)
 
 	tree = ast.parse(code, mode="eval")
 	for node in ast.walk(tree):
