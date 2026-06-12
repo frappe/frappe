@@ -55,10 +55,8 @@
 	</Grid>
 
 	<!-- Row-edit: render the full row as a FormLayout form (Grid only emits `edit`). -->
-	<Dialog v-model="showEdit" :options="{ title: dialogTitle, size: '3xl' }">
-		<template #body-content>
-			<FormLayout v-if="editIndex !== null" v-model:doc="editDoc" :layout="editLayout" />
-		</template>
+	<Dialog v-model:open="showEdit" :title="dialogTitle" size="3xl">
+		<FormLayout v-if="editIndex !== null" v-model:doc="editDoc" :layout="editLayout" />
 	</Dialog>
 </template>
 

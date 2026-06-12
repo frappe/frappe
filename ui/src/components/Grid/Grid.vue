@@ -2,7 +2,7 @@
 	<div class="flex flex-col gap-2">
 		<div v-if="label" class="text-sm text-ink-gray-5">
 			{{ label }}
-			<span v-if="required" class="text-ink-red-2">*</span>
+			<span v-if="required" class="text-ink-red-5">*</span>
 		</div>
 
 		<div
@@ -53,7 +53,7 @@
 							:title="col.label"
 						>
 							{{ col.label ?? col.fieldname }}
-							<span v-if="col.reqd" class="text-ink-red-2">*</span>
+							<span v-if="col.reqd" class="text-ink-red-5">*</span>
 							<!-- Drag the right edge to resize this column. -->
 							<span
 								class="grid-col-resize"
@@ -79,7 +79,7 @@
 					>
 						<template #item="{ element: row, index: rowIndex }">
 							<div
-								class="grid-row grid items-stretch border-t border-outline-gray-2 bg-surface-white"
+								class="grid-row grid items-stretch border-t border-outline-gray-2 bg-surface-base"
 								:class="{ 'cursor-pointer': disabled }"
 								:style="{
 									gridTemplateColumns: templateColumns,
@@ -89,7 +89,7 @@
 							>
 								<div
 									v-if="!disabled"
-									class="sticky left-0 z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-white"
+									class="sticky left-0 z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-base"
 									:style="{ left: '0' }"
 								>
 									<Checkbox
@@ -100,7 +100,7 @@
 									/>
 								</div>
 								<div
-									class="sticky z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-white py-2 text-sm text-ink-gray-7"
+									class="sticky z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-base py-2 text-sm text-ink-gray-7"
 									:class="{ 'grid-drag-handle cursor-grab': !disabled }"
 									:style="{ left: numberColLeft }"
 									:title="disabled ? undefined : 'Drag to reorder'"
@@ -135,7 +135,7 @@
 									</slot>
 								</div>
 								<div
-									class="sticky right-0 z-10 flex items-center justify-center border-l border-outline-gray-2 bg-surface-white"
+									class="sticky right-0 z-10 flex items-center justify-center border-l border-outline-gray-2 bg-surface-base"
 									:style="{ right: '0' }"
 								>
 									<Button
@@ -425,7 +425,7 @@ function onRowClick(row: Record<string, any>, index: number) {
 .grid-cell :deep([data-slot="trigger"]) {
 	border: none;
 	border-radius: 0;
-	background-color: var(--surface-white);
+	background-color: var(--surface-base);
 	box-shadow: none;
 	min-height: 34px;
 }

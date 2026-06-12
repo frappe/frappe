@@ -1,7 +1,7 @@
 <template>
 	<div
 		v-if="batches.length"
-		class="fixed z-50 w-80 overflow-hidden rounded-lg border border-outline-gray-2 bg-surface-white shadow-lg"
+		class="fixed z-50 w-80 overflow-hidden rounded-lg border border-outline-gray-2 bg-surface-base shadow-lg"
 		:class="positionClass"
 		@mouseenter="onEnter"
 	>
@@ -14,15 +14,15 @@
 			/>
 			<span
 				v-else-if="allDone"
-				class="lucide-check-circle-2 size-4 text-ink-green-3"
+				class="lucide-check-circle-2 size-4 text-ink-green-6"
 				aria-hidden="true"
 			/>
 			<span
 				v-else-if="hasError"
-				class="lucide-alert-circle size-4 text-ink-red-4"
+				class="lucide-alert-circle size-4 text-ink-red-8"
 				aria-hidden="true"
 			/>
-			<span class="flex-1 truncate text-p-sm font-medium text-ink-gray-8">
+			<span class="flex-1 truncate text-p-sm-medium text-ink-gray-8">
 				{{ headerLabel }}
 			</span>
 			<button
@@ -60,10 +60,10 @@
 					</span>
 					<span
 						v-if="item.status === 'done'"
-						class="lucide-check size-3.5 shrink-0 text-ink-green-3"
+						class="lucide-check size-3.5 shrink-0 text-ink-green-6"
 						aria-hidden="true"
 					/>
-					<span v-else-if="item.status === 'error'" class="text-p-xs text-ink-red-4">
+					<span v-else-if="item.status === 'error'" class="text-p-xs text-ink-red-8">
 						Failed
 					</span>
 					<span v-else class="shrink-0 text-p-xs text-ink-gray-5">
@@ -96,7 +96,7 @@
 		     dark stripe looked like a black band under the header. -->
 		<div v-else-if="!allDone" class="h-1 w-full bg-surface-gray-2">
 			<div
-				class="h-full bg-surface-gray-5 transition-all"
+				class="h-full bg-surface-gray-8 transition-all"
 				:style="{ width: `${Math.round(aggregateProgress * 100)}%` }"
 			/>
 		</div>

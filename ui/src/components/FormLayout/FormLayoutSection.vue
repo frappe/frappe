@@ -1,7 +1,7 @@
 <template>
 	<div
 		class="section"
-		:class="[section.hideBorder ? 'pt-4' : 'border-t border-outline-gray-modals mt-5 pt-5']"
+		:class="[section.hideBorder ? 'pt-4' : 'border-t border-outline-elevation-2 mt-5 pt-5']"
 	>
 		<CollapsibleRoot v-model:open="opened" :disabled="!collapsible">
 			<CollapsibleTrigger
@@ -10,7 +10,7 @@
 				class="flex max-w-fit items-center gap-2 text-ink-gray-9"
 				:class="{ 'cursor-pointer': collapsible, 'px-3 sm:px-5': hasTabs }"
 			>
-				<span class="text-base font-medium">{{ section.label }}</span>
+				<span class="text-base-medium">{{ section.label }}</span>
 				<span
 					v-if="collapsible"
 					class="lucide-chevron-right size-4"

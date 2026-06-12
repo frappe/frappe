@@ -17,14 +17,14 @@
 				type="button"
 				:disabled="disabled"
 				:data-state="open ? 'open' : 'closed'"
-				class="flex min-h-7 w-full cursor-pointer items-center gap-1.5 rounded border border-[--surface-gray-2] bg-surface-gray-2 px-1.5 py-1 text-left text-ink-gray-7 outline-none transition-colors hover:border-outline-gray-modals hover:bg-surface-gray-3 focus-visible:ring-2 data-[state=open]:ring-2 ring-outline-gray-3 disabled:cursor-not-allowed disabled:bg-surface-gray-1 disabled:text-ink-gray-4"
+				class="flex min-h-7 w-full cursor-pointer items-center gap-1.5 rounded border border-[--surface-gray-2] bg-surface-gray-2 px-1.5 py-1 text-left text-ink-gray-7 outline-none transition-colors hover:border-outline-elevation-2 hover:bg-surface-gray-3 focus-visible:ring-2 data-[state=open]:ring-2 ring-outline-gray-3 disabled:cursor-not-allowed disabled:bg-surface-gray-1 disabled:text-ink-gray-4"
 				@click="toggleOpen"
 			>
 				<div class="flex min-w-0 flex-1 flex-wrap items-center gap-1">
 					<span
 						v-for="option in selectedOptions"
 						:key="option.value"
-						class="inline-flex h-7 items-center gap-1 rounded border border-outline-gray-1 bg-surface-white px-1.5 text-sm text-ink-gray-7 transition-colors hover:border-outline-gray-2 hover:bg-surface-gray-1"
+						class="inline-flex h-7 items-center gap-1 rounded border border-outline-gray-1 bg-surface-base px-1.5 text-sm text-ink-gray-7 transition-colors hover:border-outline-gray-2 hover:bg-surface-gray-1"
 					>
 						{{ option.label }}
 						<span

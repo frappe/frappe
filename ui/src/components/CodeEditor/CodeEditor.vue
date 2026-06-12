@@ -101,14 +101,14 @@ function buildVariant(v?: string): Extension {
 				border: "1px solid var(--surface-gray-2, #e2e8f0)",
 			},
 			"&.cm-focused": {
-				backgroundColor: "var(--surface-white, white)",
+				backgroundColor: "var(--surface-base, white)",
 				borderColor: "var(--outline-gray-4, #94a3b8)",
 				boxShadow: ring,
 			},
 		},
 		outline: {
 			"&": {
-				backgroundColor: "var(--surface-white, white)",
+				backgroundColor: "var(--surface-base, white)",
 				border: "1px solid var(--outline-gray-2, #e2e8f0)",
 			},
 			"&.cm-focused": {
@@ -243,10 +243,10 @@ onMounted(async () => {
 			color: "var(--ink-gray-7, #525252)",
 		},
 		// Autocomplete / hover tooltips (from `basicSetup`) default to a light
-		// popup — theme them off `--surface-modal` (the elevated popover surface)
+		// popup — theme them off `--surface-elevation-2` (the elevated popover surface)
 		// so the dropdown follows dark mode instead of flashing white.
 		".cm-tooltip": {
-			backgroundColor: "var(--surface-modal, white)",
+			backgroundColor: "var(--surface-elevation-2, white)",
 			border: "1px solid var(--surface-gray-3, #cbd5e1)",
 			borderRadius: "var(--radius-md, 0.5rem)",
 			color: "var(--ink-gray-8, #1e293b)",
@@ -268,7 +268,7 @@ onMounted(async () => {
 			color: "var(--ink-gray-5, #64748b)",
 		},
 		".cm-completionMatchedText": {
-			color: "var(--ink-blue-3)",
+			color: "var(--ink-blue-6)",
 			textDecoration: "none",
 			fontWeight: "600",
 		},
@@ -287,29 +287,29 @@ onMounted(async () => {
 	const highlightStyle = HighlightStyle.define([
 		{
 			tag: [tags.keyword, tags.moduleKeyword, tags.controlKeyword],
-			color: "var(--ink-blue-3)",
+			color: "var(--ink-blue-6)",
 		},
 		{
 			tag: [tags.string, tags.special(tags.string), tags.regexp],
-			color: "var(--ink-green-3)",
+			color: "var(--ink-green-6)",
 		},
 		{
 			tag: [tags.comment, tags.lineComment, tags.blockComment],
 			color: "var(--ink-gray-5)",
 			fontStyle: "italic",
 		},
-		{ tag: [tags.number, tags.bool, tags.null, tags.atom], color: "var(--ink-amber-3)" },
-		{ tag: [tags.typeName, tags.className, tags.namespace], color: "var(--ink-amber-3)" },
+		{ tag: [tags.number, tags.bool, tags.null, tags.atom], color: "var(--ink-amber-6)" },
+		{ tag: [tags.typeName, tags.className, tags.namespace], color: "var(--ink-amber-6)" },
 		{
 			tag: [
 				tags.function(tags.variableName),
 				tags.function(tags.propertyName),
 				tags.labelName,
 			],
-			color: "var(--ink-blue-3)",
+			color: "var(--ink-blue-6)",
 		},
-		{ tag: [tags.propertyName, tags.attributeName], color: "var(--ink-red-3)" },
-		{ tag: [tags.tagName, tags.angleBracket], color: "var(--ink-red-3)" },
+		{ tag: [tags.propertyName, tags.attributeName], color: "var(--ink-red-6)" },
+		{ tag: [tags.tagName, tags.angleBracket], color: "var(--ink-red-6)" },
 		{
 			tag: [tags.operator, tags.punctuation, tags.separator, tags.bracket],
 			color: "var(--ink-gray-6)",
@@ -319,12 +319,12 @@ onMounted(async () => {
 			color: "var(--ink-gray-8)",
 		},
 		{ tag: tags.meta, color: "var(--ink-gray-5)" },
-		{ tag: [tags.link, tags.url], color: "var(--ink-blue-3)", textDecoration: "underline" },
-		{ tag: tags.heading, color: "var(--ink-blue-3)", fontWeight: "bold" },
+		{ tag: [tags.link, tags.url], color: "var(--ink-blue-6)", textDecoration: "underline" },
+		{ tag: tags.heading, color: "var(--ink-blue-6)", fontWeight: "bold" },
 		{ tag: tags.strong, fontWeight: "bold" },
 		{ tag: tags.emphasis, fontStyle: "italic" },
 		{ tag: tags.strikethrough, textDecoration: "line-through" },
-		{ tag: tags.invalid, color: "var(--ink-red-4)" },
+		{ tag: tags.invalid, color: "var(--ink-red-8)" },
 	]);
 	const highlight = Prec.highest(syntaxHighlighting(highlightStyle));
 

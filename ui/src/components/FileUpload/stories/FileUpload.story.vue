@@ -4,11 +4,11 @@
 		     The Attach/Attach Image/Image fields in the hand-written schema are
 		     driven by the same primitive; here we exercise the consumers directly
 		     with a fake transport (placeholder URL + simulated progress). -->
-		<h3 class="mb-3 text-lg font-semibold text-ink-gray-9">Upload primitive — standalone</h3>
+		<h3 class="mb-3 text-xl-semibold text-ink-gray-9">Upload primitive — standalone</h3>
 
 		<div class="flex flex-col gap-6">
 			<div>
-				<div class="mb-2 text-sm font-medium text-ink-gray-7">
+				<div class="mb-2 text-sm-medium text-ink-gray-7">
 					Multi-file dialog (inline progress)
 				</div>
 				<Button label="Open inline dialog" @click="inlineOpen = true" />
@@ -24,7 +24,7 @@
 			</div>
 
 			<div>
-				<div class="mb-2 text-sm font-medium text-ink-gray-7">
+				<div class="mb-2 text-sm-medium text-ink-gray-7">
 					Multi-file dialog (tray — survives close)
 				</div>
 				<Button label="Open tray dialog" @click="trayOpen = true" />
@@ -40,7 +40,7 @@
 			</div>
 
 			<div>
-				<div class="mb-2 text-sm font-medium text-ink-gray-7">
+				<div class="mb-2 text-sm-medium text-ink-gray-7">
 					Image dialog with crop + compress
 				</div>
 				<Button label="Open image dialog" @click="cropOpen = true" />
@@ -57,7 +57,7 @@
 			</div>
 
 			<div>
-				<div class="mb-2 text-sm font-medium text-ink-gray-7">
+				<div class="mb-2 text-sm-medium text-ink-gray-7">
 					Attachments list (array of results)
 				</div>
 				<AttachmentsList v-model="gallery" :transport="fakeTransport" />

@@ -1,7 +1,7 @@
 <template>
 	<div class="p-6 max-w-3xl">
 		<div v-if="loading" class="text-ink-gray-6">Loading meta…</div>
-		<div v-else-if="error" class="text-ink-red-4">{{ errorMessage }}</div>
+		<div v-else-if="error" class="text-ink-red-8">{{ errorMessage }}</div>
 		<FormLayout v-else v-model:doc="doc" :layout="layout" />
 		<pre class="mt-6 text-xs text-ink-gray-6">doc = {{ doc }}</pre>
 	</div>

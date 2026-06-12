@@ -9,7 +9,7 @@
 
 		<div>
 			<div class="mb-2 flex items-center gap-3">
-				<h3 class="text-lg font-semibold text-ink-gray-9">Editor only</h3>
+				<h3 class="text-xl-semibold text-ink-gray-9">Editor only</h3>
 				<Select v-model="language" :options="languages" />
 				<Select v-model="variant" :options="variants" />
 			</div>
@@ -24,7 +24,7 @@
 
 		<div>
 			<div class="mb-2 flex items-center gap-3">
-				<h3 class="text-lg font-semibold text-ink-gray-9">Write / Preview toggle</h3>
+				<h3 class="text-xl-semibold text-ink-gray-9">Write / Preview toggle</h3>
 				<div class="flex gap-1">
 					<Button
 						:variant="mode === 'write' ? 'subtle' : 'ghost'"
@@ -50,7 +50,7 @@
 		</div>
 
 		<div>
-			<h3 class="mb-2 text-lg font-semibold text-ink-gray-9">Side-by-side split</h3>
+			<h3 class="mb-2 text-xl-semibold text-ink-gray-9">Side-by-side split</h3>
 			<div class="grid grid-cols-2 gap-3">
 				<CodeEditor v-model="htmlSrc" language="html" />
 				<CodePreview

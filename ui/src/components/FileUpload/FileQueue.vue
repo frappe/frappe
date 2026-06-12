@@ -70,13 +70,13 @@
 						class="h-1.5 w-20 overflow-hidden rounded-full bg-surface-gray-3"
 					>
 						<div
-							class="h-full rounded-full bg-surface-gray-7 transition-all"
+							class="h-full rounded-full bg-surface-gray-10 transition-all"
 							:style="{ width: `${Math.round(item.progress * 100)}%` }"
 						/>
 					</div>
 					<span
 						v-else-if="item.status === 'done'"
-						class="lucide-check-circle-2 size-4 text-ink-green-3"
+						class="lucide-check-circle-2 size-4 text-ink-green-6"
 						aria-hidden="true"
 					/>
 

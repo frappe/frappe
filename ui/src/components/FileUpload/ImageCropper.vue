@@ -6,7 +6,7 @@
 		>
 			{{ loadError }}
 		</div>
-		<div v-show="!loadError" class="h-[60vh] overflow-hidden rounded-lg bg-surface-gray-7">
+		<div v-show="!loadError" class="h-[60vh] overflow-hidden rounded-lg bg-surface-gray-10">
 			<!-- cropperjs v2 replaces this <img> with a <cropper-canvas> tree. -->
 			<img ref="image" :src="objectUrl" alt="" class="block max-w-full" />
 		</div>

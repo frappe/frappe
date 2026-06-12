@@ -10,7 +10,7 @@
 			<video
 				v-show="!snapshot"
 				ref="video"
-				class="max-h-80 w-full rounded-lg bg-surface-gray-7"
+				class="max-h-80 w-full rounded-lg bg-surface-gray-10"
 				autoplay
 				playsinline
 			/>

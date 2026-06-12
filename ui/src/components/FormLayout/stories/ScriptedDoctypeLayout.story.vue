@@ -32,7 +32,7 @@
 		</label>
 
 		<div v-if="loading" class="text-ink-gray-6">Loading meta…</div>
-		<div v-else-if="error" class="text-ink-red-4">{{ errorMessage }}</div>
+		<div v-else-if="error" class="text-ink-red-8">{{ errorMessage }}</div>
 		<FormLayout v-else v-model:doc="doc" :layout="layout" />
 
 		<div class="mt-6 grid grid-cols-2 gap-6 text-xs text-ink-gray-6">

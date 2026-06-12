@@ -10,7 +10,7 @@
 		>
 			<label v-if="field.label" class="block text-xs text-ink-gray-5">
 				{{ field.label }}
-				<span v-if="field.reqd" class="text-ink-red-4">*</span>
+				<span v-if="field.reqd" class="text-ink-red-8">*</span>
 			</label>
 			<div class="flex gap-1">
 				<!-- Write/Preview toggle — only in the narrow `toggle` layout. When the
