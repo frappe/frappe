@@ -555,6 +555,7 @@ def delete_doc(doctype, name):
 		if not values:
 			raise frappe.DoesNotExistError(doctype=doctype)
 
+		assert len(values) == 3, "expected parenttype, parent and parentfield for child table row"
 		parenttype, parent, parentfield = values
 		parent = frappe.get_doc(parenttype, parent)
 		if not parent.has_permission("write"):

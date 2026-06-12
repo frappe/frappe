@@ -391,6 +391,7 @@ def respond_as_web_page(
 		else:
 			indicator_color = "blue"
 
+	assert indicator_color is not None, "indicator_color must be resolved by the branches above"
 	context["indicator_color"] = indicator_color
 	context["primary_label"] = primary_label
 	context["primary_action"] = primary_action

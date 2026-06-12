@@ -142,6 +142,7 @@ def rename_doc(
 
 	old = old or doc.name
 	doctype = doctype or doc.doctype
+	assert doctype and old, "doctype and old name must be resolved from arguments or the passed doc"
 	force = sbool(force)
 	merge = sbool(merge)
 	meta = frappe.get_meta(doctype)
