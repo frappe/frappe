@@ -4,6 +4,7 @@ import { getFieldComponent, registerFieldType } from "../fieldTypes";
 import AutocompleteField from "../fields/AutocompleteField.vue";
 import ButtonField from "../fields/ButtonField.vue";
 import CheckField from "../fields/CheckField.vue";
+import CodeEditorField from "../fields/CodeEditorField.vue";
 import DateField from "../fields/DateField.vue";
 import DatetimeField from "../fields/DatetimeField.vue";
 import DurationField from "../fields/DurationField.vue";
@@ -45,18 +46,16 @@ describe("fieldTypes registry", () => {
   });
 
   it("resolves all multi-line text fieldtypes to TextareaField", () => {
-    // Includes the code-family types that ride on the textarea until a real
-    // CodeEditorField exists (JSON / Markdown Editor / HTML Editor / Code).
-    for (const t of [
-      "Small Text",
-      "Text",
-      "Long Text",
-      "Code",
-      "JSON",
-      "Markdown Editor",
-      "HTML Editor",
-    ]) {
+    for (const t of ["Small Text", "Text", "Long Text"]) {
       expect(getFieldComponent(t)).toBe(TextareaField);
+    }
+  });
+
+  it("resolves the code-family fieldtypes to CodeEditorField", () => {
+    // JSON / Markdown Editor / HTML Editor / Code share one CodeMirror-backed
+    // field (moved off TextareaField).
+    for (const t of ["Code", "JSON", "Markdown Editor", "HTML Editor"]) {
+      expect(getFieldComponent(t)).toBe(CodeEditorField);
     }
   });
 

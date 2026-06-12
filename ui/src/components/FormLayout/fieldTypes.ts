@@ -3,6 +3,7 @@ import { setScoped } from "./scopedRegistry";
 import AutocompleteField from "./fields/AutocompleteField.vue";
 import ButtonField from "./fields/ButtonField.vue";
 import CheckField from "./fields/CheckField.vue";
+import CodeEditorField from "./fields/CodeEditorField.vue";
 import DateField from "./fields/DateField.vue";
 import DatetimeField from "./fields/DatetimeField.vue";
 import DurationField from "./fields/DurationField.vue";
@@ -75,18 +76,15 @@ for (const t of ["Int", "Float", "Currency", "Percent"]) {
   registerFieldType(t, NumberField);
 }
 
-// Textarea for all multi-line text types; code/editor types ride along until a
-// shared CodeEditorField exists (no frappe-ui code-editor primitive yet).
-for (const t of [
-  "Small Text",
-  "Text",
-  "Long Text",
-  "Code",
-  "JSON",
-  "Markdown Editor",
-  "HTML Editor",
-]) {
+// Textarea for the plain multi-line text types.
+for (const t of ["Small Text", "Text", "Long Text"]) {
   registerFieldType(t, TextareaField);
+}
+
+// Code-family types share one CodeEditorField (CodeMirror 6 writer + sanitized
+// preview), with the language derived from the fieldtype/options.
+for (const t of ["Code", "JSON", "Markdown Editor", "HTML Editor"]) {
+  registerFieldType(t, CodeEditorField);
 }
 
 // `Heading`/`HTML` are display-only (no value, no emit).

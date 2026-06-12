@@ -58,6 +58,9 @@ registerFieldType("Table MultiSelect", DemoTableMultiSelectField, {
 });
 
 const doc = reactive<Record<string, any>>({
+	// Drives the `view` of the Markdown/HTML editors below (the `editor_view`
+	// Select field writes it; their `ui.props.view` getters read it back).
+	editor_view: "auto",
 	reference_id: "REF-0001",
 	quantity: 1234,
 	amount: 1234567.5,
@@ -66,6 +69,37 @@ const doc = reactive<Record<string, any>>({
 	rating: 0.6,
 	duration: 5445,
 	ref_type: "User",
+	// Code-family fields hold strings (Frappe JSON/Code fields store strings).
+	// Seeded long + already 2-space pretty-printed (matches the JSON field's
+	// commit format, so blur won't reformat) to exercise the editor's height
+	// cap + Expand/Collapse action — it overflows the collapsed height on load.
+	settings: JSON.stringify(
+		{
+			theme: "dark",
+			retries: 3,
+			timeout: 30000,
+			features: {
+				search: true,
+				notifications: true,
+				betaPanels: false,
+			},
+			integrations: [
+				{ name: "github", enabled: true },
+				{ name: "slack", enabled: false },
+				{ name: "jira", enabled: true },
+			],
+			limits: { maxUsers: 50, maxProjects: 10, storageGb: 100 },
+			locale: "en-US",
+		},
+		null,
+		2
+	),
+	script: "def greet(name):\n\treturn f'Hello, {name}!'",
+	readme: "# Project\n\nSome **bold** text and a [link](https://frappe.io).",
+	snippet: "<h2>Title</h2>\n<p>Edit the HTML and preview it.</p>",
+	styles: ".card {\n\t.title { color: var(--ink-gray-9); }\n}",
+	manifest: "name: app\nversion: 1\ndeps:\n  - frappe\n  - vue",
+	feed: '<rss version="2.0">\n\t<channel><title>Feed</title></channel>\n</rss>',
 	// Attach fields hold a single `file_url` string (or null); Image mirrors one.
 	// Pre-seeded so preview / hover-zoom / Replace are exercisable without first
 	// uploading: a non-image file (paperclip + open-original) and an image
@@ -253,8 +287,170 @@ const layout: FormLayoutSchema = [
 				],
 			},
 			{
+				name: "table-section",
+				label: "Items",
+				columns: [
+					{
+						name: "table-col",
+						fields: [
+							{
+								// `options` names the child doctype; `childFields`
+								// are its grid columns (in the doctype-driven flow
+								// they're resolved from the child meta — supplied
+								// inline here). The grid renders each cell via the
+								// fieldtype registry; the edit action opens the row
+								// as a form (FormLayout) in a dialog.
+								fieldname: "items",
+								fieldtype: "Table",
+								label: "Line Items",
+								options: "Item Detail",
+								childFields: [
+									{
+										fieldname: "item",
+										fieldtype: "Data",
+										label: "Item",
+										reqd: true,
+									},
+									{
+										fieldname: "qty",
+										fieldtype: "Int",
+										label: "Qty",
+									},
+									{
+										fieldname: "rate",
+										fieldtype: "Currency",
+										label: "Rate",
+									},
+									{
+										fieldname: "in_stock",
+										fieldtype: "Check",
+										label: "In Stock",
+									},
+									{
+										fieldname: "notes",
+										fieldtype: "Small Text",
+										label: "Notes",
+									},
+								],
+							},
+						],
+					},
+				],
+			},
+			{
+				name: "misc",
+				label: "Miscellaneous",
+				collapsible: true,
+				opened: false,
+				columns: [
+					{
+						name: "col3",
+						fields: [
+							{
+								fieldname: "mystery",
+								fieldtype: "SomethingUnknown",
+								label: "Unknown fieldtype (falls back to text)",
+							},
+						],
+					},
+				],
+			},
+		],
+	},
+	{
+		name: "code-editors-tab",
+		label: "Code editors",
+		sections: [
+			{
+				name: "code-editors",
+				columns: [
+					{
+						name: "code-col",
+						fields: [
+							{
+								// Drives the layout of the Markdown/HTML editors below —
+								// a Select field inside the form, so the control is itself
+								// part of the schema (writes `doc.editor_view`).
+								fieldname: "editor_view",
+								fieldtype: "Select",
+								label: "Editor view (Markdown / HTML)",
+								options: "auto\nsplit\ntoggle\neditor",
+							},
+							{
+								// JSON: highlighting + lint gutter on invalid JSON, and
+								// pretty-printed on commit (blur).
+								fieldname: "settings",
+								fieldtype: "JSON",
+								label: "Settings (JSON)",
+								placeholder: '{ "key": "value" }',
+							},
+							{
+								// Code: language derived from `options` (core's Ace mode).
+								fieldname: "script",
+								fieldtype: "Code",
+								label: "Script (Python)",
+								options: "Python",
+							},
+							{
+								// SCSS via the `lang-sass` package (Code option → scss).
+								fieldname: "styles",
+								fieldtype: "Code",
+								label: "Styles (SCSS)",
+								options: "SCSS",
+							},
+							{
+								// YAML highlighting (Code option → yaml).
+								fieldname: "manifest",
+								fieldtype: "Code",
+								label: "Manifest (YAML)",
+								options: "YAML",
+							},
+							{
+								// XML highlighting (Code option → xml).
+								fieldname: "feed",
+								fieldtype: "Code",
+								label: "Feed (XML)",
+								options: "XML",
+							},
+							{
+								// Markdown Editor: Write/Preview toggle → sanitized preview.
+								// `view` getter lets the Select above force the layout.
+								fieldname: "readme",
+								fieldtype: "Markdown Editor",
+								label: "Readme (Markdown)",
+								ui: {
+									props: {
+										get view() {
+											return doc.editor_view;
+										},
+									},
+								},
+							},
+							{
+								// HTML Editor: Write/Preview toggle → sanitized preview.
+								fieldname: "snippet",
+								fieldtype: "HTML Editor",
+								label: "Snippet (HTML)",
+								ui: {
+									props: {
+										get view() {
+											return doc.editor_view;
+										},
+									},
+								},
+							},
+						],
+					},
+				],
+			},
+		],
+	},
+	{
+		name: "pickers-tab",
+		label: "Pickers",
+		sections: [
+			{
 				name: "pickers",
-				label: "Pickers",
 				columns: [
 					{
 						name: "pick-col",
@@ -313,95 +509,14 @@ const layout: FormLayoutSchema = [
 					},
 				],
 			},
-			{
-				name: "table-section",
-				label: "Items",
-				columns: [
-					{
-						name: "table-col",
-						fields: [
-							{
-								// `options` names the child doctype; `childFields`
-								// are its grid columns (in the doctype-driven flow
-								// they're resolved from the child meta — supplied
-								// inline here). The grid renders each cell via the
-								// fieldtype registry; the edit action opens the row
-								// as a form (FormLayout) in a dialog.
-								fieldname: "items",
-								fieldtype: "Table",
-								label: "Line Items",
-								options: "Item Detail",
-								childFields: [
-									{
-										fieldname: "item",
-										fieldtype: "Data",
-										label: "Item",
-										reqd: true,
-									},
-									{
-										fieldname: "qty",
-										fieldtype: "Int",
-										label: "Qty",
-									},
-									{
-										fieldname: "rate",
-										fieldtype: "Currency",
-										label: "Rate",
-									},
-									{
-										fieldname: "in_stock",
-										fieldtype: "Check",
-										label: "In Stock",
-									},
-									{
-										fieldname: "notes",
-										fieldtype: "Small Text",
-										label: "Notes",
-									},
-								],
-							},
-						],
-					},
-				],
-			},
-			{
-				name: "display",
-				label: "Display-only",
-				columns: [
-					{
-						name: "display-col",
-						fields: [
-							{
-								fieldname: "section_heading",
-								fieldtype: "Heading",
-								label: "Contact details",
-							},
-							{
-								fieldname: "help_html",
-								fieldtype: "HTML",
-								label: "Help",
-								options:
-									"<p>Fill in the fields above. <strong>Phone</strong> is optional.</p>",
-							},
-							{
-								// Self-describing: presentation + action live on the node's
-								// `ui` overlay. The click rides `ui.on.click` (no `@change`
-								// hack, no host fieldname dispatch); `props` style the Button.
-								fieldname: "send_invite",
-								fieldtype: "Button",
-								label: "Send invite",
-								ui: {
-									props: { variant: "solid", theme: "blue", size: "md" },
-									on: { click: () => sendInvite() },
-								},
-							},
-						],
-					},
-				],
-			},
+		],
+	},
+	{
+		name: "attachments-tab",
+		label: "Attachments",
+		sections: [
 			{
 				name: "attachments",
-				label: "Attachments",
 				columns: [
 					{
 						name: "attach-col",
@@ -432,19 +547,41 @@ const layout: FormLayoutSchema = [
 					},
 				],
 			},
+		],
+	},
+	{
+		name: "display-tab",
+		label: "Display-only",
+		sections: [
 			{
-				name: "misc",
-				label: "Miscellaneous",
-				collapsible: true,
-				opened: false,
+				name: "display",
 				columns: [
 					{
-						name: "col3",
+						name: "display-col",
 						fields: [
 							{
-								fieldname: "mystery",
-								fieldtype: "SomethingUnknown",
-								label: "Unknown fieldtype (falls back to text)",
+								fieldname: "section_heading",
+								fieldtype: "Heading",
+								label: "Contact details",
+							},
+							{
+								fieldname: "help_html",
+								fieldtype: "HTML",
+								label: "Help",
+								options:
+									"<p>Fill in the fields above. <strong>Phone</strong> is optional.</p>",
+							},
+							{
+								// Self-describing: presentation + action live on the node's
+								// `ui` overlay. The click rides `ui.on.click` (no `@change`
+								// hack, no host fieldname dispatch); `props` style the Button.
+								fieldname: "send_invite",
+								fieldtype: "Button",
+								label: "Send invite",
+								ui: {
+									props: { variant: "solid", theme: "blue", size: "md" },
+									on: { click: () => sendInvite() },
+								},
 							},
 						],
 					},
