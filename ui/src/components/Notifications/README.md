@@ -8,8 +8,8 @@ It renders the panel body only — the host provides the trigger (bell button) a
 
 ```vue
 <script setup lang="ts">
-import { NotificationPanel } from '@framework/ui'
-import { socket } from '@/socket' // optional
+import { NotificationPanel } from "@framework/ui";
+import { socket } from "@/socket"; // optional
 </script>
 
 <template>
@@ -27,7 +27,15 @@ With tabs and custom fields:
 
 ```vue
 <NotificationPanel
-  :fields="['name', 'title', 'description', 'type', 'read', 'creation', 'severity']"
+  :fields="[
+    'name',
+    'title',
+    'description',
+    'type',
+    'read',
+    'creation',
+    'severity',
+  ]"
   :tabs="[
     { label: 'All' },
     { label: 'Unread', filterFn: (n) => !n.read, count: 'unread' },
@@ -39,48 +47,50 @@ With tabs and custom fields:
 
 ### App scoping
 
-`appName` filters the feed to notifications whose `document_type` belongs to that app (resolved server-side from the doctype→app map). Notes:
+`appName` filters the feed to notifications produced by that app, via a direct equality filter on the Notification Log `app` column. The owning app is recorded **when the notification is created** (set explicitly by the producer, or derived from the reference document), so scoping reflects the _producing_ app — not whatever app happens to own the referenced document. Notes:
 
-- A notification with **no** `document_type` cannot be scoped and is excluded when `appName` is set.
-- Apps with many doctypes produce a large `document_type IN (...)` query; fine for per-user notification volumes.
+- A notification whose `app` couldn't be resolved (no/unknown reference document and no explicit app) is **global-only** — it shows in an unscoped panel but in no app-scoped panel.
+- Scoping is a single indexed `app = appName` filter (no doctype→app resolution round-trip), so the panel loads without a pre-query.
 - Omitting `appName` shows all of the user's notifications (unchanged behavior).
 
 ## Props
 
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `appName` | `string` | — | Scope the feed to one app. Only notifications whose `document_type` belongs to that app are shown. Tabs filter *within* this scope. |
-| `fields` | `string[]` | generic set | Notification Log fields to fetch. Add custom fields here so they reach the `icon` resolver / slots. |
-| `tabs` | `NotificationTab[]` | — | Tabs. Without it, a flat list is shown. |
-| `showMarkAllRead` | `boolean` | `true` | Show the "Mark all as read" header button. |
-| `showClose` | `boolean` | `true` | Show the "Close" header button (emits `close`). |
-| `pageLength` | `number` | `20` | Page size; "Load more" appears when more exist. |
-| `title` | `string` | `'Notifications'` | Header title. |
-| `onItemClick` | `(n) => void` | — | Called when a row is clicked (in addition to the `item-click` event). |
-| `icon` | `(n) => string \| Component \| undefined` | — | Resolve a row's leading visual: return a lucide/feather icon **name** (string) or a **Component**. Return `undefined` (the default) to show the sender's avatar. |
-| `socket` | `{ on, off? }` | — | A socket.io socket. When provided, the panel reloads on the `notification` event. |
+| Prop              | Type                                      | Default           | Description                                                                                                                                                                                                           |
+| ----------------- | ----------------------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `appName`         | `string`                                  | —                 | Scope the feed to one app. Only notifications produced by that app (matched on the `app` column) are shown. Tabs filter _within_ this scope.                                                                          |
+| `currentUser`     | `string`                                  | logged-in user    | Recipient to scope the feed to (`for_user`). Defaults to the logged-in user. Pass it to skip a lookup, or to view a specific user's feed. Without it an Administrator session would see _every_ user's notifications. |
+| `fields`          | `string[]`                                | generic set       | Notification Log fields to fetch. Add custom fields here so they reach the `icon` resolver / slots.                                                                                                                   |
+| `tabs`            | `NotificationTab[]`                       | —                 | Tabs. Without it, a flat list is shown.                                                                                                                                                                               |
+| `showMarkAllRead` | `boolean`                                 | `true`            | Show the "Mark all as read" header button.                                                                                                                                                                            |
+| `showClose`       | `boolean`                                 | `true`            | Show the "Close" header button (emits `close`).                                                                                                                                                                       |
+| `pageLength`      | `number`                                  | `20`              | Page size; "Load more" appears when more exist.                                                                                                                                                                       |
+| `title`           | `string`                                  | `'Notifications'` | Header title.                                                                                                                                                                                                         |
+| `onItemClick`     | `(n) => void`                             | —                 | Called when a row is clicked (in addition to the `item-click` event).                                                                                                                                                 |
+| `icon`            | `(n) => string \| Component \| undefined` | —                 | Resolve a row's leading visual: return a lucide/feather icon **name** (string) or a **Component**. Return `undefined` (the default) to show the sender's avatar.                                                      |
+| `socket`          | `{ on, off? }`                            | —                 | A socket.io socket. When provided, the panel reloads on the `notification` event.                                                                                                                                     |
 
 A tab is `{ label, filters?, filterFn?, count? }`:
+
 - `filters` — server-side filters applied to the list query.
 - `filterFn` — client-side predicate applied to already-fetched rows.
 - `count` — `'unread'` or `(items) => number`; shown as a badge.
 
 ## Events
 
-| Event | Payload | When |
-|---|---|---|
-| `item-click` | `notification` | A row is clicked (the row is also marked read). |
-| `mark-all-read` | — | "Mark all as read" clicked. |
-| `close` | — | "Close" clicked. |
-| `update:unread-count` | `number` | Unread count changes. |
+| Event                 | Payload        | When                                            |
+| --------------------- | -------------- | ----------------------------------------------- |
+| `item-click`          | `notification` | A row is clicked (the row is also marked read). |
+| `mark-all-read`       | —              | "Mark all as read" clicked.                     |
+| `close`               | —              | "Close" clicked.                                |
+| `update:unread-count` | `number`       | Unread count changes.                           |
 
 ## Slots
 
-| Slot | Props | Description |
-|---|---|---|
-| `header` | `{ unreadCount }` | Replace the whole header. |
-| `item` | `{ notification }` | Replace the entire row. |
-| `empty` | — | Replace the empty state. |
+| Slot     | Props              | Description               |
+| -------- | ------------------ | ------------------------- |
+| `header` | `{ unreadCount }`  | Replace the whole header. |
+| `item`   | `{ notification }` | Replace the entire row.   |
+| `empty`  | —                  | Replace the empty state.  |
 
 ## Leading visual
 
@@ -106,16 +116,23 @@ The composable behind the panel, for building a custom UI:
 
 ```ts
 const {
-  notifications,   // Ref<NotificationLog[]> (each row carries a resolved from_user_image)
-  unreadCount,     // Ref<number>
+  notifications, // Ref<NotificationLog[]> (each row carries a resolved from_user_image)
+  unreadCount, // Ref<number>
   hasNextPage,
-  markAsRead,      // (name) => Promise
-  markAllAsRead,   // () => Promise
-  markSeen,        // clears the unseen indicator
+  markAsRead, // (name) => Promise
+  markAllAsRead, // () => Promise
+  markSeen, // clears the unseen indicator
   reload,
-  setServerFilters,// (filters) => void — merged with the app scope
+  setServerFilters, // (filters) => void — merged with the app scope
   loadMore,
-} = useNotifications({ fields, pageLength, appName, filters, socket })
+} = useNotifications({
+  fields,
+  pageLength,
+  appName,
+  currentUser,
+  filters,
+  socket,
+});
 ```
 
 ## Types
@@ -131,7 +148,8 @@ Requires Frappe with the `Notification Type` doctype. The component reads the `N
 
 - `notification_log.mark_as_read`, `notification_log.mark_all_as_read`
 - `notification_log.trigger_indicator_hide`
-- `notification_log.get_app_doctypes` (when `appName` is set)
+- `frappe.client.get_count` / `frappe.client.get_list` on `Notification Log` (feed + unread count; always scoped to the recipient via `for_user`, and by the `app` column when `appName` is set)
+- `frappe.auth.get_logged_user` (to resolve the recipient when `currentUser` isn't passed)
 - `frappe.client.get_list` on `User` (to resolve sender avatar images)
 
 Realtime updates listen on the `notification` event.
