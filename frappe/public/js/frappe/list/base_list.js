@@ -446,12 +446,14 @@ frappe.views.BaseList = class BaseList {
 		this.$result[0].style.removeProperty("height");
 		// place it at the footer of the page
 
-		let resultContainerHeight = window.innerHeight - this.$paging_area.get(0).offsetHeight;
-		if (!frappe.is_mobile()) {
-			resultContainerHeight = resultContainerHeight - this.$result.get(0).offsetTop;
-		}
-		this.$result.parent(".result-container").css({
-			height: resultContainerHeight - (frappe.is_mobile() ? 100 : 0) + "px",
+		let $result_container = this.$result.parent(".result-container");
+		let main_rect = $(".main-section").get(0).getBoundingClientRect();
+		let result_top = $result_container.get(0).getBoundingClientRect().top - main_rect.top;
+		let resultContainerHeight = Math.floor(
+			main_rect.height - this.$paging_area.get(0).getBoundingClientRect().height - result_top
+		);
+		$result_container.css({
+			height: resultContainerHeight + "px",
 		});
 
 		this.$result[0].style.height =
