@@ -27,7 +27,7 @@ import type { CodePreviewProps } from "./types";
 const props = defineProps<CodePreviewProps>();
 
 const isPreviewLanguage = computed(
-	() => props.language === "markdown" || props.language === "html",
+	() => props.language === "markdown" || props.language === "html"
 );
 
 const sanitized = computed(() => {
