@@ -814,32 +814,83 @@ frappe.ui.Sidebar = class Sidebar {
 		if (name) localStorage.setItem("selected_sidebar", name);
 	}
 
-	// Pick the sidebar to show on cold entry. Precedence:
+	initial_sidebar(route) {
+		return this.resolve_initial_sidebar(route).sidebar;
+	}
+
+	// Pick the sidebar to show on cold entry, returning both the choice and why it was made.
+	// Precedence:
 	//   1. the last selected sidebar — kept across reloads as long as it's still relevant to
 	//      the route (the routed entity is in it, or the route doesn't belong to any sidebar)
 	//   2. User.default_workspace
 	//   3. a sidebar derived from the routed entity (lands deep links in a relevant sidebar)
 	//   4. the first available sidebar
-	initial_sidebar(route) {
+	resolve_initial_sidebar(route) {
 		const all = frappe.boot.workspace_sidebar_item || {};
 		const exists = (name) => (name && all[name.toLowerCase()] ? name : null);
 
-		const candidates = this.get_workspace_sidebars(this.entity_from_route(route));
+		const entity = this.entity_from_route(route);
+		const candidates = this.get_workspace_sidebars(entity);
 
 		const persisted = exists(localStorage.getItem("selected_sidebar"));
 		const persisted_is_relevant =
 			persisted &&
 			(!candidates.length ||
 				candidates.some((c) => c.toLowerCase() === persisted.toLowerCase()));
-		if (persisted_is_relevant) return persisted;
+		if (persisted_is_relevant) {
+			return {
+				sidebar: persisted,
+				reason: candidates.length
+					? `last selected sidebar "${persisted}" — route entity "${entity}" belongs to it`
+					: `last selected sidebar "${persisted}" — route "${entity}" belongs to no sidebar, so the selection is kept`,
+			};
+		}
 
 		const default_workspace = frappe.boot.user?.default_workspace;
-		if (default_workspace && exists(default_workspace.title)) return default_workspace.title;
+		if (default_workspace && exists(default_workspace.title)) {
+			const note = persisted
+				? ` (last selected "${persisted}" dropped: not relevant to route entity "${entity}")`
+				: "";
+			return {
+				sidebar: default_workspace.title,
+				reason: `User.default_workspace "${default_workspace.title}"${note}`,
+			};
+		}
 
-		if (candidates.length) return candidates[0];
+		if (candidates.length) {
+			return {
+				sidebar: candidates[0],
+				reason: `derived from route entity "${entity}", which appears in: ${candidates.join(
+					", "
+				)}`,
+			};
+		}
 
 		const first = Object.values(all)[0];
-		return first && first.label;
+		return {
+			sidebar: first && first.label,
+			reason: `fallback to the first available sidebar (route entity "${entity}" matched none)`,
+		};
+	}
+
+	// Debug helper: explain why the current sidebar is shown.
+	// Call from the console as `frappe.app.sidebar.explain_sidebar()`.
+	explain_sidebar(route = frappe.get_route()) {
+		const { sidebar: resolved, reason } = this.resolve_initial_sidebar(route);
+		const current = this.sidebar_title;
+		const was_manually_selected =
+			current && resolved && current.toLowerCase() !== resolved.toLowerCase();
+
+		const info = {
+			current_sidebar: current,
+			route,
+			reason: was_manually_selected
+				? `shown because it was explicitly selected ("${current}"). On a cold reload it would instead resolve to "${resolved}" — ${reason}`
+				: reason,
+			resolved_on_reload: resolved,
+		};
+		console.info("[sidebar] why:", info);
+		return info;
 	}
 
 	entity_from_route(route) {
