@@ -1,5 +1,26 @@
 # UI workspace notes
 
+## Use frappe-ui components first; only build your own if none exists
+
+Before hand-rolling any UI element, reach for the frappe-ui equivalent
+(`Dialog`, `Button`, `Checkbox`, `Select`, `TextInput`, `Switch`, `Tabs`,
+`TabButtons`, `ErrorMessage`, etc.). Only build a custom component when frappe-ui
+has no equivalent — and when you do, leave a comment noting that frappe-ui lacks
+it, so it's clear the custom code is a deliberate fallback rather than a missed
+reuse.
+
+Check the right package: this repo is **`@framework/ui`**, a slim in-house
+library with only a handful of components — it is NOT the `frappe-ui` dependency.
+Components imported `from "frappe-ui"` resolve to the full upstream package in
+`node_modules/frappe-ui` (e.g. `apps/crm/frontend/node_modules/frappe-ui`), which
+has far more (`Tabs`, `TabButtons`, etc.). Grep there, not just local `src/`,
+before concluding a component doesn't exist.
+
+Example: `FileUpload/FileUploadDialog.vue` uses frappe-ui's `Tabs` for its source
+switcher rather than a hand-rolled tablist — `Tabs` provides the ARIA + keyboard
+nav, and reka-ui's `unmountOnHide` keeps inactive panels (e.g. CameraSource)
+lazy.
+
 ## Formatting
 
 This repo's `.editorconfig` mandates **tabs** (indent_size 4, max_line_length 99) for
