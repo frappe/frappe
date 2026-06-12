@@ -64,6 +64,12 @@ export interface UploadItem {
   name: string;
   size?: number;
   isPrivate: boolean;
+  /**
+   * Ask the server to compress/downscale this item on upload. Meaningful only
+   * for raster images — the server's optimizer ignores other types — so the
+   * dialog surfaces it as a per-image action, not a queue-wide one.
+   */
+  optimize?: boolean;
   status: "idle" | "uploading" | "done" | "error";
   /** 0..1. */
   progress: number;

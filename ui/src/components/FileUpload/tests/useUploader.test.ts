@@ -181,6 +181,31 @@ describe("useUploader", () => {
     expect(second.map((r) => r.file_url)).toEqual(["/files/b.txt"]);
   });
 
+  it("scopes commit to the given ids (per-item retry)", async () => {
+    // Both rows fail the first pass, then succeed once retried.
+    const failed = new Set<string>();
+    const transport: UploadTransport = async (file) => {
+      if (!failed.has(file.name)) {
+        failed.add(file.name);
+        throw new Error("boom");
+      }
+      return { file_url: `/files/${file.name}` };
+    };
+    const uploader = useUploader({ transport, multiple: true });
+    uploader.add([makeFile("a.txt"), makeFile("b.txt")]);
+
+    await uploader.commit();
+    expect(uploader.items.map((i) => i.status)).toEqual(["error", "error"]);
+
+    // Retry only the first row: the scoped commit re-uploads a.txt and leaves
+    // b.txt untouched (still errored), and returns only a.txt's result.
+    const aId = uploader.items[0].id;
+    uploader.retry(aId);
+    const delta = await uploader.commit([aId]);
+    expect(delta.map((r) => r.file_url)).toEqual(["/files/a.txt"]);
+    expect(uploader.items.map((i) => i.status)).toEqual(["done", "error"]);
+  });
+
   it("rejects a duplicate web link", () => {
     const uploader = useUploader({
       transport: fakeTransport(),

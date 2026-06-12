@@ -65,15 +65,20 @@ export interface Uploader {
   replaceFile(id: string, file: File): void;
   setPrivate(id: string, value: boolean): void;
   setAllPrivate(value: boolean): void;
+  /** Toggle per-item image optimization (no-op meaning for non-images). */
+  setOptimize(id: string, value: boolean): void;
   cancel(id: string): void;
   cancelAll(): void;
   retry(id: string): void;
   /**
-   * Upload all not-yet-committed items. Returns only the results committed by
-   * THIS call (the delta) — rows already `done` from a prior pass are skipped,
-   * so a re-commit after a partial failure never re-emits earlier successes.
+   * Upload not-yet-committed items. Returns only the results committed by THIS
+   * call (the delta) — rows already `done` from a prior pass are skipped, so a
+   * re-commit after a partial failure never re-emits earlier successes.
+   *
+   * Pass `ids` to scope the pass to specific rows (per-item retry); omit it to
+   * commit every pending row. Ids not in the queue are ignored.
    */
-  commit(): Promise<UploadResult[]>;
+  commit(ids?: string[]): Promise<UploadResult[]>;
 }
 
 export function useUploader(options: UseUploaderOptions = {}): Uploader {
@@ -143,6 +148,9 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
         name: file.name,
         size: file.size,
         isPrivate: isPrivateAll.value,
+        // Only images can be optimized; seed non-images off so the flag never
+        // rides along on, say, a PDF upload.
+        optimize: file.type.startsWith("image/") ? optimizeAll.value : false,
         status: "idle",
         progress: 0,
       });
@@ -229,6 +237,11 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
     for (const item of items) item.isPrivate = value;
   }
 
+  function setOptimize(id: string, value: boolean): void {
+    const item = items.find((entry) => entry.id === id);
+    if (item) item.optimize = value;
+  }
+
   function cancel(id: string): void {
     controllers.get(id)?.abort();
   }
@@ -246,10 +259,15 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
     }
   }
 
-  async function commit(): Promise<UploadResult[]> {
+  async function commit(ids?: string[]): Promise<UploadResult[]> {
     // Re-entrancy guard: if a pass is already in flight, don't start a second
     // concurrent one — bail out rather than double-uploading items.
     if (isUploading.value) return [];
+
+    // Optional scope for per-item retry: when given, only these rows are
+    // committed and the rest are left untouched (e.g. other failed rows stay
+    // failed). Omitted → commit every pending row.
+    const scope = ids ? new Set(ids) : null;
 
     const results: UploadResult[] = [];
     // Sequential, mirroring desk — keeps progress legible and avoids
@@ -258,6 +276,7 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
     // iterator and skip or double-process a not-yet-handled item. Each `item`
     // is still the same reactive object, so status/progress stay reactive.
     for (const item of [...items]) {
+      if (scope && !scope.has(item.id)) continue;
       // Skip items already committed by an earlier pass. We return only the
       // delta committed in THIS call — a re-commit (e.g. retrying a failed row
       // after a partial success) must not re-emit the rows that already
@@ -284,7 +303,9 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
       const args: UploadArgs = {
         isPrivate: item.isPrivate,
         folder: options.folder,
-        optimize: optimizeAll.value,
+        // Per-item now; fall back to the global default for consumers that only
+        // set `optimizeAll` and never touch individual items.
+        optimize: item.optimize ?? optimizeAll.value,
         maxWidth: options.maxWidth,
         maxHeight: options.maxHeight,
       };
@@ -402,6 +423,7 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
     replaceFile,
     setPrivate,
     setAllPrivate,
+    setOptimize,
     cancel,
     cancelAll,
     retry,
