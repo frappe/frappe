@@ -10,6 +10,7 @@ from frappe import DoesNotExistError, ValidationError, _, _dict
 from frappe.cache_manager import build_table_count_cache
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.desk_views import DeskViews
+from frappe.desk.utils import is_item_allowed
 
 
 def handle_not_exist(fn):
@@ -207,7 +208,7 @@ class Workspace(DeskViews):
 					continue
 
 				# Check if user is allowed to view
-				if self.is_item_allowed(item.link_to, item.link_type):
+				if is_item_allowed(item.link_to, item.link_type, self):
 					prepared_item = self._prepare_item(item)
 					new_items.append(prepared_item)
 
@@ -249,7 +250,7 @@ class Workspace(DeskViews):
 
 		for item in shortcuts:
 			new_item = item.as_dict().copy()
-			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
+			if is_item_allowed(item.link_to, item.type, self) and _in_active_domains(item):
 				if item.type == "Report":
 					report = self.allowed_reports.get(item.link_to, {})
 					if report.get("report_type") in ["Query Report", "Script Report", "Custom Report"]:
@@ -270,7 +271,7 @@ class Workspace(DeskViews):
 		quick_lists = self.doc.quick_lists
 
 		for item in quick_lists:
-			if self.is_item_allowed(item.document_type, "doctype"):
+			if is_item_allowed(item.document_type, "doctype", self):
 				new_item = item.as_dict().copy()
 
 				# Translate label

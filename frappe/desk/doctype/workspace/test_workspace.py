@@ -62,7 +62,7 @@ class TestWorkspace(IntegrationTestCase):
 		# the new read path must not depend on a legacy Workspace Sidebar doc
 		self.assertFalse(frappe.db.exists("Workspace Sidebar", workspace.name))
 
-		payload = get_sidebar_items(allowed_workspaces=[])
+		payload = get_sidebar_items()
 		key = workspace.name.lower()
 		self.assertIn(key, payload)
 		linked = [item["link_to"] for item in payload[key]["items"]]

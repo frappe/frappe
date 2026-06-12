@@ -19,6 +19,7 @@ from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
+from frappe.desk.utils import is_item_allowed
 from frappe.email.inbox import get_email_accounts
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
 from frappe.model.base_document import get_controller
@@ -176,7 +177,7 @@ def load_conf_settings(bootinfo):
 
 def load_desktop_data(bootinfo):
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
-	bootinfo.workspace_sidebar_item = get_sidebar_items(allowed_pages)
+	bootinfo.workspace_sidebar_item = get_sidebar_items()
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
 	bootinfo.app_data = []
 
@@ -421,7 +422,7 @@ def get_sentry_dsn():
 	return os.getenv("FRAPPE_SENTRY_DSN")
 
 
-def get_sidebar_items(allowed_workspaces):
+def get_sidebar_items():
 	"""Build the per-workspace sidebar payload (`bootinfo.workspace_sidebar_item`).
 
 	The authored `Workspace.sidebar_items` table is the source of truth. Modules without an
@@ -430,10 +431,9 @@ def get_sidebar_items(allowed_workspaces):
 	"""
 	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import auto_generate_sidebar_from_module
 
-	# `is_item_allowed` needs the per-user `can_read`/allowed-entity caches that `DeskViews`
-	# sets up. `Workspace` doesn't extend `DeskViews`, so borrow one throwaway `Workspace
-	# Sidebar` instance as a shared permission context for filtering every item.
-	perm_ctx = frappe.new_doc("Workspace Sidebar")
+	# `is_item_allowed` lives on `DeskViews`, which `Workspace` extends. Use one throwaway
+	# `Workspace` instance as a shared permission context for filtering every item.
+	perm_ctx = frappe.new_doc("Workspace")
 	sidebar_items = {}
 
 	# Primary source: authored `Workspace.sidebar_items` (the post-merge model).
@@ -447,7 +447,6 @@ def get_sidebar_items(allowed_workspaces):
 			header_icon=workspace.icon,
 			module_onboarding=workspace.module_onboarding,
 			perm_ctx=perm_ctx,
-			allowed_workspaces=allowed_workspaces,
 		)
 
 	# Fallback: modules without an authored workspace sidebar are generated each boot.
@@ -463,7 +462,6 @@ def get_sidebar_items(allowed_workspaces):
 			header_icon=sidebar.get("header_icon"),
 			module_onboarding=sidebar.get("module_onboarding"),
 			perm_ctx=perm_ctx,
-			allowed_workspaces=allowed_workspaces,
 		)
 
 	add_user_specific_sidebar(sidebar_items)
@@ -496,7 +494,6 @@ def add_sidebar_entry(
 	header_icon,
 	module_onboarding,
 	perm_ctx,
-	allowed_workspaces,
 ):
 	"""Add one workspace's permission-filtered sidebar to `sidebar_items`, keyed by title."""
 	from frappe import _
@@ -537,7 +534,7 @@ def add_sidebar_entry(
 		if (
 			is_my_workspaces
 			or item.type == "Section Break"
-			or perm_ctx.is_item_allowed(item.link_to, item.link_type, allowed_workspaces)
+			or is_item_allowed(item.link_to, item.link_type, perm_ctx)
 		):
 			filtered_items.append(entry)
 
