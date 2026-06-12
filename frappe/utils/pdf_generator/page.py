@@ -207,7 +207,7 @@ class Page:
 		wait_start = self.wait_for_load(wait_for=wait_for or ["load", "DOMContentLoaded", "networkIdle"])
 		_result, error = self.send("Page.navigate", {"url": url})
 		if error:
-			raise RuntimeError(f"Error navigating to {url}: {error}")
+			raise RuntimeError(f"Error navigating to URL: {error}")
 		wait_start()
 
 	def evaluate(self, expression, await_promise=False):
@@ -358,10 +358,12 @@ class Page:
 
 	def set_device_metrics(self, width=1280, height=720, scale_factor=1):
 		"""Override viewport size for deterministic screenshot dimensions (default 1280x720)."""
-		self.send(
+		_result, error = self.send(
 			"Emulation.setDeviceMetricsOverride",
 			{"width": width, "height": height, "deviceScaleFactor": scale_factor, "mobile": False},
 		)
+		if error:
+			raise RuntimeError(f"Error setting device metrics: {error}")
 
 	def capture_screenshot(self, image_format="jpeg", quality=30):
 		"""Screenshot the current viewport; returns raw image bytes."""
