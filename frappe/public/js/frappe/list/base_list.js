@@ -431,14 +431,16 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_resize_handler() {
-		$(window).on(
-			"resize",
-			frappe.utils.debounce(() => {
-				if (this.$result?.is(":visible")) {
-					this.set_result_height();
-				}
-			}, 300)
-		);
+		$(window)
+			.off("resize.list-view")
+			.on(
+				"resize.list-view",
+				frappe.utils.debounce(() => {
+					if (cur_list?.$result?.is(":visible")) {
+						cur_list.set_result_height();
+					}
+				}, 300)
+			);
 	}
 
 	set_result_height() {
