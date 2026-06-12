@@ -8,6 +8,9 @@ from PIL import Image, ImageOps, ExifTags
 
 import frappe
 
+x = io.BytesIO()
+print(x.getvalue())
+
 # NOTE: Even though LANCZOS or BICUBIC family of filters are really good for faithful resizing Ops (particularly for interpolating) choosing this filter
 # using Pillow results in much higher allocations (a simple thumbnail taking upto 15 Mb!) due to multiple allocations due to combination of chosen Layout by PIL and RGBA like mode.
 # # For now NEAREST filter is suggested (to bypass higher latency(an much higher memory usage)!)
@@ -16,11 +19,11 @@ class PreAllocatedRawIO(io.RawIOBase):
 	"""Subclass to allow Pre-allocating a buffer to reduce `grow` calls during re-allocations!
 	   Even though for recent Python Versions `io.DEFAULT_BUFFER_SIZE` is pretty Big, but not enough for most of larger images!
 	   For PIL specific operations, as PIL expects such Class implements `file.read`, `file.seek` and `file.tell` methods only!
+	NOTE: Interface could be more flexible but we have to make work with PIL which expects it to work like IO.BytesIO like!
 	"""
 	def __init__(self, size:int):
 		self._buffer = bytearray(size) # backing  buffer.
 		self._pos = 0
-		self._readable_size:int = 0   # we track possible readable range using this variable
 		self._size = size
 
 	def readable(self): return True
@@ -28,11 +31,13 @@ class PreAllocatedRawIO(io.RawIOBase):
 	def seekable(self): return True
 
 	def read(self, size:int = -1) -> bytes:
-		assert self._readable_size >= self._pos
+		"""
+		NOTE: by-default aka without some (pre) seeking  (after some write) to a valid position,it will always return NONE (aka no bytes/data).
+		"""
 		start = self._pos
-		end =  self._readable_size
+		end =  self._pos
 		if size >= 0:
-			end = min(self._pos + size, self._readable_size)
+			end = min(self._size , self._pos + size)
 		data = bytes(memoryview(self._buffer)[start:end])
 		self._pos += len(data)
 		return data
@@ -54,7 +59,6 @@ class PreAllocatedRawIO(io.RawIOBase):
 		chunk_size = len(data)
 		self._buffer[self._pos: self._pos + chunk_size] = data
 		self._pos += chunk_size
-		self._readable_size = max(self._readable_size, self._pos)
 		return chunk_size
 
 	def readinto(self, b) -> int:
@@ -74,9 +78,10 @@ class PreAllocatedRawIO(io.RawIOBase):
 		return self._pos
 
 	def getvalue(self) -> bytes:
+		# NOTE: we just return upto the `self._pos` for this.(aka would be conditioned on.seek !)
 		return bytes(memoryview(self._buffer)[:self._pos])
 
-	def get_underlying_buffer(self):
+	def getbuffer(self):
 		return self._buffer
 
 def _resize_images_thread_func(image_abs_paths:list[os.PathLike | str], maxdim:int):
