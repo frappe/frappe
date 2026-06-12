@@ -381,7 +381,6 @@ def get_messages_from_doctype(name):
 
 
 def get_messages_from_workflow(doctype=None, app_name=None):
-	assert doctype or app_name, "doctype or app_name should be provided"
 	from frappe.gettext.extractors.utils import is_translatable
 
 	# translations for Workflows

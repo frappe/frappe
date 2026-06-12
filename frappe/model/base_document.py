@@ -488,8 +488,6 @@ class BaseDocument:
 			child._non_computed_table_fieldnames = TABLE_DOCTYPES_FOR_CHILD_TABLES
 			child.__init__(value)
 
-		assert isinstance(child, BaseDocument), "initialized child must be a BaseDocument"
-
 		__dict = child.__dict__
 		__dict["parent"] = self.name
 		__dict["parenttype"] = self.doctype
@@ -502,6 +500,7 @@ class BaseDocument:
 			__dict["__islocal"] = 1
 			__dict["__temporary_name"] = frappe.generate_hash(length=10)
 
+		assert isinstance(child, BaseDocument), "initialized child must be a BaseDocument"
 		assert __dict["parenttype"] == self.doctype, "child parenttype must reference its parent's doctype"
 		return child
 

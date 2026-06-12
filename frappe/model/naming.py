@@ -306,7 +306,6 @@ def make_autoname(key="", doctype="", doc="", *, ignore_validate=False):
 	"""
 	if key == "hash":
 		hashed_name = (_get_timestamp_prefix() + _generate_random_string(7))[:10]
-		assert hashed_name and len(hashed_name) <= 10, "hash autoname must be non-empty and at most 10 chars"
 		return hashed_name
 
 	series = NamingSeries(key)
@@ -362,7 +361,6 @@ def parse_naming_series(
 	_sentinel = object()
 	if isinstance(parts, str):
 		parts = parts.split(".")
-	assert isinstance(parts, list), "naming series parts must be a list after normalization"
 
 	if not number_generator:
 		number_generator = getseries

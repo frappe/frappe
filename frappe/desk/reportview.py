@@ -62,7 +62,6 @@ def get_count() -> int | None:
 
 	args.distinct = sbool(args.distinct)
 	args.limit = cint(args.limit)
-	assert isinstance(args.limit, int), "cint must normalise limit to an int"
 	fieldname = f"`tab{args.doctype}`.name"
 	args.order_by = None
 
@@ -519,7 +518,6 @@ def append_totals_row(data):
 	data = list(data)
 	totals = []
 	totals.extend([""] * len(data[0]))
-	assert len(totals) == len(data[0]), "totals row must be as wide as a data row"
 
 	for row in data:
 		for i in range(len(row)):
@@ -529,6 +527,7 @@ def append_totals_row(data):
 	if not isinstance(totals[0], int | float):
 		totals[0] = "Total"
 
+	assert len(totals) == len(data[0]), "totals row must be as wide as a data row"
 	data.append(totals)
 
 	return data

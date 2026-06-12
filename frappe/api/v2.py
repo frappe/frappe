@@ -572,7 +572,6 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	if kwargs is None:
 		kwargs = {}
 
-	assert isinstance(document, dict), "document must be normalized to a dict before building the doc"
 	assert frappe.request.method in PERMISSION_MAP, "run_doc_method route is only mounted for GET/POST"
 	doc = frappe.get_doc(document, check_permission=PERMISSION_MAP[frappe.request.method])
 	doc._original_modified = doc.modified

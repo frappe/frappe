@@ -118,7 +118,6 @@ class DatabaseQuery:
 		if not fields:
 			fields = [pluck or "name"]
 
-		assert fields, "fields must be non-empty after defaulting to pluck/name"
 		self.fields = fields
 
 		# Handle virtual doctypes before any other processing

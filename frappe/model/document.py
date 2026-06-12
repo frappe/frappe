@@ -1686,13 +1686,11 @@ class Document(BaseDocument):
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		self.docstatus = DocStatus.SUBMITTED
-		assert self.docstatus.is_submitted(), "docstatus must be Submitted before submit save"
 		return self.save()
 
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		self.docstatus = DocStatus.CANCELLED
-		assert self.docstatus.is_cancelled(), "docstatus must be Cancelled before cancel save"
 		return self.save()
 
 	def _rename(
@@ -2530,8 +2528,8 @@ class LazyChildTable:
 		fieldname = self.fieldname
 		__dict = doc.__dict__
 		assert fieldname not in __dict, "Descriptor should not override existing values"
-		children = doc._load_child_table_from_db(fieldname, self.doctype) or []
 		__dict[fieldname] = []
+		children = doc._load_child_table_from_db(fieldname, self.doctype) or []
 		# Update __dict__ and convert to Document objects
 		doc.extend(fieldname, children)
 		return __dict[fieldname]

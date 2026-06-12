@@ -11,7 +11,7 @@ from frappe.query_builder import Field
 from frappe.utils import cstr
 
 
-def like(key: Field, value: str) -> frappe.qb:
+def like(key: Field, value: str):
 	"""Wrapper method for `LIKE`
 
 	Args:
@@ -24,7 +24,7 @@ def like(key: Field, value: str) -> frappe.qb:
 	return key.like(value)
 
 
-def ilike(key: Field, value: str) -> frappe.qb:
+def ilike(key: Field, value: str):
 	"""Wrapper method for `ILIKE`
 	Args:
 	        key (str): field
@@ -35,7 +35,7 @@ def ilike(key: Field, value: str) -> frappe.qb:
 	return key.ilike(value)
 
 
-def func_in(key: Field, value: list | tuple) -> frappe.qb:
+def func_in(key: Field, value: list | tuple):
 	"""Wrapper method for `IN`.
 
 	Args:
@@ -54,7 +54,7 @@ def func_in(key: Field, value: list | tuple) -> frappe.qb:
 	return key.isin(value)
 
 
-def not_like(key: Field, value: str) -> frappe.qb:
+def not_like(key: Field, value: str):
 	"""Wrapper method for `NOT LIKE`.
 
 	Args:
@@ -82,7 +82,7 @@ def func_not_in(key: Field, value: list | tuple | str):
 	return key.notin(value)
 
 
-def func_regex(key: Field, value: str) -> frappe.qb:
+def func_regex(key: Field, value: str):
 	"""Wrapper method for `REGEX`
 
 	Args:
@@ -95,7 +95,7 @@ def func_regex(key: Field, value: str) -> frappe.qb:
 	return key.regex(value)
 
 
-def func_between(key: Field, value: list | tuple) -> frappe.qb:
+def func_between(key: Field, value: list | tuple):
 	"""Wrapper method for `BETWEEN`.
 
 	Args:
@@ -121,7 +121,7 @@ def func_is(key, value):
 			raise ValueError("`is` operator only supports `set` and `not set` as value")
 
 
-def func_timespan(key: Field, value: str) -> frappe.qb:
+def func_timespan(key: Field, value: str):
 	"""Wrapper method for `TIMESPAN`.
 
 	Args:

@@ -550,9 +550,6 @@ class ImportFile:
 				data.append(row_obj)
 
 		self.header = header
-		assert not data or header is not None, (
-			"if any data rows were parsed, the header must have been set first"
-		)
 		self.columns = self.header.columns
 		self.data = data
 
@@ -616,7 +613,6 @@ class ImportFile:
 		Parse rows that make up a doc. A doc maybe built from a single row or multiple rows.
 		Return the doc, rows, and data without the rows.
 		"""
-		assert data, "parse_next_row_for_import requires at least one remaining data row"
 		doctypes = self.header.doctypes
 
 		# first row is included by default

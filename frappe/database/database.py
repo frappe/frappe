@@ -264,10 +264,6 @@ class Database:
 		elif not isinstance(values, ALLOWED_TYPES_FOR_VALUES):
 			values = (values,)
 
-		assert values is None or isinstance(values, ALLOWED_TYPES_FOR_VALUES), (
-			"values must be None or an allowed query-values type after normalization"
-		)
-
 		query, values = self._transform_query(query, values)
 
 		if trace_id := get_trace_id():

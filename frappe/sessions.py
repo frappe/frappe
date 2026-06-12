@@ -253,9 +253,6 @@ class Session:
 		else:
 			sid = frappe.generate_hash()
 
-		assert (self.user == "Guest") == (sid == "Guest"), (
-			"Guest user must use the shared 'Guest' sid and vice versa"
-		)
 		self.data.user = self.user
 		self.sid = self.data.sid = sid
 		self.data.data.user = self.user
@@ -299,6 +296,10 @@ class Session:
 			user.run_notifications("before_change")
 			user.run_notifications("on_update")
 			frappe.db.commit()
+
+		assert (self.user == "Guest") == (sid == "Guest"), (
+			"Guest user must use the shared 'Guest' sid and vice versa"
+		)
 
 	def insert_session_record(self):
 		Sessions = frappe.qb.DocType("Sessions")

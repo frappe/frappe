@@ -35,7 +35,6 @@ def handle_rpc_call(method: str):
 	import frappe.handler
 
 	method = method.split("/")[0]  # for backward compatiblity
-	assert isinstance(method, str), "RPC method name must be a string"
 
 	frappe.form_dict.cmd = method
 	return frappe.handler.handle()

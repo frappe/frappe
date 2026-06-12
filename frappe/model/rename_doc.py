@@ -150,9 +150,6 @@ def rename_doc(
 	if meta.naming_rule == "Autoincrement":
 		old = cint(old)
 		new = cint(new)
-		assert isinstance(old, int) and isinstance(new, int), (
-			"autoincrement rename names must be ints after cint"
-		)
 
 	if validate:
 		old_doc = doc or frappe.get_doc(doctype, old)

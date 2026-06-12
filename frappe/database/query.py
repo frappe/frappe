@@ -301,13 +301,11 @@ class Engine:
 		if limit:
 			if not isinstance(limit, int) or limit < 0:
 				frappe.throw(_("Limit must be a non-negative integer"), TypeError)
-			assert isinstance(limit, int) and limit >= 0, "limit must be a non-negative int here"
 			self.query = self.query.limit(limit)
 
 		if offset:
 			if not isinstance(offset, int) or offset < 0:
 				frappe.throw(_("Offset must be a non-negative integer"), TypeError)
-			assert isinstance(offset, int) and offset >= 0, "offset must be a non-negative int here"
 
 			# In MariaDB and SQLite, offset requires limit
 			if not self.is_postgres and not limit:

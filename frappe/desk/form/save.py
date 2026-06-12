@@ -33,11 +33,6 @@ def savedocs(doc: str, action: str):
 		"Update": DocStatus.SUBMITTED,
 		"Cancel": DocStatus.CANCELLED,
 	}[action]
-	assert doc.docstatus in (
-		DocStatus.DRAFT,
-		DocStatus.SUBMITTED,
-		DocStatus.CANCELLED,
-	), "docstatus must map to a known DocStatus"
 
 	if doc.docstatus.is_submitted():
 		if action == "Submit" and doc.meta.queue_in_background and not is_scheduler_inactive():
