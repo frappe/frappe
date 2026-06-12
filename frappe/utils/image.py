@@ -93,7 +93,7 @@ def _resize_images_thread_func(image_abs_paths:list[os.PathLike | str], maxdim:i
 			im.save(
 				abs_path,
 				format = image_format,
-				compress_level = 1 if format=="png" else 6
+				compress_level = 1 if image_format=="png" else 6
 			)
 
 def resize_images(path:os.PathLike, maxdim=700, max_workers:int = 3):
