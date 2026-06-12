@@ -1,46 +1,34 @@
 /**
- * Source registry — the extension seam for upload sources. Ships Device,
- * Camera, and Link; apps register their own (the deferred Library / Google
- * Drive sources, for example) with `registerUploadSource`. The dialog renders a
- * tab per source returned by `getUploadSources`.
+ * Source registry — the list of "add" entries the dialog's add-menu renders.
+ * Ships Device, Camera, and Link; apps register their own with
+ * `registerUploadSource`. Each entry contributes a row (icon + label) to the
+ * menu, gated by `isAvailable` (e.g. camera with no media devices).
  *
- * A source component receives no props beyond what its tab needs and emits
- * either `files` (a `File[]`) or `link` (a URL string); the dialog bridges those
- * into the uploader. Mirrors the registry shape of `fieldTypes.ts` so the
- * pattern is familiar.
+ * The dialog owns how each source is collected — a native picker for Device, an
+ * inline composer for Link, and `CameraSource` for Camera — keyed off `key`, so
+ * the registry carries presentation metadata only, not a renderable component.
+ * Mirrors the registry shape of `fieldTypes.ts` so the pattern is familiar.
  */
-import type { Component } from "vue";
-import DeviceSource from "./DeviceSource.vue";
-import CameraSource from "./CameraSource.vue";
-import LinkSource from "./LinkSource.vue";
-
 export interface UploadSource {
   key: string;
   label: string;
   /** Lucide icon class (e.g. `lucide-monitor`). */
   icon: string;
-  component: Component;
   /** Hidden when false at render time (e.g. camera with no media devices). */
   isAvailable?: () => boolean;
 }
 
 const sources: UploadSource[] = [
-  {
-    key: "device",
-    label: "Device",
-    icon: "lucide-monitor",
-    component: DeviceSource,
-  },
+  { key: "device", label: "Device", icon: "lucide-monitor" },
   {
     key: "camera",
     label: "Camera",
     icon: "lucide-camera",
-    component: CameraSource,
     isAvailable: () =>
       typeof navigator !== "undefined" &&
       !!navigator.mediaDevices?.getUserMedia,
   },
-  { key: "link", label: "Link", icon: "lucide-link", component: LinkSource },
+  { key: "link", label: "Link", icon: "lucide-link" },
 ];
 
 /** Add or replace a source by key. */

@@ -49,12 +49,12 @@
 		</div>
 
 		<div>
-			<Button icon-left="lucide-paperclip" label="Attach" @click="open = true" />
+			<Button icon-left="lucide-paperclip" label="Attach" @click="openDialog" />
 		</div>
 
 		<FileUploadDialog
-			v-if="open"
-			v-model:open="open"
+			v-if="dialogMounted"
+			v-model:open="dialogOpen"
 			title="Attach files"
 			:multiple="true"
 			:imageOnly="imageOnly"
@@ -62,6 +62,7 @@
 			:restrictions="restrictions"
 			:transport="transport"
 			progressMode="tray"
+			@uploading="onUploading"
 			@committed="onCommitted"
 		/>
 	</div>
@@ -74,7 +75,7 @@
 // results are appended. Display-only rows link out, show a private lock, and can
 // be removed. The dialog is lazily mounted (v-if) so it's fresh each open and
 // its heavy parts load on demand.
-import { defineAsyncComponent, ref } from "vue";
+import { defineAsyncComponent, ref, watch } from "vue";
 import { Button } from "frappe-ui";
 import type { Restrictions, UploadResult, UploadTransport } from "./types";
 
@@ -90,11 +91,42 @@ const props = defineProps<{
 
 const emit = defineEmits<{ "update:modelValue": [UploadResult[]] }>();
 
-const open = ref(false);
+// `dialogMounted` (v-if) is kept separate from `dialogOpen` (the modal's open
+// state) because tray mode closes the modal the instant Upload is clicked while
+// the commit runs in the background. Binding v-if straight to the open state
+// would unmount the dialog before its not-awaited `committed` fires and drop the
+// results. Instead we stay mounted until the upload settles (`uploading` false),
+// mirroring AttachField.
+const dialogMounted = ref(false);
+const dialogOpen = ref(false);
+const busy = ref(false);
+
+function openDialog() {
+	dialogMounted.value = true;
+	dialogOpen.value = true;
+}
 
 function onCommitted(results: UploadResult[]) {
 	emit("update:modelValue", [...props.modelValue, ...results]);
 }
+
+// The tray-mode commit brackets itself with `uploading`. `true` arrives as the
+// modal closes (keep mounted); `false` arrives once the background commit has
+// resolved and `committed` has fired — safe to unmount.
+function onUploading(value: boolean) {
+	busy.value = value;
+	// Unmount on settle — but only if the modal is closed. If the user reopened
+	// it while the background upload was finishing, leave it mounted; the
+	// dialogOpen watch unmounts it when they close it.
+	if (!value && !dialogOpen.value) dialogMounted.value = false;
+}
+
+// A real close (Cancel / backdrop / Esc) with no upload in flight unmounts the
+// dialog. The programmatic close that tray mode triggers on Upload is ignored
+// here (busy guards it) — onUploading owns the unmount in that case.
+watch(dialogOpen, (open) => {
+	if (!open && !busy.value) dialogMounted.value = false;
+});
 
 function remove(index: number) {
 	const next = props.modelValue.slice();

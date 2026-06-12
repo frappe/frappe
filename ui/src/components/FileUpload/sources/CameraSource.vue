@@ -15,14 +15,30 @@
 				playsinline
 			/>
 			<canvas v-show="snapshot" ref="canvas" class="max-h-80 w-full rounded-lg" />
-			<div class="flex items-center gap-2">
+			<div class="flex w-full items-center justify-end gap-2">
 				<template v-if="!snapshot">
-					<Button icon="lucide-camera" :label="'Capture'" @click="capture" />
-					<Button variant="subtle" icon="lucide-switch-camera" @click="switchCamera" />
+					<Button
+						variant="subtle"
+						icon-left="lucide-switch-camera"
+						label="Switch camera"
+						aria-label="Switch camera"
+						@click="switchCamera"
+					/>
+					<Button
+						icon-left="lucide-camera"
+						label="Capture"
+						aria-label="Capture"
+						@click="capture"
+					/>
 				</template>
 				<template v-else>
-					<Button variant="subtle" label="Retake" @click="retake" />
-					<Button variant="solid" label="Use photo" @click="usePhoto" />
+					<Button variant="subtle" label="Retake" aria-label="Retake" @click="retake" />
+					<Button
+						variant="solid"
+						label="Use photo"
+						aria-label="Use photo"
+						@click="usePhoto"
+					/>
 				</template>
 			</div>
 		</template>
