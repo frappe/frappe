@@ -9,6 +9,10 @@ from PIL import Image, ImageOps, ExifTags
 
 import frappe
 
+# NOTE: Even though LANCZOS or BICUBIC family of filters are really good for faithful resizing Ops (particularly for interpolating) choosing this filter
+# using Pillow results in much higher allocations (a simple thumbnail taking upto 15 Mb!) due to multiple allocations due to combination of chosen Layout by PIL and RGBA like mode.
+# # For now NEAREST filter is suggested (to bypass higher latency(an much higher memory usage)!)
+
 class PreAllocatedRawIO(io.RawIOBase):
 	"""Subclass to allow Pre-allocating a buffer to reduce `grow` calls during re-allocations!
 	   Even though for recent Python Versions `io.DEFAULT_BUFFER_SIZE` is pretty Big, but not enough for most of larger images!
@@ -82,7 +86,7 @@ def _resize_images_thread_func(image_abs_paths:list[os.PathLike | str], maxdim:i
 		im = Image.open(abs_path)
 		size = (maxdim, maxdim)
 		if im.size[0] > size[0] or im.size[1] > size[1]:
-			im.thumbnail(size, Image.Resampling.LANCZOS)
+			im.thumbnail(size, Image.Resampling.NEAREST)
 			# Overwrite, according to existing logic, not even a warning !
 			_, image_format = os.path.splitext(abs_path)
 			image_format = image_format.strip(".").lower()
@@ -182,7 +186,7 @@ def optimize_image(content, content_type, max_width=1024, max_height=768, optimi
 		else:
 			image_format = content_type.split("/")[1]
 			size = max_width, max_height
-			image.thumbnail(size, Image.Resampling.LANCZOS)
+			image.thumbnail(size, Image.Resampling.NEAREST)
 
 			output_pre = PreAllocatedRawIO(size = len(content) * 2)
 			image.save(
