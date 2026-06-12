@@ -20,7 +20,6 @@
   "variables",
   "scripts_tab",
   "script",
-  "watchers",
   "section_break_fmxt",
   "modules",
   "export_tab",
@@ -116,12 +115,6 @@
    "fieldtype": "Table",
    "label": "Modules",
    "options": "Studio Module Import"
-  },
-  {
-   "fieldname": "watchers",
-   "fieldtype": "Table",
-   "label": "Watchers",
-   "options": "Studio Page Watcher"
   },
   {
    "fieldname": "section_break_fmxt",

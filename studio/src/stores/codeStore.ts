@@ -2,13 +2,11 @@ import { defineStore } from "pinia"
 import {
 	ref, computed, watch, watchEffect, reactive, toRef, toRefs, unref,
 	isRef, isReactive, shallowRef, readonly, markRaw, nextTick, effectScope,
-	type WatchStopHandle, type ComputedRef, type EffectScope, h,
+	type ComputedRef, type EffectScope, h,
 } from "vue"
-import { watchDebounced } from "@vueuse/core"
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
-import { studioWatchers } from "@/data/studioWatchers"
 import { studioModulesRegistry } from "@/data/studioModules"
 import * as globalUtils from "@/utils/globalUtils"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
@@ -17,7 +15,6 @@ import { isFunctionExpression, toOptionalChaining, getTopLevelBindings } from "@
 import type { Filters, Resource, DocumentResource, DataResult } from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
-import type { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
 import type { ExpressionEvaluationContext } from "@/types"
 import type { Router } from "vue-router"
 
@@ -32,7 +29,6 @@ const vueReactivityApis = {
 const useCodeStore = defineStore("codeStore", () => {
 	const resources = ref<Record<string, Resource>>({})
 	const variables = ref<Record<string, any>>({})
-	const activeWatchers = ref<Record<string, WatchStopHandle>>({})
 	// Top-level bindings (refs, reactive state, computed, functions, classes) declared in the
 	// page script — exposed to expressions/scripts like a Vue `<script setup>`.
 	// shallowRef (not ref): a deep ref would wrap this in reactive() and auto-unwrap the nested
@@ -131,39 +127,6 @@ const useCodeStore = defineStore("codeStore", () => {
 			return
 		}
 		setValueInObject(variables.value, variablePath, value)
-	}
-
-	async function setPageWatchers(page: StudioPage) {
-		cleanupWatchers()
-		studioWatchers.filters = { parent: page.name }
-		await studioWatchers.reload()
-
-		studioWatchers.data.map((watcher: StudioPageWatcher) => {
-			setupWatcher(watcher)
-		})
-	}
-
-	function setupWatcher(watcher: StudioPageWatcher) {
-		const sourceValue = computed(() => getValueFromVariable(watcher.source))
-		let watcherFn
-
-		if (watcher.debounce && watcher.debounce > 0) {
-			watcherFn = watchDebounced(sourceValue,
-				() => executeUserScript(watcher.script),
-				{ debounce: watcher.debounce, deep: watcher.deep, immediate: watcher.immediate }
-			)
-		} else {
-			watcherFn = watch(sourceValue,
-				() => executeUserScript(watcher.script),
-				{ deep: watcher.deep, immediate: watcher.immediate }
-			)
-		}
-		activeWatchers.value[watcher.name || watcher.source] = watcherFn
-	}
-
-	async function cleanupWatchers() {
-		await Promise.all(Object.values(activeWatchers.value).map(stop => stop()))
-		activeWatchers.value = {}
 	}
 
 	function disposePageScriptScope() {
@@ -630,9 +593,6 @@ const useCodeStore = defineStore("codeStore", () => {
 		setPageVariables,
 		getValueFromVariable,
 		setValueInVariable,
-		// watchers
-		setPageWatchers,
-		cleanupWatchers,
 		// page script
 		pageScriptBindings,
 		pageScriptTemplateBindings,

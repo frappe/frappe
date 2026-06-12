@@ -27,7 +27,6 @@ class StudioPage(Document):
 		from studio.studio.doctype.studio_module_import.studio_module_import import StudioModuleImport
 		from studio.studio.doctype.studio_page_resource.studio_page_resource import StudioPageResource
 		from studio.studio.doctype.studio_page_variable.studio_page_variable import StudioPageVariable
-		from studio.studio.doctype.studio_page_watcher.studio_page_watcher import StudioPageWatcher
 
 		blocks: DF.LongText | None
 		draft_blocks: DF.LongText | None
@@ -42,7 +41,6 @@ class StudioPage(Document):
 		script: DF.Code | None
 		studio_app: DF.Link | None
 		variables: DF.Table[StudioPageVariable]
-		watchers: DF.Table[StudioPageWatcher]
 	# end: auto-generated types
 
 	def autoname(self):

@@ -58,13 +58,11 @@ watch(
 			await loadAppModulePaths()
 			page.value = await findPageWithRoute(window.app_name, currentPath)
 			if (!page.value) return
-			await codeStore.cleanupWatchers()
 			const pageModulePaths = (page.value.modules || []).map((m: { module_path: string }) => m.module_path)
 			codeStore.setPageModulePaths(pageModulePaths)
 			await loadModules(pageModulePaths)
 			await store.setPageData(page.value)
 			codeStore.setPageScript(page.value)
-			await codeStore.setPageWatchers(page.value)
 
 			const blocks = window.is_preview
 				? JSON.parse(page.value?.draft_blocks || page.value?.blocks)
