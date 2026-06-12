@@ -27,7 +27,8 @@ body {
 .for-forgot,
 .for-login-with-email-link,
 .for-signup,
-.for-email-login {
+.for-email-login,
+.for-reset-password {
 	.page-card {
 		padding: 24px;
 		background-color: var(--bg-color);
@@ -221,10 +222,10 @@ body {
 			input[type="text"],
 			input[type="email"],
 			input[type="password"] {
-				border: 1px solid var(--border-color);
+				border: 1px solid var(--outline-gray-2);
 				color: var(--text-color);
 				@include get_textstyle("base", "regular");
-				background-color: var(--bg-color);
+				background-color: var(--surface-white);
 				height: 28px;
 				padding: 6px 8px;
 				border-radius: var(--border-radius-sm);
@@ -326,7 +327,13 @@ body {
 				width: 100%;
 
 				input {
-					padding-left: 32px;
+					padding-left: 38px;
+				}
+			}
+
+			.password-field {
+				input {
+					padding-right: 38px;
 				}
 
 				.toggle-password {
@@ -404,6 +411,7 @@ body {
 		display: flex;
 		flex-direction: column;
 		gap: 6px;
+		align-self: stretch;
 	}
 
 	h4 {
@@ -412,15 +420,54 @@ body {
 		font-weight: var(--weight-bold);
 		letter-spacing: 0.01em;
 		line-height: 115%;
-		color: var(--text-color);
+		color: var(--heading-color);
+		align-self: stretch;
 	}
 
 	.page-card-subtitle {
 		margin: 0;
-		font-size: var(--text-sm);
+		font-size: var(--text-base);
 		font-weight: var(--weight-regular);
 		line-height: 150%;
 		letter-spacing: 0.28px;
 		color: var(--ink-gray-6);
+	}
+}
+
+.for-reset-password {
+	.password-hint {
+		display: flex;
+		align-items: flex-start;
+		gap: 8px;
+		@include get_textstyle("sm", "regular");
+		color: var(--ink-gray-5);
+		margin-bottom: 0;
+		line-height: 150%;
+
+		svg {
+			fill: var(--ink-gray-4);
+			flex-shrink: 0;
+			margin-top: 1px;
+		}
+	}
+
+	.password-mismatch-message {
+		@include get_textstyle("sm", "regular");
+		color: var(--ink-red-4);
+		margin-bottom: 0;
+
+		&.hidden {
+			display: none;
+		}
+	}
+
+	.password-strength-message {
+		@include get_textstyle("sm", "regular");
+		color: var(--ink-gray-5);
+		margin-bottom: 0;
+
+		&.hidden {
+			display: none;
+		}
 	}
 }
