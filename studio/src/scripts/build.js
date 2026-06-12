@@ -24,7 +24,7 @@ const { values: argv } = parseArgs({
 		"out-dir": { type: "string" },
 		base: { type: "string" },
 		"custom-components": { type: "string" },
-		"studio-modules": { type: "string" },
+		"page-scripts": { type: "string" },
 	},
 	strict: false,
 })
@@ -40,7 +40,7 @@ await generateAppBuild(
 	argv["out-dir"],
 	argv.base,
 	argv["custom-components"],
-	argv["studio-modules"],
+	argv["page-scripts"],
 )
 
 export async function generateAppBuild(
@@ -49,16 +49,16 @@ export async function generateAppBuild(
 	outDir,
 	base,
 	customComponentsJson,
-	studioModulesJson,
+	pageScriptsJson,
 ) {
 	if (!appName) return
 
 	const componentList = components ? components.split(",") : []
 	const customComponents = customComponentsJson ? JSON.parse(customComponentsJson) : {}
-	// studioModules: [{ module_path, module_name, file_path }]
-	const studioModules = studioModulesJson ? JSON.parse(studioModulesJson) : []
+	// pageScripts: [{ page_name, file_path }]
+	const pageScripts = pageScriptsJson ? JSON.parse(pageScriptsJson) : []
 	const componentSources = findComponentSources(componentList, customComponents)
-	const rendererContent = getRendererContent(componentSources, studioModules)
+	const rendererContent = getRendererContent(componentSources, pageScripts)
 	const tempRendererPath = writeRendererFile(appName, rendererContent)
 	await buildWithVite(appName, tempRendererPath, outDir, base)
 	deleteRendererFile(tempRendererPath)
@@ -86,7 +86,7 @@ function findComponentSources(appComponents, customComponents = {}) {
 	}
 }
 
-function getRendererContent(componentSources, studioModules = []) {
+function getRendererContent(componentSources, pageScripts = []) {
 	const { frappeUIComponents, frappeComponents, studioComponents, customComponents } = componentSources
 	const frappeUIImports =
 		frappeUIComponents.length > 0 ? `import { ${frappeUIComponents.join(",\n ")} } from "frappe-ui";` : ""
@@ -107,16 +107,17 @@ function getRendererContent(componentSources, studioModules = []) {
 		...customComponentNames.map((comp) => `app.component("${comp}", ${comp})`),
 	].join("\n")
 
-	// Register the attached modules as lazy, code-split importers keyed by module_path. The
-	// import() literals make Rollup chunk each module, but they stay deferred — codeStore's
-	// loadModules() runs them on demand (app-scope eagerly, page-scope on navigation).
-	const moduleImport = studioModules.length ? `import { setModuleImporters } from "@/data/studioModules"` : ""
-	const moduleSetup = studioModules.length
-		? `setModuleImporters({
-${studioModules.map((m) => `	${JSON.stringify(m.module_path)}: () => import(${JSON.stringify(m.file_path)}),`).join("\n")}
-})
-app.mount("#app")`
-		: `app.mount("#app")`
+	// Per-page setup() modules keyed by page docname (code mode). The import() literals make
+	// Rollup chunk each page script (and the modules it imports); codeStore loads them on
+	// navigation.
+	const pageScriptImport = pageScripts.length
+		? `import { setPageScriptImporters } from "@/data/studioPageScripts"`
+		: ""
+	const pageScriptSetup = pageScripts.length
+		? `setPageScriptImporters({
+${pageScripts.map((p) => `	${JSON.stringify(p.page_name)}: () => import(${JSON.stringify(p.file_path)}),`).join("\n")}
+})`
+		: ""
 
 	const rendererContent = `import "@/index.css"
 import { createApp } from "vue"
@@ -131,7 +132,7 @@ ${frappeUIImports}
 ${frappeImports}
 ${studioImports}
 ${customImports}
-${moduleImport}
+${pageScriptImport}
 
 const app = createApp(AppRenderer)
 const pinia = createPinia()
@@ -144,7 +145,8 @@ app.use(spritePlugin)
 ${componentRegistrations}
 window.__APP_COMPONENTS__ = app._context.components
 
-${moduleSetup}`
+${pageScriptSetup}
+app.mount("#app")`
 	return rendererContent
 }
 

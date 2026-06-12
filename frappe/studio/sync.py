@@ -58,6 +58,18 @@ def sync_pages(app_folder):
 		if page.endswith(".json"):
 			page_path = os.path.join(studio_page_folder, page)
 			import_file_by_path(page_path)
+			restore_page_script(page_path)
+
+
+def restore_page_script(page_json_path):
+	"""The page script is exported as a companion <page>.ts (kept out of the JSON); load it back
+	onto Studio Page.script so the DB mirrors the code."""
+	ts_path = page_json_path[: -len(".json")] + ".ts"
+	if not os.path.exists(ts_path):
+		return
+	page_name = frappe.parse_json(frappe.read_file(page_json_path)).get("page_name")
+	if page_name and frappe.db.exists("Studio Page", page_name):
+		frappe.db.set_value("Studio Page", page_name, "script", frappe.read_file(ts_path))
 
 
 def sync_components(app_folder):

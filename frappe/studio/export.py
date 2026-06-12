@@ -25,10 +25,13 @@ def write_document_file(doc, folder=None, exclude_fields=None):
 	print(f"Wrote document file for {doc.doctype} {doc.name} at {path}")
 
 
-def write_code_file(doc, folder, code_field, extension):
+def write_code_file(doc, folder, code_field, extension, filename=None):
 	"""Export a doc's Code field to a companion file (e.g. <name>.js) next to its JSON,
-	so the source is readable and diffable on disk instead of buried in JSON."""
-	fname = scrub(doc.name)
+	so the source is readable and diffable on disk instead of buried in JSON.
+
+	`filename` overrides the stem (without extension) so the code file can match its sibling
+	JSON's name (e.g. a page's <scrub(page_title)>.ts beside <scrub(page_title)>.json)."""
+	fname = filename or scrub(doc.name)
 	path = os.path.join(folder, f"{fname}.{extension}")
 	if Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
 		frappe.throw("Invalid export path: " + Path(path).as_posix())

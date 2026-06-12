@@ -17,8 +17,7 @@ import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
 import { registerCustomVueComponents, unregisterCustomVueComponents } from "@/globals"
-import { registerStudioModules, unregisterStudioModules, loadModules } from "@/data/studioModules"
-import type { StudioModuleMeta, StudioModuleImport } from "@/types/StudioModule"
+import { registerStudioPageScripts, unregisterStudioPageScripts } from "@/data/studioPageScripts"
 import { setCustomComponentFilePaths } from "@/utils/components"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
@@ -52,7 +51,6 @@ const useStudioStore = defineStore("store", () => {
 	const activeApp = ref<StudioApp | null>(null)
 	const appPages = ref<Record<string, StudioPage>>({})
 	const customVueComponents = ref<CustomVueComponentMeta[]>([])
-	const studioModules = ref<StudioModuleMeta[]>([])
 
 	async function setApp(appName: string) {
 		const appDoc = await fetchApp(appName)
@@ -60,10 +58,7 @@ const useStudioStore = defineStore("store", () => {
 		activeApp.value = appDoc
 		await setAppPages(appName)
 		await setCustomComponents()
-		await setStudioModules()
-		const appModulePaths = (appDoc.modules || []).map((m: StudioModuleImport) => m.module_path)
-		codeStore.setAppModulePaths(appModulePaths)
-		await loadModules(appModulePaths)
+		await setupPageScripts()
 	}
 
 	async function deleteApp(appName: string, appTitle: string) {
@@ -170,11 +165,8 @@ const useStudioStore = defineStore("store", () => {
 			return
 		}
 		activePage.value = page
-		const pageModulePaths = (page.modules || []).map((m: StudioModuleImport) => m.module_path)
-		codeStore.setPageModulePaths(pageModulePaths)
-		await loadModules(pageModulePaths)
 		await setPageData(page)
-		codeStore.setPageScript(page)
+		await codeStore.setPageScript(page, Boolean(page.is_standard))
 
 		const blocks = JSON.parse(page.draft_blocks || page.blocks || "[]")
 		if (blocks.length === 0) {
@@ -378,14 +370,11 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
-	// studio modules (composables/stores/utilities)
-	async function setStudioModules() {
-		if (studioModules.value.length) {
-			unregisterStudioModules()
-			studioModules.value = []
-		}
+	// Register per-page code scripts (<page>.ts) for exported apps so the editor can load them.
+	async function setupPageScripts() {
+		unregisterStudioPageScripts()
 		if (activeApp.value?.is_standard) {
-			studioModules.value = await registerStudioModules(activeApp.value.frappe_app!)
+			await registerStudioPageScripts(activeApp.value.frappe_app!)
 		}
 	}
 
@@ -501,8 +490,6 @@ const useStudioStore = defineStore("store", () => {
 		// custom components
 		setCustomComponents,
 		customVueComponents,
-		setStudioModules,
-		studioModules,
 		// studio pages
 		pageBlocks,
 		selectedPage,

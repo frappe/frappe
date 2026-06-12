@@ -1,5 +1,7 @@
 # Copyright (c) 2024, Frappe Technologies Pvt Ltd and contributors
 # For license information, please see license.txt
+import os
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -10,6 +12,7 @@ from studio.export import (
 	delete_file,
 	parse_json,
 	remove_null_fields,
+	write_code_file,
 	write_document_file,
 )
 from studio.utils import camel_case_to_kebab_case
@@ -24,7 +27,6 @@ class StudioPage(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		from studio.studio.doctype.studio_module_import.studio_module_import import StudioModuleImport
 		from studio.studio.doctype.studio_page_resource.studio_page_resource import StudioPageResource
 		from studio.studio.doctype.studio_page_variable.studio_page_variable import StudioPageVariable
 
@@ -32,7 +34,6 @@ class StudioPage(Document):
 		draft_blocks: DF.LongText | None
 		frappe_app: DF.Literal[None]
 		is_standard: DF.Check
-		modules: DF.Table[StudioModuleImport]
 		page_name: DF.Data | None
 		page_title: DF.Data | None
 		published: DF.Check
@@ -90,15 +91,33 @@ class StudioPage(Document):
 
 	def export_page(self):
 		if can_export(self):
-			write_document_file(self, folder=self.get_folder_path())
+			self.export_page_script()
+			# script lives in the companion .ts (code mode), so keep it out of the JSON
+			write_document_file(self, folder=self.get_folder_path(), exclude_fields=["script"])
 			self.delete_old_page_file()
 			self.export_components()
+
+	def export_page_script(self):
+		"""Write the page script as a code file (<page>.ts) beside the page JSON. Only rewrite
+		when the script changed or the file is missing, so direct edits to the .ts (the source of
+		truth for exported pages) aren't clobbered by unrelated page saves."""
+		folder = self.get_folder_path()
+		stem = self.get_export_docname()
+		ts_file = f"{stem}.ts"
+		if not self.script:
+			delete_file(folder, ts_file)
+			return
+		if self.has_value_changed("script") or not os.path.exists(os.path.join(folder, ts_file)):
+			frappe.create_folder(folder, with_init=True)
+			write_code_file(self, folder, code_field="script", extension="ts", filename=stem)
 
 	def delete_old_page_file(self):
 		if self.has_value_changed("page_title"):
 			doc_before_save = self.get_doc_before_save()
 			if doc_before_save:
-				delete_file(self.get_folder_path(), f"{frappe.scrub(doc_before_save.page_title)}.json")
+				old_stem = frappe.scrub(doc_before_save.page_title)
+				delete_file(self.get_folder_path(), f"{old_stem}.json")
+				delete_file(self.get_folder_path(), f"{old_stem}.ts")
 
 	def export_components(self):
 		if components := self.get_studio_components():

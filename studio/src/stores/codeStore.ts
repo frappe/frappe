@@ -7,7 +7,7 @@ import {
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
-import { studioModulesRegistry } from "@/data/studioModules"
+import { loadPageScriptModule } from "@/data/studioPageScripts"
 import * as globalUtils from "@/utils/globalUtils"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
@@ -46,9 +46,6 @@ const useCodeStore = defineStore("codeStore", () => {
 	// Effect scope owning the watch/watchEffect/computed the page script creates, so they
 	// are disposed when the page script is recompiled or the page is left.
 	let pageScriptScope: EffectScope | null = null
-	// Module paths imported at the app level (always exposed) and by the active page.
-	const appModulePaths = ref<string[]>([])
-	const pageModulePaths = ref<string[]>([])
 	const routeObject = ref<ComputedRef>()
 	const routerObject = ref<Router | Readonly<Router>>()
 
@@ -134,26 +131,53 @@ const useCodeStore = defineStore("codeStore", () => {
 		pageScriptScope = null
 	}
 
-	function setPageScript(page: StudioPage) {
-		// Tear down the previous page's script effects (watchers/computed) before recompiling.
+	async function setPageScript(page: StudioPage, codeMode: boolean = false) {
+		// Tear down the previous page's script effects (watchers/computed) before re-running.
 		disposePageScriptScope()
 		pageScriptBindings.value = {}
 
+		if (codeMode) {
+			// Exported app: run the page's compiled setup() module (full import power).
+			pageScriptBindings.value = await loadCodePageScript(page.name)
+			return
+		}
+
+		// Non-exported app: interpret the page.script field (live, no imports).
 		const source = page.script || ""
 		if (!source.trim()) return
-
 		const bindingNames = getTopLevelBindings(source)
 		pageScriptBindings.value = compilePageScript(source, bindingNames)
 	}
 
+	async function loadCodePageScript(pageName: string): Promise<Record<string, any>> {
+		const mod = await loadPageScriptModule(pageName)
+		const setup = mod?.default
+		if (typeof setup !== "function") return {}
+		// setup(ctx) gets the live execution context (resources/variables/modules/route/router).
+		return runInPageScriptScope(() => setup(globalExecutionContext.value) || {})
+	}
+
+	function runInPageScriptScope(run: () => Record<string, any>): Record<string, any> {
+		// Reactive effects (watch/watchEffect/computed) created during `run` are owned by this
+		// scope so they're disposed on the next navigation / recompile.
+		pageScriptScope = effectScope(true)
+		let bindings: Record<string, any> = {}
+		pageScriptScope.run(() => {
+			try {
+				bindings = run() || {}
+			} catch (error) {
+				console.error("Error running page script", error)
+			}
+		})
+		return bindings
+	}
+
 	function compilePageScript(source: string, bindingNames: string[]) {
-		// Run the page script source once, like a Vue `<script setup>`, and return
-		// every top-level binding (refs/reactive/computed/functions/classes). Free identifiers
-		// resolve through a proxy over the LIVE execution context, so the script sees the Vue
-		// reactivity APIs, variables/resources/modules — including ones registered a tick later.
-		// Reactive effects (watch/watchEffect/computed) are created inside an effectScope so
-		// they can be disposed on the next recompile / page leave. The source is always run
-		// (even with no named bindings) so watcher-only scripts still take effect.
+		// Run the page script source once, like a Vue `<script setup>`, and return every top-level
+		// binding (refs/reactive/computed/functions/classes). Free identifiers resolve through a
+		// proxy over the LIVE execution context, so the script sees the Vue reactivity APIs and
+		// variables/resources/modules — including ones registered a tick later. The source is
+		// always run (even with no named bindings) so watcher-only scripts still take effect.
 		const liveContext = new Proxy(
 			{},
 			{
@@ -167,43 +191,16 @@ const useCodeStore = defineStore("codeStore", () => {
 				},
 			},
 		)
-		pageScriptScope = effectScope(true)
-		let bindings: Record<string, any> = {}
-		pageScriptScope.run(() => {
-			try {
-				const factory = new Function(
-					"context",
-					`with (context) {
-						${source}
-						return { ${bindingNames.join(", ")} };
-					}`,
-				)
-				bindings = factory(liveContext) || {}
-			} catch (error) {
-				console.error("Error compiling page script", error)
-			}
+		return runInPageScriptScope(() => {
+			const factory = new Function(
+				"context",
+				`with (context) {
+					${source}
+					return { ${bindingNames.join(", ")} };
+				}`,
+			)
+			return factory(liveContext) || {}
 		})
-		return bindings
-	}
-
-	// Studio modules (composables/stores/utilities) exposed by name, strictly scoped to what
-	// the app and the active page import. The registry is grouped by module_path
-	// ({ module_path: { bindingName: value } }) and populated by loadModules() — the same
-	// single source in dev and production.
-	const studioModules = computed(() => {
-		const exposed: Record<string, any> = {}
-		for (const path of new Set([...appModulePaths.value, ...pageModulePaths.value])) {
-			Object.assign(exposed, studioModulesRegistry.value[path] || {})
-		}
-		return exposed
-	})
-
-	function setAppModulePaths(paths: string[]) {
-		appModulePaths.value = paths || []
-	}
-
-	function setPageModulePaths(paths: string[]) {
-		pageModulePaths.value = paths || []
 	}
 
 	const globalContext = computed(() => {
@@ -211,7 +208,6 @@ const useCodeStore = defineStore("codeStore", () => {
 		return {
 			...variables.value,
 			...resources.value,
-			...studioModules.value,
 			...pageScriptTemplateBindings.value,
 			...globalUtils,
 			route: unref(routeObject.value),
@@ -228,7 +224,6 @@ const useCodeStore = defineStore("codeStore", () => {
 			...vueReactivityApis,
 			...variablesRefs,
 			...resources.value,
-			...studioModules.value,
 			...pageScriptBindings.value,
 			...globalUtils,
 			route: unref(routeObject.value),
@@ -597,10 +592,6 @@ const useCodeStore = defineStore("codeStore", () => {
 		pageScriptBindings,
 		pageScriptTemplateBindings,
 		setPageScript,
-		// modules
-		studioModules,
-		setAppModulePaths,
-		setPageModulePaths,
 		// code execution
 		globalContext,
 		globalExecutionContext,

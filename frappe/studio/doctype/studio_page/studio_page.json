@@ -21,7 +21,6 @@
   "scripts_tab",
   "script",
   "section_break_fmxt",
-  "modules",
   "export_tab",
   "is_standard",
   "frappe_app"
@@ -109,12 +108,6 @@
    "fieldtype": "Code",
    "label": "Page Script",
    "options": "JS"
-  },
-  {
-   "fieldname": "modules",
-   "fieldtype": "Table",
-   "label": "Modules",
-   "options": "Studio Module Import"
   },
   {
    "fieldname": "section_break_fmxt",

@@ -165,40 +165,40 @@ def get_custom_vue_components(frappe_app: str) -> list[dict]:
 
 
 @frappe.whitelist()
-def get_studio_modules(frappe_app: str) -> list[dict]:
-	"""Discover custom JS/TS modules (composables, stores, utilities) under <app>/studio/.
+def get_studio_page_scripts(frappe_app: str) -> list[dict]:
+	"""Discover exported page scripts (<page>.ts) under <app>/studio/<studio_app>/studio_page/.
 
-	A module's identity is its `module_path` (relative to the app's studio folder) so that
-	same-named files in different folders stay distinct. `module_name` is only a label.
+	Keyed by the page's docname (`page_name`, read from the sibling JSON) so the runtime can load
+	a page's compiled setup() module by its docname.
 	"""
-	modules = []
+	scripts = []
 
 	studio_folder = frappe.get_app_source_path(frappe_app, "studio")
 	if not os.path.exists(studio_folder):
 		return []
 
-	module_extensions = (".js", ".ts")
-	skip_extensions = (".d.ts", ".test.js", ".test.ts", ".spec.js", ".spec.ts")
-
 	for studio_app in sorted(os.listdir(studio_folder)):
-		studio_app_dir = os.path.join(studio_folder, studio_app)
-		if not os.path.isdir(studio_app_dir):
+		page_folder = os.path.join(studio_folder, studio_app, "studio_page")
+		if not os.path.isdir(page_folder):
 			continue
 
-		for dirpath, _dirnames, filenames in os.walk(studio_app_dir):
-			for filename in sorted(filenames):
-				if not filename.endswith(module_extensions) or filename.endswith(skip_extensions):
-					continue
+		for filename in sorted(os.listdir(page_folder)):
+			if not filename.endswith(".ts"):
+				continue
 
-				file_path = os.path.join(dirpath, filename)
-				modules.append(
+			file_path = os.path.join(page_folder, filename)
+			json_path = file_path[: -len(".ts")] + ".json"
+			if not os.path.exists(json_path):
+				continue
+			page_name = frappe.parse_json(frappe.read_file(json_path)).get("page_name")
+			if page_name:
+				scripts.append(
 					{
-						"module_name": os.path.splitext(filename)[0],
-						"module_path": os.path.relpath(file_path, studio_folder),
+						"page_name": page_name,
 						"frappe_app": frappe_app,
 						"studio_app": studio_app,
 						"file_path": file_path,
 					}
 				)
 
-	return modules
+	return scripts
