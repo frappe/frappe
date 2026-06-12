@@ -200,7 +200,7 @@ def _get_user_info(request: WebRequest) -> dict:
 		if message.get("user") and message.get("user") != "Guest" and not message.get("installed_apps"):
 			message = request(method).get("message") or {}
 	except Exception as e:
-		_reject(f"auth failure ({e})", f"Unauthorized: {e}")
+		_reject(f"auth failure ({e})", "Unauthorized")
 
 	# get_user_info returns {} when the secret mismatches or the session is invalid.
 	if not message.get("user"):
