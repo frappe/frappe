@@ -353,7 +353,6 @@ def render_safe_globals():
 			throw=frappe.throw,
 			user=user,
 			get_fullname=frappe.utils.get_fullname,
-			get_gravatar=frappe.utils.get_gravatar_url,
 			full_name=frappe.local.session.data.full_name
 			if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 			else "Guest",
