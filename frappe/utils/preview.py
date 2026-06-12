@@ -1,4 +1,4 @@
-# Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 """Native HTML/URL preview-image generation.
 
