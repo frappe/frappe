@@ -64,12 +64,6 @@ class TestPreview(IntegrationTestCase):
 
 		self.assert_image(get_preview_from_html(self.HTML, format="webp"), "WEBP")
 
-	def test_invalid_format_raises(self):
-		from frappe.utils.preview import get_preview_from_html
-
-		with self.assertRaises(frappe.ValidationError):
-			get_preview_from_html(self.HTML, format="png")
-
 	def test_get_preview_from_url_renders_content(self):
 		"""URL navigation must load real content, not the empty navigation stub
 		used by the HTML flow."""
@@ -86,3 +80,13 @@ class TestPreview(IntegrationTestCase):
 		# this robust against jpeg compression noise.
 		colors = Image.open(BytesIO(data)).convert("RGB").getcolors(maxcolors=1 << 20)
 		self.assertGreater(len(colors or []), 100)
+
+
+class TestPreviewValidation(IntegrationTestCase):
+	"""Format validation raises before Chromium is touched, so it runs everywhere."""
+
+	def test_invalid_format_raises(self):
+		from frappe.utils.preview import get_preview_from_html
+
+		with self.assertRaises(frappe.ValidationError):
+			get_preview_from_html("<html></html>", format="png")
