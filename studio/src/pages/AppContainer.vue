@@ -63,7 +63,7 @@ watch(
 			codeStore.setPageModulePaths(pageModulePaths)
 			await loadModules(pageModulePaths)
 			await store.setPageData(page.value)
-			await codeStore.setPageClientScripts(page.value)
+			codeStore.setPageScript(page.value)
 			await codeStore.setPageWatchers(page.value)
 
 			const blocks = window.is_preview

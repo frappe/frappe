@@ -5,7 +5,13 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 
-from studio.export import can_export, delete_file, parse_json, remove_null_fields, write_document_file
+from studio.export import (
+	can_export,
+	delete_file,
+	parse_json,
+	remove_null_fields,
+	write_document_file,
+)
 from studio.utils import camel_case_to_kebab_case
 
 
@@ -19,15 +25,11 @@ class StudioPage(Document):
 		from frappe.types import DF
 
 		from studio.studio.doctype.studio_module_import.studio_module_import import StudioModuleImport
-		from studio.studio.doctype.studio_page_client_script.studio_page_client_script import (
-			StudioPageClientScript,
-		)
 		from studio.studio.doctype.studio_page_resource.studio_page_resource import StudioPageResource
 		from studio.studio.doctype.studio_page_variable.studio_page_variable import StudioPageVariable
 		from studio.studio.doctype.studio_page_watcher.studio_page_watcher import StudioPageWatcher
 
 		blocks: DF.LongText | None
-		client_scripts: DF.TableMultiSelect[StudioPageClientScript]
 		draft_blocks: DF.LongText | None
 		frappe_app: DF.Literal[None]
 		is_standard: DF.Check
@@ -37,6 +39,7 @@ class StudioPage(Document):
 		published: DF.Check
 		resources: DF.Table[StudioPageResource]
 		route: DF.Data | None
+		script: DF.Code | None
 		studio_app: DF.Link | None
 		variables: DF.Table[StudioPageVariable]
 		watchers: DF.Table[StudioPageWatcher]

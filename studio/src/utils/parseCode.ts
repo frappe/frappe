@@ -97,26 +97,6 @@ export function toOptionalChaining(expression: string): string {
 	}
 }
 
-const fnNamesCache = new LRUCache<string[]>(20)
-export function getFunctionDeclarationNames(code: string): string[] {
-	if (!code?.trim()) return []
-
-	const cached = fnNamesCache.get(code)
-	if (cached !== undefined) return cached
-
-	try {
-		const ast = parse(code, { ecmaVersion: "latest", sourceType: "module" })
-		const names = ast.body
-			.filter((node) => node.type === "FunctionDeclaration" && (node as any).id)
-			.map((node) => (node as any).id.name as string)
-		fnNamesCache.set(code, names)
-		return names
-	} catch {
-		fnNamesCache.set(code, [])
-		return []
-	}
-}
-
 // Collect every binding name a declaration pattern introduces, including
 // destructuring (object/array/rest/default patterns).
 function collectPatternNames(pattern: any, names: string[]) {

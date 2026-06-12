@@ -96,7 +96,7 @@
 				</Dialog>
 			</div>
 		</CollapsibleSection>
-		<ScriptPanel :page="page" />
+		<PageScript v-if="!store.activeApp?.is_standard" :page="page" />
 		<template v-if="store.activeApp?.frappe_app">
 			<ModulesPanel
 				v-if="store.activePage"
@@ -131,7 +131,7 @@ import { confirm } from "@/utils/helpers"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import ItemActions from "@/components/ItemActions.vue"
 import FormDescription from "@/components/FormDescription.vue"
-import ScriptPanel from "@/components/ScriptPanel.vue"
+import PageScript from "@/components/PageScript.vue"
 
 const props = defineProps<{
 	page: StudioPage

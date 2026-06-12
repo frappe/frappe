@@ -75,6 +75,7 @@ declare module 'vue' {
     OptionToggle: typeof import('./src/components/OptionToggle.vue')['default']
     PaddingHandler: typeof import('./src/components/PaddingHandler.vue')['default']
     PageOptions: typeof import('./src/components/PageOptions.vue')['default']
+    PageScript: typeof import('./src/components/PageScript.vue')['default']
     PagesPanel: typeof import('./src/components/PagesPanel.vue')['default']
     PanelResizer: typeof import('./src/components/PanelResizer.vue')['default']
     PlacementControl: typeof import('./src/components/PlacementControl.vue')['default']

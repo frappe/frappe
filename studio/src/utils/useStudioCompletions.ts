@@ -84,7 +84,7 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 			})
 		}
 
-		Object.entries(codeStore.clientScriptBindings || {}).forEach(([name, binding]) => {
+		Object.entries(codeStore.pageScriptBindings || {}).forEach(([name, binding]) => {
 			const unwrapped = unref(binding)
 			const isFunction = typeof unwrapped === "function"
 			const refLike = isRef(binding)

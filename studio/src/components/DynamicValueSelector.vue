@@ -122,18 +122,18 @@ const dynamicValueOptions = computed(() => {
 				items: dataSourceOptions,
 			})
 		}
-		// Client Script bindings group (refs/reactive/computed — functions are wired to events, not props)
-		const clientScriptOptions = Object.entries(codeStore.clientScriptBindings)
+		// Page script bindings group (refs/reactive/computed — functions are wired to events, not props)
+		const pageScriptOptions = Object.entries(codeStore.pageScriptBindings)
 			.filter(([, binding]) => typeof unref(binding) !== "function")
 			.map(([name, binding]) => ({
 				value: name,
 				label: name,
 				type: getBindingType(binding),
 			}))
-		if (clientScriptOptions.length > 0) {
+		if (pageScriptOptions.length > 0) {
 			groups.push({
-				group: "Client Script",
-				items: clientScriptOptions,
+				group: "Page Script",
+				items: pageScriptOptions,
 			})
 		}
 	}

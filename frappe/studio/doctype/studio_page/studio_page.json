@@ -19,9 +19,9 @@
   "resources",
   "variables",
   "scripts_tab",
+  "script",
   "watchers",
   "section_break_fmxt",
-  "client_scripts",
   "modules",
   "export_tab",
   "is_standard",
@@ -106,10 +106,10 @@
    "label": "Scripts"
   },
   {
-   "fieldname": "client_scripts",
-   "fieldtype": "Table MultiSelect",
-   "label": "Client Scripts",
-   "options": "Studio Page Client Script"
+   "fieldname": "script",
+   "fieldtype": "Code",
+   "label": "Page Script",
+   "options": "JS"
   },
   {
    "fieldname": "modules",

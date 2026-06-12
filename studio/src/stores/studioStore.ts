@@ -174,7 +174,7 @@ const useStudioStore = defineStore("store", () => {
 		codeStore.setPageModulePaths(pageModulePaths)
 		await loadModules(pageModulePaths)
 		await setPageData(page)
-		await codeStore.setPageClientScripts(page)
+		codeStore.setPageScript(page)
 		await codeStore.setPageWatchers(page)
 
 		const blocks = JSON.parse(page.draft_blocks || page.blocks || "[]")
