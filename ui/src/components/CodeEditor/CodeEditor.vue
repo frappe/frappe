@@ -234,12 +234,13 @@ onMounted(async () => {
 			transform: "rotate(-90deg)",
 		},
 		// `basicSetup` highlights the active line/gutter in a default light blue;
-		// override to a subtle espresso gray (token-flipped in dark mode).
+		// override to a subtle espresso gray (token-flipped in dark mode). One step
+		// darker than the `subtle` gray-2 fill so the focused row reads against it.
 		".cm-activeLine": {
-			backgroundColor: "var(--surface-gray-2, #f3f3f3)",
+			backgroundColor: "var(--surface-gray-3, #e8e8e8)",
 		},
 		".cm-activeLineGutter": {
-			backgroundColor: "var(--surface-gray-2, #f3f3f3)",
+			backgroundColor: "var(--surface-gray-3, #e8e8e8)",
 			color: "var(--ink-gray-7, #525252)",
 		},
 		// Autocomplete / hover tooltips (from `basicSetup`) default to a light
