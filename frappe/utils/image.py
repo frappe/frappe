@@ -45,16 +45,15 @@ class PreAllocatedRawIO(io.RawIOBase):
 		if (self._pos + len(data)) >= self._size:
 			# Re-grow. (as current capacity wouldn't be enough)
 			# Don't go on sharing it across threads without any locking across write specifically!
-			temp_buffer = bytearray(self._size * 2)
+			temp_buffer = bytearray(max(self._size * 2, self._size + len(data) + 1))
 			memoryview(temp_buffer)[:self._pos] = memoryview(self._buffer)[:self._pos]
 			del self._buffer
 			self._buffer = temp_buffer
 			self._size = len(temp_buffer)
 			del temp_buffer
 
-		if self._pos  >= self._size:
-			return 0
 		chunk_size = len(data)
+		assert self._pos + chunk_size <= self._size, "Not enough capacity, maybe grow failed!"
 		self._buffer[self._pos: self._pos + chunk_size] = data
 		self._pos += chunk_size
 		return chunk_size
