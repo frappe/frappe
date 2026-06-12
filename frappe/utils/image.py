@@ -154,21 +154,19 @@ def strip_exif_data(content:bytes, content_type) -> bytes:
 			# Costly OP but required, due to choice of layout by PILLOW i think!
 			original_image = original_image.convert("RGB")
 
-		# Save.
-		output_pre = PreAllocatedRawIO(size = len(content) * 2)
-		format = content_type.split("/")[1].strip().lower()
-		if format == "png":
-			# Pass compress level for PNGs.  https://github.com/python-pillow/Pillow/issues/1211
-			original_image.save(output_pre, format = content_type.split("/")[1], compress_level = 1, exif=b"")
-		else:
-			original_image.save(output_pre, format = content_type.split("/")[1], exif=b"")
-
-		encoded_data =  output_pre.getvalue()
-		del output_pre, original_image
-		return encoded_data
+	# Save.
+	# TODO: just update the `content` underlying buffer to remove exif data,rather than creating  a new copy!
+	output_pre = PreAllocatedRawIO(size = len(content) * 2)
+	format = content_type.split("/")[1].strip().lower()
+	if format == "png":
+		# Pass compress level for PNGs.  https://github.com/python-pillow/Pillow/issues/1211
+		original_image.save(output_pre, format = content_type.split("/")[1], compress_level = 1, exif=b"")
 	else:
-		del original_image, exif
-		return content
+		original_image.save(output_pre, format = content_type.split("/")[1], exif=b"")
+
+	encoded_data =  output_pre.getvalue()
+	del output_pre, original_image
+	return encoded_data
 
 def optimize_image(content, content_type, max_width=1024, max_height=768, optimize=True, quality=85):
 	if content_type == "image/svg+xml":
