@@ -179,7 +179,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 		except Exception as e:
 			frappe.throw(_("Error in {0}.get_list: {1}").format(doctype, str(e)))
 
-	data = query.run(as_dict=as_dict, debug=debug)
+	data = query.run(as_dict=as_dict, debug=debug, as_list=not as_dict)
 	assert isinstance(data, list), "query.run must return a list of records"
 	frappe.response["has_next_page"] = len(data) > limit
 	return data[:limit]
