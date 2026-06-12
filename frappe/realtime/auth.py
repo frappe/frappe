@@ -125,6 +125,8 @@ def _validate_origin(environ: dict) -> None:
 	"""Reject cross-site websocket hijacks."""
 	host = read_header(environ, "Host")
 	origin = read_header(environ, "Origin")
+	if not host or not origin:
+		_reject(f"missing host/origin header (host={host!r}, origin={origin!r})", "Invalid origin")
 	if get_hostname(host) != get_hostname(origin):
 		_reject(f"origin {origin!r} != host {host!r}", "Invalid origin")
 
