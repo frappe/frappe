@@ -60,6 +60,9 @@ class Socket:
 		self._sio.enter_room(self.sid, room, namespace=self.namespace)
 
 	def leave(self, room: str) -> None:
+		if not self._connected():
+			return
+
 		self._sio.leave_room(self.sid, room, namespace=self.namespace)
 
 	def emit(self, event: str, data: object | None = None, room: str | None = None) -> None:
