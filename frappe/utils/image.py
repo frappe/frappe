@@ -3,6 +3,7 @@
 from _typeshed import ReadableBuffer
 import io
 import os
+import threading
 
 from PIL import Image, ImageOps, ExifTags
 
@@ -75,18 +76,57 @@ class PreAllocatedRawIO(io.RawIOBase):
 	def get_underlying_buffer(self):
 		return self._buffer
 
-def resize_images(path, maxdim=700):
-	size = (maxdim, maxdim)
-	for basepath, folders, files in os.walk(path):  # noqa: B007
+def _resize_images_thread_func(image_abs_paths:list[os.PathLike | str], maxdim:int):
+	# Thread target function to resize images.
+	for abs_path in image_abs_paths:
+		im = Image.open(abs_path)
+		size = (maxdim, maxdim)
+		if im.size[0] > size[0] or im.size[1] > size[1]:
+			im.thumbnail(size, Image.Resampling.LANCZOS)
+			# Overwrite, according to existing logic, not even a warning !
+			_, image_format = os.path.splitext(abs_path)
+			image_format = image_format.strip(".").lower()
+			im.save(
+				abs_path,
+				format = image_format,
+				compress_level = 1 if format=="png" else 6
+			)
+
+def resize_images(path:os.PathLike, maxdim=700, max_workers:int = 3):
+	"""
+	max_workers:int , No of threads to use to speed up resizing a batch of image.
+		Though it would depend on concurrent load, but can have linear gains for example using 3 workers for a batch as low as 20 images (HD size)!!
+		We keep it a 3, for now due to non-predicatability of work-load due to weird mixing of multiple different services !
+		It results in almost 3 times speed up for almost all cases.
+	"""
+	# size = (maxdim, maxdim)
+	image_abs_paths = list()
+	for basepath, folders, files in os.walk(path, topdown = True):  # noqa: B007
 		for fname in files:
 			extn = fname.rsplit(".", 1)[1]
 			if extn in ("jpg", "jpeg", "png", "gif"):
-				im = Image.open(os.path.join(basepath, fname))
-				if im.size[0] > size[0] or im.size[1] > size[1]:
-					im.thumbnail(size, Image.Resampling.LANCZOS)
-					im.save(os.path.join(basepath, fname))
+				image_abs_paths.append(os.path.join(basepath, fname))
 
-					print(f"resized {os.path.join(basepath, fname)}")
+	# Create threads on demand and divide work.
+	n_workers = max_workers
+	threads_arr:list[threading.Thread] = list()
+	remainder = len(image_abs_paths) % n_workers
+	avg = len(image_abs_paths) // n_workers
+	for i in range(n_workers):
+		start,end = i*avg, (i+1)*avg
+		if i == n_workers - 1:
+			end += remainder
+		work = image_abs_paths[start:end]
+
+		t = threading.Thread(target = _resize_images_thread_func , args = (work, maxdim))
+		t.start()
+		threads_arr.append(t)
+		del t
+	del avg, remainder
+
+	# wait for them to finish.
+	for t in threads_arr:
+		t.join()
 
 
 def strip_exif_data(content:bytes, content_type) -> bytes:
