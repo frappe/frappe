@@ -36,15 +36,21 @@ const timeAgo = computed(() => dayjs(props.notification.creation as string).from
 
 <template>
 	<div
-		class="flex items-start gap-2.5 p-3 cursor-pointer hover:bg-surface-gray-1"
+		class="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-surface-gray-1"
 		:class="[isUnread ? 'bg-surface-gray-1/40' : '', props.class]"
 		@click="emit('click', notification)"
 	>
-		<!-- active indicator + leading visual: a black dot sits to the left of the avatar,
-         grouped with it in a flex (mirrors frappe/crm's Notifications.vue). The dot is
-         transparent when read so the avatar keeps its position. -->
-		<div class="mt-1 flex flex-shrink-0 items-center gap-2.5">
-			<span class="size-[6px] rounded-full" :class="{ 'bg-gray-800': isUnread }" />
+		<!-- leading visual: avatar/icon, left edge aligned with the header + tabs (px-4 = the
+		     panel's content margin). The unread dot is absolutely placed in the left padding, so
+		     it stays outside the aligned avatar/text column and never shifts the avatar. -->
+		<div class="relative mt-0.5 flex-shrink-0">
+			<!-- layout via Tailwind (hardcoded values); only the gray-800 color is inline,
+			     since frappe-ui's preset drops the default `gray-*` utilities -->
+			<span
+				v-if="isUnread"
+				class="absolute top-1/2 size-[5px] -translate-y-1/2 rounded-full bg-gray-800"
+				style="left: -10px"
+			/>
 			<component :is="iconComponent" v-if="iconComponent" :notification="notification" />
 			<div
 				v-else-if="iconName"
@@ -58,11 +64,11 @@ const timeAgo = computed(() => dayjs(props.notification.creation as string).from
 		<!-- body -->
 		<div class="min-w-0 flex-1">
 			<!-- text-p-* are frappe-ui's paragraph sizes; they carry the design system's
-           comfortable line-heights (1.5–1.6) instead of the tight 1.15 of plain text-*. -->
+			     comfortable line-heights (1.5–1.6) instead of the tight 1.15 of plain text-*. -->
 			<div class="text-p-base text-ink-gray-8 [&_b]:font-semibold" v-html="title" />
 			<div
 				v-if="description"
-				class="mt-1 text-p-sm text-ink-gray-6 line-clamp-2"
+				class="mt-1 text-p-sm text-ink-gray-5 line-clamp-2"
 				v-html="description"
 			/>
 			<div class="mt-1 text-p-xs text-ink-gray-5">{{ timeAgo }}</div>
