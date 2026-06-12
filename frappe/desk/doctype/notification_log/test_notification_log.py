@@ -4,7 +4,6 @@ import frappe
 from frappe.core.doctype.user.user import get_system_users
 from frappe.desk.doctype.notification_log.notification_log import (
 	enqueue_create_notification,
-	get_app_doctypes,
 	get_email_header,
 )
 from frappe.desk.doctype.notification_type.notification_type import install_notification_types
@@ -127,11 +126,62 @@ class TestNotificationLog(IntegrationTestCase):
 		)
 
 
-	def test_get_app_doctypes(self):
-		frappe_doctypes = get_app_doctypes("frappe")
-		self.assertIn("Notification Log", frappe_doctypes)
-		self.assertIn("Notification Type", frappe_doctypes)
-		self.assertEqual(get_app_doctypes("this-app-does-not-exist"), [])
+	def test_app_derived_from_document_type(self):
+		"""`app` is filled from the reference document's owning app on insert."""
+		install_notification_types()
+		recipient = make_recipient("notify_app_derive@example.com")
+		enqueue_create_notification(
+			[recipient],
+			{
+				"type": "Mention",
+				"subject": "Derived app",
+				"document_type": "ToDo",  # owned by frappe
+				"document_name": "APP-DERIVE-1",
+				"from_user": "Administrator",
+			},
+		)
+		app = frappe.db.get_value(
+			"Notification Log", {"for_user": recipient, "subject": "Derived app"}, "app"
+		)
+		self.assertEqual(app, "frappe")
+
+	def test_app_explicit_not_overwritten(self):
+		"""An explicitly supplied `app` is preserved, not re-derived from document_type."""
+		install_notification_types()
+		recipient = make_recipient("notify_app_explicit@example.com")
+		enqueue_create_notification(
+			[recipient],
+			{
+				"type": "Mention",
+				"subject": "Explicit app",
+				"app": "crm",
+				"document_type": "ToDo",  # would derive to frappe, but explicit wins
+				"document_name": "APP-EXPLICIT-1",
+				"from_user": "Administrator",
+			},
+		)
+		app = frappe.db.get_value(
+			"Notification Log", {"for_user": recipient, "subject": "Explicit app"}, "app"
+		)
+		self.assertEqual(app, "crm")
+
+	def test_app_empty_when_no_document_type(self):
+		"""No document_type and no explicit app => global-only (`app` left empty)."""
+		install_notification_types()
+		recipient = make_recipient("notify_app_none@example.com")
+		enqueue_create_notification(
+			[recipient],
+			{
+				"type": "Mention",
+				"subject": "No app",
+				"from_user": "Administrator",
+				"link": "/app",
+			},
+		)
+		app = frappe.db.get_value(
+			"Notification Log", {"for_user": recipient, "subject": "No app"}, "app"
+		)
+		self.assertFalse(app)
 
 
 def make_recipient(email: str) -> str:

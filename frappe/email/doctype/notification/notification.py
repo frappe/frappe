@@ -470,6 +470,10 @@ def get_context(context):
 			"type": self.notification_type or "Alert",
 			"document_type": get_reference_doctype(doc),
 			"document_name": get_reference_name(doc),
+			# Scope the in-app notification to the rule's own app so it appears in that app's panel
+			# even when the reference document belongs to a different app (or there is none).
+			# Falls through to NotificationLog.before_insert's document_type derivation when unset.
+			"app": frappe.db.get_value("Module Def", self.module, "app_name") if self.module else None,
 			"title": title,
 			"subject": subject,
 			"description": description,

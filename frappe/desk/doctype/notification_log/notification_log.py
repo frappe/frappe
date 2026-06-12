@@ -22,6 +22,7 @@ class NotificationLog(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		app: DF.Literal[None]
 		attached_file: DF.Code | None
 		description: DF.TextEditor | None
 		document_name: DF.Data | None
@@ -51,6 +52,12 @@ class NotificationLog(Document):
 		if not self.email_content and self.description:
 			self.email_content = self.description
 
+		# `app` is the owning app, used to scope app-specific notification panels. Producers may
+		# set it explicitly (e.g. a System Notification rule from its module); otherwise derive it
+		# from the reference document's app. Left empty when it can't be resolved (global-only).
+		if not self.app and self.document_type:
+			self.app = _resolve_app_for_doctype(self.document_type)
+
 	def after_insert(self):
 		frappe.publish_realtime("notification", after_commit=True, user=self.for_user)
 		set_notifications_as_unseen(self.for_user)
@@ -67,6 +74,21 @@ class NotificationLog(Document):
 
 		table = frappe.qb.DocType("Notification Log")
 		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
+
+
+def _resolve_app_for_doctype(doctype: str) -> str | None:
+	"""Owning app of `doctype`, or None if it can't be resolved (deleted/stale/custom doctype).
+
+	Uses the cached get_doctype_module + get_module_app rather than building the whole
+	get_doctype_app_map() on every insert.
+	"""
+	from frappe.modules.utils import get_doctype_module, get_module_app
+
+	try:
+		return get_module_app(get_doctype_module(doctype))
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
+		return None
 
 
 def get_skip_email_types() -> set[str]:
@@ -235,19 +257,6 @@ def get_notification_logs(limit: int = 20):
 		frappe.utils.add_user_info(user, user_info)
 
 	return {"notification_logs": notification_logs, "user_info": user_info}
-
-
-@frappe.whitelist()
-@http_cache(max_age=300, stale_while_revalidate=60 * 60)
-def get_app_doctypes(app: str) -> list[str]:
-	"""Doctypes owned by `app` — used to scope the notification panel to a single app.
-
-	A panel passes its `appName`; the feed is then filtered to notifications whose
-	`document_type` is one of these.
-	"""
-	from frappe.modules.utils import get_doctype_app_map
-
-	return [doctype for doctype, owner in get_doctype_app_map().items() if owner == app]
 
 
 @frappe.whitelist()

@@ -8,6 +8,12 @@ frappe.ui.form.on("Notification Log", {
 		} else {
 			frm.get_field("attachment_link").$wrapper.empty();
 		}
+
+		// `app` is a read-only Select populated in code; load the installed-app list at runtime
+		// (same pattern as Module Def.app_name) so the standard filter dropdown shows app names.
+		frappe.xcall("frappe.core.doctype.module_def.module_def.get_installed_apps").then((r) => {
+			frm.set_df_property("app", "options", JSON.parse(r));
+		});
 	},
 
 	open_reference_document: function (frm) {

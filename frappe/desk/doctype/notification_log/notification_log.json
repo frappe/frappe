@@ -12,6 +12,7 @@
   "reference_section",
   "document_type",
   "document_name",
+  "app",
   "column_break_ref",
   "link",
   "open_reference_document",
@@ -68,6 +69,15 @@
    "fieldname": "document_name",
    "fieldtype": "Data",
    "label": "Document Name",
+   "search_index": 1
+  },
+  {
+   "description": "App that produced this notification; used to scope app-specific panels. Derived from the reference document when not set explicitly.",
+   "fieldname": "app",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "App",
+   "read_only": 1,
    "search_index": 1
   },
   {
@@ -162,7 +172,7 @@
  "hide_toolbar": 1,
  "in_create": 1,
  "links": [],
- "modified": "2026-06-10 15:52:09.647978",
+ "modified": "2026-06-11 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Log",
