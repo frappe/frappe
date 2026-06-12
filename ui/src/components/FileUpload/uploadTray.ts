@@ -60,6 +60,17 @@ export function clearFinishedBatches(): void {
   }
 }
 
+/**
+ * Drop every batch unconditionally — the explicit user "close" on the tray.
+ * Unlike `clearFinishedBatches`, this also removes batches that settled with a
+ * failure (otherwise the ✕ would be a no-op on a partly-failed batch and strand
+ * the tray on screen with no way to dismiss it). Any still-uploading transfer
+ * keeps running in the background; this only removes the progress view.
+ */
+export function clearAllBatches(): void {
+  batches.splice(0, batches.length);
+}
+
 /** The reactive list of batches the tray renders. */
 export function useTray() {
   const activeBatches = computed(() => batches);

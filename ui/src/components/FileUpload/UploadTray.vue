@@ -112,7 +112,7 @@
 // auto-dismisses finished batches shortly after they all complete. Mount this
 // ONCE near the app root.
 import { computed, onUnmounted, ref, watch } from "vue";
-import { clearFinishedBatches, useTray } from "./uploadTray";
+import { clearAllBatches, clearFinishedBatches, useTray } from "./uploadTray";
 
 // The tray always sits at the bottom; `side` picks which bottom corner.
 // Default reproduces the original bottom-right placement.
@@ -159,8 +159,10 @@ const headerLabel = computed(() => {
 	return `Uploading ${done}/${items.length}`;
 });
 
+// The ✕ is an explicit close: drop every batch, even ones that settled with a
+// failure. (Auto-dismiss, below, still only sweeps fully-done batches.)
 function dismiss() {
-	clearFinishedBatches();
+	clearAllBatches();
 }
 
 // Auto-dismiss finished batches a few seconds after they complete — UNLESS the

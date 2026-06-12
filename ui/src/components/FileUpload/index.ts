@@ -16,6 +16,7 @@ export {
   pushTrayBatch,
   removeTrayBatch,
   clearFinishedBatches,
+  clearAllBatches,
   useTray,
 } from "./uploadTray";
 export type { TrayBatch } from "./uploadTray";
