@@ -15,14 +15,11 @@ const emit = defineEmits<{
 	click: [n: NotificationLog];
 }>();
 
-// string => render via frappe-ui's icon component; Component => render directly;
-// undefined => fall back to the sender's Avatar (the common case).
 const iconName = computed(() => (typeof props.icon === "string" ? props.icon : undefined));
 const iconComponent = computed(() =>
 	props.icon && typeof props.icon !== "string" ? (props.icon as Component) : undefined
 );
 
-// fallback initials for the Avatar when there is no sender image
 const avatarLabel = computed(() =>
 	(props.notification.from_user || props.notification.type || "?").charAt(0)
 );
@@ -40,12 +37,7 @@ const timeAgo = computed(() => dayjs(props.notification.creation as string).from
 		:class="[isUnread ? 'bg-surface-gray-1/40' : '', props.class]"
 		@click="emit('click', notification)"
 	>
-		<!-- leading visual: avatar/icon, left edge aligned with the header + tabs (px-4 = the
-		     panel's content margin). The unread dot is absolutely placed in the left padding, so
-		     it stays outside the aligned avatar/text column and never shifts the avatar. -->
 		<div class="relative mt-0.5 flex-shrink-0">
-			<!-- layout via Tailwind (hardcoded values); only the gray-800 color is inline,
-			     since frappe-ui's preset drops the default `gray-*` utilities -->
 			<span
 				v-if="isUnread"
 				class="absolute top-1/2 size-[5px] -translate-y-1/2 rounded-full bg-gray-800"
@@ -61,10 +53,7 @@ const timeAgo = computed(() => dayjs(props.notification.creation as string).from
 			<Avatar v-else :image="notification.from_user_image" :label="avatarLabel" size="lg" />
 		</div>
 
-		<!-- body -->
 		<div class="min-w-0 flex-1">
-			<!-- text-p-* are frappe-ui's paragraph sizes; they carry the design system's
-			     comfortable line-heights (1.5–1.6) instead of the tight 1.15 of plain text-*. -->
 			<div class="text-p-base text-ink-gray-8 [&_b]:font-semibold" v-html="title" />
 			<div
 				v-if="description"
