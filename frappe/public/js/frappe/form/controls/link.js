@@ -850,19 +850,43 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 
 	apply_link_field_filters() {
-		let filters = this.parse_filters(JSON.parse(this.df.link_filters));
-		// take filters from the link field and add to the query
-
-		const query_filters = this.get_query?.()?.filters || {};
-		if (query_filters) {
-			filters = { ...filters, ...query_filters };
+		// Already wrapped on a previous search; nothing to do.
+		if (this.get_query && this.get_query.__has_link_filters) {
+			return;
 		}
 
-		this.get_query = function () {
-			return {
-				filters,
-			};
+		const link_filters = this.parse_filters(JSON.parse(this.df.link_filters));
+		const controller_get_query = this.get_query;
+
+		// Wrap (instead of replacing) any controller-defined get_query so that the
+		// link field filters set via Customize Form are merged with it. The wrapper
+		// is invoked later by set_custom_query with the standard (doc, doctype,
+		// docname) arguments, so controller queries that rely on those arguments
+		// keep working (e.g. a get_query that reads `doc.customer`).
+		const get_query = (...args) => {
+			const result = { filters: { ...link_filters } };
+
+			let controller_result = controller_get_query;
+			if (typeof controller_get_query === "function") {
+				controller_result = controller_get_query.apply(this, args);
+			}
+
+			if (typeof controller_result === "string") {
+				// controller returned a server-side query method path
+				result.query = controller_result;
+			} else if (controller_result) {
+				if (controller_result.query) {
+					result.query = controller_result.query;
+				}
+				// Controller filters take precedence over link field filters on
+				// conflicting keys (they often enforce data integrity, e.g. company).
+				Object.assign(result.filters, controller_result.filters);
+			}
+
+			return result;
 		};
+		get_query.__has_link_filters = true;
+		this.get_query = get_query;
 	}
 
 	parse_filters(link_filters) {
