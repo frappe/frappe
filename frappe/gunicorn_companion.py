@@ -81,7 +81,9 @@ def run_socketio() -> None:
 			f"Cannot start socketio companion: node not found and socketio_backend is "
 			f"{backend!r} (not 'python'). Install node or set socketio_backend to 'python'."
 		)
-	os.execv(node, [node, os.path.join("apps", "frappe", "socketio.js")])
+	from frappe.utils import get_bench_path
+
+	os.execv(node, [node, os.path.join(get_bench_path(), "apps", "frappe", "socketio.js")])
 
 
 def _socketio_backend() -> str:
