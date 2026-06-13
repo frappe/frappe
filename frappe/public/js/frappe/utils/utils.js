@@ -243,6 +243,12 @@ Object.assign(frappe.utils, {
 		return String(txt).replace(/[&<>"'`=]/g, (char) => escape_html_mapping[char] || char);
 	},
 
+	// Escape text and wrap in <strong> — use this instead of String.prototype.bold()
+	// so user-supplied values are safely escaped before being injected into HTML.
+	bold: function (txt) {
+		return `<strong>${frappe.utils.escape_html(cstr(txt))}</strong>`;
+	},
+
 	unescape_html: function (txt) {
 		let unescape_html_mapping = {
 			"&amp;": "&",

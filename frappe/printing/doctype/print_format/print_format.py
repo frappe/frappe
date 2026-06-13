@@ -66,6 +66,10 @@ class PrintFormat(Document):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
 
+		# New non-custom formats default to builder beta + Chrome
+		if self.is_new() and not self.custom_format:
+			self.print_format_builder_beta = 1
+
 		if self.print_format_builder_beta and not self.custom_format:
 			self.pdf_generator = "chrome"
 

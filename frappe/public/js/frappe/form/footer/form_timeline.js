@@ -441,7 +441,7 @@ class FormTimeline extends BaseTimeline {
 
 		(this.doc_info.milestones || []).forEach((milestone_log) => {
 			const field = frappe.meta.get_label(this.frm.doctype, milestone_log.track_field);
-			const value = milestone_log.value.bold();
+			const value = frappe.utils.bold(milestone_log.value);
 			const user_link = get_user_link(milestone_log.owner);
 			const timeline_content = get_user_message(
 				milestone_log.owner,

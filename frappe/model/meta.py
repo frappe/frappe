@@ -330,6 +330,7 @@ class Meta(Document):
 		if "name" not in search_fields:
 			search_fields.append("name")
 
+		assert "name" in search_fields, "search fields must always include 'name'"
 		return search_fields
 
 	def get_fields_to_fetch(self, link_fieldname=None):
@@ -377,6 +378,7 @@ class Meta(Document):
 		if not title_field:
 			title_field = "name"
 
+		assert title_field, "title field must resolve to a non-empty fieldname"
 		return title_field
 
 	def get_translatable_fields(self):
@@ -622,6 +624,7 @@ class Meta(Document):
 			field.idx = idx
 			sorted_fields.append(field)
 
+		assert len(sorted_fields) == len(field_order), "every field in field_order must map to a field"
 		self.fields = sorted_fields
 
 	def set_custom_permissions(self):
@@ -924,6 +927,7 @@ def get_field_precision(df, doc=None, currency=None):
 	else:
 		precision = cint(frappe.db.get_default("float_precision")) or 3
 
+	assert isinstance(precision, int), "computed field precision must be an integer"
 	return precision
 
 
@@ -1031,7 +1035,7 @@ CACHE_PROPERTIES = frozenset(prop for prop, value in vars(Meta).items() if isins
 
 
 def _serialize(doc, no_nulls=False, *, is_child=False):
-	out = {}
+	out = frappe._dict()
 	for key, value in doc.__dict__.items():
 		if not is_child:
 			if key in CACHE_PROPERTIES:

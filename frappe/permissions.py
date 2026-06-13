@@ -348,7 +348,7 @@ def get_user_permissions(user):
 	return get_user_permissions(user)
 
 
-def has_user_permission(doc, user=None, debug=False, *, ptype=None):
+def has_user_permission(doc, user=None, debug=False, *, ptype=None, strict=True):
 	"""Return True if User is allowed to view considering User Permissions."""
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
@@ -363,7 +363,7 @@ def has_user_permission(doc, user=None, debug=False, *, ptype=None):
 	docname = doc.get("name")
 
 	# don't apply strict user permissions for single doctypes since they contain empty link fields
-	apply_strict_user_permissions = (
+	apply_strict_user_permissions = strict and (
 		False if doc.meta.issingle else frappe.get_system_settings("apply_strict_user_permissions")
 	)
 	if apply_strict_user_permissions:
@@ -938,3 +938,10 @@ def _get_parent_and_ancestors(doctype, parent):
 	from frappe.utils.nestedset import get_ancestors_of
 
 	yield from get_ancestors_of(doctype, parent)
+
+
+def check_app_permission():
+	is_system_manager = "System Manager" in frappe.get_roles(frappe.session.user)
+	if is_system_user() and is_system_manager:
+		return True
+	return False

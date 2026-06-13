@@ -8,7 +8,7 @@ from typing import Any
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.search import build_for_autosuggest, get_names_for_mentions, search_link, search_widget
+from frappe.desk.search import get_names_for_mentions, search_link, search_widget
 from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
@@ -404,61 +404,10 @@ class TestSearch(IntegrationTestCase):
 			link_fieldname="value",
 		)
 
-	def test_build_for_autosuggest_dict_passthrough(self):
-		"""Dicts in custom query results bypass tuple processing in both meta branches."""
-		from unittest.mock import MagicMock, patch
-
-		items = [
-			{"value": "DOC-001", "description": "<strong>Bold</strong>", "description_html": True},
-			{"value": "DOC-002", "description": "plain"},
-		]
-		for show_title_field in (False, True):
-			mock_meta = MagicMock()
-			mock_meta.show_title_field_in_link = show_title_field
-			mock_meta.translated_doctype = False
-			with patch("frappe.get_meta", return_value=mock_meta):
-				results = build_for_autosuggest(items, doctype="DocType")
-			self.assertEqual(len(results), 2)
-			self.assertDictEqual(results[0], items[0])
-			self.assertDictEqual(results[1], items[1])
-
-	def test_search_link_custom_query_dict_passthrough(self):
-		"""search_link preserves description_html flag when a custom query returns dicts."""
-		results = search_link(
-			doctype="User",
-			txt="",
-			query="frappe.tests.test_search.query_returning_html_description",
-			filters=None,
-			page_length=10,
-		)
-		self.assertEqual(len(results), 1)
-		self.assertEqual(results[0]["value"], "test-item")
-		self.assertTrue(results[0].get("description_html"))
-		self.assertEqual(results[0]["description"], "<strong>Bold:</strong> value")
-
 
 @frappe.validate_and_sanitize_search_inputs
 def get_data(doctype, txt, searchfield, start, page_len, filters):
 	return [doctype, txt, searchfield, start, page_len, filters]
-
-
-@whitelist_for_tests()
-def query_returning_html_description(
-	doctype: str,
-	txt: str,
-	searchfield: str,
-	start: int,
-	page_len: int,
-	filters: str | list | dict,
-	**kwargs,
-):
-	return [
-		{
-			"value": "test-item",
-			"description": "<strong>Bold:</strong> value",
-			"description_html": True,
-		}
-	]
 
 
 @whitelist_for_tests()

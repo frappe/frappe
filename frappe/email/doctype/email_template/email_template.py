@@ -20,6 +20,7 @@ class EmailTemplate(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		reference_doctype: DF.Link | None
 		response: DF.TextEditor | None
 		response_html: DF.Code | None
 		subject: DF.Data
@@ -74,3 +75,31 @@ def get_email_template(template_name: str, doc: str | dict[str, Any], sender: st
 
 	email_template = frappe.get_doc("Email Template", template_name)
 	return email_template.get_formatted_email(doc, sender=sender)
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_email_templates(
+	doctype: str,
+	txt: str,
+	searchfield: str,
+	start: int,
+	page_len: int,
+	filters: dict,
+):
+	"""Search for Email Templates scoped to a DocType or with no DocType assigned."""
+	reference_doctype = (filters or {}).get("reference_doctype", "")
+
+	return frappe.get_all(
+		"Email Template",
+		filters={"name": ("like", f"%{txt}%")},
+		or_filters=[
+			["reference_doctype", "=", reference_doctype],
+			["reference_doctype", "is", "not set"],
+			["reference_doctype", "=", ""],
+		],
+		fields=["name", "reference_doctype"],
+		limit_start=start,
+		limit_page_length=page_len,
+		as_list=True,
+	)

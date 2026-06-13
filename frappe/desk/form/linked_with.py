@@ -103,6 +103,9 @@ class SubmittableDocumentTree:
 		if self.root_docname in self.visited_documents.get(self.root_doctype, []):
 			self.visited_documents[self.root_doctype].remove(self.root_docname)
 
+		assert self.root_docname not in self.visited_documents.get(self.root_doctype, []), (
+			"root document must be excluded from linked children"
+		)
 		return self.visited_documents
 
 	def get_next_level_children(self, parent_dt, parent_names):

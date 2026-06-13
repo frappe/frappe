@@ -85,7 +85,7 @@ class AssignmentRule(Document):
 		if not user or not frappe.db.exists("User", user):
 			return False
 
-		assign_to.add(
+		assign_to._add(
 			dict(
 				assign_to=[user],
 				doctype=doc.get("doctype"),

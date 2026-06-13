@@ -39,7 +39,7 @@ def read_csv_content_from_attached_file(doc):
 		)
 
 
-def read_csv_content(fcontent, use_sniffer: bool = False):
+def read_csv_content(fcontent, use_sniffer: bool = False, delimiter: str | None = None):
 	if not isinstance(fcontent, str):
 		decoded = False
 		for encoding in FILE_ENCODING_OPTIONS:
@@ -60,7 +60,10 @@ def read_csv_content(fcontent, use_sniffer: bool = False):
 	content = [frappe.safe_decode(line) for line in fcontent.splitlines(True)]
 	dialect = csv.get_dialect("excel")
 
-	if use_sniffer:
+	if delimiter:
+		dialect = csv.excel()
+		dialect.delimiter = delimiter
+	elif use_sniffer:
 		sniffer = Sniffer()
 		# Don't need to use whole csv, if more than 20 rows, use just first 20
 		sample_content = content[:20] if len(content) > 20 else content
