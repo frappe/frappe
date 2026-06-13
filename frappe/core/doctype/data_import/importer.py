@@ -562,7 +562,7 @@ class ImportFile:
 	def get_data_for_import_preview(self):
 		"""Adds a serial number column as the first column"""
 
-		columns = [frappe._dict({"header_title": "Sr. No", "skip_import": True})]
+		columns = [frappe._dict({"header_title": _("Sr. No"), "skip_import": True})]
 		columns += [col.as_dict() for col in self.columns]
 		for col in columns:
 			# only pick useful fields in docfields to minimise the payload
