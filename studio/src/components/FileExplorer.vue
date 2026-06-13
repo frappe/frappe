@@ -64,7 +64,7 @@
 	<Teleport to="#studio-code-editor-outlet">
 		<div
 			v-if="showEditor"
-			class="absolute bottom-0 top-[var(--toolbar-height)] z-20 flex flex-col border-l border-outline-gray-2 bg-white shadow-lg"
+			class="absolute bottom-0 top-[var(--toolbar-height)] z-20 flex flex-col bg-white shadow-lg"
 			:style="{ left: `${panelLeft}px`, width: `${editorWidth}px` }"
 		>
 			<PanelResizer
@@ -77,12 +77,12 @@
 			<div class="flex items-center justify-between gap-2 border-b border-outline-gray-2 px-3 py-2">
 				<span class="truncate text-sm text-ink-gray-8" :title="openFile!.path">
 					{{ openFile!.path }}
-					<span v-if="dirty" class="text-ink-gray-5">•</span>
+					<span v-if="dirty" class="text-ink-amber-3">•</span>
 				</span>
 				<div class="flex shrink-0 items-center gap-1">
-					<Button variant="ghost" icon="lucide-trash-2" @click="removeFile" title="Delete file" />
-					<Button variant="solid" :loading="saving" :disabled="!dirty" @click="save">Save</Button>
-					<Button variant="ghost" icon="lucide-x" @click="closeFile" title="Close editor" />
+					<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="save">Save</Button>
+					<Button size="xs" variant="ghost" icon="lucide-trash-2" @click="removeFile" title="Delete file" />
+					<Button size="xs" variant="ghost" icon="lucide-x" @click="closeFile" title="Close editor" />
 				</div>
 			</div>
 			<div class="min-h-0 flex-1 overflow-hidden">
