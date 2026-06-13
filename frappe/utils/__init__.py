@@ -24,7 +24,14 @@ from typing import Any, Generic, TypeAlias, TypedDict
 import orjson
 from werkzeug.test import Client
 
-from frappe.deprecation_dumpster import gzip_compress, gzip_decompress, make_esc
+from frappe.deprecation_dumpster import (
+	get_gravatar,
+	get_gravatar_url,
+	gzip_compress,
+	gzip_decompress,
+	has_gravatar,
+	make_esc,
+)
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
@@ -298,17 +305,7 @@ def random_string(length: int) -> str:
 	return "".join(secrets.choice(alphabet) for i in range(length))
 
 
-def has_gravatar(email: str) -> str:
-	"""Deprecated: Gravatar integration has been removed. Always returns empty string."""
-	return ""
-
-
-def get_gravatar_url(email: str, default: str = "mm") -> str:
-	"""Deprecated: Gravatar integration has been removed. Always returns empty string."""
-	return ""
-
-
-def get_gravatar(email: str) -> str:
+def get_identicon(email: str) -> str:
 	"""Return an identicon image (base64) for the given email."""
 	from frappe.utils.identicon import Identicon
 
