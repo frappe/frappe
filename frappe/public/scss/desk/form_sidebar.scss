@@ -702,7 +702,7 @@ body[data-route^="Form"] .attachment-preview {
 		transition: background-color 120ms ease;
 
 		&:hover {
-			background-color: var(--primary-color);
+			background-color: var(--gray-400);
 		}
 	}
 }
