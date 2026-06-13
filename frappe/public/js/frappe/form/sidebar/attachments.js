@@ -212,13 +212,14 @@ frappe.ui.form.Attachments = class Attachments {
 				<div class="attachment-preview-header">
 					<div class="attachment-preview-title">
 						<div class="ellipsis" title="${escaped_file_name}">${escaped_file_name}</div>
+					</div>
+					<div class="attachment-preview-actions">
 						<a class="btn btn-link icon-btn attachment-preview-open-link"
 							href="${escaped_file_url}" target="_blank" rel="noopener noreferrer"
 							title="${__("Open file in new tab")}"
 						>
 							${frappe.utils.icon("es-line-arrow-up-right", "sm")}
 						</a>
-						<span class="attachment-preview-title-divider"></span>
 						<button class="btn btn-link icon-btn attachment-preview-copy-link"
 							type="button"
 							data-file-url="${escaped_absolute_file_url}"
@@ -227,12 +228,13 @@ frappe.ui.form.Attachments = class Attachments {
 						>
 							${frappe.utils.icon("es-line-copy", "sm")}
 						</button>
+						<span class="attachment-preview-title-divider"></span>
+						<button class="btn btn-link icon-btn attachment-preview-close" type="button" title="${__(
+							"Close"
+						)}">
+							${frappe.utils.icon("es-line-close", "sm")}
+						</button>
 					</div>
-					<button class="btn btn-link icon-btn attachment-preview-close" type="button" title="${__(
-						"Close"
-					)}">
-						${frappe.utils.icon("es-line-close", "sm")}
-					</button>
 				</div>
 				<div class="attachment-preview-body">
 					${preview_html}
