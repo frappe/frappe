@@ -324,7 +324,16 @@ frappe.ui.form.Attachments = class Attachments {
 				throw new Error("Unable to fetch CSV");
 			}
 
-			let csv_text = await this.get_csv_response_text(response);
+			let content_length = Number(response.headers.get("Content-Length"));
+			if (content_length > this.max_csv_preview_size) {
+				throw this.get_csv_size_error();
+			}
+
+			let csv_text = await response.text();
+			if (csv_text.length > this.max_csv_preview_size) {
+				throw this.get_csv_size_error();
+			}
+
 			let rows = this.parse_csv(csv_text);
 			if (!rows.length) {
 				throw new Error("Empty CSV");
@@ -363,35 +372,6 @@ frappe.ui.form.Attachments = class Attachments {
 		}
 	}
 
-	async get_csv_response_text(response) {
-		if (!response.body?.getReader) {
-			let text = await response.text();
-			if (text.length > this.max_csv_preview_size) {
-				throw this.get_csv_size_error();
-			}
-			return text;
-		}
-
-		let reader = response.body.getReader();
-		let decoder = new TextDecoder();
-		let csv_text = "";
-		let bytes_read = 0;
-		let { done, value } = await reader.read();
-
-		while (!done) {
-			bytes_read += value.byteLength;
-			if (bytes_read > this.max_csv_preview_size) {
-				reader.cancel();
-				throw this.get_csv_size_error();
-			}
-
-			csv_text += decoder.decode(value, { stream: true });
-			({ done, value } = await reader.read());
-		}
-
-		return csv_text + decoder.decode();
-	}
-
 	get_csv_size_error() {
 		let error = new Error("CSV exceeds preview size limit");
 		error.code = "CSV_PREVIEW_TOO_LARGE";
@@ -399,64 +379,10 @@ frappe.ui.form.Attachments = class Attachments {
 	}
 
 	parse_csv(csv_text) {
-		let rows = [];
-		let row = [];
-		let value = "";
-		let in_quotes = false;
-
-		let push_value = () => {
-			row.push(value);
-			value = "";
-		};
-
-		let push_row = () => {
-			push_value();
-			rows.push(row);
-			row = [];
-		};
-
-		for (let i = 0; i < csv_text.length; i++) {
-			let character = csv_text[i];
-
-			if (in_quotes) {
-				if (character === '"') {
-					if (csv_text[i + 1] === '"') {
-						value += '"';
-						i++;
-					} else {
-						in_quotes = false;
-					}
-				} else {
-					value += character;
-				}
-				continue;
-			}
-
-			if (character === '"') {
-				in_quotes = true;
-			} else if (character === ",") {
-				push_value();
-			} else if (character === "\n") {
-				push_row();
-			} else if (character === "\r") {
-				if (csv_text[i + 1] === "\n") {
-					i++;
-				}
-				push_row();
-			} else {
-				value += character;
-			}
-		}
-
-		if (in_quotes) {
-			throw new Error("Unclosed quoted field");
-		}
-
-		if (value.length || row.length) {
-			push_row();
-		}
-
-		return rows;
+		return csv_text
+			.split(/\r?\n/)
+			.filter((line) => line.length)
+			.map((line) => line.split(","));
 	}
 
 	get_csv_preview_html(rows) {
