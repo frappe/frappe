@@ -296,17 +296,25 @@ def random_string(length: int) -> str:
 	return "".join(secrets.choice(alphabet) for i in range(length))
 
 
+@deprecated
 def has_gravatar(email: str) -> str:
 	"""Deprecated: Gravatar integration has been removed. Always returns empty string."""
 	return ""
 
 
+@deprecated
 def get_gravatar_url(email: str, default: str = "mm") -> str:
 	"""Deprecated: Gravatar integration has been removed. Always returns empty string."""
 	return ""
 
 
+@deprecated
 def get_gravatar(email: str) -> str:
+	"""Return an identicon image (base64) for the given email."""
+	return get_identicon(email)
+
+
+def get_identicon(email: str) -> str:
 	"""Return an identicon image (base64) for the given email."""
 	from frappe.utils.identicon import Identicon
 
