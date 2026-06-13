@@ -21,7 +21,8 @@
 	height: 32px;
 	display: flex;
 	align-items: center;
-
+	background-color: var(--ink-gray-2);
+	border-radius: var(--border-radius);
 	& .icon-container {
 		padding: 4px;
 		border-radius: 10px;
