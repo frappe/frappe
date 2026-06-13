@@ -153,23 +153,32 @@ const useCodeStore = defineStore("codeStore", () => {
 		const mod = await loadPageScriptModule(pageName)
 		const setup = mod?.default
 		if (typeof setup !== "function") return {}
-		// setup(ctx) gets the live execution context (resources/variables/modules/route/router).
-		return runInPageScriptScope(() => setup(globalExecutionContext.value) || {})
+		try {
+			// setup(ctx) gets the live execution context (resources/variables/route/router) and may
+			// be async (e.g. awaiting a resource fetch). Effects (watch/computed) created BEFORE the
+			// first await are owned by the page scope; declare them before awaiting so they're
+			// disposed on navigation.
+			const bindings = runInPageScriptScope(() => setup(globalExecutionContext.value))
+			return (await bindings) || {}
+		} catch (error) {
+			console.error("Error running page script", error)
+			return {}
+		}
 	}
 
-	function runInPageScriptScope(run: () => Record<string, any>): Record<string, any> {
-		// Reactive effects (watch/watchEffect/computed) created during `run` are owned by this
-		// scope so they're disposed on the next navigation / recompile.
+	function runInPageScriptScope(run: () => any): any {
+		// Reactive effects (watch/watchEffect/computed) created synchronously during `run` are
+		// owned by this scope so they're disposed on the next navigation / recompile.
 		pageScriptScope = effectScope(true)
-		let bindings: Record<string, any> = {}
+		let result: any
 		pageScriptScope.run(() => {
 			try {
-				bindings = run() || {}
+				result = run()
 			} catch (error) {
 				console.error("Error running page script", error)
 			}
 		})
-		return bindings
+		return result
 	}
 
 	function compilePageScript(source: string, bindingNames: string[]) {
@@ -199,8 +208,8 @@ const useCodeStore = defineStore("codeStore", () => {
 					return { ${bindingNames.join(", ")} };
 				}`,
 			)
-			return factory(liveContext) || {}
-		})
+			return factory(liveContext)
+		}) || {}
 	}
 
 	const globalContext = computed(() => {
