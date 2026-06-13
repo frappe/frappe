@@ -228,7 +228,6 @@ frappe.ui.form.Attachments = class Attachments {
 						>
 							${frappe.utils.icon("es-line-copy", "sm")}
 						</button>
-						<span class="attachment-preview-title-divider"></span>
 						<button class="btn btn-link icon-btn attachment-preview-close" type="button" title="${__(
 							"Close"
 						)}">

@@ -287,6 +287,10 @@ body[data-route^="Form"] {
 		.attachment-preview {
 			height: 100%;
 		}
+
+		&:focus {
+			outline: none;
+		}
 	}
 
 	.attachment-preview-open {
@@ -559,6 +563,7 @@ body[data-route^="Form"] .attachment-preview {
 	flex-direction: column;
 	background-color: var(--fg-color);
 	border-left: 1px solid var(--border-color);
+	outline: none;
 
 	.attachment-preview-header {
 		flex-shrink: 0;
@@ -585,13 +590,17 @@ body[data-route^="Form"] .attachment-preview {
 		align-items: center;
 		gap: 2px;
 		flex-shrink: 0;
-	}
 
-	.attachment-preview-title-divider {
-		width: 1px;
-		height: 16px;
-		margin: 0 4px;
-		background-color: var(--border-color);
+		.btn-link {
+			text-decoration: none;
+
+			&:hover,
+			&:focus {
+				text-decoration: none;
+				outline: none;
+				box-shadow: none;
+			}
+		}
 	}
 
 	.attachment-preview-body {
