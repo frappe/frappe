@@ -7,12 +7,7 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
-<<<<<<< HEAD
-from frappe.utils import cstr, has_gravatar
-=======
-from frappe.query_builder.functions import Coalesce
 from frappe.utils import cstr
->>>>>>> d76c0aa702 (refactor!: Remove all Gravatar integration from framework (server and client) (#39931))
 
 
 class Contact(Document):
