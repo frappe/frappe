@@ -68,6 +68,23 @@
 	}
 }
 
+.dropdown-menu-item.dropdown-menu-header {
+	padding: 6px 8px 2px 8px;
+	&:hover {
+		background-color: transparent;
+	}
+	.menu-group-heading {
+		display: block;
+		color: var(--ink-gray-5);
+		font-size: var(--text-sm);
+		font-weight: 500;
+		line-height: 1.15;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+}
+
 .frappe-menu.grid-menu {
 	width: auto;
 	display: grid;

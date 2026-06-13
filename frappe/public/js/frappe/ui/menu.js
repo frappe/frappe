@@ -87,6 +87,12 @@ frappe.ui.menu = class ContextMenu {
 			item_wrapper = $(
 				`<div class="dropdown-menu-item"><div class="dropdown-divider documentation-links"></div></div>`
 			);
+		} else if (item?.group) {
+			item_wrapper = $(
+				`<div class="dropdown-menu-item dropdown-menu-header"><span class="menu-group-heading">${__(
+					item.group
+				)}</span></div>`
+			);
 		} else {
 			const iconMarkup = item.icon_url
 				? `<img class="logo" src="${item.icon_url}">`

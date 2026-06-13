@@ -4,50 +4,59 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		this.sidebar_wrapper = $(".body-sidebar");
 		this.drop_down_expanded = false;
 		this.title = this.sidebar.sidebar_title;
-		const me = this;
-		this.dropdown_items = [
-			this.fetch_workspaces_section(),
-			this.fetch_private_workspaces_section(),
-			this.fetch_apps(),
-		].filter(Boolean);
+		this.dropdown_items = this.build_dropdown_items();
 		this.make();
 		this.setup_app_switcher();
-		this.populate_dropdown_menu();
-		this.setup_select_options();
 	}
-	fetch_workspaces_section() {
+	// Workspaces shown flat under "Public" / "Private" headings, followed by the Apps section.
+	build_dropdown_items() {
+		let items = [];
+
+		let public_items = this.get_public_workspace_items();
+		if (public_items.length) {
+			items.push({ group: __("Public") }, ...public_items);
+		}
+
+		let private_items = this.get_private_workspace_items();
+		if (private_items.length) {
+			items.push({ group: __("Private") }, ...private_items);
+		}
+
+		let apps_section = this.fetch_apps();
+		if (apps_section) items.push(apps_section);
+
+		return items;
+	}
+	fetch_apps() {
+		let apps = (frappe.boot.app_data || []).filter((app) => app.on_apps_screen);
+		if (!apps.length) return null;
+
+		return {
+			name: "apps",
+			label: __("Apps"),
+			icon: "grid",
+			items: apps.map((app) => ({
+				name: app.app_name,
+				label: app.app_title,
+				url: app.app_route,
+				icon_url: Array.isArray(app.app_logo_url) ? app.app_logo_url[0] : app.app_logo_url,
+			})),
+		};
+	}
+	get_public_workspace_items() {
 		let workspaces_not_to_show = ["My Workspaces"];
 		let app_workspaces = (frappe.current_app && frappe.current_app.workspaces) || [];
 
-		let items = app_workspaces
+		return app_workspaces
 			.filter((name) => !workspaces_not_to_show.includes(name))
 			.map((name) => this.workspace_to_item(frappe.workspaces[frappe.router.slug(name)]))
 			.filter(Boolean);
-
-		if (!items.length) return null;
-
-		return {
-			name: "workspaces",
-			label: __("Workspaces"),
-			icon: "wallpaper",
-			scroll_after: 5,
-			items,
-		};
 	}
-	fetch_private_workspaces_section() {
-		let items = Object.values(frappe.workspaces || {})
+	get_private_workspace_items() {
+		return Object.values(frappe.workspaces || {})
 			.filter((workspace) => !workspace.public && workspace.for_user === frappe.session.user)
-			.map((workspace) => this.workspace_to_item(workspace));
-
-		if (!items.length) return null;
-
-		return {
-			name: "private-workspaces",
-			label: __("Private Workspaces"),
-			icon: "lock",
-			scroll_after: 5,
-			items,
-		};
+			.map((workspace) => this.workspace_to_item(workspace))
+			.filter(Boolean);
 	}
 	workspace_to_item(workspace) {
 		if (!workspace) return null;
@@ -77,22 +86,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			if (route) return route;
 		}
 		return null;
-	}
-	fetch_apps() {
-		let apps = (frappe.boot.app_data || []).filter((app) => app.on_apps_screen);
-		if (!apps.length) return null;
-
-		return {
-			name: "apps",
-			label: __("Apps"),
-			icon: "grid",
-			items: apps.map((app) => ({
-				name: app.app_name,
-				label: app.app_title,
-				url: app.app_route,
-				icon_url: Array.isArray(app.app_logo_url) ? app.app_logo_url[0] : app.app_logo_url,
-			})),
-		};
 	}
 	get_icon_for_menu_item(icon, item) {
 		if (frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style)) {
@@ -192,7 +185,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 
 	make() {
 		$(".sidebar-header").remove();
-		$(".sidebar-header-menu").remove();
 		this.set_header_icon();
 		$(
 			frappe.render_template("sidebar_header", {
@@ -202,7 +194,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			})
 		).prependTo(this.sidebar_wrapper);
 		this.wrapper = $(".sidebar-header");
-		this.dropdown_menu = this.wrapper.find(".sidebar-header-menu");
 		this.$header_title = this.wrapper.find(".header-title");
 		this.$drop_icon = this.wrapper.find(".drop-icon");
 	}
@@ -238,50 +229,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			onShow: this.toggle_active,
 			onHide: this.toggle_active,
 			onItemClick: this.toggle_active,
-		});
-	}
-
-	populate_dropdown_menu() {
-		const me = this;
-		this.dropdown_items.forEach((d) => {
-			me.add_app_item(d);
-		});
-	}
-
-	add_app_item(item) {
-		$(`<div class="dropdown-menu-item" data-name="${item.name}"
-			data-app-route="${item.route}">
-			<a ${item.href ? `href="${item.href}"` : ""}>
-				<div class="sidebar-item-icon">
-					${
-						item.icon
-							? frappe.utils.icon(item.icon)
-							: `<img
-							class="logo"
-							src="${item.icon_url}"
-						>`
-					}
-				</div>
-				<span class="menu-item-title">${item.label}</span>
-				${
-					item.shortcut
-						? `<span class="menu-item-shortcut">${frappe.ui.keys.get_shortcut_label(
-								item.shortcut
-						  )}</span>`
-						: ""
-				}
-			</a>
-		</div>`).appendTo(this.dropdown_menu);
-	}
-
-	setup_select_options() {
-		this.dropdown_menu.find(".dropdown-menu-item").on("click", (e) => {
-			let item = $(e.delegateTarget);
-			let name = item.attr("data-name");
-			let current_item = this.dropdown_items.find((f) => f.name == name);
-			this.dropdown_menu.toggleClass("hidden");
-			this.toggle_active();
-			current_item.onClick(item);
 		});
 	}
 
