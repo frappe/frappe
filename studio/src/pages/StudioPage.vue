@@ -77,6 +77,9 @@
 			<StudioRightPanel
 				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l-[1px] bg-white shadow-lg dark:border-gray-800"
 			/>
+
+			<!-- File explorer teleport for code editor -->
+			<div id="studio-code-editor-outlet"></div>
 		</div>
 
 		<Dialog
