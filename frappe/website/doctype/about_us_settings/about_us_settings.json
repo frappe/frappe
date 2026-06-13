@@ -78,7 +78,7 @@
    "label": "Team Members Subtitle"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "is_disabled",
    "fieldtype": "Check",
    "label": "Disabled"
@@ -89,7 +89,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-08-22 15:56:33.957707",
+ "modified": "2026-06-11 12:50:48.801831",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "About Us Settings",
