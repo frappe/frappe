@@ -855,7 +855,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		const query_filters = this.get_query?.()?.filters || {};
 		if (query_filters) {
-			filters = { ...filters, ...query_filters };
+			filters = { ...query_filters, ...filters };
 		}
 
 		this.get_query = function () {
