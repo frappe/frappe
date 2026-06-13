@@ -334,7 +334,7 @@ frappe.ui.form.Attachments = class Attachments {
 				throw this.get_csv_size_error();
 			}
 
-			let rows = this.parse_csv(csv_text);
+			let rows = frappe.utils.csv_to_array(csv_text);
 			if (!rows.length) {
 				throw new Error("Empty CSV");
 			}
@@ -376,45 +376,6 @@ frappe.ui.form.Attachments = class Attachments {
 		let error = new Error("CSV exceeds preview size limit");
 		error.code = "CSV_PREVIEW_TOO_LARGE";
 		return error;
-	}
-
-	parse_csv(csv_text) {
-		let rows = [[]];
-		let field = "";
-		let in_quotes = false;
-
-		for (let i = 0; i < csv_text.length; i++) {
-			let ch = csv_text[i];
-
-			if (in_quotes) {
-				if (ch === '"' && csv_text[i + 1] === '"') {
-					field += '"';
-					i++;
-				} else if (ch === '"') {
-					in_quotes = false;
-				} else {
-					field += ch;
-				}
-			} else if (ch === '"') {
-				in_quotes = true;
-			} else if (ch === ",") {
-				rows[rows.length - 1].push(field);
-				field = "";
-			} else if (ch === "\r" || ch === "\n") {
-				if (ch === "\r" && csv_text[i + 1] === "\n") i++;
-				rows[rows.length - 1].push(field);
-				field = "";
-				rows.push([]);
-			} else {
-				field += ch;
-			}
-		}
-
-		if (field.length || rows[rows.length - 1].length) {
-			rows[rows.length - 1].push(field);
-		}
-
-		return rows.filter((row) => row.some((cell) => cell.length));
 	}
 
 	get_csv_preview_html(rows) {
