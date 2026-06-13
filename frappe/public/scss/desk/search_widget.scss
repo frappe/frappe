@@ -3,35 +3,39 @@
 	position: relative;
 }
 
+#full-search-button {
+	height: 28px;
+}
+
 .search-widget-button {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	height: 28px;
 	padding: 0 10px;
 	background-color: var(--control-bg);
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius-sm);
-	cursor: pointer;
-	white-space: nowrap;
-	transition: background-color 0.1s ease;
+	width: 100%;
+	justify-content: space-between;
+	color: var(--text-light);
 
 	&:hover {
 		background-color: var(--control-bg-on-gray);
 	}
 
-	.search-widget-icon svg {
-		stroke: var(--text-muted);
+	.search-widget-icon {
+		margin-bottom: 1px;
+		svg {
+			stroke: var(--text-muted);
+		}
 	}
 
 	.search-widget-label {
 		font-size: var(--text-sm);
-		color: var(--text-muted);
 	}
 
 	.search-widget-shortcut {
-		font-size: var(--text-xs);
+		font-size: var(--text-sm);
 		color: var(--text-light);
-		letter-spacing: 0.01em;
 	}
 }

@@ -31,11 +31,9 @@
 					</span>
 				</button>
 				{% if(!frappe.is_mobile()) { %}
-				<button id="full-search-button" class="btn-reset navbar-modal-search-mobile search-widget-button hidden" aria-label="{{ __("Search") }}">
+				<button id="full-search-button" class="btn btn-default navbar-modal-search-mobile search-widget-button hidden" aria-label="{{ __("Search") }}">
 					<span class="search-widget-icon">
-						<svg class="icon icon-xs">
-							<use href="#icon-search"></use>
-						</svg>
+						{{ frappe.utils.icon("search") }}
 					</span>
 					<span class="search-widget-label">{%= __("Search") %}</span>
 					<span class="search-widget-shortcut">
