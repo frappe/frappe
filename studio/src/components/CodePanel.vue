@@ -1,7 +1,9 @@
 <template>
 	<div class="flex flex-col gap-3">
-		<!-- Interpreted page script: only for non-exported apps (exported pages come from code) -->
-		<PageScript v-if="!store.activeApp?.is_standard" :page="page" />
+		<!-- Exported apps live in code: browse/edit the on-disk studio/<app>/ files.
+		     Non-exported apps store their logic in the interpreted page script. -->
+		<FileExplorer v-if="store.activeApp?.is_standard" :app="store.activeApp" />
+		<PageScript v-else :page="page" />
 	</div>
 </template>
 
@@ -9,6 +11,7 @@
 import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import PageScript from "@/components/PageScript.vue"
+import FileExplorer from "@/components/FileExplorer.vue"
 
 defineProps<{
 	page: StudioPage

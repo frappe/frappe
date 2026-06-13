@@ -50,6 +50,7 @@ declare module 'vue' {
     EmptyState: typeof import('./src/components/EmptyState.vue')['default']
     ExportAppDialog: typeof import('./src/components/ExportAppDialog.vue')['default']
     EyeDropper: typeof import('./src/components/Icons/EyeDropper.vue')['default']
+    FileExplorer: typeof import('./src/components/FileExplorer.vue')['default']
     Filters: typeof import('./src/components/Filters.vue')['default']
     FitContainer: typeof import('./src/components/AppLayout/FitContainer.vue')['default']
     FitScreenIcon: typeof import('./src/components/Icons/FitScreenIcon.vue')['default']
