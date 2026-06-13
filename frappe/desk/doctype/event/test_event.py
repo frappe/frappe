@@ -55,6 +55,26 @@ class TestEvent(FrappeTestCase):
 		self.assertFalse("_Test Event 3" in subjects)
 		self.assertFalse("_Test Event 2" in subjects)
 
+	def test_get_events_for_different_timezone(self):
+		frappe.set_user("Administrator")
+		frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Event Different Timezone",
+				"event_type": "Public",
+				"starts_on": "2025-05-10 10:00:00",
+			}
+		).insert()
+
+		original_in_test = frappe.flags.in_test
+		frappe.flags.in_test = True
+		try:
+			events = get_events(start="2025-04-30 23:00:00", end="2025-06-10 23:00:00", user="Administrator")
+		finally:
+			frappe.flags.in_test = original_in_test
+
+		self.assertIn("_Test Event Different Timezone", [event.subject for event in events])
+
 	def test_revert_logic(self):
 		ev = frappe.get_doc(self.test_records[0]).insert()
 		name = ev.name
