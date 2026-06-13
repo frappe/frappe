@@ -25,24 +25,17 @@
 				</div>
 			</div>
 			<div class="align-center flex standard-items-section">
-				<div id="small-search-button" class="search-bar text-muted hidden">
-					<div
-						class="navbar-modal-search-mobile"
-						placeholder="Search for type a command"
-					>
-						<span class="search-icon">
-							<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
-						</span>
-					</div>
-				</div>
-				{% if(!frappe.is_mobile()) { %}
-				<button id="full-search-button" class="btn-reset navbar-modal-search-mobile search-widget-button hidden" aria-label="{{ __("Search") }}">
-					<span class="search-widget-icon">
-						<svg class="icon icon-sm">
-							<use href="#icon-search"></use>
-						</svg>
-						{%= __("Search") %}
+				<button id="small-search-button" class="btn-reset search-bar navbar-modal-search-mobile hidden" aria-label="{{ __("Search") }}">
+					<span class="search-icon">
+						<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
 					</span>
+				</button>
+				{% if(!frappe.is_mobile()) { %}
+				<button id="full-search-button" class="btn btn-default navbar-modal-search-mobile search-widget-button hidden" aria-label="{{ __("Search") }}">
+					<span class="search-widget-icon">
+						{{ frappe.utils.icon("search") }}
+					</span>
+					<span class="search-widget-label">{%= __("Search") %}</span>
 					<span class="search-widget-shortcut">
 					{% if(frappe.utils.is_mac()) { %}
 						⌘K
