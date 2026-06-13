@@ -20,7 +20,11 @@ from PIL import Image
 import frappe
 from frappe.installer import parse_app_name
 from frappe.model.document import Document
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase, MockedRequestTestCase, change_settings
+=======
+from frappe.tests import IntegrationTestCase, MockedRequestTestCase, UnitTestCase
+>>>>>>> d76c0aa702 (refactor!: Remove all Gravatar integration from framework (server and client) (#39931))
 from frappe.utils import (
 	ceil,
 	dict_to_str,
@@ -1103,14 +1107,18 @@ class TestLazyLoader(FrappeTestCase):
 
 class TestIdenticon(FrappeTestCase):
 	def test_get_gravatar(self):
+<<<<<<< HEAD
 		# developers@frappe.io has a gravatar linked so str URL will be returned
 		frappe.flags.in_test = False
 		gravatar_url = get_gravatar("developers@frappe.io")
 		frappe.flags.in_test = True
+=======
+		# get_gravatar now always returns an identicon (base64 string)
+		gravatar_url = get_gravatar("developers@frappe.io")
+>>>>>>> d76c0aa702 (refactor!: Remove all Gravatar integration from framework (server and client) (#39931))
 		self.assertIsInstance(gravatar_url, str)
-		self.assertTrue(gravatar_url.startswith("http"))
+		self.assertTrue(gravatar_url.startswith("data:image/png;base64,"))
 
-		# random email will require Identicon to be generated, which will be a base64 string
 		gravatar_url = get_gravatar(f"developers{random_string(6)}@frappe.io")
 		self.assertIsInstance(gravatar_url, str)
 		self.assertTrue(gravatar_url.startswith("data:image/png;base64,"))

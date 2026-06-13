@@ -297,6 +297,7 @@ def random_string(length: int) -> str:
 
 
 def has_gravatar(email: str) -> str:
+<<<<<<< HEAD
 	"""Returns gravatar url if user has set an avatar at gravatar.com"""
 	import requests
 
@@ -322,9 +323,22 @@ def get_gravatar_url(email: str, default: Literal["mm", "404"] = "mm") -> str:
 
 
 def get_gravatar(email: str) -> str:
+=======
+	"""Deprecated: Gravatar integration has been removed. Always returns empty string."""
+	return ""
+
+
+def get_gravatar_url(email: str, default: str = "mm") -> str:
+	"""Deprecated: Gravatar integration has been removed. Always returns empty string."""
+	return ""
+
+
+def get_gravatar(email: str) -> str:
+	"""Return an identicon image (base64) for the given email."""
+>>>>>>> d76c0aa702 (refactor!: Remove all Gravatar integration from framework (server and client) (#39931))
 	from frappe.utils.identicon import Identicon
 
-	return has_gravatar(email) or Identicon(email).base64()
+	return Identicon(email).base64()
 
 
 def get_traceback(with_context=False) -> str:
