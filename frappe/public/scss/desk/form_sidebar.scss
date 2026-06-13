@@ -555,9 +555,12 @@ body[data-route^="Form"] {
 body[data-route^="Form"] .attachment-preview {
 	overflow: hidden;
 	position: relative;
+	display: flex;
+	flex-direction: column;
 	background-color: var(--fg-color);
 
 	.attachment-preview-header {
+		flex-shrink: 0;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -581,7 +584,8 @@ body[data-route^="Form"] .attachment-preview {
 
 	.attachment-preview-body {
 		position: relative;
-		height: calc(100% - 41px);
+		flex: 1;
+		min-height: 0;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -643,19 +647,19 @@ body[data-route^="Form"] .attachment-preview {
 		iframe {
 			visibility: hidden;
 		}
+	}
 
-		.attachment-preview-body::after {
-			content: "Resizing preview...";
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			color: var(--text-muted);
-			background-color: var(--bg-color);
-			padding: var(--padding-sm) var(--padding-md);
-			border: 1px solid var(--border-color);
-			border-radius: var(--border-radius);
-		}
+	.attachment-preview-resize-overlay {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		color: var(--text-muted);
+		background-color: var(--bg-color);
+		padding: var(--padding-sm) var(--padding-md);
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius);
+		pointer-events: none;
 	}
 
 	.attachment-preview-resize-handle {

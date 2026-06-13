@@ -198,13 +198,7 @@ frappe.ui.form.Attachments = class Attachments {
 				"Loading preview..."
 			)}</div>`;
 		} else {
-			preview_html = `<div class="attachment-preview-unavailable">
-				<div class="text-muted">${__("Preview not available for this file type.")}</div>
-				<a class="btn btn-default btn-sm" href="${escaped_file_url}" target="_blank" rel="noopener noreferrer">
-					<span>${__("Open file")}</span>
-					${frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-1")}
-				</a>
-			</div>`;
+			preview_html = this.get_unsupported_preview_html(escaped_file_url);
 		}
 
 		this.current_attachment_preview_type = preview_type;
@@ -256,9 +250,12 @@ frappe.ui.form.Attachments = class Attachments {
 		$(document)
 			.off("keydown.attachment_preview")
 			.on("keydown.attachment_preview", (event) => {
-				if (event.key === "Escape") {
-					this.hide_attachment_preview();
+				if (event.key !== "Escape") return;
+				if (!document.body.contains(this.attachment_preview?.[0])) {
+					$(document).off("keydown.attachment_preview");
+					return;
 				}
+				this.hide_attachment_preview();
 			});
 
 		this.attachment_preview
@@ -317,7 +314,7 @@ frappe.ui.form.Attachments = class Attachments {
 	async render_csv_preview(attachment, file_url, escaped_file_url, preview_request_id) {
 		try {
 			let file_size = Number(attachment.file_size);
-			if (file_size && file_size > this.max_csv_preview_size) {
+			if (file_size > this.max_csv_preview_size) {
 				throw this.get_csv_size_error();
 			}
 
@@ -367,22 +364,28 @@ frappe.ui.form.Attachments = class Attachments {
 
 	async get_csv_response_text(response) {
 		if (!response.body?.getReader) {
-			return await response.text();
+			let text = await response.text();
+			if (text.length > this.max_csv_preview_size) {
+				throw this.get_csv_size_error();
+			}
+			return text;
 		}
 
 		let reader = response.body.getReader();
 		let decoder = new TextDecoder();
 		let csv_text = "";
-		let is_done = false;
+		let bytes_read = 0;
+		let { done, value } = await reader.read();
 
-		while (!is_done) {
-			let { done, value } = await reader.read();
-			is_done = done;
-			if (done) {
-				break;
+		while (!done) {
+			bytes_read += value.byteLength;
+			if (bytes_read > this.max_csv_preview_size) {
+				reader.cancel();
+				throw this.get_csv_size_error();
 			}
 
 			csv_text += decoder.decode(value, { stream: true });
+			({ done, value } = await reader.read());
 		}
 
 		return csv_text + decoder.decode();
@@ -545,7 +548,14 @@ frappe.ui.form.Attachments = class Attachments {
 		this.frm.page.wrapper.addClass("attachment-preview-resizing");
 
 		if (this.current_attachment_preview_type === "pdf") {
-			this.attachment_preview.addClass("attachment-preview-resizing-pdf");
+			this.attachment_preview
+				.addClass("attachment-preview-resizing-pdf")
+				.find(".attachment-preview-body")
+				.append(
+					`<div class="attachment-preview-resize-overlay">${__(
+						"Resizing preview..."
+					)}</div>`
+				);
 		}
 
 		$(document)
@@ -580,7 +590,10 @@ frappe.ui.form.Attachments = class Attachments {
 
 		this.is_resizing_attachment_preview = false;
 		this.frm.page.wrapper.removeClass("attachment-preview-resizing");
-		this.attachment_preview?.removeClass("attachment-preview-resizing-pdf");
+		this.attachment_preview
+			?.removeClass("attachment-preview-resizing-pdf")
+			.find(".attachment-preview-resize-overlay")
+			.remove();
 		$(document).off(".attachment_preview_resize");
 		this.save_preview_width();
 	}
