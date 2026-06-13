@@ -539,6 +539,11 @@ frappe.ui.form.Attachments = class Attachments {
 		this.frm.page.wrapper.removeClass("attachment-preview-open");
 		this.attachment_preview_request_id = (this.attachment_preview_request_id || 0) + 1;
 		$(document).off("keydown.attachment_preview");
+		if (this.is_resizing_attachment_preview) {
+			this.is_resizing_attachment_preview = false;
+			this.frm.page.wrapper.removeClass("attachment-preview-resizing");
+			$(document).off(".attachment_preview_resize");
+		}
 	}
 
 	start_preview_resize(event) {
