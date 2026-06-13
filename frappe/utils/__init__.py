@@ -307,6 +307,13 @@ def random_string(length: int) -> str:
 	return "".join(secrets.choice(alphabet) for i in range(length))
 
 
+def get_identicon(email: str) -> str:
+	"""Return an identicon image (base64) for the given email."""
+	from frappe.utils.identicon import Identicon
+
+	return Identicon(email).base64()
+
+
 def get_traceback(with_context: bool = False) -> str:
 	"""Return the traceback of the Exception."""
 	from traceback_with_variables import iter_exc_lines
