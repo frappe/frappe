@@ -527,6 +527,7 @@ def append_totals_row(data):
 	if not isinstance(totals[0], int | float):
 		totals[0] = "Total"
 
+	assert len(totals) == len(data[0]), "totals row must be as wide as a data row"
 	data.append(totals)
 
 	return data

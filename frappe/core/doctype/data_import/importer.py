@@ -739,7 +739,9 @@ class ImportFile:
 		# make a copy
 		data = list(self.data)
 		while data:
+			prev_len = len(data)
 			doc, rows, data = self.parse_next_row_for_import(data)
+			assert len(data) < prev_len, "each iteration must consume at least one row to terminate"
 			payloads.append(frappe._dict(doc=doc, rows=rows))
 		return sort_tree_payloads(payloads, self.doctype, self.import_type)
 

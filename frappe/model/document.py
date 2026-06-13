@@ -551,6 +551,8 @@ class Document(BaseDocument):
 			super().__init__(d)
 		self.flags.pop("ignore_children", None)
 
+		assert self.name, "document must have a name after loading from db"
+
 		self.load_children_from_db()
 
 		# sometimes __setup__ can depend on child values, hence calling again at the end
@@ -981,6 +983,7 @@ class Document(BaseDocument):
 				set_new_name(d)
 
 		self.flags.name_set = True
+		assert self.name, "document name must be set after set_new_name"
 
 	def get_title(self):
 		"""Get the document title based on title_field or `title` or `name`"""
@@ -1340,6 +1343,12 @@ class Document(BaseDocument):
 		- Submit (1) > Cancel (2)
 
 		"""
+		assert from_docstatus in (
+			DocStatus.DRAFT,
+			DocStatus.SUBMITTED,
+			DocStatus.CANCELLED,
+		), "from_docstatus must be a valid docstatus (0, 1, or 2)"
+
 		if self.flags.skip_docstatus_validation:
 			return
 
@@ -1595,8 +1604,10 @@ class Document(BaseDocument):
 
 		return children
 
-	def run_method(self, method, *args, **kwargs):
+	def run_method(self, method: str, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
+
+		assert not method.startswith("__"), "Run method is for hooks, avoid usage on internal methods"
 
 		def fn(self, *args, **kwargs):
 			method_object = getattr(self, method, None)
@@ -2519,8 +2530,8 @@ class LazyChildTable:
 		fieldname = self.fieldname
 		__dict = doc.__dict__
 		assert fieldname not in __dict, "Descriptor should not override existing values"
-		children = doc._load_child_table_from_db(fieldname, self.doctype) or []
 		__dict[fieldname] = []
+		children = doc._load_child_table_from_db(fieldname, self.doctype) or []
 		# Update __dict__ and convert to Document objects
 		doc.extend(fieldname, children)
 		return __dict[fieldname]
