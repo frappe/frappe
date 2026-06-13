@@ -53,10 +53,10 @@ export function deleteStudioFile(location: StudioFileLocation, file_path: string
 }
 
 // Map a file extension to the language mode the Code editor understands.
-export function languageForFile(path: string): "json" | "javascript" | "html" | "css" {
+export function languageForFile(path: string): "json" | "javascript" | "html" | "css" | "vue" {
 	const extension = path.slice(path.lastIndexOf(".")).toLowerCase()
 	if (extension === ".json") return "json"
 	if (extension === ".css") return "css"
-	if (extension === ".vue") return "html"
+	if (extension === ".vue") return "vue"
 	return "javascript"
 }

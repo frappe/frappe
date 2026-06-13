@@ -67,7 +67,7 @@ import FormInputLabel from "@/components/FormInputLabel.vue"
 
 const props = withDefaults(
 	defineProps<{
-		language?: "json" | "javascript" | "html" | "css"
+		language?: "json" | "javascript" | "html" | "css" | "vue"
 		modelValue?: string | object | Array<string | object> | null
 		height?: string
 		maxHeight?: string
@@ -183,6 +183,10 @@ const loadLanguage = async (type: string): Promise<Extension> => {
 		case "json": {
 			const { json } = await import("@codemirror/lang-json")
 			return json()
+		}
+		case "vue": {
+			const { vue, vueLanguage } = await import("@codemirror/lang-vue")
+			return [vue(), getJSCompletions(vueLanguage)]
 		}
 		default:
 			return []
