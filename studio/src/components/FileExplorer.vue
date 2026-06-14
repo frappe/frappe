@@ -30,13 +30,21 @@
 						"
 						@click="onNodeClick(node, toggleCollapsed)"
 					>
-						<span
-							v-if="node.is_folder"
-							class="size-3.5 shrink-0 text-ink-gray-5"
-							:class="isCollapsed ? 'lucide-chevron-right' : 'lucide-chevron-down'"
-						/>
-						<span v-else class="lucide-file size-3.5 shrink-0 text-ink-gray-4" />
-						<span class="truncate text-sm">{{ node.label }}</span>
+						<div class="mt-[1.25px] flex w-5 shrink-0 flex-col items-center justify-center">
+							<span
+								v-if="node.is_folder"
+								class="size-3.5 items-center text-ink-gray-5"
+								:class="isCollapsed ? 'lucide-chevron-right' : 'lucide-chevron-down'"
+							/>
+							<span
+								v-else
+								class="font-mono text-[10px] font-bold leading-5"
+								:class="getFileBadge(node.path).colorClass"
+							>
+								{{ getFileBadge(node.path).label }}
+							</span>
+						</div>
+						<div class="truncate text-sm">{{ node.label }}</div>
 					</div>
 				</template>
 			</Tree>
@@ -104,7 +112,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
 import { Button, Dialog, FormControl, Tree, toast } from "frappe-ui"
-import CollapsibleSection from "@/components/CollapsibleSection.vue"
 import Code from "@/components/Code.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import PanelResizer from "@/components/PanelResizer.vue"
@@ -161,6 +168,24 @@ const showEditor = computed(
 const panelLeft = computed(() => store.studioLayout.leftPanelWidth)
 const dirty = computed(() => Boolean(openFile.value) && editorContent.value !== savedContent.value)
 const language = computed(() => (openFile.value ? languageForFile(openFile.value.path) : "javascript"))
+
+function getFileBadge(path: string): { label: string; colorClass: string } {
+	const extension = path.slice(path.lastIndexOf(".")).toLowerCase()
+	switch (extension) {
+		case ".vue":
+			return { label: "V", colorClass: "text-ink-green-3" }
+		case ".js":
+			return { label: "JS", colorClass: "text-ink-amber-3" }
+		case ".ts":
+			return { label: "TS", colorClass: "text-ink-blue-3" }
+		case ".json":
+			return { label: "{}", colorClass: "text-ink-gray-5" }
+		case ".css":
+			return { label: "#", colorClass: "text-ink-red-3" }
+		default:
+			return { label: "•", colorClass: "text-ink-gray-4" }
+	}
+}
 
 async function loadTree() {
 	loading.value = true
