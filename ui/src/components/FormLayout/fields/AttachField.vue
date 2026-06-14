@@ -67,7 +67,9 @@
 			<!-- Action overlay: revealed on hover/focus. Replace is the only path
 			     that re-opens the uploader; Clear empties the field. -->
 			<template v-if="!field.readOnly && modelValue" #suffix>
-				<div class="hidden items-center gap-1 group-focus-within:flex group-hover:flex">
+				<div
+					class="hidden items-center gap-1 group-hover:flex group-focus:flex group-focus-within:flex"
+				>
 					<button
 						type="button"
 						aria-label="Replace"

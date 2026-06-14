@@ -30,7 +30,7 @@
 					type="button"
 					aria-label="Clear"
 					data-slot="clear"
-					class="hidden size-4 shrink-0 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 group-focus-within:grid group-hover:grid"
+					class="group-hover:grid group-focus:grid group-focus-within:grid hidden size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 					@click.stop="clearLocation"
 					@pointerdown.stop
 				>
