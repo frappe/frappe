@@ -1,3 +1,4 @@
+import datetime
 import re
 from contextlib import contextmanager
 
@@ -37,6 +38,26 @@ DEC2FLOAT = psycopg2.extensions.new_type(
 )
 
 psycopg2.extensions.register_type(DEC2FLOAT)
+
+
+def _cast_time_as_timedelta(value, cursor):
+	"""Return TIME columns as ``timedelta`` to match MariaDB.
+
+	psycopg2 decodes a postgres ``time without time zone`` to ``datetime.time``, but frappe models
+	Time fields as ``timedelta`` everywhere (that is what MariaDB's driver returns). Returning
+	``datetime.time`` here makes the two backends diverge and breaks frappe's typed value handling.
+	"""
+	if value is None:
+		return None
+	hms, _, frac = value.partition(".")
+	microseconds = int(frac.ljust(6, "0")[:6]) if frac else 0
+	hours, minutes, seconds = (int(part) for part in hms.split(":"))
+	return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds, microseconds=microseconds)
+
+
+# OID 1083 == `time without time zone` (the type frappe uses for Time fields)
+TIME2TIMEDELTA = psycopg2.extensions.new_type((1083,), "TIME2TIMEDELTA", _cast_time_as_timedelta)
+psycopg2.extensions.register_type(TIME2TIMEDELTA)
 
 LOCATE_SUB_PATTERN = re.compile(r"locate\(([^,]+),([^)]+)(\)?)\)", flags=re.IGNORECASE)
 LOCATE_QUERY_PATTERN = re.compile(r"locate\(", flags=re.IGNORECASE)
