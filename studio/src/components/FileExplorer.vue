@@ -381,12 +381,29 @@ async function save() {
 	}
 }
 
+// A page's script (studio_page/<stem>/<stem>.ts) gets a setup() skeleton instead of an empty file.
+const PAGE_SCRIPT_BOILERPLATE = `export default function setup(context) {
+	// Reactive state, computed values, watchers and functions for this page.
+	// Read this page's data sources and variables from context, e.g. context.todos
+
+	return {}
+}
+`
+
+function isPageScriptPath(path: string): boolean {
+	const match = path.match(/^studio_page\/([^/]+)\/([^/]+)\.ts$/)
+	return Boolean(match && match[1] === match[2])
+}
+
 async function createFile() {
 	const path = newFilePath.value.trim()
 	if (!path) return
 	try {
 		suppressNextViteReload()
 		await createStudioFile(location.value, path)
+		if (isPageScriptPath(path)) {
+			await writeStudioFile(location.value, path, PAGE_SCRIPT_BOILERPLATE)
+		}
 		showNewFileDialog.value = false
 		newFilePath.value = ""
 		await loadTree()
