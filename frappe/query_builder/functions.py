@@ -3,6 +3,7 @@ from enum import Enum
 
 from pypika.functions import *
 from pypika.terms import Arithmetic, ArithmeticExpression, CustomFunction, Function, Term
+from pypika.utils import format_alias_sql
 
 import frappe
 from frappe.query_builder.custom import (
@@ -117,6 +118,15 @@ class _PostgresUnixTimestamp(Extract):
 	def __init__(self, field, alias=None):
 		super().__init__("epoch", field=field, alias=alias)
 		self.field = field
+
+	def get_sql(self, **kwargs):
+		# MySQL's UNIX_TIMESTAMP returns an integer, but EXTRACT(EPOCH ...) is double precision on
+		# postgres; cast to bigint so the value (and its Python type) matches across backends.
+		with_alias = kwargs.pop("with_alias", False)
+		sql = f"CAST({super().get_sql(**kwargs)} AS BIGINT)"
+		if with_alias:
+			return format_alias_sql(sql, self.alias, **kwargs)
+		return sql
 
 
 UnixTimestamp = ImportMapper(
