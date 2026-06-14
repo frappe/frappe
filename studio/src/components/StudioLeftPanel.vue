@@ -58,7 +58,7 @@
 
 				<div v-show="activeTab === 'Code'">
 					<CodePanel
-						class="p-4"
+						class="p-3"
 						v-if="store.activePage"
 						:page="store.activePage"
 						:key="store.selectedPage ?? undefined"

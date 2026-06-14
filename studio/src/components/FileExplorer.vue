@@ -3,10 +3,10 @@
 		<!-- File tree -->
 		<div class="flex items-center justify-between">
 			<div class="flex flex-col gap-2">
-				<span class="text-sm font-semibold text-ink-gray-6">{{ app.app_name }}/studio</span>
+				<span class="text-sm font-medium text-ink-gray-7">{{ app.app_name }}/studio</span>
 			</div>
 			<div class="flex items-center gap-1">
-				<Button variant="ghost" icon="lucide-plus" @click="showNewFileDialog = true" title="New file" />
+				<Button variant="ghost" icon="lucide-plus" @click="openNewFileDialog" title="New file" />
 				<Button
 					variant="ghost"
 					icon="lucide-refresh-cw"
@@ -24,7 +24,7 @@
 					<div
 						class="flex h-7 cursor-pointer items-center gap-1 rounded px-1"
 						:class="
-							selectedPath === node.path
+							selectedNode?.path === node.path
 								? 'bg-surface-gray-3 text-ink-gray-9'
 								: 'text-ink-gray-7 hover:bg-surface-gray-2'
 						"
@@ -54,6 +54,7 @@
 	<Dialog v-model="showNewFileDialog" title="New File" width="md">
 		<template #default>
 			<FormControl
+				ref="pathInput"
 				type="text"
 				variant="outline"
 				label="File path"
@@ -110,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue"
+import { ref, computed, watch, nextTick } from "vue"
 import { Button, Dialog, FormControl, Tree, toast } from "frappe-ui"
 import Code from "@/components/Code.vue"
 import EmptyState from "@/components/EmptyState.vue"
@@ -156,15 +157,14 @@ const location = computed(() => ({
 	frappe_app: props.app.frappe_app!,
 	studio_app: props.app.name,
 }))
-const selectedPath = computed(() => openFile.value?.path)
-// The editor belongs to the Code tab: keep it docked only while that tab is the visible left panel.
+const selectedNode = ref<StudioFileNode | null>(null)
 const showEditor = computed(
 	() =>
 		Boolean(openFile.value) &&
 		store.studioLayout.showLeftPanel &&
 		store.studioLayout.leftPanelActiveTab === "Code",
 )
-// dock the editor flush against the right edge of the left panel
+
 const panelLeft = computed(() => store.studioLayout.leftPanelWidth)
 const dirty = computed(() => Boolean(openFile.value) && editorContent.value !== savedContent.value)
 const language = computed(() => (openFile.value ? languageForFile(openFile.value.path) : "javascript"))
@@ -199,8 +199,31 @@ async function loadTree() {
 }
 
 function onNodeClick(node: StudioFileNode, toggleCollapsed: (event: MouseEvent) => void, event: MouseEvent) {
+	selectedNode.value = node
 	if (node.is_folder) toggleCollapsed(event)
 	else openNode(node)
+}
+
+const pathInput = ref<any>(null)
+function currentFolderPath(): string {
+	const node = selectedNode.value
+	if (!node) return ""
+	if (node.is_folder) return `${node.path}/`
+	const slash = node.path.lastIndexOf("/")
+	return slash === -1 ? "" : node.path.slice(0, slash + 1)
+}
+
+function openNewFileDialog() {
+	newFilePath.value = currentFolderPath()
+	showNewFileDialog.value = true
+	nextTick(() => {
+		requestAnimationFrame(() => {
+			const input = pathInput.value?.$el?.querySelector?.("input") as HTMLInputElement | undefined
+			if (!input) return
+			input.focus()
+			input.setSelectionRange(input.value.length, input.value.length)
+		})
+	})
 }
 
 async function openNode(node: StudioFileNode) {
@@ -259,7 +282,14 @@ async function createFile() {
 		showNewFileDialog.value = false
 		newFilePath.value = ""
 		await loadTree()
-		await openNode({ label: path, path, is_folder: false, children: [] })
+		const newNode: StudioFileNode = {
+			label: path.split("/").pop() || path,
+			path,
+			is_folder: false,
+			children: [],
+		}
+		selectedNode.value = newNode
+		await openNode(newNode)
 	} catch (error: any) {
 		toast.error("Failed to create file", { description: error?.messages?.join(", ") })
 	}
@@ -282,6 +312,7 @@ watch(
 	() => props.app.name,
 	() => {
 		openFile.value = null
+		selectedNode.value = null
 		loadTree()
 	},
 	{ immediate: true },
