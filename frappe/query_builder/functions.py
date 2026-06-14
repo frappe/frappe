@@ -64,6 +64,15 @@ class Truncate(Function):
 		super().__init__("TRUNCATE", term, decimal, **kwargs)
 
 
+class Abs(Function):
+	# pypika ships Abs as an AggregateFunction, which makes get_list/get_value treat a scalar
+	# ABS(...) select field as an aggregate query. On postgres that forces the default ORDER BY
+	# to be wrapped in MAX(), turning the statement into an implicit aggregate and breaking the
+	# (non-grouped) ABS column. ABS is scalar, so define it as a plain Function.
+	def __init__(self, term, alias=None):
+		super().__init__("ABS", term, alias=alias)
+
+
 GroupConcat = ImportMapper({db_type_is.MARIADB: GROUP_CONCAT, db_type_is.POSTGRES: STRING_AGG})
 
 Match = ImportMapper({db_type_is.MARIADB: MATCH, db_type_is.POSTGRES: TO_TSVECTOR})

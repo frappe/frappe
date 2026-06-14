@@ -101,7 +101,13 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_unique_key_violation(e):
-		return getattr(e, "pgcode", None) == UNIQUE_VIOLATION and "_key" in cstr(e.args[0])
+		# Any unique-constraint violation that isn't the primary key (those are surfaced as
+		# DuplicateEntryError first). This mirrors MariaDB, whose duplicate-entry error covers every
+		# unique index regardless of name -- frappe's custom indexes (e.g. `unique_item_warehouse`)
+		# don't carry the `_key` suffix postgres auto-generates, so a name match alone misses them.
+		return PostgresExceptionUtil.is_duplicate_entry(
+			e
+		) and not PostgresExceptionUtil.is_primary_key_violation(e)
 
 	@staticmethod
 	def is_duplicate_fieldname(e):
