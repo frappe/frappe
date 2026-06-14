@@ -1526,41 +1526,10 @@ Object.assign(frappe.utils, {
 		);
 	},
 
-	get_desktop_icon(icon_name, variant) {
-		let exists = false;
-		let icon_data = this.get_desktop_icon_by_label(icon_name);
-		variant = variant.toLowerCase();
-		if (!icon_data?.app) return exists;
-		let app_name = icon_data.app;
-		let icon_url = `assets/${app_name}/icons/desktop_icons/${variant}/${frappe.scrub(
-			icon_name
-		)}.svg`;
-
-		if (
-			frappe.boot.desktop_icon_urls[app_name] &&
-			frappe.boot.desktop_icon_urls[app_name][variant].includes(icon_url)
-		) {
-			return `/${icon_url}`;
-		}
-		return exists;
-	},
-
 	desktop_icon_exists(app_name, url) {
 		let exists = false;
 		if (frappe.boot.desktop_icon_urls[app_name].includes(url)) exists = true;
 		return exists;
-	},
-	get_desktop_icon_by_label(title, filters) {
-		if (!filters) {
-			return frappe.boot.desktop_icons.find((f) => f.label === title);
-		} else {
-			return frappe.boot.desktop_icons.find((f) => {
-				return (
-					f.label === title &&
-					Object.keys(filters).every((key) => f[key] === filters[key])
-				);
-			});
-		}
 	},
 
 	make_chart(wrapper, custom_options = {}) {

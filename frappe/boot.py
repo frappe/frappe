@@ -15,7 +15,6 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
 from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.desk.desk_views import DeskViews
-from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
@@ -463,7 +462,6 @@ def get_sidebar_items():
 			perm_ctx=perm_ctx,
 		)
 
-	add_user_specific_sidebar(sidebar_items)
 	return sidebar_items
 
 
@@ -574,17 +572,3 @@ def get_desktop_icon_urls():
 						icons_map[app][variant].append(assets_path)
 
 	return icons_map
-
-
-def add_user_specific_sidebar(sidebar_items):
-	sidebars_to_remove = []
-	for sidebar in sidebar_items.keys():
-		if f"-{frappe.session.user.lower()}" in sidebar:
-			sidebars_to_remove.append(sidebar)
-	for sidebar in sidebars_to_remove:
-		try:
-			sidebar_name = sidebar.replace(f"-{frappe.session.user.lower()}", "")
-			sidebar_items[sidebar]["label"] = sidebar_items[sidebar_name]["label"]
-			sidebar_items[sidebar_name] = sidebar_items.pop(sidebar)
-		except KeyError:
-			pass

@@ -309,32 +309,3 @@ def create_user_icons(user, data):
 			frappe.cache.hset("_user_settings", f"{'Desktop Icon'}::{user}", json.dumps(user_settings))
 			return json.dumps(user_settings)
 	return data
-
-
-@frappe.whitelist()
-def add_workspace_to_desktop(workspace: str):
-	if frappe.db.exists("Workspace Sidebar", workspace):
-		sidebar = frappe.get_doc("Workspace Sidebar", workspace)
-	else:
-		sidebar = frappe.new_doc("Workspace Sidebar")
-		sidebar.title = workspace
-
-	if not any(item.link_to == workspace for item in sidebar.get("items", [])):
-		sidebar_item = frappe.new_doc("Workspace Sidebar Item")
-		sidebar_item.label = workspace
-		sidebar_item.type = "Link"
-		sidebar_item.link_to = workspace
-		sidebar_item.link_type = "Workspace"
-		sidebar.append("items", sidebar_item)
-		sidebar.save()
-
-	if frappe.db.exists("Desktop Icon", workspace):
-		return {"icon": frappe.get_doc("Desktop Icon", workspace).as_dict()}
-
-	new_icon = frappe.new_doc("Desktop Icon")
-	new_icon.label = workspace
-	new_icon.icon_type = "Link"
-	new_icon.link_to = workspace
-	new_icon.link_type = "Workspace Sidebar"
-	new_icon.insert()
-	return {"icon": new_icon.as_dict()}
