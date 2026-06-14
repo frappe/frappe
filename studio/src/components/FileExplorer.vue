@@ -88,10 +88,18 @@
 				class="flex select-none items-center justify-between gap-2 border-b border-outline-gray-2 px-3 py-2"
 				@dblclick="toggleFullWidth"
 			>
-				<span class="truncate text-sm text-ink-gray-8" :title="openFile!.path">
-					{{ openFile!.path }}
-					<span v-if="dirty" class="text-ink-amber-3">•</span>
-				</span>
+				<div class="flex min-w-0 items-center gap-1.5">
+					<span
+						class="mt-1 shrink-0 font-mono text-[10px] font-bold leading-none"
+						:class="getFileBadge(openFile!.path).colorClass"
+					>
+						{{ getFileBadge(openFile!.path).label }}
+					</span>
+					<span class="truncate text-sm text-ink-gray-8" :title="openFile!.path">
+						{{ openFile!.path }}
+						<span v-if="dirty" class="text-ink-amber-3">•</span>
+					</span>
+				</div>
 				<div class="flex shrink-0 items-center gap-1" @dblclick.stop>
 					<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="save">Save</Button>
 					<Button size="xs" variant="ghost" icon="lucide-trash-2" @click="removeFile" title="Delete file" />
