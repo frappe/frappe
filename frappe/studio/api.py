@@ -184,13 +184,15 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 		if not os.path.isdir(page_folder):
 			continue
 
-		for filename in sorted(os.listdir(page_folder)):
-			if not filename.endswith(".ts"):
+		# each page is a folder holding <stem>.json + <stem>.ts
+		for entry in sorted(os.listdir(page_folder)):
+			page_dir = os.path.join(page_folder, entry)
+			if not os.path.isdir(page_dir):
 				continue
 
-			file_path = os.path.join(page_folder, filename)
-			json_path = file_path[: -len(".ts")] + ".json"
-			if not os.path.exists(json_path):
+			file_path = os.path.join(page_dir, f"{entry}.ts")
+			json_path = os.path.join(page_dir, f"{entry}.json")
+			if not (os.path.exists(file_path) and os.path.exists(json_path)):
 				continue
 			page_name = frappe.parse_json(frappe.read_file(json_path)).get("page_name")
 			if page_name:

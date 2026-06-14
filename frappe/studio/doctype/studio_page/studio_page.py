@@ -10,6 +10,7 @@ from frappe.model.naming import append_number_if_name_exists
 from studio.export import (
 	can_export,
 	delete_file,
+	delete_folder,
 	parse_json,
 	remove_null_fields,
 	write_code_file,
@@ -91,6 +92,8 @@ class StudioPage(Document):
 
 	def export_page(self):
 		if can_export(self):
+			# each page lives in its own folder: studio/<app>/studio_page/<scrubbed_title>/
+			frappe.create_folder(self.get_folder_path(), with_init=True)
 			self.export_page_script()
 			# script lives in the companion .ts (code mode), so keep it out of the JSON
 			write_document_file(self, folder=self.get_folder_path(), exclude_fields=["script"])
@@ -112,12 +115,15 @@ class StudioPage(Document):
 			write_code_file(self, folder, code_field="script", extension="ts", filename=stem)
 
 	def delete_old_page_file(self):
+		# the folder is named after the page title, so a retitle moves the whole folder
 		if self.has_value_changed("page_title"):
 			doc_before_save = self.get_doc_before_save()
 			if doc_before_save:
 				old_stem = frappe.scrub(doc_before_save.page_title)
-				delete_file(self.get_folder_path(), f"{old_stem}.json")
-				delete_file(self.get_folder_path(), f"{old_stem}.ts")
+				old_folder = frappe.get_app_source_path(
+					self.frappe_app, "studio", self.studio_app, "studio_page", old_stem
+				)
+				delete_folder(old_folder)
 
 	def export_components(self):
 		if components := self.get_studio_components():
@@ -169,8 +175,7 @@ class StudioPage(Document):
 	def on_trash(self):
 		self.delete_ai_sessions()
 		if can_export(self):
-			path = self.get_folder_path(with_filename=True)
-			delete_file(path)
+			delete_folder(self.get_folder_path())
 
 	def delete_ai_sessions(self):
 		for session in frappe.get_all("Studio AI Session", filters={"page": self.name}, pluck="name"):
@@ -274,7 +279,8 @@ class StudioPage(Document):
 			)
 
 	def get_folder_path(self, with_filename: bool = False) -> str:
-		path = ["studio", self.studio_app, "studio_page"]
+		# each page exports to its own folder: studio/<app>/studio_page/<scrubbed_title>/
+		path = ["studio", self.studio_app, "studio_page", self.get_export_docname()]
 		if with_filename:
 			path.append(self.get_file_name())
 		return frappe.get_app_source_path(self.frappe_app, *path)

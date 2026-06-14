@@ -73,18 +73,23 @@ class StudioAppBuilder:
 			fields=["name", "page_title"],
 		)
 		for page in pages:
-			file_path = os.path.join(page_folder, f"{frappe.scrub(page.page_title)}.ts")
+			stem = frappe.scrub(page.page_title)
+			file_path = os.path.join(page_folder, stem, f"{stem}.ts")
 			if os.path.exists(file_path):
 				scripts.append({"page_name": page.name, "file_path": file_path})
 		return scripts
 
 	def _page_scripts_from_files(self, page_folder: str) -> list[dict]:
 		scripts = []
-		for fname in sorted(os.listdir(page_folder)):
-			if not fname.endswith(".ts"):
+		# each page is a folder holding <stem>.json + <stem>.ts
+		for entry in sorted(os.listdir(page_folder)):
+			page_dir = os.path.join(page_folder, entry)
+			if not os.path.isdir(page_dir):
 				continue
-			ts_path = os.path.join(page_folder, fname)
-			json_path = ts_path[: -len(".ts")] + ".json"
+			ts_path = os.path.join(page_dir, f"{entry}.ts")
+			json_path = os.path.join(page_dir, f"{entry}.json")
+			if not (os.path.exists(ts_path) and os.path.exists(json_path)):
+				continue
 			try:
 				with open(json_path) as f:
 					page_name = json.load(f).get("page_name")
@@ -152,16 +157,19 @@ class StudioAppBuilder:
 
 		self._load_studio_components_from_files(app_folder)
 
-		for page_file in os.listdir(page_folder):
-			if not page_file.endswith(".json"):
+		# each page is a folder holding <stem>.json + <stem>.ts
+		for entry in os.listdir(page_folder):
+			page_dir = os.path.join(page_folder, entry)
+			if not os.path.isdir(page_dir):
 				continue
-
-			page_path = os.path.join(page_folder, page_file)
+			page_path = os.path.join(page_dir, f"{entry}.json")
+			if not os.path.exists(page_path):
+				continue
 			try:
 				with open(page_path) as f:
 					page_data = json.load(f)
 			except (json.JSONDecodeError, OSError) as e:
-				click.secho(f"Warning: Could not read {page_file}: {e}", fg="yellow")
+				click.secho(f"Warning: Could not read {page_path}: {e}", fg="yellow")
 				continue
 
 			blocks = page_data.get("blocks")

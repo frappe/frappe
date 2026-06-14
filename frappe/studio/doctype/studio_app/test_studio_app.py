@@ -265,8 +265,11 @@ def mock_studio_app_files(app_name, pages=None, components=None):
 		os.makedirs(page_folder)
 
 		if pages:
+			# each page is exported into its own folder holding <stem>.json (+ optional <stem>.ts)
 			for page_name, page_data in pages.items():
-				with open(os.path.join(page_folder, f"{page_name}.json"), "w") as f:
+				page_dir = os.path.join(page_folder, page_name)
+				os.makedirs(page_dir, exist_ok=True)
+				with open(os.path.join(page_dir, f"{page_name}.json"), "w") as f:
 					json.dump(page_data, f)
 
 		if components:
