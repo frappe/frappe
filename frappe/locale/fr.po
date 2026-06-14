@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-06-09 07:56\n"
+"PO-Revision-Date: 2026-06-14 17:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -1493,7 +1493,7 @@ msgstr "Ajoutez des chiffres ou des caractères spéciaux."
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
-msgstr "Ajouter un saut de page"
+msgstr ""
 
 #: frappe/custom/doctype/client_script/client_script.js:16
 msgid "Add script for Child Table"
