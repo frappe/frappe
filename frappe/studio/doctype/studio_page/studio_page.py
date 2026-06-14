@@ -9,7 +9,6 @@ from frappe.model.naming import append_number_if_name_exists
 
 from studio.export import (
 	can_export,
-	delete_file,
 	delete_folder,
 	parse_json,
 	remove_null_fields,
@@ -101,14 +100,15 @@ class StudioPage(Document):
 			self.export_components()
 
 	def export_page_script(self):
-		"""Write the page script as a code file (<page>.ts) beside the page JSON. Only rewrite
-		when the script changed or the file is missing, so direct edits to the .ts (the source of
-		truth for exported pages) aren't clobbered by unrelated page saves."""
+		"""Write the page script as a code file (<page>.ts) beside the page JSON. The .ts is the
+		source of truth for exported pages and is edited directly via the file explorer, so the DB
+		`script` field is only a mirror: write the .ts from it when it changed or is missing (e.g.
+		bootstrapping an interpreted script on export), but never delete the on-disk file just
+		because the mirror is empty — that would wipe scripts added/edited through the explorer."""
 		folder = self.get_folder_path()
 		stem = self.get_export_docname()
 		ts_file = f"{stem}.ts"
 		if not self.script:
-			delete_file(folder, ts_file)
 			return
 		if self.has_value_changed("script") or not os.path.exists(os.path.join(folder, ts_file)):
 			# the folder is already created by export_page()
