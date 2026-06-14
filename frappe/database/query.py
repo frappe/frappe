@@ -319,8 +319,10 @@ class Engine:
 		if for_update:
 			self.query = self.query.for_update(skip_locked=skip_locked, nowait=not wait)
 
-		if any(isinstance(f, functions.AggregateFunction) for f in getattr(self, "fields", [])):
-			# check if any field in select is aggregated (done to prevent breaking queries in postgres due to order by rule)
+		# check if any field in select is aggregated (done to prevent breaking queries in postgres due to
+		# order by rule). Use pypika's is_aggregate so aggregates *nested* in an expression are detected
+		# too (e.g. `Sum(a) - Sum(b)`), not just a top-level AggregateFunction.
+		if any(getattr(f, "is_aggregate", False) for f in getattr(self, "fields", [])):
 			self.is_aggregate_query = True
 
 		if group_by:
