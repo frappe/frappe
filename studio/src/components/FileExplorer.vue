@@ -28,7 +28,7 @@
 								? 'bg-surface-gray-3 text-ink-gray-9'
 								: 'text-ink-gray-7 hover:bg-surface-gray-2'
 						"
-						@click="onNodeClick(node, toggleCollapsed)"
+						@click="onNodeClick(node, toggleCollapsed, $event)"
 					>
 						<div class="mt-[1.25px] flex w-5 shrink-0 flex-col items-center justify-center">
 							<span
@@ -198,8 +198,8 @@ async function loadTree() {
 	}
 }
 
-function onNodeClick(node: StudioFileNode, toggleCollapsed: () => void) {
-	if (node.is_folder) toggleCollapsed()
+function onNodeClick(node: StudioFileNode, toggleCollapsed: (event: MouseEvent) => void, event: MouseEvent) {
+	if (node.is_folder) toggleCollapsed(event)
 	else openNode(node)
 }
 
