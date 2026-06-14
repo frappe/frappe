@@ -61,8 +61,6 @@ declare module 'vue' {
     Grid: typeof import('./src/components/Grid.vue')['default']
     HTML: typeof import('./src/components/AppLayout/HTML.vue')['default']
     IconButton: typeof import('./src/components/IconButton.vue')['default']
-    IconJS: typeof import('./src/components/Icons/IconJS.vue')['default']
-    IconVue: typeof import('./src/components/Icons/IconVue.vue')['default']
     ImageView: typeof import('./src/components/AppLayout/ImageView.vue')['default']
     InlineInput: typeof import('./src/components/InlineInput.vue')['default']
     Input: typeof import('./src/components/Input.vue')['default']
