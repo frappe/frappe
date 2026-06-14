@@ -93,7 +93,7 @@ class StudioPage(Document):
 	def export_page(self):
 		if can_export(self):
 			# each page lives in its own folder: studio/<app>/studio_page/<scrubbed_title>/
-			frappe.create_folder(self.get_folder_path(), with_init=True)
+			frappe.create_folder(self.get_folder_path())
 			self.export_page_script()
 			# script lives in the companion .ts (code mode), so keep it out of the JSON
 			write_document_file(self, folder=self.get_folder_path(), exclude_fields=["script"])
@@ -111,7 +111,7 @@ class StudioPage(Document):
 			delete_file(folder, ts_file)
 			return
 		if self.has_value_changed("script") or not os.path.exists(os.path.join(folder, ts_file)):
-			frappe.create_folder(folder, with_init=True)
+			# the folder is already created by export_page()
 			write_code_file(self, folder, code_field="script", extension="ts", filename=stem)
 
 	def delete_old_page_file(self):
@@ -128,7 +128,7 @@ class StudioPage(Document):
 	def export_components(self):
 		if components := self.get_studio_components():
 			folder = self.get_component_folder_path()
-			frappe.create_folder(folder, with_init=True)
+			frappe.create_folder(folder)
 			for component in components:
 				doc = frappe.get_doc("Studio Component", component)
 				write_document_file(doc, folder=folder)

@@ -268,13 +268,13 @@ class StudioApp(WebsiteGenerator):
 
 	def create_app_folder(self) -> str:
 		app_path = self.get_folder_path()
-		frappe.create_folder(app_path, with_init=True)
+		frappe.create_folder(app_path)
 		write_document_file(self, folder=app_path)
 		return app_path
 
 	def export_studio_pages(self, app_path):
 		page_folder_path = os.path.join(app_path, "studio_page")
-		frappe.create_folder(page_folder_path, with_init=True)
+		frappe.create_folder(page_folder_path)
 
 		for page in frappe.get_all(
 			"Studio Page", filters={"studio_app": self.name, "is_standard": 1}, pluck="name"
