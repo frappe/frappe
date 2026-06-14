@@ -8,7 +8,16 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from flow.knowledge import store
+from flow.knowledge.chunker import chunk_text
 from flow.knowledge.embedder import embed_texts, probe_dimension
+from flow.knowledge.extract import (
+	_extract_docx,
+	_extract_html,
+	_extract_pdf,
+	_extract_xlsx,
+	_validate_public_url,
+	extract,
+)
 
 DIM = 4
 
@@ -315,3 +324,167 @@ class TestKnowledgeSettings(IntegrationTestCase):
 	def test_chunk_size_must_be_positive(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "Chunk Size"):
 			self._save_settings(chunk_size=0)
+
+
+class TestChunker(IntegrationTestCase):
+	def test_empty_text_returns_no_chunks(self):
+		self.assertEqual(chunk_text("   \n  ", chunk_size=100, overlap=10), [])
+
+	def test_short_text_is_a_single_chunk(self):
+		self.assertEqual(chunk_text("hello world", chunk_size=100, overlap=10), ["hello world"])
+
+	def test_long_text_splits_within_size_and_covers_all_words(self):
+		words = [f"w{i}" for i in range(200)]
+		text = " ".join(words)
+		chunks = chunk_text(text, chunk_size=100, overlap=20)
+		self.assertGreater(len(chunks), 1)
+		self.assertTrue(all(len(c) <= 100 for c in chunks))
+		joined = " ".join(chunks)
+		self.assertTrue(all(w in joined for w in words))
+
+	def test_consecutive_chunks_overlap(self):
+		text = " ".join(f"token{i}" for i in range(100))
+		chunks = chunk_text(text, chunk_size=80, overlap=30)
+		tail = chunks[0].split()[-1]
+		self.assertIn(tail, chunks[1])
+
+	def test_text_without_whitespace_hard_splits(self):
+		chunks = chunk_text("a" * 250, chunk_size=100, overlap=0)
+		self.assertEqual([len(c) for c in chunks], [100, 100, 50])
+
+	def test_invalid_chunk_size_raises(self):
+		with self.assertRaises(ValueError):
+			chunk_text("x", chunk_size=0, overlap=0)
+
+	def test_overlap_not_smaller_than_size_raises(self):
+		with self.assertRaises(ValueError):
+			chunk_text("x", chunk_size=10, overlap=10)
+
+
+class TestExtract(IntegrationTestCase):
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_text_source(self):
+		source = frappe._dict(source_type="Text", content="  some knowledge  ")
+		docs = extract(source)
+		self.assertEqual(len(docs), 1)
+		self.assertEqual(docs[0].text, "some knowledge")
+		self.assertIsNone(docs[0].reference_name)
+
+	def test_empty_text_source_yields_nothing(self):
+		self.assertEqual(extract(frappe._dict(source_type="Text", content="   ")), [])
+
+	def test_file_source_reads_text_file(self):
+		file_doc = frappe.get_doc(
+			{"doctype": "File", "file_name": "note.txt", "content": "file body", "is_private": 1}
+		).insert()
+		docs = extract(frappe._dict(source_type="File", file=file_doc.file_url))
+		self.assertEqual(docs[0].text, "file body")
+
+	def test_file_source_rejects_unsupported_format(self):
+		file_doc = frappe.get_doc(
+			{"doctype": "File", "file_name": "data.bin", "content": "x", "is_private": 1}
+		).insert()
+		with self.assertRaisesRegex(frappe.ValidationError, "Unsupported file format"):
+			extract(frappe._dict(source_type="File", file=file_doc.file_url))
+
+	def test_doctype_source_one_record_per_document(self):
+		frappe.get_doc({"doctype": "ToDo", "description": "first task", "status": "Open"}).insert()
+		frappe.get_doc({"doctype": "ToDo", "description": "second task", "status": "Cancelled"}).insert()
+		source = frappe._dict(
+			source_type="DocType",
+			reference_doctype="ToDo",
+			content_fields="description",
+			filters='{"status": "Open"}',
+		)
+		docs = extract(source)
+		self.assertEqual(len(docs), 1)
+		self.assertEqual(docs[0].reference_doctype, "ToDo")
+		self.assertIn("first task", docs[0].text)
+		self.assertTrue(docs[0].reference_name)
+
+	def test_doctype_source_rejects_unknown_field(self):
+		source = frappe._dict(
+			source_type="DocType",
+			reference_doctype="ToDo",
+			content_fields="description, not_a_field",
+			filters=None,
+		)
+		with self.assertRaisesRegex(frappe.ValidationError, "Unknown fields"):
+			extract(source)
+
+	def test_doctype_source_rejects_invalid_filters(self):
+		source = frappe._dict(
+			source_type="DocType",
+			reference_doctype="ToDo",
+			content_fields="description",
+			filters="not json",
+		)
+		with self.assertRaisesRegex(frappe.ValidationError, "valid JSON"):
+			extract(source)
+
+	def test_extract_html_strips_tags_and_scripts(self):
+		html = "<html><body><script>x=1</script><p>Hi</p> <p>there</p></body></html>"
+		self.assertEqual(_extract_html(html), "Hi there")
+
+	def test_extract_xlsx(self):
+		import io
+
+		import openpyxl
+
+		workbook = openpyxl.Workbook()
+		sheet = workbook.active
+		sheet.title = "People"
+		sheet.append(["Name", "Age"])
+		sheet.append(["Alice", 30])
+		buffer = io.BytesIO()
+		workbook.save(buffer)
+		text = _extract_xlsx(buffer.getvalue())
+		self.assertIn("People", text)
+		self.assertIn("Alice", text)
+
+	def test_extract_docx(self):
+		import io
+
+		from docx import Document
+
+		document = Document()
+		document.add_paragraph("First paragraph.")
+		document.add_paragraph("")
+		document.add_paragraph("Second paragraph.")
+		buffer = io.BytesIO()
+		document.save(buffer)
+		text = _extract_docx(buffer.getvalue())
+		self.assertEqual(text, "First paragraph.\n\nSecond paragraph.")
+
+	def test_extract_pdf_blank_page(self):
+		import io
+
+		from pypdf import PdfWriter
+
+		writer = PdfWriter()
+		writer.add_blank_page(width=72, height=72)
+		buffer = io.BytesIO()
+		writer.write(buffer)
+		self.assertEqual(_extract_pdf(buffer.getvalue()), "")
+
+	def test_validate_public_url_rejects_non_http_scheme(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "http"):
+			_validate_public_url("ftp://example.com/x")
+
+	def test_validate_public_url_rejects_loopback(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "non-public"):
+			_validate_public_url("http://127.0.0.1/")
+
+	def test_validate_public_url_rejects_private_ip(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "non-public"):
+			_validate_public_url("http://10.0.0.5/")
+
+	def test_validate_public_url_rejects_metadata_ip(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "non-public"):
+			_validate_public_url("http://169.254.169.254/latest/meta-data/")
+
+	def test_validate_public_url_accepts_public_host(self):
+		with patch("socket.getaddrinfo", return_value=[(2, 1, 6, "", ("93.184.216.34", 0))]):
+			_validate_public_url("https://example.com/page")
