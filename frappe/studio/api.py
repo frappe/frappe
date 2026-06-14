@@ -1,6 +1,7 @@
 import hashlib
 import os
 import re
+import shutil
 from typing import Literal
 
 import frappe
@@ -340,16 +341,19 @@ def create_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict
 @frappe.whitelist()
 @has_page_write_perm()
 def rename_studio_file(frappe_app: str, studio_app: str, file_path: str, new_path: str) -> dict:
-	"""Rename/move an editable file within the app folder."""
+	"""Rename/move an editable file or a folder within the app folder."""
 	_assert_studio_file_access()
-	_assert_allowed_extension(file_path)
-	_assert_allowed_extension(new_path)
 	source = _resolve_studio_file(frappe_app, studio_app, file_path)
 	destination = _resolve_studio_file(frappe_app, studio_app, new_path)
-	if not os.path.isfile(source):
-		frappe.throw(_("File not found: {0}").format(file_path))
+	if not os.path.exists(source):
+		frappe.throw(_("Not found: {0}").format(file_path))
 	if os.path.exists(destination):
 		frappe.throw(_("{0} already exists.").format(new_path))
+
+	# files keep the editable-extension restriction; folders may be renamed freely
+	if os.path.isfile(source):
+		_assert_allowed_extension(file_path)
+		_assert_allowed_extension(new_path)
 
 	os.makedirs(os.path.dirname(destination), exist_ok=True)
 	os.rename(source, destination)
@@ -359,10 +363,14 @@ def rename_studio_file(frappe_app: str, studio_app: str, file_path: str, new_pat
 @frappe.whitelist()
 @has_page_write_perm()
 def delete_studio_file(frappe_app: str, studio_app: str, file_path: str) -> None:
-	"""Delete an editable file within the app folder."""
+	"""Delete an editable file, or a folder (with its contents), within the app folder."""
 	_assert_studio_file_access()
-	_assert_allowed_extension(file_path)
 	target = _resolve_studio_file(frappe_app, studio_app, file_path)
+	if os.path.isdir(target):
+		shutil.rmtree(target)
+		return
+
+	_assert_allowed_extension(file_path)
 	if not os.path.isfile(target):
-		frappe.throw(_("File not found: {0}").format(file_path))
+		frappe.throw(_("Not found: {0}").format(file_path))
 	os.remove(target)

@@ -37,18 +37,22 @@
 			</span>
 		</button>
 
-		<div class="overflow-auto rounded">
+		<div ref="treeContainer" class="overflow-auto rounded">
 			<EmptyState v-if="!loading && !tree.length" message="No code files yet" />
 			<Tree v-for="node in tree" :key="node.path" :node="node" nodeKey="path" :options="treeOptions">
 				<template #node="{ node, isCollapsed, toggleCollapsed }">
 					<div
-						class="flex h-7 cursor-pointer select-none items-center gap-1 rounded px-1"
+						class="flex h-7 cursor-pointer select-none items-center gap-1 rounded px-1 outline-none"
 						:class="
 							selectedNode?.path === node.path
 								? 'bg-surface-gray-3 text-ink-gray-9'
 								: 'text-ink-gray-7 hover:bg-surface-gray-2'
 						"
+						tabindex="0"
 						@click="onNodeClick(node, toggleCollapsed, $event)"
+						@contextmenu.prevent.stop="openContextMenu($event, node)"
+						@keydown.enter.prevent.stop="startRename(node)"
+						@keydown.f2.prevent.stop="startRename(node)"
 					>
 						<div class="mt-[1.25px] flex w-5 shrink-0 flex-col items-center justify-center">
 							<span
@@ -65,8 +69,19 @@
 							</span>
 						</div>
 						<div
-							class="min-w-0 flex-1 truncate text-sm"
-							:class="node.path === activePagePaths?.folder ? 'font-medium text-ink-gray-9' : ''"
+							:data-file-label="node.path"
+							class="min-w-0 flex-1 truncate rounded text-sm outline-none"
+							:class="[
+								node.path === activePagePaths?.folder ? 'font-medium text-ink-gray-9' : '',
+								editingPath === node.path
+									? 'select-text !overflow-visible whitespace-nowrap bg-white px-1 ring-1 ring-outline-gray-3'
+									: '',
+							]"
+							:contenteditable="editingPath === node.path"
+							@click="onLabelClick($event, node)"
+							@keydown.enter.stop.prevent="($event.target as HTMLElement).blur()"
+							@keydown.escape.stop.prevent="cancelRename($event, node)"
+							@blur="commitRename($event, node)"
 						>
 							{{ node.label }}
 						</div>
@@ -100,6 +115,15 @@
 			<Button variant="solid" label="Create" class="w-full" @click="createFile" />
 		</template>
 	</Dialog>
+
+	<ContextMenu
+		v-if="contextMenuVisible"
+		v-on-click-outside="closeContextMenu"
+		:pos-x="contextMenuPos.x"
+		:pos-y="contextMenuPos.y"
+		:options="contextMenuOptions"
+		@select="onContextMenuSelect"
+	/>
 
 	<!-- Editor docks beside the left panel at full height -->
 	<Teleport to="#studio-code-editor-outlet">
@@ -158,8 +182,10 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from "vue"
 import { useWindowSize } from "@vueuse/core"
+import { vOnClickOutside } from "@vueuse/components"
 import { Button, Dialog, FormControl, Tree, toast, Tooltip } from "frappe-ui"
 import Code from "@/components/Code.vue"
+import ContextMenu from "@/components/ContextMenu.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import PanelResizer from "@/components/PanelResizer.vue"
 import useStudioStore from "@/stores/studioStore"
@@ -168,6 +194,7 @@ import {
 	readStudioFile,
 	writeStudioFile,
 	createStudioFile,
+	renameStudioFile,
 	deleteStudioFile,
 	languageForFile,
 	type StudioFileNode,
@@ -176,6 +203,7 @@ import { confirm } from "@/utils/helpers"
 import { suppressNextViteReload } from "@/utils/viteReload"
 import { pageScriptCompletions } from "@/utils/pageScriptCompletions"
 import type { StudioApp } from "@/types/Studio/StudioApp"
+import type { ContextMenuOption } from "@/types"
 
 const props = defineProps<{
 	app: StudioApp
@@ -198,6 +226,11 @@ const editorContent = ref("")
 const savedContent = ref("")
 const showNewFileDialog = ref(false)
 const newFilePath = ref("")
+const contextMenuVisible = ref(false)
+const contextMenuPos = ref({ x: 0, y: 0 })
+const contextMenuNode = ref<StudioFileNode | null>(null)
+const treeContainer = ref<HTMLElement | null>(null)
+const editingPath = ref<string | null>(null)
 
 const location = computed(() => ({
 	frappe_app: props.app.frappe_app!,
@@ -324,12 +357,17 @@ function currentFolderPath(): string {
 function openNewFileDialog() {
 	newFilePath.value = currentFolderPath()
 	showNewFileDialog.value = true
+	focusFormInput(pathInput)
+}
+
+// Focus a FormControl's <input> once the dialog has rendered, optionally selecting [start, end).
+function focusFormInput(formRef: { value: any }, start?: number, end?: number) {
 	nextTick(() => {
 		requestAnimationFrame(() => {
-			const input = pathInput.value?.$el?.querySelector?.("input") as HTMLInputElement | undefined
+			const input = formRef.value?.$el?.querySelector?.("input") as HTMLInputElement | undefined
 			if (!input) return
 			input.focus()
-			input.setSelectionRange(input.value.length, input.value.length)
+			input.setSelectionRange(start ?? input.value.length, end ?? input.value.length)
 		})
 	})
 }
@@ -420,17 +458,128 @@ async function createFile() {
 	}
 }
 
-async function removeFile() {
-	if (!openFile.value) return
-	if (!(await confirm(`Delete ${openFile.value.path}?`))) return
+// -- Context menu --
+const contextMenuOptions = computed<ContextMenuOption[]>(() => {
+	const node = contextMenuNode.value
+	if (!node) return []
+	return [
+		{ label: "Rename", action: () => startRename(node) },
+		{ label: "Delete", action: () => deleteNode(node) },
+	]
+})
+
+function openContextMenu(event: MouseEvent, node: StudioFileNode) {
+	selectedNode.value = node
+	contextMenuNode.value = node
+	contextMenuPos.value = { x: event.pageX, y: event.pageY }
+	contextMenuVisible.value = true
+}
+
+function closeContextMenu() {
+	contextMenuVisible.value = false
+}
+
+function onContextMenuSelect(action: CallableFunction) {
+	action()
+	closeContextMenu()
+}
+
+// -- Rename (inline, like the layers panel) --
+// Turn the node's label into a contenteditable field and focus it with the name pre-selected.
+function startRename(node: StudioFileNode) {
+	closeContextMenu()
+	editingPath.value = node.path
+	nextTick(() => requestAnimationFrame(() => focusLabel(node)))
+}
+
+function focusLabel(node: StudioFileNode) {
+	const el = treeContainer.value?.querySelector<HTMLElement>(`[data-file-label="${node.path}"]`)
+	const textNode = el?.firstChild
+	if (!el || !textNode) return
+	el.focus()
+	// select the basename minus a file's extension, so the user can just retype the name
+	const dot = node.label.lastIndexOf(".")
+	const end = !node.is_folder && dot > 0 ? dot : node.label.length
+	const range = document.createRange()
+	range.setStart(textNode, 0)
+	range.setEnd(textNode, Math.min(end, textNode.textContent?.length ?? 0))
+	const selection = window.getSelection()
+	selection?.removeAllRanges()
+	selection?.addRange(range)
+}
+
+// Commit on blur (Enter blurs the field). The rename only changes the basename; the folder stays.
+async function commitRename(event: Event, node: StudioFileNode) {
+	if (editingPath.value !== node.path) return // already cancelled
+	editingPath.value = null
+	const target = event.target as HTMLElement
+	const newLabel = (target.innerText || "").trim()
+	if (!newLabel || newLabel === node.label) {
+		target.innerText = node.label // discard partial/empty edits
+		return
+	}
+	const newPath = parentDir(node.path) + newLabel
 	try {
 		suppressNextViteReload()
-		await deleteStudioFile(location.value, openFile.value.path)
-		openFile.value = null
+		await renameStudioFile(location.value, node.path, newPath)
+		remapOpenFile(node.path, newPath, node.is_folder)
+		await loadTree()
+		selectedNode.value = findNode(newPath)
+	} catch (error: any) {
+		toast.error("Failed to rename", { description: error?.messages?.join(", ") })
+		await loadTree() // restore the original label
+	}
+}
+
+function cancelRename(event: Event, node: StudioFileNode) {
+	editingPath.value = null
+	;(event.target as HTMLElement).innerText = node.label
+	;(event.target as HTMLElement).blur()
+}
+
+// Don't open the file when clicking the label to place the caret mid-rename.
+function onLabelClick(event: MouseEvent, node: StudioFileNode) {
+	if (editingPath.value === node.path) event.stopPropagation()
+}
+
+function parentDir(path: string): string {
+	const slash = path.lastIndexOf("/")
+	return slash === -1 ? "" : path.slice(0, slash + 1)
+}
+
+// Keep the editor pointed at the open file after it (or a folder containing it) is renamed.
+function remapOpenFile(oldPath: string, newPath: string, isFolder: boolean) {
+	if (!openFile.value) return
+	if (openFile.value.path === oldPath) {
+		openFile.value.path = newPath
+	} else if (isFolder && openFile.value.path.startsWith(`${oldPath}/`)) {
+		openFile.value.path = newPath + openFile.value.path.slice(oldPath.length)
+	}
+}
+
+// -- Delete --
+async function deleteNode(node: StudioFileNode) {
+	const message = node.is_folder ? `Delete ${node.path} and everything inside it?` : `Delete ${node.path}?`
+	if (!(await confirm(message))) return
+	try {
+		suppressNextViteReload()
+		await deleteStudioFile(location.value, node.path)
+		if (openFileIsUnder(node.path, node.is_folder)) openFile.value = null
+		if (selectedNode.value?.path === node.path) selectedNode.value = null
 		await loadTree()
 	} catch (error: any) {
-		toast.error("Failed to delete file", { description: error?.messages?.join(", ") })
+		toast.error("Failed to delete", { description: error?.messages?.join(", ") })
 	}
+}
+
+function removeFile() {
+	if (!openFile.value) return
+	deleteNode({ label: "", path: openFile.value.path, is_folder: false, children: [] })
+}
+
+function openFileIsUnder(path: string, isFolder: boolean): boolean {
+	if (!openFile.value) return false
+	return openFile.value.path === path || (isFolder && openFile.value.path.startsWith(`${path}/`))
 }
 
 watch(
