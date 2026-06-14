@@ -51,9 +51,9 @@
 				v-show="layout !== 'toggle' || mode === 'write'"
 				:modelValue="value"
 				:language="language"
-				:readonly="field.readOnly"
+				:disabled="field.readOnly"
 				:placeholder="field.placeholder"
-				:maxHeight="expanded ? undefined : COLLAPSED_HEIGHT"
+				:style="expanded ? undefined : { '--cm-max-height': COLLAPSED_HEIGHT }"
 				@update:modelValue="onInput"
 				@change="onCommit"
 				@overflow="overflowing = $event"
@@ -79,7 +79,8 @@
 // `doc` (Frappe JSON/Code fields store strings) — the contract is unchanged.
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { Button } from "frappe-ui";
-import { CodeEditor, CodePreview, fieldtypeToLanguage } from "../../CodeEditor";
+import { CodeEditor, CodePreview } from "frappe-ui/code-editor";
+import { fieldtypeToLanguage } from "./fieldtypeToLanguage";
 import type { FieldComponentEmits, FieldComponentProps } from "../types";
 
 const props = withDefaults(
