@@ -72,6 +72,8 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	}
 
 	show_doc(route) {
+		this.clear_attachment_preview_state();
+
 		var doctype = route[1],
 			doctype_layout = frappe.router.doctype_layout || doctype,
 			name = route.slice(2).join("/");
@@ -123,7 +125,17 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	}
 
 	render(doctype_layout, name) {
+		this.clear_attachment_preview_state();
 		frappe.container.change_to(doctype_layout);
 		frappe.views.formview[doctype_layout].frm.refresh(name);
+	}
+
+	clear_attachment_preview_state() {
+		$(".attachment-preview-open, .attachment-preview-resizing")
+			.removeClass("attachment-preview-open attachment-preview-resizing")
+			.each((_, el) => el.style.removeProperty("--attachment-preview-width"));
+		$(".attachment-preview").remove();
+		$(document).off("keydown.attachment_preview");
+		$(document).off(".attachment_preview_resize");
 	}
 };
