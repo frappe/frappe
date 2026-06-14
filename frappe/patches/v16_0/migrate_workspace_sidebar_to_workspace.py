@@ -41,9 +41,13 @@ def execute():
 	for name in sidebar_names:
 		try:
 			migrate_sidebar(name)
-		except Exception:
+		except frappe.NameError:
+			click.secho(f"There is a doctype with the name {name}")
+			click.secho("Change the Workspace Sidebar name to something else")
+		except Exception as e:
 			frappe.db.rollback()
 			click.secho(f"Failed to migrate Workspace Sidebar '{name}' to Workspace", fg="red")
+			click.secho(e)
 			frappe.log_error(title="Workspace Sidebar migration failed", reference_name=name)
 
 	frappe.db.commit()  # nosemgrep
@@ -72,7 +76,6 @@ def migrate_sidebar(name):
 	if sidebar.standard:
 		workspace = set_app_and_module(workspace, sidebar)
 		workspace.standard = 1
-
 	workspace.save(ignore_permissions=True)
 	frappe.db.commit()
 	# `remove_orphan_entities` (run later in the same migrate) deletes any standard public
