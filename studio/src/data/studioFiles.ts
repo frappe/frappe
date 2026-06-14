@@ -40,6 +40,13 @@ export function createStudioFile(
 	return call("studio.api.create_studio_file", { ...location, file_path })
 }
 
+export function createStudioFolder(
+	location: StudioFileLocation,
+	folder_path: string,
+): Promise<{ path: string }> {
+	return call("studio.api.create_studio_folder", { ...location, folder_path })
+}
+
 export function renameStudioFile(
 	location: StudioFileLocation,
 	file_path: string,

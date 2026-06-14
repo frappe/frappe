@@ -6,7 +6,18 @@
 				<span class="text-sm font-medium text-ink-gray-7">{{ app.app_name }}/studio</span>
 			</div>
 			<div class="flex items-center gap-1">
-				<Button variant="ghost" icon="lucide-plus" @click="openNewFileDialog" title="New file" />
+				<Button
+					variant="ghost"
+					icon="lucide-file-plus"
+					@click="openNewEntryDialog('file')"
+					title="New file"
+				/>
+				<Button
+					variant="ghost"
+					icon="lucide-folder-plus"
+					@click="openNewEntryDialog('folder')"
+					title="New folder"
+				/>
 				<Button
 					variant="ghost"
 					icon="lucide-refresh-cw"
@@ -98,21 +109,25 @@
 		</div>
 	</div>
 
-	<Dialog v-model="showNewFileDialog" title="New File" width="md">
+	<Dialog
+		v-model="showNewEntryDialog"
+		:title="newEntryType === 'folder' ? 'New Folder' : 'New File'"
+		width="md"
+	>
 		<template #default>
 			<FormControl
 				ref="pathInput"
 				type="text"
 				variant="outline"
-				label="File path"
-				:description="`Relative to studio/${app.app_name}. Allowed: .ts, .js, .vue, .json, .css`"
-				placeholder="composables/useThing.ts"
-				v-model="newFilePath"
-				@keyup.enter="createFile"
+				:label="newEntryType === 'folder' ? 'Folder path' : 'File path'"
+				:description="newEntryDescription"
+				:placeholder="newEntryType === 'folder' ? 'composables' : 'composables/useThing.ts'"
+				v-model="newEntryPath"
+				@keyup.enter="createEntry"
 			/>
 		</template>
 		<template #actions>
-			<Button variant="solid" label="Create" class="w-full" @click="createFile" />
+			<Button variant="solid" label="Create" class="w-full" @click="createEntry" />
 		</template>
 	</Dialog>
 
@@ -194,6 +209,7 @@ import {
 	readStudioFile,
 	writeStudioFile,
 	createStudioFile,
+	createStudioFolder,
 	renameStudioFile,
 	deleteStudioFile,
 	languageForFile,
@@ -224,8 +240,14 @@ const saving = ref(false)
 const openFile = ref<{ path: string; hash: string } | null>(null)
 const editorContent = ref("")
 const savedContent = ref("")
-const showNewFileDialog = ref(false)
-const newFilePath = ref("")
+const showNewEntryDialog = ref(false)
+const newEntryPath = ref("")
+const newEntryType = ref<"file" | "folder">("file")
+const newEntryDescription = computed(() =>
+	newEntryType.value === "folder"
+		? `Relative to studio/${props.app.app_name}`
+		: `Relative to studio/${props.app.app_name}. Allowed: .ts, .js, .vue, .json, .css`,
+)
 const contextMenuVisible = ref(false)
 const contextMenuPos = ref({ x: 0, y: 0 })
 const contextMenuNode = ref<StudioFileNode | null>(null)
@@ -323,8 +345,10 @@ function openActivePageScript() {
 		selectedNode.value = scriptNode
 		openNode(scriptNode)
 	} else {
-		newFilePath.value = scriptPath
-		showNewFileDialog.value = true
+		newEntryType.value = "file"
+		newEntryPath.value = scriptPath
+		showNewEntryDialog.value = true
+		focusFormInput(pathInput)
 	}
 }
 
@@ -354,9 +378,10 @@ function currentFolderPath(): string {
 	return slash === -1 ? "" : node.path.slice(0, slash + 1)
 }
 
-function openNewFileDialog() {
-	newFilePath.value = currentFolderPath()
-	showNewFileDialog.value = true
+function openNewEntryDialog(type: "file" | "folder") {
+	newEntryType.value = type
+	newEntryPath.value = currentFolderPath()
+	showNewEntryDialog.value = true
 	focusFormInput(pathInput)
 }
 
@@ -433,28 +458,35 @@ function isPageScriptPath(path: string): boolean {
 	return Boolean(match && match[1] === match[2])
 }
 
-async function createFile() {
-	const path = newFilePath.value.trim()
+async function createEntry() {
+	const path = newEntryPath.value.trim().replace(/\/+$/, "")
 	if (!path) return
+	const isFolder = newEntryType.value === "folder"
 	try {
 		suppressNextViteReload()
-		await createStudioFile(location.value, path)
-		if (isPageScriptPath(path)) {
-			await writeStudioFile(location.value, path, PAGE_SCRIPT_BOILERPLATE)
+		if (isFolder) {
+			await createStudioFolder(location.value, path)
+		} else {
+			await createStudioFile(location.value, path)
+			if (isPageScriptPath(path)) {
+				await writeStudioFile(location.value, path, PAGE_SCRIPT_BOILERPLATE)
+			}
 		}
-		showNewFileDialog.value = false
-		newFilePath.value = ""
+		showNewEntryDialog.value = false
+		newEntryPath.value = ""
 		await loadTree()
 		const newNode: StudioFileNode = {
 			label: path.split("/").pop() || path,
 			path,
-			is_folder: false,
+			is_folder: isFolder,
 			children: [],
 		}
-		selectedNode.value = newNode
-		await openNode(newNode)
+		selectedNode.value = findNode(path) ?? newNode
+		if (!isFolder) await openNode(newNode)
 	} catch (error: any) {
-		toast.error("Failed to create file", { description: error?.messages?.join(", ") })
+		toast.error(`Failed to create ${isFolder ? "folder" : "file"}`, {
+			description: error?.messages?.join(", "),
+		})
 	}
 }
 

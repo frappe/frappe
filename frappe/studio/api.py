@@ -256,7 +256,8 @@ def _file_hash(content: str) -> str:
 
 
 def _build_studio_file_tree(directory: str, root: str) -> list[dict]:
-	"""Folders (with editable descendants) first, then editable files; hidden/irrelevant entries skipped."""
+	"""Folders first (including empty ones, so newly created folders show up), then editable files;
+	hidden/irrelevant entries skipped."""
 	nodes = []
 	for name in sorted(os.listdir(directory)):
 		if name.startswith(".") or name in ("__pycache__", "node_modules"):
@@ -267,8 +268,7 @@ def _build_studio_file_tree(directory: str, root: str) -> list[dict]:
 
 		if os.path.isdir(absolute_path):
 			children = _build_studio_file_tree(absolute_path, root)
-			if children:  # skip folders with nothing editable inside
-				nodes.append({"label": name, "path": relative_path, "is_folder": True, "children": children})
+			nodes.append({"label": name, "path": relative_path, "is_folder": True, "children": children})
 		elif os.path.splitext(name)[1].lower() in ALLOWED_STUDIO_FILE_EXTENSIONS:
 			nodes.append({"label": name, "path": relative_path, "is_folder": False, "children": []})
 
@@ -336,6 +336,18 @@ def create_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict
 	with open(target, "w", encoding="utf-8") as f:
 		f.write("")
 	return {"path": file_path, "hash": _file_hash("")}
+
+
+@frappe.whitelist()
+@has_page_write_perm()
+def create_studio_folder(frappe_app: str, studio_app: str, folder_path: str) -> dict:
+	"""Create an empty folder (and any parent folders) within the app folder."""
+	_assert_studio_file_access()
+	target = _resolve_studio_file(frappe_app, studio_app, folder_path)
+	if os.path.exists(target):
+		frappe.throw(_("{0} already exists.").format(folder_path))
+	os.makedirs(target)
+	return {"path": folder_path}
 
 
 @frappe.whitelist()
