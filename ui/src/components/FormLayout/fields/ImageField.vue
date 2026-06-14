@@ -1,8 +1,14 @@
 <template>
 	<div>
-		<label v-if="field.label" class="mb-1.5 block text-p-sm text-ink-gray-5">
-			{{ field.label }}
-		</label>
+		<!-- Label / description come from frappe-ui's labeling primitives so the
+		     markup, typography, and spacing match every other field (Image has no
+		     underlying labeled control to delegate to). -->
+		<InputLabel
+			v-if="field.label"
+			:id="labelId"
+			:label="field.label"
+			class="mb-1.5 text-p-sm-medium text-ink-gray-7"
+		/>
 		<div
 			class="flex items-center justify-center overflow-hidden rounded-lg border border-outline-gray-1 bg-surface-gray-1"
 			:class="url ? 'min-h-32' : 'min-h-24'"
@@ -15,9 +21,12 @@
 			/>
 			<span v-else class="py-6 text-p-sm text-ink-gray-4">No image</span>
 		</div>
-		<p v-if="field.description" class="mt-1.5 text-p-xs text-ink-gray-5">
-			{{ field.description }}
-		</p>
+		<InputDescription
+			v-if="field.description"
+			:id="descriptionId"
+			:description="field.description"
+			class="mt-1.5"
+		/>
 	</div>
 </template>
 
@@ -27,11 +36,17 @@
 // `field.options` (typically an `Attach Image`). Reads that sibling from the
 // injected doc; falls back to its own `modelValue` if no `options` is set. No
 // upload, no emit.
-import { computed, inject, ref } from "vue";
+import { computed, inject, ref, useId } from "vue";
+import { InputLabel, InputDescription } from "frappe-ui/internals";
 import { DocKey } from "../types";
 import type { FieldComponentProps } from "../types";
 
 const props = defineProps<FieldComponentProps>();
+
+// Stable ids for the labeling primitives (frappe-ui's InputLabel/InputDescription
+// require an explicit id).
+const labelId = useId();
+const descriptionId = useId();
 
 const doc = inject(DocKey, ref<Record<string, any>>({}));
 
