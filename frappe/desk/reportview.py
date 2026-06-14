@@ -927,3 +927,51 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 	else:
 		cond = ""
 	return cond
+
+
+def get_match_conditions_qb(doctype, table=None, user=None):
+	"""Return user-permission match conditions for ``doctype`` as query-builder criteria.
+
+	Query-builder equivalent of :func:`get_match_cond` / :func:`build_match_conditions`
+	(which return raw SQL strings). Returns a list of pypika criteria (0 or 1 elements)
+	covering role permissions, user permissions, sharing and the if-owner constraint as
+	well as ``permission_query_conditions`` hooks/server scripts.
+
+	The criteria can be applied to any ``frappe.qb`` query via ``.where(...)`` — including
+	joins/aliased queries where the permission-checked doctype is not the single base of
+	:func:`frappe.qb.get_query`.
+
+	Args:
+	        doctype: doctype to build permission conditions for.
+	        table: pypika table the conditions should reference. Defaults to ``frappe.qb.DocType(doctype)``.
+	        user: user to evaluate permissions for. Defaults to the session user.
+	"""
+	from frappe.database.query import Engine
+
+	engine = Engine()
+	engine.get_query(doctype, user=user, ignore_permissions=False, db_query_compat=True)
+	condition = engine.get_permission_conditions(doctype, table or engine.table)
+	return [condition] if condition is not None else []
+
+
+def get_filter_conditions_qb(doctype, filters, ignore_permissions=None):
+	"""Return ``filters`` for ``doctype`` as a list of query-builder criteria.
+
+	Query-builder equivalent of :func:`get_filters_cond` (which returns a raw SQL string).
+	Accepts the standard frappe filter forms (dict, or list of ``[doctype, field, op, value]``
+	rows) and returns pypika criteria that can be applied to any ``frappe.qb`` query via
+	``.where(...)``.
+	"""
+	if not filters:
+		return []
+
+	if isinstance(filters, str):
+		filters = json.loads(filters)
+
+	from frappe.database.query import Engine
+
+	engine = Engine()
+	engine.get_query(doctype, ignore_permissions=ignore_permissions, db_query_compat=True)
+	criteria = []
+	engine.apply_filters(filters, collect=criteria)
+	return criteria
