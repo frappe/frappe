@@ -1,5 +1,5 @@
 <template>
-	<div class="flex flex-col gap-3">
+	<div class="flex flex-col gap-2">
 		<!-- File tree -->
 		<div class="flex items-center justify-between">
 			<div class="flex flex-col gap-2">
@@ -17,12 +17,32 @@
 			</div>
 		</div>
 
+		<button
+			v-if="activePage"
+			class="flex w-full items-center gap-2 rounded border border-outline-gray-2 px-2 py-1.5 text-left hover:bg-surface-gray-2"
+			:title="
+				activePageHasScript
+					? `Open ${activePage.page_title}'s script`
+					: `Add a script for ${activePage.page_title}`
+			"
+			@click="openActivePageScript"
+		>
+			<span class="lucide-file size-3.5 shrink-0 text-ink-gray-5" />
+			<span class="flex min-w-0 flex-1 flex-row">
+				<span class="block text-sm text-ink-gray-5">Editing&nbsp;</span>
+				<span class="block truncate text-sm text-ink-gray-8">{{ activePage.page_title }}</span>
+			</span>
+			<span class="shrink-0 text-xs text-ink-gray-5">
+				{{ activePageHasScript ? "Open script" : "Add script" }}
+			</span>
+		</button>
+
 		<div class="overflow-auto rounded">
 			<EmptyState v-if="!loading && !tree.length" message="No code files yet" />
 			<Tree v-for="node in tree" :key="node.path" :node="node" nodeKey="path" :options="treeOptions">
 				<template #node="{ node, isCollapsed, toggleCollapsed }">
 					<div
-						class="flex h-7 cursor-pointer items-center gap-1 rounded px-1"
+						class="flex h-7 cursor-pointer select-none items-center gap-1 rounded px-1"
 						:class="
 							selectedNode?.path === node.path
 								? 'bg-surface-gray-3 text-ink-gray-9'
@@ -44,7 +64,19 @@
 								{{ getFileBadge(node.path).label }}
 							</span>
 						</div>
-						<div class="truncate text-sm">{{ node.label }}</div>
+						<div
+							class="min-w-0 flex-1 truncate text-sm"
+							:class="node.path === activePagePaths?.folder ? 'font-medium text-ink-gray-9' : ''"
+						>
+							{{ node.label }}
+						</div>
+						<Tooltip
+							v-if="node.path === activePagePaths?.folder"
+							text="Currently editing this page"
+							placement="right"
+						>
+							<span class="ml-1 mt-0.5 shrink-0 text-[8px] text-ink-blue-3">●</span>
+						</Tooltip>
 					</div>
 				</template>
 			</Tree>
@@ -125,7 +157,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from "vue"
 import { useWindowSize } from "@vueuse/core"
-import { Button, Dialog, FormControl, Tree, toast } from "frappe-ui"
+import { Button, Dialog, FormControl, Tree, toast, Tooltip } from "frappe-ui"
 import Code from "@/components/Code.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import PanelResizer from "@/components/PanelResizer.vue"
@@ -221,6 +253,43 @@ function getFileBadge(path: string): { label: string; colorClass: string } {
 			return { label: "#", colorClass: "text-ink-red-3" }
 		default:
 			return { label: "•", colorClass: "text-ink-gray-4" }
+	}
+}
+
+const activePage = computed(() => store.activePage)
+const activePagePaths = computed(() => {
+	const title = activePage.value?.page_title
+	if (!title) return null
+	const folder = `studio_page/${scrub(title)}`
+	return { folder, script: `${folder}/${scrub(title)}.ts` }
+})
+
+function scrub(text: string): string {
+	return text.replaceAll(" ", "_").replaceAll("-", "_").toLowerCase()
+}
+
+function findNode(path: string | null, nodes: StudioFileNode[] = tree.value): StudioFileNode | null {
+	if (!path) return null
+	for (const node of nodes) {
+		if (node.path === path) return node
+		const found = findNode(path, node.children)
+		if (found) return found
+	}
+	return null
+}
+
+const activePageHasScript = computed(() => Boolean(findNode(activePagePaths.value?.script ?? null)))
+
+function openActivePageScript() {
+	const scriptPath = activePagePaths.value?.script
+	if (!scriptPath) return
+	const scriptNode = findNode(scriptPath)
+	if (scriptNode) {
+		selectedNode.value = scriptNode
+		openNode(scriptNode)
+	} else {
+		newFilePath.value = scriptPath
+		showNewFileDialog.value = true
 	}
 }
 
