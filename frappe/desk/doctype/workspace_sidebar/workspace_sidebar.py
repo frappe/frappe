@@ -13,6 +13,26 @@ from frappe.modules.export_file import strip_default_fields
 from frappe.modules.utils import create_directory_on_app_path
 from frappe.utils.caching import site_cache
 
+# Child fields carried over verbatim when re-parenting `Workspace Sidebar Item` rows
+# from `Workspace Sidebar.items` to `Workspace.sidebar_items`.
+SIDEBAR_ITEM_FIELDS = (
+	"type",
+	"label",
+	"link_type",
+	"link_to",
+	"icon",
+	"child",
+	"indent",
+	"collapsible",
+	"keep_closed",
+	"url",
+	"show_arrow",
+	"filters",
+	"route_options",
+	"navigate_to_tab",
+	"open_in_new_tab",
+)
+
 
 class WorkspaceSidebar(Document, DeskViews):
 	_DOCTYPE_NAME = "Workspace Sidebar"
@@ -103,6 +123,82 @@ class WorkspaceSidebar(Document, DeskViews):
 		counts = Counter(all_modules_in_sidebars)
 		if counts and counts.most_common(1)[0]:
 			return counts.most_common(1)[0][0]
+
+	@frappe.whitelist()
+	def migrate_to_workspace(self):
+		"""Merge this `Workspace Sidebar` into its matching `Workspace`.
+
+		Copies the sidebar items into the matching `Workspace`'s `sidebar_items` table
+		(mapping `header_icon` -> `icon`, plus `module_onboarding` and `standard`). When no
+		`Workspace` matches the sidebar, one is created to host the items so no sidebar is lost.
+		"""
+		# Welcome Workspace was never given a sidebar; leave its special-casing untouched.
+		if self.title == "Welcome Workspace":
+			return
+
+		workspace = get_or_create_workspace(self)
+
+		workspace.set("sidebar_items", [])
+		for item in self.items:
+			workspace.append("sidebar_items", {field: item.get(field) for field in SIDEBAR_ITEM_FIELDS})
+
+		if self.header_icon:
+			workspace.icon = self.header_icon
+		if self.module_onboarding:
+			workspace.module_onboarding = self.module_onboarding
+		workspace.standard = self.standard
+
+		# A standard workspace must carry app + module so it can be exported to files.
+		if self.standard:
+			workspace = set_app_and_module(workspace, self)
+			workspace.standard = 1
+
+		workspace.save(ignore_permissions=True)
+		frappe.db.commit()  # nosemgrep
+		# `remove_orphan_entities` (run later during migrate) deletes any standard public
+		# workspace that has no backing JSON file in an app. `on_update` skips the export during
+		# patches, so export through the controller here to give the merged workspace a file.
+		if workspace.standard:
+			workspace.export_workspace()
+
+		return workspace
+
+
+def set_app_and_module(workspace, sidebar):
+	app = sidebar.app or workspace.app
+	if not app:
+		return
+
+	workspace.app = app
+	if not workspace.module:
+		modules = frappe.get_module_list(app)
+		workspace.module = modules[0] if modules else None
+	return workspace
+
+
+def get_or_create_workspace(sidebar):
+	if frappe.db.exists("Workspace", sidebar.title):
+		return frappe.get_doc("Workspace", sidebar.title)
+
+	public = 0 if sidebar.for_user else 1
+	click.echo(f"Creating Workspace '{sidebar.title}' for orphan Workspace Sidebar")
+
+	workspace = frappe.new_doc("Workspace")
+	workspace.update(
+		{
+			"title": sidebar.title,
+			"label": sidebar.title,
+			"type": "Workspace",
+			"content": "[]",
+			"public": public,
+			"for_user": sidebar.for_user or "",
+			"module": sidebar.module or None,
+			"app": sidebar.app,
+			"sequence_id": frappe.db.count("Workspace", {"public": public}),
+		}
+	)
+	workspace.save(ignore_permissions=True)
+	return workspace
 
 
 def delete_file(app, title):
