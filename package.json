@@ -52,13 +52,8 @@
     "fast-deep-equal": "^2.0.1",
     "fast-glob": "^3.2.5",
     "frappe-charts": "2.0.0-rc27",
-<<<<<<< HEAD
-    "frappe-datatable": "1.20.4",
-    "frappe-gantt": "^0.6.0",
-=======
     "frappe-datatable": "1.20.5",
-    "frappe-gantt": "^1.2.1",
->>>>>>> cf41188a93 (chore: bump up datatable to 1.20.5)
+    "frappe-gantt": "^0.6.0",
     "frappe-quill-image-resize": "^3.0.9",
     "highlight.js": "^10.4.1",
     "html5-qrcode": "^2.3.8",
