@@ -4,10 +4,14 @@
 		:doctype="targetDoctype"
 		:filters="field.filters"
 		:label="field.label"
-		:description="field.description"
+		:description="
+			targetDoctype
+				? field.description
+				: 'Child table metadata unavailable — picker disabled.'
+		"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
-		:disabled="field.readOnly"
+		:disabled="field.readOnly || !targetDoctype"
 	/>
 </template>
 

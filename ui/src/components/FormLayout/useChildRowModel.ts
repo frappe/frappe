@@ -33,6 +33,9 @@ export function useChildRowModel(
     get: () => rows.value.map((r) => r[linkFieldname()]).filter(Boolean),
     set: (selected) => {
       const fn = linkFieldname();
+      // No link fieldname means child meta is missing; writing rows keyed by
+      // "" would corrupt the child table, so skip the write entirely.
+      if (!fn) return;
       const byValue = new Map(rows.value.map((r) => [r[fn], r]));
       const next = selected.map((v) => byValue.get(v) ?? { [fn]: v });
       emit("update:modelValue", next);
