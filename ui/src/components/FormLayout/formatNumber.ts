@@ -320,5 +320,10 @@ function roundNumber(
     n = Math.round(n + epsilon);
     return n / multiplier;
   }
-  throw new Error(`Unknown rounding method ${method}`);
+  // Unknown method — fall back to legacy Banker's Rounding rather than crashing
+  // the NumberField's display computed (which would leave every numeric field blank).
+  console.warn(
+    `[FormLayout] Unknown rounding method "${method}", falling back to Banker's Rounding (legacy)`
+  );
+  return roundNumber(num, precision, DEFAULT_ROUNDING_METHOD);
 }
