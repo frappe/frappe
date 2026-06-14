@@ -815,25 +815,6 @@
    "label": "Dashboard"
   },
   {
-   "default": "0",
-   "fieldname": "show_absolute_datetime_in_timeline",
-   "fieldtype": "Check",
-   "label": "Show Absolute Datetime in Timeline"
-  },
-  {
-   "fieldname": "sessions_tab",
-   "fieldtype": "Tab Break",
-   "label": "Sessions"
-  },
-  {
-   "depends_on": "eval:doc.name == frappe.session.user",
-   "fieldname": "active_sessions",
-   "fieldtype": "Table",
-   "is_virtual": 1,
-   "label": "Active Sessions",
-   "options": "User Session Display"
-  },
-  {
    "default": "1",
    "fieldname": "form_navigation_buttons",
    "fieldtype": "Check",
