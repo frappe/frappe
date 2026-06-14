@@ -63,6 +63,8 @@ LOCATE_SUB_PATTERN = re.compile(r"locate\(([^,]+),([^)]+)(\)?)\)", flags=re.IGNO
 LOCATE_QUERY_PATTERN = re.compile(r"locate\(", flags=re.IGNORECASE)
 PG_TRANSFORM_PATTERN = re.compile(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])")
 FROM_TAB_PATTERN = re.compile(r"from tab([\w-]*)", flags=re.IGNORECASE)
+# MySQL's REGEXP operator -> postgres `~*` (case-insensitive, matching MySQL's default collation)
+REGEXP_PATTERN = re.compile(r"\sREGEXP\s", flags=re.IGNORECASE)
 
 
 class PostgresExceptionUtil:
@@ -573,6 +575,8 @@ def modify_query(query):
 	# replace ` with " for definitions
 	query = str(query).replace("`", '"')
 	query = replace_locate_with_strpos(query)
+	# MySQL REGEXP operator -> postgres case-insensitive regex match
+	query = REGEXP_PATTERN.sub(" ~* ", query)
 	# select from requires ""
 	query = FROM_TAB_PATTERN.sub(r'from "tab\1"', query)
 
