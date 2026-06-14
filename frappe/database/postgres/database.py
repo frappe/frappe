@@ -392,6 +392,33 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			(table_name, self.db_schema, index_name),
 		)
 
+	def get_column_index(self, table_name: str, fieldname: str, unique: bool = False) -> frappe._dict | None:
+		"""Check if a column is the leading column of a single-column index.
+
+		Cross-db counterpart of the MariaDB implementation (which uses ``SHOW INDEX`` with
+		``Seq_in_index = 1`` and a single-column constraint). Uses the PostgreSQL system
+		catalogs so callers stay db-agnostic.
+		"""
+		result = self.sql(
+			f"""
+			SELECT ic.relname AS "Key_name"
+			FROM pg_index i
+			JOIN pg_class tc ON tc.oid = i.indrelid
+			JOIN pg_class ic ON ic.oid = i.indexrelid
+			JOIN pg_namespace n ON n.oid = tc.relnamespace
+			JOIN pg_attribute a ON a.attrelid = tc.oid AND a.attnum = i.indkey[0]
+			WHERE tc.relname = %(table_name)s
+				AND n.nspname = %(schema)s
+				AND a.attname = %(fieldname)s
+				AND i.indisunique = {"true" if unique else "false"}
+				AND i.indnkeyatts = 1
+			LIMIT 1
+			""",
+			{"table_name": table_name, "schema": self.db_schema, "fieldname": fieldname},
+			as_dict=True,
+		)
+		return result[0] if result else None
+
 	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
