@@ -17,8 +17,20 @@
 			     binding once avoids repeating that work for every `f.` reference below. -->
 			<template v-for="f in [cellField(column.fieldname, row)]" :key="column.fieldname">
 				<template v-if="!f.hidden">
+					<!-- Fieldtypes whose editor can't fit a single-row cell (multi-line
+					     code editors, nested grids, display-only blocks) render a compact
+					     read-only summary here; the row-edit dialog renders the real
+					     control. Button stays inline — it carries no value and its label
+					     fits a cell. -->
+					<span
+						v-if="isSummaryField(f)"
+						class="truncate px-2 py-1 text-sm text-ink-gray-5"
+						:title="cellSummary(f, value, row)"
+					>
+						{{ cellSummary(f, value, row) }}
+					</span>
 					<div
-						v-if="isCentered(column.fieldname)"
+						v-else-if="isCentered(column.fieldname)"
 						class="flex w-full items-center justify-center"
 					>
 						<component
@@ -95,6 +107,27 @@ provide(ParentDocKey, parentDoc);
 const NUMBER_FIELDTYPES = new Set(["Int", "Float", "Currency", "Percent"]);
 const CENTERED_FIELDTYPES = new Set(["Check", "Rating"]);
 
+// Fieldtypes whose editor can't live in a 34px single-row cell — multi-line code
+// editors, nested grids, and display-only blocks. The cell renders a read-only
+// summary instead; the row-edit dialog renders the full control. Button is NOT
+// here: it carries no value and its label fits a cell.
+const SUMMARY_FIELDTYPES = new Set([
+	"Code",
+	"JSON",
+	"Markdown Editor",
+	"HTML Editor",
+	"Table",
+	"Table MultiSelect",
+	"Image",
+	"Heading",
+	"HTML",
+]);
+
+// Cells normally drop their label (the header carries it), but a couple of
+// fieldtypes render the label as content: Button labels its action, and a
+// Heading's summary echoes it.
+const KEEP_CELL_LABEL = new Set(["Button", "Heading"]);
+
 function alignFor(fieldtype: string): GridColumn["align"] {
 	if (NUMBER_FIELDTYPES.has(fieldtype)) return "right";
 	if (CENTERED_FIELDTYPES.has(fieldtype)) return "center";
@@ -106,11 +139,19 @@ const columns = computed<(FieldNode & Pick<GridColumn, "align">)[]>(() =>
 );
 
 // Label-less copies keyed by fieldname: the header already shows the label, so cells
-// drop it (else every control repeats the heading). Keyed because the Grid slot hands
-// back a minimal column shape, not the full FieldMeta.
+// drop it (else every control repeats the heading) — except the few fieldtypes whose
+// label IS their content (`KEEP_CELL_LABEL`). Keyed because the Grid slot hands back a
+// minimal column shape, not the full FieldMeta.
 const cellFields = computed<Record<string, FieldNode>>(() =>
 	Object.fromEntries(
-		columns.value.map((c) => [c.fieldname, { ...c, label: undefined, description: undefined }])
+		columns.value.map((c) => [
+			c.fieldname,
+			{
+				...c,
+				label: KEEP_CELL_LABEL.has(c.fieldtype) ? c.label : undefined,
+				description: undefined,
+			},
+		])
 	)
 );
 
@@ -144,6 +185,46 @@ function cellListeners(
 // Center compact controls at natural size (a full-width checkbox/rating looks broken).
 function isCentered(fieldname: string): boolean {
 	return CENTERED_FIELDTYPES.has(cellFields.value[fieldname].fieldtype);
+}
+
+function isSummaryField(field: FieldNode): boolean {
+	return SUMMARY_FIELDTYPES.has(field.fieldtype);
+}
+
+// Compact read-only text for a summary cell: a count for collections, resolved
+// presence for an Image, the label for a Heading, stripped text for HTML, and a
+// one-line collapse of the raw string for the code editors. Editing happens in
+// the row-edit dialog, which renders the real control.
+function cellSummary(field: FieldNode, value: any, row: Record<string, any>): string {
+	switch (field.fieldtype) {
+		case "Table": {
+			const n = Array.isArray(value) ? value.length : 0;
+			return n ? `${n} row${n === 1 ? "" : "s"}` : "—";
+		}
+		case "Table MultiSelect": {
+			const n = Array.isArray(value) ? value.length : 0;
+			return n ? `${n} selected` : "—";
+		}
+		case "Image": {
+			// Image mirrors the sibling field named in `options` (else its own value).
+			const url = field.options ? row?.[field.options] : value;
+			return url ? "Image" : "—";
+		}
+		case "Heading":
+			return field.label ?? "";
+		case "HTML": {
+			const text = (field.options ?? "")
+				.replace(/<[^>]*>/g, " ")
+				.replace(/\s+/g, " ")
+				.trim();
+			return text || "HTML";
+		}
+		default: {
+			// Code / JSON / Markdown Editor / HTML Editor — collapse to a single line.
+			const s = value == null ? "" : String(value).replace(/\s+/g, " ").trim();
+			return s || "—";
+		}
+	}
 }
 
 const rows = computed<Record<string, any>[]>({
