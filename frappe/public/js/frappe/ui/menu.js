@@ -321,9 +321,15 @@ frappe.ui.create_menu = function (opts) {
 	document.addEventListener(
 		"click",
 		function (e) {
+			// Ignore clicks on the toggle parent (for non-right-click menus) so its own
+			// toggle handler can close the menu instead of this listener pre-emptively
+			// hiding it (which would let the parent handler immediately re-open it).
+			const parent_el = $(opts.parent)[0];
+			const clicked_parent = !opts.right_click && parent_el && parent_el.contains(e.target);
 			if (
 				frappe.menu_map[context_menu.name].visible &&
-				!context_menu.template[0].contains(e.target)
+				!context_menu.template[0].contains(e.target) &&
+				!clicked_parent
 			) {
 				frappe.menu_map[context_menu.name].hide();
 				opts.onHide && opts.onHide(opts.parent);
