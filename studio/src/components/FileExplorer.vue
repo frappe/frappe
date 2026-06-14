@@ -234,31 +234,77 @@ const treeOptions = {
 	defaultCollapsed: false,
 }
 
-const tree = ref<StudioFileNode[]>([])
-const loading = ref(false)
-const saving = ref(false)
-const openFile = ref<{ path: string; hash: string } | null>(null)
-const editorContent = ref("")
-const savedContent = ref("")
-const showNewEntryDialog = ref(false)
-const newEntryPath = ref("")
-const newEntryType = ref<"file" | "folder">("file")
-const newEntryDescription = computed(() =>
-	newEntryType.value === "folder"
-		? `Relative to studio/${props.app.app_name}`
-		: `Relative to studio/${props.app.app_name}. Allowed: .ts, .js, .vue, .json, .css`,
-)
-const contextMenuVisible = ref(false)
-const contextMenuPos = ref({ x: 0, y: 0 })
-const contextMenuNode = ref<StudioFileNode | null>(null)
-const treeContainer = ref<HTMLElement | null>(null)
-const editingPath = ref<string | null>(null)
-
 const location = computed(() => ({
 	frappe_app: props.app.frappe_app!,
 	studio_app: props.app.name,
 }))
+
+// -- File tree --
+const tree = ref<StudioFileNode[]>([])
+const loading = ref(false)
+
+async function loadTree() {
+	loading.value = true
+	try {
+		tree.value = await listStudioFiles(location.value)
+	} catch (error: any) {
+		toast.error("Failed to load files", { description: error?.messages?.join(", ") })
+	} finally {
+		loading.value = false
+	}
+}
+
+// -- Node selection --
 const selectedNode = ref<StudioFileNode | null>(null)
+
+function onNodeClick(node: StudioFileNode, toggleCollapsed: (event: MouseEvent) => void, event: MouseEvent) {
+	selectedNode.value = node
+	if (node.is_folder) toggleCollapsed(event)
+	else openNode(node)
+}
+
+// -- Active page --
+const activePage = computed(() => store.activePage)
+
+function scrub(text: string): string {
+	return text.replaceAll(" ", "_").replaceAll("-", "_").toLowerCase()
+}
+
+const activePagePaths = computed(() => {
+	const title = activePage.value?.page_title
+	if (!title) return null
+	const folder = `studio_page/${scrub(title)}`
+	return { folder, script: `${folder}/${scrub(title)}.ts` }
+})
+
+function findNode(path: string | null, nodes: StudioFileNode[] = tree.value): StudioFileNode | null {
+	if (!path) return null
+	for (const node of nodes) {
+		if (node.path === path) return node
+		const found = findNode(path, node.children)
+		if (found) return found
+	}
+	return null
+}
+
+const activePageHasScript = computed(() => Boolean(findNode(activePagePaths.value?.script ?? null)))
+
+function openActivePageScript() {
+	const scriptPath = activePagePaths.value?.script
+	if (!scriptPath) return
+	const scriptNode = findNode(scriptPath)
+	if (scriptNode) {
+		selectedNode.value = scriptNode
+		openNode(scriptNode)
+	} else {
+		newEntryType.value = "file"
+		newEntryPath.value = scriptPath
+		showNewEntryDialog.value = true
+		focusFormInput(pathInput)
+	}
+}
+
+// -- Editor panel --
 const showEditor = computed(
 	() =>
 		Boolean(openFile.value) &&
@@ -292,6 +338,11 @@ function toggleFullWidth() {
 		editorWidth.value = maxEditorWidth.value
 	}
 }
+
+// -- Open / read file --
+const openFile = ref<{ path: string; hash: string } | null>(null)
+const editorContent = ref("")
+const savedContent = ref("")
 const dirty = computed(() => Boolean(openFile.value) && editorContent.value !== savedContent.value)
 const language = computed(() => (openFile.value ? languageForFile(openFile.value.path) : "javascript"))
 
@@ -311,90 +362,6 @@ function getFileBadge(path: string): { label: string; colorClass: string } {
 		default:
 			return { label: "•", colorClass: "text-ink-gray-4" }
 	}
-}
-
-const activePage = computed(() => store.activePage)
-const activePagePaths = computed(() => {
-	const title = activePage.value?.page_title
-	if (!title) return null
-	const folder = `studio_page/${scrub(title)}`
-	return { folder, script: `${folder}/${scrub(title)}.ts` }
-})
-
-function scrub(text: string): string {
-	return text.replaceAll(" ", "_").replaceAll("-", "_").toLowerCase()
-}
-
-function findNode(path: string | null, nodes: StudioFileNode[] = tree.value): StudioFileNode | null {
-	if (!path) return null
-	for (const node of nodes) {
-		if (node.path === path) return node
-		const found = findNode(path, node.children)
-		if (found) return found
-	}
-	return null
-}
-
-const activePageHasScript = computed(() => Boolean(findNode(activePagePaths.value?.script ?? null)))
-
-function openActivePageScript() {
-	const scriptPath = activePagePaths.value?.script
-	if (!scriptPath) return
-	const scriptNode = findNode(scriptPath)
-	if (scriptNode) {
-		selectedNode.value = scriptNode
-		openNode(scriptNode)
-	} else {
-		newEntryType.value = "file"
-		newEntryPath.value = scriptPath
-		showNewEntryDialog.value = true
-		focusFormInput(pathInput)
-	}
-}
-
-async function loadTree() {
-	loading.value = true
-	try {
-		tree.value = await listStudioFiles(location.value)
-	} catch (error: any) {
-		toast.error("Failed to load files", { description: error?.messages?.join(", ") })
-	} finally {
-		loading.value = false
-	}
-}
-
-function onNodeClick(node: StudioFileNode, toggleCollapsed: (event: MouseEvent) => void, event: MouseEvent) {
-	selectedNode.value = node
-	if (node.is_folder) toggleCollapsed(event)
-	else openNode(node)
-}
-
-const pathInput = ref<any>(null)
-function currentFolderPath(): string {
-	const node = selectedNode.value
-	if (!node) return ""
-	if (node.is_folder) return `${node.path}/`
-	const slash = node.path.lastIndexOf("/")
-	return slash === -1 ? "" : node.path.slice(0, slash + 1)
-}
-
-function openNewEntryDialog(type: "file" | "folder") {
-	newEntryType.value = type
-	newEntryPath.value = currentFolderPath()
-	showNewEntryDialog.value = true
-	focusFormInput(pathInput)
-}
-
-// Focus a FormControl's <input> once the dialog has rendered, optionally selecting [start, end).
-function focusFormInput(formRef: { value: any }, start?: number, end?: number) {
-	nextTick(() => {
-		requestAnimationFrame(() => {
-			const input = formRef.value?.$el?.querySelector?.("input") as HTMLInputElement | undefined
-			if (!input) return
-			input.focus()
-			input.setSelectionRange(start ?? input.value.length, end ?? input.value.length)
-		})
-	})
 }
 
 async function openNode(node: StudioFileNode) {
@@ -424,6 +391,9 @@ async function closeFile() {
 	openFile.value = null
 }
 
+// -- Save --
+const saving = ref(false)
+
 async function save() {
 	if (!openFile.value || !dirty.value) return
 	saving.value = true
@@ -442,6 +412,45 @@ async function save() {
 	} finally {
 		saving.value = false
 	}
+}
+
+// -- Create new file/folder --
+const showNewEntryDialog = ref(false)
+const newEntryPath = ref("")
+const newEntryType = ref<"file" | "folder">("file")
+const newEntryDescription = computed(() =>
+	newEntryType.value === "folder"
+		? `Relative to studio/${props.app.app_name}`
+		: `Relative to studio/${props.app.app_name}. Allowed: .ts, .js, .vue, .json, .css`,
+)
+const pathInput = ref<any>(null)
+const treeContainer = ref<HTMLElement | null>(null)
+
+function currentFolderPath(): string {
+	const node = selectedNode.value
+	if (!node) return ""
+	if (node.is_folder) return `${node.path}/`
+	const slash = node.path.lastIndexOf("/")
+	return slash === -1 ? "" : node.path.slice(0, slash + 1)
+}
+
+function openNewEntryDialog(type: "file" | "folder") {
+	newEntryType.value = type
+	newEntryPath.value = currentFolderPath()
+	showNewEntryDialog.value = true
+	focusFormInput(pathInput)
+}
+
+// Focus a FormControl's <input> once the dialog has rendered, optionally selecting [start, end).
+function focusFormInput(formRef: { value: any }, start?: number, end?: number) {
+	nextTick(() => {
+		requestAnimationFrame(() => {
+			const input = formRef.value?.$el?.querySelector?.("input") as HTMLInputElement | undefined
+			if (!input) return
+			input.focus()
+			input.setSelectionRange(start ?? input.value.length, end ?? input.value.length)
+		})
+	})
 }
 
 // A page's script (studio_page/<stem>/<stem>.ts) gets a setup() skeleton instead of an empty file.
@@ -491,6 +500,10 @@ async function createEntry() {
 }
 
 // -- Context menu --
+const contextMenuVisible = ref(false)
+const contextMenuPos = ref({ x: 0, y: 0 })
+const contextMenuNode = ref<StudioFileNode | null>(null)
+
 const contextMenuOptions = computed<ContextMenuOption[]>(() => {
 	const node = contextMenuNode.value
 	if (!node) return []
@@ -516,8 +529,9 @@ function onContextMenuSelect(action: CallableFunction) {
 	closeContextMenu()
 }
 
-// -- Rename (inline, like the layers panel) --
-// Turn the node's label into a contenteditable field and focus it with the name pre-selected.
+// -- Rename --
+const editingPath = ref<string | null>(null)
+
 function startRename(node: StudioFileNode) {
 	closeContextMenu()
 	editingPath.value = node.path
