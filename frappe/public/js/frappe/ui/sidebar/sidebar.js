@@ -64,10 +64,6 @@ frappe.ui.Sidebar = class Sidebar {
 				}
 			}
 		}
-
-		if (this.sidebar_title == "My Workspaces") {
-			this.header_subtitle = frappe.session.user;
-		}
 	}
 
 	setup_promotional_banners() {
@@ -276,7 +272,6 @@ frappe.ui.Sidebar = class Sidebar {
 
 		$(document).trigger("sidebar_setup", { sidebar: this });
 		this.sidebar_title = workspace_title;
-		this.check_for_private_workspace(workspace_title);
 		this.workspace_title = this.sidebar_title.toLowerCase();
 
 		this.prepare();
@@ -309,11 +304,6 @@ frappe.ui.Sidebar = class Sidebar {
 		});
 	}
 
-	check_for_private_workspace(workspace_title) {
-		if (workspace_title == "private" || workspace_title == "Personal") {
-			this.sidebar_title = "My Workspaces";
-		}
-	}
 	setup_events() {
 		const me = this;
 		frappe.router.on("change", function () {

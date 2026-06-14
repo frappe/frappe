@@ -9,7 +9,6 @@ from frappe import _
 from frappe.boot import get_sidebar_items
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.desktop import get_workspaces, save_new_widget
-from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import add_to_my_workspace
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
@@ -150,27 +149,12 @@ class Workspace(Document, DeskViews):
 			self.delete_desktop_icon()
 		if self.public and not is_workspace_manager():
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
-		self.delete_from_my_workspaces()
 
 	def delete_desktop_icon(self):
 		frappe.delete_doc_if_exists("Desktop Icon", self.title)
 
 	def delete_sidebar(self):
 		frappe.delete_doc_if_exists("Workspace Sidebar", self.title)
-
-	def delete_from_my_workspaces(self):
-		if self.public:
-			return
-
-		host_name = f"My Workspaces-{frappe.session.user}"
-		if not frappe.db.exists("Workspace", host_name):
-			return
-
-		host = frappe.get_doc("Workspace", host_name)
-		remaining = [item for item in host.sidebar_items if item.link_to != self.name]
-		if len(remaining) != len(host.sidebar_items):
-			host.set("sidebar_items", remaining)
-			host.save(ignore_permissions=True)
 
 	def after_delete(self):
 		if disable_saving_as_public():
@@ -339,9 +323,6 @@ def new_page(new_page: str | dict):
 	doc.sequence_id = last_sequence_id(doc) + 1
 	doc.save(ignore_permissions=True)
 
-	# add to workspace sidebar items
-	if not doc.public:
-		add_to_my_workspace(doc)
 	workspaces = get_workspaces()
 	return {"workspace_pages": workspaces, "sidebar_items": get_sidebar_items()}
 

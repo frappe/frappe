@@ -54,11 +54,9 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		};
 	}
 	get_public_workspace_items() {
-		let workspaces_not_to_show = ["My Workspaces"];
 		let app_workspaces = (frappe.current_app && frappe.current_app.workspaces) || [];
 
 		return app_workspaces
-			.filter((name) => !workspaces_not_to_show.includes(name))
 			.map((name) => this.workspace_to_item(frappe.workspaces[frappe.router.slug(name)]))
 			.filter(Boolean);
 	}

@@ -497,7 +497,6 @@ def add_sidebar_entry(
 	"""Add one workspace's permission-filtered sidebar to `sidebar_items`, keyed by title."""
 	from frappe import _
 
-	is_my_workspaces = "My Workspaces" in title
 	filtered_items = []
 	for item in items:
 		entry = {
@@ -530,18 +529,14 @@ def add_sidebar_entry(
 				"report_type": report_type,
 				"ref_doctype": ref_doctype,
 			}
-		if (
-			is_my_workspaces
-			or item.type == "Section Break"
-			or is_item_allowed(item.link_to, item.link_type, perm_ctx)
-		):
+		if item.type == "Section Break" or is_item_allowed(item.link_to, item.link_type, perm_ctx):
 			filtered_items.append(entry)
 
 	# A sidebar (and its desktop icon) is shown only if the user can see at least one
 	# real item in it, i.e. a non-Section-Break item survived the per-item filter above.
 	# This is the single source of truth for sidebar permissions and mirrors
-	# Desktop Icon.is_permitted. "My Workspaces" is always shown.
-	if not is_my_workspaces and not any(i["type"] != "Section Break" for i in filtered_items):
+	# Desktop Icon.is_permitted.
+	if not any(i["type"] != "Section Break" for i in filtered_items):
 		return
 
 	sidebar_items[title.lower()] = {

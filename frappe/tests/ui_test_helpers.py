@@ -670,13 +670,6 @@ def slow_task(duration, title, doctype, docname):
 		time.sleep(int(duration) / steps)
 
 
-@whitelist_for_tests()
-def empty_my_workspaces():
-	my_workspaces = frappe.get_doc("Workspace Sidebar", "My Workspaces")
-	my_workspaces.items = []
-	my_workspaces.save()
-
-
 LIST_LAYOUT_TEST_PREFIX = "_cypress_layout_"
 
 

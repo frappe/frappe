@@ -297,43 +297,6 @@ def add_sidebar_items(sidebar_title: str, sidebar_items: str):
 	return workspace
 
 
-def add_to_my_workspace(workspace):
-	"""Add a private workspace as an item in the user's "My Workspaces" sidebar."""
-	try:
-		if not workspace.for_user:
-			return
-
-		host_name = f"My Workspaces-{workspace.for_user}"
-		existing = frappe.db.exists("Workspace", host_name)
-
-		if existing:
-			host = frappe.get_doc("Workspace", host_name)
-		else:
-			# clone the base "My Workspaces" workspace for this user
-			host = frappe.copy_doc(frappe.get_doc("Workspace", "My Workspaces"))
-			host.title = host.label = host_name
-			host.public = 0
-			host.for_user = workspace.for_user
-			host.owner = workspace.for_user
-			host.set("sidebar_items", [])
-
-		host.append(
-			"sidebar_items",
-			{
-				"label": workspace.title,
-				"type": "Link",
-				"link_to": workspace.name,
-				"link_type": "Workspace",
-				"icon": workspace.icon,
-			},
-		)
-
-		host.save(ignore_permissions=True) if existing else host.insert(ignore_permissions=True)
-
-	except Exception as e:
-		frappe.log_error(title="Error in Adding Private Workspaces", message=e)
-
-
 @site_cache()
 def auto_generate_sidebar_from_module():
 	"""Auto generate sidebar from module"""
