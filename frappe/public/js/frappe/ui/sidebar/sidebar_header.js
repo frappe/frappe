@@ -31,16 +31,26 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		let apps = (frappe.boot.app_data || []).filter((app) => app.on_apps_screen);
 		if (!apps.length) return null;
 
+		let items = apps.map((app) => ({
+			name: app.app_name,
+			label: app.app_title,
+			url: app.app_route,
+			icon_url: Array.isArray(app.app_logo_url) ? app.app_logo_url[0] : app.app_logo_url,
+		}));
+
+		// always offer a way back to the desktop / apps screen, as the first entry
+		items.unshift({
+			name: "desktop",
+			label: __("Go to Desktop"),
+			icon: "grid",
+			onClick: () => frappe.set_route("desktop"),
+		});
+
 		return {
 			name: "apps",
 			label: __("Apps"),
 			icon: "grid",
-			items: apps.map((app) => ({
-				name: app.app_name,
-				label: app.app_title,
-				url: app.app_route,
-				icon_url: Array.isArray(app.app_logo_url) ? app.app_logo_url[0] : app.app_logo_url,
-			})),
+			items,
 		};
 	}
 	get_public_workspace_items() {
