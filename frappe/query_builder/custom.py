@@ -122,16 +122,32 @@ class ConstantColumn(Term):
 		)
 
 
+# MONTHNAME/MONTH/QUARTER are MySQL-only. On postgres use to_char / date_part, which yield
+# equivalent values (to_char(.., 'FMMonth') -> full month name; date_part -> numeric month/quarter
+# that compares and hashes equal to MySQL's integer in Python).
+def _is_postgres() -> bool:
+	return bool(frappe.db) and frappe.db.db_type == "postgres"
+
+
 class MonthName(Function):
 	def __init__(self, field, alias=None):
-		super().__init__("MONTHNAME", field, alias=alias)
+		if _is_postgres():
+			super().__init__("to_char", field, "FMMonth", alias=alias)
+		else:
+			super().__init__("MONTHNAME", field, alias=alias)
 
 
 class Quarter(Function):
 	def __init__(self, field, alias=None):
-		super().__init__("QUARTER", field, alias=alias)
+		if _is_postgres():
+			super().__init__("date_part", "quarter", field, alias=alias)
+		else:
+			super().__init__("QUARTER", field, alias=alias)
 
 
 class Month(Function):
 	def __init__(self, field, alias=None):
-		super().__init__("MONTH", field, alias=alias)
+		if _is_postgres():
+			super().__init__("date_part", "month", field, alias=alias)
+		else:
+			super().__init__("MONTH", field, alias=alias)
