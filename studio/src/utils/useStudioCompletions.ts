@@ -4,6 +4,7 @@ import type { CompletionSource } from "@/types"
 import { isPrivateKey } from "@/utils/helpers"
 import { getBindingType } from "@/utils/parseCode"
 import { getCompletions } from "./autocompletions"
+import { vueApiSources } from "./vueApiCompletions"
 import type { CompletionContext } from "@codemirror/autocomplete"
 import * as globalUtils from "@/utils/globalUtils"
 
@@ -134,6 +135,8 @@ export const useStudioCompletions = (canEditValues: boolean = false) => {
 				}
 			})
 		})
+
+		sources.push(...vueApiSources())
 
 		return sources
 	})

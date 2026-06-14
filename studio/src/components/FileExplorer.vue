@@ -146,6 +146,7 @@
 					maxHeight="100%"
 					:emitOnChange="true"
 					:borderless="true"
+					:completions="vueImportCompletions"
 					@update:modelValue="onEditorChange"
 					@save="save"
 				/>
@@ -173,6 +174,7 @@ import {
 } from "@/data/studioFiles"
 import { confirm } from "@/utils/helpers"
 import { suppressNextViteReload } from "@/utils/viteReload"
+import { vueImportCompletions } from "@/utils/vueApiCompletions"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 
 const props = defineProps<{

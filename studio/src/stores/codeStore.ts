@@ -20,7 +20,7 @@ import type { Router } from "vue-router"
 
 // Vue reactivity primitives injected into client/event scripts so users can write
 // `<script setup>`-style code (ref, computed, watch, …) without an import line.
-const vueReactivityApis = {
+export const vueReactivityApis = {
 	ref, reactive, computed, watch, watchEffect,
 	toRef, toRefs, unref, isRef, isReactive,
 	shallowRef, readonly, markRaw, nextTick,

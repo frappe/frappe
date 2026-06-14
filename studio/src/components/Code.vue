@@ -50,6 +50,7 @@ import {
 	closeBrackets,
 	type CompletionContext,
 	type Completion,
+	type CompletionSource,
 } from "@codemirror/autocomplete"
 import { Compartment, Extension } from "@codemirror/state"
 import { indentService, LRLanguage } from "@codemirror/language"
@@ -152,25 +153,27 @@ const loadLanguage = async (type: string): Promise<Extension> => {
 		})
 	}
 
+	// JS completions for a <script> region: our custom sources + filtered window globals, keyed to
+	// the JavaScript sublanguage so they fire inside <script> but not in the surrounding template.
+	const getScriptCompletions = (javascriptLanguage: LRLanguage, windowCompletionSource: CompletionSource) => [
+		getJSCompletions(javascriptLanguage),
+		javascriptLanguage.data.of({
+			autocomplete: async (context: CompletionContext) => {
+				const result = await windowCompletionSource(context)
+				if (result && result.options) {
+					result.options = result.options.filter((option: Completion) => !isPrivateKey(option.label))
+				}
+				return result
+			},
+		}),
+	]
+
 	switch (type) {
 		case "javascript": {
 			const { javascript, javascriptLanguage, scopeCompletionSource } = await import(
 				"@codemirror/lang-javascript"
 			)
-			const windowCompletionSource = scopeCompletionSource(window)
-			return [
-				javascript(),
-				getJSCompletions(javascriptLanguage),
-				javascriptLanguage.data.of({
-					autocomplete: async (context: CompletionContext) => {
-						const result = await windowCompletionSource(context)
-						if (result && result.options) {
-							result.options = result.options.filter((option: Completion) => !isPrivateKey(option.label))
-						}
-						return result
-					},
-				}),
-			]
+			return [javascript(), ...getScriptCompletions(javascriptLanguage, scopeCompletionSource(window))]
 		}
 		case "html": {
 			const { html, htmlLanguage } = await import("@codemirror/lang-html")
@@ -185,8 +188,18 @@ const loadLanguage = async (type: string): Promise<Extension> => {
 			return json()
 		}
 		case "vue": {
-			const { vue, vueLanguage } = await import("@codemirror/lang-vue")
-			return [vue(), getJSCompletions(vueLanguage)]
+			// An SFC's <script> is the shared JavaScript sublanguage, so give it the same completions
+			// as a .js/.ts file. vue() ships only the grammar, so add javascript().support for the
+			// local-scope + snippet completions on top of our script completions (keyed to <script>).
+			const { vue } = await import("@codemirror/lang-vue")
+			const { javascript, javascriptLanguage, scopeCompletionSource } = await import(
+				"@codemirror/lang-javascript"
+			)
+			return [
+				vue(),
+				javascript().support,
+				...getScriptCompletions(javascriptLanguage, scopeCompletionSource(window)),
+			]
 		}
 		default:
 			return []
