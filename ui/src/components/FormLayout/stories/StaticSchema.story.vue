@@ -374,7 +374,7 @@ const layout: FormLayoutSchema = [
 								fieldname: "editor_view",
 								fieldtype: "Select",
 								label: "Editor view (Markdown / HTML)",
-								options: "auto\nsplit\ntoggle\neditor",
+								options: "auto\nsplit\nstacked\neditor",
 							},
 							{
 								// JSON: highlighting + lint gutter on invalid JSON, and
@@ -413,7 +413,7 @@ const layout: FormLayoutSchema = [
 								options: "XML",
 							},
 							{
-								// Markdown Editor: Write/Preview toggle → sanitized preview.
+								// Markdown Editor: live sanitized preview (stacked or split).
 								// `view` getter lets the Select above force the layout.
 								fieldname: "readme",
 								fieldtype: "Markdown Editor",
@@ -427,7 +427,7 @@ const layout: FormLayoutSchema = [
 								},
 							},
 							{
-								// HTML Editor: Write/Preview toggle → sanitized preview.
+								// HTML Editor: live sanitized preview (stacked or split).
 								fieldname: "snippet",
 								fieldtype: "HTML Editor",
 								label: "Snippet (HTML)",
