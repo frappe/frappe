@@ -80,15 +80,19 @@
 				side="right"
 				:dimension="editorWidth"
 				:minDimension="360"
-				:maxDimension="1200"
+				:maxDimension="maxEditorWidth"
 				@resize="editorWidth = $event"
+				@dblclick="toggleFullWidth"
 			/>
-			<div class="flex items-center justify-between gap-2 border-b border-outline-gray-2 px-3 py-2">
+			<div
+				class="flex select-none items-center justify-between gap-2 border-b border-outline-gray-2 px-3 py-2"
+				@dblclick="toggleFullWidth"
+			>
 				<span class="truncate text-sm text-ink-gray-8" :title="openFile!.path">
 					{{ openFile!.path }}
 					<span v-if="dirty" class="text-ink-amber-3">•</span>
 				</span>
-				<div class="flex shrink-0 items-center gap-1">
+				<div class="flex shrink-0 items-center gap-1" @dblclick.stop>
 					<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="save">Save</Button>
 					<Button size="xs" variant="ghost" icon="lucide-trash-2" @click="removeFile" title="Delete file" />
 					<Button size="xs" variant="ghost" icon="lucide-x" @click="closeFile" title="Close editor" />
@@ -112,6 +116,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from "vue"
+import { useWindowSize } from "@vueuse/core"
 import { Button, Dialog, FormControl, Tree, toast } from "frappe-ui"
 import Code from "@/components/Code.vue"
 import EmptyState from "@/components/EmptyState.vue"
@@ -151,7 +156,6 @@ const editorContent = ref("")
 const savedContent = ref("")
 const showNewFileDialog = ref(false)
 const newFilePath = ref("")
-const editorWidth = ref(520)
 
 const location = computed(() => ({
 	frappe_app: props.app.frappe_app!,
@@ -166,6 +170,31 @@ const showEditor = computed(
 )
 
 const panelLeft = computed(() => store.studioLayout.leftPanelWidth)
+const EDITOR_WIDTH = 520
+const editorWidth = ref(EDITOR_WIDTH)
+// Cap the editor so its right edge stops at the app's right edge (it may cover the right panel,
+// but never overflow the window). Recomputes as the window or left panel resizes.
+const { width: viewportWidth } = useWindowSize()
+const maxEditorWidth = computed(() => Math.max(360, viewportWidth.value - panelLeft.value))
+const restoreWidth = ref(EDITOR_WIDTH)
+
+watch(
+	maxEditorWidth,
+	(max) => {
+		if (editorWidth.value > max) editorWidth.value = max
+	},
+	{ immediate: true },
+)
+
+// Double-click snaps to full width; double-click again restores the previous width.
+function toggleFullWidth() {
+	if (editorWidth.value >= maxEditorWidth.value - 1) {
+		editorWidth.value = Math.min(restoreWidth.value, maxEditorWidth.value)
+	} else {
+		restoreWidth.value = editorWidth.value
+		editorWidth.value = maxEditorWidth.value
+	}
+}
 const dirty = computed(() => Boolean(openFile.value) && editorContent.value !== savedContent.value)
 const language = computed(() => (openFile.value ? languageForFile(openFile.value.path) : "javascript"))
 
