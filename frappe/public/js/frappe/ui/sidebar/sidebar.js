@@ -65,11 +65,6 @@ frappe.ui.Sidebar = class Sidebar {
 			}
 		}
 
-		const icon = frappe.boot.desktop_icons.find((i) => i.label === this.sidebar_title);
-		if (icon) {
-			this.header_subtitle = icon.parent_icon;
-		}
-
 		if (this.sidebar_title == "My Workspaces") {
 			this.header_subtitle = frappe.session.user;
 		}
@@ -812,6 +807,33 @@ frappe.ui.Sidebar = class Sidebar {
 			frappe.app.sidebar.setup(name);
 		}
 		if (name) localStorage.setItem("selected_sidebar", name);
+	}
+
+	// Route of the first navigable item in a workspace's sidebar (or null if it has none).
+	get_first_sidebar_route(name) {
+		let sidebar = frappe.boot.workspace_sidebar_item[(name || "").toLowerCase()];
+		if (!sidebar) return null;
+
+		for (let item of sidebar.items || []) {
+			let route = frappe.ui.sidebar_item.get_route(item);
+			if (route) return route;
+		}
+		return null;
+	}
+
+	// Switch the sidebar to `name` and navigate to its first item (falling back to the
+	// workspace page). Shared by the header switcher and global search.
+	open_workspace(name) {
+		if (frappe.boot.workspace_sidebar_item[(name || "").toLowerCase()]) {
+			this.select_sidebar(name);
+		}
+
+		let route = this.get_first_sidebar_route(name);
+		if (route) {
+			frappe.set_route(route);
+		} else {
+			frappe.set_route("Workspaces", frappe.router.slug(name));
+		}
 	}
 
 	initial_sidebar(route) {

@@ -58,7 +58,6 @@ def get_bootinfo():
 	desk_views.build_entities()
 	desk_views.add_to_boot(bootinfo)
 	load_desktop_data(bootinfo)
-	bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
 	bootinfo.all_domains = frappe.get_all("Domain", pluck="name")

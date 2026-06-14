@@ -87,64 +87,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		};
 	}
 	get_first_link_route(workspace) {
-		let key = (workspace.name || workspace.title || "").toLowerCase();
-		let sidebar = frappe.boot.workspace_sidebar_item[key];
-		if (!sidebar) return null;
-
-		for (let item of sidebar.items || []) {
-			let route = frappe.ui.sidebar_item.get_route(item);
-			if (route) return route;
-		}
-		return null;
-	}
-	get_icon_for_menu_item(icon, item) {
-		if (frappe.utils.get_desktop_icon(icon.label, frappe.boot.desktop_icon_style)) {
-			item.icon_url = frappe.utils.get_desktop_icon(
-				icon.label,
-				frappe.boot.desktop_icon_style
-			);
-		} else {
-			item.icon_html = frappe.utils.desktop_icon(icon.label, "gray", "sm");
-		}
-	}
-	build_folder_map(desktop_icons) {
-		const folder_map = {};
-		const sibling_icons = [];
-		if (!frappe.current_app) return;
-		this.sort_icons(desktop_icons);
-		desktop_icons.forEach((icon) => {
-			if (
-				icon.link_type != "External" &&
-				icon.app == frappe.current_app.app_name &&
-				!icon.hidden
-			) {
-				if (icon.icon_type === "Folder" && !folder_map[icon.label]) {
-					folder_map[icon.label] = [];
-				}
-
-				if (icon.parent_icon) {
-					icon.url = frappe.utils.get_route_for_icon(icon);
-					if (folder_map[icon.parent_icon]) folder_map[icon.parent_icon].push(icon);
-				}
-				sibling_icons.push(icon);
-			}
-		});
-
-		return {
-			folder_map: folder_map,
-			sibling_icons: sibling_icons,
-		};
-	}
-	sort_icons(desktop_icons) {
-		let write = 0;
-		for (let i = 0; i < desktop_icons.length; i++) {
-			if (desktop_icons[i].icon_type === "Folder") {
-				const item = desktop_icons.splice(i, 1)[0];
-				desktop_icons.splice(write, 0, item);
-				write++;
-			}
-		}
-		return desktop_icons;
+		return frappe.app.sidebar.get_first_sidebar_route(workspace.name || workspace.title);
 	}
 	get_help_siblings() {
 		const navbar_settings = frappe.boot.navbar_settings;
@@ -217,19 +160,6 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	}
 	get_default_icon() {
 		return frappe.boot.app_data[0].app_logo_url;
-	}
-	get_desktop_icon_by_label(title, filters) {
-		if (!filters) {
-			return frappe.boot.desktop_icons.find((f) => f.label === title && f.hidden != 1);
-		} else {
-			return frappe.boot.desktop_icons.find((f) => {
-				return (
-					f.label === title &&
-					Object.keys(filters).every((key) => f[key] === filters[key]) &&
-					f.hidden != 1
-				);
-			});
-		}
 	}
 
 	setup_app_switcher() {
