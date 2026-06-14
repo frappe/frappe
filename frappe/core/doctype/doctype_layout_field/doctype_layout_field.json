@@ -37,18 +37,21 @@
    "label": "Label"
   },
   {
+   "default": "0",
    "fieldname": "hidden",
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Hidden"
   },
   {
+   "default": "0",
    "fieldname": "reqd",
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Required"
   },
   {
+   "default": "0",
    "fieldname": "read_only",
    "fieldtype": "Check",
    "in_list_view": 1,
@@ -69,21 +72,25 @@
    "label": "Description Override"
   },
   {
+   "default": "0",
    "fieldname": "bold",
    "fieldtype": "Check",
    "label": "Bold"
   },
   {
+   "default": "0",
    "fieldname": "allow_in_quick_entry",
    "fieldtype": "Check",
    "label": "Allow in Quick Entry"
   },
   {
+   "default": "0",
    "fieldname": "in_list_view",
    "fieldtype": "Check",
    "label": "In List View"
   },
   {
+   "default": "0",
    "fieldname": "in_standard_filter",
    "fieldtype": "Check",
    "label": "In Standard Filter"
@@ -95,29 +102,30 @@
   },
   {
    "fieldname": "depends_on",
-   "fieldtype": "Data",
+   "fieldtype": "Code",
    "label": "Depends On"
   },
   {
    "fieldname": "mandatory_depends_on",
-   "fieldtype": "Data",
+   "fieldtype": "Code",
    "label": "Mandatory Depends On"
   },
   {
    "fieldname": "read_only_depends_on",
-   "fieldtype": "Data",
+   "fieldtype": "Code",
    "label": "Read Only Depends On"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-04-11 13:00:00.000000",
+ "modified": "2026-06-10 19:14:45.806672",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType Layout Field",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

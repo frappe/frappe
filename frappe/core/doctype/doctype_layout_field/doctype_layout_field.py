@@ -17,21 +17,20 @@ class DocTypeLayoutField(Document):
 		allow_in_quick_entry: DF.Check
 		bold: DF.Check
 		default: DF.SmallText | None
-		depends_on: DF.Data | None
+		depends_on: DF.Code | None
 		description: DF.SmallText | None
 		fieldname: DF.Literal[None]
 		hidden: DF.Check
 		in_list_view: DF.Check
 		in_standard_filter: DF.Check
 		label: DF.Data | None
-		mandatory_depends_on: DF.Data | None
+		mandatory_depends_on: DF.Code | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
 		read_only: DF.Check
-		read_only_depends_on: DF.Data | None
+		read_only_depends_on: DF.Code | None
 		reqd: DF.Check
-		translatable: DF.Check
 	# end: auto-generated types
 
 	pass
