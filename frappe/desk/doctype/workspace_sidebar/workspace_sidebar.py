@@ -256,47 +256,6 @@ def create_workspace_sidebar_for_workspaces():
 				frappe.log_error(title="Failed To Create Sidebar", message=e)
 
 
-@frappe.whitelist()
-def add_sidebar_items(sidebar_title: str, sidebar_items: str):
-	"""Persist edited sidebar items onto the workspace's `sidebar_items` table.
-
-	In developer mode the shared/standard workspace is edited directly. Otherwise the edit is
-	kept as a private per-user copy of the workspace so the shared one is untouched.
-	"""
-	sidebar_items = loads(sidebar_items)
-	workspace = frappe.get_doc("Workspace", sidebar_title)
-
-	if not frappe.conf.developer_mode and workspace.public:
-		private_name = f"{workspace.title}-{frappe.session.user}"
-		if frappe.db.exists("Workspace", private_name):
-			workspace = frappe.get_doc("Workspace", private_name)
-		else:
-			workspace = frappe.copy_doc(workspace)
-			workspace.public = 0
-			workspace.standard = 0
-			workspace.for_user = frappe.session.user
-			workspace.label = private_name
-
-	workspace.set("sidebar_items", [])
-	current_idx = 1
-	for item in sidebar_items:
-		nested_items = item.pop("nested_items", None) or []
-		item.pop("parent", None)
-		row = workspace.append("sidebar_items", item)
-		row.idx = current_idx
-		current_idx += 1
-
-		for nested_item in nested_items:
-			nested_item.pop("parent", None)
-			nested_row = workspace.append("sidebar_items", nested_item)
-			nested_row.child = 1
-			nested_row.idx = current_idx
-			current_idx += 1
-
-	workspace.save(ignore_permissions=True)
-	return workspace
-
-
 @site_cache()
 def auto_generate_sidebar_from_module():
 	"""Auto generate sidebar from module"""

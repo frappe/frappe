@@ -1,5 +1,4 @@
 import "./sidebar_item";
-import { SidebarEditor } from "./sidebar_editor";
 frappe.ui.Sidebar = class Sidebar {
 	constructor() {
 		if (!frappe.boot.setup_complete) {
@@ -8,8 +7,6 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 		this.make_dom();
 		// states
-		this.editor = new SidebarEditor(this);
-		this.edit_mode = this.editor.edit_mode;
 		this.sidebar_expanded = false;
 		this.all_sidebar_items = frappe.boot.workspace_sidebar_item;
 		this.$items = [];
@@ -30,9 +27,6 @@ frappe.ui.Sidebar = class Sidebar {
 			this.sidebar_data = frappe.boot.workspace_sidebar_item[this.workspace_title];
 			this.workspace_sidebar_items = this.sidebar_data.items;
 			this.all_sidebar_items = frappe.boot.workspace_sidebar_item;
-			if (this.edit_mode) {
-				this.workspace_sidebar_items = this.editor.new_sidebar_items;
-			}
 			this.choose_app_name();
 			this.find_nested_items();
 		} catch (e) {
@@ -436,17 +430,6 @@ frappe.ui.Sidebar = class Sidebar {
 						frappe.set_route("/desk");
 					},
 				},
-				{
-					name: "edit-sidebar",
-					label: __("Edit Sidebar"),
-					icon: "edit",
-					condition: function () {
-						return frappe.boot.developer_mode;
-					},
-					onClick: function () {
-						me.editor.toggle();
-					},
-				},
 				...frappe.boot.navbar_settings.settings_dropdown.map((item) => ({
 					...item,
 					label: item.item_label,
@@ -580,11 +563,7 @@ frappe.ui.Sidebar = class Sidebar {
 	make_sidebar() {
 		this.empty();
 		this.wrapper.find(".collapse-sidebar-link").removeClass("hidden");
-		if (this.editor.edit_mode) {
-			this.create_sidebar(this.editor.new_sidebar_items);
-		} else {
-			this.create_sidebar(this.workspace_sidebar_items);
-		}
+		this.create_sidebar(this.workspace_sidebar_items);
 
 		// Scroll sidebar to selected page if it is not in viewport.
 		this.wrapper.find(".selected").length &&
@@ -606,9 +585,6 @@ frappe.ui.Sidebar = class Sidebar {
 			);
 			this.wrapper.find(".sidebar-items").append(no_items_message);
 			this.wrapper.find(".collapse-sidebar-link").addClass("hidden");
-		}
-		if (this.edit_mode) {
-			$(".edit-menu").removeClass("hidden");
 		}
 		this.handle_outside_click();
 	}

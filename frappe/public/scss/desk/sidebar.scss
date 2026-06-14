@@ -381,41 +381,6 @@
 	}
 }
 
-.bottom-edit-controls {
-	display: flex;
-	gap: 35%;
-}
-
-.body-sidebar-container[data-mode="edit"] {
-	.standard-sidebar-item:hover {
-		& .sidebar-item-edit-controls {
-			visibility: visible;
-		}
-	}
-
-	.promotional-banners,
-	.dropdown-navbar-user {
-		display: none;
-	}
-}
-
-.sidebar-item-edit-controls {
-	visibility: hidden;
-	position: absolute;
-	right: 0;
-	display: flex;
-	gap: 6px;
-}
-
-.standard-sidebar-item[data-name="add-sidebar-item"] {
-	margin-top: 5px;
-	width: 100%;
-
-	& .sidebar-item-label {
-		color: var(--ink-gray-5) !important;
-	}
-}
-
 .menu-icon {
 	margin: 0px !important;
 }

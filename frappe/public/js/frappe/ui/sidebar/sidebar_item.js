@@ -96,7 +96,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		this.make();
 	}
 	get_path() {
-		return frappe.ui.sidebar_item.get_route(this.item, frappe.app.sidebar.editor.edit_mode);
+		return frappe.ui.sidebar_item.get_route(this.item);
 	}
 
 	prepare() {}
@@ -113,11 +113,9 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 			frappe.render_template("sidebar_item", {
 				item: this.item,
 				path: this.path,
-				edit_mode: frappe.app.sidebar.editor.edit_mode,
 			})
 		);
 		$(this.container).append(this.wrapper);
-		this.setup_editing_controls();
 	}
 	set_suffix() {
 		if (this.item.suffix) {
@@ -130,51 +128,6 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		shortcut = frappe.ui.keys.get_shortcut_label(shortcut);
 		return `<span class="keyboard-shortcut">${shortcut}</span>`;
 	}
-	setup_editing_controls() {
-		this.menu_items = this.get_menu_items();
-		this.$edit_menu = this.wrapper.find(".edit-menu");
-		this.$sidebar_container = this.$edit_menu.parent();
-		frappe.ui.create_menu({
-			parent: this.$edit_menu,
-			menu_items: this.menu_items,
-		});
-	}
-	get_menu_items() {
-		let me = this;
-		let menu_items = [
-			{
-				label: "Edit Item",
-				icon: "pen",
-				onClick: () => {
-					frappe.app.sidebar.editor.perform_action("edit", me.item);
-				},
-			},
-			{
-				label: "Add Item Below",
-				icon: "add",
-				onClick: () => {
-					frappe.app.sidebar.editor.perform_action("add_below", me.item);
-				},
-			},
-			{
-				label: "Duplicate",
-				icon: "copy",
-				onClick: () => {
-					frappe.app.sidebar.editor.perform_action("duplicate", me.item);
-				},
-			},
-			{
-				label: "Delete",
-				icon: "trash-2",
-				onClick: () => {
-					console.log(me.item);
-					frappe.app.sidebar.editor.perform_action("delete", me.item);
-				},
-			},
-		];
-		return menu_items;
-	}
-	add_menu_items() {}
 };
 
 frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends (
@@ -202,7 +155,7 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		this.full_template = $(this.wrapper);
 	}
 	make() {
-		if (this.nested_items.length == 0 && !frappe.app.sidebar.editor.edit_mode) {
+		if (this.nested_items.length == 0) {
 			return;
 		}
 		super.make();
@@ -323,45 +276,6 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		this.section_breaks_state[this.workspace_title][title] = this.collapsed;
 
 		localStorage.setItem("section-breaks-state", JSON.stringify(this.section_breaks_state));
-	}
-
-	get_menu_items() {
-		let me = this;
-		let menu_items = [
-			{
-				label: "Edit Item",
-				icon: "pen",
-				onClick: () => {
-					console.log("Start ediitng");
-					frappe.app.sidebar.editor.perform_action("edit", me.item);
-				},
-			},
-			{
-				label: "Add Nested Items",
-				icon: "add",
-				onClick: () => {
-					frappe.app.sidebar.editor.show_new_dialog({
-						nested: true,
-						parent_item: me.item,
-					});
-				},
-			},
-			{
-				label: "Duplicate",
-				icon: "copy",
-				onClick: () => {
-					frappe.app.sidebar.editor.perform_action("duplicate", me.item);
-				},
-			},
-			{
-				label: "Delete",
-				icon: "trash-2",
-				onClick: () => {
-					frappe.app.sidebar.editor.perform_action("delete", me.item);
-				},
-			},
-		];
-		return menu_items;
 	}
 };
 
