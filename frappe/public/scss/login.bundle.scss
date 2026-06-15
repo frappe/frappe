@@ -368,27 +368,25 @@ body {
 	}
 
 	.invalid-login {
-		-webkit-animation: wiggle 0.5s linear;
+		animation: wiggle 0.4s ease-in-out;
 	}
 
-	@-webkit-keyframes wiggle {
-		8%,
-		41% {
-			-webkit-transform: translateX(-10px);
-		}
-		25%,
-		58% {
-			-webkit-transform: translateX(10px);
-		}
-		75% {
-			-webkit-transform: translateX(-5px);
-		}
-		92% {
-			-webkit-transform: translateX(5px);
-		}
+	@keyframes wiggle {
 		0%,
 		100% {
-			-webkit-transform: translateX(0);
+			transform: translateX(0);
+		}
+		20% {
+			transform: translateX(-4px);
+		}
+		40% {
+			transform: translateX(4px);
+		}
+		60% {
+			transform: translateX(-3px);
+		}
+		80% {
+			transform: translateX(3px);
 		}
 	}
 }
