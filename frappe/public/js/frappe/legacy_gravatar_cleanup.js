@@ -56,8 +56,8 @@ frappe.ui.maybe_show_legacy_gravatar_cleanup_prompt = function ({ onhide } = {})
 					}
 
 					frappe.boot.show_gravatar_deletion_prompt = false;
-					dialog.hide();
-				});
+				})
+				.finally(() => dialog.hide());
 		},
 	});
 
