@@ -1,6 +1,6 @@
 import path from "path"
 
-const STUDIO_SHARED_DEPS = ["vue", "vue-router", "frappe-ui"]
+const STUDIO_SHARED_DEPS = ["vue", "vue-router", "pinia", "frappe-ui"]
 /**
  * Vite plugin to redirect shared dependency imports from custom Vue components
  * (files outside the Studio project) to Studio's own installations.
