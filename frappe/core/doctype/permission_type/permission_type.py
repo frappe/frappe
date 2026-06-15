@@ -91,6 +91,7 @@ class PermissionType(Document):
 				"Permission Type",
 				filters={"perm_type": self.perm_type},
 				pluck="doc_type",
+				limit=0,
 			)
 			depends_on = f"eval:{frappe.as_json(all_doc_types)}.includes(doc.{field})"
 			frappe.db.set_value("Custom Field", existing, "depends_on", depends_on)
