@@ -4,6 +4,7 @@
 		:columns="columns"
 		:disabled="field.readOnly"
 		:label="field.label"
+		:description="field.description"
 		:required="field.reqd"
 		@change="(r: Record<string, any>[]) => emit('change', r)"
 		@edit="openEdit"

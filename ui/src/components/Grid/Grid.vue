@@ -1,9 +1,29 @@
 <template>
-	<div class="flex flex-col gap-2">
-		<div v-if="label" class="text-sm text-ink-gray-5">
-			{{ label }}
-			<span v-if="required" class="text-ink-red-5">*</span>
-		</div>
+	<!-- The grid is a multi-element control (table + row actions), so the wrapper
+	     itself is the labelled region (`role="group"`, fieldset/legend style) rather
+	     than wiring aria onto one inner element. `labelledBy`/`describedBy` reference
+	     the InputLabel/InputDescription/InputError ids below, so they're functional,
+	     not decorative; `dataAttrs` carries `data-state="invalid"` etc. for styling. -->
+	<div
+		class="flex flex-col gap-2"
+		role="group"
+		:aria-labelledby="labelledBy"
+		:aria-describedby="describedBy"
+		:aria-errormessage="hasError ? errorMessageId : undefined"
+		:aria-invalid="hasError || undefined"
+		data-slot="control"
+		v-bind="dataAttrs"
+	>
+		<!-- Label / description / error / required all come from frappe-ui's labeling
+		     primitives so the markup, typography, spacing, and `*` match every
+		     FormLayout field. -->
+		<InputLabel
+			v-if="label"
+			:id="labelId"
+			:label="label"
+			:required="required"
+			class="text-p-sm-medium text-ink-gray-7"
+		/>
 
 		<div
 			v-if="columns.length"
@@ -188,15 +208,29 @@
 				@click="deleteSelected"
 			/>
 		</div>
+
+		<!-- Help text and validation error sit below the control. `showDescription`
+		     hides the description while an error is shown (frappe-ui convention). -->
+		<InputDescription v-if="showDescription" :id="descriptionId" :description="description" />
+		<InputError v-if="hasError" :id="errorMessageId" :lines="errorLines" />
 	</div>
 </template>
 
 <script setup lang="ts" generic="T extends GridColumn">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { Button, Checkbox } from "frappe-ui";
+import { InputLabel, InputDescription, InputError, useInputLabeling } from "frappe-ui/internals";
 // @ts-ignore — vuedraggable ships no bundled types
 import Draggable from "vuedraggable";
 import type { GridCellSlotProps, GridColumn, GridEmits } from "./types";
+
+// Mirrors frappe-ui's `FrappeUIError` (an `Error` whose `messages?: string[]`
+// render as stacked lines). Declared locally — the type isn't re-exported from
+// `frappe-ui/internals` — and is structurally compatible with what the composable
+// expects.
+interface GridError extends Error {
+	messages?: string[];
+}
 
 const props = defineProps<{
 	/** Columns to render, in order. */
@@ -205,11 +239,30 @@ const props = defineProps<{
 	disabled?: boolean;
 	/** Optional heading shown above the grid. */
 	label?: string;
+	/** Helper text rendered below the grid. Hidden while an error is shown. */
+	description?: string;
+	/** Validation error below the grid: a string, or an `Error` with `messages[]`. */
+	error?: string | GridError;
 	/** Renders a `*` next to the label. */
 	required?: boolean;
 }>();
 
 const emit = defineEmits<GridEmits>();
+
+// Canonical labeling state: stable ids, error parsing, hide-description-on-error,
+// plus the aria associations (`labelledBy`/`describedBy`) and `dataAttrs` the
+// wrapper applies as a `role="group"` region. `disabled` feeds `data-disabled`.
+const {
+	labelId,
+	descriptionId,
+	errorMessageId,
+	labelledBy,
+	describedBy,
+	hasError,
+	errorLines,
+	showDescription,
+	dataAttrs,
+} = useInputLabeling(props, { disabled: () => props.disabled });
 
 // Rows array. The slot's `update` writes it live; `commit` also emits `change`.
 const rows = defineModel<Record<string, any>[]>({ default: () => [] });

@@ -377,6 +377,7 @@ const layout: FormLayoutSchema = [
 								fieldname: "items",
 								fieldtype: "Table",
 								label: "Line Items",
+								description: "Add one row per line item; drag to reorder.",
 								options: "Item Detail",
 								childFields: [
 									{
