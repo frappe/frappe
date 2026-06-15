@@ -15,6 +15,7 @@ class AIKnowledgeChunk(Document):
 
 		chunk_index: DF.Int
 		content: DF.LongText
+		content_hash: DF.Data | None
 		knowledge_base: DF.Link
 		reference_doctype: DF.Link | None
 		reference_name: DF.DynamicLink | None

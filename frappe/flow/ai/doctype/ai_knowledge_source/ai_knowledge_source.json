@@ -21,6 +21,7 @@
   "status",
   "column_break_status",
   "chunk_count",
+  "last_synced_at",
   "section_break_error",
   "error_log"
  ],
@@ -133,6 +134,13 @@
    "fieldname": "chunk_count",
    "fieldtype": "Int",
    "label": "Chunk Count",
+   "read_only": 1
+  },
+  {
+   "description": "Watermark for incremental DocType sync: rows modified after this are re-checked.",
+   "fieldname": "last_synced_at",
+   "fieldtype": "Datetime",
+   "label": "Last Synced At",
    "read_only": 1
   },
   {

@@ -29,6 +29,7 @@ class AIKnowledgeSource(Document):
 		file: DF.Attach | None
 		filters: DF.JSON | None
 		knowledge_base: DF.Link
+		last_synced_at: DF.Datetime | None
 		reference_doctype: DF.Link | None
 		source_type: DF.Literal["Text", "File", "URL", "DocType"]
 		status: DF.Literal["Pending", "Processing", "Completed", "Failed"]
@@ -50,3 +51,20 @@ class AIKnowledgeSource(Document):
 				_("Content Fields is required for a DocType source."),
 				frappe.MandatoryError,
 			)
+
+	def after_insert(self):
+		from flow.knowledge.ingest import enqueue_ingestion
+
+		enqueue_ingestion(self.name)
+
+	def on_trash(self):
+		from flow.knowledge.ingest import purge_source
+
+		purge_source(self.name)
+
+	@frappe.whitelist()
+	def resync(self):
+		from flow.knowledge.ingest import enqueue_ingestion
+
+		self.db_set("status", "Pending", update_modified=False)
+		enqueue_ingestion(self.name)

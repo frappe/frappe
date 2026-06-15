@@ -12,7 +12,8 @@
   "reference_doctype",
   "reference_name",
   "section_break_content",
-  "content"
+  "content",
+  "content_hash"
  ],
  "fields": [
   {
@@ -60,7 +61,8 @@
    "fieldtype": "Dynamic Link",
    "label": "Reference Name",
    "options": "reference_doctype",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "section_break_content",
@@ -72,6 +74,13 @@
    "label": "Content",
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "description": "Hash of the source document's indexed text; lets re-sync skip unchanged rows.",
+   "fieldname": "content_hash",
+   "fieldtype": "Data",
+   "label": "Content Hash",
+   "read_only": 1
   }
  ],
  "in_create": 1,
