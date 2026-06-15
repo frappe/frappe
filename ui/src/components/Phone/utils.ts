@@ -38,29 +38,35 @@ export function guessCountryFromTimezone(): Country | null {
   );
 }
 
-/**
- * `"+ISD-NUMBER"` (canonical, split on the first hyphen),
- * `"+ISDNUMBER"` (longest-ISD-prefix match, so `"+1242…"` is the
- * Bahamas, not `+1`), else a national number with no country.
- */
 export function splitPhoneDetails(value: string): PhoneDetails {
   // 1. "+91-9876…" — text before the first hyphen is an exact ISD.
   const [beforeHyphen, ...afterHyphen] = value.split("-");
   if (afterHyphen.length) {
-    const country = countries.find((c) => c.isd === beforeHyphen);
+    const country = findByIsd(beforeHyphen);
     if (country) return { country, number: afterHyphen.join("-") };
   }
 
   // 2. "+919876…" — no hyphen: the longest matching ISD wins, so
   //    "+1242…" is the Bahamas, not the US (+1).
-  const country = countries
+  const isd = countries
     .filter((c) => value.startsWith(c.isd))
-    .sort((a, b) => b.isd.length - a.isd.length)
+    .map((c) => c.isd)
+    .sort((a, b) => b.length - a.length)
     .at(0);
+  const country = isd ? findByIsd(isd) : undefined;
   if (country) return { country, number: value.slice(country.isd.length) };
 
   // 3. "9876…" — a national number with no recognizable ISD.
   return { country: null, number: value };
+}
+
+// Dial codes shared by several territories (e.g. +1 US/Canada, +599
+// Bonaire/Curaçao)
+function findByIsd(isd: string): Country | undefined {
+  const matches = countries.filter((c) => c.isd === isd);
+  if (matches.length <= 1) return matches[0];
+  const local = guessCountryFromTimezone();
+  return matches.find((c) => c.code === local?.code) ?? matches[0];
 }
 
 /** Joins into the canonical `"<isd>-<number>"`; `''` when the number is empty. */
