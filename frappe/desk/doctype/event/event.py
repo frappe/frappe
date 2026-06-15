@@ -11,7 +11,7 @@ import frappe.share
 from frappe import _
 from frappe.contacts.doctype.contact.contact import get_default_contact
 from frappe.desk.doctype.notification_settings.notification_settings import (
-	is_email_notifications_enabled_for_type,
+	is_email_enabled_for_feature,
 )
 from frappe.desk.reportview import get_filters_cond
 from frappe.model.document import Document
@@ -312,7 +312,7 @@ def send_event_digest():
 	users = [
 		user
 		for user in get_enabled_system_users()
-		if is_email_notifications_enabled_for_type(user.name, "Event Reminders")
+		if is_email_enabled_for_feature(user.name, "enable_email_event_reminders")
 	]
 
 	for user in users:

@@ -55,7 +55,29 @@ def is_email_notifications_enabled(user):
 	return enabled
 
 
+def is_email_enabled_for_feature(user, fieldname):
+	"""Per-feature email toggle (e.g. event reminders, thread emails on assigned docs).
+
+	These are NOT Notification Types — they gate emails for features that have no in-app
+	notification, so they keep their own Notification Settings checkbox instead of the
+	`email_notification_types` allow-list. Permissive default (True) when unset, mirroring
+	the original behaviour before the allow-list was introduced.
+	"""
+	if not is_email_notifications_enabled(user):
+		return False
+
+	enabled = frappe.db.get_value("Notification Settings", user, fieldname, ignore=True)
+	return True if enabled is None else enabled
+
+
 def is_email_notifications_enabled_for_type(user, notification_type):
+	"""Whether `user` should be emailed for a given registered Notification Type.
+
+	`notification_type` must be a `Notification Type` name (e.g. "Mention"). For per-feature
+	email toggles that are not Notification Types (event reminders, thread emails), use
+	`is_email_enabled_for_feature` instead — they are not in the allow-list table and would
+	always read as disabled here.
+	"""
 	from frappe.desk.doctype.notification_log.notification_log import get_skip_email_types
 
 	if not is_email_notifications_enabled(user):
