@@ -36,8 +36,22 @@ class PulseProvider {
 		}
 
 		frappe.router.on("change", () => {
-			this.capture("pageview", "frappe", { route: frappe.get_route_str() });
+			this.capture("pageview", "frappe", { route: this.scrub_route(frappe.get_route()) });
 		});
+	}
+
+	scrub_route(route) {
+		if (!route?.length) return "";
+
+		// Document names can be PII. Replace them with a placeholder.
+		// In a Form route (e.g. ["Form", "Sales Order", "SO-0001"]) the
+		// document name is at index 2.
+		if (route[0] === "Form" && route.length >= 3 && route[2] !== route[1]) {
+			route = [...route];
+			route[2] = "*";
+		}
+
+		return route.join("/");
 	}
 
 	capture(event, app, props) {
