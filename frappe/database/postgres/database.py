@@ -604,8 +604,12 @@ def modify_values(values):
 		return values
 
 	if isinstance(values, dict):
-		for k, v in values.items():
-			values[k] = modify_value(v)
+		# Build a new dict instead of mutating the caller's: callers frequently pass a
+		# shared/reused dict as query params (e.g. get_stock_ledger_entries passes the
+		# same args dict that the caller keeps reading afterwards). Mutating int values
+		# to str in place silently corrupts that dict on postgres only, diverging from
+		# mariadb (which has no such transform).
+		values = {k: modify_value(v) for k, v in values.items()}
 	elif isinstance(values, tuple | list):
 		new_values = []
 		for val in values:
