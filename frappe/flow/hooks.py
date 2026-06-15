@@ -28,7 +28,7 @@ scheduler_events = {
 		"flow.knowledge.ingest.sync_due_sources",
 	],
 	"cron": {
-		"* * * * *": [
+		"*/5 * * * *": [
 			"flow.triggers.dispatch_scheduled",
 		],
 	},
