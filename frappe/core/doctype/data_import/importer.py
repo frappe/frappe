@@ -23,6 +23,9 @@ INVALID_VALUES = ("", None)
 MAX_ROWS_IN_PREVIEW = 10
 INSERT = "Insert New Records"
 UPDATE = "Update Existing Records"
+UPSERT = "Insert or Update Records"
+ACTION_INSERT = "Insert"
+ACTION_UPDATE = "Update"
 DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
 
 
@@ -130,6 +133,8 @@ class Importer:
 
 		# parse docs from rows
 		payloads = self.import_file.get_payloads_for_import()
+		if self.data_import.name:
+			self.data_import.db_set("payload_count", len(payloads))
 
 		# dont import if there are non-ignorable warnings
 		from frappe.core.doctype.data_import.value_mapping import (
@@ -213,7 +218,7 @@ class Importer:
 
 				try:
 					start = timeit.default_timer()
-					doc = self.process_doc(doc)
+					doc, import_action = self.process_doc(doc)
 					processing_time = timeit.default_timer() - start
 					eta = self.get_eta(current_index, total_payload_count, processing_time)
 
@@ -238,11 +243,15 @@ class Importer:
 							user=frappe.session.user,
 						)
 
-					create_import_log(
-						self.data_import.name,
-						log_index,
-						{"success": True, "docname": doc.name, "row_indexes": row_indexes},
-					)
+					log_details = {
+						"success": True,
+						"docname": doc.name,
+						"row_indexes": row_indexes,
+					}
+					if self.import_type == UPSERT:
+						log_details["import_action"] = import_action
+
+					create_import_log(self.data_import.name, log_index, log_details)
 
 					log_index += 1
 
@@ -328,11 +337,23 @@ class Importer:
 			)
 
 	def process_doc(self, doc):
-		assert self.import_type in (INSERT, UPDATE), "import_type must be either Insert or Update"
+		"""Process one import payload; returns ``(document, import_action)``."""
 		if self.import_type == INSERT:
-			return self.insert_record(doc)
-		elif self.import_type == UPDATE:
-			return self.update_record(doc)
+			return self.insert_record(doc), None
+		if self.import_type == UPDATE:
+			return self.update_record(doc), None
+		return self.upsert_record(doc)
+
+	def upsert_record(self, doc):
+		"""Update the record when it exists, otherwise insert it."""
+		id_field = get_id_field(self.doctype)
+		id_value = doc.get(id_field.fieldname)
+		if id_value and frappe.db.exists(self.doctype, id_value):
+			result = self.update_record(doc, raise_if_no_changes=False)
+			if self._uses_tree_aliases:
+				self._register_inserted_name(doc, result)
+			return result, ACTION_UPDATE
+		return self.insert_record(doc), ACTION_INSERT
 
 	def insert_record(self, doc):
 		meta = frappe.get_meta(self.doctype)
@@ -382,11 +403,10 @@ class Importer:
 		if id_value not in INVALID_VALUES:
 			self._inserted_name_map[cstr(id_value).strip()] = new_doc.name
 
-	def update_record(self, doc):
+	def update_record(self, doc, raise_if_no_changes=True):
 		id_field = get_id_field(self.doctype)
-		existing_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
-
 		updated_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
+		existing_doc = frappe.copy_doc(updated_doc)
 
 		updated_doc.update(doc)
 
@@ -403,9 +423,10 @@ class Importer:
 			}
 			updated_doc.save()
 			return updated_doc
-		else:
-			# throw if no changes
+
+		if raise_if_no_changes:
 			frappe.throw(_("No changes to update"))
+		return updated_doc
 
 	def get_eta(self, current, total, processing_time):
 		self.last_eta = getattr(self, "last_eta", 0)
@@ -1085,14 +1106,14 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 		import_file.doctype, parents_needing_db_check, alias_field
 	)
 
-	allow_existing_parent = import_file.import_type == UPDATE
+	allow_any_existing_parent = import_file.import_type == UPDATE
 	for node in nodes:
 		parent_id = node.parent
 		if not parent_id or parent_id in nodes_by_id:
 			continue
 		if _is_same_file_tree_reference(parent_id, import_file.header):
 			continue
-		if allow_existing_parent or parent_id in existing_parents_in_db:
+		if allow_any_existing_parent or parent_id in existing_parents_in_db:
 			continue
 
 		message = _("Parent {0} not found in file").format(frappe.bold(parent_id))
@@ -1163,7 +1184,7 @@ def _has_parent_cycle(node_id: str, nodes_by_id: dict) -> bool:
 def sort_tree_payloads(payloads: list, doctype: str, import_type: str | None) -> list:
 	"""Return payloads in parent-before-child order for nested-set inserts."""
 	meta = frappe.get_meta(doctype)
-	if import_type != INSERT or not meta.is_nested_set() or not payloads:
+	if import_type not in (INSERT, UPSERT) or not meta.is_nested_set() or not payloads:
 		return payloads
 
 	parent_field = meta.nsm_parent_field or f"parent_{frappe.scrub(doctype)}"
@@ -1312,7 +1333,7 @@ class Row:
 				doc[df.fieldname] = self.parse_value(value, col)
 
 		is_table = frappe.get_meta(doctype).istable
-		is_update = self.import_type == UPDATE
+		is_update = self.import_type in (UPDATE, UPSERT)
 		if is_table and is_update:
 			# check if the row already exists
 			# if yes, fetch the original doc so that it is not updated
@@ -1962,5 +1983,6 @@ def create_import_log(data_import, log_index, log_details):
 			"docname": log_details.get("docname"),
 			"messages": json.dumps(log_details.get("messages", "[]")),
 			"exception": log_details.get("exception"),
+			"import_action": log_details.get("import_action"),
 		}
 	).db_insert()

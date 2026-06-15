@@ -2,7 +2,10 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.core.doctype.data_import.importer import (
+	ACTION_INSERT,
+	ACTION_UPDATE,
 	INSERT,
+	UPSERT,
 	Column,
 	Importer,
 	_get_tree_node_key,
@@ -15,6 +18,38 @@ from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.utils import cint, format_duration, getdate
 
 doctype_name = "DocType for Import"
+SAMPLE_IMPORT_DOC_NAMES = ("Test", "Test 2", "Test 3")
+
+
+def _delete_data_import(data_import_name):
+	"""Remove a persisted Data Import and its logs after integration tests."""
+	if not data_import_name or not frappe.db.exists("Data Import", data_import_name):
+		return
+	frappe.db.delete("Data Import Log", {"data_import": data_import_name})
+	frappe.delete_doc("Data Import", data_import_name, force=1, ignore_permissions=True)
+	frappe.db.commit()  # nosemgrep
+
+
+def _delete_file(file_name):
+	if not file_name or not frappe.db.exists("File", file_name):
+		return
+	frappe.delete_doc("File", file_name, force=1, ignore_permissions=True)
+	frappe.db.commit()  # nosemgrep
+
+
+def _delete_doctype_records(doctype, names):
+	for name in names:
+		if name:
+			frappe.delete_doc_if_exists(doctype, name, force=1)
+	frappe.db.commit()  # nosemgrep
+
+
+def _register_data_import_cleanup(test_case, data_import):
+	test_case.addCleanup(_delete_data_import, data_import.name)
+
+
+def _register_file_cleanup(test_case, file_doc):
+	test_case.addCleanup(_delete_file, file_doc.name)
 
 
 class TestImporter(IntegrationTestCase):
@@ -26,6 +61,7 @@ class TestImporter(IntegrationTestCase):
 		)
 
 	def test_data_import_from_file(self):
+		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)
 		import_file = get_import_file("sample_import_file")
 		data_import = self.get_importer(doctype_name, import_file)
 		data_import.start_import()
@@ -59,6 +95,7 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(format_duration(doc3.duration), "5d 5h 45m")
 
 	def test_skip_rows_during_import(self):
+		self.addCleanup(_delete_doctype_records, doctype_name, ("Test 2", "Test 3"))
 		for name in ("Test", "Test 2", "Test 3"):
 			frappe.delete_doc_if_exists(doctype_name, name)
 		frappe.db.commit()  # ensure deletions are flushed to DB before import; # nosemgrep
@@ -158,6 +195,7 @@ class TestImporter(IntegrationTestCase):
 		)
 		existing_doc.save()
 		frappe.db.commit()  # ensure saved document is visible to other DB connections; # nosemgrep
+		self.addCleanup(_delete_doctype_records, doctype_name, [existing_doc.name])
 
 		import_file = get_import_file("sample_import_file_for_update")
 		data_import = self.get_importer(doctype_name, import_file, update=True)
@@ -182,6 +220,141 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(updated_doc.table_field_1[0].name, existing_doc.table_field_1[0].name)
 		self.assertEqual(updated_doc.table_field_1[0].child_description, "child description")
 		self.assertEqual(updated_doc.table_field_1_again[0].child_title, "child title again")
+
+	def test_data_import_upsert(self):
+		existing_doc = frappe.get_doc(
+			doctype=doctype_name,
+			title=frappe.generate_hash(length=8),
+			description="old description",
+		)
+		existing_doc.insert()
+		frappe.db.commit()  # nosemgrep
+
+		new_title = frappe.generate_hash(length=8)
+		self.addCleanup(_delete_doctype_records, doctype_name, [existing_doc.name, new_title])
+
+		import_file = get_import_file("sample_import_file_for_update")
+		data_import = self.get_importer(doctype_name, import_file, import_type=UPSERT)
+		i = Importer(data_import.reference_doctype, data_import=data_import)
+		if frappe.db.db_type == "mariadb":
+			i.import_file.raw_data[1][0] = existing_doc.name.upper()
+		else:
+			i.import_file.raw_data[1][0] = existing_doc.name
+		i.import_file.raw_data.append(
+			[
+				new_title,
+				"new description",
+				1,
+				2,
+				"",
+				"child title",
+				"child description",
+				"child title",
+				"14-08-2019",
+				4,
+				"child title again",
+				"22-09-2020",
+				5,
+				7,
+			]
+		)
+		i.import_file.parse_data_from_template()
+		i.import_data()
+
+		updated_doc = frappe.get_doc(doctype_name, existing_doc.name)
+		self.assertEqual(existing_doc.title, updated_doc.title)
+		self.assertEqual(updated_doc.description, "test description")
+
+		self.assertTrue(frappe.db.exists(doctype_name, new_title))
+		new_doc = frappe.get_doc(doctype_name, new_title)
+		self.assertEqual(new_doc.description, "new description")
+
+		import_logs = frappe.get_all(
+			"Data Import Log",
+			fields=["import_action", "docname", "success"],
+			filters={"data_import": data_import.name, "success": 1},
+			order_by="log_index",
+		)
+		self.assertEqual(len(import_logs), 2)
+		actions_by_docname = {log.docname: log.import_action for log in import_logs}
+		self.assertEqual(actions_by_docname[existing_doc.name], ACTION_UPDATE)
+		self.assertEqual(actions_by_docname[new_title], ACTION_INSERT)
+
+	def test_data_import_upsert_unchanged_existing_record(self):
+		"""Upsert must succeed when an existing row has no field changes."""
+		existing_doc = frappe.get_doc(
+			doctype=doctype_name,
+			title=frappe.generate_hash(length=8),
+			description="test description",
+			number=1,
+			another_number=2,
+		)
+		existing_doc.insert()
+		frappe.db.commit()  # nosemgrep
+		self.addCleanup(_delete_doctype_records, doctype_name, [existing_doc.name])
+
+		import_file = get_import_file("sample_import_file_for_update")
+		data_import = self.get_importer(doctype_name, import_file, import_type=UPSERT)
+		i = Importer(data_import.reference_doctype, data_import=data_import)
+		row = list(i.import_file.raw_data[1])
+		row[0] = existing_doc.name.upper() if frappe.db.db_type == "mariadb" else existing_doc.name
+		row[1] = existing_doc.title
+		i.import_file.raw_data[1] = row
+		i.import_file.parse_data_from_template()
+		i.import_data()
+
+		import_logs = frappe.get_all(
+			"Data Import Log",
+			fields=["import_action", "success"],
+			filters={"data_import": data_import.name, "success": 1},
+		)
+		self.assertEqual(len(import_logs), 1)
+		self.assertEqual(import_logs[0].import_action, ACTION_UPDATE)
+
+	def test_get_import_status_upsert_counts(self):
+		existing_doc = frappe.get_doc(
+			doctype=doctype_name,
+			title=frappe.generate_hash(length=8),
+			description="old description",
+		)
+		existing_doc.insert()
+		frappe.db.commit()  # nosemgrep
+
+		new_title = frappe.generate_hash(length=8)
+		self.addCleanup(_delete_doctype_records, doctype_name, [existing_doc.name, new_title])
+
+		import_file = get_import_file("sample_import_file_for_update")
+		data_import = self.get_importer(doctype_name, import_file, import_type=UPSERT)
+		i = Importer(data_import.reference_doctype, data_import=data_import)
+		i.import_file.raw_data[1][0] = existing_doc.name
+		i.import_file.raw_data.append(
+			[
+				new_title,
+				"new description",
+				1,
+				2,
+				"",
+				"child title",
+				"child description",
+				"child title",
+				"14-08-2019",
+				4,
+				"child title again",
+				"22-09-2020",
+				5,
+				7,
+			]
+		)
+		i.import_file.parse_data_from_template()
+		i.import_data()
+
+		from frappe.core.doctype.data_import.data_import import get_import_status
+
+		status = get_import_status(data_import.name)
+		self.assertEqual(status["inserted"], 1)
+		self.assertEqual(status["updated"], 1)
+		self.assertEqual(status["success"], 2)
+		self.assertEqual(status["total_records"], 2)
 
 	def test_mapped_select_still_shows_warning_but_unmapped_blocks_import(self):
 		from frappe.core.doctype.data_import.value_mapping import (
@@ -389,14 +562,18 @@ class TestImporter(IntegrationTestCase):
 		self.assertIn(expected_id_key, fields_dict, "ID fallback failed")
 		table_field.label = original_label  # maintain sanity in test env
 
-	def get_importer(self, doctype, import_file, update=False, use_sniffer=False):
+	def get_importer(self, doctype, import_file, update=False, use_sniffer=False, import_type=None):
 		data_import = frappe.new_doc("Data Import")
-		data_import.import_type = "Insert New Records" if not update else "Update Existing Records"
+		if import_type:
+			data_import.import_type = import_type
+		else:
+			data_import.import_type = "Insert New Records" if not update else "Update Existing Records"
 		data_import.reference_doctype = doctype
 		data_import.import_file = import_file.file_url
 		data_import.use_csv_sniffer = use_sniffer
 		data_import.insert()
 		frappe.db.commit()  # Commit so that the first import failure does not rollback the Data Import insert.  # nosemgrep
+		_register_data_import_cleanup(self, data_import)
 
 		return data_import
 
@@ -410,6 +587,7 @@ class TestImporter(IntegrationTestCase):
 		data_import.delimiter_options = ","
 		data_import.insert()
 		frappe.db.commit()  # nosemgrep
+		_register_data_import_cleanup(self, data_import)
 
 		return data_import
 
@@ -580,6 +758,8 @@ class TestTreeDataImport(IntegrationTestCase):
 		data_import.import_file = file_doc.file_url
 		data_import.insert()
 		frappe.db.commit()  # Ensure Data Import insert is persisted before subsequent operations; # nosemgrep
+		_register_data_import_cleanup(self, data_import)
+		_register_file_cleanup(self, file_doc)
 		return data_import
 
 	def test_tree_preview_and_payload_order(self):
@@ -684,13 +864,18 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		file_doc.save(ignore_permissions=True)  # test fixture — user context is not relevant here
 		return file_doc
 
-	def _get_importer(self, file_doc, update=False):
+	def _get_importer(self, file_doc, update=False, import_type=None):
 		data_import = frappe.new_doc("Data Import")
-		data_import.import_type = "Update Existing Records" if update else "Insert New Records"
+		if import_type:
+			data_import.import_type = import_type
+		else:
+			data_import.import_type = "Update Existing Records" if update else "Insert New Records"
 		data_import.reference_doctype = self.doctype_name
 		data_import.import_file = file_doc.file_url
 		data_import.insert()
 		frappe.db.commit()  # Ensure Data Import insert is persisted before subsequent operations; # nosemgrep
+		_register_data_import_cleanup(self, data_import)
+		_register_file_cleanup(self, file_doc)
 		return data_import
 
 	def _cleanup_docs(self, labels):
@@ -699,6 +884,50 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 			if name:
 				frappe.delete_doc(self.doctype_name, name, force=1)
 		frappe.db.commit()  # Ensure deletions are flushed to DB before continuing; # nosemgrep
+
+	def test_upsert_update_does_not_reset_omitted_defaults(self):
+		"""UPSERT update must not overwrite fields omitted from the template with DocType defaults."""
+		labels = ("Root Node",)
+		self._cleanup_docs(labels)
+
+		root = frappe.get_doc(
+			{"doctype": self.doctype_name, "node_label": "Root Node", "is_group": 1}
+		).insert()
+		frappe.db.commit()  # nosemgrep
+
+		rows = [(root.name, "Root Node Updated", "", "")]
+		data_import = self._get_importer(self._make_csv_file(rows, include_id=True), import_type=UPSERT)
+		Importer(self.doctype_name, data_import=data_import).import_data()
+
+		self.assertEqual(frappe.db.get_value(self.doctype_name, root.name, "node_label"), "Root Node Updated")
+		self.assertEqual(cint(frappe.db.get_value(self.doctype_name, root.name, "is_group")), 1)
+
+		self._cleanup_docs(labels)
+
+	def test_tree_alias_upsert_registers_updated_parent_for_children(self):
+		"""UPSERT update path must register aliases so later rows resolve parent links."""
+		meta = frappe.get_meta(self.doctype_name)
+		parent_field = meta.nsm_parent_field
+		labels = ("Root Node", "Child Node")
+		self._cleanup_docs(labels)
+
+		root = frappe.get_doc(
+			{"doctype": self.doctype_name, "node_label": "Root Node", "is_group": 1}
+		).insert()
+		frappe.db.commit()  # nosemgrep
+
+		rows = [
+			(root.name, "Root Node", "1", ""),
+			("", "Child Node", "0", "Root Node"),
+		]
+		data_import = self._get_importer(self._make_csv_file(rows, include_id=True), import_type=UPSERT)
+		Importer(self.doctype_name, data_import=data_import).import_data()
+
+		child_name = frappe.db.get_value(self.doctype_name, {"node_label": "Child Node"})
+		self.assertTrue(child_name)
+		self.assertEqual(frappe.db.get_value(self.doctype_name, child_name, parent_field), root.name)
+
+		self._cleanup_docs(labels)
 
 	def test_series_autoname_tree_uses_alias_mode(self):
 		self.assertTrue(uses_tree_alias_references(self.doctype_name))
@@ -724,6 +953,17 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 			for p in imp.import_file.get_payloads_for_import()
 		]
 		self.assertEqual(payload_keys, ["Root Node", "Child Node"])
+
+	def test_upsert_tree_preview_warns_missing_db_parent(self):
+		rows = [("New Child", "0", "Missing Parent")]
+		data_import = self._get_importer(self._make_csv_file(rows), import_type=UPSERT)
+		preview = data_import.get_preview_from_template()
+
+		child = next(node for node in preview.tree_preview.nodes if node.id == "New Child")
+		self.assertTrue(
+			any("Parent" in w and "not found in file" in w for w in child.warnings),
+			"UPSERT should warn when an out-of-file parent is missing from the database",
+		)
 
 	def test_tree_alias_existing_db_parent_is_not_a_blocking_warning(self):
 		"""Parent column aliases must resolve against DB title field, not document name."""
