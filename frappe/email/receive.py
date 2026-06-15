@@ -867,7 +867,7 @@ class InboundMail(Email):
 		if not record:
 			# Subject matching is only possible if the doctype declares a subject_field.
 			if not email_fields.subject_field:
-				return record
+				return None
 
 			subject = self.clean_subject(self.subject)
 			filters = {
