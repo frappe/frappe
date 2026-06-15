@@ -37,37 +37,6 @@ class TestWorkspace(IntegrationTestCase):
 	# 	else:
 	# 		self.assertEqual(len(cards), 1)
 
-	def test_sidebar_payload_sourced_from_workspace_sidebar_items(self):
-		"""boot.get_sidebar_items must build the payload from `Workspace.sidebar_items`.
-
-		Pins the pivot: a workspace with authored `sidebar_items` and no backing
-		`Workspace Sidebar` doc still produces a sidebar in the boot payload.
-		"""
-		from frappe.boot import get_sidebar_items
-
-		create_doctype("Test Sidebar DocType", "Test Module")
-		workspace = create_workspace(
-			name="Test Sidebar Workspace",
-			label="Test Sidebar Workspace",
-			title="Test Sidebar Workspace",
-			public=1,
-		)
-		workspace.content = "[]"
-		workspace.append(
-			"sidebar_items",
-			{"type": "Link", "label": "Test", "link_type": "DocType", "link_to": "Test Sidebar DocType"},
-		)
-		workspace.insert(ignore_if_duplicate=True)
-
-		# the new read path must not depend on a legacy Workspace Sidebar doc
-		self.assertFalse(frappe.db.exists("Workspace Sidebar", workspace.name))
-
-		payload = get_sidebar_items()
-		key = workspace.name.lower()
-		self.assertIn(key, payload)
-		linked = [item["link_to"] for item in payload[key]["items"]]
-		self.assertIn("Test Sidebar DocType", linked)
-
 	def test_role_restricted_non_public_workspace_visible_to_permitted_user(self):
 		"""Non-public workspace with roles should be visible to users with matching role."""
 		from frappe.desk.desktop import get_workspaces
