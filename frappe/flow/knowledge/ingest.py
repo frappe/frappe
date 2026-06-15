@@ -33,6 +33,17 @@ def enqueue_ingestion(source: str) -> None:
 	)
 
 
+def sync_due_sources() -> None:
+	"""Daily scheduler: enqueue an incremental sweep for every auto-sync DocType source."""
+	sources = frappe.get_all(
+		"AI Knowledge Source",
+		filters={"source_type": "DocType", "auto_sync": 1},
+		pluck="name",
+	)
+	for source in sources:
+		enqueue_ingestion(source)
+
+
 def ingest_source(source: str) -> None:
 	"""Worker: bring a source's chunks in both stores up to date."""
 	doc = frappe.get_doc("AI Knowledge Source", source)

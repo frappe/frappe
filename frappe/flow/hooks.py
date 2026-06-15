@@ -24,6 +24,9 @@ doc_events = {
 ignore_links_on_delete = ["AI Knowledge Chunk"]
 
 scheduler_events = {
+	"daily": [
+		"flow.knowledge.ingest.sync_due_sources",
+	],
 	"cron": {
 		"* * * * *": [
 			"flow.triggers.dispatch_scheduled",

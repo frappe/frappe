@@ -19,7 +19,7 @@ from flow.knowledge.extract import (
 	_validate_public_url,
 	extract,
 )
-from flow.knowledge.ingest import ingest_source, purge_source
+from flow.knowledge.ingest import ingest_source, purge_source, sync_due_sources
 
 DIM = 4
 
@@ -764,3 +764,27 @@ class TestDoctypeSync(IntegrationTestCase):
 
 		self.assertEqual({c["reference_name"] for c in self._chunks(src.name)}, {keep.name})
 		self.assertEqual(self._lance_ids(), {int(c["name"]) for c in self._chunks(src.name)})
+
+	def test_sync_due_sources_enqueues_only_auto_sync_doctypes(self):
+		auto = self._source()
+		auto.db_set("auto_sync", 1, update_modified=False)
+		manual = self._source()
+		with patch("flow.knowledge.ingest.enqueue_ingestion"):
+			text = frappe.get_doc(
+				{
+					"doctype": "AI Knowledge Source",
+					"knowledge_base": self.kb.name,
+					"source_type": "Text",
+					"title": "Text Source",
+					"content": "not a doctype",
+					"auto_sync": 1,
+				}
+			).insert()
+
+		with patch("flow.knowledge.ingest.enqueue_ingestion") as mock:
+			sync_due_sources()
+		enqueued = {call.args[0] for call in mock.call_args_list}
+
+		self.assertIn(auto.name, enqueued)
+		self.assertNotIn(manual.name, enqueued)
+		self.assertNotIn(text.name, enqueued)
