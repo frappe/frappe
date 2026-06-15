@@ -8,6 +8,8 @@ from frappe.query_builder.functions import Now
 
 
 class ScheduledJobLog(Document):
+	_DOCTYPE_NAME = "Scheduled Job Log"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

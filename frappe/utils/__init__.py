@@ -2,7 +2,9 @@
 # License: MIT. See LICENSE
 
 import functools
+import importlib
 import io
+import json
 import os
 import shutil
 import sys
@@ -24,7 +26,14 @@ from typing import Any, Generic, TypeAlias, TypedDict
 import orjson
 from werkzeug.test import Client
 
-from frappe.deprecation_dumpster import gzip_compress, gzip_decompress, make_esc
+from frappe.deprecation_dumpster import (
+	get_gravatar,
+	get_gravatar_url,
+	gzip_compress,
+	gzip_decompress,
+	has_gravatar,
+	make_esc,
+)
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
@@ -298,43 +307,11 @@ def random_string(length: int) -> str:
 	return "".join(secrets.choice(alphabet) for i in range(length))
 
 
-def has_gravatar(email: str) -> str:
-	"""Return gravatar url if user has set an avatar at gravatar.com."""
-	import requests
-
-	if frappe.flags.in_import or frappe.flags.in_install or frappe.in_test:
-		# no gravatar if via upload
-		# since querying gravatar for every item will be slow
-		return ""
-
-	gravatar_url = get_gravatar_url(email, "404")
-	try:
-		res = requests.get(gravatar_url, timeout=5)
-		if res.status_code == 200:
-			return gravatar_url
-		else:
-			return ""
-	except requests.exceptions.RequestException:
-		return ""
-
-
-def get_gravatar_url(email: str, default: Literal["mm", "404"] = "mm") -> str:
-	"""Return gravatar URL for the given email.
-
-	If `default` is set to "404", gravatar URL will return 404 if no avatar is found.
-	If `default` is set to "mm", a placeholder image will be returned.
-	"""
-	hexdigest = hashlib.md5(frappe.as_unicode(email).encode("utf-8"), usedforsecurity=False).hexdigest()
-	return f"https://secure.gravatar.com/avatar/{hexdigest}?d={default}&s=200"
-
-
-def get_gravatar(email: str) -> str:
-	"""Return gravatar URL if user has set an avatar at gravatar.com.
-
-	Else return identicon image (base64)."""
+def get_identicon(email: str) -> str:
+	"""Return an identicon image (base64) for the given email."""
 	from frappe.utils.identicon import Identicon
 
-	return has_gravatar(email) or Identicon(email).base64()
+	return Identicon(email).base64()
 
 
 def get_traceback(with_context: bool = False) -> str:
@@ -928,7 +905,9 @@ def create_batch(iterable: Iterable, size: int) -> Generator[Iterable]:
 	"""
 	total_count = len(iterable)
 	for i in range(0, total_count, size):
-		yield iterable[i : min(i + size, total_count)]
+		batch = iterable[i : min(i + size, total_count)]
+		assert len(batch) <= size, "each batch must not exceed the requested size"
+		yield batch
 
 
 def set_request(**kwargs):
@@ -1046,6 +1025,9 @@ def groupby_metric(iterable: dict[str, list], key: str):
 
 def get_table_name(table_name: str, wrap_in_backticks: bool = False) -> str:
 	name = f"tab{table_name}" if not table_name.startswith("__") else table_name
+	assert name.startswith(("tab", "__")), (
+		"DB table name must be a 'tab'-prefixed doctype table or a '__' system table"
+	)
 
 	if wrap_in_backticks:
 		return f"`{name}`"
@@ -1201,3 +1183,64 @@ def get_app_version(app_name: str) -> str:
 		return frappe.get_attr(app_name + ".__version__")
 	except Exception:
 		return "0.0.1"
+
+
+def get_module(modulename: str):
+	"""Return a module object for given Python module name using `importlib.import_module`."""
+	return importlib.import_module(modulename)
+
+
+def read_file(path, raise_not_found=False, as_base64=False):
+	"""Open a file and return its content as Unicode or Base64 string."""
+	if isinstance(path, str):
+		path = path.encode("utf-8")
+
+	if os.path.exists(path):
+		if as_base64:
+			import base64
+
+			with open(path, "rb") as f:
+				return base64.b64encode(f.read()).decode("utf-8")
+		else:
+			with open(path) as f:
+				return as_unicode(f.read())
+	elif raise_not_found:
+		raise OSError(f"{path} Not Found")
+	else:
+		return None
+
+
+def get_file_json(path):
+	"""Read a file and return parsed JSON object."""
+	with open(path) as f:
+		return json.load(f)
+
+
+def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
+	"""Return items from text file as a list. Ignore empty lines."""
+	content = read_file(path, raise_not_found=raise_not_found)
+	if content:
+		content = strip(content)
+		return [
+			p.strip()
+			for p in content.splitlines()
+			if (not ignore_empty_lines) or (p.strip() and not p.startswith("#"))
+		]
+	return []
+
+
+def get_attr(method_string: str):
+	"""Get python method object from its name."""
+	import frappe
+
+	app_name = method_string.split(".", 1)[0]
+	if (
+		not frappe.local.flags.in_uninstall
+		and not frappe.local.flags.in_install
+		and app_name not in frappe.get_installed_apps()
+	):
+		frappe.throw(frappe._("App {0} is not installed").format(app_name), frappe.AppNotInstalledError)
+
+	modulename = ".".join(method_string.split(".")[:-1])
+	methodname = method_string.split(".")[-1]
+	return getattr(get_module(modulename), methodname)

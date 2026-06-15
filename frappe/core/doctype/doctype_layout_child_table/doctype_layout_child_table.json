@@ -1,0 +1,42 @@
+{
+ "actions": [],
+ "creation": "2026-04-08 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "table_fieldname",
+  "child_layout"
+ ],
+ "fields": [
+  {
+   "fieldname": "table_fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Table Field",
+   "reqd": 1
+  },
+  {
+   "fieldname": "child_layout",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Child Layout",
+   "link_filters": "[[\"DocType Layout\",\"is_child_table\",\"=\",1]]",
+   "options": "DocType Layout",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-04-11 13:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "DocType Layout Child Table",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

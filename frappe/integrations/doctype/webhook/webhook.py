@@ -21,6 +21,8 @@ WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
 
 
 class Webhook(Document):
+	_DOCTYPE_NAME = "Webhook"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

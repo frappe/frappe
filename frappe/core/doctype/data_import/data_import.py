@@ -23,6 +23,8 @@ BLOCKED_DOCTYPES = CORE_DOCTYPES - {"User", "Role", "Print Format"}
 
 
 class DataImport(Document):
+	_DOCTYPE_NAME = "Data Import"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -56,16 +58,45 @@ class DataImport(Document):
 		):
 			self.template_options = ""
 			self.template_warnings = ""
+			self.value_mappings = []
+			self.skipped_rows = []
 
 		self.set_delimiters_flag()
 		self.validate_doctype()
-		self.validate_import_file()
 		self.validate_google_sheets_url()
-		self.set_payload_count()
+		importer = self.get_importer_for_validation()
+		if importer:
+			self.set_payload_count(importer)
+			self.sync_value_mappings_from_import(importer)
+		else:
+			self.set_payload_count()
+
+	def get_importer_for_validation(self) -> Importer | None:
+		if self.import_file or self.google_sheets_url:
+			return self.get_importer()
+		return None
+
+	def sync_value_mappings_from_import(self, importer: Importer | None = None) -> bool:
+		"""Parse the import file and populate invalid Link/Select values in the child table."""
+		if not (self.import_file or self.google_sheets_url):
+			return False
+
+		from frappe.core.doctype.data_import.value_mapping import sync_value_mappings
+
+		if importer is None:
+			importer = self.get_importer()
+		return sync_value_mappings(self, importer.import_file)
 
 	def set_delimiters_flag(self):
-		if self.import_file:
-			frappe.flags.delimiter_options = self.delimiter_options or ","
+		if not (self.import_file or self.google_sheets_url):
+			return
+
+		if self.custom_delimiters and self.delimiter_options:
+			frappe.flags.delimiter_options = self.delimiter_options
+		elif self.use_csv_sniffer:
+			frappe.flags.delimiter_options = self.delimiter_options or ",;\t|"
+		else:
+			frappe.flags.delimiter_options = None
 
 	def validate_doctype(self):
 		if self.reference_doctype in BLOCKED_DOCTYPES:
@@ -85,11 +116,6 @@ class DataImport(Document):
 				frappe.PermissionError,
 			)
 
-	def validate_import_file(self):
-		if self.import_file:
-			# validate template
-			self.get_importer()
-
 	def validate_google_sheets_url(self):
 		if not self.google_sheets_url:
 			return
@@ -106,7 +132,6 @@ class DataImport(Document):
 	def get_preview_from_template(self, import_file: str | None = None, google_sheets_url: str | None = None):
 		if import_file:
 			self.import_file = import_file
-			self.set_delimiters_flag()
 
 		if google_sheets_url:
 			self.google_sheets_url = google_sheets_url
@@ -114,6 +139,7 @@ class DataImport(Document):
 		if not (self.import_file or self.google_sheets_url):
 			return
 
+		self.set_delimiters_flag()
 		i = self.get_importer()
 		return i.get_data_for_import_preview()
 
@@ -142,6 +168,9 @@ class DataImport(Document):
 
 	def export_errored_rows(self):
 		return self.get_importer().export_errored_rows()
+
+	def export_skipped_rows(self):
+		return self.get_importer().export_skipped_rows()
 
 	def download_import_log(self):
 		return self.get_importer().export_import_log()
@@ -247,6 +276,13 @@ def download_errored_template(data_import_name: str):
 	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
 	data_import.check_permission("read")
 	data_import.export_errored_rows()
+
+
+@frappe.whitelist()
+def download_skipped_rows(data_import_name: str):
+	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
+	data_import.check_permission("read")
+	data_import.export_skipped_rows()
 
 
 @frappe.whitelist()

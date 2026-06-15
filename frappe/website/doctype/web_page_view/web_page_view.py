@@ -10,6 +10,8 @@ from frappe.utils.caching import redis_cache
 
 
 class WebPageView(Document):
+	_DOCTYPE_NAME = "Web Page View"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

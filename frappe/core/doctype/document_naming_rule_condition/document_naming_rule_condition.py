@@ -6,6 +6,8 @@ from frappe.model.document import Document
 
 
 class DocumentNamingRuleCondition(Document):
+	_DOCTYPE_NAME = "Document Naming Rule Condition"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

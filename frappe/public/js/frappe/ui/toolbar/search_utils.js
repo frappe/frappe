@@ -66,7 +66,7 @@ frappe.search.utils = {
 				const doctype = route[1];
 				if (route.length > 2 && doctype !== route[2]) {
 					const docname = route[2];
-					out.label = __(doctype) + " " + docname.bold();
+					out.label = __(doctype) + " " + frappe.utils.bold(docname);
 					out.value = __(doctype) + " " + docname;
 				} else {
 					out.label = __(doctype).bold();
@@ -260,6 +260,42 @@ frappe.search.utils = {
 					}
 				}
 			}
+		});
+		return out;
+	},
+
+	/**
+	 * Matches DocType Layouts (by title, falling back to name) so they are
+	 * navigable from the Awesome Bar. Selecting one opens the base doctype's
+	 * list filtered by the layout condition, with the layout context active.
+	 */
+	get_doctype_layouts: function (keywords) {
+		var me = this;
+		var out = [];
+		(frappe.boot.doctype_layouts || []).forEach(function (layout) {
+			if (!frappe.boot.user.can_read.includes(layout.document_type)) return;
+
+			const display = layout.title || layout.name;
+			const search_result = me.fuzzy_search(keywords, display, true);
+			if (!search_result.score) return;
+
+			// Only `_layout` (consumed by the list view for the breadcrumb +
+			// filter context) is set. Setting `layout` would make the router
+			// write `?layout=` into the URL, which shadows route_options in
+			// parse_filters_from_route_options and drops the condition filters.
+			const route_options = Object.assign(
+				frappe.utils.parse_layout_condition_to_filters(layout.condition),
+				{ _layout: layout.name }
+			);
+			out.push({
+				type: "Layout",
+				label: __("{0} List", [search_result.marked_string || display]),
+				value: __("{0} List", [display]),
+				description: __(layout.document_type),
+				index: search_result.score,
+				route: ["List", layout.document_type],
+				route_options: route_options,
+			});
 		});
 		return out;
 	},
@@ -737,15 +773,20 @@ frappe.search.open_global_search_from_navbar_shortcut = function (e) {
  * Open the navbar Awesome Bar from Global Search (Ctrl/Cmd+K).
  */
 frappe.search.open_awesomebar_from_global_search_shortcut = function (e) {
+	if (e) {
+		e.preventDefault();
+	}
+	const awesome_bar = frappe.app.awesome_bar;
+	if (awesome_bar?.is_open()) {
+		awesome_bar.close();
+		return false;
+	}
 	const dlg = frappe.searchdialog?.search;
 	if (dlg?.search_dialog?.is_visible) {
 		const keywords = (dlg.$input?.val() || "").trim();
 		dlg.search_dialog.hide();
 		$("#navbar-search").val(keywords);
 	}
-	$("#navbar-modal-search").click();
-	if (e) {
-		e.preventDefault();
-	}
+	awesome_bar.open();
 	return false;
 };

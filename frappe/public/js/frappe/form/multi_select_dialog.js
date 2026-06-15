@@ -18,6 +18,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		this.make();
 
 		this.selected_fields = new Set();
+		this.selected_items = {};
 	}
 
 	get_fields() {
@@ -343,8 +344,11 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			let name = $(this).attr("data-item-name").trim();
 			if ($(this).find(":checkbox").is(":checked")) {
 				me.selected_fields.add(name);
+				const item = me.results.find((r) => r.name === name);
+				if (item) me.selected_items[name] = item;
 			} else {
 				me.selected_fields.delete(name);
+				delete me.selected_items[name];
 			}
 		});
 
@@ -355,8 +359,11 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				const name = $(this).closest(".list-item-container").attr("data-item-name").trim();
 				if (checked) {
 					me.selected_fields.add(name);
+					const item = me.results.find((r) => r.name === name);
+					if (item) me.selected_items[name] = item;
 				} else {
 					me.selected_fields.delete(name);
+					delete me.selected_items[name];
 				}
 			});
 		});
@@ -539,13 +546,11 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	empty_list() {
-		// Store all checked items
-		let checked = this.results
-			.filter((result) => this.selected_fields.has(result.name))
-			.map((item) => ({
-				...item,
-				checked: true,
-			}));
+		// Store all checked items using selected_items map (persists across searches)
+		let checked = [...this.selected_fields].map((name) => ({
+			...(this.selected_items[name] || { name }),
+			checked: true,
+		}));
 
 		// Remove **all** items
 		this.$results.find(".list-item-container").remove();
@@ -556,45 +561,58 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	get_filters_from_setters() {
 		let me = this;
-		let filters = (this.get_query ? this.get_query().filters : {}) || {};
+		let query_filters = (this.get_query ? this.get_query().filters : {}) || {};
+		let filters_list = Object.entries(query_filters).map(([key, value]) => {
+			if (Array.isArray(value)) {
+				return [me.doctype, key, value[0], value[1]];
+			}
+			return [me.doctype, key, "=", value];
+		});
 		let filter_fields = [];
 
 		if ($.isArray(this.setters)) {
 			for (let df of this.setters) {
-				filters[df.fieldname] =
+				let value =
 					me.dialog.fields_dict[df.fieldname].get_value() || df.default || undefined;
-				me.args[df.fieldname] = filters[df.fieldname];
+				me.args[df.fieldname] = value;
 				filter_fields.push(df.fieldname);
+				if (value != null) {
+					filters_list.push([me.doctype, df.fieldname, "=", value]);
+				}
 			}
 		} else {
 			Object.keys(this.setters).forEach(function (setter) {
-				var value = me.dialog.fields_dict[setter].get_value() || me.setters[setter];
+				let value = me.dialog.fields_dict[setter].get_value() || me.setters[setter];
 				if (me.dialog.fields_dict[setter].df.fieldtype == "Data" && value) {
-					filters[setter] = ["like", "%" + value + "%"];
+					filters_list.push([me.doctype, setter, "like", "%" + value + "%"]);
 				} else {
-					filters[setter] = value || undefined;
-					me.args[setter] = filters[setter];
+					value = value || undefined;
+					me.args[setter] = value;
 					filter_fields.push(setter);
+					if (value != null) {
+						filters_list.push([me.doctype, setter, "=", value]);
+					}
 				}
 			});
 		}
 
-		return [filters, filter_fields];
+		return [filters_list, filter_fields];
 	}
 
 	get_args_for_search() {
-		let [filters, filter_fields] = this.get_filters_from_setters();
+		let [filters_list, filter_fields] = this.get_filters_from_setters();
 
-		let custom_filters = this.get_custom_filters();
-		Object.assign(filters, custom_filters);
-
+		if (this.add_filters_group && this.filter_group) {
+			filters_list.push(...this.filter_group.get_filters());
+		}
 		return {
 			doctype: this.doctype,
 			txt: this.dialog.fields_dict["search_term"].get_value(),
-			filters: filters,
+			filters: filters_list,
 			filter_fields: filter_fields,
 			page_length: this.page_length + 5,
 			query: this.get_query ? this.get_query().query : "",
+			query_filters_as_dict: true,
 			as_dict: 1,
 		};
 	}

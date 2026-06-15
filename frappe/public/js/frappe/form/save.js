@@ -19,7 +19,10 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		$(frm.wrapper).addClass("validated-form");
 		if ((action !== "Save" || frm.is_dirty()) && frappe.ui.form.check_mandatory(frm)) {
 			_call({
-				method: "frappe.desk.form.save.savedocs",
+				method:
+					action === "Submit"
+						? "frappe.desk.form.save.submit"
+						: "frappe.desk.form.save.savedocs",
 				args: { doc: frm.doc, action: action },
 				callback: function (r) {
 					$(document).trigger("save", [frm.doc]);

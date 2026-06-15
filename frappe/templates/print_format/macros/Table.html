@@ -1,9 +1,12 @@
 {% if doc.get(df.fieldname) %}
-<div class="child-table" {{ field_attributes(df) }}>
+{% set _style = df.table_style or "lined" %}
+{% set _bordered = df.table_bordered != False %}
+{% set _plain_header = df.table_header == "plain" %}
+<div class="child-table child-table--{{ _style }}{% if not _bordered %} child-table--borderless{% endif %}{% if _plain_header %} child-table--plain-header{% endif %}" {{ field_attributes(df) }}>
 	<div class="label">
 		{{ _(df.label) }}
 	</div>
-	<table class="table table-bordered">
+	<table class="table{% if _bordered %} table-bordered{% endif %}">
 		{% set columns = df.table_columns %}
 		<thead>
 			<tr class="table-row">

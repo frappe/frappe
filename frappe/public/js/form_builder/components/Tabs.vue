@@ -12,7 +12,7 @@ const store = useStore();
 // delete/backspace to delete the field
 const { Backspace } = useMagicKeys();
 whenever(Backspace, (value) => {
-	if (value && selected.value && store.not_using_input) {
+	if (value && selected.value && store.not_using_input && !store.is_layout_form) {
 		remove_tab(store.current_tab, "", true);
 	}
 });
@@ -136,6 +136,7 @@ function delete_tab(tab, with_children) {
 						v-model="element.df.label"
 					/>
 					<button
+						v-if="!store.is_layout_form"
 						class="remove-tab-btn btn btn-xs"
 						:title="__('Remove tab')"
 						@click.stop="remove_tab(element, $event)"
@@ -146,7 +147,7 @@ function delete_tab(tab, with_children) {
 				</div>
 			</template>
 		</draggable>
-		<div class="tab-actions" :hidden="store.read_only">
+		<div class="tab-actions" :hidden="store.read_only || store.is_layout_form">
 			<button
 				class="new-tab-btn btn btn-xs"
 				:class="{ 'no-tabs': !has_tabs }"
@@ -185,7 +186,7 @@ function delete_tab(tab, with_children) {
 					/>
 				</template>
 			</draggable>
-			<div class="empty-tab" :hidden="store.read_only">
+			<div class="empty-tab" :hidden="store.read_only || store.is_layout_form">
 				<div v-if="has_tabs">{{ __("Drag & Drop a section here from another tab") }}</div>
 				<div v-if="has_tabs">{{ __("OR") }}</div>
 				<button class="btn btn-default btn-sm" @click="add_new_section">

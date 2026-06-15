@@ -31,6 +31,10 @@ export default class Grid {
 			this.meta = frappe.get_meta(this.doctype);
 		}
 		this.fields_map = {};
+		// per-grid column visibility overrides set via `set_column_disp`. Kept
+		// grid-local (rather than mutating the shared meta docfield) so two grids
+		// of the same child doctype on the same form don't affect each other.
+		this.column_disp_overrides = {};
 		this.template = null;
 		this.multiple_set = false;
 		if (
@@ -269,28 +273,7 @@ export default class Grid {
 			this.refresh_remove_rows_button();
 			this.refresh_edit_rows_button();
 			this.refresh_duplicate_rows_button();
-			this.update_selection_banner();
 		});
-	}
-
-	update_selection_banner() {
-		const num_selected_rows = this.get_selected_children().length;
-
-		let $container = this.wrapper.find(".form-grid-container");
-		let $toast = this.wrapper.find("> .grid-selection-toast");
-		if (num_selected_rows > 0) {
-			if (!$toast.length) {
-				$toast = $(
-					`<div class="grid-selection-toast"><span class="grid-selection-toast__message"></span></div>`
-				).insertAfter($container);
-			}
-			$toast
-				.find(".grid-selection-toast__message")
-				.text(__("{0} row(s) selected", [num_selected_rows]));
-			$toast.show();
-		} else if ($toast.length) {
-			$toast.hide();
-		}
 	}
 
 	/**
@@ -319,7 +302,6 @@ export default class Grid {
 			this.add_new_row(null, null, false, doc, false);
 			this.check_range(doc.name, doc.name, false);
 		});
-		this.update_selection_banner();
 	}
 
 	delete_rows() {
@@ -587,7 +569,6 @@ export default class Grid {
 		this.refresh_duplicate_rows_button();
 
 		this.wrapper.trigger("change");
-		this.update_selection_banner();
 	}
 
 	render_result_rows($rows) {
@@ -742,8 +723,68 @@ export default class Grid {
 			this.docfields = this.df.fields;
 		}
 
+		this._apply_layout_child_overrides();
+		this._apply_column_disp_overrides();
+
 		this.docfields.forEach((df) => {
 			this.fields_map[df.fieldname] = df;
+		});
+	}
+
+	_apply_column_disp_overrides() {
+		const fieldnames = Object.keys(this.column_disp_overrides || {});
+		if (!fieldnames.length) return;
+
+		// Replace overridden fields with a shallow copy carrying the grid-local
+		// `hidden` value. The base docfield comes from `frappe.meta` and is shared
+		// across every grid of the same child doctype on this form, so it must not
+		// be mutated in place.
+		this.docfields = this.docfields.map((df) => {
+			if (!(df.fieldname in this.column_disp_overrides)) return df;
+			return Object.assign({}, df, { hidden: this.column_disp_overrides[df.fieldname] });
+		});
+	}
+
+	_apply_layout_child_overrides() {
+		const layout = this.frm?.doctype_layout;
+		if (!layout?.child_tables?.length || !this.df?.fieldname) return;
+
+		const table_fn = this.df.fieldname;
+		const entry = layout.child_tables.find((r) => r.table_fieldname === table_fn);
+		if (!entry?.child_layout) return;
+
+		const child_layout = frappe.get_doc("DocType Layout", entry.child_layout);
+		if (!child_layout?.fields?.length) return;
+
+		const OVERRIDE_PROPS = [
+			"hidden",
+			"reqd",
+			"read_only",
+			"bold",
+			"allow_in_quick_entry",
+			"in_list_view",
+			"in_standard_filter",
+			"default",
+			"description",
+			"depends_on",
+			"mandatory_depends_on",
+			"read_only_depends_on",
+		];
+		const override_map = Object.fromEntries(child_layout.fields.map((f) => [f.fieldname, f]));
+
+		this.docfields = this.docfields.map((df) => {
+			const o = override_map[df.fieldname];
+			if (!o) return df;
+			const copy = Object.assign({}, df);
+			if (o.label) copy.label = o.label;
+			for (const prop of OVERRIDE_PROPS) {
+				// Use truthy check so Check fields defaulting to 0 in the layout row
+				// don't accidentally override the base field's value (e.g. in_list_view: 1).
+				if (o[prop]) {
+					copy[prop] = o[prop];
+				}
+			}
+			return copy;
 		});
 	}
 
@@ -881,6 +922,31 @@ export default class Grid {
 			this.get_docfield(fieldname).hidden = show ? 0 : 1;
 			this.set_editable_grid_column_disp(fieldname, show);
 		}
+
+		this.debounced_refresh();
+	}
+
+	set_column_disp_in_list_view(fieldname, show) {
+		// Show/hide a column in this grid's list view (the static, read-only row
+		// rendering). Unlike `set_column_disp`, the change is kept as a grid-local
+		// override and never mutates the shared meta docfield, so other grids of
+		// the same child doctype on the same form are unaffected. The override is
+		// applied to a grid-local docfield copy in `_apply_column_disp_overrides`
+		// (called from `setup_fields`).
+		const fieldnames = Array.isArray(fieldname) ? fieldname : [fieldname];
+		for (let field of fieldnames) {
+			this.column_disp_overrides[field] = show ? 0 : 1;
+		}
+
+		// Tear down the cached column layout and the rendered rows so the new
+		// column set is rebuilt with consistent widths. Just clearing
+		// `visible_columns` is not enough: the header is rebuilt with redistributed
+		// `col-N` widths while already-rendered rows keep their old widths, leaving
+		// the grid misaligned. This mirrors `reset_grid()` (also used by the
+		// Configure Columns dialog).
+		this.visible_columns = [];
+		this.grid_rows = [];
+		$(this.parent).find(".grid-body .grid-row").remove();
 
 		this.debounced_refresh();
 	}

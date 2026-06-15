@@ -202,6 +202,14 @@ class Page:
 
 		self.wait_for_navigate = wait_for_navigate
 
+	def navigate(self, url, wait_for=None):
+		"""Really load a URL and wait for render (vs set_tab_url's empty-body stub)."""
+		wait_start = self.wait_for_load(wait_for=wait_for or ["load", "DOMContentLoaded", "networkIdle"])
+		_result, error = self.send("Page.navigate", {"url": url})
+		if error:
+			raise RuntimeError(f"Error navigating to URL: {error}")
+		wait_start()
+
 	def evaluate(self, expression, await_promise=False):
 		self.send("Runtime.enable")
 		result, error = self.send(
@@ -347,6 +355,25 @@ class Page:
 
 		self.send("CSS.disable")
 		self.send("DOM.disable")
+
+	def set_device_metrics(self, width=1280, height=720, scale_factor=1):
+		"""Override viewport size for deterministic screenshot dimensions (default 1280x720)."""
+		_result, error = self.send(
+			"Emulation.setDeviceMetricsOverride",
+			{"width": width, "height": height, "deviceScaleFactor": scale_factor, "mobile": False},
+		)
+		if error:
+			raise RuntimeError(f"Error setting device metrics: {error}")
+
+	def capture_screenshot(self, image_format="jpeg", quality=30):
+		"""Screenshot the current viewport; returns raw image bytes."""
+		params = {"format": image_format, "captureBeyondViewport": False}
+		if image_format in ("jpeg", "webp"):  # quality is only valid for lossy formats
+			params["quality"] = quality
+		result, error = self.send("Page.captureScreenshot", params)
+		if error:
+			raise RuntimeError(f"Error capturing screenshot: {error}")
+		return base64.b64decode(result["data"])
 
 	def generate_pdf(self, wait_for_pdf=True, raw=False):
 		self.add_page_size_css()

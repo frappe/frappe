@@ -10,6 +10,8 @@ from frappe.utils import cint, today
 
 
 class SystemSettings(Document):
+	_DOCTYPE_NAME = "System Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

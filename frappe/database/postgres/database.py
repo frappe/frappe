@@ -486,18 +486,15 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def get_database_list(self):
 		return self.sql("SELECT datname FROM pg_database", pluck=True)
 
-	def estimate_count(self, doctype: str):
-		"""Get estimated count of total rows in a table."""
+	def _fetch_all_table_counts(self) -> dict[str, int]:
 		from frappe.utils.data import cint
 
-		table = get_table_name(doctype)
-
-		# Scope to current database to avoid cross-site estimates
-		count = self.sql(
-			"select c.reltuples from pg_class c join pg_namespace n on n.oid = c.relnamespace where c.relname = %s and n.nspname = %s and c.relkind = 'r'",
-			(table, self.db_schema),
+		# Scope to current schema to avoid cross-site estimates
+		rows = self.sql(
+			"select c.relname, c.reltuples from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = %s and c.relkind = 'r'",
+			(self.db_schema,),
 		)
-		return cint(count[0][0]) if count else 0
+		return {row[0]: cint(row[1]) for row in rows}
 
 	@contextmanager
 	def unbuffered_cursor(self):

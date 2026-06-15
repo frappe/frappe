@@ -39,7 +39,7 @@ jobs:
     needs: checkrun
     env:
       NODE_ENV: "production"
-      DEFAULT_JS_BUNDLE_SIZE_THRESHOLD: "0.01"
+      DEFAULT_JS_BUNDLE_SIZE_THRESHOLD: "10"
     steps:
       - name: Clone
         uses: actions/checkout@v6

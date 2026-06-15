@@ -24,8 +24,28 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	make_and_show(doctype, route) {
 		if (frappe.router.doctype_layout) {
 			frappe.model.with_doc("DocType Layout", frappe.router.doctype_layout, () => {
-				this.make_form(doctype);
-				this.show_doc(route);
+				// Also pre-load any child layouts linked in child_tables so grids can
+				// apply them synchronously when they render.
+				const layout = frappe.get_doc("DocType Layout", frappe.router.doctype_layout);
+				const child_layout_names = (layout?.child_tables || [])
+					.map((r) => r.child_layout)
+					.filter(Boolean);
+
+				if (child_layout_names.length) {
+					const promises = child_layout_names.map(
+						(name) =>
+							new Promise((resolve) =>
+								frappe.model.with_doc("DocType Layout", name, resolve)
+							)
+					);
+					Promise.all(promises).then(() => {
+						this.make_form(doctype);
+						this.show_doc(route);
+					});
+				} else {
+					this.make_form(doctype);
+					this.show_doc(route);
+				}
 			});
 		} else {
 			this.make_form(doctype);
@@ -59,7 +79,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 		if (frappe.model.new_names[name]) {
 			// document has been renamed, reroute
 			name = frappe.model.new_names[name];
-			frappe.set_route("Form", doctype_layout, name);
+			this.route_to_form(doctype, name);
 			return;
 		}
 
@@ -98,8 +118,19 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 			this.render(doctype_layout, name);
 		} else {
 			frappe.route_flags.replace_route = true;
-			frappe.set_route("Form", doctype_layout, new_name);
+			this.route_to_form(doctype, new_name);
 		}
+	}
+
+	route_to_form(doctype, name) {
+		// Route by the real doctype slug, carrying any active layout via
+		// `route_options.layout` so the router keeps it in the `?layout=` param.
+		// Using the layout name as the slug would produce an invalid route.
+		if (frappe.router.doctype_layout) {
+			frappe.route_options = frappe.route_options || {};
+			frappe.route_options.layout = frappe.router.doctype_layout;
+		}
+		frappe.set_route("Form", doctype, name);
 	}
 
 	render(doctype_layout, name) {

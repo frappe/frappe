@@ -10,6 +10,8 @@ exclude_from_linked_with = True
 
 
 class DocShare(Document):
+	_DOCTYPE_NAME = "DocShare"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
