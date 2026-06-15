@@ -945,6 +945,68 @@ def get_perm_info(role: str):
 	return get_all_perms(role)
 
 
+@frappe.whitelist()
+def get_allowed_workspaces(user: str):
+	"""Return the public workspaces visible to `user`.
+
+	Read-only helper for the User form. Mirrors `Workspace.is_permitted()`: a
+	workspace is visible when it has neither `roles` nor `allowed_users` set, or the
+	user has one of the allowed roles, or the user is listed in `allowed_users`.
+	"""
+	frappe.has_permission("User", "read", throw=True)
+
+	from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
+
+	user_roles = set(frappe.get_roles(user))
+
+	allowed_domains = [None, *frappe.get_active_domains()]
+	workspaces = frappe.get_all(
+		"Workspace",
+		filters={"public": 1, "restrict_to_domain": ["in", allowed_domains]},
+		fields=["name", "title"],
+		order_by="sequence_id asc",
+	)
+
+	if "Workspace Manager" in user_roles:
+		return workspaces
+
+	workspace_names = [w.name for w in workspaces]
+	if not workspace_names:
+		return []
+
+	# build role / allowed-user allow-lists per workspace from the child tables
+	allowed_roles_map = frappe._dict()
+	for row in frappe.get_all(
+		"Has Role",
+		filters={"parenttype": "Workspace", "parent": ["in", workspace_names]},
+		fields=["parent", "role"],
+	):
+		allowed_roles_map.setdefault(row.parent, set()).add(row.role)
+
+	allowed_users_map = frappe._dict()
+	for row in frappe.get_all(
+		"Workspace Allowed Users",
+		filters={"parenttype": "Workspace", "parent": ["in", workspace_names]},
+		fields=["parent", "user"],
+	):
+		allowed_users_map.setdefault(row.parent, set()).add(row.user)
+
+	allowed = []
+	for workspace in workspaces:
+		allowed_roles = allowed_roles_map.get(workspace.name, set())
+		allowed_roles = allowed_roles | set(get_custom_allowed_roles("page", workspace.name))
+		allowed_users = allowed_users_map.get(workspace.name, set())
+
+		if (
+			(not allowed_roles and not allowed_users)
+			or (user_roles & allowed_roles)
+			or (user in allowed_users)
+		):
+			allowed.append(workspace)
+
+	return allowed
+
+
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def update_password(
 	new_password: str, logout_all_sessions: int = 0, key: str | None = None, old_password: str | None = None
