@@ -43,6 +43,7 @@
   "custom_blocks",
   "roles_tab",
   "roles",
+  "allowed_users",
   "sidebar_tab",
   "sidebar_items"
  ],
@@ -285,11 +286,18 @@
    "fieldtype": "Link",
    "label": "Module Onboarding",
    "options": "Module Onboarding"
+  },
+  {
+   "description": "Leave empty to make this workspace visible to all users. Listing users restricts visibility to them (combined with Roles).",
+   "fieldname": "allowed_users",
+   "fieldtype": "Table",
+   "label": "Allowed Users",
+   "options": "Workspace Allowed Users"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-06-11 03:21:54.862364",
+ "modified": "2026-06-15 10:51:23.979775",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

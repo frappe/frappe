@@ -33,16 +33,8 @@ class Workspace(DeskViews):
 		self.workspace_manager = "Workspace Manager" in frappe.get_roles()
 
 		self.user = frappe.get_user()
-		self.allowed_modules = self.get_cached("user_allowed_modules", self.get_allowed_modules)
 
 		self.doc = frappe.get_cached_doc("Workspace", self.page_name)
-		if (
-			self.doc
-			and self.doc.module
-			and self.doc.module not in self.allowed_modules
-			and not self.workspace_manager
-		):
-			raise frappe.PermissionError
 
 		self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
 
@@ -55,7 +47,13 @@ class Workspace(DeskViews):
 			self.table_counts = get_table_with_counts()
 
 	def is_permitted(self):
-		"""Return true if `Has Role` is not set or the user is allowed."""
+		"""Return true if no `roles`/`allowed_users` are set or the user is allowed.
+
+		An empty `roles` *and* empty `allowed_users` means the workspace is visible to
+		everyone (mirrors how the `roles` allow-list has always worked). When either is
+		set, access is granted if the user's roles intersect the allowed roles **or**
+		the current user is explicitly listed in `allowed_users`.
+		"""
 		from frappe.utils import has_common
 
 		allowed = [d.role for d in self.doc.roles]
@@ -63,7 +61,12 @@ class Workspace(DeskViews):
 		custom_roles = get_custom_allowed_roles("page", self.doc.name)
 		allowed.extend(custom_roles)
 
-		if not allowed:
+		allowed_users = [d.user for d in self.doc.allowed_users]
+
+		if not allowed and not allowed_users:
+			return True
+
+		if frappe.session.user in allowed_users:
 			return True
 
 		roles = frappe.get_roles()
@@ -352,16 +355,11 @@ def get_workspaces():
 
 	has_access = "Workspace Manager" in frappe.get_roles()
 
-	# don't get domain restricted pages
-	blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
-	blocked_modules.append("Dummy Module")
-
 	# adding None to allowed_domains to include pages without domain restriction
 	allowed_domains = [None, *frappe.get_active_domains()]
 
 	filters = {
 		"restrict_to_domain": ["in", allowed_domains],
-		"module": ["not in", blocked_modules],
 	}
 
 	if has_access:

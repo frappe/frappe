@@ -26,6 +26,7 @@ class Workspace(Document, DeskViews):
 
 	if TYPE_CHECKING:
 		from frappe.core.doctype.has_role.has_role import HasRole
+		from frappe.desk.doctype.workspace_allowed_users.workspace_allowed_users import WorkspaceAllowedUsers
 		from frappe.desk.doctype.workspace_chart.workspace_chart import WorkspaceChart
 		from frappe.desk.doctype.workspace_custom_block.workspace_custom_block import WorkspaceCustomBlock
 		from frappe.desk.doctype.workspace_link.workspace_link import WorkspaceLink
@@ -35,6 +36,7 @@ class Workspace(Document, DeskViews):
 		from frappe.desk.doctype.workspace_sidebar_item.workspace_sidebar_item import WorkspaceSidebarItem
 		from frappe.types import DF
 
+		allowed_users: DF.Table[WorkspaceAllowedUsers]
 		app: DF.Data | None
 		charts: DF.Table[WorkspaceChart]
 		content: DF.LongText | None
