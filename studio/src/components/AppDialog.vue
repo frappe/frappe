@@ -31,7 +31,7 @@
 				/>
 
 				<AppExportSettings
-					v-if="!isEditing"
+					v-if="!isEditing && isDeveloperMode"
 					v-model:enableExport="enableExport"
 					v-model:targetApp="targetApp"
 					:app-name="activeApp.app_name || activeApp.app_name_placeholder"
@@ -76,6 +76,7 @@ const activeApp = ref({ ...emptyAppState })
 
 const enableExport = ref(false)
 const targetApp = ref("")
+const isDeveloperMode = Boolean(window.is_developer_mode)
 
 watch(
 	() => showDialog.value,
