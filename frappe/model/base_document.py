@@ -822,6 +822,8 @@ class BaseDocument:
 			):  # To avoid a transaction block, we regen in try (pg specific)
 				if save_point:
 					frappe.db.release_savepoint(save_point)
+					# already released: don't let the except handler roll back to a freed savepoint
+					save_point = None
 				return self._handle_hash_conflict()
 		except Exception as e:
 			if save_point:
