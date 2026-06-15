@@ -649,7 +649,8 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 		child_link = {"child_doctype": options, "fieldname": links_dict[options]}
 		if parent in ret and "child_doctype" in ret[parent]:
 			# parent links to doctype through more than one child table
-			ret[parent].setdefault("child_links", [dict(ret[parent])])
+			if "child_links" not in ret[parent]:
+				ret[parent]["child_links"] = [dict(ret[parent])]
 			ret[parent]["child_links"].append(child_link)
 		else:
 			ret[parent] = child_link
