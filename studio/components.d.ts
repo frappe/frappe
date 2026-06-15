@@ -14,6 +14,7 @@ declare module 'vue' {
     AIChatPanel: typeof import('./src/components/AIChatPanel.vue')['default']
     AppComponent: typeof import('./src/components/AppComponent.vue')['default']
     AppDialog: typeof import('./src/components/AppDialog.vue')['default']
+    AppExportSettings: typeof import('./src/components/AppExportSettings.vue')['default']
     AppHeader: typeof import('./src/components/AppLayout/AppHeader.vue')['default']
     AppLogo: typeof import('./src/components/Icons/AppLogo.vue')['default']
     ArrayInput: typeof import('./src/components/ArrayInput.vue')['default']
