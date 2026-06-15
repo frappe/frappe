@@ -46,11 +46,15 @@
 
 		<template v-else>
 			<CollapsibleSection sectionName="Vue Components" v-if="customVueComponents.length" class="px-2">
-				<div class="flex flex-col">
+				<div class="flex flex-col" ref="vueComponentListRef">
 					<div
 						v-for="component in customVueComponents"
 						:key="component.component_name"
-						class="user-component flex cursor-grab select-none items-center justify-between rounded p-1 hover:bg-surface-gray-1"
+						:data-vue-component-name="component.component_name"
+						class="user-component group/vue-component flex cursor-grab select-none items-center justify-between rounded p-1 hover:bg-surface-gray-1"
+						:class="{
+							'border border-outline-gray-4': store.selectedVueComponent === component.component_name,
+						}"
 						draggable="true"
 						:data-component-name="component.component_name"
 						:data-is-custom-vue-component="true"
@@ -62,6 +66,18 @@
 								<LucideCode class="h-3 w-3" />
 							</div>
 							<p class="text-sm">{{ component.component_name }}</p>
+						</div>
+						<div class="invisible group-hover/vue-component:visible has-[.active-item]:visible">
+							<Dropdown :options="getVueComponentMenu(component)" trigger="click">
+								<template v-slot="{ open }">
+									<button
+										class="flex cursor-pointer items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
+										:class="open ? 'active-item' : ''"
+									>
+										<FeatherIcon name="more-horizontal" class="h-3 w-3" />
+									</button>
+								</template>
+							</Dropdown>
 						</div>
 					</div>
 				</div>
@@ -111,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, ref, watch, nextTick } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { Dropdown, FeatherIcon } from "frappe-ui"
 import OptionToggle from "@/components/OptionToggle.vue"
@@ -121,12 +137,15 @@ import CollapsibleSection from "@/components/CollapsibleSection.vue"
 
 import components from "@/data/components"
 import { studioComponents } from "@/data/studioComponents"
+import { deleteStudioFile } from "@/data/studioFiles"
 
 import useCanvasStore from "@/stores/canvasStore"
 import useStudioStore from "@/stores/studioStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
+import { confirm } from "@/utils/helpers"
 import type { leftPanelComponentTabOptions } from "@/types"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
+import type { CustomVueComponentMeta } from "@/types/vue"
 import LucideCode from "~icons/lucide/code"
 import LucideBox from "~icons/lucide/box"
 
@@ -187,6 +206,45 @@ function getComponentMenu(component: StudioComponent) {
 		},
 	]
 }
+
+function getVueComponentMenu(component: CustomVueComponentMeta) {
+	return [
+		{
+			label: "Edit Component",
+			icon: "lucide-edit",
+			onClick: () => store.navigateToCodeFile(component.studio_file_path),
+		},
+		{
+			label: "Delete",
+			icon: "lucide-trash",
+			theme: "red",
+			onClick: () => deleteVueComponent(component),
+		},
+	]
+}
+
+async function deleteVueComponent(component: CustomVueComponentMeta) {
+	if (!(await confirm(`Delete ${component.component_name}.vue?`))) return
+	await deleteStudioFile(
+		{ frappe_app: store.activeApp?.frappe_app!, studio_app: component.studio_app },
+		component.studio_file_path,
+	)
+	await store.setCustomComponents()
+}
+
+const vueComponentListRef = ref<HTMLElement | null>(null)
+watch(
+	() => store.selectedVueComponent,
+	async (name) => {
+		if (!name) return
+		await nextTick()
+		const el = vueComponentListRef.value?.querySelector<HTMLElement>(`[data-vue-component-name="${name}"]`)
+		el?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+		setTimeout(() => {
+			store.selectedVueComponent = null
+		}, 1500)
+	},
+)
 
 // Drag and drop handling
 const componentContainer = ref(null)

@@ -131,14 +131,16 @@
 		</template>
 	</Dialog>
 
-	<ContextMenu
-		v-if="contextMenuVisible"
-		v-on-click-outside="closeContextMenu"
-		:pos-x="contextMenuPos.x"
-		:pos-y="contextMenuPos.y"
-		:options="contextMenuOptions"
-		@select="onContextMenuSelect"
-	/>
+	<Teleport to="body">
+		<ContextMenu
+			v-if="contextMenuVisible"
+			v-on-click-outside="closeContextMenu"
+			:pos-x="contextMenuPos.x"
+			:pos-y="contextMenuPos.y"
+			:options="contextMenuOptions"
+			@select="onContextMenuSelect"
+		/>
+	</Teleport>
 
 	<!-- Editor docks beside the left panel at full height -->
 	<Teleport to="#studio-code-editor-outlet">
@@ -507,10 +509,15 @@ const contextMenuNode = ref<StudioFileNode | null>(null)
 const contextMenuOptions = computed<ContextMenuOption[]>(() => {
 	const node = contextMenuNode.value
 	if (!node) return []
-	return [
+	const options: ContextMenuOption[] = [
 		{ label: "Rename", action: () => startRename(node) },
 		{ label: "Delete", action: () => deleteNode(node) },
 	]
+	if (!node.is_folder && node.path.endsWith(".vue")) {
+		const componentName = node.label.replace(/\.vue$/i, "")
+		options.unshift({ label: "Go to Component", action: () => store.navigateToVueComponent(componentName) })
+	}
+	return options
 })
 
 function openContextMenu(event: MouseEvent, node: StudioFileNode) {
@@ -528,6 +535,33 @@ function onContextMenuSelect(action: CallableFunction) {
 	action()
 	closeContextMenu()
 }
+
+// cross-panel navigation
+watch(
+	() => store.selectedVueFile,
+	async (path) => {
+		if (!path) return
+		store.selectedVueFile = null
+		// tree may still be loading on first mount — wait for it
+		if (loading.value) {
+			const stop = watch(loading, async (isLoading) => {
+				if (isLoading) return
+				stop()
+				const node = findNode(path)
+				if (node) {
+					selectedNode.value = node
+					await openNode(node)
+				}
+			})
+		} else {
+			const node = findNode(path)
+			if (node) {
+				selectedNode.value = node
+				await openNode(node)
+			}
+		}
+	},
+)
 
 // -- Rename --
 const editingPath = ref<string | null>(null)

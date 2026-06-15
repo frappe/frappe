@@ -52,6 +52,23 @@ const useStudioStore = defineStore("store", () => {
 	const appPages = ref<Record<string, StudioPage>>({})
 	const customVueComponents = ref<CustomVueComponentMeta[]>([])
 
+	// cross-panel navigation
+	const selectedVueFile = ref<string | null>(null)
+	const selectedVueComponent = ref<string | null>(null)
+
+	function navigateToCodeFile(studioFilePath: string) {
+		studioLayout.leftPanelActiveTab = "Code"
+		studioLayout.showLeftPanel = true
+		selectedVueFile.value = studioFilePath
+	}
+
+	function navigateToVueComponent(componentName: string) {
+		studioLayout.leftPanelActiveTab = "Add Component"
+		studioLayout.leftPanelComponentTab = "Custom"
+		studioLayout.showLeftPanel = true
+		selectedVueComponent.value = componentName
+	}
+
 	async function setApp(appName: string) {
 		const appDoc = await fetchApp(appName)
 		if (!appDoc) return
@@ -490,6 +507,11 @@ const useStudioStore = defineStore("store", () => {
 		// custom components
 		setCustomComponents,
 		customVueComponents,
+		// cross-panel navigation
+		selectedVueFile,
+		selectedVueComponent,
+		navigateToCodeFile,
+		navigateToVueComponent,
 		// studio pages
 		pageBlocks,
 		selectedPage,

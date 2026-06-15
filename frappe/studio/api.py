@@ -161,6 +161,7 @@ def get_custom_vue_components(frappe_app: str) -> list[dict]:
 						"component_name": component_name,
 						"studio_app": studio_app,
 						"file_path": file_path,
+						"studio_file_path": os.path.relpath(file_path, studio_app_dir),
 					}
 				)
 
