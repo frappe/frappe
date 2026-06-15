@@ -48,14 +48,14 @@ function studioFolderWatcher(appsDir) {
 		name: "studio-folder-watcher",
 		apply: "serve", // dev mode only
 
-		// Vite 8 calls hotUpdate for create/update/delete. These external studio files
-		// aren't in the editor's module graph, so suppress the reload Vite would otherwise do.
+		// These external studio files aren't in the editor's module graph, so suppress the reload Vite would otherwise do.
 		hotUpdate({ type, file, modules }) {
 			if (!isUnderStudioFolder(file)) return
-			// A mounted custom component being edited: let Vue HMR update it in place.
-			if (type === "update" && modules.length > 0) return
-			// create / delete / edit-of-unmounted: nothing here to update — swallow the reload.
-			// The watcher below refreshes the component panel for .vue changes.
+			// Only .vue SFCs have real in-place HMR (via the vue plugin) — let it run for a mounted
+			// component being edited. Page scripts (.ts) and stores/composables (.js) have no HMR
+			// boundary, so Vite would escalate to a full reload; swallow that. Studio re-reads the
+			// open file (studio:file-changed) and re-runs page scripts on navigation itself.
+			if (file.endsWith(".vue") && type === "update" && modules.length > 0) return
 			return []
 		},
 
