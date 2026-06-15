@@ -741,10 +741,14 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
-	// The sidebar is selection-driven: it's chosen via the header switcher (or a direct
-	// workspace route) and then stays put as you navigate. We only resolve it once at cold
-	// entry; thereafter only an explicit workspace route changes it. The active-item
-	// highlight stays route-aware via set_active_workspace_item().
+	// The sidebar is mostly selection-driven: it's chosen via the header switcher (or a direct
+	// workspace route) and then stays put as you navigate. Two things move it automatically.
+	// The owning-workspace check takes priority: navigating to an entity that declares an owning
+	// workspace (its item is flagged default_workspace) and isn't already represented in the
+	// current sidebar follows it to that workspace -- this also wins over cold-entry resolution,
+	// so a fresh load / deep link lands in the workspace the doctype belongs to. Only when the
+	// route has no owning workspace does the cold-entry fallback resolve an initial sidebar once.
+	// The active-item highlight stays route-aware via set_active_workspace_item().
 	set_workspace_sidebar() {
 		try {
 			const route = frappe.get_route();
@@ -755,10 +759,24 @@ frappe.ui.Sidebar = class Sidebar {
 				if (frappe.boot.workspace_sidebar_item[name.toLowerCase()]) {
 					this.select_sidebar(name);
 				}
-			} else if (!this.sidebar_title) {
-				// cold entry / deep link -> resolve the initial sidebar once, then it's sticky
-				const target = this.initial_sidebar(route);
-				if (target) frappe.app.sidebar.setup(target);
+			} else {
+				// Owning-workspace check (takes priority over the cold-entry fallback below): if the
+				// routed entity declares an owning workspace (its item is flagged default_workspace)
+				// that isn't the current sidebar and isn't already represented in it, follow the
+				// entity there so the doctype shows under the shell it belongs to.
+				const entity = this.entity_from_route(route);
+				const owner = this.default_workspace_for(entity);
+				if (
+					owner &&
+					owner.toLowerCase() !== this.workspace_title &&
+					!this.is_route_in_sidebar()
+				) {
+					this.select_sidebar(owner);
+				} else if (!this.sidebar_title) {
+					// cold entry / deep link with no owning workspace -> resolve the initial sidebar once
+					const target = this.initial_sidebar(route);
+					if (target) frappe.app.sidebar.setup(target);
+				}
 			}
 		} catch (e) {
 			console.error(e);
@@ -906,6 +924,23 @@ frappe.ui.Sidebar = class Sidebar {
 				}
 			});
 		});
+
+		// If one of these workspaces owns the entity (its item is flagged
+		// default_workspace), surface it first so callers that take the top
+		// candidate land in the workspace the entity belongs to.
+		const owner = this.default_workspace_for(link_to);
+		if (owner) {
+			sidebars = [owner, ...sidebars.filter((s) => s.toLowerCase() !== owner.toLowerCase())];
+		}
 		return sidebars;
+	}
+
+	// The workspace an entity belongs to, or undefined. An entity (link_to) can appear in
+	// several sidebars; the item flagged `default_workspace` marks its owning workspace, so
+	// navigation can route the doctype to that shell's sidebar. The map is built server-side
+	// (bootinfo.default_workspace_map) from the permission-filtered sidebar payload.
+	default_workspace_for(link_to) {
+		const map = frappe.boot.default_workspace_map || {};
+		return link_to ? map[link_to] : undefined;
 	}
 };

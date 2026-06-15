@@ -176,6 +176,7 @@ def load_conf_settings(bootinfo):
 def load_desktop_data(bootinfo):
 	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
 	bootinfo.workspace_sidebar_item = get_sidebar_items()
+	bootinfo.default_workspace_map = build_default_workspace_map(bootinfo.workspace_sidebar_item)
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
 	bootinfo.app_data = []
 
@@ -465,6 +466,22 @@ def get_sidebar_items():
 	return sidebar_items
 
 
+def build_default_workspace_map(sidebar_items):
+	"""Map each entity (`link_to`) to the title of the workspace that owns it.
+
+	An entity can appear in several workspace sidebars; the item flagged
+	`default_workspace` marks its owning workspace, so the desk can route the doctype to that
+	workspace's sidebar on navigation. Built from the already-filtered `sidebar_items` payload
+	so it only ever references workspaces/items the user is allowed to see.
+	"""
+	default_map = {}
+	for sidebar in sidebar_items.values():
+		for item in sidebar["items"]:
+			if item.get("link_to") and item.get("default_workspace"):
+				default_map[item["link_to"]] = sidebar["label"]
+	return default_map
+
+
 def get_workspaces_with_sidebar():
 	"""Workspaces the user may see (public + own private) that carry authored sidebar items."""
 	names = frappe.get_all(
@@ -513,6 +530,7 @@ def add_sidebar_entry(
 			"route_options": item.route_options,
 			"tab": item.navigate_to_tab,
 			"open_in_new_tab": item.open_in_new_tab,
+			"default_workspace": item.default_workspace,
 		}
 		if (
 			item.link_type == "Report"
