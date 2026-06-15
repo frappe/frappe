@@ -633,6 +633,7 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 
 	Safe queries:
 	        1. Read only 'select' or 'explain' queries
+			2. CTE on mariadb where writes are not allowed.
 	"""
 
 	query = query.strip().lower()
@@ -647,7 +648,9 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 			)
 		return False
 
-	if query.startswith(whitelisted_statements):
+	if query.startswith(whitelisted_statements) or (
+		query.startswith("with") and frappe.db.db_type == "mariadb"
+	):
 		return True
 
 	if throw:
