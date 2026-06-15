@@ -16,6 +16,7 @@ import "./code";
 import "./text_editor";
 import "./comment";
 import "./check";
+import "./switch";
 import "./image";
 import "./attach";
 import "./attach_image";
