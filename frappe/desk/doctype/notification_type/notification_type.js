@@ -15,17 +15,17 @@ frappe.ui.form.on("Notification Type", {
 				frappe.confirm(
 					__(
 						"Email everyone for <b>{0}</b> notifications? This adds it to every user's email preferences. Users can still opt out individually afterwards.",
-						[frm.doc.name],
+						[frm.doc.name]
 					),
 					() => {
 						frm.call({
 							method: "frappe.desk.doctype.notification_type.notification_type.enable_email_for_all_users",
 							args: { notification_type: frm.doc.name },
 						});
-					},
+					}
 				);
 			},
-			__("Actions"),
+			__("Actions")
 		);
 	},
 });

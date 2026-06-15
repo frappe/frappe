@@ -43,7 +43,7 @@ function setup_email_types_editor(frm) {
 	$(`
 		<p class="text-muted small mb-2">
 			${__(
-				"Choose which notification types are emailed to you. Unchecked types still show as in-app notifications.",
+				"Choose which notification types are emailed to you. Unchecked types still show as in-app notifications."
 			)}
 		</p>
 	`).appendTo(wrapper);
@@ -59,7 +59,7 @@ function setup_email_types_editor(frm) {
 			get_data: () =>
 				frappe
 					.xcall(
-						"frappe.desk.doctype.notification_settings.notification_settings.get_emailable_notification_types",
+						"frappe.desk.doctype.notification_settings.notification_settings.get_emailable_notification_types"
 					)
 					.then((types) => {
 						const selected = get_selected();
