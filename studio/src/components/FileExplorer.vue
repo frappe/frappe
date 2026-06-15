@@ -81,7 +81,7 @@
 						</div>
 						<div
 							:data-file-label="node.path"
-							class="min-w-0 flex-1 truncate rounded text-sm outline-none"
+							class="min-w-0 flex-1 rounded text-sm outline-none"
 							:class="[
 								node.path === activePagePaths?.folder ? 'font-medium text-ink-gray-9' : '',
 								editingPath === node.path
