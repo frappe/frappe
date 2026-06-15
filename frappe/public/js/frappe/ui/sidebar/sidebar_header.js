@@ -14,12 +14,12 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 
 		let public_items = this.get_public_workspace_items();
 		if (public_items.length) {
-			items.push({ group: __("Public") }, ...public_items);
+			items.push(...public_items);
 		}
 
 		let private_items = this.get_private_workspace_items();
 		if (private_items.length) {
-			items.push({ group: __("Private") }, ...private_items);
+			items.push(...private_items);
 		}
 
 		let apps_section = this.fetch_apps();
