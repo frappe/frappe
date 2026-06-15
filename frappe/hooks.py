@@ -100,9 +100,7 @@ on_session_creation = [
 ]
 
 on_login = "frappe.desk.doctype.note.note._get_unseen_notes"
-on_logout = (
-	"frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
-)
+on_logout = "frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
 
 # PDF
 pdf_header_html = "frappe.utils.pdf.pdf_header_html"
@@ -152,9 +150,7 @@ has_permission = {
 	"Document Template": "frappe.desk.doctype.document_template.document_template.has_permission",
 }
 
-has_website_permission = {
-	"Address": "frappe.contacts.doctype.address.address.has_website_permission"
-}
+has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
 
 jinja = {
 	"methods": "frappe.utils.jinja_globals",

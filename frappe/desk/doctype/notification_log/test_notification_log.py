@@ -125,7 +125,6 @@ class TestNotificationLog(IntegrationTestCase):
 			"https://docs.example.com/fix",
 		)
 
-
 	def test_app_derived_from_document_type(self):
 		"""`app` is filled from the reference document's owning app on insert."""
 		install_notification_types()
@@ -178,9 +177,7 @@ class TestNotificationLog(IntegrationTestCase):
 				"link": "/app",
 			},
 		)
-		app = frappe.db.get_value(
-			"Notification Log", {"for_user": recipient, "subject": "No app"}, "app"
-		)
+		app = frappe.db.get_value("Notification Log", {"for_user": recipient, "subject": "No app"}, "app")
 		self.assertFalse(app)
 
 

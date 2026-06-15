@@ -37,11 +37,7 @@ class NotificationType(Document):
 	def on_trash(self):
 		# protect framework-shipped types from deletion (but allow it during
 		# migrations/patches so the doctype can be reorganised if ever needed)
-		if (
-			self.name in BUILTIN_TYPE_NAMES
-			and not frappe.flags.in_migrate
-			and not frappe.flags.in_patch
-		):
+		if self.name in BUILTIN_TYPE_NAMES and not frappe.flags.in_migrate and not frappe.flags.in_patch:
 			frappe.throw(
 				_("{0} is a built-in Notification Type and cannot be deleted. Disable it instead.").format(
 					frappe.bold(self.name)
@@ -104,7 +100,9 @@ def enable_email_for_all_users(notification_type: str):
 		enqueue_after_commit=True,
 	)
 	frappe.msgprint(
-		_("Enabling email for {0} across all users in the background.").format(frappe.bold(notification_type)),
+		_("Enabling email for {0} across all users in the background.").format(
+			frappe.bold(notification_type)
+		),
 		alert=True,
 	)
 
