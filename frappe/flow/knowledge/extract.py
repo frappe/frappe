@@ -73,20 +73,27 @@ def _extract_url_source(source) -> list[ExtractedDoc]:
 	return _single(text.strip())
 
 
-def _extract_doctype_source(source) -> list[ExtractedDoc]:
-	doctype = source.reference_doctype
-	fields = [f.strip() for f in (source.content_fields or "").split(",") if f.strip()]
+def resolve_content_fields(meta, raw) -> list[str]:
+	"""Parse a comma-separated content_fields string and validate each name
+	against the doctype's meta (blocks injection via crafted field names)."""
+	fields = [f.strip() for f in (raw or "").split(",") if f.strip()]
 	if not fields:
 		frappe.throw(_("No content fields configured."), title=_("Invalid Source"))
 
-	meta = frappe.get_meta(doctype)
 	allowed = {df.fieldname for df in meta.fields} | {"name", "creation", "modified", "owner"}
 	unknown = [f for f in fields if f not in allowed]
 	if unknown:
 		frappe.throw(
-			_("Unknown fields for {0}: {1}").format(doctype, ", ".join(unknown)),
+			_("Unknown fields for {0}: {1}").format(meta.name, ", ".join(unknown)),
 			title=_("Invalid Content Fields"),
 		)
+	return fields
+
+
+def _extract_doctype_source(source) -> list[ExtractedDoc]:
+	doctype = source.reference_doctype
+	meta = frappe.get_meta(doctype)
+	fields = resolve_content_fields(meta, source.content_fields)
 
 	rows = frappe.get_all(
 		doctype, filters=_parse_filters(source.filters), fields=["name", *fields], limit_page_length=0
