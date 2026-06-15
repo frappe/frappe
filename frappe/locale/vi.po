@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-06-09 07:57\n"
+"PO-Revision-Date: 2026-06-14 17:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Vietnamese\n"
 "MIME-Version: 1.0\n"
@@ -15435,7 +15435,7 @@ msgstr "Có vẻ như bạn chưa thêm bất kỳ ứng dụng bên thứ ba n�
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:315
 msgid "Looks like you haven’t received any notifications."
-msgstr "Có vẻ như bạn chưa nhận được bất kỳ thông báo nào."
+msgstr ""
 
 #: frappe/core/doctype/server_script/server_script_list.js:18
 msgid "Loving Frappe Framework?"
@@ -17180,7 +17180,7 @@ msgstr "Không có tên cụ thể cho {0}"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:315
 msgid "No New notifications"
-msgstr "Không có thông báo mới"
+msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1721
 msgid "No Permissions Specified"
@@ -17707,7 +17707,7 @@ msgstr "Ghi chú:"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:488
 msgid "Nothing New"
-msgstr "Không có gì mới"
+msgstr ""
 
 #: frappe/public/js/frappe/form/undo_manager.js:43
 msgid "Nothing left to redo"
@@ -18321,7 +18321,7 @@ msgstr "Mở Cài đặt"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Open Source Applications for the Web"
-msgstr "Ứng dụng mã nguồn mở cho Web"
+msgstr ""
 
 #. Label of a Check field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -25812,7 +25812,7 @@ msgstr "Đồng bộ hóa với Danh bạ Google"
 
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:46
 msgid "Sync {0} Fields"
-msgstr "Đồng bộ hóa các trường {0}"
+msgstr ""
 
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:100
 msgid "Synced Fields"
@@ -26467,7 +26467,7 @@ msgstr "Tập lệnh Tiêu đề sau đây sẽ thêm ngày hiện tại vào m�
 
 #: frappe/core/doctype/data_import/importer.py:1044
 msgid "The following values are invalid: {0}. Values must be one of {1}"
-msgstr "Các giá trị sau không hợp lệ: {0}. Giá trị phải là một trong {1}"
+msgstr ""
 
 #: frappe/core/doctype/data_import/importer.py:1007
 msgid "The following values do not exist for {0}: {1}"
@@ -28863,7 +28863,7 @@ msgstr "Quyền của người dùng đã tồn tại"
 
 #: frappe/www/login.py:171
 msgid "User with email address {0} does not exist"
-msgstr "Người dùng với địa chỉ email {0} không tồn tại"
+msgstr ""
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:225
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."

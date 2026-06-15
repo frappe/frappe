@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-06-09 07:57\n"
+"PO-Revision-Date: 2026-06-14 17:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1495,7 +1495,7 @@ msgstr "Sayılar veya özel karakterler ekleyin."
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
-msgstr "Sayfa arası ekle"
+msgstr ""
 
 #: frappe/custom/doctype/client_script/client_script.js:16
 msgid "Add script for Child Table"
@@ -8687,7 +8687,7 @@ msgstr "Filtreleri Düzenle"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:29
 msgid "Edit Footer"
-msgstr "Altbilgiyi Düzenle"
+msgstr ""
 
 #: frappe/printing/doctype/print_format/print_format.js:29
 msgid "Edit Format"
@@ -8704,7 +8704,7 @@ msgstr "HTML Düzenle"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:9
 msgid "Edit Header"
-msgstr "Başlığı Düzenle"
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:602
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:8
@@ -8713,7 +8713,7 @@ msgstr "Başlığı Düzenle"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:52
 msgid "Edit Letter Head"
-msgstr "Antetli Kağıdı Düzenle"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:35
 msgid "Edit Letter Head Footer"
@@ -15228,7 +15228,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Loading versions..."
-msgstr "Versiyonlar yükleniyor..."
+msgstr ""
 
 #: frappe/public/js/frappe/file_uploader/TreeNode.vue:45
 #: frappe/public/js/frappe/form/sidebar/share.js:51
@@ -17237,11 +17237,11 @@ msgstr "Bu kriter için belirlenmiş izin yok."
 
 #: frappe/core/page/dashboard_view/dashboard_view.js:93
 msgid "No Permitted Charts"
-msgstr "İzin Verilen Grafik Yok"
+msgstr ""
 
 #: frappe/core/page/dashboard_view/dashboard_view.js:92
 msgid "No Permitted Charts on this Dashboard"
-msgstr "Bu Gösterge Panosunda Görüntülemeniz için İzin Verilen Grafik Yok"
+msgstr ""
 
 #: frappe/printing/doctype/print_settings/print_settings.js:13
 msgid "No Preview"
@@ -25857,7 +25857,7 @@ msgstr "Google Kişiler ile Senkronize Et"
 
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:46
 msgid "Sync {0} Fields"
-msgstr "{0} Alanlarını Senkronize Et"
+msgstr ""
 
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:100
 msgid "Synced Fields"
@@ -26512,7 +26512,7 @@ msgstr "Aşağıdaki Başlık Komut Dosyası, 'header-content' sınıfına sahip
 
 #: frappe/core/doctype/data_import/importer.py:1044
 msgid "The following values are invalid: {0}. Values must be one of {1}"
-msgstr "Aşağıdaki değerler geçersizdir: {0}. Değerler {1} değerlerinden biri olmalıdır"
+msgstr ""
 
 #: frappe/core/doctype/data_import/importer.py:1007
 msgid "The following values do not exist for {0}: {1}"
@@ -28910,7 +28910,7 @@ msgstr "Kullanıcı izni zaten mevcut"
 
 #: frappe/www/login.py:171
 msgid "User with email address {0} does not exist"
-msgstr "{0} e-posta adresine sahip kullanıcı mevcut değil"
+msgstr ""
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:225
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."

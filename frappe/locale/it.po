@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-06-09 07:57\n"
+"PO-Revision-Date: 2026-06-14 17:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -1454,7 +1454,7 @@ msgstr "Aggiungi numeri o caratteri speciali."
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
-msgstr "Aggiungi interruzione di pagina"
+msgstr ""
 
 #: frappe/custom/doctype/client_script/client_script.js:16
 msgid "Add script for Child Table"
@@ -8645,7 +8645,7 @@ msgstr "Modifica Filtri"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:29
 msgid "Edit Footer"
-msgstr "Modifica Piè di Pagina"
+msgstr ""
 
 #: frappe/printing/doctype/print_format/print_format.js:29
 msgid "Edit Format"
@@ -8662,7 +8662,7 @@ msgstr "Modifica HTML"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:9
 msgid "Edit Header"
-msgstr "Modifica intestazione"
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:602
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:8
@@ -8671,7 +8671,7 @@ msgstr "Modifica titolo"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:52
 msgid "Edit Letter Head"
-msgstr "Modifica intestazione lettera"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:35
 msgid "Edit Letter Head Footer"
@@ -15184,7 +15184,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Loading versions..."
-msgstr "Caricamento versioni..."
+msgstr ""
 
 #: frappe/public/js/frappe/file_uploader/TreeNode.vue:45
 #: frappe/public/js/frappe/form/sidebar/share.js:51
@@ -15433,7 +15433,7 @@ msgstr "Sembra che tu non abbia aggiunto app di terze parti."
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:315
 msgid "Looks like you haven’t received any notifications."
-msgstr "Sembra che tu non abbia ricevuto alcuna notifica."
+msgstr ""
 
 #: frappe/core/doctype/server_script/server_script_list.js:18
 msgid "Loving Frappe Framework?"
@@ -15620,7 +15620,7 @@ msgstr "Mappa i parametri del percorso nelle variabili del modulo. Esempio <code
 
 #: frappe/core/doctype/data_import/importer.py:885
 msgid "Mapping column {0} to field {1}"
-msgstr "Mappatura della colonna {0} nel campo {1}"
+msgstr ""
 
 #. Label of a Float field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -17178,7 +17178,7 @@ msgstr "Nessun nome specificato per {0}"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:315
 msgid "No New notifications"
-msgstr "Nessuna Nuova Notifica"
+msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1721
 msgid "No Permissions Specified"
@@ -17190,11 +17190,11 @@ msgstr "Nessun permesso impostato per questo criterio."
 
 #: frappe/core/page/dashboard_view/dashboard_view.js:93
 msgid "No Permitted Charts"
-msgstr "Nessun grafico consentito"
+msgstr ""
 
 #: frappe/core/page/dashboard_view/dashboard_view.js:92
 msgid "No Permitted Charts on this Dashboard"
-msgstr "Nessun grafico consentito su questa dashboard"
+msgstr ""
 
 #: frappe/printing/doctype/print_settings/print_settings.js:13
 msgid "No Preview"
@@ -17705,7 +17705,7 @@ msgstr "Note:"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:488
 msgid "Nothing New"
-msgstr "Nessuna Novità"
+msgstr ""
 
 #: frappe/public/js/frappe/form/undo_manager.js:43
 msgid "Nothing left to redo"
@@ -18319,7 +18319,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Open Source Applications for the Web"
-msgstr "Applicazioni Open Source per il Web"
+msgstr ""
 
 #. Label of a Check field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -25810,7 +25810,7 @@ msgstr "Sincronizza con Google Contacts"
 
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:46
 msgid "Sync {0} Fields"
-msgstr "Sincronizza campi {0}"
+msgstr ""
 
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:100
 msgid "Synced Fields"
@@ -26465,11 +26465,11 @@ msgstr "Il seguente script intestazione aggiungerà la data corrente a un elemen
 
 #: frappe/core/doctype/data_import/importer.py:1044
 msgid "The following values are invalid: {0}. Values must be one of {1}"
-msgstr "I seguenti valori non sono validi: {0}. I valori devono essere uno tra {1}"
+msgstr ""
 
 #: frappe/core/doctype/data_import/importer.py:1007
 msgid "The following values do not exist for {0}: {1}"
-msgstr "I seguenti valori non esistono per {0}: {1}"
+msgstr ""
 
 #: frappe/core/doctype/user_type/user_type.py:88
 msgid "The limit has not set for the user type {0} in the site config file."
@@ -28861,7 +28861,7 @@ msgstr "L'autorizzazione utente esiste già"
 
 #: frappe/www/login.py:171
 msgid "User with email address {0} does not exist"
-msgstr "L'utente con indirizzo e-mail {0} non esiste"
+msgstr ""
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:225
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
@@ -29102,7 +29102,7 @@ msgstr "Valore troppo grande"
 
 #: frappe/core/doctype/data_import/importer.py:719
 msgid "Value {0} missing for {1}"
-msgstr "Valore {0} mancante per {1}"
+msgstr ""
 
 #: frappe/core/doctype/data_import/importer.py:750 frappe/utils/data.py:706
 msgid "Value {0} must be in the valid duration format: d h m s"

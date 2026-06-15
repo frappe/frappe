@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-06-09 07:57\n"
+"PO-Revision-Date: 2026-06-14 17:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Portuguese\n"
 "MIME-Version: 1.0\n"
@@ -1456,7 +1456,7 @@ msgstr "Adicione números ou caracteres especiais."
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
-msgstr "Adicionar quebra de página"
+msgstr ""
 
 #: frappe/custom/doctype/client_script/client_script.js:16
 msgid "Add script for Child Table"
@@ -8647,7 +8647,7 @@ msgstr "Editar filtros"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:29
 msgid "Edit Footer"
-msgstr "Editar rodapé"
+msgstr ""
 
 #: frappe/printing/doctype/print_format/print_format.js:29
 msgid "Edit Format"
@@ -8664,7 +8664,7 @@ msgstr "Editar HTML"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:9
 msgid "Edit Header"
-msgstr "Editar cabeçalho"
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:602
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:8
@@ -8673,7 +8673,7 @@ msgstr "Editar título"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:52
 msgid "Edit Letter Head"
-msgstr "Editar cabeçalho de carta"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:35
 msgid "Edit Letter Head Footer"
@@ -15186,7 +15186,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Loading versions..."
-msgstr "A carregar versões..."
+msgstr ""
 
 #: frappe/public/js/frappe/file_uploader/TreeNode.vue:45
 #: frappe/public/js/frappe/form/sidebar/share.js:51
@@ -15435,7 +15435,7 @@ msgstr "Parece que Você ainda não adicionou nenhuma aplicação de terceiros."
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:315
 msgid "Looks like you haven’t received any notifications."
-msgstr "Parece que Você ainda não recebeu nenhuma notificação."
+msgstr ""
 
 #: frappe/core/doctype/server_script/server_script_list.js:18
 msgid "Loving Frappe Framework?"
@@ -17180,7 +17180,7 @@ msgstr "Nenhum nome especificado para {0}"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:315
 msgid "No New notifications"
-msgstr "Sem novas notificações"
+msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1721
 msgid "No Permissions Specified"
@@ -17707,7 +17707,7 @@ msgstr "Notas:"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:488
 msgid "Nothing New"
-msgstr "Nada de novo"
+msgstr ""
 
 #: frappe/public/js/frappe/form/undo_manager.js:43
 msgid "Nothing left to redo"
@@ -18321,7 +18321,7 @@ msgstr "Abrir definições"
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Open Source Applications for the Web"
-msgstr "Aplicações de código aberto para a Web"
+msgstr ""
 
 #. Label of a Check field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -25812,7 +25812,7 @@ msgstr "Sincronizar com o Google Contactos"
 
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:46
 msgid "Sync {0} Fields"
-msgstr "Sincronizar campos {0}"
+msgstr ""
 
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:100
 msgid "Synced Fields"
@@ -26467,7 +26467,7 @@ msgstr "O seguinte script do cabeçalho adicionará a data atual a um elemento n
 
 #: frappe/core/doctype/data_import/importer.py:1044
 msgid "The following values are invalid: {0}. Values must be one of {1}"
-msgstr "Os seguintes valores são inválidos: {0}. Os valores devem ser um de {1}"
+msgstr ""
 
 #: frappe/core/doctype/data_import/importer.py:1007
 msgid "The following values do not exist for {0}: {1}"
@@ -28863,7 +28863,7 @@ msgstr "A permissão de utilizador já existe"
 
 #: frappe/www/login.py:171
 msgid "User with email address {0} does not exist"
-msgstr "O utilizador com o endereço de e-mail {0} não existe"
+msgstr ""
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:225
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
