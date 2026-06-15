@@ -69,3 +69,9 @@ class AIKnowledgeSource(Document):
 
 		self.db_set("status", "Pending", update_modified=False)
 		enqueue_ingestion(self.name)
+
+	@frappe.whitelist()
+	def reconcile(self):
+		from flow.knowledge.ingest import enqueue_reconciliation
+
+		enqueue_reconciliation(self.name)

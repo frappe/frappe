@@ -44,6 +44,15 @@ def sync_due_sources() -> None:
 		enqueue_ingestion(source)
 
 
+def enqueue_reconciliation(source: str) -> None:
+	frappe.enqueue(
+		"flow.knowledge.ingest.reconcile_source",
+		queue="long",
+		enqueue_after_commit=True,
+		source=source,
+	)
+
+
 def ingest_source(source: str) -> None:
 	"""Worker: bring a source's chunks in both stores up to date."""
 	doc = frappe.get_doc("AI Knowledge Source", source)
@@ -270,11 +279,46 @@ def _existing_chunk_state(source, reference_name) -> dict:
 def _purge_refs(source, reference_names) -> None:
 	from flow.knowledge import store
 
-	criterion = {"source": source, "reference_name": ["in", reference_names]}
-	ids = [int(name) for name in frappe.get_all(CHUNK_DOCTYPE, filters=criterion, pluck="name")]
-	if ids:
-		store.delete(ids=ids)
-		frappe.db.delete(CHUNK_DOCTYPE, criterion)
+	for start in range(0, len(reference_names), BATCH):
+		criterion = {"source": source, "reference_name": ["in", reference_names[start : start + BATCH]]}
+		ids = [int(name) for name in frappe.get_all(CHUNK_DOCTYPE, filters=criterion, pluck="name")]
+		if ids:
+			store.delete(ids=ids)
+			frappe.db.delete(CHUNK_DOCTYPE, criterion)
+
+
+# --- reconciliation (manual, full scan) --------------------------------------
+
+
+def reconcile_source(source: str) -> None:
+	"""Purge chunks whose reference row no longer exists. Full scan — cleans up after
+	hard deletes that left no tombstone (delete_permanently, raw SQL). Expensive, so it
+	is triggered manually, never on the sweep."""
+	doc = frappe.get_doc("AI Knowledge Source", source)
+	if doc.source_type != "DocType":
+		return
+
+	indexed = set(
+		frappe.get_all(CHUNK_DOCTYPE, filters={"source": source}, pluck="reference_name", distinct=True)
+	)
+	indexed.discard(None)
+	if not indexed:
+		return
+
+	orphaned = list(indexed - _existing_names(doc.reference_doctype, indexed))
+	if orphaned:
+		_purge_refs(source, orphaned)
+
+
+def _existing_names(doctype: str, names: set[str]) -> set[str]:
+	"""Names from `names` that still exist as rows, fetched in bounded batches so a
+	huge indexed set never builds one oversized IN clause."""
+	found: set[str] = set()
+	ordered = list(names)
+	for start in range(0, len(ordered), BATCH):
+		batch = ordered[start : start + BATCH]
+		found.update(frappe.get_all(doctype, filters={"name": ["in", batch]}, pluck="name"))
+	return found
 
 
 def _chunk(text, settings) -> list[str]:
