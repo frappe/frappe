@@ -894,6 +894,10 @@ class InboundMail(Email):
 		record = self.get_doc(doctype, name, ignore_error=True) if name else None
 
 		if not record:
+			# Subject matching is only possible if the doctype declares a subject_field.
+			if not email_fields.subject_field:
+				return record
+
 			subject = self.clean_subject(self.subject)
 			filters = {
 				email_fields.subject_field: ("like", f"%{subject}%"),
@@ -901,7 +905,7 @@ class InboundMail(Email):
 			}
 
 			# Sender check is not needed incase mail is from system user.
-			if not (len(subject) > 10 and is_system_user(self.from_email)):
+			if email_fields.sender_field and not (len(subject) > 10 and is_system_user(self.from_email)):
 				filters[email_fields.sender_field] = self.from_email
 
 			name = frappe.db.get_value(self.email_account.append_to, filters=filters)
