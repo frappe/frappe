@@ -22,6 +22,7 @@ class AIKnowledgeSource(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		auto_sync: DF.Check
 		chunk_count: DF.Int
 		content: DF.LongText | None
 		content_fields: DF.SmallText | None

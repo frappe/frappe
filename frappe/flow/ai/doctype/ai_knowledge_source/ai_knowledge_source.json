@@ -17,6 +17,7 @@
   "column_break_doctype",
   "filters",
   "content_fields",
+  "auto_sync",
   "section_break_status",
   "status",
   "column_break_status",
@@ -110,6 +111,14 @@
    "fieldtype": "Small Text",
    "label": "Content Fields",
    "mandatory_depends_on": "eval:doc.source_type == \"DocType\""
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.source_type == \"DocType\"",
+   "description": "Keep this source in sync with a daily incremental sweep.",
+   "fieldname": "auto_sync",
+   "fieldtype": "Check",
+   "label": "Auto Sync"
   },
   {
    "fieldname": "section_break_status",
