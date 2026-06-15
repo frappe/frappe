@@ -22,6 +22,9 @@
   },
   "author": "Frappe Technologies Pvt. Ltd.",
   "license": "MIT",
+  "dependencies": {
+    "dompurify": "^3.4.0"
+  },
   "peerDependencies": {
     "frappe-ui": "*",
     "vue": ">=3.3.0",

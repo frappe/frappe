@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import type { Component } from "vue";
 import { Avatar, FeatherIcon, dayjs } from "frappe-ui";
+import { sanitizeHtml } from "../../utils/sanitize";
 import type { NotificationIcon, NotificationLog } from "./types";
 
 const props = defineProps<{
@@ -24,8 +25,12 @@ const avatarLabel = computed(() =>
 	(props.notification.from_user || props.notification.type || "?").charAt(0)
 );
 
-const title = computed(() => props.notification.title ?? props.notification.subject ?? "");
-const description = computed(() => props.notification.description ?? "");
+// title/description are rendered HTML bound via v-html; sanitize to neutralize any
+// user-controlled markup injected through Jinja document-field values (stored XSS).
+const title = computed(() =>
+	sanitizeHtml(props.notification.title ?? props.notification.subject ?? "")
+);
+const description = computed(() => sanitizeHtml(props.notification.description ?? ""));
 
 const isUnread = computed(() => !props.notification.read);
 const timeAgo = computed(() => dayjs(props.notification.creation as string).fromNow());
