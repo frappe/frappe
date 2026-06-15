@@ -898,25 +898,11 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 		frappe.breadcrumbs.update();
 
-		this._update_layout_indicator();
 		this.show_submit_message();
 		this.clear_custom_buttons();
 		this.show_web_link();
 		this.show_report_bug_link();
 		this.show_workflow_read_only_banner();
-	}
-
-	_update_layout_indicator() {
-		this.page.wrapper.find(".layout-indicator").remove();
-		if (this.doctype_layout?.title) {
-			this.page.wrapper
-				.find(".title-area")
-				.append(
-					`<span class="layout-indicator indicator-pill ms-2">${frappe.utils.escape_html(
-						__(this.doctype_layout.title)
-					)}</span>`
-				);
-		}
 	}
 
 	// SAVE

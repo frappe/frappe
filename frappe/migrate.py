@@ -160,6 +160,12 @@ class SiteMigration:
 		"""
 		print("Syncing jobs...")
 		sync_jobs()
+
+		from frappe.database.sequence import create_missing_sequences
+
+		if recreated := create_missing_sequences():
+			print(f"Recreated missing sequences for: {', '.join(recreated)}")
+
 		if not self.skip_fixtures:
 			print("Syncing fixtures...")
 			sync_fixtures()

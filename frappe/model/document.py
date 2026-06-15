@@ -1,11 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import functools
 import hashlib
+import inspect
 import itertools
 import json
 import time
 import warnings
-from collections.abc import Generator, Iterable
+from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from functools import cached_property, wraps
 from types import MappingProxyType
@@ -40,6 +42,23 @@ if TYPE_CHECKING:
 
 DOCUMENT_LOCK_EXPIRY = 3 * 60 * 60  # All locks expire in 3 hours automatically
 DOCUMENT_LOCK_SOFT_EXPIRY = 30 * 60  # Let users force-unlock after 30 minutes
+_POSITIONAL_PARAM_KINDS = frozenset(
+	(inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+)
+
+
+@functools.cache
+def _accepts_method_argument(f: Callable) -> bool:
+	"""Return True if the doc event handler expects the `method` argument."""
+	signature = inspect.signature(f)
+	kinds = [p.kind for p in signature.parameters.values()]
+	if any(kind == inspect.Parameter.VAR_POSITIONAL for kind in kinds):
+		return True
+
+	if sum(1 for kind in kinds if kind in _POSITIONAL_PARAM_KINDS) > 1:
+		return True
+
+	return False
 
 
 type _SingleDocument = "Document"
@@ -532,6 +551,8 @@ class Document(BaseDocument):
 			super().__init__(d)
 		self.flags.pop("ignore_children", None)
 
+		assert self.name, "document must have a name after loading from db"
+
 		self.load_children_from_db()
 
 		# sometimes __setup__ can depend on child values, hence calling again at the end
@@ -962,6 +983,7 @@ class Document(BaseDocument):
 				set_new_name(d)
 
 		self.flags.name_set = True
+		assert self.name, "document name must be set after set_new_name"
 
 	def get_title(self):
 		"""Get the document title based on title_field or `title` or `name`"""
@@ -1321,6 +1343,12 @@ class Document(BaseDocument):
 		- Submit (1) > Cancel (2)
 
 		"""
+		assert from_docstatus in (
+			DocStatus.DRAFT,
+			DocStatus.SUBMITTED,
+			DocStatus.CANCELLED,
+		), "from_docstatus must be a valid docstatus (0, 1, or 2)"
+
 		if self.flags.skip_docstatus_validation:
 			return
 
@@ -1576,8 +1604,10 @@ class Document(BaseDocument):
 
 		return children
 
-	def run_method(self, method, *args, **kwargs):
+	def run_method(self, method: str, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
+
+		assert not method.startswith("__"), "Run method is for hooks, avoid usage on internal methods"
 
 		def fn(self, *args, **kwargs):
 			method_object = getattr(self, method, None)
@@ -1967,7 +1997,11 @@ class Document(BaseDocument):
 				for f in hooks:
 					try:
 						frappe.db._disable_transaction_control += 1
-						add_to_return_value(self, f(self, method, *args, **kwargs))
+						# Allow handlers to be defined without method arg, e.g. `handler(doc)`
+						if not args and not _accepts_method_argument(f):
+							add_to_return_value(self, f(self, **kwargs))
+						else:
+							add_to_return_value(self, f(self, method, *args, **kwargs))
 					finally:
 						frappe.db._disable_transaction_control -= 1
 
@@ -2496,8 +2530,8 @@ class LazyChildTable:
 		fieldname = self.fieldname
 		__dict = doc.__dict__
 		assert fieldname not in __dict, "Descriptor should not override existing values"
-		children = doc._load_child_table_from_db(fieldname, self.doctype) or []
 		__dict[fieldname] = []
+		children = doc._load_child_table_from_db(fieldname, self.doctype) or []
 		# Update __dict__ and convert to Document objects
 		doc.extend(fieldname, children)
 		return __dict[fieldname]

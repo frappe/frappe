@@ -219,6 +219,7 @@ class Session:
 		self.sid = cstr(
 			frappe.form_dict.pop("sid", None) or unquote(frappe.request.cookies.get("sid", "Guest"))
 		)
+		assert isinstance(self.sid, str), "sid must be a string after cstr normalization"
 		self.user = user
 		self.user_type = user_type
 		self.full_name = full_name
@@ -295,6 +296,10 @@ class Session:
 			user.run_notifications("before_change")
 			user.run_notifications("on_update")
 			frappe.db.commit()
+
+		assert (self.user == "Guest") == (sid == "Guest"), (
+			"Guest user must use the shared 'Guest' sid and vice versa"
+		)
 
 	def insert_session_record(self):
 		Sessions = frappe.qb.DocType("Sessions")
@@ -484,4 +489,5 @@ def get_expiry_period():
 	if len(exp_sec.split(":")) == 2:
 		exp_sec = exp_sec + ":00"
 
+	assert len(exp_sec.split(":")) == 3, "expiry period must be normalized to HH:MM:SS"
 	return exp_sec

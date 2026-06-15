@@ -265,12 +265,16 @@ class Engine:
 		self.is_aggregate_query = False
 		self._grouped_queries = set()
 
+		assert db_type in ("mariadb", "postgres", "sqlite"), f"unexpected db_type: {db_type}"
+
 		if isinstance(table, Table):
 			self.table = table
 			self.doctype = get_doctype_name(table.get_sql())
 		else:
 			self.doctype = table
 			self.table = qb.DocType(table)
+
+		assert isinstance(self.doctype, str) and self.doctype, "doctype must be a non-empty string"
 
 		if self.apply_permissions:
 			self.check_select_permission()
@@ -1399,6 +1403,8 @@ class Engine:
 				else:
 					order_direction = Order.asc if direction == "asc" else Order.desc
 
+				assert order_direction in (Order.asc, Order.desc), "order direction must be asc or desc"
+
 				parsed_field = self._validate_and_parse_field_for_clause(field_name, "Order By")
 				parsed_order_fields.append((parsed_field, order_direction))
 
@@ -2354,6 +2360,7 @@ class SQLFunctionParser:
 		if not isinstance(right, Term):
 			right = ValueWrapper(right)
 
+		assert isinstance(left, Term) and isinstance(right, Term), "operands must be pypika Terms"
 		expression = ArithmeticExpression(operator=operator, left=left, right=right)
 
 		if alias:

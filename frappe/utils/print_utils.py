@@ -219,6 +219,8 @@ def find_or_download_chromium_executable():
 	if not exec_path.exists():
 		click.echo("Chromium is not available. downloading...")
 		download_chromium()
+	else:
+		make_chromium_executable(str(exec_path))
 
 	if not exec_path.exists():
 		click.echo("Error while downloading chrome")

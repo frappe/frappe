@@ -143,6 +143,7 @@ class Exporter:
 			rows.append([""] * len(self.fields))
 
 		row = rows[row_idx]
+		assert len(row) == len(self.fields), "each export row must have one cell per exportable field"
 
 		for i, df in enumerate(self.fields):
 			if df.parent == doctype:

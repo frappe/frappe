@@ -343,6 +343,18 @@
 			background-color: var(--error-bg);
 		}
 
+		.col:last-child {
+			.field-area {
+				flex: 1;
+				min-width: 0;
+			}
+
+			.field-area .form-control:disabled {
+				background-color: transparent;
+				width: auto;
+			}
+		}
+
 		input[data-fieldtype="Int"],
 		input[data-fieldtype="Float"],
 		input[data-fieldtype="Currency"] {

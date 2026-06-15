@@ -60,6 +60,7 @@ def handle(request: Request):
 	except NotFound:  # Wrap 404 - backward compatiblity
 		raise frappe.DoesNotExistError
 
+	assert callable(endpoint), "URL map must resolve to a callable endpoint"
 	data = endpoint(**arguments)
 	if isinstance(data, Response):
 		return data
