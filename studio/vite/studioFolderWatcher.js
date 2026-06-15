@@ -7,8 +7,9 @@ import fs from "fs"
  * Two jobs:
  *
  * 1. Detect file changes so the UI can re-fetch over custom HMR events instead of a
- *    full page reload: `studio:files-changed` (any file -> file explorer reloads its
- *    tree) and `studio:custom-components-changed` (.vue only -> component panel
+ *    full page reload: `studio:files-changed` (add/remove -> file explorer reloads its
+ *    tree), `studio:file-changed` (content edited -> file explorer re-reads the open
+ *    file) and `studio:custom-components-changed` (.vue add/remove -> component panel
  *    re-fetches its list).
  *
  * 2. Stop Vite from full-reloading the whole editor when files under those folders
@@ -67,13 +68,21 @@ function studioFolderWatcher(appsDir) {
 				watcher.add(folder)
 			}
 
-			function send(event) {
-				server.ws.send({ type: "custom", event })
+			function send(event, data) {
+				server.ws.send({ type: "custom", event, data })
+			}
+
+			// Path relative to the frappe app's studio/ dir, i.e. "<studio_app>/<rest>" — what the
+			// client uses to identify a file (its open-file path prefixed with the studio app name).
+			function studioRelativePath(filePath) {
+				const file = normalize(filePath)
+				const folder = getStudioFolders().find((f) => file.startsWith(f + "/"))
+				return folder ? file.slice(folder.length + 1) : null
 			}
 
 			// A studio file was added/removed/renamed: refresh the file explorer tree, and the
 			// component panel too when it's a .vue.
-			function onFileChange(filePath, action) {
+			function onStructureChange(filePath, action) {
 				if (!isUnderStudioFolder(filePath)) return
 				send("studio:files-changed")
 				if (filePath.endsWith(".vue")) {
@@ -82,8 +91,15 @@ function studioFolderWatcher(appsDir) {
 				}
 			}
 
-			watcher.on("add", (filePath) => onFileChange(filePath, "added"))
-			watcher.on("unlink", (filePath) => onFileChange(filePath, "removed"))
+			watcher.on("add", (filePath) => onStructureChange(filePath, "added"))
+			watcher.on("unlink", (filePath) => onStructureChange(filePath, "removed"))
+
+			// A studio file's content changed on disk (e.g. edited in another editor): tell the client
+			// which file so it can re-read it if it's the one open.
+			watcher.on("change", (filePath) => {
+				const relativePath = studioRelativePath(filePath)
+				if (relativePath) send("studio:file-changed", { path: relativePath })
+			})
 		},
 	}
 }

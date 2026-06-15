@@ -674,6 +674,27 @@ async function onStudioFilesChanged() {
 	if (selectedNode.value && !findNode(selectedNode.value.path)) selectedNode.value = null
 }
 
-onMounted(() => import.meta.hot?.on("studio:files-changed", onStudioFilesChanged))
-onBeforeUnmount(() => import.meta.hot?.off("studio:files-changed", onStudioFilesChanged))
+// The open file was edited on disk (e.g. in another editor). Re-read it unless the user has
+// unsaved changes here — then save()'s hash check guards the conflict instead.
+async function onStudioFileChanged({ path }: { path: string }) {
+	if (!openFile.value || dirty.value) return
+	if (path !== `${location.value.studio_app}/${openFile.value.path}`) return
+	try {
+		const file = await readStudioFile(location.value, openFile.value.path)
+		openFile.value.hash = file.hash
+		editorContent.value = file.content
+		savedContent.value = file.content
+	} catch {
+		// file vanished between events; the structure handler will reconcile the tree
+	}
+}
+
+onMounted(() => {
+	import.meta.hot?.on("studio:files-changed", onStudioFilesChanged)
+	import.meta.hot?.on("studio:file-changed", onStudioFileChanged)
+})
+onBeforeUnmount(() => {
+	import.meta.hot?.off("studio:files-changed", onStudioFilesChanged)
+	import.meta.hot?.off("studio:file-changed", onStudioFileChanged)
+})
 </script>
