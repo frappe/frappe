@@ -13,6 +13,8 @@ app_home = "/app/build"
 
 app_email = "developers@frappe.io"
 
+modules_with_schema_disabled = ["SMS"]
+
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 

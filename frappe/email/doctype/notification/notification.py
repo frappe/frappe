@@ -9,11 +9,11 @@ from functools import partial
 import frappe
 from frappe import _
 from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
-from frappe.core.doctype.sms_settings.sms_settings import send_sms
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
+from frappe.sms.doctype.sms_settings.sms_settings import send_sms
 from frappe.utils import add_to_date, cast, cint, now_datetime, nowdate, validate_email_address
 from frappe.utils.data import evaluate_filters
 from frappe.utils.jinja import validate_template

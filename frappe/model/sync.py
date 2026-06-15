@@ -56,8 +56,24 @@ def sync_all(force=0, reset_permissions=False):
 	frappe.clear_cache()
 
 
-def sync_for(app_name, force=0, reset_permissions=False):
+def _get_schema_enabled_modules() -> set | None:
+	"""Return scrubbed module names where schema creation is enabled.
+
+	Returns None (allow all) when tabModule Def doesn't exist yet — i.e. during
+	the very first frappe install before core tables are created.
+	"""
+	try:
+		rows = frappe.get_all("Module Def", filters={"schema_enabled": 1}, pluck="name")
+		return {frappe.scrub(r) for r in rows}
+	except Exception:
+		return None  # None signals "allow all" — used before Module Def table exists
+
+
+def sync_for(app_name, force=0, reset_permissions=False, modules=None):
 	files = []
+
+	# modules=None means "all enabled"; modules=[...] means "only these" (used by enable-module)
+	schema_enabled = _get_schema_enabled_modules()  # None = allow all (pre-install)
 
 	if app_name == "frappe":
 		# these need to go first at time of install
@@ -116,6 +132,10 @@ def sync_for(app_name, force=0, reset_permissions=False):
 				files.append(file)
 
 	for module_name in frappe.local.app_modules.get(app_name) or []:
+		if modules is not None and module_name not in modules:
+			continue
+		if schema_enabled is not None and module_name not in schema_enabled:
+			continue
 		folder = os.path.dirname(frappe.get_module(app_name + "." + module_name).__file__)
 		files = get_doc_files(files=files, start_path=folder)
 

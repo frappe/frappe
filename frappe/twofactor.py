@@ -308,7 +308,7 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 		return frappe.get_attr(send_token_hook_methods[-1])(otpsecret, token, phone_no)
 
 	try:
-		from frappe.core.doctype.sms_settings.sms_settings import send_request
+		from frappe.sms.doctype.sms_settings.sms_settings import send_request
 	except Exception:
 		return False
 

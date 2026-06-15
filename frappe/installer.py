@@ -721,11 +721,13 @@ def make_site_dirs():
 
 
 def add_module_defs(app, ignore_if_duplicate=False):
+	optional = set(frappe.get_hooks("modules_with_schema_disabled", app_name=app))
 	modules = frappe.get_module_list(app)
 	for module in modules:
 		d = frappe.new_doc("Module Def")
 		d.app_name = app
 		d.module_name = module
+		d.schema_enabled = 0 if module in optional else 1
 		d.insert(ignore_permissions=True, ignore_if_duplicate=ignore_if_duplicate)
 
 

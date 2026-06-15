@@ -16,7 +16,7 @@ class SMSSettings(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.sms_parameter.sms_parameter import SMSParameter
+		from frappe.sms.doctype.sms_parameter.sms_parameter import SMSParameter
 		from frappe.types import DF
 
 		message_parameter: DF.Data

@@ -14,7 +14,8 @@
   "restrict_to_domain",
   "package",
   "column_break_giia",
-  "custom"
+  "custom",
+  "schema_enabled"
  ],
  "fields": [
   {
@@ -47,6 +48,13 @@
    "fieldname": "custom",
    "fieldtype": "Check",
    "label": "Custom"
+  },
+  {
+   "default": "1",
+   "description": "When disabled, this module's DocType tables are not created during migrate. Enable to create tables and make the module available.",
+   "fieldname": "schema_enabled",
+   "fieldtype": "Check",
+   "label": "Schema Enabled"
   },
   {
    "depends_on": "custom",
@@ -139,7 +147,7 @@
    "link_fieldname": "module"
   }
  ],
- "modified": "2024-09-18 12:39:19.512528",
+ "modified": "2026-06-15 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Def",

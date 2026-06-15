@@ -24,6 +24,7 @@ class ModuleDef(Document):
 
 		app_name: DF.Literal[None]
 		custom: DF.Check
+		schema_enabled: DF.Check
 		module_name: DF.Data
 		package: DF.Link | None
 		restrict_to_domain: DF.Link | None
@@ -42,6 +43,15 @@ class ModuleDef(Document):
 		if not self.custom and frappe.conf.get("developer_mode"):
 			self.create_modules_folder()
 			self.add_to_modules_txt()
+
+		if self.has_value_changed("schema_enabled") and self.schema_enabled:
+			frappe.db.after_commit.add(self._sync_module_schema)
+
+	def _sync_module_schema(self):
+		from frappe.model.sync import sync_for
+
+		frappe.setup_module_map()
+		sync_for(self.app_name, modules={frappe.scrub(self.module_name)})
 
 	def create_modules_folder(self):
 		"""Creates a folder `[app]/[module]` and adds `__init__.py`"""
