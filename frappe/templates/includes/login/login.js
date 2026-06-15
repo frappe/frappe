@@ -148,7 +148,8 @@ login.reset_sections = function (hide) {
 		$forms.find(".login-error-banner").hide();
 		$(".form-forgot .btn-forgot").prop("disabled", true).text({{ _("Send Link") | tojson }});
 		$(".form-signup .btn-signup").prop("disabled", true).text({{ _("Create Account") | tojson }});
-		$(".btn-login-with-email-link").prop("disabled", false).text({{ _("Send login link") | tojson }});
+		$(".form-login-with-email-link .btn-login-with-email-link").prop("disabled", false).text({{ _("Send login link") | tojson }});
+		$(".btn-login-option.btn-login-with-email-link").prop("disabled", false);
 		$("section.for-login-with-email-link .login-success-banner").hide();
 		$("section.for-login-with-email-link .resend-link").hide();
 	}
