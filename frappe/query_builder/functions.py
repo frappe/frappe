@@ -155,6 +155,27 @@ UnixTimestamp = ImportMapper(
 )
 
 
+class _PostgresDateDiff(ArithmeticExpression):
+	"""Postgres subtracts two dates to get an integer number of days, which matches
+	MariaDB's DATEDIFF(date1, date2). String operands are cast to date so that e.g.
+	DateDiff("2024-01-10", field) renders correctly on both backends."""
+
+	def __init__(self, date1, date2, alias=None):
+		if isinstance(date1, str):
+			date1 = Cast(date1, "date")
+		if isinstance(date2, str):
+			date2 = Cast(date2, "date")
+		super().__init__(operator=Arithmetic.sub, left=date1, right=date2, alias=alias)
+
+
+DateDiff = ImportMapper(
+	{
+		db_type_is.MARIADB: CustomFunction("DATEDIFF", ["date1", "date2"]),
+		db_type_is.POSTGRES: _PostgresDateDiff,
+	}
+)
+
+
 class _MariaDBJSONExtract(Function):
 	def __init__(self, field, path, **kwargs):
 		super().__init__("JSON_EXTRACT", field, path, **kwargs)

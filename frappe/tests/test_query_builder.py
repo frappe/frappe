@@ -14,6 +14,7 @@ from frappe.query_builder.functions import (
 	CombineDatetime,
 	CurDate,
 	Date,
+	DateDiff,
 	GroupConcat,
 	JSONContains,
 	JSONExtract,
@@ -151,6 +152,25 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 		select_query = select_query.select(UnixTimestamp(note.posting_date, alias="unix_ts"))
 		self.assertIn(
 			"unix_timestamp(`tabnote`.`posting_date`) `unix_ts`",
+			str(select_query).lower(),
+		)
+
+	def test_datediff_mariadb(self):
+		note = frappe.qb.DocType("Note")
+		self.assertEqual(
+			"DATEDIFF(posting_date,creation)",
+			DateDiff(note.posting_date, note.creation).get_sql(),
+		)
+
+		todo = frappe.qb.DocType("ToDo")
+		select_query = (
+			frappe.qb.from_(note)
+			.join(todo)
+			.on(todo.refernce_name == note.name)
+			.select(DateDiff(note.posting_date, note.creation))
+		)
+		self.assertIn(
+			"select datediff(`tabnote`.`posting_date`,`tabnote`.`creation`)",
 			str(select_query).lower(),
 		)
 
@@ -334,6 +354,27 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		self.assertIn(
 			'cast(extract(epoch from "tabnote"."posting_date") as bigint)', str(select_query).lower()
 		)
+
+	def test_datediff_postgres(self):
+		# Postgres subtracts dates to get an integer day count, matching MariaDB DATEDIFF.
+		note = frappe.qb.DocType("Note")
+		self.assertEqual(
+			"posting_date-creation",
+			DateDiff(note.posting_date, note.creation).get_sql(),
+		)
+		self.assertEqual(
+			"CAST('2024-01-10' AS DATE)-creation",
+			DateDiff("2024-01-10", note.creation).get_sql(),
+		)
+
+		todo = frappe.qb.DocType("ToDo")
+		select_query = (
+			frappe.qb.from_(note)
+			.join(todo)
+			.on(todo.refernce_name == note.name)
+			.select(DateDiff(note.posting_date, note.creation))
+		)
+		self.assertIn('select "tabnote"."posting_date"-"tabnote"."creation"', str(select_query).lower())
 
 		# Order by
 		select_query = select_query.orderby(UnixTimestamp(note.posting_date))
