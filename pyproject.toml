@@ -20,7 +20,7 @@ dependencies = [
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.10.2",
+    "pypdf==6.12.0",
     "PyPika @ git+https://github.com/frappe/pypika@2c50e6142b2d61d2d243e466fdd5dc03b3d918f2",
     "mysqlclient==2.2.7",
     "PyQRCode~=1.2.1",
@@ -36,7 +36,7 @@ dependencies = [
     "cssutils~=2.11.1",
     "email-reply-parser~=0.5.12",
     "Faker~=18.10.1",
-    "gunicorn @ git+https://github.com/frappe/gunicorn@54b59ca884c79dcf04d4882658a32bbaf17e999f",
+    "gunicorn @ git+https://github.com/frappe/gunicorn@f189de0ec3143581d8826f707343fa36c3fb0184",
     "html5lib~=1.1",
     "ipython~=8.37.0",
     "ldap3~=2.9.1",
