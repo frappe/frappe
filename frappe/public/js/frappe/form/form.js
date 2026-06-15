@@ -424,6 +424,7 @@ frappe.ui.form.Form = class FrappeForm {
 			// check permissions
 			this.fetch_permissions();
 			if (!this.has_read_permission()) {
+				this.$wrapper && this.$wrapper.removeClass("form-doc-switching");
 				frappe.show_not_permitted(__(this.doctype) + " " + __(cstr(this.docname)));
 				return;
 			}
@@ -548,6 +549,9 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.ui.form.close_grid_form();
 		this.viewers && this.viewers.parent.empty();
 		this.docname = docname;
+		if (this.setup_done) {
+			this.$wrapper.addClass("form-doc-switching");
+		}
 		this.setup_docinfo_change_listener();
 	}
 
@@ -629,6 +633,7 @@ frappe.ui.form.Form = class FrappeForm {
 				() => this.refresh_header(switched),
 				() => $(document).trigger("form-refresh", [this]),
 				() => this.refresh_fields(),
+				() => this.$wrapper.removeClass("form-doc-switching"),
 				() => this.script_manager.trigger("refresh"),
 				() => this.apply_layout_defaults(),
 				() => {

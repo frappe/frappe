@@ -622,3 +622,97 @@ body.full-width {
 	background: var(--bg-color);
 	color: var(--ink-gray-9);
 }
+
+// ---------------------------------------------------------------------------
+// Doc-switch skeleton shimmer (#39330)
+// Applied while form-doc-switching class is present on the form wrapper.
+// Removed by JS after refresh_fields() resolves.
+// ---------------------------------------------------------------------------
+
+@keyframes frappe-shimmer {
+	0% {
+		background-position: -1000px 0;
+	}
+	100% {
+		background-position: 1000px 0;
+	}
+}
+
+@keyframes frappe-shimmer-fadein {
+	to {
+		opacity: 1;
+	}
+}
+
+.form-doc-switching {
+	// All field value containers
+	.control-input-wrapper {
+		position: relative;
+
+		&::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+			border-radius: var(--border-radius);
+			background: linear-gradient(
+				90deg,
+				var(--bg-light-gray) 25%,
+				var(--gray-200) 50%,
+				var(--bg-light-gray) 75%
+			);
+			background-size: 2000px 100%;
+			// 80 ms delay: fast cache hits never show the shimmer at all.
+			// Only slow loads (uncached docs, before_load hooks, stale reloads)
+			// will be visible long enough for the shimmer to appear.
+			opacity: 0;
+			animation: frappe-shimmer 1.5s 80ms infinite linear,
+				frappe-shimmer-fadein 0s 80ms forwards;
+			z-index: 1;
+			pointer-events: none;
+		}
+	}
+
+	// Child table grids — shimmer the whole table rather than individual cells
+	.form-grid {
+		position: relative;
+
+		&::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+			border-radius: var(--border-radius);
+			background: linear-gradient(
+				90deg,
+				var(--bg-light-gray) 25%,
+				var(--gray-200) 50%,
+				var(--bg-light-gray) 75%
+			);
+			background-size: 2000px 100%;
+			opacity: 0;
+			animation: frappe-shimmer 1.5s 80ms infinite linear,
+				frappe-shimmer-fadein 0s 80ms forwards;
+			z-index: 1;
+			pointer-events: none;
+		}
+	}
+
+	// Sidebar: no clean label/value split, hide entirely
+	.layout-side-section {
+		opacity: 0;
+		pointer-events: none;
+	}
+}
+
+// Dark mode
+[data-theme="dark"] .form-doc-switching {
+	.control-input-wrapper::after,
+	.form-grid::after {
+		background: linear-gradient(
+			90deg,
+			var(--gray-700) 25%,
+			var(--gray-600) 50%,
+			var(--gray-700) 75%
+		);
+		background-size: 2000px 100%;
+	}
+}
