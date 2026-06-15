@@ -98,15 +98,28 @@ def get_permitted_charts(dashboard_name):
 					chart_dict.custom_options = dashboard.get("chart_options")
 				permitted_charts.append(chart_dict)
 		except frappe.DoesNotExistError:
-			frappe.log_error("Error in fetching dashboard chart")
+			frappe.clear_last_message()
+			frappe.log_error(f"Dashboard Chart '{chart.chart}' not found or its source DocType is missing")
 
 	return permitted_charts
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def get_permitted_cards(dashboard_name):
+=======
+def get_permitted_cards(dashboard_name: str):
+	permitted_cards = []
+>>>>>>> 9c776fdca8 (fix: add more guards to prevent this)
 	dashboard = frappe.get_doc("Dashboard", dashboard_name)
-	return [card for card in dashboard.cards if frappe.has_permission("Number Card", doc=card.card)]
+	for card in dashboard.cards:
+		try:
+			if frappe.has_permission("Number Card", doc=card.card):
+				permitted_cards.append(card)
+		except frappe.DoesNotExistError:
+			frappe.log_error(f"Number Card '{card.card}' not found or its source DocType is missing")
+
+	return permitted_cards
 
 
 def get_non_standard_charts_in_dashboard(dashboard):
