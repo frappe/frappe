@@ -4,7 +4,7 @@ import path from "path"
 import { defineConfig } from "vite"
 import { getViteDevServerPort } from "./vite/utils"
 import sharedDependencyResolver from "./vite/sharedDependencyResolver"
-import customComponentWatcher from "./vite/customComponentWatcher"
+import studioFolderWatcher from "./vite/studioFolderWatcher"
 
 const viteDevServerPort = getViteDevServerPort()
 
@@ -40,7 +40,7 @@ export default defineConfig({
 			jinjaBootData: false,
 		}),
 		sharedDependencyResolver(path.resolve(__dirname, "..")),
-		customComponentWatcher(path.resolve(__dirname, "../../")),
+		studioFolderWatcher(path.resolve(__dirname, "../../")),
 	],
 	resolve: {
 		alias: {

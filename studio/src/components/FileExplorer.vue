@@ -197,7 +197,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from "vue"
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
 import { useWindowSize } from "@vueuse/core"
 import { vOnClickOutside } from "@vueuse/components"
 import { Button, Dialog, FormControl, Tree, toast, Tooltip } from "frappe-ui"
@@ -218,7 +218,6 @@ import {
 	type StudioFileNode,
 } from "@/data/studioFiles"
 import { confirm } from "@/utils/helpers"
-import { suppressNextViteReload } from "@/utils/viteReload"
 import { pageScriptCompletions } from "@/utils/pageScriptCompletions"
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { ContextMenuOption } from "@/types"
@@ -474,7 +473,6 @@ async function createEntry() {
 	if (!path) return
 	const isFolder = newEntryType.value === "folder"
 	try {
-		suppressNextViteReload()
 		if (isFolder) {
 			await createStudioFolder(location.value, path)
 		} else {
@@ -600,7 +598,6 @@ async function commitRename(event: Event, node: StudioFileNode) {
 	}
 	const newPath = parentDir(node.path) + newLabel
 	try {
-		suppressNextViteReload()
 		await renameStudioFile(location.value, node.path, newPath)
 		remapOpenFile(node.path, newPath, node.is_folder)
 		await loadTree()
@@ -642,7 +639,6 @@ async function deleteNode(node: StudioFileNode) {
 	const message = node.is_folder ? `Delete ${node.path} and everything inside it?` : `Delete ${node.path}?`
 	if (!(await confirm(message))) return
 	try {
-		suppressNextViteReload()
 		await deleteStudioFile(location.value, node.path)
 		if (openFileIsUnder(node.path, node.is_folder)) openFile.value = null
 		if (selectedNode.value?.path === node.path) selectedNode.value = null
@@ -671,4 +667,13 @@ watch(
 	},
 	{ immediate: true },
 )
+
+async function onStudioFilesChanged() {
+	await loadTree()
+	if (openFile.value && !findNode(openFile.value.path)) openFile.value = null
+	if (selectedNode.value && !findNode(selectedNode.value.path)) selectedNode.value = null
+}
+
+onMounted(() => import.meta.hot?.on("studio:files-changed", onStudioFilesChanged))
+onBeforeUnmount(() => import.meta.hot?.off("studio:files-changed", onStudioFilesChanged))
 </script>
