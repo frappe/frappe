@@ -45,11 +45,11 @@ login.bind_events = function () {
 		args.redirect_to = frappe.utils.sanitise_redirect(frappe.utils.get_url_arg("redirect-to"));
 		args.full_name = frappe.utils.xss_sanitise(($("#signup_fullname").val() || "").trim());
 		if (!args.email || !validate_email(args.email)) {
-			login.show_field_error("signup_email", {{ _("Invalid Email.") | tojson }});
+			login.show_field_error("signup_email", {{ _("Please enter a valid email.") | tojson }});
 			return false;
 		}
 		if (!args.full_name) {
-			login.set_status({{ _("Valid email and name required") | tojson }}, 'red');
+			login.show_field_error("signup_fullname", {{ _("Full name is required.") | tojson }});
 			return false;
 		}
 		login.call(args);
