@@ -239,8 +239,11 @@ def safer_log_error(
 	return {}
 
 
-def safer_get_visible_columns(*args, **kwargs):
-	cols = get_visible_columns(*args, **kwargs)
+def safer_get_visible_columns(data, _table_meta, df):
+	if not df.get("options"):
+		return []
+	real_meta = frappe.get_meta(df.get("options"))
+	cols = get_visible_columns(data, real_meta, df)
 	if cols is None:
 		return None
 	return [c if isinstance(c, dict) else c.as_dict() for c in cols]
