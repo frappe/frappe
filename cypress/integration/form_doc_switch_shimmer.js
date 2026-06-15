@@ -35,20 +35,31 @@ describe("Form doc-switch shimmer", { scrollBehavior: false }, () => {
 	});
 
 	it("removes form-doc-switching class even when doc has no read permission", () => {
-		// Navigate to a DocType the test user cannot read to trigger the
-		// permission-denied early return in refresh().
-		cy.login("Administrator");
-		cy.visit("/desk");
+		// Open a ToDo so setup_done = true, then simulate a doc-switch to a doc
+		// the user cannot read. We stub has_read_permission after setup so the
+		// early-return cleanup path in refresh() is actually exercised.
+		cy.visit("/desk/todo");
+		cy.get(".list-row").should("have.length.gte", 2);
+		cy.get(".list-row").first().find(".list-subject a").click();
+		cy.get("body").should("have.attr", "data-ajax-state", "complete");
 
-		// Create a doc that the testUser will not have permission for
-		cy.call("frappe.client.insert", {
-			doc: { doctype: "ToDo", description: "Restricted doc" },
-		}).then((res) => {
-			const name = res.body.message.name;
-			cy.visit(`/desk/todo/${name}`);
-			cy.get("body").should("have.attr", "data-ajax-state", "complete");
-			cy.get(".form-doc-switching").should("not.exist");
+		cy.window().then((win) => {
+			const frm = win.cur_frm;
+			const origFetch = frm.fetch_permissions.bind(frm);
+			const origHas = frm.has_read_permission.bind(frm);
+
+			// Stub so the next refresh() hits the permission-denied early return
+			frm.fetch_permissions = () => {};
+			frm.has_read_permission = () => false;
+
+			// switch_doc runs (setup_done=true → class added), then early return removes it
+			frm.refresh("fake-restricted-doc");
+
+			frm.fetch_permissions = origFetch;
+			frm.has_read_permission = origHas;
 		});
+
+		cy.get(".form-doc-switching").should("not.exist");
 	});
 });
 

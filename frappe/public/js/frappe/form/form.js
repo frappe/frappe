@@ -647,7 +647,7 @@ frappe.ui.form.Form = class FrappeForm {
 				() => this.dashboard.after_refresh(),
 				() => (this.cscript.is_onload = false),
 				() => this.configure_breadcrumb_width(),
-			]);
+			]).catch(() => this.$wrapper.removeClass("form-doc-switching"));
 		} else {
 			this.refresh_header(switched);
 		}
