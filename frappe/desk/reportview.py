@@ -965,6 +965,13 @@ def get_filter_conditions_qb(doctype, filters, ignore_permissions=None):
 	if not filters:
 		return []
 
+	from pypika.terms import Criterion
+
+	# A pypika Criterion is already a usable condition; apply_filters would route it straight to
+	# the query and never populate `collect`, silently returning []. Hand it back as-is instead.
+	if isinstance(filters, Criterion):
+		return [filters]
+
 	if isinstance(filters, str):
 		filters = json.loads(filters)
 
