@@ -19,7 +19,13 @@ from flow.knowledge.extract import (
 	_validate_public_url,
 	extract,
 )
-from flow.knowledge.ingest import ingest_source, purge_source, sync_due_sources
+from flow.knowledge.ingest import (
+	ingest_source,
+	purge_source,
+	reconcile_source,
+	sync_due_sources,
+)
+from flow.knowledge.retriever import retrieve
 
 DIM = 4
 
@@ -765,6 +771,22 @@ class TestDoctypeSync(IntegrationTestCase):
 		self.assertEqual({c["reference_name"] for c in self._chunks(src.name)}, {keep.name})
 		self.assertEqual(self._lance_ids(), {int(c["name"]) for c in self._chunks(src.name)})
 
+	def test_reconcile_purges_chunks_for_tombstoneless_deletes(self):
+		keep = self._todo("SYNCTEST keep this one")
+		drop = self._todo("SYNCTEST delete this one")
+		src = self._source()
+		self._sync(src.name)
+		self.assertEqual(len({c["reference_name"] for c in self._chunks(src.name)}), 2)
+
+		frappe.db.delete("ToDo", {"name": drop.name})  # raw delete: no Deleted Document, sweep can't see it
+		self._sync(src.name)
+		self.assertEqual(len({c["reference_name"] for c in self._chunks(src.name)}), 2)  # still orphaned
+
+		reconcile_source(src.name)
+
+		self.assertEqual({c["reference_name"] for c in self._chunks(src.name)}, {keep.name})
+		self.assertEqual(self._lance_ids(), {int(c["name"]) for c in self._chunks(src.name)})
+
 	def test_sync_due_sources_enqueues_only_auto_sync_doctypes(self):
 		auto = self._source()
 		auto.db_set("auto_sync", 1, update_modified=False)
@@ -788,3 +810,72 @@ class TestDoctypeSync(IntegrationTestCase):
 		self.assertIn(auto.name, enqueued)
 		self.assertNotIn(manual.name, enqueued)
 		self.assertNotIn(text.name, enqueued)
+
+
+class TestRetriever(IntegrationTestCase):
+	def setUp(self):
+		store.drop_table()
+		self.model = _make_model()
+		_set_settings(
+			embedding_model=self.model.name,
+			embedding_dimension=DIM,
+			chunk_size=200,
+			chunk_overlap=20,
+		)
+		self.kb = frappe.get_doc({"doctype": "AI Knowledge Base", "title": "Retrieve KB"}).insert()
+
+	def tearDown(self):
+		store.drop_table()
+		frappe.db.rollback()
+
+	def _fake_embed(self, input, **kwargs):
+		return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
+
+	def _ingest(self, source_name):
+		with (
+			patch("litellm.embedding", side_effect=self._fake_embed),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+		):
+			ingest_source(source_name)
+
+	def _text_source(self, kb, content, title="Doc"):
+		with patch("flow.knowledge.ingest.enqueue_ingestion"):
+			source = frappe.get_doc(
+				{
+					"doctype": "AI Knowledge Source",
+					"knowledge_base": kb,
+					"source_type": "Text",
+					"title": title,
+					"content": content,
+				}
+			).insert()
+		self._ingest(source.name)
+		return source
+
+	def _retrieve(self, query, **kwargs):
+		with patch("litellm.embedding", side_effect=self._fake_embed):
+			return retrieve(query, **kwargs)
+
+	def test_retrieve_returns_scoped_chunk_content(self):
+		source = self._text_source(self.kb.name, "laptop setup guide for new employees. " * 4)
+		results = self._retrieve("laptop", kbs=[self.kb.name])
+		self.assertTrue(results)
+		self.assertTrue(all("laptop" in r["content"] for r in results))
+		self.assertTrue(all(r["source"] == source.name for r in results))
+
+	def test_retrieve_requires_a_knowledge_base(self):
+		with self.assertRaises(frappe.ValidationError):
+			retrieve("laptop", kbs=[])
+
+	def test_retrieve_blank_query_returns_empty(self):
+		self._text_source(self.kb.name, "laptop setup guide. " * 4)
+		self.assertEqual(self._retrieve("   ", kbs=[self.kb.name]), [])
+
+	def test_retrieve_excludes_other_knowledge_bases(self):
+		other = frappe.get_doc({"doctype": "AI Knowledge Base", "title": "Other KB"}).insert()
+		mine = self._text_source(self.kb.name, "laptop onboarding steps. " * 4)
+		self._text_source(other.name, "laptop onboarding steps. " * 4, title="Other Doc")
+		results = self._retrieve("laptop", kbs=[self.kb.name])
+		self.assertTrue(results)
+		self.assertTrue(all(r["source"] == mine.name for r in results))
