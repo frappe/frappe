@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url"
 import { parseArgs } from "node:util"
 import frappeui from "frappe-ui/vite"
 import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
+import studioRootAlias from "../../vite/studioRootAlias.js"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
 
@@ -174,6 +175,7 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 				buildConfig: false,
 				jinjaBootData: false,
 			}),
+			studioRootAlias(),
 			sharedDependencyResolver(path.resolve(__dirname, "../../")),
 		],
 		resolve: {
