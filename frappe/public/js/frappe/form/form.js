@@ -627,27 +627,29 @@ frappe.ui.form.Form = class FrappeForm {
 			// clear layout message
 			this.layout.show_message();
 
-			frappe.run_serially([
-				// resolve layout before toolbar and fields render
-				() => this._resolve_layout(),
-				() => this.refresh_header(switched),
-				() => $(document).trigger("form-refresh", [this]),
-				() => this.refresh_fields(),
-				() => this.$wrapper.removeClass("form-doc-switching"),
-				() => this.script_manager.trigger("refresh"),
-				() => this.apply_layout_defaults(),
-				() => {
-					if (this.cscript.is_onload) {
-						this.onload_post_render();
-						return this.script_manager.trigger("onload_post_render");
-					}
-				},
-				() => this.cscript.is_onload && this.is_new() && this.focus_on_first_input(),
-				() => this.run_after_load_hook(),
-				() => this.dashboard.after_refresh(),
-				() => (this.cscript.is_onload = false),
-				() => this.configure_breadcrumb_width(),
-			]).catch(() => this.$wrapper.removeClass("form-doc-switching"));
+			frappe
+				.run_serially([
+					// resolve layout before toolbar and fields render
+					() => this._resolve_layout(),
+					() => this.refresh_header(switched),
+					() => $(document).trigger("form-refresh", [this]),
+					() => this.refresh_fields(),
+					() => this.$wrapper.removeClass("form-doc-switching"),
+					() => this.script_manager.trigger("refresh"),
+					() => this.apply_layout_defaults(),
+					() => {
+						if (this.cscript.is_onload) {
+							this.onload_post_render();
+							return this.script_manager.trigger("onload_post_render");
+						}
+					},
+					() => this.cscript.is_onload && this.is_new() && this.focus_on_first_input(),
+					() => this.run_after_load_hook(),
+					() => this.dashboard.after_refresh(),
+					() => (this.cscript.is_onload = false),
+					() => this.configure_breadcrumb_width(),
+				])
+				.catch(() => this.$wrapper.removeClass("form-doc-switching"));
 		} else {
 			this.refresh_header(switched);
 		}
