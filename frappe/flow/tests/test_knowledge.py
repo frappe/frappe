@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import json
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -18,6 +19,7 @@ from flow.knowledge.extract import (
 	_validate_public_url,
 	extract,
 )
+from flow.knowledge.ingest import ingest_source, purge_source
 
 DIM = 4
 
@@ -488,3 +490,277 @@ class TestExtract(IntegrationTestCase):
 	def test_validate_public_url_accepts_public_host(self):
 		with patch("socket.getaddrinfo", return_value=[(2, 1, 6, "", ("93.184.216.34", 0))]):
 			_validate_public_url("https://example.com/page")
+
+
+class TestIngest(IntegrationTestCase):
+	def setUp(self):
+		store.drop_table()
+		self.model = _make_model()
+		_set_settings(
+			embedding_model=self.model.name,
+			embedding_dimension=DIM,
+			chunk_size=60,
+			chunk_overlap=10,
+		)
+		self.kb = frappe.get_doc({"doctype": "AI Knowledge Base", "title": "Ingest KB"}).insert()
+
+	def tearDown(self):
+		store.drop_table()
+		frappe.db.rollback()
+
+	def _make_source(self, **values):
+		values.setdefault("source_type", "Text")
+		values.setdefault("title", "Ingest Source")
+		with patch("flow.knowledge.ingest.enqueue_ingestion"):
+			return frappe.get_doc(
+				{"doctype": "AI Knowledge Source", "knowledge_base": self.kb.name, **values}
+			).insert()
+
+	def _ingest(self, source_name):
+		def fake(input, **kwargs):
+			return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
+
+		with (
+			patch("litellm.embedding", side_effect=fake),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+		):
+			ingest_source(source_name)
+
+	def _chunks(self, source_name):
+		return frappe.get_all(
+			"AI Knowledge Chunk",
+			filters={"source": source_name},
+			fields=["name", "chunk_index", "knowledge_base"],
+			order_by="chunk_index asc",
+		)
+
+	def _lance_count(self):
+		return store._open_table().count_rows() if store.table_exists() else 0
+
+	def test_text_source_ingests_to_both_stores(self):
+		source = self._make_source(content="Wifi keeps dropping on the office network every afternoon. " * 4)
+		self._ingest(source.name)
+
+		source.reload()
+		self.assertEqual(source.status, "Completed")
+
+		chunks = self._chunks(source.name)
+		self.assertGreater(len(chunks), 1)
+		self.assertEqual(source.chunk_count, len(chunks))
+		self.assertEqual([c["chunk_index"] for c in chunks], list(range(len(chunks))))
+		self.assertTrue(all(c["knowledge_base"] == self.kb.name for c in chunks))
+
+		table = store._open_table()
+		self.assertEqual(table.count_rows(), len(chunks))
+		lance_ids = set(table.to_arrow().column("id").to_pylist())
+		self.assertEqual(lance_ids, {int(c["name"]) for c in chunks})
+
+	def test_resync_is_idempotent(self):
+		source = self._make_source(content="Reset your password from the account settings page. " * 4)
+		self._ingest(source.name)
+		first = self._chunks(source.name)
+		first_lance = self._lance_count()
+
+		self._ingest(source.name)
+		second = self._chunks(source.name)
+
+		self.assertEqual(len(first), len(second))
+		self.assertEqual(self._lance_count(), first_lance)
+		self.assertEqual(self._lance_count(), len(second))
+		self.assertEqual(len({c["name"] for c in second}), len(second))
+
+	def test_trash_cleans_both_stores(self):
+		source = self._make_source(content="VPN setup guide for remote employees. " * 4)
+		self._ingest(source.name)
+		self.assertGreater(self._lance_count(), 0)
+
+		source.delete()
+
+		self.assertEqual(frappe.db.count("AI Knowledge Chunk", {"source": source.name}), 0)
+		self.assertEqual(self._lance_count(), 0)
+
+	def test_empty_source_completes_with_zero_chunks(self):
+		source = self._make_source(content="   ")
+		self._ingest(source.name)
+
+		source.reload()
+		self.assertEqual(source.status, "Completed")
+		self.assertEqual(source.chunk_count, 0)
+		self.assertEqual(self._chunks(source.name), [])
+
+	def test_failed_source_marks_failed_and_raises(self):
+		source = self._make_source(source_type="URL", url="http://127.0.0.1/secret")
+		with self.assertRaises(frappe.ValidationError):
+			self._ingest(source.name)
+
+		source.reload()
+		self.assertEqual(source.status, "Failed")
+		self.assertIn("non-public", source.error_log or "")
+
+	def test_purge_source_is_safe_when_empty(self):
+		source = self._make_source(content="never ingested")
+		purge_source(source.name)
+		self.assertEqual(frappe.db.count("AI Knowledge Chunk", {"source": source.name}), 0)
+
+	def test_after_insert_enqueues_ingestion(self):
+		with patch("flow.knowledge.ingest.enqueue_ingestion") as mock:
+			source = frappe.get_doc(
+				{
+					"doctype": "AI Knowledge Source",
+					"knowledge_base": self.kb.name,
+					"source_type": "Text",
+					"title": "Auto Ingest",
+					"content": "indexed on creation",
+				}
+			).insert()
+		mock.assert_called_once_with(source.name)
+
+
+class TestDoctypeSync(IntegrationTestCase):
+	def setUp(self):
+		store.drop_table()
+		self.model = _make_model()
+		_set_settings(
+			embedding_model=self.model.name,
+			embedding_dimension=DIM,
+			chunk_size=200,
+			chunk_overlap=20,
+		)
+		self.kb = frappe.get_doc({"doctype": "AI Knowledge Base", "title": "Sync KB"}).insert()
+
+	def tearDown(self):
+		store.drop_table()
+		frappe.db.rollback()
+
+	def _todo(self, description, **values):
+		return frappe.get_doc({"doctype": "ToDo", "description": description, **values}).insert()
+
+	def _source(self, filters=None):
+		filters = filters or {"description": ["like", "SYNCTEST%"]}
+		with patch("flow.knowledge.ingest.enqueue_ingestion"):
+			return frappe.get_doc(
+				{
+					"doctype": "AI Knowledge Source",
+					"knowledge_base": self.kb.name,
+					"source_type": "DocType",
+					"title": "ToDo Source",
+					"reference_doctype": "ToDo",
+					"content_fields": "description",
+					"filters": json.dumps(filters),
+				}
+			).insert()
+
+	def _sync(self, source_name):
+		def fake(input, **kwargs):
+			return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
+
+		embed = patch("litellm.embedding", side_effect=fake)
+		with embed as mock, patch.object(frappe.db, "commit"), patch.object(frappe.db, "rollback"):
+			ingest_source(source_name)
+		return mock
+
+	def _chunks(self, source_name, reference_name=None):
+		filters = {"source": source_name}
+		if reference_name:
+			filters["reference_name"] = reference_name
+		return frappe.get_all(
+			"AI Knowledge Chunk",
+			filters=filters,
+			fields=["name", "reference_name", "content_hash"],
+			order_by="name asc",
+		)
+
+	def _lance_ids(self):
+		if not store.table_exists():
+			return set()
+		return set(store._open_table().to_arrow().column("id").to_pylist())
+
+	def test_backfill_indexes_filtered_rows(self):
+		self._todo("SYNCTEST wifi keeps dropping on the office network")
+		self._todo("SYNCTEST vpn will not connect after the update")
+		self._todo("UNRELATED should not be indexed")
+		src = self._source()
+		self._sync(src.name)
+
+		src.reload()
+		self.assertEqual(src.status, "Completed")
+		self.assertIsNotNone(src.last_synced_at)
+		chunks = self._chunks(src.name)
+		self.assertEqual(len({c["reference_name"] for c in chunks}), 2)
+		self.assertTrue(all(c["content_hash"] for c in chunks))
+		self.assertEqual(self._lance_ids(), {int(c["name"]) for c in chunks})
+
+	def test_insert_adds_only_new_row(self):
+		self._todo("SYNCTEST first ticket about printers")
+		src = self._source()
+		self._sync(src.name)
+		before = {c["name"] for c in self._chunks(src.name)}
+
+		self._todo("SYNCTEST second ticket about scanners")
+		self._sync(src.name)
+
+		chunks = self._chunks(src.name)
+		self.assertEqual(len({c["reference_name"] for c in chunks}), 2)
+		self.assertTrue(before.issubset({c["name"] for c in chunks}))
+		self.assertEqual(self._lance_ids(), {int(c["name"]) for c in chunks})
+
+	def test_update_content_replaces_chunks(self):
+		todo = self._todo("SYNCTEST wifi keeps dropping")
+		src = self._source()
+		self._sync(src.name)
+		before = self._chunks(src.name, todo.name)
+		old_names = {c["name"] for c in before}
+
+		frappe.db.set_value(
+			"ToDo",
+			todo.name,
+			"description",
+			"SYNCTEST wifi fixed by replacing the router",
+			update_modified=True,
+		)
+		self._sync(src.name)
+
+		after = self._chunks(src.name, todo.name)
+		self.assertNotEqual(after[0]["content_hash"], before[0]["content_hash"])
+		self.assertTrue(old_names.isdisjoint({c["name"] for c in after}))
+		self.assertEqual(self._lance_ids(), {int(c["name"]) for c in after})
+
+	def test_noncontent_change_is_skipped(self):
+		todo = self._todo("SYNCTEST vpn issue", priority="Low")
+		src = self._source()
+		self._sync(src.name)
+		before = {c["name"]: c["content_hash"] for c in self._chunks(src.name, todo.name)}
+
+		frappe.db.set_value("ToDo", todo.name, "priority", "High", update_modified=True)
+		mock = self._sync(src.name)
+
+		after = {c["name"]: c["content_hash"] for c in self._chunks(src.name, todo.name)}
+		self.assertEqual(after, before)
+		self.assertEqual(mock.call_count, 0)
+
+	def test_filter_exit_removes_chunks(self):
+		todo = self._todo("SYNCTEST printer offline", status="Open")
+		src = self._source(filters={"description": ["like", "SYNCTEST%"], "status": "Open"})
+		self._sync(src.name)
+		self.assertEqual(len(self._chunks(src.name, todo.name)), 1)
+
+		frappe.db.set_value("ToDo", todo.name, "status", "Cancelled", update_modified=True)
+		mock = self._sync(src.name)
+
+		self.assertEqual(self._chunks(src.name, todo.name), [])
+		self.assertEqual(self._lance_ids(), set())
+		self.assertEqual(mock.call_count, 0)
+
+	def test_delete_removes_chunks(self):
+		keep = self._todo("SYNCTEST keep this one")
+		drop = self._todo("SYNCTEST delete this one")
+		src = self._source()
+		self._sync(src.name)
+		self.assertEqual(len({c["reference_name"] for c in self._chunks(src.name)}), 2)
+
+		frappe.delete_doc("ToDo", drop.name)
+		self._sync(src.name)
+
+		self.assertEqual({c["reference_name"] for c in self._chunks(src.name)}, {keep.name})
+		self.assertEqual(self._lance_ids(), {int(c["name"]) for c in self._chunks(src.name)})
