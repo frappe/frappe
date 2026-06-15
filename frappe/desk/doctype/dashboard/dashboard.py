@@ -105,7 +105,6 @@ def get_permitted_charts(dashboard_name):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
 def get_permitted_cards(dashboard_name: str):
 	permitted_cards = []
 	dashboard = frappe.get_doc("Dashboard", dashboard_name)
