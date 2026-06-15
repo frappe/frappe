@@ -59,9 +59,10 @@ class DuckDBSync(Document):
 		duck_conn.close()
 
 	def on_trash(self):
-		from frappe.database import delete_duckdb_file
+		if self.docstatus.is_cancelled():
+			from frappe.database import delete_duckdb_file
 
-		delete_duckdb_file(self.filename)
+			delete_duckdb_file(self.filename)
 
 
 @frappe.whitelist()
