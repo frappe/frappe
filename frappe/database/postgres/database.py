@@ -493,6 +493,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def get_table_columns_description(self, table_name):
 		"""Return list of columns with description."""
+		# The `index`/`unique` flags say whether the column is the LEADING column of a
+		# (non-unique / unique-non-primary) index -- mirroring MariaDB's `Seq_in_index = 1`
+		# check. We resolve the leading column precisely from the catalogs (indkey[0]).
+		# A substring match on indexdef would false-positive any column whose name appears
+		# anywhere in a composite index's definition (e.g. `company` matching
+		# `posting_date_company_index`), which then wrongly suppresses creating its own index.
 		# pylint: disable=W1401
 		return self.sql(
 			f"""
@@ -504,18 +510,21 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				WHEN 'numeric' THEN CONCAT('decimal(', a.numeric_precision, ',', a.numeric_scale, ')')
 				ELSE a.data_type
 			END AS type,
-			BOOL_OR(b.index) AS index,
+			COALESCE(BOOL_OR(NOT b.is_unique), false) AS index,
 			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
-			BOOL_OR(b.unique) AS unique,
+			COALESCE(BOOL_OR(b.is_unique AND NOT b.is_primary), false) AS unique,
 			COALESCE(a.is_nullable = 'NO', false) AS not_nullable
 			FROM information_schema.columns a
-			LEFT JOIN
-				(SELECT indexdef, tablename,
-					indexdef LIKE '%UNIQUE INDEX%' AS unique,
-					indexdef NOT LIKE '%UNIQUE INDEX%' AS index
-					FROM pg_indexes
-					WHERE tablename='{table_name}' AND schemaname='{self.db_schema}') b
-				ON SUBSTRING(b.indexdef, '(.*)') LIKE CONCAT('%', a.column_name, '%')
+			LEFT JOIN (
+				SELECT att.attname AS column_name,
+					i.indisunique AS is_unique,
+					i.indisprimary AS is_primary
+				FROM pg_index i
+				JOIN pg_class tc ON tc.oid = i.indrelid
+				JOIN pg_namespace n ON n.oid = tc.relnamespace
+				JOIN pg_attribute att ON att.attrelid = tc.oid AND att.attnum = i.indkey[0]
+				WHERE tc.relname = '{table_name}' AND n.nspname = '{self.db_schema}'
+			) b ON b.column_name = a.column_name
 			WHERE a.table_name = '{table_name}'
 				AND a.table_schema = '{self.db_schema}'
 			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable, a.numeric_precision, a.numeric_scale;

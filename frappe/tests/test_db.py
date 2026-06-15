@@ -1039,6 +1039,40 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		)
 		self.assertEqual(len(indexs_in_table), 1)
 
+	def test_search_index_unique_across_tables(self) -> None:
+		# Regression: postgres index names are unique per schema (not per table like
+		# MariaDB), so two doctypes that share a search_index fieldname used to collide --
+		# `CREATE INDEX IF NOT EXISTS` skipped all but the first, leaving the other tables
+		# without their single-column index.
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		def _search_indexed_doctype():
+			return new_doctype(
+				fields=[
+					{
+						"label": "Shared",
+						"fieldname": "shared_field",
+						"fieldtype": "Data",
+						"search_index": 1,
+					}
+				]
+			).insert(ignore_permissions=True)
+
+		dt1 = _search_indexed_doctype()
+		dt2 = _search_indexed_doctype()
+		try:
+			self.assertTrue(
+				frappe.db.get_column_index(f"tab{dt1.name}", "shared_field", unique=False),
+				msg=f"{dt1.name} is missing its search index",
+			)
+			self.assertTrue(
+				frappe.db.get_column_index(f"tab{dt2.name}", "shared_field", unique=False),
+				msg=f"{dt2.name} is missing its search index (schema-global index name collision)",
+			)
+		finally:
+			dt1.delete(ignore_permissions=True)
+			dt2.delete(ignore_permissions=True)
+
 	def test_sequence_table_creation(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
