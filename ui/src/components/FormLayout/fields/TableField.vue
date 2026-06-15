@@ -239,6 +239,10 @@ const rows = computed<Record<string, any>[]>({
 // isolation; commits copy it back into the rows array.
 const editIndex = ref<number | null>(null);
 const editDoc = ref<Record<string, any>>({});
+// The row object being edited, tracked by identity so write-back survives a
+// parent re-sort/filter of the rows array between watcher fires (a cached
+// positional index would point at the wrong row after reorder).
+const editRow = ref<Record<string, any> | null>(null);
 
 const showEdit = computed({
 	get: () => editIndex.value !== null,
@@ -277,7 +281,8 @@ function openEdit({ index }: { row: Record<string, any>; index: number }) {
 	// (a no-op echo of the unedited row that needlessly churns the row's identity
 	// and emits a phantom change). Suppress that one open-time fire.
 	skipWriteBack = true;
-	editDoc.value = { ...rows.value[index] };
+	editRow.value = rows.value[index];
+	editDoc.value = { ...editRow.value };
 	editIndex.value = index;
 }
 
@@ -295,11 +300,15 @@ watch(
 			return;
 		}
 		const next = rows.value.slice();
-		if (editIndex.value >= next.length) return; // row was removed externally
+		// Locate the row by identity, not the cached index: the parent may have
+		// re-sorted/filtered `rows` since open, so the positional index can now
+		// point at a different row.
+		const i = editRow.value ? next.indexOf(editRow.value) : -1;
+		if (i === -1) return; // row was removed/reordered out externally
 		// Mutate the row in place (vs. replacing it) so its object reference is
 		// preserved — the Grid keys rows by identity via a WeakMap, so a fresh
 		// object would re-key and re-mount the row, dropping its selection state.
-		Object.assign(next[editIndex.value], editDoc.value);
+		Object.assign(next[i], editDoc.value);
 		emit("update:modelValue", next);
 		emit("change", next);
 	},
