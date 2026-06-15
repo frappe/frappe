@@ -5,8 +5,10 @@ next major release.
 
 import frappe
 from frappe.utils import cint
+from frappe.utils.background_jobs import is_job_enqueued
 
 GRAVATAR_URL_PATTERN = "%gravatar.com%"
+GRAVATAR_DELETION_JOB_ID = "delete_legacy_gravatar_image_urls"
 BASE_GRAVATAR_IMAGE_FIELDS = (
 	("User", "user_image"),
 	("Contact", "image"),
@@ -26,6 +28,9 @@ def should_show_gravatar_deletion_prompt():
 		return False
 
 	if cint(frappe.get_single_value("System Settings", "skip_gravatar_deletion_prompt")):
+		return False
+
+	if is_job_enqueued(GRAVATAR_DELETION_JOB_ID):
 		return False
 
 	return has_gravatar_image_urls()
@@ -52,7 +57,7 @@ def submit_gravatar_deletion_prompt(delete_gravatar_urls: bool = False, skip_pro
 			queue="long",
 			now=frappe.in_test,
 			enqueue_after_commit=not frappe.in_test,
-			job_id="delete_legacy_gravatar_image_urls",
+			job_id=GRAVATAR_DELETION_JOB_ID,
 			deduplicate=True,
 		)
 		queued = True
