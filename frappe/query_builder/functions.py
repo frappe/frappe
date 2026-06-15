@@ -74,6 +74,24 @@ class Abs(Function):
 		super().__init__("ABS", term, alias=alias)
 
 
+class CurDate(Term):
+	"""SQL standard ``CURRENT_DATE`` keyword.
+
+	pypika ships CurDate as a Function, so it renders ``CURRENT_DATE()``. Postgres rejects the
+	parentheses — CURRENT_DATE is a reserved keyword there, not a function — while MariaDB accepts
+	the bare keyword too. Render it without parentheses so the same query builder works on both.
+	"""
+
+	def __init__(self, alias=None):
+		super().__init__(alias=alias)
+
+	def get_sql(self, **kwargs):
+		with_alias = kwargs.pop("with_alias", False)
+		if with_alias:
+			return format_alias_sql("CURRENT_DATE", self.alias, **kwargs)
+		return "CURRENT_DATE"
+
+
 GroupConcat = ImportMapper({db_type_is.MARIADB: GROUP_CONCAT, db_type_is.POSTGRES: STRING_AGG})
 
 Match = ImportMapper({db_type_is.MARIADB: MATCH, db_type_is.POSTGRES: TO_TSVECTOR})

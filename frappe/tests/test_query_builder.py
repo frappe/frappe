@@ -12,6 +12,7 @@ from frappe.query_builder.functions import (
 	Cast_,
 	Coalesce,
 	CombineDatetime,
+	CurDate,
 	Date,
 	GroupConcat,
 	JSONContains,
@@ -98,6 +99,14 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 			"timestamp(`tabnote`.`posting_date`,`tabnote`.`posting_time`) `timestamp`",
 			str(select_query).lower(),
 		)
+
+	def test_curdate(self):
+		# CURRENT_DATE must render as a bare keyword (no parentheses) so it is valid on postgres too.
+		self.assertEqual("CURRENT_DATE", CurDate().get_sql())
+		note = frappe.qb.DocType("Note")
+		query = frappe.qb.from_(note).select(note.name).where(note.posting_date >= CurDate())
+		self.assertIn("current_date", str(query).lower())
+		self.assertNotIn("current_date(", str(query).lower())
 
 	def test_unix_ts_mariadb(self):
 		# Simple Query
@@ -269,11 +278,21 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 			'"tabnote"."posting_date"+"tabnote"."posting_time" "timestamp"', str(select_query).lower()
 		)
 
+	def test_curdate(self):
+		# CURRENT_DATE must render as a bare keyword (no parentheses); postgres rejects CURRENT_DATE().
+		self.assertEqual("CURRENT_DATE", CurDate().get_sql())
+		note = frappe.qb.DocType("Note")
+		query = frappe.qb.from_(note).select(note.name).where(note.posting_date >= CurDate())
+		self.assertIn("current_date", str(query).lower())
+		self.assertNotIn("current_date(", str(query).lower())
+
 	def test_unix_ts_postgres(self):
+		# EXTRACT(EPOCH ...) is double precision on postgres; it is wrapped in CAST(... AS BIGINT)
+		# so the value (and its Python type) matches MySQL's integer UNIX_TIMESTAMP.
 		# Simple Query
 		note = frappe.qb.DocType("Note")
 		self.assertEqual(
-			"extract(epoch from posting_date)",
+			"cast(extract(epoch from posting_date) as bigint)",
 			UnixTimestamp(note.posting_date).get_sql().lower(),
 		)
 
@@ -285,12 +304,14 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 			.on(todo.refernce_name == note.name)
 			.select(UnixTimestamp(note.posting_date))
 		)
-		self.assertIn('extract(epoch from "tabnote"."posting_date")', str(select_query).lower())
+		self.assertIn(
+			'cast(extract(epoch from "tabnote"."posting_date") as bigint)', str(select_query).lower()
+		)
 
 		# Order by
 		select_query = select_query.orderby(UnixTimestamp(note.posting_date))
 		self.assertIn(
-			'order by extract(epoch from "tabnote"."posting_date")',
+			'order by cast(extract(epoch from "tabnote"."posting_date") as bigint)',
 			str(select_query).lower(),
 		)
 
@@ -299,14 +320,14 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 			UnixTimestamp(note.posting_date) >= UnixTimestamp(Date("2021-01-01"))
 		)
 		self.assertIn(
-			'extract(epoch from "tabnote"."posting_date")>=extract(epoch from date(\'2021-01-01\'))',
+			'cast(extract(epoch from "tabnote"."posting_date") as bigint)>=cast(extract(epoch from date(\'2021-01-01\')) as bigint)',
 			str(select_query).lower(),
 		)
 
 		# aliasing
 		select_query = select_query.select(UnixTimestamp(note.posting_date, alias="unix_ts"))
 		self.assertIn(
-			'extract(epoch from "tabnote"."posting_date") "unix_ts"',
+			'cast(extract(epoch from "tabnote"."posting_date") as bigint) "unix_ts"',
 			str(select_query).lower(),
 		)
 
