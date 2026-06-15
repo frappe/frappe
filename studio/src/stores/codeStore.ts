@@ -4,6 +4,7 @@ import {
 	isRef, isReactive, shallowRef, readonly, markRaw, nextTick, effectScope,
 	type ComputedRef, type EffectScope, h,
 } from "vue"
+import { watchDebounced } from "@vueuse/core"
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
@@ -21,7 +22,7 @@ import type { Router } from "vue-router"
 // Vue reactivity primitives injected into client/event scripts so users can write
 // `<script setup>`-style code (ref, computed, watch, …) without an import line.
 export const vueReactivityApis = {
-	ref, reactive, computed, watch, watchEffect,
+	ref, reactive, computed, watch, watchEffect, watchDebounced,
 	toRef, toRefs, unref, isRef, isReactive,
 	shallowRef, readonly, markRaw, nextTick,
 }
