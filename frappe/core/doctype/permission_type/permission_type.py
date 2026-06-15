@@ -127,6 +127,7 @@ class PermissionType(Document):
 			"Permission Type",
 			filters={"perm_type": self.perm_type, "name": ["!=", self.name]},
 			pluck="doc_type",
+			limit=0,
 		)
 		if not siblings:
 			frappe.delete_doc("Custom Field", existing)
