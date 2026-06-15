@@ -104,6 +104,7 @@ class SystemSettings(Document):
 		setup_complete: DF.Check
 		show_absolute_datetime_in_timeline: DF.Check
 		show_external_link_warning: DF.Literal["Never", "Ask", "Always"]
+		skip_gravatar_deletion_prompt: DF.Check
 		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]

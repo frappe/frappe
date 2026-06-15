@@ -15,6 +15,7 @@
   "enable_onboarding",
   "setup_complete",
   "disable_document_sharing",
+  "skip_gravatar_deletion_prompt",
   "date_and_number_format",
   "date_format",
   "time_format",
@@ -804,12 +805,20 @@
    "fieldname": "allowed_doctypes_for_guest_uploads",
    "fieldtype": "Small Text",
    "label": "Allowed Doctypes for Guest Uploads"
+  },
+  {
+   "default": "0",
+   "description": "Internal flag to remember whether we should remind users to delete old Gravatar profile URLs.",
+   "fieldname": "skip_gravatar_deletion_prompt",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Skip Gravatar Deletion Prompt"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-05-21 10:32:53.594355",
+ "modified": "2026-06-15 22:36:55.361642",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

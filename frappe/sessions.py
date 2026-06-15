@@ -130,6 +130,9 @@ def get():
 	from frappe.boot import get_bootinfo
 	from frappe.desk.doctype.note.note import get_unseen_notes
 	from frappe.utils.change_log import get_change_log
+	from frappe.utils.legacy_gravatar_cleanup import (
+		should_show_gravatar_deletion_prompt,
+	)
 
 	bootinfo = None
 	if not getattr(frappe.conf, "disable_session_cache", None):
@@ -182,6 +185,7 @@ def get():
 	bootinfo["navbar_settings"] = frappe.client_cache.get_doc("Navbar Settings")
 	bootinfo.has_app_updates = has_app_update_notifications()
 	bootinfo.show_external_link_warning = frappe.get_system_settings("show_external_link_warning")
+	bootinfo.show_gravatar_deletion_prompt = should_show_gravatar_deletion_prompt()
 
 	return bootinfo
 
