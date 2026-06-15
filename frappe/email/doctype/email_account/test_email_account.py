@@ -638,6 +638,19 @@ class TestInboundMail(FrappeTestCase):
 			# Should return None instead of raising an exception
 			self.assertIsNone(inbound_mail.match_record_by_subject_and_sender("ToDo"))
 
+	def test_subject_match_when_append_to_doctype_has_no_sender_field(self):
+		"""Subject matching must skip the sender filter (not crash) when sender_field is absent."""
+		mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
+			"{{ subject }}", "RE: An unmatched subject line"
+		)
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+
+		# subject_field set, sender_field absent: must build the subject filter and skip the sender one.
+		no_sender_field = frappe._dict(subject_field="description", sender_field=None)
+		with patch.object(InboundMail, "get_email_fields", return_value=no_sender_field):
+			self.assertIsNone(inbound_mail.match_record_by_subject_and_sender("ToDo"))
+
 	def test_reference_document_by_subject_match_with_accents(self):
 		subject = "Nouvelle tâche à faire 😃"
 		todo = self.new_todo(sender="test_sender@example.com", description=subject)
