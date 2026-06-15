@@ -59,6 +59,14 @@ def _cast_time_as_timedelta(value, cursor):
 TIME2TIMEDELTA = psycopg2.extensions.new_type((1083,), "TIME2TIMEDELTA", _cast_time_as_timedelta)
 psycopg2.extensions.register_type(TIME2TIMEDELTA)
 
+# OIDs 114 / 3802 == `json` / `jsonb`. psycopg2 auto-parses these into python dict/list, but frappe
+# models JSON fields as *strings* (the value MariaDB's longtext returns) and json.loads them on
+# demand. A parsed value diverges from MariaDB and breaks round-tripping -- e.g. re-saving a doc
+# whose JSON field came back as a list fails get_valid_dict's "cannot be a list" check. Return the
+# raw text instead so both backends behave identically.
+JSON2STR = psycopg2.extensions.new_type((114, 3802), "JSON2STR", lambda value, cursor: value)
+psycopg2.extensions.register_type(JSON2STR)
+
 LOCATE_SUB_PATTERN = re.compile(r"locate\(([^,]+),([^)]+)(\)?)\)", flags=re.IGNORECASE)
 LOCATE_QUERY_PATTERN = re.compile(r"locate\(", flags=re.IGNORECASE)
 PG_TRANSFORM_PATTERN = re.compile(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])")

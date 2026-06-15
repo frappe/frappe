@@ -1039,6 +1039,14 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		)
 		self.assertEqual(len(indexs_in_table), 1)
 
+	def test_json_columns_return_strings(self) -> None:
+		# Regression: psycopg2 auto-parses json/jsonb into python objects, but frappe models JSON
+		# fields as strings (like MariaDB's longtext) and json.loads them on demand. A parsed value
+		# diverges from MariaDB and breaks re-saving a doc whose JSON field came back as a list.
+		row = frappe.db.sql("""SELECT '[1, 2]'::jsonb AS a, '{"k": 1}'::json AS b""", as_dict=True)[0]
+		self.assertIsInstance(row.a, str)
+		self.assertIsInstance(row.b, str)
+
 	def test_search_index_unique_across_tables(self) -> None:
 		# Regression: postgres index names are unique per schema (not per table like
 		# MariaDB), so two doctypes that share a search_index fieldname used to collide --
