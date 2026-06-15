@@ -239,8 +239,11 @@ def safer_log_error(
 	return {}
 
 
-def safer_get_visible_columns(*args, **kwargs):
-	cols = get_visible_columns(*args, **kwargs)
+def safer_get_visible_columns(data, _table_meta, df):
+	if not df.get("options"):
+		return []
+	real_meta = frappe.get_meta(df.get("options"))
+	cols = get_visible_columns(data, real_meta, df)
 	if cols is None:
 		return None
 	return [c if isinstance(c, dict) else c.as_dict() for c in cols]
@@ -286,7 +289,7 @@ def make_safe_get_request(url: str, **kwargs):
 	for record in addr_info:
 		try:
 			addr = ipaddress.ip_address(record[4][0])
-		except ValueError, IndexError:
+		except (ValueError, IndexError):
 			continue
 
 		if not addr.is_global:
