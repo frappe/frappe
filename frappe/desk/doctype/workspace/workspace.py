@@ -137,7 +137,6 @@ class Workspace(Document, DeskViews):
 
 	def export_workspace(self):
 		"""Export a standard workspace to its module's files (developer mode only)."""
-		print("Exporting Workspace...", self.name, "in", self.module)
 		if frappe.conf.developer_mode and self.standard:
 			export_to_files(record_list=[["Workspace", self.name]], record_module=self.module)
 
