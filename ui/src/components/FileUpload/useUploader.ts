@@ -260,9 +260,12 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
   }
 
   async function commit(ids?: string[]): Promise<UploadResult[]> {
-    // Re-entrancy guard: if a pass is already in flight, don't start a second
-    // concurrent one — bail out rather than double-uploading items.
-    if (isUploading.value) return [];
+    // Re-entrancy guard: if a full pass is already in flight, don't start a
+    // second concurrent one — bail out rather than double-uploading items.
+    // Scoped commits (per-item retry) are exempt: while the tray's sequential
+    // loop uploads item N+1, retrying the already-failed item N must go through,
+    // or N gets stuck idle with no retry button until the tray is closed.
+    if (!ids && isUploading.value) return [];
 
     // Optional scope for per-item retry: when given, only these rows are
     // committed and the rest are left untouched (e.g. other failed rows stay
