@@ -417,7 +417,7 @@ class AutoRepeat(Document):
 		if not self.subject:
 			subject = _("New {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.subject:
-			subject = frappe.render_template(self.subject, {"doc": new_doc})
+			subject = frappe.render_template(self.subject, {"doc": new_doc}, restrict_globals=True)
 
 		print_format = self.print_format or "Standard"
 		error_string = None
@@ -445,7 +445,7 @@ class AutoRepeat(Document):
 		elif not self.message:
 			message = _("Please find attached {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.message:
-			message = frappe.render_template(self.message, {"doc": new_doc})
+			message = frappe.render_template(self.message, {"doc": new_doc}, restrict_globals=True)
 
 		make(
 			doctype=new_doc.doctype,
