@@ -470,4 +470,71 @@ body {
 			display: none;
 		}
 	}
+
+	.password-strength-group {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: flex-start;
+		gap: 6px;
+		align-self: stretch;
+		margin-top: 2px;
+	}
+
+	.password-strength-container {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+		align-self: stretch;
+		padding-top: 4px;
+
+		&.hidden {
+			display: none;
+		}
+
+		.password-strength-label {
+			@include get_textstyle("base", "medium");
+
+			&.strength-red {
+				color: var(--dark-red-500, #b01f1f);
+			}
+			&.strength-orange {
+				color: var(--dark-orange-500, var(--orange-700));
+			}
+			&.strength-blue {
+				color: var(--dark-blue-500, var(--blue-700));
+			}
+			&.strength-green {
+				color: var(--dark-green-500, var(--green-700));
+			}
+		}
+
+		.password-strength-bar-track {
+			height: 4px;
+			background: var(--surface-gray-2);
+			border-radius: var(--border-radius-sm);
+			align-self: stretch;
+			overflow: hidden;
+		}
+
+		.password-strength-bar-fill {
+			height: 100%;
+			border-radius: 20px 4px 4px 20px;
+			transition: width 0.3s ease;
+
+			&.strength-red {
+				background: var(--dark-red-500, #b01f1f);
+			}
+			&.strength-orange {
+				background: var(--dark-orange-500, var(--orange-700));
+			}
+			&.strength-blue {
+				background: var(--dark-blue-500, var(--blue-700));
+			}
+			&.strength-green {
+				background: var(--dark-green-500, var(--green-700));
+			}
+		}
+	}
 }
