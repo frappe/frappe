@@ -62,11 +62,10 @@ def _get_schema_enabled_modules() -> set | None:
 	Returns None (allow all) when tabModule Def doesn't exist yet — i.e. during
 	the very first frappe install before core tables are created.
 	"""
-	try:
-		rows = frappe.get_all("Module Def", filters={"schema_enabled": 1}, pluck="name")
-		return {frappe.scrub(r) for r in rows}
-	except Exception:
-		return None  # None signals "allow all" — used before Module Def table exists
+	if not frappe.db.table_exists("Module Def"):
+		return None  # pre-install: allow all modules
+	rows = frappe.get_all("Module Def", filters={"schema_enabled": 1}, pluck="name")
+	return {frappe.scrub(r) for r in rows}
 
 
 def sync_for(app_name, force=0, reset_permissions=False, modules=None):

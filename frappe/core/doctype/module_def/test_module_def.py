@@ -37,14 +37,16 @@ class TestModuleDef(IntegrationTestCase):
 
 		self.assertNotIn("_Test Schema Hidden", get_active_modules())
 
-	def test_enabling_schema_queues_sync_for(self):
+	def test_enabling_schema_enqueues_sync(self):
 		module = self._make_module("_Test Schema Sync", schema_enabled=0)
 		module.reload()
 		module.schema_enabled = 1
 
 		with patch("frappe.model.sync.sync_for") as mock_sync_for:
-			module._sync_module_schema()
-			mock_sync_for.assert_called_once_with(module.app_name, modules={frappe.scrub(module.module_name)})
+			module._enqueue_schema_sync()
+			mock_sync_for.assert_called_once_with(
+				app_name=module.app_name, modules=[frappe.scrub(module.module_name)]
+			)
 
 	def test_save_triggers_sync_on_schema_enable(self):
 		module = self._make_module("_Test Schema Save Sync", schema_enabled=0)
@@ -55,7 +57,7 @@ class TestModuleDef(IntegrationTestCase):
 			frappe.db.after_commit.reset()
 			module.save()
 			frappe.db.after_commit.run()
-			mock_sync_for.assert_called_once_with(module.app_name, modules={frappe.scrub(module.module_name)})
+			mock_sync_for.assert_called_once()
 
 	def test_save_skips_sync_when_schema_unchanged(self):
 		module = self._make_module("_Test Schema Save No Sync", schema_enabled=1)

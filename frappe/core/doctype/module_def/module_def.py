@@ -45,13 +45,15 @@ class ModuleDef(Document):
 			self.add_to_modules_txt()
 
 		if self.has_value_changed("schema_enabled") and self.schema_enabled:
-			frappe.db.after_commit.add(self._sync_module_schema)
+			frappe.db.after_commit.add(self._enqueue_schema_sync)
 
-	def _sync_module_schema(self):
-		from frappe.model.sync import sync_for
-
-		frappe.setup_module_map()
-		sync_for(self.app_name, modules={frappe.scrub(self.module_name)})
+	def _enqueue_schema_sync(self):
+		frappe.enqueue(
+			"frappe.model.sync.sync_for",
+			app_name=self.app_name,
+			modules=[frappe.scrub(self.module_name)],
+			now=frappe.flags.in_test,
+		)
 
 	def create_modules_folder(self):
 		"""Creates a folder `[app]/[module]` and adds `__init__.py`"""
