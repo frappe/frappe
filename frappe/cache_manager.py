@@ -294,7 +294,7 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 			keys_to_delete.difference_update(frappe.cache.get_keys(key))
 		frappe.cache.delete_value(list(keys_to_delete), make_keys=False)
 		frappe.cache.delete_value(bench_cache_keys, shared=True)
-		
+
 		reset_metadata_version()
 		frappe.local.cache = {}
 		frappe.local.new_doc_templates = {}
