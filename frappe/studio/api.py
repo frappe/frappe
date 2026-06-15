@@ -261,7 +261,8 @@ def _build_studio_file_tree(directory: str, root: str) -> list[dict]:
 	hidden/irrelevant entries skipped."""
 	nodes = []
 	for name in sorted(os.listdir(directory)):
-		if name.startswith(".") or name in ("__pycache__", "node_modules"):
+		# tsconfig.json is auto-generated editor tooling (the @app/ alias), not app code
+		if name.startswith(".") or name in ("__pycache__", "node_modules", "tsconfig.json"):
 			continue
 
 		absolute_path = os.path.join(directory, name)

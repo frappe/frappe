@@ -270,7 +270,27 @@ class StudioApp(WebsiteGenerator):
 		app_path = self.get_folder_path()
 		frappe.create_folder(app_path)
 		write_document_file(self, folder=app_path)
+		self.write_tsconfig(app_path)
 		return app_path
+
+	def write_tsconfig(self, app_path: str) -> None:
+		"""Let editors resolve the `@app/` alias (studio-app root) for go-to-definition etc.
+		Mirrors the `studioRootAlias` vite plugin used by the dev server and per-app build."""
+		tsconfig = {
+			"compilerOptions": {
+				"baseUrl": ".",
+				"paths": {"@app/*": ["./*"]},
+				# studio modules are .js/.ts — allowJs lets editors resolve both
+				"allowJs": True,
+				"module": "esnext",
+				"moduleResolution": "node",
+				"esModuleInterop": True,
+				"allowSyntheticDefaultImports": True,
+			},
+		}
+		with open(os.path.join(app_path, "tsconfig.json"), "w") as f:
+			f.write(json.dumps(tsconfig, indent="\t"))
+			f.write("\n")
 
 	def export_studio_pages(self, app_path):
 		page_folder_path = os.path.join(app_path, "studio_page")
