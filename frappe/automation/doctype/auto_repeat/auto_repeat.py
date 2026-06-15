@@ -622,8 +622,8 @@ def generate_message_preview(name: str):
 	doc = frappe.get_doc(auto_repeat.reference_doctype, auto_repeat.reference_document)
 	doc.check_permission()
 	subject_preview = _("Please add a subject to your email")
-	msg_preview = frappe.render_template(auto_repeat.message, {"doc": doc})
+	msg_preview = frappe.render_template(auto_repeat.message, {"doc": doc}, restrict_globals=True)
 	if auto_repeat.subject:
-		subject_preview = frappe.render_template(auto_repeat.subject, {"doc": doc})
+		subject_preview = frappe.render_template(auto_repeat.subject, {"doc": doc}, restrict_globals=True)
 
 	return {"message": msg_preview, "subject": subject_preview}
