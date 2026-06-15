@@ -133,6 +133,39 @@ String.prototype.plural = function (revert) {
 };
 
 Object.assign(frappe.utils, {
+	/**
+	 * Translate a DocType Layout `condition` (a JavaScript expression evaluated
+	 * against `doc`) into list filter params, e.g. `doc.is_return == 1` becomes
+	 * `{ is_return: "1" }`. Only simple `doc.field <op> value` comparisons joined
+	 * by `&&` are supported; conditions using `||` cannot map to AND filters and
+	 * return an empty object. Output is shaped for `frappe.route_options`.
+	 */
+	parse_layout_condition_to_filters(condition) {
+		if (!condition || condition.includes("||")) return {};
+
+		const params = {};
+		// Match: doc.fieldname  ===|!==|>=|<=|>|<  "value" | 'value' | number
+		const re = /doc\.(\w+)\s*(===?|!==?|>=?|<=?)\s*(?:"([^"]*)"|'([^']*)'|(-?\d+(?:\.\d+)?))/g;
+		let match;
+
+		while ((match = re.exec(condition)) !== null) {
+			const fieldname = match[1];
+			const op = match[2];
+			const value = match[3] ?? match[4] ?? match[5];
+			if (value === undefined) continue;
+
+			const frappe_op =
+				op === "===" || op === "==" ? "=" : op === "!==" || op === "!=" ? "!=" : op;
+
+			if (frappe_op === "=") {
+				params[fieldname] = value;
+			} else {
+				params[fieldname] = JSON.stringify([frappe_op, value]);
+			}
+		}
+
+		return params;
+	},
 	get_random: function (len) {
 		var text = "";
 		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -241,6 +274,12 @@ Object.assign(frappe.utils, {
 		};
 
 		return String(txt).replace(/[&<>"'`=]/g, (char) => escape_html_mapping[char] || char);
+	},
+
+	// Escape text and wrap in <strong> — use this instead of String.prototype.bold()
+	// so user-supplied values are safely escaped before being injected into HTML.
+	bold: function (txt) {
+		return `<strong>${frappe.utils.escape_html(cstr(txt))}</strong>`;
 	},
 
 	unescape_html: function (txt) {

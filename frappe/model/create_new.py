@@ -44,6 +44,7 @@ def make_new_doc(doctype):
 	if not getattr(doc.meta, "issingle", False):
 		doc["__unsaved"] = 1
 
+	assert doc["doctype"] == doctype, "new doc template must carry the requested doctype"
 	return doc
 
 

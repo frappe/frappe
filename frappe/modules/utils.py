@@ -12,9 +12,10 @@ from textwrap import dedent, indent
 from typing import TYPE_CHECKING, Union
 
 import frappe
-from frappe import _, get_module_path, scrub
-from frappe.utils import cint, cstr, now_datetime
+from frappe import _
+from frappe.utils import cint, cstr, get_file_items, get_module, now_datetime
 from frappe.utils.caching import site_cache
+from frappe.utils.data import scrub
 
 if TYPE_CHECKING:
 	from types import ModuleType
@@ -50,9 +51,7 @@ def export_module_json(
 			create_init=_create_init,
 		)
 
-		return os.path.join(
-			frappe.get_module_path(module), scrub(doc.doctype), scrub(doc.name), scrub(doc.name)
-		)
+		return os.path.join(get_module_path(module), scrub(doc.doctype), scrub(doc.name), scrub(doc.name))
 
 
 def get_doc_module(module: str, doctype: str, name: str) -> "ModuleType":
@@ -63,7 +62,7 @@ def get_doc_module(module: str, doctype: str, name: str) -> "ModuleType":
 		module=scrub(module),
 		name=scrub(name),
 	)
-	return frappe.get_module(module_name)
+	return get_module(module_name)
 
 
 @frappe.whitelist()
@@ -144,7 +143,7 @@ def sync_customizations(app=None):
 
 	for app_name in apps:
 		for module_name in frappe.local.app_modules.get(app_name) or []:
-			folder = frappe.get_app_path(app_name, module_name, "custom")
+			folder = get_app_path(app_name, module_name, "custom")
 			if os.path.exists(folder):
 				for fname in os.listdir(folder):
 					if fname.endswith(".json"):
@@ -313,7 +312,7 @@ def load_doctype_module(doctype, module=None, prefix="", suffix=""):
 
 	if key not in doctype_python_modules:
 		try:
-			doctype_python_modules[key] = frappe.get_module(module_name)
+			doctype_python_modules[key] = get_module(module_name)
 		except ImportError as e:
 			msg = f"Module import failed for {doctype}, the DocType you're trying to open might be deleted."
 			msg += f"\nError: {e}"
@@ -429,7 +428,7 @@ def make_boilerplate(template: str, doc: "Document" | "frappe._dict", opts: dict
 
 
 def create_directory_on_app_path(folder_name, app_name):
-	app_path = frappe.get_app_path(app_name)
+	app_path = get_app_path(app_name)
 	folder_path = os.path.join(app_path, folder_name)
 
 	if not os.path.exists(folder_path):
@@ -439,7 +438,7 @@ def create_directory_on_app_path(folder_name, app_name):
 
 
 def get_app_level_directory_path(folder_name, app_name):
-	app_path = frappe.get_app_path(app_name)
+	app_path = get_app_path(app_name)
 	path = os.path.join(app_path, folder_name)
 	return path
 
@@ -447,3 +446,41 @@ def get_app_level_directory_path(folder_name, app_name):
 def delete_app_level_folder(folder_name, app_name):
 	path = get_app_level_directory_path(folder_name, app_name)
 	shutil.rmtree(path, ignore_errors=True)
+
+
+def get_module_path(module, *joins):
+	"""Get the path of the given module name."""
+	app = get_module_app(module)
+	return get_pymodule_path(app + "." + scrub(module), *joins)
+
+
+def get_app_path(app_name, *joins):
+	"""Return path of given app."""
+	return get_pymodule_path(app_name, *joins)
+
+
+def get_app_source_path(app_name, *joins):
+	"""Return source path of given app."""
+	return get_app_path(app_name, "..", *joins)
+
+
+def get_site_path(*joins):
+	"""Return path of current site."""
+	from os.path import join
+
+	return join(frappe.local.site_path, *joins)
+
+
+def get_pymodule_path(modulename, *joins):
+	"""Return path of given Python module name."""
+	from os.path import abspath, dirname, join
+
+	if "public" not in joins:
+		joins = [scrub(part) for part in joins]
+
+	return abspath(join(dirname(get_module(scrub(modulename)).__file__ or ""), *joins))
+
+
+def get_module_list(app_name):
+	"""Get list of modules for given app via `app/modules.txt`."""
+	return get_file_items(get_app_path(app_name, "modules.txt"))

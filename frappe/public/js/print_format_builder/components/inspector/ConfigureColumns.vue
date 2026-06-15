@@ -109,7 +109,7 @@ let total_width = computed(() => {
 }
 .total-badge {
 	font-size: var(--text-sm);
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	padding: 1px 8px;
 	border-radius: var(--border-radius-sm);
 }
@@ -124,13 +124,13 @@ let total_width = computed(() => {
 .total-bar-track {
 	height: 6px;
 	background: var(--gray-200);
-	border-radius: 99px;
+	border-radius: var(--border-radius-full);
 	overflow: hidden;
 }
 .total-bar-fill {
 	height: 100%;
 	background: var(--green-400);
-	border-radius: 99px;
+	border-radius: var(--border-radius-full);
 	transition: width 0.2s ease, background 0.2s ease;
 }
 .total-bar-fill--over {
@@ -188,7 +188,7 @@ let total_width = computed(() => {
 	align-items: center;
 	border: 1px solid var(--gray-300);
 	border-radius: var(--border-radius);
-	background: white;
+	background: var(--fg-color);
 	overflow: hidden;
 	flex: 1;
 }

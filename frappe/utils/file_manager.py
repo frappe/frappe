@@ -377,7 +377,8 @@ def get_file_path(file_name):
 def get_content_hash(content):
 	if isinstance(content, str):
 		content = content.encode()
-	return hashlib.md5(content, usedforsecurity=False).hexdigest()
+	digest = hashlib.md5(content, usedforsecurity=False).hexdigest()
+	return digest
 
 
 def get_file_name(fname, optional_suffix):

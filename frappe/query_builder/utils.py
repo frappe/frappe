@@ -158,11 +158,11 @@ def execute_child_queries(queries, result):
 
 
 def prepare_query(query):
+	from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
+
 	param_collector = NamedParameterWrapper()
 	query = query.get_sql(param_wrapper=param_collector)
 	if frappe.local.flags.get("in_safe_exec", False):
-		from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
-
 		if not check_safe_sql_query(query, throw=False):
 			callstack = inspect.stack()
 
@@ -179,6 +179,10 @@ def prepare_query(query):
 			if len(callstack) >= 3 and SERVER_SCRIPT_FILE_PREFIX in callstack[2].filename:
 				raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
 
+	if frappe.local.flags.get("in_render_safe_exec", False):
+		check_safe_sql_query(query, throw=True)
+
+	assert isinstance(query, str), "prepared query must be a SQL string"
 	return query, param_collector.parameters
 
 
