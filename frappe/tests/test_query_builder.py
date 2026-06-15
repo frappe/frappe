@@ -19,6 +19,8 @@ from frappe.query_builder.functions import (
 	JSONExtract,
 	JSONValue,
 	Match,
+	Month,
+	Quarter,
 	Round,
 	Truncate,
 	UnixTimestamp,
@@ -107,6 +109,11 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 		query = frappe.qb.from_(note).select(note.name).where(note.posting_date >= CurDate())
 		self.assertIn("current_date", str(query).lower())
 		self.assertNotIn("current_date(", str(query).lower())
+
+	def test_month_quarter_mariadb(self):
+		note = frappe.qb.DocType("Note")
+		self.assertEqual("MONTH(posting_date)", Month(note.posting_date).get_sql())
+		self.assertEqual("QUARTER(posting_date)", Quarter(note.posting_date).get_sql())
 
 	def test_unix_ts_mariadb(self):
 		# Simple Query
@@ -285,6 +292,26 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		query = frappe.qb.from_(note).select(note.name).where(note.posting_date >= CurDate())
 		self.assertIn("current_date", str(query).lower())
 		self.assertNotIn("current_date(", str(query).lower())
+
+	def test_month_quarter_postgres(self):
+		# date_part(...) is double precision on postgres; it is wrapped in CAST(... AS INTEGER) so
+		# MONTH/QUARTER match MySQL's integer result (no `2.0` leaking into report output).
+		note = frappe.qb.DocType("Note")
+		self.assertEqual(
+			"cast(date_part('month',posting_date) as integer)",
+			Month(note.posting_date).get_sql().lower(),
+		)
+		self.assertEqual(
+			"cast(date_part('quarter',posting_date) as integer)",
+			Quarter(note.posting_date).get_sql().lower(),
+		)
+		# round-trips to a python int, like MariaDB's MONTH()/QUARTER()
+		val = frappe.db.sql(
+			f"SELECT {Month(CurDate()).get_sql()} AS m, {Quarter(CurDate()).get_sql()} AS q",
+			as_dict=True,
+		)[0]
+		self.assertIsInstance(val["m"], int)
+		self.assertIsInstance(val["q"], int)
 
 	def test_unix_ts_postgres(self):
 		# EXTRACT(EPOCH ...) is double precision on postgres; it is wrapped in CAST(... AS BIGINT)

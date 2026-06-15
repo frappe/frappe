@@ -975,6 +975,15 @@ def get_filter_conditions_qb(doctype, filters, ignore_permissions=None):
 	if isinstance(filters, str):
 		filters = json.loads(filters)
 
+	if isinstance(filters, dict):
+		# Mirror get_filters_cond's dict normalization: a string value prefixed with "!" means
+		# "not equal" (e.g. {"enabled": "!1"} -> enabled != "1"). apply_filters' dict path would
+		# otherwise treat "!1" as a literal value and emit `enabled = "!1"`.
+		filters = {
+			field: ("!=", value[1:]) if isinstance(value, str) and value.startswith("!") else value
+			for field, value in filters.items()
+		}
+
 	from frappe.database.query import Engine
 
 	engine = Engine()

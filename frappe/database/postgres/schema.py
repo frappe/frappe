@@ -7,17 +7,22 @@ from frappe.utils import cint, flt
 from frappe.utils.defaults import get_not_null_defaults
 
 
-# PostgreSQL index names are unique per *schema*, not per table like MariaDB. Naming a
-# single-column index after just the fieldname therefore collides across tables that share
-# a fieldname (item_code, company, posting_date, ...) and `CREATE INDEX IF NOT EXISTS`
-# silently skips all but the first -- so most tables never get their search_index. Qualify
-# the name with the table so it is schema-unique, hashing if it would exceed the 63-byte cap.
-def get_single_column_index_name(table_name: str, fieldname: str) -> str:
-	name = f"{table_name}_{fieldname}_index"
+# PostgreSQL index names are unique per *schema*, not per table like MariaDB. Naming an index
+# after just its field(s) therefore collides across tables that share a field (item_code,
+# company, posting_date, lft/rgt, ...) and `CREATE INDEX IF NOT EXISTS` silently skips all but
+# the first -- so most tables never get that index. Qualify the name with the table so it is
+# schema-unique, hashing if it would exceed postgres's 63-byte identifier cap.
+def get_qualified_index_name(table_name: str, fields: list[str]) -> str:
+	base = f"{table_name}_" + "_".join(fields)
+	name = f"{base}_index"
 	if len(name.encode()) > 63:
-		digest = hashlib.md5(f"{table_name}_{fieldname}".encode()).hexdigest()[:10]
+		digest = hashlib.md5(base.encode()).hexdigest()[:10]
 		name = f"{name[:52]}_{digest}"
 	return name
+
+
+def get_single_column_index_name(table_name: str, fieldname: str) -> str:
+	return get_qualified_index_name(table_name, [fieldname])
 
 
 class PostgresTable(DBTable):

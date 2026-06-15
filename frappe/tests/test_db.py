@@ -1081,6 +1081,42 @@ class TestDDLCommandsPost(IntegrationTestCase):
 			dt1.delete(ignore_permissions=True)
 			dt2.delete(ignore_permissions=True)
 
+	def test_add_index_unique_across_tables(self) -> None:
+		# Regression: a manual frappe.db.add_index() with the default name used to produce an
+		# unqualified, schema-global name (`field1_field2_index`), so two tables requesting an
+		# index on the same fields collided -- the second `CREATE INDEX IF NOT EXISTS` was
+		# skipped and that table never got its composite index. The default name is now
+		# table-qualified, so each table gets its own.
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.database.postgres.schema import get_qualified_index_name
+
+		def _two_field_doctype():
+			return new_doctype(
+				fields=[
+					{"label": "Alpha", "fieldname": "alpha", "fieldtype": "Data"},
+					{"label": "Beta", "fieldname": "beta", "fieldtype": "Data"},
+				]
+			).insert(ignore_permissions=True)
+
+		dt1 = _two_field_doctype()
+		dt2 = _two_field_doctype()
+		try:
+			frappe.db.add_index(dt1.name, ["alpha", "beta"])
+			frappe.db.add_index(dt2.name, ["alpha", "beta"])
+			for dt in (dt1, dt2):
+				index_name = get_qualified_index_name(f"tab{dt.name}", ["alpha", "beta"])
+				self.assertTrue(
+					frappe.db.sql(
+						"""SELECT 1 FROM pg_indexes
+						WHERE schemaname = current_schema() AND tablename = %s AND indexname = %s""",
+						(f"tab{dt.name}", index_name),
+					),
+					msg=f"{dt.name} is missing its composite add_index (schema-global name collision)",
+				)
+		finally:
+			dt1.delete(ignore_permissions=True)
+			dt2.delete(ignore_permissions=True)
+
 	def test_sequence_table_creation(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 

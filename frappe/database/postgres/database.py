@@ -458,10 +458,17 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
 		"""Creates an index with given fields if not already created.
-		Index name will be `fieldname1_fieldname2_index`"""
+		Default index name is `<table>_<field1>_<field2>_index` (table-qualified so it is unique
+		per *schema*, as postgres requires)."""
+		from frappe.database.postgres.schema import get_qualified_index_name
+
 		table_name = get_table_name(doctype)
-		index_name = index_name or self.get_index_name(fields)
-		fields_str = '", "'.join(re.sub(r"\(.*\)", "", field) for field in fields)
+		clean_fields = [re.sub(r"\(.*\)", "", field) for field in fields]
+		# postgres index names are per-schema, not per-table: an unqualified default name collides
+		# across tables sharing these fields and `CREATE INDEX IF NOT EXISTS` then silently skips
+		# all but the first, leaving the index missing. Qualify with the table so each one is made.
+		index_name = index_name or get_qualified_index_name(table_name, clean_fields)
+		fields_str = '", "'.join(clean_fields)
 
 		self.sql_ddl(
 			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}" ("{fields_str}")'

@@ -122,11 +122,27 @@ class ConstantColumn(Term):
 		)
 
 
-# MONTHNAME/MONTH/QUARTER are MySQL-only. On postgres use to_char / date_part, which yield
-# equivalent values (to_char(.., 'FMMonth') -> full month name; date_part -> numeric month/quarter
-# that compares and hashes equal to MySQL's integer in Python).
+# MONTHNAME/MONTH/QUARTER are MySQL-only. On postgres use to_char / date_part: to_char(.., 'FMMonth')
+# gives the full month name, and date_part gives the numeric month/quarter. date_part returns double
+# precision, so MONTH/QUARTER cast it back to INTEGER to match MySQL's integer result exactly (see
+# _PostgresIntDatePart) -- otherwise a `2.0` leaks into report JSON/UI where MariaDB shows `2`.
 def _is_postgres() -> bool:
 	return bool(frappe.db) and frappe.db.db_type == "postgres"
+
+
+class _PostgresIntDatePart:
+	"""Mixin for the postgres date_part(...) functions below: wrap the result in
+	CAST(... AS INTEGER) so it matches MySQL's integer MONTH()/QUARTER(). Mirrors the
+	UnixTimestamp BIGINT cast. No-op on MariaDB (those branches use the native int function)."""
+
+	def get_sql(self, **kwargs):
+		if not self._postgres:
+			return super().get_sql(**kwargs)
+		with_alias = kwargs.pop("with_alias", False)
+		sql = f"CAST({super().get_sql(**kwargs)} AS INTEGER)"
+		if with_alias:
+			return format_alias_sql(sql, self.alias, **kwargs)
+		return sql
 
 
 class MonthName(Function):
@@ -137,17 +153,19 @@ class MonthName(Function):
 			super().__init__("MONTHNAME", field, alias=alias)
 
 
-class Quarter(Function):
+class Quarter(_PostgresIntDatePart, Function):
 	def __init__(self, field, alias=None):
-		if _is_postgres():
+		self._postgres = _is_postgres()
+		if self._postgres:
 			super().__init__("date_part", "quarter", field, alias=alias)
 		else:
 			super().__init__("QUARTER", field, alias=alias)
 
 
-class Month(Function):
+class Month(_PostgresIntDatePart, Function):
 	def __init__(self, field, alias=None):
-		if _is_postgres():
+		self._postgres = _is_postgres()
+		if self._postgres:
 			super().__init__("date_part", "month", field, alias=alias)
 		else:
 			super().__init__("MONTH", field, alias=alias)
