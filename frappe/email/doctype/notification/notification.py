@@ -446,7 +446,14 @@ def get_context(context):
 
 	def create_system_notification(self, doc, context):
 		def _render(template):
-			return frappe.render_template(template, context) if template and "{" in template else template
+			# Templates (subject / notification_title / notification_message) come from the
+			# System Notification rule, authored by System Managers — the same trusted source as
+			# the other render_template calls in this controller.
+			if not (template and "{" in template):
+				return template
+			return frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+				template, context
+			)
 
 		# Title falls back to the email Subject so existing rules keep their headline.
 		# Description, however, comes ONLY from the dedicated Notification Message — we do not
@@ -477,7 +484,11 @@ def get_context(context):
 			"title": title,
 			"subject": subject,
 			"description": description,
-			"email_content": description,
+			# Email body comes from the rule's Message field (its dedicated purpose), not the
+			# in-app Description: a non-skip notification_type can make the log email itself
+			# (NotificationLog.after_insert), and a blank Notification Message must not produce a
+			# body-less email. This restores the pre-split behaviour (email_content <- self.message).
+			"email_content": _render(self.message),
 			"from_user": doc.modified_by or doc.owner,
 			"attached_file": json.dumps(attachments) if attachments else None,
 		}

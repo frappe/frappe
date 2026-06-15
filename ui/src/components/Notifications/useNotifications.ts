@@ -84,7 +84,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       ...new Set(
         rows
           .map((n) => n.from_user)
-          .filter((u): u is string => Boolean(u) && !(u in userImages.value))
+          .filter((u): u is string => Boolean(u) && !(u in userImages.value)),
       ),
     ];
     if (!missing.length) return;
@@ -95,7 +95,6 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
         doctype: "User",
         filters: { name: ["in", missing] },
         fields: ["name", "user_image"],
-        limit_page_length: 0,
       })) as Array<{ name: string; user_image?: string }>;
       for (const u of users)
         if (u.user_image) userImages.value[u.name] = u.user_image;
@@ -110,12 +109,12 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       from_user_image: n.from_user
         ? userImages.value[n.from_user] || undefined
         : undefined,
-    }))
+    })),
   );
   watch(
     () => list.data,
     (rows) => resolveUserImages((rows as NotificationLog[]) || []),
-    { immediate: true }
+    { immediate: true },
   );
 
   // Unread count comes from the server (a COUNT over all of the user's matching rows),
@@ -139,14 +138,14 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     unreadResource.reload();
   }
   const unreadCount = computed<number>(
-    () => (unreadResource.data as number) ?? 0
+    () => (unreadResource.data as number) ?? 0,
   );
   const hasNextPage = computed(() => Boolean(list.hasNextPage));
   // true only while a fetch is in flight with nothing to show yet — lets the panel hold off
   // the empty state on a cold first load (a cached feed already has rows, so it stays false).
   const loading = computed(
     () =>
-      Boolean(list.list?.loading) && !(list.data as NotificationLog[])?.length
+      Boolean(list.list?.loading) && !(list.data as NotificationLog[])?.length,
   );
 
   async function markAsRead(name: string) {
@@ -209,7 +208,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
         currentUser.value = user;
         applyFilters();
       },
-      { immediate: true }
+      { immediate: true },
     );
   }
 
