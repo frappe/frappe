@@ -149,7 +149,7 @@ def upload_file():
 		ignore_permissions = False
 
 	files = frappe.request.files
-	is_private = frappe.form_dict.is_private
+	is_private = frappe.form_dict.get("is_private", 1)
 	doctype = frappe.form_dict.doctype
 	docname = frappe.form_dict.docname
 	fieldname = frappe.form_dict.fieldname

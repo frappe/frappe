@@ -182,6 +182,7 @@ def prepare_query(query):
 	if frappe.local.flags.get("in_render_safe_exec", False):
 		check_safe_sql_query(query, throw=True)
 
+	assert isinstance(query, str), "prepared query must be a SQL string"
 	return query, param_collector.parameters
 
 

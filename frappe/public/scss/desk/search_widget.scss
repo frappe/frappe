@@ -3,32 +3,40 @@
 	position: relative;
 }
 
-.search-widget-button {
-	background-color: var(--control-bg);
-	border-radius: var(--border-radius-sm);
-	height: 32px;
-	padding: 0 10px;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	width: 100%;
-	margin-right: 0;
+#full-search-button {
+	height: 28px;
+	width: auto;
+}
 
-	span {
-		color: var(--text-light);
+.search-widget-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 0 10px;
+	background-color: var(--control-bg);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-sm);
+	width: 100%;
+	justify-content: space-between;
+	color: var(--text-light);
+
+	&:hover {
+		background-color: var(--control-bg-on-gray);
 	}
 
 	.search-widget-icon {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-
-		> svg {
-			stroke: var(--text-light);
+		margin-bottom: 1px;
+		svg {
+			stroke: var(--text-muted);
 		}
 	}
 
-	&:hover {
-		outline: 1px solid var(--surface-gray-3);
+	.search-widget-label {
+		font-size: var(--text-sm);
+	}
+
+	.search-widget-shortcut {
+		font-size: var(--text-sm);
+		color: var(--text-light);
 	}
 }
