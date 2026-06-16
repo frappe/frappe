@@ -45,8 +45,7 @@ function all_layout_fields() {
 	if (own && self_df && !no_value.includes(self_df.fieldtype)) {
 		result.push({
 			value: own,
-			label: (self_df.label || own) + " — " + __("this field"),
-			is_self: true,
+			label: self_df.label || own,
 		});
 	}
 
@@ -82,6 +81,17 @@ function find_df_in_layout(fieldname) {
 
 const value_fields = computed(() => all_layout_fields());
 
+const source_field_df = computed(() => ({
+	fieldtype: "Select",
+	label: __("Based on field"),
+	options: [{ label: __("Select Field"), value: "" }, ...value_fields.value],
+}));
+
+const source_field_model = computed({
+	get: () => config.value?.source_field || "",
+	set: (val) => set_source_field(val),
+});
+
 const own_fieldname = computed(() => store.form.selected_field?.fieldname);
 
 const source_df = computed(() => {
@@ -99,6 +109,15 @@ const source_options = computed(() => {
 	if (!source_is_select.value) return [];
 	return (source_df.value.options || "").split("\n").filter(Boolean);
 });
+
+const condition_value_df = computed(() => ({
+	fieldtype: "Select",
+	label: "",
+	options: [
+		{ label: __("Select value"), value: "" },
+		...source_options.value.map((o) => ({ label: o, value: o })),
+	],
+}));
 
 function set_source_field(fieldname) {
 	// Prefer selected_field directly for self so unsaved options are available
@@ -202,18 +221,11 @@ function update_default(val) {
 		<!-- Dynamic mode -->
 		<div v-else-if="config" class="dynamic-editor">
 			<div class="source-row">
-				<label class="sub-label">{{ __("Based on field") }}</label>
-				<select
-					class="form-control form-select source-select"
-					:value="config.source_field"
-					:disabled="read_only"
-					@change="set_source_field($event.target.value)"
-				>
-					<option value="">{{ __("— select a field —") }}</option>
-					<option v-for="f in value_fields" :key="f.value" :value="f.value">
-						{{ f.label }} ({{ f.value }})
-					</option>
-				</select>
+				<SelectControl
+					:df="source_field_df"
+					:read_only="read_only"
+					v-model="source_field_model"
+				/>
 			</div>
 
 			<div v-if="config.source_field" class="conditions-block">
@@ -229,20 +241,14 @@ function update_default(val) {
 					<tbody>
 						<tr v-for="(cond, i) in config.conditions" :key="i">
 							<td>
-								<select
+								<SelectControl
 									v-if="source_is_select"
-									class="form-control form-select cond-input"
-									:value="cond.value"
-									:disabled="read_only"
-									@change="update_condition_value(i, $event.target.value)"
-								>
-									<option value="">{{ __("— pick value —") }}</option>
-									<option
-										v-for="opt in source_options"
-										:key="opt"
-										:value="opt"
-									>{{ opt }}</option>
-								</select>
+									:df="condition_value_df"
+									:modelValue="cond.value"
+									:read_only="read_only"
+									:no_label="true"
+									@update:modelValue="update_condition_value(i, $event)"
+								/>
 								<input
 									v-else
 									type="text"
@@ -385,10 +391,6 @@ function update_default(val) {
 			color: var(--text-muted);
 			margin-bottom: 3px;
 			font-weight: normal;
-		}
-
-		.source-select {
-			font-size: var(--text-sm);
 		}
 
 		.conditions-block {
