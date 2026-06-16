@@ -535,10 +535,10 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		note = frappe.qb.DocType("Note")
 
 		# Postgres has no XOR operator, so the portable boolean fallback is rendered,
-		# fully bracketed including an outer pair
+		# fully bracketed including an outer pair; quote_char='"' matches the postgres dialect default
 		self.assertEqual(
 			'((("public") AND NOT ("notify_on_login")) OR (("notify_on_login") AND NOT ("public")))',
-			Xor(note.public, note.notify_on_login).get_sql(),
+			Xor(note.public, note.notify_on_login).get_sql(quote_char='"'),
 		)
 
 		# In a WHERE clause

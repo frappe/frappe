@@ -1008,6 +1008,8 @@ class TestDBCli(BaseTestCommands):
 			self.execute("bench --site {site} db-console -c 'select 1'")
 		elif frappe.db.db_type == "mariadb":
 			self.execute("bench --site {site} db-console -e 'select 1'")
+		elif frappe.db.db_type == "sqlite":
+			self.execute("bench --site {site} db-console 'select 1'")
 		self.assertEqual(self.returncode, 0)
 		self.assertIn("1", self.stdout)
 
