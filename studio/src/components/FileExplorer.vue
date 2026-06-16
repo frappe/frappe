@@ -142,69 +142,41 @@
 		/>
 	</Teleport>
 
-	<!-- Editor docks beside the left panel at full height -->
-	<Teleport to="#studio-code-editor-outlet">
-		<div
-			v-if="showEditor"
-			class="absolute bottom-0 top-[var(--toolbar-height)] z-20 flex flex-col bg-white shadow-lg"
-			:style="{ left: `${panelLeft}px`, width: `${editorWidth}px` }"
-		>
-			<PanelResizer
-				side="right"
-				:dimension="editorWidth"
-				:minDimension="360"
-				:maxDimension="maxEditorWidth"
-				@resize="editorWidth = $event"
-				@dblclick="toggleFullWidth"
-			/>
-			<div
-				class="flex select-none items-center justify-between gap-2 border-b border-outline-gray-2 px-3 py-2"
-				@dblclick="toggleFullWidth"
+	<CodeEditorDock
+		:open="Boolean(openFile)"
+		:modelValue="editorContent"
+		:language="language"
+		:completions="pageScriptCompletions"
+		@update:modelValue="onEditorChange"
+		@save="save"
+	>
+		<template #title>
+			<span
+				class="mt-1 shrink-0 font-mono text-[10px] font-bold leading-none"
+				:class="getFileBadge(openFile!.path).colorClass"
 			>
-				<div class="flex min-w-0 items-center gap-1.5">
-					<span
-						class="mt-1 shrink-0 font-mono text-[10px] font-bold leading-none"
-						:class="getFileBadge(openFile!.path).colorClass"
-					>
-						{{ getFileBadge(openFile!.path).label }}
-					</span>
-					<span class="truncate text-sm text-ink-gray-8" :title="openFile!.path">
-						{{ openFile!.path }}
-						<span v-if="dirty" class="text-ink-amber-3">•</span>
-					</span>
-				</div>
-				<div class="flex shrink-0 items-center gap-1" @dblclick.stop>
-					<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="save">Save</Button>
-					<Button size="xs" variant="ghost" icon="lucide-trash-2" @click="removeFile" title="Delete file" />
-					<Button size="xs" variant="ghost" icon="lucide-x" @click="closeFile" title="Close editor" />
-				</div>
-			</div>
-			<div class="min-h-0 flex-1 overflow-hidden">
-				<Code
-					:modelValue="editorContent"
-					:language="language"
-					height="100%"
-					maxHeight="100%"
-					:emitOnChange="true"
-					:borderless="true"
-					:completions="pageScriptCompletions"
-					@update:modelValue="onEditorChange"
-					@save="save"
-				/>
-			</div>
-		</div>
-	</Teleport>
+				{{ getFileBadge(openFile!.path).label }}
+			</span>
+			<span class="text-sm text-ink-gray-8" :title="openFile!.path">
+				{{ openFile!.path }}
+				<span v-if="dirty" class="text-ink-amber-3">•</span>
+			</span>
+		</template>
+		<template #actions>
+			<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="save">Save</Button>
+			<Button size="xs" variant="ghost" icon="lucide-trash-2" @click="removeFile" title="Delete file" />
+			<Button size="xs" variant="ghost" icon="lucide-x" @click="closeFile" title="Close editor" />
+		</template>
+	</CodeEditorDock>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from "vue"
-import { useWindowSize } from "@vueuse/core"
 import { vOnClickOutside } from "@vueuse/components"
 import { Button, Dialog, FormControl, Tree, toast, Tooltip } from "frappe-ui"
-import Code from "@/components/Code.vue"
+import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import ContextMenu from "@/components/ContextMenu.vue"
 import EmptyState from "@/components/EmptyState.vue"
-import PanelResizer from "@/components/PanelResizer.vue"
 import useStudioStore from "@/stores/studioStore"
 import {
 	listStudioFiles,
@@ -302,41 +274,6 @@ function openActivePageScript() {
 		newEntryPath.value = scriptPath
 		showNewEntryDialog.value = true
 		focusFormInput(pathInput)
-	}
-}
-
-// -- Editor panel --
-const showEditor = computed(
-	() =>
-		Boolean(openFile.value) &&
-		store.studioLayout.showLeftPanel &&
-		store.studioLayout.leftPanelActiveTab === "Code",
-)
-
-const panelLeft = computed(() => store.studioLayout.leftPanelWidth)
-const EDITOR_WIDTH = 520
-const editorWidth = ref(EDITOR_WIDTH)
-// Cap the editor so its right edge stops at the app's right edge (it may cover the right panel,
-// but never overflow the window). Recomputes as the window or left panel resizes.
-const { width: viewportWidth } = useWindowSize()
-const maxEditorWidth = computed(() => Math.max(360, viewportWidth.value - panelLeft.value))
-const restoreWidth = ref(EDITOR_WIDTH)
-
-watch(
-	maxEditorWidth,
-	(max) => {
-		if (editorWidth.value > max) editorWidth.value = max
-	},
-	{ immediate: true },
-)
-
-// Double-click snaps to full width; double-click again restores the previous width.
-function toggleFullWidth() {
-	if (editorWidth.value >= maxEditorWidth.value - 1) {
-		editorWidth.value = Math.min(restoreWidth.value, maxEditorWidth.value)
-	} else {
-		restoreWidth.value = editorWidth.value
-		editorWidth.value = maxEditorWidth.value
 	}
 }
 
