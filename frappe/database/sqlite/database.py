@@ -13,7 +13,7 @@ from frappe.database.database import (
 from frappe.database.sqlite.schema import SQLiteTable
 from frappe.utils import get_table_name
 
-_PARAM_COMP = re.compile(r"%\([\w]*\)s")
+_PARAM_COMP = re.compile(r"%\((\w+)\)s")
 IMPLICIT_COMMIT_QUERY_TYPES = frozenset(("start", "alter", "drop", "create", "truncate"))
 
 
@@ -103,6 +103,22 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	default_port = None
 	MAX_ROW_SIZE_LIMIT = None
 
+	# Time (in ms) a connection waits for a write lock held by another connection
+	# before giving up with "database is locked". SQLite allows only one writer at a
+	# time, so a generous timeout lets concurrent writers queue instead of failing.
+	# Override per-site with `sqlite_busy_timeout` in site config.
+	DEFAULT_BUSY_TIMEOUT = 30_000
+
+	# Whether the current connection is the read-only (`mode=ro`) connection. Set as a
+	# class default so it is always readable even before `connect()`/`begin()` run.
+	read_only = False
+
+	@property
+	def busy_timeout(self) -> int:
+		from frappe.utils.data import cint
+
+		return cint(frappe.conf.get("sqlite_busy_timeout")) or self.DEFAULT_BUSY_TIMEOUT
+
 	def get_connection(self, read_only: bool = False):
 		conn = self.create_connection(read_only)
 		conn.create_function("regexp", 2, regexp)
@@ -110,7 +126,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		pragmas = {
 			"journal_mode": "WAL",
 			"synchronous": "NORMAL",
-			"busy_timeout": 5000,  # in milliseconds
+			"busy_timeout": self.busy_timeout,
 		}
 		cursor = conn.cursor()
 		for pragma, value in pragmas.items():
@@ -128,15 +144,22 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 				f"file:{db_path}?mode=ro",
 				uri=True,
 				detect_types=sqlite3.PARSE_DECLTYPES,
-				timeout=15,
+				timeout=self.busy_timeout / 1000,
+				isolation_level=None,
 			)
-		return sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES, timeout=15)
+		return sqlite3.connect(
+			db_path,
+			detect_types=sqlite3.PARSE_DECLTYPES,
+			timeout=self.busy_timeout / 1000,
+			isolation_level=None,
+		)
 
 	def get_db_path(self):
 		return Path(frappe.get_site_path()) / "db" / f"{self.cur_db_name}.db"
 
 	def set_execution_timeout(self, seconds: int):
-		self.sql(f"PRAGMA busy_timeout = {int(seconds) * 1000}")
+		timeout = max(int(seconds) * 1000, self.busy_timeout)
+		self._cursor.execute(f"PRAGMA busy_timeout = {timeout}")
 
 	def setup_type_map(self):
 		self.db_type = "sqlite"
@@ -325,11 +348,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		)
 
 	def create_sequence_table(self):
-		"""Create the `__sequences` emulation table if it does not exist.
-
-		Committed via `sql_ddl`, so it is durable and survives the per-test
-		transaction rollbacks used by the test runner. Only call this at install /
-		migrate time, never inside an open write transaction."""
+		"""Create the `__sequences` table if needed."""
 		self.sql_ddl(
 			"""CREATE TABLE IF NOT EXISTS `__sequences` (
 			name TEXT PRIMARY KEY,
@@ -498,18 +517,11 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		raise NotImplementedError("SQLite does not support getting row size directly.")
 
 	def execute_query(self, query, values=None):
-		query = query.replace("%s", "?")
-		try:
-			if isinstance(values, dict):
-				for k, v in values.items():
-					if isinstance(v, str) and "'" in v:
-						values[k] = self.escape(v)
-					else:
-						values[k] = f"'{v}'"
-				query = query % values
-		except TypeError:
-			pass
+		if isinstance(values, dict):
+			query, bind = _bind_named_params(query, values)
+			return self._cursor.execute(query, bind)
 
+		query, values = _expand_positional_params(query, values)
 		return self._cursor.execute(query, values or ())
 
 	def sql(self, *args, **kwargs):
@@ -528,25 +540,35 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		super().sql_ddl(query, *args, **kwargs)
 		self.commit()
 
+	def connect(self):
+		"""Connect, then open the request's transaction (see ``begin``)."""
+		super().connect()
+		self.begin()
+
+	def _begin_transaction(self):
+		"""Open a ``DEFERRED`` transaction so the request's reads share one snapshot.
+
+		``DEFERRED`` acquires no lock here, so it can't time out; the first write upgrades
+		it to a writer (and may then block/deadlock, handled in ``sql``).
+		"""
+		if not self._conn.in_transaction:
+			self._cursor.execute("BEGIN DEFERRED")
+
 	def begin(self, *, read_only=False):
-		if read_only or frappe.flags.read_only:
+		"""Open ``BEGIN DEFERRED`` so all reads in the request share one snapshot.
+
+		The first write upgrades the transaction to a writer in place.
+		"""
+		read_only = read_only or frappe.flags.read_only
+		if read_only != self.read_only:
 			if self._conn:
 				self._conn.close()
-			self._conn = self.get_connection(read_only=True)
+			self._conn = self.get_connection(read_only=read_only)
 			self._cursor = self._conn.cursor()
-			self.read_only = True
+			self.read_only = read_only
 
-		elif hasattr(self, "read_only") and self.read_only:
-			self._conn.close()
-			self._conn = self.get_connection()
-			self._cursor = self._conn.cursor()
-			self.read_only = False
-
-		try:
-			self.sql("BEGIN")
-		except sqlite3.OperationalError as e:
-			if not self.is_nested_transaction_error(e):
-				raise e
+		if self._conn:
+			self._begin_transaction()
 
 	def commit(self, chain=None):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
@@ -562,9 +584,11 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 		self.before_commit.run()
 
-		self._conn.commit()
+		if self._conn.in_transaction:
+			self._conn.commit()
 		self.transaction_writes = 0
-		self.begin()  # explicitly start a new transaction
+		self.value_cache.clear()
+		self.begin()  # restore transaction state (read-only snapshot if applicable)
 
 		self.after_commit.run()
 
@@ -580,7 +604,9 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 			self.before_rollback.run()
 
-			self._conn.rollback()
+			if self._conn.in_transaction:
+				self._conn.rollback()
+			self.value_cache.clear()
 			self.begin()
 
 			self.after_rollback.run()
@@ -638,6 +664,80 @@ def modify_query(query):
 		query = re.sub("from tab([a-zA-Z]*)", r'from "tab\1"', query, flags=re.IGNORECASE)
 
 	return query
+
+def _bind_named_params(query: str, values: dict):
+	"""Rewrite pyformat ``%(name)s`` placeholders to SQLite ``:name`` placeholders.
+
+	A sequence value is expanded into a parenthesised list so ``WHERE x IN %(names)s``
+	works (SQLite can't bind a sequence to one placeholder); an empty sequence becomes
+	``(NULL)`` and a nested sequence becomes a row value, supporting ``WHERE (a, b) IN
+	%(pairs)s``. The caller's dict is never mutated."""
+	bind: dict = {}
+
+	def placeholder(key, value):
+		"""Register ``value`` under ``key`` and return its placeholder text, recursing
+		into sequences (e.g. ``[1, 2]`` -> ``(:key__0, :key__1)``)."""
+		if isinstance(value, list | tuple | set):
+			if not value:
+				return "(NULL)"
+			return "(" + ", ".join(placeholder(f"{key}__{i}", v) for i, v in enumerate(value)) + ")"
+		bind[key] = value
+		return f":{key}"
+
+	def replace(match):
+		key = match.group(1)
+		if key not in values:
+			return match.group(0)
+		return placeholder(key, values[key])
+
+	return _PARAM_COMP.sub(replace, query), bind
+
+
+def _expand_positional_params(query: str, values):
+	"""Translate pyformat ``%s`` placeholders to SQLite ``?`` placeholders, expanding
+	any sequence value into ``(?, ?, ...)``.
+
+	MariaDB/Postgres drivers expand a list/tuple bound to a single ``%s`` (the common
+	``WHERE name IN %s`` idiom) into a parenthesised list. SQLite's driver cannot bind
+	a sequence to one placeholder, so we expand it ourselves and flatten the values to
+	match. An empty sequence becomes ``(NULL)`` (matches nothing), mirroring the drivers.
+	"""
+	if not values:
+		return query.replace("%s", "?"), values
+
+	if not isinstance(values, list | tuple):
+		values = (values,)
+
+	parts = query.split("%s")
+	# One value per placeholder is required. If they don't line up (e.g. a stray `%s`
+	# inside a string literal), fall back to the naive rewrite.
+	if len(parts) - 1 != len(values):
+		return query.replace("%s", "?"), values
+
+	def expand(value):
+		"""Return ``(placeholder_text, bound_values)`` for one value, recursing into
+		sequences (e.g. ``[1, 2]`` -> ``("(?, ?)", [1, 2])``)."""
+		if not isinstance(value, list | tuple | set):
+			return "?", [value]
+		if not value:
+			return "(NULL)", []
+		texts, flat = [], []
+		for item in value:
+			text, sub = expand(item)
+			texts.append(text)
+			flat.extend(sub)
+		return "(" + ", ".join(texts) + ")", flat
+
+	rendered = [parts[0]]
+	flat = []
+	for value, tail in zip(values, parts[1:], strict=True):
+		text, sub = expand(value)
+		rendered.append(text)
+		flat.extend(sub)
+		rendered.append(tail)
+
+	return "".join(rendered), flat
+
 
 
 def replace_locate_with_instr(query: str) -> str:
