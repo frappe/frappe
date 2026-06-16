@@ -174,42 +174,30 @@ function update_default(val) {
 	<div class="dynamic-description-editor">
 		<div class="editor-header">
 			<span class="field-label">{{ __("Description") }}</span>
-			<div class="mode-toggle">
-				<label
-					class="mode-option"
+			<div class="mode-toggle" role="group">
+				<button
+					type="button"
+					class="mode-btn"
 					:class="{ active: !is_dynamic }"
+					:disabled="read_only"
 					:title="__('Fixed description text')"
-				>
-					<input
-						type="radio"
-						name="desc_mode"
-						:checked="!is_dynamic"
-						:disabled="read_only"
-						@change="is_dynamic = false"
-					/>
-					{{ __("Static") }}
-				</label>
-				<label
-					class="mode-option"
+					@click="is_dynamic = false"
+				>{{ __("Static") }}</button>
+				<button
+					type="button"
+					class="mode-btn"
 					:class="{ active: is_dynamic }"
+					:disabled="read_only"
 					:title="__('Description changes based on another field value')"
-				>
-					<input
-						type="radio"
-						name="desc_mode"
-						:checked="is_dynamic"
-						:disabled="read_only"
-						@change="is_dynamic = true"
-					/>
-					{{ __("Dynamic") }}
-				</label>
+					@click="is_dynamic = true"
+				>{{ __("Dynamic") }}</button>
 			</div>
 		</div>
 
 		<!-- Static mode -->
 		<div v-if="!is_dynamic">
 			<textarea
-				class="form-control static-textarea"
+				class="form-control desc-textarea"
 				:value="store.form.selected_field.description"
 				:disabled="read_only"
 				rows="3"
@@ -230,75 +218,69 @@ function update_default(val) {
 
 			<div v-if="config.source_field" class="conditions-block">
 				<label class="sub-label">{{ __("Conditions") }}</label>
-				<table class="conditions-table">
-					<thead>
-						<tr>
-							<th>{{ __("When value is") }}</th>
-							<th>{{ __("Show description") }}</th>
-							<th v-if="!read_only" class="remove-th"></th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="(cond, i) in config.conditions" :key="i">
-							<td>
-								<SelectControl
-									v-if="source_is_select"
-									:df="condition_value_df"
-									:modelValue="cond.value"
-									:read_only="read_only"
-									:no_label="true"
-									@update:modelValue="update_condition_value(i, $event)"
-								/>
-								<input
-									v-else
-									type="text"
-									class="form-control cond-input"
-									:value="cond.value"
-									:disabled="read_only"
-									:placeholder="__('Value')"
-									@input="update_condition_value(i, $event.target.value)"
-								/>
-							</td>
-							<td>
-								<input
-									type="text"
-									class="form-control cond-input"
-									:value="cond.description"
-									:disabled="read_only"
-									:placeholder="__('Description text')"
-									@input="update_condition_description(i, $event.target.value)"
-								/>
-							</td>
-							<td v-if="!read_only">
-								<button
-									class="btn btn-xs remove-btn"
-									type="button"
-									:title="__('Remove')"
-									@click="remove_condition(i)"
-								>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="10"
-										height="10"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2.5"
-									>
-										<line x1="18" y1="6" x2="6" y2="18"></line>
-										<line x1="6" y1="6" x2="18" y2="18"></line>
-									</svg>
-								</button>
-							</td>
-						</tr>
-						<tr v-if="!config.conditions.length">
-							<td
-								colspan="3"
-								class="empty-row"
-							>{{ __("No conditions yet. Add one below.") }}</td>
-						</tr>
-					</tbody>
-				</table>
+
+				<div
+					v-for="(cond, i) in config.conditions"
+					:key="i"
+					class="condition-card"
+				>
+					<div class="condition-card-header">
+						<span class="sub-label">{{ __("When value is") }}</span>
+						<button
+							v-if="!read_only"
+							class="btn btn-xs remove-btn"
+							type="button"
+							:title="__('Remove')"
+							@click="remove_condition(i)"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="10"
+								height="10"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.5"
+							>
+								<line x1="18" y1="6" x2="6" y2="18"></line>
+								<line x1="6" y1="6" x2="18" y2="18"></line>
+							</svg>
+						</button>
+					</div>
+
+					<SelectControl
+						v-if="source_is_select"
+						:df="condition_value_df"
+						:modelValue="cond.value"
+						:read_only="read_only"
+						:no_label="true"
+						@update:modelValue="update_condition_value(i, $event)"
+					/>
+					<input
+						v-else
+						type="text"
+						class="form-control"
+						:value="cond.value"
+						:disabled="read_only"
+						:placeholder="__('Value')"
+						@input="update_condition_value(i, $event.target.value)"
+					/>
+
+					<label class="sub-label desc-label">{{ __("Description") }}</label>
+					<textarea
+						class="form-control desc-textarea"
+						:value="cond.description"
+						:disabled="read_only"
+						rows="2"
+						:placeholder="__('Description text')"
+						@input="update_condition_description(i, $event.target.value)"
+					></textarea>
+				</div>
+
+				<div v-if="!config.conditions.length" class="empty-conditions">
+					{{ __("No conditions yet. Add one below.") }}
+				</div>
+
 				<button
 					v-if="!read_only"
 					class="btn btn-xs btn-default add-btn"
@@ -309,14 +291,14 @@ function update_default(val) {
 
 			<div class="default-row">
 				<label class="sub-label">{{ __("Default") }}</label>
-				<input
-					type="text"
-					class="form-control"
+				<textarea
+					class="form-control desc-textarea"
 					:value="config.default"
 					:disabled="read_only"
+					rows="2"
 					:placeholder="__('Shown when no condition matches')"
 					@input="update_default($event.target.value)"
-				/>
+				></textarea>
 			</div>
 		</div>
 	</div>
@@ -344,10 +326,7 @@ function update_default(val) {
 			border-radius: var(--border-radius);
 			padding: 2px;
 
-			.mode-option {
-				display: flex;
-				align-items: center;
-				gap: 4px;
+			.mode-btn {
 				font-size: var(--text-xs);
 				font-weight: normal;
 				cursor: pointer;
@@ -355,29 +334,33 @@ function update_default(val) {
 				padding: 2px 8px;
 				border-radius: calc(var(--border-radius) - 2px);
 				color: var(--text-muted);
+				background: transparent;
+				border: none;
+				line-height: 1.5;
 				transition: background 0.15s, color 0.15s;
-
-				input[type="radio"] {
-					display: none;
-				}
 
 				&.active {
 					background: var(--primary);
 					color: white;
 				}
 
-				&:not(.active):hover {
+				&:not(.active):not(:disabled):hover {
 					background: var(--hover-bg);
 					color: var(--text-color);
+				}
+
+				&:disabled {
+					cursor: default;
+					opacity: 0.6;
 				}
 			}
 		}
 	}
 
-	.static-textarea {
+	.desc-textarea {
 		font-size: var(--text-sm);
 		resize: vertical;
-		min-height: 60px;
+		min-height: 52px;
 	}
 
 	.dynamic-editor {
@@ -394,75 +377,58 @@ function update_default(val) {
 		}
 
 		.conditions-block {
-			.conditions-table {
-				width: 100%;
-				border-collapse: collapse;
-				font-size: var(--text-xs);
-				margin-bottom: var(--margin-xs);
+			display: flex;
+			flex-direction: column;
+			gap: var(--margin-xs);
 
-				thead tr {
-					background: var(--fg-color);
-				}
+			.condition-card {
+				border: 1px solid var(--border-color);
+				border-radius: var(--border-radius);
+				padding: var(--padding-sm);
 
-				th {
-					padding: 4px 6px;
-					text-align: left;
-					font-weight: 500;
-					color: var(--text-muted);
-					border: 1px solid var(--border-color);
-					white-space: nowrap;
-				}
-
-				.remove-th {
-					width: 24px;
-				}
-
-				td {
-					padding: 3px 4px;
-					border: 1px solid var(--border-color);
-					vertical-align: middle;
-				}
-
-				.empty-row {
-					text-align: center;
-					color: var(--text-muted);
-					font-style: italic;
-					padding: 8px;
-				}
-
-				.cond-input {
-					font-size: var(--text-xs);
-					padding: 2px 6px;
-					height: auto;
-					min-height: 0;
-				}
-
-				.remove-btn {
+				.condition-card-header {
 					display: flex;
 					align-items: center;
-					justify-content: center;
-					width: 20px;
-					height: 20px;
-					padding: 0;
-					color: var(--text-muted);
-					background: transparent;
-					border: none;
+					justify-content: space-between;
+					margin-bottom: 3px;
 
-					&:hover {
-						color: var(--red);
+					.sub-label {
+						margin-bottom: 0;
+					}
+
+					.remove-btn {
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						width: 20px;
+						height: 20px;
+						padding: 0;
+						color: var(--text-muted);
+						background: transparent;
+						border: none;
+
+						&:hover {
+							color: var(--red);
+						}
 					}
 				}
+
+				.desc-label {
+					margin-top: var(--margin-xs);
+				}
+			}
+
+			.empty-conditions {
+				font-size: var(--text-xs);
+				color: var(--text-muted);
+				font-style: italic;
+				text-align: center;
+				padding: var(--padding-sm) 0;
 			}
 
 			.add-btn {
 				width: 100%;
 				font-size: var(--text-xs);
-			}
-		}
-
-		.default-row {
-			input {
-				font-size: var(--text-sm);
 			}
 		}
 	}

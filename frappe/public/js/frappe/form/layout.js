@@ -855,17 +855,25 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	_apply_dynamic_description(field, description) {
+		// Pre-set df.description before calling set_description() so that subclass
+		// overrides (time.js, datetime.js) that read this.df.description before
+		// calling super.set_description() — and declare no parameter — see the
+		// correct dynamic value and append their extra text (e.g. timezone) to it.
+		field.df.description = description;
+
 		if (field.df.show_description_on_click) {
 			// set_description() returns early when show_description_on_click is true, and
 			// the InfoCard's DOM lives inside label_span rather than on _doc_url_info_card
 			// (because set_doc_url() also returns early, so _doc_url_info_card is never set).
-			// Update df.description for consistency and patch the card DOM directly.
-			field.df.description = description;
+			// Patch the card DOM directly since df.description is already updated above.
 			$(field.label_span)
 				.find(".sidebar-card-description")
 				.html(__(description, null, field.df.parent));
 		} else {
-			field.set_description(description);
+			// Call with no arg — df.description is already set above, and the
+			// _description cache check in base_input.js will still short-circuit
+			// correctly when the description hasn't changed.
+			field.set_description();
 		}
 	}
 
