@@ -89,6 +89,8 @@ class AIAgent(Document):
 		)
 
 	def _resolve_tools(self) -> list[Tool]:
+		from flow.tools.builtins import KNOWLEDGE_SEARCH_SLUG, bind_search_knowledge
+
 		resolved: list[Tool] = []
 		for row in self.tools:
 			try:
@@ -98,7 +100,10 @@ class AIAgent(Document):
 				continue
 			if not tool_doc.enabled:
 				continue
-			resolved.append(tool_doc.to_tool())
+			if tool_doc.name == KNOWLEDGE_SEARCH_SLUG:
+				resolved.append(bind_search_knowledge([kb.knowledge_base for kb in self.knowledge_bases]))
+			else:
+				resolved.append(tool_doc.to_tool())
 		return resolved
 
 	def new_session(self, *, model: str | None = None, title: str | None = None):
