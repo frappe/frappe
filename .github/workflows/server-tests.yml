@@ -53,6 +53,11 @@ jobs:
         # Keep the existing Postgres gating and always include SQLite.
         db: ${{ fromJson(needs.checkrun.outputs.run_postgres == 'true' && '["mariadb", "sqlite", "postgres"]' || '["mariadb", "sqlite"]') }}
         index: [1, 2]
+        exclude:
+          # SQLite allows only one writer at a time; running two parallel workers
+          # against the same .db file causes "database is locked" errors.
+          - db: sqlite
+            index: 2
     services:
       postgres:
         image: postgres:18.0
@@ -98,7 +103,9 @@ jobs:
           # consumed by bench run-parallel-tests
           CAPTURE_COVERAGE: true
           BUILD_NUMBER: ${{ matrix.index }}
-          TOTAL_BUILDS: 2
+          # SQLite runs on a single worker (index 1 only); set TOTAL_BUILDS=1 so all
+          # tests land in chunk 1 instead of half being orphaned in a missing chunk 2.
+          TOTAL_BUILDS: ${{ matrix.db == 'sqlite' && '1' || '2' }}
           FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
 
       - name: Upload coverage data

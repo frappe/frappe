@@ -163,6 +163,8 @@ class Xor(Criterion):
 			sql = f"((({left}) AND NOT ({right})) OR (({right}) AND NOT ({left})))"
 		if with_alias and self.alias:
 			return format_alias_sql(sql, self.alias, quote_char=quote_char, **kwargs)
+		return sql
+
 
 # MONTHNAME/MONTH/QUARTER are MySQL-only. On postgres use to_char / date_part: to_char(.., 'FMMonth')
 # gives the full month name, and date_part gives the numeric month/quarter. date_part returns double
