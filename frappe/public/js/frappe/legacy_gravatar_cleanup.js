@@ -21,7 +21,7 @@ frappe.ui.maybe_show_legacy_gravatar_cleanup_prompt = function ({ onhide } = {})
 					"Learn more"
 				)}</a></p>
 				<p>${
-					frappe.utils.get_installed_apps().includes("erpnext")
+					frappe.boot.apps_data.apps.map((app) => app.name).includes("erpnext")
 						? __(
 								"Existing Gravatar URLs may still be stored on User, Contact, and Lead records. Do you want to delete these URLs now?"
 						  )
