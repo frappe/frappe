@@ -13,6 +13,7 @@ no_cache = 1
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_list_data(
 	doctype: str,
 	txt: str | None = None,

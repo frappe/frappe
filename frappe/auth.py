@@ -460,6 +460,7 @@ class CookieManager:
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_logged_user():
 	return frappe.session.user
 

@@ -24,6 +24,7 @@ Requests via FrappeClient are also handled here.
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_list(
 	doctype: str,
 	fields: str | list[str | dict[str, Any]] | None = None,
@@ -76,6 +77,7 @@ def get_list(
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_count(
 	doctype: str,
 	filters: str | list | dict[str, Any] | None = None,
@@ -92,6 +94,7 @@ def get_count(
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get(
 	doctype: str,
 	name: str | int | None = None,
@@ -118,6 +121,7 @@ def get(
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_value(
 	doctype: str,
 	fieldname: str | list[str] | dict[str, Any],
@@ -141,7 +145,7 @@ def get_value(
 
 	try:
 		fields = frappe.parse_json(fieldname)
-	except (TypeError, ValueError):
+	except TypeError, ValueError:
 		# name passed, not json
 		fields = [fieldname]
 
@@ -173,6 +177,7 @@ def get_value(
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_single_value(doctype: str, field: str):
 	if not frappe.has_permission(doctype):
 		frappe.throw(_("No permission for {0}").format(_(doctype)), frappe.PermissionError)
@@ -322,6 +327,7 @@ def bulk_update(docs: str):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def has_permission(doctype: str, docname: str | int, perm_type: str = "read"):
 	"""Return a JSON with data whether the document has the requested permission.
 
@@ -333,6 +339,7 @@ def has_permission(doctype: str, docname: str | int, perm_type: str = "read"):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_doc_permissions(doctype: str, docname: str | int):
 	"""Return an evaluated document permissions dict like `{"read":1, "write":1}`.
 
@@ -344,6 +351,7 @@ def get_doc_permissions(doctype: str, docname: str | int):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_password(doctype: str, name: str | int, fieldname: str):
 	"""Return a password type property. Only applicable for System Managers
 
@@ -361,6 +369,7 @@ get_js = frappe.whitelist()(_get_js)
 
 
 @frappe.whitelist(allow_guest=True)
+@frappe.read_only()
 def get_time_zone():
 	"""Return the default time zone."""
 	return {"time_zone": frappe.defaults.get_defaults().get("time_zone")}
@@ -412,6 +421,7 @@ def attach_file(
 
 
 @frappe.whitelist()
+@frappe.read_only()
 @http_cache(max_age=10 * 60)
 def is_document_amended(doctype: str, docname: str | int):
 	if frappe.permissions.has_permission(doctype):

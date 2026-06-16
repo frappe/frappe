@@ -337,6 +337,7 @@ def convert_markdown(doc: "Document") -> None:
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_html_and_style(
 	doc: str,
 	name: str | None = None,
@@ -375,6 +376,7 @@ def get_html_and_style(
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: str | None = None) -> dict:
 	"""Return Rendered Raw Commands of print format, used to send directly to printer."""
 
