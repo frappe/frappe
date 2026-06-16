@@ -54,6 +54,8 @@ class AIKnowledgeSource(Document):
 			)
 
 	def after_insert(self):
+		if self.flags.skip_auto_ingest:
+			return
 		from flow.knowledge.ingest import enqueue_ingestion
 
 		enqueue_ingestion(self.name)
