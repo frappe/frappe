@@ -786,13 +786,18 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	entity_from_route(route) {
+		// View routes carry the entity in the second segment, e.g.
+		// ["query-report", "General Ledger"] or ["Tree", "Account"]. Without this the
+		// length-2 default would return the view keyword ("query-report") and the
+		// sidebar would fail to resolve on a cold load (duplicated tab / refresh).
+		const view_route_prefixes = ["query-report", "Tree", "dashboard-view", "print"];
 		switch (route.length) {
 			case 1:
 				return route[0];
 			case 3:
 				return route[0] === "Workspaces" && route[1] === "private" ? route[2] : route[1];
 			default:
-				return route[0];
+				return view_route_prefixes.includes(route[0]) ? route[1] : route[0];
 		}
 	}
 
