@@ -12,7 +12,7 @@
 		<template #title>
 			<span class="lucide-file size-3.5 shrink-0 text-ink-gray-5" />
 			<span class="truncate text-sm text-ink-gray-8">
-				{{ page.page_title }}
+				{{ activePage?.page_title }}
 				<span v-if="dirty" class="text-ink-amber-3">•</span>
 			</span>
 		</template>
@@ -55,25 +55,22 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
-import { call, toast, Button, Popover, ErrorMessage } from "frappe-ui"
+import { toast, Button, Popover, ErrorMessage } from "frappe-ui"
 import CodeEditorDock from "@/components/CodeEditorDock.vue"
 import PageScriptHelp from "@/components/PageScriptHelp.vue"
 import { getScriptError } from "@/utils/parseCode"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
 import useCodeStore from "@/stores/codeStore"
 import useStudioStore from "@/stores/studioStore"
-import type { StudioPage } from "@/types/Studio/StudioPage"
-
-const props = defineProps<{
-	page: StudioPage
-}>()
 
 const store = useStudioStore()
 const codeStore = useCodeStore()
 const getCompletions = useStudioCompletions(true)
 
-const script = ref(props.page.script || "")
-const savedScript = ref(props.page.script || "")
+const activePage = computed(() => store.activePage)
+
+const script = ref(activePage.value?.script || "")
+const savedScript = ref(activePage.value?.script || "")
 const saving = ref(false)
 const scriptError = ref<string | null>(null)
 
@@ -81,10 +78,10 @@ const dirty = computed(() => script.value !== savedScript.value)
 
 // Reset when switching pages.
 watch(
-	() => props.page.name,
+	() => activePage.value?.name,
 	() => {
-		script.value = props.page.script || ""
-		savedScript.value = props.page.script || ""
+		script.value = activePage.value?.script || ""
+		savedScript.value = activePage.value?.script || ""
 		scriptError.value = null
 	},
 )
@@ -95,6 +92,8 @@ function onChange(value: string) {
 }
 
 async function saveScript() {
+	const page = activePage.value
+	if (!page) return
 	// A broken script fails to compile and takes down every binding on the page, so block it.
 	scriptError.value = null
 	const syntaxError = getScriptError(script.value)
@@ -107,16 +106,10 @@ async function saveScript() {
 	}
 	saving.value = true
 	try {
-		await call("frappe.client.set_value", {
-			doctype: "Studio Page",
-			name: props.page.name,
-			fieldname: "script",
-			value: script.value,
-		})
-		props.page.script = script.value
+		await store.setActivePageScript(script.value)
 		savedScript.value = script.value
 		// keep the runtime bindings in sync with the saved script
-		codeStore.setPageScript(props.page)
+		codeStore.setPageScript(page)
 		toast.success("Page script saved")
 	} catch (error: any) {
 		toast.error("Failed to save the page script", { description: error?.messages?.join(", ") })

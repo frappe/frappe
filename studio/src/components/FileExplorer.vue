@@ -3,7 +3,7 @@
 		<!-- File tree -->
 		<div class="flex items-center justify-between">
 			<div class="flex flex-col gap-2">
-				<span class="text-sm font-medium text-ink-gray-7">{{ app.app_name }}/studio</span>
+				<span class="text-sm font-medium text-ink-gray-7">{{ app?.app_name }}/studio</span>
 			</div>
 			<div class="flex items-center gap-1">
 				<Button
@@ -191,14 +191,10 @@ import {
 } from "@/data/studioFiles"
 import { confirm } from "@/utils/helpers"
 import { pageScriptCompletions } from "@/utils/pageScriptCompletions"
-import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { ContextMenuOption } from "@/types"
 
-const props = defineProps<{
-	app: StudioApp
-}>()
-
 const store = useStudioStore()
+const app = computed(() => store.activeApp)
 
 const treeOptions = {
 	rowHeight: "28px",
@@ -208,8 +204,8 @@ const treeOptions = {
 }
 
 const location = computed(() => ({
-	frappe_app: props.app.frappe_app!,
-	studio_app: props.app.name,
+	frappe_app: app.value?.frappe_app ?? "",
+	studio_app: app.value?.name ?? "",
 }))
 
 // -- File tree --
@@ -358,8 +354,8 @@ const newEntryPath = ref("")
 const newEntryType = ref<"file" | "folder">("file")
 const newEntryDescription = computed(() =>
 	newEntryType.value === "folder"
-		? `Relative to studio/${props.app.app_name}`
-		: `Relative to studio/${props.app.app_name}. Allowed: .ts, .js, .vue, .json, .css`,
+		? `Relative to studio/${app.value?.app_name}`
+		: `Relative to studio/${app.value?.app_name}. Allowed: .ts, .js, .vue, .json, .css`,
 )
 const pathInput = ref<any>(null)
 const treeContainer = ref<HTMLElement | null>(null)
@@ -596,7 +592,7 @@ function openFileIsUnder(path: string, isFolder: boolean): boolean {
 }
 
 watch(
-	() => props.app.name,
+	() => app.value?.name,
 	() => {
 		openFile.value = null
 		selectedNode.value = null

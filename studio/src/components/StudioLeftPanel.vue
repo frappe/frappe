@@ -57,12 +57,7 @@
 				<DataPanel v-show="activeTab === 'Data'" />
 
 				<div v-show="activeTab === 'Code'">
-					<CodePanel
-						class="p-3"
-						v-if="store.activePage"
-						:page="store.activePage"
-						:key="store.selectedPage ?? undefined"
-					/>
+					<CodePanel class="p-3" v-if="store.activePage" />
 				</div>
 
 				<AIChatPanel v-show="activeTab === 'AI Assistant'" />

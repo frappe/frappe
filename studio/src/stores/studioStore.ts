@@ -244,6 +244,15 @@ const useStudioStore = defineStore("store", () => {
 		)
 	}
 
+	function setActivePageScript(script: string) {
+		if (!activePage.value) return Promise.resolve()
+		return studioPages.setValue
+			.submit({ name: activePage.value.name, script, _skip_validate: true })
+			.then(() => {
+				activePage.value!.script = script
+			})
+	}
+
 	async function publishPage() {
 		if (!selectedPage.value) return
 
@@ -533,6 +542,7 @@ const useStudioStore = defineStore("store", () => {
 		setPage,
 		savePage,
 		updateActivePage,
+		setActivePageScript,
 		publishPage,
 		unpublishPage,
 		publishApp,
