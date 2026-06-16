@@ -170,7 +170,8 @@ class StudioApp(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def publish_app(self):
-		for page in self.pages:
+		pages = self.pages
+		for page in pages:
 			page_doc = frappe.get_doc("Studio Page", page)
 			page_doc.publish()
 
@@ -179,7 +180,7 @@ class StudioApp(WebsiteGenerator):
 		except Exception:
 			pass
 
-		return {"published_pages": len(self.pages)}
+		return {"published_pages": len(pages)}
 
 	@frappe.whitelist()
 	def unpublish_app(self):
