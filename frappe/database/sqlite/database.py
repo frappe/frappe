@@ -157,8 +157,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		sqlite3.register_converter("timestamp", _parse_timestamp)
 		sqlite3.register_converter("date", _parse_date)
 		sqlite3.register_converter("time", _parse_time)
-		# Match MariaDB DECIMAL(21,9): round stored REALs to 9dp to avoid float drift.
-		sqlite3.register_converter("REAL", lambda v: round(float(v), 9))
+		# No REAL converter: _transform_result / fetch_as_dict round all floats to 9dp,
+		# covering both REAL-declared columns and float values from computed expressions.
 		sqlite3.register_adapter(datetime, lambda v: v.isoformat(sep=" "))
 		sqlite3.register_adapter(date, lambda v: v.isoformat())
 		sqlite3.register_adapter(time, lambda v: v.isoformat())
@@ -748,10 +748,40 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			raise ImplicitCommitError("This statement can cause implicit commit", query)
 
 
+# ---------------------------------------------------------------------------
+# Pre-compiled patterns used in modify_query and its helpers.
+# Compiling once at import time is cheaper than re-compiling (or even
+# cache-looking-up) the same pattern on every SQL call.
+# ---------------------------------------------------------------------------
+
 _OB_DIRECTION_KEYWORDS = re.compile(
 	r"^(?:ASC|DESC|NULLS|LAST|FIRST|COLLATE|NOCASE|BINARY|RTRIM)$",
 	re.IGNORECASE,
 )
+_RE_COLLATE = re.compile(r"\bCOLLATE\b", re.IGNORECASE)
+_RE_OB_QUOTED = re.compile(r'(\s*"(?:[^"]+)"(?:\.(?:"[^"]+"|\w+))?)', re.IGNORECASE)
+_RE_OB_BARE = re.compile(r"(\s*)([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?)")
+_RE_ORDER_BY = re.compile(r"\bORDER\s+BY\b", re.IGNORECASE)
+_RE_SELECT_FROM = re.compile(r"\bSELECT\b(.*?)\bFROM\b", re.IGNORECASE | re.DOTALL)
+_RE_AGG_AS = re.compile(r"\b((?:sum|count|avg|min|max)\s*\([^)]*\))\s+as\s+(\w+)", re.IGNORECASE)
+_RE_HAVING = re.compile(r"\bHAVING\b", re.IGNORECASE)
+_RE_FOR_UPDATE = re.compile(
+	r"\s+for\s+update(\s+nowait|\s+skip\s+locked)?\s*;?\s*$",
+	re.IGNORECASE,
+)
+_RE_LOCK_SHARE = re.compile(r"\s+lock\s+in\s+share\s+mode\s*;?\s*$", re.IGNORECASE)
+_RE_INDEX_HINT = re.compile(r"\s+(force|use|ignore)\s+index\s*\([^)]*\)", re.IGNORECASE)
+_RE_LOCATE = re.compile(r"locate\(([^,]+),([^)]+)\)", re.IGNORECASE)
+_RE_CURRENT_DT = re.compile(
+	r"\bcurrent_(date|time|timestamp)\s*\(\s*\)",
+	re.IGNORECASE,
+)
+_RE_IF_FUNC = re.compile(r"\bif\s*\(", re.IGNORECASE)
+_RE_UPDATE_SET_QUAL = re.compile(r'"[^"]+"\.([\w]+)\s*=')
+_RE_UNQUOTED_TAB = re.compile(r"from tab([a-zA-Z]*)", re.IGNORECASE)
+_RE_UPDATE = re.compile(r"^\s*UPDATE\b", re.IGNORECASE)
+_RE_SET_KW = re.compile(r"\bSET\s+", re.IGNORECASE)
+_RE_WHERE_KW = re.compile(r"\bWHERE\b", re.IGNORECASE)
 
 
 def _split_orderby_terms(clause: str) -> list:
@@ -773,14 +803,14 @@ def _split_orderby_terms(clause: str) -> list:
 
 def _add_collate_to_ob_term(term: str) -> str:
 	"""Inject COLLATE NOCASE into one ORDER BY term; leaves function calls and existing COLLATE untouched."""
-	if re.search(r"\bCOLLATE\b", term, re.IGNORECASE):
+	if _RE_COLLATE.search(term):
 		return term
 
-	m = re.match(r'(\s*"(?:[^"]+)"(?:\.(?:"[^"]+"|\w+))?)', term, re.IGNORECASE)
+	m = _RE_OB_QUOTED.match(term)
 	if m:
 		return m.group(1) + " COLLATE NOCASE" + term[m.end() :]
 
-	m = re.match(r"(\s*)([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?)", term)
+	m = _RE_OB_BARE.match(term)
 	if m:
 		word = m.group(2)
 		rest = term[m.end() :]
@@ -793,7 +823,7 @@ def _add_collate_to_ob_term(term: str) -> str:
 
 def _add_collate_nocase_to_orderby(query: str) -> str:
 	"""Inject COLLATE NOCASE into all ORDER BY columns so text sort matches MariaDB (SQLite BINARY sorts '_' after letters; MariaDB unicode_ci does not)."""
-	ob_match = re.search(r"\bORDER\s+BY\b", query, re.IGNORECASE)
+	ob_match = _RE_ORDER_BY.search(query)
 	if not ob_match:
 		return query
 
@@ -825,23 +855,20 @@ def _add_collate_nocase_to_orderby(query: str) -> str:
 
 def _rewrite_having_aliases(query: str) -> str:
 	"""Inline aggregate expressions in HAVING; SQLite resolves bare alias names to the table column, not the SELECT alias."""
-	sel_match = re.search(r"\bSELECT\b(.*?)\bFROM\b", query, re.IGNORECASE | re.DOTALL)
+	# Check HAVING before the expensive SELECT.*FROM dotall search.
+	having_match = _RE_HAVING.search(query)
+	if not having_match:
+		return query
+
+	sel_match = _RE_SELECT_FROM.search(query)
 	if not sel_match:
 		return query
 
 	agg_map = {}
-	for m in re.finditer(
-		r"\b((?:sum|count|avg|min|max)\s*\([^)]*\))\s+as\s+(\w+)",
-		sel_match.group(1),
-		re.IGNORECASE,
-	):
+	for m in _RE_AGG_AS.finditer(sel_match.group(1)):
 		agg_map[m.group(2).lower()] = m.group(1)
 
 	if not agg_map:
-		return query
-
-	having_match = re.search(r"\bHAVING\b", query, re.IGNORECASE)
-	if not having_match:
 		return query
 
 	having_start = having_match.start()
@@ -857,31 +884,52 @@ def _rewrite_having_aliases(query: str) -> str:
 	return query[:having_start] + having_part
 
 
-def modify_query(query):
+def modify_query(query: str) -> str:
+	"""Rewrite a MariaDB-flavoured SQL query for SQLite compatibility.
+
+	Each transform is guarded by a cheap ``in`` check so queries that don't
+	need a rewrite skip the regex engine entirely.  The lowercase copy is
+	computed once and reused by all guards.
 	"""
-	Modifies query according to the requirements of SQLite
-	"""
-	# Replace ` with " for definitions
 	query = str(query)
 	query = query.replace("`", '"')
-	query = _replace_locate_with_instr(query)
-	query = _strip_row_locks(query)
-	query = _strip_index_hints(query)
-	query = _strip_wrapping_parens(query)
-	query = re.sub(
-		r"\bcurrent_(date|time|timestamp)\s*\(\s*\)",
-		r"current_\1",
-		query,
-		flags=re.IGNORECASE,
-	)
-	query = re.sub(r"\bif\s*\(", "iif(", query, flags=re.IGNORECASE)
-	query = _strip_update_set_qualifiers(query)
-	query = _rewrite_having_aliases(query)
-	query = _add_collate_nocase_to_orderby(query)
 
-	# Select from requires ""
-	if re.search("from tab", query, flags=re.IGNORECASE):
-		query = re.sub("from tab([a-zA-Z]*)", r'from "tab\1"', query, flags=re.IGNORECASE)
+	# Compute lowercase once for all fast-path guards.
+	ql = query.lower()
+
+	if "locate(" in ql:
+		query = _replace_locate_with_instr(query)
+		ql = query.lower()
+
+	if " for update" in ql or "lock in share" in ql:
+		query = _strip_row_locks(query)
+
+	if " index " in ql:
+		query = _strip_index_hints(query)
+
+	if query.lstrip()[0:1] == "(":
+		query = _strip_wrapping_parens(query)
+
+	if "current_" in ql:
+		query = _RE_CURRENT_DT.sub(r"current_\1", query)
+
+	if "if(" in ql:
+		query = _RE_IF_FUNC.sub("iif(", query)
+
+	if ql.lstrip().startswith("update"):
+		query = _strip_update_set_qualifiers(query)
+
+	if "having" in ql:
+		query = _rewrite_having_aliases(query)
+
+	if "order by" in ql:
+		query = _add_collate_nocase_to_orderby(query)
+
+	# Quote bare tabXxx names that survived the backtick→doublequote pass.
+	# After that pass, `tabFoo` → "tabFoo", so this only fires for raw SQL
+	# that omitted backticks (rare, but present in some patches/reports).
+	if "from tab" in ql:
+		query = _RE_UNQUOTED_TAB.sub(r'from "tab\1"', query)
 
 	return query
 
@@ -916,21 +964,21 @@ def _strip_wrapping_parens(query: str) -> str:
 
 def _strip_update_set_qualifiers(query: str) -> str:
 	"""Strip table-qualifier from SET column refs; SQLite rejects ``"tbl".col = val`` in UPDATE, unlike MariaDB."""
-	if not re.match(r"^\s*UPDATE\b", query, re.IGNORECASE):
+	if not _RE_UPDATE.match(query):
 		return query
-	set_m = re.search(r"\bSET\s+", query, re.IGNORECASE)
+	set_m = _RE_SET_KW.search(query)
 	if not set_m:
 		return query
 	set_start = set_m.end()
-	where_m = re.search(r"\bWHERE\b", query[set_start:], re.IGNORECASE)
+	where_m = _RE_WHERE_KW.search(query, set_start)
 	if where_m:
-		set_end = set_start + where_m.start()
+		set_end = where_m.start()
 		set_clause = query[set_start:set_end]
 		rest = query[set_end:]
 	else:
 		set_clause = query[set_start:]
 		rest = ""
-	set_clause = re.sub(r'"[^"]+"\.([\w]+)\s*=', r"\1 =", set_clause)
+	set_clause = _RE_UPDATE_SET_QUAL.sub(r"\1 =", set_clause)
 	return query[:set_start] + set_clause + rest
 
 
@@ -942,13 +990,8 @@ def _strip_row_locks(query: str) -> str:
 	via ``BEGIN IMMEDIATE``), so an explicit row lock is redundant -- the rows are
 	already protected for the duration of the write transaction. The clause is always
 	the final part of a SELECT, so it is safe to strip from the tail."""
-	query = re.sub(
-		r"\s+for\s+update(\s+nowait|\s+skip\s+locked)?\s*;?\s*$",
-		"",
-		query,
-		flags=re.IGNORECASE,
-	)
-	query = re.sub(r"\s+lock\s+in\s+share\s+mode\s*;?\s*$", "", query, flags=re.IGNORECASE)
+	query = _RE_FOR_UPDATE.sub("", query)
+	query = _RE_LOCK_SHARE.sub("", query)
 	return query
 
 
@@ -1031,19 +1074,11 @@ def _strip_index_hints(query: str) -> str:
 	`IGNORE INDEX (...)`). SQLite has no index hints -- its query planner chooses indexes
 	itself -- and the hint is purely advisory, so dropping it is safe. ERPNext emits these
 	via the query builder's ``.force_index()`` as well as in some raw SQL."""
-	return re.sub(
-		r"\s+(force|use|ignore)\s+index\s*\([^)]*\)",
-		" ",
-		query,
-		flags=re.IGNORECASE,
-	)
+	return _RE_INDEX_HINT.sub(" ", query)
 
 
 def _replace_locate_with_instr(query: str) -> str:
-	# instr is the locate equivalent in SQLite
-	if re.search(r"locate\(", query, flags=re.IGNORECASE):
-		query = re.sub(r"locate\(([^,]+),([^)]+)\)", r"instr(\2, \1)", query, flags=re.IGNORECASE)
-	return query
+	return _RE_LOCATE.sub(r"instr(\2, \1)", query)
 
 
 def _now() -> str:
