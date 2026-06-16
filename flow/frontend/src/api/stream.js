@@ -1,0 +1,35 @@
+// Consumes the run SSE stream: POSTs the request, then parses `data:` blocks
+// and hands each decoded event to `onEvent`.
+async function postStream(method, body, onEvent) {
+	const resp = await fetch(`/api/method/${method}`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"X-Frappe-CSRF-Token": frappe.csrf_token,
+		},
+		body: JSON.stringify({ ...body, stream: true }),
+	});
+	if (!resp.ok || !resp.body) {
+		throw new Error(`Request failed (${resp.status})`);
+	}
+
+	const reader = resp.body.getReader();
+	const decoder = new TextDecoder();
+	let buffer = "";
+
+	for (;;) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		buffer += decoder.decode(value, { stream: true });
+
+		const blocks = buffer.split("\n\n");
+		buffer = blocks.pop();
+		for (const block of blocks) {
+			const line = block.split("\n").find((l) => l.startsWith("data: "));
+			if (line) onEvent(JSON.parse(line.slice(6)));
+		}
+	}
+}
+
+export const startRun = (body, onEvent) => postStream("flow.api.start_run", body, onEvent);
+export const resumeRun = (body, onEvent) => postStream("flow.api.resume_run", body, onEvent);
