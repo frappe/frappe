@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.defaults import clear_default, get_global_default, set_global_default
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cint
 from frappe.utils.legacy_gravatar_cleanup import (
 	GRAVATAR_DELETION_JOB_ID,
@@ -36,7 +36,7 @@ def skip_gravatar_deletion_prompt(value):
 			set_global_default(SKIP_GRAVATAR_DELETION_PROMPT, previous)
 
 
-class TestGravatarDeletion(IntegrationTestCase):
+class TestGravatarDeletion(FrappeTestCase):
 	def test_delete_gravatar_image_urls(self):
 		user, contact, lead = self.create_gravatar_records()
 
