@@ -1430,9 +1430,12 @@ class Database:
 	def multisql(self, sql_dict, values=(), **kwargs):
 		"""
 		Chooses which query to execute based on the current database type, falling back to a wildcard query.
+		SQLite falls back to the mariadb variant when no sqlite key exists (modify_query handles syntax differences).
 		"""
 		current_dialect = self.db_type or "mariadb"
 		query = sql_dict.get(current_dialect) or sql_dict.get("*")
+		if query is None and current_dialect == "sqlite":
+			query = sql_dict.get("mariadb")
 		return self.sql(query, values, **kwargs)
 
 	def delete(self, doctype: str, filters: dict | list | None = None, debug=False, **kwargs):
