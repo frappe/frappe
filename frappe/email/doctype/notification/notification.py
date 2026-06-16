@@ -81,8 +81,69 @@ class Notification(Document):
 
 	def autoname(self):
 		if not self.name:
+<<<<<<< HEAD
 			# Subject is optional for System Notification rules; fall back to the headline.
 			self.name = self.subject or self.notification_title
+=======
+			self.name = self.subject
+
+	# START: PreviewRenderer API
+
+	@frappe.whitelist()
+	def preview_meets_condition(self, preview_document: str):
+		if not self.condition and not self.filters:
+			return _("Yes")
+		try:
+			doc = frappe.get_cached_doc(self.document_type, preview_document)
+			if self.condition_type == "Python":
+				context = get_context(doc)
+				return _("Yes") if frappe.safe_eval(self.condition, eval_locals=context) else _("No")
+			elif self.condition_type == "Filters":
+				return _("Yes") if evaluate_filters(doc, json.loads(self.filters)) else _("No")
+		except Exception as e:
+			frappe.local.message_log = []
+			return _("Failed to evaluate conditions: {}").format(str(e))
+
+	@frappe.whitelist()
+	def preview_message(self, preview_document: str):
+		try:
+			doc = frappe.get_cached_doc(self.document_type, preview_document)
+			context = get_context(doc)
+			context.update({"alert": self, "comments": None})
+			if doc.get("_comments"):
+				context["comments"] = json.loads(doc.get("_comments"))
+			if self.is_standard:
+				self.load_standard_properties(context)
+			msg = frappe.render_template(self.message, context, restrict_globals=True)
+			if self.channel == "SMS":
+				return frappe.utils.strip_html_tags(msg)
+			return msg
+		except Exception as e:
+			return _("Failed to render message: {}").format(str(e))
+
+	@frappe.whitelist()
+	def preview_subject(self, preview_document: str):
+		try:
+			doc = frappe.get_cached_doc(self.document_type, preview_document)
+			context = get_context(doc)
+			context.update({"alert": self, "comments": None})
+			if doc.get("_comments"):
+				context["comments"] = json.loads(doc.get("_comments"))
+			if self.is_standard:
+				self.load_standard_properties(context)
+			if not self.subject:
+				return _("No subject")
+			if "{" in self.subject:
+				return frappe.render_template(self.subject, context, restrict_globals=True)
+			return self.subject
+		except Exception as e:
+			return _("Failed to render subject: {}").format(str(e))
+
+	# END: PreviewRenderer API
+
+	def before_save(self):
+		self.remove_invalid_condition()
+>>>>>>> 3780f48 (fix: force restrict_globals mode in multiple places)
 
 	def validate(self):
 		if self.channel in ("Email", "Slack", "System Notification"):
@@ -244,6 +305,7 @@ def get_context(context):
 			self.log_error("Failed to send Notification")
 
 	def create_system_notification(self, doc, context):
+<<<<<<< HEAD
 		def _render(template):
 			# Templates (subject / notification_title / notification_message) come from the
 			# System Notification rule, authored by System Managers — the same trusted source as
@@ -262,6 +324,11 @@ def get_context(context):
 		subject = _render(self.subject)
 		title = _render(self.notification_title) or subject
 		description = _render(self.notification_message)
+=======
+		subject = self.subject
+		if "{" in subject:
+			subject = frappe.render_template(self.subject, context, restrict_globals=True)
+>>>>>>> 3780f48 (fix: force restrict_globals mode in multiple places)
 
 		attachments = self.get_attachment(doc)
 
@@ -289,6 +356,10 @@ def get_context(context):
 			# body-less email. This restores the pre-split behaviour (email_content <- self.message).
 			"email_content": _render(self.message),
 			"from_user": doc.modified_by or doc.owner,
+<<<<<<< HEAD
+=======
+			"email_content": frappe.render_template(self.message, context, restrict_globals=True),
+>>>>>>> 3780f48 (fix: force restrict_globals mode in multiple places)
 			"attached_file": json.dumps(attachments) if attachments else None,
 		}
 		enqueue_create_notification(users, notification_doc)
@@ -300,7 +371,7 @@ def get_context(context):
 
 		subject = self.subject
 		if "{" in subject:
-			subject = frappe.render_template(self.subject, context)
+			subject = frappe.render_template(self.subject, context, restrict_globals=True)
 
 		attachments = self.get_attachment(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
@@ -308,7 +379,7 @@ def get_context(context):
 			return
 
 		sender = None
-		message = frappe.render_template(self.message, context)
+		message = frappe.render_template(self.message, context, restrict_globals=True)
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
 
@@ -356,15 +427,23 @@ def get_context(context):
 	def send_a_slack_msg(self, doc, context):
 		send_slack_message(
 			webhook_url=self.slack_webhook_url,
-			message=frappe.render_template(self.message, context),
+			message=frappe.render_template(self.message, context, restrict_globals=True),
 			reference_doctype=get_reference_doctype(doc),
 			reference_name=get_reference_name(doc),
 		)
 
 	def send_sms(self, doc, context):
+<<<<<<< HEAD
 		send_via_sms_gateway(
 			receiver_list=self.get_receiver_list(doc, context),
 			msg=frappe.render_template(self.message, context),
+=======
+		send_sms(
+			receiver_list=self.get_receiver_list(doc, context, "mobile_no", self.get_mobile_no),
+			msg=frappe.utils.strip_html_tags(
+				frappe.render_template(self.message, context, restrict_globals=True)
+			),
+>>>>>>> 3780f48 (fix: force restrict_globals mode in multiple places)
 		)
 
 	def get_list_of_recipients(self, doc, context):
@@ -640,7 +719,7 @@ def get_emails_from_template(template, context):
 	if not template:
 		return ()
 
-	emails = frappe.render_template(template, context) if "{" in template else template
+	emails = frappe.render_template(template, context, restrict_globals=True) if "{" in template else template
 	return filter(None, emails.replace(",", "\n").split("\n"))
 
 
