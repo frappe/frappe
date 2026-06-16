@@ -591,8 +591,13 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 					raise
 				time.sleep(random.uniform(0, 0.05 * (attempt + 1)))
 
-	def begin(self, *, read_only=False):
-		"""Switch to the requested connection mode, then start that connection's transaction."""
+	def begin(self, *, read_only=None):
+		"""Switch connection mode if needed, then start its transaction.
+
+		``read_only=None`` keeps the current mode across restarts.
+		"""
+		if read_only is None:
+			read_only = self.read_only
 		read_only = read_only or frappe.flags.read_only
 		if read_only != self.read_only:
 			if self._conn:
@@ -603,6 +608,21 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 		if self._conn:
 			self._begin_transaction()
+
+	def enter_read_only(self) -> bool:
+		"""Switch ``frappe.read_only()`` to the ``mode=ro`` connection when safe.
+
+		Returns ``False`` if already read-only or if writes are pending.
+		"""
+		if self.read_only or self.transaction_writes:
+			return False
+		# Reopen the connection in mode=ro, releasing the empty write transaction.
+		self.begin(read_only=True)
+		return True
+
+	def exit_read_only(self):
+		"""Restore the writable connection after ``enter_read_only``."""
+		self.begin(read_only=False)
 
 	def commit(self, chain=None):
 		"""Commit current transaction. Calls SQL `COMMIT`."""

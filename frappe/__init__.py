@@ -630,13 +630,19 @@ def read_only():
 			switched_connection = False
 			if conf.read_from_replica:
 				switched_connection = connect_replica()
+			elif conf.db_type == "sqlite":
+				# SQLite has no replica; use the mode=ro connection instead.
+				switched_connection = local.db.enter_read_only()
 
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
 			finally:
-				if switched_connection and hasattr(local, "primary_db"):
-					local.db.close()
-					local.db = local.primary_db
+				if switched_connection:
+					if conf.read_from_replica and hasattr(local, "primary_db"):
+						local.db.close()
+						local.db = local.primary_db
+					elif conf.db_type == "sqlite":
+						local.db.exit_read_only()
 
 			return retval
 
