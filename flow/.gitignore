@@ -11,3 +11,4 @@ __pycache__
 .vscode/
 .venv/
 dist/
+flow/public/flow_panel/
