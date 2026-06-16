@@ -53,7 +53,11 @@ export async function registerStudioPageScripts(frappeApp: string): Promise<void
 			await studioPageScriptsResource.reload({ frappe_app: frappeApp })
 		const importers: Record<string, PageScriptImporter> = {}
 		for (const script of scripts) {
-			importers[script.page_name] = () => import(/* @vite-ignore */ script.file_path)
+			// Cache-bust per load so re-running setPageScript after an edit picks up the new file;
+			// the ES module cache would otherwise return the stale module. Dev-only path (prod uses
+			// the built bundle via setPageScriptImporters), so re-transforming each load is fine.
+			importers[script.page_name] = () =>
+				import(/* @vite-ignore */ `${script.file_path}?t=${Date.now()}`)
 		}
 		setPageScriptImporters(importers)
 	} catch (err) {

@@ -7,7 +7,9 @@ import {
 	fetchPage,
 	confirm,
 	getInitialVariableValue,
+	scrub,
 } from "@/utils/helpers"
+import { useDebounceFn } from "@vueuse/core"
 import { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson } from "@/utils/serializer"
 import { studioPages } from "@/data/studioPages"
 import { studioApps } from "@/data/studioApps"
@@ -402,6 +404,25 @@ const useStudioStore = defineStore("store", () => {
 				loadCustomVueComponents()
 			})
 		}
+	}
+
+	const activePageScriptPath = computed(() => {
+		const app = activeApp.value
+		const page = activePage.value
+		if (!app?.is_standard || !page) return null
+		const stem = scrub(page.page_title)
+		return `${app.name}/studio_page/${stem}/${stem}.ts`
+	})
+
+	// Recompile the active page's bindings when its <page>.ts changes on disk
+	const refreshActivePageScript = useDebounceFn(() => {
+		if (activePage.value) codeStore.setPageScript(activePage.value, true)
+	}, 100)
+
+	if (import.meta.hot) {
+		import.meta.hot.on("studio:file-changed", ({ path }: { path: string }) => {
+			if (path === activePageScriptPath.value) refreshActivePageScript()
+		})
 	}
 
 	// build
