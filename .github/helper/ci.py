@@ -54,9 +54,7 @@ FRAPPE_EXCLUSIONS = [
 	"*frappe/setup.py",
 	"*/doctype/*/*_dashboard.py",
 	"*/patches/*",
-	"*/frappe/database/postgres/*",
 	"*/.github/helper/ci.py",
-	"*/frappe/database/sqlite/*",
 	*TESTED_VIA_CLI,
 ]
 
@@ -87,6 +85,11 @@ class CodeCoverage:
 
 			if self.app == "frappe":
 				omit.extend(FRAPPE_EXCLUSIONS)
+				db = os.environ.get("DB")
+				if db != "postgres":
+					omit.append("*/frappe/database/postgres/*")
+				if db != "sqlite":
+					omit.append("*/frappe/database/sqlite/*")
 
 			self.coverage = Coverage(source=[source_path], omit=omit, include=STANDARD_INCLUSIONS)
 

@@ -50,8 +50,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Always run against postgres too -- it is a supported backend (see roulette.py).
-        db: ${{ fromJson(needs.checkrun.outputs.run_postgres == 'true' && '["mariadb", "postgres"]' || '["mariadb"]') }}
+        # Keep the existing Postgres gating and always include SQLite.
+        db: ${{ fromJson(needs.checkrun.outputs.run_postgres == 'true' && '["mariadb", "sqlite", "postgres"]' || '["mariadb", "sqlite"]') }}
         index: [1, 2]
     services:
       postgres:
