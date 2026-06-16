@@ -748,6 +748,115 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			raise ImplicitCommitError("This statement can cause implicit commit", query)
 
 
+_OB_DIRECTION_KEYWORDS = re.compile(
+	r"^(?:ASC|DESC|NULLS|LAST|FIRST|COLLATE|NOCASE|BINARY|RTRIM)$",
+	re.IGNORECASE,
+)
+
+
+def _split_orderby_terms(clause: str) -> list:
+	"""Split an ORDER BY clause by top-level commas (depth 0)."""
+	terms = []
+	depth = 0
+	start = 0
+	for i, ch in enumerate(clause):
+		if ch == "(":
+			depth += 1
+		elif ch == ")":
+			depth -= 1
+		elif ch == "," and depth == 0:
+			terms.append(clause[start:i])
+			start = i + 1
+	terms.append(clause[start:])
+	return terms
+
+
+def _add_collate_to_ob_term(term: str) -> str:
+	"""Inject COLLATE NOCASE into one ORDER BY term; leaves function calls and existing COLLATE untouched."""
+	if re.search(r"\bCOLLATE\b", term, re.IGNORECASE):
+		return term
+
+	m = re.match(r'(\s*"(?:[^"]+)"(?:\.(?:"[^"]+"|\w+))?)', term, re.IGNORECASE)
+	if m:
+		return m.group(1) + " COLLATE NOCASE" + term[m.end() :]
+
+	m = re.match(r"(\s*)([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?)", term)
+	if m:
+		word = m.group(2)
+		rest = term[m.end() :]
+		base = word.split(".")[0]
+		if not _OB_DIRECTION_KEYWORDS.match(base) and not rest.lstrip().startswith("("):
+			return m.group(1) + word + " COLLATE NOCASE" + rest
+
+	return term
+
+
+def _add_collate_nocase_to_orderby(query: str) -> str:
+	"""Inject COLLATE NOCASE into all ORDER BY columns so text sort matches MariaDB (SQLite BINARY sorts '_' after letters; MariaDB unicode_ci does not)."""
+	ob_match = re.search(r"\bORDER\s+BY\b", query, re.IGNORECASE)
+	if not ob_match:
+		return query
+
+	ob_start = ob_match.end()
+	depth = 0
+	ob_end = len(query)
+	i = ob_start
+	while i < len(query):
+		ch = query[i]
+		if ch == "(":
+			depth += 1
+		elif ch == ")":
+			if depth == 0:
+				ob_end = i
+				break
+			depth -= 1
+		elif depth == 0 and query[i : i + 5].upper() == "LIMIT" and (i == 0 or query[i - 1] in " \t\n"):
+			ob_end = i
+			break
+		i += 1
+
+	ob_clause = query[ob_start:ob_end]
+
+	terms = _split_orderby_terms(ob_clause)
+	ob_clause = ",".join(_add_collate_to_ob_term(t) for t in terms)
+
+	return query[:ob_start] + ob_clause + query[ob_end:]
+
+
+def _rewrite_having_aliases(query: str) -> str:
+	"""Inline aggregate expressions in HAVING; SQLite resolves bare alias names to the table column, not the SELECT alias."""
+	sel_match = re.search(r"\bSELECT\b(.*?)\bFROM\b", query, re.IGNORECASE | re.DOTALL)
+	if not sel_match:
+		return query
+
+	agg_map = {}
+	for m in re.finditer(
+		r"\b((?:sum|count|avg|min|max)\s*\([^)]*\))\s+as\s+(\w+)",
+		sel_match.group(1),
+		re.IGNORECASE,
+	):
+		agg_map[m.group(2).lower()] = m.group(1)
+
+	if not agg_map:
+		return query
+
+	having_match = re.search(r"\bHAVING\b", query, re.IGNORECASE)
+	if not having_match:
+		return query
+
+	having_start = having_match.start()
+	having_part = query[having_start:]
+	for alias, agg_expr in agg_map.items():
+		having_part = re.sub(
+			r"(?<!\()\b" + re.escape(alias) + r"\b(?!\s*\()",
+			agg_expr,
+			having_part,
+			flags=re.IGNORECASE,
+		)
+
+	return query[:having_start] + having_part
+
+
 def modify_query(query):
 	"""
 	Modifies query according to the requirements of SQLite
@@ -766,6 +875,9 @@ def modify_query(query):
 		flags=re.IGNORECASE,
 	)
 	query = re.sub(r"\bif\s*\(", "iif(", query, flags=re.IGNORECASE)
+	query = _strip_update_set_qualifiers(query)
+	query = _rewrite_having_aliases(query)
+	query = _add_collate_nocase_to_orderby(query)
 
 	# Select from requires ""
 	if re.search("from tab", query, flags=re.IGNORECASE):
@@ -800,6 +912,26 @@ def _strip_wrapping_parens(query: str) -> str:
 						return inner
 				return query
 	return query
+
+
+def _strip_update_set_qualifiers(query: str) -> str:
+	"""Strip table-qualifier from SET column refs; SQLite rejects ``"tbl".col = val`` in UPDATE, unlike MariaDB."""
+	if not re.match(r"^\s*UPDATE\b", query, re.IGNORECASE):
+		return query
+	set_m = re.search(r"\bSET\s+", query, re.IGNORECASE)
+	if not set_m:
+		return query
+	set_start = set_m.end()
+	where_m = re.search(r"\bWHERE\b", query[set_start:], re.IGNORECASE)
+	if where_m:
+		set_end = set_start + where_m.start()
+		set_clause = query[set_start:set_end]
+		rest = query[set_end:]
+	else:
+		set_clause = query[set_start:]
+		rest = ""
+	set_clause = re.sub(r'"[^"]+"\.([\w]+)\s*=', r"\1 =", set_clause)
+	return query[:set_start] + set_clause + rest
 
 
 def _strip_row_locks(query: str) -> str:
