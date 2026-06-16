@@ -93,26 +93,28 @@ class StudioPage(Document):
 		if can_export(self):
 			# each page lives in its own folder: studio/<app>/studio_page/<scrubbed_title>/
 			frappe.create_folder(self.get_folder_path())
-			self.export_page_script()
 			# script lives in the companion .ts (code mode), so keep it out of the JSON
 			write_document_file(self, folder=self.get_folder_path(), exclude_fields=["script"])
 			self.delete_old_page_file()
 			self.export_components()
 
-	def export_page_script(self):
-		"""Write the page script as a code file (<page>.ts) beside the page JSON. The .ts is the
-		source of truth for exported pages and is edited directly via the file explorer, so the DB
-		`script` field is only a mirror: write the .ts from it when it changed or is missing (e.g.
-		bootstrapping an interpreted script on export), but never delete the on-disk file just
-		because the mirror is empty — that would wipe scripts added/edited through the explorer."""
-		folder = self.get_folder_path()
-		stem = self.get_export_docname()
-		ts_file = f"{stem}.ts"
+	def export_script_to_file(self):
+		"""Move the page script into its companion <page>.ts and clear the DB `script` field. Called on enabling exports"""
 		if not self.script:
 			return
-		if self.has_value_changed("script") or not os.path.exists(os.path.join(folder, ts_file)):
-			# the folder is already created by export_page()
+		folder = self.get_folder_path()
+		frappe.create_folder(folder)
+		stem = self.get_export_docname()
+		if not os.path.exists(os.path.join(folder, f"{stem}.ts")):
 			write_code_file(self, folder, code_field="script", extension="ts", filename=stem)
+		self.db_set("script", None, update_modified=False)
+
+	def restore_script_from_file(self):
+		"""Load the exported <page>.ts back into the `script` field, so the code survives in DB-only
+		mode (called before the export folder is deleted on un-export)."""
+		ts_path = os.path.join(self.get_folder_path(), f"{self.get_export_docname()}.ts")
+		if os.path.exists(ts_path):
+			self.db_set("script", frappe.read_file(ts_path), update_modified=False)
 
 	def delete_old_page_file(self):
 		# the folder is named after the page title, so a retitle moves the whole folder
