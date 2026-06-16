@@ -233,12 +233,7 @@ frappe.patches.v15_0.set_file_type
 frappe.core.doctype.data_import.patches.remove_stale_docfields_from_legacy_version
 frappe.patches.v15_0.validate_newsletter_recipients
 frappe.patches.v15_0.sanitize_workspace_titles
-<<<<<<< HEAD
-=======
-frappe.patches.v15_0.migrate_role_profile_to_table_multi_select
-frappe.patches.v15_0.migrate_session_data
 frappe.patches.v15_0.skip_gravatar_deletion_prompt_if_no_urls
->>>>>>> 94b2e94770 (feat: Gravatar deletion prompt (#40018))
 frappe.custom.doctype.property_setter.patches.remove_invalid_fetch_from_expressions
 frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oauth_client
 frappe.patches.v16_0.add_app_launcher_in_navbar_settings
