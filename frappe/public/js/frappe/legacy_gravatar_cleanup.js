@@ -44,14 +44,11 @@ frappe.ui.maybe_show_legacy_gravatar_cleanup_prompt = function ({ onhide } = {})
 		primary_action_label: __("Confirm", null, "Confirm gravatar deletion prompt"),
 		primary_action: ({ delete_gravatar_urls, skip_prompt }) => {
 			return frappe
-				.call({
-					method: "frappe.utils.legacy_gravatar_cleanup.submit_gravatar_deletion_prompt",
-					args: {
-						delete_gravatar_urls,
-						skip_prompt,
-					},
+				.xcall("frappe.utils.legacy_gravatar_cleanup.submit_gravatar_deletion_prompt", {
+					delete_gravatar_urls,
+					skip_prompt,
 				})
-				.then(({ message }) => {
+				.then((message) => {
 					if (message?.queued) {
 						frappe.show_alert({
 							message: __("Gravatar URL deletion has been queued."),
