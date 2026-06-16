@@ -396,6 +396,10 @@ def _can_read_child_table_field(doctype: str, table_field: str, child_field: str
 		return False
 
 	child_doctype = frappe.get_meta(doctype).get_field(table_field).options
+
+	if not child_doctype:
+		return False
+
 	return child_field in frappe.get_meta(child_doctype).get_permitted_fieldnames(
 		permission_type="read", parenttype=doctype, user=user
 	)
