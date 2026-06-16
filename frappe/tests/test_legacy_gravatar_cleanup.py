@@ -11,6 +11,7 @@ from frappe.utils import cint
 from frappe.utils.legacy_gravatar_cleanup import (
 	GRAVATAR_DELETION_JOB_ID,
 	SKIP_GRAVATAR_DELETION_PROMPT,
+	Action,
 	delete_gravatar_image_urls,
 	has_gravatar_image_urls,
 	should_show_gravatar_deletion_prompt,
@@ -65,17 +66,31 @@ class TestGravatarDeletion(IntegrationTestCase):
 			mock.assert_called_once_with(GRAVATAR_DELETION_JOB_ID)
 			self.assertEqual(cint(get_global_default(SKIP_GRAVATAR_DELETION_PROMPT)), 0)
 
-	def test_submit_gravatar_deletion_prompt(self):
+	def test_submit_gravatar_deletion_prompt_delete(self):
 		user, contact, lead = self.create_gravatar_records()
 
 		with skip_gravatar_deletion_prompt(0):
-			response = submit_gravatar_deletion_prompt(delete_gravatar_urls=True, skip_prompt=True)
+			response = submit_gravatar_deletion_prompt(action=Action.DELETE_GRAVATAR_URLS.value)
 
-			self.assertTrue(response["queued"])
+			self.assertEqual(response, "queued")
 			self.assertFalse(frappe.db.get_value("User", user.name, "user_image"))
 			self.assertFalse(frappe.db.get_value("Contact", contact.name, "image"))
 			if lead:
 				self.assertFalse(frappe.db.get_value("Lead", lead.name, "image"))
+			self.assertEqual(cint(get_global_default(SKIP_GRAVATAR_DELETION_PROMPT)), 1)
+
+	def test_submit_gravatar_deletion_prompt_keep(self):
+		user, contact, lead = self.create_gravatar_records()
+		gravatar_url = frappe.db.get_value("User", user.name, "user_image")
+
+		with skip_gravatar_deletion_prompt(0):
+			response = submit_gravatar_deletion_prompt(action=Action.KEEP_GRAVATAR_URLS.value)
+
+			self.assertEqual(response, "skipped")
+			self.assertEqual(frappe.db.get_value("User", user.name, "user_image"), gravatar_url)
+			self.assertEqual(frappe.db.get_value("Contact", contact.name, "image"), gravatar_url)
+			if lead:
+				self.assertEqual(frappe.db.get_value("Lead", lead.name, "image"), gravatar_url)
 			self.assertEqual(cint(get_global_default(SKIP_GRAVATAR_DELETION_PROMPT)), 1)
 
 	def create_gravatar_records(self):

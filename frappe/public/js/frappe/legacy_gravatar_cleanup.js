@@ -31,28 +31,33 @@ frappe.ui.maybe_show_legacy_gravatar_cleanup_prompt = function ({ onhide } = {})
 				}</p>`,
 			},
 			{
-				fieldname: "delete_gravatar_urls",
-				fieldtype: "Check",
-				label: __("Delete Gravatar URLs"),
-			},
-			{
-				fieldname: "skip_prompt",
-				fieldtype: "Check",
-				label: __("Don't show again"),
+				fieldname: "action",
+				label: __("Action"),
+				fieldtype: "Select",
+				options: [
+					"",
+					{ label: __("Delete Gravatar URLs"), value: "delete_gravatar_urls" },
+					{ label: __("Keep Gravatar URLs"), value: "keep_gravatar_urls" },
+				],
+				reqd: 1,
 			},
 		],
 		primary_action_label: __("Confirm", null, "Confirm gravatar deletion prompt"),
-		primary_action: ({ delete_gravatar_urls, skip_prompt }) => {
+		primary_action: ({ action }) => {
 			return frappe
 				.xcall("frappe.utils.legacy_gravatar_cleanup.submit_gravatar_deletion_prompt", {
-					delete_gravatar_urls,
-					skip_prompt,
+					action,
 				})
 				.then((message) => {
-					if (message?.queued) {
+					if (message === "queued") {
 						frappe.show_alert({
 							message: __("Gravatar URL deletion has been queued."),
 							indicator: "blue",
+						});
+					} else if (message === "skipped") {
+						frappe.show_alert({
+							message: __("Gravatar URLs will not be deleted."),
+							indicator: "green",
 						});
 					}
 

@@ -3,6 +3,8 @@ Can be dropped when skip_gravatar_deletion_prompt is 1 for the majority of sites
 next major release.
 """
 
+from enum import Enum
+
 import frappe
 from frappe.utils import cint
 from frappe.utils.background_jobs import is_job_enqueued
@@ -15,6 +17,11 @@ BASE_GRAVATAR_IMAGE_FIELDS = (
 	("Contact", "image"),
 )
 ERPNEXT_GRAVATAR_IMAGE_FIELDS = (("Lead", "image"),)
+
+
+class Action(Enum):
+	DELETE_GRAVATAR_URLS = "delete_gravatar_urls"
+	KEEP_GRAVATAR_URLS = "keep_gravatar_urls"
 
 
 def get_gravatar_image_fields():
@@ -45,14 +52,14 @@ def has_gravatar_image_urls():
 
 
 @frappe.whitelist(methods=["POST"])
-def submit_gravatar_deletion_prompt(delete_gravatar_urls: bool = False, skip_prompt: bool = False):
+def submit_gravatar_deletion_prompt(action: str):
 	frappe.only_for("System Manager")
 
-	if cint(skip_prompt):
+	if action == Action.KEEP_GRAVATAR_URLS.value:
 		frappe.defaults.set_global_default(SKIP_GRAVATAR_DELETION_PROMPT, 1)
+		return "skipped"
 
-	queued = False
-	if cint(delete_gravatar_urls):
+	if action == Action.DELETE_GRAVATAR_URLS.value:
 		frappe.enqueue(
 			delete_gravatar_image_urls,
 			queue="long",
@@ -61,9 +68,7 @@ def submit_gravatar_deletion_prompt(delete_gravatar_urls: bool = False, skip_pro
 			job_id=GRAVATAR_DELETION_JOB_ID,
 			deduplicate=True,
 		)
-		queued = True
-
-	return {"queued": queued}
+		return "queued"
 
 
 def delete_gravatar_image_urls():
