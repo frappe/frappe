@@ -131,7 +131,12 @@ class SQLite(Base, SQLLiteQuery):
 
 	@classmethod
 	def _builder(cls, *args, **kwargs) -> "SQLLiteQueryBuilder":
-		return super()._builder(*args, wrapper_cls=SQLiteParameterizedValueWrapper, **kwargs)
+		builder = super()._builder(*args, wrapper_cls=SQLiteParameterizedValueWrapper, **kwargs)
+		# SQLite does not allow parenthesised operands around set operations, i.e.
+		# invalid syntax -> `(SELECT ...) UNION (SELECT ...)`
+		# valid syntax ->`SELECT ... UNION SELECT ...`.
+		builder.wrap_set_operation_queries = False  # Instruct pypika to not wrap set operations
+		return builder
 
 	@classmethod
 	def from_(cls, table, *args, **kwargs):
