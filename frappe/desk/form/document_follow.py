@@ -326,8 +326,11 @@ def get_field_changed(changed, time, doctype, doc_name, v, user):
 	from frappe.core.utils import html2text
 
 	items = []
+	permitted_fieldnames = frappe.get_meta(doctype).get_permitted_fieldnames(
+		permission_type="read", user=user
+	)
 	for d in changed:
-		if d[0] not in frappe.get_meta(doctype).get_permitted_fieldnames(permission_type="read", user=user):
+		if d[0] not in permitted_fieldnames:
 			continue
 
 		d[1] = d[1] if d[1] else " "
