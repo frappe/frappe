@@ -16,7 +16,7 @@ frappe.ui.maybe_show_legacy_gravatar_cleanup_prompt = function ({ onhide } = {})
 				fieldname: "message",
 				fieldtype: "HTML",
 				options: `<p>${__(
-					"Frappe no longer uses Gravatar because it can disclose hashed email addresses to a third-party service."
+					"Frappe no longer uses Gravatar because it can disclose hashed email addresses to a third-party service. To fully stop this behavior, existing Gravatar image URLs must be deleted."
 				)} <a href="https://github.com/frappe/frappe/issues/39869" target="_blank">${__(
 					"Learn more"
 				)}</a></p>
