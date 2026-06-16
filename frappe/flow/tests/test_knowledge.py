@@ -786,6 +786,8 @@ class TestDoctypeSync(IntegrationTestCase):
 
 		self.assertEqual({c["reference_name"] for c in self._chunks(src.name)}, {keep.name})
 		self.assertEqual(self._lance_ids(), {int(c["name"]) for c in self._chunks(src.name)})
+		src.reload()
+		self.assertEqual(src.chunk_count, len(self._chunks(src.name)))
 
 	def test_sync_due_sources_enqueues_only_auto_sync_doctypes(self):
 		auto = self._source()

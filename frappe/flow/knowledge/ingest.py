@@ -308,6 +308,8 @@ def reconcile_source(source: str) -> None:
 	orphaned = list(indexed - _existing_names(doc.reference_doctype, indexed))
 	if orphaned:
 		_purge_refs(source, orphaned)
+		count = frappe.db.count(CHUNK_DOCTYPE, {"source": source})
+		doc.db_set("chunk_count", count, update_modified=False)
 
 
 def _existing_names(doctype: str, names: set[str]) -> set[str]:
