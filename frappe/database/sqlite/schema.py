@@ -191,7 +191,12 @@ class SQLiteTable(DBTable):
 		):
 			if dropped_fields:
 				index_columns = {
-					col["name"] for col in frappe.db.sql(f"PRAGMA index_info(`{index.name}`)", as_dict=True)
+					col["name"]
+					for col in frappe.db.sql(
+						"SELECT name FROM pragma_index_info(%s)",
+						(index.name,),
+						as_dict=True,
+					)
 				}
 				if index_columns & dropped_fields:
 					continue

@@ -200,26 +200,26 @@ def patch_query_execute():
 	executing the query object
 	"""
 
-	QueryBuilder.run = execute_query
-	QueryBuilder.walk = prepare_query
+	QueryBuilder.run = execute_query  # nosemgrep
+	QueryBuilder.walk = prepare_query  # nosemgrep
 
 	# To support running union queries
-	_SetOperation.run = execute_query
-	_SetOperation.walk = prepare_query
+	_SetOperation.run = execute_query  # nosemgrep
+	_SetOperation.walk = prepare_query  # nosemgrep
 
 
 def patch_query_aggregation():
 	"""Patch aggregation functions to frappe.qb"""
 	from frappe.query_builder.functions import _avg, _max, _min, _sum
 
-	Base.max = _max
-	Base.min = _min
-	Base.avg = _avg
-	Base.sum = _sum
+	Base.max = _max  # nosemgrep
+	Base.min = _min  # nosemgrep
+	Base.avg = _avg  # nosemgrep
+	Base.sum = _sum  # nosemgrep
 
 
 def patch_get_query():
-	Base.get_query = get_query
+	Base.get_query = get_query  # nosemgrep
 
 
 def patch_all():
