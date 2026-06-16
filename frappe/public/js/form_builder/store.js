@@ -37,6 +37,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		"read_only",
 		"default",
 		"description",
+		"dynamic_description",
 		"depends_on",
 		"mandatory_depends_on",
 		"read_only_depends_on",

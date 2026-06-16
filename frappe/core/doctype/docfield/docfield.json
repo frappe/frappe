@@ -80,6 +80,7 @@
   "columns",
   "column_break_22",
   "description",
+  "dynamic_description",
   "documentation_url",
   "placeholder",
   "oldfieldname",
@@ -449,6 +450,12 @@
    "oldfieldtype": "Text",
    "print_width": "300px",
    "width": "300px"
+  },
+  {
+   "fieldname": "dynamic_description",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Dynamic Description"
   },
   {
    "fieldname": "oldfieldname",

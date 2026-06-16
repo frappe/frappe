@@ -1,5 +1,6 @@
 <script setup>
 import SearchBox from "./SearchBox.vue";
+import DynamicDescriptionEditor from "./DynamicDescriptionEditor.vue";
 import { evaluate_depends_on_value } from "../utils";
 import { ref, computed } from "vue";
 import { useStore } from "../store";
@@ -16,6 +17,7 @@ const LAYOUT_OVERRIDE_PROPS = new Set([
 	"read_only",
 	"default",
 	"description",
+	"dynamic_description",
 	"depends_on",
 	"mandatory_depends_on",
 	"read_only_depends_on",
@@ -127,7 +129,12 @@ let docfield_df = computed(() => {
 	<div class="control-data">
 		<div v-if="store.form.selected_field">
 			<div class="field" v-for="(df, i) in docfield_df" :key="i">
+				<DynamicDescriptionEditor
+					v-if="df.fieldname === 'description'"
+					:read_only="store.read_only"
+				/>
 				<component
+					v-else
 					:is="df.fieldtype.replaceAll(' ', '') + 'Control'"
 					:args="args"
 					:df="df"

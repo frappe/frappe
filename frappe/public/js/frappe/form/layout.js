@@ -819,6 +819,39 @@ frappe.ui.form.Layout = class Layout {
 				}
 			}
 		}
+
+		this.refresh_dynamic_description();
+	}
+
+	refresh_dynamic_description() {
+		let doc = this.doc;
+		if (!doc && this.get_values) {
+			doc = this.get_values(true);
+		}
+		if (!doc && this.frm) {
+			doc = this.frm.doc;
+		}
+		if (!doc) return;
+
+		for (const f of this.fields_list) {
+			if (!f.df?.dynamic_description || !f.set_description) continue;
+
+			let cfg;
+			try {
+				cfg = JSON.parse(f.df.dynamic_description);
+			} catch {
+				continue;
+			}
+
+			if (!cfg?.source_field) {
+				if (cfg?.default !== undefined) f.set_description(cfg.default || "");
+				continue;
+			}
+
+			const src_val = doc[cfg.source_field];
+			const matched = (cfg.conditions || []).find((c) => c.value === src_val);
+			f.set_description(matched?.description || cfg.default || "");
+		}
 	}
 
 	set_dependant_property(condition, fieldname, property) {
