@@ -1,3 +1,5 @@
+import re
+
 import frappe
 from frappe import _
 from frappe.database.schema import DBTable
@@ -30,6 +32,8 @@ class SQLiteTable(DBTable):
 				index_defs.append(
 					f"CREATE INDEX `{self.table_name}_modified_idx` ON `{self.table_name}`(modified)"
 				)
+
+		index_defs.extend(self.get_column_index_queries())
 
 		# creating sequence(s)
 		if not self.meta.issingle and self.meta.autoname == "autoincrement":
@@ -93,6 +97,9 @@ class SQLiteTable(DBTable):
 					columns[i] = f"`{col.fieldname}` {col.get_definition(for_modification=True)}"
 					break
 
+		# Rebuilding the table drops user-defined indexes, so capture them first.
+		preserved_indexes = self.get_indexes_to_preserve()
+
 		# Create new table
 		temp_table = f"{self.table_name}_new"
 		create_table = f"CREATE TABLE `{temp_table}` (\n{','.join(columns)}\n)"
@@ -109,23 +116,24 @@ class SQLiteTable(DBTable):
 		# Rename new table
 		frappe.db.sql_ddl(f"ALTER TABLE `{temp_table}` RENAME TO `{self.table_name}`")
 
+		# Replay the indexes that existed before the rebuild
+		for index_sql in preserved_indexes:
+			frappe.db.sql_ddl(index_sql)
+
 		# Recreate indexes
 		index_queries = []
 		if self.add_unique:
-			index_queries.extend(
-				f"CREATE UNIQUE INDEX IF NOT EXISTS `{col.fieldname}` ON `{self.table_name}` (`{col.fieldname}`)"
-				for col in self.add_unique
-			)
+			index_queries.extend(self.get_index_query(col.fieldname, unique=True) for col in self.add_unique)
 		if self.add_index:
 			index_queries.extend(
-				f"CREATE INDEX IF NOT EXISTS `{col.fieldname}_index` ON `{self.table_name}` (`{col.fieldname}`)"
+				self.get_index_query(col.fieldname)
 				for col in self.add_index
 				if not frappe.db.get_column_index(self.table_name, col.fieldname, unique=False)
 			)
 		if self.meta.sort_field == "modified" and not frappe.db.get_column_index(
 			self.table_name, "modified", unique=False
 		):
-			index_queries.append(f"CREATE INDEX IF NOT EXISTS `modified` ON `{self.table_name}` (`modified`)")
+			index_queries.append(self.get_index_query("modified"))
 
 		for query in index_queries:
 			frappe.db.sql_ddl(query)
@@ -146,3 +154,55 @@ class SQLiteTable(DBTable):
 		# Reverting from UUID to TEXT
 		if autoname != "UUID" and frappe.db.get_column_type(self.doctype, "name") == "TEXT":
 			return "ALTER COLUMN name TEXT"
+
+	def index_name(self, fieldname: str, *, unique: bool = False) -> str:
+		"""Build a database-unique index name for SQLite."""
+		slug = re.sub(r"\W+", "_", self.table_name)
+		suffix = "_unique" if unique else "_index"
+		return f"{slug}_{fieldname}{suffix}"
+
+	def get_index_query(self, fieldname: str, *, unique: bool = False) -> str:
+		kind = "UNIQUE INDEX" if unique else "INDEX"
+		return (
+			f"CREATE {kind} IF NOT EXISTS `{self.index_name(fieldname, unique=unique)}` "
+			f"ON `{self.table_name}`(`{fieldname}`)"
+		)
+
+	def get_column_index_queries(self) -> list[str]:
+		queries = []
+		for col in self.columns.values():
+			if col.fieldname in frappe.db.DEFAULT_COLUMNS:
+				continue
+			if col.unique:
+				queries.append(self.get_index_query(col.fieldname, unique=True))
+			elif col.set_index:
+				queries.append(self.get_index_query(col.fieldname))
+		return queries
+
+	def get_indexes_to_preserve(self) -> list[str]:
+		"""Return user-defined indexes to recreate after a table rebuild."""
+		dropped_fields = {col.fieldname for col in (self.drop_index + self.drop_unique)}
+
+		statements = []
+		for index in frappe.db.sql(
+			"SELECT name, sql FROM sqlite_master WHERE type = 'index' AND tbl_name = %s AND sql IS NOT NULL",
+			(self.table_name,),
+			as_dict=True,
+		):
+			if dropped_fields:
+				index_columns = {
+					col["name"] for col in frappe.db.sql(f"PRAGMA index_info(`{index.name}`)", as_dict=True)
+				}
+				if index_columns & dropped_fields:
+					continue
+
+			# Replays may overlap with add_index/add_unique.
+			statement = re.sub(
+				r"^\s*CREATE\s+(UNIQUE\s+)?INDEX\s+",
+				lambda m: f"CREATE {m.group(1) or ''}INDEX IF NOT EXISTS ",
+				index.sql,
+				count=1,
+				flags=re.IGNORECASE,
+			)
+			statements.append(statement)
+		return statements
