@@ -1,19 +1,37 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
+from frappe.defaults import clear_default, get_global_default, set_global_default
 from frappe.tests import IntegrationTestCase
-from frappe.tests.classes.context_managers import change_settings
 from frappe.utils import cint
 from frappe.utils.legacy_gravatar_cleanup import (
 	GRAVATAR_DELETION_JOB_ID,
+	SKIP_GRAVATAR_DELETION_PROMPT,
 	delete_gravatar_image_urls,
 	has_gravatar_image_urls,
 	should_show_gravatar_deletion_prompt,
 	submit_gravatar_deletion_prompt,
 )
+
+
+@contextmanager
+def skip_gravatar_deletion_prompt(value):
+	previous = get_global_default(SKIP_GRAVATAR_DELETION_PROMPT)
+	if cint(value):
+		set_global_default(SKIP_GRAVATAR_DELETION_PROMPT, 1)
+	else:
+		clear_default(SKIP_GRAVATAR_DELETION_PROMPT, parent="__default")
+	try:
+		yield
+	finally:
+		if previous is None:
+			clear_default(SKIP_GRAVATAR_DELETION_PROMPT, parent="__default")
+		else:
+			set_global_default(SKIP_GRAVATAR_DELETION_PROMPT, previous)
 
 
 class TestGravatarDeletion(IntegrationTestCase):
@@ -29,30 +47,28 @@ class TestGravatarDeletion(IntegrationTestCase):
 			self.assertFalse(frappe.db.get_value("Lead", lead.name, "image"))
 
 	def test_gravatar_deletion_prompt_depends_on_setting_and_urls(self):
-		with change_settings("System Settings", {"skip_gravatar_deletion_prompt": 0}):
+		with skip_gravatar_deletion_prompt(0):
 			self.create_gravatar_records()
 
 			self.assertTrue(should_show_gravatar_deletion_prompt())
 
-		with change_settings("System Settings", {"skip_gravatar_deletion_prompt": 1}):
+		with skip_gravatar_deletion_prompt(1):
 			self.assertFalse(should_show_gravatar_deletion_prompt())
 
 	def test_gravatar_deletion_prompt_hidden_while_deletion_is_queued(self):
-		with change_settings("System Settings", {"skip_gravatar_deletion_prompt": 0}):
+		with skip_gravatar_deletion_prompt(0):
 			self.create_gravatar_records()
 
 			with patch("frappe.utils.legacy_gravatar_cleanup.is_job_enqueued", return_value=True) as mock:
 				self.assertFalse(should_show_gravatar_deletion_prompt())
 
 			mock.assert_called_once_with(GRAVATAR_DELETION_JOB_ID)
-			self.assertEqual(
-				cint(frappe.db.get_single_value("System Settings", "skip_gravatar_deletion_prompt")), 0
-			)
+			self.assertEqual(cint(get_global_default(SKIP_GRAVATAR_DELETION_PROMPT)), 0)
 
 	def test_submit_gravatar_deletion_prompt(self):
 		user, contact, lead = self.create_gravatar_records()
 
-		with change_settings("System Settings", {"skip_gravatar_deletion_prompt": 0}):
+		with skip_gravatar_deletion_prompt(0):
 			response = submit_gravatar_deletion_prompt(delete_gravatar_urls=True, skip_prompt=True)
 
 			self.assertTrue(response["queued"])
@@ -60,9 +76,7 @@ class TestGravatarDeletion(IntegrationTestCase):
 			self.assertFalse(frappe.db.get_value("Contact", contact.name, "image"))
 			if lead:
 				self.assertFalse(frappe.db.get_value("Lead", lead.name, "image"))
-			self.assertEqual(
-				cint(frappe.db.get_single_value("System Settings", "skip_gravatar_deletion_prompt")), 1
-			)
+			self.assertEqual(cint(get_global_default(SKIP_GRAVATAR_DELETION_PROMPT)), 1)
 
 	def create_gravatar_records(self):
 		email = f"gravatar-test-{frappe.generate_hash()}@example.com"

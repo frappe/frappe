@@ -9,6 +9,7 @@ from frappe.utils.background_jobs import is_job_enqueued
 
 GRAVATAR_URL_PATTERN = "%gravatar.com%"
 GRAVATAR_DELETION_JOB_ID = "delete_legacy_gravatar_image_urls"
+SKIP_GRAVATAR_DELETION_PROMPT = "skip_gravatar_deletion_prompt"
 BASE_GRAVATAR_IMAGE_FIELDS = (
 	("User", "user_image"),
 	("Contact", "image"),
@@ -27,7 +28,7 @@ def should_show_gravatar_deletion_prompt():
 	if "System Manager" not in frappe.get_roles():
 		return False
 
-	if cint(frappe.get_single_value("System Settings", "skip_gravatar_deletion_prompt")):
+	if cint(frappe.defaults.get_global_default(SKIP_GRAVATAR_DELETION_PROMPT)):
 		return False
 
 	if is_job_enqueued(GRAVATAR_DELETION_JOB_ID):
@@ -48,7 +49,7 @@ def submit_gravatar_deletion_prompt(delete_gravatar_urls: bool = False, skip_pro
 	frappe.only_for("System Manager")
 
 	if cint(skip_prompt):
-		frappe.db.set_single_value("System Settings", "skip_gravatar_deletion_prompt", 1)
+		frappe.defaults.set_global_default(SKIP_GRAVATAR_DELETION_PROMPT, 1)
 
 	queued = False
 	if cint(delete_gravatar_urls):
@@ -70,4 +71,4 @@ def delete_gravatar_image_urls():
 		filters = {fieldname: ("like", GRAVATAR_URL_PATTERN)}
 		frappe.db.set_value(doctype, filters, fieldname, "", update_modified=False)
 
-	frappe.db.set_single_value("System Settings", "skip_gravatar_deletion_prompt", 1)
+	frappe.defaults.set_global_default(SKIP_GRAVATAR_DELETION_PROMPT, 1)
