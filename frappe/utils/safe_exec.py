@@ -150,7 +150,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 
 def _validate_safe_eval_syntax(code):
-	BLOCKED_NODES = (ast.NamedExpr,)
+	BLOCKED_NODES = (ast.NamedExpr, ast.Lambda)
 
 	tree = ast.parse(code, mode="eval")
 	for node in ast.walk(tree):
@@ -172,10 +172,8 @@ def safe_exec_flags():
 		frappe.flags.in_safe_exec -= 1
 
 
-def get_doc_as_dict(doctype, name):
-	assert isinstance(doctype, str)
-	assert isinstance(name, (str, int))
-	return frappe.get_doc(doctype, name).as_dict()
+def get_doc_as_dict(*args, **kwargs):
+	return frappe.get_doc(*args, **kwargs).as_dict()
 
 
 def safer_get_last_doc(*args, **kwargs):
@@ -351,6 +349,7 @@ def render_safe_globals():
 			user=user,
 			get_fullname=frappe.utils.get_fullname,
 			get_gravatar=frappe.utils.get_gravatar_url,
+			get_identicon=frappe.utils.get_identicon,
 			full_name=frappe.local.session.data.full_name
 			if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 			else "Guest",
@@ -631,6 +630,7 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 
 	Safe queries:
 	        1. Read only 'select' or 'explain' queries
+			2. CTE on mariadb where writes are not allowed.
 	"""
 
 	query = query.strip().lower()
@@ -645,7 +645,9 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 			)
 		return False
 
-	if query.startswith(whitelisted_statements):
+	if query.startswith(whitelisted_statements) or (
+		query.startswith("with") and frappe.db.db_type == "mariadb"
+	):
 		return True
 
 	if throw:

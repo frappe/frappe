@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-26 14:11\n"
+"PO-Revision-Date: 2026-06-14 17:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
@@ -1454,7 +1454,7 @@ msgstr "Aggiungi numeri o caratteri speciali."
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
-msgstr "Aggiungi interruzione di pagina"
+msgstr ""
 
 #: frappe/custom/doctype/client_script/client_script.js:16
 msgid "Add script for Child Table"
@@ -1462,7 +1462,7 @@ msgstr "Aggiungi script per Child Table"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:111
 msgid "Add section above"
-msgstr "Aggiungi sezione sopra"
+msgstr ""
 
 #: frappe/public/js/form_builder/components/Section.vue:265
 msgid "Add section below"
@@ -1594,7 +1594,7 @@ msgstr "Aggiunge un campo personalizzato a un DocType"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:552
 msgid "Administration"
-msgstr "Amministrazione"
+msgstr ""
 
 #. Name of a role
 #: frappe/contacts/doctype/salutation/salutation.json
@@ -4112,7 +4112,7 @@ msgstr "Cache Svuotata"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:181
 msgid "Calculate"
-msgstr "Calcola"
+msgstr ""
 
 #. Label of a Link in the Tools Workspace
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
@@ -4863,7 +4863,7 @@ msgstr "Cancella assegnazione"
 
 #: frappe/public/js/frappe/ui/keyboard.js:278
 msgid "Clear Cache and Reload"
-msgstr "Cancella Cache e Ricarica"
+msgstr ""
 
 #: frappe/core/doctype/error_log/error_log_list.js:12
 msgid "Clear Error Logs"
@@ -6040,11 +6040,11 @@ msgstr "Crea un Promemoria"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:537
 msgid "Create a new ..."
-msgstr "Crea un nuovo ..."
+msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:156
 msgid "Create a new record"
-msgstr "Crea un nuovo record"
+msgstr ""
 
 #: frappe/public/js/frappe/form/controls/link.js:321
 #: frappe/public/js/frappe/form/controls/link.js:323
@@ -6306,7 +6306,7 @@ msgstr "Tipi di documento personalizzati (Permesso di selezione)"
 
 #: frappe/core/doctype/user_type/user_type.py:104
 msgid "Custom Document Types Limit Exceeded"
-msgstr "Limite dei tipi di documento personalizzati superato"
+msgstr ""
 
 #: frappe/desk/desktop.py:493
 msgid "Custom Documents"
@@ -8412,7 +8412,7 @@ msgstr "Trascina e rilascia i file qui o caricali da"
 
 #: frappe/public/js/print_format_builder/ConfigureColumns.vue:76
 msgid "Drag columns to set order. Column width is set in percentage. The total width should not be more than 100. Columns marked in red will be removed."
-msgstr "Trascina le colonne per impostare l'ordine. La larghezza delle colonne è impostata in percentuale. La larghezza totale non deve superare 100. Le colonne contrassegnate in rosso verranno rimosse."
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
@@ -8645,7 +8645,7 @@ msgstr "Modifica Filtri"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:29
 msgid "Edit Footer"
-msgstr "Modifica Piè di Pagina"
+msgstr ""
 
 #: frappe/printing/doctype/print_format/print_format.js:29
 msgid "Edit Format"
@@ -8662,7 +8662,7 @@ msgstr "Modifica HTML"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:9
 msgid "Edit Header"
-msgstr "Modifica intestazione"
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:602
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:8
@@ -8671,7 +8671,7 @@ msgstr "Modifica titolo"
 
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:52
 msgid "Edit Letter Head"
-msgstr "Modifica intestazione lettera"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:35
 msgid "Edit Letter Head Footer"
@@ -10236,11 +10236,11 @@ msgstr "Nome campo"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:141
 msgid "Field Orientation (Left-Right)"
-msgstr "Orientamento campo (sinistra-destra)"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:148
 msgid "Field Orientation (Top-Down)"
-msgstr "Orientamento campo (dall'alto in basso)"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:233
 #: frappe/public/js/print_format_builder/utils.js:69
@@ -10641,7 +10641,7 @@ msgstr "Filtri:"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:572
 msgid "Find '{0}' in ..."
-msgstr "Cerca '{0}' in ..."
+msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:329
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:331
@@ -15117,7 +15117,7 @@ msgstr "Impostazioni Vista Elenco"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:161
 msgid "List a document type"
-msgstr "Elenca un tipo di documento"
+msgstr ""
 
 #. Description of the 'Breadcrumbs' (Code) field in DocType 'Web Form'
 #. Description of the 'Breadcrumbs' (Code) field in DocType 'Web Page'
@@ -15138,7 +15138,7 @@ msgstr "Messaggio impostazioni lista"
 
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:542
 msgid "Lists"
-msgstr "Liste"
+msgstr ""
 
 #. Option for the 'Rule' (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -15184,7 +15184,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Loading versions..."
-msgstr "Caricamento versioni..."
+msgstr ""
 
 #: frappe/public/js/frappe/file_uploader/TreeNode.vue:45
 #: frappe/public/js/frappe/form/sidebar/share.js:51
@@ -15433,7 +15433,7 @@ msgstr "Sembra che tu non abbia aggiunto app di terze parti."
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:315
 msgid "Looks like you haven’t received any notifications."
-msgstr "Sembra che tu non abbia ricevuto alcuna notifica."
+msgstr ""
 
 #: frappe/core/doctype/server_script/server_script_list.js:18
 msgid "Loving Frappe Framework?"
@@ -15580,11 +15580,11 @@ msgstr "Campo obbligatorio: {0}"
 
 #: frappe/public/js/frappe/form/save.js:181
 msgid "Mandatory fields required in table {0}, Row {1}"
-msgstr "Campi obbligatori richiesti nella tabella {0}, riga {1}"
+msgstr ""
 
 #: frappe/public/js/frappe/form/save.js:186
 msgid "Mandatory fields required in {0}"
-msgstr "Campi obbligatori richiesti in {0}"
+msgstr ""
 
 #: frappe/public/js/frappe/web_form/web_form.js:258
 msgctxt "Error message in web form"
@@ -15620,7 +15620,7 @@ msgstr "Mappa i parametri del percorso nelle variabili del modulo. Esempio <code
 
 #: frappe/core/doctype/data_import/importer.py:885
 msgid "Mapping column {0} to field {1}"
-msgstr "Mappatura della colonna {0} nel campo {1}"
+msgstr ""
 
 #. Label of a Float field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json
@@ -16438,7 +16438,7 @@ msgstr "Sposta le sezioni in una nuova scheda"
 
 #: frappe/public/js/form_builder/components/Field.vue:239
 msgid "Move the current field and the following fields to a new column"
-msgstr "Sposta il campo corrente e i campi seguenti in una nuova colonna"
+msgstr ""
 
 #: frappe/public/js/frappe/form/grid_row.js:169
 msgid "Move to Row Number"
@@ -16697,7 +16697,7 @@ msgstr "Hai bisogno di aiuto?"
 
 #: frappe/desk/doctype/workspace/workspace.py:314
 msgid "Need Workspace Manager role to edit private workspace of other users"
-msgstr "È necessario il ruolo di Responsabile Area di Lavoro per modificare l'area di lavoro privata di altri utenti"
+msgstr ""
 
 #: frappe/desk/doctype/workspace/workspace.py:358
 msgid "Need Workspace Manager role to hide/unhide public workspaces"
@@ -17178,7 +17178,7 @@ msgstr "Nessun nome specificato per {0}"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:315
 msgid "No New notifications"
-msgstr "Nessuna Nuova Notifica"
+msgstr ""
 
 #: frappe/core/doctype/doctype/doctype.py:1721
 msgid "No Permissions Specified"
@@ -17190,11 +17190,11 @@ msgstr "Nessun permesso impostato per questo criterio."
 
 #: frappe/core/page/dashboard_view/dashboard_view.js:93
 msgid "No Permitted Charts"
-msgstr "Nessun grafico consentito"
+msgstr ""
 
 #: frappe/core/page/dashboard_view/dashboard_view.js:92
 msgid "No Permitted Charts on this Dashboard"
-msgstr "Nessun grafico consentito su questa dashboard"
+msgstr ""
 
 #: frappe/printing/doctype/print_settings/print_settings.js:13
 msgid "No Preview"
@@ -17705,7 +17705,7 @@ msgstr "Note:"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:488
 msgid "Nothing New"
-msgstr "Nessuna Novità"
+msgstr ""
 
 #: frappe/public/js/frappe/form/undo_manager.js:43
 msgid "Nothing left to redo"
@@ -18306,7 +18306,7 @@ msgstr "Documenti aperti"
 
 #: frappe/public/js/frappe/ui/keyboard.js:240
 msgid "Open Help"
-msgstr "Apri aiuto"
+msgstr ""
 
 #. Label of a Button field in DocType 'Notification Log'
 #: frappe/desk/doctype/notification_log/notification_log.json
@@ -18315,11 +18315,11 @@ msgstr "Apri documento di riferimento"
 
 #: frappe/public/js/frappe/ui/keyboard.js:223
 msgid "Open Settings"
-msgstr "Apri impostazioni"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:11
 msgid "Open Source Applications for the Web"
-msgstr "Applicazioni Open Source per il Web"
+msgstr ""
 
 #. Label of a Check field in DocType 'Top Bar Item'
 #: frappe/website/doctype/top_bar_item/top_bar_item.json
@@ -18333,7 +18333,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:176
 msgid "Open a module or tool"
-msgstr "Apri un modulo o strumento"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/Preview.vue:17
 msgid "Open in a new tab"
@@ -18728,7 +18728,7 @@ msgstr "Altezza Pagina (in mm)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:5
 msgid "Page Margins"
-msgstr "Margini di Pagina"
+msgstr ""
 
 #. Label of a Data field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
@@ -21556,7 +21556,7 @@ msgstr "File rinominati e codice nei controller sostituito, si prega di verifica
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:17
 msgid "Render labels to the left and values to the right in this section"
-msgstr "Visualizza le etichette a sinistra e i valori a destra in questa sezione"
+msgstr ""
 
 #: frappe/core/doctype/communication/communication.js:43
 #: frappe/desk/doctype/todo/todo.js:36
@@ -23053,7 +23053,7 @@ msgstr "Campi di ricerca"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:186
 msgid "Search Help"
-msgstr "Cerca aiuto"
+msgstr ""
 
 #. Label of a Table field in DocType 'Global Search Settings'
 #: frappe/desk/doctype/global_search_settings/global_search_settings.json
@@ -23096,7 +23096,7 @@ msgstr "Cerca {0}"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:166
 msgid "Search in a document type"
-msgstr "Cerca in un tipo di documento"
+msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/navbar.html:29
 msgid "Search or type a command ({0})"
@@ -24413,7 +24413,7 @@ msgstr "Mostra numero completo"
 
 #: frappe/public/js/frappe/ui/keyboard.js:231
 msgid "Show Keyboard Shortcuts"
-msgstr "Mostra Scorciatoie Tastiera"
+msgstr ""
 
 #. Label of a Check field in DocType 'Kanban Board'
 #: frappe/desk/doctype/kanban_board/kanban_board.json
@@ -25810,7 +25810,7 @@ msgstr "Sincronizza con Google Contacts"
 
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:46
 msgid "Sync {0} Fields"
-msgstr "Sincronizza campi {0}"
+msgstr ""
 
 #: frappe/custom/doctype/doctype_layout/doctype_layout.js:100
 msgid "Synced Fields"
@@ -26465,15 +26465,15 @@ msgstr "Il seguente script intestazione aggiungerà la data corrente a un elemen
 
 #: frappe/core/doctype/data_import/importer.py:1044
 msgid "The following values are invalid: {0}. Values must be one of {1}"
-msgstr "I seguenti valori non sono validi: {0}. I valori devono essere uno tra {1}"
+msgstr ""
 
 #: frappe/core/doctype/data_import/importer.py:1007
 msgid "The following values do not exist for {0}: {1}"
-msgstr "I seguenti valori non esistono per {0}: {1}"
+msgstr ""
 
 #: frappe/core/doctype/user_type/user_type.py:88
 msgid "The limit has not set for the user type {0} in the site config file."
-msgstr "Il limite non è stato impostato per il tipo utente {0} nel file di configurazione del sito."
+msgstr ""
 
 #: frappe/templates/emails/login_with_email_link.html:21
 msgid "The link will expire in {0} minutes"
@@ -26565,7 +26565,7 @@ msgstr ""
 
 #: frappe/core/doctype/user_type/user_type.py:96
 msgid "The total number of user document types limit has been crossed."
-msgstr "Il numero totale di tipi di documenti utente ha superato il limite."
+msgstr ""
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:43
 msgid "The user can create a new Item but cannot edit existing items."
@@ -27672,7 +27672,7 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/ConfigureColumns.vue:12
 msgid "Total:"
-msgstr "Totale:"
+msgstr ""
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1259
 msgid "Totals"
@@ -27857,7 +27857,7 @@ msgstr "Metodo di Attivazione"
 
 #: frappe/public/js/frappe/ui/keyboard.js:194
 msgid "Trigger Primary Action"
-msgstr "Esegui azione primaria"
+msgstr ""
 
 #: frappe/tests/test_translate.py:55
 msgid "Trigger caching"
@@ -28658,7 +28658,7 @@ msgstr "Tipo di documento utente"
 
 #: frappe/core/doctype/user_type/user_type.py:97
 msgid "User Document Types Limit Exceeded"
-msgstr "Limite tipi di documenti utente superato"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/core/doctype/user_email/user_email.json
@@ -28836,7 +28836,7 @@ msgstr ""
 
 #: frappe/core/doctype/user_type/user_type.py:82
 msgid "User does not have permission to create the new {0}"
-msgstr "L'utente non ha il permesso di creare il nuovo {0}"
+msgstr ""
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:102
 msgid "User is disabled"
@@ -28861,7 +28861,7 @@ msgstr "L'autorizzazione utente esiste già"
 
 #: frappe/www/login.py:171
 msgid "User with email address {0} does not exist"
-msgstr "L'utente con indirizzo e-mail {0} non esiste"
+msgstr ""
 
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.py:225
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
@@ -29102,7 +29102,7 @@ msgstr "Valore troppo grande"
 
 #: frappe/core/doctype/data_import/importer.py:719
 msgid "Value {0} missing for {1}"
-msgstr "Valore {0} mancante per {1}"
+msgstr ""
 
 #: frappe/core/doctype/data_import/importer.py:750 frappe/utils/data.py:706
 msgid "Value {0} must be in the valid duration format: d h m s"
@@ -30348,7 +30348,7 @@ msgstr "È possibile stampare solo fino a {0} documenti alla volta"
 
 #: frappe/core/doctype/user_type/user_type.py:103
 msgid "You can only set the 3 custom doctypes in the Document Types table."
-msgstr "È possibile impostare solo 3 tipi di documenti personalizzati nella tabella Tipi di documenti."
+msgstr ""
 
 #: frappe/handler.py:230
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."
@@ -31549,7 +31549,7 @@ msgstr ""
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:178
 msgid "module name..."
-msgstr "nome modulo..."
+msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -31567,7 +31567,7 @@ msgstr "nuovo"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:158
 msgid "new type of document"
-msgstr "nuovo tipo di documento"
+msgstr ""
 
 #. Label of a Int field in DocType 'Email Account'
 #: frappe/email/doctype/email_account/email_account.json

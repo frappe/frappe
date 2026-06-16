@@ -30,7 +30,7 @@ from frappe.utils import (
 	format_timedelta,
 	get_bench_path,
 	get_file_timestamp,
-	get_gravatar,
+	get_identicon,
 	get_safe_filters,
 	get_site_info,
 	get_sites,
@@ -1102,18 +1102,14 @@ class TestLazyLoader(FrappeTestCase):
 
 
 class TestIdenticon(FrappeTestCase):
-	def test_get_gravatar(self):
-		# developers@frappe.io has a gravatar linked so str URL will be returned
-		frappe.flags.in_test = False
-		gravatar_url = get_gravatar("developers@frappe.io")
-		frappe.flags.in_test = True
-		self.assertIsInstance(gravatar_url, str)
-		self.assertTrue(gravatar_url.startswith("http"))
+	def test_get_identicon(self):
+		identicon = get_identicon("developers@frappe.io")
+		self.assertIsInstance(identicon, str)
+		self.assertTrue(identicon.startswith("data:image/png;base64,"))
 
-		# random email will require Identicon to be generated, which will be a base64 string
-		gravatar_url = get_gravatar(f"developers{random_string(6)}@frappe.io")
-		self.assertIsInstance(gravatar_url, str)
-		self.assertTrue(gravatar_url.startswith("data:image/png;base64,"))
+		identicon = get_identicon(f"developers{random_string(6)}@frappe.io")
+		self.assertIsInstance(identicon, str)
+		self.assertTrue(identicon.startswith("data:image/png;base64,"))
 
 	def test_generate_identicon(self):
 		identicon = Identicon(random_string(6))
@@ -1383,6 +1379,16 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(flt(-1.15, 1, rounding_method=rounding_method), -1.2)
 		self.assertEqual(flt(-2.25, 1, rounding_method=rounding_method), -2.2)
 		self.assertEqual(flt(-3.35, 1, rounding_method=rounding_method), -3.4)
+
+		# Sign-symmetry regression.
+		for value, expected in [
+			(647.325, 647.32),
+			(647.315, 647.32),
+			(0.125, 0.12),
+			(0.135, 0.14),
+		]:
+			self.assertEqual(flt(value, 2, rounding_method=rounding_method), expected)
+			self.assertEqual(flt(-value, 2, rounding_method=rounding_method), -expected)
 
 	@change_settings("System Settings", {"rounding_method": "Banker's Rounding"})
 	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))

@@ -29,7 +29,6 @@ from frappe.utils import (
 	format_datetime,
 	get_formatted_email,
 	get_system_timezone,
-	has_gravatar,
 	now_datetime,
 	today,
 )
@@ -49,6 +48,7 @@ desk_properties = (
 	"bulk_actions",
 	"view_switcher",
 	"form_sidebar",
+	"form_navigation_buttons",
 	"timeline",
 	"dashboard",
 )
@@ -93,6 +93,7 @@ class User(Document):
 		follow_created_documents: DF.Check
 		follow_liked_documents: DF.Check
 		follow_shared_documents: DF.Check
+		form_navigation_buttons: DF.Check
 		form_sidebar: DF.Check
 		full_name: DF.Data | None
 		gender: DF.Link | None
@@ -239,14 +240,6 @@ class User(Document):
 			now=now,
 			enqueue_after_commit=True,
 		)
-
-		if self.name not in STANDARD_USERS and not self.user_image:
-			frappe.enqueue(
-				"frappe.core.doctype.user.user.update_gravatar",
-				name=self.name,
-				now=now,
-				enqueue_after_commit=True,
-			)
 
 		# Set user selected timezone
 		if self.time_zone:
@@ -1240,12 +1233,6 @@ def handle_password_test_fail(feedback: dict):
 		msg="".join(message_parts),
 		title=_("Password requirements not met"),
 	)
-
-
-def update_gravatar(name):
-	gravatar = has_gravatar(name)
-	if gravatar:
-		frappe.db.set_value("User", name, "user_image", gravatar)
 
 
 def throttle_user_creation():

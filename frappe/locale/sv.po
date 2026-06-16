@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-11 10:20\n"
+"PO-Revision-Date: 2026-06-14 17:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -275,7 +275,7 @@ msgstr "<b>{0}</b> är inte giltig URL"
 #. Content of the 'Help' (HTML) field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
 msgid "<div class=\"alert\">Please don't update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>"
-msgstr "<div class=\"alert\">Vänligen uppdatera inte det eftersom det kan förstöra ditt formulär. Använd Anpassa Formulär och anpassa Fält och ange egenskaper!</div>"
+msgstr "<div class=\"alert\">Uppdatera inte eftersom det kan förstöra formulär. Använd Anpassa Formulär Vy och Anpassa Fält och ange egenskaper!</div>"
 
 #. Introduction text of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json
@@ -766,7 +766,7 @@ msgstr "<span class=\"h4\"><b>Genvägar</b></span>"
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
 msgid "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Components to build your app</b></span>"
-msgstr "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>Komponenter för att skapa app</b></span>"
+msgstr "<span style=\"font-size: 18px; letter-spacing: 0.18px;\"><b>App Komponenter</b></span>"
 
 #. Header text in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -2354,7 +2354,7 @@ msgstr "Alla strängbaserade skrivarspråk kan användas. Att skriva rå kommand
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:103
 msgid "Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type."
-msgstr "Förutom System Ansvarig kan roller med  Ange användarbehörighet rättigheten ange behörigheter för andra användare för detta DocType."
+msgstr "Förutom System Ansvarig kan roller med Ange Användare Behörighet rättigheten ange behörigheter för andra användare för detta DocType."
 
 #. Label of a Tab Break field in DocType 'System Settings'
 #. Label of a Section Break field in DocType 'User'
@@ -2509,7 +2509,7 @@ msgstr "Tillämpa Endast En Gång"
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Apply Strict User Permissions"
-msgstr "Tillämpa Strikta Användar Behörigheter"
+msgstr "Tillämpa Strikta Användare Behörigheter"
 
 #. Label of a Select field in DocType 'Client Script'
 #: frappe/custom/doctype/client_script/client_script.json
@@ -2524,7 +2524,7 @@ msgstr "Tillämpa på Alla Dokument Typer"
 #. Label of a Link field in DocType 'User Type'
 #: frappe/core/doctype/user_type/user_type.json
 msgid "Apply User Permission On"
-msgstr "Tillämpa Användar Behörighet på"
+msgstr "Tillämpa Användare Behörighet på"
 
 #. Description of the 'If user is the owner' (Check) field in DocType 'Custom
 #. DocPerm'
@@ -2683,7 +2683,7 @@ msgstr "Arial"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:11
 msgid "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
-msgstr "Som bästa praxis, tilldela inte samma behörighetsregler till olika roller. Istället tilldela flera roller till samma användare."
+msgstr "Som bästa praxis, tilldela inte samma behörighet regler till olika roller. Istället tilldela flera roller till samma användare."
 
 #: frappe/desk/form/assign_to.py:107
 msgid "As document sharing is disabled, please give them the required permissions before assigning."
@@ -3276,7 +3276,7 @@ msgstr "Medel"
 
 #: frappe/public/js/frappe/ui/group_by/group_by.js:345
 msgid "Average of {0}"
-msgstr "Genomsnitt av {0}"
+msgstr "Medel av {0}"
 
 #: frappe/utils/password_strength.py:124
 msgid "Avoid dates and years that are associated with you."
@@ -4062,17 +4062,17 @@ msgstr "Efter skript"
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json
 msgid "Bypass Restricted IP Address Check If Two Factor Auth Enabled"
-msgstr "Frångå begränsad IP Adress Kontroll om Två Faktor Autentisering är Aktiverad"
+msgstr "Ignorera begränsad IP Adress Kontroll om Två Faktor Autentisering är Aktiverad"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Bypass Two Factor Auth for users who login from restricted IP Address"
-msgstr "Frångå Två Faktor Autentisering för Användare som loggar in från begränsad IP Adress"
+msgstr "Ignorera Två Faktor Autentisering för Användare som loggar in från begränsad IP Adress"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Bypass restricted IP Address check If Two Factor Auth Enabled"
-msgstr "Frångå begränsad IP Adress kontroll om Två Faktor Autentisering är Aktiverad"
+msgstr "Ignorera begränsad IP Adress kontroll om Två Faktor Autentisering är Aktiverad"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -6542,7 +6542,7 @@ msgstr "Anpassa Översikt Panel"
 #: frappe/custom/doctype/customize_form/customize_form.json
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:356
 msgid "Customize Form"
-msgstr "Anpassa Formulär"
+msgstr "Anpassad Formulär"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:100
 msgid "Customize Form - {0}"
@@ -12484,7 +12484,7 @@ msgstr "Idx"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User"
-msgstr "Om Använd Strikt Användar Behörighet är vald och Användar Behörighet är definierad för DocType för Användare, kommer inte alla dokument där länk värde är tomt att visas för Användare"
+msgstr "Om Använd Strikt Användare Behörighet är vald och Användare Behörighet är definierad för DocType för Användare, kommer inte alla dokument där länk värde är tomt att visas för Användare"
 
 #. Description of the 'Don't Override Status' (Check) field in DocType
 #. 'Workflow'
@@ -12967,7 +12967,7 @@ msgstr "I Dagar"
 #. Description of the Onboarding Step 'Setup Limited Access for a User'
 #: frappe/custom/onboarding_step/role_permissions/role_permissions.json
 msgid "In ERPNext, you can add your Employees as Users, and give them restricted access. Tools like Role Permission and User Permission allow you to define rules which give restricted access to the user to masters and transactions."
-msgstr "I System kan du lägga till dina anställda som användare och ge dem begränsad åtkomst. Verktyg som Rollbehörighet och Användarbehörighet definierar regler som ger användare begränsad åtkomst till tabeller och transaktioner."
+msgstr "I System kan du lägga till dina anställda som användare och ge dem begränsad åtkomst. Verktyg som Roll Behörighet och Användare Behörighet definierar regler som ger användare begränsad åtkomst till tabeller och transaktioner."
 
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Check field in DocType 'Customize Form Field'
@@ -20829,7 +20829,7 @@ msgstr "RQ Jobb"
 #. Name of a DocType
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "RQ Worker"
-msgstr "RQ Worker"
+msgstr "RQ Tjänst"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -21911,7 +21911,7 @@ msgstr "Begärd Av"
 #: frappe/integrations/doctype/integration_request/integration_request.json
 #: frappe/website/web_form/request_data/request_data.json
 msgid "Request Data"
-msgstr "Begäran Data"
+msgstr "Begär Data"
 
 #. Label of a Data field in DocType 'Integration Request'
 #: frappe/integrations/doctype/integration_request/integration_request.json
@@ -22974,7 +22974,7 @@ msgstr "Schemaläggare"
 #: frappe/core/doctype/scheduler_event/scheduler_event.json
 #: frappe/core/doctype/server_script/server_script.json
 msgid "Scheduler Event"
-msgstr "Schemaläggare Händelse"
+msgstr "Schemalagd Händelse"
 
 #: frappe/core/doctype/data_import/data_import.py:112
 msgid "Scheduler Inactive"
@@ -24077,7 +24077,7 @@ msgstr "Ange Roll För"
 #: frappe/core/doctype/user/user.js:148
 #: frappe/core/page/permission_manager/permission_manager.js:72
 msgid "Set User Permissions"
-msgstr "Ange Användar Behörigheter"
+msgstr "Ange Användare Behörigheter"
 
 #. Label of a Small Text field in DocType 'Property Setter'
 #: frappe/custom/doctype/property_setter/property_setter.json
@@ -24250,7 +24250,7 @@ msgstr "Inställningar för att kontrollera blogg kategorier och interaktioner s
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:567
 #: frappe/website/workspace/website/website.json
 msgid "Setup"
-msgstr "Inställning"
+msgstr "Konfigurera"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:94
 msgid "Setup > Customize Form"
@@ -24262,7 +24262,7 @@ msgstr "Inställningar > Användare"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:100
 msgid "Setup > User Permissions"
-msgstr "Inställningar > Användar Behörigheter"
+msgstr "Inställningar > Användare Behörigheter"
 
 #. Title of an Onboarding Step
 #: frappe/custom/onboarding_step/workflows/workflows.json
@@ -24335,7 +24335,7 @@ msgstr "Delad"
 
 #: frappe/desk/form/assign_to.py:132
 msgid "Shared with the following Users with Read access:{0}"
-msgstr "Delas med följande Användare med läsbehörighet: {0}"
+msgstr "Delas med följande Användare med Läs Behörighet: {0}"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json
@@ -26835,7 +26835,7 @@ msgstr "Detta kan inte ångras"
 #: frappe/desk/doctype/number_card/number_card.js:484
 msgctxt "Number Card"
 msgid "This card is visible only to Administrator and System Managers by default. Set a DocType to share with users who have read access."
-msgstr "Detta kort är som standard endast synligt för Administratörer och System Ansvariga. Ange DocType som ska delas med användare som har läsbehörighet."
+msgstr "Detta kort är som standard endast synligt för Administratörer och System Ansvariga. Ange DocType som ska delas med användare som har läs behörighet."
 
 #. Description of the 'Is Public' (Check) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
@@ -28153,12 +28153,12 @@ msgstr "Sluta Följa"
 #. Name of a DocType
 #: frappe/email/doctype/unhandled_email/unhandled_email.json
 msgid "Unhandled Email"
-msgstr "Ohanterad E-post"
+msgstr "E-post att Hantera"
 
 #. Label of a Int field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Unhandled Emails"
-msgstr "Ohanterad E-post "
+msgstr "E-post att Hantera"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:601
 msgid "Unhide Workspace"
@@ -28798,7 +28798,7 @@ msgstr "Användare Behörigheter"
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:99
 msgid "User Permissions are used to limit users to specific records."
-msgstr "Användarbehörigheter används för att begränsa användare till specifika poster."
+msgstr "Användare Behörigheter används för att begränsa användare till specifika poster."
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:124
 msgid "User Permissions created sucessfully"
@@ -31658,7 +31658,7 @@ msgstr "gammal_överordnad"
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "on_cancel"
-msgstr "on_cancel"
+msgstr "på_avbryt"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -31673,7 +31673,7 @@ msgstr "på_godkänn"
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
 msgid "on_trash"
-msgstr "på_papperskorg"
+msgstr "på_förkasta"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json

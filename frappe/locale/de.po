@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-07 09:34\n"
+"PO-Revision-Date: 2026-06-14 17:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -8456,7 +8456,7 @@ msgstr "Ziehen Sie die Dateien hierher oder laden Sie sie von"
 
 #: frappe/public/js/print_format_builder/ConfigureColumns.vue:76
 msgid "Drag columns to set order. Column width is set in percentage. The total width should not be more than 100. Columns marked in red will be removed."
-msgstr "Ziehen Sie die Spalten, um die Reihenfolge festzulegen. Die Spaltenbreite wird in Prozent angegeben. Die Gesamtbreite sollte nicht mehr als 100 betragen. Rot markierte Spalten werden entfernt."
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
@@ -8689,7 +8689,7 @@ msgstr "Filter bearbeiten"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:29
 msgid "Edit Footer"
-msgstr "Fußzeile bearbeiten"
+msgstr ""
 
 #: frappe/printing/doctype/print_format/print_format.js:29
 msgid "Edit Format"
@@ -8706,7 +8706,7 @@ msgstr "HTML bearbeiten"
 
 #: frappe/public/js/print_format_builder/PrintFormat.vue:9
 msgid "Edit Header"
-msgstr "Kopfzeile bearbeiten"
+msgstr ""
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:602
 #: frappe/printing/page/print_format_builder/print_format_builder_layout.html:8
@@ -10281,11 +10281,11 @@ msgstr "Feldname"
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:141
 msgid "Field Orientation (Left-Right)"
-msgstr "Feldausrichtung (links-rechts)"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:148
 msgid "Field Orientation (Top-Down)"
-msgstr "Feldausrichtung (oben-unten)"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:233
 #: frappe/public/js/print_format_builder/utils.js:69
@@ -16485,7 +16485,7 @@ msgstr "Abschnitte in neue Registerkarte verschieben"
 
 #: frappe/public/js/form_builder/components/Field.vue:239
 msgid "Move the current field and the following fields to a new column"
-msgstr "Aktuelles und folgende Felder in eine neue Spalte verschieben"
+msgstr ""
 
 #: frappe/public/js/frappe/form/grid_row.js:169
 msgid "Move to Row Number"
@@ -18777,7 +18777,7 @@ msgstr "Seitenhöhe (in mm)"
 
 #: frappe/public/js/print_format_builder/PrintFormatControls.vue:5
 msgid "Page Margins"
-msgstr "Seitenränder"
+msgstr ""
 
 #. Label of a Data field in DocType 'Page'
 #: frappe/core/doctype/page/page.json
@@ -21605,7 +21605,7 @@ msgstr "Umbenannte Dateien und ersetzter Code in Controllern, bitte überprüfen
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:17
 msgid "Render labels to the left and values to the right in this section"
-msgstr "Beschriftungen nach links und Werte nach rechts in diesem Abschnitt anordnen"
+msgstr ""
 
 #: frappe/core/doctype/communication/communication.js:43
 #: frappe/desk/doctype/todo/todo.js:36
@@ -27722,7 +27722,7 @@ msgstr "Gesamtzahl der E-Mails im ersten Synchronisierung Prozess zu synchronisi
 
 #: frappe/public/js/print_format_builder/ConfigureColumns.vue:12
 msgid "Total:"
-msgstr "Summe:"
+msgstr ""
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1259
 msgid "Totals"
@@ -28708,7 +28708,7 @@ msgstr "Benutzer DocType"
 
 #: frappe/core/doctype/user_type/user_type.py:97
 msgid "User Document Types Limit Exceeded"
-msgstr "Benutzer DocType Limit überschritten"
+msgstr ""
 
 #. Name of a DocType
 #: frappe/core/doctype/user_email/user_email.json
@@ -30398,7 +30398,7 @@ msgstr "Sie können nur bis zu {0} Dokumente auf einmal drucken"
 
 #: frappe/core/doctype/user_type/user_type.py:103
 msgid "You can only set the 3 custom doctypes in the Document Types table."
-msgstr "Sie können nur die 3 benutzerdefinierten DocTypes in der Tabelle Document Types einstellen."
+msgstr ""
 
 #: frappe/handler.py:230
 msgid "You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."

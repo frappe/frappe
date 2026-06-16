@@ -7,7 +7,7 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
-from frappe.utils import cstr, has_gravatar
+from frappe.utils import cstr
 
 
 class Contact(Document):
@@ -69,9 +69,6 @@ class Contact(Document):
 		self.set_user()
 
 		set_link_title(self)
-
-		if self.email_id and not self.image:
-			self.image = has_gravatar(self.email_id)
 
 		if self.get("sync_with_google_contacts") and not self.get("google_contacts"):
 			frappe.throw(_("Select Google Contacts to which contact should be synced."))

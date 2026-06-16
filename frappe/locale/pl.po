@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-01-02 22:45+0000\n"
-"PO-Revision-Date: 2026-04-26 14:11\n"
+"PO-Revision-Date: 2026-06-14 17:40\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -1444,7 +1444,7 @@ msgstr "Dodaj cyfry lub znaki specjalne."
 
 #: frappe/public/js/print_format_builder/PrintFormatSection.vue:125
 msgid "Add page break"
-msgstr "Dodaj podział strony"
+msgstr ""
 
 #: frappe/custom/doctype/client_script/client_script.js:16
 msgid "Add script for Child Table"
@@ -5858,7 +5858,7 @@ msgstr "Nie można zmapować kolumny {0} do pola {1}"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:234
 msgid "Could not start up: "
-msgstr ""
+msgstr "Nie można uruchomić: "
 
 #: frappe/public/js/frappe/web_form/web_form.js:383
 msgid "Couldn't save, please check the data you have entered"
@@ -23043,7 +23043,7 @@ msgstr "Pola Wyszukiwania"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:186
 msgid "Search Help"
-msgstr "Pomoc wyszukiwania"
+msgstr ""
 
 #. Label of a Table field in DocType 'Global Search Settings'
 #: frappe/desk/doctype/global_search_settings/global_search_settings.json
@@ -26998,7 +26998,7 @@ msgstr "Ta wartość jest pobierana z pola {1} obiektu {0}"
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "This value specifies the max number of rows that can be rendered in report view. "
-msgstr ""
+msgstr "Ta wartość określa maksymalną liczbę wierszy, które mogą być wyświetlane w widoku raportu. "
 
 #: frappe/website/doctype/web_page/web_page.js:85
 msgid "This will be automatically generated when you publish the page, you can also enter a route yourself if you wish"
@@ -31539,7 +31539,7 @@ msgstr "moduł"
 
 #: frappe/public/js/frappe/ui/toolbar/awesome_bar.js:178
 msgid "module name..."
-msgstr "nazwa modułu..."
+msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: frappe/workflow/doctype/workflow_state/workflow_state.json
@@ -32867,7 +32867,7 @@ msgstr "Rola {0} nie ma uprawnień do żadnego Doctype"
 
 #: frappe/model/document.py:1637
 msgid "{0} row #{1}: "
-msgstr ""
+msgstr "{0} wiersz #{1}: "
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:304
 msgctxt "User removed rows from child table"
