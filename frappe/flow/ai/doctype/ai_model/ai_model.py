@@ -30,11 +30,13 @@ class AIModel(Document):
 		enabled: DF.Check
 		model_id: DF.Data
 		params: DF.JSON | None
+		provider: DF.Link | None
 		title: DF.Data
 	# end: auto-generated types
 
 	def validate(self):
 		self._normalize()
+		self._apply_provider()
 		self._validate_model_id()
 		self._validate_base_url()
 		self._validate_params()
@@ -54,6 +56,15 @@ class AIModel(Document):
 				self.set(field, value.strip())
 		if isinstance(self.api_key, str):
 			self.api_key = self.api_key.strip()
+
+	def _apply_provider(self):
+		# A linked provider lets the user enter just the model; compose the
+		# canonical provider/model id. Idempotent if the prefix is already present.
+		if not self.provider:
+			return
+		prefix = f"{self.provider}/"
+		if self.model_id and not self.model_id.startswith(prefix):
+			self.model_id = prefix + self.model_id
 
 	def _validate_model_id(self):
 		if not MODEL_ID_PATTERN.match(self.model_id or ""):

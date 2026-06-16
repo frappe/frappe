@@ -9,6 +9,7 @@
   "title",
   "enabled",
   "section_break_config",
+  "provider",
   "model_id",
   "api_key",
   "base_url",
@@ -35,7 +36,14 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "LiteLLM model identifier in <code>provider/model</code> form, e.g. <code>anthropic/claude-sonnet-4-6</code>, <code>openai/gpt-4.1</code>, <code>gemini/gemini-2.0-flash</code>, <code>ollama/llama3.1</code>",
+   "description": "Optional. Pick a provider to skip typing the <code>provider/</code> prefix in Model ID. Leave empty if Model ID already includes the provider.",
+   "fieldname": "provider",
+   "fieldtype": "Link",
+   "label": "Provider",
+   "options": "AI Provider"
+  },
+  {
+   "description": "LiteLLM model identifier. With a Provider linked, enter just the model (e.g. <code>claude-sonnet-4-6</code>); otherwise use <code>provider/model</code> form, e.g. <code>anthropic/claude-sonnet-4-6</code>, <code>openai/gpt-4.1</code>, <code>ollama/llama3.1</code>",
    "fieldname": "model_id",
    "fieldtype": "Data",
    "in_list_view": 1,

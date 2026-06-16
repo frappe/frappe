@@ -54,6 +54,37 @@ class TestAIModelValidation(IntegrationTestCase):
 			doc.insert()
 
 
+class TestAIModelProvider(IntegrationTestCase):
+	def setUp(self):
+		if not frappe.db.exists("AI Provider", "anthropic"):
+			frappe.get_doc({"doctype": "AI Provider", "provider": "anthropic"}).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_linked_provider_composes_model_id(self):
+		doc = frappe.get_doc(_model(provider="anthropic", model_id="claude-sonnet-4-6")).insert()
+
+		self.assertEqual(doc.model_id, "anthropic/claude-sonnet-4-6")
+
+	def test_compose_is_idempotent_for_prefixed_model_id(self):
+		doc = frappe.get_doc(_model(provider="anthropic", model_id="anthropic/claude-sonnet-4-6")).insert()
+
+		self.assertEqual(doc.model_id, "anthropic/claude-sonnet-4-6")
+
+	def test_resave_does_not_double_prefix(self):
+		doc = frappe.get_doc(_model(provider="anthropic", model_id="claude-sonnet-4-6")).insert()
+		doc.save()
+
+		self.assertEqual(doc.model_id, "anthropic/claude-sonnet-4-6")
+
+	def test_full_model_id_without_provider_still_works(self):
+		doc = frappe.get_doc(_model(model_id="openai/gpt-4o-mini")).insert()
+
+		self.assertFalse(doc.provider)
+		self.assertEqual(doc.model_id, "openai/gpt-4o-mini")
+
+
 class TestAIModelBaseURL(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
