@@ -6,6 +6,7 @@ next major release.
 from enum import Enum
 
 import frappe
+from frappe import _
 from frappe.utils import cint
 from frappe.utils.background_jobs import is_job_enqueued
 
@@ -77,6 +78,8 @@ def submit_gravatar_deletion_prompt(action: str):
 			deduplicate=True,
 		)
 		return "queued"
+
+	frappe.throw(_("Invalid action"))
 
 
 def delete_gravatar_image_urls():
