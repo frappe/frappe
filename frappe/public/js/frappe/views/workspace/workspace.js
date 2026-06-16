@@ -411,6 +411,7 @@ frappe.views.Workspace = class Workspace {
 				frappe.set_route(`workspace/${page.name}`);
 			});
 		}
+		this.add_workspace_controls = false;
 	}
 
 	make_blocks_sortable() {

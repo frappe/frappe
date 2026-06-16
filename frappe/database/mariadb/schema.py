@@ -153,7 +153,7 @@ class MariaDBTable(DBTable):
 					print(f"Failed to update data in {self.table_name} for {col.fieldname}")
 					raise
 		try:
-			for query_parts in [add_column_query, modify_column_query, add_index_query, drop_index_query]:
+			for query_parts in [add_column_query, drop_index_query, modify_column_query, add_index_query]:
 				if query_parts:
 					query_body = ", ".join(query_parts)
 					query = f"ALTER TABLE `{self.table_name}` {query_body}"

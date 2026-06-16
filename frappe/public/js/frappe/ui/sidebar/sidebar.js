@@ -89,7 +89,6 @@ frappe.ui.Sidebar = class Sidebar {
 		this.$promotional_banners = this.wrapper.find(".promotional-banners");
 		this.$promotional_banners.empty();
 		this.promotional_banners = [];
-
 		this.get_crm_banner(module);
 		this.get_helpdesk_banner(module);
 
@@ -105,6 +104,21 @@ frappe.ui.Sidebar = class Sidebar {
 <path d="M5.02441 6.58252V9.09486H20.4627V10.9791L15.0135 16.3806V19.3201H12.9676V16.3806C12.9676 16.3806 9.78529 13.1774 8.62962 12.0469H5.03698L10.0156 17.0087C10.3045 17.2851 10.4678 17.6745 10.4678 18.0765V21.041L17.5259 21.0661V18.0765C17.5259 17.6745 17.6892 17.2851 17.9781 17.0087L22.9751 12.0343V6.58252H5.02441Z" fill="#F1FCFF"/>
 </svg>
 `);
+
+		// if CRM is installed on the site, link to the route configured via add_to_apps_screen
+		const installed_app = (frappe.boot.apps_data.apps || []).find((app) => app.name === "crm");
+		if (installed_app && installed_app.route) {
+			const title = __("Switch to CRM");
+			const message = __("Open Frappe CRM");
+			this.promotional_banners.push({
+				title,
+				message,
+				link: installed_app.route,
+				icon,
+				is_internal: true,
+			});
+			return;
+		}
 
 		const title = __("Switch to Frappe CRM");
 		const message = __(
@@ -125,6 +139,23 @@ frappe.ui.Sidebar = class Sidebar {
 <path d="M22.7237 12.1723V6.65771H5.26367V9.17005H20.2239V11.5568C19.2189 11.8457 18.4904 12.7753 18.4904 13.8681C18.4904 14.961 19.2189 15.878 20.2239 16.1669V18.5536H7.77601V11.9964H5.26367V21.066H22.7362V15.5514L21.2414 14.4836V13.2526L22.7362 12.1849L22.7237 12.1723Z" fill="#EDF7FF"/>
 </svg>
 `);
+
+		// if Helpdesk is installed on the site, link to the route configured via add_to_apps_screen
+		const installed_app = (frappe.boot.apps_data.apps || []).find(
+			(app) => app.name === "helpdesk"
+		);
+		if (installed_app && installed_app.route) {
+			const title = __("Switch to Helpdesk");
+			const message = __("Open Frappe Helpdesk");
+			this.promotional_banners.push({
+				title,
+				message,
+				link: installed_app.route,
+				icon,
+				is_internal: true,
+			});
+			return;
+		}
 
 		const title = __("Switch to Helpdesk");
 		const message = __(
@@ -147,12 +178,17 @@ frappe.ui.Sidebar = class Sidebar {
 		this.$promotional_banners.show();
 
 		this.promotional_banners.forEach((banner) => {
+			const target = banner.is_internal ? "" : ` target="_blank"`;
 			let banner_html = $(`
-				<a href="${banner.link}" class="promotional-banner px-2" target="_blank" title="${banner.message}">
+				<a class="promotional-banner px-2"${target} title="${banner.message}">
 					<span class="promotional-banner-title">${banner.title}</span>
 				</a>
 			`);
 
+			// Set href via .attr() rather than template interpolation: banner.link can be
+			// a server-derived route (apps_data), so interpolating it risks attribute
+			// breakout / javascript: injection.
+			banner_html.attr("href", banner.link);
 			banner_html.prepend(banner.icon);
 			me.$promotional_banners.append(banner_html);
 		});
@@ -653,6 +689,10 @@ frappe.ui.Sidebar = class Sidebar {
 				return route[0];
 			case 3:
 				return route[0] === "Workspaces" && route[1] === "private" ? route[2] : route[1];
+			case 2:
+				// view-type routes like ["List", "Customer"] or
+				// ["query-report", "Balance Sheet"] -> entity is the second element
+				return route[1];
 			default:
 				return route[0];
 		}
