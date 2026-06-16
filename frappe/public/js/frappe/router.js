@@ -583,7 +583,7 @@ frappe.router = {
 
 			// For blob: URLs, skip the link check
 			if (url.protocol === "blob:") {
-			  return false; // blob: URLs are not checked
+				return false; // blob: URLs are not checked
 			}
 			if (hostname === window.location.hostname) {
 				return false; // self-linking is allowed
