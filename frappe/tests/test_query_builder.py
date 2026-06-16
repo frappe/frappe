@@ -50,6 +50,15 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 		self.assertIn("SEPARATOR ' | '", sql)
 		self.assertIn("`user_list`", sql)
 
+	def test_like_keeps_native_operator(self):
+		# MariaDB LIKE is already case-insensitive; keep the native operator
+		user = frappe.qb.DocType("User")
+		sql = frappe.qb.from_(user).select(user.name).where(user.name.like("%admin%")).get_sql()
+		self.assertIn("LIKE", sql)
+		self.assertNotIn("ILIKE", sql)
+		not_sql = frappe.qb.from_(user).select(user.name).where(user.name.not_like("%admin%")).get_sql()
+		self.assertIn("NOT LIKE", not_sql)
+
 	def test_match(self):
 		query = Match("Notes")
 		with self.assertRaises(Exception):
@@ -261,6 +270,17 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		self.assertEqual("STRING_AGG('Notes',', ')", GroupConcat("Notes", ", ").get_sql())
 		# .separator() chaining must work on postgres too (STRING_AGG has no native SEPARATOR keyword)
 		self.assertEqual("STRING_AGG('Notes',' | ')", GroupConcat("Notes").separator(" | ").get_sql())
+
+	def test_like_is_case_insensitive(self):
+		# postgres LIKE is case-sensitive; render ILIKE so search matches MariaDB's case-insensitivity
+		user = frappe.qb.DocType("User")
+		self.assertIn(
+			"ILIKE", frappe.qb.from_(user).select(user.name).where(user.name.like("%admin%")).get_sql()
+		)
+		self.assertIn(
+			"NOT ILIKE",
+			frappe.qb.from_(user).select(user.name).where(user.name.not_like("%admin%")).get_sql(),
+		)
 
 	def test_match(self):
 		query = Match("Notes")

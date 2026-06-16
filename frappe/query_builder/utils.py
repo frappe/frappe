@@ -214,7 +214,35 @@ def patch_get_query():
 	Base.get_query = get_query
 
 
+def patch_like_operators():
+	"""Render the query-builder LIKE / NOT LIKE operators as ILIKE / NOT ILIKE on postgres.
+
+	MariaDB's default collation makes LIKE case-insensitive; postgres compares text
+	case-sensitively, so a `.like()` search (link-field autocomplete, etc.) would only match
+	exact case on postgres. Mapping to ILIKE keeps pattern matching case-insensitive on both
+	backends -- matching MariaDB and the like->ilike translation `frappe.db.get_list` already
+	applies for its filter path. MariaDB keeps native LIKE.
+	"""
+	from pypika.terms import Term
+
+	_like, _not_like = Term.like, Term.not_like
+
+	def like(self, expr: str):
+		if frappe.db and frappe.db.db_type == "postgres":
+			return self.ilike(expr)
+		return _like(self, expr)
+
+	def not_like(self, expr: str):
+		if frappe.db and frappe.db.db_type == "postgres":
+			return self.not_ilike(expr)
+		return _not_like(self, expr)
+
+	Term.like = like
+	Term.not_like = not_like
+
+
 def patch_all():
 	patch_query_execute()
 	patch_query_aggregation()
 	patch_get_query()
+	patch_like_operators()
