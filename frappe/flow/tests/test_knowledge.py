@@ -8,7 +8,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.knowledge import store
+from flow.knowledge import Knowledge, store
 from flow.knowledge.chunker import chunk_text
 from flow.knowledge.embedder import embed_texts, probe_dimension
 from flow.knowledge.extract import (
@@ -879,3 +879,129 @@ class TestRetriever(IntegrationTestCase):
 		results = self._retrieve("laptop", kbs=[self.kb.name])
 		self.assertTrue(results)
 		self.assertTrue(all(r["source"] == mine.name for r in results))
+
+
+class TestKnowledgeBuilder(IntegrationTestCase):
+	def setUp(self):
+		store.drop_table()
+		self.model = _make_model()
+		_set_settings(
+			embedding_model=self.model.name,
+			embedding_dimension=DIM,
+			chunk_size=200,
+			chunk_overlap=20,
+		)
+
+	def tearDown(self):
+		store.drop_table()
+		frappe.db.rollback()
+
+	def _fake_embed(self, input, **kwargs):
+		return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
+
+	def _add_text(self, kb, content, **kwargs):
+		with (
+			patch("litellm.embedding", side_effect=self._fake_embed),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+		):
+			return kb.add_text(content, **kwargs)
+
+	def test_get_or_create_is_idempotent(self):
+		first = Knowledge("Shared KB")
+		second = Knowledge("Shared KB")
+		self.assertEqual(first.name, second.name)
+		self.assertEqual(frappe.db.count("AI Knowledge Base", {"title": "Shared KB"}), 1)
+
+	def test_add_text_makes_content_searchable(self):
+		kb = Knowledge("Builder KB")
+		source_name = self._add_text(kb, "laptop setup guide for new employees. " * 4)
+
+		source = frappe.get_doc("AI Knowledge Source", source_name)
+		self.assertEqual(source.source_type, "Text")
+		self.assertEqual(source.knowledge_base, kb.name)
+
+		with patch("litellm.embedding", side_effect=self._fake_embed):
+			results = retrieve("laptop", kbs=[kb.name])
+		self.assertTrue(results)
+		self.assertTrue(all(r["source"] == source_name for r in results))
+
+	def test_add_local_file_reads_and_indexes_disk_file(self):
+		import os
+		import tempfile
+
+		fd, path = tempfile.mkstemp(suffix=".txt")
+		try:
+			with os.fdopen(fd, "w") as handle:
+				handle.write("laptop provisioning runbook for it staff. " * 4)
+			kb = Knowledge("Local File KB")
+			with (
+				patch("litellm.embedding", side_effect=self._fake_embed),
+				patch.object(frappe.db, "commit"),
+				patch.object(frappe.db, "rollback"),
+			):
+				source_name = kb.add_local_file(path)
+		finally:
+			os.unlink(path)
+
+		source = frappe.get_doc("AI Knowledge Source", source_name)
+		self.assertEqual(source.source_type, "Text")
+		self.assertEqual(source.title, os.path.basename(path))
+
+		with patch("litellm.embedding", side_effect=self._fake_embed):
+			results = retrieve("laptop", kbs=[kb.name])
+		self.assertTrue(results)
+		self.assertTrue(all(r["source"] == source_name for r in results))
+
+	def test_add_text_does_not_enqueue_async_ingestion(self):
+		kb = Knowledge("Sync KB")
+		with patch("flow.knowledge.ingest.enqueue_ingestion") as enqueue:
+			self._add_text(kb, "synchronous ingestion content. " * 4)
+		enqueue.assert_not_called()
+
+	def test_add_doctype_translates_fields_and_filters(self):
+		kb = Knowledge("DocType KB")
+		with patch("flow.knowledge.ingest.ingest_source") as ingest:
+			source_name = kb.add_doctype(
+				"ToDo",
+				content_fields=["description", "status"],
+				filters={"status": "Open"},
+			)
+
+		source = frappe.get_doc("AI Knowledge Source", source_name)
+		self.assertEqual(source.source_type, "DocType")
+		self.assertEqual(source.reference_doctype, "ToDo")
+		self.assertEqual(source.content_fields, "description, status")
+		self.assertEqual(json.loads(source.filters), {"status": "Open"})
+		ingest.assert_called_once_with(source_name)
+
+
+class TestAgentKnowledge(IntegrationTestCase):
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def _agent(self, knowledge):
+		from flow.lib.agent import Agent
+		from flow.lib.model import Model
+
+		agent = Agent(model=Model(model_id="openai/gpt-4o-mini"), knowledge=knowledge)
+		return next(t for t in agent.tools if t.name == "search_knowledge")
+
+	def test_knowledge_binds_search_tool_exposing_only_query(self):
+		search = self._agent(Knowledge("Agent KB"))
+		self.assertEqual(set(search.parameters["properties"]), {"query"})
+
+	def test_knowledge_scopes_search_to_given_bases(self):
+		kb = Knowledge("Scoped KB")
+		search = self._agent([kb])
+		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
+			search(query="hi")
+		mock.assert_called_once_with("hi", kbs=[kb.name])
+
+	def test_multiple_knowledge_bases_are_all_scoped(self):
+		first = Knowledge("KB One")
+		second = Knowledge("KB Two")
+		search = self._agent([first, second])
+		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
+			search(query="hi")
+		mock.assert_called_once_with("hi", kbs=[first.name, second.name])

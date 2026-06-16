@@ -6,10 +6,13 @@ from __future__ import annotations
 import json
 from collections.abc import Generator
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from flow.lib.model import ChatResponse, Model, ToolCall
 from flow.lib.tool import Tool
+
+if TYPE_CHECKING:
+	from flow.knowledge import Knowledge
 
 DEFAULT_MAX_ITERATIONS = 20
 ERROR_MESSAGE_LIMIT = 500
@@ -87,6 +90,7 @@ class Agent:
 		name: str = "agent",
 		instructions: str | None = None,
 		tools: list[Tool] | None = None,
+		knowledge: Knowledge | list[Knowledge] | None = None,
 		max_iterations: int = DEFAULT_MAX_ITERATIONS,
 	):
 		if max_iterations < 1:
@@ -96,6 +100,11 @@ class Agent:
 		self.model = Model(model) if isinstance(model, str) else model
 		self.instructions = instructions
 		self.tools = list(tools or [])
+		if knowledge:
+			from flow.tools.builtins import bind_search_knowledge
+
+			items = knowledge if isinstance(knowledge, list) else [knowledge]
+			self.tools.append(bind_search_knowledge([k.name for k in items]))
 		self.max_iterations = max_iterations
 
 		self._tools_by_name: dict[str, Tool] = {}
