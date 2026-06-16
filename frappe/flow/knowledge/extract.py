@@ -19,6 +19,8 @@ from frappe import _
 
 TEXT_EXTENSIONS = {"txt", "text", "md", "markdown", "csv", "tsv", "log", "rst", "json", "yaml", "yml"}
 
+CHILD_FIELDTYPES = {"Table", "Table MultiSelect"}
+
 URL_TIMEOUT = 20
 MAX_FETCH_BYTES = 10 * 1024 * 1024
 
@@ -85,6 +87,13 @@ def resolve_content_fields(meta, raw) -> list[str]:
 	if unknown:
 		frappe.throw(
 			_("Unknown fields for {0}: {1}").format(meta.name, ", ".join(unknown)),
+			title=_("Invalid Content Fields"),
+		)
+
+	child = [f for f in fields if (df := meta.get_field(f)) and df.fieldtype in CHILD_FIELDTYPES]
+	if child:
+		frappe.throw(
+			_("Child table fields are not supported as content fields: {0}").format(", ".join(child)),
 			title=_("Invalid Content Fields"),
 		)
 	return fields

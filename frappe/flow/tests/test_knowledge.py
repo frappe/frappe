@@ -422,6 +422,16 @@ class TestExtract(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "Unknown fields"):
 			extract(source)
 
+	def test_doctype_source_rejects_child_table_field(self):
+		source = frappe._dict(
+			source_type="DocType",
+			reference_doctype="User",
+			content_fields="full_name, roles",
+			filters=None,
+		)
+		with self.assertRaisesRegex(frappe.ValidationError, "Child table fields"):
+			extract(source)
+
 	def test_doctype_source_rejects_invalid_filters(self):
 		source = frappe._dict(
 			source_type="DocType",
