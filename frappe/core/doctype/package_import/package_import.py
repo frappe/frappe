@@ -64,7 +64,7 @@ class PackageImport(Document):
 				if not is_safe:
 					frappe.throw(frappe._("Package contains disallowed path entry"))
 
-			tar.extractall(path=extract_path, filter="data")
+			tar.extractall(path=extract_path)
 
 		package_path = frappe.get_site_path("packages", package_name)
 
