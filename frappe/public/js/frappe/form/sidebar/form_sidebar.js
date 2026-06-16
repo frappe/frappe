@@ -75,7 +75,7 @@ frappe.ui.form.Sidebar = class {
 		let classes = [".form-name-copy", ".form-title-text"];
 
 		$(this.sidebar)
-			.find(".sidebar-meta-details " + classes.join(", "))
+			.find(classes.map((c) => ".sidebar-meta-details " + c + "[data-copy]").join(", "))
 			.tooltip()
 			.on("click", (e) => {
 				frappe.utils.copy_to_clipboard($(e.currentTarget).attr("data-copy"));
@@ -83,8 +83,12 @@ frappe.ui.form.Sidebar = class {
 	}
 
 	setup_editable_title() {
+<<<<<<< HEAD
 		// setup editable title
 		let form_sidebar_text = $(this.sidebar).find(".form-stats-likes .form-title-text");
+=======
+		let form_sidebar_text = $(this.sidebar).find(".form-stats-likes .form-title-edit");
+>>>>>>> 9ab040c48e (fix: rename dialog triggers spurious clipboard copy with undefined value)
 		this.toolbar.setup_editable_title(form_sidebar_text);
 	}
 
