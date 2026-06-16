@@ -1625,3 +1625,24 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 		self.assertFalse(MariaDBExceptionUtil.is_statement_timeout(e))
 		self.assertFalse(MariaDBExceptionUtil.is_data_too_long(e))
 		self.assertFalse(MariaDBExceptionUtil.is_db_table_size_limit(e))
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_serialization_failure_is_treated_as_deadlock(self):
+		"""Postgres serialization failures (REPEATABLE READ write conflicts) must be retriable like
+		deadlocks; otherwise they surface as unhandled query errors (e.g. on the per-request session
+		update under concurrency)."""
+		from psycopg2.errorcodes import DEADLOCK_DETECTED, SERIALIZATION_FAILURE
+
+		from frappe.database.postgres.database import PostgresExceptionUtil
+
+		class _E(Exception):
+			pass
+
+		for code in (SERIALIZATION_FAILURE, DEADLOCK_DETECTED):
+			e = _E()
+			e.pgcode = code
+			self.assertTrue(PostgresExceptionUtil.is_deadlocked(e))
+
+		unrelated = _E()
+		unrelated.pgcode = "12345"
+		self.assertFalse(PostgresExceptionUtil.is_deadlocked(unrelated))

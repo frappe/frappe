@@ -10,6 +10,7 @@ from psycopg2.errorcodes import (
 	DEADLOCK_DETECTED,
 	DUPLICATE_COLUMN,
 	INSUFFICIENT_PRIVILEGE,
+	SERIALIZATION_FAILURE,
 	STRING_DATA_RIGHT_TRUNCATION,
 	UNDEFINED_COLUMN,
 	UNDEFINED_TABLE,
@@ -87,7 +88,12 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_deadlocked(e):
-		return getattr(e, "pgcode", None) == DEADLOCK_DETECTED
+		# Treat serialization failures like deadlocks: both are retriable transaction-rollback
+		# (class 40) errors. Under REPEATABLE READ, a write-write conflict makes MariaDB lock and
+		# wait, but postgres aborts the loser with SERIALIZATION_FAILURE ("could not serialize
+		# access due to concurrent update"). Classifying it here routes it through frappe's deadlock
+		# retry instead of surfacing as an unhandled query error.
+		return getattr(e, "pgcode", None) in (DEADLOCK_DETECTED, SERIALIZATION_FAILURE)
 
 	@staticmethod
 	def is_timedout(e):
