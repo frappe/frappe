@@ -140,6 +140,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		conn.create_function("quarter", 1, _quarter)
 		conn.create_function("date_format", 2, _date_format)
 		conn.create_function("to_seconds", 1, _to_seconds)
+		conn.create_function("timediff", 2, _timediff)
 		pragmas = {
 			"journal_mode": "WAL",
 			"synchronous": "NORMAL",
@@ -1078,6 +1079,34 @@ def _unix_timestamp(*args) -> int | float:
 
 	epoch = datetime.now().timestamp() if not args or args[0] is None else get_datetime(args[0]).timestamp()
 	return int(epoch) if epoch == int(epoch) else epoch
+
+
+def _timediff(t1, t2) -> float | None:
+	"""Return seconds difference; 0.0 when equal (falsy), unlike SQLite's built-in timediff() which returns a string."""
+	if t1 is None or t2 is None:
+		return None
+	try:
+
+		def _parse(s):
+			s = str(s).strip()
+			for fmt in (
+				"%Y-%m-%d %H:%M:%S.%f",
+				"%Y-%m-%d %H:%M:%S",
+				"%Y-%m-%dT%H:%M:%S.%f",
+				"%Y-%m-%dT%H:%M:%S",
+			):
+				try:
+					return datetime.strptime(s, fmt)
+				except ValueError:
+					continue
+			return None
+
+		d1, d2 = _parse(t1), _parse(t2)
+		if d1 is None or d2 is None:
+			return None
+		return (d1 - d2).total_seconds()
+	except Exception:
+		return None
 
 
 def _regexp(expr: str, item: str) -> bool:
