@@ -23,6 +23,10 @@ doc_events = {
 # doc. The incremental sweep removes the orphaned chunk afterwards.
 ignore_links_on_delete = ["AI Knowledge Chunk"]
 
+default_log_clearing_doctypes = {
+	"AI Session": 90,
+}
+
 scheduler_events = {
 	"daily": [
 		"flow.knowledge.ingest.sync_due_sources",

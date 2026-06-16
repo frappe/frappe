@@ -4,7 +4,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.ai.doctype.ai_session.ai_session import derive_title
+from flow.ai.doctype.ai_session.ai_session import AISession, derive_title
 
 
 class TestAISession(IntegrationTestCase):
@@ -60,6 +60,39 @@ class TestAISession(IntegrationTestCase):
 		doc.agent = other_agent.name
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change the agent"):
 			doc.save(ignore_permissions=True)
+
+
+class TestClearOldLogs(IntegrationTestCase):
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def _session_with_run(self, *, age_days: int) -> str:
+		session = frappe.get_doc({"doctype": "AI Session", "title": "chat"})
+		session.append("messages", {"role": "user", "content": "hi"})
+		session.insert(ignore_permissions=True)
+		run = frappe.get_doc(
+			{"doctype": "AI Run", "session": session.name, "source": "Manual", "status": "Completed"}
+		).insert(ignore_permissions=True)
+		old = frappe.utils.add_days(frappe.utils.now(), -age_days)
+		frappe.db.set_value("AI Session", session.name, "modified", old, update_modified=False)
+		return session.name, run.name
+
+	def test_old_session_and_linked_run_and_messages_are_purged(self):
+		old_session, old_run = self._session_with_run(age_days=100)
+
+		AISession.clear_old_logs(days=30)
+
+		self.assertFalse(frappe.db.exists("AI Session", old_session))
+		self.assertFalse(frappe.db.exists("AI Run", old_run))
+		self.assertEqual(frappe.db.count("AI Session Message", {"parent": old_session}), 0)
+
+	def test_recent_session_is_kept(self):
+		recent_session, recent_run = self._session_with_run(age_days=1)
+
+		AISession.clear_old_logs(days=30)
+
+		self.assertTrue(frappe.db.exists("AI Session", recent_session))
+		self.assertTrue(frappe.db.exists("AI Run", recent_run))
 
 
 class TestDeriveTitle(IntegrationTestCase):

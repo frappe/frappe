@@ -62,6 +62,17 @@ class AISession(Document):
 				title=_("Agent Locked"),
 			)
 
+	@staticmethod
+	def clear_old_logs(days=30):
+		"""Delete sessions idle for `days`, along with their AI Runs and transcript rows.
+		Age is last activity (modified), so an actively-used session is never purged."""
+		cutoff = frappe.utils.add_days(frappe.utils.now(), -days)
+		sessions = frappe.get_all("AI Session", filters={"modified": ["<", cutoff]}, pluck="name")
+		for batch in frappe.utils.create_batch(sessions, 100):
+			frappe.db.delete("AI Run", {"session": ["in", batch]})
+			frappe.db.delete("AI Session Message", {"parent": ["in", batch]})
+			frappe.db.delete("AI Session", {"name": ["in", batch]})
+
 	def transcript(self) -> list[dict[str, Any]]:
 		"""Return the conversation history in OpenAI message format."""
 		out: list[dict[str, Any]] = []
