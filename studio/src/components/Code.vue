@@ -53,7 +53,7 @@ import {
 	type CompletionSource,
 } from "@codemirror/autocomplete"
 import { Compartment, Extension } from "@codemirror/state"
-import { indentService, LRLanguage } from "@codemirror/language"
+import { indentService, indentUnit, LRLanguage } from "@codemirror/language"
 import { EditorView, keymap } from "@codemirror/view"
 import { indentMore, indentLess } from "@codemirror/commands"
 import { indentationMarkers } from "@replit/codemirror-indentation-markers"
@@ -226,6 +226,7 @@ watch(code, () => {
 const extensions = computed(() => {
 	const baseExtensions = [
 		languageConf.of([]),
+		indentUnit.of("\t"),
 		closeBrackets(),
 		indentationMarkers(),
 		getAutocompletionOptions(),
