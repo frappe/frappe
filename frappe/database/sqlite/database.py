@@ -212,6 +212,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	@staticmethod
 	def escape(s, percent=True):
 		"""Escape quotes and percent in given string."""
+		s = frappe.as_unicode(s)
 		s = s.replace("'", "''")
 		if percent:
 			s = s.replace("%", "%%")
