@@ -72,8 +72,8 @@ def submit_gravatar_deletion_prompt(action: str):
 		frappe.enqueue(
 			delete_gravatar_image_urls,
 			queue="long",
-			now=frappe.in_test,
-			enqueue_after_commit=not frappe.in_test,
+			now=frappe.flags.in_test,
+			enqueue_after_commit=not frappe.flags.in_test,
 			job_id=GRAVATAR_DELETION_JOB_ID,
 			deduplicate=True,
 		)
