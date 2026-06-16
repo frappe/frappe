@@ -1527,6 +1527,10 @@ class Database:
 		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
 			query.insert(*value_chunk).run()
 
+	def create_sequence_table(self):
+		"""Create the `__sequences` table when required.
+		No-op for MariaDB and Postgres."""
+
 	def create_sequence(self, *args, **kwargs):
 		from frappe.database.sequence import create_sequence
 

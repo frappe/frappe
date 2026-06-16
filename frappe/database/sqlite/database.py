@@ -324,6 +324,76 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			)"""
 		)
 
+	def create_sequence_table(self):
+		"""Create the `__sequences` emulation table if it does not exist.
+
+		Committed via `sql_ddl`, so it is durable and survives the per-test
+		transaction rollbacks used by the test runner. Only call this at install /
+		migrate time, never inside an open write transaction."""
+		self.sql_ddl(
+			"""CREATE TABLE IF NOT EXISTS `__sequences` (
+			name TEXT PRIMARY KEY,
+			value INTEGER NOT NULL
+			)"""
+		)
+
+	def create_sequence(
+		self, doctype_name, *, slug="_id_seq", check_not_exists=False, start_value=0, **kwargs
+	):
+		from frappe import scrub
+
+		sequence_name = scrub(doctype_name + slug)
+		# `value` stores the last value handed out; the next `nextval` returns value + 1.
+		# Postgres' default start is 1, so a falsy start_value seeds 0 (first nextval = 1).
+		initial = start_value - 1 if start_value else 0
+		# `DO NOTHING` keeps an existing sequence intact (matches `check_not_exists`).
+		self.sql(
+			"INSERT INTO `__sequences` (name, value) VALUES (%s, %s) ON CONFLICT(name) DO NOTHING",
+			(sequence_name, initial),
+		)
+		return sequence_name
+
+	def get_next_sequence_val(self, doctype_name, slug="_id_seq"):
+		from frappe import scrub
+
+		sequence_name = scrub(f"{doctype_name}{slug}")
+		row = self.sql(
+			"UPDATE `__sequences` SET value = value + 1 WHERE name = %s RETURNING value",
+			(sequence_name,),
+		)
+		if row:
+			return row[0][0]
+
+		# Sequence row missing (e.g. doctype created before SQLite sequence support):
+		# seed it from the max existing name so an existing table never reuses an id.
+		table = get_table_name(doctype_name)
+		max_name = 0
+		try:
+			res = self.sql(f"SELECT MAX(CAST(name AS INTEGER)) FROM `{table}`")
+			max_name = (res and res[0][0]) or 0
+		except sqlite3.OperationalError as e:
+			if not self.is_table_missing(e):
+				raise
+		next_val = int(max_name) + 1
+		self.sql(
+			"INSERT INTO `__sequences` (name, value) VALUES (%s, %s) "
+			"ON CONFLICT(name) DO UPDATE SET value = value + 1",
+			(sequence_name, next_val),
+		)
+		return next_val
+
+	def set_next_sequence_val(self, doctype_name, next_val, *, slug="_id_seq", is_val_used=False):
+		from frappe import scrub
+
+		sequence_name = scrub(doctype_name + slug)
+		# Mirror Postgres SETVAL: if the value was used, the next nextval is next_val + 1.
+		stored = next_val if is_val_used else next_val - 1
+		self.sql(
+			"INSERT INTO `__sequences` (name, value) VALUES (%s, %s) "
+			"ON CONFLICT(name) DO UPDATE SET value = excluded.value",
+			(sequence_name, stored),
+		)
+
 	@staticmethod
 	def get_on_duplicate_update():
 		return "ON CONFLICT DO UPDATE SET "
