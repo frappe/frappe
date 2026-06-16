@@ -15,7 +15,9 @@
   "section_break_instructions",
   "instructions",
   "section_break_tools",
-  "tools"
+  "tools",
+  "section_break_knowledge",
+  "knowledge_bases"
  ],
  "fields": [
   {
@@ -86,6 +88,18 @@
    "fieldtype": "Table MultiSelect",
    "label": "Tools",
    "options": "AI Agent Tool"
+  },
+  {
+   "fieldname": "section_break_knowledge",
+   "fieldtype": "Section Break",
+   "label": "Knowledge"
+  },
+  {
+   "description": "Knowledge bases this agent can search. Empty means all enabled knowledge bases.",
+   "fieldname": "knowledge_bases",
+   "fieldtype": "Table MultiSelect",
+   "label": "Knowledge Bases",
+   "options": "AI Agent Knowledge Base"
   }
  ],
  "index_web_pages_for_search": 1,

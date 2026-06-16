@@ -28,11 +28,13 @@ class AIAgent(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from flow.ai.doctype.ai_agent_knowledge_base.ai_agent_knowledge_base import AIAgentKnowledgeBase
 		from flow.ai.doctype.ai_agent_tool.ai_agent_tool import AIAgentTool
 
 		enabled: DF.Check
 		instructions: DF.LongText
 		is_system_generated: DF.Check
+		knowledge_bases: DF.TableMultiSelect[AIAgentKnowledgeBase]
 		max_iterations: DF.Int
 		model: DF.Link
 		title: DF.Data
@@ -61,10 +63,23 @@ class AIAgent(Document):
 
 	def validate(self):
 		self._validate_max_iterations()
+		self._ensure_knowledge_search_tool()
 
 	def _validate_max_iterations(self):
 		if self.max_iterations is not None and self.max_iterations < 1:
 			frappe.throw(_("Max Iterations must be at least 1."), title=_("Invalid Max Iterations"))
+
+	def _ensure_knowledge_search_tool(self):
+		"""A bound knowledge base is inert without the search tool. Keep them consistent
+		so any agent with knowledge bases can actually query them, however it was created."""
+		from flow.tools.builtins import KNOWLEDGE_SEARCH_SLUG
+
+		if not self.knowledge_bases:
+			return
+		if any(row.tool == KNOWLEDGE_SEARCH_SLUG for row in self.tools):
+			return
+		if frappe.db.exists("AI Tool", KNOWLEDGE_SEARCH_SLUG):
+			self.append("tools", {"tool": KNOWLEDGE_SEARCH_SLUG})
 
 	def assemble(self, *, model: str | None = None) -> Agent:
 		"""Resolve this row into a runtime Agent. `model` overrides the saved agent's model for this build."""
@@ -87,6 +102,8 @@ class AIAgent(Document):
 		)
 
 	def _resolve_tools(self) -> list[Tool]:
+		from flow.tools.builtins import KNOWLEDGE_SEARCH_SLUG, bind_search_knowledge
+
 		resolved: list[Tool] = []
 		for row in self.tools:
 			try:
@@ -96,7 +113,10 @@ class AIAgent(Document):
 				continue
 			if not tool_doc.enabled:
 				continue
-			resolved.append(tool_doc.to_tool())
+			if tool_doc.name == KNOWLEDGE_SEARCH_SLUG:
+				resolved.append(bind_search_knowledge([kb.knowledge_base for kb in self.knowledge_bases]))
+			else:
+				resolved.append(tool_doc.to_tool())
 		return resolved
 
 	def new_session(self, *, model: str | None = None, title: str | None = None):

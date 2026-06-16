@@ -103,6 +103,31 @@ def read(
 	)
 
 
+KNOWLEDGE_SEARCH_SLUG = "search_knowledge"
+
+_KNOWLEDGE_SEARCH_DESCRIPTION = """Search this agent's knowledge bases for passages relevant to `query`.
+
+Use this to ground answers in the agent's curated knowledge before relying on your own. Returns the \
+most relevant chunks, each with its text, similarity score, and source. The knowledge bases searched \
+are fixed by the agent's configuration — you cannot choose, add, or widen them."""
+
+
+def bind_search_knowledge(kbs: list[str]) -> Tool:
+	"""Build a `search_knowledge` tool scoped to `kbs`. The model sees only `query`; the
+	knowledge bases come from the agent's config and cannot be chosen or widened. The
+	registered builtin binds an empty list, so an unbound call fails closed in `retrieve`."""
+
+	def search_knowledge(query: str) -> list[dict[str, Any]]:
+		from flow.knowledge.retriever import retrieve
+
+		return retrieve(query, kbs=kbs)
+
+	return tool(search_knowledge, description=_KNOWLEDGE_SEARCH_DESCRIPTION)
+
+
+search_knowledge = bind_search_knowledge([])
+
+
 @tool(
 	requires_confirmation=True,
 	confirm_prompt=lambda args: f"Run this Python:\n\n{args.get('code', '')}",
@@ -341,7 +366,17 @@ def run_action(
 	return result
 
 
-BUILTIN_TOOLS: list[Tool] = [find_doctypes, describe, read, create, update, delete, run_action, execute]
+BUILTIN_TOOLS: list[Tool] = [
+	find_doctypes,
+	describe,
+	read,
+	search_knowledge,
+	create,
+	update,
+	delete,
+	run_action,
+	execute,
+]
 
 
 def sync_builtin_tools() -> None:

@@ -121,6 +121,71 @@ class TestAIAgentAssemble(IntegrationTestCase):
 		self.assertEqual(sorted(t.name for t in runtime.tools), ["describe", "execute"])
 
 
+class TestAIAgentKnowledgeSearch(IntegrationTestCase):
+	def setUp(self):
+		sync_builtin_tools()
+		self.model_doc = frappe.get_doc(_model()).insert()
+		self.kb = frappe.get_doc({"doctype": "AI Knowledge Base", "title": "Agent KB"}).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def _search_tool(self, kbs):
+		agent = frappe.get_doc(
+			_agent(
+				self.model_doc.name,
+				tools=[{"tool": "search_knowledge"}],
+				knowledge_bases=[{"knowledge_base": kb} for kb in kbs],
+			)
+		).insert()
+		runtime = agent.assemble()
+		return next(t for t in runtime.tools if t.name == "search_knowledge")
+
+	def test_schema_exposes_only_query(self):
+		tool = self._search_tool([self.kb.name])
+		self.assertEqual(set(tool.parameters["properties"]), {"query"})
+
+	def test_search_uses_agent_configured_kbs(self):
+		tool = self._search_tool([self.kb.name])
+		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
+			tool(query="hello")
+		mock.assert_called_once_with("hello", kbs=[self.kb.name])
+
+	def test_llm_supplied_kbs_are_rejected(self):
+		tool = self._search_tool([self.kb.name])
+		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
+			with self.assertRaises(Exception):
+				tool(query="hello", kbs=["Some Other KB"])
+		mock.assert_not_called()
+
+	def test_search_without_configured_kbs_fails_closed(self):
+		tool = self._search_tool([])
+		with self.assertRaises(frappe.ValidationError):
+			tool(query="hello")
+
+	def test_search_tool_auto_added_when_kb_bound_without_it(self):
+		agent = frappe.get_doc(
+			_agent(
+				self.model_doc.name,
+				tools=[{"tool": "read"}],
+				knowledge_bases=[{"knowledge_base": self.kb.name}],
+			)
+		).insert()
+
+		self.assertIn("search_knowledge", [row.tool for row in agent.tools])
+
+	def test_search_tool_not_duplicated_when_already_present(self):
+		agent = frappe.get_doc(
+			_agent(
+				self.model_doc.name,
+				tools=[{"tool": "search_knowledge"}],
+				knowledge_bases=[{"knowledge_base": self.kb.name}],
+			)
+		).insert()
+
+		self.assertEqual([row.tool for row in agent.tools].count("search_knowledge"), 1)
+
+
 class TestAIAgentRun(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
