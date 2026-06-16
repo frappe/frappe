@@ -63,10 +63,23 @@ class AIAgent(Document):
 
 	def validate(self):
 		self._validate_max_iterations()
+		self._ensure_knowledge_search_tool()
 
 	def _validate_max_iterations(self):
 		if self.max_iterations is not None and self.max_iterations < 1:
 			frappe.throw(_("Max Iterations must be at least 1."), title=_("Invalid Max Iterations"))
+
+	def _ensure_knowledge_search_tool(self):
+		"""A bound knowledge base is inert without the search tool. Keep them consistent
+		so any agent with knowledge bases can actually query them, however it was created."""
+		from flow.tools.builtins import KNOWLEDGE_SEARCH_SLUG
+
+		if not self.knowledge_bases:
+			return
+		if any(row.tool == KNOWLEDGE_SEARCH_SLUG for row in self.tools):
+			return
+		if frappe.db.exists("AI Tool", KNOWLEDGE_SEARCH_SLUG):
+			self.append("tools", {"tool": KNOWLEDGE_SEARCH_SLUG})
 
 	def assemble(self, *, model: str | None = None) -> Agent:
 		"""Resolve this row into a runtime Agent. `model` overrides the saved agent's model for this build."""

@@ -163,6 +163,28 @@ class TestAIAgentKnowledgeSearch(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			tool(query="hello")
 
+	def test_search_tool_auto_added_when_kb_bound_without_it(self):
+		agent = frappe.get_doc(
+			_agent(
+				self.model_doc.name,
+				tools=[{"tool": "read"}],
+				knowledge_bases=[{"knowledge_base": self.kb.name}],
+			)
+		).insert()
+
+		self.assertIn("search_knowledge", [row.tool for row in agent.tools])
+
+	def test_search_tool_not_duplicated_when_already_present(self):
+		agent = frappe.get_doc(
+			_agent(
+				self.model_doc.name,
+				tools=[{"tool": "search_knowledge"}],
+				knowledge_bases=[{"knowledge_base": self.kb.name}],
+			)
+		).insert()
+
+		self.assertEqual([row.tool for row in agent.tools].count("search_knowledge"), 1)
+
 
 class TestAIAgentRun(IntegrationTestCase):
 	def setUp(self):
