@@ -220,6 +220,13 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
+# Applied to all resolved packages, including transitive deps, without adding
+# anything to the tree. Pins cryptography even when pulled in indirectly, so a
+# transitive requirement can't drift it outside the vetted range. Enforced
+# automatically on every uv sync/lock — no UV_CONSTRAINT env var or -c flag needed.
+constraint-dependencies = [
+    "cryptography~=46.0.3",
+]
 
 [tool.mypy]
 strict = false
