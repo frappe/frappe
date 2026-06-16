@@ -21,6 +21,7 @@ TEXT_EXTENSIONS = {"txt", "text", "md", "markdown", "csv", "tsv", "log", "rst", 
 
 CHILD_FIELDTYPES = {"Table", "Table MultiSelect"}
 HTML_FIELDTYPES = {"Text Editor"}
+MARKDOWN_FIELDTYPES = {"Markdown Editor"}
 
 URL_TIMEOUT = 20
 MAX_FETCH_BYTES = 10 * 1024 * 1024
@@ -229,12 +230,27 @@ def _row_to_text(row: dict, fields: list[str], meta) -> str:
 		if value in (None, ""):
 			continue
 		df = meta.get_field(fieldname)
-		text = _extract_html(cstr(value)) if df and df.fieldtype in HTML_FIELDTYPES else cstr(value)
+		text = _render_rich_text(df, cstr(value))
 		if not text:
 			continue
 		label = df.label if df else fieldname
 		lines.append(f"{label}: {text}")
 	return "\n".join(lines)
+
+
+def _render_rich_text(df, value: str) -> str:
+	"""Reduce rich-text fields to plain prose before indexing. HTML and Markdown
+	(including Code fields whose language is Markdown) are stripped of markup;
+	other fieldtypes pass through unchanged, so real code is never mangled."""
+	if not df:
+		return value
+	if df.fieldtype in HTML_FIELDTYPES:
+		return _extract_html(value)
+	if df.fieldtype in MARKDOWN_FIELDTYPES or (df.fieldtype == "Code" and df.options == "Markdown"):
+		from frappe.utils import md_to_html
+
+		return _extract_html(md_to_html(value))
+	return value
 
 
 def _validate_public_url(url: str) -> None:

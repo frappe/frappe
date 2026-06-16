@@ -16,6 +16,7 @@ from flow.knowledge.extract import (
 	_extract_html,
 	_extract_pdf,
 	_extract_xlsx,
+	_render_rich_text,
 	_validate_public_url,
 	extract,
 )
@@ -456,6 +457,24 @@ class TestExtract(IntegrationTestCase):
 		)
 		with self.assertRaisesRegex(frappe.ValidationError, "valid JSON"):
 			extract(source)
+
+	def test_render_rich_text_strips_markdown_editor(self):
+		df = frappe._dict(fieldtype="Markdown Editor", options=None)
+		out = _render_rich_text(df, "# Title\n\nSome **bold** [link](https://x.io) text")
+		self.assertIn("Title", out)
+		self.assertIn("bold", out)
+		self.assertNotIn("**", out)
+		self.assertNotIn("https://x.io", out)
+
+	def test_render_rich_text_strips_markdown_code_field(self):
+		df = frappe._dict(fieldtype="Code", options="Markdown")
+		out = _render_rich_text(df, "## Heading\n\ncontent")
+		self.assertEqual(out, "Heading content")
+
+	def test_render_rich_text_preserves_non_markdown_code(self):
+		df = frappe._dict(fieldtype="Code", options="Python")
+		code = "# a comment\nx = 1"
+		self.assertEqual(_render_rich_text(df, code), code)
 
 	def test_extract_html_strips_tags_and_scripts(self):
 		html = "<html><body><script>x=1</script><p>Hi</p> <p>there</p></body></html>"
