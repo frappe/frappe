@@ -15,6 +15,7 @@ from frappe.utils.legacy_gravatar_cleanup import (
 	delete_gravatar_image_urls,
 	has_gravatar_image_urls,
 	should_show_gravatar_deletion_prompt,
+	skip_gravatar_deletion_prompt_if_no_urls,
 	submit_gravatar_deletion_prompt,
 )
 
@@ -64,6 +65,20 @@ class TestGravatarDeletion(IntegrationTestCase):
 				self.assertFalse(should_show_gravatar_deletion_prompt())
 
 			mock.assert_called_once_with(GRAVATAR_DELETION_JOB_ID)
+			self.assertEqual(cint(get_global_default(SKIP_GRAVATAR_DELETION_PROMPT)), 0)
+
+	def test_skip_gravatar_deletion_prompt_if_no_urls(self):
+		with skip_gravatar_deletion_prompt(0):
+			with patch("frappe.utils.legacy_gravatar_cleanup.has_gravatar_image_urls", return_value=False):
+				skip_gravatar_deletion_prompt_if_no_urls()
+
+			self.assertEqual(cint(get_global_default(SKIP_GRAVATAR_DELETION_PROMPT)), 1)
+
+	def test_skip_gravatar_deletion_prompt_if_urls_exist(self):
+		with skip_gravatar_deletion_prompt(0):
+			with patch("frappe.utils.legacy_gravatar_cleanup.has_gravatar_image_urls", return_value=True):
+				skip_gravatar_deletion_prompt_if_no_urls()
+
 			self.assertEqual(cint(get_global_default(SKIP_GRAVATAR_DELETION_PROMPT)), 0)
 
 	def test_submit_gravatar_deletion_prompt_delete(self):

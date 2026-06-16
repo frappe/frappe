@@ -51,6 +51,14 @@ def has_gravatar_image_urls():
 	)
 
 
+def skip_gravatar_deletion_prompt_if_no_urls():
+	if cint(frappe.defaults.get_global_default(SKIP_GRAVATAR_DELETION_PROMPT)):
+		return
+
+	if not has_gravatar_image_urls():
+		frappe.defaults.set_global_default(SKIP_GRAVATAR_DELETION_PROMPT, 1)
+
+
 @frappe.whitelist(methods=["POST"])
 def submit_gravatar_deletion_prompt(action: str):
 	frappe.only_for("System Manager")
