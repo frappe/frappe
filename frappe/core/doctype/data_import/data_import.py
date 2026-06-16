@@ -228,6 +228,13 @@ def download_template(doctype, export_fields=None, export_records=None, export_f
 	list_settings = frappe.parse_json(get_user_settings(doctype)).get("List", {})
 	sort_by = list_settings.get("sort_by")
 	sort_order = list_settings.get("sort_order")
+
+	if sort_by and not frappe.get_meta(doctype).get_field(sort_by):
+		sort_by = None
+
+	if sort_order and sort_order.upper() not in ("ASC", "DESC"):
+		sort_order = None
+
 	order_by = f"{sort_by} {sort_order}" if sort_by and sort_order else None
 
 	e = Exporter(
