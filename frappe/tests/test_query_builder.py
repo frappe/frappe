@@ -43,6 +43,7 @@ def unimplemented_for(*dbtypes: db_type_is) -> Callable:
 class TestCustomFunctionsMariaDB(IntegrationTestCase):
 	def test_concat(self):
 		self.assertEqual("GROUP_CONCAT('Notes' SEPARATOR ',')", GroupConcat("Notes").get_sql())
+		self.assertEqual("GROUP_CONCAT('Notes' SEPARATOR ', ')", GroupConcat("Notes", ", ").get_sql())
 		user = frappe.qb.DocType("User")
 		query = frappe.qb.from_(user).select(GroupConcat(user.email).separator(" | ").as_("user_list"))
 		sql = query.get_sql()
@@ -257,6 +258,9 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 class TestCustomFunctionsPostgres(IntegrationTestCase):
 	def test_concat(self):
 		self.assertEqual("STRING_AGG('Notes',',')", GroupConcat("Notes").get_sql())
+		self.assertEqual("STRING_AGG('Notes',', ')", GroupConcat("Notes", ", ").get_sql())
+		# .separator() chaining must work on postgres too (STRING_AGG has no native SEPARATOR keyword)
+		self.assertEqual("STRING_AGG('Notes',' | ')", GroupConcat("Notes").separator(" | ").get_sql())
 
 	def test_match(self):
 		query = Match("Notes")

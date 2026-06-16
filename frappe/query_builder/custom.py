@@ -8,14 +8,17 @@ import frappe
 
 
 class GROUP_CONCAT(DistinctOptionFunction):
-	def __init__(self, column: str, alias: str | None = None):
+	def __init__(self, column: str, separator: str = ",", alias: str | None = None):
 		"""[ Implements the group concat function read more about it at https://www.geeksforgeeks.org/mysql-group_concat-function ]
 		Args:
 		        column (str): [ name of the column you want to concat]
+		        separator (str, optional): [ separator to be used ]. Defaults to ",". The argument
+		            order mirrors STRING_AGG so the db-aware ``GroupConcat`` mapper can pass a custom
+		            separator portably; ``.separator()`` chaining still works for back-compat.
 		        alias (Optional[str], optional): [ is this an alias? ]. Defaults to None.
 		"""
 		super().__init__("GROUP_CONCAT", column, alias=alias)
-		self._separator = ","
+		self._separator = separator
 
 	@builder
 	def separator(self, separator: str = ""):
@@ -49,6 +52,12 @@ class STRING_AGG(DistinctOptionFunction):
 		        alias (Optional[str], optional): [description]. Defaults to None.
 		"""
 		super().__init__("STRING_AGG", column, separator, alias=alias)
+
+	@builder
+	def separator(self, separator: str = ","):
+		"""Mirror GROUP_CONCAT.separator() so GroupConcat(...).separator(...) chaining works on
+		postgres too. STRING_AGG takes the separator as its second argument."""
+		self.args[1] = self.wrap_constant(separator)
 
 
 class MATCH(DistinctOptionFunction):
