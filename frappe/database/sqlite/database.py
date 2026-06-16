@@ -107,6 +107,9 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	# Override per-site with `sqlite_busy_timeout` in site config.
 	DEFAULT_BUSY_TIMEOUT = 30_000
 
+	# Retry `BEGIN IMMEDIATE` a few times if the write lock stays contended.
+	WRITE_LOCK_RETRIES = 5
+
 	# Whether the current connection is the read-only (`mode=ro`) connection. Set as a
 	# class default so it is always readable even before `connect()`/`begin()` run.
 	read_only = False
@@ -566,19 +569,30 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.begin()
 
 	def _begin_transaction(self):
-		"""Open a ``DEFERRED`` transaction so the request's reads share one snapshot.
-
-		``DEFERRED`` acquires no lock here, so it can't time out; the first write upgrades
-		it to a writer (and may then block/deadlock, handled in ``sql``).
-		"""
-		if not self._conn.in_transaction:
+		"""Open ``BEGIN IMMEDIATE`` for writable connections, ``DEFERRED`` for read-only ones."""
+		if self._conn.in_transaction:
+			return
+		if self.read_only:
 			self._cursor.execute("BEGIN DEFERRED")
+		else:
+			self._begin_immediate()
+
+	def _begin_immediate(self):
+		"""Acquire the write lock with ``BEGIN IMMEDIATE``, retrying briefly on contention."""
+		import random
+		import time
+
+		for attempt in range(self.WRITE_LOCK_RETRIES):
+			try:
+				self._cursor.execute("BEGIN IMMEDIATE")
+				return
+			except sqlite3.OperationalError as e:
+				if not self.is_deadlocked(e) or attempt == self.WRITE_LOCK_RETRIES - 1:
+					raise
+				time.sleep(random.uniform(0, 0.05 * (attempt + 1)))
 
 	def begin(self, *, read_only=False):
-		"""Open ``BEGIN DEFERRED`` so all reads in the request share one snapshot.
-
-		The first write upgrades the transaction to a writer in place.
-		"""
+		"""Switch to the requested connection mode, then start that connection's transaction."""
 		read_only = read_only or frappe.flags.read_only
 		if read_only != self.read_only:
 			if self._conn:
