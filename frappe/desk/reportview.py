@@ -54,6 +54,8 @@ def get_list():
 @frappe.whitelist()
 @frappe.read_only()
 def get_count() -> int | None:
+	from frappe.query_builder.functions import Count
+
 	args = get_form_params()
 
 	if is_virtual_doctype(args.doctype):
@@ -65,23 +67,24 @@ def get_count() -> int | None:
 	fieldname = f"`tab{args.doctype}`.name"
 	args.order_by = None
 
-	# args.limit is specified to avoid getting accurate count.
-	if not args.limit:
-		args.fields = [fieldname]
-		partial_query = execute(**args, run=0).get_sql()
-		return frappe.db.sql(f"select count(*) from ( {partial_query} ) p")[0][0]
-
 	args.fields = [fieldname]
 	partial_query = execute(**args, run=0)
+	count_query = frappe.qb.from_(partial_query).select(Count("*"))
+
+	# args.limit is specified to avoid getting accurate count.
+	if not args.limit:
+		return count_query.run()[0][0]
+
+	count_sql, count_params = count_query.walk()
 
 	# Count queries are notoriously unpredictable based on the type of filters used.
 	# We should not attempt to fetch accurate count for 2 entire minutes! (default timeout)
 	# Very short timeout is used to here to set an upper bound on damage a bad request can do.
 	# Users can request accurate count by dropping limit from arguments.
-	timeout_clause = "SET STATEMENT max_statement_time=1 FOR" if frappe.db.db_type == "mariadb" else ""
+	timeout_clause = "SET STATEMENT max_statement_time=1 FOR " if frappe.db.db_type == "mariadb" else ""
 
 	try:
-		count = frappe.db.sql(f"{timeout_clause} select count(*) from ( {partial_query} ) p")[0][0]
+		count = frappe.db.sql(timeout_clause + count_sql, count_params)[0][0]
 	except Exception as e:
 		if frappe.db.is_statement_timeout(e):  # Skip fetching accurate count
 			count = None
@@ -927,3 +930,67 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 	else:
 		cond = ""
 	return cond
+
+
+def get_match_conditions_qb(doctype, table=None, user=None):
+	"""Return user-permission match conditions for ``doctype`` as query-builder criteria.
+
+	Query-builder equivalent of :func:`get_match_cond` / :func:`build_match_conditions`
+	(which return raw SQL strings). Returns a list of pypika criteria (0 or 1 elements)
+	covering role permissions, user permissions, sharing and the if-owner constraint as
+	well as ``permission_query_conditions`` hooks/server scripts.
+
+	The criteria can be applied to any ``frappe.qb`` query via ``.where(...)`` — including
+	joins/aliased queries where the permission-checked doctype is not the single base of
+	:func:`frappe.qb.get_query`.
+
+	Args:
+	        doctype: doctype to build permission conditions for.
+	        table: pypika table the conditions should reference. Defaults to ``frappe.qb.DocType(doctype)``.
+	        user: user to evaluate permissions for. Defaults to the session user.
+	"""
+	from frappe.database.query import Engine
+
+	engine = Engine()
+	engine.get_query(doctype, user=user, ignore_permissions=False, db_query_compat=True)
+	condition = engine.get_permission_conditions(doctype, table or engine.table)
+	return [condition] if condition is not None else []
+
+
+def get_filter_conditions_qb(doctype, filters, ignore_permissions=None):
+	"""Return ``filters`` for ``doctype`` as a list of query-builder criteria.
+
+	Query-builder equivalent of :func:`get_filters_cond` (which returns a raw SQL string).
+	Accepts the standard frappe filter forms (dict, or list of ``[doctype, field, op, value]``
+	rows) and returns pypika criteria that can be applied to any ``frappe.qb`` query via
+	``.where(...)``.
+	"""
+	if not filters:
+		return []
+
+	from pypika.terms import Criterion
+
+	# A pypika Criterion is already a usable condition; apply_filters would route it straight to
+	# the query and never populate `collect`, silently returning []. Hand it back as-is instead.
+	if isinstance(filters, Criterion):
+		return [filters]
+
+	if isinstance(filters, str):
+		filters = json.loads(filters)
+
+	if isinstance(filters, dict):
+		# Mirror get_filters_cond's dict normalization: a string value prefixed with "!" means
+		# "not equal" (e.g. {"enabled": "!1"} -> enabled != "1"). apply_filters' dict path would
+		# otherwise treat "!1" as a literal value and emit `enabled = "!1"`.
+		filters = {
+			field: ("!=", value[1:]) if isinstance(value, str) and value.startswith("!") else value
+			for field, value in filters.items()
+		}
+
+	from frappe.database.query import Engine
+
+	engine = Engine()
+	engine.get_query(doctype, ignore_permissions=ignore_permissions, db_query_compat=True)
+	criteria = []
+	engine.apply_filters(filters, collect=criteria)
+	return criteria
