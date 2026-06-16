@@ -146,21 +146,20 @@ const syncToParent = () => {
 // -- Language Extension --
 let languageConf = new Compartment()
 const loadLanguage = async (type: string): Promise<Extension> => {
-	const getJSCompletions = (language: LRLanguage) => {
+	// The user-provided completion source (page-script bindings, etc.), scoped to a sublanguage.
+	const customCompletions = (language: LRLanguage) => {
 		if (!props.completions) return []
-		return language.data.of({
-			autocomplete: props.completions,
-		})
+		return language.data.of({ autocomplete: props.completions })
 	}
 
-	// JS completions for a <script> region: our custom sources + filtered window globals, keyed to
-	// the JavaScript sublanguage so they fire inside <script> but not in the surrounding template.
-	const getScriptCompletions = (javascriptLanguage: LRLanguage, windowCompletionSource: CompletionSource) => [
-		getJSCompletions(javascriptLanguage),
+	// Completions inside a <script>/JS region: the custom source plus window globals (private keys
+	// filtered out), keyed to the JS sublanguage so they don't fire in the surrounding template.
+	const scriptCompletions = (javascriptLanguage: LRLanguage, windowScopeSource: CompletionSource) => [
+		customCompletions(javascriptLanguage),
 		javascriptLanguage.data.of({
 			autocomplete: async (context: CompletionContext) => {
-				const result = await windowCompletionSource(context)
-				if (result && result.options) {
+				const result = await windowScopeSource(context)
+				if (result?.options) {
 					result.options = result.options.filter((option: Completion) => !isPrivateKey(option.label))
 				}
 				return result
@@ -173,11 +172,11 @@ const loadLanguage = async (type: string): Promise<Extension> => {
 			const { javascript, javascriptLanguage, scopeCompletionSource } = await import(
 				"@codemirror/lang-javascript"
 			)
-			return [javascript(), ...getScriptCompletions(javascriptLanguage, scopeCompletionSource(window))]
+			return [javascript(), ...scriptCompletions(javascriptLanguage, scopeCompletionSource(window))]
 		}
 		case "html": {
 			const { html, htmlLanguage } = await import("@codemirror/lang-html")
-			return [html(), getJSCompletions(htmlLanguage)]
+			return [html(), customCompletions(htmlLanguage)]
 		}
 		case "css": {
 			const { css } = await import("@codemirror/lang-css")
@@ -188,9 +187,6 @@ const loadLanguage = async (type: string): Promise<Extension> => {
 			return json()
 		}
 		case "vue": {
-			// An SFC's <script> is the shared JavaScript sublanguage, so give it the same completions
-			// as a .js/.ts file. vue() ships only the grammar, so add javascript().support for the
-			// local-scope + snippet completions on top of our script completions (keyed to <script>).
 			const { vue } = await import("@codemirror/lang-vue")
 			const { javascript, javascriptLanguage, scopeCompletionSource } = await import(
 				"@codemirror/lang-javascript"
@@ -198,7 +194,7 @@ const loadLanguage = async (type: string): Promise<Extension> => {
 			return [
 				vue(),
 				javascript().support,
-				...getScriptCompletions(javascriptLanguage, scopeCompletionSource(window)),
+				...scriptCompletions(javascriptLanguage, scopeCompletionSource(window)),
 			]
 		}
 		default:
