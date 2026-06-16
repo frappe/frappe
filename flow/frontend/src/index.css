@@ -1,0 +1,62 @@
+@import "./styles/markdown.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Authored rules are scoped to #flow-root by postcss-prefix-selector at build. */
+
+/* frappe-ui forces `font-family: InterVar`, a face the desk doesn't load (it
+   ships "Inter"/"InterVariable"), so it falls back to the system font. Point
+   the panel at the desk's real fonts. */
+.flow-panel {
+	font-family: "Inter", "InterVariable", ui-sans-serif, system-ui, sans-serif;
+	font-weight: 400;
+}
+
+/* Even vertical rhythm between an assistant message's blocks (text + tool cards).
+   Text carries line-height half-leading that cards don't, so the boundary next
+   to a text blob is tightened to keep all visual gaps equal. */
+.flow-parts > * + * {
+	margin-top: 10px;
+}
+/* a text blob followed by a tool/confirm card — extra breathing room below the text */
+.flow-parts > .md + * {
+	margin-top: calc(16px - 0.36em);
+}
+/* a card/element followed by a text blob */
+.flow-parts > * + .md {
+	margin-top: calc(10px - 0.36em);
+}
+.flow-parts > .md + .md {
+	margin-top: calc(10px - 0.72em);
+}
+
+/* Composer focus: subtle gray, not the @tailwindcss/forms blue ring. */
+.flow-composer {
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.flow-composer:focus-within {
+	border-color: var(--outline-gray-3);
+	box-shadow: 0 0 0 2px var(--outline-gray-2);
+}
+.flow-composer textarea:focus {
+	outline: none;
+	box-shadow: none;
+	border-color: transparent;
+}
+.flow-scrollbar {
+	scrollbar-width: thin;
+	scrollbar-color: var(--surface-gray-4) transparent;
+}
+.flow-scrollbar::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+.flow-scrollbar::-webkit-scrollbar-thumb {
+	background: var(--surface-gray-4);
+	border-radius: 999px;
+}
+.flow-scrollbar::-webkit-scrollbar-track {
+	background: transparent;
+}

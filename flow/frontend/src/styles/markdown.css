@@ -1,0 +1,122 @@
+/* Styles for streamed assistant markdown (injected via v-html, so it can't use
+   utility classes on its elements). Scoped to #flow-root at build time. */
+.md {
+	font-size: var(--text-base);
+	line-height: 1.7;
+	color: var(--ink-gray-8);
+	word-break: break-word;
+}
+.md > *:first-child {
+	margin-top: 0;
+}
+.md > *:last-child {
+	margin-bottom: 0;
+}
+.md p {
+	margin: 0 0 8px;
+}
+.md h1,
+.md h2,
+.md h3,
+.md h4,
+.md h5,
+.md h6 {
+	margin: 14px 0 6px;
+	font-weight: var(--weight-semibold);
+	line-height: 1.35;
+	color: var(--ink-gray-9);
+}
+.md h1 {
+	font-size: var(--text-lg);
+}
+.md h2 {
+	font-size: 15px;
+}
+.md h3 {
+	font-size: var(--text-base);
+}
+.md h4,
+.md h5,
+.md h6 {
+	font-size: var(--text-sm);
+	color: var(--ink-gray-7);
+}
+.md ul,
+.md ol {
+	margin: 4px 0;
+	padding-left: 20px;
+}
+.md li {
+	margin: 2px 0;
+}
+.md a {
+	color: var(--ink-blue-link, var(--blue-600));
+	text-decoration: none;
+}
+.md a:hover {
+	text-decoration: underline;
+}
+.md strong {
+	font-weight: var(--weight-medium);
+	color: var(--ink-gray-9);
+}
+.md blockquote {
+	margin: 8px 0;
+	padding: 2px 12px;
+	border-left: 3px solid var(--outline-gray-2);
+	color: var(--ink-gray-7);
+}
+.md hr {
+	border: 0;
+	border-top: 1px solid var(--outline-gray-1);
+	margin: 12px 0;
+}
+.md code {
+	font-family: var(--font-stack-monospace, ui-monospace, monospace);
+	font-size: 12px;
+	background: var(--surface-gray-2);
+	padding: 1px 5px;
+	border-radius: 5px;
+}
+.md pre {
+	background: var(--surface-gray-2);
+	border: 1px solid var(--outline-gray-1);
+	border-radius: 8px;
+	padding: 10px 12px;
+	overflow-x: auto;
+	margin: 8px 0;
+}
+.md pre code {
+	background: transparent;
+	padding: 0;
+	font-size: 12px;
+}
+/* Wide tables scroll inside their own box instead of widening the panel. */
+.md .md-table-scroll {
+	max-width: 100%;
+	overflow-x: auto;
+	margin: 8px 0;
+	border: 1px solid var(--outline-gray-2);
+	border-radius: 8px;
+}
+.md table {
+	min-width: 100%;
+	border-collapse: collapse;
+	font-size: var(--text-xs);
+}
+.md th,
+.md td {
+	padding: 6px 8px;
+	border: 1px solid var(--outline-gray-1);
+	text-align: left;
+	vertical-align: top;
+	line-height: 1.45;
+}
+.md th {
+	background: var(--surface-gray-1);
+	font-weight: var(--weight-semibold);
+	color: var(--ink-gray-7);
+}
+.md tr:nth-child(even) td {
+	background: var(--surface-gray-1);
+}
