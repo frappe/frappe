@@ -316,3 +316,64 @@ class TestDocFieldDynamicDescription(IntegrationTestCase):
 			"default": "Default shown otherwise.",
 		}
 		self.assertEqual(_resolve_description(config, "hide"), "")
+
+	# ------------------------------------------------------------------ #
+	# Self-reference tests                                                 #
+	# ------------------------------------------------------------------ #
+
+	def test_self_reference_select_field_persists(self):
+		"""A Select field can use its own value as the description source."""
+		config = {
+			"source_field": "priority",  # same as the field's own fieldname
+			"conditions": [
+				{"value": "Low", "description": "Resolved within 5 business days."},
+				{"value": "Medium", "description": "Resolved within 2 business days."},
+				{"value": "High", "description": "Escalated — resolved within 4 hours."},
+			],
+			"default": "Select a priority level.",
+		}
+
+		name = _new_doctype_name()
+		self.created_doctypes.append(name)
+
+		dt = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"module": "Core",
+				"custom": 1,
+				"name": name,
+				"fields": [
+					{
+						"label": "Priority",
+						"fieldname": "priority",
+						"fieldtype": "Select",
+						"options": "Low\nMedium\nHigh",
+						"dynamic_description": json.dumps(config),
+					}
+				],
+				"permissions": [{"role": "System Manager", "read": 1}],
+			}
+		).insert(ignore_permissions=True)
+
+		dt.reload()
+		field = next(f for f in dt.fields if f.fieldname == "priority")
+		saved = json.loads(field.dynamic_description)
+
+		# source_field points to itself
+		self.assertEqual(saved["source_field"], "priority")
+		self.assertEqual(len(saved["conditions"]), 3)
+
+	def test_self_reference_resolution(self):
+		"""Resolution logic works when source_field == the field being described."""
+		config = {
+			"source_field": "status",
+			"conditions": [
+				{"value": "Draft", "description": "Not yet submitted. Still editable."},
+				{"value": "Submitted", "description": "Locked. Cancel to make changes."},
+			],
+			"default": "Select a status.",
+		}
+		# source_field == "status", and we pass the field's own current value
+		self.assertEqual(_resolve_description(config, "Draft"), "Not yet submitted. Still editable.")
+		self.assertEqual(_resolve_description(config, "Submitted"), "Locked. Cancel to make changes.")
+		self.assertEqual(_resolve_description(config, "Cancelled"), "Select a status.")

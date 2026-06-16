@@ -37,16 +37,29 @@ const config = computed({
 
 function all_layout_fields() {
 	const no_value = frappe.model.no_value_type || [];
-	const selected = store.form.selected_field?.fieldname;
+	const self_df = store.form.selected_field;
+	const own = self_df?.fieldname;
 	const result = [];
+
+	// Self at the top — read directly from selected_field so unsaved options are visible
+	if (own && self_df && !no_value.includes(self_df.fieldtype)) {
+		result.push({
+			value: own,
+			label: (self_df.label || own) + " — " + __("this field"),
+			is_self: true,
+		});
+	}
+
 	for (const tab of store.form.layout?.tabs || []) {
 		for (const section of tab.sections || []) {
 			for (const column of section.columns || []) {
 				for (const field of column.fields || []) {
 					const df = field.df;
-					if (!no_value.includes(df.fieldtype) && df.fieldname !== selected) {
-						result.push({ value: df.fieldname, label: df.label || df.fieldname });
+					// skip no-value types, blank fieldnames, and self (already added above)
+					if (!df.fieldname || no_value.includes(df.fieldtype) || df.fieldname === own) {
+						continue;
 					}
+					result.push({ value: df.fieldname, label: df.label || df.fieldname });
 				}
 			}
 		}
@@ -69,9 +82,15 @@ function find_df_in_layout(fieldname) {
 
 const value_fields = computed(() => all_layout_fields());
 
+const own_fieldname = computed(() => store.form.selected_field?.fieldname);
+
 const source_df = computed(() => {
 	const sf = config.value?.source_field;
-	return sf ? find_df_in_layout(sf) : null;
+	if (!sf) return null;
+	// When source is self, use selected_field directly so live options on an
+	// unsaved new field are always visible without a layout traversal.
+	if (sf === own_fieldname.value) return store.form.selected_field;
+	return find_df_in_layout(sf);
 });
 
 const source_is_select = computed(() => source_df.value?.fieldtype === "Select");
@@ -82,7 +101,11 @@ const source_options = computed(() => {
 });
 
 function set_source_field(fieldname) {
-	const actual_df = find_df_in_layout(fieldname);
+	// Prefer selected_field directly for self so unsaved options are available
+	const actual_df =
+		fieldname === own_fieldname.value
+			? store.form.selected_field
+			: find_df_in_layout(fieldname);
 	let conditions = [];
 	if (actual_df?.fieldtype === "Select") {
 		conditions = (actual_df.options || "")
