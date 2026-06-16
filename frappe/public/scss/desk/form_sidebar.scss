@@ -293,7 +293,7 @@ body[data-route^="Form"] {
 		}
 	}
 
-	.attachment-preview-open {
+	.layout-main:has(.layout-side-section .attachment-preview:not(.hidden)) {
 		.layout-main-section-wrapper {
 			flex: 1 1 calc(100% - var(--attachment-preview-width));
 			width: calc(100% - var(--attachment-preview-width));
