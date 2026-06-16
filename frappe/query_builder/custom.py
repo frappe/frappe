@@ -1,7 +1,7 @@
 from typing import Any
 
 from pypika.functions import DistinctOptionFunction, Function
-from pypika.terms import Term
+from pypika.terms import Criterion, Term
 from pypika.utils import builder, format_alias_sql, format_quotes
 
 import frappe
@@ -120,6 +120,41 @@ class ConstantColumn(Term):
 			quote_char=quote_char,
 			**kwargs,
 		)
+
+
+class Xor(Criterion):
+	"""Logical XOR of two expressions, portable across database backends.
+
+	MariaDB has a native ``XOR`` operator, but SQLite and Postgres do not, so this
+	renders the equivalent boolean expression there. Prefer this over pypika's ``^``
+	operator (``a ^ b``), which always renders ``XOR`` and so is a syntax error on
+	SQLite/Postgres.
+
+	The fallback ``(((a) AND NOT (b)) OR ((b) AND NOT (a)))`` is fully bracketed,
+	including an outer pair so the top-level ``OR`` keeps its meaning when this is
+	combined with other conditions (``AND`` binds tighter than ``OR``).
+
+	The operands are expected to be boolean expressions. Postgres requires boolean
+	operands for ``AND``/``OR``/``NOT`` and will reject bare numeric columns/values;
+	MariaDB and SQLite coerce them via numeric truthiness, but for portability pass
+	explicit comparisons (e.g. ``col != 0``) rather than raw numerics.
+	"""
+
+	def __init__(self, left: Term, right: Term, alias: str | None = None) -> None:
+		super().__init__(alias)
+		self.left = left
+		self.right = right
+
+	def get_sql(self, quote_char: str | None = None, with_alias: bool = False, **kwargs: Any) -> str:
+		left = self.left.get_sql(quote_char=quote_char, **kwargs)
+		right = self.right.get_sql(quote_char=quote_char, **kwargs)
+		if frappe.db.db_type == "mariadb":
+			sql = f"(({left}) XOR ({right}))"
+		else:
+			sql = f"((({left}) AND NOT ({right})) OR (({right}) AND NOT ({left})))"
+		if with_alias and self.alias:
+			return format_alias_sql(sql, self.alias, quote_char=quote_char, **kwargs)
+		return sql
 
 
 class MonthName(Function):

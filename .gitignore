@@ -198,3 +198,6 @@ cypress/videos
 .helix/
 # Aider AI Chat
 .aider*
+
+# SQLite WAL
+*wal

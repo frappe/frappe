@@ -7,7 +7,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.database.operator_map import func_in
 from frappe.query_builder import Case
 from frappe.query_builder.builder import Function
-from frappe.query_builder.custom import ConstantColumn
+from frappe.query_builder.custom import ConstantColumn, Xor
 from frappe.query_builder.functions import (
 	Cast_,
 	Coalesce,
@@ -216,6 +216,36 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 		query = frappe.qb.from_(note).select(note.name).where(JSONContains(note.content, "admin"))
 		self.assertIn("json_contains(`content`,'\"admin\"')", str(query).lower())
 
+	def test_xor(self):
+		note = frappe.qb.DocType("Note")
+
+		# MariaDB has a native XOR operator, wrapped in outer parens
+		self.assertEqual("((public) XOR (notify_on_login))", Xor(note.public, note.notify_on_login).get_sql())
+
+		# In a WHERE clause
+		query = frappe.qb.from_(note).select(note.name).where(Xor(note.public, note.notify_on_login))
+		self.assertIn("((`public`) xor (`notify_on_login`))", str(query).lower())
+
+		# As a Criterion it composes with other conditions
+		query = (
+			frappe.qb.from_(note)
+			.select(note.name)
+			.where(Xor(note.public, note.notify_on_login) & (note.name == "n1"))
+		)
+		self.assertIn("((`public`) xor (`notify_on_login`)) and", str(query).lower())
+
+		# With an alias (quote_char drives the backtick quoting)
+		self.assertEqual(
+			"((`public`) XOR (`notify_on_login`)) `flag`",
+			Xor(note.public, note.notify_on_login, alias="flag").get_sql(quote_char="`", with_alias=True),
+		)
+
+		# Without with_alias the alias is omitted
+		self.assertEqual(
+			"((`public`) XOR (`notify_on_login`))",
+			Xor(note.public, note.notify_on_login, alias="flag").get_sql(quote_char="`"),
+		)
+
 
 @run_only_if(db_type_is.POSTGRES)
 class TestCustomFunctionsPostgres(IntegrationTestCase):
@@ -387,6 +417,91 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		# In a WHERE clause
 		query = frappe.qb.from_(note).select(note.name).where(JSONContains(note.content, "admin"))
 		self.assertIn("\"content\"@>'admin'", str(query))
+
+	def test_xor(self):
+		note = frappe.qb.DocType("Note")
+
+		# Postgres has no XOR operator, so the portable boolean fallback is rendered,
+		# fully bracketed including an outer pair
+		self.assertEqual(
+			'((("public") AND NOT ("notify_on_login")) OR (("notify_on_login") AND NOT ("public")))',
+			Xor(note.public, note.notify_on_login).get_sql(),
+		)
+
+		# In a WHERE clause
+		query = frappe.qb.from_(note).select(note.name).where(Xor(note.public, note.notify_on_login))
+		self.assertIn(
+			'((("public") and not ("notify_on_login")) or (("notify_on_login") and not ("public")))',
+			str(query).lower(),
+		)
+
+		# As a Criterion it composes with other conditions; the outer parens keep the
+		# top-level OR intact when ANDed (AND binds tighter than OR)
+		query = (
+			frappe.qb.from_(note)
+			.select(note.name)
+			.where(Xor(note.public, note.notify_on_login) & (note.name == "n1"))
+		)
+		self.assertIn(
+			'((("public") and not ("notify_on_login")) or (("notify_on_login") and not ("public"))) and',
+			str(query).lower(),
+		)
+
+		# With an alias (quote_char drives the double-quote quoting)
+		self.assertEqual(
+			'((("public") AND NOT ("notify_on_login")) OR (("notify_on_login") AND NOT ("public"))) "flag"',
+			Xor(note.public, note.notify_on_login, alias="flag").get_sql(quote_char='"', with_alias=True),
+		)
+
+		# Without with_alias the alias is omitted
+		self.assertEqual(
+			'((("public") AND NOT ("notify_on_login")) OR (("notify_on_login") AND NOT ("public")))',
+			Xor(note.public, note.notify_on_login, alias="flag").get_sql(quote_char='"'),
+		)
+
+
+@run_only_if(db_type_is.SQLITE)
+class TestCustomFunctionsSQLite(IntegrationTestCase):
+	def test_xor(self):
+		note = frappe.qb.DocType("Note")
+
+		# SQLite has no XOR operator, so the portable boolean fallback is rendered,
+		# fully bracketed including an outer pair
+		self.assertEqual(
+			'((("public") AND NOT ("notify_on_login")) OR (("notify_on_login") AND NOT ("public")))',
+			Xor(note.public, note.notify_on_login).get_sql(quote_char='"'),
+		)
+
+		# In a WHERE clause
+		query = frappe.qb.from_(note).select(note.name).where(Xor(note.public, note.notify_on_login))
+		self.assertIn(
+			'((("public") and not ("notify_on_login")) or (("notify_on_login") and not ("public")))',
+			str(query).lower(),
+		)
+
+		# As a Criterion it composes with other conditions; the outer parens keep the
+		# top-level OR intact when ANDed (AND binds tighter than OR)
+		query = (
+			frappe.qb.from_(note)
+			.select(note.name)
+			.where(Xor(note.public, note.notify_on_login) & (note.name == "n1"))
+		)
+		self.assertIn(
+			'((("public") and not ("notify_on_login")) or (("notify_on_login") and not ("public"))) and',
+			str(query).lower(),
+		)
+
+		# With an alias
+		self.assertEqual(
+			'((("public") AND NOT ("notify_on_login")) OR (("notify_on_login") AND NOT ("public"))) "flag"',
+			Xor(note.public, note.notify_on_login, alias="flag").get_sql(quote_char='"', with_alias=True),
+		)
+
+		# Without with_alias the alias is omitted
+		self.assertEqual(
+			'((("public") AND NOT ("notify_on_login")) OR (("notify_on_login") AND NOT ("public")))',
+			Xor(note.public, note.notify_on_login, alias="flag").get_sql(quote_char='"'),
+		)
 
 
 class TestBuilderBase:
