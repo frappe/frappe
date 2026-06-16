@@ -545,6 +545,16 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def get_database_list(self):
 		return [self.db_name]
 
+	@staticmethod
+	def format_datetime(value):
+		"""Use isoformat(sep=" ") to match how SQLite stores datetimes; base class always appends microseconds which misses rows stored without them."""
+		from frappe.database.utils import FallBackDateTimeStr
+		from frappe.utils import get_datetime
+
+		if not value:
+			return FallBackDateTimeStr
+		return get_datetime(value).isoformat(sep=" ")
+
 	def get_tables(self, cached=True):
 		"""Return list of tables."""
 		to_query = not cached
