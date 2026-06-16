@@ -687,13 +687,70 @@ def modify_query(query):
 	# Replace ` with " for definitions
 	query = str(query)
 	query = query.replace("`", '"')
-	query = replace_locate_with_instr(query)
+	query = _replace_locate_with_instr(query)
+	query = _strip_row_locks(query)
+	query = _strip_index_hints(query)
+	query = _strip_wrapping_parens(query)
+	query = re.sub(
+		r"\bcurrent_(date|time|timestamp)\s*\(\s*\)",
+		r"current_\1",
+		query,
+		flags=re.IGNORECASE,
+	)
+	query = re.sub(r"\bif\s*\(", "iif(", query, flags=re.IGNORECASE)
 
 	# Select from requires ""
 	if re.search("from tab", query, flags=re.IGNORECASE):
 		query = re.sub("from tab([a-zA-Z]*)", r'from "tab\1"', query, flags=re.IGNORECASE)
 
 	return query
+
+
+def _strip_wrapping_parens(query: str) -> str:
+	"""Unwrap a whole-statement parenthesised SELECT, e.g. ``(SELECT ...)`` -> ``SELECT ...``.
+
+	MariaDB accepts a top-level parenthesised query (ERPNext builds scalar-subquery
+	strings this way); SQLite rejects it with ``near "(": syntax error``. Only the
+	*outermost* wrapping parens are removed, and only when they enclose the entire
+	statement -- so ``(SELECT ...) UNION (SELECT ...)`` is left untouched."""
+	stripped = query.strip()
+	if not stripped.startswith("("):
+		return query
+
+	depth = 0
+	for i, ch in enumerate(stripped):
+		if ch == "(":
+			depth += 1
+		elif ch == ")":
+			depth -= 1
+			if depth == 0:
+				# Matched the opening paren. Unwrap only if it closes the whole
+				# statement and wraps a SELECT/WITH (not a VALUES list or similar).
+				if i == len(stripped) - 1:
+					inner = stripped[1:i].strip()
+					if inner[:6].lower() == "select" or inner[:4].lower() == "with":
+						return inner
+				return query
+	return query
+
+
+def _strip_row_locks(query: str) -> str:
+	"""Remove row-level locking clauses (`FOR UPDATE`, `LOCK IN SHARE MODE`) that
+	MariaDB/Postgres support but SQLite does not.
+
+	SQLite serializes all writers behind a single database-wide write lock (acquired
+	via ``BEGIN IMMEDIATE``), so an explicit row lock is redundant -- the rows are
+	already protected for the duration of the write transaction. The clause is always
+	the final part of a SELECT, so it is safe to strip from the tail."""
+	query = re.sub(
+		r"\s+for\s+update(\s+nowait|\s+skip\s+locked)?\s*;?\s*$",
+		"",
+		query,
+		flags=re.IGNORECASE,
+	)
+	query = re.sub(r"\s+lock\s+in\s+share\s+mode\s*;?\s*$", "", query, flags=re.IGNORECASE)
+	return query
+
 
 def _bind_named_params(query: str, values: dict):
 	"""Rewrite pyformat ``%(name)s`` placeholders to SQLite ``:name`` placeholders.
@@ -769,8 +826,20 @@ def _expand_positional_params(query: str, values):
 	return "".join(rendered), flat
 
 
+def _strip_index_hints(query: str) -> str:
+	"""Remove MariaDB/MySQL optimizer index hints (`FORCE INDEX (...)`, `USE INDEX (...)`,
+	`IGNORE INDEX (...)`). SQLite has no index hints -- its query planner chooses indexes
+	itself -- and the hint is purely advisory, so dropping it is safe. ERPNext emits these
+	via the query builder's ``.force_index()`` as well as in some raw SQL."""
+	return re.sub(
+		r"\s+(force|use|ignore)\s+index\s*\([^)]*\)",
+		" ",
+		query,
+		flags=re.IGNORECASE,
+	)
 
-def replace_locate_with_instr(query: str) -> str:
+
+def _replace_locate_with_instr(query: str) -> str:
 	# instr is the locate equivalent in SQLite
 	if re.search(r"locate\(", query, flags=re.IGNORECASE):
 		query = re.sub(r"locate\(([^,]+),([^)]+)\)", r"instr(\2, \1)", query, flags=re.IGNORECASE)
