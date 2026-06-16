@@ -1,5 +1,20 @@
 import { h } from 'vue'
 
+// Tailwind's JIT only emits a `lucide-*` mask class when that exact string
+// appears in scanned source — a dynamic `'lucide-' + name` is invisible to it.
+// Keep the full literal class names here (this file is in the tailwind content
+// globs) so the gutter icons actually render.
+export const LUCIDE_ICON_CLASS: Record<string, string> = {
+	heart: 'lucide-heart',
+	paperclip: 'lucide-paperclip',
+	'trash-2': 'lucide-trash-2',
+	'user-plus': 'lucide-user-plus',
+	'circle-check': 'lucide-circle-check',
+	'git-branch': 'lucide-git-branch',
+	info: 'lucide-info',
+	lock: 'lucide-lock',
+}
+
 const svgAttrs = {
 	width: '16',
 	height: '16',
@@ -7,6 +22,12 @@ const svgAttrs = {
 	fill: 'none',
 	xmlns: 'http://www.w3.org/2000/svg',
 }
+
+// helpdesk's DotIcon — a plain filled dot, used for assignment timeline entries
+export const DotIcon = () =>
+	h('svg', svgAttrs, [
+		h('circle', { cx: '8', cy: '8', r: '3.5', fill: 'currentColor' }),
+	])
 
 export const CommentIcon = () =>
 	h('svg', svgAttrs, [

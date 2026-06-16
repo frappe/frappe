@@ -1,6 +1,9 @@
 export interface ActivityTimelineProps {
 	doctype: string
 	docname: string
+	/** Chronological order of the feed. 'desc' (default) = newest at top (desk form
+	 * timeline); 'asc' = oldest at top (Helpdesk chat-style). */
+	order?: 'asc' | 'desc'
 	/** Stylesheet injected into the email iframe; auto-detected from the page when absent */
 	cssHref?: string
 	/** Current logged-in user email; used to compute reply/reply-all recipients */
@@ -46,7 +49,36 @@ export interface CommentActivity {
 	author: UserInfo
 }
 
-export type Activity = EmailActivity | CommentActivity
+export interface AttachmentLogActivity {
+	type: 'attachment_log'
+	key: string
+	name: string
+	timestamp: string
+	action: 'added' | 'removed'
+	fileName: string
+	fileUrl?: string
+	isPrivate: boolean
+	author: UserInfo
+}
+
+export interface AuditActivity {
+	type: 'audit'
+	key: string
+	name: string
+	timestamp: string
+	subtype: 'like' | 'assigned' | 'assignment_completed' | 'workflow' | 'info'
+	/** lucide icon name (no prefix) */
+	icon: string
+	/** final display string */
+	text: string
+	author: UserInfo
+}
+
+export type Activity =
+	| EmailActivity
+	| CommentActivity
+	| AttachmentLogActivity
+	| AuditActivity
 
 export interface EmailReplyPayload {
 	content: string
@@ -85,5 +117,10 @@ export interface Docinfo {
 	comments: DocinfoComment[]
 	communications: DocinfoCommunication[]
 	automated_messages: DocinfoCommunication[]
+	like_logs?: DocinfoComment[]
+	attachment_logs?: DocinfoComment[]
+	assignment_logs?: DocinfoComment[]
+	workflow_logs?: DocinfoComment[]
+	info_logs?: DocinfoComment[]
 	user_info: Record<string, UserInfo>
 }

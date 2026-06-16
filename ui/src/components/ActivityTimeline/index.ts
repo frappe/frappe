@@ -3,6 +3,8 @@ export { useDocInfo } from './useDocInfo'
 export type {
 	Activity,
 	ActivityTimelineProps,
+	AttachmentLogActivity,
+	AuditActivity,
 	CommentActivity,
 	EmailActivity,
 	EmailAttachment,

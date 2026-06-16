@@ -2,10 +2,14 @@ import { createResource, request } from "frappe-ui";
 import { computed } from "vue";
 import type {
   Activity,
+  AttachmentLogActivity,
+  AuditActivity,
   CommentActivity,
   Docinfo,
+  DocinfoComment,
   EmailActivity,
   EmailAttachment,
+  UserInfo,
 } from "./types";
 
 // get_docinfo writes to frappe.response["docinfo"] instead of returning, so the
@@ -76,9 +80,45 @@ function parseAttachments(
   }));
 }
 
+// Strip tags to readable text (desk audit content may contain <b> etc.)
+function plaintext(html: string): string {
+  return new DOMParser().parseFromString(html || "", "text/html").body
+    .textContent?.trim() || "";
+}
+
+// Comment-based attachment log → structured fields (discard the desk HTML).
+// "Attachment": content is <a href='{url}'>{name}</a> (+ optional fa-lock <i>).
+// "Attachment Removed": content is the bare filename, no link.
+function parseAttachmentLog(
+  c: DocinfoComment,
+  author: UserInfo
+): AttachmentLogActivity {
+  const action = c.comment_type === "Attachment Removed" ? "removed" : "added";
+  const anchor = new DOMParser()
+    .parseFromString(c.content || "", "text/html")
+    .querySelector("a");
+  const fileName = (anchor?.textContent ?? plaintext(c.content)).trim();
+  const fileUrl =
+    action === "added" ? anchor?.getAttribute("href") || undefined : undefined;
+  return {
+    type: "attachment_log",
+    key: `attachment:${c.name}`,
+    name: c.name,
+    timestamp: c.creation,
+    action,
+    fileName,
+    fileUrl,
+    isPrivate: /fa-lock/.test(c.content || ""),
+    author,
+  };
+}
+
 // docinfo → every activity on the doc, merged and chronologically sorted
 function parseActivities(docinfo: Docinfo): Activity[] {
   const { user_info = {} } = docinfo;
+
+  const authorOf = (owner: string): UserInfo =>
+    user_info[owner] || { email: owner, fullname: owner };
 
   const emails: EmailActivity[] = [
     ...(docinfo.communications || []),
@@ -106,11 +146,64 @@ function parseActivities(docinfo: Docinfo): Activity[] {
     name: c.name,
     timestamp: c.creation,
     content: c.content,
-    author: user_info[c.owner] || { email: c.owner, fullname: c.owner },
+    author: authorOf(c.owner),
   }));
 
+  const attachmentLogs: AttachmentLogActivity[] = (
+    docinfo.attachment_logs || []
+  ).map((c) => parseAttachmentLog(c, authorOf(c.owner)));
+
+  // Comment-based audit logs → one-line AuditActivity entries. Build the display
+  // text from structured fields/plaintext; never reuse the desk-link HTML.
+  const audits: AuditActivity[] = [];
+
+  const pushAudit = (
+    c: DocinfoComment,
+    subtype: AuditActivity["subtype"],
+    icon: string,
+    text: string
+  ) => {
+    audits.push({
+      type: "audit",
+      key: `audit:${c.name}`,
+      name: c.name,
+      timestamp: c.creation,
+      subtype,
+      icon,
+      text,
+      author: authorOf(c.owner),
+    });
+  };
+
+  for (const c of docinfo.like_logs || []) {
+    pushAudit(c, "like", "heart", `${authorOf(c.owner).fullname} liked`);
+  }
+  for (const c of docinfo.assignment_logs || []) {
+    if (c.comment_type === "Assignment Completed") {
+      pushAudit(c, "assignment_completed", "circle-check", plaintext(c.content));
+    } else {
+      pushAudit(c, "assigned", "user-plus", plaintext(c.content));
+    }
+  }
+  for (const c of docinfo.workflow_logs || []) {
+    pushAudit(
+      c,
+      "workflow",
+      "git-branch",
+      `${authorOf(c.owner).fullname} ${plaintext(c.content)}`
+    );
+  }
+  for (const c of docinfo.info_logs || []) {
+    pushAudit(
+      c,
+      "info",
+      "info",
+      `${authorOf(c.owner).fullname} ${plaintext(c.content)}`
+    );
+  }
+
   // frappe datetimes (YYYY-MM-DD HH:mm:ss.ffffff) sort correctly as strings
-  return [...emails, ...comments].sort(
+  return [...emails, ...comments, ...attachmentLogs, ...audits].sort(
     (a, b) =>
       a.timestamp.localeCompare(b.timestamp) || a.key.localeCompare(b.key)
   );
