@@ -152,19 +152,34 @@ const useCodeStore = defineStore("codeStore", () => {
 
 	async function loadCodePageScript(pageName: string): Promise<Record<string, any>> {
 		const mod = await loadPageScriptModule(pageName)
-		const setup = mod?.default
+		return runPageScriptSetup(mod?.default)
+	}
+
+	// Run a compiled page setup() in a fresh effect scope and return its top-level bindings. Shared
+	// by initial load and HMR: on a hot update we already hold the new module, so we re-run its
+	// setup directly instead of re-importing.
+	async function runPageScriptSetup(setup: unknown): Promise<Record<string, any>> {
+		disposePageScriptScope()
 		if (typeof setup !== "function") return {}
 		try {
 			// setup(ctx) gets the live execution context (resources/variables/route/router) and may
 			// be async (e.g. awaiting a resource fetch). Effects (watch/computed) created BEFORE the
 			// first await are owned by the page scope; declare them before awaiting so they're
 			// disposed on navigation.
-			const bindings = runInPageScriptScope(() => setup(globalExecutionContext.value))
+			const bindings = runInPageScriptScope(() => (setup as Function)(globalExecutionContext.value))
 			return (await bindings) || {}
 		} catch (error) {
 			console.error("Error running page script", error)
 			return {}
 		}
+	}
+
+	// HMR: the active page's script (or a composable/util it imports) was edited. Re-run its setup
+	// with the freshly hot-loaded module so new refs/computed and changed dependency code take
+	// effect on the canvas without a reload. (Pinia stores keep their singleton state — they refresh
+	// their code only via their own acceptHMRUpdate.)
+	async function applyPageScriptHMR(setup: unknown) {
+		pageScriptBindings.value = await runPageScriptSetup(setup)
 	}
 
 	function runInPageScriptScope(run: () => any): any {
@@ -602,6 +617,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		pageScriptBindings,
 		pageScriptTemplateBindings,
 		setPageScript,
+		applyPageScriptHMR,
 		// code execution
 		globalContext,
 		globalExecutionContext,

@@ -7,9 +7,7 @@ import {
 	fetchPage,
 	confirm,
 	getInitialVariableValue,
-	scrub,
 } from "@/utils/helpers"
-import { useDebounceFn } from "@vueuse/core"
 import { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson } from "@/utils/serializer"
 import { studioPages } from "@/data/studioPages"
 import { studioApps } from "@/data/studioApps"
@@ -19,7 +17,11 @@ import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
 import { registerCustomVueComponents, unregisterCustomVueComponents } from "@/globals"
-import { registerStudioPageScripts, unregisterStudioPageScripts } from "@/data/studioPageScripts"
+import {
+	registerStudioPageScripts,
+	unregisterStudioPageScripts,
+	setPageScriptHotUpdateHandler,
+} from "@/data/studioPageScripts"
 import { setCustomComponentFilePaths } from "@/utils/components"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
@@ -406,25 +408,6 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
-	const activePageScriptPath = computed(() => {
-		const app = activeApp.value
-		const page = activePage.value
-		if (!app?.is_standard || !page) return null
-		const stem = scrub(page.page_title)
-		return `${app.name}/studio_page/${stem}/${stem}.ts`
-	})
-
-	// Recompile the active page's bindings when its <page>.ts changes on disk
-	const refreshActivePageScript = useDebounceFn(() => {
-		if (activePage.value) codeStore.setPageScript(activePage.value, true)
-	}, 100)
-
-	if (import.meta.hot) {
-		import.meta.hot.on("studio:file-changed", ({ path }: { path: string }) => {
-			if (path === activePageScriptPath.value) refreshActivePageScript()
-		})
-	}
-
 	// build
 	function generateAppBuild() {
 		if (!activeApp.value) return
@@ -465,6 +448,14 @@ const useStudioStore = defineStore("store", () => {
 	const codeStore = useCodeStore()
 	codeStore.setRouteObject(routeObject)
 	codeStore.setRouterObject(readonly(router))
+
+	// A page script (or a composable/util it imports) hot-updated. Re-run it in place when it's the
+	// active page so new refs/functions and changed dependency code show up on the canvas, in the
+	// value selectors and in completions — no reload. Non-active pages refresh lazily on navigation
+	// (studioPageScripts caches the latest setup).
+	setPageScriptHotUpdateHandler((pageName, setup) => {
+		if (activePage.value?.name === pageName) codeStore.applyPageScriptHMR(setup)
+	})
 
 	async function setPageData(page: StudioPage) {
 		await codeStore.setPageVariables(page)

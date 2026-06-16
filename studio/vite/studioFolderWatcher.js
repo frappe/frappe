@@ -48,14 +48,28 @@ function studioFolderWatcher(appsDir) {
 		name: "studio-folder-watcher",
 		apply: "serve", // dev mode only
 
-		// These external studio files aren't in the editor's module graph, so suppress the reload Vite would otherwise do.
+		// Make each exported page script a self-accepting HMR boundary. Page scripts load in the
+		// exported app's own module graph (via dynamic import), so editing one — or a composable/util
+		// it imports — has no boundary to propagate to and Vite would full-reload. Injecting accept()
+		// lets Vite hot-swap the page script in place (with its deps re-fetched fresh) and hand the
+		// new module to the editor, which re-runs setup(). The page docname is baked in from the
+		// sibling JSON so the editor can match it to the active page. Stores keep their singleton
+		// state across this (they refresh code only via their own acceptHMRUpdate).
+		transform(code, id) {
+			const pageName = pageScriptName(id)
+			if (!pageName) return
+			return { code: code + pageScriptHmrFooter(pageName), map: null }
+		},
+
+		// Page scripts and their imports now reach a boundary, so let Vite's HMR run for in-graph
+		// content edits (the page-script accept above, or the vue plugin for mounted .vue files).
+		// Swallow only structural changes (create/delete/rename — the file explorer/component panel
+		// refresh via the custom studio:* events below) and edits to files that aren't imported
+		// anywhere, where Vite would otherwise full-reload the whole editor for nothing.
 		hotUpdate({ type, file, modules }) {
 			if (!isUnderStudioFolder(file)) return
-			// Only .vue SFCs have real in-place HMR (via the vue plugin) — let it run for a mounted
-			// component being edited. Page scripts (.ts) and stores/composables (.js) have no HMR
-			// boundary, so Vite would escalate to a full reload; swallow that. Studio re-reads the
-			// open file (studio:file-changed) and re-runs page scripts on navigation itself.
-			if (file.endsWith(".vue") && type === "update" && modules.length > 0) return
+			if (type !== "update") return []
+			if (modules.length > 0) return
 			return []
 		},
 
@@ -102,6 +116,33 @@ function studioFolderWatcher(appsDir) {
 			})
 		},
 	}
+}
+
+// A page exports to `studio/<studio_app>/studio_page/<stem>/<stem>.ts`; the docname lives in the
+// sibling `<stem>.json`. Returns the page docname for a page-script module id, else null.
+const PAGE_SCRIPT_RE = /\/studio\/[^/]+\/studio_page\/([^/]+)\/([^/]+)\.ts$/
+
+function pageScriptName(id) {
+	let file = normalize(id).split("?")[0]
+	if (file.startsWith("/@fs/")) file = file.slice("/@fs".length)
+	const match = file.match(PAGE_SCRIPT_RE)
+	if (!match || match[1] !== match[2]) return null
+	try {
+		const json = JSON.parse(fs.readFileSync(file.replace(/\.ts$/, ".json"), "utf8"))
+		return json.page_name || null
+	} catch {
+		return null
+	}
+}
+
+function pageScriptHmrFooter(pageName) {
+	return `
+if (import.meta.hot) {
+	import.meta.hot.accept((mod) => {
+		if (mod && window.__STUDIO_HMR_applyPageScript) window.__STUDIO_HMR_applyPageScript(${JSON.stringify(pageName)}, mod)
+	})
+}
+`
 }
 
 // chokidar/Vite report paths with forward slashes; match that so startsWith comparisons hold.
