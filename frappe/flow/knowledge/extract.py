@@ -20,6 +20,7 @@ from frappe import _
 TEXT_EXTENSIONS = {"txt", "text", "md", "markdown", "csv", "tsv", "log", "rst", "json", "yaml", "yml"}
 
 CHILD_FIELDTYPES = {"Table", "Table MultiSelect"}
+HTML_FIELDTYPES = {"Text Editor"}
 
 URL_TIMEOUT = 20
 MAX_FETCH_BYTES = 10 * 1024 * 1024
@@ -228,8 +229,11 @@ def _row_to_text(row: dict, fields: list[str], meta) -> str:
 		if value in (None, ""):
 			continue
 		df = meta.get_field(fieldname)
+		text = _extract_html(cstr(value)) if df and df.fieldtype in HTML_FIELDTYPES else cstr(value)
+		if not text:
+			continue
 		label = df.label if df else fieldname
-		lines.append(f"{label}: {cstr(value)}")
+		lines.append(f"{label}: {text}")
 	return "\n".join(lines)
 
 

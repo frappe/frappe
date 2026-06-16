@@ -412,6 +412,21 @@ class TestExtract(IntegrationTestCase):
 		self.assertIn("first task", docs[0].text)
 		self.assertTrue(docs[0].reference_name)
 
+	def test_doctype_source_strips_html_from_rich_text(self):
+		frappe.get_doc(
+			{"doctype": "ToDo", "description": "<p>Cannot <b>login</b></p><script>x=1</script>"}
+		).insert()
+		source = frappe._dict(
+			source_type="DocType",
+			reference_doctype="ToDo",
+			content_fields="description",
+			filters=None,
+		)
+		text = extract(source)[0].text
+		self.assertIn("Cannot login", text)
+		self.assertNotIn("<", text)
+		self.assertNotIn("x=1", text)
+
 	def test_doctype_source_rejects_unknown_field(self):
 		source = frappe._dict(
 			source_type="DocType",
