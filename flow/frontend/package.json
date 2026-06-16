@@ -1,0 +1,24 @@
+{
+  "name": "flow-panel",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "AI assistant slide-in panel for the Frappe desk (frappe-ui)",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "frappe-ui": "1.0.0-beta.3",
+    "vue": "^3.5.13",
+    "vue-router": "^4.4.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "postcss-prefix-selector": "^2.1.1",
+    "tailwindcss": "^3.4.17",
+    "vite": "^5.4.11"
+  }
+}
