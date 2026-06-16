@@ -8,14 +8,17 @@ import frappe
 
 
 class GROUP_CONCAT(DistinctOptionFunction):
-	def __init__(self, column: str, alias: str | None = None):
+	def __init__(self, column: str, separator: str = ",", alias: str | None = None):
 		"""[ Implements the group concat function read more about it at https://www.geeksforgeeks.org/mysql-group_concat-function ]
 		Args:
 		        column (str): [ name of the column you want to concat]
+		        separator (str, optional): [ separator to be used ]. Defaults to ",". The argument
+		            order mirrors STRING_AGG so the db-aware ``GroupConcat`` mapper can pass a custom
+		            separator portably; ``.separator()`` chaining still works for back-compat.
 		        alias (Optional[str], optional): [ is this an alias? ]. Defaults to None.
 		"""
 		super().__init__("GROUP_CONCAT", column, alias=alias)
-		self._separator = ","
+		self._separator = separator
 
 	@builder
 	def separator(self, separator: str = ""):
@@ -49,6 +52,12 @@ class STRING_AGG(DistinctOptionFunction):
 		        alias (Optional[str], optional): [description]. Defaults to None.
 		"""
 		super().__init__("STRING_AGG", column, separator, alias=alias)
+
+	@builder
+	def separator(self, separator: str = ","):
+		"""Mirror GROUP_CONCAT.separator() so GroupConcat(...).separator(...) chaining works on
+		postgres too. STRING_AGG takes the separator as its second argument."""
+		self.args[1] = self.wrap_constant(separator)
 
 
 class MATCH(DistinctOptionFunction):
@@ -154,19 +163,51 @@ class Xor(Criterion):
 			sql = f"((({left}) AND NOT ({right})) OR (({right}) AND NOT ({left})))"
 		if with_alias and self.alias:
 			return format_alias_sql(sql, self.alias, quote_char=quote_char, **kwargs)
+
+# MONTHNAME/MONTH/QUARTER are MySQL-only. On postgres use to_char / date_part: to_char(.., 'FMMonth')
+# gives the full month name, and date_part gives the numeric month/quarter. date_part returns double
+# precision, so MONTH/QUARTER cast it back to INTEGER to match MySQL's integer result exactly (see
+# _PostgresIntDatePart) -- otherwise a `2.0` leaks into report JSON/UI where MariaDB shows `2`.
+def _is_postgres() -> bool:
+	return bool(frappe.db) and frappe.db.db_type == "postgres"
+
+
+class _PostgresIntDatePart:
+	"""Mixin for the postgres date_part(...) functions below: wrap the result in
+	CAST(... AS INTEGER) so it matches MySQL's integer MONTH()/QUARTER(). Mirrors the
+	UnixTimestamp BIGINT cast. No-op on MariaDB (those branches use the native int function)."""
+
+	def get_sql(self, **kwargs):
+		if not self._postgres:
+			return super().get_sql(**kwargs)
+		with_alias = kwargs.pop("with_alias", False)
+		sql = f"CAST({super().get_sql(**kwargs)} AS INTEGER)"
+		if with_alias:
+			return format_alias_sql(sql, self.alias, **kwargs)
 		return sql
 
 
 class MonthName(Function):
 	def __init__(self, field, alias=None):
-		super().__init__("MONTHNAME", field, alias=alias)
+		if _is_postgres():
+			super().__init__("to_char", field, "FMMonth", alias=alias)
+		else:
+			super().__init__("MONTHNAME", field, alias=alias)
 
 
-class Quarter(Function):
+class Quarter(_PostgresIntDatePart, Function):
 	def __init__(self, field, alias=None):
-		super().__init__("QUARTER", field, alias=alias)
+		self._postgres = _is_postgres()
+		if self._postgres:
+			super().__init__("date_part", "quarter", field, alias=alias)
+		else:
+			super().__init__("QUARTER", field, alias=alias)
 
 
-class Month(Function):
+class Month(_PostgresIntDatePart, Function):
 	def __init__(self, field, alias=None):
-		super().__init__("MONTH", field, alias=alias)
+		self._postgres = _is_postgres()
+		if self._postgres:
+			super().__init__("date_part", "month", field, alias=alias)
+		else:
+			super().__init__("MONTH", field, alias=alias)

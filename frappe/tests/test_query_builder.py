@@ -12,12 +12,16 @@ from frappe.query_builder.functions import (
 	Cast_,
 	Coalesce,
 	CombineDatetime,
+	CurDate,
 	Date,
+	DateDiff,
 	GroupConcat,
 	JSONContains,
 	JSONExtract,
 	JSONValue,
 	Match,
+	Month,
+	Quarter,
 	Round,
 	Truncate,
 	UnixTimestamp,
@@ -39,11 +43,21 @@ def unimplemented_for(*dbtypes: db_type_is) -> Callable:
 class TestCustomFunctionsMariaDB(IntegrationTestCase):
 	def test_concat(self):
 		self.assertEqual("GROUP_CONCAT('Notes' SEPARATOR ',')", GroupConcat("Notes").get_sql())
+		self.assertEqual("GROUP_CONCAT('Notes' SEPARATOR ', ')", GroupConcat("Notes", ", ").get_sql())
 		user = frappe.qb.DocType("User")
 		query = frappe.qb.from_(user).select(GroupConcat(user.email).separator(" | ").as_("user_list"))
 		sql = query.get_sql()
 		self.assertIn("SEPARATOR ' | '", sql)
 		self.assertIn("`user_list`", sql)
+
+	def test_like_keeps_native_operator(self):
+		# MariaDB LIKE is already case-insensitive; keep the native operator
+		user = frappe.qb.DocType("User")
+		sql = frappe.qb.from_(user).select(user.name).where(user.name.like("%admin%")).get_sql()
+		self.assertIn("LIKE", sql)
+		self.assertNotIn("ILIKE", sql)
+		not_sql = frappe.qb.from_(user).select(user.name).where(user.name.not_like("%admin%")).get_sql()
+		self.assertIn("NOT LIKE", not_sql)
 
 	def test_match(self):
 		query = Match("Notes")
@@ -99,6 +113,19 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 			str(select_query).lower(),
 		)
 
+	def test_curdate(self):
+		# CURRENT_DATE must render as a bare keyword (no parentheses) so it is valid on postgres too.
+		self.assertEqual("CURRENT_DATE", CurDate().get_sql())
+		note = frappe.qb.DocType("Note")
+		query = frappe.qb.from_(note).select(note.name).where(note.posting_date >= CurDate())
+		self.assertIn("current_date", str(query).lower())
+		self.assertNotIn("current_date(", str(query).lower())
+
+	def test_month_quarter_mariadb(self):
+		note = frappe.qb.DocType("Note")
+		self.assertEqual("MONTH(posting_date)", Month(note.posting_date).get_sql())
+		self.assertEqual("QUARTER(posting_date)", Quarter(note.posting_date).get_sql())
+
 	def test_unix_ts_mariadb(self):
 		# Simple Query
 		note = frappe.qb.DocType("Note")
@@ -135,6 +162,25 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 		select_query = select_query.select(UnixTimestamp(note.posting_date, alias="unix_ts"))
 		self.assertIn(
 			"unix_timestamp(`tabnote`.`posting_date`) `unix_ts`",
+			str(select_query).lower(),
+		)
+
+	def test_datediff_mariadb(self):
+		note = frappe.qb.DocType("Note")
+		self.assertEqual(
+			"DATEDIFF(posting_date,creation)",
+			DateDiff(note.posting_date, note.creation).get_sql(),
+		)
+
+		todo = frappe.qb.DocType("ToDo")
+		select_query = (
+			frappe.qb.from_(note)
+			.join(todo)
+			.on(todo.refernce_name == note.name)
+			.select(DateDiff(note.posting_date, note.creation))
+		)
+		self.assertIn(
+			"select datediff(`tabnote`.`posting_date`,`tabnote`.`creation`)",
 			str(select_query).lower(),
 		)
 
@@ -251,6 +297,20 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 class TestCustomFunctionsPostgres(IntegrationTestCase):
 	def test_concat(self):
 		self.assertEqual("STRING_AGG('Notes',',')", GroupConcat("Notes").get_sql())
+		self.assertEqual("STRING_AGG('Notes',', ')", GroupConcat("Notes", ", ").get_sql())
+		# .separator() chaining must work on postgres too (STRING_AGG has no native SEPARATOR keyword)
+		self.assertEqual("STRING_AGG('Notes',' | ')", GroupConcat("Notes").separator(" | ").get_sql())
+
+	def test_like_is_case_insensitive(self):
+		# postgres LIKE is case-sensitive; render ILIKE so search matches MariaDB's case-insensitivity
+		user = frappe.qb.DocType("User")
+		self.assertIn(
+			"ILIKE", frappe.qb.from_(user).select(user.name).where(user.name.like("%admin%")).get_sql()
+		)
+		self.assertIn(
+			"NOT ILIKE",
+			frappe.qb.from_(user).select(user.name).where(user.name.not_like("%admin%")).get_sql(),
+		)
 
 	def test_match(self):
 		query = Match("Notes")
@@ -299,11 +359,41 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 			'"tabnote"."posting_date"+"tabnote"."posting_time" "timestamp"', str(select_query).lower()
 		)
 
+	def test_curdate(self):
+		# CURRENT_DATE must render as a bare keyword (no parentheses); postgres rejects CURRENT_DATE().
+		self.assertEqual("CURRENT_DATE", CurDate().get_sql())
+		note = frappe.qb.DocType("Note")
+		query = frappe.qb.from_(note).select(note.name).where(note.posting_date >= CurDate())
+		self.assertIn("current_date", str(query).lower())
+		self.assertNotIn("current_date(", str(query).lower())
+
+	def test_month_quarter_postgres(self):
+		# date_part(...) is double precision on postgres; it is wrapped in CAST(... AS INTEGER) so
+		# MONTH/QUARTER match MySQL's integer result (no `2.0` leaking into report output).
+		note = frappe.qb.DocType("Note")
+		self.assertEqual(
+			"cast(date_part('month',posting_date) as integer)",
+			Month(note.posting_date).get_sql().lower(),
+		)
+		self.assertEqual(
+			"cast(date_part('quarter',posting_date) as integer)",
+			Quarter(note.posting_date).get_sql().lower(),
+		)
+		# round-trips to a python int, like MariaDB's MONTH()/QUARTER()
+		val = frappe.db.sql(
+			f"SELECT {Month(CurDate()).get_sql()} AS m, {Quarter(CurDate()).get_sql()} AS q",
+			as_dict=True,
+		)[0]
+		self.assertIsInstance(val["m"], int)
+		self.assertIsInstance(val["q"], int)
+
 	def test_unix_ts_postgres(self):
+		# EXTRACT(EPOCH ...) is double precision on postgres; it is wrapped in CAST(... AS BIGINT)
+		# so the value (and its Python type) matches MySQL's integer UNIX_TIMESTAMP.
 		# Simple Query
 		note = frappe.qb.DocType("Note")
 		self.assertEqual(
-			"extract(epoch from posting_date)",
+			"cast(extract(epoch from posting_date) as bigint)",
 			UnixTimestamp(note.posting_date).get_sql().lower(),
 		)
 
@@ -315,12 +405,35 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 			.on(todo.refernce_name == note.name)
 			.select(UnixTimestamp(note.posting_date))
 		)
-		self.assertIn('extract(epoch from "tabnote"."posting_date")', str(select_query).lower())
+		self.assertIn(
+			'cast(extract(epoch from "tabnote"."posting_date") as bigint)', str(select_query).lower()
+		)
+
+	def test_datediff_postgres(self):
+		# Postgres subtracts dates to get an integer day count, matching MariaDB DATEDIFF.
+		note = frappe.qb.DocType("Note")
+		self.assertEqual(
+			"posting_date-creation",
+			DateDiff(note.posting_date, note.creation).get_sql(),
+		)
+		self.assertEqual(
+			"CAST('2024-01-10' AS DATE)-creation",
+			DateDiff("2024-01-10", note.creation).get_sql(),
+		)
+
+		todo = frappe.qb.DocType("ToDo")
+		select_query = (
+			frappe.qb.from_(note)
+			.join(todo)
+			.on(todo.refernce_name == note.name)
+			.select(DateDiff(note.posting_date, note.creation))
+		)
+		self.assertIn('select "tabnote"."posting_date"-"tabnote"."creation"', str(select_query).lower())
 
 		# Order by
 		select_query = select_query.orderby(UnixTimestamp(note.posting_date))
 		self.assertIn(
-			'order by extract(epoch from "tabnote"."posting_date")',
+			'order by cast(extract(epoch from "tabnote"."posting_date") as bigint)',
 			str(select_query).lower(),
 		)
 
@@ -329,14 +442,14 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 			UnixTimestamp(note.posting_date) >= UnixTimestamp(Date("2021-01-01"))
 		)
 		self.assertIn(
-			'extract(epoch from "tabnote"."posting_date")>=extract(epoch from date(\'2021-01-01\'))',
+			'cast(extract(epoch from "tabnote"."posting_date") as bigint)>=cast(extract(epoch from date(\'2021-01-01\')) as bigint)',
 			str(select_query).lower(),
 		)
 
 		# aliasing
 		select_query = select_query.select(UnixTimestamp(note.posting_date, alias="unix_ts"))
 		self.assertIn(
-			'extract(epoch from "tabnote"."posting_date") "unix_ts"',
+			'cast(extract(epoch from "tabnote"."posting_date") as bigint) "unix_ts"',
 			str(select_query).lower(),
 		)
 
