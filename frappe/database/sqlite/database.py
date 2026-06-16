@@ -157,6 +157,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		sqlite3.register_converter("timestamp", _parse_timestamp)
 		sqlite3.register_converter("date", _parse_date)
 		sqlite3.register_converter("time", _parse_time)
+		# Match MariaDB DECIMAL(21,9): round stored REALs to 9dp to avoid float drift.
+		sqlite3.register_converter("REAL", lambda v: round(float(v), 9))
 		sqlite3.register_adapter(datetime, lambda v: v.isoformat(sep=" "))
 		sqlite3.register_adapter(date, lambda v: v.isoformat())
 		sqlite3.register_adapter(time, lambda v: v.isoformat())
@@ -231,6 +233,27 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	def _clean_up(self):
 		pass
+
+	def _transform_result(self, result):
+		"""Convert list of rows to tuple-of-tuples (PyMySQL compat) and round floats to 9dp."""
+		return tuple(tuple(round(v, 9) if type(v) is float else v for v in row) for row in result)
+
+	def fetch_as_dict(self, result):
+		"""Build _dict rows, strip double-quotes from string-literal column names, and round floats to 9dp."""
+		if not result:
+			return []
+		keys = []
+		for col in self._cursor.description:
+			name = col[0]
+			if name.startswith('"') and name.endswith('"') and len(name) > 2:
+				name = name[1:-1]
+			keys.append(name)
+		return [
+			frappe._dict(
+				{k: (round(v, 9) if type(v) is float else v) for k, v in zip(keys, row, strict=False)}
+			)
+			for row in result
+		]
 
 	@staticmethod
 	def escape(s, percent=True):
