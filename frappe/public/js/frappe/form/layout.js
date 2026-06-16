@@ -844,13 +844,28 @@ frappe.ui.form.Layout = class Layout {
 			}
 
 			if (!cfg?.source_field) {
-				if (cfg?.default !== undefined) f.set_description(cfg.default || "");
+				if (cfg?.default !== undefined) this._apply_dynamic_description(f, cfg.default || "");
 				continue;
 			}
 
 			const src_val = doc[cfg.source_field];
 			const matched = (cfg.conditions || []).find((c) => c.value === src_val);
-			f.set_description(matched?.description || cfg.default || "");
+			this._apply_dynamic_description(f, matched?.description || cfg.default || "");
+		}
+	}
+
+	_apply_dynamic_description(field, description) {
+		if (field.df.show_description_on_click) {
+			// set_description() returns early when show_description_on_click is true, and
+			// the InfoCard's DOM lives inside label_span rather than on _doc_url_info_card
+			// (because set_doc_url() also returns early, so _doc_url_info_card is never set).
+			// Update df.description for consistency and patch the card DOM directly.
+			field.df.description = description;
+			$(field.label_span)
+				.find(".sidebar-card-description")
+				.html(__(description, null, field.df.parent));
+		} else {
+			field.set_description(description);
 		}
 	}
 

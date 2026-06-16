@@ -363,6 +363,52 @@ class TestDocFieldDynamicDescription(IntegrationTestCase):
 		self.assertEqual(saved["source_field"], "priority")
 		self.assertEqual(len(saved["conditions"]), 3)
 
+	def test_show_description_on_click_with_dynamic_description(self):
+		"""show_description_on_click and dynamic_description can be set together on the same field."""
+		config = {
+			"source_field": "status",
+			"conditions": [
+				{"value": "Draft", "description": "Not yet submitted."},
+				{"value": "Submitted", "description": "Locked for editing."},
+			],
+			"default": "Select a status.",
+		}
+
+		name = _new_doctype_name()
+		self.created_doctypes.append(name)
+
+		dt = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"module": "Core",
+				"custom": 1,
+				"name": name,
+				"fields": [
+					{
+						"label": "Status",
+						"fieldname": "status",
+						"fieldtype": "Select",
+						"options": "Draft\nSubmitted",
+						"show_description_on_click": 1,
+						"dynamic_description": json.dumps(config),
+					}
+				],
+				"permissions": [{"role": "System Manager", "read": 1}],
+			}
+		).insert(ignore_permissions=True)
+
+		dt.reload()
+		field = next(f for f in dt.fields if f.fieldname == "status")
+
+		self.assertEqual(field.show_description_on_click, 1)
+		saved = json.loads(field.dynamic_description)
+		self.assertEqual(saved["source_field"], "status")
+
+		# Resolution logic still works regardless of show_description_on_click
+		self.assertEqual(_resolve_description(saved, "Draft"), "Not yet submitted.")
+		self.assertEqual(_resolve_description(saved, "Submitted"), "Locked for editing.")
+		self.assertEqual(_resolve_description(saved, "Cancelled"), "Select a status.")
+
 	def test_self_reference_resolution(self):
 		"""Resolution logic works when source_field == the field being described."""
 		config = {
