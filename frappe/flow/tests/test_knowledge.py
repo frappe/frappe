@@ -880,6 +880,19 @@ class TestRetriever(IntegrationTestCase):
 		self.assertTrue(results)
 		self.assertTrue(all(r["source"] == mine.name for r in results))
 
+	def test_retrieve_skips_disabled_knowledge_base(self):
+		self._text_source(self.kb.name, "laptop setup guide. " * 4)
+		self.assertTrue(self._retrieve("laptop", kbs=[self.kb.name]))
+
+		frappe.db.set_value("AI Knowledge Base", self.kb.name, "enabled", 0)
+		self.assertEqual(self._retrieve("laptop", kbs=[self.kb.name]), [])
+
+	def test_retrieve_ignores_unknown_knowledge_base(self):
+		mine = self._text_source(self.kb.name, "laptop setup guide. " * 4)
+		results = self._retrieve("laptop", kbs=[self.kb.name, "No Such KB"])
+		self.assertTrue(results)
+		self.assertTrue(all(r["source"] == mine.name for r in results))
+
 
 class TestKnowledgeBuilder(IntegrationTestCase):
 	def setUp(self):
