@@ -223,7 +223,10 @@ def patch_like_operators():
 	backends -- matching MariaDB and the like->ilike translation `frappe.db.get_list` already
 	applies for its filter path. MariaDB keeps native LIKE.
 	"""
-	from pypika.terms import Term
+	# pypika has no hook for dialect-specific operator rendering, so patch Term.like/not_like the same
+	# way the query-builder patches above (QueryBuilder.run, Base.max, ...) and app.py's
+	# Request.max_form_memory_size do. The rule anchors on the import, so suppress it there too.
+	from pypika.terms import Term  # nosemgrep: frappe-monkey-patching-not-allowed
 
 	_like, _not_like = Term.like, Term.not_like
 
@@ -237,8 +240,8 @@ def patch_like_operators():
 			return self.not_ilike(expr)
 		return _not_like(self, expr)
 
-	Term.like = like
-	Term.not_like = not_like
+	Term.like = like  # nosemgrep: frappe-monkey-patching-not-allowed
+	Term.not_like = not_like  # nosemgrep: frappe-monkey-patching-not-allowed
 
 
 def patch_all():
