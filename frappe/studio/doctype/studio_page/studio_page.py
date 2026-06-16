@@ -95,7 +95,7 @@ class StudioPage(Document):
 			frappe.create_folder(self.get_folder_path())
 			# script lives in the companion .ts (code mode), so keep it out of the JSON
 			write_document_file(self, folder=self.get_folder_path(), exclude_fields=["script"])
-			self.delete_old_page_file()
+			self.relocate_on_retitle()
 			self.export_components()
 
 	def export_script_to_file(self):
@@ -116,16 +116,26 @@ class StudioPage(Document):
 		if os.path.exists(ts_path):
 			self.db_set("script", frappe.read_file(ts_path), update_modified=False)
 
-	def delete_old_page_file(self):
-		# the folder is named after the page title, so a retitle moves the whole folder
-		if self.has_value_changed("page_title"):
-			doc_before_save = self.get_doc_before_save()
-			if doc_before_save:
-				old_stem = frappe.scrub(doc_before_save.page_title)
-				old_folder = frappe.get_app_source_path(
-					self.frappe_app, "studio", self.studio_app, "studio_page", old_stem
-				)
-				delete_folder(old_folder)
+	def relocate_on_retitle(self):
+		"""The page folder and its files are named after the page title, so a retitle relocates them.
+		The JSON is regenerated under the new name; carry the companion <page>.ts over too, then
+		remove the old folder."""
+		if not self.has_value_changed("page_title"):
+			return
+		doc_before_save = self.get_doc_before_save()
+		if not doc_before_save:
+			return
+
+		old_stem = frappe.scrub(doc_before_save.page_title)
+		old_folder = frappe.get_app_source_path(
+			self.frappe_app, "studio", self.studio_app, "studio_page", old_stem
+		)
+		old_page_script = os.path.join(old_folder, f"{old_stem}.ts")
+		if os.path.exists(old_page_script):
+			os.rename(
+				old_page_script, os.path.join(self.get_folder_path(), f"{self.get_export_docname()}.ts")
+			)
+		delete_folder(old_folder)
 
 	def export_components(self):
 		if components := self.get_studio_components():
