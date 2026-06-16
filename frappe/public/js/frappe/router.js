@@ -594,10 +594,12 @@ frappe.router = {
 
 			// Check that the origin is external (does not prevent self-clickjacking on GET endpoints)
 			const url = new URL(aElement.href);
+			const hostname = url.hostname;
 
-			// For blob: URLs, hostname is empty extract the real host from the embedded URL in pathname
-			const hostname =
-				url.protocol === "blob:" ? new URL(url.pathname).hostname : url.hostname;
+			// For blob: URLs, skip the link check
+			if (url.protocol === "blob:") {
+			  return false; // blob: URLs are not checked
+			}
 			if (hostname === window.location.hostname) {
 				return false; // self-linking is allowed
 			}
