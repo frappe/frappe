@@ -42,7 +42,15 @@ class ImportMapper:
 
 	def __call__(self, *args: Any, **kwds: Any) -> Callable:
 		db = db_type_is(frappe.conf.db_type)
-		return self.func_map[db](*args, **kwds)
+		func = self.func_map.get(db)
+		if func is None and db is db_type_is.SQLITE:
+			# Many builder functions have no dedicated SQLite mapping. SQLite is the
+			# closest dialect to MariaDB (and the SQLite driver shims MariaDB's scalar
+			# functions), so fall back to the MariaDB form instead of raising KeyError.
+			func = self.func_map.get(db_type_is.MARIADB)
+		if func is None:
+			func = self.func_map[db]  # surface the original KeyError
+		return func(*args, **kwds)
 
 
 class BuilderIdentificationFailed(Exception):
