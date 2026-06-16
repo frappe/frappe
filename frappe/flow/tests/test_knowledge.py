@@ -939,6 +939,20 @@ class TestRetriever(IntegrationTestCase):
 		self.assertTrue(results)
 		self.assertTrue(all(r["source"] == mine.name for r in results))
 
+	def test_retrieve_vector_mode_omits_text(self):
+		self._text_source(self.kb.name, "laptop setup guide. " * 4)
+		frappe.db.set_single_value("AI Knowledge Settings", "search_type", "Vector")
+		with patch("flow.knowledge.store.search", return_value=[]) as mock:
+			self._retrieve("laptop", kbs=[self.kb.name])
+		self.assertIsNone(mock.call_args.kwargs["text"])
+
+	def test_retrieve_hybrid_mode_passes_text(self):
+		self._text_source(self.kb.name, "laptop setup guide. " * 4)
+		frappe.db.set_single_value("AI Knowledge Settings", "search_type", "Hybrid")
+		with patch("flow.knowledge.store.search", return_value=[]) as mock:
+			self._retrieve("laptop", kbs=[self.kb.name])
+		self.assertEqual(mock.call_args.kwargs["text"], "laptop")
+
 
 class TestKnowledgeBuilder(IntegrationTestCase):
 	def setUp(self):

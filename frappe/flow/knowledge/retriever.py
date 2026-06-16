@@ -3,8 +3,9 @@
 
 """Query-time retrieval over the knowledge store.
 
-Embeds the query, runs a KB-scoped hybrid search, and hydrates each hit from
-MariaDB (the source of truth) for its text and provenance.
+Embeds the query, runs a KB-scoped search (hybrid or vector-only per the
+AI Knowledge Settings search_type), and hydrates each hit from MariaDB (the
+source of truth) for its text and provenance.
 
 Permission model — the knowledge base is the boundary. KBs are admin-curated
 (System Manager-only doctypes), bound to agents by admins, and the LLM cannot
@@ -48,8 +49,11 @@ def retrieve(query: str, *, kbs: list[str], limit: int = DEFAULT_LIMIT) -> list[
 	from flow.knowledge import store
 	from flow.knowledge.embedder import embed_texts
 
+	search_type = frappe.get_cached_value("AI Knowledge Settings", "AI Knowledge Settings", "search_type")
+	text = query if search_type != "Vector" else None
+
 	(vector,) = embed_texts([query])
-	hits = store.search(vector, text=query, kbs=kbs, limit=limit)
+	hits = store.search(vector, text=text, kbs=kbs, limit=limit)
 	if not hits:
 		return []
 
