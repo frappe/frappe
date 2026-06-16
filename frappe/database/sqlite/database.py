@@ -614,6 +614,16 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		else:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
 
+	@contextmanager
+	def unbuffered_cursor(self):
+		"""SQLite reads rows lazily from its single cursor, so there is no separate
+		server-side/unbuffered cursor to switch to (unlike MariaDB's SSCursor or
+		Postgres' named cursor). Used with ``as_iterator=True`` it already provides
+		streaming reads, so this is a no-op context manager for API compatibility."""
+		if not self._conn:
+			self.connect()
+		yield
+
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Return list of column names from given table."""
 		key = f"table_columns::{table}"
