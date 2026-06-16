@@ -791,6 +791,10 @@ frappe.ui.Sidebar = class Sidebar {
 				return route[0];
 			case 3:
 				return route[0] === "Workspaces" && route[1] === "private" ? route[2] : route[1];
+			case 2:
+				// view-type routes like ["List", "Customer"] or
+				// ["query-report", "Balance Sheet"] -> entity is the second element
+				return route[1];
 			default:
 				return route[0];
 		}
