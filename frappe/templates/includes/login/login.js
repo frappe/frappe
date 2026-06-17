@@ -19,7 +19,7 @@ login.bind_events = function () {
 		args.cmd = "login";
 		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
-		var hasError = false;
+		let hasError = false;
 		if (!args.usr) {
 			login.show_field_error("login_email", {{ _("Email is required.") | tojson }});
 			hasError = true;
