@@ -1,56 +1,55 @@
 <template>
-	<div class="pfb-page-wrapper">
+	<div
+		class="print-format-main"
+		:style="rootStyles"
+		:class="{
+			'pfb-clean-preview': !!store.preview_doc.value,
+		}"
+	>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
 			{{ __("1 of 2") }}
 		</div>
-		<div
-			class="print-format-main"
-			:style="rootStyles"
-			:class="{
-				'pfb-clean-preview': !!store.preview_doc.value,
-			}"
-		>
-			<LetterHeadZoneEditor zone="header" />
 
-			<!-- Body wrapper: font size/family applied here so letterhead zones are unaffected -->
-			<div class="pfb-body" :style="bodyStyles">
-				<div class="zone-divider zone-divider--header">
-					<span class="zone-divider-label">{{ __("Header") }}</span>
-				</div>
-				<PrintFormatSection :section="layout.header" :is_header="true" zone="header" />
-				<div class="zone-divider zone-divider--body">
-					<span class="zone-divider-label">{{ __("Body") }}</span>
-				</div>
+		<LetterHeadZoneEditor zone="header" />
 
-				<draggable
-					class="sections-container"
-					v-model="layout.sections"
-					group="sections"
-					:animation="200"
-					item-key="id"
-					handle=".section-drag-handle"
-					filter=".section-columns, .column, .field"
-					@add="on_section_add"
-				>
-					<template #item="{ element, index }">
-						<div class="section-with-insert">
-							<SectionInsert @insert="add_section_at(index)" />
-							<PrintFormatSection :section="element" />
-						</div>
-					</template>
-					<template #footer>
-						<SectionInsert @insert="add_section_at(layout.sections.length)" />
-					</template>
-				</draggable>
-
-				<div class="zone-divider zone-divider--footer">
-					<span class="zone-divider-label">{{ __("Footer") }}</span>
-				</div>
-				<PrintFormatSection :section="layout.footer" :is_header="true" zone="footer" />
+		<!-- Body wrapper: font size/family applied here so letterhead zones are unaffected -->
+		<div class="pfb-body" :style="bodyStyles">
+			<div class="zone-divider zone-divider--header">
+				<span class="zone-divider-label">{{ __("Header") }}</span>
+			</div>
+			<PrintFormatSection :section="layout.header" :is_header="true" zone="header" />
+			<div class="zone-divider zone-divider--body">
+				<span class="zone-divider-label">{{ __("Body") }}</span>
 			</div>
 
-			<LetterHeadZoneEditor v-if="letterhead" zone="footer" />
+			<draggable
+				class="sections-container"
+				v-model="layout.sections"
+				group="sections"
+				:animation="200"
+				item-key="id"
+				handle=".section-drag-handle"
+				filter=".section-columns, .column, .field"
+				@add="on_section_add"
+			>
+				<template #item="{ element, index }">
+					<div class="section-with-insert">
+						<SectionInsert @insert="add_section_at(index)" />
+						<PrintFormatSection :section="element" />
+					</div>
+				</template>
+				<template #footer>
+					<SectionInsert @insert="add_section_at(layout.sections.length)" />
+				</template>
+			</draggable>
+
+			<div class="zone-divider zone-divider--footer">
+				<span class="zone-divider-label">{{ __("Footer") }}</span>
+			</div>
+			<PrintFormatSection :section="layout.footer" :is_header="true" zone="footer" />
 		</div>
+
+		<LetterHeadZoneEditor v-if="letterhead" zone="footer" />
 	</div>
 </template>
 
@@ -132,25 +131,21 @@ let page_number_hidden = computed(() => print_format.value.page_number.includes(
 
 let page_number_style = computed(() => {
 	const pn = print_format.value.page_number;
-	// Position the badge outside the document in the canvas gutter
-	const style = {};
+	const { margin_top, margin_bottom, margin_left, margin_right } = print_format.value;
+	const style = { position: "absolute" };
 	if (pn.includes("Top")) {
-		style.bottom = "100%";
-		style.marginBottom = "var(--margin-xs)";
+		style.top = margin_top / 2 + "mm";
+		style.transform = "translateY(-50%)";
 	}
 	if (pn.includes("Bottom")) {
-		style.top = "100%";
-		style.marginTop = "var(--margin-xs)";
+		style.bottom = margin_bottom / 2 + "mm";
+		style.transform = "translateY(50%)";
 	}
-	if (pn.includes("Left")) {
-		style.left = "0";
-	}
-	if (pn.includes("Right")) {
-		style.right = "0";
-	}
+	if (pn.includes("Left")) style.left = margin_left + "mm";
+	if (pn.includes("Right")) style.right = margin_right + "mm";
 	if (pn.includes("Center")) {
 		style.left = "50%";
-		style.transform = "translateX(-50%)";
+		style.transform = (style.transform || "") + " translateX(-50%)";
 	}
 	return style;
 });
@@ -160,15 +155,7 @@ watch(print_format, () => (store.dirty.value = true), { deep: true });
 </script>
 
 <style scoped>
-.pfb-page-wrapper {
-	position: relative;
-	display: inline-block;
-	/* top padding gives space for the page-number badge above the document */
-	padding-top: var(--padding-lg);
-}
-
 .pfb-page-num {
-	position: absolute;
 	font-size: var(--text-xs);
 	color: var(--text-muted);
 	background: var(--fg-color);
