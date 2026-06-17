@@ -7,7 +7,6 @@ from frappe import _
 from frappe.model import no_value_fields
 from frappe.model.document import Document
 from frappe.utils import cint, today
-from frappe.utils.telemetry.pulse.client import is_enabled as pulse_enabled
 
 
 class SystemSettings(Document):
@@ -205,6 +204,8 @@ class SystemSettings(Document):
 		clear_system_settings_cache()
 
 		if not frappe.flags.in_setup_wizard and self.has_value_changed("enable_telemetry"):
+			from frappe.utils.telemetry.pulse.client import is_enabled as pulse_enabled
+
 			pulse_enabled.clear_cache()
 
 		if frappe.flags.update_last_reset_password_date:
