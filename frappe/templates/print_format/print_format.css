@@ -296,6 +296,14 @@ body {
 	max-width: 50% !important;
 }
 
+/* Keep letterhead images from overflowing the page when no explicit width is set */
+header img {
+	max-width: 100%;
+	max-height: 80px;
+	width: auto;
+	height: auto;
+}
+
 .document-header {
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
