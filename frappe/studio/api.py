@@ -215,17 +215,134 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 #
 # Read/write the code files (`.ts/.js/.vue/.json/.css`) under an exported app's
 # `studio/<studio_app>/` folder, so developers can edit composables, stores, page
-# scripts and components from Studio itself. This writes app *source* from the
-# browser, so every entry point is gated and the path is jailed to the app folder.
+# scripts and components from Studio itself.
 # ---------------------------------------------------------------------------
 # Extensions a developer may read/write through the Studio file explorer. Deliberately excludes
 # `.py` and anything else that executes on the server — these files are bundled into the app build.
 ALLOWED_STUDIO_FILE_EXTENSIONS = {".ts", ".js", ".vue", ".json", ".css"}
 
 
-def _assert_studio_file_access() -> None:
-	"""Editing app source from the browser is a developer-mode-only, System Manager action."""
-	if not frappe.conf.get("developer_mode"):
+@frappe.whitelist()
+def list_studio_files(frappe_app: str, studio_app: str) -> list[dict]:
+	"""Return the editable file tree under the exported app's studio folder."""
+	_validate_studio_file_access()
+	root = _studio_app_root(frappe_app, studio_app)
+	if not os.path.isdir(root):
+		return []
+	return _build_studio_file_tree(root, root)
+
+
+@frappe.whitelist()
+def read_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict:
+	"""Return a file's content plus a hash callers pass back to write_studio_file for conflict checks."""
+	_validate_studio_file_access()
+	_validate_allowed_extension(file_path)
+	target = _resolve_studio_file(frappe_app, studio_app, file_path)
+	if not os.path.isfile(target):
+		frappe.throw(_("File not found: {0}").format(file_path))
+
+	with open(target, encoding="utf-8") as f:
+		content = f.read()
+	return {"path": file_path, "content": content, "hash": _file_hash(content)}
+
+
+@frappe.whitelist()
+@has_page_write_perm()
+def write_studio_file(
+	frappe_app: str, studio_app: str, file_path: str, content: str, known_hash: str | None = None
+) -> dict:
+	"""Write content to a file (creating parent folders). If known_hash is given and the file changed
+	on disk since it was read, refuse rather than clobber."""
+	_validate_studio_file_access()
+	_validate_allowed_extension(file_path)
+	_validate_editable(studio_app, file_path)
+	target = _resolve_studio_file(frappe_app, studio_app, file_path)
+
+	if known_hash and os.path.isfile(target):
+		with open(target, encoding="utf-8") as f:
+			if _file_hash(f.read()) != known_hash:
+				frappe.throw(_("{0} changed on disk since you opened it.").format(file_path))
+
+	os.makedirs(os.path.dirname(target), exist_ok=True)
+	with open(target, "w", encoding="utf-8") as f:
+		f.write(content)
+	return {"path": file_path, "hash": _file_hash(content)}
+
+
+@frappe.whitelist()
+@has_page_write_perm()
+def create_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict:
+	"""Create an empty editable file (and any parent folders); error if it already exists."""
+	_validate_studio_file_access()
+	_validate_allowed_extension(file_path)
+	target = _resolve_studio_file(frappe_app, studio_app, file_path)
+	if os.path.exists(target):
+		frappe.throw(_("{0} already exists.").format(file_path))
+
+	os.makedirs(os.path.dirname(target), exist_ok=True)
+	with open(target, "w", encoding="utf-8") as f:
+		f.write("")
+	return {"path": file_path, "hash": _file_hash("")}
+
+
+@frappe.whitelist()
+@has_page_write_perm()
+def create_studio_folder(frappe_app: str, studio_app: str, folder_path: str) -> dict:
+	"""Create an empty folder (and any parent folders) within the app folder."""
+	_validate_studio_file_access()
+	target = _resolve_studio_file(frappe_app, studio_app, folder_path)
+	if os.path.exists(target):
+		frappe.throw(_("{0} already exists.").format(folder_path))
+	os.makedirs(target)
+	return {"path": folder_path}
+
+
+@frappe.whitelist()
+@has_page_write_perm()
+def rename_studio_file(frappe_app: str, studio_app: str, file_path: str, new_path: str) -> dict:
+	"""Rename/move an editable file or a folder within the app folder."""
+	_validate_studio_file_access()
+	source = _resolve_studio_file(frappe_app, studio_app, file_path)
+	destination = _resolve_studio_file(frappe_app, studio_app, new_path)
+	if not os.path.exists(source):
+		frappe.throw(_("Not found: {0}").format(file_path))
+	if os.path.exists(destination):
+		frappe.throw(_("{0} already exists.").format(new_path))
+
+	# files keep the editable-extension restriction; folders may be renamed freely, except the ones
+	# the export manages (pages/components)
+	if os.path.isfile(source):
+		_validate_allowed_extension(file_path)
+		_validate_allowed_extension(new_path)
+		_validate_editable(studio_app, file_path)
+	else:
+		_validate_folder_removable(file_path)
+
+	os.makedirs(os.path.dirname(destination), exist_ok=True)
+	os.rename(source, destination)
+	return {"path": new_path}
+
+
+@frappe.whitelist()
+@has_page_write_perm()
+def delete_studio_file(frappe_app: str, studio_app: str, file_path: str) -> None:
+	"""Delete an editable file, or a folder (with its contents), within the app folder."""
+	_validate_studio_file_access()
+	target = _resolve_studio_file(frappe_app, studio_app, file_path)
+	if os.path.isdir(target):
+		_validate_folder_removable(file_path)
+		shutil.rmtree(target)
+		return
+
+	_validate_allowed_extension(file_path)
+	_validate_editable(studio_app, file_path)
+	if not os.path.isfile(target):
+		frappe.throw(_("Not found: {0}").format(file_path))
+	os.remove(target)
+
+
+def _validate_studio_file_access() -> None:
+	if not frappe.conf.developer_mode:
 		frappe.throw(_("Editing Studio code files is only allowed in developer mode."))
 	if "System Manager" not in frappe.get_roles():
 		frappe.throw(_("You do not have permission to edit Studio code files."), frappe.PermissionError)
@@ -245,15 +362,12 @@ def _resolve_studio_file(frappe_app: str, studio_app: str, file_path: str) -> st
 	return target
 
 
-def _assert_allowed_extension(file_path: str) -> None:
+def _validate_allowed_extension(file_path: str) -> None:
 	extension = os.path.splitext(file_path)[1].lower()
 	if extension not in ALLOWED_STUDIO_FILE_EXTENSIONS:
 		frappe.throw(_("Editing {0} files is not allowed.").format(extension or "these"))
 
 
-# Page/component JSON mirror Studio docs and their folders hold the exported structure; both are
-# managed by the export, so editing/removing them by hand would desync the doc. The user's own
-# files (including JSON elsewhere) are left alone.
 def _is_export_doc_file(studio_app: str, file_path: str) -> bool:
 	normalized = file_path.strip("/")
 	if not normalized.lower().endswith(".json"):
@@ -273,12 +387,12 @@ def _is_export_folder(file_path: str) -> bool:
 	)
 
 
-def _assert_editable(studio_app: str, file_path: str) -> None:
+def _validate_editable(studio_app: str, file_path: str) -> None:
 	if _is_export_doc_file(studio_app, file_path):
 		frappe.throw(_("{0} is generated by Studio and is read-only.").format(file_path))
 
 
-def _assert_folder_removable(file_path: str) -> None:
+def _validate_folder_removable(file_path: str) -> None:
 	if _is_export_folder(file_path):
 		frappe.throw(_("{0} is managed by Studio and can't be removed or renamed.").format(file_path))
 
@@ -308,122 +422,3 @@ def _build_studio_file_tree(directory: str, root: str) -> list[dict]:
 
 	nodes.sort(key=lambda node: (not node["is_folder"], node["label"].lower()))
 	return nodes
-
-
-@frappe.whitelist()
-def list_studio_files(frappe_app: str, studio_app: str) -> list[dict]:
-	"""Return the editable file tree under the exported app's studio folder."""
-	_assert_studio_file_access()
-	root = _studio_app_root(frappe_app, studio_app)
-	if not os.path.isdir(root):
-		return []
-	return _build_studio_file_tree(root, root)
-
-
-@frappe.whitelist()
-def read_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict:
-	"""Return a file's content plus a hash callers pass back to write_studio_file for conflict checks."""
-	_assert_studio_file_access()
-	_assert_allowed_extension(file_path)
-	target = _resolve_studio_file(frappe_app, studio_app, file_path)
-	if not os.path.isfile(target):
-		frappe.throw(_("File not found: {0}").format(file_path))
-
-	with open(target, encoding="utf-8") as f:
-		content = f.read()
-	return {"path": file_path, "content": content, "hash": _file_hash(content)}
-
-
-@frappe.whitelist()
-@has_page_write_perm()
-def write_studio_file(
-	frappe_app: str, studio_app: str, file_path: str, content: str, known_hash: str | None = None
-) -> dict:
-	"""Write content to a file (creating parent folders). If known_hash is given and the file changed
-	on disk since it was read, refuse rather than clobber."""
-	_assert_studio_file_access()
-	_assert_allowed_extension(file_path)
-	_assert_editable(studio_app, file_path)
-	target = _resolve_studio_file(frappe_app, studio_app, file_path)
-
-	if known_hash and os.path.isfile(target):
-		with open(target, encoding="utf-8") as f:
-			if _file_hash(f.read()) != known_hash:
-				frappe.throw(_("{0} changed on disk since you opened it.").format(file_path))
-
-	os.makedirs(os.path.dirname(target), exist_ok=True)
-	with open(target, "w", encoding="utf-8") as f:
-		f.write(content)
-	return {"path": file_path, "hash": _file_hash(content)}
-
-
-@frappe.whitelist()
-@has_page_write_perm()
-def create_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict:
-	"""Create an empty editable file (and any parent folders); error if it already exists."""
-	_assert_studio_file_access()
-	_assert_allowed_extension(file_path)
-	target = _resolve_studio_file(frappe_app, studio_app, file_path)
-	if os.path.exists(target):
-		frappe.throw(_("{0} already exists.").format(file_path))
-
-	os.makedirs(os.path.dirname(target), exist_ok=True)
-	with open(target, "w", encoding="utf-8") as f:
-		f.write("")
-	return {"path": file_path, "hash": _file_hash("")}
-
-
-@frappe.whitelist()
-@has_page_write_perm()
-def create_studio_folder(frappe_app: str, studio_app: str, folder_path: str) -> dict:
-	"""Create an empty folder (and any parent folders) within the app folder."""
-	_assert_studio_file_access()
-	target = _resolve_studio_file(frappe_app, studio_app, folder_path)
-	if os.path.exists(target):
-		frappe.throw(_("{0} already exists.").format(folder_path))
-	os.makedirs(target)
-	return {"path": folder_path}
-
-
-@frappe.whitelist()
-@has_page_write_perm()
-def rename_studio_file(frappe_app: str, studio_app: str, file_path: str, new_path: str) -> dict:
-	"""Rename/move an editable file or a folder within the app folder."""
-	_assert_studio_file_access()
-	source = _resolve_studio_file(frappe_app, studio_app, file_path)
-	destination = _resolve_studio_file(frappe_app, studio_app, new_path)
-	if not os.path.exists(source):
-		frappe.throw(_("Not found: {0}").format(file_path))
-	if os.path.exists(destination):
-		frappe.throw(_("{0} already exists.").format(new_path))
-
-	# files keep the editable-extension restriction; folders may be renamed freely, except the ones
-	# the export manages (pages/components)
-	if os.path.isfile(source):
-		_assert_allowed_extension(file_path)
-		_assert_allowed_extension(new_path)
-		_assert_editable(studio_app, file_path)
-	else:
-		_assert_folder_removable(file_path)
-
-	os.makedirs(os.path.dirname(destination), exist_ok=True)
-	os.rename(source, destination)
-	return {"path": new_path}
-
-
-@frappe.whitelist()
-@has_page_write_perm()
-def delete_studio_file(frappe_app: str, studio_app: str, file_path: str) -> None:
-	"""Delete an editable file, or a folder (with its contents), within the app folder."""
-	_assert_studio_file_access()
-	target = _resolve_studio_file(frappe_app, studio_app, file_path)
-	if os.path.isdir(target):
-		_assert_folder_removable(file_path)
-		shutil.rmtree(target)
-		return
-
-	_assert_allowed_extension(file_path)
-	_assert_editable(studio_app, file_path)
-	if not os.path.isfile(target):
-		frappe.throw(_("Not found: {0}").format(file_path))
-	os.remove(target)
