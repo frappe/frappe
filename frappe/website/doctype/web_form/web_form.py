@@ -205,9 +205,10 @@ def get_context(context):
 					_("You don't have the permissions to access this document"), frappe.PermissionError
 				)
 
-			context.has_delete_permission = (
-				self.allow_delete and bool(web_form_request)
-			) or frappe.has_permission(self.doc_type, "delete", frappe.form_dict.name)
+			context.has_delete_permission = self.allow_delete and (
+				bool(web_form_request)
+				or frappe.has_permission(self.doc_type, "delete", frappe.form_dict.name)
+			)
 
 		if frappe.local.path == self.route:
 			path = f"/{self.route}/list" if self.show_list else f"/{self.route}/new"
