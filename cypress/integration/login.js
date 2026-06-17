@@ -7,18 +7,18 @@ context("Login", () => {
 	});
 
 	it("greets with login screen", () => {
-		cy.get(".page-card-head").contains("Login");
+		cy.get(".page-card-head").contains("Sign In");
 	});
 
 	it("validates password", () => {
 		cy.get("#login_email").type("Administrator");
-		cy.findByRole("button", { name: "Login" }).click();
+		cy.findByRole("button", { name: "Continue" }).click();
 		cy.location("pathname").should("eq", "/login");
 	});
 
 	it("validates email", () => {
 		cy.get("#login_password").type("qwe");
-		cy.findByRole("button", { name: "Login" }).click();
+		cy.findByRole("button", { name: "Continue" }).click();
 		cy.location("pathname").should("eq", "/login");
 	});
 
@@ -26,8 +26,8 @@ context("Login", () => {
 		cy.get("#login_email").type("Administrator");
 		cy.get("#login_password").type("qwer");
 
-		cy.findByRole("button", { name: "Login" }).click();
-		cy.findByRole("button", { name: "Invalid Login. Try again." }).should("exist");
+		cy.findByRole("button", { name: "Continue" }).click();
+		cy.findByRole("button", { name: "Invalid credentials, try again." }).should("exist");
 		cy.location("pathname").should("eq", "/login");
 	});
 
@@ -35,7 +35,7 @@ context("Login", () => {
 		cy.get("#login_email").type("Administrator");
 		cy.get("#login_password").type(Cypress.env("adminPassword"));
 
-		cy.findByRole("button", { name: "Login" }).click();
+		cy.findByRole("button", { name: "Continue" }).click();
 		cy.location("pathname").should("match", /^\/desk/);
 		cy.window().its("frappe.session.user").should("eq", "Administrator");
 	});
@@ -59,7 +59,7 @@ context("Login", () => {
 		cy.get("#login_email").type("Administrator");
 		cy.get("#login_password").type(Cypress.env("adminPassword"));
 
-		cy.findByRole("button", { name: "Login" }).click();
+		cy.findByRole("button", { name: "Continue" }).click();
 
 		// verify redirected location and url params after login
 		cy.url().should("include", "/me?" + payload.toString().replace("+", "%20"));
