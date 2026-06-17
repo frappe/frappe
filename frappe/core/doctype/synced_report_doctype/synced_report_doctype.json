@@ -6,6 +6,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "enable_synced_reports",
   "doctype_to_sync"
  ],
  "fields": [
@@ -14,13 +15,19 @@
    "fieldtype": "Table",
    "label": "Doctype To Sync",
    "options": "Synced Report Doctype Table"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_synced_reports",
+   "fieldtype": "Check",
+   "label": "Enable Synced Reports"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-06-17 14:23:50.995561",
+ "modified": "2026-06-17 14:41:45.791622",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Synced Report Doctype",
