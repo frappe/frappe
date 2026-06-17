@@ -760,13 +760,13 @@ frappe.ui.Sidebar = class Sidebar {
 					this.select_sidebar(name);
 				}
 			} else {
-				// Find the sidebars in the current shell's app that contain the routed entity; if it
-				// isn't already in the current sidebar, follow it to the one that owns it. Restricting
-				// to the same app keeps navigation from jumping across apps. Prefer the workspace
-				// whose item is flagged default_workspace; otherwise the first sidebar that has it.
+				// Find the sidebars that contain the routed entity, restricted to the app the route is
+				// heading into (the app that owns the routed doctype) -- not the current shell's app.
+				// If the entity isn't already in the current sidebar, follow it to the one that owns
+				// it: prefer the workspace whose item is flagged default_workspace, else the first.
 				const entity = this.entity_from_route(route);
-				const current_app = this.all_sidebar_items?.[this.workspace_title]?.app;
-				const candidates = this.get_workspace_sidebars(entity, current_app);
+				const target_app = this.app_from_route(entity);
+				const candidates = this.get_workspace_sidebars(entity, target_app);
 				const in_current = candidates.some(
 					(s) => s.toLowerCase() === this.workspace_title
 				);
@@ -894,6 +894,16 @@ frappe.ui.Sidebar = class Sidebar {
 		};
 		console.info("[sidebar] why:", info);
 		return info;
+	}
+
+	// The app the route is heading into: the app that owns the routed doctype, resolved via its
+	// module (meta.module -> module_app). Returns undefined when the entity isn't a doctype or its
+	// meta isn't loaded yet, in which case the caller applies no app filter. This is the app the
+	// user is navigating *towards*, deliberately not the current shell's app.
+	app_from_route(entity) {
+		const meta = entity && frappe.get_meta(entity);
+		if (!meta?.module) return undefined;
+		return frappe.boot.module_app[frappe.scrub(meta.module)];
 	}
 
 	entity_from_route(route) {
