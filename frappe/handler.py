@@ -314,9 +314,7 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		frappe.throw_permission_error()
 
 	try:
-		print(f"Parsing args as JSON: {args}, type: {type(args)}")
 		args = frappe.parse_json(args)
-		print(f"Parsed args as JSON: {args}, type: {type(args)}")
 	except ValueError:
 		pass
 
