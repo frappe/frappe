@@ -52,10 +52,12 @@ frappe.ui.form.on("Role", {
 	refresh(frm) {
 		frm.role_form = new RoleForm(frm);
 		frm.role_form.render();
+		frm.page.wrapper.off("show.role_tabs").on("show.role_tabs", () => {
+			frm.role_form && frm.role_form.load_active_tab();
+		});
 	},
 
 	on_tab_change(frm) {
-		// Lazy-load the active tab's data the first time it is opened.
 		frm.role_form && frm.role_form.load_active_tab();
 	},
 });
@@ -91,6 +93,7 @@ class RoleForm {
 			document_tab: new DocumentsTab(this.frm),
 			report_tab: new ReportsTab(this.frm),
 			pages_tab: new PagesTab(this.frm),
+			workspace_tab: new WorkspacesTab(this.frm),
 		};
 		Object.values(this.tabs).forEach((tab) => tab.build());
 
@@ -103,10 +106,12 @@ class RoleForm {
 	}
 
 	load_active_tab() {
+		// Refresh on every activation so externally-made changes show up without a
+		// full form reload (the first activation is also when the tab lazy-loads).
 		const active = this.frm.get_active_tab && this.frm.get_active_tab();
 		const fieldname = active && active.df && active.df.fieldname;
 		const tab = fieldname && this.tabs && this.tabs[fieldname];
-		if (tab) tab.load_once();
+		if (tab) tab.refresh();
 	}
 
 	show_banner() {
@@ -144,7 +149,6 @@ class RoleTab {
 	constructor(frm, html_fieldname) {
 		this.frm = frm;
 		this.html_fieldname = html_fieldname;
-		this.loaded = false;
 	}
 
 	get role() {
@@ -173,12 +177,6 @@ class RoleTab {
 		this.list && this.list.refresh();
 	}
 
-	load_once() {
-		if (this.loaded || !this.list) return;
-		this.loaded = true;
-		this.refresh();
-	}
-
 	// Subclasses return the EmbeddedList options (minus wrapper/show_index).
 	list_config() {
 		return {};
@@ -196,7 +194,6 @@ class RoleProfilesTab extends RoleTab {
 
 	list_config() {
 		return {
-			title: __("Role Profiles"),
 			description: __("Role Profiles that include this role."),
 			empty_message: __("No Role Profiles include this role."),
 			columns: [
@@ -248,7 +245,7 @@ class UsersTab extends RoleTab {
 							label: __("Remove"),
 							icon: "x",
 							danger: true,
-							confirm: __("Remove '{0}' from this role?"),
+							confirm: __("Remove {0} from this role?"),
 							confirm_field: "full_name",
 							action: (row, refresh) => this.remove(row.name).then(refresh),
 						},
@@ -297,30 +294,37 @@ class UsersTab extends RoleTab {
 			],
 			primary_action_label: __("Add"),
 			primary_action: (values) => {
-				this.add_role(values.user).then(() => {
-					dialog.hide();
-					frappe.show_alert({ message: __("User added."), indicator: "green" });
-					this.refresh();
-				});
+				return this.add_role(values.user)
+					.then(() => {
+						dialog.hide();
+						frappe.show_alert({ message: __("User added."), indicator: "green" });
+						this.refresh();
+					})
+					.catch((e) => {
+						frappe.show_alert({
+							message: e.message || __("Failed to add user."),
+							indicator: "red",
+						});
+					});
 			},
 		});
 		dialog.show();
 	}
 
 	add_role(user_name) {
-		return frappe.db.get_doc("User", user_name).then((user) => {
-			user.roles = user.roles || [];
-			if (!user.roles.find((r) => r.role === this.role)) {
-				user.roles.push({ role: this.role });
+		return frappe.db.get_doc("User", user_name).then((doc) => {
+			doc.roles = doc.roles || [];
+			if (!doc.roles.find((r) => r.role === this.role)) {
+				doc.roles.push({ role: this.role });
 			}
-			return client_save(user);
+			return frappe.call({ method: "frappe.client.save", args: { doc } });
 		});
 	}
 
 	remove(user_name) {
-		return frappe.db.get_doc("User", user_name).then((user) => {
-			user.roles = (user.roles || []).filter((r) => r.role !== this.role);
-			return client_save(user);
+		return frappe.db.get_doc("User", user_name).then((doc) => {
+			doc.roles = (doc.roles || []).filter((r) => r.role !== this.role);
+			return frappe.call({ method: "frappe.client.save", args: { doc } });
 		});
 	}
 }
@@ -480,7 +484,7 @@ class PermissionDialog {
 
 	title() {
 		return this.is_edit
-			? __("{0} Permission — {1}", [__(this.row.source), this.row.parent])
+			? __("{0} Permission for {1}", [__(this.row.source), this.row.parent])
 			: __("Add Permission for {0}", [this.role]);
 	}
 
@@ -495,7 +499,7 @@ class PermissionDialog {
 			{
 				fieldtype: "Section Break",
 				fieldname: "sb_only_if_creator",
-				label: __("Creator Access"),
+				label: __("Creator's Access"),
 			},
 
 			this.if_owner_field(seed),
@@ -624,11 +628,6 @@ class PermissionDialog {
 	}
 
 	add_row_actions() {
-		if (this.row.permlevel > 0) {
-			this.dialog.add_custom_action(__("View Fields"), () =>
-				new FieldsDialog(this.row).show()
-			);
-		}
 		this.dialog.add_custom_action(__("Remove Permission"), () => this.confirm_remove());
 	}
 
@@ -645,7 +644,7 @@ class PermissionDialog {
 	}
 
 	confirm_remove() {
-		frappe.confirm(__("Remove this role's permission on '{0}'?", [this.row.parent]), () => {
+		frappe.confirm(__("Remove this role's permission on {0}?", [this.row.parent]), () => {
 			this.tab.remove(this.row).then(() => {
 				this.dialog.hide();
 				frappe.show_alert({ message: __("Permission removed."), indicator: "green" });
@@ -656,72 +655,11 @@ class PermissionDialog {
 }
 
 // ============================================================
-// FieldsDialog — fields sitting at a given permlevel for a doctype.
 // ============================================================
-
-class FieldsDialog {
-	constructor(row) {
-		this.row = row;
-	}
-
-	show() {
-		this.dialog = new frappe.ui.Dialog({
-			title: __("Fields at Level {0} — {1}", [this.row.permlevel, this.row.parent]),
-			size: "large",
-		});
-		this.dialog.show();
-		this.dialog.$body.html(placeholder_html(__("Loading...")));
-		this.load();
-	}
-
-	load() {
-		Promise.all([
-			frappe.db.get_list("DocField", {
-				filters: { parent: this.row.parent, permlevel: this.row.permlevel },
-				fields: ["fieldname", "label", "fieldtype"],
-				limit: 0,
-			}),
-			frappe.db.get_list("Custom Field", {
-				filters: { dt: this.row.parent, permlevel: this.row.permlevel },
-				fields: ["fieldname", "label", "fieldtype"],
-				limit: 0,
-			}),
-		]).then(([std, custom]) => this.render([...std, ...custom]));
-	}
-
-	render(fields) {
-		if (!fields.length) {
-			this.dialog.$body.html(
-				placeholder_html(__("No fields are set to this permission level."))
-			);
-			return;
-		}
-		this.dialog.$body.html(this.table_html(fields));
-	}
-
-	table_html(fields) {
-		const body = fields.map((field) => this.row_html(field)).join("");
-		return `<table class="table table-bordered">
-				<thead><tr><th>${__("Label")}</th><th>${__("Fieldname")}</th><th>${__("Type")}</th></tr></thead>
-				<tbody>${body}</tbody>
-			</table>`;
-	}
-
-	row_html(field) {
-		return `<tr>
-				<td>${frappe.utils.escape_html(__(field.label) || field.fieldname)}</td>
-				<td class="text-muted">${frappe.utils.escape_html(field.fieldname)}</td>
-				<td class="text-muted">${frappe.utils.escape_html(field.fieldtype)}</td>
-			</tr>`;
-	}
-}
-
-// ============================================================
-// ReportsTab & PagesTab — reverse lookup on a `roles` child table.
+// ReportsTab & PagesTab — direct lookup on the `roles` child table.
 // ============================================================
 
 class RoleAccessTab extends RoleTab {
-	// Subclasses set access_doctype / label / meta_fields and provide list_config().
 	get_data() {
 		return frappe.db
 			.get_list("Has Role", {
@@ -729,7 +667,10 @@ class RoleAccessTab extends RoleTab {
 				fields: ["parent"],
 				limit: 0,
 			})
-			.then((rows) => this.fetch_records(unique_parents(rows)));
+			.then((rows) => {
+				const names = unique_parents(rows);
+				return this.fetch_records(names);
+			});
 	}
 
 	fetch_records(names) {
@@ -742,7 +683,6 @@ class RoleAccessTab extends RoleTab {
 		});
 	}
 
-	// A clickable name column that opens the underlying record.
 	name_link_column() {
 		return {
 			label: __(this.label),
@@ -752,7 +692,6 @@ class RoleAccessTab extends RoleTab {
 		};
 	}
 
-	// An inline Remove action (no dialog — there is nothing to edit here).
 	remove_action_column() {
 		return {
 			type: "actions",
@@ -761,7 +700,7 @@ class RoleAccessTab extends RoleTab {
 					label: __("Remove"),
 					icon: "x",
 					danger: true,
-					confirm: __("Remove this role's access to '{0}'?"),
+					confirm: __("Remove this role's access to {0}?"),
 					confirm_field: "name",
 					action: (row, refresh) => this.remove(row.name).then(refresh),
 				},
@@ -785,30 +724,37 @@ class RoleAccessTab extends RoleTab {
 			],
 			primary_action_label: __("Add"),
 			primary_action: (values) => {
-				this.add_role(values.doc).then(() => {
-					dialog.hide();
-					frappe.show_alert({ message: __("Access added."), indicator: "green" });
-					this.refresh();
-				});
+				return this.add_role(values.doc)
+					.then(() => {
+						dialog.hide();
+						frappe.show_alert({ message: __("Access added."), indicator: "green" });
+						this.refresh();
+					})
+					.catch((e) => {
+						frappe.show_alert({
+							message: e.message || __("Failed to add access."),
+							indicator: "red",
+						});
+					});
 			},
 		});
 		dialog.show();
 	}
 
-	add_role(name) {
-		return frappe.db.get_doc(this.access_doctype, name).then((doc) => {
+	add_role(record_name) {
+		return frappe.db.get_doc(this.access_doctype, record_name).then((doc) => {
 			doc.roles = doc.roles || [];
 			if (!doc.roles.find((r) => r.role === this.role)) {
 				doc.roles.push({ role: this.role });
 			}
-			return client_save(doc);
+			return frappe.call({ method: "frappe.client.save", args: { doc } });
 		});
 	}
 
-	remove(name) {
-		return frappe.db.get_doc(this.access_doctype, name).then((doc) => {
+	remove(record_name) {
+		return frappe.db.get_doc(this.access_doctype, record_name).then((doc) => {
 			doc.roles = (doc.roles || []).filter((r) => r.role !== this.role);
-			return client_save(doc);
+			return frappe.call({ method: "frappe.client.save", args: { doc } });
 		});
 	}
 }
@@ -818,7 +764,14 @@ class ReportsTab extends RoleAccessTab {
 		super(frm, "report_roles_html");
 		this.access_doctype = "Report";
 		this.label = "Report";
-		this.meta_fields = ["name", "module"];
+		this.meta_fields = ["name", "module", "report_type", "ref_doctype"];
+	}
+
+	report_route(row) {
+		if (row.report_type === "Report Builder") {
+			return ["List", row.ref_doctype, "Report", row.name];
+		}
+		return ["query-report", row.name];
 	}
 
 	list_config() {
@@ -827,7 +780,12 @@ class ReportsTab extends RoleAccessTab {
 			empty_message: __("This role has no Report access."),
 			add_button: { label: __("+ Add Report"), action: () => this.add() },
 			columns: [
-				this.name_link_column(),
+				{
+					label: __("Report"),
+					fieldname: "name",
+					type: "link",
+					route: (row) => this.report_route(row),
+				},
 				{ label: __("Module"), fieldname: "module" },
 				this.remove_action_column(),
 			],
@@ -856,6 +814,35 @@ class PagesTab extends RoleAccessTab {
 					type: "link",
 					text: (row) => row.title || row.name,
 					route: (row) => ["Form", "Page", row.name],
+				},
+				{ label: __("Module"), fieldname: "module" },
+				this.remove_action_column(),
+			],
+			get_data: () => this.get_data(),
+		};
+	}
+}
+
+class WorkspacesTab extends RoleAccessTab {
+	constructor(frm) {
+		super(frm, "workspace_roles_html");
+		this.access_doctype = "Workspace";
+		this.label = "Workspace";
+		this.meta_fields = ["name", "title", "module"];
+	}
+
+	list_config() {
+		return {
+			description: __("Workspaces this role can access."),
+			empty_message: __("This role has no Workspace access."),
+			add_button: { label: __("+ Add Workspace"), action: () => this.add() },
+			columns: [
+				{
+					label: __("Workspace"),
+					fieldname: "title",
+					type: "link",
+					text: (row) => row.title || row.name,
+					route: (row) => [row.name],
 				},
 				{ label: __("Module"), fieldname: "module" },
 				this.remove_action_column(),

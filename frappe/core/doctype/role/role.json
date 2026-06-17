@@ -9,13 +9,13 @@
  "field_order": [
   "role_name",
   "home_page",
+  "restrict_to_domain",
   "column_break_4",
   "disabled",
   "is_custom",
   "desk_access",
   "two_factor_auth",
-  "configure_section",
-  "restrict_to_domain",
+  "role_profiles_section",
   "role_profiles_html",
   "users_tab",
   "users_html",
@@ -24,7 +24,9 @@
   "report_tab",
   "report_roles_html",
   "pages_tab",
-  "page_roles_html"
+  "page_roles_html",
+  "workspace_tab",
+  "workspace_roles_html"
  ],
  "fields": [
   {
@@ -37,11 +39,34 @@
    "unique": 1
   },
   {
+   "description": "Route: Example \"/desk\"",
+   "fieldname": "home_page",
+   "fieldtype": "Data",
+   "label": "Home Page"
+  },
+  {
+   "fieldname": "restrict_to_domain",
+   "fieldtype": "Link",
+   "label": "Restrict To Domain",
+   "options": "Domain"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
    "default": "0",
    "description": "If disabled, this role will be removed from all users.",
    "fieldname": "disabled",
    "fieldtype": "Check",
    "label": "Disabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_custom",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Custom"
   },
   {
    "default": "1",
@@ -57,32 +82,9 @@
    "label": "Two Factor Authentication"
   },
   {
-   "fieldname": "restrict_to_domain",
-   "fieldtype": "Link",
-   "label": "Restrict To Domain",
-   "options": "Domain"
-  },
-  {
-   "description": "Route: Example \"/desk\"",
-   "fieldname": "home_page",
-   "fieldtype": "Data",
-   "label": "Home Page"
-  },
-  {
-   "fieldname": "column_break_4",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "is_custom",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Is Custom"
-  },
-  {
-   "fieldname": "configure_section",
+   "fieldname": "role_profiles_section",
    "fieldtype": "Section Break",
-   "label": "Configure"
+   "label": "Role Profiles"
   },
   {
    "fieldname": "role_profiles_html",
@@ -128,6 +130,16 @@
    "fieldname": "page_roles_html",
    "fieldtype": "HTML",
    "label": "Pages"
+  },
+  {
+   "fieldname": "workspace_tab",
+   "fieldtype": "Tab Break",
+   "label": "Workspaces"
+  },
+  {
+   "fieldname": "workspace_roles_html",
+   "fieldtype": "HTML",
+   "label": "Workspaces"
   }
  ],
  "icon": "fa fa-bookmark",
