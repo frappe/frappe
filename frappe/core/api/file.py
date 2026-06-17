@@ -40,25 +40,28 @@ def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
 
 @frappe.whitelist()
 def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> dict:
-	attachment_folder = frappe.db.get_value(
-		"File",
-		"Home/Attachments",
-		["name", "file_name", "file_url", "is_folder", "modified"],
-		as_dict=1,
-	)
+	fields = ["name", "file_name", "file_url", "is_folder", "modified"]
+
+	attachment_folder = frappe.db.get_value("File", "Home/Attachments", fields, as_dict=1)
+	is_first_page = cint(start)
+	folders = []
+	if is_first_page == 0:
+		folders = frappe.get_list("File", {"folder": folder, "is_folder": 1}, fields)
 
 	files = frappe.get_list(
 		"File",
-		{"folder": folder},
-		["name", "file_name", "file_url", "is_folder", "modified"],
+		{"folder": folder, "is_folder": 0},
+		fields,
 		start=start,
 		page_length=page_length + 1,
+		group_by="file_url",
 	)
+	result = folders + files[:page_length]
 
-	if folder == "Home" and attachment_folder not in files:
-		files.insert(0, attachment_folder)
+	if folder == "Home" and is_first_page == 0 and attachment_folder and attachment_folder not in result:
+		result.insert(0, attachment_folder)
 
-	return {"files": files[:page_length], "has_more": len(files) > page_length}
+	return {"files": result, "has_more": len(files) > page_length}
 
 
 @frappe.whitelist()
@@ -77,6 +80,9 @@ def get_files_by_search_text(text: str) -> list[dict]:
 			"name": ("like", text),
 		},
 		order_by="creation desc",
+		# Results are all files (is_folder=False), so collapse duplicates that
+		# point to the same blob (same file_url) to one entry.
+		group_by="file_url",
 		limit=20,
 	)
 
