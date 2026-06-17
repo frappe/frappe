@@ -47,31 +47,31 @@ class Workspace(DeskViews):
 			self.table_counts = get_table_with_counts()
 
 	def is_permitted(self):
-		"""Return true if no `roles`/`allowed_users` are set or the user is allowed.
+		"""Return true if the workspace is visible to the current user.
 
-		An empty `roles` *and* empty `allowed_users` means the workspace is visible to
-		everyone (mirrors how the `roles` allow-list has always worked). When either is
-		set, access is granted if the user's roles intersect the allowed roles **or**
-		the current user is explicitly listed in `allowed_users`.
+		Visibility is gated by the workspace's `roles` allow-list and by the user's
+		personal allow-list (`User.workspaces`):
+
+		* If the user has customised `User.workspaces`, only the workspaces listed there
+		  are visible -- the personal allow-list is authoritative.
+		* If the workspace has `roles`, the user must have one of them.
+		* Otherwise (no personal list, no roles) visibility falls back to the user's
+		  blocked modules: the workspace is hidden when its `module` is blocked.
 		"""
 		from frappe.utils import has_common
 
+		user_workspaces = get_user_workspaces()
+		if user_workspaces:
+			return self.doc.name in user_workspaces
+
 		allowed = [d.role for d in self.doc.roles]
+		allowed.extend(get_custom_allowed_roles("page", self.doc.name))
 
-		custom_roles = get_custom_allowed_roles("page", self.doc.name)
-		allowed.extend(custom_roles)
+		if not allowed:
+			blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
+			return self.doc.module not in blocked_modules
 
-		allowed_users = [d.user for d in self.doc.allowed_users]
-
-		if not allowed and not allowed_users:
-			return True
-
-		if frappe.session.user in allowed_users:
-			return True
-
-		roles = frappe.get_roles()
-
-		if has_common(roles, allowed):
+		if has_common(frappe.get_roles(), allowed):
 			return True
 
 	def get_cached(self, cache_key, fallback_fn):
@@ -348,6 +348,17 @@ def get_desktop_page(page: str | dict):
 
 
 @frappe.whitelist()
+def get_user_workspaces(user: str | None = None) -> set[str]:
+	"""Return the set of workspaces in `user`'s personal allow-list (`User.workspaces`).
+
+	An empty set means the user has not customised their workspaces, in which case
+	visibility falls back to the workspace `roles` allow-list.
+	"""
+	user = user or frappe.session.user
+	user_doc = frappe.get_cached_doc("User", user)
+	return {d.workspace for d in user_doc.workspaces if d.workspace}
+
+
 def get_workspaces():
 	"""Get list of sidebar items for desk"""
 

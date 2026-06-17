@@ -5,7 +5,7 @@
 from frappe.model.document import Document
 
 
-class WorkspaceAllowedUsers(Document):
+class UserWorkspaces(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -17,7 +17,7 @@ class WorkspaceAllowedUsers(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		user: DF.Link | None
+		workspace: DF.Link | None
 	# end: auto-generated types
 
-	_DOCTYPE_NAME = "Workspace Allowed Users"
+	_DOCTYPE_NAME = "User Workspaces"

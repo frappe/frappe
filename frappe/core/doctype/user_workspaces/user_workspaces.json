@@ -2,30 +2,30 @@
  "actions": [],
  "allow_bulk_edit": 1,
  "allow_rename": 1,
- "creation": "2026-06-15 10:49:23.404718",
+ "creation": "2026-06-17 16:47:39.700665",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "user"
+  "workspace"
  ],
  "fields": [
   {
-   "fieldname": "user",
+   "fieldname": "workspace",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "User",
-   "options": "User"
+   "label": "Workspace",
+   "options": "Workspace"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-06-15 10:50:45.504245",
+ "modified": "2026-06-17 17:44:57.916159",
  "modified_by": "Administrator",
- "module": "Desk",
- "name": "Workspace Allowed Users",
+ "module": "Core",
+ "name": "User Workspaces",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",

@@ -8,6 +8,15 @@ frappe.ui.form.on("User", {
 				},
 			};
 		});
+
+		frm.set_query("workspace", "workspaces", () => {
+			return {
+				filters: {
+					public: 1,
+					title: ["!=", "Welcome Workspace"],
+				},
+			};
+		});
 	},
 	before_load: function (frm) {
 		let update_tz_options = function () {
@@ -35,53 +44,6 @@ frappe.ui.form.on("User", {
 				__("Note: Etc timezones have their signs reversed.")
 			);
 		}
-	},
-
-	render_allowed_workspaces: function (frm) {
-		const wrapper = frm.fields_dict.allowed_workspaces_html?.wrapper;
-		if (!wrapper) return;
-
-		if (frm.is_new() || !frm.doc.name) {
-			$(wrapper).empty();
-			return;
-		}
-
-		frappe.call({
-			method: "frappe.core.doctype.user.user.get_allowed_workspaces",
-			args: { user: frm.doc.name },
-			callback: function (r) {
-				const workspaces = r.message || [];
-				$(wrapper).empty();
-
-				$(wrapper).append(
-					`<label class="control-label">${__("Allowed Workspaces")}</label>`
-				);
-
-				if (!workspaces.length) {
-					$(wrapper).append(
-						`<div class="text-muted">${__(
-							"No workspaces are visible to this user."
-						)}</div>`
-					);
-					return;
-				}
-
-				const items = workspaces
-					.map((w) => {
-						const link = frappe.utils.get_form_link(
-							"Workspace",
-							w.name,
-							true,
-							frappe.utils.escape_html(__(w.title || w.name))
-						);
-						return `<li>${link}</li>`;
-					})
-					.join("");
-				$(wrapper).append(
-					`<ul class="list-unstyled" style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px;">${items}</ul>`
-				);
-			},
-		});
 	},
 
 	module_profile: function (frm) {
@@ -154,8 +116,6 @@ frappe.ui.form.on("User", {
 			let apps = r?.map((r) => r.name) || [];
 			frm.set_df_property("default_app", "options", ["", ...apps]);
 		});
-
-		frm.trigger("render_allowed_workspaces");
 
 		if (frm.is_new()) {
 			frm.set_value("time_zone", frappe.sys_defaults.time_zone);

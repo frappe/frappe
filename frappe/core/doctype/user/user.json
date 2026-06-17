@@ -86,7 +86,7 @@
   "user_emails",
   "workspace_section",
   "default_workspace",
-  "allowed_workspaces_html",
+  "workspaces",
   "app_section",
   "default_app",
   "sb2",
@@ -741,14 +741,6 @@
    "options": "Workspace"
   },
   {
-   "depends_on": "eval:!doc.__islocal",
-   "description": "Public workspaces this user is allowed to see, based on their roles and the workspace's Allowed Users.",
-   "fieldname": "allowed_workspaces_html",
-   "fieldtype": "HTML",
-   "label": "Allowed Workspaces",
-   "read_only": 1
-  },
-  {
    "collapsible": 1,
    "fieldname": "workspace_section",
    "fieldtype": "Section Break",
@@ -864,6 +856,12 @@
    "fieldname": "form_navigation_buttons",
    "fieldtype": "Check",
    "label": "Show navigation buttons"
+  },
+  {
+   "fieldname": "workspaces",
+   "fieldtype": "Table",
+   "label": "Workspaces",
+   "options": "User Workspaces"
   }
  ],
  "icon": "fa fa-user",
@@ -917,7 +915,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-06-15 11:37:07.733713",
+ "modified": "2026-06-17 16:47:51.772694",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
