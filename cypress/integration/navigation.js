@@ -27,7 +27,7 @@ context("Navigation", () => {
 		cy.clear_filters();
 		cy.call("logout");
 		cy.reload().as("reload");
-		cy.get("@reload").get(".page-card .btn-primary").contains("Login").click();
+		cy.get("@reload").findByRole("button", { name: "Continue" }).click();
 		cy.location("pathname").should("eq", "/login");
 		cy.login();
 		cy.reload().as("reload");
