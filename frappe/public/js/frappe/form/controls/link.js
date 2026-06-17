@@ -308,7 +308,15 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			const dropdownRect = dropdown.getBoundingClientRect();
 			const viewportWidth = window.innerWidth;
 
-			if (dropdownRect.right > viewportWidth) {
+			// Also clamp against the nearest grid scroll container so the
+			// dropdown right-aligns when the column is near the container's
+			// right edge, not just the viewport edge.
+			const gridContainer = me.$input[0].closest(".form-grid-container");
+			const rightBoundary = gridContainer
+				? gridContainer.getBoundingClientRect().right
+				: viewportWidth;
+
+			if (dropdownRect.right > Math.min(viewportWidth, rightBoundary)) {
 				dropdown.classList.add("awesomplete-align-right");
 			} else {
 				dropdown.classList.remove("awesomplete-align-right");

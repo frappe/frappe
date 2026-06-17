@@ -792,6 +792,13 @@
 	width: 100%;
 }
 
+// When a link-field dropdown is open inside the grid, lift the overflow
+// clipping so the absolutely-positioned listbox is not truncated by the
+// scroll container's right edge.
+.form-grid-container:has(.awesomplete > ul:not([hidden])) {
+	overflow: unset;
+}
+
 .form-grid-container:has(.grid-row.grid-row-open) {
 	overflow-x: clip;
 	white-space: normal;
