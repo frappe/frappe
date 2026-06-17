@@ -221,6 +221,9 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 # Extensions a developer may read/write through the Studio file explorer. Deliberately excludes
 # `.py` and anything else that executes on the server — these files are bundled into the app build.
 ALLOWED_STUDIO_FILE_EXTENSIONS = {".ts", ".js", ".vue", ".json", ".css"}
+# Exported doc representations (page/component JSON) can be viewed but not changed — editing them by
+# hand would desync the doc.
+READ_ONLY_STUDIO_FILE_EXTENSIONS = {".json"}
 
 
 def _assert_studio_file_access() -> None:
@@ -249,6 +252,12 @@ def _assert_allowed_extension(file_path: str) -> None:
 	extension = os.path.splitext(file_path)[1].lower()
 	if extension not in ALLOWED_STUDIO_FILE_EXTENSIONS:
 		frappe.throw(_("Editing {0} files is not allowed.").format(extension or "these"))
+
+
+def _assert_editable(file_path: str) -> None:
+	extension = os.path.splitext(file_path)[1].lower()
+	if extension in READ_ONLY_STUDIO_FILE_EXTENSIONS:
+		frappe.throw(_("{0} files are read-only.").format(extension))
 
 
 def _file_hash(content: str) -> str:
@@ -311,6 +320,7 @@ def write_studio_file(
 	on disk since it was read, refuse rather than clobber."""
 	_assert_studio_file_access()
 	_assert_allowed_extension(file_path)
+	_assert_editable(file_path)
 	target = _resolve_studio_file(frappe_app, studio_app, file_path)
 
 	if known_hash and os.path.isfile(target):
@@ -368,6 +378,7 @@ def rename_studio_file(frappe_app: str, studio_app: str, file_path: str, new_pat
 	if os.path.isfile(source):
 		_assert_allowed_extension(file_path)
 		_assert_allowed_extension(new_path)
+		_assert_editable(file_path)
 
 	os.makedirs(os.path.dirname(destination), exist_ok=True)
 	os.rename(source, destination)
@@ -385,6 +396,7 @@ def delete_studio_file(frappe_app: str, studio_app: str, file_path: str) -> None
 		return
 
 	_assert_allowed_extension(file_path)
+	_assert_editable(file_path)
 	if not os.path.isfile(target):
 		frappe.throw(_("Not found: {0}").format(file_path))
 	os.remove(target)

@@ -146,6 +146,7 @@
 		:open="Boolean(openFile)"
 		:modelValue="editorContent"
 		:language="language"
+		:readonly="openFileReadOnly"
 		:completions="pageScriptCompletions"
 		@update:modelValue="onEditorChange"
 		@save="save"
@@ -161,10 +162,13 @@
 				{{ openFile!.path }}
 				<span v-if="dirty" class="text-ink-amber-3">•</span>
 			</span>
+			<span v-if="openFileReadOnly" class="shrink-0 text-xs text-ink-gray-4">read-only</span>
 		</template>
 		<template #actions>
-			<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="save">Save</Button>
-			<Button size="xs" variant="ghost" icon="lucide-trash-2" @click="removeFile" title="Delete file" />
+			<template v-if="!openFileReadOnly">
+				<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="save">Save</Button>
+				<Button size="xs" variant="ghost" icon="lucide-trash-2" @click="removeFile" title="Delete file" />
+			</template>
 			<Button size="xs" variant="ghost" icon="lucide-x" @click="closeFile" title="Close editor" />
 		</template>
 
@@ -294,6 +298,9 @@ const isEditingActivePageScript = computed(
 	() => Boolean(openFile.value) && openFile.value!.path === activePagePaths.value?.script,
 )
 
+const isJsonFile = (path: string) => path.toLowerCase().endsWith(".json")
+const openFileReadOnly = computed(() => Boolean(openFile.value) && isJsonFile(openFile.value!.path))
+
 function getFileBadge(path: string): { label: string; colorClass: string } {
 	const extension = path.slice(path.lastIndexOf(".")).toLowerCase()
 	switch (extension) {
@@ -343,7 +350,7 @@ async function closeFile() {
 const saving = ref(false)
 
 async function save() {
-	if (!openFile.value || !dirty.value) return
+	if (!openFile.value || !dirty.value || openFileReadOnly.value) return
 	saving.value = true
 	try {
 		const result = await writeStudioFile(
@@ -454,10 +461,14 @@ const contextMenuNode = ref<StudioFileNode | null>(null)
 const contextMenuOptions = computed<ContextMenuOption[]>(() => {
 	const node = contextMenuNode.value
 	if (!node) return []
-	const options: ContextMenuOption[] = [
-		{ label: "Rename", action: () => startRename(node) },
-		{ label: "Delete", action: () => deleteNode(node) },
-	]
+	// Read-only JSON files get no rename/delete actions.
+	const options: ContextMenuOption[] =
+		!node.is_folder && isJsonFile(node.path)
+			? []
+			: [
+					{ label: "Rename", action: () => startRename(node) },
+					{ label: "Delete", action: () => deleteNode(node) },
+				]
 	if (!node.is_folder && node.path.endsWith(".vue")) {
 		const componentName = node.label.replace(/\.vue$/i, "")
 		options.unshift({ label: "Go to Component", action: () => store.navigateToVueComponent(componentName) })
@@ -468,6 +479,7 @@ const contextMenuOptions = computed<ContextMenuOption[]>(() => {
 function openContextMenu(event: MouseEvent, node: StudioFileNode) {
 	selectedNode.value = node
 	contextMenuNode.value = node
+	if (!contextMenuOptions.value.length) return // read-only file: nothing to offer
 	contextMenuPos.value = { x: event.pageX, y: event.pageY }
 	contextMenuVisible.value = true
 }
@@ -513,6 +525,7 @@ const editingPath = ref<string | null>(null)
 
 function startRename(node: StudioFileNode) {
 	closeContextMenu()
+	if (!node.is_folder && isJsonFile(node.path)) return // read-only
 	editingPath.value = node.path
 	nextTick(() => requestAnimationFrame(() => focusLabel(node)))
 }
@@ -583,6 +596,7 @@ function remapOpenFile(oldPath: string, newPath: string, isFolder: boolean) {
 
 // -- Delete --
 async function deleteNode(node: StudioFileNode) {
+	if (!node.is_folder && isJsonFile(node.path)) return // read-only
 	const message = node.is_folder ? `Delete ${node.path} and everything inside it?` : `Delete ${node.path}?`
 	if (!(await confirm(message))) return
 	try {

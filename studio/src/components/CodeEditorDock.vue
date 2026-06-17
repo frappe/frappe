@@ -35,6 +35,7 @@
 					maxHeight="100%"
 					:emitOnChange="true"
 					:borderless="true"
+					:readonly="readonly"
 					:completions="completions"
 					@update:modelValue="emit('update:modelValue', $event)"
 					@save="emit('save')"
@@ -57,6 +58,7 @@ const props = withDefaults(
 		modelValue: string
 		language?: "json" | "javascript" | "html" | "css" | "vue"
 		completions?: Function | null
+		readonly?: boolean
 		// Dock against the primary icon rail instead of beside the secondary panel — for editors
 		// (e.g. the page script) that replace the panel content rather than sit next to it.
 		railLeft?: boolean
@@ -64,6 +66,7 @@ const props = withDefaults(
 	{
 		language: "javascript",
 		completions: null,
+		readonly: false,
 		railLeft: false,
 	},
 )
