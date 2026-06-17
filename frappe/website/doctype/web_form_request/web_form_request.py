@@ -3,6 +3,7 @@
 
 import json
 from secrets import token_urlsafe
+from urllib.parse import quote
 
 import frappe
 from frappe import _
@@ -111,6 +112,13 @@ def validate_value_fields(values: dict, valid_fields: set[str], label: str):
 			msg,
 			InvalidFieldsInValuesError(msg, invalid_fields=tuple(invalid_fields)),
 		)
+
+
+def get_web_form_request_query(key: str | None = None) -> str:
+	key = key or frappe.form_dict.get("web_form_request_key")
+	if not key:
+		return ""
+	return f"?web_form_request_key={quote(str(key), safe='')}"
 
 
 def get_web_form_request(

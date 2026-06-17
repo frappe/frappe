@@ -524,6 +524,46 @@ class TestWebForm(IntegrationTestCase):
 				),
 			)
 
+	def test_web_form_redirect_preserves_request_key(self):
+		self.set_web_form_settings(key_required=1, login_required=0, show_list=1)
+		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})
+
+		frappe.set_user("Guest")
+		frappe.local.path = "manage-events"
+		frappe.local.form_dict = frappe._dict(web_form_request_key=web_form_request.key)
+		web_form = frappe.get_doc("Web Form", "manage-events")
+
+		with self.assertRaises(frappe.Redirect):
+			web_form.get_context(frappe._dict())
+
+		self.assertIn(web_form_request.key, frappe.flags.redirect_location)
+
+	def test_web_form_breadcrumb_preserves_request_key(self):
+		self.set_web_form_settings(
+			key_required=1,
+			login_required=0,
+			show_list=1,
+			allow_multiple=1,
+		)
+		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})
+
+		frappe.set_user("Guest")
+		frappe.local.path = "manage-events/new"
+		frappe.local.form_dict = frappe._dict(
+			is_new=1,
+			web_form_request_key=web_form_request.key,
+		)
+		set_request(
+			method="GET",
+			path="manage-events/new",
+			query_string=f"web_form_request_key={web_form_request.key}",
+		)
+		context = frappe._dict()
+		frappe.get_doc("Web Form", "manage-events").get_context(context)
+
+		self.assertEqual(len(context.parents), 1)
+		self.assertIn(web_form_request.key, context.parents[0]["route"])
+
 	def create_web_form_request(
 		self, web_form_values=None, doc_values=None, expires_on=None, reference_docname=None
 	):

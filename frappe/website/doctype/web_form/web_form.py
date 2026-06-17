@@ -17,7 +17,10 @@ from frappe.rate_limiter import rate_limit
 from frappe.utils import dict_with_keys, now_datetime, strip_html
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import escape_html
-from frappe.website.doctype.web_form_request.web_form_request import get_web_form_request
+from frappe.website.doctype.web_form_request.web_form_request import (
+	get_web_form_request,
+	get_web_form_request_query,
+)
 from frappe.website.utils import get_boot_data, get_comment_list, get_sidebar_items
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -215,14 +218,14 @@ def get_context(context):
 
 		if frappe.local.path == self.route:
 			path = f"/{self.route}/list" if self.show_list else f"/{self.route}/new"
-			frappe.redirect(path)
+			self.redirect_to(path)
 
 		if frappe.form_dict.is_list and not self.show_list:
-			frappe.redirect(f"/{self.route}/new")
+			self.redirect_to(f"/{self.route}/new")
 
 		if frappe.form_dict.is_edit and not self.allow_edit:
 			context.in_view_mode = True
-			frappe.redirect(f"/{self.route}/{frappe.form_dict.name}")
+			self.redirect_to(f"/{self.route}/{frappe.form_dict.name}")
 
 		if frappe.form_dict.is_edit:
 			context.in_edit_mode = True
@@ -239,7 +242,7 @@ def get_context(context):
 			and frappe.form_dict.name
 		):
 			context.in_edit_mode = True
-			frappe.redirect(f"/{frappe.local.path}/edit")
+			self.redirect_to(f"/{frappe.local.path}/edit")
 
 		if (
 			frappe.session.user != "Guest"
@@ -254,7 +257,7 @@ def get_context(context):
 			names = frappe.get_all(self.doc_type, filters=condition_json, pluck="name")
 			if names:
 				context.in_view_mode = True
-				frappe.redirect(f"/{self.route}/{names[0]}")
+				self.redirect_to(f"/{self.route}/{names[0]}")
 
 		# Show new form when
 		# - User is Guest
@@ -263,7 +266,7 @@ def get_context(context):
 		# or list their bound document(s); don't bounce them back to /new.
 		route_to_new = frappe.session.user == "Guest" or not self.login_required
 		if not frappe.form_dict.is_new and route_to_new and not web_form_request:
-			frappe.redirect(f"/{self.route}/new")
+			self.redirect_to(f"/{self.route}/new")
 
 		self.reset_field_parent()
 
@@ -463,6 +466,9 @@ def get_context(context):
 			self.list_columns = get_in_list_view_fields(self.doc_type, self.name)
 			context.web_form_doc.list_columns = self.list_columns
 
+	def redirect_to(self, path: str):
+		frappe.redirect(path + get_web_form_request_query())
+
 	def get_web_form_request(
 		self,
 		key: str | None,
@@ -491,10 +497,13 @@ def get_context(context):
 		"""Load document `doc` and `layout` properties for template"""
 		context.parents = []
 		if self.show_list:
+			list_route = f"{self.route}/list"
+			if web_form_request:
+				list_route += get_web_form_request_query(web_form_request.key)
 			context.parents.append(
 				{
 					"label": _(self.title),
-					"route": f"{self.route}/list",
+					"route": list_route,
 				}
 			)
 
