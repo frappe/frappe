@@ -92,7 +92,11 @@ class Notification(Document):
 	# START: PreviewRenderer API
 
 	@frappe.whitelist()
+<<<<<<< HEAD
 	def preview_meets_condition(self, preview_document):
+=======
+	def preview_meets_condition(self, preview_document: str | int):
+>>>>>>> 745139265c (fix: update preview methods to accept both str\int for document references)
 		if not self.condition and not self.filters:
 			return _("Yes")
 		try:
@@ -107,7 +111,11 @@ class Notification(Document):
 			return _("Failed to evaluate conditions: {}").format(str(e))
 
 	@frappe.whitelist()
+<<<<<<< HEAD
 	def preview_message(self, preview_document):
+=======
+	def preview_message(self, preview_document: str | int):
+>>>>>>> 745139265c (fix: update preview methods to accept both str\int for document references)
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
 			context = get_context(doc)
@@ -124,7 +132,11 @@ class Notification(Document):
 			return _("Failed to render message: {}").format(str(e))
 
 	@frappe.whitelist()
+<<<<<<< HEAD
 	def preview_subject(self, preview_document):
+=======
+	def preview_subject(self, preview_document: str | int):
+>>>>>>> 745139265c (fix: update preview methods to accept both str\int for document references)
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
 			context = get_context(doc)
