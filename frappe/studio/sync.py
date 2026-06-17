@@ -54,9 +54,16 @@ def sync_studio_apps(app_name: str | None = None):
 
 def sync_pages(app_folder):
 	studio_page_folder = os.path.join(app_folder, "studio_page")
-	for page in os.listdir(studio_page_folder):
-		if page.endswith(".json"):
-			page_path = os.path.join(studio_page_folder, page)
+	if not os.path.exists(studio_page_folder):
+		return
+	# each page is a folder holding <stem>.json + <stem>.ts; the script lives in the .ts (the runtime
+	# loads it directly), so the DB `script` field stays empty for exported pages
+	for entry in os.listdir(studio_page_folder):
+		page_dir = os.path.join(studio_page_folder, entry)
+		if not os.path.isdir(page_dir):
+			continue
+		page_path = os.path.join(page_dir, f"{entry}.json")
+		if os.path.exists(page_path):
 			import_file_by_path(page_path)
 
 

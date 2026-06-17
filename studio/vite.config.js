@@ -4,9 +4,15 @@ import path from "path"
 import { defineConfig } from "vite"
 import { getViteDevServerPort } from "./vite/utils"
 import sharedDependencyResolver from "./vite/sharedDependencyResolver"
-import customComponentWatcher from "./vite/customComponentWatcher"
+import studioFolderWatcher from "./vite/studioFolderWatcher"
+import studioRootAlias from "./vite/studioRootAlias"
 
 const viteDevServerPort = getViteDevServerPort()
+const appsDir = path.resolve(__dirname, "../../")
+// Each exported studio app carries a tsconfig.json (for the @app/ alias). Ignore changes to these files to avoid unnecessary HMR reloads.
+const isStudioAppTsconfig = (file) =>
+	/^[^/]+\/studio\/[^/]+\/tsconfig\.json$/.test(path.relative(appsDir, file).replace(/\\/g, "/"))
+
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -28,7 +34,7 @@ export default defineConfig({
 		},
 		watch: {
 			// unplugin-vue-components generates this file which causes HMR while building other studio apps
-			ignored: ["**/components.d.ts", "**/auto-imports.d.ts"],
+			ignored: ["**/components.d.ts", "**/auto-imports.d.ts", isStudioAppTsconfig],
 		},
 	},
 	plugins: [
@@ -39,8 +45,9 @@ export default defineConfig({
 			buildConfig: false,
 			jinjaBootData: false,
 		}),
+		studioRootAlias(),
 		sharedDependencyResolver(path.resolve(__dirname, "..")),
-		customComponentWatcher(path.resolve(__dirname, "../../")),
+		studioFolderWatcher(appsDir),
 	],
 	resolve: {
 		alias: {

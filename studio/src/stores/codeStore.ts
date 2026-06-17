@@ -1,27 +1,47 @@
 import { defineStore } from "pinia"
-import { ref, computed, watch, type WatchStopHandle, ComputedRef, toRefs, unref, h } from "vue"
+import {
+	ref, computed, watch, watchEffect, reactive, toRef, toRefs, unref,
+	isRef, isReactive, shallowRef, readonly, markRaw, nextTick, effectScope,
+	type ComputedRef, type EffectScope, h,
+} from "vue"
 import { watchDebounced } from "@vueuse/core"
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
-import { studioWatchers } from "@/data/studioWatchers"
+import { loadPageScriptModule } from "@/data/studioPageScripts"
 import * as globalUtils from "@/utils/globalUtils"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
-import { isFunctionExpression, toOptionalChaining } from "@/utils/parseCode"
+import { isFunctionExpression, toOptionalChaining, getTopLevelBindings } from "@/utils/parseCode"
 import type { Filters, Resource, DocumentResource, DataResult } from "@/types/Studio/StudioResource"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
-import type { StudioPageWatcher } from "@/types/Studio/StudioPageWatcher"
 import type { ExpressionEvaluationContext } from "@/types"
 import type { Router } from "vue-router"
+
+export const vueReactivityApis = {
+	ref, reactive, computed, watch, watchEffect, watchDebounced,
+	toRef, toRefs, unref, isRef, isReactive,
+	shallowRef, readonly, markRaw, nextTick,
+}
 
 const useCodeStore = defineStore("codeStore", () => {
 	const resources = ref<Record<string, Resource>>({})
 	const variables = ref<Record<string, any>>({})
-	const activeWatchers = ref<Record<string, WatchStopHandle>>({})
 	const routeObject = ref<ComputedRef>()
 	const routerObject = ref<Router | Readonly<Router>>()
+
+	// shallowRef (not ref): a deep ref would wrap this in reactive() and auto-unwrap the nested refs
+	const pageScriptBindings = shallowRef<Record<string, any>>({})
+	const pageScriptTemplateBindings = computed(() => {
+		const unwrapped: Record<string, any> = {}
+		for (const key in pageScriptBindings.value) {
+			unwrapped[key] = unref(pageScriptBindings.value[key])
+		}
+		return unwrapped
+	})
+	const pageScriptError = ref<string | null>(null)
+	let pageScriptScope: EffectScope | null = null
 
 	function setRouteObject(route: ComputedRef) {
 		routeObject.value = route
@@ -73,59 +93,141 @@ const useCodeStore = defineStore("codeStore", () => {
 	}
 
 	function getValueFromVariable(variablePath: string, localContext?: ExpressionEvaluationContext) {
-		const context = localContext ? { ...variables.value, ...localContext } : variables.value
+		const context = { ...variables.value, ...pageScriptTemplateBindings.value, ...localContext }
 		return getValueFromObject(context, variablePath)
 	}
 
 	function setValueInVariable(variablePath: string, value: any, localContext?: ExpressionEvaluationContext) {
-		if (localContext) {
-			const pathParts = variablePath.split(".")
-			const rootKey = pathParts[0]
-			if (localContext[rootKey] !== undefined) {
-				setValueInObject(localContext, variablePath, value)
-				return
+		const pathParts = variablePath.split(".")
+		const rootKey = pathParts[0]
+		if (localContext && localContext[rootKey] !== undefined) {
+			setValueInObject(localContext, variablePath, value)
+			return
+		}
+
+		const binding = pageScriptBindings.value[rootKey]
+		if (isRef(binding)) {
+			if (pathParts.length === 1) {
+				binding.value = value
+			} else {
+				setValueInObject(binding.value as Record<string, any>, pathParts.slice(1).join("."), value)
 			}
+			return
 		}
 		setValueInObject(variables.value, variablePath, value)
 	}
 
-	async function setPageWatchers(page: StudioPage) {
-		cleanupWatchers()
-		studioWatchers.filters = { parent: page.name }
-		await studioWatchers.reload()
-
-		studioWatchers.data.map((watcher: StudioPageWatcher) => {
-			setupWatcher(watcher)
-		})
+	function disposePageScriptScope() {
+		pageScriptScope?.stop()
+		pageScriptScope = null
 	}
 
-	function setupWatcher(watcher: StudioPageWatcher) {
-		const sourceValue = computed(() => getValueFromVariable(watcher.source))
-		let watcherFn
+	async function setPageScript(page: StudioPage, isStandardPage: boolean = false) {
+		disposePageScriptScope()
+		pageScriptBindings.value = {}
+		pageScriptError.value = null
 
-		if (watcher.debounce && watcher.debounce > 0) {
-			watcherFn = watchDebounced(sourceValue,
-				() => executeUserScript(watcher.script),
-				{ debounce: watcher.debounce, deep: watcher.deep, immediate: watcher.immediate }
-			)
-		} else {
-			watcherFn = watch(sourceValue,
-				() => executeUserScript(watcher.script),
-				{ deep: watcher.deep, immediate: watcher.immediate }
-			)
+		if (isStandardPage) {
+			pageScriptBindings.value = await loadCodePageScript(page.name)
+			return
 		}
-		activeWatchers.value[watcher.name || watcher.source] = watcherFn
+
+		// Non-exported app: interpret the page.script field (live, no imports).
+		const source = page.script || ""
+		if (!source.trim()) return
+		const bindingNames = getTopLevelBindings(source)
+		pageScriptBindings.value = compilePageScript(source, bindingNames)
 	}
 
-	async function cleanupWatchers() {
-		await Promise.all(Object.values(activeWatchers.value).map(stop => stop()))
-		activeWatchers.value = {}
+	async function loadCodePageScript(pageName: string): Promise<Record<string, any>> {
+		const mod = await loadPageScriptModule(pageName)
+		return runPageScriptSetup(mod?.default)
+	}
+
+	// Run a compiled page setup() in a fresh effect scope and return its top-level bindings. Shared
+	// by initial load and HMR: on a hot update we already hold the new module, so we re-run its
+	// setup directly instead of re-importing.
+	async function runPageScriptSetup(setup: unknown): Promise<Record<string, any>> {
+		disposePageScriptScope()
+		if (typeof setup !== "function") return {}
+		try {
+			// setup(ctx) gets the live execution context (resources/variables/route/router) and may
+			// be async (e.g. awaiting a resource fetch). Effects (watch/computed) created BEFORE the
+			// first await are owned by the page scope; declare them before awaiting so they're
+			// disposed on navigation.
+			const bindings = runInPageScriptScope(() => (setup as Function)(globalExecutionContext.value))
+			return (await bindings) || {}
+		} catch (error) {
+			reportPageScriptError(error)
+			return {}
+		}
+	}
+
+	// HMR: the active page's script (or a composable/util it imports) was edited. Re-run its setup
+	// with the freshly hot-loaded module so new refs/computed and changed dependency code take
+	// effect on the canvas without a reload. (Pinia stores keep their singleton state — they refresh
+	// their code only via their own acceptHMRUpdate.)
+	async function applyPageScriptHMR(setup: unknown) {
+		pageScriptError.value = null
+		pageScriptBindings.value = await runPageScriptSetup(setup)
+	}
+
+	function reportPageScriptError(error: unknown) {
+		console.error("Error running page script", error)
+		pageScriptError.value = error instanceof Error ? error.message : String(error)
+	}
+
+	function runInPageScriptScope(run: () => any): any {
+		// Reactive effects (watch/watchEffect/computed) created synchronously during `run` are
+		// owned by this scope so they're disposed on the next navigation / recompile.
+		pageScriptScope = effectScope(true)
+		let result: any
+		pageScriptScope.run(() => {
+			try {
+				result = run()
+			} catch (error) {
+				reportPageScriptError(error)
+			}
+		})
+		return result
+	}
+
+	function compilePageScript(source: string, bindingNames: string[]) {
+		// Run the page script source once, like a Vue `<script setup>`, and return every top-level
+		// binding (refs/reactive/computed/functions/classes). Free identifiers resolve through a
+		// proxy over the LIVE execution context, so the script sees the Vue reactivity APIs and
+		// variables/resources/modules — including ones registered a tick later. The source is
+		// always run (even with no named bindings) so watcher-only scripts still take effect.
+		const liveContext = new Proxy(
+			{},
+			{
+				has(_target, key) {
+					// let globals (console, Function, …) fall through to the outer scope
+					if (key === Symbol.unscopables) return false
+					return key in globalExecutionContext.value
+				},
+				get(_target, key) {
+					return (globalExecutionContext.value as Record<string | symbol, any>)[key]
+				},
+			},
+		)
+		return runInPageScriptScope(() => {
+			const factory = new Function(
+				"context",
+				`with (context) {
+					${source}
+					return { ${bindingNames.join(", ")} };
+				}`,
+			)
+			return factory(liveContext)
+		}) || {}
 	}
 
 	const globalContext = computed(() => {
 		return {
 			...variables.value,
 			...resources.value,
+			...pageScriptTemplateBindings.value,
 			...globalUtils,
 			route: unref(routeObject.value),
 			router: routerObject.value,
@@ -133,12 +235,14 @@ const useCodeStore = defineStore("codeStore", () => {
 	})
 
 	const globalExecutionContext = computed(() => {
-		// Pass variable refs as context so that users can access variables without 'variable.' prefix
-		// eg: - {{ variable_name }} in templates or variable_name.value in scripts
+		// Script context: variables and page-script bindings are passed as refs so scripts can
+		// read/write `.value`, and the Vue reactivity APIs are available for `<script setup>` code.
 		const variablesRefs = toRefs(variables.value)
 		return {
+			...vueReactivityApis,
 			...variablesRefs,
 			...resources.value,
+			...pageScriptBindings.value,
 			...globalUtils,
 			route: unref(routeObject.value),
 			router: routerObject.value,
@@ -502,9 +606,12 @@ const useCodeStore = defineStore("codeStore", () => {
 		setPageVariables,
 		getValueFromVariable,
 		setValueInVariable,
-		// watchers
-		setPageWatchers,
-		cleanupWatchers,
+		// page script
+		pageScriptBindings,
+		pageScriptTemplateBindings,
+		pageScriptError,
+		setPageScript,
+		applyPageScriptHMR,
 		// code execution
 		globalContext,
 		globalExecutionContext,

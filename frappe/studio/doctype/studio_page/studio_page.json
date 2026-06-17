@@ -19,9 +19,8 @@
   "resources",
   "variables",
   "scripts_tab",
-  "watchers",
+  "script",
   "section_break_fmxt",
-  "client_scripts",
   "export_tab",
   "is_standard",
   "frappe_app"
@@ -105,16 +104,10 @@
    "label": "Scripts"
   },
   {
-   "fieldname": "client_scripts",
-   "fieldtype": "Table MultiSelect",
-   "label": "Client Scripts",
-   "options": "Studio Page Client Script"
-  },
-  {
-   "fieldname": "watchers",
-   "fieldtype": "Table",
-   "label": "Watchers",
-   "options": "Studio Page Watcher"
+   "fieldname": "script",
+   "fieldtype": "Code",
+   "label": "Page Script",
+   "options": "JS"
   },
   {
    "fieldname": "section_break_fmxt",

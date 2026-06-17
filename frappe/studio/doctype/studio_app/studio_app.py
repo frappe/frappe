@@ -94,7 +94,9 @@ class StudioApp(WebsiteGenerator):
 		context.app_title = self.app_title
 		context.frappe_app = self.frappe_app or ""
 		context.base_url = frappe.utils.get_url(self.route)
-		context.app_pages = self.get_studio_pages()
+		context.app_pages = frappe.get_all(
+			"Studio Page", dict(studio_app=self.name, published=1), ["name", "page_title", "route"]
+		)
 		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
 		context.site_name = frappe.local.site
 		context.vite_dev_server_port = get_vite_dev_server_port()
@@ -106,6 +108,16 @@ class StudioApp(WebsiteGenerator):
 	@property
 	def is_published(self):
 		return frappe.db.exists("Studio Page", dict(studio_app=self.name, published=1))
+
+	@property
+	def pages(self):
+		return frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name")
+
+	@property
+	def standard_pages(self):
+		return frappe.get_all(
+			"Studio Page", filters={"studio_app": self.name, "is_standard": 1}, pluck="name"
+		)
 
 	def before_insert(self):
 		if not self.app_title:
@@ -124,7 +136,7 @@ class StudioApp(WebsiteGenerator):
 		remove_null_fields(doc)
 
 	def on_trash(self):
-		for page in frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name"):
+		for page in self.pages:
 			frappe.delete_doc("Studio Page", page, force=True)
 
 		if can_export(self):
@@ -142,11 +154,6 @@ class StudioApp(WebsiteGenerator):
 		old_path = self.get_folder_path(old)
 		delete_folder(old_path)
 
-	def get_studio_pages(self):
-		return frappe.get_all(
-			"Studio Page", dict(studio_app=self.name, published=1), ["name", "page_title", "route"]
-		)
-
 	@frappe.whitelist()
 	def generate_app_build(self):
 		if not frappe.has_permission("Studio App", ptype="write"):
@@ -163,9 +170,9 @@ class StudioApp(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def publish_app(self):
-		pages = frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name")
-		for page_name in pages:
-			page_doc = frappe.get_doc("Studio Page", page_name)
+		pages = self.pages
+		for page in pages:
+			page_doc = frappe.get_doc("Studio Page", page)
 			page_doc.publish()
 
 		try:
@@ -177,9 +184,8 @@ class StudioApp(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def unpublish_app(self):
-		pages = frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name")
-		for page_name in pages:
-			page_doc = frappe.get_doc("Studio Page", page_name)
+		for page in self.pages:
+			page_doc = frappe.get_doc("Studio Page", page)
 			page_doc.unpublish()
 
 	def get_assets_from_manifest(self):
@@ -248,8 +254,14 @@ class StudioApp(WebsiteGenerator):
 		self.frappe_app = target_app
 		self.save()
 
+		for page_name in self.standard_pages:
+			frappe.get_doc("Studio Page", page_name).export_script_to_file()
+
 	@frappe.whitelist()
 	def disable_app_export(self):
+		for page_name in self.standard_pages:
+			frappe.get_doc("Studio Page", page_name).restore_script_from_file()
+
 		frappe.db.set_value("Studio Page", {"studio_app": self.name}, "is_standard", 0)
 
 		self.is_standard = 0
@@ -268,17 +280,35 @@ class StudioApp(WebsiteGenerator):
 
 	def create_app_folder(self) -> str:
 		app_path = self.get_folder_path()
-		frappe.create_folder(app_path, with_init=True)
+		frappe.create_folder(app_path)
 		write_document_file(self, folder=app_path)
+		self.write_tsconfig(app_path)
 		return app_path
+
+	def write_tsconfig(self, app_path: str) -> None:
+		"""Let editors resolve the `@app/` alias (studio-app root) for go-to-definition etc.
+		Mirrors the `studioRootAlias` vite plugin used by the dev server and per-app build."""
+		tsconfig = {
+			"compilerOptions": {
+				"baseUrl": ".",
+				"paths": {"@app/*": ["./*"]},
+				# studio modules are .js/.ts — allowJs lets editors resolve both
+				"allowJs": True,
+				"module": "esnext",
+				"moduleResolution": "node",
+				"esModuleInterop": True,
+				"allowSyntheticDefaultImports": True,
+			},
+		}
+		with open(os.path.join(app_path, "tsconfig.json"), "w") as f:
+			f.write(json.dumps(tsconfig, indent="\t"))
+			f.write("\n")
 
 	def export_studio_pages(self, app_path):
 		page_folder_path = os.path.join(app_path, "studio_page")
-		frappe.create_folder(page_folder_path, with_init=True)
+		frappe.create_folder(page_folder_path)
 
-		for page in frappe.get_all(
-			"Studio Page", filters={"studio_app": self.name, "is_standard": 1}, pluck="name"
-		):
+		for page in self.pages:
 			page_doc = frappe.get_doc("Studio Page", page)
 			page_doc.export_page()
 

@@ -77,6 +77,9 @@
 			<StudioRightPanel
 				class="no-scrollbar dark:bg-zinc-900 absolute bottom-0 right-0 top-[var(--toolbar-height)] z-20 overflow-auto border-l-[1px] bg-white shadow-lg dark:border-gray-800"
 			/>
+
+			<!-- File explorer teleport for code editor -->
+			<div id="studio-code-editor-outlet"></div>
 		</div>
 
 		<Dialog
@@ -223,10 +226,13 @@ watch(
 )
 
 async function setPage() {
-	if (route.params.pageID === store.selectedPage) return
-
+	// capture route params up front — `setApp` is awaited below, and the route may change
+	// during that await (e.g. navigating away), so we must not re-read route.params after it
 	const appID = route.params.appID as string
-	if (route.params.pageID === "new") {
+	const pageID = route.params.pageID as string
+	if (!pageID || pageID === store.selectedPage) return
+
+	if (pageID === "new") {
 		await studioPages.insert
 			.submit({
 				draft_blocks: [getRootBlock()],
@@ -234,20 +240,20 @@ async function setPage() {
 			})
 			.then(async (data: StudioPage) => {
 				router.push({ name: "StudioPage", params: { appID: appID, pageID: data.name }, force: true })
-				store.setApp(appID)
+				await store.setApp(appID)
 				await store.setPage(data.name)
 			})
 	} else {
-		store.setApp(appID)
-		await store.setPage(route.params.pageID as string)
+		await store.setApp(appID)
+		await store.setPage(pageID)
 	}
 }
 
-onActivated(() => {
+onActivated(async () => {
 	const pageID = route.params.pageID
 	if (pageID && pageID !== store.selectedPage && pageID !== "new") {
-		store.setApp(route.params.appID as string)
-		store.setPage(pageID as string)
+		await store.setApp(route.params.appID as string)
+		await store.setPage(pageID as string)
 	}
 })
 

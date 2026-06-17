@@ -40,9 +40,8 @@ watch(
 		if (currentPath) {
 			page.value = await findPageWithRoute(window.app_name, currentPath)
 			if (!page.value) return
-			await codeStore.cleanupWatchers()
 			await store.setPageData(page.value)
-			await codeStore.setPageWatchers(page.value)
+			await codeStore.setPageScript(page.value, Boolean(page.value.is_standard))
 
 			const blocks = window.is_preview
 				? JSON.parse(page.value?.draft_blocks || page.value?.blocks)

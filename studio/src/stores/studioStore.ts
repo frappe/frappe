@@ -17,6 +17,11 @@ import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
 import { registerCustomVueComponents, unregisterCustomVueComponents } from "@/globals"
+import {
+	registerStudioPageScripts,
+	unregisterStudioPageScripts,
+	setPageScriptHotUpdateHandler,
+} from "@/data/studioPageScripts"
 import { setCustomComponentFilePaths } from "@/utils/components"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
@@ -51,11 +56,30 @@ const useStudioStore = defineStore("store", () => {
 	const appPages = ref<Record<string, StudioPage>>({})
 	const customVueComponents = ref<CustomVueComponentMeta[]>([])
 
+	// cross-panel navigation
+	const selectedVueFile = ref<string | null>(null)
+	const selectedVueComponent = ref<string | null>(null)
+
+	function navigateToCodeFile(studioFilePath: string) {
+		studioLayout.leftPanelActiveTab = "Code"
+		studioLayout.showLeftPanel = true
+		selectedVueFile.value = studioFilePath
+	}
+
+	function navigateToVueComponent(componentName: string) {
+		studioLayout.leftPanelActiveTab = "Add Component"
+		studioLayout.leftPanelComponentTab = "Custom"
+		studioLayout.showLeftPanel = true
+		selectedVueComponent.value = componentName
+	}
+
 	async function setApp(appName: string) {
 		const appDoc = await fetchApp(appName)
+		if (!appDoc) return
 		activeApp.value = appDoc
 		await setAppPages(appName)
 		await setCustomComponents()
+		await setupPageScripts()
 	}
 
 	async function deleteApp(appName: string, appTitle: string) {
@@ -157,9 +181,13 @@ const useStudioStore = defineStore("store", () => {
 	async function setPage(pageName: string) {
 		settingPage.value = true
 		const page = await fetchPage(pageName)
+		if (!page) {
+			settingPage.value = false
+			return
+		}
 		activePage.value = page
 		await setPageData(page)
-		await codeStore.setPageWatchers(page)
+		await codeStore.setPageScript(page, Boolean(page.is_standard))
 
 		const blocks = JSON.parse(page.draft_blocks || page.blocks || "[]")
 		if (blocks.length === 0) {
@@ -214,6 +242,15 @@ const useStudioStore = defineStore("store", () => {
 				},
 			},
 		)
+	}
+
+	function setActivePageScript(script: string) {
+		if (!activePage.value) return Promise.resolve()
+		return studioPages.setValue
+			.submit({ name: activePage.value.name, script, _skip_validate: true })
+			.then(() => {
+				activePage.value!.script = script
+			})
 	}
 
 	async function publishPage() {
@@ -363,6 +400,14 @@ const useStudioStore = defineStore("store", () => {
 		}
 	}
 
+	// Register per-page code scripts (<page>.ts) for exported apps so the editor can load them.
+	async function setupPageScripts() {
+		unregisterStudioPageScripts()
+		if (activeApp.value?.is_standard) {
+			await registerStudioPageScripts(activeApp.value.frappe_app!)
+		}
+	}
+
 	function setCustomComponentListener() {
 		if (activeApp.value?.is_standard && import.meta.hot) {
 			// Auto-refresh custom components when .vue files are added/removed/renamed in studio folders
@@ -412,6 +457,14 @@ const useStudioStore = defineStore("store", () => {
 	const codeStore = useCodeStore()
 	codeStore.setRouteObject(routeObject)
 	codeStore.setRouterObject(readonly(router))
+
+	// A page script (or a composable/util it imports) hot-updated. Re-run it in place when it's the
+	// active page so new refs/functions and changed dependency code show up on the canvas, in the
+	// value selectors and in completions — no reload. Non-active pages refresh lazily on navigation
+	// (studioPageScripts caches the latest setup).
+	setPageScriptHotUpdateHandler((pageName, setup) => {
+		if (activePage.value?.name === pageName) codeStore.applyPageScriptHMR(setup)
+	})
 
 	async function setPageData(page: StudioPage) {
 		await codeStore.setPageVariables(page)
@@ -475,6 +528,11 @@ const useStudioStore = defineStore("store", () => {
 		// custom components
 		setCustomComponents,
 		customVueComponents,
+		// cross-panel navigation
+		selectedVueFile,
+		selectedVueComponent,
+		navigateToCodeFile,
+		navigateToVueComponent,
 		// studio pages
 		pageBlocks,
 		selectedPage,
@@ -484,6 +542,7 @@ const useStudioStore = defineStore("store", () => {
 		setPage,
 		savePage,
 		updateActivePage,
+		setActivePageScript,
 		publishPage,
 		unpublishPage,
 		publishApp,

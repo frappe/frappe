@@ -8,6 +8,7 @@ import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 import { spritePlugin } from "frappe-ui/icons"
 import { registerGlobalComponents, registerCustomVueComponents } from "@/globals"
+import { registerStudioPageScripts } from "@/data/studioPageScripts"
 
 // For rendering apps built by studio
 const app = createApp(AppRenderer)
@@ -35,7 +36,10 @@ if (window.is_preview && typeof window.is_preview === "string") {
 
 const frappeApp = (window as any).frappe_app
 if (frappeApp) {
-	registerCustomVueComponents(frappeApp).then(() => {
+	Promise.all([
+		registerCustomVueComponents(frappeApp),
+		registerStudioPageScripts(frappeApp),
+	]).then(() => {
 		app.mount("#app")
 	})
 } else {

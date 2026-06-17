@@ -54,6 +54,7 @@ import Block from "@/utils/block"
 import type { VariableOption } from "@/types/Studio/StudioPageVariable"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import { isObjectEmpty } from "@/utils/helpers"
+import { getBindingType } from "@/utils/parseCode"
 import useCodeStore from "@/stores/codeStore"
 import Link2 from "~icons/lucide/link-2"
 import LucideCirclePlus from "~icons/lucide/circle-plus"
@@ -119,6 +120,23 @@ const dynamicValueOptions = computed(() => {
 			groups.push({
 				group: "Data Sources",
 				items: dataSourceOptions,
+			})
+		}
+
+		// Page script bindings group (refs/reactive/computed/functions
+		const pageScriptOptions = Object.entries(codeStore.pageScriptBindings).map(([name, binding]) => {
+			const bindingType = getBindingType(binding)
+			const value = bindingType === "function" ? `${name}()` : name
+			return {
+				value,
+				label: name,
+				type: bindingType,
+			}
+		})
+		if (pageScriptOptions.length > 0) {
+			groups.push({
+				group: "Page Script",
+				items: pageScriptOptions,
 			})
 		}
 	}

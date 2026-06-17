@@ -248,6 +248,7 @@ function isHTML(content: any) {
 
 // app
 async function fetchApp(appName: string) {
+	if (!appName) return null
 	const appResource = createDocumentResource({
 		doctype: "Studio App",
 		name: appName,
@@ -262,6 +263,7 @@ function openInDesk(app: StudioApp) {
 
 // page
 async function fetchPage(pageName: string) {
+	if (!pageName) return null
 	const pageResource = createDocumentResource({
 		doctype: "Studio Page",
 		name: pageName,
