@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import qb
-from frappe.database.duckdb.database import get_duckdb
+from frappe.database import get_duckdb
 from frappe.database.duckdb.schema import DuckDBTable
 from frappe.model.document import Document
 
