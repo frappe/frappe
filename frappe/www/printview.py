@@ -357,19 +357,25 @@ def get_html_and_style(
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 	set_link_titles(document)
 
-	try:
-		html = get_rendered_template(
-			doc=document,
-			print_format=print_format,
-			meta=document.meta,
-			no_letterhead=no_letterhead,
-			letterhead=letterhead,
-			trigger_print=trigger_print,
-			settings=frappe.parse_json(settings),
-		)
-	except frappe.TemplateNotFoundError:
-		frappe.clear_last_message()
-		html = None
+	if print_format and print_format.get("print_format_builder_beta"):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		generator = PrintFormatGenerator(print_format.name, document, letterhead)
+		html = generator.get_html_preview()
+	else:
+		try:
+			html = get_rendered_template(
+				doc=document,
+				print_format=print_format,
+				meta=document.meta,
+				no_letterhead=no_letterhead,
+				letterhead=letterhead,
+				trigger_print=trigger_print,
+				settings=frappe.parse_json(settings),
+			)
+		except frappe.TemplateNotFoundError:
+			frappe.clear_last_message()
+			html = None
 
 	return {"html": html, "style": get_print_style(style=style, print_format=print_format)}
 
