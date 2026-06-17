@@ -86,7 +86,7 @@ async function refresh_rendered_content() {
 		return;
 	}
 	if (!needs_server_render(content)) {
-		rendered_content.value = constrain_images(content);
+		rendered_content.value = content;
 		return;
 	}
 	if (render_pending.value) return;
@@ -97,20 +97,12 @@ async function refresh_rendered_content() {
 			doctype: raw_store.meta.value.name,
 			docname: raw_store.preview_doc_name.value,
 		});
-		rendered_content.value = constrain_images(r.message ?? content);
+		rendered_content.value = r.message ?? content;
 	} catch {
-		rendered_content.value = constrain_images(content);
+		rendered_content.value = content;
 	} finally {
 		render_pending.value = false;
 	}
-}
-
-function constrain_images(html) {
-	if (!html) return html;
-	return html.replace(
-		/<img(\s)/gi,
-		'<img style="max-width:100%;max-height:80px;width:auto;height:auto;"$1'
-	);
 }
 
 watch([preview_doc, zone_content], refresh_rendered_content, { immediate: true });
@@ -197,5 +189,10 @@ defineExpose({ aspect_ratio, range_input_field, F });
 	color: var(--text-muted);
 	font-size: var(--text-sm);
 	padding: 0.5rem 0;
+}
+
+.lh-zone :deep(img) {
+	max-width: 100%;
+	height: auto;
 }
 </style>
