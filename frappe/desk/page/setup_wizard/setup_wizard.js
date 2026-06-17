@@ -144,18 +144,15 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		if (id === this.slides.length) {
 			return;
 		}
-		const moving_forward = id > this.current_id;
 		super.show_slide(id);
 		frappe.set_route(this.page_name, cstr(id));
-		// Commit the telemetry opt-out only when the user actually advances past a
-		// slide, not on every checkbox change — so toggling it back and forth within
-		// the slide stays reversible (disable() is one-way and can't be undone).
-		if (moving_forward) {
-			this.sync_telemetry_preference();
-		}
 	}
 
 	sync_telemetry_preference() {
+		// Apply the opt-out from the final committed values, not on each checkbox
+		// change, so toggling within a slide stays reversible — disable() is one-way.
+		// Called from action_on_complete *after* initated_client_side is captured,
+		// so the funnel event still fires for users who opted out.
 		if (frappe.telemetry.enabled && !this.values.enable_telemetry) {
 			frappe.telemetry.disable();
 		}
@@ -219,8 +216,6 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		frappe.telemetry.capture("initated_client_side", "setup");
 		if (!this.current_slide.set_values()) return;
 		this.update_values();
-		// Single-slide wizards (e.g. developer_mode) reach completion without ever
-		// advancing past a slide, so commit the telemetry opt-out here too.
 		this.sync_telemetry_preference();
 		this.show_working_state();
 		this.disable_keyboard_nav();
