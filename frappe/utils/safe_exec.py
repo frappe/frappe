@@ -150,7 +150,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 
 def _validate_safe_eval_syntax(code):
-	BLOCKED_NODES = (ast.NamedExpr,)
+	BLOCKED_NODES = (ast.NamedExpr, ast.Lambda)
 
 	tree = ast.parse(code, mode="eval")
 	for node in ast.walk(tree):
@@ -172,10 +172,8 @@ def safe_exec_flags():
 		frappe.flags.in_safe_exec -= 1
 
 
-def get_doc_as_dict(doctype, name):
-	assert isinstance(doctype, str)
-	assert isinstance(name, (str, int))
-	return frappe.get_doc(doctype, name).as_dict()
+def get_doc_as_dict(*args, **kwargs):
+	return frappe.get_doc(*args, **kwargs).as_dict()
 
 
 def safer_get_last_doc(*args, **kwargs):
@@ -241,8 +239,11 @@ def safer_log_error(
 	return {}
 
 
-def safer_get_visible_columns(*args, **kwargs):
-	cols = get_visible_columns(*args, **kwargs)
+def safer_get_visible_columns(data, _table_meta, df):
+	if not df.get("options"):
+		return []
+	real_meta = frappe.get_meta(df.get("options"))
+	cols = get_visible_columns(data, real_meta, df)
 	if cols is None:
 		return None
 	return [c if isinstance(c, dict) else c.as_dict() for c in cols]
@@ -288,7 +289,7 @@ def make_safe_get_request(url: str, **kwargs):
 	for record in addr_info:
 		try:
 			addr = ipaddress.ip_address(record[4][0])
-		except ValueError, IndexError:
+		except (ValueError, IndexError):
 			continue
 
 		if not addr.is_global:
@@ -356,6 +357,7 @@ def render_safe_globals():
 			user=user,
 			get_fullname=frappe.utils.get_fullname,
 			get_gravatar=frappe.utils.get_gravatar_url,
+			get_identicon=frappe.utils.get_identicon,
 			full_name=frappe.local.session.data.full_name
 			if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 			else "Guest",
@@ -429,11 +431,34 @@ def render_safe_globals():
 	return out
 
 
+def _update_namespace(namespace: NamespaceDict, updates: NamespaceDict):
+	assert isinstance(namespace, NamespaceDict) and isinstance(updates, NamespaceDict), (
+		"Both values should be namespaces"
+	)
+	for key, value in updates.items():
+		if isinstance(value, NamespaceDict):
+			if key not in namespace:
+				namespace[key] = NamespaceDict()
+			_update_namespace(namespace[key], value)
+			continue
+
+		assert not isinstance(value, dict), f"{key=} Only NamespaceDict should be used everywhere"
+
+		original_value = namespace.get(key)
+		assert original_value is not value, f"Update contains same value for {key=}"
+		namespace[key] = value
+	return namespace
+
+
 def exec_safe_globals():
 	"""Safer subset of globals for exec. ops."""
-	out = render_safe_globals()
-	out.frappe.update(
-		NamespaceDict(
+
+	render_safe = render_safe_globals()
+	exec_safe = NamespaceDict(
+		run_script=run_script,
+		FrappeClient=FrappeClient,
+		get_visible_columns=get_visible_columns,
+		frappe=NamespaceDict(
 			call=call_whitelisted_function,
 			get_meta=frappe.get_meta,
 			copy_doc=frappe.copy_doc,
@@ -458,32 +483,23 @@ def exec_safe_globals():
 			render_template=frappe.render_template,
 			enqueue=safe_enqueue,
 			is_job_queued=is_job_queued,
-		)
+			db=NamespaceDict(
+				get_list=frappe.get_list,
+				get_all=frappe.get_all,
+				get_value=frappe.db.get_value,
+				set_value=frappe.db.set_value,
+				get_single_value=frappe.db.get_single_value,
+				add_index=frappe.db.add_index,
+				commit=frappe.db.commit,
+				rollback=frappe.db.rollback,
+				after_commit=frappe.db.after_commit,
+				before_commit=frappe.db.before_commit,
+				after_rollback=frappe.db.after_rollback,
+				before_rollback=frappe.db.before_rollback,
+			),
+		),
 	)
-	out.frappe.db.update(
-		NamespaceDict(
-			get_list=frappe.get_list,
-			get_all=frappe.get_all,
-			get_value=frappe.db.get_value,
-			set_value=frappe.db.set_value,
-			get_single_value=frappe.db.get_single_value,
-			add_index=frappe.db.add_index,
-			commit=frappe.db.commit,
-			rollback=frappe.db.rollback,
-			after_commit=frappe.db.after_commit,
-			before_commit=frappe.db.before_commit,
-			after_rollback=frappe.db.after_rollback,
-			before_rollback=frappe.db.before_rollback,
-		)
-	)
-	out.update(
-		NamespaceDict(
-			run_script=run_script,
-			FrappeClient=FrappeClient,
-			get_visible_columns=get_visible_columns,
-		)
-	)
-	return out
+	return _update_namespace(render_safe, exec_safe)
 
 
 def get_keys_for_autocomplete(
@@ -883,6 +899,9 @@ VALID_UTILS = (
 
 
 SAFE_DATA_UTILS = {key: frappe.utils.data.__dict__[key] for key in VALID_UTILS}
+assert SAFE_DATA_UTILS.keys() == set(VALID_UTILS), (
+	"every whitelisted util name must resolve to a frappe.utils.data attribute"
+)
 
 
 WHITELISTED_SAFE_EVAL_GLOBALS = {

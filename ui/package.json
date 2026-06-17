@@ -9,12 +9,24 @@
       "import": "./src/index.ts",
       "types": "./src/index.ts"
     },
+    "./FormLayout": {
+      "import": "./src/components/FormLayout/index.ts",
+      "types": "./src/components/FormLayout/index.ts"
+    },
+    "./FileUpload": {
+      "import": "./src/components/FileUpload/index.ts",
+      "types": "./src/components/FileUpload/index.ts"
+    },
+    "./vite": {
+      "import": "./vite/index.js"
+    },
     "./*": {
       "import": "./src/*"
     }
   },
   "files": [
-    "src"
+    "src",
+    "vite"
   ],
   "repository": {
     "type": "git",
@@ -22,6 +34,13 @@
   },
   "author": "Frappe Technologies Pvt. Ltd.",
   "license": "MIT",
+  "dependencies": {
+    "cropperjs": "^2.1.1",
+    "leaflet": "^1.9.4",
+    "leaflet-draw": "^1.0.4",
+    "leaflet.locatecontrol": "^0.89.0",
+    "vuedraggable": "^4.1.0"
+  },
   "peerDependencies": {
     "frappe-ui": "*",
     "vue": ">=3.3.0",

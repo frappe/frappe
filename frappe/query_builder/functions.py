@@ -3,6 +3,7 @@ from enum import Enum
 
 from pypika.functions import *
 from pypika.terms import Arithmetic, ArithmeticExpression, CustomFunction, Function, Term
+from pypika.utils import format_alias_sql
 
 import frappe
 from frappe.query_builder.custom import (
@@ -64,6 +65,33 @@ class Truncate(Function):
 		super().__init__("TRUNCATE", term, decimal, **kwargs)
 
 
+class Abs(Function):
+	# pypika ships Abs as an AggregateFunction, which makes get_list/get_value treat a scalar
+	# ABS(...) select field as an aggregate query. On postgres that forces the default ORDER BY
+	# to be wrapped in MAX(), turning the statement into an implicit aggregate and breaking the
+	# (non-grouped) ABS column. ABS is scalar, so define it as a plain Function.
+	def __init__(self, term, alias=None):
+		super().__init__("ABS", term, alias=alias)
+
+
+class CurDate(Term):
+	"""SQL standard ``CURRENT_DATE`` keyword.
+
+	pypika ships CurDate as a Function, so it renders ``CURRENT_DATE()``. Postgres rejects the
+	parentheses — CURRENT_DATE is a reserved keyword there, not a function — while MariaDB accepts
+	the bare keyword too. Render it without parentheses so the same query builder works on both.
+	"""
+
+	def __init__(self, alias=None):
+		super().__init__(alias=alias)
+
+	def get_sql(self, **kwargs):
+		with_alias = kwargs.pop("with_alias", False)
+		if with_alias:
+			return format_alias_sql("CURRENT_DATE", self.alias, **kwargs)
+		return "CURRENT_DATE"
+
+
 GroupConcat = ImportMapper({db_type_is.MARIADB: GROUP_CONCAT, db_type_is.POSTGRES: STRING_AGG})
 
 Match = ImportMapper({db_type_is.MARIADB: MATCH, db_type_is.POSTGRES: TO_TSVECTOR})
@@ -109,11 +137,41 @@ class _PostgresUnixTimestamp(Extract):
 		super().__init__("epoch", field=field, alias=alias)
 		self.field = field
 
+	def get_sql(self, **kwargs):
+		# MySQL's UNIX_TIMESTAMP returns an integer, but EXTRACT(EPOCH ...) is double precision on
+		# postgres; cast to bigint so the value (and its Python type) matches across backends.
+		with_alias = kwargs.pop("with_alias", False)
+		sql = f"CAST({super().get_sql(**kwargs)} AS BIGINT)"
+		if with_alias:
+			return format_alias_sql(sql, self.alias, **kwargs)
+		return sql
+
 
 UnixTimestamp = ImportMapper(
 	{
 		db_type_is.MARIADB: CustomFunction("unix_timestamp", ["date"]),
 		db_type_is.POSTGRES: _PostgresUnixTimestamp,
+	}
+)
+
+
+class _PostgresDateDiff(ArithmeticExpression):
+	"""Postgres subtracts two dates to get an integer number of days, which matches
+	MariaDB's DATEDIFF(date1, date2). String operands are cast to date so that e.g.
+	DateDiff("2024-01-10", field) renders correctly on both backends."""
+
+	def __init__(self, date1, date2, alias=None):
+		if isinstance(date1, str):
+			date1 = Cast(date1, "date")
+		if isinstance(date2, str):
+			date2 = Cast(date2, "date")
+		super().__init__(operator=Arithmetic.sub, left=date1, right=date2, alias=alias)
+
+
+DateDiff = ImportMapper(
+	{
+		db_type_is.MARIADB: CustomFunction("DATEDIFF", ["date1", "date2"]),
+		db_type_is.POSTGRES: _PostgresDateDiff,
 	}
 )
 

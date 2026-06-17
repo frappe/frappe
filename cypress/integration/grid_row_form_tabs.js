@@ -112,6 +112,29 @@ context("Grid Row Form Tabs", () => {
 		cy.get("@table-form2").find(".form-tabs .nav-link").first().should("have.class", "active");
 	});
 
+	it("should jump to a field inside the grid row form", () => {
+		cy.new_form(parent_doctype_name);
+		cy.fill_field("title", "Test Jump To Field");
+
+		// Add a row and open the grid row form
+		cy.get('.frappe-control[data-fieldname="items"]').as("table");
+		cy.get("@table").findByRole("button", { name: "Add row" }).click();
+		cy.get("@table").find('[data-idx="1"]').find(".btn-open-row").click();
+		cy.get(".grid-row-open").as("table-form");
+
+		// Jump to a field that lives on a different tab (Details > Notes)
+		cy.get("body").type("{esc}").type("{ctrl+j}");
+		cy.get(".modal input[type='text']").first().focus();
+		cy.get("body").type("Notes").wait(1000).type("{enter}").wait(200);
+		cy.findByRole("button", { name: "Go" }).click().wait(500);
+
+		// Grid row form stays open and the target field is focused
+		cy.get(".grid-row-open").should("exist");
+		cy.get("@table-form")
+			.find('.frappe-control[data-fieldname="notes"] input')
+			.should("be.focused");
+	});
+
 	it("should allow data entry in fields across different tabs", () => {
 		cy.new_form(parent_doctype_name);
 		cy.fill_field("title", "Test Data Entry");
