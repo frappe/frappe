@@ -1,4 +1,5 @@
 {% if not error %}
+<<<<<<< HEAD
 <div class="panel panel-default">
   <div class="panel-heading">
     <div class="panel-title h3">{{ _(client_id) }}</div>
@@ -26,6 +27,30 @@
     });
   });
 </script>
+=======
+
+<div class="portal-container">
+	<div class="portal-section">
+		<p>{{ _(client_id) }} {{ _("wants to access the following details from your account") }}</p>
+	</div>
+	<div class="portal-items">
+		{% for dtl in details %}
+		<div class="portal-section">
+			{{ _(dtl.title()) }}
+		</div>
+      	{% endfor %}
+	</div>
+	<div class="portal-section">
+		<div class="action-buttons" style="display: flex; flex-direction: row-reverse; width: 100%;">
+			<form method="POST" action="{{ success_url | string }}">
+				<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+				<button type="submit" class="btn btn-sm btn-primary">{{ _("Allow") }}</button>
+			</form>
+			<a href="{{ failure_url | string }}" class="btn btn-sm btn-light mr-3">{{ _("Deny") }}</a>
+		</div>
+	</div>
+</div>
+>>>>>>> 336c7d335d (fix: hardening oauth endpoints)
 {% else %}
 <div class="panel panel-danger">
   <div class="panel-heading">
