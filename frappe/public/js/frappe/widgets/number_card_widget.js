@@ -221,8 +221,13 @@ export default class NumberCardWidget extends Widget {
 
 	get_number_for_report_card(res) {
 		const field = this.card_doc.report_field;
-		const vals = res.result.reduce((acc, col) => {
-			col[field] && acc.push(col[field]);
+		// Strip the frappe-generated total row (last row when add_total_row is set),
+		// then also skip any array-format totals and bold summary rows added by
+		// script reports directly — matching how make_chart_options excludes totals.
+		const rows = res.add_total_row ? res.result.slice(0, -1) : res.result;
+		const vals = rows.reduce((acc, row) => {
+			if (Array.isArray(row) || row.bold) return acc;
+			if (row[field]) acc.push(row[field]);
 			return acc;
 		}, []);
 		const col = res.columns.find((col) => col.fieldname == field);
