@@ -27,7 +27,9 @@ context("Login", () => {
 		cy.get("#login_password").type("qwer");
 
 		cy.findByRole("button", { name: "Continue" }).click();
-		cy.findByRole("button", { name: "Invalid credentials, try again." }).should("exist");
+		cy.get(".login-error-banner")
+			.should("be.visible")
+			.contains("Invalid credentials, try again.");
 		cy.location("pathname").should("eq", "/login");
 	});
 
