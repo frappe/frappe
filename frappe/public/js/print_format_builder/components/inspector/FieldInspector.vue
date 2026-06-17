@@ -952,7 +952,6 @@ function set_padding(side, value) {
 
 .pfb-breadcrumb-btn:hover {
 	background: var(--gray-100);
-	color: var(--blue-500);
 }
 
 .pfb-breadcrumb-label {
