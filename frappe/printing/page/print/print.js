@@ -428,7 +428,9 @@ frappe.ui.form.PrintView = class {
 				{ disabled: 0, is_default: 1, letter_head_for: "DocType" },
 				"name"
 			)
-			.then(({ message }) => this.letterhead_selector.val(message.name));
+			.then(({ message }) => {
+				if (message?.name) this.letterhead_selector.val(message.name);
+			});
 	}
 
 	set_user_lang() {
