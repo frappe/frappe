@@ -144,7 +144,15 @@ class Month(Function):
 			super().__init__("MONTH", field, alias=alias)
 
 
-class Year(Function):
+class Year(_PostgresIntDatePart, Function):
 	def __init__(self, field, alias=None):
+<<<<<<< HEAD
 		super().__init__("YEAR", field, alias=alias)
 >>>>>>> 3e8e719afb (feat: support YEAR query function)
+=======
+		self._postgres = _is_postgres()
+		if self._postgres:
+			super().__init__("date_part", "year", field, alias=alias)
+		else:
+			super().__init__("YEAR", field, alias=alias)
+>>>>>>> a23b0bad60 (feat: add postgres support for `Year` too)
