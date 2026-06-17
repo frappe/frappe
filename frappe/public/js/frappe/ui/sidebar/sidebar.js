@@ -742,13 +742,13 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	// The sidebar is mostly selection-driven: it's chosen via the header switcher (or a direct
-	// workspace route) and then stays put as you navigate. Two things move it automatically.
-	// The owning-workspace check takes priority: navigating to an entity that declares an owning
-	// workspace (its item is flagged default_workspace) and isn't already represented in the
-	// current sidebar follows it to that workspace -- this also wins over cold-entry resolution,
-	// so a fresh load / deep link lands in the workspace the doctype belongs to. Only when the
-	// route has no owning workspace does the cold-entry fallback resolve an initial sidebar once.
-	// The active-item highlight stays route-aware via set_active_workspace_item().
+	// workspace route) and then stays put as you navigate. One thing moves it automatically:
+	// navigating to an entity that lives in some sidebar but NOT the current one follows it to the
+	// sidebar that owns it. Ownership is resolved from the boot sidebar payload via
+	// get_workspace_sidebars() -- the workspace whose item is flagged default_workspace wins, else
+	// the first sidebar that contains the item. Resolving from data (not the DOM/location) keeps it
+	// independent of route/render timing, and it takes priority over the cold-entry fallback. The
+	// active-item highlight stays route-aware via set_active_workspace_item().
 	set_workspace_sidebar() {
 		try {
 			const route = frappe.get_route();
@@ -760,20 +760,26 @@ frappe.ui.Sidebar = class Sidebar {
 					this.select_sidebar(name);
 				}
 			} else {
-				// Owning-workspace check (takes priority over the cold-entry fallback below): if the
-				// routed entity declares an owning workspace (its item is flagged default_workspace)
-				// that isn't the current sidebar and isn't already represented in it, follow the
-				// entity there so the doctype shows under the shell it belongs to.
+				// Find the sidebars in the current shell's app that contain the routed entity; if it
+				// isn't already in the current sidebar, follow it to the one that owns it. Restricting
+				// to the same app keeps navigation from jumping across apps. Prefer the workspace
+				// whose item is flagged default_workspace; otherwise the first sidebar that has it.
 				const entity = this.entity_from_route(route);
-				const owner = this.default_workspace_for(entity);
-				if (
-					owner &&
-					owner.toLowerCase() !== this.workspace_title &&
-					!this.is_route_in_sidebar()
-				) {
-					this.select_sidebar(owner);
+				const current_app = this.all_sidebar_items?.[this.workspace_title]?.app;
+				const candidates = this.get_workspace_sidebars(entity, current_app);
+				const in_current = candidates.some(
+					(s) => s.toLowerCase() === this.workspace_title
+				);
+
+				if (this.workspace_title && candidates.length && !in_current) {
+					const owner = this.default_workspace_for(entity);
+					const target =
+						owner && candidates.some((c) => c.toLowerCase() === owner.toLowerCase())
+							? owner
+							: candidates[0];
+					this.select_sidebar(target);
 				} else if (!this.sidebar_title) {
-					// cold entry / deep link with no owning workspace -> resolve the initial sidebar once
+					// cold entry / deep link whose entity isn't in any sidebar -> resolve once
 					const target = this.initial_sidebar(route);
 					if (target) frappe.app.sidebar.setup(target);
 				}
@@ -828,9 +834,11 @@ frappe.ui.Sidebar = class Sidebar {
 	// Precedence:
 	//   1. the last selected sidebar — kept across reloads as long as it's still relevant to
 	//      the route (the routed entity is in it, or the route doesn't belong to any sidebar)
-	//   2. User.default_workspace
-	//   3. a sidebar derived from the routed entity (lands deep links in a relevant sidebar)
-	//   4. the first available sidebar
+	//   2. a sidebar derived from the routed entity (lands deep links in a relevant sidebar)
+	//   3. the first available sidebar
+	// User.default_workspace is intentionally NOT consulted here: it made the sidebar sticky to
+	// one workspace regardless of route, which broke the illusion that each entity lives in its
+	// own app shell.
 	resolve_initial_sidebar(route) {
 		const all = frappe.boot.workspace_sidebar_item || {};
 		const exists = (name) => (name && all[name.toLowerCase()] ? name : null);
@@ -849,17 +857,6 @@ frappe.ui.Sidebar = class Sidebar {
 				reason: candidates.length
 					? `last selected sidebar "${persisted}" — route entity "${entity}" belongs to it`
 					: `last selected sidebar "${persisted}" — route "${entity}" belongs to no sidebar, so the selection is kept`,
-			};
-		}
-
-		const default_workspace = frappe.boot.user?.default_workspace;
-		if (default_workspace && exists(default_workspace.title)) {
-			const note = persisted
-				? ` (last selected "${persisted}" dropped: not relevant to route entity "${entity}")`
-				: "";
-			return {
-				sidebar: default_workspace.title,
-				reason: `User.default_workspace "${default_workspace.title}"${note}`,
 			};
 		}
 
@@ -914,10 +911,13 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
-	get_workspace_sidebars(link_to) {
+	// Titles of the sidebars that contain `link_to`. When `app` is passed, only sidebars belonging
+	// to that app are considered, so navigation can stay within the current shell's app.
+	get_workspace_sidebars(link_to, app) {
 		let sidebars = [];
 		Object.entries(this.all_sidebar_items).forEach(([name, sidebar]) => {
 			const { items, label } = sidebar;
+			if (app && sidebar.app !== app) return;
 			items.forEach((item) => {
 				if (item.link_to === link_to) {
 					sidebars.push(label || name);
@@ -925,11 +925,11 @@ frappe.ui.Sidebar = class Sidebar {
 			});
 		});
 
-		// If one of these workspaces owns the entity (its item is flagged
-		// default_workspace), surface it first so callers that take the top
-		// candidate land in the workspace the entity belongs to.
+		// If one of these workspaces owns the entity (its item is flagged default_workspace) and
+		// survived the app filter, surface it first so callers that take the top candidate land in
+		// the workspace the entity belongs to.
 		const owner = this.default_workspace_for(link_to);
-		if (owner) {
+		if (owner && sidebars.some((s) => s.toLowerCase() === owner.toLowerCase())) {
 			sidebars = [owner, ...sidebars.filter((s) => s.toLowerCase() !== owner.toLowerCase())];
 		}
 		return sidebars;
