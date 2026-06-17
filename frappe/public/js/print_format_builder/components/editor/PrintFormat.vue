@@ -129,10 +129,12 @@ let page_number_style = computed(() => {
 	let style = {
 		position: "absolute",
 		background: "var(--fg-color)",
-		padding: "4px",
+		padding: "3px 8px",
 		borderRadius: "var(--border-radius)",
 		border: "1px solid var(--border-color)",
 		fontSize: "11px",
+		color: "var(--text-muted)",
+		lineHeight: "1.4",
 	};
 	if (print_format.value.page_number.includes("Top")) {
 		style.top = print_format.value.margin_top / 2 + "mm";
