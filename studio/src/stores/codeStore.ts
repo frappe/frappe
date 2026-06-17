@@ -19,8 +19,6 @@ import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { ExpressionEvaluationContext } from "@/types"
 import type { Router } from "vue-router"
 
-// Vue reactivity primitives injected into client/event scripts so users can write
-// `<script setup>`-style code (ref, computed, watch, …) without an import line.
 export const vueReactivityApis = {
 	ref, reactive, computed, watch, watchEffect, watchDebounced,
 	toRef, toRefs, unref, isRef, isReactive,
@@ -30,13 +28,11 @@ export const vueReactivityApis = {
 const useCodeStore = defineStore("codeStore", () => {
 	const resources = ref<Record<string, Resource>>({})
 	const variables = ref<Record<string, any>>({})
-	// Top-level bindings (refs, reactive state, computed, functions, classes) declared in the
-	// page script — exposed to expressions/scripts like a Vue `<script setup>`.
-	// shallowRef (not ref): a deep ref would wrap this in reactive() and auto-unwrap the nested
-	// refs, so scripts would see plain values and `count.value` would be undefined. shallowRef
-	// keeps `.value` a plain object, so refs stay refs and scripts can read/write `.value`.
+	const routeObject = ref<ComputedRef>()
+	const routerObject = ref<Router | Readonly<Router>>()
+
+	// shallowRef (not ref): a deep ref would wrap this in reactive() and auto-unwrap the nested refs
 	const pageScriptBindings = shallowRef<Record<string, any>>({})
-	// Auto-unwrapped view for templates/prop bindings (refs unwrapped, like `<script setup>`).
 	const pageScriptTemplateBindings = computed(() => {
 		const unwrapped: Record<string, any> = {}
 		for (const key in pageScriptBindings.value) {
@@ -45,11 +41,7 @@ const useCodeStore = defineStore("codeStore", () => {
 		return unwrapped
 	})
 	const pageScriptError = ref<string | null>(null)
-	// Effect scope owning the watch/watchEffect/computed the page script creates, so they
-	// are disposed when the page script is recompiled or the page is left.
 	let pageScriptScope: EffectScope | null = null
-	const routeObject = ref<ComputedRef>()
-	const routerObject = ref<Router | Readonly<Router>>()
 
 	function setRouteObject(route: ComputedRef) {
 		routeObject.value = route
@@ -101,8 +93,6 @@ const useCodeStore = defineStore("codeStore", () => {
 	}
 
 	function getValueFromVariable(variablePath: string, localContext?: ExpressionEvaluationContext) {
-		// Resolve typed variables AND page-script bindings (unwrapped), so two-way prop binding
-		// reads back a page-script ref the same way it writes to one via setValueInVariable.
 		const context = { ...variables.value, ...pageScriptTemplateBindings.value, ...localContext }
 		return getValueFromObject(context, variablePath)
 	}
@@ -114,8 +104,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			setValueInObject(localContext, variablePath, value)
 			return
 		}
-		// Two-way binding into a page-script ref (e.g. a prop synced with `count`):
-		// write through the ref so `count.value` updates, mirroring the `{{ count }}` read.
+
 		const binding = pageScriptBindings.value[rootKey]
 		if (isRef(binding)) {
 			if (pathParts.length === 1) {
@@ -133,14 +122,12 @@ const useCodeStore = defineStore("codeStore", () => {
 		pageScriptScope = null
 	}
 
-	async function setPageScript(page: StudioPage, codeMode: boolean = false) {
-		// Tear down the previous page's script effects (watchers/computed) before re-running.
+	async function setPageScript(page: StudioPage, isStandardPage: boolean = false) {
 		disposePageScriptScope()
 		pageScriptBindings.value = {}
 		pageScriptError.value = null
 
-		if (codeMode) {
-			// Exported app: run the page's compiled setup() module (full import power).
+		if (isStandardPage) {
 			pageScriptBindings.value = await loadCodePageScript(page.name)
 			return
 		}
@@ -237,7 +224,6 @@ const useCodeStore = defineStore("codeStore", () => {
 	}
 
 	const globalContext = computed(() => {
-		// Template/prop binding context: refs auto-unwrapped (so `{{ count }}` shows the value).
 		return {
 			...variables.value,
 			...resources.value,
@@ -251,7 +237,6 @@ const useCodeStore = defineStore("codeStore", () => {
 	const globalExecutionContext = computed(() => {
 		// Script context: variables and page-script bindings are passed as refs so scripts can
 		// read/write `.value`, and the Vue reactivity APIs are available for `<script setup>` code.
-		// eg: - {{ variable_name }} in templates or variable_name.value in scripts
 		const variablesRefs = toRefs(variables.value)
 		return {
 			...vueReactivityApis,
