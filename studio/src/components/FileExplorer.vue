@@ -298,8 +298,17 @@ const isEditingActivePageScript = computed(
 	() => Boolean(openFile.value) && openFile.value!.path === activePagePaths.value?.script,
 )
 
-const isJsonFile = (path: string) => path.toLowerCase().endsWith(".json")
-const openFileReadOnly = computed(() => Boolean(openFile.value) && isJsonFile(openFile.value!.path))
+// the app doc exports to <scrub(app)>.json at the studio root
+const appJsonPath = computed(() => `${scrub(app.value?.name ?? "")}.json`)
+const isExportDocFile = (path: string) =>
+	path.toLowerCase().endsWith(".json") &&
+	(path.startsWith("studio_page/") || path.startsWith("studio_components/") || path === appJsonPath.value)
+const isExportFolder = (path: string) =>
+	path === "studio_page" || path === "studio_components" || /^studio_page\/[^/]+$/.test(path)
+const isProtectedNode = (node: StudioFileNode) =>
+	node.is_folder ? isExportFolder(node.path) : isExportDocFile(node.path)
+
+const openFileReadOnly = computed(() => Boolean(openFile.value) && isExportDocFile(openFile.value!.path))
 
 function getFileBadge(path: string): { label: string; colorClass: string } {
 	const extension = path.slice(path.lastIndexOf(".")).toLowerCase()
@@ -461,14 +470,13 @@ const contextMenuNode = ref<StudioFileNode | null>(null)
 const contextMenuOptions = computed<ContextMenuOption[]>(() => {
 	const node = contextMenuNode.value
 	if (!node) return []
-	// Read-only JSON files get no rename/delete actions.
-	const options: ContextMenuOption[] =
-		!node.is_folder && isJsonFile(node.path)
-			? []
-			: [
-					{ label: "Rename", action: () => startRename(node) },
-					{ label: "Delete", action: () => deleteNode(node) },
-				]
+	// Export-managed pages/components get no rename/delete actions.
+	const options: ContextMenuOption[] = isProtectedNode(node)
+		? []
+		: [
+				{ label: "Rename", action: () => startRename(node) },
+				{ label: "Delete", action: () => deleteNode(node) },
+			]
 	if (!node.is_folder && node.path.endsWith(".vue")) {
 		const componentName = node.label.replace(/\.vue$/i, "")
 		options.unshift({ label: "Go to Component", action: () => store.navigateToVueComponent(componentName) })
@@ -525,7 +533,7 @@ const editingPath = ref<string | null>(null)
 
 function startRename(node: StudioFileNode) {
 	closeContextMenu()
-	if (!node.is_folder && isJsonFile(node.path)) return // read-only
+	if (isProtectedNode(node)) return // export-managed, read-only
 	editingPath.value = node.path
 	nextTick(() => requestAnimationFrame(() => focusLabel(node)))
 }
@@ -596,7 +604,7 @@ function remapOpenFile(oldPath: string, newPath: string, isFolder: boolean) {
 
 // -- Delete --
 async function deleteNode(node: StudioFileNode) {
-	if (!node.is_folder && isJsonFile(node.path)) return // read-only
+	if (isProtectedNode(node)) return // export-managed, can't delete
 	const message = node.is_folder ? `Delete ${node.path} and everything inside it?` : `Delete ${node.path}?`
 	if (!(await confirm(message))) return
 	try {
