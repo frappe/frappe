@@ -23,7 +23,7 @@ const PERM_SECTIONS = [
 	{
 		label: "Reporting & Sharing",
 		flags: [
-			{ name: "report", description: "Access report and list views." },
+			{ name: "report", description: "Run reports for this DocType." },
 			{ name: "export", description: "Export records to a file." },
 			{ name: "import", description: "Import records from a file." },
 			{ name: "share", description: "Share documents with specific users." },
@@ -52,9 +52,6 @@ frappe.ui.form.on("Role", {
 	refresh(frm) {
 		frm.role_form = new RoleForm(frm);
 		frm.role_form.render();
-		frm.page.wrapper.off("show.role_tabs").on("show.role_tabs", () => {
-			frm.role_form && frm.role_form.load_active_tab();
-		});
 	},
 
 	on_tab_change(frm) {
@@ -181,6 +178,12 @@ class RoleTab {
 	list_config() {
 		return {};
 	}
+	save_roles_on_doc(doctype, name, transform) {
+		return frappe.db.get_doc(doctype, name).then((doc) => {
+			doc.roles = transform(doc.roles || []);
+			return client_save(doc);
+		});
+	}
 }
 
 // ============================================================
@@ -294,7 +297,7 @@ class UsersTab extends RoleTab {
 			],
 			primary_action_label: __("Add"),
 			primary_action: (values) => {
-				return this.add_role(values.user)
+				this.add_role(values.user)
 					.then(() => {
 						dialog.hide();
 						frappe.show_alert({ message: __("User added."), indicator: "green" });
@@ -312,20 +315,16 @@ class UsersTab extends RoleTab {
 	}
 
 	add_role(user_name) {
-		return frappe.db.get_doc("User", user_name).then((doc) => {
-			doc.roles = doc.roles || [];
-			if (!doc.roles.find((r) => r.role === this.role)) {
-				doc.roles.push({ role: this.role });
-			}
-			return frappe.call({ method: "frappe.client.save", args: { doc } });
+		return this.save_roles_on_doc("User", user_name, (roles) => {
+			if (!roles.find((r) => r.role === this.role)) roles.push({ role: this.role });
+			return roles;
 		});
 	}
 
 	remove(user_name) {
-		return frappe.db.get_doc("User", user_name).then((doc) => {
-			doc.roles = (doc.roles || []).filter((r) => r.role !== this.role);
-			return frappe.call({ method: "frappe.client.save", args: { doc } });
-		});
+		return this.save_roles_on_doc("User", user_name, (roles) =>
+			roles.filter((r) => r.role !== this.role)
+		);
 	}
 }
 
@@ -372,7 +371,7 @@ class DocumentsTab extends RoleTab {
 		const cols = [
 			{ label: __("DocType"), fieldname: "parent" },
 			{
-				label: __("Source"),
+				label: __("Type"),
 				fieldname: "source",
 				type: "badge",
 				color: (row) => (row.source === "Custom" ? "blue" : "gray"),
@@ -407,15 +406,21 @@ class DocumentsTab extends RoleTab {
 	create(values) {
 		const doctype = values.ref_doctype;
 		const permlevel = cint(values.permlevel);
-		const filters = { parent: doctype, role: this.role, permlevel, if_owner: 0 };
 		return frappe
 			.call({
 				method: "frappe.core.page.permission_manager.permission_manager.add",
 				args: { parent: doctype, role: this.role, permlevel },
 			})
-			.then(() => frappe.db.get_value("Custom DocPerm", filters, "name"))
-			.then((r) => {
-				const name = r.message && r.message.name;
+			.then(() =>
+				frappe.db.get_list("Custom DocPerm", {
+					filters: { parent: doctype, role: this.role, permlevel, if_owner: 0 },
+					fields: ["name"],
+					order_by: "creation desc",
+					limit: 1,
+				})
+			)
+			.then((rows) => {
+				const name = rows && rows[0] && rows[0].name;
 				return name
 					? frappe.db.set_value("Custom DocPerm", name, this.perm_data(values))
 					: null;
@@ -429,7 +434,12 @@ class DocumentsTab extends RoleTab {
 		}
 		return frappe.db.get_doc("DocType", row.parent).then((dt) => {
 			const perm = (dt.permissions || []).find((p) => p.name === row.name);
-			if (perm) Object.assign(perm, data);
+			if (!perm) {
+				frappe.throw(
+					__("Permission row not found. It may have been removed — please refresh.")
+				);
+			}
+			Object.assign(perm, data);
 			return client_save(dt);
 		});
 	}
@@ -633,23 +643,40 @@ class PermissionDialog {
 
 	save(values) {
 		const promise = this.is_edit ? this.tab.update(this.row, values) : this.tab.create(values);
-		promise.then(() => {
-			this.dialog.hide();
-			frappe.show_alert({
-				message: this.is_edit ? __("Permission updated.") : __("Permission added."),
-				indicator: "green",
+		promise
+			.then(() => {
+				this.dialog.hide();
+				frappe.show_alert({
+					message: this.is_edit ? __("Permission updated.") : __("Permission added."),
+					indicator: "green",
+				});
+				this.tab.refresh();
+			})
+			.catch((e) => {
+				frappe.msgprint({
+					title: __("Error"),
+					message: e.message || __("Failed to save permission."),
+					indicator: "red",
+				});
 			});
-			this.tab.refresh();
-		});
 	}
 
 	confirm_remove() {
 		frappe.confirm(__("Remove this role's permission on {0}?", [this.row.parent]), () => {
-			this.tab.remove(this.row).then(() => {
-				this.dialog.hide();
-				frappe.show_alert({ message: __("Permission removed."), indicator: "green" });
-				this.tab.refresh();
-			});
+			this.tab
+				.remove(this.row)
+				.then(() => {
+					this.dialog.hide();
+					frappe.show_alert({ message: __("Permission removed."), indicator: "green" });
+					this.tab.refresh();
+				})
+				.catch((e) => {
+					frappe.msgprint({
+						title: __("Error"),
+						message: e.message || __("Failed to remove permission."),
+						indicator: "red",
+					});
+				});
 		});
 	}
 }
@@ -724,7 +751,7 @@ class RoleAccessTab extends RoleTab {
 			],
 			primary_action_label: __("Add"),
 			primary_action: (values) => {
-				return this.add_role(values.doc)
+				this.add_role(values.doc)
 					.then(() => {
 						dialog.hide();
 						frappe.show_alert({ message: __("Access added."), indicator: "green" });
@@ -742,20 +769,16 @@ class RoleAccessTab extends RoleTab {
 	}
 
 	add_role(record_name) {
-		return frappe.db.get_doc(this.access_doctype, record_name).then((doc) => {
-			doc.roles = doc.roles || [];
-			if (!doc.roles.find((r) => r.role === this.role)) {
-				doc.roles.push({ role: this.role });
-			}
-			return frappe.call({ method: "frappe.client.save", args: { doc } });
+		return this.save_roles_on_doc(this.access_doctype, record_name, (roles) => {
+			if (!roles.find((r) => r.role === this.role)) roles.push({ role: this.role });
+			return roles;
 		});
 	}
 
 	remove(record_name) {
-		return frappe.db.get_doc(this.access_doctype, record_name).then((doc) => {
-			doc.roles = (doc.roles || []).filter((r) => r.role !== this.role);
-			return frappe.call({ method: "frappe.client.save", args: { doc } });
-		});
+		return this.save_roles_on_doc(this.access_doctype, record_name, (roles) =>
+			roles.filter((r) => r.role !== this.role)
+		);
 	}
 }
 

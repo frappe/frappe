@@ -14,9 +14,6 @@
  "roles": [
   {
    "role": "All"
-  },
-  {
-   "role": "Sales User"
   }
  ],
  "script": null,

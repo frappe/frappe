@@ -164,13 +164,13 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 		const count = Math.min(remaining, this.page_size);
 		$(
 			`<div class="embedded-list-more">
-				<button class="btn btn-xs btn-default" data-action="load-more">
-					${__("Load {0} more", [count])}
-				</button>
 				<span class="embedded-list-count">${__("Showing {0} of {1}", [
 					this.rendered_count,
 					this.data.length,
 				])}</span>
+				<button class="btn btn-xs btn-default" data-action="load-more">
+					${__("Load More")}
+				</button>
 			</div>`
 		).appendTo(this.$result);
 	}

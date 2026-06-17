@@ -29,12 +29,17 @@
 
 	.embedded-list-header-actions {
 		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		gap: var(--padding-sm);
 	}
 
 	.embedded-list-table-wrap {
 		border: 1px solid var(--border-color);
 		border-radius: var(--border-radius-md);
 		overflow-x: auto;
+		overflow-y: auto;
+		max-height: 600px;
 		-webkit-overflow-scrolling: touch;
 		margin-bottom: 16px;
 	}
@@ -45,6 +50,12 @@
 		border-collapse: collapse;
 		font-size: var(--text-md);
 		color: var(--text-color);
+
+		thead {
+			position: sticky;
+			top: 0;
+			z-index: 1;
+		}
 
 		thead tr {
 			background: var(--subtle-fg);
@@ -59,8 +70,7 @@
 		}
 
 		td {
-			padding: 0 10px;
-			height: 38px;
+			padding: 10px;
 			border-bottom: 1px solid var(--border-color);
 			vertical-align: middle;
 			white-space: nowrap;
@@ -99,15 +109,15 @@
 			text-align: right;
 
 			.btn-link {
-				padding: 4px;
+				padding: 2px 4px;
 				line-height: 1;
-				border-radius: var(--border-radius);
 				color: var(--text-muted);
 				text-decoration: none;
+				background: none;
 
 				&:hover {
 					color: var(--text-color);
-					background-color: var(--bg-color);
+					background: none;
 				}
 
 				&.text-danger:hover {
