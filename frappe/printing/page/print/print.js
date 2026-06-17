@@ -114,7 +114,12 @@ frappe.ui.form.PrintView = class {
 			options: "Print Format",
 			label: __("Print Format"),
 			get_query: () => {
-				return { filters: { doc_type: this.frm.doctype } };
+				return {
+					filters: {
+						doc_type: this.frm.doctype,
+						print_format_for: "DocType",
+					},
+				};
 			},
 			change: () => this.refresh_print_format(),
 		}).$input;
@@ -147,6 +152,9 @@ frappe.ui.form.PrintView = class {
 			options: "Letter Head",
 			label: __("Letter Head"),
 			description: description,
+			get_query: () => {
+				return { filters: { letter_head_for: "DocType" } };
+			},
 			change: function () {
 				this.set_description(this.get_value() ? description : "");
 				print_view.preview();
@@ -415,8 +423,14 @@ frappe.ui.form.PrintView = class {
 		}
 
 		return frappe.db
-			.get_value("Letter Head", { disabled: 0, is_default: 1 }, "name")
-			.then(({ message }) => this.letterhead_selector.val(message.name));
+			.get_value(
+				"Letter Head",
+				{ disabled: 0, is_default: 1, letter_head_for: "DocType" },
+				"name"
+			)
+			.then(({ message }) => {
+				if (message?.name) this.letterhead_selector.val(message.name);
+			});
 	}
 
 	set_user_lang() {
