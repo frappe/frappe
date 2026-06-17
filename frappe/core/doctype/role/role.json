@@ -9,12 +9,22 @@
  "field_order": [
   "role_name",
   "home_page",
-  "restrict_to_domain",
   "column_break_4",
   "disabled",
   "is_custom",
   "desk_access",
-  "two_factor_auth"
+  "two_factor_auth",
+  "configure_section",
+  "restrict_to_domain",
+  "role_profiles_html",
+  "users_tab",
+  "users_html",
+  "document_tab",
+  "document_permissions_html",
+  "report_tab",
+  "report_roles_html",
+  "pages_tab",
+  "page_roles_html"
  ],
  "fields": [
   {
@@ -68,13 +78,63 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Is Custom"
+  },
+  {
+   "fieldname": "configure_section",
+   "fieldtype": "Section Break",
+   "label": "Configure"
+  },
+  {
+   "fieldname": "role_profiles_html",
+   "fieldtype": "HTML",
+   "label": "Role Profiles"
+  },
+  {
+   "fieldname": "users_tab",
+   "fieldtype": "Tab Break",
+   "label": "Users"
+  },
+  {
+   "fieldname": "users_html",
+   "fieldtype": "HTML",
+   "label": "Users"
+  },
+  {
+   "fieldname": "document_tab",
+   "fieldtype": "Tab Break",
+   "label": "Documents"
+  },
+  {
+   "fieldname": "document_permissions_html",
+   "fieldtype": "HTML",
+   "label": "Document Permissions"
+  },
+  {
+   "fieldname": "report_tab",
+   "fieldtype": "Tab Break",
+   "label": "Reports"
+  },
+  {
+   "fieldname": "report_roles_html",
+   "fieldtype": "HTML",
+   "label": "Reports"
+  },
+  {
+   "fieldname": "pages_tab",
+   "fieldtype": "Tab Break",
+   "label": "Pages"
+  },
+  {
+   "fieldname": "page_roles_html",
+   "fieldtype": "HTML",
+   "label": "Pages"
   }
  ],
  "icon": "fa fa-bookmark",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-28 15:58:11.939407",
+ "modified": "2026-06-15 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",
