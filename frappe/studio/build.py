@@ -41,45 +41,19 @@ class StudioAppBuilder:
 	def build(self):
 		if self.is_standard:
 			self.get_app_components_from_files()
+			self.get_page_scripts_from_files()
 		else:
 			self.get_app_components()
-		self.get_page_scripts()
 		self._run_vite_build()
 
-	def get_page_scripts(self):
+	def get_page_scripts_from_files(self):
 		"""Collect the <page>.ts code files for the app's published pages, so the build bundles a
-		`setup()` module per page (code mode). Prefer the DB and fall back to exported JSON."""
-		if not self.frappe_app:
-			return
-
-		page_folder = self._page_folder()
+		`setup()` module per page (code mode)."""
+		studio_folder = get_studio_folder(self.frappe_app)
+		page_folder = os.path.join(studio_folder, self.app_name, "studio_page")
 		if not page_folder or not os.path.isdir(page_folder):
 			return
 
-		if frappe.db and frappe.db.exists("Studio App", self.app_name):
-			self.page_scripts = self._page_scripts_from_db(page_folder)
-		else:
-			self.page_scripts = self._page_scripts_from_files(page_folder)
-
-	def _page_folder(self) -> str | None:
-		studio_folder = get_studio_folder(self.frappe_app)
-		return os.path.join(studio_folder, self.app_name, "studio_page") if studio_folder else None
-
-	def _page_scripts_from_db(self, page_folder: str) -> list[dict]:
-		scripts = []
-		pages = frappe.get_all(
-			"Studio Page",
-			filters={"studio_app": self.app_name, "published": 1},
-			fields=["name", "page_title"],
-		)
-		for page in pages:
-			stem = frappe.scrub(page.page_title)
-			file_path = os.path.join(page_folder, stem, f"{stem}.ts")
-			if os.path.exists(file_path):
-				scripts.append({"page_name": page.name, "file_path": file_path})
-		return scripts
-
-	def _page_scripts_from_files(self, page_folder: str) -> list[dict]:
 		scripts = []
 		# each page is a folder holding <stem>.json + <stem>.ts
 		for entry in sorted(os.listdir(page_folder)):
@@ -97,6 +71,8 @@ class StudioAppBuilder:
 				continue
 			if page_name:
 				scripts.append({"page_name": page_name, "file_path": ts_path})
+
+		self.page_scripts = scripts
 		return scripts
 
 	def _run_vite_build(self) -> None:
