@@ -792,13 +792,6 @@
 	width: 100%;
 }
 
-// When a link-field dropdown is open inside the grid, lift the overflow
-// clipping so the absolutely-positioned listbox is not truncated by the
-// scroll container's right edge.
-.form-grid-container:has(.awesomplete > ul:not([hidden])) {
-	overflow: unset;
-}
-
 .form-grid-container:has(.grid-row.grid-row-open) {
 	overflow-x: clip;
 	white-space: normal;
@@ -806,6 +799,18 @@
 	.form-grid {
 		left: 0px !important;
 	}
+}
+
+// When a link-field dropdown is open inside the grid, lift horizontal
+// overflow clipping so the absolutely-positioned listbox is not truncated
+// by the scroll container's right edge. This rule is intentionally placed
+// after grid-row-open so it wins when a dropdown is opened inside an
+// expanded row. overflow-x: visible; overflow-y: clip avoids touching the
+// y-axis (preventing scroll-position reset in Safari) while still removing
+// the x-axis scroll container that causes the clipping.
+.form-grid-container:has(.awesomplete > ul:not([hidden])) {
+	overflow-x: visible;
+	overflow-y: clip;
 }
 .sortable-handle span {
 	width: 31px;
