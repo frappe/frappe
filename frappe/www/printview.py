@@ -360,7 +360,7 @@ def get_html_and_style(
 	if print_format and print_format.get("print_format_builder_beta"):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
-		generator = PrintFormatGenerator(print_format.name, document, letterhead)
+		generator = PrintFormatGenerator(print_format.name, document, None if no_letterhead else letterhead)
 		html = generator.get_html_preview()
 	else:
 		try:
